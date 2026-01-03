@@ -301,6 +301,18 @@ projectBillableTypes: string[] = ['TNM', 'Fixed Cost', 'Monitoring','All'];
 selectedStatus:String = "All" ;
 newSelectedStatus:String = "";
 
+employeeViewBullet : string[] = ["Provides a resource-centric, month-wise overview across projects.",
+"Displays timesheet completion and approval status for each individual resource.",
+"Indicates the compliance state for the selected month.",
+"Helps identify resources with missing, pending, or rejected timesheets.",
+"Supports managerial action to ensure compliance before invoicing or payroll processing."];
+
+projectViewBullet : string[] =["Provides a consolidated, month-wise view at the project level.",
+"Displays overall timesheet status and compliance health for the project.",
+"Shows approval readiness and invoicing eligibility of mapped resources.",
+"Helps identify defaulters and pending approvals at a glance.",
+"Enables quick project-level assessment without drilling down to individual employee details."];
+
 tiles: any[] = [];
 tileGroups: any[] = [];
 
@@ -2037,6 +2049,57 @@ getTiles() {
     ];
   }
 }
+
+
+getTileColor(tileClass: string): string {
+  if (tileClass.includes('border-start-primary')) return '#0d6efd';
+  if (tileClass.includes('border-start-success')) return '#198754';
+  if (tileClass.includes('border-start-warning')) return '#ffc107';
+  if (tileClass.includes('border-start-danger'))  return '#dc3545';
+  return '#6c757d';
+}
+
+
+getTileInfo(status: string): string[] {
+  switch (status) {
+
+    case 'All':
+      return ['Represents the total number of employees required to submit timesheets for the selected month.',
+'Calculated based on active project mapping for the selected month.',
+'Considers the resource engagement period within the selected month.',
+'Determined by the applicable billing type.'];
+
+    case 'Approved':
+      return ['Includes resources who have completed iShine timesheets for the selected period.',
+'Confirms submission of valid client-side approval proof, where applicable (e.g., approved VMS timesheets).',
+'Indicates no pending actions or approvals.',
+'Records are fully compliant with timesheet requirements.',
+'Resources in this status are eligible for invoicing.'];
+
+    case 'Pending':
+      return ['Includes resources who have filled iShine timesheets for the selected period.',
+'Indicates that client-side approval has not yet been received.',
+'Approved client-side documents are awaited from the client (not yet uploaded).',
+'Typically applicable to resources with mandatory client-side IDs or client-side VMS systems.',
+'Status applies when approval proof is pending for more than 2 days after timesheet completion.'];
+
+    case 'Total_defaulter':
+    case 'Defaulter':
+      return ['Includes resources who have not filled iShine timesheets for two or more applicable days.',
+'Also applies where required client-side approval proof is missing or delayed.',
+'Indicates non-compliance with defined timelines.',
+'Resources in this status are not eligible for invoicing.',
+'Status is cleared only after all pending timesheet entries and approvals are completed.'];
+
+    default:
+      return ['Includes resources who have not filled their iShine timesheet for the selected period.',
+'Status is shown irrespective of client-side attendance or approvals.',
+'Indicates missing or incomplete timesheet entries in iShine.',
+'Immediate action required from the resource.',
+'If not resolved, the resource may be marked as a Defaulter.'];
+  }
+}
+
 
 
 

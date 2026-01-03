@@ -92,6 +92,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
    milestoneExpireValidationPupupModalRef: NgbModalRef;
 
    modalMessage:String='';
+    isHelpHovered = false;
 
 
 
@@ -267,9 +268,19 @@ export class HomeComponent implements OnInit, AfterViewInit {
   currentRewards: any[] = [];
   scrollInterval: any;
   selectedTab: string = 'birthday';
-rejectReasons: any;
-jobRole: string = '';
+ rejectReasons: any;
+ jobRole: string = '';
   probation:number=0;
+   rmTimesheetbulletContent: string[] = [
+    "Displays all timesheet entries submitted by your reportees.",
+    "Review entries on a day-wise basis.",
+    "Approve or Reject individual entries as required.",
+    "Use bulk approval when all entries are correct.",
+    "Ensure all entries are approved for the month to close successfully.",
+  ]
+
+
+   
 
   constructor(
     private modalService: NgbModal,
@@ -433,6 +444,8 @@ jobRole: string = '';
       history.pushState(null, null, location.href);
     })
   }
+
+
 
   ngAfterViewInit(): void {
     if (this.currentUser.isNew == "false" && this.currentUser.isUserInfoUpdated == false && this.currentUser.updateFormCounter == 0) {
@@ -3108,6 +3121,23 @@ public getDaysLeftForExpiry(endDate: string | Date): string {
      return `${daysLeft}`;
     }
   }
+
+  onHelpButtonHover(event: MouseEvent) {
+    this.isHelpHovered = true
+  }
+
+  onHelpButtonLeave() {
+    this.isHelpHovered = false
+  }
+
+  
+
+
+openUserManualPdf(): void {
+  const pdfPath = 'assets/pdfFiles/RM Approval of timesheet.pdf';
+  window.open(pdfPath, '_blank');
+}
+
 
 
 

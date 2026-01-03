@@ -71,6 +71,7 @@ export class MyTimesheetComponent implements OnInit {
   //flags
   isCreation: boolean = false;
   isUpdation: boolean = false;
+  withVms: boolean = false;
 
   isTimesheetForm: boolean = false;
   isTimesheetBulkForm: boolean = false;
@@ -130,6 +131,20 @@ export class MyTimesheetComponent implements OnInit {
   isTimesheetLockCheckEnable: any = "true";
   employeeInTNMProject: boolean = false;
 
+  withVmsbullet:string[] = ["Applicable to resources working on projects with a client-side VMS system.",
+"Daily timesheets must be filled directly in the client’s VMS system.",
+"Ensure entries are accurate and complete for the entire month.",
+"At month-end, submit the VMS timesheet for client-side manager approval.",
+"After approval, download the approved VMS timesheet (PDF) or capture a screenshot.",
+"Upload the approved document via Bulk Upload as proof of attendance and client approval."];
+
+withoutVmsbullet:string[] = ["Applicable to resources without a client-side VMS system.",
+"Maintain the daily timesheet in the prescribed Excel format.",
+"Capture screenshots of the filled Excel timesheet as supporting evidence.",
+"At month-end, email the timesheet to the client-side manager for approval.",
+"Obtain email approval from the client-side manager (as per the defined email structure).",
+"Upload the approval email screenshot/PDF file via Bulk Upload as proof of attendance and client approval."];
+
 
 
 
@@ -171,6 +186,7 @@ export class MyTimesheetComponent implements OnInit {
   activeFileType: string | null = null;
   mimeType: any;
   projectRequiresClientId: Boolean = false;
+  projAlertRequireClientId: Boolean = false;
   fromDate: any = null;
   toDate: any = null;
   finalFromDate: any = null;
@@ -218,7 +234,10 @@ export class MyTimesheetComponent implements OnInit {
   isUploadAllowed: boolean = false;
   disableUploadTooltip = "Bulk upload is permitted only for the complete previous month or on the last day of the current month . Please select a date range that falls entirely within the allowed period to enable uploading. ";
 
-
+  clientIdEntryBulletPoints: string[] = ["Mandatory field for all resources while filling the timesheet.",
+"Enter the client-side ID if already available.",
+"If the client-side ID is not yet assigned, enter “NA (ApMoSys Employee ID)”.",
+"Once the client-side ID is received, update the ID while filling subsequent timesheets."]
 
 
   //latestProjectId = this.activeProjectList
@@ -316,6 +335,24 @@ export class MyTimesheetComponent implements OnInit {
 openUserManualPdf(): void {
   const pdfPath = 'assets/pdfFiles/Ishine_Timesheet_TNM.pdf';
   window.open(pdfPath, '_blank');
+}
+
+get tooltipContent(): string[] {
+  return this.withVms
+    ? this.withVmsbullet
+    : this.withoutVmsbullet ;
+}
+
+get tooltipPdf(): string {
+  return this.withVms
+    ? 'assets/pdfFiles/Client side VMS.pdf'
+    : 'assets/pdfFiles/No Client side VMS .pdf';
+}
+
+get tooltipCta(): string {
+  return this.withVms
+    ? 'View VMS Guide'
+    : 'View Non-VMS Guide';
 }
 
 
@@ -3109,6 +3146,7 @@ openUserManualPdf(): void {
     this.timesheetService.checkIfProjectRequiresClientId(projectId).pipe(first()).subscribe(async(response: any) => {
       if (response.serviceStatus == "Success") {
         this.projectRequiresClientId = response.serviceResponse;
+        this.projAlertRequireClientId = response.serviceResponse;
         if (this.projectRequiresClientId) {
           //is client id mandetory api call.
           // this.timesheetService.isClientMandetory(+projectId).pipe(first()).subscribe((response: any) => {
@@ -3118,6 +3156,7 @@ openUserManualPdf(): void {
           // });
           response = await this.timesheetService.isClientMandetory(+projectId).pipe(first()).toPromise();
           this.clientSideIdMandetoryFromBackend = response.serviceResponse;
+           this.withVms = this.projectRequiresClientId && this.clientSideIdMandetoryFromBackend;
 
           this.clientSideIdNotMandatory = false;
           this.timesheetObj.clientSideId = null;
