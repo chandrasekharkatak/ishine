@@ -933,13 +933,12 @@
                                     <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                                 </a>
                             </div>
-                            <div class="col-md-1"
+                            <div class="col-md-1" *ngIf="userMapping.export_timesheet_details"
                                 style="display: flex; justify-content: left; max-width: fit-content;  cursor: pointer;">
                                 <i class="fa fa-download"
                                     style="color: #053885;display: flex; justify-content: left; max-width: fit-content;"
                                     [hidden]="filteredTimesheetData.length == 0" (click)="exportToExcel()"></i>
                             </div>
-                        </div>
                         <div class="col d-flex align-items-center " *ngIf="timesheetData?.length > 0">
                             <span class="font-weight-bold text-muted small">
                                 <!-- Displaying:{{ (filteredTimesheetData | colFilter : filters : false).length }} of {{ filteredTimesheetData.length }} employees -->
@@ -1264,8 +1263,7 @@
                                     <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                                 </a>
                             </div>
-                            <div class="col-md-1"
-                                style="display: flex; justify-content: left; max-width: fit-content; position: relative;">
+                            <div *ngIf="userMapping.export_timesheet_details" class="col-md-1" style="display: flex; justify-content: left; max-width: fit-content; position: relative;">
 
                                 <!-- Download Icon -->
                                 <i class="fa fa-download" style="color: #053885; cursor: pointer; font-size: 18px;"

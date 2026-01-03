@@ -1144,6 +1144,7 @@ public class EmployeeLeaveService {
 	                        leaveDTO.getFromDate(), leaveDTO.getToDate());
 	                if (empTimeSheet != null && !empTimeSheet.isEmpty()) {
 	                    for (Timesheet timesheet : empTimeSheet) {
+	                    	if(timesheet.getDayType()==null || (timesheet.getDayType().equals("Working") || timesheet.getDayType().equals("Non-working"))) {
 	                        List<TimesheetActivityMap> timesheetactivities = timesheetActivityRepository
 	                                .getTimesheetActivityByTimesheetId(timesheet.getTimesheetId());
 	                        if (timesheetactivities != null) {
@@ -1152,6 +1153,7 @@ public class EmployeeLeaveService {
 	                            }
 	                        }
 	                        timesheetsRepository.deleteById(timesheet.getTimesheetId());
+	                    	}
 	                    }
 	                    entityManager.flush();
 	                }

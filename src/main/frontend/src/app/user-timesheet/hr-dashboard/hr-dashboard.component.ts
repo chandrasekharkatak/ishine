@@ -25,6 +25,7 @@ import { GetEmployeeTimesheetAsCalender } from 'src/app/models/getEmployeeTimesh
 import { getEmployeeTimesheetAsCalenderByProjectId } from 'src/app/models/getEmployeeTimesheetAsCalenderByProjectId';
 import { EmployeeTimesheetResponse } from 'src/app/models/employeeTimesheetResponse';
 import { getProjectViewList } from 'src/app/models/getProjectViewList';
+import { Feature } from 'src/app/models/feature';
 
 
 interface DayCell {
@@ -315,7 +316,8 @@ projectViewBullet : string[] =["Provides a consolidated, month-wise view at the 
 
 tiles: any[] = [];
 tileGroups: any[] = [];
-
+  userMapping:any = {};
+  feature = "Timesheets Dashboard";
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -331,8 +333,11 @@ tileGroups: any[] = [];
 
   async ngOnInit(): Promise<void> {
 
-
-
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
+    console.log("*ngIf=userMapping.export_timesheet_details",this.userMapping.export_timesheet_details)
     const currentYear = this.currentDate.getFullYear();
     this.minYear = new Date(currentYear - 1, 0, 1);
     this.maxYear = new Date(currentYear, 11, 31);
