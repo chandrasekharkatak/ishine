@@ -63,3 +63,15 @@
 .dt-wrapper hr {
   border-top: 1px solid #e5e5e5;
 }
+.dt-wrapper {
+  position: relative;
+}
+
+.dt-clear-btn {
+  position: absolute;
+  right: 8px;
+  top: 32px;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+}
