@@ -18,8 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.JobRoleAccess;
-import com.apmosys.employeeportal.dto.CreateTimesheetRequestDTONew;
-import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDeleteRequestDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetStatusUpdateRequestDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.employeeTimesheetMappingDTO_new;
 import com.apmosys.employeeportal.service.TimesheetServiceNew;
 import com.apmosys.employeeportal.service.helper.TimesheetEncryptionHelper;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -56,8 +57,8 @@ public class EmployeeTimesheetControllerNew {
 	public ServiceResponse createTimesheet(@RequestPart("dto") String encryptedDto,
 			@RequestPart(value = "doc1", required = false) MultipartFile doc1,
 			@RequestPart(value = "doc2", required = false) MultipartFile doc2) throws Exception {
-		// Decrypt and parse encrypted DTO using helper service
-		TimesheetDTO dto = timesheetEncryptionHelper.decryptAndParseTimesheetDto(encryptedDto);
+		// Decrypt and parse encrypted DTO to new structure
+		employeeTimesheetMappingDTO_new dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNewMapping(encryptedDto);
 		ServiceResponse response = timesheetServiceNew.createTimesheet(dto, doc1, doc2);
 		return response;
 	}
@@ -83,8 +84,8 @@ public class EmployeeTimesheetControllerNew {
             @RequestPart(value = "doc1", required = false) MultipartFile doc1,
             @RequestPart(value = "doc2", required = false) MultipartFile doc2) throws Exception {
         
-        // Decrypt and parse encrypted DTO
-    CreateTimesheetRequestDTONew dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNew(encryptedDto);
+        // Decrypt and parse encrypted DTO to new structure
+        employeeTimesheetMappingDTO_new dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNewMapping(encryptedDto);
         
         return timesheetServiceNew.updateTimesheet(timesheetId, dto, doc1, doc2);
     }
@@ -106,8 +107,8 @@ public class EmployeeTimesheetControllerNew {
 	 */
 	@JobRoleAccess(featureIds = {15, 16})
 	@PostMapping(value = "/by-date")
-	public ServiceResponse getTimesheetByDate(@RequestBody TimesheetDTO timesheetDTO) {
-		ServiceResponse response = timesheetServiceNew.getTimesheetByDate(timesheetDTO);
+	public ServiceResponse getTimesheetByDate(@RequestBody employeeTimesheetMappingDTO_new requestDTO) {
+		ServiceResponse response = timesheetServiceNew.getTimesheetByDate(requestDTO);
 		return response;
 	}
 	
@@ -117,8 +118,8 @@ public class EmployeeTimesheetControllerNew {
 	 */
 	@JobRoleAccess(featureIds = {15, 16})
 	@PostMapping(value = "/by-date-range")
-	public ServiceResponse getTimesheetsByDateRange(@RequestBody TimesheetDTO timesheetDTO) {
-		ServiceResponse response = timesheetServiceNew.getTimesheetsByDateRange(timesheetDTO);
+	public ServiceResponse getTimesheetsByDateRange(@RequestBody employeeTimesheetMappingDTO_new requestDTO) {
+		ServiceResponse response = timesheetServiceNew.getTimesheetsByDateRange(requestDTO);
 		return response;
 	}
 	
@@ -128,8 +129,12 @@ public class EmployeeTimesheetControllerNew {
 	 */
 	@JobRoleAccess(featureIds = {15, 16, 24})
 	@PostMapping(value = "/update-status")
-	public ServiceResponse updateTimesheetStatus(@RequestBody TimesheetDTO timesheetDTO) {
-		ServiceResponse response = timesheetServiceNew.updateTimesheetStatus(timesheetDTO);
+	public ServiceResponse updateTimesheetStatus(@RequestBody TimesheetStatusUpdateRequestDTO requestDTO) {
+		ServiceResponse response = timesheetServiceNew.updateTimesheetStatus(
+				requestDTO.getTimesheetId(), 
+				requestDTO.getProjectId(), 
+				requestDTO.getStatus(),
+				requestDTO.getUpdatedBy());
 		return response;
 	}
 	
@@ -150,8 +155,10 @@ public class EmployeeTimesheetControllerNew {
 	 */
 	@JobRoleAccess(featureIds = {15, 16})
 	@DeleteMapping(value = "/project")
-	public ServiceResponse deleteProjectFromTimesheet(@RequestBody TimesheetDTO timesheetDTO) {
-		ServiceResponse response = timesheetServiceNew.deleteProjectFromTimesheet(timesheetDTO);
+	public ServiceResponse deleteProjectFromTimesheet(@RequestBody TimesheetDeleteRequestDTO requestDTO) {
+		ServiceResponse response = timesheetServiceNew.deleteProjectFromTimesheet(
+				requestDTO.getTimesheetId(), 
+				requestDTO.getProjectId());
 		return response;
 	}
 	
@@ -161,8 +168,11 @@ public class EmployeeTimesheetControllerNew {
 	 */
 	@JobRoleAccess(featureIds = {15, 16})
 	@DeleteMapping(value = "/activity")
-	public ServiceResponse deleteActivityFromTimesheet(@RequestBody TimesheetDTO timesheetDTO) {
-		ServiceResponse response = timesheetServiceNew.deleteActivityFromTimesheet(timesheetDTO);
+	public ServiceResponse deleteActivityFromTimesheet(@RequestBody TimesheetDeleteRequestDTO requestDTO) {
+		ServiceResponse response = timesheetServiceNew.deleteActivityFromTimesheet(
+				requestDTO.getTimesheetId(), 
+				requestDTO.getActivityId(),
+				requestDTO.getProjectId());
 		return response;
 	}
 }
