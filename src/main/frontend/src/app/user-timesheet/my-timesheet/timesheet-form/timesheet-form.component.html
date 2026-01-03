@@ -318,7 +318,10 @@
                     <label class="info-label">
                         <span class="text-danger">*</span> Client DSR Approval Status
                     </label>
-                    <app-my-select class="form-control" placeholder="Select Approval Status">
+                    <app-my-select class="form-control" placeholder="Select Approval Status"
+                         [(ngModel)]="timesheetObj.clientApprovalStatus"
+                        [options]="clientApprovalStatusList" displayKey="statusName"
+                        valueKey="statusId" [multiple]="false">
                     </app-my-select>
                 </div>
             </div>
@@ -331,12 +334,19 @@
                         <span class="text-danger">*</span> Filled Attendance Proof
                     </label>
                     <div class="d-flex align-items-center">
-                        <input type="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png" style="max-width: 250px;">
-                        <button class="btn btn-outline-primary btn-sm ms-2" title="Preview">
+                        <input type="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png" 
+                            style="max-width: 250px;" 
+                            (change)="onFileSelected($event, 'doc1')"
+                            (click)="$any($event.target).value=null">
+                        <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
+                            [disabled]="!previewUrl1" 
+                            (click)="openPreviewModalForTwo('doc1')">
                             <i class="fa fa-eye"></i>
                         </button>
                     </div>
-                    <small class="text-muted d-block">No file selected</small>
+                    <small class="text-danger d-block" *ngIf="fileError1">{{fileError1}}</small>
+                    <small class="text-muted d-block" *ngIf="fileName1 && !fileError1">{{fileName1}}</small>
+                    <small class="text-muted d-block" *ngIf="!fileName1 && !fileError1">No file selected</small>
                 </div>
 
                 <!-- Approved Attendance Proof (Show only if Approved) -->
@@ -345,12 +355,19 @@
                         <span class="text-danger">*</span> Approved Attendance Proof
                     </label>
                     <div class="d-flex align-items-center">
-                        <input type="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png" style="max-width: 250px;">
-                        <button class="btn btn-outline-primary btn-sm ms-2" title="Preview">
+                        <input type="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png" 
+                            style="max-width: 250px;"
+                            (change)="onFileSelected($event, 'doc2')"
+                            (click)="$any($event.target).value=null">
+                        <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
+                            [disabled]="!previewUrl2"
+                            (click)="openPreviewModalForTwo('doc2')">
                             <i class="fa fa-eye"></i>
                         </button>
                     </div>
-                    <small class="text-muted d-block">No file selected</small>
+                    <small class="text-danger d-block" *ngIf="fileError2">{{fileError2}}</small>
+                    <small class="text-muted d-block" *ngIf="fileName2 && !fileError2">{{fileName2}}</small>
+                    <small class="text-muted d-block" *ngIf="!fileName2 && !fileError2">No file selected</small>
                 </div>
             </div>
         </div>
@@ -360,7 +377,7 @@
         <!-- ============================================ -->
         <div class="row mt-4 mb-4">
             <div class="col-md-12">
-                <button *ngIf="isCreation" type="button" class="btn btn-primary btn-sm me-2" >
+                <button *ngIf="isCreation" type="button" class="btn btn-primary btn-sm me-2" (click)="createTimesheet()">
                     <i class="fa fa-save"></i> Create Timesheet
                 </button>
                 <button *ngIf="isUpdation" type="button" class="btn btn-danger btn-sm me-2">
@@ -394,5 +411,24 @@
         <button type="button" class="btn btn-primary" (click)="modalRef?.close()">
             OK
         </button>
+    </div>
+</ng-template>
+
+<!-- Preview Modal Template -->
+<ng-template #previewTemplate>
+    <div class="modal-header">
+        <h5 class="modal-title">Document Preview</h5>
+        <button type="button" class="close" aria-label="Close" (click)="modalRef?.close()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body text-center">
+        <!-- PDF Preview -->
+        <iframe *ngIf="activeFileType === 'pdf'" [src]="activePreviewUrl" width="100%" height="600px"
+            style="border: none;"></iframe>
+
+        <!-- Image Preview -->
+        <img *ngIf="activeFileType === 'image'" [src]="activePreviewUrl" class="img-fluid" alt="Preview"
+            style="max-height: 600px;">
     </div>
 </ng-template>

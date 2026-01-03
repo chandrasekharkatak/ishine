@@ -1,47 +1,45 @@
-<div class="dt-wrapper">
-
+<div class="form-group">
   <label class="dt-label" style="font-family: 'Roboto', sans-serif;
     font-weight: 500;
     font-size: 0.85rem;
-    margin-bottom: 4px;">
+    margin-bottom: 4px;" *ngIf="label">
     <span *ngIf="required" class="text-danger">*</span>
     {{ label }}
   </label>
 
-  <!-- DATE -->
   <input
     *ngIf="mode === 'date'"
     type="date"
-    class="form-control"
     [(ngModel)]="modelValue"
-    [disabled]="disabled"
     (ngModelChange)="onModelChange($event)"
+    [disabled]="disabled"
+    [required]="required"
   />
 
   <input
     *ngIf="mode === 'time'"
     type="time"
-    class="form-control"
     [(ngModel)]="modelValue"
-    [disabled]="disabled"
     (ngModelChange)="onModelChange($event)"
+    [disabled]="disabled"
   />
 
   <input
     *ngIf="mode === 'datetime'"
     type="datetime-local"
-    class="form-control"
     [(ngModel)]="modelValue"
-    [disabled]="disabled"
     (ngModelChange)="onModelChange($event)"
+    [disabled]="disabled"
   />
 
-  <button
-    *ngIf="modelValue && !disabled"
-    type="button"
-    class="btn btn-sm btn-link text-danger"
-    (click)="clearValue()">
-    ✖
-  </button>
-
+  <button type="button" (click)="clearValue()">Clear</button>
 </div>
+
+
+<!-- <label class="dt-label" style="font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+    font-size: 0.85rem;
+    margin-bottom: 4px;" *ngIf="label">
+    <span *ngIf="required" class="text-danger">*</span>
+    {{ label }}
+  </label> -->

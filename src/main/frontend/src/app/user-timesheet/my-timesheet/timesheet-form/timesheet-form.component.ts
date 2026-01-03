@@ -1,5 +1,6 @@
 import { Component, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import * as moment from 'moment';
 import { first } from 'rxjs';
 import { AppComponent } from 'src/app/app.component';
@@ -12,6 +13,9 @@ import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ProjectEntry } from 'src/app/models/projectEntry';
 import { ActivityNew } from 'src/app/models/activityNew';
 import { EmployeeClientSideIdMapping } from 'src/app/models/employeeClientSideIdMapping';
+import { EmployeeTimesheetDTO } from 'src/app/models/EmployeeTimesheetDTO';
+import { ProjectTimesheetDTO } from 'src/app/models/ProjectTimesheetDTO';
+import { ActivityTimesheetDTO } from 'src/app/models/ActivityTimesheetDTO';
 
 @Component({
   standalone: false,
@@ -23,6 +27,8 @@ export class TimesheetFormComponent implements OnInit {
 
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
+  @ViewChild("previewTemplate")
+  previewModal: TemplateRef<any>;
   @Input() isCreation: boolean = false;
   @Input() isUpdation: boolean = false;
   isTimesheetLockCheckEnable: any = "true";
@@ -55,10 +61,28 @@ export class TimesheetFormComponent implements OnInit {
   timesheetProjects: ProjectEntry[] = [];
   expandedProjectIndex: number | null = 0;
   empHasClientSideId: boolean = false;
+  projectActivityHoursError: { [projectIndex: number]: string } = {}; // Store validation errors per project
+  
+  // File upload properties
+  selectedFile: File | null = null;
+  selectedFile2: File | null = null;
+  previewUrl1: SafeResourceUrl | null = null;
+  previewUrl2: SafeResourceUrl | null = null;
+  rawObjectUrl1: string | null = null;
+  rawObjectUrl2: string | null = null;
+  fileError1: string = '';
+  fileError2: string = '';
+  fileName1: string = '';
+  fileName2: string = '';
+  activePreviewUrl: SafeResourceUrl | null = null;
+  activeFileType: string | null = null;
+  createOrUpdateObj:EmployeeTimesheetDTO=new EmployeeTimesheetDTO();
+clientApprovalStatusList: any[];
   
   constructor(private teamViewService: TeamViewService,
     private timesheetService: TimesheetService,private modalService: NgbModal,
-    private authenticationService: AuthenticationService) 
+    private authenticationService: AuthenticationService,
+    private sanitizer: DomSanitizer) 
     {this.authenticationService.currentUser.subscribe(x => this.currentUser = x);    }
 
   ngOnInit(): void {
@@ -805,5 +829,156 @@ export class TimesheetFormComponent implements OnInit {
     this.apmosysOutTime = time;
     this.calculateTotalWorkingHours();
   }
+
+  /**
+   * Handle file selection for document upload
+   */
+  onFileSelected(event: any, docType: 'doc1' | 'doc2'): void {
+    const file: File = event.target.files[0];
+    if (!file) return;
+
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+    const maxSize = 300 * 1024; // 300KB
+
+    if (!allowedTypes.includes(file.type)) {
+      if (docType === 'doc1') {
+        this.fileError1 = 'Only PDF, JPG, JPEG, PNG files allowed.';
+        this.openAlertMod(this.alertTemplate, this.fileError1);
+      } else {
+        this.fileError2 = 'Only PDF, JPG, JPEG, PNG files allowed.';
+        this.openAlertMod(this.alertTemplate, this.fileError2);
+      }
+      // Reset file input
+      event.target.value = '';
+      return;
+    }
+
+    if (file.size > maxSize) {
+      if (docType === 'doc1') {
+        this.fileError1 = 'File size must be 300KB or less.';
+        this.openAlertMod(this.alertTemplate, this.fileError1);
+        this.selectedFile = null;
+        this.fileName1 = '';
+        this.previewUrl1 = null;
+        if (this.rawObjectUrl1) {
+          URL.revokeObjectURL(this.rawObjectUrl1);
+        }
+        this.rawObjectUrl1 = null;
+      } else {
+        this.fileError2 = 'File size must be 300KB or less.';
+        this.openAlertMod(this.alertTemplate, this.fileError2);
+        this.selectedFile2 = null;
+        this.fileName2 = '';
+        this.previewUrl2 = null;
+        if (this.rawObjectUrl2) {
+          URL.revokeObjectURL(this.rawObjectUrl2);
+        }
+        this.rawObjectUrl2 = null;
+      }
+      // Reset file input
+      event.target.value = '';
+      return;
+    }
+
+    // Clean up previous object URL if exists
+    if (docType === 'doc1' && this.rawObjectUrl1) {
+      URL.revokeObjectURL(this.rawObjectUrl1);
+    }
+    if (docType === 'doc2' && this.rawObjectUrl2) {
+      URL.revokeObjectURL(this.rawObjectUrl2);
+    }
+
+    // Create object URL and sanitize it
+    const objectUrl = URL.createObjectURL(file);
+    const previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+
+    if (docType === 'doc1') {
+      this.selectedFile = file;
+      this.fileName1 = file.name;
+      this.previewUrl1 = previewUrl;
+      this.rawObjectUrl1 = objectUrl;
+      this.fileError1 = '';
+    } else {
+      this.selectedFile2 = file;
+      this.fileName2 = file.name;
+      this.previewUrl2 = previewUrl;
+      this.rawObjectUrl2 = objectUrl;
+      this.fileError2 = '';
+    }
+  }
+
+  /**
+   * Open preview modal for uploaded file
+   */
+  openPreviewModalForTwo(docType: 'doc1' | 'doc2'): void {
+    this.activePreviewUrl = docType === 'doc1' ? this.previewUrl1 : this.previewUrl2;
+    this.activeFileType = docType === 'doc1'
+      ? (this.selectedFile?.type === 'application/pdf' ? 'pdf' : 'image')
+      : (this.selectedFile2?.type === 'application/pdf' ? 'pdf' : 'image');
+
+    this.modalRef = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-lg' });
+  }
+
+  /**
+   * Show preview for base64 data (for existing documents)
+   */
+  showPreview(base64Data: string, mimeType: string): void {
+    const dataUrl = `data:${mimeType};base64,${base64Data}`;
+    this.activePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
+
+    if (mimeType === 'application/pdf') {
+      this.activeFileType = 'pdf';
+    } else if (mimeType.startsWith('image/')) {
+      this.activeFileType = 'image';
+    } else {
+      this.activeFileType = '';
+    }
+
+    // Open modal
+    this.modalRef = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-lg' });
+  }
   
+  createTimesheet() {
+    console.log("Create Timesheet clicked");
+    let projectDataList : ProjectTimesheetDTO[] = [];
+    let projectData : ProjectTimesheetDTO;
+    this.timesheetProjects.forEach((project) => {
+      projectData = new ProjectTimesheetDTO();
+      projectData.projectId = project.projectId;
+      // 
+      projectData.clientInTime = project.clientInTime;
+      projectData.clientOutTime = project.clientOutTime;
+      projectData.clientApprovalStatus = this.timesheetObj.clientApprovalStatus;
+      projectData.shadowEmpId = project.isShadowTimesheet ? project.shadowEmpId : null;
+      // projectData.isShadowTimesheet = project.isShadowTimesheet;
+      let activityDataList : ActivityTimesheetDTO[] = [];
+      let activityData : ActivityTimesheetDTO;
+      project.activities.forEach((activity) => {
+        activityData = new ActivityTimesheetDTO();
+        // activityData.clientId = activity.clientId;
+        activityData.clientLocationId = activity.clientLocationId;
+        // activityData.teamId = activity.teamId;
+        activityData.activityId = activity.activityId;
+        activityData.description = activity.description;
+        activityData.durationMinutes = activity.completionTime * 60;
+        activityDataList.push(activityData);
+      });
+      projectData.activities = activityDataList;
+      projectDataList.push(projectData);
+    });
+    // Implementation for creating timesheet goes here 
+    this.createOrUpdateObj.empId = this.timesheetObj.empId;
+    this.createOrUpdateObj.dayTypeId = this.timesheetObj.dayType;
+    this.createOrUpdateObj.date = this.timesheetObj.date;
+    this.createOrUpdateObj.totalActivitiesMinutes = this.totalWorkingHours;
+    this.createOrUpdateObj.isNightShift = this.timesheetObj.isNightShift;
+    this.createOrUpdateObj.description = this.timesheetObj.description;
+    this.createOrUpdateObj.projectTimesheets = projectDataList;
+    this.createOrUpdateObj.createdBy = this.currentUser.empId;
+
+    console.log("Timesheet to be created:", this.createOrUpdateObj);
+    // Call the service to create timesheet
+
+
+  }
 }

@@ -7,6 +7,7 @@ import { Timesheet } from '../models/timesheet';
 import { TimesheetRejectReason } from '../models/timesheetRejectionReasons';
 import { EncryptionService } from './EncryptionService';
 import { getEmployeeTimesheetAsCalenderByProjectId } from '../models/getEmployeeTimesheetAsCalenderByProjectId';
+import { EmployeeTimesheetDTO } from '../models/EmployeeTimesheetDTO';
 
 @Injectable({
   providedIn: 'root'
@@ -33,6 +34,15 @@ export class TimesheetService {
 
   addTimesheetWithClientNew(timesheetObj: any, selectedFile:any,selectedFile2:any) {
     const encryptedDto = this.encryptionService.encrypt(JSON.stringify(timesheetObj))
+    const formData = new FormData();
+    formData.append('dto', encryptedDto);
+    formData.append('filledDoc', selectedFile);
+    formData.append('approvedDoc', selectedFile2);
+    return this.http.post(`${this.baseUrl}` + `api/addTimesheetWithClientNew`, formData);
+  }
+
+  addTimesheetWithClientUpdated(employeeTimesheetDTO:EmployeeTimesheetDTO , selectedFile:any,selectedFile2:any) {
+    const encryptedDto = this.encryptionService.encrypt(JSON.stringify(employeeTimesheetDTO))
     const formData = new FormData();
     formData.append('dto', encryptedDto);
     formData.append('filledDoc', selectedFile);
