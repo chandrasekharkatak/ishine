@@ -77,6 +77,14 @@ export class CalendarViewComponent implements OnInit {
   projectDropDownAlert: TemplateRef<any>;
   projectDropDownAlertRef: NgbModalRef;
 
+  zoomScale = 1;
+  zoomLevel = 100;
+  isDragging = false;
+  startX = 0;
+  startY = 0;
+  translateX = 0;
+  translateY = 0;
+
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
     private modalService: NgbModal,
@@ -439,8 +447,7 @@ monthSelected(event: Date, datepicker: any) {
   hideProjectDropDownAlert() {
     this.projectDropDownAlertRef?.close();
   }
-  zoomScale = 1;
-zoomLevel = 100;
+
 
 zoomIn() {
   if (this.zoomScale < 2.5) {
@@ -455,11 +462,7 @@ zoomOut() {
     this.zoomLevel = Math.round(this.zoomScale * 100);
   }
 }
-isDragging = false;
-startX = 0;
-startY = 0;
-translateX = 0;
-translateY = 0;
+
 
 get transformStyle() {
   return `translate(${this.translateX}px, ${this.translateY}px) scale(${this.zoomScale})`;

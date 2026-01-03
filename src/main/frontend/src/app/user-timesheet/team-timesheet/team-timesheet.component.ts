@@ -95,6 +95,13 @@ export class TeamTimesheetComponent implements OnInit {
   isClientSidePresent: any;
   selectedMonth: any;
 
+  zoomScale = 1;
+  zoomLevel = 100;
+  isDragging = false;
+  startX = 0;
+  startY = 0;
+  translateX = 0;
+  translateY = 0;
 
   constructor(
     public validationService: ValidationService,
@@ -1124,8 +1131,7 @@ exportExcel1() {
     this.fromDate = '';
     this.getMyReporteesTimesheetRequests();
   }
-  zoomScale = 1;
-zoomLevel = 100;
+ 
 
 zoomIn() {
   if (this.zoomScale < 2.5) {
@@ -1140,11 +1146,7 @@ zoomOut() {
     this.zoomLevel = Math.round(this.zoomScale * 100);
   }
 }
-isDragging = false;
-startX = 0;
-startY = 0;
-translateX = 0;
-translateY = 0;
+
 
 get transformStyle() {
   return `translate(${this.translateX}px, ${this.translateY}px) scale(${this.zoomScale})`;

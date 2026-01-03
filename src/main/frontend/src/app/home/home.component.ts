@@ -204,6 +204,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   leaveObj = new Leave();
 
+  zoomScale = 1;
+  zoomLevel = 100;
+
+  isDragging = false;
+  startX = 0;
+  startY = 0;
+  translateX = 0;
+  translateY = 0;
+
   @ViewChild("thisMonthCal")
   private thisMonthCalendar: CalendarComponent;
   @ViewChild("lastMonthCal")
@@ -3249,8 +3258,7 @@ onTimesheetSearch(searchData) {
 
   this.filters = searchData;
 }
-zoomScale = 1;
-zoomLevel = 100;
+
 
 zoomIn() {
   if (this.zoomScale < 2.5) {
@@ -3265,11 +3273,7 @@ zoomOut() {
     this.zoomLevel = Math.round(this.zoomScale * 100);
   }
 }
-isDragging = false;
-startX = 0;
-startY = 0;
-translateX = 0;
-translateY = 0;
+
 
 get transformStyle() {
   return `translate(${this.translateX}px, ${this.translateY}px) scale(${this.zoomScale})`;

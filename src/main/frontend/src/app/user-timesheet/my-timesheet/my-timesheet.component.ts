@@ -238,6 +238,13 @@ withoutVmsbullet:string[] = ["Applicable to resources without a client-side VMS 
 "Enter the client-side ID if already available.",
 "If the client-side ID is not yet assigned, enter “NA (ApMoSys Employee ID)”.",
 "Once the client-side ID is received, update the ID while filling subsequent timesheets."]
+  zoomScale = 1;
+  zoomLevel = 100;
+  isDragging = false;
+  startX = 0;
+  startY = 0;
+  translateX = 0;
+  translateY = 0;
 
 
   //latestProjectId = this.activeProjectList
@@ -3596,8 +3603,7 @@ checkUploadEligibility() {
     : "Bulk upload is permitted only for dates in the previous month or on the last day of the current month. Please select a valid date range.";
 }
 
-zoomScale = 1;
-zoomLevel = 100;
+
 
 zoomIn() {
   if (this.zoomScale < 2.5) {
@@ -3612,11 +3618,7 @@ zoomOut() {
     this.zoomLevel = Math.round(this.zoomScale * 100);
   }
 }
-isDragging = false;
-startX = 0;
-startY = 0;
-translateX = 0;
-translateY = 0;
+
 
 get transformStyle() {
   return `translate(${this.translateX}px, ${this.translateY}px) scale(${this.zoomScale})`;
