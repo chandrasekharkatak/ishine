@@ -2,26 +2,59 @@ package com.apmosys.employeeportal.dto;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.util.Date;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+/**
+ * Main Timesheet DTO - Wrapper for hierarchical timesheet structure.
+ * 
+ * NEW STRUCTURE (Hierarchical):
+ * - employeeTimesheet: One per day per employee
+ * - projectTimesheets: Multiple per day (one per project)
+ *   - activities: Multiple per project (nested)
+ * 
+ * OLD STRUCTURE (Flat - maintained for backward compatibility):
+ * - All existing fields remain for backward compatibility
+ * 
+ * @author System
+ * @version 2.0
+ */
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor
 public class TimesheetDTO {
+	
+	// ========== NEW HIERARCHICAL STRUCTURE ==========
+	
+	/**
+	 * Employee-level timesheet data (one per day)
+	 * NEW: Primary structure for timesheet creation/update
+	 */
+	@JsonProperty("employeeTimesheet")
+	private EmployeeTimesheetDTO employeeTimesheet;
+	
+	/**
+	 * Project-level timesheet data (multiple per day)
+	 * NEW: Contains project-specific data and activities
+	 */
+	@JsonProperty("projectTimesheets")
+	private List<ProjectTimesheetDTO> projectTimesheets;
+	
+	// ========== OLD STRUCTURE (Backward Compatibility) ==========
+	// These fields are maintained for backward compatibility with existing APIs
+	// Will be deprecated gradually
 	
 	private Integer projectId;
 	private Integer clientId;
@@ -189,6 +222,8 @@ public class TimesheetDTO {
 	private Long bulkApprovedDocId;
 	private List<Long> empIds;
 	
+	// ========== CONSTRUCTORS (Backward Compatibility) ==========
+	
 	public TimesheetDTO(
 			Long employeementId,
 			String employeeName,
@@ -355,4 +390,15 @@ public class TimesheetDTO {
 		    this.isConsultant = isConsultant;
 		    this.isApprenticeship = isApprenticeship;
 		    this.empId = empId;
-		}}
+		}
+	
+	// ========== NEW CONSTRUCTOR FOR HIERARCHICAL STRUCTURE ==========
+	
+	/**
+	 * Constructor for new hierarchical structure
+	 */
+	public TimesheetDTO(EmployeeTimesheetDTO employeeTimesheet, List<ProjectTimesheetDTO> projectTimesheets) {
+		this.employeeTimesheet = employeeTimesheet;
+		this.projectTimesheets = projectTimesheets;
+	}
+}

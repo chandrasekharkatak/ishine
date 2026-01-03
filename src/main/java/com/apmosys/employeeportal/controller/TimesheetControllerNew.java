@@ -1,7 +1,6 @@
 package com.apmosys.employeeportal.controller;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -10,7 +9,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -20,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.CreateTimesheetRequestDTONew;
+import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.service.TimesheetServiceNew;
 import com.apmosys.employeeportal.service.helper.TimesheetEncryptionHelper;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -47,7 +46,7 @@ public class TimesheetControllerNew {
             @RequestPart(value = "doc2", required = false) MultipartFile doc2) throws Exception {
         
         // Decrypt and parse encrypted DTO
-        CreateTimesheetRequestDTONew dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNew(encryptedDto);
+    	TimesheetDTO dto = timesheetEncryptionHelper.decryptAndParseTimesheetDto(encryptedDto);
         
         return timesheetServiceNew.createTimesheet(dto, doc1, doc2);
     }
