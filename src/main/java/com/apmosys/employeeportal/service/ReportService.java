@@ -150,7 +150,7 @@ public class ReportService {
         apiLogInfo.setLogLevel("INFO");
         StringBuilder logBuilder = new StringBuilder();
 		try {
-			List<Object[]> allTimeSheetData = timesheetsRepository.getAllTimesheetData();
+			List<Object[]> allTimeSheetData = timesheetsRepository.getAllTimesheetDataOLD();
        		logBuilder.append("TimeSheetReport:" + allTimeSheetData.size());
 			List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
 			

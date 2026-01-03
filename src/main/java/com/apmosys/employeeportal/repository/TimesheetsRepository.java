@@ -29,25 +29,25 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 //	public List<Object[]> getMyReporteesTimesheetRequests(Long managerId,String status);
 	
 	@Query(nativeQuery = true)
-	public List<Object[]> getMyReporteesTimesheetRequests(Long managerId,String status,LocalDate dateOfJoining,Boolean clientFlag);
+	public List<Object[]> getMyReporteesTimesheetRequestsOLD(Long managerId,String status,LocalDate dateOfJoining,Boolean clientFlag);
 	
 	@Query(nativeQuery = true)
-	public List<Object[]> getMyReporteesApprovedTimesheetRequests2(Long managerId,String status,LocalDate start, LocalDate end,List<Long> empIds);
+	public List<Object[]> getMyReporteesApprovedTimesheetRequests2OLD(Long managerId,String status,LocalDate start, LocalDate end,List<Long> empIds);
 	
 //	@Query(nativeQuery = true)
 //	public Long countMyReporteesTimesheetRequests(Long managerId);
 
 	@Query(nativeQuery = true)
-	public Long countMyReporteesTimesheetRequests(Long managerId, LocalDate dateOfJoining);
+	public Long countMyReporteesTimesheetRequestsOLD(Long managerId, LocalDate dateOfJoining);
 	
 	@Query(nativeQuery = true)
-	public List<Object[]> getMyReporteesApprovedTimesheets(Long managerId, LocalDate start, LocalDate end);
+	public List<Object[]> getMyReporteesApprovedTimesheetsOLD(Long managerId, LocalDate start, LocalDate end);
 	
 	@Query(nativeQuery = true)
-	public List<Object[]> getLast7DaysTimesheetsByEmpId(Long empId,LocalDate date);
+	public List<Object[]> getLast7DaysTimesheetsByEmpIdOLD(Long empId,LocalDate date);
 
 	@Query(nativeQuery = true)
-	public List<Object[]> getTimesheetsForHomePageByEmpId(Long empId, LocalDate start, LocalDate end);
+	public List<Object[]> getTimesheetsForHomePageByEmpIdOLD(Long empId, LocalDate start, LocalDate end);
 
 	public Timesheet findByEmpIdAndDate(Long empId, LocalDate dateToday);
 	
@@ -62,22 +62,22 @@ public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 	List<Object[]>  getTimesheetDataByEmpIdAndDate( Long empId,LocalDate localDate);
 	
 	@Query(nativeQuery = true)
-	public List<Object[]> getAllTimesheetData();
+	public List<Object[]> getAllTimesheetDataOLD();
 
 	@Query(nativeQuery = true)
-	public List<Object[]> getLast9DaysPendingTimesheetReport(LocalDate start, LocalDate end);
+	public List<Object[]> getLast9DaysPendingTimesheetReportOLD(LocalDate start, LocalDate end);
 
 	@Query(nativeQuery = true)
-	public List<Object[]> getLast9DaysFilledTimesheetReport(LocalDate start, LocalDate end);
+	public List<Object[]> getLast9DaysFilledTimesheetReportOLD(LocalDate start, LocalDate end);
 	
 	@Query(nativeQuery = true)
-	public List<Object[]> getAllMyTeamTimesheets(Long createdBy, LocalDate start, LocalDate end);
+	public List<Object[]> getAllMyTeamTimesheetsOLD(Long createdBy, LocalDate start, LocalDate end);
 	
 	@Query(nativeQuery = true)
-	public List<Object[]> getAllMyTimesheets(Long empId, LocalDate start, LocalDate end);
+	public List<Object[]> getAllMyTimesheetsOLD(Long empId, LocalDate start, LocalDate end);
 
 	@Query(nativeQuery = true)
-	public List<Timesheet> findTimesheetOnLeaveDate(Long empId, String start, String end);
+	public List<Timesheet> findTimesheetOnLeaveDateOLD(Long empId, String start, String end);
 
 	@Query("SELECT t FROM Timesheet t WHERE t.empId = :empId AND t.date >= :startDate AND t.date <= :endDate")
 	List<Timesheet> findTimesheetsForRejection(@Param("empId") Long empId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
@@ -271,13 +271,13 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 		Pageable pageable);
 
 	@Query(nativeQuery = true)
-	public List<Object[]> getInactiveActivitiesByTimesheetId(Long timesheetId);
+	public List<Object[]> getInactiveActivitiesByTimesheetIdOLD(Long timesheetId);
 	
 	@Query(nativeQuery = true)
-	public List<Object[]> getMyTeamsFilledEodCountByManagerId(LocalDate start, LocalDate end, Long managerId);
+	public List<Object[]> getMyTeamsFilledEodCountByManagerIdOLD(LocalDate start, LocalDate end, Long managerId);
 
 	@Query(nativeQuery = true)
-	public List<Object[]> getTimesheetFilledByMember(Long empId, LocalDate date);
+	public List<Object[]> getTimesheetFilledByMemberOLD(Long empId, LocalDate date);
 	
 //	@Query(value = "SELECT et.emp_id, e.manager_id FROM employee e " +
 //            "INNER JOIN employee_timesheets et ON e.emp_id = et.emp_id", nativeQuery = true)

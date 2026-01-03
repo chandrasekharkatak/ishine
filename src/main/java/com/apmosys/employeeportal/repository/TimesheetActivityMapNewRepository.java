@@ -77,7 +77,7 @@ public interface TimesheetActivityMapNewRepository extends JpaRepository<Employe
 	}
 	
 
-	public Long countByActivityId(Long activityId);
+    Long countByIdActivityId(Long activityId);
 
 	@Query(nativeQuery = true)
 	public List<EmployeeTimesheetActivitiesMappingNew> getTimesheetActivityByTimesheetId(Long timesheetId);

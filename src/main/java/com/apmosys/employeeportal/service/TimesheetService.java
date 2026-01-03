@@ -909,7 +909,7 @@ public class TimesheetService {
 
 	        // Timesheet fill check
 	        Long memberEmpId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
-	        List<Object[]> timesheetFilledByMember = timesheetsRepository.getTimesheetFilledByMember(memberEmpId, date);
+	        List<Object[]> timesheetFilledByMember = timesheetsRepository.getTimesheetFilledByMemberOLD(memberEmpId, date);
 
 	        boolean isFilled = timesheetFilledByMember.size() >= Long.parseLong(maximumTimesheetCanBeFilledByTeamMember);
 	        dto.setIsTimesheetFilledByMember(isFilled ? "true" : "false");
@@ -948,7 +948,7 @@ public class TimesheetService {
 			LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
 
 			List<Object[]> timesheetList = timesheetsRepository
-					.getAllMyTimesheets(timesheetDTO.getEmpId(), start, end);
+					.getAllMyTimesheetsOLD(timesheetDTO.getEmpId(), start, end);
 
 			Optional.ofNullable(timesheetList).ifPresentOrElse((list) -> {
 
@@ -1022,7 +1022,7 @@ public class TimesheetService {
 						// Get InActive Activities In Timesheet
 						if(dto.getStatus() != null && dto.getStatus().equals("Pending")) {
 							List<Object[]> inactiveActivityList = timesheetsRepository
-									.getInactiveActivitiesByTimesheetId(dto.getTimesheetId());
+									.getInactiveActivitiesByTimesheetIdOLD(dto.getTimesheetId());
 							
 							List<ActivityDTO> inactiveDtoList = new ArrayList<ActivityDTO>();
 							
@@ -1092,7 +1092,7 @@ public class TimesheetService {
 			LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
 
 			List<Object[]> timesheetList = timesheetsRepository
-					.getAllMyTeamTimesheets(timesheetDTO.getCreatedBy(), start, end);
+					.getAllMyTeamTimesheetsOLD(timesheetDTO.getCreatedBy(), start, end);
 
 			Optional.ofNullable(timesheetList).ifPresentOrElse((list) -> {
 
@@ -1154,7 +1154,7 @@ public class TimesheetService {
 						// Get InActive Activities In Timesheet
 						if(dto.getDayType().equals("Working") && (dto.getStatus().equals("Pending") || dto.getStatus().equals("Rejected"))) {
 							List<Object[]> inactiveActivityList = timesheetsRepository
-									.getInactiveActivitiesByTimesheetId(dto.getTimesheetId());
+									.getInactiveActivitiesByTimesheetIdOLD(dto.getTimesheetId());
 							
 							List<ActivityDTO> inactiveDtoList = new ArrayList<ActivityDTO>();
 							
@@ -2057,7 +2057,7 @@ public class TimesheetService {
 
 			LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
 
-			List<Object[]> objectList = timesheetsRepository.getMyReporteesApprovedTimesheets(
+			List<Object[]> objectList = timesheetsRepository.getMyReporteesApprovedTimesheetsOLD(
 					timesheetDTO.getManagerId(), start, end);
 
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
@@ -2157,7 +2157,7 @@ public class TimesheetService {
 			List<Long> empIds = timesheetDTO.getEmpIds();  
              Employee employeeData = employeeRepository.findByEmpId(timesheetDTO.getManagerId());
              List<Object[]> objectList = timesheetsRepository
-					.getMyReporteesApprovedTimesheetRequests2(timesheetDTO.getManagerId(),timesheetDTO.getStatus(), start, end,empIds);
+					.getMyReporteesApprovedTimesheetRequests2OLD(timesheetDTO.getManagerId(),timesheetDTO.getStatus(), start, end,empIds);
 			
 
 			
@@ -2280,7 +2280,7 @@ public class TimesheetService {
 		logBuilder.append("empId : " +timesheetDTO.getEmpId());
 		try {
 
-			List<Object[]> objectList = timesheetsRepository.getLast7DaysTimesheetsByEmpId(timesheetDTO.getEmpId(),
+			List<Object[]> objectList = timesheetsRepository.getLast7DaysTimesheetsByEmpIdOLD(timesheetDTO.getEmpId(),
 					LocalDate.now().minusDays(timesheetLockDays));
 
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
@@ -2412,7 +2412,7 @@ public class TimesheetService {
 
 			LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
 
-			List<Object[]> objectList = timesheetsRepository.getTimesheetsForHomePageByEmpId(timesheetDTO.getEmpId(),
+			List<Object[]> objectList = timesheetsRepository.getTimesheetsForHomePageByEmpIdOLD(timesheetDTO.getEmpId(),
 					start, end);
 
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {

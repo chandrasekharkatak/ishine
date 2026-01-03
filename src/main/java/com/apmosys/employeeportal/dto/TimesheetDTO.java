@@ -401,4 +401,53 @@ public class TimesheetDTO {
 		this.employeeTimesheet = employeeTimesheet;
 		this.projectTimesheets = projectTimesheets;
 	}
+	
+	/**
+	 * Constructor for JPQL query using EmployeeTimesheetsNew entity
+	 * Matches query: getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise
+	 * Parameters: employeementId, name, date, dayType, description, status, leaveType, 
+	 *             managerName, departmentName, createdOn (LocalDateTime), updatedOn, 
+	 *             statusUpdatedBy (name), isConsultant, isApprenticeship, managerId, 
+	 *             updatedBy (ID), empId, isApmosysProduct
+	 */
+	public TimesheetDTO(
+			Long employeementId,
+			String employeeName,
+			LocalDate date,
+			String dayType,
+			String description,
+			String status,
+			String leaveType,
+			String managerName,
+			String departmentName,
+			LocalDateTime createdOn,
+			LocalDateTime updatedOn,
+			String statusUpdatedBy,
+			String isConsultant,
+			String isApprenticeship,
+			Long managerId,
+			Long updatedBy,
+			Long empId,
+			String isApmosysProduct) {
+
+		this.employeementId = employeementId;
+		this.employeeName = employeeName;
+		this.date = (date != null) ? date.toString() : null;
+		this.dayType = dayType;
+		this.description = description;
+		this.status = status;
+		this.leaveType = leaveType;
+		this.managerName = managerName;
+		this.departmentName = departmentName;
+		this.createdOn = (createdOn != null) ? createdOn.toString() : null;
+		this.updatedOn = (updatedOn != null) ? updatedOn.toString() : null;
+		this.statusUpdatedBy = statusUpdatedBy;
+		this.isConsultant = isConsultant;
+		this.isApprenticeship = isApprenticeship;
+		this.managerId = managerId;
+		this.updatedBy = updatedBy;
+		this.timesheetStatusUpdatedBy = updatedBy; // Also set for backward compatibility
+		this.empId = empId;
+		this.isApmosysProduct = isApmosysProduct;
+	}
 }

@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -1032,7 +1033,7 @@ public class TimesheetServiceNew {
         return entities.stream()
                 .map(timesheetMapper::toDTO)
                 .map(this::convertToNewEmployeeDTO)
-                .toList();
+                .collect(Collectors.toList());
     }
 
 }

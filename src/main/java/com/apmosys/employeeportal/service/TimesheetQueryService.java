@@ -90,7 +90,7 @@ public class TimesheetQueryService {
             LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
             
             List<Object[]> timesheetList = timesheetsRepository
-                    .getAllMyTimesheets(timesheetDTO.getEmpId(), start, end);
+                    .getAllMyTimesheetsOLD(timesheetDTO.getEmpId(), start, end);
 
             Optional.ofNullable(timesheetList).ifPresentOrElse((list) -> {
                 if (list.isEmpty()) {
@@ -145,7 +145,7 @@ public class TimesheetQueryService {
             LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
             
             List<Object[]> timesheetList = timesheetsRepository
-                    .getAllMyTeamTimesheets(timesheetDTO.getCreatedBy(), start, end);
+                    .getAllMyTeamTimesheetsOLD(timesheetDTO.getCreatedBy(), start, end);
 
             Optional.ofNullable(timesheetList).ifPresentOrElse((list) -> {
                 if (list.isEmpty()) {
@@ -254,7 +254,7 @@ public class TimesheetQueryService {
             LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
             LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
             
-            List<Object[]> objectList = timesheetsRepository.getMyReporteesApprovedTimesheets(
+            List<Object[]> objectList = timesheetsRepository.getMyReporteesApprovedTimesheetsOLD(
                     timesheetDTO.getManagerId(), start, end);
 
             Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
@@ -819,7 +819,7 @@ public class TimesheetQueryService {
     public void setInactiveActivityList(TimesheetDTO dto) {
     	
     	List<Object[]> inactiveActivityList = timesheetsRepository
-				.getInactiveActivitiesByTimesheetId(dto.getTimesheetId());
+				.getInactiveActivitiesByTimesheetIdOLD(dto.getTimesheetId());
 		
 		List<ActivityDTO> inactiveDtoList = new ArrayList<ActivityDTO>();
 		

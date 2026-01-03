@@ -103,7 +103,7 @@ public class TimesheetApprovalService {
             
             if (timesheetDTO.getManagerId() != null) {
                 Employee employeeData = employeeRepository.findByEmpId(timesheetDTO.getManagerId());
-                objectList = timesheetsRepository.getMyReporteesTimesheetRequests(
+                objectList = timesheetsRepository.getMyReporteesTimesheetRequestsOLD(
                         timesheetDTO.getManagerId(), timesheetDTO.getStatus(), 
                         employeeData.getDateOfJoining(), clientFlag);
             } else {
@@ -187,7 +187,7 @@ public class TimesheetApprovalService {
         
         try {
             Employee employeeData = employeeRepository.findByEmpId(timesheetDTO.getManagerId());
-            Long applicationCount = timesheetsRepository.countMyReporteesTimesheetRequests(
+            Long applicationCount = timesheetsRepository.countMyReporteesTimesheetRequestsOLD(
                     timesheetDTO.getManagerId(), employeeData.getDateOfJoining());
 
             if (applicationCount == 0) {

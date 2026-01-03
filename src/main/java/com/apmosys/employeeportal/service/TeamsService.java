@@ -1238,7 +1238,7 @@ public class TeamsService {
 				Long period = ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
 				
 				// Get Filled EOD Count for Team Members
-				List<Object[]> timesheetList = timesheetsRepository.getMyTeamsFilledEodCountByManagerId(firstOfMonth, end, employeedto.getEmpId());
+				List<Object[]> timesheetList = timesheetsRepository.getMyTeamsFilledEodCountByManagerIdOLD(firstOfMonth, end, employeedto.getEmpId());
 				System.err.println(timesheetList.size());
 				
 				list.forEach((object) -> {
@@ -1355,7 +1355,7 @@ public class TeamsService {
 
 	            // Get filled EOD counts for team members
 	            List<Object[]> timesheetList =
-	                timesheetsRepository.getMyTeamsFilledEodCountByManagerId(
+	                timesheetsRepository.getMyTeamsFilledEodCountByManagerIdOLD(
 	                    firstOfMonth, end, employeedto.getEmpId()
 	                );
 
@@ -1409,7 +1409,7 @@ public class TeamsService {
 	    
 	    // Fetch timesheet status for this manager's direct reportees
 	    List<Object[]> timesheetList =
-	        timesheetsRepository.getMyTeamsFilledEodCountByManagerId(
+	        timesheetsRepository.getMyTeamsFilledEodCountByManagerIdOLD(
 	            firstOfMonth, end, manager.getEmpId()
 	        );
 	    
@@ -1551,7 +1551,7 @@ public class TeamsService {
 					dto.setEmploymentId(object[25] != null ? object[25].toString() : null);
 					
 					Long empId = object[0] != null ? Long.parseLong(object[0].toString()): null;
-					List<Object[]> timesheetFilledByMember = timesheetsRepository.getTimesheetFilledByMember(empId,date);
+					List<Object[]> timesheetFilledByMember = timesheetsRepository.getTimesheetFilledByMemberOLD(empId,date);
 					
 					if(timesheetFilledByMember.size() >= Long.parseLong(maximumTimesheetCanBeFilledByTeamMember)) {
 						dto.setIsTimesheetFilledByMember("true");
@@ -2981,7 +2981,7 @@ public class TeamsService {
 					//Delete Timesheet Application regarding leave
 					
 					List<Timesheet> empTimesheet = timesheetsRepository.
-							findTimesheetOnLeaveDate(leaveApplication.getEmpId(),leaveApplication.getFromDate().toString(),leaveApplication.getToDate().toString());
+							findTimesheetOnLeaveDateOLD(leaveApplication.getEmpId(),leaveApplication.getFromDate().toString(),leaveApplication.getToDate().toString());
 
 					if (empTimesheet != null) {
 

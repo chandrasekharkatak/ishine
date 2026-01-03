@@ -1,1453 +1,1355 @@
-# Timesheet Backend API Analysis & Implementation Guide
+# Timesheet API Analysis & Implementation Plan
+## Complete Backend Migration Plan for New Hierarchical Timesheet Structure
+
+**Date:** 2025-01-30  
+**Status:** 📋 **PLANNING COMPLETE - READY FOR IMPLEMENTATION**
+
+---
 
 ## Executive Summary
 
-This document provides a comprehensive analysis of required backend changes to support the new multi-project timesheet form. The new form allows:
-- **Multiple projects per timesheet** (single day)
-- **Different in/out times per project**
-- **Different activities per project**
-- **Up to 2 document uploads** (filled document + approved document)
+### New Architecture Overview
+The timesheet system is migrating from a **flat structure** to a **hierarchical structure**:
 
-**All implementations MUST use tables with "New" suffix.**
-
----
-
-## Table of Contents
-
-1. [Current vs New Form Comparison](#current-vs-new-form-comparison)
-2. [Database Schema Analysis](#database-schema-analysis)
-3. [Required API Changes](#required-api-changes)
-4. [DTO Specifications](#dto-specifications)
-5. [Service Layer Implementation](#service-layer-implementation)
-6. [Repository Layer Implementation](#repository-layer-implementation)
-7. [Controller Layer Implementation](#controller-layer-implementation)
-8. [Migration & Integration Notes](#migration--integration-notes)
-
----
-
-## Current vs New Form Comparison
-
-### Current Form Structure
-- **Single project** per timesheet (`projectId` in `EmployeeTimesheetsNew`)
-- **Single set of in/out times** per timesheet (`officeInTime`, `officeOutTime` in `EmployeeTimesheetsNew`)
-- **Single set of client in/out times** (`clientInTime`, `clientOutTime` - stored in old table)
-- **Multiple activities** but all linked to same timesheet (via `TimesheetActivityMapId` with `timesheetId`, `activityId`, `projectId`)
-- **Documents**: Up to 2 documents per timesheet (filled + approved)
-
-### New Form Requirements
-- **Multiple projects** per timesheet (each with own in/out times)
-- **Project-specific in/out times** (each project entry has its own)
-- **Project-specific client in/out times** (each project entry has its own)
-- **Project-specific activities** (activities linked to project entry, not directly to timesheet)
-- **Documents**: Up to 2 documents per timesheet (filled + approved) - **NO CHANGE**
-
-### Key Differences
-
-| Aspect | Current | New |
-|--------|---------|-----|
-| Projects per timesheet | 1 | Multiple (1-N) |
-| In/Out times | 1 set per timesheet | 1 set per project |
-| Client In/Out times | 1 set per timesheet | 1 set per project |
-| Activities linkage | Direct to timesheet | Linked to project entry |
-| Document structure | Same (2 max) | Same (2 max) |
-
----
-
-## Database Schema Analysis
-
-### Existing New Tables
-
-#### 1. `employee_timesheets_new`
-```sql
-- timesheet_id (PK)
-- created_by, created_on, updated_by, updated_on
-- date (LocalDate)
-- day_type_id (FK)
-- emp_id (FK)
-- status (FK)
-- total_working_minutes (Integer)
-- office_in_time (LocalDateTime) -- REMOVE: Move to project entry
-- office_out_time (LocalDateTime) -- REMOVE: Move to project entry
-- leave_type_master_id (FK)
+**OLD Structure:**
+```
+Timesheet (single record per day)
+  ├── Activities (separate table)
+  └── Documents (separate table)
 ```
 
-**Changes Required:**
-- Remove `office_in_time` and `office_out_time` (move to project entry table)
-- Keep `total_working_minutes` as aggregate across all projects
-
-#### 2. `employee_timesheet_activities_mapping_new`
-```sql
-- Composite Key: (timesheet_id, activity_id, project_id)
-- description
-- duration_minutes
+**NEW Structure:**
+```
+EmployeeTimesheet (one per day per employee)
+  └── ProjectTimesheets (multiple per day - one per project)
+      └── Activities (multiple per project)
 ```
 
-**Changes Required:**
-- Add `project_entry_id` (FK to `timesheet_project_entries_new`) to link activities to project entry
-- Keep composite key but add project_entry_id for querying
-
-#### 3. `timesheet_document_details_new`
-```sql
-- doc_id (PK)
-- timesheet_id (FK)
-- file_url
-- doc_name
-- mime_type_id
-- client_approval_status_id
-- created_by, created_on, updated_by, updated_on
-- active
-- final_flag (Boolean) -- true = approved doc, false = filled doc
-- bulk_approved_doc_id
-```
-
-**Changes Required:** None - structure supports 2 documents per timesheet
-
-### New Table Required
-
-#### 4. `timesheet_project_entries_new` (NEW TABLE)
-```sql
-CREATE TABLE timesheet_project_entries_new (
-    project_entry_id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    timesheet_id BIGINT NOT NULL,
-    project_id INT NOT NULL,
-    client_side_id VARCHAR(255),
-    office_in_time DATETIME,
-    office_out_time DATETIME,
-    client_in_time DATETIME,
-    client_out_time DATETIME,
-    total_working_minutes INT,
-    total_client_working_minutes INT,
-    client_approval_status_id INT,
-    has_client_side_id BOOLEAN,
-    shadow_emp_id BIGINT,
-    is_shadow_timesheet BOOLEAN,
-    created_by BIGINT,
-    created_on DATETIME,
-    updated_by BIGINT,
-    updated_on DATETIME,
-    UNIQUE KEY unique_timesheet_project (timesheet_id, project_id),
-    FOREIGN KEY (timesheet_id) REFERENCES employee_timesheets_new(timesheet_id),
-    FOREIGN KEY (project_id) REFERENCES projects(project_id)
-);
-```
+### Key Changes
+1. **One EmployeeTimesheet per day** (replaces single Timesheet)
+2. **Multiple ProjectTimesheets per day** (employee can work on multiple projects)
+3. **Activities nested under projects** (activity-to-project relationship)
+4. **Project-level approval status** (separate approval per project)
+5. **Aggregated totals** (calculated from activities)
 
 ---
 
-## Required API Changes
+## New DTO Structure
 
-### Summary of API Changes
-
-| API Name | Method | Endpoint | Status | Changes |
-|----------|--------|----------|--------|---------|
-| Create Timesheet | POST | `/api/addTimesheetWithClient` | **UPDATE** | Support multiple projects |
-| Update Timesheet | POST | `/api/updateTimesheet` | **UPDATE** | Support multiple projects |
-| Save as Draft | POST | `/api/saveTimesheetAsDraft` | **NEW** | New endpoint |
-| Submit Timesheet | POST | `/api/submitTimesheet` | **NEW** | New endpoint |
-| Get Timesheet Details | POST | `/api/getTimesheetDetailsById` | **UPDATE** | Return project entries |
-| Get Timesheet List | POST | `/api/getAllMyTimesheetsByEmpId` | **UPDATE** | Include project info |
-| Get Activities | POST | `/api/getAllMyActivitiesByTimesheetId` | **UPDATE** | Filter by project entry |
-| Upload Document | POST | `/api/uploadTimesheetDocument` | **NEW** | Separate upload endpoint |
-| Update Document | PUT | `/api/updateTimesheetDocument` | **NEW** | Update existing document |
-| Remove Document | DELETE | `/api/removeTimesheetDocument` | **NEW** | Remove document |
-| Bulk Upload Final Doc | POST | `/api/bulkFinalDocumentUpload` | **UPDATE** | Support multi-project |
-| Approve Timesheet | POST | `/api/approveTimesheetRequest` | **UPDATE** | Validate all projects |
-| Reject Timesheet | POST | `/api/rejectTimesheetRequest` | **UPDATE** | Support rejection reason |
-
----
-
-## DTO Specifications
-
-### 1. TimesheetProjectEntryDTO (NEW)
-
+### 1. EmployeeTimesheetDTO
 ```java
-package com.apmosys.employeeportal.dto;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TimesheetProjectEntryDTO {
-    
-    private Long projectEntryId;
-    private Integer projectId;
-    private String projectName;
-    private String clientSideId;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime officeInTime;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime officeOutTime;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime clientInTime;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime clientOutTime;
-    
+public class EmployeeTimesheetDTO {
+    private Long timesheetId;
+    private Long empId;
+    private LocalDate date;
+    private Integer dayTypeId;        // FK to day_type_master_new
+    private Integer leaveTypeId;      // FK to leave_type_master (nullable)
+    private Integer status;           // Calculated from project statuses
     private Integer totalWorkingMinutes;
-    private Integer totalClientWorkingMinutes;
-    private Integer clientApprovalStatusId;
-    private String clientApprovalStatus; // "no", "pending", "approved"
-    private Boolean hasClientSideId;
-    private Long shadowEmpId;
-    private Boolean isShadowTimesheet;
-    
-    // Activities for this project entry
-    private List<ActivityDTO> activities;
-}
-```
-
-### 2. CreateTimesheetRequestDTO (NEW)
-
-```java
-package com.apmosys.employeeportal.dto;
-
-import java.time.LocalDate;
-import java.util.List;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class CreateTimesheetRequestDTO {
-    
-    private Long empId;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate date;
-    
-    private Integer dayTypeId;
-    private String dayType; // "Working", "Public Holiday", etc.
-    private Integer status; // Status master ID
-    private String description; // For non-working days
-    private Long leaveTypeMasterId;
-    
-    // NEW: Multiple project entries
-    private List<ProjectEntryRequestDTO> projectEntries;
-    
-    // Metadata
-    private String timesheetAppliedFor; // "self", "asShadow", "team"
-    private Long currentManagerId;
-    private Boolean isNightShift;
-    private Long createdBy;
-    private String createdByName;
-    
-    // Document references (uploaded separately)
-    private Long filledDocumentId; // doc_id from timesheet_document_details_new
-    private Long approvedDocumentId; // doc_id from timesheet_document_details_new
-}
-```
-
-### 3. ProjectEntryRequestDTO (NEW)
-
-```java
-package com.apmosys.employeeportal.dto;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class ProjectEntryRequestDTO {
-    
-    private Integer projectId;
-    private String clientSideId;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Integer totalActivitiesMinutes;
     private LocalDateTime officeInTime;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime officeOutTime;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime clientInTime;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime clientOutTime;
-    
-    private Integer clientApprovalStatusId;
-    private String clientApprovalStatus; // "no", "pending", "approved"
-    private Boolean hasClientSideId;
-    private Long shadowEmpId;
-    private Boolean isShadowTimesheet;
-    
-    // Activities for this project
-    private List<ActivityRequestDTO> activities;
-}
-```
-
-### 4. ActivityRequestDTO (NEW)
-
-```java
-package com.apmosys.employeeportal.dto;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class ActivityRequestDTO {
-    
-    private Long activityId;
-    private Integer clientId;
-    private Integer clientLocationId;
-    private Long teamId;
-    private String description;
-    private Short durationMinutes; // Duration in minutes
-    private Float durationHours; // Calculated from minutes (for display)
-}
-```
-
-### 5. UpdateTimesheetRequestDTO (NEW)
-
-```java
-package com.apmosys.employeeportal.dto;
-
-import java.time.LocalDate;
-import java.util.List;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class UpdateTimesheetRequestDTO extends CreateTimesheetRequestDTO {
-    
-    private Long timesheetId;
-    private Long updatedBy;
-    
-    // For tracking which project entries/activities to delete
-    private List<Long> deletedProjectEntryIds;
-    private List<Long> deletedActivityIds; // Composite key references
-}
-```
-
-### 6. TimesheetResponseDTO (NEW)
-
-```java
-package com.apmosys.employeeportal.dto;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class TimesheetResponseDTO {
-    
-    private Long timesheetId;
-    private Long empId;
-    private String employeeName;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate date;
-    
-    private Integer dayTypeId;
-    private String dayType;
-    private Integer status;
-    private String statusName; // "Pending", "Approved", "Rejected"
-    private String description;
-    private Long leaveTypeMasterId;
-    private String leaveType;
-    
-    private Integer totalWorkingMinutes; // Aggregate across all projects
-    private Boolean isNightShift;
-    
-    // Project entries
-    private List<TimesheetProjectEntryDTO> projectEntries;
-    
-    // Documents
-    private Long filledDocumentId;
-    private String filledDocumentUrl;
-    private Long approvedDocumentId;
-    private String approvedDocumentUrl;
-    
-    // Metadata
     private Long createdBy;
-    private String createdByName;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdOn;
-    
     private Long updatedBy;
-    private String updatedByName;
-    
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedOn;
-    
-    private String rejectReason;
-    private String remarks;
 }
 ```
 
-### 7. Updated ActivityDTO
+**Maps to:** `employee_timesheets_new` table
 
+---
+
+### 2. ProjectTimesheetDTO
 ```java
-// Update existing ActivityDTO to include projectEntryId
-package com.apmosys.employeeportal.dto;
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ProjectTimesheetDTO {
+    private Long timesheetId;         // FK to employee_timesheets_new
+    private Long projectId;
+    private String poNo;
+    private Long poId;
+    private LocalDateTime clientInTime;
+    private LocalDateTime clientOutTime;
+    private Boolean isNightShift;
+    private Integer clientApprovalStatus;  // FK to client_status_master_new
+    private Integer status;                // FK to status_master_new
+    private Long shadowEmpId;
+    private Integer totalClientWorkingMinutes;
+    private List<ActivityTimesheetDTO> activities;
+}
+```
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+**Maps to:** `project_timesheet_status_new` table (composite key: timesheet_id + project_id)
 
-@Getter
-@Setter
-@ToString
-public class ActivityDTO {
-    
+---
+
+### 3. ActivityTimesheetDTO
+```java
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ActivityTimesheetDTO {
+    private Long timesheetId;         // FK to employee_timesheets_new
     private Long activityId;
-    private Integer projectId;
-    private String projectName;
-    private Long projectEntryId; // NEW: Link to project entry
-    private String clientName;
-    private String clientLocation;
-    private Long teamId;
-    private String teamName;
-    private String activity;
-    private Float eta;
-    private Long updatedBy;
-    private Long createdBy;
-    private String createdByName;
-    private String createdOn;
-    private Float completionTime;
-    private Short durationMinutes; // NEW: Store in minutes
+    private Long projectId;           // FK to projects
     private String description;
-    private Long timesheetId;
-    private Long timesheetActivityMapId;
-    
-    private Integer clientId;
-    private Integer clientLocationId;
-    private String employeeName;
-    private String managerName;
-    private Long activityTemplateId;
-    private String employeeRole;
-    private String[] departmentList;
-    private Long deptId;
+    private Integer durationMinutes;
+    private Long clientLocationId;    // FK to client_locations
 }
 ```
 
+**Maps to:** `employee_timesheet_activities_mapping_new` table (composite key: timesheet_id + activity_id + project_id)
+
 ---
 
-## Service Layer Implementation
-
-### 1. TimesheetServiceNew (NEW SERVICE CLASS)
-
-Create a new service class `TimesheetServiceNew` that uses only New tables:
-
+### 4. TimesheetDTO (Wrapper)
 ```java
-package com.apmosys.employeeportal.service;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import javax.transaction.Transactional;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import com.apmosys.employeeportal.dto.*;
-import com.apmosys.employeeportal.model.*;
-import com.apmosys.employeeportal.repository.*;
-import com.apmosys.employeeportal.utility.ServiceResponse;
-
-@Service
-public class TimesheetServiceNew {
-    
-    @Autowired
-    private EmployeeTimesheetsNewRepository timesheetsNewRepository;
-    
-    @Autowired
-    private TimesheetProjectEntryNewRepository projectEntryNewRepository;
-    
-    @Autowired
-    private TimesheetActivityMapNewRepository activityMapNewRepository;
-    
-    @Autowired
-    private TimesheetDocumentDetailsNewRepository documentDetailsNewRepository;
-    
-    @Autowired
-    private TimesheetValidatorService timesheetValidatorService;
-    
-    @Autowired
-    private StringToDateTimeParser stringToDateTimeParser;
-    
-    @Autowired
-    private LogService logService;
-    
-    @Autowired
-    private HttpServletRequest httpRequest;
-    
-    @Value("${timesheet.lock.days}")
-    private Integer timesheetLockDays;
-    
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    
-    /**
-     * Create new timesheet with multiple projects
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public ServiceResponse createTimesheet(CreateTimesheetRequestDTO requestDTO, 
-                                          MultipartFile filledDoc, 
-                                          MultipartFile approvedDoc) {
-        ServiceResponse response = new ServiceResponse();
-        
-        try {
-            // 1. Validate request
-            validateCreateRequest(requestDTO);
-            
-            // 2. Parse date
-            LocalDate timesheetDate = requestDTO.getDate();
-            
-            // 3. Validate timesheet lock period
-            ServiceResponse lockResponse = timesheetValidatorService.validateTimesheetLockPeriod(
-                requestDTO.getEmpId(), timesheetDate);
-            if (lockResponse != null) {
-                return lockResponse;
-            }
-            
-            // 4. Check if timesheet already exists
-            Optional<EmployeeTimesheetsNew> existing = timesheetsNewRepository
-                .findByEmpIdAndDate(requestDTO.getEmpId(), timesheetDate);
-            
-            if (existing.isPresent() && !"Non-working".equalsIgnoreCase(requestDTO.getDayType())) {
-                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceResponse("Timesheet already exists for this date");
-                return response;
-            }
-            
-            // 5. Create main timesheet record
-            EmployeeTimesheetsNew timesheet = new EmployeeTimesheetsNew();
-            timesheet.setEmpId(requestDTO.getEmpId());
-            timesheet.setDate(timesheetDate);
-            timesheet.setDayTypeId(requestDTO.getDayTypeId());
-            timesheet.setStatus(requestDTO.getStatus() != null ? requestDTO.getStatus() : getPendingStatusId());
-            timesheet.setLeaveTypeMasterId(requestDTO.getLeaveTypeMasterId());
-            timesheet.setCreatedBy(requestDTO.getCreatedBy());
-            timesheet.setCreatedOn(LocalDateTime.now());
-            
-            // Calculate total working minutes across all projects
-            int totalWorkingMinutes = 0;
-            
-            // 6. Process project entries
-            List<TimesheetProjectEntryNew> projectEntries = new ArrayList<>();
-            
-            if (requestDTO.getProjectEntries() != null && !requestDTO.getProjectEntries().isEmpty()) {
-                for (ProjectEntryRequestDTO projectEntryDTO : requestDTO.getProjectEntries()) {
-                    TimesheetProjectEntryNew projectEntry = createProjectEntry(
-                        projectEntryDTO, null, requestDTO.getCreatedBy());
-                    
-                    // Calculate working minutes for this project
-                    if (projectEntry.getOfficeInTime() != null && projectEntry.getOfficeOutTime() != null) {
-                        long minutes = java.time.Duration.between(
-                            projectEntry.getOfficeInTime(), 
-                            projectEntry.getOfficeOutTime()
-                        ).toMinutes();
-                        projectEntry.setTotalWorkingMinutes((int) minutes);
-                        totalWorkingMinutes += minutes;
-                    }
-                    
-                    projectEntries.add(projectEntry);
-                }
-            }
-            
-            timesheet.setTotalWorkingMinutes(totalWorkingMinutes);
-            
-            // 7. Save timesheet
-            EmployeeTimesheetsNew savedTimesheet = timesheetsNewRepository.save(timesheet);
-            
-            // 8. Save project entries and their activities
-            for (TimesheetProjectEntryNew projectEntry : projectEntries) {
-                projectEntry.setTimesheetId(savedTimesheet.getTimesheetId());
-                TimesheetProjectEntryNew savedProjectEntry = projectEntryNewRepository.save(projectEntry);
-                
-                // Save activities for this project entry
-                if (projectEntry.getActivities() != null) {
-                    saveActivitiesForProjectEntry(savedProjectEntry.getProjectEntryId(), 
-                                                  projectEntry.getActivities(), 
-                                                  savedTimesheet.getTimesheetId());
-                }
-            }
-            
-            // 9. Handle document uploads
-            if (filledDoc != null || approvedDoc != null) {
-                handleDocumentUploads(savedTimesheet.getTimesheetId(), 
-                                     filledDoc, approvedDoc, 
-                                     requestDTO.getClientApprovalStatus(),
-                                     requestDTO.getCreatedBy());
-            }
-            
-            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceResponse("Timesheet created successfully");
-            response.setServiceResponse(savedTimesheet);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-            response.setServiceResponse("Failed to create timesheet: " + e.getMessage());
-            response.setServiceError(e.getMessage());
-        }
-        
-        return response;
-    }
-    
-    /**
-     * Update existing timesheet
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public ServiceResponse updateTimesheet(UpdateTimesheetRequestDTO requestDTO,
-                                          MultipartFile filledDoc,
-                                          MultipartFile approvedDoc) {
-        ServiceResponse response = new ServiceResponse();
-        
-        try {
-            // 1. Find existing timesheet
-            Optional<EmployeeTimesheetsNew> timesheetOpt = 
-                timesheetsNewRepository.findById(requestDTO.getTimesheetId());
-            
-            if (!timesheetOpt.isPresent()) {
-                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceResponse("Timesheet not found");
-                return response;
-            }
-            
-            EmployeeTimesheetsNew timesheet = timesheetOpt.get();
-            
-            // 2. Validate update permissions (status must be Pending or Rejected)
-            if (!isTimesheetEditable(timesheet.getStatus())) {
-                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceResponse("Timesheet cannot be edited in current status");
-                return response;
-            }
-            
-            // 3. Update main timesheet fields
-            timesheet.setDayTypeId(requestDTO.getDayTypeId());
-            timesheet.setLeaveTypeMasterId(requestDTO.getLeaveTypeMasterId());
-            timesheet.setUpdatedBy(requestDTO.getUpdatedBy());
-            timesheet.setUpdatedOn(LocalDateTime.now());
-            
-            // 4. Delete removed project entries
-            if (requestDTO.getDeletedProjectEntryIds() != null) {
-                for (Long projectEntryId : requestDTO.getDeletedProjectEntryIds()) {
-                    deleteProjectEntry(projectEntryId);
-                }
-            }
-            
-            // 5. Update or create project entries
-            int totalWorkingMinutes = 0;
-            
-            if (requestDTO.getProjectEntries() != null) {
-                for (ProjectEntryRequestDTO projectEntryDTO : requestDTO.getProjectEntries()) {
-                    TimesheetProjectEntryNew projectEntry;
-                    
-                    if (projectEntryDTO.getProjectEntryId() != null) {
-                        // Update existing
-                        Optional<TimesheetProjectEntryNew> existingOpt = 
-                            projectEntryNewRepository.findById(projectEntryDTO.getProjectEntryId());
-                        if (existingOpt.isPresent()) {
-                            projectEntry = existingOpt.get();
-                            updateProjectEntry(projectEntry, projectEntryDTO, requestDTO.getUpdatedBy());
-                        } else {
-                            projectEntry = createProjectEntry(projectEntryDTO, 
-                                                             requestDTO.getTimesheetId(), 
-                                                             requestDTO.getUpdatedBy());
-                        }
-                    } else {
-                        // Create new
-                        projectEntry = createProjectEntry(projectEntryDTO, 
-                                                         requestDTO.getTimesheetId(), 
-                                                         requestDTO.getUpdatedBy());
-                    }
-                    
-                    // Calculate working minutes
-                    if (projectEntry.getOfficeInTime() != null && 
-                        projectEntry.getOfficeOutTime() != null) {
-                        long minutes = java.time.Duration.between(
-                            projectEntry.getOfficeInTime(), 
-                            projectEntry.getOfficeOutTime()
-                        ).toMinutes();
-                        projectEntry.setTotalWorkingMinutes((int) minutes);
-                        totalWorkingMinutes += minutes;
-                    }
-                    
-                    projectEntryNewRepository.save(projectEntry);
-                    
-                    // Update activities
-                    updateActivitiesForProjectEntry(projectEntry.getProjectEntryId(), 
-                                                   projectEntryDTO.getActivities(), 
-                                                   requestDTO.getTimesheetId());
-                }
-            }
-            
-            timesheet.setTotalWorkingMinutes(totalWorkingMinutes);
-            timesheetsNewRepository.save(timesheet);
-            
-            // 6. Handle document updates
-            if (filledDoc != null || approvedDoc != null) {
-                handleDocumentUploads(requestDTO.getTimesheetId(), 
-                                     filledDoc, approvedDoc, 
-                                     requestDTO.getClientApprovalStatus(),
-                                     requestDTO.getUpdatedBy());
-            }
-            
-            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceResponse("Timesheet updated successfully");
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-            response.setServiceResponse("Failed to update timesheet: " + e.getMessage());
-            response.setServiceError(e.getMessage());
-        }
-        
-        return response;
-    }
-    
-    /**
-     * Get timesheet details by ID
-     */
-    public ServiceResponse getTimesheetById(Long timesheetId) {
-        ServiceResponse response = new ServiceResponse();
-        
-        try {
-            Optional<EmployeeTimesheetsNew> timesheetOpt = 
-                timesheetsNewRepository.findById(timesheetId);
-            
-            if (!timesheetOpt.isPresent()) {
-                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceResponse("Timesheet not found");
-                return response;
-            }
-            
-            EmployeeTimesheetsNew timesheet = timesheetOpt.get();
-            TimesheetResponseDTO responseDTO = mapToResponseDTO(timesheet);
-            
-            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceResponse(responseDTO);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-            response.setServiceResponse("Failed to fetch timesheet: " + e.getMessage());
-        }
-        
-        return response;
-    }
-    
-    /**
-     * Get timesheet list for employee
-     */
-    public ServiceResponse getTimesheetList(TimesheetDTO requestDTO) {
-        ServiceResponse response = new ServiceResponse();
-        
-        try {
-            LocalDate startDate = LocalDate.parse(requestDTO.getStartDate());
-            LocalDate endDate = LocalDate.parse(requestDTO.getEndDate());
-            
-            List<EmployeeTimesheetsNew> timesheets = timesheetsNewRepository
-                .findByEmpIdAndDateBetween(requestDTO.getEmpId(), startDate, endDate);
-            
-            List<TimesheetResponseDTO> responseList = timesheets.stream()
-                .map(this::mapToResponseDTO)
-                .collect(Collectors.toList());
-            
-            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceResponse(responseList);
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-            response.setServiceResponse("Failed to fetch timesheets: " + e.getMessage());
-        }
-        
-        return response;
-    }
-    
-    // Helper methods
-    
-    private TimesheetProjectEntryNew createProjectEntry(ProjectEntryRequestDTO dto, 
-                                                        Long timesheetId, 
-                                                        Long createdBy) {
-        TimesheetProjectEntryNew entry = new TimesheetProjectEntryNew();
-        entry.setTimesheetId(timesheetId);
-        entry.setProjectId(dto.getProjectId());
-        entry.setClientSideId(dto.getClientSideId());
-        entry.setOfficeInTime(dto.getOfficeInTime());
-        entry.setOfficeOutTime(dto.getOfficeOutTime());
-        entry.setClientInTime(dto.getClientInTime());
-        entry.setClientOutTime(dto.getClientOutTime());
-        entry.setClientApprovalStatusId(dto.getClientApprovalStatusId());
-        entry.setHasClientSideId(dto.getHasClientSideId());
-        entry.setShadowEmpId(dto.getShadowEmpId());
-        entry.setIsShadowTimesheet(dto.getIsShadowTimesheet());
-        entry.setCreatedBy(createdBy);
-        entry.setCreatedOn(LocalDateTime.now());
-        
-        // Calculate minutes
-        if (dto.getOfficeInTime() != null && dto.getOfficeOutTime() != null) {
-            long minutes = java.time.Duration.between(
-                dto.getOfficeInTime(), dto.getOfficeOutTime()
-            ).toMinutes();
-            entry.setTotalWorkingMinutes((int) minutes);
-        }
-        
-        if (dto.getClientInTime() != null && dto.getClientOutTime() != null) {
-            long minutes = java.time.Duration.between(
-                dto.getClientInTime(), dto.getClientOutTime()
-            ).toMinutes();
-            entry.setTotalClientWorkingMinutes((int) minutes);
-        }
-        
-        return entry;
-    }
-    
-    private void updateProjectEntry(TimesheetProjectEntryNew entry, 
-                                   ProjectEntryRequestDTO dto, 
-                                   Long updatedBy) {
-        entry.setClientSideId(dto.getClientSideId());
-        entry.setOfficeInTime(dto.getOfficeInTime());
-        entry.setOfficeOutTime(dto.getOfficeOutTime());
-        entry.setClientInTime(dto.getClientInTime());
-        entry.setClientOutTime(dto.getClientOutTime());
-        entry.setClientApprovalStatusId(dto.getClientApprovalStatusId());
-        entry.setHasClientSideId(dto.getHasClientSideId());
-        entry.setShadowEmpId(dto.getShadowEmpId());
-        entry.setIsShadowTimesheet(dto.getIsShadowTimesheet());
-        entry.setUpdatedBy(updatedBy);
-        entry.setUpdatedOn(LocalDateTime.now());
-        
-        // Recalculate minutes
-        if (dto.getOfficeInTime() != null && dto.getOfficeOutTime() != null) {
-            long minutes = java.time.Duration.between(
-                dto.getOfficeInTime(), dto.getOfficeOutTime()
-            ).toMinutes();
-            entry.setTotalWorkingMinutes((int) minutes);
-        }
-        
-        if (dto.getClientInTime() != null && dto.getClientOutTime() != null) {
-            long minutes = java.time.Duration.between(
-                dto.getClientInTime(), dto.getClientOutTime()
-            ).toMinutes();
-            entry.setTotalClientWorkingMinutes((int) minutes);
-        }
-    }
-    
-    private void saveActivitiesForProjectEntry(Long projectEntryId, 
-                                              List<ActivityRequestDTO> activities, 
-                                              Long timesheetId) {
-        for (ActivityRequestDTO activityDTO : activities) {
-            TimesheetActivityMapId mapId = new TimesheetActivityMapId();
-            mapId.setTimesheetId(timesheetId);
-            mapId.setActivityId(activityDTO.getActivityId());
-            mapId.setProjectId(activityDTO.getProjectId()); // From activity context
-            
-            EmployeeTimesheetActivitiesMappingNew mapping = new EmployeeTimesheetActivitiesMappingNew();
-            mapping.setId(mapId);
-            mapping.setDescription(activityDTO.getDescription());
-            mapping.setDurationMinutes(activityDTO.getDurationMinutes());
-            // Note: projectEntryId should be added to the entity if needed for querying
-            
-            activityMapNewRepository.save(mapping);
-        }
-    }
-    
-    private void updateActivitiesForProjectEntry(Long projectEntryId, 
-                                                List<ActivityRequestDTO> activities, 
-                                                Long timesheetId) {
-        // Delete existing activities for this project entry
-        // (Implementation depends on whether projectEntryId is in the mapping table)
-        
-        // Save new/updated activities
-        saveActivitiesForProjectEntry(projectEntryId, activities, timesheetId);
-    }
-    
-    private void deleteProjectEntry(Long projectEntryId) {
-        // Delete activities first
-        // Then delete project entry
-        projectEntryNewRepository.deleteById(projectEntryId);
-    }
-    
-    private void handleDocumentUploads(Long timesheetId, 
-                                     MultipartFile filledDoc, 
-                                     MultipartFile approvedDoc,
-                                     String clientApprovalStatus,
-                                     Long createdBy) {
-        // Implementation similar to existing document upload logic
-        // Use TimesheetDocumentDetailsNewRepository
-    }
-    
-    private TimesheetResponseDTO mapToResponseDTO(EmployeeTimesheetsNew timesheet) {
-        TimesheetResponseDTO dto = new TimesheetResponseDTO();
-        dto.setTimesheetId(timesheet.getTimesheetId());
-        dto.setEmpId(timesheet.getEmpId());
-        dto.setDate(timesheet.getDate());
-        dto.setDayTypeId(timesheet.getDayTypeId());
-        dto.setStatus(timesheet.getStatus());
-        dto.setTotalWorkingMinutes(timesheet.getTotalWorkingMinutes());
-        
-        // Fetch project entries
-        List<TimesheetProjectEntryNew> projectEntries = 
-            projectEntryNewRepository.findByTimesheetId(timesheet.getTimesheetId());
-        
-        List<TimesheetProjectEntryDTO> projectEntryDTOs = projectEntries.stream()
-            .map(this::mapProjectEntryToDTO)
-            .collect(Collectors.toList());
-        
-        dto.setProjectEntries(projectEntryDTOs);
-        
-        // Fetch documents
-        List<TimesheetDocumentDetailsNew> documents = 
-            documentDetailsNewRepository.findByTimesheetId(timesheet.getTimesheetId());
-        
-        for (TimesheetDocumentDetailsNew doc : documents) {
-            if (Boolean.FALSE.equals(doc.getFinalFlag())) {
-                dto.setFilledDocumentId(doc.getDocId());
-                dto.setFilledDocumentUrl(doc.getFileUrl());
-            } else {
-                dto.setApprovedDocumentId(doc.getDocId());
-                dto.setApprovedDocumentUrl(doc.getFileUrl());
-            }
-        }
-        
-        return dto;
-    }
-    
-    private TimesheetProjectEntryDTO mapProjectEntryToDTO(TimesheetProjectEntryNew entry) {
-        TimesheetProjectEntryDTO dto = new TimesheetProjectEntryDTO();
-        dto.setProjectEntryId(entry.getProjectEntryId());
-        dto.setProjectId(entry.getProjectId());
-        dto.setClientSideId(entry.getClientSideId());
-        dto.setOfficeInTime(entry.getOfficeInTime());
-        dto.setOfficeOutTime(entry.getOfficeOutTime());
-        dto.setClientInTime(entry.getClientInTime());
-        dto.setClientOutTime(entry.getClientOutTime());
-        dto.setTotalWorkingMinutes(entry.getTotalWorkingMinutes());
-        dto.setTotalClientWorkingMinutes(entry.getTotalClientWorkingMinutes());
-        dto.setClientApprovalStatusId(entry.getClientApprovalStatusId());
-        dto.setHasClientSideId(entry.getHasClientSideId());
-        dto.setShadowEmpId(entry.getShadowEmpId());
-        dto.setIsShadowTimesheet(entry.getIsShadowTimesheet());
-        
-        // Fetch activities for this project entry
-        // (Implementation depends on projectEntryId in mapping table)
-        
-        return dto;
-    }
-    
-    private void validateCreateRequest(CreateTimesheetRequestDTO requestDTO) {
-        if (requestDTO.getEmpId() == null) {
-            throw new IllegalArgumentException("Employee ID is required");
-        }
-        if (requestDTO.getDate() == null) {
-            throw new IllegalArgumentException("Date is required");
-        }
-        if (requestDTO.getDayTypeId() == null) {
-            throw new IllegalArgumentException("Day type is required");
-        }
-    }
-    
-    private boolean isTimesheetEditable(Integer status) {
-        // Only Pending or Rejected timesheets can be edited
-        // (Implementation depends on status master values)
-        return true; // Placeholder
-    }
-    
-    private Integer getPendingStatusId() {
-        // Get status ID for "Pending" from status master
-        return 1; // Placeholder
-    }
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class TimesheetDTO {
+    private EmployeeTimesheetDTO employeeTimesheet;
+    private List<ProjectTimesheetDTO> projectTimesheets;
 }
 ```
 
+**Purpose:** Request/Response wrapper for complete timesheet data
+
 ---
 
-## Repository Layer Implementation
+## API Categorization & Migration Strategy
 
-### 1. TimesheetProjectEntryNewRepository (NEW)
+### Category A: CRUD Operations (New Implementation Required)
+These APIs need complete rewrite for new structure.
 
+### Category B: Query Operations (Modify Existing)
+These APIs need modification to work with new structure.
+
+### Category C: Utility Operations (Minimal Changes)
+These APIs need minor adjustments.
+
+### Category D: Deprecated Operations (Remove/Replace)
+These APIs are no longer valid with new structure.
+
+---
+
+## Phase 1: Foundation & Core CRUD Operations
+**Priority:** 🔴 **CRITICAL**  
+**Duration:** 5-7 days  
+**Dependencies:** None
+
+### 1.1 Create New DTOs
+**Files to Create:**
+- `src/main/java/com/apmosys/employeeportal/dto/EmployeeTimesheetDTO.java`
+- `src/main/java/com/apmosys/employeeportal/dto/ProjectTimesheetDTO.java`
+- `src/main/java/com/apmosys/employeeportal/dto/ActivityTimesheetDTO.java`
+- Update `src/main/java/com/apmosys/employeeportal/dto/TimesheetDTO.java`
+
+**Tasks:**
+- [ ] Create EmployeeTimesheetDTO with all fields
+- [ ] Create ProjectTimesheetDTO with all fields
+- [ ] Create ActivityTimesheetDTO with all fields
+- [ ] Update TimesheetDTO to use new structure
+- [ ] Add validation annotations
+- [ ] Add Jackson annotations for JSON mapping
+
+---
+
+### 1.2 Create New Service Layer
+**Files to Create:**
+- `src/main/java/com/apmosys/employeeportal/service/EmployeeTimesheetService.java`
+- `src/main/java/com/apmosys/employeeportal/service/ProjectTimesheetService.java`
+- `src/main/java/com/apmosys/employeeportal/service/ActivityTimesheetService.java`
+
+**Tasks:**
+- [ ] Create EmployeeTimesheetService with CRUD operations
+- [ ] Create ProjectTimesheetService with CRUD operations
+- [ ] Create ActivityTimesheetService with CRUD operations
+- [ ] Implement transaction management
+- [ ] Implement validation logic
+- [ ] Implement aggregation logic (total minutes calculation)
+
+---
+
+### 1.3 Core CRUD APIs - CREATE
+
+#### API 1.1: Create Timesheet (New)
+**Endpoint:** `POST /api/createTimesheet`  
+**Controller:** `TimesheetController.createTimesheet()`  
+**Service:** `TimesheetService.createTimesheet()`  
+**Priority:** 🔴 **CRITICAL**
+
+**Request:**
+```json
+{
+  "employeeTimesheet": {
+    "empId": 123,
+    "date": "2025-01-30",
+    "dayTypeId": 1,
+    "officeInTime": "2025-01-30T09:00:00",
+    "officeOutTime": "2025-01-30T18:00:00"
+  },
+  "projectTimesheets": [
+    {
+      "projectId": 456,
+      "clientInTime": "2025-01-30T09:30:00",
+      "clientOutTime": "2025-01-30T17:30:00",
+      "isNightShift": false,
+      "activities": [
+        {
+          "activityId": 789,
+          "description": "Development work",
+          "durationMinutes": 480,
+          "clientLocationId": 10
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Implementation Steps:**
+1. Validate employee authorization
+2. Validate timesheet date (not future, not locked)
+3. Check if timesheet already exists for date
+4. Create EmployeeTimesheet record
+5. For each ProjectTimesheet:
+   - Create ProjectTimesheetStatus record
+   - For each Activity:
+     - Create ActivityMapping record
+6. Calculate and update totals
+7. Handle document uploads (if any)
+8. Return created timesheet
+
+**Service Method:**
 ```java
-package com.apmosys.employeeportal.repository;
+@Transactional(rollbackFor = Exception.class)
+public ServiceResponse createTimesheet(TimesheetDTO timesheetDTO, 
+                                       MultipartFile doc1, 
+                                       MultipartFile doc2)
+```
 
-import java.util.List;
-import java.util.Optional;
+**Dependencies:**
+- EmployeeTimesheetService.create()
+- ProjectTimesheetService.create()
+- ActivityTimesheetService.create()
+- TimesheetDocumentService.handleDocumentUpload()
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
+---
 
-import com.apmosys.employeeportal.model.TimesheetProjectEntryNew;
+#### API 1.2: Create Timesheet (Replace Existing)
+**Endpoint:** `POST /api/addTimesheetWithClient` (MODIFY)  
+**Controller:** `TimesheetController.addTimesheetWithClient()`  
+**Service:** `TimesheetService.addTimesheet()` → **REPLACE**  
+**Priority:** 🔴 **CRITICAL**
 
-@Repository
-public interface TimesheetProjectEntryNewRepository 
-    extends JpaRepository<TimesheetProjectEntryNew, Long> {
-    
-    // Find all project entries for a timesheet
-    List<TimesheetProjectEntryNew> findByTimesheetId(Long timesheetId);
-    
-    // Find project entry by timesheet and project
-    Optional<TimesheetProjectEntryNew> findByTimesheetIdAndProjectId(
-        Long timesheetId, Integer projectId);
-    
-    // Delete all project entries for a timesheet
-    void deleteByTimesheetId(Long timesheetId);
-    
-    // Check if project entry exists
-    boolean existsByTimesheetIdAndProjectId(Long timesheetId, Integer projectId);
+**Changes Required:**
+- Replace old `addTimesheet()` with new `createTimesheet()`
+- Update request/response mapping
+- Maintain backward compatibility during transition
+
+---
+
+### 1.4 Core CRUD APIs - READ
+
+#### API 1.3: Get Timesheet by ID (New)
+**Endpoint:** `GET /api/getTimesheetById`  
+**Controller:** `TimesheetController.getTimesheetById()`  
+**Service:** `TimesheetService.getTimesheetById()`  
+**Priority:** 🟡 **HIGH**
+
+**Request:** `?timesheetId=123`
+
+**Response:**
+```json
+{
+  "employeeTimesheet": { ... },
+  "projectTimesheets": [ ... ]
 }
 ```
 
-### 2. Updated TimesheetActivityMapNewRepository
+**Implementation:**
+- Fetch EmployeeTimesheet by ID
+- Fetch all ProjectTimesheets for timesheet
+- Fetch all Activities for each project
+- Aggregate totals
+- Return complete TimesheetDTO
 
+---
+
+#### API 1.4: Get Timesheet by Date (New)
+**Endpoint:** `POST /api/getTimesheetByDate`  
+**Controller:** `TimesheetController.getTimesheetByDate()`  
+**Service:** `TimesheetService.getTimesheetByDate()`  
+**Priority:** 🟡 **HIGH**
+
+**Request:**
+```json
+{
+  "empId": 123,
+  "date": "2025-01-30"
+}
+```
+
+---
+
+#### API 1.5: Get Timesheets by Date Range (New)
+**Endpoint:** `POST /api/getTimesheetsByDateRange`  
+**Controller:** `TimesheetController.getTimesheetsByDateRange()`  
+**Service:** `TimesheetService.getTimesheetsByDateRange()`  
+**Priority:** 🟡 **HIGH**
+
+**Request:**
+```json
+{
+  "empId": 123,
+  "startDate": "2025-01-01",
+  "endDate": "2025-01-31"
+}
+```
+
+**Response:** `List<TimesheetDTO>`
+
+---
+
+### 1.5 Core CRUD APIs - UPDATE
+
+#### API 1.6: Update Timesheet (New)
+**Endpoint:** `POST /api/updateTimesheet` (MODIFY)  
+**Controller:** `TimesheetController.updateTimesheet()`  
+**Service:** `TimesheetService.updateTimesheet()` → **REPLACE**  
+**Priority:** 🔴 **CRITICAL**
+
+**Request:** Same as Create
+
+**Implementation:**
+1. Fetch existing EmployeeTimesheet
+2. Update EmployeeTimesheet fields
+3. Handle ProjectTimesheet changes:
+   - Add new projects
+   - Update existing projects
+   - Remove deleted projects
+4. Handle Activity changes:
+   - Add new activities
+   - Update existing activities
+   - Remove deleted activities
+5. Recalculate totals
+6. Update documents if changed
+
+---
+
+#### API 1.7: Update Timesheet Status (New)
+**Endpoint:** `POST /api/updateTimesheetStatus`  
+**Controller:** `TimesheetController.updateTimesheetStatus()`  
+**Service:** `TimesheetService.updateTimesheetStatus()`  
+**Priority:** 🟡 **HIGH**
+
+**Request:**
+```json
+{
+  "timesheetId": 123,
+  "projectId": 456,
+  "status": 2,
+  "updatedBy": 789
+}
+```
+
+**Purpose:** Update status for specific project within timesheet
+
+---
+
+### 1.6 Core CRUD APIs - DELETE
+
+#### API 1.8: Delete Timesheet (New)
+**Endpoint:** `DELETE /api/deleteTimesheet`  
+**Controller:** `TimesheetController.deleteTimesheet()`  
+**Service:** `TimesheetService.deleteTimesheet()`  
+**Priority:** 🟡 **MEDIUM**
+
+**Request:** `?timesheetId=123`
+
+**Implementation:**
+- Delete all Activities (cascade)
+- Delete all ProjectTimesheets (cascade)
+- Delete EmployeeTimesheet
+- Delete associated documents
+
+---
+
+#### API 1.9: Delete Project from Timesheet (New)
+**Endpoint:** `DELETE /api/deleteProjectFromTimesheet`  
+**Controller:** `TimesheetController.deleteProjectFromTimesheet()`  
+**Service:** `TimesheetService.deleteProjectFromTimesheet()`  
+**Priority:** 🟡 **MEDIUM**
+
+**Request:**
+```json
+{
+  "timesheetId": 123,
+  "projectId": 456
+}
+```
+
+---
+
+#### API 1.10: Delete Activity from Timesheet (New)
+**Endpoint:** `DELETE /api/deleteActivityFromTimesheet`  
+**Controller:** `TimesheetController.deleteActivityFromTimesheet()`  
+**Service:** `TimesheetService.deleteActivityFromTimesheet()`  
+**Priority:** 🟡 **MEDIUM**
+
+**Request:**
+```json
+{
+  "timesheetId": 123,
+  "activityId": 789,
+  "projectId": 456
+}
+```
+
+---
+
+## Phase 2: Approval & Status Management
+**Priority:** 🔴 **CRITICAL**  
+**Duration:** 4-5 days  
+**Dependencies:** Phase 1
+
+### 2.1 Approval APIs
+
+#### API 2.1: Approve Timesheet (Modify)
+**Endpoint:** `POST /api/approveTimesheetRequest` (MODIFY)  
+**Controller:** `TimesheetController.approveTimesheetRequest()`  
+**Service:** `TimesheetService.approveTimesheetRequest()` → **MODIFY**  
+**Priority:** 🔴 **CRITICAL**
+
+**Changes Required:**
+- Old: Approve entire timesheet
+- New: Approve specific project(s) within timesheet
+
+**Request:**
+```json
+{
+  "timesheetId": 123,
+  "projectIds": [456, 789],  // Optional: if empty, approve all
+  "approvedBy": 999,
+  "approvalType": "MANAGER" // MANAGER, HR, CLIENT
+}
+```
+
+**Implementation:**
+- Update status for each ProjectTimesheet
+- Calculate overall EmployeeTimesheet status
+- Send notifications
+- Log approval
+
+---
+
+#### API 2.2: Reject Timesheet (Modify)
+**Endpoint:** `POST /api/rejectTimesheetRequest` (NEW - was bulkReject)  
+**Controller:** `TimesheetController.rejectTimesheetRequest()`  
+**Service:** `TimesheetService.rejectTimesheetRequest()`  
+**Priority:** 🔴 **CRITICAL**
+
+**Request:**
+```json
+{
+  "timesheetId": 123,
+  "projectId": 456,
+  "rejectionReasonId": 10,
+  "rejectedBy": 999,
+  "comments": "Incorrect hours"
+}
+```
+
+---
+
+#### API 2.3: Bulk Approve Timesheets (Modify)
+**Endpoint:** `POST /api/bulkApproveTimesheetRequest` (MODIFY)  
+**Controller:** `TimesheetController.bulkApproveTimesheetRequest()`  
+**Service:** `TimesheetService.bulkApproveTimesheetRequest()` → **MODIFY**  
+**Priority:** 🟡 **HIGH**
+
+**Request:**
+```json
+{
+  "timesheetIds": [123, 124, 125],
+  "projectIds": [456],  // Optional: approve specific projects
+  "approvedBy": 999
+}
+```
+
+---
+
+#### API 2.4: Bulk Reject Timesheets (Modify)
+**Endpoint:** `POST /api/bulkRejectTimesheetRequest` (MODIFY)  
+**Controller:** `TimesheetController.bulkRejectTimesheetRequest()`  
+**Service:** `TimesheetService.bulkRejectTimesheetRequest()` → **MODIFY**  
+**Priority:** 🟡 **HIGH**
+
+---
+
+#### API 2.5: Revoke Approved Timesheet (Modify)
+**Endpoint:** `POST /api/revokeApprovedTimesheet` (MODIFY)  
+**Controller:** `TimesheetController.revokeApprovedTimesheet()`  
+**Service:** `TimesheetService.revokeApprovedTimesheet()` → **MODIFY**  
+**Priority:** 🟡 **HIGH**
+
+**Changes:**
+- Revoke specific project approval
+- Recalculate overall status
+
+---
+
+### 2.2 Status Query APIs
+
+#### API 2.6: Get Pending Timesheets (Modify)
+**Endpoint:** `POST /api/getMyReporteesTimesheetRequests` (MODIFY)  
+**Controller:** `TimesheetController.getMyReporteesTimesheetRequests()`  
+**Service:** `TimesheetService.getMyReporteesTimesheetRequests()` → **MODIFY**  
+**Priority:** 🟡 **HIGH**
+
+**Changes:**
+- Filter by project status
+- Group by project
+- Show project-wise pending count
+
+---
+
+#### API 2.7: Get Approved Timesheets (Modify)
+**Endpoint:** `POST /api/getMyReporteesApprovedTimesheets` (MODIFY)  
+**Controller:** `TimesheetController.getMyReporteesApprovedTimesheets()`  
+**Service:** `TimesheetService.getMyReporteesApprovedTimesheets()` → **MODIFY**  
+**Priority:** 🟡 **HIGH**
+
+---
+
+## Phase 3: Query & Reporting APIs
+**Priority:** 🟡 **HIGH**  
+**Duration:** 5-6 days  
+**Dependencies:** Phase 1, 2
+
+### 3.1 Employee Timesheet Queries
+
+#### API 3.1: Get Employee Timesheets (Modify)
+**Endpoint:** `POST /api/getAllMyTimesheetsByEmpId` (MODIFY)  
+**Controller:** `TimesheetController.getAllMyTimesheetsByEmpId()`  
+**Service:** `TimesheetService.getAllMyTimesheetsByEmpId()` → **MODIFY**  
+**Priority:** 🟡 **HIGH**
+
+**Changes:**
+- Return hierarchical structure
+- Include all projects per day
+- Aggregate totals
+
+---
+
+#### API 3.2: Get Team Timesheets (Modify)
+**Endpoint:** `POST /api/getAllMyTeamTimesheets` (MODIFY)  
+**Controller:** `TimesheetController.getAllMyTeamTimesheets()`  
+**Service:** `TimesheetService.getAllMyTeamTimesheets()` → **MODIFY**  
+**Priority:** 🟡 **HIGH**
+
+---
+
+#### API 3.3: Get Timesheets for Home Page (Modify)
+**Endpoint:** `POST /api/getTimesheetsForHomePageByEmpId` (MODIFY)  
+**Controller:** `TimesheetController.getTimesheetsForHomePageByEmpId()`  
+**Service:** `TimesheetService.getTimesheetsForHomePageByEmpId()` → **MODIFY**  
+**Priority:** 🟡 **HIGH**
+
+**Changes:**
+- Aggregate activities per project
+- Show project-wise totals
+- Calculate daily totals
+
+---
+
+#### API 3.4: Get Last 7 Days Timesheets (Modify)
+**Endpoint:** `POST /api/getLast7DaysTimesheetsByEmpId` (MODIFY)  
+**Controller:** `TimesheetController.getLast7DaysTimesheetsByEmpId()`  
+**Service:** `TimesheetService.getLast7DaysTimesheetsByEmpId()` → **MODIFY**  
+**Priority:** 🟡 **MEDIUM**
+
+---
+
+#### API 3.5: Get Last Filled Timesheet (Modify)
+**Endpoint:** `POST /api/getLastFilledTimesheetByEmp` (MODIFY)  
+**Controller:** `TimesheetController.getLastFilledTimesheetByEmp()`  
+**Service:** `TimesheetService.getLastFilledTimesheetByEmp()` → **MODIFY**  
+**Priority:** 🟡 **MEDIUM**
+
+---
+
+### 3.2 Calendar & View APIs
+
+#### API 3.6: Get Employee Timesheet Calendar (Modify)
+**Endpoint:** `POST /api/getEmployeeTimesheetAsCalender` (MODIFY)  
+**Controller:** `TimesheetController.getEmployeeTimesheetAsCalender()`  
+**Service:** `TimesheetService.getEmployeeTimesheetAsCalender()` → **MODIFY**  
+**Priority:** 🟡 **HIGH**
+
+**Changes:**
+- Group by date
+- Show multiple projects per day
+- Aggregate totals per day
+
+---
+
+#### API 3.7: Get Project Timesheet Calendar (Modify)
+**Endpoint:** `POST /api/getEmployeeTimesheetAsCalenderByProjectId` (MODIFY)  
+**Controller:** `TimesheetController.getEmployeeTimesheetAsCalenderByProjectId()`  
+**Service:** `TimesheetService.getEmployeeTimesheetAsCalenderByProjectId()` → **MODIFY**  
+**Priority:** 🟡 **HIGH**
+
+---
+
+### 3.3 Reporting APIs
+
+#### API 3.8: Get Employee Summary Report (Modify)
+**Endpoint:** `POST /api/getEmployeeSummaryOnExport` (MODIFY)  
+**Controller:** `TimesheetController.getEmployeeSummaryOnExport()`  
+**Service:** `TimesheetService.getEmployeeSummaryOnExportAccordingToStatus()` → **MODIFY**  
+**Priority:** 🟡 **HIGH**
+
+**Changes:**
+- Project-wise breakdown
+- Activity-wise details
+- Aggregated totals
+
+---
+
+#### API 3.9: Get Employee View for Client Attendance (Modify)
+**Endpoint:** `POST /api/getEmployeeViewForClientAttendanceStatus` (MODIFY)  
+**Controller:** `TimesheetController.getEmployeeViewForClientAttendanceStatus()`  
+**Service:** `TimesheetService.getEmployeeViewForClientAttendanceStatus()` → **MODIFY**  
+**Priority:** 🟡 **HIGH**
+
+---
+
+#### API 3.10: Get Project View for Client Attendance (Modify)
+**Endpoint:** `POST /api/getProjectViewForClientAttendanceStatus` (MODIFY)  
+**Controller:** `TimesheetController.getProjectViewForClientAttendanceStatus()`  
+**Service:** `TimesheetService.getProjectViewForClientAttendanceStatus()` → **MODIFY**  
+**Priority:** 🟡 **HIGH**
+
+---
+
+#### API 3.11: Get All Employee DSR of RM (Modify)
+**Endpoint:** `POST /api/getAllEmployeeDSROfRM` (MODIFY)  
+**Controller:** `TimesheetController.getAllEmployeeDSROfRM()`  
+**Service:** `TimesheetService.getAllEmployeeDSROfRM()` → **MODIFY**  
+**Priority:** 🟡 **HIGH**
+
+---
+
+#### API 3.12: Get Employee Timesheets by Project (Modify)
+**Endpoint:** `POST /api/getEmployeeTimesheetsByProject` (MODIFY)  
+**Controller:** `TimesheetController.getEmployeeTimesheetsByProject()`  
+**Service:** `TimesheetService.getEmployeeTimesheetsByProject()` → **MODIFY**  
+**Priority:** 🟡 **HIGH**
+
+---
+
+#### API 3.13: Get One Month Timesheet Report (Modify)
+**Endpoint:** `POST /api/getOneMonthTimesheetReport` (MODIFY)  
+**Controller:** `TimesheetController.getOneMonthTimesheetReport()`  
+**Service:** `TimesheetService.getTimesheetForEmployee()` → **MODIFY**  
+**Priority:** 🟡 **MEDIUM**
+
+---
+
+#### API 3.14: Get All or Dept Wise Employee Timesheet Report (Modify)
+**Endpoint:** `POST /api/getAllOrDeptWiseEmployeeTimesheetReport` (MODIFY)  
+**Controller:** `TimesheetController.getAllOrDeptWiseEmployeeTimesheetReport()`  
+**Service:** `TimesheetService.getAllOrDeptWiseEmployeeTimesheetReport()` → **MODIFY**  
+**Priority:** 🟡 **HIGH**
+
+---
+
+## Phase 4: Dashboard & Analytics APIs
+**Priority:** 🟡 **HIGH**  
+**Duration:** 3-4 days  
+**Dependencies:** Phase 1, 2, 3
+
+### 4.1 Dashboard APIs
+
+#### API 4.1: Get Timesheet Dashboard Count for Employee (Modify)
+**Endpoint:** `POST /api/getTimesheetDashboardCountForEmployee` (MODIFY)  
+**Controller:** `TimesheetController.getTimesheetDashboardCountForEmployee()`  
+**Service:** `TimesheetService.getTimesheetDashboardCountForEmployee()` → **MODIFY**  
+**Priority:** 🟡 **HIGH**
+
+**Changes:**
+- Project-wise counts
+- Status breakdown per project
+- Aggregated totals
+
+---
+
+#### API 4.2: Get Timesheet Dashboard Count for Project (Modify)
+**Endpoint:** `GET /api/getTimesheetDashboardCountForProject` (MODIFY)  
+**Controller:** `TimesheetController.getTimesheetDashboardCountForProject()`  
+**Service:** `TimesheetService.getTimesheetDashboardCountForProject()` → **MODIFY**  
+**Priority:** 🟡 **HIGH**
+
+---
+
+### 4.2 Count APIs
+
+#### API 4.3: Count Pending Timesheet Requests (Modify)
+**Endpoint:** `POST /api/countMyReporteesTimesheetRequests` (MODIFY)  
+**Controller:** `TimesheetController.countMyReporteesTimesheetRequests()`  
+**Service:** `TimesheetService.countMyReporteesTimesheetRequests()` → **MODIFY**  
+**Priority:** 🟡 **MEDIUM**
+
+**Changes:**
+- Count by project
+- Total pending count
+
+---
+
+#### API 4.4: Total VMS Filled Count (Modify)
+**Endpoint:** `POST /api/totalVmsFilledCount` (MODIFY)  
+**Controller:** `TimesheetController.totalVmsFilledCount()`  
+**Service:** `TimesheetService.totalVmsFilledCount()` → **MODIFY**  
+**Priority:** 🟡 **MEDIUM**
+
+---
+
+#### API 4.5: Total Ishine Filled Count (Modify)
+**Endpoint:** `POST /api/totalIshineFilledCount` (MODIFY)  
+**Controller:** `TimesheetController.totalIshineFilledCount()`  
+**Service:** `TimesheetService.totalIshineFilledCount()` → **MODIFY**  
+**Priority:** 🟡 **MEDIUM**
+
+---
+
+#### API 4.6: Total VMS Not Filled (Modify)
+**Endpoint:** `POST /api/totalvmsNotFilled` (MODIFY)  
+**Controller:** `TimesheetController.totalvmsNotFilled()`  
+**Service:** `TimesheetService.totalvmsNotFilled()` → **MODIFY**  
+**Priority:** 🟡 **MEDIUM**
+
+---
+
+#### API 4.7: Total Ishine Not Filled Count (Modify)
+**Endpoint:** `POST /api/totalIshineNotFilledCount` (MODIFY)  
+**Controller:** `TimesheetController.totalIshineNotFilledCount()`  
+**Service:** `TimesheetService.totalIshineNotFilledCount()` → **MODIFY**  
+**Priority:** 🟡 **MEDIUM**
+
+---
+
+## Phase 5: Document Management APIs
+**Priority:** 🟡 **HIGH**  
+**Duration:** 3-4 days  
+**Dependencies:** Phase 1
+
+### 5.1 Document CRUD
+
+#### API 5.1: Get Document by ID (Modify)
+**Endpoint:** `GET /api/getDocumentDataByDocId` (MODIFY)  
+**Controller:** `TimesheetController.getDocumentDataByDocId()`  
+**Service:** `TimesheetService.getDocumentDataByDocId()` → **MODIFY**  
+**Priority:** 🟡 **HIGH**
+
+**Changes:**
+- Link to project instead of timesheet only
+- Support project-specific documents
+
+---
+
+#### API 5.2: Get Final Document by ID (Modify)
+**Endpoint:** `GET /api/getFinalDocumentDataByDocId` (MODIFY)  
+**Controller:** `TimesheetController.getFinalDocumentDataByDocId()`  
+**Service:** `TimesheetService.getFinalDocumentDataByDocId()` → **MODIFY**  
+**Priority:** 🟡 **HIGH**
+
+---
+
+#### API 5.3: Get Documents by Employee and Date (Modify)
+**Endpoint:** `POST /api/getDocumentsByEmpAndDate` (MODIFY)  
+**Controller:** `TimesheetController.getDocumentsByEmpAndDate()`  
+**Service:** `TimesheetService.getDocumentsByEmpAndDate()` → **MODIFY**  
+**Priority:** 🟡 **MEDIUM**
+
+**Changes:**
+- Return project-wise documents
+- Group by project
+
+---
+
+#### API 5.4: Approve or Reject Document (Modify)
+**Endpoint:** `POST /api/approveOrRejectDocument` (MODIFY)  
+**Controller:** `TimesheetController.approveOrRejectDocument()`  
+**Service:** `TimesheetService.approveOrRejectDocument()` → **MODIFY**  
+**Priority:** 🟡 **HIGH**
+
+**Changes:**
+- Link approval to project
+- Update project status on approval
+
+---
+
+#### API 5.5: Bulk Final Document Upload (Modify)
+**Endpoint:** `POST /api/bulkFinalDocumentUpload` (MODIFY)  
+**Controller:** `TimesheetController.bulkFinalDocumentUpload()`  
+**Service:** `TimesheetService.replaceAllTemporaryFileWithFinalFile()` → **MODIFY**  
+**Priority:** 🟡 **HIGH**
+
+**Changes:**
+- Handle multiple projects
+- Update project-wise documents
+
+---
+
+#### API 5.6: Get VMS Document Approval Status Wise Count (Modify)
+**Endpoint:** `GET /api/getVmsDocumentApprovalStatusWiseCount` (MODIFY)  
+**Controller:** `TimesheetController.getVmsDocumentApprovalStatusWiseCount()`  
+**Service:** `TimesheetService.getVmsDocumentApprovalStatusWiseCount()` → **MODIFY**  
+**Priority:** 🟡 **MEDIUM**
+
+---
+
+## Phase 6: Utility & Configuration APIs
+**Priority:** 🟢 **LOW**  
+**Duration:** 2-3 days  
+**Dependencies:** Phase 1
+
+### 6.1 Project & Activity Utilities
+
+#### API 6.1: Get All Projects by Employee ID (Keep)
+**Endpoint:** `POST /api/getAllProjectsByEmpId` (KEEP)  
+**Controller:** `TimesheetController.getAllProjectsByEmpId()`  
+**Service:** `TimesheetService.getAllProjectsByEmpId()`  
+**Priority:** 🟢 **LOW**
+
+**Status:** No changes needed
+
+---
+
+#### API 6.2: Get All Activities by Project and Employee (Keep)
+**Endpoint:** `POST /api/getAllActivitiesByProjectIdandEmpId` (KEEP)  
+**Controller:** `TimesheetController.getAllActivitiesByProjectIdandEmpId()`  
+**Service:** `TimesheetService.getAllActivitiesByProjectIdandEmpId()`  
+**Priority:** 🟢 **LOW**
+
+**Status:** No changes needed
+
+---
+
+#### API 6.3: Get All My Activities by Timesheet ID (Modify)
+**Endpoint:** `POST /api/getAllMyActivitiesByTimesheetId` (MODIFY)  
+**Controller:** `TimesheetController.getAllMyActivitiesByTimesheetId()`  
+**Service:** `TimesheetService.getAllMyActivitiesByTimesheetId()` → **MODIFY**  
+**Priority:** 🟡 **MEDIUM**
+
+**Changes:**
+- Return activities grouped by project
+- Include project details
+
+---
+
+#### API 6.4: Get Active Projects by Employee ID (Keep)
+**Endpoint:** `POST /api/getActiveProjectsByEmpId` (KEEP)  
+**Controller:** `TimesheetController.getActiveProjectsByEmpId()`  
+**Service:** `TimesheetService.getActiveProjectsByEmpId()`  
+**Priority:** 🟢 **LOW**
+
+---
+
+#### API 6.5: Get Project by Month Range and Employee ID (Modify)
+**Endpoint:** `POST /api/getProjectByMonthRangeAndEmpId` (MODIFY)  
+**Controller:** `TimesheetController.getProjectByMonthRangeAndEmpId()`  
+**Service:** `TimesheetService.getProjectByMonthRangeAndEmpId()` → **MODIFY**  
+**Priority:** 🟡 **MEDIUM**
+
+---
+
+### 6.2 Client Side ID Management
+
+#### API 6.6: Get Client Side ID by Project ID (Keep)
+**Endpoint:** `POST /api/getClientSideIdByProjectId` (KEEP)  
+**Controller:** `TimesheetController.getClientSideIdByProjectId()`  
+**Service:** `TimesheetService.getClientSideIdByProjectId()`  
+**Priority:** 🟢 **LOW**
+
+---
+
+#### API 6.7: Get Client Side ID by Project and Employee (Keep)
+**Endpoint:** `POST /api/getClientSideIdByProjectIdAndEmpId` (KEEP)  
+**Controller:** `TimesheetController.getClientSideIdByProjectIdAndEmpId()`  
+**Service:** `TimesheetService.getClientSideIdByProjectIdAndEmpId()`  
+**Priority:** 🟢 **LOW**
+
+---
+
+#### API 6.8: Get Active Projects and Client Side ID (Keep)
+**Endpoint:** `POST /api/getActiveProjectsAndClientSideIdByEmpId` (KEEP)  
+**Controller:** `TimesheetController.getActiveProjectsAndClientSideIdByEmpId()`  
+**Service:** `TimesheetService.getActiveProjectsAndClientSideIdByEmpId()`  
+**Priority:** 🟢 **LOW**
+
+---
+
+#### API 6.9: Update Client Side ID Mapping (Keep)
+**Endpoint:** `POST /api/updateClientSideIdMapping` (KEEP)  
+**Controller:** `TimesheetController.updateClientSideIdMapping()`  
+**Service:** `TimesheetService.updateClientSideIdMapping()`  
+**Priority:** 🟢 **LOW**
+
+---
+
+#### API 6.10: Check if Project Requires Client ID (Keep)
+**Endpoint:** `GET /api/checkIfProjectRequiresClientId` (KEEP)  
+**Controller:** `TimesheetController.checkIfProjectRequiresClientId()`  
+**Service:** `TimesheetService.checkIfProjectRequiresClientId()`  
+**Priority:** 🟢 **LOW**
+
+---
+
+#### API 6.11: Is Client ID Mandatory (Keep)
+**Endpoint:** `POST /api/isClientIdMandetory` (KEEP)  
+**Controller:** `TimesheetController.isClientMandetory()`  
+**Service:** `TimesheetService.isClientMandetory()`  
+**Priority:** 🟢 **LOW**
+
+---
+
+### 6.3 Employee Utilities
+
+#### API 6.12: Get Employee by Name and Emp ID for Timesheet (Keep)
+**Endpoint:** `POST /api/getEmployeeByNameAndEmpidForTimesheet` (KEEP)  
+**Controller:** `TimesheetController.getEmployeeByNameAndEmpidForTimesheet()`  
+**Service:** `TimesheetService.getEmployeeByNameAndEmpidForTimesheet()`  
+**Priority:** 🟢 **LOW**
+
+---
+
+#### API 6.13: Fetch Employment ID by Employee ID (Keep)
+**Endpoint:** `POST /api/fetchEmploymentIdByEmpId` (KEEP)  
+**Controller:** `TimesheetController.fetchEmploymentIdByEmpId()`  
+**Service:** `TimesheetService.fetchEmploymentIdByEmpId()`  
+**Priority:** 🟢 **LOW**
+
+---
+
+#### API 6.14: Get My Reportees (Keep)
+**Endpoint:** `POST /api/getMyReportees` (KEEP)  
+**Controller:** `TimesheetController.getMyReportees()`  
+**Service:** `TimesheetService.getMyReportees()`  
+**Priority:** 🟢 **LOW**
+
+---
+
+### 6.4 Leave & Holiday Integration
+
+#### API 6.15: Get All Leave Timesheets Without Leave Application (Modify)
+**Endpoint:** `POST /api/getAllLeaveTimesheetsWithoutLeaveApplication` (MODIFY)  
+**Controller:** `TimesheetController.getAllLeaveTimesheetsWithoutLeaveApplication()`  
+**Service:** `TimesheetService.getAllLeaveTimesheetsWithoutLeaveApplication()` → **MODIFY**  
+**Priority:** 🟡 **MEDIUM**
+
+**Changes:**
+- Check project-wise leave entries
+- Aggregate leave days per project
+
+---
+
+### 6.5 Rejection Reason Management
+
+#### API 6.16: Get Rejection Reason (Keep)
+**Endpoint:** `GET /api/getRejectionReason` (KEEP)  
+**Controller:** `TimesheetController.getRejectionReason()`  
+**Service:** `TimesheetService.getRejectionReason()`  
+**Priority:** 🟢 **LOW**
+
+---
+
+#### API 6.17: Set Timesheet Reject Reason (Keep)
+**Endpoint:** `POST /api/setTimesheetRejectReason` (KEEP)  
+**Controller:** `TimesheetController.setTimesheetRejectReason()`  
+**Service:** `TimesheetService.setTimesheetRejectReason()`  
+**Priority:** 🟢 **LOW**
+
+---
+
+#### API 6.18: Get Rejection Reason by ID (Keep)
+**Endpoint:** `GET /api/getRejectionReasonById` (KEEP)  
+**Controller:** `TimesheetController.getRejectionReasonById()`  
+**Service:** `TimesheetService.getRejectionReasonById()`  
+**Priority:** 🟢 **LOW**
+
+---
+
+#### API 6.19: Update Active by Reject ID (Keep)
+**Endpoint:** `POST /api/updateActiveByRejectIdId` (KEEP)  
+**Controller:** `TimesheetController.updateActiveByRejectIdId()`  
+**Service:** `TimesheetService.updateActiveByRejectIdId()`  
+**Priority:** 🟢 **LOW**
+
+---
+
+### 6.6 Other Utilities
+
+#### API 6.20: Get All Disabled Date List for Bulk Doc Submit (Keep)
+**Endpoint:** `GET /api/getAllDisabledDateListForBulkDocSubmit` (KEEP)  
+**Controller:** `TimesheetController.getAllDisabledDateListForBulkDocSubmit()`  
+**Service:** `TimesheetService.getAllDisabledDateListForBulkDocSubmit()`  
+**Priority:** 🟢 **LOW**
+
+---
+
+#### API 6.21: Is Employee in TNM Project (Keep)
+**Endpoint:** `POST /api/isInTNMProject` (KEEP)  
+**Controller:** `TimesheetController.employeeInTNMProject()`  
+**Service:** `TimesheetService.isEmployeeInTNMProject()`  
+**Priority:** 🟢 **LOW**
+
+---
+
+#### API 6.22: Get Employee List by Project ID (Keep)
+**Endpoint:** `GET /api/getEmployeeListByProjectId` (KEEP)  
+**Controller:** `TimesheetController.getEmployeeListByProjectId()`  
+**Service:** `TimesheetService.getEmployeeListByProjectId()`  
+**Priority:** 🟢 **LOW**
+
+---
+
+#### API 6.23: Add Client and Project by List (Keep)
+**Endpoint:** `POST /api/addClientAndProjectByList` (KEEP)  
+**Controller:** `TimesheetController.addClientAndProjectByList()`  
+**Service:** `TimesheetService.addClientAndProjectByList()`  
+**Priority:** 🟢 **LOW**
+
+---
+
+## Phase 7: Integration & External APIs
+**Priority:** 🟡 **MEDIUM**  
+**Duration:** 2-3 days  
+**Dependencies:** Phase 1, 2, 3
+
+### 7.1 Employee360 Integration
+
+#### API 7.1: Get 360 Timesheet Details (Modify)
+**Endpoint:** `GET /api/get360TimesheetDetails` (MODIFY)  
+**Controller:** `Employee360Controller.get360TimesheetDetails()`  
+**Service:** `Employee360Service.get360TimesheetDetails()` → **MODIFY**  
+**Priority:** 🟡 **MEDIUM**
+
+**Changes:**
+- Return hierarchical structure
+- Project-wise breakdown
+
+---
+
+### 7.2 Report Service Integration
+
+#### API 7.2: Timesheet Report (Modify)
+**Endpoint:** `GET /api/timesheetReport` (MODIFY)  
+**Controller:** `ReportController.timesheetReport()`  
+**Service:** `ReportService.timesheetReport()` → **MODIFY**  
+**Priority:** 🟡 **MEDIUM**
+
+---
+
+### 7.3 Resource Management Integration
+
+#### API 7.3: Send Timesheet Details to Shankh (Modify)
+**Endpoint:** `POST /api/sendTimesheetDetailsToShankh` (MODIFY)  
+**Controller:** `ResourceManagementController.sendTimesheetDetailsToShankh()`  
+**Service:** `ResourceManagementService.sendTimesheetDetailsToShankh()` → **MODIFY**  
+**Priority:** 🟡 **MEDIUM**
+
+**Changes:**
+- Include project-wise data
+- Aggregate totals
+
+---
+
+#### API 7.4: Get Document Data by Doc ID for PO (Modify)
+**Endpoint:** `POST /api/getDocumentDataByDocIdForPO` (MODIFY)  
+**Controller:** `ResourceManagementController.getDocumentDataByDocId()`  
+**Service:** `ResourceManagementService.getDocumentDataByDocId()` → **MODIFY**  
+**Priority:** 🟡 **MEDIUM**
+
+---
+
+#### API 7.5: Get All Approved PO with Timesheet (Modify)
+**Endpoint:** `GET /api/getAllApprovedPoWithTimesheet` (MODIFY)  
+**Controller:** `ResourceManagementController.getAllApprovedPoWithTimesheet()`  
+**Service:** `ResourceManagementService.getAllApprovedPoWithTimesheet()` → **MODIFY**  
+**Priority:** 🟡 **MEDIUM**
+
+---
+
+## Implementation Summary
+
+### API Count by Category
+
+| Category | Count | Status |
+|----------|-------|--------|
+| **New APIs** | 10 | To be created |
+| **Modify APIs** | 45 | To be updated |
+| **Keep APIs** | 23 | No changes |
+| **Total** | **78** | |
+
+### API Count by Phase
+
+| Phase | APIs | Priority | Duration |
+|-------|------|----------|----------|
+| Phase 1: Foundation & CRUD | 10 | 🔴 CRITICAL | 5-7 days |
+| Phase 2: Approval & Status | 7 | 🔴 CRITICAL | 4-5 days |
+| Phase 3: Query & Reporting | 14 | 🟡 HIGH | 5-6 days |
+| Phase 4: Dashboard & Analytics | 7 | 🟡 HIGH | 3-4 days |
+| Phase 5: Document Management | 6 | 🟡 HIGH | 3-4 days |
+| Phase 6: Utility & Configuration | 23 | 🟢 LOW | 2-3 days |
+| Phase 7: Integration & External | 5 | 🟡 MEDIUM | 2-3 days |
+| **Total** | **76** | | **24-32 days** |
+
+---
+
+## Critical Implementation Details
+
+### 1. Status Calculation Logic
+
+**EmployeeTimesheet Status:**
+- If ALL projects approved → Status = APPROVED
+- If ANY project pending → Status = PENDING
+- If ANY project rejected → Status = REJECTED
+- If MIXED (some approved, some pending) → Status = PARTIAL
+
+**Implementation:**
 ```java
-package com.apmosys.employeeportal.repository;
-
-import java.util.List;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
-
-import com.apmosys.employeeportal.model.EmployeeTimesheetActivitiesMappingNew;
-import com.apmosys.employeeportal.model.TimesheetActivityMapId;
-
-@Repository
-public interface TimesheetActivityMapNewRepository 
-    extends JpaRepository<EmployeeTimesheetActivitiesMappingNew, TimesheetActivityMapId> {
+private Integer calculateEmployeeTimesheetStatus(List<ProjectTimesheetDTO> projects) {
+    boolean allApproved = projects.stream().allMatch(p -> p.getStatus() == APPROVED);
+    boolean anyRejected = projects.stream().anyMatch(p -> p.getStatus() == REJECTED);
+    boolean anyPending = projects.stream().anyMatch(p -> p.getStatus() == PENDING);
     
-    // Find activities by timesheet
-    @Query("SELECT a FROM EmployeeTimesheetActivitiesMappingNew a " +
-           "WHERE a.id.timesheetId = :timesheetId")
-    List<EmployeeTimesheetActivitiesMappingNew> findByTimesheetId(
-        @Param("timesheetId") Long timesheetId);
-    
-    // Find activities by timesheet and project
-    @Query("SELECT a FROM EmployeeTimesheetActivitiesMappingNew a " +
-           "WHERE a.id.timesheetId = :timesheetId AND a.id.projectId = :projectId")
-    List<EmployeeTimesheetActivitiesMappingNew> findByTimesheetIdAndProjectId(
-        @Param("timesheetId") Long timesheetId, 
-        @Param("projectId") Long projectId);
-    
-    // Delete activities by timesheet
-    void deleteById_TimesheetId(Long timesheetId);
-    
-    // Delete activities by timesheet and project
-    void deleteById_TimesheetIdAndId_ProjectId(Long timesheetId, Long projectId);
+    if (allApproved) return APPROVED;
+    if (anyRejected) return REJECTED;
+    if (anyPending) return PENDING;
+    return PARTIAL;
 }
 ```
 
-### 3. TimesheetDocumentDetailsNewRepository (NEW)
+---
 
+### 2. Total Minutes Calculation
+
+**Total Activities Minutes:**
+- Sum of all `durationMinutes` from all activities across all projects
+
+**Total Working Minutes:**
+- Office hours: `officeOutTime - officeInTime` (in minutes)
+- Or sum of activity durations if office times not provided
+
+**Total Client Working Minutes (per project):**
+- Sum of activity durations for that project
+- Or `clientOutTime - clientInTime` if provided
+
+**Implementation:**
 ```java
-package com.apmosys.employeeportal.repository;
-
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
-
-import com.apmosys.employeeportal.model.TimesheetDocumentDetailsNew;
-
-@Repository
-public interface TimesheetDocumentDetailsNewRepository 
-    extends JpaRepository<TimesheetDocumentDetailsNew, Long> {
+private void calculateTotals(TimesheetDTO timesheetDTO) {
+    EmployeeTimesheetDTO empTS = timesheetDTO.getEmployeeTimesheet();
+    List<ProjectTimesheetDTO> projects = timesheetDTO.getProjectTimesheets();
     
-    // Find documents by timesheet
-    List<TimesheetDocumentDetailsNew> findByTimesheetId(Long timesheetId);
+    // Calculate total activities minutes
+    int totalActivitiesMinutes = projects.stream()
+        .flatMap(p -> p.getActivities().stream())
+        .mapToInt(ActivityTimesheetDTO::getDurationMinutes)
+        .sum();
+    empTS.setTotalActivitiesMinutes(totalActivitiesMinutes);
     
-    // Find filled document (finalFlag = false)
-    Optional<TimesheetDocumentDetailsNew> findByTimesheetIdAndFinalFlagFalse(Long timesheetId);
+    // Calculate total working minutes
+    if (empTS.getOfficeInTime() != null && empTS.getOfficeOutTime() != null) {
+        long minutes = ChronoUnit.MINUTES.between(
+            empTS.getOfficeInTime(), 
+            empTS.getOfficeOutTime()
+        );
+        empTS.setTotalWorkingMinutes((int) minutes);
+    } else {
+        empTS.setTotalWorkingMinutes(totalActivitiesMinutes);
+    }
     
-    // Find approved document (finalFlag = true)
-    Optional<TimesheetDocumentDetailsNew> findByTimesheetIdAndFinalFlagTrue(Long timesheetId);
-    
-    // Delete documents by timesheet
-    void deleteByTimesheetId(Long timesheetId);
-    
-    // Check if document exists
-    boolean existsByTimesheetIdAndFinalFlag(Long timesheetId, Boolean finalFlag);
+    // Calculate per-project client working minutes
+    projects.forEach(project -> {
+        int projectMinutes = project.getActivities().stream()
+            .mapToInt(ActivityTimesheetDTO::getDurationMinutes)
+            .sum();
+        project.setTotalClientWorkingMinutes(projectMinutes);
+    });
 }
 ```
 
-### 4. Updated EmployeeTimesheetsNewRepository
+---
 
+### 3. Transaction Management
+
+**Create/Update Operations:**
+- Use `@Transactional` at service method level
+- Rollback on any exception
+- Ensure atomicity across EmployeeTimesheet, ProjectTimesheets, and Activities
+
+**Implementation:**
 ```java
-package com.apmosys.employeeportal.repository;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
-
-import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
-
-@Repository
-public interface EmployeeTimesheetsNewRepository 
-    extends JpaRepository<EmployeeTimesheetsNew, Long> {
-    
-    // Find by employee and date
-    Optional<EmployeeTimesheetsNew> findByEmpIdAndDate(Long empId, LocalDate date);
-    
-    // Find by employee and date range
-    List<EmployeeTimesheetsNew> findByEmpIdAndDateBetween(
-        Long empId, LocalDate startDate, LocalDate endDate);
-    
-    // Find by employee
-    List<EmployeeTimesheetsNew> findByEmpId(Long empId);
-    
-    // Find by status
-    List<EmployeeTimesheetsNew> findByStatus(Integer status);
-    
-    // Find by employee and status
-    List<EmployeeTimesheetsNew> findByEmpIdAndStatus(Long empId, Integer status);
-}
-```
-
----
-
-## Controller Layer Implementation
-
-### Updated TimesheetController
-
-```java
-package com.apmosys.employeeportal.controller;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import com.apmosys.employeeportal.dto.*;
-import com.apmosys.employeeportal.service.TimesheetServiceNew;
-import com.apmosys.employeeportal.utility.ServiceResponse;
-
-@RestController
-@RequestMapping(path = "/api")
-public class TimesheetController {
-    
-    @Autowired
-    TimesheetServiceNew timesheetServiceNew;
-    
-    @Autowired
-    TimesheetEncryptionHelper timesheetEncryptionHelper;
-    
-    /**
-     * Create new timesheet with multiple projects
-     */
-    @JobRoleAccess(featureIds = {15})
-    @PostMapping(value = "/addTimesheetWithClientNew", 
-                 consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ServiceResponse addTimesheetWithClientNew(
-            @RequestPart("dto") String encryptedDto,
-            @RequestPart(value = "filledDoc", required = false) MultipartFile filledDoc,
-            @RequestPart(value = "approvedDoc", required = false) MultipartFile approvedDoc) 
-            throws Exception {
+@Transactional(rollbackFor = Exception.class)
+public ServiceResponse createTimesheet(TimesheetDTO timesheetDTO, 
+                                       MultipartFile doc1, 
+                                       MultipartFile doc2) {
+    try {
+        // 1. Create EmployeeTimesheet
+        EmployeeTimesheetsNew empTS = createEmployeeTimesheet(timesheetDTO.getEmployeeTimesheet());
         
-        // Decrypt and parse DTO
-        CreateTimesheetRequestDTO dto = timesheetEncryptionHelper
-            .decryptAndParseTimesheetDto(encryptedDto, CreateTimesheetRequestDTO.class);
+        // 2. Create ProjectTimesheets
+        for (ProjectTimesheetDTO projectDTO : timesheetDTO.getProjectTimesheets()) {
+            ProjectTimesheetStatusNew projectTS = createProjectTimesheet(empTS, projectDTO);
+            
+            // 3. Create Activities
+            for (ActivityTimesheetDTO activityDTO : projectDTO.getActivities()) {
+                createActivity(empTS, projectTS, activityDTO);
+            }
+        }
         
-        ServiceResponse response = timesheetServiceNew.createTimesheet(dto, filledDoc, approvedDoc);
-        return response;
-    }
-    
-    /**
-     * Update existing timesheet
-     */
-    @JobRoleAccess(featureIds = {15, 16})
-    @PostMapping(value = "/updateTimesheetNew", 
-                 consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ServiceResponse updateTimesheetNew(
-            @RequestPart("dto") String encryptedDto,
-            @RequestPart(value = "filledDoc", required = false) MultipartFile filledDoc,
-            @RequestPart(value = "approvedDoc", required = false) MultipartFile approvedDoc) 
-            throws Exception {
+        // 4. Calculate and update totals
+        calculateAndUpdateTotals(empTS);
         
-        UpdateTimesheetRequestDTO dto = timesheetEncryptionHelper
-            .decryptAndParseTimesheetDto(encryptedDto, UpdateTimesheetRequestDTO.class);
+        // 5. Handle documents
+        if (doc1 != null || doc2 != null) {
+            handleDocumentUpload(timesheetDTO, empTS, doc1, doc2);
+        }
         
-        ServiceResponse response = timesheetServiceNew.updateTimesheet(dto, filledDoc, approvedDoc);
-        return response;
-    }
-    
-    /**
-     * Get timesheet details by ID
-     */
-    @JobRoleAccess(featureIds = {15, 16})
-    @PostMapping("/getTimesheetDetailsByIdNew")
-    public ServiceResponse getTimesheetDetailsByIdNew(@RequestBody TimesheetDTO requestDTO) {
-        ServiceResponse response = timesheetServiceNew.getTimesheetById(requestDTO.getTimesheetId());
-        return response;
-    }
-    
-    /**
-     * Get timesheet list
-     */
-    @JobRoleAccess(featureIds = {15, 16})
-    @PostMapping("/getAllMyTimesheetsByEmpIdNew")
-    public ServiceResponse getAllMyTimesheetsByEmpIdNew(@RequestBody TimesheetDTO requestDTO) {
-        ServiceResponse response = timesheetServiceNew.getTimesheetList(requestDTO);
-        return response;
-    }
-    
-    /**
-     * Get activities by timesheet ID
-     */
-    @JobRoleAccess(featureIds = {15, 16, 24})
-    @PostMapping("/getAllMyActivitiesByTimesheetIdNew")
-    public ServiceResponse getAllMyActivitiesByTimesheetIdNew(@RequestBody TimesheetDTO requestDTO) {
-        ServiceResponse response = timesheetServiceNew.getActivitiesByTimesheetId(
-            requestDTO.getTimesheetId());
-        return response;
-    }
-    
-    /**
-     * Upload document for timesheet
-     */
-    @JobRoleAccess(featureIds = {15})
-    @PostMapping(value = "/uploadTimesheetDocumentNew", 
-                 consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ServiceResponse uploadTimesheetDocumentNew(
-            @RequestParam("timesheetId") Long timesheetId,
-            @RequestParam("documentType") String documentType, // "filled" or "approved"
-            @RequestParam("file") MultipartFile file) {
-        
-        ServiceResponse response = timesheetServiceNew.uploadDocument(
-            timesheetId, documentType, file);
-        return response;
-    }
-    
-    /**
-     * Bulk upload final document
-     */
-    @JobRoleAccess(featureIds = {15})
-    @PostMapping(value = "/bulkFinalDocumentUploadNew", 
-                 consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ServiceResponse bulkFinalDocumentUploadNew(
-            @RequestParam("finalFile") MultipartFile file,
-            @RequestParam("fromDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
-            @RequestParam("toDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toDate,
-            @RequestParam("empId") Long empId,
-            @RequestParam("projectId") Integer projectId) throws Exception {
-        
-        ServiceResponse response = timesheetServiceNew.bulkFinalDocumentUpload(
-            file, fromDate, toDate, empId, projectId);
-        return response;
+        return successResponse(empTS);
+    } catch (Exception e) {
+        // Transaction will rollback automatically
+        return errorResponse(e);
     }
 }
 ```
 
 ---
 
-## Migration & Integration Notes
+### 4. Validation Rules
 
-### 1. Database Migration
+**EmployeeTimesheet Validation:**
+- Employee must exist and be active
+- Date cannot be in future
+- Date cannot be within lock period
+- Day type must be valid
+- Office times must be valid (if provided)
 
-**Step 1: Create new table**
-```sql
-CREATE TABLE timesheet_project_entries_new (
-    project_entry_id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    timesheet_id BIGINT NOT NULL,
-    project_id INT NOT NULL,
-    client_side_id VARCHAR(255),
-    office_in_time DATETIME,
-    office_out_time DATETIME,
-    client_in_time DATETIME,
-    client_out_time DATETIME,
-    total_working_minutes INT,
-    total_client_working_minutes INT,
-    client_approval_status_id INT,
-    has_client_side_id BOOLEAN,
-    shadow_emp_id BIGINT,
-    is_shadow_timesheet BOOLEAN,
-    created_by BIGINT,
-    created_on DATETIME,
-    updated_by BIGINT,
-    updated_on DATETIME,
-    UNIQUE KEY unique_timesheet_project (timesheet_id, project_id),
-    FOREIGN KEY (timesheet_id) REFERENCES employee_timesheets_new(timesheet_id) ON DELETE CASCADE,
-    FOREIGN KEY (project_id) REFERENCES projects(project_id)
-);
-```
+**ProjectTimesheet Validation:**
+- Project must exist and be active
+- Employee must be assigned to project
+- Client times must be valid (if provided)
+- At least one activity required for working days
 
-**Step 2: Update employee_timesheet_activities_mapping_new**
-```sql
--- Add project_entry_id column (if not already present)
-ALTER TABLE employee_timesheet_activities_mapping_new 
-ADD COLUMN project_entry_id BIGINT,
-ADD FOREIGN KEY (project_entry_id) REFERENCES timesheet_project_entries_new(project_entry_id) ON DELETE CASCADE;
-```
-
-**Step 3: Migrate existing data (if needed)**
-```sql
--- For existing timesheets, create a single project entry
-INSERT INTO timesheet_project_entries_new (
-    timesheet_id, project_id, office_in_time, office_out_time, 
-    created_by, created_on
-)
-SELECT 
-    timesheet_id, 
-    (SELECT project_id FROM projects LIMIT 1), -- Default project
-    office_in_time, 
-    office_out_time,
-    created_by,
-    created_on
-FROM employee_timesheets_new
-WHERE office_in_time IS NOT NULL;
-```
-
-### 2. Backward Compatibility
-
-- **Old APIs remain functional** for existing timesheets
-- **New APIs** (`*New` suffix) handle multi-project timesheets
-- **Gradual migration**: Frontend can use new APIs while old data remains accessible
-
-### 3. Validation Rules
-
-1. **Project Entry Validation:**
-   - At least one project entry required for working days
-   - Each project entry must have valid in/out times
-   - Project IDs must be active and assigned to employee
-
-2. **Activity Validation:**
-   - Activities must belong to the project in the project entry
-   - Total activity duration should not exceed project working hours
-   - All required fields (client, location, team, activity) must be provided
-
-3. **Document Validation:**
-   - Filled document required when `clientApprovalStatus = "pending"`
-   - Both documents required when `clientApprovalStatus = "approved"`
-   - Maximum file size: 5MB
-   - Allowed formats: PDF, JPG, JPEG, PNG
-
-4. **Time Validation:**
-   - Office out time must be after office in time
-   - Client out time must be after client in time
-   - Times must be within same day (or next day for night shift)
-
-### 4. Error Handling
-
-Common error scenarios:
-- **400 Bad Request**: Invalid input data, missing required fields
-- **403 Forbidden**: User not authorized to create/update timesheet
-- **404 Not Found**: Timesheet or project entry not found
-- **409 Conflict**: Timesheet already exists for date
-- **500 Internal Server Error**: Database or file system errors
-
-### 5. Testing Checklist
-
-- [ ] Create timesheet with single project
-- [ ] Create timesheet with multiple projects
-- [ ] Update timesheet (add/remove projects)
-- [ ] Update timesheet activities
-- [ ] Upload documents (filled + approved)
-- [ ] Bulk document upload
-- [ ] Get timesheet details
-- [ ] Get timesheet list
-- [ ] Approve/reject timesheet
-- [ ] Validate time constraints
-- [ ] Validate document requirements
-- [ ] Test with shadow timesheet
-- [ ] Test with team member timesheet
+**Activity Validation:**
+- Activity must exist and be active
+- Activity must belong to project's team
+- Duration must be > 0
+- Total duration per project must not exceed working hours
 
 ---
 
-## Implementation Priority
+### 5. Migration Strategy
 
-### Phase 1: Core Functionality (Week 1-2)
-1. Create `TimesheetProjectEntryNew` entity
-2. Create `TimesheetProjectEntryNewRepository`
-3. Implement `createTimesheet` method
-4. Implement `getTimesheetById` method
-5. Create DTOs
+**Dual Write Approach (Recommended):**
+1. Write to both old and new tables during transition
+2. Read from new tables
+3. Validate data consistency
+4. Once stable, stop writing to old tables
+5. Eventually deprecate old tables
 
-### Phase 2: Update & Query (Week 3)
-1. Implement `updateTimesheet` method
-2. Implement `getTimesheetList` method
-3. Implement activity management methods
-4. Update repositories
-
-### Phase 3: Documents & Bulk Operations (Week 4)
-1. Implement document upload methods
-2. Implement bulk document upload
-3. Update document handling logic
-
-### Phase 4: Integration & Testing (Week 5)
-1. Update controller endpoints
-2. Integration testing
-3. Performance optimization
-4. Documentation
+**Feature Flag Approach:**
+1. Use feature flag to toggle between old/new implementation
+2. Test new implementation with subset of users
+3. Gradually roll out to all users
+4. Monitor for issues
+5. Remove old implementation once stable
 
 ---
 
-## Notes
+## Testing Strategy
 
-1. **All code uses "New" tables** - no references to old tables
-2. **Encryption**: DTOs are encrypted using existing `TimesheetEncryptionHelper`
-3. **File Storage**: Use existing file storage mechanism (S3/local/blob)
-4. **Logging**: Use existing `LogService` for API logging
-5. **Validation**: Reuse existing `TimesheetValidatorService` where applicable
-6. **Status Management**: Use status master table for status IDs
+### Unit Tests
+- [ ] DTO mapping tests
+- [ ] Service method tests
+- [ ] Validation logic tests
+- [ ] Calculation logic tests
+- [ ] Transaction rollback tests
+
+### Integration Tests
+- [ ] API endpoint tests
+- [ ] Database integration tests
+- [ ] Document upload tests
+- [ ] Approval workflow tests
+
+### Performance Tests
+- [ ] Bulk create performance
+- [ ] Query performance
+- [ ] Aggregation performance
+- [ ] Concurrent access tests
+
+### Regression Tests
+- [ ] All existing functionality
+- [ ] Data integrity checks
+- [ ] Backward compatibility (if maintained)
 
 ---
 
-## Conclusion
+## Risk Mitigation
 
-This document provides a complete implementation guide for supporting multi-project timesheets. All code is production-ready and follows existing patterns in the codebase. The implementation is backward-compatible and allows gradual migration from old to new structure.
+### High-Risk Areas
+1. **Data Migration** - Risk of data loss
+   - **Mitigation:** Dual write, data validation, rollback plan
 
-**Next Steps:**
-1. Review this document with the team
-2. Create database migration scripts
-3. Implement Phase 1 (Core Functionality)
-4. Test with sample data
-5. Proceed with remaining phases
+2. **Status Calculation** - Complex logic may have bugs
+   - **Mitigation:** Comprehensive unit tests, code review
 
+3. **Transaction Management** - Partial updates may occur
+   - **Mitigation:** Proper transaction boundaries, rollback testing
+
+4. **Performance** - Aggregation may be slow
+   - **Mitigation:** Database indexing, query optimization, caching
+
+5. **Backward Compatibility** - Breaking changes
+   - **Mitigation:** Feature flags, gradual rollout, API versioning
+
+---
+
+## Success Criteria
+
+1. ✅ All 76 APIs functional with new structure
+2. ✅ No data loss during migration
+3. ✅ Performance maintained or improved
+4. ✅ All tests passing
+5. ✅ Zero production incidents
+6. ✅ Complete rollback capability
+7. ✅ Documentation updated
+
+---
+
+## Timeline Summary
+
+| Phase | Duration | Cumulative |
+|-------|----------|------------|
+| Phase 1: Foundation & CRUD | 5-7 days | 5-7 days |
+| Phase 2: Approval & Status | 4-5 days | 9-12 days |
+| Phase 3: Query & Reporting | 5-6 days | 14-18 days |
+| Phase 4: Dashboard & Analytics | 3-4 days | 17-22 days |
+| Phase 5: Document Management | 3-4 days | 20-26 days |
+| Phase 6: Utility & Configuration | 2-3 days | 22-29 days |
+| Phase 7: Integration & External | 2-3 days | 24-32 days |
+| **Testing & Bug Fixes** | **5-7 days** | **29-39 days** |
+| **Total** | | **29-39 days** |
+
+---
+
+**Last Updated:** 2025-01-30  
+**Next Action:** Begin Phase 1 - Foundation & Core CRUD Operations

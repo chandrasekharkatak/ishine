@@ -1091,7 +1091,7 @@ public class EmployeeLeaveService {
 	                List<Object[]> holidayList = holidayRepository.getHolidayWeekOffSize(leaveDTO.getFromDate(),
 	                        leaveDTO.getToDate(), leaveDTO.getState());
 
-	                List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),
+	                List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDateOLD(leaveDTO.getEmpId(),
 	                        leaveDTO.getFromDate(), leaveDTO.getToDate());
 	                if (empTimeSheet != null && !empTimeSheet.isEmpty()) {
 	                    for (Timesheet timesheet : empTimeSheet) {
@@ -1446,7 +1446,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 //		        LocalDate end = LocalDate.parse(leaveDTO.getToDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
 				
-				List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),start,end);
+				List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDateOLD(leaveDTO.getEmpId(),start,end);
 
 				if (empTimeSheet != null) {
 
@@ -1723,7 +1723,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 							
 							List<Object[]> holidayList = holidayRepository.getHolidayWeekOffSize(leaveDTO.getFromDate(), leaveDTO.getToDate(), leaveDTO.getState());
 							
-						    List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),leaveDTO.getFromDate(),leaveDTO.getToDate());
+						    List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDateOLD(leaveDTO.getEmpId(),leaveDTO.getFromDate(),leaveDTO.getToDate());
 						    if(!empTimeSheet.isEmpty()) {
 						    empTimeSheet.forEach((timesheet)->{
 						     	
@@ -1741,7 +1741,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 						    });
 						    }
 						    //after timesheet deletion
-						    List<Timesheet> empTimeSheetAfterDelete = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),leaveDTO.getFromDate(),leaveDTO.getToDate());
+						    List<Timesheet> empTimeSheetAfterDelete = timesheetsRepository.findTimesheetOnLeaveDateOLD(leaveDTO.getEmpId(),leaveDTO.getFromDate(),leaveDTO.getToDate());
 
 							if((elapsedDays == 0)) {
 								
@@ -4124,7 +4124,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 					    String start =  LocalDate.parse(leaveDTO.getFromDate(), formatter).format(formatter2);
 					    String end =  LocalDate.parse(leaveDTO.getToDate(), formatter).format(formatter2);
 						
-					    List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDate(leaveDTO.getEmpId(),start,end);
+					    List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDateOLD(leaveDTO.getEmpId(),start,end);
 
 						if (empTimeSheet != null) {
 

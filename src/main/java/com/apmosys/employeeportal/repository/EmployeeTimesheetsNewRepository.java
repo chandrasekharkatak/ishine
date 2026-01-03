@@ -45,23 +45,23 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 //	public List<Object[]> getMyReporteesTimesheetRequests(Long managerId,String status);
 	
 	// ========== BACKUP: Original queries renamed with _old suffix ==========
-	@Query(nativeQuery = true)
-	public List<Object[]> getMyReporteesTimesheetRequests_old(Long managerId,String status,LocalDate dateOfJoining,Boolean clientFlag);
-	
-	@Query(nativeQuery = true)
-	public List<Object[]> getMyReporteesApprovedTimesheetRequests2_old(Long managerId,String status,LocalDate start, LocalDate end,List<Long> empIds);
-	
-	@Query(nativeQuery = true)
-	public Long countMyReporteesTimesheetRequests_old(Long managerId, LocalDate dateOfJoining);
-	
-	@Query(nativeQuery = true)
-	public List<Object[]> getMyReporteesApprovedTimesheets_old(Long managerId, LocalDate start, LocalDate end);
-	
-	@Query(nativeQuery = true)
-	public List<Object[]> getLast7DaysTimesheetsByEmpId_old(Long empId,LocalDate date);
-
-	@Query(nativeQuery = true)
-	public List<Object[]> getTimesheetsForHomePageByEmpId_old(Long empId, LocalDate start, LocalDate end);
+//	@Query(nativeQuery = true)
+//	public List<Object[]> getMyReporteesTimesheetRequests_old(Long managerId,String status,LocalDate dateOfJoining,Boolean clientFlag);
+//	
+//	@Query(nativeQuery = true)
+//	public List<Object[]> getMyReporteesApprovedTimesheetRequests2_old(Long managerId,String status,LocalDate start, LocalDate end,List<Long> empIds);
+//	
+//	@Query(nativeQuery = true)
+//	public Long countMyReporteesTimesheetRequests_old(Long managerId, LocalDate dateOfJoining);
+//	
+//	@Query(nativeQuery = true)
+//	public List<Object[]> getMyReporteesApprovedTimesheets_old(Long managerId, LocalDate start, LocalDate end);
+//	
+//	@Query(nativeQuery = true)
+//	public List<Object[]> getLast7DaysTimesheetsByEmpId_old(Long empId,LocalDate date);
+//
+//	@Query(nativeQuery = true)
+//	public List<Object[]> getTimesheetsForHomePageByEmpId_old(Long empId, LocalDate start, LocalDate end);
 	
 	// ========== UPDATED: New queries using _new tables (using named queries) ==========
 	@Query(nativeQuery = true)
@@ -93,16 +93,16 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			"Select emp_Id,date,status "
 			+"from employee_timesheets "
 			+"where emp_Id=:empId and date=:localDate")
-	List<Object[]>  getTimesheetDataByEmpIdAndDate_old( Long empId,LocalDate localDate);
+	List<Object[]>  getTimesheetDataByEmpIdAndDateOLD( Long empId,LocalDate localDate);
 	
-	@Query(nativeQuery = true)
-	public List<Object[]> getAllTimesheetData_old();
-
-	@Query(nativeQuery = true)
-	public List<Object[]> getLast9DaysPendingTimesheetReport_old(LocalDate start, LocalDate end);
-
-	@Query(nativeQuery = true)
-	public List<Object[]> getLast9DaysFilledTimesheetReport_old(LocalDate start, LocalDate end);
+//	@Query(nativeQuery = true)
+//	public List<Object[]> getAllTimesheetDataOLD();
+//
+//	@Query(nativeQuery = true)
+//	public List<Object[]> getLast9DaysPendingTimesheetReportOLD(LocalDate start, LocalDate end);
+//
+//	@Query(nativeQuery = true)
+//	public List<Object[]> getLast9DaysFilledTimesheetReportOLD(LocalDate start, LocalDate end);
 	
 	// ========== UPDATED: New queries using _new tables ==========
 	@Query(nativeQuery = true, value =
@@ -122,14 +122,14 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	public List<Object[]> getLast9DaysFilledTimesheetReport(LocalDate start, LocalDate end);
 	
 	// ========== BACKUP: Original queries renamed with _old suffix ==========
-	@Query(nativeQuery = true)
-	public List<Object[]> getAllMyTeamTimesheets_old(Long createdBy, LocalDate start, LocalDate end);
-	
-	@Query(nativeQuery = true)
-	public List<Object[]> getAllMyTimesheets_old(Long empId, LocalDate start, LocalDate end);
-
-	@Query(nativeQuery = true)
-	public List<Timesheet> findTimesheetOnLeaveDate_old(Long empId, String start, String end);
+//	@Query(nativeQuery = true)
+//	public List<Object[]> getAllMyTeamTimesheetsOLD(Long createdBy, LocalDate start, LocalDate end);
+//	
+//	@Query(nativeQuery = true)
+//	public List<Object[]> getAllMyTimesheetsOLD(Long empId, LocalDate start, LocalDate end);
+//
+//	@Query(nativeQuery = true)
+//	public List<Timesheet> findTimesheetOnLeaveDateOLD(Long empId, String start, String end);
 	
 	// ========== UPDATED: New queries using _new tables (using named queries) ==========
 	@Query(nativeQuery = true)
@@ -143,7 +143,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 
 	// ========== BACKUP: Original query renamed with _old suffix ==========
 	@Query("SELECT t FROM Timesheet t WHERE t.empId = :empId AND t.date >= :startDate AND t.date <= :endDate")
-	List<Timesheet> findTimesheetsForRejection_old(@Param("empId") Long empId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+	List<Timesheet> findTimesheetsForRejectionOLD(@Param("empId") Long empId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 	
 	// ========== UPDATED: New query using _new tables (JPQL - using new entity) ==========
 	@Query("SELECT t FROM EmployeeTimesheetsNew t WHERE t.empId = :empId AND t.date >= :startDate AND t.date <= :endDate")
@@ -198,7 +198,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 		"AND ((:updatedOn IS NULL OR DATE(t.commonProperty.updatedOn) = :updatedOn) " +
 	    "OR (:updatedOnStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.commonProperty.updatedOn, '%Y-%m-%d') LIKE CONCAT('%', :updatedOnStr, '%'))) " +
 		"AND (:updatedBy IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :updatedBy, '%')))")
-Page<TimesheetDTO> findAllLeaveTimesheetsWithoutLeaveApplication_old(
+Page<TimesheetDTO> findAllLeaveTimesheetsWithoutLeaveApplicationOLD(
 		@Param("start") LocalDate start,
 		@Param("end") LocalDate end,
 		@Param("empName") String empName,
@@ -325,7 +325,7 @@ Page<TimesheetDTO> findAllLeaveTimesheetsWithoutLeaveApplication(
 		"AND (:createdOn IS NULL OR DATE(t.commonProperty.createdOn) = :createdOn) " +
 		"AND (:updatedOn IS NULL OR DATE(t.commonProperty.updatedOn) = :updatedOn) " +
 		"AND (:updatedBy IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :updatedBy, '%')))")
-Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentsWise_old(
+Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentsWiseOLD(
 		@Param("start") LocalDate start,
 		@Param("end") LocalDate end,
 		@Param("empName") String empName,
@@ -447,7 +447,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentsWise(
 	    "     OR (:createdOnStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.commonProperty.createdOn, '%Y-%m-%d') LIKE CONCAT('%', :createdOnStr, '%'))) " +
 	    "AND ((:updatedOn IS NULL OR DATE(t.commonProperty.updatedOn) = :updatedOn) " +
 	    "     OR (:updatedOnStr IS NOT NULL AND FUNCTION('DATE_FORMAT', t.commonProperty.updatedOn, '%Y-%m-%d') LIKE CONCAT('%', :updatedOnStr, '%'))) " +		"AND (:updatedBy IS NULL OR LOWER(s.name) LIKE LOWER(CONCAT('%', :updatedBy, '%')))")
-Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise_old(
+Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWiseOLD(
 		@Param("start") LocalDate start,
 		@Param("end") LocalDate end,
 		@Param("empName") String empName,
@@ -536,14 +536,14 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 		Pageable pageable);
 
 	// ========== BACKUP: Original queries renamed with _old suffix ==========
-	@Query(nativeQuery = true)
-	public List<Object[]> getInactiveActivitiesByTimesheetId_old(Long timesheetId);
-	
-	@Query(nativeQuery = true)
-	public List<Object[]> getMyTeamsFilledEodCountByManagerId_old(LocalDate start, LocalDate end, Long managerId);
-
-	@Query(nativeQuery = true)
-	public List<Object[]> getTimesheetFilledByMember_old(Long empId, LocalDate date);
+//	@Query(nativeQuery = true)
+//	public List<Object[]> getInactiveActivitiesByTimesheetIdOLD(Long timesheetId);
+//	
+//	@Query(nativeQuery = true)
+//	public List<Object[]> getMyTeamsFilledEodCountByManagerIdOLD(LocalDate start, LocalDate end, Long managerId);
+//
+//	@Query(nativeQuery = true)
+//	public List<Object[]> getTimesheetFilledByMemberOLD(Long empId, LocalDate date);
 	
 	// ========== UPDATED: New queries using _new tables (using named queries) ==========
 	@Query(nativeQuery = true)
@@ -626,7 +626,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ "LEFT JOIN employee e2 ON e2.emp_id = e.manager_id\n"
 			+ "WHERE et.date BETWEEN :startDate AND :endDate\n "
 			+ "ORDER BY et.created_on DESC" ,nativeQuery = true)
-	List<Object[]> getAllEmployeeTimesheetsBetweenDates_old(@Param("startDate") String startDate, @Param("endDate") String endDate);
+	List<Object[]> getAllEmployeeTimesheetsBetweenDatesOLD(@Param("startDate") String startDate, @Param("endDate") String endDate);
 	
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(value = "SELECT \n"
@@ -732,7 +732,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ "LEFT JOIN employee e2 ON e2.emp_id = e.manager_id\n"
 			+ "where d.dept_id = :deptId AND et.date BETWEEN :startDate AND :endDate\n"
 			+ "ORDER BY et.created_on DESC ",nativeQuery = true)
-	 List<Object[]> getTimesheetsByDepartmentAndDateRange_old(@Param("deptId") Long deptId,
+	 List<Object[]> getTimesheetsByDepartmentAndDateRangeOLD(@Param("deptId") Long deptId,
 	            @Param("startDate") String startDate,
 	            @Param("endDate") String endDate);
 	
@@ -834,7 +834,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			    "LEFT JOIN clients c ON p.client_id = c.client_id",
 			    nativeQuery = true
 			)
-	      List<Object[]> getLastFilledTimesheet_old(@Param("empId") Long empId);
+	      List<Object[]> getLastFilledTimesheetOLD(@Param("empId") Long empId);
 	      
 	 // ========== UPDATED: New query using _new tables ==========
 	 @Query(
@@ -914,7 +914,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 	    		            "WHERE et.emp_id = :empId",
 	    		    nativeQuery = true
 	    		)
-	    		List<Object[]> checkEmployeeActiveOrNot_old(@Param("empId") Long empId);
+	    		List<Object[]> checkEmployeeActiveOrNotOLD(@Param("empId") Long empId);
 	      
 	      // ========== UPDATED: New query using _new tables ==========
 	      @Query(
@@ -1005,7 +1005,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				+ "et.timesheet_id, et.status, client_in_time, client_out_time \n"
 				+ "ORDER BY et.date asc \n"
 				+ "  LIMIT :offset, :pageSize", nativeQuery = true)
-		List<Object[]> findByEmpIdAndDateBetween_old(@Param("empId") Long empId,
+		List<Object[]> findByEmpIdAndDateBetweenOLD(@Param("empId") Long empId,
 		                                         @Param("fromDate") String fromDate,
 		                                         @Param("toDate") String toDate,
 		                                         @Param("offset") int offset,
@@ -1102,7 +1102,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				+ "    Authorized_Employees auth\n"
 				+ "INNER JOIN\n"
 				+ "    Employees_With_ClientID crit ON auth.emp_id = crit.emp_id", nativeQuery = true)
-		public List<Object[]> getTotalVmsFilledCount_old(@Param("emp_id") Long emp_id);
+		public List<Object[]> getTotalVmsFilledCountOLD(@Param("emp_id") Long emp_id);
 		
 		// ========== UPDATED: New query using _new tables ==========
 		@Query(value = "WITH\n"
@@ -1164,7 +1164,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 	               "WHERE MONTH(created_on) = MONTH(CURRENT_DATE()) " +
 	               "AND YEAR(created_on) = YEAR(CURRENT_DATE()) " +
 	               "AND day_type = 'Working'", nativeQuery = true)
-		public List<Object[]> totalIshineFilledCount_old();
+		public List<Object[]> totalIshineFilledCountOLD();
 		
 		// ========== UPDATED: New query using _new tables ==========
 		@Query(value = "SELECT COUNT(DISTINCT et.emp_id) AS employee_count_with_client_id " +
@@ -1234,7 +1234,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				+ "    Authorized_Employees auth\n"
 				+ "INNER JOIN\n"
 				+ "    Employees_Without_ClientID crit ON auth.emp_id = crit.emp_id", nativeQuery = true)
-		public List<Object[]> totalvmsNotFilled_old(@Param("emp_id") Long emp_id);
+		public List<Object[]> totalvmsNotFilledOLD(@Param("emp_id") Long emp_id);
 		
 		// ========== UPDATED: New query using _new tables ==========
 		@Query(value = "WITH\n"
@@ -1416,7 +1416,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				+ "FROM\n"
 				+ "    Final_Counts fc,\n"
 				+ "    WorkingDays_Summary wds", nativeQuery = true)
-		public List<Object[]> totalIshineNotFilledCount_old(@Param("emp_id") Long emp_id);
+		public List<Object[]> totalIshineNotFilledCountOLD(@Param("emp_id") Long emp_id);
 		
 		// ========== UPDATED: New query using _new tables ==========
 		@Query(value = "\n"
@@ -1545,7 +1545,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			       "AND tdd.active IS TRUE " +
 			       "AND tdd.finalFlag IS TRUE "+
 			       "AND (tdd.rmApprovalStatus = 'Approved' OR tdd.rmApprovalStatus = 'Pending' OR tdd.hrApprovalStatus != 'Rejected')")
-			Set<LocalDate> findDatesByEmpIdAndProjectId_old(@Param("empId") Long empId,
+			Set<LocalDate> findDatesByEmpIdAndProjectIdOLD(@Param("empId") Long empId,
 			                                             @Param("projectId") Integer projectId);
 		
 		// ========== UPDATED: New query using _new tables (JPQL - using new entities) ==========
@@ -2051,7 +2051,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				+ "        WHERE day_type LIKE '%Working%'\n"
 				+ "        and et.status = 'Pending'\n"
 				+ "         and et.emp_id = :empId and t.team_id = :teamId")
-		public List<Object[]> getPendingTimesheetsByEmpAndTeam_old(Long empId, Long teamId);
+		public List<Object[]> getPendingTimesheetsByEmpAndTeamOLD(Long empId, Long teamId);
 		
 		// ========== UPDATED: New query using _new tables ==========
 		@Query(nativeQuery=true,value="SELECT et.timesheet_id,et.date,dtm.day_type,e.name employeeName,etam.description ,sm.status, \n"
@@ -2101,7 +2101,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				+ "	                                          OR (:clientFlag = FALSE AND (et.has_client_side_id = 0 OR et.has_client_side_id IS NULL)) \n"
 				+ "	                                         ) \n"
 				+ "                                        Order by et.date desc")
-		public List<Object[]> getMyTimesheetRequests_old(Long empId,Long teamId,String fromDate, String toDate,Boolean clientFlag);
+		public List<Object[]> getMyTimesheetRequestsOLD(Long empId,Long teamId,String fromDate, String toDate,Boolean clientFlag);
 		
 		// ========== UPDATED: New query using _new tables ==========
 		@Query(nativeQuery=true,value="SELECT DISTINCT et.timesheet_id,et.date,dtm.day_type,e.name employeeName,etam.description ,sm.status,\n"
@@ -3227,7 +3227,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			          "WHERE rnk = 1 AND emp_id = :emp_id",
 			  nativeQuery = true
 			)
-			List<Object[]> getLastTimesheetFiledByEmpId_old(@Param("emp_id") Long emp_id);
+			List<Object[]> getLastTimesheetFiledByEmpIdOLD(@Param("emp_id") Long emp_id);
 	
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(
@@ -3572,7 +3572,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ "FROM\n"
 			+ "    Final_Counts fc,\n"
 			+ "    WorkingDays_Summary wds", nativeQuery = true)
-	public List<Object[]> totalIshineNotFilledCountForAllEmpDash_old(@Param("emp_id") Long emp_id);
+	public List<Object[]> totalIshineNotFilledCountForAllEmpDashOLD(@Param("emp_id") Long emp_id);
 	
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(value = "\n"
@@ -3699,7 +3699,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ "AND et.projectId = :projectId \n"
 			+ "AND et.date BETWEEN :startDate AND :endDate \n"
 			+ "AND et.dayType in ('Non-working','Working')")
-	Set<LocalDate> allTimesheetFilledDatesForDateRange_old(@Param("startDate")LocalDate startDate,@Param("endDate")LocalDate endDate,@Param("projectId")Integer projectId,@Param("empId")Long empId);
+	Set<LocalDate> allTimesheetFilledDatesForDateRangeOLD(@Param("startDate")LocalDate startDate,@Param("endDate")LocalDate endDate,@Param("projectId")Integer projectId,@Param("empId")Long empId);
 	
 	// ========== UPDATED: New query using _new tables (JPQL - using new entities) ==========
 	@Query("SELECT et.date \n"
@@ -8523,7 +8523,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			       "LEFT JOIN TimesheetDocumentDetails tdd on tdd.timesheetId = et.timesheetId \n" +
 			       "WHERE et.empId = :empId \n" +
 			       "AND et.date BETWEEN :fromDate AND :toDate and et.status='Rejected'")
-		  List<Timesheet> getRejectedTimesheetIdByEmpAndDateRange_old(
+		  List<Timesheet> getRejectedTimesheetIdByEmpAndDateRangeOLD(
 				    @Param("empId") Long empId,
 				    @Param("fromDate") LocalDate fromDate,
 				    @Param("toDate") LocalDate toDate

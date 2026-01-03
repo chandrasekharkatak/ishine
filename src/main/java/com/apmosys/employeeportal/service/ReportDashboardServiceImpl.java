@@ -191,11 +191,11 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 
 			LocalDate end = LocalDate.now().minusDays(1);
 
-			List<Object[]> timesheetList = timesheetsRepository.getLast9DaysPendingTimesheetReport(start, end);
+			List<Object[]> timesheetList = timesheetsRepository.getLast9DaysPendingTimesheetReportOLD(start, end);
 
 			List<EmployeeProjection>  employeeList = employeeRepository.getAllEmployees();
 
-			List<Object[]> filledTimesheetList = timesheetsRepository.getLast9DaysFilledTimesheetReport(start, end);
+			List<Object[]> filledTimesheetList = timesheetsRepository.getLast9DaysFilledTimesheetReportOLD(start, end);
 
 			List<TimesheetDTO> dtoList = new ArrayList<>();
 

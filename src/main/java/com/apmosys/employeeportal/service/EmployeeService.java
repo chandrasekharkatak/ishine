@@ -5563,7 +5563,7 @@ public class EmployeeService {
 				Long period = ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
 				
 				// Get Filled EOD Count for Team Members
-				List<Object[]> timesheetList = timesheetsRepository.getMyTeamsFilledEodCountByManagerId(firstOfMonth, end, employeedto.getEmpId());
+				List<Object[]> timesheetList = timesheetsRepository.getMyTeamsFilledEodCountByManagerIdOLD(firstOfMonth, end, employeedto.getEmpId());
 
 				list.forEach((object) -> {
 					EmployeeDTO dto = new EmployeeDTO();

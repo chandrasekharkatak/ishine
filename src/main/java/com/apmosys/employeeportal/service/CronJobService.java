@@ -4429,7 +4429,7 @@ public class CronJobService {
 		                Long period = ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
 //		                Long dept= (long) 26;
 
-		                List<Object[]> timesheetList = timesheetsRepository.getLast9DaysPendingTimesheetReport(firstOfMonth, end);
+		                List<Object[]> timesheetList = timesheetsRepository.getLast9DaysPendingTimesheetReportOLD(firstOfMonth, end);
 		                List<Object[]> employeeList = employeeRepository.getEmployeeByDepartmentId(department.getDeptId());
 		                System.out.println("Employee List (Total: " + employeeList.size() + "):");
 		                String hodMail = null;
