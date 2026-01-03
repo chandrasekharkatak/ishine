@@ -32,7 +32,14 @@
     [disabled]="disabled"
   />
 
-  <button type="button" (click)="clearValue()">Clear</button>
+  <!-- <button type="button" (click)="clearValue()">Clear</button> -->
+  <button
+    *ngIf="modelValue && !disabled"
+    type="button"
+    class="btn btn-sm btn-link text-danger"
+    (click)="clearValue()">
+    ✖
+  </button>
 </div>
 
 

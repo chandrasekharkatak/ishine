@@ -54,7 +54,7 @@ export class UserTimesheetComponent implements OnInit,OnDestroy,AfterViewInit {
     const params =this.route.snapshot.queryParams;
     if(this.userMapping.timesheets_dashboard ){
       if(params.date == undefined){
-        const tab = document.getElementById('hr-dashboard-tab');
+        const tab = document.getElementById('my-timesheet-tab');
         tab.classList.add('active');
         let activeRouteLink = tab.getAttribute('routerLink');
         this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route});

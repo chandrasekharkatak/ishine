@@ -31,6 +31,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { DateTimePickerComponent } from 'src/app/helpers/date-time-picker/date-time-picker.component';
 import { ProjectEntry } from 'src/app/models/projectEntry';
 import { ActivityNew } from 'src/app/models/activityNew';
+import { TimesheetNewService } from 'src/app/services/timesheet-new.service';
 @Component({
   standalone: false,
   selector: 'app-my-timesheet',
@@ -243,6 +244,7 @@ export class MyTimesheetComponent implements OnInit {
     private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private timesheetService: TimesheetService,
+    private timesheetNewService: TimesheetNewService,
     private exportExcelService: ExportExcelService,
     private datePipe: DatePipe,
     private clipboardService: ClipboardService,
@@ -297,7 +299,7 @@ export class MyTimesheetComponent implements OnInit {
     this.isEmployeeInTNMProject();
     this.getActiveProjectsByEmpId();
     this.thisMonthValidation();
-    // this.setStartDateMinMax();
+    this.setStartDateMinMax();
     this.timeReset();
     this.timesheetFillable = true;
     // this.makeApmosysInTime();
@@ -1937,7 +1939,7 @@ openUserManualPdf(): void {
 
     let timesheetObj = new Timesheet();
     timesheetObj.empId = employeeObj.empId;
-    this.timesheetService.getAllProjectsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+    this.timesheetNewService.getAllProjectsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allProjectsList = response.serviceResponse;
         if (this.allProjectsList.length == 0) {
@@ -2134,7 +2136,7 @@ openUserManualPdf(): void {
     timesheetObj.endDate = moment(endDate).format(AppComponent.DB_DATE_FORMAT);
 
     //console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
-    this.timesheetService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+    this.timesheetNewService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.availableTimesheets = response.serviceResponse;
       } else {
@@ -2192,7 +2194,7 @@ openUserManualPdf(): void {
       timesheetObj.endDate = this.endDate;
 
       //console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
-      this.timesheetService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+      this.timesheetNewService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allMyTimesheets = response.serviceResponse;
           this.allMyTimesheets.forEach(timesheet => {
@@ -2638,7 +2640,7 @@ openUserManualPdf(): void {
   }
 
   getActiveProjectsByEmpId() {
-    this.timesheetService.getActiveProjectsByEmpId(this.currentUser.empId).pipe(first()).subscribe(async(response: any) => {
+    this.timesheetNewService.getActiveProjectsByEmpId(this.currentUser.empId).pipe(first()).subscribe(async(response: any) => {
       if (response.serviceStatus == "Success") {
         this.activeProjectList = response.serviceResponse;
         // console.log("Active Project List :::::::::", this.activeProjectList);

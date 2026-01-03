@@ -43,6 +43,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 
 import { ValidationService } from 'src/app/services/validation.service';
+import { TimesheetNewService } from '../services/timesheet-new.service';
 
 
 
@@ -381,6 +382,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
     private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private timesheetService: TimesheetService,
+    private timesheetNewService: TimesheetNewService,
     private exportExcelService: ExportExcelService,
     private datePipe: DatePipe,
     private clipboardService: ClipboardService,
@@ -1526,7 +1528,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
 
     let timesheetObj = new Timesheet();
     timesheetObj.empId = employeeObj.empId;
-    this.timesheetService.getAllProjectsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+    this.timesheetNewService.getAllProjectsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allProjectsList = response.serviceResponse;
         console.log("allProjectsList :", this.allProjectsList);
@@ -1777,7 +1779,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
     timesheetObj.endDate = moment(endDate).format(AppComponent.DB_DATE_FORMAT);
 
     //console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
-    this.timesheetService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+    this.timesheetNewService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.availableTimesheets = response.serviceResponse;
         console.log("availableTimesheets :", this.availableTimesheets);
@@ -1836,7 +1838,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
       timesheetObj.endDate = this.endDate;
 
       //console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
-      this.timesheetService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+      this.timesheetNewService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allMyTimesheets = response.serviceResponse;
           this.allMyTimesheets.forEach(timesheet => {

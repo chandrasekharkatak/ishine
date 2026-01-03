@@ -16,6 +16,7 @@ import { EmployeeClientSideIdMapping } from 'src/app/models/employeeClientSideId
 import { EmployeeTimesheetDTO } from 'src/app/models/EmployeeTimesheetDTO';
 import { ProjectTimesheetDTO } from 'src/app/models/ProjectTimesheetDTO';
 import { ActivityTimesheetDTO } from 'src/app/models/ActivityTimesheetDTO';
+import { TimesheetNewService } from 'src/app/services/timesheet-new.service';
 
 @Component({
   standalone: false,
@@ -80,7 +81,9 @@ export class TimesheetFormComponent implements OnInit {
 clientApprovalStatusList: any[];
   
   constructor(private teamViewService: TeamViewService,
-    private timesheetService: TimesheetService,private modalService: NgbModal,
+    private timesheetService: TimesheetService,
+    private timesheetNewService: TimesheetNewService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private sanitizer: DomSanitizer) 
     {this.authenticationService.currentUser.subscribe(x => this.currentUser = x);    }
@@ -199,7 +202,7 @@ clientApprovalStatusList: any[];
     project.activities.splice(index, 1);
   }
     getAllDayTypes(){
-    this.timesheetService.getAllDayTypes().pipe(first()).subscribe((response: any) => {
+    this.timesheetNewService.getAllDayTypes().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allDayTypes = response.serviceResponse;
         } else {
@@ -368,7 +371,7 @@ clientApprovalStatusList: any[];
 
     let timesheetObj = new Timesheet();
     timesheetObj.empId = empId;
-    this.timesheetService.getAllProjectsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+    this.timesheetNewService.getAllProjectsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allProjectsList = response.serviceResponse;
         console.log(this.allProjectsList,"this.allProjectsList")
@@ -623,7 +626,7 @@ clientApprovalStatusList: any[];
     timesheetObj.endDate = moment(endDate).format(AppComponent.DB_DATE_FORMAT);
 
     //console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
-    this.timesheetService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+    this.timesheetNewService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.availableTimesheets = response.serviceResponse;
       } else {
@@ -979,6 +982,19 @@ clientApprovalStatusList: any[];
     console.log("Timesheet to be created:", this.createOrUpdateObj);
     // Call the service to create timesheet
 
-
+    this.timesheetNewService.addTimesheetWithClientUpdated(this.createOrUpdateObj, this.selectedFile, this.selectedFile2)
+      .pipe(first())
+      .subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.openAlertMod(this.alertTemplate, "Timesheet created successfully.");
+          // Reset form or navigate as needed
+        } else {
+          console.error("Failed to create timesheet:", response.serviceResponse);
+          this.openAlertMod(this.alertTemplate, "Failed to create timesheet. Please try again.");
+        }
+      }, (error) => {
+        console.error("Error creating timesheet:", error);
+        this.openAlertMod(this.alertTemplate, "An error occurred while creating the timesheet.");
+      });
   }
 }
