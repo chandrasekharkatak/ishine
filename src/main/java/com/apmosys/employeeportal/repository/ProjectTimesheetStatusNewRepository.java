@@ -1,9 +1,11 @@
 package com.apmosys.employeeportal.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.model.ProjectTimesheetStatusId;
 import com.apmosys.employeeportal.model.ProjectTimesheetStatusNew;
@@ -20,6 +22,9 @@ public interface ProjectTimesheetStatusNewRepository extends JpaRepository<Proje
     @Query("SELECT p FROM ProjectTimesheetStatusNew p WHERE p.id.timesheetId = :timesheetId AND p.id.projectId = :projectId")
     Optional<ProjectTimesheetStatusNew> findByTimesheetIdAndProjectId(@Param("timesheetId") Long timesheetId, @Param("projectId") Long projectId);
     
-    void deleteByTimesheetId(Long timesheetId);
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM ProjectTimesheetStatusNew p WHERE p.id.timesheetId = :timesheetId")
+    void deleteByTimesheetId(@Param("timesheetId") Long timesheetId);
 }
 

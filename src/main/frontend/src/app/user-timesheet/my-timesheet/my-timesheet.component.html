@@ -13,10 +13,10 @@
 <ng-container *ngIf="false">
 <div class="row" *ngIf="isTimesheetForm">
     <div class="card col-md-12 px-0">
-        <div class="card-header text-center text-uppercase">
+        <!-- <div class="card-header text-center text-uppercase">
             <strong *ngIf="isCreation">Create Timesheet</strong>
             <strong *ngIf="isUpdation">Update Timesheet</strong>
-        </div>
+        </div> -->
         <div class="card-body">
             <div class="card col-md-12 px-3">
                  <div class="row">
@@ -784,9 +784,9 @@
 <!-- ============================================ -->
 <div class="row" *ngIf="isTimesheetForm && isCreation">
     <div class="card col-md-12 px-0">
-        <div class="card-header text-center text-uppercase">
+        <!-- <div class="card-header text-center text-uppercase">
             <strong>Create Timesheet</strong>
-        </div>
+        </div> -->
         <div class="card-body">
             <app-timesheet-form 
                 [isCreation]="isCreation"

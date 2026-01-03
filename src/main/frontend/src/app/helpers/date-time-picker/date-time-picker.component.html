@@ -13,26 +13,35 @@
     *ngIf="mode === 'date'"
     type="date"
     class="form-control"
+    [(ngModel)]="modelValue"
     [disabled]="disabled"
-    (change)="onDateChange($any($event.target).value)"
+    (ngModelChange)="onModelChange($event)"
   />
 
-  <!-- TIME -->
   <input
     *ngIf="mode === 'time'"
     type="time"
     class="form-control"
+    [(ngModel)]="modelValue"
     [disabled]="disabled"
-    (change)="onTimeChange($any($event.target).value)"
+    (ngModelChange)="onModelChange($event)"
   />
 
-  <!-- DATETIME -->
   <input
     *ngIf="mode === 'datetime'"
     type="datetime-local"
     class="form-control"
+    [(ngModel)]="modelValue"
     [disabled]="disabled"
-    (change)="onDateTimeChange($any($event.target).value)"
+    (ngModelChange)="onModelChange($event)"
   />
+
+  <button
+    *ngIf="modelValue && !disabled"
+    type="button"
+    class="btn btn-sm btn-link text-danger"
+    (click)="clearValue()">
+    ✖
+  </button>
 
 </div>
