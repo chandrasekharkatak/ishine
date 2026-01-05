@@ -591,6 +591,7 @@ async getExistingProjectsByUser() {
     projectObj.teamId = this.projectObj.teamId;
     projectObj.empId = this.projectObj.empId;
     projectObj.endDate = this.endDate;
+    projectObj.employeeTeamMapId = this.projectObj.employeeTeamMapId; //added for updating end-date 
 
 
     console.log("team details ", projectObj)

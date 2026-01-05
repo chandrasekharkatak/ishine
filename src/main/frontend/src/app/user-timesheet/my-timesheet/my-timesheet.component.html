@@ -236,7 +236,7 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label"><span class="text-danger">*</span>Date</label>
-                                
+
                                 <div class="d-flex">
                                     <input class="form-control" #input (focus)="timesheetDate.open()" matInput
                                         id="timesheetDate" [matDatepicker]="timesheetDate"
@@ -548,7 +548,7 @@
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label"><span class="text-danger">*</span>Date</label>
-                                
+
                                 <div class="d-flex">
                                     <input class="form-control" #input (focus)="timesheetDate.open()" matInput
                                         id="timesheetDate" [matDatepicker]="timesheetDate"
@@ -694,7 +694,7 @@
                                                 </mat-option>
                                             </mat-select> -->
                                             <!-- <select class="form-control" aria-hidden="true"
-                                                [(ngModel)]="activityObj.teamId" 
+                                                [(ngModel)]="activityObj.teamId"
                                                 (change)="getAllActivitiesByProjectIdandEmpId(activityObj);">
                                                 <option selected="selected" value="" disabled>Select</option>
                                                 <option *ngFor="let project of activityObj.projectList"
@@ -818,9 +818,9 @@
                 <span class="rules-label">
                     <<<< Click To View Rules </span>
             </button>
-           
+
             <div class="help-manual-wrapper">
-               
+
                 <span><img src="assets/Images/eye25.gif" /></span>
                 <span class="help-manual-text"> Need help filling the form?</span>
                 <button type="button" (click)="openUserManualPdf()" class="help-manual-btn" title="View User Manual">
@@ -1192,6 +1192,8 @@
                                 <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours|string">
                                     Total Working Hours</th>
                                 <th scope="col" style="min-width: 250px;" class="info-label column-md"
+                                    mat-sort-header="projectName|string">Project Name</th>
+                                 <th scope="col" style="min-width: 250px;" class="info-label column-md"
                                     mat-sort-header="description|string">Activity</th>
                                 <th scope="col" colspan="info-label" class="info-label"
                                     mat-sort-header="totalTime|number">Total Activity Time</th>
@@ -1252,6 +1254,7 @@
                                 <td>{{timesheet.officeInTime}}</td>
                                 <td>{{timesheet.officeOutTime}}</td>
                                 <td>{{timesheet.totalWorkingOfficeHours}}</td>
+                                <td>{{timesheet.projectName || "NA"}}</td>
                                 <td style="min-width: 250px;" [innerHTML]="timesheet.description | safeHtml"></td>
                                 <td>{{timesheet.totalTime}}</td>
                                 <td>{{timesheet.clientInTime || "NA"}}</td>

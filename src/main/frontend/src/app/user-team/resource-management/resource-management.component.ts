@@ -3362,10 +3362,15 @@ dateType: string = 'po';
 
 
  deleteResourceFromProject2(template: TemplateRef<any>) {
+    const isCustomDate = this.dateType === 'custom';
     let projectObj = new Project();
     projectObj.teamId = this.projectObj2.teamId;
     projectObj.empId = this.projectObj2.empId;
-    projectObj.endDate = this.lastDate1;
+    projectObj.endDate = this.lastDate1 || null;
+    projectObj.createdBy = this.currentUser.empId;
+    projectObj.isCustomDate = isCustomDate;
+    projectObj.updatedBy = this.currentUser.empId;
+    projectObj.rescRemovedBy = this.currentUser.empId;
 
     console.log("team details ", projectObj)
     this.projectService.updateProjectResourceAsInActive(projectObj).pipe(first()).subscribe((response: any) => {
@@ -3496,6 +3501,10 @@ dateType: string = 'po';
 
 
   deleteResourceModal(template: TemplateRef<any>, teamId) {
+    if(this.dateType!=='custom')
+    {
+      this.lastDate1 = teamId.poEndDate;
+    }
     // let projectObj = Object.assign({},this.projectObj); for copy object
     this.deleteResourceModalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
     this.projectObj2 = teamId;
@@ -3504,6 +3513,7 @@ dateType: string = 'po';
 
   hideDeleteResourceModalRef(){
     this.deleteResourceModalRef?.close();
+    this.dateType='po';
   }
 
 
@@ -4833,7 +4843,7 @@ getfixedCostProjectGraph(){
   }
 
   onTeamMemberSelected(event: any): void {
-    const selectedEmployee =event?.option?.value || event?.value || event;    
+    const selectedEmployee =event?.option?.value || event?.value || event;
     this.newteamMember = { ...selectedEmployee };
     this.newteamMember.empId = selectedEmployee.empId;
     this.newteamMember.name = selectedEmployee.name;

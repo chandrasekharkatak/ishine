@@ -1031,12 +1031,13 @@ public class TimesheetService {
 						dto.setClientSideId(object[18] != null ? object[18].toString() : null);
 						dto.setTotalClientWorkingHours(object[19] != null ? object[19].toString() : null);
 						dto.setProjectId(object[20] != null ? Integer.parseInt(object[20].toString()) : null);
-						dto.setClientApprovalStatus(object[21] != null ? object[21].toString() : null);
-						dto.setHasClientSideId(object[22] != null ? (Boolean) object[22] : null);
-						dto.setEmploymentId(object[22] != null ? employeeRepository.fetchEmploymentIdByEmpId(Long.parseLong(object[9].toString())) : null);
-						dto.setIsShadowTimesheet(object[23] != null ? (Boolean) object[23] : null);
-						dto.setShadowEmpId(object[24] != null ? Long.parseLong(object[24].toString()) : null);
-						dto.setRejectReason(object[25] != null ? object[25].toString() : null);
+						dto.setProjectName(object[21] != null ? object[21].toString() : null);
+						dto.setClientApprovalStatus(object[22] != null ? object[22].toString() : null);
+						dto.setHasClientSideId(object[23] != null ? (Boolean) object[23] : null);
+						dto.setEmploymentId(object[23] != null ? employeeRepository.fetchEmploymentIdByEmpId(Long.parseLong(object[9].toString())) : null);
+						dto.setIsShadowTimesheet(object[24] != null ? (Boolean) object[24] : null);
+						dto.setShadowEmpId(object[25] != null ? Long.parseLong(object[25].toString()) : null);
+						dto.setRejectReason(object[26] != null ? object[26].toString() : null);
 						
 						
 						if(timesheetId != null) {
@@ -1075,7 +1076,7 @@ public class TimesheetService {
 					response.setServiceResponse(dtoList);
 					
 					apiLogInfo.setApiResponse("dtoList : " +dtoList);			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 				}
 			}, () -> {

@@ -1998,6 +1998,30 @@
     <ng-template #delete_modal_template>
         <div class="modal-body text-center">
             <p>Are you sure you want to delete Resource from team and project ?</p>
+             <div class="col-md-12">
+            <div class="info-wrapper">
+                <div class="form-group" style="display: flex;">
+                    <label class="info-label ml-1">Select End Date</label>
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 0rem; align-items: flex-start; margin-bottom: 15px;">
+                    <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 8px;">
+                        <input type="radio" name="dateType" value="po"
+                               [(ngModel)]="dateType"
+                               style="margin-right: 8px;">
+                        PO End Date
+                    </label>
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="radio" name="dateType" value="custom"
+                               [(ngModel)]="dateType"
+                               style="margin-right: 8px;">
+                        Custom End Date
+                    </label>
+                </div>
+                    <input id="occasionDate" OnClick="this.showPicker()" type="date" class="form-control"
+                        autocomplete="none" [(ngModel)]="this.lastDate1">
+                </div>
+
+            </div>
+        </div>
             <button type="button" class="btn btn-success"
                 (click)="deleteResourceFromProject2(alert_message2);hideDeleteResourceModalRef()">Yes,
                 proceed</button>&nbsp;
@@ -2462,7 +2486,7 @@
                                                         Default Project</label>
                                                 </div>
                                                 <div class="action-buttons">
-                                                    <button type="button"   class="btn"     
+                                                    <button type="button"   class="btn"
                                                         [ngClass]="teamMember.isSelected ? 'btn-active' : 'btn-outline-primary'"
                                                         (click)="removeInputTeamMemberField(teamMember); updateEmployeeListAccordingToTeamMembers()">
                                                         <i class="fa fa-trash"></i>
@@ -2697,7 +2721,7 @@
 
                     <!-- Employee Search Input -->
                     <div class="add-team-field flex-grow-1" title="add team member">
-                        <app-my-select #empNameSelect class="form-control app-round-border" placeholder="Search by Emp ID or Name" 
+                        <app-my-select #empNameSelect class="form-control app-round-border" placeholder="Search by Emp ID or Name"
                              (selectionChange)="onTeamMemberSelected($event);openProjectTemplateModal(projectTemplate, newteamMember)"
                              [options]="employeeListByDept" displayKey="name" >
                         </app-my-select>
