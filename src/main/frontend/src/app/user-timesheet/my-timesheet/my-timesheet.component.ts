@@ -1552,6 +1552,12 @@ get tooltipCta(): string {
       //   this.timesheetObj.clientOutTime}
       if (!this.clientSideIdNotMandatory){
 
+        if(this.timesheetObj.clientApprovalStatus == null || this.timesheetObj.clientApprovalStatus == ''){
+          this.alertMessage = "Please select client approval status !!"
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+
         if(this.timesheetObj.clientSideId == null || this.timesheetObj.clientSideId == ''){
           this.alertMessage = "Please enter client side id !!"
           this.openAlertMod(template, this.alertMessage);
@@ -1571,19 +1577,19 @@ get tooltipCta(): string {
       }
 
       if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.officeInTime)) {
-        this.alertMessage = "Please enter In Date-Time !!"
+        this.alertMessage = "Please enter In Time !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
 
       if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.officeOutTime)) {
-        this.alertMessage = "Please select Out Date-Time !!"
+        this.alertMessage = "Please select Out Time !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
 
       if (totalWorkingHoursInSeconds <= 0) {
-        this.alertMessage = "Please select Valid IN-OUT Date-Time !!"
+        this.alertMessage = "Please select Valid IN-OUT Time !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
@@ -3662,8 +3668,9 @@ checkUploadEligibility() {
 }
 
   onDayTypeChange(){
-    this.getAllAvailableTimesheetByEmpId(this.timesheetObj.empId);
+    this.getActiveProjectsAndClientSideIdByEmpId();
     this.onTimesheetDescriptionChange();
+    this.resetTimesheetFormOnDateChange();
   }
 
   resetTimesheetFormOnDateChange(){
@@ -3694,6 +3701,12 @@ checkUploadEligibility() {
     this.shadowForSelf = false;
     this.finalFromDate = null;
     this.finalFromDate = null ;
+    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday") {
+      this.timesheetFillable = false
+    }
+    else {
+      this.timesheetFillable = true;
+    }
   }
 
   getClientDetailsByProjectIdAndEmpId() {

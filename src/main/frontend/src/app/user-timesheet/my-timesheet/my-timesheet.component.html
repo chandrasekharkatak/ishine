@@ -127,7 +127,7 @@
                         </div>
                     </div>
                     <div class="col-md-1 mb-0"
-                        *ngIf="timesheetObj.dayType !== 'Public Holiday' && timesheetObj.dayType !== 'Client Holiday'">
+                        *ngIf="timesheetObj.dayType !== 'Public Holiday' && timesheetObj.dayType !== 'Client Holiday' && timesheetObj.dayType !== 'Week Off'">
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label">Night Shift</label>
@@ -137,7 +137,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="row" *ngIf="timesheetObj.timesheetAppliedFor && timesheetObj.date">
+                <div class="row" *ngIf="timesheetObj.timesheetAppliedFor && timesheetObj.date && (timesheetObj.dayType == 'Working'  || timesheetObj.dayType == 'Non-working')">
                     <div class="col-md-3 mb-0">
                         <div class="info-wrapper">
                             <div class="form-group">
@@ -145,7 +145,7 @@
                                 <app-my-select #filterActiveProjects placeholder="Select Project" class="form-control"
                                     [(ngModel)]="timesheetObj.projectId" [options]="activeProjectList"
                                     displayKey="projectName" valueKey="projectId" [multiple]="false"
-                                    (selectionChange)="onProjectSelect($event)">
+                                    (selectionChange)="onProjectSelect(timesheetObj.projectId)">
                                 </app-my-select>
                                 <!-- <mat-select ngxMatSelect class="form-control" #filterActiveProjects="ngxMatSelect"
                                     [displayMember]="'projectName'" [valueMember]="'projectId'"
@@ -576,7 +576,7 @@
             </div> -->
 
             <div class="card col-md-12 px-3"
-                *ngIf="timesheetObj.projectId  && ((timesheetObj.clientApprovalStatus !== 'no' || (!timesheetFillable && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null)) || clientSideIdNotMandatory || timesheetObj.isShadowTimesheet)">
+                *ngIf="timesheetObj.projectId && ((timesheetObj.clientApprovalStatus !== 'no' || (!timesheetFillable && timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null)) || clientSideIdNotMandatory || timesheetObj.isShadowTimesheet)">
                 <!-- Add & Update Activities -->
                 <div class="container-fluid px-0"
                     *ngIf="timesheetObj.projectId  && timesheetFillable && ((timesheetObj.clientApprovalStatus !== '' && timesheetObj.clientApprovalStatus !== null) || timesheetObj.isShadowTimesheet || clientSideIdNotMandatory)">
@@ -765,7 +765,23 @@
                         </div>
                     </div>
                 </div>
-                <div *ngIf="!timesheetFillable" class="row">
+                <!-- end :: Add & Update Activities -->
+                <div class="row mt-3">
+                    <div class="col-md-12" style="padding-bottom: 1.5rem;">
+                        <button *ngIf="isCreation && userMapping.add_timesheet && timesheetObj.dayType" type="submit"
+                            class="btn btn-primary btn-sm mx-1" [disabled]="disableCreateUpdateTimesheet"
+                            (click)="onCreateTimesheet(alert_message)">Create
+                            Timesheet</button>
+                        <button *ngIf="isUpdation && userMapping.update_timesheet && timesheetObj.dayType" type="submit"
+                            class="btn btn-primary btn-sm mx-1"
+                            (click)="openUpdateConfimationModal(update_timesheet_template)">Update Timesheet</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card col-md-12 px-3"
+                *ngIf="!timesheetFillable">
+                <div class="row">
                     <div class="col-md-4 mb-0">
                         <div class="info-wrapper">
                             <div class="form-group">
