@@ -248,6 +248,9 @@ withoutVmsbullet:string[] = ["Applicable to resources without a client-side VMS 
   startY = 0;
   translateX = 0;
   translateY = 0;
+  @ViewChild("noOtherShadowResource")
+  noOtherShadowResourceTemp: TemplateRef<any>;
+  noOtherShadowResourceModalRef:NgbModalRef;
 
   //latestProjectId = this.activeProjectList
 
@@ -2979,7 +2982,7 @@ get tooltipCta(): string {
         this.employeeList = response.serviceResponse;
         this.getTimesheetMetadata();
       } else {
-        this.openAlertMod(this.alertTemplate, response.serviceResponse);
+        this.openNoOtherShadowResource(response.serviceResponse);
       }
     });
   }
@@ -3707,6 +3710,9 @@ checkUploadEligibility() {
     else {
       this.timesheetFillable = true;
     }
+    this.allTimesheetActivities = [];
+    this.addInputActivityField();   
+    this.syncTimes = false;
   }
 
   getClientDetailsByProjectIdAndEmpId() {
@@ -3809,6 +3815,18 @@ checkUploadEligibility() {
     this.translateX = 0;
     this.translateY = 0;
     this.isDragging = false;
+  }
+
+  openNoOtherShadowResource(message: any) {
+    this.alertMessage = message;
+    this.noOtherShadowResourceModalRef = this.modalService.open(this.noOtherShadowResourceTemp, { modalDialogClass: 'modal-md' });
+  }
+
+  hideNoOtherShadowResource(): void {
+    if (this.noOtherShadowResourceModalRef) {
+      this.noOtherShadowResourceModalRef?.close();
+      this.resetTimesheetForm();
+    }
   }
 
 }

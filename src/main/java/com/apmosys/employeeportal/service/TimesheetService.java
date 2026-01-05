@@ -3811,11 +3811,15 @@ public class TimesheetService {
 	    	}
 	    	
 	    	Long empId = payload.getEmpId();
-	    	LocalDateTime date = payload.getDate();
-	    	Long projectId = payload.getProjectId();
+	    	Integer projectId = Integer.parseInt(payload.getProjectId().toString()); 	
+	    	LocalDate selectedDate = payload.getDate().toLocalDate();
+
+	    	LocalDateTime startOfDay = selectedDate.atStartOfDay();
+	    	LocalDateTime startOfNextDay = selectedDate.plusDays(1).atStartOfDay();
+
+	    	List<ProjectClientSideIdDTO> activeProjectList = timesheetsRepository.getActiveProjectsAndClientSideIdByEmpId(
+	    	                empId, startOfDay, startOfNextDay, projectId);
 	    	
-	    	List<ProjectClientSideIdDTO> activeProjectList = timesheetsRepository.getActiveProjectsAndClientSideIdByEmpId(empId,date,projectId);
-	        
 	        if (activeProjectList.isEmpty()) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	            response.setServiceResponse("Please contact to the RMG team to provide you active project mapping!");

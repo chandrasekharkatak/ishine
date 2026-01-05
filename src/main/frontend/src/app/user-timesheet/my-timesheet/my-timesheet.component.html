@@ -168,7 +168,7 @@
                                 <app-my-select #filterShadowFor class="form-control" placeholder="Select Shadow For"
                                     [(ngModel)]="timesheetObj.shadowEmpId" [options]="employeeList" displayKey="name"
                                     valueKey="empId" [multiple]="false"
-                                    (selectionChange)="getClientSideIdByProjectIdAndEmpId(timesheetObj.projectId,$event)">
+                                    (selectionChange)="getClientSideIdByProjectIdAndEmpId(timesheetObj.projectId,timesheetObj.shadowEmpId)">
                                 </app-my-select>
                                 <!-- <mat-select ngxMatSelect class="form-control" #filterShadowFor="ngxMatSelect"
                                     [displayMember]="'name'" [valueMember]="'empId'" [source]="employeeList"
@@ -1863,5 +1863,12 @@
         <div *ngIf="rulesfileType === 'pdf'" class="file-preview-pdf">
             <iframe [src]="rulespreviewUrl" class="preview-iframe"></iframe>
         </div>
+    </div>
+</ng-template>
+
+<ng-template #noOtherShadowResource>
+    <div class="modal-body text-center">
+        <h6>{{alertMessage}}</h6>
+        <button type="button" class="btn-yes-alert" (click)="hideNoOtherShadowResource()">OK</button>&nbsp;
     </div>
 </ng-template>

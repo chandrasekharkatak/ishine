@@ -630,10 +630,12 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				"inner join Team t on t.projectId = p.projectId \n"+
 				"inner join EmployeeTeamMap etm on etm.teamId = t.teamId \n"+
 				"left join EmployeeClientSideIdMapping ecsm on ecsm.projectId = p.projectId AND ecsm.empId = etm.empId \n"+
-				"where etm.startDate <= :date and etm.active != 2 \n"
-				+ " AND (etm.endDate IS NULL OR etm.endDate >= :date) and etm.empId = :empId and ecsm.projectId = :projectId")
-		public List<ProjectClientSideIdDTO> getActiveProjectsAndClientSideIdByEmpId(@Param("empId") Long empId,@Param("date") LocalDateTime date,
-				@Param("projectId") Long projectId);
+				"where etm.startDate < :nextDay and etm.active != 2 \n"+
+				" AND (etm.endDate IS NULL OR etm.endDate >= :startDay) and etm.empId = :empId and p.projectId = :projectId")
+		public List<ProjectClientSideIdDTO> getActiveProjectsAndClientSideIdByEmpId(@Param("empId") Long empId,
+		        @Param("startDay") LocalDateTime startDay,
+		        @Param("nextDay") LocalDateTime nextDay,
+				@Param("projectId") Integer projectId);
 		
 		@Query(value = "SELECT SQL_CALC_FOUND_ROWS DISTINCT e.name, p.project_name, t.team_name,   \n"
 				+ "CASE WHEN po_project_type IS NOT NULL THEN po_project_type   \n"
