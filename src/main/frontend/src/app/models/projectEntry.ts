@@ -35,10 +35,16 @@ export class ProjectEntry {
   shadowEmpId?: number;
   isShadowTimesheet?: boolean;
   
+  // Client, Team, Location (at project level)
+  clientId?: number | null;
+  clientLocationId?: number | null;
+  teamId?: number | null;
+  
   // Activities
   activities: ActivityNew[];
   availableActivities?: ActivityNew[]; // Loaded activities for dropdown
+  projectActivities?: any[]; // Activities loaded for the project (shared by all activities)
   clientList?: any[]; // Clients for this project
-  clientLocationList?: any[]; // Client locations (per activity)
-  projectList?: any[]; // Teams/projects list (per activity)
+  clientLocationList?: any[]; // Client locations for this project
+  projectList?: any[]; // Teams for this project
 }

@@ -13,6 +13,18 @@ import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ProjectEntry } from 'src/app/models/projectEntry';
 import { ActivityNew } from 'src/app/models/activityNew';
 import { EmployeeClientSideIdMapping } from 'src/app/models/employeeClientSideIdMapping';
+
+// Location Entry interface
+export interface LocationEntry {
+  locationId: number | null;
+  locationName?: string;
+  clientLocationId?: number | null;
+  clientInTime?: string;
+  clientOutTime?: string;
+  totalClientWorkingHours?: string;
+  projects: ProjectEntry[];
+  availableProjects?: any[]; // Projects available for this location
+}
 import { EmployeeTimesheetDTO } from 'src/app/models/EmployeeTimesheetDTO';
 import { ProjectTimesheetDTO } from 'src/app/models/ProjectTimesheetDTO';
 import { ActivityTimesheetDTO } from 'src/app/models/ActivityTimesheetDTO';
@@ -34,6 +46,9 @@ export class TimesheetFormComponent implements OnInit {
   @Input() isUpdation: boolean = false;
   isTimesheetLockCheckEnable: any = "true";
   timesheetObj: Timesheet = new Timesheet();
+  dayType:any=1;
+  timesheetAppliedFor:any='self';
+  selectedLocationId: any = null;
   teamMemberList: any[] = [];
   currentUser: User = new User();
   userMapping: any = {};
@@ -56,11 +71,14 @@ export class TimesheetFormComponent implements OnInit {
   apmosysOutTime: any = null;
   clientInTime: any = null;
   clientOutTime: any = null;
+  totalPresence: number = 0;
   totalWorkingHours: number = 0; // Total working hours in decimal format
   activeProjectList: any[] = []; // Unique projects for dropdown
-  // Multi-project support
-  timesheetProjects: ProjectEntry[] = [];
-  expandedProjectIndex: number | null = 0;
+  activeLocationList: any[] = []; // Unique locations for dropdown
+  // Multi-location support (Location -> Project -> Activity)
+  timesheetLocations: LocationEntry[] = [];
+  expandedLocationIndex: number | null = 0;
+  expandedProjectIndexMap: { [locationIndex: number]: number | null } = {}; // Track expanded project per location
   empHasClientSideId: boolean = false;
   projectActivityHoursError: { [projectIndex: number]: string } = {}; // Store validation errors per project
   
@@ -89,8 +107,8 @@ clientApprovalStatusList: any[];
     {this.authenticationService.currentUser.subscribe(x => this.currentUser = x);    }
 
   ngOnInit(): void {
-    // Initialize with one project
-    this.addProject();
+    // Initialize with one location
+    this.addLocation();
     this.getAllDayTypes();
     
     // Load projects when currentUser is available
@@ -120,7 +138,23 @@ clientApprovalStatusList: any[];
       completionTime: null,
       clientLocationList: [],
       projectList: [],
-      projectActivities: []
+      projectActivities: [] // Will use project.projectActivities instead
+    };
+  }
+
+  /**
+   * Create a new LocationEntry object
+   */
+  createLocation(): LocationEntry {
+    return {
+      locationId: null,
+      locationName: '',
+      clientLocationId: null,
+      clientInTime: '',
+      clientOutTime: '',
+      totalClientWorkingHours: '0',
+      projects: [this.createProject()],
+      availableProjects: []
     };
   }
 
@@ -143,8 +177,13 @@ clientApprovalStatusList: any[];
       totalClientWorkingHours: '0',
       shadowEmpId: null,
       isShadowTimesheet: false,
+      // Client, Team, Location at project level
+      clientId: null,
+      clientLocationId: null,
+      teamId: null,
       activities: [this.createActivity()],
       availableActivities: [],
+      projectActivities: [], // Activities loaded for the project
       clientList: [],
       clientLocationList: [],
       projectList: []
@@ -152,36 +191,88 @@ clientApprovalStatusList: any[];
   }
 
   /**
-   * Add a new project to the timesheet
+   * Add a new location to the timesheet
    */
-  addProject(): void {
-    this.timesheetProjects.push(this.createProject());
-    // Expand the newly added project
-    this.expandedProjectIndex = this.timesheetProjects.length - 1;
+  addLocation(): void {
+    this.timesheetLocations.push(this.createLocation());
+    // Expand the newly added location
+    this.expandedLocationIndex = this.timesheetLocations.length - 1;
+    // Initialize expanded project index for this location
+    this.expandedProjectIndexMap[this.timesheetLocations.length - 1] = 0;
   }
 
   /**
-   * Remove a project from the timesheet
+   * Remove a location from the timesheet
    */
-  removeProject(index: number): void {
-    if (this.timesheetProjects.length <= 1) {
-      this.openAlertMod(this.alertTemplate, 'At least one project is required.');
+  removeLocation(index: number): void {
+    if (this.timesheetLocations.length <= 1) {
+      this.openAlertMod(this.alertTemplate, 'At least one location is required.');
       return;
     }
-    this.timesheetProjects.splice(index, 1);
+    this.timesheetLocations.splice(index, 1);
     // Adjust expanded index if needed
-    if (this.expandedProjectIndex === index) {
-      this.expandedProjectIndex = this.timesheetProjects.length > 0 ? 0 : null;
-    } else if (this.expandedProjectIndex > index) {
-      this.expandedProjectIndex--;
+    if (this.expandedLocationIndex === index) {
+      this.expandedLocationIndex = this.timesheetLocations.length > 0 ? 0 : null;
+    } else if (this.expandedLocationIndex > index) {
+      this.expandedLocationIndex--;
+    }
+    // Clean up expanded project index map
+    delete this.expandedProjectIndexMap[index];
+    // Reindex the map
+    const newMap: { [key: number]: number | null } = {};
+    Object.keys(this.expandedProjectIndexMap).forEach(key => {
+      const oldIndex = parseInt(key);
+      if (oldIndex < index) {
+        newMap[oldIndex] = this.expandedProjectIndexMap[oldIndex];
+      } else if (oldIndex > index) {
+        newMap[oldIndex - 1] = this.expandedProjectIndexMap[oldIndex];
+      }
+    });
+    this.expandedProjectIndexMap = newMap;
+  }
+
+  /**
+   * Toggle location expansion/collapse
+   */
+  toggleLocation(index: number): void {
+    this.expandedLocationIndex = this.expandedLocationIndex === index ? null : index;
+  }
+
+  /**
+   * Add a new project to a location
+   */
+  addProject(location: LocationEntry): void {
+    location.projects.push(this.createProject());
+    // Expand the newly added project
+    const locationIndex = this.timesheetLocations.indexOf(location);
+    this.expandedProjectIndexMap[locationIndex] = location.projects.length - 1;
+  }
+
+  /**
+   * Remove a project from a location
+   */
+  removeProject(location: LocationEntry, projectIndex: number): void {
+    if (location.projects.length <= 1) {
+      this.openAlertMod(this.alertTemplate, 'At least one project is required per location.');
+      return;
+    }
+    location.projects.splice(projectIndex, 1);
+    // Adjust expanded project index if needed
+    const locationIndex = this.timesheetLocations.indexOf(location);
+    const currentExpanded = this.expandedProjectIndexMap[locationIndex];
+    if (currentExpanded === projectIndex) {
+      this.expandedProjectIndexMap[locationIndex] = location.projects.length > 0 ? 0 : null;
+    } else if (currentExpanded !== null && currentExpanded > projectIndex) {
+      this.expandedProjectIndexMap[locationIndex] = currentExpanded - 1;
     }
   }
 
   /**
-   * Toggle project expansion/collapse
+   * Toggle project expansion/collapse within a location
    */
-  toggleProject(index: number): void {
-    this.expandedProjectIndex = this.expandedProjectIndex === index ? null : index;
+  toggleProject(locationIndex: number, projectIndex: number): void {
+    const currentExpanded = this.expandedProjectIndexMap[locationIndex];
+    this.expandedProjectIndexMap[locationIndex] = currentExpanded === projectIndex ? null : projectIndex;
   }
 
   /**
@@ -201,6 +292,52 @@ clientApprovalStatusList: any[];
     }
     project.activities.splice(index, 1);
   }
+
+  /**
+   * Handle location selection - populate projects for the selected location
+   */
+  onLocationSelect(location: LocationEntry, locationId: any): void {
+    if (!locationId) {
+      location.locationId = null;
+      location.availableProjects = [];
+      return;
+    }
+
+    location.locationId = locationId;
+    
+    // Find selected location details from allProjectsList
+    const locationData = this.allProjectsList.find((p: any) => p.clientLocationId === locationId);
+    if (locationData) {
+      location.locationName = locationData.clientLocation || '';
+      location.clientLocationId = locationData.clientLocationId;
+    }
+
+    // Filter projects for this location from allProjectsList
+    const locationProjects = this.allProjectsList
+      .filter((p: any) => p.clientLocationId === locationId)
+      .map((p: any) => ({
+        projectId: p.projectId,
+        projectName: p.projectName,
+        clientSideId: p.clientSideId
+      }));
+
+    // Remove duplicates based on projectId
+    location.availableProjects = [...new Map(locationProjects.map((p: any) => [p.projectId, p])).values()];
+
+    // Clear dependent fields in all projects
+    location.projects.forEach(project => {
+      project.projectId = null;
+      project.activities.forEach(activity => {
+        activity.clientId = null;
+        activity.clientLocationId = null;
+        activity.teamId = null;
+        activity.activityId = null;
+        activity.clientLocationList = [];
+        activity.projectList = [];
+        activity.projectActivities = [];
+      });
+    });
+  }
     getAllDayTypes(){
     this.timesheetNewService.getAllDayTypes().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -211,18 +348,18 @@ clientApprovalStatusList: any[];
       });
     }
     onDayTypeChange(event: any){
-      this.timesheetObj.dayType = event;
+      this.dayType = event;
       console.log("Day type changed",this.timesheetObj.dayType);
     }
   onTimesheetAppliedForChange(value: string): void {
 
-    this.timesheetObj.timesheetAppliedFor = value;
+    this.timesheetAppliedFor = value;
   
   
   
     if (value === 'self') {
   
-      this.getAllTeamMemberList();
+      // this.getAllTeamMemberList();
   
       this.getTimesheetMetadata();
   
@@ -230,15 +367,17 @@ clientApprovalStatusList: any[];
   
   
   
-    } else if (value === 'asShadow') {
+    } 
+    // else if (value === 'asShadow') {
   
-      this.resetTimesheetFormForAutoFill();
+    //   this.resetTimesheetFormForAutoFill();
   
-      this.timesheetObj.isShadowTimesheet = true;
+    //   this.timesheetObj.isShadowTimesheet = true;
   
   
   
-    } else {
+    // }
+     else {
   
       this.resetTimesheetFormForAutoFill();
   
@@ -306,8 +445,8 @@ clientApprovalStatusList: any[];
   }
 
   resetTimesheetFormForAutoFill() {
-    this.fromDate = null;
-    this.toDate = null;
+    // this.fromDate = null;
+    // this.toDate = null;
     this.timesheetObj.projectId = '';
     this.timesheetObj.clientSideId = '';
     this.timesheetObj.hasClientSideId = false;
@@ -347,7 +486,7 @@ clientApprovalStatusList: any[];
       timesheet.completionTime = ''
     })
 
-    if (this.timesheetObj.timesheetAppliedFor == "team") {
+    
       this.errorMsg = '';
       let employeeObj = new Employee();
       employeeObj.empId = this.currentUser.empId;
@@ -356,9 +495,10 @@ clientApprovalStatusList: any[];
           this.teamMemberList = response.serviceResponse;
         } else {
           console.error(response.serviceResponse);
+          this.errorMsg = response.serviceResponse;
         }
       });
-    }
+    
     console.log("Timesheet object is",this.timesheetObj)
   }
 
@@ -368,6 +508,7 @@ clientApprovalStatusList: any[];
     this.clientLocationList = [];
     this.projectList = [];
     this.activeProjectList = [];
+    this.activeLocationList = [];
 
     let timesheetObj = new Timesheet();
     timesheetObj.empId = empId;
@@ -378,7 +519,19 @@ clientApprovalStatusList: any[];
         if (this.allProjectsList.length == 0) {
         }
         else {
-          // Extract unique projects for project dropdown
+          // Extract unique locations for location dropdown
+          const locationKey = "clientLocationId";
+          this.activeLocationList = [...new Map(this.allProjectsList
+            .filter((p: any) => p.clientLocationId) // Only include entries with location
+            .map((project: any) => [project[locationKey], project])).values()]
+            .map((project: any) => {
+              return { 
+                locationId: project.clientLocationId, 
+                locationName: project.clientLocation
+              };
+            });
+
+          // Extract unique projects for project dropdown (for reference)
           const projectKey = "projectId";
           this.activeProjectList = [...new Map(this.allProjectsList.map((project: any) => [project[projectKey], project])).values()].map((project: any) => {
             return { 
@@ -396,9 +549,9 @@ clientApprovalStatusList: any[];
   }
 
   /**
-   * Handle project selection - populate clients for the selected project
+   * Handle project selection - populate clients for the selected project within a location
    */
-  onProjectSelect(project: ProjectEntry, projectId: any): void {
+  onProjectSelect(location: LocationEntry, project: ProjectEntry, projectId: any): void {
     if (!projectId) {
       project.projectId = null;
       project.clientList = [];
@@ -407,17 +560,18 @@ clientApprovalStatusList: any[];
 
     project.projectId = projectId;
     
-    // Find selected project details
-    const selectedProject = this.activeProjectList.find(p => p.projectId === projectId);
+    // Find selected project details from location's available projects or allProjectsList
+    const selectedProject = location.availableProjects?.find(p => p.projectId === projectId) ||
+      this.activeProjectList.find(p => p.projectId === projectId);
     if (selectedProject) {
       project.projectName = selectedProject.projectName;
       project.clientSideId = selectedProject.clientSideId || '';
       project.hasClientSideId = !!selectedProject.clientSideId;
     }
 
-    // Filter clients for this project from allProjectsList
+    // Filter clients for this project and location from allProjectsList
     const projectClients = this.allProjectsList
-      .filter((p: any) => p.projectId === projectId)
+      .filter((p: any) => p.projectId === projectId && p.clientLocationId === location.clientLocationId)
       .map((p: any) => ({
         clientId: p.clientId,
         clientName: p.clientName,
@@ -449,11 +603,13 @@ clientApprovalStatusList: any[];
           this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
           this.empClientSideObj.projectId = projectId;
           this.empClientSideObj.empId = empId;
-          this.timesheetProjects.forEach(project => {
-            if (project.projectId == projectId) {
-              project.clientSideId = this.timesheetObj.clientSideId;
-              project.hasClientSideId = true;
-            }
+          this.timesheetLocations.forEach(location => {
+            location.projects.forEach(project => {
+              if (project.projectId == projectId) {
+                project.clientSideId = this.timesheetObj.clientSideId;
+                project.hasClientSideId = true;
+              }
+            });
           });
         }
       } else {
@@ -462,101 +618,144 @@ clientApprovalStatusList: any[];
     });
   }
   /**
-   * Handle client selection - populate client locations for the selected client and project
+   * Handle client selection at project level - populate client locations and teams
    */
-  onClientSelect(project: ProjectEntry, activity: ActivityNew, clientId: number): void {
+  onProjectClientSelect(location: LocationEntry, project: ProjectEntry, clientId: number): void {
     if (!clientId) {
-      activity.clientId = null;
-      activity.clientLocationList = [];
+      project.clientId = null;
+      project.clientLocationList = [];
+      project.projectList = [];
+      project.projectActivities = [];
+      // Clear activities
+      project.activities.forEach(activity => {
+        activity.activityId = null;
+      });
       return;
     }
 
-    activity.clientId = clientId;
+    project.clientId = clientId;
 
-    // Filter client locations for this project and client
-    const locations = this.allProjectsList
-      .filter((p: any) => p.projectId === project.projectId && p.clientId === clientId && p.clientLocationId)
+    // Filter client locations for this project, location, and client from allProjectsList
+    const clientLocations = this.allProjectsList
+      .filter((p: any) => 
+        p.projectId === project.projectId && 
+        p.clientLocationId === location.clientLocationId &&
+        p.clientId === clientId &&
+        p.clientLocationId
+      )
       .map((p: any) => ({
         clientLocationId: p.clientLocationId,
-        locationName: p.clientLocation
+        clientLocation: p.clientLocation
       }));
 
     // Remove duplicates
-    activity.clientLocationList = [...new Map(locations.map((l: any) => [l.clientLocationId, l])).values()];
+    project.clientLocationList = [...new Map(clientLocations.map((cl: any) => [cl.clientLocationId, cl])).values()];
 
-    // Clear dependent fields
-    activity.clientLocationId = null;
-    activity.teamId = null;
-    activity.activityId = null;
-    activity.projectList = [];
-    activity.projectActivities = [];
-  }
-
-  /**
-   * Handle client location selection - populate teams for the selected location
-   */
-  onClientLocationSelect(project: ProjectEntry, activity: ActivityNew, clientLocationId: number): void {
-    if (!clientLocationId) {
-      activity.clientLocationId = null;
-      activity.projectList = [];
-      return;
-    }
-
-    activity.clientLocationId = clientLocationId;
-
-    // Filter teams for this project, client, and client location
+    // Filter teams for this project, location, and client
     const teams = this.allProjectsList
       .filter((p: any) => 
         p.projectId === project.projectId && 
-        p.clientId === activity.clientId && 
-        p.clientLocationId === clientLocationId &&
+        p.clientLocationId === location.clientLocationId &&
+        p.clientId === clientId &&
         p.teamId
       )
       .map((p: any) => ({
         teamId: p.teamId,
         teamName: p.teamName,
-        projectName: p.projectName,
-        displayTeam: `${p.projectName} | ${p.teamName}`
+        projectName: p.projectName
       }));
 
     // Remove duplicates
-    activity.projectList = [...new Map(teams.map((t: any) => [t.teamId, t])).values()];
+    project.projectList = [...new Map(teams.map((t: any) => [t.teamId, t])).values()];
 
     // Clear dependent fields
-    activity.teamId = null;
-    activity.activityId = null;
-    activity.projectActivities = [];
+    project.clientLocationId = null;
+    project.teamId = null;
+    project.projectActivities = [];
+    project.activities.forEach(activity => {
+      activity.activityId = null;
+    });
   }
 
   /**
-   * Handle team selection - load activities for the selected team
+   * Handle client location selection at project level - populate teams
    */
-  onTeamSelect(project: ProjectEntry, activity: ActivityNew, teamId: number): void {
-    if (!teamId) {
-      activity.teamId = null;
-      activity.projectActivities = [];
+  onProjectClientLocationSelect(location: LocationEntry, project: ProjectEntry, clientLocationId: number): void {
+    if (!clientLocationId) {
+      project.clientLocationId = null;
+      project.projectList = [];
+      project.projectActivities = [];
+      project.activities.forEach(activity => {
+        activity.activityId = null;
+      });
       return;
     }
 
-    activity.teamId = teamId;
+    project.clientLocationId = clientLocationId;
 
-    // Load activities - this will need to call the API
-    // For now, we'll prepare the data structure
-    this.loadActivitiesForTeam(project, activity, teamId);
+    // Filter teams for this project, location, client, and client location
+    if (project.clientId) {
+      const teams = this.allProjectsList
+        .filter((p: any) => 
+          p.projectId === project.projectId && 
+          p.clientLocationId === clientLocationId &&
+          p.clientId === project.clientId &&
+          p.teamId
+        )
+        .map((p: any) => ({
+          teamId: p.teamId,
+          teamName: p.teamName,
+          projectName: p.projectName
+        }));
+
+      // Remove duplicates
+      project.projectList = [...new Map(teams.map((t: any) => [t.teamId, t])).values()];
+    }
+
+    // Clear dependent fields
+    project.teamId = null;
+    project.projectActivities = [];
+    project.activities.forEach(activity => {
+      activity.activityId = null;
+    });
   }
 
   /**
-   * Load activities for a selected team
+   * Handle team selection at project level - load activities for all activities in the project
    */
-  loadActivitiesForTeam(project: ProjectEntry, activity: ActivityNew, teamId: number): void {
+  onProjectTeamSelect(location: LocationEntry, project: ProjectEntry, teamId: number): void {
+    if (!teamId) {
+      project.teamId = null;
+      project.projectActivities = [];
+      project.activities.forEach(activity => {
+        activity.activityId = null;
+      });
+      return;
+    }
+
+    project.teamId = teamId;
+
+    // Load activities for the project
+    this.loadActivitiesForProject(location, project, teamId);
+  }
+
+  /**
+   * Load activities for a project (at project level)
+   */
+  loadActivitiesForProject(location: LocationEntry, project: ProjectEntry, teamId: number): void {
+    if (!project.clientId || !project.clientLocationId) {
+      console.error('Client and Client Location must be selected first');
+      return;
+    }
+
     const timesheetObj = new Timesheet();
     timesheetObj.projectId = project.projectId;
     timesheetObj.empId = project.isShadowTimesheet && project.shadowEmpId 
       ? project.shadowEmpId 
       : (this.timesheetObj.empId || this.currentUser?.empId);
     timesheetObj.teamId = teamId;
-    timesheetObj.clientId = activity.clientId;
-    timesheetObj.clientLocationId = activity.clientLocationId;
+    timesheetObj.clientId = project.clientId;
+    timesheetObj.clientLocationId = project.clientLocationId;
 
     if (!timesheetObj.empId) {
       console.error('Employee ID is not available');
@@ -587,14 +786,15 @@ clientApprovalStatusList: any[];
             }
           }
           
-          activity.projectActivities = allActivityList;
+          // Store activities at project level for all activities to use
+          project.projectActivities = allActivityList;
         } else {
           console.error('Failed to load activities:', response.serviceResponse);
-          activity.projectActivities = [];
+          project.projectActivities = [];
         }
       }, (error) => {
         console.error('Error loading activities:', error);
-        activity.projectActivities = [];
+        project.projectActivities = [];
       });
   }
   getAllAvailableTimesheetByEmpId(employeeObj: User) {
@@ -661,6 +861,7 @@ clientApprovalStatusList: any[];
   onFromDateChange() {
     if (!this.fromDate) {
       this.totalWorkingHours = 0;
+      this.totalPresence = 0;
       return;
     }
   
@@ -745,12 +946,74 @@ clientApprovalStatusList: any[];
   }
 
   /**
+   * Parse time string to 24-hour format
+   * Handles both "HH:mm" (24-hour) and "HH:mm AM/PM" (12-hour) formats
+   */
+  parseTimeTo24Hour(timeStr: string): { hour: number; minute: number } | null {
+    if (!timeStr) return null;
+
+    try {
+      // Remove extra spaces and convert to uppercase for consistent parsing
+      timeStr = timeStr.trim().toUpperCase();
+
+      // Check if it's 12-hour format (contains AM or PM)
+      const hasAMPM = timeStr.includes('AM') || timeStr.includes('PM');
+      
+      if (hasAMPM) {
+        // Parse 12-hour format: "09:20 AM" or "07:20 PM"
+        const timePart = timeStr.replace(/\s*(AM|PM)\s*/i, '');
+        const parts = timePart.split(':');
+        
+        if (parts.length !== 2) return null;
+
+        let hour = parseInt(parts[0], 10);
+        const minute = parseInt(parts[1], 10);
+
+        if (isNaN(hour) || isNaN(minute)) return null;
+
+        // Validate ranges
+        if (hour < 1 || hour > 12 || minute < 0 || minute > 59) return null;
+
+        // Convert to 24-hour format
+        const isPM = timeStr.includes('PM');
+        if (isPM && hour !== 12) {
+          hour += 12;
+        } else if (!isPM && hour === 12) {
+          hour = 0;
+        }
+
+        return { hour, minute };
+      } else {
+        // Parse 24-hour format: "09:20"
+        const parts = timeStr.split(':');
+        
+        if (parts.length !== 2) return null;
+
+        const hour = parseInt(parts[0], 10);
+        const minute = parseInt(parts[1], 10);
+
+        if (isNaN(hour) || isNaN(minute)) return null;
+
+        // Validate ranges
+        if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+
+        return { hour, minute };
+      }
+    } catch (error) {
+      console.error('Error parsing time:', timeStr, error);
+      return null;
+    }
+  }
+
+  /**
    * Calculate total working hours from ApMoSys In Time and Out Time
    */
   calculateTotalWorkingHours(): void {
     // Reset to 0 if required fields are missing
     if (!this.fromDate || !this.apmosysInTime || !this.apmosysOutTime) {
       this.totalWorkingHours = 0;
+      this.totalPresence = 0;
+
       return;
     }
 
@@ -759,6 +1022,7 @@ clientApprovalStatusList: any[];
       const fromDateParsed = this.parseDDMMYYYY(this.fromDate);
       if (!fromDateParsed) {
         this.totalWorkingHours = 0;
+        this.totalPresence = 0;
         return;
       }
 
@@ -769,6 +1033,7 @@ clientApprovalStatusList: any[];
         const toDateParsed = this.parseDDMMYYYY(this.toDate);
         if (!toDateParsed) {
           this.totalWorkingHours = 0;
+          this.totalPresence = 0;
           return;
         }
         outDate = toDateParsed;
@@ -777,19 +1042,21 @@ clientApprovalStatusList: any[];
         outDate = fromDateParsed;
       }
 
-      // Parse time strings (HH:mm format)
-      const inTimeParts = this.apmosysInTime.split(':');
-      const outTimeParts = this.apmosysOutTime.split(':');
+      // Parse time strings (handles both HH:mm and HH:mm AM/PM formats)
+      const inTime24 = this.parseTimeTo24Hour(this.apmosysInTime);
+      const outTime24 = this.parseTimeTo24Hour(this.apmosysOutTime);
 
-      if (inTimeParts.length !== 2 || outTimeParts.length !== 2) {
+      if (!inTime24 || !outTime24) {
+        console.error('Failed to parse time:', { inTime: this.apmosysInTime, outTime: this.apmosysOutTime });
         this.totalWorkingHours = 0;
+        this.totalPresence = 0;
         return;
       }
 
-      const inHour = parseInt(inTimeParts[0], 10);
-      const inMinute = parseInt(inTimeParts[1], 10);
-      const outHour = parseInt(outTimeParts[0], 10);
-      const outMinute = parseInt(outTimeParts[1], 10);
+      const inHour = inTime24.hour;
+      const inMinute = inTime24.minute;
+      const outHour = outTime24.hour;
+      const outMinute = outTime24.minute;
 
       // Create Date objects with date and time
       const inDateTime = new Date(fromDateParsed);
@@ -802,18 +1069,19 @@ clientApprovalStatusList: any[];
       const diffMs = outDateTime.getTime() - inDateTime.getTime();
 
       // Convert to hours (decimal)
-      this.totalWorkingHours = diffMs / (1000 * 60 * 60);
+      const calculatedHours = diffMs / (1000 * 60 * 60);
 
       // Ensure non-negative
-      if (this.totalWorkingHours < 0) {
-        this.totalWorkingHours = 0;
-      }
+      const finalHours = calculatedHours < 0 ? 0 : calculatedHours;
 
       // Round to 2 decimal places
-      this.totalWorkingHours = Math.round(this.totalWorkingHours * 100) / 100;
+      this.totalWorkingHours = Math.round(finalHours * 100) / 100;
+      this.totalPresence = this.totalWorkingHours; // Set totalPresence for display
+      console.log('Total Working Hours calculated:', this.totalWorkingHours);
     } catch (error) {
       console.error('Error calculating total working hours:', error);
       this.totalWorkingHours = 0;
+      this.totalPresence = 0;
     }
   }
 
@@ -822,6 +1090,7 @@ clientApprovalStatusList: any[];
    */
   onApMoSysInTimeChange(time: string): void {
     this.apmosysInTime = time;
+    console.log("In time changed to",time);
     this.calculateTotalWorkingHours();
   }
 
@@ -830,6 +1099,7 @@ clientApprovalStatusList: any[];
    */
   onApMoSysOutTimeChange(time: string): void {
     this.apmosysOutTime = time;
+    console.log("Out time changed to",time);
     this.calculateTotalWorkingHours();
   }
 
@@ -945,29 +1215,31 @@ clientApprovalStatusList: any[];
     console.log("Create Timesheet clicked");
     let projectDataList : ProjectTimesheetDTO[] = [];
     let projectData : ProjectTimesheetDTO;
-    this.timesheetProjects.forEach((project) => {
-      projectData = new ProjectTimesheetDTO();
-      projectData.projectId = project.projectId;
-      // 
-      projectData.clientInTime = project.clientInTime;
-      projectData.clientOutTime = project.clientOutTime;
-      projectData.clientApprovalStatus = this.timesheetObj.clientApprovalStatus;
-      projectData.shadowEmpId = project.isShadowTimesheet ? project.shadowEmpId : null;
-      // projectData.isShadowTimesheet = project.isShadowTimesheet;
-      let activityDataList : ActivityTimesheetDTO[] = [];
-      let activityData : ActivityTimesheetDTO;
-      project.activities.forEach((activity) => {
-        activityData = new ActivityTimesheetDTO();
-        // activityData.clientId = activity.clientId;
-        activityData.clientLocationId = activity.clientLocationId;
-        // activityData.teamId = activity.teamId;
-        activityData.activityId = activity.activityId;
-        activityData.description = activity.description;
-        activityData.durationMinutes = activity.completionTime * 60;
-        activityDataList.push(activityData);
+    this.timesheetLocations.forEach((location) => {
+      location.projects.forEach((project) => {
+        projectData = new ProjectTimesheetDTO();
+        projectData.projectId = project.projectId;
+        // Use location's client times if available, otherwise project's
+        projectData.clientInTime = location.clientInTime || project.clientInTime;
+        projectData.clientOutTime = location.clientOutTime || project.clientOutTime;
+        projectData.clientApprovalStatus = this.timesheetObj.clientApprovalStatus;
+        projectData.shadowEmpId = project.isShadowTimesheet ? project.shadowEmpId : null;
+        // projectData.isShadowTimesheet = project.isShadowTimesheet;
+        let activityDataList : ActivityTimesheetDTO[] = [];
+        let activityData : ActivityTimesheetDTO;
+        project.activities.forEach((activity) => {
+          activityData = new ActivityTimesheetDTO();
+          // activityData.clientId = activity.clientId;
+          activityData.clientLocationId = location.clientLocationId || activity.clientLocationId;
+          // activityData.teamId = activity.teamId;
+          activityData.activityId = activity.activityId;
+          activityData.description = activity.description;
+          activityData.durationMinutes = activity.completionTime * 60;
+          activityDataList.push(activityData);
+        });
+        projectData.activities = activityDataList;
+        projectDataList.push(projectData);
       });
-      projectData.activities = activityDataList;
-      projectDataList.push(projectData);
     });
     // Implementation for creating timesheet goes here 
     this.createOrUpdateObj.empId = this.timesheetObj.empId;
@@ -996,5 +1268,40 @@ clientApprovalStatusList: any[];
         console.error("Error creating timesheet:", error);
         this.openAlertMod(this.alertTemplate, "An error occurred while creating the timesheet.");
       });
+  }
+
+  // Format date for display (e.g., "Oct 24, 2023")
+  getFormattedDate(): string {
+    if (!this.fromDate) return '';
+    const date = this.parseDDMMYYYY(this.fromDate);
+    if (!date) return '';
+    return moment(date).format('MMM DD, YYYY');
+  }
+
+  // Get day name (e.g., "Thursday")
+  getDayName(): string {
+    if (!this.fromDate) return '';
+    const date = this.parseDDMMYYYY(this.fromDate);
+    if (!date) return '';
+    return moment(date).format('dddd');
+  }
+
+  // Format total presence as "08:45 hrs"
+  getFormattedPresence(): string {
+    // Check if totalPresence is valid and greater than 0
+    if (!this.totalPresence || isNaN(this.totalPresence) || this.totalPresence <= 0) {
+      return '00:00 hrs';
+    }
+    
+    const hours = Math.floor(this.totalPresence);
+    const minutes = Math.round((this.totalPresence - hours) * 60);
+    
+    // Handle case where minutes round up to 60
+    const finalHours = minutes >= 60 ? hours + 1 : hours;
+    const finalMinutes = minutes >= 60 ? 0 : minutes;
+    
+    const formattedHours = String(finalHours).padStart(2, '0');
+    const formattedMinutes = String(finalMinutes).padStart(2, '0');
+    return `${formattedHours}:${formattedMinutes} hrs`;
   }
 }

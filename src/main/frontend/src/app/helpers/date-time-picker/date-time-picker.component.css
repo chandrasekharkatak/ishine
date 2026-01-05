@@ -1,70 +1,18 @@
-/* .dt-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-} */
-
-/* .dt-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #374151;
-} */
-
-/* .mode-toggle {
-  display: flex;
-  gap: 6px;
+.dt-wrapper {
+  position: relative;
+  margin-bottom: 0.75rem;
 }
 
-.mode-toggle button {
-  font-size: 12px;
-  padding: 4px 10px;
-  border: 1px solid #d1d5db;
-  background: #fff;
-  border-radius: 4px;
-}
-
-.mode-toggle button.active {
-  background: #0d6efd;
-  color: white;
-  border-color: #0d6efd;
-} */
-
-/* .label {
-  font-weight: 500;
-  font-size: 0.85rem;
-  margin-bottom: 4px;
-} */
-
-/* Label styling – same as info-label */
 .dt-label {
+  display: block; /* 🔥 THIS is critical */
   font-family: 'Roboto', sans-serif;
   font-weight: 500;
   font-size: 0.85rem;
   margin-bottom: 2px;
-  /* display: inline-block; */
 }
 
-/* Wrapper spacing */
-.dt-wrapper {
-  margin-bottom: 0.75rem;
-}
-
-/* Input height consistency */
 .dt-wrapper .form-control {
   height: 38px;
-}
-
-/* Optional: section divider consistency (if used later) */
-.dt-section-title {
-  font-weight: 600;
-  letter-spacing: 0.3px;
-}
-
-.dt-wrapper hr {
-  border-top: 1px solid #e5e5e5;
-}
-.dt-wrapper {
-  position: relative;
 }
 
 .dt-clear-btn {
