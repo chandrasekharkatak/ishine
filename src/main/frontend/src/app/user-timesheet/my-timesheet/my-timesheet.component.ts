@@ -121,6 +121,7 @@ export class MyTimesheetComponent implements OnInit {
   teamMemberList: any[] = [];
   errorMsg: any;
   serverDate: any;
+  showBulkButtonFlag: boolean = false;;
 
   leaveHistoryList: any[] = [];
   maxOutTimeDate: any;
@@ -308,6 +309,7 @@ withoutVmsbullet:string[] = ["Applicable to resources without a client-side VMS 
     this.preventBackButton();
     this.isEmployeeInTNMProject();
     this.thisMonthValidation();
+    this.showBulkButton();
     // this.setStartDateMinMax();
     this.timeReset();
     this.timesheetFillable = true;
@@ -711,6 +713,19 @@ get tooltipCta(): string {
         console.error(response.serviceResponse);
       }
     });
+  }
+
+
+  showBulkButton(){
+     this.timesheetService.wasEmployeeInClientProjCurrAndPrevMon(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.showBulkButtonFlag = response.serviceResponse;
+        this.clientIdNeeded = this.showBulkButtonFlag;
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
+
   }
 
   openInActiveUpdateConfimationModal(template: TemplateRef<any>, timesheetObj: Timesheet,) {

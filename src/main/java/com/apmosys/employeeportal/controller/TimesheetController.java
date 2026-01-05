@@ -512,6 +512,11 @@ public class TimesheetController {
 		public ServiceResponse employeeInTNMProject(@RequestParam Long empId) {
 			return timesheetService.isEmployeeInTNMProject(empId);
 		}
+		
+		@PostMapping("/wasEmployeeInClientProjCurrAndPrevMon")
+		public ServiceResponse wasEmployeeInClientProjCurrAndPrevMon(@RequestParam Long empId) {
+			return timesheetService.wasEmployeeInClientProjCurrAndPrevMon(empId);
+		}
    
 		@PostMapping("/isClientIdMandetory")
 		public ServiceResponse isClientMandetory(@RequestBody int projectId) {

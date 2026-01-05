@@ -5,7 +5,7 @@
             (click)="resetTimesheetForm();showCreateTimesheetForm()">Create New
             Timesheet</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-            *ngIf="userMapping.add_timesheet  && clientIdNeeded" [ngClass]="{'active' : isTimesheetBulkForm}"
+            *ngIf="userMapping.add_timesheet  && showBulkButtonFlag" [ngClass]="{'active' : isTimesheetBulkForm}"
             (click)="resetTimesheetForm();showBulkUploadForm()">Bulk Final Document
             Upload</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1"
