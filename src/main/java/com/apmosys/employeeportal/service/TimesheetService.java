@@ -7632,35 +7632,75 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	 
 	 
 	 
+//	 public ServiceResponse wasEmployeeInClientProjCurrAndPrevMon(Long empId) {
+//		    ServiceResponse response = new ServiceResponse();
+//		    LogDTO apiLogInfo = new LogDTO();
+//		    apiLogInfo.setApiUrl("/api/wasEmployeeInClientProjCurrAndPrevMon");
+//		    apiLogInfo.setLogLevel("INFO");
+//
+//		    try {
+//		        Boolean bulkUploadApplicable = timesheetsRepository.wasEmployeeInClientProjCurrAndPrevMon(empId);
+//
+//		        if (Boolean.TRUE.equals(bulkUploadApplicable)) {
+//		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//		            response.setServiceResponse(true);
+//		            response.setServiceMessage("Employee is/was part of at least one client project.");
+//
+//		            apiLogInfo.setApiResponse("Employee is/was part of at least one client project.. EmpId: " + empId);
+//		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//		        } else {
+//		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//		            response.setServiceResponse(false);
+//		            response.setServiceMessage("Employee is/was not part of at least one client project.");
+//
+//		            apiLogInfo.setApiResponse("Employee is/was not part of at least one client project.. EmpId: " + empId);
+//		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//		        }
+//
+//		    } catch (Exception e) {
+//		        e.printStackTrace();
+//		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//		        response.setServiceResponse("Something went wrong.");
+//		        response.setServiceError(e.getMessage());
+//
+//		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//		        apiLogInfo.setApiResponse(e.getMessage());
+//		        apiLogInfo.setLogLevel("ERROR");
+//		    }
+//
+//		    logService.logMyInfo(httpRequest, apiLogInfo);
+//		    return response;
+//		}
+	 
 	 public ServiceResponse wasEmployeeInClientProjCurrAndPrevMon(Long empId) {
+
 		    ServiceResponse response = new ServiceResponse();
 		    LogDTO apiLogInfo = new LogDTO();
 		    apiLogInfo.setApiUrl("/api/wasEmployeeInClientProjCurrAndPrevMon");
 		    apiLogInfo.setLogLevel("INFO");
 
 		    try {
-		        Boolean bulkUploadApplicable = timesheetsRepository.wasEmployeeInClientProjCurrAndPrevMon(empId);
+		        Integer dbResult = timesheetsRepository.wasEmployeeInClientProjCurrAndPrevMon(empId);
+		        Boolean bulkUploadApplicable = (dbResult != null && dbResult == 1);
 
-		        if (Boolean.TRUE.equals(bulkUploadApplicable)) {
-		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-		            response.setServiceResponse(true);
+		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        response.setServiceResponse(bulkUploadApplicable);
+
+		        if (bulkUploadApplicable) {
+		        	response.setServiceResponse(true);
 		            response.setServiceMessage("Employee is/was part of at least one client project.");
-
-		            apiLogInfo.setApiResponse("Employee is/was part of at least one client project.. EmpId: " + empId);
-		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		            apiLogInfo.setApiResponse("Employee is/was part of at least one client project. EmpId: " + empId);
 		        } else {
-		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-		            response.setServiceResponse(false);
-		            response.setServiceMessage("Employee is/was not part of at least one client project.");
-
-		            apiLogInfo.setApiResponse("Employee is/was not part of at least one client project.. EmpId: " + empId);
-		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		        	response.setServiceResponse(false);
+		            response.setServiceMessage("Employee is/was not part of any client project.");
+		            apiLogInfo.setApiResponse("Employee is/was not part of any client project. EmpId: " + empId);
 		        }
 
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 		    } catch (Exception e) {
-		        e.printStackTrace();
 		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-		        response.setServiceResponse("Something went wrong.");
+		        
 		        response.setServiceError(e.getMessage());
 
 		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
@@ -7671,6 +7711,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 		    logService.logMyInfo(httpRequest, apiLogInfo);
 		    return response;
 		}
+
 
 	public ServiceResponse getProjectViewForClientAttendanceStatus(@RequestBody TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
