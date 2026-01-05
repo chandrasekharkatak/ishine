@@ -1,9 +1,9 @@
 import { LocationStrategy } from '@angular/common';
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild,AfterViewInit ,ElementRef} from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { ActivatedRoute, Router } from '@angular/router';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Employee } from 'src/app/models/employee';
@@ -19,9 +19,11 @@ import { LeaveService } from 'src/app/services/leave.service';
 import { TeamViewService } from 'src/app/services/team-view.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import OrgChart from '@balkangraph/orgchart.js';
 
 
 @Component({
+  standalone: false,
   selector: 'app-my-team',
   templateUrl: './my-team.component.html',
   styleUrls: ['./my-team.component.css']
@@ -40,7 +42,7 @@ export class MyTeamComponent implements OnInit {
 
   // modal
   alertMessage: any
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
   @ViewChild("revoke_template") revokeTemplate: TemplateRef<any>;
@@ -84,8 +86,9 @@ export class MyTeamComponent implements OnInit {
 
   isHierarchyChart:boolean = false;
   isHierarchyTable:boolean = false;
-  
+
   nodes: any = [];
+  chart: any;
 
   isLeaveHistoryOfDepartment:boolean = false;
   departmentLeaveHistoryList:any[] = [];
@@ -101,12 +104,12 @@ export class MyTeamComponent implements OnInit {
   filters:any = {};
   isSearchEnabled:boolean = false;
   isSearchLeaveHistoryEnabled : boolean = false;
-  teamViewColumns:any[] = ['blank','employmentIdAcToET','name','email','jobRoleName','mobileNo','managerName', 'timesheetStatus'];
-  teamLeaveHistoryColumns:any[] = ['blank','createdByName','fromDate','toDate','createdOn','noOfDays','status','leaveStatusUpdatedByName','reason','leaveType',,'currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus','remark'];
+  teamViewColumns:any[] = ['blank','employmentIdAcToET','name','email','jobRoleName','mobileNo','managerName', 'timesheetStatus','blank'];
+  teamLeaveHistoryColumns:any[] = ['blank','createdByName','fromDate','toDate','createdOn','noOfDays','status','leaveStatusUpdatedByName','reason','leaveType',,'currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus','remark','blank'];
   teamCompOffHistoryColumns:any[] = ['blank','createdByName','fromDate','toDate','createdOn','noOfDays','status','leaveStatusUpdatedByName','reason'];
-  teamLeaveAppColumns:any[] = ['blank','blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason','currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus'];
-  teamCompOffAppColumns:any[] = ['blank', 'createdByName','compOffReasons','fromDate','toDate','noOfDays','description','status'];
-  leaveRevokeAppColumns:any[] = ['blank','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','revokeReason'];
+  teamLeaveAppColumns:any[] = ['blank','blank','employeeName','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','reason','currentApprovalLevel','approverName','managerApprovalStatus','level2ApproverName','level2ApprovalStatus','level3ApproverName','level3ApprovalStatus','blank'];
+  teamCompOffAppColumns:any[] = ['blank', 'createdByName','compOffReasons','fromDate','toDate','noOfDays','description','status','blank'];
+  leaveRevokeAppColumns:any[] = ['blank','leaveType','fromDate','toDate','noOfDays','status','createdByName','createdOn','revokeReason','blank'];
 
   // added by anurag
   leaveHistory : any [] = [];
@@ -127,7 +130,7 @@ export class MyTeamComponent implements OnInit {
   endDate : any;
 
   // today = new Date().toISOString().split('T')[0];
-  today : Date; 
+  today : Date;
   maxDate : Date;
   minDate : Date;
   maxDateForExtend : Date;
@@ -139,12 +142,18 @@ export class MyTeamComponent implements OnInit {
   allEmployeeList360: any[] = [];
   // employeesFor360: any[] = [];
   tableName: String;
-  
+
   selectedNode: HierarchyUser | null = null;
+
+  @ViewChild('orgChartContainer', { static: false }) orgChartContainer!: ElementRef;
+  nodeLookup:any={}
+  selectedNodeId: string | null = null;
+
+
 
   constructor(
     private authenticationService: AuthenticationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private teamViewService: TeamViewService,
     private leaveService: LeaveService,
     private employeeService: EmployeeService,
@@ -160,14 +169,14 @@ export class MyTeamComponent implements OnInit {
   }
 
   // ngOnInit(): void {
-  //   // Dynamic Subfeature Flags 
+  //   // Dynamic Subfeature Flags
   //   let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
   //   featureMap.subFeatures?.forEach(sub => {
   //     this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
   //   });
   //   // this.sectionViewInit();
-  //   // console.log("my team feature mapping ",this.feature, this.userMapping); 
-  //   // console.log("this.utilityService.getEmployee360ViewAccess()",this.utilityService.getEmployee360ViewAccess())  
+  //   // console.log("my team feature mapping ",this.feature, this.userMapping);
+  //   // console.log("this.utilityService.getEmployee360ViewAccess()",this.utilityService.getEmployee360ViewAccess())
   //   // this.route.queryParams.subscribe(params => {
   //   //   // console.log("Activating View Team Pending Request");
   //   //   // console.log("Query Params received:", params);
@@ -186,24 +195,31 @@ export class MyTeamComponent implements OnInit {
   //   //   this.employeesFor360 = employees;
   //   //   console.log("Employee Data fetched by Shared service ",this.employeesFor360);
   //   // });
-  // } 
+  // }
 
   async ngOnInit(): Promise<void> {
-    // Dynamic Subfeature Flags 
+    // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-  
+
     this.preventBackButton();
-  
+
     this.sectionViewInit();
   }
+
+
+ngOnDestroy(): void {
+  if (this.chart) {
+    this.chart.destroy();
+  }
+}
 
   onNameClick(teamView: any): void {
     console.log('Name clicked:', teamView);
   }
-  
+
   onIconClick(teamView: any): void {
     console.log('Icon clicked:', teamView);
     if (teamView.isHierarchy) {
@@ -248,7 +264,7 @@ export class MyTeamComponent implements OnInit {
     this.isSearchEnabled = false;
 
     // this.getAllManagers();
-    // this.getAllTeamView();    
+    // this.getAllTeamView();
     this.breadCrumbs = [];
     this.breadCrumbs.push(this.breadCrumbs.push({'empId':this.currentUser.empId,'name': this.currentUser.name.concat(" > ")}));
       this.loadManagersThenTeam();
@@ -312,7 +328,7 @@ export class MyTeamComponent implements OnInit {
       this.filters = {};
       this.isSearchEnabled = false;
     }
-    
+
     this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
   }
 
@@ -363,7 +379,7 @@ export class MyTeamComponent implements OnInit {
         this.isCompOffRequest = true;
         this.isLeaveRevokeRequest = false;
         this.isLeaveRequest = false;
-        // this.viewTeamCompOffRequest(); 
+        // this.viewTeamCompOffRequest();
         console.log("Pri Comp off ");
       }
       else if(this.employeeData2.status === 'Pending' || this.employeeData2.status === 'Revoked' || this.employeeData2.status ==='Approved' || this.employeeData2.status ==='Rejected'){
@@ -418,15 +434,15 @@ export class MyTeamComponent implements OnInit {
       this.filters = {};
       this.isSearchEnabled = false;
     }
-    
+
     this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
     // console.log(" this.employeeData2.empId; ", this.employeeData2.empId);
     this.getPendingCompOffRequestsByManagerId();
     this.getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId();
-   
+
   }
-  
-  
+
+
   viewTeamLeaveRequest() {
     this.sortColumn=[];
     this.sortColumnType=[];
@@ -480,7 +496,7 @@ export class MyTeamComponent implements OnInit {
       else {
         console.error(response.serviceResponse);
       }
-      
+
     });
   }
 
@@ -488,14 +504,14 @@ export class MyTeamComponent implements OnInit {
     this.teamViewList = []
 
     //  let managerList = [{managerId:10},{managerId:11},{managerId:16},{managerId:12}];
-    
+
     let employeeObj = new Employee();
     employeeObj.empId = this.currentUser.empId;
     // employeeObj.isHierarchy = this.isHierarchy;
     this.teamViewService.getAllTeamView(employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.teamViewList = response.serviceResponse;
-        
+
         // const empData = sessionStorage.getItem('AllEmployees');
         //   if (empData) {
           //       this.employeeList = JSON.parse(empData);
@@ -504,25 +520,25 @@ export class MyTeamComponent implements OnInit {
         //   }
 
         for(let y of this.teamViewList){
-          y.employmentIdAcToET = (y.employmentIdAcToET);      
+          y.employmentIdAcToET = (y.employmentIdAcToET);
           y.isHierarchy = false;
           let temp = this.managerList?.find(manager => manager.managerId == y.empId);
-          if(temp != undefined) y.isHierarchy = true;  
+          if(temp != undefined) y.isHierarchy = true;
           //console.log('matches++',matchingEmployee);
           y.emp360 = y.empId;
            y.emp360Mng = this.currentUser.empId;
         }
         this.teamViewList = [...this.teamViewList];
-        console.log("teamViewList : ", this.teamViewList);         
+        console.log("teamViewList : ", this.teamViewList);
 
       } else {
         console.error(response.serviceResponse);
       }
 
     });
-    
-  }  
-  
+
+  }
+
   // Wrap getAllManagers in a promise
   getAllManagersAsync(): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -593,7 +609,7 @@ export class MyTeamComponent implements OnInit {
 
   getAllTeamLeaveHistoryView(template?: TemplateRef<any>) {
     this.teamViewLeaveHistoryList = []
-    
+
     if(this.isLeaveHistoryOfDepartment == false){
       if(this.toDate){
         if(!this.validationService.validateNullUndefinedEmptyString(this.fromDate)){
@@ -602,7 +618,7 @@ export class MyTeamComponent implements OnInit {
           //this.openAlertMod(this.alertTemplate, this.alertMessage);
           return false;
         }
-    
+
         if(!this.validationService.validateNullUndefinedEmptyString(this.toDate)){
           this.alertMessage = "Please enter End Date !!"
           alert(this.alertMessage);
@@ -612,7 +628,7 @@ export class MyTeamComponent implements OnInit {
       }else{
         return;
       }
-  
+
       let leaveObj = new Leave();
       leaveObj.fromDate = this.fromDate;
       leaveObj.toDate = this.toDate;
@@ -669,7 +685,7 @@ export class MyTeamComponent implements OnInit {
       //  this.openAlertMod(this.alertTemplate, this.alertMessage);
         return false;
       }
-  
+
       if(!this.validationService.validateNullUndefinedEmptyString(this.toDate)){
         this.alertMessage = "Please enter End Date !!"
         alert(this.alertMessage);
@@ -683,7 +699,7 @@ export class MyTeamComponent implements OnInit {
     let leaveObj = new Leave();
     leaveObj.fromDate = this.fromDate;
     leaveObj.toDate = this.toDate;
-    
+
     if (this.userMapping.employee_360_leave_view){
       leaveObj.empId = this.employeeData2.empId;
       //console.log("leaveObj: ", leaveObj)
@@ -720,9 +736,9 @@ export class MyTeamComponent implements OnInit {
           console.error(response.serviceResponse);
         }
       });
-    }    
+    }
         //console.log("teamViewCompOffHistory : ", this.teamViewCompOffHistoryList);
-      
+
   }
 
 
@@ -735,12 +751,12 @@ export class MyTeamComponent implements OnInit {
 
   //   let leaveObj = new Leave();
   //   if (this.userMapping.employee_360_leave_view){
-      
+
   //     console.log("New API calleddd ....");
   //     console.log(this.employeeData2.empId);
   //     leaveObj.empId = this.employeeData2.empId;
   //     console.log("New API calleddd ....");
-      
+
   //     this.leaveService.getAllLeaveApplicationsByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
   //       if (response.serviceStatus == "Success") {
   //         this.leaveApplicationList = response.serviceResponse.filter((leaveApp: any) => {
@@ -770,7 +786,7 @@ export class MyTeamComponent implements OnInit {
   //             leaveApp.createdOn = (leaveApp.createdOn)? moment(leaveApp.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
   //             if(!leaveApp.currentApprovalLevel && !leaveApp.finalApprovalLevel){
   //               leaveApp.currentApprovalLevel = 1;
-  //               leaveApp.finalApprovalLevel = 1; 
+  //               leaveApp.finalApprovalLevel = 1;
   //             }
   //           });
   //           //console.log("leaveApplicationList : ", this.leaveApplicationList);
@@ -824,19 +840,19 @@ export class MyTeamComponent implements OnInit {
                        leaveApplication.emp360AppLev1 = leaveApplication.level1ApproverId;
                         leaveApplication.emp360AppLev2 = leaveApplication.level2ApproverId;
                         leaveApplication.emp360AppLev3 = leaveApplication.level3ApproverId;
-    
+
 
                         this.leaveService.isManager(this.leaveObj2).subscribe((response: any) => {
                           if (response.serviceStatus === "Success") {
                             leaveApplication.isManagerFlag = response.serviceResponse;
                           } else {
                             console.error("Error in isManager API:", response.serviceResponse);
-                            leaveApplication.isManagerFlag = false; 
+                            leaveApplication.isManagerFlag = false;
                           }
                         });
                       });
                       console.log('chk dta - ',this.leaveApplicationList);
-                      
+
                   } else {
                       console.error("Error fetching leave applications:", response.serviceResponse);
                   }
@@ -860,7 +876,7 @@ export class MyTeamComponent implements OnInit {
                         leaveApplication.emp360AppLev1 = leaveApplication.level1ApproverId;
                         leaveApplication.emp360AppLev2 = leaveApplication.level2ApproverId;
                         leaveApplication.emp360AppLev3 = leaveApplication.level3ApproverId;
-    
+
                         leaveApplication.isApprover = ((leaveApplication.managerId === this.currentUser.empId && leaveApplication.managerApprovalStatus === 'Pending') || (leaveApplication.level2ApproverId === this.currentUser.empId && leaveApplication.level2ApprovalStatus === 'Pending') || (leaveApplication.level3ApproverId === this.currentUser.empId && leaveApplication.level3ApprovalStatus === 'Pending'))? true : false;
                         //console.log("Leave id : ",leaveApplication.leaveId," isApprover: ",leaveApplication.isApprover);
                         this.leaveService.isManager(this.leaveObj2).subscribe((response: any) => {
@@ -868,7 +884,7 @@ export class MyTeamComponent implements OnInit {
                             leaveApplication.isManagerFlag = response.serviceResponse;
                           } else {
                             console.error("Error in isManager API:", response.serviceResponse);
-                            leaveApplication.isManagerFlag = false; 
+                            leaveApplication.isManagerFlag = false;
                           }
                         });
                       });
@@ -909,14 +925,14 @@ export class MyTeamComponent implements OnInit {
                              leaveApplication.emp360AppLev1 = leaveApplication.level1ApproverId;
                             leaveApplication.emp360AppLev2 = leaveApplication.level2ApproverId;
                             leaveApplication.emp360AppLev3 = leaveApplication.level3ApproverId;
-    
+
                             leaveApplication.isApprover = ((leaveApplication.managerId === this.currentUser.empId && leaveApplication.managerApprovalStatus === 'Pending') || (leaveApplication.level2ApproverId === this.currentUser.empId && leaveApplication.level2ApprovalStatus === 'Pending') || (leaveApplication.level3ApproverId === this.currentUser.empId && leaveApplication.level3ApprovalStatus === 'Pending'))? true : false;
                             console.log("Leave id : ",leaveApplication.leaveId," isApprover: ",leaveApplication.isApprover,"PRI",leaveApplication.managerId," ",this.currentUser.empId," ",leaveApplication.managerApprovalStatus);
-                            
+
                           });
                         } else {
                           console.error("Error in isManager API:", response.serviceResponse);
-                          leaveApplication.isManagerFlag = false; 
+                          leaveApplication.isManagerFlag = false;
                         }
                       });
                     });
@@ -934,7 +950,7 @@ export class MyTeamComponent implements OnInit {
     // 1 = pending , 2 = Approved , 3= Rejected
     leaveApplication.leaveStatusId = updatedLeaveStatusId;
     leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId;
-    leaveApplication.rejectReason = leaveApplication.rejectReason?.trim()	
+    leaveApplication.rejectReason = leaveApplication.rejectReason?.trim()
 
     //console.log("leaveApplication : ", leaveApplication);
 
@@ -957,10 +973,10 @@ export class MyTeamComponent implements OnInit {
   openLeaveRejectModal(template: TemplateRef<any>, leave: any){
     this.cancelRequest();
     this.leaveObj = leave
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
-  
+
   //comOff Applications
   getPendingCompOffRequestsByManagerId() {
     if (this.userMapping.employee_360_leave_view){
@@ -1006,7 +1022,7 @@ export class MyTeamComponent implements OnInit {
       });
     } else {
       console.error("Something went wrong");
-    }    
+    }
   }
 
   onUpdateCompOffStatus(template: TemplateRef<any>, compOffObj, updatedCompOffStatusId) {
@@ -1031,7 +1047,7 @@ export class MyTeamComponent implements OnInit {
     });
   }
 
-  // Leave Revoke 
+  // Leave Revoke
   getAllMyTeamsPendingLeaveRevokeApplicationsByManagerId(){
     console.log("Fetching pending leave revoke applications...");
     this.reporteeLeaveRevokeApplicationList = [];
@@ -1078,7 +1094,7 @@ export class MyTeamComponent implements OnInit {
     // if(this.userMapping.employee_360_leave_view){
     //   leave.leaveRevokeStatusUpdatedBy = this.currentUser.empId;
     //   leave.leaveRevokeStatusId = updatedLeaveStatusId;
-    //   leave.approverEmail = this.currentUser.email;	
+    //   leave.approverEmail = this.currentUser.email;
     //   //console.log(leave, " : RevokeLeaveObj");
 
     //   this.leaveService.updateRevokeLeaveStatus(leave).pipe(first()).subscribe((response: any) => {
@@ -1092,7 +1108,7 @@ export class MyTeamComponent implements OnInit {
     // }else{
       leave.leaveRevokeStatusUpdatedBy = this.currentUser.empId;
       leave.leaveRevokeStatusId = updatedLeaveStatusId;
-      leave.approverEmail = this.currentUser.email;	
+      leave.approverEmail = this.currentUser.email;
       //console.log(leave, " : RevokeLeaveObj");
 
       this.leaveService.updateRevokeLeaveStatus(leave).pipe(first()).subscribe((response: any) => {
@@ -1124,7 +1140,7 @@ export class MyTeamComponent implements OnInit {
 
   // // download excel
   // exportToExcel(id:any): void {
-  //   const tableId = id; 
+  //   const tableId = id;
   //   this.tableName= 'My Team';
   //     if (this.isViewTeam == true) {
   //     this.excelName = 'MyTeam.xlsx';
@@ -1144,26 +1160,26 @@ export class MyTeamComponent implements OnInit {
 
   //     this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
 
-      
+
   //   }
 
   //   if (this.isLeaveRequest == true) {
   //       this.excelName = 'MyTeamLeaveRequests.xlsx';
-  
+
   //       this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
 
   //     }
 
   //     if (this.isCompOffRequest == true) {
   //         this.excelName = 'MyTeamCompOffRequests.xlsx';
-    
+
   //         this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
 
   //       }
 
   //       if(this.isLeaveRevokeRequest == true){
   //         this.excelName = 'ReporteeLeaveApplication.xlsx';
-    
+
   //         this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
 
   //       }
@@ -1223,7 +1239,7 @@ export class MyTeamComponent implements OnInit {
       })
     )
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
-    
+
   }
 
   if (this.isLeaveRequest == true) {
@@ -1247,7 +1263,7 @@ export class MyTeamComponent implements OnInit {
 
     if (this.isCompOffRequest == true) {
         this.excelName = 'MyTeamCompOffRequests.xlsx';
-  
+
         const onlySpecificDataArr = this.allCompOffApplications.map(
           x => ({
             "Applied By": x.createdByName,
@@ -1264,75 +1280,78 @@ export class MyTeamComponent implements OnInit {
 
       if(this.isLeaveRevokeRequest == true){
         this.excelName = 'ReporteeLeaveApplication.xlsx';
-  
-        const onlySpecificDataArr: Partial<Leave>[] = this.reporteeLeaveRevokeApplicationList.map(	
-          x => ({	
-            "leave Type": x.leaveType,	
-            "From Date": (x.fromDate)? x.fromDate : null,	
-            "To Date": (x.toDate)? x.toDate : null,	
-            "No Of Days": x.noOfDays,	
-            "status": x.status,	
-            "Created By Name": x.createdByName,	
-            "Created On": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,	
-            "Reason": x.reason	
-          })	
-        )	
+
+        const onlySpecificDataArr: Partial<Leave>[] = this.reporteeLeaveRevokeApplicationList.map(
+          x => ({
+            "leave Type": x.leaveType,
+            "From Date": (x.fromDate)? x.fromDate : null,
+            "To Date": (x.toDate)? x.toDate : null,
+            "No Of Days": x.noOfDays,
+            "status": x.status,
+            "Created By Name": x.createdByName,
+            "Created On": (x.createdOn)? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null,
+            "Reason": x.reason
+          })
+        )
         this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr,this.excelName)
       }
 }
 
-  hierarchyBreadCrumb(index){	
+  hierarchyBreadCrumb(index){
     this.breadCrumbs.splice(index + 1);
-    this.employeeObj.name = this.breadCrumbs[this.breadCrumbs.length - 1];	
+    this.employeeObj.name = this.breadCrumbs[this.breadCrumbs.length - 1];
     this.myTeamHierarchy(this.employeeObj.name);
   }
 
-  //myTeam-hierarchy	
+  //myTeam-hierarchy
   myTeamHierarchy(employeeObj:Employee) {
     this.leaveBalanceList = [];
     this.showReporteeLeaveBalance = false;
     this.selectedDataIndex = 0;
-    
+
     let employee = Object.assign({}, employeeObj);
-   if (employee.employeementId && 
-    typeof employee.employeementId === 'string' && 
+   if (employee.employeementId &&
+    typeof employee.employeementId === 'string' &&
     employee.employeementId.startsWith("A-") ) {
     employee.employeementId = employee.employeementId.substring(2);
 }
-else if(employee.employeementId && 
+else if(employee.employeementId &&
     typeof employee.employeementId === 'string' && employee.employeementId.startsWith('AP-')){
     employee.employeementId = employee.employeementId.substring(3);
 }
 
-    this.employeeService.getHierarchyByEmpId(employee).pipe(first()).subscribe((response: any) => {	
-      if (response.serviceStatus == "Success") {	
+    this.employeeService.getHierarchyByEmpId(employee).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
         this.teamViewList = response.serviceResponse;
         for(let teamMember of this.teamViewList){
           teamMember.employeementId = "A-".concat(teamMember.employeementId);
+          teamMember.emp360 = teamMember.empId;
+    teamMember.emp360Mng = teamMember.managerId;
+    // teamMember.isHierarchy = false;
         }
 
         for(let x of this.teamViewList){
           x.isHierarchy = false;
          let temp = this.managerList.find(manager => manager.managerId == x.empId);
-         
-          if(temp != undefined) x.isHierarchy = true;          
+
+          if(temp != undefined) x.isHierarchy = true;
        }
 
         if(!employeeObj.name.includes(">")){
           this.breadCrumbs.push({'empId':employeeObj.empId,'name': employeeObj.name.concat(" > ")});
         }
-        //console.log("teamViewList : ", this.teamViewList);	
-      } else {	
-        console.error(response.serviceResponse);	
-      }	
-    });	
+        //console.log("teamViewList : ", this.teamViewList);
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
   }
 
   toggleHierarchyView(event){
     let employeeObj = new Employee();
     employeeObj.empId = this.currentUser.empId;
     employeeObj.managerId = this.currentUser.managerId;
-   
+
     if(event.target.checked){
       this.isHierarchyChart = true;
       this.isHierarchyTable = false;
@@ -1350,7 +1369,7 @@ else if(employee.employeementId &&
     let employee = Object.assign({}, employeeObj);
     employee.employeementId = employee.employeementId;
 
-    this.employeeService.getHierarchyChartByEmpId(employee).pipe(first()).subscribe((response: any) => {	
+    this.employeeService.getHierarchyChartByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.teamViewList = response.serviceResponse;
         for(let teamMember of this.teamViewList){
@@ -1362,12 +1381,12 @@ else if(employee.employeementId &&
         let coworkers = this.teamViewList.filter(employee => employee.hierarchyType == "Co-Worker");
         let self = this.teamViewList.find(employee => employee.hierarchyType == "Self");
         let reportees = this.teamViewList.filter(employee => employee.hierarchyType == "Reportee");
-        
+
         //console.log("Manager : ", manager);
         //console.log("coworkers : ("+ coworkers.length+")", coworkers);
         //console.log("self : ", self);
         //console.log("reportees :  ("+ reportees.length+")", reportees);
-        
+
 
 
         let managerNode = new HierarchyUser();
@@ -1406,6 +1425,7 @@ else if(employee.employeementId &&
             user.title = `${self.jobRoleName}, ${self.departmentName} ${(self.reporteeCount !== 0)? `, ${self.reporteeCount} reportee(s)`: ``}`;
             user.empId = self.empId;
             user.managerId = self.managerId;
+            user.id = "self-node";
           }else{
             console.error("User Not found.");
           }
@@ -1426,24 +1446,20 @@ else if(employee.employeementId &&
           user.childs.push(...reporteeList);
           coWorkerList.splice(MID_COUNTER,0,user)
           managerNode.childs.push(...coWorkerList);
-        
+
         this.nodes.push(managerNode);
-        //console.log("nodes : ", this.nodes);
-        setTimeout(()=>{
-          let self = document.querySelector('.Self');
-          //console.log("self element : ", self);
-          self.scrollIntoView({behavior: 'smooth', inline: 'center'});
-        }, 1000);
-      } else {	
-        console.error(response.serviceResponse);	
-      }	
-    });	
+        this.renderBalkanChart();
+      } else {
+        console.error(response.serviceResponse);
+      }
+    });
   }
-  
+
   createHierarchyNodes(event){
     let employeeObj = new Employee();
     employeeObj.empId =  event.empId;
     employeeObj.managerId =  event.managerId;
+    employeeObj.employeementId =  event.empId;
     this.myTeamHierarchyChart(employeeObj);
   }
   toggleLeaveHistoryView(event){
@@ -1484,7 +1500,7 @@ else if(employee.employeementId &&
             y.emp360AppLev2 = y.level2ApproverId;
             y.emp360AppLev3 = y.level3ApproverId;
             y.emp360leaveStatusUpdatedBy = y.leaveStatusUpdatedBy;
-          }          
+          }
         } else {
           console.error(response.serviceResponse);
         }
@@ -1559,7 +1575,7 @@ canShowFilterBar(): boolean {
     this.leaveBalanceList = [];
     this.showReporteeLeaveBalance = false;
     this.selectedDataIndex = 0;
-    
+
     let leaveObj: Leave = new Leave();
     if(teamMember){
       leaveObj.employeementId = teamMember.employeementId;
@@ -1572,7 +1588,7 @@ canShowFilterBar(): boolean {
     {
       leaveObj.employeementId = empIdStr.substring(3);
     }
-    
+
 }
       this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
@@ -1598,17 +1614,16 @@ canShowFilterBar(): boolean {
   // Modals
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
-    
+    this.modalRef?.close();
   }
 
   openRevokeReporteeLeaveModal(template: TemplateRef<any>, leaveHistory: any){
-    this.modalRef = this.modalService.show(template);
+    this.modalRef = this.modalService.open(template);
     this.revokeLeaveHistoryInfo = leaveHistory;
   }
 
@@ -1616,14 +1631,14 @@ canShowFilterBar(): boolean {
     this.leaveObj.rejectReason = '';
     this.cancelRequest();
     this.leaveObj = leave;
-    this.modalRef = this.modalService.show(template);
+    this.modalRef = this.modalService.open(template);
   }
 
-    //pagination 
+    //pagination
 
   page = 1;
   handlePageChange(event) {
-    
+
     this.page = event;
     this.isSelectAll = false
     this.bulkTeamLeaveApprove = []
@@ -1632,25 +1647,25 @@ canShowFilterBar(): boolean {
       x.isSelected = false;
     })
   }
-    
-  //Sorting team view table 	
-  sortData(sort: Sort){	
+
+  //Sorting team view table
+  sortData(sort: Sort){
     //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
-  
+
   selectAll(event){
     this.bulkTeamLeaveApprove = [];
     this.bulkTeamLeaveReject = [];
-    
+
     const checkboxes = document.querySelectorAll('.leaveApplication-req-checkbox');
     checkboxes.forEach((checkbox:any) =>{
-      
+
       let checkboxIndex = checkbox.getAttribute('id');
       let checkedLeave = this.leaveApplicationList.find((_leave, index) => _leave.checkId == checkboxIndex);
       console.log("Leave id : ",checkedLeave.id," isApprover: ",checkedLeave.isApprover);
@@ -1692,7 +1707,7 @@ canShowFilterBar(): boolean {
       })
     }
     //console.log("Updated Bulk List : ",  this.bulkTeamLeaveApprove);
-    
+
   }
 
   onBulkTeamLeaveApproval(template:TemplateRef<any>){
@@ -1700,29 +1715,29 @@ canShowFilterBar(): boolean {
     let leaveObj = new Leave();
     leaveObj.bulkLeaveApprovedList =  this.bulkTeamLeaveApprove;
     leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
-    leaveObj.approverEmail = this.currentUser.email;	
+    leaveObj.approverEmail = this.currentUser.email;
     leaveObj.leaveStatusId = 2;
-   
+
     this.leaveService.bulkApproveLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template , "All Selected Leaves Approved Successfully ");
         this.getAllMyTeamsPendingLeaveApplicationsByManagerId()
-       
+
         this.bulkTeamLeaveApprove = [];
         this.bulkTeamLeaveReject = [];
       } else {
       console.error(response.serviceResponse)
       }
     });
-    
+
   }
 
   // openBulklLeaveReject
 
   openBulklLeaveReject(template: TemplateRef<any>){
     this.cancelRequest();
-   
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
   OnBulkTeamLeaveReject(template: TemplateRef<any>){
@@ -1731,7 +1746,7 @@ canShowFilterBar(): boolean {
     leaveObj.leaveStatusUpdatedBy = this.currentUser.empId;
     leaveObj.leaveStatusId = 3
     leaveObj.rejectReason = this.leaveObj.rejectReason
-    leaveObj.approverEmail = this.currentUser.email;	
+    leaveObj.approverEmail = this.currentUser.email;
 
     //console.log(" .. ",leaveObj)
     this.leaveService.bulkRejectLeaveRequest(leaveObj).pipe(first()).subscribe((response: any) => {
@@ -1746,29 +1761,29 @@ canShowFilterBar(): boolean {
     });
   }
 
-  //  Enable Account  
+  //  Enable Account
 
   forEnableAccount(template: TemplateRef<any>, employee: any) {
     //console.log("template", template);
     //console.log("alertMessage", this.alertMessage);
   //  if(confirm("Are you sure you want to Enable Account?")){
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.employeeObj = employee;
     // this.onRevokeAccount(template);
   //  }
-    
-   
+
+
   }
 
   onRevokeAccount(template :TemplateRef<any>) {
     this.cancelRequest();
-    
-   if (this.employeeObj.employeementId && 
-    typeof this.employeeObj.employeementId === 'string' && 
+
+   if (this.employeeObj.employeementId &&
+    typeof this.employeeObj.employeementId === 'string' &&
     this.employeeObj.employeementId.startsWith("A-") ) {
     this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
 }
-else if(this.employeeObj.employeementId && 
+else if(this.employeeObj.employeementId &&
     typeof this.employeeObj.employeementId === 'string' && this.employeeObj.employeementId.startsWith('AP-')){
     this.employeeObj.employeementId = this.employeeObj.employeementId.substring(3);
 }
@@ -1809,7 +1824,7 @@ else if(this.employeeObj.employeementId &&
           this.leaveApplicationList = response.serviceResponse;
           this.leaveApplicationList = this.leaveApplicationList.filter(x=> x.leaveType != 'Compensatory Off' );
         }
-       
+
 
       console.log("this.leaveApplicationList   ",this.leaveApplicationList);
       }else{
@@ -1829,7 +1844,7 @@ else if(this.employeeObj.employeementId &&
   isHierarchy : boolean = false;
   isHierarchyForLeaveHistory : boolean = false;
   isHierarchyForPendingRequest : boolean = false;
-  
+
   toggleIsHierarchy(event){
     this.isHierarchy = event.target.checked;
     this.getAllTeamView();
@@ -1918,10 +1933,10 @@ else if(this.employeeObj.employeementId &&
     this.leaveHistory = [];
     this.leaveUser ='';
     this.isLeavesHistory = true;
-  this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   this.leaveObj = teamObj;
   }
-  
+
 //  added by anuarg
 
 PIP_generate(template:TemplateRef<any>, team){
@@ -1929,7 +1944,7 @@ PIP_generate(template:TemplateRef<any>, team){
   this.endDate = '';
   this.leaveObj.pipReason = ''
 this.isPipGenerate = true;
-this.modalRef=this.modalService.show(template , { class : 'modal-md'});
+this.modalRef=this.modalService.open(template , { modalDialogClass : 'modal-md'});
 this.leaveObj = team;
 }
 
@@ -1937,7 +1952,7 @@ this.leaveObj = team;
 PIP_reverse_modal(template:TemplateRef<any> , team){
   this.isToggle = false;
   this.isPipGenerate = false;
-this.modalRef=this.modalService.show(template , { class : 'modal-md'});
+this.modalRef=this.modalService.open(template , { modalDialogClass : 'modal-md'});
 this.leaveObj = team;
 this.getPipDetailsByEmpId(team);
 }
@@ -1949,12 +1964,12 @@ getPipDetailsByEmpId(employee : any){
 
   this.leaveService.getPipDetailsByEmpId(leaveObj).pipe(first()).subscribe((response : any)=>{
     if(response.serviceStatus == "Success"){
-      
+
       this.leaveObj = Object.assign({}, response.serviceResponse);
 
       this.startDate = this.leaveObj.startDate;
       this.endDate = this.leaveObj.endDate;
-      
+
 
       this.endDate = (this.endDate)? moment(this.endDate, "DD-MM-YYYY").toDate() : '';
       this.startDate = (this.startDate)? moment(this.startDate, "DD-MM-YYYY").toDate() : '';
@@ -1965,9 +1980,9 @@ getPipDetailsByEmpId(employee : any){
         this.maxDateForExtend = new Date(this.endDate);
         this.maxDateForExtend.setMonth(this.maxDateForExtend.getMonth() + 2);
       }
-      
+
       console.log(" startDate   ",this.endDate);
-      
+
     }
   })
 
@@ -1983,7 +1998,7 @@ PIP_reverse(template:TemplateRef<any>,teamObj,flag){
   leave.updatedBy = this.currentUser.empId;
   leave.updatedByName = this.currentUser.name;
   leave.revReason = teamObj.revReason;
-  
+
   leave.startDate = moment(this.startDate).format(AppComponent.DATE_FORMAT);
   if(this.isToggle){
     leave.endDate = moment(this.endDate).format(AppComponent.DATE_FORMAT);
@@ -1993,7 +2008,7 @@ PIP_reverse(template:TemplateRef<any>,teamObj,flag){
       console.log("endDate   ",endDate);
     leave.endDate = endDate;
   }
- 
+
 console.log(" leaves ",leave)
 
   this.leaveService.pipReturnFromUser(leave).pipe(first()).subscribe((response : any)=>{
@@ -2023,7 +2038,7 @@ console.log(" leaves ",leave)
 
 PipGenerateToUser(template: TemplateRef<any>,leaveObj,flag){
   console.log(" leaveObj   ",leaveObj);
- 
+
     this.cancelRequest();
     let leave = new Leave();
     leave.empId = leaveObj.empId;
@@ -2033,9 +2048,9 @@ PipGenerateToUser(template: TemplateRef<any>,leaveObj,flag){
     leave.pipFlag = flag;
     leave.createdBy = this.currentUser.empId;
     leave.createdByName = this.currentUser.name;
-  
-  
-  
+
+
+
     console.log(leave);
     this.leaveService.pipGenerateToUser(leave).pipe(first()).subscribe((response : any)=>{
       if(response.serviceStatus == "Success"){
@@ -2046,17 +2061,17 @@ PipGenerateToUser(template: TemplateRef<any>,leaveObj,flag){
       }
     })
   // }
-  
+
 }
  openRevokeLeaveRejectModalCompOff(template: TemplateRef<any>, leave: any){
       this.cancelRequest();
       this.leaveObj = leave;
-      this.modalRef = this.modalService.show(template);
+      this.modalRef = this.modalService.open(template);
     }
 pipReason(teamObj){
   this.pageNo=1
   this.pipReasons = []
-  
+
   let team = new Leave();
 
   team.empId = teamObj.empId;
@@ -2087,7 +2102,7 @@ this.leaveService.getPipReasons(team).pipe(first()).subscribe((response : any)=>
 
 
     })
-    console.log("this.pipReasons  ",this.pipReasons);  
+    console.log("this.pipReasons  ",this.pipReasons);
   }
 })
   console.log(" team ",team);
@@ -2097,9 +2112,9 @@ this.leaveService.getPipReasons(team).pipe(first()).subscribe((response : any)=>
 checkDateChange(){
   this.isDateChanged = true;
   }
-  
+
   pipReasonModal(template:TemplateRef<any>,teamObj){
-  this.modalRef=this.modalService.show(template , { class : 'modal-lg'});
+  this.modalRef=this.modalService.open(template , { modalDialogClass : 'modal-lg'});
   this.pageNo=1
   this.leaveObj = teamObj;
   this.pipReason(this.leaveObj);
@@ -2108,7 +2123,7 @@ checkDateChange(){
 
 
 extendPipModal(template : TemplateRef<any> , teamObj){
-  this.modalRef=this.modalService.show(template , { class : 'modal-sm'});
+  this.modalRef=this.modalService.open(template , { modalDialogClass : 'modal-sm'});
   this.leaveObj = teamObj;
 }
 
@@ -2120,7 +2135,7 @@ setPipExtendsDays(template:TemplateRef<any>){
     return;
   }
   this.cancelRequest();
-  
+
     let leave = new Leave();
     leave.pipId = this.leaveObj.pipId;
     leave.empId = this.leaveObj.empId;
@@ -2133,14 +2148,14 @@ setPipExtendsDays(template:TemplateRef<any>){
     this.leaveService.setExtendPeriodByPipId(leave).pipe(first()).subscribe((response : any)=>{
       if(response.serviceStatus == "Success"){
         this.openAlertMod(template,response.serviceResponse);
-  
+
       }else{
         this.openAlertMod(template,response.serviceResponse);
       }
     })
-  
+
   }
-  
+
   estimateEndDate() {
     if (this.startDate) {
       const startDate = new Date(this.startDate);
@@ -2148,8 +2163,204 @@ setPipExtendsDays(template:TemplateRef<any>){
       this.endDate = endDate.toISOString().split('T')[0];
     }
   }
+
+renderBalkanChart(): void {
+  if (!this.orgChartContainer) {
+    return;
+  }
+
+  if (this.chart) {
+    this.chart.destroy();
+  }
+
+  if (this.nodes.length === 0) {
+    return;
+  }
+
+  this.nodeLookup = {};
+  var balkanData = this.convertToBalkanFormat(this.nodes[0]);
+  balkanData.forEach(node => {
+    this.nodeLookup[node.id] = node;
+  });
+
+  OrgChart.templates.myTemplate = Object.assign({}, OrgChart.templates.ana);
+  OrgChart.templates.myTemplate.size = [220, 120];
+
+  OrgChart.templates.myTemplate.node =
+    '<rect x="0" y="0" height="{h}" width="{w}" fill="url(#gradientBlue)" stroke-width="2" stroke="#64B5F6" rx="8" ry="8"></rect>' +
+    '<defs>' +
+    '<linearGradient id="gradientBlue" x1="0%" y1="0%" x2="0%" y2="100%">' +
+    '<stop offset="0%" style="stop-color:#E3F2FD;stop-opacity:1" />' +
+    '<stop offset="100%" style="stop-color:#BBDEFB;stop-opacity:1" />' +
+    '</linearGradient>' +
+    '</defs>';
+
+  // Highlight Selected node
+  OrgChart.templates.myTemplate.nodeMenuButton =
+    '<rect x="0" y="0" height="{h}" width="{w}" fill="url(#gradientBlueActive)" stroke-width="3" stroke="#1976D2" rx="8" ry="8"></rect>' +
+    '<defs>' +
+    '<linearGradient id="gradientBlueActive" x1="0%" y1="0%" x2="0%" y2="100%">' +
+    '<stop offset="0%" style="stop-color:#BBDEFB;stop-opacity:1" />' +
+    '<stop offset="100%" style="stop-color:#90CAF9;stop-opacity:1" />' +
+    '</linearGradient>' +
+    '</defs>';
+
+  OrgChart.templates.myTemplate.field_0 =
+    '<foreignObject x="10" y="20" width="200" height="45">' +
+    '<div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 16px; font-weight: 700; color: #0D47A1; text-align: center; overflow: hidden; line-height: 1.3; text-shadow: 0 1px 2px rgba(255,255,255,0.8);">{val}</div>' +
+    '</foreignObject>';
+
+  OrgChart.templates.myTemplate.field_1 =
+    '<foreignObject x="10" y="65" width="200" height="45">' +
+    '<div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 13px; font-weight: 500; color: #424242; text-align: center; overflow: hidden; line-height: 1.3;">{val}</div>' +
+    '</foreignObject>';
+
+  // Self-node
+  OrgChart.templates.selfNode = Object.assign({}, OrgChart.templates.myTemplate);
+  OrgChart.templates.selfNode.node =
+    '<rect x="0" y="0" height="{h}" width="{w}" fill="url(#gradientGreen)" stroke-width="3" stroke="#66BB6A" rx="8" ry="8"></rect>' +
+    '<defs>' +
+    '<linearGradient id="gradientGreen" x1="0%" y1="0%" x2="0%" y2="100%">' +
+    '<stop offset="0%" style="stop-color:#E8F5E9;stop-opacity:1" />' +
+    '<stop offset="100%" style="stop-color:#C8E6C9;stop-opacity:1" />' +
+    '</linearGradient>' +
+    '</defs>';
+
+  OrgChart.templates.selfNode.field_0 =
+    '<foreignObject x="10" y="20" width="200" height="45">' +
+    '<div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 16px; font-weight: 700; color: #1B5E20; text-align: center; overflow: hidden; line-height: 1.3; text-shadow: 0 1px 2px rgba(255,255,255,0.8);">{val}</div>' +
+    '</foreignObject>';
+
+  OrgChart.templates.selfNode.field_1 =
+    '<foreignObject x="10" y="65" width="200" height="45">' +
+    '<div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 13px; font-weight: 500; color: #2E7D32; text-align: center; overflow: hidden; line-height: 1.3;">{val}</div>' +
+    '</foreignObject>';
+
+  OrgChart.templates.managerNode = Object.assign({}, OrgChart.templates.myTemplate);
+  OrgChart.templates.managerNode.node =
+  '<rect x="0" y="0" height="{h}" width="{w}" fill="url(#gradientPastelBlue)" stroke-width="2" stroke="#8AB6F9" rx="8" ry="8"></rect>' +
+  '<defs>' +
+    '<linearGradient id="gradientPastelBlue" x1="0%" y1="0%" x2="0%" y2="100%">' +
+      '<stop offset="0%" style="stop-color:#DCEBFF;stop-opacity:1" />' +
+      '<stop offset="100%" style="stop-color:#A8C8FF;stop-opacity:1" />' +
+    '</linearGradient>' +
+  '</defs>';
+
+  OrgChart.templates.managerNode.field_0 =
+    '<foreignObject x="10" y="20" width="200" height="45">' +
+    '<div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 16px; font-weight: 700; color: #4A148C; text-align: center; overflow: hidden; line-height: 1.3; text-shadow: 0 1px 2px rgba(255,255,255,0.8);">{val}</div>' +
+    '</foreignObject>';
+
+  OrgChart.templates.managerNode.field_1 =
+    '<foreignObject x="10" y="65" width="200" height="45">' +
+    '<div xmlns="http://www.w3.org/1999/xhtml" style="font-size: 13px; font-weight: 500; color: #6A1B9A; text-align: center; overflow: hidden; line-height: 1.3;">{val}</div>' +
+    '</foreignObject>';
+
+  this.chart = new OrgChart(this.orgChartContainer.nativeElement, {
+    nodes: balkanData,
+    nodeBinding: {
+      field_0: 'name',
+      field_1: 'title'
+    },
+    tags: {
+      'self-node': {
+        template: 'selfNode'
+      },
+      'manager': {
+        template: 'managerNode'
+      }
+    },
+    layout: OrgChart.normal,
+    enableSearch: false,
+    orientation: OrgChart.orientation.top,
+    template: 'myTemplate',
+    collapse: {
+      level: 3
+    },
+    mouseScrool: OrgChart.action.scroll,
+    nodeMouseClick: OrgChart.action.details,
+    keyNavigation: true,
+    scaleInitial: 0.85,
+    padding: 50,
+    siblingSeparation: 80,
+    subtreeSeparation: 100
+  });
+
+  // Handle click events
+  this.chart.on('click', (sender: any, args: any) => {
+    if (args.node) {
+      const fullNodeData = this.nodeLookup[args.node.id];
+      console.log('Clicked node full data:', fullNodeData);
+
+      this.createHierarchyNodes({
+        empId: fullNodeData.empId,
+        managerId: fullNodeData.managerId,
+      });
+    }
+    return false;
+  });
+
+  console.log("balkanData:", balkanData);
+  balkanData = balkanData.filter(n => !n.pid || balkanData.some(p => p.id === n.pid));
+  let centeredOnce = false;
+
+  this.chart.on('render', () => {
+  if (centeredOnce) return;
+  const selfNode = balkanData.find((n: any) => n.tags?.includes('self-node'));
+  if (selfNode) {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        this.chart?.center(selfNode.id);
+        centeredOnce = true;
+      });
+    });
+  }
+});
+
 }
 
-function compare(a: number | string, b: number | string, isAsc: boolean) {	
-  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
+convertToBalkanFormat(rootNode: HierarchyUser, parentId: string | null = null): any[] {
+  const result: any[] = [];
+
+  const addNode = (node: HierarchyUser, pid: string | null) => {
+    const balkanNode: any = {
+      id: node.empId,
+      pid: pid,
+      name: node.name,
+      title: node.title || '',
+      empId: node.empId,
+      managerId: node.managerId,
+      tags: [],
+    };
+
+    if (node.cssClass) {
+      balkanNode.tags.push(node.cssClass.toLowerCase());
+    }
+
+    if (node.id === 'self-node' || node.cssClass?.toLowerCase() === 'self-node') {
+      balkanNode.tags.push('self-node');
+    }
+
+    if (pid === null && node.id !== 'self-node') {
+      balkanNode.tags.push('manager');
+    }
+
+    result.push(balkanNode);
+
+    if (node.childs && node.childs.length > 0) {
+      node.childs.forEach(child => {
+        addNode(child, node.empId);
+      });
+    }
+  };
+
+  addNode(rootNode, parentId);
+  return result;
+}
+
+
+}
+
+function compare(a: number | string, b: number | string, isAsc: boolean) {
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

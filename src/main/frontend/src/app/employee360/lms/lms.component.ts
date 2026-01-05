@@ -6,6 +6,7 @@ import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { Employee360Service } from 'src/app/services/employee360.service';
 
 @Component({
+  standalone: false,
   selector: 'app-lms',
   templateUrl: './lms.component.html',
   styleUrls: ['./lms.component.css']

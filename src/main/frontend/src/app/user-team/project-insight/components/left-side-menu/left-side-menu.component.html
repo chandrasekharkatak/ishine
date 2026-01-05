@@ -1,0 +1,220 @@
+<div class="filters" style="width: 100%;" >
+    <div *ngIf="!isQuestionOverview" class="filters-header d-flex align-items-center gap-2">
+        <label class="mb-0">Project</label>
+
+        <div class="custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="domain-history-switch"
+                [(ngModel)]="isDomainStructure" style="cursor: pointer;" />
+            <label class="custom-control-label mx-2" for="domain-history-switch"></label>
+        </div>
+        <label class="mb-0">Domain</label>
+    </div>
+
+    <div class="filter-list" style="overflow-x: visible;width: 100%;" >
+        <!-- DOMAIN STRUCTURE TREE -->
+        <div *ngIf="isDomainStructure && !isQuestionOverview">
+            <ul class="filter-tree">
+                <!-- Root level - domains -->
+                <div *ngFor="let data of allDomainDataList">
+                    <li>
+                        <div class="tree-label" [title]="data.name+' (Domain)'" (click)="addedDomainId = data.domainId">
+                            <span class="arrow" (click)="toggleDomain(data)"
+                                *ngIf="data.subDomains?.length || data.services?.length">
+                                {{ data.isOpen ? '▼' : '▶' }}
+                            </span>
+                            {{ getDomainOrServiceName(data.name) }}
+                            <button class="add-btn" title="Add Sub-Domain"
+                                (click)="openAddDomainModal(data, 'subDomain', 'domain' )">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                        </div>
+
+                        <!-- Recursive subdomains -->
+                        <ul *ngIf="data.isOpen && data.subDomains?.length">
+                            <ng-container
+                                *ngTemplateOutlet="subDomainTemplate; context: { $implicit: data.subDomains }"></ng-container>
+                        </ul>
+
+                        <ul *ngIf="data.isOpen && data.services?.length">
+                            <ng-container *ngFor="let service of data.services">
+                                <li>
+                                    <div class="tree-label" [title]="service.name + ' (Service)' ">
+                                        <span class="arrow" (click)="toggleDomain(service)"
+                                            *ngIf="service.subServices?.length">
+                                            {{ service.isOpen ? '▼' : '▶' }}
+                                        </span>
+                                        {{ getDomainOrServiceName(service.name) }}
+                                        <button class="add-btn" title="Add Sub-Service"
+                                            (click)="openAddDomainModal(service, 'subService','service')">
+                                            <i class="fa fa-plus"></i>
+                                        </button>
+                                    </div>
+
+                                    <!-- Subservices -->
+                                    <ul *ngIf="service.isOpen && service.subServices?.length">
+                                        <ng-container
+                                            *ngTemplateOutlet="subServiceTemplate; context: { $implicit: service.subServices }"></ng-container>
+                                    </ul>
+                                </li>
+                            </ng-container>
+                        </ul>
+                    </li>
+                </div>
+            </ul>
+
+            <!-- Recursive template for subdomains -->
+            <ng-template #subDomainTemplate let-subDomains>
+                <ng-container *ngFor="let subDomain of subDomains">
+                    <li>
+                        <div class="tree-label" [title]="subDomain.name+'(Sub-Domain)'">
+                            <span class="arrow" (click)="toggleDomain(subDomain)"
+                                *ngIf="subDomain.subDomains?.length || subDomain.services?.length">
+                                {{ subDomain.isOpen ? '▼' : '▶' }}
+                            </span>
+                            {{ getDomainOrServiceName(subDomain.name) }}
+                            <button class="add-btn" title="Add Sub-Domain"
+                                (click)="openAddDomainModal(subDomain,'subDomain','subDomain')">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                        </div>
+
+                        <!-- Children recursion -->
+                        <ul *ngIf="subDomain.isOpen && subDomain.subDomains?.length">
+                            <ng-container
+                                *ngTemplateOutlet="subDomainTemplate; context: { $implicit: subDomain.subDomains }"></ng-container>
+                        </ul>
+
+                        <!-- Services if they exist -->
+                        <ul *ngIf="subDomain.isOpen && subDomain.services?.length">
+                            <ng-container *ngFor="let service of subDomain.services">
+                                <li>
+                                    <div class="tree-label" [title]="service.name+' (Service)'">
+                                        <span class="arrow" (click)="toggleDomain(service)"
+                                            *ngIf="service.subServices?.length">
+                                            {{ service.isOpen ? '▼' : '▶' }}
+                                        </span>
+                                        {{ getDomainOrServiceName(service.name) }}
+                                        <button class="add-btn" title="Add Sub-Service"
+                                            (click)="openAddDomainModal(service, 'subService','service')">
+                                            <i class="fa fa-plus"></i>
+                                        </button>
+                                    </div>
+
+                                    <!-- Subservices -->
+                                    <ul *ngIf="service.isOpen && service.subServices?.length">
+                                        <ng-container
+                                            *ngTemplateOutlet="subServiceTemplate; context: { $implicit: service.subServices }"></ng-container>
+                                    </ul>
+                                </li>
+                            </ng-container>
+                        </ul>
+                    </li>
+                </ng-container>
+            </ng-template>
+
+            <!-- Template for subservices -->
+            <ng-template #subServiceTemplate let-subServices>
+                <ng-container *ngFor="let subService of subServices">
+                    <li>
+                        <div class="tree-label" [title]="subService.name+' (Sub-Service)'">
+                            <span class="arrow" (click)="toggleDomain(subService)"
+                                *ngIf="subService.subServices?.length">
+                                {{ subService.isOpen ? '▼' : '▶' }}
+                            </span>
+                            {{ getDomainOrServiceName(subService.name) }}
+                            <button class="add-btn" title="Add Sub-Service"
+                                (click)="openAddDomainModal( subService,'subService','subService' )">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                        </div>
+
+                        <!-- Subservice children recursion -->
+                        <ul *ngIf="subService.isOpen && subService.subServices?.length">
+                            <ng-container
+                                *ngTemplateOutlet="subServiceTemplate; context: { $implicit: subService.subServices }"></ng-container>
+                        </ul>
+                    </li>
+                </ng-container>
+            </ng-template>
+
+            <button style="width: 100%;" class="btn-sm btn btn-outline-primary" (click)="openCreateDomainModal()">+
+                Add Domain</button>
+        </div>
+
+        <!-- PROJECT INSIGHT TREE (NO ADD BUTTONS) -->
+        <div *ngIf="!isDomainStructure" style="overflow-x: auto;" >
+            <ul class="filter-tree" *ngIf="projectInsightTrees" >
+                <ng-container *ngFor="let tree of projectInsightTrees; let pIndex = index">
+                    <li [title]="tree?.projectName || 'Project Name'" >
+                        <!-- Project Name -->
+                        <div *ngIf="!isQuestionOverview" class="tree-label project-title" (click)="toggleProjectRoot(pIndex, tree)">
+                            {{ tree?.projectName || 'Project Name' }}
+                        </div>
+                        <div *ngIf="isQuestionOverview" class="tree-label project-title" (click)="toggleProjectRoot(pIndex, tree)">
+                        <span class="group-name text-truncate d-block">{{ tree?.projectName || 'Project Name' }}</span>
+                        <div class="mt-1">
+                            <span class="badge bg-danger text-white px-2 py-1 ml-1">{{ isApprovalTab?projectService.projectMap.get(tree?.id).rejectedCount:projectService.projectMap.get(tree?.id).pendingCount }}</span>
+                            <span class="badge bg-warning text-dark px-2 py-1 ml-1">{{ isApprovalTab?projectService.projectMap.get(tree?.id)?.pendingCount:projectService.projectMap.get(tree?.id)?.draftCount }}</span>
+                            <span class="badge bg-primary text-white px-2 py-1 ml-1">{{ projectService.projectMap.get(tree?.id).approvedCount }}</span>
+                        </div>
+                        </div>
+                        <ul *ngIf="isExpanded(pIndex)">
+                            <ng-container *ngFor="let group of tree.groupList; let gIndex = index">
+                                <ng-template [ngTemplateOutlet]="recursiveGroup" [ngTemplateOutletContext]="{
+                                    group: group,
+                                    path: [gIndex],
+                                    projectIndex: pIndex
+                                    }">
+                                </ng-template>
+                            </ng-container>
+                        </ul>
+                    </li>
+                </ng-container>
+            </ul>
+        
+
+            <!-- Recursive Group Template -->
+            <ng-template #recursiveGroup let-group="group" let-path="path" let-projectIndex="projectIndex">
+                <li>
+                    <div [title]="group?.groupTitle || 'Group Name'" class="tree-label" style="cursor: pointer;">
+                        <span class="arrow" *ngIf="true" (click)="toggleGroup(projectIndex, path, group); $event.stopPropagation()">
+                            {{ isExpanded(projectIndex, path) ? '▼' : '▶' }}
+                        </span>
+                        <span *ngIf="!isQuestionOverview" (click)="navigateToGroupNode(group)">{{ group.groupTitle }}</span>
+                        <span *ngIf="isQuestionOverview" (click)="navigateToGroupNode(group)">
+                            <span>{{ group?.groupTitle || 'Group Name' }}</span>
+                            <div class="mt-1">
+                            <span class="badge bg-danger text-white px-2 py-1 ml-1">
+                            {{ isApprovalTab?projectService.projectMap.get(group?.id).rejectedCount:projectService.projectMap.get(group?.id).pendingCount }}</span>
+                            <span class="badge bg-warning text-dark px-2 py-1 ml-1">
+                            {{ isApprovalTab?projectService.projectMap.get(group?.id)?.pendingCount:projectService.projectMap.get(group?.id)?.draftCount }}</span>
+                            <span class="badge bg-primary text-white px-2 py-1 ml-1">
+                            {{ projectService.projectMap.get(group?.id).approvedCount }}</span>
+                            </div>
+                        </span>
+                    </div>
+                    <ul *ngIf="isExpanded(projectIndex, path)">
+                        <ng-container *ngFor="let child of group.groupList; let j = index">
+                            <ng-template [ngTemplateOutlet]="recursiveGroup" [ngTemplateOutletContext]="{ 
+                                        group: child, 
+                                        path: path.concat(j), 
+                                        projectIndex: projectIndex 
+                                        }">
+                            </ng-template>
+                        </ng-container>
+                    </ul>
+                </li>
+            </ng-template>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="isAddDomainModalVisible">
+    <app-domain-add-data-modal [parentType]="parentItem" (onSave)="saveDomain($event)"
+        (changeChildType)="changeChildType($event)" (onClose)="closeAddDomainModal()"
+        [title]="title"></app-domain-add-data-modal>
+</div>
+
+<div *ngIf="isCreateDomainModalVisible">
+    <app-project-insight-domain-modal (onClose)="closeCreateDomainModal()"></app-project-insight-domain-modal>
+</div>

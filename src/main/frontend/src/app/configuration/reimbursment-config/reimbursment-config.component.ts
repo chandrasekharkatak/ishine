@@ -1,6 +1,6 @@
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { Employee } from 'src/app/models/employee';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -9,6 +9,7 @@ import { ReimbursementService } from 'src/app/services/reimbursement.service';
 import { TravelDeskService } from 'src/app/services/travel-desk.service';
 
 @Component({
+  standalone: false,
   selector: 'app-reimbursment-config',
   templateUrl: './reimbursment-config.component.html',
   styleUrls: ['./reimbursment-config.component.css']
@@ -62,7 +63,7 @@ export class ReimbursmentConfigComponent implements OnInit {
   }
   reviewColumns: any[] = ['blank', 'reviewLabel', 'reviewFieldType', 'condition', 'quarterCycle', 'departmentName', 'employeeName', 'createdOn', 'updatedByName', 'updatedOn']
 
-  constructor(private modalService: BsModalService, private travelDesk: TravelDeskService,private reimbursementService:ReimbursementService,
+  constructor(private modalService: NgbModal, private travelDesk: TravelDeskService,private reimbursementService:ReimbursementService,
     private employeeService: EmployeeService,
     private authenticationService: AuthenticationService
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x) }
@@ -90,9 +91,9 @@ export class ReimbursmentConfigComponent implements OnInit {
       console.error(response.serviceResponse);
     }
   }
-  modalRef1: BsModalRef = new BsModalRef();
+  modalRef1:NgbModalRef;
   openValidationMod(template: TemplateRef<any>, message: any) {
-      this.modalRef1 = this.modalService.show(template, { class: 'modal-sm' });
+      this.modalRef1 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
       this.alertMessage = message;
     }
 
@@ -179,7 +180,7 @@ toggleSearchReviewType() {
     this.foodCategoryForm= false;
     this.foodCategoryTable =false;
     this.foodAllowanceTypeTab = false;
-   
+
   }
 
   foodAllowanceType(){
@@ -250,31 +251,31 @@ toggleSearchReviewType() {
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
   cancelRequest1() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
-  modalRef: BsModalRef = new BsModalRef();
-  modalRef2: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
+  modalRef2:NgbModalRef;
   openAlertMod1(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
   async submitExpenditureType(template: TemplateRef<any>) {
     try {
-      this.expenditureType.createdBy = this.currentEmployeeInfo.empId; 
+      this.expenditureType.createdBy = this.currentEmployeeInfo.empId;
       console.log('Expenditure type :::::::::::::::: ',this.expenditureType);
       const newReason = this.expenditureType.expenditureTypeName.trim().toLowerCase();
-  
+
       const duplicate = this.expenditureTypeList.some(reason =>
         reason.expenditureTypeName.trim().toLowerCase() === newReason
       );
-  
+
       if (duplicate) {
         this.openValidationMod(template, "Expenditure Type Name already exists!");
         return;
@@ -284,7 +285,7 @@ toggleSearchReviewType() {
       if (response.serviceStatus === "Success") {
         this.openAlertMod(template, "Expenditure submitted successfully!");
         this.resetForm();
-        this.modalRef.hide();
+        this.modalRef?.close();
         this.onGetExpenditureType();
         this.showQuaterTable();
       }
@@ -311,7 +312,7 @@ toggleSearchReviewType() {
       console.error(response.serviceResponse);
     }
   }
- 
+
 
   async submitTravelMode(template: TemplateRef<any>) {
     if (!this.selectedExpenditure || this.selectedExpenditure.length === 0) {
@@ -329,11 +330,11 @@ toggleSearchReviewType() {
         createdBy: this.currentEmployeeInfo?.empId || 0
       };
       const newReason = this.modeType.trim().toLowerCase();
-  
+
       const duplicate = this.travelModeList.some(reason =>
         reason.modeType.trim().toLowerCase() === newReason
       );
-  
+
       if (duplicate) {
         this.openValidationMod(template, "Mode Type Name already exists!");
         return;
@@ -373,14 +374,14 @@ toggleSearchReviewType() {
 
   async submitVehicleType(template: TemplateRef<any>) {
     try {
-      this.vehicleType.createdBy = this.currentEmployeeInfo.empId; 
+      this.vehicleType.createdBy = this.currentEmployeeInfo.empId;
       console.log('Vehicle details ',this.vehicleType);
       const newReason = this.vehicleType.vehicleTypeName.trim().toLowerCase();
-  
+
       const duplicate = this.vehicleTypeList.some(reason =>
         reason.vehicleTypeName.trim().toLowerCase() === newReason
       );
-  
+
       if (duplicate) {
         this.openValidationMod(template, "Vehicle Type Name already exists!");
         return;
@@ -390,7 +391,7 @@ toggleSearchReviewType() {
       if (response.serviceStatus === "Success") {
         this.openAlertMod(template, "Vehicle submitted successfully!");
         this.resetForm();
-        this.modalRef.hide();
+        this.modalRef?.close();
         this.classCategory();
         this.onGetVehicleType();
       }
@@ -423,14 +424,14 @@ toggleSearchReviewType() {
 
   async saveFoodType(template: TemplateRef<any>) {
     try {
-      this.foodType.createdBy = this.currentEmployeeInfo.empId; 
+      this.foodType.createdBy = this.currentEmployeeInfo.empId;
       console.log('Food details ',this.foodType);
       const newReason = this.foodType.foodTypeName.trim().toLowerCase();
-  
+
       const duplicate = this.foodTypeList.some(reason =>
         reason.foodTypeName.trim().toLowerCase() === newReason
       );
-  
+
       if (duplicate) {
         this.openValidationMod(template, "Food Type Name already exists!");
         return;
@@ -440,7 +441,7 @@ toggleSearchReviewType() {
       if (response.serviceStatus === "Success") {
         this.openAlertMod(template, "Food Type submitted successfully!");
         this.resetForm();
-        this.modalRef.hide();
+        this.modalRef?.close();
         this.onGetFoodType();
         this.foodTypeTable();
       }
@@ -471,15 +472,15 @@ toggleSearchReviewType() {
 
 
   fieldRestrictNumber(event) {
-    const k = event.charCode; 
-    const inputValue = event.target.value; 
+    const k = event.charCode;
+    const inputValue = event.target.value;
     if ((k >= 65 && k <= 90) || (k >= 97 && k <= 122)) {
-        return true; 
+        return true;
     }
-    if (k === 32 && inputValue.length > 0) { 
-        return true; 
+    if (k === 32 && inputValue.length > 0) {
+        return true;
     }
-    return false; 
+    return false;
 }
 
 resetForm(){
@@ -489,7 +490,7 @@ resetForm(){
     createdBy:''
   };
 
-  
+
   this.foodType = {
     foodTypeName: '',
     description: '',

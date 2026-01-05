@@ -3,7 +3,7 @@ import { Portal } from 'src/app/models/portal';
 // import { first } from 'rxjs/operators';
 import { PortalService } from 'src/app/services/portal.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { User } from 'src/app/models/user';
 import { Feature } from 'src/app/models/feature';
@@ -37,6 +37,7 @@ class FilterData {
 
 
 @Component({
+  standalone: false,
   selector: 'app-portal-config',
   templateUrl: './portal-config.component.html',
   styleUrls: ['./portal-config.component.css']
@@ -84,7 +85,7 @@ export class PortalConfigComponent implements OnInit {
 
   alertMessage: any;
   @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   portalObj: Portal = new Portal();
   timesheetObj: Timesheet = new Timesheet();
@@ -119,14 +120,14 @@ export class PortalConfigComponent implements OnInit {
   isSearchEnabled:boolean = false;
   employeeColumns:any[] = ['employeementId','name','email','departmentName','employmentstatus','dateOfJoining'];
   appreciationTableColumns:any[] = ['appreciateType', 'appreciationToName', 'appreciationByName','appreciationDate', 'managerName', 'reason'];
-  documentsColumns:any[] = ['blank','fileName','helpDocumentName','createdByName','createdOn'];
+  documentsColumns:any[] = ['blank','fileName','helpDocumentName','createdByName','createdOn','blank'];
 
-  
+
 
   constructor(
     private portalService: PortalService,
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private employeeService: EmployeeService,
     private authenticationService: AuthenticationService,
     private locationStrategy: LocationStrategy,
@@ -141,7 +142,7 @@ export class PortalConfigComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
- 
+
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -572,11 +573,11 @@ export class PortalConfigComponent implements OnInit {
     // }
 
 
-  
+
     let tempArray = JSON.parse(JSON.stringify(this.portalConfigList));
-   
+
     tempArray.forEach((portalConfig, index) => {
-     
+
       if (index == 0) {
         portalConfig.configPeriod = portalObj.probationPeriod;
         portalConfig.mailTrigger = portalObj.probationMailTrigger;
@@ -611,8 +612,8 @@ export class PortalConfigComponent implements OnInit {
         portalConfig.configValue = portalObj.empIdList;
         portalObj.empId=portalObj.empIdList;
       }
-      
-     
+
+
 
     })
     portalObj.allPortalConfigData = tempArray;
@@ -683,7 +684,7 @@ export class PortalConfigComponent implements OnInit {
     this.filterData.queryList = JSON.stringify(this.queryList);
 
     //console.log("filterData : ", this.filterData);
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
   onFilterSubmit(queryList: any, template: TemplateRef<any>) {
@@ -1067,7 +1068,7 @@ export class PortalConfigComponent implements OnInit {
     //console.log("this.appreciationObj : ", this.appreciationObj)
   }
   openDeleteAppreciationEvent(template: TemplateRef<any>, appreciationEvent: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.appreciationObj = appreciationEvent;
     //console.log(this.appreciationObj);
   }
@@ -1097,7 +1098,7 @@ export class PortalConfigComponent implements OnInit {
       }
     });
   }
-   
+
   filterEmployeeList() {
   const search = this.searchText.toLowerCase();
   this.filteredEmployeeList = this.employeeListForLeave.filter(emp =>
@@ -1118,7 +1119,7 @@ onDropdownOpen(isOpen: boolean) {
     let _employeeList = [];
     const excludedIds = [1, 2, 3, 4, 5, 6];
 
-  
+
     //console.log("Skip employee : ", employee)
 
     this.portalService.getAllEmployeeForPortalConfig().pipe(first()).subscribe((response: any) => {
@@ -1164,7 +1165,7 @@ onDropdownOpen(isOpen: boolean) {
 
    if(isSizeInRange){
     this.files = [];
-   
+
     //console.log("maxfilesize: " + this.maxFileSize);
     if (uploadedFiles.length != 0) {
       for (let i = 0; i < uploadedFiles.length; i++) {
@@ -1295,21 +1296,21 @@ onDropdownOpen(isOpen: boolean) {
   //modal
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openDeleteDocument(template: TemplateRef<any>, helpDoc: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.helpObj = helpDoc;
   }
 
   openPreviewDocument(template: TemplateRef<any>){
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
   page = 1;

@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnInit, Output, SecurityContext, TemplateRef, ViewChild, } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { Employee } from '../models/employee';
 import { EmployeeService } from '../services/employee.service';
@@ -10,6 +10,7 @@ import { UpdateUserInfoService } from '../services/updateUserInfo.service';
 import { EmployeeUpdateListComponent } from './employee-update-list/employee-update-list.component';
 
 @Component({
+  standalone: false,
   selector: 'app-user-update-info',
   templateUrl: './user-update-info.component.html',
   styleUrls: ['./user-update-info.component.css']
@@ -24,7 +25,7 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
 
   isPreview:boolean = false;
   @Input() showBody: boolean = false;
-  @ViewChild("draftTable") 
+  @ViewChild("draftTable")
   private myDraftTable: EmployeeUpdateListComponent;
 
   draftObj:Employee = new Employee();
@@ -34,28 +35,28 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
   @Output() draftDelete:EventEmitter<any> = new EventEmitter<any>();
 
 
-  //modal 
+  //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   constructor(
     private updateUserInfoService: UpdateUserInfoService,
     private imageService : ImageService,
     private sanitizer: DomSanitizer,
     private employeeService: EmployeeService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
   ) { }
 
   ngOnInit(): void {
   }
-  
+
   ngAfterViewInit(): void {
-    this.sectionViewInit(); 
+    this.sectionViewInit();
   }
 
   async sectionViewInit() {
     this.draftObj = await this.updateUserInfoService.getDraftByEmpId();
-    
+
     if (this.draftObj) {
       this.isDraftAvailable = true;
       setTimeout(()=> {
@@ -98,7 +99,7 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
 
   async onShowPreview(){
     //console.log("draftObj : ", this.draftObj);
-    
+
     let currentEmp = new Employee();
     currentEmp.employeementId = this.draftObj.employeementIdAccToET;
     currentEmp.empId = this.draftObj.draftEmpId;
@@ -113,7 +114,7 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
     } else {
       //console.log(docResponse.serviceResponse);
     }
-  
+
     this.isPreview = true;
 
     setTimeout(()=>{
@@ -171,7 +172,7 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         // To reset Employee Info to Previous INFO from DB
-        this.updateUserInfoService.getEmployeeInfo(); 
+        this.updateUserInfoService.getEmployeeInfo();
         this.draftDelete.emit();
       } else {
         this.openAlertMod(template, response.serviceResponse);
@@ -181,19 +182,19 @@ export class UserUpdateInfoComponent implements OnInit, AfterViewInit {
 
   // modals
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openOnRevokeMod(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
   openOnDeleteMod(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 }

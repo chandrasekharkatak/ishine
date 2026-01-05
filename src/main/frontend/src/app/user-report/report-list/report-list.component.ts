@@ -6,7 +6,7 @@ import { Sort } from '@angular/material/sort';
 import { Router } from "@angular/router";
 import * as Highcharts from "highcharts";
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first, map, startWith } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Employee } from 'src/app/models/employee';
@@ -40,6 +40,7 @@ interface Project {
   projectName: string;
 }
 @Component({
+  standalone: false,
   selector: 'app-report-list',
   templateUrl: './report-list.component.html',
   styleUrls: ['./report-list.component.css']
@@ -53,16 +54,16 @@ export class ReportListComponent implements OnInit {
   alertModalSync: TemplateRef<any>;
 
 
-@ViewChild('projectDetailsModal') 
+@ViewChild('projectDetailsModal')
 projectDetailsModal!: TemplateRef<any>;
 
 @ViewChild('employeeCountModal')
 employeeCountModal!: TemplateRef<any>;
 
 @ViewChild('alert_message_timesheet_leave_report') alert_message_timesheet_leave_report: TemplateRef<any>;
-alert_message_timesheet_leave_reportModalRef: BsModalRef;
+alert_message_timesheet_leave_reportModalRef: NgbModalRef;
 
-bsModalRef?: BsModalRef; 
+bsModalRef?: NgbModalRef;
 selectedClientProjectViewOption: string = 'default';
 
 
@@ -78,10 +79,10 @@ selectedClientProjectViewOption: string = 'default';
   sortColumn: any;
   sortColumnType: any;
 
-  //modal 
+  //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
-  modalRef1: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
+  modalRef1:NgbModalRef;
 
   employeeObj: Employee = new Employee();
 
@@ -244,7 +245,7 @@ selectedClientProjectViewOption: string = 'default';
   returnUrl: string | null = null;
   employeeCtrl = new FormControl();
   selectedEmpId: any = 0;
-  summaryModalRef: BsModalRef;
+  summaryModalRef: NgbModalRef;
   projectSummaryData: any[] = [];
   searchText: string = '';
   visibleInfo: boolean = false;
@@ -281,7 +282,7 @@ dateRange: string; type: string; count: string;
 
   constructor(
     private authenticationService: AuthenticationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private employeeService: EmployeeService,
     private exportExcelService: ExportExcelService,
     private timesheetService: TimesheetService,
@@ -348,7 +349,7 @@ dateRange: string; type: string; count: string;
     console.log("Refreshing data with dept IDs:", this.employeeReportObj);
     this.getEmployeeReportData();
     ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
-     
+
       this.selectedTab[box] = 'Employee';
       this.selectedFlag[box] = null;
       this.selectedBillable[box] = null;
@@ -363,7 +364,7 @@ dateRange: string; type: string; count: string;
 
   setDepartmentView(showBillable: boolean) {
     this.showBillableOnly = showBillable;
-    
+
     if (this.showBillableOnly) {
       console.log("Billable Departments",this.departmentHistory);
       this.departments = [...this.departmentHistory.filter(dept => dept.isBillable == 'Yes' || dept.isBillable == true)];
@@ -434,7 +435,8 @@ dateRange: string; type: string; count: string;
     this.refreshReportDataWithModifiedCount();
   }
 
-  onDepartmentSelectionChange() {
+  onDepartmentSelectionChange(deptIds:any) {
+    this.employeeReportObj.deptId = deptIds;
     this.updateSelectAllState();
     // this.refreshReportData();
     this.refreshReportDataWithModifiedCount();
@@ -535,25 +537,25 @@ dateRange: string; type: string; count: string;
     this.employeeData = this.projectLessEmployeesDepartwise;
     this.catagory = catagory;
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
   openModalEmployeesWithProjects(template: TemplateRef<any>, catagory: string) {
     this.employeeData = this.employeesWithProjectDeptWise;
     this.catagory = catagory;
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
 
   }
 
   activeInfoPopup: any;
 
   closeModal() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
   closeModal1() {
-    this.modalRef1.hide();
+    this.modalRef1.close();
   }
 
 
@@ -573,7 +575,7 @@ dateRange: string; type: string; count: string;
       for (const team of project.teamDetails) {
         for (const emp of team.mappedEmployeeDetails) {
           this.flatProjectList.push({
-            ...emp, 
+            ...emp,
             projectName: project.projectName,
             projectManager: project.projectManager,
             apmosysRM: project.apmosysRM,
@@ -695,8 +697,8 @@ dateRange: string; type: string; count: string;
     this.getEmployeeProjectCount(box, payload);
     if(flag === 'Inactive') {this.getInActivePoCount(this.employeeReportObj);}
     else if(flag === 'Active') {this.getActivePoCount(this.employeeReportObj);}
-    
-    
+
+
   }
 
  selectBillable(box: string, type: string, template: TemplateRef<any>) {
@@ -721,7 +723,7 @@ dateRange: string; type: string; count: string;
     });
 
     this.selectedFlag[box] = box === 'Internal' ? null : (prevFlag || null);
-    this.selectedBillable[box] = type; 
+    this.selectedBillable[box] = type;
   } else {
     Object.keys(this.selectedTab).forEach(key => {
       if (key !== box) {
@@ -745,7 +747,7 @@ dateRange: string; type: string; count: string;
     const payload = this.buildPayload(box);
     this.getEmployeeProjectCount(box, payload);
 
-  if (box === 'Internal') { 
+  if (box === 'Internal') {
     if (this.selectedFlag[box] === 'Inactive') {
       this.getInActivePoCount(this.employeeReportObj);
     } else if (this.selectedFlag[box] === 'Active') {
@@ -801,7 +803,7 @@ dateRange: string; type: string; count: string;
       ...employee,
       oldBillableType: employee.originalBillableType || employee.billableTypeBeforeChange || ''
     };
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl modal-dialog-centered' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl modal-dialog-centered' });
   }
 
 
@@ -819,7 +821,7 @@ dateRange: string; type: string; count: string;
       if (response.serviceStatus === 'Success') {
         this.openAlertMod(this.alertModalSync, response.serviceResponse);
       }
-      this.modalRef?.hide();
+      this.modalRef?.close();
     });
   }
 
@@ -854,7 +856,7 @@ dateRange: string; type: string; count: string;
             });
           });
         });
-        // console.log("employeeList", this.employeeList); 
+        // console.log("employeeList", this.employeeList);
         // console.log("projectList", this.projectList);
         this.flattenProjectList();
         this.editIndex = -1
@@ -919,7 +921,7 @@ dateRange: string; type: string; count: string;
 
   openBulkUpdateModal(template: TemplateRef<any>) {
     if (this.selectedEmployees.length > 0 && this.selectedBillableTypeForBulk) {
-      this.modalRef = this.modalService.show(template, { class: 'modal-xl modal-dialog-centered' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl modal-dialog-centered' });
     }
   }
 
@@ -1064,17 +1066,17 @@ dateRange: string; type: string; count: string;
   // }
 toggleTableViewForClient() {
   this.activeBox = "";
-  
+
   // Reset client/project specific search and sort when toggling
   this.clientProjectFilters = {};
   this.isClientProjectSearchEnabled = false;
-  
+
   if (this.showTable === true) {
     this.showTable = false;
   } else {
     this.showTable = true;
   }
-  
+
   if (this.employeeReportObj.category === 'Project') {
     this.employeeReportObj.report = 'P';
   } else if (this.employeeReportObj.category === 'Employee' && this.showTable === true) {
@@ -1082,7 +1084,7 @@ toggleTableViewForClient() {
   } else {
     this.employeeReportObj.report = 'E';
   }
-  
+
   this.getClientAndProjectReport();
 }
 
@@ -1105,23 +1107,23 @@ onSearchClientProject(searchData: any) {
 
 // openClientProjectViewModal() {
 //     this.getClientAndProjectReport();
-//     this.bsModalRef = this.modalService.show(this.clientProjectViewModal, { class: 'modal-lg' });
+//     this.bsModalRef = this.modalService.open(this.clientProjectViewModal, { modalDialogClass: 'modal-lg' });
 //   }
 
   closeClientProjectViewModal() {
-    this.bsModalRef?.hide();
+    this.bsModalRef?.close();
   }
 
   applyClientProjectViewOption() {
     console.log('Selected Client/Project View Option:', this.selectedClientProjectViewOption);
     if (this.selectedClientProjectViewOption === 'client') {
-     
+
       this.changeTable = true;
     } else if (this.selectedClientProjectViewOption === 'project') {
-      
-      this.changeTable = true; 
+
+      this.changeTable = true;
     } else {
-      this.changeTable = false; 
+      this.changeTable = false;
     }
     this.closeClientProjectViewModal();
   }
@@ -1494,7 +1496,7 @@ onSearchClientProject(searchData: any) {
       ];
 
 
-      
+
       this.getCustomTimesheetApplicationsList(this.activeQueryList, this.alertModal);
     }
 
@@ -1606,12 +1608,12 @@ onSearchClientProject(searchData: any) {
         this.allLeaveApplicationsList = response.serviceResponse;
         this.allLeaveApplicationsList.forEach(leave => {
           leave.employeementId = "A-".concat(leave.employeementId);
-          leave.employeeType = (leave.isApmosysProduct === 'true') 
-  ? 'Apmosys Product' 
-  : ((leave.isApprenticeship === 'true') 
-    ? 'Apprentice' 
-    : ((leave.isConsultant === 'true') 
-      ? 'Consultant' 
+          leave.employeeType = (leave.isApmosysProduct === 'true')
+  ? 'Apmosys Product'
+  : ((leave.isApprenticeship === 'true')
+    ? 'Apprentice'
+    : ((leave.isConsultant === 'true')
+      ? 'Consultant'
       : 'On roll')),
             leave.fromDate = (leave.fromDate) ? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
           leave.toDate = (leave.toDate) ? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
@@ -1659,12 +1661,12 @@ onSearchClientProject(searchData: any) {
           this.allLeaveApplicationsList.forEach(leave => {
             leave.employmentIdAcToET = (leave.employmentIdAcToET);
             // leave.employeeType = ((leave.isApprenticeship === 'true') ? 'Apprentice' : ((leave.isConsultant === 'true') ? 'Consultant' : 'Regular')),
-             leave.employeeType = (leave.isApmosysProduct === 'true') 
-  ? 'Apmosys Product' 
-  : ((leave.isApprenticeship === 'true') 
-    ? 'Apprentice' 
-    : ((leave.isConsultant === 'true') 
-      ? 'Consultant' 
+             leave.employeeType = (leave.isApmosysProduct === 'true')
+  ? 'Apmosys Product'
+  : ((leave.isApprenticeship === 'true')
+    ? 'Apprentice'
+    : ((leave.isConsultant === 'true')
+      ? 'Consultant'
       : 'On roll')),
 
               leave.fromDate = (leave.fromDate) ? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
@@ -1717,7 +1719,7 @@ onSearchClientProject(searchData: any) {
     });
   }
 
-  
+
   getCustomTimesheetApplicationsList(queryObjList: any, template: TemplateRef<any>,exportAll?) {
     this.allTimesheetApplicationsList = [];
     const finalQueryList = this.isFilterApplied
@@ -1749,12 +1751,12 @@ onSearchClientProject(searchData: any) {
           }
           this.allTimesheetApplicationsList.forEach(timesheet => {
             timesheet.employeementId = (timesheet.employmentIdAcToET);
-           timesheet.employeeType = (timesheet.isApmosysProduct === 'true') 
-  ? 'Apmosys Product' 
-  : ((timesheet.isApprenticeship === 'true') 
-    ? 'Apprentice' 
-    : ((timesheet.isConsultant === 'true') 
-      ? 'Consultant' 
+           timesheet.employeeType = (timesheet.isApmosysProduct === 'true')
+  ? 'Apmosys Product'
+  : ((timesheet.isApprenticeship === 'true')
+    ? 'Apprentice'
+    : ((timesheet.isConsultant === 'true')
+      ? 'Consultant'
       : 'Regular')),
               timesheet.description = timesheet.description?.replaceAll('<br>', '')
             timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
@@ -1835,7 +1837,7 @@ onSearchClientProject(searchData: any) {
             employee.emp360Manager = employee.managerId;
             employee.emp360CreatedBy = employee.createdBy;
             employee.emp360UpdatedBy = employee.updatedBy;
-          }); 
+          });
         } else {
           this.openAlertMod(template, response.serviceResponse)
         }
@@ -2163,7 +2165,7 @@ onSearchClientProject(searchData: any) {
 
     this.filterData.queryList = JSON.stringify(this.queryList);
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
   onFilterSubmit(emittedArray: any, template: TemplateRef<any>) {
@@ -2229,9 +2231,9 @@ onSearchClientProject(searchData: any) {
     this.getAllLeaveTimesheets(this.alertTemplate);
 
   }
-  
-  
-  
+
+
+
 
   getAllLeaveTimesheets(template?: TemplateRef<any>) {
     this.allLeaveTimesheets = [];
@@ -2364,7 +2366,7 @@ onSearchClientProject(searchData: any) {
     });
   }
 
-  itemsPerPageForClientProject = 10; 
+  itemsPerPageForClientProject = 10;
 
   page = 1;
   itemsPerPage = 5;
@@ -2381,8 +2383,8 @@ handlePageChange1(event) {
     this.page = event;
     this.getAllLeaveTimesheets();
   }
- 
-  
+
+
   handlePageChangeForViweTimesheetReport(event: number) {
     this.page = event;
     this.getCustomTimesheetApplicationsList(this.activeQueryList,this.alertTemplate);
@@ -2431,9 +2433,9 @@ handlePageChange1(event) {
     return this.projectList;
   }
 
-  page2 = 1;	
-  handlePageChange2(event: number) {	
-    this.page2 = event;	
+  page2 = 1;
+  handlePageChange2(event: number) {
+    this.page2 = event;
   }
 
   getHierarchicalSrNo(pIndex: number, tIndex: number, eIndex: number): string {
@@ -2702,12 +2704,12 @@ handlePageChange1(event) {
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
   sortData(sort: Sort) {
@@ -2948,14 +2950,14 @@ private normalizeDate(value: string): string {
   }
 
   openSummaryModal(template: TemplateRef<any>, selectedEmpId: any) {
-    this.summaryModalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.summaryModalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
     this.selectedEmpId = selectedEmpId;
 
     this.getProjectTimesheetSummaryData();
   }
 
   closeSummaryModal() {
-    this.summaryModalRef.hide();
+    this.summaryModalRef?.close();
   }
 
   getProjectTimesheetSummaryData() {
@@ -3092,12 +3094,12 @@ private normalizeDate(value: string): string {
   // ];
 
   // onInfoClickModel(template: TemplateRef<any>, details:any): void {
-  //    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  //    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   //   console.log('TNM stands for Time and Materials billing model.');
   // }
 
 //   onInfoClickModel(box: any,template: TemplateRef<any>, noOfDays: number | null): void {
-//     this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+//     this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
 //     const tabName = this.employeeReportObj.category;
 //     const selectedMainFlag = this.selectedFlag[this.activeBox] || 'Default';
 //     const key = `${box}.${selectedMainFlag}`;
@@ -3106,10 +3108,10 @@ private normalizeDate(value: string): string {
 //     this.employeeReportObj.billableType = null;
 //     this.employeeReportObj.days = noOfDays;
 //     this.employeeReportObj.tabName = tabName ;
-    
-    
+
+
 //     console.log("Fetching with noOfDays:", this.employeeReportObj);
-  
+
 //     this.employeeService.fetchInactivePOListOfEmployee(this.employeeReportObj)
 //         .pipe(first())
 //         .subscribe((response: any) => {
@@ -3120,10 +3122,10 @@ private normalizeDate(value: string): string {
 //           this.allInactivePOListOfEmployee = response.serviceResponse;
 //           console.log("Response for", noOfDays, "days:", response);
 //         } else {
-  
+
 //         }
-  
-    
+
+
 //   })
 // }
 
@@ -3131,9 +3133,9 @@ onInfoClickModel(box: any, defaultTemplate: TemplateRef<any>, dateRange: string 
   const category = this.selectedTab[this.activeBox];
 
   if (category === 'Project') {
-    this.modalRef = this.modalService.show(projectTemplate, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(projectTemplate, { modalDialogClass: 'modal-xl' });
   } else {
-    this.modalRef = this.modalService.show(defaultTemplate, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(defaultTemplate, { modalDialogClass: 'modal-xl' });
   }
 
   this.employeeReportObj.billableType = null;
@@ -3156,9 +3158,9 @@ onInfoClickModel1(box: any, defaultTemplate: TemplateRef<any>, dateRange: string
   const category = this.selectedTab[this.activeBox];
 
   if (category === 'Project') {
-    this.modalRef = this.modalService.show(projectTemplate, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(projectTemplate, { modalDialogClass: 'modal-xl' });
   } else {
-    this.modalRef = this.modalService.show(defaultTemplate, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(defaultTemplate, { modalDialogClass: 'modal-xl' });
   }
 
   this.employeeReportObj.billableType = null;
@@ -3178,7 +3180,7 @@ onInfoClickModel1(box: any, defaultTemplate: TemplateRef<any>, dateRange: string
 }
 
 
-  
+
 
   toggleInfo1(box: any) {
     this.visibleInfo =  !this.visibleInfo ;
@@ -3196,32 +3198,32 @@ onInfoClickModel1(box: any, defaultTemplate: TemplateRef<any>, dateRange: string
   //   const key = `${box}.${selectedMainFlag}`;
   //   const isActiveBox = box === this.activeBox;
   //   const category = this.selectedTab[this.activeBox];
-  
+
   //   console.log("Box Type:", box);
   //   console.log("Key:", key);
   //   console.log("Category:", category);
   //   console.log("Is Active Box:", isActiveBox);
-  
+
   //   this.employeeService.fetchInactivePOCounts(this.employeeReportObj)
   //     .pipe(first())
   //     .subscribe((response: any) => {
   //       if (response.serviceStatus === "Success" && response.serviceResponse) {
   //         const res = response.serviceResponse;
-  
+
   //         this.totalEmployeeInActivePoCount = res;
-  
+
   //         this.total7Days = res.totalEmpPerProjectTypeLast7days || '0';
   //         this.total30Days = res.totalEmpPerProjectTypeLast30days || '0';
   //         this.total90Days = res.totalEmpPerProjectTypeLast90days || '0';
   //         this.total180Days = res.totalEmpPerProjectTypeLast180days || '0';
   //         this.total1Year = res.totalEmpPerProjectTypeLast1Year || '0';
   //         this.totalAll = res.totalEmpPerProjectTypeTotal || '0';
-  
+
   //         console.log("Inactive PO Count:", this.totalEmployeeInActivePoCount);
   //       } else {
   //         console.error("API Error:", response.serviceError || "Unknown error");
-  
-          
+
+
   //         this.totalEmployeeInActivePoCount = {};
   //         this.total7Days = '0';
   //         this.total30Days = '0';
@@ -3232,30 +3234,30 @@ onInfoClickModel1(box: any, defaultTemplate: TemplateRef<any>, dateRange: string
   //       }
   //     });
   // }
-  
+
   // getInActivePoCount(box: any): void {
   //   const selectedMainFlag = this.selectedFlag[this.activeBox] || 'Default';
   //   const key = `${box}.${selectedMainFlag}`;
   //   const isActiveBox = box === this.activeBox;
   //   const category = this.selectedTab[this.activeBox];
   //   const tabName = this.employeeReportObj.category;
-  
+
   //   console.log("Box Type:", box);
   //   console.log("Key:", key);
   //   console.log("Category:", category);
   //   console.log("Is Active Box:", isActiveBox);
   //   this.employeeReportObj.tabName = tabName ;
-  
+
   //   this.employeeService.fetchInactivePOCounts(this.employeeReportObj)
   //     .pipe(first())
   //     .subscribe((response: any) => {
   //       if (response.serviceStatus === "Success" && response.serviceResponse) {
   //         const res = response.serviceResponse;
-  
+
   //         this.totalEmployeeInActivePoCount = res;
 
   //         console.log("COunt  :::::::::",this.totalEmployeeInActivePoCount);
-  
+
   //         const counts = this.totalEmployeeInActivePoCount[0];
 
   //         // this.InActivePoCounts = [
@@ -3275,14 +3277,14 @@ onInfoClickModel1(box: any, defaultTemplate: TemplateRef<any>, dateRange: string
   //           { type: 'Expired in last 1 Year', count: counts.totalEmpPerProjectTypeLast1Year ?? '0', noOfDays: 365 },
   //           { type: 'Overall Expired', count: counts.totalEmpPerProjectTypeTotal ?? '0', noOfDays: null }
   //         ] as { type: string; count: string; noOfDays: number | null }[];
-          
 
-          
-  
+
+
+
   //         console.log("Inactive PO Count:", counts.totalEmpPerProjectTypeTotal);
   //       } else {
   //         console.error("API Error:", response.serviceError || "Unknown error");
-  
+
   //         this.totalEmployeeInActivePoCount = {};
   //         this.total7Days = '0';
   //         this.total30Days = '0';
@@ -3290,7 +3292,7 @@ onInfoClickModel1(box: any, defaultTemplate: TemplateRef<any>, dateRange: string
   //         this.total180Days = '0';
   //         this.total1Year = '0';
   //         this.totalAll = '0';
-  
+
   //         // this.InActivePoCounts = [
   //         //   { type: 'Expired in last 7 Days', count: '0' },
   //         //   { type: 'Expired in last 30 Days', count: '0' },
@@ -3309,23 +3311,23 @@ onInfoClickModel1(box: any, defaultTemplate: TemplateRef<any>, dateRange: string
   //   const isActiveBox = box === this.activeBox;
   //   const category = this.selectedTab[this.activeBox];
   //   const tabName = this.employeeReportObj.category;
-  
+
   //   console.log("Box Type:", box);
   //   console.log("Key:", key);
   //   console.log("Category:", category);
   //   console.log("Is Active Box:", isActiveBox);
   //   this.employeeReportObj.tabName = tabName ;
-  
+
   //   this.employeeService.fetchInactivePOCounts(this.employeeReportObj)
   //     .pipe(first())
   //     .subscribe((response: any) => {
   //       if (response.serviceStatus === "Success" && response.serviceResponse) {
   //         const res = response.serviceResponse;
-  
+
   //         this.totalEmployeeInActivePoCount = res;
 
   //         console.log("COunt  :::::::::",this.totalEmployeeInActivePoCount);
-  
+
   //         const counts = this.totalEmployeeInActivePoCount[0];
 
   //         // this.InActivePoCounts = [
@@ -3345,14 +3347,14 @@ onInfoClickModel1(box: any, defaultTemplate: TemplateRef<any>, dateRange: string
   //           { type: 'Expired in last 1 Year', count: counts.totalEmpPerProjectTypeLast1Year ?? '0', noOfDays: 365 },
   //           { type: 'Overall Expired', count: counts.totalEmpPerProjectTypeTotal ?? '0', noOfDays: null }
   //         ] as { type: string; count: string; noOfDays: number | null }[];
-          
 
-          
-  
+
+
+
   //         console.log("Inactive PO Count:", counts.totalEmpPerProjectTypeTotal);
   //       } else {
   //         console.error("API Error:", response.serviceError || "Unknown error");
-  
+
   //         this.totalEmployeeInActivePoCount = {};
   //         this.total7Days = '0';
   //         this.total30Days = '0';
@@ -3360,7 +3362,7 @@ onInfoClickModel1(box: any, defaultTemplate: TemplateRef<any>, dateRange: string
   //         this.total180Days = '0';
   //         this.total1Year = '0';
   //         this.totalAll = '0';
-  
+
   //         // this.InActivePoCounts = [
   //         //   { type: 'Expired in last 7 Days', count: '0' },
   //         //   { type: 'Expired in last 30 Days', count: '0' },
@@ -3401,7 +3403,7 @@ onInfoClickModel1(box: any, defaultTemplate: TemplateRef<any>, dateRange: string
         ] as { type: string; count: string; dateRange: string }[];
 
         console.log("Successfully mapped Inactive PO Counts:", this.InActivePoCounts);
-               
+
       } else {
         console.error("API Error:", response.serviceError || "Unknown error");
 
@@ -3444,7 +3446,7 @@ getActivePoCount(box: any): void {
         ] as { type: string; count: string; dateRange: string }[];
 
         console.log("Successfully mapped Inactive PO Counts:", this.ActivePoCounts);
-               
+
       } else {
         console.error("API Error:", response.serviceError || "Unknown error");
 
@@ -3508,7 +3510,7 @@ getActivePoCount(box: any): void {
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
-    
+
 
 
 
@@ -3557,7 +3559,7 @@ getActivePoCount(box: any): void {
         })
       )
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
-    
+
   }
 
     exportToExcelActivePoDetailsProject(): void {
@@ -3592,7 +3594,7 @@ getActivePoCount(box: any): void {
 //       if (response.serviceStatus === 'Success') {
 //         this.clientAndProjectReportList = response.serviceResponse;
 
-        
+
 //         this.departmentList = Array.from(
 //           new Set(
 //             this.clientAndProjectReportList
@@ -3601,7 +3603,7 @@ getActivePoCount(box: any): void {
 //           )
 //         ).sort();
 
-       
+
 //         const groupedMap = new Map<string, any>();
 
 //         this.clientAndProjectReportList.forEach(item => {
@@ -3620,13 +3622,13 @@ getActivePoCount(box: any): void {
 
 //           const clientGroup = groupedMap.get(clientName);
 
-         
+
 //           if (departmentName) {
 //             clientGroup.departmentProjects[departmentName] =
 //               (clientGroup.departmentProjects[departmentName] || 0) + (item.totalProjects || 0);
 //           }
 
-          
+
 //           clientGroup.totalActiveProjects += item.totalActiveProjects || 0;
 //           clientGroup.totalInactiveProjects += item.totalInactiveProjects || 0;
 //           clientGroup.totalProjects += item.totalProjects || 0;
@@ -3654,7 +3656,7 @@ getClientAndProjectReport() {
   this.page = 1;
   this.clientProjectList = [];
   this.flatClientProjectList = [];
-  this.clientProjectFilters = {}; 
+  this.clientProjectFilters = {};
 
   const payload = {
     deptIds: this.employeeReportObj.deptId.join(',')
@@ -3665,7 +3667,7 @@ getClientAndProjectReport() {
       if (response.serviceStatus === 'Success') {
         this.clientAndProjectReportList = response.serviceResponse;
 
-        
+
         this.departmentList = Array.from(
           new Set(
             this.clientAndProjectReportList
@@ -3674,7 +3676,7 @@ getClientAndProjectReport() {
           )
         ).sort();
 
-       
+
         const groupedMap = new Map<string, any>();
 
         this.clientAndProjectReportList.forEach(item => {
@@ -3684,7 +3686,7 @@ getClientAndProjectReport() {
           if (!groupedMap.has(clientName)) {
             groupedMap.set(clientName, {
               clientName,
-              departmentProjects: {}, 
+              departmentProjects: {},
               totalActiveProjects: 0,
               totalInactiveProjects: 0,
               totalProjects: 0
@@ -3694,7 +3696,7 @@ getClientAndProjectReport() {
           const clientGroup = groupedMap.get(clientName);
 
           if (departmentName) {
-           
+
             if (!clientGroup.departmentProjects[departmentName]) {
               clientGroup.departmentProjects[departmentName] = {
                 total: 0,
@@ -3715,14 +3717,14 @@ getClientAndProjectReport() {
             dept.deptId = item.deptId;
           }
 
-          
+
           clientGroup.totalActiveProjects += item.totalActiveProjects || 0;
           clientGroup.totalInactiveProjects += item.totalInactiveProjects || 0;
           clientGroup.totalProjects += item.totalProjects || 0;
         });
 
         this.groupedClientProjects = Array.from(groupedMap.values());
-       
+
         this.setupClientProjectSearchColumns();
         this.editIndex = -1;
       } else {
@@ -3790,7 +3792,7 @@ exportClientProjectToExcel(): void {
   this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
 }
 
-selectedStatus: string = 'all';  
+selectedStatus: string = 'all';
 modalProjectData: any[] = [];
 selectedClientName: string = '';
  modalCurrentPage: number = 1;
@@ -3827,7 +3829,7 @@ openClientProjectModal(template: TemplateRef<any>, clientName: string, departmen
     this.resetModalFilters();
     this.resetModalSorting();
   this.getClientAndProjectReportDataList(clientId, deptId,projectType);
-  this.modalRef1 = this.modalService.show(template, { class: 'modal-xl' });
+  this.modalRef1 = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
 }
 toggleModalSearch(): void {
     this.isModalSearchEnabled = !this.isModalSearchEnabled;
@@ -3854,49 +3856,49 @@ toggleModalSearch(): void {
     const column = this.modalProjectColumns.find(col => col.key === columnKey);
     return column ? column.type : 'string';
   }
-  
+
   onModalSearch(filters: any): void {
     this.modalFilters = filters;
     this.modalCurrentPage = 1;
   }
 handleModalPageChange(page: number): void {
     this.modalCurrentPage = page;
-    
+
   }
 
   exportModalDataToExcel(): void {
     const dataToExport = this.clientAndProjectReportDataList;
-    
+
     if (dataToExport.length === 0) {
       this.openAlertMod(this.alertModal, "No projects to convert to Excel.");
       return;
     }
-    
+
     this.excelName = 'ProjectReport.xlsx';
     const exportData = dataToExport.map((project, index) => ({
       'Sr No.': index + 1,
       'Project Name': project.projectName || 'NA',
       'PO Number': project.poNo || 'NA',
-      'Project Type': project.projectType ? 
+      'Project Type': project.projectType ?
         (project.projectType.charAt(0).toUpperCase() + project.projectType.slice(1)) : '',
       'Client': project.clientName || 'NA',
       'Apmosys RM': project.apmosysRM || 'NA',
       'Client RM': project.clientRM || 'NA',
-      'Start Date': project.poStartDate ? 
+      'Start Date': project.poStartDate ?
         new Date(project.poStartDate).toLocaleDateString('en-GB') : 'NA',
-      'End Date': project.poEndDate ? 
+      'End Date': project.poEndDate ?
         new Date(project.poEndDate).toLocaleDateString('en-GB') : 'NA',
-      'Created On': project.createdOn ? 
+      'Created On': project.createdOn ?
         new Date(project.createdOn).toLocaleDateString('en-GB') : 'NA'
     }));
-    
-   
-    
+
+
+
     try {
       this.exportExcelService.exportTableDataToExcel(exportData, this.excelName);
-     
+
     } catch (error) {
-    
+
       this.openAlertMod(this.alertModal, "Error occurred while exporting to Excel.");
     }
   }
@@ -3931,7 +3933,7 @@ getFilteredData() {
       return true;
     });
   }
-  
+
   return this.groupedClientProjects;
 }
 
@@ -3972,7 +3974,7 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
   const payload = {
       projectType:projectType,
       clientIds: String(clientId),
-      deptIds: String(deptId) ,  
+      deptIds: String(deptId) ,
     };
   this.projectService.getClientAndProjectReportDataList(payload).subscribe(
     (response: any) => {
@@ -4005,7 +4007,7 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
     //   console.log("The payload is",payload);
     //   this.getEmployeeProjectCount(box, payload);
     // });
-   
+
     // this.getTotalActiveEmployeeCountInDepartments();
     // this.projectLessEmployeesDepartmentWise();
     // this.employeesMappedProjectsDepartmentWise();
@@ -4053,7 +4055,7 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
     })
   }
 
-  expandedTeams = new Set<string>(); 
+  expandedTeams = new Set<string>();
   extendEmployees(pIndex: number, tIndex: number) {
     const key = `${pIndex}-${tIndex}`;
     if (this.expandedTeams.has(key)) {
@@ -4066,7 +4068,7 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
   private modifiedEmployeeCountAccordingTOSelectedCards(): void {
     // console.log("Refreshing data with dept IDs:", this.employeeReportObj);
     // this.getEmployeeReportData();
-    
+
     ['TNM', 'Fixed Cost', 'Monitoring', 'Internal'].forEach(box => {
      if(this.activeBox == box){
        this.selectedTab[box] = this.employeeReportObj.category;
@@ -4104,14 +4106,14 @@ getClientAndProjectReportDataList(clientId:any,deptId:any,projectType:any){
 
   openAlertForTimesheetLeaveReport(message: string): void {
     this.modalMessage = message;
-    this.alert_message_timesheet_leave_reportModalRef = this.modalService.show(this.alert_message_timesheet_leave_report, {
-      class: 'modal-dialog-centered  modal-sm'
+    this.alert_message_timesheet_leave_reportModalRef = this.modalService.open(this.alert_message_timesheet_leave_report, {
+      modalDialogClass: 'modal-dialog-centered  modal-sm'
     });
   }
 
   closeAlertForTimesheetLeaveReport(): void {
     if (this.alert_message_timesheet_leave_reportModalRef) {
-      this.alert_message_timesheet_leave_reportModalRef.hide();
+      this.alert_message_timesheet_leave_reportModalRef?.close();
     }
   }
 

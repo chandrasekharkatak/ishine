@@ -2,7 +2,7 @@ import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Employee } from 'src/app/models/employee';
@@ -17,6 +17,7 @@ import { UtilityService } from 'src/app/services/utility.service';
 
 
 @Component({
+  standalone: false,
   selector: 'app-team-member',
   templateUrl: './team-member.component.html',
   styleUrls: ['./team-member.component.css']
@@ -36,7 +37,7 @@ export class TeamMemberComponent implements OnInit {
   excelName = '';
   elementName = '';
 
-  viewTeamMemberList: any[] = []; 
+  viewTeamMemberList: any[] = [];
 
   filters:any = {};
   isSearchEnabled:boolean = false;
@@ -56,7 +57,7 @@ export class TeamMemberComponent implements OnInit {
   kycUpdateList:any[] = [];
   employeeInfoChangeList:any[] = [];
   allApplicationList : any[] =[]
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   alertMessage: any;
   auditFilter:any = {};
   isAuditSearchEnabled:boolean = false;
@@ -74,24 +75,24 @@ export class TeamMemberComponent implements OnInit {
     private exportExcelService: ExportExcelService,
     private employeeService : EmployeeService,
     private locationStrategy: LocationStrategy,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private employee360Service: Employee360Service,
     private utilityService: UtilityService,
-  ) { 
+  ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
    }
 
   async ngOnInit(): Promise<void> {
-    // Dynamic Subfeature Flags 
+    // Dynamic Subfeature Flags
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     //console.log(this.feature, this.userMapping);
-    
+
     this.getAllTeamMemberView();
     this.preventBackButton();
-   
+
   }
   preventBackButton(){
     history.pushState(null, null, location.href);
@@ -145,20 +146,20 @@ export class TeamMemberComponent implements OnInit {
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
     }
 
-  //pagination 
+  //pagination
 
   page = 1;
   handlePageChange(event) {
     this.page = event;
   }
 
-  sortData(sort: Sort){	
+  sortData(sort: Sort){
     //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
 
@@ -302,7 +303,7 @@ export class TeamMemberComponent implements OnInit {
         this.kycUpdateList = this.filteredEmployeeAuditHistory.filter(x => x.bucketName == 'KYC Update');
         this.employeeInfoChangeList = this.filteredEmployeeAuditHistory.filter(x => x.bucketName == 'Employment Info Changes');
 
-        this.modalRef =  this.modalService.show(auditTemplate, { class: 'modal-lg' });
+        this.modalRef =  this.modalService.open(auditTemplate, { modalDialogClass: 'modal-lg' });
 
         console.log(this.filteredEmployeeAuditHistory , " : this.filteredEmployeeAuditHistory ");
       } else {
@@ -313,7 +314,7 @@ export class TeamMemberComponent implements OnInit {
 
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
   pageNo =1;
   handleAuditPageChanges(event) {

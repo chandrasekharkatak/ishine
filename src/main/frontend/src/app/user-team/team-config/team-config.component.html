@@ -379,7 +379,11 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Project Name</label>
-                            <mat-select ngxMatSelect class="form-control"
+                            <app-my-select #createTeamProjects class="form-control" placeholder="Select Project" [(ngModel)]="activityObj.projectId"
+                                [options]="allProjectListByManagerId" displayKey="projectName" valueKey="projectId" [multiple]="false"
+                                (selectionChange)="getAllTeamsByProjectId(activityObj.projectId); isDisabled = true">
+                            </app-my-select>
+                            <!-- <mat-select ngxMatSelect class="form-control"
                                   #createTeamProjects="ngxMatSelect"
                                   [displayMember]="'projectName'"
                                   [valueMember]="'projectId'"
@@ -392,7 +396,7 @@
                                   <mat-option [value]="project.projectId" *ngFor="let project of createTeamProjects.filteredSource">
                                     {{project.projectName}}
                                   </mat-option>
-                            </mat-select>
+                            </mat-select> -->
                             <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="activityObj.projectId"
                                 (change)="getAllTeamsByProjectId(activityObj.projectId); isDisabled = true;">
                                 <option selected="selected" value="" disabled>Select</option>
@@ -420,7 +424,11 @@
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label class="info-label"><span class="text-danger">*</span>Department</label>
-                            <mat-select ngxMatSelect class="form-control"
+                            <app-my-select #specializationSelect class="form-control" placeholder="Select Department"
+                                [(ngModel)]="activityObj.departmentList" [options]="filteredDeptList" displayKey="name" valueKey="deptId"
+                                [multiple]="true">
+                            </app-my-select>
+                            <!-- <mat-select ngxMatSelect class="form-control"
                                   #deptSelect="ngxMatSelect"
                                   [displayMember]="'name'"
                                   [valueMember]="'deptId'"
@@ -433,7 +441,7 @@
                                   <mat-option [value]="dept.deptId" *ngFor="let dept of deptSelect.filteredSource">
                                     {{dept.name}}
                                   </mat-option>
-                            </mat-select>
+                            </mat-select> -->
                         </div>
                     </div>
                 </div>
@@ -489,7 +497,11 @@
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Project Name</label>
-                        <mat-select ngxMatSelect class="form-control"
+                        <app-my-select #createTeamProjects class="form-control" placeholder="Select Project"
+                            [(ngModel)]="selectedProject" [options]="allProjectListByManagerId" displayKey="projectName"
+                            valueKey="projectId" [multiple]="false" (selectionChange)="getAllTeamsByProjectId($event); isDisabled = true">
+                        </app-my-select>
+                        <!-- <mat-select ngxMatSelect class="form-control"
                                   #createTeamProjects="ngxMatSelect"
                                   [displayMember]="'projectName'"
                                   [valueMember]="'projectId'"
@@ -502,7 +514,7 @@
                                   <mat-option [value]="project.projectId" *ngFor="let project of createTeamProjects.filteredSource">
                                     {{project.projectName}}
                                   </mat-option>
-                            </mat-select>
+                            </mat-select> -->
                         <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="selectedProject" (change)="getAllTeamsByProjectId(selectedProject); isDisabled = true;">
                             <option selected="selected" value="" disabled>Select</option>
                             <option *ngFor="let project of employeeSpecificProjectList" value="{{project.projectId}}">{{project.projectName}}</option>
@@ -540,8 +552,7 @@
                 <div class="export-button">
                     <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button" [hidden]="allActivityList.length == 0" (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
-                <div class="table-container" bassHorizontalScroll [tableId]="'activityInfo'" [tableTHeadId]="'activityInfoTHead'"
-                [tableTHeadTrId]="'activityInfoTHeadTr'">
+                <div class="table-container">
                 <table class="table " id="activities-table" matSort (matSortChange)="sortData($event)">
                     <thead class="thead-light">
                       <tr>
@@ -682,8 +693,7 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
                 </div>
-                <div class="table-container" bassHorizontalScroll [tableId]="'activityTemplateInfo'" [tableTHeadId]="'activityTemplateInfoTHead'"
-                [tableTHeadTrId]="'activityTemplateInfoTHeadTr'">
+                <div class="table-container">
                 <table class="table " matSort (matSortChange)="sortData($event)" id="activityTemplateInfo">
                     <thead class="thead-light" id="activityTemplateInfoTHead">
                       <tr id="activityTemplateInfoTHeadTr">

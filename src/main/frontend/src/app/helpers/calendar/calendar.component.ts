@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, TemplateRef, Output, EventEmitter, ViewChild } from '@angular/core';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { Timesheet } from 'src/app/models/timesheet';
 
 interface CalendarItem {
@@ -21,17 +21,18 @@ interface CalendarItem {
 }
 
 @Component({
+  standalone: false,
   selector: 'app-calendar',
   templateUrl: './calendar.component.html',
   styleUrls: ['./calendar.component.css']
 })
 export class CalendarComponent implements OnInit {
-  @Input() subtractmonth = 0;  
+  @Input() subtractmonth = 0;
   @Input() timesheetDetails: Timesheet[] = [];
   date = moment();
   calendar: Array<CalendarItem[]> = [];
   dayDetails:any = {};
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   popupDescription : any;
   popupActivity: any;
   @Output() openTimesheet = new EventEmitter<CalendarItem>();
@@ -40,7 +41,7 @@ export class CalendarComponent implements OnInit {
   alertMessage: string = '';
 
   constructor(
-    private modalService: BsModalService,
+    private modalService: NgbModal,
   ) { }
 
   ngOnInit(): void {
@@ -62,7 +63,7 @@ export class CalendarComponent implements OnInit {
 
     const clone = date.startOf('months').clone();
     //console.log("clone : ", clone);
-    
+
     if (daysBefore > 0) {
       clone.subtract(daysBefore, 'days');
     }
@@ -97,7 +98,7 @@ export class CalendarComponent implements OnInit {
 
   createCalendarItem(data: moment.Moment, className: string) {
     const dayName = data.format('ddd');
-    
+
     return {
       day: data.format('DD'),
       dayName,
@@ -114,7 +115,7 @@ export class CalendarComponent implements OnInit {
 
       element.forEach(calendarItem => {
           const date = calendarItem.date?.format(dateFormat);
-          
+
           let timesheet = this.timesheetDetails.find(timesheetObj => timesheetObj.date == date);
           if(timesheet){
             calendarItem.displayDate = timesheet.date;
@@ -133,16 +134,16 @@ export class CalendarComponent implements OnInit {
   openTimesheetDetailsModal(template: TemplateRef<any>, dayDetails:any){
     this.cancelRequest();
     this.dayDetails = {}
-    
+
     if(dayDetails.className == "in-month"){
       this.dayDetails = dayDetails;
-      this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
     }
   }
-    
+
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
   isPopupVisible = false;
@@ -153,7 +154,7 @@ export class CalendarComponent implements OnInit {
   //   this.isPopupVisible = true;
   //   this.popupDescription = description;
   //   console.log(description);
-    
+
   // }
 
   // onHoverEnd(description : any): void {
@@ -197,22 +198,25 @@ onDayClick(day: CalendarItem): void {
     this.openTimesheet.emit(day);
   } else if (day.status === 'Approved') {
     this.alertMessage = 'Timesheet is already approved.';
-    this.modalRef = this.modalService.show(this.alertMessageTemplate, {
-      class: 'modal-md',
-      ignoreBackdropClick: true
+    this.modalRef = this.modalService.open(this.alertMessageTemplate, {
+      modalDialogClass: 'modal-md',
+      backdrop: 'static',
+      keyboard: false
     });
   } else if (day.status === 'Pending') {
     this.alertMessage = 'Timesheet is already filled. Please update it.';
-    this.modalRef = this.modalService.show(this.alertMessageTemplate, {
-      class: 'modal-md',
-      ignoreBackdropClick: true
+    this.modalRef = this.modalService.open(this.alertMessageTemplate, {
+      modalDialogClass: 'modal-md',
+      backdrop: 'static',
+      keyboard: false
     });
-    
+
   }else if (day.status === 'Rejected') {
     this.alertMessage = 'Timesheet is already Rejected. Please fill it.';
-    this.modalRef = this.modalService.show(this.alertMessageTemplate, {
-      class: 'modal-md',
-      ignoreBackdropClick: true
+    this.modalRef = this.modalService.open(this.alertMessageTemplate, {
+      modalDialogClass: 'modal-md',
+      backdrop: 'static',
+      keyboard: false
     });
   }
 
@@ -222,14 +226,14 @@ onDayClick(day: CalendarItem): void {
   });
 
 
-  
+
 }
 
 
 
 
   cancelRequest_approve_pending(): void {
-      this.modalRef.hide();
+      this.modalRef?.close();
   }
 
 }

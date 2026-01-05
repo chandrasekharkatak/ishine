@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import * as CryptoJS from 'crypto-js';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
@@ -9,6 +9,7 @@ import { EmployeeService } from '../services/employee.service';
 import { ValidationService } from '../services/validation.service';
 
 @Component({
+  standalone: false,
   selector: 'app-body',
   templateUrl: './body.component.html',
   styleUrls: ['./body.component.css']
@@ -39,7 +40,7 @@ export class BodyComponent implements OnInit {
 
   //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   resourceManagementFeature: any;
   reportsFeature: any;
   timesheetFeature:any;
@@ -55,7 +56,7 @@ export class BodyComponent implements OnInit {
 
   constructor(
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private employeeService: EmployeeService,
     private router: Router,
@@ -91,7 +92,7 @@ export class BodyComponent implements OnInit {
         this.isHome = event.urlAfterRedirects === '/home';
       }
     });
-  
+
   }
 
   extractFeatures() {
@@ -101,10 +102,10 @@ export class BodyComponent implements OnInit {
       console.log(feature.featureName);
       if (feature.featureName === 'Resource Management') {
         this.resourceManagementFeature = feature.featureName;
-       
+
       } else if (feature.featureName === 'Reports') {
         this.reportsFeature = feature.featureName;
-       
+
       }
       else if(feature.featureName === 'Timesheets Dashboard'){
         this.timesheetFeature = feature.featureName;
@@ -132,7 +133,7 @@ export class BodyComponent implements OnInit {
     }
     else{
       if(this.currentUser) styleClass= 'body--active';
-    
+
     }
     return styleClass;
   }
@@ -150,7 +151,7 @@ export class BodyComponent implements OnInit {
   }
 
   userLogout(){
-    
+
     let user = new User();
     user.empId = this.currentUser.empId;
     this.authenticationService.logoutUser(user).pipe(first()).subscribe((response: any) => {
@@ -189,7 +190,7 @@ export class BodyComponent implements OnInit {
       }
     });
 
-    
+
   }
 
   toggleFieldTextType() {
@@ -256,9 +257,9 @@ export class BodyComponent implements OnInit {
     this.userNewPass = ''
     //console.log(this.currentUser.isNew)
     if(this.currentUser.isNew == 'true'){
-      this.modalRef = this.modalService.show(changePasswordTemplate,this.config);
+      this.modalRef = this.modalService.open(changePasswordTemplate,this.config);
     }else{
-      this.modalRef = this.modalService.show(changePasswordTemplate);
+      this.modalRef = this.modalService.open(changePasswordTemplate);
     }
   }
 
@@ -333,22 +334,22 @@ export class BodyComponent implements OnInit {
   //modal
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
     this.reset();
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
-  
+
   public openMenu: boolean = false;
   isOver = false;
 
   // routingFunction(message: string) {
   //      this.router.navigate(['/'+message]);
   //     this.clickMenu();
-       
+
   // }
 
   routingFunction(message: string) {
@@ -356,14 +357,14 @@ export class BodyComponent implements OnInit {
     window.open(url, '_blank');
        //this.router.navigate(['/'+message]);
       this.clickMenu();
-       
+
   }
-  
+
 
   clickMenu() {
     this.openMenu = !this.openMenu;
   }
- 
+
     LmsRedirection() {
     let obj = new Object();
     obj = { email: this.currentUser.email, token: sessionStorage.getItem('token') };
@@ -387,16 +388,16 @@ export class BodyComponent implements OnInit {
 
   routingFunction2(message: string,queryParams?:any){
     let url = `${window.location.origin}/#/${message}`;
-  
+
   if (queryParams) {
-   
+
     const params = new URLSearchParams(queryParams).toString();
     url += `?${params}`;
   }
- 
+
   window.open(url, '_blank');
   this.clickMenu();
 
   }
- 
+
 }

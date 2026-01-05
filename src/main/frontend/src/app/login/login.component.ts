@@ -1,7 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { Feature } from '../models/feature';
 import { SubFeature } from '../models/subFeature';
@@ -22,6 +22,7 @@ import { AuthGuard } from '../guards/auth.guard';
 import { EncryptionService } from '../services/EncryptionService';
 
 @Component({
+  standalone: false,
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
@@ -38,7 +39,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     'Values 1',
     'Values 2'
   ];
-  //flags 
+  //flags
   isLoginForm: boolean = true;
   isOtpForm: boolean = false;
   isForgotPassOtpForm: boolean = false;
@@ -65,9 +66,9 @@ export class LoginComponent implements OnInit, OnDestroy {
   featureList: any[] = [];
   allMappedSubfeatures: any[] = [];
 
-  //modal 
+  //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   enableAppreciation: enableAppreciation = new enableAppreciation();
 
   @ViewChild('reLogin_template') reLoginTemplate: TemplateRef<any>;
@@ -80,7 +81,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   constructor(
     private validationService: ValidationService,
     private datePipe: DatePipe,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private router: Router,
     private authenticationService: AuthenticationService,
     private subfeatureService: SubfeatureService,
@@ -230,7 +231,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (this.userName && !this.userName.includes('@')) {
       this.userName += '@apmosys.com';
     }
-    
+
     if (!this.validationService.validateNullUndefinedEmptyString(this.userName)) {
       this.isError = true;
       this.errorMsg = 'Please enter username !!';
@@ -427,7 +428,7 @@ this.user.otp = encryptedOtp;
 
 
   timeSession() {
-    // Dynamic Subfeature Flags 
+    // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -641,17 +642,17 @@ this.user.otp = encryptedOtp;
 
   //modals
   openReLoginMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
 

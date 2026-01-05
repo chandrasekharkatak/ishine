@@ -1,0 +1,80 @@
+<!-- Header -->
+<div class="modal-header">
+  <h5 class="modal-title">File Upload {{ field.label || 'File' }} </h5>
+</div>
+
+<input *ngIf="viewMode !== 'View'" #fileInput type="file" class="form-control my-3" (change)="onFileSelected($event)" multiple />
+
+<!-- File List -->
+<div class="file-list">
+  <div class="file-card shadow-sm p-3 mb-2 rounded d-flex justify-content-between align-items-center"
+    *ngFor="let file of selectedFiles; let i = index">
+
+    <div class="d-flex align-items-center">
+      <div>
+        <p class="mb-0 fw-semibold" [title]="file.name">{{ getName(file.name) }}</p>
+        <small class="text-muted">{{ (file.size || 0) / 1024 | number:'1.0-1' }} KB</small>
+      </div>
+    </div>
+
+    <div class="file-actions d-flex " style="gap: 10px;">
+      <button class="btn btn-sm btn-outline-primary" (click)="onPreviewFile(file)">
+        <i class="fa fa-eye"></i>
+      </button>
+      <button *ngIf="viewMode !== 'View'" class="btn btn-sm btn-outline-danger"
+        (click)="addFilesToRemove(file.name, i)">
+        <i class="fa fa-trash"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="d-flex justify-content-end m-3" style="gap: 10px;">
+  <button class="btn btn-secondary" (click)="onClose()">Cancel</button>
+  <button class="btn btn-primary {{ getFilesToUpload().length === 0 ? 'disabled' : '' }} " [disabled]="getFilesToUpload().length === 0 || viewMode === 'View' " (click)="onUpload()">Upload</button>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal-backdrop fade show" *ngIf="isPreviewOpen"></div>
+<div class="modal fade show d-block preview-modal" style="min-width: 50%;" *ngIf="isPreviewOpen" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content">
+      <div class="bg-primary d-flex justify-content-between text-white p-2">
+        <h5 class="modal-title">Preview: {{ getName(previewFile?.name || '') }}</h5>
+        <button type="button" class="btn btn-secondary" (click)="closePreview()">Close</button>
+      </div>
+      <div class="modal-body text-center">
+        <img *ngIf="getFileType(previewFile!) === 'image'" [src]="fileUrl" class="img-fluid rounded shadow" />
+        <iframe *ngIf="getFileType(previewFile!) === 'pdf'" [src]="fileUrl" class="w-100"
+          style="height:70vh; border:none;"></iframe>
+        <p *ngIf="getFileType(previewFile!) === 'other'">
+          <i class="fa fa-file fa-3x text-secondary"></i><br>
+          Preview not supported.
+          <span style="text-decoration: underline; cursor: pointer; color: #0d6efd;"
+            (click)="downloadFile()">Download</span> instead.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Alert Modal -->
+<ng-template #alert_message_modal>
+  <div class="modal-body text-center">
+    <p>{{ alertMessage }}</p>
+    <button type="button" class="btn btn-primary"
+      (click)="filesToRemove.length > 0 ? onSave() : cancelRequest()">Ok</button>
+  </div>
+</ng-template>
+
+<!-- Delete Confirmation Modal -->
+<ng-template #delete_message_modal>
+  <div class="modal-body text-center ">
+    <p>{{ alertMessage }}</p>
+    <div class="d-flex justify-content-center" style="gap: 10px;">
+      <button type="button" class="btn btn-secondary" (click)="cancelRequest()">No</button>
+      <button type="button" class="btn btn-primary" (click)="removeFile()">Yes</button>
+    </div>
+  </div>
+</ng-template>

@@ -3,7 +3,7 @@ import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { saveAs } from "file-saver";
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Document } from 'src/app/models/document';
@@ -15,6 +15,7 @@ import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
+  standalone: false,
   selector: 'app-document',
   templateUrl: './document.component.html',
   styleUrls: ['./document.component.css']
@@ -33,7 +34,7 @@ export class DocumentComponent implements OnInit {
   documentObj= new Document();
 
   @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   alertMessage: any;
   allTypeList : any = [];
   fileSize: number = 0;
@@ -44,23 +45,23 @@ export class DocumentComponent implements OnInit {
   documents :any = [];
 
   isSearchEnabled:boolean= false;
-   // Sorting 
+   // Sorting
    sortDirection = 'asc';
    sortColumn: any;
    sortColumnType:any;
   src: any;
   userMapping: any = {};
   feature:any = "Newsletter Config";
-    // Filter 
+    // Filter
     filters:any = {};
     typeNames:any;
-    allTypeListColumns:any[]=['blank','typeName','createdOn','name'];
+    allTypeListColumns:any[]=['blank','typeName','createdOn','name','blank','blank','blank'];
     documentsColumns:any[]=['blank','displayName','fileName','typeName','createdOn','createdByName'];
   employeesFor360: any[] = [];
 
   constructor(
     private newsletterService : NewsletterService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService : AuthenticationService,
     private validationService : ValidationService,
     private locationStrategy : LocationStrategy,
@@ -70,7 +71,7 @@ export class DocumentComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     try {
       // this.employeesFor360 = await this.utilityService.getEmployeeDetailsFor360View();
-     
+
     } catch (error) {
       console.error("Error fetching employee details for 360 view", error);
     }
@@ -121,7 +122,7 @@ export class DocumentComponent implements OnInit {
 
   }
 
- 
+
     RestrictFullName(event) {
       var k;
       k = event.charCode;
@@ -137,8 +138,8 @@ export class DocumentComponent implements OnInit {
         return (false);
       }
       return (true);
-  
-  
+
+
     }
 
   showTable(){
@@ -159,14 +160,14 @@ export class DocumentComponent implements OnInit {
     this.getAllTypeName();
   }
 
-    // Sorting 
-    sortData(sort: Sort){	
+    // Sorting
+    sortData(sort: Sort){
       //console.log(sort);
       if(sort.active){
         let sortParams:any[] = sort.active?.split("|");
         this.sortColumn = sortParams[0];
         this.sortColumnType = sortParams[1];
-        this.sortDirection = sort.direction;      
+        this.sortDirection = sort.direction;
       }
     }
 
@@ -212,7 +213,7 @@ export class DocumentComponent implements OnInit {
     //console.log("Updated Filter : ", this.filters);
   }
   updateType(document : any,template:TemplateRef<any>){
-   
+
     let doc = new Document();
     doc.typeId = this.documentObj.typeId;
     doc.typeName = document.typeName;
@@ -296,7 +297,7 @@ export class DocumentComponent implements OnInit {
     this.fileSize = this.fileSize + document.size / 1024 /1024;
 
     //console.log("file size : ", this.fileSize);
-        
+
     this.file = {document : document,fileName : fileName};
   }
 
@@ -318,7 +319,7 @@ export class DocumentComponent implements OnInit {
       this.openAlertMod(template, "Please select publish mode !!");
       return false;
     }
-    
+
     //console.log(" get file ",this.file);
     if(!this.file){
       this.openAlertMod(template, "Kindly select Document !! ");
@@ -353,7 +354,7 @@ export class DocumentComponent implements OnInit {
 
   getAllDocuments(){
     this.documents = [];
-    
+
     this.newsletterService.getAllNewsletters().pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {
         this.documents =  response.serviceResponse;
@@ -396,14 +397,14 @@ export class DocumentComponent implements OnInit {
     });
   }
 
-   
+
   downloadFile(doc: any) {
     this.newsletterService.downloadDocument(doc.documentId).subscribe(blob => saveAs(blob,doc.fileName));
   }
 
 
   openPreviewDocument(template: TemplateRef<any>){
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
   spaceTrimDocumentName(){
@@ -419,7 +420,7 @@ export class DocumentComponent implements OnInit {
     this.document=false;
     this.type = false;
     this.upload=false;
-    
+
     this.getTypeById(type)
 
   }
@@ -435,17 +436,17 @@ export class DocumentComponent implements OnInit {
     })
   }
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openDeleteModal(template:TemplateRef<any> , documentObj:any){
-    this.modalRef = this.modalService.show(template , { class : 'modal-sm'});
+    this.modalRef = this.modalService.open(template , { modalDialogClass : 'modal-sm'});
     this.documentObj = documentObj;
     this.typeNames = documentObj.typeName;
     //console.log("documentObj   on delete call  ",documentObj);
@@ -488,7 +489,7 @@ doc.typeName = this.documentObj.typeName;
 
   deleteDoc(template:TemplateRef<any>,document){
     //console.log("deleteDoc    ",document)
-    this.modalRef = this.modalService.show(template , { class : 'modal-sm'});
+    this.modalRef = this.modalService.open(template , { modalDialogClass : 'modal-sm'});
     this.documentObj = document;
     this.documentObj.displayName = document.displayName;
   }

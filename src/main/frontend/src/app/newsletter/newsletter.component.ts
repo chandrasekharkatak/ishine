@@ -1,7 +1,7 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { LocationStrategy } from '@angular/common';
 import { NewsletterService } from '../services/newsletter.service';
 import { Newsletter } from '../models/newsletter';
@@ -25,6 +25,7 @@ class FilterData {
 }
 
 @Component({
+  standalone: false,
   selector: 'app-newsletter',
   templateUrl: './newsletter.component.html',
   styleUrls: ['./newsletter.component.css']
@@ -53,7 +54,7 @@ export class NewsletterComponent implements OnInit {
   src:any;
   fileName:any
   isTable : boolean = false;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   alertMessage: any;
   typeNames:any;
 
@@ -61,8 +62,8 @@ export class NewsletterComponent implements OnInit {
   filterData: any = new FilterData();
   filters:any = {};
   isSearchEnabled:boolean = false;
-  newsletterColumns:any[] = ['blank','displayName','name','createdOn']; 
-  newsletterCol:any[] = ['displayName','createdOn']; 
+  newsletterColumns:any[] = ['blank','displayName','name','createdOn'];
+  newsletterCol:any[] = ['displayName','createdOn'];
 
   newsletterModalConfiguration = {
     backdrop: true,
@@ -72,10 +73,10 @@ export class NewsletterComponent implements OnInit {
   }
 
   userMapping: any = {};
-  
+
   constructor(
     private authenticationService: AuthenticationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private locationStrategy: LocationStrategy,
     private newsletterService : NewsletterService,
     private utilityService: UtilityService,
@@ -84,7 +85,7 @@ export class NewsletterComponent implements OnInit {
    }
 
    async ngOnInit(): Promise<void> {
-   
+
     // this.getAllNewsletters();
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
           featureMap.subFeatures?.forEach(sub => {
@@ -191,7 +192,7 @@ export class NewsletterComponent implements OnInit {
        this.allReadNewsletters.forEach((readNewsletter:Newsletter) => {
           let fileObj = this.newsletters.find((newsletter:Newsletter) => readNewsletter.documentId == newsletter.documentId);
           if(fileObj) fileObj.isRead = true;
-        }); 
+        });
       }else{
         console.error(response.serviceResponse);
       }
@@ -217,14 +218,14 @@ export class NewsletterComponent implements OnInit {
         this.authenticationService.setcurrentUserSubject(this.currentUser);
         this.openPreviewNewsletterModal(this.alertTemplate);
       }
-      
+
       //this.getAllNewsletters(this.type,template)
     });
   }
 
   loadingDocument = false;
-  previewPolicyDocument(template: TemplateRef<any>,doc: any) { 
-    this.loadingDocument = true;  
+  previewPolicyDocument(template: TemplateRef<any>,doc: any) {
+    this.loadingDocument = true;
     this.src = null;
     this.fileName = doc.displayName;
 
@@ -244,10 +245,10 @@ export class NewsletterComponent implements OnInit {
       this.loadingDocument = false;
     },
     (error) => {
-      
+
       console.error('Error fetching document:', error);
-      
-     
+
+
       this.loadingDocument = false;
   }
     );
@@ -260,19 +261,19 @@ export class NewsletterComponent implements OnInit {
 
   //Modal
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openPreviewDocument(template: TemplateRef<any>){
-    this.modalRef = this.modalService.show(template,this.newsletterModalConfiguration);
+    this.modalRef = this.modalService.open(template,this.newsletterModalConfiguration);
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
-  openPreviewNewsletterModal(template:TemplateRef<any>){ 
+  openPreviewNewsletterModal(template:TemplateRef<any>){
     if(this.currentUser.newsletterReadCheck != null){
       this.previewPolicyDocument(this.previewDocument,this.currentUser.newsletterReadCheck);
     }else{
@@ -285,16 +286,16 @@ export class NewsletterComponent implements OnInit {
     this.page = event;
   }
 
-  sortData(sort: Sort){	
+  sortData(sort: Sort){
     //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
-  
+
   toggleSearch(){
     this.sortColumn=[];
     this.sortColumnType=[];
@@ -309,7 +310,7 @@ export class NewsletterComponent implements OnInit {
     this.filters = searchData;
     //console.log("Updated Filter : ", this.filters);
   }
-// added by anurag  
+// added by anurag
 
 getAllTypeForDoc(template:TemplateRef<any>){
   this.newsletterService.getAllTypeName().pipe(first()).subscribe((response:any)=>{
@@ -334,7 +335,7 @@ openFilterModal(template: TemplateRef<any> , colums : any[], title: any){
   this.queryList = [];
   this.filterData.title = title;
   this.filterData.columns = colums;
-  
+
 
   this.queryList = [
     { column: "Document Name" , operator: "" , value: "", conjunction: "" }
@@ -352,7 +353,7 @@ openFilterModal(template: TemplateRef<any> , colums : any[], title: any){
 
   this.filterData.queryList = JSON.stringify(this.queryList);
   //console.log(" filteredData     ",this.filterData);
-  this.modalRef = this.modalService.show(template, {class: 'modal-xl'});
+  this.modalRef = this.modalService.open(template, {modalDialogClass: 'modal-xl'});
 
 
 }

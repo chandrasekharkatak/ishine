@@ -1,0 +1,709 @@
+
+.main-content {
+  display: flex;
+}
+
+.filters {
+  background: #f7f7f7;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px #0001;
+  padding: 16px;
+  min-width: 220px;
+  max-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.filters-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  color: #4b2994;
+  margin-bottom: 8px;
+}
+
+.filter-tree > li > .tree-label {
+  background: #d2d5e9;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(80, 80, 120, 0.06);
+  padding: 10px 14px;
+  font-weight: 600;
+  color: #2d2d3a;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  transition: background 0.2s;
+}
+
+.add-btn {
+  background: none;
+  border: none;
+  color: #7c3aed;
+  margin-left: 8px;
+  cursor: pointer;
+  font-size: 1em;
+  padding: 2px 4px;
+  border-radius: 50%;
+  transition: background 0.15s;
+}
+
+.add-btn:hover {
+  background: #ede9fe;
+}
+
+.filter-tree > li > .tree-label:hover {
+  background: #eae6fa;
+}
+
+.filter-tree, .filter-tree ul {
+  list-style: none;
+  padding-left: 18px;
+  margin: 0;
+}
+
+.tree-label.project-title {
+  background: #5b3ec8;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1em;
+  border-radius: 7px 7px 7px 7px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Group Node */
+.tree-label {
+  background: #f7f7fa;
+  color: #444;
+  border-radius: 7px;
+  padding: 8px 12px;
+  margin-bottom: 7px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+  position: relative;
+}
+
+/* Selected Node */
+.tree-label.selected {
+  background: #ffe97a;
+  color: #4b2994;
+  font-weight: 600;
+}
+
+/* Indentation and dotted line for sub-levels */
+.filter-tree ul {
+  border-left: 2px dotted #d1d5db;
+}
+
+.filter-tree, .filter-tree ul {
+  list-style: none;
+}
+
+/* Remove left border for top-level */
+.filter-tree > li > .tree-label {
+  border-left: none;
+}
+
+/* Optional: subtle hover effect */
+.tree-label:not(.project-title):hover {
+  background: #eae6fa;
+}
+
+.arrow {
+  width: 16px;
+  display: inline-block;
+  font-size: 12px;
+  color: #888;
+}
+
+input[type='checkbox'] {
+  margin-right: 6px;
+}
+
+/* Indent sub-levels for clarity */
+.filter-tree ul .tree-label {
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+  font-weight: 500;
+  color: #444;
+  padding: 2px 0;
+}
+
+.table-section {
+  flex: 1;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px #0001;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* .table-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+} */
+
+.table-search {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.filter-btn, .download-btn, .create-btn {
+  background: #f7f7fa;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.create-btn {
+  background: #f7f7fa;
+  color: #4b2994;
+  font-weight: 600;
+  border: 1px solid #4b2994;
+}
+
+.pagination {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+
+.pagination button {
+  background: #f7f7fa;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.pagination .active {
+  background: #4b2994;
+  color: #fff;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+thead th {
+  background: #eae6fa;
+  color: #4b2994;
+  font-weight: 700;
+  padding: 12px 8px;
+  text-align: left;
+  border-radius: 6px 6px 0 0;
+}
+
+tbody td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #f0f0f0;
+  color: #444;
+  font-size: 1rem;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.project-title {
+  font-weight: bold;
+  font-size: 1.1em;
+  color: #4b2994;
+  margin-bottom: 8px;
+}
+
+.group-title {
+  color: #888;
+  font-size: 0.95em;
+  margin-left: 6px;
+}
+
+/* FORM */
+
+.section-title {
+  font-weight: 600;
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.add-questions-link {
+  color: #4b2994;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.add-questions-link i {
+  font-size: 1em;
+  vertical-align: middle;
+}
+
+.upload-btn {
+  border-radius: 8px;
+  font-weight: 500;
+  padding: 8px 18px;
+}
+
+/* Angular Material Select Styles */
+mat-form-field {
+  width: 100%;
+}
+
+mat-form-field .mat-form-field-wrapper {
+  padding-bottom: 0;
+}
+
+mat-form-field .mat-form-field-outline {
+  background-color: #fff;
+}
+
+mat-form-field .mat-form-field-outline-thick {
+  color: #007bff;
+}
+
+mat-form-field.mat-form-field-invalid .mat-form-field-outline-thick {
+  color: #dc3545;
+}
+
+mat-select {
+  width: 100%;
+}
+
+.mat-option {
+  padding: 8px 16px;
+  min-height: 40px;
+  line-height: 24px;
+}
+
+.mat-option.mat-selected {
+  background-color: #007bff;
+  color: white;
+}
+
+.mat-option:hover:not(.mat-option-disabled) {
+  background-color: #f8f9fa;
+}
+
+.mat-option.mat-selected:hover {
+  background-color: #0056b3;
+}
+
+/* Multi-select chip styles */
+.mat-select-panel .mat-option.mat-selected:not(.mat-option-multiple) {
+  background-color: #007bff;
+  color: white;
+}
+
+.mat-select-panel .mat-option.mat-selected.mat-option-multiple {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+/* Dependent field container styles */
+.dependent-field-container {
+  margin-bottom: 15px;
+  padding: 15px;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+}
+
+.dependent-field-container label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 8px;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.dependent-field-container select {
+  width: 100%;
+}
+
+/* Form field spacing */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+/* Error states */
+ .is-invalid {
+  border-color: #dc3545;
+}
+
+.invalid-feedback {
+  display: block;
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Loading states */
+.form-control.loading {
+  background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3e%3cpolyline points="23,6 13.5,15.5 8.5,10.5 1,18"%3e%3c/polyline%3e%3cpolyline points="17,6 23,6 23,12"%3e%3c/polyline%3e%3c/svg%3e');
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 12px;
+}
+
+.form-control:disabled {
+  background-color: #e9ecef;
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.form-control.api-error {
+  border-color: #dc3545;
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.form-control.api-success {
+  border-color: #28a745;
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.group-form-container {
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px 32px;
+  margin-top: 16px;
+}
+
+.section-title {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.breadcrumb {
+  background: transparent;
+  font-size: 0.95rem;
+}
+
+.add-questions-link {
+  color: #3d2fc1;
+  font-weight: 500;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+
+.project-name-container {
+  border: 1px solid black;
+  background-color: white;
+  padding: 8px 12px;
+  display: flex;
+  width: 100%;
+  transition: box-shadow 0.3s, border-color 0.3s;
+}
+
+.project-name-container:hover {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+  cursor: pointer;
+}
+
+.field-input {
+  width: 100%;
+  padding: 5px 10px;
+  border: 1px solid #999;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+}
+
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 14px;
+
+  backdrop-filter: blur(4px);
+}
+
+/* Pending: light reddish background */
+.status-badge.pending {
+  background: rgba(255, 0, 0, 0.05);
+  color: #a94442;
+}
+
+.status-badge.approved {
+  background: rgba(0, 128, 0, 0.05);
+  color: #3c763d;
+}
+
+.status-badge.rejected {
+  background: rgba(139, 0, 0, 0.05);
+  color: #a94442;
+}
+
+.status-badge.created {
+  background: rgba(0, 123, 255, 0.05); /* light blue background */
+  color: #0275d8; /* Bootstrap primary blue */
+}
+
+.status-badge.assigned {
+  background: rgba(111, 66, 193, 0.05); /* light purple background */
+  color: #6f42c1; /* purple */
+}
+
+
+.status-badge i {
+  font-size: 16px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 4px;
+  font-size: 14px;
+}
+
+.truncate-option option {
+  max-width: 200px; /* adjust as needed */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* .form-node {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  background: #fafaff;
+}
+.form-node-children {
+  margin-left: 24px;
+  margin-top: 12px;
+}
+.form-node-actions {
+  margin-top: 8px;
+  margin-bottom: 8px;
+} */
+
+.project-wrapper {
+  margin-bottom: 20px;
+}
+
+.project-card {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  width: 100%;
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.card-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: nowrap;
+}
+
+.project-info {
+  flex: 1;
+  min-width: 0; /* Allows text wrap */
+}
+
+.project-index {
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 4px;
+}
+
+.project-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.status-row {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+  align-items: center;
+  margin-left: 20px;
+  flex-wrap: nowrap;
+}
+
+.status-tile {
+  text-align: center;
+  background-color: white;
+  border: 1.5px solid #888;
+  padding: 8px;
+  border-radius: 6px;
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
+  font-size: 0.85rem;
+  font-weight: 500;
+  min-width: 110px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.status-tile:hover {
+  transform: scale(1.03);
+}
+.status-tile.rejected {
+  background-color: #f7d6d6;
+}
+
+.status-tile.approved {
+  background-color: #cad1f7;
+}
+
+.status-tile.pending {
+  background-color: #f5e9a8;
+}
+
+.section-heading {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #2c3e50;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 3px solid #caf7d4; /* green underline */
+  display: inline-block;
+  padding-bottom: 5px;
+  margin-bottom: 20px;
+}
+
+.submit-all {
+  background-color: #e0f7fa;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  transition: background-color 0.2s;
+}
+
+.submit-all:hover {
+  background-color: #b2ebf2;
+}
+
+.project-details-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px; /* space between fields */
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  min-width: 200px; /* minimum field width */
+  max-width: 300px; /* prevents too wide fields */
+  flex: 1; /* grow to fill row */
+}
+
+label {
+  font-weight: bold;
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.value {
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #555;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.submit-all {
+  background-color: #e0f7fa;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  transition: background-color 0.2s;
+}
+
+.submit-all:hover {
+  background-color: #b2ebf2;
+}
+
+.custom-mat-select .mat-select-trigger {
+  height: 38px;
+  display: flex;
+  align-items: center;
+}
+
+.mat-form-field-wrapper {
+  padding-bottom: 0 !important;
+}
+
+.mat-form-field-appearance-outline .mat-form-field-outline {
+  border-radius: 0 !important;
+}
+
+.mat-option.search-option input {
+  padding: 4px 8px;
+  height: 32px;
+  font-size: 13px;
+  border: 1px solid #ccc;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.mat-form-field-appearance-outline .mat-form-field-flex {
+  background-color: white;
+  min-height: 38px;
+}
+
+.mat-select-placeholder {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+

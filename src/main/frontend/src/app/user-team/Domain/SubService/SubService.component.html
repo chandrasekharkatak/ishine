@@ -1,0 +1,43 @@
+<ul class="subservice-tree">
+  <li *ngFor="let subservice of subServiceList; let i = index" class="subservice-node">
+    <!-- Main Sub-Service Item -->
+    <div class="node-header">
+      <!-- Toggle Button for Sub-Service -->
+      <div *ngIf="subservice.subServices.length > 0">
+        <button class="toggle-btn" (click)="toggleSubService(i)" aria-label="Toggle subservice">
+          <i class="fa-solid"
+            [ngClass]="{'fa-angle-down': subservice.isOpen, 'fa-angle-right': !subservice.isOpen}"></i>
+        </button>
+      </div>
+
+      <!-- Sub-Service Node Container -->
+      <div class="node-container subservice">
+        <input [disabled]="isViewing" type="text" placeholder="Sub-Service Name" [(ngModel)]="subservice.name" class="node-input"
+          aria-label="Subservice name">
+
+        <div class="node-actions">
+          <!-- Add Sub-Service Button -->
+          <button *ngIf="!isViewing" (click)="addChildrenSubServiceList(i)" class="btn btn-success btn-sm" title="Add Sub-Service">
+            <i class="fa-solid fa-plus"></i>
+            <span class="action-text">Sub-Service</span>
+          </button>
+
+          <!-- Delete Button -->
+          <button *ngIf="(!isEditing && !isViewing) || newData(subservice)" (click)="removeChildrenSubServiceList(i)" class="btn btn-danger btn-sm" title="Delete">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+
+          <label *ngIf="isEditing" class="switch">
+              <input type="checkbox" [checked]="subservice.isActive" (change)="deleteDomainData( subservice.id, 'subService', subservice, subservice.isActive)">
+              <span class="slider round"></span>
+            </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Child Sub-Services (Recursive) -->
+    <div *ngIf="subservice.subServices.length > 0 && subservice.isOpen" class="children-container">
+      <app-SubService [isEditing]="isEditing" [isViewing]="isViewing" [subServiceList]="subservice.subServices"></app-SubService>
+    </div>
+  </li>
+</ul>

@@ -5,6 +5,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { LocationStrategy } from '@angular/common';
 
 @Component({
+  standalone: false,
   selector: 'app-recruitment',
   templateUrl: './recruitment.component.html',
   styleUrls: ['./recruitment.component.css']

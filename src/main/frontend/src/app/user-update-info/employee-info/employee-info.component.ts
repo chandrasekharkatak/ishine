@@ -1,6 +1,6 @@
 import { Component, EventEmitter, OnInit, Output, TemplateRef } from '@angular/core';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { certification } from 'src/app/models/certification';
 import { Child } from 'src/app/models/Child';
@@ -13,6 +13,7 @@ import { UpdateUserInfoService } from 'src/app/services/updateUserInfo.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
+  standalone: false,
   selector: 'app-employee-info',
   templateUrl: './employee-info.component.html',
   styleUrls: ['./employee-info.component.css']
@@ -21,7 +22,7 @@ export class EmployeeInfoComponent implements OnInit{
 
   //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   errorMsg:any;
   errorMsg1:any;
 
@@ -46,7 +47,7 @@ export class EmployeeInfoComponent implements OnInit{
   constructor(
     private employeeService: EmployeeService,
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private updateUserInfoService: UpdateUserInfoService,
     private authenticationService: AuthenticationService,
   ) {
@@ -256,7 +257,7 @@ export class EmployeeInfoComponent implements OnInit{
     if(previousEmployer.dateOfJoining != null && previousEmployer.dateOfRelieving){
       const fromDate = moment(new Date(previousEmployer.dateOfJoining));
       const toDate = moment(new Date(previousEmployer.dateOfRelieving));
-  
+
       const diffDuration = moment.duration(toDate.diff(fromDate));
       //console.log(`Get Experience : ${fromDate} - ${toDate} ==>  ${diffDuration.years()} years ${diffDuration.months()} months ===>  ${diffDuration.years()}.${diffDuration.months()} for ID :`);
       const experience  = `${diffDuration.years()}.${diffDuration.months()}`;
@@ -784,21 +785,21 @@ export class EmployeeInfoComponent implements OnInit{
         return false;
       }
     }
-    
+
     if(this.validationService.validateNullUndefinedEmptyString(employeeObj.previousPfAccountNumber)){
       if(!this.validationService.validatePfAccountNumber(employeeObj.previousPfAccountNumber)) {
         this.openAlertMod(template, 'Please Enter Valid Previous PF Account Number !!')
         return false;
       }
     }
-    
+
     if(this.validationService.validateNullUndefinedEmptyString(employeeObj.uan)){
       if(!this.validationService.validateUAN(employeeObj.uan)) {
         this.openAlertMod(template, 'Please Enter Valid UAN Number !!')
         return false;
       }
     }
-   
+
     if(this.validationService.validateNullUndefinedEmptyString(employeeObj.esicNumber)){
       if(!this.validationService.validateESICNumber(employeeObj.esicNumber)) {
         this.openAlertMod(template, 'Please Enter Valid ESIC Number !!')
@@ -837,12 +838,12 @@ export class EmployeeInfoComponent implements OnInit{
     this.employeeObj.bankAccountNo = this.employeeObj.bankAccountNo?.trim();
     this.employeeObj.bankIFSCCode = this.employeeObj.bankIFSCCode?.trim();
     this.employeeObj.esicNumber = this.employeeObj.esicNumber?.trim();
-    this.employeeObj.isConsultant = this.employeeObj.isConsultant 
-    ? this.employeeObj.isConsultant.trim() 
+    this.employeeObj.isConsultant = this.employeeObj.isConsultant
+    ? this.employeeObj.isConsultant.trim()
     : '';
-  
-  // this.employeeObj.isApprenticeship = this.employeeObj.isApprenticeship 
-  //   ? this.employeeObj.isApprenticeship.trim() 
+
+  // this.employeeObj.isApprenticeship = this.employeeObj.isApprenticeship
+  //   ? this.employeeObj.isApprenticeship.trim()
   //   : '';
 
     this.employeeObj.previousEmploymentList?.forEach((x)=>{
@@ -859,7 +860,7 @@ export class EmployeeInfoComponent implements OnInit{
 
 
     const regexaOrganisationMe = /^[a-zA-Z\s,!.]+$/;
-    if (!regexaOrganisationMe.test(this.employeeObj.viewsOnOrganisation )) { 
+    if (!regexaOrganisationMe.test(this.employeeObj.viewsOnOrganisation )) {
         this.alertMessage = "Your views on our Organisation should only contain alphabets and spaces!";
         this.openAlertMod(template, this.alertMessage);
         return false;
@@ -867,28 +868,28 @@ export class EmployeeInfoComponent implements OnInit{
 
 
 //   const regexaboutMe = /^[a-zA-Z\s,!.]+$/;
-// if (!regexaboutMe.test(this.employeeObj.aboutMe )) { 
+// if (!regexaboutMe.test(this.employeeObj.aboutMe )) {
 //     this.alertMessage = "About Me field should only contain alphabets and spaces!";
 //     this.openAlertMod(template, this.alertMessage);
 //     return false;
 // }
 
-    const regexbloodG = /^(A|B|AB|O)[+-]$/; 
-    if (!regexbloodG.test(this.employeeObj.bloodGroup)) { 
+    const regexbloodG = /^(A|B|AB|O)[+-]$/;
+    if (!regexbloodG.test(this.employeeObj.bloodGroup)) {
         this.alertMessage = "Please enter a valid Blood Group (e.g., A+, B-, AB+, O+).";
         this.openAlertMod(template, this.alertMessage);
         return false;
     }
-    
 
 
-  //  const regexpassPort =/ ^[A-Za-z0-9]+$/; 
-  //  if (!regexpassPort.test(this.employeeObj.passportNumber)) { 
+
+  //  const regexpassPort =/ ^[A-Za-z0-9]+$/;
+  //  if (!regexpassPort.test(this.employeeObj.passportNumber)) {
   //      this.alertMessage = "Please enter a valid Passport Number";
   //      this.openAlertMod(template, this.alertMessage);
   //      return false;
   //  }
-   
+
 
 
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
@@ -1017,13 +1018,13 @@ export class EmployeeInfoComponent implements OnInit{
 
     if(this.employeeObj.bankIFSCCode){
       fetch('https://ifsc.razorpay.com/'+ifscCode).then(res => res.json()).then(data => {
-        
+
         if(data == "Not Found"){
           this.openAlertMod(template, 'Please enter valid IFSC code');
           this.employeeObj.bankIFSCCode = "";
         }else if(data && this.employeeObj.bankName){
           let name = data.BANK;
-          
+
           if(this.employeeObj.bankName.localeCompare(name, undefined, { sensitivity: 'accent' }) !== 0){
             this.openAlertMod(template,  `Please enter valid IFSC code, entered IFSC Code belongs to ${name}`);
             this.employeeObj.bankIFSCCode = "";
@@ -1174,7 +1175,7 @@ if(this.errorMsg == ""){
       else{
       this.errorMsg = ""
     }
-    
+
     if(this.errorMsg == ""){
       event.target.nextElementSibling.textContent = ""
     }else{
@@ -1335,14 +1336,14 @@ if(this.errorMsg == ""){
     }else{
       this.errorMsg = ""
     }
-    
+
     if(this.errorMsg == ""){
       event.target.nextElementSibling.textContent = ""
     }else{
       event.target.nextElementSibling.textContent =  this.errorMsg
     }
   }
-  
+
   validatebankName(event, data:any){
     this.employeeObj.bankName = this.employeeObj.bankName?.trim();
     if (!this.validationService.validateNullUndefinedEmptyString(data)) {
@@ -1626,12 +1627,12 @@ event.target.nextElementSibling.textContent =  this.errorMsg
 
   // modals
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
   restrictNumbersIn(event){
@@ -1641,9 +1642,9 @@ event.target.nextElementSibling.textContent =  this.errorMsg
     if((k == 33) || (k == 34) || (k == 35) || (k == 36 ) || (k == 37) ||
     (k == 38) || (k == 39) || (k == 40) || (k == 41) || (k == 42 ) ||
     (k == 43) || (k == 44) || (k == 46 ) || (k == 47) ||
-      (k==48) || (k==49) || (k==50) || (k==51) || (k==52) || 
-      (k==53)|| (k==54)|| (k==55)|| (k==56)|| (k==57) || 
-      (k==58) || (k == 59) || (k == 60) || (k == 61) || (k == 62 ) 
+      (k==48) || (k==49) || (k==50) || (k==51) || (k==52) ||
+      (k==53)|| (k==54)|| (k==55)|| (k==56)|| (k==57) ||
+      (k==58) || (k == 59) || (k == 60) || (k == 61) || (k == 62 )
       || (k == 63) || (k == 64)){
       return (false);
     }

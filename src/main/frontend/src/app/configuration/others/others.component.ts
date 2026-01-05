@@ -1,7 +1,7 @@
 import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Domain } from 'src/app/models/domain';
@@ -16,6 +16,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 import * as XLSX from 'xlsx';
 
 @Component({
+  standalone: false,
   selector: 'app-others',
   templateUrl: './others.component.html',
   styleUrls: ['./others.component.css']
@@ -27,16 +28,16 @@ export class OthersComponent implements OnInit {
   savedFormats: CustomQueryDetails[] = [];
 
   @ViewChild("alert_message") alertTemplate: TemplateRef<any>;
-    @ViewChild("errorModal") errorTemplate: TemplateRef<any>; 
-    errorModalRef: BsModalRef = new BsModalRef();
+    @ViewChild("errorModal") errorTemplate: TemplateRef<any>;
+    errorModalRef:NgbModalRef;
 
   feature = 'Domain Config';
-   
+
   @ViewChild('fileInput', { static: false }) fileInput!: ElementRef<HTMLInputElement>;
 
   //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   all:any;
   domainToBeDeleted:any;
   userMapping: any = {};
@@ -57,7 +58,7 @@ export class OthersComponent implements OnInit {
   specializationList:any[] = [];
   allSpecializationList:any[] = [];
 
-  
+
 
 
 
@@ -90,7 +91,7 @@ availableColumn: string = '';
   constructor(
     private domainService:DomainService,
     public validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private exportExcelService: ExportExcelService,
   ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x);}
@@ -119,32 +120,32 @@ availableColumn: string = '';
   onFormatSelect(event: Event): void {
     const selectElement = event.target as HTMLSelectElement;
     const queryName = selectElement.value;
-  
+
     const selectedFormat = this.savedFormats.find(format => format.queryName === queryName);
     if (selectedFormat) {
       this.availableColumns = selectedFormat.availableColumns;
       this.selectedColumns = selectedFormat.selectedColumns;
     }
   }
-  
 
- 
 
- 
+
+
+
 
   showFileUploadForm(){
 
     this.isfileUpload = true;
     this.isDomainTable = false;
-    
-  
+
+
     this.isDomain = false;
     this.isDomainForm = false;
-  
-  
+
+
   }
   openQueryModal(): void {
-    this.modalRef = this.modalService.show(this.queryModal);
+    this.modalRef = this.modalService.open(this.queryModal);
   }
 
   saveQuery(template: TemplateRef<any>): void {
@@ -152,15 +153,15 @@ availableColumn: string = '';
       let customQueryObj = {
         queryName: this.queryName.trim(),
         createdBy: this.currentUser.empId,
-        availableColumns: this.availableColumns, 
-        selectedColumns: this.selectedColumns 
+        availableColumns: this.availableColumns,
+        selectedColumns: this.selectedColumns
       };
-  
+
       this.domainService.saveCustomQueryDetails(customQueryObj).subscribe(
         (response: any) => {
           if (response.serviceStatus === 'Success') {
             this.openAlertMod(template, response.serviceResponse);
-            this.fetchSavedFormats(); 
+            this.fetchSavedFormats();
             this.closeModal();
           } else if (response.serviceStatus === 'Fail') {
             this.openAlertMod(template, response.serviceResponse);
@@ -177,22 +178,22 @@ availableColumn: string = '';
     }
   }
 
-  
-  
-  
 
-  
+
+
+
+
 
   resetForm() {
     this.queryName = '';
   }
-  
+
 
   closeModal() {
     console.log("in closemodal.......");
-    
+
     if (this.modalRef) {
-      this.modalRef.hide();
+      this.modalRef?.close();
       this.resetForm();
     }
   }
@@ -211,11 +212,11 @@ moveColumn(direction: string): void {
   if (direction === 'right' && this.availableColumn) {
     this.selectedColumns.push(this.availableColumn);
     this.availableColumns = this.availableColumns.filter(col => col !== this.availableColumn);
-    this.availableColumn = '';  
+    this.availableColumn = '';
   } else if (direction === 'left' && this.selectedColumn) {
     this.availableColumns.push(this.selectedColumn);
     this.selectedColumns = this.selectedColumns.filter(col => col !== this.selectedColumn);
-    this.selectedColumn = '';  
+    this.selectedColumn = '';
   }
 }
 
@@ -224,10 +225,10 @@ moveColumn(direction: string): void {
 downloadExcel(): void {
   const headers = {};
   this.selectedColumns.forEach(column => {
-    headers[column] = '';  
+    headers[column] = '';
   });
 
-  
+
   const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet([headers], { skipHeader: false });
   const wb: XLSX.WorkBook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
@@ -242,7 +243,7 @@ onBillableFileSelect(event: any, template: TemplateRef<any>){
   const formData = new FormData();
   formData.append('file', this.file);
 
-  
+
 
   this.domainService.billableFile(formData).pipe(first()).subscribe(
     (response: any) => {
@@ -296,7 +297,7 @@ onDesignationUpload(event: any, template: TemplateRef<any>) {
 onEmployeeUpload(event: any, template: TemplateRef<any>) {
   const uploadedFiles = event.target.files;
   this.file = uploadedFiles[0];
-  
+
   if (!this.file) {
     this.openAlertMod(template, "Please upload a file.");
     return;
@@ -333,16 +334,16 @@ onEmployeeUpload(event: any, template: TemplateRef<any>) {
 
 
  openerrorModalTempTemp() {
-  this.errorModalRef = this.modalService.show(this.errorTemplate, { class: 'modal-lg' });
+  this.errorModalRef = this.modalService.open(this.errorTemplate, { modalDialogClass: 'modal-lg' });
 }
 
 closeErrorModal(){
-  this.errorModalRef.hide();
+  this.errorModalRef?.close();
 }
 
 
 
-   
+
 
 
 
@@ -378,18 +379,18 @@ downloadDeginationUploadFileTemplate(): void {
   XLSX.writeFile(wb, 'Bulk_Designation_Upload_Template.xlsx');
 }
 
-  
+
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
-  
+
 
   //pagination
   page = 1;
@@ -397,8 +398,8 @@ downloadDeginationUploadFileTemplate(): void {
     this.page = event;
   }
 
-  
- 
+
+
 
 
 
@@ -431,11 +432,11 @@ downloadDeginationUploadFileTemplate(): void {
   openConfirmModal(confirmTemplate: TemplateRef<any>, event: any, alertTemplate: TemplateRef<any>) {
     this.pendingFileEvent = event;
     this.pendingAlertTemplate = alertTemplate;
-    this.modalRef = this.modalService.show(confirmTemplate, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(confirmTemplate, { modalDialogClass: 'modal-sm' });
   }
 
   proceedUpload() {
-    if (this.modalRef) this.modalRef.hide();
+    if (this.modalRef) this.modalRef?.close();
     if (this.pendingFileEvent) {
       this.onEmployeeUpload(this.pendingFileEvent, this.pendingAlertTemplate);
       this.pendingFileEvent = null;
@@ -443,7 +444,7 @@ downloadDeginationUploadFileTemplate(): void {
   }
 
   cancelUpload() {
-    if (this.modalRef) this.modalRef.hide();
+    if (this.modalRef) this.modalRef?.close();
     this.resetFileInput();
     this.pendingFileEvent = null;
     this.file = null;
@@ -451,7 +452,7 @@ downloadDeginationUploadFileTemplate(): void {
 
   private resetFileInput(): void {
   if (this.fileInput && this.fileInput.nativeElement) {
-    this.fileInput.nativeElement.value = ''; 
+    this.fileInput.nativeElement.value = '';
   }
   this.file = null;
   this.pendingFileEvent = null;

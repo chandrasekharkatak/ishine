@@ -7,8 +7,7 @@
         </div>
         <h3>Team Member</h3>
 
-        <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'"
-            [tableTHeadTrId]="'projectInfoTHeadTr'">
+        <div class="overflow-auto" >
             <table class="table" id="projectInfoteammember" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light" id="projectInfoTHead">
                     <tr id="projectInfoTHeadTr">
@@ -70,8 +69,7 @@
                                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                             </a>
                         </div> -->
-                        <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'"
-                            [tableTHeadTrId]="'projectInfoTHeadTr'">
+                        <div class="overflow-auto">
                             <table class="table" id="projectInfoteaminfo" matSort (matSortChange)="sortData($event)">
                                 <thead class="thead-light" id="projectInfoTHead">
                                     <tr id="projectInfoTHeadTr">
@@ -138,14 +136,20 @@
     </div>
 
     <div class="col-md-12 mt-2" *ngIf="isProjectVisible">
-        <div class="selector-toggle">
+        <div class="selector-toggle d-flex justify-content-between align-items-center">
             <a href="javascript:void(0)" (click)="toggleSearch()">
                 <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                 <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
             </a>
+
+            <button type="button"
+                    class="btn btn-sm btn-outline-primary excel-button"
+                    (click)="exportToExcel('projectInfo')">
+                <em class="fa fa-file-arrow-down fa-2x"></em>&nbsp;
+            </button>
         </div>
-        <div class="table-container" bassHorizontalScroll [tableId]="'projectInfo'" [tableTHeadId]="'projectInfoTHead'"
-            [tableTHeadTrId]="'projectInfoTHeadTr'">
+
+        <div class="table-container">
             <table class="table fixed-header-table " id="projectInfo" matSort (matSortChange)="sortData($event)">
                 <thead class="thead-light" id="projectInfoTHead">
                     <tr id="projectInfoTHeadTr">
@@ -201,7 +205,7 @@
                           </td> -->
                           <td style="white-space: nowrap;"> 
                             {{ project.endDate | date: 'yyyy-MM-dd'}}
-                            <a *ngIf="project.endDate && isFutureDate(project.endDate)" 
+                            <a *ngIf="project.endDate && (isFutureDate(project.endDate) || currentUser.empId == 3 || currentUser.empId == 2)" 
                                href="javascript:void(0)" 
                                (click)="editEnddateModal(edit_enddate_template,project)" 
                                title="Edit End Date">
@@ -230,12 +234,10 @@
                     </tr>
                 </tbody>
             </table>
-        </div>
+
         <pagination-controls class="my-pagination" [hidden]="allProjectList.length == 0"
             (pageChange)="handlePageChange($event)"></pagination-controls>
-            <button style="float: right;" type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-            (click)="exportToExcel('projectInfo')"><em
-                class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>
+        </div>
     </div>
 </div>
 

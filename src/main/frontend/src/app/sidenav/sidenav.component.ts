@@ -12,6 +12,7 @@ interface SideNavToggle{
   collapsed: boolean;
 }
 @Component({
+  standalone: false,
   selector: 'app-sidenav',
   templateUrl: './sidenav.component.html',
   styleUrls: ['./sidenav.component.css']

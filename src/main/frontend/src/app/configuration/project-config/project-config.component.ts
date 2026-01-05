@@ -5,7 +5,7 @@ import { Employee } from 'src/app/models/employee';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { Project } from 'src/app/models/project';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { ValidationService } from 'src/app/services/validation.service';
 import { Department } from 'src/app/models/department';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
@@ -17,6 +17,7 @@ import * as moment from 'moment';
 import { Sort } from '@angular/material/sort';
 
 @Component({
+  standalone: false,
   selector: 'app-project-config',
   templateUrl: './project-config.component.html',
   styleUrls: ['./project-config.component.css']
@@ -46,7 +47,7 @@ export class ProjectConfigComponent implements OnInit {
   filteredClientList: any[] = [];
 
   alertMessage:any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   currentUser: User;
 
@@ -98,7 +99,7 @@ export class ProjectConfigComponent implements OnInit {
     private departmentService: DepartmentService,
     private employeeService: EmployeeService,
     private projectService: ProjectService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     public validationService: ValidationService,
     private exportExcelService: ExportExcelService,
     private locationStrategy: LocationStrategy,
@@ -183,7 +184,7 @@ export class ProjectConfigComponent implements OnInit {
   showTable(){
     this.isTable = true;
     this.page = 1;
-    
+
     this.isUpdateForm = false;
     this.isCreateForm = false;
     this.isCreation = false;
@@ -194,7 +195,7 @@ export class ProjectConfigComponent implements OnInit {
   }
 
   openDeleteProject(project: any,template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.projectObj = new Project();
     this.projectObj.projectId = project.projectId;
   }
@@ -212,7 +213,7 @@ export class ProjectConfigComponent implements OnInit {
   //   let newProjectObj = new Project();
   //   this.allClientLocationList.push(newProjectObj);
   //   //console.log(this.allClientLocationList, " : this.allClientLocation");
-    
+
   // }
 
   // removeInputClientLocationField(clientLocationObj) {
@@ -240,16 +241,16 @@ export class ProjectConfigComponent implements OnInit {
   getManagerList() {
     this.managerList = [];
 
-    this.employeeObj.role = "Manager";	
+    this.employeeObj.role = "Manager";
     this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
-    this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {	
-      if (response.serviceStatus == "Success") {	
+    this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
         this.managerList = response.serviceResponse;
         //console.log("managerList : ", this.managerList);
-      } else {	
-        console.error(response.serviceResponse)	
-      }	
-    });	
+      } else {
+        console.error(response.serviceResponse)
+      }
+    });
   }
 
   getAllClientList() {
@@ -381,7 +382,7 @@ export class ProjectConfigComponent implements OnInit {
     this.projectObj.projectName = this.projectObj.projectName?.trim();
     this.projectObj.createdBy = this.currentUser.empId;
     //console.log("     :   ",this.projectObj);
-    
+
     this.projectService.checkProjectName(this.projectObj).pipe(first()).subscribe((response :any)=>{
       if(response.serviceStatus == "Fail"){
         this.projectObj.departmentName = this.projectObj.departmentList;
@@ -398,7 +399,7 @@ export class ProjectConfigComponent implements OnInit {
       }
     })
 
-   
+
   }
 
   updateProject(template: TemplateRef<any>){
@@ -458,21 +459,21 @@ export class ProjectConfigComponent implements OnInit {
 
   //modal
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
-  sortData(sort: Sort){	
+  sortData(sort: Sort){
     //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
 

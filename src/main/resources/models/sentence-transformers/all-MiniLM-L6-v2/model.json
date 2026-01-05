@@ -1,0 +1,13 @@
+{
+    "model": {
+        "name": "all-MiniLM-L6-v2",
+        "version": "1.0.0",
+        "engine": "PyTorch",
+        "input": {
+            "type": "String"
+        },
+        "output": {
+            "type": "float[]"
+        }
+    }
+}

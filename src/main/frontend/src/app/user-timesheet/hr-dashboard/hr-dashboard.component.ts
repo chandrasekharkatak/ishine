@@ -4,7 +4,7 @@ import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import * as Highcharts from 'highcharts';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first, map, startWith } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
 import { GetEmployeeViewForClientAttendanceStatus } from 'src/app/models/getEmployeeViewForClientAttendanceStatus';
@@ -25,6 +25,7 @@ import { GetEmployeeTimesheetAsCalender } from 'src/app/models/getEmployeeTimesh
 import { getEmployeeTimesheetAsCalenderByProjectId } from 'src/app/models/getEmployeeTimesheetAsCalenderByProjectId';
 import { EmployeeTimesheetResponse } from 'src/app/models/employeeTimesheetResponse';
 import { getProjectViewList } from 'src/app/models/getProjectViewList';
+import { Feature } from 'src/app/models/feature';
 
 
 interface DayCell {
@@ -73,6 +74,7 @@ export interface EmployeeTimesheet {
 
 
 @Component({
+  standalone: false,
   selector: 'app-hr-dashboard',
   templateUrl: './hr-dashboard.component.html',
   styleUrls: ['./hr-dashboard.component.css']
@@ -87,8 +89,8 @@ export class HrDashboardComponent implements AfterViewInit {
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
   alertTemplate_insight: TemplateRef<any>;
-  modalRef2?: BsModalRef;
-  modalRef?: BsModalRef;
+  modalRef2?: NgbModalRef;
+  modalRef?: NgbModalRef;
   @ViewChild("previewTemplate")
   previewModal: TemplateRef<any>;
   @ViewChild('timesheet_summary_template') timesheetSummaryTemplate!: TemplateRef<any>;
@@ -278,9 +280,9 @@ selectedEmployeeStatus : string = 'Active';
   projectViewClient: getProjectViewList =new getProjectViewList ();
   @ViewChild("alert_message_all_employee")
   alertTemplateAllEmployee: TemplateRef<any>;
-  modalRefAllEmployee?: BsModalRef;
+  modalRefAllEmployee?: NgbModalRef;
   today2: string = new Date().toISOString().split('T')[0];
-  modalRefForInsightValidation?: BsModalRef;
+  modalRefForInsightValidation?: NgbModalRef;
 
   filteredTimesheetData: EmployeeTimesheetResponse[] = [];
   daysInMonth: { dayNumber: number; dayName: string }[] = [];
@@ -300,13 +302,26 @@ projectBillableTypes: string[] = ['TNM', 'Fixed Cost', 'Monitoring','All'];
 selectedStatus:String = "All" ;
 newSelectedStatus:String = "";
 
+employeeViewBullet : string[] = ["Provides a resource-centric, month-wise overview across projects.",
+"Displays timesheet completion and approval status for each individual resource.",
+"Indicates the compliance state for the selected month.",
+"Helps identify resources with missing, pending, or rejected timesheets.",
+"Supports managerial action to ensure compliance before invoicing or payroll processing."];
+
+projectViewBullet : string[] =["Provides a consolidated, month-wise view at the project level.",
+"Displays overall timesheet status and compliance health for the project.",
+"Shows approval readiness and invoicing eligibility of mapped resources.",
+"Helps identify defaulters and pending approvals at a glance.",
+"Enables quick project-level assessment without drilling down to individual employee details."];
+
 tiles: any[] = [];
 tileGroups: any[] = [];
-
+  userMapping:any = {};
+  feature = "Timesheets Dashboard";
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private projectService: ProjectService,
     private resourceManagementService: ResourceManagementService,
     private exportExcelService: ExportExcelService,
@@ -318,8 +333,11 @@ tileGroups: any[] = [];
 
   async ngOnInit(): Promise<void> {
 
-
-
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
+    console.log("*ngIf=userMapping.export_timesheet_details",this.userMapping.export_timesheet_details)
     const currentYear = this.currentDate.getFullYear();
     this.minYear = new Date(currentYear - 1, 0, 1);
     this.maxYear = new Date(currentYear, 11, 31);
@@ -574,12 +592,12 @@ tileGroups: any[] = [];
 
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openAlertMod1(template1: TemplateRef<any>, message: any) {
-    this.modalRef2 = this.modalService.show(template1, { class: 'modal-sm' });
+    this.modalRef2 = this.modalService.open(template1, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
@@ -609,7 +627,7 @@ tileGroups: any[] = [];
   //       (data: any[]) => {
   //         this.employeeTimesheet = data;
   //         console.log('Timesheet:', data);
-  //         this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  //         this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   //         this.fromDate = null;
   //         this.toDate = null;
   //         this.timesheetObj.empId = '' ;
@@ -669,7 +687,7 @@ tileGroups: any[] = [];
       }
 
       if (openModal && template) {
-        this.modalRef = this.modalService.show(template, { class: "modal-xl" });
+         this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
       }
     },
     (error) => {
@@ -701,12 +719,12 @@ tileGroups: any[] = [];
   }
   cancelRequest() {
     if (this.modalRef) {
-      this.modalRef.hide();
+      this.modalRef?.close();
     }
   }
   cancelRequest1() {
-    // this.modalRef.hide();
-    this.modalRef2.hide();
+    // this.modalRef?.close();
+    this.modalRef2.close();
   }
 
   previewDocument(entry: any): void {
@@ -1020,7 +1038,7 @@ updateBillableTypes() {
 
   this.currentColumnFilter = { ...this.timesheetSummaryColumnsFilters };
   this.getEmployeeTimesheetsByProject();
-  this.modalRef = this.modalService.show(this.timesheetSummaryTemplate, { class: 'modal-xl' });
+  this.modalRef = this.modalService.open(this.timesheetSummaryTemplate, { modalDialogClass: 'modal-xl' });
 }
 
   getEmployeeTimesheetsByProject() {
@@ -1041,7 +1059,7 @@ updateBillableTypes() {
         this.employeeListAccordingToProject = response.serviceResponse;
         this.insightPageTotalItems = response.totalElements;
         console.log("test", this.employeeListAccordingToProject);
-        // this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+        // this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
         // this.fromDate = null;
         // this.toDate = null;
         // this.timesheetObj.projectId = '' ;
@@ -1056,13 +1074,13 @@ updateBillableTypes() {
 
   openInsightValidationModal(template: TemplateRef<any>, message: string): void {
     this.alertMessage = message;
-    this.modalRefForInsightValidation = this.modalService.show(template, {
-      class: 'modal-sm insight-validation-alert-modal'
+    this.modalRefForInsightValidation = this.modalService.open(template, {
+      modalDialogClass: 'modal-sm insight-validation-alert-modal'
     });
   }
 
   closeInsightValidationModal(): void {
-    this.modalRefForInsightValidation?.hide();
+    this.modalRefForInsightValidation?.close();
   }
   getEmployeeTimesheetsByProjectForExcel(template: TemplateRef<any>): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -1089,7 +1107,7 @@ updateBillableTypes() {
               this.employeeListAccordingToProjectForExcel = response.serviceResponse;
               this.totalItems = response.totalElements;
               this.dataForExcel = false;
-              this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+              this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
               this.fromDate = null;
               this.toDate = null;
               this.timesheetObj.projectId = '';
@@ -1196,6 +1214,8 @@ updateBillableTypes() {
         // this.openAlertMod(response.serviceResponse);
       }
     });
+
+    this.getTimesheetDashboardCount(this.month, this.year);
   }
 
 getCountByStatus(status: string) {
@@ -1310,7 +1330,7 @@ getCountByStatus(status: string) {
 
 
     // Open modal
-    this.modalRef2 = this.modalService.show(this.previewModal, { class: 'modal-lg' });
+    this.modalRef2 = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-lg' });
   }
 
   toggleSearch(): void {
@@ -1454,7 +1474,7 @@ getCountByStatus(status: string) {
           this.paginationArray = Array.from({ length: totalPages }, (_, i) => i + 1);
 
           console.log('Timesheet:', data);
-          this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+          this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
 
           // Reset form fields after search
           this.fromDate = null;
@@ -1966,8 +1986,8 @@ cancelHidePopup() {
 getTiles() {
   this.tileGroups = []; // Reset groups
 
-  // -------------------------  
-  // CASE 1: !toggleValue  
+  // -------------------------
+  // CASE 1: !toggleValue
   // -------------------------
   if (!this.toggleValue) {
 
@@ -2034,6 +2054,57 @@ getTiles() {
     ];
   }
 }
+
+
+getTileColor(tileClass: string): string {
+  if (tileClass.includes('border-start-primary')) return '#0d6efd';
+  if (tileClass.includes('border-start-success')) return '#198754';
+  if (tileClass.includes('border-start-warning')) return '#ffc107';
+  if (tileClass.includes('border-start-danger'))  return '#dc3545';
+  return '#6c757d';
+}
+
+
+getTileInfo(status: string): string[] {
+  switch (status) {
+
+    case 'All':
+      return ['Represents the total number of employees required to submit timesheets for the selected month.',
+'Calculated based on active project mapping for the selected month.',
+'Considers the resource engagement period within the selected month.',
+'Determined by the applicable billing type.'];
+
+    case 'Approved':
+      return ['Includes resources who have completed iShine timesheets for the selected period.',
+'Confirms submission of valid client-side approval proof, where applicable (e.g., approved VMS timesheets).',
+'Indicates no pending actions or approvals.',
+'Records are fully compliant with timesheet requirements.',
+'Resources in this status are eligible for invoicing.'];
+
+    case 'Pending':
+      return ['Includes resources who have filled iShine timesheets for the selected period.',
+'Indicates that client-side approval has not yet been received.',
+'Approved client-side documents are awaited from the client (not yet uploaded).',
+'Typically applicable to resources with mandatory client-side IDs or client-side VMS systems.',
+'Status applies when approval proof is pending for more than 2 days after timesheet completion.'];
+
+    case 'Total_defaulter':
+    case 'Defaulter':
+      return ['Includes resources who have not filled iShine timesheets for two or more applicable days.',
+'Also applies where required client-side approval proof is missing or delayed.',
+'Indicates non-compliance with defined timelines.',
+'Resources in this status are not eligible for invoicing.',
+'Status is cleared only after all pending timesheet entries and approvals are completed.'];
+
+    default:
+      return ['Includes resources who have not filled their iShine timesheet for the selected period.',
+'Status is shown irrespective of client-side attendance or approvals.',
+'Indicates missing or incomplete timesheet entries in iShine.',
+'Immediate action required from the resource.',
+'If not resolved, the resource may be marked as a Defaulter.'];
+  }
+}
+
 
 
 
@@ -2366,12 +2437,12 @@ onBillableTypeChangeManual() {
   }
 
   openAlertModAllEmployee(message: any) {
-    this.modalRefAllEmployee = this.modalService.show(this.alertTemplate, { class: 'modal-sm' });
+    this.modalRefAllEmployee = this.modalService.open(this.alertTemplate, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   closeAlertModAllEmployee() {
-    this.modalRefAllEmployee.hide();
+    this.modalRefAllEmployee.close();
   }
 
   exportToExcelForAllProject(): void {

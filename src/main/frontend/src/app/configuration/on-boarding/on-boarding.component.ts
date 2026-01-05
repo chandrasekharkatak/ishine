@@ -2,7 +2,7 @@ import { Component, OnInit, TemplateRef } from '@angular/core';
 import { first } from 'rxjs/internal/operators/first';
 import { Asset } from 'src/app/models/asset';
 import { OnBoardingService } from 'src/app/services/on-boarding.service';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { User } from 'src/app/models/user';
 import { ValidationService } from 'src/app/services/validation.service';
@@ -10,6 +10,7 @@ import { UtilityService } from 'src/app/services/utility.service';
 import { Feature } from 'src/app/models/feature';
 
 @Component({
+  standalone: false,
   selector: 'app-on-boarding',
   templateUrl: './on-boarding.component.html',
   styleUrls: ['./on-boarding.component.css']
@@ -25,25 +26,25 @@ export class OnBoardingComponent implements OnInit {
   departmentList:any[] = [];
   updatedAssetList:any[] = [];
 
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
-  
+
 
   userMapping: any = {};
   feature = "Onboarding Config";
-  
+
   constructor(
     private onBoardingService : OnBoardingService,
     private authenticationService : AuthenticationService,
     private validationService:ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private utilityService: UtilityService,
   ) {
      this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     }
 
     async ngOnInit(): Promise<void> {
-      
+
 
       // Dynamic Subfeature Flags
       let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -109,15 +110,15 @@ export class OnBoardingComponent implements OnInit {
   const value = input.value;
   const key = event.key;
 
- 
+
   // if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(key)) return;
 
- 
+
   const validPrefix = value.startsWith('A-') || value.startsWith('AP-');
   const digitsOnly = value.replace(/^A-|^AP-/, '');
 
   if (!validPrefix && value.length < 3) {
-  
+
     if (value === '' && key === 'A') return;
     if (value === 'A' && key === 'P') return;
     if (value === 'A' && key === '-') return;
@@ -126,9 +127,9 @@ export class OnBoardingComponent implements OnInit {
     return;
   }
 
- 
+
   if (validPrefix) {
-   
+
     if (!/^\d$/.test(key) || digitsOnly.length >= 6) {
       event.preventDefault();
     }
@@ -266,7 +267,7 @@ getEmpIdPrefixFromFlags(employee: any): string {
     //   assetObj.employeementId  = assetObj.employeementId;
     // }
 
-  
+
 
     this.onBoardingService.updateOnBoardingCheckList(assetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -278,12 +279,12 @@ getEmpIdPrefixFromFlags(employee: any): string {
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
 }

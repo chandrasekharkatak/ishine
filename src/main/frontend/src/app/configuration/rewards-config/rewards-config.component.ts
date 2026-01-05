@@ -2,8 +2,8 @@ import { LocationStrategy } from '@angular/common';
 import { Component, EventEmitter, Input, OnInit, Output, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
-import { first } from 'rxjs/operators';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { debounceTime, first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Feature } from 'src/app/models/feature';
 import { Query } from 'src/app/models/query';
@@ -15,6 +15,7 @@ import { LeaveService } from 'src/app/services/leave.service';
 import { RewardsServiceService } from 'src/app/services/rewards-service.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { FormControl } from '@angular/forms';
 
 class Operator{
   name:string;
@@ -28,12 +29,13 @@ class storedData{
 }
 
 @Component({
+  standalone: false,
   selector: 'app-rewards-config',
   templateUrl: './rewards-config.component.html',
   styleUrls: ['./rewards-config.component.css']
 })
 export class RewardsConfigComponent implements OnInit {
-
+  inputControl = new FormControl('');
   feature = "Rewards Config";
   currentUser: User;
   userMapping: any = {};
@@ -42,8 +44,8 @@ export class RewardsConfigComponent implements OnInit {
   rewardsObj= new Rewards();
   allCategoryist: any[];
   employeeColumns: any[] = [
-    'Employee Id', 'Full Name', 'Department', 'Designation', 'Job Role', 'Manager', 'Team Name', 
-    'Project Name','Client Name', 'Employment Status', 'Date Of Joining','Gender', 
+    'Employee Id', 'Full Name', 'Department', 'Designation', 'Job Role', 'Manager', 'Team Name',
+    'Project Name','Client Name', 'Employment Status', 'Date Of Joining','Gender',
      'Probation Period', 'Notice Period','Experience',
   ];
   items = 10;
@@ -54,15 +56,15 @@ export class RewardsConfigComponent implements OnInit {
   operatorList:Operator[]=[{name:"Equal",symbol:"="},{name:"Contains",symbol:"like"},{name:"Less than",symbol:"<"},
   {name:"Greater Than",symbol:">"},{name:"Less or Equal",symbol:"<="},{name:"Greater or equal",symbol:">="},
   {name:" Not Equal",symbol:"!="}];
-  conjunctionList:Operator[]=[{name:"AND",symbol:"AND"},{name:"OR",symbol:"OR"}]; 
+  conjunctionList:Operator[]=[{name:"AND",symbol:"AND"},{name:"OR",symbol:"OR"}];
   queryList:Query[]=[new Query()];
   invalidForm: boolean;
   valueOptionList = [];
   keyword = "name";
   storedFilterData:storedData[] = [new storedData()];
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
-  rewardsList: Rewards[] = []; 
+  modalRef:NgbModalRef;
+  rewardsList: Rewards[] = [];
   allCategoryList: any[] = [];
   isSearchEnabled: boolean = false;
   rewardsColumns: any[] = ['','rewardName','categoryName','rewardTypes','createdByName','createdOn','updatedByName','updatedOn',''];
@@ -76,28 +78,34 @@ export class RewardsConfigComponent implements OnInit {
   sortColumnType:any;
   allDeptList: any;
   isEditMode: boolean = false;  // Flag to determine create or edit mode
-  rewardIdToEdit: number;  
+  rewardIdToEdit: number;
   rewardTeams: number = 0;
-  
+
 
   @Input() data: any;
-  @Output() filterSubmitted:EventEmitter<any> =  new EventEmitter<any>(); 
+  @Output() filterSubmitted:EventEmitter<any> =  new EventEmitter<any>();
 
   constructor(
     private rewardsService: RewardsServiceService,
     private authenticationService: AuthenticationService,
     private leaveService : LeaveService,
     private locationStrategy : LocationStrategy,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private exportExcelService: ExportExcelService,
     private utilityService: UtilityService,
     private validationService:ValidationService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+     this.inputControl.valueChanges
+          .pipe(debounceTime(300))
+          .subscribe(value => {
+            this.keyword = value;
+            this.onChangeSearch(value);
+          });
    }
 
    async ngOnInit(): Promise<void> {
-   
+
     this.fetchAllRewards();
     this.showRewardSub();
     this.columnList = this.employeeColumns;
@@ -185,7 +193,7 @@ export class RewardsConfigComponent implements OnInit {
     let queryObj = new Query();
     queryObj.column = column;
     this.leaveService.getValueOptionData(queryObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {        
+      if (response.serviceStatus == "Success") {
         this.valueOptionList = response.serviceResponse;
         if(column == 'Employee Id'){
           this.valueOptionList.forEach((x) => {
@@ -196,7 +204,7 @@ export class RewardsConfigComponent implements OnInit {
       } else {
         //console.log(response.serviceResponse, " : response.serviceResponse");
       }
-    }); 
+    });
   }
 
   removeFilter(i){
@@ -241,7 +249,7 @@ export class RewardsConfigComponent implements OnInit {
 
   validateData(){
     for(let i=1;i<this.queryList.length;i++){
-      if(!this.queryList[i].column || !this.queryList[i].operator || !this.queryList[i].value || 
+      if(!this.queryList[i].column || !this.queryList[i].operator || !this.queryList[i].value ||
         (i<this.queryList.length-1 && !this.queryList[i].conjunction)){
         this.invalidForm=true;
         return false;
@@ -253,14 +261,14 @@ export class RewardsConfigComponent implements OnInit {
 openForm(id:any,mode: string,template: TemplateRef<any> ) {
   this.isEditMode = mode === 'edit';
   if (this.isEditMode) {
-      this.rewardSub = true; 
+      this.rewardSub = true;
       this.rewardSubData=false;
-      
+
       this.rewardsService.getAllRewardsByRewardId(id).subscribe((response: any) => {
-       
+
         if (response.serviceStatus === 'Success' && response.serviceResponse.length > 0) {
           const rewardData = response.serviceResponse[0];
-        
+
           this.rewardsObj = {
             ...this.rewardsObj,
             rewardName: rewardData.rewardName,
@@ -282,7 +290,7 @@ openForm(id:any,mode: string,template: TemplateRef<any> ) {
         }
       });
 
-     
+
   }
   else {
     this.resetForm();
@@ -298,37 +306,37 @@ openForm(id:any,mode: string,template: TemplateRef<any> ) {
     this.rewardTypes = rewardObj.rewardTypes || [];
     this.queryList = rewardObj.customFilterDTOList || [];
   }
-  
+
 
     validateActivityObj(activityObj:Rewards, template: TemplateRef<any>) {
-  
+
       if (!this.validationService.validateNullUndefinedEmptyString(activityObj.categoryId)) {
         this.alertMessage = "Please select Category !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-  
-     
-      
-     
+
+
+
+
       if (!this.validationService.validateNullUndefinedEmptyString(activityObj.rewardName)) {
         this.alertMessage = "Please enter reward Sub Category !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-     
-  
-      
-  
+
+
+
+
       // if (!activityObj.customFilterDTOList || activityObj.customFilterDTOList.length === 0) {
       //   this.alertMessage = "Please add values in custom Filter !!";
       //   this.openAlertMod(template, this.alertMessage);
       //   return false;
       // }
 
-      
-     
-  
+
+
+
       // if (!this.validationService.validateNullUndefinedEmptyString(activityObj.eta)) {
       //   this.alertMessage = "Please enter Activity ETA (Hours)!!"
       //   this.openAlertMod(template, this.alertMessage);
@@ -338,15 +346,15 @@ openForm(id:any,mode: string,template: TemplateRef<any> ) {
       //   this.openAlertMod(template, this.alertMessage);
       //   return false;
       // }
-  
+
       return true;
     }
   onSubmit(template: TemplateRef<any>) {
     let inputValidated: boolean = this.validateActivityObj(this.rewardsObj, template)
     if (!inputValidated) return;
 
-   
-  
+
+
     if (this.validateData()) {
       this.rewardsObj.categoryId = parseInt(this.rewardsObj.categoryId, 10);
       this.rewardsObj.rewardName = (<HTMLInputElement>document.querySelector('input[placeholder="Enter Sub Category name"]')).value;
@@ -356,14 +364,14 @@ openForm(id:any,mode: string,template: TemplateRef<any> ) {
         this.openAlertMod(template, this.alertMessage);
         return;
       }
-     
+
       // this.rewardsObj.createdBy = this.currentUser.empId;
       this.rewardsObj.customFilterDTOList = this.queryList.map(filter => {
         return {
           ...filter,
           value: typeof filter.value === 'object' && filter.value !== null ? filter.value.name : filter.value,
-          conjunction: filter.conjunction || "",  
-          customQuery: filter.customQuery || ""   
+          conjunction: filter.conjunction || "",
+          customQuery: filter.customQuery || ""
         };
       });
     // Check if customFilterDTOList is null, undefined, or empty
@@ -375,7 +383,7 @@ if (!this.rewardsObj.customFilterDTOList || this.rewardsObj.customFilterDTOList.
 
 // Validate each filter object in the customFilterDTOList
 for (const filter of this.rewardsObj.customFilterDTOList) {
-  
+
   // Check if 'value' is undefined, null, or empty
   if (filter.value === undefined || filter.value === null || filter.value.trim() === "") {
     this.alertMessage = "Each filter must have a valid value.";
@@ -397,7 +405,7 @@ console.log("Validation passed for customFilterDTOList");
 
 // Continue with your logic for further processing
 
-    
+
       console.log("Submit Button : ", this.rewardsObj);
 
       this.rewardsObj.isTeam=this.rewardTeams ;
@@ -438,17 +446,17 @@ console.log("Validation passed for customFilterDTOList");
 
    onToggle(event: Event): void {
     const checkbox = event.target as HTMLInputElement;
-    this.rewardTeams = checkbox.checked ? 1 : 0; 
+    this.rewardTeams = checkbox.checked ? 1 : 0;
     console.log("Reward Teams : ", this.rewardTeams);
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
   fetchAllRewards() {
@@ -475,7 +483,7 @@ console.log("Validation passed for customFilterDTOList");
   }
 
   // onSearch(searchData){
-  //   this.filters[searchData.key] = searchData.value;  
+  //   this.filters[searchData.key] = searchData.value;
   //   console.log("Updated Filter : ", this.filters);
   // }
 
@@ -505,7 +513,7 @@ console.log("Validation passed for customFilterDTOList");
       if (response.serviceStatus == "Success") {
         this.rewardsDataForExcel = response.serviceResponse;
         //console.log("response.serviceResponse: ",response.serviceResponse);
-      } 
+      }
       const onlySpecificDataArr = this.rewardsDataForExcel.map(
         x => ({
           "Reward Name": x.rewardName,
@@ -523,10 +531,10 @@ console.log("Validation passed for customFilterDTOList");
   }
 
   deleteRewardsByRewardId(template: TemplateRef<any>,id:any){
-    
+
       this.rewardsService.deleteRewardsByRewardId(id).subscribe((response: any) => {
         if (response.serviceStatus === 'Success') {
-          console.log(response)      
+          console.log(response)
           console.log('Reward deleted successfully', response);
           this.openAlertMod(template, response.serviceResponse);
           this.fetchAllRewards();
@@ -534,9 +542,9 @@ console.log("Validation passed for customFilterDTOList");
           this.openAlertMod(template, response.serviceResponse);
         }
       });
-   
 
-   
+
+
   }
   refresh(){
   }
@@ -554,37 +562,37 @@ console.log("Validation passed for customFilterDTOList");
     this.rewardsObj.categoryId='';
     this.rewardType='';
     this.rewardTypes=[]
-    this.rewardsObj = new Rewards(); 
-    this.rewardTypes = []; 
-    this.queryList = [new Query()]; 
-    this.invalidForm = false; 
+    this.rewardsObj = new Rewards();
+    this.rewardTypes = [];
+    this.queryList = [new Query()];
+    this.invalidForm = false;
     this.rewardTeams = 0;
     this.isEditMode = false;
   }
 
 
-  
+
 
    restrictInput(event) {
     const inputField = event.target;
     const value = inputField.value;
 
-   
+
     if (value.length === 0 && (event.key === ' ' || event.key === '-')) {
         event.preventDefault();
     }
 
-    
+
     if (value.length === 0 && event.key >= '0' && event.key <= '9') {
         event.preventDefault();
     }
 
-    
+
     if (value.length >= 20) {
         event.preventDefault();
     }
 
-    
+
     if (!event.key.match(/[0-9a-zA-Z\s-]/)) {
         event.preventDefault();
     }
@@ -597,14 +605,14 @@ console.log("Validation passed for customFilterDTOList");
 
   confirm(template: TemplateRef<any>) {
     this.confirmResult = true;
-    this.modalRef?.hide();
+    this.modalRef?.close();
     this.deleteRewardsByRewardId(template,this.selectedRewardId);
   }
 
   // Cancel action
   decline() {
     this.confirmResult = false;
-    this.modalRef?.hide();
+    this.modalRef?.close();
 
     console.log("User clicked NO",this.selectedRewardId);
   }
@@ -612,8 +620,8 @@ console.log("Validation passed for customFilterDTOList");
 
   openConfirmationPopup(template: TemplateRef<any>,reward:any) {
     this.selectedRewardId = reward;
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
- 
+
 }

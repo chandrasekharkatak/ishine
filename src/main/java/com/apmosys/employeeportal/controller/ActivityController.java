@@ -18,6 +18,8 @@ public class ActivityController {
 	@Autowired
 	ActivitiesService activitiesService;
 	
+	
+
 	@JobRoleAccess(featureIds = {7})
 	@RequestMapping(value="/createActivity" , method = RequestMethod.POST)
 	public ServiceResponse createActivity(@RequestBody ActivityDTO activityDTO) {		

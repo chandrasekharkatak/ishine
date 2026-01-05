@@ -1,0 +1,105 @@
+<div class="row">
+  <div class="col-md-12">
+    <div class="selector-toggle">
+      <a href="javascript:void(0)">
+        <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
+        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
+      </a>
+    </div>
+
+    <div class="overflow-auto">
+      <table class="table" matSort (matSortChange)="sortData($event)">
+        <thead class="thead-light">
+          <tr>
+            <th scope="col" class="info-label">Sr. No</th>
+            <th scope="col" class="info-label" mat-sort-header="domain|string">Domain Name</th>
+            <th scope="col" class="info-label" mat-sort-header="createdBy|string">Created By</th>
+            <th scope="col" class="info-label" mat-sort-header="createdOn|date">Created At</th>
+            <th scope="col" class="info-label" mat-sort-header="isActive|string">Status</th>
+            <th scope="col" class="info-label" mat-sort-header="isApproved|string">Approved Status</th>
+            <th scope="col" class="info-label" mat-sort-header="approvedBy|string">Approved By</th>
+            <th scope="col" class="info-label">Actions</th>
+          </tr>
+          <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="domainSearchFilterColumn"
+            (onSearch)="onDomainSearch($event);">
+          </tr>
+        </thead>
+        <tbody style="align-items: center;">
+          <tr *ngIf="">
+            <th colspan="8" class="text-center info-label">No details to display...</th>
+          </tr>
+          <tr *ngFor="let domain of allDomainData | paginate: { itemsPerPage: limit, currentPage: page, totalItems:totalItems } let i = index ">
+            <th class="info-label">{{ i + 1 + ((page - 1)  * limit) }}</th> 
+            <td [title]="domain.domain" >{{getName(domain.domain)}}</td>
+            <td [title]="domain.createdBy" >{{getName(domain.createdBy)}}</td>
+            <td >{{domain.createdOn | date:'dd-MM-yyyy  hh:mm:ss' }}</td>
+            <td>
+              <label class="switch">
+                <input type="checkbox" [checked]="domain.isActive" (click)="openDeleteModal( domain, $event)">
+                <span class="slider round"></span>
+              </label>
+            </td>
+            <td>
+              <div class="badge-status" [ngClass]="{
+                'approved': domain.isApproved.toLowerCase() === 'approved',
+                'rejected': domain.isApproved.toLowerCase() === 'rejected',
+                'pending': domain.isApproved.toLowerCase() === 'pending'
+              }">
+                {{domain.isApproved | titlecase }}
+              </div>
+            </td>
+            <td [title]="domain.approvedBy" >
+              {{ getName(domain.approvedBy) }}
+            </td>
+            <td style="display: flex; gap: 10px; overflow: visible;">
+              <button (click)="viewDomain(domain)" class="btn btn-sm btn-outline-secondary"><em
+                  class="fa fa-eye mr-1"></em>View</button>
+              <button title="Edit" (click)="editDomain(domain)" class="btn btn-sm btn-outline-secondary"><em
+                  class="fa fa-edit mr-1"></em>Edit</button>
+              <button *ngIf="domain.isApproved.toLowerCase() === 'pending'"
+                (click)="updateIsApprovedDomain(domain.domainId, 'approved')" class="btn btn-sm btn-outline-success"><em
+                  class="fa fa-check-circle mr-1"></em>Approve</button>
+              <button *ngIf="domain.isApproved.toLowerCase() === 'pending'"
+                (click)="updateIsApprovedDomain(domain.domainId, 'rejected')" class="btn btn-sm btn-outline-danger"><em
+                  class="fa fa-times mr-1"></em>Reject</button>
+            </td>
+          </tr>
+        </tbody>
+        
+      </table>
+    </div>
+    <pagination-controls class="my-pagination" [hidden]="allDomainData.length == 0"
+         (pageChange)="handlePageChange($event)"></pagination-controls>
+  </div>
+  
+</div>
+
+
+<div *ngIf="selectedDomain && isVisible" class="custom-modal-wrapper">
+  <div class="custom-modal-backdrop" (click)="onCloseModal()"></div>
+  <div class="custom-modal-container">
+      <div *ngIf="isEditing" >
+        <app-project-insight-domain-modal [viewing]="isViewing" [incomingDomain]="selectedDomain" [isEditing]="isEditing" [isVisible]="isVisible" (onClose)="onCloseModal()"></app-project-insight-domain-modal>
+      </div>
+      <div *ngIf="!isEditing">
+        <app-ViewDomain  [domain]="selectedDomain" [isEditing]="isEditing" (onClose)="onCloseModal()"></app-ViewDomain>
+      </div>
+  </div>
+</div>
+
+<ng-template #deleteDomainConfirmation>
+  <div class="modal-header">
+    <h5 class="modal-title">Confirm Deletion</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modalRef?.close()"></button>
+  </div>
+
+  <div class="modal-body">
+    <p>Are you sure you want to {{selectedDomainToDelete.isActive ? 'deactivate' : 'activate'}} this domain?</p>
+  </div>
+
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modalRef?.close()">Cancel</button>
+    <button type="button" class="btn btn-primary" (click)="deleteDomain()">Yes, {{selectedDomainToDelete.isActive ?
+      'Deactivate' : 'Activate'}} </button>
+  </div>
+</ng-template>

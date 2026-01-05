@@ -2,6 +2,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 
 @Component({
+  standalone: false,
   selector: 'app-view-milestone-image',
   templateUrl: './view-image.component.html',
   styleUrls: ['./view-image.component.css']
@@ -13,7 +14,7 @@ export class ViewImageComponent implements OnInit {
   ngOnInit(): void {
   }
   closeModal(): void {
-  this.dialogRef.close();
+  this.dialogRef?.close();
 }
 
 }

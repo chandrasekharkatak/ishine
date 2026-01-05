@@ -1,5 +1,5 @@
 import { Component, OnInit,TemplateRef } from '@angular/core';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { ValidationService } from 'src/app/services/validation.service';
 import { AppreciationService } from '../services/appreciation.service';
 import { first } from 'rxjs/operators';
@@ -16,6 +16,7 @@ import { SanitizerService } from '../services/sanitizer.service';
 
 
 @Component({
+  standalone: false,
   selector: 'app-user-appreciation',
   templateUrl: './user-appreciation.component.html',
   styleUrls: ['./user-appreciation.component.css']
@@ -25,7 +26,7 @@ export class UserAppreciationComponent implements OnInit {
  // jobRoleObj: Appreciation = new Appreciation();
   //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   allEmployee: any[];
   all:any;
@@ -54,7 +55,7 @@ export class UserAppreciationComponent implements OnInit {
 
   constructor(private appreciationService : AppreciationService,
     private authenticationService: AuthenticationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private validationService: ValidationService,
     private locationStrategy: LocationStrategy,
     private sanitizerService: SanitizerService
@@ -99,7 +100,7 @@ export class UserAppreciationComponent implements OnInit {
   }
   // toggleFunctionforreceived() {
   //   this.clickCount2 = 0;
-    
+
   //   if (this.clickCount === 0) {
   //     this.showMyAppreciation();
   //     this.recieve=true;
@@ -127,7 +128,7 @@ export class UserAppreciationComponent implements OnInit {
   }
 //   toggleFunctionforsent() {
 // this.clickCount = 0;
-   
+
 
 //     if (this.clickCount2 === 0) {
 //       this.showSentAppreciation();
@@ -138,7 +139,7 @@ export class UserAppreciationComponent implements OnInit {
 //       this.hideSentAppreciation();
 //       this.clickCount2 = 0;
 //     }
- 
+
 //   }
 
 
@@ -328,7 +329,7 @@ showDetailTable = false;
     });
   }
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
@@ -435,6 +436,6 @@ showDetailTable = false;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 }

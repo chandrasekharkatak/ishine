@@ -10,7 +10,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AppComponent } from 'src/app/app.component';
 
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { Asset } from 'src/app/models/asset';
 import { Breadcrumb } from 'src/app/models/breadcrumd';
@@ -38,13 +38,14 @@ import { Certificate } from 'src/app/models/certificate';
 import { EncryptionService } from 'src/app/services/EncryptionService';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 @Component({
+  standalone: false,
   selector: 'app-employee360-profile',
   templateUrl: './employee360-profile.component.html',
   styleUrls: ['./employee360-profile.component.css']
 })
 export class Employee360ProfileComponent implements OnInit {
   employeeId!: string;
-  //flags 
+  //flags
   isUpdateProfile: boolean = false;
 
   currentUser: any;
@@ -79,9 +80,9 @@ export class Employee360ProfileComponent implements OnInit {
   isSearchEnabled: boolean = false;
   listOfReporties: any;
   // <-->
-  //modal 
+  //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   currentBreadcrumbList: any[] = [];
   referedTypeStatus: boolean = false;
   allCertificationList: any[] = [];
@@ -103,7 +104,7 @@ export class Employee360ProfileComponent implements OnInit {
     private validationService: ValidationService,
     private authenticationService: AuthenticationService,
     private datePipe: DatePipe,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private sanitizer: DomSanitizer,
     private imageService: ImageService,
     private locationStrategy: LocationStrategy,
@@ -132,7 +133,7 @@ export class Employee360ProfileComponent implements OnInit {
   }
 
   ngOnInit(): void {
-   
+
     let encryptedEmployeeData = sessionStorage.getItem('employee360Data');
             let employeeData = null;
             if (encryptedEmployeeData) {
@@ -153,7 +154,7 @@ export class Employee360ProfileComponent implements OnInit {
                 employeeData = null;
             }
   const storedData = employeeData;
-  
+
     const parsedData = storedData ? storedData : null;
     if (parsedData != null || parsedData != undefined) {
       this.employeeData = parsedData;
@@ -188,7 +189,7 @@ export class Employee360ProfileComponent implements OnInit {
     this.getAllSkillsOfEmployee();
     this.getAllCertificatesOfEmployee();
 
-    // Dynamic Subfeature Flags 
+    // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -667,7 +668,7 @@ export class Employee360ProfileComponent implements OnInit {
       this.currentEmployeeInfo = response.serviceResponse;
       this.currentEmployeeInfo.totalCurrentExperience=this.employeeService.calculateTotalExperience(
           this.currentEmployeeInfo.totalExperience, this.currentEmployeeInfo.dateOfJoining );
-    
+
       this.employeeObj = response.serviceResponse;
       //console.log("currentEmployeeInfo : ", this.currentEmployeeInfo);
       this.loadProfileImage(this.currentEmployeeInfo.imageBytes)
@@ -855,9 +856,9 @@ export class Employee360ProfileComponent implements OnInit {
     });
   }
 
-  //Employee Info Update 
+  //Employee Info Update
   openUpdateInfo(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl', backdrop: 'static', keyboard: false });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl', backdrop: 'static', keyboard: false });
   }
 
   onDocSubmit() {
@@ -866,12 +867,12 @@ export class Employee360ProfileComponent implements OnInit {
 
   // Modal
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
 
@@ -1308,7 +1309,7 @@ export class Employee360ProfileComponent implements OnInit {
         }
       });
       this.isSearchEnabled = false;
-      this.modalRef = this.modalService.show(template, { class: 'modal-sm', backdrop: 'static', keyboard: false });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm', backdrop: 'static', keyboard: false });
     }
   }
 
@@ -1534,12 +1535,12 @@ export class Employee360ProfileComponent implements OnInit {
 
   }
 
-  getDomainSpecialization() {
+  getDomainSpecialization(obj?:any) {
     this.specializationList = [];
 
     let domainObj = new Domain();
     domainObj.domainIdList = this.employeeObj.domainList;
-
+    if(obj){this.employeeObj.domainList=obj}
     console.log(domainObj, " : domainObj selected");
     this.domainService.getDomainSpecialization(domainObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1801,15 +1802,15 @@ export class Employee360ProfileComponent implements OnInit {
       if (typeof id1 ==="string" && id1.startsWith("A-")) {
         this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
       }
-  
+
       console.log("employment id", this.employeeObj.employeementId);
-      
+
       const response1:any =  await this.employeeService.getReporteesListByManagerId(this.employeeObj).pipe(first()).toPromise();
       if (response1?.serviceStatus == "Success") {
         this.reporteeList = response1.serviceResponse;
         console.log("Repotee list", this.reporteeList)
       }
-      
+
       let id= this.employeeObj?.employeementId;
 
      const response2:any =  await this.employeeService.getReporteesListByReportingManagerId(this.employeeObj).pipe(first()).toPromise();
@@ -1822,7 +1823,7 @@ export class Employee360ProfileComponent implements OnInit {
       const userChoice = await this.openInactiveModal();
 
       if (!userChoice) {
-        return; 
+        return;
       }
      }
 
@@ -1983,13 +1984,13 @@ export class Employee360ProfileComponent implements OnInit {
     this.getReporteesListByManagerId();
     this.getReporteesListByReportingManagerId();
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
   reportingManagerUpdate(reportee, template: TemplateRef<any>) {
     this.newEmp = reportee;
     console.log("newEmployee", this.newEmp.reportingManagerId);
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
 
@@ -2010,7 +2011,7 @@ export class Employee360ProfileComponent implements OnInit {
       }
     })
 
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
 
@@ -2020,7 +2021,7 @@ export class Employee360ProfileComponent implements OnInit {
     this.newEmployee = reportee;
     console.log("newEmployee", this.newEmployee.managerId);
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
 
@@ -2040,7 +2041,7 @@ export class Employee360ProfileComponent implements OnInit {
       }
     })
 
-    this.modalRef.hide();
+    this.modalRef?.close();
 
     //console.log(" managerUpdate method call and employee id of reporties    :   ",employee.empId);
 
@@ -2225,18 +2226,18 @@ export class Employee360ProfileComponent implements OnInit {
 
   openInactiveModal(): Promise<boolean> {
     return new Promise(resolve => {
-      this.modalRef = this.modalService.show(this.popupBeforeInactiveModal, { class: 'modal-xl' });
-  
-      this.modalRef.content = {
-        onConfirm: () => {
-          this.modalRef.hide();
-          resolve(true);
-        },
-        onCancel: () => {
-          this.modalRef.hide();
-          resolve(false);
-        }
+      this.modalRef = this.modalService.open(this.popupBeforeInactiveModal, { modalDialogClass: 'modal-xl' });
+
+      this.modalRef.componentInstance.onConfirm = () => {
+        this.modalRef?.close();
+        resolve(true);
       };
+
+      this.modalRef.componentInstance.onCancel = () => {
+        this.modalRef?.close();
+        resolve(false);
+      };
+
     });
   }
 

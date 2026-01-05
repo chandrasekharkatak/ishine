@@ -7,7 +7,6 @@ import { Router, ActivatedRoute } from '@angular/router';
 import * as CryptoJS from 'crypto-js';
 import * as HighCharts from 'highcharts';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 import { first } from 'rxjs/operators';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { AppComponent } from '../app.component';
@@ -41,6 +40,7 @@ import { EncryptionService } from '../services/EncryptionService';
 import { MilestoneToBeExpired } from '../models/milestoneToBeExpired';
 import { MilestoneExtendReason } from '../models/MilestoneExtendReason';
 import { MilestoneUpdatedLog } from '../models/MilestoneUpdatedLog';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 
 interface objlms {
   email: any
@@ -55,6 +55,7 @@ interface LmsRediredtion {
 }
 
 @Component({
+  standalone: false,
   selector: 'app-home',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
@@ -68,7 +69,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   @ViewChild(TimesheetCreateSelfComponent)
   childComp!: TimesheetCreateSelfComponent;
 
-  
+
     @ViewChild("previewTemplate")
     previewModal : TemplateRef<any>;
 
@@ -80,17 +81,18 @@ export class HomeComponent implements OnInit, AfterViewInit {
   data: string;
   //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
-  modalRef2: BsModalRef = new BsModalRef();
+  modalRef: NgbModalRef;
+  modalRef2: NgbModalRef;
 
-  milestoneDetailModalRefView: BsModalRef;
-  detailModalRef: BsModalRef;
-  popUpModalResf: BsModalRef;
+  milestoneDetailModalRefView: NgbModalRef;
+  detailModalRef: NgbModalRef;
+  popUpModalResf: NgbModalRef;
 
    @ViewChild('milestoneExpireValidationPupup') milestoneExpireValidationPupup: TemplateRef<any>;
-   milestoneExpireValidationPupupModalRef: BsModalRef;
+   milestoneExpireValidationPupupModalRef: NgbModalRef;
 
    modalMessage:String='';
+    isHelpHovered = false;
 
 
 
@@ -234,7 +236,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
     backdrop: true,
     ignoreBackdropClick: true,
     keyboard: false,
-    class: 'modal-lg'
+    modalDialogClass: 'modal-lg'
   }
   // TOP BAR
   @ViewChild("change_password")
@@ -266,12 +268,22 @@ export class HomeComponent implements OnInit, AfterViewInit {
   currentRewards: any[] = [];
   scrollInterval: any;
   selectedTab: string = 'birthday';
-rejectReasons: any;
-jobRole: string = '';
+ rejectReasons: any;
+ jobRole: string = '';
   probation:number=0;
+   rmTimesheetbulletContent: string[] = [
+    "Displays all timesheet entries submitted by your reportees.",
+    "Review entries on a day-wise basis.",
+    "Approve or Reject individual entries as required.",
+    "Use bulk approval when all entries are correct.",
+    "Ensure all entries are approved for the month to close successfully.",
+  ]
+
+
+   
 
   constructor(
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private leaveService: LeaveService,
     private exportExcelService: ExportExcelService,
@@ -383,7 +395,7 @@ jobRole: string = '';
     //  if (this.userMapping.view_employee_rewards) this.fetchEmployeesForHomepageByCategoryId(1);
 
     if (this.userMapping.view_employee_rewards) this.fetchRewardCategoryForHomePage();
-   
+
     this.preventBackButton();
     this.isEmployeeOnBench();
     this.getRejectionReason();
@@ -397,21 +409,21 @@ jobRole: string = '';
   //       console.error("Current user (HOD) not found. Cannot fetch notifications.");
   //       return;
   //   }
-      
+
   //   this.isLoadingNotifications = true;
   //   this.probationNotifications = [];
-  //   this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  //   this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-lg' });
 
   //   const payload = {
   //     hodId: this.currentUser.empId,
   //   };
 
-   
+
   //   this.employeeService.getProbationReminders(payload).subscribe({
   //     next: (response) => {
   //       if (response && response.serviceStatus === 'SUCCESS') {
   //         this.probationNotifications = response.serviceResponse;
-  //       } else {      
+  //       } else {
   //       }
   //       this.isLoadingNotifications = false;
   //     },
@@ -432,6 +444,8 @@ jobRole: string = '';
       history.pushState(null, null, location.href);
     })
   }
+
+
 
   ngAfterViewInit(): void {
     if (this.currentUser.isNew == "false" && this.currentUser.isUserInfoUpdated == false && this.currentUser.updateFormCounter == 0) {
@@ -570,7 +584,7 @@ jobRole: string = '';
   openLeaveRejectModal(template: TemplateRef<any>, leave: any) {
     this.cancelRequest();
     this.leaveObj = leave
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
 
@@ -696,6 +710,7 @@ jobRole: string = '';
 
   getDoscForPreview(docId:any){
       console.log(docId,":docId");
+      this.resetPreviewState(); // added to reset all the zoom values 
       this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           console.log(response.serviceResponse);
@@ -709,7 +724,7 @@ jobRole: string = '';
     showPreview(base64Data: string, mimeType: string) {
     const dataUrl = `data:${mimeType};base64,${base64Data}`;
       this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
-  
+
       if (mimeType === 'application/pdf') {
         this.fileType = 'pdf';
       } else if (mimeType.startsWith('image/')) {
@@ -717,10 +732,10 @@ jobRole: string = '';
       } else {
         this.fileType = '';
       }
-  
-  
+
+
     // Open modal
-    this.modalRef2 = this.modalService.show(this.previewModal, { class: 'modal-lg' });
+    this.modalRef2 = this.modalService.open(this.previewModal, { modalDialogClass:'modal-lg' });
   }
 
   /* Approve / Reject Timesheet requests */
@@ -774,7 +789,7 @@ jobRole: string = '';
   opnenRejectTimesheet(template: TemplateRef<any>, timesheet: any) {
     this.cancelRequest();
     this.timesheetObj = timesheet;
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-lg' });
   }
 
 
@@ -858,7 +873,7 @@ jobRole: string = '';
     }else{
        leaveObj.employeeType = 'Other';
     }
-    
+
     console.log("sdnkvsvns" + leaveObj.employmentStatus);
     let leaveBalanceResponse: any = await this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).toPromise();
     if (leaveBalanceResponse.serviceStatus == "Success") {
@@ -1451,7 +1466,7 @@ jobRole: string = '';
 
   //Employee Info Update
   openUpdateInfo(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-xl' });
   }
 
   onDocSubmit() {
@@ -1553,11 +1568,11 @@ jobRole: string = '';
     this.timesheetObj = new Timesheet();
     this.timesheetObj = timesheetObj;
     this.getAllMyActivitiesByTimesheetId(this.timesheetObj);
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-xl' });
   }
 
   openNotificationMod(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-lg' });
   }
 
   openPoExpiredMod() {
@@ -1565,8 +1580,8 @@ jobRole: string = '';
     this.geExpiredtPoData();
     console.log(this.expiredList);
     // alert("hi");
-    this.modalRef = this.modalService.show(this.poExpireTemplateRef, {
-      class: 'modal-xl',
+    this.modalRef = this.modalService.open(this.poExpireTemplateRef, {
+      modalDialogClass: 'modal-xl',
       backdrop: 'static',
       keyboard: false
     });
@@ -1581,7 +1596,7 @@ jobRole: string = '';
     } else {
       this.filters = {};
       this.isSearchEnabled = false;
-      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-xl' });
     }
 
   }
@@ -1590,30 +1605,30 @@ jobRole: string = '';
   openRevokeLeaveRejectModalCompOff(template: TemplateRef<any>, leave: any) {
     this.cancelRequest();
     this.leaveObj = leave;
-    this.modalRef = this.modalService.show(template);
+    this.modalRef = this.modalService.open(template);
   }
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
   cancelRequest1() {
-    this.modalRef2.hide();
+    this.modalRef2.close();
   }
-   
+
   openUpdateProjectCompletionModal(message: string): void {
     this.modalMessage = message;
-    this.milestoneExpireValidationPupupModalRef = this.modalService.show(this.milestoneExpireValidationPupup, {
-      class: 'modal-dialog modal-sm modal-position-top'
+    this.milestoneExpireValidationPupupModalRef = this.modalService.open(this.milestoneExpireValidationPupup, {
+      modalDialogClass: 'modal-dialog modal-sm modal-position-top'
     });
   }
 
   closeUpdateProjectCompletionModal(): void {
     if (this.milestoneExpireValidationPupupModalRef) {
-      this.milestoneExpireValidationPupupModalRef.hide();
+      this.milestoneExpireValidationPupupModalRef?.close();
     }
     if(this.isUpdated){
   window.location.reload();
@@ -1781,7 +1796,7 @@ jobRole: string = '';
     //console.log(isNightShiftFound, " : isNightShiftFound");
 
     if (isNightShiftFound.length != 0) {
-      this.modalRef = this.modalService.show(nightShiftTemplate, { class: 'modal-lg' });
+      this.modalRef = this.modalService.open(nightShiftTemplate, { modalDialogClass:'modal-lg' });
     } else {
       this.onBulkApproval(alertTemplate);
     }
@@ -1802,7 +1817,7 @@ jobRole: string = '';
     //console.log(isNightShiftFound, " : isNightShiftFound");
 
     if (isNightShiftFound.length != 0) {
-      this.modalRef = this.modalService.show(nightShiftTemplate, { class: 'modal-lg' });
+      this.modalRef = this.modalService.open(nightShiftTemplate, { modalDialogClass:'modal-lg' });
     } else {
       this.OnBulkReject(bulkRejectTimesheet);
     }
@@ -1830,7 +1845,7 @@ jobRole: string = '';
     timesheetObj.bulkApprovedList.forEach((x) => {
       x.employeementId = x.employeementId.substring(2);
       x.updatedBy = this.currentUser.empId;
-    
+
     })
     this.timesheetService.bulkApproveTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1954,7 +1969,7 @@ jobRole: string = '';
     this.leaveObj.rejectCompOffReason = ''
     this.cancelRequest();
     this.leaveObj = leave
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-lg' });
   }
 
   onBulkCompOffApprove(template: TemplateRef<any>) {
@@ -2017,7 +2032,7 @@ jobRole: string = '';
     let timesheet = new Timesheet();
     this.cancelRequest();
     this.timesheetObj = timesheet;
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-lg' });
   }
 
 
@@ -2025,7 +2040,7 @@ jobRole: string = '';
     this.leaveObj.rejectReason = ''
     this.cancelRequest();
     this.leaveObj = leave
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-lg' });
   }
 
 
@@ -2096,9 +2111,9 @@ jobRole: string = '';
     this.userNewPass = ''
     //console.log(this.currentUser.isNew)
     if (this.currentUser.isNew == 'true') {
-      this.modalRef = this.modalService.show(changePasswordTemplate, this.config);
+      this.modalRef = this.modalService.open(changePasswordTemplate, this.config);
     } else {
-      this.modalRef = this.modalService.show(changePasswordTemplate);
+      this.modalRef = this.modalService.open(changePasswordTemplate);
     }
   }
 
@@ -2203,7 +2218,7 @@ jobRole: string = '';
           this.cancelRequest();
           this.passreset();
 
-          this.modalRef = this.modalService.show(this.LoadingLoginTemplate);
+          this.modalRef = this.modalService.open(this.LoadingLoginTemplate);
           setTimeout(() => {
             this.cancelRequest();
             this.userLogout();
@@ -2250,7 +2265,7 @@ jobRole: string = '';
 
     if (this.currentUser.notificationConsent != null || this.currentUser.notificationConsent != undefined) {
       this.consentNotificationMessage = this.currentUser.notificationConsent.notificationMessage;
-      // this.modalRef = this.modalService.show(this.consentNotificationTemplate, this.consentModalConfig);
+      // this.modalRef = this.modalService.open(this.consentNotificationTemplate, this.consentModalConfig);
     }
   }
 
@@ -2274,7 +2289,7 @@ jobRole: string = '';
   }
 
 
-  // Release Note Consent 
+  // Release Note Consent
   setReleaseNote() {
     this.isShowReleaseNote = false;
 
@@ -2329,7 +2344,7 @@ jobRole: string = '';
   // added by anurag
   onUpdateLeave(template: TemplateRef<any>, leaveApplication) {
     //console.log("leaveApplication ",leaveApplication);
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-lg' });
     this.leaveApplication = leaveApplication;
     this.findOverLapsLeaveForManager();
   }
@@ -2378,9 +2393,9 @@ jobRole: string = '';
         this.rewardCategoryList = response.serviceResponse;
          const order = ['Quarterly', 'Half Yearly', 'Annual'];
 
-     
+
       this.rewardCategoryList = response.serviceResponse
-        .filter(cat => order.includes(cat.categoryName.trim())) 
+        .filter(cat => order.includes(cat.categoryName.trim()))
         .sort((a, b) => order.indexOf(a.categoryName.trim()) - order.indexOf(b.categoryName.trim()));
         if (this.rewardCategoryList.length > 0) {
           this.onCategoryTabClick(this.rewardCategoryList[0]);
@@ -2469,12 +2484,12 @@ jobRole: string = '';
 
   // startScrolling() {
   //   if (this.scrollInterval) {
-  //     clearInterval(this.scrollInterval); 
+  //     clearInterval(this.scrollInterval);
   //   }
 
   //   let scrollTime = Math.min(Math.max(this.currentRewards.length * 3 * 1000, 30000), 90000);
 
-  //   this.updateCurrentRewards(); 
+  //   this.updateCurrentRewards();
 
   //   this.scrollInterval = setInterval(() => {
   //     this.currentMonthIndex = (this.currentMonthIndex + 1) % this.monthKeys.length;
@@ -2829,13 +2844,13 @@ jobRole: string = '';
   }
   //opne model
   openMilestoneExpiredListModal(): void {
-    this.detailModalRef = this.modalService.show(this.milestoneExpiredListModalRef, {
-      class: 'modal-xl'
+    this.detailModalRef = this.modalService.open(this.milestoneExpiredListModalRef, {
+      modalDialogClass: 'modal-xl'
     });
   }
 
   closeMilestoneExpiredListModal(): void {
-    this.detailModalRef?.hide();
+    this.detailModalRef?.close();
   }
 
 
@@ -2882,7 +2897,7 @@ jobRole: string = '';
 
     });
 
-    this.milestoneDetailModalRefView = this.modalService.show(this.milestoneDetailModalRef, { class: 'modal-lg' });
+    this.milestoneDetailModalRefView = this.modalService.open(this.milestoneDetailModalRef, { modalDialogClass:'modal-lg' });
     this.minExtendedDate();
   }
 
@@ -2915,7 +2930,7 @@ jobRole: string = '';
   updateMilestoneExtendedDateWithReason(): void {
 
     if (this.milestoneForm.invalid) {
-      
+
       this.openUpdateProjectCompletionModal("Please fill all required fields.");
       this.milestoneForm.markAllAsTouched();
       return;
@@ -2965,15 +2980,15 @@ jobRole: string = '';
           //   // 'message' should be a public property in your modal component's class
           //   message: this.response1
           // };
-          // this.popUpModalResf = this.modalService.show(this.milestoneExpireValidationPupup, {
+          // this.popUpModalResf = this.modalService.open(this.milestoneExpireValidationPupup, {
           //   class: 'modal-sm',
           //   initialState: initialState
           // });
            this.openUpdateProjectCompletionModal(
             "milestone extended date updated successfully."
           );
-      
-         
+
+
 
           this.fetchMilestones();
            this.milestoneForm.get('extensionReasonId')?.reset();
@@ -2984,12 +2999,12 @@ jobRole: string = '';
           this.openUpdateProjectCompletionModal(response.serviceResponse);
            this.milestoneForm.get('extensionReasonId')?.reset();
 
-          
-
-           
 
 
-          
+
+
+
+
 
 
 
@@ -3040,7 +3055,7 @@ jobRole: string = '';
 
 
   closeMilestoneDetailModal(): void {
-    this.milestoneDetailModalRefView?.hide();
+    this.milestoneDetailModalRefView?.close();
 
   }
 
@@ -3060,42 +3075,42 @@ jobRole: string = '';
 
   cancelRequestPopup() {
 
-    this.popUpModalResf?.hide();
+    this.popUpModalResf?.close();
     this.milestoneForm.get('extensionReasonId')?.reset();
     this.closeMilestoneDetailModal();
   }
 
 
-   
+
     minExtendedDateformilestone:Date;
    public  minExtendedDate(): void {
     const endDate=this.milestoneForm.get('endDate').value;;
     this.minExtendedDateformilestone=new Date(this.convertToISO(endDate));
       this.milestoneForm.get('extensionReasonId')?.reset();
     console.log("minExtendedDateformilestone",this.minExtendedDateformilestone);
-   
+
   }
   convertToISO(dateString: string): string {
   const [day, month, year] = dateString.split('/');
-  return `${year}-${month}-${day}`; 
+  return `${year}-${month}-${day}`;
 }
 
 public getDaysLeftForExpiry(endDate: string | Date): string {
     if (!endDate) {
-      return 'N/A'; 
+      return 'N/A';
     }
 
     const today = new Date();
     const milestoneEndDate = new Date(endDate);
 
-   
+
     today.setHours(0, 0, 0, 0);
     milestoneEndDate.setHours(0, 0, 0, 0);
-    
-   
+
+
     const differenceInMs = milestoneEndDate.getTime() - today.getTime();
 
-    
+
     const daysLeft = Math.ceil(differenceInMs / (1000 * 60 * 60 * 24));
 
     if (daysLeft < 0) {
@@ -3107,20 +3122,37 @@ public getDaysLeftForExpiry(endDate: string | Date): string {
     }
   }
 
+  onHelpButtonHover(event: MouseEvent) {
+    this.isHelpHovered = true
+  }
+
+  onHelpButtonLeave() {
+    this.isHelpHovered = false
+  }
+
+  
+
+
+openUserManualPdf(): void {
+  const pdfPath = 'assets/pdfFiles/RM Approval of timesheet.pdf';
+  window.open(pdfPath, '_blank');
+}
+
+
 
 
 
   getRejectionReason() {
-  
+
       this.timesheetService.getRejectionReason().pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.rejectReasons = response.serviceResponse;
-         
+
         } else {
           console.error(response.serviceResponse)
         }
       });
-  
+
     }
 
     openProbationNotificationModal(template: TemplateRef<any>) {
@@ -3128,21 +3160,21 @@ public getDaysLeftForExpiry(endDate: string | Date): string {
         console.error("Current user (HOD) not found. Cannot fetch notifications.");
         return;
     }
-      
+
     this.isLoadingNotifications = true;
     this.probationNotifications = [];
-    this.modalRef2 = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef2 = this.modalService.open(template, { modalDialogClass:'modal-lg' });
 
     const payload = {
       hodId: this.currentUser.empId,
     };
 
-   
+
     this.employeeService.getProbationReminders(payload).subscribe({
       next: (response) => {
         if (response && response.serviceStatus === 'SUCCESS') {
           this.probationNotifications = response.serviceResponse;
-        } else {      
+        } else {
         }
         this.isLoadingNotifications = false;
       },
@@ -3152,7 +3184,7 @@ public getDaysLeftForExpiry(endDate: string | Date): string {
       }
     });
   }
-    
+
 
   onDateSelected(event: { date: string, status: string }) {
   console.log("User clicked date:", event);
@@ -3167,7 +3199,7 @@ public getDaysLeftForExpiry(endDate: string | Date): string {
   } else if(event.status==='Rejected'){
      console.log("Skipping navigation because timesheet is 	Rejected.");
     return;
-  } 
+  }
 
   this.router.navigate(['/user-timesheet/my-timesheet'], {
     queryParams: { date: event.date }
@@ -3196,11 +3228,11 @@ onTimesheetSearch(searchData) {
     console.log("Search term",searchTerm);
     const nightDisplay = 'night shift';
     const regularDisplay = 'regular shift';
-    
+
     // Check if search term appears in display text
     const nightMatch = nightDisplay.includes(searchTerm);
     const regularMatch = regularDisplay.includes(searchTerm);
-    
+
     if (nightMatch && !regularMatch) {
       searchData.isNightShift = 'true';
     } else if (regularMatch && !nightMatch) {
@@ -3214,11 +3246,66 @@ onTimesheetSearch(searchData) {
       }
     }
   }
-  
+
   this.filters = searchData;
 }
+zoomScale = 1;
+zoomLevel = 100;
+
+zoomIn() {
+  if (this.zoomScale < 2.5) {
+    this.zoomScale += 0.1;
+    this.zoomLevel = Math.round(this.zoomScale * 100);
+  }
 }
 
+zoomOut() {
+  if (this.zoomScale > 0.5) {
+    this.zoomScale -= 0.1;
+    this.zoomLevel = Math.round(this.zoomScale * 100);
+  }
+}
+isDragging = false;
+startX = 0;
+startY = 0;
+translateX = 0;
+translateY = 0;
+
+get transformStyle() {
+  return `translate(${this.translateX}px, ${this.translateY}px) scale(${this.zoomScale})`;
+}
+
+startDrag(event: MouseEvent) {
+  if (this.zoomScale <= 1) return; // drag only when zoomed
+
+  this.isDragging = true;
+  this.startX = event.clientX - this.translateX;
+  this.startY = event.clientY - this.translateY;
+  event.preventDefault();
+}
+
+onDrag(event: MouseEvent) {
+  if (!this.isDragging) return;
+
+  this.translateX = event.clientX - this.startX;
+  this.translateY = event.clientY - this.startY;
+}
+
+endDrag() {
+  this.isDragging = false;
+}
+
+resetPreviewState() {
+  this.zoomScale = 1;
+  this.zoomLevel = 100;
+  this.translateX = 0;
+  this.translateY = 0;
+  this.isDragging = false;
+}
+
+
+
+}
 
 
 // Move compare function outside the class

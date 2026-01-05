@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import * as HighCharts from 'highcharts';
 import * as Highcharts from 'highcharts';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Breadcrumb } from 'src/app/models/breadcrumd';
@@ -42,6 +42,7 @@ interface CustomChartPoint {
   rejectedApplicationsCount: number;
 }
 @Component({
+  standalone: false,
   selector: 'app-employee360-leave',
   templateUrl: './employee360-leave.component.html',
   styleUrls: ['./employee360-leave.component.css']
@@ -149,7 +150,7 @@ export class Employee360LeaveComponent implements OnInit {
 
   //Modal
   alertMessage: any
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   @ViewChild("alert_message") alertTemplate: TemplateRef<any>;
 
   //Dropdown filter
@@ -164,7 +165,7 @@ export class Employee360LeaveComponent implements OnInit {
     private exportExcelService: ExportExcelService,
     private employee360Service: Employee360Service,
     private breadcrumbService: BreadcrumbService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private datePipe: DatePipe,
     public validationService: ValidationService,
     private encryptionService: EncryptionService
@@ -664,7 +665,7 @@ export class Employee360LeaveComponent implements OnInit {
 
   // Modals
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
@@ -672,7 +673,7 @@ export class Employee360LeaveComponent implements OnInit {
   openLeaveRejectModal(template: TemplateRef<any>, leave: any) {
     this.cancelRequest();
     this.leaveObj = leave
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
   // single leave reject modal
@@ -684,17 +685,17 @@ export class Employee360LeaveComponent implements OnInit {
     this.leaveObj.rejectReason = '';
     this.cancelRequest();
     this.leaveObj = leave;
-    this.modalRef = this.modalService.show(template);
+    this.modalRef = this.modalService.open(template);
   }
 
   openRevokeLeaveRejectModalCompOff(template: TemplateRef<any>, leave: any) {
     this.cancelRequest();
     this.leaveObj = leave;
-    this.modalRef = this.modalService.show(template);
+    this.modalRef = this.modalService.open(template);
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
   getAllLeaveTypesByLeavePolicies() {

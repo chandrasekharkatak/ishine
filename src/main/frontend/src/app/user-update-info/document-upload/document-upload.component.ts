@@ -1,7 +1,7 @@
 import { Component, EventEmitter, OnInit, Output, SecurityContext, TemplateRef } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { Document } from 'src/app/models/document';
 import { Employee } from 'src/app/models/employee';
@@ -9,6 +9,7 @@ import { ImageService } from 'src/app/services/image.service';
 import { UpdateUserInfoService } from 'src/app/services/updateUserInfo.service';
 
 @Component({
+  standalone: false,
   selector: 'app-document-upload',
   templateUrl: './document-upload.component.html',
   styleUrls: ['./document-upload.component.css']
@@ -17,9 +18,9 @@ export class DocumentUploadComponent implements OnInit {
 
   @Output() loadInfoPreview: EventEmitter<any> = new EventEmitter<any>();
 
-  //modal 
+  //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   currentEmployeeInfo:Employee = new Employee();
   documentList:Document[] = [];
@@ -31,7 +32,7 @@ export class DocumentUploadComponent implements OnInit {
 
   constructor(
     private updateUserInfoService: UpdateUserInfoService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private imageService : ImageService,
     private sanitizer: DomSanitizer,
   ) {
@@ -41,7 +42,7 @@ export class DocumentUploadComponent implements OnInit {
   ngOnInit(): void {
     this.currentEmployeeInfo = this.updateUserInfoService.getUserInfoObj();
     console.log("currentEmployeeInfo in Document Upload => ", this.currentEmployeeInfo);
-    
+
     if(this.currentEmployeeInfo){
       this.setDocumentList()
     }
@@ -123,7 +124,7 @@ export class DocumentUploadComponent implements OnInit {
   }
 
   addCertification(certificationName:string){
-    this.documentList.push(new Document(certificationName)); 
+    this.documentList.push(new Document(certificationName));
   }
 
   onSave(template: TemplateRef<any>){
@@ -132,15 +133,15 @@ export class DocumentUploadComponent implements OnInit {
 
     this.currentEmployeeInfo.documentList = this.documentList;
     this.updateUserInfoService.setUserInfoObj(this.currentEmployeeInfo);
-    
+
     if (this.documentList.filter(doc => doc.documentName != null).length == 0) {
       this.alertMessage = "Kindly Select Images !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    
+
     this.documentList = this.documentList.filter(doc => doc.documentName != null);
-    
+
     let employeeObj = new Employee();
     employeeObj.createdBy = this.currentEmployeeInfo.createdBy;
     employeeObj.employeementId = this.currentEmployeeInfo.employeementId;
@@ -165,34 +166,34 @@ export class DocumentUploadComponent implements OnInit {
     const allowedTypes = ['image/jpeg'];
     const image = event.target.files[0];
     let imageSize = parseInt((image.size/1000).toFixed(2));
-    let imgHeight; 
+    let imgHeight;
     let imgWidth;
-    let imgExtension; 
-    let img = new Image();    
-    img.src = window.URL.createObjectURL(image);  
+    let imgExtension;
+    let img = new Image();
+    img.src = window.URL.createObjectURL(image);
     imgExtension =  extensionRE.exec(image.name)[1];
 
     img.onload = getImageDimesions.bind(this)
 
-    function getImageDimesions() {  
+    function getImageDimesions() {
       imgHeight = img.naturalHeight;
-      imgWidth = img.naturalWidth      
+      imgWidth = img.naturalWidth
     }
-    
+
     if ( imgHeight > 900 || imgWidth > 700) {
       this.alertMessage = "File dimension exceeds 900px x 700px !!";
       //console.log("File dimension exceeds 900 x 700 !! :", this.alertMessage);
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }    
-    
+    }
+
     if (imageSize > 200) {
       this.alertMessage = "File size exceeds 200kB !!"
       //console.log("File size exceeds 200kB :", this.alertMessage);
-      
+
       this.openAlertMod(template, this.alertMessage);
       return false;
-    } 
+    }
 
     if(imgExtension != 'jpeg' && imgExtension != 'jpg'){
       this.alertMessage = "Please upload valid file with jpeg/jpg extension"
@@ -204,7 +205,7 @@ export class DocumentUploadComponent implements OnInit {
       this.openAlertMod(template,'Please select a valid image file (jpeg, or jpg).');
       return false;
     }
-    
+
     const imageName = documentObj.documentType.replaceAll(" ", "-")+"_"+moment(new Date()).format("DD-MM-YYYY-hh-mm-ss")+"."+extensionRE.exec(image.name)[1];
     const inputName = event.target.id;
 
@@ -216,7 +217,7 @@ export class DocumentUploadComponent implements OnInit {
     }else{
       this.files.push(imgObj);
     }
-    
+
     let doc = this.documentList.find(doc => doc.documentType == documentObj.documentType);
     if(doc) {
       doc.uploadStatus = "Uploading";
@@ -258,23 +259,23 @@ export class DocumentUploadComponent implements OnInit {
         doc.uploadStatus = "Pending";
       }
     });
-  } 
+  }
 
 
   // Modals
   openDocumentUploadMod(template: TemplateRef<any>, fileType:any) {
     //console.log("fileType : ", fileType);
     this.fileType = fileType;
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
 

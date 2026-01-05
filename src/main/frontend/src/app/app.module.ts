@@ -12,22 +12,17 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatAccordion } from '@angular/material/expansion';
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { AngularEditorModule } from '@kolkov/angular-editor';
-import { NgHorizontalScrollModule } from 'angular-horizontal-scroll-table';
-import { AutocompleteLibModule } from 'angular-ng-autocomplete';
-import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
 import { PdfViewerModule } from 'ng2-pdf-viewer';
-import { Ng2SearchPipeModule } from 'ng2-search-filter';
-import { BsModalService, ModalModule } from 'ngx-bootstrap/modal';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { ClipboardModule } from 'ngx-clipboard';
-import { NgxMatSelectModule } from 'ngx-mat-select';
-import { NgxOrgChartModule } from 'ngx-org-chart';
+import { NgxMatSelectSearchModule } from 'ngx-mat-select-search';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { BodyComponent } from './body/body.component';
@@ -41,7 +36,6 @@ import { MultiColFilterPipe } from './multi-col-filter.pipe';
 import { SortPipe } from './sort.pipe';
 
 import { NgxPaginationModule } from 'ngx-pagination';
-import { AccordionModule } from './accordion/accordion.module';
 
 import { ConfigurationComponent } from './configuration/configuration.component';
 import { DeptConfigComponent } from './configuration/dept-config/dept-config.component';
@@ -108,7 +102,6 @@ import { MyTeamComponent } from './user-team/my-team/my-team.component';
 
 import { registerLocaleData } from '@angular/common';
 import localeGb from '@angular/common/locales/en-GB';
-import { OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
 import { PerformanceConfigComponent } from './configuration/performance-config/performance-config.component';
 import { LMSComponent } from './employee360/lms/lms.component';
 import { ExpiedPoAndProjectComponent } from './home/expied-po-and-project/expied-po-and-project.component';
@@ -146,12 +139,13 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 
-registerLocaleData(localeGb);
-// import { OwlDateTimeModule, OWL_DATE_TIME_FORMATS, OwlDateTimeFormats } from 'ng-pick-datetime';
-// 
+import { PerformanceDashboardComponent } from './user-performance/performance-dashboard/performance-dashboard.component';
+import { TeamDashboardComponent } from './user-performance/team-dashboard/team-dashboard.component';
+import { TemplatesComponent } from './user-performance/templates/templates.component';
+import { QuarterCycleComponent } from './user-performance/quarter-cycle/quarter-cycle.component';
+import { ViewPerformanceComponent } from './user-performance/view-performance/view-performance.component';
+import { PerformanceManagementSystemComponent } from './user-performance/performance-management-system/performance-management-system.component';
 
-
-import { LmstabComponent } from './lmstab/lmstab.component';
 import { FilterEmployeePipe } from './filter-employee.pipe';
 import { ViewEmployeeComponent } from './user-team/resource-management/view-employee/view-employee.component';
 import { TotalReimbursementrequestComponent } from './reimbursement/total-reimbursementrequest/total-reimbursementrequest.component';
@@ -168,8 +162,6 @@ import { CalendarViewComponent } from './user-timesheet/calendar-view/calendar-v
 import { NavigateToCalenderViewDirective } from './directives/navigate-to-calender-view.directive';
 import { EdiTimesheetFormComponent } from './user-timesheet/my-timesheet/edi-timesheet-form/edi-timesheet-form.component';
 import { ViewImageComponent } from './user-team/view-image/view-image.component';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatPaginatorModule } from '@angular/material/paginator';
 
 
@@ -184,21 +176,49 @@ import { SafeHtmlPipe } from './pipes/safe-html.pipe';
 import { HomeComponent } from './home/home.component';
 import { ConnectionLostComponent } from './connection-lost/connection-lost.component';
 import { ProjectColumnFilterPipe } from './project-column-filter.pipe';
+import { HighlightPipe } from './highlight.pipe';
+import { FormBuilderComponent } from './user-team/form-builder/form-builder.component';
+import { FormRendererComponent } from './helpers/form-renderer/form-renderer.component';
+import { QuestionRendererComponent } from './helpers/question-renderer/question-renderer.component';
+import { DomainComponent } from './user-team/Domain/Domain.component';
+import { SubDomainComponent } from './user-team/Domain/SubDomain/SubDomain.component';
+import { SubServiceComponent } from './user-team/Domain/SubService/SubService.component';
+import { AddDomainDataModalComponent } from './user-team/project-insight/components/add-domain-data/add-domain-data-modal.component';
+import { DomainTablesComponent } from './user-team/Domain/DomainTables/DomainTables.component';
+import { ProjectInsightDomainModalComponent } from './user-team/Domain/DomainModal/app-project-insight-domain-modal.component';
+import { ViewDomainComponent } from './user-team/Domain/ViewDomain/ViewDomain.component';
+import { ProjectInsightComponent } from './user-team/project-insight/project-insight.component'; 
+import { ProjectInsightDetailsComponent } from './user-team/project-insight/components/project-insight-details/project-insight-details.component';
+import { FilterProjectInsightComponent } from './user-team/project-insight/components/filter-project-insight/filter-project-insight.component';
+import { AllProjectInsightDomainsComponent } from './user-team/project-insight/components/all-project-insight-domains/all-project-insight-domains.component';
+import { ProjectTableComponent } from './user-team/project-insight/components';
+import { LeftSideMenuComponent } from './user-team/project-insight/components';
+import { ProjectStaticFormComponent } from './user-team/project-insight/components';
+import { QuestionCardsComponent } from './user-team/project-insight/components';
+import { ProjectInsightQuestionLibraryComponent } from './user-team/project-insight/components/project-insight-question-library/project-insight-question-library.component';
 
-//import { TestComponent } from './user-report/test/test.component';
-  // Import Owl DateTime modules
+import { GroupBrowserComponent } from './user-team/project-insight/components/group-browser/group-browser.component'; 
+import { KnowledgeHubComponent } from './user-team/KnowledgeHub/KnowledgeHub.component';
+import { ResizableModule } from 'angular-resizable-element';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatButtonModule } from '@angular/material/button';
+import { ApproverWorkflowComponent } from './user-team/project-insight/components/approver-workflow/approver-workflow.component';
+import { MatCardModule } from '@angular/material/card';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSliderModule } from '@angular/material/slider';
+import { FileUploadComponent } from './helpers/form-renderer/FileUpload/FileUpload.component';
+import { LmstabComponent } from './lmstab/lmstab.component';
+import { MySelectComponent } from './helpers/my-select/my-select.component';
+import { FloatingScrollWrapperComponent } from './helpers/floating-scroll-wrapper/floating-scroll-wrapper.component';
+import {MatTimepickerModule} from '@angular/material/timepicker';
+import { MyAutocompleteComponent } from './helpers/my-autocomplete/my-autocomplete.component';
+import { NgxEditorModule } from 'ngx-editor';
+import { InfoTooltipComponent } from './helpers/shared/info-tooltip/info-tooltip.component';
+
+registerLocaleData(localeGb);
 
 
-  export const MY_CUSTOM_FORMATS: OwlDateTimeFormats = {
-    parseInput: 'DD/MM/YYYY hh:mm A',
-    fullPickerInput: 'DD/MM/YYYY hh:mm A',
-    datePickerInput: 'DD/MM/YYYY',
-    timePickerInput: 'hh:mm A',
-    monthYearLabel: 'MMM YYYY',
-    dateA11yLabel: 'DD/MM/YYYY',
-    monthYearA11yLabel: 'MMMM YYYY',
-  };
-  
 @NgModule({
   declarations: [
     AppComponent,
@@ -226,14 +246,17 @@ import { ProjectColumnFilterPipe } from './project-column-filter.pipe';
     UserTeamComponent,
     UserTimesheetComponent,
     TeamConfigComponent,
+    ViewDomainComponent,
     MyTimesheetComponent,
     TeamTimesheetComponent,
     MyTeamComponent,
     TeamMemberComponent,
     HomeConfigComponent,
+    DomainTablesComponent,
     CalendarComponent,
     UserUpdateInfoComponent,
     EmployeeInfoComponent,
+    ProjectInsightDomainModalComponent,
     DocumentUploadComponent,
     InformationPreviewComponent,
     EmployeeUpdateListComponent,
@@ -281,116 +304,147 @@ import { ProjectColumnFilterPipe } from './project-column-filter.pipe';
     Employee360BiomaxComponent,
     Employee360RewardsComponent,
     Employee360AppreciationComponent,
+    DomainComponent,
+    AllProjectInsightDomainsComponent,
+    SafeHtmlPipe,
+    KnowledgeHubComponent,
     BreadcrumbComponent,
+    SubDomainComponent,
+    FilterProjectInsightComponent,
+    SubServiceComponent,
+    FilterProjectInsightComponent,
     Employee360BiomaxComponent,
-     AppreciationComponent,
-     QrCodeGeneratorComponent,
-     ExpiedPoAndProjectComponent,
-     NavigateToProjectViewDirective,
-     ProjectViewComponent,
-     PerformanceConfigComponent,
-     TravelAllowanceComponent,
-     ReimbursementComponent,
-     MyReimbursementComponent,
-     ViewReimbursementComponent,
-     ReimbursementapprovalComponent,
-     MyTravelrequestComponent,
-     TravelrequestapprovalComponent,
-     ViewTravelrequestComponent, 
-     LMSComponent,
-     BiomaxApprovalComponent,
-     LmstabComponent,
-     FilterEmployeePipe,
-     ViewEmployeeComponent,
-     TotalTravelrequestComponent,
-     TotalReimbursementrequestComponent,
-     SafePipe,
-     TravelConfigComponent,
-     ReimbursmentConfigComponent,
-     TimesheetCreateSelfComponent,
-     HrDashboardComponent,
-     TimesheetConfigComponent,
-     TeamEmployeeTimesheetViewComponent,
-     NavigateToTeamEmployeeTimesheetDirective,
-     CalendarViewComponent,
-     NavigateToCalenderViewDirective,
-     EdiTimesheetFormComponent,
-     SkillModalComponent,
-     MessageModalComponent,
-     ConfirmationModalComponent,
-     CertificateModalComponent,
-     SkillCertfificationConfigComponent,
-     ViewImageComponent,
-     SafeHtmlPipe,
-     ConnectionLostComponent,
-     ProjectColumnFilterPipe,
-    //TestComponent
+    AppreciationComponent,
+    QrCodeGeneratorComponent,
+    ExpiedPoAndProjectComponent,
+    NavigateToProjectViewDirective,
+    ProjectViewComponent,
+    PerformanceConfigComponent,
+    TravelAllowanceComponent,
+    ReimbursementComponent,
+    MyReimbursementComponent,
+    ViewReimbursementComponent,
+    ReimbursementapprovalComponent,
+    MyTravelrequestComponent,
+    TravelrequestapprovalComponent,
+    ViewTravelrequestComponent,
+    LMSComponent,
+    BiomaxApprovalComponent,
+    LmstabComponent,
+    FilterEmployeePipe,
+    ViewEmployeeComponent,
+    TotalTravelrequestComponent,
+    TotalReimbursementrequestComponent,
+    SafePipe,
+    TravelConfigComponent,
+    ReimbursmentConfigComponent,
+    TimesheetCreateSelfComponent,
+    HrDashboardComponent,
+    TimesheetConfigComponent,
+    TeamEmployeeTimesheetViewComponent,
+    NavigateToTeamEmployeeTimesheetDirective,
+    CalendarViewComponent,
+    NavigateToCalenderViewDirective,
+    EdiTimesheetFormComponent,
+    SkillModalComponent,
+    MessageModalComponent,
+    ConfirmationModalComponent,
+    CertificateModalComponent,
+    SkillCertfificationConfigComponent,
+    ViewImageComponent,
+    SafeHtmlPipe,
+    ConnectionLostComponent,
+    AppreciationComponent,
+    PerformanceDashboardComponent,
+    TeamDashboardComponent,
+    AddDomainDataModalComponent,
+    TemplatesComponent,
+    QuarterCycleComponent,
+    ViewPerformanceComponent,
+    NavigateToProjectViewDirective,
+    ProjectViewComponent,
+    PerformanceConfigComponent,
+    PerformanceManagementSystemComponent,
+    QrCodeGeneratorComponent,
+    ExpiedPoAndProjectComponent,
+    NavigateToProjectViewDirective,
+    ProjectViewComponent,
+    PerformanceConfigComponent,
+    TravelAllowanceComponent,
+    ReimbursementComponent,
+    MyReimbursementComponent,
+    ViewReimbursementComponent,
+    ReimbursementapprovalComponent,
+    MyTravelrequestComponent,
+    TravelrequestapprovalComponent,
+    ViewTravelrequestComponent,
+    LMSComponent,
+    BiomaxApprovalComponent,
+    LmstabComponent,
+    HighlightPipe,
+    FormBuilderComponent,
+    FormRendererComponent,
+    QuestionRendererComponent,
+    ProjectInsightComponent,
+    GroupBrowserComponent,
+    ProjectTableComponent,
+    LeftSideMenuComponent,
+    ProjectStaticFormComponent,
+    QuestionCardsComponent,
+    ProjectInsightQuestionLibraryComponent,
+    FileUploadComponent,
+    ApproverWorkflowComponent,
+    ProjectInsightDetailsComponent,
+    MySelectComponent,
+    FloatingScrollWrapperComponent,
+    ProjectColumnFilterPipe,
+    MyAutocompleteComponent,
+    InfoTooltipComponent,
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
+    MatCardModule,
+    MatProgressBarModule,
     MatAutocompleteModule,
-    AccordionModule,
+    MatIconModule,
+    MatSliderModule,
+    NgxMatSelectSearchModule,
     FormsModule,
     ReactiveFormsModule,
     HttpClientModule,
-    ModalModule.forRoot(),
     BrowserAnimationsModule,
     MatSelectModule,
+    MatCheckboxModule,
     MatDatepickerModule,
     MatNativeDateModule,
     MatFormFieldModule,
     MatInputModule,
-    NgxPaginationModule,
     MatListModule,
     MatSortModule,
-    Ng2SearchPipeModule,
     ClipboardModule,
     MatPaginatorModule,
-    NgHorizontalScrollModule,
     MatTableModule,
-    MatExpansionModule,
     DragDropModule,
-    MatIconModule,
     MatDialogModule,
-    MatCheckboxModule,
     MatTooltipModule,
-    NgxMatSelectModule.forRoot({
-      maxWidthForMobileView: 600,
-      inFirstLoadCallSearcher: true,
-      inFirstLoadSearcherValue: '',
-      emptyLabel: 'no entry found',
-      noMoreResultLabel: ' ',
-      useInfiniteScroll: false,
-      searchBoxPlaceholder: 'search',
-      maximumResultForShow: 40,
-      useMobileView: false,
-      valueMember: 'key',
-      displayMember: 'value',
-      mobileViewType: 'FullScreen'
-  }),
-    NgxOrgChartModule,
-    OwlDateTimeModule,
-    OwlNativeDateTimeModule,
-    AutocompleteLibModule,
     PdfViewerModule,
-    AngularEditorModule,
-    MatInputModule,
-    MatFormFieldModule,
+    MatTimepickerModule,
     MatOptionModule,
-    OwlNativeDateTimeModule,
-    OwlDateTimeModule
+    ResizableModule,
+    MatMenuModule,
+    MatButtonModule,
+    MatExpansionModule,
+    NgxPaginationModule,
+    NgxEditorModule
   ],
   providers: [
-    BsModalService,
     DatePipe,
     { provide: LocationStrategy, useClass: HashLocationStrategy },
     { provide: HTTP_INTERCEPTORS, useClass: EncryptionInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: LoaderInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: EmployeePortalInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: SanitizeInterceptor, multi: true },   // Added here for sanitizerInput
-    { provide: OWL_DATE_TIME_FORMATS, useValue: MY_CUSTOM_FORMATS },
-    { provide: LOCALE_ID, useValue: 'en-GB' } // Force UK locale for DD/MM/YYYY
   ],
   bootstrap: [AppComponent]
 })

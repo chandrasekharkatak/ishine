@@ -1,7 +1,7 @@
 import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Domain } from 'src/app/models/domain';
@@ -17,6 +17,7 @@ import * as XLSX from 'xlsx';
 
 
 @Component({
+  standalone: false,
   selector: 'app-domain-config',
   templateUrl: './domain-config.component.html',
   styleUrls: ['./domain-config.component.css']
@@ -30,7 +31,7 @@ export class DomainConfigComponent implements OnInit {
 
   //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   all:any;
   domainToBeDeleted:any;
   userMapping: any = {};
@@ -58,14 +59,14 @@ export class DomainConfigComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  domainColumns:any[] = ['blank','domainName','createdByName','createdOn']
+  domainColumns:any[] = ['blank','domainName','createdByName','createdOn','blank','blank','blank']
 
   SpecializationInput: any =document.getElementById('input1');
   //@ViewChild('myInput', { static: false }) myInput: ElementRef<HTMLInputElement>;
 
   //excel
   domainDataForExcel: any[];
- 
+
 
   employeesFor360: any[] = [];
   excelName: string;
@@ -74,14 +75,14 @@ export class DomainConfigComponent implements OnInit {
   constructor(
     private domainService:DomainService,
     public validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private exportExcelService: ExportExcelService,
     private utilityService: UtilityService,
   ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x);}
 
   async ngOnInit(): Promise<void> {
-   
+
      // Dynamic Subfeature Flags
      let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
      featureMap.subFeatures?.forEach(sub => {
@@ -127,12 +128,12 @@ export class DomainConfigComponent implements OnInit {
 
     this.isfileUpload = true;
     this.isDomainTable = false;
-    
-  
+
+
     this.isDomain = false;
     this.isDomainForm = false;
-  
-  
+
+
   }
 
 
@@ -207,7 +208,7 @@ onConfirmationDateUpload(event: any, template: TemplateRef<any>){
         this.openAlertMod(template, response.serviceResponse);
       }
     });
-}   
+}
 
 onFileSelect(event: any, template: TemplateRef<any>){
   const uploadedFiles = event.target.files;
@@ -339,11 +340,11 @@ downloadConfirmationDateUpload(): void {
           domain.createdOn = (domain.createdOn)? moment(domain.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           domain.emp360CreatedBy = domain.createdBy;
           domain.emp360UpdatedBy = domain.updatedBy;
-      
-        
+
+
         });
 
-     
+
 
         // console.log(this.allDomainList, " : this.allDomainList");
       } else {
@@ -463,11 +464,11 @@ downloadConfirmationDateUpload(): void {
   }
 
   checkDomainName(domainName:any, template: TemplateRef<any>){
-    
+
     let domainObj = new Domain();
     domainObj.domainName = domainName;
     domainObj.domainId = this.domainObj.domainId;
-    
+
     this.domainService.checkDomainName(domainObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.domainObj.domainName = '';
@@ -482,17 +483,17 @@ downloadConfirmationDateUpload(): void {
   /* Modal */
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
   openDeleteDomainMod(template: TemplateRef<any> , domain: any){
     this.domainToBeDeleted = domain;
-    this.modalRef = this.modalService.show(template);
+    this.modalRef = this.modalService.open(template);
   }
 
   //pagination

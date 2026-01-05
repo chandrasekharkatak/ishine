@@ -265,8 +265,7 @@
                     </button>
                 </div>
 
-               <div class="table-container" bassHorizontalScroll [tableId]="'rewardHistoryInfo'"
-    [tableTHeadId]="'rewardHistoryInfoTHead'" [tableTHeadTrId]="'rewardHistoryInfoTHeadTr'">
+               <div class="table-container">
     <table class="table" id="rewardHistoryInfo" matSort (matSortChange)="sortData($event)">
         <thead class="thead-light" id="rewardHistoryInfoTHead">
             <tr id="rewardHistoryInfoTHeadTr">
@@ -498,6 +497,6 @@
         <p>Are you sure you want to delete this reward?</p>
         <button type="button" class="btn btn-success"
             (click)="confirmDeleteReward(alert_message)">Yes</button>&nbsp;&nbsp;
-        <button type="button" class="btn btn-danger" (click)="modalRef?.hide()">No</button>
+        <button type="button" class="btn btn-danger" (click)="modalRef?.close()">No</button>
     </div>
 </ng-template>

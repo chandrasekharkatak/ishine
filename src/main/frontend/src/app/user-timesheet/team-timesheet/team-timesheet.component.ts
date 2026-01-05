@@ -3,7 +3,7 @@ import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { BodyComponent } from 'src/app/body/body.component';
@@ -24,6 +24,7 @@ import * as XLSX from 'xlsx';
 
 
 @Component({
+  standalone: false,
   selector: 'app-team-timesheet',
   templateUrl: './team-timesheet.component.html',
   styleUrls: ['./team-timesheet.component.css']
@@ -53,10 +54,10 @@ export class TeamTimesheetComponent implements OnInit {
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType: any;
-  clientSideIdForm: BsModalRef = new BsModalRef();
-  updateClientIdModalRef: BsModalRef = new BsModalRef();
+  clientSideIdForm: NgbModalRef;
+  updateClientIdModalRef: NgbModalRef;
 
-  //flags 
+  //flags
   isAllTimesheetTable: boolean = false;
   isAllTimesheetRequestTable: boolean = false;
 
@@ -65,9 +66,9 @@ export class TeamTimesheetComponent implements OnInit {
   allTeamTimesheetDataForExcel: any[] = [];
   allTeamTimesheetRequestDataForExcel: any[] = [];
 
-  //modal 
+  //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   allTeamTimesheets: any[] = [];
   allTeamTimesheetRequests: Timesheet[] = [];
 
@@ -137,11 +138,18 @@ export class TeamTimesheetComponent implements OnInit {
   selectedFile: File | null = null;
   empClientSideObj: EmployeeClientSideIdMapping = new EmployeeClientSideIdMapping();
   projectClientIdList: ProjectClientSideId[] = [];
-  clientSideIdNotMandatoryFoundModalRef: BsModalRef = new BsModalRef();
+  clientSideIdNotMandatoryFoundModalRef: NgbModalRef;
+  zoomScale = 1;
+  zoomLevel = 100;
+  isDragging = false;
+  startX = 0;
+  startY = 0;
+  translateX = 0;
+  translateY = 0;
 
   constructor(
     public validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private timesheetService: TimesheetService,
     private exportExcelService: ExportExcelService,
@@ -160,7 +168,7 @@ export class TeamTimesheetComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     const now = new Date();
     this.today = now.toISOString().split('T')[0];
-    // Dynamic Subfeature Flags 
+    // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -372,7 +380,7 @@ export class TeamTimesheetComponent implements OnInit {
   opnenRejectTimesheet(template: TemplateRef<any>, timesheet: any) {
     this.cancelRequest();
     this.timesheetObj = timesheet;
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
   // openBulkRejectTimesheet
@@ -381,7 +389,7 @@ export class TeamTimesheetComponent implements OnInit {
 
     this.cancelRequest();
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
     this.getRejectionReason();
   }
 
@@ -472,29 +480,29 @@ export class TeamTimesheetComponent implements OnInit {
     this.timesheetObj = new Timesheet();
     this.timesheetObj = timesheetObj;
     this.getAllMyActivitiesByTimesheetId(this.timesheetObj);
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openRevokeApprovedTimesheet(template: TemplateRef<any>, timesheet: any) {
     this.timesheetObj = timesheet;
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
   // opnenRejectTimesheet(template: TemplateRef<any>, timesheet: any){
   //   this.timesheetObj = timesheet;
-  //   this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  //   this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   // }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
-  //pagination 
+  //pagination
 
   page = 1;
   page1 = 1;
@@ -525,7 +533,7 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
 
-  //sorting timesheet	
+  //sorting timesheet
   sortData(sort: Sort) {
     //console.log(sort);
     if (sort.active) {
@@ -616,7 +624,7 @@ export class TeamTimesheetComponent implements OnInit {
     //console.log(isNightShiftFound, " : isNightShiftFound");
 
     if (isNightShiftFound.length != 0) {
-      this.modalRef = this.modalService.show(nightShiftTemplate, { class: 'modal-lg' });
+      this.modalRef = this.modalService.open(nightShiftTemplate, { modalDialogClass: 'modal-lg' });
     } else {
       this.onBulkApproval(alertTemplate);
     }
@@ -641,7 +649,7 @@ export class TeamTimesheetComponent implements OnInit {
     //console.log(isNightShiftFound, " : isNightShiftFound");
 
     if (isNightShiftFound.length != 0) {
-      this.modalRef = this.modalService.show(nightShiftTemplate, { class: 'modal-lg' });
+      this.modalRef = this.modalService.open(nightShiftTemplate, { modalDialogClass: 'modal-lg' });
     } else {
       this.openBulkRejectTimesheet(bulkRejectTimesheet);
     }
@@ -725,6 +733,7 @@ export class TeamTimesheetComponent implements OnInit {
   }
   showPreview(base64Data: string, mimeType: string) {
     const dataUrl = `data:${mimeType};base64,${base64Data}`;
+    this.resetPreviewState();
     this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
 
     if (mimeType === 'application/pdf') {
@@ -737,7 +746,7 @@ export class TeamTimesheetComponent implements OnInit {
 
 
     // Open modal
-    this.modalRef = this.modalService.show(this.previewModal, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-lg' });
   }
 
   toggleSearch() {
@@ -998,7 +1007,7 @@ export class TeamTimesheetComponent implements OnInit {
       ? (this.selectedFile?.type === 'application/pdf' ? 'pdf' : 'image')
       : (this.selectedFile2?.type === 'application/pdf' ? 'pdf' : 'image');
 
-    this.modalRef = this.modalService.show(this.previewModal, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(this.previewModal, {modalDialogClass: 'modal-lg' });
   }
 
   formatDateToLocalYMD(date: Date): string {
@@ -1126,7 +1135,7 @@ export class TeamTimesheetComponent implements OnInit {
 
   openClientSideIdForm() {
     this.empClientSideObj.clientSideId = '';
-    this.clientSideIdForm = this.modalService.show(this.clientSideIdFormRef, { class: 'modal-lg' });
+    this.clientSideIdForm = this.modalService.open(this.clientSideIdFormRef, {modalDialogClass: 'modal-lg' });
   }
 
   getProjectName(projectId: number): string {
@@ -1135,7 +1144,7 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
   hideClientSideIdForm() {
-    this.clientSideIdForm.hide();
+    this.clientSideIdForm?.close();
   }
 
   onCancelClientSideId(template: TemplateRef<any>) {
@@ -1145,7 +1154,7 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
   openclientSideIdNotMandatoryFound(template: TemplateRef<any>) {
-    this.clientSideIdNotMandatoryFoundModalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.clientSideIdNotMandatoryFoundModalRef = this.modalService.open(template, {modalDialogClass: 'modal-md' });
   }
 
   async getClientSideIdByProjectIdAndEmpId(projectId: any, empId: any) {
@@ -1443,7 +1452,7 @@ export class TeamTimesheetComponent implements OnInit {
         console.error(response.serviceResponse)
       }
     });
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
     // Load timesheets for this employee
     // this.loadAllTeamTimesheetRequests(employeementId);
   }
@@ -1521,7 +1530,7 @@ export class TeamTimesheetComponent implements OnInit {
 
     if (this.clientSideIdMandetoryFromBackend) {
       if (this.empClientSideObj.clientSideId.toLowerCase().startsWith("na")) {
-        this.modalRef?.hide();
+        this.modalRef?.close();
         this.empClientSideObj.clientSideId = '';
         this.openAlertMod(template, 'As per the configuration defined by your project manager, Client IDs for this project cannot begin with “NA”. Kindly provide the valid Client ID assigned to you. For additional assistance, please reach out to your project manager.');
         return;
@@ -1552,7 +1561,7 @@ export class TeamTimesheetComponent implements OnInit {
 
   hideclientSideIdNotMandatoryFound(): void {
     if (this.clientSideIdNotMandatoryFoundModalRef) {
-      this.clientSideIdNotMandatoryFoundModalRef.hide();
+      this.clientSideIdNotMandatoryFoundModalRef?.close();
     }
   }
 
@@ -1561,7 +1570,7 @@ export class TeamTimesheetComponent implements OnInit {
   openSelfModal3(template: TemplateRef<any>) {
     this.empClientSideObj.clientSideId = '';
     this.empClientSideObj.projectId = this.timesheetObj.projectId;
-    this.updateClientIdModalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.updateClientIdModalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
     this.getActiveProjectsAndClientSideIdByEmpId();
   }
 
@@ -1570,11 +1579,11 @@ export class TeamTimesheetComponent implements OnInit {
 
   //   this.filters = {};
   //   this.isSearchEnabled = false;
-  //   this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  //   this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   // }
 
   opnenbulkRejectTimesheet(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
 
@@ -1649,10 +1658,57 @@ export class TeamTimesheetComponent implements OnInit {
     this.fromDate = '';
     this.getMyReporteesTimesheetRequests();
   }
+ 
+
+zoomIn() {
+  if (this.zoomScale < 2.5) {
+    this.zoomScale += 0.1;
+    this.zoomLevel = Math.round(this.zoomScale * 100);
+  }
+}
+
+zoomOut() {
+  if (this.zoomScale > 0.5) {
+    this.zoomScale -= 0.1;
+    this.zoomLevel = Math.round(this.zoomScale * 100);
+  }
+}
+
+
+get transformStyle() {
+  return `translate(${this.translateX}px, ${this.translateY}px) scale(${this.zoomScale})`;
+}
+
+startDrag(event: MouseEvent) {
+  if (this.zoomScale <= 1) return; // drag only when zoomed
+
+  this.isDragging = true;
+  this.startX = event.clientX - this.translateX;
+  this.startY = event.clientY - this.translateY;
+  event.preventDefault();
+}
+
+onDrag(event: MouseEvent) {
+  if (!this.isDragging) return;
+
+  this.translateX = event.clientX - this.startX;
+  this.translateY = event.clientY - this.startY;
+}
+
+endDrag() {
+  this.isDragging = false;
+}
+
+resetPreviewState() {
+  this.zoomScale = 1;
+  this.zoomLevel = 100;
+  this.translateX = 0;
+  this.translateY = 0;
+  this.isDragging = false;
+}
+
 }
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }
-
-

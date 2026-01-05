@@ -3,7 +3,7 @@ import { Sort } from '@angular/material/sort';
 import { Router } from '@angular/router';
 import { saveAs } from 'file-saver';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Breadcrumb } from 'src/app/models/breadcrumd';
@@ -26,6 +26,7 @@ import { ResourceManagementService } from 'src/app/services/resource-management.
 import { ResourceManagementComponent } from 'src/app/user-team/resource-management/resource-management.component';
 import * as XLSX from 'xlsx';
 @Component({
+  standalone: false,
   selector: 'app-employee360-project',
   templateUrl: './employee360-project.component.html',
   styleUrls: ['./employee360-project.component.css']
@@ -56,7 +57,7 @@ export class Employee360ProjectComponent implements OnInit {
   //Rahul Singh
   filterProjectByProjectId: any[] = [];
   filterTeamfromTeamId: any;
-  //end 
+  //end
   filteredDeptList: any[] = [];
   allDeptList: any[] = [];
   allTeamList: any[] = [];
@@ -68,7 +69,7 @@ export class Employee360ProjectComponent implements OnInit {
   employeesColumns: any[] = ['blank', 'teamName', 'employeeName', 'billableType', 'startDate', 'employeeRole'];
   teamColumns: any[] = ['blank','employmentIdAcToET','name','teamName','teamLeadName']
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   newteamMember: TeamMember = new TeamMember();
 
   projectObj: Project = new Project();
@@ -84,7 +85,7 @@ export class Employee360ProjectComponent implements OnInit {
   constructor(
     private breadcrumbService: BreadcrumbService,
     private projectService: ProjectService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private router: Router,
     private authenticationService: AuthenticationService,
     private exportExcelService: ExportExcelService,
@@ -102,7 +103,7 @@ export class Employee360ProjectComponent implements OnInit {
   }
 
   ngOnInit(): void {
-
+    console.log("Current User", this.currentUser)
     let encryptedEmployeeData = sessionStorage.getItem('employee360Data');
             let employeeData = null;
             if (encryptedEmployeeData) {
@@ -367,10 +368,10 @@ async getExistingProjectsByUser() {
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     const yyyy = today.getFullYear();
     this.lastDate = `${yyyy}-${mm}-${dd}`;
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
     this.projectObj = projObj;
     this.projectObj.empId = member.empId;
-  
+
   }
 
 
@@ -499,7 +500,7 @@ async getExistingProjectsByUser() {
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
@@ -524,7 +525,7 @@ async getExistingProjectsByUser() {
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
   editStartdateModal(template: TemplateRef<any>, projObj) {
@@ -534,7 +535,7 @@ async getExistingProjectsByUser() {
     const yyyy = today.getFullYear();
     this.lastDate = `${yyyy}-${mm}-${dd}`;
     // let projectObj = Object.assign({},this.projectObj); for copy object
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
     this.projectObj = projObj;
   }
 
@@ -545,7 +546,7 @@ async getExistingProjectsByUser() {
     const yyyy = today.getFullYear();
     this.lastDate = `${yyyy}-${mm}-${dd}`;
     // let projectObj = Object.assign({},this.projectObj); for copy object
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
     this.projectObj = projObj;
   }
 
@@ -574,8 +575,18 @@ async getExistingProjectsByUser() {
 
 
   editEnddate(template: TemplateRef<any>) {
-    this.cancelRequest();
+    
+      const startDateStr = this.projectObj.startDate?.split('T')[0];
+  const endDateStr = this.endDate;
 
+  const startDate = new Date(startDateStr + 'T00:00:00');
+  const endDate = new Date(endDateStr + 'T00:00:00');
+
+  if (endDate < startDate) {
+    this.openAlertMod(template, "End Date can't be set before Start Date");
+    return;
+  }
+    this.cancelRequest();
     let projectObj = new Project();
     projectObj.teamId = this.projectObj.teamId;
     projectObj.empId = this.projectObj.empId;
@@ -584,14 +595,20 @@ async getExistingProjectsByUser() {
 
     console.log("team details ", projectObj)
     this.projectService.updateProjectStartAndEndDate(projectObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
+
+      if (response.serviceStatus === "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.endDate = '';
         this.getExistingProjectsByUser();
         this.getTeamByProjectId(this.projectObj.projectId);
-        // this.getTeamByProjectId(this.projectObj.projectId);
+      } 
+      else {
+        if (response.serviceStatus === "Fail") {
+          this.openAlertMod(template, "End Date can't be set before Start Date");
+        }
       }
-    })
+      this.endDate = ''; // for clearing the selected date in date picker 
+    });
   }
 
   isFutureDate(dateString: string | Date): boolean {
@@ -603,8 +620,8 @@ async getExistingProjectsByUser() {
     inputDate.setHours(0, 0, 0, 0);
     return inputDate > today;
   }
-  modalRef2: BsModalRef = new BsModalRef();
-  modalRef3: BsModalRef = new BsModalRef();
+  modalRef2:NgbModalRef;
+  modalRef3:NgbModalRef;
   activeProjects: any;
   EmployessIds: any;
   employeeTeamMapId:any;
@@ -616,7 +633,7 @@ async getExistingProjectsByUser() {
     const empIds: number[] = [projObj.empId];
     this.EmployessIds = empIds;
     this.projectteamInfo.projectId = projObj.projectId;
-   
+
  console.log("test", projObj.empId);
     this.resourceManagementService.getTeamListByProjectName(projObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -644,8 +661,8 @@ async getExistingProjectsByUser() {
         this.previewTeamList = this.projectObj.teamList;
 
         if (this.projectObj.teamList == undefined || this.projectObj.teamList.length == 0) {
-       
-        } else { 
+
+        } else {
           this.allTeamList = this.projectObj.teamList;
 
           this.allTeamList = this.allTeamList.filter(team => team.teamId === teamId);
@@ -694,14 +711,14 @@ console.log("mapping ID",this.employeeTeamMapId);
             this.setDefaultProjectObj.empIds = this.activeProjects;
             this.setDefaultProjectObj.projectId = projObj.projectId;
             this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
-            this.modalRef2 = this.modalService.show(template1, { class: 'modal-xl' });
+            this.modalRef2 = this.modalService.open(template1, { modalDialogClass: 'modal-xl' });
 
           } else if (this.EmployessIds.length !== 0) {
             this.getEmployeeInformationBulk(this.EmployessIds);
-            this.modalRef3 = this.modalService.show(template, { class: 'modal-xl' });
+            this.modalRef3 = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
           }
           else {
-            this.modalRef = this.modalService.show(template2, { class: 'modal-sm' });
+            this.modalRef = this.modalService.open(template2, { modalDialogClass: 'modal-sm' });
           }
 
         }
@@ -711,7 +728,7 @@ console.log("mapping ID",this.employeeTeamMapId);
 
       }
     });
-   
+
     this.projectObj = projObj;
  console.log("test",this.projectObj);
 
@@ -719,8 +736,8 @@ console.log("mapping ID",this.employeeTeamMapId);
       ? moment(projObj.poEndDate).format('YYYY-MM-DD')
       : moment().format('YYYY-MM-DD');
 
-    if (this.modalRef) this.modalRef.hide();
-    if (this.modalRef2) this.modalRef2.hide();
+    if (this.modalRef) this.modalRef?.close();
+    if (this.modalRef2) this.modalRef2.close();
 
 
     this.getProjectDetailsForBulkDefaultUpdate();
@@ -748,7 +765,7 @@ console.log("mapping ID",this.employeeTeamMapId);
   alertTemplateWithoutReload: TemplateRef<any>;
 
   openAlertMod3(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
@@ -759,8 +776,8 @@ console.log("mapping ID",this.employeeTeamMapId);
       if (response.serviceStatus == "Success") {
         this.bulkEmployeeListActiveList = response.serviceResponse;
         console.error("Unable to fetch Employee List!", this.bulkEmployeeListActiveList);
-        // this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-      
+        // this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
+
        } else {
             if (this.activeProjects.length !== 0) {
           this.openAlertMod3(this.alertTemplateWithoutReload, "Unable to fetch Employee List");
@@ -807,8 +824,8 @@ console.log("mapping ID",this.employeeTeamMapId);
         this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
         this.activeProjects = this.activeProjects.filter(id => id !== details.empId);
         if (this.activeProjects.length === 0) {
-          this.modalRef2.hide();  
-          this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+          this.modalRef2.close();
+          this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
         }
       } else {
         this.openAlertMod3(this.alertTemplateWithoutReload, response.serviceResponse);
@@ -860,7 +877,7 @@ console.log("mapping ID",this.employeeTeamMapId);
       !setDefaultProjectObj.teamId ||
       !setDefaultProjectObj.employeeRole
     ) {
-         this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');      
+         this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');
       // alert('Project, Team, and Employee Role must be selected.');
       return;
     }
@@ -871,9 +888,9 @@ console.log("mapping ID",this.employeeTeamMapId);
           this.EmployessIds = [];
           setDefaultProjectObj = [];
           // this.getEmployeeInformationBulk(this.EmployessIds);
-          this.modalRef.hide();
+          this.modalRef?.close();
           if (this.activeProjects.length === 0 && this.EmployessIds.length === 0) {
-            this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+            this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
           } else {
             this.openAlertMod3(this.alertTemplateWithoutReload, "Please update the Employees default Projects");
           }
@@ -913,19 +930,19 @@ console.log("mapping ID",this.employeeTeamMapId);
       !this.setDefaultProjectObj.teamId ||
       !this.setDefaultProjectObj.employeeRole
     ) {
-         this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');      
+         this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');
       // alert('Project, Team, and Employee Role must be selected.');
       return;
     }
-    
+
     if (this.setDefaultProjectObj.teamId !== null) {
       this.resourceManagementService.setProjectMappingAndDefaultProject(this.setDefaultProjectObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.bulkEmployeeList = response.serviceResponse;
-          this.EmployessIds = this.EmployessIds.filter(id => id !== emp.empId); 
+          this.EmployessIds = this.EmployessIds.filter(id => id !== emp.empId);
           if (this.EmployessIds.length === 0) {
-            this.modalRef3.hide();
-            this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+            this.modalRef3.close();
+            this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
           }
         } else {
           this.openAlertMod3(this.alertTemplateWithoutReload, "Unable to fetch Employee List");

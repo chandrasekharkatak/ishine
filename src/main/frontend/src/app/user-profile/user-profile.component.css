@@ -710,4 +710,6 @@ box-shadow:
   background: transparent;
 }
 
-
+.accordion-header-bg-color {
+  background-color: #f4f2f3;
+}

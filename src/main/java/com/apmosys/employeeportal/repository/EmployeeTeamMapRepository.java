@@ -72,9 +72,9 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	                                                          @Param("teamId") Long teamId);
 
 	
-	@Query(nativeQuery = true)
+	@Query("SELECT etm from EmployeeTeamMap etm WHERE etm.empId = :empId AND etm.teamId = :teamId")
 	EmployeeTeamMap findByEmpIdAndTeamId(Long empId, Long teamId);
-	
+		
 //	@Query(nativeQuery = true)
 //	List<EmployeeTeamMap> findByTeamIdAndActive(Long teamId);
 	
@@ -83,6 +83,9 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.teamId = :teamId AND etm.active IN (1, 2)")
 	List<EmployeeTeamMap> findByTeamIdAndActive(@Param("teamId") Long teamId);
 
+	
+	@Query(nativeQuery = true)
+	List<Long> findByActiveAndTeamIdIn(List<Long> teamIds);
 
 	@Query(nativeQuery = true)
 	List<Object[]> getAllProjectByEmpId(Long empId);
@@ -121,6 +124,10 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	 
 	 @Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.teamId = :teamId AND etm.active = 1")
 	 List<EmployeeTeamMap> findTeammembersByTeamIdAndStatus(Long teamId);
+	 
+	 @Query(nativeQuery = true)
+	 List<EmployeeTeamMap> findByTeamIdAndIsActive(Long empId,Long active,Integer projectId);
+	 
 
 //	 @Query(nativeQuery = true , value = "SELECT * FROM employee_team_mapping etm WHERE etm.team_id = :teamId")
 //	List<EmployeeTeamMap> findTeammembersByTeamId(Long teamId);
@@ -134,7 +141,7 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	 @Query(nativeQuery = true)
 	List<Object[]> findTeammembersByTeamIdAndManagerId(Long teamId, Long managerId);
 
-	 @Query(nativeQuery = true)
+	@Query(nativeQuery = true)
 	List<Object[]> getAllProjectsTeamsInfo(Long empId);
 
 	@Modifying
@@ -569,6 +576,19 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 		       ")")
 		List<EmployeeTeamMap> findLatestByTeamIds(@Param("teamIds") List<Long> teamIds);
 
+	@Query(nativeQuery = true)
+	List<Object[]> getEmployeePersonaForProject(Long employeeId,Long projectId);
+	
+	List<EmployeeTeamMap> findByEmpIdAndActive(Long empId, Long active);
+	
+	
+
+	@Query(value="SELECT etm \n"
+			+ "FROM EmployeeTeamMap etm \n"
+			+ "INNER JOIN Team tms ON tms.teamId = etm.teamId \n"
+			+ "WHERE tms.projectId=:projectId AND etm.empId=:employeeId AND etm.active=1")
+	List<EmployeeTeamMap> getAllTeamMembersForProject(Long employeeId,Integer projectId);
+	
 		@Query(value = "SELECT distinct new com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO( c.clientId, "
 				+ "c.clientName, cl.clientLocationId, cl.clientLocation, t.projectId, p.projectName, t.teamName, t.teamId )\n"
 				+ "FROM Team t \n"
@@ -576,8 +596,8 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 				+ "INNER JOIN Client c ON c.clientId = p.clientId \n"
 				+ "INNER JOIN ClientLocation cl ON cl.clientId = c.clientId \n"
 				+ "INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId \n"
-				+ "where p.projectId = :projectId AND etm.empId = :empId")
-		public List<GetClientDetailsByProjectIdAndEmpIdDTO> getClientDetailsByProjectIdAndEmpId(@Param("projectId")Integer projectId, 
+				+ "where p.projectId = :project_id AND etm.empId = :empId")
+		public List<GetClientDetailsByProjectIdAndEmpIdDTO> getClientDetailsByProjectIdAndEmpId(@Param("project_id")Integer projectId, 
 				@Param("empId")Long empId);
 
 	}

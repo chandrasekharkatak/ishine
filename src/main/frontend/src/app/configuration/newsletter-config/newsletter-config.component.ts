@@ -2,7 +2,7 @@ import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Feature } from 'src/app/models/feature';
@@ -14,6 +14,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { saveAs } from "file-saver";
 
 @Component({
+  standalone: false,
   selector: 'app-newsletter-config',
   templateUrl: './newsletter-config.component.html',
   styleUrls: ['./newsletter-config.component.css']
@@ -24,11 +25,11 @@ export class NewsletterConfigComponent implements OnInit {
   currentUser: User;
   userMapping: any = {};
 
-  // Sorting 
+  // Sorting
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType:any;
-  
+
   isUploadForm: boolean = false;
   isTable: boolean = false;
 
@@ -37,7 +38,7 @@ export class NewsletterConfigComponent implements OnInit {
   newsletters:any[] = [];
   newsletterObj:Newsletter = new Newsletter();
 
-  // Preview 
+  // Preview
   fileName: any;
   src:any
 
@@ -46,12 +47,12 @@ export class NewsletterConfigComponent implements OnInit {
 	maxRequestSize:any;
   fileSize: number = 0;
 
-  // modal 
+  // modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
-  
+  modalRef:NgbModalRef;
 
-  // Filter 
+
+  // Filter
   filters:any = {};
   isSearchEnabled:boolean = false;
   documentsColumns:any[] = ['blank','displayName','fileName','createdByName','createdOn'];
@@ -61,7 +62,7 @@ export class NewsletterConfigComponent implements OnInit {
     private authenticationService: AuthenticationService,
     private locationStrategy: LocationStrategy,
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private newsletterService : NewsletterService,
   ){
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -93,9 +94,9 @@ export class NewsletterConfigComponent implements OnInit {
     this.isUploadForm = true;
     this.maxFileSize = parseInt(sessionStorage.maxFileSize);
     this.maxRequestSize = parseInt(sessionStorage.maxRequestSize);
-    
+
     this.isTable = false;
-    
+
     this.reset();
   }
 
@@ -140,7 +141,7 @@ export class NewsletterConfigComponent implements OnInit {
     this.fileSize = this.fileSize + document.size / 1024 /1024;
 
     //console.log("file size : ", this.fileSize);
-        
+
     this.file = {document : document,fileName : fileName};
   }
 
@@ -158,7 +159,7 @@ export class NewsletterConfigComponent implements OnInit {
     }
 
     //console.log("this.file : ", this.file);
-    
+
     if (!this.file){
       this.alertMessage = "Kindly Select Newsletter !!"
       this.openAlertMod(template, this.alertMessage);
@@ -187,7 +188,7 @@ export class NewsletterConfigComponent implements OnInit {
         this.openAlertMod(template, response.serviceResponse);
       }
     });
-  
+
   }
 
   spaceTrimNewsletterName(){
@@ -198,7 +199,7 @@ export class NewsletterConfigComponent implements OnInit {
 
   getAllNewsletters(){
     this.newsletters = [];
-    
+
     this.newsletterService.getAllNewsletters().pipe(first()).subscribe((response:any) => {
       if (response.serviceStatus == "Success") {
         this.newsletters =  response.serviceResponse;
@@ -213,7 +214,7 @@ export class NewsletterConfigComponent implements OnInit {
   }
 
   openDeleteDocument(template: TemplateRef<any>, newsletterObj: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.newsletterObj = newsletterObj;
     //console.log("On Delete Obj : ", this.newsletterObj);
   }
@@ -248,7 +249,7 @@ export class NewsletterConfigComponent implements OnInit {
     });
   }
 
-   
+
   downloadFile(doc: any) {
     this.newsletterService.downloadDocument(doc.documentId).subscribe(blob => saveAs(blob,doc.fileName));
   }
@@ -257,16 +258,16 @@ export class NewsletterConfigComponent implements OnInit {
   // Modals
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   openPreviewDocument(template: TemplateRef<any>){
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
   // Pagination
@@ -275,19 +276,19 @@ export class NewsletterConfigComponent implements OnInit {
     this.page = event;
   }
 
-  // Sorting 
-  sortData(sort: Sort){	
+  // Sorting
+  sortData(sort: Sort){
     //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
 
 
-  // Filter 
+  // Filter
   toggleSearch(){
     this.isSearchEnabled = !this.isSearchEnabled;
     if(!this.isSearchEnabled){

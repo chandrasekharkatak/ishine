@@ -5,7 +5,7 @@ import { Sort } from '@angular/material/sort';
 import { Router } from '@angular/router';
 import { saveAs } from 'file-saver';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { CalendarComponent } from 'src/app/helpers/calendar/calendar.component';
@@ -22,6 +22,7 @@ import { SortPipe } from 'src/app/sort.pipe';
 import * as XLSX from 'xlsx';
 
 @Component({
+  standalone: false,
   selector: 'app-employee360-timesheet',
   templateUrl: './employee360-timesheet.component.html',
   styleUrls: ['./employee360-timesheet.component.css']
@@ -84,22 +85,22 @@ export class Employee360TimesheetComponent implements OnInit {
   actionButton:boolean=false;
 
   timesheetColumns:any[]=['blank','employmentId','name','date','dayType','projectName','teamName','completionTime','activity','officeInTime','officeOutTime','totalTime','nightShift','status','createdOn'];
-  
-  
+
+
   constructor(
     private employeeService: EmployeeService,
     private utilityService: UtilityService,
     private employee360Service : Employee360Service,
     private timesheetService : TimesheetService,
     private datePipe: DatePipe,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private router: Router,
     private breadcrumbService: BreadcrumbService,
     private encryptionService: EncryptionService,
   ) {
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
   }
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   isProjectTeamClicked: boolean = false;
   header: String = "";
   currentBreadcrumbList: any[] = [];
@@ -136,7 +137,7 @@ if (encryptedUser) {
 } else {
   console.warn('No currentUser found in sessionStorage');
   this.currentUser = null;
-} 
+}
     // this.currentUser = sessionStorage.getItem('currentUser');
     if (this.currentUser) {
       const currentUserData = JSON.parse(this.currentUser);
@@ -162,7 +163,7 @@ if (encryptedUser) {
 } else {
   console.warn('No currentUser found in sessionStorage');
   employeeData = null;
-} 
+}
     this.Employee360 = employeeData;
     let employeeObject = employeeData;
     let empId = employeeObject.empId;
@@ -512,13 +513,13 @@ exportToExcel(id:any): void {
           this.alertMessage = response.serviceResponse;
           this.showModal = true;
           if (this.modalRef) {
-            this.modalRef.hide();
+            this.modalRef?.close();
             this.modalRef = null;
           }
 
-          this.modalRef = this.modalService.show(this.alertModal, {
+          this.modalRef = this.modalService.open(this.alertModal, {
             keyboard: false,
-            class: 'modal-sm',
+            modalDialogClass : 'modal-sm',
           });
         } else {
           this.alertMessage = response.serviceResponse;
@@ -540,7 +541,7 @@ exportToExcel(id:any): void {
   cancelRequest() {
     this.showModal = false;
     if (this.modalRef) {
-      this.modalRef.hide();
+      this.modalRef?.close();
       this.modalRef = null;
     }
   }
@@ -571,7 +572,7 @@ let encryptedEmployeeData = localStorage.getItem('employee360Data');
 } else {
   console.warn('No currentUser found in sessionStorage');
   employeeData = null;
-} 
+}
 
 
     let employeeObject = employeeData;
@@ -716,7 +717,7 @@ let encryptedEmployeeData = localStorage.getItem('employee360Data');
 //             console.log("=> serviceResponse", response.serviceResponse);
 //             this.data = response.serviceResponse;
 //             this.data = Object.values(this.data);
-//             this.responseCount=this.data.length; 
+//             this.responseCount=this.data.length;
 //             this.result = this.transformData(this.data);
 //             this.result.forEach((employee) => {
 //               let matchingEmployee = this.employeesFor360.find(emp => emp.empId == employee.empId);
@@ -731,7 +732,7 @@ let encryptedEmployeeData = localStorage.getItem('employee360Data');
 //     if (this.currentUser) {
 //       const currentUserData = JSON.parse(this.currentUser);
 //       this.managerId = currentUserData.empId;
-//       console.log(this.managerId); 
+//       console.log(this.managerId);
 //     }
 // }
 
@@ -741,14 +742,14 @@ let encryptedEmployeeData = localStorage.getItem('employee360Data');
 //             next: (response: any) => {
 //                 if (response.serviceStatus == "Success") {
 //                     this.employeesFor360 = response.serviceResponse;
-    
+
 //                     this.employeesFor360.forEach(employeeObj => {
 //                         employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
 //                         employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
 //                         employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
 //                         employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
 //                         employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-    
+
 //                         if (employeeObj.isConsultant == 'true')
 //                             employeeObj.employeeType = 'Consultant';
 //                         else if (employeeObj.isApprenticeship == 'true')
@@ -756,7 +757,7 @@ let encryptedEmployeeData = localStorage.getItem('employee360Data');
 //                         else
 //                             employeeObj.employeeType = 'Regular';
 //                     });
-    
+
 //                     this.employeesFor360 = new SortPipe().transform(this.employeesFor360, ['name', 'string', 'asc']);
 //                 } else {
 //                     alert(response.serviceResponse);
@@ -769,28 +770,28 @@ let encryptedEmployeeData = localStorage.getItem('employee360Data');
 //     }
 
 async get360TimesheetDetails(
-  activeButton: string, 
-  empId: number, 
-  projectId: number, 
-  teamName: string, 
-  // managerId: number, 
-  formattedStartDate: string, 
+  activeButton: string,
+  empId: number,
+  projectId: number,
+  teamName: string,
+  // managerId: number,
+  formattedStartDate: string,
   formattedEndDate: string
 ): Promise<void> {
   console.log(this.activeButton);
 
   try {
 
-   
+
     const response: any = await this.employee360Service.get360TimesheetDetails(
-      activeButton, 
-      empId, 
-      projectId, 
-      teamName, 
-      // managerId, 
-      formattedStartDate, 
+      activeButton,
+      empId,
+      projectId,
+      teamName,
+      // managerId,
+      formattedStartDate,
       formattedEndDate
-    ).toPromise();  
+    ).toPromise();
 
     if (response.serviceStatus === "Success") {
       console.log("=> serviceResponse", response.serviceResponse);
@@ -802,11 +803,11 @@ async get360TimesheetDetails(
         employee.emp360 = employee.empId;
       });
       this.result.sort((a, b) => {
-          
+
         if (a.date > b.date) {
-          return -1; 
+          return -1;
         } else if (a.date < b.date) {
-          return 1; 
+          return 1;
         }
         return 0;
       });
@@ -832,7 +833,7 @@ if (encryptedUser) {
 } else {
   console.warn('No currentUser found in sessionStorage');
   this.currentUser = null;
-} 
+}
 
 
     // this.currentUser = sessionStorage.getItem('currentUser');
@@ -851,6 +852,6 @@ if (encryptedUser) {
       window.location.reload()
     }
 
-    
+
 }
 

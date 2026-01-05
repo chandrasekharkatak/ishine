@@ -25,12 +25,17 @@ import com.apmosys.employeeportal.dto.RmAndHodEmailDto;
 import com.apmosys.employeeportal.dto.SkippedEmployeeDTO;
 import com.apmosys.employeeportal.dto.SummaryChartDTO;
 import com.apmosys.employeeportal.dto.TimeSheetDetailsDto;
+import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectIdAndNameDTO;
 import com.apmosys.employeeportal.model.Project;
 
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Integer> {
 
 	public List<Project> findAllByProjectManagerId(Long projectManagerId);
+
+	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectIdAndNameDTO(p.projectId, p.projectName) FROM Project p")
+	public List<ProjectIdAndNameDTO> findAllProjectIdAndName();
 	
 	public List<Project> findByEmpId(Long empId);
 	
@@ -3720,6 +3725,25 @@ boolean existsByProjectName(String projectName);
     @Query("SELECT p.hasClientSideId FROM Project p WHERE p.projectId=:projectId")
     Boolean getClientSideIdMandatory(@Param("projectId")Integer projectId);
 
+
+	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectDTO(c.clientId, c.clientName ) \n"
+			+ "FROM Project p \n"
+			+ "INNER JOIN Client c ON c.clientId = p.clientId \n"
+			+ "WHERE p.projectId=:projectId")
+	public List<ProjectDTO> getClientByProjectId(Integer projectId);
+	
+	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectDTO(p.projectId,p.projectName,p.projectManagerId,e.name,p.apmosysRM,p.clientRM,c.clientId, c.clientName ) \n"
+			+ "FROM Project p \n"
+			+ "LEFT JOIN Client c ON c.clientId = p.clientId \n"
+			+ "LEFT JOIN Employee e ON e.empId = p.projectManagerId")
+	public List<ProjectDTO> getAllProjectNameAndProjectManagerId();
+
+	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectDTO(p.projectId,p.projectName,p.projectManagerId,e.name,p.apmosysRM,p.clientRM,c.clientId, c.clientName ) \n"
+			+ "FROM Project p \n"
+			+ "LEFT JOIN Client c ON c.clientId = p.clientId \n"
+			+ "LEFT JOIN Employee e ON e.empId = p.projectManagerId where p.projectId=:projectId")
+	public ProjectDTO getAllProjectNameAndProjectManagerIdByProjectId(Integer projectId);
+
 	@Query(value = "SELECT\n"
 			+ " distinct p.project_id,project_name, po_no, p.client_id, p.po_project_id, p.active,po_project_type,\n"
 			+ " GROUP_CONCAT(DISTINCT e1.name ORDER BY e1.name SEPARATOR ', ') as Project_Manager,\n"
@@ -3820,7 +3844,6 @@ boolean existsByProjectName(String projectName);
 
 	@Query(value="Select p.projectName from Project p Where LOWER(p.poNo) like %:poNo% ")
 	public List<String> getProjectNamebyPoNoLike(String poNo);
-
 
 	@Query(value = " WITH RECURSIVE\n"
 			+ "    Date_Parameters AS (\n"

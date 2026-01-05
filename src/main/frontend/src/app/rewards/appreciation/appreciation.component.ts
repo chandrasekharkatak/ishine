@@ -2,7 +2,7 @@ import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { ClipboardService } from 'ngx-clipboard';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
@@ -31,6 +31,7 @@ class FilterData {
   queryList: any;
 }
 @Component({
+  standalone: false,
   selector: 'app-appreciation',
   templateUrl: './appreciation.component.html',
   styleUrls: ['./appreciation.component.css']
@@ -80,7 +81,7 @@ export class AppreciationComponent implements OnInit {
 
   alertMessage: any;
   @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   // portalObj: Portal = new Portal();
   timesheetObj: Timesheet = new Timesheet();
@@ -122,7 +123,7 @@ export class AppreciationComponent implements OnInit {
   constructor(private portalService: PortalService,
     private validationService: ValidationService,
     private exportExcelService: ExportExcelService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private employeeService: EmployeeService,
     private authenticationService: AuthenticationService,
     private locationStrategy: LocationStrategy,
@@ -708,7 +709,7 @@ export class AppreciationComponent implements OnInit {
     this.filterData.queryList = JSON.stringify(this.queryList);
 
     //console.log("filterData : ", this.filterData);
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
   onFilterSubmit(queryList: any, template: TemplateRef<any>) {
@@ -990,13 +991,13 @@ export class AppreciationComponent implements OnInit {
           this.appreciationColorMap[score] = this.colorPalette[idx % this.colorPalette.length];
         });
       }
-    
 
 
 
 
 
-  
+
+
       else {
   console.error(response.serviceResponse);
 }
@@ -1146,7 +1147,7 @@ showUpdateForm(appreciationEvent: enableAppreciation) {
   //console.log("this.appreciationObj : ", this.appreciationObj)
 }
 openDeleteAppreciationEvent(template: TemplateRef<any>, appreciationEvent: any) {
-  this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   this.appreciationObj = appreciationEvent;
   //console.log(this.appreciationObj);
 }
@@ -1350,21 +1351,21 @@ copyHelpDocumentLink(doc: any, template: TemplateRef<any>) {
 //modal
 
 openAlertMod(template: TemplateRef<any>, message: any) {
-  this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   this.alertMessage = message;
 }
 
 openDeleteDocument(template: TemplateRef<any>, helpDoc: any) {
-  this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+  this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   this.helpObj = helpDoc;
 }
 
 openPreviewDocument(template: TemplateRef<any>) {
-  this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+  this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
 }
 
 cancelRequest() {
-  this.modalRef.hide();
+  this.modalRef?.close();
 }
 
 page = 1;

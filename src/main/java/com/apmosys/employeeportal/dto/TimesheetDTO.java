@@ -2,8 +2,8 @@ package com.apmosys.employeeportal.dto;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -22,7 +22,7 @@ import lombok.ToString;
 @ToString
 @NoArgsConstructor
 public class TimesheetDTO {
-
+	
 	private Integer projectId;
 	private Integer clientId;
 	private String clientName;
@@ -312,4 +312,47 @@ public class TimesheetDTO {
 		this.employeeName = employeeName;
 	}
 
-}
+	
+	public TimesheetDTO(
+		    Long timesheetId,              
+		    LocalDate date,                 
+		    String dayType,                 
+		    String employeeName,            
+		    String description,             
+		    String status,                 
+		    String createdByName,          
+		    Long createdByEmpId,            
+		    String createdOn,               
+		    Long employeementId,            
+		    Float totalTime,                
+		    String email,                   
+		    LocalDateTime officeInTime,    
+		    LocalDateTime officeOutTime,    
+		    String totalWorkingHours,       
+		    String isNightShift,           
+		    Long currentManagerId,          
+		    String isConsultant,           
+		    String isApprenticeship,        
+		    Long empId                      
+		) {
+		    this.timesheetId = timesheetId;
+		    this.date = date.toString();    
+		    this.dayType = dayType;
+		    this.employeeName = employeeName;
+		    this.description = description;
+		    this.status = status;
+		    this.createdByName = createdByName;
+		    this.CreatedByEmpId = createdByEmpId;
+		    this.createdOn = createdOn;
+		    this.employeementId = employeementId;
+		    this.totalTime = totalTime;
+		    this.email = email;
+		    this.officeInTime = officeInTime.toString();    
+		    this.officeOutTime = officeOutTime.toString();  
+		    this.totalWorkingHours = Float.parseFloat(totalWorkingHours); 
+		    this.isNightShift = isNightShift;
+		    this.currentManagerId = currentManagerId;
+		    this.isConsultant = isConsultant;
+		    this.isApprenticeship = isApprenticeship;
+		    this.empId = empId;
+		}}

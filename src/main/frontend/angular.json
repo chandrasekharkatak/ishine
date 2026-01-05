@@ -42,11 +42,17 @@
           },
           "configurations": {
             "production": {
+              "optimization": true,
+              "buildOptimizer": true,
+              "vendorChunk": false,
+              "extractLicenses": true,
+              "sourceMap": false,
+              "namedChunks": false,
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "20mb",
-                  "maximumError": "25mb"
+                  "maximumWarning": "12mb",
+                  "maximumError": "15mb"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -77,10 +83,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "employee-portal-revamp:build:production"
+              "buildTarget": "employee-portal-revamp:build:production"
             },
             "development": {
-              "browserTarget": "employee-portal-revamp:build:development"
+              "buildTarget": "employee-portal-revamp:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -88,7 +94,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "employee-portal-revamp:build"
+            "buildTarget": "employee-portal-revamp:build"
           }
         },
         "test": {
@@ -111,6 +117,5 @@
         }
       }
     }
-  },
-  "defaultProject": "employee-portal-revamp"
+  }
 }

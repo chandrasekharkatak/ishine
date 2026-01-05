@@ -15,7 +15,9 @@
                         <div class="col-md-8 mb-0">
                             <div class="info-wrapper">
                                 <div class="form-group">
-                                    <angular-editor id="myEditor" rows="8" [(ngModel)]="employeeExitObj.resignationMail" [config]="editorConfig"></angular-editor>
+                                    <ngx-editor-menu [editor]="editor" [toolbar]="toolbar"></ngx-editor-menu>
+                                    <ngx-editor [(ngModel)]="employeeExitObj.resignationMail" [editor]="editor" [disabled]="false"
+                                        [placeholder]="'Enter text here...'"></ngx-editor>
                                 </div>
                             </div>
                         </div>
@@ -120,8 +122,7 @@
                             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                         </a>
                     </div>
-                    <div class="overflow-auto" bassHorizontalScroll [tableId]="'myResignationInfo'"
-                        [tableTHeadId]="'myResignationInfoTHead'" [tableTHeadTrId]="'myResignationInfoTHeadTr'">
+                    <div class="overflow-auto">
                         <table class="table" matSort (matSortChange)="sortData($event)" id="myResignationInfoInfo">
                             <thead class="thead-light" id="myResignationInfoTHead">
                                 <tr id="myResignationInfoTHeadTr">

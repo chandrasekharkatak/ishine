@@ -3,7 +3,7 @@ import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { saveAs } from "file-saver";
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Feature } from 'src/app/models/feature';
@@ -20,6 +20,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 
 
 @Component({
+  standalone: false,
   selector: 'app-upload-policies',
   templateUrl: './upload-policies.component.html',
   styleUrls: ['./upload-policies.component.css']
@@ -38,13 +39,13 @@ export class UploadPoliciesComponent implements OnInit {
   sortColumn: any;
   sortColumnType: any;
 
-  //flags 
+  //flags
   isDocumentForm: boolean = false;
   isTable: boolean = false;
 
-  //modal 
+  //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   document: any[] = [];
 
   //application properties value
@@ -62,14 +63,14 @@ export class UploadPoliciesComponent implements OnInit {
 
   filters: any = {};
   isSearchEnabled: boolean = false;
-  documentsColumns: any[] = ['blank', 'fileName', 'policyName', 'createdByName', 'createdOn'];
+  documentsColumns: any[] = ['blank', 'fileName', 'policyName', 'createdByName', 'createdOn','blank','blank'];
   readResponseColumns: any[] = ['blank', 'name', 'empId','departmentName' ,'policyName', 'readEnabled'];
 
 
 
   constructor(private uploadPoliciesService: UploadPoliciesService,
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private exportExcelService: ExportExcelService,
     private notificationService: NotificationService,
@@ -284,7 +285,7 @@ export class UploadPoliciesComponent implements OnInit {
 
   //modals
   openDeleteDocument(template: TemplateRef<any>, fileObj: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.fileObj = fileObj;
     //console.log(this.fileObj);
   }
@@ -337,23 +338,23 @@ export class UploadPoliciesComponent implements OnInit {
 
   }
   openReadEnabledMod(template: TemplateRef<any>, fileObj: UploadPolicy) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.fileObj = fileObj;
   }
   onReadDisabledMod(template: TemplateRef<any>, fileObj: UploadPolicy) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.fileObj = fileObj;
   }
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
   openPreviewDocument(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
 
@@ -364,8 +365,8 @@ export class UploadPoliciesComponent implements OnInit {
     this.isTable = false;
     this.filters = {};
     this.isSearchEnabled = false;
-   
-  
+
+
 
     this.showPolicyReadResponse(fileObj);
 
@@ -379,7 +380,7 @@ export class UploadPoliciesComponent implements OnInit {
         for (let x of this.responseList) {
           x.empId = "A-".concat(x.empId);
         }
-        //console.log(this.responseList);      
+        //console.log(this.responseList);
       }
       else {
         console.error(response.serviceResponse);
@@ -393,7 +394,7 @@ export class UploadPoliciesComponent implements OnInit {
 
   exportToExcel(): void {
 
-  
+
 
     this.uploadPoliciesService.showPolicyReadResponse(this.fileObjj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

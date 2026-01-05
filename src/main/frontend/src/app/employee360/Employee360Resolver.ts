@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, RouterStateSnapshot, Resolve } from '@angular/router';
+import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
 import { Observable, of, from } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { UtilityService } from '../services/utility.service';
@@ -8,7 +8,7 @@ import { EncryptionService } from '../services/EncryptionService';
 @Injectable({
   providedIn: 'root',
 })
-export class Employee360Resolver implements Resolve<any> {
+export class Employee360Resolver  {
   
   constructor(private utility: UtilityService,
         private encryptionService: EncryptionService

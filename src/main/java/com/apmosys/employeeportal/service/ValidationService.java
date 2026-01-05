@@ -63,4 +63,10 @@ public class ValidationService {
 		
 	}
 
+	public boolean validateHodId(Long empId) {
+		
+		return (departmentRepository.existsByHodId(empId)) ? true : false;
+		
+	}
+	
 }

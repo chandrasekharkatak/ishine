@@ -4,7 +4,7 @@ import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import * as Highcharts from 'highcharts';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first, map, startWith } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
 import { getEmployeeTimesheetAsCalenderByProjectId } from 'src/app/models/getEmployeeTimesheetAsCalenderByProjectId';
@@ -17,6 +17,7 @@ import { ProjectService } from 'src/app/services/project.service';
 import { ResourceManagementService } from 'src/app/services/resource-management.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 @Component({
+  standalone: false,
   selector: 'app-calendar-view',
   templateUrl: './calendar-view.component.html',
   styleUrls: ['./calendar-view.component.css']
@@ -29,15 +30,15 @@ export class CalendarViewComponent implements OnInit {
   @ViewChild('docRejectChart', { static: false }) docRejectChart!: ElementRef;
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
-  modalRef3: BsModalRef;
+  modalRef3: NgbModalRef;
   @ViewChild("previewModal")
   previewModal: TemplateRef<any>;
   empId: number;
-  previewUrl: SafeResourceUrl | null = null;    
-  fileType: string = '';                       
-  mimeType: string = '';                       
-  previewFileName: string = '';                 
-  docData: string = '';                       
+  previewUrl: SafeResourceUrl | null = null;
+  fileType: string = '';
+  mimeType: string = '';
+  previewFileName: string = '';
+  docData: string = '';
   selectedProjectId!: any;
   selectedEmpId!: any;
   clientSideFilter: any;
@@ -74,11 +75,11 @@ export class CalendarViewComponent implements OnInit {
   maxYear!: Date;
   @ViewChild("alert_message_projectDropDown")
   projectDropDownAlert: TemplateRef<any>;
-  projectDropDownAlertRef: BsModalRef;
+  projectDropDownAlertRef: NgbModalRef;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private projectService:ProjectService,
     private resourceManagementService: ResourceManagementService,
     private exportExcelService: ExportExcelService,
@@ -87,8 +88,8 @@ export class CalendarViewComponent implements OnInit {
 
   ngOnInit(): void {
   const currentYear = this.currentDate.getFullYear();
-  this.minYear = new Date(currentYear - 1, 0, 1); 
-  this.maxYear = new Date(currentYear, 11, 31); 
+  this.minYear = new Date(currentYear - 1, 0, 1);
+  this.maxYear = new Date(currentYear, 11, 31);
     this.route.queryParams.subscribe(params => {
       const projectId = +params['projectId'];
       const empId = +params['empId'];
@@ -128,21 +129,21 @@ export class CalendarViewComponent implements OnInit {
   }
 
   alertMessage: any;
-modalRef: BsModalRef = new BsModalRef();
-modalRef2: BsModalRef = new BsModalRef();
+modalRef:NgbModalRef;
+modalRef2:NgbModalRef;
 
 openAlertMod(template: TemplateRef<any>, message: any) {
-  this.modalRef3= this.modalService.show(template, { class: 'modal-sm' });
+  this.modalRef3= this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   this.alertMessage = message;
 }
 
 openAlertMod1(template1: TemplateRef<any>, message: any) {
-  this.modalRef2 = this.modalService.show(template1, { class: 'modal-sm' });
+  this.modalRef2 = this.modalService.open(template1, { modalDialogClass: 'modal-sm' });
   this.alertMessage = message;
 }
 
   openAlertModForFutureDate(template1: TemplateRef<any>, message: any) {
-    this.modalRef2 = this.modalService.show(template1, { class: 'modal-sm' });
+    this.modalRef2 = this.modalService.open(template1, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
@@ -165,17 +166,17 @@ monthSelected(event: Date, datepicker: any) {
   datepicker.close();
 }
 
-  
+
   changeMonth(date: Date) {
     if (!date) return;
     this.selectedMonth = new Date(date.getFullYear(), date.getMonth(), 1);
     this.updateFormattedMonthLabel();
-  
+
     if (this.selectedProjectId && this.selectedEmpId) {
       this.fetchTimesheetData(this.selectedProjectId, this.selectedEmpId);
     }
   }
-  
+
   updateFormattedMonthLabel() {
     this.formattedMonthLabel = this.selectedMonth.toLocaleString('default', {
       month: 'short',
@@ -203,7 +204,7 @@ monthSelected(event: Date, datepicker: any) {
   // const year = this.selectedMonth.getFullYear();
 
   // console.log('Using month/year for API:', month, year);
-  
+
   //   this.timesheetService.getEmployeeTimesheetAsCalender(empId, month, year)
   //     .pipe(first())
   //     .subscribe({
@@ -263,13 +264,13 @@ monthSelected(event: Date, datepicker: any) {
         }
       });
   }
-  
+
    cancelRequest1() {
    if (this.modalRef3) {
-      this.modalRef3.hide();
+      this.modalRef3.close();
     }
 }
-  
+
 
   buildCalendarGrid(timesheetData: { [key: string]: any }): void {
     const year = this.selectedMonth.getFullYear();
@@ -376,6 +377,7 @@ monthSelected(event: Date, datepicker: any) {
 
   showPreview(base64Data: string, mimeType: string, fileName?: string): void {
     const dataUrl = `data:${mimeType};base64,${base64Data}`;
+    this.resetPreviewState();
     this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
 
     if (mimeType === 'application/pdf') {
@@ -386,8 +388,8 @@ monthSelected(event: Date, datepicker: any) {
       this.fileType = 'other';
     }
 
-    this.previewFileName = fileName || 'Document';
-    this.modalRef2 = this.modalService.show(this.previewModal, { class: 'modal-xl modal-dialog-centered' });
+    this.previewFileName = fileName || 'Document Preview';
+    this.modalRef2 = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-xl modal-dialog-centered' });
   }
 
   getProjectByMonthRangeAndEmpId(fromMonthChange: boolean = false){
@@ -430,12 +432,65 @@ monthSelected(event: Date, datepicker: any) {
   }
 
   openProjectDropDownAlert( message: any) {
-    this.projectDropDownAlertRef = this.modalService.show(this.projectDropDownAlert, { class: 'modal-sm' });
+    this.projectDropDownAlertRef = this.modalService.open(this.projectDropDownAlert, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   hideProjectDropDownAlert() {
-    this.projectDropDownAlertRef.hide();
+    this.projectDropDownAlertRef?.close();
   }
+  zoomScale = 1;
+zoomLevel = 100;
+
+zoomIn() {
+  if (this.zoomScale < 2.5) {
+    this.zoomScale += 0.1;
+    this.zoomLevel = Math.round(this.zoomScale * 100);
+  }
+}
+
+zoomOut() {
+  if (this.zoomScale > 0.5) {
+    this.zoomScale -= 0.1;
+    this.zoomLevel = Math.round(this.zoomScale * 100);
+  }
+}
+isDragging = false;
+startX = 0;
+startY = 0;
+translateX = 0;
+translateY = 0;
+
+get transformStyle() {
+  return `translate(${this.translateX}px, ${this.translateY}px) scale(${this.zoomScale})`;
+}
+
+startDrag(event: MouseEvent) {
+  if (this.zoomScale <= 1) return; // drag only when zoomed
+
+  this.isDragging = true;
+  this.startX = event.clientX - this.translateX;
+  this.startY = event.clientY - this.translateY;
+  event.preventDefault();
+}
+
+onDrag(event: MouseEvent) {
+  if (!this.isDragging) return;
+
+  this.translateX = event.clientX - this.startX;
+  this.translateY = event.clientY - this.startY;
+}
+
+endDrag() {
+  this.isDragging = false;
+}
+
+resetPreviewState() {
+  this.zoomScale = 1;
+  this.zoomLevel = 100;
+  this.translateX = 0;
+  this.translateY = 0;
+  this.isDragging = false;
+}
 
 }

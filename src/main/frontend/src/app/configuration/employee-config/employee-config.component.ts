@@ -3,7 +3,7 @@ import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@ang
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { certification } from 'src/app/models/certification';
@@ -39,6 +39,7 @@ class FilterData {
 
 }
 @Component({
+  standalone: false,
   selector: 'app-employee-config',
   templateUrl: './employee-config.component.html',
   styleUrls: ['./employee-config.component.css']
@@ -102,9 +103,9 @@ export class EmployeeConfigComponent implements OnInit {
 
   //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
-  modalRef1: BsModalRef = new BsModalRef();
-  previewModalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
+  modalRef1:NgbModalRef;
+  previewModalRef:NgbModalRef;
   all: any;
   //Obj
   currentUser: User;
@@ -186,7 +187,7 @@ export class EmployeeConfigComponent implements OnInit {
   currDate: any;
   yearOfPassingList: any[] = [];
   revoke_template: any;
- 
+
   deptId: any;
 
 
@@ -275,7 +276,7 @@ export class EmployeeConfigComponent implements OnInit {
     private employeeService: EmployeeService,
     public validationService: ValidationService,
     private datePipe: DatePipe,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private jobRoleService: JobRoleService,
     private departmentService: DepartmentService,
@@ -364,19 +365,19 @@ export class EmployeeConfigComponent implements OnInit {
     this.reasonOfExtension = '';
     this.extensionPeriod = null;
 
-    this.modalRef1 = this.modalService.show(employeeTemplate, {
-      class: 'modal-xl'
+    this.modalRef1 = this.modalService.open(employeeTemplate, {
+      modalDialogClass: 'modal-xl'
     });
   }
   openRevokeModal(employee: any, revokeModalTemplate: TemplateRef<any>) {
     this.selectedEmployee = employee;
-    this.modalRef = this.modalService.show(revokeModalTemplate, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(revokeModalTemplate, { modalDialogClass: 'modal-sm' });
   }
 
   confirmRevoke(alert_message: TemplateRef<any>) {
     if (!this.selectedEmployee) {
       console.error('No employee selected for revoke action.');
-      this.modalRef?.hide();
+      this.modalRef?.close();
       return;
     }
 
@@ -403,7 +404,7 @@ export class EmployeeConfigComponent implements OnInit {
 
         }
 
-        this.modalRef?.hide();
+        this.modalRef?.close();
       },
       error: (err) => {
         const errorMessage = err.error?.serviceResponse || 'An unexpected server error occurred.';
@@ -411,7 +412,7 @@ export class EmployeeConfigComponent implements OnInit {
         console.error('Failed to revoke confirmation:', errorMessage);
         this.openAlertMod7(alert_message, errorMessage);
 
-        this.modalRef?.hide();
+        this.modalRef?.close();
       }
     });
   }
@@ -473,7 +474,7 @@ export class EmployeeConfigComponent implements OnInit {
       this.selectedTab = ' ';
     }
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
   openReduceExtensionModal(template: TemplateRef<any>, template2: TemplateRef<any>) {
@@ -493,7 +494,7 @@ export class EmployeeConfigComponent implements OnInit {
       daysToReduce: this.reduceExtension,
       hodId: this.currentUser.empId
     };
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
   reduceExtensionRequest(selectedEmployee: any, alert_message: TemplateRef<any>) {
@@ -568,7 +569,7 @@ export class EmployeeConfigComponent implements OnInit {
       this.openAlertMod(template2, message);
       return;
     }
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
   confirmAndExecuteReasonSubmission(selectedEmployee: any, template: TemplateRef<any>) {
@@ -618,11 +619,11 @@ export class EmployeeConfigComponent implements OnInit {
       return;
     }
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
   }
 
   confirmAndExecuteExtension(template: TemplateRef<any>): void {
-    this.modalRef?.hide();
+    this.modalRef?.close();
     this.executeExtendEmployee(template);
   }
 
@@ -664,11 +665,11 @@ export class EmployeeConfigComponent implements OnInit {
 
   private closeAllModals(): void {
     if (this.modalRef) {
-      this.modalRef.hide();
+      this.modalRef?.close();
       this.modalRef = null;
     }
     if (this.modalRef1) {
-      this.modalRef1.hide();
+      this.modalRef1?.close();
       this.modalRef1 = null;
     }
   }
@@ -967,7 +968,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.newEmployee = reportee;
     console.log("newEmployee", this.newEmployee.managerId);
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
   updateEmployeesManager(template: TemplateRef<any>) {
@@ -986,7 +987,7 @@ export class EmployeeConfigComponent implements OnInit {
       }
     })
 
-    this.modalRef.hide();
+    this.modalRef?.close();
 
     //console.log(" managerUpdate method call and employee id of reporties    :   ",employee.empId);
 
@@ -1000,7 +1001,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.newEmp = reportee;
     console.log("newEmployee", this.newEmp.reportingManagerId);
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
   }
 
   updateEmployeesReportingManager(template: TemplateRef<any>) {
@@ -1019,12 +1020,12 @@ export class EmployeeConfigComponent implements OnInit {
       }
     })
 
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
   getTeamMemberByTeamName(employeeObj) {
     //console.log(" teamName getTeamMemberByTeamName ",teamName);
-    // this.managerAndAbove = this.managerAndAbove.forEach(t=> t.managerId == ""); 
+    // this.managerAndAbove = this.managerAndAbove.forEach(t=> t.managerId == "");
 
     let empObj = new Employee();
     empObj.managerId = employeeObj.managerId;
@@ -1467,7 +1468,7 @@ export class EmployeeConfigComponent implements OnInit {
     //   this.alertMessage = "Please select gender !!"
     //   this.openAlertMod(template, this.alertMessage);
     //   return false;
-    // } 
+    // }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfBirth)) {
       this.alertMessage = "Please enter date of birth !!"
@@ -2413,7 +2414,7 @@ export class EmployeeConfigComponent implements OnInit {
   // }
 
   async onUpdateEmployee(template: TemplateRef<any>) {
-   
+
     const dateFormat = 'YYYY-MM-DD';
     let inputValidated: boolean = this.validateEmployeeObj(this.employeeObj, template)
     if (!inputValidated) return;
@@ -2432,17 +2433,17 @@ export class EmployeeConfigComponent implements OnInit {
       if (typeof id1 ==="string" && id1.startsWith("A-")) {
         this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
       }
-       
+
       const empId = Number(this.employeeObj.empId);
-  
+
       console.log("employment id", this.employeeObj.employeementId);
-      
+
       const response1:any =  await this.employeeService.getReporteesListByManagerId(this.employeeObj).pipe(first()).toPromise();
       if (response1?.serviceStatus == "Success") {
         this.reporteeList = response1.serviceResponse;
         console.log("Repotee list", this.reporteeList)
       }
-      
+
       let id= this.employeeObj?.employeementId;
 
      const response2:any =  await this.employeeService.getReporteesListByReportingManagerId(this.employeeObj).pipe(first()).toPromise();
@@ -2455,7 +2456,7 @@ export class EmployeeConfigComponent implements OnInit {
       const userChoice = await this.openInactiveModal();
 
       if (!userChoice) {
-        return; 
+        return;
       }
      }
 
@@ -2463,13 +2464,13 @@ export class EmployeeConfigComponent implements OnInit {
       this.openAlertMod(template, "Date of Relieving is required to mark employee as inactive.");
       return;
     }
-    
+
     // UPDATED: Use dateOfRelieving
     const relievingDate = moment(this.employeeObj.dateOfRelieving).format(dateFormat);
     const hasPendingProjects = await this.openPendingTimesheetProjectModal(empId, relievingDate);
 
     if (hasPendingProjects) {
-      return; 
+      return;
     }
 
     }
@@ -2488,9 +2489,9 @@ export class EmployeeConfigComponent implements OnInit {
     {
       this.employeeObj.onRollDate = null;
     }
-    
 
-    
+
+
     this.employeeObj.updatedBy = this.currentUser.empId;;
     console.log("Update Employe : ", this.employeeObj);
 
@@ -2583,7 +2584,7 @@ export class EmployeeConfigComponent implements OnInit {
         this.employeeObj.oldManagerId = this.employeeObj.empId;
         this.employeeObj.newManagerId = '';
         this.getManagerList(this.employeeObj);
-        this.modalRef = this.modalService.show(updatetemplate);
+        this.modalRef = this.modalService.open(updatetemplate);
       }
     });
   }
@@ -2878,11 +2879,11 @@ export class EmployeeConfigComponent implements OnInit {
         "Date of Joining": (x.dateOfJoining)
           ? moment(x.dateOfJoining, "DD-MM-YYYY").format(AppComponent.DATE_FORMAT)
           : null,
-        
+
           "On Roll Date": (x.onRollDate)
         ? moment(x.onRollDate, "DD-MM-YYYY").format(AppComponent.DATE_FORMAT)
         : null,
-       
+
         "Date of Confirmation": (x.employeeConfirmationDate)
           ? moment(x.employeeConfirmationDate, "YYYY-MM-DD").format(AppComponent.DATE_FORMAT)
           : null,
@@ -3396,7 +3397,7 @@ export class EmployeeConfigComponent implements OnInit {
     } else {
       console.log(docResponse.serviceResponse);
     }
-    this.previewModalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.previewModalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
     setTimeout(() => {
       this.previewObj.documentList.forEach((doc, index) => {
         if (doc.documentBytes) {
@@ -3453,7 +3454,7 @@ export class EmployeeConfigComponent implements OnInit {
       console.error(domainResponse.serviceResponse);
     }
 
-    this.previewModalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.previewModalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
     setTimeout(() => {
       this.previewEmployeeObj.documentList && this.previewEmployeeObj.documentList.forEach((doc, index) => {
         if (doc.documentBytes) {
@@ -3477,7 +3478,7 @@ export class EmployeeConfigComponent implements OnInit {
         }
       });
       this.isSearchEnabled = false;
-      this.modalRef = this.modalService.show(template, { class: 'modal-sm', backdrop: 'static', keyboard: false });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm', backdrop: 'static', keyboard: false });
     }
   }
 
@@ -3501,7 +3502,7 @@ export class EmployeeConfigComponent implements OnInit {
   //     this.isSearchEnabled = false;
   //     //console.log("Log    eventValue    ",eventValue);
 
-  //     this.modalRef = this.modalService.show(template, { class: 'modal-sm' ,  backdrop: 'static', keyboard: false });
+  //     this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' ,  backdrop: 'static', keyboard: false });
   //   }
   // }
 
@@ -3522,7 +3523,7 @@ export class EmployeeConfigComponent implements OnInit {
   //     this.isSearchEnabled = false;
   //     //console.log("Log    eventValue    ",eventValue);
 
-  //     this.modalRef = this.modalService.show(template, { class: 'modal-sm' ,  backdrop: 'static', keyboard: false });
+  //     this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' ,  backdrop: 'static', keyboard: false });
   //   }
   // }
 
@@ -3623,7 +3624,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.getReporteesListByManagerId();
     this.getReporteesListByReportingManagerId();
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
   getReporteesListByManagerId() {
@@ -3871,7 +3872,7 @@ export class EmployeeConfigComponent implements OnInit {
         this.kycUpdateList = this.filteredEmployeeAuditHistory.filter(x => x.bucketName == 'KYC Update');
         this.employeeInfoChangeList = this.filteredEmployeeAuditHistory.filter(x => x.bucketName == 'Employment Info Changes');
 
-        this.modalRef = this.modalService.show(auditTemplate, { class: 'modal-lg' });
+        this.modalRef = this.modalService.open(auditTemplate, { modalDialogClass: 'modal-lg' });
 
         console.log(this.filteredEmployeeAuditHistory, " : this.filteredEmployeeAuditHistory ");
       } else {
@@ -3901,9 +3902,9 @@ export class EmployeeConfigComponent implements OnInit {
 
 
 
-  getDomainSpecialization() {
+  getDomainSpecialization(obj?:any) {
     this.specializationList = [];
-
+    if(obj){this.employeeObj.specializationList=obj}
     let domainObj = new Domain();
     domainObj.domainIdList = this.employeeObj.domainList;
     this.domainService.getDomainSpecialization(domainObj).pipe(first()).subscribe((response: any) => {
@@ -4056,7 +4057,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.filterData.queryList = JSON.stringify(this.queryList);
 
     console.log("filterData : ", this.filterData);
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
   getCustomEmployeesList(queryObjList: any, template: TemplateRef<any>) {
@@ -4154,46 +4155,46 @@ export class EmployeeConfigComponent implements OnInit {
 
   // modals
   openDeleteEmployee(template: TemplateRef<any>, employee: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.employeeObj = employee;
   }
 
   openDeleteDraftEmployee(template: TemplateRef<any>, employee: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.employeeObj = employee;
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
   openAlertMod7(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
 
   openApplicationRejectionMod(template: TemplateRef<any>, employee: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
     this.employeeObj = employee;
   }
 
   openApplicationApprovalMod(template: TemplateRef<any>, employee: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
     this.employeeObj = employee;
   }
 
   // openDeleteDomainMod(template: TemplateRef<any> , domain: any){
   //   this.domainToBeDeleted = domain;
-  //   this.modalRef = this.modalService.show(template);
+  //   this.modalRef = this.modalService.open(template);
   // }
 
   cancelApplication() {
-    this.previewModalRef.hide();
+    this.previewModalRef?.close();
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
   pageReload() {
@@ -4201,7 +4202,7 @@ export class EmployeeConfigComponent implements OnInit {
   }
   cancelDraftRequest() {
     this.employeeObj.remarks = ''
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
 
@@ -4230,14 +4231,14 @@ export class EmployeeConfigComponent implements OnInit {
   // implement Enable Account facilities by anurag
 
   forEnableAccount(template: TemplateRef<any>, employee: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.employeeObj = employee;
   }
 
 
 
   findEmployeeWorkingHistory(template: TemplateRef<any>, employee: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
     this.employeeObj = employee;
   }
 
@@ -4460,7 +4461,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.dateOfRelieving='';
     if(this.statusFlag){this.employeeObj.noticePeriod=this.actualNoticePeriod;}
   }
-  // added by anurag 
+  // added by anurag
 
   // mapLeavesAndCompOffToNewManager(employee){
   //   //console.log(" employee   ",employee);
@@ -4483,14 +4484,14 @@ export class EmployeeConfigComponent implements OnInit {
     this.startDate = '';
     this.endDate = '';
     this.employeeObj.pipReason = ''
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
     this.employeeObj = employee;
   }
 
   PIP_reverse_modal(template: TemplateRef<any>, team) {
     this.isToggle = false;
     this.isPipGenerate = false;
-    this.modalRef = this.modalService.show(template, { class: 'modal-md' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-md' });
     this.employeeObj = team;
     this.getPipDetailsByEmpId(team);
   }
@@ -4636,13 +4637,13 @@ export class EmployeeConfigComponent implements OnInit {
 
   pipReasonModal(template: TemplateRef<any>, teamObj) {
     this.pageNo = 1;
-    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
     this.employeeObj = teamObj;
     this.pipReason(this.employeeObj);
   }
 
   extendPipModal(template: TemplateRef<any>, teamObj) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.employeeObj = teamObj;
   }
 
@@ -5002,7 +5003,7 @@ export class EmployeeConfigComponent implements OnInit {
       return true; //block
     }
     else if (this.employeeObj.employeeType != 'Apmosys Product' && this.isApmosysProductUpdate === false) {
-      return true; //block 
+      return true; //block
     } else if (this.employeeObj.employeeType === 'Apmosys Product' && this.isApmosysProductUpdate === false) {
       return false; //update
     }
@@ -5025,22 +5026,20 @@ export class EmployeeConfigComponent implements OnInit {
 
  calculateTotalExperience() {
     this.employeeObj.totalCurrentExperience=this.employeeService.calculateTotalExperience(
-          this.employeeObj.totalExperience, this.employeeObj.dateOfJoining );  
+          this.employeeObj.totalExperience, this.employeeObj.dateOfJoining );
   }
- 
+
   openInactiveModal(): Promise<boolean> {
     return new Promise(resolve => {
-      this.modalRef = this.modalService.show(this.popupBeforeInactiveModal, { class: 'modal-xl' });
-  
-      this.modalRef.content = {
-        onConfirm: () => {
-          this.modalRef.hide();
-          resolve(true);
-        },
-        onCancel: () => {
-          this.modalRef.hide();
-          resolve(false);
-        }
+      this.modalRef = this.modalService.open(this.popupBeforeInactiveModal, { modalDialogClass: 'modal-xl' });
+       this.modalRef.componentInstance.onConfirm = () => {
+        this.modalRef?.close();
+        resolve(true);
+      };
+
+      this.modalRef.componentInstance.onCancel = () => {
+        this.modalRef?.close();
+        resolve(false);
       };
     });
   }
@@ -5092,17 +5091,14 @@ pendingProjects: string[] = [];
             resolve(false);
             return;
           }
-          this.modalRef = this.modalService.show(
+          this.modalRef = this.modalService.open(
             this.pendingTimesheetProjectModal,
-            { class: 'modal-lg', backdrop: 'static' }
+            { windowClass: 'modal-lg', backdrop: 'static' }
           );
 
-          this.modalRef.content = {
-            onCancel: () => {
-              this.modalRef.hide();
-              resolve(true); 
-            }
-          };
+          this.modalRef.result.finally(() => {
+            resolve(true);
+          });
         } else {
           resolve(false);
         }

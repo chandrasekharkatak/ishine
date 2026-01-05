@@ -1,0 +1,21 @@
+import { ProjectInsightQuestionDetails } from "./projectInsightQuestionDetails";
+
+export class ProjectInsightGroupDetails {
+
+    id: any;
+    groupTitle: any;
+    groupType: any;
+    parentId: any;
+    parentType: any;
+    formId: any;
+    isDraft: any
+    parentPathIds: any[] = [];
+    additionalInfo: Map<string, any>;
+    projectDetailsId: any;
+    projectId: any;
+    projectName: any;
+    createdBy: any;
+    createdOn: any;
+    updatedBy: any;
+    updatedOn: any;
+}

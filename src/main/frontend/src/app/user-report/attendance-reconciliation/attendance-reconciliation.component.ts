@@ -1,7 +1,7 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { User } from 'src/app/models/user';
 import { AttendanceReconciliationService } from 'src/app/services/attendance-reconciliation.service';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -25,6 +25,7 @@ class FilterData {
   queryList: any;
 }
 @Component({
+  standalone: false,
   selector: 'app-attendance-reconciliation',
   templateUrl: './attendance-reconciliation.component.html',
   styleUrls: ['./attendance-reconciliation.component.css']
@@ -38,7 +39,7 @@ export class AttendanceReconciliationComponent implements OnInit {
   leaveReportColumns: any;
   filterData: any = new FilterData();
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType: any;
@@ -69,18 +70,18 @@ export class AttendanceReconciliationComponent implements OnInit {
   fromDate: string = '';
   toDate: string = '';
   currentDate: string;
-  
+
 
   feature = 'Reports';
   userMapping: any = {};
 
   constructor(
-    private modalService: BsModalService, 
-    private exportExcelService: ExportExcelService, 
+    private modalService: NgbModal,
+    private exportExcelService: ExportExcelService,
     private attendanceReconciliationService: AttendanceReconciliationService,
-    private authenticationService: AuthenticationService, 
-    private datePipe: DatePipe, 
-    private leaveService: LeaveService, 
+    private authenticationService: AuthenticationService,
+    private datePipe: DatePipe,
+    private leaveService: LeaveService,
     private utilityService: UtilityService,
     private employeeService: EmployeeService
   ) {
@@ -114,14 +115,14 @@ export class AttendanceReconciliationComponent implements OnInit {
     // console.log("ckeck date =======", this.startDate);
     // console.log("ckeck date =======", this.endDate);
     this.getBioMatricData(this.startformattedDate, this.endformattedDate);
-   
+
   }
 
   onSearch(searchData) {
     this.filters = searchData;
   }
 
-  //pagination 	
+  //pagination
   handlePageChange(event) {
     this.page = event;
   }
@@ -143,18 +144,18 @@ export class AttendanceReconciliationComponent implements OnInit {
     this.attendanceReconciliationService.getBiomatricData(startdateformat, enddateformat).subscribe((response: any) => {
       this.attendanceReconciliationList = response.serviceResponse;
       this.attendanceReconciliationList.forEach(employee => {
-       
-        employee.emp360 = employee.empId;    
-      
+
+        employee.emp360 = employee.empId;
+
         employee.employeementId=String(employee.employeeCode);
         if(employee.employeementId.startsWith('A'))
           employee.employeementId = employee.employeementId.substring(1);
           employee.employeementId = "A-".concat(employee.employeementId);
       });
-     
+
       // console.log("this.attendanceReconciliationList" , this.attendanceReconciliationList);
       this.attendanceReconciliationOriginaldata = [... this.attendanceReconciliationList];
-      this.modalRef.hide();
+      this.modalRef?.close();
     });
   }
 
@@ -176,12 +177,12 @@ export class AttendanceReconciliationComponent implements OnInit {
     }
 
     // console.log("Parsed Punch Data: ", this.punchData);
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
   // openFilterModal(template: TemplateRef<any>, columns: any[], title: any) {
   //   this.filterData.title = title;
-  //   this.modalRef = this.modalService.show(template, { class: '' });
+  //   this.modalRef = this.modalService.open(template, { modalDialogClass: '' });
 
   // }
 
@@ -224,7 +225,7 @@ export class AttendanceReconciliationComponent implements OnInit {
     this.filterData.queryList = JSON.stringify(this.queryList);
 
     //console.log("filterData : ", this.filterData);
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
   toggleSearch() {
@@ -238,7 +239,7 @@ export class AttendanceReconciliationComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
   exportToExcel(): void {
@@ -403,7 +404,7 @@ export class AttendanceReconciliationComponent implements OnInit {
   }
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
@@ -568,7 +569,7 @@ private updateChartData(data: any): void {
       {
         type: 'pie',
         name: 'Work Hours',
-        data: []  
+        data: []
       }
     ]
   };
@@ -578,7 +579,7 @@ private updateChartData(data: any): void {
   // Toggles the visibility of the attendance dashboard
   toggleAttendanceDashboard(event: any): void {
     this.isAttendanceVisible = event.target.checked;
-    
+
     if (this.isAttendanceVisible) {
       this.getBiomatrixFilter();
     } else {

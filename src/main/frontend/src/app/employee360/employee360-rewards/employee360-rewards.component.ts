@@ -1,7 +1,7 @@
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Rewards } from 'src/app/models/rewards';
 import { RewardsServiceService } from 'src/app/services/rewards-service.service';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { Employee } from 'src/app/models/employee';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { Breadcrumb } from 'src/app/models/breadcrumd';
@@ -21,6 +21,7 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { EncryptionService } from 'src/app/services/EncryptionService';
 
 @Component({
+  standalone: false,
   selector: 'app-employee360-rewards',
   templateUrl: './employee360-rewards.component.html',
   styleUrls: ['./employee360-rewards.component.css']
@@ -28,7 +29,7 @@ import { EncryptionService } from 'src/app/services/EncryptionService';
 
 export class Employee360RewardsComponent implements OnInit {
 
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   // currentEmpId: number = Number(sessionStorage.getItem('empId'));
   currentUser: User;
   currentBreadcrumbList: any[] = [];
@@ -83,7 +84,7 @@ export class Employee360RewardsComponent implements OnInit {
   constructor(
     private authenticationService: AuthenticationService,
     private rewardsService: RewardsServiceService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private breadcrumbService: BreadcrumbService,
     private employeeService: EmployeeService,
     private utilityService: UtilityService,
@@ -101,8 +102,8 @@ export class Employee360RewardsComponent implements OnInit {
 
     // }
 
-   
-    
+
+
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
 
@@ -113,7 +114,7 @@ export class Employee360RewardsComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-   
+
     let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Rewards");
     if (findbreadcrumbObject >= 0) {
       this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
@@ -154,17 +155,17 @@ export class Employee360RewardsComponent implements OnInit {
     for (let i = currentYear; i >= currentYear - 10; i--) {
       this.availableYears.push(i);
     }
-   
+
   }
   createReward(template: TemplateRef<any>){
-    
+
     if(this.isrewardVisible){
       this.isrewardVisible=false;
       this.btnstring="create new";
     }else{
       this.isrewardVisible=true;
-      
-     
+
+
       this.btnstring="close";
     }
 
@@ -173,7 +174,7 @@ export class Employee360RewardsComponent implements OnInit {
 
   }
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
   getEmployeeRewardsDetails() {
@@ -188,7 +189,7 @@ export class Employee360RewardsComponent implements OnInit {
         if (response.serviceStatus == 'Success') {
           this.rewardList = response.serviceResponse;
           this.rewardList.forEach(reward => {
-            reward.emp360nameempid =reward.nameId; 
+            reward.emp360nameempid =reward.nameId;
             reward.emp360 = reward.createdBY;
             if (reward.ofMonthYear) {
               let [year, month] = reward.ofMonthYear.split("-");
@@ -332,8 +333,8 @@ export class Employee360RewardsComponent implements OnInit {
     console.log('yessss', this.sumbitRewards);
   }
 
-  
-  
+
+
 
   onYearChange(event: Event): void {
     this.isTeamTableVisible = false;
@@ -462,7 +463,7 @@ export class Employee360RewardsComponent implements OnInit {
     //           this.rewardList = response.serviceResponse;
     //           this.rewardList.forEach(reward => {
     //             let matchingnameempId = this.allEmployeeList360.find(emp => emp.empId === reward.nameId);
-    //             reward.emp360nameempid = matchingnameempId ? matchingnameempId : {}; 
+    //             reward.emp360nameempid = matchingnameempId ? matchingnameempId : {};
     //             let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === reward.createdBY);
     //             console.log('matches++',matchingEmployee);
     //             reward.emp360 = matchingEmployee ? matchingEmployee : {};
@@ -560,8 +561,8 @@ export class Employee360RewardsComponent implements OnInit {
   //   // Populate sub-dropdown options dynamically
   //   if (categoryId === 1) { // Assuming 1 corresponds to "Monthly"
   //       this.subDropdownOptions = [
-  //           'January', 'February', 'March', 'April', 
-  //           'May', 'June', 'July', 'August', 
+  //           'January', 'February', 'March', 'April',
+  //           'May', 'June', 'July', 'August',
   //           'September', 'October', 'November', 'December'
   //       ];
   //   } else if (categoryId === 2) { // Assuming 2 corresponds to "Half-Yearly"
@@ -679,7 +680,7 @@ export class Employee360RewardsComponent implements OnInit {
   }
 
   openAlertMod(template: TemplateRef<any>, message: string) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
@@ -725,7 +726,7 @@ export class Employee360RewardsComponent implements OnInit {
         console.log('Team Rewards Details:', response);
       });
 
-    this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
   }
 
   getMatchedEmployee(event: any) {

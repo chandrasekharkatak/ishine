@@ -1,6 +1,6 @@
 import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { Employee } from 'src/app/models/employee';
 import { MyTravelDesk } from 'src/app/models/travelDesk';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -8,6 +8,7 @@ import { EmployeeService } from 'src/app/services/employee.service';
 import { TravelDeskService } from 'src/app/services/travel-desk.service';
 
 @Component({
+  standalone: false,
   selector: 'app-travelrequestapproval',
   templateUrl: './travelrequestapproval.component.html',
   styleUrls: ['./travelrequestapproval.component.css']
@@ -25,7 +26,7 @@ export class TravelrequestapprovalComponent implements OnInit {
   currentUser: any;
 
   constructor(private travelDesk: TravelDeskService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private sanitizer: DomSanitizer,
     private employeeService : EmployeeService,
     private authenticationService: AuthenticationService,
@@ -42,12 +43,12 @@ export class TravelrequestapprovalComponent implements OnInit {
       let travelData = new MyTravelDesk();
 
       console.log('currentEmployeeInfo ::::::::::::::::',this.currentEmployeeInfo);
-      travelData.employeeId = this.currentUser.empId;  
+      travelData.employeeId = this.currentUser.empId;
 
       console.log('Form Data:', travelData);
 
       const response: any = await this.travelDesk.fetchTravelDataForApproval(travelData).toPromise();
-      
+
       if (response.serviceStatus === "Success") {
         this.travelRequests = response.serviceResponse.sort((a, b) => b.requestId - a.requestId);
 
@@ -60,18 +61,18 @@ export class TravelrequestapprovalComponent implements OnInit {
   }
 
   isValidForm() {
-    return true; 
+    return true;
   }
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
-  modalRef1: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
+  modalRef1:NgbModalRef;
 
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
   openAlertMod1(template: TemplateRef<any>, message: any) {
-    this.modalRef1 = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef1 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
   openEditModal(template: TemplateRef<any> ,row :any) {
@@ -84,7 +85,7 @@ export class TravelrequestapprovalComponent implements OnInit {
 
   }
 
-  
+
 
   async updateTravelRequest() {
 
@@ -121,11 +122,11 @@ export class TravelrequestapprovalComponent implements OnInit {
 
       try {
         const response: any = await this.travelDesk.updateTravelData(newtravelData).toPromise();
-  
+
         if (response.serviceStatus === "Success") {
           alert("Success! Your data was updated successfully.");
           console.log('Updated Travel Request:', this.selectedTravelRequest);
-          this.modalRef.hide();
+          this.modalRef?.close();
         } else {
           console.error('Error updating travel request:', response.serviceResponse);
           alert('There was an issue updating the data.');
@@ -134,7 +135,7 @@ export class TravelrequestapprovalComponent implements OnInit {
         console.error('Error during API call:', error);
         alert('An error occurred while updating the data. Please try again later.');
       }
- 
+
     }
   }
 
@@ -146,16 +147,16 @@ export class TravelrequestapprovalComponent implements OnInit {
    }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
     this.onGetTravelInfo();
   }
 
   cancelRequest2() {
-    this.modalRef1.hide();
+    this.modalRef1.close();
   }
 
   closeModal() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
  async onGetEmployeeInfo(){
@@ -165,11 +166,11 @@ export class TravelrequestapprovalComponent implements OnInit {
     currentEmp.empId = this.currentUser.empId;
     currentEmp.isDraft = false;
     console.log("currentEmp :::::::::::::::::::::::: ", currentEmp);
-    
+
     const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
     if (response.serviceStatus == "Success") {
       this.currentEmployeeInfo = response.serviceResponse;
-    
+
       //console.log("currentEmployeeInfo : ", this.currentEmployeeInfo);
       //this.loadProfileImage(this.currentEmployeeInfo.imageBytes)
 
@@ -217,38 +218,38 @@ export class TravelrequestapprovalComponent implements OnInit {
     console.log('Approver Status ', newtravelData.approverStatus);
 
     console.log('newtravelData :::::::::::::::::::::::::::::', newtravelData);
-    
+
 
     try {
       const response: any = await this.travelDesk.approveOrRejectTraveldesk(newtravelData).toPromise();
 
       console.log('AResponse Data :::::::::::::::::', response);
-   
+
 
       if (response.serviceStatus === "Success") {
-        
+
         if(response.serviceResponse.finalstatus === "Rejected"){
-          this.modalRef.hide();
+          this.modalRef?.close();
           this.alertMessage = `Success! Your request was Rejected successfully ..!!!!`;
           this.openAlertMod(template, this.alertMessage);
         }else{
-          this.modalRef.hide();
+          this.modalRef?.close();
         this.alertMessage = `Success! Your request was approved successfully ..!!!!`;
         this.openAlertMod(template, this.alertMessage);
         console.log('Updated Travel Request:', this.selectedTravelRequest);
         }
-        
+
       } else {
         console.error('Error updating travel request:', response.serviceResponse);
         alert('There was an issue updating the data.');
       }
-      this.modalRef.hide();
-      
+      this.modalRef?.close();
+
     } catch (error) {
       console.error('Error during API call:', error);
       alert('An error occurred while updating the data. Please try again later.');
     }
-  
+
 
 
 
@@ -256,6 +257,6 @@ export class TravelrequestapprovalComponent implements OnInit {
 }
 
 
- 
+
 
 }

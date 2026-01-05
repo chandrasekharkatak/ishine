@@ -10,6 +10,7 @@ import { HolidaysComponent } from './holidays/holidays.component';
 import { LeaveComponent } from './leave/leave.component';
 
 @Component({
+  standalone: false,
   selector: 'app-user-leaves',
   templateUrl: './user-leaves.component.html',
   styleUrls: ['./user-leaves.component.css']

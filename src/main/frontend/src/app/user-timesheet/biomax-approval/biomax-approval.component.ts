@@ -4,7 +4,7 @@ import { MatCalendarCellClassFunction } from '@angular/material/datepicker';
 import { Sort } from '@angular/material/sort';
 import { Router, ActivatedRoute } from '@angular/router';
 import * as moment from 'moment';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { biomaxRequest } from 'src/app/models/biomaxRequest';
@@ -21,6 +21,7 @@ import { LogService } from 'src/app/services/log.service';
 import { ValidationService } from 'src/app/services/validation.service';
 
 @Component({
+  standalone: false,
   selector: 'app-biomax-approval',
   templateUrl: './biomax-approval.component.html',
   styleUrls: ['./biomax-approval.component.css']
@@ -41,7 +42,7 @@ export class BiomaxApprovalComponent implements OnInit {
   sortColumn: any;
   sortColumnType:any;
   popupmessage='';
-  //flags 
+  //flags
   isCreation:boolean = false;
   isForm: boolean = false;
   isUpdation:boolean = false;
@@ -49,9 +50,9 @@ export class BiomaxApprovalComponent implements OnInit {
   isApprovalRequest:boolean=false;
   isApprovedRequest:boolean=false;
   approvalType='';
-  //modal 
+  //modal
   alertMessage:any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
   //obj
   feature="Comp off";
@@ -60,14 +61,14 @@ export class BiomaxApprovalComponent implements OnInit {
 
   excelName = '';
   elementName = '';
-  
+
   holidayList:any[]= [];
   compOffObj:Leave = new Leave();
   compOffReasons:any[] = [];
   allCompOffRequests:any[] = [];
   previousCompOffRequests:any[] = [];
   leaveObj:Leave= new Leave();
-  
+
 
   filters:any = {};
   isSearchEnabled:boolean = false;
@@ -81,7 +82,7 @@ export class BiomaxApprovalComponent implements OnInit {
 
   constructor(
     private validationService:ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService : AuthenticationService,
     private leaveService : LeaveService,
     private biomaxseviceService:BiomaxseviceService,
@@ -93,7 +94,7 @@ export class BiomaxApprovalComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Dynamic Subfeature Flags 
+    // Dynamic Subfeature Flags
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -133,12 +134,12 @@ export class BiomaxApprovalComponent implements OnInit {
   showCreateForm(){
     this.isForm = true;
     this.isCreation = true;
-    this.isUpdation = false;	
+    this.isUpdation = false;
 
     this.isCompOffRequestsTable = false;
     this.isApprovalRequest=false;
     this.isApprovedRequest=false;
-   
+
   }
 
   formatDate(timestamp: string | number): Date {
@@ -150,7 +151,7 @@ export class BiomaxApprovalComponent implements OnInit {
   };
 
 
- 
+
   showBioMaxApprovalRequestTable(){
     this.sortColumn=[];
     this.sortColumnType=[];
@@ -174,36 +175,36 @@ export class BiomaxApprovalComponent implements OnInit {
     this.isCreation = false;
     this.page=1;
     this.data=''
-  
+
     this.getAllBioMaxRequestForReportingManager();
-    
+
   }
 
 
 
     // Modals
     openAlertMod(template: TemplateRef<any>, message: any) {
-      this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
       this.alertMessage = message;
     }
-  
+
     cancelRequest() {
-      this.modalRef.hide();
+      this.modalRef?.close();
     }
     CronJobs(){
       this.biomaxseviceService.getBioMaxRequestTypeCronJon().pipe(first()).subscribe((ressponse:any)=>{
         console.log(ressponse);
       })
     }
-   
+
 
     getAllBiomaxRequestForEmployee(){
       this.biomaxListEmployeeId = [];
-  
+
       this.biomaxseviceService.getByEmployeeId(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
        if(response.serviceStatus=="true"){
         this.biomaxListEmployeeId=response.serviceResponse;
-        this.applicableDates = this.biomaxListEmployeeId[0].applicableDates;	
+        this.applicableDates = this.biomaxListEmployeeId[0].applicableDates;
         console.log(this.applicableDates ,":applicableDates ");
         this.biomaxListEmployeeIdPedning= this.biomaxListEmployeeId.filter((p)=>p.biomaxStatus==="Pending")
      this.biomaxListEmployeeIdApproved=this.biomaxListEmployeeId.filter((p)=>p.biomaxStatus==="Approved" || p.biomaxStatus==="Rejected")
@@ -221,7 +222,7 @@ export class BiomaxApprovalComponent implements OnInit {
     }
     openDeletebiomaxRequest(template: TemplateRef<any>,id:any){
       this.popupmessage="Are you Sure to delete the Bio Max Request";
-      this.modalRef = this.modalService.show(template, { class: 'modal-sm' });	
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
       this.biomax.biomaxreequestId=id;
     }
     showBioMaxRequestTable(){
@@ -236,14 +237,14 @@ export class BiomaxApprovalComponent implements OnInit {
       this.page=1;
       this.data=''
       this.getAllBiomaxRequestForEmployee();
-     
+
     }
     openApprovedRequest(template: TemplateRef<any>,id:any,type:any){
     this.popupmessage="Are you sure to "+type+" that request ?";
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
-    this.approvalType=type;	
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
+    this.approvalType=type;
     this.getById(id);
-   
+
     }
     ProjectClone(){
       this.biomaxseviceService.getBioMaxRequestTpoprojectclone().pipe(first()).subscribe((response:any)=>{
@@ -260,17 +261,17 @@ export class BiomaxApprovalComponent implements OnInit {
       this.biomaxFilterData.biomaxStatus=this.approvalType;
       this.biomaxseviceService.updateBiomaxRequest(this.biomaxFilterData.biomaxreequestId,this.biomaxFilterData).pipe(first()).subscribe((response:any)=>{
         if(response.serviceStatus=="success"){
-          this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+          this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
           this.alertMessage = response.serviceMessage;
           this.ngOnInit();
         }else{
-          this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+          this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
           this.alertMessage = response.serviceMessage;
-        
-         
+
+
         }
       })
-      
+
     }
 
 
@@ -283,18 +284,18 @@ export class BiomaxApprovalComponent implements OnInit {
         let BACKDATED_LEAVE_PERIOD = 30;
         let FUTUREDATED_LEAVE_PERIOD = 180;
         const time=d?.getTime();
-    
+
         if(this.currentUser.leaveBackdatedLockDays){
           BACKDATED_LEAVE_PERIOD = this.currentUser.leaveBackdatedLockDays;
         }
         if(this.currentUser.leaveFuturedatedLockDays){
           FUTUREDATED_LEAVE_PERIOD = this.currentUser.leaveFuturedatedLockDays;
         }
-    
+
         let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
         let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
-    
-       
+
+
         if(this.leaveObj.leaveAppliedFor == 'self'){
           if(this.leaveObj.leaveTypeCode == 'ML'){
             return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.biomaxListEmployeeIdPedning.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
@@ -312,8 +313,8 @@ export class BiomaxApprovalComponent implements OnInit {
             return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.biomaxListEmployeeIdPedning.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
           }
         }
-    
-        
+
+
       }
     tobiomaxrequestDate:Date;
     // Allow Only Past 1 month Days for Comp-off Application
@@ -324,18 +325,18 @@ export class BiomaxApprovalComponent implements OnInit {
       let BACKDATED_LEAVE_PERIOD = 30;
       let FUTUREDATED_LEAVE_PERIOD = 180;
       const time=d?.getTime();
-  
+
       if(this.currentUser.leaveBackdatedLockDays){
         BACKDATED_LEAVE_PERIOD = this.currentUser.leaveBackdatedLockDays;
       }
       if(this.currentUser.leaveFuturedatedLockDays){
         FUTUREDATED_LEAVE_PERIOD = this.currentUser.leaveFuturedatedLockDays;
       }
-  
+
       let minDate = new Date(currentDate.getTime() - (BACKDATED_LEAVE_PERIOD * DAY_IN_MS));
       let maxDate = new Date(currentDate.getTime() + (FUTUREDATED_LEAVE_PERIOD * DAY_IN_MS));
-  
-     
+
+
       if(this.leaveObj.leaveAppliedFor == 'self'){
         if(this.leaveObj.leaveTypeCode == 'ML'){
           return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.biomaxListEmployeeIdPedning.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
@@ -353,8 +354,8 @@ export class BiomaxApprovalComponent implements OnInit {
           return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.holidayDates.find(x=>x.getTime()==time) && !this.biomaxListEmployeeIdPedning.find(leaveApplication => moment(d).format(dateFormat) >= moment(leaveApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(leaveApplication.toDate).format(dateFormat)));
         }
       }
-  
-      
+
+
     }
 
  getAllHolidays(){
@@ -366,7 +367,7 @@ export class BiomaxApprovalComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.holidayList = response.serviceResponse;
         this.holidayDates = this.holidayList.map(holiday => new Date(this.datePipe.transform(holiday.dateOfHoliday, 'MM/dd/yyyy')));
-      
+
         console.log("holidayList : ", this.holidayList);
       } else {
         console.error(response.serviceResponse);
@@ -377,7 +378,7 @@ export class BiomaxApprovalComponent implements OnInit {
       holidayHighlight: MatCalendarCellClassFunction<Date> = (cellDate, view) => {
         if (view === 'month') {
           const time = cellDate.getTime()
-          
+
           // Highlight the holidays.
           if(this.leaveObj.leaveAppliedFor == 'self'){
             if(this.leaveObj.leaveTypeCode == 'ML'){
@@ -390,7 +391,7 @@ export class BiomaxApprovalComponent implements OnInit {
                 return (this.holidayDates.find(x=>x.getTime()==time)) ? 'holiday-date' : '';
               }
             }
-           
+
           }else{
             let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
             if(this.weekOffExcludedDepartmentList.find(deptId => deptId == teamMember.departmentId)){
@@ -403,10 +404,10 @@ export class BiomaxApprovalComponent implements OnInit {
         return '';
       }
 
-  
-  
 
-   
+
+
+
 
     resetToDate(){
       this.compOffObj.toDate = ''
@@ -438,7 +439,7 @@ export class BiomaxApprovalComponent implements OnInit {
       const dateFormat = "yyyy-MM-dd'T'HH:mm:ss"; // LocalDateTime format
       this.biomax.biomaxrequestDate = this.datePipe.transform(this.biomax.biomaxrequestDate, dateFormat);
       this.biomax.tobiomaxrequestDate = this.datePipe.transform(this.biomax.tobiomaxrequestDate, dateFormat);
-     
+
      this.biomaxseviceService.createBiomaxRequest(this.biomax).pipe(first()).subscribe((response:any)=>{
       console.log(response);
       if(response.serviceStatus=="success"){
@@ -449,49 +450,49 @@ export class BiomaxApprovalComponent implements OnInit {
       this.isForm=false;
       }
      });
-     
-     
+
+
     }
     getBioMaxRequestType(){
       this.biomaxseviceService.getBioMaxRequestType().pipe(first()).subscribe((response:any)=>{
         this.biomaxRequestType=response.serviceResponse;
-       
+
       })
      }
 
-   
 
-    deletebiomaxRequest(template: TemplateRef<any>) {	
+
+    deletebiomaxRequest(template: TemplateRef<any>) {
       this.cancelRequest();
-     
-  this.biomaxseviceService.deletebiomaxRequest(this.biomax.biomaxreequestId).pipe(first()).subscribe((response: any) => {	
-        if (response.serviceStatus == "Success") {	
-           this.openAlertMod(template, response.serviceMessage);	
+
+  this.biomaxseviceService.deletebiomaxRequest(this.biomax.biomaxreequestId).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+           this.openAlertMod(template, response.serviceMessage);
           this.ngOnInit();
-        } else {	
-          this.openAlertMod(template, response.serviceMessage);	
-        }	
-      });	
+        } else {
+          this.openAlertMod(template, response.serviceMessage);
+        }
+      });
     }
 
 
     // download excel
 
 
-  //pagination 
+  //pagination
 
   page = 1;
   handlePageChange(event) {
     this.page = event;
   }
 
-  sortData(sort: Sort){	
+  sortData(sort: Sort){
     //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
 
@@ -506,7 +507,7 @@ export class BiomaxApprovalComponent implements OnInit {
 
 }
 
-  
-function compare(a: number | string, b: number | string, isAsc: boolean) {	
-  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
+
+function compare(a: number | string, b: number | string, isAsc: boolean) {
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

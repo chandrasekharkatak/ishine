@@ -88,6 +88,9 @@ public class EmployeeLeaveService {
 	EmployeeRepository employeeRepository;
 	
 	@Autowired
+	CronJobService cronJobService;
+	
+	@Autowired
 	LeaveTypeMasterRepository leaveTypeMasterRepository;
 	
 	@Autowired
@@ -875,14 +878,57 @@ public class EmployeeLeaveService {
 	            }
 	        }
 
-	        // -------------------------
-	        // 8) Specific business rule: CL max days
-	        // -------------------------
-	        if ("CL".equalsIgnoreCase(leaveDTO.getLeaveTypeCode()) && leaveDTO.getNoOfDays() > clLeaveDays) {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("Casual Leave can't be taken for more than " + clLeaveDays + " day(s).");
-	            return response;
-	        }
+//	        // -------------------------
+//	        // 8) Specific business rule: CL max days
+//	        // -------------------------
+//	        if ("CL".equalsIgnoreCase(leaveDTO.getLeaveTypeCode()) && leaveDTO.getNoOfDays() > clLeaveDays) {
+//	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	            response.setServiceResponse("Casual Leave can't be taken for more than " + clLeaveDays + " day(s).");
+//	            return response;
+//	        }
+	        if(leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CL") && leaveDTO.getNoOfDays()>clLeaveDays) {
+				
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);	
+				response.setServiceResponse("Casual Leave Can't take more than "+clLeaveDays+" days");
+				
+				return response;
+			}else if (leaveDTO.getLeaveTypeCode().equalsIgnoreCase("CL")) {
+
+			    YearMonth appliedMonth = YearMonth.from(
+			            LocalDate.parse(leaveDTO.getFromDate())
+			    );
+
+			    List<EmployeeLeave> clLeavesThisMonth =
+			            employeeLeaveRepository.findByEmpIdAndLeaveTypeAndMonth(
+			                    leaveDTO.getEmpId(),
+			                    leaveDTO.getLeaveTypeMasterId(),
+			                    appliedMonth.getYear(),
+			                    appliedMonth.getMonthValue()
+			            );
+
+			    double totalCLDaysThisMonth = clLeavesThisMonth.stream()
+			            .filter(leave ->
+			                    leave.getLeaveStatusId() != null &&
+			                    (leave.getLeaveStatusId() == 1 || leave.getLeaveStatusId() == 2))
+			            .mapToDouble(EmployeeLeave::getNoOfDays)
+			            .sum();
+
+			    if (totalCLDaysThisMonth + leaveDTO.getNoOfDays() > 2.0) {
+			        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			        response.setServiceResponse(
+			                "Casual Leave cannot exceed 2 days in a month. Already applied: "
+			                + totalCLDaysThisMonth + " days."
+			        );
+			        return response;
+			    }
+			}
+
+			else {
+
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);	
+					response.setServiceResponse("Leave application submitted. Your timesheet will be automatically added by system");
+				
+		}
 
 	        // Additional business checks (maternity etc.) can be kept here (no-op logging as in original).
 	        if ("ML".equalsIgnoreCase(leaveDTO.getLeaveTypeCode())) {
@@ -1044,7 +1090,7 @@ public class EmployeeLeaveService {
 	            // send email (self vs apply for team)
 	            if (Objects.equals(leaveDTO.getCreatedBy(), leaveDTO.getEmpId())) {
 	                // self apply
-	                mailService.sendMailWithCC(leaveDTO.getApproverEmail(),
+	            	mailService.sendMailWithCC(leaveDTO.getApproverEmail(),
 	                        hrMailAddress + "," + leaveDTO.getEmail() + managerEmail,
 	                        "Regarding Leave Application Request",
 	                        "Dear " + leaveDTO.getApproverName() + ",<br><br>" +
@@ -1078,7 +1124,10 @@ public class EmployeeLeaveService {
 	                                    "Leave Type : " + leavetype.getLeaveType() + "<br>" +
 	                                    "Leave reason : " + leaveDTO.getReason());
 	                }
+	               
 	            }
+	            
+	            cronJobService.sendHrDepartmentNotification(leaveDTO, leavetype);
 
 	            apiLogInfo.setApiResponse("Leave application submitted.");
 	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1095,6 +1144,7 @@ public class EmployeeLeaveService {
 	                        leaveDTO.getFromDate(), leaveDTO.getToDate());
 	                if (empTimeSheet != null && !empTimeSheet.isEmpty()) {
 	                    for (Timesheet timesheet : empTimeSheet) {
+	                    	if(timesheet.getDayType()==null || (timesheet.getDayType().equals("Working") || timesheet.getDayType().equals("Non-working"))) {
 	                        List<TimesheetActivityMap> timesheetactivities = timesheetActivityRepository
 	                                .getTimesheetActivityByTimesheetId(timesheet.getTimesheetId());
 	                        if (timesheetactivities != null) {
@@ -1103,6 +1153,7 @@ public class EmployeeLeaveService {
 	                            }
 	                        }
 	                        timesheetsRepository.deleteById(timesheet.getTimesheetId());
+	                    	}
 	                    }
 	                    entityManager.flush();
 	                }
@@ -1712,6 +1763,8 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 										"leave Reason :"+" "+leaveDTO.getReason());
 							}
 						}
+						
+						cronJobService.sendHrDepartmentNotificationUpdateCase(leaveDTO, leavetype);
 						
 						//Timesheet Update
 						// IF Employee is Applying Leave for Half Day then, Automatic timesheet will not be filled as Leave

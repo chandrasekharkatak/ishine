@@ -1,6 +1,6 @@
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { Employee } from 'src/app/models/employee';
 import { MyReimbursement } from 'src/app/models/reimbursement';
@@ -12,6 +12,7 @@ import { ReimbursementService } from 'src/app/services/reimbursement.service';
 import { TravelDeskService } from 'src/app/services/travel-desk.service';
 
 @Component({
+  standalone: false,
   selector: 'app-total-reimbursementrequest',
   templateUrl: './total-reimbursementrequest.component.html',
   styleUrls: ['./total-reimbursementrequest.component.css']
@@ -34,7 +35,7 @@ export class TotalReimbursementrequestComponent implements OnInit {
   alertMessage: any;
   level: number;
   constructor(
-    private modalService: BsModalService,
+    private modalService: NgbModal,
      private sanitizer: DomSanitizer,
      private employeeService : EmployeeService,
      private authenticationService: AuthenticationService,
@@ -45,7 +46,7 @@ export class TotalReimbursementrequestComponent implements OnInit {
 
   ngOnInit(): void {
     this.onGetReimbursementInfo();
-    
+
 
   }
 
@@ -57,24 +58,24 @@ export class TotalReimbursementrequestComponent implements OnInit {
 
       console.log('currentEmployeeInfo ::::::::::::::::',this.currentEmployeeInfo.departmentName
       );
-      reimbursementData.empId = this.currentUser.empId;  
+      reimbursementData.empId = this.currentUser.empId;
 
       console.log('reimbursementData Data  ::::::::::::::::', reimbursementData);
 
       const response: any = await this.reimbursementService.fetchTotalReimbursementData(reimbursementData).toPromise();
-      
+
       if (response.serviceStatus === "Success") {
         this.reimbursementRequests = response.serviceResponse;
 
         console.log('All reimbursement data:', this.reimbursementRequests);
-      
+
         if (this.currentUser.departmentName === 'Accounts') {
           this.reimbursementRequests = this.reimbursementRequests.filter(
             (item: any) => item.finalStatus === 'Approved'
           );
           console.log('Filtered for Development + Approved:', this.reimbursementRequests);
         }
-      
+
         this.selectedReimbursementRequest = this.reimbursementRequests;
       } else {
         console.error('Error fetching data:', response.serviceResponse);
@@ -83,7 +84,7 @@ export class TotalReimbursementrequestComponent implements OnInit {
   }
 
   isValidForm() {
-    return true; 
+    return true;
   }
 
   shouldShowAction(row: any): boolean {
@@ -108,14 +109,14 @@ export class TotalReimbursementrequestComponent implements OnInit {
       this.page = event;
   }
   //alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
     //this.onGetReimbursementInfo();
     location.reload();
   }
@@ -132,7 +133,7 @@ openEditModal(template: TemplateRef<any> ,row :any) {
 }
 
 closeModal() {
-  this.modalRef.hide();
+  this.modalRef?.close();
   this.onGetReimbursementInfo();
 }
 
@@ -208,9 +209,9 @@ fetchAllInvoice() {
     if (response.serviceStatus === "Success") {
       const rawData = response.serviceResponse;
       this.Excell=response.serviceResponse;
-     
+
   console.log("Test",response.serviceResponse.sort((a, b) => b.travelId - a.travelId))
-     
+
       const grouped: any = {};
       rawData.forEach((item: any) => {
         const travelId = item.travelId || 'unknown';
@@ -236,7 +237,7 @@ fetchAllInvoice() {
 
 
 cancelRequestDocument() {
-  this.modalRef.hide();
+  this.modalRef?.close();
 }
 getMimeTypeFromBase64(base64: string): string {
   const header = atob(base64.slice(0, 20));
@@ -251,13 +252,13 @@ selectedDocument: any;
   async preview(template: TemplateRef<any>, id: any) {
   console.log(template,"template");
 
-  this.selectedDocument = null; 
- 
+  this.selectedDocument = null;
 
-  const payload = { docId: id }; 
 
-  
- 
+  const payload = { docId: id };
+
+
+
     const response: any = await this.travelDesk.previewDocument(payload).toPromise();
 
     if (response.serviceStatus === 'Success' && response.serviceResponse?.documentBytes) {
@@ -267,14 +268,14 @@ selectedDocument: any;
       if (mimeType === 'application/pdf') {
         const pdfUrl = `data:application/pdf;base64,${base64Data}`;
         this.selectedDocument = this.sanitizer.bypassSecurityTrustResourceUrl(pdfUrl);
-        this.modalRef = this.modalService.show(template, {
-          class: 'modal-xl'
+        this.modalRef = this.modalService.open(template, {
+          modalDialogClass: 'modal-xl'
         });
       } else if (mimeType.startsWith('image/')) {
         const imgUrl = `data:${mimeType};base64,${base64Data}`;
-        this.selectedDocument = imgUrl; 
-        this.modalRef = this.modalService.show(template, {
-          class: 'modal-xl'
+        this.selectedDocument = imgUrl;
+        this.modalRef = this.modalService.open(template, {
+          modalDialogClass: 'modal-xl'
         });
       } else {
         // Handle other file types: Download
@@ -286,7 +287,7 @@ selectedDocument: any;
     }else {
       this.openAlertMod(template, "No Document to dipslay");
     }
-  
+
 }
 
 
@@ -296,12 +297,12 @@ docList: any[] = [];
     this.alertMessage = null;
     this.getAllDocumentsThroughRequestId(requestId);
     if(this.docList != null && this.alertMessage == null){
-      this.modalRef = this.modalService.show(template, { class: 'modal-xl' });
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl' });
     }
     else{
       this.openAlertMod(this.alertTemplate,this.alertMessage)
     }
-     
+
   }
 
 
@@ -324,11 +325,11 @@ docList: any[] = [];
     async previewDocument(docId: any) {
       const requestPayload = { docId: docId };
       const response: any = await this.reimbursementService.previewDocumentReimbursment(requestPayload).toPromise();
-  
+
       if (response.serviceStatus === 'Success' && response.serviceResponse?.documentBytes) {
         const base64Data = response.serviceResponse.documentBytes;
         const mimeType = this.getMimeTypeFromBase64(base64Data);
-  
+
         if (mimeType === 'application/pdf') {
           const pdfUrl = `data:application/pdf;base64,${base64Data}`;
           this.selectedDocument = this.sanitizer.bypassSecurityTrustResourceUrl(pdfUrl);
@@ -345,11 +346,11 @@ docList: any[] = [];
       }
     }
 
-   
+
     account1:TravelBased=new TravelBased();
     rejectPopUp(template:TemplateRef<any>,details:any){
-      this.modalRef = this.modalService.show(template, {
-        class: 'modal-sm'
+      this.modalRef = this.modalService.open(template, {
+        modalDialogClass: 'modal-sm'
       });
       this.account1.invoiceNo=details.invoiceNo;
       this.account1.travelId = details.travelId;
@@ -357,10 +358,10 @@ docList: any[] = [];
 
 
     rejectPopUpForIndividualReimbursement(template:TemplateRef<any>,details:any){
-      this.modalRef = this.modalService.show(template, {
-        class: 'modal-sm'
+      this.modalRef = this.modalService.open(template, {
+        modalDialogClass: 'modal-sm'
       });
-     
+
       this.account1.requestId = details.requestId;
     }
     account:TravelBased=new TravelBased();
@@ -368,17 +369,17 @@ docList: any[] = [];
       this.account.invoiceNo=details.invoiceNo;
       this.account.travelId = details.travelId;
       this.account.rejectReason = details.rejectReason;
-      
+
       // this.account.rejectReason = details.rejectReason;
       // this.account.reimbursementStatus = details.reimbursementStatus;
       // this.account.isValid = details.isValid;
       console.log("details",this.account);
-      this.modalRef.hide();
+      this.modalRef?.close();
       this.reimbursementService.updateInvoicesDetailsByAccountsTeam(this.account).pipe(first()).subscribe((response: any) => {
             if (response.serviceStatus == "Success") {
-              
+
                this.fetchAllInvoice();
-             
+
               this.openAlertMod(template, "Reimbursment Status Updated !!");
             } else {
 
@@ -390,22 +391,22 @@ docList: any[] = [];
 
     getApprovedTotal(invoices: any[]): number {
       if (!invoices || invoices.length === 0) return 0;
-    
+
       return invoices
         .filter(inv => inv.reimbursementStatus === 'Approved')
         .reduce((sum, inv) => sum + (inv.amount || 0), 0);
     }
-    
+
     allInvoicesApproved(invoices: any[]): boolean {
       if (!invoices || invoices.length === 0) return false;
       return invoices.every(inv => inv.reimbursementStatus === 'Approved');
     }
-    
+
     markAsPaid(travelId:any,template:TemplateRef<any>): void {
       const travelId1 = {travelId:travelId};
       this.reimbursementService.markAsPaid(travelId1).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
-          
+
           this.openAlertMod(template, response.serviceResponse);
           this.fetchAllInvoice();
         } else {
@@ -413,26 +414,26 @@ docList: any[] = [];
           this.openAlertMod(template, response.serviceResponse);
         }
       });
-      
+
       console.log("Marking as paid for Travel ID:", travelId);
       // You can call your service here to mark as paid
     }
-    
+
     updateReimbursementDetailsByAccountsTeam(template:TemplateRef<any>, details:any){
-      
+
       this.account.requestId = details.requestId;
       this.account.rejectReason = details.rejectReason;
-      
+
       // this.account.rejectReason = details.rejectReason;
       // this.account.reimbursementStatus = details.reimbursementStatus;
       // this.account.isValid = details.isValid;
       console.log("details",this.account);
-      this.modalRef.hide();
+      this.modalRef?.close();
       this.reimbursementService.updateReimbursementDetailsByAccountsTeam(this.account).pipe(first()).subscribe((response: any) => {
             if (response.serviceStatus == "Success") {
-              
+
                this.onGetReimbursementInfo();
-             
+
               this.openAlertMod(template, "Reimbursment Status Updated !!");
             } else {
 
@@ -449,7 +450,7 @@ docList: any[] = [];
         console.log("Updated Filter : ", this.filters);
       }
     }
-    
+
     toggleSearchTravel() {
       this.isSearchEnabledTravel = !this.isSearchEnabledTravel;
       if (!this.isSearchEnabledTravel) {

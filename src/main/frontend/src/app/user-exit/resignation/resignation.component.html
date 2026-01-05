@@ -17,8 +17,7 @@
                             <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                         </a>
                     </div>
-                    <div class="overflow-auto" bassHorizontalScroll [tableId]="'resignationInfo'"
-                        [tableTHeadId]="'resignationInfoTHead'" [tableTHeadTrId]="'resignationInfoTHeadTr'">
+                    <div class="overflow-auto">
                         <table class="table" matSort (matSortChange)="sortData($event)" id="resignationInfoInfo">
                             <thead class="thead-light" id="resignationInfoTHead">
                                 <tr id="resignationInfoTHeadTr">
@@ -190,8 +189,7 @@
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'projectInfo'"
-                    [tableTHeadId]="'projectInfoTHead'" [tableTHeadTrId]="'projectInfoTHeadTr'">
+                <div class="overflow-auto">
                     <table class="table" matSort (matSortChange)="sortData($event)" id="resignationInfoInfo">
                         <thead class="thead-light" id="projectInfoTHead">
                             <tr id="projectInfoTHeadTr">

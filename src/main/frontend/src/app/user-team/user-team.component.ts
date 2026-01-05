@@ -6,6 +6,7 @@ import { AuthenticationService } from '../services/authentication.service';
 import { BreadcrumbService } from '../services/breadcrumb.service';
 
 @Component({
+  standalone: false,
   selector: 'app-user-team',
   templateUrl: './user-team.component.html',
   styleUrls: ['./user-team.component.css']

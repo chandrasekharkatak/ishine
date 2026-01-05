@@ -39,8 +39,7 @@
                         [hidden]="allDomainList.length == 0" (click)="exportToExcel()"><em
                             class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
-                <div class="overflow-auto" bassHorizontalScroll [tableId]="'domainInfo'" [tableTHeadId]="'domainInfoTHead'"
-                [tableTHeadTrId]="'domainInfoTHeadTr'">
+                <div class="overflow-auto">
                 <table class="table" id="domainInfo"  matSort (matSortChange)="sortData($event)" id="domainInfo">
                     <thead class="thead-light" id="domainInfoTHead">
                       <tr id="domainInfoTHeadTr">

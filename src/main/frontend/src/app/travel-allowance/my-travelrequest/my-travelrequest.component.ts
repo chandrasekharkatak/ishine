@@ -1,7 +1,7 @@
 import { Component, OnInit, SecurityContext, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer } from '@angular/platform-browser';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/internal/operators/first';
 import { Employee } from 'src/app/models/employee';
 import { Feature } from 'src/app/models/feature';
@@ -14,6 +14,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 
 
 @Component({
+  standalone: false,
   selector: 'app-my-travelrequest',
   templateUrl: './my-travelrequest.component.html',
   styleUrls: ['./my-travelrequest.component.css']
@@ -39,9 +40,9 @@ export class MyTravelrequestComponent implements OnInit {
   selectedTravelReasons: string = '';
 
 
-  //modal 
+  //modal
   alertMessage: any;
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef:NgbModalRef;
 
 
   sortDirection = 'asc';
@@ -82,7 +83,7 @@ export class MyTravelrequestComponent implements OnInit {
 
   constructor(
     private validationService: ValidationService,
-    private modalService: BsModalService,
+    private modalService: NgbModal,
     private authenticationService: AuthenticationService,
     private employeeService: EmployeeService,
     private sanitizer: DomSanitizer,
@@ -163,16 +164,16 @@ export class MyTravelrequestComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.hide();
+    this.modalRef?.close();
     location.reload();
   }
 
   cancelRequest3() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
   cancelRequest1() {
-    this.modalRef.hide();
+    this.modalRef?.close();
   }
 
 
@@ -184,12 +185,12 @@ export class MyTravelrequestComponent implements OnInit {
         return;
       }
       if (this.travelDeskObj.associatedTravelRequest !== 'Hotel & Lodging') {
-        
+
         if (!this.travelDeskObj.travelMode) {
           this.openAlertMod(template, "Please select a Travel Mode.");
           return;
         }
-        
+
         if (!this.travelDeskObj.travelClass) {
           this.openAlertMod(template, "Please select a Travel Class.");
           return;
@@ -280,11 +281,11 @@ export class MyTravelrequestComponent implements OnInit {
             fileFormData.append('file', this.selectedFile);
             fileFormData.append("displayName",this.selectedFileName);
             fileFormData.append("uploadedBy", this.currentEmployeeInfo.empId);
-  
+
             uploadResponse11 = await this.travelDesk.uploadKycDocument(fileFormData)
               .pipe(first())
               .toPromise();
-  
+
             if (uploadResponse11.serviceStatus !== "Success") {
               this.travelDeskObj.kycDocumentId = uploadResponse11.serviceResponse.documentId;
               console.error("Upload failed for file", this.travelDeskObj.kycDocumentId, uploadResponse11.serviceResponse.documentId);
@@ -295,7 +296,7 @@ export class MyTravelrequestComponent implements OnInit {
               console.error("Upload failed for file", this.travelDeskObj.kycDocumentId, uploadResponse11.serviceResponse.documentId);
             }
           } catch (error) {
-            
+
             this.openAlertMod(template, `File upload failed: ${error.message || error}`);
             return;
           }
@@ -311,11 +312,11 @@ export class MyTravelrequestComponent implements OnInit {
         // }
 
         // If file uploaded successfully, proceed with travel form data
-        
-        
-        
-      
-        
+
+
+
+
+
         const travelData: any = {
           employeeId: this.currentEmployeeInfo.empId,
           fullName: this.currentEmployeeInfo.name,
@@ -373,7 +374,7 @@ export class MyTravelrequestComponent implements OnInit {
 
   // Modals
   openAlertMod(template: TemplateRef<any>, message: any) {
-    this.modalRef = this.modalService.show(template, { class: 'modal-sm' });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
 
@@ -460,7 +461,7 @@ export class MyTravelrequestComponent implements OnInit {
   //           this.openAlertMod(template, response.serviceResponse);
   //         } else if (response.serviceStatus === "Fail") {
   //           this.openAlertMod(template, `Error found: ${response.serviceResponse}`);
-  //           event.target.value = '';  
+  //           event.target.value = '';
   //         } else {
   //           this.openAlertMod(template, response.serviceResponse);
   //         }
@@ -639,12 +640,12 @@ export class MyTravelrequestComponent implements OnInit {
 
   onFileSelected(event: Event, template: TemplateRef<any>): void {
     const input = event.target as HTMLInputElement;
-    
+
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
-      
+
       const allowedTypes = [
-       
+
         'application/pdf',
         'image/jpeg',
         'image/jpg',
@@ -655,18 +656,18 @@ export class MyTravelrequestComponent implements OnInit {
         'image/tiff',
         'image/tif',
         'image/svg+xml',
-        'application/postscript', 
+        'application/postscript',
       ];
-      
+
       const allowedExtensions = [
         '.pdf',
         '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp',
         '.tiff', '.tif', '.svg', '.eps'
       ];
-      
-     
+
+
       const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
-      
+
       // Validate file type
       if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
         this.openAlertMod(template, 'Please select only PDF files, images or scanned copies.');
@@ -675,8 +676,8 @@ export class MyTravelrequestComponent implements OnInit {
         this.selectedFile = null;
         return;
       }
-      
-     
+
+
       if (file.size > this.maxFileSizeMB * 1024 * 1024) {
         this.openAlertMod(template, 'File size should not exceed 1 MB.');
         input.value = '';
@@ -684,8 +685,8 @@ export class MyTravelrequestComponent implements OnInit {
         this.selectedFile = null;
         return;
       }
-      
-    
+
+
       if (file.size === 0) {
         this.openAlertMod(template, 'Selected file is empty. Please choose a valid file.');
         input.value = '';
@@ -693,29 +694,29 @@ export class MyTravelrequestComponent implements OnInit {
         this.selectedFile = null;
         return;
       }
-      
-  
+
+
       this.selectedFileName = file.name;
       this.selectedFile = file;
-      
+
       console.log("KYC Document - Valid file selected:", {
         name: this.selectedFileName,
         type: file.type,
         size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
         extension: fileExtension
       });
-      
+
     } else {
-     
+
       this.selectedFileName = null;
       this.selectedFile = null;
     }
   }
-  
- 
+
+
   private getFileTypeDescription(file: File): string {
     const extension = '.' + file.name.split('.').pop()?.toLowerCase();
-    
+
     if (file.type === 'application/pdf' || extension === '.pdf') {
       return 'PDF Document';
     } else if (file.type.startsWith('image/')) {
@@ -724,8 +725,8 @@ export class MyTravelrequestComponent implements OnInit {
       return 'Document';
     }
   }
-  
-  
+
+
 
 
 
