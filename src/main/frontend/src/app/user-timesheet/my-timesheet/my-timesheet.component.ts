@@ -153,8 +153,8 @@ withoutVmsbullet:string[] = ["Applicable to resources without a client-side VMS 
 
   filters: any = {};
   isSearchEnabled: boolean = false;
-  selfTimesheetColumns: any[] = ['blank', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'description', 'totalTime', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'status', 'createdByName', 'createdOn', 'isNightShiftDisplay', 'leaveType','rejectReason' ,'remarks'];
-  teamTimesheetColumns: any[] = ['blank', 'employeeName', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'description', 'totalTime', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'status', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'rejectReason','remarks'];
+  selfTimesheetColumns: any[] = ['blank', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours','projectName', 'description', 'totalTime', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'status', 'createdByName', 'createdOn', 'isNightShiftDisplay', 'leaveType','rejectReason' ,'remarks'];
+  teamTimesheetColumns: any[] = ['blank', 'employeeName', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours','projectName', 'description', 'totalTime', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'status', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'rejectReason','remarks'];
   tableName: string;
   activeProjectList: Project[];
   selectedProjectId: any;
@@ -2406,6 +2406,7 @@ get tooltipCta(): string {
           "In Time": x.officeInTime,
           "Out Time": x.officeOutTime,
           "Total Working Hours": x.totalWorkingOfficeHours,
+          "Project Name" :x.projectName,
           "Timesheet Details": x.description?.replaceAll('<br>', ' \n'),
           "Total Activity Time": x.totalTime,
           "Status": x.status,
