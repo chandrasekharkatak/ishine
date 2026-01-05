@@ -2275,7 +2275,8 @@ public class ResourceManagementService {
 			dto.setPoProjectType(obj[13] != null ? obj[13].toString() : null);
 			dto.setInternalProjectType(obj[14] != null ? obj[14].toString() : null);
 			dto.setRescRemovedBy(obj[16] != null ? Long.parseLong(obj[16].toString()) : null);		
-			dto.setRescRemovedByName(obj[17] != null ? obj[17].toString() : null);		
+			dto.setRescRemovedByName(obj[17] != null ? obj[17].toString() : null);
+			dto.setEmployeeTeamMapId(obj[18] != null ? Long.parseLong(obj[18].toString()) : null);
 			allData.add(dto);
 		});
 
@@ -4062,8 +4063,10 @@ public class ResourceManagementService {
 		try {
 			Long empid = resourceManagementDTO.getEmpId();
 			Long teamid = resourceManagementDTO.getTeamId();
+			Long employeeTeamMapId = resourceManagementDTO.getEmployeeTeamMapId();
 			EmployeeTeamMap findResource = new EmployeeTeamMap();
-			findResource = employeeTeamMapRepository.findByEmpIdAndTeamId(empid, teamid);
+//			findResource = employeeTeamMapRepository.findByEmpIdAndTeamId(empid, teamid);
+			findResource = employeeTeamMapRepository.findByEmployeeTeamMapId(employeeTeamMapId);
 //			if(findResource == null) {
 //			findResource = employeeTeamMapRepository.findByEmpIdAndTeamIdAndActive(empid, teamid);
 //			}
@@ -4128,13 +4131,17 @@ public class ResourceManagementService {
 				findResource.setUpdatedOn(LocalDateTime.now());
 				
 				employeeTeamMapRepository.save(findResource);
+				
+				System.out.println("Picked startDate = " + findResource.getStartDate());
+				System.out.println("Picked endDate = " + findResource.getEndDate());
+
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(
 						"Project StartDate/EndDate updated successfully, from Team Name - " + findTeam.getTeamName());
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Resource not found for given empId and teamId.");
+				response.setServiceResponse("Resource not found for given employeeTeamMapId");
 			}
 
 		} catch (Exception e) {
