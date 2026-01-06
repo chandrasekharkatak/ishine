@@ -289,72 +289,8 @@ public class TimesheetServiceNew {
 	 * @param empDTO Employee timesheet DTO from new contract
 	 */
 	private void normalizeEmployeeTimesheetFromNewContract(EmployeeTimesheetDTO empDTO, LocalDate date) {
-		// Map workCheckIn/workCheckOut to officeInTime/officeOutTime
-		// NEW CONTRACT: workCheckIn/workCheckOut are time strings (HH:mm)
-		if (empDTO.getWorkCheckIn() != null && !empDTO.getWorkCheckIn().trim().isEmpty()) {
-			empDTO.setOfficeInTime(convertTimeStringToLocalDateTime(empDTO.getWorkCheckIn(), date));
-		}
-		if (empDTO.getWorkCheckOut() != null && !empDTO.getWorkCheckOut().trim().isEmpty()) {
-			empDTO.setOfficeOutTime(convertTimeStringToLocalDateTime(empDTO.getWorkCheckOut(), date));
-		}
 		
-		// Map dayType string to dayTypeId
-		// NEW CONTRACT: dayType is string like "Working", "Week Off", "Leave"
-		if (empDTO.getDayType() != null && !empDTO.getDayType().trim().isEmpty()) {
-			Integer dayTypeId = convertDayTypeStringToId(empDTO.getDayType());
-			empDTO.setDayTypeId(dayTypeId);
-		}
 		
-		// Extract projects from locationSessions
-		// NEW CONTRACT: Projects are nested under locationSessions
-		// This flattens the structure for backward compatibility
-		// NOTE: The relationship between projects and location mappings is maintained through locationSessions structure
-		// TODO: Add locationMappingId to ProjectTimesheetDTO and ProjectTimesheetStatusNew to properly link projects to locations
-		if (empDTO.getLocationSessions() != null && !empDTO.getLocationSessions().isEmpty()) {
-			List<ProjectTimesheetDTO> projectsFromSessions = extractProjectsFromLocationSessions(empDTO.getLocationSessions());
-			
-			// Merge with existing projectTimesheets if any (for backward compatibility)
-			if (empDTO.getProjectTimesheets() != null && !empDTO.getProjectTimesheets().isEmpty()) {
-				// If both exist, prefer locationSessions (new contract)
-				// But keep existing for backward compatibility
-				// Note: For now, use locationSessions (new contract takes precedence)
-			}
-			
-			empDTO.setProjectTimesheets(projectsFromSessions);
-		}
-		
-		// Normalize project-level fields from new contract
-		if (empDTO.getProjectTimesheets() != null && !empDTO.getProjectTimesheets().isEmpty()) {
-			for (ProjectTimesheetDTO projectDTO : empDTO.getProjectTimesheets()) {
-				// NOTE: clientApprovalStatus is now Integer (from master)
-				// NEW CONTRACT: clientApprovalStatus comes as Integer ID from client_status_master_new
-				// No conversion needed - already Integer
-				// Validation: Should be 1=Pending, 2=Approved, 3=Rejected
-				
-				// Map projectHoursMinutes to totalClientWorkingMinutes
-				// NEW CONTRACT: projectHoursMinutes is in minutes
-				// Maps to totalClientWorkingMinutes (also in minutes)
-				if (projectDTO.getProjectHoursMinutes() != null) {
-					projectDTO.setTotalClientWorkingMinutes(projectDTO.getProjectHoursMinutes());
-				}
-				
-				// Map isShadow to shadowEmpId and isShadowTimesheet
-				// NEW CONTRACT: isShadow is boolean flag
-				// Maps to isShadowTimesheet (boolean) and shadowEmpId (Long)
-				if (projectDTO.getIsShadow() != null && projectDTO.getIsShadow()) {
-					projectDTO.setIsShadowTimesheet(true);
-					// shadowEmpId should be set from contract (shadowEmpId field)
-				} else if (projectDTO.getIsShadowTimesheet() != null && projectDTO.getIsShadowTimesheet()) {
-					projectDTO.setIsShadow(true);
-				}
-				
-				// NEW CONTRACT FIELDS (preserved but not mapped to old DTO):
-				// - clientId: Retrieved from project if needed (not in old DTO)
-				// - teamId: Retrieved from project if needed (not in old DTO)
-				// - clientApprovalStatus: Already Integer, no conversion needed
-				// These are kept in newDTO for reference
-			}
-		}
 	}
 	
  	/**
@@ -408,9 +344,8 @@ public class TimesheetServiceNew {
 
 	        // Validation
 	        timesheetValidationHelper.validateNewContractStructure(
-	                empDTO,
-	                empDTO.getProjectTimesheets() // kept as-is for validation helper
-	        );
+	                empDTO
+	               );
 
 	        if (timesheetLockDays != null) {
 	            timesheetValidationHelper.validateDateNotLocked(
@@ -434,7 +369,7 @@ public class TimesheetServiceNew {
 
 	        Long timesheetId = empTS.getTimesheetId();
 
-	        /* ======================================================
+	        /*======================================================
 	           Timesheet → Location → Project → Activity
 	           ====================================================== */
 
@@ -922,13 +857,10 @@ public class TimesheetServiceNew {
 			// Maps dayType string to dayTypeId
 			// Extracts projects from locationSessions
 			normalizeEmployeeTimesheetFromNewContract(newEmpDTO, newEmpDTO.getDate());
-			
-			// Extract projects (now flattened from locationSessions)
-			List<ProjectTimesheetDTO> newProjectDTOs = newEmpDTO.getProjectTimesheets();
-			
+		
 			// VALIDATION: Validate new contract structure
 			// This includes: workCheckIn/workCheckOut for working days, projects required, etc.
-			timesheetValidationHelper.validateNewContractStructure(newEmpDTO, newProjectDTOs);
+			timesheetValidationHelper.validateNewContractStructure(newEmpDTO);
 			
 			// VALIDATION: Validate date not locked
 			if (timesheetLockDays != null) {
@@ -958,11 +890,12 @@ public class TimesheetServiceNew {
 				}
 				
 				// Create new location mappings
-				java.util.Map<Integer, Long> locationMappingIdMap = createLocationMappings(
+				@SuppressWarnings("unused")
+				Map<Integer, Long> locationMappingIdMap = createLocationMappings(
 						newEmpDTO.getLocationSessions(), 
 						timesheetId, 
 						newEmpDTO.getDate());
-			}
+		     	}
 			
 			// Set audit fields (EXISTING LOGIC - unchanged)
 			Long currentUserId = getCurrentUserId();
@@ -975,18 +908,12 @@ public class TimesheetServiceNew {
 			empTS.setDate(newEmpDTO.getDate());
 			empTS.setDayTypeId(newEmpDTO.getDayTypeId()); // NEW CONTRACT: Set from dayType string
 			empTS.setLeaveTypeMasterId(newEmpDTO.getLeaveTypeId());
-			empTS.setOfficeInTime(newEmpDTO.getOfficeInTime()); // NEW CONTRACT: Set from workCheckIn
-			empTS.setOfficeOutTime(newEmpDTO.getOfficeOutTime()); // NEW CONTRACT: Set from workCheckOut
+			empTS.setWorkCheckIn(newEmpDTO.getWorkCheckIn()); // NEW CONTRACT: Set from workCheckIn
+			empTS.setWorkCheckOut(newEmpDTO.getWorkCheckOut()); // NEW CONTRACT: Set from workCheckOut
 			empTS.setUpdatedBy(newEmpDTO.getUpdatedBy());
 			empTS.setUpdatedOn(newEmpDTO.getUpdatedOn());
 			
 			// NOT IN NEW CONTRACT but kept for business logic:
-			// - currentManagerId: Used for approval workflows (preserved if provided)
-			// - isApmosysProduct: Used for product-specific rules (preserved if provided)
-			
-			// NEW CONTRACT: Update Work Location Mappings
-			// Flow: Employee Timesheet → Work Location Mapping → Project Timesheet → Activities
-			// Delete existing location mappings and create new ones
 			// This ensures location mappings match the new contract structure
 			if (newEmpDTO.getLocationSessions() != null && !newEmpDTO.getLocationSessions().isEmpty()) {
 				// Delete existing location mappings for this timesheet
@@ -1011,13 +938,13 @@ public class TimesheetServiceNew {
 			// Collect project IDs from request
 			// NEW CONTRACT: Projects come from locationSessions (already flattened in normalizeEmployeeTimesheetFromNewContract)
 			List<Long> requestedProjectIds = new ArrayList<>();
-			if (newProjectDTOs != null) {
-				for (ProjectTimesheetDTO projectDTO : newProjectDTOs) {
-					if (projectDTO.getProjectId() != null) {
-						requestedProjectIds.add(projectDTO.getProjectId());
-					}
-				}
-			}
+//			if (newProjectDTOs != null) {
+//				for (ProjectTimesheetDTO projectDTO : newProjectDTOs) {
+//					if (projectDTO.getProjectId() != null) {
+//						requestedProjectIds.add(projectDTO.getProjectId());
+//					}
+//				}
+//			}
 			
 			// Delete projects that are not in the request
 			// EXISTING LOGIC - unchanged (handles project deletion)
@@ -1034,41 +961,7 @@ public class TimesheetServiceNew {
 			// Update or create projects
 			// NEW CONTRACT: Projects are normalized from locationSessions
 			// NEW CONTRACT: clientApprovalStatus, projectHoursMinutes, teamId, isShadow are handled
-			if (newProjectDTOs != null && !newProjectDTOs.isEmpty()) {
-				for (ProjectTimesheetDTO newProjectDTO : newProjectDTOs) {
-					if (newProjectDTO.getProjectId() == null) {
-						continue; // Skip invalid entries
-					}
-					
-					newProjectDTO.setTimesheetId(timesheetId);
-					
-										
-			        // Find existing project (using old DTO)
-					ProjectTimesheetDTO existingProject = projectTimesheetService.findByTimesheetIdAndProjectId(
-							timesheetId, newProjectDTO.getProjectId());
-					
-					if (existingProject != null) {
-						// Update existing project - convert new DTO to old DTO
-						projectTimesheetService.update(newProjectDTO);
-						
-						// Update activities
-						if (newProjectDTO.getActivities() != null) {
-							// Convert to old DTOs
-							updateProjectActivitiesOld(timesheetId, newProjectDTO.getProjectId(), newProjectDTO.getActivities());
-						}
-						
-					} else {
-							newProjectDTO.setStatus(TimesheetAggregationHelper.STATUS_PENDING);
-						    projectTimesheetService.create(timesheetId, newProjectDTO);
-						
-						// Create activities
-						if (newProjectDTO.getActivities() != null && !newProjectDTO.getActivities().isEmpty()) {
-							// Convert to old DTOs
-							activityTimesheetService.createAll(timesheetId, newProjectDTO.getProjectId(), newProjectDTO.getActivities());
-						}
-					}
-				}
-			}
+		
 			
 			// Recalculate totals after all projects are updated
 			List<ProjectTimesheetDTO> allProjects = projectTimesheetService.findByTimesheetId(timesheetId);
@@ -1258,34 +1151,7 @@ public class TimesheetServiceNew {
 		}
 		return oldDTOs;
 	}
-	
-	/**
-	 * Convert old EmployeeTimesheetDTO to new EmployeeTimesheetDTO
-	 */
-	private EmployeeTimesheetDTO convertToNewEmployeeDTO(com.apmosys.employeeportal.dto.EmployeeTimesheetDTO oldDTO) {
-		if (oldDTO == null) return null;
 		
-		EmployeeTimesheetDTO newDTO = new EmployeeTimesheetDTO();
-		newDTO.setTimesheetId(oldDTO.getTimesheetId());
-		newDTO.setEmpId(oldDTO.getEmpId());
-		newDTO.setDate(oldDTO.getDate());
-		newDTO.setDayTypeId(oldDTO.getDayTypeId());
-		newDTO.setLeaveTypeId(oldDTO.getLeaveTypeId());
-		newDTO.setStatus(oldDTO.getStatus());
-		newDTO.setTotalWorkingMinutes(oldDTO.getTotalWorkingMinutes());
-		newDTO.setTotalActivitiesMinutes(oldDTO.getTotalActivitiesMinutes());
-		newDTO.setOfficeInTime(oldDTO.getOfficeInTime());
-		newDTO.setOfficeOutTime(oldDTO.getOfficeOutTime());
-		newDTO.setCreatedBy(oldDTO.getCreatedBy());
-		newDTO.setCreatedOn(oldDTO.getCreatedOn());
-		newDTO.setUpdatedBy(oldDTO.getUpdatedBy());
-		newDTO.setUpdatedOn(oldDTO.getUpdatedOn());
-		
-		return newDTO;
-	}
-	
-	
-	
 	/**
 	 * Convert old ActivityTimesheetDTO to new ActivityTimesheetDTO
 	 */
@@ -1409,7 +1275,7 @@ public class TimesheetServiceNew {
                 project.setActivities(activities);
             }
 
-            empDTO.setProjectTimesheets(projects);
+//            empDTO.setProjectTimesheets(projects);
             return empDTO;
         }
 
@@ -1467,9 +1333,9 @@ public class TimesheetServiceNew {
         empDTO.setLocationSessions(locationSessions);
 
         // 7️ (Optional) keep backward compatibility
-        empDTO.setProjectTimesheets(
-                projectTimesheetService.findByTimesheetId(timesheetId)
-        );
+//        empDTO.setProjectTimesheets(
+//                projectTimesheetService.findByTimesheetId(timesheetId)
+//        );
 
         return empDTO;
     }

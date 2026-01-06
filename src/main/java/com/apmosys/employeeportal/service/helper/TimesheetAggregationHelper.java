@@ -153,10 +153,10 @@ public class TimesheetAggregationHelper {
         employeeTimesheet.setTotalActivitiesMinutes(totalActivitiesMinutes);
 
         // Calculate total working minutes
-        if (employeeTimesheet.getOfficeInTime() != null && employeeTimesheet.getOfficeOutTime() != null) {
+        if (employeeTimesheet.getWorkCheckIn() != null && employeeTimesheet.getWorkCheckOut() != null) {
             Integer totalWorkingMinutes = calculateTotalWorkingMinutes(
-                    employeeTimesheet.getOfficeInTime(), 
-                    employeeTimesheet.getOfficeOutTime()
+                    employeeTimesheet.getWorkCheckIn(), 
+                    employeeTimesheet.getWorkCheckOut()
             );
             employeeTimesheet.setTotalWorkingMinutes(totalWorkingMinutes);
         } else {

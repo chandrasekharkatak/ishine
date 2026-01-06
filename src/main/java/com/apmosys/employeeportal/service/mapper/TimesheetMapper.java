@@ -48,8 +48,8 @@ public class TimesheetMapper {
         entity.setStatus(dto.getStatus());
         entity.setTotalWorkingMinutes(dto.getTotalWorkingMinutes());
         entity.setTotalActivitiesMinutes(dto.getTotalActivitiesMinutes());
-        entity.setOfficeInTime(dto.getOfficeInTime());
-        entity.setOfficeOutTime(dto.getOfficeOutTime());
+        entity.setWorkCheckIn(dto.getWorkCheckIn());
+        entity.setWorkCheckOut(dto.getWorkCheckOut());
         entity.setCreatedBy(dto.getCreatedBy());
         entity.setCreatedOn(dto.getCreatedOn() != null ? dto.getCreatedOn() : LocalDateTime.now());
         entity.setUpdatedBy(dto.getUpdatedBy());
@@ -78,8 +78,8 @@ public class TimesheetMapper {
         dto.setStatus(entity.getStatus());
         dto.setTotalWorkingMinutes(entity.getTotalWorkingMinutes());
         dto.setTotalActivitiesMinutes(entity.getTotalActivitiesMinutes());
-        dto.setOfficeInTime(entity.getOfficeInTime());
-        dto.setOfficeOutTime(entity.getOfficeOutTime());
+        dto.setWorkCheckIn(entity.getWorkCheckIn());
+        dto.setWorkCheckOut(entity.getWorkCheckOut());
         dto.setCreatedBy(entity.getCreatedBy());
         dto.setCreatedOn(entity.getCreatedOn());
         dto.setUpdatedBy(entity.getUpdatedBy());

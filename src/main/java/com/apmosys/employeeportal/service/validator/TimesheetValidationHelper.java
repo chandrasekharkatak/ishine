@@ -5,11 +5,10 @@ import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import com.apmosys.employeeportal.dto.ActivityTimesheetDTO;
-import com.apmosys.employeeportal.dto.EmployeeTimesheetDTO;
-import com.apmosys.employeeportal.dto.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.repository.DayTypeMasterNewRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.model.DayTypeMasterNew;
@@ -84,8 +83,8 @@ public class TimesheetValidationHelper {
         validateDateNotInFuture(dto.getDate());
 
         // Validate office times if provided
-        if (dto.getOfficeInTime() != null && dto.getOfficeOutTime() != null) {
-            validateOfficeTimes(dto.getOfficeInTime(), dto.getOfficeOutTime());
+        if (dto.getWorkCheckIn() != null && dto.getWorkCheckOut() != null) {
+            validateOfficeTimes(dto.getWorkCheckIn(), dto.getWorkCheckOut());
         }
     }
 
@@ -165,26 +164,19 @@ public class TimesheetValidationHelper {
      * @param dto TimesheetDTO
      * @throws IllegalArgumentException if validation fails
      */
-    public void validateTimesheetStructure(TimesheetDTO dto) {
+    public void validateTimesheetStructure(EmployeeTimesheetDTO dto) {
         if (dto == null) {
             throw new IllegalArgumentException("TimesheetDTO cannot be null");
         }
 
-        if (dto.getEmployeeTimesheet() == null) {
-            throw new IllegalArgumentException("EmployeeTimesheet is required");
-        }
-
+   
         // Validate employee timesheet
-        validateEmployeeTimesheet(dto.getEmployeeTimesheet());
+        validateEmployeeTimesheet(dto);
 
-        Long empId = dto.getEmployeeTimesheet().getEmpId();
+        Long empId = dto.getEmpId();
 
         // Validate project timesheets
-        if (dto.getProjectTimesheets() != null && !dto.getProjectTimesheets().isEmpty()) {
-            for (ProjectTimesheetDTO projectDTO : dto.getProjectTimesheets()) {
-                validateProjectTimesheet(projectDTO, empId);
-            }
-        }
+        
     }
 
     /**
@@ -330,7 +322,7 @@ public class TimesheetValidationHelper {
      * @throws IllegalArgumentException if validation fails
      */
     public void validateWorkCheckInCheckOutForWorkingDays(
-            com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO empDTO) {
+                   EmployeeTimesheetDTO empDTO) {
         if (empDTO == null) {
             return;
         }
@@ -352,16 +344,16 @@ public class TimesheetValidationHelper {
         
         if (isWorkingDay) {
             // For working days, workCheckIn and workCheckOut are required
-            if (empDTO.getWorkCheckIn() == null || empDTO.getWorkCheckIn().trim().isEmpty()) {
+            if (empDTO.getWorkCheckIn() == null) {
                 throw new IllegalArgumentException("workCheckIn is required for working days");
             }
             
-            if (empDTO.getWorkCheckOut() == null || empDTO.getWorkCheckOut().trim().isEmpty()) {
+            if (empDTO.getWorkCheckOut() == null) {
                 throw new IllegalArgumentException("workCheckOut is required for working days");
             }
             
             // Also validate that officeInTime and officeOutTime are set (after normalization)
-            if (empDTO.getOfficeInTime() == null || empDTO.getOfficeOutTime() == null) {
+            if (empDTO.getWorkCheckIn() == null || empDTO.getWorkCheckOut() == null) {
                 throw new IllegalArgumentException("Office in/out times are required for working days");
             }
         }
@@ -376,8 +368,7 @@ public class TimesheetValidationHelper {
      * @throws IllegalArgumentException if validation fails
      */
     public void validateProjectsRequiredForWorkingDays(
-            com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO empDTO, 
-            java.util.List<com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO> projectDTOs) {
+             EmployeeTimesheetDTO empDTO) {
         if (empDTO == null || empDTO.getDayTypeId() == null) {
             return; // Cannot validate without dayTypeId
         }
@@ -400,10 +391,7 @@ public class TimesheetValidationHelper {
                                  "Leave".equalsIgnoreCase(dayType.getDayType()) ||
                                  "Client Holiday".equalsIgnoreCase(dayType.getDayType());
         
-        if (isWorkingDay && (projectDTOs == null || projectDTOs.isEmpty())) {
-            throw new IllegalArgumentException("At least one project is required for working days");
-        }
-        
+       
         // For non-working days, projects are optional
         // No validation needed for non-working days
     }
@@ -436,8 +424,7 @@ public class TimesheetValidationHelper {
      * @throws IllegalArgumentException if validation fails
      */
     public void validateNewContractStructure(
-            com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO empDTO, 
-            java.util.List<com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO> projectDTOs) {
+             EmployeeTimesheetDTO empDTO) {
         if (empDTO == null) {
             throw new IllegalArgumentException("Employee timesheet data is required");
         }
@@ -451,9 +438,7 @@ public class TimesheetValidationHelper {
             throw new IllegalArgumentException("Date is required");
         }
         
-        if (empDTO.getDayType() == null || empDTO.getDayType().trim().isEmpty()) {
-            throw new IllegalArgumentException("Day type is required");
-        }
+        
         
         // Validate date not in future
         validateDateNotInFuture(empDTO.getDate());
@@ -462,11 +447,8 @@ public class TimesheetValidationHelper {
         validateWorkCheckInCheckOutForWorkingDays(empDTO);
         
         // Validate projects required for working days
-        validateProjectsRequiredForWorkingDays(empDTO, projectDTOs);
+        validateProjectsRequiredForWorkingDays(empDTO);
         
-        // Validate timesheet does not already exist (for create operations)
-        // Note: This should be called only for create, not update
-        // validateTimesheetNotExists(empDTO.getEmpId(), empDTO.getDate());
     }
 }
 

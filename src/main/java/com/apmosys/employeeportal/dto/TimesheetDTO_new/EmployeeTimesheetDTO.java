@@ -83,20 +83,6 @@ public class EmployeeTimesheetDTO {
     private Integer totalActivitiesMinutes;
 
     /**
-     * Office in time
-     * Optional - for tracking office attendance
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime officeInTime;
-
-    /**
-     * Office out time
-     * Optional - for tracking office attendance
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime officeOutTime;
-
-    /**
      * Created by user ID
      * Set automatically from current user context
      */
@@ -123,23 +109,14 @@ public class EmployeeTimesheetDTO {
     
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedOn;
-    
-    /**
-     * List of project timesheets (OLD STRUCTURE - maintained for backward compatibility)
-     * NEW CONTRACT: Projects are nested under locationSessions
-     * This field is kept for backward compatibility but locationSessions should be used
-     */
-    private List<ProjectTimesheetDTO> projectTimesheets;
-    
-    // ========== NEW CONTRACT FIELDS ==========
-    
+        
     /**
      * Work check-in time (format: "HH:mm" or "HH:mm:ss")
      * NEW CONTRACT: Maps to officeInTime
      * Example: "09:00"
      * Required for working days
      */
-    private String workCheckIn;
+    private LocalDateTime workCheckIn;
     
     /**
      * Work check-out time (format: "HH:mm" or "HH:mm:ss")
@@ -147,7 +124,7 @@ public class EmployeeTimesheetDTO {
      * Example: "18:30"
      * Required for working days
      */
-    private String workCheckOut;
+    private LocalDateTime workCheckOut;
     
     /**
      * Day type as string (e.g., "Working", "Week Off", "Leave")
