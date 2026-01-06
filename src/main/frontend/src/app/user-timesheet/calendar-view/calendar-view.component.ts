@@ -534,9 +534,27 @@ resetPreviewState() {
     const month = this.formattedMonthLabel;
     const project = this.projectList.find(p => p.projectId === this.projectIdForDropDown);
     const projectName = project?.projectName || 'Project';
-    const extension = this.fileType;
+    // const extension = this.fileType;
+    const extension = this.getExtensionFromMime(this.previewMimeType);
 
     return `${userName} | ${day} ${month} | ${projectName}.${extension}`;
+  }
+
+  private getExtensionFromMime(mimeType: string): string {
+    switch (mimeType) {
+      case 'application/pdf':
+        return 'pdf';
+      case 'image/jpeg':
+        return 'jpeg';
+      case 'image/jpg':
+        return 'jpg';
+      case 'image/png':
+        return 'png';
+      case 'image/webp':
+        return 'webp';
+      default:
+        return 'file';
+    }
   }
 
 }
