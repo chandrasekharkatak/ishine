@@ -6,9 +6,9 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import com.apmosys.employeeportal.dto.ActivityTimesheetDTO;
-import com.apmosys.employeeportal.dto.EmployeeTimesheetDTO;
-import com.apmosys.employeeportal.dto.ProjectTimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 
 /**
  * Helper class for timesheet aggregation and calculation logic.
@@ -153,10 +153,10 @@ public class TimesheetAggregationHelper {
         employeeTimesheet.setTotalActivitiesMinutes(totalActivitiesMinutes);
 
         // Calculate total working minutes
-        if (employeeTimesheet.getOfficeInTime() != null && employeeTimesheet.getOfficeOutTime() != null) {
+        if (employeeTimesheet.getWorkCheckIn() != null && employeeTimesheet.getWorkCheckOut() != null) {
             Integer totalWorkingMinutes = calculateTotalWorkingMinutes(
-                    employeeTimesheet.getOfficeInTime(), 
-                    employeeTimesheet.getOfficeOutTime()
+                    employeeTimesheet.getWorkCheckIn(), 
+                    employeeTimesheet.getWorkCheckOut()
             );
             employeeTimesheet.setTotalWorkingMinutes(totalWorkingMinutes);
         } else {
@@ -176,17 +176,9 @@ public class TimesheetAggregationHelper {
      */
     public void calculateAndSetProjectTimesheetTotals(ProjectTimesheetDTO projectTimesheet) {
         if (projectTimesheet.getActivities() != null && !projectTimesheet.getActivities().isEmpty()) {
-            // Calculate from activities
             Integer totalMinutes = calculateTotalClientWorkingMinutes(projectTimesheet.getActivities());
             projectTimesheet.setTotalClientWorkingMinutes(totalMinutes);
-        } else if (projectTimesheet.getClientInTime() != null && projectTimesheet.getClientOutTime() != null) {
-            // Calculate from client times
-            Integer totalMinutes = calculateTotalClientWorkingMinutesFromTimes(
-                    projectTimesheet.getClientInTime(), 
-                    projectTimesheet.getClientOutTime()
-            );
-            projectTimesheet.setTotalClientWorkingMinutes(totalMinutes);
-        } else {
+        }else {
             // No activities or times provided
             projectTimesheet.setTotalClientWorkingMinutes(0);
         }

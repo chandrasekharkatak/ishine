@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.controller;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -18,9 +19,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.JobRoleAccess;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDeleteRequestDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetStatusUpdateRequestDTO;
-import com.apmosys.employeeportal.dto.TimesheetDTO_new.employeeTimesheetMappingDTO_new;
 import com.apmosys.employeeportal.service.TimesheetServiceNew;
 import com.apmosys.employeeportal.service.helper.TimesheetEncryptionHelper;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -51,15 +52,26 @@ public class EmployeeTimesheetControllerNew {
 	 * Endpoint: POST /api/v2/timesheet/create
 	 * 
 	 * Creates EmployeeTimesheet, ProjectTimesheets, and Activities in a single transaction.
+	 * 
+	 * NEW CONTRACT: Accepts list of multipart files for document uploads
+	 * Multiple documents can be uploaded for multiple projects in a single timesheet
+	 * 
+	 * @param encryptedDto Encrypted timesheet DTO (new contract structure)
+	 * @param documents List of multipart files for document uploads (one per project)
+	 *                  Documents are linked to projects via documentData in DTO
+	 * @return ServiceResponse with created timesheet data
 	 */
 	@JobRoleAccess(featureIds = {15})
 	@PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ServiceResponse createTimesheet(@RequestPart("dto") String encryptedDto,
-			@RequestPart(value = "doc1", required = false) MultipartFile doc1,
-			@RequestPart(value = "doc2", required = false) MultipartFile doc2) throws Exception {
+	public ServiceResponse createTimesheet(
+			@RequestPart("dto") String encryptedDto,
+			@RequestPart(value = "documents", required = false) List<MultipartFile> documents) throws Exception {
 		// Decrypt and parse encrypted DTO to new structure
-		employeeTimesheetMappingDTO_new dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNewMapping(encryptedDto);
-		ServiceResponse response = timesheetServiceNew.createTimesheet(dto, doc1, doc2);
+		EmployeeTimesheetDTO dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNewMapping(encryptedDto);
+		
+		// NEW CONTRACT: Pass list of documents to service
+		// Documents are linked to projects via documentData array in DTO
+		ServiceResponse response = timesheetServiceNew.createTimesheet(dto, documents);
 		return response;
 	}
 	
@@ -74,20 +86,29 @@ public class EmployeeTimesheetControllerNew {
     
     /**
      * UPDATE - Update existing timesheet
-     * PUT /api/timesheetNew/update/{id}
+     * PUT /api/v2/timesheet/update
+     * 
+     * NEW CONTRACT: Accepts list of multipart files for document uploads
+     * Multiple documents can be uploaded/updated for multiple projects
+     * 
+     * @param timesheetId Timesheet ID to update
+     * @param encryptedDto Encrypted timesheet DTO (new contract structure)
+     * @param documents List of multipart files for document uploads (one per project)
+     *                  Documents are linked to projects via documentData in DTO
+     * @return ServiceResponse with updated timesheet data
      */
     @JobRoleAccess(featureIds = {15})
     @PutMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ServiceResponse updateTimesheet(
             @RequestParam Long timesheetId,
             @RequestPart("dto") String encryptedDto,
-            @RequestPart(value = "doc1", required = false) MultipartFile doc1,
-            @RequestPart(value = "doc2", required = false) MultipartFile doc2) throws Exception {
+            @RequestPart(value = "documents", required = false) List<MultipartFile> documents) throws Exception {
         
         // Decrypt and parse encrypted DTO to new structure
-        employeeTimesheetMappingDTO_new dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNewMapping(encryptedDto);
+    	EmployeeTimesheetDTO dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNewMapping(encryptedDto);
         
-        return timesheetServiceNew.updateTimesheet(timesheetId, dto, doc1, doc2);
+        // NEW CONTRACT: Pass list of documents to service
+        return timesheetServiceNew.updateTimesheet(timesheetId, dto, documents);
     }
 	
 	/**
@@ -107,7 +128,7 @@ public class EmployeeTimesheetControllerNew {
 	 */
 	@JobRoleAccess(featureIds = {15, 16})
 	@PostMapping(value = "/by-date")
-	public ServiceResponse getTimesheetByDate(@RequestBody employeeTimesheetMappingDTO_new requestDTO) {
+	public ServiceResponse getTimesheetByDate(@RequestBody EmployeeTimesheetDTO requestDTO) {
 		ServiceResponse response = timesheetServiceNew.getTimesheetByDate(requestDTO);
 		return response;
 	}
@@ -118,7 +139,7 @@ public class EmployeeTimesheetControllerNew {
 	 */
 	@JobRoleAccess(featureIds = {15, 16})
 	@PostMapping(value = "/by-date-range")
-	public ServiceResponse getTimesheetsByDateRange(@RequestBody employeeTimesheetMappingDTO_new requestDTO) {
+	public ServiceResponse getTimesheetsByDateRange(@RequestBody EmployeeTimesheetDTO requestDTO) {
 		ServiceResponse response = timesheetServiceNew.getTimesheetsByDateRange(requestDTO);
 		return response;
 	}

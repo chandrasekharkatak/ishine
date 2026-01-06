@@ -23,12 +23,10 @@ public class ProjectTimesheetStatusNew {
 
     @Column(name = "po_no")
     private String poNo;
-
-    @Column(name = "client_in_time")
-    private LocalDateTime clientInTime;
-
-    @Column(name = "client_out_time")
-    private LocalDateTime clientOutTime;
+    
+    
+    @Column(name="project_id")
+    private Integer projectId;
 
     @Column(name = "is_night_shift")
     private Boolean isNightShift;
@@ -44,4 +42,9 @@ public class ProjectTimesheetStatusNew {
 
     @Column(name = "total_client_working_minutes")
     private Integer totalClientWorkingMinutes;
+    
+    
+    @Column(name = "location_mapping_id")
+    private Long locationMappingId;
+
 }

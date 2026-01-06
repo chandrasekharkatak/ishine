@@ -40,7 +40,7 @@ public class ActivityTimesheetDTO {
      * Must match parent ProjectTimesheetDTO.projectId
      */
     @NotNull( "Project ID is required")
-    private Long projectId;
+    private Integer projectId;
 
     /**
      * Activity description

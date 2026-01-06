@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.model;
 
+import java.sql.Timestamp;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -25,4 +27,13 @@ public class StatusMasterNew {
 
     @Column(name = "status")
     private String status;
+    
+    @Column(name="is_active")
+    private Boolean isActive;
+    
+    
+    @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = false, updatable = false)
+	private Timestamp createdOn;
+    
+    private Long createdBy;
 }

@@ -83,20 +83,6 @@ public class EmployeeTimesheetDTO {
     private Integer totalActivitiesMinutes;
 
     /**
-     * Office in time
-     * Optional - for tracking office attendance
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime officeInTime;
-
-    /**
-     * Office out time
-     * Optional - for tracking office attendance
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime officeOutTime;
-
-    /**
      * Created by user ID
      * Set automatically from current user context
      */
@@ -123,6 +109,64 @@ public class EmployeeTimesheetDTO {
     
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updatedOn;
-    private List<ProjectTimesheetDTO> projectTimesheets;
+        
+    /**
+     * Work check-in time (format: "HH:mm" or "HH:mm:ss")
+     * NEW CONTRACT: Maps to officeInTime
+     * Example: "09:00"
+     * Required for working days
+     */
+    private LocalDateTime workCheckIn;
+    
+    /**
+     * Work check-out time (format: "HH:mm" or "HH:mm:ss")
+     * NEW CONTRACT: Maps to officeOutTime
+     * Example: "18:30"
+     * Required for working days
+     */
+    private LocalDateTime workCheckOut;
+    
+    /**
+     * Day type as string (e.g., "Working", "Week Off", "Leave")
+     * NEW CONTRACT: Maps to dayTypeId
+     * Required for creation
+     */
+    private String dayType;
+    
+    /**
+     * Is night shift
+     * NEW CONTRACT: Boolean flag for night shift
+     * Optional - defaults to false
+     */
+    private Boolean isNightShift;
+    
+    /**
+     * Current manager ID
+     * NOT IN NEW CONTRACT but kept for business logic
+     * Used for approval workflows
+     */
+    private Long currentManagerId;
+    
+    /**
+     * Is Apmosys product flag
+     * NOT IN NEW CONTRACT but kept for business logic
+     * Used for product-specific timesheet rules
+     */
+    private String isApmosysProduct;
+    
+    /**
+     * Location sessions - NEW CONTRACT STRUCTURE
+     * Multiple location sessions per day (e.g., Office 9:00-13:00, Client Site 14:00-18:00)
+     * Each location session contains projects and activities
+     * Required for working days
+     */
+    private List<LocationSessionDTO> locationSessions;
+    
+    /**
+     * Document data - NEW CONTRACT STRUCTURE
+     * List of documents associated with timesheet projects
+     * Optional - for attendance proof and approval documents
+     */
+    private List<TimesheetDocumentDataDTO> documentData;
 }
 

@@ -23,7 +23,7 @@ public class TimesheetActivityMapId implements Serializable {
     private Long activityId;
 
     @Column(name = "project_id", nullable = false)
-    private Long projectId;
+    private Integer projectId;
 
     // equals & hashCode (MANDATORY for composite key)
     @Override
