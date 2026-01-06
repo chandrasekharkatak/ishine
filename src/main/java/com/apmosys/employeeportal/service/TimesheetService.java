@@ -4064,7 +4064,7 @@ public class TimesheetService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append( "projectId: " +projectId+"\n");
 		 try {
-			 Project projObj = projectRepository.getByProjectId(projectId);
+			 Project projObj = projectRepository.findByProjectId(projectId);
 			 
 			 if(projObj == null) {
 				 
