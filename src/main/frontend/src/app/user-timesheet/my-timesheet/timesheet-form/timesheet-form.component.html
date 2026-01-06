@@ -438,11 +438,11 @@
 
                         <div class="d-flex align-items-center">
                             <input type="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png"
-                                style="max-width: 250px;" (change)="onFileSelected($event, 'doc1')"
+                                style="max-width: 250px;" (change)="onFileSelected($event, 'Filled', project.projectId)"
                                 (click)="$any($event.target).value = null" />
 
                             <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
-                                [disabled]="!previewUrl1" (click)="openPreviewModalForTwo('doc1')">
+                                [disabled]="!previewUrl1" (click)="openPreviewModalForTwo('Filled')">
                                 <i class="fa fa-eye"></i>
                             </button>
                         </div>
@@ -468,11 +468,11 @@
 
                         <div class="d-flex align-items-center">
                             <input type="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png"
-                                style="max-width: 250px;" (change)="onFileSelected($event, 'doc2')"
+                                style="max-width: 250px;" (change)="onFileSelected($event, 'Approved',project.projectId)"
                                 (click)="$any($event.target).value = null" />
 
                             <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
-                                [disabled]="!previewUrl2" (click)="openPreviewModalForTwo('doc2')">
+                                [disabled]="!previewUrl2" (click)="openPreviewModalForTwo('Approved')">
                                 <i class="fa fa-eye"></i>
                             </button>
                         </div>
