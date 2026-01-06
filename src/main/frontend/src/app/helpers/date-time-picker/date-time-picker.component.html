@@ -1,8 +1,8 @@
-<div class="form-group">
+<div class="dt-wrapper form-group">
+
   <label class="dt-label" style="font-family: 'Roboto', sans-serif;
-    font-weight: 500;
-    font-size: 0.85rem;
-    margin-bottom: 4px;" *ngIf="label">
+  font-weight: 500;
+  font-size: 0.85rem;margin-bottom: 4px;" *ngIf="label">
     <span *ngIf="required" class="text-danger">*</span>
     {{ label }}
   </label>
@@ -10,6 +10,7 @@
   <input
     *ngIf="mode === 'date'"
     type="date"
+    class="form-control"
     [(ngModel)]="modelValue"
     (ngModelChange)="onModelChange($event)"
     [disabled]="disabled"
@@ -19,6 +20,7 @@
   <input
     *ngIf="mode === 'time'"
     type="time"
+    class="form-control"
     [(ngModel)]="modelValue"
     (ngModelChange)="onModelChange($event)"
     [disabled]="disabled"
@@ -27,26 +29,18 @@
   <input
     *ngIf="mode === 'datetime'"
     type="datetime-local"
+    class="form-control"
     [(ngModel)]="modelValue"
     (ngModelChange)="onModelChange($event)"
     [disabled]="disabled"
   />
 
-  <!-- <button type="button" (click)="clearValue()">Clear</button> -->
   <button
     *ngIf="modelValue && !disabled"
     type="button"
-    class="btn btn-sm btn-link text-danger"
+    class="btn btn-sm btn-link text-danger dt-clear-btn"
     (click)="clearValue()">
     ✖
   </button>
+
 </div>
-
-
-<!-- <label class="dt-label" style="font-family: 'Roboto', sans-serif;
-    font-weight: 500;
-    font-size: 0.85rem;
-    margin-bottom: 4px;" *ngIf="label">
-    <span *ngIf="required" class="text-danger">*</span>
-    {{ label }}
-  </label> -->

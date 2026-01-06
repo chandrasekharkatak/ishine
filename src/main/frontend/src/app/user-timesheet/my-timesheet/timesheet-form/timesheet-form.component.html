@@ -1,316 +1,390 @@
-<div class="card col-md-12 px-3">
-    <!-- APPLICATION TYPE -->
-    <app-my-timesheet-application-selector [timesheetAppliedFor]="timesheetObj.timesheetAppliedFor"
-        [isUpdation]="isUpdation" [empId]="timesheetObj.empId" [currentUserEmpId]="currentUser?.empId"
-        [teamMemberList]="teamMemberList" (applicationTypeChange)="onTimesheetAppliedForChange($event)"
-        (teamMemberChange)="getTimesheetMetadata($event)">
-    </app-my-timesheet-application-selector>
-
-    <!-- ============================================ -->
-    <!-- STEP 1: DAY TYPE SELECTION -->
-    <!-- ============================================ -->
-    <div class="row mt-4">
-        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
-            <div class="form-group">
-                <label class="info-label">
-                    <span class="text-danger">*</span> Day Type
-                </label>
-                <app-my-select class="form-control" placeholder="Select Day Type"
-                     [options]="allDayTypes" displayKey="dayType"
-                    valueKey="dayTypeId" [multiple]="false"
-                    (selectionChange)="onDayTypeChange($event)">
-                </app-my-select>
-            </div>
-        </div>
-    </div>
-
-    <!-- ============================================ -->
-    <!-- STEP 2: DATE SELECTION (Show after Day Type) -->
-    <!-- ============================================ -->
-    <ng-container *ngIf="timesheetObj.dayType">
-        <div class="row mt-3">
-            <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
-                <app-date-time-picker label="Date" mode="date" [required]="true" [(ngModel)]="fromDate"
-                (ngModelChange)="onFromDateChange()">
-                </app-date-time-picker>
-            </div>
-             <!-- TO DATE (Show only if Night Shift is enabled) -->
-             <div class="col-lg-3 col-md-4 col-sm-6 mb-3" *ngIf="timesheetObj.isNightShift && fromDate">
-                <app-date-time-picker label="To Date" mode="date" [required]="true" [(ngModel)]="toDate"
-                (ngModelChange)="onToDateChange()">
-                </app-date-time-picker>
-            </div>
-
-            <!-- STEP 3: NIGHT SHIFT (Show after Date) -->
-            <div class="col-lg-3 col-md-4 col-sm-6 mb-3" *ngIf="fromDate">
-                <div class="form-group">
-                    <label class="info-label d-block">Night Shift</label>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" 
-                            [(ngModel)]="timesheetObj.isNightShift"
-                            (change)="onNightShiftChange()"
-                            id="nightShiftToggle">
-                        <label class="form-check-label" for="nightShiftToggle">
-                            {{ timesheetObj.isNightShift ? 'Yes' : 'No' }}
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-           
-        </div>
-    </ng-container>
-
-    <!-- ============================================ -->
-    <!-- STEP 4: TIME & PROJECT SECTION (Only for Working Days) -->
-    <!-- ============================================ -->
-    <div>
-        
-        <!-- ApMoSys Time Section -->
-        <div class="row mt-4">
-            <div class="col-12">
-                <h6 class="section-title">ApMoSys Time</h6>
-                <hr class="mt-2 mb-4">
+<div class="timesheet-form-wrapper">
+    <!-- Main Form Card -->
+    <div class="main-form-card">
+        <!-- Header Section -->
+        <div class="form-header-card">
+            <div class="d-flex align-items-center">
+                <i class="fa fa-calendar-check-o form-header-icon"></i>
+                <h5 class="form-header-title mb-0">Timesheet Entry</h5>
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
-                <app-date-time-picker label="In Time" mode="time" [required]="true"
-                    [(ngModel)]="apmosysInTime"
-                    (ngModelChange)="onApMoSysInTimeChange($event)">
-                </app-date-time-picker>
+        <!-- Basic Information Card -->
+        <div class="info-card">
+            <div class="card-header-section">
+                <i class="fa fa-info-circle card-icon"></i>
+                <h6 class="card-title mb-0">Basic Information</h6>
             </div>
-
-            <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
-                <app-date-time-picker label="Out Time" mode="time" [required]="true"
-                    [(ngModel)]="apmosysOutTime"
-                    (ngModelChange)="onApMoSysOutTimeChange($event)">
-                </app-date-time-picker>
-            </div>
-
-            <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
-                <div class="form-group">
-                    <label class="info-label">Total Working Hours</label>
-                    <input type="text" class="form-control" 
-                        [value]="totalWorkingHours.toFixed(2)" disabled>
-                </div>
-            </div>
-        </div>
-
-        <!-- ============================================ -->
-        <!-- STEP 5: PROJECT SECTION -->
-        <!-- ============================================ -->
-        <div class="row mt-4">
-            <div class="col-12">
-                <h6 class="section-title">Projects</h6>
-                <hr class="mt-2 mb-4">
-            </div>
-        </div>
-
-        <div class="container-fluid">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="text-muted">Add projects and activities</span>
-                <button class="btn btn-sm btn-primary" (click)="addProject()">
-                    <i class="fa fa-plus"></i> Add Project
-                </button>
-            </div>
-
-            <!-- PROJECT LOOP -->
-            <div *ngFor="let project of timesheetProjects; let pIndex = index" class="project-card mb-3">
-                <!-- PROJECT HEADER -->
-                <div class="project-header" (click)="toggleProject(pIndex)">
-                    <span class="fw-semibold">Project {{ pIndex + 1 }}</span>
-                    <div class="d-flex align-items-center gap-3">
-                        <i class="fa" [ngClass]="expandedProjectIndex === pIndex ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
-                        <button *ngIf="timesheetProjects.length > 1" class="btn btn-sm btn-outline-danger"
-                            (click)="removeProject(pIndex); $event.stopPropagation()">
-                            <i class="fa fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- PROJECT BODY -->
-                <div class="project-body" [class.open]="expandedProjectIndex === pIndex">
-                    <div class="p-3">
-                        <!-- PROJECT DETAILS -->
-                        <!-- First Row: Project, Client Side ID, Shadow Timesheet, Shadow For -->
-                        <div class="row">
-                            <!-- Project Selection -->
-                            <div class="col-md-6 mb-3">
-                                <label class="info-label"><span class="text-danger">*</span> Project</label>
-                                <app-my-select placeholder="Select Project" class="form-control"
-                                    [(ngModel)]="project.projectId"
-                                    [options]="activeProjectList"
-                                    displayKey="projectName"
-                                    valueKey="projectId"
-                                    [multiple]="false"
-                                    (selectionChange)="onProjectSelect(project, $event)">
+            <div class="card-body-section">
+                <ng-container *ngIf="dayType">
+                    <div class="row">
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                            <div class="form-group">
+                                <label class="info-label">
+                                    <span class="text-danger">*</span> Day Type
+                                </label>
+                                <app-my-select class="form-control" placeholder="Select Day Type"
+                                    [options]="allDayTypes" displayKey="dayType" valueKey="dayTypeId" [multiple]="false"
+                                    (selectionChange)="onDayTypeChange($event)">
                                 </app-my-select>
                             </div>
+                        </div>
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                            <app-date-time-picker label="Date" mode="date" [required]="true" [(ngModel)]="fromDate"
+                                (ngModelChange)="onFromDateChange()">
+                            </app-date-time-picker>
+                        </div>
+                        <!-- TO DATE (Show only if Night Shift is enabled) -->
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3" *ngIf="timesheetObj.isNightShift && fromDate">
+                            <app-date-time-picker label="To Date" mode="date" [required]="true" [(ngModel)]="toDate"
+                                (ngModelChange)="onToDateChange()">
+                            </app-date-time-picker>
+                        </div>
 
-                            <!-- Client Side ID (Show only if exists) -->
-                            <div class="col-md-3 mb-3" *ngIf="project.clientSideId">
-                                <label class="info-label">Client Side ID</label>
-                                <input type="text" class="form-control" [value]="project.clientSideId" disabled>
-                            </div>
-
-                            <!-- Shadow Timesheet Toggle -->
-                            <div class="col-md-3 mb-3">
-                                <label class="info-label d-block">Shadow Timesheet</label>
+                        <!-- STEP 3: NIGHT SHIFT (Show after Date) -->
+                        <div class="col-lg-3 col-md-2 col-sm-6 mb-3" *ngIf="fromDate">
+                            <div class="form-group">
+                                <label class="info-label d-block">Night Shift</label>
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" 
-                                        [(ngModel)]="project.isShadowTimesheet"
-                                        id="shadowToggle{{pIndex}}">
-                                    <label class="form-check-label" for="shadowToggle{{pIndex}}">
-                                        {{ project.isShadowTimesheet ? 'Yes' : 'No' }}
+                                    <input class="form-check-input" type="checkbox"
+                                        [(ngModel)]="timesheetObj.isNightShift" (change)="onNightShiftChange()"
+                                        id="nightShiftToggle">
+                                    <label class="form-check-label" for="nightShiftToggle">
+                                        {{ timesheetObj.isNightShift ? 'Yes' : 'No' }}
                                     </label>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </ng-container>
+            </div>
+        </div>
 
-                            <!-- Shadow For (Show when shadow is enabled) -->
-                            <div class="col-md-3 mb-3" *ngIf="project.isShadowTimesheet">
-                                <label class="info-label">
-                                    <span class="text-danger">*</span> Shadow For
-                                </label>
-                                <app-my-select class="form-control" placeholder="Select Employee">
-                                </app-my-select>
+        <!-- Date, Presence & Attendance Time Card -->
+        <div class="info-card" *ngIf="dayType && fromDate">
+            <div class="card-header-section">
+                <i class="fa fa-clock-o card-icon"></i>
+                <h6 class="card-title mb-0">Date, Presence & Attendance Time</h6>
+            </div>
+            <div class="card-body-section">
+                <div class="row">
+                    <!-- Date Display Card -->
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                        <div class="date-display-card">
+                            <div class="date-icon-wrapper">
+                                <i class="fa fa-calendar date-icon"></i>
+                            </div>
+                            <div class="date-content">
+                                <div class="date-text">{{ getFormattedDate() }}</div>
+                                <div class="day-name">{{ getDayName() }}</div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Second Row: Client In Time, Client Out Time, Total Hours -->
-                        <div class="row">
-                            <!-- Client In Time -->
-                            <div class="col-md-3 mb-3">
-                                <app-date-time-picker label="Client In Time" mode="time" [required]="false">
-                                </app-date-time-picker>
+                    <!-- Total Presence Display Card -->
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                        <div class="presence-display-card">
+                            <div class="presence-icon-wrapper">
+                                <i class="fa fa-clock-o presence-icon"></i>
                             </div>
-
-                            <!-- Client Out Time -->
-                            <div class="col-md-3 mb-3">
-                                <app-date-time-picker label="Client Out Time" mode="time" [required]="false">
-                                </app-date-time-picker>
-                            </div>
-
-                            <!-- Total Hours -->
-                            <div class="col-md-3 mb-3">
-                                <label class="info-label">Total Hours</label>
-                                <input class="form-control" 
-                                    [value]="project.totalClientWorkingHours || project.totalWorkingHours || '0.00'" 
-                                    disabled>
+                            <div class="presence-content">
+                                <div class="presence-label">TOTAL PRESENCE</div>
+                                <div class="presence-value">{{ getFormattedPresence() }}</div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- ============================================ -->
-                        <!-- STEP 6: ACTIVITIES SECTION -->
-                        <!-- ============================================ -->
-                        <div class="row mt-4">
-                            <div class="col-12">
-                                <h6 class="section-title">Activities</h6>
-                                <hr>
-                            </div>
+                    <!-- Check-In Time -->
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                        <app-date-time-picker label="Work Check-In" mode="time" [required]="true" [(ngModel)]="apmosysInTime"
+                            (ngModelChange)="onApMoSysInTimeChange($event)">
+                        </app-date-time-picker>
+                    </div>
+
+                    <!-- Check-Out Time -->
+                    <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+                        <app-date-time-picker label="Work Check-Out" mode="time" [required]="true"
+                            [(ngModel)]="apmosysOutTime" (ngModelChange)="onApMoSysOutTimeChange($event)">
+                        </app-date-time-picker>
+                    </div>
+                </div>
+                <!-- APPLICATION TYPE -->
+                <app-my-timesheet-application-selector [timesheetAppliedFor]="timesheetAppliedFor"
+                    [isUpdation]="isUpdation" [empId]="timesheetObj.empId" [currentUserEmpId]="currentUser?.empId"
+                    [teamMemberList]="teamMemberList" (applicationTypeChange)="onTimesheetAppliedForChange($event)"
+                    (teamMemberChange)="getTimesheetMetadata($event)">
+                </app-my-timesheet-application-selector>
+
+            </div>
+        </div>
+
+        <!-- Location, Project & Activities Card -->
+        <div class="info-card">
+            <div class="card-header-section">
+                <i class="fa fa-map-marker card-icon"></i>
+                <h6 class="card-title mb-0">Location, Project & Activities</h6>
+            </div>
+            <div class="card-body-section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="section-subtitle">
+                        <i class="fa fa-map-marker"></i> Locations
+                    </h6>
+                    <button class="btn btn-sm btn-outline-primary" (click)="addLocation()">
+                        <i class="fa fa-plus"></i> Add Location
+                    </button>
+                </div>
+
+                <!-- LOCATION LOOP -->
+                <div *ngFor="let location of timesheetLocations; let lIndex = index" class="location-card mb-3">
+                    <!-- LOCATION HEADER -->
+                    <div class="location-header" (click)="toggleLocation(lIndex)">
+                        <div class="d-flex align-items-center">
+                            <div class="location-badge">{{ lIndex + 1 }}</div>
+                            <span class="location-title">Location {{ lIndex + 1 }}</span>
                         </div>
+                        <div class="d-flex align-items-center gap-3">
+                            <i class="fa location-chevron me-3"
+                                [ngClass]="expandedLocationIndex === lIndex ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                            <button *ngIf="timesheetLocations.length > 1" class="btn btn-sm btn-icon-danger ml-3"
+                                (click)="removeLocation(lIndex); $event.stopPropagation()" title="Remove Location">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
 
-                        <div *ngFor="let activity of project.activities; let aIndex = index" class="mb-3">
-                            <!-- First Row: Client, Location, Team -->
-                            <div class="row align-items-end mb-2">
-                                <!-- Client -->
-                                <div class="col-md-4 mb-2">
-                                    <label class="info-label small">Client</label>
-                                    <app-my-select class="form-control form-control-sm" placeholder="Client"
-                                        [(ngModel)]="activity.clientId"
-                                        [options]="project.clientList || []"
-                                        displayKey="clientName"
-                                        valueKey="clientId"
-                                        [multiple]="false"
-                                        (selectionChange)="onClientSelect(project, activity, $event)">
+                    <!-- LOCATION BODY -->
+                    <div class="location-body" [class.open]="expandedLocationIndex === lIndex">
+                        <div class="location-content">
+                            <!-- LOCATION DETAILS -->
+                            <!-- First Row: Location, Client In Time, Client Out Time -->
+                            <div class="row">
+                                <!-- Location Selection -->
+                                <div class="col-md-6 mb-3">
+                                    <label class="info-label"><span class="text-danger">*</span> Location</label>
+                                    <app-my-select placeholder="Select Location" class="form-control"
+                                        [(ngModel)]="location.locationId" [options]="activeLocationList"
+                                        displayKey="locationName" valueKey="locationId" [multiple]="false"
+                                        (selectionChange)="onLocationSelect(location, $event)">
                                     </app-my-select>
                                 </div>
 
-                                <!-- Client Location -->
-                                <div class="col-md-4 mb-2">
-                                    <label class="info-label small">Location</label>
-                                    <app-my-select class="form-control form-control-sm" placeholder="Location"
-                                        [(ngModel)]="activity.clientLocationId"
-                                        [options]="activity.clientLocationList || []"
-                                        displayKey="locationName"
-                                        valueKey="clientLocationId"
-                                        [multiple]="false"
-                                        (selectionChange)="onClientLocationSelect(project, activity, $event)">
-                                    </app-my-select>
+                                <!-- Client In Time -->
+                                <div class="col-md-3 mb-3">
+                                    <app-date-time-picker label="Client In Time" mode="time" [required]="false"
+                                        [(ngModel)]="location.clientInTime">
+                                    </app-date-time-picker>
                                 </div>
 
-                                <!-- Team -->
-                                <div class="col-md-4 mb-2">
-                                    <label class="info-label small">Team</label>
-                                    <app-my-select class="form-control form-control-sm" placeholder="Team"
-                                        [(ngModel)]="activity.teamId"
-                                        [options]="activity.projectList || []"
-                                        displayKey="teamName"
-                                        valueKey="teamId"
-                                        [multiple]="false"
-                                        (selectionChange)="onTeamSelect(project, activity, $event)">
-                                    </app-my-select>
+                                <!-- Client Out Time -->
+                                <div class="col-md-3 mb-3">
+                                    <app-date-time-picker label="Client Out Time" mode="time" [required]="false"
+                                        [(ngModel)]="location.clientOutTime">
+                                    </app-date-time-picker>
                                 </div>
                             </div>
 
-                            <!-- Second Row: Activity, Description, Hours, Remove Button -->
-                            <div class="row align-items-end mb-2">
-                                <!-- Activity -->
-                                <div class="col-md-3 mb-2">
-                                    <label class="info-label small">Activity</label>
-                                    <app-my-select class="form-control form-control-sm" placeholder="Activity"
-                                        [(ngModel)]="activity.activityId"
-                                        [options]="activity.projectActivities || []"
-                                        displayKey="activity"
-                                        valueKey="activityId"
-                                        [multiple]="false">
-                                    </app-my-select>
-                                </div>
-
-                                <!-- Description -->
-                                <div class="col-md-5 mb-2">
-                                    <label class="info-label small">Description</label>
-                                    <textarea class="form-control form-control-sm" rows="1" 
-                                        placeholder="Description" [(ngModel)]="activity.description"></textarea>
-                                </div>
-
-                                <!-- Hours -->
-                                <div class="col-md-2 mb-2">
-                                    <label class="info-label small">Hours</label>
-                                    <input type="number" step="0.01" min="0" max="24" class="form-control form-control-sm" 
-                                        placeholder="Hrs" [(ngModel)]="activity.completionTime">
-                                </div>
-
-                                <!-- Remove Button -->
-                                <div class="col-md-2 mb-2">
-                                    <button *ngIf="project.activities.length > 1" 
-                                        class="btn btn-sm btn-outline-danger mt-4"
-                                        (click)="removeActivity(project, aIndex)" title="Remove Activity">
-                                        <i class="fa fa-trash"></i>
+                            <!-- PROJECTS SECTION (Nested in Location) -->
+                            <div class="projects-section">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="section-subtitle">
+                                        <i class="fa fa-folder-open"></i> Projects
+                                    </h6>
+                                    <button class="btn btn-sm btn-outline-primary" (click)="addProject(location)">
+                                        <i class="fa fa-plus"></i> Add Project
                                     </button>
                                 </div>
+
+                                <!-- PROJECT LOOP (Nested in Location) -->
+                                <div *ngFor="let project of location.projects; let pIndex = index"
+                                    class="project-card-nested mb-3">
+                                    <!-- PROJECT HEADER -->
+                                    <div class="project-header-nested" (click)="toggleProject(lIndex, pIndex)">
+                                        <div class="d-flex align-items-center">
+                                            <div class="project-badge">{{ pIndex + 1 }}</div>
+                                            <span class="project-title">Project {{ pIndex + 1 }}</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <i class="fa project-chevron"
+                                                [ngClass]="expandedProjectIndexMap[lIndex] === pIndex ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                                            <button *ngIf="location.projects.length > 1"
+                                                class="btn btn-sm btn-icon-danger ml-3"
+                                                (click)="removeProject(location, pIndex); $event.stopPropagation()"
+                                                title="Remove Project">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- PROJECT BODY -->
+                                    <div class="project-body-nested"
+                                        [class.open]="expandedProjectIndexMap[lIndex] === pIndex">
+                                        <div class="project-content">
+                                            <!-- PROJECT DETAILS -->
+                                            <div class="row">
+                                                <!-- Project Selection -->
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="info-label"><span class="text-danger">*</span>
+                                                        Project</label>
+                                                    <app-my-select placeholder="Select Project" class="form-control"
+                                                        [(ngModel)]="project.projectId"
+                                                        [options]="location.availableProjects || []"
+                                                        displayKey="projectName" valueKey="projectId" [multiple]="false"
+                                                        (selectionChange)="onProjectSelect(location, project, $event)">
+                                                    </app-my-select>
+                                                </div>
+
+                                                <!-- Client Side ID (Show only if exists) -->
+                                                <div class="col-md-3 mb-3" *ngIf="project.clientSideId">
+                                                    <label class="info-label">Client Side ID</label>
+                                                    <input type="text" class="form-control"
+                                                        [value]="project.clientSideId" disabled>
+                                                </div>
+
+                                                <!-- Shadow Timesheet Toggle -->
+                                                <div class="col-md-3 mb-3">
+                                                    <label class="info-label d-block">Shadow Timesheet</label>
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox"
+                                                            [(ngModel)]="project.isShadowTimesheet"
+                                                            id="shadowToggle{{lIndex}}_{{pIndex}}">
+                                                        <label class="form-check-label"
+                                                            for="shadowToggle{{lIndex}}_{{pIndex}}">
+                                                            {{ project.isShadowTimesheet ? 'Yes' : 'No' }}
+                                                        </label>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Shadow For (Show when shadow is enabled) -->
+                                                <div class="col-md-3 mb-3" *ngIf="project.isShadowTimesheet">
+                                                    <label class="info-label">
+                                                        <span class="text-danger">*</span> Shadow For
+                                                    </label>
+                                                    <app-my-select class="form-control" placeholder="Select Employee">
+                                                    </app-my-select>
+                                                </div>
+                                            </div>
+
+                                            <!-- Client, Team, Client Location Row -->
+                                            <div class="row">
+                                                <!-- Client -->
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="info-label"><span class="text-danger">*</span> Client</label>
+                                                    <app-my-select class="form-control" placeholder="Select Client"
+                                                        [(ngModel)]="project.clientId"
+                                                        [options]="project.clientList || []"
+                                                        displayKey="clientName" valueKey="clientId"
+                                                        [multiple]="false"
+                                                        (selectionChange)="onProjectClientSelect(location, project, $event)">
+                                                    </app-my-select>
+                                                </div>
+
+                                                <!-- Client Location -->
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="info-label"><span class="text-danger">*</span> Client Location</label>
+                                                    <app-my-select class="form-control" placeholder="Select Client Location"
+                                                        [(ngModel)]="project.clientLocationId"
+                                                        [options]="project.clientLocationList || []"
+                                                        displayKey="clientLocation" valueKey="clientLocationId"
+                                                        [multiple]="false"
+                                                        (selectionChange)="onProjectClientLocationSelect(location, project, $event)">
+                                                    </app-my-select>
+                                                </div>
+
+                                                <!-- Team -->
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="info-label"><span class="text-danger">*</span> Team</label>
+                                                    <app-my-select class="form-control" placeholder="Select Team"
+                                                        [(ngModel)]="project.teamId"
+                                                        [options]="project.projectList || []"
+                                                        displayKey="teamName" valueKey="teamId"
+                                                        [multiple]="false"
+                                                        (selectionChange)="onProjectTeamSelect(location, project, $event)">
+                                                    </app-my-select>
+                                                </div>
+                                            </div>
+
+                                            <!-- Total Hours -->
+                                            <div class="row">
+                                                <div class="col-md-3 mb-3">
+                                                    <label class="info-label">Total Hours</label>
+                                                    <input class="form-control"
+                                                        [value]="project.totalClientWorkingHours || project.totalWorkingHours || '0.00'"
+                                                        disabled>
+                                                </div>
+                                            </div>
+
+                                            <!-- ACTIVITIES SECTION (Nested in Project) -->
+                                            <div class="activities-section">
+                                                <h6 class="section-subtitle">
+                                                    <i class="fa fa-tasks"></i> Activities
+                                                </h6>
+
+                                                <div *ngFor="let activity of project.activities; let aIndex = index"
+                                                    class="activity-row">
+                                                    <!-- Activity, Description, Hours Row -->
+                                                    <div class="row align-items-end mb-2">
+                                                        <!-- Activity -->
+                                                        <div class="col-md-4 mb-2">
+                                                            <label class="info-label small">Activity</label>
+                                                            <app-my-select class="form-control form-control-sm"
+                                                                placeholder="Activity" [(ngModel)]="activity.activityId"
+                                                                [options]="project.projectActivities || []"
+                                                                displayKey="activity" valueKey="activityId"
+                                                                [multiple]="false">
+                                                            </app-my-select>
+                                                        </div>
+
+                                                        <!-- Description -->
+                                                        <div class="col-md-5 mb-2">
+                                                            <label class="info-label small">Description</label>
+                                                            <textarea class="form-control form-control-sm" rows="1"
+                                                                placeholder="Description"
+                                                                [(ngModel)]="activity.description"></textarea>
+                                                        </div>
+
+                                                        <!-- Hours -->
+                                                        <div class="col-md-2 mb-2">
+                                                            <label class="info-label small">Hours</label>
+                                                            <input type="number" step="0.01" min="0" max="24"
+                                                                class="form-control form-control-sm" placeholder="Hrs"
+                                                                [(ngModel)]="activity.completionTime">
+                                                        </div>
+
+                                                        <!-- Remove Button -->
+                                                        <div class="col-md-1 mb-2">
+                                                            <button *ngIf="project.activities.length > 1"
+                                                                class="btn btn-sm btn-outline-danger mt-4"
+                                                                (click)="removeActivity(project, aIndex)"
+                                                                title="Remove Activity">
+                                                                <i class="fa fa-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <button class="btn btn-sm btn-outline-primary mt-2"
+                                                    (click)="addActivity(project)">
+                                                    <i class="fa fa-plus"></i> Add Activity
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-
-                        <button class="btn btn-sm btn-outline-primary mt-2" (click)="addActivity(project)">
-                            <i class="fa fa-plus"></i> Add Activity
-                        </button>
                     </div>
                 </div>
             </div>
         </div>
+    
 
-        <!-- ============================================ -->
-        <!-- STEP 7: CLIENT APPROVAL & DOCUMENTS -->
-        <!-- ============================================ -->
-        <div *ngIf="empHasClientSideId">
-            <div class="row mt-4">
-                <div class="col-12">
-                    <h6 class="section-title">Client Approval & Documents</h6>
-                    <hr class="mt-2 mb-4">
-                </div>
-            </div>
+    <!-- Client Approval & Documents Card -->
+    <div class="info-card">
+        <div class="card-header-section">
+            <i class="fa fa-file-text-o card-icon"></i>
+            <h6 class="card-title mb-0">Client Approval & Documents</h6>
+        </div>
+        <div class="card-body-section">
 
             <!-- Client Approval Status -->
             <div class="row">
@@ -319,9 +393,8 @@
                         <span class="text-danger">*</span> Client DSR Approval Status
                     </label>
                     <app-my-select class="form-control" placeholder="Select Approval Status"
-                         [(ngModel)]="timesheetObj.clientApprovalStatus"
-                        [options]="clientApprovalStatusList" displayKey="statusName"
-                        valueKey="statusId" [multiple]="false">
+                        [(ngModel)]="timesheetObj.clientApprovalStatus" [options]="clientApprovalStatusList"
+                        displayKey="statusName" valueKey="statusId" [multiple]="false">
                     </app-my-select>
                 </div>
             </div>
@@ -334,12 +407,10 @@
                         <span class="text-danger">*</span> Filled Attendance Proof
                     </label>
                     <div class="d-flex align-items-center">
-                        <input type="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png" 
-                            style="max-width: 250px;" 
-                            (change)="onFileSelected($event, 'doc1')"
+                        <input type="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png"
+                            style="max-width: 250px;" (change)="onFileSelected($event, 'doc1')"
                             (click)="$any($event.target).value=null">
-                        <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
-                            [disabled]="!previewUrl1" 
+                        <button class="btn btn-outline-primary btn-sm ms-2" title="Preview" [disabled]="!previewUrl1"
                             (click)="openPreviewModalForTwo('doc1')">
                             <i class="fa fa-eye"></i>
                         </button>
@@ -355,12 +426,10 @@
                         <span class="text-danger">*</span> Approved Attendance Proof
                     </label>
                     <div class="d-flex align-items-center">
-                        <input type="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png" 
-                            style="max-width: 250px;"
-                            (change)="onFileSelected($event, 'doc2')"
+                        <input type="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png"
+                            style="max-width: 250px;" (change)="onFileSelected($event, 'doc2')"
                             (click)="$any($event.target).value=null">
-                        <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
-                            [disabled]="!previewUrl2"
+                        <button class="btn btn-outline-primary btn-sm ms-2" title="Preview" [disabled]="!previewUrl2"
                             (click)="openPreviewModalForTwo('doc2')">
                             <i class="fa fa-eye"></i>
                         </button>
@@ -371,24 +440,26 @@
                 </div>
             </div>
         </div>
-
-        <!-- ============================================ -->
-        <!-- SUBMIT BUTTONS -->
-        <!-- ============================================ -->
-        <div class="row mt-4 mb-4">
-            <div class="col-md-12">
-                <button *ngIf="isCreation" type="button" class="btn btn-primary btn-sm me-2" (click)="createTimesheet()">
+    </div>
+    <!-- Action Buttons Card -->
+     <div class="form-header-card">
+            <!-- <div class="d-flex align-items-center">
+                <i class="fa fa-calendar-check-o form-header-icon"></i>
+                <h5 class="form-header-title mb-0">Timesheet Entry</h5>
+            </div> -->
+            <div class="d-flex justify-content-end gap-2">
+                <button *ngIf="isCreation" type="button" class="btn btn-outline-primary btn-action" (click)="createTimesheet()">
                     <i class="fa fa-save"></i> Create Timesheet
                 </button>
-                <button *ngIf="isUpdation" type="button" class="btn btn-danger btn-sm me-2">
+                <button *ngIf="isUpdation" type="button" class="btn btn-outline-primary btn-action">
                     <i class="fa fa-edit"></i> Update Timesheet
                 </button>
-                <!-- <button type="button" class="btn btn-secondary btn-sm">
-                    <i class="fa fa-times"></i> Cancel
-                </button> -->
             </div>
         </div>
-    </div>
+        <!-- <div class="action-card">
+            
+        </div> -->
+ </div>
 </div>
 
 <!-- Night Shift Confirmation Modal -->
