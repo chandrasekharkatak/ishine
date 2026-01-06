@@ -71,13 +71,6 @@ public class ProjectTimesheetDTO {
     private Boolean isNightShift;
 
     /**
-     * Client approval status ID (FK to client_status_master_new)
-     * Values: 1=Pending, 2=Approved, 3=Rejected
-     * Optional - defaults to Pending
-     */
-    private Integer clientApprovalStatus;
-
-    /**
      * Status ID (FK to status_master_new)
      * Values: 1=Pending, 2=Approved, 3=Rejected
      * Required - defaults to Pending
@@ -104,5 +97,51 @@ public class ProjectTimesheetDTO {
      * Can be empty for non-working days
      */
     private List<ActivityTimesheetDTO> activities;
+    
+    // ========== NEW CONTRACT FIELDS ==========
+    
+    /**
+     * Client ID (FK to clients table)
+     * NEW CONTRACT: Required for project identification
+     * Retrieved from project if not provided
+     */
+    private Long clientId;
+    
+    /**
+     * Client approval status as string (e.g., "Pending", "Approved", "Rejected")
+     * NEW CONTRACT: Maps to clientApprovalStatus (Integer)
+     * Optional - defaults to "Pending"
+     */
+    private Integer clientApprovalStatus;
+    
+    /**
+     * Project hours in minutes
+     * NEW CONTRACT: Maps to totalClientWorkingMinutes
+     * Calculated from activities or provided directly
+     */
+    private Integer projectHoursMinutes;
+    
+    /**
+     * Team ID (FK to teams table)
+     * NEW CONTRACT: Required for project identification
+     * Retrieved from project if not provided
+     */
+    private Long teamId;
+    
+    /**
+     * Is shadow timesheet flag
+     * NEW CONTRACT: Boolean flag for shadow timesheet
+     * Optional - defaults to false
+     */
+    private Boolean isShadow;
+    
+    /**
+     * Is shadow timesheet flag (alternative name)
+     * NOT IN NEW CONTRACT but kept for backward compatibility
+     * Maps to isShadow
+     */
+    private Boolean isShadowTimesheet;
+    
+  
 }
 
