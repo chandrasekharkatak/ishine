@@ -4,7 +4,7 @@ import org.springframework.stereotype.Component;
 
 import com.apmosys.employeeportal.dto.CreateTimesheetRequestDTONew;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
-import com.apmosys.employeeportal.dto.TimesheetDTO_new.employeeTimesheetMappingDTO_new;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.utility.EncryptionUtil;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -120,7 +120,7 @@ public class TimesheetEncryptionHelper {
      * @return employeeTimesheetMappingDTO_new object parsed from decrypted JSON
      * @throws Exception if decryption or parsing fails
      */
-    public employeeTimesheetMappingDTO_new decryptAndParseTimesheetDtoNewMapping(String encryptedDto) throws Exception {
+    public EmployeeTimesheetDTO decryptAndParseTimesheetDtoNewMapping(String encryptedDto) throws Exception {
         try {
             log.debug("Decrypting timesheet DTO (New Mapping)");
             
@@ -130,11 +130,8 @@ public class TimesheetEncryptionHelper {
             log.debug("Decrypted JSON length: {}", decryptedJson != null ? decryptedJson.length() : 0);
             
             // Parse JSON to employeeTimesheetMappingDTO_new
-            employeeTimesheetMappingDTO_new dto = objectMapper.readValue(decryptedJson, employeeTimesheetMappingDTO_new.class);
-            
-            log.debug("Successfully parsed employeeTimesheetMappingDTO_new for empId: {}", 
-                    dto.getEmployeeTimesheet() != null ? dto.getEmployeeTimesheet().getEmpId() : null);
-            
+            EmployeeTimesheetDTO dto = objectMapper.readValue(decryptedJson, EmployeeTimesheetDTO.class);
+                
             return dto;
         } catch (Exception e) {
             log.error("Error decrypting/parsing timesheet DTO (New Mapping): {}", e.getMessage(), e);

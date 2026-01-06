@@ -9,10 +9,9 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
-import com.apmosys.employeeportal.dto.ActivityTimesheetDTO;
-import com.apmosys.employeeportal.dto.EmployeeTimesheetDTO;
-import com.apmosys.employeeportal.dto.ProjectTimesheetDTO;
-import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.model.EmployeeTimesheetActivitiesMappingNew;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.ProjectTimesheetStatusId;
@@ -110,8 +109,6 @@ public class TimesheetMapper {
         entity.setId(id);
 
         entity.setPoNo(dto.getPoNo());
-        entity.setClientInTime(dto.getClientInTime());
-        entity.setClientOutTime(dto.getClientOutTime());
         entity.setIsNightShift(dto.getIsNightShift());
         entity.setClientApprovalStatus(dto.getClientApprovalStatus());
         entity.setStatus(dto.getStatus() != null ? dto.getStatus() : 1); // Default to PENDING
@@ -136,8 +133,6 @@ public class TimesheetMapper {
         dto.setTimesheetId(entity.getId().getTimesheetId());
         dto.setProjectId(entity.getId().getProjectId());
         dto.setPoNo(entity.getPoNo());
-        dto.setClientInTime(entity.getClientInTime());
-        dto.setClientOutTime(entity.getClientOutTime());
         dto.setIsNightShift(entity.getIsNightShift());
         dto.setClientApprovalStatus(entity.getClientApprovalStatus());
         dto.setStatus(entity.getStatus());
@@ -197,50 +192,6 @@ public class TimesheetMapper {
 
         return dto;
     }
-
-    /**
-     * Convert complete timesheet structure (Entity to DTO).
-     * Combines EmployeeTimesheet, ProjectTimesheets, and Activities into hierarchical DTO.
-     * 
-     * @param empTS EmployeeTimesheetsNew entity
-     * @param projects List of ProjectTimesheetStatusNew entities
-     * @param activitiesMap Map of projectId -> List of Activity entities
-     * @return Complete TimesheetDTO
-     */
-    public TimesheetDTO toTimesheetDTO(EmployeeTimesheetsNew empTS,
-                                      List<ProjectTimesheetStatusNew> projects,
-                                      Map<Long, List<EmployeeTimesheetActivitiesMappingNew>> activitiesMap) {
-        if (empTS == null) {
-            return null;
-        }
-
-        // Convert employee timesheet
-        EmployeeTimesheetDTO empDTO = toDTO(empTS);
-
-        // Convert projects with their activities
-        List<ProjectTimesheetDTO> projectDTOs = new ArrayList<>();
-        if (projects != null) {
-            for (ProjectTimesheetStatusNew project : projects) {
-                ProjectTimesheetDTO projectDTO = toDTO(project);
-                
-                // Add activities for this project
-                Long projectId = project.getId().getProjectId();
-                if (activitiesMap != null && activitiesMap.containsKey(projectId)) {
-                    List<ActivityTimesheetDTO> activityDTOs = activitiesMap.get(projectId).stream()
-                            .map(this::toDTO)
-                            .collect(Collectors.toList());
-                    projectDTO.setActivities(activityDTOs);
-                } else {
-                    projectDTO.setActivities(new ArrayList<>());
-                }
-                
-                projectDTOs.add(projectDTO);
-            }
-        }
-
-        return new TimesheetDTO(empDTO, projectDTOs);
-    }
-
     /**
      * Convert list of activity entities to DTOs.
      * 

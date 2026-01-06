@@ -1,6 +1,5 @@
 package com.apmosys.employeeportal.service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -9,8 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.apmosys.employeeportal.dto.ActivityTimesheetDTO;
-import com.apmosys.employeeportal.dto.ProjectTimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.model.ProjectTimesheetStatusNew;
 import com.apmosys.employeeportal.repository.ProjectTimesheetStatusNewRepository;
 import com.apmosys.employeeportal.service.helper.TimesheetAggregationHelper;
@@ -123,8 +121,6 @@ public class ProjectTimesheetService {
 
         // Update fields
         entity.setPoNo(dto.getPoNo());
-        entity.setClientInTime(dto.getClientInTime());
-        entity.setClientOutTime(dto.getClientOutTime());
         entity.setIsNightShift(dto.getIsNightShift());
         entity.setClientApprovalStatus(dto.getClientApprovalStatus());
         entity.setStatus(dto.getStatus());

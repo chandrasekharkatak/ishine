@@ -10,6 +10,9 @@ import com.apmosys.employeeportal.dto.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.repository.DayTypeMasterNewRepository;
+import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
+import com.apmosys.employeeportal.model.DayTypeMasterNew;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
@@ -39,6 +42,12 @@ public class TimesheetValidationHelper {
 
     @Autowired
     private ActivitiesRepository activitiesRepository;
+    
+    @Autowired
+    private DayTypeMasterNewRepository dayTypeMasterNewRepository;
+    
+    @Autowired
+    private EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
 
     /**
      * Validate EmployeeTimesheet DTO.
@@ -109,10 +118,6 @@ public class TimesheetValidationHelper {
         // Validate employee is assigned to project
         validateProjectAssignment(empId, dto.getProjectId());
 
-        // Validate client times if provided
-        if (dto.getClientInTime() != null && dto.getClientOutTime() != null) {
-            validateClientTimes(dto.getClientInTime(), dto.getClientOutTime());
-        }
 
         // Validate activities if provided
         if (dto.getActivities() != null && !dto.getActivities().isEmpty()) {
@@ -315,6 +320,153 @@ public class TimesheetValidationHelper {
         if (isDateLocked(empId, date, lockDays)) {
             throw new IllegalArgumentException("Timesheet date is locked. Cannot modify timesheets older than " + lockDays + " days");
         }
+    }
+    
+    /**
+     * Validate workCheckIn/workCheckOut are required for working days.
+     * NEW CONTRACT: These map to officeInTime/officeOutTime
+     * 
+     * @param empDTO Employee timesheet DTO from new contract
+     * @throws IllegalArgumentException if validation fails
+     */
+    public void validateWorkCheckInCheckOutForWorkingDays(
+            com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO empDTO) {
+        if (empDTO == null) {
+            return;
+        }
+        if (empDTO == null || empDTO.getDayTypeId() == null) {
+            return; // Cannot validate without dayTypeId
+        }
+        
+        // Check if it's a working day
+        DayTypeMasterNew dayType = dayTypeMasterNewRepository.findById(empDTO.getDayTypeId())
+                .orElse(null);
+        
+        if (dayType == null) {
+            return; // Day type not found, skip validation
+        }
+        
+        // Working day typically means dayType = "Working" (case-insensitive)
+        boolean isWorkingDay = "Working".equalsIgnoreCase(dayType.getDayType()) ||
+                              "Non-working".equalsIgnoreCase(dayType.getDayType());
+        
+        if (isWorkingDay) {
+            // For working days, workCheckIn and workCheckOut are required
+            if (empDTO.getWorkCheckIn() == null || empDTO.getWorkCheckIn().trim().isEmpty()) {
+                throw new IllegalArgumentException("workCheckIn is required for working days");
+            }
+            
+            if (empDTO.getWorkCheckOut() == null || empDTO.getWorkCheckOut().trim().isEmpty()) {
+                throw new IllegalArgumentException("workCheckOut is required for working days");
+            }
+            
+            // Also validate that officeInTime and officeOutTime are set (after normalization)
+            if (empDTO.getOfficeInTime() == null || empDTO.getOfficeOutTime() == null) {
+                throw new IllegalArgumentException("Office in/out times are required for working days");
+            }
+        }
+    }
+    
+    /**
+     * Validate that at least one project is required for working days.
+     * NEW CONTRACT: Projects come from locationSessions
+     * 
+     * @param empDTO Employee timesheet DTO from new contract
+     * @param projectDTOs List of project DTOs (flattened from locationSessions)
+     * @throws IllegalArgumentException if validation fails
+     */
+    public void validateProjectsRequiredForWorkingDays(
+            com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO empDTO, 
+            java.util.List<com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO> projectDTOs) {
+        if (empDTO == null || empDTO.getDayTypeId() == null) {
+            return; // Cannot validate without dayTypeId
+        }
+        
+        // Check if it's a working day
+        DayTypeMasterNew dayType = dayTypeMasterNewRepository.findById(empDTO.getDayTypeId())
+                .orElse(null);
+        
+        if (dayType == null) {
+            return; // Day type not found, skip validation
+        }
+        
+        // Working day typically means dayType = "Working" (case-insensitive)
+        boolean isWorkingDay = "Working".equalsIgnoreCase(dayType.getDayType()) ||
+                              "Non-working".equalsIgnoreCase(dayType.getDayType());
+        
+        // Non-working days: Week Off, Public Holiday, Leave, Client Holiday
+        boolean isNonWorkingDay = "Week Off".equalsIgnoreCase(dayType.getDayType()) ||
+                                 "Public Holiday".equalsIgnoreCase(dayType.getDayType()) ||
+                                 "Leave".equalsIgnoreCase(dayType.getDayType()) ||
+                                 "Client Holiday".equalsIgnoreCase(dayType.getDayType());
+        
+        if (isWorkingDay && (projectDTOs == null || projectDTOs.isEmpty())) {
+            throw new IllegalArgumentException("At least one project is required for working days");
+        }
+        
+        // For non-working days, projects are optional
+        // No validation needed for non-working days
+    }
+    
+    /**
+     * Validate that timesheet does not already exist for employee and date.
+     * 
+     * @param empId Employee ID
+     * @param date Date to check
+     * @throws IllegalArgumentException if timesheet already exists
+     */
+    public void validateTimesheetNotExists(Long empId, LocalDate date) {
+        if (empId == null || date == null) {
+            throw new IllegalArgumentException("Employee ID and Date are required");
+        }
+        
+        boolean exists = employeeTimesheetsNewRepository.findByEmpIdAndDateNew(empId, date).isPresent();
+        
+        if (exists) {
+            throw new IllegalArgumentException("Timesheet already exists for employee " + empId + " on date " + date);
+        }
+    }
+    
+    /**
+     * Validate new contract structure (EmployeeTimesheetDTO from new contract).
+     * Validates all required fields and business rules for new contract.
+     * 
+     * @param empDTO Employee timesheet DTO from new contract
+     * @param projectDTOs List of project DTOs (flattened from locationSessions)
+     * @throws IllegalArgumentException if validation fails
+     */
+    public void validateNewContractStructure(
+            com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO empDTO, 
+            java.util.List<com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO> projectDTOs) {
+        if (empDTO == null) {
+            throw new IllegalArgumentException("Employee timesheet data is required");
+        }
+        
+        // Basic validations
+        if (empDTO.getEmpId() == null) {
+            throw new IllegalArgumentException("Employee ID is required");
+        }
+        
+        if (empDTO.getDate() == null) {
+            throw new IllegalArgumentException("Date is required");
+        }
+        
+        if (empDTO.getDayType() == null || empDTO.getDayType().trim().isEmpty()) {
+            throw new IllegalArgumentException("Day type is required");
+        }
+        
+        // Validate date not in future
+        validateDateNotInFuture(empDTO.getDate());
+        
+        // Validate workCheckIn/workCheckOut for working days
+        validateWorkCheckInCheckOutForWorkingDays(empDTO);
+        
+        // Validate projects required for working days
+        validateProjectsRequiredForWorkingDays(empDTO, projectDTOs);
+        
+        // Validate timesheet does not already exist (for create operations)
+        // Note: This should be called only for create, not update
+        // validateTimesheetNotExists(empDTO.getEmpId(), empDTO.getDate());
     }
 }
 

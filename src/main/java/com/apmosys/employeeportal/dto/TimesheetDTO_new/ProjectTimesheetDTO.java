@@ -142,6 +142,9 @@ public class ProjectTimesheetDTO {
      */
     private Boolean isShadowTimesheet;
     
+    
+    private Long locationMappingId;
+    
   
 }
 

@@ -28,6 +28,9 @@ public class LocationSessionDTO {
      * Required for creation
      */
     private String workLocationType;
+    
+    
+    private Integer workLocationTypeId;
 
     /**
      * Location in time (format: "HH:mm" or "HH:mm:ss")

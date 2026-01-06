@@ -43,11 +43,11 @@ public class EmployeeTimesheetsNew {
 	@Column(name = "status")
 	Integer status;
 	
-	@Column(name = "office_in_time")
-	LocalDateTime officeInTime;
-	
-	@Column(name = "office_out_time")
-	LocalDateTime officeOutTime;
+	@Column(name = "work_in_time")
+	private LocalDateTime workCheckIn;
+		
+	@Column(name = "work_in_time")
+	 private LocalDateTime workCheckOut;
 	
 	@Column(name = "total_working_minutes")
 	Integer totalWorkingMinutes;

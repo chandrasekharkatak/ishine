@@ -686,7 +686,7 @@ public class TimesheetService {
 			Timesheet newTimesheet;
 			boolean isUpdate = false;
 
-			// If day type is "Not Working" and a record already exists, update it
+			// If day type is "Not Working" and a record already exists, update it(Like if Sunday ,satur day)
 			if (existingTimesheet != null && "Non-working".equalsIgnoreCase(timesheetDTO.getDayType())) {
 				newTimesheet = existingTimesheet;
 				isUpdate = true;
