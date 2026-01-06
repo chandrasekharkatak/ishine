@@ -39,7 +39,7 @@ public class ActivityTimesheetService {
      * @return Created EmployeeTimesheetActivitiesMappingNew entity
      */
     @Transactional
-    public EmployeeTimesheetActivitiesMappingNew create(Long timesheetId, Long projectId, ActivityTimesheetDTO dto) {
+    public EmployeeTimesheetActivitiesMappingNew create(Long timesheetId, Integer projectId, ActivityTimesheetDTO dto) {
         if (timesheetId == null) {
             throw new IllegalArgumentException("Timesheet ID is required");
         }
@@ -66,7 +66,7 @@ public class ActivityTimesheetService {
      * @return List of created entities
      */
     @Transactional
-    public List<EmployeeTimesheetActivitiesMappingNew> createAll(Long timesheetId, Long projectId, 
+    public List<EmployeeTimesheetActivitiesMappingNew> createAll(Long timesheetId, Integer projectId, 
                                                                   List<ActivityTimesheetDTO> dtos) {
         if (timesheetId == null || projectId == null) {
             throw new IllegalArgumentException("Timesheet ID and Project ID are required");
@@ -105,7 +105,7 @@ public class ActivityTimesheetService {
      * @param projectId Project ID
      * @return List of ActivityTimesheetDTO
      */
-    public List<ActivityTimesheetDTO> findByTimesheetIdAndProjectId(Long timesheetId, Long projectId) {
+    public List<ActivityTimesheetDTO> findByTimesheetIdAndProjectId(Long timesheetId, Integer projectId) {
         if (timesheetId == null || projectId == null) {
             return List.of();
         }
@@ -127,7 +127,7 @@ public class ActivityTimesheetService {
      * @param projectId Project ID
      * @return ActivityTimesheetDTO or null if not found
      */
-    public ActivityTimesheetDTO findByCompositeKey(Long timesheetId, Long activityId, Long projectId) {
+    public ActivityTimesheetDTO findByCompositeKey(Long timesheetId, Long activityId, Integer projectId) {
         if (timesheetId == null || activityId == null || projectId == null) {
             return null;
         }
@@ -178,7 +178,7 @@ public class ActivityTimesheetService {
      * @param projectId Project ID
      */
     @Transactional
-    public void delete(Long timesheetId, Long activityId, Long projectId) {
+    public void delete(Long timesheetId, Long activityId, Integer projectId) {
         if (timesheetId == null || activityId == null || projectId == null) {
             throw new IllegalArgumentException("Timesheet ID, Activity ID, and Project ID are required");
         }
@@ -220,7 +220,7 @@ public class ActivityTimesheetService {
      * @param projectId Project ID
      */
     @Transactional
-    public void deleteByTimesheetIdAndProjectId(Long timesheetId, Long projectId) {
+    public void deleteByTimesheetIdAndProjectId(Long timesheetId, Integer projectId) {
         if (timesheetId == null || projectId == null) {
             throw new IllegalArgumentException("Timesheet ID and Project ID are required");
         }
@@ -259,7 +259,7 @@ public class ActivityTimesheetService {
      * @param projectId Project ID
      * @return true if exists, false otherwise
      */
-    public boolean exists(Long timesheetId, Long activityId, Long projectId) {
+    public boolean exists(Long timesheetId, Long activityId, Integer projectId) {
         if (timesheetId == null || activityId == null || projectId == null) {
             return false;
         }

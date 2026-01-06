@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TimesheetStatusUpdateRequestDTO {
     private Long timesheetId;
-    private Long projectId;
+    private Integer projectId;
     private Integer status;
     private Long updatedBy;
 }

@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TimesheetDeleteRequestDTO {
     private Long timesheetId;
-    private Long projectId;
+    private Integer projectId;
     private Long activityId; // Optional - only for activity deletion
 }
 

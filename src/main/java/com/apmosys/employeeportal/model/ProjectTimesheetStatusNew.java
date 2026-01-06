@@ -23,6 +23,10 @@ public class ProjectTimesheetStatusNew {
 
     @Column(name = "po_no")
     private String poNo;
+    
+    
+    @Column(name="project_id")
+    private Integer projectId;
 
     @Column(name = "is_night_shift")
     private Boolean isNightShift;

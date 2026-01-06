@@ -19,7 +19,7 @@ public class ProjectTimesheetStatusId implements Serializable{
 	@Column(name="timesheet_id")
 	private Long timesheetId;
 	@Column(name="project_id")
-    private Long projectId;
+    private Integer projectId;
 
     @Override
     public boolean equals(Object o) {

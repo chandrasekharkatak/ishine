@@ -89,7 +89,7 @@ public class ProjectTimesheetService {
      * @param projectId Project ID
      * @return ProjectTimesheetDTO or null if not found
      */
-    public ProjectTimesheetDTO findByTimesheetIdAndProjectId(Long timesheetId, Long projectId) {
+    public ProjectTimesheetDTO findByTimesheetIdAndProjectId(Long timesheetId, Integer projectId) {
         if (timesheetId == null || projectId == null) {
             return null;
         }
@@ -138,7 +138,7 @@ public class ProjectTimesheetService {
      * @param projectId Project ID
      */
     @Transactional
-    public void delete(Long timesheetId, Long projectId) {
+    public void delete(Long timesheetId, Integer projectId) {
         if (timesheetId == null || projectId == null) {
             throw new IllegalArgumentException("Timesheet ID and Project ID are required");
         }
@@ -187,7 +187,7 @@ public class ProjectTimesheetService {
      * @param projectId Project ID
      * @return true if exists, false otherwise
      */
-    public boolean exists(Long timesheetId, Long projectId) {
+    public boolean exists(Long timesheetId, Integer projectId) {
         if (timesheetId == null || projectId == null) {
             return false;
         }

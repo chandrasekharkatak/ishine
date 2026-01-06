@@ -36,7 +36,7 @@ public class ProjectTimesheetDTO {
      * Required for creation
      */
     @NotNull("Project ID is required")
-    private Long projectId;
+    private Integer projectId;
 
     /**
      * PO Number

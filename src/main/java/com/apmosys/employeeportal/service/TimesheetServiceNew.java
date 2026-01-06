@@ -635,7 +635,7 @@ public class TimesheetServiceNew {
 	 * API 1.7: Update Timesheet Status
 	 */
 	@Transactional(rollbackFor = Exception.class)
-	public ServiceResponse updateTimesheetStatus(Long timesheetId, Long projectId, Integer status, Long updatedBy) {
+	public ServiceResponse updateTimesheetStatus(Long timesheetId, Integer projectId, Integer status, Long updatedBy) {
 		ServiceResponse response = new ServiceResponse();
 		
 		try {
@@ -727,7 +727,7 @@ public class TimesheetServiceNew {
 	 * API 1.9: Delete Project from Timesheet
 	 */
 	@Transactional(rollbackFor = Exception.class)
-	public ServiceResponse deleteProjectFromTimesheet(Long timesheetId, Long projectId) {
+	public ServiceResponse deleteProjectFromTimesheet(Long timesheetId, Integer projectId) {
 		ServiceResponse response = new ServiceResponse();
 		
 		try {
@@ -774,7 +774,7 @@ public class TimesheetServiceNew {
 	 * API 1.10: Delete Activity from Timesheet
 	 */
 	@Transactional(rollbackFor = Exception.class)
-	public ServiceResponse deleteActivityFromTimesheet(Long timesheetId, Long activityId, Long projectId) {
+	public ServiceResponse deleteActivityFromTimesheet(Long timesheetId, Long activityId, Integer projectId) {
 		ServiceResponse response = new ServiceResponse();
 		
 		try {
@@ -1019,7 +1019,7 @@ public class TimesheetServiceNew {
 	/**
 	 * Update activities for a project (using old DTOs)
 	 */
-	private void updateProjectActivitiesOld(Long timesheetId, Long projectId, 
+	private void updateProjectActivitiesOld(Long timesheetId, Integer projectId, 
 			List<ActivityTimesheetDTO> activityDTOs) {
 		if (activityDTOs == null || activityDTOs.isEmpty()) {
 			// Delete all existing activities
@@ -1125,10 +1125,10 @@ public class TimesheetServiceNew {
 	/**
 	 * Convert new ActivityTimesheetDTO to old ActivityTimesheetDTO
 	 */
-	private com.apmosys.employeeportal.dto.ActivityTimesheetDTO convertToOldActivityDTO(ActivityTimesheetDTO newDTO) {
+	private ActivityTimesheetDTO convertToOldActivityDTO(ActivityTimesheetDTO newDTO) {
 		if (newDTO == null) return null;
 		
-		com.apmosys.employeeportal.dto.ActivityTimesheetDTO oldDTO = new com.apmosys.employeeportal.dto.ActivityTimesheetDTO();
+		ActivityTimesheetDTO oldDTO = new ActivityTimesheetDTO();
 		oldDTO.setTimesheetId(newDTO.getTimesheetId());
 		oldDTO.setActivityId(newDTO.getActivityId());
 		oldDTO.setProjectId(newDTO.getProjectId());
@@ -1142,10 +1142,10 @@ public class TimesheetServiceNew {
 	/**
 	 * Convert list of new ActivityTimesheetDTOs to old ActivityTimesheetDTOs
 	 */
-	private List<com.apmosys.employeeportal.dto.ActivityTimesheetDTO> convertToOldActivityDTOs(List<ActivityTimesheetDTO> newDTOs) {
+	private List<ActivityTimesheetDTO> convertToOldActivityDTOs(List<ActivityTimesheetDTO> newDTOs) {
 		if (newDTOs == null) return new ArrayList<>();
 		
-		List<com.apmosys.employeeportal.dto.ActivityTimesheetDTO> oldDTOs = new ArrayList<>();
+		List<ActivityTimesheetDTO> oldDTOs = new ArrayList<>();
 		for (ActivityTimesheetDTO newDTO : newDTOs) {
 			oldDTOs.add(convertToOldActivityDTO(newDTO));
 		}
@@ -1155,7 +1155,7 @@ public class TimesheetServiceNew {
 	/**
 	 * Convert old ActivityTimesheetDTO to new ActivityTimesheetDTO
 	 */
-	private ActivityTimesheetDTO convertToNewActivityDTO(com.apmosys.employeeportal.dto.ActivityTimesheetDTO oldDTO) {
+	private ActivityTimesheetDTO convertToNewActivityDTO(ActivityTimesheetDTO oldDTO) {
 		if (oldDTO == null) return null;
 		
 		ActivityTimesheetDTO newDTO = new ActivityTimesheetDTO();
@@ -1172,11 +1172,11 @@ public class TimesheetServiceNew {
 	/**
 	 * Convert list of old ActivityTimesheetDTOs to new ActivityTimesheetDTOs
 	 */
-	private List<ActivityTimesheetDTO> convertToNewActivityDTOs(List<com.apmosys.employeeportal.dto.ActivityTimesheetDTO> oldDTOs) {
+	private List<ActivityTimesheetDTO> convertToNewActivityDTOs(List<ActivityTimesheetDTO> oldDTOs) {
 		if (oldDTOs == null) return new ArrayList<>();
 		
 		List<ActivityTimesheetDTO> newDTOs = new ArrayList<>();
-		for (com.apmosys.employeeportal.dto.ActivityTimesheetDTO oldDTO : oldDTOs) {
+		for (ActivityTimesheetDTO oldDTO : oldDTOs) {
 			newDTOs.add(convertToNewActivityDTO(oldDTO));
 		}
 		return newDTOs;

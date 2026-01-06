@@ -2,23 +2,25 @@ package com.apmosys.employeeportal.service.validator;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import com.apmosys.employeeportal.dto.TimesheetDTO;
+
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
-import com.apmosys.employeeportal.repository.DayTypeMasterNewRepository;
-import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
-import com.apmosys.employeeportal.model.DayTypeMasterNew;
-import com.apmosys.employeeportal.repository.EmployeeRepository;
-import com.apmosys.employeeportal.repository.ProjectRepository;
-import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
-import com.apmosys.employeeportal.repository.ActivitiesRepository;
-import com.apmosys.employeeportal.model.Employee;
-import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
 import com.apmosys.employeeportal.model.Activity;
+import com.apmosys.employeeportal.model.DayTypeMasterNew;
+import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.repository.ActivitiesRepository;
+import com.apmosys.employeeportal.repository.DayTypeMasterNewRepository;
+import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
+import com.apmosys.employeeportal.repository.ProjectRepository;
 
 /**
  * Validation helper for new timesheet structure.
@@ -48,137 +50,416 @@ public class TimesheetValidationHelper {
     @Autowired
     private EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
 
-    /**
-     * Validate EmployeeTimesheet DTO.
-     * 
-     * @param dto EmployeeTimesheetDTO
-     * @throws IllegalArgumentException if validation fails
-     */
-    public void validateEmployeeTimesheet(EmployeeTimesheetDTO dto) {
-        if (dto == null) {
-            throw new IllegalArgumentException("EmployeeTimesheetDTO cannot be null");
+        public void validateForCreate(EmployeeTimesheetDTO empDTO) {
+            validateEmployeeTimesheet(empDTO);
+            validateLocationSessions(empDTO);
+            validateDocuments(empDTO.getDocumentData(), empDTO);
         }
 
-        if (dto.getEmpId() == null) {
-            throw new IllegalArgumentException("Employee ID is required");
-        }
+        /* =====================================================
+           EMPLOYEE LEVEL VALIDATION
+           ===================================================== */
 
-        if (dto.getDate() == null) {
-            throw new IllegalArgumentException("Date is required");
-        }
+        private void validateEmployeeTimesheet(EmployeeTimesheetDTO dto) {
 
-        if (dto.getDayTypeId() == null) {
-            throw new IllegalArgumentException("Day Type ID is required");
-        }
+            if (dto == null) {
+                throw new IllegalArgumentException("EmployeeTimesheetDTO cannot be null");
+            }
 
-        // Validate employee exists and is active
-        Employee employee = employeeRepository.findById(dto.getEmpId())
-                .orElseThrow(() -> new IllegalArgumentException("Employee not found: " + dto.getEmpId()));
+            if (dto.getEmpId() == null) {
+                throw new IllegalArgumentException("Employee ID is required");
+            }
 
-        if ("InActive".equalsIgnoreCase(employee.getEmploymentstatus())) {
-            throw new IllegalArgumentException("Employee is inactive: " + dto.getEmpId());
-        }
+            if (dto.getDate() == null) {
+                throw new IllegalArgumentException("Timesheet date is required");
+            }
 
-        // Validate date not in future
-        validateDateNotInFuture(dto.getDate());
+            if (dto.getDate().isAfter(LocalDate.now())) {
+                throw new IllegalArgumentException("Timesheet date cannot be in the future");
+            }
 
-        // Validate office times if provided
-        if (dto.getWorkCheckIn() != null && dto.getWorkCheckOut() != null) {
-            validateOfficeTimes(dto.getWorkCheckIn(), dto.getWorkCheckOut());
-        }
-    }
+            if (dto.getDayTypeId() == null && dto.getDayType() == null) {
+                throw new IllegalArgumentException("Day type is required");
+            }
 
-    /**
-     * Validate ProjectTimesheet DTO.
-     * 
-     * @param dto ProjectTimesheetDTO
-     * @param empId Employee ID for validation
-     * @throws IllegalArgumentException if validation fails
-     */
-    public void validateProjectTimesheet(ProjectTimesheetDTO dto, Long empId) {
-        if (dto == null) {
-            throw new IllegalArgumentException("ProjectTimesheetDTO cannot be null");
-        }
+            boolean isWorkingDay = isWorkingDay(dto);
 
-        if (dto.getProjectId() == null) {
-            throw new IllegalArgumentException("Project ID is required");
-        }
+            if (isWorkingDay) {
+                if (dto.getWorkCheckIn() == null || dto.getWorkCheckOut() == null) {
+                    throw new IllegalArgumentException(
+                            "workCheckIn and workCheckOut are mandatory for working days");
+                }
 
-        // Validate project exists and is active
-        Project project = projectRepository.findByProjectId(dto.getProjectId().intValue());
-        if (project == null) {
-            throw new IllegalArgumentException("Project not found: " + dto.getProjectId());
-        }
-
-        if (!"true".equalsIgnoreCase(project.getActive())) {
-            throw new IllegalArgumentException("Project is not active: " + dto.getProjectId());
-        }
-
-        // Validate employee is assigned to project
-        validateProjectAssignment(empId, dto.getProjectId());
-
-
-        // Validate activities if provided
-        if (dto.getActivities() != null && !dto.getActivities().isEmpty()) {
-            for (ActivityTimesheetDTO activity : dto.getActivities()) {
-                validateActivityTimesheet(activity, dto.getProjectId());
+                if (!dto.getWorkCheckOut().isAfter(dto.getWorkCheckIn())) {
+                    throw new IllegalArgumentException(
+                            "workCheckOut must be after workCheckIn");
+                }
             }
         }
-    }
-
-    /**
-     * Validate ActivityTimesheet DTO.
-     * 
-     * @param dto ActivityTimesheetDTO
-     * @param projectId Project ID for validation
-     * @throws IllegalArgumentException if validation fails
-     */
-    public void validateActivityTimesheet(ActivityTimesheetDTO dto, Long projectId) {
-        if (dto == null) {
-            throw new IllegalArgumentException("ActivityTimesheetDTO cannot be null");
-        }
-
-        if (dto.getActivityId() == null) {
-            throw new IllegalArgumentException("Activity ID is required");
-        }
-
-        if (dto.getDurationMinutes() == null) {
-            throw new IllegalArgumentException("Duration minutes is required");
-        }
-
-        validateActivityDuration(dto.getDurationMinutes());
-
-        // Validate activity exists
-        Activity activity = activitiesRepository.findById(dto.getActivityId())
-                .orElseThrow(() -> new IllegalArgumentException("Activity not found: " + dto.getActivityId()));
-
-        // Validate project ID matches
-        if (projectId != null && !projectId.equals(dto.getProjectId())) {
-            throw new IllegalArgumentException("Activity project ID does not match project timesheet project ID");
-        }
-    }
-
-    /**
-     * Validate complete TimesheetDTO structure.
-     * 
-     * @param dto TimesheetDTO
-     * @throws IllegalArgumentException if validation fails
-     */
-    public void validateTimesheetStructure(EmployeeTimesheetDTO dto) {
-        if (dto == null) {
-            throw new IllegalArgumentException("TimesheetDTO cannot be null");
-        }
-
-   
-        // Validate employee timesheet
-        validateEmployeeTimesheet(dto);
-
-        Long empId = dto.getEmpId();
-
-        // Validate project timesheets
         
-    }
+        /**
+         * Validate timesheet lock period for employee.
+         * If lock is enabled, employee cannot create/update timesheet
+         * older than configured lock days.
+         *
+         * @param empId Employee ID
+         * @param timesheetDate Timesheet date
+         * @param lockDays Number of days allowed for modification
+         */
+        public void validateTimesheetLockPeriod(Long empId,
+                                                LocalDate timesheetDate,
+                                                Integer lockDays) {
 
+            if (empId == null || timesheetDate == null || lockDays == null) {
+                return; // nothing to validate
+            }
+
+            String isLockEnabled = employeeRepository.getIsLockEnabled(empId);
+
+            if ("true".equalsIgnoreCase(isLockEnabled)) {
+
+                LocalDate lockCutoffDate = LocalDate.now().minusDays(lockDays);
+
+                if (timesheetDate.isBefore(lockCutoffDate)) {
+                    throw new IllegalArgumentException(
+                            "Timesheet is locked. You cannot modify timesheets older than "
+                                    + lockDays + " days.");
+                }
+            }
+        }
+
+
+        /* =====================================================
+           LOCATION SESSION VALIDATION
+           ===================================================== */
+
+        private void validateLocationSessions(EmployeeTimesheetDTO empDTO) {
+
+            boolean isWorkingDay = isWorkingDay(empDTO);
+
+            if (isWorkingDay &&
+                (empDTO.getLocationSessions() == null || empDTO.getLocationSessions().isEmpty())) {
+                throw new IllegalArgumentException(
+                        "At least one location session is required for working days");
+            }
+
+            if (empDTO.getLocationSessions() == null) {
+                return;
+            }
+
+            for (LocationSessionDTO location : empDTO.getLocationSessions()) {
+                validateLocationSession(location, empDTO);
+            }
+        }
+
+        private void validateLocationSession(LocationSessionDTO location,
+                                             EmployeeTimesheetDTO empDTO) {
+
+            if (location.getWorkLocationType() == null &&
+                location.getWorkLocationTypeId() == null) {
+                throw new IllegalArgumentException("Work location type is required");
+            }
+
+            if (location.getLocationInTime() == null ||
+                location.getLocationOutTime() == null) {
+                throw new IllegalArgumentException(
+                        "Location inTime and outTime are required");
+            }
+
+            if (location.getProjects() == null || location.getProjects().isEmpty()) {
+                throw new IllegalArgumentException(
+                        "Each location session must contain at least one project");
+            }
+
+            for (ProjectTimesheetDTO project : location.getProjects()) {
+                validateProject(project, empDTO);
+            }
+        }
+
+        /* =====================================================
+           PROJECT VALIDATION
+           ===================================================== */
+
+        private void validateProject(ProjectTimesheetDTO project,
+                                     EmployeeTimesheetDTO empDTO) {
+
+            if (project.getProjectId() == null) {
+                throw new IllegalArgumentException("Project ID is required");
+            }
+
+            if (project.getStatus() == null) {
+                throw new IllegalArgumentException(
+                        "Project status is required (Pending/Approved/Rejected)");
+            }
+
+            boolean isWorkingDay = isWorkingDay(empDTO);
+
+            if (isWorkingDay &&
+                (project.getActivities() == null || project.getActivities().isEmpty())) {
+                throw new IllegalArgumentException(
+                        "At least one activity is required for project "
+                                + project.getProjectId());
+            }
+
+            if (project.getActivities() != null) {
+                for (ActivityTimesheetDTO activity : project.getActivities()) {
+                    validateActivity(activity, project);
+                }
+            }
+        }
+
+        /* =====================================================
+           ACTIVITY VALIDATION
+           ===================================================== */
+
+        private void validateActivity(ActivityTimesheetDTO activity,
+                                      ProjectTimesheetDTO project) {
+
+            if (activity.getActivityId() == null) {
+                throw new IllegalArgumentException("Activity ID is required");
+            }
+
+            if (activity.getDurationMinutes() == null ||
+                activity.getDurationMinutes() <= 0) {
+                throw new IllegalArgumentException(
+                        "Activity duration must be greater than 0 minutes");
+            }
+
+           
+        }
+
+        /* =====================================================
+           DOCUMENT VALIDATION
+           ===================================================== */
+
+        /**
+         * Validate document requirements for new contract.
+         * Applies only for:
+         *  - Working days
+         *  - Shadow timesheets
+         *  - Projects where client-side document is mandatory
+         */
+        private void validateDocuments(List<TimesheetDocumentDataDTO> docs,
+                                       EmployeeTimesheetDTO empDTO) {
+
+            if (empDTO == null) {
+                return;
+            }
+
+            // 1️⃣ Skip validation for non-working day types
+            if (isNonWorkingDay(empDTO.getDayType())) {
+                return;
+            }
+
+            // Normalize docs list
+            List<TimesheetDocumentDataDTO> documentList =
+                    docs != null ? docs : List.of();
+
+            // 3️⃣ Validate per project
+            if (empDTO.getLocationSessions() == null) {
+                return;
+            }
+
+            for (LocationSessionDTO location : empDTO.getLocationSessions()) {
+                if (location.getProjects() == null) continue;
+
+                for (ProjectTimesheetDTO project : location.getProjects()) {
+
+                    Integer projectId = project.getProjectId();
+                    if (projectId == null) continue;
+
+                    // Check if client-side document is mandatory for this project
+                    Boolean isClientSideMandatory =
+                            projectRepository.getClientSideIdMandatory(projectId.intValue());
+
+                    if (!Boolean.TRUE.equals(isClientSideMandatory)) {
+                        continue;
+                    }
+
+                    // 4️⃣ Check if document exists for this project
+                    boolean documentPresentForProject =
+                            documentList.stream()
+                                    .anyMatch(doc ->
+                                            projectId.equals(doc.getProjectId()) &&
+                                            doc.getDocName() != null &&
+                                            doc.getFinalFlag() != null
+                                    );
+
+                    if (!documentPresentForProject) {
+                        throw new IllegalArgumentException(
+                                "Client-side ID is mandatory. Please upload required documents for projectId="
+                                        + projectId);
+                    }
+                }
+            }
+        }
+
+        
+        
+        
+        
+        /**
+         * Validate time consistency across timesheet:
+         *
+         * 1) (workCheckOut - workCheckIn) >= sum of all location session durations
+         * 2) sum of all activity durations <= (workCheckOut - workCheckIn)
+         *
+         * This must be called AFTER basic validations and normalization.
+         */
+        public void validateTimeConsistency(EmployeeTimesheetDTO empDTO) {
+
+            if (empDTO == null) {
+                return;
+            }
+
+            // Apply only for working days
+            if (!isWorkingDay(empDTO)) {
+                return;
+            }
+
+            if (empDTO.getWorkCheckIn() == null || empDTO.getWorkCheckOut() == null) {
+                return; // already handled by earlier validations
+            }
+
+            // 1️⃣ Total work duration (in minutes)
+            long totalWorkMinutes = java.time.Duration
+                    .between(empDTO.getWorkCheckIn(), empDTO.getWorkCheckOut())
+                    .toMinutes();
+
+            if (totalWorkMinutes <= 0) {
+                throw new IllegalArgumentException(
+                        "Invalid workCheckIn/workCheckOut duration");
+            }
+
+            // 2️⃣ Sum of all location session durations
+            long totalLocationMinutes = 0;
+
+            if (empDTO.getLocationSessions() != null) {
+                for (LocationSessionDTO location : empDTO.getLocationSessions()) {
+
+                    if (location.getLocationInTime() == null ||
+                        location.getLocationOutTime() == null) {
+                        continue;
+                    }
+
+                    LocalDateTime locationIn =
+                            parseLocationTime(location.getLocationInTime(), empDTO.getDate());
+
+                    LocalDateTime locationOut =
+                            parseLocationTime(location.getLocationOutTime(), empDTO.getDate());
+
+                    if (!locationOut.isAfter(locationIn)) {
+                        throw new IllegalArgumentException(
+                                "Location out time must be after location in time");
+                    }
+
+                    totalLocationMinutes += java.time.Duration
+                            .between(locationIn, locationOut)
+                            .toMinutes();
+                }
+            }
+
+            if (totalLocationMinutes > totalWorkMinutes) {
+                throw new IllegalArgumentException(
+                        "Sum of location session duration (" + totalLocationMinutes +
+                        " mins) cannot exceed total working duration (" +
+                        totalWorkMinutes + " mins)");
+            }
+
+            // 3️⃣ Sum of all activity durations
+            long totalActivityMinutes = 0;
+
+            if (empDTO.getLocationSessions() != null) {
+                for (LocationSessionDTO location : empDTO.getLocationSessions()) {
+                    if (location.getProjects() == null) continue;
+
+                    for (ProjectTimesheetDTO project : location.getProjects()) {
+                        if (project.getActivities() == null) continue;
+
+                        for (ActivityTimesheetDTO activity : project.getActivities()) {
+                            if (activity.getDurationMinutes() != null) {
+                                totalActivityMinutes += activity.getDurationMinutes();
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (totalActivityMinutes > totalWorkMinutes) {
+                throw new IllegalArgumentException(
+                        "Total activity duration (" + totalActivityMinutes +
+                        " mins) cannot exceed total working duration (" +
+                        totalWorkMinutes + " mins)");
+            }
+        }
+
+
+        /* =====================================================
+           HELPERS
+           ===================================================== */
+
+        private boolean isWorkingDay(EmployeeTimesheetDTO dto) {
+            if (dto.getDayType() != null) {
+                return "Working".equalsIgnoreCase(dto.getDayType());
+            }
+            // fallback – based on dayTypeId (customize later)
+            return true;
+        }
+        
+        
+        /**
+         * Parse location time string (HH:mm or HH:mm:ss) into LocalDateTime.
+         */
+        private LocalDateTime parseLocationTime(String timeStr, LocalDate date) {
+            try {
+                String[] parts = timeStr.split(":");
+                int hour = Integer.parseInt(parts[0]);
+                int minute = Integer.parseInt(parts[1]);
+                int second = parts.length > 2 ? Integer.parseInt(parts[2]) : 0;
+                return LocalDateTime.of(date, java.time.LocalTime.of(hour, minute, second));
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Invalid location time format: " + timeStr);
+            }
+        }
+        
+        
+        private boolean isNonWorkingDay(String dayType) {
+            if (dayType == null) {
+                return false;
+            }
+            return "Public Holiday".equalsIgnoreCase(dayType)
+                || "Week Off".equalsIgnoreCase(dayType)
+                || "Leave".equalsIgnoreCase(dayType)
+                || "Client Holiday".equalsIgnoreCase(dayType);
+        }
+
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     /**
      * Validate date is not in future.
      * 

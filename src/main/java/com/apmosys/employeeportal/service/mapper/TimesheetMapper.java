@@ -151,7 +151,7 @@ public class TimesheetMapper {
      * @param projectId Parent project ID
      * @return EmployeeTimesheetActivitiesMappingNew entity
      */
-    public EmployeeTimesheetActivitiesMappingNew toEntity(ActivityTimesheetDTO dto, Long timesheetId, Long projectId) {
+    public EmployeeTimesheetActivitiesMappingNew toEntity(ActivityTimesheetDTO dto, Long timesheetId, Integer projectId) {
         if (dto == null) {
             return null;
         }
@@ -230,7 +230,7 @@ public class TimesheetMapper {
      * @param activities List of all activities
      * @return Map of projectId -> List of activities
      */
-    public Map<Long, List<EmployeeTimesheetActivitiesMappingNew>> groupActivitiesByProject(
+    public Map<Integer, List<EmployeeTimesheetActivitiesMappingNew>> groupActivitiesByProject(
             List<EmployeeTimesheetActivitiesMappingNew> activities) {
         if (activities == null) {
             return new HashMap<>();
