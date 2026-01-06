@@ -35,8 +35,8 @@ public class DayTypeMasterNewController {
      * GET /api/v2/master/day-type
      */
     @JobRoleAccess(featureIds = {15, 16})
-    @GetMapping
-    public ServiceResponse getAllActive() {
+    @GetMapping("/getAllActiveDayType")
+    public ServiceResponse getAllActiveDayType() {
         ServiceResponse response = new ServiceResponse();
         try {
             List<DayTypeMasterNew> dayTypes = dayTypeMasterNewService.getAllActive();

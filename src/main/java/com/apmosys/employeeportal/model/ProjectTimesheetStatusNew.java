@@ -25,8 +25,8 @@ public class ProjectTimesheetStatusNew {
     private String poNo;
     
     
-    @Column(name="project_id")
-    private Integer projectId;
+    // @Column(name="project_id")
+    // private Integer projectId;
 
     @Column(name = "is_night_shift")
     private Boolean isNightShift;

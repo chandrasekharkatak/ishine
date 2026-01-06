@@ -37,8 +37,8 @@ public class ClientStatusMasterNewController {
      * GET /api/v2/master/client-status
      */
     @JobRoleAccess(featureIds = {15, 16})
-    @GetMapping
-    public ServiceResponse getAllActive() {
+    @GetMapping("/getAllActiveStatusForClient")
+    public ServiceResponse getAllActiveStatusForClient() {
         ServiceResponse response = new ServiceResponse();
         try {
             List<ClientStatusMasterNew> statuses = clientStatusMasterNewService.getAllActive();
@@ -57,7 +57,7 @@ public class ClientStatusMasterNewController {
      * GET /api/v2/master/client-status/{id}
      */
     @JobRoleAccess(featureIds = {15, 16})
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public ServiceResponse getById(@PathVariable Integer id) {
         ServiceResponse response = new ServiceResponse();
         try {

@@ -46,7 +46,7 @@ public class EmployeeTimesheetsNew {
 	@Column(name = "work_in_time")
 	private LocalDateTime workCheckIn;
 		
-	@Column(name = "work_in_time")
+	@Column(name = "work_out_time")
 	 private LocalDateTime workCheckOut;
 	
 	@Column(name = "total_working_minutes")

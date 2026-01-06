@@ -3609,6 +3609,7 @@ onTimesheetAppliedForChange(value: string): void {
     this.getAllTeamMemberList();
 
     this.getTimesheetMetadata();
+    console.log("I am here");
 
     this.timesheetObj.isShadowTimesheet = false;
 

@@ -24,19 +24,27 @@ export class TimesheetNewService {
         return this.http.post(`${this.baseUrl}` + `api/v2/timesheet/addTimesheetWithClientNew`, formData);
       }
 
-      getAllProjectsByEmpId(timesheetObj: Timesheet) {
-          return this.http.post(`${this.baseUrl}` + `api/v2/timesheet/getAllProjectsByEmpId`, timesheetObj);
+        getAllProjectsByEmpId(timesheetObj: Timesheet) {
+        return this.http.post(`${this.baseUrl}` + `api/v2/timesheet/getAllProjectsByEmpId`, timesheetObj);
         }
 
         getActiveProjectsByEmpId(empId: any): Observable<any> {
-            return this.http.post(`${this.baseUrl}`+`api/v2/timesheet/getActiveProjectsByEmpId?empId=${empId}`, null);
-          }
+        return this.http.post(`${this.baseUrl}`+`api/v2/timesheet/getActiveProjectsByEmpId?empId=${empId}`, null);
+        }
 
-      getAllDayTypes(){
-        return this.http.get(`${this.baseUrl}` + `api/v2/timesheet/getAllDayTypes`);
-    }
-     getAllMyTimesheetsByEmpId(timesheetObj: Timesheet) {
-    return this.http.post(`${this.baseUrl}` + `api/v2/timesheet/getAllMyTimesheetsByEmpId`, timesheetObj);
-  }
+        getAllDayTypes(){
+        return this.http.get(`${this.baseUrl}` + `api/v2/master/day-type/getAllActiveDayType`);
+        }  
+        getAllMyTimesheetsByEmpId(timesheetObj: Timesheet) {
+        return this.http.post(`${this.baseUrl}` + `api/v2/timesheet/getAllMyTimesheetsByEmpId`, timesheetObj);
+        }
+
+        getAllWorkLocation(){
+        return this.http.get(`${this.baseUrl}` + `api/v2/master/work-location-type/getAllActiveLocationTypes`);
+        }
+        getAllDSRApprovalStatus(){
+          return this.http.get(`${this.baseUrl}` + `api/v2/master/client-status/getAllActiveStatusForClient`);
+        }
+
 }
   

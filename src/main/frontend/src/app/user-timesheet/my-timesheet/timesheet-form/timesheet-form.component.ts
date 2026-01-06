@@ -49,7 +49,7 @@ export class TimesheetFormComponent implements OnInit {
   isTimesheetLockCheckEnable: any = "true";
   timesheetObj: Timesheet = new Timesheet();
   dayType:any=1;
-  timesheetAppliedFor:any='self';
+  timesheetAppliedFor:any='';
   selectedLocationId: any = null;
   teamMemberList: any[] = [];
   currentUser: User = new User();
@@ -102,8 +102,9 @@ export class TimesheetFormComponent implements OnInit {
   activePreviewUrl: SafeResourceUrl | null = null;
   activeFileType: string | null = null;
   createOrUpdateObj:EmployeeTimesheetDTO=new EmployeeTimesheetDTO();
-clientApprovalStatusList: any[];
-  
+  clientApprovalStatusList: any[];
+  workLocationList: string[];
+   
   documentList: TimesheetDocument[] = [];
   
   constructor(private teamViewService: TeamViewService,
@@ -118,6 +119,8 @@ clientApprovalStatusList: any[];
     // Initialize with one location
     this.addLocation();
     this.getAllDayTypes();
+    this.getAllWorkLocationFromLocationMaster();
+    this.getAllDSRApprovalStatusFromMaster();
     
     // Load projects when currentUser is available
     if (this.currentUser && this.currentUser.empId) {
@@ -364,11 +367,19 @@ clientApprovalStatusList: any[];
 onTimesheetAppliedForChange(value: string): void {
 
     this.timesheetAppliedFor = value;
+// <<<<<<< Updated upstream
 
+ 
 
+//   if (value === 'self') {
 
-  if (value === 'self') {
-
+// =======
+    this.timesheetObj.timesheetAppliedFor = value;
+  
+  
+    if (value.toLocaleLowerCase() === 'self') {
+  
+// >>>>>>> Stashed changes
       // this.getAllTeamMemberList();
 
       this.getTimesheetMetadata();
@@ -406,7 +417,7 @@ onTimesheetAppliedForChange(value: string): void {
     //console.log("timesheet Obj For getTimesheetMetadata : ", this.timesheetObj);
 
     let userObj: User = new User();
-    if (this.timesheetObj.timesheetAppliedFor == 'self') {
+    if (this.timesheetObj.timesheetAppliedFor.toLocaleLowerCase() == 'self') {
       userObj.empId = this.currentUser.empId;
       userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
       this.timesheetObj.empId = this.currentUser.empId;
@@ -1326,7 +1337,7 @@ resetTimesheetFormForAutoFill() {
     const formattedMinutes = String(finalMinutes).padStart(2, '0');
     return `${formattedHours}:${formattedMinutes} hrs`;
   }
-
+ 
   getListToRenderUpload(){
     let dataList : Map<number, ProjectEntry> = new Map<number, ProjectEntry>();
     this.timesheetLocations.forEach((location) => {
@@ -1337,5 +1348,28 @@ resetTimesheetFormForAutoFill() {
       });
     });
     this.uniqueProjectsList = Array.from(dataList.values());
+
+}
+
+  getAllWorkLocationFromLocationMaster(){
+    this.timesheetNewService.getAllWorkLocation().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.workLocationList = response.serviceResponse;
+        console.log("Work locaiton list",this.workLocationList);
+        } else {
+          console.error(response.serviceResponse)
+        }
+      });
+  }
+
+  getAllDSRApprovalStatusFromMaster(){
+    this.timesheetNewService.getAllDSRApprovalStatus().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.clientApprovalStatusList = response.serviceResponse;
+        console.log("DSR approval status list",this.clientApprovalStatusList);
+        } else {
+          console.error(response.serviceResponse)
+        }
+      });
   }
 }

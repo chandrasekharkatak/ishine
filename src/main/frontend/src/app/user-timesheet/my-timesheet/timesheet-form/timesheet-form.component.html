@@ -15,6 +15,7 @@
                 <i class="fa fa-info-circle card-icon"></i>
                 <h6 class="card-title mb-0">Basic Information</h6>
             </div>
+
             <div class="card-body-section">
                 <!-- APPLICATION TYPE -->
                 <div class="row mb-3">
@@ -119,6 +120,7 @@
                         </app-date-time-picker>
                     </div>
                 </div>
+                 
             </div>
         </div>
 
@@ -166,8 +168,9 @@
                                 <div class="col-md-6 mb-3">
                                     <label class="info-label"><span class="text-danger">*</span> Location</label>
                                     <app-my-select placeholder="Select Location" class="form-control"
-                                        [(ngModel)]="location.locationId" [options]="activeLocationList"
-                                        displayKey="locationName" valueKey="locationId" [multiple]="false"
+                                        [(ngModel)]="location.locationId" [options]="workLocationList"
+                                        displayKey="code"
+                                        valueKey="workLocationTypeId" [multiple]="false"
                                         (selectionChange)="onLocationSelect(location, $event)">
                                     </app-my-select>
                                 </div>
@@ -325,7 +328,7 @@
                                                     <app-my-select class="form-control"
                                                         placeholder="Select Approval Status"
                                                         [(ngModel)]="project.clientApprovalStatus"
-                                                        [options]="clientApprovalStatusList" displayKey="statusName"
+                                                        [options]="clientApprovalStatusList" displayKey="status"
                                                         valueKey="statusId" [multiple]="false">
                                                     </app-my-select>
                                                 </div>

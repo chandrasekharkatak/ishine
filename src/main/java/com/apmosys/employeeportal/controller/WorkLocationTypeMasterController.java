@@ -35,8 +35,8 @@ public class WorkLocationTypeMasterController {
      * GET /api/v2/master/work-location-type
      */
     @JobRoleAccess(featureIds = {15, 16})
-    @GetMapping
-    public ServiceResponse getAllActive() {
+    @GetMapping("/getAllActiveLocationTypes")
+    public ServiceResponse getAllActiveLocationTypes() {
         ServiceResponse response = new ServiceResponse();
         try {
             List<WorkLocationTypeMaster> locationTypes = workLocationTypeMasterService.getAllActive();
