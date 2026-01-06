@@ -3,7 +3,7 @@ import { ActivityNew } from "./activityNew";
 export class ProjectEntry {
   projectId: number | null;
   projectName?: string;
-  clientSideId?: string;
+  // clientSideId?: string;
   hasClientSideId?: boolean;
   
   // Office times
@@ -34,11 +34,14 @@ export class ProjectEntry {
   // Shadow settings (per-project)
   shadowEmpId?: number;
   isShadowTimesheet?: boolean;
+  isShadowForSelf?: boolean;
   
   // Client, Team, Location (at project level)
+  clientSideId?: string | null;
   clientId?: number | null;
   clientLocationId?: number | null;
   teamId?: number | null;
+  clientApprovalStatus: string | null;
   
   // Activities
   activities: ActivityNew[];

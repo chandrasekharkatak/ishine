@@ -14,7 +14,7 @@ import { ProjectEntry } from 'src/app/models/projectEntry';
 import { ActivityNew } from 'src/app/models/activityNew';
 import { EmployeeClientSideIdMapping } from 'src/app/models/employeeClientSideIdMapping';
 
-// Location Entry interface
+
 export interface LocationEntry {
   locationId: number | null;
   locationName?: string;
@@ -25,10 +25,12 @@ export interface LocationEntry {
   projects: ProjectEntry[];
   availableProjects?: any[]; // Projects available for this location
 }
+
 import { EmployeeTimesheetDTO } from 'src/app/models/EmployeeTimesheetDTO';
 import { ProjectTimesheetDTO } from 'src/app/models/ProjectTimesheetDTO';
 import { ActivityTimesheetDTO } from 'src/app/models/ActivityTimesheetDTO';
 import { TimesheetNewService } from 'src/app/services/timesheet-new.service';
+import { TimesheetDocument } from 'src/app/models/timesheetDocument';
 
 @Component({
   standalone: false,
@@ -76,10 +78,14 @@ export class TimesheetFormComponent implements OnInit {
   activeProjectList: any[] = []; // Unique projects for dropdown
   activeLocationList: any[] = []; // Unique locations for dropdown
   // Multi-location support (Location -> Project -> Activity)
-  timesheetLocations: LocationEntry[] = [];
+  uniqueProjectsList: ProjectEntry[] = [{
+    projectId: 1, projectName: 'Sample Project',clientSideId: 'Na-123', inTime: '09:00 AM', outTime: '06:00 PM', totalWorkingHours: '8', activities: [],
+    clientApprovalStatus: 'Approved'
+  }];
+  timesheetLocations: LocationEntry[] = [{locationId: 1,locationName: 'Sample Location',clientInTime: '09:00 AM',clientOutTime: '06:00 PM', projects: this.uniqueProjectsList}];
   expandedLocationIndex: number | null = 0;
   expandedProjectIndexMap: { [locationIndex: number]: number | null } = {}; // Track expanded project per location
-  empHasClientSideId: boolean = false;
+  empHasClientSideId: boolean = true;
   projectActivityHoursError: { [projectIndex: number]: string } = {}; // Store validation errors per project
   
   // File upload properties
@@ -97,6 +103,8 @@ export class TimesheetFormComponent implements OnInit {
   activeFileType: string | null = null;
   createOrUpdateObj:EmployeeTimesheetDTO=new EmployeeTimesheetDTO();
 clientApprovalStatusList: any[];
+  
+  documentList: TimesheetDocument[] = [];
   
   constructor(private teamViewService: TeamViewService,
     private timesheetService: TimesheetService,
@@ -177,10 +185,12 @@ clientApprovalStatusList: any[];
       totalClientWorkingHours: '0',
       shadowEmpId: null,
       isShadowTimesheet: false,
+      isShadowForSelf:false,
       // Client, Team, Location at project level
       clientId: null,
       clientLocationId: null,
       teamId: null,
+      clientApprovalStatus: null,
       activities: [this.createActivity()],
       availableActivities: [],
       projectActivities: [], // Activities loaded for the project
@@ -254,8 +264,8 @@ clientApprovalStatusList: any[];
   removeProject(location: LocationEntry, projectIndex: number): void {
     if (location.projects.length <= 1) {
       this.openAlertMod(this.alertTemplate, 'At least one project is required per location.');
-      return;
-    }
+        return;
+      }
     location.projects.splice(projectIndex, 1);
     // Adjust expanded project index if needed
     const locationIndex = this.timesheetLocations.indexOf(location);
@@ -350,44 +360,44 @@ clientApprovalStatusList: any[];
     onDayTypeChange(event: any){
       this.dayType = event;
       console.log("Day type changed",this.timesheetObj.dayType);
-    }
-  onTimesheetAppliedForChange(value: string): void {
+  }
+onTimesheetAppliedForChange(value: string): void {
 
     this.timesheetAppliedFor = value;
-  
-  
-  
-    if (value === 'self') {
-  
+
+
+
+  if (value === 'self') {
+
       // this.getAllTeamMemberList();
-  
+
       this.getTimesheetMetadata();
-  
-      this.timesheetObj.isShadowTimesheet = false;
-  
-  
-  
+
+    this.timesheetObj.isShadowTimesheet = false;
+
+
+
     } 
     // else if (value === 'asShadow') {
-  
+
     //   this.resetTimesheetFormForAutoFill();
-  
+
     //   this.timesheetObj.isShadowTimesheet = true;
-  
-  
-  
+
+
+
     // }
      else {
-  
-      this.resetTimesheetFormForAutoFill();
-  
-      this.getAllTeamMemberList();
-  
-      this.timesheetObj.isShadowTimesheet = false;
-  
-    }
-  
+
+    this.resetTimesheetFormForAutoFill();
+
+    this.getAllTeamMemberList();
+
+    this.timesheetObj.isShadowTimesheet = false;
+
   }
+
+}
   openAlertMod(template: TemplateRef<any>, message: any) {
     this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
@@ -444,7 +454,7 @@ clientApprovalStatusList: any[];
     this.getAllAvailableTimesheetByEmpId(userObj);
   }
 
-  resetTimesheetFormForAutoFill() {
+resetTimesheetFormForAutoFill() {
     // this.fromDate = null;
     // this.toDate = null;
     this.timesheetObj.projectId = '';
@@ -468,7 +478,7 @@ clientApprovalStatusList: any[];
     this.timesheetObj.docId = '';
     // this.allTimesheetActivities = [];
   }
-  getAllTeamMemberList() {
+ getAllTeamMemberList() {
     console.log("Timesheet object is",this.timesheetObj)
     this.resetTimesheetFormForAutoFill();
     this.teamMemberList = []
@@ -737,6 +747,18 @@ clientApprovalStatusList: any[];
 
     // Load activities for the project
     this.loadActivitiesForProject(location, project, teamId);
+  }
+
+  onClientApprovalStatusSelect(location: LocationEntry,project: ProjectEntry, status: any) {
+    if (!status) {
+      project.clientApprovalStatus = null;
+      project.projectActivities = [];
+      project.activities.forEach(activity => {
+        activity.activityId = null;
+      });
+      return;
+    }
+    project.clientApprovalStatus = status;
   }
 
   /**
@@ -1303,5 +1325,17 @@ clientApprovalStatusList: any[];
     const formattedHours = String(finalHours).padStart(2, '0');
     const formattedMinutes = String(finalMinutes).padStart(2, '0');
     return `${formattedHours}:${formattedMinutes} hrs`;
+  }
+
+  getListToRenderUpload(){
+    let dataList : Map<number, ProjectEntry> = new Map<number, ProjectEntry>();
+    this.timesheetLocations.forEach((location) => {
+      location.projects.forEach((project) => {
+        if(project.clientSideId && (project.clientApprovalStatus=='Approved'|| project.clientApprovalStatus=='Pending')){ 
+          dataList.set(project.projectId,project);
+        }
+      });
+    });
+    this.uniqueProjectsList = Array.from(dataList.values());
   }
 }

@@ -970,6 +970,13 @@ hr {
   border-bottom: 2px solid rgba(255, 255, 255, 0.2);
 }
 
+.form-bottom-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 8px 16px;
+  color: white;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
 .form-header-icon {
   font-size: 18px;
   margin-right: 8px;
@@ -977,7 +984,7 @@ hr {
 }
 
 .form-header-title {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   letter-spacing: 0.3px;
 }
@@ -1007,7 +1014,7 @@ hr {
 }
 
 .card-icon {
-  font-size: 16px;
+  font-size: 20px;
   color: #667eea;
   margin-right: 8px;
   width: 20px;
@@ -1235,7 +1242,8 @@ hr {
 }
 
 .btn-action {
-  padding: 10px 24px;
+  font-size: small;
+  padding: 7px 10px;
   font-weight: 600;
   border-radius: 8px;
   box-shadow: 0 2px 8px whitesmoke;
