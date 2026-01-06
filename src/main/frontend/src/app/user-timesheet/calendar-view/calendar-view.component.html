@@ -148,6 +148,9 @@
     </h5>
     <div *ngIf="fileType === 'image'"
          class="ml-auto d-flex align-items-center zoom-controls">
+    <button class="zoom-btn" style="margin-right: 1.5rem;" title="Download Image" (click)="downloadFile()">
+      <i class="fa fa-download"></i>
+    </button>
       <button class="zoom-btn" title="Zoom Out" (click)="zoomOut()">
         <i class="fa fa-search-minus" aria-hidden="true"></i>
       </button>

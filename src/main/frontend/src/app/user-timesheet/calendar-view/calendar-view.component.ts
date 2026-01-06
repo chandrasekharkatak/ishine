@@ -84,6 +84,9 @@ export class CalendarViewComponent implements OnInit {
   startY = 0;
   translateX = 0;
   translateY = 0;
+  previewBase64!: string;
+  previewMimeType!: string;
+  dateObj:any;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -343,6 +346,8 @@ monthSelected(event: Date, datepicker: any) {
       return;
     }
 
+    this.dateObj = dateObj;
+
     const payload = {
       empId: this.empId,
       date: this.formatDate(dateObj.date)
@@ -386,6 +391,8 @@ monthSelected(event: Date, datepicker: any) {
   showPreview(base64Data: string, mimeType: string, fileName?: string): void {
     const dataUrl = `data:${mimeType};base64,${base64Data}`;
     this.resetPreviewState();
+    this.previewBase64 = base64Data;
+    this.previewMimeType = mimeType;
     this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
 
     if (mimeType === 'application/pdf') {
@@ -397,7 +404,7 @@ monthSelected(event: Date, datepicker: any) {
     }
 
     this.previewFileName = fileName || 'Document Preview';
-    this.modalRef2 = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-xl modal-dialog-centered' });
+    this.modalRef2 = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-xxl modal-dialog-centered',scrollable: true });
   }
 
   getProjectByMonthRangeAndEmpId(fromMonthChange: boolean = false){
@@ -495,5 +502,41 @@ resetPreviewState() {
   this.translateY = 0;
   this.isDragging = false;
 }
+
+  downloadFile(): void {
+    if (!this.previewBase64 || !this.previewMimeType) {
+      return;
+    }
+
+    const byteCharacters = atob(this.previewBase64);
+    const byteNumbers = new Array(byteCharacters.length);
+
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: this.previewMimeType });
+
+    const blobUrl = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = this.buildFileName();
+    link.click();
+
+    URL.revokeObjectURL(blobUrl);
+  }
+
+  private buildFileName(): string {
+    const userName = this.userName || 'User';
+    const day = this.dateObj?.day || 'Date';
+    const month = this.formattedMonthLabel;
+    const project = this.projectList.find(p => p.projectId === this.projectIdForDropDown);
+    const projectName = project?.projectName || 'Project';
+    const extension = this.fileType;
+
+    return `${userName} | ${day} ${month} | ${projectName}.${extension}`;
+  }
 
 }
