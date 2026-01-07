@@ -56,16 +56,35 @@
                         <!-- STEP 3: NIGHT SHIFT (Show after Date) -->
                         <div class="col-lg-3 col-md-2 col-sm-6 mb-3" *ngIf="fromDate">
                             <div class="form-group">
-                                <label class="info-label d-block">Night Shift</label>
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox"
-                                        [(ngModel)]="isNightShift" (change)="onNightShiftChange()"
-                                        id="nightShiftToggle">
-                                    <label class="form-check-label" for="nightShiftToggle">
-                                        {{ isNightShift ? 'Yes' : 'No' }}
-                                    </label>
-                                </div>
+                                <label class="info-label d-block">
+                                    <span class="text-danger">*</span>Night Shift
+                                </label>
+
+                            <div class="radio-group mt-2">
+                                <label class="radio-pill">
+                                  <input
+                                    type="radio"
+                                    name="nightShift"
+                                    [value]="true"
+                                    [(ngModel)]="isNightShift"
+                                    (change)="onNightShiftChange()"
+                                  />
+                                  <span><i class="fa fa-moon me-1"></i> Yes</span>
+                                </label>
+                              
+                                <label class="radio-pill">
+                                  <input
+                                    type="radio"
+                                    name="nightShift"
+                                    [value]="false"
+                                    [(ngModel)]="isNightShift"
+                                    (change)="onNightShiftChange()"
+                                  />
+                                  <span><i class="fa fa-sun me-1"></i> No</span>
+                                </label>
+                              </div>
                             </div>
+
                         </div>
                     </div>
                 </ng-container>
@@ -120,7 +139,7 @@
                         </app-date-time-picker>
                     </div>
                 </div>
-                 
+
             </div>
         </div>
 
@@ -152,7 +171,8 @@
                             <i class="fa location-chevron me-3"
                                 [ngClass]="expandedLocationIndex === lIndex ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
                             <button *ngIf="timesheetLocations.length > 1" class="btn btn-sm btn-icon-danger ml-3"
-                                (click)="removeLocation(lIndex); $event.stopPropagation();getListToRenderUpload()" title="Remove Location">
+                                (click)="removeLocation(lIndex); $event.stopPropagation();getListToRenderUpload()"
+                                title="Remove Location">
                                 <i class="fa fa-trash"></i>
                             </button>
                         </div>
@@ -168,8 +188,7 @@
                                 <div class="col-md-6 mb-3">
                                     <label class="info-label"><span class="text-danger">*</span> Location</label>
                                     <app-my-select placeholder="Select Location" class="form-control"
-                                        [(ngModel)]="location.locationId" [options]="workLocationList"
-                                        displayKey="code"
+                                        [(ngModel)]="location.locationId" [options]="workLocationList" displayKey="code"
                                         valueKey="workLocationTypeId" [multiple]="false"
                                         (selectionChange)="onLocationSelect(location, $event)">
                                     </app-my-select>
@@ -234,7 +253,7 @@
                                                         Project</label>
                                                     <app-my-select placeholder="Select Project" class="form-control"
                                                         [(ngModel)]="project.projectId"
-                                                        [options]="location.availableProjects || []"
+                                                        [options]="activeProjectListByEmpId || []"
                                                         displayKey="projectName" valueKey="projectId" [multiple]="false"
                                                         (selectionChange)="onProjectSelect(location, project, $event)">
                                                     </app-my-select>
@@ -247,7 +266,8 @@
                                                         [value]="project.clientSideId" disabled>
                                                 </div>
                                                 <!-- Shadow For (Show when shadow is enabled) -->
-                                                <div class="col-md-3 mb-3" *ngIf="project.isShadowTimesheet && !project.isShadowForSelf">
+                                                <div class="col-md-3 mb-3"
+                                                    *ngIf="project.isShadowTimesheet && !project.isShadowForSelf">
                                                     <label class="info-label">
                                                         <span class="text-danger">*</span> Shadow For
                                                     </label>
@@ -255,31 +275,61 @@
                                                     </app-my-select>
                                                 </div>
                                                 <!-- Shadow Timesheet Toggle -->
-                                                <div class="col-md-2 mb-3">
-                                                    <label class="info-label d-block">Shadow Timesheet</label>
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox"
+                                                <div class="col-md-2 mb-3" *ngIf="!project.isShadowForSelf">
+                                                    <label class="info-label d-block"><span class="text-danger">*</span>Shadow Timesheet</label>
+
+                                                    <div class="radio-group mt-2">
+                                                        <label class="radio-pill">
+                                                          <input
+                                                            type="radio"
+                                                            name="shadowTimesheet{{lIndex}}_{{pIndex}}"
+                                                            [value]="true"
                                                             [(ngModel)]="project.isShadowTimesheet"
-                                                            id="shadowToggle{{lIndex}}_{{pIndex}}">
-                                                        <label class="form-check-label"
-                                                            for="shadowToggle{{lIndex}}_{{pIndex}}">
-                                                            {{ project.isShadowTimesheet ? 'Yes' : 'No' }}
+                                                          />
+                                                          <span> Yes</span>
                                                         </label>
-                                                    </div>
+                                                      
+                                                        <label class="radio-pill">
+                                                          <input
+                                                            type="radio"
+                                                            name="shadowTimesheet{{lIndex}}_{{pIndex}}"
+                                                            [value]="false"
+                                                            [(ngModel)]="project.isShadowTimesheet"
+                                                          />
+                                                          <span>No</span>
+                                                        </label>
+                                                      </div>
+                                                      
                                                 </div>
 
-                                                <div class="col-md-2 mb-3">
-                                                    <label class="info-label d-block">Shadow For Self</label>
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox"
+
+                                                <div class="col-md-2 mb-3" *ngIf="!project.isShadowTimesheet">
+                                                    <label class="info-label d-block"><span class="text-danger">*</span>Shadow For Self</label>
+
+                                                    <div class="radio-group mt-2">
+                                                        <label class="radio-pill">
+                                                          <input
+                                                            type="radio"
+                                                            name="shadowForSelf{{lIndex}}_{{pIndex}}"
+                                                            [value]="true"
                                                             [(ngModel)]="project.isShadowForSelf"
-                                                            id="shadowForSelfToggle{{lIndex}}_{{pIndex}}">
-                                                        <label class="form-check-label"
-                                                            for="shadowForSelfToggle{{lIndex}}_{{pIndex}}">
-                                                            {{ project.isShadowForSelf ? 'Yes' : 'No' }}
+                                                          />
+                                                          <span> Yes</span>
                                                         </label>
-                                                    </div>
+                                                      
+                                                        <label class="radio-pill">
+                                                          <input
+                                                            type="radio"
+                                                            name="shadowForSelf{{lIndex}}_{{pIndex}}"
+                                                            [value]="false"
+                                                            [(ngModel)]="project.isShadowForSelf"
+                                                          />
+                                                          <span> No</span>
+                                                        </label>
+                                                      </div>
+                                                      
                                                 </div>
+
                                             </div>
 
                                             <!-- Team, Client Location Row -->
@@ -434,8 +484,8 @@
                     </div>
 
                     <!-- Filled Attendance Proof -->
-                     @for (file of uploadFileList; track file.projectId) {
-                        @if (file.projectId === project.projectId && file.docType === 'Filled') {
+                    @for (file of uploadFileList; track file.projectId) {
+                    @if (file.projectId === project.projectId && file.docType === 'Filled') {
                     <div class="col-md-6 mb-3">
                         <label class="info-label">
                             <span class="text-danger">*</span> Filled Attendance Proof
@@ -444,30 +494,30 @@
                             <input type="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png"
                                 style="max-width: 250px;" (change)="onFileSelected($event, 'Filled', project.projectId)"
                                 (click)="$any($event.target).value = null" />
-                                            @if (file.file) {
-                                                <button class="btn btn-outline-primary btn-sm ms-2" title="Preview" [disabled]="!file.previewUrl"
-                                                    (click)="openPreviewModalForTwo('Filled')">
-                                                    <i class="fa fa-eye"></i>
-                                                </button>
-                                            }
-                                        
+                            @if (file.file) {
+                            <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
+                                [disabled]="!file.previewUrl" (click)="openPreviewModalForTwo('Filled')">
+                                <i class="fa fa-eye"></i>
+                            </button>
+                            }
+
                         </div>
-                            @if (file.fileError) {
-                                <small class="text-danger d-block">
-                                    {{ file.fileError }}
-                                </small>
-                            }
-                            @else if (file.fileName && !file.fileError) {
-                                <small class="text-muted d-block">
-                                    {{ file.fileName }}
-                                </small>
-                            }
-                            @else if (!file.file && !file.fileError) {
-                                <small class="text-muted d-block">
-                                    No file selected
-                                </small>
-                            }
-                        
+                        @if (file.fileError) {
+                        <small class="text-danger d-block">
+                            {{ file.fileError }}
+                        </small>
+                        }
+                        @else if (file.fileName && !file.fileError) {
+                        <small class="text-muted d-block">
+                            {{ file.fileName }}
+                        </small>
+                        }
+                        @else if (!file.file && !file.fileError) {
+                        <small class="text-muted d-block">
+                            No file selected
+                        </small>
+                        }
+
                     </div>
                     }
                     <!-- Approved Attendance Proof (Only if Approved) -->
@@ -479,49 +529,41 @@
 
                         <div class="d-flex align-items-center">
                             <input type="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png"
-                                style="max-width: 250px;" (change)="onFileSelected($event, 'Approved',project.projectId)"
+                                style="max-width: 250px;"
+                                (change)="onFileSelected($event, 'Approved',project.projectId)"
                                 (click)="$any($event.target).value = null" />
                             @if (file.file) {
                             <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
                                 [disabled]="!file.previewUrl" (click)="openPreviewModalForTwo('Approved')">
                                 <i class="fa fa-eye"></i>
                             </button>
-                        }
+                            }
                         </div>
                         @if (file.fileError) {
                         <small class="text-danger d-block">
                             {{ file.fileError }}
                         </small>
-                    }
+                        }
                         @else if (file.fileName && !file.fileError) {
                         <small class="text-muted d-block">
                             {{ file.fileName }}
                         </small>
-                    }
+                        }
                         @else if (!file.file && !file.fileError) {
                         <small class="text-muted d-block">
                             No file selected
                         </small>
-                    }
+                        }
                     </div>
                     }
-                }
-                
-                </div>
+                    }
 
-                <!-- <div class="row mt-3" *ngFor="let project of uniqueProjectsList">
-                
-                
-            </div> -->
+                </div>
             </div>
-        }
+            }
         </div>
         <!-- Action Buttons Card  -->
         <div class="form-bottom-card">
-            <!-- <div class="d-flex align-items-center">
-                <i class="fa fa-calendar-check-o form-header-icon"></i>
-                <h5 class="form-header-title mb-0">Timesheet Entry</h5>
-            </div> -->
             <div class="d-flex justify-content-end gap-2">
                 <button *ngIf="isCreation" type="button" class="btn btn-outline-primary btn-action"
                     (click)="createTimesheet()">
@@ -532,9 +574,6 @@
                 </button>
             </div>
         </div>
-        <!-- <div class="action-card">
-            
-        </div> -->
     </div>
 </div>
 

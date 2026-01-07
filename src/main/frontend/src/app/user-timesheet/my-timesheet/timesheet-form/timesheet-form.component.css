@@ -1503,3 +1503,36 @@ hr {
 .timesheet_application_for {
   padding: 14px;
 }
+
+.radio-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.radio-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 20px;
+  background: #ffffff;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.radio-pill input {
+  accent-color: #0d6efd;
+}
+
+.radio-pill:hover {
+  background: #f9fafb;
+  border-color: #0d6efd;
+}
+
+.radio-pill input:checked+span {
+  font-weight: 600;
+  color: #0d6efd;
+}
