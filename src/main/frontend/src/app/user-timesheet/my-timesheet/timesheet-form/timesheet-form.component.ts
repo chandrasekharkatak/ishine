@@ -1438,7 +1438,9 @@ export class TimesheetFormComponent implements OnInit {
     this.uniqueProjectsList = Array.from(dataList.values());
 }
 
-
+onClientApprovalStatusChange(clientApprovalStatus: any, project: ProjectEntry) {
+  project.clientApprovalStatus = clientApprovalStatus;
+}
   getAllWorkLocationFromLocationMaster(){
     this.timesheetNewService.getAllWorkLocation().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

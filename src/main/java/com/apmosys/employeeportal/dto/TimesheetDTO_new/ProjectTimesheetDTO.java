@@ -135,6 +135,8 @@ public class ProjectTimesheetDTO {
      */
     private Boolean isShadow;
     
+    private Boolean isShadowForSelf;
+    
     /**
      * Is shadow timesheet flag (alternative name)
      * NOT IN NEW CONTRACT but kept for backward compatibility

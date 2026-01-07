@@ -275,7 +275,7 @@
                                                     </app-my-select>
                                                 </div>
                                                 <!-- Shadow Timesheet Toggle -->
-                                                <div class="col-md-2 mb-3" *ngIf="!project.isShadowForSelf">
+                                                <div class="col-md-3 mb-3" *ngIf="!project.isShadowForSelf">
                                                     <label class="info-label d-block"><span class="text-danger">*</span>Shadow Timesheet</label>
 
                                                     <div class="radio-group mt-2">
@@ -303,7 +303,7 @@
                                                 </div>
 
 
-                                                <div class="col-md-2 mb-3" *ngIf="!project.isShadowTimesheet">
+                                                <div class="col-md-3 mb-3" *ngIf="!project.isShadowTimesheet">
                                                     <label class="info-label d-block"><span class="text-danger">*</span>Shadow For Self</label>
 
                                                     <div class="radio-group mt-2">
@@ -378,6 +378,7 @@
                                                     <app-my-select class="form-control"
                                                         placeholder="Select Approval Status"
                                                         [(ngModel)]="project.clientApprovalStatus"
+                                                        (selectionChange)="onClientApprovalStatusChange($event,project);getListToRenderUpload()"
                                                         [options]="clientApprovalStatusList" displayKey="status"
                                                         valueKey="statusId" [multiple]="false">
                                                     </app-my-select>
