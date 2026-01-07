@@ -1403,17 +1403,25 @@ export class TimesheetFormComponent implements OnInit {
   //   let dataList : Map<number, ProjectEntry> = new Map<number, ProjectEntry>();
 
   getListToRenderUpload() {
+    this.uploadFileList = [];
     let dataList: Map<number, ProjectEntry> = new Map<number, ProjectEntry>();
     this.timesheetLocations.forEach((location) => {
       location.projects.forEach((project) => {
-        if (project.clientSideId && (project.clientApprovalStatus == 'Approved' || project.clientApprovalStatus == 'Pending')) {
+        if (project.clientSideId ) {
           dataList.set(project.projectId, project);
+          if (project.clientApprovalStatus == 'Approved'){
+            this.uploadFileList.push({ projectId: project.projectId, docType: 'Filled', file: null, previewUrl: null, rawObjectUrl: null, fileError: null, fileType: null, fileName: null, fileSize: null });
+            this.uploadFileList.push({ projectId: project.projectId, docType: 'Approved', file: null, previewUrl: null, rawObjectUrl: null, fileError: null, fileType: null, fileName: null, fileSize: null });
+          }
+          else if (project.clientApprovalStatus == 'Pending') {
+            this.uploadFileList.push({ projectId: project.projectId, docType: 'Filled', file: null, previewUrl: null, rawObjectUrl: null, fileError: null, fileType: null, fileName: null, fileSize: null });
+          }
         }
       });
     });
     this.uniqueProjectsList = Array.from(dataList.values());
-
 }
+
 
   getAllWorkLocationFromLocationMaster(){
     this.timesheetNewService.getAllWorkLocation().pipe(first()).subscribe((response: any) => {
