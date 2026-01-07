@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -341,17 +342,24 @@ public class TimesheetServiceNew {
 	        
 	        // Normalize new contract
 	        normalizeEmployeeTimesheetFromNewContract(empDTO, empDTO.getDate());
-
-	        // Validation
-	        timesheetValidationHelper.validateForCreate( empDTO );
-
+	        
+	        timesheetValidationHelper.validateEmployeeAuthorization(empDTO);
+	        
+	        timesheetValidationHelper.validateNullAndUnexpectedData(empDTO);
+	        
+	        timesheetValidationHelper.validateTimesheetAlreadyExists(
+	                empDTO.getEmpId(), empDTO.getDate());
+	        
 	        if (timesheetLockDays != null) {
-	            timesheetValidationHelper.validateDateNotLocked(
+	            timesheetValidationHelper.validateTimesheetLockPeriod(
 	                    empDTO.getEmpId(), empDTO.getDate(), timesheetLockDays);
 	        }
-
-	        timesheetValidationHelper.validateTimesheetNotExists(
-	                empDTO.getEmpId(), empDTO.getDate());
+            timesheetValidationHelper.validateLocationWiseProjectAndActivities(empDTO);
+            
+            timesheetValidationHelper.validateDocumentsDTO(empDTO);
+            
+            timesheetValidationHelper.validateUploadedDocuments(empDTO,documents);
+	        
 
 	        // Audit fields
 	        Long currentUserId = getCurrentUserId();
@@ -858,7 +866,7 @@ public class TimesheetServiceNew {
 		
 			// VALIDATION: Validate new contract structure
 			// This includes: workCheckIn/workCheckOut for working days, projects required, etc.
-			timesheetValidationHelper.validateForCreate(newEmpDTO);
+			//timesheetValidationHelper.validateForCreate(newEmpDTO);
 			
 			// VALIDATION: Validate date not locked
 			if (timesheetLockDays != null) {
