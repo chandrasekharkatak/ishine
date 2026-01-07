@@ -5,8 +5,8 @@ export class ProjectTimesheetDTO{
     projectId:any;
     poNo:any;
     poId:any;
-    clientInTime:any;
-    clientOutTime:any;
+    logInTime:any;
+    logOutTime:any;
     clientApprovalStatus:any;
     status:any;
     shadowEmpId:any;

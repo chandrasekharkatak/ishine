@@ -38,8 +38,8 @@ export class TimesheetFormComponent implements OnInit {
   @Input() isUpdation: boolean = false;
   isTimesheetLockCheckEnable: any = "true";
   timesheetObj: Timesheet = new Timesheet();
-  dayType:any=1;
-  timesheetAppliedFor:any='';
+  dayType:any;
+  timesheetAppliedFor:any='self';
   selectedLocationId: any = null;
   teamMemberList: any[] = [];
   currentUser: User = new User();
@@ -68,18 +68,8 @@ export class TimesheetFormComponent implements OnInit {
   activeProjectList: any[] = []; // Unique projects for dropdown
   activeLocationList: any[] = []; // Unique locations for dropdown
   // Multi-location support (Location -> Project -> Activity)
-  uniqueProjectsList: ProjectEntry[] = [{
-    projectId: 1, projectName: 'Sample Project1', clientSideId: 'Na-123', inTime: '09:00 AM', outTime: '06:00 PM', totalWorkingHours: '8', activities: [],
-    clientApprovalStatus: 'Approved'
-  },{
-    projectId: 2, projectName: 'Sample Project2', clientSideId: 'Na-123', inTime: '09:00 AM', outTime: '06:00 PM', totalWorkingHours: '8', activities: [],
-    clientApprovalStatus: 'Approved'
-  },
-{
-    projectId: 3, projectName: 'Sample Project3', clientSideId: 'Na-123', inTime: '09:00 AM', outTime: '06:00 PM', totalWorkingHours: '8', activities: [],
-    clientApprovalStatus: 'Filled'
-  }];
-  timesheetLocations: LocationEntry[] = [{ locationId: 1, locationName: 'Sample Location', clientInTime: '09:00 AM', clientOutTime: '06:00 PM', projects: this.uniqueProjectsList }];
+  uniqueProjectsList: ProjectEntry[] = [];
+  timesheetLocations: LocationEntry[] = [];
   expandedLocationIndex: number | null = 0;
   expandedProjectIndexMap: { [locationIndex: number]: number | null } = {}; // Track expanded project per location
   empHasClientSideId: boolean = true;
@@ -101,12 +91,18 @@ export class TimesheetFormComponent implements OnInit {
   createOrUpdateObj:EmployeeTimesheetDTO=new EmployeeTimesheetDTO();
   clientApprovalStatusList: any[];
   workLocationList: string[];
-   
+  isNightShift: boolean = false;
   documentList: TimesheetDocument[] = [];
   uploadFileList: {
     projectId: number;
     docType: 'Filled' | 'Approved';
     file: File;
+    previewUrl: SafeResourceUrl;
+    rawObjectUrl: string;
+    fileError: string;
+    fileType: 'pdf' | 'image';
+    fileName: string;
+    fileSize: number;
   }[] = [];
 
   constructor(private teamViewService: TeamViewService,
@@ -164,8 +160,8 @@ export class TimesheetFormComponent implements OnInit {
       locationId: null,
       locationName: '',
       clientLocationId: null,
-      clientInTime: '',
-      clientOutTime: '',
+      logInTime: '',
+      logOutTime: '',
       totalClientWorkingHours: '0',
       projects: [this.createProject()],
       availableProjects: []
@@ -181,14 +177,8 @@ export class TimesheetFormComponent implements OnInit {
       projectName: '',
       clientSideId: '',
       hasClientSideId: false,
-      inTime: '',
-      outTime: '',
-      officeInTime: '',
-      officeOutTime: '',
-      clientInTime: '',
-      clientOutTime: '',
-      totalWorkingHours: '0',
-      totalClientWorkingHours: '0',
+      logInTime: '',
+      logOutTime: '',
       shadowEmpId: null,
       isShadowTimesheet: false,
       isShadowForSelf: false,
@@ -215,6 +205,7 @@ export class TimesheetFormComponent implements OnInit {
     this.expandedLocationIndex = this.timesheetLocations.length - 1;
     // Initialize expanded project index for this location
     this.expandedProjectIndexMap[this.timesheetLocations.length - 1] = 0;
+    this.getListToRenderUpload();
   }
 
   /**
@@ -262,6 +253,7 @@ export class TimesheetFormComponent implements OnInit {
     // Expand the newly added project
     const locationIndex = this.timesheetLocations.indexOf(location);
     this.expandedProjectIndexMap[locationIndex] = location.projects.length - 1;
+    this.getListToRenderUpload();
   }
 
   /**
@@ -361,7 +353,7 @@ export class TimesheetFormComponent implements OnInit {
       } else {
         console.error(response.serviceResponse)
       }
-    });
+    }); 
   }
   onDayTypeChange(event: any) {
     this.dayType = event;
@@ -870,14 +862,15 @@ export class TimesheetFormComponent implements OnInit {
       }
     });
   }
+
   onNightShiftChange() {
-    if (this.timesheetObj.isNightShift) {
+    if (this.isNightShift) {
       if (!this.fromDate) {
         this.openAlertMod(
           this.alertTemplate,
           'Please select From Date first before enabling Night Shift.'
         );
-        this.timesheetObj.isNightShift = false;
+        this.isNightShift = false;
         return;
       }
 
@@ -1254,6 +1247,16 @@ export class TimesheetFormComponent implements OnInit {
 
     return new File([file], newFileName, { type: file.type });
   }
+  hasFilledDocument(projectId: number): boolean {
+    return this.uploadFileList?.some(
+      file => file.projectId === projectId && file.docType === 'Filled'
+    );
+  }
+  hasApprovedDocument(projectId: number): boolean {
+    return this.uploadFileList?.some(
+      file => file.projectId === projectId && file.docType === 'Approved'
+    );
+  }
   createTimesheet() {
     console.log("Create Timesheet clicked");
     let projectDataList: ProjectTimesheetDTO[] = [];
@@ -1263,8 +1266,8 @@ export class TimesheetFormComponent implements OnInit {
         projectData = new ProjectTimesheetDTO();
         projectData.projectId = project.projectId;
         // Use location's client times if available, otherwise project's
-        projectData.clientInTime = location.clientInTime || project.clientInTime;
-        projectData.clientOutTime = location.clientOutTime || project.clientOutTime;
+        projectData.logInTime = location.logInTime || project.logInTime;
+        projectData.logOutTime = location.logOutTime || project.logOutTime;
         projectData.clientApprovalStatus = this.timesheetObj.clientApprovalStatus;
         projectData.shadowEmpId = project.isShadowTimesheet ? project.shadowEmpId : null;
         // projectData.isShadowTimesheet = project.isShadowTimesheet;
@@ -1314,20 +1317,68 @@ export class TimesheetFormComponent implements OnInit {
   }
 
   // Format date for display (e.g., "Oct 24, 2023")
-  getFormattedDate(): string {
+  // getFormattedDate(): string {
+  //   if (!this.fromDate) return '';
+  //   const date = this.parseDDMMYYYY(this.fromDate);
+  //   if (!date) return '';
+  //   return moment(date).format('MMM DD, YYYY');
+  // }
+
+  getFormattedDateRange(): string {
     if (!this.fromDate) return '';
-    const date = this.parseDDMMYYYY(this.fromDate);
-    if (!date) return '';
-    return moment(date).format('MMM DD, YYYY');
+  
+    const from = this.parseDDMMYYYY(this.fromDate);
+    if (!from) return '';
+  
+    if (!this.toDate) {
+      return moment(from).format('MMM DD, YYYY');
+    }
+  
+    const to = this.parseDDMMYYYY(this.toDate);
+    if (!to) return moment(from).format('MMM DD, YYYY');
+  
+    // Same month & year → Jan 01-02, 2026
+    if (
+      moment(from).isSame(to, 'month') &&
+      moment(from).isSame(to, 'year')
+    ) {
+      return `${moment(from).format('MMM DD')}-${moment(to).format('DD, YYYY')}`;
+    }
+  
+    // Different month/year → Jan 30 – Feb 02, 2026
+    return `${moment(from).format('MMM DD, YYYY')} - ${moment(to).format('MMM DD, YYYY')}`;
   }
+  
 
   // Get day name (e.g., "Thursday")
-  getDayName(): string {
+  // getDayName(): string {
+  //   if (!this.fromDate) return '';
+  //   const date = this.parseDDMMYYYY(this.fromDate);
+  //   if (!date) return '';
+  //   return moment(date).format('dddd');
+  // }
+
+  getDayRange(): string {
     if (!this.fromDate) return '';
-    const date = this.parseDDMMYYYY(this.fromDate);
-    if (!date) return '';
-    return moment(date).format('dddd');
+  
+    const from = this.parseDDMMYYYY(this.fromDate);
+    if (!from) return '';
+  
+    if (!this.toDate) {
+      return moment(from).format('dddd');
+    }
+  
+    const to = this.parseDDMMYYYY(this.toDate);
+    if (!to) return moment(from).format('dddd');
+  
+    // Same day
+    if (moment(from).isSame(to, 'day')) {
+      return moment(from).format('dddd');
+    }
+  
+    return `${moment(from).format('dddd')}-${moment(to).format('dddd')}`;
   }
+  
 
   // Format total presence as "08:45 hrs"
   getFormattedPresence(): string {
@@ -1352,17 +1403,25 @@ export class TimesheetFormComponent implements OnInit {
   //   let dataList : Map<number, ProjectEntry> = new Map<number, ProjectEntry>();
 
   getListToRenderUpload() {
+    this.uploadFileList = [];
     let dataList: Map<number, ProjectEntry> = new Map<number, ProjectEntry>();
     this.timesheetLocations.forEach((location) => {
       location.projects.forEach((project) => {
-        if (project.clientSideId && (project.clientApprovalStatus == 'Approved' || project.clientApprovalStatus == 'Pending')) {
+        if (project.clientSideId ) {
           dataList.set(project.projectId, project);
+          if (project.clientApprovalStatus == 'Approved'){
+            this.uploadFileList.push({ projectId: project.projectId, docType: 'Filled', file: null, previewUrl: null, rawObjectUrl: null, fileError: null, fileType: null, fileName: null, fileSize: null });
+            this.uploadFileList.push({ projectId: project.projectId, docType: 'Approved', file: null, previewUrl: null, rawObjectUrl: null, fileError: null, fileType: null, fileName: null, fileSize: null });
+          }
+          else if (project.clientApprovalStatus == 'Pending') {
+            this.uploadFileList.push({ projectId: project.projectId, docType: 'Filled', file: null, previewUrl: null, rawObjectUrl: null, fileError: null, fileType: null, fileName: null, fileSize: null });
+          }
         }
       });
     });
     this.uniqueProjectsList = Array.from(dataList.values());
-
 }
+
 
   getAllWorkLocationFromLocationMaster(){
     this.timesheetNewService.getAllWorkLocation().pipe(first()).subscribe((response: any) => {

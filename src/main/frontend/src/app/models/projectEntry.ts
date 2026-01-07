@@ -7,29 +7,11 @@ export class ProjectEntry {
   hasClientSideId?: boolean;
   
   // Office times
-  inTime: string;
-  outTime: string;
-  officeInTime?: string;
-  officeOutTime?: string;
-  selectedInHour?: string;
-  selectedInMinute?: string;
-  selectedInPeriod?: string;
-  selectedOutHour?: string;
-  selectedOutMinute?: string;
-  selectedOutPeriod?: string;
+  logInTime?: string;
+  logOutTime?: string;
   
-  // Client times
-  clientInTime?: string;
-  clientOutTime?: string;
-  selectedClientInHour?: string;
-  selectedClientInMinute?: string;
-  selectedClientInPeriod?: string;
-  selectedClientOutHour?: string;
-  selectedClientOutMinute?: string;
-  selectedClientOutPeriod?: string;
-  
-  totalWorkingHours: string;
-  totalClientWorkingHours?: string;
+  // totalWorkingHours: string;
+  // totalClientWorkingHours?: string;
   
   // Shadow settings (per-project)
   shadowEmpId?: number;
@@ -42,6 +24,8 @@ export class ProjectEntry {
   clientLocationId?: number | null;
   teamId?: number | null;
   clientApprovalStatus: string | null;
+
+  totalWorkingHours?: number | null;
   
   // Activities
   activities: ActivityNew[];
