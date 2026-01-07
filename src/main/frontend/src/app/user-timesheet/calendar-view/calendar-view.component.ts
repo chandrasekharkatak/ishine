@@ -403,8 +403,14 @@ monthSelected(event: Date, datepicker: any) {
       this.fileType = 'other';
     }
 
-    this.previewFileName = fileName || 'Document Preview';
-    this.modalRef2 = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-xxl modal-dialog-centered',scrollable: true });
+    // this.previewFileName = fileName || 'Document Preview';
+    // this.modalRef2 = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-xxl modal-dialog-centered',scrollable: true });
+    
+    this.modalRef = this.modalService.open(this.previewModal, {
+    modalDialogClass: 'modal-xl modal-dialog-centered',
+    scrollable: false   
+    });
+
   }
 
   getProjectByMonthRangeAndEmpId(fromMonthChange: boolean = false){
@@ -547,11 +553,11 @@ resetPreviewState() {
       case 'image/jpeg':
         return 'jpeg';
       case 'image/jpg':
-        return 'jpg';
+        return 'jpeg';
       case 'image/png':
-        return 'png';
+        return 'jpeg';
       case 'image/webp':
-        return 'webp';
+        return 'jpeg';
       default:
         return 'file';
     }

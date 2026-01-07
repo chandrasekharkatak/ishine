@@ -84,7 +84,7 @@
               'calendar-holiday': dateObj.isHoliday
             }">
                 <div class="day-number">{{dateObj.day}}</div>
-                <i class="fa fa-eye eye-icon" *ngIf="dateObj.showEye" title="View details" (click)="onDateClick(dateObj)">
+                <i class="fa fa-eye eye-icon" *ngIf="dateObj.showEye" title="View Document" (click)="onDateClick(dateObj)">
                 </i>
                 <div *ngIf="dateObj.attendance" class="attendance-code"
                     [ngStyle]="{'background': legend[dateObj.attendance]?.color}">
@@ -141,43 +141,59 @@
     </div>
 </ng-template> -->
 
+
 <ng-template #previewModal>
   <div class="modal-header">
     <h5 class="modal-title">
       {{ previewFileName || 'Document Preview' }}
     </h5>
+
+    <!-- IMAGE CONTROLS -->
     <div *ngIf="fileType === 'image'"
-         class="ml-auto d-flex align-items-center zoom-controls">
-    <button class="zoom-btn" style="margin-right: 1.5rem;" title="Download Image" (click)="downloadFile()">
-      <i class="fa fa-download"></i>
-    </button>
-      <button class="zoom-btn" title="Zoom Out" (click)="zoomOut()">
-        <i class="fa fa-search-minus" aria-hidden="true"></i>
+         class="ts-preview-controls">
+
+      <button class="ts-preview-btn"
+              title="Download Image"
+              (click)="downloadFile()">
+        <i class="fa fa-download"></i>
       </button>
 
-      <span class="mx-2 zoom-percent">{{ zoomLevel }}%</span>
+      <button class="ts-preview-btn"
+              title="Zoom Out"
+              (click)="zoomOut()">
+        <i class="fa fa-search-minus"></i>
+      </button>
 
-      <button class="zoom-btn" title="Zoom In" (click)="zoomIn()">
-        <i class="fa fa-search-plus" aria-hidden="true"></i>
+      <span class="ts-preview-zoom">{{ zoomLevel }}%</span>
+
+      <button class="ts-preview-btn"
+              title="Zoom In"
+              (click)="zoomIn()">
+        <i class="fa fa-search-plus"></i>
       </button>
     </div>
 
     <button type="button"
             class="close"
             aria-label="Close"
-            (click)="modalRef2?.close()">
+            (click)="modalRef?.close()">
       <span aria-hidden="true">&times;</span>
     </button>
   </div>
 
-  <div class="modal-body text-center">
-    <div *ngIf="fileType === 'pdf'" class="file-preview-pdf">
-      <iframe [src]="previewUrl"
-              class="preview-iframe">
+  <div class="modal-body ts-preview-body">
+
+    <div *ngIf="fileType === 'pdf'" class="ts-preview-pdf-wrapper">
+      <iframe
+        [src]="previewUrl"
+        class="ts-preview-pdf-frame"
+        frameborder="0"
+        allowfullscreen>
       </iframe>
     </div>
-    <div *ngIf="fileType === 'image'" class="preview-container">
-      <div class="preview-content"
+
+    <div *ngIf="fileType === 'image'" class="ts-preview-image-wrapper">
+      <div class="ts-preview-image-content"
            [style.transform]="transformStyle"
            (mousedown)="startDrag($event)"
            (mousemove)="onDrag($event)"
@@ -186,16 +202,16 @@
 
         <img [src]="previewUrl"
              alt="Document Preview"
-             class="preview-image img-fluid rounded shadow">
+             class="ts-preview-image">
       </div>
     </div>
-    <div *ngIf="fileType === 'other'" class="mt-3">
-      <p>Unsupported file type: {{ mimeType }}</p>
-      <a [href]="previewUrl"
-         download="{{ previewFileName }}"
-         class="btn btn-outline-primary mt-2">
-        Download
-      </a>
+
+    <div *ngIf="fileType === 'other'" class="ts-preview-other">
+      <p>Preview not available for this file type.</p>
+      <button class="btn btn-outline-primary"
+              (click)="downloadFile()">
+        Download File
+      </button>
     </div>
 
   </div>
