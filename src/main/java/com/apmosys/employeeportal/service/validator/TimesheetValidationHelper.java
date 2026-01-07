@@ -224,14 +224,24 @@ public class TimesheetValidationHelper {
                 throw new IllegalArgumentException("Project ID is required");
             }
 
-            if (project.getStatus() == null) {
-                throw new IllegalArgumentException(
-                        "Project status is required (Pending/Approved/Rejected)");
-            }
 
             boolean isWorkingDay = isWorkingDay(empDTO);
+            
+            
+            if (isWorkingDay) {
 
-            if (isWorkingDay &&
+                if (Boolean.TRUE.equals(project.getIsShadowTimesheet()) 
+                    && Boolean.FALSE.equals(project.getIsShadowForSelf()) 
+                    && project.getShadowEmpId() == null) {
+
+                    throw new IllegalArgumentException(
+                        String.format("Shadow employee id is mandatory for shadow timesheet on project.")
+                    );
+                }
+
+            }
+
+           if (isWorkingDay &&
                 (project.getActivities() == null || project.getActivities().isEmpty())) {
                 throw new IllegalArgumentException(
                         "At least one activity is required for project "
@@ -298,7 +308,8 @@ public class TimesheetValidationHelper {
                 for (ProjectTimesheetDTO project : location.getProjects()) {
 
                     Integer projectId = project.getProjectId();
-                    if (projectId == null) continue;
+                    
+                    if(project.getIsShadowForSelf()) continue;
 
                     // Check if client-side document is mandatory for this project
                     Boolean isClientSideMandatory =
@@ -367,8 +378,9 @@ public class TimesheetValidationHelper {
                 for (ProjectTimesheetDTO project : location.getProjects()) {
 
                     Integer projectId = project.getProjectId();
-                    if (projectId == null) continue;
-
+                    if(project.getIsShadowForSelf()) continue;
+                    
+                    
                     Boolean isClientIdMandatory =
                             projectRepository.getClientSideIdMandatory(projectId);
 
