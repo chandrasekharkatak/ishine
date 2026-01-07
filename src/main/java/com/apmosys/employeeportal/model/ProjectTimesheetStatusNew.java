@@ -1,7 +1,5 @@
 package com.apmosys.employeeportal.model;
 
-import java.time.LocalDateTime;
-
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
