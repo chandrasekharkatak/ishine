@@ -343,9 +343,7 @@ public class TimesheetServiceNew {
 	        normalizeEmployeeTimesheetFromNewContract(empDTO, empDTO.getDate());
 
 	        // Validation
-	        timesheetValidationHelper.validateNewContractStructure(
-	                empDTO
-	               );
+	        timesheetValidationHelper.validateForCreate( empDTO );
 
 	        if (timesheetLockDays != null) {
 	            timesheetValidationHelper.validateDateNotLocked(
@@ -860,7 +858,7 @@ public class TimesheetServiceNew {
 		
 			// VALIDATION: Validate new contract structure
 			// This includes: workCheckIn/workCheckOut for working days, projects required, etc.
-			timesheetValidationHelper.validateNewContractStructure(newEmpDTO);
+			timesheetValidationHelper.validateForCreate(newEmpDTO);
 			
 			// VALIDATION: Validate date not locked
 			if (timesheetLockDays != null) {
