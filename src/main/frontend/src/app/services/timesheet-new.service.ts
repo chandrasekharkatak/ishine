@@ -24,8 +24,8 @@ export class TimesheetNewService {
         return this.http.post(`${this.baseUrl}` + `api/v2/timesheet/addTimesheetWithClientNew`, formData);
       }
 
-        getAllProjectsByEmpId(timesheetObj: Timesheet) {
-        return this.http.post(`${this.baseUrl}` + `api/v2/timesheet/getAllProjectsByEmpId`, timesheetObj);
+        getAllProjectsByEmpId(empId: number) {
+        return this.http.post(`${this.baseUrl}` + `api/v2/timesheet/getAllProjectsByEmpId`, empId);
         }
 
         getActiveProjectsByEmpId(empId: any): Observable<any> {
@@ -44,6 +44,9 @@ export class TimesheetNewService {
         }
         getAllDSRApprovalStatus(){
           return this.http.get(`${this.baseUrl}` + `api/v2/master/client-status/getAllActiveStatusForClient`);
+        }
+        getActiveProjectsAndClientSideIdByEmpId(empId:number){
+          return this.http.post(`${this.baseUrl}` + `api/v2/timesheet/getActiveProjectsAndClientSideIdByEmpId`,  empId);
         }
 
 }

@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -14,6 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.ProjectWithClientAndLocationDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
@@ -25,6 +29,7 @@ import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.ProjectTimesheetStatusNew;
 import com.apmosys.employeeportal.model.WorkLocationTypeMaster;
 import com.apmosys.employeeportal.repository.DayTypeMasterNewRepository;
+import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetLocationMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.WorkLocationTypeMasterRepository;
@@ -76,6 +81,12 @@ public class TimesheetServiceNew {
 	
 	@Value("${timesheet.lock.days:30}")
 	private Integer timesheetLockDays;
+	
+	@Autowired
+	private EmployeeTeamMapRepository employeeTeamMapRepository;
+	
+	@Autowired
+	private TimesheetQueryService timesheetQueryService;
 	
 	/**
 	 * Check if timesheet exists for employee and date
@@ -341,17 +352,24 @@ public class TimesheetServiceNew {
 	        
 	        // Normalize new contract
 	        normalizeEmployeeTimesheetFromNewContract(empDTO, empDTO.getDate());
-
-	        // Validation
-	        timesheetValidationHelper.validateForCreate( empDTO );
-
+	        
+	        timesheetValidationHelper.validateEmployeeAuthorization(empDTO);
+	        
+	        timesheetValidationHelper.validateNullAndUnexpectedData(empDTO);
+	        
+	        timesheetValidationHelper.validateTimesheetAlreadyExists(
+	                empDTO.getEmpId(), empDTO.getDate());
+	        
 	        if (timesheetLockDays != null) {
-	            timesheetValidationHelper.validateDateNotLocked(
+	            timesheetValidationHelper.validateTimesheetLockPeriod(
 	                    empDTO.getEmpId(), empDTO.getDate(), timesheetLockDays);
 	        }
-
-	        timesheetValidationHelper.validateTimesheetNotExists(
-	                empDTO.getEmpId(), empDTO.getDate());
+            timesheetValidationHelper.validateLocationWiseProjectAndActivities(empDTO);
+            
+            timesheetValidationHelper.validateDocumentsDTO(empDTO);
+            
+            timesheetValidationHelper.validateUploadedDocuments(empDTO,documents);
+	        
 
 	        // Audit fields
 	        Long currentUserId = getCurrentUserId();
@@ -411,6 +429,7 @@ public class TimesheetServiceNew {
 	                        }
 
 	                        // Create Project
+							@SuppressWarnings("unused")
 							ProjectTimesheetStatusNew projectTS =
 	                                projectTimesheetService.create(
 	                                        timesheetId,
@@ -858,7 +877,7 @@ public class TimesheetServiceNew {
 		
 			// VALIDATION: Validate new contract structure
 			// This includes: workCheckIn/workCheckOut for working days, projects required, etc.
-			timesheetValidationHelper.validateForCreate(newEmpDTO);
+			//timesheetValidationHelper.validateForCreate(newEmpDTO);
 			
 			// VALIDATION: Validate date not locked
 			if (timesheetLockDays != null) {
@@ -1337,6 +1356,97 @@ public class TimesheetServiceNew {
 
         return empDTO;
     }
+    
+    public ServiceResponse getAllProjectsByEmpId(Long empId) {
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("add_timesheet");
+	    apiLogInfo.setApiUrl("/api/getAllProjectsByEmpId");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("empId : " +empId);
 
+	    try {
+
+	        List<Object[]> projectList = employeeTeamMapRepository.findProjectsByTeamId(empId);
+//	        List<TimesheetDTO> listDto = new ArrayList<TimesheetDTO>();
+	        List<ProjectWithClientAndLocationDTO> listDto = new ArrayList<>();
+
+	        if (!projectList.isEmpty()) {
+	            
+	            for (Object[] object : projectList) {
+	                
+	                String projectType = object[8] != null ? object[8].toString() : "";
+	                String poEndDateStr = object[9] != null ? object[9].toString() : null;
+
+	                
+	                if ("TNM".equalsIgnoreCase(projectType) || "Fixed Cost".equalsIgnoreCase(projectType)) {
+	                    if (poEndDateStr != null) {
+	                    	String onlyDateStr = poEndDateStr.contains("T") ? poEndDateStr.split("T")[0] : poEndDateStr;
+	                        LocalDate poEndDate = LocalDate.parse(onlyDateStr); 
+	                        LocalDate currentDate = LocalDate.now();
+//	                        if (poEndDate.isBefore(currentDate)) {
+//	                            continue; // skip if poEndDate is in the past
+//	                        }
+	                    }
+	                }
+	                
+	                ProjectWithClientAndLocationDTO projectClientDTO = new ProjectWithClientAndLocationDTO();
+	                projectClientDTO.setClientId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
+	                projectClientDTO.setClientName(object[1] != null ? object[1].toString() : null);
+	                projectClientDTO.setClientLocationId(object[2] != null ? Integer.parseInt(object[2].toString()) : null);
+	                projectClientDTO.setClientLocation(object[3] != null ? object[3].toString() : null);
+	                projectClientDTO.setProjectId(object[4] != null ? Integer.parseInt(object[4].toString()) : null);
+	                projectClientDTO.setProjectName(object[5] != null ? object[5].toString() : null);
+	                projectClientDTO.setTeamName(object[6] != null ? object[6].toString() : null);
+	                projectClientDTO.setTeamId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
+
+	                listDto.add(projectClientDTO);
+	            }
+	            
+	            if (!listDto.isEmpty()) {
+	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	                response.setServiceResponse(listDto);
+	                apiLogInfo.setApiResponse("listDto : " + listDto);
+	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	                System.out.println("Project List: " + listDto);
+	            } else {
+	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceResponse("No valid projects found.");
+	                apiLogInfo.setApiResponse("No valid projects found.");
+	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            }
+
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Project List is empty !!");
+	            apiLogInfo.setApiResponse("Project List is empty !!");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+	    
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+//	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
+    
+    public ServiceResponse getAllMyTimesheetsByEmpId(TimesheetDTO timesheetDTO) {
+    	return timesheetQueryService.getAllMyTimesheetsByEmpId(timesheetDTO);
+    	
+    }
+	public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(Long empId) {
+		
+		return timesheetQueryService.getActiveProjectsAndClientSideIdByEmpId(empId);
+	   
+	}
 
 }

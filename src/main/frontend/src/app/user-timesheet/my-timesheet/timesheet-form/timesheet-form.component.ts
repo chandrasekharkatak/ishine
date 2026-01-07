@@ -357,7 +357,10 @@ export class TimesheetFormComponent implements OnInit {
   onDayTypeChange(event: any) {
     this.dayType = event;
     console.log("Day type changed", this.timesheetObj.dayType);
+    console.log("this is called")
+  
   }
+  activeProjectListByEmpId:any[]=[]
   onTimesheetAppliedForChange(value: string): void {
 
     this.timesheetAppliedFor = value;
@@ -379,7 +382,14 @@ export class TimesheetFormComponent implements OnInit {
       this.getTimesheetMetadata();
 
       this.timesheetObj.isShadowTimesheet = false;
-
+      this.timesheetNewService.getActiveProjectsAndClientSideIdByEmpId(+this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.activeProjectListByEmpId = response.serviceResponse;
+          console.log("all project list",this.activeProjectListByEmpId)
+        } else {
+          console.error(response.serviceResponse)
+        }
+      })
 
 
     }
@@ -455,7 +465,7 @@ export class TimesheetFormComponent implements OnInit {
 
     //console.log("preset Timesheet : ", this.timesheetObj);
 
-    this.getAllProjectsByEmpId(userObj);
+    this.getAllProjectsByEmpId(userObj.empId);
     this.getAllAvailableTimesheetByEmpId(userObj);
   }
 
@@ -527,7 +537,7 @@ export class TimesheetFormComponent implements OnInit {
 
     let timesheetObj = new Timesheet();
     timesheetObj.empId = empId;
-    this.timesheetNewService.getAllProjectsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+    this.timesheetNewService.getAllProjectsByEmpId(+empId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allProjectsList = response.serviceResponse;
         console.log(this.allProjectsList, "this.allProjectsList")
@@ -851,7 +861,7 @@ export class TimesheetFormComponent implements OnInit {
     timesheetObj.empId = employeeObj.empId;
     timesheetObj.startDate = moment(startDate).format(AppComponent.DB_DATE_FORMAT);
     timesheetObj.endDate = moment(endDate).format(AppComponent.DB_DATE_FORMAT);
-
+    timesheetObj.createdBy = this.currentUser.empId;
     //console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
     this.timesheetNewService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

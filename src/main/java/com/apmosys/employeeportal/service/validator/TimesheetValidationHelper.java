@@ -2,20 +2,26 @@ package com.apmosys.employeeportal.service.validator;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
+import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.DayTypeMasterNew;
 import com.apmosys.employeeportal.model.Project;
@@ -25,6 +31,10 @@ import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.service.TimesheetService;
+import com.apmosys.employeeportal.utility.DateConversionUtil;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Validation helper for new timesheet structure.
@@ -34,6 +44,7 @@ import com.apmosys.employeeportal.repository.ProjectRepository;
  * @version 1.0
  */
 @Component
+@Slf4j
 public class TimesheetValidationHelper {
 
     @Autowired
@@ -53,18 +64,28 @@ public class TimesheetValidationHelper {
     
     @Autowired
     private EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
-
-        public void validateForCreate(EmployeeTimesheetDTO empDTO) {
-            validateEmployeeTimesheet(empDTO);
-            validateLocationSessions(empDTO);
-            validateDocuments(empDTO.getDocumentData(), empDTO);
+    
+    
+    
+    public void validateEmployeeAuthorization(EmployeeTimesheetDTO timesheetDTO) {
+        if (!Objects.equals(timesheetDTO.getEmpId(), timesheetDTO.getCreatedBy())) {
+            TimesheetService timesheetService = new TimesheetService();
+            List<EmployeeDTO> teamList = timesheetService.getAllTeamMemberView(timesheetDTO.getCreatedBy());
+            boolean isEmpPresent = teamList.stream()
+                    .anyMatch(emp -> emp.getEmpId() != null && emp.getEmpId().equals(timesheetDTO.getEmpId()));
+            
+            if (!isEmpPresent) {
+                log.warn("Unauthorized access attempt: empId={}, createdBy={}", 
+                        timesheetDTO.getEmpId(), timesheetDTO.getCreatedBy());
+                throw new UnauthorizedAccessException("Employee not authorized to perform this action");
+            }
         }
+       }
 
-        /* =====================================================
-           EMPLOYEE LEVEL VALIDATION
-           ===================================================== */
 
-        private void validateEmployeeTimesheet(EmployeeTimesheetDTO dto) {
+        
+     
+        public void validateNullAndUnexpectedData(EmployeeTimesheetDTO dto) {
 
             if (dto == null) {
                 throw new IllegalArgumentException("EmployeeTimesheetDTO cannot be null");
@@ -132,12 +153,7 @@ public class TimesheetValidationHelper {
             }
         }
 
-
-        /* =====================================================
-           LOCATION SESSION VALIDATION
-           ===================================================== */
-
-        private void validateLocationSessions(EmployeeTimesheetDTO empDTO) {
+      public void validateLocationWiseProjectAndActivities(EmployeeTimesheetDTO empDTO) {
 
             boolean isWorkingDay = isWorkingDay(empDTO);
 
@@ -156,35 +172,52 @@ public class TimesheetValidationHelper {
             }
         }
 
-        private void validateLocationSession(LocationSessionDTO location,
-                                             EmployeeTimesheetDTO empDTO) {
+   
+      // TODO :: Need to Test date comparison properly 
+      private void validateLocationSession(LocationSessionDTO location, EmployeeTimesheetDTO empDTO) {
+    	  
+    	  
+    	  
+    	  if (location.getWorkLocationTypeId() == null) 
+    	  { throw new IllegalArgumentException("Work location type is required"); } 
+    	  
+    	  if (location.getLocationInTime() == null || location.getLocationOutTime() == null)
+    	  { throw new IllegalArgumentException( "Location inTime and outTime are required"); }
 
-            if (location.getWorkLocationType() == null &&
-                location.getWorkLocationTypeId() == null) {
-                throw new IllegalArgumentException("Work location type is required");
-            }
+    	    LocalTime locInTime = DateConversionUtil.stringToLocalTime(location.getLocationInTime());
+    	    LocalTime locOutTime = DateConversionUtil.stringToLocalTime(location.getLocationOutTime());
 
-            if (location.getLocationInTime() == null ||
-                location.getLocationOutTime() == null) {
-                throw new IllegalArgumentException(
-                        "Location inTime and outTime are required");
-            }
+    	    if (!locOutTime.isAfter(locInTime)) {
+    	        throw new IllegalArgumentException("Location outTime must be greater than inTime");
+    	    }
 
-            if (location.getProjects() == null || location.getProjects().isEmpty()) {
-                throw new IllegalArgumentException(
-                        "Each location session must contain at least one project");
-            }
+    	    LocalDate date = empDTO.getDate();
 
-            for (ProjectTimesheetDTO project : location.getProjects()) {
-                validateProject(project, empDTO);
-            }
-        }
+    	    LocalDateTime locationIn = LocalDateTime.of(date, locInTime);
+    	    LocalDateTime locationOut = LocalDateTime.of(date, locOutTime);
 
-        /* =====================================================
-           PROJECT VALIDATION
-           ===================================================== */
+    	    LocalDateTime officeIn = empDTO.getWorkCheckIn();
+    	    LocalDateTime officeOut = empDTO.getWorkCheckOut();
 
-        private void validateProject(ProjectTimesheetDTO project,
+    	    if (officeIn != null && officeOut != null) {
+
+    	        if (locationIn.isBefore(officeIn) || locationIn.isAfter(officeOut)) {
+    	            throw new IllegalArgumentException("Location inTime must be within work range");
+    	        }
+
+    	        if (locationOut.isBefore(officeIn) || locationOut.isAfter(officeOut)) {
+    	            throw new IllegalArgumentException("Location outTime must be within work range");
+    	        }
+    	    }
+
+    	    for (ProjectTimesheetDTO project : location.getProjects()) {
+    	        validateProject(project, empDTO);
+    	    }
+    	}
+
+      
+      
+         private void validateProject(ProjectTimesheetDTO project,
                                      EmployeeTimesheetDTO empDTO) {
 
             if (project.getProjectId() == null) {
@@ -231,11 +264,6 @@ public class TimesheetValidationHelper {
 
            
         }
-
-        /* =====================================================
-           DOCUMENT VALIDATION
-           ===================================================== */
-
         /**
          * Validate document requirements for new contract.
          * Applies only for:
@@ -243,8 +271,7 @@ public class TimesheetValidationHelper {
          *  - Shadow timesheets
          *  - Projects where client-side document is mandatory
          */
-        private void validateDocuments(List<TimesheetDocumentDataDTO> docs,
-                                       EmployeeTimesheetDTO empDTO) {
+        public void validateDocumentsDTO(EmployeeTimesheetDTO empDTO) {
 
             if (empDTO == null) {
                 return;
@@ -255,6 +282,7 @@ public class TimesheetValidationHelper {
                 return;
             }
 
+            List<TimesheetDocumentDataDTO> docs=empDTO.getDocumentData();
             // Normalize docs list
             List<TimesheetDocumentDataDTO> documentList =
                     docs != null ? docs : List.of();
@@ -319,6 +347,7 @@ public class TimesheetValidationHelper {
             if (isNonWorkingDay(empDTO.getDayType())) {
                 return;
             }
+            List<TimesheetDocumentDataDTO> docs=empDTO.getDocumentData();
 
             
 
@@ -362,7 +391,7 @@ public class TimesheetValidationHelper {
                                         + projectId);
                     }
                     
-                    if(project.getClientApprovalStatus()==1 && projectFiles.size()==2) {
+                    if(project.getClientApprovalStatus()==2 && projectFiles.size()!=2) {
                     	throw new IllegalArgumentException(
                                 "2 documents (filled + approved) are required for projectId="
                                         + projectId);
@@ -577,35 +606,7 @@ public class TimesheetValidationHelper {
                 || "Week Off".equalsIgnoreCase(dayType)
                 || "Leave".equalsIgnoreCase(dayType)
                 || "Client Holiday".equalsIgnoreCase(dayType);
-        }
-
-
-    
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-   
+        }   
     /**
      * Validate date is not within lock period.
      * 
@@ -794,7 +795,7 @@ public class TimesheetValidationHelper {
      * @param date Date to check
      * @throws IllegalArgumentException if timesheet already exists
      */
-    public void validateTimesheetNotExists(Long empId, LocalDate date) {
+    public void validateTimesheetAlreadyExists(Long empId, LocalDate date) {
         if (empId == null || date == null) {
             throw new IllegalArgumentException("Employee ID and Date are required");
         }
