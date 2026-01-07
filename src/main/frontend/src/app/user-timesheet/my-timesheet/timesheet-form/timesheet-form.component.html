@@ -215,7 +215,7 @@
                                                 [ngClass]="expandedProjectIndexMap[lIndex] === pIndex ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
                                             <button *ngIf="location.projects.length > 1"
                                                 class="btn btn-sm btn-icon-danger ml-3"
-                                                (click)="removeProject(location, pIndex); $event.stopPropagation()"
+                                                (click)="removeProject(location, pIndex); $event.stopPropagation();getListToRenderUpload();"
                                                 title="Remove Project">
                                                 <i class="fa fa-trash"></i>
                                             </button>
@@ -434,37 +434,45 @@
                     </div>
 
                     <!-- Filled Attendance Proof -->
+                     @for (file of uploadFileList; track file.projectId) {
+                        @if (file.projectId === project.projectId && file.docType === 'Filled') {
                     <div class="col-md-6 mb-3">
                         <label class="info-label">
                             <span class="text-danger">*</span> Filled Attendance Proof
                         </label>
-
                         <div class="d-flex align-items-center">
                             <input type="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png"
                                 style="max-width: 250px;" (change)="onFileSelected($event, 'Filled', project.projectId)"
                                 (click)="$any($event.target).value = null" />
-
-                            <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
-                                [disabled]="!previewUrl1" (click)="openPreviewModalForTwo('Filled')">
-                                <i class="fa fa-eye"></i>
-                            </button>
+                                            @if (file.file) {
+                                                <button class="btn btn-outline-primary btn-sm ms-2" title="Preview" [disabled]="!file.previewUrl"
+                                                    (click)="openPreviewModalForTwo('Filled')">
+                                                    <i class="fa fa-eye"></i>
+                                                </button>
+                                            }
+                                        
                         </div>
-
-                        <small class="text-danger d-block" *ngIf="fileError1">
-                            {{ fileError1 }}
-                        </small>
-
-                        <small class="text-muted d-block" *ngIf="fileName1 && !fileError1">
-                            {{ fileName1 }}
-                        </small>
-
-                        <small class="text-muted d-block" *ngIf="!fileName1 && !fileError1">
-                            No file selected
-                        </small>
+                            @if (file.fileError) {
+                                <small class="text-danger d-block">
+                                    {{ file.fileError }}
+                                </small>
+                            }
+                            @else if (file.fileName && !file.fileError) {
+                                <small class="text-muted d-block">
+                                    {{ file.fileName }}
+                                </small>
+                            }
+                            @else if (!file.file && !file.fileError) {
+                                <small class="text-muted d-block">
+                                    No file selected
+                                </small>
+                            }
+                        
                     </div>
-
+                    }
                     <!-- Approved Attendance Proof (Only if Approved) -->
-                    <div class="col-md-6 mb-3" *ngIf="project.clientApprovalStatus === 'Approved'">
+                    @if (file.projectId === project.projectId && file.docType === 'Approved') {
+                    <div class="col-md-6 mb-3">
                         <label class="info-label">
                             <span class="text-danger">*</span> Approved Attendance Proof
                         </label>
@@ -473,26 +481,32 @@
                             <input type="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png"
                                 style="max-width: 250px;" (change)="onFileSelected($event, 'Approved',project.projectId)"
                                 (click)="$any($event.target).value = null" />
-
+                            @if (file.file) {
                             <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
-                                [disabled]="!previewUrl2" (click)="openPreviewModalForTwo('Approved')">
+                                [disabled]="!file.previewUrl" (click)="openPreviewModalForTwo('Approved')">
                                 <i class="fa fa-eye"></i>
                             </button>
+                        }
                         </div>
-
-                        <small class="text-danger d-block" *ngIf="fileError2">
-                            {{ fileError2 }}
+                        @if (file.fileError) {
+                        <small class="text-danger d-block">
+                            {{ file.fileError }}
                         </small>
-
-                        <small class="text-muted d-block" *ngIf="fileName2 && !fileError2">
-                            {{ fileName2 }}
+                    }
+                        @else if (file.fileName && !file.fileError) {
+                        <small class="text-muted d-block">
+                            {{ file.fileName }}
                         </small>
-
-                        <small class="text-muted d-block" *ngIf="!fileName2 && !fileError2">
+                    }
+                        @else if (!file.file && !file.fileError) {
+                        <small class="text-muted d-block">
                             No file selected
                         </small>
+                    }
                     </div>
-
+                    }
+                }
+                
                 </div>
 
                 <!-- <div class="row mt-3" *ngFor="let project of uniqueProjectsList">
@@ -500,7 +514,7 @@
                 
             </div> -->
             </div>
-            }
+        }
         </div>
         <!-- Action Buttons Card  -->
         <div class="form-bottom-card">

@@ -205,6 +205,7 @@ export class TimesheetFormComponent implements OnInit {
     this.expandedLocationIndex = this.timesheetLocations.length - 1;
     // Initialize expanded project index for this location
     this.expandedProjectIndexMap[this.timesheetLocations.length - 1] = 0;
+    this.getListToRenderUpload();
   }
 
   /**
@@ -252,6 +253,7 @@ export class TimesheetFormComponent implements OnInit {
     // Expand the newly added project
     const locationIndex = this.timesheetLocations.indexOf(location);
     this.expandedProjectIndexMap[locationIndex] = location.projects.length - 1;
+    this.getListToRenderUpload();
   }
 
   /**
@@ -1244,6 +1246,16 @@ export class TimesheetFormComponent implements OnInit {
     const newFileName = `${projectId}_${safeDocType}_${file.name}`;
 
     return new File([file], newFileName, { type: file.type });
+  }
+  hasFilledDocument(projectId: number): boolean {
+    return this.uploadFileList?.some(
+      file => file.projectId === projectId && file.docType === 'Filled'
+    );
+  }
+  hasApprovedDocument(projectId: number): boolean {
+    return this.uploadFileList?.some(
+      file => file.projectId === projectId && file.docType === 'Approved'
+    );
   }
   createTimesheet() {
     console.log("Create Timesheet clicked");
