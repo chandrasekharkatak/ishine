@@ -2,7 +2,9 @@ package com.apmosys.employeeportal.service.validator;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +32,7 @@ import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.service.TimesheetService;
+import com.apmosys.employeeportal.utility.DateConversionUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -169,31 +172,51 @@ public class TimesheetValidationHelper {
             }
         }
 
-        private void validateLocationSession(LocationSessionDTO location,
-                                             EmployeeTimesheetDTO empDTO) {
+   
+      // TODO :: Need to Test date comparison properly 
+      private void validateLocationSession(LocationSessionDTO location, EmployeeTimesheetDTO empDTO) {
+    	  
+    	  
+    	  
+    	  if (location.getWorkLocationTypeId() == null) 
+    	  { throw new IllegalArgumentException("Work location type is required"); } 
+    	  
+    	  if (location.getLocationInTime() == null || location.getLocationOutTime() == null)
+    	  { throw new IllegalArgumentException( "Location inTime and outTime are required"); }
 
-            if (location.getWorkLocationType() == null &&
-                location.getWorkLocationTypeId() == null) {
-                throw new IllegalArgumentException("Work location type is required");
-            }
+    	    LocalTime locInTime = DateConversionUtil.stringToLocalTime(location.getLocationInTime());
+    	    LocalTime locOutTime = DateConversionUtil.stringToLocalTime(location.getLocationOutTime());
 
-            if (location.getLocationInTime() == null ||
-                location.getLocationOutTime() == null) {
-                throw new IllegalArgumentException(
-                        "Location inTime and outTime are required");
-            }
-            
-            //TODO:-Location Out time> Location In Time and Range Between WorkingIn-work out
+    	    if (!locOutTime.isAfter(locInTime)) {
+    	        throw new IllegalArgumentException("Location outTime must be greater than inTime");
+    	    }
 
-            if (location.getProjects() == null || location.getProjects().isEmpty()) {
-                throw new IllegalArgumentException(
-                        "Each location session must contain at least one project");
-            }
+    	    LocalDate date = empDTO.getDate();
 
-            for (ProjectTimesheetDTO project : location.getProjects()) {
-                validateProject(project, empDTO);
-            }
-        }
+    	    LocalDateTime locationIn = LocalDateTime.of(date, locInTime);
+    	    LocalDateTime locationOut = LocalDateTime.of(date, locOutTime);
+
+    	    LocalDateTime officeIn = empDTO.getWorkCheckIn();
+    	    LocalDateTime officeOut = empDTO.getWorkCheckOut();
+
+    	    if (officeIn != null && officeOut != null) {
+
+    	        if (locationIn.isBefore(officeIn) || locationIn.isAfter(officeOut)) {
+    	            throw new IllegalArgumentException("Location inTime must be within work range");
+    	        }
+
+    	        if (locationOut.isBefore(officeIn) || locationOut.isAfter(officeOut)) {
+    	            throw new IllegalArgumentException("Location outTime must be within work range");
+    	        }
+    	    }
+
+    	    for (ProjectTimesheetDTO project : location.getProjects()) {
+    	        validateProject(project, empDTO);
+    	    }
+    	}
+
+      
+      
          private void validateProject(ProjectTimesheetDTO project,
                                      EmployeeTimesheetDTO empDTO) {
 

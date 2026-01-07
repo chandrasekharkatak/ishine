@@ -419,6 +419,7 @@ public class TimesheetServiceNew {
 	                        }
 
 	                        // Create Project
+							@SuppressWarnings("unused")
 							ProjectTimesheetStatusNew projectTS =
 	                                projectTimesheetService.create(
 	                                        timesheetId,
