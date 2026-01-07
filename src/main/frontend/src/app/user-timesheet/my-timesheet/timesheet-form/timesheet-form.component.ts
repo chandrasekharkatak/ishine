@@ -253,7 +253,6 @@ export class TimesheetFormComponent implements OnInit {
     // Expand the newly added project
     const locationIndex = this.timesheetLocations.indexOf(location);
     this.expandedProjectIndexMap[locationIndex] = location.projects.length - 1;
-    this.getListToRenderUpload();
   }
 
   /**
@@ -614,7 +613,7 @@ export class TimesheetFormComponent implements OnInit {
     await this.timesheetService.getClientSideIdByProjectIdAndEmpId(projectId, empId).pipe(first()).toPromise().then((response: any) => {
       if (response.serviceStatus == "Success") {
         this.timesheetObj.clientSideId = response.serviceResponse;
-        this.empHasClientSideId = true;
+        this.getListToRenderUpload();
         if (this.timesheetObj.clientSideId) {
           this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
           this.empClientSideObj.projectId = projectId;
@@ -1145,9 +1144,11 @@ export class TimesheetFormComponent implements OnInit {
     if (!allowedTypes.includes(file.type)) {
       if (docType === 'Filled') {
         this.fileError1 = 'Only PDF, JPG, JPEG, PNG files allowed.';
+        this.uploadFileList.push({ projectId: projectId, docType: 'Filled', file: null, previewUrl: null, rawObjectUrl: null, fileError: this.fileError1, fileType: null, fileName: null, fileSize: null });
         this.openAlertMod(this.alertTemplate, this.fileError1);
       } else {
         this.fileError2 = 'Only PDF, JPG, JPEG, PNG files allowed.';
+        this.uploadFileList.push({ projectId: projectId, docType: 'Approved', file: null, previewUrl: null, rawObjectUrl: null, fileError: this.fileError2, fileType: null, fileName: null, fileSize: null });
         this.openAlertMod(this.alertTemplate, this.fileError2);
       }
       // Reset file input
@@ -1158,9 +1159,10 @@ export class TimesheetFormComponent implements OnInit {
     if (file.size > maxSize) {
       if (docType === 'Filled') {
         this.fileError1 = 'File size must be 300KB or less.';
+        this.uploadFileList.push({ projectId: projectId, docType: 'Filled', file: null, previewUrl: null, rawObjectUrl: null, fileError: this.fileError1, fileType: null, fileName: null, fileSize: null });
         this.openAlertMod(this.alertTemplate, this.fileError1);
         this.selectedFile = null;
-        this.fileName1 = '';
+        this.fileName1 = null;
         this.previewUrl1 = null;
         if (this.rawObjectUrl1) {
           URL.revokeObjectURL(this.rawObjectUrl1);
@@ -1168,9 +1170,10 @@ export class TimesheetFormComponent implements OnInit {
         this.rawObjectUrl1 = null;
       } else {
         this.fileError2 = 'File size must be 300KB or less.';
+        this.uploadFileList.push({ projectId: projectId, docType: 'Approved', file: null, previewUrl: null, rawObjectUrl: null, fileError: this.fileError2, fileType: null, fileName: null, fileSize: null });
         this.openAlertMod(this.alertTemplate, this.fileError2);
         this.selectedFile2 = null;
-        this.fileName2 = '';
+        this.fileName2 = null;
         this.previewUrl2 = null;
         if (this.rawObjectUrl2) {
           URL.revokeObjectURL(this.rawObjectUrl2);
@@ -1195,17 +1198,19 @@ export class TimesheetFormComponent implements OnInit {
     const previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
 
     if (docType === 'Filled') {
-      this.selectedFile = file;
-      this.fileName1 = file.name;
-      this.previewUrl1 = previewUrl;
-      this.rawObjectUrl1 = objectUrl;
-      this.fileError1 = '';
+      // this.selectedFile = file;
+      // this.fileName1 = file.name;
+      // this.previewUrl1 = previewUrl;
+      // this.rawObjectUrl1 = objectUrl;
+      // this.fileError1 = '';
+      this.uploadFileList.push({ projectId: projectId, docType: 'Filled', file: file, previewUrl: previewUrl, rawObjectUrl: objectUrl, fileError: null, fileType: null, fileName: file.name, fileSize: file.size });
     } else {
       this.selectedFile2 = file;
-      this.fileName2 = file.name;
-      this.previewUrl2 = previewUrl;
-      this.rawObjectUrl2 = objectUrl;
-      this.fileError2 = '';
+      // this.fileName2 = file.name;
+      // this.previewUrl2 = previewUrl;
+      // this.rawObjectUrl2 = objectUrl;
+      // this.fileError2 = '';
+      this.uploadFileList.push({ projectId: projectId, docType: 'Approved', file: file, previewUrl: previewUrl, rawObjectUrl: objectUrl, fileError: null, fileType: null, fileName: file.name, fileSize: file.size });
     }
   }
 
@@ -1408,6 +1413,7 @@ export class TimesheetFormComponent implements OnInit {
     this.timesheetLocations.forEach((location) => {
       location.projects.forEach((project) => {
         if (project.clientSideId ) {
+          this.empHasClientSideId = true;
           dataList.set(project.projectId, project);
           if (project.clientApprovalStatus == 'Approved'){
             this.uploadFileList.push({ projectId: project.projectId, docType: 'Filled', file: null, previewUrl: null, rawObjectUrl: null, fileError: null, fileType: null, fileName: null, fileSize: null });

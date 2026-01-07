@@ -7,6 +7,8 @@
     {{ label }}
   </label>
 
+  <div class="row d-flex align-items-center">
+  <div class="col-md-11 pr-0">
   <input
     *ngIf="mode === 'date'"
     type="date"
@@ -34,13 +36,15 @@
     (ngModelChange)="onModelChange($event)"
     [disabled]="disabled"
   />
-
+</div>
+<div class="col-md-1 pl-0">
   <button
     *ngIf="modelValue && !disabled"
     type="button"
     class="btn btn-sm btn-link text-danger dt-clear-btn"
     (click)="clearValue()">
-    ✖
-  </button>
-
+      ✖
+    </button>
+  </div>
+</div>
 </div>
