@@ -1939,7 +1939,7 @@ openUserManualPdf(): void {
 
     let timesheetObj = new Timesheet();
     timesheetObj.empId = employeeObj.empId;
-    this.timesheetNewService.getAllProjectsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+    this.timesheetNewService.getAllProjectsByEmpId(employeeObj.empId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allProjectsList = response.serviceResponse;
         if (this.allProjectsList.length == 0) {

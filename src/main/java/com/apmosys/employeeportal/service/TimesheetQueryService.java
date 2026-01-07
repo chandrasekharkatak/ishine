@@ -1,10 +1,15 @@
 package com.apmosys.employeeportal.service;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
@@ -14,14 +19,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
+import com.apmosys.employeeportal.dto.ActivityResponseDTONew;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectEntryResponseDTONew;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
+import com.apmosys.employeeportal.dto.TimesheetResponseDTONew;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
@@ -68,6 +78,9 @@ public class TimesheetQueryService {
     
     @Autowired
     private EntityManager entityManager;
+    
+    @Autowired
+    private EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
 
     /**
      * Gets all timesheets by employee ID.
@@ -86,11 +99,12 @@ public class TimesheetQueryService {
                   .append(" ,endDate : ").append(timesheetDTO.getEndDate());
         
         try {
-            LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
-            LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
-            
-            List<Object[]> timesheetList = timesheetsRepository
-                    .getAllMyTimesheetsOLD(timesheetDTO.getEmpId(), start, end);
+//            LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
+//            LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
+        	  LocalDate start = LocalDate.parse("2025-11-19");
+              LocalDate end = LocalDate.parse("2025-12-31");
+            List<Object[]> timesheetList = employeeTimesheetsNewRepository
+                    .getAllMyTimesheets(timesheetDTO.getEmpId(), start, end);
 
             Optional.ofNullable(timesheetList).ifPresentOrElse((list) -> {
                 if (list.isEmpty()) {
@@ -99,7 +113,7 @@ public class TimesheetQueryService {
                     apiLogInfo.setApiResponse("Timesheet list is empty");
                     apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
                 } else {
-                    List<TimesheetDTO> dtoList = buildTimesheetDTOList(list);
+                    List<TimesheetResponseDTONew> dtoList = buildTimesheetDTOList(list);
                     response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
                     response.setServiceResponse(dtoList);
                     apiLogInfo.setApiResponse("dtoList : " + dtoList);
@@ -141,11 +155,11 @@ public class TimesheetQueryService {
                   .append(" ,endDate : ").append(timesheetDTO.getEndDate());
         
         try {
-            LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
-            LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
+            LocalDate start = LocalDate.parse("2025-11-19");
+            LocalDate end = LocalDate.parse("2025-12-31");
             
-            List<Object[]> timesheetList = timesheetsRepository
-                    .getAllMyTeamTimesheetsOLD(timesheetDTO.getCreatedBy(), start, end);
+            List<Object[]> timesheetList = employeeTimesheetsNewRepository
+                    .getAllMyTeamTimesheets(timesheetDTO.getCreatedBy(), start, end);
 
             Optional.ofNullable(timesheetList).ifPresentOrElse((list) -> {
                 if (list.isEmpty()) {
@@ -154,7 +168,7 @@ public class TimesheetQueryService {
                     apiLogInfo.setApiResponse("Timesheet list is empty");
                     apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
                 } else {
-                    List<TimesheetDTO> dtoList = buildTimesheetDTOList(list);
+                    List<TimesheetResponseDTONew> dtoList = buildTimesheetDTOList(list);
                     response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
                     response.setServiceResponse(dtoList);
                     apiLogInfo.setApiResponse("dtoList : " + dtoList);
@@ -657,56 +671,185 @@ public class TimesheetQueryService {
     /**
      * Builds timesheet DTO list from object array.
      */
-    private List<TimesheetDTO> buildTimesheetDTOList(List<Object[]> timesheetList) {
-        List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
+    private List<TimesheetResponseDTONew> buildTimesheetDTOList(List<Object[]> timesheetList) {
+//        List<TimesheetDTO> dtoList = new ArrayList<TimesheetDTO>();
+//
+//        timesheetList.forEach((object) -> {
+//            TimesheetDTO dto = new TimesheetDTO();
+//            Long timesheetId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
+//            dto.setTimesheetId(timesheetId);
+//            dto.setDate(object[1] != null ? object[1].toString() : null);
+//            dto.setDayType(object[2] != null ? object[2].toString() : null);
+//            dto.setEmployeeName(object[3] != null ? object[3].toString() : null);
+//            dto.setDescription(object[4] != null ? object[4].toString() : null);
+//            dto.setTotalTime(object[5] != null ? Float.parseFloat(object[5].toString()) : null);
+//            dto.setStatus(object[6] != null ? object[6].toString() : null);
+//            dto.setCreatedByName(object[7] != null ? object[7].toString() : null);
+//            dto.setCreatedOn(object[8] != null ? object[8].toString() : null);
+//            dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
+//            dto.setRemarks(object[10] != null ? object[10].toString() : null);
+//            dto.setOfficeInTime(object[11] != null ? object[11].toString() : null);
+//            dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
+//            dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
+//            dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
+//            dto.setLeaveType(object[15] != null ? object[15].toString() : null);
+//            dto.setClientInTime(object[16] != null ? ((java.sql.Timestamp) object[16]).toLocalDateTime() : null);
+//            dto.setClientOutTime(object[17] != null ? ((java.sql.Timestamp) object[17]).toLocalDateTime() : null);
+//            dto.setClientSideId(object[18] != null ? object[18].toString() : null);
+//            dto.setTotalClientWorkingHours(object[19] != null ? object[19].toString() : null);
+//            dto.setProjectId(object[20] != null ? Integer.parseInt(object[20].toString()) : null);
+//            dto.setClientApprovalStatus(object[21] != null ? object[21].toString() : null);
+//            dto.setHasClientSideId(object[22] != null ? (Boolean) object[22] : null);
+//            dto.setEmploymentId(object[22] != null ? employeeRepository.fetchEmploymentIdByEmpId(Long.parseLong(object[9].toString())) : null);
+//            dto.setIsShadowTimesheet(object[23] != null ? (Boolean) object[23] : null);
+//            dto.setShadowEmpId(object[24] != null ? Long.parseLong(object[24].toString()) : null);
+//            dto.setRejectReason(object[25] != null ? object[25].toString() : null);
+//            
+//			if(timesheetId != null) {
+//
+//				setDocument(timesheetId,dto);
+//			};
+//			// Get InActive Activities In Timesheet
+//			if(dto.getStatus() != null && dto.getStatus().equals("Pending")) {
+//				//For a timesheet if activites were inactive after u filled that timesheet this method get those activites.
+//				setInactiveActivityList(dto);
+//				
+//			}
+//
+//			
+//            dtoList.add(dto);
+//        });
+//
+//        return dtoList;
+//        
 
-        timesheetList.forEach((object) -> {
-            TimesheetDTO dto = new TimesheetDTO();
-            Long timesheetId = object[0] != null ? Long.parseLong(object[0].toString()) : null;
-            dto.setTimesheetId(timesheetId);
-            dto.setDate(object[1] != null ? object[1].toString() : null);
-            dto.setDayType(object[2] != null ? object[2].toString() : null);
-            dto.setEmployeeName(object[3] != null ? object[3].toString() : null);
-            dto.setDescription(object[4] != null ? object[4].toString() : null);
-            dto.setTotalTime(object[5] != null ? Float.parseFloat(object[5].toString()) : null);
-            dto.setStatus(object[6] != null ? object[6].toString() : null);
-            dto.setCreatedByName(object[7] != null ? object[7].toString() : null);
-            dto.setCreatedOn(object[8] != null ? object[8].toString() : null);
-            dto.setEmpId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
-            dto.setRemarks(object[10] != null ? object[10].toString() : null);
-            dto.setOfficeInTime(object[11] != null ? object[11].toString() : null);
-            dto.setOfficeOutTime(object[12] != null ? object[12].toString() : null);
-            dto.setTotalWorkingOfficeHours(object[13] != null ? object[13].toString() : null);
-            dto.setIsNightShift(object[14] != null ? object[14].toString() : null);
-            dto.setLeaveType(object[15] != null ? object[15].toString() : null);
-            dto.setClientInTime(object[16] != null ? ((java.sql.Timestamp) object[16]).toLocalDateTime() : null);
-            dto.setClientOutTime(object[17] != null ? ((java.sql.Timestamp) object[17]).toLocalDateTime() : null);
-            dto.setClientSideId(object[18] != null ? object[18].toString() : null);
-            dto.setTotalClientWorkingHours(object[19] != null ? object[19].toString() : null);
-            dto.setProjectId(object[20] != null ? Integer.parseInt(object[20].toString()) : null);
-            dto.setClientApprovalStatus(object[21] != null ? object[21].toString() : null);
-            dto.setHasClientSideId(object[22] != null ? (Boolean) object[22] : null);
-            dto.setEmploymentId(object[22] != null ? employeeRepository.fetchEmploymentIdByEmpId(Long.parseLong(object[9].toString())) : null);
-            dto.setIsShadowTimesheet(object[23] != null ? (Boolean) object[23] : null);
-            dto.setShadowEmpId(object[24] != null ? Long.parseLong(object[24].toString()) : null);
-            dto.setRejectReason(object[25] != null ? object[25].toString() : null);
-            
-			if(timesheetId != null) {
+    	
+    	Map<Long, TimesheetResponseDTONew> timesheetMap = new LinkedHashMap<>();
 
-				setDocument(timesheetId,dto);
-			};
-			// Get InActive Activities In Timesheet
-			if(dto.getStatus() != null && dto.getStatus().equals("Pending")) {
-				//For a timesheet if activites were inactive after u filled that timesheet this method get those activites.
-				setInactiveActivityList(dto);
-				
-			}
+    	timesheetList.forEach(row -> {
 
-			
-            dtoList.add(dto);
-        });
+    	    // ================= TIMESHEET =================
+    	    Long timesheetId = row[0] != null ? ((Number) row[0]).longValue() : null;
+    	    if (timesheetId == null) return;
 
-        return dtoList;
+    	    TimesheetResponseDTONew tsDto =
+    	            timesheetMap.computeIfAbsent(timesheetId, id -> {
+
+    	        TimesheetResponseDTONew dto = new TimesheetResponseDTONew();
+
+    	        dto.setTimesheetId(id);
+    	        dto.setEmpId(row[8] != null ? ((Number) row[8]).longValue() : null);
+    	        dto.setEmployeeName(row[3] != null ? row[3].toString() : null);
+
+    	        dto.setDate(row[1] != null
+    	                ? ((java.sql.Date) row[1]).toLocalDate()
+    	                : null);
+
+    	        dto.setDayType(row[2] != null ? row[2].toString() : null);
+    	        dto.setDescription(null); // not present in query
+
+    	        // STATUS
+    	        if (row[5] != null) {
+    	            dto.setStatusName(row[5].toString());
+    	            dto.setStatus(mapStatusToId(row[5].toString()));
+    	        }
+
+    	        // OFFICE TIME
+    	        LocalDateTime officeIn =
+    	                row[9] != null ? ((java.sql.Timestamp) row[9]).toLocalDateTime() : null;
+    	        LocalDateTime officeOut =
+    	                row[10] != null ? ((java.sql.Timestamp) row[10]).toLocalDateTime() : null;
+
+    	        dto.setOfficeInTime(officeIn);
+    	        dto.setOfficeOutTime(officeOut);
+    	        dto.setIsNightShift(row[12] != null && ((Number) row[12]).intValue() == 1);
+
+    	        if (officeIn != null && officeOut != null) {
+    	            long mins = Duration.between(officeIn, officeOut).toMinutes();
+    	            dto.setTotalWorkingMinutes((int) mins);
+    	            dto.setTotalWorkingHours(mins / 60.0);
+    	        }
+
+    	        // CLIENT
+    	        dto.setClientApprovalStatus(row[19] != null ? row[19].toString() : null);
+
+    	        // AUDIT
+    	        dto.setCreatedByName(row[6] != null ? row[6].toString() : null);
+    	        dto.setCreatedOn(row[7] != null
+    	                ? ((java.sql.Timestamp) row[7]).toLocalDateTime()
+    	                : null);
+
+    	        dto.setProjectEntries(new ArrayList<>());
+//    	        dto.setDocuments(fetchDocuments(id));
+
+    	        return dto;
+    	    });
+
+    	    // ================= PROJECT =================
+    	    Long projectId = row[18] != null ? ((Number) row[18]).longValue() : null;
+    	    if (projectId == null) return;
+
+    	    ProjectEntryResponseDTONew projectDto =
+    	            tsDto.getProjectEntries()
+    	                .stream()
+    	                .filter(p -> p.getProjectId().equals(projectId))
+    	                .findFirst()
+    	                .orElseGet(() -> {
+
+    	                    ProjectEntryResponseDTONew p = new ProjectEntryResponseDTONew();
+
+    	                    p.setProjectId(projectId);
+    	                    p.setProjectName(null); // not in query
+    	                    p.setClientSideId(row[16] != null ? row[16].toString() : null);
+    	                    p.setHasClientSideId(row[20] != null && ((Number) row[20]).intValue() == 1);
+
+    	                    p.setOfficeInTime(
+    	                            row[9] != null ? ((java.sql.Timestamp) row[9]).toLocalDateTime() : null);
+    	                    p.setOfficeOutTime(
+    	                            row[10] != null ? ((java.sql.Timestamp) row[10]).toLocalDateTime() : null);
+
+    	                    p.setClientInTime(
+    	                            row[14] != null ? ((java.sql.Timestamp) row[14]).toLocalDateTime() : null);
+    	                    p.setClientOutTime(
+    	                            row[15] != null ? ((java.sql.Timestamp) row[15]).toLocalDateTime() : null);
+
+    	                    if (p.getClientInTime() != null && p.getClientOutTime() != null) {
+    	                        long mins = Duration.between(
+    	                                p.getClientInTime(), p.getClientOutTime()).toMinutes();
+    	                        p.setTotalClientWorkingMinutes((int) mins);
+    	                        p.setTotalClientWorkingHours(mins / 60.0);
+    	                    }
+
+    	                    p.setShadowEmpId(row[22] != null ? ((Number) row[22]).longValue() : null);
+    	                    p.setIsShadowTimesheet(row[21] != null && ((Number) row[21]).intValue() == 1);
+    	                    p.setClientApprovalStatus(row[19] != null ? row[19].toString() : null);
+
+//    	                    p.setActivities(new ArrayList<>());
+    	                    tsDto.getProjectEntries().add(p);
+    	                    
+    	                    return p;
+    	                });
+
+    	    // ================= REJECTION (PROJECT LEVEL) =================
+    	    if (row[23] != null) {
+    	        // you may attach this to project or activity level based on UI
+    	        // example: projectDto.setRejectionReason(row[23].toString());
+    	    }
+    	});
+    	timesheetMap.values().forEach(timesheetDto -> {
+
+    	    if ("Pending".equals(timesheetDto.getStatusName())) {
+    	        setInactiveActivitiesNew(timesheetDto);
+    	    }
+    	});
+    	
+
+    	// FINAL RESPONSE
+    	List<TimesheetResponseDTONew> response =
+    	        new ArrayList<>(timesheetMap.values());
+
+        return response;
+        
     }
 
     /**
@@ -835,5 +978,113 @@ public class TimesheetQueryService {
 
     }
     }
+    private Integer mapStatusToId(String status) {
+        switch (status) {
+            case "Pending": return 1;
+            case "Approved": return 2;
+            case "Rejected": return 3;
+            default: return 0;
+        }
+    }
+    
+    
+    public void setInactiveActivitiesNew(TimesheetResponseDTONew timesheetDto) {
+
+        if (timesheetDto == null
+                || timesheetDto.getTimesheetId() == null
+                || timesheetDto.getProjectEntries() == null
+                || timesheetDto.getProjectEntries().isEmpty()) {
+            return;
+        }
+
+        List<Object[]> inactiveRows =
+                employeeTimesheetsNewRepository.getInactiveActivitiesByTimesheetId(
+                        timesheetDto.getTimesheetId());
+
+        if (inactiveRows == null || inactiveRows.isEmpty()) {
+            return;
+        }
+
+        // Map projectId -> ProjectEntry
+        Map<Long, ProjectEntryResponseDTONew> projectMap =
+                timesheetDto.getProjectEntries()
+                        .stream()
+                        .collect(Collectors.toMap(
+                                ProjectEntryResponseDTONew::getProjectId,
+                                Function.identity()
+                        ));
+
+        inactiveRows.forEach(row -> {
+
+            if (row[0] == null) return;
+
+            String activityMapId = row[0].toString();
+            String[] parts = activityMapId.split("_");
+
+            if (parts.length != 3) return;
+
+            Long activityId = Long.parseLong(parts[1]);
+            Long projectId = Long.parseLong(parts[2]);
+
+            ProjectEntryResponseDTONew projectDto = projectMap.get(projectId);
+            if (projectDto == null) return;
+
+            ActivityResponseDTONew activity = new ActivityResponseDTONew();
+            activity.setActivityId(activityId);
+            
+
+            if (projectDto.getActivities() == null) {
+                projectDto.setActivities(new ArrayList<>());
+            }
+
+            projectDto.getActivities().add(activity);
+        });
+    }
+    
+    public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(Long empId) {
+		
+//		return timesheetQueryService.getActiveProjectsAndClientSideIdByEmpId(empId);
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/getActiveProjectsByEmpId");
+	    apiLogInfo.setLogLevel("INFO");
+	    
+	    try {
+	        List<ProjectClientSideIdDTO> activeProjectList = employeeTimesheetsNewRepository.getActiveProjectsAndClientSideIdByEmpId(empId);
+	        
+	        if (activeProjectList.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Please contact to the RMG team to provide you active project mapping!");
+	            response.setServiceMessage("Employee has no active project mapping ! For EmpId: " + empId);
+	            
+	            apiLogInfo.setApiResponse("Employee has no active project mapping ! For EmpId: " + empId);
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            logService.logMyInfo(httpRequest, apiLogInfo);
+	            return response;
+	        }
+	        
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(activeProjectList);
+            response.setServiceMessage("Project List fetched successfully!");
+
+            apiLogInfo.setApiResponse("Project list where employee has active = 1 in Employee Team Mapping table fetched successfully!");
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage()); 
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+//	    logService.logMyInfo(httpRequest, apiLogInfo);
+	    return response;
+	}
+	
+
 }
 

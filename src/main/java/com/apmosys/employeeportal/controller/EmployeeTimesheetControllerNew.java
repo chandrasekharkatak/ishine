@@ -13,12 +13,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.JobRoleAccess;
+import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDeleteRequestDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetStatusUpdateRequestDTO;
@@ -196,5 +198,27 @@ public class EmployeeTimesheetControllerNew {
 				requestDTO.getProjectId());
 		return response;
 	}
+	
+	@JobRoleAccess(featureIds = {7,15,16})
+	@RequestMapping(value = "/getAllProjectsByEmpId", method = RequestMethod.POST)
+	public ServiceResponse getAllProjectsByEmpId(@RequestBody Long empId) {
+
+		ServiceResponse response = timesheetServiceNew.getAllProjectsByEmpId(empId);
+		return response;
+	}
+	
+	@JobRoleAccess(featureIds = {15,16})
+	@RequestMapping(value = "/getAllMyTimesheetsByEmpId", method = RequestMethod.POST)
+	public ServiceResponse getAllMyTimesheetsByEmpId(@RequestBody TimesheetDTO timesheetDTO) {
+
+		ServiceResponse response = timesheetServiceNew.getAllMyTimesheetsByEmpId(timesheetDTO);
+		return response;
+	}
+	
+	@JobRoleAccess(featureIds = {15})
+	 @PostMapping("/getActiveProjectsAndClientSideIdByEmpId")
+	 public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(@RequestBody Long empId) {
+	     return timesheetServiceNew.getActiveProjectsAndClientSideIdByEmpId(empId);
+	 }
 }
 

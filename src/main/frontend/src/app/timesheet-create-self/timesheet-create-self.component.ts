@@ -1528,7 +1528,7 @@ export class TimesheetCreateSelfComponent implements OnInit {
 
     let timesheetObj = new Timesheet();
     timesheetObj.empId = employeeObj.empId;
-    this.timesheetNewService.getAllProjectsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+    this.timesheetNewService.getAllProjectsByEmpId(employeeObj.empId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allProjectsList = response.serviceResponse;
         console.log("allProjectsList :", this.allProjectsList);
@@ -1836,8 +1836,9 @@ export class TimesheetCreateSelfComponent implements OnInit {
       timesheetObj.empId = this.currentUser.empId;
       timesheetObj.startDate = this.startDate;
       timesheetObj.endDate = this.endDate;
+      timesheetObj.createdBy = this.currentUser.empId;
 
-      //console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
+      console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
       this.timesheetNewService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allMyTimesheets = response.serviceResponse;

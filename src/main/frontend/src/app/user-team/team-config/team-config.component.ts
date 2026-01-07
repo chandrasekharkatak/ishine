@@ -973,7 +973,7 @@ export class TeamConfigComponent implements OnInit {
 
     let timesheetObj = new Timesheet();
     timesheetObj.empId = this.currentUser.empId;
-    this.timesheetNewService.getAllProjectsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+    this.timesheetNewService.getAllProjectsByEmpId(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeSpecificProjectList = response.serviceResponse;
 

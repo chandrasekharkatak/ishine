@@ -234,7 +234,7 @@
                                                         Project</label>
                                                     <app-my-select placeholder="Select Project" class="form-control"
                                                         [(ngModel)]="project.projectId"
-                                                        [options]="location.availableProjects || []"
+                                                        [options]="activeProjectListByEmpId || []"
                                                         displayKey="projectName" valueKey="projectId" [multiple]="false"
                                                         (selectionChange)="onProjectSelect(location, project, $event)">
                                                     </app-my-select>
