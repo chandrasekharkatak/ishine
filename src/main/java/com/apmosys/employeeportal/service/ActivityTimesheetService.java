@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -9,7 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.model.EmployeeTimesheetActivitiesMappingNew;
+import com.apmosys.employeeportal.model.ProjectTimesheetStatusNew;
 import com.apmosys.employeeportal.model.TimesheetActivityMapId;
 import com.apmosys.employeeportal.repository.TimesheetActivityMapNewRepository;
 import com.apmosys.employeeportal.service.mapper.TimesheetMapper;
@@ -29,7 +32,8 @@ public class ActivityTimesheetService {
 
     @Autowired
     private TimesheetMapper timesheetMapper;
-
+    
+  
     /**
      * Create a new ActivityTimesheet.
      * 
@@ -271,5 +275,65 @@ public class ActivityTimesheetService {
 
         return timesheetActivityMapNewRepository.existsById(id);
     }
+    
+    
+    @Transactional
+    public void deleteActivitiesForProject(
+            Long timesheetId,
+            Long locationMappingId,
+            Integer projectId) {
+
+        timesheetActivityMapNewRepository
+            .deleteByTimesheetIdAndLocationMappingIdAndProjectId(
+                timesheetId, locationMappingId, projectId);
+    }
+    
+    
+    
+    
+    @Transactional
+    public void deleteByTimesheetIdAndLocationMappingIdAndProjectId(
+            Long timesheetId,
+            Long locationMappingId,
+            Integer projectId) {
+
+        if (timesheetId == null || locationMappingId == null || projectId == null) {
+            return;
+        }
+
+        timesheetActivityMapNewRepository
+                .deleteByTimesheetIdAndLocationMappingIdAndProjectId(
+                        timesheetId, locationMappingId, projectId);
+    }
+    
+    
+    
+    @Transactional
+    public void createAll(
+            Long timesheetId,
+            Long locationMappingId,
+            Integer projectId,
+            List<ActivityTimesheetDTO> activities) {
+
+        if (activities == null || activities.isEmpty()) {
+            return;
+        }
+
+        List<EmployeeTimesheetActivitiesMappingNew> entities =
+                activities.stream()
+                        .map(a -> {
+                            EmployeeTimesheetActivitiesMappingNew e =
+                                    timesheetMapper.toEntity(a,timesheetId,projectId);
+                            return e;
+                        })
+                        .collect(Collectors.toList());
+
+        timesheetActivityMapNewRepository.saveAll(entities);
+    }
+
+
+
+
+
 }
 

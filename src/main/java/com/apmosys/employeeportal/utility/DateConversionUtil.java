@@ -26,6 +26,7 @@ public class DateConversionUtil {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
         return LocalDate.parse(dateStr, formatter);
     }
+    
 
     public static LocalDate stringToLocalDate(String dateStr) {
         if (dateStr == null || dateStr.trim().isEmpty()) {
@@ -122,39 +123,26 @@ public class DateConversionUtil {
         return utilDateToString(date, "yyyy-MM-dd");
     }
     
-    
-    
-    public static LocalTime stringToLocalTime(String timeStr) {
-        if (timeStr == null || timeStr.trim().isEmpty()) {
+    public static LocalDateTime stringToLocalDateTime(String dateTimeStr, String pattern) {
+
+        if (dateTimeStr == null || dateTimeStr.trim().isEmpty()) {
             return null;
         }
 
-        if (timeStr.trim().length() == 5) { // HH:mm
-            return LocalTime.parse(timeStr, DateTimeFormatter.ofPattern("HH:mm"));
-        } else {
-            return LocalTime.parse(timeStr, DateTimeFormatter.ofPattern("HH:mm:ss"));
-        }
-    }
-    
-    
-    public static String localTimeToString(LocalTime localTime, String pattern) {
-        if (localTime == null) {
-            return null;
-        }
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
-        return localTime.format(formatter);
+        return LocalDateTime.parse(dateTimeStr, formatter);
     }
 
-    
-    public static Date combineToUtilDate(LocalDate date, LocalTime time) {
-        if (date == null || time == null) {
+    /* LocalDateTime -> String  */
+
+    public static String localDateTimeToString(LocalDateTime dateTime, String pattern) {
+
+        if (dateTime == null) {
             return null;
         }
 
-        LocalDateTime ldt = LocalDateTime.of(date, time);
-
-        return Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+        return dateTime.format(formatter);
     }
-
 
 }

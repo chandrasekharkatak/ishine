@@ -3,10 +3,12 @@ package com.apmosys.employeeportal.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +38,7 @@ import com.apmosys.employeeportal.repository.WorkLocationTypeMasterRepository;
 import com.apmosys.employeeportal.service.helper.TimesheetAggregationHelper;
 import com.apmosys.employeeportal.service.mapper.TimesheetMapper;
 import com.apmosys.employeeportal.service.validator.TimesheetValidationHelper;
+import com.apmosys.employeeportal.utility.DateConversionUtil;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 /**
@@ -53,14 +56,14 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 public class TimesheetServiceNew {
 	
 	 @Autowired
-	    private EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
+	 private EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
 
-	    @Autowired
-	    private TimesheetMapper timesheetMapper;
-
-    @Autowired
-    private TimesheetAggregationHelper aggregationHelper;
-
+	 @Autowired
+	 private TimesheetMapper timesheetMapper;
+     
+	 @Autowired
+	 private TimesheetAggregationHelper aggregationHelper;
+    
     @Autowired
 	private ProjectTimesheetService projectTimesheetService;
     
@@ -69,8 +72,8 @@ public class TimesheetServiceNew {
     
     @Autowired
 	private TimesheetValidationHelper timesheetValidationHelper;
-	
-	@Autowired
+    
+    @Autowired
 	private DayTypeMasterNewRepository dayTypeMasterNewRepository;
 	
 	@Autowired
@@ -88,12 +91,7 @@ public class TimesheetServiceNew {
 	@Autowired
 	private TimesheetQueryService timesheetQueryService;
 	
-	/**
-	 * Check if timesheet exists for employee and date
-	 */
-	private boolean existsByEmpIdAndDate(Long empId, LocalDate date) {
-		return employeeTimesheetsNewRepository.findByEmpIdAndDateNew(empId, date).isPresent();
-	}
+	private final String pattern="yyyy-MM-dd HH:mm:ss";
 	
 	/**
 	 * Get current user ID from security context.
@@ -136,161 +134,7 @@ public class TimesheetServiceNew {
 		}
 		
 		return null;
-	}
-	
-	/**
-	 * Convert dayType string to dayTypeId
-	 * NEW CONTRACT: dayType is string like "Working", "Week Off", "Leave"
-	 * Maps to dayTypeId (Integer FK to day_type_master_new)
-	 * 
-	 * @param dayType Day type string
-	 * @return Day type ID or null if not found
-	 */
-	private Integer convertDayTypeStringToId(String dayType) {
-		if (dayType == null || dayType.trim().isEmpty()) {
-			return null;
-		}
-		
-		// Find day type by name
-		Optional<DayTypeMasterNew> dayTypeOpt = dayTypeMasterNewRepository.findAll().stream()
-				.filter(dt -> dt.getDayType() != null && dt.getDayType().equalsIgnoreCase(dayType.trim()))
-				.filter(dt -> dt.getIsActive() != null && dt.getIsActive())
-				.findFirst();
-		
-		if (dayTypeOpt.isPresent()) {
-			return dayTypeOpt.get().getDayTypeId();
-		}
-		
-		// If not found, throw exception
-		throw new IllegalArgumentException("Day type not found: " + dayType);
-	}
-	
-	/**
-	 * Convert workLocationType code to locationTypeId
-	 * NEW CONTRACT: workLocationType is code like "APMOSYS_OFFICE", "CLIENT_LOCATION", "WFH"
-	 * Maps to locationTypeId (Integer FK to work_location_type_master)
-	 * 
-	 * @param workLocationTypeCode Work location type code
-	 * @return Location type ID or null if not found
-	 */
-	private Integer convertWorkLocationTypeCodeToId(String workLocationTypeCode) {
-		if (workLocationTypeCode == null || workLocationTypeCode.trim().isEmpty()) {
-			return null;
-		}
-		
-		// Find work location type by code
-		Optional<WorkLocationTypeMaster> locationTypeOpt = workLocationTypeMasterRepository.findAll().stream()
-				.filter(lt -> lt.getCode() != null && lt.getCode().equalsIgnoreCase(workLocationTypeCode.trim()))
-				.findFirst();
-		
-		if (locationTypeOpt.isPresent()) {
-			return locationTypeOpt.get().getWorkLocationTypeId();
-		}
-		
-		// If not found, throw exception
-		throw new IllegalArgumentException("Work location type not found: " + workLocationTypeCode);
-	}
-	
-	/**
-	 * Create location mappings from location sessions
-	 * NEW CONTRACT: Creates EmployeeTimesheetLocationMapping entries for each location session
-	 * 
-	 * Flow: Employee Timesheet → Work Location Mapping → Project Timesheet → Activities
-	 * 
-	 * @param locationSessions List of location sessions from new contract
-	 * @param timesheetId Timesheet ID to link location mappings
-	 * @param date Date for converting time strings to LocalDateTime
-	 * @return Map of location session index to locationMappingId for linking projects
-	 */
-	private java.util.Map<Integer, Long> createLocationMappings(
-			List<LocationSessionDTO> locationSessions, 
-			Long timesheetId, 
-			LocalDate date) {
-		
-		java.util.Map<Integer, Long> locationMappingIdMap = new java.util.HashMap<>();
-		
-		if (locationSessions == null || locationSessions.isEmpty()) {
-			return locationMappingIdMap;
-		}
-		
-		for (int i = 0; i < locationSessions.size(); i++) {
-			LocationSessionDTO locationSession = locationSessions.get(i);
-			
-			// Convert workLocationType code to locationTypeId
-			Integer locationTypeId = convertWorkLocationTypeCodeToId(locationSession.getWorkLocationType());
-			
-			// Convert locationInTime/locationOutTime strings to LocalDateTime
-			LocalDateTime locationInTime = convertTimeStringToLocalDateTime(
-					locationSession.getLocationInTime(), date);
-			LocalDateTime locationOutTime = convertTimeStringToLocalDateTime(
-					locationSession.getLocationOutTime(), date);
-			
-			// Create location mapping entity
-			EmployeeTimesheetLocationMapping locationMapping = EmployeeTimesheetLocationMapping.builder()
-					.timesheetId(timesheetId)
-					.locationTypeId(locationSessions.get(i).getWorkLocationTypeId()) // Convert Integer to Long
-					.locationInTime(locationInTime)
-					.locationOutTime(locationOutTime)
-					.build();
-			
-			// Save location mapping
-			EmployeeTimesheetLocationMapping savedLocationMapping = 
-					employeeTimesheetLocationMappingRepository.save(locationMapping);
-			
-			// Store mapping for linking projects
-			locationMappingIdMap.put(i, savedLocationMapping.getLocationMappingId());
-		}
-		
-		return locationMappingIdMap;
-	}
-		
-	/**
-	 * Extract all projects from location sessions (backward compatibility - without location mapping)
-	 * NEW CONTRACT: Projects are nested under locationSessions
-	 * This method flattens the structure to get all projects
-	 * 
-	 * @param locationSessions List of location sessions
-	 * @return List of all projects from all location sessions
-	 */
-	private List<ProjectTimesheetDTO> extractProjectsFromLocationSessions(List<LocationSessionDTO> locationSessions) {
-		List<ProjectTimesheetDTO> allProjects = new ArrayList<>();
-		
-		if (locationSessions != null && !locationSessions.isEmpty()) {
-			for (LocationSessionDTO locationSession : locationSessions) {
-				if (locationSession.getProjects() != null && !locationSession.getProjects().isEmpty()) {
-					allProjects.addAll(locationSession.getProjects());
-				}
-			}
-		}
-		
-		return allProjects;
-	}
-	
-	/**
-	 * Convert client approval status string to Integer ID
-	 * NEW CONTRACT: clientApprovalStatus is string like "Pending", "Approved", "Rejected"
-	 * Maps to clientApprovalStatus (Integer FK to client_status_master_new)
-	 * 
-	 * @param statusStr Status string
-	 * @return Status ID (1=Pending, 2=Approved, 3=Rejected) or null
-	 */
-	private Integer convertClientApprovalStatusStringToId(String statusStr) {
-		if (statusStr == null || statusStr.trim().isEmpty()) {
-			return null;
-		}
-		
-		String status = statusStr.trim();
-		if (status.equalsIgnoreCase("Pending")) {
-			return 1;
-		} else if (status.equalsIgnoreCase("Approved")) {
-			return 2;
-		} else if (status.equalsIgnoreCase("Rejected")) {
-			return 3;
-		}
-		
-		return null;
-	}
-	
+	}	
 	/**
 	 * Normalize EmployeeTimesheetDTO from new contract format
 	 * NEW CONTRACT: Maps workCheckIn/workCheckOut to officeInTime/officeOutTime
@@ -304,7 +148,7 @@ public class TimesheetServiceNew {
 		
 	}
 	
- 	/**
+	/**
 	 * API 1.1: Create Timesheet (New Hierarchical Structure)
 	 * Creates EmployeeTimesheet, Work Location Mappings, ProjectTimesheets, and Activities in a single transaction.
 	 * 
@@ -346,9 +190,9 @@ public class TimesheetServiceNew {
 	public ServiceResponse createTimesheet(EmployeeTimesheetDTO empDTO,
 	                                       List<MultipartFile> documents) {
 
-	    ServiceResponse response = new ServiceResponse();
-
-	    try {
+        ServiceResponse response = new ServiceResponse();
+		
+		try {
 	        
 	        // Normalize new contract
 	        normalizeEmployeeTimesheetFromNewContract(empDTO, empDTO.getDate());
@@ -360,7 +204,7 @@ public class TimesheetServiceNew {
 	        timesheetValidationHelper.validateTimesheetAlreadyExists(
 	                empDTO.getEmpId(), empDTO.getDate());
 	        
-	        if (timesheetLockDays != null) {
+			if (timesheetLockDays != null) {
 	            timesheetValidationHelper.validateTimesheetLockPeriod(
 	                    empDTO.getEmpId(), empDTO.getDate(), timesheetLockDays);
 	        }
@@ -374,17 +218,17 @@ public class TimesheetServiceNew {
 	        // Audit fields
 	        Long currentUserId = getCurrentUserId();
 	        empDTO.setCreatedBy(currentUserId != null ? currentUserId : empDTO.getEmpId());
-	        empDTO.setCreatedOn(LocalDateTime.now());
+			empDTO.setCreatedOn(LocalDateTime.now());
 	        empDTO.setUpdatedBy(empDTO.getCreatedBy());
-	        empDTO.setUpdatedOn(LocalDateTime.now());
-
+			empDTO.setUpdatedOn(LocalDateTime.now());
+			
 
 	        EmployeeTimesheetsNew empTS =
 	                employeeTimesheetsNewRepository.save(
 	                        timesheetMapper.toEntity(empDTO));
 
-	        Long timesheetId = empTS.getTimesheetId();
-
+			Long timesheetId = empTS.getTimesheetId();
+			
 	        /*======================================================
 	           Timesheet → Location → Project → Activity
 	           ====================================================== */
@@ -421,9 +265,9 @@ public class TimesheetServiceNew {
 
 	                    for (ProjectTimesheetDTO projectDTO : locationSession.getProjects()) {
 
-	                        projectDTO.setTimesheetId(timesheetId);
-
-	                        if (projectDTO.getStatus() == null) {
+					projectDTO.setTimesheetId(timesheetId);
+					
+					if (projectDTO.getStatus() == null) {
 	                            projectDTO.setStatus(
 	                                    TimesheetAggregationHelper.STATUS_PENDING);
 	                        }
@@ -485,27 +329,27 @@ public class TimesheetServiceNew {
 	        EmployeeTimesheetDTO responseDTO =
 	                getTimesheetByIdInternalNew(timesheetId);
 
-	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceResponse(responseDTO);
-	        response.setServiceMessage("Timesheet created successfully");
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(responseDTO);
+			response.setServiceMessage("Timesheet created successfully");
+            
+		} catch (IllegalArgumentException e) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Validation failed: " + e.getMessage());
+			response.setServiceError(e.getMessage());
 
-	    } catch (IllegalArgumentException e) {
-	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	        response.setServiceResponse("Validation failed: " + e.getMessage());
-	        response.setServiceError(e.getMessage());
-
-	    } catch (Exception e) {
-	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	        response.setServiceResponse(ServiceResponse.SOMETHING_WENT_WRONG);
-	        response.setServiceError(e.getMessage());
-	        e.printStackTrace();
-	    }
-
-	    return response;
-	}
+        } catch (Exception e) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceError(e.getMessage());
+			e.printStackTrace();
+        }
+        
+        return response;
+    }
 
 	@Transactional(rollbackFor = Exception.class)
-	 /**
+    /**
 	 * API 1.3: Get Timesheet by ID
      */
     public ServiceResponse getTimesheetById(Long timesheetId) {
@@ -751,8 +595,8 @@ public class TimesheetServiceNew {
 			if (timesheetId == null || projectId == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Timesheet ID and Project ID are required");
-				return response;
-			}
+        return response;
+    }
 			
 			// Delete activities for this project
 			activityTimesheetService.deleteByTimesheetIdAndProjectId(timesheetId, projectId);
@@ -842,12 +686,11 @@ public class TimesheetServiceNew {
 		
 		return response;
 	}
-		
+	
 	/**
 	 * Update Timesheet (Full Update)
 	 * Updates existing timesheet with new data from employeeTimesheetMappingDTO_new
 	 */
-	@Transactional(rollbackFor = Exception.class)
 	/**
 	 * API 1.2: Update Timesheet (New Hierarchical Structure)
 	 * Updates EmployeeTimesheet, ProjectTimesheets, and Activities in a single transaction.
@@ -864,152 +707,73 @@ public class TimesheetServiceNew {
 	 * - Same as createTimesheet
 	 * - Additional: Cannot update locked timesheets
 	 */
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse updateTimesheet(Long timesheetId, EmployeeTimesheetDTO newEmpDTO, 
 			List<MultipartFile> documents) {
 		ServiceResponse response = new ServiceResponse();
 		
 		try {
-			// NEW CONTRACT: Normalize DTO from new contract format
-			// This maps workCheckIn/workCheckOut to officeInTime/officeOutTime
-			// Maps dayType string to dayTypeId
-			// Extracts projects from locationSessions
 			normalizeEmployeeTimesheetFromNewContract(newEmpDTO, newEmpDTO.getDate());
-		
-			// VALIDATION: Validate new contract structure
-			// This includes: workCheckIn/workCheckOut for working days, projects required, etc.
-			//timesheetValidationHelper.validateForCreate(newEmpDTO);
 			
-			// VALIDATION: Validate date not locked
-			if (timesheetLockDays != null) {
-				timesheetValidationHelper.validateDateNotLocked(
-						newEmpDTO.getEmpId(), newEmpDTO.getDate(), timesheetLockDays);
-			}
+		    timesheetValidationHelper.validateEmployeeAuthorization(newEmpDTO);
 			
-			// Fetch employee timesheet entity once (will be updated and saved at the end)
-			Optional<EmployeeTimesheetsNew> empTSOpt = employeeTimesheetsNewRepository.findById(timesheetId);
-			if (empTSOpt.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Timesheet not found");
-				return response;
-			}
-			EmployeeTimesheetsNew empTS = empTSOpt.get();
+ 			timesheetValidationHelper.validateNullAndUnexpectedData(newEmpDTO);
+ 			
+ 			EmployeeTimesheetsNew empTS=timesheetValidationHelper.validateTimesheetUpdatable(timesheetId,newEmpDTO);
+ 			
+ 			timesheetValidationHelper.validateLocationTimeOverlap(newEmpDTO.getLocationSessions());
+ 			
+ 			timesheetValidationHelper.validateActivityDurationWithinLocation(newEmpDTO.getLocationSessions());
+ 			
+ 			timesheetValidationHelper.validateLocationDeletionRules(timesheetId,newEmpDTO.getLocationSessions());
+ 			
+ 			timesheetValidationHelper.validateApprovedProjectImmutableByLocationMapping(timesheetId,newEmpDTO.getLocationSessions());
 			
-			// NEW CONTRACT: Update Work Location Mappings
-			// Flow: Employee Timesheet → Work Location Mapping → Project Timesheet → Activities
-			// Delete existing location mappings and create new ones
-			// This ensures location mappings match the new contract structure
-			if (newEmpDTO.getLocationSessions() != null && !newEmpDTO.getLocationSessions().isEmpty()) {
-				// Delete existing location mappings for this timesheet
-				List<EmployeeTimesheetLocationMapping> existingLocationMappings = 
-						employeeTimesheetLocationMappingRepository.findByTimesheetId(timesheetId);
-				if (existingLocationMappings != null && !existingLocationMappings.isEmpty()) {
-					employeeTimesheetLocationMappingRepository.deleteAll(existingLocationMappings);
-				}
+			timesheetValidationHelper.validateProjectDeletionRules(timesheetId, newEmpDTO.getLocationSessions());
+			
+		 	timesheetValidationHelper.validateLocationWiseProjectAndActivities(newEmpDTO);
+			
+	    	timesheetValidationHelper.validateDocumentsDTO(newEmpDTO);
+			
+	    	timesheetValidationHelper.validateUploadedDocuments(newEmpDTO, documents);
+	    	
+	    	timesheetValidationHelper.cleanupDeletableLocations(timesheetId, newEmpDTO.getLocationSessions());			
 				
-				// Create new location mappings
-				@SuppressWarnings("unused")
-				Map<Integer, Long> locationMappingIdMap = createLocationMappings(
-						newEmpDTO.getLocationSessions(), 
-						timesheetId, 
-						newEmpDTO.getDate());
-		     	}
-			
-			// Set audit fields (EXISTING LOGIC - unchanged)
-			Long currentUserId = getCurrentUserId();
+	       
+	    	handleUpdateTimesheet(timesheetId,newEmpDTO);
+		    
+	    	Long currentUserId = getCurrentUserId();
 			newEmpDTO.setUpdatedBy(currentUserId != null ? currentUserId : newEmpDTO.getEmpId());
 			newEmpDTO.setUpdatedOn(LocalDateTime.now());
 			
-			// Update basic fields from DTO
-			// NEW CONTRACT: officeInTime/officeOutTime are set from workCheckIn/workCheckOut via normalizeEmployeeTimesheetFromNewContract
+			// Update basic fields (Note: empId and date should not change, but keeping for safety)
 			empTS.setEmpId(newEmpDTO.getEmpId());
 			empTS.setDate(newEmpDTO.getDate());
-			empTS.setDayTypeId(newEmpDTO.getDayTypeId()); // NEW CONTRACT: Set from dayType string
+			empTS.setDayTypeId(newEmpDTO.getDayTypeId());
 			empTS.setLeaveTypeMasterId(newEmpDTO.getLeaveTypeId());
-			empTS.setWorkCheckIn(newEmpDTO.getWorkCheckIn()); // NEW CONTRACT: Set from workCheckIn
-			empTS.setWorkCheckOut(newEmpDTO.getWorkCheckOut()); // NEW CONTRACT: Set from workCheckOut
+			empTS.setWorkCheckIn(newEmpDTO.getWorkCheckIn());
+			empTS.setWorkCheckOut(newEmpDTO.getWorkCheckOut());
 			empTS.setUpdatedBy(newEmpDTO.getUpdatedBy());
 			empTS.setUpdatedOn(newEmpDTO.getUpdatedOn());
 			
-			// NOT IN NEW CONTRACT but kept for business logic:
-			// This ensures location mappings match the new contract structure
-			if (newEmpDTO.getLocationSessions() != null && !newEmpDTO.getLocationSessions().isEmpty()) {
-				// Delete existing location mappings for this timesheet
-				List<EmployeeTimesheetLocationMapping> existingLocationMappings = 
-						employeeTimesheetLocationMappingRepository.findByTimesheetId(timesheetId);
-				if (existingLocationMappings != null && !existingLocationMappings.isEmpty()) {
-					employeeTimesheetLocationMappingRepository.deleteAll(existingLocationMappings);
-				}
-				
-				// Create new location mappings
-				@SuppressWarnings("unused")
-				Map<Integer, Long> locationMappingIdMap = createLocationMappings(
-						newEmpDTO.getLocationSessions(), 
-						timesheetId, 
-						newEmpDTO.getDate());
-			}
-			
-			// Get existing projects (using old DTOs from service)
-			// EXISTING LOGIC - unchanged
-			List<ProjectTimesheetDTO> existingProjects = projectTimesheetService.findByTimesheetId(timesheetId);
-			
-			// Collect project IDs from request
-			// NEW CONTRACT: Projects come from locationSessions (already flattened in normalizeEmployeeTimesheetFromNewContract)
-			List<Long> requestedProjectIds = new ArrayList<>();
-//			if (newProjectDTOs != null) {
-//				for (ProjectTimesheetDTO projectDTO : newProjectDTOs) {
-//					if (projectDTO.getProjectId() != null) {
-//						requestedProjectIds.add(projectDTO.getProjectId());
-//					}
-//				}
-//			}
-			
-			// Delete projects that are not in the request
-			// EXISTING LOGIC - unchanged (handles project deletion)
-			for (ProjectTimesheetDTO existingProject : existingProjects) {
-				if (!requestedProjectIds.contains(existingProject.getProjectId())) {
-					// Delete activities first
-					activityTimesheetService.deleteByTimesheetIdAndProjectId(
-							timesheetId, existingProject.getProjectId());
-					// Delete project
-					projectTimesheetService.delete(timesheetId, existingProject.getProjectId());
-				}
-			}
-			
-			// Update or create projects
-			// NEW CONTRACT: Projects are normalized from locationSessions
-			// NEW CONTRACT: clientApprovalStatus, projectHoursMinutes, teamId, isShadow are handled
-		
-			
-			// Recalculate totals after all projects are updated
 			List<ProjectTimesheetDTO> allProjects = projectTimesheetService.findByTimesheetId(timesheetId);
-			
 			aggregationHelper.calculateAndSetEmployeeTimesheetTotals(newEmpDTO, allProjects);
 			
-			// Update employee timesheet with calculated totals (single save at the end)
-			// EXISTING LOGIC - unchanged
+			// Update employee timesheet with calculated totals
 			empTS.setTotalWorkingMinutes(newEmpDTO.getTotalWorkingMinutes());
 			empTS.setTotalActivitiesMinutes(newEmpDTO.getTotalActivitiesMinutes());
 			empTS.setStatus(newEmpDTO.getStatus());
 			employeeTimesheetsNewRepository.save(empTS);
-			
-			// NEW CONTRACT: Handle documentData with list of multipart files
-			// Document data is at employee level, linked to projects
-			// Each document has projectId, docName, finalFlag, etc.
-			// Documents list contains files corresponding to documentData entries
 			if (newEmpDTO.getDocumentData() != null && !newEmpDTO.getDocumentData().isEmpty()) {
 				// NEW CONTRACT: Handle document uploads/updates for multiple projects
-				// Documents list is indexed to match documentData array
-				// Each document in documentData should have corresponding file in documents list
-				handleDocumentUploadsFromNewContract(newEmpDTO.getDocumentData(), documents, timesheetId, empTS);
+				
 			}
 			
 			// Handle document uploads if provided (EXISTING LOGIC - for backward compatibility)
 			// Old contract: filledDocument and finalDocument
 			if (newEmpDTO.getDocumentData()!=null) {
-				// TODO: Integrate with TimesheetDocumentService for old contract
-				// Handle filledDocument and finalDocument from requestDTO (old contract)
-				// For backward compatibility - old contract may still send these
-				// timesheetDocumentService.handleDocumentUpload(requestDTO, empTS, null, null);
+				// TODO: Integrate with TimesheetDocumentService
+				
 			}
 			
 			// Fetch complete updated timesheet using new structure
@@ -1033,25 +797,144 @@ public class TimesheetServiceNew {
 		return response;
 	}
 	
-	/**
-	 * Update activities for a project (using old DTOs)
-	 */
-	private void updateProjectActivitiesOld(Long timesheetId, Integer projectId, 
-			List<ActivityTimesheetDTO> activityDTOs) {
-		if (activityDTOs == null || activityDTOs.isEmpty()) {
-			// Delete all existing activities
-			activityTimesheetService.deleteByTimesheetIdAndProjectId(timesheetId, projectId);
-			return;
-		}
-		
-		// For simplicity, delete all and recreate
-		// TODO: Implement smarter diff logic (update existing, delete removed, add new)
-		activityTimesheetService.deleteByTimesheetIdAndProjectId(timesheetId, projectId);
-		
-		if (!activityDTOs.isEmpty()) {
-			activityTimesheetService.createAll(timesheetId, projectId, activityDTOs);
-		}
+	private void handleUpdateTimesheet(
+	        Long timesheetId,
+	        EmployeeTimesheetDTO newEmpDTO) {
+       // Existing locations from DB
+	    Map<Long, EmployeeTimesheetLocationMapping> existingLocationMap =
+	            employeeTimesheetLocationMappingRepository
+	                    .findByTimesheetId(timesheetId)
+	                    .stream()
+	                    .collect(Collectors.toMap(
+	                            EmployeeTimesheetLocationMapping::getLocationMappingId,
+	                            l -> l
+	                    ));
+
+	    for (LocationSessionDTO locationDTO : newEmpDTO.getLocationSessions()) {
+
+	        EmployeeTimesheetLocationMapping locationMapping;
+
+	        //CREATE new location
+	        if (locationDTO.getLocationMappingId() == null) {
+
+	            locationMapping = EmployeeTimesheetLocationMapping.builder()
+	                    .timesheetId(timesheetId)
+	                    .locationTypeId(locationDTO.getWorkLocationTypeId())
+	                    .locationInTime(
+	                            convertTimeStringToLocalDateTime(
+	                                    locationDTO.getLocationInTime(),
+	                                    newEmpDTO.getDate()))
+	                    .locationOutTime(
+	                            convertTimeStringToLocalDateTime(
+	                                    locationDTO.getLocationOutTime(),
+	                                    newEmpDTO.getDate()))
+	                    .build();
+
+	            locationMapping =
+	                    employeeTimesheetLocationMappingRepository.save(locationMapping);
+
+	        } 
+	        //UPDATE existing location (only times)
+	        else {
+
+	            locationMapping = existingLocationMap.get(
+	                    locationDTO.getLocationMappingId());
+
+	            if (locationMapping == null) {
+	                throw new IllegalStateException("Invalid locationMappingId");
+	            }
+
+	            locationMapping.setLocationInTime(
+	                    convertTimeStringToLocalDateTime(
+	                            locationDTO.getLocationInTime(),
+	                            newEmpDTO.getDate()));
+
+	            locationMapping.setLocationOutTime(
+	                    convertTimeStringToLocalDateTime(
+	                            locationDTO.getLocationOutTime(),
+	                            newEmpDTO.getDate()));
+
+	            employeeTimesheetLocationMappingRepository.save(locationMapping);
+	        }
+
+	        // 3️ HANDLE PROJECTS UNDER LOCATION
+	        handleProjectsUnderLocationMapping(
+	                timesheetId,
+	                locationMapping.getLocationMappingId(),
+	                locationDTO.getProjects());
+	    }
 	}
+	
+	private void handleProjectsUnderLocationMapping(
+	        Long timesheetId,
+	        Long locationMappingId,
+	        List<ProjectTimesheetDTO> incomingProjects) {
+
+	    if (incomingProjects == null) {
+	        return;
+	    }
+
+	    // Existing projects for this location
+	    Map<Integer, ProjectTimesheetDTO> existingProjectMap =
+	            projectTimesheetService
+	                    .findByTimesheetIdAndLocationMappingId(
+	                            timesheetId, locationMappingId)
+	                    .stream()
+	                    .collect(Collectors.toMap(
+	                            ProjectTimesheetDTO::getProjectId,
+	                            p -> p
+	                    ));
+
+	    for (ProjectTimesheetDTO projectDTO : incomingProjects) {
+
+	        projectDTO.setTimesheetId(timesheetId);
+	        projectDTO.setLocationMappingId(locationMappingId);
+
+	        ProjectTimesheetDTO existingProject =
+	                existingProjectMap.get(projectDTO.getProjectId());
+
+	        // 1️ CREATE project
+	        if (existingProject == null) {
+
+	            if (projectDTO.getStatus() == null) {
+	                projectDTO.setStatus(
+	                        TimesheetAggregationHelper.STATUS_PENDING);
+	            }
+
+	            projectTimesheetService.create(timesheetId, projectDTO);
+	        }
+	        // 2️ UPDATE project (only PENDING ones)
+	        else {
+
+	            if (!TimesheetAggregationHelper.STATUS_PENDING
+	                    .equals(existingProject.getStatus())) {
+	                continue; // approved projects already validated as immutable
+	            }
+
+	            projectTimesheetService.update(projectDTO);
+
+	            // Replace activities
+	            activityTimesheetService
+	                    .deleteByTimesheetIdAndLocationMappingIdAndProjectId(
+	                            timesheetId,
+	                            locationMappingId,
+	                            projectDTO.getProjectId());
+
+	            if (projectDTO.getActivities() != null) {
+	                activityTimesheetService.createAll(
+	                        timesheetId,
+	                        locationMappingId,
+	                        projectDTO.getProjectId(),
+	                        projectDTO.getActivities());
+	            }
+	        }
+	    }
+	}
+
+	
+	
+	
+
 	
 	// ========== DOCUMENT HANDLING METHODS ==========
 	
@@ -1138,68 +1021,8 @@ public class TimesheetServiceNew {
 		}
 	}
 	
-	// ========== CONVERTER METHODS (Old DTO <-> New DTO) ==========	
-	/**
-	 * Convert new ActivityTimesheetDTO to old ActivityTimesheetDTO
-	 */
-	private ActivityTimesheetDTO convertToOldActivityDTO(ActivityTimesheetDTO newDTO) {
-		if (newDTO == null) return null;
-		
-		ActivityTimesheetDTO oldDTO = new ActivityTimesheetDTO();
-		oldDTO.setTimesheetId(newDTO.getTimesheetId());
-		oldDTO.setActivityId(newDTO.getActivityId());
-		oldDTO.setProjectId(newDTO.getProjectId());
-		oldDTO.setDescription(newDTO.getDescription());
-		oldDTO.setDurationMinutes(newDTO.getDurationMinutes());
-		oldDTO.setClientLocationId(newDTO.getClientLocationId());
-		
-		return oldDTO;
-	}
 	
-	/**
-	 * Convert list of new ActivityTimesheetDTOs to old ActivityTimesheetDTOs
-	 */
-	private List<ActivityTimesheetDTO> convertToOldActivityDTOs(List<ActivityTimesheetDTO> newDTOs) {
-		if (newDTOs == null) return new ArrayList<>();
-		
-		List<ActivityTimesheetDTO> oldDTOs = new ArrayList<>();
-		for (ActivityTimesheetDTO newDTO : newDTOs) {
-			oldDTOs.add(convertToOldActivityDTO(newDTO));
-		}
-		return oldDTOs;
-	}
-		
-	/**
-	 * Convert old ActivityTimesheetDTO to new ActivityTimesheetDTO
-	 */
-	private ActivityTimesheetDTO convertToNewActivityDTO(ActivityTimesheetDTO oldDTO) {
-		if (oldDTO == null) return null;
-		
-		ActivityTimesheetDTO newDTO = new ActivityTimesheetDTO();
-		newDTO.setTimesheetId(oldDTO.getTimesheetId());
-		newDTO.setActivityId(oldDTO.getActivityId());
-		newDTO.setProjectId(oldDTO.getProjectId());
-		newDTO.setDescription(oldDTO.getDescription());
-		newDTO.setDurationMinutes(oldDTO.getDurationMinutes());
-		newDTO.setClientLocationId(oldDTO.getClientLocationId());
-		
-		return newDTO;
-	}
-	
-	/**
-	 * Convert list of old ActivityTimesheetDTOs to new ActivityTimesheetDTOs
-	 */
-	private List<ActivityTimesheetDTO> convertToNewActivityDTOs(List<ActivityTimesheetDTO> oldDTOs) {
-		if (oldDTOs == null) return new ArrayList<>();
-		
-		List<ActivityTimesheetDTO> newDTOs = new ArrayList<>();
-		for (ActivityTimesheetDTO oldDTO : oldDTOs) {
-			newDTOs.add(convertToNewActivityDTO(oldDTO));
-		}
-		return newDTOs;
-	}
-	
-	
+
     /**
      * Find EmployeeTimesheet by ID.
      * 
@@ -1447,6 +1270,6 @@ public class TimesheetServiceNew {
 		
 		return timesheetQueryService.getActiveProjectsAndClientSideIdByEmpId(empId);
 	   
-	}
+    }
 
 }

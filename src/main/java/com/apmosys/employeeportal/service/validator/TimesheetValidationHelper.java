@@ -1,37 +1,43 @@
 package com.apmosys.employeeportal.service.validator;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
-import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
 import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
-import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.DayTypeMasterNew;
-import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.model.EmployeeTimesheetLocationMapping;
+import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.DayTypeMasterNewRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeTimesheetLocationMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.service.ActivityTimesheetService;
+import com.apmosys.employeeportal.service.ProjectTimesheetService;
 import com.apmosys.employeeportal.service.TimesheetService;
+import com.apmosys.employeeportal.service.helper.TimesheetAggregationHelper;
 import com.apmosys.employeeportal.utility.DateConversionUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +52,9 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class TimesheetValidationHelper {
+	
+	private final String pattern="yyyy-MM-dd HH:mm:ss";
+
 
     @Autowired
     private EmployeeRepository employeeRepository;
@@ -58,7 +67,7 @@ public class TimesheetValidationHelper {
 
     @Autowired
     private ActivitiesRepository activitiesRepository;
-    
+
     @Autowired
     private DayTypeMasterNewRepository dayTypeMasterNewRepository;
     
@@ -87,15 +96,15 @@ public class TimesheetValidationHelper {
      
         public void validateNullAndUnexpectedData(EmployeeTimesheetDTO dto) {
 
-            if (dto == null) {
-                throw new IllegalArgumentException("EmployeeTimesheetDTO cannot be null");
-            }
+        if (dto == null) {
+            throw new IllegalArgumentException("EmployeeTimesheetDTO cannot be null");
+        }
 
-            if (dto.getEmpId() == null) {
-                throw new IllegalArgumentException("Employee ID is required");
-            }
+        if (dto.getEmpId() == null) {
+            throw new IllegalArgumentException("Employee ID is required");
+        }
 
-            if (dto.getDate() == null) {
+        if (dto.getDate() == null) {
                 throw new IllegalArgumentException("Timesheet date is required");
             }
 
@@ -179,37 +188,41 @@ public class TimesheetValidationHelper {
     	  
     	  
     	  if (location.getWorkLocationTypeId() == null) 
-    	  { throw new IllegalArgumentException("Work location type is required"); } 
+    	  { 
+    		  throw new IllegalArgumentException("Work location type is required"); 
+    	  } 
     	  
-    	  if (location.getLocationInTime() == null || location.getLocationOutTime() == null)
-    	  { throw new IllegalArgumentException( "Location inTime and outTime are required"); }
+    	  if (location.getWorkLocationTypeId()!=3 &&  (location.getLocationInTime() == null || location.getLocationOutTime() == null))
+    	  {
+    		  throw new IllegalArgumentException("Location inTime and outTime are required for non-remote locations");
+    	  }
+    	  if(location.getWorkLocationTypeId()!=3) {
+    		 LocalDateTime locInTime = DateConversionUtil.stringToLocalDateTime(location.getLocationInTime(),pattern);
+    		 LocalDateTime locOutTime = DateConversionUtil.stringToLocalDateTime(location.getLocationOutTime(),pattern);
 
-    	    LocalTime locInTime = DateConversionUtil.stringToLocalTime(location.getLocationInTime());
-    	    LocalTime locOutTime = DateConversionUtil.stringToLocalTime(location.getLocationOutTime());
+      	    if (!locOutTime.isAfter(locInTime)) {
+      	        throw new IllegalArgumentException("Location outTime must be greater than inTime");
+      	    }
 
-    	    if (!locOutTime.isAfter(locInTime)) {
-    	        throw new IllegalArgumentException("Location outTime must be greater than inTime");
-    	    }
+      	    LocalDate date = empDTO.getDate();
 
-    	    LocalDate date = empDTO.getDate();
+      	    LocalDateTime officeIn = empDTO.getWorkCheckIn();
+      	    LocalDateTime officeOut = empDTO.getWorkCheckOut();
 
-    	    LocalDateTime locationIn = LocalDateTime.of(date, locInTime);
-    	    LocalDateTime locationOut = LocalDateTime.of(date, locOutTime);
+      	    if (officeIn != null && officeOut != null) {
 
-    	    LocalDateTime officeIn = empDTO.getWorkCheckIn();
-    	    LocalDateTime officeOut = empDTO.getWorkCheckOut();
+      	        if (locInTime.isBefore(officeIn) || locInTime.isAfter(officeOut)) {
+      	            throw new IllegalArgumentException("Location inTime must be within work range");
+      	        }
 
-    	    if (officeIn != null && officeOut != null) {
+      	        if (locOutTime.isBefore(officeIn) || locOutTime.isAfter(officeOut)) {
+      	            throw new IllegalArgumentException("Location outTime must be within work range");
+      	        }
+      	    }
 
-    	        if (locationIn.isBefore(officeIn) || locationIn.isAfter(officeOut)) {
-    	            throw new IllegalArgumentException("Location inTime must be within work range");
-    	        }
+    	  }
 
-    	        if (locationOut.isBefore(officeIn) || locationOut.isAfter(officeOut)) {
-    	            throw new IllegalArgumentException("Location outTime must be within work range");
-    	        }
-    	    }
-
+    	    
     	    for (ProjectTimesheetDTO project : location.getProjects()) {
     	        validateProject(project, empDTO);
     	    }
@@ -221,8 +234,8 @@ public class TimesheetValidationHelper {
                                      EmployeeTimesheetDTO empDTO) {
 
             if (project.getProjectId() == null) {
-                throw new IllegalArgumentException("Project ID is required");
-            }
+            throw new IllegalArgumentException("Project ID is required");
+        }
 
 
             boolean isWorkingDay = isWorkingDay(empDTO);
@@ -334,10 +347,10 @@ public class TimesheetValidationHelper {
                                         + projectId);
                     }
                 }
-            }
         }
-        
-        /**
+    }
+
+    /**
          * Validate uploaded document files based on new contract rules.
          *
          * Rules:
@@ -367,11 +380,11 @@ public class TimesheetValidationHelper {
                         "Client-side document is mandatory. Please upload required documents.");
             }
 
-            // 3️⃣ Group uploaded files by projectId (parsed from filename)
+            //Group uploaded files by projectId (parsed from filename)
             Map<Long, List<MultipartFile>> filesByProject =
                     groupFilesByProjectId(documents);
 
-            // 4️⃣ Validate project-wise
+            //Validate project-wise
             for (LocationSessionDTO location : empDTO.getLocationSessions()) {
                 if (location.getProjects() == null) continue;
 
@@ -391,7 +404,7 @@ public class TimesheetValidationHelper {
                     List<MultipartFile> projectFiles =
                             filesByProject.getOrDefault(projectId, List.of());
 
-                    // 5️⃣ Enforce min / max rule
+                    //Enforce min / max rule
                     if (projectFiles.isEmpty()) {
                         throw new IllegalArgumentException(
                                 "Filled document is mandatory for projectId=" + projectId);
@@ -399,7 +412,7 @@ public class TimesheetValidationHelper {
 
                     if (projectFiles.size() > 2) {
                         throw new IllegalArgumentException(
-                                "Maximum 2 documents (filled + approved) allowed for projectId="
+                                "Maximum 2 documents (filled + approved) allowed for a projectId="
                                         + projectId);
                     }
                     
@@ -411,7 +424,7 @@ public class TimesheetValidationHelper {
 
                     boolean filledPresent = false;
 
-                    // 6️  Validate file naming & types
+                    //Validate file naming & types
                     for (MultipartFile file : projectFiles) {
 
                         String fileName = file.getOriginalFilename();
@@ -508,7 +521,7 @@ public class TimesheetValidationHelper {
                 return; // already handled by earlier validations
             }
 
-            // 1️⃣ Total work duration (in minutes)
+            //Total work duration (in minutes)
             long totalWorkMinutes = java.time.Duration
                     .between(empDTO.getWorkCheckIn(), empDTO.getWorkCheckOut())
                     .toMinutes();
@@ -518,7 +531,7 @@ public class TimesheetValidationHelper {
                         "Invalid workCheckIn/workCheckOut duration");
             }
 
-            // 2️⃣ Sum of all location session durations
+            //Sum of all location session durations
             long totalLocationMinutes = 0;
 
             if (empDTO.getLocationSessions() != null) {
@@ -553,7 +566,7 @@ public class TimesheetValidationHelper {
                         totalWorkMinutes + " mins)");
             }
 
-            // 3️⃣ Sum of all activity durations
+            //Sum of all activity durations
             long totalActivityMinutes = 0;
 
             if (empDTO.getLocationSessions() != null) {
@@ -818,6 +831,406 @@ public class TimesheetValidationHelper {
             throw new IllegalArgumentException("Timesheet already exists for employee " + empId + " on date " + date);
         }
     }
+    
+    
+    @Autowired
+    EmployeeTimesheetLocationMappingRepository employeeTimesheetLocationMappingRepository;
+    
+    @Autowired
+    ProjectTimesheetService  projectTimesheetService;
+    
+    @Autowired
+    ActivityTimesheetService activityTimesheetService;
+    
+    
+    
+    public EmployeeTimesheetsNew validateTimesheetUpdatable(
+            Long timesheetId,
+            EmployeeTimesheetDTO newEmpDTO) {
+
+        // Timesheet existence check
+        EmployeeTimesheetsNew empTS = employeeTimesheetsNewRepository
+                .findById(timesheetId)
+                .orElseThrow(() ->
+                        new IllegalStateException(
+                                "Timesheet with ID " + timesheetId + " does not exist"));
+
+        // Status validation
+        Integer currentStatus = empTS.getStatus();
+        if (currentStatus != null
+                && !currentStatus.equals(TimesheetAggregationHelper.STATUS_PENDING)
+                && !currentStatus.equals(TimesheetAggregationHelper.STATUS_REJECTED)) {
+
+            throw new IllegalStateException(
+                    "Timesheet can only be updated when status is PENDING or REJECTED. Current status: "
+                            + currentStatus);
+        }
+
+        // Duplicate timesheet date check
+        if (!empTS.getDate().equals(newEmpDTO.getDate())) {
+
+            employeeTimesheetsNewRepository
+                    .findByEmpIdAndDateNew(newEmpDTO.getEmpId(), newEmpDTO.getDate())
+                    .filter(existing ->
+                            !existing.getTimesheetId().equals(timesheetId))
+                    .ifPresent(existing -> {
+                        throw new IllegalStateException(
+                                "A timesheet already exists for employee "
+                                        + newEmpDTO.getEmpId()
+                                        + " on date "
+                                        + newEmpDTO.getDate());
+                    });
+        }
+
+        return empTS;
+    }
+
+    
+    public void validateLocationDeletionRules(
+            Long timesheetId,
+            List<LocationSessionDTO> incomingLocations) {
+
+        // Existing locations in DB
+        List<EmployeeTimesheetLocationMapping> existingLocations =
+                employeeTimesheetLocationMappingRepository.findByTimesheetId(timesheetId);
+
+        if (existingLocations == null || existingLocations.isEmpty()) {
+            return;
+        }
+
+        // Incoming location type IDs
+        Set<Integer> incomingLocationTypeIds =
+                incomingLocations == null
+                        ? Set.of()
+                        : incomingLocations.stream()
+                            .map(LocationSessionDTO::getWorkLocationTypeId)
+                            .collect(Collectors.toSet());
+
+        for (EmployeeTimesheetLocationMapping existingLocation : existingLocations) {
+
+            Integer existingTypeId = existingLocation.getLocationTypeId().intValue();
+
+            // Location is removed in incoming request
+            if (!incomingLocationTypeIds.contains(existingTypeId)) {
+
+                // Check if any APPROVED project exists under this location
+                boolean hasApprovedProject =
+                        projectTimesheetService.existsApprovedProjectByLocationMappingId(
+                                existingLocation.getLocationMappingId());
+
+                if (hasApprovedProject) {
+                    throw new IllegalStateException(
+                            "Cannot delete location because it contains approved project(s)");
+                }
+            }
+        }
+    }
+    
+    
+    public void validateProjectDeletionRules(
+            Long timesheetId,
+            List<LocationSessionDTO> incomingLocations) {
+
+        if (incomingLocations == null || incomingLocations.isEmpty()) {
+            return;
+        }
+
+        for (LocationSessionDTO locationDTO : incomingLocations) {
+
+            Integer locationTypeId = locationDTO.getWorkLocationTypeId();
+
+            // Existing projects under this location (DB)
+            List<ProjectTimesheetDTO> existingProjects =
+                    projectTimesheetService.findByTimesheetIdAndLocationType(
+                            timesheetId,
+                            locationTypeId
+                    );
+
+            if (existingProjects == null || existingProjects.isEmpty()) {
+                continue;
+            }
+
+            Set<Integer> incomingProjectIds =
+                    locationDTO.getProjects() == null
+                            ? Set.of()
+                            : locationDTO.getProjects().stream()
+                                .map(ProjectTimesheetDTO::getProjectId)
+                                .collect(Collectors.toSet());
+
+            for (ProjectTimesheetDTO existingProject : existingProjects) {
+
+                // Project removed in request
+                if (!incomingProjectIds.contains(existingProject.getProjectId())) {
+
+                    if (TimesheetAggregationHelper.STATUS_APPROVED
+                            .equals(existingProject.getStatus())) {
+
+                        throw new IllegalStateException(
+                            "Cannot delete approved project. Revert approval first.");
+                    }
+                }
+            }
+        }
+    }
+    
+    
+	public void cleanupDeletableLocations(Long timesheetId, List<LocationSessionDTO> incomingLocations) {
+
+		List<EmployeeTimesheetLocationMapping> existingLocations = employeeTimesheetLocationMappingRepository
+				.findByTimesheetId(timesheetId);
+
+		if (existingLocations == null || existingLocations.isEmpty()) {
+			return;
+		}
+
+		Set<Integer> incomingLocationTypeIds = incomingLocations == null ? Set.of()
+				: incomingLocations.stream().map(LocationSessionDTO::getWorkLocationTypeId).collect(Collectors.toSet());
+
+		for (EmployeeTimesheetLocationMapping location : existingLocations) {
+
+			Integer locationTypeId = location.getLocationTypeId().intValue();
+
+			// Location removed from request
+			if (!incomingLocationTypeIds.contains(locationTypeId)) {
+
+				// Double safety: only delete if NO approved project
+				boolean hasApprovedProject = projectTimesheetService
+						.existsApprovedProjectByLocationMappingId(location.getLocationMappingId());
+
+				if (!hasApprovedProject) {
+					deleteLocationCascade(timesheetId,location);
+				}
+			}
+		}
+	}
+	
+	
+	private void deleteLocationCascade(Long timesheetId,EmployeeTimesheetLocationMapping location) {
+
+	    Long locationMappingId = location.getLocationMappingId();
+       // Fetch all projects under this location
+	    List<ProjectTimesheetDTO> projects =
+	            projectTimesheetService.findByLocationMappingId(locationMappingId);
+
+	    if (projects != null && !projects.isEmpty()) {
+
+	        for (ProjectTimesheetDTO project : projects) {
+	        	
+	            // Delete activities under project
+	            activityTimesheetService.deleteActivitiesForProject(timesheetId,locationMappingId,project.getProjectId());
+                
+	            // Delete project
+	            projectTimesheetService.deleteByTimesheetIdAndLocationMappingIdAndProjectId(timesheetId,locationMappingId,project.getProjectId());
+	        }
+	    }
+
+	    //Finally delete location mapping
+	    employeeTimesheetLocationMappingRepository.delete(location);
+	}
+	
+	
+	public void validateLocationTimeOverlap(List<LocationSessionDTO> locations) {
+
+		if (locations == null || locations.size() <= 1) {
+			return;
+		}
+
+		// Filter only time-based locations
+		List<LocationSessionDTO> timeBasedLocations = locations.stream()
+				.filter(l -> l.getLocationInTime() != null && l.getLocationOutTime() != null)
+				.collect(Collectors.toList());
+
+		if (timeBasedLocations.size() <= 1) {
+			return;
+		}
+
+		// Sort by in-time
+		timeBasedLocations.sort(Comparator.comparing(l -> LocalTime.parse(l.getLocationInTime())));
+
+		for (int i = 0; i < timeBasedLocations.size() - 1; i++) {
+
+			LocationSessionDTO current = timeBasedLocations.get(i);
+			LocationSessionDTO next = timeBasedLocations.get(i + 1);
+
+			LocalTime currentEnd = LocalTime.parse(current.getLocationOutTime());
+
+			LocalTime nextStart = LocalTime.parse(next.getLocationInTime());
+
+			if (currentEnd.isAfter(nextStart)) {
+				throw new IllegalStateException("Location time overlap detected between " + current.getLocationInTime()
+						+ " - " + current.getLocationOutTime() + " and " + next.getLocationInTime() + " - "
+						+ next.getLocationOutTime());
+			}
+		}
+	}
+	
+	public void validateActivityDurationWithinLocation(List<LocationSessionDTO> locations) {
+
+		if (locations == null || locations.isEmpty()) {
+			return;
+		}
+
+		for (LocationSessionDTO location : locations) {
+
+			if (location.getLocationInTime() == null || location.getLocationOutTime() == null
+					|| location.getProjects() == null) {
+				continue;
+			}
+
+			LocalTime start = LocalTime.parse(location.getLocationInTime());
+			LocalTime end = LocalTime.parse(location.getLocationOutTime());
+
+			long locationMinutes = Duration.between(start, end).toMinutes();
+
+			if (locationMinutes <= 0) {
+				throw new IllegalArgumentException("Invalid location time range");
+			}
+
+			double totalActivityMinutes = 0;
+
+			for (ProjectTimesheetDTO project : location.getProjects()) {
+
+				if (project.getActivities() == null) {
+					continue;
+				}
+
+				for (ActivityTimesheetDTO activity : project.getActivities()) {
+
+					if (activity.getDurationMinutes() != null) {
+						totalActivityMinutes += activity.getDurationMinutes() * 60;
+					}
+				}
+			}
+
+			if (totalActivityMinutes > locationMinutes) {
+				throw new IllegalStateException("Total activity duration (" + totalActivityMinutes / 60
+						+ " hrs) exceeds location duration (" + locationMinutes / 60 + " hrs)");
+			}
+		}
+	}
+	
+	
+	
+	public void validateApprovedProjectImmutableByLocationMapping(
+	        Long timesheetId,
+	        List<LocationSessionDTO> incomingLocations) {
+
+	    if (incomingLocations == null || incomingLocations.isEmpty()) {
+	        return;
+	    }
+
+	    // Fetch APPROVED project mappings from DB
+	    List<ProjectTimesheetDTO> approvedMappings =
+	            projectTimesheetService
+	                    .findApprovedProjectsByTimesheetId(timesheetId);
+
+	    if (approvedMappings == null || approvedMappings.isEmpty()) {
+	        return;
+	    }
+
+	    // Build incoming map:
+	    // locationMappingId -> projectId -> projectDTO
+	    Map<Long, Map<Integer, ProjectTimesheetDTO>> incomingMap =
+	            incomingLocations.stream()
+	                    .filter(l -> l.getLocationMappingId() != null
+	                              && l.getProjects() != null)
+	                    .collect(Collectors.toMap(
+	                            LocationSessionDTO::getLocationMappingId,
+	                            l -> l.getProjects().stream()
+	                                    .collect(Collectors.toMap(
+	                                            ProjectTimesheetDTO::getProjectId,
+	                                            p -> p,
+	                                            (a, b) -> a
+	                                    )),
+	                            (a, b) -> a
+	                    ));
+
+	    for (ProjectTimesheetDTO approved : approvedMappings) {
+
+	        Long locationMappingId = approved.getLocationMappingId();
+	        Integer projectId = approved.getProjectId();
+
+	        Map<Integer, ProjectTimesheetDTO> incomingProjectsAtLocation =
+	                incomingMap.get(locationMappingId);
+
+	        // Project removed from this time-slot
+	        if (incomingProjectsAtLocation == null
+	                || !incomingProjectsAtLocation.containsKey(projectId)) {
+
+	            throw new IllegalStateException(
+	                    "Approved project cannot be removed from its time slot. "
+	                    + "ProjectId=" + projectId
+	                    + ", LocationMappingId=" + locationMappingId);
+	        }
+
+	        ProjectTimesheetDTO incomingProject =
+	                incomingProjectsAtLocation.get(projectId);
+
+	        // Activities immutability
+	        validateApprovedProjectActivitiesImmutable(
+	                approved.getActivities(),
+	                incomingProject.getActivities(),
+	                projectId,
+	                locationMappingId);
+	    }
+	}
+	
+	
+	
+	private void validateApprovedProjectActivitiesImmutable(
+	        List<ActivityTimesheetDTO> existingActivities,
+	        List<ActivityTimesheetDTO> incomingActivities,
+	        Integer projectId,
+	        Long locationMappingId) {
+
+	    if (existingActivities == null) existingActivities = List.of();
+	    if (incomingActivities == null) incomingActivities = List.of();
+
+	    Map<Long, ActivityTimesheetDTO> existingMap =
+	            existingActivities.stream()
+	                    .collect(Collectors.toMap(
+	                            ActivityTimesheetDTO::getActivityId,
+	                            a -> a
+	                    ));
+
+	    Map<Long, ActivityTimesheetDTO> incomingMap =
+	            incomingActivities.stream()
+	                    .collect(Collectors.toMap(
+	                            ActivityTimesheetDTO::getActivityId,
+	                            a -> a
+	                    ));
+
+	    // Add/remove activity
+	    if (!existingMap.keySet().equals(incomingMap.keySet())) {
+	        throw new IllegalStateException(
+	                "Activities cannot be changed for approved project. "
+	                + "ProjectId=" + projectId
+	                + ", LocationMappingId=" + locationMappingId);
+	    }
+
+	    // Duration change
+	    for (Long activityId : existingMap.keySet()) {
+
+	        if (!Objects.equals(
+	                existingMap.get(activityId).getDurationMinutes(),
+	                incomingMap.get(activityId).getDurationMinutes())) {
+
+	            throw new IllegalStateException(
+	                    "Activity duration cannot be modified for approved project. "
+	                    + "ProjectId=" + projectId
+	                    + ", ActivityId=" + activityId
+	                    + ", LocationMappingId=" + locationMappingId);
+	        }
+	    }
+	}
+
+
+
+
+
+
+
+
     
     
 }

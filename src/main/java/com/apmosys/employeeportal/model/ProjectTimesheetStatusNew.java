@@ -1,5 +1,8 @@
 package com.apmosys.employeeportal.model;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
@@ -44,5 +47,18 @@ public class ProjectTimesheetStatusNew {
     
     @Column(name = "location_mapping_id")
     private Long locationMappingId;
+    
+    
+    @Column(name = "created_by")
+	Long createdBy;
+    
+	@Column(name = "created_on")
+	LocalDateTime createdOn;
+	
+	@Column(name = "updated_by")
+	Long updatedBy;
+	
+	@Column(name = "updated_on")
+	LocalDateTime updatedOn;
 
 }

@@ -51,20 +51,6 @@ public class ProjectTimesheetDTO {
     private Long poId;
 
     /**
-     * Client in time
-     * Optional - for client-side time tracking
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime clientInTime;
-
-    /**
-     * Client out time
-     * Optional - for client-side time tracking
-     */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime clientOutTime;
-
-    /**
      * Is night shift
      * Optional - indicates if this is a night shift
      */
@@ -78,12 +64,7 @@ public class ProjectTimesheetDTO {
     @NotNull( "Status is required")
     private Integer status;
 
-    /**
-     * Shadow employee ID
-     * Optional - for shadow timesheet scenarios
-     */
-    private Long shadowEmpId;
-
+    
     /**
      * Total client working minutes
      * Calculated from activities for this project
@@ -128,12 +109,6 @@ public class ProjectTimesheetDTO {
      */
     private Long teamId;
     
-    /**
-     * Is shadow timesheet flag
-     * NEW CONTRACT: Boolean flag for shadow timesheet
-     * Optional - defaults to false
-     */
-    private Boolean isShadow;
     
     /**
      * Is shadow timesheet flag (alternative name)
@@ -143,7 +118,24 @@ public class ProjectTimesheetDTO {
     private Boolean isShadowTimesheet;
     
     
+    /**
+     * Shadow employee ID
+     * Optional - for shadow timesheet scenarios
+     */
+    private Long shadowEmpId;
+    
+    
+    private Boolean isShadowForSelf;
+    
+    
     private Long locationMappingId;
+    
+    
+    /**
+     * Client location ID (FK to client_locations table)
+     * Optional - for location-specific tracking
+     */
+    private Long clientLocationId;
     
   
 }

@@ -55,10 +55,6 @@ public class ActivityTimesheetDTO {
     @NotNull("Duration minutes is required")
     private Integer durationMinutes;
 
-    /**
-     * Client location ID (FK to client_locations table)
-     * Optional - for location-specific tracking
-     */
-    private Long clientLocationId;
+   
 }
 

@@ -188,8 +188,7 @@ public class TimesheetMapper {
         dto.setProjectId(entity.getId().getProjectId());
         dto.setDescription(entity.getDescription());
         dto.setDurationMinutes(entity.getDurationMinutes() != null ? entity.getDurationMinutes().intValue() : null);
-        dto.setClientLocationId(null); // Not stored in new table, may need to be retrieved separately
-
+      
         return dto;
     }
     /**

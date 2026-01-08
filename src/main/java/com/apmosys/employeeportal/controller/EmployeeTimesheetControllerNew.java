@@ -28,6 +28,8 @@ import com.apmosys.employeeportal.service.TimesheetServiceNew;
 import com.apmosys.employeeportal.service.helper.TimesheetEncryptionHelper;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * New Controller for Hierarchical Timesheet APIs
  * 
@@ -41,6 +43,7 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
  */
 @RestController
 @RequestMapping(path = "/api/v2/timesheet")
+@Slf4j
 public class EmployeeTimesheetControllerNew {
 	
 	@Autowired
@@ -63,18 +66,41 @@ public class EmployeeTimesheetControllerNew {
 	 *                  Documents are linked to projects via documentData in DTO
 	 * @return ServiceResponse with created timesheet data
 	 */
-	@JobRoleAccess(featureIds = {15})
 	@PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ServiceResponse createTimesheet(
-			@RequestPart("dto") String encryptedDto,
-			@RequestPart(value = "documents", required = false) List<MultipartFile> documents) throws Exception {
-		// Decrypt and parse encrypted DTO to new structure
-		EmployeeTimesheetDTO dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNewMapping(encryptedDto);
-		
-		// NEW CONTRACT: Pass list of documents to service
-		// Documents are linked to projects via documentData array in DTO
-		ServiceResponse response = timesheetServiceNew.createTimesheet(dto, documents);
-		return response;
+	        @RequestPart("dto") String encryptedDto,
+	        @RequestPart(value = "documents", required = false) List<MultipartFile> documents) {
+	    
+	    ServiceResponse response = new ServiceResponse();
+	    
+	    try {
+	        if (encryptedDto == null || encryptedDto.trim().isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Encrypted DTO is required");
+	            response.setServiceError("Missing or empty encryptedDto parameter");
+	            return response;
+	        }
+	          
+	        EmployeeTimesheetDTO dto;
+            try {
+                dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNewMapping(encryptedDto);
+                
+            } catch (Exception e) {
+                log.error("Decryption/parsing failed - traceId: {}, error: {}", e.getMessage(), e);
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Failed to decrypt or parse request data");
+                response.setServiceError("Invalid encrypted data format");
+	            return response;
+            }
+	        response = timesheetServiceNew.createTimesheet(dto, documents);
+	        }catch (Exception e) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Failed to process request data");
+	        response.setServiceError("Unexpected error: " + e.getMessage());
+	        log.error("Error in createTimesheet - decryption/parsing failed: {}", e.getMessage(), e);
+	    }
+	    
+	    return response;
 	}
 	
 	@JobRoleAccess(featureIds = {15, 16, 24})
@@ -93,7 +119,13 @@ public class EmployeeTimesheetControllerNew {
      * NEW CONTRACT: Accepts list of multipart files for document uploads
      * Multiple documents can be uploaded/updated for multiple projects
      * 
-     * @param timesheetId Timesheet ID to update
+     * UPDATE-SPECIFIC VALIDATIONS:
+     * - timesheetId must be provided and valid
+     * - Timesheet must exist (validated in service layer)
+     * - Date cannot be locked (validated in service layer)
+     * - Cannot update timesheets older than lock period
+     * 
+     * @param timesheetId Timesheet ID to update (required)
      * @param encryptedDto Encrypted timesheet DTO (new contract structure)
      * @param documents List of multipart files for document uploads (one per project)
      *                  Documents are linked to projects via documentData in DTO
@@ -104,13 +136,73 @@ public class EmployeeTimesheetControllerNew {
     public ServiceResponse updateTimesheet(
             @RequestParam Long timesheetId,
             @RequestPart("dto") String encryptedDto,
-            @RequestPart(value = "documents", required = false) List<MultipartFile> documents) throws Exception {
+            @RequestPart(value = "documents", required = false) List<MultipartFile> documents) {
         
-        // Decrypt and parse encrypted DTO to new structure
-    	EmployeeTimesheetDTO dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNewMapping(encryptedDto);
+        ServiceResponse response = new ServiceResponse();
         
-        // NEW CONTRACT: Pass list of documents to service
-        return timesheetServiceNew.updateTimesheet(timesheetId, dto, documents);
+        try {
+            // 1. Validate timesheetId parameter
+            if (timesheetId == null) {
+                log.warn("Update timesheet request with null timesheetId");
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Timesheet ID is required");
+                response.setServiceError("Missing timesheetId parameter");
+                return response;
+            }
+            
+            // 2. Validate encryptedDto parameter
+            if (encryptedDto == null || encryptedDto.trim().isEmpty()) {
+                log.warn("Update timesheet request with empty encryptedDto - timesheetId: {}", timesheetId);
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Encrypted DTO is required");
+                response.setServiceError("Missing or empty encryptedDto parameter");
+                return response;
+            }
+            
+            // 3. Decrypt and parse encrypted DTO to new structure
+            EmployeeTimesheetDTO dto;
+            try {
+                dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNewMapping(encryptedDto);
+                log.debug("Decrypted DTO for update - timesheetId: {}, empId: {}, date: {}", 
+                    timesheetId, dto.getEmpId(), dto.getDate());
+                
+            } catch (Exception e) {
+                log.error("Decryption/parsing failed for update - timesheetId: {}, error: {}", 
+                    timesheetId, e.getMessage(), e);
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Failed to decrypt or parse request data");
+                response.setServiceError("Invalid encrypted data format");
+                return response;
+            }
+            
+            // 4.
+            // Service layer handles:
+            // - Timesheet existence validation
+            // - Date lock validation (validateDateNotLocked)
+            // - Authorization validation
+            // - Business rule validations
+            response = timesheetServiceNew.updateTimesheet(timesheetId, dto, documents);
+             
+        } catch (IllegalArgumentException e) {
+            // Handle validation errors (e.g., date locked, timesheet not found)
+            // Note: timesheetId should be non-null here as we validate it early
+            log.error("Validation error in updateTimesheet - timesheetId: {}, error: {}", 
+                timesheetId != null ? timesheetId : "null", e.getMessage(), e);
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse("Validation failed: " + e.getMessage());
+            response.setServiceError(e.getMessage());
+            
+        } catch (Exception e) {
+            // Handle unexpected errors
+            // Note: timesheetId should be non-null here as we validate it early
+            log.error("Unexpected error in updateTimesheet - timesheetId: {}, error: {}", 
+                timesheetId != null ? timesheetId : "null", e.getMessage(), e);
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse("Failed to process update request");
+            response.setServiceError("Unexpected error: " + e.getMessage());
+        }
+        
+        return response;
     }
 	
 	/**

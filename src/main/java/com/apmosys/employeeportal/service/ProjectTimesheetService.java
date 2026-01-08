@@ -126,6 +126,11 @@ public class ProjectTimesheetService {
         entity.setStatus(dto.getStatus());
         entity.setShadowEmpId(dto.getShadowEmpId());
         entity.setTotalClientWorkingMinutes(dto.getTotalClientWorkingMinutes());
+        
+        // Update locationMappingId if provided (NEW CONTRACT: Projects are linked to locations)
+        if (dto.getLocationMappingId() != null) {
+            entity.setLocationMappingId(dto.getLocationMappingId());
+        }
 
         return projectTimesheetStatusNewRepository.save(entity);
     }
@@ -196,5 +201,86 @@ public class ProjectTimesheetService {
                 .findByTimesheetIdAndProjectId(timesheetId, projectId)
                 .isPresent();
     }
+    
+    public Boolean existsApprovedProjectByLocationMappingId(Long locationMappingId) {
+        return projectTimesheetStatusNewRepository
+                .existsByLocationMappingIdAndStatus(
+                        locationMappingId,
+                        TimesheetAggregationHelper.STATUS_APPROVED
+                );
+    }
+    
+    public List<ProjectTimesheetDTO> findByTimesheetIdAndLocationType(
+            Long timesheetId,
+            Integer locationTypeId) {
+
+        return projectTimesheetStatusNewRepository
+                .findByTimesheetIdAndLocationTypeId(timesheetId, locationTypeId)
+                .stream()
+                .map(timesheetMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+    
+    public List<ProjectTimesheetDTO> findByLocationMappingId(Long locationMappingId) {
+
+        if (locationMappingId == null) {
+            return List.of();
+        }
+
+        return projectTimesheetStatusNewRepository
+                .findByLocationMappingId(locationMappingId)
+                .stream()
+                .map(timesheetMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+    
+    @Transactional
+    public void deleteByTimesheetIdAndLocationMappingIdAndProjectId(
+            Long timesheetId,
+            Long locationMappingId,
+            Integer projectId) {
+
+        if (timesheetId == null || locationMappingId == null || projectId == null) {
+            return;
+        }
+
+        projectTimesheetStatusNewRepository
+                .deleteByTimesheetIdAndLocationMappingIdAndProjectId(
+                        timesheetId, locationMappingId, projectId);
+    }
+    
+    
+    public List<ProjectTimesheetDTO> findApprovedProjectsByTimesheetId(
+            Long timesheetId) {
+
+        return projectTimesheetStatusNewRepository
+                .findByTimesheetIdAndStatus(
+                        timesheetId,
+                        TimesheetAggregationHelper.STATUS_APPROVED)
+                .stream()
+                .map(timesheetMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+    
+    
+    public List<ProjectTimesheetDTO> findByTimesheetIdAndLocationMappingId(
+            Long timesheetId,
+            Long locationMappingId) {
+
+        if (timesheetId == null || locationMappingId == null) {
+            return List.of();
+        }
+
+        return projectTimesheetStatusNewRepository
+                .findByTimesheetIdAndLocationMappingId(
+                        timesheetId, locationMappingId)
+                .stream()
+                .map(timesheetMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+    
+    
+ 
+
 }
 
