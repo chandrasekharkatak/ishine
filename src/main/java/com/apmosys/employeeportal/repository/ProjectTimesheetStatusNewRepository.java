@@ -34,19 +34,22 @@ public interface ProjectTimesheetStatusNewRepository extends JpaRepository<Proje
     		Integer status
     );
     
-    List<ProjectTimesheetStatusNew> findByTimesheetIdAndLocationTypeId( Long timesheetId,
-            Integer locationTypeId);
+
+    @Query("SELECT p FROM ProjectTimesheetStatusNew p WHERE p.id.timesheetId = :timesheetId AND p.locationMappingId = :locationMappingId")
+    List<ProjectTimesheetStatusNew> findByTimesheetIdAndLocationTypeId(
+            @Param("timesheetId") Long timesheetId,
+            @Param("locationMappingId") Long locationMappingId
+    );
     
     List<ProjectTimesheetStatusNew> findByLocationMappingId(Long locationMappingId);
     
     
     @Modifying
-    @Query(
-          "DELETE FROM ProjectTimesheetStatusNew p "
-        + "WHERE p.timesheetId = :timesheetId "
+    @Transactional  // Added missing @Transactional
+    @Query("DELETE FROM ProjectTimesheetStatusNew p "
+        + "WHERE p.id.timesheetId = :timesheetId "
         + "AND p.locationMappingId = :locationMappingId "
-        + "AND p.projectId = :projectId"
-    )
+        + "AND p.id.projectId = :projectId")
     void deleteByTimesheetIdAndLocationMappingIdAndProjectId(
             @Param("timesheetId") Long timesheetId,
             @Param("locationMappingId") Long locationMappingId,
@@ -55,24 +58,23 @@ public interface ProjectTimesheetStatusNewRepository extends JpaRepository<Proje
     
     
     
+    @Query("SELECT p FROM ProjectTimesheetStatusNew p WHERE p.id.timesheetId = :timesheetId AND p.status = :status")
     List<ProjectTimesheetStatusNew> findByTimesheetIdAndStatus(
-            Long timesheetId,
-            Integer status
+            @Param("timesheetId") Long timesheetId,
+            @Param("status") Integer status
     );
     
-    
-    List<ProjectTimesheetStatusNew>
-    findByTimesheetIdAndLocationMappingId(
-        Long timesheetId,
-        Long locationMappingId
+    @Query("SELECT p FROM ProjectTimesheetStatusNew p WHERE p.id.timesheetId = :timesheetId AND p.locationMappingId = :locationMappingId")
+    List<ProjectTimesheetStatusNew> findByTimesheetIdAndLocationMappingId(
+            @Param("timesheetId") Long timesheetId,
+            @Param("locationMappingId") Long locationMappingId
     );
     
-    
-    Optional<ProjectTimesheetStatusNew>
-    findByTimesheetIdAndLocationMappingIdAndProjectId(
-            Long timesheetId,
-            Long locationMappingId,
-            Integer projectId
+    @Query("SELECT p FROM ProjectTimesheetStatusNew p WHERE p.id.timesheetId = :timesheetId AND p.locationMappingId = :locationMappingId AND p.id.projectId = :projectId")
+    Optional<ProjectTimesheetStatusNew> findByTimesheetIdAndLocationMappingIdAndProjectId(
+            @Param("timesheetId") Long timesheetId,
+            @Param("locationMappingId") Long locationMappingId,
+            @Param("projectId") Integer projectId
     );
 
 

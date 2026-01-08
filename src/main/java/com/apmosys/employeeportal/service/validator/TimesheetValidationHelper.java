@@ -7,6 +7,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -336,14 +337,14 @@ public class TimesheetValidationHelper {
                     boolean documentPresentForProject =
                             documentList.stream()
                                     .anyMatch(doc ->
-                                            projectId.equals(doc.getProjectId()) &&
+                                            projectId.longValue() == doc.getProjectId() &&
                                             doc.getDocName() != null &&
                                             doc.getFinalFlag() != null
                                     );
 
                     if (!documentPresentForProject) {
                         throw new IllegalArgumentException(
-                                "Client-side ID is mandatory. Please upload required documents for projectId="
+                                "Client-side ID is mandatory. Please upload required documents for projectId: "
                                         + projectId);
                     }
                 }
@@ -397,7 +398,7 @@ public class TimesheetValidationHelper {
                     Boolean isClientIdMandatory =
                             projectRepository.getClientSideIdMandatory(projectId);
 
-                    if (!Boolean.TRUE.equals(isClientIdMandatory)) {
+                    if (Boolean.FALSE.equals(isClientIdMandatory)) {
                         continue;
                     }
 
@@ -407,18 +408,18 @@ public class TimesheetValidationHelper {
                     //Enforce min / max rule
                     if (projectFiles.isEmpty()) {
                         throw new IllegalArgumentException(
-                                "Filled document is mandatory for projectId=" + projectId);
+                                "Filled document is mandatory for projectId: " + projectId);
                     }
 
                     if (projectFiles.size() > 2) {
                         throw new IllegalArgumentException(
-                                "Maximum 2 documents (filled + approved) allowed for a projectId="
+                                "Maximum 2 documents (filled + approved) allowed for projectId: "
                                         + projectId);
                     }
                     
                     if(project.getClientApprovalStatus()==2 && projectFiles.size()!=2) {
                     	throw new IllegalArgumentException(
-                                "2 documents (filled + approved) are required for projectId="
+                                "2 documents (filled + approved) are required for projectId: "
                                         + projectId);
                     }
 
@@ -430,7 +431,7 @@ public class TimesheetValidationHelper {
                         String fileName = file.getOriginalFilename();
                         if (fileName == null) {
                             throw new IllegalArgumentException(
-                                    "Invalid document name for projectId=" + projectId);
+                                    "Invalid document name for projectId: " + projectId);
                         }
 
                         String lowerName = fileName.toLowerCase();
@@ -441,7 +442,7 @@ public class TimesheetValidationHelper {
                             // approved doc → optional
                         } else {
                             throw new IllegalArgumentException(
-                                    "Invalid document name format for projectId=" + projectId +
+                                    "Invalid document name format for projectId: " + projectId +
                                     ". Expected: projectId_filled_xxx or projectId_approved_xxx");
                         }
                     }
@@ -449,7 +450,7 @@ public class TimesheetValidationHelper {
                     // 7️ Filled doc is mandatory
                     if (!filledPresent) {
                         throw new IllegalArgumentException(
-                                "Filled document is mandatory for projectId=" + projectId);
+                                "Filled document is mandatory for projectId: " + projectId);
                     }
                 }
             }

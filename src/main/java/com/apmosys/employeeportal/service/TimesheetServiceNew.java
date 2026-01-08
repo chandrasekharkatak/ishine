@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,12 +29,16 @@ import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
 import com.apmosys.employeeportal.model.DayTypeMasterNew;
 import com.apmosys.employeeportal.model.EmployeeTimesheetLocationMapping;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
+import com.apmosys.employeeportal.model.FinalDocumentNew;
 import com.apmosys.employeeportal.model.ProjectTimesheetStatusNew;
+import com.apmosys.employeeportal.model.TimesheetDocumentDetailsNew;
 import com.apmosys.employeeportal.model.WorkLocationTypeMaster;
 import com.apmosys.employeeportal.repository.DayTypeMasterNewRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetLocationMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
+import com.apmosys.employeeportal.repository.FinalDocumentNewRepository;
+import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsNewRepository;
 import com.apmosys.employeeportal.repository.WorkLocationTypeMasterRepository;
 import com.apmosys.employeeportal.service.helper.TimesheetAggregationHelper;
 import com.apmosys.employeeportal.service.mapper.TimesheetMapper;
@@ -81,6 +86,15 @@ public class TimesheetServiceNew {
 	
 	@Autowired
 	private EmployeeTimesheetLocationMappingRepository employeeTimesheetLocationMappingRepository;
+
+	@Autowired
+	private TimesheetDocumentServiceNew timesheetDocumentService;
+
+	@Autowired
+	private TimesheetDocumentDetailsNewRepository timesheetDocumentDetailsNewRepository;
+
+	@Autowired
+	private FinalDocumentNewRepository finalDocumentNewRepository;
 	
 	@Value("${timesheet.lock.days:30}")
 	private Integer timesheetLockDays;
@@ -952,6 +966,7 @@ public class TimesheetServiceNew {
 	 * Logic will be implemented later as per requirements
 	 * For now, it validates the structure and prepares for document service integration
 	 */
+	@Transactional
 	private void handleDocumentUploadsFromNewContract(
 			List<TimesheetDocumentDataDTO> documentDataList,
 			List<MultipartFile> documents,
@@ -964,61 +979,64 @@ public class TimesheetServiceNew {
 		
 		// Validate documents list matches documentData
 		if (documents != null && documents.size() != documentDataList.size()) {
-			// Log warning: document count mismatch
-			// For now, proceed with available documents
-			// TODO: Decide on validation strategy - strict match or allow partial
+			/* Log warning: document count mismatch
+			* For now, proceed with available documents
+			* TODO: Decide on validation strategy - strict match or allow partial
+			*/
+			timesheetDocumentService.handleDocumentUpload(null, timesheetId, documents, documentDataList);
 		}
 		
 		// Process each document data entry
-		for (int i = 0; i < documentDataList.size(); i++) {
-			TimesheetDocumentDataDTO docData = documentDataList.get(i);
+		// for (int i = 0; i < documentDataList.size(); i++) {
+		// 	TimesheetDocumentDataDTO docData = documentDataList.get(i);
 			
-			// Validate document data
-			if (docData.getProjectId() == null) {
-				// Skip invalid entries - projectId is required
-				continue;
-			}
+		// 	// Validate document data
+		// 	if (docData.getProjectId() == null) {
+		// 		// Skip invalid entries - projectId is required
+		// 		continue;
+		// 	}
 			
-			// Get corresponding file (if available)
-			MultipartFile file = null;
-			if (documents != null && i < documents.size()) {
-				file = documents.get(i);
-			}
+		// 	// Get corresponding file (if available)
+		// 	MultipartFile file = null;
+		// 	if (documents != null && i < documents.size()) {
+		// 		file = documents.get(i);
+		// 	}
 			
-			// TODO: Integrate with TimesheetDocumentService
-			// Implementation will:
-			// 1. If docId is null: Create new document
-			//    - Save file to storage (S3/local)
-			//    - Create TimesheetDocumentDetails record
-			//    - Link to timesheetId and projectId
-			//    - Set finalFlag, docName, etc.
-			// 2. If docId is not null: Update existing document
-			//    - Update file if new file provided
-			//    - Update TimesheetDocumentDetails record
-			//    - Handle bulkApprovedDocId if applicable
-			// 3. Handle uniqueIdentifier for tracking
-			// 4. Validate file type, size, etc.
+		// 	// TODO: Integrate with TimesheetDocumentService
+		// 	// Implementation will:
+		// 	// 1. If docId is null: Create new document
+		// 	//    - Save file to storage (S3/local)
+		// 	//    - Create TimesheetDocumentDetails record
+		// 	//    - Link to timesheetId and projectId
+		// 	//    - Set finalFlag, docName, etc.
+		// 	// 2. If docId is not null: Update existing document
+		// 	//    - Update file if new file provided
+		// 	//    - Update TimesheetDocumentDetails record
+		// 	//    - Handle bulkApprovedDocId if applicable
+		// 	// 3. Handle uniqueIdentifier for tracking
+		// 	// 4. Validate file type, size, etc.
 			
-			// Example structure (to be implemented):
-			// if (file != null && !file.isEmpty()) {
-			//     TimesheetDocumentDetails doc = new TimesheetDocumentDetails();
-			//     doc.setTimesheetId(timesheetId);
-			//     doc.setProjectId(docData.getProjectId());
-			//     doc.setDocName(docData.getDocName());
-			//     doc.setFinalFlag(docData.getFinalFlag());
-			//     doc.setBulkApprovedDocId(docData.getBulkApprovedDocId());
-			//     doc.setUniqueIdentifier(docData.getUniqueIdentifier());
-			//     
-			//     if (docData.getDocId() == null) {
-			//         // Create new
-			//         timesheetDocumentService.createDocument(doc, file);
-			//     } else {
-			//         // Update existing
-			//         doc.setDocId(docData.getDocId());
-			//         timesheetDocumentService.updateDocument(doc, file);
-			//     }
-			// }
-		}
+		// 	// Example structure (to be implemented):
+		// 	// if (file != null && !file.isEmpty()) {
+		// 	//     TimesheetDocumentDetails doc = new TimesheetDocumentDetails();
+		// 	//     doc.setTimesheetId(timesheetId);
+		// 	//     doc.setProjectId(docData.getProjectId());
+		// 	//     doc.setDocName(docData.getDocName());
+		// 	//     doc.setFinalFlag(docData.getFinalFlag());
+		// 	//     doc.setBulkApprovedDocId(docData.getBulkApprovedDocId());
+		// 	//     doc.setUniqueIdentifier(docData.getUniqueIdentifier());
+		// 	//     
+		// 	//     if (docData.getDocId() == null) {
+		// 	//         // Create new
+		// 	//         timesheetDocumentService.createDocument(doc, file);
+		// 	//     } else {
+		// 	//         // Update existing
+		// 	//         doc.setDocId(docData.getDocId());
+		// 	//         timesheetDocumentService.updateDocument(doc, file);
+		// 	//     }
+		// 	// }
+		// }
+	
 	}
 	
 	
@@ -1274,5 +1292,25 @@ public class TimesheetServiceNew {
 	public ServiceResponse getAlreadyFilledTimesheetDatesByEmpId(Long empId,String dayType) {
 		return timesheetQueryService.getAlreadyFilledTimesheetDatesByEmpId(empId,dayType);
 	}
+	public Resource getDocumentDataByDocId(Long docId, Boolean approvedDocType) {
+		 try {
+			 TimesheetDocumentDetailsNew docDetails = new TimesheetDocumentDetailsNew();
+			 docDetails = timesheetDocumentDetailsNewRepository.findByDocIdAndActive(docId,true);
+			 if(approvedDocType == null || !approvedDocType){
+				 return timesheetDocumentService.viewFile(docDetails.getFileUrl());
+			 }
+			 FinalDocumentNew finalDocument = finalDocumentNewRepository.findById(docId).orElseThrow(() -> new RuntimeException("Document not found"));
+			 return timesheetDocumentService.viewFile(finalDocument.getFileUrl());
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+		    }
+			return null;
+	}
+
+	// @Transactional(rollbackFor = Exception.class)
+	// public ServiceResponse approveOrRejectDocument(Long docId, Long approvedOrRejectedBy, String approvalStatus) {
+	// 	return timesheetDocumentService.approveOrRejectDocument(docId, approvedOrRejectedBy, approvalStatus);
+	// }
 
 }
