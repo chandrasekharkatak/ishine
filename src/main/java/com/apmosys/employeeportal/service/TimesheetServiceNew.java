@@ -1270,6 +1270,9 @@ public class TimesheetServiceNew {
 		
 		return timesheetQueryService.getActiveProjectsAndClientSideIdByEmpId(empId);
 	   
-    }
+	}
+	public ServiceResponse getAlreadyFilledTimesheetDatesByEmpId(Long empId,String dayType) {
+		return timesheetQueryService.getAlreadyFilledTimesheetDatesByEmpId(empId,dayType);
+	}
 
 }

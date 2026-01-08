@@ -49,5 +49,9 @@ export class TimesheetNewService {
           return this.http.post(`${this.baseUrl}` + `api/v2/timesheet/getActiveProjectsAndClientSideIdByEmpId`,  empId);
         }
 
+        getAlreadyFilledTimesheetDatesByEmpId(empId:number){
+          return this.http.post(`${this.baseUrl}` + `api/v2/timesheet/getAlreadyFilledTimesheetDatesByEmpId`,  empId);
+        }
+
 }
   

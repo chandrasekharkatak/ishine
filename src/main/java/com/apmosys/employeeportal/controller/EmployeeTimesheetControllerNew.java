@@ -312,5 +312,12 @@ public class EmployeeTimesheetControllerNew {
 	 public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(@RequestBody Long empId) {
 	     return timesheetServiceNew.getActiveProjectsAndClientSideIdByEmpId(empId);
 	 }
+	
+//	@JobRoleAccess(featureIds = {15,16})
+//	@PostMapping("/getAlreadyFilledTimesheetDatesByEmpId")
+//	 public ServiceResponse getAlreadyFilledTimesheetDatesByEmpId(@RequestBody Long empId,@RequestBody String daytype) {
+//	     return timesheetServiceNew.getAlreadyFilledTimesheetDatesByEmpId(empId,dayType);
+//	 }
+	
 }
 

@@ -51,6 +51,20 @@ public class ProjectTimesheetDTO {
     private Long poId;
 
     /**
+     * Client in time
+     * Optional - for client-side time tracking
+     */
+//    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+//    private LocalDateTime clientInTime;
+
+    /**
+     * Client out time
+     * Optional - for client-side time tracking
+     */
+//    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+//    private LocalDateTime clientOutTime;
+
+    /**
      * Is night shift
      * Optional - indicates if this is a night shift
      */
@@ -110,7 +124,7 @@ public class ProjectTimesheetDTO {
     private Long teamId;
     
     
-    private Boolean isShadowForSelf;
+    // private Boolean isShadowForSelf;
     
     /**
      * Is shadow timesheet flag (alternative name)
