@@ -190,7 +190,30 @@ selectedClientProjectViewOption: string = 'default';
   filters: any = {};
   isSearchEnabled: boolean = false;
 
-  employeeReportColumnForDetailedProjectViewClub: any[] = ['blank', 'employeementIdAccToET', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience', 'primaryProjectName'];
+  employeeReportColumnForDetailedProjectViewClub: any[] = ['blank',
+    'employeementIdAccToET',
+    'name',
+    'departmentName',
+    'poNo',
+    'projectName',
+    'poProjectType',
+    'jobRole',
+    'managerName',
+    'mobileNo',
+    'email',
+    'employmentstatus',
+    'billable',
+    'billableType',
+    'teamName',
+    'poStartDate',
+    'poEndDate',
+    'effectiveStartDate',
+    'effectiveEndDate',
+    'clientName',
+    'clientLocation',
+    'workLocation',
+    'totalExperience',
+    'primaryProjectName'];
   employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementIdAccToET', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience'];
   leaveReportColumns: any[] = ['employmentIdAcToET', 'employeeType', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'noOfDays', 'reason', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
   timesheetReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'totalWorkingHours', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'leaveType', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
@@ -279,6 +302,34 @@ dateRange: string; type: string; count: string;
     'Internal': {}
   };
   inActivePEmployeeColumns:any[] = ['employeementIdAccToET','name','projectName','poNo','poProjectType','poStartDate','poEndDate','clientName','clientLocation'];
+
+  employeeReportColumnForDetailedView: any[] = [
+    'blank',
+    'employeementIdAccToET',
+    'name',
+    'departmentName',
+    'poNo',
+    'projectName',
+    'poProjectType',
+    'jobRole',
+    'managerName',
+    'mobileNo',
+    'email',
+    'employmentstatus',
+    'billable',
+    'billableType',
+    'teamName',
+    'poStartDate',
+    'poEndDate',
+    'effectiveStartDate',
+    'effectiveEndDate',
+    'clientName',
+    'clientLocation',
+    'workLocation',
+    'totalExperience',
+    'blank'
+  ];
+
 
   constructor(
     private authenticationService: AuthenticationService,

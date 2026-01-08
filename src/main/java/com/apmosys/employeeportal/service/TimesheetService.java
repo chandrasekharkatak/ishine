@@ -1952,7 +1952,22 @@ public class TimesheetService {
 					totalTime += mappingFound.getCompletionTime();
 				}
 				existingTimesheet.setTotalTime(totalTime);
+				if (timesheetDTO.getTotalWorkingOfficeHours() != null && !timesheetDTO.getTotalWorkingOfficeHours().isEmpty()) {
+					try {
+						String[] parts = timesheetDTO.getTotalWorkingOfficeHours().split(":");
+						if (parts.length == 2) {
+							float hours = Float.parseFloat(parts[0]);
+							float minutes = Float.parseFloat(parts[1]);
+							float rawDecimal = hours + (minutes / 60.0f);
 
+							float roundedTime = (float) (Math.round(rawDecimal * 100.0) / 100.0);
+
+							existingTimesheet.setTotalTime(roundedTime);
+						}
+					} catch (Exception e) {
+						System.err.println("Error parsing working hours: " + timesheetDTO.getTotalWorkingOfficeHours());
+					}
+				}
 				Timesheet updatedTimesheet = timesheetsRepository.save(existingTimesheet);
 //				
 //				boolean hasPending = timesheetDTO.getDocumentData() != null &&

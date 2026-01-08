@@ -337,9 +337,6 @@ async getExistingProjectsByUser() {
         return project;
       });
 
-      console.log("dekhauchi re project details ::::::::", this.allProjectList);
-      console.log("this.projectDetails ", this.allProjectList);
-      console.log("Existing project detauls fetched for employee", this.allProjectList);
 
       // if (this.allProjectList.length > 0) {
       //   if (this.allProjectList[0].billableType == "TNM") {
@@ -575,7 +572,7 @@ async getExistingProjectsByUser() {
 
 
   editEnddate(template: TemplateRef<any>) {
-    
+
       const startDateStr = this.projectObj.startDate?.split('T')[0];
   const endDateStr = this.endDate;
 
@@ -591,7 +588,7 @@ async getExistingProjectsByUser() {
     projectObj.teamId = this.projectObj.teamId;
     projectObj.empId = this.projectObj.empId;
     projectObj.endDate = this.endDate;
-    projectObj.employeeTeamMapId = this.projectObj.employeeTeamMapId; //added for updating end-date 
+    projectObj.employeeTeamMapId = this.projectObj.employeeTeamMapId; //added for updating end-date
 
 
     console.log("team details ", projectObj)
@@ -602,13 +599,13 @@ async getExistingProjectsByUser() {
         this.endDate = '';
         this.getExistingProjectsByUser();
         this.getTeamByProjectId(this.projectObj.projectId);
-      } 
+      }
       else {
         if (response.serviceStatus === "Fail") {
           this.openAlertMod(template, "End Date can't be set before Start Date");
         }
       }
-      this.endDate = ''; // for clearing the selected date in date picker 
+      this.endDate = ''; // for clearing the selected date in date picker
     });
   }
 
