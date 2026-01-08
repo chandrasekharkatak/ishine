@@ -713,11 +713,12 @@
               mat-sort-header="defaultProject|string">
               Select Default Project</th>
           </tr>
+
+        </thead>
           <tr app-column-filter-bar *ngIf="isEmployeeReportTable && isSearchEnabled && changeTable"
             [columnList]="employeeReportColumnForDetailedProjectViewClub" (onSearch)="onSearch($event);page=1"></tr>
           <tr app-column-filter-bar *ngIf="isEmployeeReportTable && isSearchEnabled && !changeTable"
-            [columnList]="employeeReportColumnForDetailedProjectView" (onSearch)="onSearch($event);page=1"></tr>
-        </thead>
+            [columnList]="employeeReportColumnForDetailedView" (onSearch)="onSearch($event);page=1"></tr>
         <tbody>
           <tr *ngIf="employeeList.length == 0 || (employeeList | colFilter:filters: false).length == 0">
             <th colspan="20" class="text-center info-label">No details to display...</th>
