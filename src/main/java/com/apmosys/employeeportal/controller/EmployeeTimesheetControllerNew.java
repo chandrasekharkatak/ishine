@@ -1,11 +1,17 @@
 package com.apmosys.employeeportal.controller;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -312,5 +318,33 @@ public class EmployeeTimesheetControllerNew {
 	 public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(@RequestBody Long empId) {
 	     return timesheetServiceNew.getActiveProjectsAndClientSideIdByEmpId(empId);
 	 }
+
+	/**
+	 * API 1.11: Get Document Data by Doc ID, this is for viewing the doc
+	 * Endpoint: GET /api/v2/timesheet/getDocumentDataByDocId
+	 */
+	@JobRoleAccess(featureIds = { 15, 16, 24 })
+	@GetMapping("/getDocumentDataByDocId")
+	public ResponseEntity<Resource> getDocumentDataByDocId(@RequestParam Long docId, @RequestParam Boolean approvedDocType) throws IOException {
+
+		Resource resource = timesheetServiceNew.getDocumentDataByDocId(docId, approvedDocType);
+
+		if (resource == null) {
+			return ResponseEntity.notFound().build();
+		}
+
+		Path path = resource.getFile().toPath();
+
+		String contentType = Files.probeContentType(path);
+		if (contentType == null) {
+			contentType = "application/octet-stream";
+		}
+
+		return ResponseEntity.ok()
+				.contentType(MediaType.parseMediaType(contentType))
+				.header(HttpHeaders.CONTENT_DISPOSITION,
+						"inline; filename=\"" + resource.getFilename() + "\"")
+				.body(resource);
+	}
 }
 
