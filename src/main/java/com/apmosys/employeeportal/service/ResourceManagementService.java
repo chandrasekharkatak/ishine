@@ -4064,19 +4064,23 @@ public class ResourceManagementService {
 			Long empid = resourceManagementDTO.getEmpId();
 			Long teamid = resourceManagementDTO.getTeamId();
 			Long employeeTeamMapId = resourceManagementDTO.getEmployeeTeamMapId();
-			EmployeeTeamMap findResource = new EmployeeTeamMap();
+			EmployeeTeamMap findResource = null;
 //			findResource = employeeTeamMapRepository.findByEmpIdAndTeamId(empid, teamid);
-			findResource = employeeTeamMapRepository.findByEmployeeTeamMapId(employeeTeamMapId);
-//			if(findResource == null) {
-//			findResource = employeeTeamMapRepository.findByEmpIdAndTeamIdAndActive(empid, teamid);
-//			}
+			if (employeeTeamMapId != null) {
+				findResource = employeeTeamMapRepository.findByEmployeeTeamMapId(employeeTeamMapId);
+			}
+
+			if (findResource == null) {
+				findResource = employeeTeamMapRepository.findByEmpIdAndTeamIdAndActive(empid, teamid, 1L);
+			}
 			Team findTeam = teamRepository.findTeamByTeamId(resourceManagementDTO.getTeamId());
 
 			System.out.println("findResource: " + findResource);
 
 			if (findResource != null) {
 				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
+				System.out.println("resource start date : "+resourceManagementDTO.getStartDate());
+				System.out.println("resource end date : "+resourceManagementDTO.getEndDate());
 				if (resourceManagementDTO.getEndDate() != null) {
 					// String str = resourceManagementDTO.getEndDate();
 					// LocalDate date = LocalDate.parse(str, formatter);
@@ -4102,7 +4106,8 @@ public class ResourceManagementService {
 	                }
 	                findResource.setEndDate(endDateTime);
 
-				} else if (resourceManagementDTO.getStartDate() != null) {
+				}
+				if (resourceManagementDTO.getStartDate() != null) {
 
 					String str = resourceManagementDTO.getStartDate();
 					LocalDateTime startDateTime;
