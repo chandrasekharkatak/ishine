@@ -248,14 +248,14 @@
                                             <!-- PROJECT DETAILS -->
                                             <div class="row">
                                                 <!-- Project Selection -->
-                                                <div class="col-md-4 mb-3">
+                                                <div class="col-md-3 mb-3">
                                                     <label class="info-label"><span class="text-danger">*</span>
                                                         Project</label>
                                                     <app-my-select placeholder="Select Project" class="form-control"
                                                         [(ngModel)]="project.projectId"
-                                                        [options]="activeProjectListByEmpId || []"
+                                                        [options]="allProjectsList || []"
                                                         displayKey="projectName" valueKey="projectId" [multiple]="false"
-                                                        (selectionChange)="onProjectSelect(location, project, $event)">
+                                                        (selectionChange)="onProjectSelect( project)">
                                                     </app-my-select>
                                                 </div>
 
@@ -275,7 +275,7 @@
                                                     </app-my-select>
                                                 </div>
                                                 <!-- Shadow Timesheet Toggle -->
-                                                <div class="col-md-2 mb-3" *ngIf="!project.isShadowForSelf">
+                                                <div class="col-md-3 mb-3" *ngIf="!project.isShadowForSelf">
                                                     <label class="info-label d-block"><span class="text-danger">*</span>Shadow Timesheet</label>
 
                                                     <div class="radio-group mt-2">
@@ -303,7 +303,7 @@
                                                 </div>
 
 
-                                                <div class="col-md-2 mb-3" *ngIf="!project.isShadowTimesheet">
+                                                <div class="col-md-3 mb-3" *ngIf="!project.isShadowTimesheet">
                                                     <label class="info-label d-block"><span class="text-danger">*</span>Shadow For Self</label>
 
                                                     <div class="radio-group mt-2">
@@ -378,6 +378,7 @@
                                                     <app-my-select class="form-control"
                                                         placeholder="Select Approval Status"
                                                         [(ngModel)]="project.clientApprovalStatus"
+                                                        (selectionChange)="getListToRenderUpload()"
                                                         [options]="clientApprovalStatusList" displayKey="status"
                                                         valueKey="statusId" [multiple]="false">
                                                     </app-my-select>
@@ -409,7 +410,7 @@
                                                             <label class="info-label small">Activity</label>
                                                             <app-my-select class="form-control form-control-sm"
                                                                 placeholder="Activity" [(ngModel)]="activity.activityId"
-                                                                [options]="project.projectActivities || []"
+                                                                [options]="project.projectActivities"
                                                                 displayKey="activity" valueKey="activityId"
                                                                 [multiple]="false">
                                                             </app-my-select>

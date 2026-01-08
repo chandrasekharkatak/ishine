@@ -140,16 +140,10 @@ export class TimesheetFormComponent implements OnInit {
    */
   createActivity(): ActivityNew {
     return {
-      clientId: null,
-      clientLocationId: null,
-      teamId: null,
       activityId: null,
       description: '',
       completionTime: null,
-      clientLocationList: [],
-      projectList: [],
-      projectActivities: [] // Will use project.projectActivities instead
-    };
+      projectActivities: []};
   }
 
   /**
@@ -175,7 +169,7 @@ export class TimesheetFormComponent implements OnInit {
     return {
       projectId: null,
       projectName: '',
-      clientSideId: '',
+      clientSideId: null,
       hasClientSideId: false,
       logInTime: '',
       logOutTime: '',
@@ -188,7 +182,6 @@ export class TimesheetFormComponent implements OnInit {
       teamId: null,
       clientApprovalStatus: null,
       activities: [this.createActivity()],
-      availableActivities: [],
       projectActivities: [], // Activities loaded for the project
       clientList: [],
       clientLocationList: [],
@@ -335,12 +328,7 @@ export class TimesheetFormComponent implements OnInit {
     location.projects.forEach(project => {
       project.projectId = null;
       project.activities.forEach(activity => {
-        activity.clientId = null;
-        activity.clientLocationId = null;
-        activity.teamId = null;
         activity.activityId = null;
-        activity.clientLocationList = [];
-        activity.projectList = [];
         activity.projectActivities = [];
       });
     });
@@ -576,47 +564,27 @@ export class TimesheetFormComponent implements OnInit {
   /**
    * Handle project selection - populate clients for the selected project within a location
    */
-  onProjectSelect(location: LocationEntry, project: ProjectEntry, projectId: any): void {
-    if (!projectId) {
-      project.projectId = null;
-      project.clientList = [];
-      return;
-    }
-
-    project.projectId = projectId;
-
-    // Find selected project details from location's available projects or allProjectsList
-    const selectedProject = location.availableProjects?.find(p => p.projectId === projectId) ||
-      this.activeProjectList.find(p => p.projectId === projectId);
-    if (selectedProject) {
-      project.projectName = selectedProject.projectName;
-      project.clientSideId = selectedProject.clientSideId || '';
-      project.hasClientSideId = !!selectedProject.clientSideId;
-    }
-
-    // Filter clients for this project and location from allProjectsList
-    const projectClients = this.allProjectsList
-      .filter((p: any) => p.projectId === projectId && p.clientLocationId === location.clientLocationId)
-      .map((p: any) => ({
-        clientId: p.clientId,
-        clientName: p.clientName,
-        projectId: p.projectId
-      }));
-
-    // Remove duplicates based on clientId
-    project.clientList = [...new Map(projectClients.map((c: any) => [c.clientId, c])).values()];
-
-    // Clear dependent fields
-    project.activities.forEach(activity => {
-      activity.clientId = null;
-      activity.clientLocationId = null;
-      activity.teamId = null;
-      activity.activityId = null;
-      activity.clientLocationList = [];
-      activity.projectList = [];
-      activity.projectActivities = [];
+  onProjectSelect( project: ProjectEntry): void {
+   
+    this.timesheetLocations.forEach(loc => {
+      loc.projects.forEach(proj => {
+        if (proj.projectId == project.projectId) {
+          this.allProjectsList.forEach((p: any) => {
+            if (p.projectId === project.projectId) {
+              const client  = new ActivityNew();
+              client.activityId = p.activityId;
+              client.description = p.description;
+              client.completionTime = p.completionTime;
+              // Add more fields if necessary
+              proj.projectActivities.push(client);
+            }
+          });
+        }
+      });
     });
-    this.getClientSideIdByProjectIdAndEmpId(projectId, this.currentUser.empId);
+    // Find selected project details from location's available projects or allProjectsList
+   
+    this.getClientSideIdByProjectIdAndEmpId(project.projectId, this.currentUser.empId);
   }
 
   async getClientSideIdByProjectIdAndEmpId(projectId: any, empId: any) {
@@ -1291,7 +1259,7 @@ export class TimesheetFormComponent implements OnInit {
         project.activities.forEach((activity) => {
           activityData = new ActivityTimesheetDTO();
           // activityData.clientId = activity.clientId;
-          activityData.clientLocationId = location.clientLocationId || activity.clientLocationId;
+          activityData.clientLocationId =  project.clientLocationId;
           // activityData.teamId = activity.teamId;
           activityData.activityId = activity.activityId;
           activityData.description = activity.description;
@@ -1422,6 +1390,7 @@ export class TimesheetFormComponent implements OnInit {
     let dataList: Map<number, ProjectEntry> = new Map<number, ProjectEntry>();
     this.timesheetLocations.forEach((location) => {
       location.projects.forEach((project) => {
+        console.log("Project with client side id found:", project);
         if (project.clientSideId ) {
           this.empHasClientSideId = true;
           dataList.set(project.projectId, project);
@@ -1438,7 +1407,12 @@ export class TimesheetFormComponent implements OnInit {
     this.uniqueProjectsList = Array.from(dataList.values());
 }
 
-
+// onClientApprovalStatusChange(clientApprovalStatus: any, project: ProjectEntry) {
+//   console.log("Client approval status changed to", clientApprovalStatus);
+//   console.log("Before change:", project);
+//   project.clientApprovalStatus = clientApprovalStatus;
+//   return project;
+// }
   getAllWorkLocationFromLocationMaster(){
     this.timesheetNewService.getAllWorkLocation().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

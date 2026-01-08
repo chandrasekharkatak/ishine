@@ -29,7 +29,7 @@ export class ProjectEntry {
   
   // Activities
   activities: ActivityNew[];
-  availableActivities?: ActivityNew[]; // Loaded activities for dropdown
+  // availableActivities?: ActivityNew[]; // Loaded activities for dropdown
   projectActivities?: any[]; // Activities loaded for the project (shared by all activities)
   clientList?: any[]; // Clients for this project
   clientLocationList?: any[]; // Client locations for this project
