@@ -3,10 +3,14 @@ package com.apmosys.employeeportal.repository;
 import java.time.LocalDate;
 import java.util.List;
 
+import javax.transaction.Transactional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDetailsNewDTO;
 import com.apmosys.employeeportal.dto.*;
 import com.apmosys.employeeportal.model.ClientStatusMasterNew;
@@ -100,4 +104,15 @@ public interface TimesheetDocumentDetailsNewRepository extends JpaRepository<Tim
 	@Query("SELECT tdd FROM TimesheetDocumentDetailsNew tdd WHERE tdd.timesheetId = :timesheetId and tdd.active = true")
 	List<TimesheetDocumentDetailsNew> findByTimesheetIdAndActive(@Param("timesheetId") Long timesheetId);
 
+	@Query("SELECT tdd FROM TimesheetDocumentDetailsNew tdd WHERE tdd.bulkApprovedDocId = :bulkApproverId and tdd.active = true")
+	List<TimesheetDocumentDetailsNew> getDocsByBulkApproverDocId(@Param("bulkApproverId") Long bulkApproverId);
+
+	@Query("SELECT new com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO(tdd) FROM TimesheetDocumentDetailsNew tdd WHERE tdd.timesheetId = :timesheetId and tdd.projectId in :projectIds and tdd.active = true")
+	List<TimesheetDocumentDataDTO> getTimesheetDocumentDataByTimesheetIdAndProjectIds(@Param("timesheetId") Long timesheetId, @Param("projectIds") List<Long> projectIds);
+
+	@Query("SELECT t FROM TimesheetDocumentDetailsNew t WHERE t.timesheetId = :timesheetId")
+	List<TimesheetDocumentDetailsNew> findAllByTimesheetId(Long timesheetId);
+
+	@Query("SELECT t FROM TimesheetDocumentDetailsNew t WHERE t.projectId = :projectId")
+	List<TimesheetDocumentDetailsNew> findAllByProjectId(Long projectId);
 }

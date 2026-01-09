@@ -30,10 +30,6 @@ public class LocationSessionDTO {
 	private Long locationMappingId;
     private String workLocationType;
     
-    private Long locationMappingId;
-
-    
-    
     private Integer workLocationTypeId;
 
     /**
