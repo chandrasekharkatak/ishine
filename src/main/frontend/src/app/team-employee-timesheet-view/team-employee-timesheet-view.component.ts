@@ -54,6 +54,7 @@ maxYear!: Date;
     NW: { label: 'Non-Working Day',     color: '#8E8E8E' },   // Muted gray
     AH: { label: 'ApMoSys Holiday',     color: '#0275D8' },   // Corporate blue
     WO: { label: 'Week Off',            color: '#795548' },   // Brownish neutral
+    CO: { label: 'Comp Off',            color: '#295748' },   // Brownish neutral
     H:  { label: 'Holiday',             color: '#FFC107' },   // Golden yellow
     CH: { label: 'Client Holiday',      color: '#FF9800' },   // Orange
     CA: { label: 'Client Approved',   color: '#006400' },   // Dark green

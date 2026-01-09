@@ -234,9 +234,9 @@ withoutVmsbullet:string[] = ["Applicable to resources without a client-side VMS 
 
   isUploadAllowed: boolean = false;
   disableUploadTooltip = "Bulk upload is permitted only for the complete previous month or on the last day of the current month . Please select a date range that falls entirely within the allowed period to enable uploading. ";
-  clientDetails: any; 
-  clientDropdownList: any[] = []; 
-  projectsInMonthYear: any[] = []; 
+  clientDetails: any;
+  clientDropdownList: any[] = [];
+  projectsInMonthYear: any[] = [];
   clientIdEntryBulletPoints: string[] = ["Mandatory field for all resources while filling the timesheet.",
 "Enter the client-side ID if already available.",
 "If the client-side ID is not yet assigned, enter “NA (ApMoSys Employee ID)”.",
@@ -760,12 +760,12 @@ get tooltipCta(): string {
 
 
   onMonthYearChange() {
-  this.resetBulkUploadForm('MONTH');  
+  this.resetBulkUploadForm('MONTH');
   this.getMyProjectsInMonthYear();
   }
 
    getMyProjectsInMonthYear() {
-  
+
       this.timesheetObj.empId = this.currentUser.empId;
       this.timesheetService.getMyProjectsInMonthYear(this.timesheetObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
@@ -774,7 +774,7 @@ get tooltipCta(): string {
           console.error(response.serviceResponse);
         }
       });
-  
+
     }
 
 
@@ -845,7 +845,7 @@ get tooltipCta(): string {
       this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
     }
 
-    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave") {
+    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" ||this.timesheetObj.dayType == "Comp Off" || this.timesheetObj.dayType == "Leave") {
       this.__tempDescription = this.timesheetObj.description;
     }
 
@@ -900,9 +900,14 @@ get tooltipCta(): string {
       }
     }
     this.getProjectListForDateAndEmpId();
-    this.getClientDetailsByProjectIdAndEmpId();
-    this.getAllAvailableTimesheetByEmpId(this.timesheetObj.empId);
-    this.onProjectSelect(timesheetObj.projectId);
+    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Comp Off" || this.timesheetObj.dayType == "Leave") {
+      return;
+    }
+      this.getClientDetailsByProjectIdAndEmpId();
+
+      this.getAllAvailableTimesheetByEmpId(this.timesheetObj.empId);
+      this.onProjectSelect(timesheetObj.projectId);
+
   }
 
 
@@ -1349,7 +1354,7 @@ get tooltipCta(): string {
   setMaxInTimeDate(timesheetDate: any) {
     //console.log("timesheetDate : ", moment(timesheetDate).format(moment.HTML5_FMT.DATETIME_LOCAL));
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off"&& this.timesheetObj.dayType != "Comp Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
       let inTimeDate = document.getElementById('officeInTime');
       // //console.log("InTimeDate: ", inTimeDate);
       let officeOutTime = document.getElementById('officeOutTime');
@@ -1425,7 +1430,7 @@ get tooltipCta(): string {
   resetTimeonDayTypeChange() {
     this.fromDate = null;
     this.toDate = null;
-    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday") {
+    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" ||this.timesheetObj.dayType == "Comp Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday") {
       this.timesheetObj.officeInTime = '';
       this.timesheetObj.officeOutTime = '';
       this.timesheetObj.totalWorkingOfficeHours = '';
@@ -1530,7 +1535,7 @@ get tooltipCta(): string {
       return false;
     }
 
-    if (timesheetObj.dayType != "Public Holiday" && timesheetObj.dayType != "Week Off" && timesheetObj.dayType != "Leave" && this.timesheetFillable) {
+    if (timesheetObj.dayType != "Public Holiday" && timesheetObj.dayType != "Week Off"&& timesheetObj.dayType != "Comp Off" && timesheetObj.dayType != "Leave" && this.timesheetFillable) {
       let flag = true;
       let totalActivityTime = 0;
       let totalWorkingHoursInSeconds = 0;
@@ -1708,7 +1713,7 @@ get tooltipCta(): string {
     let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
     if (!inputValidated) return;
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off"&& this.timesheetObj.dayType != "Comp Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
       //console.log("allTimesheetActivities :", this.allTimesheetActivities, this.allTimesheetActivities[0]);
       this.timesheetObj.allTimesheetActivities = (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
     } else {
@@ -1745,7 +1750,7 @@ get tooltipCta(): string {
     //   this.shadowForSelf = false;
     // }
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Comp Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
       this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
@@ -1825,7 +1830,7 @@ get tooltipCta(): string {
     if (!inputValidated) return;
 
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Comp Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
       this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
@@ -1955,7 +1960,7 @@ get tooltipCta(): string {
   onTimesheetDescriptionChange() {
     console.log("onTimesheetDescriptionChange called");
     if (this.isUpdation) {
-      if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave") {
+      if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" ||this.timesheetObj.dayType == "Comp Off" || this.timesheetObj.dayType == "Leave") {
         this.timesheetObj.description = (this.__tempDescription != null) ? this.__tempDescription : '';
         if (this.timesheetObj.description) {
           this.__tempDescription = this.timesheetObj.description;
@@ -2715,17 +2720,17 @@ get tooltipCta(): string {
     //employeeTeamMapping has startDate and endDate as localDateTime
     const d = new Date(this.fromDate);
     const localDateTime = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T00:00:00`;
-    
+
     const payload = {
       empId: this.timesheetObj.empId,
       date: localDateTime
     };
-    
+
     this.timesheetService.getProjectListForDateAndEmpId(payload).pipe(first()).subscribe(async(response: any) => {
       if (response.serviceStatus == "Success") {
         this.activeProjectList = response.serviceResponse;
         console.log("Active Project List :::::::::", this.activeProjectList);
-     
+
       } else {
         console.error("Service Response for this.activeProjectList :::::::", response.serviceResponse);
       }
@@ -2971,7 +2976,7 @@ get tooltipCta(): string {
   getEmployeeListByProjectId(projectId) {
     const d = new Date(this.fromDate);
     const localDateTime = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T00:00:00`;
-    
+
     const payload = {
       empId: this.timesheetObj.empId,
       date: localDateTime,
@@ -3044,7 +3049,7 @@ get tooltipCta(): string {
     //employeeTeamMapping has startDate and endDate as localDateTime
     const d = new Date(this.fromDate);
     const localDateTime = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T00:00:00`;
-    
+
     const payload = {
       empId: empId,
       date: localDateTime,
@@ -3705,26 +3710,25 @@ checkUploadEligibility() {
     this.shadowForSelf = false;
     this.finalFromDate = null;
     this.finalFromDate = null ;
-    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday") {
+    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday" || this.timesheetObj.dayType == "Comp Off") {
       this.timesheetFillable = false
     }
     else {
       this.timesheetFillable = true;
     }
     this.allTimesheetActivities = [];
-    this.addInputActivityField();   
+    this.addInputActivityField();
     this.syncTimes = false;
   }
 
   getClientDetailsByProjectIdAndEmpId() {
     this.clientDetails = '';
     this.projectList = [];
-    
+
     const payload = {
       empId: this.timesheetObj.empId,
       projectId: this.timesheetObj.projectId
     };
-
     this.timesheetService.getClientDetailsByProjectIdAndEmpId(payload).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.clientDetails = response.serviceResponse;

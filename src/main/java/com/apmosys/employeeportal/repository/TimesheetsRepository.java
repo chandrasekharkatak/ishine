@@ -437,7 +437,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			    "   SELECT timesheet_id " +
 			    "   FROM employee_timesheets " +
 			    "   WHERE emp_id = :empId " +
-			    "     AND day_type NOT IN ('Public Holiday', 'Week Off', 'Leave') " +
+			    "     AND day_type NOT IN ('Public Holiday', 'Week Off','Comp Off', 'Leave') " +
 			    "   ORDER BY date DESC " +
 			    "   LIMIT 1 " +
 			    ") latest_ts ON ets.timesheet_id = latest_ts.timesheet_id " +
@@ -2960,7 +2960,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ "        WHERE adir.dt BETWEEN DATE(bpe.start_date) AND COALESCE(DATE(bpe.end_date), (SELECT to_date FROM Date_Parameters))\n"
 			+ "        AND NOT EXISTS (\n"
 			+ "            SELECT 1 FROM employee_timesheets et1 WHERE et1.emp_id = bpe.emp_id AND adir.dt = et1.date\n"
-			+ "            AND UPPER(et1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF')\n"
+			+ "            AND UPPER(et1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF','COMP OFF')\n"
 			+ "        )\n"
 			+ "    ),\n"
 			+ "    \n"
@@ -4108,7 +4108,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ "        WHERE adir.dt BETWEEN DATE(bpe.start_date) AND COALESCE(DATE(bpe.end_date), (SELECT to_date FROM Date_Parameters)) AND adir.dt >= (SELECT from_date FROM Date_Parameters)\n"
 			+ "        AND NOT EXISTS (\n"
 			+ "            SELECT 1 FROM employee_timesheets et1 WHERE et1.emp_id = bpe.emp_id AND adir.dt = et1.date\n"
-			+ "            AND UPPER(et1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF')\n"
+			+ "            AND UPPER(et1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF','COMP OFF')\n"
 			+ "        )\n"
 			+ "    ),\n"
 			+ "\n"
@@ -4516,7 +4516,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ "        WHERE adir.dt BETWEEN DATE(bpe.start_date) AND COALESCE(DATE(bpe.end_date), (SELECT to_date FROM Date_Parameters))\n"
 			+ "        AND NOT EXISTS (\n"
 			+ "            SELECT 1 FROM employee_timesheets et1 WHERE et1.emp_id = bpe.emp_id AND adir.dt = et1.date\n"
-			+ "            AND UPPER(et1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF')\n"
+			+ "            AND UPPER(et1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF','COMP OFF')\n"
 			+ "        )\n"
 			+ "    ),\n"
 			+ "    \n"
@@ -4767,7 +4767,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ "			        WHERE adir.dt BETWEEN DATE(bpe.start_date) AND COALESCE(DATE(bpe.end_date), (SELECT to_date FROM Date_Parameters)) and adir.dt >= (select from_date from Date_Parameters)\n"
 			+ "			        AND NOT EXISTS (\n"
 			+ "			            SELECT 1 FROM employee_timesheets et1 WHERE et1.emp_id = bpe.emp_id AND adir.dt = et1.date\n"
-			+ "			            AND UPPER(et1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF')\n"
+			+ "			            AND UPPER(et1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF','COMP OFF')\n"
 			+ "			        )\n"
 			+ "			    ),\n"
 			+ "			\n"
@@ -6761,7 +6761,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ "        WHERE adir.dt BETWEEN DATE(bpe.start_date) AND COALESCE(DATE(bpe.end_date), (SELECT to_date FROM Date_Parameters)) AND adir.dt >= (SELECT from_date FROM Date_Parameters)\n"
 			+ "        AND NOT EXISTS (\n"
 			+ "            SELECT 1 FROM employee_timesheets et1 WHERE et1.emp_id = bpe.emp_id AND adir.dt = et1.date\n"
-			+ "            AND UPPER(et1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF')\n"
+			+ "            AND UPPER(et1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF', 'COMP OFF')\n"
 			+ "        )\n"
 			+ "    ),\n"
 			+ "\n"
@@ -7111,7 +7111,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				+ "        WHERE adir.dt BETWEEN DATE(bpe.start_date) AND COALESCE(DATE(bpe.end_date), (SELECT to_date FROM Date_Parameters)) AND adir.dt >= (SELECT from_date FROM Date_Parameters)\n"
 				+ "        AND NOT EXISTS (\n"
 				+ "            SELECT 1 FROM employee_timesheets et1 WHERE et1.emp_id = bpe.emp_id AND adir.dt = et1.date\n"
-				+ "            AND UPPER(et1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF')\n"
+				+ "            AND UPPER(et1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF','COMP OFF')\n"
 				+ "        )\n"
 				+ "    ),\n"
 				+ "\n"
@@ -7357,7 +7357,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				+ "        WHERE adir.dt BETWEEN DATE(bpe.start_date) AND COALESCE(DATE(bpe.end_date), (SELECT to_date FROM Date_Parameters)) AND adir.dt >= (SELECT from_date FROM Date_Parameters)\n"
 				+ "        AND NOT EXISTS (\n"
 				+ "            SELECT 1 FROM employee_timesheets et1 WHERE et1.emp_id = bpe.emp_id AND adir.dt = et1.date\n"
-				+ "            AND UPPER(et1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF')\n"
+				+ "            AND UPPER(et1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF','COMP OFF')\n"
 				+ "        )\n"
 				+ "    ),\n"
 				+ "\n"

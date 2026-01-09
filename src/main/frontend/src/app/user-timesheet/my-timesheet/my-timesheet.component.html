@@ -89,6 +89,7 @@
                                     <option value="Public Holiday">Public Holiday</option>
                                     <option value="Client Holiday">Client Holiday</option>
                                     <option value="Week Off">Week Off</option>
+                                    <option value="Comp Off">Comp Off</option>
                                     <!-- <option value="Leave">Leave</option> -->
                                     <option value="Non-working">Working on non-working day</option>
                                 </select>
@@ -127,7 +128,7 @@
                         </div>
                     </div>
                     <div class="col-md-1 mb-0"
-                        *ngIf="timesheetObj.dayType !== 'Public Holiday' && timesheetObj.dayType !== 'Client Holiday' && timesheetObj.dayType !== 'Week Off'">
+                        *ngIf="timesheetObj.dayType !== 'Public Holiday' && timesheetObj.dayType !== 'Client Holiday' && timesheetObj.dayType !== 'Week Off' && timesheetObj.dayType !== 'Comp Off'">
                         <div class="info-wrapper">
                             <div class="form-group">
                                 <label class="info-label">Night Shift</label>
@@ -600,7 +601,7 @@
                                                     [value]="client.clientId">
                                                     {{ client.clientName }}
                                                 </mat-option>
- 
+
                                             </mat-select> -->
                                             <app-my-select #clientDetails class="form-control" placeholder="Select Client"
                                                 [(ngModel)]="activityObj.clientId" [options]="clientDropdownList"
@@ -1592,7 +1593,7 @@
              <div class="info-modal">  <app-info-tooltip class="me-2" style="margin-right: 8px;" pdfPath="assets/pdfFiles/Entering client side id.pdf"
   pdfCtaText="Client Side ID Entry Guide" iconBgColor="#8377D1" [size]="19" [content]="clientIdEntryBulletPoints">
             </app-info-tooltip></div>
-           
+
             <h5>Update Client Side ID Form</h5>
         </div>
 

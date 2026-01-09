@@ -1501,6 +1501,7 @@ getCountByStatus(status: string) {
     NW: { label: 'Non-Working Day', color: '#343a40' },
     AH: { label: 'ApMoSys Holiday', color: '#0b3c5d' },
     WO: { label: 'Week Off', color: '#4b371c' },
+    CO: { label: 'Comp Off', color: '#1b371c' },
     // H:   { label: 'Holiday',              color: '#5a4b00' },
     CH: { label: 'Client Holiday', color: '#3e2f1c' },
     CA: { label: 'Client Approved', color: '#003366' },

@@ -666,6 +666,7 @@ public class TimesheetService {
 			if (!(
 			        "Public Holiday".equalsIgnoreCase(timesheetDTO.getDayType()) ||
 			        "Week Off".equalsIgnoreCase(timesheetDTO.getDayType()) ||
+					"Comp Off".equalsIgnoreCase(timesheetDTO.getDayType()) ||
 			        "Leave".equalsIgnoreCase(timesheetDTO.getDayType()) ||
 			        "Client Holiday".equalsIgnoreCase(timesheetDTO.getDayType())
 			    )) {
@@ -705,7 +706,7 @@ public class TimesheetService {
 							: null);
 			newTimesheet.setCurrentManagerId(timesheetDTO.getCurrentManagerId());
 
-			if (timesheetDTO.getDayType().equals("Public Holiday") || timesheetDTO.getDayType().equals("Week Off")
+			if (timesheetDTO.getDayType().equals("Public Holiday") || timesheetDTO.getDayType().equals("Week Off")|| timesheetDTO.getDayType().equals("Comp Off")
 					|| timesheetDTO.getDayType().equals("Leave")
 					|| timesheetDTO.getDayType().equals("Client Holiday")) {
 
@@ -827,7 +828,7 @@ public class TimesheetService {
 				}
 			}
 
-			if (!timesheetDTO.getDayType().equals("Public Holiday") && !timesheetDTO.getDayType().equals("Week Off")
+			if (!timesheetDTO.getDayType().equals("Public Holiday") && !timesheetDTO.getDayType().equals("Week Off") && !timesheetDTO.getDayType().equals("Comp Off")
 					&& !timesheetDTO.getDayType().equals("Leave")
 					&& !timesheetDTO.getDayType().equals("Client Holiday")) {
 
@@ -6188,7 +6189,7 @@ public class TimesheetService {
 	public ServiceResponse getEmployeeTimesheetAsCalender(GetEmployeeSummaryOnExportDTO object) {
 		
 		ServiceResponse response = new ServiceResponse();
-
+		System.out.println(object);
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setSubFeatureName("getEmployeeTimesheetAsCalender");
 	    apiLogInfo.setLogLevel("INFO");

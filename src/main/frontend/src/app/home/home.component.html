@@ -18,10 +18,10 @@
 <!-- <div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null" style="display: flex; justify-content: space-between; width: 100%; position: relative;"> -->
 
 <!-- Left Side Marquee -->
-<!-- <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
-            
-            direction="left" 
-            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop; 
+<!-- <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1"
+
+            direction="left"
+            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop;
             position: absolute; left: 0;">
             <span>
                 "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
@@ -29,9 +29,9 @@
         </marquee> -->
 
 <!-- Right Side Marquee -->
-<!-- <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
+<!-- <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1"
             *ngIf="consentNotificationMessage != null"
-            direction="right" 
+            direction="right"
             style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 33.5%; background-color: #193d8a; scrolldelay: 50; behavior: loop;
             position: absolute; right: 0;">
             <span>
@@ -44,24 +44,24 @@
 
 <!-- <div  *ngIf="(lines.billableType === 'Bench' && lines.dayOnbench != null) &&   (consentNotificationMessage != null) "  style="display: flex; justify-content: space-between; width: 100%;">
 
-       
-        <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
-            direction="left" 
+
+        <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1"
+            direction="left"
             style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop;">
             <span>
                 "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
             </span>
         </marquee>
-     
-       
-        <marquee  class="top-nav navbar navbar-expand sticky-top mb-2 pt-0" *ngIf="consentNotificationMessage != null" 
-            direction="right" 
+
+
+        <marquee  class="top-nav navbar navbar-expand sticky-top mb-2 pt-0" *ngIf="consentNotificationMessage != null"
+            direction="right"
             style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 33.5%; background-color: #193d8a; scrolldelay: 50; behavior: loop;">
             <span>
-                {{consentNotificationMessage}} 
+                {{consentNotificationMessage}}
             </span>
         </marquee>
-    
+
     </div>
        -->
 
@@ -74,26 +74,26 @@
 
 <!-- <div style="display: flex; justify-content: space-between; width: 100%; position: relative;">
 
-        <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
+        <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1"
             *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null"
-            direction="left" 
-            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop; 
+            direction="left"
+            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop;
             position: absolute; left: 0;">
             <span>
                 "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
             </span>
         </marquee>
-    
-        <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
+
+        <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1"
             *ngIf="consentNotificationMessage != null"
-            direction="right" 
+            direction="right"
             style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 33.5%; background-color: #193d8a; scrolldelay: 50; behavior: loop;
             position: absolute; right: 0;">
             <span>
                 {{consentNotificationMessage}}
             </span>
         </marquee>
-    
+
     </div>
  -->
 
@@ -102,28 +102,28 @@
 
 <!-- <div style="display: flex; justify-content: space-between; width: 100%; position: relative;">
 
-      
-        <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
+
+        <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1"
             *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null"
-            direction="left" 
-            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop; 
+            direction="left"
+            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop;
             position: absolute; left: 0;">
             <span>
                 "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
             </span>
         </marquee>
-    
-       
-        <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
+
+
+        <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1"
             *ngIf="consentNotificationMessage != null"
-            direction="left" 
-            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop; 
+            direction="left"
+            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop;
             position: absolute; left: 0;">
             <span>
                 {{consentNotificationMessage}}
             </span>
         </marquee>
-    
+
     </div> -->
 
 
@@ -192,7 +192,7 @@
             <!-- <button class="btn btn-info position-relative" (click)="openProbationNotificationModal(probation_notification_modal)">
     <i class="fa-solid fa-bell"></i>
 
-    
+
     <span *ngIf="!isLoadingNotifications && probationNotifications.length > 0"
           class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
         {{ probationNotifications.length }}
@@ -434,7 +434,7 @@
                             <mat-list-item *ngFor="let employee of workAnniversaryList">
                                 <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
                                 <h1 *ngIf="userMapping.employee360_view_home" matLine id="clickablefor360"
-                                    [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" 
+                                    [navigateToEmployee360]="employee.emp360" style="cursor: pointer;"
                                     title="Click to view Employee 360">
                                     {{ employee.name }}
                                 </h1>
@@ -633,36 +633,36 @@
     <!-- <div *ngIf="userMapping.view_employee_rewards" class="reward card mb-2">
         <div class="card-title px-1 pt-2" >
             <p class="section-heading m-0 pl-2">Apmosys Wall Of Fame</p>
-    
+
             <div class="tabs pt-2">
                 <ul class="nav nav-pills">
                     <li class="nav-item pl-2 " *ngFor="let category of rewardCategoryList">
-                        <a class="nav-link" [class.active]="selectedCategoryId === category.rewardCategoryId" 
+                        <a class="nav-link" [class.active]="selectedCategoryId === category.rewardCategoryId"
                            (click)="onCategoryTabClick(category)">
                             {{ category.categoryName }}
                         </a>
                     </li>
                 </ul>
             </div>
-    
+
             <p *ngIf="rewardsList.length !== 0" class="text-muted p-2">
                 <b>{{ selectedCategoryName }}: <span>{{ selectedMonth | date: 'MMMM yyyy' }}</span></b>
             </p>
         </div>
-    
+
         <div class="card-body p-0">
             <div *ngIf="showEmptyMessage" class="container-fluid placeholder">
                 <img class="placeholder-img" style="width: 50px;" src="assets/Images/reward2.png" alt="Rewards Icon">
                 <h1 class="placeholder-text">No Rewards Today</h1>
             </div>
-    
-            <marquee *ngIf="rewardsList.length !== 0" direction="up" scrolldelay="250" 
+
+            <marquee *ngIf="rewardsList.length !== 0" direction="up" scrolldelay="250"
                      onmouseover="this.stop();" onmouseout="this.start();">
                 <mat-list class="p-0">
                     <mat-list-item *ngFor="let rewards of currentRewards">
                         <img matListAvatar src="assets/Images/reward2.png" alt="User Avatar">
                         <h1 *ngIf="userMapping.employee360_view_home" matLine class="small">
-                            <span id="clickablefor360" [navigateToEmployee360]="rewards.emp360" style="cursor: pointer;" 
+                            <span id="clickablefor360" [navigateToEmployee360]="rewards.emp360" style="cursor: pointer;"
                                   title="Click to view Employee 360">
                               {{ rewards.rewardedToByName }}
                             </span>
@@ -741,7 +741,7 @@
                     </div>
                 </div>
             </div>
-            <div *ngIf="timesheetObj.dayType == 'Holiday' || timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'"
+            <div *ngIf="timesheetObj.dayType == 'Holiday' || timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off'|| timesheetObj.dayType == 'Comp Off' || timesheetObj.dayType == 'Leave'"
                 class="row">
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
@@ -753,7 +753,7 @@
                     </div>
                 </div>
             </div>
-            <div *ngIf="timesheetObj.dayType != 'Holiday' && timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'"
+            <div *ngIf="timesheetObj.dayType != 'Holiday' && timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Comp Off' && timesheetObj.dayType != 'Leave'"
                 class="row px-3">
 
                 <table class="table timesheet-details-table">
@@ -1202,7 +1202,7 @@
                 </button>
             </div>
             </div>
-       
+
             <div class="selector-toggle" (click)="toggleSearch()">
                 <a href="javascript:void(0)">
                     <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
@@ -1690,7 +1690,7 @@
         <div class="modal-body text-center" style="overflow: scroll;">
             <app-expied-po-and-project></app-expied-po-and-project>
         </div>
-        
+
     </ng-template> -->
 
     <ng-template #mailSentPopUp>
@@ -2038,30 +2038,30 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
                 <button class="zoom-btn" title="Zoom Out" (click)="zoomOut()">
                     <i class="fa fa-search-minus"></i>
                 </button>
-    
+
                 <span class="mx-2 zoom-percent">{{ zoomLevel }}%</span>
-    
+
                 <button class="zoom-btn" title="Zoom In" (click)="zoomIn()">
                     <i class="fa fa-search-plus"></i>
                 </button>
             </div>
-    
+
             <button type="button" class="close" aria-label="Close" (click)="modalRef2?.close()">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
-    
+
         <div class="modal-body text-center">
             <iframe *ngIf="fileType === 'pdf'" [src]="previewUrl" width="100%" height="400px" style="border: none;">
             </iframe>
             <div *ngIf="fileType === 'image'" class="preview-container">
                 <div class="preview-content" [style.transform]="transformStyle" (mousedown)="startDrag($event)"
                     (mousemove)="onDrag($event)" (mouseup)="endDrag()" (mouseleave)="endDrag()">
-    
+
                     <img [src]="previewUrl" class="preview-image" alt="Preview">
                 </div>
             </div>
-    
+
         </div>
     </ng-template>
 
