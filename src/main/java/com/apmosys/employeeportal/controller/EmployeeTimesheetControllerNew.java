@@ -1,11 +1,17 @@
 package com.apmosys.employeeportal.controller;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,9 +30,12 @@ import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDeleteRequestDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetStatusUpdateRequestDTO;
+import com.apmosys.employeeportal.service.TimesheetDocumentServiceNew;
 import com.apmosys.employeeportal.service.TimesheetServiceNew;
 import com.apmosys.employeeportal.service.helper.TimesheetEncryptionHelper;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * New Controller for Hierarchical Timesheet APIs
@@ -41,6 +50,7 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
  */
 @RestController
 @RequestMapping(path = "/api/v2/timesheet")
+@Slf4j
 public class EmployeeTimesheetControllerNew {
 	
 	@Autowired
@@ -48,6 +58,9 @@ public class EmployeeTimesheetControllerNew {
 	
 	@Autowired
 	TimesheetEncryptionHelper timesheetEncryptionHelper;
+
+	@Autowired
+	TimesheetDocumentServiceNew timesheetDocumentServiceNew;
 	
 	/**
 	 * API 1.1: Create Timesheet (New Hierarchical Structure)
@@ -63,18 +76,41 @@ public class EmployeeTimesheetControllerNew {
 	 *                  Documents are linked to projects via documentData in DTO
 	 * @return ServiceResponse with created timesheet data
 	 */
-	@JobRoleAccess(featureIds = {15})
 	@PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ServiceResponse createTimesheet(
-			@RequestPart("dto") String encryptedDto,
-			@RequestPart(value = "documents", required = false) List<MultipartFile> documents) throws Exception {
-		// Decrypt and parse encrypted DTO to new structure
-		EmployeeTimesheetDTO dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNewMapping(encryptedDto);
-		
-		// NEW CONTRACT: Pass list of documents to service
-		// Documents are linked to projects via documentData array in DTO
-		ServiceResponse response = timesheetServiceNew.createTimesheet(dto, documents);
-		return response;
+	        @RequestPart("dto") String encryptedDto,
+	        @RequestPart(value = "documents", required = false) List<MultipartFile> documents) {
+	    
+	    ServiceResponse response = new ServiceResponse();
+	    
+	    try {
+	        if (encryptedDto == null || encryptedDto.trim().isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Encrypted DTO is required");
+	            response.setServiceError("Missing or empty encryptedDto parameter");
+	            return response;
+	        }
+	          
+	        EmployeeTimesheetDTO dto;
+            try {
+                dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNewMapping(encryptedDto);
+                
+            } catch (Exception e) {
+                log.error("Decryption/parsing failed - traceId: {}, error: {}", e.getMessage(), e);
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Failed to decrypt or parse request data");
+                response.setServiceError("Invalid encrypted data format");
+	            return response;
+            }
+	        response = timesheetServiceNew.createTimesheet(dto, documents);
+	        }catch (Exception e) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse("Failed to process request data");
+	        response.setServiceError("Unexpected error: " + e.getMessage());
+	        log.error("Error in createTimesheet - decryption/parsing failed: {}", e.getMessage(), e);
+	    }
+	    
+	    return response;
 	}
 	
 	@JobRoleAccess(featureIds = {15, 16, 24})
@@ -93,7 +129,13 @@ public class EmployeeTimesheetControllerNew {
      * NEW CONTRACT: Accepts list of multipart files for document uploads
      * Multiple documents can be uploaded/updated for multiple projects
      * 
-     * @param timesheetId Timesheet ID to update
+     * UPDATE-SPECIFIC VALIDATIONS:
+     * - timesheetId must be provided and valid
+     * - Timesheet must exist (validated in service layer)
+     * - Date cannot be locked (validated in service layer)
+     * - Cannot update timesheets older than lock period
+     * 
+     * @param timesheetId Timesheet ID to update (required)
      * @param encryptedDto Encrypted timesheet DTO (new contract structure)
      * @param documents List of multipart files for document uploads (one per project)
      *                  Documents are linked to projects via documentData in DTO
@@ -104,13 +146,73 @@ public class EmployeeTimesheetControllerNew {
     public ServiceResponse updateTimesheet(
             @RequestParam Long timesheetId,
             @RequestPart("dto") String encryptedDto,
-            @RequestPart(value = "documents", required = false) List<MultipartFile> documents) throws Exception {
+            @RequestPart(value = "documents", required = false) List<MultipartFile> documents) {
         
-        // Decrypt and parse encrypted DTO to new structure
-    	EmployeeTimesheetDTO dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNewMapping(encryptedDto);
+        ServiceResponse response = new ServiceResponse();
         
-        // NEW CONTRACT: Pass list of documents to service
-        return timesheetServiceNew.updateTimesheet(timesheetId, dto, documents);
+        try {
+            // 1. Validate timesheetId parameter
+            if (timesheetId == null) {
+                log.warn("Update timesheet request with null timesheetId");
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Timesheet ID is required");
+                response.setServiceError("Missing timesheetId parameter");
+                return response;
+            }
+            
+            // 2. Validate encryptedDto parameter
+            if (encryptedDto == null || encryptedDto.trim().isEmpty()) {
+                log.warn("Update timesheet request with empty encryptedDto - timesheetId: {}", timesheetId);
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Encrypted DTO is required");
+                response.setServiceError("Missing or empty encryptedDto parameter");
+                return response;
+            }
+            
+            // 3. Decrypt and parse encrypted DTO to new structure
+            EmployeeTimesheetDTO dto;
+            try {
+                dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNewMapping(encryptedDto);
+                log.debug("Decrypted DTO for update - timesheetId: {}, empId: {}, date: {}", 
+                    timesheetId, dto.getEmpId(), dto.getDate());
+                
+            } catch (Exception e) {
+                log.error("Decryption/parsing failed for update - timesheetId: {}, error: {}", 
+                    timesheetId, e.getMessage(), e);
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Failed to decrypt or parse request data");
+                response.setServiceError("Invalid encrypted data format");
+                return response;
+            }
+            
+            // 4.
+            // Service layer handles:
+            // - Timesheet existence validation
+            // - Date lock validation (validateDateNotLocked)
+            // - Authorization validation
+            // - Business rule validations
+            response = timesheetServiceNew.updateTimesheet(timesheetId, dto, documents);
+             
+        } catch (IllegalArgumentException e) {
+            // Handle validation errors (e.g., date locked, timesheet not found)
+            // Note: timesheetId should be non-null here as we validate it early
+            log.error("Validation error in updateTimesheet - timesheetId: {}, error: {}", 
+                timesheetId != null ? timesheetId : "null", e.getMessage(), e);
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse("Validation failed: " + e.getMessage());
+            response.setServiceError(e.getMessage());
+            
+        } catch (Exception e) {
+            // Handle unexpected errors
+            // Note: timesheetId should be non-null here as we validate it early
+            log.error("Unexpected error in updateTimesheet - timesheetId: {}, error: {}", 
+                timesheetId != null ? timesheetId : "null", e.getMessage(), e);
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse("Failed to process update request");
+            response.setServiceError("Unexpected error: " + e.getMessage());
+        }
+        
+        return response;
     }
 	
 	/**
@@ -193,6 +295,7 @@ public class EmployeeTimesheetControllerNew {
 	@DeleteMapping(value = "/activity")
 	public ServiceResponse deleteActivityFromTimesheet(@RequestBody TimesheetDeleteRequestDTO requestDTO) {
 		ServiceResponse response = timesheetServiceNew.deleteActivityFromTimesheet(
+				requestDTO.getId(),
 				requestDTO.getTimesheetId(), 
 				requestDTO.getActivityId(),
 				requestDTO.getProjectId());
@@ -220,5 +323,58 @@ public class EmployeeTimesheetControllerNew {
 	 public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(@RequestBody Long empId) {
 	     return timesheetServiceNew.getActiveProjectsAndClientSideIdByEmpId(empId);
 	 }
+
+	/**
+	 * API 1.11: Get Document Data by Doc ID, this is for viewing the doc
+	 * Endpoint: GET /api/v2/timesheet/getDocumentDataByDocId
+	 */
+	@JobRoleAccess(featureIds = { 15, 16, 24 })
+	@GetMapping("/getDocumentDataByDocId")
+	public ResponseEntity<Resource> getDocumentDataByDocId(@RequestParam Long docId, @RequestParam Boolean approvedDocType) throws IOException {
+
+		Resource resource = timesheetServiceNew.getDocumentDataByDocId(docId, approvedDocType);
+
+		if (resource == null) {
+			return ResponseEntity.notFound().build();
+		}
+
+		Path path = resource.getFile().toPath();
+
+		String contentType = Files.probeContentType(path);
+		if (contentType == null) {
+			contentType = "application/octet-stream";
+		}
+
+		return ResponseEntity.ok()
+				.contentType(MediaType.parseMediaType(contentType))
+				.header(HttpHeaders.CONTENT_DISPOSITION,
+						"inline; filename=\"" + resource.getFilename() + "\"")
+				.body(resource);
+	}
+
+	@JobRoleAccess(featureIds = {15})
+	@PostMapping(value = "/bulkFinalDocumentUpload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ServiceResponse bulkFinalDocumentUpload(
+			@RequestPart("finalFile") MultipartFile file,
+			@RequestParam("fromDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
+			@RequestParam("toDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toDate,
+			@RequestParam("empId") Long empId) throws Exception{
+		
+		System.out.println("Received file: " + file.getOriginalFilename());
+		System.out.println("From Date: " + fromDate);
+		System.out.println("To Date: " + toDate);
+		
+		ServiceResponse reponse = new ServiceResponse();
+		reponse = timesheetDocumentServiceNew.replaceAllTemporaryFileWithFinalFile(file,fromDate,toDate,empId);
+		return reponse;
+	}
+
+	@JobRoleAccess(featureIds = {15})
+	@DeleteMapping(value = "/deleteBulkFinalDocument/{bulkApproverDocId}")
+	public ServiceResponse deleteBulkFinalDocument(@PathVariable Long bulkApproverDocId) {
+		ServiceResponse response = timesheetDocumentServiceNew.deleteBulkApprovedDocuments(bulkApproverDocId);
+		return response;
+	}
+
 }
 

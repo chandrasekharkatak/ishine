@@ -9,6 +9,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -43,14 +46,19 @@ public class TimesheetDocumentDetailsNew {
     @Column(name = "created_by")
     private Long createdBy;
 
+    @CreationTimestamp
     @Column(name = "created_on")
     private LocalDateTime createdOn;
 
     @Column(name = "updated_by")
     private Long updatedBy;
 
+    @UpdateTimestamp
     @Column(name = "updated_on")
     private LocalDateTime updatedOn;
+
+    @Column(name = "project_id", nullable = false)
+    private Long projectId;
 
     @Column(name = "active")
     private Boolean active;

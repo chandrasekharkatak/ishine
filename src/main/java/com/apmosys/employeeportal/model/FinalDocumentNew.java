@@ -9,8 +9,14 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import lombok.Data;
+
 @Entity
 @Table(name = "final_document_new")
+@Data
 public class FinalDocumentNew {
 
 	@Id
@@ -21,6 +27,7 @@ public class FinalDocumentNew {
     @Column(name = "created_by")
     private Long createdBy;
 
+    @CreationTimestamp
     @Column(name = "created_on")
     private LocalDateTime createdOn;
 
@@ -33,9 +40,13 @@ public class FinalDocumentNew {
     @Column(name = "doc_name")
     private String docName;
 
+    @Column(name = "project_id", nullable = false)
+    private Long projectId;
+
     @Column(name = "updated_by")
     private Long updatedBy;
 
+    @UpdateTimestamp
     @Column(name = "updated_on")
     private LocalDateTime updatedOn;
 }

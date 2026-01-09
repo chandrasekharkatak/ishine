@@ -25,5 +25,9 @@ public class DocumentResponseDTONew {
     private LocalDateTime createdOn;
     private Long updatedBy;
     private LocalDateTime updatedOn;
+    private Long projectId;
+    private Long bulkApproverDocId;
+
+    
 }
 

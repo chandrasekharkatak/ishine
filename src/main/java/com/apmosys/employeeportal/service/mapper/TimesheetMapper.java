@@ -16,7 +16,6 @@ import com.apmosys.employeeportal.model.EmployeeTimesheetActivitiesMappingNew;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.ProjectTimesheetStatusId;
 import com.apmosys.employeeportal.model.ProjectTimesheetStatusNew;
-import com.apmosys.employeeportal.model.TimesheetActivityMapId;
 
 /**
  * Mapper class for converting between DTOs and Entities.
@@ -47,7 +46,6 @@ public class TimesheetMapper {
         entity.setLeaveTypeMasterId(dto.getLeaveTypeId());
         entity.setStatus(dto.getStatus());
         entity.setTotalWorkingMinutes(dto.getTotalWorkingMinutes());
-        entity.setTotalActivitiesMinutes(dto.getTotalActivitiesMinutes());
         entity.setWorkCheckIn(dto.getWorkCheckIn());
         entity.setWorkCheckOut(dto.getWorkCheckOut());
         entity.setCreatedBy(dto.getCreatedBy());
@@ -77,7 +75,6 @@ public class TimesheetMapper {
         dto.setLeaveTypeId(entity.getLeaveTypeMasterId());
         dto.setStatus(entity.getStatus());
         dto.setTotalWorkingMinutes(entity.getTotalWorkingMinutes());
-        dto.setTotalActivitiesMinutes(entity.getTotalActivitiesMinutes());
         dto.setWorkCheckIn(entity.getWorkCheckIn());
         dto.setWorkCheckOut(entity.getWorkCheckOut());
         dto.setCreatedBy(entity.getCreatedBy());
@@ -109,7 +106,6 @@ public class TimesheetMapper {
         entity.setId(id);
 
         entity.setPoNo(dto.getPoNo());
-        entity.setIsNightShift(dto.getIsNightShift());
         entity.setClientApprovalStatus(dto.getClientApprovalStatus());
         entity.setStatus(dto.getStatus() != null ? dto.getStatus() : 1); // Default to PENDING
         entity.setShadowEmpId(dto.getShadowEmpId());
@@ -133,7 +129,6 @@ public class TimesheetMapper {
         dto.setTimesheetId(entity.getId().getTimesheetId());
         dto.setProjectId(entity.getId().getProjectId());
         dto.setPoNo(entity.getPoNo());
-        dto.setIsNightShift(entity.getIsNightShift());
         dto.setClientApprovalStatus(entity.getClientApprovalStatus());
         dto.setStatus(entity.getStatus());
         dto.setShadowEmpId(entity.getShadowEmpId());
@@ -159,11 +154,10 @@ public class TimesheetMapper {
         EmployeeTimesheetActivitiesMappingNew entity = new EmployeeTimesheetActivitiesMappingNew();
         
         // Set composite key
-        TimesheetActivityMapId id = new TimesheetActivityMapId();
-        id.setTimesheetId(timesheetId != null ? timesheetId : dto.getTimesheetId());
-        id.setActivityId(dto.getActivityId());
-        id.setProjectId(projectId != null ? projectId : dto.getProjectId());
-        entity.setId(id);
+        entity.setTimesheetId(timesheetId != null ? timesheetId : dto.getTimesheetId());
+        entity.setActivityId(dto.getActivityId());
+        entity.setProjectId(projectId != null ? projectId : dto.getProjectId());
+        entity.setId(dto.getId());
 
         entity.setDescription(dto.getDescription());
         entity.setDurationMinutes(dto.getDurationMinutes() != null ? dto.getDurationMinutes().shortValue() : null);
@@ -183,13 +177,12 @@ public class TimesheetMapper {
         }
 
         ActivityTimesheetDTO dto = new ActivityTimesheetDTO();
-        dto.setTimesheetId(entity.getId().getTimesheetId());
-        dto.setActivityId(entity.getId().getActivityId());
-        dto.setProjectId(entity.getId().getProjectId());
+        dto.setTimesheetId(entity.getTimesheetId());
+        dto.setActivityId(entity.getActivityId());
+        dto.setProjectId(entity.getProjectId());
         dto.setDescription(entity.getDescription());
         dto.setDurationMinutes(entity.getDurationMinutes() != null ? entity.getDurationMinutes().intValue() : null);
-        dto.setClientLocationId(null); // Not stored in new table, may need to be retrieved separately
-
+      
         return dto;
     }
     /**
@@ -238,7 +231,7 @@ public class TimesheetMapper {
 
         return activities.stream()
                 .collect(Collectors.groupingBy(
-                        activity -> activity.getId().getProjectId()
+                        activity -> activity.getProjectId()
                 ));
     }
 }

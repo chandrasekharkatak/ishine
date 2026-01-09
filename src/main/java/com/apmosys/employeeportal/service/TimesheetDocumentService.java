@@ -79,7 +79,7 @@ public class TimesheetDocumentService {
      * @throws IllegalArgumentException if document validation fails
      */
     public void handleDocumentUpload(com.apmosys.employeeportal.dto.TimesheetDTO timesheetDTO, 
-                                     Timesheet newTimesheetCreated, 
+                                     Timesheet newTimesheetCreated,
                                      MultipartFile file,
                                      boolean isFinal) throws IOException {
         log.debug("Handling document upload: timesheetId={}, isFinal={}", 

@@ -31,6 +31,9 @@ public class DayTypeMasterNew {
     @Column(name="is_active")
     private Boolean isActive;
     
+    @Column(name = "is_working_day")
+    private Boolean isWorkingDay;
+    
     
     @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = false, updatable = false)
 	private Timestamp createdOn;

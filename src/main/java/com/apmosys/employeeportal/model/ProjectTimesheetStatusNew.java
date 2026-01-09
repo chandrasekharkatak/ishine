@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.model;
 
+import java.time.LocalDateTime;
+
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
@@ -18,17 +20,16 @@ public class ProjectTimesheetStatusNew {
 
 	@EmbeddedId 
     private ProjectTimesheetStatusId id;
-
+	
     @Column(name = "po_no")
     private String poNo;
     
+    @Column(name = "po_id")
+    private Long poId;
     
-//    @Column(name="project_id")
-//    private Integer projectId;
-
-    @Column(name = "is_night_shift")
-    private Boolean isNightShift;
-
+    @Column(name="client_location_id")
+    private Integer clientLocationId;
+    
     @Column(name = "client_approval_status")
     private Integer clientApprovalStatus;
 
@@ -37,12 +38,20 @@ public class ProjectTimesheetStatusNew {
 
     @Column(name = "shadow_emp_id")
     private Long shadowEmpId;
-
+    
     @Column(name = "total_client_working_minutes")
-    private Integer totalClientWorkingMinutes;
+    private Integer totalClientWorkingMinutes; 
     
+    @Column(name = "created_by")
+	Long createdBy;
     
-    @Column(name = "location_mapping_id")
-    private Long locationMappingId;
+	@Column(name = "created_on")
+	LocalDateTime createdOn;
+	
+	@Column(name = "updated_by")
+	Long updatedBy;
+	
+	@Column(name = "updated_on")
+	LocalDateTime updatedOn;
 
 }

@@ -9,9 +9,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.model.EmployeeTimesheetActivitiesMappingNew;
-import com.apmosys.employeeportal.model.TimesheetActivityMapId;
 
-public interface TimesheetActivityMapNewRepository extends JpaRepository<EmployeeTimesheetActivitiesMappingNew, TimesheetActivityMapId>  {
+public interface TimesheetActivityMapNewRepository extends JpaRepository<EmployeeTimesheetActivitiesMappingNew,Long>  {
 
 
 
@@ -77,10 +76,25 @@ public interface TimesheetActivityMapNewRepository extends JpaRepository<Employe
 	}
 	
 
-    Long countByIdActivityId(Long activityId);
-
 	@Query(nativeQuery = true)
 	public List<EmployeeTimesheetActivitiesMappingNew> getTimesheetActivityByTimesheetId(Long timesheetId);
+	
+	
+	
+	@Modifying
+	@Query(
+	      "DELETE FROM EmployeeTimesheetActivitiesMappingNew a "
+	    + "WHERE a.timesheetId = :timesheetId "
+	    + "AND a.locationMappingId = :locationMappingId "
+	    + "AND a.projectId = :projectId"
+	)
+	void deleteByTimesheetIdAndLocationMappingIdAndProjectId(
+	        @Param("timesheetId") Long timesheetId,
+	        @Param("locationMappingId") Long locationMappingId,
+	        @Param("projectId") Integer projectId
+	);
+
+
 
 
 }

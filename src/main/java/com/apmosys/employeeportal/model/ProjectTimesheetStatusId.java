@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.model;
 
 import java.io.Serializable;
+
 import java.util.Objects;
 
 import javax.persistence.Column;
@@ -10,28 +11,38 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Embeddable
-public class ProjectTimesheetStatusId implements Serializable{
+public class ProjectTimesheetStatusId implements Serializable {
 
-	@Column(name="timesheet_id")
-	private Long timesheetId;
-	@Column(name="project_id")
+    private static final long serialVersionUID = 1L;
+
+    @Column(name = "timesheet_id", nullable = false)
+    private Long timesheetId;
+
+    @Column(name = "project_id", nullable = false)
     private Integer projectId;
+
+    @Column(name = "location_mapping_id", nullable = false)
+    private Long locationMappingId;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ProjectTimesheetStatusId)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
+
         ProjectTimesheetStatusId that = (ProjectTimesheetStatusId) o;
+
         return Objects.equals(timesheetId, that.timesheetId)
-                && Objects.equals(projectId, that.projectId);
+                && Objects.equals(projectId, that.projectId)
+                && Objects.equals(locationMappingId, that.locationMappingId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(timesheetId, projectId);
+        return Objects.hash(timesheetId, projectId, locationMappingId);
     }
 }

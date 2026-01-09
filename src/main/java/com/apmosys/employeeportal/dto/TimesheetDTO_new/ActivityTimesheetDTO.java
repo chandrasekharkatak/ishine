@@ -19,6 +19,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ActivityTimesheetDTO {
+	
+	
+	private Long id;
 
     /**
      * Timesheet ID (FK to employee_timesheets_new)
@@ -55,10 +58,6 @@ public class ActivityTimesheetDTO {
     @NotNull("Duration minutes is required")
     private Integer durationMinutes;
 
-    /**
-     * Client location ID (FK to client_locations table)
-     * Optional - for location-specific tracking
-     */
-    private Long clientLocationId;
+   
 }
 

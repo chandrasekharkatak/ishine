@@ -22,7 +22,8 @@ public class EmployeeClientSideIdMapId implements Serializable {
     private String clientSideId;
 
     @Column(name = "project_id")
-    private Long projectId;
+    private Long projectId;  
+    
     
     @Override
     public boolean equals(Object o) {

@@ -54,4 +54,10 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 			@Param("date") LocalDate date);
 	  
 	  List<TimesheetDocumentDetails> findByDocId(Long docId);
+
+	  @Query("SELECT t from TimesheetDocumentDetails t where t.finalFlag = :finalFlag order by t.docId")
+	  List<TimesheetDocumentDetails> findAllFinalFlaggedDocuments(@Param("finalFlag") Boolean finalFlag);
+
+	  @Query("SELECT t FROM TimesheetDocumentDetails t WHERE t.timesheetId = :timesheetId")
+	  List<TimesheetDocumentDetails> findAllByTimesheetId(@Param("timesheetId") Long timesheetId);
 }
