@@ -32,6 +32,7 @@ import { DateTimePickerComponent } from 'src/app/helpers/date-time-picker/date-t
 import { ProjectEntry } from 'src/app/models/projectEntry';
 import { ActivityNew } from 'src/app/models/activityNew';
 import { TimesheetNewService } from 'src/app/services/timesheet-new.service';
+import { TimesheetFormComponent } from './timesheet-form/timesheet-form.component';
 @Component({
   standalone: false,
   selector: 'app-my-timesheet',
@@ -63,6 +64,8 @@ export class MyTimesheetComponent implements OnInit {
   @ViewChild("noNotAppliedYet")
   noNotAppliedYet: TemplateRef<any>;
 
+  @ViewChild(TimesheetFormComponent)
+  timesheetFormComponent!: TimesheetFormComponent;
   // Property aliases for template references used in HTML
   get alert_message(): TemplateRef<any> {
     return this.alertTemplate;

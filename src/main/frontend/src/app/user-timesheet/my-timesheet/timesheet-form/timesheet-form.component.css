@@ -1143,14 +1143,21 @@ hr {
   border-top: 1px dashed #e2e8f0;
 }
 
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
 .section-subtitle {
   font-size: 14px;
   font-weight: 600;
   color: #4a5568;
-  margin-bottom: 16px;
   display: flex;
   align-items: center;
   gap: 8px;
+  margin: 0; /* important */
 }
 
 .section-subtitle i {
