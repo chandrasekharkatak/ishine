@@ -1,8 +1,8 @@
 package com.apmosys.employeeportal.model;
 
 import javax.persistence.Column;
-import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Table;
 
 import lombok.AllArgsConstructor;
@@ -16,13 +16,25 @@ import lombok.NoArgsConstructor;
 @Table(name = "employee_timesheet_activities_mapping_new")
 public class EmployeeTimesheetActivitiesMappingNew {
 
-	    @EmbeddedId
-	    private TimesheetActivityMapId id;
+    @Id	
+	private Long id;
+	
+	@Column(name = "timesheet_id", nullable = false)
+    private Long timesheetId;
 
-	    @Column(name = "description")
-	    private String description;
+    @Column(name = "activity_id", nullable = false)
+    private Long activityId;
 
-	    @Column(name = "duration_minutes")
-	    private Short durationMinutes;
+    @Column(name = "project_id", nullable = false)
+    private Integer projectId;
+    
+    @Column(name = "location_mapping_id", nullable = false)
+    private Long locationMappingId;
+
+	@Column(name = "description")
+	private String description;
+
+	@Column(name = "duration_minutes")
+	private Short durationMinutes;
 
 }

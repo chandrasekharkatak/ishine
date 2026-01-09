@@ -7,7 +7,6 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -92,45 +91,46 @@ public class TimesheetValidationHelper {
         }
        }
 
+    public void validateNullAndUnexpectedData(EmployeeTimesheetDTO dto) {
 
-        
-     
-        public void validateNullAndUnexpectedData(EmployeeTimesheetDTO dto) {
+		if (dto == null) {
+			throw new IllegalArgumentException("EmployeeTimesheetDTO cannot be null");
+		}
 
-        if (dto == null) {
-            throw new IllegalArgumentException("EmployeeTimesheetDTO cannot be null");
-        }
+		if (dto.getEmpId() == null) {
+			throw new IllegalArgumentException("Employee ID is required");
+		}
 
-        if (dto.getEmpId() == null) {
-            throw new IllegalArgumentException("Employee ID is required");
-        }
+		if (dto.getDate() == null) {
+			throw new IllegalArgumentException("Timesheet date is required");
+		}
 
-        if (dto.getDate() == null) {
-                throw new IllegalArgumentException("Timesheet date is required");
-            }
+		if (dto.getDate().isAfter(LocalDate.now())) {
+			throw new IllegalArgumentException("Timesheet date cannot be in the future");
+		}
 
-            if (dto.getDate().isAfter(LocalDate.now())) {
-                throw new IllegalArgumentException("Timesheet date cannot be in the future");
-            }
+		if (dto.getDayTypeId() == null) {
+			throw new IllegalArgumentException("Day type is required");
+		}
 
-            if (dto.getDayTypeId() == null && dto.getDayType() == null) {
-                throw new IllegalArgumentException("Day type is required");
-            }
+		
+	 }
 
-            boolean isWorkingDay = isWorkingDay(dto);
+	public void validateWorkInWorkOutTime(EmployeeTimesheetDTO dto) {
 
-            if (isWorkingDay) {
-                if (dto.getWorkCheckIn() == null || dto.getWorkCheckOut() == null) {
-                    throw new IllegalArgumentException(
-                            "workCheckIn and workCheckOut are mandatory for working days");
-                }
+			boolean isWorkingDay = isWorkingDay(dto);
 
-                if (!dto.getWorkCheckOut().isAfter(dto.getWorkCheckIn())) {
-                    throw new IllegalArgumentException(
-                            "workCheckOut must be after workCheckIn");
-                }
-            }
-        }
+			if (isWorkingDay) {
+				if (dto.getWorkCheckIn() == null || dto.getWorkCheckOut() == null) {
+					throw new IllegalArgumentException("workCheckIn and workCheckOut are mandatory for working days");
+				}
+
+				if (!dto.getWorkCheckOut().isAfter(dto.getWorkCheckIn())) {
+					throw new IllegalArgumentException("workCheckOut must be after workCheckIn");
+				}
+			}
+		}
+    
         
         /**
          * Validate timesheet lock period for employee.
@@ -594,18 +594,20 @@ public class TimesheetValidationHelper {
             }
         }
 
+             
+        public boolean isWorkingDay(EmployeeTimesheetDTO dto) {
 
-        /* =====================================================
-           HELPERS
-           ===================================================== */
-
-        private boolean isWorkingDay(EmployeeTimesheetDTO dto) {
-            if (dto.getDayType() != null) {
-                return "Working".equalsIgnoreCase(dto.getDayType());
+            if (dto.getDayTypeId() == null) {
+                return false;
             }
-            // fallback – based on dayTypeId (customize later)
-            return true;
+
+            DayTypeMasterNew dayType = dayTypeMasterNewRepository.findById(dto.getDayTypeId())
+                    .orElseThrow(() ->
+                            new IllegalArgumentException("Invalid dayTypeId"));
+
+            return Boolean.TRUE.equals(dayType.getIsWorkingDay());
         }
+
         
         
         /**
@@ -891,7 +893,7 @@ public class TimesheetValidationHelper {
             Long timesheetId,
             List<LocationSessionDTO> incomingLocations) {
 
-        // Existing locations in DB
+        //Existing location sessions from DB
         List<EmployeeTimesheetLocationMapping> existingLocations =
                 employeeTimesheetLocationMappingRepository.findByTimesheetId(timesheetId);
 
@@ -899,80 +901,69 @@ public class TimesheetValidationHelper {
             return;
         }
 
-        // Incoming location type IDs
-        Set<Integer> incomingLocationTypeIds =
+        // Incoming mapping IDs (ONLY non-null → existing sessions)
+        Set<Long> incomingMappingIds =
                 incomingLocations == null
                         ? Set.of()
                         : incomingLocations.stream()
-                            .map(LocationSessionDTO::getWorkLocationTypeId)
+                            .map(LocationSessionDTO::getLocationMappingId)
+                            .filter(Objects::nonNull) 
                             .collect(Collectors.toSet());
 
-        for (EmployeeTimesheetLocationMapping existingLocation : existingLocations) {
+        //Validate deletions session-wise
+        for (EmployeeTimesheetLocationMapping dbLocation : existingLocations) {
 
-            Integer existingTypeId = existingLocation.getLocationTypeId().intValue();
+            Long dbMappingId = dbLocation.getLocationMappingId();
 
-            // Location is removed in incoming request
-            if (!incomingLocationTypeIds.contains(existingTypeId)) {
+            // Session removed by user
+            if (!incomingMappingIds.contains(dbMappingId)) {
 
-                // Check if any APPROVED project exists under this location
                 boolean hasApprovedProject =
-                        projectTimesheetService.existsApprovedProjectByLocationMappingId(
-                                existingLocation.getLocationMappingId());
+                        projectTimesheetService
+                                .existsApprovedProjectByLocationMappingId(dbMappingId);
 
                 if (hasApprovedProject) {
                     throw new IllegalStateException(
-                            "Cannot delete location because it contains approved project(s)");
+                            "Cannot delete location session because it contains approved project(s)");
                 }
             }
         }
     }
+
     
+    @Autowired
+    EmployeeTimesheetLocationMappingRepository  locationRepo;
     
-    public void validateProjectDeletionRules(
-            Long timesheetId,
+    public void  validateProjectDeletionRules( Long timesheetId,
             List<LocationSessionDTO> incomingLocations) {
 
-        if (incomingLocations == null || incomingLocations.isEmpty()) {
-            return;
-        }
+    	  Set<Long> incomingLocationMappingIds =
+    	      incomingLocations.stream()
+    	        .map(LocationSessionDTO::getLocationMappingId)
+    	        .filter(Objects::nonNull)
+    	        .collect(Collectors.toSet());
 
-        for (LocationSessionDTO locationDTO : incomingLocations) {
+    	  List<EmployeeTimesheetLocationMapping> dbLocations =
+    	      locationRepo.findByTimesheetId(timesheetId);
 
-            Integer locationTypeId = locationDTO.getWorkLocationTypeId();
+    	  for (EmployeeTimesheetLocationMapping dbLoc : dbLocations) {
 
-            // Existing projects under this location (DB)
-            List<ProjectTimesheetDTO> existingProjects =
-                    projectTimesheetService.findByTimesheetIdAndLocationType(
-                            timesheetId,
-                            locationTypeId
-                    );
+    	     if (!incomingLocationMappingIds.contains(dbLoc.getLocationMappingId())) {
 
-            if (existingProjects == null || existingProjects.isEmpty()) {
-                continue;
-            }
+    	        boolean hasApprovedProject =
+    	        		projectTimesheetService.existsApprovedProjectByLocationMappingId(
+    	                dbLoc.getLocationMappingId()
+    	            );
 
-            Set<Integer> incomingProjectIds =
-                    locationDTO.getProjects() == null
-                            ? Set.of()
-                            : locationDTO.getProjects().stream()
-                                .map(ProjectTimesheetDTO::getProjectId)
-                                .collect(Collectors.toSet());
+    	        if (hasApprovedProject) {
+    	           throw new IllegalStateException(
+    	             "Cannot delete location session because approved project exists"
+    	           );
+    	        }
+    	     }
+    	  }
+    	}
 
-            for (ProjectTimesheetDTO existingProject : existingProjects) {
-
-                // Project removed in request
-                if (!incomingProjectIds.contains(existingProject.getProjectId())) {
-
-                    if (TimesheetAggregationHelper.STATUS_APPROVED
-                            .equals(existingProject.getStatus())) {
-
-                        throw new IllegalStateException(
-                            "Cannot delete approved project. Revert approval first.");
-                    }
-                }
-            }
-        }
-    }
     
     
 	public void cleanupDeletableLocations(Long timesheetId, List<LocationSessionDTO> incomingLocations) {
@@ -1186,6 +1177,8 @@ public class TimesheetValidationHelper {
 
 	    if (existingActivities == null) existingActivities = List.of();
 	    if (incomingActivities == null) incomingActivities = List.of();
+	    
+	    
 
 	    Map<Long, ActivityTimesheetDTO> existingMap =
 	            existingActivities.stream()

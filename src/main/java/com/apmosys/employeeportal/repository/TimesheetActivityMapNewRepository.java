@@ -9,9 +9,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.model.EmployeeTimesheetActivitiesMappingNew;
-import com.apmosys.employeeportal.model.TimesheetActivityMapId;
 
-public interface TimesheetActivityMapNewRepository extends JpaRepository<EmployeeTimesheetActivitiesMappingNew, TimesheetActivityMapId>  {
+public interface TimesheetActivityMapNewRepository extends JpaRepository<EmployeeTimesheetActivitiesMappingNew,Long>  {
 
 
 
@@ -76,8 +75,6 @@ public interface TimesheetActivityMapNewRepository extends JpaRepository<Employe
 		return findByIdTimesheetId(timesheetId);
 	}
 	
-
-    Long countByIdActivityId(Long activityId);
 
 	@Query(nativeQuery = true)
 	public List<EmployeeTimesheetActivitiesMappingNew> getTimesheetActivityByTimesheetId(Long timesheetId);

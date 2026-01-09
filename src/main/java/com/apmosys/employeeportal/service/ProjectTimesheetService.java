@@ -121,7 +121,6 @@ public class ProjectTimesheetService {
 
         // Update fields
         entity.setPoNo(dto.getPoNo());
-        entity.setIsNightShift(dto.getIsNightShift());
         entity.setClientApprovalStatus(dto.getClientApprovalStatus());
         entity.setStatus(dto.getStatus());
         entity.setShadowEmpId(dto.getShadowEmpId());
@@ -129,7 +128,7 @@ public class ProjectTimesheetService {
         
         // Update locationMappingId if provided (NEW CONTRACT: Projects are linked to locations)
         if (dto.getLocationMappingId() != null) {
-            entity.setLocationMappingId(dto.getLocationMappingId());
+            entity.getId().setLocationMappingId(dto.getLocationMappingId());
         }
 
         return projectTimesheetStatusNewRepository.save(entity);
@@ -204,22 +203,12 @@ public class ProjectTimesheetService {
     
     public Boolean existsApprovedProjectByLocationMappingId(Long locationMappingId) {
         return projectTimesheetStatusNewRepository
-                .existsByLocationMappingIdAndStatus(
+                .existsByIdLocationMappingIdAndStatus(
                         locationMappingId,
                         TimesheetAggregationHelper.STATUS_APPROVED
                 );
     }
     
-    public List<ProjectTimesheetDTO> findByTimesheetIdAndLocationType(
-            Long timesheetId,
-            Integer locationTypeId) {
-
-        return projectTimesheetStatusNewRepository
-                .findByTimesheetIdAndLocationTypeId(timesheetId, locationTypeId)
-                .stream()
-                .map(timesheetMapper::toDTO)
-                .collect(Collectors.toList());
-    }
     
     public List<ProjectTimesheetDTO> findByLocationMappingId(Long locationMappingId) {
 
@@ -228,7 +217,7 @@ public class ProjectTimesheetService {
         }
 
         return projectTimesheetStatusNewRepository
-                .findByLocationMappingId(locationMappingId)
+                .findByIdLocationMappingId(locationMappingId)
                 .stream()
                 .map(timesheetMapper::toDTO)
                 .collect(Collectors.toList());

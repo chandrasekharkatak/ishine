@@ -22,18 +22,16 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LocationSessionDTO {
 
+    /*primary column data*/
+	private Long locationMappingId;
+	
+    private String workLocationType;
+     
     /**
      * Work location type code (e.g., "APMOSYS_OFFICE", "CLIENT_LOCATION", "WFH")
      * Maps to work_location_type_master.code
      * Required for creation
      */
-	private Long locationMappingId;
-    private String workLocationType;
-    
-    private Long locationMappingId;
-
-    
-    
     private Integer workLocationTypeId;
 
     /**

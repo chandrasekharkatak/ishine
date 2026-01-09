@@ -1,6 +1,5 @@
 package com.apmosys.employeeportal.service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -10,10 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
-import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.model.EmployeeTimesheetActivitiesMappingNew;
-import com.apmosys.employeeportal.model.ProjectTimesheetStatusNew;
-import com.apmosys.employeeportal.model.TimesheetActivityMapId;
 import com.apmosys.employeeportal.repository.TimesheetActivityMapNewRepository;
 import com.apmosys.employeeportal.service.mapper.TimesheetMapper;
 
@@ -118,7 +114,7 @@ public class ActivityTimesheetService {
                 .findByIdTimesheetId(timesheetId);
 
         return entities.stream()
-                .filter(activity -> activity.getId().getProjectId().equals(projectId))
+                .filter(activity -> activity.getProjectId().equals(projectId))
                 .map(timesheetMapper::toDTO)
                 .collect(Collectors.toList());
     }
@@ -131,17 +127,8 @@ public class ActivityTimesheetService {
      * @param projectId Project ID
      * @return ActivityTimesheetDTO or null if not found
      */
-    public ActivityTimesheetDTO findByCompositeKey(Long timesheetId, Long activityId, Integer projectId) {
-        if (timesheetId == null || activityId == null || projectId == null) {
-            return null;
-        }
-
-        TimesheetActivityMapId id = new TimesheetActivityMapId();
-        id.setTimesheetId(timesheetId);
-        id.setActivityId(activityId);
-        id.setProjectId(projectId);
-
-        Optional<EmployeeTimesheetActivitiesMappingNew> entity = timesheetActivityMapNewRepository.findById(id);
+    public ActivityTimesheetDTO findByCompositeKey(Long id) {
+         Optional<EmployeeTimesheetActivitiesMappingNew> entity = timesheetActivityMapNewRepository.findById(id);
         return entity.map(timesheetMapper::toDTO).orElse(null);
     }
 
@@ -157,19 +144,16 @@ public class ActivityTimesheetService {
             throw new IllegalArgumentException("ActivityTimesheetDTO and all IDs are required");
         }
 
-        TimesheetActivityMapId id = new TimesheetActivityMapId();
-        id.setTimesheetId(dto.getTimesheetId());
-        id.setActivityId(dto.getActivityId());
-        id.setProjectId(dto.getProjectId());
-
-        EmployeeTimesheetActivitiesMappingNew entity = timesheetActivityMapNewRepository.findById(id)
+       EmployeeTimesheetActivitiesMappingNew entity = timesheetActivityMapNewRepository.findById(dto.getId())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "ActivityTimesheet not found: timesheetId=" + dto.getTimesheetId() +
                         ", activityId=" + dto.getActivityId() + ", projectId=" + dto.getProjectId()));
-
-        // Update fields
-        entity.setDescription(dto.getDescription());
-        entity.setDurationMinutes(dto.getDurationMinutes() != null ? dto.getDurationMinutes().shortValue() : null);
+       
+       entity.setTimesheetId(dto.getTimesheetId());
+       entity.setActivityId(dto.getActivityId());
+       entity.setProjectId(dto.getProjectId());
+       entity.setDescription(dto.getDescription());
+       entity.setDurationMinutes(dto.getDurationMinutes() != null ? dto.getDurationMinutes().shortValue() : null);
 
         return timesheetActivityMapNewRepository.save(entity);
     }
@@ -182,16 +166,10 @@ public class ActivityTimesheetService {
      * @param projectId Project ID
      */
     @Transactional
-    public void delete(Long timesheetId, Long activityId, Integer projectId) {
+    public void delete(Long id,Long timesheetId, Long activityId, Integer projectId) {
         if (timesheetId == null || activityId == null || projectId == null) {
             throw new IllegalArgumentException("Timesheet ID, Activity ID, and Project ID are required");
         }
-
-        TimesheetActivityMapId id = new TimesheetActivityMapId();
-        id.setTimesheetId(timesheetId);
-        id.setActivityId(activityId);
-        id.setProjectId(projectId);
-
         if (!timesheetActivityMapNewRepository.existsById(id)) {
             throw new IllegalArgumentException(
                     "ActivityTimesheet not found: timesheetId=" + timesheetId +
@@ -233,7 +211,7 @@ public class ActivityTimesheetService {
                 .findByTimesheetId(timesheetId);
 
         List<EmployeeTimesheetActivitiesMappingNew> toDelete = activities.stream()
-                .filter(activity -> activity.getId().getProjectId().equals(projectId))
+                .filter(activity -> activity.getProjectId().equals(projectId))
                 .collect(Collectors.toList());
 
         timesheetActivityMapNewRepository.deleteAll(toDelete);
@@ -263,16 +241,10 @@ public class ActivityTimesheetService {
      * @param projectId Project ID
      * @return true if exists, false otherwise
      */
-    public boolean exists(Long timesheetId, Long activityId, Integer projectId) {
+    public boolean exists(Long id,Long timesheetId, Long activityId, Integer projectId) {
         if (timesheetId == null || activityId == null || projectId == null) {
             return false;
         }
-
-        TimesheetActivityMapId id = new TimesheetActivityMapId();
-        id.setTimesheetId(timesheetId);
-        id.setActivityId(activityId);
-        id.setProjectId(projectId);
-
         return timesheetActivityMapNewRepository.existsById(id);
     }
     

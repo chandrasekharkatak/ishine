@@ -215,13 +215,18 @@ public class TimesheetServiceNew {
 	        
 	        timesheetValidationHelper.validateNullAndUnexpectedData(empDTO);
 	        
-	        timesheetValidationHelper.validateTimesheetAlreadyExists(
-	                empDTO.getEmpId(), empDTO.getDate());
+	        timesheetValidationHelper.validateWorkInWorkOutTime(empDTO);
 	        
 			if (timesheetLockDays != null) {
 	            timesheetValidationHelper.validateTimesheetLockPeriod(
 	                    empDTO.getEmpId(), empDTO.getDate(), timesheetLockDays);
 	        }
+			
+			timesheetValidationHelper.validateTimesheetAlreadyExists(
+	                empDTO.getEmpId(), empDTO.getDate());
+			
+ 			timesheetValidationHelper.validateLocationTimeOverlap(empDTO.getLocationSessions());
+
             timesheetValidationHelper.validateLocationWiseProjectAndActivities(empDTO);
             
             timesheetValidationHelper.validateDocumentsDTO(empDTO);
@@ -237,115 +242,27 @@ public class TimesheetServiceNew {
 			empDTO.setUpdatedOn(LocalDateTime.now());
 			
 
-	        EmployeeTimesheetsNew empTS =
-	                employeeTimesheetsNewRepository.save(
-	                        timesheetMapper.toEntity(empDTO));
+			EmployeeTimesheetsNew newTimesheet=timesheetMapper.toEntity(empDTO);
+	        
+	        if (empDTO.getDayType().equals("Public Holiday") || empDTO.getDayType().equals("Week Off")
+					|| empDTO.getDayType().equals("Leave")
+					|| empDTO.getDayType().equals("Client Holiday")) 
+	        {
 
-			Long timesheetId = empTS.getTimesheetId();
+				newTimesheet.setDescription(empDTO.getDescription());
+				newTimesheet.setTotalWorkingMinutes(0);
+			}
+	        
+	        
+	        
+	     	 EmployeeTimesheetsNew empTS =
+		                employeeTimesheetsNewRepository.save(newTimesheet);
 			
-	        /*======================================================
-	           Timesheet → Location → Project → Activity
-	           ====================================================== */
 
-	        if (empDTO.getLocationSessions() != null) {
-
-	            for (LocationSessionDTO locationSession : empDTO.getLocationSessions()) {
-
-	                // 1️ Create Location Mapping
-	                
-	                EmployeeTimesheetLocationMapping locationMapping =
-	                EmployeeTimesheetLocationMapping.builder()
-	                        .timesheetId(timesheetId)
-	                        .locationTypeId(
-	                        		locationSession.getWorkLocationTypeId() != null
-	                                        ? locationSession.getWorkLocationTypeId()
-	                                        : null)
-	                        .locationInTime(
-	                                convertTimeStringToLocalDateTime(
-	                                        locationSession.getLocationInTime(),
-	                                        empDTO.getDate()))
-	                        .locationOutTime(
-	                                convertTimeStringToLocalDateTime(
-	                                        locationSession.getLocationOutTime(),
-	                                        empDTO.getDate()))
-	                        .build();
-
-	             // Persist location mapping
-	              locationMapping = employeeTimesheetLocationMappingRepository.save(locationMapping);
-
-
-	                // 2️ Projects under this location
-	                if (locationSession.getProjects() != null) {
-
-	                    for (ProjectTimesheetDTO projectDTO : locationSession.getProjects()) {
-
-					projectDTO.setTimesheetId(timesheetId);
-					
-					if (projectDTO.getStatus() == null) {
-	                            projectDTO.setStatus(
-	                                    TimesheetAggregationHelper.STATUS_PENDING);
-	                        }
-
-	                        // Create Project
-							@SuppressWarnings("unused")
-							ProjectTimesheetStatusNew projectTS =
-	                                projectTimesheetService.create(
-	                                        timesheetId,
-	                                        projectDTO
-	                                );
-
-	                        // 3️ Activities under this project
-	                        if (projectDTO.getActivities() != null &&
-	                                !projectDTO.getActivities().isEmpty()) {
-
-	                            activityTimesheetService.createAll(
-	                                    timesheetId,
-	                                    projectDTO.getProjectId(),
-	                                    projectDTO.getActivities()
-	                            );
-	                        }
-	                    }
-	                }
-	            }
-	        }
-
-	        /* ======================================================
-	           Aggregation (UNCHANGED)
-	           ====================================================== */
-
-	        List<ProjectTimesheetDTO> projectDTOs =
-	                projectTimesheetService.findByTimesheetId(timesheetId);
-
-	        aggregationHelper.calculateAndSetEmployeeTimesheetTotals(
-	                empDTO,
-	                projectDTOs);
-
-	        empTS.setTotalWorkingMinutes(empDTO.getTotalWorkingMinutes());
-	        empTS.setTotalActivitiesMinutes(empDTO.getTotalActivitiesMinutes());
-	        empTS.setStatus(empDTO.getStatus());
-
-	        employeeTimesheetsNewRepository.save(empTS);
-
-	        /* ======================================================
-	           Document handling (UNCHANGED)
-	           ====================================================== */
-
-	        if (empDTO.getDocumentData() != null &&
-	                !empDTO.getDocumentData().isEmpty()) {
-
-	            handleDocumentUploadsFromNewContract(
-	                    empDTO.getDocumentData(),
-	                    documents,
-	                    timesheetId,
-	                    empTS);
-	        }
-
-	        EmployeeTimesheetDTO responseDTO =
-	                getTimesheetByIdInternalNew(timesheetId);
-
-            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse(responseDTO);
-			response.setServiceMessage("Timesheet created successfully");
+			
+	        response=createTimesheetForWorkingDays(empTS,empDTO,documents);
+	        return response;
+	    
             
 		} catch (IllegalArgumentException e) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -361,6 +278,118 @@ public class TimesheetServiceNew {
         
         return response;
     }
+	
+	
+	public ServiceResponse createTimesheetForWorkingDays(EmployeeTimesheetsNew empTS,EmployeeTimesheetDTO empDTO,List<MultipartFile> documents){
+		
+	    /*======================================================
+        Timesheet → Location → Project → Activity
+        ====================================================== */
+        ServiceResponse response = new ServiceResponse();
+
+		Long timesheetId = empTS.getTimesheetId();
+     if (empDTO.getLocationSessions() != null) {
+
+         for (LocationSessionDTO locationSession : empDTO.getLocationSessions()) {
+
+             // 1️ Create Location Mapping
+             
+             EmployeeTimesheetLocationMapping locationMapping =
+             EmployeeTimesheetLocationMapping.builder()
+                     .timesheetId(timesheetId)
+                     .locationTypeId(
+                     		locationSession.getWorkLocationTypeId() != null
+                                     ? locationSession.getWorkLocationTypeId()
+                                     : null)
+                     .locationInTime(
+                             convertTimeStringToLocalDateTime(
+                                     locationSession.getLocationInTime(),
+                                     empDTO.getDate()))
+                     .locationOutTime(
+                             convertTimeStringToLocalDateTime(
+                                     locationSession.getLocationOutTime(),
+                                     empDTO.getDate()))
+                     .build();
+
+          // Persist location mapping
+           locationMapping = employeeTimesheetLocationMappingRepository.save(locationMapping);
+
+
+             // 2️ Projects under this location
+             if (locationSession.getProjects() != null) {
+
+                 for (ProjectTimesheetDTO projectDTO : locationSession.getProjects()) {
+
+				projectDTO.setTimesheetId(timesheetId);
+				
+				if (projectDTO.getStatus() == null) {
+                         projectDTO.setStatus(
+                                 TimesheetAggregationHelper.STATUS_PENDING);
+                     }
+
+                     // Create Project
+						@SuppressWarnings("unused")
+						ProjectTimesheetStatusNew projectTS =
+                             projectTimesheetService.create(
+                                     timesheetId,
+                                     projectDTO
+                             );
+
+                     // 3️ Activities under this project
+                     if (projectDTO.getActivities() != null &&
+                             !projectDTO.getActivities().isEmpty()) {
+
+                         activityTimesheetService.createAll(
+                                 timesheetId,
+                                 projectDTO.getProjectId(),
+                                 projectDTO.getActivities()
+                         );
+                     }
+                 }
+             }
+         }
+     }
+
+     /* ======================================================
+        Aggregation (UNCHANGED)
+        ====================================================== */
+
+     List<ProjectTimesheetDTO> projectDTOs =
+             projectTimesheetService.findByTimesheetId(timesheetId);
+
+     aggregationHelper.calculateAndSetEmployeeTimesheetTotals(
+             empDTO,
+             projectDTOs);
+
+     empTS.setTotalWorkingMinutes(empDTO.getTotalWorkingMinutes());
+     empTS.setStatus(empDTO.getStatus());
+
+     employeeTimesheetsNewRepository.save(empTS);
+
+     /* ======================================================
+        Document handling (UNCHANGED)
+        ====================================================== */
+
+     if (empDTO.getDocumentData() != null &&
+             !empDTO.getDocumentData().isEmpty()) {
+
+         handleDocumentUploadsFromNewContract(
+                 empDTO.getDocumentData(),
+                 documents,
+                 timesheetId,
+                 empTS);
+     }
+
+     EmployeeTimesheetDTO responseDTO =
+             getTimesheetByIdInternalNew(timesheetId);
+
+        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(responseDTO);
+		response.setServiceMessage("Timesheet created successfully");
+		return response;
+		
+		
+	}
 
 	@Transactional(rollbackFor = Exception.class)
     /**
@@ -649,7 +678,7 @@ public class TimesheetServiceNew {
 	 * API 1.10: Delete Activity from Timesheet
 	 */
 	@Transactional(rollbackFor = Exception.class)
-	public ServiceResponse deleteActivityFromTimesheet(Long timesheetId, Long activityId, Integer projectId) {
+	public ServiceResponse deleteActivityFromTimesheet(Long id,Long timesheetId, Long activityId, Integer projectId) {
 		ServiceResponse response = new ServiceResponse();
 		
 		try {
@@ -660,7 +689,7 @@ public class TimesheetServiceNew {
 			}
 			
 			// Delete activity
-			activityTimesheetService.delete(timesheetId, activityId, projectId);
+			activityTimesheetService.delete(id,timesheetId, activityId, projectId);
 			
 			// Recalculate project totals (using old DTOs from service)
 			ProjectTimesheetDTO projectDTO = projectTimesheetService.findByTimesheetIdAndProjectId(timesheetId, projectId);
@@ -683,7 +712,6 @@ public class TimesheetServiceNew {
 			if (empTSOpt.isPresent()) {
 				EmployeeTimesheetsNew empTS = empTSOpt.get();
 				empTS.setTotalWorkingMinutes(empDTO.getTotalWorkingMinutes());
-				empTS.setTotalActivitiesMinutes(empDTO.getTotalActivitiesMinutes());
 				empTS.setStatus(empDTO.getStatus());
 				employeeTimesheetsNewRepository.save(empTS);
 			}
@@ -733,18 +761,20 @@ public class TimesheetServiceNew {
 			
  			timesheetValidationHelper.validateNullAndUnexpectedData(newEmpDTO);
  			
+	        timesheetValidationHelper.validateWorkInWorkOutTime(newEmpDTO);
+
  			EmployeeTimesheetsNew empTS=timesheetValidationHelper.validateTimesheetUpdatable(timesheetId,newEmpDTO);
  			
  			timesheetValidationHelper.validateLocationTimeOverlap(newEmpDTO.getLocationSessions());
  			
- 			timesheetValidationHelper.validateActivityDurationWithinLocation(newEmpDTO.getLocationSessions());
- 			
  			timesheetValidationHelper.validateLocationDeletionRules(timesheetId,newEmpDTO.getLocationSessions());
  			
+ 			timesheetValidationHelper.validateProjectDeletionRules(timesheetId, newEmpDTO.getLocationSessions());
+			
  			timesheetValidationHelper.validateApprovedProjectImmutableByLocationMapping(timesheetId,newEmpDTO.getLocationSessions());
 			
-			timesheetValidationHelper.validateProjectDeletionRules(timesheetId, newEmpDTO.getLocationSessions());
-			
+ 			timesheetValidationHelper.validateActivityDurationWithinLocation(newEmpDTO.getLocationSessions());
+ 			
 		 	timesheetValidationHelper.validateLocationWiseProjectAndActivities(newEmpDTO);
 			
 	    	timesheetValidationHelper.validateDocumentsDTO(newEmpDTO);
@@ -775,7 +805,6 @@ public class TimesheetServiceNew {
 			
 			// Update employee timesheet with calculated totals
 			empTS.setTotalWorkingMinutes(newEmpDTO.getTotalWorkingMinutes());
-			empTS.setTotalActivitiesMinutes(newEmpDTO.getTotalActivitiesMinutes());
 			empTS.setStatus(newEmpDTO.getStatus());
 			employeeTimesheetsNewRepository.save(empTS);
 			if (newEmpDTO.getDocumentData() != null && !newEmpDTO.getDocumentData().isEmpty()) {

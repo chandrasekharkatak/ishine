@@ -25,18 +25,28 @@ public class EmployeeTimesheetsNew {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "timesheet_id")
 	Long timesheetId;
+	
 	@Column(name = "created_by")
 	Long createdBy;
+	
 	@Column(name = "created_on")
 	LocalDateTime createdOn;
+	
 	@Column(name = "updated_by")
 	Long updatedBy;
+	
+	@Column(name = "is_night_shift")
+	private Boolean isNightShift;
+	 
 	@Column(name = "updated_on")
 	LocalDateTime updatedOn;
+	
 	@Column(name = "date")
 	LocalDate date;
+	
 	@Column(name = "day_type_id")
 	Integer dayTypeId;
+	
 	@Column(name = "emp_id")
 	Long empId;
 	
@@ -52,10 +62,8 @@ public class EmployeeTimesheetsNew {
 	@Column(name = "total_working_minutes")
 	Integer totalWorkingMinutes;
 	
-	@Column(name = "total_activities_minutes")
-	Integer totalActivitiesMinutes;
-
-	
 	@Column(name = "leave_type_master_id")
 	Long leaveTypeMasterId;
+	
+	private String description;
 }

@@ -19,6 +19,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ActivityTimesheetDTO {
+	
+	
+	private Long id;
 
     /**
      * Timesheet ID (FK to employee_timesheets_new)

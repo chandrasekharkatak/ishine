@@ -291,6 +291,7 @@ public class EmployeeTimesheetControllerNew {
 	@DeleteMapping(value = "/activity")
 	public ServiceResponse deleteActivityFromTimesheet(@RequestBody TimesheetDeleteRequestDTO requestDTO) {
 		ServiceResponse response = timesheetServiceNew.deleteActivityFromTimesheet(
+				requestDTO.getId(),
 				requestDTO.getTimesheetId(), 
 				requestDTO.getActivityId(),
 				requestDTO.getProjectId());
