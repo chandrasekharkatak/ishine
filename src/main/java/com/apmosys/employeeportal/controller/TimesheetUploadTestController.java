@@ -108,6 +108,7 @@ public class TimesheetUploadTestController {
 
                     String uniqueFileName = projectId + "_" + document.getFinalFlag() + "_" + document.getDocName();
 
+                    timesheetDocumentDetailsNew.setProjectId(projectId);
                     timesheetDocumentDetailsNew.setFileUrl(uniqueFileName);
                     timesheetDocumentDetailsNew.setFinalFlag(document.getFinalFlag());
                     timesheetDocumentDetailsNew.setUpdatedBy(document.getUpdatedBy());
@@ -160,6 +161,7 @@ public class TimesheetUploadTestController {
 
                     String uniqueFileName = projectId + "_" + document.getFinalFlag() + "_" + document.getDocName();
 
+                    finalDocumentNew.setProjectId(projectId);
                     finalDocumentNew.setFileUrl(uniqueFileName);
 
                     finalDocumentNewsToSave.add(finalDocumentNew);
@@ -187,7 +189,7 @@ public class TimesheetUploadTestController {
     /**
      * Bulk migrate all documents from FinalDocument to FinalDocumentNew
      * 
-     * @apiNote Only for UAT environment, but not to be used now
+     * @apiNote Only for UAT environment
      * @return
      */
     @Transactional

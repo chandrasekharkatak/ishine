@@ -613,6 +613,8 @@ public class TimesheetServiceNew {
 			
 			// Delete employee timesheet using repository
 			employeeTimesheetsNewRepository.deleteById(timesheetId);
+
+			timesheetDocumentService.deleteByTimesheetId(timesheetId);
             
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
             response.setServiceResponse("Timesheet deleted successfully");
@@ -660,6 +662,8 @@ public class TimesheetServiceNew {
 				empTS.setStatus(calculatedStatus);
 				employeeTimesheetsNewRepository.save(empTS);
 			}
+
+			timesheetDocumentService.deleteByProjectId(projectId.longValue());
 			
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Project deleted from timesheet successfully");
@@ -815,8 +819,8 @@ public class TimesheetServiceNew {
 			// Handle document uploads if provided (EXISTING LOGIC - for backward compatibility)
 			// Old contract: filledDocument and finalDocument
 			if (newEmpDTO.getDocumentData()!=null) {
-				// TODO: Integrate with TimesheetDocumentService
 				
+				handleDocumentUploadsFromNewContract(newEmpDTO.getDocumentData(), documents, timesheetId,empTS);
 			}
 			
 			// Fetch complete updated timesheet using new structure
@@ -1012,7 +1016,7 @@ public class TimesheetServiceNew {
 			* For now, proceed with available documents
 			* TODO: Decide on validation strategy - strict match or allow partial
 			*/
-			timesheetDocumentService.handleDocumentUpload(null, timesheetId, documents, documentDataList);
+			timesheetDocumentService.handleDocumentUpload(empTS, timesheetId, documents, documentDataList);
 		}
 		
 		// Process each document data entry

@@ -32,6 +32,9 @@ public class LocationSessionDTO {
      * Maps to work_location_type_master.code
      * Required for creation
      */
+	private Long locationMappingId;
+    private String workLocationType;
+    
     private Integer workLocationTypeId;
 
     /**

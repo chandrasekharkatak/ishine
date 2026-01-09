@@ -30,6 +30,7 @@ import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDeleteRequestDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetStatusUpdateRequestDTO;
+import com.apmosys.employeeportal.service.TimesheetDocumentServiceNew;
 import com.apmosys.employeeportal.service.TimesheetServiceNew;
 import com.apmosys.employeeportal.service.helper.TimesheetEncryptionHelper;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -57,6 +58,9 @@ public class EmployeeTimesheetControllerNew {
 	
 	@Autowired
 	TimesheetEncryptionHelper timesheetEncryptionHelper;
+
+	@Autowired
+	TimesheetDocumentServiceNew timesheetDocumentServiceNew;
 	
 	/**
 	 * API 1.1: Create Timesheet (New Hierarchical Structure)
@@ -347,5 +351,30 @@ public class EmployeeTimesheetControllerNew {
 						"inline; filename=\"" + resource.getFilename() + "\"")
 				.body(resource);
 	}
+
+	@JobRoleAccess(featureIds = {15})
+	@PostMapping(value = "/bulkFinalDocumentUpload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ServiceResponse bulkFinalDocumentUpload(
+			@RequestPart("finalFile") MultipartFile file,
+			@RequestParam("fromDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
+			@RequestParam("toDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toDate,
+			@RequestParam("empId") Long empId) throws Exception{
+		
+		System.out.println("Received file: " + file.getOriginalFilename());
+		System.out.println("From Date: " + fromDate);
+		System.out.println("To Date: " + toDate);
+		
+		ServiceResponse reponse = new ServiceResponse();
+		reponse = timesheetDocumentServiceNew.replaceAllTemporaryFileWithFinalFile(file,fromDate,toDate,empId);
+		return reponse;
+	}
+
+	@JobRoleAccess(featureIds = {15})
+	@DeleteMapping(value = "/deleteBulkFinalDocument/{bulkApproverDocId}")
+	public ServiceResponse deleteBulkFinalDocument(@PathVariable Long bulkApproverDocId) {
+		ServiceResponse response = timesheetDocumentServiceNew.deleteBulkApprovedDocuments(bulkApproverDocId);
+		return response;
+	}
+
 }
 

@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.dto.TimesheetDTO_new;
 
+import com.apmosys.employeeportal.model.TimesheetDocumentDetailsNew;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -57,5 +59,15 @@ public class TimesheetDocumentDataDTO {
      * Required for creation
      */
     private String docType;
+
+    public TimesheetDocumentDataDTO(TimesheetDocumentDetailsNew doc) {
+        this.docId = doc.getDocId();
+        this.projectId = doc.getProjectId();
+        this.docName = doc.getDocName();
+        this.finalFlag = doc.getFinalFlag();
+        this.bulkApprovedDocId = doc.getBulkApprovedDocId();
+        this.uniqueIdentifier = doc.getDocName();
+        this.docType = doc.getFinalFlag() ? "Approved" : "Filled";
+    }
 }
 

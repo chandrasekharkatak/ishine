@@ -40,6 +40,9 @@ public class FinalDocumentNew {
     @Column(name = "doc_name")
     private String docName;
 
+    @Column(name = "project_id", nullable = false)
+    private Long projectId;
+
     @Column(name = "updated_by")
     private Long updatedBy;
 

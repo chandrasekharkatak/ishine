@@ -23,17 +23,20 @@ import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.ActivityResponseDTONew;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
+import com.apmosys.employeeportal.dto.DocumentResponseDTONew;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectEntryResponseDTONew;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
 import com.apmosys.employeeportal.dto.TimesheetResponseDTONew;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
+import com.apmosys.employeeportal.model.TimesheetDocumentDetailsNew;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
@@ -86,6 +89,9 @@ public class TimesheetQueryService {
     
     @Autowired
     private EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
+
+    @Autowired
+    private TimesheetDocumentServiceNew timesheetDocumentServiceNew;
 
     /**
      * Gets all timesheets by employee ID.
@@ -682,6 +688,9 @@ public class TimesheetQueryService {
 
     	Map<Long, EmployeeTimesheetDTO> timesheetMap = new LinkedHashMap<>();
 
+        // The timesheetIds of the timesheets document datas that are already fetched
+        List<Long> doneTimesheetIds = new ArrayList<>();
+
     	rows.forEach(row -> {
 
     	    Long timesheetId = ((Number) row[0]).longValue();
@@ -711,6 +720,7 @@ public class TimesheetQueryService {
     	            dto.setCreatedOn(((java.sql.Timestamp) row[9]).toLocalDateTime());
 
     	            dto.setLocationSessions(new ArrayList<>());
+                    dto.setDocumentData(new ArrayList<>());
     	            return dto;
     	        });
 
@@ -718,6 +728,8 @@ public class TimesheetQueryService {
     	    Long locationMappingId = row[10] != null
     	            ? ((Number) row[10]).longValue()
     	            : null;
+            
+            List<Long> projectIds = new ArrayList<>();
 
     	    if (locationMappingId == null) return;
 
@@ -754,6 +766,7 @@ public class TimesheetQueryService {
     	    if (row[15] == null) return;
 
     	    Integer projectId = ((Number) row[15]).intValue();
+            projectIds.add(projectId.longValue());
 
     	    ProjectTimesheetDTO project =
     	        location.getProjects()
@@ -782,11 +795,21 @@ public class TimesheetQueryService {
     	                    location.getProjects().add(p);
     	                    return p;
     	                });
-    	});
+
+                // ======================Documents======================
+                
+                if(!doneTimesheetIds.contains(timesheetId)){
+                    List<TimesheetDocumentDataDTO> timesheetDocs = timesheetDocumentServiceNew.getTimesheetDocumentDataByTimesheetId(timesheetId);
+                    doneTimesheetIds.add(timesheetId);
+                    ts.setDocumentData(timesheetDocs);
+                }
+
+            });
+
 
            	timesheetMap.values().forEach(timesheetDto -> {
 
-   	         if ("Pending".equals(timesheetDto.getStatus())) {
+   	         if (timesheetDto.getStatus() == 1) {
    	            setInactiveActivitiesNew(timesheetDto);
    	        }
         });
@@ -1076,4 +1099,3 @@ public ServiceResponse getAlreadyFilledTimesheetDatesByEmpId(Long empId,String d
 }
 
 }
-
