@@ -126,7 +126,7 @@ public class DateConversionUtil {
     public static LocalDateTime stringToLocalDateTime(String dateTimeStr, String pattern) {
 
         if (dateTimeStr == null || dateTimeStr.trim().isEmpty()) {
-            return null;
+        	throw new IllegalArgumentException("Invalid date format.");
         }
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
@@ -138,7 +138,7 @@ public class DateConversionUtil {
     public static String localDateTimeToString(LocalDateTime dateTime, String pattern) {
 
         if (dateTime == null) {
-            return null;
+        	throw new IllegalArgumentException("Invalid date format.");
         }
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);

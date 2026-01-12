@@ -1,8 +1,6 @@
 package com.apmosys.employeeportal.service;
 
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,7 +8,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
@@ -20,29 +17,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
-import com.apmosys.employeeportal.dto.ActivityResponseDTONew;
-import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
-import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
-import com.apmosys.employeeportal.dto.DocumentResponseDTONew;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
-import com.apmosys.employeeportal.dto.ProjectEntryResponseDTONew;
-import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
-import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
-import com.apmosys.employeeportal.dto.TimesheetResponseDTONew;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
-import com.apmosys.employeeportal.model.TimesheetDocumentDetailsNew;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
+import com.apmosys.employeeportal.utility.DateConversionUtil;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +55,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class TimesheetQueryService {
+	
+    private final String pattern="yyyy-MM-dd HH:mm:ss";
+
 
     @Autowired
     private TimesheetsRepository timesheetsRepository;
@@ -708,13 +704,13 @@ public class TimesheetQueryService {
     	            dto.setTotalWorkingMinutes(
     	                    row[5] != null ? ((Number) row[5]).intValue() : null);
 
-    	            dto.setWorkCheckIn(row[6] != null
+    	            dto.setWorkCheckIn(DateConversionUtil.localDateTimeToString(row[6] != null
     	                    ? ((java.sql.Timestamp) row[6]).toLocalDateTime()
-    	                    : null);
+    	                    : null,pattern));
 
-    	            dto.setWorkCheckOut(row[7] != null
+    	            dto.setWorkCheckOut(DateConversionUtil.localDateTimeToString(row[7] != null
     	                    ? ((java.sql.Timestamp) row[7]).toLocalDateTime()
-    	                    : null);
+    	                    : null,pattern));
 
     	            dto.setIsNightShift(row[8] != null && ((Boolean)row[8]));
     	            dto.setCreatedOn(((java.sql.Timestamp) row[9]).toLocalDateTime());
