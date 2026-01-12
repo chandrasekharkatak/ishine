@@ -108,11 +108,12 @@ export class TimesheetFormComponent implements OnInit {
     previewUrl: SafeResourceUrl;
     rawObjectUrl: string;
     fileError: string;
-    fileType: 'pdf' | 'image';
+    fileType: '' | 'pdf' | 'image' | null;
     fileName: string;
     fileSize: number;
   }[] = [];
   @Input() autoFillTimesheet: boolean = false;
+  activeRawObjectUrl: any;
 
   constructor(private teamViewService: TeamViewService,
     private timesheetService: TimesheetService,
@@ -299,25 +300,25 @@ export class TimesheetFormComponent implements OnInit {
     this.timesheetLocations.forEach(loc => {
       loc.projects.forEach(proj => {
         if (proj === project) {
-        const newActivity= this.createActivity();
+          const newActivity = this.createActivity();
           newActivity.clientTeamList = Array.from(
             new Map(
               this.allProjectsList
                 .filter((p: any) => p.clientLocationId === proj.clientLocationId && p.clientId === proj.clientId && p.projectId === proj.projectId)
                 .map(p => [
-                      p.teamId, 
-                      {
-                        teamId: p.teamId,
-                        teamName: p.teamName
-                      }
-                    ])
-                ).values()
+                  p.teamId,
+                  {
+                    teamId: p.teamId,
+                    teamName: p.teamName
+                  }
+                ])
+            ).values()
           );
           proj.activities.push(newActivity);
         }
-          console.log('Client Location selected:', proj);
+        console.log('Client Location selected:', proj);
       }
-    );
+      );
     });
   }
 
@@ -597,7 +598,7 @@ export class TimesheetFormComponent implements OnInit {
             this.allProjectsList
               .filter(p => p.clientId === proj.clientId && p.projectId === proj.projectId)
               .map(p => [
-                p.clientLocationId, 
+                p.clientLocationId,
                 {
                   clientLocationId: p.clientLocationId,
                   clientLocation: p.clientLocation
@@ -627,18 +628,18 @@ export class TimesheetFormComponent implements OnInit {
               this.allProjectsList
                 .filter((p: any) => p.clientLocationId === proj.clientLocationId && p.clientId === proj.clientId && p.projectId === proj.projectId)
                 .map(p => [
-                      p.teamId, 
-                      {
-                        teamId: p.teamId,
-                        teamName: p.teamName
-                      }
-                    ])
-                ).values()
+                  p.teamId,
+                  {
+                    teamId: p.teamId,
+                    teamName: p.teamName
+                  }
+                ])
+            ).values()
           );
           console.log('Client Location selected:', proj);
         });
       }
-    );
+      );
     });
   }
 
@@ -707,13 +708,13 @@ export class TimesheetFormComponent implements OnInit {
                   x.departmentList?.map(d => +d).includes(teamMember.departmentId)
                 );
               }
-            } else if(this.timesheetAppliedFor == "self"){
+            } else if (this.timesheetAppliedFor == "self") {
               allActivityList = allActivityList.filter(x =>
                 x.departmentList?.map(d => +d).includes(this.currentUser?.departmentId)
               );
 
             }
-          console.log("All activities for project after department filter", allActivityList);
+            console.log("All activities for project after department filter", allActivityList);
 
           }
 
@@ -1045,97 +1046,183 @@ export class TimesheetFormComponent implements OnInit {
   /**
    * Handle file selection for document upload
    */
-  onFileSelected(event: any, docType: 'Filled' | 'Approved', projectId: number): void {
-    const file: File = event.target.files[0];
-    if (!file) return;
+  onFileSelected(
+  event: any,
+  docType: 'Filled' | 'Approved',
+  projectId: number
+): void {
 
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-    const maxSize = 300 * 1024; // 300KB
+  const file: File = event.target.files?.[0];
+  if (!file) return;
 
-    if (!allowedTypes.includes(file.type)) {
-      if (docType === 'Filled') {
-        this.fileError1 = 'Only PDF, JPG, JPEG, PNG files allowed.';
-        this.uploadFileList.push({ projectId: projectId, docType: 'Filled', file: null, previewUrl: null, rawObjectUrl: null, fileError: this.fileError1, fileType: null, fileName: null, fileSize: null });
-        this.openAlertMod(this.alertTemplate, this.fileError1);
-      } else {
-        this.fileError2 = 'Only PDF, JPG, JPEG, PNG files allowed.';
-        this.uploadFileList.push({ projectId: projectId, docType: 'Approved', file: null, previewUrl: null, rawObjectUrl: null, fileError: this.fileError2, fileType: null, fileName: null, fileSize: null });
-        this.openAlertMod(this.alertTemplate, this.fileError2);
-      }
-      // Reset file input
-      event.target.value = '';
-      return;
-    }
+  const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+  const maxSize = 300 * 1024; // 300KB
 
-    if (file.size > maxSize) {
-      if (docType === 'Filled') {
-        this.fileError1 = 'File size must be 300KB or less.';
-        this.uploadFileList.push({ projectId: projectId, docType: 'Filled', file: null, previewUrl: null, rawObjectUrl: null, fileError: this.fileError1, fileType: null, fileName: null, fileSize: null });
-        this.openAlertMod(this.alertTemplate, this.fileError1);
-        this.selectedFile = null;
-        this.fileName1 = null;
-        this.previewUrl1 = null;
-        if (this.rawObjectUrl1) {
-          URL.revokeObjectURL(this.rawObjectUrl1);
-        }
-        this.rawObjectUrl1 = null;
-      } else {
-        this.fileError2 = 'File size must be 300KB or less.';
-        this.uploadFileList.push({ projectId: projectId, docType: 'Approved', file: null, previewUrl: null, rawObjectUrl: null, fileError: this.fileError2, fileType: null, fileName: null, fileSize: null });
-        this.openAlertMod(this.alertTemplate, this.fileError2);
-        this.selectedFile2 = null;
-        this.fileName2 = null;
-        this.previewUrl2 = null;
-        if (this.rawObjectUrl2) {
-          URL.revokeObjectURL(this.rawObjectUrl2);
-        }
-        this.rawObjectUrl2 = null;
-      }
-      // Reset file input
-      event.target.value = '';
-      return;
-    }
-
-    // Clean up previous object URL if exists
-    if (docType === 'Filled' && this.rawObjectUrl1) {
-      URL.revokeObjectURL(this.rawObjectUrl1);
-    }
-    if (docType === 'Approved' && this.rawObjectUrl2) {
-      URL.revokeObjectURL(this.rawObjectUrl2);
-    }
-
-    // Create object URL and sanitize it
-    const objectUrl = URL.createObjectURL(file);
-    const previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
-
-    if (docType === 'Filled') {
-      // this.selectedFile = file;
-      // this.fileName1 = file.name;
-      // this.previewUrl1 = previewUrl;
-      // this.rawObjectUrl1 = objectUrl;
-      // this.fileError1 = '';
-      this.uploadFileList.push({ projectId: projectId, docType: 'Filled', file: file, previewUrl: previewUrl, rawObjectUrl: objectUrl, fileError: null, fileType: null, fileName: file.name, fileSize: file.size });
-    } else {
-      this.selectedFile2 = file;
-      // this.fileName2 = file.name;
-      // this.previewUrl2 = previewUrl;
-      // this.rawObjectUrl2 = objectUrl;
-      // this.fileError2 = '';
-      this.uploadFileList.push({ projectId: projectId, docType: 'Approved', file: file, previewUrl: previewUrl, rawObjectUrl: objectUrl, fileError: null, fileType: null, fileName: file.name, fileSize: file.size });
-    }
+  // ❌ Invalid type
+  if (!allowedTypes.includes(file.type)) {
+    this.handleFileError(
+      projectId,
+      docType,
+      'Only PDF, JPG, JPEG, PNG files allowed.'
+    );
+    event.target.value = '';
+    return;
   }
 
+  // ❌ Size check
+  if (file.size > maxSize) {
+    this.handleFileError(
+      projectId,
+      docType,
+      'File size must be 300KB or less.'
+    );
+    event.target.value = '';
+    return;
+  }
+
+  // ♻️ Cleanup old object URL
+  const previous = this.uploadFileList.find(
+    f => f.projectId === projectId && f.docType === docType
+  );
+
+  if (previous?.rawObjectUrl) {
+    URL.revokeObjectURL(previous.rawObjectUrl);
+  }
+
+  // ✅ Detect file type ONCE
+  const fileType: 'pdf' | 'image' =
+    file.type === 'application/pdf' ? 'pdf' : 'image';
+
+  // ✅ Create object URL
+  const objectUrl = URL.createObjectURL(file);
+
+  // ✅ IMPORTANT: Use correct sanitizer
+  const previewUrl =
+    fileType === 'pdf'
+      ? this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl)
+      : this.sanitizer.bypassSecurityTrustUrl(objectUrl);
+
+  // ✅ Update entry
+  this.updateUploadFile(projectId, docType, {
+    file,
+    previewUrl,
+    rawObjectUrl: objectUrl,
+    fileType,
+    fileName: file.name,
+    fileSize: file.size,
+    fileError: null
+  });
+}
+
+
+private handleFileError(
+  projectId: number,
+  docType: 'Filled' | 'Approved',
+  message: string
+): void {
+  this.updateUploadFile(projectId, docType, {
+    file: null,
+    previewUrl: null,
+    rawObjectUrl: null,
+    fileType: null,
+    fileName: null,
+    fileSize: null,
+    fileError: message
+  });
+
+  this.openAlertMod(this.alertTemplate, message);
+}
+
+
+ updateUploadFile(
+  projectId: number,
+  docType: 'Filled' | 'Approved',
+  data: Partial<{
+    file: File | null;
+    previewUrl: SafeResourceUrl | null;
+    rawObjectUrl: string | null;
+    fileName: string | null;
+    fileSize: number | null;
+    fileError: string | null;
+    fileType: 'pdf' | 'image' | null;
+  }>
+): void {
+
+  const index = this.uploadFileList.findIndex(
+    f => f.projectId === projectId && f.docType === docType
+  );
+
+  if (index === -1) return;
+
+  this.uploadFileList[index] = {
+    ...this.uploadFileList[index],
+    ...data
+  };
+}
+
+
+
+ imageZoom = 1;
+
+zoomIn(): void {
+  this.imageZoom = Math.min(this.imageZoom + 0.2, 3);
+}
+
+zoomOut(): void {
+  this.imageZoom = Math.max(this.imageZoom - 0.2, 0.5);
+}
+
+resetZoom(): void {
+  this.imageZoom = 1;
+}
+
+downloadImage(fileName = 'image-preview'): void {
+  // Ensure we have a raw object URL
+  if (!this.activeRawObjectUrl || this.activeFileType !== 'image') return;
+
+  const link = document.createElement('a');
+  link.href = this.activeRawObjectUrl; // use the raw blob URL
+  link.download = fileName;
+  link.click();
+}
+
+
+              
   /**
    * Open preview modal for uploaded file
    */
-  openPreviewModalForTwo(docType: 'Filled' | 'Approved'): void {
-    this.activePreviewUrl = docType === 'Filled' ? this.previewUrl1 : this.previewUrl2;
-    this.activeFileType = docType === 'Filled'
-      ? (this.selectedFile?.type === 'application/pdf' ? 'pdf' : 'image')
-      : (this.selectedFile2?.type === 'application/pdf' ? 'pdf' : 'image');
+  // openPreviewModalForTwo(file: any): void {
+  //   console.log("file in preview", file);
+  //   this.activePreviewUrl = null;
+  //   this.activeFileType = null;
+  //   this.activePreviewUrl =  file.previewUrl;
+  //   this.activeFileType = file?.type === 'application/pdf' ? 'pdf' : 'image';
 
-    this.modalRef = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-lg' });
+  //   this.modalRef = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-lg' });
+  // }
+
+ openPreviewModalForTwo(
+  docType: 'Filled' | 'Approved',
+  file: any
+): void {
+
+  console.log("file in preview", file);
+  if (!file?.previewUrl || !file?.fileType) return;
+
+  this.activePreviewUrl = file.previewUrl;
+  this.activeFileType = file.fileType;
+  this.activeRawObjectUrl = file.rawObjectUrl;
+  if (this.activeFileType === 'image') {
+    this.imageZoom = 1;
   }
+
+  this.modalRef = this.modalService.open(
+    this.previewModal,
+    { modalDialogClass: 'modal-lg' }
+  );
+}
+
+
 
   /**
    * Show preview for base64 data (for existing documents)
@@ -1278,9 +1365,9 @@ export class TimesheetFormComponent implements OnInit {
   //   let dataList : Map<number, ProjectEntry> = new Map<number, ProjectEntry>();
 
   onShadowTimesheetChange(project: ProjectEntry) {
-    if(this.timesheetAppliedFor == 'self'){
-    this.getEmployeeListByProjectId(project, this.currentUser.empId);
-    }else{
+    if (this.timesheetAppliedFor == 'self') {
+      this.getEmployeeListByProjectId(project, this.currentUser.empId);
+    } else {
       this.openAlertMod(this.alertTemplate, "Shadow timesheet is only available when timesheet is filled for self.");
       project.isShadowTimesheet = false;
       return;
@@ -1320,19 +1407,19 @@ export class TimesheetFormComponent implements OnInit {
         let shadowEmpList = response.serviceResponse;
         console.log("Shadow emp list", shadowEmpList);
         this.timesheetLocations.forEach(location => {
-      location.projects.forEach(proj => {
-        if (proj === project) {
-          if (!proj.isShadowTimesheet) {
-            proj.shadowEmpId = null;
-            proj.shadowForList = [];
-          }
-          else if(proj.isShadowTimesheet){
-            proj.shadowEmpId = null;
-            proj.shadowForList = shadowEmpList;
-          }
-        }
+          location.projects.forEach(proj => {
+            if (proj === project) {
+              if (!proj.isShadowTimesheet) {
+                proj.shadowEmpId = null;
+                proj.shadowForList = [];
+              }
+              else if (proj.isShadowTimesheet) {
+                proj.shadowEmpId = null;
+                proj.shadowForList = shadowEmpList;
+              }
+            }
+          });
         });
-      });
       } else {
         console.error(response.serviceResponse)
       }
