@@ -53,5 +53,9 @@ public class ProjectTimesheetStatusNew {
 	
 	@Column(name = "updated_on")
 	LocalDateTime updatedOn;
+	
+	@Column(name="description")
+	private String description;
+
 
 }
