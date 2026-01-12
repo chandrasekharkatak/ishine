@@ -39,7 +39,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     'Values 1',
     'Values 2'
   ];
-  //flags 
+  //flags
   isLoginForm: boolean = true;
   isOtpForm: boolean = false;
   isForgotPassOtpForm: boolean = false;
@@ -66,7 +66,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   featureList: any[] = [];
   allMappedSubfeatures: any[] = [];
 
-  //modal 
+  //modal
   alertMessage: any;
   modalRef:NgbModalRef;
   enableAppreciation: enableAppreciation = new enableAppreciation();
@@ -231,7 +231,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (this.userName && !this.userName.includes('@')) {
       this.userName += '@apmosys.com';
     }
-    
+
     if (!this.validationService.validateNullUndefinedEmptyString(this.userName)) {
       this.isError = true;
       this.errorMsg = 'Please enter username !!';
@@ -428,7 +428,7 @@ this.user.otp = encryptedOtp;
 
 
   timeSession() {
-    // Dynamic Subfeature Flags 
+    // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -652,7 +652,7 @@ this.user.otp = encryptedOtp;
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
 

@@ -2677,7 +2677,7 @@ public class EmployeeService {
 						 }
 						 
 						// create logic for remove resource from team and projects
-						List<EmployeeTeamMap> findAllActiveTeams = employeeTeamMapRepository.findByEmpId(employeedto.getEmpId());
+						List<EmployeeTeamMap> findAllActiveTeams = employeeTeamMapRepository.findByEmpIdAndActiveStatus(employeedto.getEmpId());
 						if(findAllActiveTeams != null) {
 							
 							findAllActiveTeams.forEach(obj ->{

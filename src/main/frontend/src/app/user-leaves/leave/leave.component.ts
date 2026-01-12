@@ -44,7 +44,7 @@ export class LeaveComponent implements OnInit {
   sortColumn: any;
   sortColumnType: any;
 
-  //flags 
+  //flags
   isCreation: boolean = false;
   isUpdation: boolean = false;
   isForm: boolean = false;
@@ -64,7 +64,7 @@ export class LeaveComponent implements OnInit {
 
   isCompOffLeave: boolean = false;
 
-  //modal 
+  //modal
   alertMessage: any;
   modalRef:NgbModalRef;
 
@@ -85,7 +85,7 @@ export class LeaveComponent implements OnInit {
   leaveBalanceList: any[] = [];
   revokeLeaveApplicationList: any[] = [];
 
-  //excel	
+  //excel
   excelName = '';
   elementName = '';
   leaveApplicationListDataForExcel: any[] = [];
@@ -177,7 +177,7 @@ export class LeaveComponent implements OnInit {
     this.leaveObj.toDateDayType = 0;
     this.leaveObj.leaveAppliedFor = "self"
 
-    // Dynamic Subfeature Flags 
+    // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -480,13 +480,13 @@ export class LeaveComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   openDeleteLeave(template: TemplateRef<any>, leaveHistory: any) {
     this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.leaveObj = leaveHistory;
-    //console.log(this.leaveObj);	
+    //console.log(this.leaveObj);
   }
 
   openRevokeApprovedLeaveApplication(template: TemplateRef<any>, leaveHistory: any) {
@@ -632,7 +632,7 @@ export class LeaveComponent implements OnInit {
   async checkPolicy(leaveObj: Leave, leavePolicyObj: Leave, template: TemplateRef<any>) {
     let flag = true;
 
-    // One Time Leave Application Count 
+    // One Time Leave Application Count
     if (leavePolicyObj.oneTimeLeave == "Yes") {
       if (leavePolicyObj.leaveTypeCode != "ML") {
         if (leavePolicyObj.oneTimeLeaveMinCount > leaveObj.noOfDays) {
@@ -649,7 +649,7 @@ export class LeaveComponent implements OnInit {
 
     }
 
-    // Leave Probation Period 
+    // Leave Probation Period
     if (leavePolicyObj.probation == "Yes") {
       let date = this.leaveObj.fromDate;
       let dateOfJoining = new Date();;
@@ -668,7 +668,7 @@ export class LeaveComponent implements OnInit {
       }
     }
 
-    // Leave Locking Period 
+    // Leave Locking Period
     if (leavePolicyObj.lockingPeriod == "Yes") {
       let currentYear = new Date().getFullYear();
       const DAY_IN_MS = 24 * 60 * 60 * 1000;
@@ -689,7 +689,7 @@ export class LeaveComponent implements OnInit {
   async checkDateInRange(startDate: Date, endDate: Date, checkDate: Date, leaveObj: Leave, leavePolicyObj: Leave, template: TemplateRef<any>) {
     let flag = true;
     if ((checkDate <= endDate && checkDate >= startDate)) {
-      //Check Leave Applications Count 
+      //Check Leave Applications Count
       let approvedLeaveApplications = [];
       let leaveApplicationCount = 0;
       let totalAppliedLeaves = 0;
@@ -734,7 +734,7 @@ export class LeaveComponent implements OnInit {
     this.checkDateInRange(startDate, endDate, checkDate, leaveObj, leavePolicyObj, template);
   }
 
-  // Leave Application 
+  // Leave Application
   fromDateFilter = (d: Date) => {
     const dateFormat = 'YYYY-MM-DD';
     const currentDate = new Date();
@@ -934,12 +934,12 @@ export class LeaveComponent implements OnInit {
         //console.log(" Maternity leave apply :: no of days test ::  ",this.leaveObj.noOfDays);
       } else {
         this.isWeekOffsExcluded = false;
-        // get Holiday Count 	
+        // get Holiday Count
         let getHolidayCountObj = new Leave();
         getHolidayCountObj.fromDate = moment(this.leaveObj.fromDate).format(dateFormat)
         getHolidayCountObj.toDate = moment(this.leaveObj.toDate).format(dateFormat)
 
-        //const holidayWeekOffCount = 0;	
+        //const holidayWeekOffCount = 0;
         this.leaveObj.state = this.currentUser.workLocation;
         let response: any = await this.leaveService.getHolidayWeekOffSize(this.leaveObj).toPromise();
         if (response.serviceStatus == "Success") {
@@ -947,7 +947,7 @@ export class LeaveComponent implements OnInit {
           //console.log(" holidayWeekOffList  Anurag  ::  ",this.holidayWeekOffList);
           this.holidayWeekOffCount = this.holidayWeekOffList.length;
         } else {
-          //console.log(response.serviceResponse);	
+          //console.log(response.serviceResponse);
           this.holidayWeekOffCount = 0;
         }
 
@@ -982,18 +982,18 @@ export class LeaveComponent implements OnInit {
         this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType);
       } else {
         this.isWeekOffsExcluded = false;
-        // get Holiday Count 	
+        // get Holiday Count
         let getHolidayCountObj = new Leave();
         getHolidayCountObj.fromDate = moment(this.leaveObj.fromDate).format(dateFormat)
         getHolidayCountObj.toDate = moment(this.leaveObj.toDate).format(dateFormat)
 
-        //const holidayWeekOffCount = 0;	
+        //const holidayWeekOffCount = 0;
         let response: any = await this.leaveService.getHolidayWeekOffSize(this.leaveObj).toPromise();
         if (response.serviceStatus == "Success") {
           this.holidayWeekOffList = response.serviceResponse;
           this.holidayWeekOffCount = this.holidayWeekOffList.length;
         } else {
-          //console.log(response.serviceResponse);	
+          //console.log(response.serviceResponse);
           this.holidayWeekOffCount = 0;
         }
 
@@ -1011,17 +1011,17 @@ export class LeaveComponent implements OnInit {
     const dateFormat = 'YYYY-MM-DD';
     this.leaveObj.fromDate = moment(this.leaveObj.fromDate).format(dateFormat)
     this.leaveObj.toDate = moment(this.leaveObj.toDate).format(dateFormat)
-    //console.log(this.leaveObj.fromDate, this.leaveObj.toDate,  "this.leaveObj.fromDate, this.leaveObj.toDate");	
+    //console.log(this.leaveObj.fromDate, this.leaveObj.toDate,  "this.leaveObj.fromDate, this.leaveObj.toDate");
     this.leaveService.getHolidayWeekOffSize(this.leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
 
         this.holidayWeekOffList = response.serviceResponse;
         this.holidayWeekOffCount = this.holidayWeekOffList.length;
-        //console.log(this.holidayWeekOffCount, "holidayWeekOffCount");        	
-        //console.log(this.holidayWeekOffList , ": this.holidayWeekOffSize ");	
+        //console.log(this.holidayWeekOffCount, "holidayWeekOffCount");
+        //console.log(this.holidayWeekOffList , ": this.holidayWeekOffSize ");
       } else {
-        // this.openAlertMod(template, response.serviceResponse);		
-        //console.log(response.serviceResponse);	
+        // this.openAlertMod(template, response.serviceResponse);
+        //console.log(response.serviceResponse);
 
       }
     });
@@ -1030,6 +1030,32 @@ export class LeaveComponent implements OnInit {
   onApplyLeave(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
     this.leaveObj.reason = this.leaveObj.reason?.trim();
+    
+    console.log("Leave code",this.leaveObj.leaveTypeCode);
+
+    // Restrict CL for next year
+if (this.leaveObj.leaveTypeCode === 'CL') {
+
+  const today = moment(); // current date
+  const currentYear = today.year();
+
+  const fromDate = moment(this.leaveObj.fromDate);
+  const toDate = moment(this.leaveObj.toDate);
+ 
+  if (
+    fromDate.year() > currentYear ||
+    toDate.year() > currentYear ||
+    fromDate.year() !== toDate.year()
+  ) {
+    this.openAlertMod(
+      template,
+      'Casual Leave (CL) cannot be applied for next year or across year boundaries.'
+    );
+    return;
+  }
+}
+
+
     let inputValidated: boolean = this.validateLeavetObj(this.leaveObj, template)
     if (!inputValidated) return;
 
@@ -1040,9 +1066,9 @@ export class LeaveComponent implements OnInit {
         this.leaveObj.finalApprovalLevel = 2;
       } else if (this.leaveObj.noOfDays >= this.level2MinNoOfDays) {
         if (!this.level2ApprovalTo || this.level2ApprovalTo === "") {
-          this.leaveObj.finalApprovalLevel = 2; 
+          this.leaveObj.finalApprovalLevel = 2;
         } else {
-          this.leaveObj.finalApprovalLevel = 3; 
+          this.leaveObj.finalApprovalLevel = 3;
         }
       } else {
         this.leaveObj.finalApprovalLevel = 1;
@@ -1060,7 +1086,7 @@ export class LeaveComponent implements OnInit {
           this.leaveObj.approverName = this.currentUser.managerName;
         }
 
-        // Level 2 
+        // Level 2
         if (this.leaveObj.finalApprovalLevel == 2 || this.leaveObj.finalApprovalLevel == 3) {
           if (this.leaveObj.empId == this.currentUser.hodId || this.level1ApprovalTo == "Reporting Manager") {
             if (this.currentUser.reportingManagerId != null && this.currentUser.approvalsTo == "Reporting Manager") {
@@ -1228,9 +1254,9 @@ export class LeaveComponent implements OnInit {
       this.leaveObj.finalApprovalLevel = 2;
     } else if (this.leaveObj.noOfDays >= this.level2MinNoOfDays) {
        if (!this.level2ApprovalTo || this.level2ApprovalTo === "") {
-          this.leaveObj.finalApprovalLevel = 2; 
+          this.leaveObj.finalApprovalLevel = 2;
         } else {
-          this.leaveObj.finalApprovalLevel = 3; 
+          this.leaveObj.finalApprovalLevel = 3;
         }
     } else {
       this.leaveObj.finalApprovalLevel = 1;
@@ -1248,7 +1274,7 @@ export class LeaveComponent implements OnInit {
         this.leaveObj.approverName = this.currentUser.managerName;
       }
 
-      // Level 2 
+      // Level 2
       if (this.leaveObj.finalApprovalLevel == 2 || this.leaveObj.finalApprovalLevel == 3) {
         if (this.leaveObj.empId == this.currentUser.hodId) {
           if (this.currentUser.reportingManagerId != null && this.currentUser.approvalsTo == "Reporting Manager") {
@@ -1405,7 +1431,7 @@ export class LeaveComponent implements OnInit {
     //console.log(" this.leaveObj ",this.leaveObj)
     this.leaveService.deletePendingLeave(this.leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        //console.log("After Delete this.leaveObj : ", this.leaveObj);	
+        //console.log("After Delete this.leaveObj : ", this.leaveObj);
         this.openAlertMod(template, response.serviceResponse);
         if (this.isSelfLeaveHistory) {
           this.showSelfLeaveHistoryTable();
@@ -1484,7 +1510,7 @@ export class LeaveComponent implements OnInit {
           leave.noOfDaysDisplay = (leave.noOfDays) ? leave.noOfDays + " day(s)" : null;
 
 
-          //console.log(" leave in foreach   ",leave); 
+          //console.log(" leave in foreach   ",leave);
           //console.log("  this.leaveObj.leaveTypeMasterId   ",this.leaveObj.leaveTypeMasterId);
         });
 
@@ -1647,7 +1673,7 @@ export class LeaveComponent implements OnInit {
         //     state: holiday.state
         // }));
 
-        //console.log("holidayDates : ", this.holidayDates); 
+        //console.log("holidayDates : ", this.holidayDates);
         //console.log("holidayList : ", this.holidayList);
       } else {
         console.error(response.serviceResponse);
@@ -1815,15 +1841,15 @@ export class LeaveComponent implements OnInit {
   }
 
   getAllLeaveBalanceByEmpId(leaveObj: Leave) {
-    //console.log("employyid:  ", leaveObj.empId )	
-    //console.log("leaveTypeMasterId:  ", leaveObj.leaveTypeMasterId )	
+    //console.log("employyid:  ", leaveObj.empId )
+    //console.log("leaveTypeMasterId:  ", leaveObj.leaveTypeMasterId )
     this.leaveService.getAllLeaveBalanceByEmpId(this.leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        //console.log("Leave Balance Response : ", response)   	
+        //console.log("Leave Balance Response : ", response)
         this.leaveBalance = response.serviceResponse;
         this.leaveDetails = this.leaveBalance.map(user => `${user.leaveType} : ${user.balance}`);
 
-        //console.log(this.leaveDetails,   "     : leaveDetails");	
+        //console.log(this.leaveDetails,   "     : leaveDetails");
 
       } else {
         console.error(response.serviceResponse)
@@ -1831,7 +1857,7 @@ export class LeaveComponent implements OnInit {
     });
   }
 
-  // CompOff Details 
+  // CompOff Details
   getAvailableCompOffDetails(leaveObj: Leave, template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
 
@@ -1933,10 +1959,10 @@ export class LeaveComponent implements OnInit {
       this.excelName = 'MyLeaveHistory.xlsx';
     }
 
-    // if(this.isLeaveLogTable == true){    
-    //   this.elementName = 'log-table';    
-    //   this.excelName = 'MyLeaveLogs.xlsx';    
-    // }    
+    // if(this.isLeaveLogTable == true){
+    //   this.elementName = 'log-table';
+    //   this.excelName = 'MyLeaveLogs.xlsx';
+    // }
 
     if (this.isSelfLeaveRevokeApplication == true) {
       this.elementName = 'revoke-history-table';
@@ -1985,7 +2011,7 @@ export class LeaveComponent implements OnInit {
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
   }
 
-  //pagination 	
+  //pagination
   page = 1;
   handlePageChange(event) {
     this.page = event;

@@ -1,0 +1,46 @@
+<div class="info-button-wrapper">
+    <!-- Applied dynamic sizing and conditional shine classes -->
+    <button class="info-btn" [ngClass]="{ 'is-shining': shouldShine }" [ngStyle]="{ 
+      'background-color': iconBgColor,
+      'width.px': size,
+      'height.px': size
+    }" type="button" aria-label="Information">
+        <div class="spotlight" *ngIf="shouldShine"></div>
+        <span class="info-icon" [ngStyle]="{ 'font-size.px': size * 0.7 }">i</span>
+    </button>
+
+    <div class="tooltip-popup" [ngStyle]="{ 'background-color': bgColor }">
+        <div class="tooltip-arrow" [ngStyle]="{ 'border-top-color': bgColor }"></div>
+        <!-- <span class="sparkle sparkle-1">💭</span> 
+        <span class="sparkle sparkle-2">✨</span>
+        <span class="sparkle sparkle-3">🌀</span> -->
+         <span class="sparkle sparkle-1">✨</span>
+        <span class="sparkle sparkle-2">✨</span>
+        <span class="sparkle sparkle-3">✨</span> 
+
+        <div class="shimmer-overlay"></div>
+        <div class="glow-ring"></div>
+          <ng-container *ngIf="isList; else paraContent">
+          <ul class="tooltip-list">
+            <li *ngFor="let item of listItems; let i = index" 
+                [ngStyle]="{'--bullet-color': getPastelColor(i)}">
+              {{ item }}
+            </li>
+          </ul>
+        </ng-container>
+        <ng-template #paraContent>
+          <p style="margin: 0; line-height: 1.4; position: relative; z-index: 1;">{{ content }}</p>
+        </ng-template>
+
+      
+         <div *ngIf="pdfPath" style="height: 1px; background: rgba(255,255,255,0.1); margin: 12px 0 0 0;"></div>
+        <div *ngIf="pdfPath" class="pdf-slider" (mouseenter)="isPdfHovered = true"
+     (mouseleave)="isPdfHovered = false" (click)="openPdf()">
+            <span class="slider-text">{{ sliderText }}</span>
+            <span class="slider-arrow">➜</span>
+        </div>
+
+    </div>
+</div>
+
+

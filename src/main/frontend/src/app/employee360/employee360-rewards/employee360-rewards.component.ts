@@ -102,8 +102,8 @@ export class Employee360RewardsComponent implements OnInit {
 
     // }
 
-   
-    
+
+
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
     this.breadcrumbService.currentBreadcrumb.subscribe(x => this.currentBreadcrumbList = x);
 
@@ -114,7 +114,7 @@ export class Employee360RewardsComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-   
+
     let findbreadcrumbObject = this.currentBreadcrumbList.findIndex(x => x.title == "Rewards");
     if (findbreadcrumbObject >= 0) {
       this.currentBreadcrumbList.splice(findbreadcrumbObject + 1);
@@ -155,17 +155,17 @@ export class Employee360RewardsComponent implements OnInit {
     for (let i = currentYear; i >= currentYear - 10; i--) {
       this.availableYears.push(i);
     }
-   
+
   }
   createReward(template: TemplateRef<any>){
-    
+
     if(this.isrewardVisible){
       this.isrewardVisible=false;
       this.btnstring="create new";
     }else{
       this.isrewardVisible=true;
-      
-     
+
+
       this.btnstring="close";
     }
 
@@ -174,7 +174,7 @@ export class Employee360RewardsComponent implements OnInit {
 
   }
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   getEmployeeRewardsDetails() {
@@ -189,7 +189,7 @@ export class Employee360RewardsComponent implements OnInit {
         if (response.serviceStatus == 'Success') {
           this.rewardList = response.serviceResponse;
           this.rewardList.forEach(reward => {
-            reward.emp360nameempid =reward.nameId; 
+            reward.emp360nameempid =reward.nameId;
             reward.emp360 = reward.createdBY;
             if (reward.ofMonthYear) {
               let [year, month] = reward.ofMonthYear.split("-");
@@ -333,8 +333,8 @@ export class Employee360RewardsComponent implements OnInit {
     console.log('yessss', this.sumbitRewards);
   }
 
-  
-  
+
+
 
   onYearChange(event: Event): void {
     this.isTeamTableVisible = false;
@@ -463,7 +463,7 @@ export class Employee360RewardsComponent implements OnInit {
     //           this.rewardList = response.serviceResponse;
     //           this.rewardList.forEach(reward => {
     //             let matchingnameempId = this.allEmployeeList360.find(emp => emp.empId === reward.nameId);
-    //             reward.emp360nameempid = matchingnameempId ? matchingnameempId : {}; 
+    //             reward.emp360nameempid = matchingnameempId ? matchingnameempId : {};
     //             let matchingEmployee = this.allEmployeeList360.find(emp => emp.empId === reward.createdBY);
     //             console.log('matches++',matchingEmployee);
     //             reward.emp360 = matchingEmployee ? matchingEmployee : {};
@@ -561,8 +561,8 @@ export class Employee360RewardsComponent implements OnInit {
   //   // Populate sub-dropdown options dynamically
   //   if (categoryId === 1) { // Assuming 1 corresponds to "Monthly"
   //       this.subDropdownOptions = [
-  //           'January', 'February', 'March', 'April', 
-  //           'May', 'June', 'July', 'August', 
+  //           'January', 'February', 'March', 'April',
+  //           'May', 'June', 'July', 'August',
   //           'September', 'October', 'November', 'December'
   //       ];
   //   } else if (categoryId === 2) { // Assuming 2 corresponds to "Half-Yearly"

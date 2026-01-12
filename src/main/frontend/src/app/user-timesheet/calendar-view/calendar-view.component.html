@@ -84,7 +84,7 @@
               'calendar-holiday': dateObj.isHoliday
             }">
                 <div class="day-number">{{dateObj.day}}</div>
-                <i class="fa fa-eye eye-icon" *ngIf="dateObj.showEye" title="View details" (click)="onDateClick(dateObj)">
+                <i class="fa fa-eye eye-icon" *ngIf="dateObj.showEye" title="View Document" (click)="onDateClick(dateObj)">
                 </i>
                 <div *ngIf="dateObj.attendance" class="attendance-code"
                     [ngStyle]="{'background': legend[dateObj.attendance]?.color}">
@@ -115,7 +115,7 @@
     </div>
 </ng-template>
 
-<ng-template #previewModal>
+<!-- <ng-template #previewModal>
     <div class="modal-header">
         <h5 class="modal-title">{{ previewFileName || 'Document Preview' }}</h5>
         <button type="button" class="close" (click)="modalRef2?.close()" aria-label="Close">
@@ -140,7 +140,85 @@
             </a>
         </div>
     </div>
+</ng-template> -->
+
+
+<ng-template #previewModal>
+  <div class="modal-header">
+    <h5 class="modal-title">
+      {{ previewFileName || 'Document Preview' }}
+    </h5>
+
+    <!-- IMAGE CONTROLS -->
+    <div *ngIf="fileType === 'image'"
+         class="ts-preview-controls">
+
+      <button class="ts-preview-btn"
+              title="Download Image"
+              (click)="downloadFile()">
+        <i class="fa fa-download"></i>
+      </button>
+
+      <button class="ts-preview-btn"
+              title="Zoom Out"
+              (click)="zoomOut()">
+        <i class="fa fa-search-minus"></i>
+      </button>
+
+      <span class="ts-preview-zoom">{{ zoomLevel }}%</span>
+
+      <button class="ts-preview-btn"
+              title="Zoom In"
+              (click)="zoomIn()">
+        <i class="fa fa-search-plus"></i>
+      </button>
+    </div>
+
+    <button type="button"
+            class="close"
+            aria-label="Close"
+            (click)="modalRef?.close()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
+  <div class="modal-body ts-preview-body">
+
+    <div *ngIf="fileType === 'pdf'" class="ts-preview-pdf-wrapper">
+      <iframe
+        [src]="previewUrl"
+        class="ts-preview-pdf-frame"
+        frameborder="0"
+        allowfullscreen>
+      </iframe>
+    </div>
+
+    <div *ngIf="fileType === 'image'" class="ts-preview-image-wrapper">
+      <div class="ts-preview-image-content"
+           [style.transform]="transformStyle"
+           (mousedown)="startDrag($event)"
+           (mousemove)="onDrag($event)"
+           (mouseup)="endDrag()"
+           (mouseleave)="endDrag()">
+
+        <img [src]="previewUrl"
+             alt="Document Preview"
+             class="ts-preview-image">
+      </div>
+    </div>
+
+    <div *ngIf="fileType === 'other'" class="ts-preview-other">
+      <p>Preview not available for this file type.</p>
+      <button class="btn btn-outline-primary"
+              (click)="downloadFile()">
+        Download File
+      </button>
+    </div>
+
+  </div>
 </ng-template>
+
+
 
 <ng-template #alert_message_projectDropDown>
     <div class="modal-body text-center">

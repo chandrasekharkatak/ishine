@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO;
+import com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
@@ -71,9 +72,9 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	                                                          @Param("teamId") Long teamId);
 
 	
-	@Query(nativeQuery = true)
+	@Query("SELECT etm from EmployeeTeamMap etm WHERE etm.empId = :empId AND etm.teamId = :teamId")
 	EmployeeTeamMap findByEmpIdAndTeamId(Long empId, Long teamId);
-	
+		
 //	@Query(nativeQuery = true)
 //	List<EmployeeTeamMap> findByTeamIdAndActive(Long teamId);
 	
@@ -588,4 +589,21 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 			+ "WHERE tms.projectId=:projectId AND etm.empId=:employeeId AND etm.active=1")
 	List<EmployeeTeamMap> getAllTeamMembersForProject(Long employeeId,Integer projectId);
 	
+		@Query(value = "SELECT distinct new com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO( c.clientId, "
+				+ "c.clientName, cl.clientLocationId, cl.clientLocation, t.projectId, p.projectName, t.teamName, t.teamId )\n"
+				+ "FROM Team t \n"
+				+ "INNER JOIN Project p ON p.projectId = t.projectId \n"
+				+ "INNER JOIN Client c ON c.clientId = p.clientId \n"
+				+ "INNER JOIN ClientLocation cl ON cl.clientId = c.clientId \n"
+				+ "INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId \n"
+				+ "where p.projectId = :project_id AND etm.empId = :empId")
+		public List<GetClientDetailsByProjectIdAndEmpIdDTO> getClientDetailsByProjectIdAndEmpId(@Param("project_id")Integer projectId, 
+				@Param("empId")Long empId);
+		
+		@Query(value="SELECT etm \n"
+				+ "FROM EmployeeTeamMap etm \n"
+				+ "WHERE etm.empId=:empId AND etm.active!=0")
+		List<EmployeeTeamMap> findByEmpIdAndActiveStatus(Long empId);
+		
+
 	}

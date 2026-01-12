@@ -28,13 +28,13 @@ export class CompOffComponent implements OnInit {
   sortColumn: any;
   sortColumnType:any;
 
-  //flags 
+  //flags
   isCreation:boolean = false;
   isForm: boolean = false;
   isUpdation:boolean = false;
   isCompOffRequestsTable: boolean = false;
 
-  //modal 
+  //modal
   alertMessage:any;
   modalRef:NgbModalRef;
 
@@ -69,7 +69,7 @@ export class CompOffComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Dynamic Subfeature Flags 
+    // Dynamic Subfeature Flags
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -102,7 +102,7 @@ export class CompOffComponent implements OnInit {
   showCreateForm(){
     this.isForm = true;
     this.isCreation = true;
-    this.isUpdation = false;	
+    this.isUpdation = false;
 
     this.isCompOffRequestsTable = false;
 
@@ -110,11 +110,11 @@ export class CompOffComponent implements OnInit {
     this.getAllCompOffRequestsByEmpId();
   }
 
-  showUpdateForm(compOff:Leave){	
-    this.isForm = true;	
-    this.isUpdation = true;	
-    this.isCreation = false;	
-  
+  showUpdateForm(compOff:Leave){
+    this.isForm = true;
+    this.isUpdation = true;
+    this.isCreation = false;
+
     this.isCompOffRequestsTable = false;
 
     this.compOffObj = Object.assign({}, compOff);
@@ -154,20 +154,20 @@ export class CompOffComponent implements OnInit {
       this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
       this.alertMessage = message;
     }
-  
+
     cancelRequest() {
-      this.modalRef.close();
+      this.modalRef?.close();
     }
 
-    openDeleteCompOff(template: TemplateRef<any>, compOff: any) {	
-      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });	
-      this.compOffObj = compOff;	
-      //console.log("compOffObj : ", this.compOffObj);	
+    openDeleteCompOff(template: TemplateRef<any>, compOff: any) {
+      this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
+      this.compOffObj = compOff;
+      //console.log("compOffObj : ", this.compOffObj);
     }
 
     getAllCompOffReasons(){
       this.compOffReasons = [];
-  
+
       this.leaveService.getAllCompOffReasons().pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.compOffReasons = response.serviceResponse;
@@ -196,42 +196,42 @@ export class CompOffComponent implements OnInit {
       if (this.isUpdation) {
         this.previousCompOffRequests = this.previousCompOffRequests.filter(compOff => this.datePipe.transform(compOff.fromDate, "yyyy-MM-dd") != this.datePipe.transform(this.compOffObj.fromDate, "yyyy-MM-dd"));
       }
-  
-      
+
+
       return ((moment(d).format(dateFormat) >= moment(minDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previousCompOffRequests.find(compOffApplication => moment(d).format(dateFormat) >= moment(compOffApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(compOffApplication.toDate).format(dateFormat)));
     }
-  
+
     toDateFilter = (d: Date)=>{
       const dateFormat = 'YYYY-MM-DD';
       const currentDate = new Date();
       let maxDate = new Date(currentDate.getTime());
-      
+
       if(!this.compOffObj.fromDate){
         return false;
       }
       return ((moment(d).format(dateFormat) >= moment(this.compOffObj.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(maxDate).format(dateFormat)) && !this.previousCompOffRequests.find(compOffApplication => moment(d).format(dateFormat) >= moment(compOffApplication.fromDate).format(dateFormat) && moment(d).format(dateFormat) <= moment(compOffApplication.toDate).format(dateFormat))) ? true : false;
     }
-  
+
     setNoOfDays(template: TemplateRef<any>){
       if(!this.validationService.validateNullUndefinedEmptyString(this.compOffObj.fromDate)){
         this.alertMessage = "Please select from date !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-  
+
       if(!this.validationService.validateNullUndefinedEmptyString(this.compOffObj.toDate)){
         this.alertMessage = "Please select To Date !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-  
+
       const START_DAY_COUNT = 1;
       const diff=(e,t)=> Math.abs(Math.floor((new Date(e).getTime()-new Date(t).getTime())/ (1000*60*60*24)));
       this.compOffObj.noOfDays = START_DAY_COUNT + diff(this.compOffObj.fromDate, this.compOffObj.toDate);
     }
 
     validateLeavetObj(compOffObj:Leave, template: TemplateRef<any>){
-      
+
       if(!this.validationService.validateNullUndefinedEmptyString(compOffObj.reasonId)){
         this.alertMessage = "Please select comp off reason !!"
         this.openAlertMod(template, this.alertMessage);
@@ -243,7 +243,7 @@ export class CompOffComponent implements OnInit {
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-  
+
       if(!this.validationService.validateNullUndefinedEmptyString(compOffObj.description?.trim())){
         this.alertMessage = "Please enter description !!"
         this.openAlertMod(template, this.alertMessage);
@@ -273,7 +273,7 @@ export class CompOffComponent implements OnInit {
       this.compOffObj.fromDate = moment(this.compOffObj.fromDate).format(dateFormat);
       // this.compOffObj.toDate = moment(this.compOffObj.toDate).format(dateFormat);
       this.compOffObj.empId = this.currentUser.empId;
-      this.compOffObj.createdBy = this.currentUser.empId; 
+      this.compOffObj.createdBy = this.currentUser.empId;
       this.compOffObj.employeementId = this.currentUser.employeementId;
       this.compOffObj.email = this.currentUser.email;
       this.compOffObj.employeeName = this.currentUser.name;
@@ -299,7 +299,7 @@ export class CompOffComponent implements OnInit {
       this.compOffObj.managerApprovalStatus="Pending";
       this.compOffObj.level2ApproverName=this.currentUser.hodName;
       this.compOffObj.finalApprovalLevel=2;
-  
+
       //console.log("Apply Comp off : ", this.compOffObj);
       //console.log("compoff currentuser    ::   ",this.currentUser);
       this.leaveService.applyForCompOff(this.compOffObj).pipe(first()).subscribe((response: any) => {
@@ -315,18 +315,18 @@ export class CompOffComponent implements OnInit {
 
     getAllCompOffRequestsByEmpId(){
       this.allCompOffRequests = [];
-  
+
       let compOff = new Leave();
       compOff.empId = this.currentUser.empId;
       this.leaveService.getAllCompOffRequestsByEmpId(compOff).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.previousCompOffRequests = JSON.parse(JSON.stringify(response.serviceResponse));
           this.previousCompOffRequests = this.previousCompOffRequests.filter(compOffApplication => compOffApplication.status != "Rejected");
-          
+
           this.allCompOffRequests = response.serviceResponse;
           this.allCompOffRequests.forEach(compOff => {
             compOff.fromDate = (compOff.fromDate)? moment(compOff.fromDate).format(AppComponent.DATE_FORMAT) : null;
-            compOff.toDate = (compOff.toDate)? moment(compOff.toDate).format(AppComponent.DATE_FORMAT) : null 
+            compOff.toDate = (compOff.toDate)? moment(compOff.toDate).format(AppComponent.DATE_FORMAT) : null
           });
           //console.log("allCompOffRequests : ", this.allCompOffRequests);
         } else {
@@ -347,7 +347,7 @@ export class CompOffComponent implements OnInit {
       // compOff.toDate = moment(this.compOffObj.toDate).format(dateFormat);
       compOff.updatedBy = this.currentUser.empId;
       // compOff.reportingManagerId = this.currentUser.reportingManagerId
-  
+
       if(this.currentUser.reportingManagerId != null && this.currentUser.approvalsTo == "Reporting Manager"){
         compOff.reportingManagerId = this.currentUser.reportingManagerId;
         compOff.managerEmail = this.currentUser.reportingManagerEmail;
@@ -372,17 +372,17 @@ export class CompOffComponent implements OnInit {
       });
     }
 
-    deleteCompOff(template: TemplateRef<any>) {	
+    deleteCompOff(template: TemplateRef<any>) {
       this.cancelRequest();
-      
+
       let compOff = new Leave;
       compOff = Object.assign({}, this.compOffObj);
 
-      compOff.empId = this.currentUser.empId;	
+      compOff.empId = this.currentUser.empId;
       compOff.email = this.currentUser.email;
       compOff.employeeName = this.currentUser.name;
       compOff.employeementId = this.currentUser.employeementId;
-      compOff.managerId = this.currentUser.managerId;	
+      compOff.managerId = this.currentUser.managerId;
       compOff.managerEmail = this.currentUser.managerEmail;
       compOff.managerName = this.currentUser.managerName;
 
@@ -391,14 +391,14 @@ export class CompOffComponent implements OnInit {
       compOff.hodName = this.currentUser.hodName;
 
       //console.log("Delete compOff ",compOff)
-      this.leaveService.deleteCompOff(compOff).pipe(first()).subscribe((response: any) => {	
-        if (response.serviceStatus == "Success") {	
-          this.openAlertMod(template, response.serviceResponse);	
+      this.leaveService.deleteCompOff(compOff).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.openAlertMod(template, response.serviceResponse);
           this.showCompOffRequestTable();
-        } else {	
-          this.openAlertMod(template, response.serviceResponse);	
-        }	
-      });	
+        } else {
+          this.openAlertMod(template, response.serviceResponse);
+        }
+      });
     }
 
 
@@ -423,24 +423,24 @@ export class CompOffComponent implements OnInit {
   //   const tableId = id; // Replace with your actual table ID
   //   this.excelName = "QuarterCycle.xlsx";
   //   this.tabName= 'Quarter Cycle Table';
-  
+
   //   this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tabName);
   // }
 
-  //pagination 
+  //pagination
 
   page = 1;
   handlePageChange(event) {
     this.page = event;
   }
 
-  sortData(sort: Sort){	
+  sortData(sort: Sort){
     //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
 
@@ -455,7 +455,7 @@ export class CompOffComponent implements OnInit {
 
 }
 
-	
-function compare(a: number | string, b: number | string, isAsc: boolean) {	
-  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);	
+
+function compare(a: number | string, b: number | string, isAsc: boolean) {
+  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

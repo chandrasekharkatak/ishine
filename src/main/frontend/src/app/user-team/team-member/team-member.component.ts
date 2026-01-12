@@ -37,7 +37,7 @@ export class TeamMemberComponent implements OnInit {
   excelName = '';
   elementName = '';
 
-  viewTeamMemberList: any[] = []; 
+  viewTeamMemberList: any[] = [];
 
   filters:any = {};
   isSearchEnabled:boolean = false;
@@ -78,21 +78,21 @@ export class TeamMemberComponent implements OnInit {
     private modalService: NgbModal,
     private employee360Service: Employee360Service,
     private utilityService: UtilityService,
-  ) { 
+  ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
    }
 
   async ngOnInit(): Promise<void> {
-    // Dynamic Subfeature Flags 
+    // Dynamic Subfeature Flags
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     //console.log(this.feature, this.userMapping);
-    
+
     this.getAllTeamMemberView();
     this.preventBackButton();
-   
+
   }
   preventBackButton(){
     history.pushState(null, null, location.href);
@@ -146,20 +146,20 @@ export class TeamMemberComponent implements OnInit {
       this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
     }
 
-  //pagination 
+  //pagination
 
   page = 1;
   handlePageChange(event) {
     this.page = event;
   }
 
-  sortData(sort: Sort){	
+  sortData(sort: Sort){
     //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
 
@@ -314,7 +314,7 @@ export class TeamMemberComponent implements OnInit {
 
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
   pageNo =1;
   handleAuditPageChanges(event) {

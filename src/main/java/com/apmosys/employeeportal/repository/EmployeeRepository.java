@@ -308,6 +308,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getDepartmentByEmployeementId(long employeementId);
+	
+	@Query(nativeQuery = true,value ="SELECT d.name as department FROM employee e \n"
+			+ "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id\n"
+			+ "INNER JOIN department d ON d.dept_id = jr.dept_id\n"
+			+ "WHERE e.emp_id =:empId")
+	public String getDepartmentByEmpId(long empId);
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeByDateOfRelieving();

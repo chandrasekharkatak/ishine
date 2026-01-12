@@ -57,12 +57,13 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}` + `api/updateTimesheet`, formData);
   }
 
-  bulkFinalDocumentUpload(finalFile: File, fromDate: string, toDate: string, empId: number): Observable<any> {
+  bulkFinalDocumentUpload(finalFile: File, fromDate: string, toDate: string, empId: number,currentUserEmpId: number): Observable<any> {
   const formData = new FormData();
   formData.append('finalFile', finalFile);
   formData.append('fromDate', fromDate);
   formData.append('toDate', toDate);
   formData.append('empId', empId.toString());
+  formData.append('createdBy',currentUserEmpId.toString());
     return this.http.post(`${this.baseUrl}` + `api/bulkFinalDocumentUpload`, formData);
 
   }
@@ -81,7 +82,7 @@ export class TimesheetService {
   //   return this.http.post(`${this.baseUrl}` + `api/getAllProjectsByEmpId`, timesheetObj);
   // }
 
-  getAllActivitiesByProjectIdandEmpId(timesheetObj: Timesheet) {
+  getAllActivitiesByProjectIdandEmpId(timesheetObj: any) {
     return this.http.post(`${this.baseUrl}` + `api/getAllActivitiesByProjectIdandEmpId`, timesheetObj);
   }
 
@@ -179,9 +180,9 @@ export class TimesheetService {
   return this.http.post<any>(`${this.baseUrl}`+`api/getLastFilledTimesheetByEmpId`, payload);
 }
 
-  // getActiveProjectsByEmpId(empId: any): Observable<any> {
-  //   return this.http.post(`${this.baseUrl}api/getActiveProjectsByEmpId?empId=${empId}`, null);
-  // }
+  getProjectListForDateAndEmpId(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}api/getProjectListForDateAndEmpId`, payload);
+  }
 
   getClientSideIdByProjectId(projectId: any): Observable<any> {
     return this.http.post(`${this.baseUrl}api/getClientSideIdByProjectId?projectId=${projectId}`, null);
@@ -203,8 +204,8 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}` + `api/updateClientSideIdMapping`,empClientSideObj);
   }
 
-  getActiveProjectsAndClientSideIdByEmpId(empId: any): Observable<any> {
-    return this.http.post(`${this.baseUrl}api/getActiveProjectsAndClientSideIdByEmpId?empId=${empId}`, null);
+  getActiveProjectsAndClientSideIdByEmpId(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}api/getActiveProjectsAndClientSideIdByEmpId`, payload);
   }
 
   addTimesheet2(timesheetObj: Timesheet) {
@@ -365,8 +366,24 @@ isEmployeeInTNMProject(empId: any): Observable<any> {
   getMyReportees(timesheetObj:any){
      return this.http.post(`${this.baseUrl}` + `api/getMyReportees`, timesheetObj);
   }
+// ------>
+  getClientDetailsByProjectIdAndEmpId(timesheetObj: any) {
+    return this.http.post(`${this.baseUrl}` + `api/getClientDetailsByProjectIdAndEmpId`, timesheetObj);
+  }
 
-  // getAllDayTypes(){
-  //       return this.http.get(`${this.baseUrl}` + `api/getAllDayTypes`);
-  // }
+  getOtherTeamMembersByDateAndProjectId(payload: any): Observable<any> {
+    return this.http.post(`${this.baseUrl}` + `api/getOtherTeamMembersByDateAndProjectId`, payload);
+  }
+  
+  getMyReporteesAndClientSideProjectsInMonthYear(timesheetObj:any){
+    return this.http.post(`${this.baseUrl}` + `api/getMyReporteesAndClientSideProjectsInMonthYear`, timesheetObj);
+  }
+
+  getMyProjectsInMonthYear(timesheetObj:any){
+     return this.http.post(`${this.baseUrl}` + `api/getMyProjectsInMonthYear`, timesheetObj);
+  }
+
+  wasEmployeeInClientProjCurrAndPrevMon(empId:any){
+     return this.http.post(`${this.baseUrl}api/wasEmployeeInClientProjCurrAndPrevMon?empId=${empId}`, null);
+  }
 }

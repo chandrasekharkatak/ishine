@@ -14,7 +14,6 @@ public class EmployeeInfoDTO {
 
 	private Long empId;
     private String employeeName;
-    private String billableType;
     private String department;
     private String employmentId;
     

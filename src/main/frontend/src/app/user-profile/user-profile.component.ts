@@ -27,7 +27,7 @@ import { Certificate } from '../models/certificate';
 })
 export class UserProfileComponent implements OnInit {
 
-  //flags 
+  //flags
   isUpdateProfile: boolean = false;
 
   currentUser: any;
@@ -41,7 +41,7 @@ export class UserProfileComponent implements OnInit {
   feature = "Profile";
   userMapping: any = {};
 
-  //modal 
+  //modal
   alertMessage: any;
   modalRef:NgbModalRef;
 
@@ -79,7 +79,7 @@ export class UserProfileComponent implements OnInit {
     this.onGetEmployeeInfo();
     this.getMyAssetList();
 
-    // Dynamic Subfeature Flags 
+    // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -718,7 +718,7 @@ export class UserProfileComponent implements OnInit {
     });
   }
 
-  //Employee Info Update 
+  //Employee Info Update
   openUpdateInfo(template: TemplateRef<any>) {
     this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl', backdrop: 'static', keyboard: false });
   }
@@ -734,7 +734,7 @@ export class UserProfileComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
 
@@ -776,7 +776,7 @@ export class UserProfileComponent implements OnInit {
     }
   }
 
- 
+
 
   // Dropdown options
   skillLevels = ['Beginner', 'Intermediate', 'Expert'];
@@ -828,7 +828,7 @@ openDeleteCertificate(certificate: any){
        this.messageText = "Skill removed successfully!";
       this.openMessageModal = true;
 
-       
+
     },
     error: (err) => {
       console.error("Delete failed", err);
@@ -848,7 +848,7 @@ openDeleteCertificate(certificate: any){
        this.messageText = "Certificate deleted successfully!";
       this.openMessageModal = true;
 
-       
+
     },
     error: (err) => {
       console.error("Delete failed", err);
@@ -926,7 +926,7 @@ openDeleteCertificate(certificate: any){
         if (response.serviceStatus === 'Success') {
           this.certifications = response.serviceResponse;
         } else {
-          this.certifications = [];     
+          this.certifications = [];
         }
       },
       error: (err) => {
@@ -963,10 +963,10 @@ openDeleteCertificate(certificate: any){
 }
 
 
-  
 
 
-  
+
+
 
 
 

@@ -56,7 +56,7 @@ export class TimesheetConfigComponent implements OnInit {
     private locationStrategy:LocationStrategy,
     private validationService: ValidationService,
     private modalService: NgbModal,
-  ) { 
+  ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
@@ -147,7 +147,7 @@ export class TimesheetConfigComponent implements OnInit {
     if(this.isUpdation){
       this.rejectReasonObj.updatedBy=this.currentUser.empId;
     }
-    
+
     this.timesheetService.setTimesheetRejectReason(rejectReasonObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         rejectReasonObj = response.serviceResponse;
@@ -211,7 +211,7 @@ export class TimesheetConfigComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   validateRejectReason(reason: string, template: TemplateRef<any>): boolean {
@@ -233,7 +233,7 @@ export class TimesheetConfigComponent implements OnInit {
       return false;
     }
 
-    return true; 
+    return true;
   }
 
   showUpdateForm(rejectionId:any) {
@@ -265,7 +265,7 @@ export class TimesheetConfigComponent implements OnInit {
   }
 
   closeAlertShowTable(){
-    this.alertShowTableRef.close();
+    this.alertShowTableRef?.close();
     this.showTable;
   }
 
@@ -275,7 +275,7 @@ export class TimesheetConfigComponent implements OnInit {
   }
 
   closeAlertWithoutTable(){
-    this.alertMsgRef.close();
+    this.alertMsgRef?.close();
   }
 
 }

@@ -100,7 +100,7 @@ export class UserAppreciationComponent implements OnInit {
   }
   // toggleFunctionforreceived() {
   //   this.clickCount2 = 0;
-    
+
   //   if (this.clickCount === 0) {
   //     this.showMyAppreciation();
   //     this.recieve=true;
@@ -128,7 +128,7 @@ export class UserAppreciationComponent implements OnInit {
   }
 //   toggleFunctionforsent() {
 // this.clickCount = 0;
-   
+
 
 //     if (this.clickCount2 === 0) {
 //       this.showSentAppreciation();
@@ -139,7 +139,7 @@ export class UserAppreciationComponent implements OnInit {
 //       this.hideSentAppreciation();
 //       this.clickCount2 = 0;
 //     }
- 
+
 //   }
 
 
@@ -436,6 +436,6 @@ showDetailTable = false;
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 }

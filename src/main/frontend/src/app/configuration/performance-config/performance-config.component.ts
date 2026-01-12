@@ -73,7 +73,7 @@ export class PerformanceConfigComponent implements OnInit {
   quarterCycleUpdate = new QuarterCycle();
 
   quarterCycleColumns: any[] = ['blank', 'financialYear', 'quarterCycle', 'createdByName', 'createdOn', 'updatedByName', 'updatedOn','blank'];
- 
+
   log:Log;
   tabName:any = 'Configurations';
   excelName: string;
@@ -92,18 +92,18 @@ export class PerformanceConfigComponent implements OnInit {
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   async ngOnInit(): Promise<void> {
-   
+
 
     this.showQuaterTable();
     this.getAllDepartmentList();
     this.getReviewLabelForEveryDepartment();
     this.logService.updateLogInfo(this.log);
-    
+
    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
    featureMap.subFeatures?.forEach(sub => {
      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
    });
-  
+
   }
 
   months: { full: string, short: string }[] = [
@@ -183,20 +183,20 @@ export class PerformanceConfigComponent implements OnInit {
     this.isCreateReview = false;
     this.reviewObj = new review();
     this.getReviewType();
-   
+
   }
 
   createQuarterCycle(template: TemplateRef<any>) {
 
     let inputValidated: boolean = this.validateQuarterCycleObj(this.quarterCycle, template)
-   
+
     if (!inputValidated) return;
     this.quarterCycle.createdBy = this.currentUser.empId;
     this.quarterCycle.financialYear = `${this.quarterCycle.fromYear}-${this.quarterCycle.toYear}`;
     this.quarterCycle.quarterCycle = `${this.quarterCycle.fromMonth}-${this.quarterCycle.toMonth}`;
     this.quarterCycle.isActive = true;
     this.quarterCycle.isEnable = false;
-   
+
     this.performanceService.createQuarterCycle(this.quarterCycle).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -211,14 +211,14 @@ export class PerformanceConfigComponent implements OnInit {
   updateQuarterCycle(template: TemplateRef<any>) {
 
     let inputValidated: boolean = this.validateQuarterCycleObj(this.quarterCycle, template)
-    
+
     if (!inputValidated) return;
-    
+
 
     this.quarterCycle.updatedBy = this.currentUser.empId;
     this.quarterCycle.financialYear = `${this.quarterCycle.fromYear}-${this.quarterCycle.toYear}`;
     this.quarterCycle.quarterCycle = `${this.quarterCycle.fromMonth}-${this.quarterCycle.toMonth}`;
-  
+
     this.performanceService.updateQuarterCycle(this.quarterCycle).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -234,12 +234,12 @@ export class PerformanceConfigComponent implements OnInit {
   fetchExistingQuarters() {
     const financialYear = `${this.quarterCycle.fromYear}-${this.quarterCycle.toYear}`;
 
-   
+
     this.performanceService.getQuartersByYear(financialYear).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.existingQuarters = response.serviceResponse;
         console.log(this.existingQuarters);
-        
+
       }
     });
   }
@@ -253,9 +253,9 @@ export class PerformanceConfigComponent implements OnInit {
           quarterCycleObj.createdOn = (quarterCycleObj.createdOn) ? moment(quarterCycleObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           quarterCycleObj.emp360CreatedBy = quarterCycleObj.createdBy;
           quarterCycleObj.emp360CreatedBy = quarterCycleObj.updatedBy;
-        
+
         });
-     
+
       } else {
         alert(response.serviceResponse);
       }
@@ -286,11 +286,11 @@ export class PerformanceConfigComponent implements OnInit {
   //   const tableId = id; // Replace with your actual table ID
   //   this.excelName = "QuarterCycle.xlsx";
   //   this.tabName= 'Quarter Cycle Table';
-  
+
   //   this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tabName);
   // }
 
-  
+
 
 
 
@@ -378,8 +378,8 @@ toggleSelectAll() {
   //     this.openAlertMod(template, `The selected month ${selectedMonth} already exists in the quarter cycle ${existingQuarter}.`);
   //   }
   // }
-  
- 
+
+
   checkMonthExistencee(type: 'fromMonth' | 'toMonth', template: TemplateRef<any>) {
     const selectedFromMonth = this.quarterCycle.fromMonth;
     const selectedToMonth = this.quarterCycle.toMonth;
@@ -390,13 +390,13 @@ toggleSelectAll() {
     const selectedToIndex = this.getMonthIndex(selectedToMonth);
 
     let overlappingCycle = '';
-     
+
 
     const isOverlap = this.existingQuarters.some((quarter: any) => {
       const [existingFrom, existingTo] = quarter.quarterCycle.split('-');
       const existingFromIndex = this.getMonthIndex(existingFrom);
       const existingToIndex = this.getMonthIndex(existingTo);
-   
+
       if (this.isQuaterUpdation && quarter.quarterId === this.quarterCycle.quarterId) {
         return false;
     }
@@ -432,7 +432,7 @@ toggleSelectAll() {
     }
   }
 
-  
+
   toggleSearchReviewType() {
     this.isSearchEnabledReview = !this.isSearchEnabledReview;
     if (!this.isSearchEnabledReview) {
@@ -441,7 +441,7 @@ toggleSelectAll() {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   showCreateReviewForm() {
@@ -450,7 +450,7 @@ toggleSelectAll() {
     this.isReviewForm = true;
     this.isCreateReview = true;
     this.getAllQuarterCycles();
-    
+
     this.allSpecializationList = [];
 
     if (this.reviewObj.allSpecializationList == undefined || this.reviewObj.allSpecializationList.length == 0) {
@@ -515,7 +515,7 @@ toggleSelectAll() {
 
         this.fetchExistingQuarters();
 
-       
+
       } else {
         console.error(response.serviceResponse)
       }
@@ -552,11 +552,11 @@ toggleSelectAll() {
     this.allSpecializationList = [];
 
     this.reviewObj.reviewTypeId = review.reviewTypeId;
-    
+
     this.reviewObj.deptId = [review.deptId];
     this.performanceService.getReviewTypeById(this.reviewObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.reviewObj = response.serviceResponse;      
+        this.reviewObj = response.serviceResponse;
         this.reviewObj.departmentName = review.departmentName;
         this.reviewObj.quarterCycle = review.quarterCycle;
         this.allSpecializationList.push(this.reviewObj);
@@ -594,7 +594,7 @@ toggleSelectAll() {
     this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allDeptList = response.serviceResponse;
-        
+
 
       } else {
         console.error(response.serviceResponse)
@@ -636,7 +636,7 @@ toggleSelectAll() {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    
+
 
     let flag = true;
     allSpecializationList.forEach((spec:any, index) => {
@@ -675,12 +675,12 @@ toggleSelectAll() {
     let inputValidated: boolean = this.validateReviewTypes(template, reviewObj, this.allSpecializationList);
     if (!inputValidated) return;
 
-   
+
 
     const reviewLabels = this.allSpecializationList.map(spec => spec.reviewLabel);
     const duplicateLabels = reviewLabels.filter((label, index) => reviewLabels.indexOf(label) !== index);
-   
-    
+
+
 
     if (duplicateLabels.length > 0) {
       this.openAlertMod(template, 'Review Labels must be unique.');
@@ -699,8 +699,8 @@ toggleSelectAll() {
         this.openAlertMod(template, 'Limit Cannot Be null .');
         return;
       }
-     
-     
+
+
     }
     // if()
     this.reviewObj.allSpecializationList = this.allSpecializationList;
@@ -741,7 +741,7 @@ toggleSelectAll() {
         this.openAlertMod(template, 'Limit Cannot Be null  .');
         return;
       }
-     
+
     }
 
     let obj = {
@@ -837,15 +837,15 @@ toggleSelectAll() {
   }
 
   fieldRestrictNumber(event) {
-    const k = event.charCode; 
-    const inputValue = event.target.value; 
+    const k = event.charCode;
+    const inputValue = event.target.value;
     if ((k >= 65 && k <= 90) || (k >= 97 && k <= 122)) {
-        return true; 
+        return true;
     }
-    if (k === 32 && inputValue.length > 0) { 
-        return true; 
+    if (k === 32 && inputValue.length > 0) {
+        return true;
     }
-    return false; 
+    return false;
 }
 
   // fieldRestrictNumber(event) {
@@ -853,7 +853,7 @@ toggleSelectAll() {
   //   if ((k >= 65 && k <= 90) || (k >= 97 && k <= 122) || (k === 32)) {
   //     return true;
   //   }
-    
+
 
   //   return false;
   // }
@@ -869,17 +869,17 @@ toggleSelectAll() {
     });
   }
   onReviewLabelChange(reviewLabel:any,template: TemplateRef<any>) {
-  
+
     const re = this.reviewObj1.filter(res =>
       res.reviewLabel == reviewLabel &&
       (Array.isArray(this.reviewObj.deptId) ? this.reviewObj.deptId.includes(res.departmentId) : res.departmentId === this.reviewObj.deptId) &&
-      res.quarterId == this.reviewObj.quarterId 
+      res.quarterId == this.reviewObj.quarterId
 
     );
-   
+
     if (re.length > 0) {
       this.openAlertMod(template, 'Review Labels Already Exist');
-      return;  
+      return;
     }
   }
 

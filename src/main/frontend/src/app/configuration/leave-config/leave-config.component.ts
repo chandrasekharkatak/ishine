@@ -35,7 +35,7 @@ export class LeaveConfigComponent implements OnInit {
   sortColumnType:any;
   _holidayList:any;
 
-  //flags 
+  //flags
   isCreation: boolean = false;
   isUpdation: boolean = false;
 
@@ -48,7 +48,7 @@ export class LeaveConfigComponent implements OnInit {
   isLeavePolicyTable: boolean = false;
 
 
-  //modal 
+  //modal
   alertMessage: any;
   modalRef:NgbModalRef;
 
@@ -123,7 +123,7 @@ export class LeaveConfigComponent implements OnInit {
     "West Bengal",
   ]
 
-  // for View Holidays by State 
+  // for View Holidays by State
   selectedState: any = '';
   selectedHolidayType: any = '';
 
@@ -173,7 +173,7 @@ export class LeaveConfigComponent implements OnInit {
   totalItems:number = 0;
   pageSize:number = 10;
   sortColumn1 = '';
-    
+
   constructor(
     private validationService: ValidationService,
     private modalService: NgbModal,
@@ -184,16 +184,16 @@ export class LeaveConfigComponent implements OnInit {
     private exportExcelService: ExportExcelService,
     private locationStrategy: LocationStrategy,
     private utilityService: UtilityService,
-    private employeeService: EmployeeService, 
-    private departmentService: DepartmentService,   
+    private employeeService: EmployeeService,
+    private departmentService: DepartmentService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
   async ngOnInit(): Promise<void> {
-   
 
-    // Dynamic Subfeature Flags 
+
+    // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -266,7 +266,7 @@ export class LeaveConfigComponent implements OnInit {
   }
 
   async showHoliaysTable() {
-    
+
     this.employeeData = []
     this.isHolidayTable = true;
 
@@ -282,10 +282,10 @@ export class LeaveConfigComponent implements OnInit {
     this.data = ''
     this.filters = {};
     this.isSearchEnabled = false;
-    this.isEmpLeaveExclusion=false;  
+    this.isEmpLeaveExclusion=false;
 
     this.getAllHolidays();
-    
+
   }
 
   showLeaveTypesTable() {
@@ -304,7 +304,7 @@ export class LeaveConfigComponent implements OnInit {
     this.data = ''
     this.filters = {};
     this.isSearchEnabled = false;
-    this.isEmpLeaveExclusion=false;  
+    this.isEmpLeaveExclusion=false;
 
     this.getAllLeaveTypes();
   }
@@ -321,7 +321,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isLeavePolicyForm = false;
     this.isLeavePolicyTable = false;
     this.isUpdation = false;
-    this.isEmpLeaveExclusion=false;  
+    this.isEmpLeaveExclusion=false;
     this.reset();
   }
 
@@ -337,7 +337,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isLeavePolicyForm = false;
     this.isLeavePolicyTable = false;
     this.isCreation = false;
-    this.isEmpLeaveExclusion=false;  
+    this.isEmpLeaveExclusion=false;
     this.leaveTypeObj = Object.assign({}, leaveType);
   }
 
@@ -352,7 +352,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isLeavePolicyForm = false;
     this.isLeavePolicyTable = false;
     this.isCreation = false;
-    this.isEmpLeaveExclusion=false;  
+    this.isEmpLeaveExclusion=false;
     this.holidayObj = Object.assign({}, holiday);
     this.holidayObj.optionalHoliday = (holiday.optionalHoliday != null) ? JSON.parse(holiday.optionalHoliday) : false;
     this.holidayObj.customHoliday = (holiday.customHoliday != null) ? JSON.parse(holiday.customHoliday) : false;
@@ -372,7 +372,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isLeavePolicyTable = false;
     this.isCreation = false;
     this.isUpdation = false;
-    this.isEmpLeaveExclusion=false;  
+    this.isEmpLeaveExclusion=false;
     this.reset();
   }
 
@@ -388,7 +388,7 @@ export class LeaveConfigComponent implements OnInit {
     this.isLeaveRuleTable = false;
     this.isLeavePolicyTable = false;
     this.isUpdation = false;
-    this.isEmpLeaveExclusion=false;  
+    this.isEmpLeaveExclusion=false;
     this.reset();
     this.getAllLeaveTypes();
   }
@@ -404,10 +404,10 @@ export class LeaveConfigComponent implements OnInit {
     this.isLeaveRuleTable = false;
     this.isLeavePolicyTable = false;
     this.isCreation = false;
-    this.isEmpLeaveExclusion=false;  
+    this.isEmpLeaveExclusion=false;
     this.leavePolicyObj = Object.assign({}, leavePolicyObj);
     //console.log("this.leavePolicyObj ",this.leavePolicyObj);
-    
+
     this.getAllLeaveTypes();
   }
 
@@ -428,12 +428,12 @@ export class LeaveConfigComponent implements OnInit {
     this.data = '';
     this.filters = {};
     this.isSearchEnabled = false;
-    this.isEmpLeaveExclusion=false;  
+    this.isEmpLeaveExclusion=false;
     this.getAllLeavePolicies();
   }
 
    showEmpLeaveExclusion() {
-    this.isEmpLeaveExclusion=true;  
+    this.isEmpLeaveExclusion=true;
     this.sortColumn=[];
     this.sortColumnType=[];
     this.sortDirection='';
@@ -463,7 +463,7 @@ export class LeaveConfigComponent implements OnInit {
       if (response.serviceStatus === 'Success') {
         this.originalDepartmentList = response.serviceResponse || [];
       this.departmentList = this.originalDepartmentList.filter(
-          (dept: any) => ![4, 10, 12, 14].includes(dept.deptId) );      
+          (dept: any) => ![4, 10, 12, 14].includes(dept.deptId) );
       } else {
         console.error('Failed to fetch departments:', response.serviceResponse);
       }
@@ -476,7 +476,7 @@ filterDepartments() {
   const value = this.deptSearch.toLowerCase().trim();
   this.departmentList = value
     ? this.originalDepartmentList.filter(d => d.name.toLowerCase().includes(value))
-    : [...this.originalDepartmentList]; 
+    : [...this.originalDepartmentList];
 }
 
 toggleSelectAllDept() {
@@ -520,15 +520,15 @@ onEmpSelectionChange() {
     empObj.departmentList = this.selectedDepartments?.map(deptId => {
       let dept = new Department();
       dept.deptId = deptId;
-      return dept;    
-    });    
+      return dept;
+    });
     empObj.isEmpLeaveExclusion=this.isExclude;
     empObj.isEmpLeaveInclusion=this.isInclude;
     empObj.page=this.page1 - 1
     empObj.size=this.pageSize
     empObj.sortColumn = (this.sortColumn1 && this.sortColumn1.trim() !== '') ? this.sortColumn1 : 'name';
     empObj.sortDirection = (this.sortDirection && this.sortDirection.trim() !== '') ? this.sortDirection : 'asc';
-    empObj.filters=this.searchFilters 
+    empObj.filters=this.searchFilters
 
     this.employeeService.getAllEmployeesByDepartmentIds(empObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -564,7 +564,7 @@ onEmpSelectionChange() {
 }
 
 getEmpIdToExcludeFromLeave() {
-  this.modalRef.close();
+  this.modalRef?.close();
   let leaveObj = new LeaveExcludeInclude();
   leaveObj.createdBy=this.currentUser.empId;
   leaveObj.isExclude=this.isExclude
@@ -581,7 +581,7 @@ getEmpIdToExcludeFromLeave() {
         console.error('Failed to fetch departments:', response.serviceResponse);
       }
     },
-    error: (err) =>       
+    error: (err) =>
        this.openAlertMod(this.alertTemplate,"Error Excluding the Employees. Try After Sometime!!")
   });
 }
@@ -627,7 +627,7 @@ userSelection(action:String,consent? :any){
   }
 
   if(consent){
-    this.openAlertMod(this.leaveIncludeExcludeConsent,"")  
+    this.openAlertMod(this.leaveIncludeExcludeConsent,"")
   }
 }
 
@@ -713,7 +713,7 @@ toggleSelectAll(event: any) {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   openDeleteHoliday(template: TemplateRef<any>, holiday: any) {
@@ -739,7 +739,7 @@ toggleSelectAll(event: any) {
     }else {
       this.holidayListFilter = this.holidayList.filter((holiday:Holiday)=> moment(holiday.dateOfHoliday, "DD-MM-YYYY").year() == this.selectedYear && holiday.holidayType == this.selectedHolidayType);
     }
-    
+
     this.page = 1;
   }
   setCurrentYearLimit() {
@@ -924,7 +924,7 @@ toggleSelectAll(event: any) {
     }
   }
 
- 
+
 
    getAllHolidays() {
 
@@ -940,8 +940,8 @@ toggleSelectAll(event: any) {
       if (response.serviceStatus == "Success") {
         this.holidayListFilter = response.serviceResponse;
         this.holidayList = response.serviceResponse;
-        
-        
+
+
 
         this.holidayListFilter.forEach(holiday => {
           holiday.dateOfHoliday = (holiday.dateOfHoliday) ? moment(holiday.dateOfHoliday).format(AppComponent.DATE_FORMAT) : null;
@@ -949,7 +949,7 @@ toggleSelectAll(event: any) {
           holiday.updatedOn = (holiday.updatedOn) ? moment(holiday.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           holiday.emp360CreatedBy =  holiday.createdBy;
           holiday.emp360UpdatedBy = holiday.updatedBy;
-         
+
         });
         this._holidayList=this.holidayList;
         // this.changeEvent(this.currentUser.workLocation);
@@ -957,7 +957,7 @@ toggleSelectAll(event: any) {
         this.filterHolidayListByYear(new Date().getFullYear());
         this.selectedHolidayType = "Festival";
         this.onHolidayTypeSelected();
-        
+
       } else {
         console.error(response.serviceResponse);
       }
@@ -983,7 +983,7 @@ toggleSelectAll(event: any) {
 
   checkOccasion(template: TemplateRef<any>) {
     this.holidayObj.currentYear = new Date().getFullYear();
-    
+
     this.holidayService.checkOccasionIfAlreadyExist(this.holidayObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.holidayObj.occasion = null;
@@ -1163,7 +1163,7 @@ toggleSelectAll(event: any) {
   }
 
   async getAllLeaveTypes() {
-    
+
     this.sortColumn=[];
     this.sortColumnType=[];
     this.sortDirection='';
@@ -1178,16 +1178,16 @@ toggleSelectAll(event: any) {
           leaveObj.createdOn = (leaveObj.createdOn) ? moment(leaveObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           leaveObj.emp360CreatedBy = leaveObj.createdBy;
           leaveObj.emp360UpdatedBy = leaveObj.updatedBy;
-         
+
         })
-        
+
       } else {
         console.error(response.serviceResponse);
       }
     });
   }
-  
-  
+
+
   onDeleteLeaveType(template: TemplateRef<any>, alertTemplate: TemplateRef<any>) {
     this.cancelRequest();
 
@@ -1314,16 +1314,16 @@ fieldRestictCharacterForLeaveAccToDifferntEmployeeType(event) {
   const value = inputField.value;
   const k = event.charCode;
 
-  
+
   if (event.key === 'Backspace' || event.key === 'Delete' || event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
     return true;
   }
 
-  
+
   const prefixMatch = value.match(/^(A-|CS-|AP-)/);
   const digitsPart = prefixMatch ? value.replace(prefixMatch[0], '') : value;
 
-  
+
   if (digitsPart.length >= 6 && /\d/.test(String.fromCharCode(k))) {
     event.preventDefault();
     return false;
@@ -1338,15 +1338,15 @@ fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
   const value = input.value;
   const key = event.key;
 
- 
+
   // if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(key)) return;
 
- 
+
   const validPrefix = value.startsWith('A-') || value.startsWith('AP-');
   const digitsOnly = value.replace(/^A-|^AP-/, '');
 
   if (!validPrefix && value.length < 3) {
-  
+
     if (value === '' && key === 'A') return;
     if (value === 'A' && key === 'P') return;
     if (value === 'A' && key === '-') return;
@@ -1355,9 +1355,9 @@ fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
     return;
   }
 
- 
+
   if (validPrefix) {
-   
+
     if (!/^\d$/.test(key) || digitsOnly.length >= 6) {
       event.preventDefault();
     }
@@ -1392,7 +1392,7 @@ fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
     return false;
   }
 
- 
+
  if (empIdInput.startsWith('AP-')) {
     leaveObj.employeeType = "Apmosys Product";
     leaveObj.employeementId = empIdInput.substring(3);
@@ -1686,9 +1686,9 @@ fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
           leavePolicy.updatedOn = (leavePolicy.updatedOn) ? moment(leavePolicy.updatedOn).format(AppComponent.DATE_FORMAT) : null;
           leavePolicy.emp360CreatedBy =  leavePolicy.createdBy;
           leavePolicy.emp360UpdatedBy = leavePolicy.updatedBy;
-     
+
         });
-       
+
         //console.log("leavePolicyList : ", this.leavePolicyList);
       } else {
         console.error(response.serviceResponse);
@@ -1707,26 +1707,26 @@ fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
     });
   }
 
-  //pagination 
+  //pagination
 
   page = 1;
   handlePageChange(event) {
     this.page = event;
     if(this.isInclude || this.isExclude){
     this.page1 = event.pageIndex+1;
-    this.pageSize = event.pageSize;  
+    this.pageSize = event.pageSize;
     this.getAllEmployeesByDepartmentIds();}
 
   }
 
-  sortData(sort: Sort){	
+  sortData(sort: Sort){
     //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;  
-      this.sortColumn1 = sortParams[0];    
+      this.sortDirection = sort.direction;
+      this.sortColumn1 = sortParams[0];
     }
     if(this.isInclude || this.isExclude){
     this.getAllEmployeesByDepartmentIds();}
