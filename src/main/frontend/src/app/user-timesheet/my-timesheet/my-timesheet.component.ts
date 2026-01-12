@@ -615,7 +615,7 @@ get tooltipCta(): string {
     this.makeClientInTime();
     this.makeClientOutTime();
     this.getProjectListForDateAndEmpId();
-    this.resetTimesheetFormOnDateChange();
+    this.resetTimesheetFormOnDateChange('isNightShiftModal');
     console.log("after method calls ", this.fromDate);
   }
 
@@ -1523,6 +1523,14 @@ get tooltipCta(): string {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+
+    if(this.timesheetObj.isNightShift && 
+      (!this.validationService.validateNullUndefinedEmptyString(this.toDate))) {
+      this.alertMessage = "Please enter to Date !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
 
     if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.dayType)) {
       this.alertMessage = "Please select Day Type !!"
@@ -2526,6 +2534,12 @@ get tooltipCta(): string {
   cancelRequest() {
     this.modalRef?.close();
   }
+
+  confirmNightShift(value:Boolean) {
+    this.timesheetObj.isNightShift=value;
+    this.modalRef?.close();
+  }
+
 
   openTimesheetDetailsModal(template: TemplateRef<any>, timesheetObj: Timesheet) {
     this.timesheetObj = new Timesheet();
@@ -3677,7 +3691,7 @@ checkUploadEligibility() {
     this.resetTimesheetFormOnDateChange();
   }
 
-  resetTimesheetFormOnDateChange(){
+  resetTimesheetFormOnDateChange(value?:any){
     this.timeReset();
     this.toDate = null;
     this.timesheetObj.projectId = null;
@@ -3689,7 +3703,7 @@ checkUploadEligibility() {
     this.timesheetObj.officeInTime = null;
     this.timesheetObj.officeOutTime = null;
     this.timesheetObj.totalWorkingOfficeHours = null;
-    this.timesheetObj.isNightShift = null;
+    if(value!=='isNightShiftModal'){    this.timesheetObj.isNightShift = null;}
     this.timesheetObj.clientInTime = null;
     this.timesheetObj.clientOutTime = null;
     this.timesheetObj.totalClientWorkingHours = null;

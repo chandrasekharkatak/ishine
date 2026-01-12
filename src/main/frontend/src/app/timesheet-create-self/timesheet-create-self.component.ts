@@ -2098,6 +2098,13 @@ export class TimesheetCreateSelfComponent implements OnInit {
 
   }
 
+  confirmNightShift(value:Boolean) {
+    this.timesheetObj.isNightShift=value;
+    this.modalRef?.close();
+
+  }
+
+
   openTimesheetDetailsModal(template: TemplateRef<any>, timesheetObj: Timesheet) {
     this.timesheetObj = new Timesheet();
     this.timesheetObj = timesheetObj;
