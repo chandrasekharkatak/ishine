@@ -115,6 +115,16 @@ export class TimesheetFormComponent implements OnInit {
   @Input() autoFillTimesheet: boolean = false;
   activeRawObjectUrl: any;
   useApmosysTiming = false;
+
+  imageZoom = 1;
+  rotation = 0;
+  isFullscreen = false;
+
+  isDragging = false;
+  startX = 0;
+  startY = 0;
+  translateX = 0;
+  translateY = 0;
   constructor(private teamViewService: TeamViewService,
     private timesheetService: TimesheetService,
     private timesheetNewService: TimesheetNewService,
@@ -191,20 +201,21 @@ export class TimesheetFormComponent implements OnInit {
    */
   applyApmosysTiming(): void {
 
-  if (this.useApmosysTiming) {
-    this.timesheetLocations[0].logInTime = this.apmosysInTime;
-    this.timesheetLocations[0].logOutTime = this.apmosysOutTime;
-  } else {
-    // OPTION 1: Clear timings when unchecked
-    this.timesheetLocations[0].logInTime = null;
-    this.timesheetLocations[0].logOutTime = null;
+    if (this.useApmosysTiming) {
+      this.timesheetLocations[0].logInTime = this.apmosysInTime;
+      this.timesheetLocations[0].logOutTime = this.apmosysOutTime;
+      this.disableAdd = true
+    } else {
+      // OPTION 1: Clear timings when unchecked
+      this.timesheetLocations[0].logInTime = null;
+      this.timesheetLocations[0].logOutTime = null;
 
-    // OPTION 2 (alternative): Do nothing and keep previous values
-    // just remove the above two lines if you want this behavior
+      // OPTION 2 (alternative): Do nothing and keep previous values
+      // just remove the above two lines if you want this behavior
+    }
+
+    this.onHoursChange();
   }
-
-  this.onHoursChange();
-}
 
   addLocation(): void {
     this.timesheetLocations.push(this.createLocation());
@@ -514,6 +525,9 @@ export class TimesheetFormComponent implements OnInit {
               loc.projects = [this.createProject()]; // Reset to one project
               loc.projects.forEach(proj => {
                 proj.projectList = uniqueProjects;
+                if (proj.projectList.length == 1) {
+                  proj.projectId = proj.projectList[0].projectId
+                }
               });
 
             }
@@ -1065,181 +1079,206 @@ export class TimesheetFormComponent implements OnInit {
    * Handle file selection for document upload
    */
   onFileSelected(
-  event: any,
-  docType: 'Filled' | 'Approved',
-  projectId: number
-): void {
+    event: any,
+    docType: 'Filled' | 'Approved',
+    projectId: number
+  ): void {
 
-  const file: File = event.target.files?.[0];
-  if (!file) return;
+    const file: File = event.target.files?.[0];
+    if (!file) return;
 
-  const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-  const maxSize = 300 * 1024; // 300KB
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+    const maxSize = 300 * 1024; // 300KB
 
-  // ❌ Invalid type
-  if (!allowedTypes.includes(file.type)) {
-    this.handleFileError(
-      projectId,
-      docType,
-      'Only PDF, JPG, JPEG, PNG files allowed.'
+    // ❌ Invalid type
+    if (!allowedTypes.includes(file.type)) {
+      this.handleFileError(
+        projectId,
+        docType,
+        'Only PDF, JPG, JPEG, PNG files allowed.'
+      );
+      event.target.value = '';
+      return;
+    }
+
+    // ❌ Size check
+    if (file.size > maxSize) {
+      this.handleFileError(
+        projectId,
+        docType,
+        'File size must be 300KB or less.'
+      );
+      event.target.value = '';
+      return;
+    }
+
+    // ♻️ Cleanup old object URL
+    const previous = this.uploadFileList.find(
+      f => f.projectId === projectId && f.docType === docType
     );
-    event.target.value = '';
-    return;
+
+    if (previous?.rawObjectUrl) {
+      URL.revokeObjectURL(previous.rawObjectUrl);
+    }
+
+    // ✅ Detect file type ONCE
+    const fileType: 'pdf' | 'image' =
+      file.type === 'application/pdf' ? 'pdf' : 'image';
+
+    // ✅ Create object URL
+    const objectUrl = URL.createObjectURL(file);
+
+    // ✅ IMPORTANT: Use correct sanitizer
+    const previewUrl =
+      fileType === 'pdf'
+        ? this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl)
+        : this.sanitizer.bypassSecurityTrustUrl(objectUrl);
+
+    // ✅ Update entry
+    this.updateUploadFile(projectId, docType, {
+      file,
+      previewUrl,
+      rawObjectUrl: objectUrl,
+      fileType,
+      fileName: file.name,
+      fileSize: file.size,
+      fileError: null
+    });
   }
 
-  // ❌ Size check
-  if (file.size > maxSize) {
-    this.handleFileError(
-      projectId,
-      docType,
-      'File size must be 300KB or less.'
+
+  private handleFileError(
+    projectId: number,
+    docType: 'Filled' | 'Approved',
+    message: string
+  ): void {
+    this.updateUploadFile(projectId, docType, {
+      file: null,
+      previewUrl: null,
+      rawObjectUrl: null,
+      fileType: null,
+      fileName: null,
+      fileSize: null,
+      fileError: message
+    });
+
+    this.openAlertMod(this.alertTemplate, message);
+  }
+
+
+  updateUploadFile(
+    projectId: number,
+    docType: 'Filled' | 'Approved',
+    data: Partial<{
+      file: File | null;
+      previewUrl: SafeResourceUrl | null;
+      rawObjectUrl: string | null;
+      fileName: string | null;
+      fileSize: number | null;
+      fileError: string | null;
+      fileType: 'pdf' | 'image' | null;
+    }>
+  ): void {
+
+    const index = this.uploadFileList.findIndex(
+      f => f.projectId === projectId && f.docType === docType
     );
-    event.target.value = '';
-    return;
+
+    if (index === -1) return;
+
+    this.uploadFileList[index] = {
+      ...this.uploadFileList[index],
+      ...data
+    };
   }
 
-  // ♻️ Cleanup old object URL
-  const previous = this.uploadFileList.find(
-    f => f.projectId === projectId && f.docType === docType
-  );
 
-  if (previous?.rawObjectUrl) {
-    URL.revokeObjectURL(previous.rawObjectUrl);
+
+
+
+  downloadImage(fileName = 'image-preview'): void {
+    // Ensure we have a raw object URL
+    if (!this.activeRawObjectUrl || this.activeFileType !== 'image') return;
+
+    const link = document.createElement('a');
+    link.href = this.activeRawObjectUrl;
+    link.download = fileName;
+    link.click();
   }
 
-  // ✅ Detect file type ONCE
-  const fileType: 'pdf' | 'image' =
-    file.type === 'application/pdf' ? 'pdf' : 'image';
-
-  // ✅ Create object URL
-  const objectUrl = URL.createObjectURL(file);
-
-  // ✅ IMPORTANT: Use correct sanitizer
-  const previewUrl =
-    fileType === 'pdf'
-      ? this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl)
-      : this.sanitizer.bypassSecurityTrustUrl(objectUrl);
-
-  // ✅ Update entry
-  this.updateUploadFile(projectId, docType, {
-    file,
-    previewUrl,
-    rawObjectUrl: objectUrl,
-    fileType,
-    fileName: file.name,
-    fileSize: file.size,
-    fileError: null
-  });
-}
 
 
-private handleFileError(
-  projectId: number,
-  docType: 'Filled' | 'Approved',
-  message: string
-): void {
-  this.updateUploadFile(projectId, docType, {
-    file: null,
-    previewUrl: null,
-    rawObjectUrl: null,
-    fileType: null,
-    fileName: null,
-    fileSize: null,
-    fileError: message
-  });
-
-  this.openAlertMod(this.alertTemplate, message);
-}
-
-
- updateUploadFile(
-  projectId: number,
-  docType: 'Filled' | 'Approved',
-  data: Partial<{
-    file: File | null;
-    previewUrl: SafeResourceUrl | null;
-    rawObjectUrl: string | null;
-    fileName: string | null;
-    fileSize: number | null;
-    fileError: string | null;
-    fileType: 'pdf' | 'image' | null;
-  }>
-): void {
-
-  const index = this.uploadFileList.findIndex(
-    f => f.projectId === projectId && f.docType === docType
-  );
-
-  if (index === -1) return;
-
-  this.uploadFileList[index] = {
-    ...this.uploadFileList[index],
-    ...data
-  };
-}
-
-
-
- imageZoom = 1;
-
-zoomIn(): void {
-  this.imageZoom = Math.min(this.imageZoom + 0.2, 3);
-}
-
-zoomOut(): void {
-  this.imageZoom = Math.max(this.imageZoom - 0.2, 0.5);
-}
-
-resetZoom(): void {
-  this.imageZoom = 1;
-}
-
-downloadImage(fileName = 'image-preview'): void {
-  // Ensure we have a raw object URL
-  if (!this.activeRawObjectUrl || this.activeFileType !== 'image') return;
-
-  const link = document.createElement('a');
-  link.href = this.activeRawObjectUrl;
-  link.download = fileName;
-  link.click();
-}
-
-
-              
   /**
    * Open preview modal for uploaded file
    */
-  // openPreviewModalForTwo(file: any): void {
-  //   console.log("file in preview", file);
-  //   this.activePreviewUrl = null;
-  //   this.activeFileType = null;
-  //   this.activePreviewUrl =  file.previewUrl;
-  //   this.activeFileType = file?.type === 'application/pdf' ? 'pdf' : 'image';
+  openPreviewModalForTwo(file: any): void {
+    if (!file?.previewUrl || !file?.fileType) return;
 
-  //   this.modalRef = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-lg' });
-  // }
+    this.activePreviewUrl = file.previewUrl;
+    this.activeFileType = file.fileType;
+    this.activeRawObjectUrl = file.rawObjectUrl;
 
- openPreviewModalForTwo(
-  file: any
-): void {
+    this.resetTransformations();
 
-  console.log("file in preview", file);
-  if (!file?.previewUrl || !file?.fileType) return;
-
-  this.activePreviewUrl = file.previewUrl;
-  this.activeFileType = file.fileType;
-  this.activeRawObjectUrl = file.rawObjectUrl;
-  if (this.activeFileType === 'image') {
-    this.imageZoom = 1;
+    this.modalRef = this.modalService.open(this.previewModal, {
+      modalDialogClass: 'modal-lg',
+      scrollable: true
+    });
   }
 
-  this.modalRef = this.modalService.open(
-    this.previewModal,
-    { modalDialogClass: 'modal-lg' }
-  );
-}
+  get imageTransform(): string {
+    return `
+    translate(-50%, -50%)
+    translate(${this.translateX}px, ${this.translateY}px)
+    scale(${this.imageZoom})
+    rotate(${this.rotation}deg)
+  `;
+  }
 
 
+  resetTransformations(): void {
+    this.imageZoom = 1;
+    this.rotation = 0;
+    this.translateX = 0;
+    this.translateY = 0;
+  }
+
+  /* ---------- ZOOM ---------- */
+  zoomIn(): void {
+    this.imageZoom = Math.min(this.imageZoom + 0.2, 5);
+  }
+
+  zoomOut(): void {
+    this.imageZoom = Math.max(this.imageZoom - 0.2, 0.5);
+  }
+
+  /* ---------- ROTATE ---------- */
+  rotate(): void {
+    this.rotation = (this.rotation + 90) % 360;
+  }
+
+  /* ---------- PAN (DRAG) ---------- */
+  startDrag(event: MouseEvent): void {
+    this.isDragging = true;
+    this.startX = event.clientX - this.translateX;
+    this.startY = event.clientY - this.translateY;
+  }
+
+  onDrag(event: MouseEvent): void {
+    if (!this.isDragging) return;
+
+    this.translateX = event.clientX - this.startX;
+    this.translateY = event.clientY - this.startY;
+  }
+
+  stopDrag(): void {
+    this.isDragging = false;
+  }
+
+  /* ---------- FULLSCREEN ---------- */
+  toggleFullscreen(): void {
+    this.isFullscreen = !this.isFullscreen;
+  }
 
   /**
    * Show preview for base64 data (for existing documents)
@@ -1295,14 +1334,6 @@ downloadImage(fileName = 'image-preview'): void {
     //   });
   }
 
-  // Format date for display (e.g., "Oct 24, 2023")
-  // getFormattedDate(): string {
-  //   if (!this.fromDate) return '';
-  //   const date = this.parseDDMMYYYY(this.fromDate);
-  //   if (!date) return '';
-  //   return moment(date).format('MMM DD, YYYY');
-  // }
-
   getFormattedDateRange(): string {
     if (!this.fromDate) return '';
 
@@ -1328,14 +1359,6 @@ downloadImage(fileName = 'image-preview'): void {
     return `${moment(from).format('MMM DD, YYYY')} - ${moment(to).format('MMM DD, YYYY')}`;
   }
 
-
-  // Get day name (e.g., "Thursday")
-  // getDayName(): string {
-  //   if (!this.fromDate) return '';
-  //   const date = this.parseDDMMYYYY(this.fromDate);
-  //   if (!date) return '';
-  //   return moment(date).format('dddd');
-  // }
 
   getDayRange(): string {
     if (!this.fromDate) return '';
@@ -1382,129 +1405,133 @@ downloadImage(fileName = 'image-preview'): void {
   //   let dataList : Map<number, ProjectEntry> = new Map<number, ProjectEntry>();
 
   calculateTotalWorkingHoursForLocation(
-  location: LocationEntry,
-  fromDate: string,          // dd-MM-yyyy (required)
-  toDate?: string            // dd-MM-yyyy (required ONLY for night shift)
-): number {
+    location: LocationEntry,
+    fromDate: string,          // dd-MM-yyyy (required)
+    toDate?: string            // dd-MM-yyyy (required ONLY for night shift)
+  ): number {
 
-  if (!location?.logInTime || !location?.logOutTime || !fromDate || location.logInTime.trim() === '' || location.logOutTime.trim() === '') {
-    return 0;
-  }
-
-  // ❌ Night shift but no toDate
-  if (this.isNightShift && !toDate) {
-    console.warn('toDate is required for night shift');
-    return 0;
-  }
-
-  try {
-    // ---------- Helpers ----------
-    const parseDate = (dateStr: string) => {
-      const [day, month, year] = dateStr.split('-').map(Number);
-      return { day, month, year };
-    };
-
-    const parseTime = (timeStr: string) => {
-      const [time, meridian] = timeStr.trim().split(' ');
-      const [hh, mm] = time.split(':').map(Number);
-
-      let hours = hh;
-      if (meridian === 'PM' && hh !== 12) hours += 12;
-      if (meridian === 'AM' && hh === 12) hours = 0;
-
-      return { hours, minutes: mm };
-    };
-
-    // ---------- Dates ----------
-    const startDate = parseDate(fromDate);
-    const endDate = this.isNightShift && toDate
-      ? parseDate(toDate)
-      : parseDate(fromDate); // same-day if not night shift
-
-    // ---------- Times ----------
-    const inTime = parseTime(location.logInTime);
-    const outTime = parseTime(location.logOutTime);
-
-    // ---------- DateTime Objects ----------
-    const inDateTime = new Date(
-      startDate.year,
-      startDate.month - 1,
-      startDate.day,
-      inTime.hours,
-      inTime.minutes,
-      0,
-      0
-    );
-
-    const outDateTime = new Date(
-      endDate.year,
-      endDate.month - 1,
-      endDate.day,
-      outTime.hours,
-      outTime.minutes,
-      0,
-      0
-    );
-
-    // ❌ Invalid interval
-    if (outDateTime.getTime() < inDateTime.getTime()) {
-      console.warn('Invalid date-time range');
+    if (!location?.logInTime || !location?.logOutTime || !fromDate || location.logInTime.trim() === '' || location.logOutTime.trim() === '') {
       return 0;
     }
 
-    // ---------- Calculate ----------
-    const diffMs = outDateTime.getTime() - inDateTime.getTime();
-    const totalHours = diffMs / (1000 * 60 * 60);
+    // ❌ Night shift but no toDate
+    if (this.isNightShift && !toDate) {
+      console.warn('toDate is required for night shift');
+      return 0;
+    }
 
-    return Math.round(totalHours * 100) / 100;
+    try {
+      // ---------- Helpers ----------
+      const parseDate = (dateStr: string) => {
+        const [day, month, year] = dateStr.split('-').map(Number);
+        return { day, month, year };
+      };
 
-  } catch (error) {
-    console.error('Error calculating working hours', error);
-    return 0;
+      const parseTime = (timeStr: string) => {
+        const [time, meridian] = timeStr.trim().split(' ');
+        const [hh, mm] = time.split(':').map(Number);
+
+        let hours = hh;
+        if (meridian === 'PM' && hh !== 12) hours += 12;
+        if (meridian === 'AM' && hh === 12) hours = 0;
+
+        return { hours, minutes: mm };
+      };
+
+      // ---------- Dates ----------
+      const startDate = parseDate(fromDate);
+      const endDate = this.isNightShift && toDate
+        ? parseDate(toDate)
+        : parseDate(fromDate); // same-day if not night shift
+
+      // ---------- Times ----------
+      const inTime = parseTime(location.logInTime);
+      const outTime = parseTime(location.logOutTime);
+
+      // ---------- DateTime Objects ----------
+      const inDateTime = new Date(
+        startDate.year,
+        startDate.month - 1,
+        startDate.day,
+        inTime.hours,
+        inTime.minutes,
+        0,
+        0
+      );
+
+      const outDateTime = new Date(
+        endDate.year,
+        endDate.month - 1,
+        endDate.day,
+        outTime.hours,
+        outTime.minutes,
+        0,
+        0
+      );
+
+      // ❌ Invalid interval
+      if (outDateTime.getTime() < inDateTime.getTime()) {
+        console.warn('Invalid date-time range');
+        return 0;
+      }
+
+      // ---------- Calculate ----------
+      const diffMs = outDateTime.getTime() - inDateTime.getTime();
+      const totalHours = diffMs / (1000 * 60 * 60);
+
+      return Math.round(totalHours * 100) / 100;
+
+    } catch (error) {
+      console.error('Error calculating working hours', error);
+      return 0;
+    }
   }
-}
 
   onHoursChange() {
     let allProjTotalHours = 0;
-      let allLocationHours = 0;
+    let allLocationHours = 0;
     this.timesheetLocations.forEach(location => {
-      location.totalWorkingHours = this.calculateTotalWorkingHoursForLocation(location,this.fromDate!, this.toDate);
+      location.totalWorkingHours = this.calculateTotalWorkingHoursForLocation(location, this.fromDate!, this.toDate);
       console.log("Location working hours calculated:", location.totalWorkingHours);
-      allLocationHours += location.totalWorkingHours; 
+      allLocationHours += location.totalWorkingHours;
       location.projects.forEach(proj => {
-          let totalHours = 0;
-          proj.activities.forEach(activity => {
-            totalHours += activity.completionTime;
-          });
-          proj.totalWorkingHours = totalHours;
+        let totalHours = 0;
+        proj.activities.forEach(activity => {
+          totalHours += activity.completionTime;
+        });
+        proj.totalWorkingHours = totalHours;
         allProjTotalHours += proj.totalWorkingHours;
       });
-      if(location.totalWorkingHours < allProjTotalHours){
+      if (location.totalWorkingHours < allProjTotalHours) {
         console.log(allProjTotalHours, "allProjTotalHours");
         console.log(location.totalWorkingHours, "location.totalWorkingHours");
         this.openAlertMod(this.alertTemplate, "Total working hours for location cannot be less than sum of project working hours.");
         this.makeAllTimeZero('project');
-      }else if(allLocationHours > this.totalPresence){
+      } else if (allLocationHours > this.totalPresence) {
         this.openAlertMod(this.alertTemplate, "Total working hours for all locations cannot be more than total presence hours.");
         this.makeAllTimeZero('location');
       }
     });
   }
 
-  makeAllTimeZero(level: 'project' | 'location' ): void {
+  makeAllTimeZero(level: 'project' | 'location'): void {
 
     if (level == 'project') {
       this.timesheetLocations.forEach(location => {
         location.projects.forEach(proj => {
           proj.totalWorkingHours = 0;
-          proj.activities = [this.createActivity()];
+          proj.activities.forEach(activity =>{
+            activity.completionTime = 0
+          });
         });
       });
     }
     else if (level == 'location') {
       this.timesheetLocations.forEach(location => {
         location.projects.forEach(proj => {
-          proj.activities = [this.createActivity()];
+          proj.activities.forEach(activity =>{
+            activity.completionTime = 0
+          });
           proj.totalWorkingHours = 0;
         });
         location.totalWorkingHours = 0;
@@ -1574,12 +1601,6 @@ downloadImage(fileName = 'image-preview'): void {
       }
     })
   }
-  // onClientApprovalStatusChange(clientApprovalStatus: any, project: ProjectEntry) {
-  //   console.log("Client approval status changed to", clientApprovalStatus);
-  //   console.log("Before change:", project);
-  //   project.clientApprovalStatus = clientApprovalStatus;
-  //   return project;
-  // }
   getAllWorkLocationFromLocationMaster() {
     this.timesheetNewService.getAllWorkLocation().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
