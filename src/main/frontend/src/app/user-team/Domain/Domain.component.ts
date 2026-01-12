@@ -46,7 +46,7 @@ export class DomainComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   openDomainModal() {

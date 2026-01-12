@@ -991,13 +991,13 @@ export class AppreciationComponent implements OnInit {
           this.appreciationColorMap[score] = this.colorPalette[idx % this.colorPalette.length];
         });
       }
-    
 
 
 
 
 
-  
+
+
       else {
   console.error(response.serviceResponse);
 }
@@ -1365,7 +1365,7 @@ openPreviewDocument(template: TemplateRef<any>) {
 }
 
 cancelRequest() {
-  this.modalRef.close();
+  this.modalRef?.close();
 }
 
 page = 1;

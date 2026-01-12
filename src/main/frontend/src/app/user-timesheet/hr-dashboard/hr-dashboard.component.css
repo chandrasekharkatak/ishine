@@ -832,18 +832,27 @@ h5 {
   transition: all 0.3s ease-in-out;
   cursor: pointer;
   position: relative;
-      padding: 1rem;
+    padding: 1.5rem 1rem 1rem 1rem;
     border-radius: 0.5rem;
     text-align: center;
     margin-left: 10px;
     min-height: 135px;
     min-width: 100%;
+     z-index: 1;
+}
+
+.tile-info-icon {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
 }
 
 .metric-tile:hover {
   transform: translateY(-6px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
   border-left-width: 8px;
+   z-index: 50;
 }
 
 .tile-header {
@@ -1054,20 +1063,22 @@ h5 {
 
 /* Optional: Add a checkmark indicator for selected tile */
 .selected-tile::after {
-  content: '✓';
+  content: "✓";
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 5px;
+  right: 5px;
   background: #007bff;
   color: white;
   width: 20px;
   height: 20px;
   border-radius: 50%;
+  font-size: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  /* Ensure it stays on top */
+  z-index: 3;
 }
 
 /* Styling for expand/collapse button */

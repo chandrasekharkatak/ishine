@@ -19,7 +19,7 @@ export class InformationPreviewComponent implements OnInit {
   currentEmployeeInfo:Employee = new Employee();
   @Output() previewSubmit:EventEmitter<any> = new EventEmitter<any>();
 
-  //modal 
+  //modal
   alertMessage: any;
   modalRef:NgbModalRef;
 
@@ -39,7 +39,7 @@ export class InformationPreviewComponent implements OnInit {
 
   validateEmployeeObj(employeeObj:Employee, template: TemplateRef<any>){
 
-    
+
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.viewsOnOrganisation)){
       this.alertMessage = "Please enter your view on organisation !!";
       this.openAlertMod(template, this.alertMessage);
@@ -55,7 +55,7 @@ export class InformationPreviewComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    
+
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.gender)){
       this.alertMessage = "Please select gender !!"
       this.openAlertMod(template, this.alertMessage);
@@ -83,9 +83,9 @@ export class InformationPreviewComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
       return false;
      } else if (this.validationService.validateBloodGroup(employeeObj.bloodGroup) && !this.validationService.validateBloodGroup(employeeObj.bloodGroup)) {
-      this.alertMessage = "Please enter Valid Blood Group !!"	
-      this.openAlertMod(template, this.alertMessage);	
-      return false;	
+      this.alertMessage = "Please enter Valid Blood Group !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.maritalStatus)){
@@ -120,7 +120,7 @@ export class InformationPreviewComponent implements OnInit {
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-      
+
     }
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.fatherName)){
@@ -202,7 +202,7 @@ export class InformationPreviewComponent implements OnInit {
     //   this.alertMessage = "Please enter valid mobile number !!"
     //   this.openAlertMod(template, this.alertMessage);
     //   return false;
-    // } 
+    // }
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.address)){
       this.alertMessage = "Please enter Current Address !!"
@@ -258,7 +258,7 @@ export class InformationPreviewComponent implements OnInit {
     //   this.alertMessage = "Please enter valid alternate mobile number !!"
     //   this.openAlertMod(template, this.alertMessage);
     //   return false;
-    // } 
+    // }
 
     if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.permanentAddress)){
       this.alertMessage = "Please enter permanent address !!"
@@ -315,15 +315,15 @@ export class InformationPreviewComponent implements OnInit {
         return false;
       }
     }
-   
 
-   
+
+
       if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.passingGrade)){
         this.alertMessage = "Please Enter Passing Grade !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-    
+
 
 
     // if(!this.validationService.validateNullUndefinedEmptyString(employeeObj.experience)){
@@ -410,21 +410,21 @@ export class InformationPreviewComponent implements OnInit {
               prevFlag = false;
               return;
             }
-        
+
             if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.dateOfJoining)){
               this.alertMessage = `Please Enter Date of Joining - ${index+1}!!`
               this.openAlertMod(template, this.alertMessage);
               prevFlag = false;
               return;
             }
-        
+
             if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.dateOfRelieving)){
               this.alertMessage = `Please Enter Date of Relieving - ${index+1}!!`
               this.openAlertMod(template, this.alertMessage);
               prevFlag = false;
               return;
             }
-      
+
             if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.yearsOfExperience)){
               this.alertMessage = `Please Enter Years of Experience - ${index+1}!!`
               this.openAlertMod(template, this.alertMessage);
@@ -434,14 +434,14 @@ export class InformationPreviewComponent implements OnInit {
 				this.alertMessage = `Please Enter valid Years of Experience - ${index+1}!!`
               	this.openAlertMod(template, this.alertMessage);
               	prevFlag = false;
-              	return;	
+              	return;
             }if (previousEmployer.yearsOfExperience > 60) {
               this.alertMessage = `Please Enter value 1 to 60(yrs) in Years of Experience - ${index+1}!!`
               this.openAlertMod(template, this.alertMessage);
               prevFlag = false;
               return;
             }
-            
+
             if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.designation)){
               this.alertMessage = `Please Enter Designation - ${index+1}!!`
               this.openAlertMod(template, this.alertMessage);
@@ -465,7 +465,7 @@ export class InformationPreviewComponent implements OnInit {
               prevFlag = false;
               return;
             }
-      
+
             if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.managerContactNumber)){
               this.alertMessage = `Please Enter Manager Contact Number - ${index+1}!!`
               this.openAlertMod(template, this.alertMessage);
@@ -477,7 +477,7 @@ export class InformationPreviewComponent implements OnInit {
               prevFlag = false;
               return;
             }
-      
+
             if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.hrName)){
               this.alertMessage = `Please Enter HR Name - ${index+1}!!`
               this.openAlertMod(template, this.alertMessage);
@@ -489,7 +489,7 @@ export class InformationPreviewComponent implements OnInit {
               prevFlag = false;
               return;
             }
-      
+
             if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.hrContactNumber)){
               this.alertMessage = `Please Enter HR Contact Number - ${index+1}!!`
               this.openAlertMod(template, this.alertMessage);
@@ -561,7 +561,7 @@ export class InformationPreviewComponent implements OnInit {
     // Documents
     let docFlag = true;
     employeeObj.documentList.forEach((doc:Document) => {
-      if(!docFlag) return;  
+      if(!docFlag) return;
       if(doc.documentName == null){
         this.alertMessage = `Please Upload ${doc.documentType} !!`
         this.openAlertMod(template, this.alertMessage);
@@ -582,7 +582,7 @@ export class InformationPreviewComponent implements OnInit {
     if (!inputValidated) return;
     const response:any = await this.updateUserInfoService.updateEmployeeInfo();
     //console.log("onUpdate --> Preview : ", response);
-    
+
     if (response.serviceStatus == "Success") {
       this.openAlertMod(template, "Profile Updated Pending For Approval");
       //console.log(response.serviceResponse);
@@ -591,7 +591,7 @@ export class InformationPreviewComponent implements OnInit {
       console.error(response.serviceResponse);
     }
   }
-  
+
 
 
   // modals
@@ -601,7 +601,7 @@ export class InformationPreviewComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
 }

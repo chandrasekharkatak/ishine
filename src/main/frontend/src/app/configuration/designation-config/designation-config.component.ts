@@ -50,7 +50,7 @@ export class DesignationConfigComponent implements OnInit {
   filters:any = {};
   isSearchEnabled:boolean = false;
   designationColumns:any[] = ['blank','designationName','createdByName','createdOn','updatedOn','updatedByName','blank'];
-  wasAllSelected:boolean = false; 
+  wasAllSelected:boolean = false;
   employeesFor360: any[] = [];
 
   constructor(
@@ -66,7 +66,7 @@ export class DesignationConfigComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-   
+
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -197,7 +197,7 @@ export class DesignationConfigComponent implements OnInit {
           designation.emp360CreatedBy =designation.createdBy;
           designation.emp360UpdatedBy =designation.updatedBy;
         });
-       
+
         // console.log("allDesignationList : ", this.allDesignationList);
       } else {
         console.error(response.serviceResponse)
@@ -270,7 +270,7 @@ export class DesignationConfigComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   //Export Excel

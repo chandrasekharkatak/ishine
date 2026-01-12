@@ -1055,7 +1055,7 @@ public class AuthenticationService {
 	        Long otpDiff = ChronoUnit.MINUTES.between(employee.getOtpUpdatedOn(), LocalDateTime.now());
 	        if (otpDiff < otpTimeoutPeriod) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("Previous OTP has not expired yet, Please wait for a minuite.");
+	            response.setServiceResponse("Previous OTP is still valid. Please wait 1 minute.");
 	            apiLogInfo.setApiResponse("OTP expired");
 	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 	            return response;

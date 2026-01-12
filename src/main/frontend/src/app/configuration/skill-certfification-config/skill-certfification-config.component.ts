@@ -91,7 +91,7 @@ export class SkillCertfificationConfigComponent implements OnInit {
   errorMessages: string[] = [];
   onSkillCertficateFileSelect(template: TemplateRef<any>) {
     if (!this.file) {
-      this.modalRef.close();
+      this.modalRef?.close();
       return;
     }
 
@@ -133,7 +133,7 @@ export class SkillCertfificationConfigComponent implements OnInit {
       //     this.file = null;
     }
 
-    this.modalRef.close();
+    this.modalRef?.close();
     this.resetFileInput();
 
 
@@ -179,7 +179,7 @@ export class SkillCertfificationConfigComponent implements OnInit {
 
 
   closeInvalidFileModal() {
-    this.invalidModalRef.close();
+    this.invalidModalRef?.close();
   }
 
 
@@ -196,16 +196,16 @@ export class SkillCertfificationConfigComponent implements OnInit {
   }
 
   closeErrorModal() {
-    this.errorModalRef.close();
+    this.errorModalRef?.close();
   }
 
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   cancelUpload() {
-    this.confirmModalRef.close();
+    this.confirmModalRef?.close();
     this.resetFileInput();
 
   }

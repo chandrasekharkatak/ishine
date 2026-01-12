@@ -33,7 +33,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
 
   currentUser: User;
 
-  @ViewChild('fileInput') fileInput!: ElementRef; 
+  @ViewChild('fileInput') fileInput!: ElementRef;
   file: File | null = null;
 
 
@@ -83,7 +83,7 @@ export class RewardsAndRecognisationComponent implements OnInit {
   ofmonthyear: any;
   ofMonthYear: any;
   editRewardssss: Rewards = new Rewards();
- 
+
   feature = "Rewards";
   annuallyreward: Date;
 
@@ -177,7 +177,7 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
   //         const firstReward = this.rewards[0];
   //         if (firstReward) {
   //           this.isTeam = firstReward.isTeam;
-  //           this.setSelectedReward(firstReward); 
+  //           this.setSelectedReward(firstReward);
   //         }
   //       } else {
   //         this.openAlertMod(template, 'No rewards found for the selected category.');
@@ -210,7 +210,7 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
         const firstReward = this.rewards[0];
         if (firstReward) {
           this.isTeam = firstReward.isTeam;
-          this.setSelectedReward(firstReward); 
+          this.setSelectedReward(firstReward);
         }
       } else {
         this.openAlertMod(template, 'No rewards found for the selected category.');
@@ -265,7 +265,7 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   rewardsHistoryfun() {
@@ -319,7 +319,7 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
 
   submitRewardForEmployees(template: TemplateRef<any>) {
     if (!this.sumbitRewards) {
-    this.sumbitRewards = new Rewards();  
+    this.sumbitRewards = new Rewards();
   }
   this.sumbitRewards.remark = this.remarks;
   this.sumbitRewards.isActive = 1;
@@ -334,7 +334,7 @@ wallOfFameQuarters: { quarter: string, year: number | null }[] = [
   if (!this.validateRewardsWhileSubmit(template)) {
     return; // Stop execution if validation fails
   }
-  const hasAdmin = this.employees?.some(emp => 
+  const hasAdmin = this.employees?.some(emp =>
   emp.employeeNameForReward?.toLowerCase().includes('admin')
 );
 
@@ -502,7 +502,7 @@ if (hasAdmin) {
     this.remarks = '';
     this.selectedReward = null;
     this.isEditing = false;
-    //  this.activeCategoryId = 
+    //  this.activeCategoryId =
     if (this.rewardsCategories && this.rewardsCategories.length > 0) {
       this.activeCategoryId = this.rewardsCategories[0].rewardCategoryId;
     }
@@ -525,7 +525,7 @@ if (hasAdmin) {
 
   removeMonthYear(index: number,template: TemplateRef<any>) {
     if (this.wallOfFameMonths.length > 1) {
-      this.wallOfFameMonths.splice(index, 1); 
+      this.wallOfFameMonths.splice(index, 1);
     } else {
       this.openAlertMod(template,'At least one month-year must be selected.');
     }
@@ -611,10 +611,10 @@ if (hasAdmin) {
   }
 
   get isFormValid(): boolean {
-   
+
     const hasEmpty = this.wallOfFameMonths.some(monthYear => !monthYear.trim());
 
-   
+
     const hasDuplicates = this.wallOfFameMonths.some((month, index) =>
         this.wallOfFameMonths.indexOf(month) !== index && month !== ''
     );
@@ -640,13 +640,13 @@ if (hasAdmin) {
 
   bulkEnable(template: TemplateRef<any>) {
 
-   
+
 
     const isAnyEmpty = this.wallOfFameMonths.some(monthYear => !monthYear.trim());
 
     if (this.wallOfFameMonths.length === 0 || isAnyEmpty) {
       this.openAlertMod(template, 'Please select at least one Month-Year before proceeding.');
-      return; 
+      return;
   }
 
   if (!this.isFormValid) {
@@ -687,7 +687,7 @@ removeQuarter(index: number) {
   const isInvalid = this.wallOfFameQuarters.some(q => !q.quarter || !q.year);
   if (this.wallOfFameQuarters.length === 0 || isInvalid) {
     this.openAlertMod(template, 'Please select at least one valid Quarter and Year before proceeding.');
-    return; 
+    return;
   }
   const payload = {
     ofMonthYears: this.wallOfFameQuarters.map(q => `${q.quarter} ${q.year}`)
@@ -829,7 +829,7 @@ removeQuarter(index: number) {
 
     XLSX.writeFile(wb, 'Reward_Data_Template.xlsx');
   }
-  
+
 
   expectedHeaders = ['Employee Id', 'Employee Name', 'Reward Category', 'Reward Type Name', 'Of Month-Year', 'Remarks'];
   validateHeaders(uploadedHeaders: string[]): boolean {
@@ -838,14 +838,14 @@ removeQuarter(index: number) {
 
   clearFileInput() {
     if (this.fileInput) {
-      this.fileInput.nativeElement.value = ''; 
+      this.fileInput.nativeElement.value = '';
     }
   }
 
 
-  
+
   onRewardFileSelect(event: any, template: TemplateRef<any>) {
-    
+
     const uploadedFiles = event.target.files;
     console.log("uploadedFiles ", uploadedFiles);
     this.file = uploadedFiles[0];
@@ -870,7 +870,7 @@ removeQuarter(index: number) {
           this.clearFileInput();
         });
     }
-  
+
 
 
 
@@ -1009,7 +1009,7 @@ quarterYear: string = '';
 
 onQuarterChange(event: any): void {
   this.selectedQuarter = event.target.value;
-  this.updateQuarterlyMonthYear(); 
+  this.updateQuarterlyMonthYear();
 }
 
 onQuarterYearChange(event: any): void {
@@ -1044,7 +1044,7 @@ getMonthYearDisplay(ofmonthyear: string): string {
   return ofmonthyear;
 }
 // onEnableQuarterClick() {
-  
+
 //   const payload={
 //     ofMonthYear:this.ofmonthyear
 //   };
@@ -1065,7 +1065,7 @@ getMonthYearDisplay(ofmonthyear: string): string {
 //   });
 // }
 onEnableQuarterClick(template: TemplateRef<any>) {
-  
+
   if (!this.selectedQuarter || !this.quarterYear) {
     this.openAlertMod(template, 'Please select both Quarter and Year before enabling.');
     return;
@@ -1073,11 +1073,11 @@ onEnableQuarterClick(template: TemplateRef<any>) {
 
   const payload = {
     ofMonthYear: this.ofmonthyear,
-    enableOnly: true 
+    enableOnly: true
   };
-  
+
   console.log(this.ofmonthyear, "++++++++++++++++++++++++++++++++++++");
-  
+
   this.rewardsService.isEnableQuarter(payload).subscribe({
     next: (response: any) => {
       console.log('Enable Quarter Response:', response);
@@ -1094,4 +1094,3 @@ onEnableQuarterClick(template: TemplateRef<any>) {
   });
 }
   }
-  

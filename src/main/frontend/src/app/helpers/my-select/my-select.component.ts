@@ -47,10 +47,10 @@ export class MySelectComponent implements ControlValueAccessor, OnInit {
   // Called when selection changes
   onSelectionChange(value: any): void {
     this.selectedValue = value;
-    this.selectionChange.emit(this.sort(value));
-    this.change.emit(this.sort(value));
     this.onChange(value);
     this.onTouched();
+    this.selectionChange.emit(this.sort(value));
+    this.change.emit(this.sort(value));
   }
 
   sort(value: any) {
@@ -104,10 +104,10 @@ export class MySelectComponent implements ControlValueAccessor, OnInit {
     }
 
   // Emit selection change
-  this.selectionChange?.emit(this.selectedValue);
-  this.change?.emit(this.sort(this.selectedValue));
   this.onChange(this.selectedValue);
   this.onTouched();
+  this.selectionChange?.emit(this.selectedValue);
+  this.change?.emit(this.sort(this.selectedValue));
 }
 
 isAllSelected(): boolean {
@@ -189,6 +189,4 @@ getDisplayText(option: any): string {
   // If it's a single key
   return this.displayKey ? option[this.displayKey] ?? '' : option;
 }
-
-  
 }

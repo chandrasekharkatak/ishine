@@ -67,7 +67,7 @@ sectionViewInit(){
     this.showNonPublishedQueryTable();
   } else if (this.userMapping.published) {
     this.showPublishedTable();
-  } 
+  }
 }
 
 reset(){
@@ -110,7 +110,7 @@ showUpdateForm(query){
 
   createQuery(query,template : TemplateRef<any>){
     //console.log(query,"hii");
-  
+
     let queryObj = new QueryTable();
     queryObj.queryName = query.queryName;
     queryObj.query = query.query;
@@ -151,7 +151,7 @@ showUpdateForm(query){
     queryobj.queryId = query.queryId
     queryobj.queryName = query.queryName;
     queryobj.query = query.query;
-    
+
     this.queryService.deleteQuery(queryobj).pipe(first()).subscribe((response : any)=>{
       if(response.serviceStatus == "Success"){
         this.openAlertMod(template , response.serviceResponse);
@@ -201,9 +201,9 @@ showUpdateForm(query){
     let query = new QueryTable();
     query.query = this.queryObj.query;
     this.queryService.getQueryDataForPreview(query).pipe(first()).subscribe((response: any) => {
-      
+
         if(response.serviceStatus == "Success"){
-        this.headers = response.serviceResponse[0]; 
+        this.headers = response.serviceResponse[0];
         //console.log("headers ",this.headers)
         this.previewQueryResult = response.serviceResponse.slice(1);
         //console.log("preview Query data ", this.previewQueryResult);
@@ -251,7 +251,7 @@ showUpdateForm(query){
 
   openPreviewModal(template:TemplateRef<any> , query){
     this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
-    this.queryObj = query; 
+    this.queryObj = query;
     this.getQueryDataForPreview(template);
   }
 
@@ -262,7 +262,7 @@ showUpdateForm(query){
   }
 
   cancelRequest(){
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   page = 1;

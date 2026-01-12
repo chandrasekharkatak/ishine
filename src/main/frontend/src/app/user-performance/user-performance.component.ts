@@ -92,8 +92,8 @@ export class UserPerformanceComponent implements OnInit {
   hodRemarks: any;
   quarterId: any;
   rewardsCount:any;
-  appreciationCount:any; 
-  
+  appreciationCount:any;
+
   appreciationAndRewardsCount:AppreciationAndRewardsCount=new AppreciationAndRewardsCount();
   departmentData: any[] = [
     // { department: 'HR', TotalNumberofemp: 10, ratinggivenbymanager: 7, pendingratinggivenbymanager: 3, managerName: 'Saxena' },
@@ -150,7 +150,7 @@ export class UserPerformanceComponent implements OnInit {
 
 
       // Then call other methods
-    
+
       this.getAllReviveType();
       this.getAllQauterCycle();
 
@@ -167,7 +167,7 @@ export class UserPerformanceComponent implements OnInit {
        this.getAllDepartments();
        this.getAllEmployeesCurrentStatus();
         this.getAllEmployee();
-     
+
     } catch (error) {
       console.error("Error in ngOnInit", error);
     }
@@ -259,7 +259,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
 
             const joiningDate = new Date(employee.dateOfJoining);
    return joiningDate <= oneYearAgo && employee.employmentstatus === 'Confirmed';
-           
+
             // if (this.currentUser.employeeRole !== 'HR') {
             //   alert('You are not authorized..!!');
             // }
@@ -268,12 +268,12 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
             return false;
           });
           this.eligibleEmployees.forEach(eligibleEmp => {
-           
+
             eligibleEmp.emp360 = eligibleEmp.empId;
 
           });
 
-         
+
         } else {
           console.error(response.serviceResponse);
         }
@@ -294,7 +294,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
 
@@ -315,8 +315,8 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
 
   async getALLdepartmentByEmployee() {
     try {
-     
-     
+
+
       const response: any = await this.performanceSerive.getALLdepartmentByEmployee(this.userDetailsForPerformanceView).toPromise();
 
       if (response.serviceStatus === "Success") {
@@ -344,7 +344,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
   selectedDepartment: string = 'All';
   departments:any[] =[];
   onDepartmentChange(event: any) {
-  
+
 
     // if(this.selectedDepartment === 'all'){
     //   this.filteredEmployees=this.allEmployee;
@@ -357,10 +357,10 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
       this.userDetailsForPerformanceView.deptId = this.selectedDepartment;
     }
     console.log("hbhgsvchsgdv",this.userDetailsForPerformanceView.deptId,this.selectedDepartment)
-    // this.userDetailsForPerformanceView.deptId = 
+    // this.userDetailsForPerformanceView.deptId =
     // this.selectedDepartment === 'All' ? null : this.selectedDepartment;
-  
-     this.getALLdepartmentByEmployee(); 
+
+     this.getALLdepartmentByEmployee();
   }
 
   selectedQuarter:String = 'All'
@@ -557,7 +557,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
           "Hod Remarks":x.hrRemarks || 'NULL',
           "Hod Review Status":x.hrReviewStatus || 'NULL'
 
- 
+
 
         })
       )
@@ -810,7 +810,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     this.performanceService.getAllEmployeesCurrentStatus().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
          this.static = response.serviceResponse
-         
+
       } else {
         console.error(response.serviceResponse);
       }

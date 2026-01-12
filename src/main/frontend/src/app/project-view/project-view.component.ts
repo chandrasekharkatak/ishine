@@ -179,7 +179,7 @@ export class ProjectViewComponent implements OnInit {
       }
     });
   }
-  
+
   getProjectType(project: any): string {
     if (project.poProjectType !== null && project.poProjectType !== undefined && project.poProjectType !== '') {
       return project.poProjectType;
@@ -298,7 +298,7 @@ export class ProjectViewComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
   cancelRequest5() {
     this.modalRef5.close();
@@ -597,7 +597,7 @@ export class ProjectViewComponent implements OnInit {
       !this.setDefaultProjectObj.teamId ||
       !this.setDefaultProjectObj.employeeRole
     ) {
-         this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');      
+         this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');
       // alert('Project, Team, and Employee Role must be selected.');
       return;
     }
@@ -638,7 +638,7 @@ export class ProjectViewComponent implements OnInit {
       !setDefaultProjectObj.teamId ||
       !setDefaultProjectObj.employeeRole
     ) {
-         this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');      
+         this.openAlertMod3(this.alertTemplateWithoutReload, 'Project, Team, and Employee Role must be selected.');
       // alert('Project, Team, and Employee Role must be selected.');
       return;
     }
@@ -766,11 +766,11 @@ export class ProjectViewComponent implements OnInit {
         this.setDefaultProjectObj.projectId = this.currentProjectDetails;
         this.getEmployeeInformationForDefaultProject(this.setDefaultProjectObj);
         if (this.EmployessIds.length === 0 && this.activeProjects.length === 0) {
-          this.modalRef.close();
+          this.modalRef?.close();
           this.modalRef5 = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
         }
         if (this.EmployessIds.length !== 0 && this.activeProjects.length === 0) {
-          this.modalRef.close();
+          this.modalRef?.close();
           this.openAlertMod3(this.alertTemplateWithoutReload, "Please update the default project of employees who are not mapped to other active projects.");
         }
       } else {

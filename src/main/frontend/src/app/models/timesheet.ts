@@ -117,4 +117,5 @@ export class Timesheet{
     bulkApprovedDocId?:number = null;
 
     empIds:any[];
+    monthYear:any;
 }

@@ -525,43 +525,43 @@ public class TimesheetQueryService {
      * @param empId Employee ID
      * @return ServiceResponse with active project list
      */
-    public ServiceResponse getActiveProjectsByEmpId(Long empId) {
-        ServiceResponse response = new ServiceResponse();
-        LogDTO apiLogInfo = new LogDTO();
-        apiLogInfo.setApiUrl("/api/getActiveProjectsByEmpId");
-        apiLogInfo.setLogLevel("INFO");
-
-        try {
-            List<ProjectDTO> activeProjectList = timesheetsRepository.getActiveProjectsByEmpId(empId);
-
-            if (activeProjectList.isEmpty()) {
-                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceResponse("Please contact to the RMG team to provide you active project mapping!");
-                response.setServiceMessage("Employee has no active project mapping ! For EmpId: " + empId);
-                apiLogInfo.setApiResponse("Employee has no active project mapping ! For EmpId: " + empId);
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-                logService.logMyInfo(httpRequest, apiLogInfo);
-                return response;
-            }
-
-            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceResponse(activeProjectList);
-            response.setServiceMessage("Project List fetched successfully!");
-            apiLogInfo.setApiResponse("Project list where employee has active = 1 in Employee Team Mapping table fetched successfully!");
-            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-            response.setServiceResponse("Something went wrong.");
-            response.setServiceError(e.getMessage());
-            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-            apiLogInfo.setApiResponse(e.getMessage());
-            apiLogInfo.setLogLevel("ERROR");
-        }
-
-        logService.logMyInfo(httpRequest, apiLogInfo);
-        return response;
-    }
+//    public ServiceResponse getActiveProjectsByEmpId(Long empId) {
+//        ServiceResponse response = new ServiceResponse();
+//        LogDTO apiLogInfo = new LogDTO();
+//        apiLogInfo.setApiUrl("/api/getActiveProjectsByEmpId");
+//        apiLogInfo.setLogLevel("INFO");
+//
+//        try {
+//            List<ProjectDTO> activeProjectList = timesheetsRepository.getActiveProjectsByEmpId(empId);
+//
+//            if (activeProjectList.isEmpty()) {
+//                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//                response.setServiceResponse("Please contact to the RMG team to provide you active project mapping!");
+//                response.setServiceMessage("Employee has no active project mapping ! For EmpId: " + empId);
+//                apiLogInfo.setApiResponse("Employee has no active project mapping ! For EmpId: " + empId);
+//                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//                logService.logMyInfo(httpRequest, apiLogInfo);
+//                return response;
+//            }
+//
+//            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//            response.setServiceResponse(activeProjectList);
+//            response.setServiceMessage("Project List fetched successfully!");
+//            apiLogInfo.setApiResponse("Project list where employee has active = 1 in Employee Team Mapping table fetched successfully!");
+//            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//            response.setServiceResponse("Something went wrong.");
+//            response.setServiceError(e.getMessage());
+//            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//            apiLogInfo.setApiResponse(e.getMessage());
+//            apiLogInfo.setLogLevel("ERROR");
+//        }
+//
+//        logService.logMyInfo(httpRequest, apiLogInfo);
+//        return response;
+//    }
 
     /**
      * Fetches employment ID by employee ID.

@@ -1,7 +1,7 @@
 .table-header{
     width: 100%;
     height: 50px;
-    background: var(--ghost-white);  
+    background: var(--ghost-white);
     margin-bottom: 1em;
 }
 
@@ -27,7 +27,7 @@
 .scrollable-table{
     width: 92vw;
     height: 80vh;
-} 
+}
 
 .wide-col{
     min-width: 300px;
@@ -204,7 +204,7 @@ thead {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   } */
 
-  
+
 
   .mini-card1:hover {
     transform: translateY(-4px);
@@ -270,12 +270,12 @@ thead {
     flex-direction: column;
     justify-content: center;
   }
-  
+
   .value {
     font-size: 20px;
     font-weight: bold;
   }
-  
+
   .label {
     font-size: 12px;
     color: #444;
@@ -287,17 +287,17 @@ thead {
     font-size: 10px;
     font-weight: bold;
   }
-  
+
   .fa {
     font-size: 16px;
     margin-left: 6px;
   }
-     
-  
+
+
   mat-autocomplete {
-    z-index: 1000; 
+    z-index: 1000;
   }
-  
+
   mat-option {
     white-space: nowrap;
     overflow: hidden;
@@ -310,11 +310,11 @@ thead {
     color: #333;
     cursor: pointer;
   }
-  
+
   .dropdown-menu {
     min-width: 200px;
   }
-  
+
   .dropdown-item i {
     width: 18px;
     color: #1b1e5e;
@@ -324,13 +324,13 @@ thead {
     position: relative;
     display: inline-block;
   }
-  
+
   .three-dots {
     cursor: pointer;
     font-size: 18px;
     padding: 6px;
   }
-  
+
   .custom-dropdown {
     position: absolute;
     right: 0;
@@ -345,7 +345,7 @@ thead {
     list-style: none;
     white-space: nowrap;
   }
-  
+
   .custom-dropdown li {
     padding: 8px 16px;
     font-size: 14px;
@@ -354,16 +354,16 @@ thead {
     align-items: center;
     color: #1b1e5e;
   }
-  
+
   .custom-dropdown li i {
     margin-right: 10px;
     min-width: 16px;
   }
-  
+
   .custom-dropdown li:hover {
     background-color: #f5f5f5;
   }
-  
+
   .form-container {
     min-width: 780px;
     max-width: fit-content;
@@ -381,7 +381,7 @@ thead {
     border-top: 1px solid #ddd;
     padding-top: 20px;
   }
-  
+
   .team-row {
     display: grid;
     grid-template-columns: 1fr 1fr auto;
@@ -391,7 +391,7 @@ thead {
     padding-bottom: 10px;
     border-bottom: 1px dashed #ccc;
   }
-  
+
   .button-group {
     display: flex;
     gap: 10px;
@@ -450,7 +450,7 @@ thead {
   .icon-button:hover {
     background: #cdcbed;
   }
-  
+
   ::ng-deep .modal-dialog.custom-modal {
     box-shadow: 0 20px 25px rgba(0,0,0,0.1);
     max-width: fit-content;
@@ -463,20 +463,20 @@ thead {
     background: white;
     border-radius: 20px;
   }
-  
+
   .modal-title {
     text-align: center;
     font-size: 20px;
     font-weight: 600;
     margin-bottom: 25px;
   }
-  
+
   .stats-row {
     display: flex;
     justify-content: space-around;
     margin-bottom: 30px;
   }
-  
+
   .stat-box {
     background: #f7f7f7;
     padding: 15px 20px;
@@ -489,19 +489,19 @@ thead {
     align-items: center;
     justify-content: center;
   }
-  
+
   .stat-box p {
     font-size: 14px;
     color: #666;
     margin-bottom: 5px;
   }
-  
+
   .stat-box h4 {
     font-size: 20px;
     color: #2e2e82;
     margin: 0;
   }
-  
+
   .member-card {
     display: flex;
     justify-content: space-between;
@@ -512,14 +512,14 @@ thead {
     margin-bottom: 20px;
     box-shadow: 0 3px 6px rgba(0,0,0,0.03);
   }
-  
+
   .member-left h5 {
     margin: 0;
     font-size: 16px;
     font-weight: 600;
   }
 
-  .form-field input, 
+  .form-field input,
   .form-field mat-select {
     padding: 10px;
     border-radius: 20px;
@@ -527,7 +527,7 @@ thead {
     outline: none;
     min-height: 45px;
   }
-  
+
   select {
     padding: 6px 12px;
     border: 1px solid #ccc;
@@ -535,7 +535,7 @@ thead {
     font-size: 14px;
     background: white;
   }
-  
+
   .icon-button {
     background: none;
     border: 2px solid #3b3b96;
@@ -545,7 +545,7 @@ thead {
     font-size: 18px;
     color: #3b3b96;
   }
-  
+
   .icon-button-small {
     background: none;
     border: 1.5px solid #3b3b96;
@@ -563,7 +563,7 @@ thead {
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.03);
     overflow: hidden;
   }
-  
+
   .accordion-header {
     display: flex;
     justify-content: space-between;
@@ -571,13 +571,13 @@ thead {
     cursor: pointer;
     align-items: center;
   }
-  
+
   .accordion-header h5 {
     margin: 0;
     font-size: 16px;
     font-weight: 600;
   }
-  
+
   .badge {
     display: inline-block;
     background: #e6ecff;
@@ -587,32 +587,32 @@ thead {
     border-radius: 10px;
     margin-left: 10px;
   }
-  
+
   .experience {
     font-size: 13px;
     color: #777;
     margin-left: 10px;
   }
-  
+
   .accordion-body {
     border-top: 1px solid #ddd;
     background-color: #fff;
     padding: 20px;
   }
-  
+
   .accordion-content {
     display: flex;
     justify-content: space-between;
     gap: 30px;
     flex-wrap: wrap;
   }
-  
+
   .team-member-col,
   .shadow-resource-col {
     flex: 1;
     min-width: 300px;
   }
-  
+
   .team-member-col label,
   .shadow-resource-col label {
     font-size: 14px;
@@ -621,14 +621,14 @@ thead {
     margin-bottom: 10px;
     display: block;
   }
-  
+
   .add-team-row {
     display: flex;
     gap: 10px;
     margin-bottom: 10px;
     align-items: center;
   }
-  
+
   .add-team-row input[type="text"] {
     padding: 6px 12px;
     border: 1px solid #ccc;
@@ -636,13 +636,13 @@ thead {
     font-size: 14px;
     width: 180px;
   }
-  
+
   .shadow-resources {
     display: flex;
     gap: 10px;
     align-items: center;
   }
-  
+
   .dropdown-button {
     background: none;
     border: none;
@@ -650,18 +650,18 @@ thead {
     font-size: 16px;
     cursor: pointer;
   }
-  
+
   .member-right {
     display: flex;
     align-items: center;
     gap: 10px;
   }
-  
+
   .assignment {
     font-size: 14px;
     color: #3b3b96;
   }
-  
+
   .set-team-btn {
     padding: 10px 25px;
     border: none;
@@ -673,7 +673,7 @@ thead {
     display: block;
     margin: 0 auto;
   }
-  
+
   select {
     padding: 6px 12px;
     border: 1px solid #ccc;
@@ -681,7 +681,7 @@ thead {
     font-size: 14px;
     background: white;
   }
-  
+
   .icon-button {
     background: none;
     border: 2px solid #3b3b96;
@@ -691,7 +691,7 @@ thead {
     font-size: 18px;
     color: #3b3b96;
   }
-  
+
   .icon-button-small {
     background: none;
     border: 1.5px solid #3b3b96;
@@ -712,17 +712,17 @@ thead {
     background-color: #007bff;
     color: #fff;
   }
-  
+
   .accordion-button:not(.collapsed) {
     background-color: #0056b3;
     color: #fff;
   }
-  
+
   .accordion-body {
     background-color: #f8f9fa;
     border: 1px solid #dee2e6;
     padding: 1rem;
-  }  
+  }
 
   .two-column-layout {
     display: flex;
@@ -730,39 +730,39 @@ thead {
     align-items: center;
     padding-bottom: 8px;
   }
-  
+
   .row-content {
     display: flex;
     gap: 20px;
     align-items: center;
     margin-bottom: 15px;
   }
-  
+
   .label-column {
     width: 150px;
     font-weight: bold;
     padding-bottom: 8px;
   }
-  
+
   .input-column {
     flex: 1;
     display: flex;
     gap: 10px;
   }
-  
+
   .form-control {
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 5px;
     width: 100%;
   }
-  
+
   .shadow-resource-section {
     display: flex;
     align-items: center;
     gap: 10px
   }
-  
+
   .name-field {
     width: 130px;
   }
@@ -829,7 +829,7 @@ thead {
   .requirement-select-container {
     min-width: 350px;
   }
-  
+
   .team-field{
     width: 130px;
   }
@@ -838,25 +838,25 @@ thead {
     padding: 20px;
     font-family: Arial, sans-serif;
   }
-  
+
   .team-preview-row {
     display: flex;
     gap: 20px;
     margin-bottom: 15px;
   }
-  
+
   .team-preview-field {
     flex: 1;
     display: flex;
     flex-direction: column;
   }
-  
+
   .team-preview-field label {
     font-weight: bold;
     color: #061e5c;
     margin-bottom: 5px;
   }
-  
+
   .team-preview-field input {
     padding: 8px;
     border: 1px solid #ccc;
@@ -872,14 +872,14 @@ thead {
     background-color: #f8f8f8;
     font-size: 14px;
   }
-  
+
   .team-manager-list {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
     margin-top: 5px;
   }
-  
+
   .manager-tag {
     padding: 8px 12px;
     background-color: white;
@@ -889,7 +889,7 @@ thead {
     font-weight: 500;
     cursor: default;
   }
-  
+
   .team-card {
     background-color: white;
     border-radius: 15px;
@@ -897,14 +897,14 @@ thead {
     padding: 20px;
     margin-top: 20px;
   }
-  
+
   .team-section-title {
     font-weight: bold;
     color: #061e5c;
     margin-top: 10px;
     margin-bottom: 5px;
   }
-  
+
   .team-member {
     display: flex;
     justify-content: space-between;
@@ -912,33 +912,33 @@ thead {
     border-top: 1px solid #eee;
     margin-top: 10px;
   }
-  
+
   .member-details {
     flex: 1;
   }
-  
+
   .member-name {
     font-weight: bold;
     color: blue;
   }
-  
+
   .member-number {
     font-weight: bold;
     color: blue;
     margin-right: 5px;
   }
-  
+
   .shadow-resource {
     min-width: 150px;
     text-align: right;
   }
-  
+
   .shadow-title {
     font-weight: bold;
     color: #061e5c;
     margin-bottom: 3px;
   }
-  
+
   .shadow-name {
     color: #061e5c;
     font-weight: 500;
@@ -951,7 +951,7 @@ thead {
     border-bottom: 2px solid #061e5c;
     padding-bottom: 5px;
     text-align: center;
-  }  
+  }
 
   .popover-style {
     background: #fff;
@@ -963,18 +963,18 @@ thead {
     font-size: 14px;
     line-height: 1.5;
   }
-  
+
   .info-line {
     display: flex;
     justify-content: space-between;
     padding: 4px 0;
   }
-  
+
   .label {
     font-weight: 500;
     color: #555;
   }
-  
+
   .custom-dropdown2 {
     position: absolute;
     right: 0;
@@ -993,18 +993,18 @@ thead {
   .team-members-wrapper {
     padding: 10px;
   }
-  
+
   .team-member-section {
     margin-bottom: 20px;
   }
-  
+
   .team-member-row {
     display: flex;
     align-items: center;
     margin-bottom: 10px;
     flex-wrap: wrap;
   }
-  
+
   .team-member-fields {
     display: flex;
     align-items: center;
@@ -1012,28 +1012,28 @@ thead {
     flex-wrap: wrap;
     width: 100%;
   }
-  
+
   .team-member-field {
     flex: 1 1 auto;
     min-width: 150px;
   }
-  
+
   .checkbox-group {
     display: flex;
     gap: 15px;
     align-items: center;
   }
-  
+
   .action-buttons {
     display: flex;
     gap: 10px;
     align-items: center;
   }
-  
+
   .custom-dropdown2 {
     width: 240px;
   }
-  
+
   .no-member-message {
     color: #666;
     font-style: italic;
@@ -1046,18 +1046,18 @@ thead {
     gap: 15px;
     margin-bottom: 10px;
   }
-  
+
   .add-team-field {
     min-width: 200px;
     flex: 1 1 auto;
   }
-  
+
   .checkbox-group {
     display: flex;
     gap: 10px;
     align-items: center;
   }
-  
+
   .checkbox-group label {
     margin: 0;
   }
@@ -1068,14 +1068,14 @@ thead {
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0,0,0,0.08);
   }
-  
+
   .section-title {
     color: #061E5C;
     font-weight: bold;
     font-size: 1.25rem;
     margin-bottom: 1rem;
   }
-  
+
   .set-team-btn {
     background-color: #061E5C;
     color: white;
@@ -1085,15 +1085,15 @@ thead {
     cursor: pointer;
     transition: background 0.3s ease;
   }
-  
+
   .set-team-btn:hover {
     background-color: #043b9a;
   }
-  
+
   .mat-select {
     width: 100%;
   }
-  
+
   input.form-control {
     margin: 5px 0;
   }
@@ -1102,8 +1102,8 @@ thead {
   box-shadow: 0 0 12px 3px rgba(12, 141, 247, 0.6);
   transition: box-shadow 0.3s ease-in-out;
  }
-  
-  
+
+
    .form-container1 {
     max-width: 60%;
     background: white;
@@ -1163,7 +1163,7 @@ thead {
   text-decoration: underline;
   cursor: pointer;
    color: #0056b3;
-} 
+}
 
 .form-field .readonly-field {
   border: 1px solid #4b4b8f;
@@ -1196,7 +1196,7 @@ thead {
 .form-group {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem; 
+  gap: 1rem;
 }
 
 .form-field {
@@ -1250,7 +1250,7 @@ thead {
 .dropdown-right-menu {
   position: initial;
   top: 0;
-  left: 100%; 
+  left: 100%;
   background-color: #fff;
   border: 1px solid #ccc;
   min-width: 180px;
@@ -1327,11 +1327,11 @@ thead {
     padding: 2px 4px;
     font-size: 8px;
   }
-  
+
   .filter-count {
     font-size: 7px;
   }
-  
+
   .range-buttons {
     gap: 1px;
   }
@@ -1342,7 +1342,7 @@ thead {
     padding: 1px 3px;
     font-size: 7px;
   }
-  
+
   .filter-count {
     font-size: 6px;
   }
@@ -1353,7 +1353,7 @@ thead {
     padding: 1px 2px;
     font-size: 6px;
   }
-  
+
   .filter-count {
     font-size: 5px;
   }
@@ -1365,7 +1365,7 @@ thead {
     padding: 4px 8px;
     font-size: 10px;
   }
-  
+
   .filter-count {
     font-size: 9px;
   }
@@ -1421,8 +1421,8 @@ thead {
   width: 100%;
   /* 2. Add padding on the right to make space for the button! */
   /* This prevents the text from running underneath the button. */
-  padding-right: 30px; 
-  
+  padding-right: 30px;
+
   /* Standard input styling */
   outline: none;
   border: 1px solid #ccc;
@@ -1466,7 +1466,7 @@ thead {
         z-index: 9999; /* Ensure it's on top of other content */
 }
 
-/* 
+/*
   2. Target the content wrapper inside the dialog.
      We turn it into a flex container to control its children.
 */
@@ -1594,11 +1594,11 @@ thead {
         padding: 3px 4px;
         font-size: 9px;
     }
-    
+
     .filter-count {
         font-size: 9px;
     }
-    
+
     .range-buttons-container,
     .range-buttons {
         gap: 1px;
@@ -1610,7 +1610,7 @@ thead {
         padding: 2px 3px;
         font-size: 8px;
     }
-    
+
     .filter-count {
         font-size: 8px;
     }
@@ -1621,7 +1621,7 @@ thead {
         padding: 1px 2px;
         font-size: 7px;
     }
-    
+
     .filter-count {
         font-size: 7px;
     }
@@ -1633,7 +1633,7 @@ thead {
         padding: 2px 6px;
         font-size: 11px;
     }
-    
+
     .filter-count {
         font-size: 11px;
     }
@@ -1646,7 +1646,7 @@ thead {
         font-size: 11px;
         max-width: 80px;
     }
-    
+
     .range-buttons-container {
         gap: 6px;
     }
@@ -1658,11 +1658,11 @@ thead {
         font-size: 10px;
         max-width: 60px;
     }
-    
+
     .range-buttons-container {
         gap: 4px;
     }
-    
+
     .filter-count {
         font-size: 9px;
     }
@@ -1944,7 +1944,7 @@ input:checked + .slider:hover:before {
   font-weight: 500;
   font-size: 0.8em; /* smaller text */
   padding: 4px 12px; /* smaller pill */
-  
+
   margin-bottom: 4px;
   box-shadow: 0 1px 3px rgba(180, 33, 33, 0.15);
 }
@@ -2060,7 +2060,7 @@ input:checked + .slider:hover:before {
         flex-direction: column; /* Stack cards and 'more' button vertically */
         align-items: center;
     }
-    
+
     .project-status-report .more-less-actions {
         margin-left: 0 !important;
         margin-top: 15px !important;
@@ -2084,7 +2084,7 @@ input:checked + .slider:hover:before {
     .project-status-report .total-counts-section {
         justify-content: center; /* Center cards on mobile */
     }
-    
+
     /* Ensure cards take up reasonable space */
     .project-status-report .mini-card-wrapper {
         flex: 1 1 140px; /* Allow cards to grow/shrink with a base width */
@@ -2452,16 +2452,16 @@ input:checked + .slider:hover:before {
     font-size: 11px;
     padding: 8px 12px;
   }
-  
+
   .department-cell {
     font-size: 12px;
   }
-  
+
   .expand-all-btn {
     font-size: 9px !important;
     padding: 2px 6px !important;
   }
-  
+
   .filter-options .col-md-3 {
     flex: 0 0 50%;
     max-width: 50%;
@@ -2473,18 +2473,18 @@ input:checked + .slider:hover:before {
     flex: 0 0 100%;
     max-width: 100%;
   }
-  
+
   .project-summary-table td {
     min-width: 80px;
     font-size: 10px;
     padding: 6px 10px;
   }
-  
+
   .expand-all-btn {
     font-size: 8px !important;
     padding: 2px 5px !important;
   }
-  
+
   .expand-btn {
     min-width: 18px !important;
     padding: 1px 4px !important;
@@ -2607,7 +2607,7 @@ input:checked + .slider:hover:before {
   padding: 6px 10px;
   font-size: 12px;
   text-align: center;
-  min-width: 65px; 
+  min-width: 65px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.08);
 }
 
@@ -2766,7 +2766,7 @@ body, html {
   padding: 15px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
   width: 782px;
-  
+
   min-height: 270px;
   overflow: hidden;
   display: flex;
@@ -2889,9 +2889,9 @@ body, html {
 }
 
 .skill-tag {
-   max-width: 95px;      
-  white-space: nowrap;  
-  overflow: hidden;     
+   max-width: 95px;
+  white-space: nowrap;
+  overflow: hidden;
   text-overflow: ellipsis;
   background: #f0f2f5;
   padding: 4px 8px;
@@ -2993,12 +2993,12 @@ body, html {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  
-  background-color: #ffffff; 
+
+  background-color: #ffffff;
   text-align: center;
-  border-radius: 8px; 
+  border-radius: 8px;
   padding: 20px;
-  margin: 20px auto; 
+  margin: 20px auto;
 }
 
 .no-result-container1 {
@@ -3006,12 +3006,12 @@ body, html {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  
-  background-color: #ffffff; 
+
+  background-color: #ffffff;
   text-align: center;
-  border-radius: 8px; 
+  border-radius: 8px;
   padding: 20px;
-  margin: 20px auto; 
+  margin: 20px auto;
   padding-left: 10rem;
   padding-top: 5rem;
 }
@@ -3436,12 +3436,12 @@ body, html {
   font-size: 14px;
 
   color: #333; */
-  
-  white-space: nowrap;        
-  overflow: hidden;           
-  text-overflow: ellipsis;   
-  max-width: 200px;           
-  vertical-align: middle;     
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+  vertical-align: middle;
 
 
 }
@@ -3520,14 +3520,14 @@ display: inline-block;
 .status-badge {
 
 display: inline-block;
-  background-color: #98a7b5; 
-  color: #000;              
-  border-radius: 12px;      
+  background-color: #98a7b5;
+  color: #000;
+  border-radius: 12px;
   padding: 4px 8px;
-  margin: 2px;               
+  margin: 2px;
   font-size: 13px;
   font-weight: 500;
-  max-width: 120px;         
+  max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3782,13 +3782,13 @@ display: inline-block;
 }
 
 .new-requirements {
-  background-color: #e8f5e9; 
-  border: 2px solid #4caf50; 
+  background-color: #e8f5e9;
+  border: 2px solid #4caf50;
 }
 
 .old-requirements {
-  background-color: #ffebee; 
-  border: 2px solid #f44336; 
+  background-color: #ffebee;
+  border: 2px solid #f44336;
 }
 
 .requirement-section h4 {
@@ -4051,7 +4051,7 @@ display: inline-block;
   background: #333;
   color: #fff;
   position: absolute;
-  bottom: 125%; 
+  bottom: 125%;
   left: 50%;
   transform: translateX(-50%);
   padding: 6px 10px;
@@ -4098,7 +4098,7 @@ display: inline-block;
   font-weight: bold;
   user-select: none;
   margin-left: .5rem;
-  font-style:normal; 
+  font-style:normal;
   position: relative;
 }
 
@@ -4150,8 +4150,8 @@ display: inline-block;
 }
 
 .department-select {
-  flex: 1 !important;          
-  min-width: 0 !important;      
+  flex: 1 !important;
+  min-width: 0 !important;
 }
 
 .department-section,
@@ -4180,7 +4180,7 @@ display: inline-block;
 }
 
 .my-department-section .justify-content-end {
-  margin-left: 0 !important;     
+  margin-left: 0 !important;
   width: 100%;
 }
 
@@ -4209,7 +4209,7 @@ display: inline-block;
     display: flex;
     flex-direction: column;
     margin: 8px 6px;
-    width: 280px;        
+    width: 280px;
 }
 
 .employee-search-label {
@@ -4226,9 +4226,11 @@ display: inline-block;
 }
 
 .app-my-select-dropdown {
-  width: 300px !important;           
-  border-radius: 20px !important;    
-  border: 2px solid #003561 !important; 
+  padding:5px 10px;
+  border-radius: 20px;
+  border: 2px solid #0a0a6a;
+  outline: none;
+  min-height: auto;
 }
 
 
@@ -4237,7 +4239,7 @@ display: inline-block;
 }
 
 .app-round-border{
-    border-radius: 10px !important;    
+    border-radius: 10px !important;
 }
 
 .bulk-mapping-table-wrapper .table td,
@@ -4245,3 +4247,28 @@ display: inline-block;
     width: 350px !important;
     min-width: 250px !important;
 }
+
+.icon-close-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.icon-close-btn i {
+  font-size: 22px;
+  color: #000;  
+}
+
+.icon-close-btn i:hover {
+  color: #000;
+}
+
+.btn-active {
+    background-color: #007bff; 
+    border-color: #007bff;
+    color: white;
+}
+
+
+

@@ -221,6 +221,7 @@ import { TeamAllTimesheetsTableComponent } from "./user-timesheet/team-timesheet
 import { TimesheetTimeEntryComponent } from "./timesheet-create-self/timesheet-time-entry/timesheet-time-entry.component";
 import { DateTimePickerComponent } from './helpers/date-time-picker/date-time-picker.component';
 import { TimesheetFormComponent } from './user-timesheet/my-timesheet/timesheet-form/timesheet-form.component';
+import { InfoTooltipComponent } from './helpers/shared/info-tooltip/info-tooltip.component';
 
 registerLocaleData(localeGb);
 
@@ -408,7 +409,8 @@ registerLocaleData(localeGb);
     TeamAllTimesheetsTableComponent,
     TimesheetFormComponent,
     MyTimesheetApplicationSelectorComponent,
-    MyTimesheetHeaderComponent
+    MyTimesheetHeaderComponent,
+    InfoTooltipComponent
   ],
   imports: [
     BrowserModule,

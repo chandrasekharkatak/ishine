@@ -987,7 +987,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "AND p.active = 'true' AND p.poProjectType = 'TNM'")
 	public Boolean isInTNMProject(Long empId);
 
-	@Query(value = "select new com.apmosys.employeeportal.dto.ProjectClientSideIdDTO(CAST(p.projectId as long), p.projectName, ecsm.clientSideId )  \n"
+	@Query(value = "select new com.apmosys.employeeportal.dto.ProjectClientSideIdDTO(p.projectId, p.projectName, ecsm.clientSideId )  \n"
 			+
 			"from Project p  \n" +
 			"inner join Team t on t.projectId = p.projectId \n" +

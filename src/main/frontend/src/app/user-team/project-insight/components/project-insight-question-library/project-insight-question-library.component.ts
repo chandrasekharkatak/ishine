@@ -34,7 +34,7 @@ export class ProjectInsightQuestionLibraryComponent implements OnInit {
   addOrUpdateProjectInsightQuestionEntryModalRef:NgbModalRef;
   deleteProjectInsightQuestionEntryModalRef:NgbModalRef;
 
-  // Variables 
+  // Variables
   searchKeyword: any;
   alertMessage: any = '';
   isQuestionUpdate: boolean = false;
@@ -237,7 +237,7 @@ export class ProjectInsightQuestionLibraryComponent implements OnInit {
     for (let i = 0; i < 6; i++) {
       color += letters[Math.floor(Math.random() * 16)];
     }
-    return color; 
+    return color;
   }
 
   resetQuestionLibraryEntryPage() {
@@ -469,7 +469,7 @@ export class ProjectInsightQuestionLibraryComponent implements OnInit {
       return;
     }
 
-    /// make OptionType Data to Uppercase 
+    /// make OptionType Data to Uppercase
     this.excelData = this.excelData.map(row => {
       return {
         ...row,
@@ -563,7 +563,7 @@ export class ProjectInsightQuestionLibraryComponent implements OnInit {
 
   cancelRequest() {
     if (this.alertModalRef) {
-      this.alertModalRef.close();
+      this.alertModalRef?.close();
     }
   }
 
@@ -582,13 +582,13 @@ export class ProjectInsightQuestionLibraryComponent implements OnInit {
 
   closeAddOrUpdateProjectInsightQuestionEntryModal() {
     if (this.addOrUpdateProjectInsightQuestionEntryModalRef) {
-      this.addOrUpdateProjectInsightQuestionEntryModalRef.close();
+      this.addOrUpdateProjectInsightQuestionEntryModalRef?.close();
     }
   }
 
   closeDeleteProjectInsightQuestionEntryModal() {
     if (this.deleteProjectInsightQuestionEntryModalRef) {
-      this.deleteProjectInsightQuestionEntryModalRef.close();
+      this.deleteProjectInsightQuestionEntryModalRef?.close();
     }
   }
   // Modals [End]
@@ -680,4 +680,4 @@ export class ProjectInsightQuestionLibraryComponent implements OnInit {
   clearSearch() {
     this.filterText = null;
   }
-} 
+}
