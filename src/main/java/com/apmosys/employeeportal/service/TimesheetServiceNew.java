@@ -1274,7 +1274,8 @@ public class TimesheetServiceNew {
 	                projectClientDTO.setProjectName(object[5] != null ? object[5].toString() : null);
 	                projectClientDTO.setTeamName(object[6] != null ? object[6].toString() : null);
 	                projectClientDTO.setTeamId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
-
+	                projectClientDTO.setHasClientSideId(Boolean.TRUE.equals(object[10]));
+	                projectClientDTO.setHasClientFlag(Boolean.TRUE.equals(object[11]));
 	                listDto.add(projectClientDTO);
 	            }
 	            

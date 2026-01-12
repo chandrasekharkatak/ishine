@@ -716,7 +716,7 @@ public class TimesheetQueryService {
     	                    ? ((java.sql.Timestamp) row[7]).toLocalDateTime()
     	                    : null);
 
-    	            dto.setIsNightShift(row[8] != null && ((Number) row[8]).intValue() == 1);
+    	            dto.setIsNightShift(row[8] != null && ((Boolean)row[8]));
     	            dto.setCreatedOn(((java.sql.Timestamp) row[9]).toLocalDateTime());
 
     	            dto.setLocationSessions(new ArrayList<>());
