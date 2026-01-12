@@ -73,7 +73,7 @@ export class TemplatesComponent implements OnInit {
 
 
   constructor(
-    private fb: UntypedFormBuilder, 
+    private fb: UntypedFormBuilder,
     private departmentService: DepartmentService,
     private userPerformanceService: UserPerformanceService,
     private templateService: TemplateService,
@@ -97,10 +97,10 @@ export class TemplatesComponent implements OnInit {
     this.questionnaireForm = this.fb.group({
       questionTitle: ['', Validators.required],
       questionDescription: [''],
-      createdBy: [null], 
+      createdBy: [null],
       quarterId: [null, Validators.required],
       questions: this.fb.array([this.createQuestionField()]),
-      departmentId: [null, Validators.required] 
+      departmentId: [null, Validators.required]
     });
 
     this.kpikraForm = this.fb.group({
@@ -121,7 +121,7 @@ export class TemplatesComponent implements OnInit {
     this.fetchQuarters();
     this.fetchGoalTemplates();
     this.getAllDepartmentList();
-    
+
     let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -168,12 +168,12 @@ export class TemplatesComponent implements OnInit {
   }
 
 
-  
+
   fetchQuarters(): void {
     this.performanceService.getAllQuarterCycles().subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
-          this.quarterCyclesList = response.serviceResponse;          
+          this.quarterCyclesList = response.serviceResponse;
         } else {
           this.errorMessage = response.serviceMessage || 'Failed to load quarters.';
         }
@@ -195,14 +195,14 @@ export class TemplatesComponent implements OnInit {
     return this.questionnaireForm.get('questions') as UntypedFormArray;
   }
 
-  
+
   addQuestion(): void {
     if (this.questions.length < 10 && this.questions.at(this.questions.length - 1).valid) {
       this.questions.push(this.createQuestionField());
     }
   }
 
-  
+
   removeQuestion(index: number): void {
     if (this.questions.length > 1) {
       this.questions.removeAt(index);
@@ -212,18 +212,18 @@ export class TemplatesComponent implements OnInit {
   onSubmit(template: TemplateRef<any>) {
     console.log('Submit button clicked!');
     console.log('Form valid?', this.questionnaireForm.valid);
-    
+
     if (this.questionnaireForm.valid) {
       if (!this.selectedQuarterId) {
         alert('Please select a quarter');
         return;
       }
-      
+
       if (!this.selectedDepartmentId) {
         alert('Please select a department');
         return;
       }
-      
+
       const questionDTOs = this.questions.controls.map(control => {
         const quesFormGroup = control as UntypedFormGroup;
         return {
@@ -231,17 +231,17 @@ export class TemplatesComponent implements OnInit {
           questionText: quesFormGroup.value.questionText
         };
       });
-      
+
       const questionnaireData: QuestionnaireDTO = {
         questionId: this.isEditing ? this.editingTemplateId : undefined,
         questionTitle: this.questionnaireForm.value.questionTitle,
         questionDescription: this.questionnaireForm.value.questionDescription,
-        createdBy: this.currentUser.empId, 
+        createdBy: this.currentUser.empId,
         questions: questionDTOs,
         response: null,
         departmentId: this.questionnaireForm.value.departmentId,
       };
-      
+
       if (this.isEditing && this.editingTemplateId) {
         this.updateQuestionnaireTemplate(this.editingTemplateId, questionnaireData,this.alert_message);
       } else {
@@ -254,7 +254,7 @@ export class TemplatesComponent implements OnInit {
       this.openAlertMod(template, this.alertMessage);
     }
   }
-  
+
   getFormValidationErrors() {
     const errors = {};
     Object.keys(this.questionnaireForm.controls).forEach(key => {
@@ -269,7 +269,7 @@ export class TemplatesComponent implements OnInit {
     this.selectedQuarterId = +event.target.value;
     console.log('Quarter selected:', this.selectedQuarterId);
   }
-  
+
   onDepartmentSelection(event: any) {
     this.selectedDepartmentId = +event.target.value;
     console.log('Department selected:', this.selectedDepartmentId);
@@ -378,23 +378,23 @@ export class TemplatesComponent implements OnInit {
 
   resetQuestionnaireForm() {
     this.questionnaireForm.reset();
-  
+
     while (this.questions.length !== 0) {
       this.questions.removeAt(0);
     }
-  
+
     this.questions.push(this.createQuestionField());
-    
+
     this.isEditing = false;
     this.editingTemplateId = null;
   }
   resetKraKpiForm() {
     this.kpikraForm.reset();
-   
+
     while (this.kpis.length !== 0) {
       this.kpis.removeAt(0);
     }
-   
+
     this.kpis.push(this.kpiField());
 
     this.isEditing = false;
@@ -406,10 +406,10 @@ export class TemplatesComponent implements OnInit {
     this.isSearchEnabled = false;
     // Reset department selection when switching tabs
     this.selectedDept = null;
-    
+
     if (tab === 'goals') this.fetchGoalTemplates();
     if (tab === 'kra-kpi') {
-      this.fetchKraKpiTemplates(); 
+      this.fetchKraKpiTemplates();
     }
     if (tab === 'questionnaire') this.fetchQuestionnaireTemplates();
     if (tab === 'create-template') {
@@ -459,12 +459,12 @@ export class TemplatesComponent implements OnInit {
       template.questions.forEach((question: any) => {
         const questionGroup = this.fb.group({
           questionText: [question.questionText, Validators.required],
-          id: [question.id] 
+          id: [question.id]
         });
         this.questions.push(questionGroup);
       });
     } else {
-      
+
       this.questions.push(this.createQuestionField());
     }
   }
@@ -473,7 +473,7 @@ export class TemplatesComponent implements OnInit {
     this.selectedTemplateType = 'kra-kpi';
     this.isEditing = true;
     this.editingTemplateId = template.id;
-    
+
     while (this.kpis.length !== 0) {
       this.kpis.removeAt(0);
     }
@@ -489,12 +489,12 @@ export class TemplatesComponent implements OnInit {
       template.kpis.forEach((kpi: any) => {
         const kpiGroup = this.fb.group({
           description: [kpi.description, Validators.required],
-          id: [kpi.id] 
+          id: [kpi.id]
         });
         this.kpis.push(kpiGroup);
       });
     } else {
-     
+
       this.kpis.push(this.kpiField());
     }
   }
@@ -532,7 +532,7 @@ export class TemplatesComponent implements OnInit {
       .pipe(first())
       .subscribe({
         next: (response: any) => {
-          this.modalRef.close();
+          this.modalRef?.close();
           if (response.serviceStatus === "Success") {
             this.alertMessage = 'Questionnaire template deleted successfully!';
             this.openAlertMod(this.alert_message, this.alertMessage);
@@ -543,7 +543,7 @@ export class TemplatesComponent implements OnInit {
           }
         },
         error: (error) => {
-          this.modalRef.close();
+          this.modalRef?.close();
           this.alertMessage = 'Error deleting questionnaire template. Please try again.';
           this.openAlertMod(this.alert_message, this.alertMessage);
         }
@@ -585,7 +585,7 @@ export class TemplatesComponent implements OnInit {
       .pipe(first())
       .subscribe({
         next: (response: any) => {
-          this.modalRef.close();
+          this.modalRef?.close();
           if (response.serviceStatus === "Success") {
             this.alertMessage = 'KRA-KPI template deleted successfully!';
             this.openAlertMod(this.alert_message, this.alertMessage);
@@ -596,7 +596,7 @@ export class TemplatesComponent implements OnInit {
           }
         },
         error: (error) => {
-          this.modalRef.close();
+          this.modalRef?.close();
           console.error('HTTP error deleting KRA-KPI template:', error);
           this.alertMessage = 'Error deleting KRA-KPI template. Please try again.';
           this.openAlertMod(this.alert_message, this.alertMessage);
@@ -663,7 +663,7 @@ export class TemplatesComponent implements OnInit {
   }
   onDepartmentChange() {
     if (this.selectedDept && this.selectedDept !== 'all') {
-    
+
       if (this.activeTab === 'goals') {
         this.userPerformanceService.getGoalTemplatesByDepartmentId(this.selectedDept.deptId)
           .pipe(first())
@@ -694,7 +694,7 @@ export class TemplatesComponent implements OnInit {
               console.error('HTTP error fetching department KRA/KPI templates:', error);
             }
           });
-      } else if (this.activeTab === 'questionnaire') { 
+      } else if (this.activeTab === 'questionnaire') {
         this.templateService.getQuestionnaireTemplatesByDepartmentId(this.selectedDept.deptId)
           .pipe(first())
           .subscribe({
@@ -710,23 +710,23 @@ export class TemplatesComponent implements OnInit {
             }
           });
       }
-    } else { 
+    } else {
       if (this.activeTab === 'goals') {
         this.fetchGoalTemplates();
       } else if (this.activeTab === 'kra-kpi') {
         this.fetchKraKpiTemplates();
-      } else if (this.activeTab === 'questionnaire') { 
+      } else if (this.activeTab === 'questionnaire') {
         this.fetchQuestionnaireTemplates();
       }
     }
   }
-  
+
   onKraKpiSubmit() {
     if (this.kpikraForm.valid) {
       const formData = this.kpikraForm.value;
-      
-      formData.createdBy = this.currentEmployeeInfo.empId; 
-  
+
+      formData.createdBy = this.currentEmployeeInfo.empId;
+
       const kpiDTOs = this.kpis.controls.map(control => {
         const kpiFormGroup = control as UntypedFormGroup;
         return {
@@ -734,7 +734,7 @@ export class TemplatesComponent implements OnInit {
           description: kpiFormGroup.value.description
         };
       });
-  
+
       const kpiTemplate: KpiTemplate = {
         id: this.isEditing ? this.editingTemplateId : undefined,
         name: formData.name,
@@ -745,9 +745,9 @@ export class TemplatesComponent implements OnInit {
         departmentId: formData.departmentId,
         employee_role: formData.employee_role
       };
-  
+
       console.log('KRA-KPI Form Data:', kpiTemplate);
-      
+
       if (this.isEditing && this.editingTemplateId) {
         this.updateKraKpiTemplate(this.editingTemplateId, kpiTemplate,this.alert_message);
       } else {
@@ -759,7 +759,7 @@ export class TemplatesComponent implements OnInit {
   }
 
   fetchKraKpiTemplates() {
-    
+
     this.kraKpiService.getAllKpis()
       .pipe(first())
       .subscribe({
@@ -783,12 +783,12 @@ export class TemplatesComponent implements OnInit {
     this.templateForm.reset();
     this.isEditing = false;
     this.editingTemplateId = null;
-    
+
     this.updateFormValidation();
   }
 
   updateFormValidation() {
-   
+
     if (this.selectedTemplateType === 'goals') {
       this.templateForm.get('title')?.setValidators([Validators.required]);
       this.templateForm.get('metrics')?.clearValidators();
@@ -802,7 +802,7 @@ export class TemplatesComponent implements OnInit {
       this.templateForm.get('metrics')?.clearValidators();
       this.templateForm.get('questions')?.setValidators([Validators.required]);
     }
-    
+
     this.templateForm.get('description')?.updateValueAndValidity();
     this.templateForm.get('metrics')?.updateValueAndValidity();
     this.templateForm.get('questions')?.updateValueAndValidity();
@@ -811,7 +811,7 @@ export class TemplatesComponent implements OnInit {
   updateTemplateForm() {
     this.resetForm();
     this.updateFormValidation();
-    
+
 
   }
 
@@ -819,10 +819,10 @@ export class TemplatesComponent implements OnInit {
     this.isEditing = true;
     this.editingTemplateId = template.templateId;
     this.activeTab = 'create-template';
-    this.selectedTemplateType = 'goals'; 
-    
+    this.selectedTemplateType = 'goals';
+
     const dept = this.allDeptList.find(d => d.deptId === template.departmentId);
-  
+
     this.templateForm.patchValue({
       title: template.title,
       description: template.description,
@@ -830,7 +830,7 @@ export class TemplatesComponent implements OnInit {
       // quarterId: template.quarterId,
       department: dept ? dept.name : ''
     });
-    
+
     this.updateFormValidation();
   }
 
@@ -863,7 +863,7 @@ export class TemplatesComponent implements OnInit {
       .pipe(first())
       .subscribe({
         next: (response: any) => {
-          this.modalRef.close();
+          this.modalRef?.close();
           if (response.serviceStatus === "Success") {
             this.fetchGoalTemplates();
           } else {
@@ -872,7 +872,7 @@ export class TemplatesComponent implements OnInit {
           }
         },
         error: (error) => {
-          this.modalRef.close();
+          this.modalRef?.close();
           this.alertMessage = 'Error deleting template. Please try again.';
           this.openAlertMod(this.alert_message, this.alertMessage);
         }
@@ -886,9 +886,9 @@ export class TemplatesComponent implements OnInit {
       });
       return;
     }
-    
+
     const formValue = { ...this.templateForm.value };
-    
+
     if (this.isEditing && this.editingTemplateId) {
       this.userPerformanceService.updateGoalTemplate(this.editingTemplateId, formValue)
       .pipe(first())
@@ -940,7 +940,7 @@ export class TemplatesComponent implements OnInit {
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
             this.allDeptList = response.serviceResponse;
-            
+
           } else {
             console.error(response.serviceResponse);
           }

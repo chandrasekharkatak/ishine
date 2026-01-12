@@ -154,7 +154,7 @@ export class ViewTravelrequestComponent implements OnInit {
         const response: any = await this.travelDesk.updateTravelData(newtravelData).toPromise();
 
         if (response.serviceStatus === "Success") {
-          this.modalRef.close();
+          this.modalRef?.close();
 
           this.openAlertMod(template, "Success! Your data was updated successfully. !!");
 
@@ -202,7 +202,7 @@ export class ViewTravelrequestComponent implements OnInit {
     }
   }
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
 
@@ -238,7 +238,7 @@ export class ViewTravelrequestComponent implements OnInit {
 
 
   closeModal() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   isSearchEnabled: boolean = false;
@@ -481,7 +481,7 @@ export class ViewTravelrequestComponent implements OnInit {
 
     this.travelDesk.submitReimbursmentBasedOnTravelRequest(cleanedInvoices).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.modalRef.close();
+        this.modalRef?.close();
         this.getFileDetails();
         this.invoices = [];
         this.addInvoiceRow();
@@ -613,7 +613,7 @@ export class ViewTravelrequestComponent implements OnInit {
   }
 
   cancelRequestDocument() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
   getMimeTypeFromBase64(base64: string): string {
     const header = atob(base64.slice(0, 20));
@@ -721,7 +721,7 @@ export class ViewTravelrequestComponent implements OnInit {
         this.getFileDetails();
         this.invoices = [];
         this.addInvoiceRow();
-        this.modalRef.close();
+        this.modalRef?.close();
         this.updateUploadedFile();
         this.getAllInvoicesByEmpId(template, this.currentUser.EmpId);
         this.openAlertMod1(template, response.serviceResponse);

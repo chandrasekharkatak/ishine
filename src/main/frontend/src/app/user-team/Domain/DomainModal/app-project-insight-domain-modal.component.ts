@@ -125,7 +125,7 @@ export class ProjectInsightDomainModalComponent implements OnInit {
 
   cancelRequest() {
     this.onCloseModal();
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   addServiceList() {

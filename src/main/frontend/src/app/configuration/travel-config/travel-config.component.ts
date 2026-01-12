@@ -411,7 +411,7 @@ export class TravelConfigComponent implements OnInit {
   //     console.log('Travel Reason saved:', response);
   //     if (response.serviceStatus === "Success") {
   //       this.openAlertMod(template, "Travel Reason submitted successfully!");
-  //       this.modalRef.close();
+  //       this.modalRef?.close();
   //     }
   //     else {
   //       this.openAlertMod(template, "Submission failed. Try again.!");
@@ -458,12 +458,12 @@ export class TravelConfigComponent implements OnInit {
 
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
     location.reload();
   }
 
   cancelRequest1() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   async onGetTravelReason() {
@@ -587,7 +587,7 @@ export class TravelConfigComponent implements OnInit {
     try {
 
       const selectedReason = travelClassPayload.travelReason.trim().toLowerCase();
-      // const selectedMode = travelClassPayload.travelMode[1].trim().toLowerCase();      
+      // const selectedMode = travelClassPayload.travelMode[1].trim().toLowerCase();
       const selectedClass = this.travelClass?.trim().toLowerCase();
       // const selectedReason = this.selectedTravelReasons[1]?.trim().toLowerCase();
       const selectedMode = this.selectedTravelModes[1]?.trim().toLowerCase();
@@ -667,7 +667,7 @@ export class TravelConfigComponent implements OnInit {
   //     console.log('hotelCategoryName saved:', response);
   //     if (response.serviceStatus === "Success") {
   //       this.openAlertMod(template, "Hotel Category Name submitted successfully!");
-  //       this.modalRef.close();
+  //       this.modalRef?.close();
   //     }
   //     else {
   //       this.openAlertMod(template, "Submission failed. Try again.!");
@@ -754,7 +754,7 @@ export class TravelConfigComponent implements OnInit {
   //     }
 
   //     this.openAlertMod(template, "Hotel Sub-Category saved successfully!");
-  //     this.modalRef.close();
+  //     this.modalRef?.close();
   //   } catch (error) {
   //     console.error("API error:", error);
   //     this.openAlertMod(template, "Unexpected error occurred while saving Hotel Sub-Category.");

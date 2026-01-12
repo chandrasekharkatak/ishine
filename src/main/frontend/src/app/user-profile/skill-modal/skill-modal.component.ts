@@ -22,7 +22,7 @@ export class SkillModalComponent implements OnInit {
 
   ngOnInit(): void {
     if(!this.isEdit){
-    
+
     this.getAllPredefinedSkills();
     }
     this.getAllProficiency();
@@ -52,7 +52,7 @@ export class SkillModalComponent implements OnInit {
     console.log("dupli",this.existingSkills);
 
     if (this.isEdit) {
-    
+
       console.log("skill while editing",this.skill);
       this.skillInput = this.skill.skillName;
       this.skillsObj = this.skill;
@@ -89,7 +89,7 @@ export class SkillModalComponent implements OnInit {
   canUpdateSkill() {
   let referenceDate: Date | null = null;
 
-  
+
   if (this.skill.updatedOn) {
     referenceDate = new Date(this.skill.updatedOn);
   } else if (this.skill.createdOn) {
@@ -121,7 +121,7 @@ export class SkillModalComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
 
@@ -171,9 +171,9 @@ export class SkillModalComponent implements OnInit {
       this.skillsObj.skillId = null;
       this.skillsObj.additionalSkill = this.skillInput;
     }
-    
+
     this.checkDuplicate();
-   
+
   }
 
   isSkillFormValid(): boolean {

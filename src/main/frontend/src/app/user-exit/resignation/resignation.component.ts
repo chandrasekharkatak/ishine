@@ -69,8 +69,8 @@ export class ResignationComponent implements OnInit {
 
   ngOnInit(): void {
     this.getAllResignationApplication();
-    
-     // Dynamic Subfeature Flags 
+
+     // Dynamic Subfeature Flags
      let featureMap:Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
      featureMap.subFeatures?.forEach(sub => {
        this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -122,7 +122,7 @@ export class ResignationComponent implements OnInit {
     currentEmp.empId = resignation.empId;
 
     //console.log(currentEmp.empId, " : currentEmp.empId");
-    
+
     const response: any = await this.employeeService.getEmployeeByEmpId(currentEmp).toPromise();
     if (response.serviceStatus == "Success") {
       this.employeeInfoObj = response.serviceResponse;
@@ -133,7 +133,7 @@ export class ResignationComponent implements OnInit {
         this.employeeInfoObj.dateOfResign = resignation.createdOn;
       }
       this.employeeInfoObj.resignationStatus = resignation.resignationStatus;
-    
+
       //console.log("currentEmployeeInfo : ", this.employeeInfoObj);
       this.loadProfileImage(this.employeeInfoObj.imageBytes);
     } else {
@@ -252,16 +252,16 @@ export class ResignationComponent implements OnInit {
     this.page = event;
   }
 
-  sortData(sort: Sort){	
+  sortData(sort: Sort){
     //console.log(sort);
     if(sort.active){
       let sortParams:any[] = sort.active?.split("|");
       this.sortColumn = sortParams[0];
       this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;      
+      this.sortDirection = sort.direction;
     }
   }
-  
+
   toggleSearch(){
     this.isSearchEnabled = !this.isSearchEnabled;
     if(!this.isSearchEnabled){
@@ -302,7 +302,7 @@ export class ResignationComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
 }

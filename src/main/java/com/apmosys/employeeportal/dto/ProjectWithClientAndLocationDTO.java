@@ -29,6 +29,11 @@ public class ProjectWithClientAndLocationDTO {
     // ===== Team Fields =====
     private Long teamId;
     private String teamName;
+    
+    // ===== Client Flags ====
+    private Boolean hasClientSideId;
+    private Boolean hasClientFlag;
+    
 	
 
 }

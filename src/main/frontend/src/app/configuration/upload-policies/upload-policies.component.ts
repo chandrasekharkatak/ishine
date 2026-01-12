@@ -39,11 +39,11 @@ export class UploadPoliciesComponent implements OnInit {
   sortColumn: any;
   sortColumnType: any;
 
-  //flags 
+  //flags
   isDocumentForm: boolean = false;
   isTable: boolean = false;
 
-  //modal 
+  //modal
   alertMessage: any;
   modalRef:NgbModalRef;
   document: any[] = [];
@@ -350,7 +350,7 @@ export class UploadPoliciesComponent implements OnInit {
     this.alertMessage = message;
   }
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   openPreviewDocument(template: TemplateRef<any>) {
@@ -365,8 +365,8 @@ export class UploadPoliciesComponent implements OnInit {
     this.isTable = false;
     this.filters = {};
     this.isSearchEnabled = false;
-   
-  
+
+
 
     this.showPolicyReadResponse(fileObj);
 
@@ -380,7 +380,7 @@ export class UploadPoliciesComponent implements OnInit {
         for (let x of this.responseList) {
           x.empId = "A-".concat(x.empId);
         }
-        //console.log(this.responseList);      
+        //console.log(this.responseList);
       }
       else {
         console.error(response.serviceResponse);
@@ -394,7 +394,7 @@ export class UploadPoliciesComponent implements OnInit {
 
   exportToExcel(): void {
 
-  
+
 
     this.uploadPoliciesService.showPolicyReadResponse(this.fileObjj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

@@ -60,7 +60,7 @@ export class RoleConfigComponent implements OnInit {
 
   roleDataForExcel: any[];
 
- 
+
 
   // for View Role By department
   selectedDept:any = '';
@@ -93,7 +93,7 @@ export class RoleConfigComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
- 
+
 
     this.getAllDepartmentList();
 
@@ -519,7 +519,7 @@ export class RoleConfigComponent implements OnInit {
   //   const tableId = id; // Replace with your actual table ID
   //   this.excelName = "JobRole.xlsx";
   //   this.tableName= 'Job Role Table';
-  
+
   //   this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
   // }
 
@@ -552,7 +552,7 @@ export class RoleConfigComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   page = 1;

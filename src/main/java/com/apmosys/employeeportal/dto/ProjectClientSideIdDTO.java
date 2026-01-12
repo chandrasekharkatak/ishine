@@ -18,7 +18,7 @@ import lombok.ToString;
 
 public class ProjectClientSideIdDTO {
 	
-	private Long projectId;
+	private Integer projectId;
 	private String projectName;
 	private String clientSideId;
 	

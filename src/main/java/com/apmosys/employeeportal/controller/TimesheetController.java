@@ -21,6 +21,7 @@ import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeSummaryOnExportDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderByProjectIdDTO;
+import com.apmosys.employeeportal.dto.GetProjectListForDateAndEmpIdPayload;
 import com.apmosys.employeeportal.dto.GetTimesheetDashboardCountForEmployeeDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -232,10 +233,11 @@ public class TimesheetController {
 //            
 //    }
 	@JobRoleAccess(featureIds = {15})
-	 @PostMapping("/getActiveProjectsByEmpId")
-	 public ServiceResponse getActiveProjectsByEmpId(@RequestParam Long empId) {
-	     return timesheetService.getActiveProjectsByEmpId(empId);
+	 @PostMapping("/getProjectListForDateAndEmpId")
+	 public ServiceResponse getProjectListForDateAndEmpId(@RequestBody GetProjectListForDateAndEmpIdPayload payload) {
+	     return timesheetService.getProjectListForDateAndEmpId(payload);
 	 }
+
 	@JobRoleAccess(featureIds = {15,16})
 	 @PostMapping("/getClientSideIdByProjectId")
 	 public ServiceResponse getClientSideIdByProjectId(@RequestParam Long projectId) {
@@ -253,9 +255,10 @@ public class TimesheetController {
 	 }
 	@JobRoleAccess(featureIds = {15})
 	 @PostMapping("/getActiveProjectsAndClientSideIdByEmpId")
-	 public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(@RequestParam Long empId) {
-	     return timesheetService.getActiveProjectsAndClientSideIdByEmpId(empId);
+	 public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(@RequestBody GetProjectListForDateAndEmpIdPayload payload) {
+	     return timesheetService.getActiveProjectsAndClientSideIdByEmpId(payload);
 	 }
+	 
 	@JobRoleAccess(featureIds = {15})
 	 @GetMapping("/getEmployeeListByProjectId")
 	 public ServiceResponse getEmployeeListByProjectId(@RequestParam Integer projectId,@RequestParam Long currentUser) {
@@ -325,14 +328,15 @@ public class TimesheetController {
 	         @RequestPart("finalFile") MultipartFile file,
 	         @RequestParam("fromDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fromDate,
 	         @RequestParam("toDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate toDate,
-	         @RequestParam("empId") Long empId) throws Exception{
+	         @RequestParam("empId") Long empId,@RequestParam("createdBy") Long createdBy) throws Exception {
 	     
 	     System.out.println("Received file: " + file.getOriginalFilename());
 	     System.out.println("From Date: " + fromDate);
 	     System.out.println("To Date: " + toDate);
 	     
-	     ServiceResponse reponse = new ServiceResponse();
-			reponse = timesheetService.replaceAllTemporaryFileWithFinalFile(file,fromDate,toDate,empId);
+	     ServiceResponse reponse= timesheetService.replaceAllTemporaryFileWithFinalFile(file,fromDate,toDate,empId,createdBy);
+	     // TODO: Add your processing logic here
+	     
 	     return reponse;
 	 }
 	 
@@ -489,6 +493,11 @@ public class TimesheetController {
 		public ServiceResponse employeeInTNMProject(@RequestParam Long empId) {
 			return timesheetService.isEmployeeInTNMProject(empId);
 		}
+		
+		@PostMapping("/wasEmployeeInClientProjCurrAndPrevMon")
+		public ServiceResponse wasEmployeeInClientProjCurrAndPrevMon(@RequestParam Long empId) {
+			return timesheetService.wasEmployeeInClientProjCurrAndPrevMon(empId);
+		}
    
 		@PostMapping("/isClientIdMandetory")
 		public ServiceResponse isClientMandetory(@RequestBody int projectId) {
@@ -506,5 +515,34 @@ public class TimesheetController {
 		 ServiceResponse reponse= timesheetService.getAllDayTypes();
 		 return reponse;
 	}
+	
+	@JobRoleAccess(featureIds = {7,15,16})
+	@PostMapping(value = "/getClientDetailsByProjectIdAndEmpId")
+	public ServiceResponse getClientDetailsByProjectIdAndEmpId(@RequestBody GetEmployeeSummaryOnExportDTO timesheetDTO) {
+
+		ServiceResponse response = timesheetService.getClientDetailsByProjectIdAndEmpId(timesheetDTO);
+		return response;
+	}
+	
+	@JobRoleAccess(featureIds = {15})
+	 @PostMapping("/getOtherTeamMembersByDateAndProjectId")
+	 public ServiceResponse getOtherTeamMembersByDateAndProjectId(@RequestBody GetProjectListForDateAndEmpIdPayload payload) {
+	     return timesheetService.getOtherTeamMembersByDateAndProjectId(payload);
+	 }
+	
+	@PostMapping(value = "/getMyReporteesAndClientSideProjectsInMonthYear")
+	public ServiceResponse getMyReporteesAndClientSideProjectsInMonthYear(@RequestBody TimesheetDTO timesheetDTO) {  
+		 ServiceResponse reponse= timesheetService.getMyReporteesAndClientSideProjectsInMonthYear(timesheetDTO);
+		 return reponse;
+	}
+	
+	
+	@PostMapping(value = "/getMyProjectsInMonthYear")
+	public ServiceResponse getMyProjectsInMonthYear(@RequestBody TimesheetDTO timesheetDTO) {  
+		 ServiceResponse reponse= timesheetService.getMyProjectsInMonthYear(timesheetDTO);
+		 return reponse;
+	}
+		 
 }
+
 

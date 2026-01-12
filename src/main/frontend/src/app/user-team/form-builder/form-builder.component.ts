@@ -75,7 +75,7 @@ export class FormBuilderComponent implements OnInit {
     ["multiple", "For select: Allow multiple selection? true/false", "false"],
     ["tableConfig", "For table: JSON object with columns and rows", `{"columns":[{"name":"col1","label":"Column 1","type":"text"}],"rows":2}`]
   ];
-  
+
   fieldPalette = [
     { type: 'text', label: 'Text Input' },
     { type: 'textarea', label: 'Text Area' },
@@ -272,7 +272,7 @@ export class FormBuilderComponent implements OnInit {
       'dependentLabelKey', 'dependentValueKey', 'dependentParamName', 'multiple',
       'tableConfig'
     ];
-    
+
     const formRows = (form.fields || []).map(f => {
       const row = {
         ...f,
@@ -281,7 +281,7 @@ export class FormBuilderComponent implements OnInit {
         multiple: f.multiple ? 'true' : 'false',
         tableConfig: ''
       };
-  
+
       if (f.type === 'table' && f.tableConfig) {
         try {
           row.tableConfig = JSON.stringify(f.tableConfig);
@@ -296,10 +296,10 @@ export class FormBuilderComponent implements OnInit {
           });
         }
       }
-  
+
       return row;
     });
-    
+
     const wsInstructions = XLSX.utils.aoa_to_sheet(this.instructions);
     const ws = XLSX.utils.json_to_sheet(formRows, { header: headers });
     const wb = XLSX.utils.book_new();
@@ -337,12 +337,12 @@ export class FormBuilderComponent implements OnInit {
       }
     }
   }
-  
+
 
   getNonDependentApis() {
     return this.apiList.filter(api => api.isdependent === 'N');
   }
-  
+
   getDependentApis() {
     return this.apiList.filter(api => api.isdependent === 'Y');
   }
@@ -352,10 +352,10 @@ export class FormBuilderComponent implements OnInit {
       const selectedApi = this.apiList.find(api => api.url === event.target.value);
       if (selectedApi) {
         const parentFieldName = this.editingField.parentField;
-        
+
         const parentField = this.fields.find(f => f.name === parentFieldName);
         const parentValueKey = parentField?.apiValueKey || parentFieldName;
-        
+
         this.editingField.dependentApiUrl = `${selectedApi.url}/{${parentValueKey}}`;
         this.editingField.dependentLabelKey = selectedApi.labelKey;
         this.editingField.dependentValueKey = selectedApi.valueKey;
@@ -423,11 +423,11 @@ export class FormBuilderComponent implements OnInit {
 
     if (this.editingField.optionSource === 'dependent' && this.editingField.parentField) {
       this.fieldDependencies.set(this.editingField.name, this.editingField.parentField);
-      
+
       if (!this.dependentFieldsMap.has(this.editingField.parentField)) {
         this.dependentFieldsMap.set(this.editingField.parentField, []);
       }
-      
+
       const dependentFields = this.dependentFieldsMap.get(this.editingField.parentField)!;
       if (!dependentFields.includes(this.editingField.name)) {
         dependentFields.push(this.editingField.name);
@@ -568,7 +568,7 @@ export class FormBuilderComponent implements OnInit {
 
   getLayoutConfig() {
     console.log("hi getLayoutConfig");
-    
+
     const rows = new Map<number, FormField[]>();
     let currentRow = 0;
     let currentRowWidth = 0;
@@ -576,7 +576,7 @@ export class FormBuilderComponent implements OnInit {
     this.fields.forEach(field => {
         // Ensure width is a number and convert to bootstrap column width
         const fieldWidth = Number(field.width);
-        
+
         if (currentRowWidth + fieldWidth > 100) {
             currentRow++;
             currentRowWidth = fieldWidth;
@@ -626,7 +626,7 @@ export class FormBuilderComponent implements OnInit {
     console.log(this.fields);
     console.log(this.form);
     console.log(this.layoutConfig, " --layoutConfig");
-    
+
   }
 
   mapApiOptions(data: any[], labelKey: string, valueKey: string): FormFieldOption[] {
@@ -655,8 +655,8 @@ export class FormBuilderComponent implements OnInit {
   }
 
   getAvailableParentFields(currentField: any): any[] {
-    return this.fields.filter(field => 
-      field.name !== currentField.name && 
+    return this.fields.filter(field =>
+      field.name !== currentField.name &&
       ['select', 'radio'].includes(field.type) &&
       field.optionSource !== 'dependent' // Prevent circular dependencies
     );
@@ -666,21 +666,21 @@ export class FormBuilderComponent implements OnInit {
     if (this.editingField && this.editingField.parentField) {
       const parentField = this.fields.find(f => f.name === this.editingField.parentField);
       const parentValueKey = parentField?.apiValueKey || parentField.name;
-      
+
       if (parentField) {
         if (!this.editingField.dependentParamName) {
           this.editingField.dependentParamName = parentValueKey;
         }
-        
+
         // If there's already a dependent API URL selected, update it with the new parent field
         if (this.editingField.dependentApiUrl) {
           const baseUrl = this.editingField.dependentApiUrl.split('/{')[0];
           this.editingField.dependentApiUrl = `${baseUrl}/{${this.editingField.parentField}}`;
-        } 
+        }
 
         // Update dependency mappings
         this.fieldDependencies.set(this.editingField.name, this.editingField.parentField);
-        
+
         if (!this.dependentFieldsMap.has(this.editingField.parentField)) {
           this.dependentFieldsMap.set(this.editingField.parentField, []);
         }
@@ -695,14 +695,14 @@ export class FormBuilderComponent implements OnInit {
     }
 
     try {
-      // For preview, we'll use a mock value - in real implementation, 
+      // For preview, we'll use a mock value - in real implementation,
       // this would be called when parent field value changes
       const mockParentValue = '1'; // This would be the actual selected value
       const url = this.editingField.dependentApiUrl.replace('{parentValue}', mockParentValue);
-      
+
       // Make API call to get dependent options
       const response:any = await this.apiSourceService.loadDynamicApi(url).toPromise();
-      
+
       if (response) {
         this.editingField.options = response.map(item => ({
           label: item[this.editingField.dependentLabelKey || 'name'],
@@ -744,7 +744,7 @@ export class FormBuilderComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   updateLayoutConfig() {
@@ -779,7 +779,7 @@ export class FormBuilderComponent implements OnInit {
       'dependentLabelKey', 'dependentValueKey', 'dependentParamName', 'multiple',
       'tableConfig'
     ];
-  
+
     const sampleRow = {
       type: 'text',
       label: 'Employee Name',
@@ -802,7 +802,7 @@ export class FormBuilderComponent implements OnInit {
       multiple: false,
       tableConfig: ''
     };
-  
+
     const sampleTableRow = {
       type: 'table',
       label: 'Employee Table',
@@ -831,21 +831,21 @@ export class FormBuilderComponent implements OnInit {
         rows: 2
       })
     };
-  
+
     const wsInstructions = XLSX.utils.aoa_to_sheet(this.instructions);
     const ws = XLSX.utils.json_to_sheet([sampleRow, sampleTableRow], { header: headers });
-  
+
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, wsInstructions, 'Instructions');
     XLSX.utils.book_append_sheet(wb, ws, 'FormTemplate');
-  
+
     XLSX.writeFile(wb, 'form_template.xlsx');
   }
 
   onFileChange(evt: any) {
     const target: DataTransfer = <DataTransfer>(evt.target);
     if (target.files.length !== 1) return;
-  
+
     const reader: FileReader = new FileReader();
     reader.onload = (e: any) => {
       const bstr: string = e.target.result;
@@ -853,10 +853,10 @@ export class FormBuilderComponent implements OnInit {
       const wsname: string = wb.SheetNames.includes('FormTemplate')
         ? 'FormTemplate'
         : wb.SheetNames[0];
-  
+
       const ws: XLSX.WorkSheet = wb.Sheets[wsname];
       const data = XLSX.utils.sheet_to_json(ws, { defval: '' });
-  
+
       this.fields = data.map((row: any) => {
         const field = {
           ...row,
@@ -870,7 +870,7 @@ export class FormBuilderComponent implements OnInit {
           width: Number(row.width) || 100,
           rowPosition: Number(row.rowPosition) || 0
         };
-  
+
         if (row.type === 'table' && row.tableConfig) {
           try {
             if (typeof row.tableConfig === 'string' && row.tableConfig.trim() !== '') {
@@ -897,10 +897,10 @@ export class FormBuilderComponent implements OnInit {
             };
           }
         }
-  
+
         return field;
       });
-  
+
       this.updateLayoutConfig();
     };
     reader.readAsBinaryString(target.files[0]);

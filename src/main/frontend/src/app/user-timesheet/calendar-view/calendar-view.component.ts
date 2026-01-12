@@ -34,11 +34,11 @@ export class CalendarViewComponent implements OnInit {
   @ViewChild("previewModal")
   previewModal: TemplateRef<any>;
   empId: number;
-  previewUrl: SafeResourceUrl | null = null;    
-  fileType: string = '';                       
-  mimeType: string = '';                       
-  previewFileName: string = '';                 
-  docData: string = '';                       
+  previewUrl: SafeResourceUrl | null = null;
+  fileType: string = '';
+  mimeType: string = '';
+  previewFileName: string = '';
+  docData: string = '';
   selectedProjectId!: any;
   selectedEmpId!: any;
   clientSideFilter: any;
@@ -77,6 +77,17 @@ export class CalendarViewComponent implements OnInit {
   projectDropDownAlert: TemplateRef<any>;
   projectDropDownAlertRef: NgbModalRef;
 
+  zoomScale = 1;
+  zoomLevel = 100;
+  isDragging = false;
+  startX = 0;
+  startY = 0;
+  translateX = 0;
+  translateY = 0;
+  previewBase64!: string;
+  previewMimeType!: string;
+  dateObj:any;
+
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
     private modalService: NgbModal,
@@ -88,8 +99,8 @@ export class CalendarViewComponent implements OnInit {
 
   ngOnInit(): void {
   const currentYear = this.currentDate.getFullYear();
-  this.minYear = new Date(currentYear - 1, 0, 1); 
-  this.maxYear = new Date(currentYear, 11, 31); 
+  this.minYear = new Date(currentYear - 1, 0, 1);
+  this.maxYear = new Date(currentYear, 11, 31);
     this.route.queryParams.subscribe(params => {
       const projectId = +params['projectId'];
       const empId = +params['empId'];
@@ -166,17 +177,17 @@ monthSelected(event: Date, datepicker: any) {
   datepicker.close();
 }
 
-  
+
   changeMonth(date: Date) {
     if (!date) return;
     this.selectedMonth = new Date(date.getFullYear(), date.getMonth(), 1);
     this.updateFormattedMonthLabel();
-  
+
     if (this.selectedProjectId && this.selectedEmpId) {
       this.fetchTimesheetData(this.selectedProjectId, this.selectedEmpId);
     }
   }
-  
+
   updateFormattedMonthLabel() {
     this.formattedMonthLabel = this.selectedMonth.toLocaleString('default', {
       month: 'short',
@@ -204,7 +215,7 @@ monthSelected(event: Date, datepicker: any) {
   // const year = this.selectedMonth.getFullYear();
 
   // console.log('Using month/year for API:', month, year);
-  
+
   //   this.timesheetService.getEmployeeTimesheetAsCalender(empId, month, year)
   //     .pipe(first())
   //     .subscribe({
@@ -264,13 +275,13 @@ monthSelected(event: Date, datepicker: any) {
         }
       });
   }
-  
+
    cancelRequest1() {
    if (this.modalRef3) {
       this.modalRef3.close();
     }
 }
-  
+
 
   buildCalendarGrid(timesheetData: { [key: string]: any }): void {
     const year = this.selectedMonth.getFullYear();
@@ -335,6 +346,8 @@ monthSelected(event: Date, datepicker: any) {
       return;
     }
 
+    this.dateObj = dateObj;
+
     const payload = {
       empId: this.empId,
       date: this.formatDate(dateObj.date)
@@ -377,6 +390,9 @@ monthSelected(event: Date, datepicker: any) {
 
   showPreview(base64Data: string, mimeType: string, fileName?: string): void {
     const dataUrl = `data:${mimeType};base64,${base64Data}`;
+    this.resetPreviewState();
+    this.previewBase64 = base64Data;
+    this.previewMimeType = mimeType;
     this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
 
     if (mimeType === 'application/pdf') {
@@ -387,8 +403,14 @@ monthSelected(event: Date, datepicker: any) {
       this.fileType = 'other';
     }
 
-    this.previewFileName = fileName || 'Document';
-    this.modalRef2 = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-xl modal-dialog-centered' });
+    // this.previewFileName = fileName || 'Document Preview';
+    // this.modalRef2 = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-xxl modal-dialog-centered',scrollable: true });
+    
+    this.modalRef = this.modalService.open(this.previewModal, {
+    modalDialogClass: 'modal-xl modal-dialog-centered',
+    scrollable: false   
+    });
+
   }
 
   getProjectByMonthRangeAndEmpId(fromMonthChange: boolean = false){
@@ -436,7 +458,109 @@ monthSelected(event: Date, datepicker: any) {
   }
 
   hideProjectDropDownAlert() {
-    this.projectDropDownAlertRef.close();
+    this.projectDropDownAlertRef?.close();
+  }
+
+
+zoomIn() {
+  if (this.zoomScale < 2.5) {
+    this.zoomScale += 0.1;
+    this.zoomLevel = Math.round(this.zoomScale * 100);
+  }
+}
+
+zoomOut() {
+  if (this.zoomScale > 0.5) {
+    this.zoomScale -= 0.1;
+    this.zoomLevel = Math.round(this.zoomScale * 100);
+  }
+}
+
+
+get transformStyle() {
+  return `translate(${this.translateX}px, ${this.translateY}px) scale(${this.zoomScale})`;
+}
+
+startDrag(event: MouseEvent) {
+  if (this.zoomScale <= 1) return; // drag only when zoomed
+
+  this.isDragging = true;
+  this.startX = event.clientX - this.translateX;
+  this.startY = event.clientY - this.translateY;
+  event.preventDefault();
+}
+
+onDrag(event: MouseEvent) {
+  if (!this.isDragging) return;
+
+  this.translateX = event.clientX - this.startX;
+  this.translateY = event.clientY - this.startY;
+}
+
+endDrag() {
+  this.isDragging = false;
+}
+
+resetPreviewState() {
+  this.zoomScale = 1;
+  this.zoomLevel = 100;
+  this.translateX = 0;
+  this.translateY = 0;
+  this.isDragging = false;
+}
+
+  downloadFile(): void {
+    if (!this.previewBase64 || !this.previewMimeType) {
+      return;
+    }
+
+    const byteCharacters = atob(this.previewBase64);
+    const byteNumbers = new Array(byteCharacters.length);
+
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: this.previewMimeType });
+
+    const blobUrl = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = this.buildFileName();
+    link.click();
+
+    URL.revokeObjectURL(blobUrl);
+  }
+
+  private buildFileName(): string {
+    const userName = this.userName || 'User';
+    const day = this.dateObj?.day || 'Date';
+    const month = this.formattedMonthLabel;
+    const project = this.projectList.find(p => p.projectId === this.projectIdForDropDown);
+    const projectName = project?.projectName || 'Project';
+    // const extension = this.fileType;
+    const extension = this.getExtensionFromMime(this.previewMimeType);
+
+    return `${userName} | ${day} ${month} | ${projectName}.${extension}`;
+  }
+
+  private getExtensionFromMime(mimeType: string): string {
+    switch (mimeType) {
+      case 'application/pdf':
+        return 'pdf';
+      case 'image/jpeg':
+        return 'jpeg';
+      case 'image/jpg':
+        return 'jpeg';
+      case 'image/png':
+        return 'jpeg';
+      case 'image/webp':
+        return 'jpeg';
+      default:
+        return 'file';
+    }
   }
 
 }

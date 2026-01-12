@@ -82,7 +82,7 @@ export class DeptConfigComponent implements OnInit {
     private utilityService: UtilityService,
 ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
-    
+
 
   }
 
@@ -336,9 +336,9 @@ export class DeptConfigComponent implements OnInit {
           dept.emp360HodId = dept.hodId;
           dept.emp360CreatedBy = dept.createdBy;
           dept.emp360UpdatedBy = dept.updatedBy;
-       
+
         });
-        
+
       } else {
         alert(response.serviceResponse)
       }
@@ -384,8 +384,8 @@ export class DeptConfigComponent implements OnInit {
 
 
   validateDepartmentName(): void {
-   
-    
+
+
   }
   checkDepartmentName(deptName:any, template: TemplateRef<any>){
 
@@ -402,7 +402,7 @@ export class DeptConfigComponent implements OnInit {
       this.openAlertMod(template, "Invalid department name");
       this.deptObj.name = '';
     }
-   
+
     let deptObj = new Department();
     deptObj.name = deptName;
     deptObj.deptId = this.deptObj.deptId;
@@ -450,7 +450,7 @@ export class DeptConfigComponent implements OnInit {
   //   const tableId = id; // Replace with your actual table ID
   //   this.excelName = "DepartementInfoSheet.xlsx";
   //   this.tableName= 'Department Info';
-  
+
   //   this.exportExcelService.exportTableFormat(tableId,this.excelName,this.tableName);
   // }
 
@@ -468,7 +468,7 @@ export class DeptConfigComponent implements OnInit {
   }
 
   cancelRequest() {
-    this.modalRef.close();
+    this.modalRef?.close();
   }
 
   //pagination

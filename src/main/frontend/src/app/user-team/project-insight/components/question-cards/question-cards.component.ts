@@ -73,12 +73,12 @@ export class QuestionCardsComponent {
   question: ProjectInsightQuestionDetails = new ProjectInsightQuestionDetails();
   deletedQuestion: ProjectInsightQuestionDetails = new ProjectInsightQuestionDetails();
   selectedQuestionDetails:any;
-  
+
   approvalConsent:boolean = null;
   reassignChecked:boolean = true;
   showSubmitApproval:boolean = false;
   questionControl = new UntypedFormControl('');
-  
+
   filteredQuestions$: Observable<any[]> = of([]);
   filteredQuestions: any[] = [];
   responseHistory: any[]=[];
@@ -87,7 +87,7 @@ export class QuestionCardsComponent {
   facetCategoryList:ProjectInsightFacetCategory[] = [];
 
   filterText: string = '';
-  
+
   quesStatusMap: { [key: string]: number } = {};
   versionHistoryMap: {[key: string]: number} = {};
   showContextMenu = false;
@@ -95,7 +95,7 @@ export class QuestionCardsComponent {
   contextMenuY = 0;
   selectedText = '';
   newTag: string = '';
-  
+
 
   //Text Editor
   editor: Editor;
@@ -183,7 +183,7 @@ export class QuestionCardsComponent {
         this.versionHistoryMap = response.historyMap;
       },
       error: (error: any) => {
-        this.openAlertModal(error);  
+        this.openAlertModal(error);
       }
     });
   }
@@ -200,7 +200,7 @@ export class QuestionCardsComponent {
         this.quesStatusMap = response.statusMap;
       },
       error: (error: any) => {
-        this.openAlertModal(error);  
+        this.openAlertModal(error);
       }
     });
   }
@@ -217,7 +217,7 @@ export class QuestionCardsComponent {
   }
 
   highlight(text: any): string {
-    
+
     // if (!this.searching.value) return text;
     // if (!this.searching.query || text == null) {
     //   return typeof text === 'string' ? text : JSON.stringify(text);
@@ -228,7 +228,7 @@ export class QuestionCardsComponent {
     // const regex = new RegExp(escapedQuery, 'gi');
 
     // console.log("Found in text: ", textStr.match(regex));
-    
+
     // return textStr.replace(regex, match =>
     //   `<span class="highlight">${match}</span>`
     // );
@@ -238,7 +238,7 @@ export class QuestionCardsComponent {
     //   console.log("Highlighted Text : ", highlightedText);
     // }
     return highlightedText;
-    
+
   }
 
   getAllEmployeeList() {
@@ -319,7 +319,7 @@ export class QuestionCardsComponent {
 
   closeAddOrUpdateQuestionModal() {
     if (this.addOrUpdateQuestionModalRef) {
-      this.addOrUpdateQuestionModalRef.close();
+      this.addOrUpdateQuestionModalRef?.close();
     }
   }
 
@@ -389,7 +389,7 @@ export class QuestionCardsComponent {
       this.showHistoryResponse = this.modalService.open(this.responseHistoryView, { modalDialogClass: 'modal-lg' });
     });
   }
-  
+
 
   saveDraft(response:any,question:any) {
     if(this.quesStatusMap[question.id] == 3){
@@ -429,7 +429,7 @@ export class QuestionCardsComponent {
     let n = this.selectedQuestionDetails.response.reviewerInfo.length;
     if(this.approvalConsent==null){
       this.openAlertModal('Please fill and verify the consent Properly before Submit.');
-    }else if(!this.approvalConsent && 
+    }else if(!this.approvalConsent &&
       (this.selectedQuestionDetails?.response?.reviewerInfo[n-1]?.remarks==null ||
         this.selectedQuestionDetails?.response?.reviewerInfo[n-1]?.remarks=='')){
         this.openAlertModal('Remark is manditory if you are ❌Rejecting the Application');
@@ -483,7 +483,7 @@ export class QuestionCardsComponent {
         this.saveApproval(quesAnsPair,type);
       }
     }else if(type=='edit'){
-      if(quesAnsPair.response.reviewerInfo[quesAnsPair.response.reviewerInfo.length-1].marks==null 
+      if(quesAnsPair.response.reviewerInfo[quesAnsPair.response.reviewerInfo.length-1].marks==null
         || quesAnsPair.response.reviewerInfo[quesAnsPair.response.reviewerInfo.length-1].marks==0){
           this.openAlertModal('Marks/Rating is manditory while Approving Responses.');
       }
@@ -495,7 +495,7 @@ export class QuestionCardsComponent {
         this.saveApproval(quesAnsPair,type);
       }
     }else if(type=='approve'){
-      if(quesAnsPair.response.reviewerInfo[quesAnsPair.response.reviewerInfo.length-1].marks==null 
+      if(quesAnsPair.response.reviewerInfo[quesAnsPair.response.reviewerInfo.length-1].marks==null
         || quesAnsPair.response.reviewerInfo[quesAnsPair.response.reviewerInfo.length-1].marks==0){
           this.openAlertModal('Marks/Rating is manditory while Approving Responses.');
       }
@@ -583,11 +583,11 @@ export class QuestionCardsComponent {
   sendForUpdate(QG: any, type: EntityType) {
     let projectIds: any[] = [];
     let groupIds: any[] = [];
-  
+
     if (type === ENTITY_TYPES.QUESTION || type === ENTITY_TYPES.GROUP) {
       projectIds = QG.parentPathIds.slice(0, 1);
       groupIds = QG.parentPathIds.slice(1);
-  
+
       if (type === ENTITY_TYPES.GROUP) {
         groupIds.push(QG.id);
       }
@@ -595,15 +595,15 @@ export class QuestionCardsComponent {
       projectIds = [QG.id];
       groupIds = [];
     }
-  
+
     const payload = {
       projects: projectIds,
       groups: groupIds,
       empId: this.currentUser.empId
     };
-  
+
     this.refreshCountsByParentPath(payload);
-  }  
+  }
 
   sendApprovalCountsForUpdate(question:any){
     let projectIds: any[] = [];
@@ -639,7 +639,7 @@ export class QuestionCardsComponent {
         this.openAlertModal('Error in refreshing counts : '+error);
         }
     });
-  }  
+  }
 
   updateAndShow(type:any,question:any){
     this.giveResponse?.close();
@@ -673,7 +673,7 @@ export class QuestionCardsComponent {
 
   closeDeleteQuestionModal() {
     if (this.deleteQuestionModalRef) {
-      this.deleteQuestionModalRef.close();
+      this.deleteQuestionModalRef?.close();
     }
   }
 
@@ -799,7 +799,7 @@ export class QuestionCardsComponent {
 
   cancelRequest() {
     if (this.alertModalRef) {
-      this.alertModalRef.close();
+      this.alertModalRef?.close();
     }
   }
   // Modals [End]
@@ -871,7 +871,7 @@ export class QuestionCardsComponent {
       .replace(/<\/div>/gi, '')
       .replace(/<[^>]+>/g, '')
       .trim();
-  }  
+  }
 
   closeContextMenu() {
     this.showContextMenu = false;

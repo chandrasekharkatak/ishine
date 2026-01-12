@@ -91,12 +91,12 @@ export class ProjectStaticFormComponent {
     parentType: null,
     parentId: null,
     toAllChilds: false
-  };  
+  };
   isCurrentNodeGroup: boolean = false;
   isDragEnabled:boolean = false;
   isResizeEnabled:boolean = false;
 
-  // Object 
+  // Object
   currentUser: User;
   currentNodeType: any = '';
   currentNode: FormNode;
@@ -163,7 +163,7 @@ export class ProjectStaticFormComponent {
   }
 
   highlight(text: any): string {
-    
+
     // if (!this.searching.value) return text;
     // if (!this.searching.query || text == null) {
     //   return typeof text === 'string' ? text : JSON.stringify(text);
@@ -174,7 +174,7 @@ export class ProjectStaticFormComponent {
     // const regex = new RegExp(escapedQuery, 'gi');
 
     // console.log("Found in text: ", textStr.match(regex));
-    
+
     // return textStr.replace(regex, match =>
     //   `<span class="highlight">${match}</span>`
     // );
@@ -184,7 +184,7 @@ export class ProjectStaticFormComponent {
     //   console.log("Highlighted Text : ", highlightedText);
     // }
     return highlightedText;
-    
+
   }
 
   onSelect(event: any, selected: any, keyPath?: string) {
@@ -199,7 +199,7 @@ export class ProjectStaticFormComponent {
 
       for (let i = 0; i < keys.length - 1; i++) {
         if (!obj[keys[i]]) {
-          obj[keys[i]] = {}; 
+          obj[keys[i]] = {};
         }
         obj = obj[keys[i]];
       }
@@ -416,7 +416,7 @@ export class ProjectStaticFormComponent {
       structure.questionList = data.questions;
     }
     console.log("Structure for Data: ", data, " ", structure);
-    
+
     if (structure?.children && data?.child) {
       for (let i = 0; i < structure.children.length; i++) {
         this.mergeFormDataIntoFormStructure(structure.children[i], data.child[i]);
@@ -557,7 +557,7 @@ export class ProjectStaticFormComponent {
       this.mergeFormDataIntoFormStructure(this.currentNode, this.projectInsightDetailsDTO?.projectInsightProjectDetails);
       this.leftSideMenuComponent.loadProjectInsightTrees(this.projectInsightProjectDetails.id, this.projectInsightProjectDetails?.projectId, this.projectInsightProjectDetails?.projectName);
       this.leftSideMenuComponent.loadProjectInsightGroupTrees(0, this.currentNode?.parentId, 'Project');
-        if(this.isQuestionOverview && !this.isApprovalTab){  
+        if(this.isQuestionOverview && !this.isApprovalTab){
           await this.questionCardsComponent.getAllAssignedQuestionsForUser(this.currentNode?.parentId, this.currentNode?.parentType);
           await this.leftSideMenuComponent.getAllgroupstatusdata(this.currentNode?.parentId,'Project');
         }else if(this.isQuestionOverview && this.isApprovalTab){
@@ -581,13 +581,13 @@ export class ProjectStaticFormComponent {
           this.projectInsightGroupDetails = response?.projectInsightGroupDetails;
           this.currentNode = this.transformFormDetailsToFormNode(response?.projectInsightFormDetails, this.currentNodeType);
           console.log("Before mergeFormDataIntoFormStructure : ",this.currentNode);
-          
+
           this.mergeFormDataIntoFormStructure(this.currentNode, response?.projectInsightGroupDetails);
           console.log("AFter mergeFormDataIntoFormStructure : ",this.currentNode);
-          
+
           this.leftSideMenuComponent.loadProjectInsightTrees(this.projectInsightGroupDetails?.projectDetailsId, this.projectInsightGroupDetails?.projectId, this.projectInsightGroupDetails?.projectName);
           console.log("this.leftSideMenuComponent.loadProjectInsightTrees : ",this.projectInsightGroupDetails);
-          
+
           await this.leftSideMenuComponent.rebuildAndExpandToGroup(0, this.projectInsightGroupDetails?.projectDetailsId, projectInsightGroupDetailsId);
           if (this.isQuestionOverview && !this.isApprovalTab) {
             await this.questionCardsComponent.getAllAssignedQuestionsForUser(projectInsightGroupDetailsId, 'Group');
@@ -655,7 +655,7 @@ export class ProjectStaticFormComponent {
   saveProjectInsightStaticGroupDetails(isDraft: any) {
     this.cancelRequest();
     let inputValidated: boolean = this.validateGroupDetails();
-    if (!inputValidated) return; 
+    if (!inputValidated) return;
 
     this.projectInsightGroupDetails.isDraft = isDraft;
     this.projectInsightGroupDetails.createdBy = this.currentUser.empId;
@@ -702,7 +702,7 @@ export class ProjectStaticFormComponent {
     if(!this.validationService.validateNullUndefinedEmptyString(this.projectInsightGroupDetails.parentType)){
       this.projectInsightGroupDetails.parentType = this.currentNode.parentType;
     }
-    
+
     let fields = JSON.parse(JSON.stringify(projectInsightDetailsDTO.projectInsightFormDetails.fields));
     projectInsightDetailsDTO.projectInsightFormDetails.fields = this.resetOptionsForOptionTypeAPI(fields);
 
@@ -716,7 +716,7 @@ export class ProjectStaticFormComponent {
     if (!inputValidated) return;
 
     if (isDraft && isDraft === 'Y') {
-      // validations 
+      // validations
 
     }
 
@@ -814,20 +814,20 @@ export class ProjectStaticFormComponent {
       this.askLevelApproval();
     }
   }
-  
+
   askLevelApproval(){
     this.doSaveAndAssign?.close();
     this.allChildConfirmation = 'Do You Wish to Submit Group Level Questions Only or send All Questions recursively from All child groups also?';
     this.addConsentSaveAndAssign = this.modalService.open(this.levelConfirmation);
   }
-  
+
   saveConsent(consent:boolean){
     this.addConsentSaveAndAssign?.close();
     this.allChildsRecursiv = consent;
     this.submitAndAssignRequest.toAllChilds = consent;
     this.sendAnsweredforApproval()
   }
-  
+
   sendAnsweredforApproval(){
     this.projectInsightService.assignQuestionsToReviewers(this.submitAndAssignRequest).pipe(first()).subscribe({
       next: (res: any) => {
@@ -1079,7 +1079,7 @@ export class ProjectStaticFormComponent {
 
   closeAddFieldModal() {
     if (this.addFieldModalRef) {
-      this.addFieldModalRef.close();
+      this.addFieldModalRef?.close();
     }
     this.editingField = null;
     this.editingFieldIndex = -1;
@@ -1403,7 +1403,7 @@ export class ProjectStaticFormComponent {
 
   cancelRequest() {
     if (this.alertModalRef) {
-      this.alertModalRef.close();
+      this.alertModalRef?.close();
     }
   }
 
@@ -1423,7 +1423,7 @@ export class ProjectStaticFormComponent {
 
   closeAddGroupDetailsModal() {
     if (this.addGroupDetailsModalRef) {
-      this.addGroupDetailsModalRef.close();
+      this.addGroupDetailsModalRef?.close();
     }
   }
   // Modals [End]}}
