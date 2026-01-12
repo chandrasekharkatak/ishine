@@ -186,7 +186,7 @@
                             <!-- First Row: Location, Client In Time, Client Out Time -->
                             <div class="row">
                                 <!-- Location Selection -->
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-4 mb-3">
                                     <label class="info-label"><span class="text-danger">*</span> Location</label>
                                     <app-my-select placeholder="Select Location" class="form-control"
                                         [(ngModel)]="location.locationId" [options]="workLocationList" displayKey="code"
@@ -197,25 +197,35 @@
 
                                 <!-- Client In Time -->
                                 <div class="col-md-3 mb-3">
-                                    <app-date-time-picker label="Log In" mode="time" [required]="false"
-                                        [(ngModel)]="location.logInTime">
+                                    <app-date-time-picker label="Log In" mode="time" [required]="true"
+                                        [(ngModel)]="location.logInTime" (ngModelChange)="onHoursChange()">
                                     </app-date-time-picker>
                                 </div>
 
                                 <!-- Client Out Time -->
                                 <div class="col-md-3 mb-3">
-                                    <app-date-time-picker label="Log Out" mode="time" [required]="false"
-                                        [(ngModel)]="location.logOutTime">
+                                    <app-date-time-picker label="Log Out" mode="time" [required]="true" [(ngModel)]="location.logOutTime"
+                                        (ngModelChange)="onHoursChange()">
                                     </app-date-time-picker>
                                 </div>
-                            </div>
-
-                            <!-- PROJECTS SECTION (Nested in Location) && location.availableProjects.length > 0 add this after projects api is integrated-->
-                            <div class="projects-section" *ngIf="location.locationId">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h6 class="section-subtitle">
-                                        <i class="fa fa-folder-open"></i> Projects
-                                    </h6>
+                                
+                                <div class="col-md-12 mb-2" *ngIf="timesheetLocations?.length === 1">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="useApmosysTiming" [(ngModel)]="useApmosysTiming"
+                                            (change)="applyApmosysTiming()" />
+                                        <label class="form-check-label" for="useApmosysTiming">
+                                            Use Check In / Check Out Time
+                                        </label>
+                                    </div>
+                                </div>
+                                </div>
+                                
+                                <!-- PROJECTS SECTION (Nested in Location) && location.availableProjects.length > 0 add this after projects api is integrated-->
+                                <div class="projects-section" *ngIf="location.locationId && location.logInTime && location.logOutTime">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="section-subtitle">
+                                            <i class="fa fa-folder-open"></i> Projects
+                                        </h6>
                                     <button class="btn btn-sm btn-outline-primary" (click)="addProject(location)" [disabled]="disableAdd">
                                         <i class="fa fa-plus"></i> Add Project
                                     </button>
@@ -416,7 +426,7 @@
                                                             <label class="info-label small">Hours</label>
                                                             <input type="number" step="0.01" min="0" max="24"
                                                                 class="form-control form-control-sm" placeholder="Hrs"
-                                                                [(ngModel)]="activity.completionTime">
+                                                                [(ngModel)]="activity.completionTime" (ngModelChange)="onHoursChange()">
                                                         </div>
 
                                                         <!-- Remove Button -->
@@ -480,7 +490,7 @@
                                 (click)="$any($event.target).value = null" />
                             @if (file.file) {
                             <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
-                                [disabled]="!file.previewUrl" (click)="openPreviewModalForTwo('Filled',file)">
+                                [disabled]="!file.previewUrl" (click)="openPreviewModalForTwo(file)">
                                 <i class="fa fa-eye"></i>
                             </button>
                             }
@@ -518,7 +528,7 @@
                                 (click)="$any($event.target).value = null" />
                             @if (file.file) {
                             <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
-                                [disabled]="!file.previewUrl" (click)="openPreviewModalForTwo('Approved',file)">
+                                [disabled]="!file.previewUrl" (click)="openPreviewModalForTwo(file)">
                                 <i class="fa fa-eye"></i>
                             </button>
                             }
