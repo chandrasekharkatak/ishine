@@ -817,6 +817,9 @@ export class TimesheetFormComponent implements OnInit {
 
     // Recalculate working hours when date changes
     this.calculateTotalWorkingHours();
+    this.getProjectListForDateAndEmpId();
+
+    // 
   }
 
 
@@ -1594,5 +1597,28 @@ downloadImage(fileName = 'image-preview'): void {
     this.fromDate = null;
     this.toDate = null;
   }
+
+   getProjectListForDateAndEmpId() {
+      //employeeTeamMapping has startDate and endDate as localDateTime
+      const d = new Date(this.fromDate);
+      const localDateTime = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T00:00:00`;
+      
+      // this.currentUser.empId needs to be changed to a centralized object.empId means we need to declare a centralized object which will be 
+      // sended to create timesheet, because for team the empId will be the id for the selected team member.
+      const payload = {
+        empId: this.currentUser.empId,
+        date: localDateTime
+      };
+      
+      this.timesheetService.getProjectListForDateAndEmpId(payload).pipe(first()).subscribe(async(response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.activeProjectList = response.serviceResponse;
+          console.log("Active Project List :::::::::", this.activeProjectList);
+       
+        } else {
+          console.error("Service Response for this.activeProjectList :::::::", response.serviceResponse);
+        }
+      });
+    }
 
 }
