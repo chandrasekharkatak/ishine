@@ -468,7 +468,7 @@
                     </div>
 
                     <!-- Filled Attendance Proof -->
-                    @for (file of uploadFileList; track file.projectId) {
+                    @for (file of uploadFileList; track file.projectId + '-' + file.docType) {
                     @if (file.projectId === project.projectId && file.docType === 'Filled') {
                     <div class="col-md-6 mb-3">
                         <label class="info-label">
@@ -480,7 +480,7 @@
                                 (click)="$any($event.target).value = null" />
                             @if (file.file) {
                             <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
-                                [disabled]="!file.previewUrl" (click)="openPreviewModalForTwo('Filled')">
+                                [disabled]="!file.previewUrl" (click)="openPreviewModalForTwo('Filled',file)">
                                 <i class="fa fa-eye"></i>
                             </button>
                             }
@@ -518,7 +518,7 @@
                                 (click)="$any($event.target).value = null" />
                             @if (file.file) {
                             <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
-                                [disabled]="!file.previewUrl" (click)="openPreviewModalForTwo('Approved')">
+                                [disabled]="!file.previewUrl" (click)="openPreviewModalForTwo('Approved',file)">
                                 <i class="fa fa-eye"></i>
                             </button>
                             }
@@ -585,7 +585,7 @@
 </ng-template>
 
 <!-- Preview Modal Template -->
-<ng-template #previewTemplate>
+<!-- <ng-template #previewTemplate>
     <div class="modal-header">
         <h5 class="modal-title">Document Preview</h5>
         <button type="button" class="close" aria-label="Close" (click)="modalRef?.close()">
@@ -593,15 +593,70 @@
         </button>
     </div>
     <div class="modal-body text-center">
-        <!-- PDF Preview -->
+        
         <iframe *ngIf="activeFileType === 'pdf'" [src]="activePreviewUrl" width="100%" height="600px"
             style="border: none;"></iframe>
 
-        <!-- Image Preview -->
+        
         <img *ngIf="activeFileType === 'image'" [src]="activePreviewUrl" class="img-fluid" alt="Preview"
             style="max-height: 600px;">
     </div>
+</ng-template> -->
+
+<ng-template #previewTemplate>
+  <div class="modal-header">
+    <h5 class="modal-title">Document Preview</h5>
+    <button type="button" class="close" aria-label="Close" (click)="modalRef?.close()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
+  <div class="modal-body">
+
+    <!-- PDF PREVIEW -->
+    <iframe
+      *ngIf="activeFileType === 'pdf'"
+      [attr.src]="activePreviewUrl"
+      width="100%"
+      height="600px"
+      style="border:none">
+    </iframe>
+
+    <!-- IMAGE PREVIEW -->
+    <div *ngIf="activeFileType === 'image'" class="image-preview-wrapper">
+
+      <!-- SCROLLABLE ZOOM CONTAINER -->
+      <div class="image-container">
+        <img
+          [src]="activePreviewUrl"
+          [style.transform]="'scale(' + imageZoom + ')'"
+          [style.transformOrigin]="'center center'"
+          alt="Preview"
+          class="preview-image"
+        />
+      </div>
+
+      <!-- CONTROLS (ALWAYS VISIBLE) -->
+      <div class="image-controls">
+        <button class="btn btn-sm btn-secondary" (click)="zoomOut()">−</button>
+        <button class="btn btn-sm btn-secondary" (click)="zoomIn()">+</button>
+        <button class="btn btn-sm btn-outline-secondary" (click)="resetZoom()">Reset</button>
+        <button class="btn btn-sm btn-primary" (click)="downloadImage()">Download</button>
+      </div>
+
+    </div>
+
+  </div>
 </ng-template>
+
+
+
+
+
+
+
+
+
 <ng-template #alert_message_with_reset>
     <div class="modal-body text-center">
         <p>{{alertMessage}}</p>
