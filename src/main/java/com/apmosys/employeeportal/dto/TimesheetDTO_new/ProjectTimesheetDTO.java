@@ -153,6 +153,8 @@ public class ProjectTimesheetDTO {
      */
     private Long clientLocationId;
     
+    private String description;
+    
   
 }
 
