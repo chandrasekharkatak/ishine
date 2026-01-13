@@ -146,6 +146,7 @@ public class TimesheetDocumentServiceNew {
                     filledDoc.setTimesheetId(timesheetId);
                     filledDoc.setCreatedBy(empTs.getCreatedBy());
                     filledDoc.setUpdatedBy(empTs.getUpdatedBy());
+                    filledDoc.setFinalFlag(false);
                     timesheetDocumentDetailsNewRepository.save(filledDoc);
 
                 } else if ("Approved".equalsIgnoreCase(docData.getDocType())) {
@@ -442,7 +443,7 @@ public class TimesheetDocumentServiceNew {
     public void uploadFile(List<MultipartFile> files) {
         try {
             for (MultipartFile file : files) {
-                uploadFile(file, file.getName());
+                uploadFile(file, file.getOriginalFilename());
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to upload files", e);

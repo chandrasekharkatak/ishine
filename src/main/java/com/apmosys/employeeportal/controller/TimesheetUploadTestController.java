@@ -103,7 +103,7 @@ public class TimesheetUploadTestController {
                     timesheetDocumentDetailsNew.setDocName(document.getDocName());
                     timesheetDocumentDetailsNew.setTimesheetId(document.getTimesheetId());
 
-                    Long projectId = employeeTimesheetsNewRepository
+                    Integer projectId = employeeTimesheetsNewRepository
                             .findProjectIdByTimesheetId(document.getTimesheetId());
 
                     String uniqueFileName = projectId + "_" + document.getFinalFlag() + "_" + document.getDocName();
@@ -156,7 +156,7 @@ public class TimesheetUploadTestController {
                     finalDocumentNew.setMimeTypeId(
                             timesheetDocumentServiceNew.getMimeTypeId(tdd.getDocMimeType(), tdd.getDocName()));
 
-                    Long projectId = employeeTimesheetsNewRepository
+                    Integer projectId = employeeTimesheetsNewRepository
                             .findProjectIdByTimesheetId(document.getTimesheetId());
 
                     String uniqueFileName = projectId + "_" + document.getFinalFlag() + "_" + document.getDocName();

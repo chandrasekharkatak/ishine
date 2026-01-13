@@ -14,6 +14,7 @@ import org.springframework.data.repository.query.Param;
 import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.Timesheet;
 
@@ -73,9 +74,12 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 
 	// ========== UPDATED: New queries using _new tables (using named queries)
 	// ==========
-	@Query(nativeQuery = true)
-	public List<Object[]> getMyReporteesTimesheetRequests(Long managerId, String status, LocalDate dateOfJoining,
-			Boolean clientFlag);
+//	@Query(nativeQuery = true)
+//	public List<Object[]> getMyReporteesTimesheetRequests(Long managerId, String status, LocalDate dateOfJoining,
+//			Boolean clientFlag);
+	
+	
+	
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getMyReporteesApprovedTimesheetRequests2(Long managerId, String status, LocalDate start,
@@ -10054,7 +10058,55 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	List<TimesheetDTO> getMyReportees(Long managerId);
 
 	@Query("SELECT pts.id.projectId FROM ProjectTimesheetStatusNew pts WHERE pts.id.timesheetId = :timesheetId")
-	Long findProjectIdByTimesheetId(@Param("timesheetId") Long timesheetId);
+	Integer findProjectIdByTimesheetId(@Param("timesheetId") Long timesheetId);
+
+	@Query(value = "SELECT DISTINCT new com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO(\n"
+		+ "	etn.timesheetId, etn.empId, e.name, dtmn.dayType, etn.date, etn.isNightShift, etn.workCheckIn, etn.workCheckOut, \n"
+		+ "\n"
+		+ "wltm.code, etlm.locationInTime, etlm.locationOutTime, etlm.locationMappingId, \n"
+		+ "\n"
+		+ "ptsn.id.projectId, p.projectName, c.clientName, cl.clientLocation, ptsn.poNo, es.name,\n"
+		+ "ptsn.status, ptsn.totalClientWorkingMinutes, ptsn.description, \n"
+		+ "\n"
+		+ "	a.activity, etamn.description as activityDescription, etamn.durationMinutes, t.teamName, \n"
+		+ "\n"
+		+ "	tddn.docId, tddn.docName, tddn.finalFlag, tddn.bulkApprovedDocId, dmtmn.mimeType \n"
+		+ ") \n"
+		+ "		        FROM EmployeeTimesheetsNew etn\n"
+		+ "             INNER JOIN Employee e on etn.empId = e.empId\n"
+		+ "		        INNER JOIN DayTypeMasterNew dtmn ON dtmn.dayTypeId = etn.dayTypeId\n"
+		+ "		        INNER JOIN EmployeeTimesheetLocationMapping etlm ON etlm.timesheetId = etn.timesheetId\n"
+		+ "		        INNER JOIN ProjectTimesheetStatusNew ptsn ON ptsn.id.locationMappingId = etlm.locationMappingId\n"
+		+ "		        INNER JOIN Project p ON p.projectId = ptsn.id.projectId\n\n"
+		+ "             INNER JOIN Client c on c.clientId = p.clientId \n"
+		+ "             INNER JOIN ClientLocation cl on cl.clientLocationId = ptsn.clientLocationId \n"
+		+ "             INNER JOIN StatusMasterNew smn on smn.statusId = ptsn.status		\n"
+		+ "		        INNER JOIN EmployeeTimesheetActivitiesMappingNew etamn ON etamn.timesheetId = etn.timesheetId\n"
+		+ "		        INNER JOIN Activity a ON a.activityId = etamn.activityId\n"
+		+ "		        INNER JOIN Team t on t.teamId = a.teamId \n"
+		+ "		        INNER JOIN WorkLocationTypeMaster wltm ON wltm.workLocationTypeId = etlm.locationTypeId\n"
+		+ "		        LEFT JOIN TimesheetDocumentDetailsNew tddn ON tddn.timesheetId = etn.timesheetId\n"
+		+ "             LEFT JOIN Employee es on ptsn.shadowEmpId = es.empId \n"
+		+ "             LEFT JOIN DocMimeTypeMasterNew dmtmn on dmtmn.mimeTypeId = tddn.mimeTypeId \n"
+		+ "\n"
+		+ "		        where \n"
+		+ "    CASE\n"
+		+ "        WHEN e.approvalsTo = 'Reporting Manager'\n"
+		+ "            THEN e.reportingManagerId\n"
+		+ "        WHEN e.approvalsTo = 'Manager'\n"
+		+ "            THEN e.managerId\n"
+		+ "        WHEN e.approvalsTo IS NULL OR e.approvalsTo = ''\n"
+		+ "            THEN e.managerId\n"
+		+ "    END = :managerId \n"
+		+ "AND ptsn.status = 1 \n"
+		+ "AND ((:clientFilter IS NULL) \n"
+		+ "        OR (:clientFilter = TRUE  AND p.hasClientSideId = :clientFilter) \n"
+		+ "        OR (:clientFilter = FALSE AND (p.hasClientSideId = :clientFilter OR p.hasClientSideId IS NULL)) \n"
+		+ "      ) Order by etn.date desc")
+	List<GetReporteesTimesheetReqFlatDTO> getMyReporteesTimesheetRequests(
+	        @Param("managerId") Long managerId,
+	        @Param("clientFilter") Boolean clientFilter
+	);
 
 	
 	

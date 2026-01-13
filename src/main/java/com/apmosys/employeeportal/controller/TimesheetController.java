@@ -21,11 +21,13 @@ import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeSummaryOnExportDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderByProjectIdDTO;
+import com.apmosys.employeeportal.dto.GetMyReporteesTimesheetRequestsPayload;
 import com.apmosys.employeeportal.dto.GetProjectListForDateAndEmpIdPayload;
 import com.apmosys.employeeportal.dto.GetTimesheetDashboardCountForEmployeeDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
+import com.apmosys.employeeportal.service.TimesheetApprovalService;
 import com.apmosys.employeeportal.service.TimesheetService;
 import com.apmosys.employeeportal.service.helper.TimesheetEncryptionHelper;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -39,6 +41,9 @@ public class TimesheetController {
 	
 	@Autowired
 	TimesheetEncryptionHelper timesheetEncryptionHelper;
+	
+	@Autowired
+	TimesheetApprovalService timesheetApprovalService;
 	
 	
 	@JobRoleAccess(featureIds = {7,15,16})
@@ -91,9 +96,9 @@ public class TimesheetController {
 	}
 	@JobRoleAccess(featureIds = {15,16,24})
 	@RequestMapping(value = "/getMyReporteesTimesheetRequests", method = RequestMethod.POST)
-	public ServiceResponse getMyReporteesTimesheetRequests(@RequestBody TimesheetDTO timesheetDTO) {
+	public ServiceResponse getMyReporteesTimesheetRequests(@RequestBody GetMyReporteesTimesheetRequestsPayload timesheetDTO) {
 
-		ServiceResponse response = timesheetService.getMyReporteesTimesheetRequests(timesheetDTO);
+		ServiceResponse response = timesheetApprovalService.getMyReporteesTimesheetRequests(timesheetDTO);
 		return response;
 	}	
 	@JobRoleAccess(featureIds = {15,16,24})
@@ -232,7 +237,7 @@ public class TimesheetController {
 //            System.err.println("--cron ended----");
 //            
 //    }
-	@JobRoleAccess(featureIds = {15})
+	// @JobRoleAccess(featureIds = {15})
 	 @PostMapping("/getProjectListForDateAndEmpId")
 	 public ServiceResponse getProjectListForDateAndEmpId(@RequestBody GetProjectListForDateAndEmpIdPayload payload) {
 	     return timesheetService.getProjectListForDateAndEmpId(payload);
