@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service.mapper;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -11,7 +12,15 @@ import org.springframework.stereotype.Component;
 
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetActivitiesDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetDocsDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetLocationsDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetProjectsDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
 import com.apmosys.employeeportal.model.EmployeeTimesheetActivitiesMappingNew;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.ProjectTimesheetStatusId;
@@ -183,7 +192,7 @@ public class TimesheetMapper {
         dto.setActivityId(entity.getActivityId());
         dto.setProjectId(entity.getProjectId());
         dto.setDescription(entity.getDescription());
-        dto.setDurationMinutes(entity.getDurationMinutes() != null ? entity.getDurationMinutes().intValue() : null);
+        dto.setDurationMinutes(entity.getDurationMinutes() != null ? entity.getDurationMinutes().shortValue() : null);
       
         return dto;
     }
@@ -236,5 +245,120 @@ public class TimesheetMapper {
                         activity -> activity.getProjectId()
                 ));
     }
-}
+    
+    public List<GetReporteesTimesheetReqDTO> map(
+            List<GetReporteesTimesheetReqFlatDTO> rows) {
 
+        Map<Long, GetReporteesTimesheetReqDTO> timesheetMap = new LinkedHashMap<>();
+
+        for (GetReporteesTimesheetReqFlatDTO r : rows) {
+
+            /* ================= TIMESHEET LEVEL ================= */
+            GetReporteesTimesheetReqDTO timesheet =
+                    timesheetMap.computeIfAbsent(
+                            r.getTimesheetId(),
+                            id -> new GetReporteesTimesheetReqDTO(
+                                    id,
+                                    r.getEmpId(),
+                                    r.getEmployeeName(),
+                                    r.getDayType(),
+                                    r.getDate(),
+                                    r.getIsNightShift(),
+                                    r.getWorkCheckIn(),
+                                    r.getWorkCheckOut(),
+                                    new ArrayList<>(),
+                                    new ArrayList<>()
+                            )
+                    );
+
+            /* ================= LOCATION LEVEL ================= */
+            GetReporteesTimesheetLocationsDTO location =
+                    timesheet.getLocationSessions()
+                            .stream()
+                            .filter(l -> l.getLocationMappingId()
+                                    .equals(r.getLocationMappingId()))
+                            .findFirst()
+                            .orElseGet(() -> {
+
+                                GetReporteesTimesheetLocationsDTO loc =
+                                        new GetReporteesTimesheetLocationsDTO(
+                                                r.getWorkLocationType(),
+                                                r.getLocationInTime(),
+                                                r.getLocationOutTime(),
+                                                r.getLocationMappingId(),
+                                                new ArrayList<>()
+                                        );
+
+                                timesheet.getLocationSessions().add(loc);
+                                return loc;
+                            });
+
+            /* ================= PROJECT LEVEL ================= */
+            GetReporteesTimesheetProjectsDTO project =
+                    location.getProjects()
+                            .stream()
+                            .filter(p -> p.getProjectId()
+                                    .equals(r.getProjectId()))
+                            .findFirst()
+                            .orElseGet(() -> {
+
+                                GetReporteesTimesheetProjectsDTO p =
+                                        new GetReporteesTimesheetProjectsDTO(
+                                                r.getProjectId(),
+                                                r.getProjectName(),
+                                                r.getClientName(),
+                                                r.getClientLocation(),
+                                                r.getPoNo(),
+                                                r.getShadowEmp(),
+                                                r.getStatus(),
+                                                r.getTotalClientWorkingMinutes(),
+                                                r.getDescription(),
+                                                new ArrayList<>()
+                                        );
+
+                                location.getProjects().add(p);
+                                return p;
+                            });
+
+            /* ================= ACTIVITY LEVEL ================= */
+            if (r.getActivity() != null) {
+
+                GetReporteesTimesheetActivitiesDTO activity =
+                        new GetReporteesTimesheetActivitiesDTO(
+                                r.getActivity(),
+                                r.getActivityDescription(),
+                                r.getDurationMinutes(),
+                                r.getTeamName()
+                        );
+
+                project.getActivities().add(activity);
+            }
+
+            /* ================= DOCUMENT LEVEL ================= */
+            if (r.getDocId() != null) {
+
+                boolean alreadyAdded =
+                        timesheet.getDocumentData()
+                                .stream()
+                                .anyMatch(d -> d.getDocId().equals(r.getDocId()));
+
+                if (!alreadyAdded) {
+
+                    GetReporteesTimesheetDocsDTO doc =
+                            new GetReporteesTimesheetDocsDTO(
+                                    r.getDocId(),
+                                    r.getDocName(),
+                                    r.getFinalFlag(),
+                                    r.getBulkApprovedDocId(),
+                                    r.getMimeType()
+                            );
+
+                    timesheet.getDocumentData().add(doc);
+                }
+            }
+        }
+
+        return new ArrayList<>(timesheetMap.values());
+    }
+
+}

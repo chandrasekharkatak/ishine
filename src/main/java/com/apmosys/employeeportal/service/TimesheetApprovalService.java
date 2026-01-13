@@ -19,9 +19,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.GetMyReporteesTimesheetRequestsPayload;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
 import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.Timesheet;
@@ -29,11 +32,13 @@ import com.apmosys.employeeportal.model.TimesheetApprovalAllocationLogs;
 import com.apmosys.employeeportal.model.TimesheetDocumentApproval;
 import com.apmosys.employeeportal.model.TimesheetRejectionReasonsMaster;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.TimesheetApprovalAllocationLogsRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentApprovalRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
 import com.apmosys.employeeportal.repository.TimesheetRejectionReasonsMasterRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
+import com.apmosys.employeeportal.service.mapper.TimesheetMapper;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 import lombok.extern.slf4j.Slf4j;
@@ -80,6 +85,12 @@ public class TimesheetApprovalService {
     
     @Autowired
     private HttpServletRequest httpRequest;
+    
+    @Autowired
+	 private TimesheetMapper timesheetMapper;
+    
+    @Autowired
+    private EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
 
     /**
      * Gets timesheet requests for manager's reportees.
@@ -87,7 +98,7 @@ public class TimesheetApprovalService {
      * @param timesheetDTO Contains managerId and status filter
      * @return ServiceResponse with list of timesheet requests
      */
-    public ServiceResponse getMyReporteesTimesheetRequests(TimesheetDTO timesheetDTO) {
+    public ServiceResponse getMyReporteesTimesheetRequestsOld(TimesheetDTO timesheetDTO) {
         ServiceResponse response = new ServiceResponse();
         
         LogDTO apiLogInfo = new LogDTO();
@@ -1115,5 +1126,94 @@ public class TimesheetApprovalService {
                 "<br>Total Working Hours: " + dto.getTotalWorkingOfficeHours() + " (hrs)" +
                 "<br><br><b>Rejection Reason:</b> " + dto.getRejectReason();
     }
+    
+    private ServiceResponse fail(ServiceResponse response, LogDTO apiLogInfo, String message, StringBuilder logBuilder) { 
+		
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);  
+		response.setServiceResponse(message); 
+		
+		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+        apiLogInfo.setApiRequest(logBuilder.toString());
+        
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response; 
+		
+	}
+    
+    public ServiceResponse getMyReporteesTimesheetRequests(GetMyReporteesTimesheetRequestsPayload payload) {
+
+        ServiceResponse response = new ServiceResponse();
+        
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setTabName("Home Tab");
+        apiLogInfo.setFeatureName("team_timesheets");
+        apiLogInfo.setSubFeatureName("view_my_teams_timesheets_requests");
+        apiLogInfo.setApiUrl("/api/timesheets/reportees");
+        apiLogInfo.setLogLevel("INFO");
+
+        StringBuilder logBuilder = new StringBuilder("Home / Team Requests / View Pending Timesheets Requests");
+
+        try {
+
+            if (payload == null || payload.getEmpId() == null) {
+                logBuilder.append(" | Invalid payload or empId is null");
+                return fail(response, apiLogInfo,
+                        "Employee information is required to fetch timesheet requests",
+                        logBuilder);
+            }
+
+            boolean clientFilter = Boolean.TRUE.equals(payload.getClientFilter());
+
+            logBuilder.append(" | ManagerId=").append(payload.getEmpId());
+            logBuilder.append(" | ClientFilter=").append(clientFilter);
+
+            List<GetReporteesTimesheetReqFlatDTO> flatData = employeeTimesheetsNewRepository.getMyReporteesTimesheetRequests(
+                            payload.getEmpId(), clientFilter
+                            );
+
+            if (flatData == null || flatData.isEmpty()) {
+                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(Collections.emptyList());
+        		
+                logBuilder.append(" | No pending requests for timesheet approval! ");
+                
+        		apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+                apiLogInfo.setApiRequest(logBuilder.toString());
+                
+            }
+
+            /* ---------- Mapping ---------- */
+            List<GetReporteesTimesheetReqDTO> finalResponse = timesheetMapper.map(flatData);
+
+            /* ---------- Success ---------- */
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(finalResponse);
+
+            logBuilder.append(" | Records=").append(finalResponse.size());
+            
+    		apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+            apiLogInfo.setApiRequest(logBuilder.toString());
+
+
+        } catch (Exception ex) {
+
+            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceResponse("Failed to fetch timesheet requests");
+            response.setServiceError(ex.getMessage());
+
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setApiResponse(ex.getMessage());
+            apiLogInfo.setLogLevel("ERROR");
+
+            logBuilder.append(" | Exception=").append(ex.getMessage());
+            apiLogInfo.setApiRequest(logBuilder.toString());
+            logService.logMyInfo(httpRequest, apiLogInfo);
+
+            
+        }
+        return response;
+    }    
+    
+    
 }
 
