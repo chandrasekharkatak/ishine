@@ -28,6 +28,7 @@ import com.apmosys.employeeportal.model.FinalDocument;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
+import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.FinalDocumentRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
@@ -67,6 +68,9 @@ public class TimesheetDocumentService {
     
     @Autowired
     private HttpServletRequest httpRequest;
+    
+    @Autowired 
+    private EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
 
     /**
      * Handles document upload for a timesheet.
@@ -587,10 +591,12 @@ public class TimesheetDocumentService {
             }
 
             // Fetch timesheet filled dates for the range
+//            Set<LocalDate> allFilledDatesInRange =
+//                    timesheetsRepository.allTimesheetFilledDatesForDateRange(
+//                            firstDayOfLastMonth, lastDayWithBuffer, projectId, empId);
+            		
             Set<LocalDate> allFilledDatesInRange =
-                    timesheetsRepository.allTimesheetFilledDatesForDateRange(
-                            firstDayOfLastMonth, lastDayWithBuffer, projectId, empId);
-
+            		employeeTimesheetsNewRepository.allTimesheetFilledDatesForDateRange(firstDayOfLastMonth, lastDayWithBuffer, projectId, empId);
             // Unfilled dates = all dates - filled dates
             Set<LocalDate> unfilledDates = new HashSet<>(allDatesInRange);
             if (allFilledDatesInRange != null && !allFilledDatesInRange.isEmpty()) {
@@ -609,7 +615,7 @@ public class TimesheetDocumentService {
             }
 
             // Add timesheet dates that already have both documents (if applicable)
-            Set<LocalDate> timesheetDates = timesheetsRepository.findDatesByEmpIdAndProjectId(empId, projectId);
+            Set<LocalDate> timesheetDates = employeeTimesheetsNewRepository.findDatesByEmpIdAndProjectId(empId, projectId);
             if (timesheetDates != null && !timesheetDates.isEmpty()) {
                 combinedDateSet.addAll(timesheetDates);
             }

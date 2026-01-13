@@ -3,7 +3,9 @@ export class ActivityNew {
   teamId?: number | null;
   activityId: number | null;
   description: string;
-  completionTime: number | null;
+  durationMinutes: number | null;
   allActivitiesForProject?: any[];
   // projectActivities?: any[];
+  timesheetId?: number;
+  projectId: number;
 }
