@@ -4,6 +4,7 @@ export class ProjectEntry {
   projectId: number | null;
   projectName?: string;
   hasClientSideId?: boolean;
+  hasClientFlag?: boolean;
   shadowEmpId?: number;
   isShadowTimesheet?: boolean;
   isShadowForSelf?: boolean;
