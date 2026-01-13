@@ -1506,6 +1506,15 @@ getCountByStatus(status: string) {
     CH: { label: 'Client Holiday', color: '#3e2f1c' },
     CA: { label: 'Client Approved', color: '#003366' },
     CN: { label: 'Client Not-Approved', color: '#664400' },
+    // 🔴 Rejected by RM (improved differentiation)
+    CA_R: {
+      label: 'Client Approved But Rejected By RM',
+      color: '#B71C1C' // Dark red (high-impact rejection)
+    },
+    CN_R: {
+      label: 'Client Not-Approved But Rejected By RM',
+      color: '#E57373' // Soft red (lower severity rejection)
+    },
     P: { label: 'Present', color: '#014421' },
     NA: { label: 'Not Applicable', color: '#2f4f4f' },
     L:{label:'On Leave', color:"#a3002c"},

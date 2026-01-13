@@ -1294,8 +1294,7 @@
                             <td *ngIf="timesheet.filledDocument">
                                 <button *ngIf="timesheet.filledDocument" class="btn btn-sm btn-outline-primary mb3"
                                     type="submit" title="copy timesheet"
-                                    (click)="getDoscForPreview(timesheet.filledDocument)"><em>View
-                                        Doc</em></button>&nbsp;
+                                    (click)="getDocsForPreview(timesheet.filledDocument)"><em>Open</em></button>&nbsp;
                             </td>
                             <td *ngIf="!timesheet.filledDocument">
                                 {{timesheet.filledDocument || "NA"}}
@@ -1303,8 +1302,7 @@
                             <td *ngIf="timesheet.approvedDocument">
                                 <button *ngIf="timesheet.approvedDocument" class="btn btn-sm btn-outline-primary mb3"
                                     type="submit" title="copy timesheet"
-                                    (click)="getDoscForPreview(timesheet.approvedDocument)"><em>View
-                                        Doc</em></button>&nbsp;
+                                    (click)="getDocsForPreview(timesheet.approvedDocument)"><em>Open</em></button>&nbsp;
                             </td>
                             <td *ngIf="!timesheet.approvedDocument">
                                 {{timesheet.approvedDocument || "NA"}}

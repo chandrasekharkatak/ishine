@@ -20,11 +20,11 @@
     <div class="card col-md-12 px-0">
         <div class="card-header text-center ">
             <strong class="text-uppercase" *ngIf="isCreation">Create Timesheet</strong>
-            <strong  class = "text-uppercase" *ngIf="isUpdation">Update Timesheet</strong>
-             <app-info-tooltip *ngIf="isCreation && timesheetObj.projectId && projAlertRequireClientId === true" class="me-2" style="margin-left: 8px;"
-                                        iconBgColor="#A22C29" [size]="19" [content]="tooltipContent"
-                                        [pdfPath]="tooltipPdf" [pdfCtaText]="tooltipCta">
-                                    </app-info-tooltip>
+            <strong class="text-uppercase" *ngIf="isUpdation">Update Timesheet</strong>
+            <app-info-tooltip *ngIf="isCreation && timesheetObj.projectId && projAlertRequireClientId === true"
+                class="me-2" style="margin-left: 8px;" iconBgColor="#A22C29" [size]="19" [content]="tooltipContent"
+                [pdfPath]="tooltipPdf" [pdfCtaText]="tooltipCta">
+            </app-info-tooltip>
         </div>
         <div class="card-body">
             <div class="card col-md-12 px-3">
@@ -138,7 +138,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="row" *ngIf="timesheetObj.timesheetAppliedFor && timesheetObj.date && (timesheetObj.dayType == 'Working'  || timesheetObj.dayType == 'Non-working')">
+                <div class="row"
+                    *ngIf="timesheetObj.timesheetAppliedFor && timesheetObj.date && (timesheetObj.dayType == 'Working'  || timesheetObj.dayType == 'Non-working')">
                     <div class="col-md-3 mb-0">
                         <div class="info-wrapper">
                             <div class="form-group">
@@ -187,9 +188,9 @@
                         *ngIf="(timesheetObj.projectId && !clientSideIdNotMandatory) || (isUpdation && timesheetObj.projectId && !clientSideIdNotMandatory)">
                         <div class="info-wrapper">
                             <div class="form-group">
-                                <label class="info-label">Client Side ID<span
-                                        *ngIf="!clientSideIdNotMandatory" class="clickable-icon"
-                                        title="Update Client Side ID" (click)="openSelfModal3(update_clientId)"><i
+                                <label class="info-label">Client Side ID<span *ngIf="!clientSideIdNotMandatory"
+                                        class="clickable-icon" title="Update Client Side ID"
+                                        (click)="openSelfModal3(update_clientId)"><i
                                             class="fa-solid fa-user-pen"></i></span></label>
 
                                 <input *ngIf="timesheetObj.timesheetAppliedFor != 'team'" class="form-control"
@@ -603,9 +604,10 @@
                                                 </mat-option>
 
                                             </mat-select> -->
-                                            <app-my-select #clientDetails class="form-control" placeholder="Select Client"
-                                                [(ngModel)]="activityObj.clientId" [options]="clientDropdownList"
-                                                displayKey="clientName" valueKey="clientId" [multiple]="false"
+                                            <app-my-select #clientDetails class="form-control"
+                                                placeholder="Select Client" [(ngModel)]="activityObj.clientId"
+                                                [options]="clientDropdownList" displayKey="clientName"
+                                                valueKey="clientId" [multiple]="false"
                                                 (selectionChange)="onClientChange(activityObj)"
                                                 (closed)="validateClientName($event,activityObj.clientId)">
                                             </app-my-select>
@@ -780,8 +782,7 @@
                 </div>
             </div>
 
-            <div class="card col-md-12 px-3"
-                *ngIf="!timesheetFillable">
+            <div class="card col-md-12 px-3" *ngIf="!timesheetFillable">
                 <div class="row">
                     <div class="col-md-4 mb-0">
                         <div class="info-wrapper">
@@ -1194,7 +1195,7 @@
                                     Total Working Hours</th>
                                 <th scope="col" style="min-width: 250px;" class="info-label column-md"
                                     mat-sort-header="projectName|string">Project Name</th>
-                                 <th scope="col" style="min-width: 250px;" class="info-label column-md"
+                                <th scope="col" style="min-width: 250px;" class="info-label column-md"
                                     mat-sort-header="description|string">Activity</th>
                                 <th scope="col" colspan="info-label" class="info-label"
                                     mat-sort-header="totalTime|number">Total Activity Time</th>
@@ -1263,19 +1264,21 @@
                                 <td>{{timesheet.totalClientWorkingHours || "NA"}}</td>
                                 <td class="text-capitalize">{{timesheet.clientApprovalStatus ||"NA"}}</td>
                                 <td *ngIf="timesheet.filledDocument">
-                                    <button *ngIf="timesheet.filledDocument" class="btn btn-sm btn-outline-primary mb3"
-                                        type="submit" title="copy timesheet"
-                                        (click)="getDoscForPreview(timesheet.filledDocument)"><em>View
-                                            Doc</em></button>&nbsp;
+                                    <button class="btn btn-sm btn-outline-primary mb3" type="button"
+                                        title="Open document" (click)="getDoscForPreview(timesheet.filledDocument)">
+                                        <em>Open</em>
+                                    </button>
                                 </td>
+
                                 <td *ngIf="!timesheet.filledDocument">
-                                    {{timesheet.filledDocument || "NA"}}
+                                    {{ timesheet.filledDocument || 'NA' }}
                                 </td>
+
                                 <td *ngIf="timesheet.approvedDocument">
-                                    <button *ngIf="timesheet.approvedDocument"
-                                        class="btn btn-sm btn-outline-primary mb3" type="submit" title="copy timesheet"
-                                        (click)="getDoscForPreview(timesheet.approvedDocument)"><em>View
-                                            Doc</em></button>&nbsp;
+                                <button class="btn btn-sm btn-outline-primary mb3" type="button" title="Open document"
+                                    (click)="getDoscForPreview(timesheet.approvedDocument)">
+                                    <em>Open</em>
+                                </button>
                                 </td>
                                 <td *ngIf="!timesheet.approvedDocument">
                                     {{timesheet.approvedDocument || "NA"}}
@@ -1320,9 +1323,10 @@
 <div class="row" *ngIf="isTimesheetBulkForm">
     <div class="card col-md-12 px-0">
         <div class="card-header text-center ">
-            <strong class="text-uppercase" style="margin-right: 4px;" *ngIf="isTimesheetBulkForm">Final Document Bulk Upload</strong>
-            <app-info-tooltip class="ms-2"  iconBgColor="#127475" [size]="20"
-            [content]="withVmsbullet"></app-info-tooltip>
+            <strong class="text-uppercase" style="margin-right: 4px;" *ngIf="isTimesheetBulkForm">Final Document Bulk
+                Upload</strong>
+            <app-info-tooltip class="ms-2" iconBgColor="#127475" [size]="20"
+                [content]="withVmsbullet"></app-info-tooltip>
         </div>
         <div class="card-body">
             <div class="row">
@@ -1399,11 +1403,27 @@
                         <label class="info-label"><span class="text-danger">*</span>Bulk Approval Proof</label>
                         <div class="d-flex align-items-center">
                             <input type="file" #fileInput class="form-control form-control-sm"
-                                accept=".pdf,.jpg,.jpeg,.png" (change)="onFinalFileSelected($event)">
-                            <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
+                                accept=".pdf,.jpg,.jpeg,.png,.xlsx,.xls" (change)="onFinalFileSelected($event)">
+
+                            <!-- <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
                                 [disabled]="!previewUrl2" (click)="openPreviewModalForTwo('doc2')">
                                 <i class="fa fa-eye fa-lg text-primary"></i>
+                            </button> -->
+
+                            <!-- Preview button (PDF & Image only) -->
+                            <button *ngIf="fileType2 === 'pdf' || fileType2 === 'image'"
+                                class="btn btn-outline-primary btn-sm ms-2" title="Preview" [disabled]="!previewUrl2"
+                                (click)="openPreviewModalForTwo('doc2')">
+                                <i class="fa fa-eye fa-lg text-primary"></i>
                             </button>
+
+                            <!-- Download button (Excel only) -->
+                            <button *ngIf="fileType2 === 'excel'" class="btn btn-outline-success btn-sm ms-2"
+                                title="Download Excel" (click)="downloadSelectedFile()">
+                                <i class="fa fa-download fa-lg text-success"></i>
+                            </button>
+
+
                         </div>
                         <div class="text" *ngIf="fileName2">
                             {{fileName2}}
@@ -1590,9 +1610,10 @@
 <ng-template #update_clientId>
     <form #clientForm="ngForm" (ngSubmit)="hideSelfModal3();updateClientSideIdMapping(alert_message)">
         <div class="modal-body text-center position-relative">
-             <div class="info-modal">  <app-info-tooltip class="me-2" style="margin-right: 8px;" pdfPath="assets/pdfFiles/Entering client side id.pdf"
-  pdfCtaText="Client Side ID Entry Guide" iconBgColor="#8377D1" [size]="19" [content]="clientIdEntryBulletPoints">
-            </app-info-tooltip></div>
+            <div class="info-modal"> <app-info-tooltip class="me-2" style="margin-right: 8px;"
+                    pdfPath="assets/pdfFiles/Entering client side id.pdf" pdfCtaText="Client Side ID Entry Guide"
+                    iconBgColor="#8377D1" [size]="19" [content]="clientIdEntryBulletPoints">
+                </app-info-tooltip></div>
 
             <h5>Update Client Side ID Form</h5>
         </div>
@@ -1683,62 +1704,49 @@
         </button>
     </div>
     <div class="modal-body text-center"> -->
-        <!-- PDF Preview -->
-        <!-- <iframe *ngIf="activeFileType === 'pdf'" [src]="activePreviewUrl" width="100%" height="400px"
+<!-- PDF Preview -->
+<!-- <iframe *ngIf="activeFileType === 'pdf'" [src]="activePreviewUrl" width="100%" height="400px"
             style="border: none;"></iframe> -->
 
-        <!-- Image Preview -->
-        <!-- <img *ngIf="activeFileType === 'image'" [src]="activePreviewUrl" class="img-fluid" alt="Preview"
+<!-- Image Preview -->
+<!-- <img *ngIf="activeFileType === 'image'" [src]="activePreviewUrl" class="img-fluid" alt="Preview"
             style="max-height: 400px;">
     </div>
 </ng-template> -->
 
- <ng-template #previewTemplate>
-  <div class="modal-header">
-    <h5 class="modal-title">Document Preview</h5>
-    <div *ngIf="activeFileType === 'image'"
-         class="ml-auto d-flex align-items-center zoom-controls">
-      <button class="zoom-btn" title="Zoom Out" (click)="zoomOut()">
-        <i class="fa fa-search-minus" aria-hidden="true"></i>
-      </button>
+<ng-template #previewTemplate>
+    <div class="modal-header">
+        <h5 class="modal-title">Document Preview</h5>
+        <div *ngIf="activeFileType === 'image'" class="ml-auto d-flex align-items-center zoom-controls">
+            <button class="zoom-btn" title="Zoom Out" (click)="zoomOut()">
+                <i class="fa fa-search-minus" aria-hidden="true"></i>
+            </button>
 
-      <span class="mx-2 zoom-percent">{{ zoomLevel }}%</span>
+            <span class="mx-2 zoom-percent">{{ zoomLevel }}%</span>
 
-      <button class="zoom-btn" title="Zoom In" (click)="zoomIn()">
-        <i class="fa fa-search-plus" aria-hidden="true"></i>
-      </button>
+            <button class="zoom-btn" title="Zoom In" (click)="zoomIn()">
+                <i class="fa fa-search-plus" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <button type="button" class="close" aria-label="Close" (click)="modalRef?.close()">
+            <span aria-hidden="true">&times;</span>
+        </button>
     </div>
 
-    <button type="button"
-            class="close"
-            aria-label="Close"
-            (click)="modalRef?.close()">
-      <span aria-hidden="true">&times;</span>
-    </button>
-  </div>
-
-  <div class="modal-body text-center">
-    <iframe *ngIf="activeFileType === 'pdf'"
-            [src]="activePreviewUrl"
-            width="100%"
-            height="400px"
+    <div class="modal-body text-center">
+        <iframe *ngIf="activeFileType === 'pdf'" [src]="activePreviewUrl" width="100%" height="400px"
             style="border: none;">
-    </iframe>
-    <div *ngIf="activeFileType === 'image'" class="preview-container">
-      <div class="preview-content"
-           [style.transform]="transformStyle"
-           (mousedown)="startDrag($event)"
-           (mousemove)="onDrag($event)"
-           (mouseup)="endDrag()"
-           (mouseleave)="endDrag()">
+        </iframe>
+        <div *ngIf="activeFileType === 'image'" class="preview-container">
+            <div class="preview-content" [style.transform]="transformStyle" (mousedown)="startDrag($event)"
+                (mousemove)="onDrag($event)" (mouseup)="endDrag()" (mouseleave)="endDrag()">
 
-        <img [src]="activePreviewUrl"
-             class="preview-image"
-             alt="Preview">
-      </div>
+                <img [src]="activePreviewUrl" class="preview-image" alt="Preview">
+            </div>
+        </div>
+
     </div>
-
-  </div>
 </ng-template>
 
 <ng-template #noNotAppliedYet>
@@ -1762,10 +1770,11 @@
 
 <ng-template #clientSideIdForm>
     <form #clientSideForm="ngForm" novalidate>
-         <div class="modal-body text-center position-relative">
-             <div class="info-modal">  <app-info-tooltip class="me-2" style="margin-right: 8px;" pdfPath="assets/pdfFiles/Entering client side id.pdf"
-  pdfCtaText="Client Side ID Entry Guide" iconBgColor="#8377D1" [size]="19" [content]="clientIdEntryBulletPoints">
-            </app-info-tooltip></div>
+        <div class="modal-body text-center position-relative">
+            <div class="info-modal"> <app-info-tooltip class="me-2" style="margin-right: 8px;"
+                    pdfPath="assets/pdfFiles/Entering client side id.pdf" pdfCtaText="Client Side ID Entry Guide"
+                    iconBgColor="#8377D1" [size]="19" [content]="clientIdEntryBulletPoints">
+                </app-info-tooltip></div>
             <h5>Please provide Client Side ID to continue.</h5>
 
         </div>

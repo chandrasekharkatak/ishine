@@ -175,8 +175,8 @@ withoutVmsbullet:string[] = ["Applicable to resources without a client-side VMS 
   previewUrl2: SafeResourceUrl | null = null;
   rawObjectUrl1: string | null = null;
   rawObjectUrl2: string | null = null;
-  fileType1: '' | 'pdf' | 'image' | null = null;
-  fileType2: '' | 'pdf' | 'image' | null = null;
+fileType1: '' | 'pdf' | 'image' | 'excel' | null = null;
+fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
   fileError1: string = '';
   fileError2: string = '';
   fileName1: any = null;
@@ -2765,15 +2765,31 @@ get tooltipCta(): string {
 
 
 
-  getDoscForPreview(docId: any) {
-    this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
+getDoscForPreview(docId: any) {
+  this.timesheetService.getDocumentDataByDocId(docId)
+    .pipe(first())
+    .subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+
         this.docData2 = response.serviceResponse.docData;
-        this.mimeType = response.serviceResponse.docMimeType
-        this.showPreview(this.docData2, this.mimeType)
+        this.mimeType = response.serviceResponse.docMimeType;
+
+        // Excel → Download
+        if (
+          this.mimeType === 'application/vnd.ms-excel' ||
+          this.mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ) {
+          const fileName = response.serviceResponse.docName || 'document.xlsx';
+          this.downloadExcel(this.docData2, this.mimeType, fileName);
+        }
+        // PDF / Image → Preview
+        else {
+          this.showPreview(this.docData2, this.mimeType);
+        }
       }
     });
-  }
+}
+
   formatDateToLocalYMD(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0'); // month is 0-based
@@ -2912,38 +2928,93 @@ get tooltipCta(): string {
     }
   }
 
-  onFinalFileSelected(event: any): void {
-    const file: File = event.target.files[0];
-    this.fileError2 = '';
-    this.previewUrl2 = null;
-    this.fileType2 = null;
+  // onFinalFileSelected(event: any): void {
+  //   const file: File = event.target.files[0];
+  //   this.fileError2 = '';
+  //   this.previewUrl2 = null;
+  //   this.fileType2 = null;
 
-    if (!file) return;
+  //   if (!file) return;
 
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-    const maxSize = 500 * 1024;
+  //   const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+  //   const maxSize = 500 * 1024;
 
-    if (!allowedTypes.includes(file.type)) {
-      this.fileError2 = 'Only PDF, JPG, JPEG, and PNG files are allowed.';
-      return;
-    }
+  //   if (!allowedTypes.includes(file.type)) {
+  //     this.fileError2 = 'Only PDF, JPG, JPEG, and PNG files are allowed.';
+  //     return;
+  //   }
 
-    if (file.size > maxSize) {
-      this.fileError2 = 'File size must be 500Kb or less.';
-      return;
-    }
+  //   if (file.size > maxSize) {
+  //     this.fileError2 = 'File size must be 500Kb or less.';
+  //     return;
+  //   }
 
-    if (this.rawObjectUrl2) {
-      URL.revokeObjectURL(this.rawObjectUrl2);
-    }
+  //   if (this.rawObjectUrl2) {
+  //     URL.revokeObjectURL(this.rawObjectUrl2);
+  //   }
 
-    const objectUrl = URL.createObjectURL(file);
-    this.rawObjectUrl2 = objectUrl;
-    this.previewUrl2 = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
-    this.fileType2 = file.type === 'application/pdf' ? 'pdf' : 'image';
-    this.selectedFile2 = file;
-    this.fileName2 = file.name;
+  //   const objectUrl = URL.createObjectURL(file);
+  //   this.rawObjectUrl2 = objectUrl;
+  //   this.previewUrl2 = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+  //   this.fileType2 = file.type === 'application/pdf' ? 'pdf' : 'image';
+  //   this.selectedFile2 = file;
+  //   this.fileName2 = file.name;
+  // }
+onFinalFileSelected(event: any): void {
+  const file: File = event.target.files[0];
+  this.fileError2 = '';
+  this.previewUrl2 = null;
+  this.fileType2 = null;
+
+  if (!file) return;
+
+  const allowedTypes = [
+    'application/pdf',
+    'image/jpeg',
+    'image/png',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  ];
+
+  const maxSize = 500 * 1024;
+
+  if (!allowedTypes.includes(file.type)) {
+    this.fileError2 =
+      'Only PDF, JPG, JPEG, PNG, XLS, and XLSX files are allowed.';
+    return;
   }
+
+  if (file.size > maxSize) {
+    this.fileError2 = 'File size must be 500Kb or less.';
+    return;
+  }
+
+  // Cleanup old URL
+  if (this.rawObjectUrl2) {
+    URL.revokeObjectURL(this.rawObjectUrl2);
+  }
+
+  const objectUrl = URL.createObjectURL(file);
+  this.rawObjectUrl2 = objectUrl;
+
+  if (file.type === 'application/pdf') {
+    this.previewUrl2 =
+      this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+    this.fileType2 = 'pdf';
+  }
+  else if (file.type.startsWith('image/')) {
+    this.previewUrl2 =
+      this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+    this.fileType2 = 'image';
+  }
+  else {
+    // Excel
+    this.fileType2 = 'excel';
+  }
+
+  this.selectedFile2 = file;
+  this.fileName2 = file.name;
+}
 
 
   clearPreviousSelections() {
@@ -3833,6 +3904,46 @@ checkUploadEligibility() {
       this.resetTimesheetForm();
     }
   }
+
+  downloadSelectedFile(): void {
+  if (!this.rawObjectUrl2 || !this.selectedFile2) return;
+
+  const a = document.createElement('a');
+  a.href = this.rawObjectUrl2;
+  a.download = this.fileName2;
+  a.click();
+}
+
+isExcelMimeType(mimeType: string): boolean {
+  return mimeType === 'application/vnd.ms-excel'
+    || mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+}
+
+
+downloadExcel(base64Data: string, mimeType: string, fileName: string) {
+
+  const byteCharacters = atob(base64Data);
+  const byteNumbers = new Array(byteCharacters.length);
+
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+
+  const blob = new Blob(
+    [new Uint8Array(byteNumbers)],
+    { type: mimeType }
+  );
+
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+
+  window.URL.revokeObjectURL(url);
+}
+
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
