@@ -7,22 +7,23 @@
     (openedChange)="onDropdownOpened($event)"
     [compareWith]="compareObjects"
     [placeholder]="placeholder"
+    [disabled]="disable"
   >
     <mat-option>
       <ngx-mat-select-search
       [(ngModel)]="searchText"
       placeholderLabel="Search ..."
-      noEntriesFoundLabel="No data to display">
+      noEntriesFoundLabel="No data to display" [disabled]="disable || readonly">
     </ngx-mat-select-search>
     </mat-option>
 
 
-    <mat-option class="mat-option" *ngIf="multiple && filteredOptions.length > 0" (click)="toggleSelectAll($event)">
+    <mat-option class="mat-option" *ngIf="multiple && filteredOptions.length > 0" (click)="toggleSelectAll($event)" [disabled]="disable">
       <strong>
         {{ isAllSelected() ? 'Deselect All' : 'Select All' }}
       </strong>
     </mat-option>
-    <mat-option *ngFor="let opt of filteredOptions" [value]="valueKey?opt[valueKey]:opt"
+    <mat-option *ngFor="let opt of filteredOptions" [value]="valueKey?opt[valueKey]:opt" [disabled]="disable || readonly"
     [title]="getDisplayText(opt)">
       {{ getDisplayText(opt) }}
     </mat-option>

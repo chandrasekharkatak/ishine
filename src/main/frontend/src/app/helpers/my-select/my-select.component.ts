@@ -18,6 +18,8 @@ import { MatSelect } from '@angular/material/select';
   ]
 })
 export class MySelectComponent implements ControlValueAccessor, OnInit {
+  @Input() disable = false;
+  @Input() readonly = false;
   @Input() placeholder = 'Select';
   @Input() multiple = false;
   @Input() options: any[] = [];
@@ -45,13 +47,20 @@ export class MySelectComponent implements ControlValueAccessor, OnInit {
   }
 
   // Called when selection changes
-  onSelectionChange(value: any): void {
-    this.selectedValue = value;
-    this.onChange(value);
-    this.onTouched();
-    this.selectionChange.emit(this.sort(value));
-    this.change.emit(this.sort(value));
+ onSelectionChange(value: any): void {
+  if (this.disable || this.readonly) {
+    // revert to previous value
+    this.writeValue(this.selectedValue);
+    return;
   }
+
+  this.selectedValue = value;
+  this.onChange(value);
+  this.onTouched();
+  this.selectionChange.emit(this.sort(value));
+  this.change.emit(this.sort(value));
+}
+
 
   sort(value: any) {
     return Array.isArray(value)
@@ -89,26 +98,28 @@ export class MySelectComponent implements ControlValueAccessor, OnInit {
   //   this.onSearchChange();
   // }
 
-  toggleSelectAll(event: Event): void {
-    event.stopPropagation(); // prevent dropdown from closing
+ toggleSelectAll(event: Event): void {
+  if (this.readonly || this.disable) {
+    event.stopPropagation();
+    return;
+  }
 
-    if (this.isAllSelected()) {
-      this.selectedValue = [];
-    } else {
-      // Only select filtered options
-      if (!this.valueKey) {
-        this.selectedValue = [...this.filteredOptions];
-      } else {
-        this.selectedValue = this.filteredOptions?.map(options => options[this.valueKey]);
-      }
-    }
+  event.stopPropagation();
 
-  // Emit selection change
+  if (this.isAllSelected()) {
+    this.selectedValue = [];
+  } else {
+    this.selectedValue = this.valueKey
+      ? this.filteredOptions.map(o => o[this.valueKey])
+      : [...this.filteredOptions];
+  }
+
   this.onChange(this.selectedValue);
   this.onTouched();
-  this.selectionChange?.emit(this.selectedValue);
-  this.change?.emit(this.sort(this.selectedValue));
+  this.selectionChange.emit(this.selectedValue);
+  this.change.emit(this.sort(this.selectedValue));
 }
+
 
 isAllSelected(): boolean {
   if (!this.selectedValue || !Array.isArray(this.selectedValue)) return false;
@@ -189,4 +200,8 @@ getDisplayText(option: any): string {
   // If it's a single key
   return this.displayKey ? option[this.displayKey] ?? '' : option;
 }
+setDisabledState(isDisabled: boolean): void {
+  this.disable = isDisabled;
+}
+
 }
