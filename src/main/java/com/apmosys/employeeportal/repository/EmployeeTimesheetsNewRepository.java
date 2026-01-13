@@ -1578,7 +1578,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			"WHERE et.empId = :empId " +
 			"AND EXISTS (SELECT 1 FROM ProjectTimesheetStatusNew pts WHERE pts.id.timesheetId = et.timesheetId AND pts.id.projectId = :projectId) "
 			+
-			"AND EXISTS (SELECT 1 FROM EmployeeClientSideIdMappingNew ecsm WHERE ecsm.id.empId = et.empId AND ecsm.id.projectId = :projectId AND ecsm.active = 1) "
+			"AND EXISTS (SELECT 1 FROM EmployeeClientSideIdMapping ecsm WHERE ecsm.empId = et.empId AND ecsm.projectId = :projectId AND ecsm.active = 1) "
 			+
 			"AND tdd.active IS TRUE " +
 			"AND tdd.finalFlag IS TRUE " +
@@ -10056,4 +10056,6 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	@Query("SELECT pts.id.projectId FROM ProjectTimesheetStatusNew pts WHERE pts.id.timesheetId = :timesheetId")
 	Long findProjectIdByTimesheetId(@Param("timesheetId") Long timesheetId);
 
+	
+	
 }
