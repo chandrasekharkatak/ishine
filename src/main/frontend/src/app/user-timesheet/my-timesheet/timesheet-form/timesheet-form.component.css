@@ -1611,5 +1611,56 @@ hr {
   overflow: hidden; /* prevents double scrollbar */
 }
 
+.day-night-toggle {
+  position: relative;
+  width: 48px;           /* ⬅ reduced */
+  height: 24px;          /* ⬅ reduced */
+  cursor: pointer;
+}
+
+.day-night-toggle input {
+  display: none;
+}
+
+.toggle-track {
+  background: linear-gradient(135deg, #87ceeb, #fdd835);
+  border-radius: 24px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  transition: background 0.35s ease;
+}
+
+.day-night-toggle input:checked + .toggle-track {
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+}
+
+.toggle-thumb {
+  width: 20px;            /* ⬅ reduced */
+  height: 20px;           /* ⬅ reduced */
+  background: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateX(0);
+  transition: transform 0.35s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+
+.day-night-toggle input:checked + .toggle-track .toggle-thumb {
+  transform: translateX(24px); /* ⬅ adjusted */
+}
+
+.toggle-thumb i {
+  font-size: 11px;        /* ⬅ smaller icon */
+  color: #fbc02d;
+}
+
+.day-night-toggle input:checked + .toggle-track .toggle-thumb i {
+  color: #1e3c72;
+}
 
 

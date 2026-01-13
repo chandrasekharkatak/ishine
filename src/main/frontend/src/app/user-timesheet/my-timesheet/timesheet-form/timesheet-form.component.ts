@@ -74,7 +74,6 @@ export class TimesheetFormComponent implements OnInit {
   clientInTime: any = null;
   clientOutTime: any = null;
   totalPresence: number = 0;
-  totalWorkingHours: number = 0; // Total working hours in decimal format
   activeProjectList: any[] = []; // Unique projects for dropdown
   activeLocationList: any[] = []; // Unique locations for dropdown
   // Multi-location support (Location -> Project -> Activity)
@@ -148,6 +147,11 @@ export class TimesheetFormComponent implements OnInit {
   }
 
 
+  isDayTypeFillable():boolean{
+    if(this.dayType == 1 || this.dayType == 3 || this.dayType == 8) return true;
+    else false;
+
+  }
 
   formatDateDDMMYYYY(date: Date): string {
     return `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`;
@@ -172,6 +176,18 @@ export class TimesheetFormComponent implements OnInit {
    * Create a new LocationEntry object
    */
   createLocation(timesheetId: number): LocationEntry {
+    if(!this.isDayTypeFillable()){
+      return {
+      locationMappingId: 4,
+      workLocationType: null,
+      workLocationTypeId: null,
+      locationInTime: null,
+      locationOutTime: null,
+      totalWorkingHours: null,
+      projects: [this.createProject(null,timesheetId)],
+    };
+    }
+    else{
     return {
       locationMappingId: null,
       locationInTime: '',
@@ -180,6 +196,7 @@ export class TimesheetFormComponent implements OnInit {
       workLocationTypeId: null,
       projects: [this.createProject(null, timesheetId)],
     };
+  }
   }
 
   /**
@@ -384,6 +401,11 @@ export class TimesheetFormComponent implements OnInit {
    * Handle location selection - populate projects for the selected location
    */
   onLocationSelect(location: LocationEntry): void {
+    if(!this.isDayTypeFillable()){
+      this.timesheetLocations.forEach(loc=>{
+        loc.locationMappingId = 4;
+      })
+    }
     if (this.timesheetAppliedFor.toLocaleLowerCase() == 'self') {
       console.log(this.currentUser.empId);
       this.getAllProjectsByEmpId(this.currentUser.empId, location);
@@ -413,6 +435,18 @@ export class TimesheetFormComponent implements OnInit {
     console.log("Day type changed", event);
     console.log("this.dayType", this.dayType);
     console.log("this is called")
+    
+      this.timesheetLocations.forEach(loc=>{
+        if(!this.isDayTypeFillable()){
+        loc.locationMappingId = 4;
+        this.disableAdd = true;
+        this.onLocationSelect(loc);
+        }else{
+          loc.locationMappingId = null;
+          this.disableAdd = false;
+        }
+      });
+      
 
   }
   activeProjectListByEmpId: any[] = []
@@ -597,6 +631,10 @@ export class TimesheetFormComponent implements OnInit {
                 ])
             ).values()
           );
+          if(proj.clientList.length==1){
+            proj.clientId = proj.clientList[0].clientId;
+            this.onProjectClientSelect(proj.clientId);
+          }
           console.log('Project selected:', proj);
 
         }
@@ -657,7 +695,9 @@ export class TimesheetFormComponent implements OnInit {
               ])
           ).values()
         );
-
+        if(proj.clientLocationList.length == 1){
+          proj.clientLocationId = proj.clientLocationList[0].clientLocationId
+        }
       });
     });
 
@@ -670,8 +710,20 @@ export class TimesheetFormComponent implements OnInit {
   onProjectClientLocationSelect(clientLocationId: number): void {
     console.log("client location id selected", clientLocationId);
     console.log(this.timesheetLocations, "this.timesheetLocations");
+    const processedProjects = new Set<string>();
     this.timesheetLocations.forEach(loc => {
       loc.projects.forEach(proj => {
+        const projectKey = `${proj.projectId}_${proj.clientId}_${proj.clientLocationId}`;
+
+    // ❌ skip if already processed
+    if (processedProjects.has(projectKey)) {
+      proj.clientLocationId = null;
+      this.openAlertMod(this.alertTemplate,'You cannot add two projects with same client location')
+      return;
+    }
+
+    // ✅ mark as processed
+    processedProjects.add(projectKey);
         proj.activities = [this.createActivity(null, proj.projectId)];
         proj.activities.forEach(activity => {
           activity.clientTeamList = Array.from(
@@ -853,7 +905,6 @@ export class TimesheetFormComponent implements OnInit {
 
   onFromDateChange() {
     if (!this.fromDate) {
-      this.totalWorkingHours = 0;
       this.totalPresence = 0;
       return;
     }
@@ -1005,7 +1056,6 @@ export class TimesheetFormComponent implements OnInit {
   calculateTotalWorkingHours(): void {
     // Reset to 0 if required fields are missing
     if (!this.fromDate || !this.apmosysInTime || !this.apmosysOutTime) {
-      this.totalWorkingHours = 0;
       this.totalPresence = 0;
 
       return;
@@ -1015,7 +1065,6 @@ export class TimesheetFormComponent implements OnInit {
       // Parse fromDate (DD-MM-YYYY format)
       const fromDateParsed = this.parseDDMMYYYY(this.fromDate);
       if (!fromDateParsed) {
-        this.totalWorkingHours = 0;
         this.totalPresence = 0;
         return;
       }
@@ -1026,7 +1075,6 @@ export class TimesheetFormComponent implements OnInit {
         // Use toDate for night shift
         const toDateParsed = this.parseDDMMYYYY(this.toDate);
         if (!toDateParsed) {
-          this.totalWorkingHours = 0;
           this.totalPresence = 0;
           return;
         }
@@ -1042,7 +1090,6 @@ export class TimesheetFormComponent implements OnInit {
 
       if (!inTime24 || !outTime24) {
         console.error('Failed to parse time:', { inTime: this.apmosysInTime, outTime: this.apmosysOutTime });
-        this.totalWorkingHours = 0;
         this.totalPresence = 0;
         return;
       }
@@ -1069,12 +1116,11 @@ export class TimesheetFormComponent implements OnInit {
       const finalHours = calculatedHours < 0 ? 0 : calculatedHours;
 
       // Round to 2 decimal places
-      this.totalWorkingHours = Math.round(finalHours * 100) / 100;
-      this.totalPresence = this.totalWorkingHours; // Set totalPresence for display
-      console.log('Total Working Hours calculated:', this.totalWorkingHours);
+       
+      this.totalPresence = Math.round(finalHours * 100) / 100; // Set totalPresence for display
+      console.log('Total Working Hours calculated:', this.totalPresence);
     } catch (error) {
       console.error('Error calculating total working hours:', error);
-      this.totalWorkingHours = 0;
       this.totalPresence = 0;
     }
   }
