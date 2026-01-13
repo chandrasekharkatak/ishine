@@ -21,6 +21,8 @@ import { ActivityTimesheetDTO } from 'src/app/models/ActivityTimesheetDTO';
 import { TimesheetNewService } from 'src/app/services/timesheet-new.service';
 import { TimesheetDocument } from 'src/app/models/timesheetDocument';
 import { LocationEntry } from 'src/app/models/locationEntry';
+import { TimesheetDocumentDataI } from './types';
+import { v4 as uuidv4 } from 'uuid';
 
 @Component({
   standalone: false,
@@ -45,7 +47,7 @@ export class TimesheetFormComponent implements OnInit {
   isTimesheetLockCheckEnable: any = "true";
   // timesheetObj: Timesheet = new Timesheet();
   timesheetFilledForUser: User = new User();
-  dayType: any;
+  dayType: number;
   timesheetAppliedFor: any = 'self';
   selectedLocationId: any = null;
   teamMemberList: any[] = [];
@@ -84,8 +86,8 @@ export class TimesheetFormComponent implements OnInit {
   projectActivityHoursError: { [projectIndex: number]: string } = {}; // Store validation errors per project
 
   // File upload properties
-  selectedFile: File | null = null;
-  selectedFile2: File | null = null;
+  selectedFile: File[] = [];
+  // selectedFile2: File | null = null;
   previewUrl1: SafeResourceUrl | null = null;
   previewUrl2: SafeResourceUrl | null = null;
   rawObjectUrl1: string | null = null;
@@ -101,17 +103,20 @@ export class TimesheetFormComponent implements OnInit {
   workLocationList: string[];
   isNightShift: boolean = false;
   documentList: TimesheetDocument[] = [];
-  uploadFileList: {
-    projectId: number;
-    docType: 'Filled' | 'Approved';
-    file: File;
-    previewUrl: SafeResourceUrl;
-    rawObjectUrl: string;
-    fileError: string;
-    fileType: '' | 'pdf' | 'image' | null;
-    fileName: string;
-    fileSize: number;
-  }[] = [];
+  // documentData: {
+  //   docId: number;
+  //   projectId: number;
+  //   docType: 'Filled' | 'Approved';
+  //   // file: File;
+  //   previewUrl: SafeResourceUrl;
+  //   rawObjectUrl: string;
+  //   fileError: string;
+  //   fileType: '' | 'pdf' | 'image' | null;
+  //   fileName: string;
+  //   fileSize: number;
+  // }[] = [];
+
+  documentData: TimesheetDocumentDataI[] = [];
   @Input() autoFillTimesheet: boolean = false;
   activeRawObjectUrl: any;
   useApmosysTiming = false;
@@ -134,10 +139,10 @@ export class TimesheetFormComponent implements OnInit {
 
   ngOnInit(): void {
     // Initialize with one location
-    this.addLocation();
+    this.getAllWorkLocationFromLocationMaster();
+    this.addLocation(null);
     this.getAllDayTypes();
 
-    this.getAllWorkLocationFromLocationMaster();
     this.getAllDSRApprovalStatusFromMaster();
 
   }
@@ -150,31 +155,37 @@ export class TimesheetFormComponent implements OnInit {
   /**
    * Create a new ActivityNew object
    */
-  createActivity(): ActivityNew {
+  createActivity(timesheetId: number = null, projectId: number): ActivityNew {
     return {
       activityId: null,
       description: '',
-      completionTime: null,
+      durationMinutes: null,
+      projectId: projectId,
+      teamId: null,
+      timesheetId: timesheetId,
+      clientTeamList: [],
+      allActivitiesForProject: []
     };
   }
 
   /**
    * Create a new LocationEntry object
    */
-  createLocation(): LocationEntry {
+  createLocation(timesheetId: number): LocationEntry {
     return {
-      locationId: null,
-      logInTime: null,
-      logOutTime: null,
-      totalWorkingHours: null,
-      projects: [this.createProject()],
+      locationMappingId: null,
+      locationInTime: '',
+      locationOutTime: '',
+      workLocationType: '',
+      workLocationTypeId: null,
+      projects: [this.createProject(null, timesheetId)],
     };
   }
 
   /**
    * Create a new ProjectEntry object
    */
-  createProject(): ProjectEntry {
+  createProject(location: LocationEntry, timesheetId: number): ProjectEntry {
     return {
       projectId: null,
       projectName: '',
@@ -187,12 +198,21 @@ export class TimesheetFormComponent implements OnInit {
       clientId: null,
       clientLocationId: null,
       clientApprovalStatus: null,
-      activities: [this.createActivity()],
+      activities: [this.createActivity(null, null)],
       projectActivities: [], // Activities loaded for the project
       clientList: [],
       clientLocationList: [],
       projectList: [],
-      shadowForList: []
+      shadowForList: [],
+      poId: null,
+      poNo: '',
+      status: 1,
+      isNightShift: false,
+      locationMappingId: !location?.locationMappingId ? null : location.locationMappingId,
+      projectHoursMinutes: null,
+      timesheetId,
+      totalClientWorkingMinutes: null,
+      totalWorkingHours: null
     };
   }
 
@@ -201,24 +221,21 @@ export class TimesheetFormComponent implements OnInit {
    */
   applyApmosysTiming(): void {
 
-    if (this.useApmosysTiming) {
-      this.timesheetLocations[0].logInTime = this.apmosysInTime;
-      this.timesheetLocations[0].logOutTime = this.apmosysOutTime;
-      this.disableAdd = true
-    } else {
-      // OPTION 1: Clear timings when unchecked
-      this.timesheetLocations[0].logInTime = null;
-      this.timesheetLocations[0].logOutTime = null;
-
-      // OPTION 2 (alternative): Do nothing and keep previous values
-      // just remove the above two lines if you want this behavior
-    }
+  if (this.useApmosysTiming) {
+    this.timesheetLocations[0].locationInTime = this.apmosysInTime;
+    this.timesheetLocations[0].locationOutTime = this.apmosysOutTime;
+  } else {
+    // OPTION 1: Clear timings when unchecked
+    this.timesheetLocations[0].locationInTime = null;
+    this.timesheetLocations[0].locationOutTime = null;
 
     this.onHoursChange();
   }
 
-  addLocation(): void {
-    this.timesheetLocations.push(this.createLocation());
+  }
+
+  addLocation(timesheetId: number): void {
+    this.timesheetLocations.push(this.createLocation(timesheetId));
     // Expand the newly added location
     this.expandedLocationIndex = this.timesheetLocations.length - 1;
     // Initialize expanded project index for this location
@@ -237,7 +254,7 @@ export class TimesheetFormComponent implements OnInit {
     this.timesheetLocations.splice(index, 1);
     console.log('Timesheet Locations after removing:', this.timesheetLocations);
     this.getListToRenderUpload();
-    console.log(this.uploadFileList, "this.uploadFileList after removing project")
+    console.log(this.documentData, "this.documentData after removing project")
     // Adjust expanded index if needed
     if (this.expandedLocationIndex === index) {
       this.expandedLocationIndex = this.timesheetLocations.length > 0 ? 0 : null;
@@ -269,8 +286,8 @@ export class TimesheetFormComponent implements OnInit {
   /**
    * Add a new project to a location
    */
-  addProject(location: LocationEntry): void {
-    location.projects.push(this.createProject());
+  addProject(location: LocationEntry, timesheetId: number): void {
+    location.projects.push(this.createProject(location, timesheetId));
     // Expand the newly added project
     const locationIndex = this.timesheetLocations.indexOf(location);
     this.expandedProjectIndexMap[locationIndex] = location.projects.length - 1;
@@ -303,7 +320,7 @@ export class TimesheetFormComponent implements OnInit {
     }
     location.projects.splice(projectIndex, 1);
     this.getListToRenderUpload();
-    console.log(this.uploadFileList, "this.uploadFileList after removing project")
+    console.log(this.documentData, "this.documentData after removing project")
     // Adjust expanded project index if needed
     const locationIndex = this.timesheetLocations.indexOf(location);
     const currentExpanded = this.expandedProjectIndexMap[locationIndex];
@@ -329,7 +346,7 @@ export class TimesheetFormComponent implements OnInit {
     this.timesheetLocations.forEach(loc => {
       loc.projects.forEach(proj => {
         if (proj === project) {
-          const newActivity = this.createActivity();
+          const newActivity = this.createActivity(null, project.projectId);
           newActivity.clientTeamList = Array.from(
             new Map(
               this.allProjectsList
@@ -521,15 +538,17 @@ export class TimesheetFormComponent implements OnInit {
           console.log("uniqueProjects", uniqueProjects);
           console.log(this.allProjectsList, "this.allProjectsList")
           this.timesheetLocations.forEach(loc => {
-            if (location.locationId === loc.locationId) {
-              loc.projects = [this.createProject()]; // Reset to one project
+            if (location.locationMappingId === loc.locationMappingId) {
+              loc.projects = [this.createProject(location, null)]; // Reset to one project
+              loc.workLocationType = location.workLocationType;
+              loc.workLocationTypeId = location.workLocationTypeId;
               loc.projects.forEach(proj => {
                 proj.projectList = uniqueProjects;
                 if (proj.projectList.length == 1) {
                   proj.projectId = proj.projectList[0].projectId
                 }
+                this.onProjectSelect(proj.projectId);
               });
-
             }
           });
         }
@@ -560,7 +579,7 @@ export class TimesheetFormComponent implements OnInit {
           proj.clientLocationId = null;
           proj.clientApprovalStatus = null;
           proj.totalWorkingHours = null;
-          proj.activities = [this.createActivity()];
+          proj.activities = [this.createActivity(null, projectId)];
           proj.projectActivities = [];
           proj.clientList = [];
           proj.clientLocationList = [];
@@ -653,7 +672,7 @@ export class TimesheetFormComponent implements OnInit {
     console.log(this.timesheetLocations, "this.timesheetLocations");
     this.timesheetLocations.forEach(loc => {
       loc.projects.forEach(proj => {
-        proj.activities = [this.createActivity()];
+        proj.activities = [this.createActivity(null, proj.projectId)];
         proj.activities.forEach(activity => {
           activity.clientTeamList = Array.from(
             new Map(
@@ -1090,8 +1109,9 @@ export class TimesheetFormComponent implements OnInit {
     const file: File = event.target.files?.[0];
     if (!file) return;
 
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-    const maxSize = 300 * 1024; // 300KB
+    // @TODO: This data will come form backend
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+    const maxSize = 500 * 1024; // 500KB
 
     // ❌ Invalid type
     if (!allowedTypes.includes(file.type)) {
@@ -1104,113 +1124,136 @@ export class TimesheetFormComponent implements OnInit {
       return;
     }
 
-    // ❌ Size check
-    if (file.size > maxSize) {
-      this.handleFileError(
-        projectId,
-        docType,
-        'File size must be 300KB or less.'
-      );
-      event.target.value = '';
-      return;
-    }
-
-    // ♻️ Cleanup old object URL
-    const previous = this.uploadFileList.find(
-      f => f.projectId === projectId && f.docType === docType
+  // ❌ Size check
+  if (file.size > maxSize) {
+    this.handleFileError(
+      projectId,
+      docType,
+      'File size must be 500KB or less.'
     );
-
-    if (previous?.rawObjectUrl) {
-      URL.revokeObjectURL(previous.rawObjectUrl);
-    }
-
-    // ✅ Detect file type ONCE
-    const fileType: 'pdf' | 'image' =
-      file.type === 'application/pdf' ? 'pdf' : 'image';
-
-    // ✅ Create object URL
-    const objectUrl = URL.createObjectURL(file);
-
-    // ✅ IMPORTANT: Use correct sanitizer
-    const previewUrl =
-      fileType === 'pdf'
-        ? this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl)
-        : this.sanitizer.bypassSecurityTrustUrl(objectUrl);
-
-    // ✅ Update entry
-    this.updateUploadFile(projectId, docType, {
-      file,
-      previewUrl,
-      rawObjectUrl: objectUrl,
-      fileType,
-      fileName: file.name,
-      fileSize: file.size,
-      fileError: null
-    });
+    event.target.value = '';
+    return;
   }
 
+  // ♻️ Cleanup old object URL
+  const previous = this.documentData.find(
+    f => f.projectId === projectId && f.docType === docType
+  );
 
-  private handleFileError(
-    projectId: number,
-    docType: 'Filled' | 'Approved',
-    message: string
-  ): void {
-    this.updateUploadFile(projectId, docType, {
-      file: null,
-      previewUrl: null,
-      rawObjectUrl: null,
-      fileType: null,
-      fileName: null,
-      fileSize: null,
-      fileError: message
-    });
-
-    this.openAlertMod(this.alertTemplate, message);
+  if (previous?.rawObjectUrl) {
+    URL.revokeObjectURL(previous.rawObjectUrl);
   }
 
+  // ✅ Detect file type ONCE
+  const fileType: 'pdf' | 'image' =
+    file.type === 'application/pdf' ? 'pdf' : 'image';
 
-  updateUploadFile(
-    projectId: number,
-    docType: 'Filled' | 'Approved',
-    data: Partial<{
-      file: File | null;
-      previewUrl: SafeResourceUrl | null;
-      rawObjectUrl: string | null;
-      fileName: string | null;
-      fileSize: number | null;
-      fileError: string | null;
-      fileType: 'pdf' | 'image' | null;
-    }>
-  ): void {
+  // ✅ Create object URL
+  const objectUrl = URL.createObjectURL(file);
 
-    const index = this.uploadFileList.findIndex(
-      f => f.projectId === projectId && f.docType === docType
-    );
+  // ✅ IMPORTANT: Use correct sanitizer
+  const previewUrl =
+    fileType === 'pdf'
+      ? this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl)
+      : this.sanitizer.bypassSecurityTrustUrl(objectUrl);
 
-    if (index === -1) return;
+  const uniqueFile:File = this.renameFile(file, projectId, docType)
+  const uniqueIdentifier = uniqueFile.name
 
-    this.uploadFileList[index] = {
-      ...this.uploadFileList[index],
-      ...data
-    };
-  }
+  console.log("Unique File: ", uniqueFile);
+  
+
+  // ✅ Update entry
+  this.updateUploadFile({
+    docId: null,
+    projectId,
+    docName: file.name,
+    finalFlag: false,
+    bulkApprovedDocId: null,
+    uniqueIdentifier: uniqueIdentifier,
+    docType,
+    previewUrl,
+    rawObjectUrl: objectUrl,
+    fileType,
+    fileSize: uniqueFile.size,
+    fileError: null
+  }, uniqueFile);
+}
+
+containsFile(fileName:string): boolean{
+  return this.documentData.some(
+    f => f.uniqueIdentifier === fileName
+  );
+}
+
+private handleFileError(
+  projectId: number,
+  docType: 'Filled' | 'Approved',
+  message: string
+): void {
+  this.updateUploadFile({
+    docId: null,
+    projectId,
+    docName: null,
+    finalFlag: false,
+    bulkApprovedDocId: null,
+    uniqueIdentifier: null,
+    docType,
+    previewUrl: null,
+    rawObjectUrl: null,
+    fileError: message,
+    fileType: null,
+    fileSize: null,
+  });
+
+  this.openAlertMod(this.alertTemplate, message);
+}
 
 
+ updateUploadFile(
+  data: TimesheetDocumentDataI,
+  file?: File
+): void {
+
+  const index = this.documentData.findIndex(
+    f => f.projectId === data.projectId && f.docType === data.docType
+  );
+
+  if (index === -1) return;
+
+  this.documentData[index] = {
+    ...this.documentData[index],
+    ...data
+  };
+
+  this.selectedFile.push(file);
+
+}
+
+zoomIn(): void {
+  this.imageZoom = Math.min(this.imageZoom + 0.2, 3);
+}
+
+zoomOut(): void {
+  this.imageZoom = Math.max(this.imageZoom - 0.2, 0.5);
+}
+
+resetZoom(): void {
+  this.imageZoom = 1;
+}
+
+downloadImage(fileName = 'image-preview'): void {
+  // Ensure we have a raw object URL
+  if (!this.activeRawObjectUrl || this.activeFileType !== 'image') return;
+
+  const link = document.createElement('a');
+  link.href = this.activeRawObjectUrl;
+  link.download = fileName;
+  link.click();
+}
 
 
-
-  downloadImage(fileName = 'image-preview'): void {
-    // Ensure we have a raw object URL
-    if (!this.activeRawObjectUrl || this.activeFileType !== 'image') return;
-
-    const link = document.createElement('a');
-    link.href = this.activeRawObjectUrl;
-    link.download = fileName;
-    link.click();
-  }
-
-
-
+              
   /**
    * Open preview modal for uploaded file
    */
@@ -1245,16 +1288,6 @@ export class TimesheetFormComponent implements OnInit {
     this.translateX = 0;
     this.translateY = 0;
   }
-
-  /* ---------- ZOOM ---------- */
-  zoomIn(): void {
-    this.imageZoom = Math.min(this.imageZoom + 0.2, 5);
-  }
-
-  zoomOut(): void {
-    this.imageZoom = Math.max(this.imageZoom - 0.2, 0.5);
-  }
-
   /* ---------- ROTATE ---------- */
   rotate(): void {
     this.rotation = (this.rotation + 90) % 360;
@@ -1310,32 +1343,89 @@ export class TimesheetFormComponent implements OnInit {
     return new File([file], newFileName, { type: file.type });
   }
   hasFilledDocument(projectId: number): boolean {
-    return this.uploadFileList?.some(
+    return this.documentData?.some(
       file => file.projectId === projectId && file.docType === 'Filled'
     );
   }
   hasApprovedDocument(projectId: number): boolean {
-    return this.uploadFileList?.some(
+    return this.documentData?.some(
       file => file.projectId === projectId && file.docType === 'Approved'
     );
   }
+
+
+  formatDateTimeForBackend(timeStr: string, dateStr: string): string {
+    const parsed = this.parseTimeTo24Hour(timeStr);
+    if (!parsed) return '';
+
+    const hour = parsed.hour.toString().padStart(2, '0');  // "09" or "19"
+    const minute = parsed.minute.toString().padStart(2, '0'); // "30"
+
+    return `${dateStr} ${hour}:${minute}:00`;  // Returns "2026-01-08 09:30:00" or "2026-01-08 19:30:00"
+    }
+
+  formatTimeForBackend(timeStr: string): string {
+    const parsed = this.parseTimeTo24Hour(timeStr);
+    if (!parsed) return '';
+
+    const hour = parsed.hour.toString().padStart(2, '0');  // "09" or "19"
+    const minute = parsed.minute.toString().padStart(2, '0'); // "30"
+
+    return `${hour}:${minute}:00`;  // Returns "2026-01-08 09:30:00" or "2026-01-08 19:30:00"
+    }
+
+
   createTimesheet() {
 
-    // this.timesheetNewService.addTimesheetWithClientUpdated(this.createOrUpdateObj, this.selectedFile, this.selectedFile2)
-    //   .pipe(first())
-    //   .subscribe((response: any) => {
-    //     if (response.serviceStatus === "Success") {
-    //       this.openAlertMod(this.alertTemplate, "Timesheet created successfully.");
-    //       // Reset form or navigate as needed
-    //     } else {
-    //       console.error("Failed to create timesheet:", response.serviceResponse);
-    //       this.openAlertMod(this.alertTemplate, "Failed to create timesheet. Please try again.");
-    //     }
-    //   }, (error) => {
-    //     console.error("Error creating timesheet:", error);
-    //     this.openAlertMod(this.alertTemplate, "An error occurred while creating the timesheet.");
-    //   });
+    const convertToYYYYMMDD = (dateStr: string): string => {
+      if (!dateStr) return '';
+      const [day, month, year] = dateStr.split('-');
+      return `${year}-${month}-${day}`;  // Convert "08-01-2026" to "2026-01-08"
+    };
+
+    this.createOrUpdateObj = {
+      createdBy: this.currentUser.empId,
+      dayTypeId: this.dayType,
+      empId: this.currentUser.empId,
+      isApmosysProduct: this.currentUser.isApmosysProduct,
+      isNightShift: this.isNightShift,
+      timesheetId: null,
+      // date: this.formatDDMMYYYY(new Date(this.fromDate as string)),
+      date: convertToYYYYMMDD(this.fromDate),
+      workCheckIn: this.formatDateTimeForBackend(this.apmosysInTime, convertToYYYYMMDD(this.fromDate)),
+      workCheckOut: this.formatDateTimeForBackend(this.apmosysOutTime, convertToYYYYMMDD(this.fromDate)),
+      currentManagerId: this.currentUser.managerId,
+      totalWorkingMinutes: this.totalPresence * 60,
+      locationSessions: this.timesheetLocations,
+      documentData: this.documentData
+    }
+
+    this.createOrUpdateObj.locationSessions.forEach((location: LocationEntry) => {
+      location.locationInTime = this.formatDateTimeForBackend(location.locationInTime, convertToYYYYMMDD(this.fromDate));
+      location.locationOutTime = this.formatDateTimeForBackend(location.locationOutTime, convertToYYYYMMDD(this.fromDate));
+    });
+
+    this.generateTotalMinutes(this.createOrUpdateObj);
+
+    this.timesheetNewService.createTimesheet(this.createOrUpdateObj, this.selectedFile)
+      .subscribe({
+        next: (response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.openAlertMod(this.alertTemplate, "Timesheet created successfully.");
+          // Reset form or navigate as needed
+        } else {
+          console.error("Failed to create timesheet:", response.serviceResponse);
+          this.openAlertMod(this.alertTemplate, "Failed to create timesheet. Please try again.");
+        }
+      },
+      error: (error) => {
+        console.error("Error creating timesheet:", error);
+        this.openAlertMod(this.alertTemplate, "An error occurred while creating the timesheet.");
+      }
+    });
   }
+
+  // convertMMDDYYYToDDMMYYY
 
   getFormattedDateRange(): string {
     if (!this.fromDate) return '';
@@ -1413,9 +1503,9 @@ export class TimesheetFormComponent implements OnInit {
     toDate?: string            // dd-MM-yyyy (required ONLY for night shift)
   ): number {
 
-    if (!location?.logInTime || !location?.logOutTime || !fromDate || location.logInTime.trim() === '' || location.logOutTime.trim() === '') {
-      return 0;
-    }
+  if (!location?.locationInTime || !location?.locationOutTime || !fromDate || location.locationInTime.trim() === '' || location.locationOutTime.trim() === '') {
+    return 0;
+  }
 
     // ❌ Night shift but no toDate
     if (this.isNightShift && !toDate) {
@@ -1441,26 +1531,26 @@ export class TimesheetFormComponent implements OnInit {
         return { hours, minutes: mm };
       };
 
-      // ---------- Dates ----------
-      const startDate = parseDate(fromDate);
-      const endDate = this.isNightShift && toDate
-        ? parseDate(toDate)
-        : parseDate(fromDate); // same-day if not night shift
+    // ---------- Dates ----------
+    const startDate = parseDate(fromDate);
+    const endDate = this.isNightShift && toDate
+      ? parseDate(toDate)
+      : parseDate(fromDate); // same-day if not night shift
 
-      // ---------- Times ----------
-      const inTime = parseTime(location.logInTime);
-      const outTime = parseTime(location.logOutTime);
+    // ---------- Times ----------
+    const inTime = parseTime(location.locationInTime);
+    const outTime = parseTime(location.locationOutTime);
 
-      // ---------- DateTime Objects ----------
-      const inDateTime = new Date(
-        startDate.year,
-        startDate.month - 1,
-        startDate.day,
-        inTime.hours,
-        inTime.minutes,
-        0,
-        0
-      );
+    // ---------- DateTime Objects ----------
+    const inDateTime = new Date(
+      startDate.year,
+      startDate.month - 1,
+      startDate.day,
+      inTime.hours,
+      inTime.minutes,
+      0,
+      0
+    );
 
       const outDateTime = new Date(
         endDate.year,
@@ -1498,11 +1588,11 @@ export class TimesheetFormComponent implements OnInit {
       console.log("Location working hours calculated:", location.totalWorkingHours);
       allLocationHours += location.totalWorkingHours;
       location.projects.forEach(proj => {
-        let totalHours = 0;
-        proj.activities.forEach(activity => {
-          totalHours += activity.completionTime;
-        });
-        proj.totalWorkingHours = totalHours;
+          let totalHours = 0;
+          proj.activities.forEach(activity => {
+            totalHours += activity.durationMinutes;
+          });
+          proj.totalWorkingHours = totalHours;
         allProjTotalHours += proj.totalWorkingHours;
       });
       if (location.totalWorkingHours < allProjTotalHours) {
@@ -1524,7 +1614,7 @@ export class TimesheetFormComponent implements OnInit {
         location.projects.forEach(proj => {
           proj.totalWorkingHours = 0;
           proj.activities.forEach(activity =>{
-            activity.completionTime = 0
+            activity.durationMinutes = 0
           });
         });
       });
@@ -1533,13 +1623,13 @@ export class TimesheetFormComponent implements OnInit {
       this.timesheetLocations.forEach(location => {
         location.projects.forEach(proj => {
           proj.activities.forEach(activity =>{
-            activity.completionTime = 0
+            activity.durationMinutes = 0
           });
           proj.totalWorkingHours = 0;
         });
         location.totalWorkingHours = 0;
-        location.logInTime = null;
-        location.logOutTime = null;
+        location.locationInTime = null;
+        location.locationOutTime = null;
       });
     }
   }
@@ -1554,7 +1644,7 @@ export class TimesheetFormComponent implements OnInit {
   }
   getListToRenderUpload() {
     console.log("Generating upload list based on client side IDs...");
-    this.uploadFileList = [];
+    this.documentData = [];
     let dataList: Map<number, ProjectEntry> = new Map<number, ProjectEntry>();
     this.timesheetLocations.forEach((location) => {
       location.projects.forEach((project) => {
@@ -1565,18 +1655,57 @@ export class TimesheetFormComponent implements OnInit {
           console.log("dataList updated:", dataList);
           if (project.clientApprovalStatus == 2) {
             console.log("entering approved status for project:", project);
-            this.uploadFileList.push({ projectId: project.projectId, docType: 'Filled', file: null, previewUrl: null, rawObjectUrl: null, fileError: null, fileType: null, fileName: null, fileSize: null });
-            this.uploadFileList.push({ projectId: project.projectId, docType: 'Approved', file: null, previewUrl: null, rawObjectUrl: null, fileError: null, fileType: null, fileName: null, fileSize: null });
+            this.documentData.push({ 
+              projectId: project.projectId,
+              docType: 'Filled',
+              previewUrl: null,
+              rawObjectUrl: null,
+              fileError: null,
+              fileType: null,
+              uniqueIdentifier: null,
+              fileSize: null,
+              bulkApprovedDocId: null,
+              docId: null,
+              docName: null,
+              finalFlag: false
+             });
+            this.documentData.push({
+              projectId: project.projectId,
+              docType: 'Approved',
+              previewUrl: null,
+              rawObjectUrl: null,
+              fileError: null,
+              fileType: null,
+              uniqueIdentifier: null,
+              fileSize: null,
+              bulkApprovedDocId: null,
+              docId: null,
+              docName: null,
+              finalFlag: false
+             });
           }
           else if (project.clientApprovalStatus == 1) {
             console.log("entering pending status for project:", project);
-            this.uploadFileList.push({ projectId: project.projectId, docType: 'Filled', file: null, previewUrl: null, rawObjectUrl: null, fileError: null, fileType: null, fileName: null, fileSize: null });
+            this.documentData.push({ 
+              projectId: project.projectId, 
+              docType: 'Filled',
+              previewUrl: null, 
+              rawObjectUrl: null, 
+              fileError: null, 
+              fileType: null, 
+              uniqueIdentifier: null, 
+              fileSize: null ,
+              bulkApprovedDocId: null,
+              docId: null,
+              docName: null,
+              finalFlag: false
+            });
           }
         }
       });
     });
     this.uniqueProjectsList = Array.from(dataList.values());
-    console.log("Upload file list generated:", this.uploadFileList);
+    console.log("Upload file list generated:", this.documentData);
     console.log("Unique projects list generated:", this.uniqueProjectsList);
   }
 
@@ -1675,6 +1804,18 @@ export class TimesheetFormComponent implements OnInit {
           console.error("Service Response for this.activeProjectList :::::::", response.serviceResponse);
         }
       });
+    }
+
+    generateTotalMinutes(timesheetDTO: EmployeeTimesheetDTO){
+      let totalMinutes = 0;
+      timesheetDTO.locationSessions.forEach(location => {
+        location.projects.forEach(project => {
+          project.activities.forEach(activity => {
+            totalMinutes += activity.durationMinutes * 60;
+          });
+        });
+      });
+      return totalMinutes;
     }
 
 }

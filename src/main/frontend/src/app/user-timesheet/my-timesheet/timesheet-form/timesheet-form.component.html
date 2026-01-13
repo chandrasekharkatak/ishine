@@ -144,13 +144,13 @@
                     <h6 class="section-subtitle">
                         <i class="fa fa-map-marker"></i> Locations
                     </h6>
-                    <button class="btn btn-sm btn-outline-primary" (click)="addLocation()" [disabled]="disableAdd">
+                    <button class="btn btn-sm btn-outline-primary" (click)="addLocation(null)" [disabled]="disableAdd">
                         <i class="fa fa-plus"></i> Add Location
                     </button>
                 </div>
 
                 <!-- LOCATION LOOP *ngFor="let location of timesheetLocations; let lIndex = index"-->
-                @for (location of timesheetLocations; track location.locationId; let lIndex = $index) {
+                 @for (location of timesheetLocations; track location.locationMappingId; let lIndex = $index) {
                 <div class="location-card mb-3">
                     <!-- LOCATION HEADER -->
                     <div class="location-header" (click)="toggleLocation(lIndex)">
@@ -178,7 +178,7 @@
                                 <div class="col-md-4 mb-3">
                                     <label class="info-label"><span class="text-danger">*</span> Location</label>
                                     <app-my-select placeholder="Select Location" class="form-control"
-                                        [(ngModel)]="location.locationId" [options]="workLocationList" displayKey="code"
+                                        [(ngModel)]="location.workLocationTypeId" [options]="workLocationList" displayKey="code"
                                         valueKey="workLocationTypeId" [multiple]="false"
                                         (ngModelChange)="onLocationSelect(location)">
                                     </app-my-select>
@@ -187,14 +187,14 @@
                                 <!-- Client In Time -->
                                 <div class="col-md-3 mb-3">
                                     <app-date-time-picker label="Log In" mode="time" [required]="true"
-                                        [(ngModel)]="location.logInTime" (ngModelChange)="onHoursChange()">
+                                        [(ngModel)]="location.locationInTime" (ngModelChange)="onHoursChange()">
                                     </app-date-time-picker>
                                 </div>
 
                                 <!-- Client Out Time -->
                                 <div class="col-md-3 mb-3">
-                                    <app-date-time-picker label="Log Out" mode="time" [required]="true"
-                                        [(ngModel)]="location.logOutTime" (ngModelChange)="onHoursChange()">
+                                    <app-date-time-picker label="Log Out" mode="time" [required]="true" [(ngModel)]="location.locationOutTime"
+                                        (ngModelChange)="onHoursChange()">
                                     </app-date-time-picker>
                                 </div>
 
@@ -207,17 +207,15 @@
                                         </label>
                                     </div>
                                 </div>
-                            </div>
-
-                            <!-- PROJECTS SECTION (Nested in Location) && location.availableProjects.length > 0 add this after projects api is integrated-->
-                            <div class="projects-section"
-                                *ngIf="location.locationId && location.logInTime && location.logOutTime">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h6 class="section-subtitle">
-                                        <i class="fa fa-folder-open"></i> Projects
-                                    </h6>
-                                    <button class="btn btn-sm btn-outline-primary" (click)="addProject(location)"
-                                        [disabled]="disableAdd">
+                                </div>
+                                
+                                <!-- PROJECTS SECTION (Nested in Location) && location.availableProjects.length > 0 add this after projects api is integrated-->
+                                <div class="projects-section" *ngIf="location.workLocationTypeId && location.locationInTime && location.locationOutTime">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="section-subtitle">
+                                            <i class="fa fa-folder-open"></i> Projects
+                                        </h6>
+                                    <button class="btn btn-sm btn-outline-primary" (click)="addProject(location, null)" [disabled]="disableAdd">
                                         <i class="fa fa-plus"></i> Add Project
                                     </button>
                                 </div>
@@ -434,8 +432,7 @@
                                                             <label class="info-label small">Hours</label>
                                                             <input type="number" step="0.01" min="0" max="24"
                                                                 class="form-control form-control-sm" placeholder="Hrs"
-                                                                [(ngModel)]="activity.completionTime"
-                                                                (ngModelChange)="onHoursChange()">
+                                                                [(ngModel)]="activity.durationMinutes" (ngModelChange)="onHoursChange()">
                                                         </div>
 
                                                         <!-- Remove Button -->
@@ -481,7 +478,7 @@
                         </h6>
                     </div>
                     <!-- Filled Attendance Proof -->
-                    @for (file of uploadFileList; track file.projectId + '-' + file.docType) {
+                    @for (file of documentData; track file.projectId + '-' + file.docType) {
                     @if (file.projectId === project.projectId && file.docType === 'Filled') {
                     <div class="col-md-6 mb-3">
                         <label class="info-label">
@@ -491,7 +488,7 @@
                             <input type="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png"
                                 style="max-width: 250px;" (change)="onFileSelected($event, 'Filled', project.projectId)"
                                 (click)="$any($event.target).value = null" />
-                            @if (file.file) {
+                            @if (file.uniqueIdentifier && containsFile(file.uniqueIdentifier)) {
                             <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
                                 [disabled]="!file.previewUrl" (click)="openPreviewModalForTwo(file)">
                                 <i class="fa fa-eye"></i>
@@ -504,12 +501,12 @@
                             {{ file.fileError }}
                         </small>
                         }
-                        @else if (file.fileName && !file.fileError) {
+                        @else if (file.uniqueIdentifier && !file.fileError) {
                         <small class="text-muted d-block">
-                            {{ file.fileName }}
+                            {{ file.docName }}
                         </small>
                         }
-                        @else if (!file.file && !file.fileError) {
+                        @else if ((!file.uniqueIdentifier || !containsFile(file.uniqueIdentifier)) && !file.fileError) {
                         <small class="text-muted d-block">
                             No file selected
                         </small>
@@ -529,7 +526,7 @@
                                 style="max-width: 250px;"
                                 (change)="onFileSelected($event, 'Approved',project.projectId)"
                                 (click)="$any($event.target).value = null" />
-                            @if (file.file) {
+                            @if (file.uniqueIdentifier && containsFile(file.uniqueIdentifier)) {
                             <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
                                 [disabled]="!file.previewUrl" (click)="openPreviewModalForTwo(file)">
                                 <i class="fa fa-eye"></i>
@@ -541,12 +538,12 @@
                             {{ file.fileError }}
                         </small>
                         }
-                        @else if (file.fileName && !file.fileError) {
+                        @else if (file.uniqueIdentifier && containsFile(file.uniqueIdentifier) && !file.fileError) {
                         <small class="text-muted d-block">
-                            {{ file.fileName }}
+                            {{ file.docName }}
                         </small>
                         }
-                        @else if (!file.file && !file.fileError) {
+                        @else if (!file.uniqueIdentifier || !containsFile(file.uniqueIdentifier) && !file.fileError) {
                         <small class="text-muted d-block">
                             No file selected
                         </small>

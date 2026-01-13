@@ -18,4 +18,12 @@ export class ProjectEntry {
   clientList?: any[]; // Clients for this project
   clientLocationList?: any[]; // Client locations for this project
   projectList?: any[]; // Teams for this project
+  timesheetId?: number;
+  poNo: string;
+  poId: number;
+  isNightShift?: boolean;
+  status: 1 | 2 | 3; // Values: 1=Pending, 2=Approved, 3=Rejected
+  locationMappingId?: number;
+  totalClientWorkingMinutes?: number;
+  projectHoursMinutes?: number;
 }
