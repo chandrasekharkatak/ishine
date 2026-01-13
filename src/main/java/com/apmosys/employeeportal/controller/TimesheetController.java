@@ -237,7 +237,7 @@ public class TimesheetController {
 //            System.err.println("--cron ended----");
 //            
 //    }
-	@JobRoleAccess(featureIds = {15})
+	// @JobRoleAccess(featureIds = {15})
 	 @PostMapping("/getProjectListForDateAndEmpId")
 	 public ServiceResponse getProjectListForDateAndEmpId(@RequestBody GetProjectListForDateAndEmpIdPayload payload) {
 	     return timesheetService.getProjectListForDateAndEmpId(payload);

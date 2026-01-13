@@ -725,6 +725,8 @@ export class TimesheetFormComponent implements OnInit {
     // ✅ mark as processed
     processedProjects.add(projectKey);
         proj.activities = [this.createActivity(null, proj.projectId)];
+        proj.clientLocationId = clientLocationId;
+        proj.isNightShift = this.isNightShift
         proj.activities.forEach(activity => {
           activity.clientTeamList = Array.from(
             new Map(
@@ -1272,7 +1274,11 @@ private handleFileError(
     ...data
   };
 
-  this.selectedFile.push(file);
+  if(this.selectedFile.length > 0 && this.selectedFile.some(f => f.name === data.uniqueIdentifier)){
+    this.selectedFile[index] = file;
+  } else {
+    this.selectedFile.push(file);
+  }
 
 }
 
@@ -1439,7 +1445,7 @@ downloadImage(fileName = 'image-preview'): void {
       // date: this.formatDDMMYYYY(new Date(this.fromDate as string)),
       date: convertToYYYYMMDD(this.fromDate),
       workCheckIn: this.formatDateTimeForBackend(this.apmosysInTime, convertToYYYYMMDD(this.fromDate)),
-      workCheckOut: this.formatDateTimeForBackend(this.apmosysOutTime, convertToYYYYMMDD(this.fromDate)),
+      workCheckOut: this.formatDateTimeForBackend(this.apmosysOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate)),
       currentManagerId: this.currentUser.managerId,
       totalWorkingMinutes: this.totalPresence * 60,
       locationSessions: this.timesheetLocations,
@@ -1448,7 +1454,12 @@ downloadImage(fileName = 'image-preview'): void {
 
     this.createOrUpdateObj.locationSessions.forEach((location: LocationEntry) => {
       location.locationInTime = this.formatDateTimeForBackend(location.locationInTime, convertToYYYYMMDD(this.fromDate));
-      location.locationOutTime = this.formatDateTimeForBackend(location.locationOutTime, convertToYYYYMMDD(this.fromDate));
+      location.locationOutTime = this.formatDateTimeForBackend(location.locationOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate));
+      location.projects.forEach((project: ProjectEntry) => {
+        project.activities.forEach((activity: ActivityNew) => {
+          activity.durationMinutes = activity.durationMinutes * 60;
+        });
+      });
     });
 
     this.generateTotalMinutes(this.createOrUpdateObj);

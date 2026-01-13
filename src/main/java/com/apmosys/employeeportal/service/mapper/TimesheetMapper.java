@@ -114,6 +114,7 @@ public class TimesheetMapper {
         ProjectTimesheetStatusId id = new ProjectTimesheetStatusId();
         id.setTimesheetId(timesheetId != null ? timesheetId : dto.getTimesheetId());
         id.setProjectId(dto.getProjectId());
+        id.setLocationMappingId(dto.getLocationMappingId());
         entity.setId(id);
 
         entity.setPoNo(dto.getPoNo());
@@ -121,6 +122,9 @@ public class TimesheetMapper {
         entity.setStatus(dto.getStatus() != null ? dto.getStatus() : 1); // Default to PENDING
         entity.setShadowEmpId(dto.getShadowEmpId());
         entity.setTotalClientWorkingMinutes(dto.getTotalClientWorkingMinutes());
+        entity.setClientLocationId(dto.getClientLocationId() != null ? Integer.valueOf(dto.getClientLocationId().toString()) : null);
+        entity.setClientSideId(dto.getClientSideId());
+        entity.setIsNightShift(dto.getIsNightShift() == null ? false : dto.getIsNightShift());
 
         return entity;
     }
@@ -157,7 +161,7 @@ public class TimesheetMapper {
      * @param projectId Parent project ID
      * @return EmployeeTimesheetActivitiesMappingNew entity
      */
-    public EmployeeTimesheetActivitiesMappingNew toEntity(ActivityTimesheetDTO dto, Long timesheetId, Integer projectId) {
+    public EmployeeTimesheetActivitiesMappingNew toEntity(ActivityTimesheetDTO dto, Long timesheetId, Integer projectId, Long locationMappingId) {
         if (dto == null) {
             return null;
         }
@@ -169,6 +173,7 @@ public class TimesheetMapper {
         entity.setActivityId(dto.getActivityId());
         entity.setProjectId(projectId != null ? projectId : dto.getProjectId());
         entity.setId(dto.getId());
+        entity.setLocationMappingId(locationMappingId);
 
         entity.setDescription(dto.getDescription());
         entity.setDurationMinutes(dto.getDurationMinutes() != null ? dto.getDurationMinutes().shortValue() : null);

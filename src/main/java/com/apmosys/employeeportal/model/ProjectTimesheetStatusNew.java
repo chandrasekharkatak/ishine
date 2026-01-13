@@ -7,6 +7,9 @@ import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -45,17 +48,23 @@ public class ProjectTimesheetStatusNew {
     @Column(name = "created_by")
 	Long createdBy;
     
+    @CreationTimestamp
 	@Column(name = "created_on")
 	LocalDateTime createdOn;
 	
 	@Column(name = "updated_by")
 	Long updatedBy;
 	
+    @UpdateTimestamp
 	@Column(name = "updated_on")
 	LocalDateTime updatedOn;
 	
 	@Column(name="description")
 	private String description;
 
+    @Column(name = "client_side_id")
+    private String clientSideId;
 
+    @Column(name = "is_night_shift")
+    private Boolean isNightShift;
 }
