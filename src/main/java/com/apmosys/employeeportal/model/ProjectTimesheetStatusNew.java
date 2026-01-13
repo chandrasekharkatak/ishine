@@ -57,4 +57,5 @@ public class ProjectTimesheetStatusNew {
 	@Column(name="description")
 	private String description;
 
+
 }

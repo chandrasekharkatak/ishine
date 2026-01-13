@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -23,6 +24,7 @@ import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
+import com.apmosys.employeeportal.enums.DayTypeCode;
 import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
 import com.apmosys.employeeportal.model.DayTypeMasterNew;
 import com.apmosys.employeeportal.model.EmployeeTimesheetLocationMapping;
@@ -117,18 +119,17 @@ public class TimesheetValidationHelper {
 	 }
 
 	public void validateWorkInWorkOutTime(EmployeeTimesheetDTO dto) {
-
-			boolean isWorkingDay = isWorkingDay(dto);
-
-			if (isWorkingDay) {
-				if (dto.getWorkCheckIn() == null || dto.getWorkCheckOut() == null) {
+		        if (dto.getWorkCheckIn() == null || dto.getWorkCheckOut() == null ||
+						dto.getWorkCheckIn().trim().isEmpty() || dto.getWorkCheckOut().trim().isEmpty())
+				{
 					throw new IllegalArgumentException("workCheckIn and workCheckOut are mandatory for working days");
 				}
 
-				if (!dto.getWorkCheckOut().isAfter(dto.getWorkCheckIn())) {
+				if (!DateConversionUtil.stringToLocalDateTime(dto.getWorkCheckOut(),pattern).isAfter(DateConversionUtil.stringToLocalDateTime(dto.getWorkCheckIn(),pattern)))
+				{
 					throw new IllegalArgumentException("workCheckOut must be after workCheckIn");
 				}
-			}
+			
 		}
     
         
@@ -207,8 +208,8 @@ public class TimesheetValidationHelper {
 
       	    LocalDate date = empDTO.getDate();
 
-      	    LocalDateTime officeIn = empDTO.getWorkCheckIn();
-      	    LocalDateTime officeOut = empDTO.getWorkCheckOut();
+      	    LocalDateTime officeIn = DateConversionUtil.stringToLocalDateTime(empDTO.getWorkCheckIn(),pattern);
+      	    LocalDateTime officeOut = DateConversionUtil.stringToLocalDateTime(empDTO.getWorkCheckOut(),pattern);
 
       	    if (officeIn != null && officeOut != null) {
 
@@ -521,10 +522,10 @@ public class TimesheetValidationHelper {
             if (empDTO.getWorkCheckIn() == null || empDTO.getWorkCheckOut() == null) {
                 return; // already handled by earlier validations
             }
-
             //Total work duration (in minutes)
             long totalWorkMinutes = java.time.Duration
-                    .between(empDTO.getWorkCheckIn(), empDTO.getWorkCheckOut())
+                    .between(DateConversionUtil.stringToLocalDateTime(empDTO.getWorkCheckIn(),pattern),
+                    		DateConversionUtil.stringToLocalDateTime(empDTO.getWorkCheckOut(),pattern))
                     .toMinutes();
 
             if (totalWorkMinutes <= 0) {
@@ -593,20 +594,39 @@ public class TimesheetValidationHelper {
                         totalWorkMinutes + " mins)");
             }
         }
-
-             
+        
         public boolean isWorkingDay(EmployeeTimesheetDTO dto) {
 
             if (dto.getDayTypeId() == null) {
                 return false;
             }
 
-            DayTypeMasterNew dayType = dayTypeMasterNewRepository.findById(dto.getDayTypeId())
+            DayTypeMasterNew dayType = dayTypeMasterNewRepository
+                    .findById(dto.getDayTypeId())
                     .orElseThrow(() ->
                             new IllegalArgumentException("Invalid dayTypeId"));
 
-            return Boolean.TRUE.equals(dayType.getIsWorkingDay());
+            // Java authoritative meaning
+            DayTypeCode dayTypeCode =
+                    DayTypeCode.fromDbValue(dayType.getDayType());
+
+            // DB configuration
+            boolean dbSaysWorking =
+                    Boolean.TRUE.equals(dayType.getIsWorkingDay());
+
+            // Safety check — mismatch should NEVER happen silently
+            if (dbSaysWorking != dayTypeCode.isWorkingDay()) {
+                throw new IllegalStateException(
+                        "DayType mismatch detected. dayType='"
+                                + dayType.getDayType()
+                                + "', DB=" + dbSaysWorking
+                                + ", Java=" + dayTypeCode.isWorkingDay()
+                );
+            }
+
+            return dayTypeCode.isWorkingDay();
         }
+
 
         
         
@@ -823,17 +843,63 @@ public class TimesheetValidationHelper {
      * @param date Date to check
      * @throws IllegalArgumentException if timesheet already exists
      */
-    public void validateTimesheetAlreadyExists(Long empId, LocalDate date) {
-        if (empId == null || date == null) {
-            throw new IllegalArgumentException("Employee ID and Date are required");
+    public EmployeeTimesheetsNew validateTimesheetAlreadyExists(
+            EmployeeTimesheetDTO empDTO,
+            Long empId,
+            LocalDate date) {
+
+        if (empDTO == null || empId == null || date == null) {
+            throw new IllegalArgumentException("Employee, Date and DTO are required");
         }
-        
-        boolean exists = employeeTimesheetsNewRepository.findByEmpIdAndDateNew(empId, date).isPresent();
-        
-        if (exists) {
-            throw new IllegalArgumentException("Timesheet already exists for employee " + empId + " on date " + date);
+
+        Optional<EmployeeTimesheetsNew> existingOpt =
+                employeeTimesheetsNewRepository.findByEmpIdAndDateNew(empId, date);
+
+        // No timesheet → allow creation
+        if (existingOpt.isEmpty()) {
+            return null;
         }
+
+        DayTypeCode dayType =
+                resolveDayType(empDTO.getDayTypeId());
+
+        // ONLY Non-Working allows override
+        if (dayType == DayTypeCode.NON_WORKING) {
+            return existingOpt.get();
+        }
+
+        //Everything else is blocked
+        throw new IllegalArgumentException(
+                "Timesheet already exists for employee "
+                        + empId + " on date " + date
+                        + " (DayType=" + dayType + ")"
+        );
     }
+
+    
+    private DayTypeCode resolveDayType(Integer dayTypeId) {
+
+        DayTypeMasterNew dayType = dayTypeMasterNewRepository
+                .findById(dayTypeId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Invalid dayTypeId"));
+
+        DayTypeCode code =
+                DayTypeCode.fromDbValue(dayType.getDayType());
+
+        // Optional safety check (recommended)
+        if (!Objects.equals(
+                Boolean.TRUE.equals(dayType.getIsWorkingDay()),
+                code.isWorkingDay())) {
+
+            throw new IllegalStateException(
+                    "DayType mismatch for " + dayType.getDayType());
+        }
+
+        return code;
+    }
+
+
     
     
     @Autowired
@@ -1217,6 +1283,56 @@ public class TimesheetValidationHelper {
 	        }
 	    }
 	}
+	
+	
+	
+	public void validateNonWorkingDayTimesheet(EmployeeTimesheetDTO empDTO) {
+
+	    if (empDTO.getLocationSessions() == null ||
+	        empDTO.getLocationSessions().isEmpty()) {
+	        throw new IllegalArgumentException(
+	                "Location session is required for Non-Working day"
+	        );
+	    }
+
+	    //Multiple locations not allowed
+	    if (empDTO.getLocationSessions().size() > 1) {
+	        throw new IllegalArgumentException(
+	                "Multiple locations are not allowed for Non-Working day"
+	        );
+	    }
+
+	    LocationSessionDTO location = empDTO.getLocationSessions().get(0);
+
+	    //Location in/out time not allowed
+	    if (location.getLocationInTime() != null ||
+	        location.getLocationOutTime() != null) {
+	        throw new IllegalArgumentException(
+	                "Location in/out time must be empty for Non-Working day"
+	        );
+	    }
+
+	    // Activities not allowed
+	    if (location.getProjects() != null) {
+	        for (ProjectTimesheetDTO project : location.getProjects()) {
+	            if (project.getActivities() != null &&
+	                !project.getActivities().isEmpty()) {
+	                throw new IllegalArgumentException(
+	                        "Activities are not allowed for Non-Working day"
+	                );
+	            }
+	        }
+	    }
+
+	    //  At least one project required
+	    if (location.getProjects() == null ||
+	        location.getProjects().isEmpty()) {
+	        throw new IllegalArgumentException(
+	                "At least one project must be selected for Non-Working day"
+	        );
+	    }
+	}
+
 
 
 

@@ -16,6 +16,7 @@ import com.apmosys.employeeportal.model.EmployeeTimesheetActivitiesMappingNew;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.ProjectTimesheetStatusId;
 import com.apmosys.employeeportal.model.ProjectTimesheetStatusNew;
+import com.apmosys.employeeportal.utility.DateConversionUtil;
 
 /**
  * Mapper class for converting between DTOs and Entities.
@@ -26,6 +27,7 @@ import com.apmosys.employeeportal.model.ProjectTimesheetStatusNew;
  */
 @Component
 public class TimesheetMapper {
+	private final String pattern="yyyy-MM-dd HH:mm:ss";
 
     /**
      * Convert EmployeeTimesheetDTO to EmployeeTimesheetsNew entity.
@@ -46,8 +48,8 @@ public class TimesheetMapper {
         entity.setLeaveTypeMasterId(dto.getLeaveTypeId());
         entity.setStatus(dto.getStatus());
         entity.setTotalWorkingMinutes(dto.getTotalWorkingMinutes());
-        entity.setWorkCheckIn(dto.getWorkCheckIn());
-        entity.setWorkCheckOut(dto.getWorkCheckOut());
+        entity.setWorkCheckIn(DateConversionUtil.stringToLocalDateTime(dto.getWorkCheckIn(),pattern));
+        entity.setWorkCheckOut(DateConversionUtil.stringToLocalDateTime(dto.getWorkCheckOut(),pattern));
         entity.setCreatedBy(dto.getCreatedBy());
         entity.setCreatedOn(dto.getCreatedOn() != null ? dto.getCreatedOn() : LocalDateTime.now());
         entity.setUpdatedBy(dto.getUpdatedBy());
@@ -75,8 +77,8 @@ public class TimesheetMapper {
         dto.setLeaveTypeId(entity.getLeaveTypeMasterId());
         dto.setStatus(entity.getStatus());
         dto.setTotalWorkingMinutes(entity.getTotalWorkingMinutes());
-        dto.setWorkCheckIn(entity.getWorkCheckIn());
-        dto.setWorkCheckOut(entity.getWorkCheckOut());
+        dto.setWorkCheckIn(DateConversionUtil.localDateTimeToString(entity.getWorkCheckIn(),pattern));
+        dto.setWorkCheckOut(DateConversionUtil.localDateTimeToString(entity.getWorkCheckOut(),pattern));
         dto.setCreatedBy(entity.getCreatedBy());
         dto.setCreatedOn(entity.getCreatedOn());
         dto.setUpdatedBy(entity.getUpdatedBy());

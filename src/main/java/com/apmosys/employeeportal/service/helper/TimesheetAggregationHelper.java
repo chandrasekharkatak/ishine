@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
+import com.apmosys.employeeportal.utility.DateConversionUtil;
 
 /**
  * Helper class for timesheet aggregation and calculation logic.
@@ -25,6 +26,9 @@ public class TimesheetAggregationHelper {
     public static final Integer STATUS_APPROVED = 2;
     public static final Integer STATUS_REJECTED = 3;
     public static final Integer STATUS_PARTIAL = 4;
+    
+    
+    private final String pattern="yyyy-MM-dd HH:mm:ss";
 
     /**
      * Calculate total activities minutes from all activities across all projects.
@@ -155,9 +159,8 @@ public class TimesheetAggregationHelper {
         // Calculate total working minutes
         if (employeeTimesheet.getWorkCheckIn() != null && employeeTimesheet.getWorkCheckOut() != null) {
             Integer totalWorkingMinutes = calculateTotalWorkingMinutes(
-                    employeeTimesheet.getWorkCheckIn(), 
-                    employeeTimesheet.getWorkCheckOut()
-            );
+            		DateConversionUtil.stringToLocalDateTime(employeeTimesheet.getWorkCheckIn(),pattern), 
+            		DateConversionUtil.stringToLocalDateTime(employeeTimesheet.getWorkCheckOut(),pattern));
             employeeTimesheet.setTotalWorkingMinutes(totalWorkingMinutes);
         } else {
             // If office times not provided, use activities minutes

@@ -116,7 +116,7 @@ public class EmployeeTimesheetDTO {
      * Example: "09:00"
      * Required for working days
      */
-    private LocalDateTime workCheckIn;
+    private String workCheckIn;
     
     /**
      * Work check-out time (format: "HH:mm" or "HH:mm:ss")
@@ -124,7 +124,7 @@ public class EmployeeTimesheetDTO {
      * Example: "18:30"
      * Required for working days
      */
-    private LocalDateTime workCheckOut;
+    private String workCheckOut;
     
     /**
      * Day type as string (e.g., "Working", "Week Off", "Leave")

@@ -8,8 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.apmosys.employeeportal.dto.ActivityDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
+import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.ProjectTimesheetStatusNew;
+import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.ProjectTimesheetStatusNewRepository;
 import com.apmosys.employeeportal.service.helper.TimesheetAggregationHelper;
 import com.apmosys.employeeportal.service.mapper.TimesheetMapper;
@@ -32,6 +36,9 @@ public class ProjectTimesheetService {
 
     @Autowired
     private TimesheetAggregationHelper aggregationHelper;
+    
+    @Autowired
+    ActivitiesRepository activitiesRepository;
 
     /**
      * Create a new ProjectTimesheet.
@@ -61,6 +68,22 @@ public class ProjectTimesheetService {
         }
 
         ProjectTimesheetStatusNew entity = timesheetMapper.toEntity(dto, timesheetId);
+		String description = "";
+
+        
+        if (dto.getActivities().isEmpty()) {
+			description = "No activity available in project timesheet";
+		} else {
+			//activityId
+			for (ActivityTimesheetDTO activity : dto.getActivities()) {
+				Activity activityMaster=activitiesRepository.findById(timesheetId).get();
+				description += activityMaster.getActivity() + "<br>";
+			}
+		}
+        entity.setDescription(description);
+        
+        
+        
         return projectTimesheetStatusNewRepository.save(entity);
     }
 
