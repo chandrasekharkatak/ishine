@@ -184,14 +184,7 @@ public class EmployeeTimesheetControllerNew {
                 response.setServiceError("Invalid encrypted data format");
                 return response;
             }
-            
-            // 4.
-            // Service layer handles:
-            // - Timesheet existence validation
-            // - Date lock validation (validateDateNotLocked)
-            // - Authorization validation
-            // - Business rule validations
-            response = timesheetServiceNew.updateTimesheet(timesheetId, dto, documents);
+           response = timesheetServiceNew.updateTimesheet(timesheetId, dto, documents);
              
         } catch (IllegalArgumentException e) {
             // Handle validation errors (e.g., date locked, timesheet not found)

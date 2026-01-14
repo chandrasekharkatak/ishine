@@ -58,7 +58,7 @@ public class TimesheetDocumentDetailsNew {
     private LocalDateTime updatedOn;
 
     @Column(name = "project_id", nullable = false)
-    private Long projectId;
+    private Integer projectId;
 
     @Column(name = "active")
     private Boolean active;

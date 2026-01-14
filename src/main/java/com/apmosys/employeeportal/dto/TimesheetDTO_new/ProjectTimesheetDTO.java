@@ -3,7 +3,6 @@ package com.apmosys.employeeportal.dto.TimesheetDTO_new;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.jetbrains.annotations.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -28,14 +27,12 @@ public class ProjectTimesheetDTO {
      * Timesheet ID (FK to employee_timesheets_new)
      * Required - links to parent EmployeeTimesheet
      */
-    @NotNull("Timesheet ID is required")
     private Long timesheetId;
 
     /**
      * Project ID (FK to projects table)
      * Required for creation
      */
-    @NotNull("Project ID is required")
     private Integer projectId;
 
     /**
@@ -75,7 +72,6 @@ public class ProjectTimesheetDTO {
      * Values: 1=Pending, 2=Approved, 3=Rejected
      * Required - defaults to Pending
      */
-    @NotNull( "Status is required")
     private Integer status;
 
     
@@ -116,13 +112,6 @@ public class ProjectTimesheetDTO {
      */
     private Integer projectHoursMinutes;
     
-    /**
-     * Team ID (FK to teams table)
-     * NEW CONTRACT: Required for project identification
-     * Retrieved from project if not provided
-     */
-    private Long teamId;
-    
     
     // private Boolean isShadowForSelf;
     
@@ -157,7 +146,8 @@ public class ProjectTimesheetDTO {
     
     private String clientSideId;
 
-    
+    private String clientSideId;
   
+    private Long teamId;
 }
 

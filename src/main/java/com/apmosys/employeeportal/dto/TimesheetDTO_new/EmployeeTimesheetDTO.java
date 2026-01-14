@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.jetbrains.annotations.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -35,7 +34,6 @@ public class EmployeeTimesheetDTO {
      * Employee ID (FK to employee table)
      * Required for creation
      */
-    @NotNull("Employee ID is required")
     private Long empId;
 
     /**
@@ -43,7 +41,6 @@ public class EmployeeTimesheetDTO {
      * Required for creation
      * Cannot be in future
      */
-    @NotNull("Date is required")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate date;
 
@@ -52,7 +49,6 @@ public class EmployeeTimesheetDTO {
      * Required for creation
      * Examples: 1=Working, 2=Week Off, 3=Public Holiday, 4=Leave, etc.
      */
-    @NotNull("Day Type ID is required")
     private Integer dayTypeId;
 
     /**

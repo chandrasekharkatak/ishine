@@ -154,4 +154,10 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 
 	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectManagerIdAndNameDTO(e.empId , e.name) from Employee e, Team t where e.empId = t.teamLeadId and t.projectId = :projectId")
 	List<ProjectManagerIdAndNameDTO> findAllTeamLeadByProjectId(@Param("projectId") Integer projectId);
+	
+	Optional<Team> findByTeamIdAndProjectIdAndIsActive(
+	        Long teamId,
+	        Integer projectId,
+	        String isActive);
+
 }

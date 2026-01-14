@@ -38,6 +38,9 @@ export class TimesheetFormComponent implements OnInit {
   previewModal: TemplateRef<any>;
   @ViewChild("alert_message_with_reset")
   alertModalWithoutReload: TemplateRef<any>;
+  @ViewChild("clientSideIdUpdateOrAddModal")
+  clientSideIdUpdateOrAddModal: TemplateRef<any>;
+  clientSideIdUpdateOrAddModalRef: NgbModalRef;
   alertWithResetModRef: NgbModalRef;
   @Input() isCreation: boolean = false;
   @Input() isUpdation: boolean = false;
@@ -79,7 +82,7 @@ export class TimesheetFormComponent implements OnInit {
   // Multi-location support (Location -> Project -> Activity)
   uniqueProjectsList: ProjectEntry[] = [];
   timesheetLocations: LocationEntry[] = [];
-  expandedLocationIndex: number | null = 0;
+  expandedLocationIndex: number | null = null;
   expandedProjectIndexMap: { [locationIndex: number]: number | null } = {}; // Track expanded project per location
   empHasClientSideId: boolean = false;
   projectActivityHoursError: { [projectIndex: number]: string } = {}; // Store validation errors per project
@@ -99,7 +102,7 @@ export class TimesheetFormComponent implements OnInit {
   activeFileType: string | null = null;
   createOrUpdateObj: EmployeeTimesheetDTO = new EmployeeTimesheetDTO();
   clientApprovalStatusList: any[];
-  workLocationList: string[];
+  workLocationList: any[];
   isNightShift: boolean = false;
   documentList: TimesheetDocument[] = [];
   // documentData: {
@@ -129,6 +132,12 @@ export class TimesheetFormComponent implements OnInit {
   startY = 0;
   translateX = 0;
   translateY = 0;
+  highlightLocationList: number[] = [];
+  highlightLocationIdSet = new Set<number>();
+  clientIdEntryBulletPoints: string[] = ["Mandatory field for all resources while filling the timesheet.",
+    "Enter the client-side ID if already available.",
+    "If the client-side ID is not yet assigned, enter “NA (ApMoSys Employee ID)”.",
+    "Once the client-side ID is received, update the ID while filling subsequent timesheets."]
   constructor(private teamViewService: TeamViewService,
     private timesheetService: TimesheetService,
     private timesheetNewService: TimesheetNewService,
@@ -147,9 +156,9 @@ export class TimesheetFormComponent implements OnInit {
   }
 
 
-  isDayTypeFillable():boolean{
-    if(this.dayType == 1 || this.dayType == 3 || this.dayType == 8) return true;
-    else false;
+  isDayTypeFillable(): boolean {
+    if (this.dayType == 1 || this.dayType == 3 || this.dayType == 8) return true;
+    else return false;
 
   }
 
@@ -175,28 +184,29 @@ export class TimesheetFormComponent implements OnInit {
   /**
    * Create a new LocationEntry object
    */
-  createLocation(timesheetId: number): LocationEntry {
-    if(!this.isDayTypeFillable()){
+  createLocation(timesheetId?: number): LocationEntry {
+    if (this.isDayTypeFillable() == true) {
       return {
-      locationMappingId: 4,
-      workLocationType: null,
-      workLocationTypeId: null,
-      locationInTime: null,
-      locationOutTime: null,
-      totalWorkingHours: null,
-      projects: [this.createProject(null,timesheetId)],
-    };
+        locationMappingId: null,
+        workLocationType: null,
+        workLocationTypeId: null,
+        locationInTime: null,
+        locationOutTime: null,
+        totalWorkingHours: null,
+        projects: [this.createProject(null, timesheetId)],
+      };
     }
-    else{
-    return {
-      locationMappingId: null,
-      locationInTime: '',
-      locationOutTime: '',
-      workLocationType: '',
-      workLocationTypeId: null,
-      projects: [this.createProject(null, timesheetId)],
-    };
-  }
+    else {
+      return {
+        locationMappingId: null,
+        workLocationType: null,
+        workLocationTypeId: 4,
+        locationInTime: null,
+        locationOutTime: null,
+        totalWorkingHours: null,
+        projects: [this.createProject(null, timesheetId)],
+      };
+    }
   }
 
   /**
@@ -208,6 +218,7 @@ export class TimesheetFormComponent implements OnInit {
       projectName: '',
       clientSideId: null,
       hasClientSideId: false,
+      hasClientFlag: false,
       shadowEmpId: null,
       isShadowTimesheet: false,
       isShadowForSelf: false,
@@ -224,12 +235,12 @@ export class TimesheetFormComponent implements OnInit {
       poId: null,
       poNo: '',
       status: 1,
-      isNightShift: false,
       locationMappingId: !location?.locationMappingId ? null : location.locationMappingId,
       projectHoursMinutes: null,
-      timesheetId,
+      timesheetId: timesheetId,
       totalClientWorkingMinutes: null,
-      totalWorkingHours: null
+      totalWorkingHours: null,
+      description: null
     };
   }
 
@@ -238,20 +249,23 @@ export class TimesheetFormComponent implements OnInit {
    */
   applyApmosysTiming(): void {
 
-  if (this.useApmosysTiming) {
-    this.timesheetLocations[0].locationInTime = this.apmosysInTime;
-    this.timesheetLocations[0].locationOutTime = this.apmosysOutTime;
-  } else {
-    // OPTION 1: Clear timings when unchecked
-    this.timesheetLocations[0].locationInTime = null;
-    this.timesheetLocations[0].locationOutTime = null;
+    if (this.useApmosysTiming) {
+      this.disableAdd = true
+      this.timesheetLocations[0].locationInTime = this.apmosysInTime;
+      this.timesheetLocations[0].locationOutTime = this.apmosysOutTime;
+    } else {
+      // OPTION 1: Clear timings when unchecked
+      this.disableAdd = false
+      this.timesheetLocations[0].locationInTime = null;
+      this.timesheetLocations[0].locationOutTime = null;
 
-    this.onHoursChange();
-  }
+      this.onHoursChange();
+    }
 
   }
 
   addLocation(timesheetId: number): void {
+    console.log(this.timesheetLocations);
     this.timesheetLocations.push(this.createLocation(timesheetId));
     // Expand the newly added location
     this.expandedLocationIndex = this.timesheetLocations.length - 1;
@@ -264,12 +278,14 @@ export class TimesheetFormComponent implements OnInit {
    * Remove a location from the timesheet
    */
   removeLocation(index: number): void {
+
     if (this.timesheetLocations.length <= 1) {
       this.openAlertMod(this.alertTemplate, 'At least one location is required.');
       return;
     }
     this.timesheetLocations.splice(index, 1);
     console.log('Timesheet Locations after removing:', this.timesheetLocations);
+    this.empHasClientSideId = false;
     this.getListToRenderUpload();
     console.log(this.documentData, "this.documentData after removing project")
     // Adjust expanded index if needed
@@ -348,6 +364,56 @@ export class TimesheetFormComponent implements OnInit {
     }
   }
 
+  get formattedEmployeeId(): string {
+    let placeholder = "";
+    if (this.currentUser.isApmosysProduct) {
+      placeholder = `NA (AP-${this.currentUser.employeementId})`;
+    }
+    else {
+      placeholder = `NA (A-${this.currentUser.employeementId})`
+    }
+    return placeholder;
+  }
+
+  openClientSideTemplate(project: ProjectEntry) {
+
+    this.empClientSideObj.clientSideId = '';
+    this.clientSideIdUpdateOrAddModalRef = this.modalService.open(this.clientSideIdUpdateOrAddModal, { modalDialogClass: 'modal-lg' });
+
+  }
+  hideClientSideIdForm() {
+    this.clientSideIdUpdateOrAddModalRef.close();
+  }
+
+  updateClientSideIdMapping(template: TemplateRef<any>) {
+    if (!this.empClientSideObj.clientSideId || this.empClientSideObj.clientSideId.trim() === '') {
+      this.openAlertMod(template, 'Please enter a valid Client Side ID.');
+      return;
+    }
+
+    if (this.empClientSideObj.hasClientSideFlag) {
+      if (this.empClientSideObj.clientSideId.toLowerCase().startsWith("na")) {
+        this.modalRef?.close();
+        this.empClientSideObj.clientSideId = '';
+        this.openAlertMod(template, 'As per the configuration defined by your project manager, Client IDs for this project cannot begin with “NA”. Kindly provide the valid Client ID assigned to you. For additional assistance, please reach out to your project manager.');
+        return;
+      }
+    }
+    this.timesheetService.updateClientSideIdMapping(this.empClientSideObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.getClientSideIdByProjectIdAndEmpId(this.empClientSideObj.projectId, this.empClientSideObj.empId);
+      } else {
+        this.openAlertMod(template, response.serviceResponse)
+      }
+    });
+  }
+
+  onCancelClientSideId() {
+    this.hideClientSideIdForm();
+    this.getClientSideIdByProjectIdAndEmpId(this.empClientSideObj.projectId, this.empClientSideObj.empId);
+  }
+
   /**
    * Toggle project expansion/collapse within a location
    */
@@ -377,6 +443,10 @@ export class TimesheetFormComponent implements OnInit {
                 ])
             ).values()
           );
+          if (newActivity.clientTeamList.length == 1) {
+            newActivity.teamId = newActivity.clientTeamList[0].teamId;
+            this.onProjectTeamSelect(newActivity.teamId, proj);
+          }
           proj.activities.push(newActivity);
         }
         console.log('Client Location selected:', proj);
@@ -401,22 +471,41 @@ export class TimesheetFormComponent implements OnInit {
    * Handle location selection - populate projects for the selected location
    */
   onLocationSelect(location: LocationEntry): void {
-    if(!this.isDayTypeFillable()){
-      this.timesheetLocations.forEach(loc=>{
-        loc.locationMappingId = 4;
-      })
+    console.log(this.expandedLocationIndex);
+    console.log(this.timesheetLocations)
+    const duplicateCount = this.timesheetLocations.filter(
+      loc => loc !== location &&
+        loc.workLocationTypeId === location.workLocationTypeId
+    ).length;
+    console.log(this.timesheetLocations)
+    if (duplicateCount > 1) {
+      this.openAlertMod(this.alertTemplate, 'You are entering duplicate location');
+
+      // Reset ONLY the selected location
+      location.workLocationTypeId = null;
+      location.workLocationType = null;
+      return;
     }
-    if (this.timesheetAppliedFor.toLocaleLowerCase() == 'self') {
-      console.log(this.currentUser.empId);
+
+    // ✅ Only update THIS location
+    if (!this.isDayTypeFillable()) {
+      location.locationMappingId = 4;
+    }
+    console.log(this.timesheetLocations)
+    this.empHasClientSideId = false;
+
+    if (this.timesheetAppliedFor.toLowerCase() === 'self') {
       this.getAllProjectsByEmpId(this.currentUser.empId, location);
-      console.log(this.allProjectsList, "this.allProjectsList for self")
+    } else {
+      const teamMember = this.teamMemberList.find(
+        e => e.empId === this.timesheetFilledForUser.empId
+      );
+      this.getAllProjectsByEmpId(teamMember?.empId, location);
     }
-    else if (this.timesheetAppliedFor.toLocaleLowerCase() == 'team') {
-      let teamMember = this.teamMemberList.find(employee => employee.empId == this.timesheetFilledForUser.empId);
-      this.getAllProjectsByEmpId(teamMember.empId, location);
-      console.log(this.allProjectsList, "this.allProjectsList for team member")
-    }
+
+    this.getListToRenderUpload();
   }
+
   getAllDayTypes() {
     this.timesheetNewService.getAllDayTypes().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -435,18 +524,18 @@ export class TimesheetFormComponent implements OnInit {
     console.log("Day type changed", event);
     console.log("this.dayType", this.dayType);
     console.log("this is called")
-    
-      this.timesheetLocations.forEach(loc=>{
-        if(!this.isDayTypeFillable()){
-        loc.locationMappingId = 4;
+
+    this.timesheetLocations.forEach(loc => {
+      if (!this.isDayTypeFillable()) {
+        loc.workLocationTypeId = 4;
         this.disableAdd = true;
         this.onLocationSelect(loc);
-        }else{
-          loc.locationMappingId = null;
-          this.disableAdd = false;
-        }
-      });
-      
+      } else {
+        loc.workLocationTypeId = null;
+        this.disableAdd = false;
+      }
+    });
+
 
   }
   activeProjectListByEmpId: any[] = []
@@ -563,7 +652,9 @@ export class TimesheetFormComponent implements OnInit {
                 p.projectId,
                 {
                   projectId: p.projectId,
-                  projectName: p.projectName
+                  projectName: p.projectName,
+                  hasClientSideId: p.hasClientSideId,
+                  hasClientFlag: p.hasClientFlag
                 }
               ])
             ).values()
@@ -571,11 +662,10 @@ export class TimesheetFormComponent implements OnInit {
 
           console.log("uniqueProjects", uniqueProjects);
           console.log(this.allProjectsList, "this.allProjectsList")
+          console.log(this.timesheetLocations)
           this.timesheetLocations.forEach(loc => {
-            if (location.locationMappingId === loc.locationMappingId) {
+            if (location.workLocationTypeId === loc.workLocationTypeId) {
               loc.projects = [this.createProject(location, null)]; // Reset to one project
-              loc.workLocationType = location.workLocationType;
-              loc.workLocationTypeId = location.workLocationTypeId;
               loc.projects.forEach(proj => {
                 proj.projectList = uniqueProjects;
                 if (proj.projectList.length == 1) {
@@ -603,8 +693,12 @@ export class TimesheetFormComponent implements OnInit {
         console.log("projPrevious", proj);
         if (proj.projectId === projectId) {
           console.log("projPrevious", proj);
-          proj.projectName = null;
-          proj.hasClientSideId = false;
+          const matchedProject = proj.projectList.find(
+            p => p.projectId === proj.projectId
+          );
+          proj.hasClientSideId = matchedProject.hasClientSideId;
+          proj.hasClientFlag = matchedProject.hasClientFlag;
+          proj.projectName = matchedProject.projectName;
           proj.shadowEmpId = null;
           proj.isShadowTimesheet = false;
           proj.isShadowForSelf = false;
@@ -631,7 +725,7 @@ export class TimesheetFormComponent implements OnInit {
                 ])
             ).values()
           );
-          if(proj.clientList.length==1){
+          if (proj.clientList.length == 1) {
             proj.clientId = proj.clientList[0].clientId;
             this.onProjectClientSelect(proj.clientId);
           }
@@ -646,6 +740,8 @@ export class TimesheetFormComponent implements OnInit {
       projectId,
       this.currentUser.empId
     );
+    this.empHasClientSideId = false;
+    this.getListToRenderUpload();
   }
 
 
@@ -663,13 +759,26 @@ export class TimesheetFormComponent implements OnInit {
             location.projects.forEach(project => {
               if (project.projectId == projectId) {
                 project.clientSideId = clientSideId;
-                project.hasClientSideId = true;
+                this.empClientSideObj.projectName = project.projectName;
+                this.empClientSideObj.hasClientSideId = project.hasClientSideId;
+                this.empClientSideObj.hasClientSideFlag = project.hasClientFlag;
               }
             });
           });
         }
       } else {
-        console.error(response.serviceResponse);
+        this.timesheetLocations.forEach(location => {
+          location.projects.forEach(project => {
+            if (project.projectId == projectId && project.hasClientSideId) {
+              this.empClientSideObj.projectId = projectId;
+              this.empClientSideObj.empId = empId;
+              this.empClientSideObj.projectName = project.projectName;
+              this.empClientSideObj.hasClientSideId = project.hasClientSideId;
+              this.empClientSideObj.hasClientSideFlag = project.hasClientFlag;
+              this.openClientSideTemplate(project);
+            }
+          });
+        });
       }
     });
   }
@@ -695,7 +804,7 @@ export class TimesheetFormComponent implements OnInit {
               ])
           ).values()
         );
-        if(proj.clientLocationList.length == 1){
+        if (proj.clientLocationList.length == 1) {
           proj.clientLocationId = proj.clientLocationList[0].clientLocationId
         }
       });
@@ -715,16 +824,15 @@ export class TimesheetFormComponent implements OnInit {
       loc.projects.forEach(proj => {
         const projectKey = `${proj.projectId}_${proj.clientId}_${proj.clientLocationId}`;
 
-    // ❌ skip if already processed
-    if (processedProjects.has(projectKey)) {
-      proj.clientLocationId = null;
-      this.openAlertMod(this.alertTemplate,'You cannot add two projects with same client location')
-      return;
-    }
+        // ❌ skip if already processed
+        if (processedProjects.has(projectKey)) {
+          proj.clientLocationId = null;
+          this.openAlertMod(this.alertTemplate, 'You cannot add two projects with same client location')
+          return;
+        }
 
-    // ✅ mark as processed
-    processedProjects.add(projectKey);
-        proj.activities = [this.createActivity(null, proj.projectId)];
+        // ✅ mark as processed
+        processedProjects.add(projectKey);
         proj.activities.forEach(activity => {
           activity.clientTeamList = Array.from(
             new Map(
@@ -739,6 +847,10 @@ export class TimesheetFormComponent implements OnInit {
                 ])
             ).values()
           );
+          if (activity.clientTeamList.length == 1) {
+            activity.teamId = activity.clientTeamList[0].teamId;
+            this.onProjectTeamSelect(activity.teamId, proj);
+          }
           console.log('Client Location selected:', proj);
         });
       }
@@ -1116,7 +1228,7 @@ export class TimesheetFormComponent implements OnInit {
       const finalHours = calculatedHours < 0 ? 0 : calculatedHours;
 
       // Round to 2 decimal places
-       
+
       this.totalPresence = Math.round(finalHours * 100) / 100; // Set totalPresence for display
       console.log('Total Working Hours calculated:', this.totalPresence);
     } catch (error) {
@@ -1170,136 +1282,140 @@ export class TimesheetFormComponent implements OnInit {
       return;
     }
 
-  // ❌ Size check
-  if (file.size > maxSize) {
-    this.handleFileError(
-      projectId,
-      docType,
-      'File size must be 500KB or less.'
+    // ❌ Size check
+    if (file.size > maxSize) {
+      this.handleFileError(
+        projectId,
+        docType,
+        'File size must be 500KB or less.'
+      );
+      event.target.value = '';
+      return;
+    }
+
+    // ♻️ Cleanup old object URL
+    const previous = this.documentData.find(
+      f => f.projectId === projectId && f.docType === docType
     );
-    event.target.value = '';
-    return;
+
+    if (previous?.rawObjectUrl) {
+      URL.revokeObjectURL(previous.rawObjectUrl);
+    }
+
+    // ✅ Detect file type ONCE
+    const fileType: 'pdf' | 'image' =
+      file.type === 'application/pdf' ? 'pdf' : 'image';
+
+    // ✅ Create object URL
+    const objectUrl = URL.createObjectURL(file);
+
+    // ✅ IMPORTANT: Use correct sanitizer
+    const previewUrl =
+      fileType === 'pdf'
+        ? this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl)
+        : this.sanitizer.bypassSecurityTrustUrl(objectUrl);
+
+    const uniqueFile: File = this.renameFile(file, projectId, docType)
+    const uniqueIdentifier = uniqueFile.name
+
+    console.log("Unique File: ", uniqueFile);
+
+
+    // ✅ Update entry
+    this.updateUploadFile({
+      docId: null,
+      projectId,
+      docName: file.name,
+      finalFlag: false,
+      bulkApprovedDocId: null,
+      uniqueIdentifier: uniqueIdentifier,
+      docType,
+      previewUrl,
+      rawObjectUrl: objectUrl,
+      fileType,
+      fileSize: uniqueFile.size,
+      fileError: null
+    }, uniqueFile);
   }
 
-  // ♻️ Cleanup old object URL
-  const previous = this.documentData.find(
-    f => f.projectId === projectId && f.docType === docType
-  );
-
-  if (previous?.rawObjectUrl) {
-    URL.revokeObjectURL(previous.rawObjectUrl);
+  containsFile(fileName: string): boolean {
+    return this.documentData.some(
+      f => f.uniqueIdentifier === fileName
+    );
   }
 
-  // ✅ Detect file type ONCE
-  const fileType: 'pdf' | 'image' =
-    file.type === 'application/pdf' ? 'pdf' : 'image';
+  private handleFileError(
+    projectId: number,
+    docType: 'Filled' | 'Approved',
+    message: string
+  ): void {
+    this.updateUploadFile({
+      docId: null,
+      projectId,
+      docName: null,
+      finalFlag: false,
+      bulkApprovedDocId: null,
+      uniqueIdentifier: null,
+      docType,
+      previewUrl: null,
+      rawObjectUrl: null,
+      fileError: message,
+      fileType: null,
+      fileSize: null,
+    });
 
-  // ✅ Create object URL
-  const objectUrl = URL.createObjectURL(file);
-
-  // ✅ IMPORTANT: Use correct sanitizer
-  const previewUrl =
-    fileType === 'pdf'
-      ? this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl)
-      : this.sanitizer.bypassSecurityTrustUrl(objectUrl);
-
-  const uniqueFile:File = this.renameFile(file, projectId, docType)
-  const uniqueIdentifier = uniqueFile.name
-
-  console.log("Unique File: ", uniqueFile);
-  
-
-  // ✅ Update entry
-  this.updateUploadFile({
-    docId: null,
-    projectId,
-    docName: file.name,
-    finalFlag: false,
-    bulkApprovedDocId: null,
-    uniqueIdentifier: uniqueIdentifier,
-    docType,
-    previewUrl,
-    rawObjectUrl: objectUrl,
-    fileType,
-    fileSize: uniqueFile.size,
-    fileError: null
-  }, uniqueFile);
-}
-
-containsFile(fileName:string): boolean{
-  return this.documentData.some(
-    f => f.uniqueIdentifier === fileName
-  );
-}
-
-private handleFileError(
-  projectId: number,
-  docType: 'Filled' | 'Approved',
-  message: string
-): void {
-  this.updateUploadFile({
-    docId: null,
-    projectId,
-    docName: null,
-    finalFlag: false,
-    bulkApprovedDocId: null,
-    uniqueIdentifier: null,
-    docType,
-    previewUrl: null,
-    rawObjectUrl: null,
-    fileError: message,
-    fileType: null,
-    fileSize: null,
-  });
-
-  this.openAlertMod(this.alertTemplate, message);
-}
+    this.openAlertMod(this.alertTemplate, message);
+  }
 
 
- updateUploadFile(
-  data: TimesheetDocumentDataI,
-  file?: File
-): void {
+  updateUploadFile(
+    data: TimesheetDocumentDataI,
+    file?: File
+  ): void {
 
-  const index = this.documentData.findIndex(
-    f => f.projectId === data.projectId && f.docType === data.docType
-  );
+    const index = this.documentData.findIndex(
+      f => f.projectId === data.projectId && f.docType === data.docType
+    );
 
-  if (index === -1) return;
+    if (index === -1) return;
 
-  this.documentData[index] = {
-    ...this.documentData[index],
-    ...data
-  };
+    this.documentData[index] = {
+      ...this.documentData[index],
+      ...data
+    };
 
-  this.selectedFile.push(file);
+    if (this.selectedFile.length > 0 && this.selectedFile.some(f => f.name === data.uniqueIdentifier)) {
+      this.selectedFile[index] = file;
+    } else {
+      this.selectedFile.push(file);
+    }
 
-}
+  }
 
-zoomIn(): void {
-  this.imageZoom = Math.min(this.imageZoom + 0.2, 3);
-}
+  zoomIn(): void {
+    this.imageZoom = Math.min(this.imageZoom + 0.2, 3);
+  }
 
-zoomOut(): void {
-  this.imageZoom = Math.max(this.imageZoom - 0.2, 0.5);
-}
+  zoomOut(): void {
+    this.imageZoom = Math.max(this.imageZoom - 0.2, 0.5);
+  }
 
-resetZoom(): void {
-  this.imageZoom = 1;
-}
+  resetZoom(): void {
+    this.imageZoom = 1;
+  }
 
-downloadImage(fileName = 'image-preview'): void {
-  // Ensure we have a raw object URL
-  if (!this.activeRawObjectUrl || this.activeFileType !== 'image') return;
+  downloadImage(fileName = 'image-preview'): void {
+    // Ensure we have a raw object URL
+    if (!this.activeRawObjectUrl || this.activeFileType !== 'image') return;
 
-  const link = document.createElement('a');
-  link.href = this.activeRawObjectUrl;
-  link.download = fileName;
-  link.click();
-}
+    const link = document.createElement('a');
+    link.href = this.activeRawObjectUrl;
+    link.download = fileName;
+    link.click();
+  }
 
 
-              
+
   /**
    * Open preview modal for uploaded file
    */
@@ -1408,7 +1524,7 @@ downloadImage(fileName = 'image-preview'): void {
     const minute = parsed.minute.toString().padStart(2, '0'); // "30"
 
     return `${dateStr} ${hour}:${minute}:00`;  // Returns "2026-01-08 09:30:00" or "2026-01-08 19:30:00"
-    }
+  }
 
   formatTimeForBackend(timeStr: string): string {
     const parsed = this.parseTimeTo24Hour(timeStr);
@@ -1418,17 +1534,79 @@ downloadImage(fileName = 'image-preview'): void {
     const minute = parsed.minute.toString().padStart(2, '0'); // "30"
 
     return `${hour}:${minute}:00`;  // Returns "2026-01-08 09:30:00" or "2026-01-08 19:30:00"
-    }
+  }
 
+  resetForm(){
+    this.dayType = null;
+    this.apmosysInTime = null;
+    this.apmosysOutTime = null;
+    this.totalPresence = null;
+    this.timesheetLocations = [];
+    this.addLocation(null);
+
+  }
 
   createTimesheet() {
 
+    this.highlightLocationList = [];
     const convertToYYYYMMDD = (dateStr: string): string => {
       if (!dateStr) return '';
       const [day, month, year] = dateStr.split('-');
       return `${year}-${month}-${day}`;  // Convert "08-01-2026" to "2026-01-08"
     };
+    let hasValidationError = false;
 
+    this.timesheetLocations.forEach((location, index) => {
+
+      const selectedLocationData = this.workLocationList.find(
+        l => l.workLocationTypeId === location.workLocationTypeId
+      );
+
+      // ✅ IN TIME VALIDATION
+      const inTimeVal = this.validateLocationInTime(
+        location.locationInTime,
+        this.fromDate,
+        this.apmosysInTime
+      );
+
+      if (!inTimeVal) {
+        this.openAlertMod(
+          this.alertTemplate,
+          `The Log-In time for the location ${selectedLocationData?.code} is less than Work Check In time`
+        );
+
+        this.highlightLocationList.push(location.workLocationTypeId);
+        hasValidationError = true;
+        return;
+      }
+
+      // ✅ OUT TIME VALIDATION
+      const outTimeVal = this.validateLocationOutTime(
+        location.locationOutTime,
+        this.fromDate,
+        this.apmosysOutTime,
+        this.isNightShift,
+        this.toDate
+      );
+
+      if (!outTimeVal) {
+        this.openAlertMod(
+          this.alertTemplate,
+          `The Log-Out time for the location ${selectedLocationData?.code} is more than Work Check Out time`
+        );
+
+        this.highlightLocationList.push(location.workLocationTypeId);
+        hasValidationError = true;
+        return;
+      }
+    });
+
+    // STOP & HIGHLIGHT UI
+    if (hasValidationError) {
+      this.applyHighlightAndExpand();
+      return;
+    }
+    const dataSet = this.timesheetLocations
     this.createOrUpdateObj = {
       createdBy: this.currentUser.empId,
       dayTypeId: this.dayType,
@@ -1438,17 +1616,26 @@ downloadImage(fileName = 'image-preview'): void {
       timesheetId: null,
       // date: this.formatDDMMYYYY(new Date(this.fromDate as string)),
       date: convertToYYYYMMDD(this.fromDate),
-      workCheckIn: this.formatDateTimeForBackend(this.apmosysInTime, convertToYYYYMMDD(this.fromDate)),
-      workCheckOut: this.formatDateTimeForBackend(this.apmosysOutTime, convertToYYYYMMDD(this.fromDate)),
+      workCheckIn: [4,6,7].includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysInTime, convertToYYYYMMDD(this.fromDate)),
+      workCheckOut: [4,6,7].includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate)),
       currentManagerId: this.currentUser.managerId,
       totalWorkingMinutes: this.totalPresence * 60,
-      locationSessions: this.timesheetLocations,
+      locationSessions: dataSet,
       documentData: this.documentData
     }
 
     this.createOrUpdateObj.locationSessions.forEach((location: LocationEntry) => {
-      location.locationInTime = this.formatDateTimeForBackend(location.locationInTime, convertToYYYYMMDD(this.fromDate));
-      location.locationOutTime = this.formatDateTimeForBackend(location.locationOutTime, convertToYYYYMMDD(this.fromDate));
+      location.locationInTime = [4,6,7].includes(this.dayType) ? null : this.formatDateTimeForBackend(location.locationInTime, convertToYYYYMMDD(this.fromDate));
+      location.locationOutTime = [4,6,7].includes(this.dayType) ? null : this.formatDateTimeForBackend(location.locationOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate));
+      location.projects.forEach((project: ProjectEntry) => {
+        if(![4,6,7].includes(this.dayType)) {
+          project?.activities?.forEach((activity: ActivityNew) => {
+          activity.durationMinutes = activity.durationMinutes * 60;
+        });
+        } else {
+          project.activities = null;
+        }
+      });
     });
 
     this.generateTotalMinutes(this.createOrUpdateObj);
@@ -1456,19 +1643,39 @@ downloadImage(fileName = 'image-preview'): void {
     this.timesheetNewService.createTimesheet(this.createOrUpdateObj, this.selectedFile)
       .subscribe({
         next: (response: any) => {
-        if (response.serviceStatus === "Success") {
-          this.openAlertMod(this.alertTemplate, "Timesheet created successfully.");
-          // Reset form or navigate as needed
-        } else {
-          console.error("Failed to create timesheet:", response.serviceResponse);
-          this.openAlertMod(this.alertTemplate, "Failed to create timesheet. Please try again.");
+          if (response.serviceStatus === "Success") {
+            this.openAlertMod(this.alertTemplate, "Timesheet created successfully.");
+            this.resetForm()
+            // Reset form or navigate as needed
+          } else {
+            console.error("Failed to create timesheet:", response.serviceResponse);
+            this.openAlertMod(this.alertTemplate, "Failed to create timesheet. Please try again.");
+          }
+        },
+        error: (error) => {
+          console.error("Error creating timesheet:", error);
+          this.openAlertMod(this.alertTemplate, "An error occurred while creating the timesheet.");
         }
-      },
-      error: (error) => {
-        console.error("Error creating timesheet:", error);
-        this.openAlertMod(this.alertTemplate, "An error occurred while creating the timesheet.");
-      }
-    });
+      });
+  }
+
+  applyHighlightAndExpand(): void {
+    this.highlightLocationIdSet = new Set(this.highlightLocationList);
+
+    const index = this.timesheetLocations.findIndex(loc =>
+      this.highlightLocationIdSet.has(loc.workLocationTypeId)
+    );
+
+    if (index !== -1) {
+      this.expandedLocationIndex = index;
+    }
+  }
+  isLocationHighlighted(location: any): boolean {
+    return this.highlightLocationIdSet.has(location.workLocationTypeId);
+  }
+
+  validationService() {
+
   }
 
   // convertMMDDYYYToDDMMYYY
@@ -1543,20 +1750,133 @@ downloadImage(fileName = 'image-preview'): void {
   // getListToRenderUpload(){
   //   let dataList : Map<number, ProjectEntry> = new Map<number, ProjectEntry>();
 
+  validateLocationInTime(
+    locationInTime: string,
+    fromDate: string,
+    apmosysInTime: string
+  ): boolean {
+
+    if (!locationInTime || !fromDate || !apmosysInTime) {
+      return false;
+    }
+
+    const parseDate = (dateStr: string) => {
+      const [day, month, year] = dateStr.split('-').map(Number);
+      return new Date(year, month - 1, day);
+    };
+
+    const parseTime = (timeStr: string) => {
+      const [time, meridian] = timeStr.trim().split(' ');
+      let [hh, mm] = time.split(':').map(Number);
+
+      if (meridian === 'PM' && hh !== 12) hh += 12;
+      if (meridian === 'AM' && hh === 12) hh = 0;
+
+      return { hh, mm };
+    };
+
+    const date = parseDate(fromDate);
+    const inTime = parseTime(locationInTime);
+    const apmIn = parseTime(apmosysInTime);
+
+    const inDateTime = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      inTime.hh,
+      inTime.mm
+    );
+
+    const apmosysInDateTime = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      apmIn.hh,
+      apmIn.mm
+    );
+
+    // In-time before allowed Apmosys time
+    return inDateTime.getTime() >= apmosysInDateTime.getTime();
+  }
+
+  validateLocationOutTime(
+    locationOutTime: string,
+    fromDate: string,
+    apmosysOutTime: string,
+    isNightShift: boolean,
+    toDate?: string
+  ): boolean {
+
+    if (!locationOutTime || !fromDate || !apmosysOutTime) {
+      return false;
+    }
+
+    if (isNightShift && !toDate) {
+      return false;
+    }
+
+    const parseDate = (dateStr: string) => {
+      const [day, month, year] = dateStr.split('-').map(Number);
+      return new Date(year, month - 1, day);
+    };
+
+    const parseTime = (timeStr: string) => {
+      const [time, meridian] = timeStr.trim().split(' ');
+      let [hh, mm] = time.split(':').map(Number);
+
+      if (meridian === 'PM' && hh !== 12) hh += 12;
+      if (meridian === 'AM' && hh === 12) hh = 0;
+
+      return { hh, mm };
+    };
+
+    const startDate = parseDate(fromDate);
+    const endDate = isNightShift && toDate ? parseDate(toDate) : startDate;
+
+    const outTime = parseTime(locationOutTime);
+    const apmOut = parseTime(apmosysOutTime);
+
+    const outDateTime = new Date(
+      endDate.getFullYear(),
+      endDate.getMonth(),
+      endDate.getDate(),
+      outTime.hh,
+      outTime.mm
+    );
+
+    const apmosysOutDateTime = new Date(
+      endDate.getFullYear(),
+      endDate.getMonth(),
+      endDate.getDate(),
+      apmOut.hh,
+      apmOut.mm
+    );
+
+    // ❌ Out-time after allowed Apmosys time
+    return outDateTime.getTime() <= apmosysOutDateTime.getTime();
+  }
+
+
   calculateTotalWorkingHoursForLocation(
     location: LocationEntry,
     fromDate: string,          // dd-MM-yyyy (required)
     toDate?: string            // dd-MM-yyyy (required ONLY for night shift)
   ): number {
 
-  if (!location?.locationInTime || !location?.locationOutTime || !fromDate || location.locationInTime.trim() === '' || location.locationOutTime.trim() === '') {
-    return 0;
-  }
+    if (
+      !location?.locationInTime ||
+      !location?.locationOutTime ||
+      !fromDate ||
+      location.locationInTime.trim() === '' ||
+      location.locationOutTime.trim() === ''
+    ) {
+      return null;
+    }
 
     // ❌ Night shift but no toDate
     if (this.isNightShift && !toDate) {
       console.warn('toDate is required for night shift');
-      return 0;
+      return null;
     }
 
     try {
@@ -1577,26 +1897,26 @@ downloadImage(fileName = 'image-preview'): void {
         return { hours, minutes: mm };
       };
 
-    // ---------- Dates ----------
-    const startDate = parseDate(fromDate);
-    const endDate = this.isNightShift && toDate
-      ? parseDate(toDate)
-      : parseDate(fromDate); // same-day if not night shift
+      // ---------- Dates ----------
+      const startDate = parseDate(fromDate);
+      const endDate = this.isNightShift && toDate
+        ? parseDate(toDate)
+        : parseDate(fromDate);
 
-    // ---------- Times ----------
-    const inTime = parseTime(location.locationInTime);
-    const outTime = parseTime(location.locationOutTime);
+      // ---------- Times ----------
+      const inTime = parseTime(location.locationInTime);
+      const outTime = parseTime(location.locationOutTime);
 
-    // ---------- DateTime Objects ----------
-    const inDateTime = new Date(
-      startDate.year,
-      startDate.month - 1,
-      startDate.day,
-      inTime.hours,
-      inTime.minutes,
-      0,
-      0
-    );
+      // ---------- DateTime Objects ----------
+      const inDateTime = new Date(
+        startDate.year,
+        startDate.month - 1,
+        startDate.day,
+        inTime.hours,
+        inTime.minutes,
+        0,
+        0
+      );
 
       const outDateTime = new Date(
         endDate.year,
@@ -1608,13 +1928,18 @@ downloadImage(fileName = 'image-preview'): void {
         0
       );
 
-      // ❌ Invalid interval
+      // ---------- VALIDATIONS ----------
+
+      const selectedLocationData = this.workLocationList.find(
+        l => l.workLocationTypeId === location.workLocationTypeId);
+      // Invalid interval
       if (outDateTime.getTime() < inDateTime.getTime()) {
-        console.warn('Invalid date-time range');
+        this.openAlertMod(this.alertTemplate, "The Log-Out time for the location:" + selectedLocationData.code + " " + "is greater than Log-Out time");
         return 0;
       }
 
-      // ---------- Calculate ----------
+
+      // ---------- CALCULATION ----------
       const diffMs = outDateTime.getTime() - inDateTime.getTime();
       const totalHours = diffMs / (1000 * 60 * 60);
 
@@ -1626,59 +1951,85 @@ downloadImage(fileName = 'image-preview'): void {
     }
   }
 
-  onHoursChange() {
-    let allProjTotalHours = 0;
-    let allLocationHours = 0;
-    this.timesheetLocations.forEach(location => {
-      location.totalWorkingHours = this.calculateTotalWorkingHoursForLocation(location, this.fromDate!, this.toDate);
-      console.log("Location working hours calculated:", location.totalWorkingHours);
-      allLocationHours += location.totalWorkingHours;
-      location.projects.forEach(proj => {
-          let totalHours = 0;
-          proj.activities.forEach(activity => {
-            totalHours += activity.durationMinutes;
-          });
-          proj.totalWorkingHours = totalHours;
-        allProjTotalHours += proj.totalWorkingHours;
-      });
-      if (location.totalWorkingHours < allProjTotalHours) {
-        console.log(allProjTotalHours, "allProjTotalHours");
-        console.log(location.totalWorkingHours, "location.totalWorkingHours");
-        this.openAlertMod(this.alertTemplate, "Total working hours for location cannot be less than sum of project working hours.");
-        this.makeAllTimeZero('project');
-      } else if (allLocationHours > this.totalPresence) {
-        this.openAlertMod(this.alertTemplate, "Total working hours for all locations cannot be more than total presence hours.");
-        this.makeAllTimeZero('location');
+
+  onHoursChange(): void {
+
+    let totalLocationHours = 0;
+
+    for (const location of this.timesheetLocations) {
+
+      // ---------- Calculate location hours ----------
+      location.totalWorkingHours =
+        this.calculateTotalWorkingHoursForLocation(
+          location,
+          this.fromDate!,
+          this.toDate
+        ) || 0;
+
+      // ---------- Calculate project hours for THIS location ----------
+      let projectHoursForLocation = 0;
+
+      for (const proj of location.projects) {
+        let projHours = 0;
+
+        for (const activity of proj.activities) {
+          projHours += Number(activity.durationMinutes) || 0;
+        }
+
+        proj.totalWorkingHours = projHours;
+        projectHoursForLocation += projHours;
       }
+
+      // ❌ Validation 1: Project > Location
+      if (projectHoursForLocation > location.totalWorkingHours) {
+        this.openAlertMod(
+          this.alertTemplate,
+          'Total working hours for location cannot be less than sum of project working hours.'
+        );
+
+        this.resetProjectHoursForLocation(location);
+        return; // ⛔ STOP further processing
+      }
+
+      totalLocationHours += location.totalWorkingHours;
+
+      // ❌ Validation 2: All locations > Presence
+      if (totalLocationHours > this.totalPresence) {
+        this.openAlertMod(
+          this.alertTemplate,
+          'Total working hours for all locations cannot be more than total presence hours.'
+        );
+
+        this.resetLocation(location);
+        return; // ⛔ STOP further processing
+      }
+    }
+  }
+
+
+  resetProjectHoursForLocation(location: LocationEntry): void {
+    location.projects.forEach(proj => {
+      proj.totalWorkingHours = 0;
+      proj.activities.forEach(activity => {
+        activity.durationMinutes = null;
+      });
     });
   }
 
-  makeAllTimeZero(level: 'project' | 'location'): void {
+  resetLocation(location: LocationEntry): void {
+    location.totalWorkingHours = null;
+    location.locationInTime = null;
+    location.locationOutTime = null;
 
-    if (level == 'project') {
-      this.timesheetLocations.forEach(location => {
-        location.projects.forEach(proj => {
-          proj.totalWorkingHours = 0;
-          proj.activities.forEach(activity =>{
-            activity.durationMinutes = 0
-          });
-        });
+    location.projects.forEach(proj => {
+      proj.totalWorkingHours = 0;
+      proj.activities.forEach(activity => {
+        activity.durationMinutes = null;
       });
-    }
-    else if (level == 'location') {
-      this.timesheetLocations.forEach(location => {
-        location.projects.forEach(proj => {
-          proj.activities.forEach(activity =>{
-            activity.durationMinutes = 0
-          });
-          proj.totalWorkingHours = 0;
-        });
-        location.totalWorkingHours = 0;
-        location.locationInTime = null;
-        location.locationOutTime = null;
-      });
-    }
+    });
   }
+
+
   onShadowTimesheetChange(project: ProjectEntry) {
     if (this.timesheetAppliedFor == 'self') {
       this.getEmployeeListByProjectId(project, this.currentUser.empId);
@@ -1701,7 +2052,7 @@ downloadImage(fileName = 'image-preview'): void {
           console.log("dataList updated:", dataList);
           if (project.clientApprovalStatus == 2) {
             console.log("entering approved status for project:", project);
-            this.documentData.push({ 
+            this.documentData.push({
               projectId: project.projectId,
               docType: 'Filled',
               previewUrl: null,
@@ -1714,7 +2065,7 @@ downloadImage(fileName = 'image-preview'): void {
               docId: null,
               docName: null,
               finalFlag: false
-             });
+            });
             this.documentData.push({
               projectId: project.projectId,
               docType: 'Approved',
@@ -1728,19 +2079,19 @@ downloadImage(fileName = 'image-preview'): void {
               docId: null,
               docName: null,
               finalFlag: false
-             });
+            });
           }
           else if (project.clientApprovalStatus == 1) {
             console.log("entering pending status for project:", project);
-            this.documentData.push({ 
-              projectId: project.projectId, 
+            this.documentData.push({
+              projectId: project.projectId,
               docType: 'Filled',
-              previewUrl: null, 
-              rawObjectUrl: null, 
-              fileError: null, 
-              fileType: null, 
-              uniqueIdentifier: null, 
-              fileSize: null ,
+              previewUrl: null,
+              rawObjectUrl: null,
+              fileError: null,
+              fileType: null,
+              uniqueIdentifier: null,
+              fileSize: null,
               bulkApprovedDocId: null,
               docId: null,
               docName: null,
@@ -1829,39 +2180,39 @@ downloadImage(fileName = 'image-preview'): void {
     this.toDate = null;
   }
 
-   getProjectListForDateAndEmpId() {
-      //employeeTeamMapping has startDate and endDate as localDateTime
-      const d = new Date(this.fromDate);
-      const localDateTime = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T00:00:00`;
-      
-      // this.currentUser.empId needs to be changed to a centralized object.empId means we need to declare a centralized object which will be 
-      // sended to create timesheet, because for team the empId will be the id for the selected team member.
-      const payload = {
-        empId: this.currentUser.empId,
-        date: localDateTime
-      };
-      
-      this.timesheetService.getProjectListForDateAndEmpId(payload).pipe(first()).subscribe(async(response: any) => {
-        if (response.serviceStatus == "Success") {
-          this.activeProjectList = response.serviceResponse;
-          console.log("Active Project List :::::::::", this.activeProjectList);
-       
-        } else {
-          console.error("Service Response for this.activeProjectList :::::::", response.serviceResponse);
-        }
-      });
-    }
+  getProjectListForDateAndEmpId() {
+    //employeeTeamMapping has startDate and endDate as localDateTime
+    const d = new Date(this.fromDate);
+    const localDateTime = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}T00:00:00`;
 
-    generateTotalMinutes(timesheetDTO: EmployeeTimesheetDTO){
-      let totalMinutes = 0;
-      timesheetDTO.locationSessions.forEach(location => {
-        location.projects.forEach(project => {
-          project.activities.forEach(activity => {
-            totalMinutes += activity.durationMinutes * 60;
-          });
+    // this.currentUser.empId needs to be changed to a centralized object.empId means we need to declare a centralized object which will be 
+    // sended to create timesheet, because for team the empId will be the id for the selected team member.
+    const payload = {
+      empId: this.currentUser.empId,
+      date: localDateTime
+    };
+
+    this.timesheetService.getProjectListForDateAndEmpId(payload).pipe(first()).subscribe(async (response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.activeProjectList = response.serviceResponse;
+        console.log("Active Project List :::::::::", this.activeProjectList);
+
+      } else {
+        console.error("Service Response for this.activeProjectList :::::::", response.serviceResponse);
+      }
+    });
+  }
+
+  generateTotalMinutes(timesheetDTO: EmployeeTimesheetDTO) {
+    let totalMinutes = 0;
+    timesheetDTO.locationSessions.forEach(location => {
+      location.projects.forEach(project => {
+        project.activities.forEach(activity => {
+          totalMinutes += activity.durationMinutes * 60;
         });
       });
-      return totalMinutes;
-    }
+    });
+    return totalMinutes;
+  }
 
 }

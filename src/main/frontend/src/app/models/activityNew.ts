@@ -7,5 +7,5 @@ export class ActivityNew {
   allActivitiesForProject?: any[];
   // projectActivities?: any[];
   timesheetId?: number;
-  projectId: number;
+  projectId?: number;
 }

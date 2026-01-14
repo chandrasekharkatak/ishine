@@ -4,6 +4,7 @@ export class ProjectEntry {
   projectId: number | null;
   projectName?: string;
   hasClientSideId?: boolean;
+  hasClientFlag?: boolean;
   shadowEmpId?: number;
   isShadowTimesheet?: boolean;
   isShadowForSelf?: boolean;
@@ -19,11 +20,11 @@ export class ProjectEntry {
   clientLocationList?: any[]; // Client locations for this project
   projectList?: any[]; // Teams for this project
   timesheetId?: number;
-  poNo: string;
-  poId: number;
-  isNightShift?: boolean;
-  status: 1 | 2 | 3; // Values: 1=Pending, 2=Approved, 3=Rejected
+  poNo?: string;
+  poId?: number;
+  status?: 1 | 2 | 3; // Values: 1=Pending, 2=Approved, 3=Rejected
   locationMappingId?: number;
   totalClientWorkingMinutes?: number;
   projectHoursMinutes?: number;
+  description?: string | null;
 }

@@ -31,5 +31,11 @@ public interface ActivitiesRepository extends JpaRepository<Activity, Long> {
 	 List<String> findUniqueEmployeeRolesByTeamId(@Param("teamId") Long teamId);
 
 	 List<Activity> findByTeamIdIn(List<Long> teamIds);
+	 
+	 
+	 boolean existsByActivityIdAndTeamId(
+		        Long activityId,
+		        Long teamId);
+
 
 }

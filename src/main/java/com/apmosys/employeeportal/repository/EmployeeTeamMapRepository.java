@@ -605,5 +605,22 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 				+ "WHERE etm.empId=:empId AND etm.active!=0")
 		List<EmployeeTeamMap> findByEmpIdAndActiveStatus(Long empId);
 		
+		
+		@Query(
+			    "select count(e) > 0 " +
+			    "from EmployeeTeamMap e " +
+			    "where e.empId = :empId " +
+			    "and e.teamId = :teamId " +
+			    "and e.active = 1 " +
+			    "and e.startDate <= :endDate " +
+			    "and (e.endDate is null or e.endDate >= :startDate)"
+			)
+			boolean existsEmployeeTeamMappingForDate(
+			        @Param("empId") Long empId,
+			        @Param("teamId") Long teamId,
+			        @Param("startDate") LocalDateTime startDate,
+			        @Param("endDate") LocalDateTime endDate);
+
+		
 
 	}

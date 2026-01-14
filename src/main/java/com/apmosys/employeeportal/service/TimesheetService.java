@@ -1372,9 +1372,9 @@ public class TimesheetService {
 //	}
 	
 //	these changes are added for temporary , we have to add one more field that is manager id in employee_timesheets table 
-	public ServiceResponse getMyReporteesTimesheetRequests(TimesheetDTO timesheetDTO) {
-		return timesheetApprovalService.getMyReporteesTimesheetRequests(timesheetDTO);
-	}
+//	public ServiceResponse getMyReporteesTimesheetRequests(TimesheetDTO timesheetDTO) {
+//		return timesheetApprovalService.getMyReporteesTimesheetRequests(timesheetDTO);
+//	}
 
 
 //	public ServiceResponse countMyReporteesTimesheetRequests(TimesheetDTO timesheetDTO) {

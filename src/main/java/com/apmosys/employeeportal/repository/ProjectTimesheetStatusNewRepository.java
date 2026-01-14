@@ -76,6 +76,23 @@ public interface ProjectTimesheetStatusNewRepository extends JpaRepository<Proje
             @Param("projectId") Integer projectId
     );
 
+    @Query(
+    	    "select (count(p) > 0) " +
+    	    "from ProjectTimesheetStatusNew p " +
+    	    "where p.id.timesheetId = :timesheetId " +
+    	    "and p.id.locationMappingId = :locationMappingId " +
+    	    "and p.id.projectId = :projectId " +
+    	    "and p.status = :status"
+    	)
+    	boolean existsApprovedProject(
+    	        @Param("timesheetId") Long timesheetId,
+    	        @Param("locationMappingId") Long locationMappingId,
+    	        @Param("projectId") Integer projectId,
+    	        @Param("status") Integer status);
+
+
+
+
 
 
 }
