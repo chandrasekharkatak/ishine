@@ -1607,8 +1607,8 @@ export class TimesheetFormComponent implements OnInit {
       timesheetId: null,
       // date: this.formatDDMMYYYY(new Date(this.fromDate as string)),
       date: convertToYYYYMMDD(this.fromDate),
-      workCheckIn: this.formatDateTimeForBackend(this.apmosysInTime, convertToYYYYMMDD(this.fromDate)),
-      workCheckOut: this.formatDateTimeForBackend(this.apmosysOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate)),
+      workCheckIn: [4,6,7].includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysInTime, convertToYYYYMMDD(this.fromDate)),
+      workCheckOut: [4,6,7].includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate)),
       currentManagerId: this.currentUser.managerId,
       totalWorkingMinutes: this.totalPresence * 60,
       locationSessions: dataSet,
@@ -1616,12 +1616,16 @@ export class TimesheetFormComponent implements OnInit {
     }
 
     this.createOrUpdateObj.locationSessions.forEach((location: LocationEntry) => {
-      location.locationInTime = this.formatDateTimeForBackend(location.locationInTime, convertToYYYYMMDD(this.fromDate));
-      location.locationOutTime = this.formatDateTimeForBackend(location.locationOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate));
+      location.locationInTime = [4,6,7].includes(this.dayType) ? null : this.formatDateTimeForBackend(location.locationInTime, convertToYYYYMMDD(this.fromDate));
+      location.locationOutTime = [4,6,7].includes(this.dayType) ? null : this.formatDateTimeForBackend(location.locationOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate));
       location.projects.forEach((project: ProjectEntry) => {
-        project.activities.forEach((activity: ActivityNew) => {
-          activity.durationMinutes = activity.durationMinutes * 60;
-        });
+        if(![4,6,7].includes(this.dayType)) {
+          project?.activities?.forEach((activity: ActivityNew) => {
+            activity.durationMinutes = activity.durationMinutes * 60;
+          });
+        } else {
+          project.activities = null;
+        }
       });
     });
 

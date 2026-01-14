@@ -146,5 +146,6 @@ public class ProjectTimesheetDTO {
 
     private String clientSideId;
   
+    private Long teamId;
 }
 

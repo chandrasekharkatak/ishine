@@ -71,10 +71,10 @@ public class ProjectTimesheetService {
 		String description = "";
 
         
-        if (dto.getActivities().isEmpty()) {
+        if (dto.getActivities()==null || dto.getActivities().isEmpty()) {
 			description = "No activity available in project timesheet";
 		} else {
-			//activityId
+			//activityId3
 			for (ActivityTimesheetDTO activity : dto.getActivities()) {
 				Activity activityMaster=activitiesRepository.findById(activity.getActivityId()).orElseThrow(() -> new IllegalArgumentException("Activity not found"));
 				description += activityMaster.getActivity()+ "<br>";

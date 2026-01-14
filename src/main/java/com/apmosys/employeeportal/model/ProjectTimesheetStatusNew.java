@@ -64,7 +64,4 @@ public class ProjectTimesheetStatusNew {
 
     @Column(name = "client_side_id")
     private String clientSideId;
-
-    @Column(name = "is_night_shift")
-    private Boolean isNightShift;
 }

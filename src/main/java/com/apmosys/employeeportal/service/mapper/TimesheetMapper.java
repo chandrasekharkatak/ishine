@@ -124,7 +124,6 @@ public class TimesheetMapper {
         entity.setTotalClientWorkingMinutes(dto.getTotalClientWorkingMinutes());
         entity.setClientLocationId(dto.getClientLocationId() != null ? Integer.valueOf(dto.getClientLocationId().toString()) : null);
         entity.setClientSideId(dto.getClientSideId());
-        entity.setIsNightShift(dto.getIsNightShift() == null ? false : dto.getIsNightShift());
 
         return entity;
     }

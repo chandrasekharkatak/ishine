@@ -305,9 +305,11 @@ public class TimesheetServiceNew {
             
 		} catch (IllegalArgumentException e) {
 			// delete the file uploaded if any
-			for(MultipartFile document : documents) {
-				if(document != null) {
-					timesheetDocumentService.deleteFile(document.getOriginalFilename());
+			if(documents != null && documents.size() > 0) {
+				for(MultipartFile document : documents) {
+					if(document != null) {
+						timesheetDocumentService.deleteFile(document.getOriginalFilename());
+					}
 				}
 			}
 			e.printStackTrace();
@@ -318,9 +320,11 @@ public class TimesheetServiceNew {
         } catch (Exception e) {
 
 			// delete the file uploaded if any
-			for(MultipartFile document : documents) {
-				if(document != null) {
-					timesheetDocumentService.deleteFile(document.getOriginalFilename());
+			if(documents != null && documents.size() > 0) {
+				for(MultipartFile document : documents) {
+					if(document != null) {
+						timesheetDocumentService.deleteFile(document.getOriginalFilename());
+					}
 				}
 			}
 

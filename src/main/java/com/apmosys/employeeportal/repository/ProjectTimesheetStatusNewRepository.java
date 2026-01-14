@@ -79,9 +79,9 @@ public interface ProjectTimesheetStatusNewRepository extends JpaRepository<Proje
     @Query(
     	    "select (count(p) > 0) " +
     	    "from ProjectTimesheetStatusNew p " +
-    	    "where p.timesheetId = :timesheetId " +
-    	    "and p.locationMappingId = :locationMappingId " +
-    	    "and p.projectId = :projectId " +
+    	    "where p.id.timesheetId = :timesheetId " +
+    	    "and p.id.locationMappingId = :locationMappingId " +
+    	    "and p.id.projectId = :projectId " +
     	    "and p.status = :status"
     	)
     	boolean existsApprovedProject(
