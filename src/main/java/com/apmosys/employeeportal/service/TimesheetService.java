@@ -54,6 +54,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.ClientDetailsForActivityDTO;
 import com.apmosys.employeeportal.dto.ClientLocationDTO;
+import com.apmosys.employeeportal.dto.DepartmentCountDTO;
+import com.apmosys.employeeportal.dto.DepartmentWiseStatusDTO;
 import com.apmosys.employeeportal.dto.EmpIdAndNameDTO;
 import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
@@ -82,6 +84,7 @@ import com.apmosys.employeeportal.dto.ProjectTimesheetInfoDTO;
 import com.apmosys.employeeportal.dto.TeamIdTeamNameDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDashboardCountDTO;
+import com.apmosys.employeeportal.dto.TimesheetDashboardResponseDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentApprovalDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
 import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
@@ -6686,75 +6689,101 @@ public class TimesheetService {
 		    return response;
 		}
 	
-	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year,Long empId,Boolean isClientDashboard,List<String> billableTypes,String employeeActive,String clientSideFilter) {
-		
-		ServiceResponse response = new ServiceResponse();
+	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year, Long empId, 
+			Boolean isClientDashboard, List<String> billableTypes, String employeeActive, String clientSideFilter ) 
+	{
 
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setSubFeatureName("getTimesheetDashboardCountForEmployee");
-	    apiLogInfo.setLogLevel("INFO");
-	    StringBuilder logBuilder = new StringBuilder();
-	    logBuilder.append("getTimesheetDashboardCountForEmployee");
+	    ServiceResponse response = new ServiceResponse();
+
 	    try {
-	    	List<Object[]> countForEmployee;
-	    	if(isClientDashboard) {
-	    		countForEmployee = timesheetsRepository.getTimesheetDashboardCountForEmployee(month,year,empId,clientSideFilter);
-	    	}else {
-		    	countForEmployee = timesheetsRepository.getTimesheetDashboardCountForAllEmployee(month,year,empId,billableTypes,employeeActive);	
-	    	}
-	    	if(countForEmployee.isEmpty()){
-	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceResponse("Unable to fetch the dashboard count for employee!");
-                apiLogInfo.setApiResponse("Failed to fetch the dashboard count for employee \n");
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-                
-            } else {
-            	if(isClientDashboard) {
-            	Object[] row = countForEmployee.get(0);
-                TimesheetDashboardCountDTO dto = new TimesheetDashboardCountDTO();
-                dto.setTotalApplicableCount(row[0] != null ? ((Number) row[0]).intValue() : 0);
-                dto.setApprovedCount(row[1] != null ? ((Number) row[1]).intValue() : 0);
-                dto.setDefaulterCount(row[3] != null ? ((Number) row[3]).intValue() : 0);
-                dto.setClientSidePendingCount(row[2] != null ? ((Number) row[2]).intValue() : 0);
-                dto.setTotaldefaulterCount(row[4] != null ? ((Number) row[4]).intValue() : 0);
-                      		
-            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-                response.setServiceResponse(dto);
-                apiLogInfo.setApiResponse("Dashboard count fetched successfully ");
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-            	}
-            	else {  
-            		Object[] row = countForEmployee.get(0);
-                    TimesheetDashboardCountDTO dto = new TimesheetDashboardCountDTO();
-                    dto.setTotalApplicableCount(row[0] != null ? ((Number) row[0]).intValue() : 0);
-                    dto.setApprovedCount(row[1] != null ? ((Number) row[1]).intValue() : 0);
-                    dto.setDefaulterCount(row[3] != null ? ((Number) row[3]).intValue() : 0);
-                    dto.setClientSidePendingCount(row[2] != null ? ((Number) row[2]).intValue() : 0);
-                    dto.setTotaldefaulterCount(row[4] != null ? ((Number) row[4]).intValue() : 0);
-                          		
-                	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-                    response.setServiceResponse(dto);
-                    apiLogInfo.setApiResponse("Dashboard count fetched successfully ");
-                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-            		
-            	}
-            }
-            
-            apiLogInfo.setApiRequest(logBuilder.toString());
-    		logService.logMyInfo(httpRequest, apiLogInfo);
-    		return response;
-    		
-	    } catch(Exception e) {
-		    	    e.printStackTrace();
-			        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			        response.setServiceResponse("Something went wrong.");
-			        response.setServiceError(e.getMessage());
-			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			        apiLogInfo.setApiResponse(e.getMessage()); 
-			        apiLogInfo.setLogLevel("ERROR");
-		    }
-		    
-	    return response;
+	        /* ================= SUMMARY ================= */
+	        List<Object[]> summaryRows =
+	                isClientDashboard
+	                        ? timesheetsRepository.getTimesheetDashboardCountForEmployee( month, year, empId, clientSideFilter)
+	                        : timesheetsRepository.getTimesheetDashboardCountForAllEmployee( month, year, empId, billableTypes, employeeActive);
+
+	        if (summaryRows.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No dashboard data found");
+	            return response;
+	        }
+
+	        Object[] row = summaryRows.get(0);
+
+	        TimesheetDashboardCountDTO summary = new TimesheetDashboardCountDTO();
+	        summary.setTotalApplicableCount(getInt(row[0]));
+	        summary.setApprovedCount(getInt(row[1]));
+	        summary.setClientSidePendingCount(getInt(row[2]));
+	        summary.setDefaulterCount(getInt(row[3]));
+	        summary.setTotaldefaulterCount(getInt(row[4]));
+
+	        /* ================= DEPARTMENT LIST ================= */
+	        List<Object[]> deptList = timesheetsRepository.getDepartmentList( month, year, empId, "All", clientSideFilter);
+
+	        Map<String, DepartmentWiseStatusDTO> departmentWise =
+	                initDepartmentBuckets();
+
+	        /* ================= DEPT WISE COUNTS ================= */
+	        for (Object[] deptRow : deptList) {
+
+	            Long deptId = ((Number) deptRow[1]).longValue();
+	            String deptName = (String) deptRow[0];
+	            String deptCode = (String) deptRow[2];
+
+	            List<Object[]> counts = timesheetsRepository.getDepartmentWiseTimesheetDashboard( month, year, empId, deptId, clientSideFilter);
+
+	            Object[] c = counts.get(0);
+
+	            int total = getInt(c[0]);
+	            int approved = getInt(c[1]);
+	            int pending = getInt(c[2]);
+	            int defaulter = getInt(c[3]);
+
+	            addDept(departmentWise.get("All"), deptId, deptCode, deptName, total);
+
+	            if (approved > 0) {
+	                addDept(departmentWise.get("Approved"), deptId, deptCode, deptName, approved);
+	            }
+
+	            if (pending > 0) {
+	                addDept(departmentWise.get("ClientSidePending"), deptId, deptCode, deptName, pending);
+	            }
+
+	            if (defaulter > 0) {
+	                addDept(departmentWise.get("Defaulter"), deptId, deptCode, deptName, defaulter);
+	            }
+	        }
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(new TimesheetDashboardResponseDTO(summary, departmentWise));
+	        return response;
+
+	    } catch (Exception e) {
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceError(e.getMessage());
+	        return response;
+	    }
+	}
+
+	private Map<String, DepartmentWiseStatusDTO> initDepartmentBuckets() {
+	    Map<String, DepartmentWiseStatusDTO> map = new LinkedHashMap<>();
+	    map.put("All", new DepartmentWiseStatusDTO(0, new ArrayList<>()));
+	    map.put("Approved", new DepartmentWiseStatusDTO(0, new ArrayList<>()));
+	    map.put("ClientSidePending", new DepartmentWiseStatusDTO(0, new ArrayList<>()));
+	    map.put("Defaulter", new DepartmentWiseStatusDTO(0, new ArrayList<>()));
+	    return map;
+	}
+
+	private void addDept(DepartmentWiseStatusDTO bucket, Long deptId, String deptCode, String deptName, int count) 
+	{
+	    bucket.getDepartments().add(
+	        new DepartmentCountDTO(deptId, deptCode, deptName, count)
+	    );
+	    bucket.setTotal(bucket.getTotal() + count);
+	}
+
+	private int getInt(Object o) {
+	    return o == null ? 0 : ((Number) o).intValue();
 	}
 	
 public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integer year,Long empId,Boolean isClientDashboard ,List<String> billableType,String projectActive) {
