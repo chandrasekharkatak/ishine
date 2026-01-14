@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.model.Activity;
@@ -76,7 +75,7 @@ public class ProjectTimesheetService {
 		} else {
 			//activityId
 			for (ActivityTimesheetDTO activity : dto.getActivities()) {
-				Activity activityMaster=activitiesRepository.findById(timesheetId).get();
+				Activity activityMaster=activitiesRepository.findById(activity.getActivityId()).get();
 				description += activityMaster.getActivity() + "<br>";
 			}
 		}
@@ -145,9 +144,21 @@ public class ProjectTimesheetService {
         // Update fields
         entity.setPoNo(dto.getPoNo());
         entity.setClientApprovalStatus(dto.getClientApprovalStatus());
-        entity.setStatus(dto.getStatus());
         entity.setShadowEmpId(dto.getShadowEmpId());
         entity.setTotalClientWorkingMinutes(dto.getTotalClientWorkingMinutes());
+        
+		String description = "";
+
+        if (dto.getActivities().isEmpty()) {
+			description = "No activity available in project timesheet";
+		} else {
+			//activityId
+			for (ActivityTimesheetDTO activity : dto.getActivities()) {
+				Activity activityMaster=activitiesRepository.findById(activity.getActivityId()).get();
+				description += activityMaster.getActivity() + "<br>";
+			}
+		}
+        entity.setDescription(description);
         
         // Update locationMappingId if provided (NEW CONTRACT: Projects are linked to locations)
         if (dto.getLocationMappingId() != null) {
@@ -291,8 +302,37 @@ public class ProjectTimesheetService {
                 .collect(Collectors.toList());
     }
     
+    public boolean existsApprovedProject(Long timesheetId) {
+
+        List<ProjectTimesheetDTO> projects =
+                findByTimesheetId(timesheetId);
+
+        for (ProjectTimesheetDTO project : projects) {
+
+            if (TimesheetAggregationHelper.STATUS_APPROVED
+                    .equals(project.getStatus())) {
+                    return true;
+                
+            }
+        }
+        return false;
+    }
+
     
- 
+    public boolean isProjectApproved(
+            Long timesheetId,
+            Long locationMappingId,
+            Integer projectId) {
+
+        return projectTimesheetStatusNewRepository
+                .existsApprovedProject(
+                    timesheetId,
+                    locationMappingId,
+                    projectId,
+                    TimesheetAggregationHelper.STATUS_APPROVED
+                );
+    }
+
 
 }
 

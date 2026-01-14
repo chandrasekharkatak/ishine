@@ -23,6 +23,7 @@ import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
+import com.apmosys.employeeportal.enums.DayTypeTransition;
 import com.apmosys.employeeportal.model.EmployeeTimesheetLocationMapping;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.FinalDocumentNew;
@@ -36,7 +37,9 @@ import com.apmosys.employeeportal.repository.FinalDocumentNewRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsNewRepository;
 import com.apmosys.employeeportal.repository.WorkLocationTypeMasterRepository;
 import com.apmosys.employeeportal.service.helper.TimesheetAggregationHelper;
+import com.apmosys.employeeportal.service.helper.TimesheetStructureCleanupService;
 import com.apmosys.employeeportal.service.mapper.TimesheetMapper;
+import com.apmosys.employeeportal.service.validator.EmployeeAssignmentValidationService;
 import com.apmosys.employeeportal.service.validator.TimesheetValidationHelper;
 import com.apmosys.employeeportal.utility.DateConversionUtil;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -91,6 +94,9 @@ public class TimesheetServiceNew {
 	@Autowired
 	private FinalDocumentNewRepository finalDocumentNewRepository;
 	
+	@Autowired
+	TimesheetStructureCleanupService timesheetStructureCleanupService;
+	
 	@Value("${timesheet.lock.days:30}")
 	private Integer timesheetLockDays;
 	
@@ -99,6 +105,10 @@ public class TimesheetServiceNew {
 	
 	@Autowired
 	private TimesheetQueryService timesheetQueryService;
+	
+	@Autowired
+	EmployeeAssignmentValidationService employeeAssignmentValidationService;
+	
 	
 	private final String pattern="yyyy-MM-dd HH:mm:ss";
 	
@@ -217,6 +227,10 @@ public class TimesheetServiceNew {
 	                    empDTO.getEmpId(), empDTO.getDate(), timesheetLockDays);
 	        }
 	        
+			employeeAssignmentValidationService.validateEmployeeAssignments(empDTO.getEmpId(), empDTO.getDate(),
+					empDTO.getLocationSessions());
+
+	        
 	        EmployeeTimesheetsNew existing=timesheetValidationHelper.validateTimesheetAlreadyExists(
 	        		empDTO,empDTO.getEmpId(), empDTO.getDate());
 	        
@@ -230,7 +244,6 @@ public class TimesheetServiceNew {
 				newTimesheet.setCreatedOn(empDTO.getCreatedOn() != null ? empDTO.getCreatedOn() : LocalDateTime.now());
              }
 	        
-	        
 	        if(timesheetValidationHelper.isWorkingDay(empDTO)){
 	        	
 	        	    timesheetValidationHelper.validateWorkInWorkOutTime(empDTO);
@@ -242,6 +255,14 @@ public class TimesheetServiceNew {
 	                timesheetValidationHelper.validateDocumentsDTO(empDTO);
 	               
 	                timesheetValidationHelper.validateUploadedDocuments(empDTO,documents);
+	                
+	                //TODO Validate Half Day for leave taken 0.5 
+	                /*
+	                 * Scenario-1=>Employee applied a single day leave for half day
+	                 * Scenario-2=>Employee applied a for multiple days where 
+	                 * either start day is half day leave or end day is half day leave
+	                 * 
+	                 * */
 	        }else {
 	        	   timesheetValidationHelper.validateNonWorkingDayTimesheet(empDTO);
 	         }
@@ -249,10 +270,10 @@ public class TimesheetServiceNew {
 			newTimesheet.setEmpId(empDTO.getEmpId());
 			newTimesheet.setDate(empDTO.getDate());
 			newTimesheet.setDayTypeId(empDTO.getDayTypeId());
+			newTimesheet.setIsNightShift(empDTO.getIsNightShift());
+			newTimesheet.setStatus(TimesheetAggregationHelper.STATUS_PENDING);
 			
-			
-			
-	        if (! timesheetValidationHelper.isWorkingDay(empDTO)) 
+	        if (!timesheetValidationHelper.isWorkingDay(empDTO)) 
 	        {
                 //newTimesheet.setDescription(empDTO.getDescription());
 				newTimesheet.setTotalWorkingMinutes(0);
@@ -262,8 +283,7 @@ public class TimesheetServiceNew {
 				newTimesheet.setWorkCheckOut(DateConversionUtil.stringToLocalDateTime(empDTO.getWorkCheckOut(),pattern));
 				newTimesheet.setCreatedBy(empDTO.getCreatedBy());
 	     	}
-			newTimesheet.setIsNightShift(empDTO.getIsNightShift());
-			newTimesheet.setStatus(TimesheetAggregationHelper.STATUS_PENDING);
+			
 			
 	        EmployeeTimesheetsNew empTS = employeeTimesheetsNewRepository.save(newTimesheet);
 		
@@ -844,30 +864,67 @@ public class TimesheetServiceNew {
 			
  			timesheetValidationHelper.validateNullAndUnexpectedData(newEmpDTO);
  			
-	        timesheetValidationHelper.validateWorkInWorkOutTime(newEmpDTO);
-
  			EmployeeTimesheetsNew empTS=timesheetValidationHelper.validateTimesheetUpdatable(timesheetId,newEmpDTO);
+
+ 			timesheetValidationHelper.validateTimesheetDateImmutable(empTS,newEmpDTO);
+ 			timesheetValidationHelper.validateEmployeeImmutableIfProjectApproved(empTS,newEmpDTO);
  			
- 			timesheetValidationHelper.validateLocationTimeOverlap(newEmpDTO.getLocationSessions());
+ 			/*Day type transition not allowed if any of project is approved*/
+ 			timesheetValidationHelper.validateDayTypeTransition(empTS,newEmpDTO);
  			
- 			timesheetValidationHelper.validateLocationDeletionRules(timesheetId,newEmpDTO.getLocationSessions());
  			
- 			timesheetValidationHelper.validateProjectDeletionRules(timesheetId, newEmpDTO.getLocationSessions());
-			
- 			timesheetValidationHelper.validateApprovedProjectImmutableByLocationMapping(timesheetId,newEmpDTO.getLocationSessions());
-			
- 			timesheetValidationHelper.validateActivityDurationWithinLocation(newEmpDTO.getLocationSessions());
+ 			employeeAssignmentValidationService.validateEmployeeAssignments(newEmpDTO.getEmpId(), newEmpDTO.getDate(),
+            		newEmpDTO.getLocationSessions());
  			
-		 	timesheetValidationHelper.validateLocationWiseProjectAndActivities(newEmpDTO);
-			
-	    	timesheetValidationHelper.validateDocumentsDTO(newEmpDTO);
-			
-	    	timesheetValidationHelper.validateUploadedDocuments(newEmpDTO, documents);
-	    	
-	    	timesheetValidationHelper.cleanupDeletableLocations(timesheetId, newEmpDTO.getLocationSessions());			
+ 			//Based on day type transition we have to take validation action
+ 			
+ 			DayTypeTransition transition =  timesheetValidationHelper.resolveDayTypeTransition(empTS, newEmpDTO); 			
+ 			
+			if (transition == DayTypeTransition.WORKING_TO_WORKING) {
 				
-	       
-	    	handleUpdateTimesheet(timesheetId,newEmpDTO);
+				timesheetValidationHelper.validateLocationDeletionRules(timesheetId, newEmpDTO.getLocationSessions());
+				timesheetValidationHelper.validateApprovedProjectImmutableByLocationMapping(timesheetId,newEmpDTO.getLocationSessions());
+
+				timesheetValidationHelper.validateWorkInWorkOutTime(newEmpDTO);
+				timesheetValidationHelper.validateLocationTimeOverlap(newEmpDTO.getLocationSessions());
+				timesheetValidationHelper.validateLocationWiseProjectAndActivities(newEmpDTO);
+				timesheetValidationHelper.validateDocumentsDTO(newEmpDTO);
+				timesheetValidationHelper.validateUploadedDocuments(newEmpDTO, documents);
+				timesheetValidationHelper.validateActivityDurationWithinLocation(newEmpDTO.getLocationSessions());
+				
+				timesheetValidationHelper.validateDocumentsDTO(newEmpDTO);
+	            timesheetValidationHelper.validateUploadedDocuments(newEmpDTO, documents);	
+	            
+	            
+	
+			}else if(transition == DayTypeTransition.NON_WORKING_TO_WORKING) {
+				
+				timesheetValidationHelper.validateWorkInWorkOutTime(newEmpDTO);
+				timesheetValidationHelper.validateLocationTimeOverlap(newEmpDTO.getLocationSessions());
+				timesheetValidationHelper.validateLocationWiseProjectAndActivities(newEmpDTO);
+				timesheetValidationHelper.validateDocumentsDTO(newEmpDTO);
+				timesheetValidationHelper.validateUploadedDocuments(newEmpDTO, documents);
+				timesheetValidationHelper.validateActivityDurationWithinLocation(newEmpDTO.getLocationSessions());
+				
+				timesheetValidationHelper.validateDocumentsDTO(newEmpDTO);
+	            timesheetValidationHelper.validateUploadedDocuments(newEmpDTO, documents);
+	            	
+			} else if(transition == DayTypeTransition.WORKING_TO_NON_WORKING) {
+                      timesheetValidationHelper.validateNonWorkingDayTimesheet(newEmpDTO);
+                     
+			}else if(transition == DayTypeTransition.NON_WORKING_TO_NON_WORKING) {
+				
+				timesheetValidationHelper.validateLocationDeletionRules(timesheetId, newEmpDTO.getLocationSessions());
+				timesheetValidationHelper.validateApprovedProjectImmutableByLocationMapping(timesheetId,newEmpDTO.getLocationSessions());
+				
+			}else {
+				throw new IllegalStateException(
+                        "Invalid day type transition");
+			}	
+			
+		   timesheetStructureCleanupService.cleanTimesheetStructure(timesheetId,newEmpDTO.getLocationSessions());
+ 			   
+ 		    handleUpdateTimesheet(timesheetId,newEmpDTO);
 		    
 	    	Long currentUserId = getCurrentUserId();
 			newEmpDTO.setUpdatedBy(currentUserId != null ? currentUserId : newEmpDTO.getEmpId());
@@ -1001,6 +1058,7 @@ public class TimesheetServiceNew {
 	    }
 
 	    // Existing projects for this location
+	    //TO DO :: While cleaning we need to flush so that we don't get it it DB under same transaction
 	    Map<Integer, ProjectTimesheetDTO> existingProjectMap =
 	            projectTimesheetService
 	                    .findByTimesheetIdAndLocationMappingId(
@@ -1032,7 +1090,7 @@ public class TimesheetServiceNew {
 	        // 2️ UPDATE project (only PENDING ones)
 	        else {
 
-	            if (!TimesheetAggregationHelper.STATUS_PENDING
+	            if (TimesheetAggregationHelper.STATUS_APPROVED
 	                    .equals(existingProject.getStatus())) {
 	                continue; // approved projects already validated as immutable
 	            }
