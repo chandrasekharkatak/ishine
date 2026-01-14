@@ -26,6 +26,6 @@ public class GetEmployeeSummaryOnExportDTO {
 	private String sortDirection; 
 	private ColumnFilterDTO filters;
 	private String clientSideFilter;
-	
+	private Long deptId;
 	
 }

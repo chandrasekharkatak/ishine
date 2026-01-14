@@ -45,6 +45,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.query.Param;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -7435,7 +7436,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                    object.getEmpId(),
 	                    object.getStatus(),
 						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,offset,pageSize);
+	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,offset,pageSize,object.getDeptId());
 	        	
 	            empTimesheet = timesheetsRepository.getEmployeeViewForClientAttendanceStatus(
 	                    object.getMonth(),
@@ -7445,8 +7446,8 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
 	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,
 	                    object.getSortBy(),
-	                    object.getSortDirection(),employeeIds
-						);
+	                    object.getSortDirection(),employeeIds, object.getDeptId()
+	                    );
 	            
 	            totalDistinctEmployees = timesheetsRepository.getTotalEmployeeCountForClientApplicable(
 	            		object.getMonth(),
@@ -7454,7 +7455,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                    object.getEmpId(),
 	                    object.getStatus(),
 						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode);
+	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,object.getDeptId());
 	        }
 	        
 	        // Map to hold employees grouped by empId
@@ -8043,7 +8044,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                    object.getEmpId(),
 	                    object.getStatus(),
 						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,0,Integer.MAX_VALUE);
+	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,0,Integer.MAX_VALUE,object.getDeptId());
 	        	
 	            empTimesheet = timesheetsRepository.getEmployeeViewForClientAttendanceStatus(
 	                    object.getMonth(),
@@ -8053,7 +8054,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
 	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,
 	                    object.getSortBy(),
-	                    object.getSortDirection(),employeeIds
+	                    object.getSortDirection(),employeeIds,object.getDeptId()
 						);
 	        }
 

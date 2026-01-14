@@ -6738,7 +6738,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ "							(pmm_check.project_manager_id IS NOT NULL OR pom_check.project_overhead_id IS NOT NULL)\n"
 			+ "							AND jr.dept_id = user_jr.dept_id\n"
 			+ "						)\n"
-			+ "					)\n"
+			+ "					) AND (d.dept_id = :dept_id or :dept_id is null)\n"
 			+ "			  AND (\n"
 			+ "					e.date_of_relieving IS NULL \n"
 			+ "					OR YEAR(e.date_of_relieving) > :year \n"
@@ -7018,7 +7018,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			  String billableType2, String projectName, String poNo, 
 			  String projectManagers, String clientName, String teamName,String department,
 			  String employmentStatus,String projectStatus,
-			  String sortBy,String sortDirection,@Param("employeeIds") List<Long> employeeIds);
+			  String sortBy,String sortDirection,@Param("employeeIds") List<Long> employeeIds, @Param("dept_id")Long deptId);
 
 		@Query(value= " WITH RECURSIVE\n"
 				+ "    Date_Parameters AS (\n"
@@ -7111,7 +7111,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				+ "					OR (:clientSideFilter = 'true' AND p.client_flag = 1)\n"
 				+ "					OR (:clientSideFilter = 'false' AND (p.client_flag = 0 OR p.client_flag IS NULL))\n"
 				+ "					)\n"
-				+ "    ),\n"
+				+ "    AND (d.dept_id = :dept_id or :dept_id is null) ),\n"
 				+ "        Timesheet_Base_Data AS (\n"
 				+ "        SELECT DISTINCT\n"
 				+ "            et.timesheet_id, et.emp_id, t.project_id, etm.employee_team_map_id,\n"
@@ -7266,7 +7266,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				  @Param("clientSideFilter") String clientSideFilter,String employmentId,String clientsideId, String employeeName, 
 				  String billableType2, String projectName, String poNo, 
 				  String projectManagers, String clientName, String teamName,String department,
-				  String employmentStatus,String projectStatus);
+				  String employmentStatus,String projectStatus, @Param("dept_id")Long deptId);
 		
 		@Query(value= " WITH RECURSIVE\n"
 				+ "    Date_Parameters AS (\n"
@@ -7357,7 +7357,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				+ "					OR (:clientSideFilter = 'true' AND p.client_flag = 1)\n"
 				+ "					OR (:clientSideFilter = 'false' AND (p.client_flag = 0 OR p.client_flag IS NULL))\n"
 				+ "					)\n"
-				+ "    ),\n"
+				+ "   AND (d.dept_id = :dept_id or :dept_id is null) ) ,\n"
 				+ "        Timesheet_Base_Data AS (\n"
 				+ "        SELECT DISTINCT\n"
 				+ "            et.timesheet_id, et.emp_id, t.project_id, etm.employee_team_map_id,\n"
@@ -7514,7 +7514,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				  String billableType2, String projectName, String poNo, 
 				  String projectManagers, String clientName, String teamName,String department,
 				  String employmentStatus,String projectStatus,
-				  int offset,int pageSize);
+				  int offset,int pageSize, @Param("dept_id")Long deptId);
 		
 		@Query(value= "WITH RECURSIVE\n"
 				+ "Date_Parameters AS (\n"
