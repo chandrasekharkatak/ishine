@@ -1645,6 +1645,7 @@ export class TimesheetFormComponent implements OnInit {
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
             this.openAlertMod(this.alertTemplate, "Timesheet created successfully.");
+            this.resetForm()
             // Reset form or navigate as needed
           } else {
             console.error("Failed to create timesheet:", response.serviceResponse);
