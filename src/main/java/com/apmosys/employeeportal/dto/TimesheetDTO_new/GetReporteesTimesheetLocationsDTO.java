@@ -17,8 +17,8 @@ import lombok.ToString;
 public class GetReporteesTimesheetLocationsDTO {
 
 	private String workLocationType;
-    private LocalDateTime locationInTime;
-    private LocalDateTime locationOutTime;
+    private String locationInTime;
+    private String locationOutTime;
     private Long locationMappingId;
     
     private List<GetReporteesTimesheetProjectsDTO> projects;
