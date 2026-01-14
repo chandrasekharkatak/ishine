@@ -183,12 +183,12 @@ export class TimesheetFormComponent implements OnInit {
   /**
    * Create a new LocationEntry object
    */
-  createLocation(timesheetId: number): LocationEntry {
-    if(this.isDayTypeFillable()){
+  createLocation(timesheetId?: number): LocationEntry {
+    if(this.isDayTypeFillable() == true){
       return {
       locationMappingId: null,
       workLocationType: null,
-      workLocationTypeId: 4,
+      workLocationTypeId: null,
       locationInTime: null,
       locationOutTime: null,
       totalWorkingHours: null,
@@ -199,7 +199,7 @@ export class TimesheetFormComponent implements OnInit {
     return {
       locationMappingId: null,
       workLocationType: null,
-      workLocationTypeId: null,
+      workLocationTypeId: 4,
       locationInTime: null,
       locationOutTime: null,
       totalWorkingHours: null,
@@ -474,6 +474,18 @@ export class TimesheetFormComponent implements OnInit {
         loc.locationMappingId = 4;
       })
     }
+    const count = this.timesheetLocations.filter(
+      loc => loc.workLocationTypeId === location.workLocationTypeId
+    ).length;
+
+    if (count > 1) {
+      this.openAlertMod(this.alertTemplate, 'You are entering duplicate location');
+      this.timesheetLocations = this.timesheetLocations.filter(
+      loc => loc.workLocationTypeId === location.workLocationTypeId && loc.locationInTime != null && loc.locationOutTime != null
+    )
+      return;
+    }
+
     this.empHasClientSideId = false;
     if (this.timesheetAppliedFor.toLocaleLowerCase() == 'self') {
       console.log(this.currentUser.empId);
@@ -1649,6 +1661,113 @@ downloadImage(fileName = 'image-preview'): void {
   // getListToRenderUpload(){
   //   let dataList : Map<number, ProjectEntry> = new Map<number, ProjectEntry>();
 
+  validateLocationInTime(
+  locationInTime: string,
+  fromDate: string,
+  apmosysInTime: string
+): boolean {
+
+  if (!locationInTime || !fromDate || !apmosysInTime) {
+    return false;
+  }
+
+  const parseDate = (dateStr: string) => {
+    const [day, month, year] = dateStr.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  };
+
+  const parseTime = (timeStr: string) => {
+    const [time, meridian] = timeStr.trim().split(' ');
+    let [hh, mm] = time.split(':').map(Number);
+
+    if (meridian === 'PM' && hh !== 12) hh += 12;
+    if (meridian === 'AM' && hh === 12) hh = 0;
+
+    return { hh, mm };
+  };
+
+  const date = parseDate(fromDate);
+  const inTime = parseTime(locationInTime);
+  const apmIn = parseTime(apmosysInTime);
+
+  const inDateTime = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    inTime.hh,
+    inTime.mm
+  );
+
+  const apmosysInDateTime = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    apmIn.hh,
+    apmIn.mm
+  );
+
+  // In-time before allowed Apmosys time
+  return inDateTime.getTime() >= apmosysInDateTime.getTime();
+}
+
+validateLocationOutTime(
+  locationOutTime: string,
+  fromDate: string,
+  apmosysOutTime: string,
+  isNightShift: boolean,
+  toDate?: string
+): boolean {
+
+  if (!locationOutTime || !fromDate || !apmosysOutTime) {
+    return false;
+  }
+
+  if (isNightShift && !toDate) {
+    return false;
+  }
+
+  const parseDate = (dateStr: string) => {
+    const [day, month, year] = dateStr.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  };
+
+  const parseTime = (timeStr: string) => {
+    const [time, meridian] = timeStr.trim().split(' ');
+    let [hh, mm] = time.split(':').map(Number);
+
+    if (meridian === 'PM' && hh !== 12) hh += 12;
+    if (meridian === 'AM' && hh === 12) hh = 0;
+
+    return { hh, mm };
+  };
+
+  const startDate = parseDate(fromDate);
+  const endDate = isNightShift && toDate ? parseDate(toDate) : startDate;
+
+  const outTime = parseTime(locationOutTime);
+  const apmOut = parseTime(apmosysOutTime);
+
+  const outDateTime = new Date(
+    endDate.getFullYear(),
+    endDate.getMonth(),
+    endDate.getDate(),
+    outTime.hh,
+    outTime.mm
+  );
+
+  const apmosysOutDateTime = new Date(
+    endDate.getFullYear(),
+    endDate.getMonth(),
+    endDate.getDate(),
+    apmOut.hh,
+    apmOut.mm
+  );
+
+  // ❌ Out-time after allowed Apmosys time
+  return outDateTime.getTime() <= apmosysOutDateTime.getTime();
+}
+
+
   calculateTotalWorkingHoursForLocation(
   location: LocationEntry,
   fromDate: string,          // dd-MM-yyyy (required)
@@ -1698,9 +1817,7 @@ downloadImage(fileName = 'image-preview'): void {
     // ---------- Times ----------
     const inTime = parseTime(location.locationInTime);
     const outTime = parseTime(location.locationOutTime);
-    const apmInTime = parseTime(this.apmosysInTime);
-    const apmOutTime = parseTime(this.apmosysOutTime);
-
+    
     // ---------- DateTime Objects ----------
     const inDateTime = new Date(
       startDate.year,
@@ -1722,47 +1839,16 @@ downloadImage(fileName = 'image-preview'): void {
       0
     );
 
-    const apmosysInDateTime = new Date(
-      startDate.year,
-      startDate.month - 1,
-      startDate.day,
-      apmInTime.hours,
-      apmInTime.minutes,
-      0,
-      0
-    );
-
-    const apmosysOutDateTime = new Date(
-      endDate.year,
-      endDate.month - 1,
-      endDate.day,
-      apmOutTime.hours,
-      apmOutTime.minutes,
-      0,
-      0
-    );
-
     // ---------- VALIDATIONS ----------
 
     const selectedLocationData = this.workLocationList.find(
-            l => l.workLocationTypeId === location.workLocationTypeId) 
+            l => l.workLocationTypeId === location.workLocationTypeId) ;
     // Invalid interval
     if (outDateTime.getTime() < inDateTime.getTime()) {
       this.openAlertMod(this.alertTemplate, "The Log-Out time for the location:"+selectedLocationData.code+" "+"is greater than Log-Out time");      
       return 0;
     }
 
-    // In-time before Apmosys allowed in-time
-    if (inDateTime.getTime() < apmosysInDateTime.getTime()) {
-      this.openAlertMod(this.alertTemplate, "The Log-In time for the location:"+selectedLocationData.code+" "+"is less than Work Check In time");
-      return 100;
-    }
-
-    // Out-time after Apmosys allowed out-time
-    if (outDateTime.getTime() > apmosysOutDateTime.getTime()) {
-      this.openAlertMod(this.alertTemplate, "The Log-Out time for the location:"+selectedLocationData.code+" "+"is more than Work Check Out time");      
-      return 100;
-    }
 
     // ---------- CALCULATION ----------
     const diffMs = outDateTime.getTime() - inDateTime.getTime();
@@ -1772,7 +1858,7 @@ downloadImage(fileName = 'image-preview'): void {
 
   } catch (error) {
     console.error('Error calculating working hours', error);
-    return null;
+    return 0;
   }
 }
 
@@ -1781,18 +1867,21 @@ downloadImage(fileName = 'image-preview'): void {
     let allProjTotalHours = 0;
     let allLocationHours = 0;
     this.timesheetLocations.forEach(location => {
-      // if(location.locationInTime < this.apmosysInTime || location.locationOutTime > this.apmosysOutTime){
-      //   const selectedLocationData = this.workLocationList.find(
-      //       l => l.workLocationTypeId === location.workLocationTypeId)
-      //     this.openAlertMod(this.alertTemplate, "The Log-In time or the Log-Out time for the location:"+selectedLocationData.code);
-
+      // const selectedLocationData = this.workLocationList.find(
+      //       l => l.workLocationTypeId === location.workLocationTypeId) 
+      // const inTimeVal = this.validateLocationInTime(location.locationInTime,this.fromDate,this.apmosysInTime)
+      // if(!inTimeVal){
+      //     this.openAlertMod(this.alertTemplate, "The Log-In time for the location:"+selectedLocationData.code+" "+"is less than Work Check In time");
+      //     location = this.createLocation();
+      //     return;
+      // }
+      // const outTimeVal = this.validateLocationOutTime(location.locationOutTime,this.fromDate,this.apmosysOutTime,this.isNightShift,this.toDate)
+      // if(!outTimeVal){
+      //     this.openAlertMod(this.alertTemplate, "The Log-Out time for the location:"+selectedLocationData.code+" "+"is more than Work Check Out time"); 
+      //     location = this.createLocation();
+      //     return;     
       // }
       location.totalWorkingHours = this.calculateTotalWorkingHoursForLocation(location, this.fromDate!, this.toDate);
-      if(location.totalWorkingHours == 100){
-        location.locationInTime = null;
-        location.locationOutTime = null;
-        return;
-      }
       console.log("Location working hours calculated:", location.totalWorkingHours);
       allLocationHours += location.totalWorkingHours;
       location.projects.forEach(proj => {
