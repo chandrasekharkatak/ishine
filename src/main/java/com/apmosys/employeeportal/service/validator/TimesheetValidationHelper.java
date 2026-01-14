@@ -25,6 +25,7 @@ import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
 import com.apmosys.employeeportal.enums.DayTypeCode;
+import com.apmosys.employeeportal.enums.DayTypeTransition;
 import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
 import com.apmosys.employeeportal.model.DayTypeMasterNew;
 import com.apmosys.employeeportal.model.EmployeeTimesheetLocationMapping;
@@ -118,7 +119,7 @@ public class TimesheetValidationHelper {
 		
 	 }
 
-	public void validateWorkInWorkOutTime(EmployeeTimesheetDTO dto) {
+	 public void validateWorkInWorkOutTime(EmployeeTimesheetDTO dto) {
 		        if (dto.getWorkCheckIn() == null || dto.getWorkCheckOut() == null ||
 						dto.getWorkCheckIn().trim().isEmpty() || dto.getWorkCheckOut().trim().isEmpty())
 				{
@@ -953,6 +954,74 @@ public class TimesheetValidationHelper {
 
         return empTS;
     }
+    
+    public void validateTimesheetDateImmutable(
+            EmployeeTimesheetsNew existingEntity,
+            EmployeeTimesheetDTO incomingDTO) {
+
+        if (existingEntity == null || incomingDTO == null) {
+            throw new IllegalArgumentException(
+                    "Existing timesheet and incoming data are required"
+            );
+        }
+
+        LocalDate existingDate = existingEntity.getDate();
+        LocalDate incomingDate = incomingDTO.getDate();
+
+        if (existingDate == null || incomingDate == null) {
+            throw new IllegalArgumentException(
+                    "Timesheet date cannot be null"
+            );
+        }
+
+        if (!existingDate.equals(incomingDate)) {
+            throw new IllegalArgumentException(
+                    "Timesheet date cannot be changed. "
+                    + "Existing date: " + existingDate
+                    + ", Requested date: " + incomingDate
+            );
+        }
+    }
+    public void validateEmployeeImmutableIfProjectApproved(
+            EmployeeTimesheetsNew existingEntity,
+            EmployeeTimesheetDTO incomingDTO) {
+
+        if (existingEntity == null || incomingDTO == null) {
+            throw new IllegalArgumentException(
+                    "Existing timesheet and incoming data are required"
+            );
+        }
+
+        Long existingEmpId = existingEntity.getEmpId();
+        Long incomingEmpId = incomingDTO.getEmpId();
+
+        if (existingEmpId == null || incomingEmpId == null) {
+            throw new IllegalArgumentException(
+                    "Employee ID cannot be null"
+            );
+        }
+
+        // If employee ID is not changing → nothing to validate
+        if (existingEmpId.equals(incomingEmpId)) {
+            return;
+        }
+
+        // Check if any project is approved
+        boolean hasApprovedProject =
+                projectTimesheetService
+                        .existsApprovedProject(existingEntity.getTimesheetId());
+
+        if (hasApprovedProject) {
+            throw new IllegalArgumentException(
+                    "Employee cannot be changed because one or more projects "
+                  + "in the timesheet are already approved. "
+                  + "Existing EmpId=" + existingEmpId
+                  + ", Requested EmpId=" + incomingEmpId
+            );
+        }
+    }
+
+
 
     
     public void validateLocationDeletionRules(
@@ -1030,64 +1099,7 @@ public class TimesheetValidationHelper {
     	  }
     	}
 
-    
-    
-	public void cleanupDeletableLocations(Long timesheetId, List<LocationSessionDTO> incomingLocations) {
-
-		List<EmployeeTimesheetLocationMapping> existingLocations = employeeTimesheetLocationMappingRepository
-				.findByTimesheetId(timesheetId);
-
-		if (existingLocations == null || existingLocations.isEmpty()) {
-			return;
-		}
-
-		Set<Integer> incomingLocationTypeIds = incomingLocations == null ? Set.of()
-				: incomingLocations.stream().map(LocationSessionDTO::getWorkLocationTypeId).collect(Collectors.toSet());
-
-		for (EmployeeTimesheetLocationMapping location : existingLocations) {
-
-			Integer locationTypeId = location.getLocationTypeId().intValue();
-
-			// Location removed from request
-			if (!incomingLocationTypeIds.contains(locationTypeId)) {
-
-				// Double safety: only delete if NO approved project
-				boolean hasApprovedProject = projectTimesheetService
-						.existsApprovedProjectByLocationMappingId(location.getLocationMappingId());
-
-				if (!hasApprovedProject) {
-					deleteLocationCascade(timesheetId,location);
-				}
-			}
-		}
-	}
-	
-	
-	private void deleteLocationCascade(Long timesheetId,EmployeeTimesheetLocationMapping location) {
-
-	    Long locationMappingId = location.getLocationMappingId();
-       // Fetch all projects under this location
-	    List<ProjectTimesheetDTO> projects =
-	            projectTimesheetService.findByLocationMappingId(locationMappingId);
-
-	    if (projects != null && !projects.isEmpty()) {
-
-	        for (ProjectTimesheetDTO project : projects) {
-	        	
-	            // Delete activities under project
-	            activityTimesheetService.deleteActivitiesForProject(timesheetId,locationMappingId,project.getProjectId());
-                
-	            // Delete project
-	            projectTimesheetService.deleteByTimesheetIdAndLocationMappingIdAndProjectId(timesheetId,locationMappingId,project.getProjectId());
-	        }
-	    }
-
-	    //Finally delete location mapping
-	    employeeTimesheetLocationMappingRepository.delete(location);
-	}
-	
-	
-	public void validateLocationTimeOverlap(List<LocationSessionDTO> locations) {
+   	public void validateLocationTimeOverlap(List<LocationSessionDTO> locations) {
 
 		if (locations == null || locations.size() <= 1) {
 			return;
@@ -1332,16 +1344,153 @@ public class TimesheetValidationHelper {
 	        );
 	    }
 	}
+	
+	public void validateDayTypeTransition(EmployeeTimesheetsNew existingTS,
+	        EmployeeTimesheetDTO newDTO) {
+		
+		if (existingTS == null || newDTO == null) {
+	        throw new IllegalArgumentException(
+	                "Existing timesheet and incoming data are required");
+	    }
 
+	    Integer oldDayTypeId = existingTS.getDayTypeId();
+	    Integer newDayTypeId = newDTO.getDayTypeId();
 
+	    // No change → nothing to validate
+	    if (Objects.equals(oldDayTypeId, newDayTypeId)) {
+	    	return;
+	    }
+	    if (projectTimesheetService.existsApprovedProject(
+	                existingTS.getTimesheetId())) {
 
+	            throw new IllegalArgumentException(
+	                    "Cannot change day type "
+	                  + "because approved work already exists.");
+	        }
+		
+	}
+	
+	
+	public boolean isWorkingToNonWorking(
+	        EmployeeTimesheetsNew existingTS,
+	        EmployeeTimesheetDTO newDTO) {
 
+	    if (existingTS == null || newDTO == null) {
+	        throw new IllegalArgumentException(
+	                "Existing timesheet and incoming data are required");
+	    }
 
+	    Integer oldDayTypeId = existingTS.getDayTypeId();
+	    Integer newDayTypeId = newDTO.getDayTypeId();
 
+	    // No change → nothing to validate
+	    if (Objects.equals(oldDayTypeId, newDayTypeId)) {
+	        return false;
+	    }
 
+	    DayTypeCode oldType = resolveDayType(oldDayTypeId);
+	    DayTypeCode newType = resolveDayType(newDayTypeId);
 
+	    // WORKING → NON_WORKING
+	    if (oldType.isWorkingDay() && !newType.isWorkingDay()) {
+             return true;
+	    }
+	    return false;
+   	}
+	
+	public boolean isWorkingToWorking( EmployeeTimesheetsNew existingTS,
+	        EmployeeTimesheetDTO newDTO) {
+		Integer oldDayTypeId = existingTS.getDayTypeId();
+	    Integer newDayTypeId = newDTO.getDayTypeId();
+	    
+	    DayTypeCode oldType = resolveDayType(oldDayTypeId);
+	    DayTypeCode newType = resolveDayType(newDayTypeId);
 
-    
-    
+	 // WORKING →WORKING
+	    if (oldType.isWorkingDay() && newType.isWorkingDay()) {
+	    	return true;
+	    }return false;
+		
+	}
+	public boolean isNonWorkingToWorking(
+	        EmployeeTimesheetsNew existingTS,
+	        EmployeeTimesheetDTO newDTO) {
+
+	    if (existingTS == null || newDTO == null) {
+	        throw new IllegalArgumentException(
+	                "Existing timesheet and incoming data are required");
+	    }
+
+	    Integer oldDayTypeId = existingTS.getDayTypeId();
+	    Integer newDayTypeId = newDTO.getDayTypeId();
+
+	    DayTypeCode oldType = resolveDayType(oldDayTypeId);
+	    DayTypeCode newType = resolveDayType(newDayTypeId);
+
+	    // NON-WORKING → WORKING
+	    if (!oldType.isWorkingDay() && newType.isWorkingDay()) {
+
+	        return true;
+	    }
+
+	    return false;
+	}
+	
+	
+	public boolean isNonWorkingToNonWorking(
+	        EmployeeTimesheetsNew existingTS,
+	        EmployeeTimesheetDTO newDTO) {
+
+	    if (existingTS == null || newDTO == null) {
+	        throw new IllegalArgumentException(
+	                "Existing timesheet and incoming data are required");
+	    }
+
+	    Integer oldDayTypeId = existingTS.getDayTypeId();
+	    Integer newDayTypeId = newDTO.getDayTypeId();
+
+	    if (Objects.equals(oldDayTypeId, newDayTypeId)) {
+	        return false;
+	    }
+
+	    DayTypeCode oldType = resolveDayType(oldDayTypeId);
+	    DayTypeCode newType = resolveDayType(newDayTypeId);
+
+	    // NON-WORKING → NON-WORKING
+	    if (!oldType.isWorkingDay() && !newType.isWorkingDay()) {
+	        return true;
+	    }
+        return false;
+	}
+	
+	
+	public DayTypeTransition resolveDayTypeTransition(
+	        EmployeeTimesheetsNew existingTS,
+	        EmployeeTimesheetDTO newDTO) {
+		
+	    if (isWorkingToNonWorking(existingTS, newDTO)) {
+	        return DayTypeTransition.WORKING_TO_NON_WORKING;
+	    }
+
+	    if (isWorkingToWorking(existingTS, newDTO)) {
+	        return DayTypeTransition.WORKING_TO_WORKING;
+	    }
+
+	    if (isNonWorkingToWorking(existingTS, newDTO)) {
+	        return DayTypeTransition.NON_WORKING_TO_WORKING;
+	    }
+
+	    if (isNonWorkingToNonWorking(existingTS, newDTO)) {
+	        return DayTypeTransition.NON_WORKING_TO_NON_WORKING;
+	    }
+
+	    throw new IllegalStateException("Unsupported day type transition");
+	}	
+	
+	
+	
+	
+
+	    
 }
 
