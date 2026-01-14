@@ -1536,6 +1536,15 @@ export class TimesheetFormComponent implements OnInit {
     return `${hour}:${minute}:00`;  // Returns "2026-01-08 09:30:00" or "2026-01-08 19:30:00"
   }
 
+  resetForm(){
+    this.dayType = null;
+    this.apmosysInTime = null;
+    this.apmosysOutTime = null;
+    this.totalPresence = null;
+    this.timesheetLocations = [];
+    this.addLocation(null);
+
+  }
 
   createTimesheet() {
 
@@ -1621,8 +1630,8 @@ export class TimesheetFormComponent implements OnInit {
       location.projects.forEach((project: ProjectEntry) => {
         if(![4,6,7].includes(this.dayType)) {
           project?.activities?.forEach((activity: ActivityNew) => {
-            activity.durationMinutes = activity.durationMinutes * 60;
-          });
+          activity.durationMinutes = activity.durationMinutes * 60;
+        });
         } else {
           project.activities = null;
         }
