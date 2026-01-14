@@ -41,7 +41,7 @@ public class FinalDocumentNew {
     private String docName;
 
     @Column(name = "project_id", nullable = false)
-    private Long projectId;
+    private Integer projectId;
 
     @Column(name = "updated_by")
     private Long updatedBy;

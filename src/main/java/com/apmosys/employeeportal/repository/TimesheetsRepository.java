@@ -2849,7 +2849,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			+ "AND et.projectId = :projectId \n"
 			+ "AND et.date BETWEEN :startDate AND :endDate \n"
 			+ "AND et.dayType in ('Non-working','Working')")
-	Set<LocalDate> allTimesheetFilledDatesForDateRange(@Param("startDate")LocalDate startDate,@Param("endDate")LocalDate endDate,@Param("projectId")Integer projectId,@Param("empId")Long empId);
+	Set<LocalDate> allTimesheetFilledDatesForDateRangeOLD(@Param("startDate")LocalDate startDate,@Param("endDate")LocalDate endDate,@Param("projectId")Integer projectId,@Param("empId")Long empId);
 	
 	@Query(value=" WITH RECURSIVE\n"
 			+ "    Date_Parameters AS (\n"

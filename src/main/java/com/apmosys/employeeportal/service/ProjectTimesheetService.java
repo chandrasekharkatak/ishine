@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.model.Activity;
 import com.apmosys.employeeportal.model.ProjectTimesheetStatusNew;
@@ -47,7 +48,7 @@ public class ProjectTimesheetService {
      * @return Created ProjectTimesheetStatusNew entity
      */
     @Transactional
-    public ProjectTimesheetStatusNew create(Long timesheetId, ProjectTimesheetDTO dto) {
+    public ProjectTimesheetStatusNew create(Long timesheetId, ProjectTimesheetDTO dto, Long createdBy) {
         if (timesheetId == null) {
             throw new IllegalArgumentException("Timesheet ID is required");
         }
@@ -75,11 +76,12 @@ public class ProjectTimesheetService {
 		} else {
 			//activityId
 			for (ActivityTimesheetDTO activity : dto.getActivities()) {
-				Activity activityMaster=activitiesRepository.findById(activity.getActivityId()).get();
-				description += activityMaster.getActivity() + "<br>";
+				Activity activityMaster=activitiesRepository.findById(activity.getActivityId()).orElseThrow(() -> new IllegalArgumentException("Activity not found"));
+				description += activityMaster.getActivity()+ "<br>";
 			}
 		}
         entity.setDescription(description);
+        entity.setCreatedBy(createdBy);
         
         
         

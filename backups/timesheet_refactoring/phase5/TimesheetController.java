@@ -237,11 +237,11 @@ public class TimesheetController {
 //            System.err.println("--cron ended----");
 //            
 //    }
-	@JobRoleAccess(featureIds = {15})
-	 @PostMapping("/getActiveProjectsByEmpId")
-	 public ServiceResponse getActiveProjectsByEmpId(@RequestParam Long empId) {
-	     return timesheetService.getActiveProjectsByEmpId(empId);
-	 }
+//	@JobRoleAccess(featureIds = {15})
+//	 @PostMapping("/getActiveProjectsByEmpId")
+//	 public ServiceResponse getActiveProjectsByEmpId(@RequestParam Long empId) {
+//	     return timesheetService.getActiveProjectsByEmpId(empId);
+//	 }
 	@JobRoleAccess(featureIds = {15,16})
 	 @PostMapping("/getClientSideIdByProjectId")
 	 public ServiceResponse getClientSideIdByProjectId(@RequestParam Long projectId) {

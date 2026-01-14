@@ -39,7 +39,7 @@ public class ActivityTimesheetService {
      * @return Created EmployeeTimesheetActivitiesMappingNew entity
      */
     @Transactional
-    public EmployeeTimesheetActivitiesMappingNew create(Long timesheetId, Integer projectId, ActivityTimesheetDTO dto) {
+    public EmployeeTimesheetActivitiesMappingNew create(Long timesheetId, Integer projectId, ActivityTimesheetDTO dto, Long locationMappingId) {
         if (timesheetId == null) {
             throw new IllegalArgumentException("Timesheet ID is required");
         }
@@ -53,7 +53,11 @@ public class ActivityTimesheetService {
             throw new IllegalArgumentException("Activity ID is required");
         }
 
-        EmployeeTimesheetActivitiesMappingNew entity = timesheetMapper.toEntity(dto, timesheetId, projectId);
+        if(locationMappingId == null){
+            throw new IllegalArgumentException("Location Mapping ID is required");
+        }
+
+        EmployeeTimesheetActivitiesMappingNew entity = timesheetMapper.toEntity(dto, timesheetId, projectId, locationMappingId);
         return timesheetActivityMapNewRepository.save(entity);
     }
 
@@ -67,7 +71,7 @@ public class ActivityTimesheetService {
      */
     @Transactional
     public List<EmployeeTimesheetActivitiesMappingNew> createAll(Long timesheetId, Integer projectId, 
-                                                                  List<ActivityTimesheetDTO> dtos) {
+                                                                  List<ActivityTimesheetDTO> dtos, Long locationMappingId) {
         if (timesheetId == null || projectId == null) {
             throw new IllegalArgumentException("Timesheet ID and Project ID are required");
         }
@@ -76,7 +80,7 @@ public class ActivityTimesheetService {
         }
 
         List<EmployeeTimesheetActivitiesMappingNew> entities = dtos.stream()
-                .map(dto -> timesheetMapper.toEntity(dto, timesheetId, projectId))
+                .map(dto -> timesheetMapper.toEntity(dto, timesheetId, projectId, locationMappingId))
                 .collect(Collectors.toList());
 
         return timesheetActivityMapNewRepository.saveAll(entities);
@@ -295,7 +299,7 @@ public class ActivityTimesheetService {
                 activities.stream()
                         .map(a -> {
                             EmployeeTimesheetActivitiesMappingNew e =
-                                    timesheetMapper.toEntity(a,timesheetId,projectId);
+                                    timesheetMapper.toEntity(a,timesheetId,projectId, locationMappingId);
                             return e;
                         })
                         .collect(Collectors.toList());

@@ -1,7 +1,6 @@
 package com.apmosys.employeeportal.dto.TimesheetDTO_new;
 
 
-import org.jetbrains.annotations.NotNull;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,14 +26,12 @@ public class ActivityTimesheetDTO {
      * Timesheet ID (FK to employee_timesheets_new)
      * Required - links to parent EmployeeTimesheet
      */
-    @NotNull("Timesheet ID is required")
     private Long timesheetId;
 
     /**
      * Activity ID (FK to activities table)
      * Required for creation
      */
-    @NotNull("Activity ID is required")
     private Long activityId;
 
     /**
@@ -42,7 +39,6 @@ public class ActivityTimesheetDTO {
      * Required - part of composite key
      * Must match parent ProjectTimesheetDTO.projectId
      */
-    @NotNull( "Project ID is required")
     private Integer projectId;
 
     /**
@@ -55,8 +51,15 @@ public class ActivityTimesheetDTO {
      * Duration in minutes
      * Required - must be greater than 0
      */
-    @NotNull("Duration minutes is required")
-    private Integer durationMinutes;
+    private Short durationMinutes;
+
+
+    /**
+     * Team ID (FK to teams table)
+     * NEW CONTRACT: Required for project identification
+     * Retrieved from project if not provided
+     */
+    private Long teamId;
 
    
 }

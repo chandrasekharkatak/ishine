@@ -1,9 +1,11 @@
 import { ProjectEntry } from "./projectEntry";
 
 export class LocationEntry {
-  locationId: number | null;
-  logInTime?: string;
-  logOutTime?: string;
-  totalWorkingHours: number | null;
+  locationMappingId: number | null;
+  workLocationType: string | null;
+  workLocationTypeId: number | null;
+  locationInTime?: string | null;
+  locationOutTime?: string | null;
   projects: ProjectEntry[];
+  totalWorkingHours?: number | null;
 }

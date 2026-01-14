@@ -140,6 +140,12 @@ public class TimesheetServiceNew {
 		}
 		
 		try {
+
+			if (timeStr.contains(" ")) {
+				String[] parts = timeStr.split(" ");
+				timeStr = parts[parts.length - 1]; 
+			}
+			
 			// Handle both "HH:mm" and "HH:mm:ss" formats
 			String[] parts = timeStr.trim().split(":");
 			if (parts.length >= 2) {
@@ -286,6 +292,7 @@ public class TimesheetServiceNew {
 			
 			
 	        EmployeeTimesheetsNew empTS = employeeTimesheetsNewRepository.save(newTimesheet);
+			empDTO.setTimesheetId(empTS.getTimesheetId());
 		
 	        if(timesheetValidationHelper.isWorkingDay(empDTO)) {
 		        response=createTimesheetForWorkingDays(empTS,empDTO,documents);
@@ -297,11 +304,26 @@ public class TimesheetServiceNew {
 	    
             
 		} catch (IllegalArgumentException e) {
+			// delete the file uploaded if any
+			for(MultipartFile document : documents) {
+				if(document != null) {
+					timesheetDocumentService.deleteFile(document.getOriginalFilename());
+				}
+			}
+			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Validation failed: " + e.getMessage());
 			response.setServiceError(e.getMessage());
 
         } catch (Exception e) {
+
+			// delete the file uploaded if any
+			for(MultipartFile document : documents) {
+				if(document != null) {
+					timesheetDocumentService.deleteFile(document.getOriginalFilename());
+				}
+			}
+
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse(ServiceResponse.SOMETHING_WENT_WRONG);
             response.setServiceError(e.getMessage());
@@ -334,13 +356,13 @@ public class TimesheetServiceNew {
                                      ? locationSession.getWorkLocationTypeId()
                                      : null)
                      .locationInTime(
-                             convertTimeStringToLocalDateTime(
+                             DateConversionUtil.stringToLocalDateTime(
                                      locationSession.getLocationInTime(),
-                                     empDTO.getDate()))
+                                     pattern))
                      .locationOutTime(
-                             convertTimeStringToLocalDateTime(
+                             DateConversionUtil.stringToLocalDateTime(
                                      locationSession.getLocationOutTime(),
-                                     empDTO.getDate()))
+                                     pattern))
                      .build();
 
           // Persist location mapping
@@ -358,13 +380,15 @@ public class TimesheetServiceNew {
                          projectDTO.setStatus(
                                  TimesheetAggregationHelper.STATUS_PENDING);
                      }
+					 projectDTO.setLocationMappingId(locationMapping.getLocationMappingId());
 
                      // Create Project
 						@SuppressWarnings("unused")
 						ProjectTimesheetStatusNew projectTS =
                              projectTimesheetService.create(
                                      timesheetId,
-                                     projectDTO
+                                     projectDTO,
+									 empTS.getCreatedBy()
                              );
 
                      // 3️ Activities under this project
@@ -374,7 +398,8 @@ public class TimesheetServiceNew {
                          activityTimesheetService.createAll(
                                  timesheetId,
                                  projectDTO.getProjectId(),
-                                 projectDTO.getActivities()
+                                 projectDTO.getActivities(),
+								 locationMapping.getLocationMappingId()
                          );
                      }
                  }
@@ -468,7 +493,7 @@ public class TimesheetServiceNew {
 	        // Activities NOT allowed
 	        projectDTO.setActivities(null);
 
-	        projectTimesheetService.create(timesheetId, projectDTO);
+	        projectTimesheetService.create(timesheetId, projectDTO, empTS.getCreatedBy());
 	    }
 
 	    // 4️ Employee Timesheet totals
@@ -1044,14 +1069,14 @@ public class TimesheetServiceNew {
 	        handleProjectsUnderLocationMapping(
 	                timesheetId,
 	                locationMapping.getLocationMappingId(),
-	                locationDTO.getProjects());
+	                locationDTO.getProjects(),newEmpDTO.getCreatedBy() );
 	    }
 	}
 	
 	private void handleProjectsUnderLocationMapping(
 	        Long timesheetId,
 	        Long locationMappingId,
-	        List<ProjectTimesheetDTO> incomingProjects) {
+	        List<ProjectTimesheetDTO> incomingProjects, Long createdBy) {
 
 	    if (incomingProjects == null) {
 	        return;
@@ -1085,7 +1110,7 @@ public class TimesheetServiceNew {
 	                        TimesheetAggregationHelper.STATUS_PENDING);
 	            }
 
-	            projectTimesheetService.create(timesheetId, projectDTO);
+	            projectTimesheetService.create(timesheetId, projectDTO, createdBy);
 	        }
 	        // 2️ UPDATE project (only PENDING ones)
 	        else {
@@ -1148,7 +1173,7 @@ public class TimesheetServiceNew {
 		}
 		
 		// Validate documents list matches documentData
-		if (documents != null && documents.size() != documentDataList.size()) {
+		if (documents != null && documents.size() == documentDataList.size()) {
 			/* Log warning: document count mismatch
 			* For now, proceed with available documents
 			* TODO: Decide on validation strategy - strict match or allow partial

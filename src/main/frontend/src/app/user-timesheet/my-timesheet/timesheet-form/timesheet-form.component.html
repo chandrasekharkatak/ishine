@@ -36,15 +36,21 @@
                                     <span class="text-danger">*</span> Day Type
                                 </label>
                                 <app-my-select class="form-control" placeholder="Select Day Type"
-                                    [options]="allDayTypes" displayKey="dayType" valueKey="dayTypeId" [multiple]="false" [(ngModel)]="dayType"
-                                    (selectionChange)="onDayTypeChange($event)">
+                                    [options]="allDayTypes" displayKey="dayType" valueKey="dayTypeId" [multiple]="false"
+                                    [(ngModel)]="dayType" (selectionChange)="onDayTypeChange($event)">
                                 </app-my-select>
                             </div>
                         </div>
                         <div class="col-lg-3 col-md-4 col-sm-6 mb-3" *ngIf="dayType">
+                            @if(!isNightShift){
                             <app-date-time-picker label="Date" mode="date" [required]="true" [(ngModel)]="fromDate"
                                 (ngModelChange)="onFromDateChange()">
                             </app-date-time-picker>
+                            }@else{
+                            <app-date-time-picker label="From Date" mode="date" [required]="true" [(ngModel)]="fromDate"
+                                (ngModelChange)="onFromDateChange()">
+                            </app-date-time-picker>
+                            }
                         </div>
                         <!-- TO DATE (Show only if Night Shift is enabled) -->
                         <div class="col-lg-3 col-md-4 col-sm-6 mb-3" *ngIf="isNightShift && fromDate">
@@ -54,45 +60,31 @@
                         </div>
 
                         <!-- STEP 3: NIGHT SHIFT (Show after Date) -->
-                        <div class="col-lg-3 col-md-2 col-sm-6 mb-3" *ngIf="fromDate">
+                        <div class="col-lg-3 col-md-2 col-sm-6 mb-3" *ngIf="isDayTypeFillable() && fromDate">
                             <div class="form-group">
-                                <label class="info-label d-block">
-                                    <span class="text-danger">*</span>Night Shift
+                                <label class="info-label d-block mb-2">
+                                    <span class="text-danger">*</span> Night Shift
                                 </label>
 
-                            <div class="radio-group mt-2">
-                                <label class="radio-pill">
-                                  <input
-                                    type="radio"
-                                    name="nightShift"
-                                    [value]="true"
-                                    [(ngModel)]="isNightShift"
-                                    (change)="onNightShiftChange()"
-                                  />
-                                  <span><i class="fa fa-moon me-1"></i> Yes</span>
+                                <label class="day-night-toggle">
+                                    <input type="checkbox" [(ngModel)]="isNightShift" (change)="onNightShiftChange()" />
+
+                                    <span class="toggle-track">
+                                        <span class="toggle-thumb">
+                                            <i class="fa" [ngClass]="isNightShift ? 'fa-moon' : 'fa-sun'"></i>
+                                        </span>
+                                    </span>
                                 </label>
-                              
-                                <label class="radio-pill">
-                                  <input
-                                    type="radio"
-                                    name="nightShift"
-                                    [value]="false"
-                                    [(ngModel)]="isNightShift"
-                                    (change)="onNightShiftChange()"
-                                  />
-                                  <span><i class="fa fa-sun me-1"></i> No</span>
-                                </label>
-                              </div>
                             </div>
-
                         </div>
+
                     </div>
                 </ng-container>
             </div>
         </div>
 
         <!-- Date, Presence & Attendance Time Card -->
-        <div class="info-card" *ngIf="dayType && fromDate">
+        <div class="info-card" *ngIf="isDayTypeFillable() && fromDate">
             <div class="card-header-section">
                 <i class="fa fa-clock-o card-icon"></i>
                 <h6 class="card-title mb-0">Date, Presence & Attendance Time</h6>
@@ -144,7 +136,8 @@
         </div>
 
         <!-- Location, Project & Activities Card -->
-        <div class="info-card" *ngIf="dayType && fromDate && totalPresence != 0">
+        <div class="info-card"
+            *ngIf="dayType && fromDate && ((isDayTypeFillable() && this.apmosysInTime && this.apmosysOutTime) || !isDayTypeFillable())">
             <div class="card-header-section">
                 <i class="fa fa-map-marker card-icon"></i>
                 <h6 class="card-title mb-0">Location, Project & Activities</h6>
@@ -154,13 +147,13 @@
                     <h6 class="section-subtitle">
                         <i class="fa fa-map-marker"></i> Locations
                     </h6>
-                    <button class="btn btn-sm btn-outline-primary" (click)="addLocation()">
+                    <button class="btn btn-sm btn-outline-primary" (click)="addLocation(null)" [disabled]="disableAdd">
                         <i class="fa fa-plus"></i> Add Location
                     </button>
                 </div>
 
                 <!-- LOCATION LOOP *ngFor="let location of timesheetLocations; let lIndex = index"-->
-                 @for (location of timesheetLocations; track location.locationId; let lIndex = $index) {
+                @for (location of timesheetLocations; track location.locationMappingId; let lIndex = $index) {
                 <div class="location-card mb-3">
                     <!-- LOCATION HEADER -->
                     <div class="location-header" (click)="toggleLocation(lIndex)">
@@ -172,8 +165,7 @@
                             <i class="fa location-chevron me-3"
                                 [ngClass]="expandedLocationIndex === lIndex ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
                             <button *ngIf="timesheetLocations.length > 1" class="btn btn-sm btn-icon-danger ml-3"
-                                (click)="removeLocation(lIndex); $event.stopPropagation()"
-                                title="Remove Location">
+                                (click)="removeLocation(lIndex); $event.stopPropagation()" title="Remove Location">
                                 <i class="fa fa-trash"></i>
                             </button>
                         </div>
@@ -189,44 +181,48 @@
                                 <div class="col-md-4 mb-3">
                                     <label class="info-label"><span class="text-danger">*</span> Location</label>
                                     <app-my-select placeholder="Select Location" class="form-control"
-                                        [(ngModel)]="location.locationId" [options]="workLocationList" displayKey="code"
-                                        valueKey="workLocationTypeId" [multiple]="false"
-                                        (ngModelChange)="onLocationSelect(location)">
+                                        [(ngModel)]="location.workLocationTypeId" [options]="workLocationList"
+                                        displayKey="code" valueKey="workLocationTypeId" [multiple]="false"
+                                        [readonly]="!isDayTypeFillable()" (ngModelChange)="onLocationSelect(location)">
                                     </app-my-select>
                                 </div>
 
                                 <!-- Client In Time -->
-                                <div class="col-md-3 mb-3">
-                                    <app-date-time-picker label="Log In" mode="time" [required]="true"
-                                        [(ngModel)]="location.logInTime" (ngModelChange)="onHoursChange()">
-                                    </app-date-time-picker>
-                                </div>
-
-                                <!-- Client Out Time -->
-                                <div class="col-md-3 mb-3">
-                                    <app-date-time-picker label="Log Out" mode="time" [required]="true" [(ngModel)]="location.logOutTime"
-                                        (ngModelChange)="onHoursChange()">
-                                    </app-date-time-picker>
-                                </div>
-                                
-                                <div class="col-md-12 mb-2" *ngIf="timesheetLocations?.length === 1">
+                                @if(isDayTypeFillable()){
+                                <div class="col-md-8 mt-4"
+                                    *ngIf="timesheetLocations?.length === 1 && location.workLocationTypeId">
                                     <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="useApmosysTiming" [(ngModel)]="useApmosysTiming"
-                                            (change)="applyApmosysTiming()" />
+                                        <input class="form-check-input" type="checkbox" id="useApmosysTiming"
+                                            [(ngModel)]="useApmosysTiming" (change)="applyApmosysTiming()" />
                                         <label class="form-check-label" for="useApmosysTiming">
                                             Use Check In / Check Out Time
                                         </label>
                                     </div>
                                 </div>
+                                <div class="col-md-3 mb-3" *ngIf="location.workLocationTypeId">
+                                    <app-date-time-picker label="Log In" mode="time" [required]="true"
+                                        [(ngModel)]="location.locationInTime" (ngModelChange)="onHoursChange()">
+                                    </app-date-time-picker>
                                 </div>
-                                
-                                <!-- PROJECTS SECTION (Nested in Location) && location.availableProjects.length > 0 add this after projects api is integrated-->
-                                <div class="projects-section" *ngIf="location.locationId && location.logInTime && location.logOutTime">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <h6 class="section-subtitle">
-                                            <i class="fa fa-folder-open"></i> Projects
-                                        </h6>
-                                    <button class="btn btn-sm btn-outline-primary" (click)="addProject(location)" [disabled]="disableAdd">
+
+                                <!-- Client Out Time -->
+                                <div class="col-md-3 mb-3" *ngIf="location.workLocationTypeId">
+                                    <app-date-time-picker label="Log Out" mode="time" [required]="true"
+                                        [(ngModel)]="location.locationOutTime" (ngModelChange)="onHoursChange()">
+                                    </app-date-time-picker>
+                                </div>
+
+                                }
+                            </div>
+                            <!-- PROJECTS SECTION (Nested in Location) && location.availableProjects.length > 0 add this after projects api is integrated-->
+                            <div class="projects-section"
+                                *ngIf="location.workLocationTypeId && ((location.locationInTime && location.locationOutTime) || !isDayTypeFillable())">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="section-subtitle">
+                                        <i class="fa fa-folder-open"></i> Projects
+                                    </h6>
+                                    <button class="btn btn-sm btn-outline-primary" (click)="addProject(location, null)"
+                                        [disabled]="this.allProjectsList.length == 1">
                                         <i class="fa fa-plus"></i> Add Project
                                     </button>
                                 </div>
@@ -263,8 +259,7 @@
                                                     <label class="info-label"><span class="text-danger">*</span>
                                                         Project</label>
                                                     <app-my-select placeholder="Select Project" class="form-control"
-                                                        [(ngModel)]="project.projectId"
-                                                        [options]="project.projectList"
+                                                        [(ngModel)]="project.projectId" [options]="project.projectList"
                                                         displayKey="projectName" valueKey="projectId" [multiple]="false"
                                                         (ngModelChange)="onProjectSelect($event)">
                                                     </app-my-select>
@@ -272,103 +267,130 @@
 
                                                 <!-- Client Side ID (Show only if exists) *ngIf="project.clientSideId"-->
                                                 <div class="col-md-3 mb-3" *ngIf="project.clientSideId">
-                                                    <label class="info-label">Client Side ID</label>
+                                                    <div class="d-flex align-items-center justify-content-between mb-1">
+                                                        <label class="info-label mb-0">Client Side ID</label>
+
+                                                        <button type="button" class="btn btn-sm btn-link p-0"
+                                                            (click)="openClientSideTemplate(project)">
+                                                            <i class="fa-solid fa-user-pen"></i>
+                                                        </button>
+                                                    </div>
+
                                                     <input type="text" class="form-control"
                                                         [value]="project.clientSideId" disabled>
                                                 </div>
                                                 <!-- Shadow For (Show when shadow is enabled) -->
                                                 <div class="col-md-3 mb-3"
-                                                    *ngIf="project.isShadowTimesheet && !project.isShadowForSelf">
+                                                    *ngIf="project.isShadowTimesheet && !project.isShadowForSelf && isDayTypeFillable() && project.projectId">
                                                     <label class="info-label">
                                                         <span class="text-danger">*</span> Shadow For
                                                     </label>
                                                     <app-my-select class="form-control" placeholder="Select Employee"
-                                                    [(ngModel)]="project.shadowEmpId"
-                                                        [options]="project.shadowForList"
-                                                        displayKey="name" valueKey="empId" [multiple]="false"
+                                                        [(ngModel)]="project.shadowEmpId"
+                                                        [options]="project.shadowForList" displayKey="name"
+                                                        valueKey="empId" [multiple]="false"
                                                         (ngModelChange)="onProjectSelect($event)">
                                                     </app-my-select>
-                                                    </div>
-                                                    <!-- Shadow Timesheet Toggle -->
-                                                    <div class="col-md-3 mb-3" *ngIf="!project.isShadowForSelf">
-                                                        <label class="info-label d-block">
-                                                            <span class="text-danger">*</span> Shadow Timesheet
+                                                </div>
+                                                <!-- Shadow Timesheet Toggle -->
+                                                <div class="col-md-3 mb-3"
+                                                    *ngIf="!project.isShadowForSelf && isDayTypeFillable() && project.projectId && !project.hasClientSideId">
+                                                    <label class="info-label d-block">
+                                                        <span class="text-danger">*</span> Shadow Timesheet
+                                                    </label>
+
+                                                    <div class="radio-group mt-2">
+
+                                                        <label class="radio-pill">
+                                                            <input type="radio"
+                                                                name="shadowTimesheet{{lIndex}}_{{pIndex}}"
+                                                                [value]="true" [(ngModel)]="project.isShadowTimesheet"
+                                                                (ngModelChange)="onShadowTimesheetChange(project)" />
+                                                            <span> Yes</span>
                                                         </label>
-                                                    
-                                                        <div class="radio-group mt-2">
-                                                    
-                                                            <label class="radio-pill">
-                                                                <input type="radio" name="shadowTimesheet{{lIndex}}_{{pIndex}}" [value]="true"
-                                                                    [(ngModel)]="project.isShadowTimesheet" (ngModelChange)="onShadowTimesheetChange(project)"/>
-                                                                <span> Yes</span>
-                                                            </label>
-                                                    
-                                                            <label class="radio-pill">
-                                                                <input type="radio" name="shadowTimesheet{{lIndex}}_{{pIndex}}" [value]="false"
-                                                                    [(ngModel)]="project.isShadowTimesheet" (ngModelChange)="onShadowTimesheetChange(project)"/>
-                                                                <span>No</span>
-                                                            </label>
-                                                    
-                                                        </div>
+
+                                                        <label class="radio-pill">
+                                                            <input type="radio"
+                                                                name="shadowTimesheet{{lIndex}}_{{pIndex}}"
+                                                                [value]="false" [(ngModel)]="project.isShadowTimesheet"
+                                                                (ngModelChange)="onShadowTimesheetChange(project)" />
+                                                            <span>No</span>
+                                                        </label>
+
                                                     </div>
-                                                    
-                                                    
-                                                    
-                                                    <div class="col-md-3 mb-3" *ngIf="!project.isShadowTimesheet">
-                                                        <label class="info-label d-block"><span class="text-danger">*</span>Shadow For Self</label>
-                                                    
-                                                        <div class="radio-group mt-2">
-                                                            <label class="radio-pill">
-                                                                <input type="radio" name="shadowForSelf{{lIndex}}_{{pIndex}}" [value]="true"
-                                                                    [(ngModel)]="project.isShadowForSelf" />
-                                                                <span> Yes</span>
-                                                            </label>
-                                                    
-                                                            <label class="radio-pill">
-                                                                <input type="radio" name="shadowForSelf{{lIndex}}_{{pIndex}}" [value]="false"
-                                                                    [(ngModel)]="project.isShadowForSelf" />
-                                                                <span> No</span>
-                                                            </label>
-                                                        </div>
-                                                    
-                                                    </div>
-                                                    
-                                                    </div>
-                                                    
-                                                    <!-- Team, Client Location Row -->
-                                                    <div class="row">
-                                                        <!-- Client -->
-                                                        <div class="col-md-4 mb-3">
-                                                            <label class="info-label"><span class="text-danger">*</span>
-                                                                Client</label>
-                                                            <app-my-select class="form-control" placeholder="Select Client" [(ngModel)]="project.clientId"
-                                                                [options]="project.clientList" displayKey="clientName" valueKey="clientId" [multiple]="false"
-                                                                (ngModelChange)="onProjectClientSelect($event)">
-                                                            </app-my-select>
-                                                        </div>
-                                                    
-                                                        <!-- Client Location -->
-                                                        <div class="col-md-4 mb-3">
-                                                            <label class="info-label"><span class="text-danger">*</span> Client
-                                                                Location</label>
-                                                            <app-my-select class="form-control" placeholder="Select Client Location" [(ngModel)]="project.clientLocationId"
-                                                                [options]="project.clientLocationList || []" displayKey="clientLocation" valueKey="clientLocationId"
-                                                                [multiple]="false" (ngModelChange)="onProjectClientLocationSelect($event)">
-                                                            </app-my-select>
-                                                        </div>
-                                                        <div class="col-md-4 mb-3" *ngIf="project.clientSideId">
-                                                            <label class="info-label">
-                                                                <span class="text-danger">*</span> Client DSR Approval Status
-                                                            </label>
-                                                            <app-my-select class="form-control" placeholder="Select Approval Status"
-                                                                [(ngModel)]="project.clientApprovalStatus" (ngModelChange)="getListToRenderUpload()"
-                                                                [options]="clientApprovalStatusList" displayKey="status" valueKey="statusId" [multiple]="false">
-                                                            </app-my-select>
-                                                        </div>
+                                                </div>
+
+
+
+                                                <div class="col-md-3 mb-3"
+                                                    *ngIf="!project.isShadowTimesheet && isDayTypeFillable() && project.projectId && !project.hasClientSideId">
+                                                    <label class="info-label d-block"><span
+                                                            class="text-danger">*</span>Shadow For Self</label>
+
+                                                    <div class="radio-group mt-2">
+                                                        <label class="radio-pill">
+                                                            <input type="radio"
+                                                                name="shadowForSelf{{lIndex}}_{{pIndex}}" [value]="true"
+                                                                [(ngModel)]="project.isShadowForSelf" />
+                                                            <span> Yes</span>
+                                                        </label>
+
+                                                        <label class="radio-pill">
+                                                            <input type="radio"
+                                                                name="shadowForSelf{{lIndex}}_{{pIndex}}"
+                                                                [value]="false" [(ngModel)]="project.isShadowForSelf" />
+                                                            <span> No</span>
+                                                        </label>
                                                     </div>
 
+                                                </div>
+
+                                            </div>
+
+                                            <!-- Team, Client Location Row -->
+                                            <div class="row" *ngIf="project.projectId">
+                                                <!-- Client -->
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="info-label"><span class="text-danger">*</span>
+                                                        Client</label>
+                                                    <app-my-select class="form-control" placeholder="Select Client"
+                                                        [(ngModel)]="project.clientId" [options]="project.clientList"
+                                                        displayKey="clientName" valueKey="clientId" [multiple]="false"
+                                                        (ngModelChange)="onProjectClientSelect($event)">
+                                                    </app-my-select>
+                                                </div>
+
+                                                <!-- Client Location -->
+                                                <div class="col-md-4 mb-3"
+                                                    *ngIf="project.clientId && project.projectId">
+                                                    <label class="info-label"><span class="text-danger">*</span> Client
+                                                        Location</label>
+                                                    <app-my-select class="form-control"
+                                                        placeholder="Select Client Location"
+                                                        [(ngModel)]="project.clientLocationId"
+                                                        [options]="project.clientLocationList"
+                                                        displayKey="clientLocation" valueKey="clientLocationId"
+                                                        [multiple]="false"
+                                                        (ngModelChange)="onProjectClientLocationSelect($event)">
+                                                    </app-my-select>
+                                                </div>
+                                                <div class="col-md-4 mb-3"
+                                                    *ngIf="project.clientSideId && project.clientId && project.clientLocationId && isDayTypeFillable()">
+                                                    <label class="info-label">
+                                                        <span class="text-danger">*</span> Client DSR Approval Status
+                                                    </label>
+                                                    <app-my-select class="form-control"
+                                                        placeholder="Select Approval Status"
+                                                        [(ngModel)]="project.clientApprovalStatus"
+                                                        (ngModelChange)="getListToRenderUpload()"
+                                                        [options]="clientApprovalStatusList" displayKey="status"
+                                                        valueKey="statusId" [multiple]="false">
+                                                    </app-my-select>
+                                                </div>
+                                            </div>
+
                                             <!-- Total Hours -->
-                                            <div class="row">
+                                            <div class="row" *ngIf="isDayTypeFillable()">
                                                 <div class="col-md-3 mb-3">
                                                     <label class="info-label">Total Hours</label>
                                                     <input class="form-control"
@@ -378,31 +400,34 @@
                                             </div>
 
                                             <!-- ACTIVITIES SECTION (Nested in Project) -->
-                                            <div class="activities-section">
+                                            <div class="activities-section" *ngIf="isDayTypeFillable()">
                                                 <div class="section-header">
                                                     <h6 class="section-subtitle">
                                                         <i class="fa fa-tasks"></i> Activities
                                                     </h6>
-                                            
-                                                    <button class="btn btn-sm btn-outline-primary" (click)="addActivity(project)">
+
+                                                    <button class="btn btn-sm btn-outline-primary"
+                                                        (click)="addActivity(project)">
                                                         <i class="fa fa-plus"></i> Add Activity
                                                     </button>
                                                 </div>
-                                                <div *ngFor="let activity of project.activities; let aIndex = index" class="activity-row">
+                                                <div *ngFor="let activity of project.activities; let aIndex = index"
+                                                    class="activity-row">
                                                     <!-- Activity, Description, Hours Row -->
                                                     <div class="row align-items-end mb-2">
                                                         <!-- Activity -->
-                                                         <!-- Team -->
-                                                <div class="col-md-3 mb-2">
-                                                    <label class="info-label"><span class="text-danger">*</span>
-                                                        Team</label>
-                                                    <app-my-select class="form-control" placeholder="Select Team"
-                                                        [(ngModel)]="activity.teamId"
-                                                        [options]="activity.clientTeamList" displayKey="teamName"
-                                                        valueKey="teamId" [multiple]="false"
-                                                        (ngModelChange)="onProjectTeamSelect($event,project)">
-                                                    </app-my-select>
-                                                </div>
+                                                        <!-- Team -->
+                                                        <div class="col-md-3 mb-2">
+                                                            <label class="info-label"><span class="text-danger">*</span>
+                                                                Team</label>
+                                                            <app-my-select class="form-control"
+                                                                placeholder="Select Team" [(ngModel)]="activity.teamId"
+                                                                [options]="activity.clientTeamList"
+                                                                displayKey="teamName" valueKey="teamId"
+                                                                [multiple]="false"
+                                                                (ngModelChange)="onProjectTeamSelect($event,project)">
+                                                            </app-my-select>
+                                                        </div>
                                                         <div class="col-md-3 mb-2">
                                                             <label class="info-label small">Activity</label>
                                                             <app-my-select class="form-control form-control-sm"
@@ -426,7 +451,8 @@
                                                             <label class="info-label small">Hours</label>
                                                             <input type="number" step="0.01" min="0" max="24"
                                                                 class="form-control form-control-sm" placeholder="Hrs"
-                                                                [(ngModel)]="activity.completionTime" (ngModelChange)="onHoursChange()">
+                                                                [(ngModel)]="activity.durationMinutes"
+                                                                (ngModelChange)="onHoursChange()">
                                                         </div>
 
                                                         <!-- Remove Button -->
@@ -448,13 +474,13 @@
                         </div>
                     </div>
                 </div>
-            }
+                }
             </div>
         </div>
 
 
         <!-- Client Approval & Documents Card -->
-        <div class="info-card" *ngIf="empHasClientSideId">
+        <div class="info-card" *ngIf="empHasClientSideId && documentData.length > 0 && isDayTypeFillable()">
             <div class="card-header-section">
                 <i class="fa-solid fa-file-arrow-up card-icon"></i>
                 <h6 class="card-title mb-0">Upload Documents</h6>
@@ -463,22 +489,16 @@
             </div>
             @for (project of uniqueProjectsList; track project.projectId) {
             <div class="card-body-section">
-
-
                 <!-- Document Upload Section -->
-
-                <div class="row mt-3"
-                    *ngIf="project.clientApprovalStatus === 2 || project.clientApprovalStatus === 1">
-
+                <div class="row mt-3" *ngIf="project.clientApprovalStatus === 2 || project.clientApprovalStatus === 1">
                     <!-- Project Title -->
                     <div class="col-12 mb-2">
                         <h6 class="section-subtitle">
                             Project: {{ project.projectName }}
                         </h6>
                     </div>
-
                     <!-- Filled Attendance Proof -->
-                    @for (file of uploadFileList; track file.projectId + '-' + file.docType) {
+                    @for (file of documentData; track file.projectId + '-' + file.docType) {
                     @if (file.projectId === project.projectId && file.docType === 'Filled') {
                     <div class="col-md-6 mb-3">
                         <label class="info-label">
@@ -488,7 +508,7 @@
                             <input type="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png"
                                 style="max-width: 250px;" (change)="onFileSelected($event, 'Filled', project.projectId)"
                                 (click)="$any($event.target).value = null" />
-                            @if (file.file) {
+                            @if (file.uniqueIdentifier && containsFile(file.uniqueIdentifier)) {
                             <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
                                 [disabled]="!file.previewUrl" (click)="openPreviewModalForTwo(file)">
                                 <i class="fa fa-eye"></i>
@@ -501,12 +521,12 @@
                             {{ file.fileError }}
                         </small>
                         }
-                        @else if (file.fileName && !file.fileError) {
+                        @else if (file.uniqueIdentifier && !file.fileError) {
                         <small class="text-muted d-block">
-                            {{ file.fileName }}
+                            {{ file.docName }}
                         </small>
                         }
-                        @else if (!file.file && !file.fileError) {
+                        @else if ((!file.uniqueIdentifier || !containsFile(file.uniqueIdentifier)) && !file.fileError) {
                         <small class="text-muted d-block">
                             No file selected
                         </small>
@@ -526,7 +546,7 @@
                                 style="max-width: 250px;"
                                 (change)="onFileSelected($event, 'Approved',project.projectId)"
                                 (click)="$any($event.target).value = null" />
-                            @if (file.file) {
+                            @if (file.uniqueIdentifier && containsFile(file.uniqueIdentifier)) {
                             <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
                                 [disabled]="!file.previewUrl" (click)="openPreviewModalForTwo(file)">
                                 <i class="fa fa-eye"></i>
@@ -538,12 +558,12 @@
                             {{ file.fileError }}
                         </small>
                         }
-                        @else if (file.fileName && !file.fileError) {
+                        @else if (file.uniqueIdentifier && containsFile(file.uniqueIdentifier) && !file.fileError) {
                         <small class="text-muted d-block">
-                            {{ file.fileName }}
+                            {{ file.docName }}
                         </small>
                         }
-                        @else if (!file.file && !file.fileError) {
+                        @else if (!file.uniqueIdentifier || !containsFile(file.uniqueIdentifier) && !file.fileError) {
                         <small class="text-muted d-block">
                             No file selected
                         </small>
@@ -595,81 +615,123 @@
 </ng-template>
 
 <!-- Preview Modal Template -->
-<!-- <ng-template #previewTemplate>
-    <div class="modal-header">
-        <h5 class="modal-title">Document Preview</h5>
-        <button type="button" class="close" aria-label="Close" (click)="modalRef?.close()">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-    <div class="modal-body text-center">
-        
-        <iframe *ngIf="activeFileType === 'pdf'" [src]="activePreviewUrl" width="100%" height="600px"
-            style="border: none;"></iframe>
-
-        
-        <img *ngIf="activeFileType === 'image'" [src]="activePreviewUrl" class="img-fluid" alt="Preview"
-            style="max-height: 600px;">
-    </div>
-</ng-template> -->
 
 <ng-template #previewTemplate>
-  <div class="modal-header">
-    <h5 class="modal-title">Document Preview</h5>
-    <button type="button" class="close" aria-label="Close" (click)="modalRef?.close()">
-      <span aria-hidden="true">&times;</span>
-    </button>
-  </div>
 
-  <div class="modal-body">
-
-    <!-- PDF PREVIEW -->
-    <iframe
-      *ngIf="activeFileType === 'pdf'"
-      [attr.src]="activePreviewUrl"
-      width="100%"
-      height="600px"
-      style="border:none">
-    </iframe>
-
-    <!-- IMAGE PREVIEW -->
-    <div *ngIf="activeFileType === 'image'" class="image-preview-wrapper">
-
-      <!-- SCROLLABLE ZOOM CONTAINER -->
-      <div class="image-container">
-        <img
-          [src]="activePreviewUrl"
-          [style.transform]="'scale(' + imageZoom + ')'"
-          [style.transformOrigin]="'center center'"
-          alt="Preview"
-          class="preview-image"
-        />
-      </div>
-
-      <!-- CONTROLS (ALWAYS VISIBLE) -->
-      <div class="image-controls">
-        <button class="btn btn-sm btn-secondary" (click)="zoomOut()">−</button>
-        <button class="btn btn-sm btn-secondary" (click)="zoomIn()">+</button>
-        <button class="btn btn-sm btn-outline-secondary" (click)="resetZoom()">Reset</button>
-        <button class="btn btn-sm btn-primary" (click)="downloadImage()">Download</button>
-      </div>
-
+    <div class="modal-header">
+        <h5 class="modal-title">Document Preview</h5>
+        <button type="button" class="close" (click)="modalRef?.close()">
+            <span>&times;</span>
+        </button>
     </div>
 
-  </div>
+    <div class="modal-body" [class.fullscreen]="isFullscreen">
+
+        <!-- PDF -->
+        <iframe *ngIf="activeFileType === 'pdf'" [attr.src]="activePreviewUrl" class="pdf-frame" scrolling="no">
+        </iframe>
+
+
+        <!-- IMAGE -->
+        <div *ngIf="activeFileType === 'image'" class="image-preview-wrapper">
+
+            <!-- IMAGE VIEWPORT -->
+            <div class="image-scroll-container" (mousedown)="startDrag($event)" (mousemove)="onDrag($event)"
+                (mouseup)="stopDrag()" (mouseleave)="stopDrag()">
+
+                <img [src]="activePreviewUrl" [style.transform]="imageTransform" class="preview-image"
+                    draggable="false" />
+            </div>
+
+            <!-- CONTROLS -->
+            <div class="image-controls">
+                <button class="btn btn-sm btn-outline-secondary" (click)="zoomOut()"><i
+                        class="fa-solid fa-magnifying-glass-minus"></i></button>
+                <button class="btn btn-sm btn-outline-secondary" (click)="zoomIn()"><i
+                        class="fa-solid fa-magnifying-glass-plus"></i></button>
+                <button class="btn btn-sm btn-outline-secondary" (click)="rotate()"><i
+                        class="fa-solid fa-rotate"></i></button>
+                <button class="btn btn-sm btn-outline-secondary" (click)="resetTransformations()"><i
+                        class="fa-solid fa-house"></i></button>
+                <button class="btn btn-sm btn-outline-secondary" (click)="toggleFullscreen()"><i
+                        class="fa-solid fa-expand"></i></button>
+                <button class="btn btn-sm btn-outline-primary" (click)="downloadImage()"><i
+                        class="fa-solid fa-download"></i></button>
+            </div>
+
+        </div>
+
+    </div>
 </ng-template>
-
-
-
-
-
-
-
-
 
 <ng-template #alert_message_with_reset>
     <div class="modal-body text-center">
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest2()">OK</button>&nbsp;
     </div>
+</ng-template>
+
+<ng-template #clientSideIdUpdateOrAddModal>
+    <form #clientSideForm="ngForm" novalidate>
+         <div class="modal-body text-center position-relative">
+             <div class="info-modal">  <app-info-tooltip class="me-2" style="margin-right: 8px;" pdfPath="assets/pdfFiles/Entering client side id.pdf"
+  pdfCtaText="Client Side ID Entry Guide" iconBgColor="#8377D1" [size]="19" [content]="clientIdEntryBulletPoints">
+            </app-info-tooltip></div>
+            <h5>Please provide Client Side ID to continue.</h5>
+
+        </div>
+
+        <div class="modal-body">
+            <div class="row">
+                <div class="col-md-6 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">
+                                <span class="text-danger">*</span>Project
+                            </label>
+                            <input class="form-control" autocomplete="none" disabled
+                                [value]="empClientSideObj.projectName" />
+                            <span *ngIf="empClientSideObj.hasClientSideId"
+                                class="text-danger small mt-1">**If you do not have a Client Side ID, please follow the
+                                given format.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label class="info-label">
+                                <span class="text-danger">*</span>Client Side ID
+                            </label>
+                            <input class="form-control" autocomplete="none" name="clientSideId"
+                                [(ngModel)]="empClientSideObj.clientSideId" #clientSideId="ngModel" required
+                                minlength="3" maxlength="20"
+                                [placeholder]="(empClientSideObj.hasClientSideId && !empClientSideObj.hasClientSideFlag)?formattedEmployeeId:''" />
+
+                            <!-- Validation error message -->
+                            <div *ngIf="clientSideId.invalid && clientSideId.touched" class="text-danger small mt-1">
+                                <span *ngIf="clientSideId.errors?.['required']">Client Side ID is required.</span>
+                                <span *ngIf="clientSideId.errors?.['minlength']">Minimum 3 characters required.</span>
+                                <span *ngIf="clientSideId.errors?.['maxlength']">Maximum 20 characters allowed.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-body text-center">
+            <button type="button" class="btn btn-yes-alert" [disabled]="clientSideForm.invalid"
+                (click)="hideClientSideIdForm(); updateClientSideIdMapping(alert_message)">
+                Set
+            </button>
+            &nbsp;
+            <button type="button" class="btn btn-no-alert"
+                (click)="hideClientSideIdForm();onCancelClientSideId()">
+                Cancel
+            </button>
+            &nbsp;
+        </div>
+    </form>
 </ng-template>

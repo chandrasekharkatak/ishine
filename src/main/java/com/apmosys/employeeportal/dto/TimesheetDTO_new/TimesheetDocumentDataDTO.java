@@ -28,7 +28,7 @@ public class TimesheetDocumentDataDTO {
      * Project ID this document is associated with
      * Required for creation
      */
-    private Long projectId;
+    private Integer projectId;
 
     /**
      * Document name (e.g., "Screenshot_Approved", "Screenshot_Filled")
