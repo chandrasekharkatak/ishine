@@ -57,6 +57,8 @@ public class ActivityTimesheetDTO {
      */
     @NotNull("Duration minutes is required")
     private Integer durationMinutes;
+    
+    private String activity;
 
    
 }
