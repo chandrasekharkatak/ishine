@@ -5508,7 +5508,7 @@ toggleSelectAllTeams(event: any, teamObj: any) {
   }
 
   toggleSelectAll1(event: any): void {
-    const checked = event.target.checked;
+    const checked = event.target.checked; 
     this.getAllMembers().forEach(m => m.selected = checked);
     this.getSelectedTeamData();
   }

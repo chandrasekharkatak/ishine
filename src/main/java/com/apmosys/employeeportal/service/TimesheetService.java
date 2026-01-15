@@ -3521,6 +3521,23 @@ public class TimesheetService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("empId : " +empClientDTO.getEmpId()+ "projectId:" +empClientDTO.getProjectId());
 		try {
+			if (empClientDTO.getEmpId() == null || empClientDTO.getProjectId() == null || empClientDTO.getEmpId()<1 || empClientDTO.getProjectId()<1) {
+				throw new IllegalArgumentException("empId and projectId are required");
+			}
+
+			if (empClientDTO.getClientSideId() == null || empClientDTO.getClientSideId().isBlank()) {
+				throw new IllegalArgumentException("clientSideId is required");
+			}
+			
+			Boolean existingEmployee = employeeRepository.existsByEmpId(empClientDTO.getEmpId());
+			
+			if(!existingEmployee) {
+				throw new IllegalArgumentException("This employee id is not present");
+			}
+			Boolean existingProject = projectRepository.existsByProjectId(empClientDTO.getProjectId().intValue());
+			if(!existingProject) {
+				throw new IllegalArgumentException("This project id is not present");
+			}
 
 			Optional<EmployeeClientSideIdMapping> existingEmpClientMap = employeeClientSideIdMappingRepository.findByProjectIdAndActiveAndEmpId(empClientDTO.getProjectId(), true, empClientDTO.getEmpId());
 	        
@@ -3575,7 +3592,15 @@ public class TimesheetService {
         		logService.logMyInfo(httpRequest, apiLogInfo);
         		return response;
 	        }
-		} catch (Exception e) {
+		}catch(IllegalArgumentException e) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse(e.getMessage());
+			response.setServiceError(e.getMessage());
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");

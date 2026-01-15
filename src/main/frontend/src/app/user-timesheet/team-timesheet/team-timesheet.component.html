@@ -6,8 +6,8 @@
       *ngIf="userMapping.view_my_teams_timesheets_requests || userMapping.update_timesheet_request || userMapping.revoke_reportee_timesheet"
       [ngClass]="{'active' : isAllTimesheetRequestTable}" (click)="showAllTimesheetRequestsTable()">View Teams
       Timesheets Requests</button>
-    <button  *ngIf="userMapping.bulk_upload_reportee" type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isTMBulkUpload}"
-      (click)="showTMBulkUpload()">Team Member Bulk Final Doc Upload</button>
+    <button *ngIf="userMapping.bulk_upload_reportee" type="button" class="btn btn-outline-primary btn-sm mx-1"
+      [ngClass]="{'active' : isTMBulkUpload}" (click)="showTMBulkUpload()">Team Member Bulk Final Doc Upload</button>
   </div>
 </div>
 
@@ -90,7 +90,7 @@
         </div>
         <!-- bassHorizontalScroll [tableId]="'allTimesheetInfo'" -->
         <!-- [tableTHeadId]="'allTimesheetInfoTHead'" [tableTHeadTrId]="'allTimesheetInfoTHeadTr'" -->
-      
+
         <!-- ******The below code will be worked as commented code. This is only here because of future reference -->
         <!-- <ng-container *ngIf="false"> -->
         <div class="overflow-auto">
@@ -225,10 +225,10 @@
           </table>
         </div>
         <pagination-controls class="my-pagination" [hidden]="allTeamTimesheets.length == 0"
-        (pageChange)="handlePageChange($event)"></pagination-controls>
-      <!-- </ng-container> -->
+          (pageChange)="handlePageChange($event)"></pagination-controls>
+        <!-- </ng-container> -->
 
-      <!-- <app-team-all-timesheets-table
+        <!-- <app-team-all-timesheets-table
       [allTeamTimesheets]="allTeamTimesheets"
       [filters]="filters"
       [isSearchEnabled]="isSearchEnabled && isAllTimesheetTable"
@@ -499,8 +499,8 @@
       </mat-select>
     </mat-form-field> -->
     <app-my-select #rejectReasons1 class="form-control" placeholder="Select Reject Reason"
-        [(ngModel)]="selectedRejectReason" [options]="rejectReasons"
-        displayKey="rejectionReason" valueKey="rejectionId" [multiple]="false">
+      [(ngModel)]="selectedRejectReason" [options]="rejectReasons" displayKey="rejectionReason" valueKey="rejectionId"
+      [multiple]="false">
     </app-my-select>
     <label class="info-label">Reject Remark</label>
     <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
@@ -530,9 +530,9 @@
       </mat-select>
     </mat-form-field> -->
     <label><span class="text-danger">*</span>Reject Reason</label>
-     <app-my-select #rejectReasons2 class="form-control" placeholder="Select Reject Reason"
-        [(ngModel)]="selectedRejectReason" [options]="rejectReasons"
-        displayKey="rejectionReason" valueKey="rejectionId" [multiple]="false">
+    <app-my-select #rejectReasons2 class="form-control" placeholder="Select Reject Reason"
+      [(ngModel)]="selectedRejectReason" [options]="rejectReasons" displayKey="rejectionReason" valueKey="rejectionId"
+      [multiple]="false">
     </app-my-select>
     <p> Reject Reason</p>
     <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
@@ -580,19 +580,18 @@
     </button>
   </div>
   <div class="modal-body text-center"> -->
-    <!-- PDF Preview -->
-    <!-- <iframe *ngIf="fileType === 'pdf'" [src]="previewUrl" width="100%" height="400px" style="border: none;"></iframe> -->
+<!-- PDF Preview -->
+<!-- <iframe *ngIf="fileType === 'pdf'" [src]="previewUrl" width="100%" height="400px" style="border: none;"></iframe> -->
 
-    <!-- Image Preview -->
-    <!-- <img *ngIf="fileType === 'image'" [src]="previewUrl" class="img-fluid" alt="Preview" style="max-height: 400px;">
+<!-- Image Preview -->
+<!-- <img *ngIf="fileType === 'image'" [src]="previewUrl" class="img-fluid" alt="Preview" style="max-height: 400px;">
   </div>
 </ng-template> -->
 
- <ng-template #previewTemplate>
+<ng-template #previewTemplate>
   <div class="modal-header">
     <h5 class="modal-title">Document Preview</h5>
-    <div *ngIf="fileType === 'image'"
-         class="ml-auto d-flex align-items-center zoom-controls">
+    <div *ngIf="fileType === 'image'" class="ml-auto d-flex align-items-center zoom-controls">
       <button class="zoom-btn" title="Zoom Out" (click)="zoomOut()">
         <i class="fa fa-search-minus" aria-hidden="true"></i>
       </button>
@@ -604,39 +603,24 @@
       </button>
     </div>
 
-    <button type="button"
-            class="close"
-            aria-label="Close"
-            (click)="modalRef?.close()">
+    <button type="button" class="close" aria-label="Close" (click)="modalRef?.close()">
       <span aria-hidden="true">&times;</span>
     </button>
   </div>
 
   <div class="modal-body text-center">
-    <iframe *ngIf="fileType === 'pdf'"
-            [src]="previewUrl"
-            width="100%"
-            height="400px"
-            style="border: none;">
+    <iframe *ngIf="fileType === 'pdf'" [src]="previewUrl" width="100%" height="400px" style="border: none;">
     </iframe>
     <div *ngIf="fileType === 'image'" class="preview-container">
-      <div class="preview-content"
-           [style.transform]="transformStyle"
-           (mousedown)="startDrag($event)"
-           (mousemove)="onDrag($event)"
-           (mouseup)="endDrag()"
-           (mouseleave)="endDrag()">
+      <div class="preview-content" [style.transform]="transformStyle" (mousedown)="startDrag($event)"
+        (mousemove)="onDrag($event)" (mouseup)="endDrag()" (mouseleave)="endDrag()">
 
-        <img [src]="previewUrl"
-             class="preview-image"
-             alt="Preview">
+        <img [src]="previewUrl" class="preview-image" alt="Preview">
       </div>
     </div>
 
   </div>
 </ng-template>
-
-
 
 <div class="row" *ngIf="isAllTimesheetRequestTable">
   <div class="col-md-12">
@@ -646,70 +630,30 @@
       </div>
     </div>
     <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap" *ngIf="isAllTimesheetRequestTable">
-      <!-- Search Input -->
-      <!-- <input type="text" class="form-control mb-2 me-2" style="width: 250px;" placeholder="Search specific employee"
-    [(ngModel)]="searchText" /> -->
-      <div class="position-relative" style="width: 250px;">
-        <input type="text" class="form-control mb-2 me-2" placeholder="Search..." [(ngModel)]="searchText"
-          (input)="filterSuggestions()" (focus)="showDropdown = true" (blur)="hideDropdown()" autocomplete="off" />
-
-        <ul *ngIf="showDropdown && suggestionList.length > 0" class="list-group position-absolute w-100"
-          style="z-index: 1000; max-height: 200px; overflow-y: auto;">
-          <li class="list-group-item list-group-item-action" *ngFor="let suggestion of suggestionList"
-            (mousedown)="selectSuggestion(suggestion)">
-            {{ suggestion.display }}
-            <small class="text-muted" *ngIf="suggestion.type">[{{ suggestion.type }}]</small>
-          </li>
-
-
-        </ul>
-      </div>
       <!-- Action Buttons -->
       <div *ngIf="selectedRows.length > 0" class="my-2">
         <button class="btn btn-success btn-sm" (click)="bulkApprove1(alert_message)">Bulk Approve</button>&nbsp;
         <button class="btn btn-danger btn-sm" (click)="opnenbulkRejectTimesheet(reject_timesheet)">Bulk Reject</button>
       </div>
-
-    </div>
-    <div class="row">
-      <div class="col-md-3">
-        <div class="info-wrapper">
-          <div class="form-group">
-            <label class="info-label"><span class="text-danger">*</span>Start Date</label>
-            <input id="timesheetStartDate" type="date" OnClick="this.showPicker()" class="form-control"
-              autocomplete="none" [max]="today" [(ngModel)]="fromDate" (keydown)="disableMannualDateInput()">
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="info-wrapper">
-          <div class="form-group">
-            <label class="info-label"><span class="text-danger">*</span>End Date</label>
-            <input id="timesheetEndDate" type="date" OnClick="this.showPicker()" class="form-control"
-              autocomplete="none" [max]="today" [(ngModel)]="toDate" (change)="getMyReporteesTimesheetRequests()"
-              (keydown)="disableMannualDateInput()">
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3 d-flex align-items-end">
-        <button type="button" class="btn btn-secondary mb-3" (click)="resetDateFilter()">
-          <i class="fa fa-refresh" aria-hidden="true"></i>
-        </button>
-
-      </div>
-      <!-- <div class="form-group ml-auto col-md-3 mb-2 mt-4 pt-2">
-          <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">	
-        </div> -->
     </div>
 
-    <!-- Table -->
-    <!-- <div class="row"> -->
+    <!-- Table Starts Here -->
     <div class="d-flex justify-content-between align-items-center mb-2">
       <div class="selector-toggle">
         <a href="javascript:void(0)" (click)="toggleSearch()">
           <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
           <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
         </a>
+      </div>
+      <div class="form-inline col-md-4">
+        <small>Filter:</small>
+        <select
+          class="form-select-sm align-items-center mx-1"
+          [(ngModel)]="clientFilter"
+        >
+          <option [ngValue]=false>All Employees</option>
+          <option [ngValue]=true>Client Side Applicable Employees</option>
+        </select>
       </div>
 
       <div>
@@ -720,100 +664,255 @@
       </div>
     </div>
     <!-- </div> -->
-    <div style="overflow-x: auto; width: 100%;">
-      <table class="table">
-        <thead class="thead-light">
+
+    <!-- Not in USE -->
+    <ng-container *ngIf="false">
+      <div style="overflow-x: auto; width: 100%;">
+        <table class="table">
+          <thead class="thead-light">
+            <tr>
+              <th>
+                <input type="checkbox" (change)="toggleAllRows($event)" />
+              </th>
+              <th style="max-width: fit-content;min-width: 80px;">Sr No.</th>
+              <th style="max-width: fit-content;min-width: 130px;">Employee ID</th>
+              <th style="max-width: fit-content;min-width: 150px;">Client Side ID</th>
+              <th style="max-width: fit-content;min-width: 200px;">Employee Name</th>
+              <th style="max-width: fit-content;min-width: 200px;">Team Name</th>
+              <th>Department</th>
+              <th style="max-width: fit-content;min-width: 200px;">Project</th>
+              <th style="max-width: fit-content;min-width: 200px;">Client</th>
+              <th style="max-width: fit-content;min-width: 160px;">Billable Type</th>
+              <th style="max-width: fit-content;min-width: 160px;">Employee Role</th>
+              <th>SPOC</th>
+              <th style="max-width: fit-content;min-width: 200px;">Project Manager</th>
+              <th>PO No</th>
+              <th style="max-width: fit-content;min-width: 150px;">Start Date</th>
+              <th style="max-width: fit-content;min-width: 150px;">Expected Timesheets</th>
+              <th style="max-width: fit-content;min-width: 150px;">Total Applied Timesheets</th>
+              <th style="max-width: fit-content;min-width: 150px;">Client Not Filled</th>
+              <th style="max-width: fit-content;min-width: 150px;">Client Pending</th>
+              <th style="max-width: fit-content;min-width: 150px;">Client Approved</th>
+            </tr>
+            <tr app-column-filter-bar *ngIf=" isSearchEnabled" [columnList]="allTimesheetColumnsVMS"
+              (onSearch)="onSearch($event);page1=1"></tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let row of filteredData() | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page1 }; let i = index">
+              <td>
+                <input type="checkbox" [(ngModel)]="row.selected" (change)="updateSelectedRows(row)" />
+              </td>
+              <td>{{items*(page1-1)+i+1}}</td>
+              <td id="clickablefor360" (click)="showTimesheetRequests(timesheet_template_employee, row)"
+                style="cursor: pointer;" title="View Timesheet">
+                {{ row.employeementId }}
+              </td>
+
+
+              <td>{{ row.clientSideId || "NA" }}</td>
+              <td id="clickablefor360" *ngIf="userMapping.team_timesheet_employee_360"
+                [navigateToEmployee360]="row.empId" style="cursor: pointer;" title="Click to view Employee 360">
+                {{row.name}}</td>
+              <td *ngIf="!userMapping.team_timesheet_employee_360">{{row.name}}</td>
+              <!-- <td>{{ row.name }}</td> -->
+              <td>{{ row.teamName }}</td>
+              <td>{{ row.departmentName }}</td>
+              <td>
+                <span *ngIf="!row.showFullText">
+                  {{ row.projectName.length > 18 ? (row.projectName | slice:0:18) + '...' : row.projectName }}
+                  <a *ngIf="row.projectName.length > 18" href="javascript:void(0);"
+                    (click)="row.showFullText = true">Show
+                    more</a>
+                </span>
+                <span *ngIf="row.showFullText">
+                  {{ row.projectName }}
+                  <a href="javascript:void(0);" (click)="row.showFullText = false">Show less</a>
+                </span>
+              </td>
+
+              <td>
+                <span *ngIf="!row.showFullText">
+                  {{ row.clientName.length > 18 ? (row.clientName | slice:0:18) + '...' : row.clientName }}
+                  <a *ngIf="row.clientName.length > 18" href="javascript:void(0);"
+                    (click)="row.showFullText = true">Show
+                    more</a>
+                </span>
+                <span *ngIf="row.showFullText">
+                  {{ row.clientName }}
+                  <a href="javascript:void(0);" (click)="row.showFullText = false">Show less</a>
+                </span>
+              </td>
+              <td>{{ row.billableType }}</td>
+              <td>{{ row.employeeRole?.split(',')[0] }}</td>
+              <td>{{ row.spoc || "NA" }}</td>
+              <td>{{ row.projectManagerName }}</td>
+              <td>{{ row.poNo || "NA" }}</td>
+              <td>{{ row.startdate | date:'dd/MM/yyyy' }}</td>
+              <td>{{ row.totalExpectedFillCount }}</td>
+              <td>{{ row.totalIshineFilledCount }}</td>
+              <td>{{ row.totalClientSideNotFilledCount }}</td>
+              <td>{{ row.totalClientSidePendingCount }}</td>
+              <td>{{ row.totalClientSideApprovedCount }}</td>
+            </tr>
+            <tr *ngIf="filteredData().length === 0">
+              <td colspan="20" class="text-center">No records found.</td>
+            </tr>
+          </tbody>
+        </table>
+        <pagination-controls *ngIf="isAllTimesheetRequestTable" class="my-pagination"
+          [hidden]="filteredData().length === 0" (pageChange)="handlePageChange1($event)">
+        </pagination-controls>
+      </div>
+    </ng-container>
+ <!-- Till here -->
+
+    <div class="table-container-ts">
+      <table class="timesheet-table">
+        <thead>
           <tr>
-            <th>
-              <input type="checkbox" (change)="toggleAllRows($event)" />
-            </th>
-            <th style="max-width: fit-content;min-width: 80px;">Sr No.</th>
-            <th style="max-width: fit-content;min-width: 130px;">Employee ID</th>
-            <th style="max-width: fit-content;min-width: 150px;">Client Side ID</th>
-            <th style="max-width: fit-content;min-width: 200px;">Employee Name</th>
-            <th style="max-width: fit-content;min-width: 200px;">Team Name</th>
-            <th>Department</th>
-            <th style="max-width: fit-content;min-width: 200px;">Project</th>
-            <th style="max-width: fit-content;min-width: 200px;">Client</th>
-            <th style="max-width: fit-content;min-width: 160px;">Billable Type</th>
-            <th style="max-width: fit-content;min-width: 160px;">Employee Role</th>
-            <th>SPOC</th>
-            <th style="max-width: fit-content;min-width: 200px;">Project Manager</th>
-            <th>PO No</th>
-            <th style="max-width: fit-content;min-width: 150px;">Start Date</th>
-            <th style="max-width: fit-content;min-width: 150px;">Expected Timesheets</th>
-            <th style="max-width: fit-content;min-width: 150px;">Total Applied Timesheets</th>
-            <th style="max-width: fit-content;min-width: 150px;">Client Not Filled</th>
-            <th style="max-width: fit-content;min-width: 150px;">Client Pending</th>
-            <th style="max-width: fit-content;min-width: 150px;">Client Approved</th>
+            <th><input type="checkbox" /></th>
+            <th>Sr No.</th>
+            <th>Employee Id</th>
+            <th>Name</th>
+            <th>Date</th>
+            <th>Day Type</th>
+            <th>Work In</th>
+            <th>Work Out</th>
+            <th>Applied On</th>
+            <th>Actions</th>
           </tr>
-          <tr app-column-filter-bar *ngIf=" isSearchEnabled" [columnList]="allTimesheetColumnsVMS"
-            (onSearch)="onSearch($event);page1=1"></tr>
         </thead>
+    
         <tbody>
-          <tr
-            *ngFor="let row of filteredData() | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page1 }; let i = index">
-            <td>
-              <input type="checkbox" [(ngModel)]="row.selected" (change)="updateSelectedRows(row)" />
-            </td>
-            <td>{{items*(page1-1)+i+1}}</td>
-            <td id="clickablefor360" (click)="showTimesheetRequests(timesheet_template_employee, row)"
-              style="cursor: pointer;" title="View Timesheet">
-              {{ row.employeementId }}
-            </td>
-
-
-            <td>{{ row.clientSideId || "NA" }}</td>
-            <td id="clickablefor360" *ngIf="userMapping.team_timesheet_employee_360" [navigateToEmployee360]="row.empId"
-              style="cursor: pointer;" title="Click to view Employee 360">{{row.name}}</td>
-            <td *ngIf="!userMapping.team_timesheet_employee_360">{{row.name}}</td>
-            <!-- <td>{{ row.name }}</td> -->
-            <td>{{ row.teamName }}</td>
-            <td>{{ row.departmentName }}</td>
-            <td>
-              <span *ngIf="!row.showFullText">
-                {{ row.projectName.length > 18 ? (row.projectName | slice:0:18) + '...' : row.projectName }}
-                <a *ngIf="row.projectName.length > 18" href="javascript:void(0);" (click)="row.showFullText = true">Show
-                  more</a>
-              </span>
-              <span *ngIf="row.showFullText">
-                {{ row.projectName }}
-                <a href="javascript:void(0);" (click)="row.showFullText = false">Show less</a>
-              </span>
-            </td>
-
-            <td>
-              <span *ngIf="!row.showFullText">
-                {{ row.clientName.length > 18 ? (row.clientName | slice:0:18) + '...' : row.clientName }}
-                <a *ngIf="row.clientName.length > 18" href="javascript:void(0);" (click)="row.showFullText = true">Show
-                  more</a>
-              </span>
-              <span *ngIf="row.showFullText">
-                {{ row.clientName }}
-                <a href="javascript:void(0);" (click)="row.showFullText = false">Show less</a>
-              </span>
-            </td>
-            <td>{{ row.billableType }}</td>
-            <td>{{ row.employeeRole?.split(',')[0] }}</td>
-            <td>{{ row.spoc || "NA" }}</td>
-            <td>{{ row.projectManagerName }}</td>
-            <td>{{ row.poNo || "NA" }}</td>
-            <td>{{ row.startdate | date:'dd/MM/yyyy' }}</td>
-            <td>{{ row.totalExpectedFillCount }}</td>
-            <td>{{ row.totalIshineFilledCount }}</td>
-            <td>{{ row.totalClientSideNotFilledCount }}</td>
-            <td>{{ row.totalClientSidePendingCount }}</td>
-            <td>{{ row.totalClientSideApprovedCount }}</td>
-          </tr>
-          <tr *ngIf="filteredData().length === 0">
-            <td colspan="20" class="text-center">No records found.</td>
-          </tr>
+          <ng-container *ngFor="let timesheet of allTeamTimesheetRequestsProjectView; let i = index">
+            <!-- MAIN ROW -->
+            <tr class="main-row">
+              <td><input type="checkbox" /></td>
+              <td>{{ i + 1 }}</td>
+              <td class="emp-id" (click)="toggleAccordion(i)">
+                {{ timesheet.empId }}
+              </td>
+              <td>{{ timesheet.employeeName }}</td>
+              <td>{{ timesheet.date }}</td>
+              <td>{{ timesheet.dayType }}</td>
+              <td>{{ timesheet.workCheckIn }}</td>
+              <td>{{ timesheet.workCheckOut }}</td>
+              <td>{{ timesheet.date }}</td>
+          
+              <td>
+                <button class="btn-approve">✔ Approve</button>
+                <button class="btn-reject">✖ Reject</button>
+              </td>
+            </tr>
+          
+            <!-- ACCORDION -->
+            <tr *ngIf="expandedTimesheetIndex === i">
+              <td colspan="12" class="accordion-cell">
+                <!-- LOCATION -->
+                <div
+                  *ngFor="let location of timesheet.locationSessions || []"
+                  class="location-card"
+                >
+                  <div class="location-header">
+                    <span>📍 {{ location.workLocationType }}</span>
+                    <span class="time">
+                      Login: {{ location.locationInTime }} |
+                      Logout: {{ location.locationOutTime }}
+                    </span>
+                  </div>
+            
+                  <!-- PROJECT -->
+                  <div
+                    *ngFor="let project of location.projects || []; let p = index"
+                    class="project-card"
+                  >
+                  <table class="project-table aligned-table">
+                    <thead>
+                      <tr>
+                        <!-- LEFT -->
+                        <th class="th-left">Select</th>
+                        <th class="th-left">Project Name</th>
+                  
+                        <!-- CENTER -->
+                        <th class="th-center">PO No</th>
+                        <th class="th-center">Shadow</th>
+                  
+                        <!-- RIGHT -->
+                        <th class="th-right">Actions</th>
+                      </tr>
+                    </thead>
+                  
+                    <tbody>
+                      <tr>
+                        <!-- LEFT -->
+                        <td class="td-left">
+                          <input type="checkbox" />
+                        </td>
+                  
+                        <td class="td-left project-name" (click)="toggleProject(p)">
+                          {{ project.projectName }}
+                        </td>
+                  
+                        <!-- CENTER -->
+                        <td class="td-center">
+                          {{ project.poNo || '-' }}
+                        </td>
+                  
+                        <td class="td-center">
+                          {{ project.shadowEmp ? 'Yes' : 'No' }}
+                        </td>
+                  
+                        <!-- RIGHT -->
+                        <td class="td-right actions">
+                          <button class="btn-approve">✔ Approve</button>
+                          <button class="btn-reject">✖ Reject</button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  
+                  
+            
+                    <!-- ACTIVITIES -->
+                    <div *ngIf="expandedProjectIndex === p" class="activity-wrapper">
+                      <table class="activity-table">
+                        <thead>
+                          <tr>
+                            <th>Team</th>
+                            <th>Activity</th>
+                            <th>Description</th>
+                            <th>Shadow For</th>
+                            <th>Hours</th>
+                          </tr>
+                        </thead>
+                    
+                        <tbody>
+                          <tr *ngFor="let act of project.activities || []">
+                            <td>{{ act.teamName }}</td>
+                            <td>{{ act.activity }}</td>
+                            <td class="activity-desc">{{ act.activityDescription }}</td>
+                            <td>{{ project.shadowEmp || '-' }}</td>
+                            <td>{{ act.durationMinutes }} hrs</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    
+            
+                  </div>
+                </div>
+            
+              </td>
+            </tr>
+            
+          </ng-container>
+          
         </tbody>
       </table>
-      <pagination-controls *ngIf="isAllTimesheetRequestTable" class="my-pagination"
-        [hidden]="filteredData().length === 0" (pageChange)="handlePageChange1($event)">
-      </pagination-controls>
     </div>
+  
+
   </div>
 </div>
 
@@ -973,7 +1072,8 @@
                   </td>
                   <td *ngIf="timesheet.approvedDocument">
                     <button *ngIf="timesheet.approvedDocument" class="btn btn-sm btn-outline-primary mb3" type="submit"
-                      title="copy timesheet" (click)="getFinalDocumentDataByDocId(timesheet.timesheetId,timesheet.approvedDocument)"><em>View
+                      title="copy timesheet"
+                      (click)="getFinalDocumentDataByDocId(timesheet.timesheetId,timesheet.approvedDocument)"><em>View
                         Doc</em></button>&nbsp;
                   </td>
                   <td *ngIf="!timesheet.approvedDocument">
@@ -1018,9 +1118,9 @@
       </mat-select>
     </mat-form-field> -->
     <label><span class="text-danger">*</span>Reject Reason</label>
-     <app-my-select #rejectReasons3 class="form-control" placeholder="Select Reject Reason"
-        [(ngModel)]="selectedRejectReason" [options]="rejectReasons"
-        displayKey="rejectionReason" valueKey="rejectionId" [multiple]="false">
+    <app-my-select #rejectReasons3 class="form-control" placeholder="Select Reject Reason"
+      [(ngModel)]="selectedRejectReason" [options]="rejectReasons" displayKey="rejectionReason" valueKey="rejectionId"
+      [multiple]="false">
     </app-my-select>
     <p> Reject Reason</p>
     <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
@@ -1072,9 +1172,8 @@
 
               </mat-select> -->
               <app-my-select #filterActiveReportees class="form-control" placeholder="Select Reportee"
-                  [(ngModel)]="timesheetObj.selectedEmpId" [options]="reportees"
-                  displayKey="name" valueKey="empId" [multiple]="false"
-                  (selectionChange)="onReporteeChange($event.value)">
+                [(ngModel)]="timesheetObj.selectedEmpId" [options]="reportees" displayKey="name" valueKey="empId"
+                [multiple]="false" (selectionChange)="onReporteeChange($event.value)">
               </app-my-select>
             </div>
           </div>
@@ -1094,9 +1193,9 @@
                 </mat-option>
               </mat-select> -->
               <app-my-select #filterActiveProjects class="form-control" placeholder="Select Project"
-                  [(ngModel)]="timesheetObj.selectedProjectId" [options]="projects"
-                  displayKey="projectName" valueKey="projectId" [multiple]="false"
-                  (selectionChange)="onProjectSelectBulk(timesheetObj.selectedProjectId)">
+                [(ngModel)]="timesheetObj.selectedProjectId" [options]="projects" displayKey="projectName"
+                valueKey="projectId" [multiple]="false"
+                (selectionChange)="onProjectSelectBulk(timesheetObj.selectedProjectId)">
               </app-my-select>
             </div>
           </div>
@@ -1116,7 +1215,7 @@
         </div>
 
         <!-- To Date -->
-        <div class="col-md-3 mb-3" >
+        <div class="col-md-3 mb-3">
           <div class="form-group">
             <label class="info-label" style="margin-bottom: 0rem;"><span class="text-danger">*</span>To
               Date</label>
@@ -1133,7 +1232,7 @@
           </div>
         </div>
 
-        <div class="col-md-3 mb-3" >
+        <div class="col-md-3 mb-3">
           <div class="form-group">
             <label class="info-label"><span class="text-danger">*</span>Bulk Approval Proof</label>
             <div class="d-flex align-items-center">
@@ -1152,19 +1251,19 @@
             </div>
           </div>
         </div>
-         <div class="row justify-content-center" >
-                    <div class="col-md-2">
-                        <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+        <div class="row justify-content-center">
+          <div class="col-md-2">
+            <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1"
                             (click)="bulkFinalDocumentUpload(alert_message)">Upload</button> -->
-                        <button class="btn btn-outline-primary btn-sm mx-1"
-                            (click)="bulkFinalDocumentUpload(alert_message)" [disabled]="!isUploadAllowed"
-                            matTooltip="{{ !isUploadAllowed ? disableUploadTooltip : '' }}" matTooltipPosition="above">
-                            Upload
-                        </button>
+            <button class="btn btn-outline-primary btn-sm mx-1" (click)="bulkFinalDocumentUpload(alert_message)"
+              [disabled]="!isUploadAllowed" matTooltip="{{ !isUploadAllowed ? disableUploadTooltip : '' }}"
+              matTooltipPosition="above">
+              Upload
+            </button>
 
 
-                    </div>
-                </div>
+          </div>
+        </div>
       </div>
 
     </div>

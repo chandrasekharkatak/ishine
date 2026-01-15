@@ -52,7 +52,7 @@ public class ActivityTimesheetDTO {
      * Required - must be greater than 0
      */
     private Short durationMinutes;
-
+    private String activity;
 
     /**
      * Team ID (FK to teams table)
