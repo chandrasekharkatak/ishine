@@ -1500,7 +1500,8 @@ export class TimesheetFormComponent implements OnInit {
     let hasValidationError = null
     hasValidationError = this.validationService(this.timesheetLocations);
     if (hasValidationError) return;
-    const dataSet = this.timesheetLocations
+    else hasValidationError = false
+    const dataSet: LocationEntry[] = structuredClone(this.timesheetLocations);
     this.createOrUpdateObj = {
       createdBy: this.currentUser.empId,
       dayTypeId: this.dayType,
