@@ -7916,7 +7916,11 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			            etn.emp_id,
 			            etn.timesheet_id,
 			            etn.date,
+			            etn.work_in_time,
+			            etn.work_out_time,
 			            etlm.location_mapping_id,
+			            etlm.location_in_time,
+			            etlm.location_out_time,
 			            wltm.work_location_type_id,
 			            wltm.code AS work_location_type,
 			            ptsn.project_id,
@@ -7924,7 +7928,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			            ptsn.po_id,
 			            ptsn.status AS project_status,
 			            ptsn.client_approval_status,
-			    		
+		
 			            CASE
 			                WHEN e.is_apmosys_product = 'true'
 			                    THEN CONCAT('AP-', e.employeement_id)
@@ -7942,7 +7946,12 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 
 			            e.timesheet_lock_updated_on,
 			            e.is_timesheet_lock_check_enable,
-			            lt.day_type
+			            lt.day_type,
+			            p.project_name,
+			            p.client_name,
+			            ecsm.client_side_id,
+			            cl.client_location,
+			            ptsn.client_location_id
 			        FROM latest_timesheet lt
 			        INNER JOIN employee_timesheets_new etn
 			            ON etn.timesheet_id = lt.timesheet_id
@@ -7955,6 +7964,11 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			        INNER JOIN project_timesheet_status_new ptsn
 			            ON ptsn.timesheet_id = etn.timesheet_id
 			           AND ptsn.location_mapping_id = etlm.location_mapping_id
+			        INNER JOIN projects p on p.project_id = ptsn.project_id
+			        LEFT JOIN employee_client_side_id_mapping ecsm on ecsm.project_id = ptsn.project_id
+			         AND ecsm.emp_id = etn.emp_id
+			         AND ecsm.active = 1
+			        LEFT JOIN client_locations cl on ptsn.client_location_id = cl.client_location_id
 			        INNER JOIN employee_timesheet_activities_mapping_new etamn
 			            ON etamn.timesheet_id = etn.timesheet_id
 			           AND etamn.project_id = ptsn.project_id

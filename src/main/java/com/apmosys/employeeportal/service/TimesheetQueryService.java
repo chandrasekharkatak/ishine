@@ -108,10 +108,10 @@ public class TimesheetQueryService {
                   .append(" ,endDate : ").append(timesheetDTO.getEndDate());
         
         try {
-//            LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
-//            LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
-        	  LocalDate start = LocalDate.parse("2025-11-19");
-              LocalDate end = LocalDate.parse("2025-12-31");
+            LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
+            LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
+//        	  LocalDate start = LocalDate.parse("2025-11-19");
+//              LocalDate end = LocalDate.parse("2025-12-31");
             List<Object[]> timesheetList = employeeTimesheetsNewRepository
                     .getAllMyTimesheets(timesheetDTO.getEmpId(), start, end);
 
