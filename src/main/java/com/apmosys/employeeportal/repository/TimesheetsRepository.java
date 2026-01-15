@@ -7845,58 +7845,60 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				+ "" ,nativeQuery = true)
 		List<Object[]> getMyProjectsInMonthYear(Integer month,Integer year,Long emp_id);
 		
-		@Query(value = """
-				WITH latest_ts AS (
-				SELECT etn.timesheet_id
-				FROM employee_timesheets_new etn
-				JOIN day_type_master_new dtm
-				ON dtm.day_type_id = etn.day_type_id
-				WHERE etn.emp_id = :empId
-				AND dtm.day_type = 'Working'
-				ORDER BY etn.date DESC
-				LIMIT 1
-				),
-				effective_team_mapping AS (
-				SELECT emp_id, team_id, active
-				FROM (
-				SELECT emp_id, team_id, active,
-				ROW_NUMBER() OVER (
-				PARTITION BY emp_id, team_id
-				ORDER BY active DESC
-				) as rn
-				FROM employee_team_mapping
-				) ranked
-				WHERE rn = 1
-				)
-				SELECT
-				CASE
-				WHEN EXISTS (
-				SELECT 1
-				FROM employee_timesheet_activities_mapping_new etam
-				JOIN activities a
-				ON a.activity_id = etam.activity_id
-				JOIN effective_team_mapping etm
-				ON etm.team_id = a.team_id
-				AND etm.emp_id = :empId
-				WHERE etam.timesheet_id = (SELECT timesheet_id FROM latest_ts)
-				AND etm.active = 0
-				)
-				THEN 0
-				ELSE 1
-				END AS is_active
-				""", nativeQuery = true)
-				Optional<Integer> isEmployeeActive(@Param("empId") Long empId);
 		
 		@Query(
-			    value = """
-			    SELECT 1
-			    FROM employee_timesheets_new etn
-			    WHERE etn.emp_id = :empId
-			    LIMIT 1
-			    """,
-			    nativeQuery = true
+    	value =
+        "WITH latest_ts AS ( " +
+        "    SELECT etn.timesheet_id " +
+        "    FROM employee_timesheets_new etn " +
+        "    JOIN day_type_master_new dtm " +
+        "        ON dtm.day_type_id = etn.day_type_id " +
+        "    WHERE etn.emp_id = :empId " +
+        "      AND dtm.day_type = 'Working' " +
+        "    ORDER BY etn.date DESC " +
+        "    LIMIT 1 " +
+        "), " +
+        "effective_team_mapping AS ( " +
+        "    SELECT emp_id, team_id, active " +
+        "    FROM ( " +
+        "        SELECT emp_id, team_id, active, " +
+        "               ROW_NUMBER() OVER ( " +
+        "                   PARTITION BY emp_id, team_id " +
+        "                   ORDER BY active DESC " +
+        "               ) AS rn " +
+        "        FROM employee_team_mapping " +
+        "    ) ranked " +
+        "    WHERE rn = 1 " +
+        ") " +
+        "SELECT " +
+        "    CASE " +
+        "        WHEN EXISTS ( " +
+        "            SELECT 1 " +
+        "            FROM employee_timesheet_activities_mapping_new etam " +
+        "            JOIN activities a " +
+        "                ON a.activity_id = etam.activity_id " +
+        "            JOIN effective_team_mapping etm " +
+        "                ON etm.team_id = a.team_id " +
+        "               AND etm.emp_id = :empId " +
+        "            WHERE etam.timesheet_id = (SELECT timesheet_id FROM latest_ts) " +
+        "              AND etm.active = 0 " +
+        "        ) " +
+        "        THEN 0 " +
+        "        ELSE 1 " +
+        "    END AS is_active",
+    	nativeQuery = true
+		)
+Optional<Integer> isEmployeeActive(@Param("empId") Long empId);
+
+		@Query(
+   			 value =
+       		 "SELECT 1 " +
+        	 "FROM employee_timesheets_new etn " +
+        	 "WHERE etn.emp_id = :empId " +
+        	 "LIMIT 1",
+    		  nativeQuery = true
 			)
-			Optional<Integer> existsTimesheetByEmpId(@Param("empId") Long empId);
+Optional<Integer> existsTimesheetByEmpId(@Param("empId") Long empId);
 
 			@Query(
     value =
