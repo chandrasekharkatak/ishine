@@ -89,35 +89,12 @@ export class TimesheetFormComponent implements OnInit {
 
   // File upload properties
   selectedFile: File[] = [];
-  // selectedFile2: File | null = null;
-  previewUrl1: SafeResourceUrl | null = null;
-  previewUrl2: SafeResourceUrl | null = null;
-  rawObjectUrl1: string | null = null;
-  rawObjectUrl2: string | null = null;
-  fileError1: string = '';
-  fileError2: string = '';
-  fileName1: string = '';
-  fileName2: string = '';
   activePreviewUrl: SafeResourceUrl | null = null;
   activeFileType: string | null = null;
   createOrUpdateObj: EmployeeTimesheetDTO = new EmployeeTimesheetDTO();
   clientApprovalStatusList: any[];
   workLocationList: any[];
   isNightShift: boolean = false;
-  documentList: TimesheetDocument[] = [];
-  // documentData: {
-  //   docId: number;
-  //   projectId: number;
-  //   docType: 'Filled' | 'Approved';
-  //   // file: File;
-  //   previewUrl: SafeResourceUrl;
-  //   rawObjectUrl: string;
-  //   fileError: string;
-  //   fileType: '' | 'pdf' | 'image' | null;
-  //   fileName: string;
-  //   fileSize: number;
-  // }[] = [];
-
   documentData: TimesheetDocumentDataI[] = [];
   @Input() autoFillTimesheet: boolean = false;
   activeRawObjectUrl: any;
