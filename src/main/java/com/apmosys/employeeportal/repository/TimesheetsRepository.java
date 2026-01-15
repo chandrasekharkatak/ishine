@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.hibernate.annotations.Parent;
@@ -7843,5 +7844,162 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				+ "WHERE bpe.emp_id = :emp_id \n"
 				+ "" ,nativeQuery = true)
 		List<Object[]> getMyProjectsInMonthYear(Integer month,Integer year,Long emp_id);
+		
+		@Query(value = """
+				WITH latest_ts AS (
+				SELECT etn.timesheet_id
+				FROM employee_timesheets_new etn
+				JOIN day_type_master_new dtm
+				ON dtm.day_type_id = etn.day_type_id
+				WHERE etn.emp_id = :empId
+				AND dtm.day_type = 'Working'
+				ORDER BY etn.date DESC
+				LIMIT 1
+				),
+				effective_team_mapping AS (
+				SELECT emp_id, team_id, active
+				FROM (
+				SELECT emp_id, team_id, active,
+				ROW_NUMBER() OVER (
+				PARTITION BY emp_id, team_id
+				ORDER BY active DESC
+				) as rn
+				FROM employee_team_mapping
+				) ranked
+				WHERE rn = 1
+				)
+				SELECT
+				CASE
+				WHEN EXISTS (
+				SELECT 1
+				FROM employee_timesheet_activities_mapping_new etam
+				JOIN activities a
+				ON a.activity_id = etam.activity_id
+				JOIN effective_team_mapping etm
+				ON etm.team_id = a.team_id
+				AND etm.emp_id = :empId
+				WHERE etam.timesheet_id = (SELECT timesheet_id FROM latest_ts)
+				AND etm.active = 0
+				)
+				THEN 0
+				ELSE 1
+				END AS is_active
+				""", nativeQuery = true)
+				Optional<Integer> isEmployeeActive(@Param("empId") Long empId);
+		
+		@Query(
+			    value = """
+			    SELECT 1
+			    FROM employee_timesheets_new etn
+			    WHERE etn.emp_id = :empId
+			    LIMIT 1
+			    """,
+			    nativeQuery = true
+			)
+			Optional<Integer> existsTimesheetByEmpId(@Param("empId") Long empId);
+		
+		
+		@Query(
+			    value = """
+			        WITH latest_timesheet AS (
+			            SELECT
+			                etn.timesheet_id,dtm.day_type
+			            FROM employee_timesheets_new etn
+			            INNER JOIN day_type_master_new dtm
+			                ON dtm.day_type_id = etn.day_type_id
+			            WHERE etn.emp_id = :empId
+			              AND dtm.day_type = 'Working'
+			            ORDER BY etn.date DESC
+			            LIMIT 1
+			        )
+			        SELECT
+			            etn.emp_id,
+			            etn.timesheet_id,
+			            etn.date,
+			            etn.work_in_time,
+			            etn.work_out_time,
+			            etlm.location_mapping_id,
+			            etlm.location_in_time,
+			            etlm.location_out_time,
+			            wltm.work_location_type_id,
+			            wltm.code AS work_location_type,
+			            ptsn.project_id,
+			            ptsn.po_no,
+			            ptsn.po_id,
+			            ptsn.status AS project_status,
+			            ptsn.client_approval_status,
+		
+			            CASE
+			                WHEN e.is_apmosys_product = 'true'
+			                    THEN CONCAT('AP-', e.employeement_id)
+			                ELSE CONCAT('A-', e.employeement_id)
+			            END AS employement_id,
+
+			            etamn.activity_id,
+			            a.activity,
+			            etamn.duration_minutes,
+			            etamn.description AS activity_description,
+
+			            etm.team_id,
+			            t.team_name,
+			            etm.active AS team_active,
+
+			            e.timesheet_lock_updated_on,
+			            e.is_timesheet_lock_check_enable,
+			            lt.day_type,
+			            p.project_name,
+			            p.client_name,
+			            ecsm.client_side_id,
+			            cl.client_location,
+			            ptsn.client_location_id,
+			            p.client_id
+			        FROM latest_timesheet lt
+			        INNER JOIN employee_timesheets_new etn
+			            ON etn.timesheet_id = lt.timesheet_id
+			        INNER JOIN employee e
+			            ON e.emp_id = etn.emp_id
+			        INNER JOIN employee_timesheet_location_mapping etlm
+			            ON etlm.timesheet_id = etn.timesheet_id
+			        INNER JOIN work_location_type_master wltm
+			            ON wltm.work_location_type_id = etlm.location_type_id
+			        INNER JOIN project_timesheet_status_new ptsn
+			            ON ptsn.timesheet_id = etn.timesheet_id
+			           AND ptsn.location_mapping_id = etlm.location_mapping_id
+			        INNER JOIN projects p on p.project_id = ptsn.project_id
+			        LEFT JOIN employee_client_side_id_mapping ecsm on ecsm.project_id = ptsn.project_id
+			         AND ecsm.emp_id = etn.emp_id
+			         AND ecsm.active = 1
+			        LEFT JOIN client_locations cl on ptsn.client_location_id = cl.client_location_id
+			        INNER JOIN employee_timesheet_activities_mapping_new etamn
+			            ON etamn.timesheet_id = etn.timesheet_id
+			           AND etamn.project_id = ptsn.project_id
+			           AND etamn.location_mapping_id = etlm.location_mapping_id
+			        INNER JOIN activities a
+			            ON a.activity_id = etamn.activity_id
+			        INNER JOIN (
+			            SELECT emp_id, team_id, active
+			            FROM (
+			                SELECT
+			                    emp_id,
+			                    team_id,
+			                    active,
+			                    ROW_NUMBER() OVER (
+			                        PARTITION BY emp_id, team_id
+			                        ORDER BY active DESC
+			                    ) rn
+			                FROM employee_team_mapping
+			            ) ranked
+			            WHERE rn = 1
+			        ) etm
+			            ON etm.team_id = a.team_id
+			           AND etm.emp_id = etn.emp_id
+			        INNER JOIN teams t
+			            ON t.team_id = etm.team_id
+			        """,
+			    nativeQuery = true
+			)
+			List<Object[]> getLastFilledTimesheetByEmp(@Param("empId") Long empId);
+
+
 
 }

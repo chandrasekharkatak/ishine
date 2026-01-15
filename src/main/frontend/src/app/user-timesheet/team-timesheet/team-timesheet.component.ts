@@ -146,6 +146,7 @@ export class TeamTimesheetComponent implements OnInit {
   startY = 0;
   translateX = 0;
   translateY = 0;
+clientFilter: boolean = false;
 
   constructor(
     public validationService: ValidationService,
@@ -291,59 +292,16 @@ export class TeamTimesheetComponent implements OnInit {
     event.target.value = sanitizedValue; // reflect the change in the UI
   }
   getMyReporteesTimesheetRequests() {
-    this.allTeamTimesheetRequests = [];
-    this.isSelectAll = false
-    this.bulkApprove = []
-    this.bulkReject = []
+    const payload = {
+    empId: this.currentUser.empId,
+    clientFilter: this.clientFilter
+  };
 
-    let timesheetObj = new Timesheet();
-    timesheetObj.managerId = this.currentUser.empId;
-    timesheetObj.status = "Pending";
-    timesheetObj.fromDate = "";
-    timesheetObj.toDate = "";
 
-    // this.timesheetService.getMyReporteesTimesheetRequests(timesheetObj).pipe(first()).subscribe((response: any) => {
-    //   if (response.serviceStatus == "Success") {
-    //     this.allTeamTimesheetRequests = response.serviceResponse;
-    //     this.allTeamTimesheetRequests.forEach((timesheet, index) => {
-    //       timesheet.checkId = "timesheet" + index;
-    //       timesheet.employeementId = "A-".concat(timesheet.employeementId);
-    //       timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
-    //       timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
-    //       timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
-    //       timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-    //     });
-
-    //     this.allTeamTimesheetRequests.forEach(timesheet => {
-    //       timesheet.emp360 = timesheet.empId;
-    //       timesheet.emp360CreatedBy = timesheet.createdBy;
-    //     });
-
-    //     //console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequests);
-    //   } else {
-    //     console.error(response.serviceResponse)
-    //   }
-    // });
-
-    timesheetObj.fromDate = this.fromDate;
-    timesheetObj.toDate = this.toDate;
-
-    this.timesheetService.getAllEmployeeDSROfRM(timesheetObj).pipe(first()).subscribe((response: any) => {
+    this.timesheetService.getMyReporteesTimesheetRequests(payload).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.allTeamTimesheetRequestsProjectView = response.serviceResponse;
-        // this.allTeamTimesheetRequests.forEach((timesheet, index) => {
-        //   timesheet.checkId = "timesheet" + index;
-        //   timesheet.employeementId = "A-".concat(timesheet.employeementId);
-        //   timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
-        //   timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
-        //   timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
-        //   timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-        // });
+        this.allTeamTimesheetRequestsProjectView = response.serviceResponse || [];
 
-        // this.allTeamTimesheetRequests.forEach(timesheet => {
-        //   timesheet.emp360 = timesheet.empId;
-        //   timesheet.emp360CreatedBy = timesheet.createdBy;
-        // });
 
         console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequestsProjectView);
       } else {
@@ -1719,7 +1677,127 @@ resetPreviewState() {
   this.isDragging = false;
 }
 
+// timesheetList2 = [
+//   {
+//     timesheetId: 101,
+//     empId: 2003,
+//     employeeName: 'Rohit Sharma',
+//     dayType: 'Working Day',
+//     date: '2026-01-10',
+//     isNightShift: false,
+//     workCheckIn: '2026-01-10T09:30:00',
+//     workCheckOut: '2026-01-10T18:30:00',
+
+//     locationSessions: [
+//       {
+//         workLocationType: 'Office',
+//         locationInTime: '2026-01-10T09:30:00',
+//         locationOutTime: '2026-01-10T18:30:00',
+//         locationMappingId: 501,
+
+//         projects: [
+//           {
+//             projectId: 301,
+//             projectName: 'HRMS Revamp',
+//             clientName: 'Acme Corp',
+//             clientLocation: 'Bangalore',
+//             poNo: 'PO-2025-09',
+//             shadowEmp: 'Amit Verma',
+//             status: 1,
+//             totalClientWorkingMinutes: 480,
+//             description: 'Timesheet filled for sprint tasks',
+
+//             activities: [
+//               {
+//                 activity: 'Development',
+//                 activityDescription: 'Implemented approval flow',
+//                 durationMinutes: 240,
+//                 teamName: 'Backend Team'
+//               }
+//             ]
+//           }
+//         ]
+//       }
+//     ],
+
+//     documentData: [
+//       {
+//         docId: 9001,
+//         docName: 'Screenshot_Approved.png',
+//         finalFlag: true,
+//         bulkApprovedDocId: 7001,
+//         mimeType: 'image/png'
+//       }
+//     ]
+//   }
+// ];
+
+expandedTimesheetIndex: number | null = null;
+expandedProjectIndex: number | null = null;
+
+/* EMPLOYEE ACCORDION */
+toggleAccordion(index: number): void {
+  if (this.expandedTimesheetIndex === index) {
+    this.expandedTimesheetIndex = null;
+    this.expandedProjectIndex = null;
+  } else {
+    this.expandedTimesheetIndex = index;
+    this.expandedProjectIndex = null;
+  }
 }
+
+/* PROJECT ACCORDION */
+toggleProject(projectIndex: number): void {
+  if (this.expandedProjectIndex === projectIndex) {
+    this.expandedProjectIndex = null;
+  } else {
+    this.expandedProjectIndex = projectIndex;
+  }
+}
+
+/* ============================
+   CHECKBOX SELECTION LOGIC
+   ============================ */
+
+onEmployeeToggle(timesheet: any) {
+  timesheet.locationSessions?.forEach((loc: any) => {
+    loc.projects?.forEach((proj: any) => {
+      proj.isSelected = timesheet.isSelected;
+
+      proj.activities?.forEach((act: any) => {
+        act.isSelected = timesheet.isSelected;
+      });
+    });
+  });
+}
+
+onProjectToggle(timesheet: any, project: any) {
+  project.activities?.forEach((act: any) => {
+    act.isSelected = project.isSelected;
+  });
+
+  timesheet.isSelected = timesheet.locationSessions
+    ?.flatMap((l: any) => l.projects || [])
+    .every((p: any) => p.isSelected);
+}
+
+onActivityToggle(timesheet: any, project: any) {
+  project.isSelected = project.activities?.every(
+    (act: any) => act.isSelected
+  );
+
+  timesheet.isSelected = timesheet.locationSessions
+    ?.flatMap((l: any) => l.projects || [])
+    .every((p: any) => p.isSelected);
+}
+
+  
+}
+
+
+
+
+
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

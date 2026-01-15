@@ -22,10 +22,10 @@ public class GetReporteesTimesheetReqDTO {
     private Long empId;
     private String employeeName;
     private String dayType;
-    private LocalDate date;
+    private String date;
     private Boolean isNightShift;
-    private LocalDateTime workCheckIn;
-    private LocalDateTime workCheckOut;
+    private String workCheckIn;
+    private String workCheckOut;
 
     private List<GetReporteesTimesheetLocationsDTO> locationSessions = new ArrayList<>();
     private List<GetReporteesTimesheetDocsDTO> documentData = new ArrayList<>();

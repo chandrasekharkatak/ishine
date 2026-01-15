@@ -1663,4 +1663,11 @@ hr {
   color: #1e3c72;
 }
 
+.highlight-location {
+  border: 2px solid #ff2600;
+  background-color: #fff8e1;
+  box-shadow: 0 0 10px rgba(255, 152, 0, 0.35);
+}
+
+
 

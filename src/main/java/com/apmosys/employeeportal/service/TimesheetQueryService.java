@@ -1,6 +1,8 @@
 package com.apmosys.employeeportal.service;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -106,10 +108,10 @@ public class TimesheetQueryService {
                   .append(" ,endDate : ").append(timesheetDTO.getEndDate());
         
         try {
-//            LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
-//            LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
-        	  LocalDate start = LocalDate.parse("2025-11-19");
-              LocalDate end = LocalDate.parse("2025-12-31");
+            LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
+            LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
+//        	  LocalDate start = LocalDate.parse("2025-11-19");
+//              LocalDate end = LocalDate.parse("2025-12-31");
             List<Object[]> timesheetList = employeeTimesheetsNewRepository
                     .getAllMyTimesheets(timesheetDTO.getEmpId(), start, end);
 
@@ -704,13 +706,18 @@ public class TimesheetQueryService {
     	            dto.setTotalWorkingMinutes(
     	                    row[5] != null ? ((Number) row[5]).intValue() : null);
 
-    	            dto.setWorkCheckIn(DateConversionUtil.localDateTimeToString(row[6] != null
-    	                    ? ((java.sql.Timestamp) row[6]).toLocalDateTime()
-    	                    : null,pattern));
+    	            LocalDateTime ldt_checkIn = 
+    	            		row[6] != null ? ((Timestamp) row[6]).toLocalDateTime()
+    	                    : null;
+    	            		
+    	            dto.setWorkCheckIn(ldt_checkIn!= null  ? DateConversionUtil.localDateTimeToString(ldt_checkIn, pattern):null);
+    	            
+    	            LocalDateTime ltd_checkOut = 
+    	            		row[7] != null
+    	                    ? ((Timestamp) row[7]).toLocalDateTime()
+    	                            : null;
 
-    	            dto.setWorkCheckOut(DateConversionUtil.localDateTimeToString(row[7] != null
-    	                    ? ((java.sql.Timestamp) row[7]).toLocalDateTime()
-    	                    : null,pattern));
+    	            dto.setWorkCheckOut(ltd_checkOut!= null  ? DateConversionUtil.localDateTimeToString(ltd_checkOut, pattern):null);
 
     	            dto.setIsNightShift(row[8] != null && ((Boolean)row[8]));
     	            dto.setCreatedOn(((java.sql.Timestamp) row[9]).toLocalDateTime());
@@ -788,7 +795,8 @@ public class TimesheetQueryService {
 
     	                    p.setActivities(new ArrayList<>());
     	                    p.setIsNightShift(row[8]!=null?true:false);
-    	                    location.getProjects().add(p);
+    	                    p.setClientSideId(row[24]!=null?(String)row[24]:null);
+    	                    location.getProjects().add(p);    	    
     	                    return p;
     	                });
 

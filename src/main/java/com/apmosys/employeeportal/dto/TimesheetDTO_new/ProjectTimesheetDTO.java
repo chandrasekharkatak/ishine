@@ -139,9 +139,14 @@ public class ProjectTimesheetDTO {
     private Long clientLocationId;
     
     private String description;
+    
+//    private String clientSideId;
 
     private String clientSideId;
     
   
+    private Long teamId;
+    
+    private String projectName;
 }
 

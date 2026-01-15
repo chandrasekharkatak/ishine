@@ -5,8 +5,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -23,6 +26,10 @@ import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDashboardCountDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentApprovalDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.model.TimesheetDataDTO;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentApprovalRepository;
@@ -546,10 +553,13 @@ public class TimesheetDashboardService {
         apiLogInfo.setLogLevel("INFO");
         
         try {
-            List<Object[]> activeCheckList = timesheetsRepository.checkEmployeeActiveOrNot(empId);
+//            List<Object[]> activeCheckList = timesheetsRepository.checkEmployeeActiveOrNot(empId);
+        	Optional<Integer> exsistsTimesheet = timesheetsRepository.existsTimesheetByEmpId(empId);
+        	
+        	
 
             // Case 1: No records found in the timesheet - employee never filled any timesheet
-            if (activeCheckList.isEmpty()) {
+            if (!exsistsTimesheet.isPresent()) {
                 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
                 response.setServiceResponse(Collections.emptyList());
                 response.setServiceMessage("Employee has never filled any timesheet.");
@@ -559,9 +569,9 @@ public class TimesheetDashboardService {
                 logService.logMyInfo(httpRequest, apiLogInfo);
                 return response;
             }
-            
+            Optional<Integer> activeCheckList = timesheetsRepository.isEmployeeActive(empId);
             // Determine active status from the activeCheckList result
-            boolean isActive = Integer.parseInt(String.valueOf(activeCheckList.get(0)[1])) == 1;
+            boolean isActive = activeCheckList.isPresent();
             response.setServiceResponse1(isActive ? "Active" : "Not Active");
 
             if (!isActive) {
@@ -575,53 +585,145 @@ public class TimesheetDashboardService {
                 return response;
             }
             
-            List<Object[]> resultList = timesheetsRepository.getLastTimesheetFiledByEmpId(empId);
+//            List<Object[]> resultList = timesheetsRepository.getLastTimesheetFiledByEmpId(empId);
+            List<Object[]> resultList = timesheetsRepository.getLastFilledTimesheetByEmp(empId);
             
             if (!resultList.isEmpty()) {
-                List<LastTimesheetFieldDto> dtoList = resultList.stream()
-                        .map(row -> {
-                            LastTimesheetFieldDto dto = new LastTimesheetFieldDto();
-                            dto.setEmployementId(row.length > 0 && row[0] != null ? row[0].toString() : null);
-                            dto.setOfficeInTime(row.length > 1 && row[1] != null ? 
-                                    ((java.sql.Timestamp) row[1]).toLocalDateTime() : null);
-                            dto.setOfficeOutTime(row.length > 2 && row[2] != null ? 
-                                    ((java.sql.Timestamp) row[2]).toLocalDateTime() : null);
-                            dto.setProjectId(row.length > 3 && row[3] != null ? 
-                                    Long.parseLong(row[3].toString()) : null);
-                            dto.setClientId(row.length > 4 && row[4] != null ? 
-                                    Long.parseLong(row[4].toString()) : null);
-                            dto.setClientLocationID(row.length > 5 && row[5] != null ? 
-                                    Long.parseLong(row[5].toString()) : null);
-                            dto.setTeamName(row.length > 6 && row[6] != null ? row[6].toString() : null);
-                            dto.setActivity(row.length > 7 && row[7] != null ? row[7].toString() : null);
-                            dto.setActivityID(row.length > 8 && row[8] != null ? 
-                                    Long.parseLong(row[8].toString()) : null);
-                            dto.setDescription(row.length > 9 && row[9] != null ? row[9].toString() : null);
-                            dto.setTeamId(row.length > 10 && row[10] != null ? 
-                                    Long.parseLong(row[10].toString()) : null);
-                            dto.setClientApprovalStatus(
-                                    (row.length > 11) 
-                                        ? (row[11] != null ? row[11].toString() : null) 
-                                        : null
-                            );
-                            dto.setCompletionTime(row.length > 12 && row[12] != null ? 
-                                    Float.parseFloat(row[12].toString()) : null);
-                            dto.setTimesheetLockUpdatedOn(
-                                    row.length > 13 && row[13] != null 
-                                        ? ((java.sql.Date) row[13]).toLocalDate() 
-                                        : null
-                            );
-                            dto.setIstimesheetLockCheckEnable(row.length > 14 && row[14] != null ? 
-                                    row[14].toString() : null);
-                            return dto;
-                        })
-                        .collect(Collectors.toList());
+            	Map<Long, EmployeeTimesheetDTO> timesheetMap = new LinkedHashMap<>();
+            	resultList.forEach(row -> {
 
-                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-                response.setServiceResponse(dtoList);
-                response.setServiceMessage("Last timesheet found for employee.");
-                apiLogInfo.setApiResponse("Last timesheet found for active employee");
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+            	    /* ================= TIMESHEET ================= */
+            	    Long timesheetId = ((Number) row[1]).longValue();
+
+            	    EmployeeTimesheetDTO timesheet =
+            	        timesheetMap.computeIfAbsent(timesheetId, id -> {
+            	            EmployeeTimesheetDTO dto = new EmployeeTimesheetDTO();
+            	            dto.setEmpId(((Number) row[0]).longValue());
+            	            dto.setTimesheetId(id);
+            	            dto.setDate(((java.sql.Date) row[2]).toLocalDate());
+
+            	            dto.setWorkCheckIn(
+            	                row[3] != null
+            	                    ? (row[3]).toString()
+            	                    : null
+            	            );
+            	            dto.setWorkCheckOut(
+            	                row[4] != null
+            	                    ? (row[4]).toString()
+            	                    : null
+            	            );
+
+            	            dto.setDayType(row[25] != null ? row[25].toString() : null);
+
+//            	            dto.setEmployementId(row[15] != null ? row[15].toString() : null);
+
+//            	            dto.setTimesheetLockUpdatedOn(
+//            	                row[23] != null
+//            	                    ? ((Timestamp) row[23]).toLocalDateTime()
+//            	                    : null
+//            	            );
+//
+//            	            dto.setIsTimesheetLockCheckEnable(
+//            	                row[24] != null ? row[24].toString() : null
+//            	            );
+
+            	            dto.setLocationSessions(new ArrayList<>());
+            	            return dto;
+            	        });
+
+            	    /* ================= LOCATION ================= */
+            	    Long locationMappingId = ((Number) row[5]).longValue();
+
+            	    LocationSessionDTO location =
+            	        timesheet.getLocationSessions()
+            	                 .stream()
+            	                 .filter(l -> locationMappingId.equals(l.getLocationMappingId()))
+            	                 .findFirst()
+            	                 .orElseGet(() -> {
+            	                     LocationSessionDTO l = new LocationSessionDTO();
+            	                     l.setLocationMappingId(locationMappingId);
+
+            	                     l.setLocationInTime(
+            	                         row[6] != null
+            	                             ? (row[6]).toString()
+            	                             : null
+            	                     );
+            	                     l.setLocationOutTime(
+            	                         row[7] != null
+            	                             ? (row[7]).toString()
+            	                             : null
+            	                     );
+
+            	                     l.setWorkLocationTypeId(((Number) row[8]).intValue());
+            	                     l.setWorkLocationType(row[9].toString());
+
+            	                     l.setProjects(new ArrayList<>());
+            	                     timesheet.getLocationSessions().add(l);
+            	                     return l;
+            	                 });
+
+            	    /* ================= PROJECT ================= */
+            	    Long projectId = ((Number) row[10]).longValue();
+            	    Long clientLocationId = row[30] != null ? ((Number) row[30]).longValue() : null;
+
+            	    ProjectTimesheetDTO project =
+            	        location.getProjects()
+            	                .stream()
+            	                .filter(p -> projectId.equals(p.getProjectId().longValue()) &&
+            	                		 Objects.equals(clientLocationId, p.getClientLocationId())
+            	                		)
+            	                .findFirst()
+            	                .orElseGet(() -> {
+            	                    ProjectTimesheetDTO p = new ProjectTimesheetDTO();
+            	                    p.setTimesheetId(timesheetId);
+            	                    p.setProjectId(projectId.intValue());
+
+            	                    p.setProjectName(row[26] != null ? row[26].toString() : null);
+//            	                    p.setClientName(row[27] != null ? row[27].toString() : null);
+            	                    p.setClientSideId(row[28] != null ? row[28].toString() : null);
+//            	                    p.setClientLocation(row[29] != null ? row[29].toString() : null);
+
+            	                    p.setPoNo(row[11] != null ? row[11].toString() : null);
+            	                    p.setPoId(row[12] != null ? ((Number) row[12]).longValue() : null);
+            	                    p.setStatus(((Number) row[13]).intValue());
+            	                    p.setClientApprovalStatus(
+            	                        row[14] != null ? ((Number) row[14]).intValue() : null
+            	                    );
+
+            	                    p.setTeamId(((Number) row[20]).longValue());
+//            	                    p.setTeamName(row[21] != null ? row[21].toString() : null);
+//            	                    p.setTeamActive(
+//            	                        row[22] != null && ((Number) row[22]).intValue() == 1
+//            	                    );
+
+            	                    p.setClientLocationId(row[30] != null ? ((Number) row[30]).longValue():null);
+            	                    p.setClientId(row[31]!=null?((Number)row[31]).longValue():null);
+            	                    p.setActivities(new ArrayList<>());
+            	                    location.getProjects().add(p);
+            	                    return p;
+            	                });
+
+            	    /* ================= ACTIVITY ================= */
+            	    ActivityTimesheetDTO activity = new ActivityTimesheetDTO();
+            	    activity.setActivityId(((Number) row[16]).longValue());
+            	    activity.setActivity(row[17].toString());
+            	    activity.setDurationMinutes(
+            	        row[18] != null ? ((Short) row[18]) : null
+            	    );
+            	    activity.setDescription(
+            	        row[19] != null ? row[19].toString() : null
+            	    );
+
+            	    project.getActivities().add(activity);
+            	});
+
+            	// FINAL RESPONSE
+            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            	response.setServiceResponse(
+            	    new ArrayList<>(timesheetMap.values())
+            	);
+            	response.setServiceMessage("Last timesheet found for employee.");
+            	
             } else {
                 // Case 4: Active employee but no timesheet found
                 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

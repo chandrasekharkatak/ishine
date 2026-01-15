@@ -118,14 +118,14 @@
                     </div>
 
                     <!-- Check-In Time -->
-                    <div class="col-lg-3 col-md-2 col-sm-6 mb-3">
+                    <div class="col-lg-3 col-md-6 col-sm-6 mb-3">
                         <app-date-time-picker label="Work Check-In" mode="time" [required]="true"
                             [(ngModel)]="apmosysInTime" (ngModelChange)="onApMoSysInTimeChange($event)">
                         </app-date-time-picker>
                     </div>
 
                     <!-- Check-Out Time -->
-                    <div class="col-lg-3 col-md-3 col-sm-6 mb-3">
+                    <div class="col-lg-3 col-md-6 col-sm-6 mb-3">
                         <app-date-time-picker label="Work Check-Out" mode="time" [required]="true"
                             [(ngModel)]="apmosysOutTime" (ngModelChange)="onApMoSysOutTimeChange($event)">
                         </app-date-time-picker>
@@ -153,8 +153,8 @@
                 </div>
 
                 <!-- LOCATION LOOP *ngFor="let location of timesheetLocations; let lIndex = index"-->
-                @for (location of timesheetLocations; track location.locationMappingId; let lIndex = $index) {
-                <div class="location-card mb-3">
+                @for (location of timesheetLocations; track location.workLocationTypeId; let lIndex = $index) {
+                <div class="location-card mb-3" [ngClass]="{ 'highlight-location': isLocationHighlighted(location) }">
                     <!-- LOCATION HEADER -->
                     <div class="location-header" (click)="toggleLocation(lIndex)">
                         <div class="d-flex align-items-center">
@@ -193,7 +193,7 @@
                                     *ngIf="timesheetLocations?.length === 1 && location.workLocationTypeId">
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="useApmosysTiming"
-                                            [(ngModel)]="useApmosysTiming" (change)="applyApmosysTiming()" />
+                                            [(ngModel)]="useApmosysTiming" (change)="applyApmosysTiming(location.workLocationTypeId)" />
                                         <label class="form-check-label" for="useApmosysTiming">
                                             Use Check In / Check Out Time
                                         </label>
@@ -201,14 +201,14 @@
                                 </div>
                                 <div class="col-md-3 mb-3" *ngIf="location.workLocationTypeId">
                                     <app-date-time-picker label="Log In" mode="time" [required]="true"
-                                        [(ngModel)]="location.locationInTime" (ngModelChange)="onHoursChange()">
+                                        [(ngModel)]="location.locationInTime" (ngModelChange)="onHoursChange()" [disabled]="disableAdd">
                                     </app-date-time-picker>
                                 </div>
 
                                 <!-- Client Out Time -->
                                 <div class="col-md-3 mb-3" *ngIf="location.workLocationTypeId">
                                     <app-date-time-picker label="Log Out" mode="time" [required]="true"
-                                        [(ngModel)]="location.locationOutTime" (ngModelChange)="onHoursChange()">
+                                        [(ngModel)]="location.locationOutTime" (ngModelChange)="onHoursChange()" [disabled]="disableAdd">
                                     </app-date-time-picker>
                                 </div>
 
@@ -390,7 +390,7 @@
                                             </div>
 
                                             <!-- Total Hours -->
-                                            <div class="row" *ngIf="isDayTypeFillable()">
+                                            <div class="row" *ngIf="isDayTypeFillable() && project.projectId">
                                                 <div class="col-md-3 mb-3">
                                                     <label class="info-label">Total Hours</label>
                                                     <input class="form-control"
@@ -400,7 +400,8 @@
                                             </div>
 
                                             <!-- ACTIVITIES SECTION (Nested in Project) -->
-                                            <div class="activities-section" *ngIf="isDayTypeFillable()">
+                                            <div class="activities-section"
+                                                *ngIf="isDayTypeFillable() && project.projectId">
                                                 <div class="section-header">
                                                     <h6 class="section-subtitle">
                                                         <i class="fa fa-tasks"></i> Activities
@@ -467,6 +468,26 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="activities-section"
+                                                *ngIf="!isDayTypeFillable() && project.projectId">
+
+                                                <div class="section-header">
+                                                    <h6 class="section-subtitle">
+                                                        <i class="fa fa-comment"></i> Description
+                                                    </h6>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-md-12">
+                                                        <label class="info-label small">Description</label>
+                                                        <textarea class="form-control" rows="2"
+                                                            placeholder="Enter description"
+                                                            [(ngModel)]="project.description"></textarea>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+
                                         </div>
                                     </div>
                                 </div>
@@ -673,10 +694,11 @@
 
 <ng-template #clientSideIdUpdateOrAddModal>
     <form #clientSideForm="ngForm" novalidate>
-         <div class="modal-body text-center position-relative">
-             <div class="info-modal">  <app-info-tooltip class="me-2" style="margin-right: 8px;" pdfPath="assets/pdfFiles/Entering client side id.pdf"
-  pdfCtaText="Client Side ID Entry Guide" iconBgColor="#8377D1" [size]="19" [content]="clientIdEntryBulletPoints">
-            </app-info-tooltip></div>
+        <div class="modal-body text-center position-relative">
+            <div class="info-modal"> <app-info-tooltip class="me-2" style="margin-right: 8px;"
+                    pdfPath="assets/pdfFiles/Entering client side id.pdf" pdfCtaText="Client Side ID Entry Guide"
+                    iconBgColor="#8377D1" [size]="19" [content]="clientIdEntryBulletPoints">
+                </app-info-tooltip></div>
             <h5>Please provide Client Side ID to continue.</h5>
 
         </div>
@@ -691,8 +713,8 @@
                             </label>
                             <input class="form-control" autocomplete="none" disabled
                                 [value]="empClientSideObj.projectName" />
-                            <span *ngIf="empClientSideObj.hasClientSideId"
-                                class="text-danger small mt-1">**If you do not have a Client Side ID, please follow the
+                            <span *ngIf="empClientSideObj.hasClientSideId" class="text-danger small mt-1">**If you do
+                                not have a Client Side ID, please follow the
                                 given format.</span>
                         </div>
                     </div>
@@ -727,8 +749,7 @@
                 Set
             </button>
             &nbsp;
-            <button type="button" class="btn btn-no-alert"
-                (click)="hideClientSideIdForm();onCancelClientSideId()">
+            <button type="button" class="btn btn-no-alert" (click)="hideClientSideIdForm();onCancelClientSideId()">
                 Cancel
             </button>
             &nbsp;

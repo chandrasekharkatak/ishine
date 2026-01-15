@@ -15,7 +15,7 @@ public class GetReporteesTimesheetActivitiesDTO {
 
 	private String activity;
     private String activityDescription;
-    private Short durationMinutes;
+    private String durationMinutes;
     private String teamName;
     
 }

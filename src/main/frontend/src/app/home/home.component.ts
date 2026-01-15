@@ -290,6 +290,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
 
    
+location: any;
+act: any;
+project: any;
+timesheet: any;
 
   constructor(
     private modalService: NgbModal,
@@ -3273,6 +3277,190 @@ onTimesheetSearch(searchData) {
 }
 
 
+
+
+
+timesheetList1 = [
+  {
+    empId: 'EMP001',
+    employeeName: 'Lituja',
+    date: '02 Jan 2026',
+    totalPresence: '07 hrs',
+    workCheckIn: '10:00 AM',
+    workCheckOut: '05:00 PM',
+    status: 'Submitted',
+    isSelected : false,
+    locations: [
+      {
+        locationCategory: 'CLIENT_LOCATION',
+        login: '10:00 AM',
+        logout: '12:00 PM',
+        duration: '02.00 hrs',
+        isSelected : false,
+        projects: [
+          {
+            projectId: 'PRJ001',
+            poNumber: 'ABC-DEF-OO7',
+            projectName: 'Project A',
+            clientName:"ABC client",
+            teamName: 'Alpha',
+            isSelected : false,
+            isShadow: false,
+            activities: [
+              {
+                activityName: 'Development',
+                description: 'Feature Implementation',
+                
+                hours: 1.5
+              },
+              {
+                activityName: 'Testing',
+                description: 'Unit Testing',
+                shadowFor : 'Ayush',
+                hours: 0.5
+              }
+            ]
+          },
+          {
+            projectId: 'PRJ002',
+            poNumber: 'ABC-DEF-OO7',
+            projectName: 'Project B',
+            clientName: 'XYZ Ltd',
+            teamName: 'Beta',
+            isShadow: false,
+            isSelected : false,
+            activities: [
+              {
+                activityName: 'Support',
+                description: 'Client Call',
+                shadowFor : 'Ayush',
+                hours: 1.0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        locationCategory: 'OFFICE',
+        login: '01:00 PM',
+        logout: '05:00 PM',
+        duration: '04.00 hrs',
+        projects: [
+          {
+            projectId: 'PRJ003',
+            poNumber: 'ABC-DEF-OO7',
+            projectName: 'ApMoSys',
+            teamName: 'Core',
+            clientName:"ABC client",
+            isSelected : false,
+            isShadow: false,
+            activities: [
+              {
+                activityName: 'Documentation',
+                description: 'API Docs',
+                shadowFor : 'Ayush',
+                hours: 1.0
+              },
+              {
+                activityName: 'Meeting',
+                description: 'Sprint Planning',
+                shadowFor : 'Ayush',
+                hours: 1.0
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+];
+
+expandedTimesheetIndex: number | null = null;
+expandedProjectIndex: number | null = null;
+
+/* EMPLOYEE ACCORDION */
+toggleAccordion(index: number): void {
+  if (this.expandedTimesheetIndex === index) {
+    this.expandedTimesheetIndex = null;     // close employee
+    this.expandedProjectIndex = null;       // close project
+  } else {
+    this.expandedTimesheetIndex = index;    // open employee
+    this.expandedProjectIndex = null;       // reset project
+  }
+}
+
+/* PROJECT ACCORDION */
+toggleProject(projectIndex: number): void {
+  if (this.expandedProjectIndex === projectIndex) {
+    this.expandedProjectIndex = null;       // close project
+  } else {
+    this.expandedProjectIndex = projectIndex; // open project
+  }
+}
+
+
+
+onEmployeeToggle(timesheet: any) {
+  timesheet.locations.forEach((loc: any) => {
+    loc.projects.forEach((proj: any) => {
+      proj.isSelected = timesheet.isSelected;
+
+      proj.activities.forEach((act: any) => {
+        act.isSelected = timesheet.isSelected;
+      });
+    });
+  });
+}
+onProjectToggle(timesheet: any, project: any) {
+  project.activities.forEach((act: any) => {
+    act.isSelected = project.isSelected;
+  });
+
+  // Update employee checkbox
+  timesheet.isSelected = timesheet.locations
+    .flatMap((l: any) => l.projects)
+    .every((p: any) => p.isSelected);
+}
+onActivityToggle(timesheet: any, project: any) {
+  // Update project checkbox
+  project.isSelected = project.activities.every(
+    (act: any) => act.isSelected
+  );
+
+  // Update employee checkbox
+  timesheet.isSelected = timesheet.locations
+    .flatMap((l: any) => l.projects)
+    .every((p: any) => p.isSelected);
+}
+
+// allTeamTimesheets: any[] = [];
+
+// selectAllTimesheet(event){
+//   this.bulkApprove = [];
+//  this.bulkReject = [];
+
+//  const checkboxes = document.querySelectorAll('.timesheet-req-checkbox');
+//  checkboxes.forEach((checkbox: any) => {
+//    //console.log("checkbox : ", checkbox);
+//    let checkboxIndex = checkbox.getAttribute('id');
+//    let checkedTimesheet = this.allTeamTimesheets.find((_timesheet, index) => _timesheet.checkId == checkboxIndex);
+
+//    if (event.target.checked) {
+//      checkbox.checked = true;
+//      this.bulkApprove.push(checkedTimesheet);
+//      this.bulkReject.push(checkedTimesheet);
+//    } else {
+//      checkbox.checked = false;
+//      this.bulkApprove.forEach((timesheet, index) => {
+//        if (timesheet == checkedTimesheet) this.bulkApprove.splice(index, 1);
+//      });
+//      this.bulkReject.forEach((timesheet, index) => {
+//        if (timesheet == checkedTimesheet) this.bulkReject.splice(index, 1);
+//      });
+//    }
+//  });
+// }
+
 zoomIn() {
   if (this.zoomScale < 2.5) {
     this.zoomScale += 0.1;
@@ -3320,9 +3508,13 @@ resetPreviewState() {
   this.isDragging = false;
 }
 
-
+redirectToViewTeamTimesheet(){
+  this.router.navigate(["/user-timesheet/team-timesheet"]);
+}
 
 }
+
+
 
 
 // Move compare function outside the class

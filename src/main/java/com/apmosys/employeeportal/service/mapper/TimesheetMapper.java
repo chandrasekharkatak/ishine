@@ -26,6 +26,7 @@ import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.ProjectTimesheetStatusId;
 import com.apmosys.employeeportal.model.ProjectTimesheetStatusNew;
 import com.apmosys.employeeportal.utility.DateConversionUtil;
+import com.apmosys.employeeportal.utility.TimesheetFormatUtil;
 
 /**
  * Mapper class for converting between DTOs and Entities.
@@ -124,7 +125,6 @@ public class TimesheetMapper {
         entity.setTotalClientWorkingMinutes(dto.getTotalClientWorkingMinutes());
         entity.setClientLocationId(dto.getClientLocationId() != null ? Integer.valueOf(dto.getClientLocationId().toString()) : null);
         entity.setClientSideId(dto.getClientSideId());
-        entity.setIsNightShift(dto.getIsNightShift() == null ? false : dto.getIsNightShift());
 
         return entity;
     }
@@ -267,10 +267,10 @@ public class TimesheetMapper {
                                     r.getEmpId(),
                                     r.getEmployeeName(),
                                     r.getDayType(),
-                                    r.getDate(),
+                                    TimesheetFormatUtil.formatDate(r.getDate()),
                                     r.getIsNightShift(),
-                                    r.getWorkCheckIn(),
-                                    r.getWorkCheckOut(),
+                                    TimesheetFormatUtil.formatTime(r.getWorkCheckIn()),
+                                    TimesheetFormatUtil.formatTime(r.getWorkCheckOut()),
                                     new ArrayList<>(),
                                     new ArrayList<>()
                             )
@@ -288,8 +288,8 @@ public class TimesheetMapper {
                                 GetReporteesTimesheetLocationsDTO loc =
                                         new GetReporteesTimesheetLocationsDTO(
                                                 r.getWorkLocationType(),
-                                                r.getLocationInTime(),
-                                                r.getLocationOutTime(),
+                                                TimesheetFormatUtil.formatTime(r.getLocationInTime()),
+                                                TimesheetFormatUtil.formatTime(r.getLocationOutTime()),
                                                 r.getLocationMappingId(),
                                                 new ArrayList<>()
                                         );
@@ -316,7 +316,7 @@ public class TimesheetMapper {
                                                 r.getPoNo(),
                                                 r.getShadowEmp(),
                                                 r.getStatus(),
-                                                r.getTotalClientWorkingMinutes(),
+                                                TimesheetFormatUtil.formatMinutes(r.getTotalClientWorkingMinutes()),
                                                 r.getDescription(),
                                                 new ArrayList<>()
                                         );
@@ -332,7 +332,7 @@ public class TimesheetMapper {
                         new GetReporteesTimesheetActivitiesDTO(
                                 r.getActivity(),
                                 r.getActivityDescription(),
-                                r.getDurationMinutes(),
+                                TimesheetFormatUtil.formatMinutes(r.getDurationMinutes()),
                                 r.getTeamName()
                         );
 
