@@ -235,6 +235,8 @@ public class TimesheetServiceNew {
 	        
 			employeeAssignmentValidationService.validateEmployeeAssignments(empDTO.getEmpId(), empDTO.getDate(),
 					empDTO.getLocationSessions());
+			
+        	timesheetValidationHelper.validateDayTypeAgainstLeave(empDTO.getEmpId(), empDTO.getDate(),empDTO.getDayTypeId());
 
 	        
 	        EmployeeTimesheetsNew existing=timesheetValidationHelper.validateTimesheetAlreadyExists(
@@ -262,13 +264,7 @@ public class TimesheetServiceNew {
 	               
 	                timesheetValidationHelper.validateUploadedDocuments(empDTO,documents);
 	                
-	                //TODO Validate Half Day for leave taken 0.5 
-	                /*
-	                 * Scenario-1=>Employee applied a single day leave for half day
-	                 * Scenario-2=>Employee applied a for multiple days where 
-	                 * either start day is half day leave or end day is half day leave
-	                 * 
-	                 * */
+	               
 	        }else {
 	        	   timesheetValidationHelper.validateNonWorkingDayTimesheet(empDTO);
 	         }

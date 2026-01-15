@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
-import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
@@ -57,9 +56,7 @@ public class EmployeeAssignmentValidationService {
             validateProjects(empId, date, location);
         }
     }
-
-    /* -------------------- PROJECT + TEAM VALIDATION -------------------- */
-
+    
     private void validateProjects(
             Long empId,
             LocalDate date,
@@ -70,38 +67,68 @@ public class EmployeeAssignmentValidationService {
         }
 
         for (ProjectTimesheetDTO project : location.getProjects()) {
-        	
-        	//TODO can we validate selected project is correct or not for 
-        	//timesheet date as start date end date may be null(does all or billable only project contains start and end date)
 
-            // 1 Project ↔ Team validation
-            Team team = validateProjectTeamMapping(
+            // Validate project existence (basic sanity)
+            validateProjectExists(project.getProjectId());
+
+            // Activity-driven validation
+            validateActivities(
+                    empId,
+                    date,
                     project.getProjectId(),
-                    project.getTeamId()
+                    project.getActivities()
             );
+        }
+    }
+    
+    private void validateActivities(
+            Long empId,
+            LocalDate date,
+            Integer projectId,
+            List<ActivityTimesheetDTO> activities) {
+
+        if (activities == null || activities.isEmpty()) {
+            return;
+        }
+
+        for (ActivityTimesheetDTO activity : activities) {
+
+            Long teamId = activity.getTeamId();
+
+            if (teamId == null) {
+                throw new IllegalArgumentException(
+                        "Team is mandatory for activity. "
+                      + "ActivityId=" + activity.getActivityId()
+                    );
+            }
+
+            // 1️ Project ↔ Team validation
+            validateProjectTeamMapping(projectId, teamId);
 
             // 2️ Employee ↔ Team (date-based)
-            validateEmployeeTeamMapping(
-                    empId,
-                    team.getTeamId(),
-                    date
-            );
+            validateEmployeeTeamMapping(empId, teamId, date);
 
             // 3️ Activity ↔ Team validation
-            validateActivitiesForTeam(
-                    project.getActivities(),
-                    team.getTeamId()
+            validateActivityBelongsToTeam(
+                    activity.getActivityId(),
+                    teamId
+            );
+        }
+    }
+    
+    private void validateProjectExists(Integer projectId) {
+        if (!projectRepository.existsById(projectId)) {
+            throw new IllegalArgumentException(
+                    "Invalid project selected. ProjectId=" + projectId
             );
         }
     }
 
-    /* -------------------- RULE 1: PROJECT ↔ TEAM -------------------- */
-
-    private Team validateProjectTeamMapping(
+    private void validateProjectTeamMapping(
             Integer projectId,
             Long teamId) {
 
-        Team team = projectTeamMappingRepository
+        projectTeamMappingRepository
                 .findByTeamIdAndProjectIdAndIsActive(
                         teamId,
                         projectId,
@@ -109,18 +136,12 @@ public class EmployeeAssignmentValidationService {
                 )
                 .orElseThrow(() ->
                         new IllegalArgumentException(
-                                "Selected team is not active or "
-                              + "not mapped to the selected project. "
+                                "Team is not mapped to the selected project. "
                               + "ProjectId=" + projectId
                               + ", TeamId=" + teamId
                         ));
-
-        return team;
     }
-
-    /* -------------------- RULE 2 & 4: EMPLOYEE ↔ TEAM (DATE VALID) -------------------- */
-
-    private void validateEmployeeTeamMapping(
+   private void validateEmployeeTeamMapping(
             Long empId,
             Long teamId,
             LocalDate date) {
@@ -128,7 +149,8 @@ public class EmployeeAssignmentValidationService {
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(23, 59, 59);
 
-        boolean exists = employeeTeamMappingRepository
+        boolean exists =
+                employeeTeamMappingRepository
                         .existsEmployeeTeamMappingForDate(
                                 empId,
                                 teamId,
@@ -146,35 +168,26 @@ public class EmployeeAssignmentValidationService {
             );
         }
     }
-
-    /* -------------------- RULE 3: ACTIVITY ↔ TEAM -------------------- */
-
-    private void validateActivitiesForTeam(
-            List<ActivityTimesheetDTO> activities,
+    
+    private void validateActivityBelongsToTeam(
+            Long activityId,
             Long teamId) {
 
-        if (activities == null || activities.isEmpty()) {
-            return;
-        }
+        boolean exists =
+                teamActivityMappingRepository
+                        .existsByActivityIdAndTeamId(
+                                activityId,
+                                teamId
+                        );
 
-        for (ActivityTimesheetDTO activityDTO : activities) {
-
-            boolean exists =
-                    teamActivityMappingRepository
-                            .existsByActivityIdAndTeamId(
-                                    activityDTO.getActivityId(),
-                                    teamId
-                            );
-
-            if (!exists) {
-                throw new IllegalArgumentException(
-                        "Selected activity does not belong to "
-                      + "the employee's team. "
-                      + "ActivityId=" + activityDTO.getActivityId()
-                      + ", TeamId=" + teamId
-                );
-            }
+        if (!exists) {
+            throw new IllegalArgumentException(
+                    "Selected activity does not belong to the selected team. "
+                  + "ActivityId=" + activityId
+                  + ", TeamId=" + teamId
+            );
         }
     }
+
 
 }

@@ -291,6 +291,20 @@ public List<Object[]> getAllTeamCompOffHistoryViewHirarchy(List<Long> empIds, Lo
 	        @Param("month") int month);
 
 
+@Query(
+	    "select l " +
+	    "from EmployeeLeave l " +
+	    "where l.empId = :empId " +
+	    "and l.leaveStatusId not in (3, 5) " +
+	    "and (l.fromDate = :timesheetDate " +
+	    "     or l.toDate = :timesheetDate)"
+	)
+	List<EmployeeLeave> findActiveLeavesByEmpIdAndDate(
+	        @Param("empId") Long empId,
+	        @Param("timesheetDate") LocalDate timesheetDate);
+
+
+
 }
 
 
