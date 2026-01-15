@@ -62,8 +62,8 @@ public class ProjectTimesheetStatusNew {
 	@Column(name="description")
 	private String description;
 	
-	@Column(name="client_side_id")
-	private String clientSideId;
+//	@Column(name="client_side_id")
+//	private String clientSideId;
 
     @Column(name = "client_side_id")
     private String clientSideId;

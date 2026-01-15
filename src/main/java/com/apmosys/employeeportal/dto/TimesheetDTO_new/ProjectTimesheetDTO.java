@@ -144,7 +144,7 @@ public class ProjectTimesheetDTO {
     
     private String description;
     
-    private String clientSideId;
+//    private String clientSideId;
 
     private String clientSideId;
   

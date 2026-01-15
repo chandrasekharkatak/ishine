@@ -703,7 +703,7 @@ public class TimesheetDashboardService {
             	    activity.setActivityId(((Number) row[12]).longValue());
             	    activity.setActivity(row[13].toString());
             	    activity.setDurationMinutes(
-            	        row[14] != null ? ((Number) row[14]).intValue() : null
+            	        row[14] != null ? ((Short) row[14]) : null
             	    );
             	    activity.setDescription(row[15] != null ? row[15].toString() : null);
 
