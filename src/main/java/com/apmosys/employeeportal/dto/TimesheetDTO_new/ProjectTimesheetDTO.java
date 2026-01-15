@@ -1,10 +1,6 @@
 package com.apmosys.employeeportal.dto.TimesheetDTO_new;
 
-import java.time.LocalDateTime;
 import java.util.List;
-
-
-import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -147,7 +143,10 @@ public class ProjectTimesheetDTO {
 //    private String clientSideId;
 
     private String clientSideId;
+    
   
     private Long teamId;
+    
+    private String projectName;
 }
 

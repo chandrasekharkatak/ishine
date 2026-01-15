@@ -28,10 +28,12 @@ import com.apmosys.employeeportal.enums.DayTypeCode;
 import com.apmosys.employeeportal.enums.DayTypeTransition;
 import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
 import com.apmosys.employeeportal.model.DayTypeMasterNew;
+import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeTimesheetLocationMapping;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.DayTypeMasterNewRepository;
+import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetLocationMappingRepository;
@@ -799,45 +801,7 @@ public class TimesheetValidationHelper {
             }
         }
     }
-    
-    /**
-     * Validate that at least one project is required for working days.
-     * NEW CONTRACT: Projects come from locationSessions
-     * 
-     * @param empDTO Employee timesheet DTO from new contract
-     * @param projectDTOs List of project DTOs (flattened from locationSessions)
-     * @throws IllegalArgumentException if validation fails
-     */
-    public void validateProjectsRequiredForWorkingDays(
-             EmployeeTimesheetDTO empDTO) {
-        if (empDTO == null || empDTO.getDayTypeId() == null) {
-            return; // Cannot validate without dayTypeId
-        }
-        
-        // Check if it's a working day
-        DayTypeMasterNew dayType = dayTypeMasterNewRepository.findById(empDTO.getDayTypeId())
-                .orElse(null);
-        
-        if (dayType == null) {
-            return; // Day type not found, skip validation
-        }
-        
-        // Working day typically means dayType = "Working" (case-insensitive)
-        boolean isWorkingDay = "Working".equalsIgnoreCase(dayType.getDayType()) ||
-                              "Non-working".equalsIgnoreCase(dayType.getDayType());
-        
-        // Non-working days: Week Off, Public Holiday, Leave, Client Holiday
-        boolean isNonWorkingDay = "Week Off".equalsIgnoreCase(dayType.getDayType()) ||
-                                 "Public Holiday".equalsIgnoreCase(dayType.getDayType()) ||
-                                 "Leave".equalsIgnoreCase(dayType.getDayType()) ||
-                                 "Client Holiday".equalsIgnoreCase(dayType.getDayType());
-        
-       
-        // For non-working days, projects are optional
-        // No validation needed for non-working days
-    }
-    
-    /**
+     /**
      * Validate that timesheet does not already exist for employee and date.
      * 
      * @param empId Employee ID
@@ -1486,6 +1450,122 @@ public class TimesheetValidationHelper {
 
 	    throw new IllegalStateException("Unsupported day type transition");
 	}	
+	
+	@Autowired
+	private EmployeeLeaveRepository employeeLeaveRepository;
+    
+	private static final float HALF_DAY = 0.5f;
+
+	public void validateDayTypeAgainstLeave(
+	        Long empId,
+	        LocalDate timesheetDate,
+	        Integer dayTypeId) {
+
+	    List<EmployeeLeave> leaves =
+	            employeeLeaveRepository
+	                    .findActiveLeavesByEmpIdAndDate(empId, timesheetDate);
+
+	    // No leave → no restriction
+	    if (leaves == null || leaves.isEmpty()) {
+	        return;
+	    }
+	     
+	    DayTypeMasterNew dayType = dayTypeMasterNewRepository
+	            .findById(dayTypeId)
+	            .orElseThrow(() ->
+	                    new IllegalArgumentException("Invalid dayTypeId"));
+
+	    DayTypeCode incomingDayType =
+	            DayTypeCode.fromDbValue(dayType.getDayType());
+
+	    // Evaluate all leaves affecting this date
+	    for (EmployeeLeave leave : leaves) {
+
+	        validateSingleLeaveForDate(
+	                leave,
+	                timesheetDate,
+	                incomingDayType  
+	        );
+	    }
+
+	}
+	
+	
+	private void validateSingleLeaveForDate(
+	        EmployeeLeave leave,
+	        LocalDate timesheetDate,
+	        DayTypeCode incomingDayType) {
+
+	    LocalDate fromDate = leave.getFromDate();
+	    LocalDate toDate   = leave.getToDate();
+
+	    // Single-day leave
+	    if (fromDate.equals(toDate)) {
+	        validateLeaveDayType(
+	                leave.getFromDateDayType(),
+	                incomingDayType
+	        );
+	        return;
+	    }
+
+	    // From date
+	    if (timesheetDate.equals(fromDate)) {
+	        validateLeaveDayType(
+	                leave.getFromDateDayType(),
+	                incomingDayType
+	        );
+	        return;
+	    }
+
+	    // To date
+	    if (timesheetDate.equals(toDate)) {
+	        validateLeaveDayType(
+	                leave.getToDateDayType(),
+	                incomingDayType
+	        );
+	        return;
+	    }
+
+	    // Middle date → always full-day leave
+	    if (timesheetDate.isAfter(fromDate)
+	            && timesheetDate.isBefore(toDate)) {
+
+	        throw new IllegalArgumentException(
+	                "Timesheet cannot be created because employee "
+	                        + "is on leave for the selected date."
+	                  );
+
+	    }
+	}
+	
+	
+	private void validateLeaveDayType(
+	        Float leaveDayType,
+	        DayTypeCode incomingDayType) {
+
+	    if (Float.valueOf(HALF_DAY).equals(leaveDayType)) {
+
+	        if (incomingDayType != DayTypeCode.HALF_DAY_WORKING) {
+	            throw new IllegalArgumentException(
+	                    "Only Half-Day timesheet is allowed because "
+	                            + "a half-day leave exists on the selected date."
+	                      );
+	        }
+	        return;
+	    }
+
+	    // Full-day leave
+	    throw new IllegalArgumentException(
+	            "Timesheet cannot be created because employee "
+	                    + "is on leave for the selected date."
+	              );
+
+	}
+
+
+
+
+
 	
 	
 	
