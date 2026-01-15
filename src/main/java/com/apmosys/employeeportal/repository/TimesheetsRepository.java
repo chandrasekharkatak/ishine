@@ -7951,7 +7951,8 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			            p.client_name,
 			            ecsm.client_side_id,
 			            cl.client_location,
-			            ptsn.client_location_id
+			            ptsn.client_location_id,
+			            p.client_id
 			        FROM latest_timesheet lt
 			        INNER JOIN employee_timesheets_new etn
 			            ON etn.timesheet_id = lt.timesheet_id

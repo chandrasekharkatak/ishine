@@ -696,6 +696,8 @@ public class TimesheetDashboardService {
 //            	                        row[22] != null && ((Number) row[22]).intValue() == 1
 //            	                    );
 
+            	                    p.setClientLocationId(row[30] != null ? ((Number) row[30]).longValue():null);
+            	                    p.setClientId(row[31]!=null?((Number)row[31]).longValue():null);
             	                    p.setActivities(new ArrayList<>());
             	                    location.getProjects().add(p);
             	                    return p;
