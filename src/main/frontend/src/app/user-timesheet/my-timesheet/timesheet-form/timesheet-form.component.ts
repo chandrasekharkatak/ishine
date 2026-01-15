@@ -89,35 +89,12 @@ export class TimesheetFormComponent implements OnInit {
 
   // File upload properties
   selectedFile: File[] = [];
-  // selectedFile2: File | null = null;
-  previewUrl1: SafeResourceUrl | null = null;
-  previewUrl2: SafeResourceUrl | null = null;
-  rawObjectUrl1: string | null = null;
-  rawObjectUrl2: string | null = null;
-  fileError1: string = '';
-  fileError2: string = '';
-  fileName1: string = '';
-  fileName2: string = '';
   activePreviewUrl: SafeResourceUrl | null = null;
   activeFileType: string | null = null;
   createOrUpdateObj: EmployeeTimesheetDTO = new EmployeeTimesheetDTO();
   clientApprovalStatusList: any[];
   workLocationList: any[];
   isNightShift: boolean = false;
-  documentList: TimesheetDocument[] = [];
-  // documentData: {
-  //   docId: number;
-  //   projectId: number;
-  //   docType: 'Filled' | 'Approved';
-  //   // file: File;
-  //   previewUrl: SafeResourceUrl;
-  //   rawObjectUrl: string;
-  //   fileError: string;
-  //   fileType: '' | 'pdf' | 'image' | null;
-  //   fileName: string;
-  //   fileSize: number;
-  // }[] = [];
-
   documentData: TimesheetDocumentDataI[] = [];
   @Input() autoFillTimesheet: boolean = false;
   activeRawObjectUrl: any;
@@ -247,12 +224,15 @@ export class TimesheetFormComponent implements OnInit {
   /**
    * Add a new location to the timesheet
    */
-  applyApmosysTiming(): void {
+  applyApmosysTiming(workLocatioId: number): void {
 
     if (this.useApmosysTiming) {
+      this.timesheetLocations = [this.createLocation()];
       this.disableAdd = true
+      this.timesheetLocations[0].workLocationTypeId = workLocatioId;
       this.timesheetLocations[0].locationInTime = this.apmosysInTime;
       this.timesheetLocations[0].locationOutTime = this.apmosysOutTime;
+      this.onLocationSelect(this.timesheetLocations[0]);
     } else {
       // OPTION 1: Clear timings when unchecked
       this.disableAdd = false
@@ -610,6 +590,7 @@ export class TimesheetFormComponent implements OnInit {
     // this.getAllAvailableTimesheetByEmpId(userObj);
   }
 
+  //Autofill part to be done
   resetTimesheetFormForAutoFill() {
 
   }
@@ -1242,6 +1223,9 @@ export class TimesheetFormComponent implements OnInit {
    */
   onApMoSysInTimeChange(time: string): void {
     this.apmosysInTime = time;
+    if(this.useApmosysTiming){
+      this.timesheetLocations[0].locationInTime = this.apmosysInTime;
+    }
     console.log("In time changed to", time);
     this.calculateTotalWorkingHours();
   }
@@ -1251,6 +1235,9 @@ export class TimesheetFormComponent implements OnInit {
    */
   onApMoSysOutTimeChange(time: string): void {
     this.apmosysOutTime = time;
+    if(this.useApmosysTiming){
+      this.timesheetLocations[0].locationOutTime = this.apmosysOutTime;
+    }
     console.log("Out time changed to", time);
     this.calculateTotalWorkingHours();
   }
@@ -1536,7 +1523,7 @@ export class TimesheetFormComponent implements OnInit {
     return `${hour}:${minute}:00`;  // Returns "2026-01-08 09:30:00" or "2026-01-08 19:30:00"
   }
 
-  resetForm(){
+  resetForm() {
     this.dayType = null;
     this.apmosysInTime = null;
     this.apmosysOutTime = null;
@@ -1554,58 +1541,9 @@ export class TimesheetFormComponent implements OnInit {
       const [day, month, year] = dateStr.split('-');
       return `${year}-${month}-${day}`;  // Convert "08-01-2026" to "2026-01-08"
     };
-    let hasValidationError = false;
-
-    this.timesheetLocations.forEach((location, index) => {
-
-      const selectedLocationData = this.workLocationList.find(
-        l => l.workLocationTypeId === location.workLocationTypeId
-      );
-
-      // ✅ IN TIME VALIDATION
-      const inTimeVal = this.validateLocationInTime(
-        location.locationInTime,
-        this.fromDate,
-        this.apmosysInTime
-      );
-
-      if (!inTimeVal) {
-        this.openAlertMod(
-          this.alertTemplate,
-          `The Log-In time for the location ${selectedLocationData?.code} is less than Work Check In time`
-        );
-
-        this.highlightLocationList.push(location.workLocationTypeId);
-        hasValidationError = true;
-        return;
-      }
-
-      // ✅ OUT TIME VALIDATION
-      const outTimeVal = this.validateLocationOutTime(
-        location.locationOutTime,
-        this.fromDate,
-        this.apmosysOutTime,
-        this.isNightShift,
-        this.toDate
-      );
-
-      if (!outTimeVal) {
-        this.openAlertMod(
-          this.alertTemplate,
-          `The Log-Out time for the location ${selectedLocationData?.code} is more than Work Check Out time`
-        );
-
-        this.highlightLocationList.push(location.workLocationTypeId);
-        hasValidationError = true;
-        return;
-      }
-    });
-
-    // STOP & HIGHLIGHT UI
-    if (hasValidationError) {
-      this.applyHighlightAndExpand();
-      return;
-    }
+    let hasValidationError = null
+    hasValidationError = this.validationService(this.timesheetLocations);
+    if (hasValidationError) return;
     const dataSet = this.timesheetLocations
     this.createOrUpdateObj = {
       createdBy: this.currentUser.empId,
@@ -1616,8 +1554,8 @@ export class TimesheetFormComponent implements OnInit {
       timesheetId: null,
       // date: this.formatDDMMYYYY(new Date(this.fromDate as string)),
       date: convertToYYYYMMDD(this.fromDate),
-      workCheckIn: [4,6,7].includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysInTime, convertToYYYYMMDD(this.fromDate)),
-      workCheckOut: [4,6,7].includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate)),
+      workCheckIn: [4, 6, 7].includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysInTime, convertToYYYYMMDD(this.fromDate)),
+      workCheckOut: [4, 6, 7].includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate)),
       currentManagerId: this.currentUser.managerId,
       totalWorkingMinutes: this.totalPresence * 60,
       locationSessions: dataSet,
@@ -1625,13 +1563,13 @@ export class TimesheetFormComponent implements OnInit {
     }
 
     this.createOrUpdateObj.locationSessions.forEach((location: LocationEntry) => {
-      location.locationInTime = [4,6,7].includes(this.dayType) ? null : this.formatDateTimeForBackend(location.locationInTime, convertToYYYYMMDD(this.fromDate));
-      location.locationOutTime = [4,6,7].includes(this.dayType) ? null : this.formatDateTimeForBackend(location.locationOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate));
+      location.locationInTime = [4, 6, 7].includes(this.dayType) ? null : this.formatDateTimeForBackend(location.locationInTime, convertToYYYYMMDD(this.fromDate));
+      location.locationOutTime = [4, 6, 7].includes(this.dayType) ? null : this.formatDateTimeForBackend(location.locationOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate));
       location.projects.forEach((project: ProjectEntry) => {
-        if(![4,6,7].includes(this.dayType)) {
+        if (![4, 6, 7].includes(this.dayType)) {
           project?.activities?.forEach((activity: ActivityNew) => {
-          activity.durationMinutes = activity.durationMinutes * 60;
-        });
+            activity.durationMinutes = activity.durationMinutes * 60;
+          });
         } else {
           project.activities = null;
         }
@@ -1674,8 +1612,286 @@ export class TimesheetFormComponent implements OnInit {
     return this.highlightLocationIdSet.has(location.workLocationTypeId);
   }
 
-  validationService() {
+  validationService(timesheetData: LocationEntry[]): boolean {
 
+    /* ----------------------------------
+     * BASIC VALIDATIONS
+     * ---------------------------------- */
+
+    if (!this.timesheetFilledForUser?.empId) {
+      return this.failValidation('Employee selection is required');
+    }
+
+    if (
+      this.timesheetAppliedFor === 'TEAM' &&
+      this.currentUser?.empId === this.timesheetFilledForUser.empId
+    ) {
+      return this.failValidation('You cannot select yourself for Team Timesheet');
+    }
+
+    if (!this.dayType) {
+      return this.failValidation('Day type cannot be null');
+    }
+
+    if (!this.fromDate) {
+      return this.failValidation('Date / From Date cannot be null');
+    }
+
+    if (new Date(this.fromDate) > new Date()) {
+      return this.failValidation('Date / From Date cannot be a future date');
+    }
+
+    if (this.isNightShift && this.isDayTypeFillable() && !this.toDate) {
+      return this.failValidation('To Date is required for Night Shift');
+    }
+
+    if (
+      this.isNightShift &&
+      this.isDayTypeFillable() &&
+      this.toDate <= this.fromDate
+    ) {
+      return this.failValidation('To Date must be after From Date');
+    }
+
+    if (this.isNightShift && !this.isDayTypeFillable()) {
+      return this.failValidation('Night shift not allowed for selected day type');
+    }
+
+    if (this.isDayTypeFillable() && !this.apmosysInTime) {
+      return this.failValidation('Work check in time must be filled');
+    }
+
+    if (!this.isDayTypeFillable() && this.apmosysInTime) {
+      return this.failValidation(
+        'Work check in time cannot be filled for this day type'
+      );
+    }
+
+    if (this.isDayTypeFillable() && !this.apmosysOutTime) {
+      return this.failValidation('Work check out time must be filled');
+    }
+
+    if (!this.isDayTypeFillable() && this.apmosysOutTime) {
+      return this.failValidation(
+        'Work check out time cannot be filled for this day type'
+      );
+    }
+
+    if (this.isDayTypeFillable() && this.totalPresence === 0) {
+      return this.failValidation('Your total presence cannot be 0');
+    }
+
+    if (!this.isDayTypeFillable() && this.totalPresence > 0) {
+      return this.failValidation(
+        'Total presence cannot be greater than 0 for this day type'
+      );
+    }
+
+    /* ----------------------------------
+     * LOCATION & PROJECT VALIDATIONS
+     * ---------------------------------- */
+
+    for (const location of timesheetData) {
+
+      const selectedLocationData = this.workLocationList.find(
+        l => l.workLocationTypeId === location.workLocationTypeId
+      );
+
+      if (this.isDayTypeFillable()) {
+
+        if (
+          !this.validateLocationInTime(
+            location.locationInTime,
+            this.fromDate,
+            this.apmosysInTime
+          )
+        ) {
+          return this.failValidation(
+            `Log-In time for location ${selectedLocationData?.code} cannot be less than Work Check-In time`,
+            location.workLocationTypeId
+          );
+        }
+
+        if (
+          !this.validateLocationOutTime(
+            location.locationOutTime,
+            this.fromDate,
+            this.apmosysOutTime,
+            this.isNightShift,
+            this.toDate
+          )
+        ) {
+          return this.failValidation(
+            `Log-Out time for location ${selectedLocationData?.code} cannot exceed Work Check-Out time`,
+            location.workLocationTypeId
+          );
+        }
+      }
+
+      if (!location.projects || !location.projects[0]?.projectId) {
+        return this.failValidation(
+          `For the location ${selectedLocationData?.code} no project is provided`,
+          location.workLocationTypeId
+        );
+      }
+
+      for (let pIndex = 0; pIndex < location.projects.length; pIndex++) {
+        const project = location.projects[pIndex];
+
+        if (!project.projectId) {
+          return this.failValidation(
+            `Project ${pIndex + 1} is not selected for location ${selectedLocationData?.code}`,
+            location.workLocationTypeId
+          );
+        }
+
+        if (!project.clientId) {
+          return this.failValidation(
+            `Client is mandatory for Project ${pIndex + 1} in location ${selectedLocationData?.code}`,
+            location.workLocationTypeId
+          );
+        }
+
+        if (!project.clientLocationId) {
+          return this.failValidation(
+            `Client Location is mandatory for Project ${pIndex + 1} in location ${selectedLocationData?.code}`,
+            location.workLocationTypeId
+          );
+        }
+        if (!project.clientApprovalStatus && project.clientSideId && this.isDayTypeFillable) {
+          return this.failValidation(
+            `Client Location is mandatory for Project ${pIndex + 1} in location ${selectedLocationData?.code}`,
+            location.workLocationTypeId
+          );
+        }
+
+        if (!this.isDayTypeFillable()) {
+          return false;
+        }
+
+        // ❌ No activities
+        if (!project.activities || project.activities.length === 0) {
+          return this.failValidation(
+            `At least one activity is required for Project ${pIndex + 1} in location ${selectedLocationData?.code}`,
+            location.workLocationTypeId
+          );
+        }
+
+        for (let aIndex = 0; aIndex < project.activities.length; aIndex++) {
+          const activity = project.activities[aIndex];
+
+          if (!activity.teamId) {
+            return this.failValidation(
+              `Team is required for Activity ${aIndex + 1} in Project ${pIndex + 1} (${selectedLocationData?.code})`,
+              location.workLocationTypeId
+            );
+          }
+
+          if (!activity.activityId) {
+            return this.failValidation(
+              `Activity is required for Activity ${aIndex + 1} in Project ${pIndex + 1} (${selectedLocationData?.code})`,
+              location.workLocationTypeId
+            );
+          }
+
+          if (!activity.durationMinutes || activity.durationMinutes <= 0) {
+            return this.failValidation(
+              `Hours must be greater than 0 for Activity ${aIndex + 1} in Project ${pIndex + 1} (${selectedLocationData?.code})`,
+              location.workLocationTypeId
+            );
+          }
+        }
+        if (!this.isDayTypeFillable()) {
+          if (!project.description || project.description.trim().length === 0) {
+            return this.failValidation(
+              `Description is required for Project ${pIndex + 1} in location ${selectedLocationData?.code} for the following dayb type`,
+              location.workLocationTypeId
+            );
+          }
+        }
+
+      }
+    }
+
+    /* ----------------------------------
+     * ✅ ALL VALIDATIONS PASSED
+     * ---------------------------------- */
+    return false;
+  }
+
+  validateDocumentUploads(): boolean {
+
+    if (!this.empHasClientSideId || !this.isDayTypeFillable()) {
+      return false;
+    }
+
+    for (const project of this.uniqueProjectsList) {
+
+      // Only for approved / pending projects
+      if (project.clientApprovalStatus !== 1 && project.clientApprovalStatus !== 2) {
+        continue;
+      }
+
+      const projectDocs = this.documentData.filter(
+        d => d.projectId === project.projectId
+      );
+
+      // -------------------------------
+      // 1️⃣ Filled Attendance Proof
+      // -------------------------------
+      const filledDoc = projectDocs.find(d => d.docType === 'Filled');
+
+      if (!filledDoc || !filledDoc.uniqueIdentifier || !this.containsFile(filledDoc.uniqueIdentifier)) {
+        return this.failValidation(
+          `Filled Attendance Proof is mandatory for Project ${project.projectName}`, null
+        );
+      }
+
+      if (filledDoc.fileError) {
+        return this.failValidation(
+          `Filled Attendance Proof has an error for Project ${project.projectName}`, null
+        );
+      }
+
+      // -------------------------------
+      // 2️⃣ Approved Attendance Proof
+      // (Required only when Approved)
+      // -------------------------------
+      if (project.clientApprovalStatus === 2) {
+
+        const approvedDoc = projectDocs.find(d => d.docType === 'Approved');
+
+        if (!approvedDoc || !approvedDoc.uniqueIdentifier || !this.containsFile(approvedDoc.uniqueIdentifier)) {
+          return this.failValidation(
+            `Approved Attendance Proof is mandatory for Project ${project.projectName}`, null
+          );
+        }
+
+        if (approvedDoc.fileError) {
+          return this.failValidation(
+            `Approved Attendance Proof has an error for Project ${project.projectName}`, null
+          );
+        }
+      }
+    }
+
+    return false;
+  }
+
+
+
+  private failValidation(
+    message: string,
+    locationId?: number
+  ): boolean {
+    this.openAlertMod(this.alertTemplate, message);
+
+    if (locationId) {
+      this.highlightLocationList.push(locationId);
+    }
+
+    this.applyHighlightAndExpand();
+    return true;
   }
 
   // convertMMDDYYYToDDMMYYY
