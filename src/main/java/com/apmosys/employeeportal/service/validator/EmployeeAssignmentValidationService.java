@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
+import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
@@ -128,18 +129,19 @@ public class EmployeeAssignmentValidationService {
             Integer projectId,
             Long teamId) {
 
-        projectTeamMappingRepository
-                .findByTeamIdAndProjectIdAndIsActive(
+    	Team t=projectTeamMappingRepository
+                .findByTeamIdAndProjectId(
                         teamId,
-                        projectId,
-                        "Y"
-                )
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "Team is not mapped to the selected project. "
-                              + "ProjectId=" + projectId
-                              + ", TeamId=" + teamId
-                        ));
+                        projectId
+                );
+             if(t==null) {
+            	 throw  new IllegalArgumentException(
+                         "Team is not mapped to the selected project. "
+                       + "ProjectId=" + projectId
+                       + ", TeamId=" + teamId
+                 );
+             }
+                       
     }
    private void validateEmployeeTeamMapping(
             Long empId,
