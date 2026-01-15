@@ -36,12 +36,11 @@ export class TimesheetFormComponent implements OnInit {
   alertTemplate: TemplateRef<any>;
   @ViewChild("previewTemplate")
   previewModal: TemplateRef<any>;
-  @ViewChild("alert_message_with_reset")
-  alertModalWithoutReload: TemplateRef<any>;
   @ViewChild("clientSideIdUpdateOrAddModal")
   clientSideIdUpdateOrAddModal: TemplateRef<any>;
   clientSideIdUpdateOrAddModalRef: NgbModalRef;
   alertWithResetModRef: NgbModalRef;
+  modalRef: NgbModalRef;
   @Input() isCreation: boolean = false;
   @Input() isUpdation: boolean = false;
   @Input() isView: boolean = false;
@@ -49,24 +48,19 @@ export class TimesheetFormComponent implements OnInit {
   @Input() isAutoFilled: boolean = false;
   isTimesheetLockCheckEnable: any = "true";
   // timesheetObj: Timesheet = new Timesheet();
+  selectedTeamMember: any;
   timesheetFilledForUser: User = new User();
   dayType: number;
-  timesheetAppliedFor: any = 'self';
+  timesheetAppliedFor: string ;
   selectedLocationId: any = null;
   teamMemberList: any[] = [];
   currentUser: User = new User();
-  userMapping: any = {};
-  serverDate: any;
-  errorMsg: string;
-  modalRef: NgbModalRef;
   alertMessage: string;
   disableCreateUpdateTimesheet: boolean = false;
   fromDate: any = null;
   toDate: any = null;
   disableAdd: boolean = false;
-  allTimesheetActivities: any[] = [];
   allProjectsList: any[] = [];
-  clientList: any[] = [];
   clientLocationList: any[] = [];
   projectList: any[] = [];
   availableTimesheets: any[] = [];
@@ -111,6 +105,7 @@ export class TimesheetFormComponent implements OnInit {
   translateY = 0;
   highlightLocationList: number[] = [];
   highlightLocationIdSet = new Set<number>();
+  activeProjectListByEmpId: any[] = []
   clientIdEntryBulletPoints: string[] = ["Mandatory field for all resources while filling the timesheet.",
     "Enter the client-side ID if already available.",
     "If the client-side ID is not yet assigned, enter “NA (ApMoSys Employee ID)”.",
@@ -124,6 +119,8 @@ export class TimesheetFormComponent implements OnInit {
 
   ngOnInit(): void {
     // Initialize with one location
+    this.timesheetAppliedFor = 'self';
+    this.onTimesheetAppliedForChange();
     this.getAllWorkLocationFromLocationMaster();
     this.addLocation(null);
     this.getAllDayTypes();
@@ -132,6 +129,10 @@ export class TimesheetFormComponent implements OnInit {
 
   }
 
+
+  disableEmployee = (employee: any): boolean => {
+  return employee?.empId === this.currentUser?.empId;
+  };
 
   isDayTypeFillable(): boolean {
     if (this.dayType == 1 || this.dayType == 3 || this.dayType == 8) return true;
@@ -518,33 +519,16 @@ export class TimesheetFormComponent implements OnInit {
 
 
   }
-  activeProjectListByEmpId: any[] = []
-  onTimesheetAppliedForChange(value: string): void {
-
-    this.timesheetAppliedFor = value;
-
-
+  
+  onTimesheetAppliedForChange(): void {
     if (this.timesheetAppliedFor.toLocaleLowerCase() === 'self') {
 
-      this.resetTimesheetFormForAutoFill();
+      this.resetForm();
       this.getTimesheetMetadata();
-      // this.timesheetNewService.getActiveProjectsAndClientSideIdByEmpId(+this.currentUser.empId).pipe(first()).subscribe((response: any) => {
-      //   if (response.serviceStatus == "Success") {
-      //     this.activeProjectListByEmpId = response.serviceResponse;
-      //     console.log("all project list",this.activeProjectListByEmpId)
-      //   } else {
-      //     console.error(response.serviceResponse)
-      //   }
-      // })
-
-
     }
     else {
-
-      this.resetTimesheetFormForAutoFill();
-
+      this.resetForm();
       this.getAllTeamMemberList();
-
     }
 
   }
@@ -552,52 +536,25 @@ export class TimesheetFormComponent implements OnInit {
     this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
-  getTimesheetMetadata(eventTarget?: any) {
-    //console.log("timesheet Obj For getTimesheetMetadata : ", this.timesheetObj);
-
+  getTimesheetMetadata() {
     let userObj: User = new User();
     if (this.timesheetAppliedFor.toLocaleLowerCase() == 'self') {
-      this.timesheetFilledForUser = new User();
       userObj.empId = this.currentUser.empId;
       userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
-      this.timesheetFilledForUser = userObj;
-
     } else {
-      this.timesheetFilledForUser = new User();
       console.log("Team member list is", this.teamMemberList);
       let teamMember = this.teamMemberList.find(employee => employee.empId == this.timesheetFilledForUser.empId)
       console.log("Team member is ", teamMember);
       userObj.empId = teamMember?.empId;
       userObj.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
-      this.timesheetFilledForUser = userObj;
+     
     }
-
-    // const timesheetBkp = Object.assign({}, this.timesheetObj);
-
-    // // reset timesheet
-    // this.timesheetObj = new Timesheet();
-    // this.timesheetObj.dayType = '';
-    // this.allTimesheetActivities = [];
-    // // this.addInputActivityField()
-
-    // // set leave AppliedFor User data to fetch activities for project & for display
-    // this.timesheetObj.timesheetAppliedFor = timesheetBkp.timesheetAppliedFor;
-    // this.timesheetObj.empId = timesheetBkp.empId;
-
-    // //console.log("preset Timesheet : ", this.timesheetObj);
-
-    // this.getAllProjectsByEmpId(userObj.empId);
-    // this.getAllAvailableTimesheetByEmpId(userObj);
+     this.timesheetFilledForUser = userObj;
   }
 
   //Autofill part to be done
-  resetTimesheetFormForAutoFill() {
-
-  }
   getAllTeamMemberList() {
-    this.resetTimesheetFormForAutoFill();
-
-    this.errorMsg = '';
+    this.resetForm();
     let employeeObj = new Employee();
     employeeObj.empId = this.currentUser.empId;
     this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response: any) => {
@@ -605,7 +562,6 @@ export class TimesheetFormComponent implements OnInit {
         this.teamMemberList = response.serviceResponse;
       } else {
         console.error(response.serviceResponse);
-        this.errorMsg = response.serviceResponse;
       }
     });
   }

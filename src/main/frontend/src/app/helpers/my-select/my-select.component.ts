@@ -26,6 +26,8 @@ export class MySelectComponent implements ControlValueAccessor, OnInit {
   @Input() displayKey: string | string[] = '';
   @Input() displaySeparator: string = ' ';
   @Input() valueKey;
+  @Input() optionDisabledKey?: string; // e.g. 'disabled'
+  @Input() isOptionDisabled?: (option: any) => boolean;
   @Output() selectionChange = new EventEmitter<any>();
   @Output() change = new EventEmitter<any>();
   @Output() dropdownClosed = new EventEmitter<void>();
@@ -48,10 +50,36 @@ export class MySelectComponent implements ControlValueAccessor, OnInit {
 
   // Called when selection changes
  onSelectionChange(value: any): void {
+
+  // Block readonly / disabled component
   if (this.disable || this.readonly) {
-    // revert to previous value
     this.writeValue(this.selectedValue);
     return;
+  }
+
+  // Block disabled options (single & multi)
+  if (this.multiple) {
+    const invalid = (value || []).some(v =>
+      this.isDisabledOption(
+        this.options.find(o =>
+          this.valueKey ? o[this.valueKey] === v : o === v
+        )
+      )
+    );
+
+    if (invalid) {
+      this.writeValue(this.selectedValue);
+      return;
+    }
+  } else {
+    const opt = this.options.find(o =>
+      this.valueKey ? o[this.valueKey] === value : o === value
+    );
+
+    if (this.isDisabledOption(opt)) {
+      this.writeValue(this.selectedValue);
+      return;
+    }
   }
 
   this.selectedValue = value;
@@ -60,6 +88,7 @@ export class MySelectComponent implements ControlValueAccessor, OnInit {
   this.selectionChange.emit(this.sort(value));
   this.change.emit(this.sort(value));
 }
+
 
 
   sort(value: any) {
@@ -203,5 +232,24 @@ getDisplayText(option: any): string {
 setDisabledState(isDisabled: boolean): void {
   this.disable = isDisabled;
 }
+
+isDisabledOption(option: any): boolean {
+  if (this.disable || this.readonly) {
+    return true;
+  }
+
+  // Function-based disabling (highest priority)
+  if (this.isOptionDisabled) {
+    return this.isOptionDisabled(option);
+  }
+
+  // Key-based disabling
+  if (this.optionDisabledKey) {
+    return !!option?.[this.optionDisabledKey];
+  }
+
+  return false;
+}
+
 
 }

@@ -20,15 +20,63 @@
                 <!-- APPLICATION TYPE -->
                 <div class="row mb-3">
                     <div class="col-md-12">
-                        <app-my-timesheet-application-selector [timesheetAppliedFor]="timesheetAppliedFor"
+                        <!-- <app-my-timesheet-application-selector [timesheetAppliedFor]="timesheetAppliedFor"
                             [isUpdation]="isUpdation" [empId]="timesheetFilledForUser.empId"
                             [currentUserEmpId]="currentUser?.empId" [teamMemberList]="teamMemberList"
                             (applicationTypeChange)="onTimesheetAppliedForChange($event)"
-                            (teamMemberChange)="getTimesheetMetadata($event)">
-                        </app-my-timesheet-application-selector>
+                            (teamMemberChange)="getTimesheetMetadata()">
+                        </app-my-timesheet-application-selector> -->
+                        <div class="form-section">
+                            <label class="section-title">
+                                <span class="text-danger">*</span>
+                                Timesheet Application For
+                            </label>
+
+                            <div class="radio-group mt-2">
+
+                                <label class="radio-pill">
+                                    <input type="radio" name="timesheetFor" value="self" [(ngModel)]="timesheetAppliedFor" (ngModelChange)="onTimesheetAppliedForChange()"
+                                        [disabled]="isUpdation" />
+                                    <span><i class="fa fa-user me-1"></i> Self</span>
+                                </label>
+
+                                <label class="radio-pill">
+                                    <input type="radio" name="timesheetFor" value="team" [(ngModel)]="timesheetAppliedFor" (ngModelChange)="onTimesheetAppliedForChange()"
+                                        [disabled]="isUpdation" />
+                                    <span><i class="fa fa-users me-1"></i> Team Member</span>
+                                </label>
+
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <ng-container *ngIf="allDayTypes.length > 0">
+                     </div>
+                    @if(timesheetAppliedFor === 'team'){
+                        <div class="row mb-3">
+                        <div class="col-lg-3 col-md-6 col-sm-6 mb-3">
+                            <div class="form-section">
+                                <label class="section-title">
+                                    <span class="text-danger">*</span>
+                                    Team Member
+                                </label>
+                                <app-my-select class="form-control"
+                                        [options]="teamMemberList" displayKey="name" valueKey="empId" [isOptionDisabled]="disableEmployee" [(ngModel)]="selectedTeamMember" [readonly]="isUpdation">
+                                </app-my-select>
+
+
+                                <!-- <select class="form-select mt-2" [ngModel]="selectedTeamMember"
+                                    (change)="getTimesheetMetadata()" [disabled]="isUpdation">
+                                    <option value="" disabled>Select Team Member</option>
+
+                                    <option *ngFor="let teamMember of teamMemberList" [value]="teamMember.empId"
+                                        [disabled]="teamMember.empId === currentUser.empId">
+                                        {{ teamMember.name }}
+                                    </option>
+                                </select> -->
+                            </div>
+                        </div>
+                        </div>
+                    }
+                <ng-container *ngIf="allDayTypes.length > 0 && ((timesheetAppliedFor == 'self') || (timesheetAppliedFor == 'team' && selectedTeamMember))">
                     <div class="row">
                         <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
                             <div class="form-group">
@@ -193,7 +241,8 @@
                                     *ngIf="timesheetLocations?.length === 1 && location.workLocationTypeId">
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="useApmosysTiming"
-                                            [(ngModel)]="useApmosysTiming" (change)="applyApmosysTiming(location.workLocationTypeId)" />
+                                            [(ngModel)]="useApmosysTiming"
+                                            (change)="applyApmosysTiming(location.workLocationTypeId)" />
                                         <label class="form-check-label" for="useApmosysTiming">
                                             Use Check In / Check Out Time
                                         </label>
@@ -201,14 +250,16 @@
                                 </div>
                                 <div class="col-md-3 mb-3" *ngIf="location.workLocationTypeId">
                                     <app-date-time-picker label="Log In" mode="time" [required]="true"
-                                        [(ngModel)]="location.locationInTime" (ngModelChange)="onHoursChange()" [disabled]="disableAdd">
+                                        [(ngModel)]="location.locationInTime" (ngModelChange)="onHoursChange()"
+                                        [disabled]="disableAdd">
                                     </app-date-time-picker>
                                 </div>
 
                                 <!-- Client Out Time -->
                                 <div class="col-md-3 mb-3" *ngIf="location.workLocationTypeId">
                                     <app-date-time-picker label="Log Out" mode="time" [required]="true"
-                                        [(ngModel)]="location.locationOutTime" (ngModelChange)="onHoursChange()" [disabled]="disableAdd">
+                                        [(ngModel)]="location.locationOutTime" (ngModelChange)="onHoursChange()"
+                                        [disabled]="disableAdd">
                                     </app-date-time-picker>
                                 </div>
 

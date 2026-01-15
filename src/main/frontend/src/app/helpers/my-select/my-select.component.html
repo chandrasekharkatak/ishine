@@ -23,7 +23,7 @@
         {{ isAllSelected() ? 'Deselect All' : 'Select All' }}
       </strong>
     </mat-option>
-    <mat-option *ngFor="let opt of filteredOptions" [value]="valueKey?opt[valueKey]:opt" [disabled]="disable || readonly"
+    <mat-option *ngFor="let opt of filteredOptions" [value]="valueKey?opt[valueKey]:opt" [disabled]="isDisabledOption(opt)"
     [title]="getDisplayText(opt)">
       {{ getDisplayText(opt) }}
     </mat-option>
