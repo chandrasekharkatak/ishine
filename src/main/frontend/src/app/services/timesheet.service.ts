@@ -102,10 +102,6 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}` + `api/getLast7DaysTimesheetsByEmpId`, timesheetObj);
   }
 
-  /* View Reportee's Timesheets */
-  getMyReporteesTimesheetRequests(timesheetObj: Timesheet) {
-    return this.http.post(`${this.baseUrl}` + `api/getMyReporteesTimesheetRequests`, timesheetObj);
-  }
   countMyReporteesTimesheetRequests(timesheetObj: Timesheet) {
     return this.http.post(`${this.baseUrl}` + `api/countMyReporteesTimesheetRequests`, timesheetObj);
   }
@@ -284,8 +280,9 @@ export class TimesheetService {
   }
   
    
-  getAllEmployeeDSROfRM(payload:any){
-    return this.http.post(`${this.baseUrl}`+`api/getAllEmployeeDSROfRM`,payload);
+
+  getMyReporteesTimesheetRequests(payload:any){
+    return this.http.post(`${this.baseUrl}`+`api/getMyReporteesTimesheetRequests`,payload);
   }
   
    approveTimesheetRequest(payload:any){
