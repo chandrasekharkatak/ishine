@@ -247,12 +247,15 @@ export class TimesheetFormComponent implements OnInit {
   /**
    * Add a new location to the timesheet
    */
-  applyApmosysTiming(): void {
+  applyApmosysTiming(workLocatioId: number): void {
 
     if (this.useApmosysTiming) {
+      this.timesheetLocations = [this.createLocation()];
       this.disableAdd = true
+      this.timesheetLocations[0].workLocationTypeId = workLocatioId;
       this.timesheetLocations[0].locationInTime = this.apmosysInTime;
       this.timesheetLocations[0].locationOutTime = this.apmosysOutTime;
+      this.onLocationSelect(this.timesheetLocations[0]);
     } else {
       // OPTION 1: Clear timings when unchecked
       this.disableAdd = false
@@ -610,6 +613,7 @@ export class TimesheetFormComponent implements OnInit {
     // this.getAllAvailableTimesheetByEmpId(userObj);
   }
 
+  //Autofill part to be done
   resetTimesheetFormForAutoFill() {
 
   }
@@ -1242,6 +1246,9 @@ export class TimesheetFormComponent implements OnInit {
    */
   onApMoSysInTimeChange(time: string): void {
     this.apmosysInTime = time;
+    if(this.useApmosysTiming){
+      this.timesheetLocations[0].locationInTime = this.apmosysInTime;
+    }
     console.log("In time changed to", time);
     this.calculateTotalWorkingHours();
   }
@@ -1251,6 +1258,9 @@ export class TimesheetFormComponent implements OnInit {
    */
   onApMoSysOutTimeChange(time: string): void {
     this.apmosysOutTime = time;
+    if(this.useApmosysTiming){
+      this.timesheetLocations[0].locationOutTime = this.apmosysOutTime;
+    }
     console.log("Out time changed to", time);
     this.calculateTotalWorkingHours();
   }
