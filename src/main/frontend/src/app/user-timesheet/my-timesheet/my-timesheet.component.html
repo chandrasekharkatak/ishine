@@ -1,9 +1,70 @@
-<app-my-timesheet-header [userMapping]="userMapping" [isTimesheetForm]="isTimesheetForm" [isCreation]="isCreation"
+<!-- <app-my-timesheet-header [userMapping]="userMapping" [isTimesheetForm]="isTimesheetForm" [isCreation]="isCreation"
     [isTimesheetBulkForm]="isTimesheetBulkForm" [isTimesheetTable]="isTimesheetTable" [clientIdNeeded]="clientIdNeeded"
     (createTimesheetClicked)="resetTimesheetForm(); showCreateTimesheetForm()"
     (bulkUploadClicked)="resetTimesheetForm(); showBulkUploadForm()"
     (viewMyTimesheetsClicked)="resetTimesheetForm(); showViewMyTimesheets()">
-</app-my-timesheet-header>
+</app-my-timesheet-header> -->
+
+<div class="row mb-3 ml-2 mr-2">
+  <div class="col-md-12 px-0">
+    <div class="timesheet-actions">
+      <button
+        type="button"
+        class="action-btn"
+        *ngIf="userMapping.add_timesheet"
+        [class.active]="isTimesheetForm"
+        (click)="onFormTypeSelect('createTimesheet')"
+      >
+        <i class="fa fa-plus-circle me-1"></i>
+        Create Timesheet
+      </button>
+
+      <button
+        type="button"
+        class="action-btn"
+        *ngIf="userMapping.add_timesheet && clientIdNeeded"
+        [class.active]="isTimesheetBulkForm"
+        (click)="onFormTypeSelect('bulkUpload')"
+      >
+        <i class="fa fa-upload me-1"></i>
+        Bulk Upload
+      </button>
+
+      <button
+        type="button"
+        class="action-btn"
+        *ngIf="userMapping.view_my_timesheets || userMapping.update_timesheet"
+        [class.active]="isTimesheetTable"
+        (click)="onFormTypeSelect('viewMyTimesheet')"
+      >
+        <i class="fa fa-table me-1"></i>
+        My Timesheets
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<div class="row text-center mb-3">
+  <div class="card col-md-12 px-0 shadow-sm">
+    <div class="card-header timesheet-header">
+      <span *ngIf="isTimesheetForm && isCreation">
+        <i class="fa fa-edit me-2"></i> Create Timesheet
+      </span>
+
+      <span *ngIf="isTimesheetBulkForm">
+        <i class="fa fa-file-upload me-2"></i> Final Document Bulk Upload
+      </span>
+
+      <span *ngIf="isTimesheetTable">
+        <i class="fa fa-list-alt me-2"></i> My Timesheets
+      </span>
+    </div>
+  </div>
+</div>
+
+
+
 
 
 <!-- start :: Create & Update Team -->
@@ -828,6 +889,7 @@
             <app-timesheet-form 
                 [isCreation]="isCreation"
                 [isUpdation]="isUpdation"
+                [selectedDate]="selectedDate"
                 (timesheetCreated)="resetTimesheetForm(); showViewMyTimesheets()"
                 (cancel)="resetTimesheetForm()">
             </app-timesheet-form>

@@ -316,12 +316,11 @@ withoutVmsbullet:string[] = ["Applicable to resources without a client-side VMS 
     this.route.queryParams.subscribe(params => {
       if (params['date']) {
         this.isAutoFilled = true;
-        this.timesheetObj.timesheetAppliedFor = 'self';
         this.selectedDate = new Date(params['date']);
       }
-      if (this.isAutoFilled) {
-        this.loadAutofillData()
-      }
+      // if (this.isAutoFilled) {
+      //   this.loadAutofillData()
+      // }
     });
     this.clientSideIdNotMandatory = true;
     this.shadowForSelf = false;
@@ -355,7 +354,17 @@ withoutVmsbullet:string[] = ["Applicable to resources without a client-side VMS 
     })
   }
 
-  
+  onFormTypeSelect(formType:string){
+    if(formType == 'createTimesheet'){
+      this.showCreateTimesheetForm();
+    }else if(formType =='bulkUpload'){
+      this.resetTimesheetForm();
+      this.showBulkUploadForm();
+    }else if(formType =='viewMyTimesheet'){
+      this.resetTimesheetForm(); 
+      this.showViewMyTimesheets()
+    }
+  }
 
 //   openUserManualPdf(): void {
 //   const pdfPath = 'assets/pdfFiles/Ishine_Timesheet_TNM.pdf';

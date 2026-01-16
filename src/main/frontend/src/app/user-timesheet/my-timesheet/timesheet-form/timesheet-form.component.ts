@@ -45,7 +45,7 @@ export class TimesheetFormComponent implements OnInit {
   @Input() isUpdation: boolean = false;
   @Input() isView: boolean = false;
   @Input() selectedDate: Date | null = null;
-  @Input() isAutoFilled: boolean = false;
+  // @Input() isAutoFilled: boolean = false;
   isTimesheetLockCheckEnable: any = "true";
   // timesheetObj: Timesheet = new Timesheet();
   selectedTeamMember: any;
@@ -491,7 +491,8 @@ export class TimesheetFormComponent implements OnInit {
     this.timesheetNewService.getAllDayTypes().pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allDayTypes = response.serviceResponse;
-        if (this.isAutoFilled && this.allDayTypes.length > 0) {
+        if (this.selectedDate && this.allDayTypes.length > 0) {
+          console.log("autofilled");
           this.loadAutofillData(this.formatDateDDMMYYYY(this.selectedDate));
 
         }
@@ -1523,11 +1524,14 @@ export class TimesheetFormComponent implements OnInit {
       location.locationInTime = [4, 6, 7].includes(this.dayType) ? null : this.formatDateTimeForBackend(location.locationInTime, convertToYYYYMMDD(this.fromDate));
       location.locationOutTime = [4, 6, 7].includes(this.dayType) ? null : this.formatDateTimeForBackend(location.locationOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate));
       location.projects.forEach((project: ProjectEntry) => {
-        if (![4, 6, 7].includes(this.dayType)) {
-          project?.activities?.forEach((activity: ActivityNew) => {
-            activity.durationMinutes = activity.durationMinutes * 60;
-          });
-        } else {
+        // if (![4, 6, 7].includes(this.dayType)) {
+        //   project?.activities?.forEach((activity: ActivityNew) => {
+        //     activity.durationMinutes = activity.durationMinutes * 60;
+        //   });
+        // } else {
+        //   project.activities = null;
+        // }
+        if([4,6,7].includes(this.dayType)){
           project.activities = null;
         }
       });
@@ -2330,11 +2334,8 @@ export class TimesheetFormComponent implements OnInit {
     // this.isTimesheetForm = true;
     this.timesheetAppliedFor = 'self';
     console.log("allDayTypes", this.allDayTypes);
-    this.allDayTypes.forEach((type) => {
-      if (type.dayType === 'Working') {
-        this.dayType = type.dayTypeId;
-      }
-    });
+   
+        this.dayType = 1;
     console.log("Default dayType set to", this.dayType);
     this.fromDate = selectedDate1;
     let timesheet: Partial<Timesheet> = { empId: this.currentUser.empId };
