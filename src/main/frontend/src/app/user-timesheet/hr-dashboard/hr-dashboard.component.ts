@@ -307,7 +307,7 @@ selectedDepartments: any[] = [];
 isDeptCollapsed = false;
 selectedDeptId: string | null = null;
 
-isDeptTableCollapsed = false;
+isDeptTableCollapsed = true;
 departmentTableData: any[] = [];
 isDeptTableLoading = false;
 
