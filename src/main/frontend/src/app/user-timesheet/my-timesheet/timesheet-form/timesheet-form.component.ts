@@ -1500,7 +1500,8 @@ export class TimesheetFormComponent implements OnInit {
     let hasValidationError = null
     hasValidationError = this.validationService(this.timesheetLocations);
     if (hasValidationError) return;
-    const dataSet = this.timesheetLocations
+    else hasValidationError = false
+    const dataSet: LocationEntry[] = structuredClone(this.timesheetLocations);
     this.createOrUpdateObj = {
       createdBy: this.currentUser.empId,
       dayTypeId: this.dayType,
@@ -1522,11 +1523,14 @@ export class TimesheetFormComponent implements OnInit {
       location.locationInTime = [4, 6, 7].includes(this.dayType) ? null : this.formatDateTimeForBackend(location.locationInTime, convertToYYYYMMDD(this.fromDate));
       location.locationOutTime = [4, 6, 7].includes(this.dayType) ? null : this.formatDateTimeForBackend(location.locationOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate));
       location.projects.forEach((project: ProjectEntry) => {
-        if (![4, 6, 7].includes(this.dayType)) {
-          project?.activities?.forEach((activity: ActivityNew) => {
-            activity.durationMinutes = activity.durationMinutes * 60;
-          });
-        } else {
+        // if (![4, 6, 7].includes(this.dayType)) {
+        //   project?.activities?.forEach((activity: ActivityNew) => {
+        //     activity.durationMinutes = activity.durationMinutes * 60;
+        //   });
+        // } else {
+        //   project.activities = null;
+        // }
+        if([4,6,7].includes(this.dayType)){
           project.activities = null;
         }
       });
