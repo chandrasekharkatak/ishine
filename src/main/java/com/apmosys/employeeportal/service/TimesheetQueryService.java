@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -108,10 +109,10 @@ public class TimesheetQueryService {
                   .append(" ,endDate : ").append(timesheetDTO.getEndDate());
         
         try {
-            LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
-            LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
-//        	  LocalDate start = LocalDate.parse("2025-11-19");
-//              LocalDate end = LocalDate.parse("2025-12-31");
+           LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
+           LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
+        	//   LocalDate start = LocalDate.parse("2025-11-19");
+            //   LocalDate end = LocalDate.parse("2025-12-31");
             List<Object[]> timesheetList = employeeTimesheetsNewRepository
                     .getAllMyTimesheets(timesheetDTO.getEmpId(), start, end);
 
@@ -689,126 +690,256 @@ public class TimesheetQueryService {
         // The timesheetIds of the timesheets document datas that are already fetched
         List<Long> doneTimesheetIds = new ArrayList<>();
 
-    	rows.forEach(row -> {
+    	// rows.forEach(row -> {
 
-    	    Long timesheetId = ((Number) row[0]).longValue();
+    	//     Long timesheetId = ((Number) row[0]).longValue();
 
-    	    // ================= TIMESHEET =================
-    	    EmployeeTimesheetDTO ts =
-    	        timesheetMap.computeIfAbsent(timesheetId, id -> {
+    	//     // ================= TIMESHEET =================
+    	//     EmployeeTimesheetDTO ts =
+    	//         timesheetMap.computeIfAbsent(timesheetId, id -> {
 
-    	            EmployeeTimesheetDTO dto = new EmployeeTimesheetDTO();
-    	            dto.setTimesheetId(id);
-    	            dto.setEmpId(((Number) row[1]).longValue());
-    	            dto.setDate(((java.sql.Date) row[2]).toLocalDate());
-    	            dto.setDayType(row[3].toString());
-    	            dto.setStatus(((Number) row[4]).intValue());
-    	            dto.setTotalWorkingMinutes(
-    	                    row[5] != null ? ((Number) row[5]).intValue() : null);
+    	//             EmployeeTimesheetDTO dto = new EmployeeTimesheetDTO();
+    	//             dto.setTimesheetId(id);
+    	//             dto.setEmpId(((Number) row[1]).longValue());
+    	//             dto.setDate(((java.sql.Date) row[2]).toLocalDate());
+    	//             dto.setDayType(row[3].toString());
+    	//             dto.setStatus(((Number) row[4]).intValue());
+    	//             dto.setTotalWorkingMinutes(
+    	//                     row[5] != null ? ((Number) row[5]).intValue() : null);
 
-    	            LocalDateTime ldt_checkIn = 
-    	            		row[6] != null ? ((Timestamp) row[6]).toLocalDateTime()
-    	                    : null;
+    	//             LocalDateTime ldt_checkIn = 
+    	//             		row[6] != null ? ((Timestamp) row[6]).toLocalDateTime()
+    	//                     : null;
     	            		
-    	            dto.setWorkCheckIn(ldt_checkIn!= null  ? DateConversionUtil.localDateTimeToString(ldt_checkIn, pattern):null);
+    	//             dto.setWorkCheckIn(ldt_checkIn!= null  ? DateConversionUtil.localDateTimeToString(ldt_checkIn, pattern):null);
     	            
-    	            LocalDateTime ltd_checkOut = 
-    	            		row[7] != null
-    	                    ? ((Timestamp) row[7]).toLocalDateTime()
-    	                            : null;
+    	//             LocalDateTime ltd_checkOut = 
+    	//             		row[7] != null
+    	//                     ? ((Timestamp) row[7]).toLocalDateTime()
+    	//                             : null;
 
-    	            dto.setWorkCheckOut(ltd_checkOut!= null  ? DateConversionUtil.localDateTimeToString(ltd_checkOut, pattern):null);
+    	//             dto.setWorkCheckOut(ltd_checkOut!= null  ? DateConversionUtil.localDateTimeToString(ltd_checkOut, pattern):null);
 
-    	            dto.setIsNightShift(row[8] != null && ((Boolean)row[8]));
-    	            dto.setCreatedOn(((java.sql.Timestamp) row[9]).toLocalDateTime());
+    	//             dto.setIsNightShift(row[8] != null && ((Boolean)row[8]));
+    	//             dto.setCreatedOn(((java.sql.Timestamp) row[9]).toLocalDateTime());
 
-    	            dto.setLocationSessions(new ArrayList<>());
-                    dto.setDocumentData(new ArrayList<>());
-    	            return dto;
-    	        });
+    	//             dto.setLocationSessions(new ArrayList<>());
+        //             dto.setDocumentData(new ArrayList<>());
+    	//             return dto;
+    	//         });
 
-    	    // ================= LOCATION SESSION =================
-    	    Long locationMappingId = row[10] != null
-    	            ? ((Number) row[10]).longValue()
-    	            : null;
+    	//     // ================= LOCATION SESSION =================
+    	//     Long locationMappingId = row[10] != null
+    	//             ? ((Number) row[10]).longValue()
+    	//             : null;
             
-            List<Long> projectIds = new ArrayList<>();
+        //     List<Long> projectIds = new ArrayList<>();
 
-    	    if (locationMappingId == null) return;
+    	//     if (locationMappingId == null) return;
 
-    	    LocationSessionDTO location =
-    	        ts.getLocationSessions()
-    	          .stream()
-    	          .filter(l -> locationMappingId.equals(l.getLocationMappingId()))
-    	          .findFirst()
-    	          .orElseGet(() -> {
+    	//     LocationSessionDTO location =
+    	//         ts.getLocationSessions()
+    	//           .stream()
+    	//           .filter(l -> locationMappingId.equals(l.getLocationMappingId()))
+    	//           .findFirst()
+    	//           .orElseGet(() -> {
 
-    	              LocationSessionDTO l = new LocationSessionDTO();
-    	              l.setLocationMappingId(locationMappingId);
-    	              l.setWorkLocationTypeId(((Number) row[11]).intValue());
-    	              l.setWorkLocationType(row[12].toString());
+    	//               LocationSessionDTO l = new LocationSessionDTO();
+    	//               l.setLocationMappingId(locationMappingId);
+    	//               l.setWorkLocationTypeId(((Number) row[11]).intValue());
+    	//               l.setWorkLocationType(row[12].toString());
 
-    	              l.setLocationInTime(
-    	                      row[13] != null
-    	                              ? ((java.sql.Timestamp) row[13])
-    	                                      .toLocalDateTime().toLocalTime().toString()
-    	                              : null);
+    	//               l.setLocationInTime(
+    	//                       row[13] != null
+    	//                               ? ((java.sql.Timestamp) row[13])
+    	//                                       .toLocalDateTime().toLocalTime().toString()
+    	//                               : null);
 
-    	              l.setLocationOutTime(
-    	                      row[14] != null
-    	                              ? ((java.sql.Timestamp) row[14])
-    	                                      .toLocalDateTime().toLocalTime().toString()
-    	                              : null);
+    	//               l.setLocationOutTime(
+    	//                       row[14] != null
+    	//                               ? ((java.sql.Timestamp) row[14])
+    	//                                       .toLocalDateTime().toLocalTime().toString()
+    	//                               : null);
 
-    	              l.setProjects(new ArrayList<>());
-    	              ts.getLocationSessions().add(l);
-    	              return l;
-    	          });
+    	//               l.setProjects(new ArrayList<>());
+    	//               ts.getLocationSessions().add(l);
+    	//               return l;
+    	//           });
 
-    	    // ================= PROJECT =================
-    	    if (row[15] == null) return;
+    	//     // ================= PROJECT =================
+    	//     if (row[15] == null) return;
 
-    	    Integer projectId = ((Number) row[15]).intValue();
-            projectIds.add(projectId.longValue());
+    	//     Integer projectId = ((Number) row[15]).intValue();
+        //     projectIds.add(projectId.longValue());
 
-    	    ProjectTimesheetDTO project =
-    	        location.getProjects()
-    	                .stream()
-    	                .filter(p -> p.getProjectId().equals(projectId))
-    	                .findFirst()
-    	                .orElseGet(() -> {
+    	//     ProjectTimesheetDTO project =
+    	//         location.getProjects()
+    	//                 .stream()
+    	//                 .filter(p -> p.getProjectId().equals(projectId))
+    	//                 .findFirst()
+    	//                 .orElseGet(() -> {
 
-    	                    ProjectTimesheetDTO p = new ProjectTimesheetDTO();
-    	                    p.setTimesheetId(timesheetId);
-    	                    p.setProjectId(projectId);
-    	                    p.setPoNo((String) row[16]);
-    	                    p.setPoId(row[17] != null ? ((Number) row[17]).longValue() : null);
-    	                    p.setStatus(((Number) row[18]).intValue());
-    	                    p.setClientApprovalStatus(
-    	                            row[19] != null ? ((Number) row[19]).intValue() : null);
-    	                    p.setProjectHoursMinutes(
-    	                            row[20] != null ? ((Number) row[20]).intValue() : null);
-    	                    p.setShadowEmpId(
-    	                            row[21] != null ? ((Number) row[21]).longValue() : null);
-    	                    p.setClientLocationId(
-    	                            row[23] != null ? ((Number) row[23]).longValue() : null);
+    	//                     ProjectTimesheetDTO p = new ProjectTimesheetDTO();
+    	//                     p.setTimesheetId(timesheetId);
+    	//                     p.setProjectId(projectId);
+    	//                     p.setPoNo((String) row[16]);
+    	//                     p.setPoId(row[17] != null ? ((Number) row[17]).longValue() : null);
+    	//                     p.setStatus(((Number) row[18]).intValue());
+    	//                     p.setClientApprovalStatus(
+    	//                             row[19] != null ? ((Number) row[19]).intValue() : null);
+    	//                     p.setProjectHoursMinutes(
+    	//                             row[20] != null ? ((Number) row[20]).intValue() : null);
+    	//                     p.setShadowEmpId(
+    	//                             row[21] != null ? ((Number) row[21]).longValue() : null);
+    	//                     p.setClientLocationId(
+    	//                             row[23] != null ? ((Number) row[23]).longValue() : null);
 
-    	                    p.setActivities(new ArrayList<>());
-    	                    p.setIsNightShift(row[8]!=null?true:false);
-    	                    p.setClientSideId(row[24]!=null?(String)row[24]:null);
-    	                    location.getProjects().add(p);    	    
-    	                    return p;
-    	                });
+    	//                     p.setActivities(new ArrayList<>());
+    	//                     p.setIsNightShift(row[8]!=null?true:false);
+    	//                     p.setClientSideId(row[24]!=null?(String)row[24]:null);
+    	//                     location.getProjects().add(p);    	    
+    	//                     return p;
+    	//                 });
 
-                // ======================Documents======================
+        //         // ======================Documents======================
+                
+        //         if(!doneTimesheetIds.contains(timesheetId)){
+        //             List<TimesheetDocumentDataDTO> timesheetDocs = timesheetDocumentServiceNew.getTimesheetDocumentDataByTimesheetId(timesheetId);
+        //             doneTimesheetIds.add(timesheetId);
+        //             ts.setDocumentData(timesheetDocs);
+        //         }
+
+        //     });
+
+
+rows.forEach(row -> {
+
+    /* ================= TIMESHEET ================= */
+    Long timesheetId = ((Number) row[0]).longValue();
+
+    EmployeeTimesheetDTO timesheet =
+        timesheetMap.computeIfAbsent(timesheetId, id -> {
+            EmployeeTimesheetDTO dto = new EmployeeTimesheetDTO();
+            dto.setTimesheetId(id);
+            dto.setEmpId(((Number) row[1]).longValue());
+            dto.setDate(((java.sql.Date) row[2]).toLocalDate());
+            dto.setDayType(row[3] != null ? row[3].toString() : null);
+            dto.setStatus(((Number) row[4]).intValue());
+            dto.setTotalWorkingMinutes(
+                row[5] != null ? ((Number) row[5]).intValue() : null
+            );
+            LocalDateTime ldt_checkIn = 
+            		row[6] != null ? ((Timestamp) row[6]).toLocalDateTime()
+                    : null;
+            		
+            dto.setWorkCheckIn(ldt_checkIn!= null  ? DateConversionUtil.localDateTimeToString(ldt_checkIn, pattern):null);
+            
+            LocalDateTime ltd_checkOut = 
+            		row[7] != null
+                    ? ((Timestamp) row[7]).toLocalDateTime()
+                            : null;
+
+            dto.setWorkCheckOut(ltd_checkOut!= null  ? DateConversionUtil.localDateTimeToString(ltd_checkOut, pattern):null);
+            dto.setIsNightShift(row[8]!=null&& ((Boolean)row[8]));
+            dto.setCreatedBy(row[35]!=null?((Number)row[35]).longValue():null);
+            dto.setCreatedOn(row[9]!=null?((Timestamp)row[9]).toLocalDateTime():null);
+            dto.setDayTypeId(row[36]!=null?((Number)row[36]).intValue():null);
+            dto.setLocationSessions(new ArrayList<>());
+            dto.setDocumentData(new ArrayList<>());
+            return dto;
+        });
+
+    /* ================= LOCATION ================= */
+    Long locationMappingId =
+        row[10] != null ? ((Number) row[10]).longValue() : null;
+    if (locationMappingId == null) return;
+
+    LocationSessionDTO location =
+        timesheet.getLocationSessions()
+            .stream()
+            .filter(l -> locationMappingId.equals(l.getLocationMappingId()))
+            .findFirst()
+            .orElseGet(() -> {
+                LocationSessionDTO l = new LocationSessionDTO();
+                l.setLocationMappingId(locationMappingId);
+                l.setWorkLocationTypeId(
+                    row[11] != null ? ((Number) row[11]).intValue() : null
+                );
+                l.setWorkLocationType(row[12] != null ? row[12].toString() : null);
+                l.setLocationInTime(row[13] != null ? row[13].toString() : null);
+                l.setLocationOutTime(row[14] != null ? row[14].toString() : null);
+                l.setProjects(new ArrayList<>());
+                timesheet.getLocationSessions().add(l);
+                return l;
+            });
+
+    /* ================= PROJECT ================= */
+    Long projectId =
+        row[15] != null ? ((Number) row[15]).longValue() : null;
+    Long clientLocationId =
+        row[30] != null ? ((Number) row[30]).longValue() : null;
+
+    if (projectId == null) return;
+
+    ProjectTimesheetDTO project =
+        location.getProjects()
+            .stream()
+            .filter(p ->
+                projectId.equals(p.getProjectId().longValue()) &&
+                Objects.equals(clientLocationId, p.getClientLocationId())
+            )
+            .findFirst()
+            .orElseGet(() -> {
+                ProjectTimesheetDTO p = new ProjectTimesheetDTO();
+                p.setTimesheetId(timesheetId);
+                p.setProjectId(projectId.intValue());
+                p.setProjectName(row[16] != null ? row[16].toString() : null);
+//                p.setClientLocation(row[24] != null ? row[24].toString() : null);
+//                p.setClientName(row[25] != null ? row[25].toString() : null);
+                p.setClientLocationId(clientLocationId);
+                p.setClientSideId(row[31] != null ? row[31].toString() : null);
+                p.setPoNo(row[17] != null ? row[17].toString() : null);
+                p.setPoId(row[18] != null ? ((Number) row[18]).longValue() : null);
+                p.setStatus(((Number) row[19]).intValue());
+                p.setClientApprovalStatus(
+                    row[20] != null ? ((Number) row[20]).intValue() : null
+                );
+                p.setTotalClientWorkingMinutes(
+                    row[21] != null ? ((Number) row[21]).intValue() : null
+                );
+//                p.setVmsFilled(
+//                    row[32] != null && ((Number) row[32]).intValue() == 1
+//                );
+//                p.setRemarks(row[33] != null ? row[33].toString() : null);
+                p.setActivities(new ArrayList<>());
+                p.setClientId(row[34] != null ? ((Number) row[34]).longValue() : null);
+                location.getProjects().add(p);
+                return p;
+            });
+
+    /* ================= ACTIVITY ================= */
+    if (row[26] != null) {
+        ActivityTimesheetDTO activity = new ActivityTimesheetDTO();
+        activity.setActivityId(((Number) row[26]).longValue());
+        activity.setActivity(row[27] != null ? row[27].toString() : null);
+        activity.setDurationMinutes(
+            row[28] != null ? ((Short) row[28]) : null
+        );
+        activity.setDescription(
+            row[29] != null ? row[29].toString() : null
+        );
+        project.getActivities().add(activity);
+    }
+
+      //         // ======================Documents======================
                 
                 if(!doneTimesheetIds.contains(timesheetId)){
                     List<TimesheetDocumentDataDTO> timesheetDocs = timesheetDocumentServiceNew.getTimesheetDocumentDataByTimesheetId(timesheetId);
                     doneTimesheetIds.add(timesheetId);
-                    ts.setDocumentData(timesheetDocs);
+                    timesheet.setDocumentData(timesheetDocs);
                 }
+});
 
-            });
 
 
            	timesheetMap.values().forEach(timesheetDto -> {
