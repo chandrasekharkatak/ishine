@@ -10198,11 +10198,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 		        INNER JOIN ProjectTimesheetStatusNew ptsn ON ptsn.id.locationMappingId = etlm.locationMappingId
 		        INNER JOIN Project p ON p.projectId = ptsn.id.projectId
 		        INNER JOIN Client c ON c.clientId = p.clientId
-		        WHERE
-		            (CASE
-		                WHEN e.approvalsTo = 'Reporting Manager' THEN e.reportingManagerId
-		                ELSE e.managerId
-		            END) = :managerId
+		        WHERE etn.currentManagerId = :empId
 		            AND ptsn.status = 1
 		            AND (
 		                :clientFilter IS NULL
