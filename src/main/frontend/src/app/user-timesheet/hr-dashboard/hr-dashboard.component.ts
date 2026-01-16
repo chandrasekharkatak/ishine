@@ -302,6 +302,15 @@ projectBillableTypes: string[] = ['TNM', 'Fixed Cost', 'Monitoring','All'];
 selectedStatus:String = "All" ;
 newSelectedStatus:String = "";
 
+selectedTile: any = null;
+selectedDepartments: any[] = [];
+isDeptCollapsed = false;
+selectedDeptId: string | null = null;
+
+isDeptTableCollapsed = false;
+departmentTableData: any[] = [];
+isDeptTableLoading = false;
+
 employeeViewBullet : string[] = ["Provides a resource-centric, month-wise overview across projects.",
 "Displays timesheet completion and approval status for each individual resource.",
 "Indicates the compliance state for the selected month.",
@@ -371,6 +380,7 @@ tileGroups: any[] = [];
     this.setLastUpdatedTime();
     this.getEmployeeByNameAndEmpld();
     this.getProjectByNameAndPoNo();
+    this.loadDepartmentStatusSummary();
     // this.TotalEmployeeCount();
     // this.vmsCompletion();
     // this.ishineCompletion();
@@ -1159,7 +1169,7 @@ updateBillableTypes() {
   //   });
   // }
 
-  getEmployeeViewForClientAttendanceStatus(status: any, month: any, year: any) {
+  getEmployeeViewForClientAttendanceStatus(status: any, month: any, year: any,deptId?: string | null,isEmployeeRepeated: boolean = false) {
     this.timesheetData =[];
     this.timesheetAsCalenderByProjectId.month = month;
     this.timesheetAsCalenderByProjectId.year = year;
@@ -1175,6 +1185,15 @@ updateBillableTypes() {
     this.timesheetAsCalenderByProjectId.clientSideFilter = this.viewClientIdFlag;
       // this.timesheetAsCalenderByProjectId.filters = this.employeeViewColumnsFilters;
       this.timesheetAsCalenderByProjectId.filters = this.currentColumnFilter == null ? this.employeeViewColumnsFilters : this.currentColumnFilter;
+
+    if (deptId) {
+      this.timesheetAsCalenderByProjectId.deptId = deptId;
+    } else {
+      // optional: clear previous filter
+      delete this.timesheetAsCalenderByProjectId.deptId;
+    }
+
+    this.timesheetAsCalenderByProjectId.isEmployeeRepeated = isEmployeeRepeated;
 
     if(this.isClientDashboard){
       this.timesheetAsCalenderByProjectId.allEmp = !this.isClientDashboard;
@@ -1222,19 +1241,19 @@ getCountByStatus(status: string) {
   switch(status) {
 
     case 'All':
-      return this.dashboardObj.totalApplicableCount;
+      return this.dashboardObj.summary.totalApplicableCount;
 
     case 'Pending':
-      return this.dashboardObj.clientSidePendingCount;
+      return this.dashboardObj.summary.clientSidePendingCount;
 
     case 'Defaulter':
-      return this.dashboardObj.defaulterCount;
+      return this.dashboardObj.summary.defaulterCount;
 
     case 'Approved':
-      return this.dashboardObj.approvedCount;
+      return this.dashboardObj.summary.approvedCount;
 
     case 'Total_defaulter':
-      return this.dashboardObj.totaldefaulterCount;
+      return this.dashboardObj.summary.totaldefaulterCount;
 
     default:
       return 0;
@@ -1854,6 +1873,7 @@ cancelHidePopup() {
       this.timesheetService.getTimesheetDashboardCountForProject(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableTypes,this.selectedProjectStatus).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.dashboardObj = response.serviceResponse;
+          console.log("Dashboard Obj ",this.dashboardObj);
           this.getTiles();
         } else {
           this.openAlertMod(this.alertTemplate, response.serviceResponse);
@@ -1886,9 +1906,9 @@ cancelHidePopup() {
     }
   }
 
-  getTableData(status: string | null, month: any, year: any) {
+  getTableData(status: string | null, month: any, year: any,deptId?: string | null,isEmployeeRepeated: boolean = false) {
     if (!this.toggleValue) {
-      this.getEmployeeViewForClientAttendanceStatus(status, month, year);
+      this.getEmployeeViewForClientAttendanceStatus(status, month, year,deptId,isEmployeeRepeated);
     } else {
       this.getProjectViewForClientAttendanceStatus(status, month, year);
     }
@@ -1996,8 +2016,16 @@ cancelHidePopup() {
 getTiles() {
   this.tileGroups = []; // Reset groups
 
+  const summary = this.dashboardObj.summary;
+  const deptWise = this.dashboardObj.departmentWise || {};
+
+  const getDepartments = (status: string) =>
+    deptWise[status]?.departments || [];
+
+  this.tileGroups = [];
+
   // -------------------------
-  // CASE 1: !toggleValue
+  // CASE 1: toggleValue == false
   // -------------------------
   if (!this.toggleValue) {
 
@@ -2006,15 +2034,15 @@ getTiles() {
       this.tileGroups = [
         // GROUP 1
         [
-          { status: 'All', label: 'Total Applicable Emp', value: this.dashboardObj.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'bi bi-people-fill' },
-          { status: 'Approved', label: 'Ready For Invoicing', value: this.dashboardObj.approvedCount, class: 'border-start-success bg-light-green', icon: 'bi bi-patch-check' }
+          { status: 'All', label: 'Total Applicable Emp', value: summary.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'bi bi-people-fill', departments: getDepartments('All') },
+          { status: 'Approved', label: 'Ready For Invoicing', value: summary.approvedCount, class: 'border-start-success bg-light-green', icon: 'bi bi-patch-check',departments: getDepartments('Approved') }
         ],
 
         // GROUP 2
         [
-          { status: 'Total_defaulter', label: 'Defaulter', value: this.dashboardObj.totaldefaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' },
-          { status: 'Pending', label: 'CS Approval Pending', value: this.dashboardObj.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'bi bi-hourglass-split' },
-          { status: 'Defaulter', label: 'IShine Not Filled', value: this.dashboardObj.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' }
+          { status: 'Total_defaulter', label: 'Defaulter', value: summary.totaldefaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle',departments: getDepartments('Defaulter') },
+          { status: 'Pending', label: 'CS Approval Pending', value: summary.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'bi bi-hourglass-split',departments: getDepartments('ClientSidePending') },
+          { status: 'Defaulter', label: 'IShine Not Filled', value: summary.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle',departments: getDepartments('Defaulter') }
         ]
       ];
 
@@ -2023,15 +2051,15 @@ getTiles() {
       this.tileGroups = [
         // GROUP 1
         [
-          { status: 'All', label: 'Total Applicable Emp', value: this.dashboardObj.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'bi bi-people-fill' },
-          { status: 'Approved', label: 'Ready For Invoicing', value: this.dashboardObj.approvedCount, class: 'border-start-success bg-light-green', icon: 'bi bi-patch-check' }
+          { status: 'All', label: 'Total Applicable Emp', value: summary.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'bi bi-people-fill' },
+          { status: 'Approved', label: 'Ready For Invoicing', value: summary.approvedCount, class: 'border-start-success bg-light-green', icon: 'bi bi-patch-check' }
         ],
 
         // GROUP 2
         [
-          { status: 'Total_defaulter', label: 'Defaulter', value: this.dashboardObj.totaldefaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' },
-          { status: 'Pending', label: 'CS Approval Pending', value: this.dashboardObj.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'bi bi-hourglass-split' },
-          { status: 'Defaulter', label: 'IShine Not Filled', value: this.dashboardObj.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' }
+          { status: 'Total_defaulter', label: 'Defaulter', value: summary.totaldefaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' },
+          { status: 'Pending', label: 'CS Approval Pending', value: summary.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'bi bi-hourglass-split' },
+          { status: 'Defaulter', label: 'IShine Not Filled', value: summary.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' }
         ]
       ];
     }
@@ -2063,6 +2091,9 @@ getTiles() {
       ]
     ];
   }
+
+  this. handleDefaultTileSelection();
+
 }
 
 
@@ -2743,6 +2774,149 @@ anomalyTabs = [
 toggleTabs() {
 this.showTabs = !this.showTabs;
 }
+
+onTileClick(tile: any) {
+  if (this.selectedTile?.status === tile.status) {
+    this.selectedTile = null;
+    this.selectedDepartments = [];
+  } else {
+    this.selectedTile = tile;
+    this.selectedDepartments = tile.departments || [];
+    this.isDeptCollapsed = false; 
+  }
+
+  this.scrollToTable(tile.status);
+}
+
+
+onDepartmentClick(status: string, deptId: string) {
+  console.log('Department clicked:', status, deptId);
+
+  // Example: scroll / filter table
+  this.scrollToTableBasedOnDept(status,deptId);
+
+  // OR emit / set filters
+  // this.selectedDeptCode = deptCode;
+}
+
+toggleDeptCollapse() {
+  this.isDeptCollapsed = !this.isDeptCollapsed;
+}
+
+  scrollToTableBasedOnDept(status: string | null , deptId?: string,isEmployeeRepeated: boolean = false): void {
+    this.selectedStatus = status;
+    this.status = status;
+    this.selectedDeptId = deptId ?? null;
+      // Reset pagination
+    this.page1 = 1;
+  this.pageSize = 20;
+    this.getTableData(status, this.month, this.year ,this.selectedDeptId,isEmployeeRepeated);
+    const element = document.getElementById('table-section');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+
+  handleDefaultTileSelection() {
+ const defaultStatus = 'All';
+
+  const defaultTile = this.tileGroups
+    ?.flat()
+    .find(tile => tile.status === defaultStatus);
+
+  if (defaultTile) {
+    this.onTileClick(defaultTile);
+  }
+}
+
+//Pivot table changes dept wise
+
+toggleDeptTableCollapse(): void {
+  this.isDeptTableCollapsed = !this.isDeptTableCollapsed;
+
+  if (!this.isDeptTableCollapsed && this.departmentTableData.length === 0) {
+    this.loadDepartmentStatusSummary();
+  }
+}
+
+loadDepartmentStatusSummary(): void {
+  const payload = {
+    empId:this.currentUser.empId,
+    month: this.month,
+    year: this.year,
+    clientDashboard: this.isClientDashboard
+  };
+
+  this.isDeptTableLoading = true;
+
+this.timesheetService.getDepartmentStatusSummary(payload)
+  .subscribe({
+    next: (res: any) => {
+      this.departmentTableData = res?.serviceResponse || [];
+      this.isDeptTableLoading = false;
+    },
+    error: (err) => {
+      console.error('Error loading department summary', err);
+      this.departmentTableData = [];
+      this.isDeptTableLoading = false;
+    }
+  });
+}
+
+private readonly STATUS_MAP: { [key: string]: string } = {
+  TOTAL: 'All',
+  READY: 'Approved',
+  PENDING: 'Pending',
+  DEFAULTER: 'Total_defaulter',
+  NOT_FILLED: 'Defaulter'
+};
+
+onDeptCountClick(row: any, type: string): void {
+
+  const status = this.STATUS_MAP[type];
+
+  if (!status) {
+    console.warn('Unknown click type:', type);
+    return;
+  }
+
+  const deptId = row.deptId; 
+
+  this.scrollToTableBasedOnDept(status, deptId);
+}
+
+onRepeatClick(
+  event: MouseEvent,
+  row: any,
+  type: 'APPROVED_REPEAT' | 'PENDING_REPEAT' | 'DEFAULTER_REPEAT'
+): void {
+
+  event.stopPropagation();
+
+  const deptId = row.deptId;
+
+  let status = '';
+
+  switch (type) {
+    case 'APPROVED_REPEAT':
+      status = 'Approved';
+      break;
+
+    case 'PENDING_REPEAT':
+      status = 'Pending';
+      break;
+
+    case 'DEFAULTER_REPEAT':
+      status = 'Defaulter';
+      break;
+  }
+
+  console.log('Hiiiii :::::',deptId);
+  // 👉 Call your existing flow
+   this.scrollToTableBasedOnDept(status, deptId,true);
+}
+
+
 
 
 }

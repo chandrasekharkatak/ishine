@@ -27,5 +27,6 @@ public class GetEmployeeSummaryOnExportDTO {
 	private ColumnFilterDTO filters;
 	private String clientSideFilter;
 	private Long deptId;
+	private Boolean isEmployeeRepeated;
 	
 }

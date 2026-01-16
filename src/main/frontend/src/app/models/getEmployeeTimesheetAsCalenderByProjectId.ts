@@ -16,5 +16,7 @@ export class getEmployeeTimesheetAsCalenderByProjectId{
 	projectActive :any;
 	employeeActive:any;
 	clientSideFilter?:string;
+	deptId?:string;
+	isEmployeeRepeated: boolean = false;
 	
 }

@@ -385,4 +385,11 @@ getDocumentsBySelectedEmpId(payload: any): Observable<any> {
   return this.http.post(`${this.baseUrl}api/getDocumentsBySelectedEmpId`, payload);
 }
 
+getDepartmentStatusSummary(payload: any) {
+  return this.http.post(
+    `${this.baseUrl}api/getDepartmentStatusSummary`,
+    payload
+  );
+}
+
 }

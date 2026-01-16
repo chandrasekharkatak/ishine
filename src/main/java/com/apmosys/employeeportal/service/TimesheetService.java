@@ -56,6 +56,7 @@ import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.ClientDetailsForActivityDTO;
 import com.apmosys.employeeportal.dto.ClientLocationDTO;
 import com.apmosys.employeeportal.dto.DepartmentCountDTO;
+import com.apmosys.employeeportal.dto.DepartmentStatusSummaryDTO;
 import com.apmosys.employeeportal.dto.DepartmentWiseStatusDTO;
 import com.apmosys.employeeportal.dto.EmpIdAndNameDTO;
 import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
@@ -7399,6 +7400,10 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 			    statusCode = "2";
 			}
 			}
+			
+			Boolean isEmployeeRepeated =
+			        Boolean.TRUE.equals(object.getIsEmployeeRepeated());
+
 			List<Long> employeeIds = new ArrayList<Long>();
 			
 			Integer totalDistinctEmployees;
@@ -7429,34 +7434,94 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                    object.getBillableType(),
 	                    object.getStatus(),object.getEmployeeActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
 	                    projectManagers,clientName,teamName,department,statusCode);
-	        } else {
-	        	employeeIds = timesheetsRepository.getPaginatedEmployeeIdsForClientAttendance(
-	        			object.getMonth(),
-	                    object.getYear(),
-	                    object.getEmpId(),
-	                    object.getStatus(),
-						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,offset,pageSize,object.getDeptId());
-	        	
-	            empTimesheet = timesheetsRepository.getEmployeeViewForClientAttendanceStatus(
-	                    object.getMonth(),
-	                    object.getYear(),
-	                    object.getEmpId(),
-	                    object.getStatus(),
-						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,
-	                    object.getSortBy(),
-	                    object.getSortDirection(),employeeIds, object.getDeptId()
-	                    );
-	            
-	            totalDistinctEmployees = timesheetsRepository.getTotalEmployeeCountForClientApplicable(
-	            		object.getMonth(),
-	                    object.getYear(),
-	                    object.getEmpId(),
-	                    object.getStatus(),
-						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,object.getDeptId());
 	        }
+	        else {
+
+	        	
+//	        	if (isEmployeeRepeated) {
+	        		
+//	                employeeIds = timesheetsRepository
+//	                        .getPaginatedEmployeeIdsForClientAttendanceRepeated(
+//	                            object.getMonth(),
+//	                            object.getYear(),
+//	                            object.getEmpId(),
+//	                            object.getStatus(),
+//	                            object.getClientSideFilter(),
+//	                            employmentId, clientsideId, employeeName, billableType,
+//	                            projectName, poNo, projectManagers, clientName, teamName,
+//	                            department, employmentStatus, statusCode,
+//	                            offset, pageSize,
+//	                            object.getDeptId()
+//	                        );
+	        		
+
+//	        	    empTimesheet = timesheetsRepository
+//	        	        .getEmployeeViewForClientAttendanceStatusRepeated(
+//	        	            object.getMonth(),
+//	        	            object.getYear(),
+//	        	            object.getEmpId(),
+//	        	            object.getStatus(),
+//	        	            object.getClientSideFilter(),
+//	        	            employmentId, clientsideId, employeeName, billableType,
+//	        	            projectName, poNo, projectManagers, clientName, teamName,
+//	        	            department, employmentStatus, statusCode,
+//	        	            object.getSortBy(),
+//	        	            object.getSortDirection(),
+//	        	            employeeIds,
+//	        	            object.getDeptId()
+//	        	        );
+	        	    
+//	        	    totalDistinctEmployees =
+//    	            timesheetsRepository.getTotalEmployeeCountForClientRepeated(
+//    	                object.getMonth(),
+//    	                object.getYear(),
+//    	                object.getEmpId(),
+//    	                object.getStatus(),
+//    	                object.getClientSideFilter(),
+//    	                employmentId, clientsideId, employeeName, billableType,
+//    	                projectName, poNo, projectManagers, clientName, teamName,
+//    	                department, employmentStatus, statusCode,
+//    	                object.getDeptId()
+//    	            );
+
+//	        	} else {
+	        		
+		        	employeeIds = timesheetsRepository.getPaginatedEmployeeIdsForClientAttendance(
+		        			object.getMonth(),
+		                    object.getYear(),
+		                    object.getEmpId(),
+		                    object.getStatus(),
+							object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+		                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,offset,pageSize,object.getDeptId());
+
+	        	    empTimesheet = timesheetsRepository
+	        	        .getEmployeeViewForClientAttendanceStatus(
+	        	            object.getMonth(),
+	        	            object.getYear(),
+	        	            object.getEmpId(),
+	        	            object.getStatus(),
+	        	            object.getClientSideFilter(),
+	        	            employmentId, clientsideId, employeeName, billableType,
+	        	            projectName, poNo, projectManagers, clientName, teamName,
+	        	            department, employmentStatus, statusCode,
+	        	            object.getSortBy(),
+	        	            object.getSortDirection(),
+	        	            employeeIds,
+	        	            object.getDeptId()
+	        	        );
+	        	    
+		            totalDistinctEmployees = timesheetsRepository.getTotalEmployeeCountForClientApplicable(
+		            		object.getMonth(),
+		                    object.getYear(),
+		                    object.getEmpId(),
+		                    object.getStatus(),
+							object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+		                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,object.getDeptId());
+	        	}
+
+	            
+
+//	        }
 	        
 	        // Map to hold employees grouped by empId
 	        Map<Long, EmployeeInfoDTO> employeeMap = new HashMap<>();
@@ -8596,6 +8661,111 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 		}
 
 		return response;
+	}
+	
+	
+	public ServiceResponse getDepartmentStatusSummary(TimesheetDTO requestDTO) {
+
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("getDepartmentStatusSummary");
+	    apiLogInfo.setApiUrl("/api/getDepartmentStatusSummary");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    StringBuilder logBuilder = new StringBuilder("Received request for Department Status Summary");
+
+	    if (requestDTO != null) {
+	        logBuilder.append(" | ProjectId: ").append(requestDTO.getProjectId())
+	                  .append(" | Month: ").append(requestDTO.getMonth())
+	                  .append(" | Year: ").append(requestDTO.getYear());
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+
+	    try {
+
+	        if (requestDTO == null) {
+	            throw new IllegalArgumentException("Request body cannot be null.");
+	        }
+	        
+	        String clientSideFilter = "All";
+	        
+	        Integer month = null;
+
+	        if (requestDTO.getMonth() != null && !requestDTO.getMonth().isBlank()) {
+	            month = Integer.valueOf(requestDTO.getMonth());
+	        }
+
+	        List<Object[]> data = timesheetsRepository.getDepartmentStatusSummary(
+	                requestDTO.getEmpId(),
+	                month,
+	                requestDTO.getYear(),
+	                clientSideFilter
+	                
+	        );
+
+	        if (data == null || data.isEmpty()) {
+
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceMessage("No department summary data found.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiResponse("No data returned from repository.");
+
+	            return response;
+	        }
+
+	        List<DepartmentStatusSummaryDTO> result = new ArrayList<>();
+
+	        for (Object[] row : data) {
+
+	            DepartmentStatusSummaryDTO dto = new DepartmentStatusSummaryDTO();
+	            dto.setDept(row[0] != null ? row[0].toString() : null);
+	            dto.setTotal(row[1] != null ? ((Number) row[1]).intValue() : 0);
+	            dto.setReady(row[2] != null ? ((Number) row[2]).intValue() : 0);
+	            dto.setPending(row[3] != null ? ((Number) row[3]).intValue() : 0);
+	            dto.setDefaulter(row[4] != null ? ((Number) row[4]).intValue() : 0);
+	            dto.setNotFilled(row[5] != null ? ((Number) row[5]).intValue() : 0);
+	            dto.setDeptId(row[6] != null ? ((Number) row[6]).longValue() : 0L);
+	            dto.setApprovedRepeat(row[7] != null ? ((Number) row[7]).intValue() : 0);
+	            dto.setPendingRepeat(row[8] != null ? ((Number) row[8]).intValue() : 0);
+	            dto.setDefaulterRepeat(row[9] != null ? ((Number) row[9]).intValue() : 0);	            
+	            
+	            
+	            result.add(dto);
+	        }
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(result);
+	        response.setServiceMessage("Department status summary fetched successfully.");
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        apiLogInfo.setApiResponse("Fetched " + result.size() + " department record(s).");
+
+	    } catch (IllegalArgumentException ex) {
+
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceMessage(ex.getMessage());
+	        response.setServiceError(ex.toString());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse("Validation Error: " + ex.getMessage());
+	        apiLogInfo.setLogLevel("WARN");
+
+	    } catch (Exception ex) {
+
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceMessage("Unexpected error occurred while fetching department summary.");
+	        response.setServiceError(ex.toString());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse("Unexpected Exception: " + ex.getMessage());
+	        apiLogInfo.setLogLevel("ERROR");
+
+	    } finally {
+	        logService.logMyInfo(httpRequest, apiLogInfo);
+	    }
+
+	    return response;
 	}
 
 

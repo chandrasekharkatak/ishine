@@ -582,6 +582,16 @@ public class TimesheetController {
 		ServiceResponse response = timesheetService.getDocumentsBySelectedEmpId(dto);
 		return response;
 	}
+	
+	@PostMapping("/getDepartmentStatusSummary")
+	public ServiceResponse getDepartmentStatusSummary(
+	        @RequestBody TimesheetDTO requestDTO) {
+
+	    ServiceResponse response =
+	    		timesheetService.getDepartmentStatusSummary(requestDTO);
+
+	    return response;
+	}
 
 		 
 }
