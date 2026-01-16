@@ -277,14 +277,14 @@
 
             <!-- /* //Pivot table changes dept wise */ -->
 
-            <div class="title-group-box-project w-100" *ngIf="isClientDashboard && !toggleValue">
+            <div class="title-group-box-project w-100" *ngIf="isClientDashboard && !toggleValue && authorizedEmp">
             
                 <div class="dept-table-container">
             
                     <!-- Header -->
                     <div class="dept-header-bar" (click)="toggleDeptTableCollapse()">
                         <div class="dept-title-wrap">
-                            <span class="dept-title">Department Status Summary</span>
+                            <span class="dept-title">Department Wise Status Summary</span>
                             <span class="dept-subtitle">Timesheet Overview</span>
                         </div>
             
@@ -302,8 +302,8 @@
                                         <th>Dept</th>
                                         <th>Total Applicable</th>
                                         <th>Ready For Invoicing</th>
-                                        <th>Pending Approval</th>
                                         <th>Defaulter</th>
+                                        <th>Pending Approval</th>
                                         <th>Not Filled</th>
                                     </tr>
                                 </thead>
@@ -334,6 +334,22 @@
                                             </div>
 
                                         </td>
+
+                                        <td>
+                                            <div class="count-card danger clickable" (click)="onDeptCountClick(row, 'DEFAULTER')">
+                                            
+                                                <div class="count-main">
+                                                    {{ row.defaulter }}
+                                                </div>
+                                            
+                                                <div class="repeat-indicator" *ngIf="row.defaulterRepeat > 0" title="Repeated entries" (click)="onRepeatClick($event, row, 'DEFAULTER_REPEAT')">
+                                                    <i class="fa-solid fa-user-group"></i>
+                                                    <span>{{ row.defaulterRepeat }}</span>
+                                                </div>
+                                            
+                                            </div>
+
+                                        </td>
                                 
                                         <td>
                                             <div class="count-card warning clickable" (click)="onDeptCountClick(row, 'PENDING')">
@@ -351,21 +367,6 @@
 
                                         </td>
                                 
-                                        <td>
-                                            <div class="count-card danger clickable" (click)="onDeptCountClick(row, 'DEFAULTER')">
-                                            
-                                                <div class="count-main">
-                                                    {{ row.defaulter }}
-                                                </div>
-                                            
-                                                <div class="repeat-indicator" *ngIf="row.defaulterRepeat > 0" title="Repeated entries" (click)="onRepeatClick($event, row, 'DEFAULTER_REPEAT')">
-                                                    <i class="fa-solid fa-user-group"></i>
-                                                    <span>{{ row.defaulterRepeat }}</span>
-                                                </div>
-                                            
-                                            </div>
-
-                                        </td>
                                 
                                         <td>
                                             <div class="count-card neutral clickable" (click)="onDeptCountClick(row, 'NOT_FILLED')">

@@ -7438,53 +7438,53 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	        else {
 
 	        	
-//	        	if (isEmployeeRepeated) {
+	        	if (isEmployeeRepeated) {
 	        		
-//	                employeeIds = timesheetsRepository
-//	                        .getPaginatedEmployeeIdsForClientAttendanceRepeated(
-//	                            object.getMonth(),
-//	                            object.getYear(),
-//	                            object.getEmpId(),
-//	                            object.getStatus(),
-//	                            object.getClientSideFilter(),
-//	                            employmentId, clientsideId, employeeName, billableType,
-//	                            projectName, poNo, projectManagers, clientName, teamName,
-//	                            department, employmentStatus, statusCode,
+	                employeeIds = timesheetsRepository
+	                        .getPaginatedEmployeeIdsForClientAttendanceRepeated(
+	                            object.getMonth(),
+	                            object.getYear(),
+	                            object.getEmpId(),
+	                            object.getStatus(),
+	                            object.getClientSideFilter(),
+	                            employmentId, clientsideId, employeeName, billableType,
+	                            projectName, poNo, projectManagers, clientName, teamName,
+	                            department, employmentStatus, statusCode,
 //	                            offset, pageSize,
-//	                            object.getDeptId()
-//	                        );
+	                            object.getDeptId()
+	                        );
 	        		
 
-//	        	    empTimesheet = timesheetsRepository
-//	        	        .getEmployeeViewForClientAttendanceStatusRepeated(
-//	        	            object.getMonth(),
-//	        	            object.getYear(),
-//	        	            object.getEmpId(),
-//	        	            object.getStatus(),
-//	        	            object.getClientSideFilter(),
-//	        	            employmentId, clientsideId, employeeName, billableType,
-//	        	            projectName, poNo, projectManagers, clientName, teamName,
-//	        	            department, employmentStatus, statusCode,
-//	        	            object.getSortBy(),
-//	        	            object.getSortDirection(),
-//	        	            employeeIds,
-//	        	            object.getDeptId()
-//	        	        );
+	        	    empTimesheet = timesheetsRepository
+	        	        .getEmployeeViewForClientAttendanceStatusRepeated(
+	        	            object.getMonth(),
+	        	            object.getYear(),
+	        	            object.getEmpId(),
+	        	            object.getStatus(),
+	        	            object.getClientSideFilter(),
+	        	            employmentId, clientsideId, employeeName, billableType,
+	        	            projectName, poNo, projectManagers, clientName, teamName,
+	        	            department, employmentStatus, statusCode,
+	        	            object.getSortBy(),
+	        	            object.getSortDirection(),
+	        	            employeeIds,
+	        	            object.getDeptId()
+	        	        );
 	        	    
-//	        	    totalDistinctEmployees =
-//    	            timesheetsRepository.getTotalEmployeeCountForClientRepeated(
-//    	                object.getMonth(),
-//    	                object.getYear(),
-//    	                object.getEmpId(),
-//    	                object.getStatus(),
-//    	                object.getClientSideFilter(),
-//    	                employmentId, clientsideId, employeeName, billableType,
-//    	                projectName, poNo, projectManagers, clientName, teamName,
-//    	                department, employmentStatus, statusCode,
-//    	                object.getDeptId()
-//    	            );
+	        	    totalDistinctEmployees =
+    	            timesheetsRepository.getTotalEmployeeCountForClientRepeated(
+    	                object.getMonth(),
+    	                object.getYear(),
+    	                object.getEmpId(),
+    	                object.getStatus(),
+    	                object.getClientSideFilter(),
+    	                employmentId, clientsideId, employeeName, billableType,
+    	                projectName, poNo, projectManagers, clientName, teamName,
+    	                department, employmentStatus, statusCode,
+    	                object.getDeptId()
+    	            );
 
-//	        	} else {
+	        	} else {
 	        		
 		        	employeeIds = timesheetsRepository.getPaginatedEmployeeIdsForClientAttendance(
 		        			object.getMonth(),
@@ -7521,7 +7521,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 
 	            
 
-//	        }
+	        }
 	        
 	        // Map to hold employees grouped by empId
 	        Map<Long, EmployeeInfoDTO> employeeMap = new HashMap<>();
@@ -8723,8 +8723,8 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	            dto.setTotal(row[1] != null ? ((Number) row[1]).intValue() : 0);
 	            dto.setReady(row[2] != null ? ((Number) row[2]).intValue() : 0);
 	            dto.setPending(row[3] != null ? ((Number) row[3]).intValue() : 0);
-	            dto.setDefaulter(row[4] != null ? ((Number) row[4]).intValue() : 0);
-	            dto.setNotFilled(row[5] != null ? ((Number) row[5]).intValue() : 0);
+	            dto.setDefaulter(row[5] != null ? ((Number) row[5]).intValue() : 0);
+	            dto.setNotFilled(row[4] != null ? ((Number) row[4]).intValue() : 0);
 	            dto.setDeptId(row[6] != null ? ((Number) row[6]).longValue() : 0L);
 	            dto.setApprovedRepeat(row[7] != null ? ((Number) row[7]).intValue() : 0);
 	            dto.setPendingRepeat(row[8] != null ? ((Number) row[8]).intValue() : 0);

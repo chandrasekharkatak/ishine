@@ -327,6 +327,10 @@ tiles: any[] = [];
 tileGroups: any[] = [];
   userMapping:any = {};
   feature = "Timesheets Dashboard";
+  isEmployeeRepeatedFlag: boolean;
+  repetedDeptId: string;
+  allowedEmpid: number | null = null;
+  authorizedEmp: boolean = false;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -1194,6 +1198,9 @@ updateBillableTypes() {
     }
 
     this.timesheetAsCalenderByProjectId.isEmployeeRepeated = isEmployeeRepeated;
+
+    this.repetedDeptId = this.timesheetAsCalenderByProjectId.deptId ;
+    this.isEmployeeRepeatedFlag = this.timesheetAsCalenderByProjectId.isEmployeeRepeated ;
 
     if(this.isClientDashboard){
       this.timesheetAsCalenderByProjectId.allEmp = !this.isClientDashboard;
@@ -2265,7 +2272,16 @@ getTileInfo(status: string): string[] {
     this.page1 = 1;
     this.pageSize = 20;
     this.totalItems = 0;
+    console.log('Repeted Flag :::::::::',this.isEmployeeRepeatedFlag) ;
+
+    if(this.isEmployeeRepeatedFlag === true){
+    this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year,this.repetedDeptId,this.isEmployeeRepeatedFlag);
+
+    }else{
     this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
+
+    }
+
   }
 
   onProjectInsightSearch() {
@@ -2840,6 +2856,14 @@ toggleDeptTableCollapse(): void {
 }
 
 loadDepartmentStatusSummary(): void {
+
+  this.allowedEmpid = this.currentUser.empId ;
+  if(this.allowedEmpid == 6){
+  this.authorizedEmp = true ;
+  }
+
+  this.authorizedEmp = true ;
+
   const payload = {
     empId:this.currentUser.empId,
     month: this.month,
@@ -2853,6 +2877,7 @@ this.timesheetService.getDepartmentStatusSummary(payload)
   .subscribe({
     next: (res: any) => {
       this.departmentTableData = res?.serviceResponse || [];
+      console.log("Row data :::::",this.departmentTableData);
       this.isDeptTableLoading = false;
     },
     error: (err) => {
