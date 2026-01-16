@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -15,17 +16,24 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.GetMyReporteesTimesheetRequestsPayload;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
 import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.TimesheetApprovalAllocationLogs;
@@ -1166,12 +1174,36 @@ public class TimesheetApprovalService {
 
             logBuilder.append(" | ManagerId=").append(payload.getEmpId());
             logBuilder.append(" | ClientFilter=").append(clientFilter);
+        
+            /* ---------- Pagination ---------- */
+            Pageable pageable = PageRequest.of(
+                    payload.getPage(),
+                    payload.getSize()
+            );
 
-            List<GetReporteesTimesheetReqFlatDTO> flatData = employeeTimesheetsNewRepository.getMyReporteesTimesheetRequests(
-                            payload.getEmpId(), clientFilter
-                            );
+            Page<GetReporteesTimesheetReqFlatDTO> pageResult =
+            	    employeeTimesheetsNewRepository.getMyReporteesTimesheetRequests(
+            	        payload.getEmpId(),
+            	        clientFilter,
 
-            if (flatData == null || flatData.isEmpty()) {
+            	        payload.getEmploymentId(),
+            	        payload.getEmployeeName(),
+            	        payload.getDayType(),
+            	        payload.getProjectName(),
+            	        payload.getClientName(),
+            	        payload.getClientLocation(),
+            	        payload.getPoNo(),
+            	        payload.getShadowEmpName(),
+            	        payload.getTeamName(),
+            	        payload.getActivity(),
+            	        payload.getDate(),
+            	        
+            	        payload.getSortBy(),
+            	        payload.getSortDir(),
+            	        pageable
+            	    );
+
+            if (pageResult == null || pageResult.isEmpty()) {
                 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
                 response.setServiceResponse(Collections.emptyList());
         		
@@ -1183,7 +1215,12 @@ public class TimesheetApprovalService {
             }
 
             /* ---------- Mapping ---------- */
-            List<GetReporteesTimesheetReqDTO> finalResponse = timesheetMapper.map(flatData);
+            List<GetReporteesTimesheetReqDTO> mapped = timesheetMapper.map(pageResult.getContent());
+            
+            /* ---------- Response ---------- */
+            Map<String, Object> finalResponse = new HashMap<>();
+            finalResponse.put("content", mapped);
+            finalResponse.put("page", pageResult.getNumber());
 
             /* ---------- Success ---------- */
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1192,7 +1229,6 @@ public class TimesheetApprovalService {
             logBuilder.append(" | Records=").append(finalResponse.size());
             
     		apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-            apiLogInfo.setApiRequest(logBuilder.toString());
 
 
         } catch (Exception ex) {
@@ -1208,12 +1244,10 @@ public class TimesheetApprovalService {
             logBuilder.append(" | Exception=").append(ex.getMessage());
             apiLogInfo.setApiRequest(logBuilder.toString());
             logService.logMyInfo(httpRequest, apiLogInfo);
-
             
         }
         return response;
     }    
-    
     
 }
 

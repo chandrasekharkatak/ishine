@@ -15,15 +15,20 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GetReporteesTimesheetReqFlatDTO {
-
+	
 	private Long timesheetId;
     private Long empId;
+    private String employmentId;
     private String employeeName;
     private String dayType;
     private LocalDate date;
     private Boolean isNightShift;
     private LocalDateTime workCheckIn;
     private LocalDateTime workCheckOut;
+    private Long projectCount;
+    private Long locationCount;
+    private String appliedBy;
+    private LocalDateTime appliedOn;
 
     private String workLocationType;
     private LocalDateTime locationInTime;

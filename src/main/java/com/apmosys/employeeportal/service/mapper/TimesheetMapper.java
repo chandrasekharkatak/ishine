@@ -265,12 +265,17 @@ public class TimesheetMapper {
                             id -> new GetReporteesTimesheetReqDTO(
                                     id,
                                     r.getEmpId(),
+                                    r.getEmploymentId(),
                                     r.getEmployeeName(),
                                     r.getDayType(),
                                     TimesheetFormatUtil.formatDate(r.getDate()),
                                     r.getIsNightShift(),
                                     TimesheetFormatUtil.formatTime(r.getWorkCheckIn()),
                                     TimesheetFormatUtil.formatTime(r.getWorkCheckOut()),
+                                    r.getProjectCount(),
+                                    r.getLocationCount(),
+                                    r.getAppliedBy(),
+                                    TimesheetFormatUtil.formatTime(r.getAppliedOn()),
                                     new ArrayList<>(),
                                     new ArrayList<>()
                             )
