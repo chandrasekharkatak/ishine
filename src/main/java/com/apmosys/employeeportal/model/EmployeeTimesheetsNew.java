@@ -66,7 +66,7 @@ public class EmployeeTimesheetsNew {
 	Long leaveTypeMasterId;
 	
 	private String description;
-
+	
 	@Column(name = "current_manager_id")
 	private Long currentManagerId;
 }
