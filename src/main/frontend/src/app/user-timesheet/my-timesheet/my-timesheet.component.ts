@@ -354,7 +354,17 @@ withoutVmsbullet:string[] = ["Applicable to resources without a client-side VMS 
     })
   }
 
-  
+  onFormTypeSelect(formType:string){
+    if(formType == 'createTimesheet'){
+      this.showCreateTimesheetForm();
+    }else if(formType =='bulkUpload'){
+      this.resetTimesheetForm();
+      this.showBulkUploadForm();
+    }else if(formType =='viewMyTimesheet'){
+      this.resetTimesheetForm(); 
+      this.showViewMyTimesheets()
+    }
+  }
 
 //   openUserManualPdf(): void {
 //   const pdfPath = 'assets/pdfFiles/Ishine_Timesheet_TNM.pdf';
