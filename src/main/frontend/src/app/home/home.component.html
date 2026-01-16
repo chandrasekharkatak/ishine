@@ -17,116 +17,6 @@
   <div class="releaseNoteText" [innerHTML]="releaseNoteText | safeHtml"></div>
 </div>
 
-<!-- <div class="sticky-marquee" *ngIf="lines && lines.length > 0"> -->
-<!-- <div class="scrolling-text">
-      <span *ngFor="let line of lines">
-        {{ line }}
-      </span>
-    </div> -->
-<!-- <div *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null" style="display: flex; justify-content: space-between; width: 100%; position: relative;"> -->
-
-<!-- Left Side Marquee -->
-<!-- <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
-            
-            direction="left" 
-            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop; 
-            position: absolute; left: 0;">
-            <span>
-                "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
-            </span>
-        </marquee> -->
-
-<!-- Right Side Marquee -->
-<!-- <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
-            *ngIf="consentNotificationMessage != null"
-            direction="right" 
-            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 33.5%; background-color: #193d8a; scrolldelay: 50; behavior: loop;
-            position: absolute; right: 0;">
-            <span>
-                {{consentNotificationMessage}}
-            </span>
-        </marquee> -->
-
-<!-- </div> -->
-
-<!-- <div  *ngIf="(lines.billableType === 'Bench' && lines.dayOnbench != null) &&   (consentNotificationMessage != null) "  style="display: flex; justify-content: space-between; width: 100%;">
-
-       
-        <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
-            direction="left" 
-            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop;">
-            <span>
-                "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
-            </span>
-        </marquee>
-     
-       
-        <marquee  class="top-nav navbar navbar-expand sticky-top mb-2 pt-0" *ngIf="consentNotificationMessage != null" 
-            direction="right" 
-            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 33.5%; background-color: #193d8a; scrolldelay: 50; behavior: loop;">
-            <span>
-                {{consentNotificationMessage}} 
-            </span>
-        </marquee>
-    
-    </div>
-       -->
-
-<!-- style="font-family: Calibri, sans-serif; color: #FFFFFF;  background-color: #193d8a; scrolldelay: 50; behavior: loop; "> -->
-
-<!-- <div style="display: flex; justify-content: space-between; width: 100%; position: relative;">
-
-        <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
-            *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null"
-            direction="left" 
-            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop; 
-            position: absolute; left: 0;">
-            <span>
-                "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
-            </span>
-        </marquee>
-    
-        <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
-            *ngIf="consentNotificationMessage != null"
-            direction="right" 
-            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 33.5%; background-color: #193d8a; scrolldelay: 50; behavior: loop;
-            position: absolute; right: 0;">
-            <span>
-                {{consentNotificationMessage}}
-            </span>
-        </marquee>
-    
-    </div>
- -->
-
-<!-- <div style="display: flex; justify-content: space-between; width: 100%; position: relative;">
-
-      
-        <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
-            *ngIf="lines.billableType === 'Bench' && lines.dayOnbench != null"
-            direction="left" 
-            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop; 
-            position: absolute; left: 0;">
-            <span>
-                "{{lines.name}} has been on the bench from {{lines.dayOnbench}} days."
-            </span>
-        </marquee>
-    
-       
-        <marquee class="top-nav navbar navbar-expand sticky-top mb-2 pt-1" 
-            *ngIf="consentNotificationMessage != null"
-            direction="left" 
-            style="font-family: Calibri, sans-serif; color: #FFFFFF; width: 60%; background-color: #193d8a; scrolldelay: 50; behavior: loop; 
-            position: absolute; left: 0;">
-            <span>
-                {{consentNotificationMessage}}
-            </span>
-        </marquee>
-    
-    </div> -->
-
-<!-- </div> -->
-
 <div class="home-container">
   <div
     class="top-nav navbar navbar-expand sticky-top mb-2 pt-1"
@@ -146,19 +36,6 @@
           EXP PO
         </a>
       </li>
-      <!-- <li class="nav-item mx-2 position-relative" *ngIf="milestoneCount > 0">
-    <button class="btn btn-light position-relative small-notification-btn"
-        (click)="openMilestoneExpiredListModal()"
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Milestone to be expired">
-        <i class="fas fa-bell text-dark small-notification-icon my-custom-margin-bottom"></i>
-        <span *ngIf="milestoneCount > 0"
-            class="badge bg-danger text-white position-absolute top-0 start-100 translate-middle small-badge">
-            {{ milestoneCount }}
-        </span>
-    </button>
-</li> -->
 
       &nbsp;
       <li class="nav-item pt-1 mr-2">
@@ -191,16 +68,6 @@
           </i>
         </a>
       </li>
-      <!-- <button class="btn btn-info position-relative" (click)="openProbationNotificationModal(probation_notification_modal)">
-    <i class="fa-solid fa-bell"></i>
-
-    
-    <span *ngIf="!isLoadingNotifications && probationNotifications.length > 0"
-          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-        {{ probationNotifications.length }}
-        <span class="visually-hidden">probation notifications</span>
-    </span>
-</button> -->
       <li class="nav-item">
         <div class="dropdown">
           <a
@@ -602,60 +469,9 @@
           </marquee>
         </div>
       </div>
-      <!-- <div class="tab-pane fade" id="workAnniversary-tabpanel" role="tabpanel" aria-labelledby="workAnniversary-tab">
-                <div class="card-title px-1 pt-2">
-                    <p class="section-heading m-0 pl-2">Today's Work Anniversaries</p>
-                </div>
-                <div class="card-body p-0">
-                    <div *ngIf="workAnniversaryList.length == 0" class="container-fluid placeholder">
-                        <img class="placeholder-img" style="width: 50px;" src="assets/Images/work-anniversary-icon.svg"
-                            alt="Work Anniversary Icon">
-                        <h1 class="placeholder-text">No Work Anniversaries Today</h1>
-                    </div>
-                    <marquee *ngIf="workAnniversaryList.length != 0" direction="up" scrolldelay="250"
-                        onmouseover="this.stop();" onmouseout="this.start();">
-                        <mat-list class="p-0">
-                            <mat-list-item *ngFor="let employee of workAnniversaryList">
-                                <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
-                                <h1 *ngIf="userMapping.employee360_view_home" matLine id="clickablefor360"
-                                    [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" 
-                                    title="Click to view Employee 360">
-                                    {{ employee.name }}
-                                </h1>
-                                <h1 *ngIf="!userMapping.employee360_view_home" matLine>{{ employee.name }}</h1>
-                                <p matLine>{{ employee.departmentName }}</p>
-                            </mat-list-item>
-                        </mat-list>
-                    </marquee>
-                </div>
-            </div> -->
     </div>
   </div>
 
-  <!-- <div *ngIf="userMapping.view_birthday_list" class="birthday-list card mb-2">
-        <div class="card-title px-1 pt-2">
-            <p class="section-heading m-0 pl-2">Today's Birthdays</p>
-        </div>
-        <div class="card-body p-0">
-            <div *ngIf="birthdayList.length == 0" class="container-fluid placeholder">
-                <img class="placeholder-img" style="width: 50px;" src="assets/Images/birthday-cake-icon.svg"
-                    alt="Birthday Icon">
-                <h1 class="placeholder-text">No Birthday's Today</h1>
-            </div>
-            <marquee *ngIf="birthdayList.length != 0" direction="up" scrolldelay="250 " onmouseover="this.stop();"
-                onmouseout="this.start();">
-                <mat-list class="p-0">
-                    <mat-list-item *ngFor="let employee of birthdayList">
-                        <img matListAvatar src="assets/Images/default-user-image.jpeg" alt="User Avatar">
-                        <h1 *ngIf="userMapping.employee360_view_home" matLine  id="clickablefor360" [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" title="Click to view Employee 360">{{employee.name}}</h1>
-                        <h1 *ngIf="!userMapping.employee360_view_home" matLine>{{employee.name}}</h1>
-                        <p matLine>{{employee.departmentName}}</p>
-                    </mat-list-item>
-                </mat-list>
-            </marquee>
-        </div>
-    </div> -->
-  <!-- Quick Links -->
   <div *ngIf="userMapping.view_quick_links" class="quick-links card mb-2">
     <div class="text-center quick-link" (click)="showApplyLeaveForm()">
       <h5>

@@ -828,6 +828,7 @@
             <app-timesheet-form 
                 [isCreation]="isCreation"
                 [isUpdation]="isUpdation"
+                [selectedDate]="selectedDate"
                 (timesheetCreated)="resetTimesheetForm(); showViewMyTimesheets()"
                 (cancel)="resetTimesheetForm()">
             </app-timesheet-form>

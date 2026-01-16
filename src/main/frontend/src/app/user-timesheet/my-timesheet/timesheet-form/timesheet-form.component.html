@@ -20,12 +20,6 @@
                 <!-- APPLICATION TYPE -->
                 <div class="row mb-3">
                     <div class="col-md-12">
-                        <!-- <app-my-timesheet-application-selector [timesheetAppliedFor]="timesheetAppliedFor"
-                            [isUpdation]="isUpdation" [empId]="timesheetFilledForUser.empId"
-                            [currentUserEmpId]="currentUser?.empId" [teamMemberList]="teamMemberList"
-                            (applicationTypeChange)="onTimesheetAppliedForChange($event)"
-                            (teamMemberChange)="getTimesheetMetadata()">
-                        </app-my-timesheet-application-selector> -->
                         <div class="form-section">
                             <label class="section-title">
                                 <span class="text-danger">*</span>
@@ -61,17 +55,6 @@
                                 <app-my-select class="form-control"
                                         [options]="teamMemberList" displayKey="name" valueKey="empId" [isOptionDisabled]="disableEmployee" [(ngModel)]="selectedTeamMember" [readonly]="isUpdation">
                                 </app-my-select>
-
-
-                                <!-- <select class="form-select mt-2" [ngModel]="selectedTeamMember"
-                                    (change)="getTimesheetMetadata()" [disabled]="isUpdation">
-                                    <option value="" disabled>Select Team Member</option>
-
-                                    <option *ngFor="let teamMember of teamMemberList" [value]="teamMember.empId"
-                                        [disabled]="teamMember.empId === currentUser.empId">
-                                        {{ teamMember.name }}
-                                    </option>
-                                </select> -->
                             </div>
                         </div>
                         </div>
