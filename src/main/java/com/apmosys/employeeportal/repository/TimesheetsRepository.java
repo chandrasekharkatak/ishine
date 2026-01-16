@@ -2501,7 +2501,6 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 	// 		+ "    Project_Level_Summary pls", nativeQuery = true)
 	// public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integer month, @Param("year") Integer year,@Param("emp_id") Long emp_id);
 	
-	
 	@Query(
 			  value = "WITH RankedTimeSheets AS ( " +
 			          "SELECT et.emp_id, et.office_in_time, et.office_out_time, p.project_id, c.client_id, cl.client_location_id, " +
@@ -8677,7 +8676,10 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 	                @Param("year") Integer year,
 	                @Param("clientSideFilter") String clientSideFilter
 	        );
-	        
+
+			
+	
+
 	        
 	        
 	        @Query(value=" WITH RECURSIVE\n"
@@ -9566,4 +9568,4 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 	        
 	        
 
-}
+}						  

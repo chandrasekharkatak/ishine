@@ -1133,9 +1133,8 @@
                                                         {{ emp.department || 'NA' }}
                                                     </td>
         
-                                                    <td *ngIf="i === 0"
-                                                        [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
-                                                        {{ emp.billableType || 'NA' }}
+                                                    <td>
+                                                        {{ proj.billableType || 'NA' }}
                                                     </td>
         
                                                     <!-- PROJECT LEVEL DETAILS -->

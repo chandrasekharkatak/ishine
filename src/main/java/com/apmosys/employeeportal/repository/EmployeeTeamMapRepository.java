@@ -599,5 +599,11 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 				+ "where p.projectId = :project_id AND etm.empId = :empId")
 		public List<GetClientDetailsByProjectIdAndEmpIdDTO> getClientDetailsByProjectIdAndEmpId(@Param("project_id")Integer projectId, 
 				@Param("empId")Long empId);
+		
+		@Query(value="SELECT etm \n"
+				+ "FROM EmployeeTeamMap etm \n"
+				+ "WHERE etm.empId=:empId AND etm.active!=0")
+		List<EmployeeTeamMap> findByEmpIdAndActiveStatus(Long empId);
+		
 
 	}

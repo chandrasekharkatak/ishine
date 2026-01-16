@@ -7539,7 +7539,6 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 
 	                employeeInfo.setEmpId(empId);
 	                employeeInfo.setEmployeeName(obj[5] != null ? obj[5].toString() : null);
-	                employeeInfo.setBillableType(obj[7] != null ? obj[7].toString() : null);
 	                employeeInfo.setDepartment(obj[9] != null ? obj[9].toString() : null);
 	                employeeInfo.setEmploymentId(obj[114] != null ? obj[114].toString() : null);
 
@@ -7556,6 +7555,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	            projectInfo.setTeamName(obj[3] != null ? obj[3].toString() : null);
 	            projectInfo.setTeamId(obj[4] != null ? Long.parseLong(obj[4].toString()) : null);
 	            projectInfo.setSpoc(obj[6] != null ? obj[6].toString() : null);
+	            projectInfo.setBillableType(obj[7] != null ? obj[7].toString() : null);
 	            projectInfo.setEmployeeRole(obj[8] != null ? obj[8].toString() : null);
 	            projectInfo.setProjectId(obj[10] != null ? Integer.parseInt(obj[10].toString()) : null);
 	            projectInfo.setProjectName(obj[11] != null ? obj[11].toString() : null);
