@@ -274,6 +274,7 @@ public class TimesheetServiceNew {
 			newTimesheet.setDayTypeId(empDTO.getDayTypeId());
 			newTimesheet.setIsNightShift(empDTO.getIsNightShift());
 			newTimesheet.setStatus(TimesheetAggregationHelper.STATUS_PENDING);
+			newTimesheet.setCurrentManagerId(empDTO.getCurrentManagerId());
 			
 	        if (!timesheetValidationHelper.isWorkingDay(empDTO)) 
 	        {
