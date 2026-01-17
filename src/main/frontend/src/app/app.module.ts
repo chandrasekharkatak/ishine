@@ -160,7 +160,6 @@ import { TeamEmployeeTimesheetViewComponent } from './team-employee-timesheet-vi
 import { NavigateToTeamEmployeeTimesheetDirective } from './directives/navigate-to-team-employee-timesheet.directive';
 import { CalendarViewComponent } from './user-timesheet/calendar-view/calendar-view.component';
 import { NavigateToCalenderViewDirective } from './directives/navigate-to-calender-view.directive';
-import { EdiTimesheetFormComponent } from './user-timesheet/my-timesheet/edi-timesheet-form/edi-timesheet-form.component';
 import { ViewImageComponent } from './user-team/view-image/view-image.component';
 import { MatPaginatorModule } from '@angular/material/paginator';
 
@@ -214,7 +213,6 @@ import { FloatingScrollWrapperComponent } from './helpers/floating-scroll-wrappe
 import {MatTimepickerModule} from '@angular/material/timepicker';
 import { MyAutocompleteComponent } from './helpers/my-autocomplete/my-autocomplete.component';
 import { NgxEditorModule } from 'ngx-editor';
-import { MyTimesheetHeaderComponent } from "./user-timesheet/my-timesheet/my-timesheet-header/my-timesheet-header.component";
 import { MyTimesheetApplicationSelectorComponent } from "./user-timesheet/my-timesheet/my-timesheet-application-selector/my-timesheet-application-selector.component";
 import { CalendarLegendComponent } from "./user-timesheet/shared/calendar-legend/calendar-legend.component";
 import { TeamAllTimesheetsTableComponent } from "./user-timesheet/team-timesheet/team-all-timesheets-table/team-all-timesheets-table.component";
@@ -352,8 +350,7 @@ registerLocaleData(localeGb);
     NavigateToTeamEmployeeTimesheetDirective,
     CalendarViewComponent,
     NavigateToCalenderViewDirective,
-    EdiTimesheetFormComponent,
-    SkillModalComponent,
+     SkillModalComponent,
     MessageModalComponent,
     ConfirmationModalComponent,
     CertificateModalComponent,
@@ -409,7 +406,6 @@ registerLocaleData(localeGb);
     TeamAllTimesheetsTableComponent,
     TimesheetFormComponent,
     MyTimesheetApplicationSelectorComponent,
-    MyTimesheetHeaderComponent,
     InfoTooltipComponent
   ],
   imports: [

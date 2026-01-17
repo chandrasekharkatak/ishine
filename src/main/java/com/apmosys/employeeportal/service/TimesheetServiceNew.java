@@ -302,13 +302,13 @@ public class TimesheetServiceNew {
             
 		} catch (IllegalArgumentException e) {
 			// delete the file uploaded if any
-			if(documents != null && documents.size() > 0) {
-				for(MultipartFile document : documents) {
-					if(document != null) {
-						timesheetDocumentService.deleteFile(document.getOriginalFilename());
-					}
-				}
-			}
+//			if(documents != null && documents.size() > 0) {
+//				for(MultipartFile document : documents) {
+//					if(document != null) {
+//						timesheetDocumentService.deleteFile(document.getOriginalFilename());
+//					}
+//				}
+//			}
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Validation failed: " + e.getMessage());
