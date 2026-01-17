@@ -384,7 +384,7 @@ tileGroups: any[] = [];
     this.setLastUpdatedTime();
     this.getEmployeeByNameAndEmpld();
     this.getProjectByNameAndPoNo();
-    this.loadDepartmentStatusSummary();
+    this.loadDepartmentStatusSummary(this.status, this.month, this.year);
     // this.TotalEmployeeCount();
     // this.vmsCompletion();
     // this.ishineCompletion();
@@ -1950,6 +1950,7 @@ cancelHidePopup() {
 
     if (!this.toggleValue) {
       this.status = this.selectedStatus;
+      this.loadDepartmentStatusSummary(this.status, this.month, this.year);
       this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
       this.getTimesheetDashboardCount(this.month, this.year);
     } else {
@@ -2851,11 +2852,11 @@ toggleDeptTableCollapse(): void {
   this.isDeptTableCollapsed = !this.isDeptTableCollapsed;
 
   if (!this.isDeptTableCollapsed && this.departmentTableData.length === 0) {
-    this.loadDepartmentStatusSummary();
+    this.loadDepartmentStatusSummary(this.status, this.month, this.year);
   }
 }
 
-loadDepartmentStatusSummary(): void {
+loadDepartmentStatusSummary(status: any, month: any, year: any): void {
 
   this.allowedEmpid = this.currentUser.empId ;
   if(this.allowedEmpid == 6){
