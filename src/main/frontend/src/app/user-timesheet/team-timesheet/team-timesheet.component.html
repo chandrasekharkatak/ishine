@@ -6,7 +6,7 @@
       *ngIf="userMapping.view_my_teams_timesheets_requests || userMapping.update_timesheet_request || userMapping.revoke_reportee_timesheet"
       [ngClass]="{'active' : isAllTimesheetRequestTable}" (click)="showAllTimesheetRequestsTable()">View Teams
       Timesheets Requests</button>
-    <button  *ngIf="userMapping.bulk_upload_reportee" type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isTMBulkUpload}"
+    <button *ngIf="userMapping.bulk_upload_reportee"   type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isTMBulkUpload}"
       (click)="showTMBulkUpload()">Team Member Bulk Final Doc Upload</button>
   </div>
 </div>
@@ -1053,7 +1053,7 @@
               <app-my-select #filterActiveReportees class="form-control" placeholder="Select Reportee"
                   [(ngModel)]="timesheetObj.selectedEmpId" [options]="reportees"
                   displayKey="name" valueKey="empId" [multiple]="false"
-                  (selectionChange)="onReporteeChange($event.value)">
+                  (selectionChange)="onReporteeChange($event)">
               </app-my-select>
             </div>
           </div>
