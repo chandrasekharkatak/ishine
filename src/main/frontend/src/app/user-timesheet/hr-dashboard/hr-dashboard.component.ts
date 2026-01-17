@@ -2862,7 +2862,7 @@ loadDepartmentStatusSummary(): void {
   this.authorizedEmp = true ;
   }
 
-  this.authorizedEmp = true ;
+  // this.authorizedEmp = true ;
 
   const payload = {
     empId:this.currentUser.empId,
