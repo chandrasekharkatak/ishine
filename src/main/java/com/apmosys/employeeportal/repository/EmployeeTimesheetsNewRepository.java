@@ -10100,106 +10100,133 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	 */
 
 	@Query(
-		    value =
-		        "SELECT DISTINCT new com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO(" + "\n" +
-		        "    etn.timesheetId, etn.empId," + "\n" +
-		        "    CASE" + "\n" +
-		        "        WHEN e.isApmosysProduct = 'true' THEN CONCAT('AP-', e.employeementId)" + "\n" +
-		        "        ELSE CONCAT('A-', e.employeementId)" + "\n" +
-		        "    END," + "\n" +
-		        "    e.name, dtmn.dayType, etn.date, etn.isNightShift, etn.workCheckIn, etn.workCheckOut," + "\n" +
-		        "    COUNT(DISTINCT ptsn.id.projectId), COUNT(DISTINCT etlm.locationMappingId), ab.name, etn.createdOn," + "\n" +
-		        "    wltm.code, etlm.locationInTime, etlm.locationOutTime, etlm.locationMappingId," + "\n" +
-		        "    ptsn.id.projectId, p.projectName, c.clientName, cl.clientLocation," + "\n" +
-		        "    ptsn.poNo, es.name, ptsn.status, ptsn.totalClientWorkingMinutes," + "\n" +
-		        "    ptsn.description, a.activity, etamn.description," + "\n" +
-		        "    etamn.durationMinutes, t.teamName," + "\n" +
-		        "    tddn.docId, tddn.docName, tddn.finalFlag," + "\n" +
-		        "    tddn.bulkApprovedDocId, dmtmn.mimeType" + "\n" +
-		        ") " + "\n" +
-		        "FROM EmployeeTimesheetsNew etn " + "\n" +
-		        "INNER JOIN Employee e ON etn.empId = e.empId " + "\n" +
-		        "INNER JOIN Employee ab ON ab.empId = etn.createdBy " + "\n" +
-		        "INNER JOIN DayTypeMasterNew dtmn ON dtmn.dayTypeId = etn.dayTypeId " + "\n" +
-		        "INNER JOIN EmployeeTimesheetLocationMapping etlm ON etlm.timesheetId = etn.timesheetId " + "\n" +
-		        "INNER JOIN ProjectTimesheetStatusNew ptsn ON ptsn.id.locationMappingId = etlm.locationMappingId " + "\n" +
-		        "INNER JOIN Project p ON p.projectId = ptsn.id.projectId " + "\n" +
-		        "INNER JOIN Client c ON c.clientId = p.clientId " + "\n" +
-		        "INNER JOIN ClientLocation cl ON cl.clientLocationId = ptsn.clientLocationId " + "\n" +
-		        "INNER JOIN EmployeeTimesheetActivitiesMappingNew etamn ON etamn.timesheetId = etn.timesheetId " + "\n" +
-		        "INNER JOIN Activity a ON a.activityId = etamn.activityId " + "\n" +
-		        "INNER JOIN Team t ON t.teamId = a.teamId " + "\n" +
-		        "INNER JOIN WorkLocationTypeMaster wltm ON wltm.workLocationTypeId = etlm.locationTypeId " + "\n" +
-		        "LEFT JOIN TimesheetDocumentDetailsNew tddn ON tddn.timesheetId = etn.timesheetId " + "\n" +
-		        "LEFT JOIN Employee es ON ptsn.shadowEmpId = es.empId " + "\n" +
-		        "LEFT JOIN DocMimeTypeMasterNew dmtmn ON dmtmn.mimeTypeId = tddn.mimeTypeId " + "\n" +
-		        "WHERE " + "\n" +
-		        "    (CASE " + "\n" +
-		        "        WHEN e.approvalsTo = 'Reporting Manager' THEN e.reportingManagerId " + "\n" +
-		        "        ELSE e.managerId " + "\n" +
-		        "    END) = :managerId " + "\n" +
-		        "    AND ptsn.status = 1 " + "\n" +
-		        "    AND ( " + "\n" +
-		        "        :clientFilter IS NULL " + "\n" +
-		        "        OR (:clientFilter = TRUE AND p.hasClientSideId = TRUE) " + "\n" +
-		        "        OR (:clientFilter = FALSE AND (p.hasClientSideId = FALSE OR p.hasClientSideId IS NULL)) " + "\n" +
-		        "    ) " + "\n" +
-		        "    AND ( " + "\n" +
-		        "        :employmentId IS NULL " + "\n" +
-		        "        OR LOWER(CASE " + "\n" +
-		        "            WHEN e.isApmosysProduct = 'true' THEN CONCAT('AP-', e.employeementId) " + "\n" +
-		        "            ELSE CONCAT('A-', e.employeementId) " + "\n" +
-		        "        END) LIKE LOWER(CONCAT('%', :employmentId, '%')) " + "\n" +
-		        "    ) " + "\n" +
-		        "    AND (:employeeName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :employeeName, '%'))) " + "\n" +
-		        "    AND (:dayType IS NULL OR LOWER(dtmn.dayType) LIKE LOWER(CONCAT('%', :dayType, '%'))) " + "\n" +
-		        "    AND (:projectName IS NULL OR LOWER(p.projectName) LIKE LOWER(CONCAT('%', :projectName, '%'))) " + "\n" +
-		        "    AND (:clientName IS NULL OR LOWER(c.clientName) LIKE LOWER(CONCAT('%', :clientName, '%'))) " + "\n" +
-		        "    AND (:clientLocation IS NULL OR LOWER(cl.clientLocation) LIKE LOWER(CONCAT('%', :clientLocation, '%'))) " + "\n" +
-		        "    AND (:poNo IS NULL OR LOWER(ptsn.poNo) LIKE LOWER(CONCAT('%', :poNo, '%'))) " + "\n" +
-		        "    AND (:shadowEmpName IS NULL OR LOWER(COALESCE(es.name, '')) LIKE LOWER(CONCAT('%', :shadowEmpName, '%'))) " + "\n" +
-		        "    AND (:teamName IS NULL OR LOWER(t.teamName) LIKE LOWER(CONCAT('%', :teamName, '%'))) " + "\n" +
-		        "    AND (:activity IS NULL OR LOWER(a.activity) LIKE LOWER(CONCAT('%', :activity, '%'))) " + "\n" +
-		        "    AND (:date IS NULL OR FUNCTION('DATE_FORMAT', etn.date, '%d/%m/%Y') LIKE CONCAT(:date, '%')) " + "\n" +
-		        "GROUP BY etn.timesheetId, etn.empId, e.employeementId, e.name, dtmn.dayType, etn.date," + "\n" +
-		        "    etn.isNightShift, etn.workCheckIn, etn.workCheckOut, ab.name, etn.createdOn," + "\n" +
-		        "    wltm.code, etlm.locationInTime, etlm.locationOutTime, etlm.locationMappingId," + "\n" +
-		        "    ptsn.id.projectId, p.projectName, c.clientName, cl.clientLocation, ptsn.poNo," + "\n" +
-		        "    es.name, ptsn.status, ptsn.totalClientWorkingMinutes, ptsn.description," + "\n" +
-		        "    a.activity, etamn.description, etamn.durationMinutes, t.teamName," + "\n" +
-		        "    tddn.docId, tddn.docName, tddn.finalFlag, tddn.bulkApprovedDocId, dmtmn.mimeType " + "\n" +
-		        "ORDER BY " + "\n" +
-		        "    CASE WHEN :sortBy = 'employeeName' AND :sortDir = 'ASC'  THEN e.name END ASC," + "\n" +
-		        "    CASE WHEN :sortBy = 'employeeName' AND :sortDir = 'DESC' THEN e.name END DESC," + "\n" +
-		        "    CASE WHEN :sortBy = 'employmentId' AND :sortDir = 'ASC'  THEN e.employeementId END ASC," + "\n" +
-		        "    CASE WHEN :sortBy = 'employmentId' AND :sortDir = 'DESC' THEN e.employeementId END DESC," + "\n" +
-		        "    CASE WHEN :sortBy = 'dayType' AND :sortDir = 'ASC'  THEN dtmn.dayType END ASC," + "\n" +
-		        "    CASE WHEN :sortBy = 'dayType' AND :sortDir = 'DESC' THEN dtmn.dayType END DESC," + "\n" +
-		        "    CASE WHEN :sortBy = 'date' AND :sortDir = 'ASC'  THEN etn.date END ASC," + "\n" +
-		        "    CASE WHEN :sortBy = 'date' AND :sortDir = 'DESC' THEN etn.date END DESC," + "\n" +
-		        "    CASE WHEN :sortBy = 'appliedOn' AND :sortDir = 'ASC'  THEN etn.createdOn END ASC," + "\n" +
-		        "    CASE WHEN :sortBy = 'appliedOn' AND :sortDir = 'DESC' THEN etn.createdOn END DESC," + "\n" +
-		        "    etn.createdOn DESC",
-		    countQuery =
-		        "SELECT COUNT(DISTINCT etn) " + "\n" +
-		        "FROM EmployeeTimesheetsNew etn " + "\n" +
-		        "INNER JOIN Employee e ON etn.empId = e.empId " + "\n" +
-		        "INNER JOIN DayTypeMasterNew dtmn ON dtmn.dayTypeId = etn.dayTypeId " + "\n" +
-		        "INNER JOIN EmployeeTimesheetLocationMapping etlm ON etlm.timesheetId = etn.timesheetId " + "\n" +
-		        "INNER JOIN ProjectTimesheetStatusNew ptsn ON ptsn.id.locationMappingId = etlm.locationMappingId " + "\n" +
-		        "INNER JOIN Project p ON p.projectId = ptsn.id.projectId " + "\n" +
-		        "INNER JOIN Client c ON c.clientId = p.clientId " + "\n" +
-		        "WHERE etn.currentManagerId = :empId " + "\n" +
-		        "AND ptsn.status = 1 " + "\n" +
-		        "AND ( " + "\n" +
-		        "    :clientFilter IS NULL " + "\n" +
-		        "    OR (:clientFilter = TRUE AND p.hasClientSideId = TRUE) " + "\n" +
-		        "    OR (:clientFilter = FALSE AND (p.hasClientSideId = FALSE OR p.hasClientSideId IS NULL)) " + "\n" +
-		        ") " + "\n" +
-		        "AND ( " + "\n" +
-		        "    :employeeName IS NULL OR :search = '' " + "\n" +
-		        "    OR LOWER(e.name) LIKE LOWER(CONCAT('%', :employeeName, '%')) " + "\n" +
-		        ")"
+		    value = "SELECT DISTINCT new com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO(\n"
+		    		+ "		            etn.timesheetId, etn.empId,\n"
+		    		+ "		            CASE\n"
+		    		+ "		                WHEN e.isApmosysProduct = 'true' THEN CONCAT('AP-', e.employeementId)\n"
+		    		+ "		                ELSE CONCAT('A-', e.employeementId)\n"
+		    		+ "		            END,\n"
+		    		+ "		            e.name, dtmn.dayType, etn.date, etn.isNightShift, etn.workCheckIn, etn.workCheckOut, \n"
+		    		+ "		            COUNT(DISTINCT ptsn.id.projectId), COUNT(DISTINCT etlm.locationMappingId), ab.name, etn.createdOn, \n"
+		    		+ "		            wltm.code, etlm.locationInTime, etlm.locationOutTime, etlm.locationMappingId,\n"
+		    		+ "		            ptsn.id.projectId, p.projectName, c.clientName, cl.clientLocation,\n"
+		    		+ "		            ptsn.poNo, es.name, ptsn.status, ptsn.totalClientWorkingMinutes,\n"
+		    		+ "		            ptsn.description, a.activity, etamn.description,\n"
+		    		+ "		            etamn.durationMinutes, t.teamName,\n"
+		    		+ "		            tddn.docId, tddn.docName, tddn.finalFlag,\n"
+		    		+ "		            tddn.bulkApprovedDocId, dmtmn.mimeType\n"
+		    		+ "		        )\n"
+		    		+ "		        FROM EmployeeTimesheetsNew etn\n"
+		    		+ "		        INNER JOIN Employee e ON etn.empId = e.empId\n"
+		    		+ "		        INNER JOIN Employee ab ON ab.empId = etn.createdBy\n"
+		    		+ "		        INNER JOIN DayTypeMasterNew dtmn ON dtmn.dayTypeId = etn.dayTypeId\n"
+		    		+ "		        INNER JOIN EmployeeTimesheetLocationMapping etlm ON etlm.timesheetId = etn.timesheetId\n"
+		    		+ "		        INNER JOIN ProjectTimesheetStatusNew ptsn ON ptsn.id.locationMappingId = etlm.locationMappingId\n"
+		    		+ "		        INNER JOIN Project p ON p.projectId = ptsn.id.projectId\n"
+		    		+ "		        INNER JOIN Client c ON c.clientId = p.clientId\n"
+		    		+ "		        INNER JOIN ClientLocation cl ON cl.clientLocationId = ptsn.clientLocationId\n"
+		    		+ "		        INNER JOIN EmployeeTimesheetActivitiesMappingNew etamn ON etamn.timesheetId = etn.timesheetId\n"
+		    		+ "		        INNER JOIN Activity a ON a.activityId = etamn.activityId\n"
+		    		+ "		        INNER JOIN Team t ON t.teamId = a.teamId\n"
+		    		+ "		        INNER JOIN WorkLocationTypeMaster wltm ON wltm.workLocationTypeId = etlm.locationTypeId\n"
+		    		+ "		        LEFT JOIN TimesheetDocumentDetailsNew tddn ON tddn.timesheetId = etn.timesheetId\n"
+		    		+ "		        LEFT JOIN Employee es ON ptsn.shadowEmpId = es.empId\n"
+		    		+ "		        LEFT JOIN DocMimeTypeMasterNew dmtmn ON dmtmn.mimeTypeId = tddn.mimeTypeId\n"
+		    		+ "		        WHERE\n"
+		    		+ "		            (CASE\n"
+		    		+ "		                WHEN e.approvalsTo = 'Reporting Manager' THEN e.reportingManagerId\n"
+		    		+ "		                ELSE e.managerId\n"
+		    		+ "		            END) = :managerId\n"
+		    		+ "		            AND ptsn.status = 1\n"
+		    		+ "		            AND (\n"
+		    		+ "		                :clientFilter IS NULL\n"
+		    		+ "		                OR (:clientFilter = TRUE AND p.hasClientSideId = TRUE)\n"
+		    		+ "		                OR (:clientFilter = FALSE AND (p.hasClientSideId = FALSE OR p.hasClientSideId IS NULL))\n"
+		    		+ "		            )\n"
+		    		+ "		            AND (\n"
+		    		+ "					    :employmentId IS NULL\n"
+		    		+ "					    OR LOWER(\n"
+		    		+ "					        CASE\n"
+		    		+ "					            WHEN e.isApmosysProduct = 'true'\n"
+		    		+ "					                THEN CONCAT('AP-', e.employeementId)\n"
+		    		+ "					            ELSE CONCAT('A-', e.employeementId)\n"
+		    		+ "					        END\n"
+		    		+ "					    ) LIKE LOWER(CONCAT('%', :employmentId, '%'))\n"
+		    		+ "					)\n"
+		    		+ "					AND (:employeeName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :employeeName, '%')))\n"
+		    		+ "					AND (:dayType IS NULL OR LOWER(dtmn.dayType) LIKE LOWER(CONCAT('%', :dayType, '%')))\n"
+		    		+ "					AND (:projectName IS NULL OR LOWER(p.projectName) LIKE LOWER(CONCAT('%', :projectName, '%')))\n"
+		    		+ "					AND (:clientName IS NULL OR LOWER(c.clientName) LIKE LOWER(CONCAT('%', :clientName, '%')))\n"
+		    		+ "					AND (:clientLocation IS NULL OR LOWER(cl.clientLocation) LIKE LOWER(CONCAT('%', :clientLocation, '%')))\n"
+		    		+ "					AND (:poNo IS NULL OR LOWER(ptsn.poNo) LIKE LOWER(CONCAT('%', :poNo, '%')))\n"
+		    		+ "					AND (:shadowEmpName IS NULL OR LOWER(COALESCE(es.name, '')) LIKE LOWER(CONCAT('%', :shadowEmpName, '%')))\n"
+		    		+ "					AND (:teamName IS NULL OR LOWER(t.teamName) LIKE LOWER(CONCAT('%', :teamName, '%')))\n"
+		    		+ "					AND (:activity IS NULL OR LOWER(a.activity) LIKE LOWER(CONCAT('%', :activity, '%')))\n"
+		    		+ "					AND (\n"
+		    		+ "						    :date IS NULL\n"
+		    		+ "						    OR FUNCTION('DATE_FORMAT', etn.date, '%d/%m/%Y')\n"
+		    		+ "						       LIKE CONCAT(:date, '%')\n"
+		    		+ "						)\n"
+		    		+ "					AND (\n"
+		    		+ "						    :search IS NULL OR :search = ''\n"
+		    		+ "						    OR LOWER(\n"
+		    		+ "						        CASE\n"
+		    		+ "						            WHEN e.isApmosysProduct = 'true'\n"
+		    		+ "						                THEN CONCAT('AP-', e.employeementId)\n"
+		    		+ "						            ELSE CONCAT('A-', e.employeementId)\n"
+		    		+ "						        END\n"
+		    		+ "						    ) LIKE LOWER(CONCAT('%', :search, '%'))\n"
+		    		+ "						\n"
+		    		+ "						    OR LOWER(e.name) LIKE LOWER(CONCAT('%', :search, '%'))\n"
+		    		+ "						    OR LOWER(dtmn.dayType) LIKE LOWER(CONCAT('%', :search, '%'))\n"
+		    		+ "						    OR LOWER(p.projectName) LIKE LOWER(CONCAT('%', :search, '%'))\n"
+		    		+ "						    OR LOWER(c.clientName) LIKE LOWER(CONCAT('%', :search, '%'))\n"
+		    		+ "						    OR LOWER(cl.clientLocation) LIKE LOWER(CONCAT('%', :search, '%'))\n"
+		    		+ "						    OR LOWER(ptsn.poNo) LIKE LOWER(CONCAT('%', :search, '%'))\n"
+		    		+ "						    OR LOWER(COALESCE(es.name, '')) LIKE LOWER(CONCAT('%', :search, '%'))\n"
+		    		+ "						    OR LOWER(t.teamName) LIKE LOWER(CONCAT('%', :search, '%'))\n"
+		    		+ "						    OR LOWER(a.activity) LIKE LOWER(CONCAT('%', :search, '%'))\n"
+		    		+ "						    OR FUNCTION('DATE_FORMAT', etn.date, '%d/%m/%Y') LIKE CONCAT('%', :search, '%')\n"
+		    		+ "						)\n"
+		    		+ "				GROUP BY etn.timesheetId, etn.empId, e.employeementId, e.name, dtmn.dayType, etn.date,\n"
+		    		+ "			         etn.isNightShift, etn.workCheckIn, etn.workCheckOut, ab.name, etn.createdOn,\n"
+		    		+ "			         wltm.code, etlm.locationInTime, etlm.locationOutTime, etlm.locationMappingId,\n"
+		    		+ "			         ptsn.id.projectId, p.projectName, c.clientName, cl.clientLocation, ptsn.poNo,\n"
+		    		+ "			         es.name, ptsn.status, ptsn.totalClientWorkingMinutes, ptsn.description,\n"
+		    		+ "			         a.activity, etamn.description, etamn.durationMinutes, t.teamName,\n"
+		    		+ "			         tddn.docId, tddn.docName, tddn.finalFlag, tddn.bulkApprovedDocId, dmtmn.mimeType\n"
+		    		+ "		        ORDER BY\n"
+		    		+ "		            CASE WHEN :sortBy = 'employeeName' AND :sortDir = 'ASC'  THEN e.name END ASC,\n"
+		    		+ "		            CASE WHEN :sortBy = 'employeeName' AND :sortDir = 'DESC' THEN e.name END DESC,\n"
+		    		+ "		            CASE WHEN :sortBy = 'employmentId' AND :sortDir = 'ASC'  THEN e.employeementId END ASC,\n"
+		    		+ "		            CASE WHEN :sortBy = 'employmentId' AND :sortDir = 'DESC' THEN e.employeementId END DESC,\n"
+		    		+ "		            CASE WHEN :sortBy = 'dayType' AND :sortDir = 'ASC'  THEN dtmn.dayType END ASC,\n"
+		    		+ "		            CASE WHEN :sortBy = 'dayType' AND :sortDir = 'DESC' THEN dtmn.dayType END DESC,\n"
+		    		+ "		            CASE WHEN :sortBy = 'date' AND :sortDir = 'ASC'  THEN etn.date END ASC,\n"
+		    		+ "		            CASE WHEN :sortBy = 'date' AND :sortDir = 'DESC' THEN etn.date END DESC,\n"
+		    		+ "		            CASE WHEN :sortBy = 'appliedOn' AND :sortDir = 'ASC'  THEN etn.createdOn END ASC,\n"
+		    		+ "		            CASE WHEN :sortBy = 'appliedOn' AND :sortDir = 'DESC' THEN etn.createdOn END DESC,\n"
+		    		+ "		            etn.createdOn DESC",
+		    countQuery = "\n"
+		    		+ "		        SELECT COUNT(DISTINCT etn)\n"
+		    		+ "		        FROM EmployeeTimesheetsNew etn\n"
+		    		+ "		        INNER JOIN Employee e ON etn.empId = e.empId\n"
+		    		+ "		        INNER JOIN DayTypeMasterNew dtmn ON dtmn.dayTypeId = etn.dayTypeId\n"
+		    		+ "		        INNER JOIN EmployeeTimesheetLocationMapping etlm ON etlm.timesheetId = etn.timesheetId\n"
+		    		+ "		        INNER JOIN ProjectTimesheetStatusNew ptsn ON ptsn.id.locationMappingId = etlm.locationMappingId\n"
+		    		+ "		        INNER JOIN Project p ON p.projectId = ptsn.id.projectId\n"
+		    		+ "		        INNER JOIN Client c ON c.clientId = p.clientId\n"
+		    		+ "		        WHERE etn.currentManagerId = :managerId\n"
+		    		+ "		            AND ptsn.status = 1\n"
+		    		+ "		            AND (\n"
+		    		+ "		                :clientFilter IS NULL\n"
+		    		+ "		                OR (:clientFilter = TRUE AND p.hasClientSideId = TRUE)\n"
+		    		+ "		                OR (:clientFilter = FALSE AND (p.hasClientSideId = FALSE OR p.hasClientSideId IS NULL))\n"
+		    		+ "		            )\n"
+		    		+ "		            AND (\n"
+		    		+ "		                :employeeName IS NULL OR :search = ''\n"
+		    		+ "		                OR LOWER(e.name) LIKE LOWER(CONCAT('%', :employeeName, '%'))\n"
+		    		+ "		            )"
 		)
 	Page<GetReporteesTimesheetReqFlatDTO> getMyReporteesTimesheetRequests(
 		    @Param("managerId") Long managerId,
@@ -10216,6 +10243,8 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 		    @Param("teamName") String teamName,
 		    @Param("activity") String activity,
 		    @Param("date") String date,
+		    
+		    @Param("search") String search,
 
 		    @Param("sortBy") String sortBy,
 		    @Param("sortDir") String sortDir,
