@@ -917,6 +917,8 @@ th {
   overflow: hidden;
   margin-top: 16px;
   border: 1px solid #e5e7eb;
+  table-layout: fixed; /* important */
+  width: 100%;
 }
 
 .project-table thead th {
@@ -945,6 +947,19 @@ th {
   text-align: left;
   padding-left: 16px !important;
   min-width: 200px;
+}
+.project-table td:nth-child(2),
+.project-table th:nth-child(2) {
+  max-width: 260px;          /* adjust as needed */
+  white-space: normal;       /* allow wrapping */
+  word-break: break-word;    /* break long words */
+  overflow-wrap: anywhere;
+}
+.project-table td:nth-child(3),
+.project-table th:nth-child(3) {
+  max-width: 140px;
+  white-space: nowrap;
+  text-align: center;
 }
 
 .project-name {
