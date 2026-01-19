@@ -913,6 +913,7 @@ rows.forEach(row -> {
 //                p.setRemarks(row[33] != null ? row[33].toString() : null);
                 p.setActivities(new ArrayList<>());
                 p.setClientId(row[34] != null ? ((Number) row[34]).longValue() : null);
+                p.setShadowEmpId(row[22]!=null?((Number)row[22]).longValue():null);
                 location.getProjects().add(p);
                 return p;
             });
