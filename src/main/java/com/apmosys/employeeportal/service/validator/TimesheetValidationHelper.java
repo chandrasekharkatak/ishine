@@ -354,8 +354,7 @@ public class TimesheetValidationHelper {
                 }
         }
     }
-
-    /**
+        /**
          * Validate uploaded document files based on new contract rules.
          *
          * Rules:
@@ -365,101 +364,120 @@ public class TimesheetValidationHelper {
          * - Max 2 documents per project (filled + approved)
          * - File name format: projectId_filled_xxx OR projectId_approved_xxx
          */
-        public void validateUploadedDocuments(EmployeeTimesheetDTO empDTO,
-                                              List<MultipartFile> documents) {
+		public void validateUploadedDocuments(EmployeeTimesheetDTO empDTO, List<MultipartFile> documents) {
 
-            if (empDTO == null) {
-                return;
-            }
+			if (empDTO == null) {
+				return;
+			}
 
-            // 1️⃣ Skip validation for non-working days
-            if (isNonWorkingDay(empDTO.getDayType())) {
-                return;
-            }
-            List<TimesheetDocumentDataDTO> docs=empDTO.getDocumentData();
+       // 1️ Skip validation for non-working days
+			if (isNonWorkingDay(empDTO.getDayType())) {
+				return;
+			}
 
-            
+			boolean isAnyProjectDocMandatory = false;
 
-            if (documents == null || documents.isEmpty()) {
-                throw new IllegalArgumentException(
-                        "Client-side document is mandatory. Please upload required documents.");
-            }
+			for (LocationSessionDTO location : empDTO.getLocationSessions()) {
+				if (location.getProjects() == null)
+					continue;
 
-            //Group uploaded files by projectId (parsed from filename)
-            Map<Long, List<MultipartFile>> filesByProject =
-                    groupFilesByProjectId(documents);
+				for (ProjectTimesheetDTO project : location.getProjects()) {
+					if (project.getIsShadowForSelf())
+						continue;
 
-            //Validate project-wise
-            for (LocationSessionDTO location : empDTO.getLocationSessions()) {
-                if (location.getProjects() == null) continue;
+					Boolean isClientIdMandatory = projectRepository.getClientSideIdMandatory(project.getProjectId());
 
-                for (ProjectTimesheetDTO project : location.getProjects()) {
+					if (Boolean.TRUE.equals(isClientIdMandatory)) {
+						isAnyProjectDocMandatory = true;
+						break;
+					}
+				}
+				if (isAnyProjectDocMandatory)
+					break;
+			}
 
-                    Integer projectId = project.getProjectId();
-                    if(project.getIsShadowForSelf()) continue;
-                    
-                    
-                    Boolean isClientIdMandatory =
-                            projectRepository.getClientSideIdMandatory(projectId);
+			if (isAnyProjectDocMandatory && (documents == null || documents.isEmpty())) {
 
-                    if (Boolean.FALSE.equals(isClientIdMandatory)) {
-                        continue;
-                    }
+				throw new IllegalArgumentException(
+						"Client-side document is mandatory for client project. Please upload required documents.");
+			}
 
-                    List<MultipartFile> projectFiles =
-                            filesByProject.getOrDefault(projectId, List.of());
+			if (documents == null || documents.isEmpty()) {
+				return; // no project requires documents
+			}
 
-                    //Enforce min / max rule
-                    if (projectFiles.isEmpty()) {
-                        throw new IllegalArgumentException(
-                                "Filled document is mandatory for projectId: " + projectId);
-                    }
+         // Group uploaded files by projectId (parsed from filename)
+			Map<Integer, List<MultipartFile>> filesByProject = groupFilesByProjectId(documents);
 
-                    if (projectFiles.size() > 2) {
-                        throw new IllegalArgumentException(
-                                "Maximum 2 documents (filled + approved) allowed for projectId: "
-                                        + projectId);
-                    }
-                    
-                    if(project.getClientApprovalStatus()==2 && projectFiles.size()!=2) {
-                    	throw new IllegalArgumentException(
-                                "2 documents (filled + approved) are required for projectId: "
-                                        + projectId);
-                    }
+           // Validate project-wise
+			for (LocationSessionDTO location : empDTO.getLocationSessions()) {
+				if (location.getProjects() == null)
+					continue;
 
-                    boolean filledPresent = false;
+				for (ProjectTimesheetDTO project : location.getProjects()) {
 
-                    //Validate file naming & types
-                    for (MultipartFile file : projectFiles) {
+					Integer projectId = project.getProjectId();
+					String projectName = project.getProjectName();
 
-                        String fileName = file.getOriginalFilename();
-                        if (fileName == null) {
-                            throw new IllegalArgumentException(
-                                    "Invalid document name for projectId: " + projectId);
-                        }
+					if (project.getIsShadowForSelf())
+						continue;
 
-                        String lowerName = fileName.toLowerCase();
+					Boolean isClientIdMandatory = projectRepository.getClientSideIdMandatory(projectId);
 
-                        if (lowerName.contains("_filled_")) {
-                            filledPresent = true;
-                        } else if (lowerName.contains("_approved_")) {
-                            // approved doc → optional
-                        } else {
-                            throw new IllegalArgumentException(
-                                    "Invalid document name format for projectId: " + projectId +
-                                    ". Expected: projectId_filled_xxx or projectId_approved_xxx");
-                        }
-                    }
+					if (Boolean.FALSE.equals(isClientIdMandatory)) {
+						continue;
+					}
 
-                    // 7️ Filled doc is mandatory
-                    if (!filledPresent) {
-                        throw new IllegalArgumentException(
-                                "Filled document is mandatory for projectId: " + projectId);
-                    }
-                }
-            }
-        }
-        
+					List<MultipartFile> projectFiles = filesByProject.getOrDefault(projectId, List.of());
+
+                 // Enforce min rule
+					if (projectFiles.isEmpty()) {
+						throw new IllegalArgumentException("Filled document is mandatory for project: " + projectName);
+					}
+
+                    // Enforce max rule
+					if (projectFiles.size() > 2) {
+						throw new IllegalArgumentException(
+								"Maximum 2 documents (filled + approved) allowed for project: " + projectName);
+					}
+
+                    // Approved attendance requires both docs
+					if (project.getClientApprovalStatus() == 2 && projectFiles.size() != 2) {
+						throw new IllegalArgumentException(
+								"Filled and approved documents are required for client approved project: "
+										+ projectName);
+					}
+
+					boolean filledPresent = false;
+
+                   // Validate file naming
+					for (MultipartFile file : projectFiles) {
+
+						String fileName = file.getOriginalFilename();
+						if (fileName == null) {
+							throw new IllegalArgumentException("Invalid document name for project: " + projectName);
+						}
+
+						String lowerName = fileName.toLowerCase();
+
+						if (lowerName.contains("_filled_")) {
+							filledPresent = true;
+						} else if (lowerName.contains("_approved_")) {
+                       // approved document → optional
+						} else {
+							throw new IllegalArgumentException("Invalid document name format for project: "
+									+ projectName + ". Expected: projectName_filled_xxx or projectName_approved_xxx");
+						}
+					}
+
+                       // Filled doc is mandatory
+					if (!filledPresent) {
+						throw new IllegalArgumentException("Filled document is mandatory for project: " + projectName);
+					}
+				}
+			}
+		}
+
         
         /**
          * Groups uploaded files by projectId extracted from filename.
@@ -467,10 +485,10 @@ public class TimesheetValidationHelper {
          * Expected filename format:
          * projectId_filled_xxx OR projectId_approved_xxx
          */
-        private Map<Long, List<MultipartFile>> groupFilesByProjectId(
+        private Map<Integer, List<MultipartFile>> groupFilesByProjectId(
                 List<MultipartFile> documents) {
 
-            Map<Long, List<MultipartFile>> map = new HashMap<>();
+            Map<Integer, List<MultipartFile>> map = new HashMap<>();
 
             for (MultipartFile file : documents) {
 
@@ -483,9 +501,9 @@ public class TimesheetValidationHelper {
 
                 String[] parts = fileName.split("_", 2);
 
-                Long projectId;
+                Integer projectId;
                 try {
-                    projectId = Long.parseLong(parts[0]);
+                    projectId = Integer.parseInt(parts[0]);
                 } catch (NumberFormatException ex) {
                     throw new IllegalArgumentException(
                             "Invalid projectId in document name: " + fileName);
