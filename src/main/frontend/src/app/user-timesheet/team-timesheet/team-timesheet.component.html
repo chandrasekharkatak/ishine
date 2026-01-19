@@ -677,7 +677,7 @@
         </select>
       </div>
       <div class="table-toolbar">
-        <input type="text" class="form-control search-input" placeholder="Search employee details..."
+        <input type="text" class="form-control search-input" placeholder="Search employee by name..."
           [(ngModel)]="searchText" (ngModelChange)="onGlobalSearchChange()" />
       </div>
 
@@ -710,7 +710,7 @@
               <th>Applied On</th>
               <th>Actions</th>
             </tr>
-            <tr app-column-filter-bar style="height: 16px; width: 20px;" *ngIf=" isSearchEnabled"
+            <tr app-column-filter-bar *ngIf=" isSearchEnabled"
               [columnList]="allTimesheetColumnsVMS" (onSearch)="onSearch($event);page1=1"></tr>
           </thead>
 
@@ -779,6 +779,10 @@
                             <th>Project</th>
                             <th>PO No</th>
                             <th>Shadow</th>
+                            <th>Pending Doc</th>
+                            <th>Approved Doc</th>
+
+
                             <th>Actions</th>
                           </tr>
                         </thead>
@@ -796,8 +800,17 @@
 
                             <td>{{ project.poNo || '-' }}</td>
                             <td>{{ project.shadowEmp ? 'Yes' : 'No' }}</td>
+                            <td>  <button class="doc-btn pending" style="color:rgb(255, 187, 0)" (click)="openDocumentPopup(timesheet)">
+                              <i class="fa fa-eye"></i>
+                            </button></td>
+
+                            <td>  <button class="doc-btn approved" style="color:green" (click)="openDocumentPopup(timesheet)">
+                              <i class="fa fa-eye"></i>
+                            </button></td>
+
 
                             <td>
+
                               <button class="btn-approve">✔</button>
                               <button class="btn-reject">✖</button>
                             </td>
@@ -841,7 +854,7 @@
         </table>
       </div>
       <!-- PAGINATION -->
-      <pagination-controls (pageChange)="page1 = $event; getMyReporteesTimesheetRequests()">
+      <pagination-controls (pageChange)="page1 = $event;">
       </pagination-controls>
 
     </div>

@@ -1391,8 +1391,7 @@ public class TimesheetService {
 			Boolean clientFlag = timesheetDTO.getClient() != null && timesheetDTO.getClient() ? true : null;
 			if(timesheetDTO.getManagerId() != null) {
 			Employee employeeData = employeeRepository.findByEmpId(timesheetDTO.getManagerId());
-			objectList = timesheetsRepository
-					.getMyReporteesTimesheetRequests(timesheetDTO.getManagerId(), timesheetDTO.getStatus(),employeeData.getDateOfJoining(),clientFlag);
+			objectList = timesheetsRepository.getMyReporteesTimesheetRequests(timesheetDTO.getManagerId(), timesheetDTO.getStatus(),employeeData.getDateOfJoining(),clientFlag);
 			}else {
 				objectList = timesheetsRepository
 						.getMyTimesheetRequests(timesheetDTO.getEmpId(),timesheetDTO.getTeamId(),timesheetDTO.getFromDate()!= null ? timesheetDTO.getFromDate() : "",timesheetDTO.getToDate()!= null ? timesheetDTO.getToDate() : "",clientFlag);
