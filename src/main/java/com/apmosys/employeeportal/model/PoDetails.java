@@ -15,6 +15,7 @@ public class PoDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     private Long poId;
     private Integer projectId;
     private String poNo;
@@ -25,10 +26,11 @@ public class PoDetails {
     private String apmosysRmEmail;
     private String poStartDate;
     private String poEndDate;
-    private boolean activeFlag;
-    private String prevPO;
-    private String nextPO;
+    private boolean active;
+    private Long prevPO;
+    private Long nextPO;
     private String msg;
-    // private Long clientLocationId;
+    private Long clientLocationId;
+    private String clientState;
 
 }
