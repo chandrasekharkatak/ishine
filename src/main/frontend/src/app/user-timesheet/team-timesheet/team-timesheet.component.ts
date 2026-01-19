@@ -1634,70 +1634,132 @@ onGlobalSearchChange() {
 
 
 
-  exportExcel1() {
-    if (this.isAllTimesheetRequestTable == true) {
-      this.excelName = 'AllTeamTimesheetDetails.xlsx';
+  // exportExcel1() {
+  //   if (this.isAllTimesheetRequestTable == true) {
+  //     this.excelName = 'AllTeamTimesheetDetails.xlsx';
 
-      this.allTeamTimesheetDataForExcel = this.allTeamTimesheetRequestsProjectView;
-      const onlySpecificDataArr = this.allTeamTimesheetDataForExcel.map(x => ({
-        "Employee Id": x.employeementId,
-        "Client Side Id": x.clientSideId,
-        "Employee Name": x.name,
-        "Team Name": x.teamName,
-        "Department Name": x.departmentName,
-        "Project Name": x.projectName,
-        "PONO": x.poNo,
-        "Client Name": x.clientName,
-        "Billable Type": x.billableType,
-        "Employee Role": x.employeeRole,
-        "SPOC": x.spoc,
-        "Project Manager Name": x.projectManagerName,
-        "Start Date": x.startdate,
-        "Total Expected Fill Count": x.totalExpectedFillCount,
-        "Total Filled Count": x.totalIshineFilledCount,
-        "TotalClient Side Not Filled Count": x.totalClientSideNotFilledCount,
-        "Total Client Side Pending Count": x.totalClientSidePendingCount,
-        "Total Client Side Approved Count": x.totalClientSideApprovedCount
-      }));
-
-
-      const fieldDetails = [
-        { Field: "Employee Id", Description: "Unique identifier for employee" },
-        { Field: "Client Side Id", Description: "Client's identification for the employee" },
-        { Field: "Employee Name", Description: "Name of the employee" },
-        { Field: "Team Name", Description: "Team where employee belongs" },
-        { Field: "Department Name", Description: "Department name" },
-        { Field: "Project Name", Description: "Project employee is assigned to" },
-        { Field: "PONO", Description: "Purchase Order Number" },
-        { Field: "Client Name", Description: "Name of the client" },
-        { Field: "Billable Type", Description: "Billable or Non-billable status" },
-        { Field: "Employee Role", Description: "Role of the employee" },
-        { Field: "SPOC", Description: "Single Point of Contact" },
-        { Field: "Project Manager Name", Description: "Name of project manager" },
-        { Field: "Start Date", Description: "Project start date" },
-        { Field: "Total Expected Fill Count", Description: "The Total Expected Fill Count represents the net number of working days the employee is expected to contribute during the current month on a project, adjusted for their project start date, any leaves taken, and all applicable holidays." },
-        { Field: "Total Filled Count", Description: "Total Timesheet filled from Ishine system" },
-        { Field: "Total Client Side Not Filled Count", Description: "Client side unfilled counts" },
-        { Field: "Total Client Side Pending Count", Description: "Pending approvals count of Client Side Attendance" },
-        { Field: "Total Client Side Approved Count", Description: "Approved counts by client" }
-      ];
+  //     this.allTeamTimesheetDataForExcel = this.allTeamTimesheetRequestsProjectView;
+  //     const onlySpecificDataArr = this.allTeamTimesheetDataForExcel.map(x => ({
+  //       "Employee Id": x.employeementId,
+  //       "Client Side Id": x.clientSideId,
+  //       "Employee Name": x.name,
+  //       "Team Name": x.teamName,
+  //       "Department Name": x.departmentName,
+  //       "Project Name": x.projectName,
+  //       "PONO": x.poNo,
+  //       "Client Name": x.clientName,
+  //       "Billable Type": x.billableType,
+  //       "Employee Role": x.employeeRole,
+  //       "SPOC": x.spoc,
+  //       "Project Manager Name": x.projectManagerName,
+  //       "Start Date": x.startdate,
+  //       "Total Expected Fill Count": x.totalExpectedFillCount,
+  //       "Total Filled Count": x.totalIshineFilledCount,
+  //       "TotalClient Side Not Filled Count": x.totalClientSideNotFilledCount,
+  //       "Total Client Side Pending Count": x.totalClientSidePendingCount,
+  //       "Total Client Side Approved Count": x.totalClientSideApprovedCount
+  //     }));
 
 
-      const wb = XLSX.utils.book_new();
+  //     const fieldDetails = [
+  //       { Field: "Employee Id", Description: "Unique identifier for employee" },
+  //       { Field: "Client Side Id", Description: "Client's identification for the employee" },
+  //       { Field: "Employee Name", Description: "Name of the employee" },
+  //       { Field: "Team Name", Description: "Team where employee belongs" },
+  //       { Field: "Department Name", Description: "Department name" },
+  //       { Field: "Project Name", Description: "Project employee is assigned to" },
+  //       { Field: "PONO", Description: "Purchase Order Number" },
+  //       { Field: "Client Name", Description: "Name of the client" },
+  //       { Field: "Billable Type", Description: "Billable or Non-billable status" },
+  //       { Field: "Employee Role", Description: "Role of the employee" },
+  //       { Field: "SPOC", Description: "Single Point of Contact" },
+  //       { Field: "Project Manager Name", Description: "Name of project manager" },
+  //       { Field: "Start Date", Description: "Project start date" },
+  //       { Field: "Total Expected Fill Count", Description: "The Total Expected Fill Count represents the net number of working days the employee is expected to contribute during the current month on a project, adjusted for their project start date, any leaves taken, and all applicable holidays." },
+  //       { Field: "Total Filled Count", Description: "Total Timesheet filled from Ishine system" },
+  //       { Field: "Total Client Side Not Filled Count", Description: "Client side unfilled counts" },
+  //       { Field: "Total Client Side Pending Count", Description: "Pending approvals count of Client Side Attendance" },
+  //       { Field: "Total Client Side Approved Count", Description: "Approved counts by client" }
+  //     ];
 
 
-      const dataSheet = XLSX.utils.json_to_sheet(onlySpecificDataArr);
-      const detailsSheet = XLSX.utils.json_to_sheet(fieldDetails);
+  //     const wb = XLSX.utils.book_new();
 
 
-      XLSX.utils.book_append_sheet(wb, dataSheet, "Timesheet Data");
-      XLSX.utils.book_append_sheet(wb, detailsSheet, "Field Details");
+  //     const dataSheet = XLSX.utils.json_to_sheet(onlySpecificDataArr);
+  //     const detailsSheet = XLSX.utils.json_to_sheet(fieldDetails);
 
 
-      XLSX.writeFile(wb, this.excelName);
-    }
+  //     XLSX.utils.book_append_sheet(wb, dataSheet, "Timesheet Data");
+  //     XLSX.utils.book_append_sheet(wb, detailsSheet, "Field Details");
+
+
+  //     XLSX.writeFile(wb, this.excelName);
+  //   }
+  // }
+
+
+
+  prepareFlatTimesheetData(timesheets: any[]): any[] {
+    const flatList: any[] = [];
+
+    timesheets.forEach(timesheet => {
+      (timesheet.locationSessions || []).forEach(location => {
+        (location.projects || []).forEach(project => {
+          (project.activities || []).forEach(activity => {
+
+            flatList.push({
+              // ===== TIMESHEET LEVEL =====
+              "Employee Id": timesheet.employmentId,
+              "Employee Name": timesheet.employeeName,
+              "Date": timesheet.date,
+              "Day Type": timesheet.dayType,
+              "Applied By": timesheet.appliedBy,
+              "Applied On": timesheet.appliedOn,
+
+              // ===== LOCATION LEVEL =====
+              "Work Location": location.workLocationType,
+              "Location In": location.locationInTime,
+              "Location Out": location.locationOutTime,
+
+              // ===== PROJECT LEVEL =====
+              "Project Name": project.projectName,
+              "PO No": project.poNo || '-',
+              "Shadow Employee": project.shadowEmp ? 'Yes' : 'No',
+
+              // ===== ACTIVITY LEVEL =====
+              "Activity Team": activity.teamName,
+              "Activity": activity.activity,
+              "Description": activity.activityDescription || '-',
+              "Hours (Minutes)": activity.durationMinutes
+            });
+
+          });
+        });
+      });
+    });
+
+    return flatList;
   }
 
+
+  exportExcel1() {
+    this.excelName = 'Timesheet_Flat_Report.xlsx';
+
+    const flatData = this.prepareFlatTimesheetData(
+      this.filteredData()
+    );
+
+    if (!flatData.length) {
+      return;
+    }
+
+    const wb = XLSX.utils.book_new();
+    const sheet = XLSX.utils.json_to_sheet(flatData);
+
+    XLSX.utils.book_append_sheet(wb, sheet, 'Timesheet Data');
+    XLSX.writeFile(wb, this.excelName);
+  }
 
   resetDateFilter() {
     this.toDate = '';
