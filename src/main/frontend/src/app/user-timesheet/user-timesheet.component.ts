@@ -52,6 +52,20 @@ export class UserTimesheetComponent implements OnInit,OnDestroy,AfterViewInit {
 
   setActiveTab(){
     const params =this.route.snapshot.queryParams;
+
+    if (params.tab === 'team-timesheet' && this.userMapping.team_timesheets) {
+    const tab = document.getElementById('team-timesheet-tab');
+    if (tab) {
+      tab.classList.add('active');
+      const activeRouteLink = tab.getAttribute('routerLink');
+      this.router.navigate(['./' + activeRouteLink], {
+        relativeTo: this.route,
+        queryParamsHandling: 'merge'
+      });
+      return;
+    }
+  }
+
     if(this.userMapping.timesheets_dashboard ){
       if(params.date == undefined){
         const tab = document.getElementById('my-timesheet-tab');
@@ -75,38 +89,6 @@ export class UserTimesheetComponent implements OnInit,OnDestroy,AfterViewInit {
    
   }
   }
-
-  // setActiveTab(){
- 
-  //     this.route.queryParams.subscribe((params) => {
-  //       console.log("Params================++>",params);
-
-  //     if(params.date == undefined || params.date == null){
-  //        if(this.userMapping.timesheets_dashboard){
-  //         const tab = document.getElementById('hr-dashboard-tab');
-  //         tab.classList.add('active');
-  //         let activeRouteLink = tab.getAttribute('routerLink');
-  //         this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route, queryParamsHandling: 'merge'});
-  //       }
-  //       else{
-       
-  //       const tab = document.getElementById('timesheetTab').querySelector('.nav-link');
-  //       tab.classList.add('active');
-  //       let activeRouteLink = tab.getAttribute('routerLink');
-  //       this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route, queryParamsHandling: 'merge'});
-      
-  //   }
-  //   }
-  //   else{
-  //     const tab = document.getElementById('timesheetTab').querySelector('.nav-link');
-  //     tab.classList.add('active');
-  //     let activeRouteLink = tab.getAttribute('routerLink');
-  //     this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route,  queryParamsHandling: 'merge'});
-     
-  //   }
-  //   });
-
-  // }
   removeActiveTab(){
     const tab = document.getElementById('timesheetTab').querySelector('.nav-link.active');
     //console.log("active tab :", tab);
