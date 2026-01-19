@@ -35,4 +35,6 @@ public class GetMyReporteesTimesheetRequestsPayload {
     private String activity;
     private String date;
 
+    private String search;
+
 }

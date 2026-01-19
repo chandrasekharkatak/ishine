@@ -5,7 +5,7 @@
         <div class="form-header-card">
             <div class="d-flex align-items-center">
                 <i class="fa fa-calendar-check-o form-header-icon"></i>
-                <h4 class="form-header-title mb-0">Timesheet Entry</h4>
+                <h4 class="form-header-title mb-0">Timesheet Entry Testing</h4>
             </div>
         </div>
 
@@ -20,12 +20,6 @@
                 <!-- APPLICATION TYPE -->
                 <div class="row mb-3">
                     <div class="col-md-12">
-                        <!-- <app-my-timesheet-application-selector [timesheetAppliedFor]="timesheetAppliedFor"
-                            [isUpdation]="isUpdation" [empId]="timesheetFilledForUser.empId"
-                            [currentUserEmpId]="currentUser?.empId" [teamMemberList]="teamMemberList"
-                            (applicationTypeChange)="onTimesheetAppliedForChange($event)"
-                            (teamMemberChange)="getTimesheetMetadata()">
-                        </app-my-timesheet-application-selector> -->
                         <div class="form-section">
                             <label class="section-title">
                                 <span class="text-danger">*</span>
@@ -61,17 +55,6 @@
                                 <app-my-select class="form-control"
                                         [options]="teamMemberList" displayKey="name" valueKey="empId" [isOptionDisabled]="disableEmployee" [(ngModel)]="selectedTeamMember" [readonly]="isUpdation">
                                 </app-my-select>
-
-
-                                <!-- <select class="form-select mt-2" [ngModel]="selectedTeamMember"
-                                    (change)="getTimesheetMetadata()" [disabled]="isUpdation">
-                                    <option value="" disabled>Select Team Member</option>
-
-                                    <option *ngFor="let teamMember of teamMemberList" [value]="teamMember.empId"
-                                        [disabled]="teamMember.empId === currentUser.empId">
-                                        {{ teamMember.name }}
-                                    </option>
-                                </select> -->
                             </div>
                         </div>
                         </div>
@@ -552,111 +535,172 @@
 
 
         <!-- Client Approval & Documents Card -->
-        <div class="info-card" *ngIf="empHasClientSideId && documentData.length > 0 && isDayTypeFillable()">
-            <div class="card-header-section">
-                <i class="fa-solid fa-file-arrow-up card-icon"></i>
-                <h6 class="card-title mb-0">Upload Documents</h6>
-                <!-- <button class="btn btn-outline-primary ml-3 btn-action" (click)="getListToRenderUpload()">Get
-                    Form</button> -->
+        <div class="info-card document-upload-card" *ngIf="empHasClientSideId && documentData.length > 0 && isDayTypeFillable()">
+            <div class="card-header-section document-header">
+                <div class="d-flex align-items-center">
+                    <div class="document-icon-wrapper">
+                        <i class="fa-solid fa-file-arrow-up card-icon"></i>
+                    </div>
+                    <div>
+                        <h6 class="card-title mb-0">Upload Documents</h6>
+                        <small class="document-subtitle">Upload attendance proof documents for client approval</small>
+                    </div>
+                </div>
             </div>
             @for (project of uniqueProjectsList; track project.projectId) {
-            <div class="card-body-section">
-                <!-- Document Upload Section -->
-                <div class="row mt-3" *ngIf="project.clientApprovalStatus === 2 || project.clientApprovalStatus === 1">
-                    <!-- Project Title -->
-                    <div class="col-12 mb-2">
-                        <h6 class="section-subtitle">
-                            Project: {{ project.projectName }}
-                        </h6>
+            <div class="card-body-section document-body" *ngIf="project.clientApprovalStatus === 2 || project.clientApprovalStatus === 1">
+                <!-- Project Header -->
+                <div class="project-document-header">
+                    <div class="project-badge-document">
+                        <i class="fa fa-folder-open"></i>
                     </div>
+                    <div class="project-document-info">
+                        <h6 class="project-document-title">{{ project.projectName }}</h6>
+                        <span class="project-status-badge" [ngClass]="{'status-pending': project.clientApprovalStatus === 1, 'status-approved': project.clientApprovalStatus === 2}">
+                            {{ project.clientApprovalStatus === 1 ? 'Pending' : 'Approved' }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Document Upload Section -->
+                <div class="document-upload-grid">
                     <!-- Filled Attendance Proof -->
                     @for (file of documentData; track file.projectId + '-' + file.docType) {
                     @if (file.projectId === project.projectId && file.docType === 'Filled') {
-                    <div class="col-md-6 mb-3">
-                        <label class="info-label">
-                            <span class="text-danger">*</span> Filled Attendance Proof
-                        </label>
-                        <div class="d-flex align-items-center">
-                            <input type="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png"
-                                style="max-width: 250px;" (change)="onFileSelected($event, 'Filled', project.projectId)"
-                                (click)="$any($event.target).value = null" />
+                    <div class="document-upload-item">
+                        <div class="document-upload-header">
+                            <label class="document-label">
+                                <span class="required-indicator">*</span>
+                                <i class="fa fa-file-text document-label-icon"></i>
+                                Filled Attendance Proof
+                            </label>
+                        </div>
+                        <div class="document-upload-controls">
+                            <div class="file-input-wrapper">
+                                <input type="file" 
+                                    id="filled-{{project.projectId}}" 
+                                    class="file-input-custom" 
+                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    (change)="onFileSelected($event, 'Filled', project.projectId)"
+                                    (click)="$any($event.target).value = null" />
+                                <label for="filled-{{project.projectId}}" class="file-input-label">
+                                    <i class="fa fa-cloud-upload"></i>
+                                    <span>Choose File</span>
+                                </label>
+                            </div>
                             @if (file.uniqueIdentifier && containsFile(file.uniqueIdentifier)) {
-                            <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
-                                [disabled]="!file.previewUrl" (click)="openPreviewModalForTwo(file)">
+                            <button class="btn-preview-document" 
+                                title="Preview Document"
+                                [disabled]="!file.previewUrl" 
+                                (click)="openPreviewModalForTwo(file)">
                                 <i class="fa fa-eye"></i>
+                                <span>Preview</span>
                             </button>
                             }
-
                         </div>
-                        @if (file.fileError) {
-                        <small class="text-danger d-block">
-                            {{ file.fileError }}
-                        </small>
-                        }
-                        @else if (file.uniqueIdentifier && !file.fileError) {
-                        <small class="text-muted d-block">
-                            {{ file.docName }}
-                        </small>
-                        }
-                        @else if ((!file.uniqueIdentifier || !containsFile(file.uniqueIdentifier)) && !file.fileError) {
-                        <small class="text-muted d-block">
-                            No file selected
-                        </small>
-                        }
-
+                        <div class="document-status-message">
+                            @if (file.fileError) {
+                            <div class="document-error">
+                                <i class="fa fa-exclamation-circle"></i>
+                                <span>{{ file.fileError }}</span>
+                            </div>
+                            }
+                            @else if (file.uniqueIdentifier && !file.fileError) {
+                            <div class="document-success">
+                                <i class="fa fa-check-circle"></i>
+                                <span>{{ file.docName }}</span>
+                            </div>
+                            }
+                            @else if ((!file.uniqueIdentifier || !containsFile(file.uniqueIdentifier)) && !file.fileError) {
+                            <div class="document-placeholder">
+                                <i class="fa fa-info-circle"></i>
+                                <span>No file selected</span>
+                            </div>
+                            }
+                        </div>
                     </div>
                     }
                     <!-- Approved Attendance Proof (Only if Approved) -->
                     @if (file.projectId === project.projectId && file.docType === 'Approved') {
-                    <div class="col-md-6 mb-3">
-                        <label class="info-label">
-                            <span class="text-danger">*</span> Approved Attendance Proof
-                        </label>
-
-                        <div class="d-flex align-items-center">
-                            <input type="file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png"
-                                style="max-width: 250px;"
-                                (change)="onFileSelected($event, 'Approved',project.projectId)"
-                                (click)="$any($event.target).value = null" />
+                    <div class="document-upload-item">
+                        <div class="document-upload-header">
+                            <label class="document-label">
+                                <span class="required-indicator">*</span>
+                                <i class="fa fa-file-check document-label-icon"></i>
+                                Approved Attendance Proof
+                            </label>
+                        </div>
+                        <div class="document-upload-controls">
+                            <div class="file-input-wrapper">
+                                <input type="file" 
+                                    id="approved-{{project.projectId}}" 
+                                    class="file-input-custom" 
+                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    (change)="onFileSelected($event, 'Approved', project.projectId)"
+                                    (click)="$any($event.target).value = null" />
+                                <label for="approved-{{project.projectId}}" class="file-input-label">
+                                    <i class="fa fa-cloud-upload"></i>
+                                    <span>Choose File</span>
+                                </label>
+                            </div>
                             @if (file.uniqueIdentifier && containsFile(file.uniqueIdentifier)) {
-                            <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
-                                [disabled]="!file.previewUrl" (click)="openPreviewModalForTwo(file)">
+                            <button class="btn-preview-document" 
+                                title="Preview Document"
+                                [disabled]="!file.previewUrl" 
+                                (click)="openPreviewModalForTwo(file)">
                                 <i class="fa fa-eye"></i>
+                                <span>Preview</span>
                             </button>
                             }
                         </div>
-                        @if (file.fileError) {
-                        <small class="text-danger d-block">
-                            {{ file.fileError }}
-                        </small>
-                        }
-                        @else if (file.uniqueIdentifier && containsFile(file.uniqueIdentifier) && !file.fileError) {
-                        <small class="text-muted d-block">
-                            {{ file.docName }}
-                        </small>
-                        }
-                        @else if (!file.uniqueIdentifier || !containsFile(file.uniqueIdentifier) && !file.fileError) {
-                        <small class="text-muted d-block">
-                            No file selected
-                        </small>
-                        }
+                        <div class="document-status-message">
+                            @if (file.fileError) {
+                            <div class="document-error">
+                                <i class="fa fa-exclamation-circle"></i>
+                                <span>{{ file.fileError }}</span>
+                            </div>
+                            }
+                            @else if (file.uniqueIdentifier && containsFile(file.uniqueIdentifier) && !file.fileError) {
+                            <div class="document-success">
+                                <i class="fa fa-check-circle"></i>
+                                <span>{{ file.docName }}</span>
+                            </div>
+                            }
+                            @else if (!file.uniqueIdentifier || !containsFile(file.uniqueIdentifier) && !file.fileError) {
+                            <div class="document-placeholder">
+                                <i class="fa fa-info-circle"></i>
+                                <span>No file selected</span>
+                            </div>
+                            }
+                        </div>
                     </div>
                     }
                     }
-
                 </div>
             </div>
             }
         </div>
         <!-- Action Buttons Card  -->
         <div class="form-bottom-card">
-            <div class="d-flex justify-content-end gap-2">
-                <button *ngIf="isCreation" type="button" class="btn btn-outline-primary btn-action"
+            <div class="action-buttons-container">
+                <button *ngIf="isCreation" 
+                    type="button" 
+                    class="btn-create-timesheet"
                     (click)="createTimesheet()">
-                    <i class="fa fa-save"></i> Create Timesheet
+                    <span class="btn-icon-wrapper">
+                        <i class="fa fa-save"></i>
+                    </span>
+                    <span class="btn-text">Create Timesheet</span>
+                    <span class="btn-ripple"></span>
                 </button>
-                <button *ngIf="isUpdation" type="button" class="btn btn-outline-primary btn-action">
-                    <i class="fa fa-edit"></i> Update Timesheet
+                <button *ngIf="isUpdation" 
+                    type="button" 
+                    class="btn-update-timesheet">
+                    <span class="btn-icon-wrapper">
+                        <i class="fa fa-edit"></i>
+                    </span>
+                    <span class="btn-text">Update Timesheet</span>
+                    <span class="btn-ripple"></span>
                 </button>
             </div>
         </div>

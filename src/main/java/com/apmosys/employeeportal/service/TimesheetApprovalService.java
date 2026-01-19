@@ -1198,6 +1198,8 @@ public class TimesheetApprovalService {
             	        payload.getActivity(),
             	        payload.getDate(),
             	        
+            	        payload.getSearch(),
+            	        
             	        payload.getSortBy(),
             	        payload.getSortDir(),
             	        pageable

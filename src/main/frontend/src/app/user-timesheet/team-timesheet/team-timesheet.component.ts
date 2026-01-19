@@ -97,7 +97,7 @@ export class TeamTimesheetComponent implements OnInit {
   timesheetApplicationCount: any = 0;
   allTimesheetColumns: any[] = ['blank', 'blank', 'blank', 'employmentIdAcToET', 'employeeName', 'date', 'dayType', 'description', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status', , 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'createdOn'];
   allTimesheetReqColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'createdByName', 'totalTime', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus'];
-  allTimesheetColumnsVMS: any[] = ['blank', 'blank', 'employeementId', 'clientSideId', 'name', 'teamName', 'departmentName', 'projectName', 'clientName', 'billableType', 'employeeRole', 'spoc', 'projectManagerName', 'poNo', 'startdate', 'totalExpectedFillCount', 'totalIshineFilledCount', 'totalClientSideNotFilledCount', 'totalClientSidePendingCount', 'totalClientSideApprovedCount']
+  allTimesheetColumnsVMS: any[] = ['blank', 'blank', 'employmentId', 'employeeName', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'locationCount', 'projectCount', 'appliedBy', 'appliedOn', 'blank'];
   previewUrl: any;
   fileType: '' | 'pdf' | 'image' | null = null;
   docData: any;
@@ -211,9 +211,10 @@ clientFilter: boolean = false;
   }
 
   showAllTimesheetRequestsTable() {
-    this.sortColumn = [];
-    this.sortColumnType = [];
-    this.sortDirection = '';
+    this.sortColumn = 'date';
+    this.sortDirection = 'DESC';
+    // this.sortColumnType = [];
+    // this.sortDirection = '';
     this.isAllTimesheetRequestTable = true;
     this.isTMBulkUpload = false;
 
@@ -229,6 +230,8 @@ clientFilter: boolean = false;
     this.isAllTimesheetRequestTable = false;
     this.isTMBulkUpload = true;
   }
+
+
 
   getAllTeamTimesheets(template?: TemplateRef<any>) {
     this.allTeamTimesheets = [];
@@ -292,24 +295,65 @@ clientFilter: boolean = false;
     event.target.value = sanitizedValue; // reflect the change in the UI
   }
   getMyReporteesTimesheetRequests() {
-    const payload = {
-    empId: this.currentUser.empId,
-    clientFilter: this.clientFilter
-  };
 
+    const payload: any = {
+      empId: this.currentUser.empId,
+      clientFilter: this.clientFilter,
+      page: this.page1 - 1,
+      // size: this.items,
+      size :100,
+      sortBy: this.sortColumn || 'date',
+      sortDir: this.sortDirection || 'DESC',
+    };
 
-    this.timesheetService.getMyReporteesTimesheetRequests(payload).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allTeamTimesheetRequestsProjectView = response.serviceResponse || [];
+    /* 🔹 GLOBAL SEARCH (as-is) */
+    if (this.searchText?.trim()) {
+      payload.globalSearch = this.searchText.trim();
+    }
 
+    /* 🔹 COLUMN FILTERS (toggle search) */
+    this.addIfPresent(payload, 'employmentId', this.filters.employmentId);
+    this.addIfPresent(payload, 'employeeName', this.filters.employeeName);
+    this.addIfPresent(payload, 'date', this.filters.date);
+    this.addIfPresent(payload, 'dayType', this.filters.dayType);
+    this.addIfPresent(payload, 'projectName', this.filters.projectName);
+    this.addIfPresent(payload, 'poNo', this.filters.poNo);
+    this.addIfPresent(payload, 'shadowEmpName', this.filters.shadowEmp);
+    this.addIfPresent(payload, 'shadowFor', this.filters.shadowFor);
 
-        console.log("allTeamTimesheetRequests :", this.allTeamTimesheetRequestsProjectView);
-      } else {
-        console.error(response.serviceResponse)
-      }
-    });
-
+    this.timesheetService
+      .getMyReporteesTimesheetRequests(payload)
+      .subscribe((res: any) => {
+        if (res.serviceStatus === 'Success') {
+          this.allTeamTimesheetRequestsProjectView =
+            res.serviceResponse?.content || [];
+        }
+      });
   }
+
+
+  addIfPresent(payload: any, key: string, value: any) {
+    if (value !== undefined && value !== null && value !== '') {
+      payload[key] = value;
+    }
+  }
+
+
+sortData(sort: Sort) {
+  if (!sort.active) return;
+
+  this.sortColumn = sort.active;      // ✅ string
+  this.sortDirection = sort.direction.toUpperCase();
+  this.getMyReporteesTimesheetRequests();
+}
+
+
+
+onGlobalSearchChange() {
+  this.page1 = 1; // reset pagination
+  this.getMyReporteesTimesheetRequests();
+}
+
 
   /* Approve / Reject Timesheet requests */
   updateTimesheetRequestById(template: TemplateRef<any>, timesheet: Timesheet, status: any) {
@@ -492,15 +536,15 @@ clientFilter: boolean = false;
 
 
   //sorting timesheet
-  sortData(sort: Sort) {
-    //console.log(sort);
-    if (sort.active) {
-      let sortParams: any[] = sort.active?.split("|");
-      this.sortColumn = sortParams[0];
-      this.sortColumnType = sortParams[1];
-      this.sortDirection = sort.direction;
-    }
-  }
+  // sortData(sort: Sort) {
+  //   //console.log(sort);
+  //   if (sort.active) {
+  //     let sortParams: any[] = sort.active?.split("|");
+  //     this.sortColumn = sortParams[0];
+  //     this.sortColumnType = sortParams[1];
+  //     this.sortDirection = sort.direction;
+  //   }
+  // }
 
   selectAll(event) {
     this.bulkApprove = [];
@@ -739,9 +783,10 @@ clientFilter: boolean = false;
     this.filters1 = searchData;
     console.log("Updated Filter : ", this.filters);
   }
-  onSearch(searchData) {
-    this.filters = searchData;
-    console.log("Updated Filter : ", this.filters);
+  onSearch(searchData: any) {
+    this.filters = searchData;   // 🔥 column wise values
+    this.page1 = 1;
+    this.getMyReporteesTimesheetRequests();
   }
 
   getRejectionReason() {
@@ -762,7 +807,7 @@ clientFilter: boolean = false;
   this.getMyReporteesAndTheirProjects();
 }
 
-  
+
 
 
   getMyReporteesAndTheirProjects() {
@@ -1248,19 +1293,43 @@ clientFilter: boolean = false;
     setTimeout(() => (this.showDropdown = false), 150);
   }
   filteredData() {
-    if (!this.searchText) return this.allTeamTimesheetRequestsProjectView;
-    const lowerSearchText = this.searchText.toLowerCase();
+    let data = this.allTeamTimesheetRequestsProjectView || [];
 
-    return this.allTeamTimesheetRequestsProjectView.filter(item =>
-      item.name?.toLowerCase().includes(lowerSearchText) ||
-      item.employeementId?.toString().toLowerCase().includes(lowerSearchText) ||
-      item.clientSideId?.toLowerCase().includes(lowerSearchText) ||
-      item.departmentName?.toLowerCase().includes(lowerSearchText) ||
-      item.projectName?.toLowerCase().includes(lowerSearchText) ||
-      item.poNo?.toLowerCase().includes(lowerSearchText) ||
-      item.teamName?.toLowerCase().includes(lowerSearchText)
-    );
+    if (this.searchText && this.searchText.trim()) {
+      const search = this.searchText.toLowerCase().trim();
+
+      data = data.filter(item =>
+        /* ✅ EMPLOYEE NAME */
+        item.employeeName?.toLowerCase().includes(search)
+
+        /* ✅ EMP ID (NUMBER OR STRING BOTH) */
+        || item.empId?.toString().toLowerCase().includes(search)
+        || item.employeementId?.toString().toLowerCase().includes(search)
+
+        /* OTHER FIELDS */
+        || item.clientSideId?.toLowerCase().includes(search)
+        || item.departmentName?.toLowerCase().includes(search)
+        || item.projectName?.toLowerCase().includes(search)
+        || item.poNo?.toLowerCase().includes(search)
+        || item.teamName?.toLowerCase().includes(search)
+      );
+    }
+
+    /* COLUMN FILTER (toggle search row) */
+    if (this.filters && Object.keys(this.filters).length) {
+      Object.keys(this.filters).forEach(key => {
+        const value = this.filters[key];
+        if (value) {
+          data = data.filter(item =>
+            item[key]?.toString().toLowerCase().includes(value.toLowerCase())
+          );
+        }
+      });
+    }
+
+    return data;
   }
+
 
   filterSuggestions(): void {
     if (!this.searchText) {
@@ -1326,9 +1395,16 @@ clientFilter: boolean = false;
 
   toggleAllRows(event: any) {
     const checked = event.target.checked;
-    this.filteredData().forEach(r => (r.selected = checked));
+
+    this.filteredData().forEach((timesheet: any) => {
+      timesheet.selected = checked;
+      this.onEmployeeToggle(timesheet); // 🔥 hierarchy call
+    });
+
     this.updateSelectedRows(null);
   }
+
+
   clearAllSelections() {
     this.filteredData().forEach(r => r.selected = false);
     this.selectedRows = [];
@@ -1558,77 +1634,139 @@ clientFilter: boolean = false;
 
 
 
-  exportExcel1() {
-    if (this.isAllTimesheetRequestTable == true) {
-      this.excelName = 'AllTeamTimesheetDetails.xlsx';
+  // exportExcel1() {
+  //   if (this.isAllTimesheetRequestTable == true) {
+  //     this.excelName = 'AllTeamTimesheetDetails.xlsx';
 
-      this.allTeamTimesheetDataForExcel = this.allTeamTimesheetRequestsProjectView;
-      const onlySpecificDataArr = this.allTeamTimesheetDataForExcel.map(x => ({
-        "Employee Id": x.employeementId,
-        "Client Side Id": x.clientSideId,
-        "Employee Name": x.name,
-        "Team Name": x.teamName,
-        "Department Name": x.departmentName,
-        "Project Name": x.projectName,
-        "PONO": x.poNo,
-        "Client Name": x.clientName,
-        "Billable Type": x.billableType,
-        "Employee Role": x.employeeRole,
-        "SPOC": x.spoc,
-        "Project Manager Name": x.projectManagerName,
-        "Start Date": x.startdate,
-        "Total Expected Fill Count": x.totalExpectedFillCount,
-        "Total Filled Count": x.totalIshineFilledCount,
-        "TotalClient Side Not Filled Count": x.totalClientSideNotFilledCount,
-        "Total Client Side Pending Count": x.totalClientSidePendingCount,
-        "Total Client Side Approved Count": x.totalClientSideApprovedCount
-      }));
-
-
-      const fieldDetails = [
-        { Field: "Employee Id", Description: "Unique identifier for employee" },
-        { Field: "Client Side Id", Description: "Client's identification for the employee" },
-        { Field: "Employee Name", Description: "Name of the employee" },
-        { Field: "Team Name", Description: "Team where employee belongs" },
-        { Field: "Department Name", Description: "Department name" },
-        { Field: "Project Name", Description: "Project employee is assigned to" },
-        { Field: "PONO", Description: "Purchase Order Number" },
-        { Field: "Client Name", Description: "Name of the client" },
-        { Field: "Billable Type", Description: "Billable or Non-billable status" },
-        { Field: "Employee Role", Description: "Role of the employee" },
-        { Field: "SPOC", Description: "Single Point of Contact" },
-        { Field: "Project Manager Name", Description: "Name of project manager" },
-        { Field: "Start Date", Description: "Project start date" },
-        { Field: "Total Expected Fill Count", Description: "The Total Expected Fill Count represents the net number of working days the employee is expected to contribute during the current month on a project, adjusted for their project start date, any leaves taken, and all applicable holidays." },
-        { Field: "Total Filled Count", Description: "Total Timesheet filled from Ishine system" },
-        { Field: "Total Client Side Not Filled Count", Description: "Client side unfilled counts" },
-        { Field: "Total Client Side Pending Count", Description: "Pending approvals count of Client Side Attendance" },
-        { Field: "Total Client Side Approved Count", Description: "Approved counts by client" }
-      ];
+  //     this.allTeamTimesheetDataForExcel = this.allTeamTimesheetRequestsProjectView;
+  //     const onlySpecificDataArr = this.allTeamTimesheetDataForExcel.map(x => ({
+  //       "Employee Id": x.employeementId,
+  //       "Client Side Id": x.clientSideId,
+  //       "Employee Name": x.name,
+  //       "Team Name": x.teamName,
+  //       "Department Name": x.departmentName,
+  //       "Project Name": x.projectName,
+  //       "PONO": x.poNo,
+  //       "Client Name": x.clientName,
+  //       "Billable Type": x.billableType,
+  //       "Employee Role": x.employeeRole,
+  //       "SPOC": x.spoc,
+  //       "Project Manager Name": x.projectManagerName,
+  //       "Start Date": x.startdate,
+  //       "Total Expected Fill Count": x.totalExpectedFillCount,
+  //       "Total Filled Count": x.totalIshineFilledCount,
+  //       "TotalClient Side Not Filled Count": x.totalClientSideNotFilledCount,
+  //       "Total Client Side Pending Count": x.totalClientSidePendingCount,
+  //       "Total Client Side Approved Count": x.totalClientSideApprovedCount
+  //     }));
 
 
-      const wb = XLSX.utils.book_new();
+  //     const fieldDetails = [
+  //       { Field: "Employee Id", Description: "Unique identifier for employee" },
+  //       { Field: "Client Side Id", Description: "Client's identification for the employee" },
+  //       { Field: "Employee Name", Description: "Name of the employee" },
+  //       { Field: "Team Name", Description: "Team where employee belongs" },
+  //       { Field: "Department Name", Description: "Department name" },
+  //       { Field: "Project Name", Description: "Project employee is assigned to" },
+  //       { Field: "PONO", Description: "Purchase Order Number" },
+  //       { Field: "Client Name", Description: "Name of the client" },
+  //       { Field: "Billable Type", Description: "Billable or Non-billable status" },
+  //       { Field: "Employee Role", Description: "Role of the employee" },
+  //       { Field: "SPOC", Description: "Single Point of Contact" },
+  //       { Field: "Project Manager Name", Description: "Name of project manager" },
+  //       { Field: "Start Date", Description: "Project start date" },
+  //       { Field: "Total Expected Fill Count", Description: "The Total Expected Fill Count represents the net number of working days the employee is expected to contribute during the current month on a project, adjusted for their project start date, any leaves taken, and all applicable holidays." },
+  //       { Field: "Total Filled Count", Description: "Total Timesheet filled from Ishine system" },
+  //       { Field: "Total Client Side Not Filled Count", Description: "Client side unfilled counts" },
+  //       { Field: "Total Client Side Pending Count", Description: "Pending approvals count of Client Side Attendance" },
+  //       { Field: "Total Client Side Approved Count", Description: "Approved counts by client" }
+  //     ];
 
 
-      const dataSheet = XLSX.utils.json_to_sheet(onlySpecificDataArr);
-      const detailsSheet = XLSX.utils.json_to_sheet(fieldDetails);
+  //     const wb = XLSX.utils.book_new();
 
 
-      XLSX.utils.book_append_sheet(wb, dataSheet, "Timesheet Data");
-      XLSX.utils.book_append_sheet(wb, detailsSheet, "Field Details");
+  //     const dataSheet = XLSX.utils.json_to_sheet(onlySpecificDataArr);
+  //     const detailsSheet = XLSX.utils.json_to_sheet(fieldDetails);
 
 
-      XLSX.writeFile(wb, this.excelName);
-    }
+  //     XLSX.utils.book_append_sheet(wb, dataSheet, "Timesheet Data");
+  //     XLSX.utils.book_append_sheet(wb, detailsSheet, "Field Details");
+
+
+  //     XLSX.writeFile(wb, this.excelName);
+  //   }
+  // }
+
+
+
+  prepareFlatTimesheetData(timesheets: any[]): any[] {
+    const flatList: any[] = [];
+
+    timesheets.forEach(timesheet => {
+      (timesheet.locationSessions || []).forEach(location => {
+        (location.projects || []).forEach(project => {
+          (project.activities || []).forEach(activity => {
+
+            flatList.push({
+              // ===== TIMESHEET LEVEL =====
+              "Employee Id": timesheet.employmentId,
+              "Employee Name": timesheet.employeeName,
+              "Date": timesheet.date,
+              "Day Type": timesheet.dayType,
+              "Applied By": timesheet.appliedBy,
+              "Applied On": timesheet.appliedOn,
+
+              // ===== LOCATION LEVEL =====
+              "Work Location": location.workLocationType,
+              "Location In": location.locationInTime,
+              "Location Out": location.locationOutTime,
+
+              // ===== PROJECT LEVEL =====
+              "Project Name": project.projectName,
+              "PO No": project.poNo || '-',
+              "Shadow Employee": project.shadowEmp ? 'Yes' : 'No',
+
+              // ===== ACTIVITY LEVEL =====
+              "Activity Team": activity.teamName,
+              "Activity": activity.activity,
+              "Description": activity.activityDescription || '-',
+              "Hours (Minutes)": activity.durationMinutes
+            });
+
+          });
+        });
+      });
+    });
+
+    return flatList;
   }
 
+
+  exportExcel1() {
+    this.excelName = 'Timesheet_Flat_Report.xlsx';
+
+    const flatData = this.prepareFlatTimesheetData(
+      this.filteredData()
+    );
+
+    if (!flatData.length) {
+      return;
+    }
+
+    const wb = XLSX.utils.book_new();
+    const sheet = XLSX.utils.json_to_sheet(flatData);
+
+    XLSX.utils.book_append_sheet(wb, sheet, 'Timesheet Data');
+    XLSX.writeFile(wb, this.excelName);
+  }
 
   resetDateFilter() {
     this.toDate = '';
     this.fromDate = '';
     this.getMyReporteesTimesheetRequests();
   }
- 
+
 
 zoomIn() {
   if (this.zoomScale < 2.5) {
@@ -1733,69 +1871,91 @@ resetPreviewState() {
 // ];
 
 expandedTimesheetIndex: number | null = null;
-expandedProjectIndex: number | null = null;
+expandedProjectKey: string | null = null;
 
+toggleProject(tIndex: number, pIndex: number):void {
+  const key = `${tIndex}-${pIndex}`;
+  this.expandedProjectKey =
+    this.expandedProjectKey === key ? null : key;
+}
 /* EMPLOYEE ACCORDION */
+
+/* MAIN ACCORDION */
 toggleAccordion(index: number): void {
   if (this.expandedTimesheetIndex === index) {
     this.expandedTimesheetIndex = null;
-    this.expandedProjectIndex = null;
+    this.expandedProjectKey = null;   // close project accordion
   } else {
     this.expandedTimesheetIndex = index;
-    this.expandedProjectIndex = null;
+    this.expandedProjectKey = null;   // reset project when switching employee
   }
 }
 
-/* PROJECT ACCORDION */
-toggleProject(projectIndex: number): void {
-  if (this.expandedProjectIndex === projectIndex) {
-    this.expandedProjectIndex = null;
-  } else {
-    this.expandedProjectIndex = projectIndex;
-  }
-}
+
+
+
 
 /* ============================
    CHECKBOX SELECTION LOGIC
    ============================ */
 
-onEmployeeToggle(timesheet: any) {
-  timesheet.locationSessions?.forEach((loc: any) => {
-    loc.projects?.forEach((proj: any) => {
-      proj.isSelected = timesheet.isSelected;
+   onEmployeeToggle(timesheet: any) {
+    if (!timesheet.locationSessions) return;
 
-      proj.activities?.forEach((act: any) => {
-        act.isSelected = timesheet.isSelected;
+    timesheet.locationSessions.forEach((loc: any) => {
+      if (!loc.projects) return;
+
+      loc.projects.forEach((project: any) => {
+        project.isSelected = timesheet.selected;
       });
     });
-  });
+  }
+
+
+
+  onProjectToggle(timesheet: any, project: any) {
+    const allProjects =
+      timesheet.locationSessions
+        ?.flatMap((l: any) => l.projects || []) || [];
+
+    // Parent (Timesheet) checked ONLY if all projects checked
+    timesheet.selected =
+      allProjects.length > 0 &&
+      allProjects.every((p: any) => p.isSelected === true);
+  }
+
+// onActivityToggle(timesheet: any, project: any) {
+//   project.isSelected = project.activities?.every(
+//     (act: any) => act.isSelected
+//   );
+
+//   timesheet.isSelected = timesheet.locationSessions
+//     ?.flatMap((l: any) => l.projects || [])
+//     .every((p: any) => p.isSelected);
+// }
+
+viewDoc(docUrl: string) {
+  if (!docUrl) return;
+
+  window.open(docUrl, '_blank');
 }
 
-onProjectToggle(timesheet: any, project: any) {
-  project.activities?.forEach((act: any) => {
-    act.isSelected = project.isSelected;
-  });
+isDocPopupOpen = false;
+selectedTimesheet: any = null;
 
-  timesheet.isSelected = timesheet.locationSessions
-    ?.flatMap((l: any) => l.projects || [])
-    .every((p: any) => p.isSelected);
+openDocumentPopup(timesheet: any) {
+  this.selectedTimesheet = timesheet;
+  this.isDocPopupOpen = true;
 }
 
-onActivityToggle(timesheet: any, project: any) {
-  project.isSelected = project.activities?.every(
-    (act: any) => act.isSelected
-  );
-
-  timesheet.isSelected = timesheet.locationSessions
-    ?.flatMap((l: any) => l.projects || [])
-    .every((p: any) => p.isSelected);
-}
-
-  
+closeDocumentPopup() {
+  this.isDocPopupOpen = false;
+  this.selectedTimesheet = null;
 }
 
 
 
+}
 
 
 
