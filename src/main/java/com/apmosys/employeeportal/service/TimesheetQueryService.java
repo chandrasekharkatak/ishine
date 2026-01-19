@@ -123,10 +123,11 @@ public class TimesheetQueryService {
                     apiLogInfo.setApiResponse("Timesheet list is empty");
                     apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
                 } else {
+                    // Return hierarchical structure - UI will handle display
                     List<EmployeeTimesheetDTO> dtoList = buildTimesheetDTOList(list);
                     response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
                     response.setServiceResponse(dtoList);
-                    apiLogInfo.setApiResponse("dtoList : " + dtoList);
+                    apiLogInfo.setApiResponse("dtoList : " + dtoList.size() + " timesheets");
                     apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
                 }
             }, () -> {
@@ -913,6 +914,7 @@ rows.forEach(row -> {
 //                p.setRemarks(row[33] != null ? row[33].toString() : null);
                 p.setActivities(new ArrayList<>());
                 p.setClientId(row[34] != null ? ((Number) row[34]).longValue() : null);
+                p.setShadowEmpId(row[22]!=null?((Number)row[22]).longValue():null);
                 location.getProjects().add(p);
                 return p;
             });
