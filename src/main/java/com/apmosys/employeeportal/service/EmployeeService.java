@@ -695,10 +695,6 @@ public class EmployeeService {
 				Department dept = departmentRepository.findByDeptId(employeedto.getDepartmentId());
 				String departmentname = dept.getName();
 				
-				Long resrcOverviewId = resourceRequirementRepository.findByProjectIdAndDepartmentName(departmentname,employeedto.getDefaultProjectId());
-				resrcOverviewId = resrcOverviewId !=null ? resrcOverviewId:null;
-				
-				
 				
 				EmployeeTeamMap employeeTeamMap = new EmployeeTeamMap();
 				employeeTeamMap.setEmpId(newEmployee.getEmpId());
@@ -707,7 +703,7 @@ public class EmployeeService {
 				employeeTeamMap.setStartDate(LocalDateTime.now());
 				employeeTeamMap.setEmployeeRole(employeeRole.toString());
 				employeeTeamMap.setIsShadow(employeedto.getIsShadowResource());
-				employeeTeamMap.setResourceOverviewId(resrcOverviewId);	
+			
 				employeeTeamMap.setUpdatedBy(Long.parseLong(newEmployee.getCreatedBy().toString()));
 				employeeTeamMap.setUpdatedOn(LocalDateTime.now());	
 				// Set poRequirementMappingId from front-end 
