@@ -380,6 +380,8 @@ this.isApmosysProduct = isApmosysProduct;
     private String isApmosysProduct;
     private String employmentIdAcToET;
     
+    private Long poRequirementMappingId;
+    
     private String dateRange;
     private List<EmployeeDTO> reportees = new ArrayList<>();
     private Boolean isHierarchy;

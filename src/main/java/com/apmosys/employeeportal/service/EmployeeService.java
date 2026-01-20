@@ -697,21 +697,7 @@ public class EmployeeService {
 				
 				Long resrcOverviewId = resourceRequirementRepository.findByProjectIdAndDepartmentName(departmentname,employeedto.getDefaultProjectId());
 				resrcOverviewId = resrcOverviewId !=null ? resrcOverviewId:null;
-				// added poRequirementMappingIDd for the changes that need to be done 
-				 Long poRequirementMappingId = null;
-				    try {
-				        PoRequirementMapping poRequirementMapping = poRequirementMappingRepository
-				            .findByPoIdAndDepartment(
-				                employeedto.getDefaultProjectId().longValue(), 
-				                departmentname
-				            );
-				        
-				        if (poRequirementMapping != null) {
-				            poRequirementMappingId = poRequirementMapping.getPoRequirementMappingId();
-				        }
-				    } catch (Exception e) {
-				        System.out.println("Could not find PoRequirementMappingID : " + e.getMessage());
-				    }
+				
 				
 				
 				EmployeeTeamMap employeeTeamMap = new EmployeeTeamMap();
@@ -724,8 +710,10 @@ public class EmployeeService {
 				employeeTeamMap.setResourceOverviewId(resrcOverviewId);	
 				employeeTeamMap.setUpdatedBy(Long.parseLong(newEmployee.getCreatedBy().toString()));
 				employeeTeamMap.setUpdatedOn(LocalDateTime.now());	
-				//setting poRequirementMappingId 
-				employeeTeamMap.setPoRequirementMappingId(poRequirementMappingId);
+				// Set poRequirementMappingId from front-end 
+			    if(employeedto.getPoRequirementMappingId() != null) {
+			        employeeTeamMap.setPoRequirementMappingId(employeedto.getPoRequirementMappingId());
+			    }
 			   employeeTeamMapRepository.save(employeeTeamMap);
 			   
 			   Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());
