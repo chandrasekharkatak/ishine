@@ -109,6 +109,11 @@ public class TimesheetServiceNew {
 	@Autowired
 	EmployeeAssignmentValidationService employeeAssignmentValidationService;
 	
+	// @Autowired
+	// private TimesheetDashboardService timesheetDashboardService;
+
+	@Autowired
+	private TimesheetDashboardServiceNew timesheetDashboardServiceNew;
 	
 	private final String pattern="yyyy-MM-dd HH:mm:ss";
 	
@@ -1511,7 +1516,10 @@ public class TimesheetServiceNew {
 	// }
 	
 	
-	
+	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year,Long empId,Boolean isClientDashboard,List<String> billableTypes,String employeeActive,String clientSideFilter) {
+		return timesheetDashboardServiceNew.getTimesheetDashboardCountForEmployee(
+				month, year, empId, isClientDashboard, billableTypes, employeeActive, clientSideFilter);
+	}
 
 
 

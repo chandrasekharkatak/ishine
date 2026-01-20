@@ -26,6 +26,7 @@ import { getEmployeeTimesheetAsCalenderByProjectId } from 'src/app/models/getEmp
 import { EmployeeTimesheetResponse } from 'src/app/models/employeeTimesheetResponse';
 import { getProjectViewList } from 'src/app/models/getProjectViewList';
 import { Feature } from 'src/app/models/feature';
+import { TimesheetNewService } from 'src/app/services/timesheet-new.service';
 
 
 interface DayCell {
@@ -326,7 +327,8 @@ tileGroups: any[] = [];
     private resourceManagementService: ResourceManagementService,
     private exportExcelService: ExportExcelService,
     private sanitizer: DomSanitizer, private router: Router,
-    private authenticationService: AuthenticationService
+    private authenticationService: AuthenticationService,
+    private timesheetServiceNew: TimesheetNewService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -1851,7 +1853,7 @@ cancelHidePopup() {
     clearTimeout(this.hidePopupTimeout);
   }
 
-  getTimesheetDashboardCount(month: any, year: any) {
+  getTimesheetDashboardCount(month: any, year: any) { 
     if (this.toggleValue) {
       this.timesheetService.getTimesheetDashboardCountForProject(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableTypes,this.selectedProjectStatus).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
@@ -1862,7 +1864,7 @@ cancelHidePopup() {
         }
       });
     } else {
-      this.timesheetService.getTimesheetDashboardCountForEmployee(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableTypes,this.selectedEmployeeStatus,this.viewClientIdFlag).pipe(first()).subscribe((response: any) => {
+      this.timesheetServiceNew.getTimesheetDashboardCountForEmployee(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableTypes,this.selectedEmployeeStatus,this.viewClientIdFlag).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.dashboardObj = response.serviceResponse;
           this.getTiles();

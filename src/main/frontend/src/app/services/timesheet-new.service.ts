@@ -102,4 +102,51 @@ export class TimesheetNewService {
       formData
     );
   }
+
+  getTimesheetDashboardCountForEmployee(
+    month: any, 
+    year: any, 
+    empId: any,
+    isClientDashboard: any,
+    selectedBillableTypes: any, 
+    selectedEmployeeStatus: any,
+    clientSideFilter: string
+  ) {
+    const payload = {
+      month: month,
+      year: year,
+      empId: empId,
+      isClientDashboard: isClientDashboard,
+      selectedBillableTypes: selectedBillableTypes, 
+      selectedEmployeeStatus: selectedEmployeeStatus,
+      clientSideFilter: clientSideFilter
+    };
+    return this.http.post(
+      `${this.baseUrl}` + `api/v2/timesheet/getTimesheetDashboardCountForEmployee`,
+      payload
+    );
+  }
+
+  // getTimesheetDashboardCountForEmployee(
+  //   month: any, 
+  //   year: any, 
+  //   empId: any,
+  //   isClientDashboard: any,
+  //   selectedBillableTypes: any, 
+  //   selectedEmployeeStatus: any,
+  //   clientSideFilter: string
+  // ) {
+  //   const payload = {
+  //     month: month,
+  //     year: year,
+  //     empId: empId,
+  //     isClientDashboard: isClientDashboard,
+  //     selectedBillableTypes: selectedBillableTypes, 
+  //     selectedEmployeeStatus: selectedEmployeeStatus,
+  //     clientSideFilter: clientSideFilter
+  //   };
+
+  //   return this.http.post(`${this.baseUrl}api/getTimesheetDashboardCountForEmployee`, payload);
+  // }
+
 }
