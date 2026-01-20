@@ -21,6 +21,7 @@ import { TimesheetService } from 'src/app/services/timesheet.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import * as XLSX from 'xlsx';
+import { ActivatedRoute } from '@angular/router';
 
 
 @Component({
@@ -160,7 +161,8 @@ clientFilter: boolean = false;
     private employeeService: EmployeeService,
     private utilityService: UtilityService,
     private bodyComponent: BodyComponent,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private route: ActivatedRoute
 
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -174,7 +176,18 @@ clientFilter: boolean = false;
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    this.sectionViewInit();
+    const view = this.route.snapshot.queryParams['view'];
+
+  if (
+    view === 'requests' &&
+    (this.userMapping.view_my_teams_timesheets_requests ||
+     this.userMapping.update_timesheet_request ||
+     this.userMapping.revoke_reportee_timesheet)
+  ) {
+    this.showAllTimesheetRequestsTable();
+  } else {
+    this.sectionViewInit(); // existing fallback
+  }
     this.preventBackButton();
     this.getRejectionReason();
     this.thisMonthValidation();

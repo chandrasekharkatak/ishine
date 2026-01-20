@@ -3508,9 +3508,13 @@ resetPreviewState() {
   this.isDragging = false;
 }
 
-redirectToViewTeamTimesheet(){
-  this.router.navigate(["/user-timesheet/team-timesheet"]);
+redirectToViewTeamTimesheet() {
+  this.router.navigate(
+    ['/user-timesheet'],
+    { queryParams: { tab: 'team-timesheet', view: 'requests' } }
+  );
 }
+
 
 }
 
