@@ -175,6 +175,7 @@ import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.FCLineItemRepository;
 import com.apmosys.employeeportal.repository.FCProjectMilestoneRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
+import com.apmosys.employeeportal.repository.PoRequirementMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectManagerMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectOverheadMappingRepository;
@@ -285,6 +286,9 @@ public class ResourceManagementService {
 	
 	@Autowired
 	private TimesheetDocumentDetailsRepository timesheetDocumentDetailsRepository;
+	
+	@Autowired
+	PoRequirementMappingRepository poRequirementMappingRepository;
 
 	
 	@Autowired
@@ -442,6 +446,10 @@ public class ResourceManagementService {
 											updateMember.setResourceOverviewId(newMember.getResourceOverviewId() != null
 													? Long.parseLong(newMember.getResourceOverviewId().toString())
 													: null);
+											//added PoRequirementMappingId changes 
+											updateMember.setPoRequirementMappingId(newMember.getPoRequirementMappingId() != null
+													? Long.parseLong(newMember.getPoRequirementMappingId().toString())
+													: null);
 											
 											if(newMember.getIsDefaultProject() != null) {
 												if(newMember.getIsDefaultProject() == 1 && newMember.getEmpId()!= null)
@@ -527,6 +535,10 @@ public class ResourceManagementService {
 									newEmpTeamMap.setResourceOverviewId(teamMember.getResourceOverviewId() != null
 											? Long.parseLong(teamMember.getResourceOverviewId().toString())
 											: null);
+									//added PoRequirementMappingId changes 
+									newEmpTeamMap.setPoRequirementMappingId(teamMember.getPoRequirementMappingId() != null
+											? Long.parseLong(teamMember.getPoRequirementMappingId().toString())
+											: null);
 									newEmpTeamMap.setCreatedBy(teamMember.getCreatedBy() != null ? teamMember.getCreatedBy() : null);
 									newEmpTeamMap.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 									
@@ -550,6 +562,10 @@ public class ResourceManagementService {
 									newEmpTeamMap.setIsShadow(teamMember.getIsShadow() != null ? teamMember.getIsShadow() : null);
 									newEmpTeamMap.setResourceOverviewId(teamMember.getResourceOverviewId() != null
 											? Long.parseLong(teamMember.getResourceOverviewId().toString())
+											: null);
+									
+									newEmpTeamMap.setPoRequirementMappingId(teamMember.getPoRequirementMappingId() != null
+											? Long.parseLong(teamMember.getPoRequirementMappingId().toString())
 											: null);
 									
 									if(teamMember.getIsDefaultProject() != null) {
@@ -661,6 +677,11 @@ public class ResourceManagementService {
 						empTeamMap.setResourceOverviewId(newMember.getResourceOverviewId() != null
 								? Long.parseLong(newMember.getResourceOverviewId().toString())
 								: null);
+						// added poRequirementmappingId changes 
+						empTeamMap.setPoRequirementMappingId(newMember.getPoRequirementMappingId() != null
+								? Long.parseLong(newMember.getPoRequirementMappingId().toString())
+								: null);
+						
 						
 						if(newMember.getIsDefaultProject() != null) {
 							if(newMember.getIsDefaultProject() == 1)
@@ -684,6 +705,10 @@ public class ResourceManagementService {
 						empTeamMap.setIsShadow(newMember.getIsShadow() != null ? newMember.getIsShadow() : null);
 						empTeamMap.setResourceOverviewId(newMember.getResourceOverviewId() != null
 								? Long.parseLong(newMember.getResourceOverviewId().toString())
+								: null);
+						// added poRequirementmappingId changes 
+						empTeamMap.setPoRequirementMappingId(newMember.getPoRequirementMappingId() != null
+								? Long.parseLong(newMember.getPoRequirementMappingId().toString())
 								: null);
 						
 						if(newMember.getIsDefaultProject() != null) {
@@ -1063,6 +1088,10 @@ public class ResourceManagementService {
 									teamMemberDTO.setEmployeeRole(teamMemberObj.getEmployeeRole().split(","));
 									teamMemberDTO.setResourceOverviewId(teamMemberObj.getResourceOverviewId() != null ?
 											Long.parseLong(teamMemberObj.getResourceOverviewId().toString()) : null);
+                                    //added hanges for PoRequirementMappingId
+									teamMemberDTO.setPoRequirementMappingId(teamMemberObj.getPoRequirementMappingId() != null ?
+											Long.parseLong(teamMemberObj.getPoRequirementMappingId().toString()) : null);
+									
 									teamMemberDTO.setEmploymentIdEmployeeType(
 											prefixxTeamMember + empObj.getEmployeementId());
 									teamMemberDTO.setResourceOverviewId(teamMemberObj.getResourceOverviewId() != null ? Long.parseLong(teamMemberObj.getResourceOverviewId().toString()) : null);
@@ -1090,6 +1119,9 @@ public class ResourceManagementService {
 									teamMemberDTO.setEmployeeRole(teamMemberObj.getEmployeeRole().split(","));
 									teamMemberDTO.setResourceOverviewId(teamMemberObj.getResourceOverviewId() != null ?
 											Long.parseLong(teamMemberObj.getResourceOverviewId().toString()) : null);
+									//added hanges for PoRequirementMappingId
+									teamMemberDTO.setPoRequirementMappingId(teamMemberObj.getPoRequirementMappingId() != null ?
+											Long.parseLong(teamMemberObj.getPoRequirementMappingId().toString()) : null);
 									teamMemberDTO.setEmploymentIdEmployeeType(
 											prefixxTeamMember + empObj.getEmployeementId());
 									teamMemberDTO.setIsShadow(teamMemberObj.getIsShadow() != null ? teamMemberObj.getIsShadow() : null);
@@ -2315,6 +2347,7 @@ public class ResourceManagementService {
 			findResource.setRescRemovedBy(resourceManagementDTO.getRescRemovedBy());
 			findResource.setUpdatedBy(resourceManagementDTO.getUpdatedBy());
 			findResource.setUpdatedOn(LocalDateTime.now());
+			findResource.setPoRequirementMappingId(resourceManagementDTO.getPoRequirementMappingId());
 			// added flag for thea date stating its po / custom end date
 			findResource.setIsCustomDate(resourceManagementDTO.getIsCustomDate());		
 			if (resourceManagementDTO.getEndDate() != null) {
@@ -3880,8 +3913,8 @@ public class ResourceManagementService {
 					if(emp1 != null && emp1.getEndDate() == null  && emp1.getActive() != 0) {
 					Employee emp = employeeRepository.findByEmpId(resourceManagementDTO.getEmpId());
 					findResource.setActive(0L);
-					findResource.setRescRemovedBy(resourceManagementDTO.getCreatedBy());	
-					// adding this flag for stating date is po / custom 
+					findResource.setRescRemovedBy(resourceManagementDTO.getCreatedBy());
+					findResource.setPoRequirementMappingId(resourceManagementDTO.getPoRequirementMappingId());					// adding this flag for stating date is po / custom 
 					findResource.setIsCustomDate(resourceManagementDTO.getIsCustomDate());
 					
 					if (resourceManagementDTO.getEndDate() != null) {
@@ -6182,6 +6215,7 @@ public class ResourceManagementService {
 					resourceManagementDTO.setResourceOverviewId(
 							req.getResourceOverviewId() != null ? Long.parseLong(req.getResourceOverviewId().toString())
 									: null);
+										
 					resourceManagementDTO.setPoProjectId(poData.getId());
 
 					ResourceRequirementTemp res = resourceRequirementTempRepo.save(resourceManagementDTO);
@@ -8698,6 +8732,8 @@ public class ResourceManagementService {
 	            member.setStartDate(new Timestamp(System.currentTimeMillis()));
 	            member.setIsDefaultProject(1);	            
 	            member.setResourceOverviewId(dto.getResourceOverViewId());
+	            //added poRequirementOverviewid changes 
+	            member.setPoRequirementMappingId(dto.getPoRequirementMappingId());
 	            newTeamMember.add(member);
 	        }
 			
@@ -8722,6 +8758,11 @@ public class ResourceManagementService {
 						empTeamMap.setResourceOverviewId(newMember.getResourceOverviewId() != null
 								? Long.parseLong(newMember.getResourceOverviewId().toString())
 								: null);
+						//added poRequirementMappingid changes 
+						empTeamMap.setPoRequirementMappingId(newMember.getPoRequirementMappingId() != null
+								? Long.parseLong(newMember.getPoRequirementMappingId().toString())
+								: null);
+						
 						empTeamMap.setUpdatedBy(dto.getCreatedBy() != null ? dto.getCreatedBy() : null);
 						
 						if(newMember.getIsDefaultProject() != null) {
@@ -10848,6 +10889,10 @@ public class ResourceManagementService {
 	        if (member.getResourceOverviewId() != null) {
 	            map.setResourceOverviewId(Long.parseLong(member.getResourceOverviewId().toString()));
 	        }
+	        //set poRequirementMappingId 
+	        if (member.getPoRequirementMappingId() != null) {
+	            map.setPoRequirementMappingId(member.getPoRequirementMappingId());
+	        }
 
 	        mappings.add(map);
 	    }
@@ -12150,6 +12195,8 @@ public class ResourceManagementService {
 		                newMap.setUpdatedOn(null);
 		                newMap.setUpdatedBy(null);
 		                newMap.setResourceOverviewId(oldMap.getResourceOverviewId());
+		                //added storing poRequirementMapping Id 
+		                newMap.setPoRequirementMappingId(oldMap.getPoRequirementMappingId());
 		                newMap.setIsShadow(oldMap.getIsShadow());
 		                newMap.setCreatedBy(dto.getCurrentUserEmpId());
 		                newMap.setCreatedOn(Timestamp.valueOf(LocalDateTime.now()));
@@ -13045,7 +13092,7 @@ public class ResourceManagementService {
 	    int updatedRows = projectRepository.updateProjectActiveField(projectId);
 	}
 	
-	public ServiceResponse checkActiveAndPendingEmployeeMappingWithResourceOverViewId(List<Long> resourceOverviewId) {
+	public ServiceResponse checkActiveAndPendingEmployeeMappingWithResourceOverViewId(List<Long> poRequirementMappingId) {
 	     ServiceResponse response = new ServiceResponse();
 	     LogDTO apiLogInfo = new LogDTO();
 	     apiLogInfo.setApiUrl("/api/checkActiveAndPendingEmployeeMappingWithResourceOverViewId");
@@ -13055,7 +13102,7 @@ public class ResourceManagementService {
 	     try {
 	    	 List<Long> mappedEmployementIds = new ArrayList<Long>();
 	    	 
-	    	 if(resourceOverviewId == null || resourceOverviewId.isEmpty()) {
+	    	 if(poRequirementMappingId == null || poRequirementMappingId.isEmpty()) {
 	    		 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		         response.setServiceResponse(null);
 		         response.setServiceResponse1("No data recieved at Ishine's end");
@@ -13065,11 +13112,12 @@ public class ResourceManagementService {
 		         return response;
 	    	 }
 	    	 
-	    	 resourceOverviewId = resourceOverviewId.stream()
+	    	 poRequirementMappingId = poRequirementMappingId.stream()
 	    		        .filter(Objects::nonNull)
 	    		        .collect(Collectors.toList());
 	    	 
-	    	 mappedEmployementIds = employeeTeamMapRepository.checkActiveAndPendingEmployeeMappingWithResourceOverViewId(resourceOverviewId);
+	    	 mappedEmployementIds = poRequirementMappingRepository.checkActiveAndPendingEmployeeMappingWithPoRequirementId(poRequirementMappingId);
+	    	 
 	    	
 	    	 if(mappedEmployementIds != null && !mappedEmployementIds.isEmpty()) {
 	    		 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

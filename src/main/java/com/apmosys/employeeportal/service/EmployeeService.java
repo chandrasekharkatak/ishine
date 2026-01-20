@@ -147,6 +147,7 @@ import com.apmosys.employeeportal.model.Log;
 import com.apmosys.employeeportal.model.Newsletter;
 import com.apmosys.employeeportal.model.NewsletterReadResponse;
 import com.apmosys.employeeportal.model.Notification;
+import com.apmosys.employeeportal.model.PoRequirementMapping;
 import com.apmosys.employeeportal.model.PolicyReadResponse;
 import com.apmosys.employeeportal.model.PredefinedSkills;
 import com.apmosys.employeeportal.model.PreviousEmployment;
@@ -188,6 +189,7 @@ import com.apmosys.employeeportal.repository.NewsletterReadResponseRepository;
 import com.apmosys.employeeportal.repository.NewsletterRepository;
 import com.apmosys.employeeportal.repository.NotificationRepository;
 import com.apmosys.employeeportal.repository.PIPRepository;
+import com.apmosys.employeeportal.repository.PoRequirementMappingRepository;
 import com.apmosys.employeeportal.repository.PolicyReadResponseRepository;
 import com.apmosys.employeeportal.repository.PredefinedSkillsRepository;
 import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
@@ -361,6 +363,9 @@ public class EmployeeService {
 
 	@Autowired
 	PolicyReadResponseRepository policyReadResponseRepository;
+	
+	@Autowired
+	PoRequirementMappingRepository poRequirementMappingRepository;
 	
 	@Autowired
 	private ModelMapper mapper;
@@ -692,9 +697,21 @@ public class EmployeeService {
 				
 				Long resrcOverviewId = resourceRequirementRepository.findByProjectIdAndDepartmentName(departmentname,employeedto.getDefaultProjectId());
 				resrcOverviewId = resrcOverviewId !=null ? resrcOverviewId:null;
-				
-				
-				
+				// added poRequirementMappingIDd for the changes that need to be done 
+				 Long poRequirementMappingId = null;
+				    try {
+				        PoRequirementMapping poRequirementMapping = poRequirementMappingRepository
+				            .findByPoIdAndDepartment(
+				                employeedto.getDefaultProjectId().longValue(), 
+				                departmentname
+				            );
+				        
+				        if (poRequirementMapping != null) {
+				            poRequirementMappingId = poRequirementMapping.getPoRequirementMappingId();
+				        }
+				    } catch (Exception e) {
+				        System.out.println("Could not find PoRequirementMappingID : " + e.getMessage());
+				    }
 				
 				
 				EmployeeTeamMap employeeTeamMap = new EmployeeTeamMap();
@@ -707,6 +724,8 @@ public class EmployeeService {
 				employeeTeamMap.setResourceOverviewId(resrcOverviewId);	
 				employeeTeamMap.setUpdatedBy(Long.parseLong(newEmployee.getCreatedBy().toString()));
 				employeeTeamMap.setUpdatedOn(LocalDateTime.now());	
+				//setting poRequirementMappingId 
+				employeeTeamMap.setPoRequirementMappingId(poRequirementMappingId);
 			   employeeTeamMapRepository.save(employeeTeamMap);
 			   
 			   Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());

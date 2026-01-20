@@ -32,4 +32,5 @@ public class ResourceRequirementTemp {
     private String department;
     private Long resourceOverviewId;
 	private Long poProjectId;
+	private Long poRequirementMappingId;
 }

@@ -33,4 +33,5 @@ public class EmployeeTeamMapDTO {
     private Integer isShadow;
     private Long createdBy;
     private String createdOn;
+    private Long poRequirementMappingId;
 }
