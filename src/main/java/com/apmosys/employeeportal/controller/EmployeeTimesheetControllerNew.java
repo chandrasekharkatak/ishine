@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.JobRoleAccess;
+import com.apmosys.employeeportal.dto.GetTimesheetDashboardCountForEmployeeDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDeleteRequestDTO;
@@ -368,6 +369,19 @@ public class EmployeeTimesheetControllerNew {
 		ServiceResponse response = timesheetDocumentServiceNew.deleteBulkApprovedDocuments(bulkApproverDocId);
 		return response;
 	}
+
+	 @PostMapping(value = "/getTimesheetDashboardCountForEmployee")
+	 public ServiceResponse getTimesheetDashboardCountForEmployee(@RequestBody GetTimesheetDashboardCountForEmployeeDTO payload) {  
+		    Integer month = (Integer) payload.getMonth();
+		    Integer year = (Integer) payload.getYear();
+		    Long empId = Long.valueOf(payload.getEmpId());
+			Boolean isClientDashboard =  Boolean.valueOf(payload.getIsClientDashboard());
+//			String billableType=String.valueOf(payload.getSelectedBillableType());
+		    List<String> billableTypes = payload.getSelectedBillableTypes(); // use the list
+			String employeeActive = String.valueOf(payload.getSelectedEmployeeStatus());
+		 ServiceResponse reponse= timesheetServiceNew.getTimesheetDashboardCountForEmployee(month,year,empId,isClientDashboard,billableTypes,employeeActive,payload.getClientSideFilter());
+		  return reponse;
+	 }
 
 }
 

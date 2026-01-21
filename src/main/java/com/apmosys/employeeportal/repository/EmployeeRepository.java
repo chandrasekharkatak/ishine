@@ -3544,4 +3544,75 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		        @Param("checkDate") LocalDate checkDate
 		);
 
+// 		@Query(value = "SELECT \n"
+//     " DISTINCT e.emp_id \n"
+//   FROM 
+//     employee e 
+//   WHERE 
+//     (
+//       EXISTS (
+//         SELECT 
+//           1 
+//         FROM 
+//           employee u 
+//           JOIN job_role jr ON u.job_role_id = jr.job_role_id 
+//           JOIN department d ON jr.dept_id = d.dept_id 
+//         WHERE 
+//           u.emp_id = : emp_id 
+//           AND (
+//             jr.employee_role IN ('SuperAdmin') 
+//             OR d.name IN (
+//               'HR', 'Accounts', 'Resource Management Group'
+//             )
+//           )
+//       ) 
+//       OR e.job_role_id IN (
+//         SELECT 
+//           jr.job_role_id 
+//         FROM 
+//           job_role jr 
+//         WHERE 
+//           jr.dept_id IN (
+//             SELECT 
+//               dept_id 
+//             FROM 
+//               department 
+//             WHERE 
+//               hod_id = : emp_id
+//           )
+//       )
+//     ")", nativeQuery = true)
+// 	List<Long> getAllAuthorizeEmployeeId(@Param("empId") Long empId);
+
+	@Query(
+		value =
+			"SELECT DISTINCT e.emp_id \n" +
+			"FROM employee e \n" +
+			"WHERE ( \n" +
+			"    EXISTS ( \n" +
+			"        SELECT 1 \n" +
+			"        FROM employee u \n" +
+			"        JOIN job_role jr ON u.job_role_id = jr.job_role_id \n" +
+			"        JOIN department d ON jr.dept_id = d.dept_id \n" +
+			"        WHERE u.emp_id = :empId \n" +
+			"          AND ( \n" +
+			"              jr.employee_role IN ('SuperAdmin') \n" +
+			"              OR d.name IN ('HR', 'Accounts', 'Resource Management Group') \n" +
+			"          ) \n" +
+			"    ) \n" +
+			"    OR e.job_role_id IN ( \n" +
+			"        SELECT jr.job_role_id \n" +
+			"        FROM job_role jr \n" +
+			"        WHERE jr.dept_id IN ( \n" +
+			"            SELECT dept_id \n" +
+			"            FROM department \n" +
+			"            WHERE hod_id = :empId \n" +
+			"        ) \n" +
+			"    ) \n" +
+			")",
+		nativeQuery = true
+	)
+	List<Long> getAllAuthorizeEmployeeId(@Param("empId") Long empId);
+
+
 }
