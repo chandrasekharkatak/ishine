@@ -219,6 +219,12 @@ public class ProjectController {
 	public ServiceResponse getAllMilestoneExtendReason() {
 		return poPortalApiService.getAllMilestoneExtendReason();
 	}
+	
+	@GetMapping(value = "/getPodetailsPromPOPortal")
+	public ServiceResponse getPodetailsPromPOPortal() {
+		return poPortalApiService.syncProjectPoFromPoPortal();
+	}
+	
 
 	@GetMapping(value = "/getMilestoneProjectWise")
 	public ServiceResponse getMilestoneProjectWise() {
