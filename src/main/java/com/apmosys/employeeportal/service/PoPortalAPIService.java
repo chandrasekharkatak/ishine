@@ -1853,7 +1853,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	    poDetails.setClientRm(poDto.getClientRmName());
 	    poDetails.setPrevPO(poDto.getPrevPo());
 	    poDetails.setNextPO(poDto.getNextPO());
-	    poDetails.setActive(poDto.getIsActive());
+	    poDetails.setActive(Boolean.valueOf(poDto.getIsActive()));
 	    poDetails.setPoProjectId(projectDto.getProjectId());
 	    
 	    
