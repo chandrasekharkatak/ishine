@@ -45,6 +45,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query("SELECT e.empId, e.name FROM Employee e WHERE e.empId IN :ids")
 	List<Object[]> getEmployeeNamesByEmpIds(@Param("ids") Set<Long> ids);
 	
+	
+	@Query("Select e.empId from Employee e where e.employeementId = :employeementId and name = :employeeName ")
+	Optional<Employee> findByEmploymentIdAndEmployeeName(@Param("employeementId") Long employeementId,@Param("employeeName") String employeeName );
+	
 	@Query(nativeQuery = true, value = "SELECT e.employeement_id, \n"
 			+ " e.date_of_joining, e.email, \n"
 			+ " e.employmentstatus, \n"
