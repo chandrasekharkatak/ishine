@@ -163,11 +163,11 @@ import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.FCLineItemRepository;
 import com.apmosys.employeeportal.repository.FCProjectMilestoneRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
-import com.apmosys.employeeportal.repository.PoDetailsRepository;
 import com.apmosys.employeeportal.repository.PoRequirementMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectManagerMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectOverheadMappingRepository;
+import com.apmosys.employeeportal.repository.ProjectPoDetailsRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.ProjectTempRepo;
 import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
@@ -277,7 +277,7 @@ public class ResourceManagementService {
 	PoRequirementMappingRepository poRequirementMappingRepository;
 
 	@Autowired
-	private PoDetailsRepository poDetailsRepository;
+	private ProjectPoDetailsRepository poDetailsRepository;
 	
 	@Autowired
 	private ApiLogUtility apiLogUtility;

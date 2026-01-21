@@ -16,8 +16,10 @@ public class PoRequirementMapping {
     private Long poRequirementMappingId;
     private Long poId;
     private String role;
+    private Long clientRoleId;
     private String experience;
     private String department;
     private boolean active;
+    private Long count;
 
 }
