@@ -20,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -1148,108 +1149,255 @@ public class TimesheetApprovalService {
 		
 	}
     
+    // public ServiceResponse getMyReporteesTimesheetRequests(GetMyReporteesTimesheetRequestsPayload payload) {
+
+    //     ServiceResponse response = new ServiceResponse();
+        
+    //     LogDTO apiLogInfo = new LogDTO();
+    //     apiLogInfo.setTabName("Home Tab");
+    //     apiLogInfo.setFeatureName("team_timesheets");
+    //     apiLogInfo.setSubFeatureName("view_my_teams_timesheets_requests");
+    //     apiLogInfo.setApiUrl("/api/timesheets/reportees");
+    //     apiLogInfo.setLogLevel("INFO");
+
+    //     StringBuilder logBuilder = new StringBuilder("Home / Team Requests / View Pending Timesheets Requests");
+
+    //     try {
+
+    //         if (payload == null || payload.getEmpId() == null) {
+    //             logBuilder.append(" | Invalid payload or empId is null");
+    //             return fail(response, apiLogInfo,
+    //                     "Employee information is required to fetch timesheet requests",
+    //                     logBuilder);
+    //         }
+
+    //         boolean clientFilter = Boolean.TRUE.equals(payload.getClientFilter());
+
+    //         logBuilder.append(" | ManagerId=").append(payload.getEmpId());
+    //         logBuilder.append(" | ClientFilter=").append(clientFilter);
+        
+    //         /* ---------- Pagination ---------- */
+    //         Pageable pageable = PageRequest.of(
+    //                 payload.getPage(),
+    //                 payload.getSize()
+    //         );
+
+    //         Page<GetReporteesTimesheetReqFlatDTO> pageResult =
+    //         	    employeeTimesheetsNewRepository.getMyReporteesTimesheetRequests(
+    //         	        payload.getEmpId(),
+    //         	        clientFilter,
+
+    //         	        payload.getEmploymentId(),
+    //         	        payload.getEmployeeName(),
+    //         	        payload.getDayType(),
+    //         	        payload.getProjectName(),
+    //         	        payload.getClientName(),
+    //         	        payload.getClientLocation(),
+    //         	        payload.getPoNo(),
+    //         	        payload.getShadowEmpName(),
+    //         	        payload.getTeamName(),
+    //         	        payload.getActivity(),
+    //         	        payload.getDate(),
+            	        
+    //         	        payload.getSearch(),
+            	        
+    //         	        payload.getSortBy(),
+    //         	        payload.getSortDir(),
+    //         	        pageable
+    //         	    );
+
+    //         if (pageResult == null || pageResult.isEmpty()) {
+    //             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+    //             response.setServiceResponse(Collections.emptyList());
+        		
+    //             logBuilder.append(" | No pending requests for timesheet approval! ");
+                
+    //     		apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+    //             apiLogInfo.setApiRequest(logBuilder.toString());
+                
+    //         }
+
+    //         /* ---------- Mapping ---------- */
+    //         List<GetReporteesTimesheetReqDTO> mapped = timesheetMapper.map(pageResult.getContent());
+            
+    //         /* ---------- Response ---------- */
+    //         Map<String, Object> finalResponse = new HashMap<>();
+    //         finalResponse.put("content", mapped);
+    //         finalResponse.put("page", pageResult.getNumber());
+
+    //         /* ---------- Success ---------- */
+    //         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+    //         response.setServiceResponse(finalResponse);
+
+    //         logBuilder.append(" | Records=").append(finalResponse.size());
+            
+    // 		apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+
+    //     } catch (Exception ex) {
+
+    //         response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+    //         response.setServiceResponse("Failed to fetch timesheet requests");
+    //         response.setServiceError(ex.getMessage());
+
+    //         apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+    //         apiLogInfo.setApiResponse(ex.getMessage());
+    //         apiLogInfo.setLogLevel("ERROR");
+
+    //         logBuilder.append(" | Exception=").append(ex.getMessage());
+    //         apiLogInfo.setApiRequest(logBuilder.toString());
+    //         logService.logMyInfo(httpRequest, apiLogInfo);
+            
+    //     }
+    //     return response;
+    // }    
+
+
     public ServiceResponse getMyReporteesTimesheetRequests(GetMyReporteesTimesheetRequestsPayload payload) {
 
-        ServiceResponse response = new ServiceResponse();
-        
-        LogDTO apiLogInfo = new LogDTO();
-        apiLogInfo.setTabName("Home Tab");
-        apiLogInfo.setFeatureName("team_timesheets");
-        apiLogInfo.setSubFeatureName("view_my_teams_timesheets_requests");
-        apiLogInfo.setApiUrl("/api/timesheets/reportees");
-        apiLogInfo.setLogLevel("INFO");
+    ServiceResponse response = new ServiceResponse();
 
-        StringBuilder logBuilder = new StringBuilder("Home / Team Requests / View Pending Timesheets Requests");
+    LogDTO apiLogInfo = new LogDTO();
+    apiLogInfo.setTabName("Timesheet Tab/Home Tab");
+    apiLogInfo.setFeatureName("team_timesheets");
+    apiLogInfo.setSubFeatureName("view_my_teams_timesheets_requests");
+    apiLogInfo.setApiUrl("/api/timesheets/reportees");
+    apiLogInfo.setLogLevel("INFO");
 
-        try {
+    StringBuilder logBuilder = new StringBuilder("Timesheet Tab Or Home Tab/ Team Requests / View Pending Timesheets Requests");
 
-            if (payload == null || payload.getEmpId() == null) {
-                logBuilder.append(" | Invalid payload or empId is null");
-                return fail(response, apiLogInfo,
-                        "Employee information is required to fetch timesheet requests",
-                        logBuilder);
-            }
+    try {
 
-            boolean clientFilter = Boolean.TRUE.equals(payload.getClientFilter());
+        if (payload == null || payload.getEmpId() == null) {
+            logBuilder.append(" | Invalid payload or empId is null");
+            return fail(response, apiLogInfo,
+                    "Employee information is required to fetch timesheet requests",
+                    logBuilder);
+        }
 
-            logBuilder.append(" | ManagerId=").append(payload.getEmpId());
-            logBuilder.append(" | ClientFilter=").append(clientFilter);
-        
-            /* ---------- Pagination ---------- */
-            Pageable pageable = PageRequest.of(
-                    payload.getPage(),
-                    payload.getSize()
-            );
+        boolean clientFilter = Boolean.TRUE.equals(payload.getClientFilter());
 
-            Page<GetReporteesTimesheetReqFlatDTO> pageResult =
-            	    employeeTimesheetsNewRepository.getMyReporteesTimesheetRequests(
-            	        payload.getEmpId(),
-            	        clientFilter,
+        logBuilder.append(" | ManagerId=").append(payload.getEmpId());
+        logBuilder.append(" | ClientFilter=").append(clientFilter);
 
-            	        payload.getEmploymentId(),
-            	        payload.getEmployeeName(),
-            	        payload.getDayType(),
-            	        payload.getProjectName(),
-            	        payload.getClientName(),
-            	        payload.getClientLocation(),
-            	        payload.getPoNo(),
-            	        payload.getShadowEmpName(),
-            	        payload.getTeamName(),
-            	        payload.getActivity(),
-            	        payload.getDate(),
-            	        
-            	        payload.getSearch(),
-            	        
-            	        payload.getSortBy(),
-            	        payload.getSortDir(),
-            	        pageable
-            	    );
+        // ------------------ Pageable + Sort ------------------
+        int page = (payload.getPage() != null && payload.getPage() >= 0) ? payload.getPage() : 0;
+        int size = (payload.getSize() != null && payload.getSize() > 0) ? payload.getSize() : 10;
 
-            if (pageResult == null || pageResult.isEmpty()) {
-                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-                response.setServiceResponse(Collections.emptyList());
-        		
-                logBuilder.append(" | No pending requests for timesheet approval! ");
-                
-        		apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-                apiLogInfo.setApiRequest(logBuilder.toString());
-                
-            }
+        String sortBy = payload.getSortBy();
+        String sortDir = payload.getSortDir();
 
-            /* ---------- Mapping ---------- */
-            List<GetReporteesTimesheetReqDTO> mapped = timesheetMapper.map(pageResult.getContent());
-            
-            /* ---------- Response ---------- */
-            Map<String, Object> finalResponse = new HashMap<>();
-            finalResponse.put("content", mapped);
-            finalResponse.put("page", pageResult.getNumber());
+        Sort.Direction dir = "ASC".equalsIgnoreCase(sortDir) ? Sort.Direction.ASC : Sort.Direction.DESC;
 
-            /* ---------- Success ---------- */
+        String sortExpr;
+        if (sortBy == null || sortBy.isBlank()) {
+            sortExpr = "createdOn";             
+        } else if ("employeeName".equals(sortBy)) {
+            sortExpr = "e.name";                
+        } else if ("employmentId".equals(sortBy)) {
+            sortExpr = "e.employeementId";      
+        } else if ("dayType".equals(sortBy)) {
+            sortExpr = "dtmn.dayType";          
+        } else if ("date".equals(sortBy)) {
+            sortExpr = "date";                  
+        } else if ("appliedOn".equals(sortBy)) {
+            sortExpr = "createdOn";             
+        } else if ("projectName".equals(sortBy)) {
+            sortExpr = "p.projectName";         
+        } else if ("clientName".equals(sortBy)) {
+            sortExpr = "c.clientName";          
+        } else if ("teamName".equals(sortBy)) {
+            sortExpr = "t.teamName";            
+        } else {
+            sortExpr = "createdOn";             
+        }
+
+        Pageable pageable = PageRequest.of(page, size, JpaSort.unsafe(dir, sortExpr));
+      
+        Page<GetReporteesTimesheetReqFlatDTO> pageResult =
+                employeeTimesheetsNewRepository.getMyReporteesTimesheetRequests(
+                        payload.getEmpId(),
+                        clientFilter,
+
+                        payload.getEmploymentId(),
+                        payload.getEmployeeName(),
+                        payload.getDayType(),
+                        payload.getProjectName(),
+                        payload.getClientName(),
+                        payload.getClientLocation(),
+                        payload.getPoNo(),
+                        payload.getShadowEmpName(),
+                        payload.getTeamName(),
+                        payload.getActivity(),
+                        payload.getDate(),
+
+                        payload.getSearch(),
+
+                        pageable
+                );
+
+        if (pageResult == null || pageResult.isEmpty()) {
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceResponse(finalResponse);
 
-            logBuilder.append(" | Records=").append(finalResponse.size());
-            
-    		apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+            Map<String, Object> empty = new HashMap<>();
+            empty.put("content", Collections.emptyList());
+            empty.put("page", page);
+            empty.put("size", size);
+            empty.put("totalElements", 0);
+            empty.put("totalPages", 0);
+            empty.put("hasNext", false);
 
+            response.setServiceResponse(empty);
 
-        } catch (Exception ex) {
-
-            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-            response.setServiceResponse("Failed to fetch timesheet requests");
-            response.setServiceError(ex.getMessage());
-
-            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-            apiLogInfo.setApiResponse(ex.getMessage());
-            apiLogInfo.setLogLevel("ERROR");
-
-            logBuilder.append(" | Exception=").append(ex.getMessage());
+            logBuilder.append(" | No pending requests for timesheet approval!");
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
             apiLogInfo.setApiRequest(logBuilder.toString());
             logService.logMyInfo(httpRequest, apiLogInfo);
-            
+
+            return response;
         }
-        return response;
-    }    
+
+        // ------------------ Mapping ------------------
+        List<GetReporteesTimesheetReqDTO> mapped = timesheetMapper.map(pageResult.getContent());
+
+        // ------------------ Response ------------------
+        Map<String, Object> finalResponse = new HashMap<>();
+        finalResponse.put("content", mapped);
+        finalResponse.put("page", pageResult.getNumber());
+        finalResponse.put("size", pageResult.getSize());
+        finalResponse.put("totalElements", pageResult.getTotalElements());
+        finalResponse.put("totalPages", pageResult.getTotalPages());
+        finalResponse.put("hasNext", pageResult.hasNext());
+
+        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        response.setServiceResponse(finalResponse);
+
+        logBuilder.append(" | Records=").append(mapped.size());
+        logBuilder.append(" | Page=").append(pageResult.getNumber());
+        logBuilder.append(" | TotalElements=").append(pageResult.getTotalElements());
+
+        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+        apiLogInfo.setApiRequest(logBuilder.toString());
+        logService.logMyInfo(httpRequest, apiLogInfo);
+
+    } catch (Exception ex) {
+
+    	ex.printStackTrace();
+    	response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+        response.setServiceResponse("Failed to fetch timesheet requests");
+        response.setServiceError(ex.getMessage());
+
+        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+        apiLogInfo.setApiResponse(ex.getMessage());
+        apiLogInfo.setLogLevel("ERROR");
+
+        logBuilder.append(" | Exception=").append(ex.getMessage());
+        apiLogInfo.setApiRequest(logBuilder.toString());
+        logService.logMyInfo(httpRequest, apiLogInfo);
+    }
+
+    return response;
+}
     
 }
 
