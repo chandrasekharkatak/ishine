@@ -1849,6 +1849,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	    poDetails.setPrevPO(poDto.getPrevPo());
 	    poDetails.setNextPO(poDto.getNextPO());
 	    poDetails.setActive(poDto.getIsActive());
+	    poDetails.setPoProjectId(projectDto.getProjectId());
 	    
 	    
 	    

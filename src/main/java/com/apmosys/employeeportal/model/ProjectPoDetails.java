@@ -37,6 +37,7 @@ public class ProjectPoDetails {
 	@Column(name = "po_id")
     private Long poId;
     private Integer projectId;
+    private Long poProjectId;
     private String poNo;
     private Long updatedBy;
     
