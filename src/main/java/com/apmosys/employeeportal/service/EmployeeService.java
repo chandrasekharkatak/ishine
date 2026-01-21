@@ -723,7 +723,7 @@ public class EmployeeService {
 			    dto.setEmpIds(Collections.singletonList(newEmployee.getEmpId()));
 			    dto.setUpdatedBy(Long.parseLong(newEmployee.getCreatedBy().toString()));
 
-			    resourceManagementService.setDefaultProjectUpdateBillable(dto);
+			    resourceManagementService.setDefaultProjectUpdateBillable(dto, false);
 			   
 			   }	
 						
