@@ -34,7 +34,7 @@ public class PoDetailsForProjectPoMappingDTO {
     private String clientRmName;
     private Long prevPo;
     private Long nextPO;
-    private boolean isRenewable;
+    private Boolean isRenewable;
     private List<POResourceRequirementDTO> resourceRequirementList;
-    private boolean isActive;
+    private Boolean isActive;
 }

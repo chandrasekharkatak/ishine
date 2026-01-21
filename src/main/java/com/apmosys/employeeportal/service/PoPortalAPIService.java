@@ -1706,6 +1706,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	        projectPoDetailsRepository.deleteAllRecords();
 
 	        logger.info("Old PO data cleared before sync");
+	        System.out.println("Old PO data cleared before sync");
 
 	        HttpHeaders headers = new HttpHeaders();
 	        headers.set("Authorization",
@@ -1725,6 +1726,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	        finalHttpStatusCode = apiResponse.getStatusCodeValue();
 
 	        if (apiResponse.getStatusCode() != HttpStatus.OK || apiResponse.getBody() == null) {
+		        System.out.println("PO Portal API failed or returned empty response");
 	            throw new PoportalApiException("PO Portal API failed or returned empty response");
 	        }
 
@@ -1736,6 +1738,8 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	                        "poDetailsList NULL | poProjectId=")
 	                        .append(projectDto.getProjectId())
 	                        .append(" || ");
+
+			        System.out.println("poDetailsList NULL | poProjectId= "+ projectDto.getProjectId());
 	                continue;
 	            }
 
@@ -1747,6 +1751,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	                        "Project not found | poProjectId=")
 	                        .append(projectDto.getProjectId())
 	                        .append(" || ");
+	                System.out.println("Project not found  | poProjectId= "+ projectDto.getProjectId());
 	                continue;
 	            }
 
@@ -1843,7 +1848,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	    poDetails.setClientRm(poDto.getClientRmName());
 	    poDetails.setPrevPO(poDto.getPrevPo());
 	    poDetails.setNextPO(poDto.getNextPO());
-	    poDetails.setActive(poDto.isActive());
+	    poDetails.setActive(poDto.getIsActive());
 	    
 	    
 	    
@@ -1860,7 +1865,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	    
 	    
 	    
-	    
+	    System.out.println("saved in po details");
 	    projectPoDetailsRepository.save(poDetails);
 
 	   
@@ -1869,6 +1874,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	        map.setPoId(poDto.getPoId().intValue());
 	        map.setDeptId(dept.getDeptId());
 	        map.setActive(true);
+	        System.out.println("saved in poDepartmentMappingRepository");
 	        poDepartmentMappingRepository.save(map);
 	    }
 
@@ -1883,6 +1889,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	            prm.setClientRoleId(req.getClientRoleId());
 	            prm.setDepartment(req.getDepartment());            
 	            prm.setActive(true);
+		        System.out.println("saved in poRequirementMappingRepository");
 	            poRequirementMappingRepository.save(prm);
 	        }
 	    }
@@ -1903,7 +1910,7 @@ employmentId = Long.parseLong(createdByEmpId.substring(2));
 throw new PoportalApiException("Invalid employment id in createdByEmpId");
 }
 
-Employee employee = employeeRepository
+Long empId = employeeRepository
 .findByEmploymentIdAndEmployeeName(employmentId, createdByEmpName)
 .orElseThrow(() ->
 new PoportalApiException(
@@ -1914,7 +1921,7 @@ new PoportalApiException(
 )
 );
 
-return employee.getEmpId(); 
+return empId; 
 }
 
 
