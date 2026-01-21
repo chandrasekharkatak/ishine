@@ -3550,18 +3550,31 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "WHERE ( pdm.dept_id is NULL or pdm.dept_id IN (:deptIds))" , nativeQuery = true)
 	Integer getAllProjectCount(List<Long> deptIds);
 	
+//	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.SkippedEmployeeDTO(" +
+//	       "e.empId, e.employeementId, e.name, d.designationName, " +
+//	       "r.role, r.department, r.experience, hod.email) " +
+//	       "FROM EmployeeTeamMap etm " +
+//	       "INNER JOIN Employee e ON etm.empId = e.empId " +
+//	       "INNER JOIN Designation d ON e.designationId = d.designationId " +
+//	       "INNER JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId " +
+//	       "INNER JOIN Department dept ON jr.deptId = dept.deptId " +
+//	       "INNER JOIN Employee hod ON dept.hodId = hod.empId " +
+//	       "INNER JOIN ResourceRequirement r ON etm.resourceOverviewId = r.resourceOverviewId " +
+//	       "WHERE etm.empId IN :empIds AND etm.resourceOverviewId IN :resourceOverviewIds")
+//	List<SkippedEmployeeDTO> findAllSkippedEmployees(@Param("empIds") Set<Long> empIds, @Param("resourceOverviewIds") Set<Long> resourceOverviewIds);
+	
 	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.SkippedEmployeeDTO(" +
-	       "e.empId, e.employeementId, e.name, d.designationName, " +
-	       "r.role, r.department, r.experience, hod.email) " +
-	       "FROM EmployeeTeamMap etm " +
-	       "INNER JOIN Employee e ON etm.empId = e.empId " +
-	       "INNER JOIN Designation d ON e.designationId = d.designationId " +
-	       "INNER JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId " +
-	       "INNER JOIN Department dept ON jr.deptId = dept.deptId " +
-	       "INNER JOIN Employee hod ON dept.hodId = hod.empId " +
-	       "INNER JOIN ResourceRequirement r ON etm.resourceOverviewId = r.resourceOverviewId " +
-	       "WHERE etm.empId IN :empIds AND etm.resourceOverviewId IN :resourceOverviewIds")
-	List<SkippedEmployeeDTO> findAllSkippedEmployees(@Param("empIds") Set<Long> empIds, @Param("resourceOverviewIds") Set<Long> resourceOverviewIds);
+		       "e.empId, e.employeementId, e.name, d.designationName, " +
+		       "r.role, r.department, r.experience, hod.email) " +
+		       "FROM EmployeeTeamMap etm " +
+		       "INNER JOIN Employee e ON etm.empId = e.empId " +
+		       "INNER JOIN Designation d ON e.designationId = d.designationId " +
+		       "INNER JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId " +
+		       "INNER JOIN Department dept ON jr.deptId = dept.deptId " +
+		       "INNER JOIN Employee hod ON dept.hodId = hod.empId " +
+		       "INNER JOIN PoRequirementMapping r ON etm.poRequirementMappingId = r.poRequirementMappingId " +
+		       "WHERE etm.empId IN :empIds AND etm.poRequirementMappingId IN :poRequirementMappingId")
+		List<SkippedEmployeeDTO> findAllSkippedEmployees(@Param("empIds") Set<Long> empIds, @Param("poRequirementMappingId") Set<Long> poRequirementMappingId);
 	
 	@Query(value = " WITH employee_mapped AS ( \n"
 			+ " 	SELECT DISTINCT  \n"

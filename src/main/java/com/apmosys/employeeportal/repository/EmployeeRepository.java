@@ -906,9 +906,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     
     
     
-    @Query(nativeQuery = true ,value ="select p.project_id,p.project_name,t.team_id,t.team_name,t.dept_ids,rr.resource_overview_id, rr.department,rr.count,rr.experience, rr.role from projects p \n"
+    @Query(nativeQuery = true ,value ="select p.project_id,p.project_name,t.team_id,t.team_name,t.dept_ids,rr.resource_overview_id, rr.department,rr.count,rr.experience, rr.role , po.po_id from projects p \n"
     		+ "    		inner join teams t on t.project_id = p.project_id  \n"
     		+ "    		left join resource_requirement rr on rr.project_id = p.project_id\n"
+    		+ "         left join po_details po on p.project_id = po.project_id \n"
+    		+ "         left join po_requirement_mapping prm on prm.po_id = po.po_id \n"
     		+ "    		where p.po_project_id  IS NULL \n"
     		+ "    		and p.internal_project_type = 'Bench' \n"
     		+ "    		and p.active = 'true' and t.is_active = 'Y' ")
@@ -916,10 +918,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     
     
     @Query(nativeQuery = true,value ="select p.project_id,p.project_name,t.team_id,t.team_name,t.dept_ids, \n"
-    		+ "rr.resource_overview_id, rr.department,rr.count,rr.experience, rr.role \n"
+    		+ "rr.resource_overview_id, rr.department,rr.count,rr.experience, rr.role , po.po_id\n"
     		+ "from projects p \n"
     		+ "inner join teams t on t.project_id = p.project_id  \n"
     		+ "left join resource_requirement rr on rr.project_id = p.project_id\n"
+    		+ "left join po_details po on p.project_id = po.project_id \n"
+    		+ "left join po_requirement_mapping prm on prm.po_id = po.po_id \n"
     		+ "where p.internal_project_type = 'InternalRNDProducts' or p.internal_project_type IS NULL ")
     List<Object[]> getAllProjectsThatAreNotBench();
     

@@ -568,4 +568,11 @@ duplicateCertificate(certificateobj:any){
     return this.http.post(`${this.baseUrl}api/getPendingTimesheetProjects`, payload);
   }
 
+getPoRequirementDataByTeamAndPoId(payload: any) {
+  return this.http.post(`${this.baseUrl}api/getPoRequirementDataByTeamAndPoId`, payload);
+}
+
+
+
+
 }

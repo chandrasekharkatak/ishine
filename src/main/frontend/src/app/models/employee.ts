@@ -232,4 +232,6 @@ export class Employee{
 	certificateNames:any;
 	skillNames:any;
 	totalCurrentExperience:any;
+	poRequirementMappingId : any;
+	poId : any;
 }

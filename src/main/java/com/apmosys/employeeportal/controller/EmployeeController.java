@@ -908,4 +908,12 @@ public class EmployeeController {
 		return serviceResponse;
 	}
 	
+	@PostMapping("/api/getPoRequirementDataByTeamAndPoId")
+	public ServiceResponse getPoRequirementDataByTeamAndPoId(@RequestBody Map<String, Long> requestBody) {
+	    Long teamId = requestBody.get("teamId");
+	    Long poId = requestBody.get("poId");
+	    return employeeService.getPoRequirementDataByTeamAndPoId(teamId, poId);
+	}
+	
+	
 }

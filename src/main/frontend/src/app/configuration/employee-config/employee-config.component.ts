@@ -2678,6 +2678,10 @@ export class EmployeeConfigComponent implements OnInit {
     const selectedProject = this.projectList.find(p => p.projectId === selectedProjectId);
     this.showEmployeeRoleDropdown = false;
 
+     if (selectedProject && selectedProject.poId) {
+      this.employeeObj.poId = selectedProject.poId;
+    }
+
     if (selectedProject && selectedProject.teamList) {
       this.teamList = selectedProject.teamList;
       this.showTeamDropdown = true;
@@ -2694,6 +2698,8 @@ export class EmployeeConfigComponent implements OnInit {
       this.showResourceRequirementDropdown = false;
       this.employeeObj.selectedResourceOverviewId = null;
     }
+     this.poRequirementList = [];
+  this.employeeObj.poRequirementMappingId = null;
   }
 
 
@@ -2702,13 +2708,21 @@ export class EmployeeConfigComponent implements OnInit {
   onTeamChange(event: any) {
     const selectedTeamId = +event.target.value;
     const selectedTeam = this.teamList.find(t => t.teamId === selectedTeamId);
-
+ this.employeeObj.defaultTeamId = selectedTeamId;
     if (selectedTeam) {
       this.showEmployeeRoleDropdown = true;
 
       this.employeeObj.defaultTeamEmployeeRole = [];
+    if (selectedTeamId && this.employeeObj.poId) {
+        this.loadPoRequirements(selectedTeamId, this.employeeObj.poId);
+      } else {
+        this.poRequirementList = [];
+        this.employeeObj.poRequirementMappingId = null;
+        console.log('No PO associated with this project');
+      }
     } else {
       this.showEmployeeRoleDropdown = false;
+      this.poRequirementList = [];
     }
   }
 
@@ -5108,6 +5122,45 @@ pendingProjects: string[] = [];
       });
   });
 }
+
+poRequirementList: any[] = [];
+ loadPoRequirements(teamId: number, poId: number) {
+    const payload = {
+      teamId: teamId,
+      poId: poId
+    };
+    this.employeeService.getPoRequirementDataByTeamAndPoId(payload)
+      .pipe(first())
+      .subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.poRequirementList = response.serviceResponse || [];
+          if (this.poRequirementList.length === 0) {
+            console.log('No PO requirements found for selected team and PO');
+          }
+        } else {
+          this.poRequirementList = [];
+          console.error('Error loading PO requirements:', response.serviceResponse);
+        }
+        this.employeeObj.poRequirementMappingId = null;
+      }, error => {
+        console.error('Error calling PO requirement API:', error);
+        this.poRequirementList = [];
+        this.employeeObj.poRequirementMappingId = null;
+      });
+  }
+
+  onPoRequirementChange() {
+    console.log('Selected PO Requirement ID:', this.employeeObj.poRequirementMappingId);
+    const selectedPoRequirement = this.poRequirementList.find(
+      po => po.poRequirementMappingId === +this.employeeObj.poRequirementMappingId
+    );
+    if (selectedPoRequirement) {
+      console.log('Selected PO Requirement Details:', selectedPoRequirement);
+    }
+  }
+
+
+
 
 }
 

@@ -109,6 +109,7 @@ import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PageResponseDTO;
 import com.apmosys.employeeportal.dto.PendingTimesheetDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
+import com.apmosys.employeeportal.dto.PoRequirementDataDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
@@ -2685,7 +2686,7 @@ public class EmployeeService {
 							
 							findAllActiveTeams.forEach(obj ->{
 								obj.setActive(0l);	
-								obj.setEndDate(LocalDate.parse(employeedto.getDateOfRelieving()).atStartOfDay());			
+								obj.setEndDate(LocalDate.parse(employeedto.getDateOfRelieving()).atStartOfDay());	
 								employeeTeamMapRepository.save(obj);
 								});
 						}
@@ -7621,6 +7622,9 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		    		 String teamName = row[3]!=null ? row[3].toString():null;
 		    		 String deptIds = row[4]!=null ? row[4].toString():null;
 		    		 
+		    		 Long poId = row[10] != null ? Long.parseLong(row[10].toString()) : null;
+
+		    		 
 		    		 if (deptIds == null || !Arrays.asList(deptIds.split(",")).contains(departmentId.toString())) {
 		                 continue;
 		             }
@@ -7637,6 +7641,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		                 ProjectDTO projectDTO = new ProjectDTO();
 		                 projectDTO.setProjectId(projectId);
 		                 projectDTO.setProjectName(projectName);
+		                 projectDTO.setPoId(poId); // setting po id 
 		                 projectDTO.setTeamList(new ArrayList<>());
 		                 projectDTO.getTeamList().add(teamDTO);
 		                 projectMap.put(projectId, projectDTO);
@@ -11957,6 +11962,43 @@ public ServiceResponse getPendingTimesheetProjects(Long empId, LocalDate relievi
     logService.logMyInfo(httpRequest, apiLogInfo);
     return response;
 }
+
+public ServiceResponse getPoRequirementDataByTeamAndPoId(Long teamId, Long poId) {
+
+    ServiceResponse response = new ServiceResponse();
+    LogDTO apiLogInfo = new LogDTO();
+    apiLogInfo.setApiUrl("/api/getPoRequirementDataByTeamAndPoId");
+    try {
+        if (teamId == null || poId == null) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse("Team ID and PO ID are required");
+            return response;
+        }
+
+        List<PoRequirementDataDTO> data =
+                poRequirementMappingRepository
+                        .getPoRequirementDataByTeamAndPoId(teamId, poId);
+
+        if (data != null && !data.isEmpty()) {
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(data);
+            response.setServiceResponse1("PO Requirement data retrieved successfully");
+        } else {
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(null);
+            response.setServiceResponse1("No data found for given Team and PO");
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+        response.setServiceResponse("Error while fetching PO Requirement data");
+        response.setServiceError(e.getMessage());
+    }
+
+    return response;
+}
+
 
 
 

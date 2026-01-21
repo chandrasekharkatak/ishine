@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.apmosys.employeeportal.dto.PoRequirementDataDTO;
 import com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto;
 import com.apmosys.employeeportal.model.PoRequirementMapping;
 
@@ -32,6 +33,37 @@ public interface PoRequirementMappingRepository extends JpaRepository<PoRequirem
     @Query("select distinct e.employeementId from EmployeeTeamMap etm " +
             "inner join Employee e on etm.empId = e.empId " +
             "where etm.active != 0 and etm.poRequirementMappingId in :poRequirementMappingId")
-    List<Long> checkActiveAndPendingEmployeeMappingWithPoRequirementId(
-            @Param("poRequirementMappingId") List<Long> poRequirementMappingId);
+    List<Long> checkActiveAndPendingEmployeeMappingWithPoRequirementId
+	    (@Param("poRequirementMappingId") List<Long> poRequirementMappingId);
+	 
+	 
+	 @Query("SELECT new com.apmosys.employeeportal.dto.PoRequirementDataDTO(" +
+		       "po.poRequirementMappingId, " +
+		       "po.poId, po.role, po.experience, po.department, " +
+		       "t.teamId, p.projectId, p.projectName, " +
+		       "pd.poNo, pd.poStartDate, pd.poEndDate) " +
+		       "FROM PoRequirementMapping po " +
+		       "LEFT JOIN EmployeeTeamMap etm ON etm.poRequirementMappingId = po.poRequirementMappingId " +
+		       "LEFT JOIN Team t ON etm.teamId = t.teamId " +
+		       "LEFT JOIN ProjectPoDetails pd ON pd.poId = po.poId " +
+		       "LEFT JOIN Project p ON t.projectId = p.projectId " +
+		       "WHERE po.active = true " +
+		       "AND t.teamId = :teamId " +
+		       "AND po.poId = :poId")
+		List<PoRequirementDataDTO> getPoRequirementDataByTeamAndPoId(
+		        @Param("teamId") Long teamId,
+		        @Param("poId") Long poId
+		);
+	 
+	 @Query("SELECT prm FROM PoRequirementMapping prm " +
+	        "WHERE prm.poId = :poId AND prm.active = true")
+	 List<PoRequirementMapping> findByPoId(@Param("poId") Long poId);
+
+
+	 
+	 
+	 
+	 
+	 
+	 
 }
