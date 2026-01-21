@@ -1692,6 +1692,8 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 	    StringBuilder exceptionDetailsForLog = new StringBuilder();
 
+	    List<ProjectPoMappingWithResourceDTO> externalApiResponse = new ArrayList<ProjectPoMappingWithResourceDTO>();
+
 	    try {
 	        initialLog = apiLogUtility.startLog(
 	                traceId,
@@ -1724,6 +1726,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	                );
 
 	        finalHttpStatusCode = apiResponse.getStatusCodeValue();
+	        externalApiResponse = apiResponse.getBody();
 
 	        if (apiResponse.getStatusCode() != HttpStatus.OK || apiResponse.getBody() == null) {
 		        System.out.println("PO Portal API failed or returned empty response");
@@ -1751,6 +1754,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	                        "Project not found | poProjectId=")
 	                        .append(projectDto.getProjectId())
 	                        .append(" || ");
+	                logger.info("Project not found  | poProjectId= " + projectDto.getProjectId());
 	                System.out.println("Project not found  | poProjectId= "+ projectDto.getProjectId());
 	                continue;
 	            }
@@ -1771,6 +1775,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	            }
 	        }
 
+	        response.setServiceResponse(externalApiResponse);
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        response.setServiceMessage("PO sync completed with partial validations.");
 
@@ -1785,8 +1790,8 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 
 	    } catch (Exception e) {
 	        exceptionDetailsForLog.append(e.getMessage());
-            
-	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(externalApiResponse);      
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        response.setServiceMessage("PO sync completed with warnings.");
 	        return response;
 	    } finally {
@@ -1867,6 +1872,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	    
 	    
 	    System.out.println("saved in po details");
+	    logger.info("saved in po details");
 	    projectPoDetailsRepository.save(poDetails);
 
 	   
@@ -1876,6 +1882,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	        map.setDeptId(dept.getDeptId());
 	        map.setActive(true);
 	        System.out.println("saved in poDepartmentMappingRepository");
+	        logger.info("saved in poDepartmentMappingRepository");
 	        poDepartmentMappingRepository.save(map);
 	    }
 
@@ -1891,6 +1898,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	            prm.setDepartment(req.getDepartment());            
 	            prm.setActive(true);
 		        System.out.println("saved in poRequirementMappingRepository");
+		        logger.info("saved in poRequirementMappingRepository");
 	            poRequirementMappingRepository.save(prm);
 	        }
 	    }
