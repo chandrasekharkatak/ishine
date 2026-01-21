@@ -5,8 +5,10 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,10 +28,15 @@ import org.springframework.transaction.annotation.Transactional;
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.ActivityTemplateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
+import com.apmosys.employeeportal.dto.RmgTeamDto;
+import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Activity;
@@ -62,6 +69,7 @@ import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
+import com.apmosys.employeeportal.repository.PoRequirementMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
@@ -70,6 +78,7 @@ import com.apmosys.employeeportal.utility.EmployeeHirarchyCache;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+import com.apmosys.employeeportal.utility.TypeConversionUtil;
 
 @Service
 public class TeamsService {
@@ -150,6 +159,9 @@ public class TeamsService {
 	private LogService logService;
 	 
 	@Autowired EmployeeHirarchyCache empCache;
+
+	@Autowired
+	private PoRequirementMappingRepository poRequirementMappingRepository;
 
 	@Value("${timesheet.check.period}")
 	private String timesheetCheckPeriod;
@@ -3228,4 +3240,160 @@ public class TeamsService {
 		return response;
 	}
 
+	public ServiceResponse getAllTeamsAndRoleWiseMembersByPoId(Long poId) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getAllTeamsAndRoleWiseMembersByPoId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("PoId : " + poId);
+		try {
+			List<PoTeamAndMemberDetailsDto> objectList = poRequirementMappingRepository.getAllTeamAndMemberDetailsDtoByPoId(poId);
+			if (objectList.isEmpty()) {
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiResponse("No teams found. Teams list is empty");
+				response.setServiceResponse("No teams found. Teams list is empty");
+				return response;
+			}
+
+			List<Long> empIds = objectList.stream().map(PoTeamAndMemberDetailsDto:: getEmpId).collect(Collectors.toList());
+			Map<Long, EmployeeInformationDTO> empIdInfoMap = getEmployeeInformationMap(empIds);
+			
+			List<RmgTeamDto> dtoList = getAllTeamsByPoId(objectList,empIdInfoMap);
+
+			System.out.println(dtoList);
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(dtoList);
+			apiLogInfo.setApiResponse("All Team List Fetched");
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
+	private Map<Long, EmployeeInformationDTO> getEmployeeInformationMap(List<Long> empIds) {
+		Map<Long, EmployeeInformationDTO> empIdInfoMap = new HashMap<>();
+		List<Object[]> results = employeeRepository.getEmployeeInformationIn(empIds);
+		if (results != null && !results.isEmpty()) {
+			for (Object[] obj : results) {
+				Long empId = TypeConversionUtil.safeParseLong(obj[0]);
+				EmployeeInformationDTO dto = new EmployeeInformationDTO();
+				dto.setEmpId(empId);
+				dto.setEmploymentId(TypeConversionUtil.getSafeString(obj[1]));
+				dto.setName(TypeConversionUtil.getSafeString(obj[2]));
+				dto.setPreviousExperience(TypeConversionUtil.getSafeString(obj[3]));
+				dto.setCurrentExperience(TypeConversionUtil.getSafeString(obj[4]));
+				dto.setTotalExperience(TypeConversionUtil.getSafeString(obj[5]));
+				dto.setBillableType(TypeConversionUtil.getSafeString(obj[6]));
+				dto.setJobRole(TypeConversionUtil.getSafeString(obj[7]));
+				dto.setDeptName(TypeConversionUtil.getSafeString(obj[8]));
+				empIdInfoMap.put(empId, dto);
+			}
+		}
+		return empIdInfoMap;
+	}
+
+	private List<RmgTeamDto> getAllTeamsByPoId(List<PoTeamAndMemberDetailsDto> objectList,Map<Long, EmployeeInformationDTO> empIdInfoMap) {
+		List<RmgTeamDto> rmgTeamDtoList = objectList.stream()
+				.collect(Collectors.toMap(
+						PoTeamAndMemberDetailsDto::getTeamId,
+						obj -> new RmgTeamDto(obj.getTeamId(), obj.getTeamName(),
+								obj.getPoId(), obj.getIsTeamActive(),
+								obj.getSpocId(), obj.getSpocName(),
+								getDeptIdListFromString(obj.getDeptIds())),
+						(existing, duplicate) -> existing))
+				.values()
+				.stream().collect(Collectors.toList());
+
+		mapRmgResourceRequirementList(rmgTeamDtoList, objectList,empIdInfoMap);
+
+		return rmgTeamDtoList;
+	}
+
+	List<Long> getDeptIdListFromString(String deptIds) {
+		return Optional.ofNullable(deptIds)
+				.filter(s -> !s.isBlank())
+				.map(s -> Arrays.stream(s.split(","))
+						.map(String::trim)
+						.map(Long::valueOf)
+						.collect(Collectors.toList()))
+				.orElse(List.of());
+	}
+
+	private void mapRmgResourceRequirementList(List<RmgTeamDto> rmgTeamDtoList,
+			List<PoTeamAndMemberDetailsDto> objectList,Map<Long, EmployeeInformationDTO> empIdInfoMap) {
+
+		Map<Long, List<RmgResourceRequirementDto>> teamIdRmgMap = objectList.stream()
+				.collect(Collectors.groupingBy(
+						PoTeamAndMemberDetailsDto::getTeamId,
+						Collectors.mapping(
+								obj -> new RmgResourceRequirementDto(
+										obj.getPoRequirementMappingId(),
+										obj.getPoId(), obj.getRole(), obj.getExperience(),
+										obj.getDepartment(), obj.isPrmActive()),
+								Collectors.collectingAndThen(
+										Collectors.toList(),
+										list -> list.stream().distinct().collect(Collectors.toList())))));
+
+		mapRmgTeamMemberDto(teamIdRmgMap, objectList,empIdInfoMap);
+
+		for (RmgTeamDto rmgDto : rmgTeamDtoList) {
+			rmgDto.setRmgResourceRequirementList(teamIdRmgMap.getOrDefault(rmgDto.getTeamId(), List.of()));
+		}
+	}
+
+	private void mapRmgTeamMemberDto(Map<Long, List<RmgResourceRequirementDto>> teamIdRmgMap,
+			List<PoTeamAndMemberDetailsDto> objectList,Map<Long, EmployeeInformationDTO> empIdInfoMap) {
+		
+		Map<Long, List<RmgTeamMemberDto>> prmIdRmgMemberMap = objectList.stream()
+				.collect(Collectors.groupingBy(
+						PoTeamAndMemberDetailsDto::getPoRequirementMappingId,
+						Collectors.collectingAndThen(
+								Collectors.mapping(
+										obj -> getTeamMemberObj(obj, empIdInfoMap),
+										Collectors.toList()),
+								list -> list.stream().distinct().collect(Collectors.toList()))));
+
+		for (List<RmgResourceRequirementDto> rmgRequirementList : teamIdRmgMap.values()) {
+			for (RmgResourceRequirementDto rmgResourceRequirementDto : rmgRequirementList) {
+				rmgResourceRequirementDto.setRmgTeamMemberList(prmIdRmgMemberMap
+						.getOrDefault(rmgResourceRequirementDto.getPoRequirementMappingId(), List.of()));
+			}
+		}
+	}
+
+	private RmgTeamMemberDto getTeamMemberObj(PoTeamAndMemberDetailsDto obj,
+			Map<Long, EmployeeInformationDTO> empIdInfoMap) {
+		List<String> employeeRoles = getEmployeeRolesFromString(obj.getEmployeeRole());
+		String employeeRole = String.join(",", employeeRoles);
+		RmgTeamMemberDto rmgTeamMember = new RmgTeamMemberDto(obj.getMemberName(), employeeRole, employeeRoles,
+				obj.getStartDate(), obj.getEndDate(), obj.getIsShadow(),
+				obj.getIsMemberActive(), obj.isDeafultProject());
+		EmployeeInformationDTO dto = empIdInfoMap.getOrDefault(obj.getEmpId(), null);
+		if (dto != null) {
+			rmgTeamMember.setEmpId(dto.getEmpId());
+			rmgTeamMember.setEmployementId(dto.getEmploymentId());
+			rmgTeamMember.setMemberDepartment(dto.getDeptName());
+			rmgTeamMember.setJobRoleName(dto.getJobRole());
+			rmgTeamMember.setBillableType(dto.getBillableType());
+			rmgTeamMember.setPrevExp(dto.getPreviousExperience());
+			rmgTeamMember.setCurrentExp(dto.getCurrentExperience());
+			rmgTeamMember.setTotalExp(dto.getTotalExperience());
+		}
+		return rmgTeamMember;
+	}
+
+	private List<String> getEmployeeRolesFromString(String employeeRole) {
+		return (employeeRole != null && !employeeRole.trim().equals("")) ? Arrays.asList(employeeRole.split(","))
+				: List.of("Employee");
+	}
 }

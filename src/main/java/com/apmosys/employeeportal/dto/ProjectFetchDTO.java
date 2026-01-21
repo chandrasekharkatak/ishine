@@ -66,6 +66,8 @@ public class ProjectFetchDTO {
     private String poProjectStatus;
     private Timestamp createdOn1;
 
+	List<PoDetailsDto> poDetailsList;
+
     //internal projects
     public ProjectFetchDTO(Object[] row) {
         this.projectId = row[0] != null ? ((Number) row[0]).intValue() : null;          

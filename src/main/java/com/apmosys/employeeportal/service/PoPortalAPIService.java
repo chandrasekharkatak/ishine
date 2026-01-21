@@ -80,7 +80,6 @@ import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.PoportalApiException;
 import com.apmosys.employeeportal.utility.ServiceResponse;
-import com.apmosys.employeeportal.utility.ToLong_helper;
 
 @Service
 public class PoPortalAPIService {

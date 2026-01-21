@@ -4468,4 +4468,25 @@ boolean existsByProjectName(String projectName);
 				    
 				    @Query(value="select p.client_flag from projects p  where p.project_id = :projectId",nativeQuery = true)
 				    public Boolean isClientIdMandetory(@Param("projectId")int projectId); 
+
+	@Query(value = "SELECT DISTINCT \n"
+			+ " p.project_id, project_name, c.client_name, p.state"
+			+ " , date(p.po_start_date) project_start_date, date(p.po_end_date) project_end_date "
+			+ " , p.project_status project_status "
+			+ " , CASE \n"
+			+ " WHEN p.is_draft_project = 'true' THEN 'Pending For Approval' \n"
+			+ " WHEN p.is_draft_project = 'false' THEN 'Approved' \n"
+			+ " WHEN p.is_draft_project = 'Rejected' THEN 'Rejected' \n"
+			+ " WHEN p.is_draft_project = 'Completed' THEN 'Completed' \n"
+			+ " WHEN p.is_draft_project IS NULL THEN 'Not Started' \n"
+			+ " ELSE 'Un Mentioned Test Data' \n"
+			+ " END as draft_project_status \n"
+			+ " ,po_project_type, p.internal_project_type, p.status status"
+			+ " FROM projects p\n"
+			+ " LEFT JOIN clients c ON p.client_id = c.client_id \n"
+			+ " WHERE 1=1 \n"
+			+ " and p.project_id =:projectId \n"
+			+ " GROUP BY p.project_id, project_name, c.client_name, p.state, p.po_start_date, p.po_end_date "
+			+ ", p.project_status ,po_project_type, p.internal_project_type, p.status ", nativeQuery = true)
+	List<Object[]> getProjectConfigurationDetailsByProjectIdNew(@Param("projectId") Integer projectId);
 }

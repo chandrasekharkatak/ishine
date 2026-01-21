@@ -1,6 +1,8 @@
 package com.apmosys.employeeportal.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -294,6 +296,13 @@ public class TeamsController {
 		
 		ServiceResponse response = teamsService.addProjectManager();
 		return response;
+	}
+
+	// @Encrypted
+	@JobRoleAccess(featureIds = { 7 })
+	@GetMapping("/getAllTeamsAndRoleWiseMembersByPoId")
+	public ServiceResponse getAllTeamsAndRoleWiseMembersByPoId(@RequestParam Long poId) {
+		return teamsService.getAllTeamsAndRoleWiseMembersByPoId(poId);
 	}
 	
 }

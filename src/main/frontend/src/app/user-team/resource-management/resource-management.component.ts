@@ -9,7 +9,7 @@ import { ActivatedRoute, Params, Router } from '@angular/router';
 import * as Highcharts from 'highcharts';
 import * as moment from 'moment';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
-import { finalize, first, map, startWith } from 'rxjs/operators';
+import { finalize, first, map, startWith, catchError } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Status } from 'src/app/enum/status';
 import { DefaultProjectUpdate } from 'src/app/models/defaultProjectUpdate';
@@ -51,8 +51,9 @@ import { ViewImageComponent } from '../view-image/view-image.component';
 import { RestoreProjectPayload } from 'src/app/models/restoreProjectPayload';
 import { LoaderService } from 'src/app/services/loader.service';
 import { PaginationInstance } from 'ngx-pagination';
-import { merge } from 'rxjs';
+import { merge, of, forkJoin } from 'rxjs';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { RmgProject } from 'src/app/models/rmgProject';
 
 
 
@@ -70,6 +71,13 @@ class FilterData {
   styleUrls: ['./resource-management.component.css']
 })
 export class ResourceManagementComponent implements OnInit {
+
+  @ViewChild("alert_message") alertMessageTemplateRef: TemplateRef<any>;
+  alertMessageModalRef: NgbModalRef;
+
+  showProjectConfig: boolean = false;
+  rmgProjectObj: RmgProject = new RmgProject();
+
 
   nodes: OrgChartNode[] = [];
 
@@ -1104,18 +1112,15 @@ toggleDepartments() {
     this.isProjectTable = true;
     this.allProjectTable = true;
     this.isSkillMatrix = false;
-
     this.isHideButton = false;
     this.isEditProject = false;
     this.isCreateForm = false;
     this.isCreation = false;
+    this.showProjectConfig = false;
     this.filters = {};
     this.isSearchEnabled = false;
-
     this.allProjectList = [];
     this.teamCreatedProjectList = [];
-    // this.getManagerList();
-    // this.alreadyCreatedTeam();
   }
 
 
@@ -8419,6 +8424,145 @@ catch(error){
 
     // No tooltip when enabled
     return null;
+  }
+
+  showProjectConfigurationDetails(project: any) {
+    forkJoin({
+      managers: this.getManagerAndOverheadList(),
+      departments: this.getAllDepartmentsList(),
+      employees: this.getEmployeeNameAndEmpld(),
+      projectConfig: this.getProjectConfigurationDetailsByProjectId(project)
+    }).subscribe(result => {
+      if (this.rmgProjectObj) {
+        this.showProjectConfiguration();
+      }
+      console.log('Project Obj:', this.rmgProjectObj);
+      console.log('Departments:', this.allDeptList);
+      console.log('Managers:', this.managerList);
+      console.log('Overhead:', this.overheadList);
+      console.log('Employees:', this.employeeList);
+    });
+  }
+
+  showProjectConfiguration() {
+    this.showProjectConfig = true;
+    this.isSkillMatrix = false;
+    this.isProjectTable = false;
+    this.allProjectTable = false;
+    this.isCreateForm = false;
+    this.isCreation = false;
+  }
+
+  closeProjectConfiguration() {
+    this.showViewProjects();
+  }
+
+  getManagerAndOverheadList() {
+    this.managerList = [];
+    this.filteredManagerList = [];
+    this.overheadList = [];
+    this.filteredOverheadList = [];
+
+    const reqObj = {
+      ...this.employeeObj,
+      role: 'Manager',
+      employeementId: this.employeeObj?.employeementId?.substring(2)
+    };
+
+    return this.employeeService.getAllEmployeesByRole(reqObj).pipe(
+      first(),
+      map((response: any) => {
+        if (response.serviceStatus === 'Success') {
+          const empList = [...response.serviceResponse];
+          this.appendPrefixToEmployee(empList);
+
+          this.managerList = [...empList];
+          this.overheadList = [...empList];
+          this.filteredManagerList = [...empList];
+          this.filteredOverheadList = [...empList];
+        }
+        return true;
+      }),
+      catchError(error => {
+        console.error('Manager list failed', error);
+        return of(false);
+      })
+    );
+  }
+
+  appendPrefixToEmployee(employeeList: any) {
+    if (!this.validationService.validateNullUndefinedEmptyList(employeeList)) {
+      return;
+    }
+    employeeList.forEach((emp) => {
+      emp.employeementId = "A-".concat(emp.employeementId);
+    });
+  }
+
+  getAllDepartmentsList() {
+    this.allDeptList = [];
+
+    return this.departmentService.getAllDepartments().pipe(
+      first(),
+      map((response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.allDeptList = response.serviceResponse;
+        }
+        return true;
+      }),
+      catchError(error => {
+        console.error('Department list failed', error);
+        return of(false);
+      })
+    );
+  }
+
+  getEmployeeNameAndEmpld() {
+    this.employeeList = [];
+
+    return this.employeeService.getEmployeeByNameAndEmpld().pipe(
+      first(),
+      map((response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.employeeList = response.serviceResponse;
+        }
+        return true;
+      }),
+      catchError(error => {
+        console.error('Employee list failed', error);
+        return of(false);
+      })
+    );
+  }
+
+  getProjectConfigurationDetailsByProjectId(project: any) {
+    this.showProjectConfig = false;
+    this.rmgProjectObj = null;
+
+    return this.resourceManagementService.getProjectConfigurationDetailsByProjectId(project?.projectId).pipe(
+      first(),
+      map((response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.rmgProjectObj = response.serviceResponse;
+        }
+        return true;
+      }),
+      catchError(error => {
+        console.error('Fetch Project Details failed', error);
+        return of(false);
+      })
+    );
+  }
+
+  openAlertMessageModal(modalMessage: any) {
+    this.modalMessage = modalMessage;
+    this.alertMessageModalRef = this.modalService.open(this.alertMessageTemplateRef, { modalDialogClass: 'modal-sm' });
+  }
+
+  closeAlertMessageModal() {
+    if (this.alertMessageModalRef) {
+      this.alertMessageModalRef?.close();
+    }
   }
 
 }

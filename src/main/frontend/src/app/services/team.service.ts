@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Activity } from '../models/activity';
 import { Employee } from '../models/employee';
@@ -89,4 +89,10 @@ export class TeamService {
   updateActivityTemplate(team: Team) {
     return this.http.post(`${this.baseUrl}` + `api/updateActivityTemplate`, team);
   }
+
+  getAllTeamsAndRoleWiseMembersByPoId(poId: any) {
+    let httpParams = new HttpParams().append("poId", poId);
+    return this.http.get(`${this.baseUrl}` + `api/getAllTeamsAndRoleWiseMembersByPoId`, { params: httpParams });
+  }
+
 }

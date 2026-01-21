@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { Project } from '../models/project';
@@ -224,6 +224,11 @@ export class ResourceManagementService {
 
   getProjectAssignedDataByProjectId(id:number,totalRequirements:number){
     return this.http.get(`${this.baseUrl}`+`api/getProjectAssignedDataByProjectId`,{params:{id:id,totalRequirements:totalRequirements}})
+  }
+
+  getProjectConfigurationDetailsByProjectId(projectId: any) {
+    let httpParams = new HttpParams().append("projectId", projectId);
+    return this.http.get(`${this.baseUrl}` + `api/getProjectConfigurationDetailsByProjectId`, { params: httpParams });
   }
 
 }

@@ -618,7 +618,10 @@ public class ResourceManagementController {
 		return response;
 	}
 	
-	
-	
+	// @Encrypted
+	@GetMapping("/getProjectConfigurationDetailsByProjectId")
+	public ServiceResponse getProjectConfigurationDetailsByProjectId(@RequestParam Integer projectId) {
+		return resourceManagementService.getProjectConfigurationDetailsByProjectId(projectId);
+	}
 	
 }

@@ -3332,4 +3332,46 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		        @Param("checkDate") LocalDate checkDate
 		);
 
+		@Query(value = "SELECT new com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO(e.empId, e.name,  \n " +
+				"CASE  \n " +
+				"  WHEN isConsultant = 'true' THEN CONCAT('CS-', e.employeementId)  \n " +
+				"  WHEN isApmosysProduct = 'true' THEN CONCAT('AP-', e.employeementId)  \n " +
+				"  ELSE CONCAT('A-', e.employeementId)  \n " +
+				"END)  \n " +
+				"FROM Employee e where e.employmentstatus != 'InActive' and e.empId = :empId  and e.empId not between 1 and 6")
+		public List<GetEmployeeByNameAndEmpldDTO> getEmployeeNameAndEmploymentIdByEmpIdIn(List<Long> empId);
+
+		// @Query("SELECT new com.apmosys.employeeportal.dto.EmployeeDTO(e.name, d.deptId, d.name, \n"
+		// 		+ "e.isConsultant, e.isApmosysProduct, e.employmentstatus, e.empId, e.employeementId) \n"
+		// 		+ "FROM Employee e \n"
+		// 		+ "INNER JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId \n"
+		// 		+ "INNER JOIN Department d ON jr.deptId = d.deptId \n"
+		// 		+ "WHERE 1=1 \n"
+		// 		+ "AND e.empId NOT BETWEEN 1 AND 6 \n"
+		// 		+ "AND e.employmentstatus != 'InActive' \n"
+		// 		+ "AND e.empId IN :empIds")
+		// public List<EmployeeDTO> getEmployeeDetailsByEmpIds(@Param("empIds") List<Long> empIds);
+
+
+		@Query(nativeQuery = true, value = " SELECT e.emp_id, \n"
+				+ " CASE WHEN e.is_consultant = TRUE THEN CONCAT('CS-', e.employeement_id) \n"
+				+ " ELSE CONCAT('A-', e.employeement_id) END AS employmentId, \n"
+				+ " e.name, \n"
+				+ " CONCAT(FLOOR(e.total_experience), '.', \n"
+				+ " LPAD(SUBSTRING_INDEX(e.total_experience, '.', -1), 2, '0')) AS previousExperience, \n"
+				+ " CONCAT(FLOOR(TIMESTAMPDIFF(MONTH, e.date_of_joining, CURDATE()) / 12),'.', \n"
+				+ " LPAD(MOD(TIMESTAMPDIFF(MONTH, e.date_of_joining, CURDATE()), 12), 2, '0')) AS currentExperience, \n"
+				+ " CONCAT(FLOOR("
+				+ "         (FLOOR(e.total_experience) * 12 + CAST(LPAD(SUBSTRING_INDEX(e.total_experience, '.', -1), 2, '0') AS UNSIGNED)) + \n"
+				+ "         TIMESTAMPDIFF(MONTH, e.date_of_joining, CURDATE())) DIV 12,'.', \n"
+				+ "         LPAD(((FLOOR(e.total_experience) * 12 + CAST(LPAD(SUBSTRING_INDEX(e.total_experience, '.', -1), 2, '0') AS UNSIGNED)) + \n"
+				+ "             TIMESTAMPDIFF(MONTH, e.date_of_joining, CURDATE()) \n"
+				+ "         ) MOD 12, 2,'0' \n"
+				+ " )) AS totalExperience, \n"
+				+ " e.billable_type, jr.name AS jobRole, d.name AS DepartmentName \n"
+				+ " FROM employee e  \n"
+				+ " INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
+				+ " INNER JOIN department d ON d.dept_id = jr.dept_id \n"
+				+ " WHERE e.emp_id IN :empIds")
+		public List<Object[]> getEmployeeInformationIn(List<Long> empIds);
 }

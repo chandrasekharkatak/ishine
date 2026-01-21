@@ -110,7 +110,7 @@ import com.apmosys.employeeportal.repository.TimesheetRejectionReasonsMasterRepo
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
-import com.apmosys.employeeportal.utility.ToLong_helper;
+import com.apmosys.employeeportal.utility.TypeConversionUtil;
 
 @EnableAsync
 @Service
@@ -3347,7 +3347,6 @@ public class TimesheetService {
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/getLastFilledTimesheetByEmpId");
 	    apiLogInfo.setLogLevel("INFO");
-	    ToLong_helper toLong_helper = new ToLong_helper();
 
 	    try {
 	        List<Object[]> activeCheckList = timesheetsRepository.checkEmployeeActiveOrNot(empId);
@@ -3391,29 +3390,29 @@ public class TimesheetService {
 	            }
 
 	            TimesheetDTO dto = new TimesheetDTO();
-	            dto.setTimesheetId(toLong_helper.safeParseLong(object[0]));
-	            dto.setDate(toLong_helper.getSafeString(object[1]));
-	            dto.setDayType(toLong_helper.getSafeString(object[2]));
-	            dto.setOfficeInTime(toLong_helper.getSafeString(object[3]));
-	            dto.setOfficeOutTime(toLong_helper.getSafeString(object[4]));
-	            dto.setTotalWorkingOfficeHours(toLong_helper.getSafeString(object[5]));
-	            dto.setTotalTime(toLong_helper.safeParseFloat(object[7]));
-	            dto.setDescription(toLong_helper.getSafeString(object[8]));
+	            dto.setTimesheetId(TypeConversionUtil.safeParseLong(object[0]));
+	            dto.setDate(TypeConversionUtil.getSafeString(object[1]));
+	            dto.setDayType(TypeConversionUtil.getSafeString(object[2]));
+	            dto.setOfficeInTime(TypeConversionUtil.getSafeString(object[3]));
+	            dto.setOfficeOutTime(TypeConversionUtil.getSafeString(object[4]));
+	            dto.setTotalWorkingOfficeHours(TypeConversionUtil.getSafeString(object[5]));
+	            dto.setTotalTime(TypeConversionUtil.safeParseFloat(object[7]));
+	            dto.setDescription(TypeConversionUtil.getSafeString(object[8]));
 
-	            dto.setActivityId(toLong_helper.safeParseLong(object[9]));
-	            dto.setActivity(toLong_helper.getSafeString(object[10]));
+	            dto.setActivityId(TypeConversionUtil.safeParseLong(object[9]));
+	            dto.setActivity(TypeConversionUtil.getSafeString(object[10]));
 
-	            dto.setTeamId(toLong_helper.safeParseLong(object[11]));
-	            dto.setTeamName(toLong_helper.getSafeString(object[12]));
-	            dto.setTeamLeadName(toLong_helper.getSafeString(object[13]));
+	            dto.setTeamId(TypeConversionUtil.safeParseLong(object[11]));
+	            dto.setTeamName(TypeConversionUtil.getSafeString(object[12]));
+	            dto.setTeamLeadName(TypeConversionUtil.getSafeString(object[13]));
 
-	            dto.setProjectId(toLong_helper.safeParseInt(object[14]));
-	            dto.setProjectName(toLong_helper.getSafeString(object[15]));
+	            dto.setProjectId(TypeConversionUtil.safeParseInt(object[14]));
+	            dto.setProjectName(TypeConversionUtil.getSafeString(object[15]));
 
-	            dto.setClientId(toLong_helper.safeParseInt(object[16]));
-	            dto.setClientLocationId(toLong_helper.safeParseInt(object[17]));
-	            dto.setClientLocation(toLong_helper.getSafeString(object[18]));
-	            dto.setClientName(toLong_helper.getSafeString(object[19]));
+	            dto.setClientId(TypeConversionUtil.safeParseInt(object[16]));
+	            dto.setClientLocationId(TypeConversionUtil.safeParseInt(object[17]));
+	            dto.setClientLocation(TypeConversionUtil.getSafeString(object[18]));
+	            dto.setClientName(TypeConversionUtil.getSafeString(object[19]));
 
 	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	            response.setServiceResponse(dto);

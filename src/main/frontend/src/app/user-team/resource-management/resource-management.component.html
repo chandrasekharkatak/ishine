@@ -733,20 +733,6 @@
                 </div>
             </div>
         </div>
-
-
-        <div class="row mb-4">
-            <!-- <div class="col-md-4 mb-2 d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Fixed Cost Project</h5>
-
-        <i class="fa" [ngClass]="isCollapsed1 ? 'fa-chevron-right' : 'fa-chevron-left'"
-            style="cursor: pointer;" (click)="isCollapsed1 = !isCollapsed1"
-            title="{{ isCollapsed1 ? 'Expand Section' : 'Collapse Project Status Report' }}">
-        </i>
-    </div> -->
-
-
-        </div>
     </div>
 
 
@@ -847,47 +833,38 @@
                                 <ng-container
                                     *ngFor="let project of allProject_Po_Internal | multicolFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]| paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
                                     <tr>
-                                        <td class="position-relative">
-                                            <div class="action-menu-wrapper" (clickOutside)="closeMenu(i)">
-                                                <!-- Three Dots -->
-                                                <div class="three-dots" (click)="toggleMenu(i)">
-                                                    <i class="fas fa-ellipsis-v"></i>
-                                                </div>
-                                                <!-- Dropdown Menu -->
-                                                <ul *ngIf="openMenuIndex === i && project.active !== 'false'"
-                                                    class="dropdown-right-menu">
-                                                    <li *ngIf="project.draftStatus != 'Not Started' || project.isTeamCreated == 'true'"
-                                                        (click)="openProjectPreviewModal(preview_team_new, project); closeMenu(i); isEditProject = false">
-                                                        <i class="fas fa-eye"></i> Preview
-                                                    </li>
-                                                    <li
-                                                        (click)="openEditModal(team_configuration_form,project); closeMenu(i);">
-                                                        <i class="fas fa-pen"></i> Edit
-                                                    </li>
-                                                    <li *ngIf="project.draftStatus == 'Approved' || project.isTeamCreated == 'true'"
-                                                        (click)="openDatePicker(MarkAsCompleteDefaultProject, OtherProjectDefaultMapping, project, customDatePickerTemplate); closeMenu(i)">
-                                                        <i class="fas fa-check-double"></i> Mark as Complete
-                                                    </li>
-                                                    <li *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval'"
-                                                        (click)="onApproveProject(project); closeMenu(i)">
-                                                        <i class="fas fa-square-check"></i> Approve
-                                                    </li>
-                                                    <li *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval'"
-                                                        (click)="openRejectModal(reject_project, project); closeMenu(i)">
-                                                        <i class="fas fa-times"></i> Reject
-                                                    </li>
-                                                    <li *ngIf="project.poProjectType"
-                                                        (click)="openClientSideIdPresent(clientSideIdPresent,project.projectId); closeMenu(i)">
-                                                        <i class="fas fa-id-badge"></i> ClientID Status
-                                                    </li>
-                                                </ul>
-                                                <ul *ngIf="openMenuIndex === i && project.active === 'false'"
-                                                    class="dropdown-right-menu">
-                                                    <li (click)="openRestoreInfoTemp(project.projectId); closeMenu(i);">
-                                                        <i class="fas fa-trash-arrow-up"></i> Restore
-                                                    </li>
-                                                </ul>
-                                            </div>
+                                        <td class="text-center">
+                                            <button class="btn btn-sm btn-outline-secondary" matButton [matMenuTriggerFor]="actionMenu">
+                                                <em class="fa-solid fa-ellipsis-vertical"></em></button>
+                                            <mat-menu #actionMenu="matMenu">
+                                                <button mat-menu-item *ngIf="project.draftStatus != 'Not Started' || project.isTeamCreated == 'true'"
+                                                    (click)="openProjectPreviewModal(preview_team_new, project); isEditProject = false">
+                                                    <i class="fas fa-eye"></i> Preview
+                                                </button>
+                                                <button mat-menu-item (click)="openProjectPreviewModal(preview_team_new, project);">
+                                                    <i class="fas fa-pen"></i> Edit Old
+                                                </button>
+                                                <button mat-menu-item (click)="showProjectConfigurationDetails(project);">
+                                                    <i class="fas fa-pen"></i> Edit New
+                                                </button>
+                                                <button mat-menu-item
+                                                    *ngIf="(project.draftStatus == 'Approved' || project.isTeamCreated == 'true') && project.projectStatus != 'Completed'"
+                                                    (click)="openDatePicker(MarkAsCompleteDefaultProject, OtherProjectDefaultMapping, project, customDatePickerTemplate); closeMenu(i)">
+                                                    <i class="fas fa-check-double"></i> Mark as Complete
+                                                </button>
+                                                <button mat-menu-item *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval'"
+                                                    (click)="onApproveProject(project);">
+                                                    <i class="fas fa-square-check"></i> Approve
+                                                </button>
+                                                <button mat-menu-item *ngIf="userMapping.rmg_approval_option && project.draftStatus === 'Pending For Approval'"
+                                                    (click)="openRejectModal(reject_project, project);">
+                                                    <i class="fas fa-times"></i> Reject
+                                                </button>
+                                                <button mat-menu-item *ngIf="project.poProjectType"
+                                                    (click)="openClientSideIdPresent(clientSideIdPresent,project.projectId);">
+                                                    <i class="fas fa-id-badge"></i> ClientID Status
+                                                </button>
+                                            </mat-menu>
                                         </td>
 
                                         <!-- <th scope="col" class="info-label">{{20*(page-1)+i+1}}</th> -->
@@ -1747,6 +1724,15 @@
 
     </div>
 
+    <!-- Project Configuration -->
+    <div *ngIf="showProjectConfig" class="row mb-4">
+        <div class="col-md-12">
+            <app-rmg-project [rmgProjectObj]="rmgProjectObj" [managerList]="managerList" [overheadList]="overheadList"
+                [departmentsList]="allDeptList" [spocList]="employeeList"
+                (closeProjectConfiguration)="closeProjectConfiguration()">
+            </app-rmg-project>
+        </div>
+    </div>
 
 
     <!-- end :: create & update form -->

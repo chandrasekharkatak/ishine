@@ -1,0 +1,235 @@
+.project-card-header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #ddd;
+}
+
+.card-title {
+    margin: 0;
+    text-align: center;
+    font-weight: 600;
+}
+
+.header-btn {
+    position: absolute;
+    left: 16px;
+}
+
+::ng-deep .mat-expansion-panel-header {
+    height: 55px !important;
+}
+
+::ng-deep .mat-expansion-panel-header.mat-expanded {
+    height: 55px !important;
+}
+
+.mat-header-column {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: start;
+    white-space: nowrap;
+}
+
+.allow-wrap {
+    white-space: normal;
+}
+
+.resource-requirement-count {
+    background: #f7f7f7;
+    border-radius: 10px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+}
+
+.resource-requirement-count-box {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.new-team-row {
+    justify-content: space-around;
+    align-items: center;
+    background: #eee;
+    border-radius: 5px;
+}
+
+.tnm-requirement-row {
+    justify-content: space-between;
+    align-items: center;
+    background: #eee;
+    border-radius: 5px;
+}
+
+.truncate {
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Panel Header bg-color Start */
+.po-list-expansion-panel .mat-expansion-panel-header {
+    background-color: #e0f2fe;
+}
+
+.team-list-expansion-panel .mat-expansion-panel-header {
+    background-color: #ecfeff;
+}
+
+.requirement-list-expansion-panel .mat-expansion-panel-header {
+    background-color: #ffedd5;
+}
+
+.mat-expansion-panel-header:hover {
+    filter: brightness(0.98);
+}
+
+/* Panel Header bg-color End */
+
+
+/* Expansion Panel Border Start */
+.mat-expansion-panel {
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    box-shadow: none;
+}
+
+.mat-expansion-panel-header {
+    border-bottom: 1px solid #d1d5db;
+}
+
+.mat-expansion-panel.mat-expanded {
+    border-color: #94a3b8;
+}
+
+.mat-expansion-panel.mat-expanded .mat-expansion-panel-header {
+    border-bottom-color: #94a3b8;
+}
+
+/* Expansion Panel Border End */
+
+.clickable {
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 150ms ease-in-out;
+}
+
+.active-box {
+    border: 1px solid;
+    font-weight: 600;
+}
+
+.current-box {
+    background-color: #dcfce7;
+    border-color: #22c55e;
+    color: #166534;
+}
+
+.old-box {
+    background-color: #fee2e2;
+    border-color: #ef4444;
+    color: #991b1b;
+}
+
+.po-list-accordion-body {
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+::ng-deep .po-list-expansion-panel .mat-expansion-panel-content {
+    overflow: visible !important;
+}
+
+::ng-deep .po-list-expansion-panel .mat-expansion-panel-body {
+    padding-top: 0px !important;
+    padding-right: 16px !important;
+    padding-bottom: 16px !important;
+    padding-left: 16px !important;
+}
+
+/* Team Member Table Start */
+
+.rmg-team-member-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.rmg-team-member-table th,
+.rmg-team-member-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+.rmg-team-member-table th {
+    background-color: #ffffff;
+    font-weight: 600;
+}
+
+.rmg-team-member-table tbody tr:nth-child(odd) {
+    background: #f5f5f5;
+}
+
+.rmg-team-member-table tbody tr {
+    background-color: #ffffff;
+}
+
+.custom-checkbox .mdc-label {
+    margin-bottom: 0 !important;
+}
+
+.color-unset {
+    color: unset !important;
+}
+
+/* Team Member Table End */
+
+/* Employee Info Start */
+.emp-name {
+    cursor: pointer;
+    color: #1976d2;
+    font-weight: 500;
+}
+
+.emp-info {
+    font-size: 12px;
+    min-width: 260px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.label {
+    color: #666;
+    font-weight: 600;
+    margin-right: 8px;
+    white-space: nowrap;
+}
+
+.value {
+    color: #222;
+    text-align: right;
+}
+
+.divider {
+    height: 1px;
+    background: #e0e0e0;
+    margin: 8px 0;
+}
+
+.highlight {
+    font-weight: 700;
+    color: #1976d2;
+}
+
+/* Employee Info End */

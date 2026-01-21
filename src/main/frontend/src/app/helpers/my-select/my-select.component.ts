@@ -127,8 +127,8 @@ isAllSelected(): boolean {
   }
 
     let text = (this.searchText || '').toLowerCase();
-    this.filteredOptions = this.options.filter(opt =>
-      this.getDisplayText(opt).toLowerCase().includes(text)
+    this.filteredOptions = this.options?.filter(opt =>
+      this.getDisplayText(opt)?.toLowerCase().includes(text)
     );
   }
 

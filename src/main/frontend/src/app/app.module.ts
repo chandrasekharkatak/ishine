@@ -134,7 +134,7 @@ import { EmployeeInfoComponent } from './user-update-info/employee-info/employee
 import { EmployeeUpdateListComponent } from './user-update-info/employee-update-list/employee-update-list.component';
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
-import{TimesheetCreateSelfComponent} from './timesheet-create-self/timesheet-create-self.component';
+import { TimesheetCreateSelfComponent } from './timesheet-create-self/timesheet-create-self.component';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
@@ -187,7 +187,7 @@ import { AddDomainDataModalComponent } from './user-team/project-insight/compone
 import { DomainTablesComponent } from './user-team/Domain/DomainTables/DomainTables.component';
 import { ProjectInsightDomainModalComponent } from './user-team/Domain/DomainModal/app-project-insight-domain-modal.component';
 import { ViewDomainComponent } from './user-team/Domain/ViewDomain/ViewDomain.component';
-import { ProjectInsightComponent } from './user-team/project-insight/project-insight.component'; 
+import { ProjectInsightComponent } from './user-team/project-insight/project-insight.component';
 import { ProjectInsightDetailsComponent } from './user-team/project-insight/components/project-insight-details/project-insight-details.component';
 import { FilterProjectInsightComponent } from './user-team/project-insight/components/filter-project-insight/filter-project-insight.component';
 import { AllProjectInsightDomainsComponent } from './user-team/project-insight/components/all-project-insight-domains/all-project-insight-domains.component';
@@ -197,7 +197,7 @@ import { ProjectStaticFormComponent } from './user-team/project-insight/componen
 import { QuestionCardsComponent } from './user-team/project-insight/components';
 import { ProjectInsightQuestionLibraryComponent } from './user-team/project-insight/components/project-insight-question-library/project-insight-question-library.component';
 
-import { GroupBrowserComponent } from './user-team/project-insight/components/group-browser/group-browser.component'; 
+import { GroupBrowserComponent } from './user-team/project-insight/components/group-browser/group-browser.component';
 import { KnowledgeHubComponent } from './user-team/KnowledgeHub/KnowledgeHub.component';
 import { ResizableModule } from 'angular-resizable-element';
 import { MatMenuModule } from '@angular/material/menu';
@@ -211,11 +211,14 @@ import { FileUploadComponent } from './helpers/form-renderer/FileUpload/FileUplo
 import { LmstabComponent } from './lmstab/lmstab.component';
 import { MySelectComponent } from './helpers/my-select/my-select.component';
 import { FloatingScrollWrapperComponent } from './helpers/floating-scroll-wrapper/floating-scroll-wrapper.component';
-import {MatTimepickerModule} from '@angular/material/timepicker';
+import { MatTimepickerModule } from '@angular/material/timepicker';
 import { MyAutocompleteComponent } from './helpers/my-autocomplete/my-autocomplete.component';
 import { NgxEditorModule } from 'ngx-editor';
 import { InfoTooltipComponent } from './helpers/shared/info-tooltip/info-tooltip.component';
-
+import { MatStepperModule } from '@angular/material/stepper';
+import { MatTabsModule } from '@angular/material/tabs';
+import { RmgProjectComponent } from './user-team/resource-management/rmg-edit-project/rmg-project/rmg-project.component';
+import { NgbPopoverModule } from '@ng-bootstrap/ng-bootstrap';
 registerLocaleData(localeGb);
 
 
@@ -400,6 +403,7 @@ registerLocaleData(localeGb);
     ProjectColumnFilterPipe,
     MyAutocompleteComponent,
     InfoTooltipComponent,
+    RmgProjectComponent
   ],
   imports: [
     BrowserModule,
@@ -436,7 +440,10 @@ registerLocaleData(localeGb);
     MatButtonModule,
     MatExpansionModule,
     NgxPaginationModule,
-    NgxEditorModule
+    NgxEditorModule,
+    MatStepperModule,
+    MatTabsModule,
+    NgbPopoverModule
   ],
   providers: [
     DatePipe,

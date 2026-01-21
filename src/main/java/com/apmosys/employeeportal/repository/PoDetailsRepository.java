@@ -12,7 +12,21 @@ import com.apmosys.employeeportal.model.PoDetails;
 @Repository
 public interface PoDetailsRepository extends JpaRepository<PoDetails, Long> {
 
-    @Query(value = "Select new com.apmosys.employeeportal.dto.PoDetailsDto(p.id, p.poId, p.projectId, p.poNo, p.poStartDate, p.poEndDate, p.active) from PoDetails p where p.projectId=:projectId and p.active=true")
+    @Query(value = "Select new com.apmosys.employeeportal.dto.PoDetailsDto(p.id, p.poId, p.projectId, p.poNo, p.poStartDate, p.poEndDate, p.active) \n"
+            + " from PoDetails p where p.projectId=:projectId and p.active=true")
     List<PoDetailsDto> getActivePoDetailsDtoByProjectId(Integer projectId);
+
+    @Query(value = "Select DISTINCT new com.apmosys.employeeportal.dto.PoDetailsDto(p.id, p.poId, p.projectId, p.poNo, p.poStartDate, p.poEndDate, p.active \n"
+            + ",COUNT(DISTINCT CASE WHEN etm.active  = 1 THEN etm.empId END)  \n"
+            + ",COUNT(DISTINCT CASE WHEN etm.active  = 2 THEN etm.empId END) \n"
+            + ") \n"
+            + "FROM PoDetails p  \n"
+            + "INNER JOIN PoRequirementMapping prm ON p.poId=prm.poId \n"
+            + "INNER JOIN EmployeeTeamMap etm ON etm.poRequirementMappingId = prm.id   \n"
+            + "INNER JOIN Team t ON t.teamId = etm.teamId  \n"
+            + "where p.projectId=:projectId \n"
+            + "AND etm.active IN (1, 2) \n"
+            + "GROUP BY p.id, p.poId, p.projectId, p.poNo, p.poStartDate, p.poEndDate, p.active")
+    List<PoDetailsDto> getAllPoDetailsDtoByProjectId(Integer projectId);
 
 }

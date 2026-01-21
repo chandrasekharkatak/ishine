@@ -1,8 +1,10 @@
+import { RmgTeam } from "./rmgTeam";
 import { Team } from "./team";
 
 export class PoDetails {
 
     id: any;
+    poId: any;
     projectId: any;
     poNo: any;
     apmosysRM: any;
@@ -17,8 +19,10 @@ export class PoDetails {
     clientLocationId: any;
     assigned: any;
     totalRequirements: any;
-    assignedAndApproved: any;
-    assignedButPending: any;
+    assignedApproved: any;
+    assignedPending: any;
     difference: any;
-    newTeamObj: Team = new Team();
+    newTeamObj: RmgTeam = new RmgTeam();
+    teamList: RmgTeam[] = [];
+
 }
