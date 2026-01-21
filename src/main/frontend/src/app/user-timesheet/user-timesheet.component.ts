@@ -28,9 +28,9 @@ export class UserTimesheetComponent implements OnInit,OnDestroy,AfterViewInit {
   ngOnInit(): void {
     //console.log("this.currentUser : ", this.currentUser);
     //console.log("Mapped Features : ", this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName));
-    
 
-    // Dynamic feature Flags 
+
+    // Dynamic feature Flags
     let featureMap:Feature[] = this.currentUser.userMapping.filter(userMap => userMap.tabName == this.tabName);
     featureMap?.forEach(feat => {
       let inActiveSubfeatures = feat.subFeatures.filter(sub => {
@@ -42,7 +42,7 @@ export class UserTimesheetComponent implements OnInit,OnDestroy,AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.setActiveTab(); 
+    this.setActiveTab();
   }
 
 
@@ -81,12 +81,12 @@ export class UserTimesheetComponent implements OnInit,OnDestroy,AfterViewInit {
       }
     }
     else{
-    
+
         const tab = document.getElementById('timesheetTab').querySelector('.nav-link');
         tab.classList.add('active');
         let activeRouteLink = tab.getAttribute('routerLink');
         this.router.navigate(['./'+activeRouteLink], {relativeTo: this.route});
-   
+
   }
   }
   removeActiveTab(){

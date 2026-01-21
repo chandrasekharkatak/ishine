@@ -186,7 +186,7 @@ import { AddDomainDataModalComponent } from './user-team/project-insight/compone
 import { DomainTablesComponent } from './user-team/Domain/DomainTables/DomainTables.component';
 import { ProjectInsightDomainModalComponent } from './user-team/Domain/DomainModal/app-project-insight-domain-modal.component';
 import { ViewDomainComponent } from './user-team/Domain/ViewDomain/ViewDomain.component';
-import { ProjectInsightComponent } from './user-team/project-insight/project-insight.component'; 
+import { ProjectInsightComponent } from './user-team/project-insight/project-insight.component';
 import { ProjectInsightDetailsComponent } from './user-team/project-insight/components/project-insight-details/project-insight-details.component';
 import { FilterProjectInsightComponent } from './user-team/project-insight/components/filter-project-insight/filter-project-insight.component';
 import { AllProjectInsightDomainsComponent } from './user-team/project-insight/components/all-project-insight-domains/all-project-insight-domains.component';
@@ -196,7 +196,7 @@ import { ProjectStaticFormComponent } from './user-team/project-insight/componen
 import { QuestionCardsComponent } from './user-team/project-insight/components';
 import { ProjectInsightQuestionLibraryComponent } from './user-team/project-insight/components/project-insight-question-library/project-insight-question-library.component';
 
-import { GroupBrowserComponent } from './user-team/project-insight/components/group-browser/group-browser.component'; 
+import { GroupBrowserComponent } from './user-team/project-insight/components/group-browser/group-browser.component';
 import { KnowledgeHubComponent } from './user-team/KnowledgeHub/KnowledgeHub.component';
 import { ResizableModule } from 'angular-resizable-element';
 import { MatMenuModule } from '@angular/material/menu';

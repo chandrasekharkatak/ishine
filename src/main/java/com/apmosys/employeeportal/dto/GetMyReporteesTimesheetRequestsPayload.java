@@ -15,8 +15,8 @@ public class GetMyReporteesTimesheetRequestsPayload {
 	private Boolean clientFilter;
 	
 	/* Pagination */
-    private Integer page = 0;
-    private Integer size = 10;
+    private Integer page;
+    private Integer size;
 
     /* Sorting */
     private String sortBy = "date";      

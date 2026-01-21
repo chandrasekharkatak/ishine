@@ -1,4 +1,4 @@
-<div class="row mb-3"> 
+<div class="row mb-3">
   <div class="col-md-12 px-0">
     <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_my_teams_timesheets"
       [ngClass]="{'active' : isAllTimesheetTable}" (click)="showAllTimesheetsTable()">Teams All Timesheets</button>
@@ -70,6 +70,8 @@
           <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
         </div> -->
     </div>
+
+
 
     <div class="row">
       <div class="col-md-12">
@@ -661,6 +663,22 @@
       </div>
     </div>
 
+    <!-- Navigation CARDS -->
+    <div class="status-container">
+      <div class="status-card pending" [class.active]="selectedStatus === 0" (click)="onStatusChange(0)">
+        Pending
+      </div>
+      <div class="status-card approved" [class.active]="selectedStatus === 1" (click)="onStatusChange(1)">
+        Approved
+      </div>
+      <div class="status-card rejected" [class.active]="selectedStatus === 2" (click)="onStatusChange(2)">
+        Rejected
+      </div>
+
+    </div>
+
+
+
     <!-- Table Starts Here -->
     <div class="d-flex justify-content-between align-items-center mb-2">
       <div class="selector-toggle">
@@ -671,58 +689,78 @@
       </div>
       <div class="form-inline col-md-4">
         <small>Filter:</small>
-        <select class="form-select-sm align-items-center mx-1" [(ngModel)]="clientFilter" (change)="getMyReporteesTimesheetRequests()">
+        <select class="form-select-sm align-items-center mx-1" [(ngModel)]="clientFilter"
+          (change)="getMyReporteesTimesheetRequests()">
           <option [ngValue]=false>All Employees</option>
           <option [ngValue]=true>Client Side Applicable Employees</option>
         </select>
       </div>
-      <div class="table-toolbar">
+      <!-- <div class="table-toolbar">
         <input type="text" class="form-control search-input" placeholder="Search employee by name..."
           [(ngModel)]="searchText" (ngModelChange)="onGlobalSearchChange()" />
-      </div>
+      </div> -->
 
 
       <div>
-        <button type="button" class="btn btn-sm btn-outline-primary excel-button" [hidden]="filteredData().length == 0"
+        <button type="button" class="btn btn-sm btn-outline-primary excel-button" [hidden]="allTeamTimesheetRequestsProjectView.length === 0"
+
           (click)="exportExcel1()">
           <em class="fa fa-file-arrow-down fa-2x"></em>
         </button>
       </div>
     </div>
+
+    <div class="pagination-bar">
+      <div class="page-size">
+        Show
+        <select [(ngModel)]="items" (change)="onPageSizeChange()">
+          <option [value]="10">10</option>
+          <option [value]="20">20</option>
+          <option [value]="50">50</option>
+        </select>
+
+        entries
+      </div>
+
+      <div class="total-count">
+        Total Records: <strong>{{ totalRecords }}</strong>
+      </div>
+
+    </div>
+
     <!-- </div> -->
     <div class="table-container-ts">
       <div class="timesheet-table-wrapper">
-        <table class="timesheet-table">
+        <table class="timesheet-table" matSort (matSortChange)="sortData($event)" matSortDisableClear>
           <thead>
             <tr>
-              <!-- SELECT ALL (CURRENT PAGE ONLY) -->
-              <th> <input type="checkbox" (change)="toggleAllRows($event)" /> </th>
+              <th>
+                <input type="checkbox" (change)="toggleAllRows($event)" />
+              </th>
+
               <th>Sr No.</th>
-              <th> Employee Id</th>
-              <th>Name</th>
-              <th>Date</th>
-              <th>Day Type</th>
-              <th>Work In</th>
-              <th>Work Out</th>
-              <th>Total Location</th>
-              <th>Total Projects</th>
-              <th>Applied By</th>
-              <th>Applied On</th>
+
+              <th mat-sort-header="employmentId">Employee Id</th>
+              <th mat-sort-header="employeeName">Name</th>
+              <th mat-sort-header="date">Date</th>
+              <th mat-sort-header="dayType">Day Type</th>
+              <th mat-sort-header="workCheckIn">Work In</th>
+              <th mat-sort-header="workCheckOut">Work Out</th>
+              <th mat-sort-header="locationCount">Total Location</th>
+              <th mat-sort-header="projectCount">Total Projects</th>
+              <th mat-sort-header="appliedBy">Applied By</th>
+              <th mat-sort-header="appliedOn">Applied On</th>
               <th>Actions</th>
             </tr>
-            <tr app-column-filter-bar *ngIf=" isSearchEnabled"
-              [columnList]="allTimesheetColumnsVMS" (onSearch)="onSearch($event);page1=1"></tr>
+
+            <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="allTimesheetColumnsVMS"
+              (onSearch)="onSearch($event); page1 = 1"></tr>
           </thead>
 
           <tbody>
-            <ng-container *ngFor="
-          let timesheet of
-            filteredData()
-            | colFilter: filters : false
-            | sort: [sortColumn, sortColumnType, sortDirection]
-            | paginate: { itemsPerPage: items, currentPage: page1 };
-          let i = index
-        ">
+            <ng-container *ngFor="let timesheet of allTeamTimesheetRequestsProjectView; let i = index">
+
+
               <tr class="main-row" [class.active-row]="expandedTimesheetIndex === i">
                 <!-- SELECT EMPLOYEE -->
                 <td>
@@ -750,6 +788,8 @@
                   <button class="doc-btn approved" (click)="openDocumentPopup(timesheet)">
                     <i class="fa fa-eye"></i>
                   </button>
+
+
                   <button class="btn-approve">✔</button>
                   <button class="btn-reject">✖</button>
                 </td>
@@ -781,8 +821,6 @@
                             <th>Shadow</th>
                             <th>Pending Doc</th>
                             <th>Approved Doc</th>
-
-
                             <th>Actions</th>
                           </tr>
                         </thead>
@@ -800,13 +838,15 @@
 
                             <td>{{ project.poNo || '-' }}</td>
                             <td>{{ project.shadowEmp ? 'Yes' : 'No' }}</td>
-                            <td>  <button class="doc-btn pending" style="color:rgb(255, 187, 0)" (click)="openDocumentPopup(timesheet)">
-                              <i class="fa fa-eye"></i>
-                            </button></td>
+                            <td> <button class="doc-btn pending" style="color:rgb(255, 187, 0)"
+                                (click)="openDocumentPopup(timesheet)">
+                                <i class="fa fa-eye"></i>
+                              </button></td>
 
-                            <td>  <button class="doc-btn approved" style="color:green" (click)="openDocumentPopup(timesheet)">
-                              <i class="fa fa-eye"></i>
-                            </button></td>
+                            <td> <button class="doc-btn approved" style="color:green"
+                                (click)="openDocumentPopup(timesheet)">
+                                <i class="fa fa-eye"></i>
+                              </button></td>
 
 
                             <td>
@@ -850,55 +890,240 @@
               </tr>
             </ng-container>
           </tbody>
-
         </table>
+
       </div>
       <!-- PAGINATION -->
-      <pagination-controls (pageChange)="page1 = $event;">
-      </pagination-controls>
+      <!-- <pagination-controls (pageChange)="page1 = $event;">
+      </pagination-controls> -->
+      <pagination-controls
+      (pageChange)="page1 = $event; getMyReporteesTimesheetRequests()">
+    </pagination-controls>
+
+
+
+
+
+
+
 
     </div>
 
   </div>
+
 </div>
 
 <!-- Request for Timesheets Ends -->
 
 
-<!-- Timesheet Doc View POPUP -->
+<!-- Timesheet Doc View POPUP
 <div class="doc-modal-backdrop" *ngIf="isDocPopupOpen">
   <div class="doc-modal">
-
-    <!-- HEADER -->
     <div class="doc-modal-header">
       <h5>Documents</h5>
       <button class="close-btn" (click)="closeDocumentPopup()">✖</button>
     </div>
-
-    <!-- BODY -->
     <div class="doc-modal-body">
       <div class="doc-grid">
-        <!-- PENDING DOC -->
-        <div class="doc-card" *ngIf="selectedTimesheet?.pendingDoc">
-          <p>Pending Document</p>
-          <img [src]="selectedTimesheet.pendingDoc" alt="Pending Doc" />
-        </div>
-
-        <!-- APPROVED DOC -->
-        <div class="doc-card" *ngIf="selectedTimesheet?.approvedDoc">
-          <p>Approved Document</p>
-          <img [src]="selectedTimesheet.approvedDoc" alt="Approved Doc" />
-        </div>
-
-        <!-- NO DOC -->
         <p *ngIf="!selectedTimesheet?.pendingDoc && !selectedTimesheet?.approvedDoc" class="no-doc">
           No documents available
         </p>
       </div>
     </div>
-
   </div>
-</div>
+</div> -->
+
+<!-- <ng-template #documentViewerModal let-modal>
+  <div class="doc-modal-lg">
+
+    <div class="doc-modal-header">
+      <h5>Timesheet Documents</h5>
+      <button class="close-btn" (click)="modal.dismiss()">✖</button>
+    </div>
+
+    <div class="split-layout">
+
+      <div class="left-panel">
+        <div class="panel-title">Projects</div>
+
+        <ul class="project-list">
+          <li
+            *ngFor="let p of uniqueProjectsList"
+            (click)="selectProjectForDoc(p)"
+            [class.active]="activeDocProject?.projectId === p.projectId">
+
+            <div class="project-name">{{ p.projectName }}</div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="right-panel">
+
+        <div class="doc-toggle">
+          <button
+            [class.active]="activeDocType === 'Pending'"
+            (click)="switchDocType('Pending')"
+            [disabled]="!hasFilledDocument(activeDocProject?.projectId)">
+            Pending
+          </button>
+
+          <button
+            [class.active]="activeDocType === 'Approved'"
+            (click)="switchDocType('Approved')"
+            [disabled]="!hasApprovedDocument(activeDocProject?.projectId)">
+            Approved
+          </button>
+        </div>
+
+        <div class="doc-view">
+
+          <iframe
+            *ngIf="activePreviewFile?.fileType === 'pdf'"
+            [src]="activePreviewFile.previewUrl">
+          </iframe>
+
+          <img
+            *ngIf="activePreviewFile?.fileType === 'image'"
+            [src]="activePreviewFile.previewUrl"
+            class="doc-image"/>
+
+]          <div *ngIf="!activePreviewFile" class="no-doc">
+            No document available
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</ng-template> -->
+
+
+<ng-template #documentViewerModal>
+  <div class="doc-modal-lg">
+
+    <!-- HEADER -->
+    <div class="doc-header">
+      <h5>Documents</h5>
+      <button class="close-btn" (click)="modalRef.close()">✖</button>
+    </div>
+
+    <!-- BODY -->
+    <div class="doc-body">
+
+      <!-- LEFT : PROJECT LIST -->
+      <div class="doc-left">
+        <div class="project-item" *ngFor="let p of getUniqueProjectsFromTimesheet(selectedTimesheet)"
+          [class.active]="p === activeDocProject" (click)="selectProjectForDoc(p)">
+          {{ p.projectName }}
+        </div>
+
+
+      </div>
+
+      <!-- RIGHT : DOCUMENT -->
+      <!-- <div class="doc-right">
+
+        <div class="doc-toggle">
+          <button
+            [class.active]="activeDocType === 'Pending'"
+            (click)="switchDocType('Pending')"
+            [disabled]="!hasPendingDoc(activeDocProject?.projectId)"
+          >
+            Pending
+          </button>
+
+          <button
+            [class.active]="activeDocType === 'Approved'"
+            (click)="switchDocType('Approved')"
+            [disabled]="!hasApprovedDoc(activeDocProject?.projectId)"
+          >
+            Approved
+          </button>
+        </div>
+
+        <div class="doc-preview">
+
+        <iframe
+    width="100%"
+    height="100%"
+    frameborder="0"
+    [src]="safePdfUrl"
+    >
+  </iframe>
+
+        </div>
+      </div> -->
+
+      <div class="doc-body">
+
+        <!-- LEFT : PROJECT TABLE (55%) -->
+        <div class="doc-left">
+
+          <table class="project-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Project Name</th>
+                <th>Docs</th>
+                <th>Filled</th>
+                <th>Approved</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr *ngFor="let p of getUniqueProjectsFromTimesheet(selectedTimesheet); let i = index"
+                [class.active]="p === activeDocProject" (click)="selectProjectForDoc(p)">
+                <td>{{ i + 1 }}</td>
+                <td class="project-name">{{ p.projectName }}</td>
+                <td class="count">{{ getTotalDocCount(p.projectId) }}</td>
+
+                <td>
+                  <span class="badge filled" [class.disabled]="!hasPendingDoc(p.projectId)">
+                    Filled
+                  </span>
+                </td>
+
+                <td>
+                  <span class="badge approved" [class.disabled]="!hasApprovedDoc(p.projectId)">
+                    Approved
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+        </div>
+
+        <!-- RIGHT : DOCUMENT PREVIEW (45%) -->
+        <div class="doc-right">
+
+          <!-- TOGGLE -->
+          <div class="doc-toggle">
+            <button [class.active]="activeDocType === 'Pending'" (click)="switchDocType('Pending')"
+              [disabled]="!hasPendingDoc(activeDocProject?.projectId)">
+              Pending
+            </button>
+
+            <button [class.active]="activeDocType === 'Approved'" (click)="switchDocType('Approved')"
+              [disabled]="!hasApprovedDoc(activeDocProject?.projectId)">
+              Approved
+            </button>
+          </div>
+
+          <!-- PREVIEW -->
+          <div class="doc-preview">
+            <iframe [src]="safePdfUrl" width="100%" height="100%" frameborder="0">
+            </iframe>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</ng-template>
+
 
 
 

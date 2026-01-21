@@ -366,14 +366,11 @@
                             <div class="metric-tile-project hover-tile mb-2" [ngClass]="tile.class"
                                 [class.selected-tile]="isTileSelected(tile.status)"
                                 (click)="scrollToTable(tile.status)">
-
                                 <div class="tile-header">
                                     <i [class]="tile.icon"></i>
                                     <span>{{ tile.label }}</span>
                                 </div>
-
                                 <div class="tile-value">{{ tile.value }}</div>
-
                             </div>
                         </div>
                     </div>
@@ -700,7 +697,7 @@
                                         {{ employeeView.length }} employees
                                     </span>
                                 </div>
-        
+
                                 <div class="table-container" bassHorizontalScroll [tableId]="'employeeInfo'"
                                     [tableTHeadId]="'employeeInfoTHead'" [tableTHeadTrId]="'employeeInfoTHeadTr'">
                                     <table class="table" id="employee-info" matSort (matSortChange)="sortData($event)">
@@ -733,14 +730,14 @@
                                                 <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
                                                     style="max-width: fit-content;min-width: 100px;"
                                                     mat-sort-header="expected_ishine_timesheet_days|string">Expected iShine DSR</th>
-        
+
                                                 <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                                     style="max-width: fit-content;min-width: 100px;"
                                                     mat-sort-header="ClientSideNotFilledTimesheets_count|string">Clinet Approval Pending</th>
                                                 <th *ngIf ="!isClientDashboard" scope="col" class="info-label"
                                                     style="max-width: fit-content;min-width: 100px;"
                                                     mat-sort-header="ishine_pending_Days|string">iShine Pending</th>
-        
+
                                                 <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                                     style="max-width: fit-content;min-width: 100px;"
                                                     mat-sort-header="Client_Approved_count|string">Clinet Approved
@@ -749,7 +746,7 @@
                                                     style="max-width: fit-content;min-width: 100px;"
                                                     mat-sort-header="ishine_approved_Days|string">iShine Approved
                                                 </th>
-        
+
                                                 <th *ngIf ="isClientDashboard" scope="col" class="info-label"
                                                     style="max-width: fit-content;min-width: 100px;"
                                                     mat-sort-header="ClientSideNotFilledTimesheets_count|string">Clinet Attendance Not
@@ -760,7 +757,7 @@
                                                     mat-sort-header="not_filled_ishine_timesheet_days|string">iShine Not
                                                     Filled
                                                 </th>
-        
+
                                                 <th scope="col" class="info-label"
                                                     style="max-width: fit-content;min-width: 300px;"
                                                     mat-sort-header="project_name|string">Project</th>
@@ -820,22 +817,22 @@
                                                 *ngFor="let project of employeeView | multicolFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection]; let i = index">
                                                 <tr>
                                                     <td>{{project.employmentId || 'NA'}}</td>
-        
-        
+
+
                                                     <td class="position-relative">
                                                         <span (mouseenter)="showPopup(project.empId)"
                                                             (mouseleave)="scheduleHidePopup()"
                                                             style="cursor: pointer; color: blue; text-decoration: underline;">
                                                             {{ project.name ? project.name : 'NA' }}
                                                         </span>
-        
+
                                                         <div *ngIf="hoveredEmpId === project.empId && isFirstOccurrence(project.empId, i)"
                                                             class="hover-popup bg-white border shadow rounded p-2"
                                                             (mouseenter)="cancelHidePopup()" (mouseleave)="scheduleHidePopup()">
-        
+
                                                             <div class="button-group-custom">
-        
-        
+
+
                                                                 <button class="custom-btn emp360-btn"
                                                                     [navigateToEmployee360]="project.empId"
                                                                     (click)="cancelRequest()"
@@ -843,7 +840,7 @@
                                                                     <i class="fa fa-user-circle"></i>
                                                                     <span>360 View</span>
                                                                 </button>
-        
+
                                                                 <button class="custom-btn calendar-btn"
                                                                     [appNavigateToCalenderView]="project.projectId"
                                                                     [empId]="project.empId"
@@ -851,16 +848,16 @@
                                                                     <i class="fa fa-calendar"></i>
                                                                     <span>View in Calendar</span>
                                                                 </button>
-        
-        
-        
-        
-        
+
+
+
+
+
                                                             </div>
-        
+
                                                         </div>
                                                     </td>
-        
+
                                                     <td>{{project.billable || 'NA'}}</td>
                                                     <td>{{project.billableType || 'NA'}}</td>
                                                     <td>{{project.mobileNo || 'NA'}}</td>
@@ -874,7 +871,7 @@
                                                     <td *ngIf ="!isClientDashboard">{{project.ishinePendingTimesheetCount || 0}}</td>
                                                     <td *ngIf ="!isClientDashboard">{{project.ishineApprovedTimesheetCount || 0}}</td>
                                                     <td *ngIf ="!isClientDashboard">{{project.ishineNotFilledTimesheetCount || 0}}</td>
-        
+
                                                     <td title="Click to view Team Details">
                                                         <span id="clickablefor360"
                                                             [navigateToTeamEmployeeTimesheet]="project.projectId"
@@ -886,7 +883,7 @@
                                                     <td>{{project.poNo ? project.poNo : 'NA' }}</td>
                                                     <td> {{ project.projectType ? project.projectType : 'NA' }}</td>
                                                     <td>{{project.projectManagers || 'NA'}}</td>
-        
+
                                                     <td>{{project.clientName ? project.clientName:'NA'}}</td>
                                                     <td>{{project.apmosysRM ? project.apmosysRM:'NA'}}</td>
                                                     <td>{{project.apmosysRmEmail || 'NA'}}</td>
@@ -898,7 +895,7 @@
                                         </tbody>
                                     </table>
                                     <div class="row col-md-12">
-        
+
                                         <mat-paginator   *ngIf="employeeView.length > 0"
                                           [length]="totalItems"
                                           [pageSize]="pageSize"
@@ -906,11 +903,11 @@
                                           [pageSizeOptions]="[5, 10, 20, 50]"
                                           (page)="handlePageChange($event)">
                                         </mat-paginator>
-        
+
                                     </div>
                                 </div>
                             </div> -->
-        
+
                     <div class="col-md-12 mt-2">
                         <h5>Employee Overview</h5>
                         <div class="d-flex justify-content-end w-100">
@@ -1018,7 +1015,7 @@
                                         </tr>
                                         <!-- <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="timesheetDataColumns"
                                                 (onSearch)="onSearch($event);page=1"></tr> -->
-        
+
                                         <tr *ngIf="isSearchEnabled">
                                             <ng-container *ngFor="let column of employeeViewColumns">
                                                 <td>
@@ -1040,23 +1037,23 @@
                                     </thead>
                                     <tbody>
                                         <ng-container *ngFor="let emp of timesheetData">
-        
+
                                             <!-- Initial row - only show first project row initially -->
                                             <ng-container *ngFor="let proj of emp.projectTimesheet; let i = index">
-        
+
                                                 <!-- Show first row always, show other rows only if expanded -->
                                                 <tr class="row-hover" *ngIf="i === 0 || isEmployeeExpanded(emp.empId)">
-        
+
                                                     <td *ngIf="i === 0"
                                                         [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
                                                         {{ emp.employmentId || 'NA' }}
                                                     </td>
-        
+
                                                     <!-- EMPLOYEE DETAILS – Only for first project row -->
                                                     <td *ngIf="i === 0"
                                                         [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1"
                                                         class="position-relative">
-        
+
                                                         <div class="flex items-center gap-2">
                                                             <!-- Expand/Collapse Button -->
                                                             <button *ngIf="emp.projectTimesheet.length > 1"
@@ -1066,25 +1063,25 @@
                                                                 <i class="fa"
                                                                     [ngClass]="isEmployeeExpanded(emp.empId) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
                                                             </button>
-        
+
                                                             <span *ngIf="emp.projectTimesheet.length === 1"
                                                                 class="expand-btn-placeholder"></span>
-        
+
                                                             <span (mouseenter)="showPopup(emp.empId)"
                                                                 (mouseleave)="scheduleHidePopup()"
                                                                 style="cursor: pointer; color: blue; text-decoration: underline;">
                                                                 {{ emp.employeeName || 'NA' }}
                                                             </span>
-        
+
                                                             <!-- Hover Popup -->
                                                             <div *ngIf="hoveredEmpId === emp.empId"
                                                                 (mouseenter)="cancelHidePopup()"
                                                                 (mouseleave)="scheduleHidePopup()"
                                                                 class="hover-popup bg-white border shadow rounded p-2"
                                                                 style="position: absolute; z-index: 999;">
-        
+
                                                                 <div class="button-group-custom">
-        
+
                                                                     <!-- Employee 360 Navigation -->
                                                                     <button class="custom-btn emp360-btn"
                                                                         [navigateToEmployee360]="emp.empId"
@@ -1093,7 +1090,7 @@
                                                                         <i class="fa fa-user-circle"></i>
                                                                         <span>360 View</span>
                                                                     </button>
-        
+
                                                                     <!-- Calendar View Navigation -->
                                                                     <button class="custom-btn calendar-btn"
                                                                         [appNavigateToCalenderView]="proj.projectId"
@@ -1103,32 +1100,32 @@
                                                                         <i class="fa fa-calendar"></i>
                                                                         <span>View in Calendar</span>
                                                                     </button>
-        
+
                                                                 </div>
                                                             </div>
-        
+
                                                         </div>
-        
+
                                                     </td>
-        
+
                                                     <td *ngIf="i === 0"
                                                         [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
                                                         {{ proj.employmentStatus || 'NA' }}
                                                     </td>
-        
+
                                                     <td>
                                                         {{ proj.projectStatus || 'NA' }}
                                                     </td>
-        
+
                                                     <td *ngIf="i === 0"
                                                         [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
                                                         {{ emp.department || 'NA' }}
                                                     </td>
-        
+
                                                     <td>
                                                         {{ proj.billableType || 'NA' }}
                                                     </td>
-        
+
                                                     <!-- PROJECT LEVEL DETAILS -->
                                                     <td>
                                                         {{ proj.clientSideId || 'NA' }}
@@ -1136,28 +1133,28 @@
                                                     <td>
                                                         {{ proj.clientName || 'NA' }}
                                                     </td>
-        
+
                                                     <td>
                                                         {{ proj.poNo || 'NA' }}
                                                     </td>
-        
+
                                                     <td>
                                                         {{ proj.projectName || 'NA' }}
                                                     </td>
-        
+
                                                     <td>
                                                         {{ proj.projectManagerName || 'NA' }}
                                                     </td>
-        
+
                                                     <td>
                                                         {{ proj.teamName || 'NA' }}
                                                     </td>
-        
+
                                                     <!-- <<<<<<< Updated upstream
                                             <td>
                                             {{ proj.startDate || 'NA' }}
                                             </td>
-        
+
                                             <td>
                                             {{ proj.endDate || 'NA' }}
                                             </td>
@@ -1165,33 +1162,33 @@
                                                     <td>
                                                         {{ (proj.startDate ? (proj.startDate | date:'dd-MM-yyyy') : 'NA') }}
                                                     </td>
-        
+
                                                     <td>
                                                         <!-- {{ proj.endDate || 'NA' }} -->
                                                         {{ (proj.endDate ? (proj.endDate | date:'dd-MM-yyyy') : 'NA') }}
                                                     </td>
                                                     <!-- >>>>>>> Stashed changes -->
-        
+
                                                     <td>
                                                         {{ proj.expectedTimesheetFillCount || 0 }}
                                                     </td>
-        
+
                                                     <td>
                                                         {{ proj.apmosysTimesheetFilledCount || 0 }}
                                                     </td>
-        
+
                                                     <td>
                                                         {{ proj.clientSideNotFilledCount || 0 }}
                                                     </td>
-        
+
                                                     <td>
                                                         {{ proj.clientSidePendingCount || 0 }}
                                                     </td>
-        
+
                                                     <td>
                                                         {{ proj.clientSideApprovedCount || 0 }}
                                                     </td>
-        
+
                                                     <!-- DAILY STATUS CELLS 1..31 -->
                                                     <ng-container *ngFor="let day of daysInMonth; let d = index">
                                                         <td [title]="
@@ -1215,7 +1212,7 @@
                                                             </span>
                                                         </td>
                                                     </ng-container>
-        
+
                                                     <!-- SUMMARY COUNTS -->
                                                     <td>{{ proj.present || 0 }}</td>
                                                     <td>{{ proj.readyForInvoicing || 0 }}</td>
@@ -1226,15 +1223,15 @@
                                                     <td>{{ proj.na || 0 }}</td>
                                                     <td>{{ proj.halfDay || 0 }}</td>
                                                     <td>{{ proj.totalNoOfDays || 0 }}</td>
-        
+
                                                 </tr>
-        
+
                                             </ng-container>
-        
+
                                         </ng-container>
-        
+
                                     </tbody>
-        
+
                                 </table>
                             </div>
                             <div class="row col-md-12" *ngIf="timesheetData?.length > 0">
@@ -1243,7 +1240,7 @@
                                     (page)="handlePageChange($event)">
                                 </mat-paginator>
                             </div>
-        
+
                         </div>
                     </div>
                 </div>
@@ -1678,7 +1675,7 @@
                             </td>
                             <td *ngIf="!entry.filledDocument">
                                 {{entry.filledDocument || "NA"}}
-                            </td> 
+                            </td>
                             <td *ngIf="entry.approvedDocument">
                                 <button *ngIf="entry.approvedDocument" class="btn btn-sm btn-outline-primary mb3"
                                     type="submit" title="copy timesheet"

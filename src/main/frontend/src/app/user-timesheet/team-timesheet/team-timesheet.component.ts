@@ -1,5 +1,5 @@
 import { LocationStrategy } from '@angular/common';
-import { Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component,Input,Output,EventEmitter, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import * as moment from 'moment';
@@ -148,6 +148,8 @@ export class TeamTimesheetComponent implements OnInit {
   translateX = 0;
   translateY = 0;
 clientFilter: boolean = false;
+safePdfUrl:SafeResourceUrl | null = null;
+  documentData: any;
 
   constructor(
     public validationService: ValidationService,
@@ -162,10 +164,13 @@ clientFilter: boolean = false;
     private utilityService: UtilityService,
     private bodyComponent: BodyComponent,
     private sanitizer: DomSanitizer,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+
 
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.safePdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+  'assets/Ishine_Timesheet_TNM.pdf');
   }
 
   async ngOnInit(): Promise<void> {
@@ -208,6 +213,11 @@ clientFilter: boolean = false;
       this.showAllTimesheetRequestsTable();
     }
   }
+
+  getTotalDocCount(projectId: number): number {
+    return this.documentData?.filter(d => d.projectId === projectId).length || 0;
+  }
+
 
   disableMannualDateInput() {
     return false;
@@ -313,16 +323,16 @@ clientFilter: boolean = false;
       empId: this.currentUser.empId,
       clientFilter: this.clientFilter,
       page: this.page1 - 1,
-      // size: this.items,
-      size :100,
+      size :this.items,
       sortBy: this.sortColumn || 'date',
       sortDir: this.sortDirection || 'DESC',
+      status : this.selectedStatus,
     };
 
     /* 🔹 GLOBAL SEARCH (as-is) */
-    if (this.searchText?.trim()) {
-      payload.globalSearch = this.searchText.trim();
-    }
+    // if (this.searchText?.trim()) {
+    //   payload.globalSearch = this.searchText.trim();
+    // }
 
     /* 🔹 COLUMN FILTERS (toggle search) */
     this.addIfPresent(payload, 'employmentId', this.filters.employmentId);
@@ -334,15 +344,52 @@ clientFilter: boolean = false;
     this.addIfPresent(payload, 'shadowEmpName', this.filters.shadowEmp);
     this.addIfPresent(payload, 'shadowFor', this.filters.shadowFor);
 
+
     this.timesheetService
-      .getMyReporteesTimesheetRequests(payload)
-      .subscribe((res: any) => {
-        if (res.serviceStatus === 'Success') {
-          this.allTeamTimesheetRequestsProjectView =
-            res.serviceResponse?.content || [];
-        }
-      });
+    .getMyReporteesTimesheetRequests(payload)
+    .subscribe((res: any) => {
+
+      if (res.serviceStatus === 'Success') {
+
+        this.allTeamTimesheetRequestsProjectView =
+        res.serviceResponse.content;
+
+      this.totalRecords =
+        res.serviceResponse.totalElements;
+
+
+
+      }
+    });
   }
+  page1: number = 1;
+items: number = 10;
+totalRecords: number = 0;
+totalPages: number = 0;
+
+onPageSizeChange() {
+  this.page1 = 1;
+  this.getMyReporteesTimesheetRequests();
+}
+
+
+
+onPageChange(page: number) {
+  this.page1 = page;
+  this.getMyReporteesTimesheetRequests(); // 🔥 BACKEND HIT
+}
+
+sortData(sort: Sort) {
+  if (!sort.active || sort.direction === '') return;
+
+  this.sortColumn = sort.active;
+  this.sortDirection = sort.direction.toUpperCase() as 'ASC' | 'DESC';
+  this.page1 = 1;
+  this.getMyReporteesTimesheetRequests();
+}
+
+
+
 
 
   addIfPresent(payload: any, key: string, value: any) {
@@ -352,13 +399,13 @@ clientFilter: boolean = false;
   }
 
 
-sortData(sort: Sort) {
-  if (!sort.active) return;
+// sortData(sort: Sort) {
+//   if (!sort.active) return;
 
-  this.sortColumn = sort.active;      // ✅ string
-  this.sortDirection = sort.direction.toUpperCase();
-  this.getMyReporteesTimesheetRequests();
-}
+//   this.sortColumn = sort.active;      // ✅ string
+//   this.sortDirection = sort.direction.toUpperCase();
+//   this.getMyReporteesTimesheetRequests();
+// }
 
 
 
@@ -520,7 +567,6 @@ onGlobalSearchChange() {
   //pagination
 
   page = 1;
-  page1 = 1;
   handlePageChange(event) {
     this.page = event;
     this.isSelectAll = false;
@@ -541,7 +587,6 @@ onGlobalSearchChange() {
     });
 
   }
-  items = 10;
   handleItemsChange(event) {
     this.items = event;
 
@@ -1156,9 +1201,9 @@ onGlobalSearchChange() {
       }
     });
 
-
-
   }
+
+
 
 
   openClientSideIdForm() {
@@ -1954,17 +1999,136 @@ viewDoc(docUrl: string) {
 }
 
 isDocPopupOpen = false;
-selectedTimesheet: any = null;
+// selectedTimesheet: any = null;
 
-openDocumentPopup(timesheet: any) {
-  this.selectedTimesheet = timesheet;
-  this.isDocPopupOpen = true;
-}
+// openDocumentPopup(timesheet: any) {
+//   this.selectedTimesheet = timesheet;
+//   this.isDocPopupOpen = true;
+// }
 
 closeDocumentPopup() {
   this.isDocPopupOpen = false;
   this.selectedTimesheet = null;
 }
+
+
+/* =======================
+   DOCUMENT VIEWER POPUP
+   ======================= */
+
+   @ViewChild('documentViewerModal') documentViewerModal!: TemplateRef<any>;
+
+   activeDocProject: any = null;
+   activeDocType: 'Pending' | 'Approved' = 'Pending';
+   activePreviewFile: any = null;
+   selectedTimesheet: any = null;
+
+   /* OPEN POPUP */
+   openDocumentPopup(timesheet: any): void {
+     this.selectedTimesheet = timesheet;
+
+     const projects = this.getUniqueProjectsFromTimesheet(timesheet);
+
+    //  if (!projects.length) {
+    //    this.openAlertMod(this.alertTemplate, 'No projects available');
+    //    return;
+    //  }
+
+     this.activeDocProject = projects[0];
+     this.setDefaultDocForProject();
+
+     this.modalRef = this.modalService.open(
+       this.documentViewerModal,
+       { modalDialogClass: 'modal-xl', backdrop: 'static' }
+     );
+   }
+
+   /* PROJECT LIST */
+   getUniqueProjectsFromTimesheet(timesheet: any): any[] {
+     const map = new Map<number, any>();
+
+     (timesheet.locationSessions || []).forEach(loc => {
+       (loc.projects || []).forEach(proj => {
+         map.set(proj.projectId, proj);
+       });
+     });
+
+     return Array.from(map.values());
+   }
+
+   /* LEFT PROJECT CLICK */
+   selectProjectForDoc(project: any): void {
+     this.activeDocProject = project;
+     this.setDefaultDocForProject();
+   }
+
+   /* TOGGLE PENDING / APPROVED */
+   switchDocType(type: 'Pending' | 'Approved'): void {
+     this.activeDocType = type;
+     this.loadActiveDocument();
+   }
+
+   /* DEFAULT DOC */
+   setDefaultDocForProject(): void {
+     if (!this.activeDocProject) {
+       this.activePreviewFile = null;
+       return;
+     }
+
+     if (this.hasPendingDoc(this.activeDocProject.projectId)) {
+       this.activeDocType = 'Pending';
+     } else if (this.hasApprovedDoc(this.activeDocProject.projectId)) {
+       this.activeDocType = 'Approved';
+     } else {
+       this.activePreviewFile = null;
+       return;
+     }
+
+     this.loadActiveDocument();
+   }
+
+   /* LOAD DOC */
+   loadActiveDocument(): void {
+     if (!this.activeDocProject) {
+       this.activePreviewFile = null;
+       return;
+     }
+
+     this.activePreviewFile =
+       this.getDocument(
+         this.activeDocProject.projectId,
+         this.activeDocType
+       );
+   }
+
+   /* HELPERS */
+   hasPendingDoc(projectId: number): boolean {
+     return this.selectedTimesheet?.documentData?.some(
+       d => d.projectId === projectId && !d.finalFlag
+     );
+   }
+
+   hasApprovedDoc(projectId: number): boolean {
+     return this.selectedTimesheet?.documentData?.some(
+       d => d.projectId === projectId && d.finalFlag
+     );
+   }
+
+   getDocument(projectId: number, type: 'Pending' | 'Approved'): any {
+     return this.selectedTimesheet?.documentData?.find(d =>
+       d.projectId === projectId &&
+       (type === 'Pending' ? !d.finalFlag : d.finalFlag)
+     );
+   }
+
+  //  Navigation CARDS
+
+   selectedStatus: number = 0; // default = Pending
+   onStatusChange(status: number) {
+    this.selectedStatus = status;
+    this.page1 = 1; // pagination reset
+    this.getMyReporteesTimesheetRequests();
+  }
 
 
 
@@ -1975,3 +2139,5 @@ closeDocumentPopup() {
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }
+
+

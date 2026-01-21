@@ -1176,10 +1176,19 @@ public class TimesheetApprovalService {
             logBuilder.append(" | ClientFilter=").append(clientFilter);
         
             /* ---------- Pagination ---------- */
+//            Pageable pageable = PageRequest.of(
+//                    payload.getPage(),
+//                    payload.getSize()
+//            );
             Pageable pageable = PageRequest.of(
-                    payload.getPage(),
-                    payload.getSize()
-            );
+            	    payload.getPage(),
+            	    payload.getSize(),
+            	    Sort.by(
+            	        Sort.Direction.fromString(payload.getSortDir()),
+            	        payload.getSortBy()
+            	    )
+            	);
+
 
             Page<GetReporteesTimesheetReqFlatDTO> pageResult =
             	    employeeTimesheetsNewRepository.getMyReporteesTimesheetRequests(
@@ -1204,7 +1213,18 @@ public class TimesheetApprovalService {
             	        payload.getSortDir(),
             	        pageable
             	    );
-
+            
+            System.out.println("===== PAGE RESULT META =====");
+            System.out.println("Page Number      : " + pageResult.getNumber());
+            System.out.println("Page Size        : " + pageResult.getSize());
+            System.out.println("Total Elements   : " + pageResult.getTotalElements());
+            System.out.println("Total Pages      : " + pageResult.getTotalPages());
+            System.out.println("Has Next         : " + pageResult.hasNext());
+            System.out.println("Is Last          : " + pageResult.isLast());
+            System.out.println("Content Size     : " + pageResult.getContent().size()); 
+            
+                
+            
             if (pageResult == null || pageResult.isEmpty()) {
                 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
                 response.setServiceResponse(Collections.emptyList());
@@ -1223,6 +1243,12 @@ public class TimesheetApprovalService {
             Map<String, Object> finalResponse = new HashMap<>();
             finalResponse.put("content", mapped);
             finalResponse.put("page", pageResult.getNumber());
+            finalResponse.put("size", pageResult.getSize());
+            finalResponse.put("totalElements", pageResult.getTotalElements());
+            finalResponse.put("totalPages", pageResult.getTotalPages());
+            finalResponse.put("hasNext", pageResult.hasNext());
+            finalResponse.put("hasPrevious", pageResult.hasPrevious());
+            finalResponse.put("isLast", pageResult.isLast());
 
             /* ---------- Success ---------- */
             response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1231,6 +1257,15 @@ public class TimesheetApprovalService {
             logBuilder.append(" | Records=").append(finalResponse.size());
             
     		apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+    		
+    		System.out.println("===== After Filter =====");
+            System.out.println("Page Number      : " + pageResult.getNumber());
+            System.out.println("Page Size        : " + pageResult.getSize());
+            System.out.println("Total Elements   : " + pageResult.getTotalElements());
+            System.out.println("Total Pages      : " + pageResult.getTotalPages());
+            System.out.println("Has Next         : " + pageResult.hasNext());
+            System.out.println("Is Last          : " + pageResult.isLast());
+            System.out.println("Content Size     : " + pageResult.getContent().size()); 
 
 
         } catch (Exception ex) {
@@ -1250,6 +1285,67 @@ public class TimesheetApprovalService {
         }
         return response;
     }    
+    
+    
+  
+//  New API
+//  public ServiceResponse getMyReporteesTimesheetRequestsNew(
+//          GetMyReporteesTimesheetRequestsPayload payload) {
+//
+//      ServiceResponse response = new ServiceResponse();
+//
+//      // 1️⃣ Pageable create
+//      Pageable pageable = PageRequest.of(
+//              payload.getPage(),
+//              payload.getSize()
+//      );
+//
+//      // 2️⃣ Repository call (same query)
+//      Page<GetReporteesTimesheetReqFlatDTO> pageData =
+//              employeeTimesheetsNewRepository
+//                      .getMyReporteesTimesheetRequests(
+//                              payload.getEmpId(),
+//                              payload.getClientFilter(),
+//
+//                              payload.getEmploymentId(),
+//                              payload.getEmployeeName(),
+//                              payload.getDayType(),
+//                              payload.getProjectName(),
+//                              payload.getClientName(),
+//                              payload.getClientLocation(),
+//                              payload.getPoNo(),
+//                              payload.getShadowEmpName(),
+//                              payload.getTeamName(),
+//                              payload.getActivity(),
+//                              payload.getDate(),
+//
+//                              payload.getSearch(),
+//                              payload.getSortBy(),
+//                              payload.getSortDir(),
+//                              pageable
+//                      );
+//
+//      // 3️⃣ Flat → UI DTO
+//      List<GetReporteesTimesheetReqDTO> data =
+//              timesheetMapper.map(pageData.getContent());
+//
+//      // 4️⃣ FE-friendly pagination response
+//      Map<String, Object> result = new HashMap<>();
+//      result.put("content", data);
+//      result.put("page", pageData.getNumber());
+//      result.put("size", pageData.getSize());
+//      result.put("totalElements", pageData.getTotalElements());
+//      result.put("totalPages", pageData.getTotalPages());
+//      result.put("isLast", pageData.isLast());
+//
+//      response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//      response.setServiceResponse(result);
+//      return response;
+//  }
+
+  
+
+    
     
 }
 

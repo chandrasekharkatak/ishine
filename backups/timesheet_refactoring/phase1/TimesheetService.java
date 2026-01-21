@@ -1447,7 +1447,6 @@ public class TimesheetService {
 								dto.setEmploymentIdAcToET("A-" + employmentId);
 							}
 						}
-
 						
 						dto.setClientInTime(object[20] != null ? ((Timestamp) object[20]).toLocalDateTime() : null);
 						dto.setClientOutTime(object[21] != null ? ((Timestamp) object[21]).toLocalDateTime() : null);
