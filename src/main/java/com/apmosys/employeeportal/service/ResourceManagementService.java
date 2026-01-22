@@ -6453,91 +6453,81 @@ public class ResourceManagementService {
 			Long updatedBy = defaultProjectUpdateDTO.getUpdatedBy();
 			Integer projectId = defaultProjectUpdateDTO.getProjectId();
 			List<Long> empIds = defaultProjectUpdateDTO.getEmpIds();
+			
+			 if (empIds == null || empIds.isEmpty() || projectId == null) {
+				 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Invalid Emp Id");
+		        }
 
-			if (empIds == null || empIds.isEmpty() || projectId == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Invalid Emp Id");
-			}
+		        List<EmpPrimaryProjectMapping> mappingsToUpdate = new ArrayList<>();
 
-			Map<Long, EmpPrimaryProjectMapping> existingMappings = empPrimaryProjectMappingRepository
-					.findByEmpIdIn(empIds).stream()
-					.collect(Collectors.toMap(EmpPrimaryProjectMapping::getEmpId, Function.identity()));
+				Project project = projectRepository.findByProjectId(projectId);
+				if (project == null) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Invalid Project");
+		        }
+				
+			  	LocalDateTime now = LocalDateTime.now();
 
-			Project project = projectRepository.findByProjectId(projectId);
-			if (project == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Invalid Project");
-			}
+				List<EmpPrimaryProjectMapping> existingMappingProjectWithSingleEmployee = empPrimaryProjectMappingRepository
+				.findByEmpIdInAndIsMapped(empIds);
 
-			Map<Long, Employee> employeeMap = employeeRepository.findByEmpIdIn(empIds).stream()
-					.collect(Collectors.toMap(Employee::getEmpId, Function.identity()));
-
-			List<Long> shadowEmpIds = employeeTeamMapRepository.findShadowMembersByEmpIdsAndProjectId(empIds,
-					projectId);
-
-			String billableType;
-			String billable;
-			if ("TNM".equalsIgnoreCase(project.getPoProjectType())) {
-				billableType = "TNM";
-				billable = "Yes";
-			} else if ("Fixed cost".equalsIgnoreCase(project.getPoProjectType())
-					|| "Fixed Cost".equalsIgnoreCase(project.getPoProjectType())) {
-				billableType = "Fixed Cost";
-				billable = "No";
-			} else if ("Bench".equalsIgnoreCase(project.getInternalProjectType())) {
-				billableType = "Bench";
-				billable = "No";
-			} else if ("InternalRNDProducts".equalsIgnoreCase(project.getInternalProjectType())) {
-				billableType = "InternalRNDProducts";
-				billable = "No";
-			} else if ("Monitoring".equalsIgnoreCase(project.getPoProjectType())) {
-				billableType = "Fixed Cost";
-				billable = "No";
-			} else {
-				billableType = null;
-				billable = null;
-			}
-
-			LocalDateTime now = LocalDateTime.now();
-			List<EmpPrimaryProjectMapping> mappingsToUpdate = new ArrayList<>();
-			List<Long> empIdsToUpdateBillable = new ArrayList<>();
-			Map<Long, String> empIdToBillable = new HashMap<>();
-			Map<Long, String> empIdToBillableType = new HashMap<>();
-
-			for (Long empId : empIds) {
-				EmpPrimaryProjectMapping existing = existingMappings.get(empId);
-				Long projectIdLong = Long.valueOf(projectId);
-
-				if (existing != null && !existing.getPrimaryProjectId().equals(projectIdLong)) {
-
-					existing.setIsMapped("N");
-					existing.setUpdatedBy(updatedBy);
-					existing.setUpdatedOn(now);
-					mappingsToUpdate.add(existing);
-
-					EmpPrimaryProjectMapping newMapping = new EmpPrimaryProjectMapping();
-					newMapping.setEmpId(empId);
-					newMapping.setPrimaryProjectId(projectIdLong);
-					newMapping.setPrimaryProjectName(project.getProjectName());
-					newMapping.setIsMapped("Y");
-					newMapping.setUpdatedBy(updatedBy);
-					newMapping.setUpdatedOn(now);
-					mappingsToUpdate.add(newMapping);
-
-				} else if (existing == null) {
-
-					EmpPrimaryProjectMapping newMapping = new EmpPrimaryProjectMapping();
-					newMapping.setEmpId(empId);
-					newMapping.setPrimaryProjectId(projectIdLong);
-					newMapping.setPrimaryProjectName(project.getProjectName());
-					newMapping.setIsMapped("Y");
-					newMapping.setUpdatedBy(updatedBy);
-					newMapping.setUpdatedOn(now);
-					mappingsToUpdate.add(newMapping);
+				for(EmpPrimaryProjectMapping emp : existingMappingProjectWithSingleEmployee){
+						emp.setIsMapped("N");
+						emp.setUpdatedBy(updatedBy);
+						emp.setUpdatedOn(now);
+						mappingsToUpdate.add(emp);
 				}
+			  
+			 
+			  Map<Long, Employee> employeeMap = employeeRepository.findByEmpIdIn(empIds).stream()
+		                .collect(Collectors.toMap(Employee::getEmpId, Function.identity()));
+			  
+			  
+			  List<Long> shadowEmpIds = employeeTeamMapRepository.findShadowMembersByEmpIdsAndProjectId(empIds, projectId);
+			  
+			  
+			  String billableType;
+		        String billable;
+			  if ("TNM".equalsIgnoreCase(project.getPoProjectType())) {
+		            billableType = "TNM";
+		            billable = "Yes";
+		        } else if ("Fixed cost".equalsIgnoreCase(project.getPoProjectType()) || "Fixed Cost".equalsIgnoreCase(project.getPoProjectType())) {
+		            billableType = "Fixed Cost";
+		            billable = "No";
+		        } else if ("Bench".equalsIgnoreCase(project.getInternalProjectType())) {
+		            billableType = "Bench";
+		            billable = "No";
+		        } else if ("InternalRNDProducts".equalsIgnoreCase(project.getInternalProjectType())) {
+		            billableType = "InternalRNDProducts";
+		            billable = "No";
+		        } else if ("Monitoring".equalsIgnoreCase(project.getPoProjectType())) {
+		            billableType = "Fixed Cost";
+		            billable = "No";
+		        } else {
+		            billableType = null;
+		            billable = null;
+		        }
+			  
+			  
+		        List<Long> empIdsToUpdateBillable = new ArrayList<>();
+		        Map<Long, String> empIdToBillable = new HashMap<>();
+		        Map<Long, String> empIdToBillableType = new HashMap<>();
 
-				String finalBillableType = shadowEmpIds.contains(empId) ? "Shadow" : billableType;
-				String finalBillable = "Shadow".equals(finalBillableType) ? "No" : billable;
+		        for (Long empId : empIds) {
+		        	Long projectIdLong = Long.valueOf(projectId);
+
+					EmpPrimaryProjectMapping newMapping = new EmpPrimaryProjectMapping();
+					newMapping.setEmpId(empId);
+					newMapping.setPrimaryProjectId(projectIdLong);
+					newMapping.setPrimaryProjectName(project.getProjectName());
+					newMapping.setIsMapped("Y");
+					newMapping.setUpdatedBy(updatedBy);
+					newMapping.setUpdatedOn(now);
+					mappingsToUpdate.add(newMapping);
+		           
+		            String finalBillableType = shadowEmpIds.contains(empId) ? "Shadow" : billableType;
+		            String finalBillable = "Shadow".equals(finalBillableType) ? "No" : billable;
 
 				Employee emp = employeeMap.get(empId);
 				if (emp == null || !Objects.equals(emp.getBillable(), finalBillable)

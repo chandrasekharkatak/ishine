@@ -33,6 +33,8 @@ public class ClientLocation {
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
 	private Timestamp createdOn;
 	
+	private String clientState;
+	
 	public ClientLocation(Integer clientId,String clientLocation){
 		this.clientId = clientId;
 		this.clientLocation = clientLocation;

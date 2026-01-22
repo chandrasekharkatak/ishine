@@ -2,13 +2,10 @@ package com.apmosys.employeeportal.controller;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
-import org.springframework.data.domain.Sort;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.query.Param;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,10 +18,10 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
+import com.apmosys.employeeportal.dto.FinalDocumentDownloadDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeSummaryOnExportDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderByProjectIdDTO;
 import com.apmosys.employeeportal.dto.GetProjectListForDateAndEmpIdPayload;
@@ -555,5 +552,46 @@ public class TimesheetController {
 		 ServiceResponse reponse= timesheetService.getMyProjectsInMonthYear(timesheetDTO);
 		 return reponse;
 	}
+	
+	@PostMapping("/downloadFinalDocuments")
+	public ResponseEntity<byte[]> downloadFinalDocuments(
+	        @RequestBody FinalDocumentDownloadDTO dto) {
+
+	    byte[] zipBytes = timesheetService
+	        .downloadFinalDocumentsZip(
+	            dto.getProjectId(),
+	            dto.getMonth(),
+	            dto.getYear(),
+	            dto.getEmpId()
+	        );
+
+	    String zipName =
+	        dto.getProjectName() + "_" +
+	        dto.getMonth() + "_" +
+	        dto.getYear() + ".zip";
+
+	    return ResponseEntity.ok()
+	        .header(HttpHeaders.CONTENT_DISPOSITION,
+	            "attachment; filename=" + zipName)
+	        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+	        .body(zipBytes);
+	}
+	
+	@PostMapping("/getDocumentsBySelectedEmpId")
+	public ServiceResponse getDocumentsBySelectedEmpId(@RequestBody FinalDocumentDownloadDTO dto) {
+		ServiceResponse response = timesheetService.getDocumentsBySelectedEmpId(dto);
+		return response;
+	}
+	
+	@PostMapping("/getDepartmentStatusSummary")
+	public ServiceResponse getDepartmentStatusSummary(
+	        @RequestBody TimesheetDTO requestDTO) {
+
+	    ServiceResponse response =
+	    		timesheetService.getDepartmentStatusSummary(requestDTO);
+
+	    return response;
+	}
+
 		 
 }

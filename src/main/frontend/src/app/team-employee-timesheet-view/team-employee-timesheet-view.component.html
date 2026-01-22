@@ -37,6 +37,13 @@
                             <i class="fa fa-download" style="color: #053885;display: flex; justify-content: left; max-width: fit-content;" 
                             [hidden]="filteredTimesheetData.length == 0" (click)="exportToExcel()"></i>
                         </div>
+
+                        <div class="col d-flex justify-content-end">
+                            <button class="final-doc-btn" (click)="downloadFinalDocuments()">
+                                <i class="fa fa-download"></i>
+                                Download Final Documents
+                            </button>
+                        </div>
                     </div>
                     <div class="col d-flex align-items-center ">
                         <span class="font-weight-bold text-muted small">
@@ -50,6 +57,9 @@
                                 <th class="info-label" style="min-width: 120px;" mat-sort-header="employmentId">Emp ID</th>
                                 <th class="info-label" style="min-width: 140px;" mat-sort-header="clientSideId">Client Side ID</th>
                                 <th class="info-label" style="min-width: 200px;" mat-sort-header="employeeName">Employee</th>
+                                <th class="info-label text-center" style="min-width: 60px;">
+                                    View
+                                </th>
                                 <th class="info-label" style="min-width: 150px;" mat-sort-header="employmentStatus">Employment Status</th>
                                 <th class="info-label" style="min-width: 150px;" mat-sort-header="projectStatus">Project Mapping</th>
                                 <th class="info-label" style="min-width: 200px;" mat-sort-header="department">Department</th>
@@ -140,6 +150,12 @@
 
                                             </div>
                                         </td>
+                                        <td class="text-center">
+                                            <button class="btn btn-link p-0" title="View Employee Timesheet"
+                                                (click)="viewEmployeeTimesheet(item.empId, item.projectId)">
+                                                <i class="fa fa-eye" style="font-size: 16px; color: #0275d8;"></i>
+                                            </button>
+                                        </td>
                                         <td>{{ item.employmentStatus || 'NA' }}</td>
                                         <td>{{ item.projectStatus || 'NA' }}</td>
                                         <td>{{ item.department || 'NA' }}</td>
@@ -209,4 +225,88 @@
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
     </div>
+</ng-template>
+
+<ng-template #previewModal>
+  <div class="modal-header">
+    <h5 class="modal-title">
+      {{ 'Document Preview' }}
+    </h5>
+
+    <!-- IMAGE CONTROLS -->
+    <div *ngIf="fileType === 'image'"
+         class="ts-preview-controls">
+
+      <button class="ts-preview-btn"
+              title="Download Image"
+              (click)="downloadFile()">
+        <i class="fa fa-download"></i>
+      </button>
+
+      <button class="ts-preview-btn"
+              title="Zoom Out"
+              (click)="zoomOut()">
+        <i class="fa fa-search-minus"></i>
+      </button>
+
+      <span class="ts-preview-zoom">{{ zoomLevel }}%</span>
+
+      <button class="ts-preview-btn"
+              title="Zoom In"
+              (click)="zoomIn()">
+        <i class="fa fa-search-plus"></i>
+      </button>
+    </div>
+
+    <button type="button"
+            class="close"
+            aria-label="Close"
+            (click)="modalRef?.close()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
+  <div class="modal-body ts-preview-body">
+
+    <div *ngIf="fileType === 'pdf'" class="ts-preview-pdf-wrapper">
+      <iframe
+        [src]="previewUrl"
+        class="ts-preview-pdf-frame"
+        frameborder="0"
+        allowfullscreen>
+      </iframe>
+    </div>
+
+    <div *ngIf="fileType === 'image'" class="ts-preview-image-wrapper">
+      <div class="ts-preview-image-content"
+           [style.transform]="transformStyle"
+           (mousedown)="startDrag($event)"
+           (mousemove)="onDrag($event)"
+           (mouseup)="endDrag()"
+           (mouseleave)="endDrag()">
+
+        <img [src]="previewUrl"
+             alt="Document Preview"
+             class="ts-preview-image">
+      </div>
+    </div>
+
+    <div *ngIf="fileType === 'excel'" class="ts-preview-other text-center">
+      <p>Excel preview not supported. Download the file to view.</p>
+    
+      <button class="btn btn-outline-primary" (click)="downloadFile()">
+        <i class="fa fa-download me-1"></i>
+        Download Excel
+      </button>
+    </div>
+
+    <div *ngIf="fileType === 'other'" class="ts-preview-other">
+      <p>Preview not available for this file type.</p>
+      <button class="btn btn-outline-primary"
+              (click)="downloadFile()">
+        Download File
+      </button>
+    </div>
+
+  </div>
 </ng-template>

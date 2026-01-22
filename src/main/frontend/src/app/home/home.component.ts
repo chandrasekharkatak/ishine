@@ -717,19 +717,45 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
   }
 
-  getDoscForPreview(docId:any){
-      console.log(docId,":docId");
-      this.resetPreviewState(); // added to reset all the zoom values 
-      this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          console.log(response.serviceResponse);
-          this.docData = response.serviceResponse.docData;
-          console.log(typeof(this.docData),":docDataType")
-          this.mimeType = response.serviceResponse.docMimeType
-          this.showPreview(this.docData,this.mimeType)
+  // getDoscForPreview(docId:any){
+  //     console.log(docId,":docId");
+  //     this.resetPreviewState(); // added to reset all the zoom values 
+  //     this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
+  //       if (response.serviceStatus == "Success") {
+  //         console.log(response.serviceResponse);
+  //         this.docData = response.serviceResponse.docData;
+  //         console.log(typeof(this.docData),":docDataType")
+  //         this.mimeType = response.serviceResponse.docMimeType
+  //         this.showPreview(this.docData,this.mimeType)
+  //       }
+  //     });
+  //   }
+
+getDocsForPreview(docId: any) {
+  this.timesheetService.getDocumentDataByDocId(docId)
+    .pipe(first())
+    .subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+
+        this.docData = response.serviceResponse.docData;
+        this.mimeType = response.serviceResponse.docMimeType;
+
+        // Excel → Download
+        if (
+          this.mimeType === 'application/vnd.ms-excel' ||
+          this.mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ) {
+          const fileName = response.serviceResponse.docName || 'document.xlsx';
+          this.downloadExcel(this.docData, this.mimeType, fileName);
         }
-      });
-    }
+        // PDF / Image → Preview
+        else {
+          this.showPreview(this.docData, this.mimeType);
+        }
+      }
+    });
+}
+
     showPreview(base64Data: string, mimeType: string) {
     const dataUrl = `data:${mimeType};base64,${base64Data}`;
       this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
@@ -3306,6 +3332,31 @@ resetPreviewState() {
   this.translateY = 0;
   this.isDragging = false;
 }
+
+downloadExcel(base64Data: string, mimeType: string, fileName: string) {
+
+  const byteCharacters = atob(base64Data);
+  const byteNumbers = new Array(byteCharacters.length);
+
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+
+  const blob = new Blob(
+    [new Uint8Array(byteNumbers)],
+    { type: mimeType }
+  );
+
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+
+  window.URL.revokeObjectURL(url);
+}
+
 
 
 

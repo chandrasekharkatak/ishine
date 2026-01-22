@@ -58,10 +58,20 @@ export class CalendarViewComponent implements OnInit {
     NW: { label: 'Non-Working Day',     color: '#8E8E8E' },   // Muted gray
     AH: { label: 'ApMoSys Holiday',     color: '#0275D8' },   // Corporate blue
     WO: { label: 'Week Off',            color: '#795548' },   // Brownish neutral
+    CO: { label: 'Comp Off',            color: '#295748' },   // Brownish neutral
     H:  { label: 'Holiday',             color: '#FFC107' },   // Golden yellow
     CH: { label: 'Client Holiday',      color: '#FF9800' },   // Orange
     CA: { label: 'Client Approved',   color: '#006400' },   // Dark green
     CN: { label: 'Client Not-Approved',    color: '#F0AD4E' },   // Amber
+    // 🔴 Rejected by RM (improved differentiation)
+    CA_R: {
+      label: 'Client Approved But Rejected By RM',
+      color: '#B71C1C' // Dark red (high-impact rejection)
+    },
+    CN_R: {
+      label: 'Client Not-Approved But Rejected By RM',
+      color: '#E57373' // Soft red (lower severity rejection)
+    },
     P:  { label: 'Present',             color: '#28A745' },   // Bright green
     NA: { label: 'Not Applicable',      color: '#9E9E9E' },   // Light gray
     L:  { label: 'Leave',               color: '#C21807' },   // Deep red
@@ -399,16 +409,21 @@ monthSelected(event: Date, datepicker: any) {
       this.fileType = 'pdf';
     } else if (mimeType.startsWith('image/')) {
       this.fileType = 'image';
-    } else {
+    } else if (
+      mimeType === 'application/vnd.ms-excel' ||
+      mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ) {
+      this.fileType = 'excel';
+    }else {
       this.fileType = 'other';
     }
 
     // this.previewFileName = fileName || 'Document Preview';
     // this.modalRef2 = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-xxl modal-dialog-centered',scrollable: true });
-    
+
     this.modalRef = this.modalService.open(this.previewModal, {
     modalDialogClass: 'modal-xl modal-dialog-centered',
-    scrollable: false   
+    scrollable: false
     });
 
   }
@@ -558,9 +573,63 @@ resetPreviewState() {
         return 'jpeg';
       case 'image/webp':
         return 'jpeg';
+      case 'application/vnd.ms-excel':
+      return 'xls';
+      case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+      return 'xlsx';
       default:
         return 'file';
     }
   }
+
+  getDocsForPreview(docId: any) {
+  this.timesheetService.getDocumentDataByDocId(docId)
+    .pipe(first())
+    .subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+
+        this.docData = response.serviceResponse.docData;
+        this.mimeType = response.serviceResponse.docMimeType;
+
+        // Excel → Download
+        if (
+          this.mimeType === 'application/vnd.ms-excel' ||
+          this.mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ) {
+          const fileName = response.serviceResponse.docName || 'document.xlsx';
+          this.downloadExcel(this.docData, this.mimeType, fileName);
+        }
+        // PDF / Image → Preview
+        else {
+          this.showPreview(this.docData, this.mimeType);
+        }
+      }
+    });
+}
+
+
+  downloadExcel(base64Data: string, mimeType: string, fileName: string) {
+
+  const byteCharacters = atob(base64Data);
+  const byteNumbers = new Array(byteCharacters.length);
+
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+
+  const blob = new Blob(
+    [new Uint8Array(byteNumbers)],
+    { type: mimeType }
+  );
+
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+
+  window.URL.revokeObjectURL(url);
+}
 
 }

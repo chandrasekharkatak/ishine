@@ -370,4 +370,26 @@ isEmployeeInTNMProject(empId: any): Observable<any> {
   wasEmployeeInClientProjCurrAndPrevMon(empId:any){
      return this.http.post(`${this.baseUrl}api/wasEmployeeInClientProjCurrAndPrevMon?empId=${empId}`, null);
   }
+
+  downloadFinalDocuments(payload: any) {
+  return this.http.post(
+    `${this.baseUrl}api/downloadFinalDocuments`,
+    payload,
+    {
+      responseType: 'blob'   
+    }
+  );
+}
+
+getDocumentsBySelectedEmpId(payload: any): Observable<any> {
+  return this.http.post(`${this.baseUrl}api/getDocumentsBySelectedEmpId`, payload);
+}
+
+getDepartmentStatusSummary(payload: any) {
+  return this.http.post(
+    `${this.baseUrl}api/getDepartmentStatusSummary`,
+    payload
+  );
+}
+
 }

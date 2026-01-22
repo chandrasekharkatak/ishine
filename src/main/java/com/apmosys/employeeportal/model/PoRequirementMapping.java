@@ -9,6 +9,7 @@ import lombok.Data;
 
 @Data
 @Entity
+@ToString
 public class PoRequirementMapping {
 
     @Id
