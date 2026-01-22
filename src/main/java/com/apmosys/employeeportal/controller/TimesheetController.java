@@ -585,7 +585,7 @@ public class TimesheetController {
 	
 	@PostMapping("/getDepartmentStatusSummary")
 	public ServiceResponse getDepartmentStatusSummary(
-	        @RequestBody TimesheetDTO requestDTO) {
+	        @RequestBody GetEmployeeSummaryOnExportDTO requestDTO) {
 
 	    ServiceResponse response =
 	    		timesheetService.getDepartmentStatusSummary(requestDTO);

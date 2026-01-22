@@ -2098,3 +2098,112 @@ h5 {
   transform: scale(1.08);
   background: rgba(0, 0, 0, 0.45);
 }
+
+/* Make tiles support a bottom footer without breaking center UI */
+.metric-tile,
+.metric-tile-project {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Footer sticks to bottom inside tile */
+.tile-footer {
+  margin-top: auto;
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 8px;
+}
+
+/* PO filter is NORMAL flow (not absolute) */
+.po-conflict-filter {
+  position: relative; /* only for dropdown positioning */
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* dropdown opens upward */
+.po-dropdown {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 6px);
+  min-width: 200px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  z-index: 99;
+}
+
+.po-filter-btn {
+  height: 32px;
+  border-radius: 999px;            /* pill but still floating */
+  border: none;
+  background: #ffffff;
+  color: #053885;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+  transition: all 0.2s ease;
+  padding: 0 10px;                 /* space for label */
+  gap: 6px;
+}
+
+
+.po-filter-text {
+  display: inline-block;           /* show it */
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 700;
+  color: #053885;
+}
+
+
+.po-filter-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+}
+.po-clear-btn {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: #dc3545;
+  color: #ffffff;
+  font-size: 10px;
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+.po-clear-btn:hover {
+  background: #b52a37;
+}
+.po-option {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.po-option:hover {
+  background: #e7f0ff;
+  color: #053885;
+}

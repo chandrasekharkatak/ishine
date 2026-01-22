@@ -203,7 +203,7 @@ selectedBillableTypes: string[] = ['TNM','TNM(Shadow)'];
   currentColumnFilter: any = null;
   isInsightSearchEnabled: boolean = false;
 selectedProjectStatus: string = 'All';
-selectedEmployeeStatus : string = 'Active';
+selectedEmployeeStatus : string = 'All';
   projectViewFilters = {
     projectName: '',
     poNo: '',
@@ -331,6 +331,16 @@ tileGroups: any[] = [];
   repetedDeptId: string;
   allowedEmpid: number | null = null;
   authorizedEmp: boolean = false;
+
+  openPoConflictDropdownTileKey: string | null = null;
+
+// store selection per tile (keyed by tile.status)
+poConflictSelectionByTile: Record<string, 'PO-Conflict' | 'No PO-Conflict'> = {};
+
+/** Effective filter used while fetching table data (derived from current tile) */
+currentPoConflictFilter: 'PO-Conflict' | 'No PO-Conflict' | null = null;
+
+
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -2869,7 +2879,10 @@ loadDepartmentStatusSummary(status: any, month: any, year: any): void {
     empId:this.currentUser.empId,
     month: this.month,
     year: this.year,
-    clientDashboard: this.isClientDashboard
+    clientDashboard: this.isClientDashboard,
+    billableTypes:this.selectedBillableTypes,
+    employeeActive:this.selectedEmployeeStatus
+
   };
 
   this.isDeptTableLoading = true;
@@ -2942,6 +2955,58 @@ onRepeatClick(
    this.scrollToTableBasedOnDept(status, deptId,true);
 }
 
+@HostListener('document:click', ['$event'])
+onOutSideClick(event: MouseEvent): void {
+  const target = event.target as HTMLElement;
+
+  if (!target.closest('.col-md-1')) {
+    this.menuVisible = false;
+  }
+
+  // Close PO-conflict dropdown if clicked outside the dropdown area
+  if (!target.closest('.po-conflict-filter')) {
+    this.openPoConflictDropdownTileKey = null;
+  }
+  
+}
+
+togglePoConflictDropdown(tileKey: string, event: MouseEvent) {
+  event.stopPropagation();
+  this.openPoConflictDropdownTileKey =
+    this.openPoConflictDropdownTileKey === tileKey ? null : tileKey;
+}
+
+getPoConflictLabel(tileKey: string): string {
+  const val = this.poConflictSelectionByTile[tileKey];
+  if (val === 'PO-Conflict') return 'With PO Conflict';
+  if (val === 'No PO-Conflict') return 'Without PO Conflict';
+  return '';
+}
+
+selectPoConflict(tileKey: string, value: 'PO-Conflict' | 'No PO-Conflict', event: MouseEvent) {
+  event.stopPropagation();
+  this.poConflictSelectionByTile[tileKey] = value;
+  this.openPoConflictDropdownTileKey = null;
+
+  // refresh if this tile is currently active
+  if ((this.status ?? 'All') === tileKey) {
+    // this.getTableData(this.status, this.month, this.year, this.selectedDeptId, this.isEmployeeRepeatedFlag);
+  }
+}
+
+clearPoConflict(tileKey: string, event: MouseEvent) {
+  event.stopPropagation();
+  delete this.poConflictSelectionByTile[tileKey];
+
+  if (this.openPoConflictDropdownTileKey === tileKey) {
+    this.openPoConflictDropdownTileKey = null;
+  }
+
+  // refresh if this tile is currently active
+  if ((this.status ?? 'All') === tileKey) {
+    // this.getTableData(this.status, this.month, this.year, this.selectedDeptId, this.isEmployeeRepeatedFlag);
+  }
+}
 
 
 
