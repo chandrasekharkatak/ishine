@@ -32,8 +32,8 @@ public class ClientProjectReportDTO {
     private String poProjectType;
 	private String apmosysRM;
 	private String clientRM;
-	private String poStartDate;
-    private String poEndDate;
+	private String projectStartDate;
+    private String projectEndDate;
 	private String poNo;
 	private Long poProjectId;
 	private Timestamp createdOn;

@@ -863,8 +863,8 @@ public class ResourceManagementService {
 //			project.setIsDraftProject("false");
 			project.setProjectName(dto.getName());
 			project.setPoNo(dto.getPoNo());
-			project.setPoStartDate(dto.getPoStartDate());
-			project.setPoEndDate(dto.getPoEndDate());
+			project.setStartDate(dto.getProjectStartDate());
+			project.setEndDate(dto.getProjectEndDate());
 			project.setPoProjectType("Internal".equalsIgnoreCase(dto.getProjectType()) ? null : dto.getProjectType());
 
 			project.setApmosysRM(dto.getApmosysRM());
@@ -2292,8 +2292,8 @@ public class ResourceManagementService {
 			dto.setActive(obj[9] != null ? obj[9].toString().toString() : null);
 //			dto.setActive(obj[9] != null ? Integer.parseInt(obj[9].toString()) : null);
 			dto.setProjectId(obj[10] != null ? Integer.parseInt(obj[10].toString()) : null);
-			dto.setPoStartDate(obj[11] != null ? obj[11].toString().toString() : null);
-			dto.setPoEndDate(obj[12] != null ? obj[12].toString().toString() : null);
+			dto.setProjectStartDate(obj[11] != null ? obj[11].toString().toString() : null);
+			dto.setProjectEndDate(obj[12] != null ? obj[12].toString().toString() : null);
 			dto.setStatus(obj[15] != null ? obj[15].toString() : null);
 			dto.setPoProjectType(obj[13] != null ? obj[13].toString() : null);
 			dto.setInternalProjectType(obj[14] != null ? obj[14].toString() : null);
@@ -2506,8 +2506,8 @@ public class ResourceManagementService {
 				String formattedEndDate = endDateTime.format(outputFormatter);
 
 				// Set formatted dates into project object
-				project.setPoStartDate(formattedStartDate);
-				project.setPoEndDate(formattedEndDate);
+				project.setStartDate(formattedStartDate);
+				project.setEndDate(formattedEndDate);
 				project.setStatus(dto.getStatus());
 				// departmentIds
 				String[] departmentArray = dto.getDepartment();
@@ -4445,8 +4445,8 @@ public class ResourceManagementService {
 					rmgProject.setProjectId(row.getProjectId());
 					rmgProject.setProjectName(row.getProjectName());
 					rmgProject.setPoProjectId(row.getPoProjectId());
-					rmgProject.setPoStartDate(row.getPoStartDate());
-					rmgProject.setPoEndDate(row.getPoEndDate());
+					rmgProject.setProjectStartDate(row.getProjectStartDate());
+					rmgProject.setProjectEndDate(row.getProjectEndDate());
 					rmgProject.setApmosysRM(row.getApmosysRM());
 					rmgProject.setClientRM(row.getClientRM());
 					rmgProject.setPoProjectType(row.getPoProjectType());
@@ -4622,8 +4622,8 @@ public class ResourceManagementService {
 					rmgProject.setProjectId(row.getProjectId());
 					rmgProject.setProjectName(row.getProjectName());
 					rmgProject.setPoProjectId(row.getPoProjectId());
-					rmgProject.setPoStartDate(row.getPoStartDate());
-					rmgProject.setPoEndDate(row.getPoEndDate());
+					rmgProject.setProjectStartDate(row.getProjectStartDate());
+					rmgProject.setProjectEndDate(row.getProjectEndDate());
 					rmgProject.setApmosysRM(row.getApmosysRM());
 					rmgProject.setClientRM(row.getClientRM());
 					rmgProject.setPoProjectType(row.getPoProjectType());
@@ -4770,8 +4770,8 @@ public class ResourceManagementService {
 							dto.setClientRM(row.getClientRM());
 							dto.setClientName(row.getClientName());
 
-							dto.setPoStartDate(row.getPoStartDate());
-							dto.setPoEndDate(row.getPoEndDate());
+							dto.setProjectStartDate(row.getProjectStartDate());
+							dto.setProjectEndDate(row.getProjectEndDate());
 							dto.setPoNo(row.getPoNo());
 							dto.setPoProjectType(row.getPoProjectType());
 							dto.setProjectManagers(new ArrayList<>());
@@ -4957,8 +4957,8 @@ public class ResourceManagementService {
 					rmgProject.setProjectId(row.getProjectId());
 					rmgProject.setProjectName(row.getProjectName());
 					rmgProject.setPoProjectId(row.getPoProjectId());
-					rmgProject.setPoStartDate(row.getPoStartDate());
-					rmgProject.setPoEndDate(row.getPoEndDate());
+					rmgProject.setProjectStartDate(row.getProjectStartDate());
+					rmgProject.setProjectEndDate(row.getProjectEndDate());
 					rmgProject.setApmosysRM(row.getApmosysRM());
 					rmgProject.setClientRM(row.getClientRM());
 					rmgProject.setPoProjectType(row.getPoProjectType());
@@ -5079,8 +5079,8 @@ public class ResourceManagementService {
 					rmgProject.setProjectId(projectId);
 					rmgProject.setProjectName(projectName);
 					rmgProject.setPoProjectId(poProjectId);
-					rmgProject.setPoStartDate(poStartDate);
-					rmgProject.setPoEndDate(poEndDate);
+					rmgProject.setProjectStartDate(poStartDate);
+					rmgProject.setProjectEndDate(poEndDate);
 					rmgProject.setApmosysRM(apmosysRM);
 					rmgProject.setClientRM(clientRM);
 					rmgProject.setPoProjectType(poProjectType);
@@ -5257,8 +5257,8 @@ public class ResourceManagementService {
 					rmgProject.setProjectId(row.getProjectId());
 					rmgProject.setProjectName(row.getProjectName());
 					rmgProject.setPoProjectId(row.getPoProjectId());
-					rmgProject.setPoStartDate(row.getPoStartDate());
-					rmgProject.setPoEndDate(row.getPoEndDate());
+					rmgProject.setProjectStartDate(row.getProjectStartDate());
+					rmgProject.setProjectEndDate(row.getProjectEndDate());
 					rmgProject.setApmosysRM(row.getApmosysRM());
 					rmgProject.setClientRM(row.getClientRM());
 					rmgProject.setPoProjectType(row.getPoProjectType());
@@ -6097,11 +6097,11 @@ public class ResourceManagementService {
 			}
 			data.setDepartmentName(poData.getDepartmentName());
 			data.setIsDraftProject(poData.getIsDraftProject());
-			data.setPoEndDate(poData.getEndDate());
+			data.setEndDate(poData.getEndDate());
 			data.setPoNo(poData.getPoNo());
 			data.setPoProjectId(poData.getId());
 			data.setPoProjectType(poData.getProjectType());
-			data.setPoStartDate(poData.getStartDate());
+			data.setStartDate(poData.getStartDate());
 			data.setProjectManagerId(poData.getProjectManagerId() != null && !poData.getProjectManagerId().isEmpty()
 					? poData.getProjectManagerId().get(0)
 					: null);
@@ -6607,8 +6607,8 @@ public class ResourceManagementService {
 				project.setClientRM(obj.getClientRM());
 				project.setPoNo(obj.getPoNo());
 				project.setPoProjectType(obj.getPoProjectType());
-				project.setPoStartDate(obj.getPoStartDate());
-				project.setPoEndDate(obj.getPoEndDate());
+				project.setProjectStartDate(obj.getProjectStartDate());
+				project.setProjectEndDate(obj.getProjectEndDate());
 
 				dto.getRmgProjects().add(project);
 			}
@@ -8825,8 +8825,8 @@ public class ResourceManagementService {
 					project.setProjectId(projectId);
 					project.setProjectName(projectName);
 					project.setPoProjectId(poProjectId);
-					project.setPoStartDate(poStartDate);
-					project.setPoEndDate(poEndDate);
+					project.setProjectStartDate(poStartDate);
+					project.setProjectEndDate(poEndDate);
 					project.setApmosysRM(apmosysRM);
 					project.setClientRM(clientRM);
 					project.setPoProjectType(poProjectType);
@@ -9262,9 +9262,9 @@ public class ResourceManagementService {
 					: "Completed".equals(poData.getStatus()) ? null : "true");
 			project.setIsDraftProject(null);
 			project.setClientRM(poData.getClientRM());
-			project.setPoEndDate(convertIsoToDate(poData.getEndDate()));
+			project.setEndDate(convertIsoToDate(poData.getEndDate()));
 			project.setPoProjectType(poData.getProjectType());
-			project.setPoStartDate(convertIsoToDate(poData.getStartDate()));
+			project.setStartDate(convertIsoToDate(poData.getStartDate()));
 			project.setProjectName(poData.getName());
 			project.setState(poData.getClientState());
 			project.setProjectCompletionDate(poData.getProjectCompletionDate());
@@ -9407,8 +9407,8 @@ public class ResourceManagementService {
 					isModified = true;
 				}
 
-				if (!Objects.equals(existingProject.getPoEndDate(), convertIsoToDate(poPortalProjects.getEndDate()))) {
-					existingProject.setPoEndDate(convertIsoToDate(poPortalProjects.getEndDate()));
+				if (!Objects.equals(existingProject.getEndDate(), convertIsoToDate(poPortalProjects.getEndDate()))) {
+					existingProject.setEndDate(convertIsoToDate(poPortalProjects.getEndDate()));
 					isModified = true;
 				}
 
@@ -9417,9 +9417,9 @@ public class ResourceManagementService {
 					isModified = true;
 				}
 
-				if (!Objects.equals(existingProject.getPoStartDate(),
+				if (!Objects.equals(existingProject.getStartDate(),
 						convertIsoToDate(poPortalProjects.getStartDate()))) {
-					existingProject.setPoStartDate(convertIsoToDate(poPortalProjects.getStartDate()));
+					existingProject.setStartDate(convertIsoToDate(poPortalProjects.getStartDate()));
 					isModified = true;
 				}
 
@@ -10532,8 +10532,8 @@ public class ResourceManagementService {
 		p.setSyncProject("true");
 		p.setPoProjectType("Internal".equalsIgnoreCase(dto.getProjectType()) ? null : dto.getProjectType());
 		p.setPoNo(dto.getPoNo());
-		p.setPoStartDate(dto.getPoStartDate());
-		p.setPoEndDate(dto.getPoEndDate());
+		p.setStartDate(dto.getProjectStartDate());
+		p.setEndDate(dto.getProjectEndDate());
 		p.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 		p.setApmosysRM(dto.getApmosysRM());
 		p.setIsRenewable(dto.getIsRenewable());
@@ -10885,10 +10885,10 @@ public class ResourceManagementService {
 		project.setClientRM(poData.getClientRM());
 		if (poData.getEndDate() == null)
 			throw new DataNotFoundException("End Date Is Not Provided");
-		project.setPoEndDate(poData.getEndDate());
+		project.setEndDate(poData.getEndDate());
 		if (poData.getStartDate() == null)
 			throw new DataNotFoundException("Start Date Is Not Provided");
-		project.setPoStartDate(poData.getStartDate());
+		project.setStartDate(poData.getStartDate());
 		if (poData.getProjectType() == null)
 			throw new DataNotFoundException("Po Project Type Is Not Provided");
 		project.setPoProjectType(poData.getProjectType());
@@ -11151,14 +11151,14 @@ public class ResourceManagementService {
 		}
 
 //		String startDate = convertIsoToDate(poPortalProjects.getStartDate());
-		if (!Objects.equals(existingProject.getPoStartDate(), poPortalProjects.getStartDate())) {
-			existingProject.setPoStartDate(poPortalProjects.getStartDate());
+		if (!Objects.equals(existingProject.getStartDate(), poPortalProjects.getStartDate())) {
+			existingProject.setStartDate(poPortalProjects.getStartDate());
 			isModified = true;
 		}
 
 //		String endDate = convertIsoToDate(poPortalProjects.getEndDate());
-		if (!Objects.equals(existingProject.getPoEndDate(), poPortalProjects.getEndDate())) {
-			existingProject.setPoEndDate(poPortalProjects.getEndDate());
+		if (!Objects.equals(existingProject.getEndDate(), poPortalProjects.getEndDate())) {
+			existingProject.setEndDate(poPortalProjects.getEndDate());
 			isModified = true;
 		}
 
@@ -12598,9 +12598,9 @@ public class ResourceManagementService {
 						deletedProjEntity.setActive("false");
 						deletedProjEntity.setPoNo(deletedProject.getPoNo());
 //		                 deletedProjEntity.setClientId(deletedProject.getClientId());
-						deletedProjEntity.setPoStartDate(
+						deletedProjEntity.setStartDate(
 								dateFormatter.format(deletedProject.getStartDate().toLocalDateTime().toLocalDate()));
-						deletedProjEntity.setPoEndDate(
+						deletedProjEntity.setEndDate(
 								dateFormatter.format(deletedProject.getEndDate().toLocalDateTime().toLocalDate()));
 						deletedProjEntity.setProjectName(deletedProject.getProjectName());
 						deletedProjEntity.setUpdatedOn(LocalDateTime.now());
@@ -12617,9 +12617,9 @@ public class ResourceManagementService {
 			if (primaryProjectEntity != null) {
 				primaryProjectEntity.setPoNo(primaryProjectDTO.getPoNo());
 //	             primaryProjectEntity.setClientId(primaryProjectDTO.getClientId());
-				primaryProjectEntity.setPoStartDate(
+				primaryProjectEntity.setStartDate(
 						dateFormatter.format(primaryProjectDTO.getStartDate().toLocalDateTime().toLocalDate()));
-				primaryProjectEntity.setPoEndDate(
+				primaryProjectEntity.setEndDate(
 						dateFormatter.format(primaryProjectDTO.getEndDate().toLocalDateTime().toLocalDate()));
 				primaryProjectEntity.setProjectName(primaryProjectDTO.getProjectName());
 				primaryProjectEntity.setUpdatedOn(LocalDateTime.now());

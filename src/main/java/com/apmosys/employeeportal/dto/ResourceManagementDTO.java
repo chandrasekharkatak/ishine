@@ -31,8 +31,8 @@ public class ResourceManagementDTO {
 	private Long empId;
 	private String rejectReason;
 	private Long poProjectId;
-	private String poStartDate;
-	private String poEndDate;
+	private String projectStartDate;
+	private String projectEndDate;
 	private Long createdBy;
 	private Long updatedBy;
 	private String createdOn;

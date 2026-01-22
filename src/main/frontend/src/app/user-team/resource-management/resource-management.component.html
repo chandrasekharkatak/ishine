@@ -804,9 +804,9 @@
                                     <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
                                         mat-sort-header="clientRM|string">Client RM</th>
                                     <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
-                                        mat-sort-header="poStartDate|string">Start Date</th>
+                                        mat-sort-header="projectStartDate|string">Start Date</th>
                                     <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
-                                        mat-sort-header="poEndDate|string">End Date</th>
+                                        mat-sort-header="projectEndDate|string">End Date</th>
                                     <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
                                         mat-sort-header="state|string">State</th>
                                     <th scope="col" class="info-label" style="max-width: fit-content;min-width: 200px;"
@@ -926,8 +926,8 @@
                                         <td>{{project.clientName ? project.clientName:'NA'}}</td>
                                         <td>{{project.apmosysRM ? project.apmosysRM:'NA'}}</td>
                                         <td>{{project.clientRM ? project.clientRM:'NA'}}</td>
-                                        <td>{{project.poStartDate | date: 'dd/MM/yyyy'}}</td>
-                                        <td>{{project.poEndDate | date: 'dd/MM/yyyy'}}</td>
+                                        <td>{{project.projectStartDate | date: 'dd/MM/yyyy'}}</td>
+                                        <td>{{project.projectEndDate | date: 'dd/MM/yyyy'}}</td>
                                         <td>{{project.state ? project.state:'NA'}}</td>
                                         <td>{{ project.createdOn | date: 'dd/MM/yyyy' }}</td>
                                         <!-- <td>{{project.createdOn?.split(' ')[0] | date: 'dd/MM/yyyy'}}</td> -->

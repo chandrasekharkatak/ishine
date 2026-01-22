@@ -168,7 +168,7 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	
 	@Query(value = "SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO(\n"
 	        + "e.empId,e.employeementId,e.billable,e.billableType,e.name,d.name \n" 
-	        + ",p.projectId,p.projectName,p.poProjectId,p.poStartDate,p.poEndDate,p.apmosysRM,p.clientRM,p.poProjectType,p.poNo \n"
+	        + ",p.projectId,p.projectName,p.poProjectId,p.startDate,p.endDate,p.apmosysRM,p.clientRM,p.poProjectType,p.poNo \n"
 	        + ",c.clientName,t.teamId,t.teamName,t.isActive \n"
 	        + ",etm.employeeRole,etm.active,pm.empId,pm.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) \n"
 			+ "FROM EmployeeTeamMap etm\n"
@@ -230,8 +230,8 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 		+ "    p.project_id, \n"
 		+ "    p.project_name, \n"
 		+ "    p.po_project_id, \n"
-		+ "    p.po_start_date, \n"
-		+ "    p.po_end_date,\n"
+		+ "    p.start_date, \n"
+		+ "    p.end_date,\n"
 		+ "    p.apmosysrm, \n"
 		+ "    p.clientrm, \n"
 		+ "    p.po_project_type, \n"
@@ -294,7 +294,7 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 
 @Query("SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO(" +
 	       "e.empId, e.employeementId, e.billable, e.billableType, e.name, d.name, " +
-	       "p.projectId, p.projectName, p.poProjectId, p.poStartDate, p.poEndDate, " +
+	       "p.projectId, p.projectName, p.poProjectId, p.startDate, p.endDate, " +
 	       "p.apmosysRM, p.clientRM, p.poProjectType, p.poNo, c.clientName, " +
 	       "t.teamId, t.teamName, t.isActive, etm.employeeRole, etm.active, " +
 	       "pm.empId, pm.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) " +
@@ -361,8 +361,8 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 	 
 	 
 	 
-	 @Query(nativeQuery = true,value ="select distinct p.project_id,p.project_name,p.apmosysrm, p.clientrm,p.po_start_date,\n"
-	 		+ "p.po_end_date,p.po_no,p.po_project_type,c.client_name client_name,pm.emp_id project_manager_id,pm.name project_manager,t.team_id,t.team_name,e.emp_id,e.name,jr.name job_role,d.name department,\n"
+	 @Query(nativeQuery = true,value ="select distinct p.project_id,p.project_name,p.apmosysrm, p.clientrm,p.start_date,\n"
+	 		+ "p.end_date,p.po_no,p.po_project_type,c.client_name client_name,pm.emp_id project_manager_id,pm.name project_manager,t.team_id,t.team_name,e.emp_id,e.name,jr.name job_role,d.name department,\n"
 	 		+ "e.mobile_no,e.email,e.billable,e.billable_type,etm.start_date effective_start_date,e.employeement_id\n"
 	 		+ "from projects p \n"
 	 		+ "inner join teams t on t.project_id = p.project_id\n"
@@ -423,7 +423,7 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 
 	 @Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO(" +
 		       "p.projectId, p.projectName, p.apmosysRM, p.clientRM, " +
-		       "p.poStartDate, p.poEndDate, p.poNo, p.poProjectType, " +
+		       "p.startDate, p.endDate, p.poNo, p.poProjectType, " +
 		       "c.clientName, " +                         
 		       "pm.empId, pm.name, " +
 		       "t.teamId, t.teamName, " +

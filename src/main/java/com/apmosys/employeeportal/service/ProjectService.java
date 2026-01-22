@@ -2082,8 +2082,8 @@ public class ProjectService {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 		project.setProjectName(dto.getName());
 		project.setPoProjectType(dto.getProjectType());
-		project.setPoStartDate(dateFormat.format(dto.getStartDate()));
-		project.setPoEndDate(dateFormat.format(dto.getEndDate()));
+		project.setStartDate(dateFormat.format(dto.getStartDate()));
+		project.setEndDate(dateFormat.format(dto.getEndDate()));
 		project.setStatus(dto.getStatus());
 		project.setPoNo(dto.getPoNo());
 		project.setApmosysRM(dto.getApmosysRM());
@@ -2277,7 +2277,7 @@ public class ProjectService {
         if ("P".equalsIgnoreCase(dto.getReport())) {
             // === Project Query ===
             query.append("SELECT distinct p.project_id, p.po_project_id, p.project_name, p.project_manager_id, ep.name as projManager, ")
-                 .append("p.po_no, p.po_project_type, p.po_start_date, p.po_end_date, p.clientrm, p.apmosysrm, ")
+                 .append("p.po_no, p.po_project_type, p.start_date, p.end_date, p.clientrm, p.apmosysrm, ")
                  .append("t.team_id, team_name, etm.emp_id, e.name, etm.start_date, j.name as jobRole, d.name as deptName, e.billable_type, ")
                  .append("e.billable, e.mobile_no, e.email, CASE \n"
                  		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
@@ -2312,7 +2312,7 @@ public class ProjectService {
             query.append("SELECT distinct e.emp_id, e.employeement_id, e.name, e.email, e.mobile_no, ")
                  .append("e.manager_id, m.name as ManagerName, e.employmentstatus, e.billable, e.billable_type, ")
                  .append("emp_proj_client.team_id, emp_proj_client.team_name, emp_proj_client.project_id, ")
-                 .append("emp_proj_client.project_name, emp_proj_client.po_start_date, emp_proj_client.po_end_date, ")
+                 .append("emp_proj_client.project_name, emp_proj_client.start_date, emp_proj_client.end_date, ")
                  .append("emp_proj_client.po_no, emp_proj_client.client_name, emp_proj_client.client_location, e.work_location, ")
                  .append("e.total_experience, d.dept_id, d.name as departmentName, emp_proj_client.po_project_type, j.name as jobrole, ")
                  .append("emp_proj_client.po_project_id, eppm.primary_project_name, eppm.primary_project_id, emp_proj_client.clientrm, ")
@@ -2339,8 +2339,8 @@ public class ProjectService {
                  .append("LEFT JOIN ( ")
                  .append("    SELECT etm.emp_id, GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_id) AS project_name, ")
                  .append("           GROUP_CONCAT(DISTINCT p.project_id ORDER BY p.project_id) AS project_id, ")
-                 .append("           GROUP_CONCAT(DISTINCT p.po_start_date ORDER BY p.project_id) AS po_start_date, ")
-                 .append("           GROUP_CONCAT(DISTINCT p.po_end_date ORDER BY p.project_id) AS po_end_date, ")
+                 .append("           GROUP_CONCAT(DISTINCT p.start_date ORDER BY p.project_id) AS start_date, ")
+                 .append("           GROUP_CONCAT(DISTINCT p.end_date ORDER BY p.project_id) AS end_date, ")
                  .append("           GROUP_CONCAT(DISTINCT p.po_no ORDER BY p.project_id) AS po_no, ")
                  .append("           GROUP_CONCAT(DISTINCT p.po_project_type ORDER BY p.project_id) AS po_project_type, ")
                  .append("           GROUP_CONCAT(DISTINCT c.client_name ORDER BY p.project_id) AS client_name, ")
@@ -2369,7 +2369,7 @@ public class ProjectService {
             query.append("SELECT distinct e.emp_id, e.employeement_id, e.name, e.email, e.mobile_no, ")
 	             .append("e.manager_id, m.name as ManagerName, e.employmentstatus, e.billable, e.billable_type, ")
 	             .append("t.team_id, t.team_name, p.project_id, ")
-	             .append("p.project_name, p.po_start_date, p.po_end_date, ")
+	             .append("p.project_name, p.start_date, p.end_date, ")
 	             .append("p.po_no, c.client_name, cl.client_location, e.work_location, ")
 	             .append("e.total_experience, d.dept_id, d.name as departmentName, p.po_project_type, j.name as jobrole, ")
 	             .append("p.po_project_id, eppm.primary_project_name, eppm.primary_project_id, p.clientrm, ")
@@ -2422,9 +2422,9 @@ public class ProjectService {
 
 		if (flag != null && !flag.isEmpty()) {
 			if ("Active".equalsIgnoreCase(flag)) {
-				innerWhere.append(" AND p.po_end_date >= CURRENT_DATE ");
+				innerWhere.append(" AND p.end_date >= CURRENT_DATE ");
 			} else if ("Inactive".equalsIgnoreCase(flag)) {
-				innerWhere.append(" AND p.po_end_date < CURRENT_DATE ");
+				innerWhere.append(" AND p.end_date < CURRENT_DATE ");
 			} else {
 				innerWhere.append(" AND flag = '").append(flag).append("' "); // Default case if flag is not
 																				// Active/Inactive
@@ -2888,8 +2888,8 @@ public class ProjectService {
 	            dtoObj.setTeamName(record[11] != null ? record[11].toString() : null);
 	            dtoObj.setProjectIds(record[12] != null ? record[12].toString() : null);
 	            dtoObj.setProjectName(record[13] != null ? record[13].toString() : null);
-	            dtoObj.setPoStartDate(record[14] != null ? record[14].toString() : null);
-	            dtoObj.setPoEndDate(record[15] != null ? record[15].toString() : null);
+	            dtoObj.setProjectStartDate(record[14] != null ? record[14].toString() : null);
+	            dtoObj.setProjectEndDate(record[15] != null ? record[15].toString() : null);
 	            dtoObj.setPoNo(record[16] != null ? record[16].toString() : null);
 	            dtoObj.setClientName(record[17] != null ? record[17].toString() : null);
 	            dtoObj.setClientLocation(record[18] != null ? record[18].toString() : null);
@@ -2945,8 +2945,8 @@ public class ProjectService {
 					projectDTO.setProjectManager(record[4] != null ? record[4].toString() : null);
 					projectDTO.setPoNo(record[5] != null ? record[5].toString() : null);
 					projectDTO.setPoProjectType(record[6] != null ? record[6].toString() : null);
-					projectDTO.setPoStartDate(record[7] != null ? record[7].toString() : null);
-					projectDTO.setPoEndDate(record[8] != null ? record[8].toString() : null);
+					projectDTO.setProjectStartDate(record[7] != null ? record[7].toString() : null);
+					projectDTO.setProjectEndDate(record[8] != null ? record[8].toString() : null);
 					projectDTO.setClientRM(record[9] != null ? record[9].toString() : null);
 					projectDTO.setApmosysRM(record[10] != null ? record[10].toString() : null);
 					projectDTO.setTeamDetails(new ArrayList<>());
@@ -3618,8 +3618,8 @@ public ServiceResponse getCompletedFixedCostProjects(ProjectRequest projectReque
                 // Note: ProjectManager field not found in DTO - skipping row[8]
                 dto.setApmosysRM(row[9] != null ? row[9].toString() : null);
                 dto.setClientRM(row[10] != null ? row[10].toString() : null);
-                dto.setPoStartDate(row[11] != null ? row[11].toString() : null);
-                dto.setPoEndDate(row[12] != null ? row[12].toString() : null);
+                dto.setProjectStartDate(row[11] != null ? row[11].toString() : null);
+                dto.setProjectEndDate(row[12] != null ? row[12].toString() : null);
                 dto.setCreatedOn(row[13] != null ? Timestamp.valueOf(row[13].toString()) : null);
                 dto.setPoProjectId(row[14] != null ? Long.valueOf(row[14].toString()) : null);
                 dto.setProjectType(row[15] != null ? row[15].toString() : null);

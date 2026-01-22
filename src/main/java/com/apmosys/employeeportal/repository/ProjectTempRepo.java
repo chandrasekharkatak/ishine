@@ -11,8 +11,8 @@ import com.apmosys.employeeportal.model.ProjectTemp;
 public interface ProjectTempRepo extends JpaRepository<ProjectTemp, Integer>{
 
 	@Query(value="select distinct p.project_temp_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
-			+ "	p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.po_end_date, p.po_no, \n"
-			+ "	p.po_project_type, p.po_start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
+			+ "	p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.end_date, p.po_no, \n"
+			+ "	p.po_project_type, p.start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
 			+ "	p.apmosys_rm_email, p.project_completion_date, p.project_status, p.client_name, \n"
 			+ "	CASE\n"
 			+ "		WHEN p.is_draft_project = 'true' THEN 'Pending For Approval'\n"
@@ -24,8 +24,8 @@ public interface ProjectTempRepo extends JpaRepository<ProjectTemp, Integer>{
 			+ "	END AS draftStatus from project_temp p where p.is_draft_project='Not Started'\n"
 			+ "union\n"
 			+ "select distinct p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
-			+ "	p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.po_end_date, p.po_no, \n"
-			+ " p.po_project_type, p.po_start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
+			+ "	p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.end_date, p.po_no, \n"
+			+ " p.po_project_type, p.start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
 			+ " p.apmosys_rm_email, p.project_completion_date, p.project_status, p.client_name, \n"
 			+ " CASE\n"
 			+ "	WHEN p.is_draft_project = 'true' THEN 'Pending For Approval'\n"

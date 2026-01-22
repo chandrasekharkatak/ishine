@@ -20,8 +20,8 @@ public class RMGProjectToEmployeeFlatDTO {
 	 private String projectName;
 	 private String apmosysRM;
 	 private String clientRM;
-	 private String poStartDate;
-	 private String poEndDate;
+	 private String projectStartDate;
+	 private String projectEndDate;
 	 private String poProjectType;
 	 private String poNo;
 	  private Long pmEmpId;
@@ -41,7 +41,7 @@ public class RMGProjectToEmployeeFlatDTO {
 	    private String clientName;
 	    
 		public RMGProjectToEmployeeFlatDTO(Integer projectId, String projectName, String apmosysRM, String clientRM,
-				String poStartDate, String poEndDate,String poNo, String poProjectType,String clientName , 
+				String projectStartDate, String projectEndDate,String poNo, String poProjectType,String clientName , 
 				Long pmEmpId, String pmName, Long teamId, String teamName, Long empId, String name, String jobRoleName,
 				String department,Long mobileNo, String email, String billable, String billableType,
 				LocalDateTime effectiveStartDate,Long employeementId) {
@@ -50,8 +50,8 @@ public class RMGProjectToEmployeeFlatDTO {
 			this.projectName = projectName;
 			this.apmosysRM = apmosysRM;
 			this.clientRM = clientRM;
-			this.poStartDate = poStartDate;
-			this.poEndDate = poEndDate;
+			this.projectStartDate = projectStartDate;
+			this.projectEndDate = projectEndDate;
 			this.poProjectType = poProjectType;
 			this.clientName = clientName;
 			this.poNo = poNo;

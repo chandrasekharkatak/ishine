@@ -16,8 +16,8 @@ public class RMGProject {
 	private String clientLocation;
 	private String projectName;
 	private Long poProjectId;
-	private String poStartDate;
-	private String poEndDate;
+	private String projectStartDate;
+	private String projectEndDate;
 	private String apmosysRM;
 	private String clientRM;
 	private String poProjectType;

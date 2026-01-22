@@ -324,7 +324,7 @@ expiredProjectsWithin1Month:any;
   isSearchEnabled: boolean = false;
   isSESearchEnabled: boolean = false;
   // projectColumns: any[] = ["blank", "draftStatus", "name", "poNo", "projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status"];
-  projectColumns: any[] = ["blank", "name", "poNo", "combinedProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status","projectStatus", "draftStatus"];
+  projectColumns: any[] = ["blank", "name", "poNo", "combinedProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "projectStartDate", "projectEndDate", "state", "createdOn", "status","projectStatus", "draftStatus"];
 
   projectDetails: any = [];
   projectDetails2: any = [];
@@ -515,17 +515,17 @@ expiredProjectsWithin1Month:any;
   // filters: any = {};
   // isSearchEnabled: boolean = false;
 
-  employeeReportColumnForDetailedProjectViewClub: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience', 'primaryProjectName'];
-  employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience'];
+  employeeReportColumnForDetailedProjectViewClub: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'projectStartDate', 'projectEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience', 'primaryProjectName'];
+  employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'projectStartDate', 'projectEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience'];
   leaveReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'noOfDays', 'reason', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
   timesheetReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'totalWorkingHours', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'leaveType', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
-  employeeReportColumn: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'poStartDate', 'poEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
+  employeeReportColumn: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'projectStartDate', 'projectEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
   // 'dateOfJoining', 'aadhar', 'aboutMe', 'address', 'permanentAddress', 'city', 'bloodGroup', 'dateOfBirth', 'gender', 'fatherName', 'panNumber', 'placeOfBirth', 'workLocation', 'probationPeriod', 'noticePeriod', 'country', 'totalExperience', 'emergencyContactMobile', 'emergencyContactPerson', 'landline', 'maritalStatus', 'motherTongue', 'alternateMobileNo', 'pincode', 'relation', 'state', 'viewsOnOrganisation', 'passportNumber', 'bankAccountNo', 'bankIFSCCode', 'bankName', 'pfAccountNumber', 'previousPfAccountNumber', 'uan', 'esicNumber', 'graduationType', 'pursuing', 'passingGrade', 'yearOfPassing',
   leaveTimesheetReportColumn: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
   defaultMappingColumns: any[] = ['tabName', 'featureName', 'subFeatureName'];
   employeeReportColumnForDetailedProjecttttView: any[] = ['blank',
     'projectName', 'projectManager', 'apmosysRM', 'clientRM',
-    'poStartDate', 'poEndDate', 'poNo', 'poProjectType', 'teamName',
+    'projectStartDate', 'projectEndDate', 'poNo', 'poProjectType', 'teamName',
     'employeeName', 'jobRole', 'deptName', 'mobileNo', 'email',
     'billable', 'billableType', 'effectiveStartDate'
   ];
@@ -3281,8 +3281,8 @@ cancelRequest7() {
       'Client': x.clientName || '',
       'Apmosys RM': x.apmosysRM || '',
       'Client RM': x.clientRM || '',
-      'Start Date': x.poStartDate || '',
-      'End Date': x.poEndDate || '',
+      'Start Date': x.projectStartDate || '',
+      'End Date': x.projectEndDate || '',
       'State': x.state || '',
       'Created On': x.createdOn || '',
       'Project Status': x.projectStatus || ''
@@ -3891,7 +3891,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
             }
 
             this.createDepartmentArray();
-            console.log("this.allProject_Po_Internal", this.allProject_Po_Internal);
+            console.log("this.allProject_Po_Internal final", this.allProject_Po_Internal);
             // this.tabCounts = response.serviceResponse.counts;
             // this.totalCount = this.tabCounts.rejectedCount + this.tabCounts.notStartedCount + this.tabCounts.approvedCount + this.tabCounts.pendingForApprovalCount
         } else {

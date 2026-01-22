@@ -865,12 +865,12 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				break;
 			}
 			case "Po Start Date": {
-				query = query.append("  emp_proj_client.po_start_date ").append(dto.getOperator() + " '")
+				query = query.append("  emp_proj_client.start_date ").append(dto.getOperator() + " '")
 						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				break;
 			}
 			case "Po End Date": {
-				query = query.append("  emp_proj_client.po_end_date ").append(dto.getOperator() + " '")
+				query = query.append("  emp_proj_client.end_date ").append(dto.getOperator() + " '")
 						.append(dto.getValue() + "' ").append(dto.getConjunction());
 				break;
 			}
@@ -1040,7 +1040,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 						+ "    e4.name AS createdByName, e3.name AS updatedByName, e.designation_id, de.designation_name, \n"
 						+ "    e.updated_by, e.billable_type, emp_proj_client.team_name,e.is_consultant, e.is_apprenticeship, \n"  // Added comma here
 						+ "    emp_proj_client.po_no, \n"
-						+ "    emp_proj_client.po_start_date, emp_proj_client.po_end_date, emp_proj_client.po_project_type, \n"
+						+ "    emp_proj_client.start_date, emp_proj_client.end_date, emp_proj_client.po_project_type, \n"
 						+ " \n"
 						+ "    (SELECT COUNT(*) * 100.0 / NULLIF(COUNT(*), 0) \n"
 						+ "     FROM employee e_profile \n"
@@ -1061,8 +1061,8 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 						+ "        GROUP_CONCAT(DISTINCT cl.client_name ORDER BY pr.project_id SEPARATOR ',') AS client_name,  \n"
 						+ "        GROUP_CONCAT(DISTINCT t.team_name ORDER BY pr.project_id SEPARATOR ',') AS team_name,\n"
 						+ "        GROUP_CONCAT(DISTINCT pr.po_no ORDER BY pr.project_id SEPARATOR ',') AS po_no,\n"
-						+ "        GROUP_CONCAT(DISTINCT pr.po_start_date ORDER BY pr.project_id SEPARATOR ',') AS po_start_date,\n"
-						+ "        GROUP_CONCAT(DISTINCT pr.po_end_date ORDER BY pr.project_id SEPARATOR ',') AS po_end_date,\n"
+						+ "        GROUP_CONCAT(DISTINCT pr.start_date ORDER BY pr.project_id SEPARATOR ',') AS start_date,\n"
+						+ "        GROUP_CONCAT(DISTINCT pr.end_date ORDER BY pr.project_id SEPARATOR ',') AS end_date,\n"
 						+ "        GROUP_CONCAT(DISTINCT pr.po_project_type ORDER BY pr.project_id SEPARATOR ',') AS po_project_type \n"
 						+ "    FROM employee_team_mapping etm \n"
 						+ "    LEFT JOIN teams t ON t.team_id = etm.team_id \n"
@@ -1090,7 +1090,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 								+ "    e4.name AS createdByName, e3.name AS updatedByName, e.designation_id, de.designation_name, \n"
 								+ "    e.updated_by, e.billable_type, emp_proj_client.team_name, e.is_consultant, e.is_apprenticeship, \n"
 								+ "    emp_proj_client.po_no, \n"
-								+ "    emp_proj_client.po_start_date, emp_proj_client.po_end_date, emp_proj_client.po_project_type, \n"
+								+ "    emp_proj_client.start_date, emp_proj_client.end_date, emp_proj_client.po_project_type, \n"
 								+ "\n"
 								+ "    (SELECT COUNT(*) * 100.0 / NULLIF(COUNT(*), 0) \n"
 								+ "     FROM employee e_profile \n"
@@ -1111,8 +1111,8 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 								+ "        GROUP_CONCAT(DISTINCT cl.client_name ORDER BY pr.project_id SEPARATOR ',') AS client_name,  \n"
 								+ "        GROUP_CONCAT(DISTINCT t.team_name ORDER BY pr.project_id SEPARATOR ',') AS team_name,\n"
 								+ "        GROUP_CONCAT(DISTINCT pr.po_no ORDER BY pr.project_id SEPARATOR ',') AS po_no,\n"
-								+ "        GROUP_CONCAT(DISTINCT pr.po_start_date ORDER BY pr.project_id SEPARATOR ',') AS po_start_date,\n"
-								+ "        GROUP_CONCAT(DISTINCT pr.po_end_date ORDER BY pr.project_id SEPARATOR ',') AS po_end_date,\n"
+								+ "        GROUP_CONCAT(DISTINCT pr.start_date ORDER BY pr.project_id SEPARATOR ',') AS start_date,\n"
+								+ "        GROUP_CONCAT(DISTINCT pr.end_date ORDER BY pr.project_id SEPARATOR ',') AS end_date,\n"
 								+ "        GROUP_CONCAT(DISTINCT pr.po_project_type ORDER BY pr.project_id SEPARATOR ',') AS po_project_type \n"
 								+ "    FROM employee_team_mapping etm \n"
 								+ "    LEFT JOIN teams t ON t.team_id = etm.team_id \n"
@@ -1501,8 +1501,8 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 					empDTO.setIsConsultant(object[71] != null ? object[71].toString() : null);
 					empDTO.setIsApprenticeship(object[72] != null ? object[72].toString() : null);
 					empDTO.setPoNo(object[73] != null ? object[73].toString() : null);
-                    empDTO.setPoStartDate(object[74] != null ? object[74].toString() : null);
-					empDTO.setPoEndDate(object[75] != null ? object[75].toString() : null);
+                    empDTO.setProjectStartDate(object[74] != null ? object[74].toString() : null);
+					empDTO.setProjectEndDate(object[75] != null ? object[75].toString() : null);
 					empDTO.setPoProjectType(object[76] != null ? object[76].toString() : null);
 					empDTO.setIsApmosysProduct(object[78] != null ? object[78].toString() : null);	
 					

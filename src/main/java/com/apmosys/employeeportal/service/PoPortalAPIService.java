@@ -1839,10 +1839,10 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	    poDetails.setPoNo(poDto.getPoNo());
 	    
         String formattedStartDate = dateFormat.format(poDto.getPoStartDate());
-        project.setPoStartDate(formattedStartDate);
+        project.setStartDate(formattedStartDate);
       
         String formattedEndDate = dateFormat.format(poDto.getPoEndDate());
-        project.setPoEndDate(formattedEndDate);
+        project.setEndDate(formattedEndDate);
 	   
 	   
 	    poDetails.setClientLocationId(poDto.getClientAddressId());

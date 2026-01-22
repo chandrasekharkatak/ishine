@@ -21,8 +21,8 @@ public class GetProjectToEmployeeReportForProjectDTO {
     private String poProjectType;
     private String clientRM;
     private String apmosysRM;
-    private String poStartDate;
-    private String poEndDate;
+    private String projectStartDate;
+    private String projectEndDate;
     private Integer employeeCount;
     private Integer projectCount;
     private String clientName;

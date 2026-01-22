@@ -695,8 +695,8 @@
 
 
 
-            <th scope="col" class="info-label wide-col" mat-sort-header="poStartDate|string">Po Start Date</th>
-            <th scope="col" class="info-label wide-col" mat-sort-header="poEndDate|string">Po End Date</th>
+            <th scope="col" class="info-label wide-col" mat-sort-header="projectStartDate|string">Po Start Date</th>
+            <th scope="col" class="info-label wide-col" mat-sort-header="projectEndDate|string">Po End Date</th>
             <th scope="col" class="info-label wide-col" mat-sort-header="effectiveStartDate|string">Effective Start
               Date
             </th>
@@ -825,18 +825,18 @@
 
 
             <td>
-              <ng-container *ngIf="employee.poStartDate">
-                {{ (show === i) ? employee.poStartDate : (employee.poStartDate | slice: 0:20) }}
-                <a *ngIf="employee.poStartDate.length > 20" (click)="show = (show === i ? -1 : i)"
+              <ng-container *ngIf="employee.projectStartDate">
+                {{ (show === i) ? employee.projectStartDate : (employee.projectStartDate | slice: 0:20) }}
+                <a *ngIf="employee.projectStartDate.length > 20" (click)="show = (show === i ? -1 : i)"
                   style="cursor: pointer">
                   ..{{ (show === i) ? '▲' : '▼' }}
                 </a>
               </ng-container>
             </td>
             <td>
-              <ng-container *ngIf="employee.poEndDate">
-                {{ (show === i) ? employee.poEndDate : (employee.poEndDate | slice: 0:20) }}
-                <a *ngIf="employee.poEndDate.length > 20" (click)="show = (show === i ? -1 : i)"
+              <ng-container *ngIf="employee.projectEndDate">
+                {{ (show === i) ? employee.projectEndDate : (employee.projectEndDate | slice: 0:20) }}
+                <a *ngIf="employee.projectEndDate.length > 20" (click)="show = (show === i ? -1 : i)"
                   style="cursor: pointer">
                   ..{{ (show === i) ? '▲' : '▼' }}
                 </a>
@@ -1019,10 +1019,10 @@
                     {{ project.clientRM || '—' }}
                   </td>
                   <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
-                    {{ project.poStartDate }}
+                    {{ project.projectStartDate }}
                   </td>
                   <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
-                    {{ project.poEndDate }}
+                    {{ project.projectEndDate }}
                   </td>
                   <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
                     {{ project.poNo }}
@@ -1117,8 +1117,8 @@
             <!--added by anurag allEmployees Query has changed as per pratima ma'am discussion in a group on 23 may 24 11:09 PM   -->
             <th scope="col" class="info-label wide-wide-col" mat-sort-header="projectName|string">Project Name</th>
             <th scope="col" class="info-label wide-col" mat-sort-header="poNo|string">Po No</th>
-            <th scope="col" class="info-label wide-col" mat-sort-header="poStartDate|string">Po Start Date</th>
-            <th scope="col" class="info-label wide-col" mat-sort-header="poEndDate|string">Po End Date</th>
+            <th scope="col" class="info-label wide-col" mat-sort-header="projectStartDate|string">Po Start Date</th>
+            <th scope="col" class="info-label wide-col" mat-sort-header="projectEndDate|string">Po End Date</th>
             <th scope="col" class="info-label " mat-sort-header="poProjectType|string">Po Project Type</th>
             <th scope="col" class="info-label wide-col" mat-sort-header="clientName|string">Client Name</th>
             <th scope="col" class="info-label " mat-sort-header="billable|string">Billable</th>
@@ -1245,18 +1245,18 @@
               </ng-container>
             </td>
             <td>
-              <ng-container *ngIf="employee.poStartDate">
-                {{ (show === i) ? employee.poStartDate : (employee.poStartDate | slice: 0:20) }}
-                <a *ngIf="employee.poStartDate.length > 20" (click)="show = (show === i ? -1 : i)"
+              <ng-container *ngIf="employee.projectStartDate">
+                {{ (show === i) ? employee.projectStartDate : (employee.projectStartDate | slice: 0:20) }}
+                <a *ngIf="employee.projectStartDate.length > 20" (click)="show = (show === i ? -1 : i)"
                   style="cursor: pointer">
                   ..{{ (show === i) ? '▲' : '▼' }}
                 </a>
               </ng-container>
             </td>
             <td>
-              <ng-container *ngIf="employee.poEndDate">
-                {{ (show === i) ? employee.poEndDate : (employee.poEndDate | slice: 0:20) }}
-                <a *ngIf="employee.poEndDate.length > 20" (click)="show = (show === i ? -1 : i)"
+              <ng-container *ngIf="employee.projectEndDate">
+                {{ (show === i) ? employee.projectEndDate : (employee.projectEndDate | slice: 0:20) }}
+                <a *ngIf="employee.projectEndDate.length > 20" (click)="show = (show === i ? -1 : i)"
                   style="cursor: pointer">
                   ..{{ (show === i) ? '▲' : '▼' }}
                 </a>
@@ -1680,8 +1680,8 @@
               <td class="text-capitalize">{{ project.clientName || 'NA' }}</td>
               <td class="text-capitalize">{{ project.apmosysRM || 'NA' }}</td>
               <td class="text-capitalize">{{ project.clientRM  || 'NA'}}</td>
-              <td>{{ (project.poStartDate | date:'dd/MM/yyyy') || 'NA' }}</td>
-              <td>{{ (project.poEndDate | date:'dd/MM/yyyy') || 'NA' }}</td>
+              <td>{{ (project.projectStartDate | date:'dd/MM/yyyy') || 'NA' }}</td>
+              <td>{{ (project.projectEndDate | date:'dd/MM/yyyy') || 'NA' }}</td>
               <td>{{ (project.createdOn | date:'dd/MM/yyyy') || 'NA' }}</td>
             </tr>
           </tbody>
@@ -2283,8 +2283,8 @@
                         <th scope="col" class="info-label" mat-sort-header="projectName|string">Project Name</th>	
                         <th scope="col" class="info-label" mat-sort-header="poNo|string">PO No</th>	
                         <th scope="col" class="info-label" mat-sort-header="poProjectType|string">PO Type</th>	
-                        <th scope="col" class="info-label" mat-sort-header="poStartDate|string">PO Start</th>	
-                        <th scope="col" class="info-label" mat-sort-header="poEndDate|datetime">PO End</th>	
+                        <th scope="col" class="info-label" mat-sort-header="projectStartDate|string">PO Start</th>	
+                        <th scope="col" class="info-label" mat-sort-header="projectEndDate|datetime">PO End</th>	
                         <th scope="col" class="info-label" mat-sort-header="clientName|string">Client</th>
                         <th scope="col" class="info-label" mat-sort-header="clientLocation|number">Location</th>
                         <!-- <th scope="col" class="info-label">Comments</th> -->
@@ -2301,8 +2301,8 @@
                             <td>{{ emp.projectName || 'N/A' }}</td>
                             <td>{{ emp.poNo || 'N/A' }}</td>
                             <td>{{ emp.poProjectType || 'N/A' }}</td>
-                            <td>{{ emp.poStartDate || 'N/A' }}</td>
-                            <td>{{ emp.poEndDate || 'N/A' }}</td>
+                            <td>{{ emp.projectStartDate || 'N/A' }}</td>
+                            <td>{{ emp.projectEndDate || 'N/A' }}</td>
                             <td>{{ emp.clientName || 'N/A' }}</td>
                             <td>{{ emp.clientLocation || 'N/A' }}</td>
                         </tr>
@@ -2359,8 +2359,8 @@
             <td>{{ emp.projectName || 'N/A' }}</td>
             <td>{{ emp.poNo || 'N/A' }}</td>
             <td>{{ emp.poProjectType || 'N/A' }}</td>
-            <td>{{ emp.poStartDate || 'N/A' }}</td>
-            <td>{{ emp.poEndDate || 'N/A' }}</td>
+            <td>{{ emp.projectStartDate || 'N/A' }}</td>
+            <td>{{ emp.projectEndDate || 'N/A' }}</td>
             <td>{{ emp.clientName || 'N/A' }}</td>
             <td>{{ emp.clientLocation || 'N/A' }}</td>
           </tr>
@@ -2417,8 +2417,8 @@
             <td>{{ emp.projectName || 'N/A' }}</td>
             <td>{{ emp.poNo || 'N/A' }}</td>
             <td>{{ emp.poProjectType || 'N/A' }}</td>
-            <td>{{ emp.poStartDate || 'N/A' }}</td>
-            <td>{{ emp.poEndDate || 'N/A' }}</td>
+            <td>{{ emp.projectStartDate || 'N/A' }}</td>
+            <td>{{ emp.projectEndDate || 'N/A' }}</td>
             <td>{{ emp.clientName || 'N/A' }}</td>
             <td>{{ emp.clientLocation || 'N/A' }}</td>
           </tr>
@@ -2475,8 +2475,8 @@
             <td>{{ emp.projectName || 'N/A' }}</td>
             <td>{{ emp.poNo || 'N/A' }}</td>
             <td>{{ emp.poProjectType || 'N/A' }}</td>
-            <td>{{ emp.poStartDate || 'N/A' }}</td>
-            <td>{{ emp.poEndDate || 'N/A' }}</td>
+            <td>{{ emp.projectStartDate || 'N/A' }}</td>
+            <td>{{ emp.projectEndDate || 'N/A' }}</td>
             <td>{{ emp.clientName || 'N/A' }}</td>
             <td>{{ emp.clientLocation || 'N/A' }}</td>
           </tr>

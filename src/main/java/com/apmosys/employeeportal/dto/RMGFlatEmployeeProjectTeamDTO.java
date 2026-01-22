@@ -27,8 +27,8 @@ public class RMGFlatEmployeeProjectTeamDTO {
     private String clientName;
     private String projectName;
     private Long poProjectId;
-    private String poStartDate;
-    private String poEndDate;
+    private String projectStartDate;
+    private String projectEndDate;
     private String apmosysRM;
     private String clientRM;
     private String poProjectType;
@@ -48,7 +48,7 @@ public class RMGFlatEmployeeProjectTeamDTO {
     
 	public RMGFlatEmployeeProjectTeamDTO(Long empId, Long employeementId, String name, String employmentstatus,
 			String billable, String billableType, String department, Integer projectId, String clientName,
-			String projectName, Long poProjectId, String poStartDate, String poEndDate, String apmosysRM,
+			String projectName, Long poProjectId, String projectStartDate, String projectEndDate, String apmosysRM,
 			String clientRM, String poProjectType, String poNo, String projectActive, Long teamId, String teamName,
 			String teamIsActive, String employeeRole, Integer etmActive) {
 		super();
@@ -63,8 +63,8 @@ public class RMGFlatEmployeeProjectTeamDTO {
 		this.clientName = clientName;
 		this.projectName = projectName;
 		this.poProjectId = poProjectId;
-		this.poStartDate = poStartDate;
-		this.poEndDate = poEndDate;
+		this.projectStartDate = projectStartDate;
+		this.projectEndDate = projectEndDate;
 		this.apmosysRM = apmosysRM;
 		this.clientRM = clientRM;
 		this.poProjectType = poProjectType;
@@ -78,15 +78,15 @@ public class RMGFlatEmployeeProjectTeamDTO {
 	}
 	public RMGFlatEmployeeProjectTeamDTO(Long employeementId, String name, String departmentName, String billableType,
 			Integer projectId, String projectName, String clientName, String apmosysRM, String clientRM, String poNo,
-			String poProjectType, String poStartDate, String poEndDate) {
+			String poProjectType, String projectStartDate, String projectEndDate) {
 		this.employeementId = employeementId;
 		this.name = name;
 		this.department = departmentName;
 		this.billableType = billableType;
 		this.projectId = projectId;
 		this.projectName = projectName;
-		this.poStartDate = poStartDate;
-		this.poEndDate = poEndDate;
+		this.projectStartDate = projectStartDate;
+		this.projectEndDate = projectEndDate;
 		this.apmosysRM = apmosysRM;
 		this.clientRM = clientRM;
 		this.poProjectType = poProjectType;
@@ -104,8 +104,8 @@ public class RMGFlatEmployeeProjectTeamDTO {
 		    Integer projectId,
 		    String projectName,
 		    Long poProjectId,
-		    String poStartDate,
-		    String poEndDate,
+		    String projectStartDate,
+		    String projectEndDate,
 		    String apmosysRM,
 		    String clientRM,
 		    String poProjectType,
@@ -131,8 +131,8 @@ public class RMGFlatEmployeeProjectTeamDTO {
 		    this.projectId = projectId;
 		    this.projectName = projectName;
 		    this.poProjectId = poProjectId;
-		    this.poStartDate = poStartDate;
-		    this.poEndDate = poEndDate;
+		    this.projectStartDate = projectStartDate;
+		    this.projectEndDate = projectEndDate;
 		    this.apmosysRM = apmosysRM;
 		    this.clientRM = clientRM;
 		    this.poProjectType = poProjectType;

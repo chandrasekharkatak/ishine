@@ -85,7 +85,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	// @Query(nativeQuery=true,value="select DISTINCT po_project_type from projects where po_project_type IS NOT NULL")
 	// List<String>finddistinctPoProjectType();
 
-	@Query(nativeQuery=true,value="SELECT * FROM projects p inner join teams t on p.project_id = t.project_id WHERE STR_TO_DATE(p.po_end_date, '%Y-%m-%d') < CURDATE() ")
+	@Query(nativeQuery=true,value="SELECT * FROM projects p inner join teams t on p.project_id = t.project_id WHERE STR_TO_DATE(p.end_date, '%Y-%m-%d') < CURDATE() ")
 	public List<Project> getExpiredPolist();
 	
 	@Query(nativeQuery = true)
@@ -99,7 +99,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	public List<Object[]> getPoProjectInfo(Long poProjectId);
 	
 	@Query(value = "select etm.team_id, t.team_name, etm.emp_id, e.name, etm.employee_role, e.billable_type, \n"
-			+ "etm.start_date, etm.active, p.project_id, p.project_name, c.client_id, c.client_name, p.po_end_date, \n"
+			+ "etm.start_date, etm.active, p.project_id, p.project_name, c.client_id, c.client_name, p.end_date, \n"
 			+ "s.name spoc, tl.name teamLead, etm.employee_team_map_id, d.name as department, \n"
 			+ "CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) \n"
 			+ "ELSE CONCAT('A-', e.employeement_id) \n"
@@ -194,7 +194,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 
 	@Query(value="SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n"+
 			"e.employeementId, e.name, d.name ,e.billableType, p.projectId,p.projectName, p.clientName,  \n" + 
-			"p.apmosysRM ,p.clientRM ,p.poNo ,p.poProjectType ,p.poStartDate ,p.poEndDate )  \n" + 
+			"p.apmosysRM ,p.clientRM ,p.poNo ,p.poProjectType ,p.startDate ,p.endDate )  \n" + 
 			"from Project p  \n" + 
 			"inner join Team t on p.projectId = t.projectId  \n" + 
 			"inner join EmployeeTeamMap etm on t.teamId = etm.teamId  \n" + 
@@ -224,7 +224,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	@Query(value="SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n"+
 			"e.employeementId, e.name, d.name ,e.billableType, p.projectId,p.projectName, p.clientName,  \n" + 
-			"p.apmosysRM ,p.clientRM ,p.poNo ,p.poProjectType ,p.poStartDate ,p.poEndDate )  \n" + 
+			"p.apmosysRM ,p.clientRM ,p.poNo ,p.poProjectType ,p.startDate ,p.endDate )  \n" + 
 			"from Project p  \n" +
 			"inner join Team t on p.projectId = t.projectId  \n" + 
 			"inner join EmployeeTeamMap etm on t.teamId = etm.teamId  \n" + 
@@ -253,7 +253,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	@Query(value = "SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n"+
 			"e.employeementId, e.name, d.name ,e.billableType, p.projectId,p.projectName, p.clientName,  \n" + 
-			"p.apmosysRM ,p.clientRM ,p.poNo ,p.poProjectType ,p.poStartDate ,p.poEndDate )  \n" + 
+			"p.apmosysRM ,p.clientRM ,p.poNo ,p.poProjectType ,p.startDate ,p.endDate )  \n" + 
 			"from Project p  \n" +
 			"inner join Team t on p.projectId = t.projectId  \n" + 
 			"inner join EmployeeTeamMap etm on t.teamId = etm.teamId  \n" + 
@@ -268,8 +268,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	@Query(value = "SELECT new com.apmosys.employeeportal.dto.ProjectFetchDTO( \n"
 			+ "p.projectId, p.createdOn, p.projectName, p.state, p.clientId, p.poProjectId, p.active, \n"
-			+ "p.syncProject, p.createdBy, p.updatedBy, p.updatedOn, p.isDraftProject, p.poEndDate, p.poNo, \n"
-			+ "p.poProjectType, p.poStartDate, p.apmosysRM, p.clientRM, p.deptId, p.isRenewable, p.status,\n"
+			+ "p.syncProject, p.createdBy, p.updatedBy, p.updatedOn, p.isDraftProject, p.endDate, p.poNo, \n"
+			+ "p.poProjectType, p.startDate, p.apmosysRM, p.clientRM, p.deptId, p.isRenewable, p.status,\n"
 			+ "p.apmosysRmEmail, p.projectCompletionDate, p.projectStatus, p.internalProjectType,c.clientName,\n"
 			+ "CASE \n"
 			+ "	 WHEN p.isDraftProject = 'true' THEN 'Pending For Approval' \n"
@@ -330,8 +330,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	@Query(value="SELECT  distinct new com.apmosys.employeeportal.dto.ProjectFetchDTO(\n"
 			+ "			p.projectId, p.createdOn, p.projectName, p.state, p.clientId, p.poProjectId, p.active, \n"
-			+ "			p.syncProject, p.createdBy, p.updatedBy, p.updatedOn, p.isDraftProject, p.poEndDate, p.poNo, \n"
-			+ "			p.poProjectType, p.poStartDate, p.apmosysRM, p.clientRM, p.deptId, p.isRenewable, p.status,\n"
+			+ "			p.syncProject, p.createdBy, p.updatedBy, p.updatedOn, p.isDraftProject, p.endDate, p.poNo, \n"
+			+ "			p.poProjectType, p.startDate, p.apmosysRM, p.clientRM, p.deptId, p.isRenewable, p.status,\n"
 			+ "			p.apmosysRmEmail, p.projectCompletionDate, p.projectStatus, p.internalProjectType,c.clientName,\n"
 			+ "			CASE \n"
 			+ "				 WHEN p.isDraftProject = 'true' THEN 'Pending For Approval' \n"
@@ -352,7 +352,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "			and (p.status != 'Completed' or p.status is null)\n"
 			+ "			and not exists (select 1 from Team t where t.projectId = p.projectId) \n"
 //			+ "			and date(p.poEndDate) > curdate()\n"
-			+ "			and (p.internalProjectType is not null or date(p.poEndDate)>curdate())\n"
+			+ "			and (p.internalProjectType is not null or date(p.endDate)>curdate())\n"
 			+ "			  and (pdm.deptId IN (:deptIds))  ")
 	List<ProjectFetchDTO> getAllNotStartedProjects(@Param("deptIds") List<Long> deptIds);
 //	@Query(value = "SELECT \n"
@@ -391,8 +391,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	@Query(value = "SELECT new com.apmosys.employeeportal.dto.ProjectFetchDTO( \n"
 			+ "p.projectId, p.createdOn, p.projectName, p.state, p.clientId, p.poProjectId, p.active, \n"
-			+ "p.syncProject, p.createdBy, p.updatedBy, p.updatedOn, p.isDraftProject, p.poEndDate, p.poNo, \n"
-			+ "p.poProjectType, p.poStartDate, p.apmosysRM, p.clientRM, p.deptId, p.isRenewable, p.status,\n"
+			+ "p.syncProject, p.createdBy, p.updatedBy, p.updatedOn, p.isDraftProject, p.endDate, p.poNo, \n"
+			+ "p.poProjectType, p.startDate, p.apmosysRM, p.clientRM, p.deptId, p.isRenewable, p.status,\n"
 			+ "p.apmosysRmEmail, p.projectCompletionDate, p.projectStatus, p.internalProjectType,c.clientName,\n"
 			+ "CASE \n"
 			+ "	 WHEN p.isDraftProject = 'true' THEN 'Pending For Approval' \n"
@@ -483,7 +483,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "			          AND p.is_draft_project IS NULL \n"
 			+ "			          AND (p.status != 'Completed' OR p.status IS NULL)\n"
 			+ "			          AND NOT EXISTS (SELECT 1 FROM teams t WHERE t.project_id = p.project_id) \n"
-			+ "			          AND (p.internal_project_type IS NOT NULL OR DATE(p.po_end_date) > CURDATE())\n"
+			+ "			          AND (p.internal_project_type IS NOT NULL OR DATE(p.end_date) > CURDATE())\n"
 			+ "			          AND (pdm.dept_id IN (:deptIds))\n"
 			+ "			    ),\n"
 			+ "			\n"
@@ -527,7 +527,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "	and (p.status != 'Completed' or p.status is null)\n"
 			+ "	and not exists (select 1 from Team t where t.projectId = p.projectId) \n"
 //			+ "	and date(p.poEndDate) > curdate()\n"
-			+ "	and (p.internalProjectType is not null or date(p.poEndDate)>curdate())\n"
+			+ "	and (p.internalProjectType is not null or date(p.endDate)>curdate())\n"
 			+ "	and (pdm.deptId IN (:deptIds))")
 	Integer getAllNotStartedProjectCountInDept(List<Long> deptIds);
 	
@@ -625,8 +625,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	@Query(value = "SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectFetchDTO( \n"
 			+ "p.projectId, p.createdOn, p.projectName, p.state, p.clientId, p.poProjectId, p.active, \n"
-			+ "p.syncProject, p.createdBy, p.updatedBy, p.updatedOn, p.isDraftProject, p.poEndDate, p.poNo, \n"
-			+ "p.poProjectType, p.poStartDate, p.apmosysRM, p.clientRM, p.deptId, p.isRenewable, p.status,\n"
+			+ "p.syncProject, p.createdBy, p.updatedBy, p.updatedOn, p.isDraftProject, p.endDate, p.poNo, \n"
+			+ "p.poProjectType, p.startDate, p.apmosysRM, p.clientRM, p.deptId, p.isRenewable, p.status,\n"
 			+ "p.apmosysRmEmail, p.projectCompletionDate, p.projectStatus, p.internalProjectType,c.clientName, \n"
 			+ "CASE \n"
 			+ "	 WHEN p.isDraftProject = 'true' THEN 'Pending For Approval' \n"
@@ -659,8 +659,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	
 	@Query(nativeQuery=true, value="SELECT \n"
 			+ "    distinct p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
-			+ "    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.po_end_date, p.po_no, \n"
-			+ "    p.po_project_type, p.po_start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
+			+ "    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.end_date, p.po_no, \n"
+			+ "    p.po_project_type, p.start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
 			+ "    p.apmosys_rm_email, p.project_completion_date, p.project_status, p.internal_project_type,c.client_name, \n"
 			+ "    CASE\n"
 			+ "        WHEN p.is_draft_project = 'true' THEN 'Pending For Approval'\n"
@@ -680,8 +680,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "UNION\n"
 			+ "SELECT \n"
 			+ "    distinct p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
-			+ "    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.po_end_date, p.po_no, \n"
-			+ "    p.po_project_type, p.po_start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
+			+ "    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.end_date, p.po_no, \n"
+			+ "    p.po_project_type, p.start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
 			+ "    p.apmosys_rm_email, p.project_completion_date, p.project_status, p.internal_project_type,c.client_name, \n"
 			+ "    CASE\n"
 			+ "        WHEN p.is_draft_project = 'true' THEN 'Pending For Approval'\n"
@@ -702,8 +702,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "UNION\n"
 			+ "SELECT \n"
 			+ "    distinct p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
-			+ "    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.po_end_date, p.po_no, \n"
-			+ "    p.po_project_type, p.po_start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
+			+ "    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.end_date, p.po_no, \n"
+			+ "    p.po_project_type, p.start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
 			+ "    p.apmosys_rm_email, p.project_completion_date, p.project_status, p.internal_project_type,c.client_name, \n"
 			+ "    CASE\n"
 			+ "        WHEN p.is_draft_project = 'true' THEN 'Pending For Approval'\n"
@@ -723,8 +723,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "UNION\n"
 			+ "SELECT \n"
 			+ "    distinct p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
-			+ "    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.po_end_date, p.po_no, \n"
-			+ "    p.po_project_type, p.po_start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
+			+ "    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.end_date, p.po_no, \n"
+			+ "    p.po_project_type, p.start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
 			+ "    p.apmosys_rm_email, p.project_completion_date, p.project_status, p.internal_project_type,c.client_name, \n"
 			+ "    CASE\n"
 			+ "        WHEN p.is_draft_project = 'true' THEN 'Pending For Approval'\n"
@@ -963,8 +963,8 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	
 	@Query(value="SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectFetchDTO( \n"
 			+ "			p.projectId, p.createdOn, p.projectName, p.state, p.clientId, p.poProjectId, p.active, \n"
-			+ "			p.syncProject, p.createdBy, p.updatedBy, p.updatedOn, p.isDraftProject, p.poEndDate, p.poNo, \n"
-			+ "			p.poProjectType, p.poStartDate, p.apmosysRM, p.clientRM, p.deptId, p.isRenewable, p.status,\n"
+			+ "			p.syncProject, p.createdBy, p.updatedBy, p.updatedOn, p.isDraftProject, p.endDate, p.poNo, \n"
+			+ "			p.poProjectType, p.startDate, p.apmosysRM, p.clientRM, p.deptId, p.isRenewable, p.status,\n"
 			+ "			p.apmosysRmEmail, p.projectCompletionDate, p.projectStatus, p.internalProjectType,c.clientName,\n"
 			+ "CASE \n"
 			+ "	 WHEN p.isDraftProject = 'true' THEN 'Pending For Approval' \n"
@@ -997,10 +997,10 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    "p.updatedBy, " +
 		    "p.updatedOn, " +
 		    "p.isDraftProject, " +
-		    "p.poEndDate, " +
+		    "p.endDate, " +
 		    "p.poNo, " +
 		    "p.poProjectType, " +
-		    "p.poStartDate, " +
+		    "p.startDate, " +
 		    "p.apmosysRM, " +
 		    "p.clientRM, " +
 		    "p.deptId, " +
@@ -1052,10 +1052,10 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    "p.updatedBy, " +
 		    "p.updatedOn, " +
 		    "p.isDraftProject, " +
-		    "p.poEndDate, " +
+		    "p.endDate, " +
 		    "p.poNo, " +
 		    "p.poProjectType, " +
-		    "p.poStartDate, " +
+		    "p.startDate, " +
 		    "p.apmosysRM, " +
 		    "p.clientRM, " +
 		    "p.deptId, " +
@@ -1089,8 +1089,8 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	
 	@Query("SELECT  distinct new com.apmosys.employeeportal.dto.ProjectFetchDTO(\n"
 			+ "			p.projectId, p.createdOn, p.projectName, p.state, p.clientId, p.poProjectId, p.active, \n"
-			+ "			p.syncProject, p.createdBy, p.updatedBy, p.updatedOn, p.isDraftProject, p.poEndDate, p.poNo, \n"
-			+ "			p.poProjectType, p.poStartDate, p.apmosysRM, p.clientRM, p.deptId, p.isRenewable, p.status,\n"
+			+ "			p.syncProject, p.createdBy, p.updatedBy, p.updatedOn, p.isDraftProject, p.endDate, p.poNo, \n"
+			+ "			p.poProjectType, p.startDate, p.apmosysRM, p.clientRM, p.deptId, p.isRenewable, p.status,\n"
 			+ "			p.apmosysRmEmail, p.projectCompletionDate, p.projectStatus, p.internalProjectType,c.clientName,\n"
 			+ "			CASE \n"
 			+ "				 WHEN p.isDraftProject = 'true' THEN 'Pending For Approval' \n"
@@ -1115,8 +1115,8 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 
 	@Query(value="SELECT  distinct\n"
 			+ "			    p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
-			+ "			    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.po_end_date, p.po_no, \n"
-			+ "			    p.po_project_type, p.po_start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
+			+ "			    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.end_date, p.po_no, \n"
+			+ "			    p.po_project_type, p.start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
 			+ "			    p.apmosys_rm_email, p.project_completion_date, p.project_status, p.internal_project_type,c.client_name,\n"
 			+ "			    'Approved' AS approval_status, \n"
 			+ "			    CASE \n"
@@ -1136,8 +1136,8 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "			\n"
 			+ "			SELECT  distinct\n"
 			+ "			    p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
-			+ "			    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.po_end_date, p.po_no, \n"
-			+ "			    p.po_project_type, p.po_start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
+			+ "			    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.end_date, p.po_no, \n"
+			+ "			    p.po_project_type, p.start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
 			+ "			    p.apmosys_rm_email, p.project_completion_date, p.project_status, p.internal_project_type,c.client_name,\n"
 			+ "			    'Pending For Approval' AS approval_status,\n"
 			+ "			    CASE \n"
@@ -1154,8 +1154,8 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "			\n"
 			+ "			SELECT  distinct\n"
 			+ "			    p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
-			+ "			    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.po_end_date, p.po_no, \n"
-			+ "			    p.po_project_type, p.po_start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
+			+ "			    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.end_date, p.po_no, \n"
+			+ "			    p.po_project_type, p.start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
 			+ "			    p.apmosys_rm_email, p.project_completion_date, p.project_status, p.internal_project_type,c.client_name,\n"
 			+ "			    'Not Started' AS approval_status,\n"
 			+ "			    CASE \n"
@@ -1168,15 +1168,15 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "			WHERE p.active= 'true' AND p.is_draft_project IS NULL \n"
 			+ "			AND (p.status != 'Completed' OR p.status IS NULL)\n"
 			+ "			AND NOT EXISTS (SELECT 1 FROM teams t WHERE t.project_id = p.project_id) \n"
-			+ "			AND (p.internal_project_type IS NOT NULL OR DATE(p.po_end_date) > CURDATE())\n"
+			+ "			AND (p.internal_project_type IS NOT NULL OR DATE(p.end_date) > CURDATE())\n"
 			+ "			AND (pdm.dept_id IN (:deptIds))\n"
 			+ "			\n"
 			+ "			UNION ALL\n"
 			+ "			\n"
 			+ "			SELECT  distinct\n"
 			+ "			    p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
-			+ "			    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.po_end_date, p.po_no, \n"
-			+ "			    p.po_project_type, p.po_start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
+			+ "			    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.end_date, p.po_no, \n"
+			+ "			    p.po_project_type, p.start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
 			+ "			    p.apmosys_rm_email, p.project_completion_date, p.project_status, p.internal_project_type,c.client_name,\n"
 			+ "			    'Rejected' AS approval_status,\n"
 			+ "			    CASE \n"
@@ -1223,7 +1223,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	@Query(value = "SELECT\n"
 		    + " distinct p.project_id,project_name, po_no, p.client_id, p.po_project_id, p.active,po_project_type,\n"
 		    + " GROUP_CONCAT(DISTINCT e1.name ORDER BY e1.name SEPARATOR ', ') as Project_Manager,\n"
-		    + " c.client_name, clientrm, p.dept_id,apmosysrm, date(po_start_date) po_start_date, date(po_end_date) po_end_date,\n"
+		    + " c.client_name, clientrm, p.dept_id,apmosysrm, date(p.start_date) start_date, date(p.end_date) end_date,\n"
 		    + " p.state, p.created_on, p.status PO_project_status,p.project_completion_date,p.project_status Ishine_project_status, p.internal_project_type,\n"
 		    + " CASE \n"
 		    + " WHEN p.is_draft_project = 'true' THEN 'Pending For Approval' \n"
@@ -1253,7 +1253,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    + " and d.dept_id in (:deptIds)\n"
 		    + "AND etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'\n"
 		    + " GROUP BY p.project_id, project_name, po_no, p.client_id, p.po_project_id, p.active, po_project_type, c.client_name,"
-		    + " clientrm, p.dept_id, apmosysrm, po_start_date, po_end_date, p.state, p.created_on, "
+		    + " clientrm, p.dept_id, apmosysrm, start_date, end_date, p.state, p.created_on, "
 		    + "p.status, p.project_completion_date, p.project_status, p.internal_project_type", nativeQuery = true)
 		List<Object[]> getAllActiveTNMProjectsList(@Param("deptIds") List<Long> deptIds);
 	
@@ -1270,9 +1270,9 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 				+ " LEFT JOIN job_role j1 on j1.job_role_id = e1.job_role_id \n"
 				+ " LEFT JOIN department d1 on d1.dept_id = j1.dept_id\n"
 				+ "WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' and po_project_type = 'TNM'\n"
-				+ " AND DATE(p.po_end_date) < CURDATE()\n"
+				+ " AND DATE(p.end_date) < CURDATE()\n"
 				+ " and d.dept_id in (:deptIds)\n"
-				+ " and DATE(p.po_end_date) between :from_Date and :to_Date", nativeQuery = true)
+				+ " and DATE(p.end_date) between :from_Date and :to_Date", nativeQuery = true)
 				Integer getExpiredProjectCount(@Param("deptIds") List<Long> deptIds,
 				                              @Param("from_Date") String fromDate,
 				                              @Param("to_Date") String toDate);
@@ -1282,7 +1282,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	@Query(value = "SELECT\n"
 			+ "			     distinct p.project_id,project_name, po_no, p.client_id, p.po_project_id, p.active,po_project_type,\n"
 			+ "			     GROUP_CONCAT(DISTINCT e1.name ORDER BY e1.name SEPARATOR ', ') as Project_Manager,\n"
-			+ "			     c.client_name, clientrm, p.dept_id,apmosysrm, date(po_start_date) po_start_date, date(po_end_date) po_end_date,\n"
+			+ "			     c.client_name, clientrm, p.dept_id,apmosysrm, date(p.start_date) start_date, date(p.end_date) end_date,\n"
 			+ "			     p.state, p.created_on, p.status PO_project_status,p.project_completion_date,p.project_status Ishine_project_status, p.internal_project_type,\n"
 			+ "			      CASE \n"
 			+ "			     WHEN p.is_draft_project = 'true' THEN 'Pending For Approval' \n"
@@ -1310,12 +1310,12 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "			      WHERE\n"
 			+ "			     po_project_type = 'TNM'\n"
 			+ "                 and etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'\n"
-			+ "			     AND DATE(p.po_end_date) < CURDATE()\n"
+			+ "			     AND DATE(p.end_date) < CURDATE()\n"
 			+ "			        and d.dept_id in (:deptIds)\n"
-			+ "					and DATE(p.po_end_date) between :from_Date and :to_Date\n"
+			+ "					and DATE(p.end_date) between :from_Date and :to_Date\n"
 			+ "				 GROUP BY\n"
 			+ "			     p.project_id,project_name, po_no,p.client_id, p.po_project_id, p.active, po_project_type, c.client_name, clientrm, p.dept_id, apmosysrm, \n"
-			+ "			     po_start_date, po_end_date, p.state, p.created_on, p.status,p.project_completion_date,p.project_status, \n"
+			+ "			     start_date, end_date, p.state, p.created_on, p.status,p.project_completion_date,p.project_status, \n"
 			+ "			     p.internal_project_type", nativeQuery = true)
 		List<Object[]> getExpiredProjectList(@Param("deptIds") List<Long> deptIds,
                 @Param("from_Date") String fromDate,
@@ -1326,11 +1326,11 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		@Query("SELECT new com.apmosys.employeeportal.dto.ExpiredPoDto(" +
 			       "p.poNo, " +
 			       "p.projectName, " +
-			       "p.poEndDate, " +
+			       "p.endDate, " +
 			       "p.apmosysRM, " +
 			       "c.clientName, " +
 			       "p.clientRM, " +
-			       "DATEDIFF(CURRENT_DATE, p.poEndDate)) " +
+			       "DATEDIFF(CURRENT_DATE, p.endDate)) " +
 			       "FROM Project p " +
 			       "JOIN ProjectDepartmentMap pd ON p.projectId = pd.projectId " +
 			       "JOIN Department d ON pd.deptId = d.deptId " +
@@ -1345,7 +1345,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			       "AND etm.active != 0 " +
 			       "AND t.isActive != 'N' " +
 			       "AND p.active != 'false' " +
-			       "AND p.poEndDate < CURRENT_DATE")
+			       "AND p.endDate < CURRENT_DATE")
 			List<ExpiredPoDto> getAllExpiredTNMProject();
 
 
@@ -2579,7 +2579,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	 @Query(value = " WITH RelevantProjects AS (\n"
 	 		+ "	select distinct p.project_id,p.project_name, po_no, p.client_id, p.po_project_id, p.active,po_project_type, \n"
 	 		+ "     group_concat(distinct e1.name order by e1.name separator ', ') as Project_Manager,\n"
-	 		+ "	 c.client_name, clientrm, p.dept_id,apmosysrm, date(po_start_date) po_start_date, date(po_end_date) po_end_date,\n"
+	 		+ "	 c.client_name, clientrm, p.dept_id,apmosysrm, date(p.start_date) start_date, date(p.end_date) end_date,\n"
 	 		+ "	 p.state, p.created_on, p.status PO_project_status,p.project_completion_date,p.project_status Ishine_project_status, p.internal_project_type,\n"
 	 		+ "	  CASE \n"
 	 		+ "	 WHEN p.is_draft_project = 'true' THEN 'Pending For Approval' \n"
@@ -2607,7 +2607,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 //	 		+ "            --  AND etm.active != 0\n"
 	 		+ "	  GROUP BY\n"
 	 		+ "	  p.project_id,project_name, po_no,p.client_id, p.po_project_id, p.active, po_project_type, c.client_name, clientrm, p.dept_id, apmosysrm, \n"
-	 		+ "	  po_start_date, po_end_date, p.state, p.created_on, p.status,p.project_completion_date,p.project_status, p.internal_project_type \n"
+	 		+ "	  start_date, end_date, p.state, p.created_on, p.status,p.project_completion_date,p.project_status, p.internal_project_type \n"
 	 		+ "),\n"
 	 		+ "\n"
 	 		+ "FilledCounts AS (\n"
@@ -2680,7 +2680,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	 @Query(value = "WITH RelevantProjects AS (  \n"
 	 		+ "	select distinct p.project_id,p.project_name, po_no, p.client_id, p.po_project_id, p.active,po_project_type, \n"
 	 		+ "     group_concat(distinct e1.name order by e1.name separator ', ') as Project_Manager,\n"
-	 		+ "	 c.client_name, clientrm, p.dept_id,apmosysrm, date(po_start_date) po_start_date, date(po_end_date) po_end_date,\n"
+	 		+ "	 c.client_name, clientrm, p.dept_id,apmosysrm, date(p.start_date) start_date, date(p.end_date) end_date,\n"
 	 		+ "	 p.state, p.created_on, p.status PO_project_status,p.project_completion_date,p.project_status Ishine_project_status, p.internal_project_type,\n"
 	 		+ "	  CASE \n"
 	 		+ "	 WHEN p.is_draft_project = 'true' THEN 'Pending For Approval' \n"
@@ -2709,7 +2709,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	 		+ "            --  AND etm.active != 0\n"
 	 		+ "	  GROUP BY\n"
 	 		+ "	  p.project_id,project_name, po_no,p.client_id, p.po_project_id, p.active, po_project_type, c.client_name, clientrm, p.dept_id, apmosysrm, \n"
-	 		+ "	  po_start_date, po_end_date, p.state, p.created_on, p.status,p.project_completion_date,p.project_status, p.internal_project_type \n"
+	 		+ "	  start_date, end_date, p.state, p.created_on, p.status,p.project_completion_date,p.project_status, p.internal_project_type \n"
 	 		+ "),\n"
 	 		+ "\n"
 	 		+ "FilledCounts AS (\n"
@@ -2800,7 +2800,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	    @Query(value = "SELECT\n"
 	    		+ "			     distinct p.project_id,project_name, po_no, p.client_id, p.po_project_id, p.active,po_project_type,\n"
 	    		+ "			     GROUP_CONCAT(DISTINCT e1.name ORDER BY e1.name SEPARATOR ', ') as Project_Manager,\n"
-	    		+ "			     c.client_name, clientrm, p.dept_id,apmosysrm, date(po_start_date) po_start_date, date(po_end_date) po_end_date,\n"
+	    		+ "			     c.client_name, clientrm, p.dept_id,apmosysrm, date(p.start_date) start_date, date(p.end_date) end_date,\n"
 	    		+ "			     p.state, p.created_on, p.status PO_project_status,p.project_completion_date,p.project_status Ishine_project_status, p.internal_project_type,\n"
 	    		+ "			      CASE \n"
 	    		+ "			     WHEN p.is_draft_project = 'true' THEN 'Pending For Approval' \n"
@@ -2831,7 +2831,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	    		+ "					 and p.po_project_type = 'Monitoring'\n"
 	    		+ "				 GROUP BY\n"
 	    		+ "			     p.project_id,project_name, po_no,p.client_id, p.po_project_id, p.active, po_project_type, c.client_name, clientrm, p.dept_id, apmosysrm, \n"
-	    		+ "			     po_start_date, po_end_date, p.state, p.created_on, p.status,p.project_completion_date,p.project_status, \n"
+	    		+ "			     start_date, end_date, p.state, p.created_on, p.status,p.project_completion_date,p.project_status, \n"
 	    		+ "			     p.internal_project_type" , nativeQuery = true)
 		public List<Object[]> getAllMonitoringList(List<Long> deptIds);
 
@@ -2839,7 +2839,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		@Query(value = "SELECT\n"
 				+ "			     distinct p.project_id,project_name, po_no, p.client_id, p.po_project_id, p.active,po_project_type,\n"
 				+ "			     GROUP_CONCAT(DISTINCT e1.name ORDER BY e1.name SEPARATOR ', ') as Project_Manager,\n"
-				+ "			     c.client_name, clientrm, p.dept_id,apmosysrm, date(po_start_date) po_start_date, date(po_end_date) po_end_date,\n"
+				+ "			     c.client_name, clientrm, p.dept_id,apmosysrm, date(p.start_date) start_date, date(p.end_date) end_date,\n"
 				+ "			     p.state, p.created_on, p.status PO_project_status,p.project_completion_date,p.project_status Ishine_project_status, p.internal_project_type,\n"
 				+ "			      CASE \n"
 				+ "			     WHEN p.is_draft_project = 'true' THEN 'Pending For Approval' \n"
@@ -2870,7 +2870,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 				+ "					and p.internal_project_type is not null\n"
 				+ "				 GROUP BY\n"
 				+ "			     p.project_id,project_name, po_no,p.client_id, p.po_project_id, p.active, po_project_type, c.client_name, clientrm, p.dept_id, apmosysrm, \n"
-				+ "			     po_start_date, po_end_date, p.state, p.created_on, p.status,p.project_completion_date,p.project_status, \n"
+				+ "			     start_date, end_date, p.state, p.created_on, p.status,p.project_completion_date,p.project_status, \n"
 				+ "			     p.internal_project_type" , nativeQuery = true)
 		public List<Object[]> getAllInternalList(List<Long> deptIds);
 		
@@ -3041,7 +3041,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 
 		@Query(nativeQuery = true, value = " Select distinct p.project_id,p.project_name, po_no, p.client_id, p.po_project_id, p.active,po_project_type,\n"
 				+ "			     GROUP_CONCAT(DISTINCT e1.name ORDER BY e1.name SEPARATOR ', ') as Project_Manager,\n"
-				+ "			     c.client_name, clientrm, p.dept_id,apmosysrm, date(po_start_date) po_start_date, date(po_end_date) po_end_date,\n"
+				+ "			     c.client_name, clientrm, p.dept_id,apmosysrm, date(p.start_date) start_date, date(p.end_date) end_date,\n"
 				+ "			     p.state, p.created_on, p.status PO_project_status,p.project_completion_date,p.project_status Ishine_project_status, p.internal_project_type,\n"
 				+ "			      CASE \n"
 				+ "			     WHEN p.is_draft_project = 'true' THEN 'Pending For Approval' \n"
@@ -3070,12 +3070,12 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 				+ "			      WHERE\n"
 				+ "			     po_project_type = 'Fixed Cost'\n"
 				+ "                 and etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'\n"
-				+ "			     AND CURDATE() between DATE(p.po_start_date) and DATE(p.po_end_date)\n"
+				+ "			     AND CURDATE() between DATE(p.start_date) and DATE(p.end_date)\n"
 				+ "				and d.dept_id in (:deptId) \n"
 				+ "                and p.project_id not in (select project_id from milestone_updated_logs)\n"
 				+ "				 GROUP BY\n"
 				+ "			     p.project_id,project_name, po_no,p.client_id, p.po_project_id, p.active, po_project_type, c.client_name, clientrm, p.dept_id, apmosysrm, \n"
-				+ "			     po_start_date, po_end_date, p.state, p.created_on, p.status,p.project_completion_date,p.project_status, \n"
+				+ "			     start_date, end_date, p.state, p.created_on, p.status,p.project_completion_date,p.project_status, \n"
 				+ "			     p.internal_project_type")
 	    List<Object[]> findOntimeFCList(@Param("deptId") List<Long> deptId);
 	    
@@ -3083,7 +3083,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	    @Query(nativeQuery = true, value = "SELECT\n"
 	    		+ "			     distinct p.project_id,project_name, po_no, p.client_id, p.po_project_id, p.active,po_project_type,\n"
 	    		+ "			     GROUP_CONCAT(DISTINCT e1.name ORDER BY e1.name SEPARATOR ', ') as Project_Manager,\n"
-	    		+ "			     c.client_name, clientrm, p.dept_id,apmosysrm, date(po_start_date) po_start_date, date(po_end_date) po_end_date,\n"
+	    		+ "			     c.client_name, clientrm, p.dept_id,apmosysrm, date(p.start_date) start_date, date(p.end_date) end_date,\n"
 	    		+ "			     p.state, p.created_on, p.status PO_project_status,p.project_completion_date,p.project_status Ishine_project_status, p.internal_project_type,\n"
 	    		+ "			      CASE \n"
 	    		+ "			     WHEN p.is_draft_project = 'true' THEN 'Pending For Approval' \n"
@@ -3111,18 +3111,18 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	    		+ "			      WHERE\n"
 	    		+ "			     po_project_type = 'Fixed Cost'\n"
 	    		+ "                 and etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'\n"
-	    		+ "			      AND DATE(p.po_end_date) < CURDATE()\n"
+	    		+ "			      AND DATE(p.end_date) < CURDATE()\n"
 	    		+ "			         and d.dept_id in (:deptId)\n"
 	    		+ "				 GROUP BY\n"
 	    		+ "			     p.project_id,project_name, po_no,p.client_id, p.po_project_id, p.active, po_project_type, c.client_name, clientrm, p.dept_id, apmosysrm, \n"
-	    		+ "			     po_start_date, po_end_date, p.state, p.created_on, p.status,p.project_completion_date,p.project_status, \n"
+	    		+ "			     start_date, end_date, p.state, p.created_on, p.status,p.project_completion_date,p.project_status, \n"
 	    		+ "			     p.internal_project_type")
 	    List<Object[]> findExpiredFixedCostProjects(@Param("deptId") List<Long> deptId);
       
       @Query(nativeQuery = true, value = "SELECT\n"
 	   		+ "					 distinct p.project_id,project_name, po_no, p.client_id, p.po_project_id, p.active,po_project_type,\n"
 	   		+ "					 GROUP_CONCAT(DISTINCT e1.name ORDER BY e1.name SEPARATOR ', ') as Project_Manager,\n"
-	   		+ "					 c.client_name, clientrm, p.dept_id,apmosysrm, date(po_start_date) po_start_date, date(po_end_date) po_end_date,\n"
+	   		+ "					 c.client_name, clientrm, p.dept_id,apmosysrm, date(p.start_date) start_date, date(p.end_date) end_date,\n"
 	   		+ "					 p.state, p.created_on, p.status PO_project_status,p.project_completion_date,p.project_status Ishine_project_status, p.internal_project_type,\n"
 	   		+ "					  CASE \n"
 	   		+ "					 WHEN p.is_draft_project = 'true' THEN 'Pending For Approval' \n"
@@ -3153,7 +3153,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	   		+ "						and d.dept_id in (:deptId) \n"
 	   		+ "					 GROUP BY\n"
 	   		+ "					 p.project_id,project_name, po_no,p.client_id, p.po_project_id, p.active, po_project_type, c.client_name, clientrm, p.dept_id, apmosysrm, \n"
-	   		+ "					 po_start_date, po_end_date, p.state, p.created_on, p.status,p.project_completion_date,p.project_status, \n"
+	   		+ "					 start_date, end_date, p.state, p.created_on, p.status,p.project_completion_date,p.project_status, \n"
 	   		+ "					 p.internal_project_type")
 	    List<Object[]> findAllFixedCostProjects(@Param("deptId") List<Long> deptId);
       
@@ -3189,7 +3189,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 				+ " LEFT JOIN job_role j1 on j1.job_role_id = e1.job_role_id \n"
 				+ " LEFT JOIN department d1 on d1.dept_id = j1.dept_id\n"
 				+ "WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' and po_project_type = 'Fixed Cost'\n"
-				+ "    AND DATE(p.po_end_date) < CURDATE() and d.dept_id in (:deptId)")
+				+ "    AND DATE(p.end_date) < CURDATE() and d.dept_id in (:deptId)")
 		Long expiredFCcount(@Param("deptId") List<Long> deptId);
     
     @Query(value = "SELECT\n"
@@ -3208,7 +3208,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	    		+ "			      WHERE\n"
 	    		+ "			     po_project_type = 'Fixed Cost'\n"
 	    		+ "                 and etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'\n"
-	    		+ "			     AND CURDATE() between DATE(p.po_start_date) and DATE(p.po_end_date)\n"
+	    		+ "			     AND CURDATE() between DATE(p.start_date) and DATE(p.end_date)\n"
 	    		+ "				 and d.dept_id in (:deptId)" , nativeQuery = true)
 		Long getAllDelayedProjectCount(@Param("deptId") List<Long> deptId);
     
@@ -3230,7 +3230,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
     		+ "			     po_project_type = 'Fixed Cost'\n"
     		+ "                 and etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'	\n"
     		+ "                 and p.project_id not in (select project_id from milestone_updated_logs)\n"
-    		+ "			     AND CURDATE() between DATE(p.po_start_date) and DATE(p.po_end_date)\n"
+    		+ "			     AND CURDATE() between DATE(p.start_date) and DATE(p.end_date)\n"
     		+ "					and d.dept_id in (:deptId) \n"
     		+ "" , nativeQuery = true)
 	Long getAllOntimeCount(@Param("deptId") List<Long> deptId);
@@ -3240,7 +3240,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
     @Query(nativeQuery = true, value = "SELECT\n"
 			+ "			     distinct p.project_id,p.project_name, po_no, p.client_id, p.po_project_id, p.active,po_project_type,\n"
 			+ "			     GROUP_CONCAT(DISTINCT e1.name ORDER BY e1.name SEPARATOR ', ') as Project_Manager,\n"
-			+ "			     c.client_name, clientrm, p.dept_id,apmosysrm, date(po_start_date) po_start_date, date(po_end_date) po_end_date,\n"
+			+ "			     c.client_name, clientrm, p.dept_id,apmosysrm, date(p.start_date) start_date, date(p.end_date) end_date,\n"
 			+ "			     p.state, p.created_on, p.status PO_project_status,p.project_completion_date,p.project_status Ishine_project_status, p.internal_project_type,\n"
 			+ "			      CASE \n"
 			+ "			     WHEN p.is_draft_project = 'true' THEN 'Pending For Approval' \n"
@@ -3269,11 +3269,11 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "			      WHERE\n"
 			+ "			     po_project_type = 'Fixed Cost'\n"
 			+ "                 and etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'\n"
-			+ "			     -- AND DATE(p.po_end_date) < CURDATE()\n"
+			+ "			     -- AND DATE(p.end_date) < CURDATE()\n"
 			+ "				and d.dept_id in (:deptId)\n"
 			+ "				 GROUP BY\n"
 			+ "			     p.project_id,project_name, po_no,p.client_id, p.po_project_id, p.active, po_project_type, c.client_name, clientrm, p.dept_id, apmosysrm, \n"
-			+ "			     po_start_date, po_end_date, p.state, p.created_on, p.status,p.project_completion_date,p.project_status, \n"
+			+ "			     start_date, end_date, p.state, p.created_on, p.status,p.project_completion_date,p.project_status, \n"
 			+ "			     p.internal_project_type")
     List<Object[]> findDelayedFCProject(@Param("deptId") List<Long> deptId);
     
@@ -3351,7 +3351,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
     			+ "    SELECT d.dept_id, c.client_id, d.name, c.client_name, \n"
     			+ "		   p.project_id, p.project_name, p.po_no, p.po_project_type, \n"
     			+ "           GROUP_CONCAT(distinct e1.name order by e1.emp_id separator ', ') as project_manager, \n"
-    			+ "           p.apmosysrm, p.clientrm, p.po_start_date, p.po_end_date, \n"
+    			+ "           p.apmosysrm, p.clientrm, p.start_date, p.end_date, \n"
     			+ "           p.created_on, p.po_project_id, 'active' as project_type,\n"
     			+ "            CASE \n"
     			+ "            WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id) \n"
@@ -3369,14 +3369,14 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
     			+ "    WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' and e.employmentstatus != 'InActive'\n"
     			+ "    GROUP BY d.dept_id, c.client_id, d.name, c.client_name, \n"
     			+ "		   p.project_id, p.project_name, p.po_no, p.po_project_type, \n"
-    			+ "           c.client_name, p.apmosysrm, p.clientrm, p.po_start_date, p.po_end_date, \n"
+    			+ "           c.client_name, p.apmosysrm, p.clientrm, p.start_date, p.end_date, \n"
     			+ "           p.created_on, p.po_project_id,projectViewId \n"
     			+ "),\n"
     			+ "in_active_projects AS (\n"
     			+ "    SELECT d.dept_id, c.client_id, d.name, c.client_name, \n"
     			+ "		   p.project_id, p.project_name, p.po_no, p.po_project_type, \n"
     			+ "           GROUP_CONCAT(distinct e1.name order by e1.emp_id separator ', ') as project_manager, \n"
-    			+ "           p.apmosysrm, p.clientrm, p.po_start_date, p.po_end_date, \n"
+    			+ "           p.apmosysrm, p.clientrm, p.start_date, p.end_date, \n"
     			+ "           p.created_on, p.po_project_id, 'inactive' as project_type,\n"
     			+ "           CASE WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id) ELSE CAST(p.project_id AS CHAR) END AS projectViewId"
     			+ "    FROM projects p\n"
@@ -3391,7 +3391,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
     			+ "		  and not exists (select 1 from teams t1 where t.project_id = t1.project_id and t1.is_active != 'N')\n"
     			+ "    GROUP BY d.dept_id, c.client_id, d.name, c.client_name, \n"
     			+ "		   p.project_id, p.project_name, p.po_no, p.po_project_type, \n"
-    			+ "           c.client_name, p.apmosysrm, p.clientrm, p.po_start_date, p.po_end_date, \n"
+    			+ "           c.client_name, p.apmosysrm, p.clientrm, p.start_date, p.end_date, \n"
     			+ "           p.created_on, p.po_project_id,projectViewId \n"
     			+ ")\n"
     			+ "select * from (\n"
@@ -3501,10 +3501,10 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "		    p.updatedBy, \n"
 			+ "		    p.updatedOn, \n"
 			+ "		    p.isDraftProject, \n"
-			+ "		    p.poEndDate, \n"
+			+ "		    p.endDate, \n"
 			+ "		    p.poNo, \n"
 			+ "		    p.poProjectType, \n"
-			+ "		    p.poStartDate, \n"
+			+ "		    p.startDate, \n"
 			+ "		    p.apmosysRM, \n"
 			+ "		    p.clientRM, \n"
 			+ "		    p.deptId, \n"
@@ -3720,8 +3720,8 @@ boolean existsByProjectName(String projectName);
     				+ "    )\n"
     				+ "    AND (\n"
     				+ "        :statusFlag IS NULL \n"
-    				+ "        OR (:statusFlag = 'Active' AND STR_TO_DATE(p.po_end_date, '%Y-%m-%d') >= CURRENT_DATE)\n"
-    				+ "        OR (:statusFlag = 'Inactive' AND STR_TO_DATE(p.po_end_date, '%Y-%m-%d') < CURRENT_DATE)\n"
+    				+ "        OR (:statusFlag = 'Active' AND STR_TO_DATE(p.end_date, '%Y-%m-%d') >= CURRENT_DATE)\n"
+    				+ "        OR (:statusFlag = 'Inactive' AND STR_TO_DATE(p.end_date, '%Y-%m-%d') < CURRENT_DATE)\n"
     				+ "    )\n"
     				+ "    AND (\n"
     				+ "        (:poProjectType IS NULL AND COALESCE(p.po_project_type, 'Internal') = 'Internal')\n"
@@ -3760,7 +3760,7 @@ boolean existsByProjectName(String projectName);
 	@Query(value = "SELECT\n"
 			+ " distinct p.project_id,project_name, po_no, p.client_id, p.po_project_id, p.active,po_project_type,\n"
 			+ " GROUP_CONCAT(DISTINCT e1.name ORDER BY e1.name SEPARATOR ', ') as Project_Manager,\n"
-			+ " c.client_name, clientrm, p.dept_id,apmosysrm, date(p.po_start_date) po_start_date, date(p.po_end_date) po_end_date,\n"
+			+ " c.client_name, clientrm, p.dept_id,apmosysrm, date(p.start_date) start_date, date(p.end_date) end_date,\n"
 			+ " p.state, p.created_on, p.status PO_project_status,p.project_completion_date,p.project_status Ishine_project_status, p.internal_project_type,\n"
 			+ " CASE \n"
 			+ " WHEN p.is_draft_project = 'true' THEN 'Pending For Approval' \n"
@@ -3788,7 +3788,7 @@ boolean existsByProjectName(String projectName);
 			+ " WHERE 1=1\n"
 			+ " and p.project_id =:projectId \n"
 			+ " GROUP BY p.project_id, project_name, po_no, p.client_id, p.po_project_id, p.active, po_project_type, c.client_name,"
-			+ " clientrm, p.dept_id, apmosysrm, p.po_start_date, p.po_end_date, p.state, p.created_on, "
+			+ " clientrm, p.dept_id, apmosysrm, start_date, end_date, p.state, p.created_on, "
 			+ "p.status, p.project_completion_date, p.project_status, p.internal_project_type", nativeQuery = true)
 	List<Object[]> getProjectConfigurationDetailsByProjectId(@Param("projectId") Integer projectId);
 
@@ -3904,7 +3904,7 @@ boolean existsByProjectName(String projectName);
 			+ "			        SELECT DISTINCT\n"
 			+ "			            etm.team_id, t.team_name, etm.emp_id, e.name, etm.employee_role, e.billable_type,\n"
 			+ "			            date(etm.start_date) as start_date, date(etm.end_date) as end_date, e.billable,\n"
-			+ "			            p.active, p.project_id, p.project_name, p.po_start_date, p.po_end_date, \n"
+			+ "			            p.active, p.project_id, p.project_name, p.start_date, p.end_date, \n"
 			+ "			            c.client_id, c.client_name, p.po_no,\n"
 			+ "			            s.name spoc, tl.name teamLead, etm.employee_team_map_id,p.internal_project_type,p.po_project_type,\n"
 			+ "			            e.reporting_manager_id, ecsm.client_side_id,p.clientrm,\n"
@@ -4035,7 +4035,7 @@ boolean existsByProjectName(String projectName);
 			+ "			        SELECT\n"
 			+ "			            brd.emp_id, brd.project_id, brd.project_name, pms.Project_Manager, brd.po_no,\n"
 			+ "			            COALESCE(brd.po_project_type, brd.internal_project_type) AS project_type, brd.client_name,\n"
-			+ "			            brd.apmosysrm, brd.apmosys_rm_email, brd.clientrm, brd.po_start_date project_start_date, brd.po_end_date project_end_date,\n"
+			+ "			            brd.apmosysrm, brd.apmosys_rm_email, brd.clientrm, brd.start_date project_start_date, brd.end_date project_end_date,\n"
 			+ "			            COALESCE(edc.total_expected_dsr_days, 0) AS expected_dsr_count,\n"
 			+ "			            COALESCE(atfd.filled_working_days, 0) AS ishine_timesheet_filled_count,\n"
 			+ "			            GREATEST(0, COALESCE(edc.total_expected_dsr_days, 0) - (COALESCE(ds.Client_Approved_count, 0) + COALESCE(ds.Client_pending_count, 0))) AS ClientSideNotFilledTimesheets_count,\n"
@@ -4233,8 +4233,8 @@ boolean existsByProjectName(String projectName);
 				+ "            t.team_id,\n"
 				+ "            p.active,\n"
 				+ "            etm.employee_team_map_id,\n"
-                + "            p.po_start_date AS project_start_date,\n"
-                + "            p.po_end_date AS project_end_date \n"
+                + "            p.start_date AS project_start_date,\n"
+                + "            p.end_date AS project_end_date \n"
 				+ "        FROM projects p\n"
 				+ "        INNER JOIN teams t ON p.project_id = t.project_id\n"
 				+ "        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
@@ -4484,7 +4484,7 @@ boolean existsByProjectName(String projectName);
 
 	@Query(value = "SELECT DISTINCT \n"
 			+ " p.project_id, project_name, c.client_name, p.state"
-			+ " , date(p.po_start_date) project_start_date, date(p.po_end_date) project_end_date "
+			+ " , date(p.start_date) project_start_date, date(p.end_date) project_end_date "
 			+ " , p.project_status project_status "
 			+ " , CASE \n"
 			+ " WHEN p.is_draft_project = 'true' THEN 'Pending For Approval' \n"
@@ -4499,7 +4499,7 @@ boolean existsByProjectName(String projectName);
 			+ " LEFT JOIN clients c ON p.client_id = c.client_id \n"
 			+ " WHERE 1=1 \n"
 			+ " and p.project_id =:projectId \n"
-			+ " GROUP BY p.project_id, project_name, c.client_name, p.state, p.po_start_date, p.po_end_date "
+			+ " GROUP BY p.project_id, project_name, c.client_name, p.state, p.start_date, p.end_date "
 			+ ", p.project_status ,po_project_type, p.internal_project_type, p.status ", nativeQuery = true)
 	List<Object[]> getProjectConfigurationDetailsByProjectIdNew(@Param("projectId") Integer projectId);
 }

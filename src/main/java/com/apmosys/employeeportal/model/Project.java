@@ -55,8 +55,8 @@ public class Project {
 	private String role;
     private Integer count;
     private String experience;
-    private String poStartDate;
-	private String poEndDate;
+//    private String poStartDate;
+//	private String poEndDate;
 	private String poNo;
 	private String poProjectType;
 	private String apmosysRM;
@@ -70,4 +70,6 @@ public class Project {
 	private String internalProjectType;
 	private Boolean hasClientSideId;
 	private Boolean clientFlag;
+	private String startDate;
+	private String endDate;
 }

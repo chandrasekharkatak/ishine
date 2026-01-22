@@ -24,8 +24,8 @@ public class GetEmployeeProjectReportForEmployeeDTO {
     private String teamName;
     private String projectIds;
     private String projectName;
-    private String poStartDate;
-    private String poEndDate;
+    private String projectStartDate;
+    private String projectEndDate;
     private String poNo;
     private String clientName;
     private String clientLocation;

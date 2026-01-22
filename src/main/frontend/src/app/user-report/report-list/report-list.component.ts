@@ -205,8 +205,8 @@ selectedClientProjectViewOption: string = 'default';
     'billable',
     'billableType',
     'teamName',
-    'poStartDate',
-    'poEndDate',
+    'projectStartDate',
+    'projectEndDate',
     'effectiveStartDate',
     'effectiveEndDate',
     'clientName',
@@ -214,15 +214,15 @@ selectedClientProjectViewOption: string = 'default';
     'workLocation',
     'totalExperience',
     'primaryProjectName'];
-  employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementIdAccToET', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience'];
+  employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementIdAccToET', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'projectStartDate', 'projectEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience'];
   leaveReportColumns: any[] = ['employmentIdAcToET', 'employeeType', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'noOfDays', 'reason', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
   timesheetReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'totalWorkingHours', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'leaveType', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
-  employeeReportColumn: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'poStartDate', 'poEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
+  employeeReportColumn: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'projectStartDate', 'projectEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
   leaveTimesheetReportColumn: any[] = ['employmentIdAcToET', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
   defaultMappingColumns: any[] = ['tabName', 'featureName', 'subFeatureName'];
   employeeReportColumnForDetailedProjecttttView: any[] = ['blank', 'blank',
     'projectName', 'projectManager', 'apmosysRM', 'clientRM',
-    'poStartDate', 'poEndDate', 'poNo', 'poProjectType', 'teamName',
+    'projectStartDate', 'projectEndDate', 'poNo', 'poProjectType', 'teamName',
     'employeeName', 'jobRole', 'deptName', 'mobileNo', 'email',
     'billable', 'billableType', 'effectiveStartDate'
   ];
@@ -301,7 +301,7 @@ dateRange: string; type: string; count: string;
     'Monitoring': {},
     'Internal': {}
   };
-  inActivePEmployeeColumns:any[] = ['employeementIdAccToET','name','projectName','poNo','poProjectType','poStartDate','poEndDate','clientName','clientLocation'];
+  inActivePEmployeeColumns:any[] = ['employeementIdAccToET','name','projectName','poNo','poProjectType','projectStartDate','projectEndDate','clientName','clientLocation'];
 
   employeeReportColumnForDetailedView: any[] = [
     'blank',
@@ -319,8 +319,8 @@ dateRange: string; type: string; count: string;
     'billable',
     'billableType',
     'teamName',
-    'poStartDate',
-    'poEndDate',
+    'projectStartDate',
+    'projectEndDate',
     'effectiveStartDate',
     'effectiveEndDate',
     'clientName',
@@ -631,8 +631,8 @@ dateRange: string; type: string; count: string;
             projectManager: project.projectManager,
             apmosysRM: project.apmosysRM,
             clientRM: project.clientRM,
-            poStartDate: project.poStartDate,
-            poEndDate: project.poEndDate,
+            projectStartDate: project.projectStartDate,
+            projectEndDate: project.projectEndDate,
             poNo: project.poNo,
             poProjectType: project.poProjectType,
             teamName: team.teamName,
@@ -1212,17 +1212,17 @@ onSearchClientProject(searchData: any) {
 
 
         this.allEmployee.forEach((emp) => {
-          if (!emp.poEndDate) {
+          if (!emp.projectEndDate) {
             this.internalCountList.push(emp);
             return;
           }
 
           const currentDate = new Date();
-          const poEndDate = new Date(emp.poEndDate);
+          const projectEndDate = new Date(emp.projectEndDate);
 
           const projectTypes = emp.poProjectType.toLowerCase().split(',');
 
-          if (poEndDate < currentDate) {
+          if (projectEndDate < currentDate) {
             projectTypes.forEach((type) => {
               type = type.trim();
               if (type === 'tnm') {
@@ -1270,18 +1270,18 @@ onSearchClientProject(searchData: any) {
       : this.deptWiseConsolidated.filter(emp => emp.departmentId == this.selectedDepartment);
     this.filteredEmployees = departmentFiltered;
     departmentFiltered.forEach((emp) => {
-      if (!emp.poEndDate) {
+      if (!emp.projectEndDate) {
         this.internalCount++;
         this.internalCountList.push(emp);
         return;
       }
 
       const currentDate = new Date();
-      const poEndDate = new Date(emp.poEndDate);
+      const projectEndDate = new Date(emp.projectEndDate);
 
       const projectTypes = emp.poProjectType.toLowerCase().split(',');
 
-      if (poEndDate < currentDate) {
+      if (projectEndDate < currentDate) {
         projectTypes.forEach((type) => {
           type = type.trim();
           if (type === 'tnm') {
@@ -2570,8 +2570,8 @@ handlePageChange1(event) {
             "Team Name": x.teamName,
             "Project Name": x.projectName,
             "Po No": x.poNo,
-            "Po Start Date": x.poStartDate,
-            "Po End Date": x.poEndDate,
+            "Po Start Date": x.projectStartDate,
+            "Po End Date": x.projectEndDate,
             "Po Project Type": x.poProjectType,
             "createdBy": x.createdBy,
             "createdOn": x.createdOn,
@@ -2600,8 +2600,8 @@ handlePageChange1(event) {
                 "Project Name": x.projectName,
                 "Po No": x.poNo,
                 "Po Type": x.poProjectType,
-                "Po Start Date": x.poStartDate,
-                "Po End Date": x.poEndDate,
+                "Po Start Date": x.projectStartDate,
+                "Po End Date": x.projectEndDate,
                 "Effective Start Date": x.effectiveStartDate,
                 "Effective End Date": x.effectiveEndDate,
                 "Client Name": x.clientName,
@@ -2629,8 +2629,8 @@ handlePageChange1(event) {
                 "Project Name": x.projectName,
                 "Po No": x.poNo,
                 "Po Type": x.poType,
-                "Po Start Date": x.poStartDate,
-                "Po End Date": x.poEndDate,
+                "Po Start Date": x.projectStartDate,
+                "Po End Date": x.projectEndDate,
                 "Effective Start Date": x.effectiveStartDate,
                 "Effective End Date": x.effectiveEndDate,
                 "Client Name": x.clientName,
@@ -2654,8 +2654,8 @@ handlePageChange1(event) {
                   "Project Manager": project.projectManager,
                   "Apmosys RM": project.apmosysRM || '—',
                   "Client RM": project.clientRM || '—',
-                  "PO Start Date": project.poStartDate,
-                  "PO End Date": project.poEndDate,
+                  "PO Start Date": project.projectStartDate,
+                  "PO End Date": project.projectEndDate,
                   "PO No": project.poNo,
                   "PO Type": project.poProjectType,
                   "Team Name": team.teamName,
@@ -3532,8 +3532,8 @@ getActivePoCount(box: any): void {
       'Project Name': x.projectName || 'N/A',
       'PO No': x.poNo || 'N/A',
       'PO Type': x.poProjectType || 'N/A',
-      'PO Start': x.poStartDate || 'N/A',
-      'PO End': x.poEndDate || 'N/A',
+      'PO Start': x.projectStartDate || 'N/A',
+      'PO End': x.projectEndDate || 'N/A',
       'Client': x.clientName || 'N/A',
       'Location': x.clientLocation || 'N/A',
         })
@@ -3554,8 +3554,8 @@ getActivePoCount(box: any): void {
       'Project Name': x.projectName || 'N/A',
       'PO No': x.poNo || 'N/A',
       'PO Type': x.poProjectType || 'N/A',
-      'PO Start': x.poStartDate || 'N/A',
-      'PO End': x.poEndDate || 'N/A',
+      'PO Start': x.projectStartDate || 'N/A',
+      'PO End': x.projectEndDate || 'N/A',
       'Client': x.clientName || 'N/A',
       'Location': x.clientLocation || 'N/A',
         })
@@ -3571,8 +3571,8 @@ getActivePoCount(box: any): void {
     //   'Project Name': emp.projectName || 'N/A',
     //   'PO No': emp.poNo || 'N/A',
     //   'PO Type': emp.poProjectType || 'N/A',
-    //   'PO Start': emp.poStartDate || 'N/A',
-    //   'PO End': emp.poEndDate || 'N/A',
+    //   'PO Start': emp.projectStartDate || 'N/A',
+    //   'PO End': emp.projectEndDate || 'N/A',
     //   'Client': emp.clientName || 'N/A',
     //   'Location': emp.clientLocation || 'N/A',
     // }));
@@ -3603,8 +3603,8 @@ getActivePoCount(box: any): void {
       'Project Name': x.projectName || 'N/A',
       'PO No': x.poNo || 'N/A',
       'PO Type': x.poProjectType || 'N/A',
-      'PO Start': x.poStartDate || 'N/A',
-      'PO End': x.poEndDate || 'N/A',
+      'PO Start': x.projectStartDate || 'N/A',
+      'PO End': x.projectEndDate || 'N/A',
       'Client': x.clientName || 'N/A',
       'Location': x.clientLocation || 'N/A',
         })
@@ -3625,8 +3625,8 @@ getActivePoCount(box: any): void {
       'Project Name': x.projectName || 'N/A',
       'PO No': x.poNo || 'N/A',
       'PO Type': x.poProjectType || 'N/A',
-      'PO Start': x.poStartDate || 'N/A',
-      'PO End': x.poEndDate || 'N/A',
+      'PO Start': x.projectStartDate || 'N/A',
+      'PO End': x.projectEndDate || 'N/A',
       'Client': x.clientName || 'N/A',
       'Location': x.clientLocation || 'N/A',
         })
@@ -3861,7 +3861,7 @@ selectedClientName: string = '';
     { key: 'apmosysRM', label: 'Apmosys RM', type: 'string' },
     { key: 'clientRM', label: 'Client RM', type: 'string' }
   ];
-  modalProjectColumns1 :any[]=['projectName','poNo','projectType','clientName','apmosysRM','clientRM','poStartDate','poEndDate','createdOn'];
+  modalProjectColumns1 :any[]=['projectName','poNo','projectType','clientName','apmosysRM','clientRM','projectStartDate','projectEndDate','createdOn'];
 
 openClientProjectModal(template: TemplateRef<any>, clientName: string, department: string,deptId:any,clientId:any,projectType:any) {
   this.selectedClientName = clientName;
@@ -3935,10 +3935,10 @@ handleModalPageChange(page: number): void {
       'Client': project.clientName || 'NA',
       'Apmosys RM': project.apmosysRM || 'NA',
       'Client RM': project.clientRM || 'NA',
-      'Start Date': project.poStartDate ?
-        new Date(project.poStartDate).toLocaleDateString('en-GB') : 'NA',
-      'End Date': project.poEndDate ?
-        new Date(project.poEndDate).toLocaleDateString('en-GB') : 'NA',
+      'Start Date': project.projectStartDate ?
+        new Date(project.projectStartDate).toLocaleDateString('en-GB') : 'NA',
+      'End Date': project.projectEndDate ?
+        new Date(project.projectEndDate).toLocaleDateString('en-GB') : 'NA',
       'Created On': project.createdOn ?
         new Date(project.createdOn).toLocaleDateString('en-GB') : 'NA'
     }));

@@ -8656,8 +8656,8 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	                    employeeDetails.setName(object[1] != null ? object[1].toString() : null);
 	                    employeeDetails.setProjectName(object[4] != null ? object[4].toString() : null);
 	                    employeeDetails.setPoNo(object[7] != null ? object[7].toString() : null);
-	                    employeeDetails.setPoStartDate(object[5] != null ? object[5].toString() : null);
-	                    employeeDetails.setPoEndDate(object[6] != null ? object[6].toString() : null);
+	                    employeeDetails.setProjectStartDate(object[5] != null ? object[5].toString() : null);
+	                    employeeDetails.setProjectEndDate(object[6] != null ? object[6].toString() : null);
 	                    employeeDetails.setClientName(object[8] != null ? object[8].toString() : null);
 	                    employeeDetails.setClientLocation(object[9] != null ? object[9].toString() : null);
 	                    employeeDetails.setDepartmentName(object[10] != null ? object[10].toString() : null);
@@ -8690,8 +8690,8 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	                    projectDetails.setProjectName(object[0] != null ? object[0].toString() : null);
 	                    projectDetails.setPoNo(object[1] != null ? object[1].toString() : null);
 	                    projectDetails.setPoProjectType(object[2] != null ? object[2].toString() : null);
-	                    projectDetails.setPoStartDate(object[3] != null ? object[3].toString() : null);
-	                    projectDetails.setPoEndDate(object[4] != null ? object[4].toString() : null);
+	                    projectDetails.setProjectStartDate(object[3] != null ? object[3].toString() : null);
+	                    projectDetails.setProjectEndDate(object[4] != null ? object[4].toString() : null);
 	                    projectDetails.setClientRM(object[5] != null ? object[5].toString() : null);
 	                    projectDetails.setApmosysRM(object[6] != null ? object[6].toString() : null);
 	                    projectDetails.setClientName(object[7] != null ? object[7].toString() : null);
@@ -9358,8 +9358,8 @@ public ServiceResponse fetchInactivePOListOfEmployee(GetEmployeeProjectReportPay
                     employeeDetails.setName(object[1] != null ? object[1].toString() : null);
                     employeeDetails.setProjectName(object[2] != null ? object[2].toString() : null);
                     employeeDetails.setPoNo(object[5] != null ? object[5].toString() : null);
-                    employeeDetails.setPoStartDate(object[3] != null ? object[3].toString() : null);
-                    employeeDetails.setPoEndDate(object[4] != null ? object[4].toString() : null);
+                    employeeDetails.setProjectStartDate(object[3] != null ? object[3].toString() : null);
+                    employeeDetails.setProjectEndDate(object[4] != null ? object[4].toString() : null);
                     employeeDetails.setClientName(object[6] != null ? object[6].toString() : null);
                     employeeDetails.setClientLocation(object[7] != null ? object[7].toString() : null);
                     employeeDetails.setDepartmentName(object[8] != null ? object[8].toString() : null);
@@ -9393,8 +9393,8 @@ public ServiceResponse fetchInactivePOListOfEmployee(GetEmployeeProjectReportPay
                     projectDetails.setProjectName(object[0] != null ? object[0].toString() : null);
                     projectDetails.setPoNo(object[1] != null ? object[1].toString() : null);
                     projectDetails.setPoProjectType(object[2] != null ? object[2].toString() : null);
-                    projectDetails.setPoStartDate(object[3] != null ? object[3].toString() : null);
-                    projectDetails.setPoEndDate(object[4] != null ? object[4].toString() : null);
+                    projectDetails.setProjectStartDate(object[3] != null ? object[3].toString() : null);
+                    projectDetails.setProjectEndDate(object[4] != null ? object[4].toString() : null);
                     projectDetails.setClientRM(object[5] != null ? object[5].toString() : null);
                     projectDetails.setApmosysRM(object[6] != null ? object[6].toString() : null);
                     projectDetails.setClientName(object[7] != null ? object[7].toString() : null);
