@@ -1846,7 +1846,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
         project.setPoEndDate(formattedEndDate);
 	   
 	   
-	    poDetails.setClientLocationId(poDto.getClientAddressId());
+//	    poDetails.setClientLocationId(poDto.getClientAddressId());
 	    poDetails.setMsg(poDto.getCommentForRmg());
 	    poDetails.setApmosysRM(poDto.getApmosysRmEmpName());
 	    poDetails.setApmosysRmEmail(poDto.getApmosysRmEmail());
