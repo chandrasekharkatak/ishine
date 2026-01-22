@@ -6701,7 +6701,7 @@ public class TimesheetService {
 	        /* ================= SUMMARY ================= */
 	        List<Object[]> summaryRows =
 	                isClientDashboard
-	                        ? timesheetsRepository.getTimesheetDashboardCountForEmployee( month, year, empId, clientSideFilter)
+	                        ? timesheetsRepository.getTimesheetDashboardCountForEmployee( month, year, empId, clientSideFilter,employeeActive, billableTypes)
 	                        : timesheetsRepository.getTimesheetDashboardCountForAllEmployee( month, year, empId, billableTypes, employeeActive);
 
 	        if (summaryRows.isEmpty()) {
@@ -7492,10 +7492,10 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 		                    object.getEmpId(),
 		                    object.getStatus(),
 							object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-		                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,offset,pageSize,object.getDeptId());
+		                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,offset,pageSize,object.getDeptId(),object.getEmployeeActive());
 
 	        	    empTimesheet = timesheetsRepository
-	        	        .getEmployeeViewForClientAttendanceStatus(
+	        	        .getEmployeeViewForClientAttendanceStatusNew(
 	        	            object.getMonth(),
 	        	            object.getYear(),
 	        	            object.getEmpId(),
@@ -7507,7 +7507,8 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	        	            object.getSortBy(),
 	        	            object.getSortDirection(),
 	        	            employeeIds,
-	        	            object.getDeptId()
+	        	            object.getDeptId(),
+							object.getEmployeeActive()
 	        	        );
 	        	    
 		            totalDistinctEmployees = timesheetsRepository.getTotalEmployeeCountForClientApplicable(
@@ -7516,7 +7517,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 		                    object.getEmpId(),
 		                    object.getStatus(),
 							object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-		                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,object.getDeptId());
+		                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,object.getDeptId(), object.getEmployeeActive());
 	        	}
 
 	            
@@ -8109,9 +8110,9 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                    object.getEmpId(),
 	                    object.getStatus(),
 						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,0,Integer.MAX_VALUE,object.getDeptId());
+	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,0,Integer.MAX_VALUE,object.getDeptId(), object.getEmployeeActive());
 	        	
-	            empTimesheet = timesheetsRepository.getEmployeeViewForClientAttendanceStatus(
+	            empTimesheet = timesheetsRepository.getEmployeeViewForClientAttendanceStatusNew(
 	                    object.getMonth(),
 	                    object.getYear(),
 	                    object.getEmpId(),
@@ -8119,7 +8120,8 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
 	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,
 	                    object.getSortBy(),
-	                    object.getSortDirection(),employeeIds,object.getDeptId()
+	                    object.getSortDirection(),employeeIds,object.getDeptId(),
+						object.getEmployeeActive()
 						);
 	        }
 
