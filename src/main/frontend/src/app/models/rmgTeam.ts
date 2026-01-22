@@ -13,5 +13,5 @@ export class RmgTeam {
     deptIds: any[] = [];
     departmentNames: any;
     rmgResourceRequirementList: RmgResourceRequirement[] = [];
-
+    isTeamSelected: boolean = false;
 }

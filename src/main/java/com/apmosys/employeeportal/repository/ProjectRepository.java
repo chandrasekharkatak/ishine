@@ -2524,7 +2524,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	
 	@Query("SELECT DISTINCT NEW com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(projectId,projectName)\n"
 			+ " from Project where active = 'true' ")
-	public Optional<List<ProjectNameAndPrjoectIdDTO>> getActiveProjectList();
+	public List<ProjectNameAndPrjoectIdDTO> getActiveProjectList();
 	
 	
 	@Query(nativeQuery = true,value="SELECT em.email AS email\n"

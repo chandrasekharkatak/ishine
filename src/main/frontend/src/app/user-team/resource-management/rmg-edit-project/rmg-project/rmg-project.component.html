@@ -225,7 +225,7 @@
 
                         <!-- Add Team Row -->
                         <div class="row new-team-row m-1 mb-2">
-                            <div class="col-md-3">
+                            <div class="col-md-3 p-1">
                                 <div class="form-group m-1">
                                     <label class="mb-0">Team Name<span class="text-danger">*</span>
                                     </label>
@@ -233,7 +233,7 @@
                                         placeholder="Enter Team Name" (blur)="checkNewTeamName()" />
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-4 p-1">
                                 <div class="form-group m-1">
                                     <label class="mb-0">Department<span class="text-danger">*</span>
                                     </label>
@@ -244,7 +244,7 @@
                                     </app-my-select>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-4 p-1">
                                 <div class="form-group m-1">
                                     <label class="mb-0">SPOC</label>
                                     <app-my-select #spocSelect class="form-control" placeholder="Select Employee"
@@ -253,13 +253,30 @@
                                     </app-my-select>
                                 </div>
                             </div>
-                            <div class="col-md-1">
+                            <div class="col-md-1 p-1">
                                 <div class="d-flex justify-content-center align-items-center mt-4">
                                     <button class="btn btn-sm primary p-0 primary-color" title="Add New Team"
                                         (click)="addNewTeam(po)">
                                         <i class="fa-solid fa-square-plus" aria-hidden="true"></i>
                                     </button>&nbsp;
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- Select All Team Row -->
+                        <div class="row new-team-row m-1 mt-2 mb-2 justify-content-start">
+                            <div class="col-md-6 p-1">
+                                <mat-checkbox [disableRipple]="true" class="custom-checkbox" color="primary"
+                                    [checked]="po.isPoSelected" (change)="onPoCheckboxChange(po)">Select
+                                    All</mat-checkbox>
+                            </div>
+                            <div class="col-md-6 d-flex justify-content-end p-1" *ngIf="po.isAnyMemberSelected">
+                                <button class="btn btn-primary btn-sm" (click)="openDeleteTeamModal(po)">
+                                    Bulk Delete
+                                </button>&nbsp;&nbsp;
+                                <button class="btn btn-primary btn-sm" (click)="openMigrateTeamModal(po)">
+                                    Migrate Team(s)
+                                </button>
                             </div>
                         </div>
 
@@ -279,9 +296,14 @@
 <ng-template #team_list_template let-team="team" let-po="po">
     <mat-accordion>
         <mat-expansion-panel [expanded]="false" class="shadow-sm team-list-expansion-panel mb-2">
-            <mat-expansion-panel-header>
+            <mat-expansion-panel-header class="mb-1">
                 <mat-panel-title>
-                    <div class="row w-100">
+                    <div class="row w-100 align-items-center">
+                        <div class="col-md-1 mb-0" (click)="$event.stopPropagation()">
+                            <mat-checkbox [disableRipple]="true" class="custom-checkbox" color="primary"
+                                [checked]="team.isTeamSelected" (change)="onTeamCheckboxChange(po, team)">
+                            </mat-checkbox>
+                        </div>
                         <div class="col-md-3 mb-0">
                             <div class="mat-header-column">
                                 <p class="mb-0">Team Name : </p>
@@ -303,7 +325,7 @@
                                 </span>
                             </div>
                         </div>
-                        <div class="col-md-3 mb-0">
+                        <div class="col-md-2 mb-0 d-flex justify-content-end">
                             <div class="mat-header-column">
                                 <p class="mb-0">Mapped : </p>
                                 <span class="ml-2">{{0 || 0}}
@@ -334,7 +356,13 @@
             (opened)="setRequirementResourceType(requirement,true)">
             <mat-expansion-panel-header>
                 <mat-panel-title>
-                    <div class="row w-100">
+                    <div class="row w-100 align-items-center">
+                        <div class="col-md-1 mb-0" (click)="$event.stopPropagation()">
+                            <mat-checkbox [disableRipple]="true" class="custom-checkbox" color="primary"
+                                [checked]="requirement.isRequirementSelected"
+                                (change)="onRoleCheckboxChange(po, team, requirement)">
+                            </mat-checkbox>
+                        </div>
                         <div class="col-md-3 mb-0">
                             <div class="mat-header-column">
                                 <p class="mb-0">Role : </p>
@@ -356,7 +384,7 @@
                                 </span>
                             </div>
                         </div>
-                        <div class="col-md-3 mb-0">
+                        <div class="col-md-2 mb-0 d-flex justify-content-end ">
                             <div class="mat-header-column">
                                 <p class="mb-0">Mapped : </p>
                                 <span class="ml-2">{{0 || 0}}
@@ -368,7 +396,7 @@
             </mat-expansion-panel-header>
 
             <!-- Resource List of Role wise  -->
-            <div class="row">
+            <div class="row mt-1">
                 <div class="col-md-6 p-0">
                     <div class="card resource-requirement-count m-1">
                         <div class="resource-requirement-count-box m-1">
@@ -429,9 +457,9 @@
                 </div>
                 <div class="col-md-5">
                     <div class="row flex-nowrap">
-                        <mat-checkbox class="custom-checkbox" color="primary"
+                        <mat-checkbox [disableRipple]="true" class="custom-checkbox" color="primary"
                             [(ngModel)]="requirement.newRmgTeamMember.isShadow">Shadow</mat-checkbox>
-                        <mat-checkbox class="custom-checkbox" color="primary"
+                        <mat-checkbox [disableRipple]="true" class="custom-checkbox" color="primary"
                             [(ngModel)]="requirement.newRmgTeamMember.deafultProject">Default Project</mat-checkbox>
                     </div>
                 </div>
@@ -448,10 +476,7 @@
                     <table class="rmg-team-member-table">
                         <thead>
                             <tr>
-                                <th>
-                                    <input type="checkbox" [checked]="isAllSelected(teamMembers)"
-                                        (change)="toggleAll($event, teamMembers)">
-                                </th>
+                                <th></th>
                                 <th>Info</th>
                                 <th>Name</th>
                                 <th>Role</th>
@@ -463,7 +488,9 @@
                         <tbody>
                             <tr *ngFor="let member of teamMembers">
                                 <td>
-                                    <input type="checkbox" [(ngModel)]="member.selected" (change)="onRowSelect(member)">
+                                    <mat-checkbox [disableRipple]="true" class="custom-checkbox" color="primary"
+                                        [(ngModel)]="member.isMemberSelected"
+                                        (change)="onMemberCheckboxChange(po, team, requirement)"></mat-checkbox>
                                 </td>
                                 <td>
                                     <button class="btn btn-sm">
@@ -485,11 +512,11 @@
                                     </app-my-select>
                                 </td>
                                 <td>
-                                    <mat-checkbox class="custom-checkbox" color="primary"
+                                    <mat-checkbox [disableRipple]="true" class="custom-checkbox" color="primary"
                                         [(ngModel)]="member.isShadow"></mat-checkbox>
                                 </td>
                                 <td>
-                                    <mat-checkbox class="custom-checkbox" color="primary"
+                                    <mat-checkbox [disableRipple]="true" class="custom-checkbox" color="primary"
                                         [(ngModel)]="member.deafultProject"></mat-checkbox>
                                 </td>
                                 <td class="actions">
@@ -577,6 +604,28 @@
     </div>
 </ng-template>
 
+<ng-template #migrate_team>
+    <div class="modal-body text-center">
+        <h6 class="mb-2 fw-semibold">Migrate Teams</h6>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-md-11">
+            <div class="form-group m-1">
+                <label class="mb-1">Target Project<span class="text-danger">*</span>
+                </label>
+                <app-my-select #filterActiveProject class="form-control w-100" placeholder="Select Target Project"
+                    [(ngModel)]="teamMigrationTargetProjectId" [options]="projectList" displayKey="projectName"
+                    valueKey="projectId" [multiple]="false">
+                </app-my-select>
+            </div>
+        </div>
+    </div>
+    <!-- Action Buttons -->
+    <div class="row justify-content-center mt-2 mb-4">
+        <button class="btn btn-sm btn-outline-primary" (click)="migrateTeam()">Yes, Proceed</button>&nbsp;&nbsp;
+        <button class="btn btn-sm btn-primary" (click)="closeMigrateTeamModal()">No, Cancel</button>
+    </div>
+</ng-template>
 
 <ng-template #loading>
     <i class="fa fa-spinner fa-spin text-secondary"></i>

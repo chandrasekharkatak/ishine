@@ -18,14 +18,6 @@
     left: 16px;
 }
 
-::ng-deep .mat-expansion-panel-header {
-    height: 55px !important;
-}
-
-::ng-deep .mat-expansion-panel-header.mat-expanded {
-    height: 55px !important;
-}
-
 .mat-header-column {
     display: flex;
     flex-direction: row;
@@ -40,6 +32,7 @@
 
 .resource-requirement-count {
     background: #f7f7f7;
+    border: 1px solid #dcdada;
     border-radius: 10px;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
 }
@@ -52,6 +45,7 @@
 }
 
 .new-team-row {
+    border: 1px solid #000000;
     justify-content: space-around;
     align-items: center;
     background: #eee;
@@ -61,7 +55,6 @@
 .tnm-requirement-row {
     justify-content: space-between;
     align-items: center;
-    background: #eee;
     border-radius: 5px;
 }
 
@@ -72,46 +65,65 @@
     text-overflow: ellipsis;
 }
 
-/* Panel Header bg-color Start */
-.po-list-expansion-panel .mat-expansion-panel-header {
-    background-color: #e0f2fe;
-}
+/* Expansion Panel Start */
 
-.team-list-expansion-panel .mat-expansion-panel-header {
-    background-color: #ecfeff;
-}
-
-.requirement-list-expansion-panel .mat-expansion-panel-header {
-    background-color: #ffedd5;
-}
-
-.mat-expansion-panel-header:hover {
-    filter: brightness(0.98);
-}
-
-/* Panel Header bg-color End */
-
-
-/* Expansion Panel Border Start */
 .mat-expansion-panel {
     border: 1px solid #d1d5db;
     border-radius: 6px;
     box-shadow: none;
 }
 
-.mat-expansion-panel-header {
-    border-bottom: 1px solid #d1d5db;
-}
-
 .mat-expansion-panel.mat-expanded {
     border-color: #94a3b8;
+}
+
+::ng-deep .mat-expansion-panel-header {
+    height: 55px !important;
+}
+
+::ng-deep .mat-expansion-panel-header.mat-expanded {
+    height: 55px !important;
+}
+
+.po-list-expansion-panel .mat-expansion-panel-header {
+    background-color: #e0f2fe;
+}
+
+.team-list-expansion-panel .mat-expansion-panel-header {
+    background-color: #ecfeff;
+    padding-left: 0px !important;
+}
+
+.requirement-list-expansion-panel .mat-expansion-panel-header {
+    background-color: #ffedd5;
+}
+
+.mat-expansion-panel-header {
+    border-bottom: 1px solid #d1d5db;
 }
 
 .mat-expansion-panel.mat-expanded .mat-expansion-panel-header {
     border-bottom-color: #94a3b8;
 }
 
-/* Expansion Panel Border End */
+.po-list-accordion-body {
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+::ng-deep .po-list-expansion-panel .mat-expansion-panel-content {
+    overflow: visible !important;
+}
+
+::ng-deep .po-list-expansion-panel .mat-expansion-panel-body {
+    padding-top: 0px !important;
+    padding-right: 16px !important;
+    padding-bottom: 16px !important;
+    padding-left: 16px !important;
+}
+
+/* Expansion Panel End */
 
 .clickable {
     cursor: pointer;
@@ -135,23 +147,6 @@
     background-color: #fee2e2;
     border-color: #ef4444;
     color: #991b1b;
-}
-
-.po-list-accordion-body {
-    max-height: 400px;
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
-::ng-deep .po-list-expansion-panel .mat-expansion-panel-content {
-    overflow: visible !important;
-}
-
-::ng-deep .po-list-expansion-panel .mat-expansion-panel-body {
-    padding-top: 0px !important;
-    padding-right: 16px !important;
-    padding-bottom: 16px !important;
-    padding-left: 16px !important;
 }
 
 /* Team Member Table Start */
@@ -179,10 +174,6 @@
 
 .rmg-team-member-table tbody tr {
     background-color: #ffffff;
-}
-
-.custom-checkbox .mdc-label {
-    margin-bottom: 0 !important;
 }
 
 .color-unset {
@@ -219,6 +210,7 @@
 .value {
     color: #222;
     text-align: right;
+    margin-right: 1rem;
 }
 
 .divider {
@@ -233,3 +225,31 @@
 }
 
 /* Employee Info End */
+
+
+/* Checkbox Start */
+.custom-checkbox .mat-mdc-checkbox-touch-target {
+    width: 16px;
+    height: 16px;
+}
+
+.custom-checkbox .mdc-checkbox__background {
+    width: 14px;
+    height: 14px;
+}
+
+.custom-checkbox .mdc-checkbox__checkmark {
+    width: 12px;
+    height: 12px;
+}
+
+.custom-checkbox.mat-mdc-checkbox {
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.custom-checkbox .mdc-form-field {
+    align-items: center;
+}
+
+/* Checkbox End */

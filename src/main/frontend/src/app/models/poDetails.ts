@@ -24,5 +24,8 @@ export class PoDetails {
     difference: any;
     newTeamObj: RmgTeam = new RmgTeam();
     teamList: RmgTeam[] = [];
+    selectedTeamIds: any[] = [];
+    isPoSelected: boolean = false;
+    isAnyMemberSelected: boolean = false;
 
 }

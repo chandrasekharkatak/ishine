@@ -30,6 +30,7 @@ import { PoDetails } from 'src/app/models/poDetails';
 import { RmgTeam } from 'src/app/models/rmgTeam';
 import { RmgResourceRequirement } from 'src/app/models/rmgResourceRequirement';
 import { RmgTeamMember } from 'src/app/models/rmgTeamMember';
+import { MatCheckboxChange } from '@angular/material/checkbox';
 
 @Component({
   standalone: false,
@@ -48,39 +49,31 @@ export class RmgProjectComponent implements OnInit {
   @Output() closeProjectConfiguration = new EventEmitter<any>();
 
   @ViewChild("alert_message") alertMessageTemplateRef: TemplateRef<any>;
-  @ViewChild('employee_details') employeeDetailsTemplateRef: TemplateRef<any>;
-  @ViewChild('employee_project_timesheet_summary') employeeProjectTimesheetSummaryTemplateRef: TemplateRef<any>;
-  @ViewChild('expired_tnm_projects_summary') expiredTNMProjectsSummaryTemplateRef: TemplateRef<any>;
-  @ViewChild('fixed_cost_projects_summary') fixedCostProjectsSummaryTemplateRef: TemplateRef<any>;
-  @ViewChild('total_projects_summary') totalProjectsSummaryTemplateRef: TemplateRef<any>;
-  @ViewChild('team_project_status_summary') teamProjectStatusSummaryTemplateRef: TemplateRef<any>;
-  @ViewChild('project_details') projectDetailsTemplateRef: TemplateRef<any>;
+  @ViewChild("migrate_team") migrateTeamTemplateRef: TemplateRef<any>;
+  @ViewChild("delete_team") deleteTeamTemplateRef: TemplateRef<any>;
 
   alertMessageModalRef: NgbModalRef;
-  employeeDetailsModalRef: NgbModalRef;
-  employeeProjectTimesheetSummaryModalRef: NgbModalRef;
-  expiredTNMProjectsSummaryModalRef: NgbModalRef;
-  fixedCostProjectsSummaryModalRef: NgbModalRef;
-  totalProjectsSummaryModalRef: NgbModalRef;
-  projectDetailsModalRef: NgbModalRef;
-  teamProjectStatusSummaryModalRef: NgbModalRef;
+  migrateTeamModalRef: NgbModalRef;
+  deleteTeamModalRef: NgbModalRef;
 
   currentUser: User;
   userMapping: any = {};
 
   employeeObj: Employee = new Employee();
   newteamMember: TeamMember = new TeamMember();
+  // migrateTeamObj:LiftAndShift();
 
   fixedCostTypes = ['fixed cost'];
   employeeRoles: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
 
+  projectList: any[] = [];
+  migrationTeamIds: any[] = [];
+
   modalMessage: string = '';
   projectType: string = '';
-
+  teamMigrationTargetProjectId: any;
   projectConfigStepperIndex: number = 1;
-
   loadingRequirements: boolean = true;
-
 
   constructor(
     private filterStateService: FilterStateService,
@@ -123,11 +116,29 @@ export class RmgProjectComponent implements OnInit {
     }
   }
 
+  openMigrateTeamModal(po: PoDetails) {
+    this.getActiveProjectList();
+    this.migrateTeamModalRef = this.modalService?.open(this.migrateTeamTemplateRef, { modalDialogClass: 'modal-sm' });
+  }
 
+  closeMigrateTeamModal() {
+    if (this.migrateTeamModalRef) {
+      this.migrateTeamModalRef?.close();
+    }
+  }
+
+  openDeleteTeamModal(po: PoDetails) {
+    this.deleteTeamModalRef = this.modalService?.open(this.deleteTeamTemplateRef, { modalDialogClass: 'modal-lg' });
+  }
+
+  closeDeleteTeamModal() {
+    if (this.deleteTeamModalRef) {
+      this.deleteTeamModalRef?.close();
+    }
+  }
   // Modals End
 
   // Helpers Start
-
   isValidList(list: any) {
     return this.validationService.validateNullUndefinedEmptyList(list);
   }
@@ -190,6 +201,78 @@ export class RmgProjectComponent implements OnInit {
   setRequirementResourceType(requirement: RmgResourceRequirement, isCurrentResource: boolean) {
     requirement.requirementType = isCurrentResource ? 'Current Resource' : 'Old Resource';
   }
+
+  setMembersSelection(members: RmgTeamMember[], isSelected: boolean): void {
+    members.forEach(m => (m.isMemberSelected = isSelected));
+  }
+
+  onPoCheckboxChange(po: PoDetails): void {
+    po.isPoSelected = !po.isPoSelected;
+    po.teamList.forEach(team => {
+      team.isTeamSelected = po.isPoSelected;
+      team.rmgResourceRequirementList.forEach(role => {
+        role.isRequirementSelected = po.isPoSelected;
+        this.setMembersSelection(role.rmgCurrentTeamMemberList, po.isPoSelected);
+      });
+    });
+
+    this.updatePoActionButton(po);
+  }
+
+  onTeamCheckboxChange(po: PoDetails, team: RmgTeam): void {
+    team.isTeamSelected = !team.isTeamSelected;
+    team.rmgResourceRequirementList.forEach(role => {
+      role.isRequirementSelected = team.isTeamSelected;
+      this.setMembersSelection(role.rmgCurrentTeamMemberList, team.isTeamSelected);
+    });
+
+    this.updatePoSelection(po);
+    this.updatePoActionButton(po);
+  }
+
+  onRoleCheckboxChange(po: PoDetails, team: RmgTeam, role: RmgResourceRequirement): void {
+    role.isRequirementSelected = !role.isRequirementSelected;
+    this.setMembersSelection(role.rmgCurrentTeamMemberList, role.isRequirementSelected);
+
+    this.updateTeamSelection(team);
+    this.updatePoSelection(po);
+    this.updatePoActionButton(po);
+  }
+
+  onMemberCheckboxChange(po: PoDetails, team: RmgTeam, role: RmgResourceRequirement): void {
+    this.updateRoleSelection(role);
+    this.updateTeamSelection(team);
+    this.updatePoSelection(po);
+    this.updatePoActionButton(po);
+  }
+
+  updateRoleSelection(role: RmgResourceRequirement): void {
+    role.isRequirementSelected =
+      role.rmgCurrentTeamMemberList.length > 0 &&
+      role.rmgCurrentTeamMemberList.every(member => member.isMemberSelected);
+  }
+
+  updateTeamSelection(team: RmgTeam): void {
+    team.isTeamSelected =
+      team.rmgResourceRequirementList.length > 0 &&
+      team.rmgResourceRequirementList.every(role => role.isRequirementSelected);
+  }
+
+  updatePoSelection(po: PoDetails): void {
+    po.isPoSelected =
+      po.teamList.length > 0 &&
+      po.teamList.every(team => team.isTeamSelected);
+  }
+
+  updatePoActionButton(po: PoDetails): void {
+    po.isAnyMemberSelected = po.teamList.some(team =>
+      team.rmgResourceRequirementList.some(role =>
+        role.rmgCurrentTeamMemberList.some(
+          member => member.isMemberSelected
+        )
+      )
+    );
+  }
   // Helpers End
 
   // Steppers Method Start
@@ -222,6 +305,21 @@ export class RmgProjectComponent implements OnInit {
       }
     });
   }
+
+  onAllTeamSelectCheckboxChange(event: MatCheckboxChange, po: PoDetails): void {
+    const flag: boolean = event.checked;
+    po.selectedTeamIds = [];
+    po.isPoSelected = flag;
+
+    if (this.isValidList(po.teamList)) {
+      for (let team of po.teamList) {
+        team.isTeamSelected = flag;
+        if (flag) {
+          po.selectedTeamIds.push(team.teamId);
+        }
+      }
+    }
+  }
   // Team Method & APIs End
 
   // PO List Method & APIs Start
@@ -234,24 +332,6 @@ export class RmgProjectComponent implements OnInit {
   // PO List Method & APIs End
 
   //  Team Members Method & APIs Start
-
-  toggleAll(event: Event, teamMembers: RmgTeamMember[]): void {
-    const checked = (event.target as HTMLInputElement).checked;
-    teamMembers?.forEach(m => m.selected = checked);
-  }
-
-  isAllSelected(teamMembers: RmgTeamMember[]): boolean {
-    return teamMembers?.length > 0 && teamMembers?.every(m => m.selected);
-  }
-
-  onRowSelect(member: RmgTeamMember): void {
-    console.log('Selected members:', member);
-  }
-
-  getSelectedMembers(teamMembers: RmgTeamMember[]): RmgTeamMember[] {
-    return teamMembers?.filter(m => m.selected);
-  }
-
   onEdit(member: RmgTeamMember): void {
     console.log('Edit', member);
   }
@@ -263,6 +343,29 @@ export class RmgProjectComponent implements OnInit {
   addNewTeamMember(requirement: RmgResourceRequirement, po: PoDetails) {
 
   }
+
+  migrateTeam() {
+    // this.liftAndShiftObj.currentUserEmpId = this.currentUser.empId;
+    // this.liftAndShiftObj.teamIds = this.selectedTeamsDetails.map(team => team.teamId);
+    // this.resourceManagementService.liftAndShiftTeams(this.liftAndShiftObj).pipe(first()).subscribe((response: any) => {
+    //   if (response.serviceStatus == "Success") {
+    //     this.openAlertModWithReload(this.modalRefWithReloadTemp, response.serviceResponse);
+    //   } else {
+    //     this.openAlertMod(this.alertTemplateWithoutReload, response.serviceResponse);
+    //   }
+    // });
+  }
   //  Team Members Method & APIs End
+
+  getActiveProjectList() {
+    this.projectList = [];
+    this.resourceManagementService.getActiveProjectList().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        this.projectList = response.serviceResponse;
+      } else {
+        this.openAlertMessageModal(response.serviceResponse);
+      }
+    });
+  }
 
 }

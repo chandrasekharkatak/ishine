@@ -13,4 +13,5 @@ export class RmgResourceRequirement {
     rmgCurrentTeamMemberList: RmgTeamMember[] = [];
     rmgOldTeamMemberList: RmgTeamMember[] = [];
     requirementType: 'Current Resource' | 'Old Resource' = 'Current Resource';
+    isRequirementSelected: boolean = false;
 }

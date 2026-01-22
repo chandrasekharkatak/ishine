@@ -22,10 +22,10 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
             + ") \n"
             + "FROM ProjectPoDetails p  \n"
             + "INNER JOIN PoRequirementMapping prm ON p.poId=prm.poId \n"
-            + "INNER JOIN EmployeeTeamMap etm ON etm.poRequirementMappingId = prm.id   \n"
+            + "INNER JOIN EmployeeTeamMap etm ON etm.poRequirementMappingId = prm.poRequirementMappingId   \n"
             + "INNER JOIN Team t ON t.teamId = etm.teamId  \n"
             + "where p.projectId=:projectId \n"
-            + "AND etm.active IN (1, 2) \n"
+            + "AND (p.active = true or etm.active IN (1, 2)) \n"
             + "GROUP BY p.id, p.poId, p.projectId, p.poNo, p.poStartDate, p.poEndDate, p.active")
     List<PoDetailsDto> getAllPoDetailsDtoByProjectId(Integer projectId);
 

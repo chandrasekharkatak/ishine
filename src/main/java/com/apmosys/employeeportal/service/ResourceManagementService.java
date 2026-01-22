@@ -11703,50 +11703,36 @@ public class ResourceManagementService {
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setApiUrl("/api/getActiveProjectList");
 		apiLogInfo.setLogLevel("INFO");
-
 		try {
+			List<ProjectNameAndPrjoectIdDTO> projectList = projectRepository.getActiveProjectList();
 
-			Optional<List<ProjectNameAndPrjoectIdDTO>> projectList = projectRepository.getActiveProjectList();
-
-			if (projectList.isEmpty()) {
-
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Unable to fetch project list!");
-
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				apiLogInfo.setApiResponse("Empty list fetched from repository!");
+			if (projectList == null || projectList.isEmpty()) {
 				apiLogInfo.setLogLevel("FAIL");
-
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiResponse("Empty list fetched from repository!");
+				response.setServiceResponse("Unable to fetch project list!");
 				logService.logMyInfo(httpRequest, apiLogInfo);
 				return response;
-
 			}
 
-			if (projectList.isPresent()) {
-
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(projectList);
-
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				apiLogInfo.setApiResponse("Project List fetched successfully !");
-				apiLogInfo.setLogLevel("SUCCESS");
-
-				logService.logMyInfo(httpRequest, apiLogInfo);
-				return response;
-
-			}
+			response.setServiceResponse(projectList);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("Project List fetched successfully !");
+			apiLogInfo.setLogLevel("SUCCESS");
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			return response;
 
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something went wrong.");
 			response.setServiceError(e.getMessage());
-
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setApiResponse(e.getMessage());
 			apiLogInfo.setLogLevel("ERROR");
 		}
-
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}

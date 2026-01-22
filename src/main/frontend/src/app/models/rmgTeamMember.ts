@@ -10,12 +10,11 @@ export class RmgTeamMember {
     isMemberActive: any;
     deafultProject: any;
     memberDepartment: any
-    selected: boolean = false;
     employementId: any;
     billableType: any;
     prevExp: any;
     currentExp: any;
     totalExp: any;
     jobRoleName: any;
-
+    isMemberSelected: boolean = false;
 }
