@@ -68,7 +68,7 @@ public class ProjectPoDetails {
     private String apmosysRmEmail;
    
 	@Column(name = "active")
-    private Boolean active;
+    private boolean active;
    
 	@Column(name = "msg")
     private String msg;

@@ -27,6 +27,6 @@ public class PoDepartmentMapping {
 		private Long poDepartmentMapId;
 		private Integer poId;
 		private Long deptId;
-		private Boolean active;
+		private boolean active;
 
 }
