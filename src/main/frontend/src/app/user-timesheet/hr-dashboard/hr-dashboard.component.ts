@@ -298,7 +298,9 @@ currentSelectedStatus ="";
 billableTypes: string[] = [];
 // billableTypes: string[] = ['All','TNM', 'Fixed Cost', 'Shadow','Bench', 'InternalRNDProducts'];
 employeeBillableTypes: string[] = ['TNM', 'Fixed Cost', 'TNM(Shadow)', 'Fixed Cost(Shadow)','Bench', 'InternalRNDProducts','All'];
+employeeBillableTypesWithClient: string[] = ['TNM', 'Fixed Cost', 'TNM(Shadow)', 'Fixed Cost(Shadow)']
 projectBillableTypes: string[] = ['TNM', 'Fixed Cost', 'Monitoring','All'];
+projectBillableTypesWithClient: string[] = ['TNM', 'Fixed Cost']
 selectedStatus:String = "All" ;
 newSelectedStatus:String = "";
 
@@ -946,9 +948,15 @@ isGlobalPoDropdownOpen = false;
 updateBillableTypes() {
 
   if (this.toggleValue) {
-    this.billableTypes = [...this.projectBillableTypes];
+    if(this.isClientDashboard)
+      this.billableTypes = [...this.projectBillableTypesWithClient];
+    else
+      this.billableTypes = [...this.projectBillableTypes];
   } else {
-    this.billableTypes = [...this.employeeBillableTypes];
+    if(this.isClientDashboard)
+      this.billableTypes = [...this.employeeBillableTypesWithClient];
+    else
+      this.billableTypes = [...this.employeeBillableTypes];
   }
 
   // Reset selections
@@ -2182,6 +2190,7 @@ getTileInfo(status: string): string[] {
     this.isClientDashboard = !this.isClientDashboard;
     this.resetSearchField();
     this.isSearchEnabled = false;
+    this.updateBillableTypes();
     if (!this.toggleValue) {
       this.getEmployeeByNameAndEmpld();
       this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
