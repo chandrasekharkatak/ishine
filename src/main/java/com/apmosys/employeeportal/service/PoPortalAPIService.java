@@ -1972,6 +1972,8 @@ return empId;
 	                httpRequest
 	        );
 	        
+	        logger.info("log table set start");
+	        
 
 	        HttpHeaders headers = new HttpHeaders();
 	        headers.set("Authorization",
@@ -1979,6 +1981,8 @@ return empId;
 	        headers.set("X-Trace-Id", traceId);
 
 	        HttpEntity<?> entity = new HttpEntity<>(headers);
+	        
+	        logger.info("header set");
 
 	        ResponseEntity<List<ProjectPoMappingWithResourceDTO>> apiResponse =
 	                restTemplate.exchange(
@@ -2045,6 +2049,7 @@ return empId;
 	                         dateFormat.format(projectDto.getProjectEndDate()));
 
 	                 projectRepository.save(project);
+	                 logger.info("saved in proj table");
 
 	             } catch (Exception ex) {
 	                 exceptionDetailsForLog.append(
