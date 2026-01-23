@@ -48,7 +48,7 @@ public class PoRequirementMapping {
 	    private Long count;
 	    
 	    @Column(name = "active")
-	    private Boolean active;
+	    private boolean active;
 	    
 	    
 	   
