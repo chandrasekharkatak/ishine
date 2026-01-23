@@ -347,13 +347,15 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "			END AS projectViewId )\n"
 			+ "			FROM Project p   \n"
 			+ "			INNER JOIN ProjectDepartmentMap pdm on p.projectId = pdm.projectId\n"
+			+ "			INNER JOIN ProjectPoDetails pdm on p.projectId = pdm.projectId\n"
+			+ "			INNER JOIN PoDepartmentMapping po on pdm.poId = po.poId\n"
 			+ "            LEFT JOIN Client c ON c.clientId = p.clientId \n"
 			+ "			where p.active= 'true' and p.isDraftProject is null \n"
 			+ "			and (p.status != 'Completed' or p.status is null)\n"
 			+ "			and not exists (select 1 from Team t where t.projectId = p.projectId) \n"
 //			+ "			and date(p.poEndDate) > curdate()\n"
 			+ "			and (p.internalProjectType is not null or date(p.endDate)>curdate())\n"
-			+ "			  and (pdm.deptId IN (:deptIds))  ")
+			+ "			  and (po.deptId IN (:deptIds))  ")
 	List<ProjectFetchDTO> getAllNotStartedProjects(@Param("deptIds") List<Long> deptIds);
 //	@Query(value = "SELECT \n"
 //			+ "    distinct p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
@@ -522,7 +524,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 //	Integer getAllNotStartedProjectCountInDept(List<Long> deptIds);
 	
 	@Query(value="select  count( Distinct p.projectId) from Project p \n"
-			+ "	inner join ProjectDepartmentMap pdm on pdm.projectId = p.projectId \n"
+			+ "	inner join ProjectPoDetails ppo on ppo.projectId = p.projectId \n"
+			+ "	inner join PoDepartmentMapping pdm on pdm.poId = ppo.poId \n"
 			+ "	where p.active= 'true' and p.isDraftProject is null \n"
 			+ "	and (p.status != 'Completed' or p.status is null)\n"
 			+ "	and not exists (select 1 from Team t where t.projectId = p.projectId) \n"
@@ -980,7 +983,8 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "END AS projectViewId) \n"
 			+ "			FROM Project p\n"
 			+ "			LEFT JOIN Client c ON c.clientId = p.clientId\n"
-			+ "			inner join ProjectDepartmentMap pdm on pdm.projectId = p.projectId\n"
+			+ "			LEFT JOIN ProjectPoDetails ppo ON ppo.projectId = p.projectId\n"
+			+ "			inner join PoDepartmentMapping pdm on pdm.poId = ppo.poId\n"
 			+ "			WHERE p.projectStatus = 'Completed' and pdm.deptId IN :deptIds")
 	List<ProjectFetchDTO> getAllCompletedProjectListInIshine(@Param("deptIds") List<Long> deptIds);
 	
@@ -1030,7 +1034,8 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		"INNER JOIN Employee e ON e.empId = etm.empId " +
 		"INNER JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId " +
 		"INNER JOIN Department d ON d.deptId = jr.deptId " +
-		"INNER JOIN ProjectDepartmentMap pdm ON p.projectId = pdm.projectId " +
+		"INNER JOIN ProjectPoDetails ppo ON ppo.projectId = p.projectId " +
+		"INNER JOIN PoDepartmentMapping pdm ON ppo.poId = pdm.poId " +
 		"LEFT JOIN Client c ON c.clientId = p.clientId " +
 		"WHERE p.active = 'true' " +
 		"AND t.isActive = 'Y' " +
@@ -1080,7 +1085,8 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    "END" +
 		") " +
 		"FROM Project p " +
-		"INNER JOIN ProjectDepartmentMap pdm ON p.projectId = pdm.projectId " +
+		"INNER JOIN ProjectPoDetails ppo ON p.projectId = ppo.projectId " +
+		"INNER JOIN PoDepartmentMapping pdm ON ppo.poId = pdm.poId " +
 		"LEFT JOIN Client c ON c.clientId = p.clientId " +
 		"WHERE p.active = 'true' " +
 		"AND UPPER(p.isDraftProject) = 'REJECTED' " +
@@ -1105,7 +1111,8 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "			  ELSE CONCAT('', p.poProjectId) \n"
 			+ "			END AS projectViewId ) \n"
 			+ "			FROM Project p   \n"
-			+ "			INNER JOIN ProjectDepartmentMap pdm on p.projectId = pdm.projectId\n"
+			+ "			INNER JOIN ProjectPoDetails ppo on p.projectId = ppo.projectId\n"
+			+ "			INNER JOIN PoDepartmentMapping pdm on ppo.poId = pdm.poId\n"
 			+ "            LEFT JOIN Client c ON c.clientId = p.clientId \n"
 			+ "			where p.active= 'true' and p.isDraftProject = 'true'\n"
 			+ "			 and (pdm.deptId IN (:deptIds))")
@@ -1192,7 +1199,8 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	
 	
 	@Query(value="select  count( Distinct p.projectId) from Project p \n"
-			+ "			 inner join ProjectDepartmentMap pdm on pdm.projectId = p.projectId \n"
+			+ "			 inner join ProjectPoDetails ppo on ppo.projectId = p.projectId \n"
+			+ "			 inner join PoDepartmentMapping pdm on pdm.poId = ppo.poId \n"
 			+ "			 where  p.projectStatus = 'Completed' and pdm.deptId IN :deptIds")
 	Integer getAllCompletedProjectCountInIshine(@Param("deptIds") List<Long> deptIds);
 	
@@ -1332,7 +1340,8 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			       "p.clientRM, " +
 			       "DATEDIFF(CURRENT_DATE, p.endDate)) " +
 			       "FROM Project p " +
-			       "JOIN ProjectDepartmentMap pd ON p.projectId = pd.projectId " +
+			       "JOIN ProjectPoDetails ppo ON p.projectId = ppo.projectId " +
+			       "JOIN PoDepartmentMapping pd ON ppo.poId = pd.poId " +
 			       "JOIN Department d ON pd.deptId = d.deptId " +
 			       "JOIN Team t ON p.projectId = t.projectId " +
 			       "JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId " +
@@ -3534,7 +3543,9 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			+ "		LEFT JOIN Employee e ON e.empId = etm.empId \n"
 			+ "		LEFT JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId \n"
 			+ "		LEFT JOIN Department d ON d.deptId = jr.deptId \n"
-			+ "		LEFT JOIN ProjectDepartmentMap pdm ON p.projectId = pdm.projectId \n"
+			+ "		LEFT JOIN ProjectPoDetails ppo ON p.projectId = ppo.projectId \n"
+			+ "		LEFT JOIN PoDepartmentMapping pdm ON ppo.poId = pdm.poId \n"
+//			+ "		LEFT JOIN ProjectDepartmentMap pdm ON p.projectId = pdm.projectId \n"
 			+ "		LEFT JOIN Client c ON c.clientId = p.clientId \n"
 			+ "		WHERE ( pdm.deptId is NULL or pdm.deptId IN (:deptIds))")
 		List<ProjectFetchDTO> getAllProjectList(@Param("deptIds") List<Long> deptIds);

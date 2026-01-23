@@ -90,8 +90,11 @@ public class ResourceManagementDTO {
     private Long rescRemovedBy;
     private String rescRemovedByName;
     
+    private Integer poId;
+    
     private Boolean isCustomDate;
     private Long poRequirementMappingId;
+    
     
 	public ResourceManagementDTO(Integer projectId,Long poProjectId , String projectName) {
 		

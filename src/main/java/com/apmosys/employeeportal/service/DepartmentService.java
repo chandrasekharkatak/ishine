@@ -38,6 +38,7 @@ import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.DesignationDepartmentMap;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.JobRole;
+import com.apmosys.employeeportal.model.PoDepartmentMapping;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
@@ -45,6 +46,7 @@ import com.apmosys.employeeportal.repository.DesignationDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeOnBoardingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
+import com.apmosys.employeeportal.repository.PoDepartmentMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
@@ -79,6 +81,9 @@ public class DepartmentService {
 	
 	@Autowired
 	ProjectDepartmentMapRepository projectDepartmentMapRepository;
+	
+	@Autowired
+	PoDepartmentMappingRepository poDepartmentMappingRepository;
 	
 	@Autowired
 	EmployeeOnBoardingRepository employeeOnBoardingRepository;
@@ -571,10 +576,12 @@ public class DepartmentService {
 	}
 
 	private void updateProjectDepartmentMapping(DepartmentDTO dto, ServiceResponse response, LogDTO apiLogInfo) {
-		List<ProjectDepartmentMap> list = projectDepartmentMapRepository.findByDeptId(dto.getOldDeptId());
+//		List<ProjectDepartmentMap> list = projectDepartmentMapRepository.findByDeptId(dto.getOldDeptId());
+		List<PoDepartmentMapping> list = poDepartmentMappingRepository.findByDeptId(dto.getOldDeptId());
+		
 		if (!list.isEmpty()) {
 			list.forEach(p -> p.setDeptId(dto.getDeptId()));
-			List<ProjectDepartmentMap> updated = projectDepartmentMapRepository.saveAll(list);
+			List<PoDepartmentMapping> updated = poDepartmentMappingRepository.saveAll(list);
 
 			if (!updated.isEmpty()) {
 				response.setServiceResponse("Project Department Mapping Changed successfully.");

@@ -143,11 +143,13 @@ import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.FCLineItem;
 import com.apmosys.employeeportal.model.FCProjectMilestone;
 import com.apmosys.employeeportal.model.JobRole;
+import com.apmosys.employeeportal.model.PoDepartmentMapping;
 import com.apmosys.employeeportal.model.PoRequirementMapping;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.ProjectManagerMapping;
 import com.apmosys.employeeportal.model.ProjectOverheadMapping;
+import com.apmosys.employeeportal.model.ProjectPoDetails;
 import com.apmosys.employeeportal.model.ResourceRequirement;
 import com.apmosys.employeeportal.model.ResourceRequirementTemp;
 import com.apmosys.employeeportal.model.Team;
@@ -165,6 +167,7 @@ import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.FCLineItemRepository;
 import com.apmosys.employeeportal.repository.FCProjectMilestoneRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
+import com.apmosys.employeeportal.repository.PoDepartmentMappingRepository;
 import com.apmosys.employeeportal.repository.PoRequirementMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
 import com.apmosys.employeeportal.repository.ProjectManagerMappingRepository;
@@ -192,6 +195,12 @@ public class ResourceManagementService {
 
 	@Autowired
 	ProjectRepository projectRepository;
+	
+	@Autowired
+	PoDepartmentMappingRepository poDepartmentMappingRepository;
+	
+	@Autowired
+	ProjectPoDetailsRepository projectPoDetailsRepository;
 
 	@Autowired
 	ClientLocationRepository clientLocationRepository;
@@ -279,7 +288,7 @@ public class ResourceManagementService {
 
 	@Autowired
 	private ProjectPoDetailsRepository poDetailsRepository;
-	
+
 	@Autowired
 	private ApiLogUtility apiLogUtility;
 
@@ -430,15 +439,19 @@ public class ResourceManagementService {
 											updateMember.setTeamId(teamDbResponse.getTeamId());
 											updateMember.setUpdatedOn(LocalDateTime.now());
 											updateMember.setUpdatedBy(resourceManagementDTO.getCreatedBy());
-											updateMember.setIsShadow(newMember.getIsShadow() != null? newMember.getIsShadow(): null);
-											
-											//added PoRequirementMappingId changes 
-											updateMember.setPoRequirementMappingId(newMember.getPoRequirementMappingId() != null
-													? Long.parseLong(newMember.getPoRequirementMappingId().toString())
-													: null);
-											
-											if(newMember.getIsDefaultProject() != null) {
-												if(newMember.getIsDefaultProject() == 1 && newMember.getEmpId()!= null)
+											updateMember.setIsShadow(
+													newMember.getIsShadow() != null ? newMember.getIsShadow() : null);
+
+											// added PoRequirementMappingId changes
+											updateMember.setPoRequirementMappingId(
+													newMember.getPoRequirementMappingId() != null
+															? Long.parseLong(
+																	newMember.getPoRequirementMappingId().toString())
+															: null);
+
+											if (newMember.getIsDefaultProject() != null) {
+												if (newMember.getIsDefaultProject() == 1
+														&& newMember.getEmpId() != null)
 													defaultProjectEmpId.add(newMember.getEmpId());
 											}
 
@@ -519,14 +532,17 @@ public class ResourceManagementService {
 									newEmpTeamMap.setActive(2l);
 									newEmpTeamMap.setEmployeeRole("TeamLead");
 									newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
-									newEmpTeamMap.setStartDate(LocalDateTime.now()); 
-									newEmpTeamMap.setIsShadow(teamMember.getIsShadow() != null ? teamMember.getIsShadow() : null);
-									
-									//added PoRequirementMappingId changes 
-									newEmpTeamMap.setPoRequirementMappingId(teamMember.getPoRequirementMappingId() != null
-											? Long.parseLong(teamMember.getPoRequirementMappingId().toString())
-											: null);
-									newEmpTeamMap.setCreatedBy(teamMember.getCreatedBy() != null ? teamMember.getCreatedBy() : null);
+									newEmpTeamMap.setStartDate(LocalDateTime.now());
+									newEmpTeamMap.setIsShadow(
+											teamMember.getIsShadow() != null ? teamMember.getIsShadow() : null);
+
+									// added PoRequirementMappingId changes
+									newEmpTeamMap
+											.setPoRequirementMappingId(teamMember.getPoRequirementMappingId() != null
+													? Long.parseLong(teamMember.getPoRequirementMappingId().toString())
+													: null);
+									newEmpTeamMap.setCreatedBy(
+											teamMember.getCreatedBy() != null ? teamMember.getCreatedBy() : null);
 									newEmpTeamMap.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 
 									if (teamMember.getIsDefaultProject() != null) {
@@ -545,16 +561,17 @@ public class ResourceManagementService {
 									newEmpTeamMap.setActive(2l); // Set active value as 2 for newly added team members
 									newEmpTeamMap.setEmployeeRole(employeeRole.toString());
 									newEmpTeamMap.setTeamId(teamDbResponse.getTeamId());
-									newEmpTeamMap.setStartDate(LocalDateTime.now()); 
-									newEmpTeamMap.setIsShadow(teamMember.getIsShadow() != null ? teamMember.getIsShadow() : null);
-								
-									
-									newEmpTeamMap.setPoRequirementMappingId(teamMember.getPoRequirementMappingId() != null
-											? Long.parseLong(teamMember.getPoRequirementMappingId().toString())
-											: null);
-									
-									if(teamMember.getIsDefaultProject() != null) {
-										if(teamMember.getIsDefaultProject() == 1)
+									newEmpTeamMap.setStartDate(LocalDateTime.now());
+									newEmpTeamMap.setIsShadow(
+											teamMember.getIsShadow() != null ? teamMember.getIsShadow() : null);
+
+									newEmpTeamMap
+											.setPoRequirementMappingId(teamMember.getPoRequirementMappingId() != null
+													? Long.parseLong(teamMember.getPoRequirementMappingId().toString())
+													: null);
+
+									if (teamMember.getIsDefaultProject() != null) {
+										if (teamMember.getIsDefaultProject() == 1)
 											defaultProjectEmpIds.add(teamMember.getEmpId());
 									}
 									newEmpTeamMap.setCreatedBy(
@@ -660,9 +677,9 @@ public class ResourceManagementService {
 						empTeamMap.setEmployeeRole("TeamLead");
 						empTeamMap.setTeamId(teamDbResponse.getTeamId());
 						empTeamMap.setStartDate(LocalDateTime.now());
-						empTeamMap.setIsShadow(newMember.getIsShadow() != null ? newMember.getIsShadow(): null);
-						
-						// added poRequirementmappingId changes 
+						empTeamMap.setIsShadow(newMember.getIsShadow() != null ? newMember.getIsShadow() : null);
+
+						// added poRequirementmappingId changes
 						empTeamMap.setPoRequirementMappingId(newMember.getPoRequirementMappingId() != null
 								? Long.parseLong(newMember.getPoRequirementMappingId().toString())
 								: null);
@@ -686,8 +703,8 @@ public class ResourceManagementService {
 						empTeamMap.setTeamId(teamDbResponse.getTeamId());
 						empTeamMap.setStartDate(LocalDateTime.now());
 						empTeamMap.setIsShadow(newMember.getIsShadow() != null ? newMember.getIsShadow() : null);
-						
-						// added poRequirementmappingId changes 
+
+						// added poRequirementmappingId changes
 						empTeamMap.setPoRequirementMappingId(newMember.getPoRequirementMappingId() != null
 								? Long.parseLong(newMember.getPoRequirementMappingId().toString())
 								: null);
@@ -1069,15 +1086,19 @@ public class ResourceManagementService {
 									teamMemberDTO.setDepartmentName(findDepartment.getName());
 									teamMemberDTO.setDepartmentId(findDepartment.getDeptId().toString());
 									teamMemberDTO.setEmployeeRole(teamMemberObj.getEmployeeRole().split(","));
-									
-                                    //added hanges for PoRequirementMappingId
-									teamMemberDTO.setPoRequirementMappingId(teamMemberObj.getPoRequirementMappingId() != null ?
-											Long.parseLong(teamMemberObj.getPoRequirementMappingId().toString()) : null);
-									
+
+									// added hanges for PoRequirementMappingId
+									teamMemberDTO
+											.setPoRequirementMappingId(teamMemberObj.getPoRequirementMappingId() != null
+													? Long.parseLong(
+															teamMemberObj.getPoRequirementMappingId().toString())
+													: null);
+
 									teamMemberDTO.setEmploymentIdEmployeeType(
 											prefixxTeamMember + empObj.getEmployeementId());
-			
-									teamMemberDTO.setIsShadow(teamMemberObj.getIsShadow() != null ? teamMemberObj.getIsShadow() : null);
+
+									teamMemberDTO.setIsShadow(
+											teamMemberObj.getIsShadow() != null ? teamMemberObj.getIsShadow() : null);
 									teamMemberDTO.setEmployeeTeamMapId(teamMemberObj.getEmployeeTeamMapId());
 									Integer flag = this.isDefaultProject(teamMemberObj.getEmpId(), projectId);
 									teamMemberDTO.setIsDefaultProject(flag != null ? flag : null);
@@ -1103,10 +1124,13 @@ public class ResourceManagementService {
 									teamMemberDTO.setDepartmentName(findDepartment.getName());
 									teamMemberDTO.setDepartmentId(findDepartment.getDeptId().toString());
 									teamMemberDTO.setEmployeeRole(teamMemberObj.getEmployeeRole().split(","));
-									
-									//added hanges for PoRequirementMappingId
-									teamMemberDTO.setPoRequirementMappingId(teamMemberObj.getPoRequirementMappingId() != null ?
-											Long.parseLong(teamMemberObj.getPoRequirementMappingId().toString()) : null);
+
+									// added hanges for PoRequirementMappingId
+									teamMemberDTO
+											.setPoRequirementMappingId(teamMemberObj.getPoRequirementMappingId() != null
+													? Long.parseLong(
+															teamMemberObj.getPoRequirementMappingId().toString())
+													: null);
 									teamMemberDTO.setEmploymentIdEmployeeType(
 											prefixxTeamMember + empObj.getEmployeementId());
 									teamMemberDTO.setIsShadow(
@@ -1369,9 +1393,9 @@ public class ResourceManagementService {
 					int projectId = object[0] != null ? Integer.parseInt(object[0].toString()) : null;
 					List<String> department = new ArrayList<String>();
 
-					List<Object[]> projDeptMap = projectDepartmentMapRepository.getDepartmentByProjectId(projectId);
-					if (!projDeptMap.isEmpty()) {
-						projDeptMap.forEach((dept) -> {
+					List<Object[]> poDeptMap = poDepartmentMappingRepository.getDepartmentByPoId(projectId);
+					if (!poDeptMap.isEmpty()) {
+						poDeptMap.forEach((dept) -> {
 							String departmentName = dept[1] != null ? dept[1].toString() : null;
 							department.add(departmentName);
 						});
@@ -2212,7 +2236,7 @@ public class ResourceManagementService {
 //					if(count>0) {
 //						isTeamCreated = "false";
 //					}
-					List<ProjectDepartmentMap> allDeptList = projectDepartmentMapRepository.findByProjectId(projectId);
+					List<PoDepartmentMapping> allDeptList = poDepartmentMappingRepository.findByProjectId(projectId);
 					List<String> deptList = new ArrayList<String>();
 
 					if (allDeptList != null) {
@@ -2339,9 +2363,7 @@ public class ResourceManagementService {
 			findResource.setUpdatedBy(resourceManagementDTO.getUpdatedBy());
 			findResource.setUpdatedOn(LocalDateTime.now());
 			if (resourceManagementDTO.getPoRequirementMappingId() != null) {
-			    findResource.setPoRequirementMappingId(
-			            resourceManagementDTO.getPoRequirementMappingId()
-			    );
+				findResource.setPoRequirementMappingId(resourceManagementDTO.getPoRequirementMappingId());
 			}
 
 			// added flag for thea date stating its po / custom end date
@@ -3900,31 +3922,32 @@ public class ResourceManagementService {
 				Team findTeam = teamRepository.findTeamByTeamId(resourceManagementDTO.getTeamId());
 				Project findProject = projectRepository.findByProjectId(findTeam.getProjectId());
 
-			if (findResource != null) {
-				try {
-					EmployeeTeamMap emp1= employeeTeamMapRepository.findByEmployeeTeamMapId(resourceManagementDTO.getEmployeeTeamMapId());
-					if(emp1 != null && emp1.getEndDate() == null  && emp1.getActive() != 0) {
-					Employee emp = employeeRepository.findByEmpId(resourceManagementDTO.getEmpId());
-					findResource.setActive(0L);
-					findResource.setRescRemovedBy(resourceManagementDTO.getCreatedBy());
-					if (resourceManagementDTO.getPoRequirementMappingId() != null) {
-					    findResource.setPoRequirementMappingId(
-					            resourceManagementDTO.getPoRequirementMappingId()
-					    );
-					}
-					// adding this flag for stating date is po / custom 
-					findResource.setIsCustomDate(resourceManagementDTO.getIsCustomDate());
-					
-					if (resourceManagementDTO.getEndDate() != null) {
-						String str = resourceManagementDTO.getEndDate();
-						DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-						LocalDate date = LocalDate.parse(str, formatter);
-						LocalDateTime endDateTime = date.atStartOfDay();
-						if(emp1.getStartDate().isAfter(endDateTime)) {
-							throw new IllegalArgumentException("End date cannot be less than Start date:"+findResource.getStartDate());
-						}
-						findResource.setEndDate(endDateTime);
-					} else {
+				if (findResource != null) {
+					try {
+						EmployeeTeamMap emp1 = employeeTeamMapRepository
+								.findByEmployeeTeamMapId(resourceManagementDTO.getEmployeeTeamMapId());
+						if (emp1 != null && emp1.getEndDate() == null && emp1.getActive() != 0) {
+							Employee emp = employeeRepository.findByEmpId(resourceManagementDTO.getEmpId());
+							findResource.setActive(0L);
+							findResource.setRescRemovedBy(resourceManagementDTO.getCreatedBy());
+							if (resourceManagementDTO.getPoRequirementMappingId() != null) {
+								findResource
+										.setPoRequirementMappingId(resourceManagementDTO.getPoRequirementMappingId());
+							}
+							// adding this flag for stating date is po / custom
+							findResource.setIsCustomDate(resourceManagementDTO.getIsCustomDate());
+
+							if (resourceManagementDTO.getEndDate() != null) {
+								String str = resourceManagementDTO.getEndDate();
+								DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+								LocalDate date = LocalDate.parse(str, formatter);
+								LocalDateTime endDateTime = date.atStartOfDay();
+								if (emp1.getStartDate().isAfter(endDateTime)) {
+									throw new IllegalArgumentException(
+											"End date cannot be less than Start date:" + findResource.getStartDate());
+								}
+								findResource.setEndDate(endDateTime);
+							} else {
 
 								findResource.setEndDate(LocalDateTime.now());
 							}
@@ -6223,6 +6246,7 @@ public class ResourceManagementService {
 				try {
 					Long poProjectId = activeProject.getPoProjectId();
 					Integer projectId = activeProject.getProjectId();
+					Integer poId = activeProject.getPoId();
 
 					if (poProjectId == null || projectId == null)
 						continue;
@@ -6254,8 +6278,8 @@ public class ResourceManagementService {
 						}
 					}
 
-					List<ProjectDepartmentMap> existingMaps = projectDepartmentMapRepository.findByProjectId(projectId);
-					Map<Long, ProjectDepartmentMap> deptIdToMap = existingMaps.stream().filter(Objects::nonNull)
+					List<PoDepartmentMapping> existingMaps = poDepartmentMappingRepository.findByProjectId(projectId);
+					Map<Long, PoDepartmentMapping> deptIdToMap = existingMaps.stream().filter(Objects::nonNull)
 							.filter(m -> {
 								boolean hasDept = m.getDeptId() != null;
 								if (!hasDept) {
@@ -6263,18 +6287,18 @@ public class ResourceManagementService {
 								}
 								return hasDept;
 							}).peek(m -> System.out.println("Processing map with deptId: " + m.getDeptId()))
-							.collect(Collectors.toMap(ProjectDepartmentMap::getDeptId, map -> {
+							.collect(Collectors.toMap(PoDepartmentMapping::getDeptId, map -> {
 								System.out.println("Putting in map: deptId = " + map.getDeptId() + ", map = " + map);
 								return map;
 							}));
 
 					Set<Long> newDeptIdSet = new HashSet<>(newDeptIds);
 
-					for (ProjectDepartmentMap map : existingMaps) {
+					for (PoDepartmentMapping map : existingMaps) {
 						try {
 							if (map != null && map.getDeptId() != null && !newDeptIdSet.contains(map.getDeptId())
 									&& !Objects.equals(map.getActive(), 0L)) {
-								map.setActive(0L);
+								map.setActive(false);
 								deactivateCount++;
 							}
 						} catch (Exception e) {
@@ -6288,32 +6312,32 @@ public class ResourceManagementService {
 						try {
 							if (deptId != null) {
 								if (deptIdToMap.containsKey(deptId)) {
-									ProjectDepartmentMap existing = deptIdToMap.get(deptId);
-									if (existing.getActive() == null || existing.getActive() == 0L) {
-										existing.setActive(1L);
+									PoDepartmentMapping existing = deptIdToMap.get(deptId);
+									if (existing.getActive() == null || !existing.getActive()) {
+										existing.setActive(true);
 										updateCount++;
 									}
 								} else {
-									ProjectDepartmentMap newMap = new ProjectDepartmentMap();
-									newMap.setProjectId(projectId);
+									PoDepartmentMapping newMap = new PoDepartmentMapping();
+									newMap.setPoId(poId);
 									newMap.setDeptId(deptId);
-									newMap.setActive(1L);
+									newMap.setActive(true);
 									existingMaps.add(newMap);
 									insertCount++;
 								}
-							}
+							} 
 						} catch (Exception e) {
 							apiLogInfo.setApiResponse("Error inserting/updating mapping (Dept ID: " + deptId
-									+ ", Project ID: " + projectId + ")");
+									+ ", Po ID: " + poId + ")");
 							e.printStackTrace();
 						}
 					}
 
-					projectDepartmentMapRepository.saveAll(existingMaps);
+					poDepartmentMappingRepository.saveAll(existingMaps);
 
 				} catch (Exception innerEx) {
 					apiLogInfo.setApiResponse("Error processing project with PoProjectId: "
-							+ activeProject.getPoProjectId() + ", ProjectId: " + activeProject.getProjectId());
+							+ activeProject.getPoId() + ", PoId: " + activeProject.getPoId());
 					innerEx.printStackTrace();
 				}
 			}
@@ -6453,81 +6477,79 @@ public class ResourceManagementService {
 			Long updatedBy = defaultProjectUpdateDTO.getUpdatedBy();
 			Integer projectId = defaultProjectUpdateDTO.getProjectId();
 			List<Long> empIds = defaultProjectUpdateDTO.getEmpIds();
-			
-			 if (empIds == null || empIds.isEmpty() || projectId == null) {
-				 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Invalid Emp Id");
-		        }
 
-		        List<EmpPrimaryProjectMapping> mappingsToUpdate = new ArrayList<>();
+			if (empIds == null || empIds.isEmpty() || projectId == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Invalid Emp Id");
+			}
 
-				Project project = projectRepository.findByProjectId(projectId);
-				if (project == null) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Invalid Project");
-		        }
-				
-			  	LocalDateTime now = LocalDateTime.now();
+			List<EmpPrimaryProjectMapping> mappingsToUpdate = new ArrayList<>();
 
-				List<EmpPrimaryProjectMapping> existingMappingProjectWithSingleEmployee = empPrimaryProjectMappingRepository
-				.findByEmpIdInAndIsMapped(empIds);
+			Project project = projectRepository.findByProjectId(projectId);
+			if (project == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Invalid Project");
+			}
 
-				for(EmpPrimaryProjectMapping emp : existingMappingProjectWithSingleEmployee){
-						emp.setIsMapped("N");
-						emp.setUpdatedBy(updatedBy);
-						emp.setUpdatedOn(now);
-						mappingsToUpdate.add(emp);
-				}
-			  
-			 
-			  Map<Long, Employee> employeeMap = employeeRepository.findByEmpIdIn(empIds).stream()
-		                .collect(Collectors.toMap(Employee::getEmpId, Function.identity()));
-			  
-			  
-			  List<Long> shadowEmpIds = employeeTeamMapRepository.findShadowMembersByEmpIdsAndProjectId(empIds, projectId);
-			  
-			  
-			  String billableType;
-		        String billable;
-			  if ("TNM".equalsIgnoreCase(project.getPoProjectType())) {
-		            billableType = "TNM";
-		            billable = "Yes";
-		        } else if ("Fixed cost".equalsIgnoreCase(project.getPoProjectType()) || "Fixed Cost".equalsIgnoreCase(project.getPoProjectType())) {
-		            billableType = "Fixed Cost";
-		            billable = "No";
-		        } else if ("Bench".equalsIgnoreCase(project.getInternalProjectType())) {
-		            billableType = "Bench";
-		            billable = "No";
-		        } else if ("InternalRNDProducts".equalsIgnoreCase(project.getInternalProjectType())) {
-		            billableType = "InternalRNDProducts";
-		            billable = "No";
-		        } else if ("Monitoring".equalsIgnoreCase(project.getPoProjectType())) {
-		            billableType = "Fixed Cost";
-		            billable = "No";
-		        } else {
-		            billableType = null;
-		            billable = null;
-		        }
-			  
-			  
-		        List<Long> empIdsToUpdateBillable = new ArrayList<>();
-		        Map<Long, String> empIdToBillable = new HashMap<>();
-		        Map<Long, String> empIdToBillableType = new HashMap<>();
+			LocalDateTime now = LocalDateTime.now();
 
-		        for (Long empId : empIds) {
-		        	Long projectIdLong = Long.valueOf(projectId);
+			List<EmpPrimaryProjectMapping> existingMappingProjectWithSingleEmployee = empPrimaryProjectMappingRepository
+					.findByEmpIdInAndIsMapped(empIds);
 
-					EmpPrimaryProjectMapping newMapping = new EmpPrimaryProjectMapping();
-					newMapping.setEmpId(empId);
-					newMapping.setPrimaryProjectId(projectIdLong);
-					newMapping.setPrimaryProjectName(project.getProjectName());
-					newMapping.setIsMapped("Y");
-					newMapping.setUpdatedBy(updatedBy);
-					newMapping.setUpdatedOn(now);
-					mappingsToUpdate.add(newMapping);
-		           
-		            String finalBillableType = shadowEmpIds.contains(empId) ? "Shadow" : billableType;
-		            String finalBillable = "Shadow".equals(finalBillableType) ? "No" : billable;
+			for (EmpPrimaryProjectMapping emp : existingMappingProjectWithSingleEmployee) {
+				emp.setIsMapped("N");
+				emp.setUpdatedBy(updatedBy);
+				emp.setUpdatedOn(now);
+				mappingsToUpdate.add(emp);
+			}
+
+			Map<Long, Employee> employeeMap = employeeRepository.findByEmpIdIn(empIds).stream()
+					.collect(Collectors.toMap(Employee::getEmpId, Function.identity()));
+
+			List<Long> shadowEmpIds = employeeTeamMapRepository.findShadowMembersByEmpIdsAndProjectId(empIds,
+					projectId);
+
+			String billableType;
+			String billable;
+			if ("TNM".equalsIgnoreCase(project.getPoProjectType())) {
+				billableType = "TNM";
+				billable = "Yes";
+			} else if ("Fixed cost".equalsIgnoreCase(project.getPoProjectType())
+					|| "Fixed Cost".equalsIgnoreCase(project.getPoProjectType())) {
+				billableType = "Fixed Cost";
+				billable = "No";
+			} else if ("Bench".equalsIgnoreCase(project.getInternalProjectType())) {
+				billableType = "Bench";
+				billable = "No";
+			} else if ("InternalRNDProducts".equalsIgnoreCase(project.getInternalProjectType())) {
+				billableType = "InternalRNDProducts";
+				billable = "No";
+			} else if ("Monitoring".equalsIgnoreCase(project.getPoProjectType())) {
+				billableType = "Fixed Cost";
+				billable = "No";
+			} else {
+				billableType = null;
+				billable = null;
+			}
+
+			List<Long> empIdsToUpdateBillable = new ArrayList<>();
+			Map<Long, String> empIdToBillable = new HashMap<>();
+			Map<Long, String> empIdToBillableType = new HashMap<>();
+
+			for (Long empId : empIds) {
+				Long projectIdLong = Long.valueOf(projectId);
+
+				EmpPrimaryProjectMapping newMapping = new EmpPrimaryProjectMapping();
+				newMapping.setEmpId(empId);
+				newMapping.setPrimaryProjectId(projectIdLong);
+				newMapping.setPrimaryProjectName(project.getProjectName());
+				newMapping.setIsMapped("Y");
+				newMapping.setUpdatedBy(updatedBy);
+				newMapping.setUpdatedOn(now);
+				mappingsToUpdate.add(newMapping);
+
+				String finalBillableType = shadowEmpIds.contains(empId) ? "Shadow" : billableType;
+				String finalBillable = "Shadow".equals(finalBillableType) ? "No" : billable;
 
 				Employee emp = employeeMap.get(empId);
 				if (emp == null || !Objects.equals(emp.getBillable(), finalBillable)
@@ -8503,22 +8525,22 @@ public class ResourceManagementService {
 			List<Long> defaultProjectEmpIds = new ArrayList<>();
 
 			List<EmployeeTeamMapDTO> newTeamMember = new ArrayList<>();
-			
-	        for (Long empId : dto.getEmpId()) {
-	        	EmployeeTeamMapDTO member = new EmployeeTeamMapDTO();
-	            member.setEmpId(empId);
-	            member.setTeamId(dto.getTeamId());
-	            member.setEmployeeRole(dto.getEmployeeRole());
-	            member.setStartDate(new Timestamp(System.currentTimeMillis()));
-	            member.setIsDefaultProject(1);	            
-	            
-	            //added poRequirementOverviewid changes 
-	            if (dto.getPoRequirementMappingId() != null) {
-	                member.setPoRequirementMappingId(dto.getPoRequirementMappingId());
-	            }
-	            newTeamMember.add(member);
-	        }
-			
+
+			for (Long empId : dto.getEmpId()) {
+				EmployeeTeamMapDTO member = new EmployeeTeamMapDTO();
+				member.setEmpId(empId);
+				member.setTeamId(dto.getTeamId());
+				member.setEmployeeRole(dto.getEmployeeRole());
+				member.setStartDate(new Timestamp(System.currentTimeMillis()));
+				member.setIsDefaultProject(1);
+
+				// added poRequirementOverviewid changes
+				if (dto.getPoRequirementMappingId() != null) {
+					member.setPoRequirementMappingId(dto.getPoRequirementMappingId());
+				}
+				newTeamMember.add(member);
+			}
+
 			newTeamMember.forEach((newMember) -> {
 				List<EmployeeTeamMap> presentMember = employeeTeamMapRepository
 						.findFirstByEmpIdAndTeamIdAndActive(newMember.getEmpId(), dto.getTeamId());
@@ -8527,33 +8549,31 @@ public class ResourceManagementService {
 				EmployeeTeamMap empTeamMap = new EmployeeTeamMap();
 
 				if (presentMember.isEmpty()) {
-					
-						StringBuilder employeeRole = new StringBuilder("");
-						for (String empRole : newMember.getEmployeeRole()) {
-							employeeRole.append(empRole).append(",");
+
+					StringBuilder employeeRole = new StringBuilder("");
+					for (String empRole : newMember.getEmployeeRole()) {
+						employeeRole.append(empRole).append(",");
+					}
+					empTeamMap.setEmpId(newMember.getEmpId());
+					empTeamMap.setEmployeeRole(employeeRole.toString());
+					empTeamMap.setTeamId(dto.getTeamId());
+					empTeamMap.setStartDate(LocalDateTime.now());
+					empTeamMap.setIsShadow(newMember.getIsShadow() != null ? newMember.getIsShadow() : null);
+
+					// added poRequirementMappingid changes
+					empTeamMap.setPoRequirementMappingId(newMember.getPoRequirementMappingId() != null
+							? Long.parseLong(newMember.getPoRequirementMappingId().toString())
+							: null);
+
+					empTeamMap.setUpdatedBy(dto.getCreatedBy() != null ? dto.getCreatedBy() : null);
+
+					if (newMember.getIsDefaultProject() != null) {
+						if (newMember.getIsDefaultProject() == 1) {
+							defaultProjectEmpIds.add(newMember.getEmpId());
 						}
-						empTeamMap.setEmpId(newMember.getEmpId());
-						empTeamMap.setEmployeeRole(employeeRole.toString());
-						empTeamMap.setTeamId(dto.getTeamId());
-						empTeamMap.setStartDate(LocalDateTime.now());
-						empTeamMap.setIsShadow(newMember.getIsShadow() != null ? newMember.getIsShadow() : null);
-					
-						//added poRequirementMappingid changes 
-						empTeamMap.setPoRequirementMappingId(newMember.getPoRequirementMappingId() != null
-								? Long.parseLong(newMember.getPoRequirementMappingId().toString())
-								: null);
-						
-						empTeamMap.setUpdatedBy(dto.getCreatedBy() != null ? dto.getCreatedBy() : null);
-						
-						if(newMember.getIsDefaultProject() != null) {
-							if( newMember.getIsDefaultProject() == 1) {
-								defaultProjectEmpIds.add(newMember.getEmpId());
-							}
-						}
-						
-						
-						mapList.add(empTeamMap);
-					
+					}
+
+					mapList.add(empTeamMap);
 
 					List<EmployeeTeamMap> teamMapDbResponse = employeeTeamMapRepository.saveAll(mapList);
 
@@ -9504,27 +9524,36 @@ public class ResourceManagementService {
 					clientLocationRepository.saveAll(newClientLocs);
 				}
 
-				List<ProjectDepartmentMap> existingDeptMap = projectDepartmentMapRepository
-						.findByProjectId(existingProject.getProjectId());
-				Set<Long> existingDeptIds = existingDeptMap.stream().map(ProjectDepartmentMap::getDeptId)
-						.collect(Collectors.toSet());
-				Set<Long> newDeptIds = new HashSet<>();
+				List<ProjectPoDetails> projectPoDetailsList = projectPoDetailsRepository.findByProjectId(existingProject.getProjectId());
 
-				for (String deptName : poPortalProjects.getDepartment()) {
-					Department dept = departmentRepository.findByName(deptName);
-					if (dept != null)
-						newDeptIds.add(dept.getDeptId());
-				}
+				if (projectPoDetailsList != null && !projectPoDetailsList.isEmpty()) {
+				    ProjectPoDetails projectPoDetails = projectPoDetailsList.get(0);
+				    Integer poId = projectPoDetails.getPoId().intValue();
+				    
+				    List<PoDepartmentMapping> existingDeptMap = poDepartmentMappingRepository
+				            .findByProjectId(existingProject.getProjectId());
+				    Set<Long> existingDeptIds = existingDeptMap.stream()
+				            .map(PoDepartmentMapping::getDeptId)
+				            .collect(Collectors.toSet());
+				    Set<Long> newDeptIds = new HashSet<>();
 
-				if (!existingDeptIds.equals(newDeptIds)) {
-					projectDepartmentMapRepository.deleteAll(existingDeptMap);
-					List<ProjectDepartmentMap> newMappings = newDeptIds.stream().map(id -> {
-						ProjectDepartmentMap pdm = new ProjectDepartmentMap();
-						pdm.setDeptId(id);
-						pdm.setProjectId(existingProject.getProjectId());
-						return pdm;
-					}).collect(Collectors.toList());
-					projectDepartmentMapRepository.saveAll(newMappings);
+				    for (String deptName : poPortalProjects.getDepartment()) {
+				        Department dept = departmentRepository.findByName(deptName);
+				        if (dept != null)
+				            newDeptIds.add(dept.getDeptId());
+				    }
+
+				    if (!existingDeptIds.equals(newDeptIds)) {
+				        poDepartmentMappingRepository.deleteAll(existingDeptMap);
+				        List<PoDepartmentMapping> newMappings = newDeptIds.stream().map(id -> {
+				            PoDepartmentMapping pdm = new PoDepartmentMapping();
+				            pdm.setDeptId(id);
+				            pdm.setPoId(poId);
+				            pdm.setActive(true);
+				            return pdm;
+				        }).collect(Collectors.toList());
+				        poDepartmentMappingRepository.saveAll(newMappings);
+				    }
 				}
 
 				List<ResourceRequirementDTO> existingReqList = resourceRequirementRepository
@@ -10257,9 +10286,21 @@ public class ResourceManagementService {
 		if (dto.getDepartment() == null || dto.getDepartment().length == 0) {
 			throw new DataNotFoundException("Department list cannot be empty for project update.");
 		}
+		
+		  List<ProjectPoDetails> projectPoDetailsList = projectPoDetailsRepository.findByProjectId(project.getProjectId());
+		    if (projectPoDetailsList == null || projectPoDetailsList.isEmpty()) {
+		        throw new DataNotFoundException("No PO found for Project ID: " + project.getProjectId());
+		    }
+		    
+		    ProjectPoDetails projectPoDetails = projectPoDetailsList.get(0);
+		    if (projectPoDetails.getPoId() == null) {
+		        throw new DataNotFoundException("PO ID is null for Project ID: " + project.getProjectId());
+		    }
+		    
+		    Integer poId = projectPoDetails.getPoId().intValue();
 
-		List<ProjectDepartmentMap> existing = projectDepartmentMapRepository.findByProjectId(project.getProjectId());
-		Set<Long> existingIds = existing.stream().map(ProjectDepartmentMap::getDeptId).collect(Collectors.toSet());
+		List<PoDepartmentMapping> existing = poDepartmentMappingRepository.findByProjectId(project.getProjectId());
+		Set<Long> existingIds = existing.stream().map(PoDepartmentMapping::getDeptId).collect(Collectors.toSet());
 
 		Set<Long> newIds = Arrays.stream(dto.getDepartment()).map(name -> {
 			Department dept = departmentRepository.findByName(name);
@@ -10270,15 +10311,15 @@ public class ResourceManagementService {
 		}).collect(Collectors.toSet());
 
 		if (!existingIds.equals(newIds)) {
-			existing.forEach(pdm -> pdm.setActive(0L));
-			projectDepartmentMapRepository.saveAll(existing);
-			List<ProjectDepartmentMap> newMaps = newIds.stream().map(id -> {
-				ProjectDepartmentMap pdm = new ProjectDepartmentMap();
+			existing.forEach(pdm -> pdm.setActive(false));
+			poDepartmentMappingRepository.saveAll(existing);
+			List<PoDepartmentMapping> newMaps = newIds.stream().map(id -> {
+				PoDepartmentMapping pdm = new PoDepartmentMapping();
 				pdm.setDeptId(id);
-				pdm.setProjectId(project.getProjectId());
+				pdm.setPoId(poId);
 				return pdm;
 			}).collect(Collectors.toList());
-			projectDepartmentMapRepository.saveAll(newMaps);
+			poDepartmentMappingRepository.saveAll(newMaps);
 		}
 
 		String departmentIdsAsString = newIds.stream().map(String::valueOf).collect(Collectors.joining(","));
@@ -10562,16 +10603,32 @@ public class ResourceManagementService {
 //	}
 
 	private void mapDepartmentsToProject(ResourceManagementDTO dto, Project project) {
+		
+		 List<ProjectPoDetails> projectPoDetailsList = projectPoDetailsRepository.findByProjectId(project.getProjectId());
+		    
+		    if (projectPoDetailsList == null || projectPoDetailsList.isEmpty()) {
+		        System.out.println("No PO found for project: " + project.getProjectId());
+		        return;
+		    }
+		    
+		    ProjectPoDetails projectPoDetails = projectPoDetailsList.get(0);
+		    Integer poId = projectPoDetails.getPoId().intValue();
+		
+		
 		for (String deptName : dto.getDepartment()) {
 			Department dept = departmentRepository.findByName(deptName);
-			if (dept != null && projectDepartmentMapRepository.findByProjectIdAndDeptId(project.getProjectId(),
-					dept.getDeptId()) == null) {
-				ProjectDepartmentMap map = new ProjectDepartmentMap();
-				map.setProjectId(project.getProjectId());
-				map.setDeptId(dept.getDeptId());
-				projectDepartmentMapRepository.save(map);
-			}
+			 if (dept != null) {
+		            List<PoDepartmentMapping> existingMappings = poDepartmentMappingRepository
+		                    .findByProjectIdAndDeptId(project.getProjectId(), dept.getDeptId());
+		            
+		            if (existingMappings == null || existingMappings.isEmpty()) {
+		                PoDepartmentMapping map = new PoDepartmentMapping();
+		                map.setPoId(poId);
+		                map.setDeptId(dept.getDeptId());
+		                poDepartmentMappingRepository.save(map);
+		            }
 		}
+	}
 	}
 
 	private void handleProjectManagersAndOverheads(ResourceManagementDTO dto, Project project,
@@ -10671,10 +10728,10 @@ public class ResourceManagementService {
 				map.setActive(2L);
 			}
 
-	        //set poRequirementMappingId 
-	        if (member.getPoRequirementMappingId() != null) {
-	            map.setPoRequirementMappingId(member.getPoRequirementMappingId());
-	        }
+			// set poRequirementMappingId
+			if (member.getPoRequirementMappingId() != null) {
+				map.setPoRequirementMappingId(member.getPoRequirementMappingId());
+			}
 
 			mappings.add(map);
 		}
@@ -11008,6 +11065,15 @@ public class ResourceManagementService {
 	private ServiceResponse syncDepartments(Project project, ResourceManagementDTO poData) {
 		ServiceResponse response = new ServiceResponse();
 		try {
+			  List<ProjectPoDetails> projectPoDetailsList = projectPoDetailsRepository.findByProjectId(project.getProjectId());
+		       
+		        ProjectPoDetails projectPoDetails = projectPoDetailsList.get(0);
+		        if (projectPoDetails == null || projectPoDetails.getPoId() == null) {
+		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse("Invalid PO details for project: " + project.getProjectId());
+		        }
+		        Integer poId = projectPoDetails.getPoId().intValue();
+			
 			for (String deptName : poData.getDepartment()) {
 				Department dept = departmentRepository.findByName(deptName);
 				if (dept == null) {
@@ -11015,12 +11081,12 @@ public class ResourceManagementService {
 					response.setServiceResponse("Create operation failed at saving departments!");
 					throw new RuntimeException("Create operation failed at saving departments!");
 				}
-
-				ProjectDepartmentMap pdm = new ProjectDepartmentMap();
-				pdm.setProjectId(project.getProjectId());
+				
+				PoDepartmentMapping pdm = new PoDepartmentMapping();
+				pdm.setPoId(poId);
 				pdm.setDeptId(dept.getDeptId());
-				pdm.setActive(1L);
-				ProjectDepartmentMap saved = projectDepartmentMapRepository.save(pdm);
+				pdm.setActive(true);
+				PoDepartmentMapping saved = poDepartmentMappingRepository.save(pdm);
 				if (saved == null) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Failed to map department: " + deptName);
@@ -11759,24 +11825,39 @@ public class ResourceManagementService {
 			// --- 1.a project-level mappings copy (dept, manager, overhead) - avoid
 			// duplicates ---
 			// ProjectDepartmentMap
-			List<ProjectDepartmentMap> sourceDeptMappings = projectDepartmentMapRepository
-					.findByProjectId(dto.getSourceProjectId());
-			List<ProjectDepartmentMap> targetDeptMappings = projectDepartmentMapRepository
-					.findByProjectId(dto.getTargetProjectId());
-			Set<Long> targetDeptIds = targetDeptMappings.stream().map(ProjectDepartmentMap::getDeptId)
-					.collect(Collectors.toSet());
-			List<ProjectDepartmentMap> newDeptMappings = new ArrayList<>();
-			for (ProjectDepartmentMap s : sourceDeptMappings) {
-				if (!targetDeptIds.contains(s.getDeptId())) {
-					ProjectDepartmentMap nm = new ProjectDepartmentMap();
-					nm.setProjectId(dto.getTargetProjectId());
-					nm.setDeptId(s.getDeptId());
-					nm.setActive(1L);
-					newDeptMappings.add(nm);
-				}
-			}
-			if (!newDeptMappings.isEmpty())
-				projectDepartmentMapRepository.saveAll(newDeptMappings);
+			List<ProjectPoDetails> sourcePoList = projectPoDetailsRepository.findByProjectId(dto.getSourceProjectId());
+			List<ProjectPoDetails> targetPoList = projectPoDetailsRepository.findByProjectId(dto.getTargetProjectId());
+
+           if (sourcePoList == null || sourcePoList.isEmpty()) {
+                throw new RuntimeException("No PO found for source project: " + dto.getSourceProjectId());
+            }
+
+           if (targetPoList == null || targetPoList.isEmpty()) {
+                throw new RuntimeException("No PO found for target project: " + dto.getTargetProjectId());
+            }
+            Integer poId = targetPoList.get(0).getPoId().intValue();
+			
+			
+           List<PoDepartmentMapping> sourceDeptMappings = poDepartmentMappingRepository.findByProjectId(dto.getSourceProjectId());
+           List<PoDepartmentMapping> targetDeptMappings = poDepartmentMappingRepository.findByProjectId(dto.getTargetProjectId());
+           Set<Long> targetDeptIds = targetDeptMappings.stream()
+                            .map(PoDepartmentMapping::getDeptId)
+                            .collect(Collectors.toSet());
+
+                     List<PoDepartmentMapping> newDeptMappings = new ArrayList<>();
+
+                             for (PoDepartmentMapping s : sourceDeptMappings) {
+                                      if (!targetDeptIds.contains(s.getDeptId())) {
+                                  PoDepartmentMapping nm = new PoDepartmentMapping();
+                                     nm.setPoId(poId); 
+                                     nm.setDeptId(s.getDeptId());
+                                     nm.setActive(true); 
+                                  newDeptMappings.add(nm);
+                               }
+                            }
+                             if (!newDeptMappings.isEmpty()) {
+                        poDepartmentMappingRepository.saveAll(newDeptMappings);
+             }
 
 			// ProjectManagerMapping
 			List<ProjectManagerMapping> sourceManagerMappings = projectManagerMappingRepository
@@ -11901,39 +11982,42 @@ public class ResourceManagementService {
 				}
 				employeeTeamMapRepository.saveAll(oldEmployeeTeamMaps);
 
-		        // Create new mappings using oldToNewTeamMap
-		        List<EmployeeTeamMap> newEmployeeTeamMaps = new ArrayList<>();
-		        for (EmployeeTeamMap oldMap : oldEmployeeTeamMaps) {
-		            Team mappedNewTeam = oldToNewTeamMap.get(oldMap.getTeamId());
-		            if (mappedNewTeam != null) {
-		                EmployeeTeamMap newMap = new EmployeeTeamMap();
-		                newMap.setEmpId(oldMap.getEmpId());
-		                newMap.setTeamId(mappedNewTeam.getTeamId());
-		                newMap.setJobRoleId(oldMap.getJobRoleId());
-		                newMap.setActive(1L);
-		                newMap.setStartDate(LocalDateTime.now());
-		                newMap.setEmployeeRole(oldMap.getEmployeeRole());
-		                newMap.setEndDate(null);
-		                newMap.setUpdatedOn(null);
-		                newMap.setUpdatedBy(null);
-		             
-		                //added storing poRequirementMapping Id 
-		                if (oldMap.getPoRequirementMappingId() != null) {
-		                    newMap.setPoRequirementMappingId(oldMap.getPoRequirementMappingId());
-		                }
+				// Create new mappings using oldToNewTeamMap
+				List<EmployeeTeamMap> newEmployeeTeamMaps = new ArrayList<>();
+				for (EmployeeTeamMap oldMap : oldEmployeeTeamMaps) {
+					Team mappedNewTeam = oldToNewTeamMap.get(oldMap.getTeamId());
+					if (mappedNewTeam != null) {
+						EmployeeTeamMap newMap = new EmployeeTeamMap();
+						newMap.setEmpId(oldMap.getEmpId());
+						newMap.setTeamId(mappedNewTeam.getTeamId());
+						newMap.setJobRoleId(oldMap.getJobRoleId());
+						newMap.setActive(1L);
+						newMap.setStartDate(LocalDateTime.now());
+						newMap.setEmployeeRole(oldMap.getEmployeeRole());
+						newMap.setEndDate(null);
+						newMap.setUpdatedOn(null);
+						newMap.setUpdatedBy(null);
 
-		                newMap.setIsShadow(oldMap.getIsShadow());
-		                newMap.setCreatedBy(dto.getCurrentUserEmpId());
-		                newMap.setCreatedOn(Timestamp.valueOf(LocalDateTime.now()));
-		                newEmployeeTeamMaps.add(newMap);
-		            }
-		        }
-		        if (!newEmployeeTeamMaps.isEmpty()) employeeTeamMapRepository.saveAll(newEmployeeTeamMaps);
-	        
-	        if(empIds != null || !empIds.isEmpty()) {
-		        // --- 7. Employee primary project mapping update (deactivate old, create new) ---
-	        	List<EmpPrimaryProjectMapping> oldPrimaryMappings = empPrimaryProjectMappingRepository
-		                .findByEmpIdInAndPrimaryProjectIdInAndIsMapped(empIds, Collections.singletonList(dto.getSourceProjectId().longValue()), "Y");
+						// added storing poRequirementMapping Id
+						if (oldMap.getPoRequirementMappingId() != null) {
+							newMap.setPoRequirementMappingId(oldMap.getPoRequirementMappingId());
+						}
+
+						newMap.setIsShadow(oldMap.getIsShadow());
+						newMap.setCreatedBy(dto.getCurrentUserEmpId());
+						newMap.setCreatedOn(Timestamp.valueOf(LocalDateTime.now()));
+						newEmployeeTeamMaps.add(newMap);
+					}
+				}
+				if (!newEmployeeTeamMaps.isEmpty())
+					employeeTeamMapRepository.saveAll(newEmployeeTeamMaps);
+
+				if (empIds != null || !empIds.isEmpty()) {
+					// --- 7. Employee primary project mapping update (deactivate old, create new)
+					// ---
+					List<EmpPrimaryProjectMapping> oldPrimaryMappings = empPrimaryProjectMappingRepository
+							.findByEmpIdInAndPrimaryProjectIdInAndIsMapped(empIds,
+									Collections.singletonList(dto.getSourceProjectId().longValue()), "Y");
 
 					boolean primaryMappingsChanged = false;
 					if (!oldPrimaryMappings.isEmpty()) {
@@ -12944,7 +13028,7 @@ public class ResourceManagementService {
 		apiLogInfo.setApiUrl("/api/restorePreviousStateOfProject");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
- 
+
 		try {
 			Integer projectId = payloadDTO.getProjectId();
 			Long empId = payloadDTO.getCurrentUserEmpId();
@@ -13384,28 +13468,28 @@ public class ResourceManagementService {
 //				validResourceOverviewIds = requirements.stream().map(ResourceRequirementResponse::getResourceOverviewId)
 //						.collect(Collectors.toSet());
 //			}
-			  Set<Long> validPoRequirementMappingIds = getValidPoRequirementMappingIds(poId);
-		        logBuilder.append("Valid PO Requirement Mapping IDs: ").append(validPoRequirementMappingIds).append("\n");
-		        
-		        if (validPoRequirementMappingIds.isEmpty()) {
-		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-		            response.setServiceResponse("No valid PO requirements found for PO ID: " + poId);
-		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-		            apiLogInfo.setLogLevel("ERROR");
-		            logBuilder.append("No valid PO requirements found for PO ID: ").append(poId).append("\n");
-		            throw new IllegalStateException("No valid PO requirements found for the given PO");
-		        }
-	        
+			Set<Long> validPoRequirementMappingIds = getValidPoRequirementMappingIds(poId);
+			logBuilder.append("Valid PO Requirement Mapping IDs: ").append(validPoRequirementMappingIds).append("\n");
+
+			if (validPoRequirementMappingIds.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No valid PO requirements found for PO ID: " + poId);
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setLogLevel("ERROR");
+				logBuilder.append("No valid PO requirements found for PO ID: ").append(poId).append("\n");
+				throw new IllegalStateException("No valid PO requirements found for the given PO");
+			}
+
 			if (empList != null && !empList.isEmpty()) {
 				List<EmployeeTeamMap> toUpdate = new ArrayList<>();
 				for (EmployeeTeamMap etm : empList) {
-	                if (etm.getPoRequirementMappingId() != null && 
-	                    validPoRequirementMappingIds.contains(etm.getPoRequirementMappingId())) {
-	                    etm.setActive(2L);
-	                    etm.setUpdatedOn(LocalDateTime.now());
-	                    etm.setUpdatedBy(empId);
-	                    toUpdate.add(etm);
-	                } else {
+					if (etm.getPoRequirementMappingId() != null
+							&& validPoRequirementMappingIds.contains(etm.getPoRequirementMappingId())) {
+						etm.setActive(2L);
+						etm.setUpdatedOn(LocalDateTime.now());
+						etm.setUpdatedBy(empId);
+						toUpdate.add(etm);
+					} else {
 						skippedEmpMap.put(etm.getEmpId(), etm.getPoRequirementMappingId());
 					}
 				}
@@ -13432,13 +13516,13 @@ public class ResourceManagementService {
 //				    notifyHod(empIds, resourceOverviewIds);
 //				}
 
-			
-			  if (!skippedEmpMap.isEmpty()) {
-		            Set<Long> empIds = skippedEmpMap.keySet();
-		            Set<Long> poRequirementMappingIds = new HashSet<>(skippedEmpMap.values());
-		            notifyHod(empIds, poRequirementMappingIds); 
-		            logBuilder.append("HOD notification sent for ").append(skippedEmpMap.size()).append(" skipped employees\n");
-		        }
+			if (!skippedEmpMap.isEmpty()) {
+				Set<Long> empIds = skippedEmpMap.keySet();
+				Set<Long> poRequirementMappingIds = new HashSet<>(skippedEmpMap.values());
+				notifyHod(empIds, poRequirementMappingIds);
+				logBuilder.append("HOD notification sent for ").append(skippedEmpMap.size())
+						.append(" skipped employees\n");
+			}
 		} catch (BadRequestException bre) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Bad Request: " + bre.getMessage());
@@ -13460,7 +13544,8 @@ public class ResourceManagementService {
 	}
 
 	public void notifyHod(Set<Long> empIds, Set<Long> poRequirementMappingId) {
-		List<SkippedEmployeeDTO> skippedList = projectRepository.findAllSkippedEmployees(empIds, poRequirementMappingId);
+		List<SkippedEmployeeDTO> skippedList = projectRepository.findAllSkippedEmployees(empIds,
+				poRequirementMappingId);
 
 		Map<String, List<SkippedEmployeeDTO>> hodWiseMap = skippedList.stream()
 				.collect(Collectors.groupingBy(SkippedEmployeeDTO::getHodEmail));
@@ -13650,7 +13735,7 @@ public class ResourceManagementService {
 		return response;
 
 	}
-	
+
 	public ServiceResponse getProjectConfigurationDetailsByProjectId(Integer projectId) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -13664,15 +13749,13 @@ public class ResourceManagementService {
 					.getProjectConfigurationDetailsByProjectIdNew(projectId);
 
 			if (projectConfigurationDetails != null && !projectConfigurationDetails.isEmpty()) {
-				rmgProjectDto = projectConfigurationDetails.stream()
-						.findFirst()
-						.map(RmgProjectDto::new)
-						.orElse(null);
+				rmgProjectDto = projectConfigurationDetails.stream().findFirst().map(RmgProjectDto::new).orElse(null);
 
 				if (rmgProjectDto != null && rmgProjectDto.getProjectId() != null) {
 					Long currentProjectId = Long.parseLong(rmgProjectDto.getProjectId().toString());
 
-					List<Long> projectManagerIds = projectManagerMappingRepository.getAllProjectManagerId(currentProjectId);
+					List<Long> projectManagerIds = projectManagerMappingRepository
+							.getAllProjectManagerId(currentProjectId);
 					rmgProjectDto.setProjectManagerIds(projectManagerIds);
 
 					List<Long> overHeadIds = projectOverheadMappingRepository.getAllProjectOverheadId(currentProjectId);
@@ -13701,39 +13784,37 @@ public class ResourceManagementService {
 		try {
 			// Fetch Active POs data
 			poDetailsDtos.addAll(poDetailsRepository.getAllPoDetailsDtoByProjectId(currentProjectId));
-			
+
 			// Fetch Inactive POs but team or member is active
 			// poDetailsDtos.addAll();
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
 		}
 		return poDetailsDtos;
 	}
+
 	private Set<Long> getValidPoRequirementMappingIds(Long poId) {
-	    Set<Long> validPoRequirementMappingIds = new HashSet<>();
-	    
-	    try {
-	        List<PoRequirementMapping> poRequirements = 
-	            poRequirementMappingRepository.findByPoId(poId);
-	        
-	        if (poRequirements != null && !poRequirements.isEmpty()) {
-	            validPoRequirementMappingIds = poRequirements.stream()
-	                .filter(PoRequirementMapping::isActive)
-	                .map(PoRequirementMapping::getPoRequirementMappingId)
-	                .collect(Collectors.toSet());
-	        }
-	        
-	        System.out.println("Found " + validPoRequirementMappingIds.size() + 
-	                         " valid PO requirement mappings for PO ID: " + poId);
-	        
-	    } catch (Exception e) {
-	        System.err.println("Error fetching PO requirements for PO ID " + poId + ": " + e.getMessage());
-	        e.printStackTrace();
-	    }
-	    
-	    return validPoRequirementMappingIds;
+		Set<Long> validPoRequirementMappingIds = new HashSet<>();
+
+		try {
+			List<PoRequirementMapping> poRequirements = poRequirementMappingRepository.findByPoId(poId);
+
+			if (poRequirements != null && !poRequirements.isEmpty()) {
+				validPoRequirementMappingIds = poRequirements.stream().filter(PoRequirementMapping::isActive)
+						.map(PoRequirementMapping::getPoRequirementMappingId).collect(Collectors.toSet());
+			}
+
+			System.out.println("Found " + validPoRequirementMappingIds.size()
+					+ " valid PO requirement mappings for PO ID: " + poId);
+
+		} catch (Exception e) {
+			System.err.println("Error fetching PO requirements for PO ID " + poId + ": " + e.getMessage());
+			e.printStackTrace();
+		}
+
+		return validPoRequirementMappingIds;
 	}
 
 }

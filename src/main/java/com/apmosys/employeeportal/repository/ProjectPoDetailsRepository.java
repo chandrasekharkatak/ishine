@@ -33,4 +33,7 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
         @Modifying
         @Query("DELETE FROM ProjectPoDetails")
         void deleteAllRecords();
+        
+        List<ProjectPoDetails> findByProjectId(Integer projectId);
+
 }
