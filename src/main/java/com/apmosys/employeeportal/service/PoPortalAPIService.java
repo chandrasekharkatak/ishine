@@ -1766,8 +1766,25 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	                System.out.println("Project not found  | poProjectId= "+ projectDto.getProjectId());
 	                continue;
 	            }
+	            
+	            Date minPoStartDate = null;
+	            Date maxPoEndDate = null;
 
 	            for (PoDetailsForProjectPoMappingDTO poDto : projectDto.getPoDetailsList()) {
+	            	
+	            	
+	            	
+	            	if (poDto.getPoStartDate() != null) {
+	                    if (minPoStartDate == null || poDto.getPoStartDate().before(minPoStartDate)) {
+	                        minPoStartDate = poDto.getPoStartDate();
+	                    }
+	                }
+
+	                if (poDto.getPoEndDate() != null) {
+	                    if (maxPoEndDate == null || poDto.getPoEndDate().after(maxPoEndDate)) {
+	                        maxPoEndDate = poDto.getPoEndDate();
+	                    }
+	                }
 	                try {
 	                	logger.info("call to saveSinglePoTransactional \n");
 	                    saveSinglePoTransactional(projectDto, poDto, project);
@@ -1782,6 +1799,38 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	                            .append(", reason=")
 	                            .append(ex.getMessage())
 	                            .append(" || ");
+	                }
+	            }
+	            if (minPoStartDate != null && maxPoEndDate != null) {
+
+	                Date projectStartDate = projectDto.getProjectStartDate();
+	                Date projectEndDate = projectDto.getProjectEndDate();
+
+	                boolean mismatch = false;
+
+	                if (projectStartDate == null || !projectStartDate.equals(minPoStartDate)) {
+	                    mismatch = true;
+	                }
+
+	                if (projectEndDate == null || !projectEndDate.equals(maxPoEndDate)) {
+	                    mismatch = true;
+	                }
+
+	                if (mismatch) {
+	                    exceptionDetailsForLog.append(
+	                            "Project-PO date mismatch | poProjectId=")
+	                            .append(projectDto.getProjectId())
+	                            .append(", projectStartDate=")
+	                            .append(projectStartDate)
+	                            .append(", expectedStartDate=")
+	                            .append(minPoStartDate)
+	                            .append(", projectEndDate=")
+	                            .append(projectEndDate)
+	                            .append(", expectedEndDate=")
+	                            .append(maxPoEndDate)
+	                            .append(" || ");
+
+	                    logger.info("Project-PO date mismatch | poProjectId=" + projectDto.getProjectId());
 	                }
 	            }
 	        }
@@ -1823,6 +1872,26 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	        	logEx.printStackTrace();
 			logger.info("catch for Exception logEx \n");
 	            logger.error("Failed to end API log", logEx);
+	        }
+	        try {
+	            if (exceptionDetailsForLog.length() > 0) {
+
+	                String mailBody =
+	                        "<b>Trace ID:</b> " + traceId + "<br/><br/>"
+	                      + "<b>API:</b> syncProjectPoFromPoPortal<br/><br/>"
+	                      + "<b>Exception Details:</b><br/>"
+	                      + "<pre>" + exceptionDetailsForLog.toString() + "</pre>";
+
+	                mailService.sendMail(
+	                        "prarthana.lenka@apmosys.com",
+	                        "PO Sync Issues | TraceId : " + traceId,
+	                        mailBody
+	                );
+	            }
+	        } catch (Exception mailEx) {
+	          
+	            mailEx.printStackTrace();
+	            logger.error("Failed to send exception mail", mailEx);
 	        }
 	    }
 
@@ -2094,6 +2163,26 @@ return empId;
 	            }
 	        } catch (Exception logEx) {
 	            logger.error("Failed to end API log", logEx);
+	        }
+	        try {
+	            if (exceptionDetailsForLog.length() > 0) {
+
+	                String mailBody =
+	                        "<b>Trace ID:</b> " + traceId + "<br/><br/>"
+	                      + "<b>API:</b> updateSDEDOfproject <br/><br/>"
+	                      + "<b>Exception Details:</b><br/>"
+	                      + "<pre>" + exceptionDetailsForLog.toString() + "</pre>";
+
+	                mailService.sendMail(
+	                        "prarthana.lenka@apmosys.com",
+	                        "Project Start Date  end Date Update Issues | TraceId : " + traceId,
+	                        mailBody
+	                );
+	            }
+	        } catch (Exception mailEx) {
+	          
+	            mailEx.printStackTrace();
+	            logger.error("Failed to send exception mail", mailEx);
 	        }
 	    }
 
