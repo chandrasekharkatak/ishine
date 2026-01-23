@@ -6692,7 +6692,7 @@ public class TimesheetService {
 		}
 	
 	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year, Long empId, 
-			Boolean isClientDashboard, List<String> billableTypes, String employeeActive, String clientSideFilter ) 
+			Boolean isClientDashboard, List<String> billableTypes, String employeeActive, String clientSideFilter, String multiPOs ) 
 	{
 
 	    ServiceResponse response = new ServiceResponse();
@@ -6701,7 +6701,7 @@ public class TimesheetService {
 	        /* ================= SUMMARY ================= */
 	        List<Object[]> summaryRows =
 	                isClientDashboard
-	                        ? timesheetsRepository.getTimesheetDashboardCountForEmployee( month, year, empId, clientSideFilter)
+	                        ? timesheetsRepository.getTimesheetDashboardCountForEmployee( month, year, empId, clientSideFilter,employeeActive, billableTypes,multiPOs)
 	                        : timesheetsRepository.getTimesheetDashboardCountForAllEmployee( month, year, empId, billableTypes, employeeActive);
 
 	        if (summaryRows.isEmpty()) {
@@ -7492,10 +7492,9 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 		                    object.getEmpId(),
 		                    object.getStatus(),
 							object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-		                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,offset,pageSize,object.getDeptId());
-
-	        	    empTimesheet = timesheetsRepository
-	        	        .getEmployeeViewForClientAttendanceStatus(
+		                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,offset,pageSize,object.getDeptId(),object.getEmployeeActive(),object.getBillableType(), object.getMultiPOs());		        	
+		        	empTimesheet = timesheetsRepository
+	        	        .getEmployeeViewForClientAttendanceStatusNew(
 	        	            object.getMonth(),
 	        	            object.getYear(),
 	        	            object.getEmpId(),
@@ -7507,8 +7506,8 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	        	            object.getSortBy(),
 	        	            object.getSortDirection(),
 	        	            employeeIds,
-	        	            object.getDeptId()
-	        	        );
+	        	            object.getDeptId(),
+							object.getEmployeeActive(), object.getBillableType(),object.getMultiPOs());
 	        	    
 		            totalDistinctEmployees = timesheetsRepository.getTotalEmployeeCountForClientApplicable(
 		            		object.getMonth(),
@@ -7516,7 +7515,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 		                    object.getEmpId(),
 		                    object.getStatus(),
 							object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-		                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,object.getDeptId());
+		                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,object.getDeptId(), object.getEmployeeActive(),object.getBillableType(),object.getMultiPOs());
 	        	}
 
 	            
@@ -8109,9 +8108,8 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                    object.getEmpId(),
 	                    object.getStatus(),
 						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,0,Integer.MAX_VALUE,object.getDeptId());
-	        	
-	            empTimesheet = timesheetsRepository.getEmployeeViewForClientAttendanceStatus(
+	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,0,Integer.MAX_VALUE,object.getDeptId(), object.getEmployeeActive(), object.getBillableType(),object.getMultiPOs());       	
+	            empTimesheet = timesheetsRepository.getEmployeeViewForClientAttendanceStatusNew(
 	                    object.getMonth(),
 	                    object.getYear(),
 	                    object.getEmpId(),
@@ -8119,7 +8117,8 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
 	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,
 	                    object.getSortBy(),
-	                    object.getSortDirection(),employeeIds,object.getDeptId()
+	                    object.getSortDirection(),employeeIds,object.getDeptId(),
+						object.getEmployeeActive(), object.getBillableType(),object.getMultiPOs()
 						);
 	        }
 
@@ -8664,7 +8663,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	}
 	
 	
-	public ServiceResponse getDepartmentStatusSummary(TimesheetDTO requestDTO) {
+	public ServiceResponse getDepartmentStatusSummary(GetEmployeeSummaryOnExportDTO requestDTO) {
 
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
@@ -8692,16 +8691,15 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	        
 	        Integer month = null;
 
-	        if (requestDTO.getMonth() != null && !requestDTO.getMonth().isBlank()) {
-	            month = Integer.valueOf(requestDTO.getMonth());
+	        if (requestDTO.getMonth() != null ) {
+	            month = requestDTO.getMonth();
 	        }
 
 	        List<Object[]> data = timesheetsRepository.getDepartmentStatusSummary(
 	                requestDTO.getEmpId(),
 	                month,
 	                requestDTO.getYear(),
-	                clientSideFilter
-	                
+	                clientSideFilter, requestDTO.getBillableType(),requestDTO.getEmployeeActive(),requestDTO.getMultiPOs()             
 	        );
 
 	        if (data == null || data.isEmpty()) {
