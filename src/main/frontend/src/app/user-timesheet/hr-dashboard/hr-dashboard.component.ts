@@ -332,15 +332,8 @@ tileGroups: any[] = [];
   allowedEmpid: number | null = null;
   authorizedEmp: boolean = false;
 
-  openPoConflictDropdownTileKey: string | null = null;
-
-// store selection per tile (keyed by tile.status)
-poConflictSelectionByTile: Record<string, 'PO-Conflict' | 'No PO-Conflict'> = {};
-
-/** Effective filter used while fetching table data (derived from current tile) */
-currentPoConflictFilter: 'PO-Conflict' | 'No PO-Conflict' | null = null;
-
-
+ globalPoConflictSelection: 'Yes' | 'No' | 'All' = 'All';
+isGlobalPoDropdownOpen = false;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -1189,6 +1182,7 @@ updateBillableTypes() {
     this.timesheetAsCalenderByProjectId.year = year;
     this.timesheetAsCalenderByProjectId.empId = this.currentUser.empId;
     this.timesheetAsCalenderByProjectId.status = status;
+    this.timesheetAsCalenderByProjectId.multiPOs = this.globalPoConflictSelection;
     this.timesheetAsCalenderByProjectId.billableType = this.selectedBillableTypes;
     this.timesheetAsCalenderByProjectId.employeeActive = this.selectedEmployeeStatus;
     this.timesheetAsCalenderByProjectId.page=this.page1??1;
@@ -1737,6 +1731,7 @@ getCountByStatus(status: string) {
 
   getProjectViewForClientAttendanceStatus(status: any, month: any, year: any) {
     this.projectViewClient.status = status;
+    this.projectViewClient.multiPOs = this.globalPoConflictSelection;
     this.projectViewClient.month1 = month;
     this.projectViewClient.year = year;
     this.projectViewClient.empId = this.currentUser.empId;
@@ -1897,7 +1892,9 @@ cancelHidePopup() {
         }
       });
     } else {
-      this.timesheetService.getTimesheetDashboardCountForEmployee(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableTypes,this.selectedEmployeeStatus,this.viewClientIdFlag).pipe(first()).subscribe((response: any) => {
+      console.log(this.globalPoConflictSelection,":poConflictSelectionByTile")
+      console.log(this.selectedEmployeeStatus,":selectedEmployeeStatus")
+      this.timesheetService.getTimesheetDashboardCountForEmployee(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableTypes,this.selectedEmployeeStatus,this.viewClientIdFlag,this.globalPoConflictSelection).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.dashboardObj = response.serviceResponse;
           this.getTiles();
@@ -1923,7 +1920,7 @@ cancelHidePopup() {
     }
   }
 
-  getTableData(status: string | null, month: any, year: any,deptId?: string | null,isEmployeeRepeated: boolean = false) {
+  getTableData(status: String | null, month: any, year: any,deptId?: string | null,isEmployeeRepeated: boolean = false, ) {
     if (!this.toggleValue) {
       this.getEmployeeViewForClientAttendanceStatus(status, month, year,deptId,isEmployeeRepeated);
     } else {
@@ -2955,59 +2952,50 @@ onRepeatClick(
    this.scrollToTableBasedOnDept(status, deptId,true);
 }
 
+
 @HostListener('document:click', ['$event'])
 onOutSideClick(event: MouseEvent): void {
   const target = event.target as HTMLElement;
 
+  // keep your existing close logic if any
   if (!target.closest('.col-md-1')) {
     this.menuVisible = false;
   }
 
-  // Close PO-conflict dropdown if clicked outside the dropdown area
-  if (!target.closest('.po-conflict-filter')) {
-    this.openPoConflictDropdownTileKey = null;
+  // close global dropdown on outside click
+  if (!target.closest('.po-global-filter')) {
+    this.isGlobalPoDropdownOpen = false;
   }
-  
 }
 
-togglePoConflictDropdown(tileKey: string, event: MouseEvent) {
+toggleGlobalPoConflictDropdown(event: MouseEvent) {
   event.stopPropagation();
-  this.openPoConflictDropdownTileKey =
-    this.openPoConflictDropdownTileKey === tileKey ? null : tileKey;
+  this.isGlobalPoDropdownOpen = !this.isGlobalPoDropdownOpen;
 }
 
-getPoConflictLabel(tileKey: string): string {
-  const val = this.poConflictSelectionByTile[tileKey];
-  if (val === 'PO-Conflict') return 'With PO Conflict';
-  if (val === 'No PO-Conflict') return 'Without PO Conflict';
-  return '';
+getGlobalPoConflictLabel(): string {
+  if (this.globalPoConflictSelection === 'Yes') return 'PO Mapping: With Conflict';
+  if (this.globalPoConflictSelection === 'No') return 'PO Mapping: Without Conflict';
+  return 'PO Mapping: All';
 }
 
-selectPoConflict(tileKey: string, value: 'PO-Conflict' | 'No PO-Conflict', event: MouseEvent) {
+selectGlobalPoConflict(val: 'Yes' | 'No' | 'All', event: MouseEvent) {
   event.stopPropagation();
-  this.poConflictSelectionByTile[tileKey] = value;
-  this.openPoConflictDropdownTileKey = null;
-
-  // refresh if this tile is currently active
-  if ((this.status ?? 'All') === tileKey) {
-    // this.getTableData(this.status, this.month, this.year, this.selectedDeptId, this.isEmployeeRepeatedFlag);
-  }
+  this.globalPoConflictSelection = val;
+  this.isGlobalPoDropdownOpen = false;
+  // Refresh current view + tiles count
+  this.getTableData(this.selectedStatus, this.month, this.year, this.selectedDeptId, this.isEmployeeRepeatedFlag);
+  this.getTimesheetDashboardCount(this.month, this.year);
 }
 
-clearPoConflict(tileKey: string, event: MouseEvent) {
+clearGlobalPoConflict(event: MouseEvent) {
   event.stopPropagation();
-  delete this.poConflictSelectionByTile[tileKey];
+  this.globalPoConflictSelection = 'All';
+  this.isGlobalPoDropdownOpen = false;
 
-  if (this.openPoConflictDropdownTileKey === tileKey) {
-    this.openPoConflictDropdownTileKey = null;
-  }
-
-  // refresh if this tile is currently active
-  if ((this.status ?? 'All') === tileKey) {
-    // this.getTableData(this.status, this.month, this.year, this.selectedDeptId, this.isEmployeeRepeatedFlag);
-  }
+  this.getTableData(this.selectedStatus, this.month, this.year, this.selectedDeptId, this.isEmployeeRepeatedFlag);
+  this.getTimesheetDashboardCount(this.month, this.year);
 }
-
 
 
 }

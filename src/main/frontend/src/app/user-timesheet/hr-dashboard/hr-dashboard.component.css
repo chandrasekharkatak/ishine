@@ -2099,22 +2099,7 @@ h5 {
   background: rgba(0, 0, 0, 0.45);
 }
 
-/* Make tiles support a bottom footer without breaking center UI */
-.metric-tile,
-.metric-tile-project {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
 
-/* Footer sticks to bottom inside tile */
-.tile-footer {
-  margin-top: auto;
-  width: 100%;
-  display: flex;
-  justify-content: flex-end;
-  padding-top: 8px;
-}
 
 /* PO filter is NORMAL flow (not absolute) */
 .po-conflict-filter {
@@ -2128,7 +2113,7 @@ h5 {
 .po-dropdown {
   position: absolute;
   right: 0;
-  bottom: calc(100% + 6px);
+  top: calc(100% + 6px);
   min-width: 200px;
   background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.12);
@@ -2206,4 +2191,112 @@ h5 {
 .po-option:hover {
   background: #e7f0ff;
   color: #053885;
+}
+
+.po-global-filter {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 🔹 Global PO Conflict Filter Wrapper */
+.po-global-filter {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 🔹 Main Filter Button (BIGGER) */
+.po-filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+
+  border-radius: 22px;
+  background: #f5f7fa;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.po-filter-btn:hover {
+  background: #eef2f7;
+}
+
+/* 🔹 Text inside button */
+.po-filter-text {
+  white-space: nowrap;
+  min-width: 200px;
+}
+
+/* 🔹 Caret icon */
+.po-filter-btn i {
+  font-size: 14px;
+}
+
+/* 🔹 Clear (X) Button — slightly bigger */
+.po-clear-btn {
+  width: 30px;
+  height: 30px;
+
+  border-radius: 50%;
+  border: none;
+  background: #e0e0e0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.po-clear-btn:hover {
+  background: #d32f2f;
+  color: #fff;
+}
+
+/* 🔹 Dropdown Container (BIGGER) */
+.po-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+
+  min-width: 230px;
+  background: #ffffff;
+
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+
+  z-index: 999;
+}
+
+/* 🔹 Dropdown Options (BIGGER CLICK AREA) */
+.po-option {
+  width: 100%;
+  padding: 12px 16px;
+
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+
+  background: #ffffff;
+  border: none;
+
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.po-option:hover {
+  background: #f1f5f9;
 }

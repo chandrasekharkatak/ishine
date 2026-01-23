@@ -18,5 +18,6 @@ export class getEmployeeTimesheetAsCalenderByProjectId{
 	clientSideFilter?:string;
 	deptId?:string;
 	isEmployeeRepeated: boolean = false;
+	multiPOs: any;
 	
 }

@@ -3992,212 +3992,233 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 
 
 	@Query(value="WITH RECURSIVE\n" + //
-				"    Date_Parameters AS (\n" + //
-				"        SELECT\n" + //
-				"            COALESCE(STR_TO_DATE(CONCAT(:year, '-', :month, '-01'), '%Y-%m-%d'), DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS from_date,\n" + //
-				"            CASE\n" + //
-				"                WHEN :year IS NOT NULL AND :month IS NOT NULL THEN\n" + //
-				"                    IF(:year = YEAR(CURDATE()) AND :month = MONTH(CURDATE()), CURDATE(), LAST_DAY(STR_TO_DATE(CONCAT(:year, '-', :month, '-01'), '%Y-%m-%d')))\n" + //
-				"                ELSE CURDATE()\n" + //
-				"            END AS to_date\n" + //
-				"    ),\n" + //
-				"\n" + //
-				"    All_Dates_In_Range AS (\n" + //
-				"        SELECT from_date AS dt FROM Date_Parameters\n" + //
-				"        UNION ALL\n" + //
-				"        SELECT DATE_ADD(dt, INTERVAL 1 DAY) FROM All_Dates_In_Range, Date_Parameters WHERE dt < Date_Parameters.to_date\n" + //
-				"    ),\n" + //
-				"                             Employees_With_Target_Project_Type AS (\n" + //
-				"SELECT DISTINCT etm.emp_id\n" + //
-				"FROM employee_team_mapping etm\n" + //
-				"INNER JOIN teams t ON etm.team_id = t.team_id\n" + //
-				"INNER JOIN projects p ON t.project_id = p.project_id\n" + //
-				"JOIN Date_Parameters dp ON 1=1\n" + //
-				"WHERE \n" + //
-				"etm.start_date <= dp.to_date\n" + //
-				"AND (etm.end_date IS NULL OR etm.end_date >= dp.from_date)\n" + //
-				"AND (\n" + //
-				" 'All' IN (:billableType) \n" + //
-				" \n" + //
-				" OR p.po_project_type IN (:billableType) \n" + //
-				" OR p.internal_project_type IN (:billableType) \n" + //
-				"\n" + //
-				" OR (\n" + //
-				" 'TNM(Shadow)' IN (:billableType) \n" + //
-				" AND p.po_project_type = 'TNM' \n" + //
-				" AND etm.is_shadow = 1\n" + //
-				" )             OR (\n" + //
-				" 'Fixed Cost(Shadow)' IN (:billableType) \n" + //
-				" AND p.po_project_type = 'Fixed Cost' \n" + //
-				" AND etm.is_shadow = 1\n" + //
-				" )\n" + //
-				")\n" + //
-				"),\n" + //
-				"    Project_Managers AS (\n" + //
-				"        SELECT pm.project_id, GROUP_CONCAT(DISTINCT e.name ORDER BY e.name SEPARATOR ', ') AS project_manager_name\n" + //
-				"        FROM project_manager_mapping pm\n" + //
-				"        left JOIN employee e ON e.emp_id = pm.project_manager_id\n" + //
-				"        GROUP BY pm.project_id\n" + //
-				"    ),\n" + //
-				"\n" + //
-				"    auth_emp AS (\n" + //
-				"        SELECT etm.emp_id, p.project_id, t.spoc_id, t.team_lead_id, t.team_id,\n" + //
-				"               etm.employee_team_map_id, date(etm.start_date) as start_date, etm.end_date\n" + //
-				"        FROM employee_team_mapping etm\n" + //
-				"        INNER JOIN teams t ON etm.team_id = t.team_id\n" + //
-				"        INNER JOIN projects p ON t.project_id = p.project_id\n" + //
-				"        WHERE p.has_client_side_id = TRUE\n" + //
-				"    ),\n" + //
-				"\n" + //
-				" Authorized_Employees AS (\n" + //
-				"SELECT DISTINCT e.emp_id FROM employee e WHERE (\n" + //
-				"EXISTS (SELECT 1 FROM employee u \n" + //
-				"JOIN job_role jr ON u.job_role_id = jr.job_role_id \n" + //
-				"JOIN department d ON jr.dept_id = d.dept_id \n" + //
-				"WHERE u.emp_id = :emp_id AND (jr.employee_role IN ('SuperAdmin') OR d.name IN ('HR', 'Accounts', 'Resource Management Group')))\n" + //
-				"OR e.job_role_id IN (SELECT jr.job_role_id FROM job_role jr \n" + //
-				"WHERE jr.dept_id IN (SELECT dept_id FROM department WHERE hod_id = :emp_id)) \n" + //
-				")\n" + //
-				"),\n" + //
-				"    Base_Project_Employees AS (\n" + //
-				"        SELECT DISTINCT\n" + //
-				"            etm.team_id, t.team_name, etm.emp_id, e.name, etm.employee_role, e.billable_type,\n" + //
-				"            date(etm.start_date) as start_date, date(etm.end_date) as end_date, etm.employee_team_map_id,\n" + //
-				"            etm.active, p.project_id, p.project_name,\n" + //
-				"            c.client_id, c.client_name, ecsm.client_side_id, p.po_no,\n" + //
-				"            s.name AS spoc, tl.name AS teamLead,\n" + //
-				"            e.reporting_manager_id, e.employmentstatus, d.name AS dept_name,\n" + //
-				"             CASE\n" + //
-				"                                        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-',e.employeement_id)\n" + //
-				"                                        ELSE CONCAT('A-',e.employeement_id)\n" + //
-				"                                    END AS employement_id\n" + //
-				"        FROM projects p\n" + //
-				"        INNER JOIN teams t ON p.project_id = t.project_id\n" + //
-				"        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n" + //
-				"        INNER JOIN employee e ON e.emp_id = etm.emp_id\n" + //
-				"        INNER JOIN clients c ON c.client_id = p.client_id\n" + //
-				"                                INNER JOIN Employees_With_Target_Project_Type target_emps ON e.emp_id = target_emps.emp_id\n" + //
-				"        left JOIN Authorized_Employees ae ON e.emp_id = ae.emp_id\n" + //
-				"        LEFT JOIN employee tl ON tl.emp_id = t.team_lead_id\n" + //
-				"        LEFT JOIN employee s ON s.emp_id = t.spoc_id\n" + //
-				"LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id\n" + //
-				"LEFT JOIN department d ON d.dept_id = jr.dept_id\n" + //
-				"JOIN employee user_e ON user_e.emp_id = :emp_id\n" + //
-				"JOIN job_role user_jr ON user_e.job_role_id = user_jr.job_role_id\n" + //
-				"LEFT JOIN project_manager_mapping pmm_check ON p.project_id = pmm_check.project_id AND pmm_check.project_manager_id = :emp_id\n" + //
-				"LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n" + //
-				"        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id\n" + //
-				"        WHERE p.has_client_side_id = 1 \n" + //
-				"AND (\n" + //
-				"ae.emp_id IS NOT NULL \n" + //
-				"OR \n" + //
-				"(\n" + //
-				"(pmm_check.project_manager_id IS NOT NULL OR pom_check.project_overhead_id IS NOT NULL)\n" + //
-				"AND jr.dept_id = user_jr.dept_id\n" + //
-				")\n" + //
-				")\n" + //
-				"  AND (\n" + //
-				"e.date_of_relieving IS NULL \n" + //
-				"OR YEAR(e.date_of_relieving) > :year \n" + //
-				"OR (YEAR(e.date_of_relieving) = :year AND MONTH(e.date_of_relieving) >= :month)\n" + //
-				")\n" + //
-				"                         AND (:employeeActive = 'All' OR (:employeeActive = 'InActive' AND UPPER(e.employmentstatus) = 'INACTIVE') OR (:employeeActive != 'InActive' AND UPPER(e.employmentstatus) != 'INACTIVE'))   \n" + //
-				" AND e.emp_id not between 1 and 6 \n" + //
-				"        AND DATE(etm.start_date) <= (SELECT to_date FROM Date_Parameters)\n" + //
-				"        AND (etm.end_date IS NULL OR DATE(etm.end_date) >= (SELECT from_date FROM Date_Parameters)) AND (\n" + //
-				":clientSideFilter = 'ALL'\n" + //
-				"OR (:clientSideFilter = 'true' AND p.client_flag = 1)\n" + //
-				"OR (:clientSideFilter = 'false' AND (p.client_flag = 0 OR p.client_flag IS NULL))\n" + //
-				")\n" + //
-				"    ),\n" + //
-				"        Timesheet_Base_Data AS (\n" + //
-				"        SELECT DISTINCT\n" + //
-				"            et.timesheet_id, et.emp_id, t.project_id, etm.employee_team_map_id,et.status,\n" + //
-				"            et.date, et.day_type, et.client_in_time, et.client_out_time, et.shadow_emp_id,t.team_id team_id, a.team_id as a_team_id\n" + //
-				"        FROM employee_timesheets et\n" + //
-				"        LEFT JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id\n" + //
-				"        LEFT JOIN activities a ON etam.activity_id = a.activity_id\n" + //
-				"        LEFT JOIN teams t ON a.team_id = t.team_id\n" + //
-				"        LEFT JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id and etm.team_id = t.team_id AND et.date >= DATE(etm.start_date) AND (etm.end_date IS NULL OR et.date <= DATE(etm.end_date))\n" + //
-				"        WHERE et.date BETWEEN (SELECT from_date FROM Date_Parameters) AND (SELECT to_date FROM Date_Parameters)\n" + //
-				"    ),\n" + //
-				"    Employee_Document_Summary_Details AS (\n" + //
-				"        SELECT DISTINCT\n" + //
-				"            tbd.emp_id, tbd.project_id, tbd.employee_team_map_id,\n" + //
-				"            DATE(tbd.date) AS timesheet_date,\n" + //
-				"            tdd.client_approval_status, tdd.final_flag, tdd.active,\n" + //
-				"            tbd.shadow_emp_id, tdd.timesheet_id,tbd.status\n" + //
-				"        FROM timesheet_document_details tdd\n" + //
-				"        INNER JOIN Timesheet_Base_Data tbd ON tdd.timesheet_id = tbd.timesheet_id and tbd.emp_id = tdd.emp_id\n" + //
-				"        WHERE tdd.active = TRUE\n" + //
-				"    ),\n" + //
-				"        Expected_Client_Side_Base_DSR AS (\n" + //
-				"        SELECT distinct bpe.emp_id, bpe.employee_team_map_id, bpe.project_id, adir.dt\n" + //
-				"        FROM Base_Project_Employees bpe\n" + //
-				"        CROSS JOIN All_Dates_In_Range adir\n" + //
-				"        WHERE adir.dt BETWEEN DATE(bpe.start_date) AND COALESCE(DATE(bpe.end_date), (SELECT to_date FROM Date_Parameters)) AND adir.dt >= (SELECT from_date FROM Date_Parameters)\n" + //
-				"        AND NOT EXISTS (\n" + //
-				"            SELECT 1 FROM employee_timesheets et1 WHERE et1.emp_id = bpe.emp_id AND adir.dt = et1.date\n" + //
-				"            AND UPPER(et1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF' , 'COMP OFF')\n" + //
-				"        )\n" + //
-				"    ),\n" + //
-				"\n" + //
-				"    Actual_Client_Side_Submissions AS (\n" + //
-				"        SELECT DISTINCT emp_id, project_id, employee_team_map_id, timesheet_date AS dt\n" + //
-				"        FROM Employee_Document_Summary_Details tdd\n" + //
-				"        WHERE ((upper(tdd.client_approval_status) = 'APPROVED' AND tdd.final_flag = 1) OR (upper(tdd.client_approval_status) = 'PENDING' AND tdd.timesheet_id NOT IN (SELECT timesheet_id FROM timesheet_document_details WHERE upper(client_approval_status) = 'APPROVED'))) AND  tdd.timesheet_date <= (SELECT to_date FROM Date_Parameters) AND tdd.timesheet_date >= (SELECT from_date FROM Date_Parameters)\n" + //
-				"          AND timesheet_date < CURDATE()\n" + //
-				"    ),\n" + //
-				"\n" + //
-				"    Combined_Expected_Client_Side_DSR AS (\n" + //
-				"        SELECT distinct emp_id, project_id, employee_team_map_id, dt FROM Expected_Client_Side_Base_DSR\n" + //
-				"        UNION\n" + //
-				"        SELECT distinct emp_id, project_id, employee_team_map_id, dt FROM Actual_Client_Side_Submissions\n" + //
-				"    ),\n" + //
-				"\n" + //
-				"    WorkingDays_Summary AS (\n" + //
-				"        SELECT distinct emp_id, project_id, employee_team_map_id, COUNT(DISTINCT dt) AS expected_fill_count\n" + //
-				"        FROM Combined_Expected_Client_Side_DSR\n" + //
-				"        GROUP BY emp_id, project_id, employee_team_map_id\n" + //
-				"    ),\n" + //
-				"\n" + //
-				"    Employee_Document_Summary AS (\n" + //
-				"        SELECT distinct emp_id, project_id, employee_team_map_id,\n" + //
-				"               COUNT(DISTINCT CASE WHEN UPPER(client_approval_status) = 'APPROVED' and upper(edsd.status) != 'REJECTED' AND final_flag = 1 THEN timesheet_id END) AS approved_days,\n" + //
-				"               COUNT(DISTINCT CASE WHEN UPPER(client_approval_status) = 'PENDING' and upper(edsd.status) != 'REJECTED' AND NOT EXISTS (SELECT 1 FROM timesheet_document_details WHERE timesheet_id = edsd.timesheet_id AND UPPER(client_approval_status) = 'APPROVED') THEN timesheet_id END) AS pending_days\n" + //
-				"        FROM Employee_Document_Summary_Details edsd\n" + //
-				"        GROUP BY emp_id, project_id, employee_team_map_id\n" + //
-				"    ),\n" + //
-				"    Employee_Calculated_Status AS (\n" + //
-				"        SELECT\n" + //
-				"            bpe.emp_id, bpe.project_id, bpe.employee_team_map_id,\n" + //
-				"            COALESCE(wds.expected_fill_count, 0) AS expectedTimesheetFillCount,\n" + //
-				"            GREATEST(0, COALESCE(wds.expected_fill_count, 0) - (COALESCE(eds.approved_days, 0) + COALESCE(eds.pending_days, 0))) AS client_side_not_filled_count,\n" + //
-				"            COALESCE(eds.pending_days, 0) AS clientSidePendingCount,\n" + //
-				"            COALESCE(eds.approved_days, 0) AS clientSideApprovedCount,\n" + //
-				"            CASE\n" + //
-				"                WHEN GREATEST(0, COALESCE(wds.expected_fill_count, 0) - (COALESCE(eds.approved_days, 0) + COALESCE(eds.pending_days, 0))) >= 2 THEN 'Defaulter'\n" + //
-				"                WHEN COALESCE(eds.pending_days, 0) > 0 or GREATEST(0, COALESCE(wds.expected_fill_count, 0) - \n" + //
-				"                (COALESCE(eds.approved_days, 0) + COALESCE(eds.pending_days, 0))) >= 1 THEN 'Pending'\n" + //
-				"                ELSE 'Approved'\n" + //
-				"            END AS employee_status\n" + //
-				"        FROM Base_Project_Employees bpe\n" + //
-				"        LEFT JOIN WorkingDays_Summary wds ON bpe.employee_team_map_id = wds.employee_team_map_id\n" + //
-				"        LEFT JOIN Employee_Document_Summary eds ON bpe.employee_team_map_id = eds.employee_team_map_id\n" + //
-				"    )\n" + //
-				"\n" + //
-				"SELECT\n" + //
-				"    COUNT(DISTINCT bpe.emp_id) AS total_no_of_applicable_employees,\n" + //
-				"    COUNT(DISTINCT CASE WHEN ecs.employee_status = 'Approved' THEN bpe.emp_id END) AS total_approved_employees,\n" + //
-				"    COUNT(DISTINCT CASE WHEN ecs.employee_status = 'Pending' THEN bpe.emp_id END) AS total_pending_employees,\n" + //
-				"    COUNT(DISTINCT CASE WHEN ecs.employee_status = 'Defaulter' THEN bpe.emp_id END) AS total_defaulter_employees,\n" + //
-				"    COUNT(DISTINCT CASE WHEN ecs.employee_status in ('Defaulter','Pending') THEN bpe.emp_id END) AS Defaulter_employees\n" + //
-				"FROM Base_Project_Employees bpe\n" + //
-				"INNER JOIN Employee_Calculated_Status ecs ON bpe.employee_team_map_id = ecs.employee_team_map_id", nativeQuery = true)
-	public List<Object[]> getTimesheetDashboardCountForEmployee(@Param("month") Integer month, 
-	@Param("year") Integer year, 
-	@Param("emp_id") Long emp_id, 
-	@Param("clientSideFilter") String clientSideFilter, @Param("employeeActive") String employeeActive, @Param("billableType") List<String> billableType);
+			"    Date_Parameters AS (\n" + //
+			"        SELECT\n" + //
+			"            COALESCE(STR_TO_DATE(CONCAT(:year, '-', :month, '-01'), '%Y-%m-%d'), DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS from_date,\n" + //
+			"            CASE\n" + //
+			"                WHEN :year IS NOT NULL AND :month IS NOT NULL THEN\n" + //
+			"                    IF(:year = YEAR(CURDATE()) AND :month = MONTH(CURDATE()), CURDATE(), LAST_DAY(STR_TO_DATE(CONCAT(:year, '-', :month, '-01'), '%Y-%m-%d')))\n" + //
+			"                ELSE CURDATE()\n" + //
+			"            END AS to_date\n" + //
+			"    ),\n" + //
+			"\n" + //
+			"    All_Dates_In_Range AS (\n" + //
+			"        SELECT from_date AS dt FROM Date_Parameters\n" + //
+			"        UNION ALL\n" + //
+			"        SELECT DATE_ADD(dt, INTERVAL 1 DAY) FROM All_Dates_In_Range, Date_Parameters WHERE dt < Date_Parameters.to_date\n" + //
+			"    ),\n" + //
+			"                             Employees_With_Target_Project_Type AS (\n" + //
+			"SELECT DISTINCT etm.emp_id\n" + //
+			"FROM employee_team_mapping etm\n" + //
+			"INNER JOIN teams t ON etm.team_id = t.team_id\n" + //
+			"INNER JOIN projects p ON t.project_id = p.project_id\n" + //
+			"JOIN Date_Parameters dp ON 1=1\n" + //
+			"WHERE \n" + //
+			"etm.start_date <= dp.to_date\n" + //
+			"AND (etm.end_date IS NULL OR etm.end_date >= dp.from_date)\n" + //
+			"AND (\n" + //
+			" 'All' IN (:billableType) \n" + //
+			" \n" + //
+			" OR p.po_project_type IN (:billableType) \n" + //
+			" OR p.internal_project_type IN (:billableType) \n" + //
+			"\n" + //
+			" OR (\n" + //
+			" 'TNM(Shadow)' IN (:billableType) \n" + //
+			" AND p.po_project_type = 'TNM' \n" + //
+			" AND etm.is_shadow = 1\n" + //
+			" )             OR (\n" + //
+			" 'Fixed Cost(Shadow)' IN (:billableType) \n" + //
+			" AND p.po_project_type = 'Fixed Cost' \n" + //
+			" AND etm.is_shadow = 1\n" + //
+			" )\n" + //
+			")\n" + //
+			"),\n" + //
+			"    Project_Managers AS (\n" + //
+			"        SELECT pm.project_id, GROUP_CONCAT(DISTINCT e.name ORDER BY e.name SEPARATOR ', ') AS project_manager_name\n" + //
+			"        FROM project_manager_mapping pm\n" + //
+			"        left JOIN employee e ON e.emp_id = pm.project_manager_id\n" + //
+			"        GROUP BY pm.project_id\n" + //
+			"    ),\n" + //
+			"\n" + //
+			"    auth_emp AS (\n" + //
+			"        SELECT etm.emp_id, p.project_id, t.spoc_id, t.team_lead_id, t.team_id,\n" + //
+			"               etm.employee_team_map_id, date(etm.start_date) as start_date, etm.end_date\n" + //
+			"        FROM employee_team_mapping etm\n" + //
+			"        INNER JOIN teams t ON etm.team_id = t.team_id\n" + //
+			"        INNER JOIN projects p ON t.project_id = p.project_id\n" + //
+			"        WHERE p.has_client_side_id = TRUE\n" + //
+			"    ),\n" + //
+			"\n" + //
+			" Authorized_Employees AS (\n" + //
+			"SELECT DISTINCT e.emp_id FROM employee e WHERE (\n" + //
+			"EXISTS (SELECT 1 FROM employee u \n" + //
+			"JOIN job_role jr ON u.job_role_id = jr.job_role_id \n" + //
+			"JOIN department d ON jr.dept_id = d.dept_id \n" + //
+			"WHERE u.emp_id = :emp_id AND (jr.employee_role IN ('SuperAdmin') OR d.name IN ('HR', 'Accounts', 'Resource Management Group')))\n" + //
+			"OR e.job_role_id IN (SELECT jr.job_role_id FROM job_role jr \n" + //
+			"WHERE jr.dept_id IN (SELECT dept_id FROM department WHERE hod_id = :emp_id)) \n" + //
+			")\n" + //
+			"),\n" + //
+			"    Base_Project_Employees AS (\n" + //
+			"        SELECT DISTINCT\n" + //
+			"            etm.team_id, t.team_name, etm.emp_id, e.name, etm.employee_role, e.billable_type,\n" + //
+			"            date(etm.start_date) as start_date, date(etm.end_date) as end_date, etm.employee_team_map_id,\n" + //
+			"            etm.active, p.project_id, p.project_name,\n" + //
+			"            c.client_id, c.client_name, ecsm.client_side_id, p.po_no,\n" + //
+			"            s.name AS spoc, tl.name AS teamLead,\n" + //
+			"            e.reporting_manager_id, e.employmentstatus, d.name AS dept_name,\n" + //
+			"             CASE\n" + //
+			"                                        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-',e.employeement_id)\n" + //
+			"                                        ELSE CONCAT('A-',e.employeement_id)\n" + //
+			"                                    END AS employement_id\n" + //
+			"        FROM projects p\n" + //
+			"        INNER JOIN teams t ON p.project_id = t.project_id\n" + //
+			"        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n" + //
+			"        INNER JOIN employee e ON e.emp_id = etm.emp_id\n" + //
+			"        INNER JOIN clients c ON c.client_id = p.client_id\n" + //
+			"                                INNER JOIN Employees_With_Target_Project_Type target_emps ON e.emp_id = target_emps.emp_id\n" + //
+			"        left JOIN Authorized_Employees ae ON e.emp_id = ae.emp_id\n" + //
+			"        LEFT JOIN employee tl ON tl.emp_id = t.team_lead_id\n" + //
+			"        LEFT JOIN employee s ON s.emp_id = t.spoc_id\n" + //
+			"LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id\n" + //
+			"LEFT JOIN department d ON d.dept_id = jr.dept_id\n" + //
+			"JOIN employee user_e ON user_e.emp_id = :emp_id\n" + //
+			"JOIN job_role user_jr ON user_e.job_role_id = user_jr.job_role_id\n" + //
+			"LEFT JOIN project_manager_mapping pmm_check ON p.project_id = pmm_check.project_id AND pmm_check.project_manager_id = :emp_id\n" + //
+			"LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n" + //
+			"        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id\n" + //
+			"        WHERE p.has_client_side_id = 1 \n" + //
+			"and (\n"
+			+ "					(:multiPOs = 'All')\n"
+			+ "						or\n"
+			+ "					(:multiPOs = 'Yes' \n"
+			+ "						and p.project_id in \n"
+			+ "							(select pp.project_id from project_po_details pp \n"
+			+ "								where pp.po_start_date <= (select to_date from Date_Parameters) \n"
+			+ "								AND (pp.po_end_date IS NULL OR pp.po_end_date >= (SELECT from_date FROM Date_Parameters)) \n"
+			+ "								group by pp.project_id having count(*) > 1\n"
+			+ "							)\n"
+			+ "					)\n"
+			+ "						or \n"
+			+ "					(:multiPOs = 'No' \n"
+			+ "						and p.project_id in \n"
+			+ "							(select pp.project_id from project_po_details pp \n"
+			+ "								where pp.po_start_date <= (select to_date from Date_Parameters) \n"
+			+ "								AND (pp.po_end_date IS NULL OR pp.po_end_date >= (SELECT from_date FROM Date_Parameters)) \n"
+			+ "								group by pp.project_id having count(*) = 1\n"
+			+ "							)\n"
+			+ "					)\n"
+			+ "			) \n" + //
+			"AND (\n" + //
+			"ae.emp_id IS NOT NULL \n" + //
+			"OR \n" + //
+			"(\n" + //
+			"(pmm_check.project_manager_id IS NOT NULL OR pom_check.project_overhead_id IS NOT NULL)\n" + //
+			"AND jr.dept_id = user_jr.dept_id\n" + //
+			")\n" + //
+			")\n" + //
+			"  AND (\n" + //
+			"e.date_of_relieving IS NULL \n" + //
+			"OR YEAR(e.date_of_relieving) > :year \n" + //
+			"OR (YEAR(e.date_of_relieving) = :year AND MONTH(e.date_of_relieving) >= :month)\n" + //
+			")\n" + //
+			"                         AND (:employeeActive = 'All' OR (:employeeActive = 'InActive' AND UPPER(e.employmentstatus) = 'INACTIVE') OR (:employeeActive != 'InActive' AND UPPER(e.employmentstatus) != 'INACTIVE'))   \n" + //
+			" AND e.emp_id not between 1 and 6 \n" + //
+			"        AND DATE(etm.start_date) <= (SELECT to_date FROM Date_Parameters)\n" + //
+			"        AND (etm.end_date IS NULL OR DATE(etm.end_date) >= (SELECT from_date FROM Date_Parameters)) AND (\n" + //
+			":clientSideFilter = 'ALL'\n" + //
+			"OR (:clientSideFilter = 'true' AND p.client_flag = 1)\n" + //
+			"OR (:clientSideFilter = 'false' AND (p.client_flag = 0 OR p.client_flag IS NULL))\n" + //
+			")\n" + //
+			"    ),\n" + //
+			"        Timesheet_Base_Data AS (\n" + //
+			"        SELECT DISTINCT\n" + //
+			"            et.timesheet_id, et.emp_id, t.project_id, etm.employee_team_map_id,et.status,\n" + //
+			"            et.date, et.day_type, et.client_in_time, et.client_out_time, et.shadow_emp_id,t.team_id team_id, a.team_id as a_team_id\n" + //
+			"        FROM employee_timesheets et\n" + //
+			"        LEFT JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_id\n" + //
+			"        LEFT JOIN activities a ON etam.activity_id = a.activity_id\n" + //
+			"        LEFT JOIN teams t ON a.team_id = t.team_id\n" + //
+			"        LEFT JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id and etm.team_id = t.team_id AND et.date >= DATE(etm.start_date) AND (etm.end_date IS NULL OR et.date <= DATE(etm.end_date))\n" + //
+			"        WHERE et.date BETWEEN (SELECT from_date FROM Date_Parameters) AND (SELECT to_date FROM Date_Parameters)\n" + //
+			"    ),\n" + //
+			"    Employee_Document_Summary_Details AS (\n" + //
+			"        SELECT DISTINCT\n" + //
+			"            tbd.emp_id, tbd.project_id, tbd.employee_team_map_id,\n" + //
+			"            DATE(tbd.date) AS timesheet_date,\n" + //
+			"            tdd.client_approval_status, tdd.final_flag, tdd.active,\n" + //
+			"            tbd.shadow_emp_id, tdd.timesheet_id,tbd.status\n" + //
+			"        FROM timesheet_document_details tdd\n" + //
+			"        INNER JOIN Timesheet_Base_Data tbd ON tdd.timesheet_id = tbd.timesheet_id and tbd.emp_id = tdd.emp_id\n" + //
+			"        WHERE tdd.active = TRUE\n" + //
+			"    ),\n" + //
+			"        Expected_Client_Side_Base_DSR AS (\n" + //
+			"        SELECT distinct bpe.emp_id, bpe.employee_team_map_id, bpe.project_id, adir.dt\n" + //
+			"        FROM Base_Project_Employees bpe\n" + //
+			"        CROSS JOIN All_Dates_In_Range adir\n" + //
+			"        WHERE adir.dt BETWEEN DATE(bpe.start_date) AND COALESCE(DATE(bpe.end_date), (SELECT to_date FROM Date_Parameters)) AND adir.dt >= (SELECT from_date FROM Date_Parameters)\n" + //
+			"        AND NOT EXISTS (\n" + //
+			"            SELECT 1 FROM employee_timesheets et1 WHERE et1.emp_id = bpe.emp_id AND adir.dt = et1.date\n" + //
+			"            AND UPPER(et1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF' , 'COMP OFF')\n" + //
+			"        )\n" + //
+			"    ),\n" + //
+			"\n" + //
+			"    Actual_Client_Side_Submissions AS (\n" + //
+			"        SELECT DISTINCT emp_id, project_id, employee_team_map_id, timesheet_date AS dt\n" + //
+			"        FROM Employee_Document_Summary_Details tdd\n" + //
+			"        WHERE ((upper(tdd.client_approval_status) = 'APPROVED' AND tdd.final_flag = 1) OR (upper(tdd.client_approval_status) = 'PENDING' AND tdd.timesheet_id NOT IN (SELECT timesheet_id FROM timesheet_document_details WHERE upper(client_approval_status) = 'APPROVED'))) AND  tdd.timesheet_date <= (SELECT to_date FROM Date_Parameters) AND tdd.timesheet_date >= (SELECT from_date FROM Date_Parameters)\n" + //
+			"          AND timesheet_date < CURDATE()\n" + //
+			"    ),\n" + //
+			"\n" + //
+			"    Combined_Expected_Client_Side_DSR AS (\n" + //
+			"        SELECT distinct emp_id, project_id, employee_team_map_id, dt FROM Expected_Client_Side_Base_DSR\n" + //
+			"        UNION\n" + //
+			"        SELECT distinct emp_id, project_id, employee_team_map_id, dt FROM Actual_Client_Side_Submissions\n" + //
+			"    ),\n" + //
+			"\n" + //
+			"    WorkingDays_Summary AS (\n" + //
+			"        SELECT distinct emp_id, project_id, employee_team_map_id, COUNT(DISTINCT dt) AS expected_fill_count\n" + //
+			"        FROM Combined_Expected_Client_Side_DSR\n" + //
+			"        GROUP BY emp_id, project_id, employee_team_map_id\n" + //
+			"    ),\n" + //
+			"\n" + //
+			"    Employee_Document_Summary AS (\n" + //
+			"        SELECT distinct emp_id, project_id, employee_team_map_id,\n" + //
+			"               COUNT(DISTINCT CASE WHEN UPPER(client_approval_status) = 'APPROVED' and upper(edsd.status) != 'REJECTED' AND final_flag = 1 THEN timesheet_id END) AS approved_days,\n" + //
+			"               COUNT(DISTINCT CASE WHEN UPPER(client_approval_status) = 'PENDING' and upper(edsd.status) != 'REJECTED' AND NOT EXISTS (SELECT 1 FROM timesheet_document_details WHERE timesheet_id = edsd.timesheet_id AND UPPER(client_approval_status) = 'APPROVED') THEN timesheet_id END) AS pending_days\n" + //
+			"        FROM Employee_Document_Summary_Details edsd\n" + //
+			"        GROUP BY emp_id, project_id, employee_team_map_id\n" + //
+			"    ),\n" + //
+			"    Employee_Calculated_Status AS (\n" + //
+			"        SELECT\n" + //
+			"            bpe.emp_id, bpe.project_id, bpe.employee_team_map_id,\n" + //
+			"            COALESCE(wds.expected_fill_count, 0) AS expectedTimesheetFillCount,\n" + //
+			"            GREATEST(0, COALESCE(wds.expected_fill_count, 0) - (COALESCE(eds.approved_days, 0) + COALESCE(eds.pending_days, 0))) AS client_side_not_filled_count,\n" + //
+			"            COALESCE(eds.pending_days, 0) AS clientSidePendingCount,\n" + //
+			"            COALESCE(eds.approved_days, 0) AS clientSideApprovedCount,\n" + //
+			"            CASE\n" + //
+			"                WHEN GREATEST(0, COALESCE(wds.expected_fill_count, 0) - (COALESCE(eds.approved_days, 0) + COALESCE(eds.pending_days, 0))) >= 2 THEN 'Defaulter'\n" + //
+			"                WHEN COALESCE(eds.pending_days, 0) > 0 or GREATEST(0, COALESCE(wds.expected_fill_count, 0) - \n" + //
+			"                (COALESCE(eds.approved_days, 0) + COALESCE(eds.pending_days, 0))) >= 1 THEN 'Pending'\n" + //
+			"                ELSE 'Approved'\n" + //
+			"            END AS employee_status\n" + //
+			"        FROM Base_Project_Employees bpe\n" + //
+			"        LEFT JOIN WorkingDays_Summary wds ON bpe.employee_team_map_id = wds.employee_team_map_id\n" + //
+			"        LEFT JOIN Employee_Document_Summary eds ON bpe.employee_team_map_id = eds.employee_team_map_id\n" + //
+			"    )\n" + //
+			"\n" + //
+			"SELECT\n" + //
+			"    COUNT(DISTINCT bpe.emp_id) AS total_no_of_applicable_employees,\n" + //
+			"    COUNT(DISTINCT CASE WHEN ecs.employee_status = 'Approved' THEN bpe.emp_id END) AS total_approved_employees,\n" + //
+			"    COUNT(DISTINCT CASE WHEN ecs.employee_status = 'Pending' THEN bpe.emp_id END) AS total_pending_employees,\n" + //
+			"    COUNT(DISTINCT CASE WHEN ecs.employee_status = 'Defaulter' THEN bpe.emp_id END) AS total_defaulter_employees,\n" + //
+			"    COUNT(DISTINCT CASE WHEN ecs.employee_status in ('Defaulter','Pending') THEN bpe.emp_id END) AS Defaulter_employees\n" + //
+			"FROM Base_Project_Employees bpe\n" + //
+			"INNER JOIN Employee_Calculated_Status ecs ON bpe.employee_team_map_id = ecs.employee_team_map_id", nativeQuery = true)
+public List<Object[]> getTimesheetDashboardCountForEmployee(@Param("month") Integer month, 
+@Param("year") Integer year, 
+@Param("emp_id") Long emp_id, 
+@Param("clientSideFilter") String clientSideFilter, @Param("employeeActive") String employeeActive, @Param("billableType") List<String> billableType, @Param("multiPOs") String multiPOs);
 
 
     
@@ -4298,7 +4319,27 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				"LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n" +
 				"        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id\n" +
 				"        WHERE p.has_client_side_id = 1 \n" +
-				"AND (\n" +
+				"and (\n"
+				+ "					(:multiPOs = 'All')\n"
+				+ "						or\n"
+				+ "					(:multiPOs = 'Yes' \n"
+				+ "						and p.project_id in \n"
+				+ "							(select pp.project_id from project_po_details pp \n"
+				+ "								where pp.po_start_date <= (select to_date from Date_Parameters) \n"
+				+ "								AND (pp.po_end_date IS NULL OR pp.po_end_date >= (SELECT from_date FROM Date_Parameters)) \n"
+				+ "								group by pp.project_id having count(*) > 1\n"
+				+ "							)\n"
+				+ "					)\n"
+				+ "						or \n"
+				+ "					(:multiPOs = 'No' \n"
+				+ "						and p.project_id in \n"
+				+ "							(select pp.project_id from project_po_details pp \n"
+				+ "								where pp.po_start_date <= (select to_date from Date_Parameters) \n"
+				+ "								AND (pp.po_end_date IS NULL OR pp.po_end_date >= (SELECT from_date FROM Date_Parameters)) \n"
+				+ "								group by pp.project_id having count(*) = 1\n"
+				+ "							)\n"
+				+ "					)\n"
+				+ "			) \n" +
 				"ae.emp_id IS NOT NULL \n" +
 				"OR \n" +
 				"(\n" +
@@ -6873,6 +6914,27 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			"    AND ecsm.project_id = t.project_id \n" +
 			"  WHERE \n" +
 			"    p.has_client_side_id = 1 \n" +
+			"and (\n"
+			+ "					(:multiPOs = 'All')\n"
+			+ "						or\n"
+			+ "					(:multiPOs = 'Yes' \n"
+			+ "						and p.project_id in \n"
+			+ "							(select pp.project_id from project_po_details pp \n"
+			+ "								where pp.po_start_date <= (select to_date from Date_Parameters) \n"
+			+ "								AND (pp.po_end_date IS NULL OR pp.po_end_date >= (SELECT from_date FROM Date_Parameters)) \n"
+			+ "								group by pp.project_id having count(*) > 1\n"
+			+ "							)\n"
+			+ "					)\n"
+			+ "						or \n"
+			+ "					(:multiPOs = 'No' \n"
+			+ "						and p.project_id in \n"
+			+ "							(select pp.project_id from project_po_details pp \n"
+			+ "								where pp.po_start_date <= (select to_date from Date_Parameters) \n"
+			+ "								AND (pp.po_end_date IS NULL OR pp.po_end_date >= (SELECT from_date FROM Date_Parameters)) \n"
+			+ "								group by pp.project_id having count(*) = 1\n"
+			+ "							)\n"
+			+ "					)\n"
+			+ "			) \n" +
 			"    AND (\n" +
 			"      ae.emp_id IS NOT NULL \n" +
 			"      OR (\n" +
@@ -7797,9 +7859,9 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 					@Param("billableType2") String billableType2, @Param("projectName") String projectName, @Param("poNo") String poNo, 
 					@Param("projectManagers") String projectManagers, @Param("clientName") String clientName, @Param("teamName") String teamName,@Param("department") String department,
 					@Param("employmentStatus") String employmentStatus,@Param("projectStatus") String projectStatus,
-					@Param("sortBy") String sortBy,@Param("sortDirection") String sortDirection,@Param("employeeIds") List<Long> employeeIds, @Param("dept_id")Long deptId, @Param("employeeActive") String employeeActive, @Param("billableType") List<String> billableType);
+					@Param("sortBy") String sortBy,@Param("sortDirection") String sortDirection,@Param("employeeIds") List<Long> employeeIds, @Param("dept_id")Long deptId, @Param("employeeActive") String employeeActive, @Param("billableType") List<String> billableType, @Param("multiPOs")String multiPOs);
 
-		@Query(value= "WITH RECURSIVE\n" +
+				@Query(value= "WITH RECURSIVE\n" +
 						"    Date_Parameters AS (\n" +
 						"        SELECT\n" +
 						"            COALESCE(STR_TO_DATE(CONCAT(:year, '-', :month, '-01'), '%Y-%m-%d'), DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS from_date,\n" +
@@ -7895,6 +7957,27 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 						"LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n" +
 						"        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id\n" +
 						"        WHERE p.has_client_side_id = 1 \n" +
+						"and (\n"
+						+ "					(:multiPOs = 'All')\n"
+						+ "						or\n"
+						+ "					(:multiPOs = 'Yes' \n"
+						+ "						and p.project_id in \n"
+						+ "							(select pp.project_id from project_po_details pp \n"
+						+ "								where pp.po_start_date <= (select to_date from Date_Parameters) \n"
+						+ "								AND (pp.po_end_date IS NULL OR pp.po_end_date >= (SELECT from_date FROM Date_Parameters)) \n"
+						+ "								group by pp.project_id having count(*) > 1\n"
+						+ "							)\n"
+						+ "					)\n"
+						+ "						or \n"
+						+ "					(:multiPOs = 'No' \n"
+						+ "						and p.project_id in \n"
+						+ "							(select pp.project_id from project_po_details pp \n"
+						+ "								where pp.po_start_date <= (select to_date from Date_Parameters) \n"
+						+ "								AND (pp.po_end_date IS NULL OR pp.po_end_date >= (SELECT from_date FROM Date_Parameters)) \n"
+						+ "								group by pp.project_id having count(*) = 1\n"
+						+ "							)\n"
+						+ "					)\n"
+						+ "			) \n" +
 						"AND (\n" +
 						"ae.emp_id IS NOT NULL \n" +
 						"OR \n" +
@@ -8064,7 +8147,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 						" AND (:employmentId IS NULL OR LOWER(bpe.employement_id) LIKE CONCAT('%', :employmentId, '%'))\n" +
 						" AND (:clientsideId IS NULL OR LOWER(bpe.client_side_id) LIKE CONCAT('%', :clientsideId, '%'))\n" +
 						" AND (:employeeName IS NULL OR LOWER(bpe.name) LIKE CONCAT('%', :employeeName, '%'))\n" +
-						" AND (:billableType IS NULL OR LOWER(bpe.billable_type) LIKE CONCAT('%',:billableType,'%'))\n" +
+						" AND (:billableType2 IS NULL OR LOWER(bpe.billable_type) LIKE CONCAT('%',:billableType2,'%'))\n" +
 						" AND (:projectName IS NULL OR LOWER(bpe.project_name) LIKE CONCAT('%', :projectName, '%'))\n" +
 						" AND (:poNo IS NULL OR LOWER(bpe.po_no) LIKE CONCAT('%', :poNo, '%'))\n" +
 						" AND (:department IS NULL OR LOWER(bpe.dept_name) LIKE CONCAT('%', :department, '%'))\n" +
@@ -8079,9 +8162,9 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				  @Param("emp_id") Long empId,
 				  @Param("status") String status,
 				  @Param("clientSideFilter") String clientSideFilter,@Param("employmentId") String employmentId,@Param("clientsideId") String clientsideId, @Param("employeeName") String employeeName, 
-				  @Param("billableType") String billableType, @Param("projectName") String projectName, @Param("poNo") String poNo, 
+				  @Param("billableType2") String billableType2, @Param("projectName") String projectName, @Param("poNo") String poNo, 
 				  @Param("projectManagers") String projectManagers, @Param("clientName") String clientName, @Param("teamName") String teamName,@Param("department") String department,
-				  @Param("employmentStatus") String employmentStatus,@Param("projectStatus") String projectStatus, @Param("dept_id") Long deptId, @Param("employeeActive") String employeeActive );
+				  @Param("employmentStatus") String employmentStatus,@Param("projectStatus") String projectStatus, @Param("dept_id") Long deptId, @Param("employeeActive") String employeeActive, @Param("billableType")List<String> billableType, @Param("multiPOs")String multiPOs );
 		
 		@Query(value= "WITH RECURSIVE\n"
 				+ "					Date_Parameters AS (\n"
@@ -8180,6 +8263,27 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				+ "							LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n"
 				+ "						LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id\n"
 				+ "						WHERE p.has_client_side_id = 1 \n"
+				+ "and (\n"
+				+ "					(:multiPOs = 'All')\n"
+				+ "						or\n"
+				+ "					(:multiPOs = 'Yes' \n"
+				+ "						and p.project_id in \n"
+				+ "							(select pp.project_id from project_po_details pp \n"
+				+ "								where pp.po_start_date <= (select to_date from Date_Parameters) \n"
+				+ "								AND (pp.po_end_date IS NULL OR pp.po_end_date >= (SELECT from_date FROM Date_Parameters)) \n"
+				+ "								group by pp.project_id having count(*) > 1\n"
+				+ "							)\n"
+				+ "					)\n"
+				+ "						or \n"
+				+ "					(:multiPOs = 'No' \n"
+				+ "						and p.project_id in \n"
+				+ "							(select pp.project_id from project_po_details pp \n"
+				+ "								where pp.po_start_date <= (select to_date from Date_Parameters) \n"
+				+ "								AND (pp.po_end_date IS NULL OR pp.po_end_date >= (SELECT from_date FROM Date_Parameters)) \n"
+				+ "								group by pp.project_id having count(*) = 1\n"
+				+ "							)\n"
+				+ "					)\n"
+				+ "			) \n"
 				+ "							AND (\n"
 				+ "							ae.emp_id IS NOT NULL \n"
 				+ "							OR \n"
@@ -8368,7 +8472,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				  @Param("billableType2") String billableType2, @Param("projectName") String projectName, @Param("poNo") String poNo, 
 				  @Param("projectManagers") String projectManagers, @Param("clientName") String clientName, @Param("teamName") String teamName,@Param("department") String department,
 				  @Param("employmentStatus") String employmentStatus,@Param("projectStatus") String projectStatus,
-				  @Param("offset") int offset,@Param("pageSize") int pageSize, @Param("dept_id")Long deptId, @Param("employeeActive") String employeeActive, @Param("billableType")List<String> billableType);
+				  @Param("offset") int offset,@Param("pageSize") int pageSize, @Param("dept_id")Long deptId, @Param("employeeActive") String employeeActive, @Param("billableType")List<String> billableType, @Param("multiPOs") String multiPOs); 
 		
 		@Query(value= "WITH RECURSIVE\n"
 				+ "Date_Parameters AS (\n"
@@ -9340,6 +9444,27 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 	    		+ "        LEFT JOIN project_manager_mapping pmm_check ON p.project_id = pmm_check.project_id AND pmm_check.project_manager_id = :emp_id\n"
 	    		+ "        LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n"
 	    		+ "        WHERE p.has_client_side_id = 1 \n"
+				+ " and (\n"
+				+ "					(:multiPOs = 'All')\n"
+				+ "						or\n"
+				+ "					(:multiPOs = 'Yes' \n"
+				+ "						and p.project_id in \n"
+				+ "							(select pp.project_id from project_po_details pp \n"
+				+ "								where pp.po_start_date <= (select to_date from Date_Parameters) \n"
+				+ "								AND (pp.po_end_date IS NULL OR pp.po_end_date >= (SELECT from_date FROM Date_Parameters)) \n"
+				+ "								group by pp.project_id having count(*) > 1\n"
+				+ "							)\n"
+				+ "					)\n"
+				+ "						or \n"
+				+ "					(:multiPOs = 'No' \n"
+				+ "						and p.project_id in \n"
+				+ "							(select pp.project_id from project_po_details pp \n"
+				+ "								where pp.po_start_date <= (select to_date from Date_Parameters) \n"
+				+ "								AND (pp.po_end_date IS NULL OR pp.po_end_date >= (SELECT from_date FROM Date_Parameters)) \n"
+				+ "								group by pp.project_id having count(*) = 1\n"
+				+ "							)\n"
+				+ "					)\n"
+				+ "			) \n" 
 	    		+ "          AND (ae.emp_id IS NOT NULL OR ((pmm_check.project_manager_id IS NOT NULL OR pom_check.project_overhead_id IS NOT NULL) AND jr.dept_id = user_jr.dept_id))\n"
 	    		+ "          AND (e.date_of_relieving IS NULL OR YEAR(e.date_of_relieving) > :year OR (YEAR(e.date_of_relieving) = :year AND MONTH(e.date_of_relieving) >= :month)) \n"
 	    		+ "          AND (:employeeActive = 'All' OR (:employeeActive = 'InActive' AND UPPER(e.employmentstatus) = 'INACTIVE') OR (:employeeActive != 'InActive' AND UPPER(e.employmentstatus) != 'INACTIVE'))    \n"
@@ -9448,13 +9573,8 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 	                @Param("month") Integer month,
 	                @Param("year") Integer year,
 	                @Param("clientSideFilter") String clientSideFilter,
-	                @Param("billableType")List<String> billableType, @Param("employeeActive") String employeeActive
-	        );
+	                @Param("billableType")List<String> billableType, @Param("employeeActive") String employeeActive, @Param("multiPOs")String multiPOs);
 
-			
-	
-
-	        
 	        
 	        @Query(value=" WITH RECURSIVE\n"
 	    			+ "			    Date_Parameters AS (\n"
