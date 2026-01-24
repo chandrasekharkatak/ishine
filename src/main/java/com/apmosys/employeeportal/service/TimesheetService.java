@@ -7451,7 +7451,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                            projectName, poNo, projectManagers, clientName, teamName,
 	                            department, employmentStatus, statusCode,
 //	                            offset, pageSize,
-	                            object.getDeptId()
+	                            object.getDeptId(),object.getEmployeeActive(),object.getBillableType(), object.getMultiPOs()
 	                        );
 	        		
 
@@ -7468,7 +7468,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	        	            object.getSortBy(),
 	        	            object.getSortDirection(),
 	        	            employeeIds,
-	        	            object.getDeptId()
+	        	            object.getDeptId(),object.getEmployeeActive(),object.getBillableType(), object.getMultiPOs()
 	        	        );
 	        	    
 	        	    totalDistinctEmployees =
@@ -7481,7 +7481,7 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
     	                employmentId, clientsideId, employeeName, billableType,
     	                projectName, poNo, projectManagers, clientName, teamName,
     	                department, employmentStatus, statusCode,
-    	                object.getDeptId()
+    	                object.getDeptId(),object.getEmployeeActive(),object.getBillableType(), object.getMultiPOs()
     	            );
 
 	        	} else {

@@ -2300,3 +2300,35 @@ h5 {
 .po-option:hover {
   background: #f1f5f9;
 }
+
+.select-all-btn {
+  background: #e3f2fd;
+  color: #1976d2;
+  border-color: #1976d2;
+}
+
+.select-all-btn:hover {
+  background: #bbdefb;
+}
+
+.select-all-row .mat-pseudo-checkbox {
+  display: none !important;
+}
+
+/* layout */
+.select-all-actions {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+}
+
+/* bigger buttons */
+.select-all-btn {
+  flex: 1;
+  padding: 8px 10px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid rgba(0,0,0,0.2);
+}

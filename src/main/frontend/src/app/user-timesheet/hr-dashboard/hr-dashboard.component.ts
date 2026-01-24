@@ -946,7 +946,6 @@ isGlobalPoDropdownOpen = false;
   //   // Add any other side effects or function calls you want here
   // }
 updateBillableTypes() {
-
   if (this.toggleValue) {
     if(this.isClientDashboard)
       this.billableTypes = [...this.projectBillableTypesWithClient];
@@ -2190,6 +2189,7 @@ getTileInfo(status: string): string[] {
     this.isClientDashboard = !this.isClientDashboard;
     this.resetSearchField();
     this.isSearchEnabled = false;
+    this.selectedBillableTypes = ["TNM"];
     this.updateBillableTypes();
     if (!this.toggleValue) {
       this.getEmployeeByNameAndEmpld();
@@ -2383,7 +2383,7 @@ selectAllBillableTypes() {
 
 onBillableTypeChange(event: any) {
   const selected = event.value as string[];
-
+  console.log(event);
   if (!selected || selected.length === 0) {
     this.selectedBillableTypes = ['TNM'];
   } else {
@@ -2887,7 +2887,9 @@ loadDepartmentStatusSummary(status: any, month: any, year: any): void {
     year: this.year,
     clientDashboard: this.isClientDashboard,
     billableTypes:this.selectedBillableTypes,
-    employeeActive:this.selectedEmployeeStatus
+    employeeActive:this.selectedEmployeeStatus,
+    multiPOs: this.globalPoConflictSelection,
+    billableType: this.selectedBillableTypes
 
   };
 

@@ -4019,7 +4019,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			"AND (\n" + //
 			" 'All' IN (:billableType) \n" + //
 			" \n" + //
-			" OR p.po_project_type IN (:billableType) \n" + //
+			" OR (p.po_project_type IN (:billableType) and coalesce(etm.is_shadow,0) = 0) \n" + //
 			" OR p.internal_project_type IN (:billableType) \n" + //
 			"\n" + //
 			" OR (\n" + //
@@ -5661,7 +5661,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 			+ "        AND (\n"
 			+ "             'All' IN (:billableType) \n"
 			+ "             \n"
-			+ "             OR p.po_project_type IN (:billableType) \n"
+			+ "             OR (p.po_project_type IN (:billableType) and coalesce(etm.is_shadow,0) = 0) \n"
 			+ "             OR p.internal_project_type IN (:billableType) \n"
 			+ "\n"
 			+ "             OR (\n"
@@ -5882,7 +5882,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 			+ "        AND (\n"
 			+ "             'All' IN (:billableType) \n"
 			+ "             \n"
-			+ "             OR p.po_project_type IN (:billableType) \n"
+			+ "             OR (p.po_project_type IN (:billableType) and coalesce(etm.is_shadow,0) = 0) \n"
 			+ "             OR p.internal_project_type IN (:billableType) \n"
 			+ "\n"
 			+ "             OR (\n"
@@ -6137,7 +6137,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 			+ "        AND (\n"
 			+ "             'All' IN (:billableType) \n"
 			+ "             \n"
-			+ "             OR p.po_project_type IN (:billableType) \n"
+			+ "             OR (p.po_project_type IN (:billableType) and coalesce(etm.is_shadow,0) = 0) \n"
 			+ "             OR p.internal_project_type IN (:billableType) \n"
 			+ "\n"
 			+ "             OR (\n"
@@ -6489,7 +6489,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 			+ "        AND (\n"
 			+ "             'All' IN (:billableType) \n"
 			+ "             \n"
-			+ "             OR p.po_project_type IN (:billableType) \n"
+			+ "             OR (p.po_project_type IN (:billableType) and coalesce(etm.is_shadow,0) = 0) \n"
 			+ "             OR p.internal_project_type IN (:billableType) \n"
 			+ "\n"
 			+ "             OR (\n"
@@ -6775,7 +6775,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 			"    ) \n" +
 			"    AND (\n" +
 			"      'All' IN (:billableType) \n" +
-			"      OR p.po_project_type IN (:billableType) \n" +
+			"      OR (p.po_project_type IN (:billableType) and coalesce(etm.is_shadow,0) = 0) \n" +
 			"      OR p.internal_project_type IN (:billableType) \n" +
 			"      OR (\n" +
 			"        'TNM(Shadow)' IN (:billableType) \n" +
@@ -7891,7 +7891,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 						"        AND (\n" +
 						"             'All' IN (:billableType) \n" +
 						"             \n" +
-						"             OR p.po_project_type IN (:billableType) \n" +
+						"             OR (p.po_project_type IN (:billableType) and coalesce(etm.is_shadow,0) = 0) \n" +
 						"             OR p.internal_project_type IN (:billableType) \n" +
 						"\n" +
 						"             OR (\n" +
@@ -8196,7 +8196,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 				+ "							AND (\n"
 				+ "								 'All' IN (:billableType) \n"
 				+ "								 \n"
-				+ "								 OR p.po_project_type IN (:billableType) \n"
+				+ "								 OR (p.po_project_type IN (:billableType) and coalesce(etm.is_shadow,0) = 0) \n"
 				+ "								 OR p.internal_project_type IN (:billableType) \n"
 				+ "					\n"
 				+ "								 OR (\n"
@@ -9475,7 +9475,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    		+ "          AND (etm.end_date IS NULL OR DATE(etm.end_date) >= (SELECT from_date FROM Date_Parameters))\n"
 	    		+ "          AND (\n"
 	    		+ "					 'All' IN (:billableType) \n"
-	    		+ "					 OR p.po_project_type IN (:billableType) \n"
+	    		+ "					 OR (p.po_project_type IN (:billableType) and coalesce(etm.is_shadow,0) = 0) \n"
 	    		+ "					 OR p.internal_project_type IN (:billableType) \n"
 	    		+ "					 OR (\n"
 	    		+ "						 'TNM(Shadow)' IN (:billableType) \n"
@@ -9595,6 +9595,33 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			+ "			        SELECT DATE_ADD(dt, INTERVAL 1 DAY) FROM All_Dates_In_Range, Date_Parameters WHERE dt < Date_Parameters.to_date\n"
 	    			+ "			    ),\n"
 	    			+ "			\n"
+					+ "					 Employees_With_Target_Project_Type AS (\n"
+					+ "						SELECT DISTINCT etm.emp_id\n"
+					+ "						FROM employee_team_mapping etm\n"
+					+ "						INNER JOIN teams t ON etm.team_id = t.team_id\n"
+					+ "						INNER JOIN projects p ON t.project_id = p.project_id\n"
+					+ "						JOIN Date_Parameters dp ON 1=1\n"
+					+ "						WHERE \n"
+					+ "							etm.start_date <= dp.to_date\n"
+					+ "							AND (etm.end_date IS NULL OR etm.end_date >= dp.from_date)\n"
+					+ "							AND (\n"
+					+ "								 'All' IN (:billableType) \n"
+					+ "								 \n"
+					+ "								 OR (p.po_project_type IN (:billableType) and coalesce(etm.is_shadow,0) = 0) \n"
+					+ "								 OR p.internal_project_type IN (:billableType) \n"
+					+ "					\n"
+					+ "								 OR (\n"
+					+ "									 'TNM(Shadow)' IN (:billableType) \n"
+					+ "									 AND p.po_project_type = 'TNM' \n"
+					+ "									 AND etm.is_shadow = 1\n"
+					+ "								 )             OR (\n"
+					+ "									 'Fixed Cost(Shadow)' IN (:billableType) \n"
+					+ "									 AND p.po_project_type = 'Fixed Cost' \n"
+					+ "									 AND etm.is_shadow = 1\n"
+					+ "								 )\n"
+					+ "							)\n"
+					+ "					),\n"
+					+ "				\n"
 	    			+ "			    Project_Managers AS (\n"
 	    			+ "			        SELECT pm.project_id, GROUP_CONCAT(DISTINCT e.name ORDER BY e.name SEPARATOR ', ') AS project_manager_name\n"
 	    			+ "			        FROM project_manager_mapping pm\n"
@@ -9648,6 +9675,27 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			+ "						LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n"
 	    			+ "			        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id\n"
 	    			+ "			        WHERE p.has_client_side_id = 1 \n"
+					+ "and (\n"
+					+ "					(:multiPOs = 'All')\n"
+					+ "						or\n"
+					+ "					(:multiPOs = 'Yes' \n"
+					+ "						and p.project_id in \n"
+					+ "							(select pp.project_id from project_po_details pp \n"
+					+ "								where pp.po_start_date <= (select to_date from Date_Parameters) \n"
+					+ "								AND (pp.po_end_date IS NULL OR pp.po_end_date >= (SELECT from_date FROM Date_Parameters)) \n"
+					+ "								group by pp.project_id having count(*) > 1\n"
+					+ "							)\n"
+					+ "					)\n"
+					+ "						or \n"
+					+ "					(:multiPOs = 'No' \n"
+					+ "						and p.project_id in \n"
+					+ "							(select pp.project_id from project_po_details pp \n"
+					+ "								where pp.po_start_date <= (select to_date from Date_Parameters) \n"
+					+ "								AND (pp.po_end_date IS NULL OR pp.po_end_date >= (SELECT from_date FROM Date_Parameters)) \n"
+					+ "								group by pp.project_id having count(*) = 1\n"
+					+ "							)\n"
+					+ "					)\n"
+					+ "			) \n"
 	    			+ "						AND (\n"
 	    			+ "						ae.emp_id IS NOT NULL \n"
 	    			+ "						OR \n"
@@ -9661,6 +9709,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			+ "					OR YEAR(e.date_of_relieving) > :year \n"
 	    			+ "					OR (YEAR(e.date_of_relieving) = :year AND MONTH(e.date_of_relieving) >= :month)\n"
 	    			+ "				)\n"
+					+ "				 AND (:employeeActive = 'All' OR (:employeeActive = 'InActive' AND UPPER(e.employmentstatus) = 'INACTIVE') OR (:employeeActive != 'InActive' AND UPPER(e.employmentstatus) != 'INACTIVE'))   \n"
 	    			+ "             AND d.dept_id in (:dept_id)   \n"
 	    			+ "			 AND e.emp_id not between 1 and 6 \n"
 	    			+ "			        AND DATE(etm.start_date) <= (SELECT to_date FROM Date_Parameters)\n"
@@ -9837,10 +9886,9 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    	    String billableType2, String projectName, String poNo, 
 	    	    String projectManagers, String clientName, String teamName,String department,
 	    	    String employmentStatus,String projectStatus,
-//	    	    int offset,int pageSize, 
-	    	    @Param("dept_id")Long deptId);
+	    	    @Param("dept_id")Long deptId,@Param("employeeActive") String employeeActive, @Param("billableType")List<String> billableType, @Param("multiPOs") String multiPOs);
 
-	    	@Query(value= " WITH RECURSIVE\n"
+	        @Query(value= " WITH RECURSIVE\n"
 	    			+ "			    Date_Parameters AS (\n"
 	    			+ "			        SELECT\n"
 	    			+ "			            COALESCE(STR_TO_DATE(CONCAT(:year, '-', :month, '-01'), '%Y-%m-%d'), DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS from_date,\n"
@@ -9857,6 +9905,36 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			+ "			        SELECT DATE_ADD(dt, INTERVAL 1 DAY) FROM All_Dates_In_Range, Date_Parameters WHERE dt < Date_Parameters.to_date\n"
 	    			+ "			    ),\n"
 	    			+ "			\n"
+					+ "Employees_With_Target_Project_Type AS (\n" 
+					+ "  SELECT \n" 
+					+ "    DISTINCT etm.emp_id \n" 
+					+ "  FROM \n" 
+					+ "    employee_team_mapping etm \n" 
+					+ "    INNER JOIN teams t ON etm.team_id = t.team_id \n" 
+					+ "    INNER JOIN projects p ON t.project_id = p.project_id \n" 
+					+ "    JOIN Date_Parameters dp ON 1 = 1 \n" 
+					+ "  WHERE \n" 
+					+ "    etm.start_date <= dp.to_date \n" 
+					+ "    AND (\n" 
+					+ "      etm.end_date IS NULL \n" 
+					+ "      OR etm.end_date >= dp.from_date\n" 
+					+ "    ) \n" 
+					+ "    AND (\n" 
+					+ "      'All' IN (:billableType) \n" 
+					+ "      OR (p.po_project_type IN (:billableType) and coalesce(etm.is_shadow,0) = 0) \n" 
+					+ "      OR p.internal_project_type IN (:billableType) \n" 
+					+ "      OR (\n" 
+					+ "        'TNM(Shadow)' IN (:billableType) \n" 
+					+ "        AND p.po_project_type = 'TNM' \n" 
+					+ "        AND etm.is_shadow = 1\n" 
+					+ "      ) \n" 
+					+ "      OR (\n" 
+					+ "        'Fixed Cost(Shadow)' IN (:billableType) \n" 
+					+ "        AND p.po_project_type = 'Fixed Cost' \n" 
+					+ "        AND etm.is_shadow = 1\n" 
+					+ "      )\n" 
+					+ "    )\n" 
+					+ "), \n" 
 	    			+ "			    Project_Managers AS (\n"
 	    			+ "			        SELECT pm.project_id, GROUP_CONCAT(DISTINCT e.name ORDER BY e.name SEPARATOR ', ') AS project_manager_name\n"
 	    			+ "			        FROM project_manager_mapping pm\n"
@@ -9910,6 +9988,27 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			+ "						LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n"
 	    			+ "			        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id\n"
 	    			+ "			        WHERE p.has_client_side_id = 1 \n"
+					+ "and (\n"
+					+ "					(:multiPOs = 'All')\n"
+					+ "						or\n"
+					+ "					(:multiPOs = 'Yes' \n"
+					+ "						and p.project_id in \n"
+					+ "							(select pp.project_id from project_po_details pp \n"
+					+ "								where pp.po_start_date <= (select to_date from Date_Parameters) \n"
+					+ "								AND (pp.po_end_date IS NULL OR pp.po_end_date >= (SELECT from_date FROM Date_Parameters)) \n"
+					+ "								group by pp.project_id having count(*) > 1\n"
+					+ "							)\n"
+					+ "					)\n"
+					+ "						or \n"
+					+ "					(:multiPOs = 'No' \n"
+					+ "						and p.project_id in \n"
+					+ "							(select pp.project_id from project_po_details pp \n"
+					+ "								where pp.po_start_date <= (select to_date from Date_Parameters) \n"
+					+ "								AND (pp.po_end_date IS NULL OR pp.po_end_date >= (SELECT from_date FROM Date_Parameters)) \n"
+					+ "								group by pp.project_id having count(*) = 1\n"
+					+ "							)\n"
+					+ "					)\n"
+					+ "			) \n" 
 	    			+ "						AND (\n"
 	    			+ "						ae.emp_id IS NOT NULL \n"
 	    			+ "						OR \n"
@@ -9925,6 +10024,17 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			+ "				)\n"
 	    			+ "             AND d.dept_id in (:dept_id)   \n"
 	    			+ "			 AND e.emp_id not between 1 and 6 \n"
+					+ "    AND (\n" 
+					+ "      :employeeActive = 'All' \n" 
+					+ "      OR (\n" 
+					+ "        :employeeActive = 'InActive' \n" 
+					+ "        AND UPPER(e.employmentstatus) = 'INACTIVE'\n" 
+					+ "      ) \n" 
+					+ "      OR (\n" 
+					+ "        :employeeActive != 'InActive' \n" 
+					+ "        AND UPPER(e.employmentstatus) != 'INACTIVE'\n" 
+					+ "      )\n" 
+					+ "    ) \n" 
 	    			+ "			        AND DATE(etm.start_date) <= (SELECT to_date FROM Date_Parameters)\n"
 	    			+ "			        AND (etm.end_date IS NULL OR DATE(etm.end_date) >= (SELECT from_date FROM Date_Parameters)) AND (\n"
 	    			+ "									:clientSideFilter = 'ALL'\n"
@@ -10199,7 +10309,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    		  String billableType2, String projectName, String poNo, 
 	    		  String projectManagers, String clientName, String teamName,String department,
 	    		  String employmentStatus,String projectStatus,
-	    		  String sortBy,String sortDirection,@Param("employeeIds") List<Long> employeeIds, @Param("dept_id")Long deptId); 
+	    		  String sortBy,String sortDirection,@Param("employeeIds") List<Long> employeeIds, @Param("dept_id")Long deptId, @Param("employeeActive") String employeeActive, @Param("billableType") List<String> billableType, @Param("multiPOs")String multiPOs); 
 	    	
 	    	@Query(value= " WITH RECURSIVE\n"
 	    			+ "			    Date_Parameters AS (\n"
@@ -10217,7 +10327,30 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			+ "			        UNION ALL\n"
 	    			+ "			        SELECT DATE_ADD(dt, INTERVAL 1 DAY) FROM All_Dates_In_Range, Date_Parameters WHERE dt < Date_Parameters.to_date\n"
 	    			+ "			    ),\n"
-	    			+ "			\n"
+					+ " Employees_With_Target_Project_Type AS (\n" 
+					+ "    SELECT DISTINCT etm.emp_id\n" 
+					+ "    FROM employee_team_mapping etm\n" 
+					+ "    INNER JOIN teams t ON etm.team_id = t.team_id\n" 
+					+ "    INNER JOIN projects p ON t.project_id = p.project_id\n" 
+					+ "    JOIN Date_Parameters dp ON 1=1\n" 
+					+ "    WHERE \n" 
+					+ "        etm.start_date <= dp.to_date\n" 
+					+ "        AND (etm.end_date IS NULL OR etm.end_date >= dp.from_date)\n" 
+					+ "        AND (\n" 
+					+ "             'All' IN (:billableType) \n" 
+					+ "             OR (p.po_project_type IN (:billableType) and coalesce(etm.is_shadow,0) = 0) \n" 
+					+ "             OR p.internal_project_type IN (:billableType) \n" 
+					+ "             OR (\n" 
+					+ "                 'TNM(Shadow)' IN (:billableType) \n" 
+					+ "                 AND p.po_project_type = 'TNM' \n" 
+					+ "                 AND etm.is_shadow = 1\n" 
+					+ "             )             OR (\n" 
+					+ "                 'Fixed Cost(Shadow)' IN (:billableType) \n" 
+					+ "                 AND p.po_project_type = 'Fixed Cost' \n" 
+					+ "                 AND etm.is_shadow = 1\n" 
+					+ "             )\n" 
+					+ "        )\n" 
+					+ "),\n" 
 	    			+ "			    Project_Managers AS (\n"
 	    			+ "			        SELECT pm.project_id, GROUP_CONCAT(DISTINCT e.name ORDER BY e.name SEPARATOR ', ') AS project_manager_name\n"
 	    			+ "			        FROM project_manager_mapping pm\n"
@@ -10271,6 +10404,27 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			+ "						LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n"
 	    			+ "			        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id\n"
 	    			+ "			        WHERE p.has_client_side_id = 1 \n"
+					+ "and (\n"
+					+ "					(:multiPOs = 'All')\n"
+					+ "						or\n"
+					+ "					(:multiPOs = 'Yes' \n"
+					+ "						and p.project_id in \n"
+					+ "							(select pp.project_id from project_po_details pp \n"
+					+ "								where pp.po_start_date <= (select to_date from Date_Parameters) \n"
+					+ "								AND (pp.po_end_date IS NULL OR pp.po_end_date >= (SELECT from_date FROM Date_Parameters)) \n"
+					+ "								group by pp.project_id having count(*) > 1\n"
+					+ "							)\n"
+					+ "					)\n"
+					+ "						or \n"
+					+ "					(:multiPOs = 'No' \n"
+					+ "						and p.project_id in \n"
+					+ "							(select pp.project_id from project_po_details pp \n"
+					+ "								where pp.po_start_date <= (select to_date from Date_Parameters) \n"
+					+ "								AND (pp.po_end_date IS NULL OR pp.po_end_date >= (SELECT from_date FROM Date_Parameters)) \n"
+					+ "								group by pp.project_id having count(*) = 1\n"
+					+ "							)\n"
+					+ "					)\n"
+					+ "			) \n" 
 	    			+ "						AND (\n"
 	    			+ "						ae.emp_id IS NOT NULL \n"
 	    			+ "						OR \n"
@@ -10286,6 +10440,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			+ "				)\n"
 	    			+ "             AND d.dept_id in (:dept_id)   \n"
 	    			+ "			 AND e.emp_id not between 1 and 6 \n"
+					+ "                             AND (:employeeActive = 'All' OR (:employeeActive = 'InActive' AND UPPER(e.employmentstatus) = 'INACTIVE') OR (:employeeActive != 'InActive' AND UPPER(e.employmentstatus) != 'INACTIVE'))\n" 
 	    			+ "			        AND DATE(etm.start_date) <= (SELECT to_date FROM Date_Parameters)\n"
 	    			+ "			        AND (etm.end_date IS NULL OR DATE(etm.end_date) >= (SELECT from_date FROM Date_Parameters)) AND (\n"
 	    			+ "									:clientSideFilter = 'ALL'\n"
@@ -10458,7 +10613,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			  @Param("clientSideFilter") String clientSideFilter,String employmentId,String clientsideId, String employeeName, 
 	    			  String billableType2, String projectName, String poNo, 
 	    			  String projectManagers, String clientName, String teamName,String department,
-	    			  String employmentStatus,String projectStatus, @Param("dept_id")Long deptId);
+	    			  String employmentStatus,String projectStatus, @Param("dept_id")Long deptId, @Param("employeeActive") String employeeActive, @Param("billableType")List<String> billableType, @Param("multiPOs")String multiPOs );
 
            
 	        

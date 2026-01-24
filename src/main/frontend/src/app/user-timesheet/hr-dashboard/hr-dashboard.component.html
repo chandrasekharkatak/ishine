@@ -86,11 +86,14 @@
                 <div class="billable-type-field">
                     <mat-form-field appearance="outline" class="w-100">
                         <mat-select [(ngModel)]="selectedBillableTypes" multiple placeholder="Select Billable Types"
-                            (selectionChange)="onBillableTypeChange($event)">
+                            (ngModelChange)="onBillableTypeChange($event)">
                             <!-- Select All Option -->
-                            <mat-option (click)="selectAllBillableTypes()"
-                                [disabled]="selectedBillableTypes.length === billableTypes.length">
-                                Select All
+                            <mat-option class="select-all-row" (click)="$event.stopPropagation()" [disabled]="selectedBillableTypes.length === billableTypes.length">
+                                <div class="select-all-actions" (click)="$event.stopPropagation()">
+                                    <button type="button" class="select-all-btn" (click)="selectAllBillableTypes()">
+                                        Select All
+                                    </button>
+                                </div>
                             </mat-option>
 
                             <!-- <mat-option (click)="deselectAllBillableTypes()" [disabled]="selectedBillableTypes.length === 0">
