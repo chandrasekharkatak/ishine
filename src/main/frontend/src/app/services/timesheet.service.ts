@@ -13,6 +13,16 @@ import { EmployeeTimesheetDTO } from '../models/EmployeeTimesheetDTO';
   providedIn: 'root'
 })
 export class TimesheetService {
+  bulkApproveTimesheetsByIds(timesheetIds: number[]) {
+    throw new Error('Method not implemented.');
+  }
+  bulkRejectTimesheetsByIds(payload: { rejectedBy: any; rejectionId: any; rejectReason: any; timesheetIds: any; }) {
+    throw new Error('Method not implemented.');
+  }
+  bulkApproveDocuments(payload: { approvedBy: any; documents: any[]; }) {
+    throw new Error('Method not implemented.');
+  }
+  
 
   private baseUrl:any = environment.baseUrl;
 
@@ -41,9 +51,9 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}` + `api/addTimesheetWithClientNew`, formData);
   }
 
-  
+
   // ?doc=${selectedFile}
-  
+
   updateTimesheet(timesheetObj: Timesheet) {
     return this.http.post(`${this.baseUrl}` + `api/updateTimesheet`, timesheetObj);
   }
@@ -172,7 +182,7 @@ export class TimesheetService {
   }
 
   getLastFilledTimesheetByEmpId(empId: number): Observable<any> {
-  const payload = { empId }; 
+  const payload = { empId };
   return this.http.post<any>(`${this.baseUrl}`+`api/getLastFilledTimesheetByEmpId`, payload);
 }
 
@@ -278,13 +288,13 @@ export class TimesheetService {
   getEmployeeTimesheetAsCalender(payload: any) {
     return this.http.post(`${this.baseUrl}api/getEmployeeTimesheetAsCalender`,payload);
   }
-  
-   
+
+
 
   getMyReporteesTimesheetRequests(payload:any){
     return this.http.post(`${this.baseUrl}`+`api/getMyReporteesTimesheetRequests`,payload);
   }
-  
+
    approveTimesheetRequest(payload:any){
     return this.http.post(`${this.baseUrl}`+`api/approveTimesheetRequest`,payload);
   }
@@ -308,11 +318,11 @@ export class TimesheetService {
   // }
 
   getTimesheetDashboardCountForEmployee(
-  month: any, 
-  year: any, 
+  month: any,
+  year: any,
   empId: any,
   isClientDashboard: any,
-  selectedBillableTypes: any, 
+  selectedBillableTypes: any,
   selectedEmployeeStatus: any,
   clientSideFilter: string
 ) {
@@ -321,7 +331,7 @@ export class TimesheetService {
     year: year,
     empId: empId,
     isClientDashboard: isClientDashboard,
-    selectedBillableTypes: selectedBillableTypes, 
+    selectedBillableTypes: selectedBillableTypes,
     selectedEmployeeStatus: selectedEmployeeStatus,
     clientSideFilter: clientSideFilter
   };
@@ -343,7 +353,7 @@ getDocumentsByEmpAndDate(payload: any): Observable<any> {
 isEmployeeInTNMProject(empId: any): Observable<any> {
    return this.http.post(`${this.baseUrl}api/isInTNMProject?empId=${empId}`, null);
 }
- 
+
 
   getEmployeeSummaryOnExport(details:any){
     return this.http.post(`${this.baseUrl}`+`api/getEmployeeSummaryOnExport`,details);
@@ -371,7 +381,7 @@ isEmployeeInTNMProject(empId: any): Observable<any> {
   getOtherTeamMembersByDateAndProjectId(payload: any): Observable<any> {
     return this.http.post(`${this.baseUrl}` + `api/getOtherTeamMembersByDateAndProjectId`, payload);
   }
-  
+
   getMyReporteesAndClientSideProjectsInMonthYear(timesheetObj:any){
     return this.http.post(`${this.baseUrl}` + `api/getMyReporteesAndClientSideProjectsInMonthYear`, timesheetObj);
   }

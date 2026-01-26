@@ -82,14 +82,14 @@
           </a>
         </div>
 
-        <div class="export-button">
+        <!-- <div class="export-button">
           <button style="margin-right: 4px;" *ngIf="bulkReject.length > 1" type="submit"
             class="btn btn-sm btn-outline-danger ml-2 mt-2"
             (click)="openBulkRejectModal(night_shift_reject_template,timesheet_reject)">Bulk Reject</button>
           <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
             [hidden]="allTeamTimesheets.length == 0" (click)="exportToExcel()"><em
               class="fa fa-file-arrow-down fa-2x"></em></button>
-        </div>
+        </div> -->
         <!-- bassHorizontalScroll [tableId]="'allTimesheetInfo'" -->
         <!-- [tableTHeadId]="'allTimesheetInfoTHead'" [tableTHeadTrId]="'allTimesheetInfoTHeadTr'" -->
 
@@ -492,14 +492,6 @@
   <div class="modal-body text-center">
     <p>Kindly provide reason(s) for rejecting application.</p>
     <label><span class="text-danger">*</span>Reject Reason</label>
-    <!-- <mat-form-field appearance="fill" class="w-100">
-      <mat-label><span class="text-danger">*</span>Reject Reason</mat-label>
-      <mat-select [(ngModel)]="selectedRejectReason">
-        <mat-option *ngFor="let reason of rejectReasons" [value]="reason.rejectionId">
-          {{ reason.rejectionReason }}
-        </mat-option>
-      </mat-select>
-    </mat-form-field> -->
     <app-my-select #rejectReasons1 class="form-control" placeholder="Select Reject Reason"
       [(ngModel)]="selectedRejectReason" [options]="rejectReasons" displayKey="rejectionReason" valueKey="rejectionId"
       [multiple]="false">
@@ -507,13 +499,13 @@
     <label class="info-label">Reject Remark</label>
     <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
       [(ngModel)]="timesheetObj.rejectReason"
-      (input)="validateDescription($event,timesheetObj.rejectReason)"> </textarea><br>
-    <button type="button" class="btn btn-success" *ngIf="selectedRows.length == 0"
-      [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)"
-      (click)="cancelRequest();rejectTimesheetRequest(alert_message)">Reject</button>&nbsp;
-    <button type="button" class="btn btn-success" *ngIf="selectedRows.length > 0"
-      [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)"
-      (click)="cancelRequest();bulkReject1(alert_message)">Reject</button>&nbsp;
+      (input)="validateDescription($event,timesheetObj.rejectReason);getMyReporteesTimesheetRequests()"> </textarea><br>
+    <!-- <button class="btn btn-danger" [disabled]="!timesheetObj.rejectReason?.trim()"
+      (click)="bulkReject(alert_message, timesheetObj.rejectReason)">
+      Confirm Reject
+    </button> -->
+    &nbsp;
+    &nbsp;
     <button type="button" class="btn btn-danger" (click)="cancelRequest();getMyReporteesTimesheetRequests()">No,
       Cancel</button>&nbsp;
   </div>
@@ -542,7 +534,7 @@
       (input)="validateDescription($event,timesheetObj.rejectReason)"> </textarea><br>
     <button type="button" class="btn btn-success"
       [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)"
-      (click)="cancelRequest();OnBulkReject(alert_message)">Reject</button>&nbsp;
+      (click)="cancelRequest()">Reject</button>&nbsp;
     <button type="button" class="btn btn-danger" (click)="cancelRequest();getMyReporteesTimesheetRequests()">No,
       Cancel</button>&nbsp;
   </div>
@@ -552,7 +544,7 @@
 <ng-template #night_shift_template>
   <div class="modal-body text-center">
     <p>Are you sure you want to continue, your timesheet bulk update contain Night shift request(s) also?</p>
-    <button type="button" class="btn btn-outline-success" (click)="onBulkApproval(alert_message)">Yes,
+    <button type="button" class="btn btn-outline-success">Yes,
       proceed</button>&nbsp;
     <button type="button" class="btn btn-outline-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     <button type="button" class="btn btn-outline-primary"
@@ -632,114 +624,67 @@
       <div class="col-md-12 table-header">
         <h1 class="table-header-title">Timesheets Request</h1>
       </div>
-    </div>
-
-    <!-- FIXED BULK ACTION BUTTONS - ALWAYS VISIBLE -->
+    </div> <!-- FIXED BULK ACTION BUTTONS - ALWAYS VISIBLE -->
     <div class="bulk-actions-fixed" [class.active]="selectedRows.length > 0">
       <div class="bulk-actions-wrapper">
-        <div class="selection-info">
-          <span class="selected-count">{{ selectedRows.length }}</span>
-          <span class="selected-text">item{{ selectedRows.length !== 1 ? 's' : '' }} selected</span>
-        </div>
+        <div class="selection-info"> <span class="selected-count">{{ selectedRows.length }}</span> <span
+            class="selected-text">item{{ selectedRows.length !== 1 ? 's' : '' }} selected</span> </div>
+        <div class="bulk-buttons-group"> <!-- BULK APPROVE -->
 
-        <div class="bulk-buttons-group">
-          <button class="bulk-action-btn bulk-approve-btn" [disabled]="selectedRows.length === 0"
-            (click)="bulkApprove1(alert_message)">
-            <i class="fas fa-check-circle"></i>
-            Bulk Approve
-          </button>
-
-          <button class="bulk-action-btn bulk-reject-btn" [disabled]="selectedRows.length === 0"
-            (click)="opnenbulkRejectTimesheet(reject_timesheet)">
-            <i class="fas fa-times-circle"></i>
-            Bulk Reject
-          </button>
-        </div>
-
-        <button class="clear-selection-btn" (click)="clearAllSelections()" *ngIf="selectedRows.length > 0">
-          <i class="fas fa-times"></i>
-          Clear
+          <button
+          class="bulk-action-btn bulk-approve-btn"
+          [disabled]="selectedRows.length === 0 || selectedStatus !== 0"
+          (click)="bulkApproveByIds()">
+          <i class="fas fa-check-circle"></i>
+          Bulk Approve
         </button>
-      </div>
-    </div>
 
-    <!-- Navigation CARDS -->
+
+
+              <!-- BULK REJECT (opens reject modal) --> <button
+            class="bulk-action-btn bulk-reject-btn" [disabled]="selectedRows.length === 0"
+            (click)="openBulkRejectModal(reject_timesheet)"> <i class="fas fa-times-circle"></i> Bulk Reject </button>
+        </div> <button class="clear-selection-btn" (click)="clearAllSelections()" *ngIf="selectedRows.length > 0"> <i
+            class="fas fa-times"></i> Clear </button>
+      </div>
+    </div> <!-- Navigation CARDS -->
     <div class="status-container">
-      <div class="status-card pending" [class.active]="selectedStatus === 0" (click)="onStatusChange(0)">
-        Pending
+      <div class="status-card pending" [class.active]="selectedStatus === 0" (click)="onStatusChange(0)"> Pending </div>
+      <div class="status-card approved" [class.active]="selectedStatus === 1" (click)="onStatusChange(1)"> Approved
       </div>
-      <div class="status-card approved" [class.active]="selectedStatus === 1" (click)="onStatusChange(1)">
-        Approved
+      <div class="status-card rejected" [class.active]="selectedStatus === 2" (click)="onStatusChange(2)"> Rejected
       </div>
-      <div class="status-card rejected" [class.active]="selectedStatus === 2" (click)="onStatusChange(2)">
-        Rejected
-      </div>
-
-    </div>
-
-
-
-    <!-- Table Starts Here -->
+    </div> <!-- Table Starts Here -->
     <div class="d-flex justify-content-between align-items-center mb-2">
-      <div class="selector-toggle">
-        <a href="javascript:void(0)" (click)="toggleSearch()">
-          <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-          <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-        </a>
-      </div>
-      <div class="form-inline col-md-4">
-        <small>Filter:</small>
-        <select class="form-select-sm align-items-center mx-1" [(ngModel)]="clientFilter"
-          (change)="getMyReporteesTimesheetRequests()">
+      <div class="selector-toggle"> <a href="javascript:void(0)" (click)="toggleSearch()"> <i *ngIf="!isSearchEnabled"
+            class="fa fa-search"></i> <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i> </a> </div>
+      <div class="form-inline col-md-4"> <small>Filter:</small> <select class="form-select-sm align-items-center mx-1"
+          [(ngModel)]="clientFilter" (change)="getMyReporteesTimesheetRequests()">
           <option [ngValue]=false>All Employees</option>
           <option [ngValue]=true>Client Side Applicable Employees</option>
-        </select>
-      </div>
-      <!-- <div class="table-toolbar">
-        <input type="text" class="form-control search-input" placeholder="Search employee by name..."
-          [(ngModel)]="searchText" (ngModelChange)="onGlobalSearchChange()" />
-      </div> -->
-
-
-      <div>
-        <button type="button" class="btn btn-sm btn-outline-primary excel-button" [hidden]="allTeamTimesheetRequestsProjectView.length === 0"
-
-          (click)="exportExcel1()">
-          <em class="fa fa-file-arrow-down fa-2x"></em>
-        </button>
-      </div>
+        </select> </div>
+      <!-- <div class="table-toolbar"> <input type="text" class="form-control search-input" placeholder="Search employee by name..." [(ngModel)]="searchText" (ngModelChange)="onGlobalSearchChange()" /> </div> -->
+      <div> <button type="button" class="btn btn-sm btn-outline-primary excel-button"
+          [hidden]="allTeamTimesheetRequestsProjectView.length === 0" (click)="exportExcel1()"> <em
+            class="fa fa-file-arrow-down fa-2x"></em> </button> </div>
     </div>
-
     <div class="pagination-bar">
-      <div class="page-size">
-        Show
-        <select [(ngModel)]="items" (change)="onPageSizeChange()">
+      <div class="page-size"> Show <select [(ngModel)]="items" (change)="onPageSizeChange()">
           <option [value]="10">10</option>
           <option [value]="20">20</option>
           <option [value]="50">50</option>
-        </select>
-
-        entries
-      </div>
-
-      <div class="total-count">
-        Total Records: <strong>{{ totalRecords }}</strong>
-      </div>
-
-    </div>
-
-    <!-- </div> -->
+          <option [value]="100">100</option>
+          <option [value]="200">50</option>
+        </select> entries </div>
+      <div class="total-count"> Total Records: <strong>{{ totalRecords }}</strong> </div>
+    </div> <!-- </div> -->
     <div class="table-container-ts">
       <div class="timesheet-table-wrapper">
         <table class="timesheet-table" matSort (matSortChange)="sortData($event)" matSortDisableClear>
           <thead>
             <tr>
-              <th>
-                <input type="checkbox" (change)="toggleAllRows($event)" />
-              </th>
-
+              <th> <input type="checkbox" (change)="toggleAllRows($event)" /> </th>
               <th>Sr No.</th>
-
               <th mat-sort-header="employmentId">Employee Id</th>
               <th mat-sort-header="employeeName">Name</th>
               <th mat-sort-header="date">Date</th>
@@ -752,28 +697,15 @@
               <th mat-sort-header="appliedOn">Applied On</th>
               <th>Actions</th>
             </tr>
-
             <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="allTimesheetColumnsVMS"
               (onSearch)="onSearch($event); page1 = 1"></tr>
           </thead>
-
-          <tbody>
-            <ng-container *ngFor="let timesheet of allTeamTimesheetRequestsProjectView; let i = index">
-
-
-              <tr class="main-row" [class.active-row]="expandedTimesheetIndex === i">
-                <!-- SELECT EMPLOYEE -->
-                <td>
-                  <input type="checkbox" [(ngModel)]="timesheet.selected"
-                    (change)="onEmployeeToggle(timesheet); updateSelectedRows(timesheet)" />
-                </td>
-                <!-- SR NO -->
-                <td>{{ (page1 - 1) * items + i + 1 }}</td>
-                <!-- ACCORDION TOGGLE -->
-                <td class="emp-id" (click)="toggleAccordion(i)">
-                  {{ timesheet.employmentId }}
-                </td>
-
+          <tbody> <ng-container *ngFor="let timesheet of allTeamTimesheetRequestsProjectView; let i = index">
+              <tr class="main-row" [class.active-row]="expandedTimesheetIndex === i"> <!-- SELECT EMPLOYEE -->
+                <td> <input type="checkbox" [(ngModel)]="timesheet.selected"
+                    (change)="onEmployeeToggle(timesheet); updateSelectedRows(timesheet)" /> </td> <!-- SR NO -->
+                <td>{{ (page1 - 1) * items + i + 1 }}</td> <!-- ACCORDION TOGGLE -->
+                <td class="emp-id" (click)="toggleAccordion(i)"> {{ timesheet.employmentId }} </td>
                 <td>{{ timesheet.employeeName }}</td>
                 <td>{{ timesheet.date }}</td>
                 <td>{{ timesheet.dayType }}</td>
@@ -783,33 +715,14 @@
                 <td>{{ timesheet.locationCount }}</td>
                 <td>{{ timesheet.appliedBy }}</td>
                 <td>{{ timesheet.appliedOn }}</td>
-
-                <td>
-                  <button class="doc-btn approved" (click)="openDocumentPopup(timesheet)">
-                    <i class="fa fa-eye"></i>
-                  </button>
-
-
-                  <button class="btn-approve">✔</button>
-                  <button class="btn-reject">✖</button>
-                </td>
-              </tr>
-
-              <!-- =========================
-             ACCORDION ROW
-             ========================= -->
+                <td> <button class="doc-btn approved" (click)="openDocumentPopup(timesheet)"> <i class="fa fa-eye"></i>
+                  </button> <button class="btn-approve">✔</button> <button class="btn-reject">✖</button> </td>
+              </tr> <!-- ========================= ACCORDION ROW ========================= -->
               <tr *ngIf="expandedTimesheetIndex === i">
-                <td colspan="13" class="accordion-cell">
-
-                  <!-- LOCATION LOOP -->
+                <td colspan="13" class="accordion-cell"> <!-- LOCATION LOOP -->
                   <div *ngFor="let location of timesheet.locationSessions || []" class="location-card">
-                    <div class="location-header">
-                      <strong>📍 {{ location.workLocationType }}</strong>
-                      <span class="time">
-                        {{ location.locationInTime }} - {{ location.locationOutTime }}
-                      </span>
-                    </div>
-
+                    <div class="location-header"> <strong>📍 {{ location.workLocationType }}</strong> <span
+                        class="time"> {{ location.locationInTime }} - {{ location.locationOutTime }} </span> </div>
                     <!-- PROJECT LOOP -->
                     <div *ngFor="let project of location.projects || []; let p = index" class="project-card">
                       <table class="project-table">
@@ -824,43 +737,21 @@
                             <th>Actions</th>
                           </tr>
                         </thead>
-
                         <tbody>
                           <tr>
-                            <td>
-                              <input type="checkbox" [(ngModel)]="project.isSelected"
-                                (change)="onProjectToggle(timesheet, project)" />
-                            </td>
-
-                            <td class="project-name" (click)="toggleProject(i, p)">
-                              {{ project.projectName }}
-                            </td>
-
+                            <td> <input type="checkbox" [(ngModel)]="project.isSelected"
+                                (change)="onProjectToggle(timesheet, project)" /> </td>
+                            <td class="project-name" (click)="toggleProject(i, p)"> {{ project.projectName }} </td>
                             <td>{{ project.poNo || '-' }}</td>
                             <td>{{ project.shadowEmp ? 'Yes' : 'No' }}</td>
                             <td> <button class="doc-btn pending" style="color:rgb(255, 187, 0)"
-                                (click)="openDocumentPopup(timesheet)">
-                                <i class="fa fa-eye"></i>
-                              </button></td>
-
+                                (click)="openDocumentPopup(timesheet)"> <i class="fa fa-eye"></i> </button></td>
                             <td> <button class="doc-btn approved" style="color:green"
-                                (click)="openDocumentPopup(timesheet)">
-                                <i class="fa fa-eye"></i>
-                              </button></td>
-
-
-                            <td>
-
-                              <button class="btn-approve">✔</button>
-                              <button class="btn-reject">✖</button>
-                            </td>
+                                (click)="openDocumentPopup(timesheet)"> <i class="fa fa-eye"></i> </button></td>
+                            <td> <button class="btn-approve">✔</button> <button class="btn-reject">✖</button> </td>
                           </tr>
                         </tbody>
-                      </table>
-
-                      <!-- =========================
-                     ACTIVITIES
-                     ========================= -->
+                      </table> <!-- ========================= ACTIVITIES ========================= -->
                       <div class="activity-wrapper" *ngIf="expandedProjectKey === i + '-' + p">
                         <table class="activity-table">
                           <thead>
@@ -871,7 +762,6 @@
                               <th>Hours</th>
                             </tr>
                           </thead>
-
                           <tbody>
                             <tr *ngFor="let act of project.activities || []">
                               <td>{{ act.teamName }}</td>
@@ -882,184 +772,28 @@
                           </tbody>
                         </table>
                       </div>
-
                     </div>
                   </div>
-
                 </td>
               </tr>
-            </ng-container>
-          </tbody>
+            </ng-container> </tbody>
         </table>
-
-      </div>
-      <!-- PAGINATION -->
-      <!-- <pagination-controls (pageChange)="page1 = $event;">
-      </pagination-controls> -->
-      <pagination-controls
-      (pageChange)="page1 = $event; getMyReporteesTimesheetRequests()">
-    </pagination-controls>
-
-
-
-
-
-
-
-
-    </div>
-
-  </div>
-
-</div>
-
-<!-- Request for Timesheets Ends -->
-
-
-<!-- Timesheet Doc View POPUP
-<div class="doc-modal-backdrop" *ngIf="isDocPopupOpen">
-  <div class="doc-modal">
-    <div class="doc-modal-header">
-      <h5>Documents</h5>
-      <button class="close-btn" (click)="closeDocumentPopup()">✖</button>
-    </div>
-    <div class="doc-modal-body">
-      <div class="doc-grid">
-        <p *ngIf="!selectedTimesheet?.pendingDoc && !selectedTimesheet?.approvedDoc" class="no-doc">
-          No documents available
-        </p>
-      </div>
+      </div> <!-- PAGINATION --> <!-- <pagination-controls (pageChange)="page1 = $event;"> </pagination-controls> -->
+      <pagination-controls (pageChange)="page1 = $event; getMyReporteesTimesheetRequests()"> </pagination-controls>
     </div>
   </div>
-</div> -->
-
-<!-- <ng-template #documentViewerModal let-modal>
-  <div class="doc-modal-lg">
-
-    <div class="doc-modal-header">
-      <h5>Timesheet Documents</h5>
-      <button class="close-btn" (click)="modal.dismiss()">✖</button>
-    </div>
-
-    <div class="split-layout">
-
-      <div class="left-panel">
-        <div class="panel-title">Projects</div>
-
-        <ul class="project-list">
-          <li
-            *ngFor="let p of uniqueProjectsList"
-            (click)="selectProjectForDoc(p)"
-            [class.active]="activeDocProject?.projectId === p.projectId">
-
-            <div class="project-name">{{ p.projectName }}</div>
-          </li>
-        </ul>
-      </div>
-
-      <div class="right-panel">
-
-        <div class="doc-toggle">
-          <button
-            [class.active]="activeDocType === 'Pending'"
-            (click)="switchDocType('Pending')"
-            [disabled]="!hasFilledDocument(activeDocProject?.projectId)">
-            Pending
-          </button>
-
-          <button
-            [class.active]="activeDocType === 'Approved'"
-            (click)="switchDocType('Approved')"
-            [disabled]="!hasApprovedDocument(activeDocProject?.projectId)">
-            Approved
-          </button>
-        </div>
-
-        <div class="doc-view">
-
-          <iframe
-            *ngIf="activePreviewFile?.fileType === 'pdf'"
-            [src]="activePreviewFile.previewUrl">
-          </iframe>
-
-          <img
-            *ngIf="activePreviewFile?.fileType === 'image'"
-            [src]="activePreviewFile.previewUrl"
-            class="doc-image"/>
-
-]          <div *ngIf="!activePreviewFile" class="no-doc">
-            No document available
-          </div>
-
-        </div>
-      </div>
-
-    </div>
-  </div>
-</ng-template> -->
-
-
-<ng-template #documentViewerModal>
-  <div class="doc-modal-lg">
-
-    <!-- HEADER -->
+</div> <ng-template #documentViewerModal>
+  <div class="doc-modal-lg"> <!-- HEADER -->
     <div class="doc-header">
-      <h5>Documents</h5>
-      <button class="close-btn" (click)="modalRef.close()">✖</button>
-    </div>
-
-    <!-- BODY -->
-    <div class="doc-body">
-
-      <!-- LEFT : PROJECT LIST -->
+      <h5>Documents</h5> <button class="close-btn" (click)="modalRef.close()">✖</button>
+    </div> <!-- BODY -->
+    <div class="doc-body"> <!-- LEFT : PROJECT LIST -->
       <div class="doc-left">
         <div class="project-item" *ngFor="let p of getUniqueProjectsFromTimesheet(selectedTimesheet)"
-          [class.active]="p === activeDocProject" (click)="selectProjectForDoc(p)">
-          {{ p.projectName }}
-        </div>
-
-
+          [class.active]="p === activeDocProject" (click)="selectProjectForDoc(p)"> {{ p.projectName }} </div>
       </div>
-
-      <!-- RIGHT : DOCUMENT -->
-      <!-- <div class="doc-right">
-
-        <div class="doc-toggle">
-          <button
-            [class.active]="activeDocType === 'Pending'"
-            (click)="switchDocType('Pending')"
-            [disabled]="!hasPendingDoc(activeDocProject?.projectId)"
-          >
-            Pending
-          </button>
-
-          <button
-            [class.active]="activeDocType === 'Approved'"
-            (click)="switchDocType('Approved')"
-            [disabled]="!hasApprovedDoc(activeDocProject?.projectId)"
-          >
-            Approved
-          </button>
-        </div>
-
-        <div class="doc-preview">
-
-        <iframe
-    width="100%"
-    height="100%"
-    frameborder="0"
-    [src]="safePdfUrl"
-    >
-  </iframe>
-
-        </div>
-      </div> -->
-
-      <div class="doc-body">
-
-        <!-- LEFT : PROJECT TABLE (55%) -->
+      <div class="doc-body"> <!-- LEFT : PROJECT TABLE (55%) -->
         <div class="doc-left">
-
           <table class="project-table">
             <thead>
               <tr>
@@ -1070,60 +804,31 @@
                 <th>Approved</th>
               </tr>
             </thead>
-
             <tbody>
               <tr *ngFor="let p of getUniqueProjectsFromTimesheet(selectedTimesheet); let i = index"
                 [class.active]="p === activeDocProject" (click)="selectProjectForDoc(p)">
                 <td>{{ i + 1 }}</td>
                 <td class="project-name">{{ p.projectName }}</td>
                 <td class="count">{{ getTotalDocCount(p.projectId) }}</td>
-
-                <td>
-                  <span class="badge filled" [class.disabled]="!hasPendingDoc(p.projectId)">
-                    Filled
-                  </span>
-                </td>
-
-                <td>
-                  <span class="badge approved" [class.disabled]="!hasApprovedDoc(p.projectId)">
-                    Approved
-                  </span>
+                <td> <span class="badge filled" [class.disabled]="!hasPendingDoc(p.projectId)"> Filled </span> </td>
+                <td> <span class="badge approved" [class.disabled]="!hasApprovedDoc(p.projectId)"> Approved </span>
                 </td>
               </tr>
             </tbody>
           </table>
-
-        </div>
-
-        <!-- RIGHT : DOCUMENT PREVIEW (45%) -->
-        <div class="doc-right">
-
-          <!-- TOGGLE -->
-          <div class="doc-toggle">
-            <button [class.active]="activeDocType === 'Pending'" (click)="switchDocType('Pending')"
-              [disabled]="!hasPendingDoc(activeDocProject?.projectId)">
-              Pending
-            </button>
-
-            <button [class.active]="activeDocType === 'Approved'" (click)="switchDocType('Approved')"
-              [disabled]="!hasApprovedDoc(activeDocProject?.projectId)">
-              Approved
-            </button>
+        </div> <!-- RIGHT : DOCUMENT PREVIEW (45%) -->
+        <div class="doc-right"> <!-- TOGGLE -->
+          <div class="doc-toggle"> <button [class.active]="activeDocType === 'Pending'"
+              (click)="switchDocType('Pending')" [disabled]="!hasPendingDoc(activeDocProject?.projectId)"> Pending
+            </button> <button [class.active]="activeDocType === 'Approved'" (click)="switchDocType('Approved')"
+              [disabled]="!hasApprovedDoc(activeDocProject?.projectId)"> Approved </button> </div> <!-- PREVIEW -->
+          <div class="doc-preview"> <iframe [src]="safePdfUrl" width="100%" height="100%" frameborder="0"> </iframe>
           </div>
-
-          <!-- PREVIEW -->
-          <div class="doc-preview">
-            <iframe [src]="safePdfUrl" width="100%" height="100%" frameborder="0">
-            </iframe>
-          </div>
-
         </div>
       </div>
-
     </div>
   </div>
 </ng-template>
-
 
 
 
@@ -1245,12 +950,12 @@
         </div>
       </div>
       <div class="row">
-        <div *ngIf="bulkApprove.length > 1 && bulkReject.length > 1" class="form-group ml-4">
+        <!-- <div *ngIf="bulkApprove.length > 1 && bulkReject.length > 1" class="form-group ml-4">
           <button class="btn btn-sm btn-outline-success mt-2" type="submit"
             (click)="openBulkApprovalModal(night_shift_template,alert_message)">Bulk Approve</button>&nbsp;
           <button type="submit" class="btn btn-sm btn-outline-danger ml-2 mt-2"
             (click)="openBulkRejectModal(night_shift_reject_template,timesheet_reject)">Bulk Reject</button>
-        </div>
+        </div> -->
       </div>
       <div class="row">
         <div class="form-inline col-md-3 ml-2">
@@ -1440,9 +1145,11 @@
     <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
       [(ngModel)]="this.timesheetObj.rejectReason"
       (input)="validateDescription($event,timesheetObj.rejectReason)"> </textarea><br>
-    <button type="button" class="btn btn-success"
-      [disabled]="!this.validationService.validateNullUndefinedEmptyString(this.timesheetObj.rejectReason)"
-      (click)="cancelRequest();onBulkRejectTimesheet(timesheet_status)">Reject</button>&nbsp;
+    <!-- <button class="btn btn-danger" (click)="BulkRejectByIds(timesheetObj.rejectReason)">
+      Reject
+    </button> -->
+
+
     <button type="button" class="btn btn-danger" (click)="cancelRequest()">No,
       Cancel</button>&nbsp;
   </div>

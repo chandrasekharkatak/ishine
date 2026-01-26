@@ -104,11 +104,11 @@ export class TimesheetNewService {
   }
 
   getTimesheetDashboardCountForEmployee(
-    month: any, 
-    year: any, 
+    month: any,
+    year: any,
     empId: any,
     isClientDashboard: any,
-    selectedBillableTypes: any, 
+    selectedBillableTypes: any,
     selectedEmployeeStatus: any,
     clientSideFilter: string
   ) {
@@ -117,7 +117,7 @@ export class TimesheetNewService {
       year: year,
       empId: empId,
       isClientDashboard: isClientDashboard,
-      selectedBillableTypes: selectedBillableTypes, 
+      selectedBillableTypes: selectedBillableTypes,
       selectedEmployeeStatus: selectedEmployeeStatus,
       clientSideFilter: clientSideFilter
     };
@@ -126,27 +126,47 @@ export class TimesheetNewService {
       payload
     );
   }
+  bulkApproveTimesheetsByIds(payload: {
+    timesheetIds: number[];
+    status: string;
+    updatedBy: number;
+    rejectReason?: string | null;
+  }) {
+    return this.http.post<any>(
+      `${this.baseUrl}api/bulkApproveTimesheetRequest1`,
+      payload
+    );
+  }
 
-  // getTimesheetDashboardCountForEmployee(
-  //   month: any, 
-  //   year: any, 
-  //   empId: any,
-  //   isClientDashboard: any,
-  //   selectedBillableTypes: any, 
-  //   selectedEmployeeStatus: any,
-  //   clientSideFilter: string
-  // ) {
-  //   const payload = {
-  //     month: month,
-  //     year: year,
-  //     empId: empId,
-  //     isClientDashboard: isClientDashboard,
-  //     selectedBillableTypes: selectedBillableTypes, 
-  //     selectedEmployeeStatus: selectedEmployeeStatus,
-  //     clientSideFilter: clientSideFilter
-  //   };
+  bulkRejectTimesheetsByIds(payload: {
+    timesheetIds: number[];
+    status: string;
+    updatedBy: number;
+    rejectReason: string;
+  }) {
+    return this.http.post<any>(
+      `${this.baseUrl}api/bulkRejectTimesheetRequest1`,
+      payload
+    );
+  }
 
-  //   return this.http.post(`${this.baseUrl}api/getTimesheetDashboardCountForEmployee`, payload);
-  // }
+  approveRejectProjects(payload: {
+    timesheetId: number;
+    locationMappingId: number;
+    projectIds: number[];
+    status: string;
+    updatedBy: number;
+    rejectReason?: string;
+  }) {
+    return this.http.post<any>(
+      `${this.baseUrl}api/approveRejectProjectTimesheet`,
+      payload
+    );
+  }
+
+
+
+
+
 
 }

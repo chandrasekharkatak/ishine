@@ -73,6 +73,7 @@ import com.apmosys.employeeportal.dto.ProjectDetailsForActivityDTO;
 import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.ProjectTimesheetInfoDTO;
 import com.apmosys.employeeportal.dto.TeamIdTeamNameDTO;
+import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDashboardCountDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentApprovalDTO;
@@ -2510,8 +2511,8 @@ public class TimesheetService {
 	}
 	
 	@Transactional(rollbackFor = Exception.class)
-	public ServiceResponse bulkApproveTimesheetRequest(TimesheetDTO timesheetDTO) {
-		return timesheetApprovalService.bulkApproveTimesheetRequest(timesheetDTO);
+	public ServiceResponse bulkApproveTimesheetRequest(TimesheetApprovalNewDTO timesheetIdList) {
+		return timesheetApprovalService.bulkApproveTimesheetRequest(timesheetIdList);
 	}
 	
 	// Delegate method - implementation moved to TimesheetApprovalService
