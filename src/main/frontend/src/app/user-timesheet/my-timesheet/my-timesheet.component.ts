@@ -175,8 +175,8 @@ withoutVmsbullet:string[] = ["Applicable to resources without a client-side VMS 
   previewUrl2: SafeResourceUrl | null = null;
   rawObjectUrl1: string | null = null;
   rawObjectUrl2: string | null = null;
-  fileType1: '' | 'pdf' | 'image' | null = null;
-  fileType2: '' | 'pdf' | 'image' | null = null;
+fileType1: '' | 'pdf' | 'image' | 'excel' | null = null;
+fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
   fileError1: string = '';
   fileError2: string = '';
   fileName1: any = null;
@@ -234,9 +234,9 @@ withoutVmsbullet:string[] = ["Applicable to resources without a client-side VMS 
 
   isUploadAllowed: boolean = false;
   disableUploadTooltip = "Bulk upload is permitted only for the complete previous month or on the last day of the current month . Please select a date range that falls entirely within the allowed period to enable uploading. ";
-  clientDetails: any; 
-  clientDropdownList: any[] = []; 
-  projectsInMonthYear: any[] = []; 
+  clientDetails: any;
+  clientDropdownList: any[] = [];
+  projectsInMonthYear: any[] = [];
   clientIdEntryBulletPoints: string[] = ["Mandatory field for all resources while filling the timesheet.",
 "Enter the client-side ID if already available.",
 "If the client-side ID is not yet assigned, enter “NA (ApMoSys Employee ID)”.",
@@ -760,12 +760,12 @@ get tooltipCta(): string {
 
 
   onMonthYearChange() {
-  this.resetBulkUploadForm('MONTH');  
+  this.resetBulkUploadForm('MONTH');
   this.getMyProjectsInMonthYear();
   }
 
    getMyProjectsInMonthYear() {
-  
+
       this.timesheetObj.empId = this.currentUser.empId;
       this.timesheetService.getMyProjectsInMonthYear(this.timesheetObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
@@ -774,7 +774,7 @@ get tooltipCta(): string {
           console.error(response.serviceResponse);
         }
       });
-  
+
     }
 
 
@@ -845,7 +845,7 @@ get tooltipCta(): string {
       this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
     }
 
-    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave") {
+    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" ||this.timesheetObj.dayType == "Comp Off" || this.timesheetObj.dayType == "Leave") {
       this.__tempDescription = this.timesheetObj.description;
     }
 
@@ -900,9 +900,14 @@ get tooltipCta(): string {
       }
     }
     this.getProjectListForDateAndEmpId();
-    this.getClientDetailsByProjectIdAndEmpId();
-    this.getAllAvailableTimesheetByEmpId(this.timesheetObj.empId);
-    this.onProjectSelect(timesheetObj.projectId);
+    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Comp Off" || this.timesheetObj.dayType == "Leave") {
+      return;
+    }
+      this.getClientDetailsByProjectIdAndEmpId();
+
+      this.getAllAvailableTimesheetByEmpId(this.timesheetObj.empId);
+      this.onProjectSelect(timesheetObj.projectId);
+
   }
 
 
@@ -1404,7 +1409,7 @@ get tooltipCta(): string {
   setMaxInTimeDate(timesheetDate: any) {
     //console.log("timesheetDate : ", moment(timesheetDate).format(moment.HTML5_FMT.DATETIME_LOCAL));
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off"&& this.timesheetObj.dayType != "Comp Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
       let inTimeDate = document.getElementById('officeInTime');
       // //console.log("InTimeDate: ", inTimeDate);
       let officeOutTime = document.getElementById('officeOutTime');
@@ -1480,7 +1485,7 @@ get tooltipCta(): string {
   resetTimeonDayTypeChange() {
     this.fromDate = null;
     this.toDate = null;
-    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday") {
+    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" ||this.timesheetObj.dayType == "Comp Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday") {
       this.timesheetObj.officeInTime = '';
       this.timesheetObj.officeOutTime = '';
       this.timesheetObj.totalWorkingOfficeHours = '';
@@ -1593,7 +1598,7 @@ get tooltipCta(): string {
       return false;
     }
 
-    if (timesheetObj.dayType != "Public Holiday" && timesheetObj.dayType != "Week Off" && timesheetObj.dayType != "Leave" && this.timesheetFillable) {
+    if (timesheetObj.dayType != "Public Holiday" && timesheetObj.dayType != "Week Off"&& timesheetObj.dayType != "Comp Off" && timesheetObj.dayType != "Leave" && this.timesheetFillable) {
       let flag = true;
       let totalActivityTime = 0;
       let totalWorkingHoursInSeconds = 0;
@@ -1771,7 +1776,7 @@ get tooltipCta(): string {
     let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
     if (!inputValidated) return;
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off"&& this.timesheetObj.dayType != "Comp Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
       //console.log("allTimesheetActivities :", this.allTimesheetActivities, this.allTimesheetActivities[0]);
       this.timesheetObj.allTimesheetActivities = (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
     } else {
@@ -1808,7 +1813,7 @@ get tooltipCta(): string {
     //   this.shadowForSelf = false;
     // }
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Comp Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
       this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
@@ -1888,7 +1893,7 @@ get tooltipCta(): string {
     if (!inputValidated) return;
 
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Comp Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
       this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
@@ -2018,7 +2023,7 @@ get tooltipCta(): string {
   onTimesheetDescriptionChange() {
     console.log("onTimesheetDescriptionChange called");
     if (this.isUpdation) {
-      if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave") {
+      if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" ||this.timesheetObj.dayType == "Comp Off" || this.timesheetObj.dayType == "Leave") {
         this.timesheetObj.description = (this.__tempDescription != null) ? this.__tempDescription : '';
         if (this.timesheetObj.description) {
           this.__tempDescription = this.timesheetObj.description;
@@ -2784,17 +2789,17 @@ get tooltipCta(): string {
     //employeeTeamMapping has startDate and endDate as localDateTime
     const d = new Date(this.fromDate);
     const localDateTime = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T00:00:00`;
-    
+
     const payload = {
       empId: this.timesheetObj.empId,
       date: localDateTime
     };
-    
+
     this.timesheetService.getProjectListForDateAndEmpId(payload).pipe(first()).subscribe(async(response: any) => {
       if (response.serviceStatus == "Success") {
         this.activeProjectList = response.serviceResponse;
         console.log("Active Project List :::::::::", this.activeProjectList);
-     
+
       } else {
         console.error("Service Response for this.activeProjectList :::::::", response.serviceResponse);
       }
@@ -2829,15 +2834,31 @@ get tooltipCta(): string {
 
 
 
-  getDoscForPreview(docId: any) {
-    this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
+getDoscForPreview(docId: any) {
+  this.timesheetService.getDocumentDataByDocId(docId)
+    .pipe(first())
+    .subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+
         this.docData2 = response.serviceResponse.docData;
-        this.mimeType = response.serviceResponse.docMimeType
-        this.showPreview(this.docData2, this.mimeType)
+        this.mimeType = response.serviceResponse.docMimeType;
+
+        // Excel → Download
+        if (
+          this.mimeType === 'application/vnd.ms-excel' ||
+          this.mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ) {
+          const fileName = response.serviceResponse.docName || 'document.xlsx';
+          this.downloadExcel(this.docData2, this.mimeType, fileName);
+        }
+        // PDF / Image → Preview
+        else {
+          this.showPreview(this.docData2, this.mimeType);
+        }
       }
     });
-  }
+}
+
   formatDateToLocalYMD(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0'); // month is 0-based
@@ -2976,38 +2997,93 @@ get tooltipCta(): string {
     }
   }
 
-  onFinalFileSelected(event: any): void {
-    const file: File = event.target.files[0];
-    this.fileError2 = '';
-    this.previewUrl2 = null;
-    this.fileType2 = null;
+  // onFinalFileSelected(event: any): void {
+  //   const file: File = event.target.files[0];
+  //   this.fileError2 = '';
+  //   this.previewUrl2 = null;
+  //   this.fileType2 = null;
 
-    if (!file) return;
+  //   if (!file) return;
 
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-    const maxSize = 500 * 1024;
+  //   const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+  //   const maxSize = 500 * 1024;
 
-    if (!allowedTypes.includes(file.type)) {
-      this.fileError2 = 'Only PDF, JPG, JPEG, and PNG files are allowed.';
-      return;
-    }
+  //   if (!allowedTypes.includes(file.type)) {
+  //     this.fileError2 = 'Only PDF, JPG, JPEG, and PNG files are allowed.';
+  //     return;
+  //   }
 
-    if (file.size > maxSize) {
-      this.fileError2 = 'File size must be 500Kb or less.';
-      return;
-    }
+  //   if (file.size > maxSize) {
+  //     this.fileError2 = 'File size must be 500Kb or less.';
+  //     return;
+  //   }
 
-    if (this.rawObjectUrl2) {
-      URL.revokeObjectURL(this.rawObjectUrl2);
-    }
+  //   if (this.rawObjectUrl2) {
+  //     URL.revokeObjectURL(this.rawObjectUrl2);
+  //   }
 
-    const objectUrl = URL.createObjectURL(file);
-    this.rawObjectUrl2 = objectUrl;
-    this.previewUrl2 = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
-    this.fileType2 = file.type === 'application/pdf' ? 'pdf' : 'image';
-    this.selectedFile2 = file;
-    this.fileName2 = file.name;
+  //   const objectUrl = URL.createObjectURL(file);
+  //   this.rawObjectUrl2 = objectUrl;
+  //   this.previewUrl2 = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+  //   this.fileType2 = file.type === 'application/pdf' ? 'pdf' : 'image';
+  //   this.selectedFile2 = file;
+  //   this.fileName2 = file.name;
+  // }
+onFinalFileSelected(event: any): void {
+  const file: File = event.target.files[0];
+  this.fileError2 = '';
+  this.previewUrl2 = null;
+  this.fileType2 = null;
+
+  if (!file) return;
+
+  const allowedTypes = [
+    'application/pdf',
+    'image/jpeg',
+    'image/png',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  ];
+
+  const maxSize = 500 * 1024;
+
+  if (!allowedTypes.includes(file.type)) {
+    this.fileError2 =
+      'Only PDF, JPG, JPEG, PNG, XLS, and XLSX files are allowed.';
+    return;
   }
+
+  if (file.size > maxSize) {
+    this.fileError2 = 'File size must be 500Kb or less.';
+    return;
+  }
+
+  // Cleanup old URL
+  if (this.rawObjectUrl2) {
+    URL.revokeObjectURL(this.rawObjectUrl2);
+  }
+
+  const objectUrl = URL.createObjectURL(file);
+  this.rawObjectUrl2 = objectUrl;
+
+  if (file.type === 'application/pdf') {
+    this.previewUrl2 =
+      this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+    this.fileType2 = 'pdf';
+  }
+  else if (file.type.startsWith('image/')) {
+    this.previewUrl2 =
+      this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+    this.fileType2 = 'image';
+  }
+  else {
+    // Excel
+    this.fileType2 = 'excel';
+  }
+
+  this.selectedFile2 = file;
+  this.fileName2 = file.name;
+}
 
 
   clearPreviousSelections() {
@@ -3040,7 +3116,7 @@ get tooltipCta(): string {
   getEmployeeListByProjectId(projectId) {
     const d = new Date(this.fromDate);
     const localDateTime = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T00:00:00`;
-    
+
     const payload = {
       empId: this.timesheetObj.empId,
       date: localDateTime,
@@ -3113,7 +3189,7 @@ get tooltipCta(): string {
     //employeeTeamMapping has startDate and endDate as localDateTime
     const d = new Date(this.fromDate);
     const localDateTime = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T00:00:00`;
-    
+
     const payload = {
       empId: empId,
       date: localDateTime,
@@ -3774,26 +3850,25 @@ checkUploadEligibility() {
     this.shadowForSelf = false;
     this.finalFromDate = null;
     this.finalFromDate = null ;
-    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday") {
+    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday" || this.timesheetObj.dayType == "Comp Off") {
       this.timesheetFillable = false
     }
     else {
       this.timesheetFillable = true;
     }
     this.allTimesheetActivities = [];
-    this.addInputActivityField();   
+    this.addInputActivityField();
     this.syncTimes = false;
   }
 
   getClientDetailsByProjectIdAndEmpId() {
     this.clientDetails = '';
     this.projectList = [];
-    
+
     const payload = {
       empId: this.timesheetObj.empId,
       projectId: this.timesheetObj.projectId
     };
-
     this.timesheetService.getClientDetailsByProjectIdAndEmpId(payload).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.clientDetails = response.serviceResponse;
@@ -3898,6 +3973,46 @@ checkUploadEligibility() {
       this.resetTimesheetForm();
     }
   }
+
+  downloadSelectedFile(): void {
+  if (!this.rawObjectUrl2 || !this.selectedFile2) return;
+
+  const a = document.createElement('a');
+  a.href = this.rawObjectUrl2;
+  a.download = this.fileName2;
+  a.click();
+}
+
+isExcelMimeType(mimeType: string): boolean {
+  return mimeType === 'application/vnd.ms-excel'
+    || mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+}
+
+
+downloadExcel(base64Data: string, mimeType: string, fileName: string) {
+
+  const byteCharacters = atob(base64Data);
+  const byteNumbers = new Array(byteCharacters.length);
+
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+
+  const blob = new Blob(
+    [new Uint8Array(byteNumbers)],
+    { type: mimeType }
+  );
+
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+
+  window.URL.revokeObjectURL(url);
+}
+
 
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {

@@ -45,6 +45,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query("SELECT e.empId, e.name FROM Employee e WHERE e.empId IN :ids")
 	List<Object[]> getEmployeeNamesByEmpIds(@Param("ids") Set<Long> ids);
 	
+	
+	@Query("Select e.empId from Employee e where e.employeementId = :employeementId and name = :employeeName ")
+	Optional<Long> findByEmploymentIdAndEmployeeName(@Param("employeementId") Long employeementId,@Param("employeeName") String employeeName );
+	
 	@Query(nativeQuery = true, value = "SELECT e.employeement_id, \n"
 			+ " e.date_of_joining, e.email, \n"
 			+ " e.employmentstatus, \n"
@@ -3022,7 +3026,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "							COUNT(DISTINCT\n"
 			+ "								CASE\n"
 			+ "									WHEN ets.day_type_upper IN ('WORKING', 'NON-WORKING', 'LEAVE') AND ets.activity_team_id = bpe.team_id THEN ets.date\n"
-			+ "									WHEN ets.day_type_upper IN ('WEEK OFF', 'PUBLIC HOLIDAY', 'HOLIDAY', 'CLIENT HOLIDAY') THEN ets.date\n"
+			+ "									WHEN ets.day_type_upper IN ('WEEK OFF','COMP OFF', 'PUBLIC HOLIDAY', 'HOLIDAY', 'CLIENT HOLIDAY') THEN ets.date\n"
 			+ "									ELSE NULL\n"
 			+ "								END\n"
 			+ "							) AS filled_ishine_days,\n"
@@ -3034,7 +3038,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "							(\n"
 			+ "								(ets.day_type_upper IN ('WORKING', 'NON-WORKING', 'LEAVE') AND ets.activity_team_id = bpe.team_id)\n"
 			+ "								OR\n"
-			+ "								ets.day_type_upper IN ('WEEK OFF', 'PUBLIC HOLIDAY', 'HOLIDAY', 'CLIENT HOLIDAY')\n"
+			+ "								ets.day_type_upper IN ('WEEK OFF','COMP OFF', 'PUBLIC HOLIDAY', 'HOLIDAY', 'CLIENT HOLIDAY')\n"
 			+ "							)\n"
 			+ "						GROUP BY bpe.emp_id, bpe.project_id\n"
 			+ "    ),\n"

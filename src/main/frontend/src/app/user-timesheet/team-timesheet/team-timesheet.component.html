@@ -6,7 +6,7 @@
       *ngIf="userMapping.view_my_teams_timesheets_requests || userMapping.update_timesheet_request || userMapping.revoke_reportee_timesheet"
       [ngClass]="{'active' : isAllTimesheetRequestTable}" (click)="showAllTimesheetRequestsTable()">View Teams
       Timesheets Requests</button>
-    <button  *ngIf="userMapping.bulk_upload_reportee" type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isTMBulkUpload}"
+    <button *ngIf="userMapping.bulk_upload_reportee"   type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isTMBulkUpload}"
       (click)="showTMBulkUpload()">Team Member Bulk Final Doc Upload</button>
   </div>
 </div>
@@ -67,7 +67,7 @@
         </div>
       </div>
       <!-- <div class="form-group ml-auto col-md-3 mb-2 mt-4 pt-2">
-          <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">	
+          <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
         </div> -->
     </div>
 
@@ -402,7 +402,7 @@
       </div>
     </div>
     <div
-      *ngIf="timesheetObj.dayType == 'Holiday' || timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'"
+      *ngIf="timesheetObj.dayType == 'Holiday' || timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off'|| timesheetObj.dayType == 'Comp Off' || timesheetObj.dayType == 'Leave'"
       class="row">
       <div class="col-md-4 mb-0">
         <div class="info-wrapper">
@@ -415,10 +415,10 @@
       </div>
     </div>
     <div
-      *ngIf="timesheetObj.dayType != 'Holiday' && timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'"
+      *ngIf="timesheetObj.dayType != 'Holiday' && timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Comp Off' && timesheetObj.dayType != 'Leave'"
       class="row px-3">
       <!-- <div class="form-group d-flex flex-row ml-auto col-md-3">
-      <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+      <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
       </div> -->
       <table class="table timesheet-table">
         <thead class="thead-light">
@@ -677,7 +677,7 @@
 
       </div>
       <!-- <div class="form-group ml-auto col-md-3 mb-2 mt-4 pt-2">
-          <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">	
+          <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
         </div> -->
     </div>
 
@@ -1053,7 +1053,7 @@
               <app-my-select #filterActiveReportees class="form-control" placeholder="Select Reportee"
                   [(ngModel)]="timesheetObj.selectedEmpId" [options]="reportees"
                   displayKey="name" valueKey="empId" [multiple]="false"
-                  (selectionChange)="onReporteeChange($event.value)">
+                  (selectionChange)="onReporteeChange($event)">
               </app-my-select>
             </div>
           </div>

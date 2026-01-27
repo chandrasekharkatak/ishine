@@ -17,6 +17,9 @@ public interface EmpPrimaryProjectMappingRepository extends JpaRepository<EmpPri
 	EmpPrimaryProjectMapping findByEmpIdAndIsMapped(Long empId,String ismapped);
 	
 	 List<EmpPrimaryProjectMapping> findByEmpIdIn(List<Long> empIds);
+
+	 @Query("SELECT epm FROM EmpPrimaryProjectMapping epm WHERE epm.empId IN :empIds AND epm.isMapped = 'Y'")
+	 List<EmpPrimaryProjectMapping> findByEmpIdInAndIsMapped(@Param("empIds") List<Long> empIds);
 	
 	    @Modifying
 	    @Transactional
