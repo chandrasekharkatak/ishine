@@ -65,6 +65,7 @@ import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectManagersDTO;
+import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.ProjectIdAndNameDTO;
 import com.apmosys.employeeportal.dto.ProjectManagerIdAndNameDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
@@ -3798,6 +3799,34 @@ public class ProjectService {
 
 	public List<DeliveryMode> getAllDeliveryModes() {
 		return deliveryModeRepository.findAll();
+	}
+	
+	public Project createProjectRTS(ProjectPoMappingWithResourceDTO dto, Client client) {
+
+		if (projectRepository.findByPoProjectId(dto.getProjectId()) != null)
+			throw new RuntimeException("Project already exists");
+
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+		Project p = new Project();
+		p.setPoProjectId(dto.getProjectId());
+		p.setProjectName(dto.getProjectName());
+		p.setPoProjectType(dto.getProjectType());
+		p.setStartDate(dto.getProjectStartDate() != null ? dateFormat.format(dto.getProjectStartDate()) : null);
+
+		p.setEndDate(dto.getProjectEndDate() != null ? dateFormat.format(dto.getProjectEndDate()) : null);
+		p.setPoClientId(dto.getClientId());
+		p.setClientId(client.getClientId());
+		p.setActive("true");
+		p.setProjectStatus("Not Started");
+		p.setCreatedBy(6L);
+		p.setIsDraftProject(null);
+		p.setCreatedOn(null);
+		if(dto.getProjectType().equalsIgnoreCase("TNM")) {
+			p.setHasClientSideId(true);
+			}
+		
+		return projectRepository.save(p);
 	}
 
 }
