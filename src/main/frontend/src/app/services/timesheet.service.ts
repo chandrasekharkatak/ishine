@@ -301,7 +301,8 @@ export class TimesheetService {
   isClientDashboard: any,
   selectedBillableTypes: any, 
   selectedEmployeeStatus: any,
-  clientSideFilter: string
+  clientSideFilter: string,
+  multiPos: any
 ) {
   const payload = {
     month: month,
@@ -310,7 +311,8 @@ export class TimesheetService {
     isClientDashboard: isClientDashboard,
     selectedBillableTypes: selectedBillableTypes, 
     selectedEmployeeStatus: selectedEmployeeStatus,
-    clientSideFilter: clientSideFilter
+    clientSideFilter: clientSideFilter,
+    multiPOs: multiPos
   };
 
   return this.http.post(`${this.baseUrl}api/getTimesheetDashboardCountForEmployee`, payload);

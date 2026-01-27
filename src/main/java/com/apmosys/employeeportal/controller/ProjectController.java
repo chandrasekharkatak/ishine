@@ -225,6 +225,11 @@ public class ProjectController {
 		return poPortalApiService.syncProjectPoFromPoPortal();
 	}
 	
+	@GetMapping(value = "/getProjectSDEDFromPOPortal")
+	public ServiceResponse getProjectSDEDFromPOPortal() {
+		return poPortalApiService.updateSDEDOfproject();
+	} 
+	
 
 	@GetMapping(value = "/getMilestoneProjectWise")
 	public ServiceResponse getMilestoneProjectWise() {

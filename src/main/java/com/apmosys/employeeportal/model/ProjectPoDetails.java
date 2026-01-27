@@ -30,31 +30,71 @@ public class ProjectPoDetails {
 
     @Column(name = "po_id")
     private Long poId;
+	
+	@Column(name = "project_id")
     private Integer projectId;
+	
+	@Column(name = "po_project_id")
     private Long poProjectId;
+	
+	@Column(name = "po_no")
     private String poNo;
-    private String apmosysRM;
-    private String clientRm;
-    private String apmosysRmEmail;
+	
+	@Column(name = "po_start_date")
     private String poStartDate;
+	
+	@Column(name = "po_end_date")
     private String poEndDate;
-    private Boolean active;
+   
+	@Column(name = "prev_po")
     private Long prevPO;
+	
+	@Column(name = "next_po")
     private Long nextPO;
+	
+	@Column(name = "apmosys_rm")
+    private String apmosysRM;
+	
+	@Column(name = "client_rm")
+    private String clientRm;
+	
+	@Column(name = "apmosys_rm_email")
+    private String apmosysRmEmail;
+   
+	@Column(name = "active")
+    private boolean active;
+   
+	@Column(name = "msg")
     private String msg;
+	
+	
+	
+	@Column(name = "client_location_id")
     private Long clientLocationId;
-
-    private Long updatedBy;
+	
+	@Column(name = "client_address_id")
+	private Long clientAddressId;
+	
+	@Column(name = "created_by")
     private Long createdBy;
-
-    @Column
-    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
-    @UpdateTimestamp
-    private Timestamp updatedOn;
-
+    
+   
     @CreationTimestamp
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
-    @Column(updatable = false)
+    @Column(name = "created_on",updatable = false)
     private Timestamp createdOn;
+    
+    
+    @Column(name = "updated_by")
+    private Long updatedBy;
+    
+    @UpdateTimestamp
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+    @Column(name = "updated_on")
+    private Timestamp updatedOn;
+    
+ 
+    
+
 
 }

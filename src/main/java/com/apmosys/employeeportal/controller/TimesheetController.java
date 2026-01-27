@@ -469,7 +469,7 @@ public class TimesheetController {
 //			String billableType=String.valueOf(payload.getSelectedBillableType());
 		    List<String> billableTypes = payload.getSelectedBillableTypes(); // use the list
 			String employeeActive = String.valueOf(payload.getSelectedEmployeeStatus());
-		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId,isClientDashboard,billableTypes,employeeActive,payload.getClientSideFilter());
+		 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId,isClientDashboard,billableTypes,employeeActive,payload.getClientSideFilter(),payload.getMultiPOs());
 		  return reponse;
 	 }
 	 
@@ -585,7 +585,7 @@ public class TimesheetController {
 	
 	@PostMapping("/getDepartmentStatusSummary")
 	public ServiceResponse getDepartmentStatusSummary(
-	        @RequestBody TimesheetDTO requestDTO) {
+	        @RequestBody GetEmployeeSummaryOnExportDTO requestDTO) {
 
 	    ServiceResponse response =
 	    		timesheetService.getDepartmentStatusSummary(requestDTO);

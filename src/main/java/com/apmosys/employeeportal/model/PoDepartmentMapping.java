@@ -25,8 +25,8 @@ public class PoDepartmentMapping {
 	 @Id
 		@GeneratedValue(strategy = GenerationType.IDENTITY)
 		private Long poDepartmentMapId;
-		private Integer poId;
+		private Long poId;
 		private Long deptId;
-		private Boolean active;
+		private boolean active;
 
 }

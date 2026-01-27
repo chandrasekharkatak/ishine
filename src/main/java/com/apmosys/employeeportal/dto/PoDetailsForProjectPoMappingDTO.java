@@ -36,5 +36,5 @@ public class PoDetailsForProjectPoMappingDTO {
     private Long nextPO;
     private Boolean isRenewable;
     private List<POResourceRequirementDTO> resourceRequirementList;
-    private Boolean isActive;
+    private boolean isActive;
 }

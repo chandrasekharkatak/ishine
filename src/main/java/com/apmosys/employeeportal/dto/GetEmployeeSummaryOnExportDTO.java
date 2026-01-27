@@ -28,5 +28,6 @@ public class GetEmployeeSummaryOnExportDTO {
 	private String clientSideFilter;
 	private Long deptId;
 	private Boolean isEmployeeRepeated;
+	private String multiPOs;
 	
 }

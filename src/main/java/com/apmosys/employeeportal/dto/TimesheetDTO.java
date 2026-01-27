@@ -188,6 +188,7 @@ public class TimesheetDTO {
 	private String shadowFor;
 	private List<Long> empIds;
 	private String monthYear;
+	private String clientSideFilter;
 	
 	public TimesheetDTO(
 			Long employeementId,
