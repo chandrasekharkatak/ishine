@@ -44,6 +44,7 @@ public class Project {
     
 	private Timestamp createdOn;
 	private Integer clientId;
+	private Long poClientId;
 	private String departmentName;
 	private Long poProjectId;
 	private String active;

@@ -75,8 +75,11 @@ public class ProjectPoDetails {
 	
 	
 	
-//	@Column(name = "client_location_id")
-//    private Long clientLocationId;
+	@Column(name = "client_location_id")
+    private Long clientLocationId;
+	
+	@Column(name = "client_address_id")
+	private Long clientAddressId;
 	
 	@Column(name = "created_by")
     private Long createdBy;
@@ -95,6 +98,8 @@ public class ProjectPoDetails {
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     @Column(name = "updated_on")
     private Timestamp updatedOn;
+    
+ 
     
 
 
