@@ -22,5 +22,9 @@ public class POResourceRequirementDTO {
     private String experience;
     private String department;
     private Long clientRoleId;
+    private Date yearWiseRateCartStartDate;
+    private Date yearWiseRateCartEndDate;
+    private Date lineItemStartDate;
+    private Date lineItemEndDate;
 
 }

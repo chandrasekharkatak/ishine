@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -28,6 +29,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpServerErrorException.InternalServerError;
 
 import com.apmosys.employeeportal.dto.DepartmentDTO;
+import com.apmosys.employeeportal.dto.DepartmentIdAndNameDto;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
@@ -60,52 +62,54 @@ public class DepartmentService {
 
 	@Autowired
 	DepartmentRepository departmentRepository;
-	
+
 	@Autowired
 	private ProjectRepository projectRepository;
+	
+	
 
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
 
 	@Autowired
 	JobRoleRepository jobRoleRepository;
-	
+
 	@Autowired
 	private LogService logService;
-	
+
 	@Autowired
 	private HttpServletRequest httpRequest;
-	
+
 	@Autowired
 	DesignationDepartmentMapRepository designationDepartmentMapRepository;
-	
+
 	@Autowired
 	ProjectDepartmentMapRepository projectDepartmentMapRepository;
-	
+
 	@Autowired
 	PoDepartmentMappingRepository poDepartmentMappingRepository;
-	
+
 	@Autowired
 	EmployeeOnBoardingRepository employeeOnBoardingRepository;
-	
+
 	@Autowired
 	EmployeeRepository employeeRepository;
-	
+
 	@Value("${poPortal.api.syncDepartment}")
 	private String syncDepartmentApi;
-	
+
 	@Value("${poPortal.api.isDepartmentUsed}")
 	private String isDeparmentUsedPoPortal;
-	
+
 	@Value("${poPortal.api.deleteDepartment}")
 	private String deleteDeparmentPoPortal;
-	
+
 	@Autowired
 	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
 
 	@Autowired
 	private ApiLogUtility apiLogUtility;
-	
+
 	@Autowired
 	private PoPortalAPIService poPortalAPIService;
 
@@ -113,101 +117,99 @@ public class DepartmentService {
 	public ServiceResponse createDepartment(DepartmentDTO departmentDTO) {
 		String message = "";
 		ServiceResponse response = new ServiceResponse();
-		
+
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("create_department");
 		apiLogInfo.setApiUrl("/api/createDepartment");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("departmentName : " +departmentDTO.getName()+ "hodId : " +departmentDTO.getHodId()+ "createdBy : " +departmentDTO.getCreatedBy());
+		logBuilder.append("departmentName : " + departmentDTO.getName() + "hodId : " + departmentDTO.getHodId()
+				+ "createdBy : " + departmentDTO.getCreatedBy());
 		try {
 			// Check if abbreviation already exists
-			 Department existingDept = departmentRepository.findByDeptAbbreviation(departmentDTO.getDeptAbbreviation());
-		        if (existingDept != null) {
-		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-		            response.setServiceResponse("Department Abbreviation already exists.");
-		            
-		            apiLogInfo.setApiResponse("Department Abbreviation already exists.");            
-		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);  
-		            apiLogInfo.setLogLevel("ERROR");
-		            logService.logMyInfo(httpRequest, apiLogInfo);
-		            return response;
-		        }
-		        
-		        System.err.println(departmentDTO.getName()) ; 
-		        List<Department> existingDeptName = departmentRepository.findByDeptName(departmentDTO.getName());
-		        System.err.println(existingDeptName) ;     
-		        if (existingDeptName != null && !existingDeptName.isEmpty()) {
-		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-		            response.setServiceResponse("Department Name already exists.");
-		            
-		            apiLogInfo.setApiResponse("Department Name already exists.");            
-		            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);  
-		            apiLogInfo.setLogLevel("ERROR");
-		            logService.logMyInfo(httpRequest, apiLogInfo);
-		            return response;
-		        }
-		        		
-		        		
-		        		
-		        		
-		    Department newDepartment = new Department();
-		        
-			newDepartment.setName(departmentDTO.getName()); 
+			Department existingDept = departmentRepository.findByDeptAbbreviation(departmentDTO.getDeptAbbreviation());
+			if (existingDept != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Department Abbreviation already exists.");
+
+				apiLogInfo.setApiResponse("Department Abbreviation already exists.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setLogLevel("ERROR");
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				return response;
+			}
+
+			System.err.println(departmentDTO.getName());
+			List<Department> existingDeptName = departmentRepository.findByDeptName(departmentDTO.getName());
+			System.err.println(existingDeptName);
+			if (existingDeptName != null && !existingDeptName.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Department Name already exists.");
+
+				apiLogInfo.setApiResponse("Department Name already exists.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setLogLevel("ERROR");
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				return response;
+			}
+
+			Department newDepartment = new Department();
+
+			newDepartment.setName(departmentDTO.getName());
 			newDepartment.setHodId(departmentDTO.getHodId());
 			newDepartment.setCreatedBy(departmentDTO.getCreatedBy());
 			newDepartment.setDeptAbbreviation(departmentDTO.getDeptAbbreviation());
 			newDepartment.setIsBillable(false);
 			newDepartment.setIsTnm(false);
-            if("Yes".equals(departmentDTO.getIsBillable())) {
-            	newDepartment.setIsBillable(true); 	
-            }
-            if("Yes".equals(departmentDTO.getIsTnm())) {
-            	newDepartment.setIsTnm(true); 	
-            }
+			if ("Yes".equals(departmentDTO.getIsBillable())) {
+				newDepartment.setIsBillable(true);
+			}
+			if ("Yes".equals(departmentDTO.getIsTnm())) {
+				newDepartment.setIsTnm(true);
+			}
 			Department newDepartmentCreated = departmentRepository.save(newDepartment);
 
 			if (newDepartmentCreated != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("New department created.");
-				
-				apiLogInfo.setApiResponse("New department created.");			
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);	
+
+				apiLogInfo.setApiResponse("New department created.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("New department creation Failed.");
-				
-				apiLogInfo.setApiResponse("New department creation Failed.");			
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);	
+
+				apiLogInfo.setApiResponse("New department creation Failed.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
-			
+
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
-			
+
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	
+
 	@Transactional
 	public ServiceResponse createDepartmentByList(DepartmentDTO departmentDTO) {
 		String message = "";
 		ServiceResponse response = new ServiceResponse();
-		
 
 		LogDTO apiLogInfo = new LogDTO();
-		//apiLogInfo.setSubFeatureName("create_department");
+		// apiLogInfo.setSubFeatureName("create_department");
 		apiLogInfo.setApiUrl("/api/createDepartmentByList");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("deptId : " +departmentDTO.getDeptId()+", departmentName : " +departmentDTO.getName()+ ", hodId : " +departmentDTO.getHodId()+ ", createdBy : " +departmentDTO.getCreatedBy());
+		logBuilder.append("deptId : " + departmentDTO.getDeptId() + ", departmentName : " + departmentDTO.getName()
+				+ ", hodId : " + departmentDTO.getHodId() + ", createdBy : " + departmentDTO.getCreatedBy());
 		try {
 			Department newDepartment = new Department();
 			newDepartment.setDeptId(departmentDTO.getDeptId());
@@ -220,15 +222,15 @@ public class DepartmentService {
 			if (newDepartmentCreated != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("New department created.");
-				
-				apiLogInfo.setApiResponse("New department created");			
+
+				apiLogInfo.setApiResponse("New department created");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("New department creation Failed.");
-				
-				apiLogInfo.setApiResponse("New department creation Failed");			
+
+				apiLogInfo.setApiResponse("New department creation Failed");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 		} catch (Exception e) {
@@ -236,28 +238,29 @@ public class DepartmentService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
-			
+
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
-			
+
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
-		
+
 		return response;
 	}
-	
+
 	public ServiceResponse getAllDepartmentsByProjectId(Integer projectId) {
 		ServiceResponse response = new ServiceResponse();
 
 		try {
 			Optional<Project> projOpt = projectRepository.findById(projectId);
 			Project proj = new Project();
-			if(projOpt.isPresent())proj = projOpt.get();
-			String departmentIds = proj.getDeptId() != null ? proj.getDeptId():"";
-			System.out.println("dept Ids String"+departmentIds);
+			if (projOpt.isPresent())
+				proj = projOpt.get();
+			String departmentIds = proj.getDeptId() != null ? proj.getDeptId() : "";
+			System.out.println("dept Ids String" + departmentIds);
 			List<Long> departmentIdList = Arrays.stream(departmentIds.split(",")).map(String::trim)
-                    .filter(s -> !s.isEmpty()).map(Long::parseLong).collect(Collectors.toList());
+					.filter(s -> !s.isEmpty()).map(Long::parseLong).collect(Collectors.toList());
 			List<Object[]> allDepartmentList = departmentRepository.getAllDepartmentsByIdList(departmentIdList);
 			if (allDepartmentList.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -271,10 +274,10 @@ public class DepartmentService {
 					departmentDTO.setCreatedOn(object[2].toString());
 					departmentDTO.setName(object[4].toString());
 					departmentDTO.setHodId(Long.parseLong(object[3].toString()));
-					departmentDTO.setUpdatedOn(object[6] != null ? object[6].toString(): null);
+					departmentDTO.setUpdatedOn(object[6] != null ? object[6].toString() : null);
 					departmentDTO.setDeptAbbreviation(object[7] != null ? object[7].toString() : null);
 					departmentDTO.setUpdatedBy(object[5] != null ? Integer.parseInt(object[5].toString()) : null);
-					dtoList.add(departmentDTO);      
+					dtoList.add(departmentDTO);
 				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
@@ -296,12 +299,12 @@ public class DepartmentService {
 		apiLogInfo.setApiUrl("/api/createDepartmentByList");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		
+
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
 		try {
 			List<DepartmentDTO> allDepartmentList = departmentRepository.getAllDepartments();
-			logBuilder.append("getAllDepartment size : "+allDepartmentList.size());
+			logBuilder.append("getAllDepartment size : " + allDepartmentList.size());
 			if (allDepartmentList.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Department List is Empty.");
@@ -326,7 +329,7 @@ public class DepartmentService {
 //				}
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(allDepartmentList);
-				apiLogInfo.setApiResponse("dtoList Size : "+allDepartmentList.size());
+				apiLogInfo.setApiResponse("dtoList Size : " + allDepartmentList.size());
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 			}
@@ -346,55 +349,56 @@ public class DepartmentService {
 	public ServiceResponse getAllDepartmentsFromId(Long empId) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		try {
-		
-		List<Department> deptList = departmentRepository.findByHodId(empId);
-		if(!deptList.isEmpty() && deptList!= null) {
-		serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-		serviceResponse.setServiceResponse(deptList);
-		return serviceResponse;
-		}else {
-			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			serviceResponse.setServiceResponse("No data found..!");
-			return serviceResponse;
-		}
-		}
-		catch(Exception e) {
+
+			List<Department> deptList = departmentRepository.findByHodId(empId);
+			if (!deptList.isEmpty() && deptList != null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				serviceResponse.setServiceResponse(deptList);
+				return serviceResponse;
+			} else {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("No data found..!");
+				return serviceResponse;
+			}
+		} catch (Exception e) {
 			e.printStackTrace();
 			serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			serviceResponse.setServiceResponse("Something Went Wrong.");
 			return serviceResponse;
 		}
 	}
+
 	public ServiceResponse updateDepartment(DepartmentDTO departmentDTO) {
 		ServiceResponse response = new ServiceResponse();
-		
+
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("update_department");
 		apiLogInfo.setApiUrl("/api/updateDepartment");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("deptId : " + departmentDTO.getDeptId()+", departmentName : "+departmentDTO.getDeptName());
+		logBuilder
+				.append("deptId : " + departmentDTO.getDeptId() + ", departmentName : " + departmentDTO.getDeptName());
 		try {
 			Optional<Department> departmentObject = departmentRepository.findById(departmentDTO.getDeptId());
 			if (departmentObject.isPresent()) {
 				Department departmentToBeUpdated = departmentObject.get();
-				
+
 				// Check if the abbreviation is being updated and if the new one already exists
-				if (departmentDTO.getDeptAbbreviation() != null && 
-		                (departmentToBeUpdated.getDeptAbbreviation() == null || 
-		                !departmentToBeUpdated.getDeptAbbreviation().equals(departmentDTO.getDeptAbbreviation()))) {
-	                Department existingDept = departmentRepository.findByDeptAbbreviation(departmentDTO.getDeptAbbreviation());
-	                if (existingDept != null && !existingDept.getDeptId().equals(departmentDTO.getDeptId())) {
-	                    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	                    response.setServiceResponse("Department Abbreviation already exists.");
-	                    
-	                    apiLogInfo.setApiResponse("Department Abbreviation already exists.");            
-	                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);  
-	                    apiLogInfo.setLogLevel("ERROR");
-	                    logService.logMyInfo(httpRequest, apiLogInfo);
-	                    return response;
-	                }
-	            }
+				if (departmentDTO.getDeptAbbreviation() != null && (departmentToBeUpdated.getDeptAbbreviation() == null
+						|| !departmentToBeUpdated.getDeptAbbreviation().equals(departmentDTO.getDeptAbbreviation()))) {
+					Department existingDept = departmentRepository
+							.findByDeptAbbreviation(departmentDTO.getDeptAbbreviation());
+					if (existingDept != null && !existingDept.getDeptId().equals(departmentDTO.getDeptId())) {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Department Abbreviation already exists.");
+
+						apiLogInfo.setApiResponse("Department Abbreviation already exists.");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+						apiLogInfo.setLogLevel("ERROR");
+						logService.logMyInfo(httpRequest, apiLogInfo);
+						return response;
+					}
+				}
 				departmentToBeUpdated.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
 				departmentToBeUpdated.setName(departmentDTO.getName());
 				departmentToBeUpdated.setHodId(departmentDTO.getHodId());
@@ -402,46 +406,46 @@ public class DepartmentService {
 				departmentToBeUpdated.setUpdatedBy(departmentDTO.getUpdatedBy());
 				departmentToBeUpdated.setIsBillable(false);
 				departmentToBeUpdated.setIsTnm(false);
-	            if("Yes".equals(departmentDTO.getIsBillable())) {
-	            	departmentToBeUpdated.setIsBillable(true); 	
-	            }
-	            if("Yes".equals(departmentDTO.getIsTnm())) {
-	            	departmentToBeUpdated.setIsTnm(true); 	
-	            }
+				if ("Yes".equals(departmentDTO.getIsBillable())) {
+					departmentToBeUpdated.setIsBillable(true);
+				}
+				if ("Yes".equals(departmentDTO.getIsTnm())) {
+					departmentToBeUpdated.setIsTnm(true);
+				}
 				Department dbResponse = departmentRepository.save(departmentToBeUpdated);
 
 				if (dbResponse != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Department Updated.");
-					
-					apiLogInfo.setApiResponse("Department Updated.");			
+
+					apiLogInfo.setApiResponse("Department Updated.");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-					
+
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Department Updation Failed.");
-					
-					apiLogInfo.setApiResponse("Department Updated.");			
+
+					apiLogInfo.setApiResponse("Department Updated.");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-					
+
 				}
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Department Not Found");
-				
-				apiLogInfo.setApiResponse("Department Not Found");			
+
+				apiLogInfo.setApiResponse("Department Not Found");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				
+
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
-			
+
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
-			
+
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
@@ -470,9 +474,11 @@ public class DepartmentService {
 			Department departmentToBeDeleted = departmentObject.get();
 			Long count = jobRoleRepository.countByDeptId(departmentToBeDeleted.getDeptId());
 
-			ServiceResponse syncResponse = poPortalAPIService.isDepartmentUsedInPoPortal(departmentToBeDeleted.getDeptId());
+			ServiceResponse syncResponse = poPortalAPIService
+					.isDepartmentUsedInPoPortal(departmentToBeDeleted.getDeptId());
 			if (syncResponse != null && syncResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
-				String deptarmentUsedFlag = syncResponse.getServiceResponse().toString(); // 0=Not Present, 1=Present but not used, 2=Used
+				String deptarmentUsedFlag = syncResponse.getServiceResponse().toString(); // 0=Not Present, 1=Present
+																							// but not used, 2=Used
 				if (deptarmentUsedFlag.equals("0")) {
 					isDeptUsedInPoPortal = false;
 				}
@@ -511,7 +517,7 @@ public class DepartmentService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	
+
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse changeDepartmentJobRoleMapping(DepartmentDTO departmentDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -536,7 +542,8 @@ public class DepartmentService {
 		return response;
 	}
 
-	private void processJobRoles(List<JobRole> jobRoles, DepartmentDTO departmentDTO, ServiceResponse response, LogDTO apiLogInfo) {
+	private void processJobRoles(List<JobRole> jobRoles, DepartmentDTO departmentDTO, ServiceResponse response,
+			LogDTO apiLogInfo) {
 		boolean isUsedInIshine = Boolean.parseBoolean(departmentDTO.getIsDeptUsedInIshine());
 		for (JobRole jobRole : jobRoles) {
 			if (isUsedInIshine) {
@@ -578,7 +585,7 @@ public class DepartmentService {
 	private void updateProjectDepartmentMapping(DepartmentDTO dto, ServiceResponse response, LogDTO apiLogInfo) {
 //		List<ProjectDepartmentMap> list = projectDepartmentMapRepository.findByDeptId(dto.getOldDeptId());
 		List<PoDepartmentMapping> list = poDepartmentMappingRepository.findByDeptId(dto.getOldDeptId());
-		
+
 		if (!list.isEmpty()) {
 			list.forEach(p -> p.setDeptId(dto.getDeptId()));
 			List<PoDepartmentMapping> updated = poDepartmentMappingRepository.saveAll(list);
@@ -610,7 +617,8 @@ public class DepartmentService {
 	}
 
 	private void handlePoPortalSync(DepartmentDTO dto, ServiceResponse response) {
-		ServiceResponse syncResponse = poPortalAPIService.syncDeleteDepartmentWithPoPortal(dto, "changeDepartmentJobRoleMapping");
+		ServiceResponse syncResponse = poPortalAPIService.syncDeleteDepartmentWithPoPortal(dto,
+				"changeDepartmentJobRoleMapping");
 		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		if (!syncResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
 			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -634,27 +642,27 @@ public class DepartmentService {
 		apiLogInfo.setApiUrl("/api/checkDepartmentName");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("departmentName : "+departmentDTO.getName());
+		logBuilder.append("departmentName : " + departmentDTO.getName());
 		try {
-			
+
 			Department deptObj = departmentRepository.findByName(departmentDTO.getName());
-			
-			if(deptObj != null) {
-				if((departmentDTO.getDeptId() != null) && !departmentDTO.getDeptId().equals(deptObj.getDeptId())) {
+
+			if (deptObj != null) {
+				if ((departmentDTO.getDeptId() != null) && !departmentDTO.getDeptId().equals(deptObj.getDeptId())) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Department with same name already exists !!");
 					apiLogInfo.setApiResponse("Department with same name already exists !!");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
-				if(departmentDTO.getDeptId() == null) {
+				if (departmentDTO.getDeptId() == null) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Department with same name already exists !!");
 					apiLogInfo.setApiResponse("Department with same name already exists !!");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			}
-			
-		}catch(Exception e) {
+
+		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
@@ -678,7 +686,8 @@ public class DepartmentService {
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		String sourceSystem = httpRequest.getRequestURL().toString();
 		try {
-			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest), "getAllDepartmentInfo", "PoPortal", null, httpRequest);
+			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+					"getAllDepartmentInfo", "PoPortal", null, httpRequest);
 			List<PoPortalDTO> poPortalDTOList = departmentRepository.getDepartmentInfo();
 			if (!poPortalDTOList.isEmpty()) {
 				logBuilder.append("getAllDepartmentInfo size : " + poPortalDTOList.size());
@@ -705,7 +714,8 @@ public class DepartmentService {
 			exceptionDetailsForLog = e.toString();
 		} finally {
 			if (initialLog != null) {
-				apiLogUtility.endLog(initialLog.getId(),sourceSystem, finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, exceptionDetailsForLog,
+						httpRequest);
 			}
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
@@ -744,6 +754,38 @@ public class DepartmentService {
 			response.setServiceError(e.getMessage());
 		}
 		return response;
+	}
+
+	
+	public void syncDepartmentsRTS(Long poId, List<DepartmentIdAndNameDto> incoming) {
+
+	    List<PoDepartmentMapping> existing =
+	            poDepartmentMappingRepository.findByPoId(poId);
+
+	    Set<Long> newIds = incoming.stream()
+	            .map(DepartmentIdAndNameDto::getDeptId)
+	            .collect(Collectors.toSet());
+
+	   
+	    for (PoDepartmentMapping e : existing) {
+	        e.setActive(newIds.contains(e.getDeptId()));
+	    }
+
+	    poDepartmentMappingRepository.saveAll(existing);
+
+	   
+	    for (Long deptId : newIds) {
+	        boolean alreadyExists = existing.stream()
+	                .anyMatch(e -> e.getDeptId().equals(deptId));
+
+	        if (!alreadyExists) {
+	            PoDepartmentMapping m = new PoDepartmentMapping();
+	            m.setPoId(poId);
+	            m.setDeptId(deptId);
+	            m.setActive(true);
+	            poDepartmentMappingRepository.save(m);
+	        }
+	    }
 	}
 
 

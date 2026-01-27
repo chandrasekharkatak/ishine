@@ -59,6 +59,8 @@ List<PoDepartmentMapping> findByProjectIdAndDeptId(@Param("projectId") Integer p
     nativeQuery = true)
 List<PoDepartmentMapping> findByProjectId(@Param("projectId") Integer projectId);
 	
+	public List<PoDepartmentMapping> findByPoId(Long poId);
+	
 	
 	
 	

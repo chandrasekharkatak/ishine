@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.model;
 
+import java.sql.Date;
 import java.sql.Timestamp;
 
 import javax.persistence.Column;
@@ -37,6 +38,13 @@ public class PoRequirementMapping {
 	    
 	    @Column(name = "count")
 	    private Long count;
+	    
+	  
+	    
+	    private String yearWiseRateCartStartDate;
+	    private String yearWiseRateCartEndDate;
+	    private String lineItemStartDate;
+	    private String lineItemEndDate;
 	    
 	    @Column(name = "active")
 	    private boolean active;

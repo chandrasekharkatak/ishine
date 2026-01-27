@@ -4,6 +4,8 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.List;
 
+import com.apmosys.employeeportal.enums.SyncRequestType;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,6 +20,7 @@ import lombok.ToString;
 @AllArgsConstructor
 public class ProjectPoMappingWithResourceDTO {
 	
+	private SyncRequestType eventType;
 	private Long projectId;
     private String projectName;
     private String projectType;

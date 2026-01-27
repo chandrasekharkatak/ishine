@@ -21,11 +21,14 @@ public class PoDetailsForProjectPoMappingDTO {
     private String poNo;
     private Date poStartDate;
     private Date poEndDate;
+    
     private Long clientAddressId;
     private String clientLocation;
     private String clientState;
     private String createdByEmpId;
     private String createdByEmpName;
+    private String updatedByEmpId;
+    private String updatedByEmpName;
     private List<DepartmentIdAndNameDto> departmentList;
     private String commentForRmg;
     private String apmosysRmEmpId;

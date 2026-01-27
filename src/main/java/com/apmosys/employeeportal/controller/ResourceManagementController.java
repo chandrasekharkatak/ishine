@@ -28,6 +28,8 @@ import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
+import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
+import com.apmosys.employeeportal.dto.ProjectPoRealTimeSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectStructureWrapper;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.RestoreProjectPayloadDTO;
@@ -35,6 +37,7 @@ import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimeSheetRequestDto;
 import com.apmosys.employeeportal.dto.UpdateHasClientSideIdDTO;
+import com.apmosys.employeeportal.service.PoSyncOrchestratorService;
 import com.apmosys.employeeportal.service.ResourceManagementService;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -46,6 +49,9 @@ public class ResourceManagementController {
 	
 	@Autowired
 	ResourceManagementService resourceManagementService;
+	
+	@Autowired
+	PoSyncOrchestratorService poSyncOrchestratorService;
 	
 	@Autowired
 	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
@@ -463,6 +469,13 @@ public class ResourceManagementController {
 	 public ServiceResponse poCrudOperationsInIshine(HttpServletRequest httpRequest,@RequestBody ResourceManagementDTO poPortalProjects) {
 	 	poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 	 	return resourceManagementService.poCrudOperationsInIshine(poPortalProjects);
+	 }
+	 
+	 
+	 @PostMapping("/poCrudOperationsInIshineNew")
+	 public ServiceResponse poCrudOperationsInIshineNew(HttpServletRequest httpRequest,@RequestBody ProjectPoMappingWithResourceDTO poPortalProjects) {
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		 return poSyncOrchestratorService.poCrudOperationsInIshineNew(poPortalProjects);
 	 }
 	 
 	 
