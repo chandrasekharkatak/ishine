@@ -112,6 +112,8 @@ import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.RestoreProjectPayloadDTO;
 import com.apmosys.employeeportal.dto.RmgProjectDto;
+import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
+import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.SkippedEmployeeDTO;
 import com.apmosys.employeeportal.dto.SpocDTO;
@@ -13824,7 +13826,7 @@ public class ResourceManagementService {
 	private List<PoDetailsDto> getPoDetailsByProjectId(Integer currentProjectId) {
 		List<PoDetailsDto> poDetailsDtos = new ArrayList<>();
 		try {
-			// Fetch Active POs data
+			// Fetch Active POs & Inactive POs but team or member is active data
 			poDetailsDtos.addAll(poDetailsRepository.getAllPoDetailsDtoByProjectId(currentProjectId));
 
 			// Fetch Inactive POs but team or member is active
@@ -13857,6 +13859,92 @@ public class ResourceManagementService {
 		}
 
 		return validPoRequirementMappingIds;
+	}
+
+	public ServiceResponse getResourceRequirementByPoId(Long poId) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (poId == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Po Id cannot be null!!");
+				return response;
+			}
+
+			List<RmgResourceRequirementDto> resourceRequirementList = poRequirementMappingRepository
+					.getPoRequirementDataByPoId(poId);
+
+			if (resourceRequirementList == null || resourceRequirementList.isEmpty()) {
+				response.setServiceResponse("No Resource Requirement Found!!");
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				return response;
+			}
+			response.setServiceResponse(resourceRequirementList);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			return response;
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Something went wrong!!");
+		}
+		return response;
+	}
+
+	public ServiceResponse getActivePoDetailsByProjectId(Integer projectId) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		try {
+			if (projectId == null) {
+				return failResponse(serviceResponse, apiLogInfo, "Project Id cannot be null");
+			}
+
+			List<PoDetailsDto> poDetailsDtos = poDetailsRepository.getActivePoDetailsDtoByProjectId(projectId);
+			
+			if (poDetailsDtos == null || poDetailsDtos.isEmpty()) {
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiResponse("PO Details Not found!!");
+				serviceResponse.setServiceResponse("PO Details Not found!!");
+				return serviceResponse;
+			}
+
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(poDetailsDtos);
+			apiLogInfo.setApiResponse("PO Details fetched successfully!!");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return failResponse(serviceResponse, apiLogInfo, "Something went wrong.");
+		}
+		return serviceResponse;
+	}
+
+	public ServiceResponse getResourceRequirementByTeamId(Long teamId) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (teamId == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Team Id cannot be null!!");
+				return response;
+			}
+
+			List<RmgResourceRequirementDto> resourceRequirementList = poRequirementMappingRepository
+					.getPoRequirementDataByTeamId(teamId);
+
+			if (resourceRequirementList == null || resourceRequirementList.isEmpty()) {
+				response.setServiceResponse("No Resource Requirement Found!!");
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				return response;
+			}
+			response.setServiceResponse(resourceRequirementList);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			return response;
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Something went wrong!!");
+		}
+		return response;
 	}
 
 }

@@ -19,20 +19,10 @@ public class PoRequirementDataDTO {
     private String poNo;
     private String poStartDate;
     private String poEndDate;
-    
-    public PoRequirementDataDTO(
-            Long poRequirementMappingId,
-            Long poId,
-            String role,
-            String experience,
-            String department,
-            Long teamId,
-            Integer projectId,
-            String projectName,
-            String poNo,
-            String poStartDate,
-            String poEndDate
-    ) {
+
+    public PoRequirementDataDTO(Long poRequirementMappingId, Long poId, String role, String experience,
+            String department, Long teamId, Integer projectId, String projectName, String poNo, String poStartDate,
+            String poEndDate) {
         this.poRequirementMappingId = poRequirementMappingId;
         this.poId = poId;
         this.role = role;
@@ -46,6 +36,4 @@ public class PoRequirementDataDTO {
         this.poEndDate = poEndDate;
     }
 
-    
-  
 }

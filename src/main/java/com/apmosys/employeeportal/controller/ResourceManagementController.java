@@ -639,4 +639,22 @@ public class ResourceManagementController {
 		return resourceManagementService.getProjectConfigurationDetailsByProjectId(projectId);
 	}
 	
+	// @Encrypted
+	@GetMapping("/getResourceRequirementByPoId")
+	public ServiceResponse getResourceRequirementByPoId(@RequestParam Long poId) {
+		return resourceManagementService.getResourceRequirementByPoId(poId);
+	}
+
+	// @Encrypted
+	@GetMapping("/getActivePoDetailsByProjectId")
+	public ServiceResponse getActivePoDetailsByProjectId(@RequestParam Integer projectId) {
+		return resourceManagementService.getActivePoDetailsByProjectId(projectId);
+	}
+
+	// @Encrypted
+	@GetMapping("/getResourceRequirementByTeamId")
+	public ServiceResponse getResourceRequirementByTeamId(@RequestParam Long teamId) {
+		return resourceManagementService.getResourceRequirementByTeamId(teamId);
+	}
+	
 }

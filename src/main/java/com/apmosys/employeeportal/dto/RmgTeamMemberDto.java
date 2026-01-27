@@ -10,6 +10,28 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RmgTeamMemberDto {
 
+    private Integer projectId;
+    private String projectName;
+    private String projectStatus;
+    private String poProjectType;
+    private String internalProjectType;
+
+    private Long teamId;
+    private String teamName;
+    private String isTeamActive;
+    private String deptIds;
+    private Long spocId;
+    private String spocName;
+    private Long etmId;
+
+    private Long poId;
+    private String poNo;
+    private Long poRequirementMappingId;
+    private String role;
+    private String experience;
+    private String department;
+    private boolean isPrmActive;
+
     private Long empId;
     private String memberName;
     private String employeeRole;
@@ -18,7 +40,7 @@ public class RmgTeamMemberDto {
     private LocalDateTime endDate;
     private Integer isShadow;
     private Long isMemberActive;
-    private boolean deafultProject;
+    private boolean defaultProject;
     private String memberDepartment;
     private String employementId;
     private String billableType;
@@ -26,10 +48,19 @@ public class RmgTeamMemberDto {
     private String currentExp;
     private String totalExp;
     private String jobRoleName;
+    private List<Integer> otherActiveProjectIds;
 
-    public RmgTeamMemberDto(String memberName, String employeeRole,List<String> employeeRoles, LocalDateTime startDate,
-            LocalDateTime endDate,
-            Integer isShadow, Long isMemberActive, boolean deafultProject) {
+    private Integer clientId;
+    private String clientName;
+    private LocalDateTime rescEndDate;
+    private Long createdBy;
+    private Long updatedBy;
+    private boolean isCustomDate;
+
+    private Long rescRemovedBy;
+
+    public RmgTeamMemberDto(String memberName, String employeeRole, List<String> employeeRoles, LocalDateTime startDate,
+            LocalDateTime endDate, Integer isShadow, Long isMemberActive, boolean defaultProject) {
         this.memberName = memberName;
         this.employeeRole = employeeRole;
         this.employeeRoles = employeeRoles;
@@ -37,7 +68,7 @@ public class RmgTeamMemberDto {
         this.endDate = endDate;
         this.isShadow = isShadow;
         this.isMemberActive = isMemberActive;
-        this.deafultProject = deafultProject;
+        this.defaultProject = defaultProject;
     }
 
 }

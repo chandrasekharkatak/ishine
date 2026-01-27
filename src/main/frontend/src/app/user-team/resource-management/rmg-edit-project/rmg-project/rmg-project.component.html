@@ -162,7 +162,8 @@
 
                     <div class="po-list-accordion-body">
                         <!-- TNM Resource Requirement Cards -->
-                        <div class="row tnm-requirement-row m-1 mt-2 mb-2" *ngIf="projectConfigStepperIndex == 1">
+                        <div class="row resource-requirement-count-row justify-content-around"
+                            *ngIf="projectConfigStepperIndex == 1">
                             <div class="col-md-3 p-0" *ngIf="projectType === 'TNM'">
                                 <div class="card resource-requirement-count m-1">
                                     <div class="d-flex justify-content-around align-items-center">
@@ -224,13 +225,13 @@
                         </div>
 
                         <!-- Add Team Row -->
-                        <div class="row new-team-row m-1 mb-2">
+                        <div class="row team-row justify-content-around">
                             <div class="col-md-3 p-1">
                                 <div class="form-group m-1">
                                     <label class="mb-0">Team Name<span class="text-danger">*</span>
                                     </label>
                                     <input class="form-control" type="text" [(ngModel)]="po.newTeamObj.teamName"
-                                        placeholder="Enter Team Name" (blur)="checkNewTeamName()" />
+                                        placeholder="Enter Team Name" (blur)="validateTeamName(po,po.newTeamObj)" />
                                 </div>
                             </div>
                             <div class="col-md-4 p-1">
@@ -255,7 +256,7 @@
                             </div>
                             <div class="col-md-1 p-1">
                                 <div class="d-flex justify-content-center align-items-center mt-4">
-                                    <button class="btn btn-sm primary p-0 primary-color" title="Add New Team"
+                                    <button class="btn btn-sm btn-outline-primary" title="Add New Team"
                                         (click)="addNewTeam(po)">
                                         <i class="fa-solid fa-square-plus" aria-hidden="true"></i>
                                     </button>&nbsp;
@@ -263,14 +264,9 @@
                             </div>
                         </div>
 
-                        <!-- Select All Team Row -->
-                        <div class="row new-team-row m-1 mt-2 mb-2 justify-content-start">
-                            <div class="col-md-6 p-1">
-                                <mat-checkbox [disableRipple]="true" class="custom-checkbox" color="primary"
-                                    [checked]="po.isPoSelected" (change)="onPoCheckboxChange(po)">Select
-                                    All</mat-checkbox>
-                            </div>
-                            <div class="col-md-6 d-flex justify-content-end p-1" *ngIf="po.isAnyMemberSelected">
+                        <!-- Delete / Migrate Team(s) Row -->
+                        <div class="row p-2" *ngIf="po.isAnyTeamSelected">
+                            <div class="col-md-12 d-flex justify-content-end">
                                 <button class="btn btn-primary btn-sm" (click)="openDeleteTeamModal(po)">
                                     Bulk Delete
                                 </button>&nbsp;&nbsp;
@@ -280,75 +276,68 @@
                             </div>
                         </div>
 
-                        <!-- All Teams List for PO  -->
-                        <ng-container *ngFor="let team of po.teamList">
-                            <ng-template [ngTemplateOutlet]="team_list_template"
-                                [ngTemplateOutletContext]="{team: team, po: po}">
-                            </ng-template>
-                        </ng-container>
+                        <!-- All Teams List Table  -->
+                        <div class="w-100 mb-2 p-2">
+                            <app-floating-scroll-wrapper>
+                                <table class="custom-table">
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                <mat-checkbox class="custom-checkbox" color="primary"
+                                                    [checked]="po.isPoSelected" title="Select All Teams"
+                                                    (change)="onPoCheckboxChange(po)"></mat-checkbox>
+                                            </th>
+                                            <th style="max-width: 200px;">Team Name</th>
+                                            <th style="max-width: 200px;">Department(s)</th>
+                                            <th style="max-width: 200px;">SPOC</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr *ngFor="let team of po.teamList">
+                                            <td>
+                                                <mat-checkbox class="custom-checkbox" color="primary"
+                                                    [checked]="team.isTeamSelected"
+                                                    (change)="onTeamCheckboxChange(po, team)">
+                                                </mat-checkbox>
+                                            </td>
+                                            <td>
+                                                <input class="form-control" type="text" [(ngModel)]="team.teamName"
+                                                    placeholder="Enter Team Name" (blur)="validateTeamName(po,team)" />
+                                            </td>
+                                            <td>
+                                                <app-my-select #teamDepartmentSelect class="form-control"
+                                                    placeholder="Select Department" [(ngModel)]="team.deptIds"
+                                                    [options]="departmentsList" displayKey="name" valueKey="deptId"
+                                                    [multiple]="true">
+                                                </app-my-select>
+                                            </td>
+                                            <td>
+                                                <app-my-select #teamSpocSelect class="form-control"
+                                                    placeholder="Select Employee" [(ngModel)]="team.spocId"
+                                                    [options]="spocList" displayKey="name" valueKey="empId"
+                                                    [multiple]="false">
+                                                </app-my-select>
+                                            </td>
+                                            <td class="actions">
+                                                <button class="btn btn-sm btn-outline-primary"
+                                                    title="Update Resource Requirements"
+                                                    (click)="getTeamDetailsByTeamId(team,po)">
+                                                    <i class="fa fa-edit" aria-hidden="true"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </app-floating-scroll-wrapper>
+                        </div>
+
                     </div>
                 </mat-expansion-panel>
             </mat-accordion>
         </ng-container>
     </div>
 </ng-template>
-
-<ng-template #team_list_template let-team="team" let-po="po">
-    <mat-accordion>
-        <mat-expansion-panel [expanded]="false" class="shadow-sm team-list-expansion-panel mb-2">
-            <mat-expansion-panel-header class="mb-1">
-                <mat-panel-title>
-                    <div class="row w-100 align-items-center">
-                        <div class="col-md-1 mb-0" (click)="$event.stopPropagation()">
-                            <mat-checkbox [disableRipple]="true" class="custom-checkbox" color="primary"
-                                [checked]="team.isTeamSelected" (change)="onTeamCheckboxChange(po, team)">
-                            </mat-checkbox>
-                        </div>
-                        <div class="col-md-3 mb-0">
-                            <div class="mat-header-column">
-                                <p class="mb-0">Team Name : </p>
-                                <span class="truncate" [title]="team.teamName">{{team.teamName}}
-                                </span>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-0">
-                            <div class="mat-header-column">
-                                <p class="mb-0">Department(s) : </p>
-                                <span class="truncate" [title]="team.departmentNames">{{team.departmentNames}}
-                                </span>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-0">
-                            <div class="mat-header-column">
-                                <p class="mb-0">SPOC : </p>
-                                <span class="truncate" [title]="team.spocName">{{team.spocName}}
-                                </span>
-                            </div>
-                        </div>
-                        <div class="col-md-2 mb-0 d-flex justify-content-end">
-                            <div class="mat-header-column">
-                                <p class="mb-0">Mapped : </p>
-                                <span class="ml-2">{{0 || 0}}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </mat-panel-title>
-            </mat-expansion-panel-header>
-
-            <div class="team-list-accordion-body">
-                <!-- Role Wise Resource List of Team  -->
-                <ng-container *ngFor="let requirement of team.rmgResourceRequirementList">
-                    <ng-template [ngTemplateOutlet]="role_list_template"
-                        [ngTemplateOutletContext]="{requirement:requirement,team: team, po: po}">
-                    </ng-template>
-                </ng-container>
-            </div>
-
-        </mat-expansion-panel>
-    </mat-accordion>
-</ng-template>
-
 
 <ng-template #role_list_template let-requirement="requirement" let-team="team" let-po="po">
     <mat-accordion>
@@ -357,12 +346,6 @@
             <mat-expansion-panel-header>
                 <mat-panel-title>
                     <div class="row w-100 align-items-center">
-                        <div class="col-md-1 mb-0" (click)="$event.stopPropagation()">
-                            <mat-checkbox [disableRipple]="true" class="custom-checkbox" color="primary"
-                                [checked]="requirement.isRequirementSelected"
-                                (change)="onRoleCheckboxChange(po, team, requirement)">
-                            </mat-checkbox>
-                        </div>
                         <div class="col-md-3 mb-0">
                             <div class="mat-header-column">
                                 <p class="mb-0">Role : </p>
@@ -384,7 +367,7 @@
                                 </span>
                             </div>
                         </div>
-                        <div class="col-md-2 mb-0 d-flex justify-content-end ">
+                        <div class="col-md-3 mb-0 d-flex justify-content-end ">
                             <div class="mat-header-column">
                                 <p class="mb-0">Mapped : </p>
                                 <span class="ml-2">{{0 || 0}}
@@ -412,6 +395,19 @@
                                 Old Resource
                             </span>
                         </div>
+                    </div>
+                </div>
+                <div class="col-md-6 p-1">
+                    <div class="d-flex justify-content-end m-1">
+                        <button class="btn btn-primary btn-sm" *ngIf="!requirement.isAnyNewMemberAdded"
+                            (click)="updateExistingTeamMembers(po,team,requirement)">Update Member(s)
+                        </button>&nbsp;&nbsp;
+                        <button class="btn btn-primary btn-sm" *ngIf="requirement.isAnyNewMemberAdded"
+                            (click)="addNewTeamMembers(po,team,requirement)">Add New Member(s)
+                        </button>&nbsp;&nbsp;
+                        <button class="btn btn-primary btn-sm" *ngIf="requirement.isAnyMemberSelected"
+                            (click)="validateRemovingMembers(po,team,requirement)">Remove Member(s)
+                        </button>
                     </div>
                 </div>
             </div>
@@ -445,8 +441,9 @@
             <div class="row align-items-center mt-2">
                 <div class="col-md-3">
                     <app-my-select #newMemberSelect class="form-control" placeholder="Select Employee"
-                        [(ngModel)]="requirement.newRmgTeamMember.empId" [options]="spocList" displayKey="name"
-                        valueKey="empId" [multiple]="false">
+                        [(ngModel)]="requirement.newRmgTeamMember.empId" [options]="employeeListFilteredByDept"
+                        displayKey="name" valueKey="empId" [multiple]="false"
+                        (change)="getEmployeeExistingProjectDetailsByEmpId(requirement, requirement.newRmgTeamMember.empId)">
                     </app-my-select>
                 </div>
                 <div class="col-md-3">
@@ -457,40 +454,55 @@
                 </div>
                 <div class="col-md-5">
                     <div class="row flex-nowrap">
-                        <mat-checkbox [disableRipple]="true" class="custom-checkbox" color="primary"
+                        <mat-checkbox class="custom-checkbox" color="primary"
                             [(ngModel)]="requirement.newRmgTeamMember.isShadow">Shadow</mat-checkbox>
-                        <mat-checkbox [disableRipple]="true" class="custom-checkbox" color="primary"
-                            [(ngModel)]="requirement.newRmgTeamMember.deafultProject">Default Project</mat-checkbox>
+                        <mat-checkbox class="custom-checkbox" color="primary"
+                            [(ngModel)]="requirement.newRmgTeamMember.defaultProject">Default Project</mat-checkbox>
                     </div>
                 </div>
                 <div class="col-md-1">
-                    <button class="btn btn-sm primary p-0 primary-color" title="Add New Team Member"
-                        (click)="addNewTeamMember(requirement,po)">
-                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                    <button class="btn btn-sm btn-outline-primary"
+                        (click)="addNewTeamMemberToCurrentResourceList(requirement, team,po)"
+                        [disabled]="isAddNewTeamMemberButtonDisabled(requirement, requirement.newRmgTeamMember)"
+                        [attr.title]="getAddNewTeamMemberButtonTitle(requirement, requirement.newRmgTeamMember)">
+                        <i class="fa fa-plus" aria-hidden="true"></i>
                     </button>
                 </div>
             </div>
 
             <div class="w-100 mt-2 mb-2">
                 <app-floating-scroll-wrapper>
-                    <table class="rmg-team-member-table">
+                    <table class="custom-table">
                         <thead>
                             <tr>
-                                <th></th>
+                                <th>
+                                    <mat-checkbox class="custom-checkbox" color="primary"
+                                        [checked]="requirement.isRequirementSelected"
+                                        (change)="onRoleCheckboxChange(po, team, requirement)">
+                                    </mat-checkbox>
+                                </th>
                                 <th>Info</th>
                                 <th>Name</th>
                                 <th>Role</th>
                                 <th>Shadow</th>
                                 <th>Default</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
+                            <tr *ngIf="!teamMembers || teamMembers?.length < 0">
+                                <td colspan="6" class="text-center">No Resources found.</td>
+                            </tr>
                             <tr *ngFor="let member of teamMembers">
                                 <td>
-                                    <mat-checkbox [disableRipple]="true" class="custom-checkbox" color="primary"
+                                    <button *ngIf="member.isNotSaved" class="btn btn-danger btn-sm"
+                                        (click)="removeTeamMemberFromCurrentResourceList(po, team, requirement, member)"
+                                        title="Delete Employee">
+                                        <em class="fa fa-trash"></em>
+                                    </button>
+                                    <mat-checkbox *ngIf="!member.isNotSaved" class="custom-checkbox" color="primary"
                                         [(ngModel)]="member.isMemberSelected"
-                                        (change)="onMemberCheckboxChange(po, team, requirement)"></mat-checkbox>
+                                        (change)="onMemberCheckboxChange(po, team, requirement)">
+                                    </mat-checkbox>
                                 </td>
                                 <td>
                                     <button class="btn btn-sm">
@@ -512,16 +524,12 @@
                                     </app-my-select>
                                 </td>
                                 <td>
-                                    <mat-checkbox [disableRipple]="true" class="custom-checkbox" color="primary"
+                                    <mat-checkbox class="custom-checkbox" color="primary"
                                         [(ngModel)]="member.isShadow"></mat-checkbox>
                                 </td>
                                 <td>
-                                    <mat-checkbox [disableRipple]="true" class="custom-checkbox" color="primary"
-                                        [(ngModel)]="member.deafultProject"></mat-checkbox>
-                                </td>
-                                <td class="actions">
-                                    <button class="btn btn-sm btn-outline-danger" (click)="onDelete(member)"><i
-                                            class="fa fa-trash"></i></button>
+                                    <mat-checkbox class="custom-checkbox" color="primary"
+                                        [(ngModel)]="member.defaultProject"></mat-checkbox>
                                 </td>
                             </tr>
                         </tbody>
@@ -540,7 +548,7 @@
         </div>
         <div class="card-body p-1">
             <app-floating-scroll-wrapper>
-                <table class="rmg-team-member-table">
+                <table class="custom-table">
                     <thead>
                         <tr>
                             <th>Name</th>
@@ -551,6 +559,9 @@
                         </tr>
                     </thead>
                     <tbody>
+                        <tr *ngIf="!teamMembers || teamMembers?.length < 0">
+                            <td colspan="5" class="text-center">No Resources found.</td>
+                        </tr>
                         <tr *ngFor="let member of teamMembers">
                             <td>{{ member.memberName }}</td>
                             <td>{{ member.employeeRole }}</td>
@@ -561,6 +572,99 @@
                     </tbody>
                 </table>
             </app-floating-scroll-wrapper>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #migrate_team>
+    <div class="modal-body text-center pb-0">
+        <h6 class="mb-2 fw-semibold">Migrate Teams</h6>
+    </div>
+    <div class="row justify-content-center align-items-center m-1">
+        <div class="col-md-4">
+            <label class="mb-0">Target Project<span class="text-danger">*</span>
+            </label>
+        </div>
+        <div class="col-md-8">
+            <app-my-select #filterActiveProject class="form-control w-100" placeholder="Select Target Project"
+                [(ngModel)]="teamMigrationObj.targetProjectId" [options]="projectList" displayKey="projectName"
+                valueKey="projectId" [multiple]="false" (change)="getActivePoDetailsByProjectIdForTeamMigration()">
+            </app-my-select>
+        </div>
+    </div>
+
+    <div class="row justify-content-center align-items-center m-1">
+        <div class="col-md-4">
+            <label class="mb-0">Select PO<span class="text-danger">*</span>
+            </label>
+        </div>
+        <div class="col-md-8">
+            <app-my-select #filterActivePo class="form-control w-100" placeholder="Select PO"
+                [(ngModel)]="teamMigrationObj.targetPoId" [options]="teamMigrationPoDetailsList" displayKey="poNo"
+                valueKey="poId" [multiple]="false" (change)="getActiveTeamDetailsByPoIdForTeamMigration()">
+            </app-my-select>
+        </div>
+    </div>
+    <div class="row justify-content-center align-items-center m-1" *ngIf="teamMigrationObj.mergeTeam">
+        <div class="col-md-4">
+            <label class="mb-0">Select Team<span class="text-danger">*</span>
+            </label>
+        </div>
+        <div class="col-md-8">
+            <app-my-select #filterTeam class="form-control w-100" placeholder="Select Team"
+                [(ngModel)]="teamMigrationObj.targetTeamId" [options]="teamMigrationTeamList" displayKey="teamName"
+                valueKey="teamId" [multiple]="false">
+            </app-my-select>
+        </div>
+    </div>
+    <div class="row  justify-content-start align-items-center m-1">
+        <mat-checkbox class="custom-checkbox" color="primary" [(ngModel)]="teamMigrationObj.mergeTeam"
+            title="Merge into Existing Team" (change)="toggleMergeIntoExistingTeam()">Merge into Existing
+            Team</mat-checkbox>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row justify-content-center mt-2 mb-4">
+        <button class="btn btn-sm btn-outline-primary" (click)="migrateTeam()">Yes, Proceed</button>&nbsp;&nbsp;
+        <button class="btn btn-sm btn-primary" (click)="closeMigrateTeamModal()">No, Cancel</button>
+    </div>
+</ng-template>
+
+<ng-template #role_list>
+    <div class="card">
+        <div class="card-header">
+            <div class="row align-items-center ">
+                <div class="col-md-11">
+                    <h6 class="card-title p-0">PO Requirements</h6>
+                </div>
+                <div class="col-md-1">
+                    <button class="btn btn-sm btn-outline-primary" (click)="closeRoleListModal()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-2">
+            <div class="card p-1">
+                <div class="row align-items-center justify-content-center" *ngIf="resourceRequirementList?.length > 0">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <h6 class="mb-0">Select Resource Requirement</h6>
+                            <app-my-select class="form-control" [(ngModel)]="newPoRequirementMappingId"
+                                [options]="resourceRequirementList" placeholder="Select Resource Requirement"
+                                displayKey="displayValue" valueKey="poRequirementMappingId"
+                                (change)="addResourceRequirementToTeam(currentTeam)">
+                            </app-my-select>
+                        </div>
+                    </div>
+                </div>
+
+                <ng-container *ngFor="let requirement of currentTeam.rmgResourceRequirementList">
+                    <ng-template [ngTemplateOutlet]="role_list_template"
+                        [ngTemplateOutletContext]="{requirement:requirement,team: currentTeam, po: currentPo}">
+                    </ng-template>
+                </ng-container>
+            </div>
         </div>
     </div>
 </ng-template>
@@ -604,29 +708,372 @@
     </div>
 </ng-template>
 
-<ng-template #migrate_team>
-    <div class="modal-body text-center">
-        <h6 class="mb-2 fw-semibold">Migrate Teams</h6>
+<ng-template #mapping_other_project_as_default>
+    <div class="modal-body text-center team-preview-field">
+        <p class="section-title mt-4">Employees with Other Project Mappings Eligible for Default Project Assignment
+        </p>
+        <app-floating-scroll-wrapper>
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Emp Id</th>
+                        <th>Employee Name</th>
+                        <th>Project Name</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let employee of mappingToOtherProjectAsDefaultList">
+                        <td>{{employee.employementId}}</td>
+                        <td>{{employee.memberName}}</td>
+                        <td>
+                            <app-my-select #projectSelect class="form-control" placeholder="Select Project"
+                                [(ngModel)]="mappingToOtherProjectId" [options]="projectList" displayKey="projectName"
+                                valueKey="projectId">
+                            </app-my-select>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm" (click)="updateMappingToOtherProjectAsDefault()">Update
+                                Default Project</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </app-floating-scroll-wrapper>
     </div>
-    <div class="row justify-content-center">
-        <div class="col-md-11">
-            <div class="form-group m-1">
-                <label class="mb-1">Target Project<span class="text-danger">*</span>
-                </label>
-                <app-my-select #filterActiveProject class="form-control w-100" placeholder="Select Target Project"
-                    [(ngModel)]="teamMigrationTargetProjectId" [options]="projectList" displayKey="projectName"
-                    valueKey="projectId" [multiple]="false">
-                </app-my-select>
+</ng-template>
+
+<ng-template #mark_default_project_completion>
+    <div class="card">
+        <div class="card-header">
+            <div class="row align-items-center ">
+                <div class="col-md-11">
+                    <h6 class="card-title p-0">Employee(s) With New Default Project Mappings Requirement</h6>
+                </div>
+                <div class="col-md-1">
+                    <button class="btn btn-sm btn-outline-primary" (click)="closeMarkDefaultProjectCompletionModal()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-2">
+            <div class="row justify-content-start align-items-center m-2">
+                <mat-slide-toggle color="primary" [(ngModel)]="isMarkDefaultProjectCompletionBulk">
+                </mat-slide-toggle>&nbsp;&nbsp;
+                <h6 *ngIf="!isMarkDefaultProjectCompletionBulk" class="section-title">Bulk Default Project Mapping</h6>
+                <h6 *ngIf="isMarkDefaultProjectCompletionBulk" class="section-title">Individual Default Project Mapping
+                </h6>
+            </div>
+
+
+            <!-- Bulk Update Mode -->
+            <div *ngIf="!isMarkDefaultProjectCompletionBulk" class="bulk-mode-section mb-4">
+                <div class="card p-1 mb-2">
+                    <div class="row flex-nowrap align-items-end horizontal-scroll m-1">
+                        <div class="col-3 p-1">
+                            <div class="form-group">
+                                <label>Project Type</label>
+                                <app-my-select class="form-control" placeholder="Select Project Type"
+                                    [(ngModel)]="defaultProjectObj.projectType" [options]="projectTypes">
+                                </app-my-select>
+                            </div>
+                        </div>
+
+                        <div class="col-3 p-1">
+                            <div class="form-group">
+                                <label>Project</label>
+                                <app-my-select class="form-control" placeholder="Select Project"
+                                    [(ngModel)]="defaultProjectObj.projectId"
+                                    [options]="defaultProjectObj.projectType !== 'Bench' ? projectsOther : projectsBench"
+                                    valueKey="projectId" displayKey="projectName"
+                                    (change)="getActivePoDetailsByProjectId()">
+                                </app-my-select>
+                            </div>
+                        </div>
+                        <div class="col-3 p-1">
+                            <div class="form-group">
+                                <label>PO</label>
+                                <app-my-select class="form-control" placeholder="Select PO"
+                                    [(ngModel)]="defaultProjectObj.poId" displayKey="poNo" valueKey="poId"
+                                    [options]="defaultProjectObj.poDetailsList" (change)="getActiveTeamDetailsByPoId()">
+                                </app-my-select>
+                            </div>
+                        </div>
+
+                        <div class="col-3 p-1">
+                            <div class="form-group">
+                                <label>Team Name</label>
+                                <app-my-select class="form-control" placeholder="Select Team" valueKey="teamId"
+                                    displayKey="teamName" [(ngModel)]="defaultProjectObj.teamId"
+                                    [options]="defaultProjectObj.teamList" (change)="getResourceRequirementByTeamId()">
+                                </app-my-select>
+                            </div>
+                        </div>
+
+                        <div class="col-3 p-1">
+                            <div class="form-group">
+                                <label>Employee Role</label>
+                                <app-my-select class="form-control" [multiple]="true" placeholder="Select Role"
+                                    [(ngModel)]="defaultProjectObj.employeeRole" [options]="employeeRoles">
+                                </app-my-select>
+                            </div>
+                        </div>
+
+                        <div class="col-3 p-1">
+                            <div class="form-group">
+                                <label>Project Requirement</label>
+                                <app-my-select class="form-control"
+                                    [(ngModel)]="defaultProjectObj.poRequirementMappingId"
+                                    valueKey="poRequirementMappingId" displayKey="displayValue"
+                                    [options]="defaultProjectObj.resourceRequirementList">
+                                </app-my-select>
+                            </div>
+                        </div>
+
+                        <div class="col-3 p-1 mb-4">
+                            <button class="btn btn-sm btn-primary" (click)="updateDefaultProjectCompletionBulk()">Update
+                                Default Project</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Employee List -->
+                <div class="card p-1">
+                    <app-floating-scroll-wrapper>
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th class="max-width150">Emp Id</th>
+                                    <th class="max-width200">Employee Name</th>
+                                    <th class="max-width200">Department</th>
+                                    <th class="max-width200">Job Role</th>
+                                    <th class="max-width150">Billable Type</th>
+                                    <th class="max-width150">Previous Exp</th>
+                                    <th class="max-width150">Current Exp</th>
+                                    <th class="max-width150">Total Exp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let employee of markDefaultProjectCompletionList; let i = index">
+                                    <td class="max-width150 min-width150">{{ employee.employementId }}</td>
+                                    <td class="max-width200 min-width150">{{ employee.memberName }}</td>
+                                    <td class="max-width200">{{ employee.memberDepartment }}</td>
+                                    <td class="max-width200">{{ employee.jobRoleName }}</td>
+                                    <td class="max-width150">{{ employee.billableType }}</td>
+                                    <td class="max-width150">{{ employee.prevExp }}</td>
+                                    <td class="max-width150">{{ employee.currentExp }}</td>
+                                    <td class="max-width150">{{ employee.totalExp }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </app-floating-scroll-wrapper>
+                </div>
+            </div>
+
+            <!-- Individual Mode -->
+            <div class="card p-1" *ngIf="isMarkDefaultProjectCompletionBulk">
+                <div class="individual-mode-section bulk-mapping-table-wrapper">
+                    <app-floating-scroll-wrapper>
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th class="max-width150 min-width150">Emp Id</th>
+                                    <th class="max-width200 min-width150">Name</th>
+                                    <th class="max-width200">Project Type</th>
+                                    <th class="max-width200">Project</th>
+                                    <th class="max-width200">PO No</th>
+                                    <th class="max-width200">Team</th>
+                                    <th class="max-width200">Role</th>
+                                    <th class="max-width200">Requirement</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngIf="markDefaultProjectCompletionList.length === 0">
+                                    <td colspan="8" class="text-center">No Details to display.</td>
+                                </tr>
+                                <tr *ngFor="let employee of markDefaultProjectCompletionList">
+                                    <td class="max-width150 min-width150">{{ employee.employementId }}</td>
+                                    <td class="max-width200 min-width150">{{ employee.memberName }}</td>
+                                    <td class="max-width200">
+                                        <app-my-select class="form-control" placeholder="Select Project Type"
+                                            [(ngModel)]="employee.projectType" [options]="projectTypes">
+                                        </app-my-select>
+                                    </td>
+                                    <td class="max-width200">
+                                        <app-my-select class="form-control" placeholder="Select Project"
+                                            [(ngModel)]="employee.projectId" displayKey="projectName"
+                                            valueKey="projectId"
+                                            [options]="employee.projectType !== 'Bench' ? projectsOther : projectsBench"
+                                            (change)="getActivePoDetailsByProjectIdForEmployee(employee)">
+                                        </app-my-select>
+                                    </td>
+                                    <td class="max-width200">
+                                        <app-my-select class="form-control" placeholder="Select PO"
+                                            [(ngModel)]="employee.poId" displayKey="poNo" valueKey="poId"
+                                            [options]="employee.poDetailsList"
+                                            (change)="getActiveTeamDetailsByPoIdForEmployee(employee)">
+                                        </app-my-select>
+                                    </td>
+                                    <td class="max-width200">
+                                        <app-my-select class="form-control" placeholder="Search Team"
+                                            [(ngModel)]="employee.teamId" displayKey="teamName" valueKey="teamId"
+                                            [options]="employee.teamList"
+                                            (change)="getResourceRequirementByTeamIdForEmployee(employee)">
+                                        </app-my-select>
+                                    </td>
+                                    <td class="max-width200">
+                                        <app-my-select class="form-control" placeholder="Select Role"
+                                            [(ngModel)]="employee.employeeRole" [options]="employeeRoles"
+                                            [multiple]="true">
+                                        </app-my-select>
+                                    </td>
+                                    <td class="max-width200">
+                                        <app-my-select class="form-control" placeholder="Search Requirement"
+                                            [(ngModel)]="employee.poRequirementMappingId"
+                                            valueKey="poRequirementMappingId" displayKey="displayValue"
+                                            [options]="employee.resourceRequirementList">
+                                        </app-my-select>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary" title="Set Default Project"
+                                            (click)="updateDefaultProjectCompletion(employee)">
+                                            Update
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </app-floating-scroll-wrapper>
+                </div>
             </div>
         </div>
     </div>
-    <!-- Action Buttons -->
-    <div class="row justify-content-center mt-2 mb-4">
-        <button class="btn btn-sm btn-outline-primary" (click)="migrateTeam()">Yes, Proceed</button>&nbsp;&nbsp;
-        <button class="btn btn-sm btn-primary" (click)="closeMigrateTeamModal()">No, Cancel</button>
+</ng-template>
+
+<ng-template #remove_members_confirmation>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete the selected members from the <br> Team and Project ?</p>
+        <div class="row justify-content-center align-items-center">
+            <div class="col-md-6">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label ml-1">Select End Date</label>
+                        <input type="date" class="form-control" autocomplete="none" [(ngModel)]="membersEndDate">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row justify-content-center align-items-center">
+            <button type="button" class="btn btn-success btn-sm"
+                (click)="removeTeamMembersFromPO();closeRemoveMembersModal()">Yes, proceed</button>&nbsp;
+            <button type="button" class="btn btn-danger btn-sm" (click)="closeRemoveMembersModal()">No,
+                Cancel</button>&nbsp;
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #employee_existing_project_details>
+    <div class="card">
+        <div class="card-header">
+            <div class="row align-items-center ">
+                <div class="col-md-11">
+                    <h6 class="card-title p-0">Employee's Existing Project Details</h6>
+                </div>
+                <div class="col-md-1">
+                    <button class="btn btn-sm btn-outline-primary" (click)="closeEmployeeExistingProjectDetailsModal()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-2">
+            <app-floating-scroll-wrapper>
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th style="min-width: 80px;">Sr.No</th>
+                            <th class="max-width200 min-width150">Project Name</th>
+                            <th class="max-width200 min-width150">Team Name</th>
+                            <th class="max-width200 min-width150">Client Name</th>
+                            <th class="max-width150 min-width150">Billable Type</th>
+                            <th class="max-width150 min-width150">Start Date</th>
+                            <th class="max-width150 min-width150">End Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <ng-container *ngIf="employeeExistingProjectDetails.length === 0">
+                            <tr>
+                                <th colspan="7" class="text-center info-label">No details to display...</th>
+                            </tr>
+                        </ng-container>
+                        <tr
+                            *ngFor="let employee of employeeExistingProjectDetails | paginate: { id: 'projectEmployeeDetailsId', itemsPerPage: 10, currentPage: employeeExistingProjectDetailsPage }; let i = index">
+                            <td class="text-center">{{ (employeeExistingProjectDetailsPage - 1) * 10 + i + 1 }}</td>
+                            <td class="max-width200 min-width150">{{ employee.projectName || '-' }}</td>
+                            <td class="max-width200 min-width150">{{ employee.teamName || '-' }}</td>
+                            <td class="max-width200 min-width150">{{ employee.clientName || '-' }}</td>
+                            <td class="max-width150 min-width150">{{ employee.billableType || '-' }}</td>
+                            <td class="max-width150 min-width150">{{ employee.startDate ? (employee.startDate | date:
+                                'dd-MM-yyyy') : '-'}}</td>
+                            <td class="max-width150 min-width150">{{ employee.endDate ? (employee.endDate | date:
+                                'dd-MM-yyyy') : '-'}}</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm"
+                                    (click)="openDeleteEmployeeFromExistingProjectModal(employee)"
+                                    title="Delete Employee Project Mapping">
+                                    <em class="fa fa-trash"></em>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </app-floating-scroll-wrapper>
+            <div class="row col-md-12 mt-2">
+                <pagination-controls id="projectEmployeeDetailsId" class="my-pagination"
+                    [hidden]="employeeExistingProjectDetails.length === 0"
+                    (pageChange)="handleEmployeeProjectDetailsPageChange($event)">
+                </pagination-controls>
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #delete_employee_from_existing_project>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete the resource from the Project ?</p>
+        <div class="row justify-content-center align-items-center">
+            <label class="info-label">Select End Date</label>
+        </div>
+        <div class="row justify-content-center align-items-center">
+            <mat-radio-group [(ngModel)]="employeeProjectEndDateType">
+                <mat-radio-button value="PO">PO End Date</mat-radio-button>
+                <mat-radio-button value="Custom">Custom End Date</mat-radio-button>
+            </mat-radio-group>
+        </div>
+        <div class="row justify-content-center align-items-center m-2">
+            <input type="date" class="form-control" autocomplete="none" [(ngModel)]="employeeProjectEndDate">
+        </div>
+        <div class="row justify-content-center align-items-center">
+            <button type="button" class="btn btn-success"
+                (click)="deleteEmployeeProjectResourceMapping();closeDeleteEmployeeFromExistingProjectModal()">Yes,
+                proceed</button>&nbsp;
+            <button type="button" class="btn btn-danger" (click)="closeDeleteEmployeeFromExistingProjectModal()">No,
+                Cancel</button>&nbsp;
+        </div>
     </div>
 </ng-template>
 
 <ng-template #loading>
     <i class="fa fa-spinner fa-spin text-secondary"></i>
+</ng-template>
+
+<ng-template #alert_message>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-primary" (click)="closeAlertMessageModal()">OK</button>&nbsp;
+    </div>
 </ng-template>

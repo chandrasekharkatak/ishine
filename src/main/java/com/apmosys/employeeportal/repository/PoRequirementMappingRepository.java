@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.dto.PoRequirementDataDTO;
 import com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto;
+import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
 import com.apmosys.employeeportal.model.PoRequirementMapping;
 
 @Repository
@@ -37,7 +38,7 @@ public interface PoRequirementMappingRepository extends JpaRepository<PoRequirem
 	List<Long> checkActiveAndPendingEmployeeMappingWithPoRequirementId(
 			@Param("poRequirementMappingId") List<Long> poRequirementMappingId);
 
-	@Query("SELECT new com.apmosys.employeeportal.dto.PoRequirementDataDTO(" +
+	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.PoRequirementDataDTO(" +
 			"po.poRequirementMappingId, " +
 			"po.poId, po.role, po.experience, po.department, " +
 			"t.teamId, p.projectId, p.projectName, " +
@@ -61,4 +62,26 @@ public interface PoRequirementMappingRepository extends JpaRepository<PoRequirem
 	@Modifying
 	@Query("DELETE FROM PoRequirementMapping")
 	void deleteAllRecords();
+
+	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.RmgResourceRequirementDto(" +
+			"po.poRequirementMappingId, pd.poId," +
+			"po.role, po.experience, po.department, " +
+			"po.active, po.count) " +
+			"FROM PoRequirementMapping po " +
+			"INNER JOIN ProjectPoDetails pd ON pd.poId = po.poId " +
+			"WHERE po.active = true " +
+			"AND po.poId = :poId")
+	List<RmgResourceRequirementDto> getPoRequirementDataByPoId(@Param("poId") Long poId);
+
+	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.RmgResourceRequirementDto(" +
+			"po.poRequirementMappingId, po.poId," +
+			"po.role, po.experience, po.department, " +
+			"po.active, po.count) " +
+			"FROM PoRequirementMapping po " +
+			"LEFT JOIN EmployeeTeamMap etm ON etm.poRequirementMappingId = po.poRequirementMappingId " +
+			"LEFT JOIN Team t ON etm.teamId = t.teamId " +
+			"WHERE po.active = true " +
+			"AND t.teamId = :teamId ")
+	List<RmgResourceRequirementDto> getPoRequirementDataByTeamId(@Param("teamId") Long teamId);
+
 }

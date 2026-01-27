@@ -8520,7 +8520,7 @@ catch(error){
   getEmployeeNameAndEmpld() {
     this.employeeList = [];
 
-    return this.employeeService.getEmployeeByNameAndEmpld().pipe(
+    return this.employeeService.getAllActiveEmployeeInformation().pipe(
       first(),
       map((response: any) => {
         if (response.serviceStatus === 'Success') {

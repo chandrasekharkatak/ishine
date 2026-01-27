@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,20 +19,19 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
 import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.ClientProjectReportDTO;
+import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
-import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
 import com.apmosys.employeeportal.dto.MilestoneUpdatedLogDto;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
-import com.apmosys.employeeportal.dto.RmAndHodEmailDto;
-import com.apmosys.employeeportal.request.ProjectRequest;
+import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.request.ProjectRequest;
 import com.apmosys.employeeportal.service.EmployeeService;
 import com.apmosys.employeeportal.service.PoPortalAPIService;
 import com.apmosys.employeeportal.service.ProjectService;
@@ -298,6 +296,18 @@ public class ProjectController {
 	public ServiceResponse getProjectByName(@RequestBody ProjectDTO projectDto) {
 		ServiceResponse response = projectService.getProjectByName(projectDto);
 		return response;
+	}
+	
+	// @Encrypted
+	@GetMapping("/getEmployeeExistingProjectDetailsByEmpId")
+	public ServiceResponse getEmployeeExistingProjectDetailsByEmpId(@RequestParam Long empId) {
+		return projectService.getEmployeeExistingProjectDetailsByEmpId(empId);
+	}
+	
+	// @Encrypted
+	@PostMapping("/updateEmployeeProjectMappingAsInActive")
+	public ServiceResponse updateEmployeeProjectMappingAsInActive(@RequestBody RmgTeamMemberDto rmgTeamMemberDto) {
+		return projectService.updateEmployeeProjectMappingAsInActive(rmgTeamMemberDto);
 	}
 	
 }

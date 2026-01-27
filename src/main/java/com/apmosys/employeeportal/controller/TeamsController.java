@@ -13,6 +13,7 @@ import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
+import com.apmosys.employeeportal.dto.MigrateTeam;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -300,9 +301,28 @@ public class TeamsController {
 
 	// @Encrypted
 	@JobRoleAccess(featureIds = { 7 })
-	@GetMapping("/getAllTeamsAndRoleWiseMembersByPoId")
-	public ServiceResponse getAllTeamsAndRoleWiseMembersByPoId(@RequestParam Long poId) {
-		return teamsService.getAllTeamsAndRoleWiseMembersByPoId(poId);
+	@GetMapping("/getAllTeamsByPoId")
+	public ServiceResponse getAllTeamsByPoId(@RequestParam Long poId) {
+		return teamsService.getAllTeamsByPoId(poId);
 	}
 	
+	// @Encrypted
+	@JobRoleAccess(featureIds = { 7 })
+	@GetMapping("/getTeamDetailsByTeamId")
+	public ServiceResponse getTeamDetailsByTeamId(@RequestParam Long teamId, @RequestParam Integer projectId) {
+		return teamsService.getTeamDetailsByTeamId(teamId, projectId);
+	}
+
+	// @Encrypted
+	@GetMapping("/getActiveTeamDetailsByPoId")
+	public ServiceResponse getActiveTeamDetailsByPoId(@RequestParam Long poId) {
+		return teamsService.getActiveTeamDetailsByPoId(poId);
+	}
+
+	// @Encrypted
+	@PostMapping("migrateTeam")
+	public ServiceResponse migrateTeam(@RequestBody MigrateTeam migrateTeam) {
+		return teamsService.migrateTeam(migrateTeam);
+	}
+
 }

@@ -231,5 +231,25 @@ export class ResourceManagementService {
     return this.http.get(`${this.baseUrl}` + `api/getProjectConfigurationDetailsByProjectId`, { params: httpParams });
   }
 
+  getEmployeesInformation(empId: any, projectId: any) {
+    let httpParams = new HttpParams().append("empIds", empId).append("projectId", projectId);
+    return this.http.get(`${this.baseUrl}` + `api/getEmployeeInformation`, { params: httpParams });
+  }
+
+  getResourceRequirementByPoId(poId: any) {
+    let httpParams = new HttpParams().append("poId", poId);
+    return this.http.get(`${this.baseUrl}` + `api/getResourceRequirementByPoId`, { params: httpParams });
+  }
+
+  getActivePoDetailsByProjectId(projectId: any) {
+    let httpParams = new HttpParams().append("projectId", projectId);
+    return this.http.get(`${this.baseUrl}` + `api/getActivePoDetailsByProjectId`, { params: httpParams });
+  }
+
+  getResourceRequirementByTeamId(teamId: any) {
+    let httpParams = new HttpParams().append("teamId", teamId);
+    return this.http.get(`${this.baseUrl}` + `api/getResourceRequirementByTeamId`, { params: httpParams });
+  }
+
 }
 

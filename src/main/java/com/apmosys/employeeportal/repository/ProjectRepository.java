@@ -15,18 +15,19 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.dto.ExpiredPoDto;
+import com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO;
 import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateProjectDTO;
+import com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto;
+import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
+import com.apmosys.employeeportal.dto.ProjectIdAndNameDTO;
 import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.ResourceCountDto;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
-import com.apmosys.employeeportal.dto.RmAndHodEmailDto;
 import com.apmosys.employeeportal.dto.SkippedEmployeeDTO;
 import com.apmosys.employeeportal.dto.SummaryChartDTO;
 import com.apmosys.employeeportal.dto.TimeSheetDetailsDto;
-import com.apmosys.employeeportal.dto.ProjectDTO;
-import com.apmosys.employeeportal.dto.ProjectIdAndNameDTO;
 import com.apmosys.employeeportal.model.Project;
 
 @Repository
@@ -2561,7 +2562,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		    @Param("fromDate") String fromDate,
 		    @Param("toDate") String toDate);
 	
-	@Query("SELECT DISTINCT NEW com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(projectId,projectName)\n"
+	@Query("SELECT DISTINCT NEW com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(projectId,projectName,internalProjectType)\n"
 			+ " from Project where active = 'true' ")
 	public List<ProjectNameAndPrjoectIdDTO> getActiveProjectList();
 	
@@ -4594,4 +4595,33 @@ boolean existsByProjectName(String projectName);
 			+ " GROUP BY p.project_id, project_name, c.client_name, p.state, p.start_date, p.end_date "
 			+ ", p.project_status ,po_project_type, p.internal_project_type, p.status ", nativeQuery = true)
 	List<Object[]> getProjectConfigurationDetailsByProjectIdNew(@Param("projectId") Integer projectId);
+
+	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO(etm.empId, p.projectId, p.projectName) "
+			+ "FROM Project p \n"
+			+ "INNER JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId \n"
+			+ "INNER JOIN Team t ON t.projectId = p.projectId \n"
+			+ "INNER JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId \n"
+			+ "WHERE etm.active != 0 \n"
+			+ "AND t.isActive != 'N' \n"
+			+ "AND p.active != 'false' \n"
+			+ "AND etm.empId IN :empIds \n"
+			+ "AND ppd.active = true AND p.projectId !=:projectId ")
+	List<GetActiveProjectDetailsIfMultipleDTO> getActiveProjectsByEmpIdIn(List<Long> empIds, Integer projectId);
+
+	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto( "
+			+ "p.projectId, p.projectName,p.status,p.poProjectType,p.internalProjectType, \n"
+			+ "ppd.poId, ppd.poNo, prm.poRequirementMappingId, prm.role, prm.experience, prm.department, \n"
+			+ "t.teamId, t.teamName, c.clientId, c.clientName, \n"
+			+ "e.empId, e.billableType, etm.active, etm.startDate, etm.endDate, etm.employeeTeamMapId) \n"
+			+ "FROM EmployeeTeamMap etm \n"
+			+ "INNER JOIN Employee e on e.empId = etm.empId \n"
+			+ "LEFT JOIN PoRequirementMapping prm ON prm.poRequirementMappingId = etm.poRequirementMappingId  \n"
+			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId \n"
+			+ "INNER JOIN Team t ON etm.teamId = t.teamId  \n"
+			+ "INNER JOIN Project p ON t.projectId = p.projectId  \n"
+			+ "INNER JOIN Client c ON p.clientId = c.clientId \n"
+			+ "WHERE 1=1 \n"
+			+ "AND etm.empId= :empId AND etm.active != 0  \n"
+			+ "AND t.isActive != 'N' AND p.active != 'false' \n")
+	public List<PoTeamAndMemberDetailsDto> getEmployeeExistingProjectDetailsByEmpId(Long empId);
 }

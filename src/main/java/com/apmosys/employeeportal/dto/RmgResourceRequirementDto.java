@@ -15,6 +15,7 @@ public class RmgResourceRequirementDto {
     private String experience;
     private String department;
     private boolean isPrmActive;
+    private Long count;
 
     private List<RmgTeamMemberDto> rmgTeamMemberList;
 
@@ -26,6 +27,17 @@ public class RmgResourceRequirementDto {
         this.experience = experience;
         this.department = department;
         this.isPrmActive = isPrmActive;
+    }
+
+    public RmgResourceRequirementDto(Long poRequirementMappingId, Long poId, String role, String experience,
+            String department, boolean isPrmActive, Long count) {
+        this.poRequirementMappingId = poRequirementMappingId;
+        this.poId = poId;
+        this.role = role;
+        this.experience = experience;
+        this.department = department;
+        this.isPrmActive = isPrmActive;
+        this.count = count;
     }
 
 }

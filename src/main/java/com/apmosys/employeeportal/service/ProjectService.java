@@ -3,7 +3,6 @@ package com.apmosys.employeeportal.service;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -23,6 +22,7 @@ import javax.persistence.Query;
 import javax.persistence.Query;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 //import org.hibernate.Query;
 //import org.hibernate.Session;
 import javax.servlet.http.HttpServletRequest;
@@ -30,7 +30,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,27 +37,25 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import com.apmosys.employeeportal.dto.ClientProjectReportDTO;
 import com.apmosys.employeeportal.dto.ClientIdAndName;
+import com.apmosys.employeeportal.dto.ClientProjectReportDTO;
 import com.apmosys.employeeportal.dto.ClientsDTO;
 import com.apmosys.employeeportal.dto.EmployeeProjectSummaryDTO;
-import com.apmosys.employeeportal.dto.FixedCostProjectCount;
-import com.apmosys.employeeportal.dto.GetEmployeeProjectCountDTO;
 import com.apmosys.employeeportal.dto.FCLineItemDTO;
 import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
+import com.apmosys.employeeportal.dto.FixedCostProjectCount;
+import com.apmosys.employeeportal.dto.GetEmployeeProjectCountDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportForEmployeeDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForEmployeeDTO;
 import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForProjectDTO;
 import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForTeamDTO;
-import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
-import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoProjectDTO;
-import com.apmosys.employeeportal.dto.LiftAndShiftTeamsDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoEmployeeTimesheetSyncDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.PoProjectTimesheetSyncDTO;
+import com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto;
 import com.apmosys.employeeportal.dto.PoTeamDTO;
 import com.apmosys.employeeportal.dto.PoTeamTimesheetSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
@@ -70,6 +67,7 @@ import com.apmosys.employeeportal.dto.ProjectIdAndNameDTO;
 import com.apmosys.employeeportal.dto.ProjectManagerIdAndNameDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
+import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
 import com.apmosys.employeeportal.dto.SyncableProjectDTO;
 import com.apmosys.employeeportal.exception.BadRequestException;
 import com.apmosys.employeeportal.exception.ConflictException;
@@ -90,8 +88,8 @@ import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.ProjectPoDetails;
 import com.apmosys.employeeportal.model.ResourceRequirement;
 import com.apmosys.employeeportal.model.Team;
-import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.model.TechStack;
+import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.ActivityTemplateRepository;
 import com.apmosys.employeeportal.repository.ClientLocationRepository;
@@ -110,11 +108,11 @@ import com.apmosys.employeeportal.repository.ProjectPoDetailsRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
-import com.apmosys.employeeportal.request.ProjectRequest;
+import com.apmosys.employeeportal.repository.TechStackRepository;
 import com.apmosys.employeeportal.repository.UserSessionRepository;
+import com.apmosys.employeeportal.request.ProjectRequest;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
-import com.apmosys.employeeportal.repository.TechStackRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -3800,7 +3798,7 @@ public class ProjectService {
 	public List<DeliveryMode> getAllDeliveryModes() {
 		return deliveryModeRepository.findAll();
 	}
-	
+
 	public Project createProjectRTS(ProjectPoMappingWithResourceDTO dto, Client client) {
 
 		if (projectRepository.findByPoProjectId(dto.getProjectId()) != null)
@@ -3829,4 +3827,71 @@ public class ProjectService {
 		return projectRepository.save(p);
 	}
 
+	public ServiceResponse getEmployeeExistingProjectDetailsByEmpId(Long empId) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		try {
+			if (empId == null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Employee Id cannot be null!!");
+				return serviceResponse;
+			}
+
+			List<PoTeamAndMemberDetailsDto> employeeExistingProjectDetailsList = projectRepository
+					.getEmployeeExistingProjectDetailsByEmpId(empId);
+
+			if (employeeExistingProjectDetailsList == null || employeeExistingProjectDetailsList.isEmpty()) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				serviceResponse.setServiceResponse("Employee Existing Project Details Not found!!");
+				return serviceResponse;
+			}
+
+			serviceResponse.setServiceResponse(employeeExistingProjectDetailsList);
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		} catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("Something went wrong!!");
+		}
+		return serviceResponse;
+	}
+
+	@Transactional
+	public ServiceResponse updateEmployeeProjectMappingAsInActive(RmgTeamMemberDto rmgTeamMemberDto) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		try {
+			if (rmgTeamMemberDto.getEtmId() == null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Employee Team Mapping Id cannot be null!!");
+				return serviceResponse;
+			}
+			Optional<EmployeeTeamMap> empTeamMapOpt = employeeTeamMapRepository.findById(rmgTeamMemberDto.getEtmId());
+			if (empTeamMapOpt.isEmpty()) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Employee Team Mapping not found!!");
+				return serviceResponse;
+			}
+			EmployeeTeamMap empTeamMap = empTeamMapOpt.get();
+
+			if (empTeamMap != null) {
+				empTeamMap.setActive(0l);
+				empTeamMap.setRescRemovedBy(rmgTeamMemberDto.getRescRemovedBy());
+				empTeamMap.setUpdatedBy(rmgTeamMemberDto.getUpdatedBy());
+				empTeamMap.setUpdatedOn(LocalDateTime.now());
+				empTeamMap.setIsCustomDate(rmgTeamMemberDto.isCustomDate());
+				empTeamMap.setEndDate(rmgTeamMemberDto.getRescEndDate());
+				if (rmgTeamMemberDto.getRescEndDate() == null) {
+					empTeamMap.setEndDate(LocalDateTime.now());
+				}
+
+				employeeTeamMapRepository.save(empTeamMap);
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				serviceResponse.setServiceResponse("Resource removed successfully!!");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("Something went wrong!!");
+		}
+		return serviceResponse;
+	}
 }

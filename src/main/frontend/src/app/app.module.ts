@@ -219,6 +219,9 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { MatTabsModule } from '@angular/material/tabs';
 import { RmgProjectComponent } from './user-team/resource-management/rmg-edit-project/rmg-project/rmg-project.component';
 import { NgbPopoverModule } from '@ng-bootstrap/ng-bootstrap';
+import {MatSlideToggleModule} from '@angular/material/slide-toggle';
+import {MatRadioModule} from '@angular/material/radio';
+
 registerLocaleData(localeGb);
 
 
@@ -443,7 +446,9 @@ registerLocaleData(localeGb);
     NgxEditorModule,
     MatStepperModule,
     MatTabsModule,
-    NgbPopoverModule
+    NgbPopoverModule,
+    MatSlideToggleModule,
+    MatRadioModule
   ],
   providers: [
     DatePipe,

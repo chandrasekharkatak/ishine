@@ -4,6 +4,7 @@ import { Activity } from '../models/activity';
 import { Employee } from '../models/employee';
 import { Team } from '../models/team';
 import { environment } from 'src/environments/environment';
+import { MigrateTeams } from '../models/migrateTeam';
 
 @Injectable({
   providedIn: 'root'
@@ -95,4 +96,22 @@ export class TeamService {
     return this.http.get(`${this.baseUrl}` + `api/getAllTeamsAndRoleWiseMembersByPoId`, { params: httpParams });
   }
 
+  getAllTeamsByPoId(poId: any) {
+    let httpParams = new HttpParams().append("poId", poId);
+    return this.http.get(`${this.baseUrl}` + `api/getAllTeamsByPoId`, { params: httpParams });
+  }
+
+  getTeamDetailsByTeamId(teamId: any, projectId: any) {
+    let httpParams = new HttpParams().append("teamId", teamId).append("projectId", projectId);
+    return this.http.get(`${this.baseUrl}` + `api/getTeamDetailsByTeamId`, { params: httpParams });
+  }
+
+  getActiveTeamDetailsByPoId(poId: any) {
+    let httpParams = new HttpParams().append("poId", poId);
+    return this.http.get(`${this.baseUrl}` + `api/getActiveTeamDetailsByPoId`, { params: httpParams });
+  }
+
+  migrateTeam(migrateTeam: MigrateTeams) {
+    return this.http.post(`${this.baseUrl}` + `api/migrateTeam`, migrateTeam);
+  }
 }

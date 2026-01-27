@@ -8,7 +8,7 @@ import lombok.ToString;
 @Setter
 @ToString
 public class EmployeeInformationDTO {
-	
+
 	private Long empId;
 	private String employmentId;
 	private String name;
@@ -19,5 +19,6 @@ public class EmployeeInformationDTO {
 	private String jobRole;
 	private String deptName;
 	private String startDate;
+	private Long deptId;
 
 }

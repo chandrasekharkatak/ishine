@@ -8,6 +8,8 @@ export class RmgTeam {
     isActive: any;
     spocId: any;
     spocName: any;
+    teamLeadId: any;
+    teamLeadName: any;
     createdBy: any;
     updatedBy: any;
     deptIds: any[] = [];

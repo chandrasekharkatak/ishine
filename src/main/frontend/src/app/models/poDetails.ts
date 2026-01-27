@@ -26,6 +26,6 @@ export class PoDetails {
     teamList: RmgTeam[] = [];
     selectedTeamIds: any[] = [];
     isPoSelected: boolean = false;
-    isAnyMemberSelected: boolean = false;
+    isAnyTeamSelected: boolean = false;
 
 }

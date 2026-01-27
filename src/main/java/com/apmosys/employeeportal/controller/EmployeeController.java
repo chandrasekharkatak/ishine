@@ -915,5 +915,10 @@ public class EmployeeController {
 	    return employeeService.getPoRequirementDataByTeamAndPoId(teamId, poId);
 	}
 	
-	
+	// @Encrypted
+	@GetMapping("/getAllActiveEmployeeInformation")
+	public ServiceResponse getAllActiveEmployeeInformation() {
+		return employeeService.getAllActiveEmployeeInformation();
+	}
+
 }

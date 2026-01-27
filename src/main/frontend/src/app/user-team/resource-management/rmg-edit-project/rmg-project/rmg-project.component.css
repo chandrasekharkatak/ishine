@@ -30,6 +30,13 @@
     white-space: normal;
 }
 
+.resource-requirement-count-row {
+    align-items: center;
+    margin: 0.25rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
 .resource-requirement-count {
     background: #f7f7f7;
     border: 1px solid #dcdada;
@@ -44,18 +51,14 @@
     justify-content: space-around;
 }
 
-.new-team-row {
+.team-row {
     border: 1px solid #000000;
-    justify-content: space-around;
     align-items: center;
     background: #eee;
     border-radius: 5px;
-}
-
-.tnm-requirement-row {
-    justify-content: space-between;
-    align-items: center;
-    border-radius: 5px;
+    margin: 0.25rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
 }
 
 .truncate {
@@ -151,28 +154,28 @@
 
 /* Team Member Table Start */
 
-.rmg-team-member-table {
+.custom-table {
     width: 100%;
     border-collapse: collapse;
 }
 
-.rmg-team-member-table th,
-.rmg-team-member-table td {
+.custom-table th,
+.custom-table td {
     border: 1px solid #ddd;
     padding: 8px;
     text-align: center;
 }
 
-.rmg-team-member-table th {
+.custom-table th {
     background-color: #ffffff;
     font-weight: 600;
 }
 
-.rmg-team-member-table tbody tr:nth-child(odd) {
+.custom-table tbody tr:nth-child(odd) {
     background: #f5f5f5;
 }
 
-.rmg-team-member-table tbody tr {
+.custom-table tbody tr {
     background-color: #ffffff;
 }
 
@@ -226,30 +229,23 @@
 
 /* Employee Info End */
 
-
-/* Checkbox Start */
-.custom-checkbox .mat-mdc-checkbox-touch-target {
-    width: 16px;
-    height: 16px;
+.team-list-item {
+    background-color: #ecfeff;
 }
 
-.custom-checkbox .mdc-checkbox__background {
-    width: 14px;
-    height: 14px;
+.horizontal-scroll {
+    overflow-x: auto;
+    white-space: nowrap;
 }
 
-.custom-checkbox .mdc-checkbox__checkmark {
-    width: 12px;
-    height: 12px;
+.max-width150 {
+    max-width: 150px;
 }
 
-.custom-checkbox.mat-mdc-checkbox {
-    margin-bottom: 0;
-    padding-bottom: 0;
+.min-width150 {
+    min-width: 150px;
 }
 
-.custom-checkbox .mdc-form-field {
-    align-items: center;
+.max-width200 {
+    max-width: 200px;
 }
-
-/* Checkbox End */

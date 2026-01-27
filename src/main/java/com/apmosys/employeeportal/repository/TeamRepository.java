@@ -1,7 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import javax.transaction.Transactional;
@@ -13,7 +12,9 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
+import com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto;
 import com.apmosys.employeeportal.dto.ProjectManagerIdAndNameDTO;
+import com.apmosys.employeeportal.dto.RmgTeamDto;
 import com.apmosys.employeeportal.model.Team;
 
 @Repository
@@ -154,4 +155,39 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 
 	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectManagerIdAndNameDTO(e.empId , e.name) from Employee e, Team t where e.empId = t.teamLeadId and t.projectId = :projectId")
 	List<ProjectManagerIdAndNameDTO> findAllTeamLeadByProjectId(@Param("projectId") Integer projectId);
+
+
+	@Query(value = "SELECT DISTINCT new com.apmosys.employeeportal.dto.RmgTeamDto( \n"
+			+ "  t.teamId, t.teamName, prm.poId, t.isActive, es.empId, es.name, t.deptIds \n"
+			+ ", t.teamLeadId, tl.name)  \n"
+			+ "FROM PoRequirementMapping prm \n"
+			+ "INNER JOIN EmployeeTeamMap etm ON etm.poRequirementMappingId = prm.id  \n"
+			+ "INNER JOIN Team t ON t.teamId = etm.teamId \n"
+			+ "LEFT JOIN Employee es ON es.empId = t.spocId \n"
+			+ "LEFT JOIN Employee tl ON tl.empId = t.teamLeadId \n"
+			+ "WHERE prm.poId =:poId  \n")
+	List<RmgTeamDto> getAllTeamsByPoId(Long poId);
+
+	@Query(value = "SELECT DISTINCT new com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto( \n"
+			+ "  prm.poId, prm.id, prm.role, prm.experience, prm.department, prm.active \n"
+			+ ", e.empId, e.name, etm.employeeRole, etm.active, etm.isShadow, CASE WHEN eppm.id IS NOT NULL THEN true ELSE false END \n"
+			+ ", etm.startDate, etm.endDate)  \n"
+			+ "FROM Team t \n"
+			+ "INNER JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId \n"
+			+ "INNER JOIN PoRequirementMapping prm ON etm.poRequirementMappingId = prm.id  \n"
+			+ "LEFT JOIN Employee e ON e.empId = etm.empId \n"
+			+ "LEFT JOIN EmpPrimaryProjectMapping eppm ON eppm.empId = e.empId \n"
+			+ "WHERE t.teamId =:teamId  \n")
+	List<PoTeamAndMemberDetailsDto> getAllTeamMemberDetailsDtoByPoId(Long teamId);
+
+	@Query(value = "SELECT DISTINCT new com.apmosys.employeeportal.dto.RmgTeamDto( \n"
+			+ "  t.teamId, t.teamName, prm.poId, t.isActive, es.empId, es.name, t.deptIds \n"
+			+ ", t.teamLeadId, tl.name)  \n"
+			+ "FROM PoRequirementMapping prm \n"
+			+ "INNER JOIN EmployeeTeamMap etm ON etm.poRequirementMappingId = prm.id  \n"
+			+ "INNER JOIN Team t ON t.teamId = etm.teamId \n"
+			+ "LEFT JOIN Employee es ON es.empId = t.spocId \n"
+			+ "LEFT JOIN Employee tl ON tl.empId = t.teamLeadId \n"
+			+ "WHERE prm.poId =:poId AND t.isActive = 'Y' \n")
+	List<RmgTeamDto> getActiveTeamDetailsByPoId(Long poId);
 }
