@@ -71,6 +71,7 @@ public class Project {
 	private String internalProjectType;
 	private Boolean hasClientSideId;
 	private Boolean clientFlag;
+	
 	private String startDate;
 	private String endDate;
 }

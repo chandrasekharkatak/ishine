@@ -529,22 +529,31 @@ public class ProjectService {
 			if (projectDbResponse != null) {
 
 				List<ProjectPoDetails> existingPoList = projectPoDetailsRepository
-						.findByProjectId(projectDbResponse.getProjectId());
-				Integer poId = null;
+				        .findByProjectId(projectDbResponse.getProjectId());
+
 				if (existingPoList != null && !existingPoList.isEmpty()) {
-					poId = existingPoList.get(0).getPoId().intValue();
-				}
-				if (poId != null) {
-					// === Add department mappings ===
-					for (String department : poProjectSyncDTO.getDepartmentList()) {
-						Department departmentObj = departmentRepository.findByDeptId(Long.parseLong(department));
-						if (departmentObj != null) {
-							PoDepartmentMapping projectDeptMap = new PoDepartmentMapping();
-							projectDeptMap.setPoId(poId);
-							projectDeptMap.setDeptId(departmentObj.getDeptId());
-							poDepartmentMappingRepository.save(projectDeptMap);
-						}
-					}
+					  List<Integer> activePoIds = existingPoList.stream()
+				                .filter(ProjectPoDetails::isActive)
+				                .map(po -> po.getPoId().intValue())
+				                .collect(Collectors.toList());
+				    
+				    if (activePoIds.isEmpty()) {
+				        activePoIds.add(existingPoList.get(0).getPoId().intValue());
+				    }
+				    List<PoDepartmentMapping> mappingsToSave = new ArrayList<>();
+			        
+			        for (String department : poProjectSyncDTO.getDepartmentList()) {
+			            Department departmentObj = departmentRepository.findByDeptId(Long.parseLong(department));
+			            if (departmentObj != null) {
+			                for (Integer poId : activePoIds) {
+			                    PoDepartmentMapping poDeptMap = new PoDepartmentMapping();
+			                    poDeptMap.setPoId(poId.longValue()); 
+			                    poDeptMap.setDeptId(departmentObj.getDeptId());
+			                    poDeptMap.setActive(true);
+			                    mappingsToSave.add(poDeptMap);
+			                }
+			            }
+			        }
 				}
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -796,7 +805,14 @@ public class ProjectService {
 					response.setServiceResponse("No PO found for project: " + projectDbResponse.getProjectId());
 					return response;
 				}
-				Integer poId = projectPoList.get(0).getPoId().intValue();
+				List<Integer> activePoIds = projectPoList.stream()
+		                .filter(ProjectPoDetails::isActive)
+		                .map(po -> po.getPoId().intValue())
+		                .collect(Collectors.toList());
+
+	            if (activePoIds.isEmpty()) {
+	                activePoIds.add(projectPoList.get(0).getPoId().intValue());
+	            }
 
 				// === Clear existing department mappings (optional but safe) ===
 				List<PoDepartmentMapping> existingMappings = poDepartmentMappingRepository
@@ -820,11 +836,14 @@ public class ProjectService {
 						return response;
 					}
 
-					PoDepartmentMapping poDeptMap = new PoDepartmentMapping();
-					poDeptMap.setPoId(poId);
-					poDeptMap.setDeptId(departmentObj.getDeptId());
-					poDepartmentMappingRepository.save(poDeptMap);
-				}
+					  for (Integer poId : activePoIds) {
+		                    PoDepartmentMapping poDeptMap = new PoDepartmentMapping();
+		                    poDeptMap.setPoId(poId.longValue());
+		                    poDeptMap.setDeptId(departmentObj.getDeptId());
+		                    poDeptMap.setActive(true);
+		                    poDepartmentMappingRepository.save(poDeptMap);
+		                }
+		            }
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Project updated successfully.");
@@ -1314,7 +1333,14 @@ public class ProjectService {
 					    if (projectPoList == null || projectPoList.isEmpty()) {
 					        responseBuilder.append("Error: No PO found for project: " + projectDbResponse.getProjectId());
 					    } else {
-					        Integer poId = projectPoList.get(0).getPoId().intValue();
+					    	 List<Integer> activePoIds = projectPoList.stream()
+					                 .filter(ProjectPoDetails::isActive)
+					                 .map(po -> po.getPoId().intValue())
+					                 .collect(Collectors.toList());
+					         
+					         if (activePoIds.isEmpty()) {
+					             activePoIds.add(projectPoList.get(0).getPoId().intValue());
+					         }
 						
 						// update department
 						List<Long> departmentId = new ArrayList<Long>();
@@ -1325,25 +1351,28 @@ public class ProjectService {
 								List<PoDepartmentMapping> existingMappings = poDepartmentMappingRepository
 				                        .findByProjectIdAndDeptId(projectDbResponse.getProjectId(),
 				                                departmentObj.getDeptId());
-								if (existingMappings == null) {
-									// add department
-									PoDepartmentMapping projectDeptMap = new PoDepartmentMapping();
-									projectDeptMap.setPoId(poId);
-									projectDeptMap.setDeptId(departmentObj.getDeptId());
-									PoDepartmentMapping projDeptMapDbResponse = poDepartmentMappingRepository
-											.save(projectDeptMap);
+								if (existingMappings == null || existingMappings.isEmpty()) {
+									for (Integer poId : activePoIds) {
+				                        PoDepartmentMapping poDeptMap = new PoDepartmentMapping();
+				                        poDeptMap.setPoId(poId.longValue());
+				                        poDeptMap.setDeptId(departmentObj.getDeptId());
+				                        poDeptMap.setActive(true);
+				                        PoDepartmentMapping poDeptMapDbResponse = poDepartmentMappingRepository
+				                                .save(poDeptMap);
 
-									if (projDeptMapDbResponse != null) {
-										responseBuilder.append("Project Department Mapping resposne : sucess"
-												+ "ProjDept Mapping Id : "
-												+ projDeptMapDbResponse.getPoDepartmentMapId());
-									} else {
-										responseBuilder.append("Project Department Mapping resposne : failed");
-									}
-								}
-							}
-						}
-					    }
+				                        if (poDeptMapDbResponse != null) {
+				                            responseBuilder.append("PO Department Mapping response : success"
+				                                    + " PoDept Mapping Id : "
+				                                    + poDeptMapDbResponse.getPoDepartmentMapId()
+				                                    + " for PO: " + poId);
+				                        } else {
+				                            responseBuilder.append("PO Department Mapping response : failed for PO: " + poId);
+				                        }
+				                    }
+				                }
+				            }
+				        }
+				    }
 						// remove department
 						// List<ProjectDepartmentMap> removeProjDeptMap =
 						// projectDepartmentMapRepository.
@@ -1739,7 +1768,7 @@ public class ProjectService {
 								Department departmentObj = departmentRepository.findByName(department);
 								if (departmentObj != null) {
 									PoDepartmentMapping poDeptMap = new PoDepartmentMapping();
-									poDeptMap.setPoId(poId);
+									poDeptMap.setPoId(poId.longValue());
 									poDeptMap.setDeptId(departmentObj.getDeptId());
 									PoDepartmentMapping poDeptMapDbResponse = poDepartmentMappingRepository
 											.save(poDeptMap);

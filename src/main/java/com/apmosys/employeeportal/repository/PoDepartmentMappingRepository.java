@@ -60,4 +60,7 @@ List<PoDepartmentMapping> findByProjectIdAndDeptId(@Param("projectId") Integer p
 List<PoDepartmentMapping> findByProjectId(@Param("projectId") Integer projectId);
 	
 	
+	
+	
+	
 }

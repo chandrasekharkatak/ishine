@@ -1963,7 +1963,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	   
 	    for (DepartmentIdAndNameDto dept : poDto.getDepartmentList()) {
 	        PoDepartmentMapping map = new PoDepartmentMapping();
-	        map.setPoId(poDto.getPoId().intValue());
+	        map.setPoId(poDto.getPoId());
 	        map.setDeptId(dept.getDeptId());
 	        map.setActive(true);
 	        System.out.println("saved in poDepartmentMappingRepository");
@@ -2111,9 +2111,9 @@ return empId;
 	                		}
 
 
-	                 project.setPoStartDate(
+	                 project.setStartDate(
 	                         dateFormat.format(projectDto.getProjectStartDate()));
-	                 project.setPoEndDate(
+	                 project.setEndDate(
 	                         dateFormat.format(projectDto.getProjectEndDate()));
 
 	                 projectRepository.save(project);
