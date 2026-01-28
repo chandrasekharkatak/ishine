@@ -7,6 +7,7 @@ import { Timesheet } from '../models/timesheet';
 import { TimesheetRejectReason } from '../models/timesheetRejectionReasons';
 import { EncryptionService } from './EncryptionService';
 import { getEmployeeTimesheetAsCalenderByProjectId } from '../models/getEmployeeTimesheetAsCalenderByProjectId';
+import { ProjectBasedBulkUploadPayload } from '../user-timesheet/team-timesheet/types';
 
 @Injectable({
   providedIn: 'root'
@@ -391,5 +392,27 @@ getDepartmentStatusSummary(payload: any) {
     payload
   );
 }
+
+  bulkFinalUploadProjectBased(payload: ProjectBasedBulkUploadPayload, file: File) {
+    const formData = new FormData();
+
+    formData.append('finalFile', file);
+
+    formData.append(
+      'finalBulkUploadDTO',
+      new Blob([JSON.stringify(payload)], { type: 'application/json' })
+    );
+
+    return this.http.post(
+      `${this.baseUrl}api/bulkFinalUploadProjectBased`,
+      formData
+    );
+  }
+
+  getPreviousMinusDays(){
+    return this.http.get(
+      `${this.baseUrl}api/getPreviousMinusDays`
+    )
+  }
 
 }

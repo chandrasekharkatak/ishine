@@ -64,6 +64,7 @@ import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeInfoDTO;
 import com.apmosys.employeeportal.dto.EmployeeViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
+import com.apmosys.employeeportal.dto.FinalBulkUploadDTO;
 import com.apmosys.employeeportal.dto.FinalDocumentDTO;
 import com.apmosys.employeeportal.dto.FinalDocumentDownloadDTO;
 import com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO;
@@ -89,6 +90,7 @@ import com.apmosys.employeeportal.dto.TimesheetDashboardCountDTO;
 import com.apmosys.employeeportal.dto.TimesheetDashboardResponseDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentApprovalDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
+import com.apmosys.employeeportal.dto.TimesheetIdAndEmpIdDTO;
 import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
 import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
 import com.apmosys.employeeportal.model.Activity;
@@ -203,6 +205,12 @@ public class TimesheetService {
 	
 	@PersistenceContext
     private EntityManager entityManager;
+
+	@Value("${timesheet.minus.days.for.bulk.upload}")
+	private Integer minusDays;
+
+	@Value("${check.minus.days.for.bulk.upload}")
+	private Boolean checkMinusDaysForBulkUpload;
 
 //	public ServiceResponse getAllProjectsByEmpId(TimesheetDTO timesheetDTO) {
 //		ServiceResponse response = new ServiceResponse();
@@ -5464,7 +5472,172 @@ public class TimesheetService {
 	    return response;
 	}
 
-	
+	@Transactional(rollbackFor = Exception.class)
+	public ServiceResponse bulkFinalUploadProjectBased(FinalBulkUploadDTO finalBulkUploadDTO, MultipartFile file) {
+	    ServiceResponse response = new ServiceResponse();
+
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("bulkFinalUploadProjectBased");
+	    apiLogInfo.setLogLevel("INFO");
+
+		try {
+
+			List<Long> empIds = finalBulkUploadDTO.getEmpIds();
+
+			if(empIds == null || empIds.isEmpty()) {
+				throw new IllegalArgumentException("Employee ids are required.");
+			}
+
+			Integer projectId = finalBulkUploadDTO.getProjectId();
+
+			LocalDate fromDate = finalBulkUploadDTO.getFromDate();
+			LocalDate toDate = finalBulkUploadDTO.getToDate();
+			LocalDate today = LocalDate.now();
+			int minusDays = (this.minusDays == null || this.minusDays <= 0)
+					? 45
+					: this.minusDays;
+
+			LocalDate expectedDate = today.minusDays(minusDays);
+
+			YearMonth expectedYearMonth = YearMonth.from(expectedDate);
+			YearMonth currentYearMonth = YearMonth.from(today);
+			YearMonth fromYearMonth = YearMonth.from(fromDate);
+
+			if (fromYearMonth.equals(currentYearMonth)) {
+				throw new IllegalArgumentException(
+						"From date cannot be in the current month"
+				);
+			}
+
+			if (checkMinusDaysForBulkUpload) {
+
+				LocalDate expectedToDate = fromYearMonth.atEndOfMonth();
+				if (!toDate.isBefore(expectedToDate) && !toDate.isAfter(fromDate)) {
+					throw new IllegalArgumentException(
+							"To date must be the last day of the selected month"
+					);
+				}
+
+				LocalDate allowedStartDate;
+
+				if (expectedYearMonth.equals(currentYearMonth.minusMonths(1))) {
+					allowedStartDate = expectedYearMonth.atDay(1);
+				} else {
+					allowedStartDate = expectedYearMonth.atDay(15);
+				}
+
+				if (fromDate.isBefore(allowedStartDate) || fromDate.isAfter(toDate)) {
+					throw new IllegalArgumentException(
+							String.format(
+									"From date must be between %s and %s",
+									allowedStartDate,
+									toDate
+							)
+					);
+				}
+			}
+
+				
+			boolean checkIf1day = false;
+
+			if (fromDate.isEqual(toDate)) {
+				checkIf1day = true;
+			}
+
+			Long createdBy = finalBulkUploadDTO.getCreatedBy();
+
+			List<TimesheetIdAndEmpIdDTO> notFilledTimesheetDocumentDetails = new ArrayList<>();
+			if(checkIf1day){
+				notFilledTimesheetDocumentDetails = timesheetDocumentDetailsRepository.getDocsByEmpIdsAndDate(empIds, fromDate, projectId);
+			} else {
+				notFilledTimesheetDocumentDetails = timesheetDocumentDetailsRepository.getDocsByEmpIdsAndDateRange(empIds, fromDate, toDate, projectId);
+			}
+
+			if(notFilledTimesheetDocumentDetails == null || notFilledTimesheetDocumentDetails.isEmpty()) {
+				throw new IllegalArgumentException("No timesheet document details found for the given employees and date range.");
+			}
+
+			Set<Long> timesheetIds = notFilledTimesheetDocumentDetails.stream().map(TimesheetIdAndEmpIdDTO::getTimesheetId).collect(Collectors.toSet());
+
+			List<Timesheet> timesheets = timesheetsRepository.findAllById(timesheetIds);
+
+			List<TimesheetDocumentDetails> timesheetDocumentDetailsListToSave = new ArrayList<>();
+			List<Timesheet> timesheetsToSave = new ArrayList<>();
+
+			// Rejected timesheet document details
+			List<TimesheetDocumentDetails> rejectedTimesheetDocsWithFinalFlag = timesheetDocumentDetailsRepository.getDocsByTimesheetIdsAndFinalFlag(new ArrayList<>(timesheetIds));
+
+			byte[] fileBytes = file.getBytes();
+	        String fileName = file.getOriginalFilename();
+	        String contentType = file.getContentType();
+
+			for(Timesheet timesheet : timesheets){
+				timesheet.setStatus("Pending");
+				timesheet.setClientApprovalStatus("Approved");
+				timesheetsToSave.add(timesheet);
+
+				TimesheetDocumentDetails timesheetDocumentDetails = new TimesheetDocumentDetails();
+
+				for(TimesheetDocumentDetails tdd : rejectedTimesheetDocsWithFinalFlag){
+					if(tdd.getTimesheetId().equals(timesheet.getTimesheetId()) && tdd.getEmpId().equals(timesheet.getEmpId())){
+						timesheetDocumentDetails.setDocId(tdd.getDocId());
+						timesheetDocumentDetails.setUpdatedBy(createdBy);
+						timesheetDocumentDetails.setUpdatedOn(LocalDateTime.now());
+						timesheetDocumentDetails.setCreatedOn(tdd.getCreatedOn());
+						timesheetDocumentDetails.setCreatedBy(tdd.getCreatedBy());
+					}
+				}
+
+				timesheetDocumentDetails.setActive(true);
+				timesheetDocumentDetails.setDocName(fileName);
+				timesheetDocumentDetails.setDocData(fileBytes);
+				timesheetDocumentDetails.setDocMimeType(contentType);
+				timesheetDocumentDetails.setClientApprovalStatus("Approved");
+				timesheetDocumentDetails.setRmApprovalStatus("Pending");
+				timesheetDocumentDetails.setHrApprovalStatus("Pending");
+
+				if(timesheetDocumentDetails.getDocId() == null){
+					timesheetDocumentDetails.setCreatedBy(createdBy);
+					timesheetDocumentDetails.setCreatedOn(LocalDateTime.now());
+				}
+
+				timesheetDocumentDetails.setTimesheetId(timesheet.getTimesheetId());
+				timesheetDocumentDetails.setEmpId(timesheet.getEmpId());
+				timesheetDocumentDetails.setFinalFlag(true);
+				timesheetDocumentDetailsListToSave.add(timesheetDocumentDetails);
+			}			
+			
+			timesheetsRepository.saveAll(timesheets);
+			timesheetDocumentDetailsRepository.saveAll(timesheetDocumentDetailsListToSave);
+			
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("Documents uploaded successfully.");
+			response.setServiceError(null);
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("Documents uploaded successfully.");
+			apiLogInfo.setLogLevel("INFO");
+
+		} catch (IllegalArgumentException | IllegalStateException e) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse(e.getMessage());
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage());
+	        apiLogInfo.setLogLevel("ERROR");
+	        return response;
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage());
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+		return response;
+	}
 	
 	public ServiceResponse getAllDisabledDateListForBulkDocSubmit(Integer projectId, Long empId) {
 	    ServiceResponse response = new ServiceResponse();

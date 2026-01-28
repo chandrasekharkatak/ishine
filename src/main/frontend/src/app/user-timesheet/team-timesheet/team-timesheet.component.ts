@@ -21,6 +21,7 @@ import { TimesheetService } from 'src/app/services/timesheet.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import * as XLSX from 'xlsx';
+import { ProjectBasedBulkUploadPayload } from './types';
 
 
 @Component({
@@ -42,6 +43,8 @@ export class TeamTimesheetComponent implements OnInit {
   @ViewChild("clientSideIdNotMandatoryFound")
   clientSideIdNotMandatoryFound: TemplateRef<any>;
 
+  @ViewChild("alert_message")
+  alertTemplate: TemplateRef<any>;
 
   @ViewChild("update_clientId")
   updateClientId: TemplateRef<any>;
@@ -139,6 +142,7 @@ export class TeamTimesheetComponent implements OnInit {
   empClientSideObj: EmployeeClientSideIdMapping = new EmployeeClientSideIdMapping();
   projectClientIdList: ProjectClientSideId[] = [];
   clientSideIdNotMandatoryFoundModalRef: NgbModalRef;
+  alertMessageModalRef: NgbModalRef;
   zoomScale = 1;
   zoomLevel = 100;
   isDragging = false;
@@ -146,6 +150,11 @@ export class TeamTimesheetComponent implements OnInit {
   startY = 0;
   translateX = 0;
   translateY = 0;
+  maxMonth = '';
+  minMonth = '';
+  allProjects: {projectId: number, projectName: string}[] = [];
+  projectObj: { [projectId: number]: { empId: number; name: string }[] } = {};
+  minusDaysData: {minusDays: number, checkMinusDaysForBulkUpload: boolean} = {minusDays: 45, checkMinusDaysForBulkUpload: true};
 
   constructor(
     public validationService: ValidationService,
@@ -159,13 +168,14 @@ export class TeamTimesheetComponent implements OnInit {
     private employeeService: EmployeeService,
     private utilityService: UtilityService,
     private bodyComponent: BodyComponent,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
 
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
   async ngOnInit(): Promise<void> {
+    this.getPreviousMinusDays();
     const now = new Date();
     this.today = now.toISOString().split('T')[0];
     // Dynamic Subfeature Flags
@@ -179,6 +189,26 @@ export class TeamTimesheetComponent implements OnInit {
     this.thisMonthValidation();
 
     this.selectedMonth = new Date(2025, 4, 1);
+
+    // // Set maxMonth to previous month (current month is NOT allowed for selection)
+    // // Set minMonth to the month of (today - 45 days)
+    // const currentMonth = now.getMonth() + 1; // 1-12
+    // const currentYear = now.getFullYear();
+
+    // // Calculate previous month (maxMonth) - current month is blocked
+    // const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+    // const prevMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+    // this.maxMonth = `${prevMonthYear}-${String(prevMonth).padStart(2, '0')}`;
+
+    // if(this.minusDaysData.checkMinusDaysForBulkUpload){ 
+    //   const fortyFiveDaysAgo = new Date(now);
+    //   fortyFiveDaysAgo.setDate(now.getDate() - this.minusDaysData.minusDays);
+    //   const minMonthValue = fortyFiveDaysAgo.getMonth() + 1; // 1-12
+    //   const minMonthYear = fortyFiveDaysAgo.getFullYear();
+    //   this.minMonth = `${minMonthYear}-${String(minMonthValue).padStart(2, '0')}`;
+    // } else {
+    //   this.minMonth = null;
+    // }
   }
   preventBackButton() {
     history.pushState(null, null, location.href);
@@ -787,44 +817,203 @@ export class TeamTimesheetComponent implements OnInit {
 
   }
 
-  onMonthYearChange() {
-  this.resetBulkUploadForm('MONTH');
-  this.getMyReporteesAndTheirProjects();
-}
+  // onMonthYearChange() {
+  //   this.resetBulkUploadForm('MONTH');
+  //   this.getMyReporteesAndTheirProjects();
+  //   const [year, month] = this.timesheetObj.monthYear.split('-');
 
+  //   const selectedYear = parseInt(year);
+  //   const selectedMonth = parseInt(month);
+
+  //   // Get current date info
+  //   const now = new Date();
+  //   const currentYear = now.getFullYear();
+  //   const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
+
+  //   // Calculate the previous month and previous-previous month
+  //   const previousMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+  //   const previousMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+
+  //   // Check if selected month is the just previous month
+  //   const isJustPreviousMonth = (selectedYear === previousMonthYear && selectedMonth === previousMonth);
+
+  //   // Set minDate based on month selection
+  //   // If just previous month: allow from 1st
+  //   // If older months (previous' previous and beyond): allow from 15th
+  //   if (isJustPreviousMonth) {
+  //     this.minDate = this.timesheetObj.monthYear + '-01';
+  //   } else {
+  //     this.minDate = this.timesheetObj.monthYear + '-15';
+  //   }
+
+  //   const lastDay = new Date(selectedYear, selectedMonth, 0).getDate();
+  //   this.maxDate = `${year}-${month}-${lastDay.toString().padStart(2, '0')}`;
+  // }
+
+  onMonthYearChange() {
+    this.resetBulkUploadForm('MONTH');
+    this.getMyReporteesAndTheirProjects();
+
+    const [year, month] = this.timesheetObj.monthYear.split('-');
+    const selectedYear = Number(year);
+    const selectedMonth = Number(month);
+
+    const now = new Date();
+
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+
+    const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+    const prevMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+
+    const lastDay = new Date(selectedYear, selectedMonth, 0).getDate();
+    this.maxDate = `${year}-${month}-${lastDay.toString().padStart(2, '0')}`;
+
+    if (this.minusDaysData?.checkMinusDaysForBulkUpload) {
+
+      const minusDays =
+        this.minusDaysData.minusDays && this.minusDaysData.minusDays > 0
+          ? this.minusDaysData.minusDays
+          : 45;
+
+      const expectedDate = new Date(now);
+      expectedDate.setDate(now.getDate() - minusDays);
+
+      const expectedYear = expectedDate.getFullYear();
+      const expectedMonth = expectedDate.getMonth() + 1;
+
+      // Rule: current month never allowed
+      if (selectedYear === currentYear && selectedMonth === currentMonth) {
+        throw new Error('Current month is not allowed');
+      }
+
+      // Rule: determine allowed start day
+      const isPreviousMonth =
+        expectedYear === prevMonthYear &&
+        expectedMonth === prevMonth;
+
+      const startDay = isPreviousMonth ? '01' : selectedMonth === expectedMonth ? '15' : '01';
+
+      this.minDate = `${year}-${month}-${startDay}`;
+
+    } else {
+      this.minDate = null;
+    }
+  }
   
 
 
+  // getMyReporteesAndTheirProjects() {
+
+  //   this.timesheetObj.managerId = this.currentUser.empId;
+  //   this.timesheetService.getMyReporteesAndClientSideProjectsInMonthYear(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.reporteesAndTheirProject = response.serviceResponse;
+  //       // this.reportees = this.reporteesAndTheirProject;
+
+  //       this.allProjects = this.reporteesAndTheirProject.reduce((acc, rp) => {
+  //         if (!acc.some(p => p.projectId === rp.projectId)) {
+  //           acc.push(rp);
+  //         }
+  //         return acc;
+  //       }, []);
+
+  //       console.log("test", this.rejectReasons);
+  //     } else {
+  //       console.error(response.serviceResponse);
+  //     }
+  //   });
+
+  // }
+
+  // Simple approach using a Map
+    
   getMyReporteesAndTheirProjects() {
+      this.timesheetObj.managerId = this.currentUser.empId;
+      
+      this.timesheetService.getMyReporteesAndClientSideProjectsInMonthYear(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.reporteesAndTheirProject = response.serviceResponse;
+          
+          const projectMap = new Map<number, { empId: number; name: string }[]>();
+          
+          for (const employee of this.reporteesAndTheirProject) {
+            const empId = employee.empId;
+            const empName = employee.name;
+            
+            if (employee.projectList) {
+              for (const project of employee.projectList) {
+                const projectId = project.projectId;
+                
+                if (projectId) {
+                  if (!projectMap.has(projectId)) {
+                    projectMap.set(projectId, []);
+                  }
+                  
+                  projectMap.get(projectId).push({ empId, name: empName });
+                }
+              }
+            }
+          }
+          
+          console.log("Project Map:", projectMap);
+          
+          this.projectObj = Object.fromEntries(projectMap);
+          const projectsWithDetails = response.serviceResponse.flatMap(employee => 
+            employee.projectList?.map(project => ({
+              projectId: project.projectId,
+              projectName: project.projectName
+            })) || []
+          );
 
-    this.timesheetObj.managerId = this.currentUser.empId;
-    this.timesheetService.getMyReporteesAndClientSideProjectsInMonthYear(this.timesheetObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.reporteesAndTheirProject = response.serviceResponse;
-        this.reportees = this.reporteesAndTheirProject;
-        console.log("test", this.rejectReasons);
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
+          // Remove duplicates
+          const uniqueProjects: { projectId: number; projectName: string }[] = Array.from(
+            new Map<number, { projectId: number; projectName: string }>(
+              projectsWithDetails
+                .filter(p => p.projectId)
+                .map(p => [p.projectId, p])
+            ).values()
+          );
 
-  }
+          this.allProjects = uniqueProjects;
+          console.log("All Projects:", this.allProjects);
+          
+            
+          // console.log("Project Object:", this.projectObj);
+          
+        } else {
+          console.error(response.serviceResponse);
+        }
+      });
+    }
 
-  onReporteeChange(empId: number) {
-     this.resetBulkUploadForm('EMP');
-    const selectedEmp = this.reporteesAndTheirProject.find(
-      emp => emp.empId === empId
-    );
+  onReporteeChange(empIds: number[]) {
+    //  this.resetBulkUploadForm('EMP');
+    // const selectedEmp = this.reporteesAndTheirProject.find(
+    //   emp => emp.empId === empId
+    // );
 
-    this.projects = selectedEmp ? selectedEmp.projectList : [];
-    this.timesheetObj.selectedProjectId = null;
+    console.log("Empids: ", empIds);
+    
+
+    this.timesheetObj.projectId = this.timesheetObj.selectedProjectId;
+    this.timesheetObj.empIds = empIds;
   }
 
 
   onProjectSelectBulk(projectId: any) {
-    this.resetBulkUploadForm('PROJECT');
+    // this.resetBulkUploadForm('PROJECT');
+
+    this.timesheetObj.empIds = null;
+
+    this.reportees = this.reporteesAndTheirProject.map(rp =>{
+      if(rp.projectId === projectId){
+        return rp;
+      }
+    })
+
     // this.checkIfProjectRequiresClientId(projectId);
-    this.getAllDisabledDateListForBulkDocSubmit(projectId);
+    // this.getAllDisabledDateListForBulkDocSubmit(projectId);
 
   }
 
@@ -910,40 +1099,46 @@ export class TeamTimesheetComponent implements OnInit {
       return;
     }
 
-    const from = new Date(this.finalFromDate);
-    const to = new Date(this.finalToDate);
-    const today = new Date();
+    // const from = new Date(this.finalFromDate);
+    // const to = new Date(this.finalToDate);
+    // const today = new Date();
 
-    const currentMonth = today.getMonth(); // 0-11
-    const currentYear = today.getFullYear();
+    // const currentMonth = today.getMonth();
+    // const currentYear = today.getFullYear();
 
-    // Previous month calculation
-    const prevMonth = currentMonth - 1;
-    const prevMonthYear = prevMonth < 0 ? currentYear - 1 : currentYear;
-    const adjustedPrevMonth = (prevMonth + 12) % 12;
+    // const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    // const prevMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
 
-    const lastDayOfCurrentMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    // const fortyFiveDaysAgo = new Date(today);
+    // fortyFiveDaysAgo.setDate(today.getDate() - this.minusDaysData.minusDays);
+    // const minMonthValue = fortyFiveDaysAgo.getMonth();
+    // const minMonthYear = fortyFiveDaysAgo.getFullYear();
 
-    // Check if selection is fully in previous month
-    const isPreviousMonthSelection =
-      from.getMonth() === adjustedPrevMonth &&
-      to.getMonth() === adjustedPrevMonth &&
-      from.getFullYear() === prevMonthYear &&
-      to.getFullYear() === prevMonthYear;
+    // const isPreviousMonthSelection =
+    //   from.getMonth() === prevMonth &&
+    //   to.getMonth() === prevMonth &&
+    //   from.getFullYear() === prevMonthYear &&
+    //   to.getFullYear() === prevMonthYear;
 
-    const isCurrentMonthLastDayUpload =
-      from.getMonth() === currentMonth &&
-      to.getMonth() === currentMonth &&
-      from.getFullYear() === currentYear &&
-      to.getFullYear() === currentYear &&
-      today.getDate() === lastDayOfCurrentMonth;
+    // const isOlderMonthSelection =
+    //   from.getMonth() === minMonthValue &&
+    //   to.getMonth() === minMonthValue &&
+    //   from.getFullYear() === minMonthYear &&
+    //   to.getFullYear() === minMonthYear;
 
-    this.isUploadAllowed = isPreviousMonthSelection || isCurrentMonthLastDayUpload;
+    //   if(this.minusDaysData.checkMinusDaysForBulkUpload){
+    //     this.isUploadAllowed = isPreviousMonthSelection || isOlderMonthSelection;
+    //   } else {
+      //   }
+    this.isUploadAllowed = true;
 
-    // Tooltip message
     this.disableUploadTooltip = this.isUploadAllowed
       ? ""
-      : "Bulk upload is permitted only for dates in the previous month or on the last day of the current month. Please select a valid date range.";
+      : `Bulk upload is permitted only for the previous month (from 1st) or older months within ${this.minusDaysData.minusDays} days (from 15th). Please select a valid date range.`;
+
+      if(this.finalToDate < this.finalFromDate ){
+        this.finalToDate = null;  
+      }
   }
 
 
@@ -1029,15 +1224,35 @@ export class TeamTimesheetComponent implements OnInit {
     console.log(this.finalToDate);
     console.log(this.timesheetObj.projectId);
     if (this.selectedFile2 != null && this.finalFromDate != null && this.finalToDate != null && this.currentUser.empId != null) {
-      this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2, this.finalFromDate, this.finalToDate, this.timesheetObj.selectedEmpId, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+      // this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2, this.finalFromDate, this.finalToDate, this.timesheetObj.selectedEmpId, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+      //   if (response.serviceStatus === "Success") {
+      //     this.resetBulkUploadForm('UPLOAD');
+
+      //     this.openAlertMod(template, response.serviceResponse);
+      //   } else {
+      //     this.openAlertMod(template, response.serviceResponse);
+      //   }
+      // });
+
+      const payload: ProjectBasedBulkUploadPayload = {
+        createdBy: this.currentUser.empId,
+        empIds: this.timesheetObj.empIds,
+        fromDate: this.finalFromDate,
+        toDate: this.finalToDate,
+        projectId: this.timesheetObj.projectId,
+      }
+
+      this.timesheetService.bulkFinalUploadProjectBased(payload, this.selectedFile2).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.resetBulkUploadForm('UPLOAD');
-
+          this.alertMessage = "Success";
           this.openAlertMod(template, response.serviceResponse);
         } else {
-          this.openAlertMod(template, response.serviceResponse);
+          this.alertMessage = response.serviceResponse || "Error while bulk final upload";
+          this.openAlertMod(template, this.alertMessage);
         }
       });
+
     } else {
 
       if (this.finalFromDate == null) {
@@ -1089,7 +1304,6 @@ export class TeamTimesheetComponent implements OnInit {
     }
 
     if (level === 'PROJECT') {
-
 
     }
 
@@ -1707,8 +1921,73 @@ resetPreviewState() {
   this.isDragging = false;
 }
 
+getReporteesFromProjectId(): { empId: number; name: string }[] {
+  const projectId = this.timesheetObj.selectedProjectId;
+  console.log("Project Id : ", projectId);
+  console.log("Project Object : ", this.projectObj[projectId]);
+  
+  return this.projectObj[projectId] ?? [];
+
 }
 
-function compare(a: number | string, b: number | string, isAsc: boolean) {
-  return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
+  getPreviousMinusDays() {
+    this.timesheetService.getPreviousMinusDays().subscribe({
+      next: (response: { minusDays: number; checkMinusDaysForBulkUpload: boolean }) => {
+        this.minusDaysData = response;
+
+        const now = new Date();
+
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+
+        const prevMonthDate = new Date(currentYear, currentMonth - 1, 1);
+        this.maxMonth = `${prevMonthDate.getFullYear()}-${String(prevMonthDate.getMonth() + 1).padStart(2, '0')}`;
+
+        if (response.checkMinusDaysForBulkUpload) {
+
+          const minusDays = response.minusDays && response.minusDays > 0
+            ? response.minusDays
+            : 45;
+
+          const expectedDate = new Date(now);
+          expectedDate.setDate(now.getDate() - minusDays);
+
+          const expectedYear = expectedDate.getFullYear();
+          const expectedMonth = expectedDate.getMonth();
+
+          this.minMonth = `${expectedYear}-${String(expectedMonth + 1).padStart(2, '0')}`;
+
+          const isPreviousMonth =
+            expectedYear === prevMonthDate.getFullYear() &&
+            expectedMonth === prevMonthDate.getMonth();
+
+          const minDateObj = isPreviousMonth
+            ? new Date(expectedYear, expectedMonth, 1)
+            : new Date(expectedYear, expectedMonth, 15);
+
+          const maxDateObj = new Date(expectedYear, expectedMonth + 1, 0);
+
+          this.minDate = this.toDateString(minDateObj);
+          this.maxDate = this.toDateString(maxDateObj);
+
+        } else {
+          this.minMonth = null;
+          this.minDate = null;
+          this.maxDate = null;
+        }
+
+      },
+
+      error: (error: any) => {
+        this.alertMessage =
+          'Error while fetching days before data, default value will be used';
+        this.openAlertMod(this.alertTemplate, error.serviceResponse);
+      }
+    });
+  }
+
+  private toDateString(d: Date): string {
+    return d.toISOString().split('T')[0];
+  }
+
 }
