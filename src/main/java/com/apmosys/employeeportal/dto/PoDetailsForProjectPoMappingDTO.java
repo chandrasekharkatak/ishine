@@ -21,6 +21,8 @@ public class PoDetailsForProjectPoMappingDTO {
     private String poNo;
     private Date poStartDate;
     private Date poEndDate;
+    private Date createdOn;
+    private Date updatedOn;
     
     private Long clientAddressId;
     private String clientLocation;
@@ -37,7 +39,7 @@ public class PoDetailsForProjectPoMappingDTO {
     private String clientRmName;
     private Long prevPo;
     private Long nextPO;
-    private Boolean isRenewable;
+    private boolean isRenewable;
     private List<POResourceRequirementDTO> resourceRequirementList;
     private boolean isActive;
 }

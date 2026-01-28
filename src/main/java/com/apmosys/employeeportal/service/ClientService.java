@@ -9,6 +9,7 @@ import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.ClientLocation;
 import com.apmosys.employeeportal.repository.ClientLocationRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
+import com.apmosys.employeeportal.utility.ExceptionLogContext;
 
 @Service
 public class ClientService {
@@ -21,8 +22,10 @@ public class ClientService {
 	
 	 public Client resolveClient(String clientName) {
 
-	        if (clientName == null)
-	            throw new RuntimeException("Client name mandatory");
+	        if (clientName == null) {
+	        	ExceptionLogContext.add("Client name Missing from PO");
+	            throw new RuntimeException("Client name Missing from PO");
+	        }
 
 	        return clientRepository.findByClientName(clientName)
 	                .orElseGet(() -> {
@@ -38,8 +41,10 @@ public class ClientService {
 	         String location,
 	         String state) {
 
-	     if (clientId == null || location == null)
-	         throw new RuntimeException("ClientId or location missing");
+	     if (clientId == null || location == null || state == null) {
+	    		ExceptionLogContext.add("ClientId or location missing or state missing");
+	         throw new RuntimeException("ClientId or location missing or state missing");
+	     }
 
 	     
 	     Optional<ClientLocation> exact =

@@ -10867,8 +10867,8 @@ public class ResourceManagementService {
 			e.printStackTrace();
 			exceptionDetailsForLog = e.toString();
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			serviceResponse.setServiceResponse(ExceptionUtils.getExceptionMessage(e));
-			serviceResponse.setServiceError(ExceptionUtils.getExceptionMessage(e));
+			serviceResponse.setServiceResponse(e);
+			serviceResponse.setServiceError(e);
 			throw e;
 //			serviceResponse.setServiceMessage(e.getMessage());
 

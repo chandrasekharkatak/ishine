@@ -26,5 +26,6 @@ public class POResourceRequirementDTO {
     private Date yearWiseRateCartEndDate;
     private Date lineItemStartDate;
     private Date lineItemEndDate;
+    private Long poId;
 
 }

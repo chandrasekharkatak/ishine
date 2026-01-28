@@ -27,11 +27,8 @@ public class ResourceRequirementService {
 	        Long poId,
 	        List<POResourceRequirementDTO> incoming) {
 
-	    List<PoRequirementMapping> existing =
-	    		poRequirementMappingRepository.findByPoId(poId);
-
-	   
-	    Set<Long> matchedExistingIds = new HashSet<>();
+	    List<PoRequirementMapping> existing = poRequirementMappingRepository.findByPoId(poId);
+        Set<Long> matchedExistingIds = new HashSet<>();
 
 	   
 	    for (POResourceRequirementDTO r : incoming) {

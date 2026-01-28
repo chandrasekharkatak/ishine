@@ -24,6 +24,7 @@ public class ClientLocation {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "client_location_id")
 	private Integer clientLocationId;
 	
 	private String clientLocation;

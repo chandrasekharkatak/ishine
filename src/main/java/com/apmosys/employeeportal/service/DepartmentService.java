@@ -757,28 +757,70 @@ public class DepartmentService {
 	}
 
 	
+//	public void syncDepartmentsRTS(Long poId, List<DepartmentIdAndNameDto> incoming) {
+//
+//	    List<PoDepartmentMapping> existing =
+//	            poDepartmentMappingRepository.findByPoId(poId);
+//
+//	    Set<Long> newIds = incoming.stream()
+//	            .map(DepartmentIdAndNameDto::getDeptId)
+//	            .collect(Collectors.toSet());
+//
+//	   
+//	    for (PoDepartmentMapping e : existing) {
+//	        e.setActive(newIds.contains(e.getDeptId()));
+//	    }
+//
+//	    poDepartmentMappingRepository.saveAll(existing);
+//
+//	   
+//	    for (Long deptId : newIds) {
+//	        boolean alreadyExists = existing.stream()
+//	                .anyMatch(e -> e.getDeptId().equals(deptId));
+//
+//	        if (!alreadyExists) {
+//	            PoDepartmentMapping m = new PoDepartmentMapping();
+//	            m.setPoId(poId);
+//	            m.setDeptId(deptId);
+//	            m.setActive(true);
+//	            poDepartmentMappingRepository.save(m);
+//	        }
+//	    }
+//	}
+	
 	public void syncDepartmentsRTS(Long poId, List<DepartmentIdAndNameDto> incoming) {
 
 	    List<PoDepartmentMapping> existing =
 	            poDepartmentMappingRepository.findByPoId(poId);
 
-	    Set<Long> newIds = incoming.stream()
-	            .map(DepartmentIdAndNameDto::getDeptId)
-	            .collect(Collectors.toSet());
+	    Set<Long> incomingIds =
+	            incoming.stream()
+	                    .map(DepartmentIdAndNameDto::getDeptId)
+	                    .collect(Collectors.toSet());
+
+	    boolean changed = false;
 
 	   
 	    for (PoDepartmentMapping e : existing) {
-	        e.setActive(newIds.contains(e.getDeptId()));
+	        boolean shouldBeActive = incomingIds.contains(e.getDeptId());
+
+	        if (e.isActive() != shouldBeActive) {
+	            e.setActive(shouldBeActive);
+	            changed = true;
+	        }
 	    }
 
-	    poDepartmentMappingRepository.saveAll(existing);
+	    if (changed) {
+	        poDepartmentMappingRepository.saveAll(existing);
+	    }
 
 	   
-	    for (Long deptId : newIds) {
-	        boolean alreadyExists = existing.stream()
-	                .anyMatch(e -> e.getDeptId().equals(deptId));
+	    for (Long deptId : incomingIds) {
+	        boolean exists =
+	                existing.stream()
+	                        .anyMatch(e -> e.getDeptId().equals(deptId));
 
-	        if (!alreadyExists) {
+	        if (!exists) {
 	            PoDepartmentMapping m = new PoDepartmentMapping();
 	            m.setPoId(poId);
 	            m.setDeptId(deptId);
@@ -787,6 +829,7 @@ public class DepartmentService {
 	        }
 	    }
 	}
+
 
 
 }

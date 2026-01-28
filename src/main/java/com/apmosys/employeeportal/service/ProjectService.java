@@ -112,6 +112,7 @@ import com.apmosys.employeeportal.repository.TechStackRepository;
 import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.request.ProjectRequest;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
+import com.apmosys.employeeportal.utility.ExceptionLogContext;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -3801,8 +3802,10 @@ public class ProjectService {
 
 	public Project createProjectRTS(ProjectPoMappingWithResourceDTO dto, Client client) {
 
-		if (projectRepository.findByPoProjectId(dto.getProjectId()) != null)
+		if (projectRepository.findByPoProjectId(dto.getProjectId()) != null){ 
+			ExceptionLogContext.add("Project already exists in ishine of po project" + dto.getProjectId());
 			throw new RuntimeException("Project already exists");
+		}
 
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -3826,6 +3829,64 @@ public class ProjectService {
 		
 		return projectRepository.save(p);
 	}
+	
+	public boolean updateProjectIfChanged(
+	        Project p,
+	        ProjectPoMappingWithResourceDTO dto,
+	        Client client) {
+
+	    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+	    boolean changed = false;
+
+	    if (!Objects.equals(p.getProjectName(), dto.getProjectName())) {
+	        p.setProjectName(dto.getProjectName());
+	        changed = true;
+	    }
+
+	    if (!Objects.equals(p.getPoProjectType(), dto.getProjectType())) {
+	        p.setPoProjectType(dto.getProjectType());
+	        changed = true;
+	    }
+
+	    String newStart =
+	            dto.getProjectStartDate() != null
+	                    ? df.format(dto.getProjectStartDate())
+	                    : null;
+
+	    if (!Objects.equals(p.getStartDate(), newStart)) {
+	        p.setStartDate(newStart);
+	        changed = true;
+	    }
+
+	    String newEnd =
+	            dto.getProjectEndDate() != null
+	                    ? df.format(dto.getProjectEndDate())
+	                    : null;
+
+	    if (!Objects.equals(p.getEndDate(), newEnd)) {
+	        p.setEndDate(newEnd);
+	        changed = true;
+	    }
+	    
+	    if(!Objects.equals(p.getPoClientId(), dto.getClientId())) {   
+	    p.setPoClientId(dto.getClientId());
+	    changed = true;
+	    }
+
+	    if (!Objects.equals(p.getClientId(), client.getClientId())) {
+	        p.setClientId(client.getClientId());
+	        changed = true;
+	    }
+
+	    if (changed) {
+	    	p.setUpdatedBy(6l);
+	    	p.setUpdatedOn(LocalDateTime.now());
+	    	projectRepository.save(p);
+	    }
+
+	    return changed;
+	}
+
 
 	public ServiceResponse getEmployeeExistingProjectDetailsByEmpId(Long empId) {
 		ServiceResponse serviceResponse = new ServiceResponse();

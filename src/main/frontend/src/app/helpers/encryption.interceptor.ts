@@ -121,6 +121,7 @@ export class EncryptionInterceptor implements HttpInterceptor {
     '/api/getResourceRequirementByPoProjectId',
     '/api/getEmployeeInformation',
     '/api/poCrudOperationsInIshine',
+    '/api/poCrudOperationsInIshineNew',
     '/api/poDump',
     '/api/fillDepartmentforAllProjectsInIshine',
     '/api/getPreviousDefaultProjectDetails',

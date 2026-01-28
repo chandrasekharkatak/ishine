@@ -38,6 +38,7 @@ public class Team {
 	private String teamLeadName;
 	private String isActive;
 	private Long poTeamId;
+	private Long poId;
 	private String description;
 	private String deptIds;
 	private Long spocId;

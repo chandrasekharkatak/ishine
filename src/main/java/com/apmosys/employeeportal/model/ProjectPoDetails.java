@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.model;
 
 import java.sql.Timestamp;
+import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,6 +13,7 @@ import javax.persistence.UniqueConstraint;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.envers.Audited;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -21,6 +23,7 @@ import lombok.ToString;
 @Data
 @Entity
 @ToString
+@Audited
 @Table(uniqueConstraints = @UniqueConstraint(name = "unique_po", columnNames = { "po_id" }))
 public class ProjectPoDetails {
 
@@ -67,7 +70,8 @@ public class ProjectPoDetails {
 	@Column(name = "msg")
     private String msg;
 	
-	
+	@Column(name = "is_renewable")
+	private boolean isRenewable;
 	
 	@Column(name = "client_location_id")
     private Long clientLocationId;
@@ -84,9 +88,15 @@ public class ProjectPoDetails {
     @Column(name = "created_on",updatable = false)
     private Timestamp createdOn;
     
+    private String poCreatedOn;
+    
     
     @Column(name = "updated_by")
     private Long updatedBy;
+    
+    private String poUpdatedOn;
+    
+    
     
     @UpdateTimestamp
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
