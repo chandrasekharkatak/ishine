@@ -218,6 +218,13 @@ import com.apmosys.employeeportal.service.helper.TimesheetEncryptionHelper;
 
 		    return timesheetApprovalServiceNew.bulkApproveTimesheets(dto);
 		}
+		
+		
+		@PostMapping("/bulkRejectTimesheetRequest1")
+		public ServiceResponse bulkRejectTimesheetRequest1(
+		        @RequestBody TimesheetDTO timesheetDTO) {
+		    return timesheetService.bulkRejectTimesheetRequest(timesheetDTO);
+		}
 
 		
 		

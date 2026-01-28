@@ -505,8 +505,9 @@
       Confirm Reject
     </button> -->
     &nbsp;
+    <button type="button" class="btn btn-danger" (click)="BulkRejectByIds(alertModal, timesheetObj.rejectReason);getMyReporteesTimesheetRequests()">Reject</button>&nbsp;
     &nbsp;
-    <button type="button" class="btn btn-danger" (click)="cancelRequest();getMyReporteesTimesheetRequests()">No,
+    <button type="button" class="btn" (click)="cancelRequest();getMyReporteesTimesheetRequests()">No,
       Cancel</button>&nbsp;
   </div>
 </ng-template>
@@ -641,7 +642,8 @@
 
 
 
-              <!-- BULK REJECT (opens reject modal) --> <button
+              <!-- BULK REJECT (opens reject modal) --> 
+               <button
             class="bulk-action-btn bulk-reject-btn" [disabled]="selectedRows.length === 0"
             (click)="openBulkRejectModal(reject_timesheet)"> <i class="fas fa-times-circle"></i> Bulk Reject </button>
         </div> <button class="clear-selection-btn" (click)="clearAllSelections()" *ngIf="selectedRows.length > 0"> <i
@@ -674,7 +676,7 @@
           <option [value]="20">20</option>
           <option [value]="50">50</option>
           <option [value]="100">100</option>
-          <option [value]="200">50</option>
+          <option [value]="200">200</option>
         </select> entries </div>
       <div class="total-count"> Total Records: <strong>{{ totalRecords }}</strong> </div>
     </div> <!-- </div> -->
@@ -715,8 +717,13 @@
                 <td>{{ timesheet.locationCount }}</td>
                 <td>{{ timesheet.appliedBy }}</td>
                 <td>{{ timesheet.appliedOn }}</td>
-                <td> <button class="doc-btn approved" (click)="openDocumentPopup(timesheet)"> <i class="fa fa-eye"></i>
-                  </button> <button class="btn-approve">✔</button> <button class="btn-reject">✖</button> </td>
+                <td> 
+                  <button class="doc-btn approved" (click)="openDocumentPopup(timesheet)"> 
+                    <i class="fa fa-eye"></i>
+                  </button>
+                  <button class="btn-approve">✔</button> 
+                  <button class="btn-reject">✖</button> 
+                </td>
               </tr> <!-- ========================= ACCORDION ROW ========================= -->
               <tr *ngIf="expandedTimesheetIndex === i">
                 <td colspan="13" class="accordion-cell"> <!-- LOCATION LOOP -->

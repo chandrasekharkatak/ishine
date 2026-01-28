@@ -151,6 +151,7 @@ export class TeamTimesheetComponent implements OnInit {
 clientFilter: boolean = false;
 safePdfUrl:SafeResourceUrl | null = null;
   documentData: any;
+alertModal: TemplateRef<any>;
 
   constructor(
     public validationService: ValidationService,
@@ -1527,40 +1528,6 @@ onGlobalSearchChange() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   showTimesheetRequests(template: TemplateRef<any>, details: any): void {
     this.isAllTimesheetRequestTable = true;
     this.allTeamTimesheetRequests = [];
@@ -2044,19 +2011,23 @@ closeDocumentPopup() {
     };
 
     this.timesheetNewService
-      .bulkApproveTimesheetsByIds(payload)
+      .bulkApproveTimesheetsByIds1(payload)
       .subscribe({
-        next: () => {
-          this.clearAllSelections();
-          this.getMyReporteesTimesheetRequests();
-        },
-        error: () => {
-          console.error('Bulk approve failed');
+        next: (res: any) => {
+          if (res?.serviceStatus === 'Success') {
+            this.clearAllSelections();
+            this.getMyReporteesTimesheetRequests();
+            alert(res.serviceResponse || 'Timesheets approved successfully');
+          } else {
+            alert(res?.serviceResponse || 'Bulk approval failed');
+          }
         }
+        
       });
   }
 
-// BULK Reject
+
+// BULK REJECT (FIXED)
 BulkRejectByIds(
   template: TemplateRef<any>,
   rejectReason: string
@@ -2069,45 +2040,56 @@ BulkRejectByIds(
     return;
   }
 
+  if (!rejectReason || !rejectReason.trim()) {
+    this.openAlertMod(template, 'Reject reason is required');
+    return;
+  }
+
   const payload = {
-    timesheetIds: timesheetIds,
+    timesheetIds,
     status: 'REJECTED',
     updatedBy: this.currentUser.empId,
-    rejectReason: rejectReason?.trim()
+    rejectReason: rejectReason.trim()
   };
 
   this.timesheetNewService
-    .bulkRejectTimesheetsByIds(payload)
+    .bulkRejectTimesheetsByIds1(payload)
     .subscribe({
       next: (res: any) => {
-        if (res.serviceStatus === 'Success') {
+        if (res?.serviceStatus === 'Success') {
           this.clearAllSelections();
-          this.modalRef?.close();              // ✅ close reject modal
-          this.openAlertMod(template, res.serviceResponse);
+          this.modalRef?.close();
           this.getMyReporteesTimesheetRequests();
+          this.openAlertMod(
+            template,
+            res.serviceResponse || 'Timesheets rejected successfully'
+          );
         } else {
-          this.openAlertMod(template, res.serviceResponse);
+          this.openAlertMod(
+            template,
+            res?.serviceResponse || 'Bulk rejection failed'
+          );
         }
       },
       error: () => {
         this.openAlertMod(template, 'Bulk rejection failed');
       }
     });
+
+    
 }
 
 
-  openBulkRejectModal(
-    bulkRejectTimesheet: TemplateRef<any>
-  ): void {
 
-    this.selectedRejectReason = '';
-    this.timesheetObj.rejectReason = '';
+openBulkRejectModal(bulkRejectTimesheet: TemplateRef<any>): void {
+  this.selectedRejectReason = '';
+  this.timesheetObj.rejectReason = '';
 
-    this.modalRef = this.modalService.open(
-      bulkRejectTimesheet,
-      { modalDialogClass: 'modal-lg', backdrop: 'static' }
-    );
-  }
+  this.modalRef = this.modalService.open(
+    bulkRejectTimesheet,
+    { modalDialogClass: 'modal-lg', backdrop: 'static' }
+  );
+}
 
 
 

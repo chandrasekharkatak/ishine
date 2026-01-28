@@ -126,7 +126,7 @@ export class TimesheetNewService {
       payload
     );
   }
-  bulkApproveTimesheetsByIds(payload: {
+  bulkApproveTimesheetsByIds1(payload: {
     timesheetIds: number[];
     status: string;
     updatedBy: number;
@@ -138,7 +138,7 @@ export class TimesheetNewService {
     );
   }
 
-  bulkRejectTimesheetsByIds(payload: {
+  bulkRejectTimesheetsByIds1(payload: {
     timesheetIds: number[];
     status: string;
     updatedBy: number;
