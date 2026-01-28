@@ -4064,7 +4064,8 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			"            etm.team_id, t.team_name, etm.emp_id, e.name, etm.employee_role, e.billable_type,\n" + //
 			"            date(etm.start_date) as start_date, date(etm.end_date) as end_date, etm.employee_team_map_id,\n" + //
 			"            etm.active, p.project_id, p.project_name,\n" + //
-			"            c.client_id, c.client_name, ecsm.client_side_id, p.po_no,\n" + //
+			"            c.client_id, c.client_name, ecsm.client_side_id, "
+			+ "GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no,\n" + //
 			"            s.name AS spoc, tl.name AS teamLead,\n" + //
 			"            e.reporting_manager_id, e.employmentstatus, d.name AS dept_name,\n" + //
 			"             CASE\n" + //
@@ -4084,6 +4085,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			"LEFT JOIN department d ON d.dept_id = jr.dept_id\n" + //
 			"JOIN employee user_e ON user_e.emp_id = :emp_id\n" + //
 			"JOIN job_role user_jr ON user_e.job_role_id = user_jr.job_role_id\n" + //
+			"LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND (ppd.active = TRUE or ppd.active is null) " +
 			"LEFT JOIN project_manager_mapping pmm_check ON p.project_id = pmm_check.project_id AND pmm_check.project_manager_id = :emp_id\n" + //
 			"LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n" + //
 			"        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id\n" + //
@@ -6945,7 +6947,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 			"    c.client_id, \n" +
 			"    c.client_name, \n" +
 			"    ecsm.client_side_id, \n" +
-			"    p.po_no, \n" +
+			" GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no, \n" +
 			"    s.name AS spoc, \n" +
 			"    tl.name AS teamLead, \n" +
 			"    e.reporting_manager_id, \n" +
@@ -6971,6 +6973,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 			"    LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id \n" +
 			"    AND pom_check.project_overhead_id = :emp_id \n" +
 			"    LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id \n" +
+			"LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND (ppd.active = TRUE or ppd.active is null) \n" +
 			"    AND ecsm.project_id = t.project_id \n" +
 			"  WHERE \n" +
 			"    p.has_client_side_id = 1 \n" +
@@ -7401,7 +7404,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 			"  bpe.project_id, \n" +
 			"  bpe.project_name, \n" +
 			"  pm.project_manager_name, \n" +
-			"  bpe.po_no, \n" +
+			"  GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no,\n" +
 			"  bpe.client_name, \n" +
 			"  bpe.reporting_manager_id, \n" +
 			"  MONTHNAME(dp.from_date) AS month_name, \n" +
@@ -7822,6 +7825,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 			"  LEFT JOIN Employee_Calculated_Status ecs ON bpe.employee_team_map_id = ecs.employee_team_map_id \n" +
 			"  LEFT JOIN Project_Managers pm ON bpe.project_id = pm.project_id \n" +
 			"  LEFT JOIN employee s_emp ON dsd.shadow_emp_id = s_emp.emp_id \n" +
+			"  LEFT JOIN project_po_details ppd ON ppd.project_id = bpe.project_id AND (ppd.active = TRUE or ppd.active is null) " +
 			"WHERE \n" +
 			"  (\n" +
 			"    (\n" +
@@ -7893,7 +7897,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 			"  bpe.dept_name, \n" +
 			"  bpe.project_name, \n" +
 			"  pm.project_manager_name, \n" +
-			"  bpe.po_no, \n" +
+			"  ppd.po_no, \n" +
 			"  bpe.client_name, \n" +
 			"  bpe.reporting_manager_id, \n" +
 			"  bpe.client_side_id, \n" +
@@ -7908,8 +7912,8 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 			"  ecs.clientSidePendingCount, \n" +
 			"  ecs.clientSideApprovedCount \n" +
 			"ORDER BY \n" +
-			"  CASE WHEN :sortDirection = 'asc' THEN CASE WHEN :sortBy = 'employement_id' THEN employement_id WHEN :sortBy = 'clientsideId' THEN bpe.client_side_id WHEN :sortBy = 'employeeName' THEN bpe.name WHEN :sortBy = 'employmentStatus' THEN bpe.employmentstatus WHEN :sortBy = 'projectStatus' THEN bpe.active WHEN :sortBy = 'departmentName' THEN dept_name WHEN :sortBy = 'billable_type' THEN bpe.billable_type WHEN :sortBy = 'clientName' THEN bpe.client_name WHEN :sortBy = 'po_no' THEN po_no WHEN :sortBy = 'project_name' THEN bpe.project_name WHEN :sortBy = 'projectManagerName' THEN pm.project_manager_name WHEN :sortBy = 'team' THEN team_name WHEN :sortBy = 'startDate' THEN bpe.start_date WHEN :sortBy = 'endDate' THEN bpe.end_date WHEN :sortBy = 'expectedTimesheetFillCount' THEN ecs.expectedTimesheetFillCount ELSE bpe.name END END ASC, \n" +
-			"  CASE WHEN :sortDirection = 'desc' THEN CASE WHEN :sortBy = 'employement_id' THEN employement_id WHEN :sortBy = 'clientsideId' THEN bpe.client_side_id WHEN :sortBy = 'employeeName' THEN bpe.name WHEN :sortBy = 'employmentStatus' THEN bpe.employmentstatus WHEN :sortBy = 'projectStatus' THEN bpe.active WHEN :sortBy = 'departmentName' THEN dept_name WHEN :sortBy = 'billable_type' THEN bpe.billable_type WHEN :sortBy = 'clientName' THEN bpe.client_name WHEN :sortBy = 'po_no' THEN po_no WHEN :sortBy = 'project_name' THEN bpe.project_name WHEN :sortBy = 'projectManagerName' THEN pm.project_manager_name WHEN :sortBy = 'team' THEN team_name WHEN :sortBy = 'startDate' THEN bpe.start_date WHEN :sortBy = 'endDate' THEN bpe.end_date WHEN :sortBy = 'expectedTimesheetFillCount' THEN ecs.expectedTimesheetFillCount ELSE bpe.name END END DESC ", nativeQuery = true)
+			"  CASE WHEN :sortDirection = 'asc' THEN CASE WHEN :sortBy = 'employement_id' THEN employement_id WHEN :sortBy = 'clientsideId' THEN bpe.client_side_id WHEN :sortBy = 'employeeName' THEN bpe.name WHEN :sortBy = 'employmentStatus' THEN bpe.employmentstatus WHEN :sortBy = 'projectStatus' THEN bpe.active WHEN :sortBy = 'departmentName' THEN dept_name WHEN :sortBy = 'billable_type' THEN bpe.billable_type WHEN :sortBy = 'clientName' THEN bpe.client_name WHEN :sortBy = 'po_no' THEN ppd.po_no WHEN :sortBy = 'project_name' THEN bpe.project_name WHEN :sortBy = 'projectManagerName' THEN pm.project_manager_name WHEN :sortBy = 'team' THEN team_name WHEN :sortBy = 'startDate' THEN bpe.start_date WHEN :sortBy = 'endDate' THEN bpe.end_date WHEN :sortBy = 'expectedTimesheetFillCount' THEN ecs.expectedTimesheetFillCount ELSE bpe.name END END ASC, \n" +
+			"  CASE WHEN :sortDirection = 'desc' THEN CASE WHEN :sortBy = 'employement_id' THEN employement_id WHEN :sortBy = 'clientsideId' THEN bpe.client_side_id WHEN :sortBy = 'employeeName' THEN bpe.name WHEN :sortBy = 'employmentStatus' THEN bpe.employmentstatus WHEN :sortBy = 'projectStatus' THEN bpe.active WHEN :sortBy = 'departmentName' THEN dept_name WHEN :sortBy = 'billable_type' THEN bpe.billable_type WHEN :sortBy = 'clientName' THEN bpe.client_name WHEN :sortBy = 'po_no' THEN ppd.po_no WHEN :sortBy = 'project_name' THEN bpe.project_name WHEN :sortBy = 'projectManagerName' THEN pm.project_manager_name WHEN :sortBy = 'team' THEN team_name WHEN :sortBy = 'startDate' THEN bpe.start_date WHEN :sortBy = 'endDate' THEN bpe.end_date WHEN :sortBy = 'expectedTimesheetFillCount' THEN ecs.expectedTimesheetFillCount ELSE bpe.name END END DESC ", nativeQuery = true)
 				public List<Object[]> getEmployeeViewForClientAttendanceStatusNew(
 					@Param("month") Integer month,
 					@Param("year") Integer year,
@@ -7993,7 +7997,8 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 						"            etm.team_id, t.team_name, etm.emp_id, e.name, etm.employee_role, case when p.po_project_type = 'TNM' AND (etm.is_shadow = 0 OR etm.is_shadow IS NULL) then 'TNM' when p.po_project_type = 'Fixed Cost' AND (etm.is_shadow = 0 OR etm.is_shadow IS NULL) then 'Fixed Cost' when p.po_project_type = 'TNM' and etm.is_shadow = 1 then 'TNM(Shadow)' when p.po_project_type = 'Fixed Cost' and etm.is_shadow = 1 then 'Fixed Cost(Shadow)' when p.po_project_type = 'Monitoring' then 'Fixed Cost' when p.po_project_type is null then internal_project_type end as billable_type,\n" +
 						"            date(etm.start_date) as start_date, date(etm.end_date) as end_date, etm.employee_team_map_id,\n" +
 						"            etm.active, p.project_id, p.project_name,\n" +
-						"            c.client_id, c.client_name, ecsm.client_side_id, p.po_no,\n" +
+						"            c.client_id, c.client_name, ecsm.client_side_id, "
+						+ "GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no,\n" +
 						"            s.name AS spoc, tl.name AS teamLead,\n" +
 						"            e.reporting_manager_id, e.employmentstatus, d.name AS dept_name,\n" +
 						"             CASE\n" +
@@ -8013,6 +8018,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 						"LEFT JOIN department d ON d.dept_id = jr.dept_id\n" +
 						"JOIN employee user_e ON user_e.emp_id = :emp_id\n" +
 						"JOIN job_role user_jr ON user_e.job_role_id = user_jr.job_role_id\n" +
+						"LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND (ppd.active = TRUE or ppd.active is null) " +
 						"LEFT JOIN project_manager_mapping pmm_check ON p.project_id = pmm_check.project_id AND pmm_check.project_manager_id = :emp_id\n" +
 						"LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n" +
 						"        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id\n" +
@@ -8194,6 +8200,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 						"LEFT JOIN Employee_Calculated_Status ecs ON bpe.employee_team_map_id = ecs.employee_team_map_id\n" +
 						"LEFT JOIN Project_Managers pm ON bpe.project_id = pm.project_id\n" +
 						"LEFT JOIN employee s_emp ON dsd.shadow_emp_id = s_emp.emp_id\n" +
+						"LEFT JOIN project_po_details ppd ON ppd.project_id = bpe.project_id AND (ppd.active = TRUE or ppd.active is null)" +
 						"WHERE (\n" +
 						"(:status IN ('All')) \n" +
 						"OR \n" +
@@ -8209,7 +8216,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 						" AND (:employeeName IS NULL OR LOWER(bpe.name) LIKE CONCAT('%', :employeeName, '%'))\n" +
 						" AND (:billableType2 IS NULL OR LOWER(bpe.billable_type) LIKE CONCAT('%',:billableType2,'%'))\n" +
 						" AND (:projectName IS NULL OR LOWER(bpe.project_name) LIKE CONCAT('%', :projectName, '%'))\n" +
-						" AND (:poNo IS NULL OR LOWER(bpe.po_no) LIKE CONCAT('%', :poNo, '%'))\n" +
+						" AND (:poNo IS NULL OR LOWER(ppd.po_no) LIKE CONCAT('%', :poNo, '%'))\n" +
 						" AND (:department IS NULL OR LOWER(bpe.dept_name) LIKE CONCAT('%', :department, '%'))\n" +
 						" AND (:clientName IS NULL OR LOWER(bpe.client_name) LIKE CONCAT('%', :clientName, '%'))\n" +
 						" AND (:projectManagers IS NULL OR LOWER(pm.project_manager_name) LIKE CONCAT('%', :projectManagers, '%'))\n" +
@@ -8299,7 +8306,8 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 				+ "							etm.team_id, t.team_name, etm.emp_id, e.name, etm.employee_role, case when p.po_project_type = 'TNM' AND (etm.is_shadow = 0 OR etm.is_shadow IS NULL) then 'TNM' when p.po_project_type = 'Fixed Cost' AND (etm.is_shadow = 0 OR etm.is_shadow IS NULL) then 'Fixed Cost' when p.po_project_type = 'TNM' and etm.is_shadow = 1 then 'TNM(Shadow)' when p.po_project_type = 'Fixed Cost' and etm.is_shadow = 1 then 'Fixed Cost(Shadow)' when p.po_project_type = 'Monitoring' then 'Fixed Cost' when p.po_project_type is null then internal_project_type end as billable_type,\n"
 				+ "							date(etm.start_date) as start_date, date(etm.end_date) as end_date, etm.employee_team_map_id,\n"
 				+ "							etm.active, p.project_id, p.project_name,\n"
-				+ "							c.client_id, c.client_name, ecsm.client_side_id, p.po_no,\n"
+				+ "							c.client_id, c.client_name, ecsm.client_side_id, "
+				+ "GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no,\n"
 				+ "							s.name AS spoc, tl.name AS teamLead,\n"
 				+ "							e.reporting_manager_id, e.employmentstatus, d.name AS dept_name,\n"
 				+ "							 CASE\n"
@@ -8317,6 +8325,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 				+ "						LEFT JOIN employee s ON s.emp_id = t.spoc_id\n"
 				+ "							LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id\n"
 				+ "							LEFT JOIN department d ON d.dept_id = jr.dept_id\n"
+				+ "LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND (ppd.active = TRUE or ppd.active is null) \n"
 				+ "							JOIN employee user_e ON user_e.emp_id = :emp_id\n"
 				+ "							JOIN job_role user_jr ON user_e.job_role_id = user_jr.job_role_id		\n"
 				+ "							LEFT JOIN project_manager_mapping pmm_check ON p.project_id = pmm_check.project_id AND pmm_check.project_manager_id = :emp_id\n"
@@ -8500,6 +8509,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 				+ "				LEFT JOIN Employee_Calculated_Status ecs ON bpe.employee_team_map_id = ecs.employee_team_map_id\n"
 				+ "				LEFT JOIN Project_Managers pm ON bpe.project_id = pm.project_id\n"
 				+ "				LEFT JOIN employee s_emp ON dsd.shadow_emp_id = s_emp.emp_id\n"
+				+ "LEFT JOIN project_po_details ppd ON ppd.project_id = bpe.project_id AND (ppd.active = TRUE or ppd.active is null)"
 				+ "				WHERE (\n"
 				+ "							(:status IN ('All')) \n"
 				+ "							OR \n"
@@ -8515,7 +8525,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 				+ "				 AND (:employeeName IS NULL OR LOWER(bpe.name) LIKE CONCAT('%', :employeeName, '%'))\n"
 				+ "				 AND (:billableType2 IS NULL OR LOWER(bpe.billable_type) LIKE CONCAT('%',:billableType2,'%'))\n"
 				+ "				 AND (:projectName IS NULL OR LOWER(bpe.project_name) LIKE CONCAT('%', :projectName, '%'))\n"
-				+ "				 AND (:poNo IS NULL OR LOWER(bpe.po_no) LIKE CONCAT('%', :poNo, '%'))\n"
+				+ "				 AND (:poNo IS NULL OR LOWER(ppd.po_no) LIKE CONCAT('%', :poNo, '%'))\n"
 				+ "				 AND (:department IS NULL OR LOWER(bpe.dept_name) LIKE CONCAT('%', :department, '%'))\n"
 				+ "				 AND (:clientName IS NULL OR LOWER(bpe.client_name) LIKE CONCAT('%', :clientName, '%'))\n"
 				+ "				 AND (:projectManagers IS NULL OR LOWER(pm.project_manager_name) LIKE CONCAT('%', :projectManagers, '%'))\n"
