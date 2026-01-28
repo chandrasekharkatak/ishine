@@ -5512,9 +5512,9 @@ public class TimesheetService {
 			if (checkMinusDaysForBulkUpload) {
 
 				LocalDate expectedToDate = fromYearMonth.atEndOfMonth();
-				if (!toDate.isBefore(expectedToDate) && !toDate.isAfter(fromDate)) {
+				if (toDate.isAfter(expectedToDate) || toDate.isBefore(fromDate)) {
 					throw new IllegalArgumentException(
-							"To date must be the last day of the selected month"
+							"Invalid date range."
 					);
 				}
 
