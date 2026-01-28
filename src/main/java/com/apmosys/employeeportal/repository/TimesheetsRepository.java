@@ -4015,6 +4015,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			"JOIN Date_Parameters dp ON 1=1\n" + //
 			"WHERE \n" + //
 			"etm.start_date <= dp.to_date\n" + //
+			"and p.has_client_side_id = 1 \n"+
 			"AND (etm.end_date IS NULL OR etm.end_date >= dp.from_date)\n" + //
 			"AND (\n" + //
 			" 'All' IN (:billableType) \n" + //
@@ -6769,6 +6770,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 			"    JOIN Date_Parameters dp ON 1 = 1 \n" +
 			"  WHERE \n" +
 			"    etm.start_date <= dp.to_date \n" +
+			"    and p.has_client_side_id = 1 \n" +
 			"    AND (\n" +
 			"      etm.end_date IS NULL \n" +
 			"      OR etm.end_date >= dp.from_date\n" +
@@ -7879,7 +7881,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 						"        UNION ALL\n" +
 						"        SELECT DATE_ADD(dt, INTERVAL 1 DAY) FROM All_Dates_In_Range, Date_Parameters WHERE dt < Date_Parameters.to_date\n" +
 						"    ),\n" +
-						"                                 Employees_With_Target_Project_Type AS (\n" +
+						"	Employees_With_Target_Project_Type AS (\n" +
 						"    SELECT DISTINCT etm.emp_id\n" +
 						"    FROM employee_team_mapping etm\n" +
 						"    INNER JOIN teams t ON etm.team_id = t.team_id\n" +
@@ -7887,6 +7889,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 						"    JOIN Date_Parameters dp ON 1=1\n" +
 						"    WHERE \n" +
 						"        etm.start_date <= dp.to_date\n" +
+						"        and p.has_client_side_id = 1\n" +
 						"        AND (etm.end_date IS NULL OR etm.end_date >= dp.from_date)\n" +
 						"        AND (\n" +
 						"             'All' IN (:billableType) \n" +
@@ -7947,7 +7950,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 						"        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n" +
 						"        INNER JOIN employee e ON e.emp_id = etm.emp_id\n" +
 						"        INNER JOIN clients c ON c.client_id = p.client_id\n" +
-						"                                    INNER JOIN Employees_With_Target_Project_Type target_emps ON e.emp_id = target_emps.emp_id\n" +
+						"        INNER JOIN Employees_With_Target_Project_Type target_emps ON e.emp_id = target_emps.emp_id\n" +
 						"        left JOIN Authorized_Employees ae ON e.emp_id = ae.emp_id\n" +
 						"        LEFT JOIN employee tl ON tl.emp_id = t.team_lead_id\n" +
 						"        LEFT JOIN employee s ON s.emp_id = t.spoc_id\n" +
@@ -8192,6 +8195,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 				+ "						JOIN Date_Parameters dp ON 1=1\n"
 				+ "						WHERE \n"
 				+ "							etm.start_date <= dp.to_date\n"
+				+ "							and p.has_client_side_id = 1 \n"
 				+ "							AND (etm.end_date IS NULL OR etm.end_date >= dp.from_date)\n"
 				+ "							AND (\n"
 				+ "								 'All' IN (:billableType) \n"
@@ -9603,6 +9607,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 					+ "						JOIN Date_Parameters dp ON 1=1\n"
 					+ "						WHERE \n"
 					+ "							etm.start_date <= dp.to_date\n"
+					+ "							and p.has_client_side_id = 1\n"
 					+ "							AND (etm.end_date IS NULL OR etm.end_date >= dp.from_date)\n"
 					+ "							AND (\n"
 					+ "								 'All' IN (:billableType) \n"
@@ -9915,6 +9920,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 					+ "    JOIN Date_Parameters dp ON 1 = 1 \n" 
 					+ "  WHERE \n" 
 					+ "    etm.start_date <= dp.to_date \n" 
+					+ "    and p.has_client_side_id = 1 \n" 
 					+ "    AND (\n" 
 					+ "      etm.end_date IS NULL \n" 
 					+ "      OR etm.end_date >= dp.from_date\n" 
@@ -10335,6 +10341,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 					+ "    JOIN Date_Parameters dp ON 1=1\n" 
 					+ "    WHERE \n" 
 					+ "        etm.start_date <= dp.to_date\n" 
+					+ "			and p.has_client_side_id = 1\n"
 					+ "        AND (etm.end_date IS NULL OR etm.end_date >= dp.from_date)\n" 
 					+ "        AND (\n" 
 					+ "             'All' IN (:billableType) \n" 
