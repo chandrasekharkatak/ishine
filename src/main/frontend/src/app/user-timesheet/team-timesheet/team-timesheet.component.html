@@ -638,10 +638,10 @@
       </div>
     </div>
     <div class="status-container">
-      <div class="status-card pending" [class.active]="selectedStatus === 0" (click)="onStatusChange(0)"> Pending </div>
-      <div class="status-card approved" [class.active]="selectedStatus === 1" (click)="onStatusChange(1)"> Approved
+      <div class="status-card pending" [class.active]="selectedStatus === 0" (click)="onStatusChange(1)"> Pending </div>
+      <div class="status-card approved" [class.active]="selectedStatus === 1" (click)="onStatusChange(2)"> Approved
       </div>
-      <div class="status-card rejected" [class.active]="selectedStatus === 2" (click)="onStatusChange(2)"> Rejected
+      <div class="status-card rejected" [class.active]="selectedStatus === 2" (click)="onStatusChange(3)"> Rejected
       </div>
     </div>
     <div class="d-flex justify-content-between align-items-center mb-2">

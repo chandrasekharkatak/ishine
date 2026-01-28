@@ -25,6 +25,7 @@ public class TimesheetAggregationHelper {
     public static final Integer STATUS_PENDING = 1;
     public static final Integer STATUS_APPROVED = 2;
     public static final Integer STATUS_REJECTED = 3;
+//    public static final Integer STATUS_PARTIAL = 4;
     
     
     private final String pattern="yyyy-MM-dd HH:mm:ss";

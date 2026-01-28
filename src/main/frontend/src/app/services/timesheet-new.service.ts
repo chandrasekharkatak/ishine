@@ -128,7 +128,6 @@ export class TimesheetNewService {
   }
   bulkApproveTimesheetsByIds1(payload: {
     timesheetIds: number[];
-    status: string;
     updatedBy: number;
     rejectReason?: string | null;
   }) {

@@ -144,11 +144,6 @@ public ServiceResponse bulkApproveTimesheets(TimesheetApprovalNewDTO dto) {
     // Bulk approve
     for (EmployeeTimesheetsNew ts : timesheets) {
 
-        // Approve only PENDING timesheets
-        if (!TimesheetAggregationHelper.STATUS_PENDING.equals(ts.getStatus())) {
-            continue;
-        }
-
         ts.setStatus(TimesheetAggregationHelper.STATUS_APPROVED);
         ts.setUpdatedBy(dto.getUpdatedBy());
         ts.setUpdatedOn(LocalDateTime.now());
