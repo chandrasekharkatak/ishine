@@ -57,6 +57,7 @@ export class User{
     notificationConsent:any;
     policyReadConsent:any;
     releaseNoteNotification:any;
+    linkedinPageNotification:any;
     
     poPortalAllProjectApi:any;
 

@@ -1,8 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { User } from './models/user';
 import { AuthenticationService } from './services/authentication.service';
 import { filter, first } from 'rxjs/operators';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { NotificationService } from './services/notification.service';
+import { NotificationMessage } from './models/notification';
+import { EncryptionService } from './services/EncryptionService';
 // import ClientMonitor from 'skywalking-client-js';
 import { environment } from 'src/environments/environment';
 
@@ -24,6 +28,14 @@ interface SideNavToggle{
   isSideNavCollapsed = false;
   screenWidth = 0;
   currentUser:User = new User();
+  
+  // LinkedIn Page Notification properties
+  linkedinPageNotification: any = null;
+  linkedinPageModalRef: NgbModalRef;
+  linkedinPageUrl: string = '';
+  hasVisitedLinkedInLink: boolean = false;
+
+  @ViewChild('linkedin_page_notification_template') linkedinPageNotificationTemplate: TemplateRef<any>;
 
   static DATE_FORMAT = 'DD-MM-YYYY';
   static DATETIME_FORMAT = 'DD-MM-YYYY HH:mm:ss';
@@ -35,10 +47,19 @@ interface SideNavToggle{
 
   constructor(
     private authenticationService: AuthenticationService,
-    private router : Router
+    private router : Router,
+    private modalService: NgbModal,
+    private notificationService: NotificationService,
+    private encryptionService: EncryptionService
   ){
 
-    this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+    this.authenticationService.currentUser.subscribe(x => {
+      this.currentUser = x;
+      // Check for LinkedIn notification whenever user changes
+      if (x && x.empId) {
+        this.checkLinkedInPageNotification();
+      }
+    });
     // this.router.events.pipe(
     //   filter(event => event instanceof NavigationEnd)
     // ).subscribe(() => {
@@ -56,7 +77,10 @@ interface SideNavToggle{
 
    
   ngOnInit():void{
-
+    // Check for LinkedIn notification on app initialization
+    if (this.currentUser && this.currentUser.empId) {
+      this.checkLinkedInPageNotification();
+    }
     
     // import('skywalking-client-js').then(ClientMonitor => {
     //   console.log('skywalking Client JS loaded:', ClientMonitor);
@@ -125,5 +149,72 @@ interface SideNavToggle{
 
   //implementing cookies
   
-  
+  // LinkedIn Page Notification Methods
+  checkLinkedInPageNotification() {
+    if (this.currentUser && this.currentUser.linkedinPageNotification != null && this.currentUser.linkedinPageNotification != undefined) {
+      // Only open if modal is not already open
+      if (!this.linkedinPageModalRef || (this.linkedinPageModalRef && !this.linkedinPageModalRef.componentInstance)) {
+        this.linkedinPageNotification = this.currentUser.linkedinPageNotification;
+        this.linkedinPageUrl = this.linkedinPageNotification.notificationMessage || '';
+        this.hasVisitedLinkedInLink = false;
+        this.openLinkedInPageModal();
+      }
+    }
+  }
+
+  openLinkedInPageModal() {
+    if (this.linkedinPageNotificationTemplate) {
+      const modalConfig = {
+        backdrop: 'static' as const, // Prevents closing on backdrop click
+        ignoreBackdropClick: true,
+        keyboard: false, // Prevents closing on ESC key
+        modalDialogClass: 'modal-lg',
+        windowClass: 'linkedin-modal'
+      };
+      this.linkedinPageModalRef = this.modalService.open(this.linkedinPageNotificationTemplate, modalConfig);
+    }
+  }
+
+  onLinkedInLinkClick() {
+    if (this.linkedinPageUrl) {
+      window.open(this.linkedinPageUrl, '_blank');
+      this.hasVisitedLinkedInLink = true;
+    }
+  }
+
+  submitLinkedInPageConsent() {
+    if (!this.hasVisitedLinkedInLink) {
+      return;
+    }
+
+    let notificationObj = new NotificationMessage();
+    notificationObj.empId = this.currentUser.empId;
+    notificationObj.notificationId = this.linkedinPageNotification.notificationId;
+    notificationObj.notificationType = this.linkedinPageNotification.notificationType;
+
+    this.notificationService.submitNotificationConsent(notificationObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        let dtoResponse = response.serviceResponse;
+        this.currentUser.linkedinPageNotification = dtoResponse.linkedinPageNotification;
+        
+        // Update session storage
+        const encrypted = this.encryptionService.encrypt(JSON.stringify(this.currentUser));
+        sessionStorage.setItem('currentUser', encrypted);
+        this.authenticationService.setcurrentUserSubject(this.currentUser);
+        
+        if (this.linkedinPageModalRef) {
+          this.linkedinPageModalRef.close();
+        }
+        this.linkedinPageNotification = null;
+        this.hasVisitedLinkedInLink = false;
+        
+        // Check if there are more LinkedIn notifications
+        if (this.currentUser.linkedinPageNotification != null && this.currentUser.linkedinPageNotification != undefined) {
+          setTimeout(() => {
+            this.checkLinkedInPageNotification();
+          }, 500);
+        }
+      }
+    });
+  }
 }
