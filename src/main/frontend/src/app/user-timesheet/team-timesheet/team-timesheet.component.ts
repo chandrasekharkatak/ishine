@@ -175,7 +175,6 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
-    this.getPreviousMinusDays();
     const now = new Date();
     this.today = now.toISOString().split('T')[0];
     // Dynamic Subfeature Flags
@@ -257,6 +256,7 @@ export class TeamTimesheetComponent implements OnInit {
     this.isAllTimesheetTable = false;
     this.isAllTimesheetRequestTable = false;
     this.isTMBulkUpload = true;
+    this.getPreviousMinusDays();
   }
 
   getAllTeamTimesheets(template?: TemplateRef<any>) {
@@ -1932,8 +1932,16 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
 
   getPreviousMinusDays() {
     this.timesheetService.getPreviousMinusDays().subscribe({
-      next: (response: { minusDays: number; checkMinusDaysForBulkUpload: boolean }) => {
-        this.minusDaysData = response;
+      next: (response: any) => {
+
+        this.minusDaysData = response.serviceResponse || {
+          checkMinusDaysForBulkUpload: true,
+          minusDays: 45
+        };
+
+        if(response.serviceError != null ){
+          this.openAlertMod(this.alertTemplate, `Document upload is only valid for pas ${this.minusDaysData.minusDays} days`);
+        }
 
         const now = new Date();
 
@@ -1943,10 +1951,10 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
         const prevMonthDate = new Date(currentYear, currentMonth - 1, 1);
         this.maxMonth = `${prevMonthDate.getFullYear()}-${String(prevMonthDate.getMonth() + 1).padStart(2, '0')}`;
 
-        if (response.checkMinusDaysForBulkUpload) {
+        if (this.minusDaysData.checkMinusDaysForBulkUpload) {
 
-          const minusDays = response.minusDays && response.minusDays > 0
-            ? response.minusDays
+          const minusDays = this.minusDaysData.minusDays && this.minusDaysData.minusDays > 0
+            ? this.minusDaysData.minusDays
             : 45;
 
           const expectedDate = new Date(now);
@@ -1977,12 +1985,6 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
         }
 
       },
-
-      error: (error: any) => {
-        this.alertMessage =
-          'Error while fetching days before data, default value will be used';
-        this.openAlertMod(this.alertTemplate, error.serviceResponse);
-      }
     });
   }
 

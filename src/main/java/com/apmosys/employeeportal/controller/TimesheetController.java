@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.controller;
 
+import java.security.Provider.Service;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -614,13 +616,23 @@ public class TimesheetController {
 
 	@JobRoleAccess(featureIds = {15})
 	@GetMapping("/getPreviousMinusDays")
-	public Map<String, Object> getPreviousMinusDays() {
-		Map<String, Object> response = new HashMap<>();
-
-		response.put("minusDays", minusDays);
-		response.put("checkMinusDaysForBulkUpload", checkMinusDaysForBulkUpload);
-
-		return response;		
+	public ServiceResponse getPreviousMinusDays() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			Map<String, Object> map = new HashMap<>();
+			map.put("minusDays", minusDays);
+			map.put("checkMinusDaysForBulkUpload", checkMinusDaysForBulkUpload);
+			response.setServiceResponse(map);
+			return response;
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse(e.getMessage());
+			response.setServiceError(ServiceResponse.STATUS_FAIL);
+			response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+			return response;
+		}
 	}
 
 		 
