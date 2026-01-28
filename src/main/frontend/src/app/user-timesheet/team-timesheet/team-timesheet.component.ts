@@ -2022,8 +2022,9 @@ closeDocumentPopup() {
             alert(res?.serviceResponse || 'Bulk approval failed');
           }
         }
-        
+
       });
+
   }
 
 
@@ -2076,7 +2077,7 @@ BulkRejectByIds(
       }
     });
 
-    
+
 }
 
 
@@ -2090,6 +2091,132 @@ openBulkRejectModal(bulkRejectTimesheet: TemplateRef<any>): void {
     { modalDialogClass: 'modal-lg', backdrop: 'static' }
   );
 }
+
+// SINGLE TIMESHEET APPROVE
+approveSingleTimesheet(timesheet: any) {
+
+  if (!timesheet?.timesheetId) {
+    alert('Invalid timesheet');
+    return;
+  }
+
+  const payload = {
+    timesheetIds: [timesheet.timesheetId],
+    status: 'APPROVED',
+    updatedBy: this.currentUser.empId
+  };
+
+  this.timesheetNewService
+    .bulkApproveTimesheetsByIds1(payload)
+    .subscribe({
+      next: (res: any) => {
+        if (res?.serviceStatus === 'Success') {
+          this.clearAllSelections();
+          this.getMyReporteesTimesheetRequests();
+          alert(res.serviceResponse || 'Timesheet approved successfully');
+        } else {
+          alert(res?.serviceResponse || 'Timesheet approval failed');
+        }
+      },
+      error: () => {
+        alert('Timesheet approval failed');
+      }
+    });
+}
+
+// Single reject state
+selectedTimesheetForReject: any = null;
+singleRejectReason: string = '';
+
+openSingleRejectModal(
+  template: TemplateRef<any>,
+  timesheet: any
+): void {
+
+  this.selectedTimesheetForReject = timesheet;
+  this.singleRejectReason = '';
+
+  this.modalRef = this.modalService.open(
+    template,
+    { modalDialogClass: 'modal-md', backdrop: 'static' }
+  );
+}
+
+// SINGLE TIMESHEET REJECT
+submitSingleReject() {
+
+  if (!this.selectedTimesheetForReject?.timesheetId) {
+    alert('Invalid timesheet');
+    return;
+  }
+
+  if (!this.singleRejectReason || !this.singleRejectReason.trim()) {
+    alert('Reject reason is required');
+    return;
+  }
+
+  const payload = {
+    timesheetIds: [this.selectedTimesheetForReject.timesheetId],
+    status: 'REJECTED',
+    updatedBy: this.currentUser.empId,
+    rejectReason: this.singleRejectReason.trim()
+  };
+
+  this.timesheetNewService
+    .bulkRejectTimesheetsByIds1(payload)
+    .subscribe({
+      next: (res: any) => {
+        if (res?.serviceStatus === 'Success') {
+          this.modalRef?.close(); // ✅ close ONLY current modal
+          this.clearAllSelections();
+          this.getMyReporteesTimesheetRequests();
+          alert(res.serviceResponse || 'Timesheet rejected successfully');
+        } else {
+          alert(res?.serviceResponse || 'Timesheet rejection failed');
+        }
+      },
+      error: () => {
+        alert('Timesheet rejection failed');
+      }
+    });
+}
+
+
+// Single Project Approve
+
+approveSingleProject(timesheet: any, project: any, location: any) {
+
+  if (!project?.projectId || !location?.locationMappingId) {
+    return;
+  }
+
+  const payload = {
+    timesheetId: timesheet.timesheetId,
+    locationMappingId: location.locationMappingId, // ✅ REQUIRED
+    projectIds: [project.projectId],                // ✅ ARRAY
+    status: 'APPROVED',
+    updatedBy: this.currentUser.empId
+  };
+
+  this.timesheetNewService
+    .approveRejectProjects(payload)
+    .subscribe({
+      next: (res: any) => {
+        if (res?.serviceStatus === 'Success') {
+          this.getMyReporteesTimesheetRequests();
+          alert(res.serviceResponse || 'Project approved successfully');
+        } else {
+          alert(res?.serviceResponse || 'Project approval failed');
+        }
+      },
+      error: () => {
+        alert('Project approval failed');
+      }
+    });
+}
+
+
+
 
 
 
