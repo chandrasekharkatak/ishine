@@ -263,6 +263,8 @@ th {
   .accordion-cell {
     background: #f8fafc;
     padding: 12px;
+    position: relative;
+    z-index: 1;
   }
 
   /* LOCATION */
@@ -917,8 +919,11 @@ th {
   overflow: hidden;
   margin-top: 16px;
   border: 1px solid #e5e7eb;
-  table-layout: fixed; /* important */
+  table-layout: auto; /* important */
   width: 100%;
+}
+.project-table td {
+  position: relative;
 }
 
 .project-table thead th {
@@ -2276,4 +2281,114 @@ th {
 .total-count {
   font-size: 14px;
   color: #4b5563;
+}
+
+.ts-scroll-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+/* Desktop */
+.timesheet-table {
+  min-width: 1600px;
+  width: max-content;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .timesheet-table {
+    min-width: 1200px;
+  }
+}
+.timesheet-table th {
+  white-space: nowrap;
+}
+
+.timesheet-table td {
+  white-space: normal;
+}
+.action-buttons-container {
+  display: flex;
+  flex-wrap: wrap;              /* 👈 KEY */
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (max-width: 768px) {
+  .action-buttons-container {
+    flex-direction: column;
+  }
+
+  .btn-approve,
+  .btn-reject,
+  .doc-btn {
+    width: 100%;
+    max-width: 120px;
+  }
+}
+@media (max-width: 768px) {
+  .bulk-actions-wrapper {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .bulk-buttons-group {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .bulk-action-btn,
+  .clear-selection-btn {
+    width: 100%;
+  }
+}
+.project-table {
+  width: 100%;
+  min-width: 700px;
+}
+
+.project-card {
+  overflow-x: auto;
+}
+@media (max-width: 768px) {
+  .status-container {
+    flex-direction: column;
+  }
+
+  .status-card {
+    height: 80px;
+    font-size: 14px;
+  }
+}
+
+.project-table button {
+  position: relative;
+  z-index: 5;
+}
+.project-table .action-buttons-container {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  align-items: center;
+}
+/* PROJECT TABLE FIX */
+.project-table {
+  table-layout: auto !important;
+}
+
+.project-table td {
+  position: relative;
+}
+
+.project-table button {
+  position: relative;
+  z-index: 5;
+  pointer-events: auto;
+}
+
+.accordion-cell {
+  position: relative;
+  z-index: 1;
 }

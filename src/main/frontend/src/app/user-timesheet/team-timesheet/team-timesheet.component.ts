@@ -2215,6 +2215,76 @@ approveSingleProject(timesheet: any, project: any, location: any) {
     });
 }
 
+// Single proejct Reject
+
+selectedProjectForReject: any = null;
+selectedProjectTimesheet: any = null;
+selectedProjectLocation: any = null;
+singleProjectRejectReason: string = '';
+
+submitSingleProjectReject() {
+
+  if (
+    !this.selectedProjectForReject?.projectId ||
+    !this.selectedProjectLocation?.locationMappingId ||
+    !this.selectedProjectTimesheet?.timesheetId
+  ) {
+    alert('Invalid project data');
+    return;
+  }
+
+  if (!this.singleProjectRejectReason.trim()) {
+    alert('Reject reason is required');
+    return;
+  }
+
+  const payload = {
+    timesheetId: this.selectedProjectTimesheet.timesheetId,
+    locationMappingId: this.selectedProjectLocation.locationMappingId,
+    projectIds: [this.selectedProjectForReject.projectId],
+    status: 'REJECTED',
+    updatedBy: this.currentUser.empId,
+    rejectReason: this.singleProjectRejectReason.trim()
+  };
+
+  this.timesheetNewService
+    .approveRejectProjects(payload)
+    .subscribe({
+      next: (res: any) => {
+        if (res?.serviceStatus === 'Success') {
+          this.modalRef?.close();
+          this.getMyReporteesTimesheetRequests();
+          alert(res.serviceResponse || 'Project rejected successfully');
+        } else {
+          alert(res?.serviceResponse || 'Project rejection failed');
+        }
+      },
+      error: () => {
+        alert('Project rejection failed');
+      }
+    });
+}
+
+openSingleProjectRejectModal(
+  template: TemplateRef<any>,
+  timesheet: any,
+  project: any,
+  location: any,
+  event: MouseEvent
+): void {
+
+  event.stopPropagation();   // 🔥 CRITICAL
+
+  this.selectedProjectForReject = project;
+  this.selectedProjectTimesheet = timesheet;
+  this.selectedProjectLocation = location;
+  this.singleProjectRejectReason = '';
+
+  this.modalRef = this.modalService.open(
+    template,
+    { modalDialogClass: 'modal-md', backdrop: 'static' }
+  );
+}
 
 
 

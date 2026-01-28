@@ -744,13 +744,17 @@
                             <td> <button class="doc-btn approved" style="color:green"
                                 (click)="openDocumentPopup(timesheet)"> <i class="fa fa-eye"></i> </button></td>
                             <td>
-                              <button class="btn-approve" [disabled]="selectedStatus !== 0 || project.status !== 0"
+                              <div class="action-buttons-container">
+                              <button class="btn-approve"
                                 (click)="approveSingleProject(timesheet, project,location)">
                                 ✔
                               </button>
-
-
-                              <button class="btn-reject">✖</button>
+                              <button
+                              class="btn-reject"
+                              (click)="openSingleProjectRejectModal(projectRejectModal, timesheet, project, location, $event)">
+                              ✖
+                            </button>
+                                                        </div>
                             </td>
                           </tr>
                         </tbody>
@@ -869,6 +873,29 @@
     <button class="btn btn-danger" (click)="submitSingleReject()">
       Reject
     </button>
+  </div>
+</ng-template>
+
+<!-- single project reject modal -->
+<ng-template #projectRejectModal>
+  <div class="modal-header">
+    <h5>Reject Project</h5>
+    <button type="button" class="close" (click)="modalRef?.close()">×</button>
+  </div>
+
+  <div class="modal-body">
+    <label class="form-label">Reject Reason</label>
+    <textarea
+      class="form-control"
+      rows="3"
+      [(ngModel)]="singleProjectRejectReason"
+      placeholder="Enter reject reason">
+    </textarea>
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn btn-secondary" (click)="modalRef?.close()">Cancel</button>
+    <button class="btn btn-danger" (click)="submitSingleProjectReject()">Reject</button>
   </div>
 </ng-template>
 
