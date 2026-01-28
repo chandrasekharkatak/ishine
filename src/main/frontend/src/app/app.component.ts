@@ -1,5 +1,5 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit, AfterViewInit, TemplateRef, ViewChild } from '@angular/core';
+import { Router, NavigationEnd } from '@angular/router';
 import { User } from './models/user';
 import { AuthenticationService } from './services/authentication.service';
 import { filter, first } from 'rxjs/operators';
@@ -21,7 +21,7 @@ interface SideNavToggle{
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
- export class AppComponent implements OnInit{
+ export class AppComponent implements OnInit, AfterViewInit{
   //export class AppComponent {
   title = 'employee-portal-revamp';
 
@@ -57,8 +57,19 @@ interface SideNavToggle{
       this.currentUser = x;
       // Check for LinkedIn notification whenever user changes
       if (x && x.empId) {
-        this.checkLinkedInPageNotification();
+        setTimeout(() => {
+          this.checkLinkedInPageNotification();
+        }, 100);
       }
+    });
+    
+    // Also check on route changes
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe(() => {
+      setTimeout(() => {
+        this.checkLinkedInPageNotificationFromStorage();
+      }, 300);
     });
     // this.router.events.pipe(
     //   filter(event => event instanceof NavigationEnd)
@@ -77,10 +88,8 @@ interface SideNavToggle{
 
    
   ngOnInit():void{
-    // Check for LinkedIn notification on app initialization
-    if (this.currentUser && this.currentUser.empId) {
-      this.checkLinkedInPageNotification();
-    }
+    // Check for LinkedIn notification on app initialization - check sessionStorage directly
+    this.checkLinkedInPageNotificationFromStorage();
     
     // import('skywalking-client-js').then(ClientMonitor => {
     //   console.log('skywalking Client JS loaded:', ClientMonitor);
@@ -102,6 +111,13 @@ interface SideNavToggle{
     //   console.error('Error loading skywalking Client JS:', err);    });
 
   }
+  ngAfterViewInit(): void {
+    // Additional check after view initialization with delay to ensure everything is loaded
+    setTimeout(() => {
+      this.checkLinkedInPageNotificationFromStorage();
+    }, 500);
+  }
+
   onToggleSideNav(data: SideNavToggle){
     this.screenWidth = data.screenWidth;
     this.isSideNavCollapsed = data.collapsed;
@@ -159,6 +175,34 @@ interface SideNavToggle{
         this.hasVisitedLinkedInLink = false;
         this.openLinkedInPageModal();
       }
+    }
+  }
+
+  // Check LinkedIn notification directly from sessionStorage (for refresh scenarios)
+  checkLinkedInPageNotificationFromStorage() {
+    try {
+      const encryptedUser = sessionStorage.getItem('currentUser');
+      if (encryptedUser) {
+        const decryptedString = this.encryptionService.decrypt(encryptedUser);
+        if (decryptedString) {
+          const userFromStorage = JSON.parse(decryptedString);
+          if (userFromStorage && userFromStorage.empId && userFromStorage.linkedinPageNotification != null && userFromStorage.linkedinPageNotification != undefined) {
+            // Update currentUser if not set or different
+            if (!this.currentUser || !this.currentUser.empId) {
+              this.currentUser = userFromStorage;
+            }
+            // Only open if modal is not already open
+            if (!this.linkedinPageModalRef || (this.linkedinPageModalRef && !this.linkedinPageModalRef.componentInstance)) {
+              this.linkedinPageNotification = userFromStorage.linkedinPageNotification;
+              this.linkedinPageUrl = this.linkedinPageNotification.notificationMessage || '';
+              this.hasVisitedLinkedInLink = false;
+              this.openLinkedInPageModal();
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error checking LinkedIn notification from storage:', error);
     }
   }
 

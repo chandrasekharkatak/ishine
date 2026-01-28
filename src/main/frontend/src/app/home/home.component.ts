@@ -2375,8 +2375,8 @@ getDocsForPreview(docId: any) {
   openLinkedInPageModal() {
     if (this.linkedinPageNotificationTemplate) {
       const modalConfig = {
-        backdrop: true,
-        ignoreBackdropClick: true,
+        backdrop: 'static' as const ,
+         ignoreBackdropClick: true,
         keyboard: false,
         modalDialogClass: 'modal-lg'
       };
