@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.dto.PoDetailsDto;
@@ -38,5 +39,15 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
         List<ProjectPoDetails> findByProjectId(Integer projectId);
 
 		Optional<ProjectPoDetails> findByPoIdAndProjectId(Long poId, Integer projectId);
+
+		boolean existsByPoIdAndProjectId(Long poId, Integer projectId);
+		
+		
+		@Query("Select po.poId from ProjectPoDetails po where po.projectId= :projectId and active = true")
+		List<Long> findActivePoIdsByProjectId(@Param("projectId") Integer projectId);
+
+		List<ProjectPoDetails> findByProjectIdAndActiveTrue(Integer projectId);
+
+		Optional<ProjectPoDetails> findByProjectIdAndPoIdAndActiveTrue(Integer projectId, Long poId);
 
 }

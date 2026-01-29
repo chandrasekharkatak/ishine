@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
+import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
 import com.apmosys.employeeportal.dto.FilterMatrix;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
@@ -30,6 +31,7 @@ import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.ProjectStructureWrapper;
+import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.RestoreProjectPayloadDTO;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
@@ -477,6 +479,19 @@ public class ResourceManagementController {
 		 return poSyncOrchestratorService.poCrudOperationsInIshineNew(poPortalProjects);
 	 }
 	 
+	 
+	 @PostMapping("/renewPoInIshineNew")
+	 public ServiceResponse renewPoInIshineNew(HttpServletRequest httpRequest,@RequestBody  RenewedPoSyncDto dto) {
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		 return poSyncOrchestratorService.renewPoInIshineNew(dto);
+	 }
+	 
+	 
+	 @PostMapping("/deletePoInIshineNew")
+	 public ServiceResponse deletePoInIshineNew(HttpServletRequest httpRequest,@RequestBody  DeletedPoSyncDTO dto) {
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		 return poSyncOrchestratorService.deletePoInIshineNew(dto);
+	 }
 	 
 	 
 

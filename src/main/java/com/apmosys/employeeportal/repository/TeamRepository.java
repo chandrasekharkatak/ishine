@@ -201,4 +201,5 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 
 	@Query(value ="select t.teamName from Team t where t.isActive = 'Y' and t.teamId in (:teamIds)")
 	public List<String> findActiveTeamNameByTeamIds(@Param("teamIds") List<Long> teamIds);
+	public boolean existsByPoIdAndIsActive(Long poId, String string);
 }

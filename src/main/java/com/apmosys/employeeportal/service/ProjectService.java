@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,6 +41,7 @@ import org.springframework.web.client.RestTemplate;
 import com.apmosys.employeeportal.dto.ClientIdAndName;
 import com.apmosys.employeeportal.dto.ClientProjectReportDTO;
 import com.apmosys.employeeportal.dto.ClientsDTO;
+import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
 import com.apmosys.employeeportal.dto.EmployeeProjectSummaryDTO;
 import com.apmosys.employeeportal.dto.FCLineItemDTO;
 import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
@@ -66,6 +68,7 @@ import com.apmosys.employeeportal.dto.ProjectManagerIdAndNameDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
+import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.RmgProjectDto;
 import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
@@ -4260,5 +4263,137 @@ public class ProjectService {
 		}
 		return response;
 	}
+	
+	
+	public void updateProjectDatesAfterRenewal(
+	        Project project,
+	        RenewedPoSyncDto dto) {
+
+	    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+	    boolean changed = false;
+
+	    String newStart =
+	            dto.getProjectStartDateAfterRenewal() != null
+	                    ? df.format(dto.getProjectStartDateAfterRenewal())
+	                    : null;
+
+	    String newEnd =
+	            dto.getProjectEndDateAfterRenewal() != null
+	                    ? df.format(dto.getProjectEndDateAfterRenewal())
+	                    : null;
+
+	    if (!Objects.equals(project.getStartDate(), newStart)) {
+	        project.setStartDate(newStart);
+	        changed = true;
+	    }
+
+	    if (!Objects.equals(project.getEndDate(), newEnd)) {
+	        project.setEndDate(newEnd);
+	        changed = true;
+	    }
+
+	    if (changed) {
+	        project.setUpdatedBy(
+	        		validateAndGetEmployeeEmpId(
+	                        dto.getRenewedByEmpId(),
+	                        dto.getRenewedByEmpName()));
+	        project.setUpdatedOn(dto.getRenewedOn().toInstant()
+	                .atZone(ZoneId.systemDefault())
+	                .toLocalDateTime());
+	        projectRepository.save(project);
+	    }
+	}
+	
+	private Long validateAndGetEmployeeEmpId(String createdByEmpId, String createdByEmpName) {
+
+		if (createdByEmpId == null || !createdByEmpId.startsWith("A-")) {
+			ExceptionLogContext.add(
+		            "createdByEmpId or createdByEmpName missing from PO"
+		            + " | createdByEmpId=" + createdByEmpId
+		            + " | createdByEmpName=" + createdByEmpName
+		        );
+			throw new RuntimeException("Invalid createdByEmpId format");
+		}
+
+		Long employmentId;
+		try {
+			employmentId = Long.parseLong(createdByEmpId.substring(2));
+		} catch (NumberFormatException e) {
+			 ExceptionLogContext.add(
+			            "Invalid createdByEmpId format from PO"
+			            + " | createdByEmpId=" + createdByEmpId
+			        );
+			throw new RuntimeException("Invalid employment id in createdByEmpId");
+		}
+
+		 return employeeRepository
+		            .findByEmploymentIdAndEmployeeName(employmentId, createdByEmpName)
+		            .orElseThrow(() -> {
+		                ExceptionLogContext.add(
+		                    "Employee mismatch from PO"
+		                    + " | employmentId=" + employmentId
+		                    + " | employeeName=" + createdByEmpName
+		                );
+		                return new RuntimeException(
+		                    "Employee mismatch for createdBy employee"
+		                );
+		            });
+	}
+	
+	public void updateProjectDatesAfterDeletion(
+	        Project project,
+	        DeletedPoSyncDTO dto) {
+
+	    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+	    boolean changed = false;
+
+	    String newStart =
+	            dto.getProjectStartDateAfterDeletion() != null
+	                    ? df.format(dto.getProjectStartDateAfterDeletion())
+	                    : null;
+
+	    String newEnd =
+	            dto.getProjectEndDateAfterDeletion() != null
+	                    ? df.format(dto.getProjectEndDateAfterDeletion())
+	                    : null;
+
+	    if (!Objects.equals(project.getStartDate(), newStart)) {
+	        project.setStartDate(newStart);
+	        changed = true;
+	    }
+
+	    if (!Objects.equals(project.getEndDate(), newEnd)) {
+	        project.setEndDate(newEnd);
+	        changed = true;
+	    }
+
+	    if (changed) {
+	        project.setUpdatedBy(
+	                validateAndGetEmployeeEmpId(
+	                        dto.getDeletedByEmpId(),
+	                        dto.getDeletedByEmpName()
+	                ));
+	        project.setUpdatedOn(
+	                dto.getDeletedOn().toInstant()
+	                        .atZone(ZoneId.systemDefault())
+	                        .toLocalDateTime()
+	        );
+	        projectRepository.save(project);
+	    }
+	}
+	
+	public void setActiveFlagAsFalse(Project project,DeletedPoSyncDTO dto) {
+		 if (project.getActive().equalsIgnoreCase("true"))	{  
+	            project.setActive("false");
+	            project.setUpdatedBy(validateAndGetEmployeeEmpId(
+	                        dto.getDeletedByEmpId(),
+	                        dto.getDeletedByEmpName()
+	                ));
+	            project.setUpdatedOn(dto.getDeletedOn().toInstant()
+	                        .atZone(ZoneId.systemDefault())
+	                        .toLocalDateTime());           
+	        }
+	}
+
 
 }
