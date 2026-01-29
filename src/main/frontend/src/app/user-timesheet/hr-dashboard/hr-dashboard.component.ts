@@ -2878,10 +2878,6 @@ toggleDeptTableCollapse(): void {
 loadDepartmentStatusSummary(): void {
 
   this.allowedEmpid = this.currentUser.empId ;
-  if(this.allowedEmpid == 6){
-  this.authorizedEmp = true ;
-  }
-
   // this.authorizedEmp = true ;
 
   const payload = {
