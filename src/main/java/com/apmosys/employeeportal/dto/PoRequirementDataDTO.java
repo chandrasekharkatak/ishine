@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.dto;
 
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,12 +19,12 @@ public class PoRequirementDataDTO {
     private Long projectId;
     private String projectName;
     private String poNo;
-    private String poStartDate;
-    private String poEndDate;
+    private LocalDateTime poStartDate;
+    private LocalDateTime poEndDate;
 
     public PoRequirementDataDTO(Long poRequirementMappingId, Long poId, String role, String experience,
-            String department, Long teamId, Integer projectId, String projectName, String poNo, String poStartDate,
-            String poEndDate) {
+            String department, Long teamId, Integer projectId, String projectName, String poNo, LocalDateTime poStartDate,
+            LocalDateTime poEndDate) {
         this.poRequirementMappingId = poRequirementMappingId;
         this.poId = poId;
         this.role = role;
