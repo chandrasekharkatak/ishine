@@ -1,6 +1,5 @@
 package com.apmosys.employeeportal.service;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
@@ -28,7 +27,6 @@ import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.ProjectPoDetailsRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ExceptionLogContext;
-import com.apmosys.employeeportal.utility.PoportalApiException;
 
 @Service
 public class PoDetailsService {
@@ -128,21 +126,24 @@ public class PoDetailsService {
 	    PoDetailsForProjectPoMappingDTO poDto =
 	            dto.getPoDetailsList().get(0);
 
-	    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 	    boolean changed = false;
 
 	    if (!Objects.equals(po.getPoNo(), poDto.getPoNo())) {
 	        po.setPoNo(poDto.getPoNo());
 	        changed = true;
 	    }
+	    
+	    LocalDateTime dtoStartDate = convert(poDto.getPoEndDate());
 
-	    if (!Objects.equals(po.getPoStartDate(), poDto.getPoStartDate())) {
-	        po.setPoStartDate(convert(poDto.getPoStartDate()));
+	    if (!Objects.equals(po.getPoStartDate(), dtoStartDate)) {
+	        po.setPoStartDate(dtoStartDate);
 	        changed = true;
 	    }
 
-	    if (!Objects.equals(po.getPoEndDate(), poDto.getPoEndDate())) {
-	        po.setPoEndDate(convert(poDto.getPoEndDate()));
+	    LocalDateTime dtoEndDate = convert(poDto.getPoEndDate());
+	    
+	    if (!Objects.equals(po.getPoEndDate(), dtoEndDate)) {
+	        po.setPoEndDate(dtoEndDate);
 	        changed = true;
 	    }
 
@@ -230,7 +231,6 @@ public class PoDetailsService {
 	    PoDetailsForProjectPoMappingDTO poDto = dto.getRenewedPo();
 	    ClientLocation cl = clientService.resolveClientLocation(client.getClientId(), poDto.getClientLocation(),
 				poDto.getClientState());
-	    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 
 	    ProjectPoDetails po = new ProjectPoDetails();
 	    po.setPoId(poDto.getPoId());
