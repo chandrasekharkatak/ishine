@@ -81,15 +81,14 @@
   </select>
 </div> -->
 
-            <div class="ms-3" *ngIf="!isClientDashboard">
+            <div class="ms-3">
                 <label class="info-label mb-1 fw-bold">Billable Type</label>
                 <div class="billable-type-field">
                     <mat-form-field appearance="outline" class="w-100">
                         <mat-select [(ngModel)]="selectedBillableTypes" multiple placeholder="Select Billable Types"
-                            (selectionChange)="onBillableTypeChange($event)">
+                            (ngModelChange)="onBillableTypeChange($event)">
                             <!-- Select All Option -->
-                            <mat-option (click)="selectAllBillableTypes()"
-                                [disabled]="selectedBillableTypes.length === billableTypes.length">
+                            <mat-option class="select-all-row" [value]="'AllButton'" (click)="selectAllBillableTypes()" [disabled]="selectedBillableTypes.length === billableTypes.length">
                                 Select All
                             </mat-option>
 
@@ -124,7 +123,7 @@
                 </select>
             </div>
 
-            <div class="ms-3" *ngIf="!isClientDashboard && !toggleValue">
+            <div class="ms-3" *ngIf="!toggleValue">
                 <label class="info-label mb-1 fw-bold">Employee Status</label>
                 <br>
                 <select class="form-select form-select-sm" style="margin-bottom: 22px; min-height: 58px;"
@@ -182,120 +181,204 @@
         <!-- Key Metrics -->
 
         <div class="row g-4">
-
+        
+            <div class="w-100 d-flex justify-content-end mb-2" *ngIf="!toggleValue && isClientDashboard">
+                <div class="po-global-filter" (click)="$event.stopPropagation()">
+                    <button type="button" class="po-filter-btn" (click)="toggleGlobalPoConflictDropdown($event)"
+                        [title]="getGlobalPoConflictLabel()">
+                        <span class="po-filter-text">{{ getGlobalPoConflictLabel() }}</span>
+                        <i class="fa fa-caret-down"></i>
+                    </button>
+        
+                    <!-- <button type="button" class="po-clear-btn" *ngIf="globalPoConflictSelection !== 'All'"
+                        (click)="clearGlobalPoConflict($event)" title="Clear">
+                        <i class="fa fa-times"></i>
+                    </button> -->
+        
+                    <div class="po-dropdown" *ngIf="isGlobalPoDropdownOpen">
+                        <button type="button" class="po-option" (click)="selectGlobalPoConflict('Yes', $event)">
+                            With PO Conflict
+                        </button>
+                        <button type="button" class="po-option" (click)="selectGlobalPoConflict('No', $event)">
+                            Without PO Conflict
+                        </button>
+                        <button type="button" class="po-option" (click)="selectGlobalPoConflict('All', $event)">
+                            All
+                        </button>
+                    </div>
+                </div>
+            </div>
             <div class="tile-group-box w-100" *ngIf="!toggleValue">
                 <div *ngFor="let group of tileGroups" class="tile-group-box w-100">
                     <div class="row g-1 d-flex flex-wrap flex-lg-nowrap w-100 justify-content-center">
                         <div class="col-4 tile-col " *ngFor="let tile of group">
                             <div class="metric-tile hover-tile mb-2" [ngClass]="tile.class"
-                                [class.selected-tile]="isTileSelected(tile.status)"
-                                (click)="onTileClick(tile)">
-
-                                 <app-info-tooltip class="tile-info-icon"  [shouldShine]="false"
-                                    [iconBgColor]="getTileColor(tile.class)" [content]="getTileInfo(tile.status)" [size] = "18" >
+                                [class.selected-tile]="isTileSelected(tile.status)" (click)="onTileClick(tile)">
+        
+                                <app-info-tooltip class="tile-info-icon" [shouldShine]="false"
+                                    [iconBgColor]="getTileColor(tile.class)" [content]="getTileInfo(tile.status)" [size]="18">
                                 </app-info-tooltip>
-
+        
                                 <div class="tile-header">
                                     <i [class]="tile.icon"></i>
                                     <span>{{ tile.label }}</span>
                                 </div>
-
+        
                                 <div class="tile-value">{{ tile.value }}</div>
-
+        
+                                <!-- <div class="tile-footer" (click)="$event.stopPropagation()">
+                                    <div class="po-conflict-filter">
+                                        <button type="button" class="po-filter-btn"
+                                            (click)="togglePoConflictDropdown(tile.status, $event)"
+                                            [title]="getPoConflictLabel(tile.status)">
+                                            <span class="po-filter-text">
+                                                {{ getPoConflictLabel(tile.status) }}
+                                            </span>
+                                            <i class="fa fa-caret-down"></i>
+                                        </button>
+        
+                                        <button type="button" class="po-clear-btn"
+                                            *ngIf="poConflictSelectionByTile[tile.status]"
+                                            (click)="clearPoConflict(tile.status, $event)" title="Clear">
+                                            <i class="fa fa-times"></i>
+                                        </button>
+        
+                                        <div class="po-dropdown" *ngIf="openPoConflictDropdownTileKey === tile.status">
+                                            <button type="button" class="po-option"
+                                                (click)="selectPoConflict(tile.status, 'Yes', $event)">
+                                                With PO Conflict
+                                            </button>
+                                            <button type="button" class="po-option"
+                                                (click)="selectPoConflict(tile.status, 'No', $event)">
+                                                Without PO Conflict
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div> -->
+        
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
+        
             <div class="tile-group-box-project w-100" *ngIf="toggleValue">
                 <div *ngFor="let group of tileGroups" class="tile-group-box-project w-100">
                     <div class="row g-1 justify-content-center  w-100 d-flex  flex-wrap">
                         <div class="col-12 col-md-6 col-xl-6 col-xxl-3  tile-col" style="min-width:250px"
                             *ngFor="let tile of group">
                             <div class="metric-tile-project hover-tile mb-2" [ngClass]="tile.class"
-                                [class.selected-tile]="isTileSelected(tile.status)"
-                                (click)="scrollToTable(tile.status)">
-
+                                [class.selected-tile]="isTileSelected(tile.status)" (click)="scrollToTable(tile.status)">
+        
                                 <div class="tile-header">
                                     <i [class]="tile.icon"></i>
                                     <span>{{ tile.label }}</span>
                                 </div>
-
+        
                                 <div class="tile-value">{{ tile.value }}</div>
-
+        
+                                <!-- <div class="tile-footer" (click)="$event.stopPropagation()">
+                                    <div class="po-conflict-filter">
+                                        <button type="button" class="po-filter-btn"
+                                            (click)="togglePoConflictDropdown(tile.status, $event)"
+                                            [title]="getPoConflictLabel(tile.status)">
+                                            <span class="po-filter-text">
+                                                {{ getPoConflictLabel(tile.status) }}
+                                            </span>
+                                            <i class="fa fa-caret-down"></i>
+                                        </button>
+        
+                                        <button type="button" class="po-clear-btn"
+                                            *ngIf="poConflictSelectionByTile[tile.status]"
+                                            (click)="clearPoConflict(tile.status, $event)" title="Clear">
+                                            <i class="fa fa-times"></i>
+                                        </button>
+        
+                                        <div class="po-dropdown" *ngIf="openPoConflictDropdownTileKey === tile.status">
+                                            <button type="button" class="po-option"
+                                                (click)="selectPoConflict(tile.status, 'Yes', $event)">
+                                                With PO Conflict
+                                            </button>
+                                            <button type="button" class="po-option"
+                                                (click)="selectPoConflict(tile.status, 'No', $event)">
+                                                Without PO Conflict
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div> -->
+        
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
+        
             <!-- Department Breakdown Container -->
-             <!-- <div class="title-group-box-project w-100" *ngIf="isClientDashboard && !toggleValue">
-                <div class="dept-container" *ngIf="selectedDepartments?.length">
-            
-                    
-                    <div class="dept-header-bar" (click)="toggleDeptCollapse()">
-            
-                        <div class="dept-title-wrap">
-                            <span class="dept-title">Department Breakdown</span>
-                            <span class="dept-subtitle">
-                                {{ selectedTile?.label }}
-                            </span>
+            <!-- <div class="title-group-box-project w-100" *ngIf="isClientDashboard && !toggleValue">
+                                <div class="dept-container" *ngIf="selectedDepartments?.length">
                             
-                        </div>
-                        <span class="collapse-arrow" [class.rotate]="!isDeptCollapsed">
-                            </span>
-            
-                    </div>
-            
-                    
-                    <div class="dept-body" [class.collapsed]="isDeptCollapsed">
-            
-                        <div class="dept-scroll">
-            
-                            <div class="dept-card" *ngFor="let dept of selectedDepartments"
-                                (click)="onDepartmentClick(selectedTile.status, dept.deptId)">
-            
-                                <div class="dept-card-header">
-                                    {{ dept.deptName }}
+                                    
+                                    <div class="dept-header-bar" (click)="toggleDeptCollapse()">
+                            
+                                        <div class="dept-title-wrap">
+                                            <span class="dept-title">Department Breakdown</span>
+                                            <span class="dept-subtitle">
+                                                {{ selectedTile?.label }}
+                                            </span>
+                                            
+                                        </div>
+                                        <span class="collapse-arrow" [class.rotate]="!isDeptCollapsed">
+                                            </span>
+                            
+                                    </div>
+                            
+                                    
+                                    <div class="dept-body" [class.collapsed]="isDeptCollapsed">
+                            
+                                        <div class="dept-scroll">
+                            
+                                            <div class="dept-card" *ngFor="let dept of selectedDepartments"
+                                                (click)="onDepartmentClick(selectedTile.status, dept.deptId)">
+                            
+                                                <div class="dept-card-header">
+                                                    {{ dept.deptName }}
+                                                </div>
+                            
+                                                <div class="dept-card-count">
+                                                    {{ dept.count }}
+                                                </div>
+                            
+                                            </div>
+                            
+                                        </div>
+                                    </div>
+                            
                                 </div>
-            
-                                <div class="dept-card-count">
-                                    {{ dept.count }}
-                                </div>
-            
-                            </div>
-            
-                        </div>
-                    </div>
-            
-                </div>
-            
-            </div>  -->
-
-
+                            
+                            </div>  -->
+        
+        
             <!-- /* //Pivot table changes dept wise */ -->
-
+        
             <div class="title-group-box-project w-100" *ngIf="isClientDashboard && !toggleValue && authorizedEmp">
-            
+        
                 <div class="dept-table-container">
-            
+        
                     <!-- Header -->
                     <div class="dept-header-bar" (click)="toggleDeptTableCollapse()">
                         <div class="dept-title-wrap">
                             <span class="dept-title">Department Wise Status Summary</span>
                             <span class="dept-subtitle">Timesheet Overview</span>
                         </div>
-            
+        
                         <span class="collapse-arrow" [class.rotate]="!isDeptTableCollapsed"></span>
                     </div>
-            
+        
                     <!-- Table Body -->
                     <div class="dept-table-body" [class.collapsed]="isDeptTableCollapsed">
-            
+        
                         <div class="table-scroll">
-            
+        
                             <table class="futuristic-table">
                                 <thead>
                                     <tr>
@@ -307,88 +390,97 @@
                                         <th>Not Filled</th>
                                     </tr>
                                 </thead>
-            
+        
                                 <tbody>
                                     <tr *ngFor="let row of departmentTableData" class="table-row">
-                                
+        
                                         <td class="dept-name">{{ row.dept }}</td>
-                                
+        
                                         <td>
                                             <div class="count-card total clickable" (click)="onDeptCountClick(row, 'TOTAL')">
                                                 {{ row.total }}
                                             </div>
                                         </td>
-                                
+        
                                         <td>
                                             <div class="count-card success clickable" (click)="onDeptCountClick(row, 'READY')">
-                                            
+        
                                                 <div class="count-main">
                                                     {{ row.ready }}
                                                 </div>
-                                            
-                                                <div class="repeat-indicator" *ngIf="row.approvedRepeat > 0" title="Repeated entries" (click)="onRepeatClick($event, row, 'APPROVED_REPEAT')">
+        
+                                                <div class="repeat-indicator" *ngIf="row.approvedRepeat > 0"
+                                                    title="Repeated entries"
+                                                    (click)="onRepeatClick($event, row, 'APPROVED_REPEAT')">
                                                     <i class="fa-solid fa-user-group"></i>
                                                     <span>{{ row.approvedRepeat }}</span>
                                                 </div>
-                                            
+        
                                             </div>
-
+        
                                         </td>
-
+        
                                         <td>
-                                            <div class="count-card danger clickable" (click)="onDeptCountClick(row, 'DEFAULTER')">
-                                            
+                                            <div class="count-card danger clickable"
+                                                (click)="onDeptCountClick(row, 'DEFAULTER')">
+        
                                                 <div class="count-main">
                                                     {{ row.defaulter }}
                                                 </div>
-                                            
-                                                <div class="repeat-indicator" *ngIf="row.defaulterRepeat > 0" title="Repeated entries" (click)="onRepeatClick($event, row, 'DEFAULTER_REPEAT')">
+        
+                                                <div class="repeat-indicator" *ngIf="row.defaulterRepeat > 0"
+                                                    title="Repeated entries"
+                                                    (click)="onRepeatClick($event, row, 'DEFAULTER_REPEAT')">
                                                     <i class="fa-solid fa-user-group"></i>
                                                     <span>{{ row.defaulterRepeat }}</span>
                                                 </div>
-                                            
+        
                                             </div>
-
+        
                                         </td>
-                                
+        
                                         <td>
-                                            <div class="count-card warning clickable" (click)="onDeptCountClick(row, 'PENDING')">
-                                            
+                                            <div class="count-card warning clickable"
+                                                (click)="onDeptCountClick(row, 'PENDING')">
+        
                                                 <div class="count-main">
                                                     {{ row.pending }}
                                                 </div>
-                                            
-                                                <div class="repeat-indicator" *ngIf="row.pendingRepeat > 0" title="Repeated entries" (click)="onRepeatClick($event, row, 'PENDING_REPEAT')">
+        
+                                                <div class="repeat-indicator" *ngIf="row.pendingRepeat > 0"
+                                                    title="Repeated entries"
+                                                    (click)="onRepeatClick($event, row, 'PENDING_REPEAT')">
                                                     <i class="fa-solid fa-user-group"></i>
                                                     <span>{{ row.pendingRepeat }}</span>
                                                 </div>
-                                            
+        
                                             </div>
-
+        
                                         </td>
-                                
-                                
+        
+        
                                         <td>
-                                            <div class="count-card neutral clickable" (click)="onDeptCountClick(row, 'NOT_FILLED')">
+                                            <div class="count-card neutral clickable"
+                                                (click)="onDeptCountClick(row, 'NOT_FILLED')">
                                                 {{ row.notFilled }}
                                             </div>
                                         </td>
-                                
-                                
+        
+        
                                     </tr>
                                 </tbody>
                             </table>
-            
+        
                         </div>
                     </div>
-            
+        
                 </div>
             </div>
-
-
-
-
-            
+        
+        
+        
+        
+        
         </div>
 
 

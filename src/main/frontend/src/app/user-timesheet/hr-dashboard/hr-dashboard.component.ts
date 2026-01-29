@@ -203,7 +203,7 @@ selectedBillableTypes: string[] = ['TNM','TNM(Shadow)'];
   currentColumnFilter: any = null;
   isInsightSearchEnabled: boolean = false;
 selectedProjectStatus: string = 'All';
-selectedEmployeeStatus : string = 'Active';
+selectedEmployeeStatus : string = 'All';
   projectViewFilters = {
     projectName: '',
     poNo: '',
@@ -298,7 +298,9 @@ currentSelectedStatus ="";
 billableTypes: string[] = [];
 // billableTypes: string[] = ['All','TNM', 'Fixed Cost', 'Shadow','Bench', 'InternalRNDProducts'];
 employeeBillableTypes: string[] = ['TNM', 'Fixed Cost', 'TNM(Shadow)', 'Fixed Cost(Shadow)','Bench', 'InternalRNDProducts','All'];
+employeeBillableTypesWithClient: string[] = ['TNM', 'Fixed Cost', 'TNM(Shadow)', 'Fixed Cost(Shadow)']
 projectBillableTypes: string[] = ['TNM', 'Fixed Cost', 'Monitoring','All'];
+projectBillableTypesWithClient: string[] = ['TNM', 'Fixed Cost']
 selectedStatus:String = "All" ;
 newSelectedStatus:String = "";
 
@@ -331,6 +333,9 @@ tileGroups: any[] = [];
   repetedDeptId: string;
   allowedEmpid: number | null = null;
   authorizedEmp: boolean = false;
+
+ globalPoConflictSelection: 'Yes' | 'No' | 'All' = 'All';
+isGlobalPoDropdownOpen = false;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -384,7 +389,7 @@ tileGroups: any[] = [];
     this.setLastUpdatedTime();
     this.getEmployeeByNameAndEmpld();
     this.getProjectByNameAndPoNo();
-    this.loadDepartmentStatusSummary(this.status, this.month, this.year);
+    this.loadDepartmentStatusSummary();
     // this.TotalEmployeeCount();
     // this.vmsCompletion();
     // this.ishineCompletion();
@@ -941,11 +946,16 @@ tileGroups: any[] = [];
   //   // Add any other side effects or function calls you want here
   // }
 updateBillableTypes() {
-
   if (this.toggleValue) {
-    this.billableTypes = [...this.projectBillableTypes];
+    if(this.isClientDashboard)
+      this.billableTypes = [...this.projectBillableTypesWithClient];
+    else
+      this.billableTypes = [...this.projectBillableTypes];
   } else {
-    this.billableTypes = [...this.employeeBillableTypes];
+    if(this.isClientDashboard)
+      this.billableTypes = [...this.employeeBillableTypesWithClient];
+    else
+      this.billableTypes = [...this.employeeBillableTypes];
   }
 
   // Reset selections
@@ -1179,6 +1189,7 @@ updateBillableTypes() {
     this.timesheetAsCalenderByProjectId.year = year;
     this.timesheetAsCalenderByProjectId.empId = this.currentUser.empId;
     this.timesheetAsCalenderByProjectId.status = status;
+    this.timesheetAsCalenderByProjectId.multiPOs = this.globalPoConflictSelection;
     this.timesheetAsCalenderByProjectId.billableType = this.selectedBillableTypes;
     this.timesheetAsCalenderByProjectId.employeeActive = this.selectedEmployeeStatus;
     this.timesheetAsCalenderByProjectId.page=this.page1??1;
@@ -1727,6 +1738,7 @@ getCountByStatus(status: string) {
 
   getProjectViewForClientAttendanceStatus(status: any, month: any, year: any) {
     this.projectViewClient.status = status;
+    this.projectViewClient.multiPOs = this.globalPoConflictSelection;
     this.projectViewClient.month1 = month;
     this.projectViewClient.year = year;
     this.projectViewClient.empId = this.currentUser.empId;
@@ -1887,7 +1899,9 @@ cancelHidePopup() {
         }
       });
     } else {
-      this.timesheetService.getTimesheetDashboardCountForEmployee(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableTypes,this.selectedEmployeeStatus,this.viewClientIdFlag).pipe(first()).subscribe((response: any) => {
+      console.log(this.globalPoConflictSelection,":poConflictSelectionByTile")
+      console.log(this.selectedEmployeeStatus,":selectedEmployeeStatus")
+      this.timesheetService.getTimesheetDashboardCountForEmployee(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableTypes,this.selectedEmployeeStatus,this.viewClientIdFlag,this.globalPoConflictSelection).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.dashboardObj = response.serviceResponse;
           this.getTiles();
@@ -1913,7 +1927,7 @@ cancelHidePopup() {
     }
   }
 
-  getTableData(status: string | null, month: any, year: any,deptId?: string | null,isEmployeeRepeated: boolean = false) {
+  getTableData(status: String | null, month: any, year: any,deptId?: string | null,isEmployeeRepeated: boolean = false, ) {
     if (!this.toggleValue) {
       this.getEmployeeViewForClientAttendanceStatus(status, month, year,deptId,isEmployeeRepeated);
     } else {
@@ -1950,7 +1964,7 @@ cancelHidePopup() {
 
     if (!this.toggleValue) {
       this.status = this.selectedStatus;
-      this.loadDepartmentStatusSummary(this.status, this.month, this.year);
+      this.loadDepartmentStatusSummary();
       this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
       this.getTimesheetDashboardCount(this.month, this.year);
     } else {
@@ -2175,6 +2189,8 @@ getTileInfo(status: string): string[] {
     this.isClientDashboard = !this.isClientDashboard;
     this.resetSearchField();
     this.isSearchEnabled = false;
+    this.selectedBillableTypes = ["TNM"];
+    this.updateBillableTypes();
     if (!this.toggleValue) {
       this.getEmployeeByNameAndEmpld();
       this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
@@ -2357,6 +2373,7 @@ toggleSelectAll() {
 selectAllBillableTypes() {
   this.selectedBillableTypes = [...this.billableTypes];
   this.onBillableTypeChangeManual();
+  this.loadDepartmentStatusSummary()
 }
 
 // deselectAllBillableTypes() {
@@ -2366,15 +2383,16 @@ selectAllBillableTypes() {
 // }
 
 onBillableTypeChange(event: any) {
-  const selected = event.value as string[];
-
-  if (!selected || selected.length === 0) {
+  console.log(event);
+  if(event.includes('AllButton'))return
+  if (!event || event.length === 0) {
     this.selectedBillableTypes = ['TNM'];
   } else {
-    this.selectedBillableTypes = selected;
+    this.selectedBillableTypes = event;
   }
 
   this.onBillableTypeChangeManual();
+  this.loadDepartmentStatusSummary();
 }
 
 onBillableTypeChangeManual() {
@@ -2404,6 +2422,7 @@ onBillableTypeChangeManual() {
     this.getTimesheetDashboardCount(this.month, this.year);
     if (!this.toggleValue) {
        this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
+       this.loadDepartmentStatusSummary();
     } else {
       // this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
     }
@@ -2852,11 +2871,11 @@ toggleDeptTableCollapse(): void {
   this.isDeptTableCollapsed = !this.isDeptTableCollapsed;
 
   if (!this.isDeptTableCollapsed && this.departmentTableData.length === 0) {
-    this.loadDepartmentStatusSummary(this.status, this.month, this.year);
+    this.loadDepartmentStatusSummary();
   }
 }
 
-loadDepartmentStatusSummary(status: any, month: any, year: any): void {
+loadDepartmentStatusSummary(): void {
 
   this.allowedEmpid = this.currentUser.empId ;
   if(this.allowedEmpid == 6){
@@ -2869,7 +2888,11 @@ loadDepartmentStatusSummary(status: any, month: any, year: any): void {
     empId:this.currentUser.empId,
     month: this.month,
     year: this.year,
-    clientDashboard: this.isClientDashboard
+    clientDashboard: this.isClientDashboard,
+    employeeActive:this.selectedEmployeeStatus,
+    multiPOs: this.globalPoConflictSelection,
+    billableType: this.selectedBillableTypes
+
   };
 
   this.isDeptTableLoading = true;
@@ -2943,6 +2966,50 @@ onRepeatClick(
 }
 
 
+@HostListener('document:click', ['$event'])
+onOutSideClick(event: MouseEvent): void {
+  const target = event.target as HTMLElement;
+
+  // keep your existing close logic if any
+  if (!target.closest('.col-md-1')) {
+    this.menuVisible = false;
+  }
+
+  // close global dropdown on outside click
+  if (!target.closest('.po-global-filter')) {
+    this.isGlobalPoDropdownOpen = false;
+  }
+}
+
+toggleGlobalPoConflictDropdown(event: MouseEvent) {
+  event.stopPropagation();
+  this.isGlobalPoDropdownOpen = !this.isGlobalPoDropdownOpen;
+}
+
+getGlobalPoConflictLabel(): string {
+  if (this.globalPoConflictSelection === 'Yes') return 'PO Mapping: With Conflict';
+  if (this.globalPoConflictSelection === 'No') return 'PO Mapping: Without Conflict';
+  return 'PO Mapping: All';
+}
+
+selectGlobalPoConflict(val: 'Yes' | 'No' | 'All', event: MouseEvent) {
+  event.stopPropagation();
+  this.globalPoConflictSelection = val;
+  this.isGlobalPoDropdownOpen = false;
+  // Refresh current view + tiles count
+  this.getTableData(this.selectedStatus, this.month, this.year, this.selectedDeptId, this.isEmployeeRepeatedFlag);
+  this.getTimesheetDashboardCount(this.month, this.year);
+  this.loadDepartmentStatusSummary();
+}
+
+clearGlobalPoConflict(event: MouseEvent) {
+  event.stopPropagation();
+  this.globalPoConflictSelection = 'All';
+  this.isGlobalPoDropdownOpen = false;
+
+  this.getTableData(this.selectedStatus, this.month, this.year, this.selectedDeptId, this.isEmployeeRepeatedFlag);
+  this.getTimesheetDashboardCount(this.month, this.year);
+}
 
 
 }

@@ -615,7 +615,7 @@ get tooltipCta(): string {
     this.makeClientInTime();
     this.makeClientOutTime();
     this.getProjectListForDateAndEmpId();
-    this.resetTimesheetFormOnDateChange();
+    this.resetTimesheetFormOnDateChange('isNightShiftModal');
     console.log("after method calls ", this.fromDate);
   }
 
@@ -1334,6 +1334,61 @@ get tooltipCta(): string {
     }
   }
 
+    timesheetToDateFilter = (checkDate: Date) => {
+
+    if (this.timesheetObj?.isNightShift &&this.fromDate && this.isNextDay(this.fromDate, checkDate)) 
+      {return true; }
+
+    const DAY_IN_MS = 24 * 60 * 60 * 1000;
+    const time = checkDate?.getTime();
+
+
+    let currentDate = new Date();
+    const dateFormat = 'YYYY-MM-DD';
+    let OPEN_BACKDATED_DAYS = 30;
+    const CURRENT_DAY = 1;
+
+    let dateOfJoining = moment(this.currentUser.dateOfJoining, dateFormat);
+
+    let daysDifference = moment(currentDate, dateFormat).diff(dateOfJoining, 'days');
+
+
+    if (this.currentUser.timesheetBackDatedDays > daysDifference) {
+
+      OPEN_BACKDATED_DAYS = daysDifference;
+
+    } else {
+      OPEN_BACKDATED_DAYS = this.currentUser.timesheetBackDatedDays;
+    }
+
+
+    const dateObj = new Date(this.serverDate + 'T23:59:59');
+    let serverDate = dateObj;
+
+    let endDate = serverDate;
+    let startDate = new Date(endDate.getTime() - ((this.currentUser.timesheetLockDays + CURRENT_DAY) * DAY_IN_MS));
+
+    if (this.isTimesheetForm && this.isUpdation) {
+      this.availableTimesheets = this.availableTimesheets.filter(timesheet => this.datePipe.transform(timesheet.date, "yyyy-MM-dd") != this.datePipe.transform(this.timesheetObj.date, "yyyy-MM-dd"));
+    }
+
+    if (this.isTimesheetLockCheckEnable == "false") {
+      startDate = new Date(endDate.getTime() - ((OPEN_BACKDATED_DAYS + CURRENT_DAY) * DAY_IN_MS));
+      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "yyyy-MM-dd"))) ? true : false;
+    } else {
+      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "yyyy-MM-dd"))) ? true : false;
+    }
+  }
+
+  private isNextDay(date1: Date, date2: Date): boolean {
+  const DAY_IN_MS = 24 * 60 * 60 * 1000;
+  return (
+    new Date(date2).setHours(0, 0, 0, 0) -
+    new Date(date1).setHours(0, 0, 0, 0)
+  ) === DAY_IN_MS;
+}
+
+
   outTimeFilter = (checkDate: Date) => {
     const dateFormat = 'YYYY-MM-DD';
 
@@ -1528,6 +1583,14 @@ get tooltipCta(): string {
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+
+    if(this.timesheetObj.isNightShift && 
+      (!this.validationService.validateNullUndefinedEmptyString(this.toDate))) {
+      this.alertMessage = "Please enter to Date !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
 
     if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.dayType)) {
       this.alertMessage = "Please select Day Type !!"
@@ -2531,6 +2594,12 @@ get tooltipCta(): string {
   cancelRequest() {
     this.modalRef?.close();
   }
+
+  confirmNightShift(value:Boolean) {
+    this.timesheetObj.isNightShift=value;
+    this.modalRef?.close();
+  }
+
 
   openTimesheetDetailsModal(template: TemplateRef<any>, timesheetObj: Timesheet) {
     this.timesheetObj = new Timesheet();
@@ -3753,7 +3822,7 @@ checkUploadEligibility() {
     this.resetTimesheetFormOnDateChange();
   }
 
-  resetTimesheetFormOnDateChange(){
+  resetTimesheetFormOnDateChange(value?:any){
     this.timeReset();
     this.toDate = null;
     this.timesheetObj.projectId = null;
@@ -3765,7 +3834,7 @@ checkUploadEligibility() {
     this.timesheetObj.officeInTime = null;
     this.timesheetObj.officeOutTime = null;
     this.timesheetObj.totalWorkingOfficeHours = null;
-    this.timesheetObj.isNightShift = null;
+    if(value!=='isNightShiftModal'){    this.timesheetObj.isNightShift = null;}
     this.timesheetObj.clientInTime = null;
     this.timesheetObj.clientOutTime = null;
     this.timesheetObj.totalClientWorkingHours = null;
