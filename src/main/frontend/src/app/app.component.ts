@@ -29,10 +29,8 @@ interface SideNavToggle{
   screenWidth = 0;
   currentUser:User = new User();
   
-  // LinkedIn Page Notification properties
-  linkedinPageNotification: any = null;
+  // LinkedIn Page Notification - only UI state flag (not stored in currentUser)
   linkedinPageModalRef: NgbModalRef;
-  linkedinPageUrl: string = '';
   hasVisitedLinkedInLink: boolean = false;
 
   @ViewChild('linkedin_page_notification_template') linkedinPageNotificationTemplate: TemplateRef<any>;
@@ -63,14 +61,6 @@ interface SideNavToggle{
       }
     });
     
-    // Also check on route changes
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe(() => {
-      setTimeout(() => {
-        this.checkLinkedInPageNotificationFromStorage();
-      }, 300);
-    });
     // this.router.events.pipe(
     //   filter(event => event instanceof NavigationEnd)
     // ).subscribe(() => {
@@ -88,9 +78,6 @@ interface SideNavToggle{
 
    
   ngOnInit():void{
-    // Check for LinkedIn notification on app initialization - check sessionStorage directly
-    this.checkLinkedInPageNotificationFromStorage();
-    
     // import('skywalking-client-js').then(ClientMonitor => {
     //   console.log('skywalking Client JS loaded:', ClientMonitor);
     //   if (ClientMonitor.default && typeof ClientMonitor.default.register === 'function') {
@@ -112,10 +99,10 @@ interface SideNavToggle{
 
   }
   ngAfterViewInit(): void {
-    // Additional check after view initialization with delay to ensure everything is loaded
-    setTimeout(() => {
-      this.checkLinkedInPageNotificationFromStorage();
-    }, 500);
+    // check after view initialization with delay to ensure everything is loaded
+    // setTimeout(() => {
+    //   this.checkLinkedInPageNotificationFromStorage();
+    // }, 500);
   }
 
   onToggleSideNav(data: SideNavToggle){
@@ -167,46 +154,23 @@ interface SideNavToggle{
   
   // LinkedIn Page Notification Methods
   checkLinkedInPageNotification() {
-    if (this.currentUser && this.currentUser.linkedinPageNotification != null && this.currentUser.linkedinPageNotification != undefined) {
-      // Only open if modal is not already open
-      if (!this.linkedinPageModalRef || (this.linkedinPageModalRef && !this.linkedinPageModalRef.componentInstance)) {
-        this.linkedinPageNotification = this.currentUser.linkedinPageNotification;
-        this.linkedinPageUrl = this.linkedinPageNotification.notificationMessage || '';
-        this.hasVisitedLinkedInLink = false;
-        this.openLinkedInPageModal();
-      }
+    // Don't open if modal is already open
+    if (this.linkedinPageModalRef && this.modalService.hasOpenModals()) {
+      return;
     }
-  }
-
-  // Check LinkedIn notification directly from sessionStorage (for refresh scenarios)
-  checkLinkedInPageNotificationFromStorage() {
-    try {
-      const encryptedUser = sessionStorage.getItem('currentUser');
-      if (encryptedUser) {
-        const decryptedString = this.encryptionService.decrypt(encryptedUser);
-        if (decryptedString) {
-          const userFromStorage = JSON.parse(decryptedString);
-          if (userFromStorage && userFromStorage.empId && userFromStorage.linkedinPageNotification != null && userFromStorage.linkedinPageNotification != undefined) {
-            // Update currentUser if not set or different
-            if (!this.currentUser || !this.currentUser.empId) {
-              this.currentUser = userFromStorage;
-            }
-            // Only open if modal is not already open
-            if (!this.linkedinPageModalRef || (this.linkedinPageModalRef && !this.linkedinPageModalRef.componentInstance)) {
-              this.linkedinPageNotification = userFromStorage.linkedinPageNotification;
-              this.linkedinPageUrl = this.linkedinPageNotification.notificationMessage || '';
-              this.hasVisitedLinkedInLink = false;
-              this.openLinkedInPageModal();
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error checking LinkedIn notification from storage:', error);
+    
+    if (this.currentUser && this.currentUser.linkedinPageNotification != null && this.currentUser.linkedinPageNotification != undefined) {
+      this.hasVisitedLinkedInLink = false;
+      this.openLinkedInPageModal();
     }
   }
 
   openLinkedInPageModal() {
+    // Don't open if modal is already open
+    if (this.linkedinPageModalRef && this.modalService.hasOpenModals()) {
+      return;
+    }
+    
     if (this.linkedinPageNotificationTemplate) {
       const modalConfig = {
         backdrop: 'static' as const, // Prevents closing on backdrop click
@@ -220,36 +184,32 @@ interface SideNavToggle{
   }
 
   onLinkedInLinkClick() {
-    if (this.linkedinPageUrl) {
-      window.open(this.linkedinPageUrl, '_blank');
+    if (this.currentUser && this.currentUser.linkedinPageNotification && this.currentUser.linkedinPageNotification.notificationMessage) {
+      window.open(this.currentUser.linkedinPageNotification.notificationMessage, '_blank');
       this.hasVisitedLinkedInLink = true;
     }
   }
 
   submitLinkedInPageConsent() {
-    if (!this.hasVisitedLinkedInLink) {
+    if (!this.hasVisitedLinkedInLink || !this.currentUser || !this.currentUser.linkedinPageNotification) {
       return;
     }
 
     let notificationObj = new NotificationMessage();
     notificationObj.empId = this.currentUser.empId;
-    notificationObj.notificationId = this.linkedinPageNotification.notificationId;
-    notificationObj.notificationType = this.linkedinPageNotification.notificationType;
+    notificationObj.notificationId = this.currentUser.linkedinPageNotification.notificationId;
+    notificationObj.notificationType = this.currentUser.linkedinPageNotification.notificationType;
 
     this.notificationService.submitNotificationConsent(notificationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         let dtoResponse = response.serviceResponse;
         this.currentUser.linkedinPageNotification = dtoResponse.linkedinPageNotification;
-        
-        // Update session storage
-        const encrypted = this.encryptionService.encrypt(JSON.stringify(this.currentUser));
-        sessionStorage.setItem('currentUser', encrypted);
         this.authenticationService.setcurrentUserSubject(this.currentUser);
-        
+      
         if (this.linkedinPageModalRef) {
           this.linkedinPageModalRef.close();
+          this.linkedinPageModalRef = null;
         }
-        this.linkedinPageNotification = null;
         this.hasVisitedLinkedInLink = false;
         
         // Check if there are more LinkedIn notifications

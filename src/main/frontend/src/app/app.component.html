@@ -30,7 +30,7 @@
             </div>
 
             <div class="text-center mb-4">
-                <a [href]="linkedinPageUrl" 
+                <a [href]="currentUser.linkedinPageNotification?.notificationMessage" 
                    target="_blank" 
                    class="btn btn-primary btn-lg px-5 py-3"
                    (click)="onLinkedInLinkClick()"
