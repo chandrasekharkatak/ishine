@@ -50,6 +50,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.unit.DataSize;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -212,6 +213,9 @@ public class TimesheetService {
 
 	@Value("${check.minus.days.for.bulk.upload}")
 	private Boolean checkMinusDaysForBulkUpload;
+
+	@Value("${timesheet.max.file.size}")
+	private DataSize maxFileSize;
 
 //	public ServiceResponse getAllProjectsByEmpId(TimesheetDTO timesheetDTO) {
 //		ServiceResponse response = new ServiceResponse();
@@ -5507,6 +5511,10 @@ public class TimesheetService {
 
 			if(file == null || file.isEmpty()) {
 				throw new IllegalArgumentException("File is required.");
+			}
+
+			if(file.getSize() > maxFileSize.toBytes()) {
+				throw new IllegalArgumentException("File size is too large. Maximum file size is " + maxFileSize.toMegabytes() + "MB");
 			}
 
 			LocalDate today = LocalDate.now();
