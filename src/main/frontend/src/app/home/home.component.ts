@@ -224,9 +224,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
   @ViewChild('consent_notification_template')
   private consentNotificationTemplate: TemplateRef<any>;
 
-  @ViewChild('linkedin_page_notification_template')
-  private linkedinPageNotificationTemplate: TemplateRef<any>;
-
   @ViewChild('inactiveEmployeeTemplate') inactiveEmployeeTemplate!: TemplateRef<any>;
 
   @ViewChild('noTimesheetFoundEmployeeTemplate') noTimesheetFoundEmployeeTemplate!: TemplateRef<any>;
@@ -269,10 +266,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
   timesheetApplicationsColumns: any[] = ['blank', 'blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status',,'clientInTime','clientOutTime','totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument','approvedDocument','createdOn'];
   isShowReleaseNote: boolean = false;
   releaseNoteText = "";
-  linkedinPageNotification: any = null;
-  linkedinPageModalRef: NgbModalRef;
-  linkedinPageUrl: string = '';
-  hasVisitedLinkedInLink: boolean = false;
   currentIndex: any = 0;
   currentGroup: any = null;
   scrollDelay: number = 18700;
@@ -473,8 +466,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
       //console.log("this.currentUser : ", this.currentUser);
       this.openConsentNotificationModal();
       this.setReleaseNote();
-      // LinkedIn notification is now handled in login component, but check here too for safety
-      this.checkLinkedInPageNotification();
     }
 
     if (this.currentUser.employeeRole == "RMG") {
@@ -2362,70 +2353,6 @@ getDocsForPreview(docId: any) {
     });
   }
 
-  // LinkedIn Page Notification
-  checkLinkedInPageNotification() {
-    if (this.currentUser.linkedinPageNotification != null && this.currentUser.linkedinPageNotification != undefined) {
-      this.linkedinPageNotification = this.currentUser.linkedinPageNotification;
-      this.linkedinPageUrl = this.linkedinPageNotification.notificationMessage || '';
-      this.hasVisitedLinkedInLink = false;
-      this.openLinkedInPageModal();
-    }
-  }
-
-  openLinkedInPageModal() {
-    if (this.linkedinPageNotificationTemplate) {
-      const modalConfig = {
-        backdrop: true,
-        ignoreBackdropClick: true,
-        keyboard: false,
-        modalDialogClass: 'modal-lg'
-      };
-      this.linkedinPageModalRef = this.modalService.open(this.linkedinPageNotificationTemplate, modalConfig);
-    }
-  }
-
-  onLinkedInLinkClick() {
-    if (this.linkedinPageUrl) {
-      window.open(this.linkedinPageUrl, '_blank');
-      this.hasVisitedLinkedInLink = true;
-    }
-  }
-
-  submitLinkedInPageConsent() {
-    if (!this.hasVisitedLinkedInLink) {
-      return;
-    }
-
-    let notificationObj = new NotificationMessage();
-    notificationObj.empId = this.currentUser.empId;
-    notificationObj.notificationId = this.linkedinPageNotification.notificationId;
-    notificationObj.notificationType = this.linkedinPageNotification.notificationType;
-
-    this.notificationService.submitNotificationConsent(notificationObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        let dtoResponse = response.serviceResponse;
-        this.currentUser.linkedinPageNotification = dtoResponse.linkedinPageNotification;
-        this.authenticationService.setcurrentUserSubject(this.currentUser);
-        
-        // Update session storage
-        const encrypted = this.encryptionService.encrypt(JSON.stringify(this.currentUser));
-        sessionStorage.setItem('currentUser', encrypted);
-        
-        if (this.linkedinPageModalRef) {
-          this.linkedinPageModalRef.close();
-        }
-        this.linkedinPageNotification = null;
-        this.hasVisitedLinkedInLink = false;
-        
-        // Check if there are more LinkedIn notifications
-        if (this.currentUser.linkedinPageNotification != null && this.currentUser.linkedinPageNotification != undefined) {
-          setTimeout(() => {
-            this.checkLinkedInPageNotification();
-          }, 500);
-        }
-      }
-    });
-  }
 
   sortData(sort: Sort) {
     //console.log(sort);
