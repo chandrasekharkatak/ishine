@@ -1939,9 +1939,9 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
           minusDays: 45
         };
 
-        if(response.serviceError != null ){
+        // if(response.serviceError != null ){
           this.openAlertMod(this.alertTemplate, `Document upload is only valid for past ${this.minusDaysData.minusDays} days`);
-        }
+        // }
 
         const now = new Date();
 

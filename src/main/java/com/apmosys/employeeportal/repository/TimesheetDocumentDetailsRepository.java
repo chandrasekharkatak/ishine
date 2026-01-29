@@ -186,11 +186,9 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 				
 
 		@Query( "SELECT new com.apmosys.employeeportal.dto.TimesheetIdAndEmpIdDTO(t.timesheetId, t.empId) from Timesheet t \n"+
-				"join TimesheetDocumentDetails tdd on tdd.timesheetId = t.timesheetId \n"+
 				"where t.hasClientSideId = 1 \n"+
 				"and t.projectId = :projectId \n"+
 				"and t.status = 'Pending' \n"+
-				"and tdd.active = true \n"+
 				"and not exists (\n" + 
 					"select 1 from TimesheetDocumentDetails tdd1 where \n" + 
 					"tdd1.timesheetId = t.timesheetId and tdd1.finalFlag = 1 and tdd1.clientApprovalStatus = 'Approved'\n" +
@@ -205,11 +203,9 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 		);
 
 		@Query( "SELECT new com.apmosys.employeeportal.dto.TimesheetIdAndEmpIdDTO(t.timesheetId, t.empId) from Timesheet t \n"+
-				"join TimesheetDocumentDetails tdd on tdd.timesheetId = t.timesheetId \n"+
 				"where t.hasClientSideId = 1 \n"+
 				"and t.projectId = :projectId \n"+
 				"and (t.status = 'Rejected' \n"+
-				"and tdd.active = true \n"+
 				"or not exists (\n" + 
 					"select 1 from TimesheetDocumentDetails tdd1 where \n" + 
 					"tdd1.timesheetId = t.timesheetId and tdd1.finalFlag = 1 and tdd1.clientApprovalStatus = 'Approved'\n" +
@@ -223,7 +219,7 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 				@Param("projectId") Integer projectId
 			);
 
-		@Query("SELECT tdd from TimesheetDocumentDetails tdd where tdd.timesheetId IN :timesheetIds and tdd.finalFlag = 1 and tdd.clientApprovalStatus = 'Approved' and tdd.active = true")
+		@Query("SELECT tdd from TimesheetDocumentDetails tdd where tdd.timesheetId IN :timesheetIds and tdd.finalFlag = 1 and tdd.clientApprovalStatus = 'Approved'")
 		List<TimesheetDocumentDetails> getDocsByTimesheetIdsAndFinalFlag(
 				@Param("timesheetIds") List<Long> timesheetIds
 			);

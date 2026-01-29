@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -4886,8 +4887,11 @@ public class TimesheetService {
 	            month = Integer.parseInt(parts[1]);
 	        }
 
+			LocalDate toDate = YearMonth.of(year, month).atEndOfMonth();
+			LocalDate fromDate = YearMonth.of(year, month).atDay(1);
+
 	       
-	        List<Object[]> resultList = timesheetsRepository.getMyReporteesAndClientSideProjectsInMonthYear(year,month,timesheetDTO.getManagerId());
+	        List<Object[]> resultList = timesheetsRepository.getMyReporteesAndClientSideProjectsInMonthYearNew(year,month,timesheetDTO.getManagerId(),toDate,fromDate);
 	                       
 
 	        if (resultList == null || resultList.isEmpty()) {
@@ -5501,6 +5505,10 @@ public class TimesheetService {
 				throw new IllegalArgumentException("From date and to date are required.");
 			}
 
+			if(file == null || file.isEmpty()) {
+				throw new IllegalArgumentException("File is required.");
+			}
+
 			LocalDate today = LocalDate.now();
 			int minusDays = (this.minusDays == null || this.minusDays <= 0)
 					? 45
@@ -5518,7 +5526,7 @@ public class TimesheetService {
 				);
 			}
 
-			if(fromDate.isAfter(toDate) || fromDate.isBefore(expectedDate)) {
+			if(fromDate.isAfter(toDate) || toDate.isBefore(fromDate)) {
 				throw new IllegalArgumentException("Invalid date range.");
 			}
 
@@ -5581,7 +5589,6 @@ public class TimesheetService {
 			List<TimesheetDocumentDetails> rejectedTimesheetDocsWithFinalFlag = timesheetDocumentDetailsRepository.getDocsByTimesheetIdsAndFinalFlag(new ArrayList<>(timesheetIds));
 
 			byte[] fileBytes = file.getBytes();
-	        String fileName = file.getOriginalFilename();
 	        String contentType = file.getContentType();
 
 			for(Timesheet timesheet : timesheets){
@@ -5598,9 +5605,10 @@ public class TimesheetService {
 						timesheetDocumentDetails.setUpdatedOn(LocalDateTime.now());
 						timesheetDocumentDetails.setCreatedOn(tdd.getCreatedOn());
 						timesheetDocumentDetails.setCreatedBy(tdd.getCreatedBy());
-						// should i add break or not, i mean first data is found then should i take that or like wait for the last one
 					}
 				}
+
+				String fileName = timesheet.getTimesheetId() + "_" + timesheet.getEmpId() + "_Approved_" + UUID.randomUUID().toString();
 
 				timesheetDocumentDetails.setActive(true);
 				timesheetDocumentDetails.setDocName(fileName);

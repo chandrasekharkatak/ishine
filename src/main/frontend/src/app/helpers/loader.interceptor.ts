@@ -457,7 +457,9 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getDocumentsBySelectedEmpId`,
     `${this.baseUrl}` + `api/downloadFinalDocuments`,
     `${this.baseUrl}` + `api/getPreviousMinusDays`,
-    `${this.baseUrl}` + `api/bulkFinalUploadProjectBased`
+    `${this.baseUrl}` + `api/bulkFinalUploadProjectBased`,
+    `${this.baseUrl}` + `api/getMyReporteesAndClientSideProjectsInMonthYear`
+
 
   ]
 
