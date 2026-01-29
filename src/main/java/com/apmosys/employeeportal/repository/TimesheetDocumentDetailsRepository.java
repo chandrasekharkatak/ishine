@@ -189,6 +189,7 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 				"where t.hasClientSideId = 1 \n"+
 				"and t.projectId = :projectId \n"+
 				"and t.status = 'Pending' \n"+
+				"and t.active = true \n"+
 				"and not exists (\n" + 
 					"select 1 from TimesheetDocumentDetails tdd1 where \n" + 
 					"tdd1.timesheetId = t.timesheetId and tdd1.finalFlag = 1 and tdd1.clientApprovalStatus = 'Approved'\n" +
@@ -206,6 +207,7 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 				"where t.hasClientSideId = 1 \n"+
 				"and t.projectId = :projectId \n"+
 				"and (t.status = 'Rejected' \n"+
+				"and t.active = true \n"+
 				"or not exists (\n" + 
 					"select 1 from TimesheetDocumentDetails tdd1 where \n" + 
 					"tdd1.timesheetId = t.timesheetId and tdd1.finalFlag = 1 and tdd1.clientApprovalStatus = 'Approved'\n" +
@@ -219,7 +221,7 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 				@Param("projectId") Integer projectId
 			);
 
-		@Query("SELECT tdd from TimesheetDocumentDetails tdd where tdd.timesheetId IN :timesheetIds and tdd.finalFlag = 1 and tdd.clientApprovalStatus = 'Approved'")
+		@Query("SELECT tdd from TimesheetDocumentDetails tdd where tdd.timesheetId IN :timesheetIds and tdd.finalFlag = 1 and tdd.clientApprovalStatus = 'Approved' and tdd.active = true")
 		List<TimesheetDocumentDetails> getDocsByTimesheetIdsAndFinalFlag(
 				@Param("timesheetIds") List<Long> timesheetIds
 			);

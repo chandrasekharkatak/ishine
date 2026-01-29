@@ -5518,6 +5518,10 @@ public class TimesheetService {
 				);
 			}
 
+			if(fromDate.isAfter(toDate) || fromDate.isBefore(expectedDate)) {
+				throw new IllegalArgumentException("Invalid date range.");
+			}
+
 			if (checkMinusDaysForBulkUpload) {
 
 				LocalDate expectedToDate = fromYearMonth.atEndOfMonth();
@@ -5594,7 +5598,7 @@ public class TimesheetService {
 						timesheetDocumentDetails.setUpdatedOn(LocalDateTime.now());
 						timesheetDocumentDetails.setCreatedOn(tdd.getCreatedOn());
 						timesheetDocumentDetails.setCreatedBy(tdd.getCreatedBy());
-						
+						// should i add break or not, i mean first data is found then should i take that or like wait for the last one
 					}
 				}
 
