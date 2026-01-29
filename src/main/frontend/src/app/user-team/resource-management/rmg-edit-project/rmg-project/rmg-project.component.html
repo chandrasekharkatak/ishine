@@ -419,7 +419,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6 p-1">
+                <div class="col-md-6 p-1" *ngIf="requirement?.rmgCurrentTeamMemberList?.length > 0">
                     <div class="d-flex justify-content-end m-1">
                         <button class="btn btn-primary btn-sm" *ngIf="requirement.isAnyNewMemberAdded"
                             (click)="addNewTeamMembers(po,team,requirement)">Add New Member(s)
@@ -670,7 +670,7 @@
             <div class="card p-1">
                 <div class="row align-items-center justify-content-center" *ngIf="resourceRequirementList?.length > 0">
                     <div class="col-md-12">
-                        <div class="form-group">
+                        <div class="form-group m-2">
                             <h6 class="mb-0">Select Resource Requirement</h6>
                             <app-my-select class="form-control" [(ngModel)]="newPoRequirementMappingId"
                                 [options]="resourceRequirementList" placeholder="Select Resource Requirement"

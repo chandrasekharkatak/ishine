@@ -46,9 +46,9 @@ public class PoTeamAndMemberDetailsDto {
 
     public PoTeamAndMemberDetailsDto(Long poId, Long poRequirementMappingId,
             Long teamId, String teamName, String isTeamActive, String deptIds,
-            Long spocId, String spocName, String role, String experience, String department, boolean isPrmActive,
+            Long spocId, String spocName, String role, String experience, String department, Boolean isPrmActive,
             String memberName, String employeeRole, LocalDateTime startDate, LocalDateTime endDate, Integer isShadow,
-            Long isMemberActive, boolean defaultProject, Long empId) {
+            Long isMemberActive, Boolean defaultProject, Long empId) {
         this.poId = poId;
         this.poRequirementMappingId = poRequirementMappingId;
         this.teamId = teamId;
@@ -60,33 +60,55 @@ public class PoTeamAndMemberDetailsDto {
         this.role = role;
         this.experience = experience;
         this.department = department;
-        this.isPrmActive = isPrmActive;
+        this.isPrmActive = isPrmActive != null ? isPrmActive : false;
         this.memberName = memberName;
         this.employeeRole = employeeRole;
         this.startDate = startDate;
         this.endDate = endDate;
         this.isShadow = isShadow;
         this.isMemberActive = isMemberActive;
-        this.defaultProject = defaultProject;
+        this.defaultProject = defaultProject != null ? defaultProject : false;
         this.empId = empId;
     }
 
-    public PoTeamAndMemberDetailsDto(Long poId, Long poRequirementMappingId, String role, String experience,
-            String department, boolean isPrmActive,
+    public PoTeamAndMemberDetailsDto(Long teamId, String teamName, Long poId, Long poRequirementMappingId, String role,
+            String experience, String department, Boolean isPrmActive,
             Long empId, String memberName, String employeeRole, Long isMemberActive,
-            Integer isShadow, boolean defaultProject, LocalDateTime startDate, LocalDateTime endDate) {
+            Integer isShadow, Boolean defaultProject, LocalDateTime startDate, LocalDateTime endDate) {
+        this.teamId = teamId;
+        this.teamName = teamName;
         this.poId = poId;
         this.poRequirementMappingId = poRequirementMappingId;
         this.role = role;
         this.experience = experience;
         this.department = department;
-        this.isPrmActive = isPrmActive;
+        this.isPrmActive = isPrmActive != null ? isPrmActive : false;
         this.empId = empId;
         this.memberName = memberName;
         this.employeeRole = employeeRole;
         this.isMemberActive = isMemberActive;
         this.isShadow = isShadow;
-        this.defaultProject = defaultProject;
+        this.defaultProject = defaultProject != null ? defaultProject : false;
+        this.startDate = startDate;
+        this.endDate = endDate;
+    }
+
+    public PoTeamAndMemberDetailsDto(Long poId, Long poRequirementMappingId, String role,
+            String experience, String department, Boolean isPrmActive,
+            Long empId, String memberName, String employeeRole, Long isMemberActive,
+            Integer isShadow, Boolean defaultProject, LocalDateTime startDate, LocalDateTime endDate) {
+        this.poId = poId;
+        this.poRequirementMappingId = poRequirementMappingId;
+        this.role = role;
+        this.experience = experience;
+        this.department = department;
+        this.isPrmActive = isPrmActive != null ? isPrmActive : false;
+        this.empId = empId;
+        this.memberName = memberName;
+        this.employeeRole = employeeRole;
+        this.isMemberActive = isMemberActive;
+        this.isShadow = isShadow;
+        this.defaultProject = defaultProject != null ? defaultProject : false;
         this.startDate = startDate;
         this.endDate = endDate;
     }

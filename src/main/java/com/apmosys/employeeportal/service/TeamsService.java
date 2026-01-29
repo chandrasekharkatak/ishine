@@ -3339,10 +3339,10 @@ public class TeamsService {
 		try {
 			List<PoTeamAndMemberDetailsDto> objectList = teamRepository.getAllTeamMemberDetailsDtoByPoId(teamId);
 			if (objectList.isEmpty()) {
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				apiLogInfo.setApiResponse("Team Details Not found!!");
-				response.setServiceResponse("Team Details Not found!!");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setApiResponse("Resource Requirement List is Empty!!");
+				response.setServiceResponse(new ArrayList<RmgResourceRequirementDto>());
 				return response;
 			}
 
@@ -4014,11 +4014,11 @@ public class TeamsService {
 		try {
 			List<PoTeamAndMemberDetailsDto> objectList = teamRepository
 					.getAllTeamMemberDetailsDtoByPoIdIn(poDetailsDto.getSelectedTeamIds());
-			// if (objectList.isEmpty()) {
-			// 	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			// 	response.setServiceResponse("Team Details Not found!!");
-			// 	return response;
-			// }
+			if (objectList.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(new ArrayList<RmgResourceRequirementDto>());
+				return response;
+			}
 
 			List<Long> empIds = objectList.stream().map(PoTeamAndMemberDetailsDto::getEmpId)
 					.collect(Collectors.toList());

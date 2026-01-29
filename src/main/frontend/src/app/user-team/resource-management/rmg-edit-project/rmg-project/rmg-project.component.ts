@@ -1080,6 +1080,7 @@ export class RmgProjectComponent implements OnInit {
 
   // Resource Requirements Method & APIs Start
   async getResourceRequirementByPoId(po: PoDetails) {
+    this.newPoRequirementMappingId= null;
     this.resourceRequirementList = [];
     const response: any = await this.resourceManagementService.getResourceRequirementByPoId(po?.poId).pipe(first()).toPromise();
     if (response.serviceStatus === "Success") {

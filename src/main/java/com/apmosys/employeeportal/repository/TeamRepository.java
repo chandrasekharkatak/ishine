@@ -167,7 +167,7 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 	List<RmgTeamDto> getAllTeamsByPoId(Long poId);
 
 	@Query(value = "SELECT DISTINCT new com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto( \n"
-			+ "  prm.poId, prm.id, prm.role, prm.experience, prm.department, prm.active \n"
+			+ " prm.poId, prm.id, prm.role, prm.experience, prm.department, prm.active \n"
 			+ ", e.empId, e.name, etm.employeeRole, etm.active, etm.isShadow, CASE WHEN eppm.id IS NOT NULL THEN true ELSE false END \n"
 			+ ", etm.startDate, etm.endDate)  \n"
 			+ "FROM Team t \n"
