@@ -76,10 +76,17 @@ public class PoDetailsService {
 	}
 	
 	private LocalDateTime convert(Date date) {
-	    return date == null ? null :
-	            date.toInstant()
-	                .atZone(ZoneId.systemDefault())
-	                .toLocalDateTime();
+	    if (date == null) return null;
+
+	    if (date instanceof java.sql.Date) {
+	        return ((java.sql.Date) date)
+	                .toLocalDate()
+	                .atStartOfDay();
+	    }
+
+	    return date.toInstant()
+	            .atZone(ZoneId.systemDefault())
+	            .toLocalDateTime();
 	}
 
 	private Long validateAndGetEmployeeEmpId(String createdByEmpId, String createdByEmpName) {

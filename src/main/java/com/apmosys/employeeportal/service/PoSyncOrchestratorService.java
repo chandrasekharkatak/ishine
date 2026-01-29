@@ -62,6 +62,9 @@ public class PoSyncOrchestratorService {
 
 	@Autowired
 	private HttpServletRequest httpRequest;
+	
+	@Autowired
+	private ValidationService validationService;
 
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse poCrudOperationsInIshineNew(ProjectPoMappingWithResourceDTO dto) {
@@ -86,7 +89,7 @@ public class PoSyncOrchestratorService {
 				throw new RuntimeException("DTO from PO portal is null");
 			}
 
-			validateIncomingPayload(dto);
+			validationService.validateIncomingPayload(dto);
 
 			if (dto.getProjectId() == null) {
 				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
@@ -174,8 +177,8 @@ public class PoSyncOrchestratorService {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse(e.getMessage());
 			response.setServiceError(e.getMessage());
-//			return response;
-			throw e;
+			return response;
+//			throw e;
 
 		} finally {
 			if (initialLog != null) {
@@ -184,88 +187,6 @@ public class PoSyncOrchestratorService {
 			}
 		}
 
-	}
-
-	private void validateIncomingPayload(ProjectPoMappingWithResourceDTO dto) {
-
-		require(dto.getEventType(), "eventType");
-		require(dto.getProjectId(), "projectId");
-		require(dto.getProjectName(), "projectName");
-		require(dto.getProjectType(), "projectType");
-		require(dto.getProjectStartDate(), "projectStartDate");
-		require(dto.getProjectEndDate(), "projectEndDate");
-		require(dto.getClientId(), "clientId");
-		require(dto.getClientName(), "clientName");
-
-		if (dto.getPoDetailsList() == null || dto.getPoDetailsList().isEmpty()) {
-			ExceptionLogContext.add("poDetailsList cannot be null or empty from PO");
-			throw new RuntimeException("poDetailsList cannot be null or empty");
-		}
-
-		PoDetailsForProjectPoMappingDTO poDto = dto.getPoDetailsList().get(0);
-
-		require(poDto.getPoId(), "poId");
-		require(poDto.getPoNo(), "poNo");
-		require(poDto.getPoStartDate(), "poStartDate");
-		require(poDto.getPoEndDate(), "poEndDate");
-		require(poDto.getClientAddressId(), "clientAddressId");
-		require(poDto.getClientLocation(), "clientLocation");
-		require(poDto.getClientState(), "clientState");
-		require(poDto.getApmosysRmEmpName(), "apmosysRmEmpName");
-		require(poDto.getApmosysRmEmail(), "apmosysRmEmail");
-		require(poDto.getClientRmName(), "clientRmName");
-
-		if (poDto.getDepartmentList() == null || poDto.getDepartmentList().isEmpty()) {
-			ExceptionLogContext.add("departmentList cannot be null or empty from po");
-			throw new RuntimeException("departmentList cannot be null or empty");
-		}
-
-		// ---------- CREATE vs UPDATE ----------
-		if (dto.getEventType() == SyncRequestType.CREATE_PROJECT) {
-
-			require(poDto.getCreatedByEmpId(), "createdByEmpId");
-			require(poDto.getCreatedByEmpName(), "createdByEmpName");
-
-		} else if (dto.getEventType() == SyncRequestType.UPDATE_PO) {
-
-			require(poDto.getUpdatedByEmpId(), "updatedByEmpId");
-			require(poDto.getUpdatedByEmpName(), "updatedByEmpName");
-
-		} else {
-			throw new RuntimeException("Unsupported eventType");
-		}
-
-		if ("TNM".equalsIgnoreCase(dto.getProjectType())) {
-
-			if (poDto.getResourceRequirementList() == null || poDto.getResourceRequirementList().isEmpty()) {
-				throw new RuntimeException("resourceRequirementList is mandatory for TNM projects");
-			}
-
-			for (POResourceRequirementDTO r : poDto.getResourceRequirementList()) {
-				validateResourceRequirement(r);
-			}
-
-		}
-	}
-
-	private void validateResourceRequirement(POResourceRequirementDTO r) {
-
-		require(r.getResourceOverviewId(), "resourceOverviewId");
-		require(r.getClientRoleId(), "clientRoleId");
-		require(r.getRole(), "role");
-		require(r.getDepartment(), "department");
-		require(r.getExperience(), "experience");
-		require(r.getCount(), "count");
-		require(r.getYearWiseRateCartStartDate(), "yearWiseRateCartStartDate");
-		require(r.getYearWiseRateCartEndDate(), "yearWiseRateCartEndDate");
-		require(r.getLineItemStartDate(), "lineItemStartDate");
-		require(r.getLineItemEndDate(), "lineItemEndDate");
-	}
-
-	private void require(Object value, String fieldName) {
-		if (value == null) {
-			throw new RuntimeException(fieldName + " cannot be null from PO");
-		}
 	}
 
 	@Transactional(rollbackFor = Exception.class)
@@ -281,7 +202,7 @@ public class PoSyncOrchestratorService {
 			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
 					"renewPoInIshine", "PoPortal", null, httpRequest);
 
-			validateRenewPoPayload(dto);
+			validationService.validateRenewPoPayload(dto);
 
 			if (dto.getEventType() != SyncRequestType.RENEW_PO) {
 				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
@@ -353,55 +274,6 @@ public class PoSyncOrchestratorService {
 		}
 
 	}
-	
-	private void validateRenewPoPayload(RenewedPoSyncDto dto) {
-
-	    require(dto.getEventType(), "eventType");
-	    require(dto.getProjectId(), "projectId");
-	    require(dto.getProjectName(), "projectName");
-	    require(dto.getRenewedByEmpId(), "renewedByEmpId");
-	    require(dto.getRenewedByEmpName(), "renewedByEmpName");
-	    require(dto.getRenewedOn(), "renewedOn");
-//	    require(dto.getRenewedPo(), "renewedPo");
-
-	    if (dto.getAssociatePosAfterRenewal() == null ||
-	        dto.getAssociatePosAfterRenewal().isEmpty()) {
-	        throw new RuntimeException("associatePosAfterRenewal cannot be empty from Po");
-	    }
-	    
-	    if (dto.getRenewedPo() == null ) {
-		        throw new RuntimeException("Renewed PO cannot be empty from PO");
-		    }
-	    
-	    PoDetailsForProjectPoMappingDTO poDto = dto.getRenewedPo();
-	    
-	    
-	    require(poDto.getPoId(), "poId");
-		require(poDto.getPoNo(), "poNo");
-		require(poDto.getPoStartDate(), "poStartDate");
-		require(poDto.getPoEndDate(), "poEndDate");
-		require(poDto.getClientAddressId(), "clientAddressId");
-		require(poDto.getClientLocation(), "clientLocation");
-		require(poDto.getClientState(), "clientState");
-		require(poDto.getApmosysRmEmpName(), "apmosysRmEmpName");
-		require(poDto.getApmosysRmEmail(), "apmosysRmEmail");
-		require(poDto.getClientRmName(), "clientRmName");
-
-		if (poDto.getDepartmentList() == null || poDto.getDepartmentList().isEmpty()) {
-			ExceptionLogContext.add("departmentList cannot be null or empty from po");
-			throw new RuntimeException("departmentList cannot be null or empty");
-		}
-		
-		  if(poDto.getResourceRequirementList()!= null) {
-
-			for (POResourceRequirementDTO r : poDto.getResourceRequirementList()) {
-				validateResourceRequirement(r);
-			}
-		  }
-
-		
-	}
-	
 	
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse deletePoInIshineNew(DeletedPoSyncDTO dto) {
