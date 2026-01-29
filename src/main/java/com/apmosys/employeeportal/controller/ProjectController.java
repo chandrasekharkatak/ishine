@@ -28,6 +28,7 @@ import com.apmosys.employeeportal.dto.MilestoneUpdatedLogDto;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
+import com.apmosys.employeeportal.dto.RmgProjectDto;
 import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.repository.ProjectRepository;
@@ -309,5 +310,11 @@ public class ProjectController {
 	public ServiceResponse updateEmployeeProjectMappingAsInActive(@RequestBody RmgTeamMemberDto rmgTeamMemberDto) {
 		return projectService.updateEmployeeProjectMappingAsInActive(rmgTeamMemberDto);
 	}
-	
+
+	// @Encrypted
+	@PostMapping("/saveProjectInformation")
+	public ServiceResponse saveProjectInformation(@RequestBody RmgProjectDto rmgProjectDto) {
+		return projectService.saveProjectInformation(rmgProjectDto);
+	}
+
 }

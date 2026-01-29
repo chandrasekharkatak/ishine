@@ -5,6 +5,7 @@ import { Employee } from '../models/employee';
 import { Team } from '../models/team';
 import { environment } from 'src/environments/environment';
 import { MigrateTeams } from '../models/migrateTeam';
+import { PoDetails } from '../models/poDetails';
 
 @Injectable({
   providedIn: 'root'
@@ -114,4 +115,17 @@ export class TeamService {
   migrateTeam(migrateTeam: MigrateTeams) {
     return this.http.post(`${this.baseUrl}` + `api/migrateTeam`, migrateTeam);
   }
+
+  getTeamDetailsByTeamIdsAndProjectId(poObj: PoDetails) {
+    return this.http.post(`${this.baseUrl}` + `api/getTeamDetailsByTeamIdsAndProjectId`, poObj);
+  }
+
+  deleteSelectedTeams(deleteTeamsPo: PoDetails) {
+    return this.http.post(`${this.baseUrl}` + `api/deleteSelectedTeams`, deleteTeamsPo);
+  }
+
+  addOrUpdateTeamDetails(updateTeamPoDetails: PoDetails) {
+    return this.http.post(`${this.baseUrl}` + `api/addOrUpdateTeamDetails`, updateTeamPoDetails);
+  }
+
 }

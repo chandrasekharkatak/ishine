@@ -7,7 +7,7 @@
         <h6 class="card-title">Project Configuration</h6>
     </div>
     <div class="card-body">
-        <div class="row overflow-hidden" style="height: 80vh;">
+        <div class="row overflow-hidden" style="height: 90vh;">
             <div class="col-md-3">
                 <div class="card shadow-sm h-100">
                     <div class="row ml-0 mr-0 d-flex justify-content-center">
@@ -23,7 +23,7 @@
                                 <ng-template matStepLabel>Project Information</ng-template>
                             </mat-step>
                             <mat-step label="Current Resource Requirements \n Old Resource Mapped">
-                                <ng-template matStepLabel>Add Team</ng-template>
+                                <ng-template matStepLabel>Resource Configuration</ng-template>
                             </mat-step>
                             <mat-step>
                                 <ng-template matStepLabel>Preview</ng-template>
@@ -124,6 +124,13 @@
                     <label>State</label>
                     <input class="form-control" type="text" disabled [(ngModel)]="rmgProjectObj.state" />
                 </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-0 m-2">
+                <button class="btn btn-primary btn-sm" (click)="saveProjectInformation()">
+                    Save Project Information
+                </button>
             </div>
         </div>
     </div>
@@ -265,12 +272,22 @@
                         </div>
 
                         <!-- Delete / Migrate Team(s) Row -->
-                        <div class="row p-2" *ngIf="po.isAnyTeamSelected">
+                        <div class="row p-2" *ngIf="po && po?.teamList?.length > 0">
                             <div class="col-md-12 d-flex justify-content-end">
-                                <button class="btn btn-primary btn-sm" (click)="openDeleteTeamModal(po)">
-                                    Bulk Delete
+                                <button *ngIf="po.isAnyNewTeamAdded" class="btn btn-primary btn-sm"
+                                    (click)="createTeams(po)">
+                                    Save New Team(s)
                                 </button>&nbsp;&nbsp;
-                                <button class="btn btn-primary btn-sm" (click)="openMigrateTeamModal(po)">
+                                <button *ngIf="!po.isAnyNewTeamAdded" class="btn btn-primary btn-sm"
+                                    (click)="addOrUpdateTeamDetails(po)">
+                                    Update Team(s)
+                                </button>&nbsp;&nbsp;
+                                <button *ngIf="po.isAnyTeamSelected" class="btn btn-primary btn-sm"
+                                    (click)="validateDeleteTeams(po)">
+                                    Delete Team(s)
+                                </button>&nbsp;&nbsp;
+                                <button *ngIf="po.isAnyTeamSelected" class="btn btn-primary btn-sm"
+                                    (click)="openMigrateTeamModal(po)">
                                     Migrate Team(s)
                                 </button>
                             </div>
@@ -296,8 +313,12 @@
                                     <tbody>
                                         <tr *ngFor="let team of po.teamList">
                                             <td>
-                                                <mat-checkbox class="custom-checkbox" color="primary"
-                                                    [checked]="team.isTeamSelected"
+                                                <button *ngIf="team.isNotSaved" class="btn btn-danger btn-sm"
+                                                    (click)="removeTeamFromTeamList(po, team)" title="Delete Team">
+                                                    <em class="fa fa-trash"></em>
+                                                </button>
+                                                <mat-checkbox *ngIf="!team.isNotSaved" class="custom-checkbox"
+                                                    color="primary" [checked]="team.isTeamSelected"
                                                     (change)="onTeamCheckboxChange(po, team)">
                                                 </mat-checkbox>
                                             </td>
@@ -321,7 +342,8 @@
                                             </td>
                                             <td class="actions">
                                                 <button class="btn btn-sm btn-outline-primary"
-                                                    title="Update Resource Requirements"
+                                                    [title]="team.isNotSaved ? 'Save Newly Added Team(s) to Enable':'Open Resource Requirements'"
+                                                    [disabled]="team.isNotSaved"
                                                     (click)="getTeamDetailsByTeamId(team,po)">
                                                     <i class="fa fa-edit" aria-hidden="true"></i>
                                                 </button>
@@ -399,14 +421,14 @@
                 </div>
                 <div class="col-md-6 p-1">
                     <div class="d-flex justify-content-end m-1">
-                        <button class="btn btn-primary btn-sm" *ngIf="!requirement.isAnyNewMemberAdded"
-                            (click)="updateExistingTeamMembers(po,team,requirement)">Update Member(s)
-                        </button>&nbsp;&nbsp;
                         <button class="btn btn-primary btn-sm" *ngIf="requirement.isAnyNewMemberAdded"
                             (click)="addNewTeamMembers(po,team,requirement)">Add New Member(s)
                         </button>&nbsp;&nbsp;
+                        <button class="btn btn-primary btn-sm" *ngIf="!requirement.isAnyNewMemberAdded"
+                            (click)="updateExistingTeamMembers(po,team,requirement)">Update Member(s)
+                        </button>&nbsp;&nbsp;
                         <button class="btn btn-primary btn-sm" *ngIf="requirement.isAnyMemberSelected"
-                            (click)="validateRemovingMembers(po,team,requirement)">Remove Member(s)
+                            (click)="validateRemoveMembers(po,team,requirement)">Remove Member(s)
                         </button>
                     </div>
                 </div>
@@ -489,7 +511,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngIf="!teamMembers || teamMembers?.length < 0">
+                            <tr *ngIf="!teamMembers || teamMembers?.length === 0">
                                 <td colspan="6" class="text-center">No Resources found.</td>
                             </tr>
                             <tr *ngFor="let member of teamMembers">
@@ -559,7 +581,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngIf="!teamMembers || teamMembers?.length < 0">
+                        <tr *ngIf="!teamMembers || teamMembers?.length === 0">
                             <td colspan="5" class="text-center">No Resources found.</td>
                         </tr>
                         <tr *ngFor="let member of teamMembers">
@@ -855,6 +877,9 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                <tr *ngIf="markDefaultProjectCompletionList.length === 0">
+                                    <td colspan="8" class="text-center">No Details to display.</td>
+                                </tr>
                                 <tr *ngFor="let employee of markDefaultProjectCompletionList; let i = index">
                                     <td class="max-width150 min-width150">{{ employee.employementId }}</td>
                                     <td class="max-width200 min-width150">{{ employee.memberName }}</td>
@@ -1062,6 +1087,25 @@
                 (click)="deleteEmployeeProjectResourceMapping();closeDeleteEmployeeFromExistingProjectModal()">Yes,
                 proceed</button>&nbsp;
             <button type="button" class="btn btn-danger" (click)="closeDeleteEmployeeFromExistingProjectModal()">No,
+                Cancel</button>&nbsp;
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #delete_team_confirmation>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete the Selected Team(s) from the Project ?</p>
+        <div class="row justify-content-center align-items-center">
+            <label class="info-label">Select End Date</label>
+        </div>
+        <div class="row justify-content-center align-items-center m-2">
+            <input type="date" class="form-control" autocomplete="none" [(ngModel)]="teamEndDate">
+        </div>
+        <div class="row justify-content-center align-items-center">
+            <button type="button" class="btn btn-success"
+                (click)="deleteSelectedTeams();closeDeleteTeamConfirmationModal()">Yes,
+                proceed</button>&nbsp;
+            <button type="button" class="btn btn-danger" (click)="closeDeleteTeamConfirmationModal()">No,
                 Cancel</button>&nbsp;
         </div>
     </div>

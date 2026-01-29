@@ -27,5 +27,9 @@ export class PoDetails {
     selectedTeamIds: any[] = [];
     isPoSelected: boolean = false;
     isAnyTeamSelected: boolean = false;
+    isAnyNewTeamAdded: boolean = false;
+    updatedBy: any;
+    isHod: boolean = false;
+    isUpdate: boolean = true;
 
 }

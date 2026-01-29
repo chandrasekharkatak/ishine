@@ -60,6 +60,8 @@ export class RmgProjectComponent implements OnInit {
   @ViewChild("mapping_other_project_as_default") mappingToOtherProjectAsDefaultTemplateRef: TemplateRef<any>;
   @ViewChild("employee_existing_project_details") employeeExistingProjectDetailsTemplateRef: TemplateRef<any>;
   @ViewChild("delete_employee_from_existing_project") deleteEmployeeFromExistingProjectTemplateRef: TemplateRef<any>;
+  @ViewChild("delete_team_confirmation") deleteTeamConfirmationTemplateRef: TemplateRef<any>;
+
 
 
   alertMessageModalRef: NgbModalRef;
@@ -71,6 +73,7 @@ export class RmgProjectComponent implements OnInit {
   mappingToOtherProjectAsDefaultModalRef: NgbModalRef;
   employeeExistingProjectDetailsModalRef: NgbModalRef;
   deleteEmployeeFromExistingProjectModalRef: NgbModalRef;
+  deleteTeamConfirmationModalRef: NgbModalRef;
 
   currentUser: User;
   userMapping: any = {};
@@ -80,6 +83,7 @@ export class RmgProjectComponent implements OnInit {
   currentPo: PoDetails = new PoDetails();
   defaultProjectObj: SetDefaultProjectObj = new SetDefaultProjectObj();
   deleteEmployeeExistingProjectMappingObj: RmgTeamMember;
+  deleteTeamsPo: PoDetails = new PoDetails();
   tempRequirement: any;
   // migrateTeamObj:LiftAndShift();
 
@@ -109,6 +113,8 @@ export class RmgProjectComponent implements OnInit {
   employeeExistingProjectBillableType: any;
 
   projectConfigStepperIndex: number = 1;
+
+  isHOD: boolean = false;
   loadingRequirements: boolean = true;
   isMarkDefaultProjectCompletionBulk: boolean = true;
   // isAddNewTeamMemberDisabled: boolean = false;
@@ -116,6 +122,7 @@ export class RmgProjectComponent implements OnInit {
   mappingToOtherProjectId: any;
   membersEndDate: any;
   employeeProjectEndDate: any;
+  teamEndDate: any;
 
 
   // Team Migration
@@ -143,6 +150,7 @@ export class RmgProjectComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.isHOD = ['HOD', 'SuperAdmin', 'Superadmin', 'Super Admin'].includes(this.currentUser.employeeRole);
     this.projectConfigStepperIndex = 0; // Stepper Default to Project Information
     this.getActiveProjectList();
     this.setProjectType();
@@ -249,9 +257,19 @@ export class RmgProjectComponent implements OnInit {
       this.deleteEmployeeFromExistingProjectModalRef?.close();
     }
   }
+
+  openDeleteTeamConfirmationModal() {
+    this.deleteTeamConfirmationModalRef = this.modalService?.open(this.deleteTeamConfirmationTemplateRef, { modalDialogClass: 'modal-sm' });
+  }
+
+  closeDeleteTeamConfirmationModal() {
+    if (this.deleteTeamConfirmationModalRef) {
+      this.deleteTeamConfirmationModalRef?.close();
+    }
+  }
   // Modals End
 
-  // Validation Methods End
+  // Validation Methods Starts
   isValidList(list: any) {
     return this.validationService.validateNullUndefinedEmptyList(list);
   }
@@ -292,7 +310,9 @@ export class RmgProjectComponent implements OnInit {
     }
   }
 
-  validateRemovingMembers(po: PoDetails, team: RmgTeam, requirement: RmgResourceRequirement) {
+  validateRemoveMembers(po: PoDetails, team: RmgTeam, requirement: RmgResourceRequirement) {
+    this.markDefaultProjectCompletionList = [];
+    this.mappingToOtherProjectAsDefaultList = [];
     let selectedMembers = requirement?.rmgCurrentTeamMemberList.filter(member => member.isMemberSelected);
     if (!this.isValidList(selectedMembers)) {
       this.openAlertMessageModal("Please select atleast one Team Member to remove!!");
@@ -321,6 +341,7 @@ export class RmgProjectComponent implements OnInit {
 
     this.markDefaultProjectCompletionList = selectedMembers.filter(member => noOtherActiveAndCurrentIsDefaultProjectEmpIds.includes(member.empId));
     this.mappingToOtherProjectAsDefaultList = selectedMembers.filter(member => otherActiveAndCurrentIsDefaultProjectEmpIds.includes(member.empId));
+
     if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0) {
       this.openMarkDefaultProjectCompletionModal();
       this.openMappingToOtherProjectAsDefaultModal();
@@ -362,7 +383,7 @@ export class RmgProjectComponent implements OnInit {
       this.openAlertMessageModal("Kindly Provide a valid Team Name!!");
       return false;
     }
-    if (this.isValidList(po.teamList)) {
+    if (this.isValidList(po?.teamList)) {
       for (let t of po.teamList) {
         if (this.isValidString(t.teamName) && t?.teamId !== team?.teamId && t.teamName === teamName) {
           this.openAlertMessageModal("Team Name already exists!!");
@@ -375,7 +396,160 @@ export class RmgProjectComponent implements OnInit {
     // }
     return true;
   }
-  // Validation Methods End
+
+  validateDeleteTeams(po: PoDetails) {
+    this.markDefaultProjectCompletionList = [];
+    this.mappingToOtherProjectAsDefaultList = [];
+
+    let poObj = new PoDetails();
+    poObj.projectId = po.projectId;
+    poObj.selectedTeamIds = po?.teamList.filter(team => team.isTeamSelected).map(team => team.teamId);
+
+    this.deleteTeamsPo = po;
+    this.deleteTeamsPo.selectedTeamIds = poObj.selectedTeamIds;
+
+    this.teamService.getTeamDetailsByTeamIdsAndProjectId(poObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+
+        const rmgResourceRequirementList: RmgResourceRequirement[] = response.serviceResponse || [];
+        let teamMembers: RmgTeamMember[] = [];
+
+        for (let req of rmgResourceRequirementList) {
+          if (this.isValidList(req.rmgTeamMemberList)) {
+            for (let member of req.rmgTeamMemberList) {
+              if (member.isMemberActive != 0) {
+                teamMembers.push(member);
+              }
+            }
+          }
+        }
+
+        // having no other active projects and this is default project
+        let noOtherActiveAndCurrentIsDefaultProjectEmpIds: number[] = teamMembers
+          .filter(member =>
+            Array.isArray(member.otherActiveProjectIds) &&
+            member.otherActiveProjectIds.length === 0 &&
+            member.defaultProject === true
+          )
+          // .filter(member => selectedEmpIds.includes(member)
+          .map(member => member.empId);
+
+        // having other active projects and this is default project
+        const otherActiveAndCurrentIsDefaultProjectEmpIds: number[] = teamMembers
+          .filter(member =>
+            Array.isArray(member.otherActiveProjectIds) &&
+            member.otherActiveProjectIds.length > 0 &&
+            member.defaultProject === true
+          )
+          // .filter(member => selectedEmpIds.includes(member)
+          .map(member => member.empId);
+
+        this.markDefaultProjectCompletionList = teamMembers.filter(member => noOtherActiveAndCurrentIsDefaultProjectEmpIds.includes(member.empId));
+        this.mappingToOtherProjectAsDefaultList = teamMembers.filter(member => otherActiveAndCurrentIsDefaultProjectEmpIds.includes(member.empId));
+
+        if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0) {
+          this.openMarkDefaultProjectCompletionModal();
+          this.openMappingToOtherProjectAsDefaultModal();
+        } else if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length === 0) {
+          this.openMarkDefaultProjectCompletionModal();
+        } else if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length === 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0) {
+          this.openMappingToOtherProjectAsDefaultModal();
+        } else {
+          this.openDeleteTeamConfirmationModal();
+        }
+
+      } else {
+        this.openAlertMessageModal(response.serviceResponse || 'Something went wrong!!');
+      }
+    });
+  }
+
+  // validateProjectDetails(projectObj : RmgProject) {
+  //   if (projectObj.projectManagerId == undefined || projectObj.projectManagerId.length == 0 || projectObj.projectManagerId == null) {
+  //     this.alertMessage = `Please select project manager.`
+  //     this.openAlertMod6(template, this.alertMessage);
+  //     return;
+  //   }
+  //   if (projectObj.teamList.length == 0) {
+  //     this.alertMessage = "Please add atleast one team."
+  //     this.openAlertMod6(template, this.alertMessage);
+  //     return false;
+  //   }
+
+  //   if (projectObj.teamList.length != 0) {
+  //     let flag = true;
+  //     projectObj.teamList.forEach((projObj, index) => {
+  //       projObj.teamName = projObj.teamName?.trim();
+  //       if (!this.validationService.validateNullUndefinedEmptyString(projObj.teamName)) {
+  //         this.alertMessage = `Please enter Team Name - ${index + 1}.`
+  //         flag = false;
+  //         return;
+  //       }
+  //       if (!this.validationService.validateTeamName(projObj.teamName)) {
+  //         this.alertMessage = "Please enter valid Team Name."
+  //         this.openAlertMod6(template, this.alertMessage);
+  //         return false;
+  //       }
+  //       if (projObj.teamMemberList == undefined || projObj.teamMemberList.length == 0 || projObj.teamMemberList == null) {
+  //         this.alertMessage = `Please add team member(s) - ${index + 1}.`
+  //         flag = false;
+  //         return;
+  //       }
+  //       if (projObj.teamMemberList.length != 0) {
+  //         let memberFlag = true;
+  //         projObj.teamMemberList.forEach((member) => {
+  //           if (!this.validationService.validateNullUndefinedEmptyString(member.name)) {
+  //             this.alertMessage = `Please select Team Member- ${index + 1}.`
+  //             flag = false;
+  //             return;
+  //           }
+  //           if (member.isTeamLead == null && (member.isTeamLead != true || member.isTeamLead != 'true')) {
+  //             if (member.employeeRole == undefined || member.employeeRole.length == 0 || member.employeeRole == null) {
+  //               this.alertMessage = `Please select member(s) Employee Role - ${index + 1}.`
+  //               flag = false;
+  //               return;
+  //             }
+  //           }
+  //         });
+  //         if (!memberFlag) {
+  //           this.openAlertMod6(template, this.alertMessage);
+  //           return false;
+  //         } else {
+  //           return true;
+  //         }
+  //       }
+  //     });
+  //     if (!flag) {
+  //       this.openAlertMod6(template, this.alertMessage);
+  //       return false;
+  //     } else {
+  //       return true;
+  //     }
+  //   }
+  // }
+
+  validateTeamList(teamList: RmgTeam[]) {
+    if (!this.isValidList(teamList)) {
+      return { message: 'No Teams found in this PO!!', flag: true };
+    }
+    let message = '';
+    let flag = false;
+    for (let index = 0; index < teamList?.length; index++) {
+      let team = teamList[index];
+      if (!this.isValidString(team.teamName)) {
+        message = `Team Name cannot be null for Team ${index + 1}!!`
+        flag = true;
+        break;
+      }
+      if (!this.isValidList(team.deptIds)) {
+        message = `Atleast select one Department for Team ${index + 1}!!`
+        flag = true;
+        break;
+      }
+    }
+    return { message: message, flag: flag };
+  }
+  // ValidationMethods End
 
   // Helpers Start
   callCloseProjectConfiguration() {
@@ -396,6 +570,7 @@ export class RmgProjectComponent implements OnInit {
     if (this.rmgProjectObj && this.isValidList(this.rmgProjectObj?.poDetailsList)) {
       for (let po of this.rmgProjectObj?.poDetailsList) {
         po.newTeamObj = new RmgTeam();
+        po.newTeamObj.poId = po.poId;
       }
     }
   }
@@ -510,7 +685,7 @@ export class RmgProjectComponent implements OnInit {
   }
 
   updatePoSelection(po: PoDetails): void {
-    po.isPoSelected = po.teamList.length > 0 && po.teamList.every(team => team.isTeamSelected);
+    po.isPoSelected = po.teamList.length > 0 && po.teamList.filter(team => !team.isNotSaved).every(team => team.isTeamSelected);
   }
 
   updatePoActionButton(po: PoDetails): void {
@@ -522,23 +697,23 @@ export class RmgProjectComponent implements OnInit {
   }
   // Checkbox Helper Methods End
 
-
   // Steppers Method Start
   onProjectConfigStepChange(event: any) {
     if (event) {
       this.projectConfigStepperIndex = event?.selectedIndex;
-      console.log(event);
     }
   }
   // Steppers Method End
 
-
   // Team Method & APIs Start
   getAllTeamsByPoId(po: PoDetails) {
+    po.teamList = [];
     this.teamService.getAllTeamsByPoId(po?.poId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         po.teamList = response.serviceResponse || [];
         this.setTeamDepartmentNames(po.teamList);
+        this.updateAddTeamButton(po);
+        this.updatePoActionButton(po);
       }
     });
   }
@@ -553,8 +728,19 @@ export class RmgProjectComponent implements OnInit {
       this.openAlertMessageModal("Kindly Select atleast one department!!");
       return;
     }
+    team.isNotSaved = true;
     po.teamList.push(team);
     po.newTeamObj = new RmgTeam();
+    po.newTeamObj.poId = po.poId;
+    this.updateAddTeamButton(po);
+  }
+
+  removeTeamFromTeamList(po: PoDetails, team: RmgTeam) {
+    if (!this.isValidList(po.teamList)) {
+      po.teamList = [];
+    }
+    po.teamList = po.teamList.filter(t => t !== team);
+    this.updateAddTeamButton(po);
   }
 
   migrateTeam() {
@@ -661,6 +847,109 @@ export class RmgProjectComponent implements OnInit {
     });
   }
 
+  deleteSelectedTeams() {
+    this.deleteTeamsPo.teamList = this.deleteTeamsPo?.teamList?.filter(team => team.isTeamSelected)
+      .map(team => {
+        team.endDate = new Date(this.teamEndDate);
+        team.updatedBy = this.currentUser.empId;
+        return team;
+      });
+    this.teamService.deleteSelectedTeams(this.deleteTeamsPo).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        let po = this.rmgProjectObj.poDetailsList.find(po => po.poId === this.deleteTeamsPo.poId);
+        this.getAllTeamsByPoId(po);
+        this.openAlertMessageModal(response.serviceResponse);
+      } else {
+        this.openAlertMessageModal(response.serviceResponse);
+      }
+    });
+  }
+
+  addOrUpdateTeamDetails(po: PoDetails) {
+
+    if (!this.isValidList(po?.teamList)) {
+      this.openAlertMessageModal('No Teams found in this PO!!');
+      return;
+    }
+
+    for (let index = 0; index < po?.teamList?.length; index++) {
+      let team = po?.teamList[index];
+      if (!this.isValidString(team.teamName)) {
+        this.openAlertMessageModal(`Team Name cannot be null for Team ${index + 1}!!`);
+        return;
+      }
+      for (let t of po.teamList) {
+        if (this.isValidString(t.teamName) && t?.teamId !== team?.teamId && t.teamName === team.teamName) {
+          this.openAlertMessageModal(`Team names must be unique. Duplicate team name found: '${team.teamName}'!!`);
+          return false;
+        }
+      }
+      if (!this.isValidList(team.deptIds)) {
+        this.openAlertMessageModal(`Atleast select one Department for Team ${index + 1}!!`);
+        return;
+      }
+    }
+
+    let updateTeamPoDetails = new PoDetails();
+    updateTeamPoDetails.teamList = po?.teamList;
+    updateTeamPoDetails.updatedBy = this.currentUser.empId;
+    updateTeamPoDetails.isHod = this.isHOD;
+    updateTeamPoDetails.isUpdate = true;
+    updateTeamPoDetails.projectId = this.rmgProjectObj.projectId;
+    this.teamService.addOrUpdateTeamDetails(updateTeamPoDetails).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMessageModal(response.serviceResponse);
+        this.getAllTeamsByPoId(po);
+      } else {
+        this.openAlertMessageModal(response.serviceResponse);
+      }
+    });
+  }
+
+  createTeams(po: PoDetails) {
+    const teamList = po?.teamList.filter(team => team.isNotSaved);
+    if (!this.isValidList(teamList)) {
+      this.openAlertMessageModal('No New Teams found to Save in this PO!!');
+      return;
+    }
+
+    for (let index = 0; index < teamList?.length; index++) {
+      let team = teamList[index];
+      if (!this.isValidString(team.teamName)) {
+        this.openAlertMessageModal(`Team Name cannot be null for Team ${index + 1}!!`);
+        return;
+      }
+      for (let t of po.teamList) {
+        if (this.isValidString(t.teamName) && t?.teamId !== team?.teamId && t.teamName === team.teamName) {
+          this.openAlertMessageModal(`Team names must be unique. Duplicate team name found: '${team.teamName}'!!`);
+          return false;
+        }
+      }
+      if (!this.isValidList(team.deptIds)) {
+        this.openAlertMessageModal(`Atleast select one Department for Team ${index + 1}!!`);
+        return;
+      }
+    }
+
+    let updateTeamPoDetails = new PoDetails();
+    updateTeamPoDetails.teamList = teamList;
+    updateTeamPoDetails.updatedBy = this.currentUser.empId;
+    updateTeamPoDetails.isHod = this.isHOD;
+    updateTeamPoDetails.isUpdate = false;
+    updateTeamPoDetails.projectId = this.rmgProjectObj.projectId;
+    this.teamService.addOrUpdateTeamDetails(updateTeamPoDetails).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMessageModal(response.serviceResponse);
+        this.getAllTeamsByPoId(po);
+      } else {
+        this.openAlertMessageModal(response.serviceResponse);
+      }
+    });
+  }
+
+  updateAddTeamButton(po: PoDetails): void {
+    po.isAnyNewTeamAdded = po.teamList.some(team => team.isNotSaved);
+  }
   // Team Method & APIs End
 
   // PO List Method & APIs Start
@@ -787,7 +1076,6 @@ export class RmgProjectComponent implements OnInit {
   updateAddTeamMemberButton(resourceReq: RmgResourceRequirement): void {
     resourceReq.isAnyNewMemberAdded = resourceReq.rmgCurrentTeamMemberList.some(member => member.isNotSaved);
   }
-
   // Team Members Method & APIs End
 
   // Resource Requirements Method & APIs Start
@@ -938,7 +1226,6 @@ export class RmgProjectComponent implements OnInit {
     this.deleteEmployeeExistingProjectMappingObj.rescEndDate = new Date(this.employeeProjectEndDate);
     this.deleteEmployeeExistingProjectMappingObj.updatedBy = this.currentUser.empId;
     this.deleteEmployeeExistingProjectMappingObj.rescRemovedBy = this.currentUser.empId;
-    console.log("Delete Employee Project Resource Mapping : ", this.deleteEmployeeExistingProjectMappingObj)
     this.projectService.updateEmployeeProjectMappingAsInActive(this.deleteEmployeeExistingProjectMappingObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMessageModal(response.serviceResponse);
@@ -947,6 +1234,37 @@ export class RmgProjectComponent implements OnInit {
         this.openAlertMessageModal(response.serviceResponse);
       }
     })
+  }
+
+  saveProjectInformation() {
+    if (!this.isValidList(this.rmgProjectObj?.departmentIds)) {
+      this.openAlertMessageModal("Please Select atleast one Department!!");
+      return;
+    }
+    if (!this.isValidList(this.rmgProjectObj?.projectManagerIds)) {
+      this.openAlertMessageModal("Please Select atleast one Project Manager!!");
+      return;
+    }
+    this.rmgProjectObj.updatedBy = this.currentUser.empId;
+    this.projectService.saveProjectInformation(this.rmgProjectObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        this.openAlertMessageModal(response.serviceResponse);
+        this.getProjectConfigurationDetailsByProjectId(this.rmgProjectObj);
+      } else {
+        this.openAlertMessageModal(response.serviceResponse);
+      }
+    });
+  }
+
+  getProjectConfigurationDetailsByProjectId(project: any) {
+    this.rmgProjectObj = null;
+    this.resourceManagementService.getProjectConfigurationDetailsByProjectId(project?.projectId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        this.rmgProjectObj = response.serviceResponse;
+      } else {
+        this.openAlertMessageModal(response.serviceResponse);
+      }
+    });
   }
   // Projects Method & APIs End
 

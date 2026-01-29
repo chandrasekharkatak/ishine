@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.dto;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +27,8 @@ public class RmgTeamDto {
 
     private List<Long> deptIds;
     private List<RmgResourceRequirementDto> rmgResourceRequirementList;
+    
+    private LocalDateTime endDate;
 
     public RmgTeamDto(Long teamId, String teamName, Long poId, String isActive, Long spocId, String spocName,
             List<Long> deptIds) {

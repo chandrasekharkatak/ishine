@@ -14,6 +14,7 @@ import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.MigrateTeam;
+import com.apmosys.employeeportal.dto.PoDetailsDto;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -325,4 +326,22 @@ public class TeamsController {
 		return teamsService.migrateTeam(migrateTeam);
 	}
 
+	// @Encrypted
+	@PostMapping("getTeamDetailsByTeamIdsAndProjectId")
+	public ServiceResponse getTeamDetailsByTeamIdsAndProjectId(@RequestBody PoDetailsDto poDetailsDto) {
+		return teamsService.getTeamDetailsByTeamIdsAndProjectId(poDetailsDto);
+	}
+
+	// @Encrypted
+	@PostMapping("deleteSelectedTeams")
+	public ServiceResponse deleteSelectedTeams(@RequestBody PoDetailsDto poDetailsDto) {
+		return teamsService.deleteSelectedTeams(poDetailsDto);
+	}
+
+	// @Encrypted
+	@PostMapping("addOrUpdateTeamDetails")
+	public ServiceResponse addOrUpdateTeamDetails(@RequestBody PoDetailsDto poDetailsDto) {
+		return teamsService.addOrUpdateTeamDetails(poDetailsDto);
+	}
+	
 }

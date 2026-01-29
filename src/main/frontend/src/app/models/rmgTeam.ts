@@ -16,4 +16,6 @@ export class RmgTeam {
     departmentNames: any;
     rmgResourceRequirementList: RmgResourceRequirement[] = [];
     isTeamSelected: boolean = false;
+    isNotSaved: boolean = false;
+    endDate:any;
 }

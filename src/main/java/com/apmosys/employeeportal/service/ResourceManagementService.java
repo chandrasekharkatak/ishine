@@ -13799,10 +13799,10 @@ public class ResourceManagementService {
 					Long currentProjectId = Long.parseLong(rmgProjectDto.getProjectId().toString());
 
 					List<Long> projectManagerIds = projectManagerMappingRepository
-							.getAllProjectManagerId(currentProjectId);
+							.findProjectManagerIdByProjectIdAndActive(currentProjectId,1);
 					rmgProjectDto.setProjectManagerIds(projectManagerIds);
 
-					List<Long> overHeadIds = projectOverheadMappingRepository.getAllProjectOverheadId(currentProjectId);
+					List<Long> overHeadIds = projectOverheadMappingRepository.findProjectOverheadIdByProjectIdAndActive(currentProjectId,1);
 					rmgProjectDto.setProjectOverheadIds(overHeadIds);
 
 					List<PoDetailsDto> poDetailsDtos = getPoDetailsByProjectId(rmgProjectDto.getProjectId());

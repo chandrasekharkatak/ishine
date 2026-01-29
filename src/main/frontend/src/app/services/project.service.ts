@@ -6,6 +6,8 @@ import { environment } from 'src/environments/environment';
 import { MilestoneUpdatedLog } from '../models/MilestoneUpdatedLog';
 import { Project } from '../models/project';
 import { RmgTeamMember } from '../models/rmgTeamMember';
+import { PoDetails } from '../models/poDetails';
+import { RmgProject } from '../models/rmgProject';
 
 
 @Injectable({
@@ -146,6 +148,10 @@ getClientVsDepartment(payload){
 
   updateEmployeeProjectMappingAsInActive(rmgTeamMember: RmgTeamMember) {
     return this.http.post(`${this.baseUrl}` + `api/updateEmployeeProjectMappingAsInActive`, rmgTeamMember);
+  }
+
+  saveProjectInformation(projectObj: RmgProject) {
+    return this.http.post(`${this.baseUrl}` + `api/saveProjectInformation`, projectObj);
   }
   
 }

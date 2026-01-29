@@ -158,14 +158,12 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 
 
 	@Query(value = "SELECT DISTINCT new com.apmosys.employeeportal.dto.RmgTeamDto( \n"
-			+ "  t.teamId, t.teamName, prm.poId, t.isActive, es.empId, es.name, t.deptIds \n"
+			+ "  t.teamId, t.teamName, t.poId, t.isActive, es.empId, es.name, t.deptIds \n"
 			+ ", t.teamLeadId, tl.name)  \n"
-			+ "FROM PoRequirementMapping prm \n"
-			+ "INNER JOIN EmployeeTeamMap etm ON etm.poRequirementMappingId = prm.id  \n"
-			+ "INNER JOIN Team t ON t.teamId = etm.teamId \n"
+			+ "FROM Team t \n"
 			+ "LEFT JOIN Employee es ON es.empId = t.spocId \n"
 			+ "LEFT JOIN Employee tl ON tl.empId = t.teamLeadId \n"
-			+ "WHERE prm.poId =:poId  \n")
+			+ "WHERE t.poId =:poId  \n")
 	List<RmgTeamDto> getAllTeamsByPoId(Long poId);
 
 	@Query(value = "SELECT DISTINCT new com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto( \n"
@@ -180,14 +178,27 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 			+ "WHERE t.teamId =:teamId  \n")
 	List<PoTeamAndMemberDetailsDto> getAllTeamMemberDetailsDtoByPoId(Long teamId);
 
+	@Query(value = "SELECT DISTINCT new com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto( \n"
+			+ "  prm.poId, prm.id, prm.role, prm.experience, prm.department, prm.active \n"
+			+ ", e.empId, e.name, etm.employeeRole, etm.active, etm.isShadow, CASE WHEN eppm.id IS NOT NULL THEN true ELSE false END \n"
+			+ ", etm.startDate, etm.endDate)  \n"
+			+ "FROM Team t \n"
+			+ "INNER JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId \n"
+			+ "INNER JOIN PoRequirementMapping prm ON etm.poRequirementMappingId = prm.id  \n"
+			+ "LEFT JOIN Employee e ON e.empId = etm.empId \n"
+			+ "LEFT JOIN EmpPrimaryProjectMapping eppm ON eppm.empId = e.empId \n"
+			+ "WHERE t.teamId IN :teamIds  \n")
+	List<PoTeamAndMemberDetailsDto> getAllTeamMemberDetailsDtoByPoIdIn(List<Long> teamIds);
+
 	@Query(value = "SELECT DISTINCT new com.apmosys.employeeportal.dto.RmgTeamDto( \n"
-			+ "  t.teamId, t.teamName, prm.poId, t.isActive, es.empId, es.name, t.deptIds \n"
+			+ "  t.teamId, t.teamName, t.poId, t.isActive, es.empId, es.name, t.deptIds \n"
 			+ ", t.teamLeadId, tl.name)  \n"
-			+ "FROM PoRequirementMapping prm \n"
-			+ "INNER JOIN EmployeeTeamMap etm ON etm.poRequirementMappingId = prm.id  \n"
-			+ "INNER JOIN Team t ON t.teamId = etm.teamId \n"
+			+ "FROM Team t \n"
 			+ "LEFT JOIN Employee es ON es.empId = t.spocId \n"
 			+ "LEFT JOIN Employee tl ON tl.empId = t.teamLeadId \n"
-			+ "WHERE prm.poId =:poId AND t.isActive = 'Y' \n")
+			+ "WHERE t.poId =:poId AND t.isActive = 'Y' \n")
 	List<RmgTeamDto> getActiveTeamDetailsByPoId(Long poId);
+
+	@Query(value ="select t.teamName from Team t where t.isActive = 'Y' and t.teamId in (:teamIds)")
+	public List<String> findActiveTeamNameByTeamIds(@Param("teamIds") List<Long> teamIds);
 }

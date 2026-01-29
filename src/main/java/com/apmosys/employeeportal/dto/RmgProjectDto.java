@@ -31,6 +31,8 @@ public class RmgProjectDto {
     private List<Long> projectManagerIds;
     private List<PoDetailsDto> poDetailsList;
 
+    private Long updatedBy;
+
     public RmgProjectDto(Integer projectId, String projectName, String clientName, String state, String startDate,
             String endDate, String projectStatus, String draftProjectStatus, String isDraftProject,
             String poProjectType, String internalProjectType) {
