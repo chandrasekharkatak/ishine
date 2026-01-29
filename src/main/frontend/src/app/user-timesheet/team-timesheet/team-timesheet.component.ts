@@ -1940,7 +1940,7 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
         };
 
         if(response.serviceError != null ){
-          this.openAlertMod(this.alertTemplate, `Document upload is only valid for pas ${this.minusDaysData.minusDays} days`);
+          this.openAlertMod(this.alertTemplate, `Document upload is only valid for past ${this.minusDaysData.minusDays} days`);
         }
 
         const now = new Date();

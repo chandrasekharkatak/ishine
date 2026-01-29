@@ -5492,6 +5492,15 @@ public class TimesheetService {
 
 			LocalDate fromDate = finalBulkUploadDTO.getFromDate();
 			LocalDate toDate = finalBulkUploadDTO.getToDate();
+
+			if(projectId == null || projectId <= 0) {
+				throw new IllegalArgumentException("Project id is required.");
+			}
+
+			if(fromDate == null || toDate == null) {
+				throw new IllegalArgumentException("From date and to date are required.");
+			}
+
 			LocalDate today = LocalDate.now();
 			int minusDays = (this.minusDays == null || this.minusDays <= 0)
 					? 45
@@ -5585,6 +5594,7 @@ public class TimesheetService {
 						timesheetDocumentDetails.setUpdatedOn(LocalDateTime.now());
 						timesheetDocumentDetails.setCreatedOn(tdd.getCreatedOn());
 						timesheetDocumentDetails.setCreatedBy(tdd.getCreatedBy());
+						
 					}
 				}
 

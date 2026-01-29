@@ -628,7 +628,6 @@ public class TimesheetController {
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse(e.getMessage());
 			response.setServiceError(ServiceResponse.STATUS_FAIL);
 			response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
 			return response;
