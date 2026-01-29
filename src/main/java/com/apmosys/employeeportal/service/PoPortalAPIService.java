@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service;
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1937,11 +1938,9 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	    poDetails.setProjectId(project.getProjectId());
 	    poDetails.setPoNo(poDto.getPoNo());
 	    
-        String formattedStartDate = dateFormat.format(poDto.getPoStartDate());
-        poDetails.setPoStartDate(formattedStartDate);
-      
-        String formattedEndDate = dateFormat.format(poDto.getPoEndDate());
-        poDetails.setPoEndDate(formattedEndDate);
+        
+        poDetails.setPoStartDate(convert(poDto.getPoStartDate()));
+        poDetails.setPoEndDate(convert(poDto.getPoEndDate()));
 	   
 	   
 //	    poDetails.setClientLocationId(poDto.getClientAddressId());
@@ -2006,6 +2005,12 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	    }
 	}
 	
+	private LocalDateTime convert(Date date) {
+	    return date == null ? null :
+	            date.toInstant()
+	                .atZone(ZoneId.systemDefault())
+	                .toLocalDateTime();
+	}
 	
 	private Long validateAndGetCreatedByEmpId(String createdByEmpId,
             String createdByEmpName) {

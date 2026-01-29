@@ -3828,19 +3828,18 @@ public class ProjectService {
 		p.setPoProjectId(dto.getProjectId());
 		p.setProjectName(dto.getProjectName());
 		p.setPoProjectType(dto.getProjectType());
-		p.setStartDate(dto.getProjectStartDate() != null ? dateFormat.format(dto.getProjectStartDate()) : null);
-
-		p.setEndDate(dto.getProjectEndDate() != null ? dateFormat.format(dto.getProjectEndDate()) : null);
+		p.setStartDate(dateFormat.format(dto.getProjectStartDate()));
+		p.setEndDate(dateFormat.format(dto.getProjectEndDate()));
 		p.setPoClientId(dto.getClientId());
 		p.setClientId(client.getClientId());
 		p.setActive("true");
 		p.setProjectStatus("Not Started");
 		p.setCreatedBy(6L);
 		p.setIsDraftProject(null);
-		p.setCreatedOn(null);
+		p.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 		if(dto.getProjectType().equalsIgnoreCase("TNM")) {
 			p.setHasClientSideId(true);
-			}
+		}
 		
 		return projectRepository.save(p);
 	}

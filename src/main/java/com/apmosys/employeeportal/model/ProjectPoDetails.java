@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.model;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -44,10 +45,10 @@ public class ProjectPoDetails {
     private String poNo;
 	
 	@Column(name = "po_start_date")
-    private String poStartDate;
+    private LocalDateTime poStartDate;
 	
 	@Column(name = "po_end_date")
-    private String poEndDate;
+    private LocalDateTime poEndDate;
    
 	@Column(name = "prev_po")
     private Long prevPO;
@@ -88,13 +89,13 @@ public class ProjectPoDetails {
     @Column(name = "created_on",updatable = false)
     private Timestamp createdOn;
     
-    private String poCreatedOn;
+    private LocalDateTime poCreatedOn;
     
     
     @Column(name = "updated_by")
     private Long updatedBy;
     
-    private String poUpdatedOn;
+    private LocalDateTime poUpdatedOn;
     
     
     

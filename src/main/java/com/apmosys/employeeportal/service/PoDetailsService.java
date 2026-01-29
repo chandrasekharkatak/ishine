@@ -1,6 +1,8 @@
 package com.apmosys.employeeportal.service;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -49,15 +51,14 @@ public class PoDetailsService {
 
 		ClientLocation cl = clientService.resolveClientLocation(client.getClientId(), poDto.getClientLocation(),
 				poDto.getClientState());
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
 		ProjectPoDetails po = new ProjectPoDetails();
 		po.setPoId(poDto.getPoId());
 		po.setProjectId(project.getProjectId());
 		po.setPoProjectId(dto.getProjectId());
 		po.setPoNo(poDto.getPoNo());
-		po.setPoStartDate(poDto.getPoStartDate() != null ? dateFormat.format(poDto.getPoStartDate()) : null);
-		po.setPoEndDate(poDto.getPoEndDate() != null ? dateFormat.format(poDto.getPoEndDate()) : null);
+		po.setPoStartDate(convert(poDto.getPoStartDate()));
+		po.setPoEndDate(convert(poDto.getPoEndDate()));
 		po.setClientLocationId(Long.valueOf(cl.getClientLocationId()));
 		po.setClientAddressId(poDto.getClientAddressId());
 		po.setCreatedBy(validateAndGetEmployeeEmpId(poDto.getCreatedByEmpId(),poDto.getCreatedByEmpName()));
@@ -70,14 +71,17 @@ public class PoDetailsService {
 		po.setPrevPO(poDto.getPrevPo());
 		po.setNextPO(poDto.getNextPO());
 		po.setRenewable(poDto.isRenewable());
-		po.setPoCreatedOn(poDto.getCreatedOn() != null ? dateFormat.format(poDto.getCreatedOn()) : null);
-		po.setPoUpdatedOn(poDto.getUpdatedOn() != null ? dateFormat.format(poDto.getUpdatedOn()) : null);
-		
-		
-		
-		
+		po.setPoCreatedOn(convert(poDto.getCreatedOn()));
+		po.setPoUpdatedOn(convert(poDto.getUpdatedOn()));
 		
 		return projectPoDetailsRepository.save(po);
+	}
+	
+	private LocalDateTime convert(Date date) {
+	    return date == null ? null :
+	            date.toInstant()
+	                .atZone(ZoneId.systemDefault())
+	                .toLocalDateTime();
 	}
 
 	private Long validateAndGetEmployeeEmpId(String createdByEmpId, String createdByEmpName) {
@@ -132,23 +136,13 @@ public class PoDetailsService {
 	        changed = true;
 	    }
 
-	    String start =
-	            poDto.getPoStartDate() != null
-	                    ? df.format(poDto.getPoStartDate())
-	                    : null;
-
-	    if (!Objects.equals(po.getPoStartDate(), start)) {
-	        po.setPoStartDate(start);
+	    if (!Objects.equals(po.getPoStartDate(), poDto.getPoStartDate())) {
+	        po.setPoStartDate(convert(poDto.getPoStartDate()));
 	        changed = true;
 	    }
 
-	    String end =
-	            poDto.getPoEndDate() != null
-	                    ? df.format(poDto.getPoEndDate())
-	                    : null;
-
-	    if (!Objects.equals(po.getPoEndDate(), end)) {
-	        po.setPoEndDate(end);
+	    if (!Objects.equals(po.getPoEndDate(), poDto.getPoEndDate())) {
+	        po.setPoEndDate(convert(poDto.getPoEndDate()));
 	        changed = true;
 	    }
 
@@ -219,7 +213,7 @@ public class PoDetailsService {
 	                        poDto.getUpdatedByEmpId(),
 	                        poDto.getUpdatedByEmpName())
 	        );
-	        po.setPoUpdatedOn(poDto.getUpdatedOn() != null ? df.format(poDto.getUpdatedOn()) : null);
+	        po.setPoUpdatedOn(convert(poDto.getUpdatedOn()));
 
 	        projectPoDetailsRepository.save(po);
 	    }
@@ -243,8 +237,8 @@ public class PoDetailsService {
 	    po.setProjectId(project.getProjectId());
 	    po.setPoProjectId(dto.getProjectId());
 	    po.setPoNo(poDto.getPoNo());
-	    po.setPoStartDate(df.format(poDto.getPoStartDate()));
-	    po.setPoEndDate(df.format(poDto.getPoEndDate()));
+	    po.setPoStartDate(convert(poDto.getPoStartDate()));
+	    po.setPoEndDate(convert(poDto.getPoEndDate()));
 	    po.setPrevPO(poDto.getPrevPo());
 	    po.setNextPO(poDto.getNextPO());
 	    po.setRenewable(poDto.isRenewable());
@@ -257,8 +251,8 @@ public class PoDetailsService {
 	                    dto.getRenewedByEmpId(),
 	                    dto.getRenewedByEmpName()));
 
-	    po.setPoCreatedOn(poDto.getCreatedOn() != null ? df.format(poDto.getCreatedOn()) : null);
-		po.setPoUpdatedOn(poDto.getUpdatedOn() != null ? df.format(poDto.getUpdatedOn()) : null);
+	    po.setPoCreatedOn(poDto.getCreatedOn() != null ? convert(poDto.getCreatedOn()) : null);
+		po.setPoUpdatedOn(poDto.getUpdatedOn() != null ? convert(poDto.getUpdatedOn()) : null);
 	    
 
 	    return projectPoDetailsRepository.save(po);
@@ -356,9 +350,7 @@ public class PoDetailsService {
 	                    validateAndGetEmployeeEmpId(
 	                            dto.getRenewedByEmpId(),
 	                            dto.getRenewedByEmpName()));
-	            po.setPoUpdatedOn(
-	                    new SimpleDateFormat("yyyy-MM-dd")
-	                            .format(dto.getRenewedOn()));
+	            po.setPoUpdatedOn(convert(dto.getRenewedOn()));
 	           
 	            
 	            projectPoDetailsRepository.save(po);
@@ -409,8 +401,7 @@ public class PoDetailsService {
 	                    deletedByEmpId,
 	                    deletedByEmpName
 	            ));
-	    po.setPoUpdatedOn(
-	            new SimpleDateFormat("yyyy-MM-dd").format(deletedOn)
+	    po.setPoUpdatedOn(convert(deletedOn)
 	    );
 
 	    projectPoDetailsRepository.save(po);
@@ -455,9 +446,7 @@ public class PoDetailsService {
 	                            dto.getDeletedByEmpId(),
 	                            dto.getDeletedByEmpName()
 	                    ));
-	            po.setPoUpdatedOn(
-	                    new SimpleDateFormat("yyyy-MM-dd")
-	                            .format(dto.getDeletedOn())
+	            po.setPoUpdatedOn(convert(dto.getDeletedOn())
 	            );
 	            projectPoDetailsRepository.save(po);
 	        }

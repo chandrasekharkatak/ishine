@@ -69,7 +69,7 @@ public class PoSyncOrchestratorService {
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setApiUrl("/api/poCrudOperationsInIshine");
 		apiLogInfo.setLogLevel("INFO");
-		ApiLog initialLog = null;
+		ApiLog initialLog = new ApiLog();
 		StringBuilder exceptionDetailsForLog = new StringBuilder();
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
@@ -79,14 +79,14 @@ public class PoSyncOrchestratorService {
 		ServiceResponse response = new ServiceResponse();
 
 		try {
-
-			validateIncomingPayload(dto);
-
+			
 			if (dto == null) {
 				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
 				ExceptionLogContext.add("DTO from PO portal is null");
 				throw new RuntimeException("DTO from PO portal is null");
 			}
+
+			validateIncomingPayload(dto);
 
 			if (dto.getProjectId() == null) {
 				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
@@ -99,7 +99,7 @@ public class PoSyncOrchestratorService {
 				ExceptionLogContext.add("PO details missing from PO");
 				throw new RuntimeException("PO details missing from PO");
 			}
-
+			
 			PoDetailsForProjectPoMappingDTO poDto = dto.getPoDetailsList().get(0);
 
 			if (poDto.getDepartmentList() == null || poDto.getDepartmentList().isEmpty()) {
