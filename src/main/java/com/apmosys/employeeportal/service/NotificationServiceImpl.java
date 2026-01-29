@@ -466,6 +466,7 @@ public class NotificationServiceImpl implements NotificationService {
 	@Override
 	public ServiceResponse submitNotificationConsent(NotificationDTO notificationDTO) {
 		ServiceResponse response = new ServiceResponse();
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("Submit Notification Consent");
 		apiLogInfo.setApiUrl("/api/submitNotificationConsent");
