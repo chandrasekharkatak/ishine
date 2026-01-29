@@ -147,7 +147,7 @@ export class SurveyConfigComponent implements OnInit {
     this.isCreation = false;
     this.isUpdation = false;
     this.isSurveyList = false;
-
+    this.page = 1;
     //console.log("surveyObj for responses : ", surveyObj);
     this.getAllSurveyResponsesBySurveyId(surveyObj);
 

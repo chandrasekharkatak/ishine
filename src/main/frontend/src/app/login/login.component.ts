@@ -364,6 +364,7 @@ this.user.otp = encryptedOtp;
         this.user.poPortalAllProjectApi = user.poPortalAllProjectApi;
         this.user.probationPeriod = user.probationPeriod;
         this.user.releaseNoteNotification = user.releaseNoteNotification;
+        this.user.linkedinPageNotification = user.linkedinPageNotification;
         this.user.newsletterReadCheck = user.newsletterReadCheck;
         this.user.workLocation = user.workLocation;
         this.user.maritalStatus = user.maritalStatus;
@@ -383,6 +384,9 @@ this.user.otp = encryptedOtp;
         this.logService.updateLogInfo(log);
         this.timeSession();
 
+        this.authenticationService.startUserSessionCheck();
+        
+        // Proceed with navigation - LinkedIn notification will be handled globally in App component
         if (this.authGaurd.id != null) {
           let url = this.authGaurd.currentUrl;
           if (url.includes("user-survey")) {
@@ -412,8 +416,6 @@ this.user.otp = encryptedOtp;
             this.router.navigate(['/newsletters']);
           }
         }
-
-        this.authenticationService.startUserSessionCheck();
       }
     } else {
       this.isError = true;
@@ -424,8 +426,6 @@ this.user.otp = encryptedOtp;
     this.errorMsg = "Invalid OTP !!";
   }
 }
-
-
 
   timeSession() {
     // Dynamic Subfeature Flags

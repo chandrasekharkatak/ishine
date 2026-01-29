@@ -2353,6 +2353,7 @@ getDocsForPreview(docId: any) {
     });
   }
 
+
   sortData(sort: Sort) {
     //console.log(sort);
     if (sort.active) {
