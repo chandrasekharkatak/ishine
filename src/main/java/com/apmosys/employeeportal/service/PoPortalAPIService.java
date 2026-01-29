@@ -1993,10 +1993,10 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	            prm.setClientRoleId(req.getClientRoleId());
 	            prm.setDepartment(req.getDepartment());            
 	            prm.setActive(true);
-	            prm.setLineItemEndDate(dateFormat.format(req.getLineItemEndDate()));
-	            prm.setLineItemStartDate(dateFormat.format(req.getLineItemStartDate()));
-	            prm.setYearWiseRateCartStartDate(dateFormat.format(req.getYearWiseRateCartStartDate()));   
-	            prm.setYearWiseRateCartEndDate(dateFormat.format(req.getYearWiseRateCartEndDate()));            
+	            prm.setLineItemEndDate(convert(req.getLineItemEndDate()));
+	            prm.setLineItemStartDate(convert(req.getLineItemStartDate()));
+	            prm.setYearWiseRateCartStartDate(convert(req.getYearWiseRateCartStartDate()));   
+	            prm.setYearWiseRateCartEndDate(convert(req.getYearWiseRateCartEndDate()));            
 	            
 		        System.out.println("saved in poRequirementMappingRepository");
 		        logger.info("saved in poRequirementMappingRepository");

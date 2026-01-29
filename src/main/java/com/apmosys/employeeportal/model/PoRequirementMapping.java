@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.model;
 
 import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -44,10 +45,10 @@ public class PoRequirementMapping {
 	    
 	  
 	    
-	    private String yearWiseRateCartStartDate;
-	    private String yearWiseRateCartEndDate;
-	    private String lineItemStartDate;
-	    private String lineItemEndDate;
+	    private LocalDateTime yearWiseRateCartStartDate;
+	    private LocalDateTime yearWiseRateCartEndDate;
+	    private LocalDateTime lineItemStartDate;
+	    private LocalDateTime lineItemEndDate;
 	    
 	    @Column(name = "active")
 	    private boolean active;

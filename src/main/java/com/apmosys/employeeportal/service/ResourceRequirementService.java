@@ -1,6 +1,8 @@
 package com.apmosys.employeeportal.service;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -59,10 +61,10 @@ public class ResourceRequirementService {
 	        m.setExperience(r.getExperience());
 	        m.setDepartment(r.getDepartment());
 	        m.setCount(r.getCount());
-	        m.setYearWiseRateCartStartDate(dateToString(r.getYearWiseRateCartStartDate()));
-	        m.setYearWiseRateCartEndDate(dateToString(r.getYearWiseRateCartEndDate()));
-	        m.setLineItemStartDate(dateToString(r.getLineItemStartDate()));
-	        m.setLineItemEndDate(dateToString(r.getLineItemEndDate()));
+	        m.setYearWiseRateCartStartDate(convert(r.getYearWiseRateCartStartDate()));
+	        m.setYearWiseRateCartEndDate(convert(r.getYearWiseRateCartEndDate()));
+	        m.setLineItemStartDate(convert(r.getLineItemStartDate()));
+	        m.setLineItemEndDate(convert(r.getLineItemEndDate()));
 	        m.setActive(true);
 
 	        poRequirementMappingRepository.save(m);
@@ -90,18 +92,17 @@ public class ResourceRequirementService {
 	           Objects.equals(e.getExperience(), r.getExperience()) &&
 	           Objects.equals(e.getDepartment(), r.getDepartment()) &&
 	           Objects.equals(e.getCount(), r.getCount()) &&
-	           Objects.equals(e.getYearWiseRateCartStartDate(), dateToString(r.getYearWiseRateCartStartDate())) &&
-	           Objects.equals(e.getYearWiseRateCartEndDate(), dateToString(r.getYearWiseRateCartEndDate())) &&
-	           Objects.equals(e.getLineItemStartDate(), dateToString(r.getLineItemStartDate())) &&
-	           Objects.equals(e.getLineItemEndDate(), dateToString(r.getLineItemEndDate()));
+	           Objects.equals(e.getYearWiseRateCartStartDate(), convert(r.getYearWiseRateCartStartDate())) &&
+	           Objects.equals(e.getYearWiseRateCartEndDate(), convert(r.getYearWiseRateCartEndDate())) &&
+	           Objects.equals(e.getLineItemStartDate(), convert(r.getLineItemStartDate())) &&
+	           Objects.equals(e.getLineItemEndDate(), convert(r.getLineItemEndDate()));
 	}
 	
-	private String dateToString(Date date) {
-	    return date == null
-	            ? null
-	            : new SimpleDateFormat("yyyy-MM-dd").format(date);
+	private LocalDateTime convert(Date date) {
+	    return date == null ? null :
+	            date.toInstant()
+	                .atZone(ZoneId.systemDefault())
+	                .toLocalDateTime();
 	}
-
-
 
 }
