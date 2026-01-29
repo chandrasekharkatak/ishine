@@ -603,20 +603,20 @@ get tooltipCta(): string {
     if(this.fromDate && this.timesheetObj.isNightShift){
       const nextDate = new Date(this.fromDate);
     nextDate.setDate(nextDate.getDate() + 1);
+    nextDate.setHours(0, 0, 0, 0);
     this.maxToDate = nextDate;
     this.toDate = nextDate;
     }else if(!this.timesheetObj.isNightShift){
       this.maxToDate = null;
       this.toDate = null;
     }
-    console.log("before method calls ", this.fromDate);
+    this.timesheetToDateFilter = this.timesheetToDateFilter.bind(this);
     this.makeApmosysInTime();
     this.makeApmosysOutTime();
     this.makeClientInTime();
     this.makeClientOutTime();
     this.getProjectListForDateAndEmpId();
     this.resetTimesheetFormOnDateChange('isNightShiftModal');
-    console.log("after method calls ", this.fromDate);
   }
 
 
@@ -1336,8 +1336,11 @@ get tooltipCta(): string {
 
     timesheetToDateFilter = (checkDate: Date) => {
 
-    if (this.timesheetObj?.isNightShift &&this.fromDate && this.isNextDay(this.fromDate, checkDate)) 
-      {return true; }
+    if (this.timesheetObj?.isNightShift && this.fromDate) {
+        if (this.isNextDay(this.fromDate, checkDate)) {
+            return true;
+        }
+    }
 
     const DAY_IN_MS = 24 * 60 * 60 * 1000;
     const time = checkDate?.getTime();
@@ -1584,7 +1587,7 @@ get tooltipCta(): string {
       return false;
     }
 
-    if(this.timesheetObj.isNightShift && 
+    if(this.timesheetObj.isNightShift &&
       (!this.validationService.validateNullUndefinedEmptyString(this.toDate))) {
       this.alertMessage = "Please enter to Date !!"
       this.openAlertMod(template, this.alertMessage);
@@ -2597,6 +2600,11 @@ get tooltipCta(): string {
 
   confirmNightShift(value:Boolean) {
     this.timesheetObj.isNightShift=value;
+    if (value && this.timesheetObj.date) {
+      this.fromDate = new Date(this.timesheetObj.date);
+      this.fromDate.setHours(0, 0, 0, 0);
+    }
+    this.timesheetToDateFilter = this.timesheetToDateFilter.bind(this);
     this.modalRef?.close();
   }
 
@@ -3824,7 +3832,7 @@ checkUploadEligibility() {
 
   resetTimesheetFormOnDateChange(value?:any){
     this.timeReset();
-    this.toDate = null;
+    // this.toDate = null;
     this.timesheetObj.projectId = null;
     this.timesheetObj.clientSideId = null;
     this.timesheetObj.hasClientSideId = false;
