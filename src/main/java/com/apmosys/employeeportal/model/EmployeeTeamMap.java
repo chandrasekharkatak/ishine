@@ -59,4 +59,8 @@ public class EmployeeTeamMap {
     
     @Column(name = "is_custom_date_flag")
     private Boolean isCustomDate; 
+    
+    @Column(name = "po_id")
+    private Long poId;
+
 }

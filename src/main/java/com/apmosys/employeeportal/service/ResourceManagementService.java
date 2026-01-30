@@ -1,6 +1,5 @@
 package com.apmosys.employeeportal.service;
 
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.DateTimeException;
@@ -17,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -86,6 +86,9 @@ import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForProjectDTO;
 import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForTeamDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoProjectDTO;
+import com.apmosys.employeeportal.dto.IshineToPoEmpDetailsSharingDTO;
+import com.apmosys.employeeportal.dto.IshineToPoEmployeeDTO;
+import com.apmosys.employeeportal.dto.IshineToPoRequestDTO;
 import com.apmosys.employeeportal.dto.LiftAndShiftTeamsDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.NonComplianceProjects;
@@ -13997,6 +14000,73 @@ public class ResourceManagementService {
 		}
 		return response;
 	}
+	
+	public ServiceResponse ishineToPoEmpDetails(IshineToPoRequestDTO ishineToPoRequest) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		try {
+			if (ishineToPoRequest.getPoId() == null || ishineToPoRequest.getProjectId()== null||
+					ishineToPoRequest.getStartDateOfBilling()== null || ishineToPoRequest.getEndDateOfBilling()== null){
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("PO Id/Project Id/End Date/Start Date one of these is null!!");
+				apiLogInfo.setApiResponse("PO Id/Project Id/End Date/Start Date one of these is null!!");
+				return response;
+			}
+			
+			if (ishineToPoRequest.getStartDateOfBilling()
+			        .after(ishineToPoRequest.getEndDateOfBilling())) {
+			    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			    response.setServiceResponse("Start Date cannot be after End Date!!");
+				apiLogInfo.setApiResponse("Start Date cannot be after End Date!!");
+			    return response;
+			}
+	
+			IshineToPoEmpDetailsSharingDTO dto = projectPoDetailsRepository
+					.findPoBasicDetails(ishineToPoRequest.getPoId());
+			
+		    LocalDate startDate = convertToLocalDate(ishineToPoRequest.getStartDateOfBilling());
+		    LocalDate endDate   = convertToLocalDate(ishineToPoRequest.getEndDateOfBilling());
+
+			List<IshineToPoEmployeeDTO> employees =
+					projectPoDetailsRepository.findEmployeesWithTimesheetStats(
+							ishineToPoRequest.getPoId(), ishineToPoRequest.getProjectId(),
+							startDate, endDate);
+			
+			if (employees == null || employees.isEmpty()) {
+//				response.setServiceResponse(Collections.emptyList());
+				response.setServiceResponse("No Resource Found!!");
+				apiLogInfo.setApiResponse("No Resource Found!!");
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				return response;
+			}
+			
+			dto.setProjectName(ishineToPoRequest.getProjectName());
+			dto.setProjectId(ishineToPoRequest.getProjectId());
+			dto.setPoId(ishineToPoRequest.getPoId());	
+			dto.setStartDateOfBilling(ishineToPoRequest.getStartDateOfBilling());
+			dto.setEndDateOfBilling(ishineToPoRequest.getEndDateOfBilling());	
+		    dto.setEmployees(employees);	
+			
+			response.setServiceResponse(dto);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			return response;
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Something went wrong!!");
+		}
+		return response;
+	}
+	
+	private LocalDate convertToLocalDate(Date date) {
+	    return date.toInstant()
+	               .atZone(ZoneId.systemDefault())
+	               .toLocalDate();
+	}
+
+
 
 	private List<ProjectFetchDTO> groupOfPoDetilasByProject(List<ProjectFetchDTO> list) {
 

@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -9,6 +10,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.apmosys.employeeportal.dto.IshineToPoEmpDetailsSharingDTO;
+import com.apmosys.employeeportal.dto.IshineToPoEmployeeDTO;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
 import com.apmosys.employeeportal.model.ProjectPoDetails;
 
@@ -37,6 +40,36 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
         void deleteAllRecords();
         
         List<ProjectPoDetails> findByProjectId(Integer projectId);
+        
+        @Query("SELECT new com.apmosys.employeeportal.dto.IshineToPoEmpDetailsSharingDTO( "
+        		+ " ppo.poNo,ppo.active,p.clientId) "
+        		+ "   FROM ProjectPoDetails ppo\n"
+        		+ "   LEFT JOIN Project p\n"
+        		+"    on p.projectId=ppo.projectId"
+        		+ "   WHERE ppo.poId = :poId ")
+        IshineToPoEmpDetailsSharingDTO findPoBasicDetails(Long poId);
+        
+        @Query("        	    SELECT new com.apmosys.employeeportal.dto.IshineToPoEmployeeDTO( "
+        		+ "        	        etm.empId,e.name,prm.role,prm.experience,prm.department,"
+        		+ "        	        d.deptId,prm.clientRoleId,ecsm.clientSideId,"
+        		+ "        	        COUNT(ts.id),MIN(ts.date),MAX(ts.date)) "
+        		+ "        	    FROM ProjectPoDetails ppo "
+        		+ "        	    JOIN EmployeeTeamMap etm ON etm.poId = ppo.poId "
+        		+ "        	    JOIN Employee e ON e.empId = etm.empId "
+        		+ "        	    JOIN PoRequirementMapping prm  "
+        		+ "        	         ON prm.poRequirementMappingId = etm.poRequirementMappingId "
+        		+ "        	    LEFT JOIN Department d ON d.name = prm.department "
+        		+ "        	    LEFT JOIN EmployeeClientSideIdMapping ecsm ON ecsm.empId = etm.empId "
+        		+ "        	    LEFT JOIN Timesheet ts ON ts.empId = e.empId "
+        		+ "        	        AND ts.date BETWEEN :startDate AND :endDate "
+        		+ "        	    WHERE ppo.poId = :poId "
+        		+ "        	      AND ppo.projectId = :projectId "
+        		+ "        	    GROUP BY  e.empId, e.name,"
+        		+ "        	        prm.role, prm.experience, prm.department,\n"
+        		+ "        	        d.deptId,prm.clientRoleId, ecsm.clientSideId\n ")
+        	List<IshineToPoEmployeeDTO> findEmployeesWithTimesheetStats(Long poId,
+        	         Integer projectId,LocalDate startDate,LocalDate endDate);
+
 
 		Optional<ProjectPoDetails> findByPoIdAndProjectId(Long poId, Integer projectId);
 
