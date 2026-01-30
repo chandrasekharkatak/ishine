@@ -4405,7 +4405,9 @@ public class ResourceManagementService {
 
 			List<RMGFlatEmployeeProjectTeamDTO> rawData = employeeTeamMapRepository
 					.findEmployeeProjectTeamDetailsByProjectIds(internalProjectIds);
+			
 
+					rawData = groupEmployeeProjectTeamWise(rawData);
 			Map<Long, RMGProjectMappedEmployees> employeeMap = new HashMap<>();
 
 			for (RMGFlatEmployeeProjectTeamDTO row : rawData) {
@@ -4582,6 +4584,7 @@ public class ResourceManagementService {
 			List<RMGFlatEmployeeProjectTeamDTO> rawData = employeeTeamMapRepository
 					.findEmployeeProjectTeamDetailsByProjectIds(shankhProjectIds);
 
+			rawData = groupEmployeeProjectTeamWise(rawData);
 			Map<Long, RMGProjectMappedEmployees> employeeMap = new HashMap<>();
 
 			for (RMGFlatEmployeeProjectTeamDTO row : rawData) {
@@ -4916,7 +4919,8 @@ public class ResourceManagementService {
 
 			List<RMGFlatEmployeeProjectTeamDTO> rawData = employeeTeamMapRepository
 					.findEmployeeProjectTeamDetailsByProjectIds(allshankhInternalProjectIds);
-
+			
+			rawData = groupEmployeeProjectTeamWise(rawData);
 			Map<Long, RMGProjectMappedEmployees> employeeMap = new HashMap<>();
 
 			for (RMGFlatEmployeeProjectTeamDTO row : rawData) {
@@ -6598,6 +6602,7 @@ public class ResourceManagementService {
 			if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
 					|| name.equalsIgnoreCase("Super Admin")) {
 				result = projectRepository.getExceptionEmployeeReport();
+				
 			} else if (departmentRepository.existsByHodId(projectFilterDTO.getCurrentUserEmpId())) {
 				List<Long> deptIds = departmentRepository.findDeptIdsByHodId(projectFilterDTO.getCurrentUserEmpId());
 				result = projectRepository.getExceptionEmployeeReportInDepartments(deptIds);
@@ -6608,6 +6613,8 @@ public class ResourceManagementService {
 			} else {
 				result = projectRepository.getExceptionEmployeeReport();
 			}
+			result = groupExceptionEmployeeReport(result);
+
 			Map<String, ExceptionReportDTO> dtoMap = new LinkedHashMap<>();
 			for (RMGFlatEmployeeProjectTeamDTO obj : result) {
 				String employmentId = obj.getEmployeementId() != null ? obj.getEmployeementId().toString() : null;
@@ -7772,23 +7779,32 @@ public class ResourceManagementService {
 					if ("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
 							&& projectFilterDTO.getCompletionStatus() == null) {
 						finalDataList = projectRepository.getAllProjectList(selectedDeptList);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						// List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
 						finalDataList = projectRepository.getAllNotStartedProjects(selectedDeptList);
-
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						finalDataList = projectRepository.getAllCompletedProjectListInIshine(selectedDeptList);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						finalDataList = projectRepository.getAllApprovedProjectList(selectedDeptList);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						finalDataList = projectRepository.getAllPendingProjectList(selectedDeptList);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						finalDataList = projectRepository.getAllRejectedProjectList(selectedDeptList);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("CompletedWithShankh".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
 						finalDataList = projectRepository.getAllActiveProjectList(projectStatus, status, approvalStatus,
 								projectIdSet, false, approvalCheck);
+						// Merging po_details
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
+
 					} else if ("CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
 						finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet, true);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if (!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
 
 						List<Object[]> results = projectRepository.getAllTotalProjectList(selectedDeptList);
@@ -7797,33 +7813,41 @@ public class ResourceManagementService {
 
 					} else {
 						finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet, true);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					}
 				} else {
 					if ("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
 							&& projectFilterDTO.getCompletionStatus() == null) {
 						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
 						finalDataList = projectRepository.getAllProjectList(deptIdsAccToRole);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
 						finalDataList = projectRepository.getAllNotStartedProjects(deptIdsAccToRole);
-
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
 						finalDataList = projectRepository.getAllApprovedProjectList(deptIdsAccToRole);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
 						finalDataList = projectRepository.getAllPendingProjectList(deptIdsAccToRole);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
 						finalDataList = projectRepository.getAllRejectedProjectList(deptIdsAccToRole);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
 						finalDataList = projectRepository.getAllCompletedProjectListInIshine(deptIdsAccToRole);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("CompletedWithShankh".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
 						finalDataList = projectRepository.getAllActiveProjectList(projectStatus, status, approvalStatus,
 								null, false, approvalCheck);
+								finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
 						finalDataList = projectRepository.completedInSankhButTeamMappedList(null, false);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if (!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
 						List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments();
 						List<Object[]> results = projectRepository.getAllTotalProjectList(deptIdsAccToRole);
@@ -7831,6 +7855,7 @@ public class ResourceManagementService {
 								.collect(Collectors.toList());
 					} else {
 						finalDataList = projectRepository.completedInSankhButTeamMappedList(null, false);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					}
 				}
 
@@ -7895,23 +7920,30 @@ public class ResourceManagementService {
 					if ("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
 							&& projectFilterDTO.getCompletionStatus() == null) {
 						finalDataList = projectRepository.getAllProjectList(selectedDeptList);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						// List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
 						finalDataList = projectRepository.getAllNotStartedProjects(selectedDeptList);
-
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						finalDataList = projectRepository.getAllCompletedProjectListInIshine(selectedDeptList);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						finalDataList = projectRepository.getAllApprovedProjectList(selectedDeptList);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						finalDataList = projectRepository.getAllRejectedProjectList(selectedDeptList);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						finalDataList = projectRepository.getAllPendingProjectList(selectedDeptList);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("CompletedWithShankh".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
 						finalDataList = projectRepository.getAllActiveProjectList(projectStatus, status, approvalStatus,
 								projectIdSet, true, approvalCheck);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
 						finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet, true);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if (!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
 							&& !"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
 							&& !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
@@ -7927,25 +7959,32 @@ public class ResourceManagementService {
 					if ("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
 							&& projectFilterDTO.getCompletionStatus() == null) {
 						finalDataList = projectRepository.getAllProjectList(deptIdList);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						// List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
 						finalDataList = projectRepository.getAllNotStartedProjects(deptIdList);
-
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						finalDataList = projectRepository.getAllCompletedProjectListInIshine(deptIdList);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						finalDataList = projectRepository.getAllApprovedProjectList(deptIdList);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						finalDataList = projectRepository.getAllPendingProjectList(deptIdList);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					}
 
 					else if ("RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 						finalDataList = projectRepository.getAllRejectedProjectList(deptIdList);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("CompletedWithShankh".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
 						finalDataList = projectRepository.getAllActiveProjectList(projectStatus, status, approvalStatus,
 								projectIdSet, true, approvalCheck);
+								finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if ("CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
 						finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet, false);
+						finalDataList = groupOfPoDetilasByProject(finalDataList);
 					} else if (!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
 							&& !"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
 							&& !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
@@ -8021,23 +8060,29 @@ public class ResourceManagementService {
 						if ("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
 								&& projectFilterDTO.getCompletionStatus() == null) {
 							finalDataList = projectRepository.getAllProjectList(selectedDeptList);
+							finalDataList = groupOfPoDetilasByProject(finalDataList);
 						} else if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 							// List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
 							finalDataList = projectRepository.getAllNotStartedProjects(selectedDeptList);
-
+							finalDataList = groupOfPoDetilasByProject(finalDataList);
 						} else if ("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 							finalDataList = projectRepository.getAllCompletedProjectListInIshine(selectedDeptList);
+							finalDataList = groupOfPoDetilasByProject(finalDataList);
 						} else if ("ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 							finalDataList = projectRepository.getAllApprovedProjectList(selectedDeptList);
 						} else if ("PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 							finalDataList = projectRepository.getAllPendingProjectList(selectedDeptList);
+							finalDataList = groupOfPoDetilasByProject(finalDataList);
 						} else if ("RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 							finalDataList = projectRepository.getAllRejectedProjectList(selectedDeptList);
+							finalDataList = groupOfPoDetilasByProject(finalDataList);
 						} else if ("CompletedWithShankh".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
 							finalDataList = projectRepository.getAllActiveProjectList(projectStatus, status,
 									approvalStatus, projectIdSet, true, approvalCheck);
+							finalDataList = groupOfPoDetilasByProject(finalDataList);
 						} else if ("CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
 							finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet, false);
+							finalDataList = groupOfPoDetilasByProject(finalDataList);
 						} else if (!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
 								&& !"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
 								&& !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
@@ -8056,23 +8101,29 @@ public class ResourceManagementService {
 						if ("All".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
 								&& projectFilterDTO.getCompletionStatus() == null) {
 							finalDataList = projectRepository.getAllProjectList(deptIdOfOther);
+							finalDataList = groupOfPoDetilasByProject(finalDataList);
 						} else if ("Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 							// List<Long> deptIdsAccToRole = departmentRepository.findAllDepartments() ;
 							finalDataList = projectRepository.getAllNotStartedProjects(deptIdOfOther);
-
+							finalDataList = groupOfPoDetilasByProject(finalDataList);
 						} else if ("completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 							finalDataList = projectRepository.getAllCompletedProjectListInIshine(deptIdOfOther);
+							finalDataList = groupOfPoDetilasByProject(finalDataList);
 						} else if ("ApprovedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 							finalDataList = projectRepository.getAllApprovedProjectList(deptIdOfOther);
 						} else if ("PendingProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 							finalDataList = projectRepository.getAllPendingProjectList(deptIdOfOther);
+							finalDataList = groupOfPoDetilasByProject(finalDataList);
 						} else if ("RejectedProjects".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())) {
 							finalDataList = projectRepository.getAllRejectedProjectList(deptIdOfOther);
+							finalDataList = groupOfPoDetilasByProject(finalDataList);
 						} else if ("CompletedWithShankh".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
 							finalDataList = projectRepository.getAllActiveProjectList(projectStatus, status,
 									approvalStatus, projectIdSet, true, approvalCheck);
+								finalDataList = groupOfPoDetilasByProject(finalDataList);
 						} else if ("CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getCompletionStatus())) {
 							finalDataList = projectRepository.completedInSankhButTeamMappedList(projectIdSet, false);
+							finalDataList = groupOfPoDetilasByProject(finalDataList);
 						} else if (!"CompletedWithTeam".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
 								&& !"Not Started".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
 								&& !"completedInIshine".equalsIgnoreCase(projectFilterDTO.getApprovalStatus())
@@ -13946,5 +13997,149 @@ public class ResourceManagementService {
 		}
 		return response;
 	}
+
+	private List<ProjectFetchDTO> groupOfPoDetilasByProject(List<ProjectFetchDTO> list) {
+
+		if (list == null || list.isEmpty()) {
+			return list;
+		}
+	
+		Map<Long, ProjectFetchDTO> grouped = new LinkedHashMap<>();
+	
+		for (ProjectFetchDTO row : list) {
+	
+			Long projectId = row.getProjectId() != null
+					? ((Number) row.getProjectId()).longValue()
+					: null;
+	
+			if (projectId == null) {
+				continue;
+			}
+	
+			if (!grouped.containsKey(projectId)) {
+				grouped.put(projectId, row);
+			} else {
+				ProjectFetchDTO base = grouped.get(projectId);
+	
+				// MySQL: GROUP_CONCAT(DISTINCT po_no)
+				base.setPoNo(
+						groupConcatDistinct(base.getPoNo(), row.getPoNo())
+				);
+	
+				// MySQL: GROUP_CONCAT(DISTINCT apmosys_rm)
+				base.setApmosysRM(
+						groupConcatDistinct(base.getApmosysRM(), row.getApmosysRM())
+				);
+	
+				// MySQL: GROUP_CONCAT(DISTINCT client_rm)
+				base.setClientRM(
+						groupConcatDistinct(base.getClientRM(), row.getClientRM())
+				);
+			}
+		}
+	
+		return new ArrayList<>(grouped.values());
+	}
+
+	private List<RMGFlatEmployeeProjectTeamDTO> groupExceptionEmployeeReport(
+        List<RMGFlatEmployeeProjectTeamDTO> list) {
+
+    if (list == null || list.isEmpty()) {
+        return list;
+    }
+
+    Map<String, RMGFlatEmployeeProjectTeamDTO> grouped = new LinkedHashMap<>();
+
+    for (RMGFlatEmployeeProjectTeamDTO row : list) {
+
+        String key = row.getEmployeementId() + "_" + row.getProjectId();
+
+        if (!grouped.containsKey(key)) {
+            grouped.put(key, row);
+        } else {
+            RMGFlatEmployeeProjectTeamDTO base = grouped.get(key);
+
+            // GROUP_CONCAT(DISTINCT po_no)
+            base.setPoNo(
+                groupConcatDistinct(base.getPoNo(), row.getPoNo())
+            );
+
+            // GROUP_CONCAT(DISTINCT apmosys_rm)
+            base.setApmosysRM(
+                groupConcatDistinct(base.getApmosysRM(), row.getApmosysRM())
+            );
+
+            // GROUP_CONCAT(DISTINCT client_rm)
+            base.setClientRM(
+                groupConcatDistinct(base.getClientRM(), row.getClientRM())
+            );
+        }
+    }
+
+    return new ArrayList<>(grouped.values());
+}
+
+private List<RMGFlatEmployeeProjectTeamDTO> groupEmployeeProjectTeamWise(
+        List<RMGFlatEmployeeProjectTeamDTO> list) {
+
+    if (list == null || list.isEmpty()) {
+        return list;
+    }
+
+    Map<String, RMGFlatEmployeeProjectTeamDTO> grouped = new LinkedHashMap<>();
+
+    for (RMGFlatEmployeeProjectTeamDTO row : list) {
+
+        String key =
+                row.getEmpId() + "_" +
+                row.getProjectId() + "_" +
+                row.getTeamId();
+
+        if (!grouped.containsKey(key)) {
+            grouped.put(key, row);
+        } else {
+            RMGFlatEmployeeProjectTeamDTO base = grouped.get(key);
+
+            base.setPoNo(
+                groupConcatDistinct(base.getPoNo(), row.getPoNo())
+            );
+
+            base.setApmosysRM(
+                groupConcatDistinct(base.getApmosysRM(), row.getApmosysRM())
+            );
+
+            base.setClientRM(
+                groupConcatDistinct(base.getClientRM(), row.getClientRM())
+            );
+        }
+    }
+
+    return new ArrayList<>(grouped.values());
+}
+
+
+	private String groupConcatDistinct(String existing, String incoming) {
+
+		if (incoming == null || incoming.isBlank()) {
+			return existing;
+		}
+	
+		if (existing == null || existing.isBlank()) {
+			return incoming;
+		}
+	
+		Set<String> set = new LinkedHashSet<>();
+	
+		for (String s : existing.split(",")) {
+			set.add(s.trim());
+		}
+	
+		for (String s : incoming.split(",")) {
+			set.add(s.trim());
+		}
+	
+		return String.join(", ", set);
+	}
+	
 
 }

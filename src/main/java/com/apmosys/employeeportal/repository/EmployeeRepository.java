@@ -1034,19 +1034,19 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 //    public void updateLongOverdueNotified1(@Param("empId") Long empId, @Param("status") boolean status);
 
 
-	@Query(value = "select new com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse(p.poNo, p.poProjectId, p.projectId, p.projectName, e.empId, e.employeementId, e.name, e.billableType, d.name, jr.name " +
-			",(select count(Ts) from Timesheet Ts where Ts.date between :startDate and :endDate and Ts.empId = e.empId) " +
-			",etm.active) " +
-			"from Employee e " +
-			"left join EmployeeTeamMap etm on etm.empId = e.empId " +
-			"left join Team t on t.teamId = etm.teamId " +
-			"left join JobRole jr on jr.jobRoleId = e.jobRoleId " +
-			"left join Project p on p.projectId = t.projectId " +
-			"left join Department d on d.deptId = jr.deptId " +
-			"where ((e.employmentstatus != 'InActive') OR e.dateOfRelieving between :startDate and :endDate) and ((:listType = 'Billable' AND e.billableType in ('TNM','Fixed Cost')) " +
-			"and e.empId not between 1 and 6 " +
-			"or (:listType = 'Non-Billable' and e.billableType in('InternalRNDProducts','Bench','Shadow')))")
-	List<EmployeeTimesheetProjectResponse> findEmployeeAndTimesheetDetailsWithoutPagination(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate,@Param("listType") String listType);
+	// @Query(value = "select new com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse(p.poNo, p.poProjectId, p.projectId, p.projectName, e.empId, e.employeementId, e.name, e.billableType, d.name, jr.name " +
+	// 		",(select count(Ts) from Timesheet Ts where Ts.date between :startDate and :endDate and Ts.empId = e.empId) " +
+	// 		",etm.active) " +
+	// 		"from Employee e " +
+	// 		"left join EmployeeTeamMap etm on etm.empId = e.empId " +
+	// 		"left join Team t on t.teamId = etm.teamId " +
+	// 		"left join JobRole jr on jr.jobRoleId = e.jobRoleId " +
+	// 		"left join Project p on p.projectId = t.projectId " +
+	// 		"left join Department d on d.deptId = jr.deptId " +
+	// 		"where ((e.employmentstatus != 'InActive') OR e.dateOfRelieving between :startDate and :endDate) and ((:listType = 'Billable' AND e.billableType in ('TNM','Fixed Cost')) " +
+	// 		"and e.empId not between 1 and 6 " +
+	// 		"or (:listType = 'Non-Billable' and e.billableType in('InternalRNDProducts','Bench','Shadow')))")
+	// List<EmployeeTimesheetProjectResponse> findEmployeeAndTimesheetDetailsWithoutPagination(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate,@Param("listType") String listType);
     
     @Query(value = "WITH AllPoProjectTypes AS (\n"
     		+ "    SELECT 'Internal' AS po_project_type UNION ALL SELECT 'TNM' UNION ALL SELECT 'Fixed Cost' UNION ALL SELECT 'Monitoring'\n"
@@ -1572,51 +1572,51 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     //         @Param("toDate") String toDate);
 
 
-    @Query(value="SELECT e.employeement_id, e.name, \n"
-    		+ " e.billable, e.billable_type, \n"
-    		+ " emp_proj_client.project_name, emp_proj_client.start_date, emp_proj_client.end_date,\n"
-    		+ " emp_proj_client.po_no, emp_proj_client.client_name, emp_proj_client.client_location, \n"
-    		+ " d.name as departmentName, emp_proj_client.po_project_type, \n"
-    		+ " j.name as jobrole, emp_proj_client.po_project_id, eppm.primary_project_name, eppm.primary_project_id,\n"
-    		+ " emp_proj_client.clientrm, emp_proj_client.apmosysrm, emp_proj_client.effective_start_date, \n"
-    		+ " emp_proj_client.effective_end_date FROM employee e\n"
-    		+ " INNER JOIN job_role j ON j.job_role_id = e.job_role_id\n"
-    		+ " INNER JOIN department d ON d.dept_id = j.dept_id\n"
-    		+ " INNER JOIN employee m ON e.manager_id = m.emp_id\n"
-    		+ " LEFT JOIN emp_primary_project_mapping eppm ON eppm.emp_id = e.emp_id\n"
-    		+ " LEFT JOIN (     \n"
-    		+ " SELECT etm.emp_id, GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_id) AS project_name,  \n"
-    		+ " GROUP_CONCAT(DISTINCT p.project_id ORDER BY p.project_id) AS project_id, \n"
-    		+ " GROUP_CONCAT(DISTINCT p.start_date ORDER BY p.project_id) AS start_date, \n"
-    		+ " GROUP_CONCAT(DISTINCT p.end_date ORDER BY p.project_id) AS end_date,  \n"
-    		+ " GROUP_CONCAT(DISTINCT p.po_no ORDER BY p.project_id) AS po_no,  \n"
-    		+ " GROUP_CONCAT(DISTINCT p.po_project_type ORDER BY p.project_id) AS po_project_type,\n"
-    		+ " GROUP_CONCAT(DISTINCT c.client_name ORDER BY p.project_id) AS client_name,\n"
-    		+ " GROUP_CONCAT(DISTINCT cl.client_location ORDER BY p.project_id) AS client_location,\n"
-    		+ " GROUP_CONCAT(DISTINCT t.team_name ORDER BY p.project_id) AS team_name,  \n"
-    		+ " GROUP_CONCAT(DISTINCT t.team_id ORDER BY p.project_id) AS team_id, \n"
-    		+ " GROUP_CONCAT(DISTINCT p.po_project_id ORDER BY p.project_id) AS po_project_id, \n"
-    		+ " GROUP_CONCAT(DISTINCT p.clientrm ORDER BY p.project_id) AS clientrm, \n"
-    		+ " GROUP_CONCAT(DISTINCT p.apmosysrm ORDER BY p.project_id) AS apmosysrm,\n"
-    		+ " GROUP_CONCAT(DISTINCT etm.start_date ORDER BY p.project_id) AS effective_start_date, \n"
-    		+ " GROUP_CONCAT(DISTINCT etm.end_date ORDER BY p.project_id) AS effective_end_date \n"
-    		+ " FROM employee_team_mapping etm     \n"
-    		+ " LEFT JOIN teams t ON t.team_id = etm.team_id \n"
-    		+ " LEFT JOIN projects p ON p.project_id = t.project_id \n"
-    		+ " LEFT JOIN clients c ON c.client_id = p.client_id\n"
-    		+ " LEFT JOIN client_locations cl ON cl.client_id = p.client_id\n"
-    		+ " WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'  \n"
-    		+ " GROUP BY etm.emp_id ) emp_proj_client ON emp_proj_client.emp_id = e.emp_id\n"
-    		+ " WHERE e.employmentstatus != 'InActive' AND emp_proj_client.project_id IS NOT NULL \n"
-    		+ " and emp_proj_client.po_project_type = :poProjectType\n"
-    		+ " AND emp_proj_client.end_date < CURRENT_DATE\n"
-    		+ "       AND (:days IS NULL OR emp_proj_client.end_date >= CURRENT_DATE - INTERVAL :days DAY)\n"
-    		+ " and e.emp_id not between 1 and 6  AND e.billable_type IN ('TNM')\n"
-    		+ " AND (j.employee_role = 'SuperAdmin' OR d.dept_id IN (:deptId))",nativeQuery = true)
-	public List<Object[]> fetchInActivePOListOfEmployee(
-		        @Param("poProjectType") String poProjectType,
-		        @Param("days") Integer days,
-		        @Param("deptId") List<Long> deptId);
+    // @Query(value="SELECT e.employeement_id, e.name, \n"
+    // 		+ " e.billable, e.billable_type, \n"
+    // 		+ " emp_proj_client.project_name, emp_proj_client.start_date, emp_proj_client.end_date,\n"
+    // 		+ " emp_proj_client.po_no, emp_proj_client.client_name, emp_proj_client.client_location, \n"
+    // 		+ " d.name as departmentName, emp_proj_client.po_project_type, \n"
+    // 		+ " j.name as jobrole, emp_proj_client.po_project_id, eppm.primary_project_name, eppm.primary_project_id,\n"
+    // 		+ " emp_proj_client.clientrm, emp_proj_client.apmosysrm, emp_proj_client.effective_start_date, \n"
+    // 		+ " emp_proj_client.effective_end_date FROM employee e\n"
+    // 		+ " INNER JOIN job_role j ON j.job_role_id = e.job_role_id\n"
+    // 		+ " INNER JOIN department d ON d.dept_id = j.dept_id\n"
+    // 		+ " INNER JOIN employee m ON e.manager_id = m.emp_id\n"
+    // 		+ " LEFT JOIN emp_primary_project_mapping eppm ON eppm.emp_id = e.emp_id\n"
+    // 		+ " LEFT JOIN (     \n"
+    // 		+ " SELECT etm.emp_id, GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_id) AS project_name,  \n"
+    // 		+ " GROUP_CONCAT(DISTINCT p.project_id ORDER BY p.project_id) AS project_id, \n"
+    // 		+ " GROUP_CONCAT(DISTINCT p.start_date ORDER BY p.project_id) AS start_date, \n"
+    // 		+ " GROUP_CONCAT(DISTINCT p.end_date ORDER BY p.project_id) AS end_date,  \n"
+    // 		+ " GROUP_CONCAT(DISTINCT p.po_no ORDER BY p.project_id) AS po_no,  \n"
+    // 		+ " GROUP_CONCAT(DISTINCT p.po_project_type ORDER BY p.project_id) AS po_project_type,\n"
+    // 		+ " GROUP_CONCAT(DISTINCT c.client_name ORDER BY p.project_id) AS client_name,\n"
+    // 		+ " GROUP_CONCAT(DISTINCT cl.client_location ORDER BY p.project_id) AS client_location,\n"
+    // 		+ " GROUP_CONCAT(DISTINCT t.team_name ORDER BY p.project_id) AS team_name,  \n"
+    // 		+ " GROUP_CONCAT(DISTINCT t.team_id ORDER BY p.project_id) AS team_id, \n"
+    // 		+ " GROUP_CONCAT(DISTINCT p.po_project_id ORDER BY p.project_id) AS po_project_id, \n"
+    // 		+ " GROUP_CONCAT(DISTINCT p.clientrm ORDER BY p.project_id) AS clientrm, \n"
+    // 		+ " GROUP_CONCAT(DISTINCT p.apmosysrm ORDER BY p.project_id) AS apmosysrm,\n"
+    // 		+ " GROUP_CONCAT(DISTINCT etm.start_date ORDER BY p.project_id) AS effective_start_date, \n"
+    // 		+ " GROUP_CONCAT(DISTINCT etm.end_date ORDER BY p.project_id) AS effective_end_date \n"
+    // 		+ " FROM employee_team_mapping etm     \n"
+    // 		+ " LEFT JOIN teams t ON t.team_id = etm.team_id \n"
+    // 		+ " LEFT JOIN projects p ON p.project_id = t.project_id \n"
+    // 		+ " LEFT JOIN clients c ON c.client_id = p.client_id\n"
+    // 		+ " LEFT JOIN client_locations cl ON cl.client_id = p.client_id\n"
+    // 		+ " WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'  \n"
+    // 		+ " GROUP BY etm.emp_id ) emp_proj_client ON emp_proj_client.emp_id = e.emp_id\n"
+    // 		+ " WHERE e.employmentstatus != 'InActive' AND emp_proj_client.project_id IS NOT NULL \n"
+    // 		+ " and emp_proj_client.po_project_type = :poProjectType\n"
+    // 		+ " AND emp_proj_client.end_date < CURRENT_DATE\n"
+    // 		+ "       AND (:days IS NULL OR emp_proj_client.end_date >= CURRENT_DATE - INTERVAL :days DAY)\n"
+    // 		+ " and e.emp_id not between 1 and 6  AND e.billable_type IN ('TNM')\n"
+    // 		+ " AND (j.employee_role = 'SuperAdmin' OR d.dept_id IN (:deptId))",nativeQuery = true)
+	// public List<Object[]> fetchInActivePOListOfEmployee(
+	// 	        @Param("poProjectType") String poProjectType,
+	// 	        @Param("days") Integer days,
+	// 	        @Param("deptId") List<Long> deptId);
 	
 	// @Query(value = "SELECT e.employeement_id, e.name, \n"
 	// 		+ "    		 e.billable, e.billable_type, \n"
@@ -1763,24 +1763,31 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	// 		@Param("toDate") String toDate);
 	
 	
-	@Query(value="SELECT distinct p.project_name, \n"
-			+ " p.po_no, p.po_project_type, p.start_date, p.end_date,\n"
-			+ " p.clientrm, p.apmosysrm, c.client_name, p.client_location FROM projects p INNER JOIN teams t ON t.project_id = p.project_id \n"
-			+ " INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
-			+ " INNER JOIN employee e ON etm.emp_id = e.emp_id\n"
-			+ " INNER JOIN job_role j ON e.job_role_id = j.job_role_id \n"
-			+ " INNER JOIN department d ON d.dept_id = j.dept_id\n"
-			+ " INNER JOIN employee ep ON p.project_manager_id = ep.emp_id\n"
-			+ " LEFT  JOIN clients c on p.client_id = c.client_id \n"
-			+ " WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' and e.emp_id not between 1 and 6  \n"
-			+ " AND d.dept_id IN (:deptId)\n"
-			+ "  AND po_project_type = :poProjectType \n"
-			+ " AND p.end_date < CURRENT_DATE\n"
-			+ "       AND (:days IS NULL OR p.end_date >= CURRENT_DATE - INTERVAL :days DAY)",nativeQuery = true)
-	public List<Object[]> fetchInActivePOListOfProject(
-	        @Param("poProjectType") String poProjectType,
-	        @Param("days") Integer days,
-	        @Param("deptId") List<Long> deptId);
+	// @Query(value="SELECT distinct p.project_name, \n"
+	// 		+ " ppd.po_no, p.po_project_type, p.start_date, p.end_date,\n"
+	// 		+ " GROUP_CONCAT(DISTINCT ppd.client_rm SEPARATOR ', ') AS clientrm, \n"
+	// 		+ " GROUP_CONCAT(DISTINCT ppd.apmosys_rm SEPARATOR ', ') AS apmosysrm, \n"
+	// 		+ " c.client_name, p.client_location FROM projects p INNER JOIN teams t ON t.project_id = p.project_id \n"
+	// 		+ " INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
+	// 		+ " INNER JOIN employee e ON etm.emp_id = e.emp_id\n"
+	// 		+ " INNER JOIN job_role j ON e.job_role_id = j.job_role_id \n"
+	// 		+ " INNER JOIN department d ON d.dept_id = j.dept_id\n"
+	// 		+ " INNER JOIN employee ep ON p.project_manager_id = ep.emp_id\n"
+	// 		+ " LEFT  JOIN clients c on p.client_id = c.client_id \n"
+	// 		+ " LEFT JOIN project_po_details ppd \n"
+	// 		+ " ON ppd.project_id = p.project_id \n"
+	// 		+ " AND (ppd.active = TRUE OR ppd.active IS NULL) \n"
+	// 		+ " WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' and e.emp_id not between 1 and 6  \n"
+	// 		+ " AND d.dept_id IN (:deptId)\n"
+	// 		+ " AND po_project_type = :poProjectType \n"
+	// 		+ " AND p.end_date < CURRENT_DATE\n"
+	// 		+ " AND (:days IS NULL OR p.end_date >= CURRENT_DATE - INTERVAL :days DAY) \n"
+	// 		+ " GROUP BY p.project_name, p.po_project_type, p.start_date, p.end_date, c.client_name, p.client_location"
+	// 		,nativeQuery = true)
+	// public List<Object[]> fetchInActivePOListOfProject(
+	//         @Param("poProjectType") String poProjectType,
+	//         @Param("days") Integer days,
+	//         @Param("deptId") List<Long> deptId);
 	
 	
 	
@@ -2189,72 +2196,72 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		
 		
 		    	
-		@Query(value = "SELECT distinct \n"
-				+ "    e.emp_id, \n"
-				+ "    e.name, \n"
-				+ "    emp_proj_client.project_name, \n"
-				+ "    emp_proj_client.start_date, \n"
-				+ "    emp_proj_client.end_date, \n"
-				+ "    emp_proj_client.po_no, \n"
-				+ "    emp_proj_client.client_name, \n"
-				+ "    emp_proj_client.client_location, \n"
-				+ "    d.name AS departmentName, \n"
-				+ "    emp_proj_client.po_project_type, \n"
-				+ "    CASE\n"
-				+ "        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
-				+ "        WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
-				+ "        ELSE CONCAT('A-', e.employeement_id)\n"
-				+ "    END AS prefixed_employeementId \n"
-				+ "FROM employee e\n"
-				+ "INNER JOIN job_role j ON j.job_role_id = e.job_role_id\n"
-				+ "INNER JOIN department d ON d.dept_id = j.dept_id\n"
-				+ "INNER JOIN employee m ON e.manager_id = m.emp_id \n"
-				+ "LEFT JOIN emp_primary_project_mapping eppm ON eppm.emp_id = e.emp_id and eppm.is_mapped = 'Y'\n"
-				+ "INNER JOIN (     \n"
-				+ "	SELECT etm.emp_id,  \n"
-				+ "GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_id) AS project_name,  \n"
-				+ "	GROUP_CONCAT(DISTINCT p.project_id ORDER BY p.project_id) AS project_id, \n"
-				+ "	GROUP_CONCAT(DISTINCT p.start_date ORDER BY p.project_id) AS start_date, \n"
-				+ "	GROUP_CONCAT(DISTINCT p.end_date ORDER BY p.project_id) AS end_date,  \n"
-				+ "	GROUP_CONCAT(DISTINCT p.po_no ORDER BY p.project_id) AS po_no,  \n"
-				+ "	GROUP_CONCAT(DISTINCT p.po_project_type ORDER BY p.project_id) AS po_project_type,\n"
-				+ "	GROUP_CONCAT(DISTINCT c.client_name ORDER BY p.project_id) AS client_name,\n"
-				+ "	GROUP_CONCAT(DISTINCT cl.client_location ORDER BY p.project_id) AS client_location "
-				+ "	FROM employee_team_mapping etm     \n"
-				+ "	INNER JOIN teams t ON t.team_id = etm.team_id \n"
-				+ "	INNER JOIN projects p ON p.project_id = t.project_id \n"
-				+ "	LEFT JOIN clients c ON c.client_id = p.client_id\n"
-				+ "	LEFT JOIN client_locations cl ON cl.client_id = p.client_id\n"
-				+ "	WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'  \n"
-				+ "	GROUP BY etm.emp_id \n"
-				+ ") emp_proj_client ON emp_proj_client.emp_id = e.emp_id \n"
-				+ "LEFT JOIN (\n"
-				+ "	select distinct e.emp_id as emp_id, e.name as name, e.email as email\n"
-				+ "		  ,case when el.emp_id is null then 'No' else 'Yes' end as On_Maternity_Leave\n"
-				+ "	from employee e \n"
-				+ "	left join employee_leave el \n"
-				+ "		on el.emp_id = e.emp_id \n"
-				+ "		and leave_status_id in (1,2) \n"
-				+ "		and manager_approval_status = 'Approved' \n"
-				+ "		and leave_type_master_id = 5 \n"
-				+ "		and curdate() between date(el.from_date) and date(el.to_date) \n"
-				+ "		) eld on eld.emp_id = e.emp_id\n"
-				+ "WHERE e.employmentstatus != 'InActive' AND emp_proj_client.project_id IS NOT NULL \n"
-				+ "and emp_proj_client.po_project_type = :poProjectType\n"
-				+ "AND emp_proj_client.end_date < CURRENT_DATE\n"
-				+ "AND date(emp_proj_client.end_date) between date:fromDate and date:toDate\n"
-				+ "and e.emp_id not between 1 and 6  AND e.billable_type IN ('TNM')\n"
-				+ "AND ((:leave_filter = true) \n"
-				+ "			or \n"
-				+ "		(:leave_filter != true and eld.On_Maternity_Leave = 'No')\n"
-				+ "	)\n"
-				+ "AND (j.employee_role = 'SuperAdmin' OR d.dept_id IN (:deptIds))", nativeQuery = true)
-		    	public List<Object[]> fetchInactivePOListOfEmployeeNew(
-		    			@Param("poProjectType") String poProjectType,
-		    			@Param("deptIds") List<Long> deptIds,
-		    			@Param("fromDate") String fromDate,
-		    			@Param("toDate") String toDate,
-		    			@Param("leave_filter") boolean maternityleaveFilter);
+		// @Query(value = "SELECT distinct \n"
+		// 		+ "    e.emp_id, \n"
+		// 		+ "    e.name, \n"
+		// 		+ "    emp_proj_client.project_name, \n"
+		// 		+ "    emp_proj_client.start_date, \n"
+		// 		+ "    emp_proj_client.end_date, \n"
+		// 		+ "    emp_proj_client.po_no, \n"
+		// 		+ "    emp_proj_client.client_name, \n"
+		// 		+ "    emp_proj_client.client_location, \n"
+		// 		+ "    d.name AS departmentName, \n"
+		// 		+ "    emp_proj_client.po_project_type, \n"
+		// 		+ "    CASE\n"
+		// 		+ "        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
+		// 		+ "        WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
+		// 		+ "        ELSE CONCAT('A-', e.employeement_id)\n"
+		// 		+ "    END AS prefixed_employeementId \n"
+		// 		+ "FROM employee e\n"
+		// 		+ "INNER JOIN job_role j ON j.job_role_id = e.job_role_id\n"
+		// 		+ "INNER JOIN department d ON d.dept_id = j.dept_id\n"
+		// 		+ "INNER JOIN employee m ON e.manager_id = m.emp_id \n"
+		// 		+ "LEFT JOIN emp_primary_project_mapping eppm ON eppm.emp_id = e.emp_id and eppm.is_mapped = 'Y'\n"
+		// 		+ "INNER JOIN (     \n"
+		// 		+ "	SELECT etm.emp_id,  \n"
+		// 		+ "GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_id) AS project_name,  \n"
+		// 		+ "	GROUP_CONCAT(DISTINCT p.project_id ORDER BY p.project_id) AS project_id, \n"
+		// 		+ "	GROUP_CONCAT(DISTINCT p.start_date ORDER BY p.project_id) AS start_date, \n"
+		// 		+ "	GROUP_CONCAT(DISTINCT p.end_date ORDER BY p.project_id) AS end_date,  \n"
+		// 		+ "	GROUP_CONCAT(DISTINCT p.po_no ORDER BY p.project_id) AS po_no,  \n"
+		// 		+ "	GROUP_CONCAT(DISTINCT p.po_project_type ORDER BY p.project_id) AS po_project_type,\n"
+		// 		+ "	GROUP_CONCAT(DISTINCT c.client_name ORDER BY p.project_id) AS client_name,\n"
+		// 		+ "	GROUP_CONCAT(DISTINCT cl.client_location ORDER BY p.project_id) AS client_location "
+		// 		+ "	FROM employee_team_mapping etm     \n"
+		// 		+ "	INNER JOIN teams t ON t.team_id = etm.team_id \n"
+		// 		+ "	INNER JOIN projects p ON p.project_id = t.project_id \n"
+		// 		+ "	LEFT JOIN clients c ON c.client_id = p.client_id\n"
+		// 		+ "	LEFT JOIN client_locations cl ON cl.client_id = p.client_id\n"
+		// 		+ "	WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'  \n"
+		// 		+ "	GROUP BY etm.emp_id \n"
+		// 		+ ") emp_proj_client ON emp_proj_client.emp_id = e.emp_id \n"
+		// 		+ "LEFT JOIN (\n"
+		// 		+ "	select distinct e.emp_id as emp_id, e.name as name, e.email as email\n"
+		// 		+ "		  ,case when el.emp_id is null then 'No' else 'Yes' end as On_Maternity_Leave\n"
+		// 		+ "	from employee e \n"
+		// 		+ "	left join employee_leave el \n"
+		// 		+ "		on el.emp_id = e.emp_id \n"
+		// 		+ "		and leave_status_id in (1,2) \n"
+		// 		+ "		and manager_approval_status = 'Approved' \n"
+		// 		+ "		and leave_type_master_id = 5 \n"
+		// 		+ "		and curdate() between date(el.from_date) and date(el.to_date) \n"
+		// 		+ "		) eld on eld.emp_id = e.emp_id\n"
+		// 		+ "WHERE e.employmentstatus != 'InActive' AND emp_proj_client.project_id IS NOT NULL \n"
+		// 		+ "and emp_proj_client.po_project_type = :poProjectType\n"
+		// 		+ "AND emp_proj_client.end_date < CURRENT_DATE\n"
+		// 		+ "AND date(emp_proj_client.end_date) between date:fromDate and date:toDate\n"
+		// 		+ "and e.emp_id not between 1 and 6  AND e.billable_type IN ('TNM')\n"
+		// 		+ "AND ((:leave_filter = true) \n"
+		// 		+ "			or \n"
+		// 		+ "		(:leave_filter != true and eld.On_Maternity_Leave = 'No')\n"
+		// 		+ "	)\n"
+		// 		+ "AND (j.employee_role = 'SuperAdmin' OR d.dept_id IN (:deptIds))", nativeQuery = true)
+		//     	public List<Object[]> fetchInactivePOListOfEmployeeNew(
+		//     			@Param("poProjectType") String poProjectType,
+		//     			@Param("deptIds") List<Long> deptIds,
+		//     			@Param("fromDate") String fromDate,
+		//     			@Param("toDate") String toDate,
+		//     			@Param("leave_filter") boolean maternityleaveFilter);
 		    	
 		    	@Query(value = "WITH AllPoProjectTypes AS (\n"
 		        		+ "    		     SELECT 'Internal' AS po_project_type UNION ALL SELECT 'TNM' UNION ALL SELECT 'Fixed Cost' UNION ALL SELECT 'Monitoring'\n"
@@ -2347,117 +2354,117 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		                @Param("fromDate") String fromDate,
 		                @Param("toDate") String toDate);
 		        
-		        @Query(value = "SELECT DISTINCT p.project_name, \n"
-		    			+ "    p.po_no, p.po_project_type, p.start_date, p.end_date,\n"
-		    			+ "    p.clientrm, p.apmosysrm, c.client_name, p.client_location \n"
-		    			+ "FROM projects p \n"
-		    			+ "INNER JOIN teams t ON t.project_id = p.project_id \n"
-		    			+ "INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
-		    			+ "INNER JOIN employee e ON etm.emp_id = e.emp_id\n"
-		    			+ "INNER JOIN job_role j ON e.job_role_id = j.job_role_id \n"
-		    			+ "INNER JOIN department d ON d.dept_id = j.dept_id\n"
-		    			+ "INNER JOIN employee ep ON p.project_manager_id = ep.emp_id\n"
-		    			+ "LEFT JOIN clients c ON p.client_id = c.client_id \n"
-		    			+ "WHERE etm.active != 0 \n"
-		    			+ "    AND t.is_active != 'N' \n"
-		    			+ "    AND p.active != 'false' \n"
-		    			+ "    AND e.emp_id NOT BETWEEN 1 AND 6 \n"
-		    			+ "    AND d.dept_id IN (:deptIds)\n"
-		    			+ "    AND p.po_project_type = :poProjectType \n"
-		    			+ "    AND p.end_date < CURRENT_DATE\n"
-		    			+ "    AND DATE(p.end_date) BETWEEN :fromDate AND :toDate ", nativeQuery = true)
-		    	public List<Object[]> fetchInActivePOListOfProjectNew(
-		    			@Param("poProjectType") String poProjectType,
-		    			@Param("deptIds") List<Long> deptIds,
-		    			@Param("fromDate") String fromDate,
-		    			@Param("toDate") String toDate);
+		        // @Query(value = "SELECT DISTINCT p.project_name, \n"
+		    	// 		+ "    p.po_no, p.po_project_type, p.start_date, p.end_date,\n"
+		    	// 		+ "    p.clientrm, p.apmosysrm, c.client_name, p.client_location \n"
+		    	// 		+ "FROM projects p \n"
+		    	// 		+ "INNER JOIN teams t ON t.project_id = p.project_id \n"
+		    	// 		+ "INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
+		    	// 		+ "INNER JOIN employee e ON etm.emp_id = e.emp_id\n"
+		    	// 		+ "INNER JOIN job_role j ON e.job_role_id = j.job_role_id \n"
+		    	// 		+ "INNER JOIN department d ON d.dept_id = j.dept_id\n"
+		    	// 		+ "INNER JOIN employee ep ON p.project_manager_id = ep.emp_id\n"
+		    	// 		+ "LEFT JOIN clients c ON p.client_id = c.client_id \n"
+		    	// 		+ "WHERE etm.active != 0 \n"
+		    	// 		+ "    AND t.is_active != 'N' \n"
+		    	// 		+ "    AND p.active != 'false' \n"
+		    	// 		+ "    AND e.emp_id NOT BETWEEN 1 AND 6 \n"
+		    	// 		+ "    AND d.dept_id IN (:deptIds)\n"
+		    	// 		+ "    AND p.po_project_type = :poProjectType \n"
+		    	// 		+ "    AND p.end_date < CURRENT_DATE\n"
+		    	// 		+ "    AND DATE(p.end_date) BETWEEN :fromDate AND :toDate ", nativeQuery = true)
+		    	// public List<Object[]> fetchInActivePOListOfProjectNew(
+		    	// 		@Param("poProjectType") String poProjectType,
+		    	// 		@Param("deptIds") List<Long> deptIds,
+		    	// 		@Param("fromDate") String fromDate,
+		    	// 		@Param("toDate") String toDate);
 
-		    	@Query(value = "SELECT e.employeement_id, e.name, \n"
-		    			+"	e.billable, e.billable_type,  \n"
-		    			+"	emp_proj_client.project_name, emp_proj_client.start_date, emp_proj_client.end_date, \n"
-		    			+"	emp_proj_client.po_no, emp_proj_client.client_name, emp_proj_client.client_location,  \n"
-		    			+"	d.name as departmentName, emp_proj_client.po_project_type,  \n"
-		    			+"	j.name as jobrole, emp_proj_client.po_project_id, eppm.primary_project_name, eppm.primary_project_id, \n"
-		    			+"	emp_proj_client.clientrm, emp_proj_client.apmosysrm, emp_proj_client.effective_start_date,  \n"
-		    			+"	emp_proj_client.effective_end_date FROM employee e \n"
-		    			+"	INNER JOIN job_role j ON j.job_role_id = e.job_role_id \n"
-		    			+"	INNER JOIN department d ON d.dept_id = j.dept_id \n"
-		    			+"	INNER JOIN employee m ON e.manager_id = m.emp_id \n"
-		    			+"	LEFT JOIN emp_primary_project_mapping eppm ON eppm.emp_id = e.emp_id and eppm.is_mapped = 'Y' \n"
-		    			+"	LEFT JOIN (      \n"
-		    			+"	SELECT etm.emp_id, GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_id) AS project_name,   \n"
-		    			+"	GROUP_CONCAT(DISTINCT p.project_id ORDER BY p.project_id) AS project_id,  \n"
-		    			+"	GROUP_CONCAT(DISTINCT p.start_date ORDER BY p.project_id) AS start_date,  \n"
-		    			+"	GROUP_CONCAT(DISTINCT p.end_date ORDER BY p.project_id) AS end_date,   \n"
-		    			+"	GROUP_CONCAT(DISTINCT p.po_no ORDER BY p.project_id) AS po_no,   \n"
-		    			+"	GROUP_CONCAT(DISTINCT p.po_project_type ORDER BY p.project_id) AS po_project_type, \n"
-		    			+"	GROUP_CONCAT(DISTINCT c.client_name ORDER BY p.project_id) AS client_name, \n"
-		    			+"	GROUP_CONCAT(DISTINCT cl.client_location ORDER BY p.project_id) AS client_location, \n"
-		    			+"	GROUP_CONCAT(DISTINCT t.team_name ORDER BY p.project_id) AS team_name,   \n"
-		    			+"	GROUP_CONCAT(DISTINCT t.team_id ORDER BY p.project_id) AS team_id,  \n"
-		    			+"	GROUP_CONCAT(DISTINCT p.po_project_id ORDER BY p.project_id) AS po_project_id,  \n"
-		    			+"	GROUP_CONCAT(DISTINCT p.clientrm ORDER BY p.project_id) AS clientrm,  \n"
-		    			+"	GROUP_CONCAT(DISTINCT p.apmosysrm ORDER BY p.project_id) AS apmosysrm, \n"
-		    			+"	GROUP_CONCAT(DISTINCT etm.start_date ORDER BY p.project_id) AS effective_start_date,  \n"
-		    			+"	GROUP_CONCAT(DISTINCT etm.end_date ORDER BY p.project_id) AS effective_end_date  \n"
-		    			+"	FROM employee_team_mapping etm      \n"
-		    			+"	LEFT JOIN teams t ON t.team_id = etm.team_id  \n"
-		    			+"	LEFT JOIN projects p ON p.project_id = t.project_id  \n"
-		    			+"	LEFT JOIN clients c ON c.client_id = p.client_id \n"
-		    			+"	LEFT JOIN client_locations cl ON cl.client_id = p.client_id \n"
-		    			+"	LEFT JOIN ( \n"
-		    			+"				select distinct e.emp_id as emp_id, e.name as name, e.email as email \n"
-		    			+"					  ,case when el.emp_id is null then 'No' else 'Yes' end as On_Maternity_Leave \n"
-		    			+"				from employee e  \n"
-		    			+"				left join employee_leave el  \n"
-		    			+"					on el.emp_id = e.emp_id  \n"
-		    			+"					and leave_status_id in (1,2)  \n"
-		    			+"					and manager_approval_status = 'Approved'  \n"
-		    			+"					and leave_type_master_id = 5  \n"
-		    			+"					and curdate() between date(el.from_date) and date(el.to_date)  \n"
-		    			+"			) eld on eld.emp_id = etm.emp_id \n"
-		    			+"	WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'   \n"
-		    			+"	GROUP BY etm.emp_id ) emp_proj_client ON emp_proj_client.emp_id = e.emp_id \n"
-		    			+"	WHERE e.employmentstatus != 'InActive' AND emp_proj_client.project_id IS NOT NULL  \n"
-		    			+"	and emp_proj_client.po_project_type = :poProjectType \n"
-		    			+"	AND emp_proj_client.end_date >= CURRENT_DATE \n"
-		    			+"	AND date(emp_proj_client.end_date) between :fromDate and :toDate \n"
-		    			+"	and e.emp_id not between 1 and 6  AND e.billable_type IN ('TNM') \n"
-		    			+"	AND ((:leave_filter = true)  \n"
-		    			+"				or  \n"
-		    			+"			(:leave_filter != true and eld.On_Maternity_Leave = 'No') \n"
-		    			+"		) \n"
-		    			+"	AND (j.employee_role = 'SuperAdmin' OR d.dept_id IN (:deptIds))", nativeQuery = true)
-		    	public List<Object[]> fetchActivePOListOfEmployeeNew(@Param("poProjectType") String poProjectType,
-		    			@Param("deptIds") List<Long> deptIds,
-		    			@Param("fromDate") String fromDate,
-		    			@Param("toDate") String toDate,
-		    			@Param("leave_filter") boolean maternityleaveFilter);
+		    	// @Query(value = "SELECT e.employeement_id, e.name, \n"
+		    	// 		+"	e.billable, e.billable_type,  \n"
+		    	// 		+"	emp_proj_client.project_name, emp_proj_client.start_date, emp_proj_client.end_date, \n"
+		    	// 		+"	emp_proj_client.po_no, emp_proj_client.client_name, emp_proj_client.client_location,  \n"
+		    	// 		+"	d.name as departmentName, emp_proj_client.po_project_type,  \n"
+		    	// 		+"	j.name as jobrole, emp_proj_client.po_project_id, eppm.primary_project_name, eppm.primary_project_id, \n"
+		    	// 		+"	emp_proj_client.clientrm, emp_proj_client.apmosysrm, emp_proj_client.effective_start_date,  \n"
+		    	// 		+"	emp_proj_client.effective_end_date FROM employee e \n"
+		    	// 		+"	INNER JOIN job_role j ON j.job_role_id = e.job_role_id \n"
+		    	// 		+"	INNER JOIN department d ON d.dept_id = j.dept_id \n"
+		    	// 		+"	INNER JOIN employee m ON e.manager_id = m.emp_id \n"
+		    	// 		+"	LEFT JOIN emp_primary_project_mapping eppm ON eppm.emp_id = e.emp_id and eppm.is_mapped = 'Y' \n"
+		    	// 		+"	LEFT JOIN (      \n"
+		    	// 		+"	SELECT etm.emp_id, GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_id) AS project_name,   \n"
+		    	// 		+"	GROUP_CONCAT(DISTINCT p.project_id ORDER BY p.project_id) AS project_id,  \n"
+		    	// 		+"	GROUP_CONCAT(DISTINCT p.start_date ORDER BY p.project_id) AS start_date,  \n"
+		    	// 		+"	GROUP_CONCAT(DISTINCT p.end_date ORDER BY p.project_id) AS end_date,   \n"
+		    	// 		+"	GROUP_CONCAT(DISTINCT p.po_no ORDER BY p.project_id) AS po_no,   \n"
+		    	// 		+"	GROUP_CONCAT(DISTINCT p.po_project_type ORDER BY p.project_id) AS po_project_type, \n"
+		    	// 		+"	GROUP_CONCAT(DISTINCT c.client_name ORDER BY p.project_id) AS client_name, \n"
+		    	// 		+"	GROUP_CONCAT(DISTINCT cl.client_location ORDER BY p.project_id) AS client_location, \n"
+		    	// 		+"	GROUP_CONCAT(DISTINCT t.team_name ORDER BY p.project_id) AS team_name,   \n"
+		    	// 		+"	GROUP_CONCAT(DISTINCT t.team_id ORDER BY p.project_id) AS team_id,  \n"
+		    	// 		+"	GROUP_CONCAT(DISTINCT p.po_project_id ORDER BY p.project_id) AS po_project_id,  \n"
+		    	// 		+"	GROUP_CONCAT(DISTINCT p.clientrm ORDER BY p.project_id) AS clientrm,  \n"
+		    	// 		+"	GROUP_CONCAT(DISTINCT p.apmosysrm ORDER BY p.project_id) AS apmosysrm, \n"
+		    	// 		+"	GROUP_CONCAT(DISTINCT etm.start_date ORDER BY p.project_id) AS effective_start_date,  \n"
+		    	// 		+"	GROUP_CONCAT(DISTINCT etm.end_date ORDER BY p.project_id) AS effective_end_date  \n"
+		    	// 		+"	FROM employee_team_mapping etm      \n"
+		    	// 		+"	LEFT JOIN teams t ON t.team_id = etm.team_id  \n"
+		    	// 		+"	LEFT JOIN projects p ON p.project_id = t.project_id  \n"
+		    	// 		+"	LEFT JOIN clients c ON c.client_id = p.client_id \n"
+		    	// 		+"	LEFT JOIN client_locations cl ON cl.client_id = p.client_id \n"
+		    	// 		+"	LEFT JOIN ( \n"
+		    	// 		+"				select distinct e.emp_id as emp_id, e.name as name, e.email as email \n"
+		    	// 		+"					  ,case when el.emp_id is null then 'No' else 'Yes' end as On_Maternity_Leave \n"
+		    	// 		+"				from employee e  \n"
+		    	// 		+"				left join employee_leave el  \n"
+		    	// 		+"					on el.emp_id = e.emp_id  \n"
+		    	// 		+"					and leave_status_id in (1,2)  \n"
+		    	// 		+"					and manager_approval_status = 'Approved'  \n"
+		    	// 		+"					and leave_type_master_id = 5  \n"
+		    	// 		+"					and curdate() between date(el.from_date) and date(el.to_date)  \n"
+		    	// 		+"			) eld on eld.emp_id = etm.emp_id \n"
+		    	// 		+"	WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'   \n"
+		    	// 		+"	GROUP BY etm.emp_id ) emp_proj_client ON emp_proj_client.emp_id = e.emp_id \n"
+		    	// 		+"	WHERE e.employmentstatus != 'InActive' AND emp_proj_client.project_id IS NOT NULL  \n"
+		    	// 		+"	and emp_proj_client.po_project_type = :poProjectType \n"
+		    	// 		+"	AND emp_proj_client.end_date >= CURRENT_DATE \n"
+		    	// 		+"	AND date(emp_proj_client.end_date) between :fromDate and :toDate \n"
+		    	// 		+"	and e.emp_id not between 1 and 6  AND e.billable_type IN ('TNM') \n"
+		    	// 		+"	AND ((:leave_filter = true)  \n"
+		    	// 		+"				or  \n"
+		    	// 		+"			(:leave_filter != true and eld.On_Maternity_Leave = 'No') \n"
+		    	// 		+"		) \n"
+		    	// 		+"	AND (j.employee_role = 'SuperAdmin' OR d.dept_id IN (:deptIds))", nativeQuery = true)
+		    	// public List<Object[]> fetchActivePOListOfEmployeeNew(@Param("poProjectType") String poProjectType,
+		    	// 		@Param("deptIds") List<Long> deptIds,
+		    	// 		@Param("fromDate") String fromDate,
+		    	// 		@Param("toDate") String toDate,
+		    	// 		@Param("leave_filter") boolean maternityleaveFilter);
 		    	
-		    	@Query(value = "SELECT DISTINCT p.project_name, \n"
-		    			+ "    p.po_no, p.po_project_type, p.start_date, p.end_date,\n"
-		    			+ "    p.clientrm, p.apmosysrm, c.client_name, p.client_location \n"
-		    			+ "FROM projects p \n"
-		    			+ "INNER JOIN teams t ON t.project_id = p.project_id \n"
-		    			+ "INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
-		    			+ "INNER JOIN employee e ON etm.emp_id = e.emp_id\n"
-		    			+ "INNER JOIN job_role j ON e.job_role_id = j.job_role_id \n"
-		    			+ "INNER JOIN department d ON d.dept_id = j.dept_id\n"
-		    			+ "INNER JOIN employee ep ON p.project_manager_id = ep.emp_id\n"
-		    			+ "LEFT JOIN clients c ON p.client_id = c.client_id \n"
-		    			+ "WHERE etm.active != 0 \n"
-		    			+ "    AND t.is_active != 'N' \n"
-		    			+ "    AND p.active != 'false' \n"
-		    			+ "    AND e.emp_id NOT BETWEEN 1 AND 6 \n"
-		    			+ "    AND d.dept_id IN (:deptIds)\n"
-		    			+ "    AND p.po_project_type = :poProjectType \n"
-		    			+ "    AND p.end_date >= CURRENT_DATE\n"
-		    			+ "    AND DATE(p.end_date) BETWEEN :fromDate AND :toDate ", nativeQuery = true)
-		    	public List<Object[]> fetchActivePOListOfProjectNew(
-		    			@Param("poProjectType") String poProjectType,
-		    			@Param("deptIds") List<Long> deptIds,
-		    			@Param("fromDate") String fromDate,
-		    			@Param("toDate") String toDate);
+		    	// @Query(value = "SELECT DISTINCT p.project_name, \n"
+		    	// 		+ "    p.po_no, p.po_project_type, p.start_date, p.end_date,\n"
+		    	// 		+ "    p.clientrm, p.apmosysrm, c.client_name, p.client_location \n"
+		    	// 		+ "FROM projects p \n"
+		    	// 		+ "INNER JOIN teams t ON t.project_id = p.project_id \n"
+		    	// 		+ "INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
+		    	// 		+ "INNER JOIN employee e ON etm.emp_id = e.emp_id\n"
+		    	// 		+ "INNER JOIN job_role j ON e.job_role_id = j.job_role_id \n"
+		    	// 		+ "INNER JOIN department d ON d.dept_id = j.dept_id\n"
+		    	// 		+ "INNER JOIN employee ep ON p.project_manager_id = ep.emp_id\n"
+		    	// 		+ "LEFT JOIN clients c ON p.client_id = c.client_id \n"
+		    	// 		+ "WHERE etm.active != 0 \n"
+		    	// 		+ "    AND t.is_active != 'N' \n"
+		    	// 		+ "    AND p.active != 'false' \n"
+		    	// 		+ "    AND e.emp_id NOT BETWEEN 1 AND 6 \n"
+		    	// 		+ "    AND d.dept_id IN (:deptIds)\n"
+		    	// 		+ "    AND p.po_project_type = :poProjectType \n"
+		    	// 		+ "    AND p.end_date >= CURRENT_DATE\n"
+		    	// 		+ "    AND DATE(p.end_date) BETWEEN :fromDate AND :toDate ", nativeQuery = true)
+		    	// public List<Object[]> fetchActivePOListOfProjectNew(
+		    	// 		@Param("poProjectType") String poProjectType,
+		    	// 		@Param("deptIds") List<Long> deptIds,
+		    	// 		@Param("fromDate") String fromDate,
+		    	// 		@Param("toDate") String toDate);
 		    	
 		    	@Query(value = "WITH AllPoProjectTypes AS (\n"
 		        		+ "    		     SELECT 'Internal' AS po_project_type UNION ALL SELECT 'TNM' UNION ALL SELECT 'Fixed Cost' UNION ALL SELECT 'Monitoring'\n"
@@ -2925,7 +2932,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "				 e.name AS employee_name,\n"
 			+ "				 depi.project_id,\n"
 			+ "				 p.project_name,\n"
-			+ "				 p.po_no,\n"
+			+ "				 GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no,\n"
 			+ "				 COALESCE(p.po_project_type, p.internal_project_type) AS project_type,\n"
 			+ "				 c.client_name,\n"
 			+ "				 t.team_id,\n"
@@ -2935,8 +2942,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "				 e.billable_type,\n"
 			+ "				 e.mobile_no,\n"
 			+ "				 e.email,\n"
-			+ "				 p.apmosysrm,\n"
-			+ "				 p.apmosys_rm_email,\n"
+			+ "				 GROUP_CONCAT(DISTINCT ppd.apmosys_rm SEPARATOR ', ') AS apmosys_rm,\n"
+			+ "				 GROUP_CONCAT(DISTINCT ppd.apmosys_rm_email SEPARATOR ', ') AS apmosys_rm_email,\n"
 			+ "				 CASE WHEN e.is_apmosys_product = 'true'\n"
 			+ "					  THEN CONCAT('AP-', e.employeement_id)\n"
 			+ "					  ELSE CONCAT('A-', e.employeement_id) END AS employement_id,\n"
@@ -2946,6 +2953,13 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "			 FROM Distinct_Employee_Project_Instances depi\n"
 			+ "			 INNER JOIN employee e ON depi.emp_id = e.emp_id\n"
 			+ "			 INNER JOIN projects p ON depi.project_id = p.project_id\n"
+			+ "			 LEFT JOIN project_po_details ppd \n"
+			+ "			 ON ppd.project_id = p.project_id \n"
+		   	+ "		     AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters)"
+		    + "			 AND ("
+		    + "			 ppd.po_end_date IS NULL"
+		    + "			 OR DATE(ppd.po_end_date) >= (SELECT from_date FROM Date_Parameters)"
+		    + ")"
 			+ "			 INNER JOIN clients c ON c.client_id = p.client_id\n"
 			+ "			 INNER JOIN employee_team_mapping etm ON depi.emp_id = etm.emp_id\n"
 			+ "												  AND depi.project_id IN (SELECT team_project.project_id FROM teams AS team_project WHERE team_project.team_id = etm.team_id)\n"
@@ -2955,6 +2969,27 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "			 LEFT JOIN job_role j1 ON j1.job_role_id = e.job_role_id\n"
 			+ "			 LEFT JOIN department d1 ON d1.dept_id = j1.dept_id\n"
 			+ "			 WHERE etm.active != 0 AND t.is_active = 'Y' AND p.active = 'true' and eppm.is_mapped = 'Y'\n"
+			+ " GROUP BY "
++ " depi.emp_id, "
++ " e.name, "
++ " depi.project_id, "
++ " p.project_name, "
++ " p.po_project_type, "
++ " p.internal_project_type, "
++ " c.client_name, "
++ " t.team_id, "
++ " t.team_name, "
++ " tl.name, "
++ " e.billable, "
++ " e.billable_type, "
++ " e.mobile_no, "
++ " e.email, "
++ " e.is_apmosys_product, "
++ " e.employeement_id, "
++ " d1.name, "
++ " d1.dept_id, "
++ " etm.start_date, "
++ " etm.end_date "
 			+ "		 ),\n"
 			+ "		 \n"
 			+ "		 Project_Managers_Aggregated AS (\n"
@@ -3393,4 +3428,308 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 				+ " WHERE e.emp_id NOT IN (1,2,3,4,5,6) and e.employmentstatus!='InActive' \n"
 				+ " order by e.name ")
 		public List<Object[]> getAllActiveEmployeeInformation();
-	}
+	// -----------------------------------------------Below this are the mew inner joined queries-----------------------------------------
+		@Query(value = "select new com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse(ppd.poNo, p.poProjectId, p.projectId, p.projectName, e.empId, e.employeementId, e.name, e.billableType, d.name, jr.name " +
+		",(select count(Ts) from Timesheet Ts where Ts.date between :startDate and :endDate and Ts.empId = e.empId) " +
+		",etm.active) " +
+		"from Employee e " +
+		"left join EmployeeTeamMap etm on etm.empId = e.empId " +
+		"left join Team t on t.teamId = etm.teamId " +
+		"left join JobRole jr on jr.jobRoleId = e.jobRoleId " +
+		"left join Project p on p.projectId = t.projectId " +
+		"left join Department d on d.deptId = jr.deptId " +
+		"left join ProjectPoDetails ppd " +
+  		"on ppd.projectId = p.projectId " +
+  		"and ppd.poStartDate <= CURRENT_DATE" +
+		"where ((e.employmentstatus != 'InActive') OR e.dateOfRelieving between :startDate and :endDate) and ((:listType = 'Billable' AND e.billableType in ('TNM','Fixed Cost')) " +
+		"and e.empId not between 1 and 6 " +
+		"or (:listType = 'Non-Billable' and e.billableType in('InternalRNDProducts','Bench','Shadow')))")
+List<EmployeeTimesheetProjectResponse> findEmployeeAndTimesheetDetailsWithoutPagination(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate,@Param("listType") String listType);
+
+
+@Query(value="SELECT e.employeement_id, e.name, \n"
++ " e.billable, e.billable_type, \n"
++ " emp_proj_client.project_name, emp_proj_client.start_date, emp_proj_client.end_date,\n"
++ " emp_proj_client.po_no, emp_proj_client.client_name, emp_proj_client.client_location, \n"
++ " d.name as departmentName, emp_proj_client.po_project_type, \n"
++ " j.name as jobrole, emp_proj_client.po_project_id, eppm.primary_project_name, eppm.primary_project_id,\n"
++ " emp_proj_client.clientrm, emp_proj_client.apmosysrm, emp_proj_client.effective_start_date, \n"
++ " emp_proj_client.effective_end_date FROM employee e\n"
++ " INNER JOIN job_role j ON j.job_role_id = e.job_role_id\n"
++ " INNER JOIN department d ON d.dept_id = j.dept_id\n"
++ " INNER JOIN employee m ON e.manager_id = m.emp_id\n"
++ " LEFT JOIN emp_primary_project_mapping eppm ON eppm.emp_id = e.emp_id\n"
++ " LEFT JOIN (     \n"
++ " SELECT etm.emp_id, GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_id) AS project_name,  \n"
++ " GROUP_CONCAT(DISTINCT p.project_id ORDER BY p.project_id) AS project_id, \n"
++ " GROUP_CONCAT(DISTINCT p.start_date ORDER BY p.project_id) AS start_date, \n"
++ " GROUP_CONCAT(DISTINCT p.end_date ORDER BY p.project_id) AS end_date,  \n"
++ " GROUP_CONCAT(DISTINCT ppd.po_no ORDER BY p.project_id) AS po_no,  \n"
++ " GROUP_CONCAT(DISTINCT p.po_project_type ORDER BY p.project_id) AS po_project_type,\n"
++ " GROUP_CONCAT(DISTINCT c.client_name ORDER BY p.project_id) AS client_name,\n"
++ " GROUP_CONCAT(DISTINCT cl.client_location ORDER BY p.project_id) AS client_location,\n"
++ " GROUP_CONCAT(DISTINCT t.team_name ORDER BY p.project_id) AS team_name,  \n"
++ " GROUP_CONCAT(DISTINCT t.team_id ORDER BY p.project_id) AS team_id, \n"
++ " GROUP_CONCAT(DISTINCT p.po_project_id ORDER BY p.project_id) AS po_project_id, \n"
++ " GROUP_CONCAT(DISTINCT ppd.client_rm ORDER BY p.project_id) AS clientrm, \n"
++ " GROUP_CONCAT(DISTINCT ppd.apmosys_rm ORDER BY p.project_id) AS apmosysrm,\n"
++ " GROUP_CONCAT(DISTINCT etm.start_date ORDER BY p.project_id) AS effective_start_date, \n"
++ " GROUP_CONCAT(DISTINCT etm.end_date ORDER BY p.project_id) AS effective_end_date \n"
++ " FROM employee_team_mapping etm     \n"
++ " LEFT JOIN teams t ON t.team_id = etm.team_id \n"
++ " LEFT JOIN projects p ON p.project_id = t.project_id \n"
++ " LEFT JOIN project_po_details ppd  \n" 
++ " ON ppd.project_id = p.project_id  \n"
++ " LEFT JOIN clients c ON c.client_id = p.client_id\n"
++ " LEFT JOIN client_locations cl ON cl.client_id = p.client_id\n"
++ " WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'  \n"
++ " GROUP BY etm.emp_id ) emp_proj_client ON emp_proj_client.emp_id = e.emp_id\n"
++ " WHERE e.employmentstatus != 'InActive' AND emp_proj_client.project_id IS NOT NULL \n"
++ " and emp_proj_client.po_project_type = :poProjectType\n"
++ " AND emp_proj_client.end_date < CURRENT_DATE\n"
++ "       AND (:days IS NULL OR emp_proj_client.end_date >= CURRENT_DATE - INTERVAL :days DAY)\n"
++ " and e.emp_id not between 1 and 6  AND e.billable_type IN ('TNM')\n"
++ " AND (j.employee_role = 'SuperAdmin' OR d.dept_id IN (:deptId))",nativeQuery = true)
+public List<Object[]> fetchInActivePOListOfEmployee(
+	@Param("poProjectType") String poProjectType,
+	@Param("days") Integer days,
+	@Param("deptId") List<Long> deptId);
+
+	@Query(value="SELECT distinct p.project_name, \n"
+	+ " ppd.po_no,\n"
+	+" p.po_project_type, p.start_date, p.end_date,\n"
+	+ " GROUP_CONCAT(DISTINCT ppd.client_rm SEPARATOR ', ') AS clientrm, \n"
+	+ " GROUP_CONCAT(DISTINCT ppd.apmosys_rm SEPARATOR ', ') AS apmosysrm, \n"
+	+ " c.client_name, p.client_location FROM projects p INNER JOIN teams t ON t.project_id = p.project_id \n"
+	+ " INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
+	+ " INNER JOIN employee e ON etm.emp_id = e.emp_id\n"
+	+ " INNER JOIN job_role j ON e.job_role_id = j.job_role_id \n"
+	+ " INNER JOIN department d ON d.dept_id = j.dept_id\n"
+	+ " INNER JOIN employee ep ON p.project_manager_id = ep.emp_id\n"
+	+ " LEFT  JOIN clients c on p.client_id = c.client_id \n"
+	+ " LEFT JOIN project_po_details ppd \n"
+	+ " ON ppd.project_id = p.project_id \n"
+	+ " AND (:days IS NULL \n"
+	+ " OR (ppd.po_start_date <= p.end_date \n"
+	+"  AND ppd.po_end_date >= CURRENT_DATE - INTERVAL :days DAY)) \n"
+	+ " WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' and e.emp_id not between 1 and 6  \n"
+	+ " AND d.dept_id IN (:deptId)\n"
+	+ " AND po_project_type = :poProjectType \n"
+	+ " AND p.end_date < CURRENT_DATE\n"
+	+ " AND (:days IS NULL OR p.end_date >= CURRENT_DATE - INTERVAL :days DAY) \n"
+	+ " GROUP BY p.project_name, p.po_project_type, p.start_date, p.end_date, c.client_name, p.client_location"
+	,nativeQuery = true)
+public List<Object[]> fetchInActivePOListOfProject(
+	@Param("poProjectType") String poProjectType,
+	@Param("days") Integer days,
+	@Param("deptId") List<Long> deptId);
+
+
+	@Query(value = "SELECT DISTINCT p.project_name, \n"
+	+ "GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no,\n"
+	+ "p.po_project_type, p.start_date, p.end_date,\n"
+	+ "GROUP_CONCAT(DISTINCT ppd.client_rm SEPARATOR ', ') AS clientrm,\n"
+	+ "GROUP_CONCAT(DISTINCT ppd.apmosys_rm SEPARATOR ', ') AS apmosysrm,\n"
+	+ "c.client_name, p.client_location \n"
+	+ "FROM projects p \n"
+	+ "INNER JOIN teams t ON t.project_id = p.project_id \n"
+	+ "INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
+	+ "INNER JOIN employee e ON etm.emp_id = e.emp_id\n"
+	+ "INNER JOIN job_role j ON e.job_role_id = j.job_role_id \n"
+	+ "INNER JOIN department d ON d.dept_id = j.dept_id\n"
+	+ "INNER JOIN employee ep ON p.project_manager_id = ep.emp_id\n"
+	+ "LEFT JOIN clients c ON p.client_id = c.client_id \n"
+	+ "LEFT JOIN project_po_details ppd \n"
+	+ "ON ppd.project_id = p.project_id \n"
+	+ "AND (ppd.po_start_date <= :toDate \n"
+	+ "OR ppd.po_end_date   >= :fromDate) \n"
+	+ "WHERE etm.active != 0 \n"
+	+ "    AND t.is_active != 'N' \n"
+	+ "    AND p.active != 'false' \n"
+	+ "    AND e.emp_id NOT BETWEEN 1 AND 6 \n"
+	+ "    AND d.dept_id IN (:deptIds)\n"
+	+ "    AND p.po_project_type = :poProjectType \n"
+	+ "    AND p.end_date < CURRENT_DATE\n"
+	+ "    AND DATE(p.end_date) BETWEEN :fromDate AND :toDate \n"
+	+ "	GROUP BY p.project_name, p.po_project_type, p.start_date, p.end_date, c.client_name, p.client_location", nativeQuery = true)
+public List<Object[]> fetchInActivePOListOfProjectNew(
+	@Param("poProjectType") String poProjectType,
+	@Param("deptIds") List<Long> deptIds,
+	@Param("fromDate") String fromDate,
+	@Param("toDate") String toDate);
+
+
+	@Query(value = "SELECT distinct \n"
+	+ "    e.emp_id, \n"
+	+ "    e.name, \n"
+	+ "    emp_proj_client.project_name, \n"
+	+ "    emp_proj_client.start_date, \n"
+	+ "    emp_proj_client.end_date, \n"
+	+ "    emp_proj_client.po_no, \n"
+	+ "    emp_proj_client.client_name, \n"
+	+ "    emp_proj_client.client_location, \n"
+	+ "    d.name AS departmentName, \n"
+	+ "    emp_proj_client.po_project_type, \n"
+	+ "    CASE\n"
+	+ "        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
+	+ "        WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
+	+ "        ELSE CONCAT('A-', e.employeement_id)\n"
+	+ "    END AS prefixed_employeementId \n"
+	+ "FROM employee e\n"
+	+ "INNER JOIN job_role j ON j.job_role_id = e.job_role_id\n"
+	+ "INNER JOIN department d ON d.dept_id = j.dept_id\n"
+	+ "INNER JOIN employee m ON e.manager_id = m.emp_id \n"
+	+ "LEFT JOIN emp_primary_project_mapping eppm ON eppm.emp_id = e.emp_id and eppm.is_mapped = 'Y'\n"
+	+ "INNER JOIN (     \n"
+	+ "	SELECT etm.emp_id,  \n"
+	+ "GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_id) AS project_name,  \n"
+	+ "	GROUP_CONCAT(DISTINCT p.project_id ORDER BY p.project_id) AS project_id, \n"
+	+ "	GROUP_CONCAT(DISTINCT p.start_date ORDER BY p.project_id) AS start_date, \n"
+	+ "	GROUP_CONCAT(DISTINCT p.end_date ORDER BY p.project_id) AS end_date,  \n"
+	+ "	GROUP_CONCAT(DISTINCT ppd.po_no ORDER BY p.project_id) AS po_no,  \n"
+	+ "	GROUP_CONCAT(DISTINCT p.po_project_type ORDER BY p.project_id) AS po_project_type,\n"
+	+ "	GROUP_CONCAT(DISTINCT c.client_name ORDER BY p.project_id) AS client_name,\n"
+	+ "	GROUP_CONCAT(DISTINCT cl.client_location ORDER BY p.project_id) AS client_location "
+	+ "	FROM employee_team_mapping etm     \n"
+	+ "	INNER JOIN teams t ON t.team_id = etm.team_id \n"
+	+ "	INNER JOIN projects p ON p.project_id = t.project_id \n"
+	+ " LEFT JOIN project_po_details ppd \n"
+	+ " ON ppd.project_id = p.project_id \n"
+	+ " AND ppd.po_start_date <= :toDate \n"    
+	+ " AND ppd.po_end_date   >= :fromDate \n" 
+	+ "	LEFT JOIN clients c ON c.client_id = p.client_id\n"
+	+ "	LEFT JOIN client_locations cl ON cl.client_id = p.client_id\n"
+	+ "	WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'  \n"
+	+ "	GROUP BY etm.emp_id \n"
+	+ ") emp_proj_client ON emp_proj_client.emp_id = e.emp_id \n"
+	+ "LEFT JOIN (\n"
+	+ "	select distinct e.emp_id as emp_id, e.name as name, e.email as email\n"
+	+ "		  ,case when el.emp_id is null then 'No' else 'Yes' end as On_Maternity_Leave\n"
+	+ "	from employee e \n"
+	+ "	left join employee_leave el \n"
+	+ "		on el.emp_id = e.emp_id \n"
+	+ "		and leave_status_id in (1,2) \n"
+	+ "		and manager_approval_status = 'Approved' \n"
+	+ "		and leave_type_master_id = 5 \n"
+	+ "		and curdate() between date(el.from_date) and date(el.to_date) \n"
+	+ "		) eld on eld.emp_id = e.emp_id\n"
+	+ "WHERE e.employmentstatus != 'InActive' AND emp_proj_client.project_id IS NOT NULL \n"
+	+ "and emp_proj_client.po_project_type = :poProjectType\n"
+	+ "AND emp_proj_client.end_date < CURRENT_DATE\n"
+	+ "AND date(emp_proj_client.end_date) between date:fromDate and date:toDate\n"
+	+ "and e.emp_id not between 1 and 6  AND e.billable_type IN ('TNM')\n"
+	+ "AND ((:leave_filter = true) \n"
+	+ "			or \n"
+	+ "		(:leave_filter != true and eld.On_Maternity_Leave = 'No')\n"
+	+ "	)\n"
+	+ "AND (j.employee_role = 'SuperAdmin' OR d.dept_id IN (:deptIds))", nativeQuery = true)
+	public List<Object[]> fetchInactivePOListOfEmployeeNew(
+			@Param("poProjectType") String poProjectType,
+			@Param("deptIds") List<Long> deptIds,
+			@Param("fromDate") String fromDate,
+			@Param("toDate") String toDate,
+			@Param("leave_filter") boolean maternityleaveFilter);
+
+
+			@Query(value = "SELECT e.employeement_id, e.name, \n"
+		    			+"	e.billable, e.billable_type,  \n"
+		    			+"	emp_proj_client.project_name, emp_proj_client.start_date, emp_proj_client.end_date, \n"
+		    			+"	emp_proj_client.po_no, emp_proj_client.client_name, emp_proj_client.client_location,  \n"
+		    			+"	d.name as departmentName, emp_proj_client.po_project_type,  \n"
+		    			+"	j.name as jobrole, emp_proj_client.po_project_id, eppm.primary_project_name, eppm.primary_project_id, \n"
+		    			+"	emp_proj_client.clientrm, emp_proj_client.apmosysrm, emp_proj_client.effective_start_date,  \n"
+		    			+"	emp_proj_client.effective_end_date FROM employee e \n"
+		    			+"	INNER JOIN job_role j ON j.job_role_id = e.job_role_id \n"
+		    			+"	INNER JOIN department d ON d.dept_id = j.dept_id \n"
+		    			+"	INNER JOIN employee m ON e.manager_id = m.emp_id \n"
+		    			+"	LEFT JOIN emp_primary_project_mapping eppm ON eppm.emp_id = e.emp_id and eppm.is_mapped = 'Y' \n"
+		    			+"	LEFT JOIN (      \n"
+		    			+"	SELECT etm.emp_id, GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_id) AS project_name,   \n"
+		    			+"	GROUP_CONCAT(DISTINCT p.project_id ORDER BY p.project_id) AS project_id,  \n"
+		    			+"	GROUP_CONCAT(DISTINCT p.start_date ORDER BY p.project_id) AS start_date,  \n"
+		    			+"	GROUP_CONCAT(DISTINCT p.end_date ORDER BY p.project_id) AS end_date,   \n"
+		    			+"	GROUP_CONCAT(DISTINCT ppd.po_no ORDER BY p.project_id) AS po_no,   \n"
+		    			+"	GROUP_CONCAT(DISTINCT p.po_project_type ORDER BY p.project_id) AS po_project_type, \n"
+		    			+"	GROUP_CONCAT(DISTINCT c.client_name ORDER BY p.project_id) AS client_name, \n"
+		    			+"	GROUP_CONCAT(DISTINCT cl.client_location ORDER BY p.project_id) AS client_location, \n"
+		    			+"	GROUP_CONCAT(DISTINCT t.team_name ORDER BY p.project_id) AS team_name,   \n"
+		    			+"	GROUP_CONCAT(DISTINCT t.team_id ORDER BY p.project_id) AS team_id,  \n"
+		    			+"	GROUP_CONCAT(DISTINCT p.po_project_id ORDER BY p.project_id) AS po_project_id,  \n"
+		    			+"	GROUP_CONCAT(DISTINCT ppd.client_rm ORDER BY p.project_id) AS clientrm,  \n"
+		    			+"	GROUP_CONCAT(DISTINCT ppd.apmosys_rm ORDER BY p.project_id) AS apmosysrm, \n"
+		    			+"	GROUP_CONCAT(DISTINCT etm.start_date ORDER BY p.project_id) AS effective_start_date,  \n"
+		    			+"	GROUP_CONCAT(DISTINCT etm.end_date ORDER BY p.project_id) AS effective_end_date  \n"
+		    			+"	FROM employee_team_mapping etm      \n"
+		    			+"	LEFT JOIN teams t ON t.team_id = etm.team_id  \n"
+		    			+"	LEFT JOIN projects p ON p.project_id = t.project_id  \n"
+						+"  LEFT JOIN project_po_details ppd \n"
+						+" 	ON ppd.project_id = p.project_id \n"
+						+"  AND ppd.po_start_date <= :toDate \n" 
+						+"	AND ppd.po_end_date   >= :fromDate \n"
+		    			+"	LEFT JOIN clients c ON c.client_id = p.client_id \n"
+		    			+"	LEFT JOIN client_locations cl ON cl.client_id = p.client_id \n"
+		    			+"	LEFT JOIN ( \n"
+		    			+"				select distinct e.emp_id as emp_id, e.name as name, e.email as email \n"
+		    			+"					  ,case when el.emp_id is null then 'No' else 'Yes' end as On_Maternity_Leave \n"
+		    			+"				from employee e  \n"
+		    			+"				left join employee_leave el  \n"
+		    			+"					on el.emp_id = e.emp_id  \n"
+		    			+"					and leave_status_id in (1,2)  \n"
+		    			+"					and manager_approval_status = 'Approved'  \n"
+		    			+"					and leave_type_master_id = 5  \n"
+		    			+"					and curdate() between date(el.from_date) and date(el.to_date)  \n"
+		    			+"			) eld on eld.emp_id = etm.emp_id \n"
+		    			+"	WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'   \n"
+		    			+"	GROUP BY etm.emp_id ) emp_proj_client ON emp_proj_client.emp_id = e.emp_id \n"
+		    			+"	WHERE e.employmentstatus != 'InActive' AND emp_proj_client.project_id IS NOT NULL  \n"
+		    			+"	and emp_proj_client.po_project_type = :poProjectType \n"
+		    			+"	AND emp_proj_client.end_date >= CURRENT_DATE \n"
+		    			+"	AND date(emp_proj_client.end_date) between :fromDate and :toDate \n"
+		    			+"	and e.emp_id not between 1 and 6  AND e.billable_type IN ('TNM') \n"
+		    			+"	AND ((:leave_filter = true)  \n"
+		    			+"				or  \n"
+		    			+"			(:leave_filter != true and eld.On_Maternity_Leave = 'No') \n"
+		    			+"		) \n"
+		    			+"	AND (j.employee_role = 'SuperAdmin' OR d.dept_id IN (:deptIds))", nativeQuery = true)
+		    	public List<Object[]> fetchActivePOListOfEmployeeNew(@Param("poProjectType") String poProjectType,
+		    			@Param("deptIds") List<Long> deptIds,
+		    			@Param("fromDate") String fromDate,
+		    			@Param("toDate") String toDate,
+		    			@Param("leave_filter") boolean maternityleaveFilter);
+
+				@Query(value = "SELECT DISTINCT p.project_name, \n"
+		    			+ "GROUP_CONCAT(DISTINCT ppd.po_no ORDER BY p.project_id SEPARATOR ', ') AS po_no, \n"
+						+ "p.po_project_type, p.start_date, p.end_date,\n"
+		    			+ "GROUP_CONCAT(DISTINCT ppd.client_rm ORDER BY p.project_id SEPARATOR ', ') AS clientrm, \n"
+						+ "GROUP_CONCAT(DISTINCT ppd.apmosys_rm ORDER BY p.project_id SEPARATOR ', ') AS apmosysrm, \n"
+						+ "c.client_name, p.client_location \n"
+		    			+ "FROM projects p \n"
+		    			+ "INNER JOIN teams t ON t.project_id = p.project_id \n"
+		    			+ "INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
+		    			+ "INNER JOIN employee e ON etm.emp_id = e.emp_id\n"
+		    			+ "INNER JOIN job_role j ON e.job_role_id = j.job_role_id \n"
+		    			+ "INNER JOIN department d ON d.dept_id = j.dept_id\n"
+		    			+ "INNER JOIN employee ep ON p.project_manager_id = ep.emp_id\n"
+		    			+ "LEFT JOIN clients c ON p.client_id = c.client_id \n"
+						+ "LEFT JOIN project_po_details ppd \n"
+						+ "ON ppd.project_id = p.project_id \n"
+						+ "AND ppd.po_start_date <= :toDate \n"
+						+ "AND ppd.po_end_date   >= :fromDate \n"
+		    			+ "WHERE etm.active != 0 \n"
+		    			+ "    AND t.is_active != 'N' \n"
+		    			+ "    AND p.active != 'false' \n"
+		    			+ "    AND e.emp_id NOT BETWEEN 1 AND 6 \n"
+		    			+ "    AND d.dept_id IN (:deptIds)\n"
+		    			+ "    AND p.po_project_type = :poProjectType \n"
+		    			+ "    AND p.end_date >= CURRENT_DATE\n"
+		    			+ "    AND DATE(p.end_date) BETWEEN :fromDate AND :toDate \n"
+						+ "GROUP BY p.project_name, p.po_project_type, p.start_date, p.end_date, c.client_name, p.client_location", nativeQuery = true)
+		    	public List<Object[]> fetchActivePOListOfProjectNew(
+		    			@Param("poProjectType") String poProjectType,
+		    			@Param("deptIds") List<Long> deptIds,
+		    			@Param("fromDate") String fromDate,
+		    			@Param("toDate") String toDate);
+
+	
+
+}

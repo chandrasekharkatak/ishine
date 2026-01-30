@@ -166,26 +166,26 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.teamId IN :teamIds AND etm.active !=0")
 	List<EmployeeTeamMap> findActiveByTeamIds(@Param("teamIds") List<Long> teamIds);
 	
-	@Query(value = "SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO(\n"
-	        + "e.empId,e.employeementId,e.billable,e.billableType,e.name,d.name \n" 
-	        + ",p.projectId,p.projectName,p.poProjectId,p.startDate,p.endDate,p.apmosysRM,p.clientRM,p.poProjectType,p.poNo \n"
-	        + ",c.clientName,t.teamId,t.teamName,t.isActive \n"
-	        + ",etm.employeeRole,etm.active,pm.empId,pm.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) \n"
-			+ "FROM EmployeeTeamMap etm\n"
-			+ "RIGHT JOIN Employee e ON e.empId = etm.empId \n"
-			+ "RIGHT JOIN Team t ON t.teamId = etm.teamId \n"
-			+ "INNER JOIN Project p ON p.projectId = t.projectId \n"
-			+ "INNER JOIN Client c ON c.clientId = p.clientId \n"
-			+ "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId \n"
-			+ "INNER JOIN Department d ON d.deptId = jr.deptId \n"
-			+ "LEFT JOIN  ProjectManagerMapping pmm ON pmm.projectId = p.projectId \n"
-			+ "LEFT JOIN  Employee pm ON pm.empId = pmm.projectManagerId\n"
-			+ "WHERE p.projectId IN :projectIds \n"
-			+ "AND etm.active != 0 \n"
-			+ "AND t.isActive = 'Y' \n"
-			+ "AND e.employmentstatus != 'InActive' \n"
-			+ "AND pmm.active = 1 AND e.empId NOT BETWEEN 1 AND 6 ")
-	List<RMGFlatEmployeeProjectTeamDTO>  findEmployeeProjectTeamDetailsByProjectIds(@Param("projectIds") Set<Integer> projectIds);
+	// @Query(value = "SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO(\n"
+	//         + "e.empId,e.employeementId,e.billable,e.billableType,e.name,d.name \n" 
+	//         + ",p.projectId,p.projectName,p.poProjectId,p.startDate,p.endDate,p.apmosysRM,p.clientRM,p.poProjectType,p.poNo \n"
+	//         + ",c.clientName,t.teamId,t.teamName,t.isActive \n"
+	//         + ",etm.employeeRole,etm.active,pm.empId,pm.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) \n"
+	// 		+ "FROM EmployeeTeamMap etm\n"
+	// 		+ "RIGHT JOIN Employee e ON e.empId = etm.empId \n"
+	// 		+ "RIGHT JOIN Team t ON t.teamId = etm.teamId \n"
+	// 		+ "INNER JOIN Project p ON p.projectId = t.projectId \n"
+	// 		+ "INNER JOIN Client c ON c.clientId = p.clientId \n"
+	// 		+ "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId \n"
+	// 		+ "INNER JOIN Department d ON d.deptId = jr.deptId \n"
+	// 		+ "LEFT JOIN  ProjectManagerMapping pmm ON pmm.projectId = p.projectId \n"
+	// 		+ "LEFT JOIN  Employee pm ON pm.empId = pmm.projectManagerId\n"
+	// 		+ "WHERE p.projectId IN :projectIds \n"
+	// 		+ "AND etm.active != 0 \n"
+	// 		+ "AND t.isActive = 'Y' \n"
+	// 		+ "AND e.employmentstatus != 'InActive' \n"
+	// 		+ "AND pmm.active = 1 AND e.empId NOT BETWEEN 1 AND 6 ")
+	// List<RMGFlatEmployeeProjectTeamDTO>  findEmployeeProjectTeamDetailsByProjectIds(@Param("projectIds") Set<Integer> projectIds);
 	
 	
 	
@@ -220,71 +220,71 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 
 
 
-@Query(value = "SELECT \n"
-		+ "    e.emp_id, \n"
-		+ "    e.employeement_id, \n"
-		+ "    e.billable, \n"
-		+ "    e.billable_type, \n"
-		+ "    e.name, \n"
-		+ "    d.name AS departmentname,\n"
-		+ "    p.project_id, \n"
-		+ "    p.project_name, \n"
-		+ "    p.po_project_id, \n"
-		+ "    p.start_date, \n"
-		+ "    p.end_date,\n"
-		+ "    p.apmosysrm, \n"
-		+ "    p.clientrm, \n"
-		+ "    p.po_project_type, \n"
-		+ "    p.po_no, \n"
-		+ "    c.client_name,\n"
-		+ "    t.team_id, \n"
-		+ "    t.team_name, \n"
-		+ "    t.is_active, \n"
-		+ "    etm.employee_role, \n"
-		+ "    etm.active,  \n"
-		+ "    pm.emp_id AS project_manager_id, \n"
-		+ "    pm.name AS project_manager_name,e.is_apmosys_product\n"
-		+ "FROM \n"
-		+ "    employee_team_mapping etm\n"
-		+ "RIGHT JOIN \n"
-		+ "    employee e ON e.emp_id = etm.emp_id\n"
-		+ "RIGHT JOIN \n"
-		+ "    teams t ON t.team_id = etm.team_id\n"
-		+ "INNER JOIN \n"
-		+ "    projects p ON p.project_id = t.project_id\n"
-		+ "LEFT JOIN \n"
-		+ "    clients c ON c.client_id = p.client_id\n"
-		+ "INNER JOIN \n"
-		+ "    job_role jr ON jr.job_role_id = e.job_role_id\n"
-		+ "INNER JOIN \n"
-		+ "    department d ON d.dept_id = jr.dept_id\n"
-		+ "LEFT JOIN \n"
-		+ "    project_manager_mapping pmm ON pmm.project_id = p.project_id AND pmm.active = 1 \n"
-		+ "LEFT JOIN \n"
-		+ "    employee pm ON pm.emp_id = pmm.project_manager_id\n"
-		+ "LEFT JOIN (\n"
-		+ "			select distinct e.emp_id as emp_id, e.name as name, e.email as email\n"
-		+ "				  ,case when el.emp_id is null then 'No' else 'Yes' end as On_Maternity_Leave\n"
-		+ "			from employee e \n"
-		+ "			left join employee_leave el \n"
-		+ "				on el.emp_id = e.emp_id \n"
-		+ "				and leave_status_id in (1,2) \n"
-		+ "				and manager_approval_status = 'Approved' \n"
-		+ "				and leave_type_master_id = 5 \n"
-		+ "				and curdate() between date(el.from_date) and date(el.to_date) \n"
-		+ "		) eld on eld.emp_id = e.emp_id \n"
-		+ "WHERE \n"
-		+ "    p.project_id IN :projectIds\n"
-		+ "    AND etm.active != 0 \n"
-		+ "    AND t.is_active = 'Y' \n"
-		+ "    AND e.employmentstatus != 'InActive' \n"
-		+ "    AND d.dept_id IN :deptIds AND e.emp_id NOT BETWEEN 1 AND 6 \n"
-		+ "AND ((:hideMaternityLeaveEmps = true) \n"
-		+ "			or \n"
-		+ "		(:hideMaternityLeaveEmps != true and eld.On_Maternity_Leave = 'No')\n"
-		+ "	)",
-nativeQuery = true)
-List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("projectIds") Set<Integer> projectIds,@Param("deptIds")List<Long> deptIds,@Param("hideMaternityLeaveEmps")Boolean hideMaternityLeaveEmps); 
+// @Query(value = "SELECT \n"
+// 		+ "    e.emp_id, \n"
+// 		+ "    e.employeement_id, \n"
+// 		+ "    e.billable, \n"
+// 		+ "    e.billable_type, \n"
+// 		+ "    e.name, \n"
+// 		+ "    d.name AS departmentname,\n"
+// 		+ "    p.project_id, \n"
+// 		+ "    p.project_name, \n"
+// 		+ "    p.po_project_id, \n"
+// 		+ "    p.start_date, \n"
+// 		+ "    p.end_date,\n"
+// 		+ "    p.apmosysrm, \n"
+// 		+ "    p.clientrm, \n"
+// 		+ "    p.po_project_type, \n"
+// 		+ "    p.po_no, \n"
+// 		+ "    c.client_name,\n"
+// 		+ "    t.team_id, \n"
+// 		+ "    t.team_name, \n"
+// 		+ "    t.is_active, \n"
+// 		+ "    etm.employee_role, \n"
+// 		+ "    etm.active,  \n"
+// 		+ "    pm.emp_id AS project_manager_id, \n"
+// 		+ "    pm.name AS project_manager_name,e.is_apmosys_product\n"
+// 		+ "FROM \n"
+// 		+ "    employee_team_mapping etm\n"
+// 		+ "RIGHT JOIN \n"
+// 		+ "    employee e ON e.emp_id = etm.emp_id\n"
+// 		+ "RIGHT JOIN \n"
+// 		+ "    teams t ON t.team_id = etm.team_id\n"
+// 		+ "INNER JOIN \n"
+// 		+ "    projects p ON p.project_id = t.project_id\n"
+// 		+ "LEFT JOIN \n"
+// 		+ "    clients c ON c.client_id = p.client_id\n"
+// 		+ "INNER JOIN \n"
+// 		+ "    job_role jr ON jr.job_role_id = e.job_role_id\n"
+// 		+ "INNER JOIN \n"
+// 		+ "    department d ON d.dept_id = jr.dept_id\n"
+// 		+ "LEFT JOIN \n"
+// 		+ "    project_manager_mapping pmm ON pmm.project_id = p.project_id AND pmm.active = 1 \n"
+// 		+ "LEFT JOIN \n"
+// 		+ "    employee pm ON pm.emp_id = pmm.project_manager_id\n"
+// 		+ "LEFT JOIN (\n"
+// 		+ "			select distinct e.emp_id as emp_id, e.name as name, e.email as email\n"
+// 		+ "				  ,case when el.emp_id is null then 'No' else 'Yes' end as On_Maternity_Leave\n"
+// 		+ "			from employee e \n"
+// 		+ "			left join employee_leave el \n"
+// 		+ "				on el.emp_id = e.emp_id \n"
+// 		+ "				and leave_status_id in (1,2) \n"
+// 		+ "				and manager_approval_status = 'Approved' \n"
+// 		+ "				and leave_type_master_id = 5 \n"
+// 		+ "				and curdate() between date(el.from_date) and date(el.to_date) \n"
+// 		+ "		) eld on eld.emp_id = e.emp_id \n"
+// 		+ "WHERE \n"
+// 		+ "    p.project_id IN :projectIds\n"
+// 		+ "    AND etm.active != 0 \n"
+// 		+ "    AND t.is_active = 'Y' \n"
+// 		+ "    AND e.employmentstatus != 'InActive' \n"
+// 		+ "    AND d.dept_id IN :deptIds AND e.emp_id NOT BETWEEN 1 AND 6 \n"
+// 		+ "AND ((:hideMaternityLeaveEmps = true) \n"
+// 		+ "			or \n"
+// 		+ "		(:hideMaternityLeaveEmps != true and eld.On_Maternity_Leave = 'No')\n"
+// 		+ "	)",
+// nativeQuery = true)
+// List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("projectIds") Set<Integer> projectIds,@Param("deptIds")List<Long> deptIds,@Param("hideMaternityLeaveEmps")Boolean hideMaternityLeaveEmps); 
 
 
 
@@ -292,43 +292,43 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 
 
 
-@Query("SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO(" +
-	       "e.empId, e.employeementId, e.billable, e.billableType, e.name, d.name, " +
-	       "p.projectId, p.projectName, p.poProjectId, p.startDate, p.endDate, " +
-	       "p.apmosysRM, p.clientRM, p.poProjectType, p.poNo, c.clientName, " +
-	       "t.teamId, t.teamName, t.isActive, etm.employeeRole, etm.active, " +
-	       "pm.empId, pm.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) " +
+// @Query("SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO(" +
+// 	       "e.empId, e.employeementId, e.billable, e.billableType, e.name, d.name, " +
+// 	       "p.projectId, p.projectName, p.poProjectId, p.startDate, p.endDate, " +
+// 	       "p.apmosysRM, p.clientRM, p.poProjectType, p.poNo, c.clientName, " +
+// 	       "t.teamId, t.teamName, t.isActive, etm.employeeRole, etm.active, " +
+// 	       "pm.empId, pm.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) " +
 	       
-	       "FROM EmployeeTeamMap etm " +
-	       "RIGHT JOIN Employee e ON e.empId = etm.empId " +
-	       "RIGHT JOIN Team t ON t.teamId = etm.teamId " +
-	       "INNER JOIN Project p ON p.projectId = t.projectId " +
-	       "INNER JOIN Client c ON c.clientId = p.clientId " +
-	       "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
-	       "INNER JOIN Department d ON d.deptId = jr.deptId " +
-	       "LEFT JOIN ProjectManagerMapping pmm ON pmm.projectId = p.projectId " +
-	       "LEFT JOIN Employee pm ON pm.empId = pmm.projectManagerId " +
+// 	       "FROM EmployeeTeamMap etm " +
+// 	       "RIGHT JOIN Employee e ON e.empId = etm.empId " +
+// 	       "RIGHT JOIN Team t ON t.teamId = etm.teamId " +
+// 	       "INNER JOIN Project p ON p.projectId = t.projectId " +
+// 	       "INNER JOIN Client c ON c.clientId = p.clientId " +
+// 	       "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
+// 	       "INNER JOIN Department d ON d.deptId = jr.deptId " +
+// 	       "LEFT JOIN ProjectManagerMapping pmm ON pmm.projectId = p.projectId " +
+// 	       "LEFT JOIN Employee pm ON pm.empId = pmm.projectManagerId " +
 	       
-	       "WHERE e.empId IN ( " +
-	           "SELECT e1.empId " +
-	           "FROM EmployeeTeamMap etm1 " +
-	           "JOIN Employee e1 ON e1.empId = etm1.empId " +
-	           "JOIN Team t1 ON t1.teamId = etm1.teamId " +
-	           "JOIN Project p1 ON p1.projectId = t1.projectId " +
-	           "JOIN ProjectManagerMapping pmm1 ON pmm1.projectId = p1.projectId " +
-	           "WHERE etm1.active != 0 AND t1.isActive = 'Y' AND e1.employmentstatus != 'InActive' " +
-	           "AND pmm1.active = 1 AND p1.projectId IN :projectIds " +
-	           "GROUP BY e1.empId " +
-	           "HAVING COUNT(CASE WHEN p1.poProjectId IS NULL THEN 1 END) > 0 " +
-	           "AND COUNT(CASE WHEN p1.poProjectId IS NOT NULL THEN 1 END) > 0" +
-	       ") " +
+// 	       "WHERE e.empId IN ( " +
+// 	           "SELECT e1.empId " +
+// 	           "FROM EmployeeTeamMap etm1 " +
+// 	           "JOIN Employee e1 ON e1.empId = etm1.empId " +
+// 	           "JOIN Team t1 ON t1.teamId = etm1.teamId " +
+// 	           "JOIN Project p1 ON p1.projectId = t1.projectId " +
+// 	           "JOIN ProjectManagerMapping pmm1 ON pmm1.projectId = p1.projectId " +
+// 	           "WHERE etm1.active != 0 AND t1.isActive = 'Y' AND e1.employmentstatus != 'InActive' " +
+// 	           "AND pmm1.active = 1 AND p1.projectId IN :projectIds " +
+// 	           "GROUP BY e1.empId " +
+// 	           "HAVING COUNT(CASE WHEN p1.poProjectId IS NULL THEN 1 END) > 0 " +
+// 	           "AND COUNT(CASE WHEN p1.poProjectId IS NOT NULL THEN 1 END) > 0" +
+// 	       ") " +
 	       
-	       "AND etm.active != 0 " +
-	       "AND t.isActive = 'Y' " +
-	       "AND e.employmentstatus != 'InActive' " +
-	       "AND pmm.active = 1 " +
-	       "AND e.empId NOT BETWEEN 1 AND 6")
-	List<RMGFlatEmployeeProjectTeamDTO> findEmployeeProjectTeamDetailsMatchedBothProjects(@Param("projectIds") Set<Integer> projectIds);
+// 	       "AND etm.active != 0 " +
+// 	       "AND t.isActive = 'Y' " +
+// 	       "AND e.employmentstatus != 'InActive' " +
+// 	       "AND pmm.active = 1 " +
+// 	       "AND e.empId NOT BETWEEN 1 AND 6")
+// 	List<RMGFlatEmployeeProjectTeamDTO> findEmployeeProjectTeamDetailsMatchedBothProjects(@Param("projectIds") Set<Integer> projectIds);
 
 
 
@@ -421,45 +421,45 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 //		       "AND e.employmentstatus != 'InActive'")
 //		List<RMGProjectToEmployeeFlatDTO> findNonComplianceProjects(@Param("projectIds") Set<Integer> projectIds,@Param("fromDate") LocalDate fromDate,@Param("toDate") LocalDate toDate);
 
-	 @Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO(" +
-		       "p.projectId, p.projectName, p.apmosysRM, p.clientRM, " +
-		       "p.startDate, p.endDate, p.poNo, p.poProjectType, " +
-		       "c.clientName, " +                         
-		       "pm.empId, pm.name, " +
-		       "t.teamId, t.teamName, " +
-		       "e.empId, e.name, " +
-		       "jr.name, d.name, e.mobileNo, e.email, " +
-		       "e.billable, e.billableType, " +
-		       "etm.startDate, " +
-		       "e.employeementId" +
-		       ") " +
-		       "FROM Project p " +
-		       "INNER JOIN Team t ON t.projectId = p.projectId " +
-		       "INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId " +
-		       "LEFT JOIN ProjectManagerMapping pmm ON p.projectId = pmm.projectId " +
-		       "INNER JOIN Employee pm ON pm.empId = pmm.projectManagerId " +
-		       "INNER JOIN Employee e ON e.empId = etm.empId " +
-		       "INNER JOIN Client c ON c.clientId = p.clientId " +
-		       "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
-		       "INNER JOIN Department d ON jr.deptId = d.deptId " +
-		       "WHERE p.projectId NOT IN (" +
-		       "  SELECT p2.projectId FROM Timesheet et " +
-		       "  INNER JOIN TimesheetActivityMap etam ON et.timesheetId = etam.timesheetId " +
-		       "  INNER JOIN Activity a ON a.activityId = etam.activityId " +
-		       "  RIGHT JOIN Team t2 ON t2.teamId = a.teamId " +
-		       "  INNER JOIN Project p2 ON p2.projectId = t2.projectId " +
-		       "  WHERE et.date >= :fromDate AND et.date <= :toDate" +
-		       ") " +
-		       "AND p.active = 'true' " +
-		       "AND p.projectId IN :projectIds " +
-		       "AND t.isActive = 'Y' " +
-		       "AND etm.active != 0 " +
-		       "AND e.employmentstatus != 'InActive'")
-		List<RMGProjectToEmployeeFlatDTO> findNonComplianceProjects(
-		    @Param("projectIds") Set<Integer> projectIds,
-		    @Param("fromDate") LocalDate fromDate,
-		    @Param("toDate") LocalDate toDate
-		);
+	//  @Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO(" +
+	// 	       "p.projectId, p.projectName, p.apmosysRM, p.clientRM, " +
+	// 	       "p.startDate, p.endDate, p.poNo, p.poProjectType, " +
+	// 	       "c.clientName, " +                         
+	// 	       "pm.empId, pm.name, " +
+	// 	       "t.teamId, t.teamName, " +
+	// 	       "e.empId, e.name, " +
+	// 	       "jr.name, d.name, e.mobileNo, e.email, " +
+	// 	       "e.billable, e.billableType, " +
+	// 	       "etm.startDate, " +
+	// 	       "e.employeementId" +
+	// 	       ") " +
+	// 	       "FROM Project p " +
+	// 	       "INNER JOIN Team t ON t.projectId = p.projectId " +
+	// 	       "INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId " +
+	// 	       "LEFT JOIN ProjectManagerMapping pmm ON p.projectId = pmm.projectId " +
+	// 	       "INNER JOIN Employee pm ON pm.empId = pmm.projectManagerId " +
+	// 	       "INNER JOIN Employee e ON e.empId = etm.empId " +
+	// 	       "INNER JOIN Client c ON c.clientId = p.clientId " +
+	// 	       "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
+	// 	       "INNER JOIN Department d ON jr.deptId = d.deptId " +
+	// 	       "WHERE p.projectId NOT IN (" +
+	// 	       "  SELECT p2.projectId FROM Timesheet et " +
+	// 	       "  INNER JOIN TimesheetActivityMap etam ON et.timesheetId = etam.timesheetId " +
+	// 	       "  INNER JOIN Activity a ON a.activityId = etam.activityId " +
+	// 	       "  RIGHT JOIN Team t2 ON t2.teamId = a.teamId " +
+	// 	       "  INNER JOIN Project p2 ON p2.projectId = t2.projectId " +
+	// 	       "  WHERE et.date >= :fromDate AND et.date <= :toDate" +
+	// 	       ") " +
+	// 	       "AND p.active = 'true' " +
+	// 	       "AND p.projectId IN :projectIds " +
+	// 	       "AND t.isActive = 'Y' " +
+	// 	       "AND etm.active != 0 " +
+	// 	       "AND e.employmentstatus != 'InActive'")
+	// 	List<RMGProjectToEmployeeFlatDTO> findNonComplianceProjects(
+	// 	    @Param("projectIds") Set<Integer> projectIds,
+	// 	    @Param("fromDate") LocalDate fromDate,
+	// 	    @Param("toDate") LocalDate toDate
+	// 	);
 	 
 		@Query(value = "SELECT new com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse(ete.empId, ete.employeementId, " +
 				"ete.name, te.deptIds, tm.employeeRole, te.teamName, te.teamId, " +
@@ -604,6 +604,195 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 				+ "FROM EmployeeTeamMap etm \n"
 				+ "WHERE etm.empId=:empId AND etm.active!=0")
 		List<EmployeeTeamMap> findByEmpIdAndActiveStatus(Long empId);
+
+
+
+		// --------------------------------------------------------------- Below this are the queries that are joined with project po details tabnle
 		
+		@Query(value = "SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO(\n"
+		+ "e.empId,e.employeementId,e.billable,e.billableType,e.name,d.name \n" 
+		+ ",p.projectId,p.projectName,p.poProjectId,p.startDate,p.endDate,ppd.apmosysRM,ppd.clientRm,p.poProjectType,ppd.poNo \n"
+		+ ",c.clientName,t.teamId,t.teamName,t.isActive \n"
+		+ ",etm.employeeRole,etm.active,pm.empId,pm.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) \n"
+		+ "FROM EmployeeTeamMap etm\n"
+		+ "RIGHT JOIN Employee e ON e.empId = etm.empId \n"
+		+ "RIGHT JOIN Team t ON t.teamId = etm.teamId \n"
+		+ "INNER JOIN Project p ON p.projectId = t.projectId \n"
+		+ "LEFT JOIN ProjectPoDetails ppd \n"
++ "ON ppd.projectId = p.projectId \n"
++" AND FUNCTION('STR_TO_DATE', ppd.poStartDate, '%Y-%m-%d') <= curdate() \n"
++" AND ( ppd.poEndDate IS NULL \n" 
++"       OR FUNCTION('STR_TO_DATE', ppd.poEndDate, '%Y-%m-%d') >= curdate() ) \n"  
+		+ "INNER JOIN Client c ON c.clientId = p.clientId \n"
+		+ "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId \n"
+		+ "INNER JOIN Department d ON d.deptId = jr.deptId \n"
+		+ "LEFT JOIN  ProjectManagerMapping pmm ON pmm.projectId = p.projectId \n"
+		+ "LEFT JOIN  Employee pm ON pm.empId = pmm.projectManagerId\n"
+		+ "WHERE p.projectId IN :projectIds \n"
+		+ "AND etm.active != 0 \n"
+		+ "AND t.isActive = 'Y' \n"
+		+ "AND e.employmentstatus != 'InActive' \n"
+		+ "AND pmm.active = 1 AND e.empId NOT BETWEEN 1 AND 6 ")
+List<RMGFlatEmployeeProjectTeamDTO>  findEmployeeProjectTeamDetailsByProjectIds(@Param("projectIds") Set<Integer> projectIds);
+
+@Query(value = "SELECT \n"
+		+ "    e.emp_id, \n"
+		+ "    e.employeement_id, \n"
+		+ "    e.billable, \n"
+		+ "    e.billable_type, \n"
+		+ "    e.name, \n"
+		+ "    d.name AS departmentname,\n"
+		+ "    p.project_id, \n"
+		+ "    p.project_name, \n"
+		+ "    p.po_project_id, \n"
+		+ "    p.start_date, \n"
+		+ "    p.end_date,\n"
+		+ "    GROUP_CONCAT(DISTINCT ppd.apmosys_rm ORDER BY p.start_date SEPARATOR ', ') AS apmosysrm,\n" 
+		+ "    GROUP_CONCAT(DISTINCT ppd.client_rm ORDER BY p.start_date SEPARATOR ', ') AS clientrm,\n" 
+		+ "    p.po_project_type, \n"
+		+ "    GROUP_CONCAT(DISTINCT ppd.po_no ORDER BY p.start_date   SEPARATOR ', ') AS po_no,\n"
+		+ "    c.client_name,\n"
+		+ "    t.team_id, \n"
+		+ "    t.team_name, \n"
+		+ "    t.is_active, \n"
+		+ "    etm.employee_role, \n"
+		+ "    etm.active,  \n"
+		+ "    pm.emp_id AS project_manager_id, \n"
+		+ "    pm.name AS project_manager_name,e.is_apmosys_product\n"
+		+ "FROM \n"
+		+ "    employee_team_mapping etm\n"
+		+ "RIGHT JOIN \n"
+		+ "    employee e ON e.emp_id = etm.emp_id\n"
+		+ "RIGHT JOIN \n"
+		+ "    teams t ON t.team_id = etm.team_id\n"
+		+ "INNER JOIN \n"
+		+ "    projects p ON p.project_id = t.project_id\n"
+		+ "LEFT JOIN project_po_details ppd \n"
+		+ "ON ppd.project_id = p.project_id \n"
+		+ "AND STR_TO_DATE(ppd.po_start_date, '%Y-%m-%d') <= CURRENT_DATE \n" 
+		+ "AND (ppd.po_end_date IS NULL OR STR_TO_DATE(ppd.po_end_date, '%Y-%m-%d') >= CURRENT_DATE ) \n" 
+		+ "LEFT JOIN \n"
+		+ "    clients c ON c.client_id = p.client_id\n"
+		+ "INNER JOIN \n"
+		+ "    job_role jr ON jr.job_role_id = e.job_role_id\n"
+		+ "INNER JOIN \n"
+		+ "    department d ON d.dept_id = jr.dept_id\n"
+		+ "LEFT JOIN \n"
+		+ "    project_manager_mapping pmm ON pmm.project_id = p.project_id AND pmm.active = 1 \n"
+		+ "LEFT JOIN \n"
+		+ "    employee pm ON pm.emp_id = pmm.project_manager_id\n"
+		+ "LEFT JOIN (\n"
+		+ "			select distinct e.emp_id as emp_id, e.name as name, e.email as email\n"
+		+ "				  ,case when el.emp_id is null then 'No' else 'Yes' end as On_Maternity_Leave\n"
+		+ "			from employee e \n"
+		+ "			left join employee_leave el \n"
+		+ "				on el.emp_id = e.emp_id \n"
+		+ "				and leave_status_id in (1,2) \n"
+		+ "				and manager_approval_status = 'Approved' \n"
+		+ "				and leave_type_master_id = 5 \n"
+		+ "				and curdate() between date(el.from_date) and date(el.to_date) \n"
+		+ "		) eld on eld.emp_id = e.emp_id \n"
+		+ "WHERE \n"
+		+ "    p.project_id IN :projectIds\n"
+		+ "    AND etm.active != 0 \n"
+		+ "    AND t.is_active = 'Y' \n"
+		+ "    AND e.employmentstatus != 'InActive' \n"
+		+ "    AND d.dept_id IN :deptIds AND e.emp_id NOT BETWEEN 1 AND 6 \n"
+		+ "AND ((:hideMaternityLeaveEmps = true) \n"
+		+ "			or \n"
+		+ "		(:hideMaternityLeaveEmps != true and eld.On_Maternity_Leave = 'No')\n"
+		+ "	)",
+nativeQuery = true)
+List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("projectIds") Set<Integer> projectIds,@Param("deptIds")List<Long> deptIds,@Param("hideMaternityLeaveEmps")Boolean hideMaternityLeaveEmps); 
+
+
+@Query("SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO(" +
+	       "e.empId, e.employeementId, e.billable, e.billableType, e.name, d.name, " +
+	       "p.projectId, p.projectName, p.poProjectId, p.startDate, p.endDate, " +
+	       "ppd.apmosysRM, ppd.clientRm, p.poProjectType, ppd.poNo, c.clientName, " +
+	       "t.teamId, t.teamName, t.isActive, etm.employeeRole, etm.active, " +
+	       "pm.empId, pm.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) " +
+	       
+	       "FROM EmployeeTeamMap etm " +
+	       "RIGHT JOIN Employee e ON e.empId = etm.empId " +
+	       "RIGHT JOIN Team t ON t.teamId = etm.teamId " +
+	       "INNER JOIN Project p ON p.projectId = t.projectId " +
+		   "LEFT JOIN ProjectPoDetails ppd \n"+
+		   "ON ppd.projectId = p.projectId \n"+
+		   "AND FUNCTION('STR_TO_DATE', ppd.poStartDate, '%Y-%m-%d') <= curdate() \n"+
+		   "AND ( ppd.poEndDate IS NULL \n" +
+		   "OR FUNCTION('STR_TO_DATE', ppd.poEndDate, '%Y-%m-%d') >= curdate() ) \n"  +
+	       "INNER JOIN Client c ON c.clientId = p.clientId " +
+	       "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
+	       "INNER JOIN Department d ON d.deptId = jr.deptId " +
+	       "LEFT JOIN ProjectManagerMapping pmm ON pmm.projectId = p.projectId " +
+	       "LEFT JOIN Employee pm ON pm.empId = pmm.projectManagerId " +
+	       
+	       "WHERE e.empId IN ( " +
+	           "SELECT e1.empId " +
+	           "FROM EmployeeTeamMap etm1 " +
+	           "JOIN Employee e1 ON e1.empId = etm1.empId " +
+	           "JOIN Team t1 ON t1.teamId = etm1.teamId " +
+	           "JOIN Project p1 ON p1.projectId = t1.projectId " +
+	           "JOIN ProjectManagerMapping pmm1 ON pmm1.projectId = p1.projectId " +
+	           "WHERE etm1.active != 0 AND t1.isActive = 'Y' AND e1.employmentstatus != 'InActive' " +
+	           "AND pmm1.active = 1 AND p1.projectId IN :projectIds " +
+	           "GROUP BY e1.empId " +
+	           "HAVING COUNT(CASE WHEN p1.poProjectId IS NULL THEN 1 END) > 0 " +
+	           "AND COUNT(CASE WHEN p1.poProjectId IS NOT NULL THEN 1 END) > 0" +
+	       ") " +
+	       
+	       "AND etm.active != 0 " +
+	       "AND t.isActive = 'Y' " +
+	       "AND e.employmentstatus != 'InActive' " +
+	       "AND pmm.active = 1 " +
+	       "AND e.empId NOT BETWEEN 1 AND 6")
+	List<RMGFlatEmployeeProjectTeamDTO> findEmployeeProjectTeamDetailsMatchedBothProjects(@Param("projectIds") Set<Integer> projectIds);
+
+
+	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO(" +
+	"p.projectId, p.projectName, p.apmosysRM, p.clientRM, " +
+	"p.startDate, p.endDate, p.poNo, p.poProjectType, " +
+	"c.clientName, " +                         
+	"pm.empId, pm.name, " +
+	"t.teamId, t.teamName, " +
+	"e.empId, e.name, " +
+	"jr.name, d.name, e.mobileNo, e.email, " +
+	"e.billable, e.billableType, " +
+	"etm.startDate, " +
+	"e.employeementId" +
+	") " +
+	"FROM Project p " +
+	"LEFT JOIN ProjectPoDetails ppd \n"+
+	"ON ppd.projectId = p.projectId \n"+
+	"AND FUNCTION('STR_TO_DATE', ppd.poStartDate, '%Y-%m-%d') <= curdate() \n"+
+	"AND ( ppd.poEndDate IS NULL \n" +
+	"OR FUNCTION('STR_TO_DATE', ppd.poEndDate, '%Y-%m-%d') >= curdate() ) \n"  +
+	"INNER JOIN Team t ON t.projectId = p.projectId " +
+	"INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId " +
+	"LEFT JOIN ProjectManagerMapping pmm ON p.projectId = pmm.projectId " +
+	"INNER JOIN Employee pm ON pm.empId = pmm.projectManagerId " +
+	"INNER JOIN Employee e ON e.empId = etm.empId " +
+	"INNER JOIN Client c ON c.clientId = p.clientId " +
+	"INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
+	"INNER JOIN Department d ON jr.deptId = d.deptId " +
+	"WHERE p.projectId NOT IN (" +
+	"  SELECT p2.projectId FROM Timesheet et " +
+	"  INNER JOIN TimesheetActivityMap etam ON et.timesheetId = etam.timesheetId " +
+	"  INNER JOIN Activity a ON a.activityId = etam.activityId " +
+	"  RIGHT JOIN Team t2 ON t2.teamId = a.teamId " +
+	"  INNER JOIN Project p2 ON p2.projectId = t2.projectId " +
+	"  WHERE et.date >= :fromDate AND et.date <= :toDate" +
+	") " +
+	"AND p.active = 'true' " +
+	"AND p.projectId IN :projectIds " +
+	"AND t.isActive = 'Y' " +
+	"AND etm.active != 0 " +
+	"AND e.employmentstatus != 'InActive'")
+List<RMGProjectToEmployeeFlatDTO> findNonComplianceProjects(
+ @Param("projectIds") Set<Integer> projectIds,
+ @Param("fromDate") LocalDate fromDate,
+ @Param("toDate") LocalDate toDate
+);
 
 	}

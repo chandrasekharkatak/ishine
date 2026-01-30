@@ -2371,7 +2371,7 @@ public class ProjectService {
 	private Timestamp toTimestamp(Object obj) {
 		return (obj instanceof Timestamp) ? (Timestamp) obj : null;
 	}
-
+// The below query is changed to use project_po_Details table
 	public String buildDynamicQuery(GetEmployeeProjectReportPayloadDTO dto) {
 		String category = dto.getCategory();
 		String poProjectType = dto.getPoProjectType();
@@ -2385,14 +2385,17 @@ public class ProjectService {
         if ("P".equalsIgnoreCase(dto.getReport())) {
             // === Project Query ===
             query.append("SELECT distinct p.project_id, p.po_project_id, p.project_name, p.project_manager_id, ep.name as projManager, ")
-                 .append("p.po_no, p.po_project_type, p.start_date, p.end_date, p.clientrm, p.apmosysrm, ")
+                 .append("GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no, p.po_project_type, p.start_date, p.end_date, GROUP_CONCAT(DISTINCT ppd.client_rm SEPARATOR ', ') AS clientrm, GROUP_CONCAT(DISTINCT ppd.apmosys_rm SEPARATOR ', ') AS apmosysrm , ")
                  .append("t.team_id, team_name, etm.emp_id, e.name, etm.start_date, j.name as jobRole, d.name as deptName, e.billable_type, ")
                  .append("e.billable, e.mobile_no, e.email, CASE \n"
                  		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
                  		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
                  		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
                  		+ "  END AS prefixed_employeementId ")
-                 .append("FROM projects p ")
+                 .append("FROM projects p  LEFT JOIN project_po_details ppd \n"
+						 +"ON ppd.project_id = p.project_id \n" 
+						 +"AND STR_TO_DATE(ppd.po_start_date, '%Y-%m-%d') <= CURRENT_DATE \n" 
+						 +"AND (ppd.po_end_date IS NULL OR STR_TO_DATE(ppd.po_end_date, '%Y-%m-%d') >= CURRENT_DATE ) \\")
                  .append("INNER JOIN teams t ON t.project_id = p.project_id ")
                  .append("INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id ")
                  .append("INNER JOIN employee e ON etm.emp_id = e.emp_id ")
@@ -2413,7 +2416,18 @@ public class ProjectService {
                  		+ "		) eld on eld.emp_id = e.emp_id \n")
                  .append("WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' and e.emp_id not between 1 and 6  ")
                  .append(buildInnerWhereClause(poProjectType, flag))
-                 .append(buildOuterWhereClause(billableType, deptIds, hideMaternityLeaveEmps));;
+                 .append(buildOuterWhereClause(billableType, deptIds, hideMaternityLeaveEmps))
+				 .append(
+   						 " GROUP BY " +
+ 						 "p.project_id, p.po_project_id, p.project_name, p.project_manager_id, ep.name, " +
+   						 "p.po_project_type, p.start_date, p.end_date, " +
+   						 "t.team_id, t.team_name, " +
+   						 "etm.emp_id, e.name, etm.start_date, " +
+    					 "j.name, d.name, " +
+   						 "e.billable_type, e.billable, e.mobile_no, e.email, " +
+   						 "p.client_id, p.dept_id, p.state, p.created_on, " +
+   						 "p.status, p.project_completion_date, p.project_status, p.internal_project_type"
+);
             
         } else if ("EC".equalsIgnoreCase(dto.getReport())) {
             // === Employee Consolidated Query ===
@@ -2449,20 +2463,24 @@ public class ProjectService {
                  .append("           GROUP_CONCAT(DISTINCT p.project_id ORDER BY p.project_id) AS project_id, ")
                  .append("           GROUP_CONCAT(DISTINCT p.start_date ORDER BY p.project_id) AS start_date, ")
                  .append("           GROUP_CONCAT(DISTINCT p.end_date ORDER BY p.project_id) AS end_date, ")
-                 .append("           GROUP_CONCAT(DISTINCT p.po_no ORDER BY p.project_id) AS po_no, ")
+                 .append("           GROUP_CONCAT(DISTINCT ppd.po_no ORDER BY p.project_id) AS po_no, ")
                  .append("           GROUP_CONCAT(DISTINCT p.po_project_type ORDER BY p.project_id) AS po_project_type, ")
                  .append("           GROUP_CONCAT(DISTINCT c.client_name ORDER BY p.project_id) AS client_name, ")
                  .append("           GROUP_CONCAT(DISTINCT cl.client_location ORDER BY p.project_id) AS client_location, ")
                  .append("           GROUP_CONCAT(DISTINCT t.team_name ORDER BY p.project_id) AS team_name, ")
                  .append("           GROUP_CONCAT(DISTINCT t.team_id ORDER BY p.project_id) AS team_id, ")
                  .append("           GROUP_CONCAT(DISTINCT p.po_project_id ORDER BY p.project_id) AS po_project_id, ")
-                 .append("           GROUP_CONCAT(DISTINCT p.clientrm ORDER BY p.project_id) AS clientrm, ")
-                 .append("           GROUP_CONCAT(DISTINCT p.apmosysrm ORDER BY p.project_id) AS apmosysrm, ")
+                 .append("           GROUP_CONCAT(DISTINCT ppd.client_rm ORDER BY p.project_id) AS clientrm, ")
+                 .append("           GROUP_CONCAT(DISTINCT ppd.apmosys_rm ORDER BY p.project_id) AS apmosysrm, ")
                  .append("           GROUP_CONCAT(DISTINCT etm.start_date ORDER BY p.project_id) AS effective_start_date, ")
                  .append("           GROUP_CONCAT(DISTINCT etm.end_date ORDER BY p.project_id) AS effective_end_date ")
                  .append("    FROM employee_team_mapping etm ")
                  .append("    LEFT JOIN teams t ON t.team_id = etm.team_id ")
-                 .append("    LEFT JOIN projects p ON p.project_id = t.project_id ")
+                 .append("    LEFT JOIN projects p ON p.project_id = t.project_id \n"
+				 				+"LEFT JOIN project_po_details ppd \n" 
+								+"ON ppd.project_id = p.project_id \n" 
+								+"AND STR_TO_DATE(ppd.po_start_date, '%Y-%m-%d') <= CURRENT_DATE \n" 
+								+"AND (ppd.po_end_date IS NULL OR STR_TO_DATE(ppd.po_end_date, '%Y-%m-%d') >= CURRENT_DATE ) \\")
                  .append("    LEFT JOIN clients c ON c.client_id = p.client_id ")
                  .append("    LEFT JOIN client_locations cl ON cl.client_id = p.client_id ")
                  .append("    WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' ")
@@ -2470,7 +2488,20 @@ public class ProjectService {
                  .append("    GROUP BY etm.emp_id ")
                  .append(") emp_proj_client ON emp_proj_client.emp_id = e.emp_id ")
                  .append("WHERE e.employmentstatus != 'InActive' AND emp_proj_client.project_id IS NOT NULL and e.emp_id not between 1 and 6 ")
-                 .append(buildOuterWhereClause(billableType, deptIds, hideMaternityLeaveEmps));  
+                 .append(buildOuterWhereClause(billableType, deptIds, hideMaternityLeaveEmps))
+				 .append(
+   				 " GROUP BY " +
+   				 "e.emp_id, e.employeement_id, e.name, e.email, e.mobile_no, " +
+   				 "e.manager_id, m.name, e.employmentstatus, e.billable, e.billable_type, " +
+   				 "emp_proj_client.team_id, emp_proj_client.team_name, emp_proj_client.project_id, " +
+    			 "emp_proj_client.project_name, emp_proj_client.start_date, emp_proj_client.end_date, " +
+   				 "emp_proj_client.po_no, emp_proj_client.client_name, emp_proj_client.client_location, " +
+   				 "e.work_location, e.total_experience, d.dept_id, d.name, " +
+   				 "emp_proj_client.po_project_type, j.name, emp_proj_client.po_project_id, " +
+   				 "eppm.primary_project_name, eppm.primary_project_id, " +
+   				 "emp_proj_client.clientrm, emp_proj_client.apmosysrm, " +
+   				 "emp_proj_client.effective_start_date, emp_proj_client.effective_end_date, " +
+   				 "e.is_apmosys_product, e.is_consultant");
 
         } else if ("E".equalsIgnoreCase(dto.getReport())) {
             // === Employee Query ===
@@ -2478,17 +2509,21 @@ public class ProjectService {
 	             .append("e.manager_id, m.name as ManagerName, e.employmentstatus, e.billable, e.billable_type, ")
 	             .append("t.team_id, t.team_name, p.project_id, ")
 	             .append("p.project_name, p.start_date, p.end_date, ")
-	             .append("p.po_no, c.client_name, cl.client_location, e.work_location, ")
+	             .append("GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no, c.client_name, cl.client_location, e.work_location, ")
 	             .append("e.total_experience, d.dept_id, d.name as departmentName, p.po_project_type, j.name as jobrole, ")
-	             .append("p.po_project_id, eppm.primary_project_name, eppm.primary_project_id, p.clientrm, ")
-	             .append("p.apmosysrm, date(etm.start_date) as effective_start_date, date(etm.end_date) as effective_end_date, CASE \n"
+	             .append("p.po_project_id, eppm.primary_project_name, eppm.primary_project_id, GROUP_CONCAT(DISTINCT ppd.client_rm SEPARATOR ', ') AS clientrm, ")
+	             .append("GROUP_CONCAT(DISTINCT ppd.apmosys_rm SEPARATOR ', ') AS apmosysrm, date(etm.start_date) as effective_start_date, date(etm.end_date) as effective_end_date, CASE \n"
 	             		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
 	             		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
 	             		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
 	             		+ "  END AS prefixed_employeementId FROM employee e ")
                  .append("INNER JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id ")
                  .append("LEFT JOIN teams t ON t.team_id = etm.team_id ")
-                 .append("LEFT JOIN projects p ON p.project_id = t.project_id ")
+                 .append("LEFT JOIN projects p ON p.project_id = t.project_id \n "
+						 +"LEFT JOIN project_po_details ppd \n"
+										+"ON ppd.project_id = p.project_id \n" 
+										+"AND STR_TO_DATE(ppd.po_start_date, '%Y-%m-%d') <= CURRENT_DATE \n" 
+										+"AND (ppd.po_end_date IS NULL OR STR_TO_DATE(ppd.po_end_date, '%Y-%m-%d') >= CURRENT_DATE ) \n")
                  .append("INNER JOIN job_role j ON j.job_role_id = e.job_role_id ")
                  .append("INNER JOIN department d ON d.dept_id = j.dept_id ")
                  .append("INNER JOIN employee m ON m.emp_id = e.manager_id ")
@@ -2508,7 +2543,19 @@ public class ProjectService {
                  		+ "		) eld on eld.emp_id = e.emp_id \n")
                  .append("WHERE e.employmentstatus != 'InActive' AND etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' AND p.project_id IS NOT NULL and e.emp_id not between 1 and 6 ")
 	             .append(buildInnerWhereClause(poProjectType, flag))
-	             .append(buildOuterWhereClause(billableType, deptIds, hideMaternityLeaveEmps));
+	             .append(buildOuterWhereClause(billableType, deptIds, hideMaternityLeaveEmps))
+				 .append(
+    			" GROUP BY " +
+    			"e.emp_id, e.employeement_id, e.name, e.email, e.mobile_no, " +
+    			"e.manager_id, m.name, e.employmentstatus, e.billable, e.billable_type, " +
+    			"t.team_id, t.team_name, " +
+    			"p.project_id, p.project_name, p.start_date, p.end_date, p.po_project_type, p.po_project_id, " +
+    			"c.client_name, cl.client_location, e.work_location, e.total_experience, " +
+    			"d.dept_id, d.name, j.name, " +
+    			"eppm.primary_project_name, eppm.primary_project_id, " +
+    			"etm.start_date, etm.end_date, " +
+    			"e.is_apmosys_product, e.is_consultant"
+				);
         } else {
         	System.out.println("query not generated!");
         }

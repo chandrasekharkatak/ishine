@@ -706,6 +706,7 @@ public class EmployeeController {
 	public ServiceResponse fetchInactivePOListOfEmployee(@RequestBody GetEmployeeProjectReportPayloadDTO employeeDTO) {
 	    return employeeService.fetchInactivePOListOfEmployee(employeeDTO);
 	}
+	
 	@Encrypted
 	@JobRoleAccess(featureIds = {26})
 	@RequestMapping(value="/fetchactivePOCounts",method=RequestMethod.POST)
