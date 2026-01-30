@@ -188,6 +188,7 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 		@Query( "SELECT new com.apmosys.employeeportal.dto.TimesheetIdAndEmpIdDTO(t.timesheetId, t.empId) from Timesheet t \n"+
 				"where t.hasClientSideId = 1 \n"+
 				"and t.projectId = :projectId \n"+
+				"and t.dayType IN ('Working', 'Non-working') \n"+
 				"and t.status = 'Pending' \n"+
 				"and not exists (\n" + 
 					"select 1 from TimesheetDocumentDetails tdd1 where \n" + 
@@ -205,6 +206,7 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 		@Query( "SELECT new com.apmosys.employeeportal.dto.TimesheetIdAndEmpIdDTO(t.timesheetId, t.empId) from Timesheet t \n"+
 				"where t.hasClientSideId = 1 \n"+
 				"and t.projectId = :projectId \n"+
+				"and t.dayType IN ('Working', 'Non-working') \n"+
 				"and (t.status = 'Rejected' \n"+
 				"or not exists (\n" + 
 					"select 1 from TimesheetDocumentDetails tdd1 where \n" + 

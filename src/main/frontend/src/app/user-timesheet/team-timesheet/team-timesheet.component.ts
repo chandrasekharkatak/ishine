@@ -1176,11 +1176,12 @@ export class TeamTimesheetComponent implements OnInit {
 
     if (!file) return;
 
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+    // also "xlsx","xls"
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'];
     const maxSize = 500 * 1024;
 
     if (!allowedTypes.includes(file.type)) {
-      this.fileError2 = 'Only PDF, JPG, JPEG, and PNG files are allowed.';
+      this.fileError2 = 'Only PDF, JPG, JPEG, PNG, XLSX, and XLS files are allowed.';
       return;
     }
 

@@ -5541,7 +5541,7 @@ public class TimesheetService {
 				throw new IllegalArgumentException("Invalid date range. To date cannot be less than from date.");
 			}
 
-			List<String> allowedFileExtensions = List.of("png", "jpg", "jpeg", "pdf");
+			List<String> allowedFileExtensions = List.of("png", "jpg", "jpeg", "pdf","xlsx","xls");
 			String fileExtension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1);
 
 			if(!allowedFileExtensions.contains(fileExtension.toLowerCase())) {
