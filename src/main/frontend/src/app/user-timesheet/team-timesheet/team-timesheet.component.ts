@@ -1989,7 +1989,7 @@ closeDocumentPopup() {
 
   //  Navigation CARDS
 
-   selectedStatus: number = 0; // default = Pending
+   selectedStatus: number = 1;
    onStatusChange(status: number) {
     this.selectedStatus = status;
     this.page1 = 1; // pagination reset
@@ -2016,6 +2016,8 @@ closeDocumentPopup() {
         next: (res: any) => {
           if (res?.serviceStatus === 'Success') {
             this.clearAllSelections();
+            this.selectedStatus = 2;
+            this.page1 = 1;
             this.getMyReporteesTimesheetRequests();
             alert(res.serviceResponse || 'Timesheets approved successfully');
           } else {

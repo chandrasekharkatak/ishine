@@ -627,7 +627,7 @@
         </div>
         <div class="bulk-buttons-group">
           <button class="bulk-action-btn bulk-approve-btn"
-            [disabled]="selectedRows.length === 0 || selectedStatus !== 0" (click)="bulkApproveByIds()">
+            (click)="bulkApproveByIds()">
             <i class="fas fa-check-circle"></i>Bulk Approve </button>
 
           <button class="bulk-action-btn bulk-reject-btn" [disabled]="selectedRows.length === 0"
@@ -638,10 +638,10 @@
       </div>
     </div>
     <div class="status-container">
-      <div class="status-card pending" [class.active]="selectedStatus === 0" (click)="onStatusChange(1)"> Pending </div>
-      <div class="status-card approved" [class.active]="selectedStatus === 1" (click)="onStatusChange(2)"> Approved
+      <div class="status-card pending" [class.active]="selectedStatus === 1" (click)="onStatusChange(1)"> Pending </div>
+      <div class="status-card approved" [class.active]="selectedStatus === 2" (click)="onStatusChange(2)"> Approved
       </div>
-      <div class="status-card rejected" [class.active]="selectedStatus === 2" (click)="onStatusChange(3)"> Rejected
+      <div class="status-card rejected" [class.active]="selectedStatus === 3" (click)="onStatusChange(3)"> Rejected
       </div>
     </div>
     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -792,18 +792,12 @@
   </div>
 </div>
 
-
 <!-- Document View Modal -->
 <ng-template #documentViewerModal>
   <div class="doc-modal-lg">
     <div class="doc-header">
       <h5>Documents</h5> <button class="close-btn" (click)="modalRef.close()">✖</button>
     </div>
-    <div class="doc-body">
-      <div class="doc-left">
-        <div class="project-item" *ngFor="let p of getUniqueProjectsFromTimesheet(selectedTimesheet)"
-          [class.active]="p === activeDocProject" (click)="selectProjectForDoc(p)"> {{ p.projectName }} </div>
-      </div>
       <div class="doc-body">
         <div class="doc-left">
           <table class="project-table">
@@ -837,7 +831,6 @@
           <div class="doc-preview"> <iframe [src]="safePdfUrl" width="100%" height="100%" frameborder="0"> </iframe>
           </div>
         </div>
-      </div>
     </div>
   </div>
 </ng-template>
