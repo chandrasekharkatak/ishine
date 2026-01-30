@@ -41,8 +41,9 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 			+ "inner join projects p on p.project_id = t.project_id\n"
 			+ "inner join clients c on c.client_id = p.client_id\n"
 			+ "Inner join employee as em on et.emp_id=em.emp_id\n"
-			+ "inner join client_locations cl on cl.client_id = p.client_id\n"
-			+ "where t.team_id=?  group by et.emp_id")
+			+ "INNER JOIN project_po_details ppd ON ppd.project_id = p.project_id\n"
+			+ "INNER JOIN client_locations cl ON cl.po_id = ppd.po_id \n"
+			+ "where t.team_id= :teamId  group by et.emp_id")
 	public List<Object[]> getTeamMembersByTeamIdBioMax(Long teamId);
 
 	List<EmployeeTeamMap> findByEmpId(Long empId);
@@ -594,8 +595,9 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 				+ "FROM Team t \n"
 				+ "INNER JOIN Project p ON p.projectId = t.projectId \n"
 				+ "INNER JOIN Client c ON c.clientId = p.clientId \n"
-				+ "INNER JOIN ClientLocation cl ON cl.clientId = c.clientId \n"
 				+ "INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId \n"
+				+ "INNER JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId\n"
+				+ "INNER JOIN ClientLocation cl ON cl.poId = ppd.poId  AND etm.poId = ppd.poId\n"
 				+ "where p.projectId = :project_id AND etm.empId = :empId")
 		public List<GetClientDetailsByProjectIdAndEmpIdDTO> getClientDetailsByProjectIdAndEmpId(@Param("project_id")Integer projectId, 
 				@Param("empId")Long empId);

@@ -36,6 +36,10 @@ public class ClientLocation {
 	
 	private String clientState;
 	
+	private Long poId;
+	
+	
+	
 	public ClientLocation(Integer clientId,String clientLocation){
 		this.clientId = clientId;
 		this.clientLocation = clientLocation;
