@@ -1177,7 +1177,7 @@ export class TeamTimesheetComponent implements OnInit {
     if (!file) return;
 
     // also "xlsx","xls"
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'];
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel','application/vnd.oasis.opendocument.spreadsheet'];
     const maxSize = 500 * 1024;
 
     if (!allowedTypes.includes(file.type)) {
@@ -1947,9 +1947,9 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
           minusDays: 45
         };
 
-        // if(response.serviceError != null ){
+        if(response.serviceError != null ){
           this.openAlertMod(this.alertTemplate, `Document upload is only valid for past ${this.minusDaysData.minusDays} days`);
-        // }
+        }
 
         const now = new Date();
 
