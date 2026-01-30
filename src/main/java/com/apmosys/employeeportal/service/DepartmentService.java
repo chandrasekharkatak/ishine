@@ -788,7 +788,7 @@ public class DepartmentService {
 //	    }
 //	}
 	
-	public void syncDepartmentsRTS(Long poId, List<DepartmentIdAndNameDto> incoming) {
+	public void syncDepartmentsRTS(Long poId, List<DepartmentIdAndNameDto> incoming, Integer projectId) {
 
 	    List<PoDepartmentMapping> existing =
 	            poDepartmentMappingRepository.findByPoId(poId);
@@ -825,6 +825,7 @@ public class DepartmentService {
 	            m.setPoId(poId);
 	            m.setDeptId(deptId);
 	            m.setActive(true);
+	            m.setProjectId(projectId);
 	            poDepartmentMappingRepository.save(m);
 	        }
 	    }

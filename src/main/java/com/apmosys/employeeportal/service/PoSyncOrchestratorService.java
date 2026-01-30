@@ -127,7 +127,7 @@ public class PoSyncOrchestratorService {
 
 				Project project = projectService.createProjectRTS(dto, client);
 				ProjectPoDetails po = poDetailsService.createPoRTS(project, dto, client);
-				departmentService.syncDepartmentsRTS(po.getPoId(), dto.getPoDetailsList().get(0).getDepartmentList());
+				departmentService.syncDepartmentsRTS(po.getPoId(), dto.getPoDetailsList().get(0).getDepartmentList(),project.getProjectId());
 
 				if (poDto.getResourceRequirementList() != null) {
 					requirementService.syncRequirementsRTS(po.getPoId(),
@@ -155,7 +155,7 @@ public class PoSyncOrchestratorService {
 
 				boolean poChanged = poDetailsService.updatePoIfChanged(po, dto, client);
 
-				departmentService.syncDepartmentsRTS(po.getPoId(), poDto.getDepartmentList());
+				departmentService.syncDepartmentsRTS(po.getPoId(), poDto.getDepartmentList(),project.getProjectId());
 
 				if (poDto.getResourceRequirementList() != null) {
 					requirementService.syncRequirementsRTS(po.getPoId(), poDto.getResourceRequirementList());
@@ -239,7 +239,7 @@ public class PoSyncOrchestratorService {
 
 			Client client = clientRepository.findByClientId(project.getClientId());
 			ProjectPoDetails newPo = poDetailsService.createRenewedPo(project, dto, client);
-			departmentService.syncDepartmentsRTS(newPo.getPoId(), dto.getRenewedPo().getDepartmentList());
+			departmentService.syncDepartmentsRTS(newPo.getPoId(), dto.getRenewedPo().getDepartmentList(),project.getProjectId());
 
 			if (dto.getRenewedPo().getResourceRequirementList() != null) {
 				requirementService.syncRequirementsRTS(newPo.getPoId(),
@@ -343,7 +343,9 @@ public class PoSyncOrchestratorService {
 	        }
 
 	      //when no associated po and the delte po is also delted
-	        projectService.setActiveFlagAsFalse(project,dto);
+	        if(dto.getAssociatePos() == null) {
+		        projectService.setActiveFlagAsFalse(project,dto);
+	        }
 	       
 
 	       
