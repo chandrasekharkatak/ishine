@@ -1,11 +1,16 @@
 package com.apmosys.employeeportal.controller;
 
+import java.security.Provider.Service;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,6 +40,7 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.apmosys.employeeportal.dto.FinalBulkUploadDTO;
 
 @RestController
 @RequestMapping(path = "/api")
@@ -42,6 +48,12 @@ public class TimesheetController {
 	
 	@Autowired
 	TimesheetService timesheetService;
+
+	@Value("${timesheet.minus.days.for.bulk.upload}")
+	private Integer minusDays;
+
+	@Value("${check.minus.days.for.bulk.upload}")
+	private Boolean checkMinusDaysForBulkUpload;
 	
 	
 	@JobRoleAccess(featureIds = {7,15,16})
@@ -591,6 +603,35 @@ public class TimesheetController {
 	    		timesheetService.getDepartmentStatusSummary(requestDTO);
 
 	    return response;
+	}
+
+	@JobRoleAccess(featureIds = {16})
+	 @PostMapping(value = "/bulkFinalUploadProjectBased", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	 public ServiceResponse bulkFinalUploadProjectBased(
+	         @RequestPart("finalFile") MultipartFile file, @RequestPart("finalBulkUploadDTO") FinalBulkUploadDTO finalBulkUploadDTO ) {
+
+	     ServiceResponse reponse= timesheetService.bulkFinalUploadProjectBased(finalBulkUploadDTO, file);
+	     return reponse;
+	 }
+
+	@JobRoleAccess(featureIds = {16})
+	@GetMapping("/getPreviousMinusDays")
+	public ServiceResponse getPreviousMinusDays() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			Map<String, Object> map = new HashMap<>();
+			map.put("minusDays", minusDays);
+			map.put("checkMinusDaysForBulkUpload", checkMinusDaysForBulkUpload);
+			response.setServiceResponse(map);
+			return response;
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceError(ServiceResponse.STATUS_FAIL);
+			response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+			return response;
+		}
 	}
 
 		 

@@ -1033,9 +1033,26 @@
           <label class="info-label"><span class="text-danger">*</span>Month-Year</label>
           <div class="info-wrapper">
             <input type="month" class="form-control" [(ngModel)]="timesheetObj.monthYear"
-              (change)="onMonthYearChange()" />
+              [min]="minMonth" [max]="maxMonth" (change)="onMonthYearChange()" />
           </div>
         </div>
+        <div class="col-md-3 mb-0">
+          <div class="info-wrapper">
+            <div class="form-group">
+
+              <div class="form-group">
+                <label class="info-label"><span class="text-danger">*</span>Project</label>
+                <app-my-select #filterActiveProjects class="form-control" placeholder="Select Project"
+                    [(ngModel)]="timesheetObj.selectedProjectId" [options]="allProjects"
+                    displayKey="projectName" valueKey="projectId" [multiple]="false"
+                    (selectionChange)="onProjectSelectBulk(timesheetObj.selectedProjectId)">
+                </app-my-select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
         <div class="col-md-3 mb-0">
           <div class="info-wrapper">
             <div class="form-group">
@@ -1051,31 +1068,10 @@
 
               </mat-select> -->
               <app-my-select #filterActiveReportees class="form-control" placeholder="Select Reportee"
-                  [(ngModel)]="timesheetObj.selectedEmpId" [options]="reportees"
-                  displayKey="name" valueKey="empId" [multiple]="false"
+                [(ngModel)]="timesheetObj.empIds" 
+                  [options]="getReporteesFromProjectId()" 
+                  displayKey="name" valueKey="empId" [multiple]="true"
                   (selectionChange)="onReporteeChange($event)">
-              </app-my-select>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-3 mb-0">
-          <div class="info-wrapper">
-            <div class="form-group">
-              <label class="info-label"><span class="text-danger">*</span>Project</label>
-              <!-- <mat-select ngxMatSelect class="form-control" #filterActiveProjects="ngxMatSelect"
-                [displayMember]="'projectName'" [valueMember]="'projectId'" [source]="projects"
-                [useInfiniteScroll]="true" (selectionChange)="onProjectSelectBulk(timesheetObj.selectedProjectId)"
-                [(ngModel)]="timesheetObj.selectedProjectId" [multiple]="false" class="form-control">
-                <mat-option *ngFor="let project of filterActiveProjects.filteredSource" [value]="project.projectId">
-                  {{ project.projectName }}
-                </mat-option>
-              </mat-select> -->
-              <app-my-select #filterActiveProjects class="form-control" placeholder="Select Project"
-                  [(ngModel)]="timesheetObj.selectedProjectId" [options]="projects"
-                  displayKey="projectName" valueKey="projectId" [multiple]="false"
-                  (selectionChange)="onProjectSelectBulk(timesheetObj.selectedProjectId)">
               </app-my-select>
             </div>
           </div>

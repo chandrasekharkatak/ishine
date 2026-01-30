@@ -10735,7 +10735,25 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			  String employmentStatus,String projectStatus, @Param("dept_id")Long deptId, @Param("employeeActive") String employeeActive, @Param("billableType")List<String> billableType, @Param("multiPOs")String multiPOs );
 
            
-	        
+			@Query(value = "SELECT DISTINCT\n" +
+								"etm.emp_id, e.name, p.project_id, p.project_name\n" +
+								"FROM projects p\n" +
+								"INNER JOIN teams t ON p.project_id = t.project_id\n" +
+								"INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n" +
+								"INNER JOIN employee e ON e.emp_id = etm.emp_id\n" +
+								"INNER JOIN employee_timesheets et on et.emp_id = e.emp_id\n" +
+								"where (\n" +
+								"e.date_of_relieving IS NULL \n" +
+								"OR YEAR(e.date_of_relieving) > :year \n" +
+								"OR (YEAR(e.date_of_relieving) = :year AND MONTH(e.date_of_relieving) >= :month)\n" +
+								") \n" +
+								"AND et.current_manager_id = :empId\n" +
+								"AND p.has_client_side_id = 1\n" +
+								"AND e.emp_id not between 1 and 6 \n" +
+								"AND DATE(etm.start_date) <= :toDate\n" +
+								"AND (etm.end_date IS NULL OR DATE(etm.end_date) >= :fromDate)"
+				, nativeQuery = true)
+	        List<Object[]> getMyReporteesAndClientSideProjectsInMonthYearNew(@Param("year") Integer year,@Param("month") Integer month,@Param("empId") Long emp_id, @Param("toDate") LocalDate toDate, @Param("fromDate") LocalDate fromDate);
 	        
 
 }						  
