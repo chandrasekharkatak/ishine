@@ -1345,7 +1345,7 @@ public class DraftEmployeeService {
 						previousEmploymentRepository.saveAll(list);
 					}
 
-					draftEmployeeRepository.deleteById(employeedto.getDraftEmpId());
+					draftEmployeeRepository.deleteAllByEmployeementId(employeedto.getEmployeementId());
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Employee profile approved.");
