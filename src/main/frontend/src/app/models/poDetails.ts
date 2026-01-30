@@ -30,6 +30,7 @@ export class PoDetails {
     isAnyNewTeamAdded: boolean = false;
     updatedBy: any;
     isHod: boolean = false;
-    isUpdate: boolean = true;
+    isupdate: boolean = true;
+    projectType: any;
 
 }

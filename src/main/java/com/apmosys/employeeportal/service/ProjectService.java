@@ -4042,7 +4042,7 @@ public class ProjectService {
 
 			ServiceResponse responseProjectManager = setProjectManager(rmgProjectDto, dbResponse);
 
-			if (!responseProjectManager.getServiceStatus().equals("Success")) {
+			if (responseProjectManager.getServiceStatus().equals("Success")) {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				serviceResponse.setServiceResponse(responseProjectManager.getServiceResponse());
 			} else {
@@ -4052,7 +4052,7 @@ public class ProjectService {
 
 			ServiceResponse responseProjectOverhead = setProjectOverheads(rmgProjectDto, dbResponse);
 
-			if (!responseProjectOverhead.getServiceStatus().equals("Success")) {
+			if (responseProjectOverhead.getServiceStatus().equals("Success")) {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				serviceResponse.setServiceResponse(responseProjectOverhead.getServiceResponse());
 			} else {

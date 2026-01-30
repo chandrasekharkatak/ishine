@@ -3431,6 +3431,25 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 				+ " WHERE e.emp_id NOT IN (1,2,3,4,5,6) and e.employmentstatus!='InActive' \n"
 				+ " order by e.name ")
 		public List<Object[]> getAllActiveEmployeeInformation();
+
+		    
+		@Query(value = "select distinct e.empId, e.name,e.email, em.email, h.email \n" +
+				"from Employee e \n" +
+				"inner join JobRole j on j.jobRoleId = e.jobRoleId \n" +
+				"inner join Department d on d.deptId = j.deptId \n" +
+				"inner join Employee h on h.empId = d.hodId \n" +
+				"LEFT join Employee em on em.empId = e.managerId \n" +
+				"where e.empId IN :empIds ")
+		public List<Object[]> findMailIdsForProjectMappingByEmpIds(List<Long> empIds);
+
+		@Query(value = "select DISTINCT new com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO( \n" +
+				"e.empId,e.employeementId,e.name,e.jobRoleId,j.name ,d.deptId,d.name, e.isConsultant) \n" +
+				"from Employee e \n" +
+				"inner join JobRole j on j.jobRoleId = e.jobRoleId \n" +
+				"inner join Department d on d.deptId = j.deptId \n" +
+				"where e.empId IN :empIds ")
+		public List<EmployeeDetailsForTeamMemberDTO> getEmployeeDetailsAndDeptIdForTeam(List<Long> empIds);
+
 	// -----------------------------------------------Below this are the mew inner joined queries-----------------------------------------
 		@Query(value = "select new com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse(ppd.poNo, p.poProjectId, p.projectId, p.projectName, e.empId, e.employeementId, e.name, e.billableType, d.name, jr.name " +
 		",(select count(Ts) from Timesheet Ts where Ts.date between :startDate and :endDate and Ts.empId = e.empId) " +

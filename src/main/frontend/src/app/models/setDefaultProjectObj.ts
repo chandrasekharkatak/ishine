@@ -12,7 +12,7 @@ export class SetDefaultProjectObj {
 	poDetailsList: any[] = [];
 	teamList: any[] = [];
 	resourceRequirementList: any[] = [];
-
+	employeeRoles: any[] = [];
 	createdBy: any;
 	empIds: any;
 

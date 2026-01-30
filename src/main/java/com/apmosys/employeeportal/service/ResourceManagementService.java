@@ -13852,6 +13852,8 @@ public class ResourceManagementService {
 				if (rmgProjectDto != null && rmgProjectDto.getProjectId() != null) {
 					Long currentProjectId = Long.parseLong(rmgProjectDto.getProjectId().toString());
 
+					List<Long> deptIds = poDepartmentMappingRepository.findPoDeptIdsByProjectId(rmgProjectDto.getProjectId());
+					rmgProjectDto.setDepartmentIds(deptIds);
 					List<Long> projectManagerIds = projectManagerMappingRepository
 							.findProjectManagerIdByProjectIdAndActive(currentProjectId,1);
 					rmgProjectDto.setProjectManagerIds(projectManagerIds);
@@ -13880,8 +13882,9 @@ public class ResourceManagementService {
 	private List<PoDetailsDto> getPoDetailsByProjectId(Integer currentProjectId) {
 		List<PoDetailsDto> poDetailsDtos = new ArrayList<>();
 		try {
+			// Integer currentProjectId = project.getProjectId();
 			// Fetch Active POs & Inactive POs but team or member is active data
-			poDetailsDtos.addAll(poDetailsRepository.getAllPoDetailsDtoByProjectId(currentProjectId));
+			poDetailsDtos.addAll(poDetailsRepository.getAllProjectPoDetailsDtoByProjectId(currentProjectId));
 
 			// Fetch Inactive POs but team or member is active
 			// poDetailsDtos.addAll();

@@ -32,6 +32,7 @@ public class RmgProjectDto {
     private List<PoDetailsDto> poDetailsList;
 
     private Long updatedBy;
+    private String projectType;
 
     public RmgProjectDto(Integer projectId, String projectName, String clientName, String state, String startDate,
             String endDate, String projectStatus, String draftProjectStatus, String isDraftProject,

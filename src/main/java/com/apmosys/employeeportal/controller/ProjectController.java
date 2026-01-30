@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.ClientProjectReportDTO;
+import com.apmosys.employeeportal.dto.EmployeeOtherActiveProject;
 import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.MilestoneUpdatedLogDto;

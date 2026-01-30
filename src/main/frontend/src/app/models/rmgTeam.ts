@@ -18,4 +18,6 @@ export class RmgTeam {
     isTeamSelected: boolean = false;
     isNotSaved: boolean = false;
     endDate:any;
+    projectType:any;
+
 }

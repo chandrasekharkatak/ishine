@@ -34,7 +34,7 @@ public class PoDetailsDto {
 
     private List<Long> selectedTeamIds;
     private List<RmgTeamDto> teamList;
-    private boolean isUpdate;
+     private boolean isupdate;
     private Long updatedBy;
 
     public PoDetailsDto(Long id, Long poId, Integer projectId, String poNo, LocalDateTime poStartDate, LocalDateTime poEndDate,

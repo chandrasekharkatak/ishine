@@ -69,8 +69,7 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 //	@Query(nativeQuery = true)
 //	EmployeeTeamMap findByEmpIdAndTeamIdAndActiveStatus(Long empId, Long teamId);
 	@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.empId = :empId AND etm.teamId = :teamId AND etm.active != 0")
-	EmployeeTeamMap findByEmpIdAndTeamIdAndActiveStatus(@Param("empId") Long empId, 
-	                                                          @Param("teamId") Long teamId);
+	EmployeeTeamMap findByEmpIdAndTeamIdAndActiveStatus(@Param("empId") Long empId, @Param("teamId") Long teamId);
 
 	
 	@Query("SELECT etm from EmployeeTeamMap etm WHERE etm.empId = :empId AND etm.teamId = :teamId")
@@ -607,6 +606,8 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 				+ "WHERE etm.empId=:empId AND etm.active!=0")
 		List<EmployeeTeamMap> findByEmpIdAndActiveStatus(Long empId);
 
+		@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.empId IN :empIds AND etm.teamId = :teamId AND etm.active != 0")
+	List<EmployeeTeamMap> findByEmpIdInAndTeamIdAndActiveStatus(List<Long> empIds, @Param("teamId") Long teamId);
 
 
 		// --------------------------------------------------------------- Below this are the queries that are joined with project po details tabnle
@@ -797,4 +798,4 @@ List<RMGProjectToEmployeeFlatDTO> findNonComplianceProjects(
  @Param("toDate") LocalDate toDate
 );
 
-	}
+}

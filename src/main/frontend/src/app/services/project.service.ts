@@ -8,6 +8,7 @@ import { Project } from '../models/project';
 import { RmgTeamMember } from '../models/rmgTeamMember';
 import { PoDetails } from '../models/poDetails';
 import { RmgProject } from '../models/rmgProject';
+import { EmployeeOtherActiveProject } from '../models/employeeOtherActiveProject';
 
 
 @Injectable({
@@ -153,5 +154,10 @@ getClientVsDepartment(payload){
   saveProjectInformation(projectObj: RmgProject) {
     return this.http.post(`${this.baseUrl}` + `api/saveProjectInformation`, projectObj);
   }
+
+  updateMappingToOtherProjectAsDefault(otherActiveProject : EmployeeOtherActiveProject) {
+    return this.http.post(`${this.baseUrl}` + `api/updateMappingToOtherProjectAsDefault`, otherActiveProject);
+  }
+  
   
 }

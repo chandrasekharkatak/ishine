@@ -19,4 +19,13 @@ export class RmgResourceRequirement {
     employeeExistingProjectDetails: any[] = [];
     displayValue: any;
     count: any;
+    isNewRequirementInTeam: boolean = false;
+    isupdate: boolean = false;
+    projectId: any;
+    teamId: any;
+    updatedBy: any;
+    clientName: any;
+    projectType: any;
+    endDate: any;
+    isCustomEndDate: boolean;
 }

@@ -838,13 +838,13 @@
                                                 <em class="fa-solid fa-ellipsis-vertical"></em></button>
                                             <mat-menu #actionMenu="matMenu">
                                                 <button mat-menu-item *ngIf="project.draftStatus != 'Not Started' || project.isTeamCreated == 'true'"
-                                                    (click)="openProjectPreviewModal(preview_team_new, project); isEditProject = false">
+                                                    (click)="showProjectConfigurationDetails(project,true); isEditProject = false">
                                                     <i class="fas fa-eye"></i> Preview
                                                 </button>
                                                 <button mat-menu-item (click)="openEditModal(team_configuration_form,project);">
                                                     <i class="fas fa-pen"></i> Edit Old
                                                 </button>
-                                                <button mat-menu-item (click)="showProjectConfigurationDetails(project);">
+                                                <button mat-menu-item (click)="showProjectConfigurationDetails(project,false);">
                                                     <i class="fas fa-pen"></i> Edit New
                                                 </button>
                                                 <button mat-menu-item
@@ -1727,7 +1727,7 @@
     <!-- Project Configuration -->
     <div *ngIf="showProjectConfig" class="row mb-4">
         <div class="col-md-12">
-            <app-rmg-project [rmgProjectObj]="rmgProjectObj" [managerList]="managerList" [overheadList]="overheadList"
+            <app-rmg-project [rmgProjectObj]="rmgProjectObj" [managerList]="managerList" [overheadList]="overheadList" [isProjectPreview]="false"
                 [departmentsList]="allDeptList" [spocList]="employeeList"
                 (closeProjectConfiguration)="closeProjectConfiguration()">
             </app-rmg-project>
@@ -4639,3 +4639,12 @@
         <button type="button" class="btn btn-primary" (click)="closePOResourceRequirementAlert()">OK</button>&nbsp;
     </div>
 </ng-template>
+
+
+<ng-template #project_configuration>
+    <app-rmg-project [rmgProjectObj]="rmgProjectObj" [managerList]="managerList" [overheadList]="overheadList" [isProjectPreview]="true"
+        [departmentsList]="allDeptList" [spocList]="employeeList"
+        (closeProjectConfiguration)="closeProjectConfiguration()">
+    </app-rmg-project>
+</ng-template>
+
