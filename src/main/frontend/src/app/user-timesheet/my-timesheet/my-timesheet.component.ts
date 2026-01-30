@@ -670,7 +670,7 @@ get tooltipCta(): string {
 
     this.showSelfTimesheets();
   }
-
+ 
   showSelfTimesheets() {
     this.isSelfTimesheets = true;
     this.isTeamTimesheets = false;
@@ -1870,7 +1870,6 @@ get tooltipCta(): string {
           sessionStorage.setItem('autoFillTimesheet', 'true');
         }
 
-        this.resetTimesheetForm();
         this.openAlertMod(template, response.serviceResponse);
         this.showViewMyTimesheets();
         if (this.timesheetObj.timesheetAppliedFor == "self") {
@@ -1882,6 +1881,7 @@ get tooltipCta(): string {
           this.getMyTeamTimesheets();
         }
         this.clearPreviousSelections();
+        this.resetTimesheetForm();
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
