@@ -7,6 +7,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -4459,8 +4460,8 @@ public class ProjectService {
 	                    poDto.getUpdatedByEmpId(),
 	                    poDto.getUpdatedByEmpName()
 	            );
-
-	    LocalDateTime now = LocalDateTime.now();
+	    
+	    LocalDateTime updatedOn =   convert(poDto.getUpdatedOn());	
 
 	    for (ProjectPoMappingWithResourceDTO deletedDto : deletedProjects) {
 
@@ -4477,7 +4478,7 @@ public class ProjectService {
 
 	        project.setActive("false");
 	        project.setUpdatedBy(updatedBy);
-	        project.setUpdatedOn(now);
+	        project.setUpdatedOn(updatedOn);
 
 	        projectRepository.save(project);
 	    }
@@ -4523,14 +4524,28 @@ public class ProjectService {
 	                    poDto.getUpdatedByEmpName()
 	            );
 
+	    LocalDateTime updatedOn =   convert(poDto.getUpdatedOn());
+	    
 	    project.setUpdatedBy(updatedBy);
-	    project.setUpdatedOn(LocalDateTime.now());
+	    project.setUpdatedOn(updatedOn);
 
 	    projectRepository.save(project);
 	}
 
 
-	
+	private LocalDateTime convert(Date date) {
+	    if (date == null) return null;
+
+	    if (date instanceof java.sql.Date) {
+	        return ((java.sql.Date) date)
+	                .toLocalDate()
+	                .atStartOfDay();
+	    }
+
+	    return date.toInstant()
+	            .atZone(ZoneId.systemDefault())
+	            .toLocalDateTime();
+	}
 	
 	
 

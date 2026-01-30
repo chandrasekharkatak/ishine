@@ -470,11 +470,6 @@ public class PoDetailsService {
 	        Integer primaryProjectId,
 	        ProjectPoMappingWithResourceDTO primaryProjectDto) {
 
-	    if (primaryProjectDto.getPoDetailsList() == null ||
-	        primaryProjectDto.getPoDetailsList().isEmpty()) {
-	        return; 
-	    }
-
 	   
 	    Map<Long, PoDetailsForProjectPoMappingDTO> incomingMap =
 	            primaryProjectDto.getPoDetailsList()
@@ -493,10 +488,6 @@ public class PoDetailsService {
 
 	        PoDetailsForProjectPoMappingDTO incoming =
 	                incomingMap.get(existingPo.getPoId());
-
-	        if (incoming == null) {
-	            continue;
-	        }
 
 	        boolean changed = false;
 
@@ -578,6 +569,7 @@ public class PoDetailsService {
 				poDto.getUpdatedByEmpId(),
 				poDto.getUpdatedByEmpName()
         );
+		LocalDateTime updatedOn =   convert(poDto.getUpdatedOn());
 	    for (ProjectPoMappingWithResourceDTO dto : deletedProjects) {
 
 	        Project project =
@@ -589,7 +581,8 @@ public class PoDetailsService {
 
 	        for (ProjectPoDetails po : pos) {
 	            po.setActive(false);
-	            po.setUpdatedBy(updatedBy);           
+	            po.setUpdatedBy(updatedBy);
+	            po.setPoUpdatedOn(updatedOn);
 	            projectPoDetailsRepository.save(po);
 	        }
 	    }
