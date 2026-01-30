@@ -5616,7 +5616,7 @@ public class TimesheetService {
 					}
 				}
 
-				String fileName = timesheet.getTimesheetId() + "_" + timesheet.getEmpId() + "_Approved_" + UUID.randomUUID().toString();
+				String fileName = timesheet.getTimesheetId() + "_" + timesheet.getEmpId() + "_Approved_" + UUID.randomUUID().toString()+getExtensionWithDot(file.getOriginalFilename());
 
 				timesheetDocumentDetails.setActive(true);
 				timesheetDocumentDetails.setDocName(fileName);
@@ -5667,6 +5667,15 @@ public class TimesheetService {
 	    }
 
 		return response;
+	}
+
+	private String getExtensionWithDot(String fileName) {
+		if (fileName == null) return "";
+		int lastDot = fileName.lastIndexOf('.');
+		if (lastDot == -1 || lastDot == fileName.length() - 1) {
+			return "";
+		}
+		return fileName.substring(lastDot);
 	}
 	
 	public ServiceResponse getAllDisabledDateListForBulkDocSubmit(Integer projectId, Long empId) {
