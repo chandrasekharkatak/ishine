@@ -264,8 +264,8 @@ public class PoSyncOrchestratorService {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse(e.getMessage());
 			response.setServiceError(e.getMessage());
-//			return response;
-			throw e;
+			return response;
+//			throw e;
 
 		} finally {
 			if (initialLog != null) {
@@ -367,8 +367,8 @@ public class PoSyncOrchestratorService {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse(e.getMessage());
 			response.setServiceError(e.getMessage());
-//			return response;
-			throw e;
+			return response;
+//			throw e;
 	    } finally {
 	        if (initialLog != null) {
 	            apiLogUtility.endLog(
