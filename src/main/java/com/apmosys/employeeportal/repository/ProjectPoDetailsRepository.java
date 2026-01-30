@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.repository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -82,5 +83,9 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
 		List<ProjectPoDetails> findByProjectIdAndActiveTrue(Integer projectId);
 
 		Optional<ProjectPoDetails> findByProjectIdAndPoIdAndActiveTrue(Integer projectId, Long poId);
+
+		List<ProjectPoDetails> findByProjectIdAndActiveFalse(Integer projectId);
+
+		List<ProjectPoDetails> findByProjectIdAndPoIdIn(Integer projectId, Set<Long> poIdsFromPortal);
 
 }

@@ -54,6 +54,7 @@ import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForEmployeeDTO;
 import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForProjectDTO;
 import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForTeamDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
 import com.apmosys.employeeportal.dto.PoEmployeeTimesheetSyncDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.PoProjectTimesheetSyncDTO;
@@ -4440,6 +4441,98 @@ public class ProjectService {
 	                        .toLocalDateTime());           
 	        }
 	}
+	
+	public void deactivateDeletedProjects(
+	        List<ProjectPoMappingWithResourceDTO> deletedProjects) {
+
+	    if (deletedProjects == null || deletedProjects.isEmpty()) {
+	    	 throw new RuntimeException(
+	                    "Deleted project are coming null from Po portal");
+	    }
+
+	   
+	    PoDetailsForProjectPoMappingDTO poDto =
+	            deletedProjects.get(0).getPoDetailsList().get(0);
+
+	    Long updatedBy =
+	            validateAndGetEmployeeEmpId(
+	                    poDto.getUpdatedByEmpId(),
+	                    poDto.getUpdatedByEmpName()
+	            );
+
+	    LocalDateTime now = LocalDateTime.now();
+
+	    for (ProjectPoMappingWithResourceDTO deletedDto : deletedProjects) {
+
+	        Project project =
+	                projectRepository.findByPoProjectId(
+	                        deletedDto.getProjectId()
+	                );
+
+	        if (project == null) {
+	        	 throw new RuntimeException(
+		                    "Deleted project not found | poProjectId="
+		                            + project.getProjectId());
+	        }
+
+	        project.setActive("false");
+	        project.setUpdatedBy(updatedBy);
+	        project.setUpdatedOn(now);
+
+	        projectRepository.save(project);
+	    }
+	}
+	
+	
+	public void updateProjectDatesIfChanged(
+	        Project project,
+	        ProjectPoMappingWithResourceDTO primaryProjectDto) {
+
+	    boolean changed = false;
+	    
+	    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+	    if (!Objects.equals(
+	                    project.getStartDate(),
+	                    primaryProjectDto.getProjectStartDate())) {
+
+	        project.setStartDate(
+	        		df.format(primaryProjectDto.getProjectStartDate()));
+	        changed = true;
+	    }
+
+	    if ( !Objects.equals(
+	                    project.getEndDate(),
+	                    primaryProjectDto.getProjectEndDate())) {
+
+	        project.setEndDate(
+	                df.format(primaryProjectDto.getProjectEndDate()));
+	        changed = true;
+	    }
+
+	    if (!changed) {
+	        return;
+	    }
+
+	    
+	    PoDetailsForProjectPoMappingDTO poDto =
+	            primaryProjectDto.getPoDetailsList().get(0);
+
+	    Long updatedBy =
+	            validateAndGetEmployeeEmpId(
+	                    poDto.getUpdatedByEmpId(),
+	                    poDto.getUpdatedByEmpName()
+	            );
+
+	    project.setUpdatedBy(updatedBy);
+	    project.setUpdatedOn(LocalDateTime.now());
+
+	    projectRepository.save(project);
+	}
+
+
+	
+	
+	
 
 
 }

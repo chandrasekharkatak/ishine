@@ -24,6 +24,7 @@ import com.apmosys.employeeportal.dto.FilterMatrix;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
 import com.apmosys.employeeportal.dto.IshineToPoRequestDTO;
+import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
 import com.apmosys.employeeportal.dto.LiftAndShiftTeamsDTO;
 import com.apmosys.employeeportal.dto.NonComplianceProjects;
 import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
@@ -492,6 +493,13 @@ public class ResourceManagementController {
 	 public ServiceResponse deletePoInIshineNew(HttpServletRequest httpRequest,@RequestBody  DeletedPoSyncDTO dto) {
 		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		 return poSyncOrchestratorService.deletePoInIshineNew(dto);
+	 }
+	 
+	 
+	 @PostMapping("/linkPoInIshineNew")
+	 public ServiceResponse linkPoInIshineNew(HttpServletRequest httpRequest,@RequestBody  IshineLinkProjectDto dto) {
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		 return poSyncOrchestratorService.linkPoInIshineNew(dto);
 	 }
 	 
 	 
