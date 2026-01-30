@@ -1933,7 +1933,6 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 				poDto.getClientState());
 	   
 	    ProjectPoDetails poDetails = new ProjectPoDetails();
-	    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 	    poDetails.setPoId(poDto.getPoId());
 	    poDetails.setProjectId(project.getProjectId());
 	    poDetails.setPoNo(poDto.getPoNo());
@@ -1977,6 +1976,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	        map.setPoId(poDto.getPoId());
 	        map.setDeptId(dept.getDeptId());
 	        map.setActive(true);
+	        map.setProjectId(project.getProjectId());
 	        System.out.println("saved in poDepartmentMappingRepository");
 	        logger.info("saved in poDepartmentMappingRepository");
 	        poDepartmentMappingRepository.save(map);
