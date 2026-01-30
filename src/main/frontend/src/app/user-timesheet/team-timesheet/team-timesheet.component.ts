@@ -253,9 +253,16 @@ export class TeamTimesheetComponent implements OnInit {
   }
 
   showTMBulkUpload() {
+    if(this.isTMBulkUpload){
+      return;
+    }
     this.isAllTimesheetTable = false;
     this.isAllTimesheetRequestTable = false;
     this.isTMBulkUpload = true;
+    this.resetBulkUploadForm('MONTH');
+    this.resetBulkUploadForm('EMP');
+    this.resetBulkUploadForm('PROJECT');
+    this.resetBulkUploadForm('UPLOAD');
     this.getPreviousMinusDays();
   }
 

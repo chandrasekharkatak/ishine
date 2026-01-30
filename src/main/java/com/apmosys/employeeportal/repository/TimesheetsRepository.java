@@ -10735,58 +10735,24 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			  String employmentStatus,String projectStatus, @Param("dept_id")Long deptId, @Param("employeeActive") String employeeActive, @Param("billableType")List<String> billableType, @Param("multiPOs")String multiPOs );
 
            
-			@Query(value = "WITH \n" + 
-								"  Project_Managers AS (\n" + 
-								"   SELECT pm.project_id, GROUP_CONCAT(DISTINCT e.name ORDER BY e.name SEPARATOR ', ') \n" + 
-								"   AS project_manager_name\n" + 
-								"   FROM project_manager_mapping pm\n" + 
-								"   left JOIN employee e ON e.emp_id = pm.project_manager_id\n" + 
-								"   GROUP BY pm.project_id\n" + 
-								"  ),\n" + 
-								"  Base_Project_Employees AS (\n" + 
-								"   SELECT DISTINCT\n" + 
-								"    etm.team_id, t.team_name, etm.emp_id, e.name, etm.employee_role, e.billable_type,\n" + 
-								"    date(etm.start_date) as start_date, date(etm.end_date) as end_date,\n" + 
-								"    etm.employee_team_map_id, etm.active, p.project_id, p.project_name,\n" + 
-								"     c.client_id, c.client_name, ecsm.client_side_id, p.po_no,\n" + 
-								"     s.name AS spoc, tl.name AS teamLead,e.approvals_to,e.manager_id,\n" + 
-								"     e.reporting_manager_id, e.employmentstatus, d.name AS dept_name,\n" + 
-								"      CASE\n" + 
-								"      WHEN e.is_apmosys_product = 'true' \n" + 
-								"                        THEN CONCAT('AP-',e.employeement_id)\n" + 
-								"      ELSE CONCAT('A-',e.employeement_id)\n" + 
-								"      END AS employement_id\n" + 
-								"    FROM projects p\n" + 
-								"    INNER JOIN teams t ON p.project_id = t.project_id\n" + 
-								"    INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n" + 
-								"    INNER JOIN employee e ON e.emp_id = etm.emp_id\n" + 
-								"    INNER JOIN employee_timesheets et on et.emp_id = e.emp_id\n" + 
-								"    INNER JOIN clients c ON c.client_id = p.client_id\n" + 
-								"    LEFT JOIN employee tl ON tl.emp_id = t.team_lead_id\n" + 
-								"    LEFT JOIN employee s ON s.emp_id = t.spoc_id\n" + 
-								"    LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id\n" + 
-								"    LEFT JOIN department d ON d.dept_id = jr.dept_id\n" + 
-								"    LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id\n" + 
-								"   where (\n" + 
-								"   e.date_of_relieving IS NULL \n" + 
-								"   OR YEAR(e.date_of_relieving) > :year \n" + 
-								"   OR (YEAR(e.date_of_relieving) = :year AND MONTH(e.date_of_relieving) >= :month)\n" + 
-								"   ) \n" + 
-								"   AND et.current_manager_id = :empId\n" + 
-								"   AND p.has_client_side_id = 1\n" + 
-								"   AND e.emp_id not between 1 and 6 \n" + 
-								"    AND DATE(etm.start_date) <= :toDate\n" + 
-								"    AND (etm.end_date IS NULL OR DATE(etm.end_date) >= :fromDate)\n" + 
-								"   )\n" + 
-								"            \n" + 
-								"   SELECT SQL_CALC_FOUND_ROWS distinct\n" + 
-								"    bpe.emp_id,\n" + 
-								"    bpe.name,\n" + 
-								"    bpe.project_id,\n" + 
-								"    bpe.project_name,bpe.po_no,\n" + 
-								"    bpe.employement_id\n" + 
-								"   FROM Base_Project_Employees bpe\n" + 
-								"   LEFT JOIN Project_Managers pm ON bpe.project_id = pm.project_id", nativeQuery = true)
+			@Query(value = "SELECT DISTINCT\n" +
+								"etm.emp_id, e.name, p.project_id, p.project_name\n" +
+								"FROM projects p\n" +
+								"INNER JOIN teams t ON p.project_id = t.project_id\n" +
+								"INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n" +
+								"INNER JOIN employee e ON e.emp_id = etm.emp_id\n" +
+								"INNER JOIN employee_timesheets et on et.emp_id = e.emp_id\n" +
+								"where (\n" +
+								"e.date_of_relieving IS NULL \n" +
+								"OR YEAR(e.date_of_relieving) > :year \n" +
+								"OR (YEAR(e.date_of_relieving) = :year AND MONTH(e.date_of_relieving) >= :month)\n" +
+								") \n" +
+								"AND et.current_manager_id = :empId\n" +
+								"AND p.has_client_side_id = 1\n" +
+								"AND e.emp_id not between 1 and 6 \n" +
+								"AND DATE(etm.start_date) <= :toDate\n" +
+								"AND (etm.end_date IS NULL OR DATE(etm.end_date) >= :fromDate)"
+				, nativeQuery = true)
 	        List<Object[]> getMyReporteesAndClientSideProjectsInMonthYearNew(@Param("year") Integer year,@Param("month") Integer month,@Param("empId") Long emp_id, @Param("toDate") LocalDate toDate, @Param("fromDate") LocalDate fromDate);
 	        
 

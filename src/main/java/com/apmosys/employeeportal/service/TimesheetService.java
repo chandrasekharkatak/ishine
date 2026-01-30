@@ -5534,16 +5534,28 @@ public class TimesheetService {
 				);
 			}
 
-			if(fromDate.isAfter(toDate) || toDate.isBefore(fromDate)) {
-				throw new IllegalArgumentException("Invalid date range.");
+			if(fromDate.isAfter(toDate)) {
+				throw new IllegalArgumentException("Invalid date range. From date cannot be greater than to date.");
+			}
+			if(toDate.isBefore(fromDate)){
+				throw new IllegalArgumentException("Invalid date range. To date cannot be less than from date.");
+			}
+
+			List<String> allowedFileExtensions = List.of("png", "jpg", "jpeg", "pdf");
+			String fileExtension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1);
+
+			if(!allowedFileExtensions.contains(fileExtension.toLowerCase())) {
+				throw new IllegalArgumentException(
+						"Invalid file extension. Allowed file extensions are: " + String.join(", ", allowedFileExtensions)
+				);
 			}
 
 			if (checkMinusDaysForBulkUpload) {
 
 				LocalDate expectedToDate = fromYearMonth.atEndOfMonth();
-				if (toDate.isAfter(expectedToDate) || toDate.isBefore(fromDate)) {
+				if (toDate.isAfter(expectedToDate)) {
 					throw new IllegalArgumentException(
-							"Invalid date range."
+							"Invalid date range. To date cannot be greater than expected to date."
 					);
 				}
 
@@ -5555,12 +5567,11 @@ public class TimesheetService {
 					allowedStartDate = expectedYearMonth.atDay(15);
 				}
 
-				if (fromDate.isBefore(allowedStartDate) || fromDate.isAfter(toDate)) {
+				if (fromDate.isBefore(allowedStartDate)) {
 					throw new IllegalArgumentException(
 							String.format(
-									"From date must be between %s and %s",
-									allowedStartDate,
-									toDate
+									"Invalid date range. From date cannot be before %s",
+									allowedStartDate
 							)
 					);
 				}
@@ -5583,7 +5594,7 @@ public class TimesheetService {
 			}
 
 			if(notFilledTimesheetDocumentDetails == null || notFilledTimesheetDocumentDetails.isEmpty()) {
-				throw new IllegalArgumentException("No timesheet document details found for the given employees and date range.");
+				throw new IllegalArgumentException("No Eligible timesheet(s) found for the given employee(s) and date range.");
 			}
 
 			Set<Long> timesheetIds = notFilledTimesheetDocumentDetails.stream().map(TimesheetIdAndEmpIdDTO::getTimesheetId).collect(Collectors.toSet());
@@ -5598,6 +5609,7 @@ public class TimesheetService {
 
 			byte[] fileBytes = file.getBytes();
 	        String contentType = file.getContentType();
+			String fileName = file.getOriginalFilename();
 
 			for(Timesheet timesheet : timesheets){
 				timesheet.setStatus("Pending");
@@ -5613,10 +5625,9 @@ public class TimesheetService {
 						timesheetDocumentDetails.setUpdatedOn(LocalDateTime.now());
 						timesheetDocumentDetails.setCreatedOn(tdd.getCreatedOn());
 						timesheetDocumentDetails.setCreatedBy(tdd.getCreatedBy());
+						break;
 					}
 				}
-
-				String fileName = timesheet.getTimesheetId() + "_" + timesheet.getEmpId() + "_Approved_" + UUID.randomUUID().toString()+getExtensionWithDot(file.getOriginalFilename());
 
 				timesheetDocumentDetails.setActive(true);
 				timesheetDocumentDetails.setDocName(fileName);
@@ -5667,15 +5678,6 @@ public class TimesheetService {
 	    }
 
 		return response;
-	}
-
-	private String getExtensionWithDot(String fileName) {
-		if (fileName == null) return "";
-		int lastDot = fileName.lastIndexOf('.');
-		if (lastDot == -1 || lastDot == fileName.length() - 1) {
-			return "";
-		}
-		return fileName.substring(lastDot);
 	}
 	
 	public ServiceResponse getAllDisabledDateListForBulkDocSubmit(Integer projectId, Long empId) {
