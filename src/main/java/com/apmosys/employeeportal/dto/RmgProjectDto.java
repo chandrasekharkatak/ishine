@@ -63,8 +63,7 @@ public class RmgProjectDto {
         this.poProjectType = TypeConversionUtil.getSafeString(row[8]);
         this.internalProjectType = TypeConversionUtil.getSafeString(row[9]);
         this.status = TypeConversionUtil.getSafeString(row[10]);
-        this.poProjectType = TypeConversionUtil.getSafeString(row[11]);
-        this.poProjectId = TypeConversionUtil.safeParseLong(row[12]);
+        this.poProjectId = TypeConversionUtil.safeParseLong(row[11]);
     }
 
 }

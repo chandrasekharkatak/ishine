@@ -4648,7 +4648,7 @@ boolean existsByProjectName(String projectName);
 	public Boolean isClientIdMandetory(@Param("projectId")int projectId); 
 
 	@Query(value = "SELECT DISTINCT \n"
-			+ " p.project_id, project_name, c.client_name, p.state"
+			+ " p.project_id, project_name, c.client_name, cl.client_state"
 			+ " , date(p.start_date) project_start_date, date(p.end_date) project_end_date "
 			+ " , p.project_status project_status "
 			+ " , CASE \n"
@@ -4659,13 +4659,14 @@ boolean existsByProjectName(String projectName);
 			+ " WHEN p.is_draft_project IS NULL THEN 'Not Started' \n"
 			+ " ELSE 'Un Mentioned Test Data' \n"
 			+ " END as draft_project_status \n"
-			+ " ,po_project_type, p.internal_project_type, p.status status, p.poProjectType, p.poProjectId "
+			+ " ,po_project_type, p.internal_project_type, p.status status, p.po_project_id "
 			+ " FROM projects p\n"
 			+ " LEFT JOIN clients c ON p.client_id = c.client_id \n"
+			+ " LEFT JOIN client_locations cl ON p.client_id = cl.client_id \n"
 			+ " WHERE 1=1 \n"
 			+ " and p.project_id =:projectId \n"
-			+ " GROUP BY p.project_id, project_name, c.client_name, p.state, p.start_date, p.end_date "
-			+ ", p.project_status ,po_project_type, p.internal_project_type, p.status ", nativeQuery = true)
+			+ " GROUP BY p.project_id, project_name, c.client_name, cl.client_state, p.start_date, p.end_date "
+			+ ", p.project_status ,po_project_type, p.internal_project_type, p.status, p.po_project_id  ", nativeQuery = true)
 	List<Object[]> getProjectConfigurationDetailsByProjectIdNew(@Param("projectId") Integer projectId);
 
 	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO(etm.empId, p.projectId, p.projectName) "
