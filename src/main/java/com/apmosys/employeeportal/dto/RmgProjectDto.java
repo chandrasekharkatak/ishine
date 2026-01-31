@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 public class RmgProjectDto {
 
     private Integer projectId;
+    private Long poProjectId;
     private String projectName;
     private String clientName;
     private String state;
@@ -62,6 +63,8 @@ public class RmgProjectDto {
         this.poProjectType = TypeConversionUtil.getSafeString(row[8]);
         this.internalProjectType = TypeConversionUtil.getSafeString(row[9]);
         this.status = TypeConversionUtil.getSafeString(row[10]);
+        this.poProjectType = TypeConversionUtil.getSafeString(row[11]);
+        this.poProjectId = TypeConversionUtil.safeParseLong(row[12]);
     }
 
 }

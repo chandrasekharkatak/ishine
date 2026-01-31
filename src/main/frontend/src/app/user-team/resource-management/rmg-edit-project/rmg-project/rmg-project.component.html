@@ -7,46 +7,56 @@
         <h6 class="card-title">Project Configuration</h6>
     </div>
     <div class="card-body">
-        <div class="row" style="height: 90vh; max-height: 500px; overflow-y: auto;overflow-x: hidden;">
-            <div class="col-md-3" *ngIf="!isProjectPreview">
-                <div class="card shadow-sm h-100">
-                    <div class="row ml-0 mr-0 d-flex justify-content-center">
-                        <mat-tab-group>
-                            <mat-tab label="Projects"></mat-tab>
-                            <mat-tab label="Milestones"
-                                *ngIf="fixedCostTypes.includes((projectType ?? '').toLowerCase())"></mat-tab>
-                        </mat-tab-group>
-                    </div>
-                    <div class="row ml-0 mr-0 d-flex justify-content-center">
-                        <mat-vertical-stepper (selectionChange)="onProjectConfigStepChange($event)">
-                            <mat-step>
-                                <ng-template matStepLabel>Project Information</ng-template>
-                            </mat-step>
-                            <mat-step label="Current Resource Requirements \n Old Resource Mapped">
-                                <ng-template matStepLabel>Resource Configuration</ng-template>
-                            </mat-step>
-                            <mat-step>
-                                <ng-template matStepLabel>Preview</ng-template>
-                            </mat-step>
-                        </mat-vertical-stepper>
+        <mat-tab-group>
+            <mat-tab label="Project">
+                <div class="p-2 m-2">
+                    <div class="row" style="height: 90vh; max-height: 500px; overflow-y: auto;overflow-x: hidden;">
+                        <div class="col-md-3" *ngIf="!isProjectPreview">
+                            <div class="card shadow-sm h-100 mb-0">
+                                <div class="row ml-0 mr-0 d-flex justify-content-center">
+                                    <mat-vertical-stepper (selectionChange)="onProjectConfigStepChange($event)">
+                                        <mat-step>
+                                            <ng-template matStepLabel>Project Information</ng-template>
+                                        </mat-step>
+                                        <mat-step label="Current Resource Requirements \n Old Resource Mapped">
+                                            <ng-template matStepLabel>Resource Config</ng-template>
+                                        </mat-step>
+                                        <mat-step>
+                                            <ng-template matStepLabel>Preview</ng-template>
+                                        </mat-step>
+                                    </mat-vertical-stepper>
+                                </div>
+                            </div>
+                        </div>
+                        <div [ngClass]="{'col-md-9': !isProjectPreview, 'col-md-12': isProjectPreview}"
+                            class="content-scroll pl-0">
+                            <div class="card shadow-sm h-100 mb-0">
+                                <ng-container *ngIf="projectConfigStepperIndex == 0">
+                                    <ng-template [ngTemplateOutlet]="project_information_template"></ng-template>
+                                </ng-container>
+                                <ng-container *ngIf="projectConfigStepperIndex == 1">
+                                    <ng-template [ngTemplateOutlet]="po_list_template"></ng-template>
+                                </ng-container>
+                                <ng-container *ngIf="projectConfigStepperIndex == 2">
+                                    <ng-template [ngTemplateOutlet]="project_information_template"></ng-template>
+                                    <ng-template [ngTemplateOutlet]="po_list_template"></ng-template>
+                                </ng-container>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div [ngClass]="{'col-md-9': !isProjectPreview, 'col-md-12': isProjectPreview}" class="content-scroll pl-0">
-                <div class="card shadow-sm h-100">
-                    <ng-container *ngIf="projectConfigStepperIndex == 0">
-                        <ng-template [ngTemplateOutlet]="project_information_template"></ng-template>
-                    </ng-container>
-                    <ng-container *ngIf="projectConfigStepperIndex == 1">
-                        <ng-template [ngTemplateOutlet]="po_list_template"></ng-template>
-                    </ng-container>
-                    <ng-container *ngIf="projectConfigStepperIndex == 2">
-                        <ng-template [ngTemplateOutlet]="project_information_template"></ng-template>
-                        <ng-template [ngTemplateOutlet]="po_list_template"></ng-template>
-                    </ng-container>
+            </mat-tab>
+            <mat-tab label="Milestones" *ngIf="fixedCostTypes.includes((projectType ?? '').toLowerCase())">
+                <div class="card card shadow-sm p-2 m-2">
+                    <div class="row" style="height: 90vh; max-height: 500px; overflow-y: auto;overflow-x: hidden;">
+                        <div class="col-md-12">
+                            <ng-template *ngIf="fixedCostTypes.includes((projectType ?? '').toLowerCase())"
+                                [ngTemplateOutlet]="fc_milestone_template"></ng-template>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
+            </mat-tab>
+        </mat-tab-group>
     </div>
 </div>
 
@@ -54,13 +64,13 @@
     <div class="project-information-section">
         <div class="row">
             <div class="col-md-6 mb-0">
-                <div class="form-group m-2">
+                <div class="form-group p-2 mb-0">
                     <label>Project Name</label>
                     <input class="form-control" type="text" disabled [(ngModel)]="rmgProjectObj.projectName" />
                 </div>
             </div>
             <div class="col-md-6 mb-0">
-                <div class="form-group m-2">
+                <div class="form-group p-2 mb-0">
                     <label>Project Type</label>
                     <input class="form-control" type="text" disabled [(ngModel)]="projectType" />
                 </div>
@@ -68,13 +78,13 @@
         </div>
         <div class="row">
             <div class="col-md-6 mb-0">
-                <div class="form-group m-2">
+                <div class="form-group p-2 mb-0">
                     <label>Client Name</label>
                     <input class="form-control" type="text" disabled [(ngModel)]="rmgProjectObj.clientName" />
                 </div>
             </div>
             <div class="col-md-6 mb-0">
-                <div class="form-group m-2">
+                <div class="form-group p-2 mb-0">
                     <label>Department</label>
                     <app-my-select #departmentSelect2 class="form-control" disabled placeholder="Select Department"
                         [(ngModel)]="rmgProjectObj.departmentIds" [options]="departmentsList" displayKey="name"
@@ -85,14 +95,14 @@
         </div>
         <div class="row">
             <div class="col-md-6 mb-0">
-                <div class="form-group m-2">
+                <div class="form-group p-2 mb-0">
                     <label>Status</label>
                     <input class="form-control" type="text" disabled
                         [ngModel]="rmgProjectObj.draftProjectStatus || 'NA'" />
                 </div>
             </div>
             <div class="col-md-6 mb-0">
-                <div class="form-group m-2">
+                <div class="form-group p-2 mb-0">
                     <label>Project Status</label>
                     <input class="form-control" type="text" disabled [(ngModel)]="rmgProjectObj.projectStatus" />
                 </div>
@@ -100,7 +110,7 @@
         </div>
         <div class="row">
             <div class="col-md-6 mb-0">
-                <div class="form-group m-2">
+                <div class="form-group p-2 mb-0">
                     <label><span class="text-danger">*</span>Project Manager</label>
                     <app-my-select class="form-control" [(ngModel)]="rmgProjectObj.projectManagerIds"
                         [isDisabled]="projectConfigStepperIndex !== 0" [options]="managerList" displayKey="name"
@@ -109,7 +119,7 @@
                 </div>
             </div>
             <div class="col-md-6 mb-0">
-                <div class="form-group m-2">
+                <div class="form-group p-2 mb-0">
                     <label>Project Overhead</label>
                     <app-my-select class="form-control" [(ngModel)]="rmgProjectObj.projectOverheadIds"
                         [isDisabled]="projectConfigStepperIndex !== 0" [options]="overheadList" displayKey="name"
@@ -120,7 +130,7 @@
         </div>
         <div class="row">
             <div class="col-md-6 mb-0">
-                <div class="form-group m-2">
+                <div class="form-group p-2 mb-0">
                     <label>State</label>
                     <input class="form-control" type="text" disabled [(ngModel)]="rmgProjectObj.state" />
                 </div>
@@ -131,6 +141,65 @@
                 <button class="btn btn-primary btn-sm" (click)="saveProjectInformation()">
                     Save Project Information
                 </button>
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #fc_milestone_template>
+    <div class="p-3">
+        <h3>Project Milestone List</h3>
+        <div class="table-container">
+            <table class="custom-table">
+                <thead class="thead-light">
+                    <tr id="projectMilestoneTHeadTr">
+                        <th>Sr.No</th>
+                        <th>Line Item</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Status</th>
+                        <th>Remarks</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <ng-container *ngIf="fcProjectMilestoneList.length == 0">
+                        <tr>
+                            <td colspan="9" class="text-center info-label">No details to display...</td>
+                        </tr>
+                    </ng-container>
+                    <ng-container
+                        *ngFor="let milestone of fcProjectMilestoneList | paginate: { itemsPerPage: 10, currentPage: projectMilestonepage };  let j = index">
+                        <tr>
+                            <td>{{j+1}}</td>
+                            <td>{{milestone.lineItemName}}</td>
+                            <td>{{milestone.name}}</td>
+                            <td>{{milestone.description}}</td>
+                            <td>{{milestone.startDate | date:'dd/MM/yyyy'}}</td>
+                            <td>{{milestone.endDate | date:'dd/MM/yyyy'}}</td>
+                            <td>{{milestone.status}}</td>
+                            <td>{{milestone.remarks}}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" [disabled]="milestone.status === 'Completed'"
+                                    [title]="milestone.status === 'Completed' ? 'Cannot edit completed milestone' : ''"
+                                    (click)="openUpdateProjectMilestoneModal(milestone)">
+                                    <i class="fas fa-edit"></i>
+                                </button>&nbsp;&nbsp;
+                                <button *ngIf="milestone.status === 'Completed'" class="btn btn-sm btn-info"
+                                    title="View Document" (click)="openProjectMilestoneDocumentModal(milestone.id)">
+                                    <i class="fas fa-file-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </ng-container>
+                </tbody>
+            </table>
+            <div class="row col-md-12">
+                <pagination-controls class="my-pagination"
+                    [hidden]="!fcProjectMilestoneList || fcProjectMilestoneList?.length === 0"
+                    (pageChange)="handleProjectMilestonePageChange($event)"></pagination-controls>
             </div>
         </div>
     </div>
@@ -1182,6 +1251,141 @@
         </div>
     </div>
 </ng-template>
+
+<ng-template #update_project_milestone>
+    <div class="modal-header">
+        <h4 class="modal-title pull-left">Update Project Milestone</h4>
+        <button type="button" class="close pull-right" aria-label="Close" (click)="closeUpdateProjectMilestoneModal()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+
+        <div class="form-group">
+            <div class="form-field">
+                <label>Line Item Name</label>
+                <input type="text" disabled [(ngModel)]="projectMilestone.lineItemName" />
+            </div>
+            <div class="form-field">
+                <label>Milestone Name</label>
+                <input type="text" disabled [(ngModel)]="projectMilestone.name" />
+            </div>
+            <mat-form-field appearance="outline" class="form-field">
+                <mat-label>Start Date</mat-label>
+                <input matInput [matDatepicker]="startDatePicker" [(ngModel)]="projectMilestone.startDate"
+                    placeholder="Select Start Date" [disabled]="true" autocomplete="off" />
+                <mat-datepicker-toggle matSuffix [for]="startDatePicker">
+                </mat-datepicker-toggle>
+                <mat-datepicker #startDatePicker></mat-datepicker>
+            </mat-form-field>
+
+
+            <mat-form-field appearance="outline" class="form-field">
+                <mat-label>End Date</mat-label>
+                <input matInput [matDatepicker]="endDatePicker" [(ngModel)]="projectMilestone.endDate"
+                    placeholder="Select End Date" autocomplete="off" [disabled]="true" />
+                <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+                <mat-datepicker #endDatePicker></mat-datepicker>
+            </mat-form-field>
+
+
+            <div class="form-field">
+                <label>Description</label>
+                <input type="text" disabled [(ngModel)]="projectMilestone.description" />
+            </div>
+
+
+            <div class="form-field">
+
+                <label>Status</label>
+                <mat-select [(ngModel)]="projectMilestone.status">
+                    <mat-option [value]="projectMilestone.status">{{projectMilestone.status}}</mat-option>
+                    <ng-container *ngFor="let status of statusList; let i=index;">
+                        <mat-option *ngIf="status!=projectMilestone.status" [value]="status">
+                            {{status}}
+                        </mat-option>
+                    </ng-container>
+                </mat-select>
+            </div>
+
+            <div class="form-field full-width">
+                <label>Remarks</label>
+                <textarea class="form-control" [(ngModel)]="projectMilestone.remarks" rows="3"></textarea>
+            </div>
+            <div class="form-field full-width">
+                <label> <span class="text-danger"
+                        *ngIf="projectMilestone.status==='Completed' || projectMilestone.status==='On Hold'">*</span>
+                    Upload Document</label>
+                <!-- Group the input and button together for better layout -->
+                <div class="file-input-group">
+
+                    <!-- Your existing file input -->
+                    <input type="file" class="plain-file-input" (change)="onFileSelected($event)"
+                        accept=".jpg,.jpeg,.png" #fileInput />
+
+                    <!-- The new Preview Button -->
+                    <button type="button" class="btn btn-sm btn-outline-secondary ml-2" (click)="previewSelectedFile()"
+                        [disabled]="!file">
+                        <i class="fa fa-eye"></i> Preview
+                    </button>
+
+                    <button type="button" class="btn btn-sm btn-outline-danger ml-2"
+                        (click)="clearSelectedFile(fileInput)" [disabled]="!file">
+                        <i class="fa fa-times"></i> Clear
+                    </button>
+                </div>
+                <div *ngIf="file" class="file-name-display">
+                    Selected: {{ file.name }}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeUpdateProjectMilestoneModal()">Close</button>
+        <button type="button" class="btn btn-primary" (click)="updateMilestoneChanges()">Update</button>
+    </div>
+</ng-template>
+
+<ng-template #project_milestone_document>
+    <div class="modal fade show d-block" tabindex="-1" role="dialog" style="background: rgba(0, 0, 0, 0.5);">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Milestone Document Preview</h5>
+                    <button type="button" class="close" aria-label="Close"
+                        (click)="closeProjectMilestoneDocumentsModal()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div *ngIf="milestoneDocumentUrl">
+                        <iframe [src]="milestoneDocumentUrl" width="100%" height="600px"></iframe>
+                    </div>
+                    <div *ngIf="!milestoneDocumentUrl">
+                        <p>No document available for this milestone.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #mark_complete_fc_project>
+    <div class="modal-header">
+        <h5 class="modal-title">Confirm Project Completion</h5>
+        <button type="button" class="close" aria-label="Close" (click)="closeMarkAsCompleteFCProjectModal()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <p>All your milestones are completed. Do you want to mark the project as complete?</p>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeMarkAsCompleteFCProjectModal()">No</button>
+        <button type="button" class="btn btn-primary" (click)="markAsCompleteFCProject()">Yes</button>
+    </div>
+</ng-template>
+
 
 <ng-template #loading>
     <i class="fa fa-spinner fa-spin text-secondary"></i>

@@ -19,4 +19,7 @@ export class RmgProject {
     poDetailsList: PoDetails[] = [];
     updatedBy: any;
     projectType: any;
+    status:any;
+    poProjectId:any;
+    
 }

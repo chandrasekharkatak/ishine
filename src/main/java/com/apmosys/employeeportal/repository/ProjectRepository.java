@@ -4659,7 +4659,7 @@ boolean existsByProjectName(String projectName);
 			+ " WHEN p.is_draft_project IS NULL THEN 'Not Started' \n"
 			+ " ELSE 'Un Mentioned Test Data' \n"
 			+ " END as draft_project_status \n"
-			+ " ,po_project_type, p.internal_project_type, p.status status"
+			+ " ,po_project_type, p.internal_project_type, p.status status, p.poProjectType, p.poProjectId "
 			+ " FROM projects p\n"
 			+ " LEFT JOIN clients c ON p.client_id = c.client_id \n"
 			+ " WHERE 1=1 \n"

@@ -24,6 +24,7 @@ export class Project {
 	updatedBy: any;
 	updatedByName: any;
 	teamList: any[] = [];
+	
 	isHOD: any;
 	projectManagerName: any;
 	isTeamCreated: any;
@@ -85,4 +86,5 @@ export class Project {
 	isCustomDate?: boolean;
 	deptIds: any[] = [];
 	poDetailsList: any[] = [];
+	deptName:any;
 }

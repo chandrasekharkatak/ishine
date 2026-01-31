@@ -1,40 +1,32 @@
-import { ViewportScroller } from '@angular/common';
 import { Component, ElementRef, EventEmitter, Input, OnInit, Renderer2, TemplateRef, ViewChild, Output } from '@angular/core';
-import { MatDialog } from '@angular/material/dialog';
-import { DomSanitizer } from '@angular/platform-browser';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
-import { AppComponent } from 'src/app/app.component';
 import { Project } from 'src/app/models/project';
 import { AuthenticationService } from 'src/app/services/authentication.service';
-import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
-import { DepartmentService } from 'src/app/services/department.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { Employee360Service } from 'src/app/services/employee360.service';
-import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { FilterStateService } from 'src/app/services/filter-state.service';
 import { LoaderService } from 'src/app/services/loader.service';
 import { ProjectService } from 'src/app/services/project.service';
 import { ResourceManagementService } from 'src/app/services/resource-management.service';
 import { TeamService } from 'src/app/services/team.service';
-import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { environment } from 'src/environments/environment';
 import { User } from 'src/app/models/user';
 import { Employee } from 'src/app/models/employee';
-import { Team } from 'src/app/models/team';
-import { TeamMember } from 'src/app/models/teamMember';
 import { RmgProject } from 'src/app/models/rmgProject';
 import { finalize, first, map, startWith, catchError } from 'rxjs/operators';
 import { PoDetails } from 'src/app/models/poDetails';
 import { RmgTeam } from 'src/app/models/rmgTeam';
 import { RmgResourceRequirement } from 'src/app/models/rmgResourceRequirement';
 import { RmgTeamMember } from 'src/app/models/rmgTeamMember';
-import { MatCheckboxChange } from '@angular/material/checkbox';
 import { DefaultProjectUpdate } from 'src/app/models/defaultProjectUpdate';
 import { SetDefaultProjectObj } from 'src/app/models/setDefaultProjectObj';
 import { MigrateTeams } from 'src/app/models/migrateTeam';
-
+import { ViewImageComponent } from 'src/app/user-team/view-image/view-image.component';
+import { MatDialog } from '@angular/material/dialog';
+import { Status } from 'src/app/enum/status';
+import { FCProjectMilestone } from 'src/app/models/fcProjectMileStone';
 @Component({
   standalone: false,
   selector: 'app-rmg-project',
@@ -62,8 +54,9 @@ export class RmgProjectComponent implements OnInit {
   @ViewChild("employee_existing_project_details") employeeExistingProjectDetailsTemplateRef: TemplateRef<any>;
   @ViewChild("delete_employee_from_existing_project") deleteEmployeeFromExistingProjectTemplateRef: TemplateRef<any>;
   @ViewChild("delete_team_confirmation") deleteTeamConfirmationTemplateRef: TemplateRef<any>;
-
-
+  @ViewChild("update_project_milestone") updateProjectMilestoneTemplateRef: TemplateRef<any>;
+  @ViewChild("project_milestone_document") projectMilestoneDocumentTemplateRef: TemplateRef<any>;
+  @ViewChild("mark_complete_fc_project") markCompleteFCProjectTemplateRef: TemplateRef<any>;
 
   alertMessageModalRef: NgbModalRef;
   migrateTeamModalRef: NgbModalRef;
@@ -75,6 +68,9 @@ export class RmgProjectComponent implements OnInit {
   employeeExistingProjectDetailsModalRef: NgbModalRef;
   deleteEmployeeFromExistingProjectModalRef: NgbModalRef;
   deleteTeamConfirmationModalRef: NgbModalRef;
+  updateProjectMilestoneModalRef: NgbModalRef;
+  projectMilestoneDocumentModalRef: NgbModalRef;
+  markCompleteFCProjectModalRef: NgbModalRef;
 
   currentUser: User;
   userMapping: any = {};
@@ -126,12 +122,21 @@ export class RmgProjectComponent implements OnInit {
   employeeProjectEndDate: any;
   teamEndDate: any;
 
-
   // Team Migration
   teamMigrationObj: MigrateTeams = new MigrateTeams();
   teamMigrationPoDetailsList: any[] = [];
   teamMigrationTeamList: any[] = [];
   teamMigrationResourceRequirementList: any[] = [];
+
+  // Project Milestone 
+  projectMilestonepage = 1;
+  file: File | null = null;
+  selectedFilePreviewUrl: string | null = null;
+  milestoneDocumentUrl: SafeResourceUrl | null = null;
+  fcProjectMilestoneList: FCProjectMilestone[] = [];
+  statusList = [Status.NOT_STARTED, Status.IN_PROGRESS, Status.ON_HOLD, Status.COMPLETED];
+  projectMilestone: FCProjectMilestone = new FCProjectMilestone();
+
 
   constructor(
     private filterStateService: FilterStateService,
@@ -146,6 +151,7 @@ export class RmgProjectComponent implements OnInit {
     private projectService: ProjectService,
     private employee360Service: Employee360Service,
     private sanitizer: DomSanitizer,
+    private dialog: MatDialog,
     private loaderService: LoaderService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -270,6 +276,37 @@ export class RmgProjectComponent implements OnInit {
   closeDeleteTeamConfirmationModal() {
     if (this.deleteTeamConfirmationModalRef) {
       this.deleteTeamConfirmationModalRef?.close();
+    }
+  }
+
+  openUpdateProjectMilestoneModal(milestone: any) {
+    this.projectMilestone = JSON.parse(JSON.stringify(milestone));
+    this.updateProjectMilestoneModalRef = this.modalService.open(this.updateProjectMilestoneTemplateRef, { modalDialogClass: 'modal-lg' });
+  }
+
+  closeUpdateProjectMilestoneModal() {
+    if (this.updateProjectMilestoneModalRef) {
+      this.updateProjectMilestoneModalRef?.close();
+    }
+  }
+
+  openProjectMilestoneDocumentModal(milestoneId: any) {
+    this.projectMilestoneDocumentModalRef = this.modalService.open(this.projectMilestoneDocumentTemplateRef, { modalDialogClass: 'modal-lg' });
+  }
+
+  closeProjectMilestoneDocumentsModal() {
+    if (this.projectMilestoneDocumentModalRef) {
+      this.projectMilestoneDocumentModalRef?.close();
+    }
+  }
+
+  openMarkAsCompleteFCProjectModal() {
+    this.markCompleteFCProjectModalRef = this.modalService.open(this.markCompleteFCProjectTemplateRef, { modalDialogClass: 'modal-lg' });
+  }
+
+  closeMarkAsCompleteFCProjectModal() {
+    if (this.markCompleteFCProjectModalRef) {
+      this.markCompleteFCProjectModalRef?.close();
     }
   }
   // Modals End
@@ -491,6 +528,38 @@ export class RmgProjectComponent implements OnInit {
     }
     return { message: message, flag: flag };
   }
+
+  requiresDocument(status: string): boolean {
+    return status?.trim() === Status.COMPLETED || status?.trim() === Status.ON_HOLD;
+  }
+
+  validateProjectMilestone() {
+    if (!this.projectMilestone.startDate) {
+      this.openAlertMessageModal('Start date is required for milestone');
+      return false;
+    }
+    if (!this.projectMilestone.endDate) {
+      this.openAlertMessageModal('End date is required for milestone');
+      return false;
+    }
+    if (this.projectMilestone.startDate > this.projectMilestone.endDate) {
+      this.openAlertMessageModal('End date must be after start date for milestone');
+      return false;
+    }
+    if (!this.projectMilestone.status || this.projectMilestone.status.trim().length === 0) {
+      this.openAlertMessageModal('Status is required for milestone');
+      return false;
+    }
+    if (this.requiresDocument(this.projectMilestone.status) && !this.file) {
+      this.openAlertMessageModal('Please upload a document when completing/holding a milestone');
+      return false;
+    }
+    if (this.rmgProjectObj.projectStatus === "Completed") {
+      this.openAlertMessageModal('Project is already completed. You cannot update the milestone.');
+      return false;
+    }
+    return true;
+  }
   // ValidationMethods End
 
   // Helpers Start
@@ -608,6 +677,67 @@ export class RmgProjectComponent implements OnInit {
         emp.projectList = this.projectList.filter(p => emp?.otherActiveProjectIds?.includes(p.projectId));
       }
     }
+  }
+
+  handleProjectMilestonePageChange(event) {
+    this.projectMilestonepage = event;
+  }
+
+  getFileType(filename: string): string {
+    const extension = filename.split('.').pop()?.toLowerCase();
+    switch (extension) {
+      case 'png': return 'image/png';
+      case 'jpg':
+      case 'jpeg': return 'image/jpeg';
+      case 'pdf': return 'application/pdf';
+      default: return 'application/octet-stream';
+    }
+  }
+
+  clearSelectedFile(fileInput: HTMLInputElement) {
+    this.file = null;
+    fileInput.value = '';
+  }
+
+  onFileSelected(event: any): void {
+    const file: File = event.target.files[0];
+    this.file = null;
+    this.selectedFilePreviewUrl = null;
+    if (!file) {
+      return;
+    }
+
+    if (file) {
+      const allowedTypes = ['image/jpeg', 'image/png'];
+      if (!allowedTypes.includes(file.type)) {
+        alert('Invalid file type. Please upload only PDF, JPG, JPEG, or PNG files.');
+        event.target.value = '';
+        this.file = null;
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.selectedFilePreviewUrl = reader.result as string;
+      };
+      reader.readAsDataURL(file);
+      this.file = file;
+    }
+  }
+
+  previewSelectedFile(): void {
+    if (!this.file || !this.selectedFilePreviewUrl) {
+      this.openAlertMessageModal('Please select a file to preview!!');
+      return;
+    }
+
+    this.dialog.open(ViewImageComponent, {
+      width: '80%',
+      data: {
+        imageUrl: this.selectedFilePreviewUrl,
+        fileName: this.file.name
+      }
+    });
   }
   // Helpers End
 
@@ -1418,6 +1548,7 @@ export class RmgProjectComponent implements OnInit {
     this.resourceManagementService.getProjectConfigurationDetailsByProjectId(project?.projectId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.rmgProjectObj = response.serviceResponse;
+        this.rmgProjectObj.state = this.isValidString(this.rmgProjectObj.state) ? this.rmgProjectObj.state : 'NA';
       } else {
         this.openAlertMessageModal(response.serviceResponse);
       }
@@ -1477,4 +1608,143 @@ export class RmgProjectComponent implements OnInit {
   }
   // Projects Method & APIs End
 
+  // FC Milestone Method & APIs Start
+  getProjectMilestones() {
+    this.fcProjectMilestoneList = [];
+    let projectObjTemp = new Project();
+    projectObjTemp.poProjectId = this.rmgProjectObj.projectId;
+    this.projectService.getAllProjectFCLineItemListByProjectId(projectObjTemp).pipe(first()).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.fcProjectMilestoneList = response.serviceResponse;
+        } else {
+          console.error("Error fetching milestones:", response.serviceResponse);
+          this.openAlertMessageModal(response.serviceResponse);
+        }
+      },
+      error: (err) => {
+        this.openAlertMessageModal("An unexpected error occurred while fetching milestones.");
+      }
+    });
+  }
+
+  viewFiles(mileStoneId: any) {
+    this.projectService.getMilestoneById(mileStoneId).subscribe((res: any) => {
+      if (res.documentContent && res.documentName) {
+        const fileType = this.getFileType(res.documentName);
+        const imageDataUrl = `data:${fileType};base64,${res.documentContent}`;
+        console.log("image url" + imageDataUrl)
+        this.dialog.open(ViewImageComponent, { width: '80%', data: { imageUrl: imageDataUrl, fileName: res.documentName } });
+      } else {
+        this.openAlertMessageModal("Image is not available!!")
+      }
+    },
+      (error) => {
+        this.openAlertMessageModal(error.error.message);
+      }
+    )
+  }
+
+  updateMilestoneChanges() {
+    let isValid = this.validateProjectMilestone();
+    if (!isValid) {
+      return;
+    }
+
+    this.projectMilestone.updatedBy = this.currentUser.empId;
+    this.projectMilestone.updatedOn = new Date();
+    const formData = new FormData();
+    formData.append('dto', new Blob([JSON.stringify(this.projectMilestone)], { type: 'application/json' }));
+    if (this.file) {
+      formData.append('file', this.file);
+    }
+
+    this.projectService.updateMilestoneById(formData).pipe(first()).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.file = null;
+          const index = this.fcProjectMilestoneList.findIndex(m => m.id === this.projectMilestone.id);
+          if (index > -1) {
+            this.fcProjectMilestoneList[index] = { ...this.projectMilestone };
+          }
+          this.calculatePoStatus();
+        } else {
+          this.openAlertMessageModal(response.serviceResponse || "Failed to update milestone.");
+        }
+        this.getProjectMilestones();
+      },
+      error: (err) => {
+        this.openAlertMessageModal("Error updating milestone: " + err.message);
+      }
+    });
+    this.closeUpdateProjectMilestoneModal();
+  }
+
+  calculatePoStatus() {
+    let notStarted = 0, completed = 0, hold = 0, inProgress = 0;
+    let lineItemList = this.fcProjectMilestoneList.filter(milestone => milestone.lineItemId == this.projectMilestone.lineItemId);
+
+    for (let m of lineItemList) {
+      if (m.status == Status.IN_PROGRESS) {
+        inProgress++;
+      } else if (m.status == Status.COMPLETED) {
+        completed++;
+      } else if (m.status == Status.ON_HOLD) {
+        hold++;
+      } else if (m.status == Status.NOT_STARTED) {
+        notStarted++;
+      }
+    }
+
+    if (inProgress > 0) {
+      this.projectMilestone.lineItemStatus = Status.IN_PROGRESS
+    } else if (hold > 0) {
+      this.projectMilestone.lineItemStatus = Status.ON_HOLD
+    } else if (notStarted > 0 && notStarted < lineItemList?.length) {
+      this.projectMilestone.lineItemStatus = Status.IN_PROGRESS
+    } else if (completed > 0) {
+      this.projectMilestone.lineItemStatus = Status.COMPLETED
+    }
+
+    const allCompleted =
+      this.fcProjectMilestoneList.length > 0 &&
+      this.fcProjectMilestoneList.every(m => m.status === Status.COMPLETED);
+
+    if (allCompleted) {
+      this.openMarkAsCompleteFCProjectModal();
+    } else {
+
+      this.updateMilestoneChanges();
+      this.closeUpdateProjectMilestoneModal();
+    }
+  }
+
+  markAsCompleteFCProject() {
+    let project = new Project();
+    project.id = this.rmgProjectObj.poProjectId;
+    project.projectId = this.rmgProjectObj.projectId;
+    project.projectName = this.rmgProjectObj.projectName;
+    project.projectStatus = "Completed";
+    project.status = this.rmgProjectObj.status;
+    project.projectType = this.rmgProjectObj.projectType;
+    project.poProjectType = this.rmgProjectObj.poProjectType;
+    project.internalProjectType = this.rmgProjectObj.internalProjectType;
+    project.clientState = this.rmgProjectObj.state;
+
+    project.updatedBy = this.currentUser.empId;
+    project.projectCompletionDate = new Date();
+    project.deptName = '';
+    this.resourceManagementService.completionDateOfProject(project).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        this.openAlertMessageModal("Since all milestones are completed, the project is marked as complete.");
+      } else {
+        this.openAlertMessageModal(response.serviceResponse);
+      }
+    },
+      (error) => {
+        this.openAlertMessageModal("Something went wrong while completing the project.");
+      }
+    );
+  }
+  // FC Milestone Method & APIs End
 }

@@ -8399,6 +8399,10 @@ catch(error){
     }
   }
 
+  isValidString(string: any) {
+    return this.validationService.validateNullUndefinedEmptyStringTrim(string);
+  }
+
   checkIfUserAddingEnabled(){
    if(this.totalNoOfProjectsForAUser>0 && this.projectObj.poProjectType?.toLowerCase() == "tnm" ){
     this.userAdditionEnabled = false;
@@ -8552,6 +8556,8 @@ catch(error){
       map((response: any) => {
         if (response.serviceStatus === 'Success') {
           this.rmgProjectObj = response.serviceResponse;
+           this.rmgProjectObj.state = this.isValidString(this.rmgProjectObj.state) ? this.rmgProjectObj.state : 'NA';
+
         }
         return true;
       }),
