@@ -187,6 +187,7 @@ import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
 import com.apmosys.employeeportal.response.ProjectStructureResponse;
 import com.apmosys.employeeportal.response.ResourceRequirementResponse;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
+import com.apmosys.employeeportal.utility.ExceptionLogContext;
 import com.apmosys.employeeportal.utility.ExceptionUtils;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -14005,17 +14006,49 @@ public class ResourceManagementService {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setLogLevel("INFO");
+		ApiLog initialLog = null;
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String sourceSystem = httpRequest.getRequestURI().toString();
+
 		try {
-			if (ishineToPoRequest.getPoId() == null || ishineToPoRequest.getProjectId()== null||
-					ishineToPoRequest.getStartDateOfBilling()== null || ishineToPoRequest.getEndDateOfBilling()== null){
+			
+			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+					"ishineToPoEmpDetails", "PoPortal", ishineToPoRequest.getUserId(), httpRequest);
+
+			if (ishineToPoRequest == null){
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("PO Id/Project Id/End Date/Start Date one of these is null!!");
-				apiLogInfo.setApiResponse("PO Id/Project Id/End Date/Start Date one of these is null!!");
+				response.setServiceResponse("Request recieved from PO is null!!");
+				apiLogInfo.setApiResponse("Request recieved from PO is null!!");
+				return response;
+			}else if (ishineToPoRequest.getPoId() == null){
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("PO Id in request is null!!");
+				apiLogInfo.setApiResponse("PO Id in request is null!!");
+				return response;
+			}else if (ishineToPoRequest.getProjectId()== null){
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project Id in request is null!!");
+				apiLogInfo.setApiResponse("Project Id in request is null!!");
+				return response;
+			}else if (ishineToPoRequest.getStartDateOfBilling()== null){
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Start Date in request is null!!");
+				apiLogInfo.setApiResponse("Start Date in request is null!!");
+				return response;
+			}else if (ishineToPoRequest.getEndDateOfBilling()== null){
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("End Date in request is null!!");
+				apiLogInfo.setApiResponse("End Date in request is null!!");
 				return response;
 			}
 			
 			if (ishineToPoRequest.getStartDateOfBilling()
 			        .after(ishineToPoRequest.getEndDateOfBilling())) {
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
 			    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			    response.setServiceResponse("Start Date cannot be after End Date!!");
 				apiLogInfo.setApiResponse("Start Date cannot be after End Date!!");
@@ -14027,7 +14060,16 @@ public class ResourceManagementService {
 			
 		    LocalDate startDate = convertToLocalDate(ishineToPoRequest.getStartDateOfBilling());
 		    LocalDate endDate   = convertToLocalDate(ishineToPoRequest.getEndDateOfBilling());
-
+		    
+		    Project project = projectRepository.findByProjectId(ishineToPoRequest.getProjectId());
+		    
+		    if(project.getIsDraftProject()==null) {
+				response.setServiceResponse("Resource onboarding has not started!!");
+				apiLogInfo.setApiResponse("Resource onboarding has not started!!");
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				return response;
+		    }
+		    	
 			List<IshineToPoEmployeeDTO> employees =
 					projectPoDetailsRepository.findEmployeesWithTimesheetStats(
 							ishineToPoRequest.getPoId(), ishineToPoRequest.getProjectId(),
@@ -14035,8 +14077,8 @@ public class ResourceManagementService {
 			
 			if (employees == null || employees.isEmpty()) {
 //				response.setServiceResponse(Collections.emptyList());
-				response.setServiceResponse("No Resource Found!!");
-				apiLogInfo.setApiResponse("No Resource Found!!");
+				response.setServiceResponse("No active employee mapping found!!");
+				apiLogInfo.setApiResponse("No active employee mapping found!!");
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				return response;
 			}
@@ -14053,9 +14095,15 @@ public class ResourceManagementService {
 			return response;
 			
 		} catch (Exception e) {
+			ExceptionLogContext.add(e);
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Something went wrong!!");
+		}finally {
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, ExceptionLogContext.get(),
+						httpRequest);
+			}
 		}
 		return response;
 	}

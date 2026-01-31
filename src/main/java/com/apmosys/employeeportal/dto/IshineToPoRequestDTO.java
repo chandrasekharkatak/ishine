@@ -20,5 +20,7 @@ public class IshineToPoRequestDTO {
 	    
 	    private Long clientId;
 	    private Long addressId;
+	    
+	    private Long userId;
 
 }

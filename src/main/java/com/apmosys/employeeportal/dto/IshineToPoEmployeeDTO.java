@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class IshineToPoEmployeeDTO {
 	
-	 	private Long empId;
+	 	private String empId;
 	    private String empName;
 	    private String roleName;
 	    private String exp;
@@ -19,7 +19,8 @@ public class IshineToPoEmployeeDTO {
 
 	    private Long departmentId;
 	    private Long clientRoleId;
-	    private String clientSideId;
+	    private Integer clientSideId;
+	    private String isApmosysProduct;      
 	    
 	    private Long billableDays;
 	    private Long noOfWorkingDays;
@@ -27,10 +28,11 @@ public class IshineToPoEmployeeDTO {
 	    private LocalDate endDate;
 
 	    public IshineToPoEmployeeDTO(long empId,String empName,String roleName,String experience,String departmentName,
-	            long departmentId,long clientRoleId,String clientSideId,long timesheetFilledCount,
-	            LocalDate startDate,LocalDate endDate ) {
+	            long departmentId,long clientRoleId,Integer clientSideId,long timesheetFilledCount,
+	            LocalDate startDate,LocalDate endDate,String isApmosysProduct ) {
 	    	
-	        this.empId = empId;
+	    	this.empId = Boolean.TRUE.equals(isApmosysProduct)? "AP-" + empId: "A-" + empId;
+//	        this.empId = empId;
 	        this.empName = empName;
 	        this.roleName = roleName;
 	        this.exp = experience;

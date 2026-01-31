@@ -2,7 +2,6 @@ package com.apmosys.employeeportal.dto;
 
 import java.util.Date;
 import java.util.List;
-import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,12 +17,10 @@ public class IshineToPoEmpDetailsSharingDTO {
 	    private String poNo;
 	    private Long poId;
 
-	    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
 	    private Date startDateOfBilling;
-	    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
 	    private Date endDateOfBilling;
 
-	    private Boolean poStatus;      
+	    private Boolean poStatus;
 	    private Integer clientId;
 
 	    private List<IshineToPoEmployeeDTO> employees;
