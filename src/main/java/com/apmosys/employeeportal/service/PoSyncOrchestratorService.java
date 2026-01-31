@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
+import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.POResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
@@ -263,8 +264,8 @@ public class PoSyncOrchestratorService {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse(e.getMessage());
 			response.setServiceError(e.getMessage());
-//			return response;
-			throw e;
+			return response;
+//			throw e;
 
 		} finally {
 			if (initialLog != null) {
@@ -366,8 +367,8 @@ public class PoSyncOrchestratorService {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse(e.getMessage());
 			response.setServiceError(e.getMessage());
-//			return response;
-			throw e;
+			return response;
+//			throw e;
 	    } finally {
 	        if (initialLog != null) {
 	            apiLogUtility.endLog(
@@ -380,6 +381,113 @@ public class PoSyncOrchestratorService {
 	        }
 	    }
 	}
+	
+	@Transactional(rollbackFor = Exception.class)
+	public ServiceResponse linkPoInIshineNew(IshineLinkProjectDto dto) {
+
+	    ApiLog initialLog = null;
+	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+	    String sourceSystem = httpRequest.getRequestURI().toString();
+	    ServiceResponse response = new ServiceResponse();
+
+	    try {
+	        initialLog = apiLogUtility.startLog(
+	                poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+	                "linkPoInIshine",
+	                "PoPortal",
+	                null,
+	                httpRequest
+	        );
+
+	       
+//	        linkPoValidator.validate(dto);
+
+	        // 2. Primary project must exist
+	        Project primaryProject =
+	                projectRepository.findByPoProjectId(
+	                        dto.getPrimaryProject().getProjectId());
+
+	        if (primaryProject == null) {
+	            ExceptionLogContext.add(
+	                    "Primary project not found | poProjectId="
+	                            + dto.getPrimaryProject().getProjectId());
+	            throw new RuntimeException("Primary project does not exist");
+	        }
+
+	        // case 1 - when just order of project is changed
+	        if (dto.getDeletedProjects() == null || dto.getDeletedProjects().isEmpty()) {
+
+	            poDetailsService.validateAssociatedPosIntegrity(
+	                    primaryProject.getProjectId(),
+	                    dto.getPrimaryProject().getPoDetailsList()
+	            );
+
+//	            projectService.updateProjectDatesIfChanged(
+//	                    primaryProject,
+//	                    dto.getPrimaryProject()
+//	            );
+
+	            poDetailsService.updatePoOrderOnly(
+	                    primaryProject.getProjectId(),
+	                    dto.getPrimaryProject()
+	            );
+	        }
+
+	        // case 2 - when actually project is linked
+	        else {
+
+	            poDetailsService.validateLinkingProjectsIntegrity(
+	                    primaryProject,
+	                    dto
+	            );
+
+	            poDetailsService.deactivateDeletedProjectsPos(
+	                    dto.getDeletedProjects()
+	            );
+
+	            poDetailsService.movePosToPrimaryProject(
+	                    primaryProject,
+	                    dto
+	            );
+
+	            projectService.deactivateDeletedProjects(
+	                    dto.getDeletedProjects()
+	            );
+
+	            projectService.updateProjectDatesIfChanged(
+	                    primaryProject,
+	                    dto.getPrimaryProject()
+	            );
+
+	            poDetailsService.updatePoOrderOnly(
+	                    primaryProject.getProjectId(),
+	                    dto.getPrimaryProject()
+	            );
+	        }
+
+	        finalHttpStatusCode = HttpStatus.OK.value();
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("PO linking successful");
+	        return response;
+
+	    } catch (Exception e) {
+	        ExceptionLogContext.add(e);
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceError(e.getMessage());
+	        return response;
+	    } finally {
+	        if (initialLog != null) {
+	            apiLogUtility.endLog(
+	                    initialLog.getId(),
+	                    sourceSystem,
+	                    finalHttpStatusCode,
+	                    ExceptionLogContext.get(),
+	                    httpRequest
+	            );
+	        }
+	    }
+	}
+
 
 
 

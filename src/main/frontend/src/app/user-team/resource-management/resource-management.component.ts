@@ -72,6 +72,10 @@ class FilterData {
 })
 export class ResourceManagementComponent implements OnInit {
 
+
+  @ViewChild("project_configuration") projectConfigurationTemplateRef: TemplateRef<any>;
+  projectConfigurationModalRef: NgbModalRef;
+
   @ViewChild("alert_message") alertMessageTemplateRef: TemplateRef<any>;
   alertMessageModalRef: NgbModalRef;
 
@@ -8426,7 +8430,7 @@ catch(error){
     return null;
   }
 
-  showProjectConfigurationDetails(project: any) {
+  showProjectConfigurationDetails(project: any, isModal:boolean) {
     forkJoin({
       managers: this.getManagerAndOverheadList(),
       departments: this.getAllDepartmentsList(),
@@ -8434,7 +8438,11 @@ catch(error){
       projectConfig: this.getProjectConfigurationDetailsByProjectId(project)
     }).subscribe(result => {
       if (this.rmgProjectObj) {
-        this.showProjectConfiguration();
+        if(isModal){
+          this.showProjectConfigurationModal();
+        }else{
+          this.showProjectConfiguration();
+        }
       }
       console.log('Project Obj:', this.rmgProjectObj);
       console.log('Departments:', this.allDeptList);
@@ -8562,6 +8570,16 @@ catch(error){
   closeAlertMessageModal() {
     if (this.alertMessageModalRef) {
       this.alertMessageModalRef?.close();
+    }
+  }
+
+  showProjectConfigurationModal() {
+    this.projectConfigurationModalRef = this.modalService.open(this.projectConfigurationTemplateRef, { modalDialogClass: 'modal-lg' });
+  }
+
+  closeProjectConfigurationModal() {
+      if (this.projectConfigurationModalRef) {
+      this.projectConfigurationModalRef?.close();
     }
   }
 

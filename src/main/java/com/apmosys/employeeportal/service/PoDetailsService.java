@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
+import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
 import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
@@ -25,6 +26,7 @@ import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectPoDetails;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.ProjectPoDetailsRepository;
+import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ExceptionLogContext;
 
@@ -42,6 +44,9 @@ public class PoDetailsService {
 	
 	@Autowired
 	TeamRepository teamRepository;
+	
+	@Autowired
+	ProjectRepository projectRepository;
 
 	public ProjectPoDetails createPoRTS(Project project, ProjectPoMappingWithResourceDTO dto, Client client) {
 
@@ -459,6 +464,194 @@ public class PoDetailsService {
 	        }
 	    }
 	}
+	
+	
+	public void updatePoOrderOnly(
+	        Integer primaryProjectId,
+	        ProjectPoMappingWithResourceDTO primaryProjectDto) {
+
+	   
+	    Map<Long, PoDetailsForProjectPoMappingDTO> incomingMap =
+	            primaryProjectDto.getPoDetailsList()
+	                    .stream()
+	                    .collect(Collectors.toMap(
+	                            PoDetailsForProjectPoMappingDTO::getPoId,
+	                            Function.identity()
+	                    ));
+
+	   
+	    List<ProjectPoDetails> existingPos =
+	            projectPoDetailsRepository
+	                    .findByProjectIdAndActiveTrue(primaryProjectId);
+
+	    for (ProjectPoDetails existingPo : existingPos) {
+
+	        PoDetailsForProjectPoMappingDTO incoming =
+	                incomingMap.get(existingPo.getPoId());
+
+	        boolean changed = false;
+
+	        if (!Objects.equals(existingPo.getPrevPO(), incoming.getPrevPo())) {
+	            existingPo.setPrevPO(incoming.getPrevPo());
+	            changed = true;
+	        }
+
+	        if (!Objects.equals(existingPo.getNextPO(), incoming.getNextPO())) {
+	            existingPo.setNextPO(incoming.getNextPO());
+	            changed = true;
+	        }
+
+	        if (changed) {
+	            existingPo.setUpdatedBy(
+	                    validateAndGetEmployeeEmpId(
+	                            incoming.getUpdatedByEmpId(),
+	                            incoming.getUpdatedByEmpName()
+	                    )
+	            );
+	            
+	          
+	            existingPo.setPoUpdatedOn(
+	                    convert(incoming.getUpdatedOn())
+	            );
+
+	            projectPoDetailsRepository.save(existingPo);
+	        }
+	    }
+	}
+	
+	
+	public void validateLinkingProjectsIntegrity(
+	        Project primaryProject,
+	        IshineLinkProjectDto dto) {
+
+	    Set<Long> incomingPoIds =
+	            dto.getPrimaryProject().getPoDetailsList()
+	                    .stream()
+	                    .map(PoDetailsForProjectPoMappingDTO::getPoId)
+	                    .collect(Collectors.toSet());
+
+	    Set<Long> dbActivePoIds =
+	            new HashSet<>(
+	                    projectPoDetailsRepository
+	                            .findActivePoIdsByProjectId(primaryProject.getProjectId())
+	            );
+
+	    for (ProjectPoMappingWithResourceDTO deleted : dto.getDeletedProjects()) {
+
+	        Project deletedProject =
+	                projectRepository.findByPoProjectId(deleted.getProjectId());
+
+	        if (deletedProject == null) {
+	            throw new RuntimeException(
+	                    "Deleted project not found | poProjectId="
+	                            + deleted.getProjectId());
+	        }
+
+	        dbActivePoIds.addAll(
+	                projectPoDetailsRepository
+	                        .findActivePoIdsByProjectId(deletedProject.getProjectId()));
+	    }
+
+	    if (!incomingPoIds.equals(dbActivePoIds)) {
+	        ExceptionLogContext.add(
+	                "PO mismatch during project linking | incoming=" + incomingPoIds
+	                        + " | db=" + dbActivePoIds);
+	        throw new RuntimeException("PO mismatch during project linking");
+	    }
+	}
+
+	
+	public void deactivateDeletedProjectsPos(
+	        List<ProjectPoMappingWithResourceDTO> deletedProjects) {
+		
+		PoDetailsForProjectPoMappingDTO poDto = deletedProjects.get(0).getPoDetailsList().get(0);
+		Long updatedBy =   validateAndGetEmployeeEmpId(
+				poDto.getUpdatedByEmpId(),
+				poDto.getUpdatedByEmpName()
+        );
+		LocalDateTime updatedOn =   convert(poDto.getUpdatedOn());
+	    for (ProjectPoMappingWithResourceDTO dto : deletedProjects) {
+
+	        Project project =
+	                projectRepository.findByPoProjectId(dto.getProjectId());
+
+	        List<ProjectPoDetails> pos =
+	                projectPoDetailsRepository
+	                        .findByProjectIdAndActiveTrue(project.getProjectId());
+
+	        for (ProjectPoDetails po : pos) {
+	            po.setActive(false);
+	            po.setUpdatedBy(updatedBy);
+	            po.setPoUpdatedOn(updatedOn);
+	            projectPoDetailsRepository.save(po);
+	        }
+	    }
+	}
+	
+	public void movePosToPrimaryProject(
+	        Project primaryProject,
+	        IshineLinkProjectDto dto) {
+
+	    for (ProjectPoMappingWithResourceDTO deleted : dto.getDeletedProjects()) {
+
+	        Project deletedProject =
+	                projectRepository.findByPoProjectId(deleted.getProjectId());
+
+	      
+	        Set<Long> poIdsFromPortal =  
+	        		deleted.getPoDetailsList()
+                    .stream()
+                    .map(PoDetailsForProjectPoMappingDTO::getPoId)
+                    .collect(Collectors.toSet());
+	        if (poIdsFromPortal == null || poIdsFromPortal.isEmpty()) {
+	        	throw new RuntimeException(
+	                    "no po's found in deleted proj  | poProjectId="
+	                            + deleted.getProjectId());
+	        }
+
+	        List<ProjectPoDetails> oldPos =
+	                projectPoDetailsRepository
+	                        .findByProjectIdAndPoIdIn(
+	                                deletedProject.getProjectId(),
+	                                poIdsFromPortal
+	                        );
+
+	        for (ProjectPoDetails oldPo : oldPos) {
+
+	            ProjectPoDetails newPo = new ProjectPoDetails();
+
+	            // ---- COPY EVERYTHING AS-IS ----
+	            newPo.setPoId(oldPo.getPoId());
+	            newPo.setPoNo(oldPo.getPoNo());
+	            newPo.setPoStartDate(oldPo.getPoStartDate());
+	            newPo.setPoEndDate(oldPo.getPoEndDate());
+	            newPo.setPrevPO(oldPo.getPrevPO());
+	            newPo.setNextPO(oldPo.getNextPO());
+	            newPo.setRenewable(oldPo.isRenewable());
+
+	            newPo.setClientAddressId(oldPo.getClientAddressId());
+	            newPo.setClientLocationId(oldPo.getClientLocationId());
+
+	           
+	            newPo.setProjectId(primaryProject.getProjectId());
+	            newPo.setPoProjectId(primaryProject.getPoProjectId());
+
+	            
+	            newPo.setCreatedBy(oldPo.getCreatedBy());
+	            newPo.setPoCreatedOn(oldPo.getPoCreatedOn());
+	            newPo.setUpdatedBy(oldPo.getUpdatedBy());
+	            newPo.setPoUpdatedOn(oldPo.getPoUpdatedOn());
+
+	            newPo.setActive(true);
+
+	            projectPoDetailsRepository.save(newPo);
+	        }
+	    }
+	}
+
+
+
+
 
 
 

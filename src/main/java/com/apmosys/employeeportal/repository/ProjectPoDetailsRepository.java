@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.repository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -34,6 +35,20 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
                         + "AND (p.active = true or etm.active IN (1, 2)) \n"
                         + "GROUP BY p.id, p.poId, p.projectId, p.poNo, p.poStartDate, p.poEndDate, p.active")
         List<PoDetailsDto> getAllPoDetailsDtoByProjectId(Integer projectId);
+
+        @Query(value = "Select DISTINCT new com.apmosys.employeeportal.dto.PoDetailsDto(ppd.id, ppd.poId, p.projectId, ppd.poNo, ppd.poStartDate, ppd.poEndDate, ppd.active \n"
+                + ",COUNT(DISTINCT CASE WHEN etm.active  = 1 THEN etm.empId END)  \n"
+                + ",COUNT(DISTINCT CASE WHEN etm.active  = 2 THEN etm.empId END) \n"
+                + ") \n"
+                + "FROM Project p  \n"
+                + "LEFT JOIN ProjectPoDetails ppd ON p.projectId = ppd.projectId  \n"
+                + "LEFT JOIN PoRequirementMapping prm ON ppd.poId=prm.poId \n"
+                + "LEFT JOIN Team t ON t.poId = ppd.poId  \n"
+                + "LEFT JOIN EmployeeTeamMap etm ON t.teamId =etm.teamId \n"
+                + "where p.projectId=:projectId \n"
+                + "AND (ppd.poEndDate >= CURRENT_DATE or etm.active IN (1, 2)) \n"
+                + "GROUP BY ppd.id, ppd.poId, p.projectId, ppd.poNo, ppd.poStartDate, ppd.poEndDate, ppd.active")
+        List<PoDetailsDto> getAllProjectPoDetailsDtoByProjectId(Integer projectId);
 
         @Modifying
         @Query("DELETE FROM ProjectPoDetails")
@@ -85,5 +100,9 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
 		List<ProjectPoDetails> findByProjectIdAndActiveTrue(Integer projectId);
 
 		Optional<ProjectPoDetails> findByProjectIdAndPoIdAndActiveTrue(Integer projectId, Long poId);
+
+		List<ProjectPoDetails> findByProjectIdAndActiveFalse(Integer projectId);
+
+		List<ProjectPoDetails> findByProjectIdAndPoIdIn(Integer projectId, Set<Long> poIdsFromPortal);
 
 }

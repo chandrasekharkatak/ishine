@@ -12,10 +12,13 @@ import org.springframework.web.bind.annotation.RestController;
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeOtherActiveProject;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.MigrateTeam;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
+import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.service.EmployeeService;
@@ -342,6 +345,36 @@ public class TeamsController {
 	@PostMapping("addOrUpdateTeamDetails")
 	public ServiceResponse addOrUpdateTeamDetails(@RequestBody PoDetailsDto poDetailsDto) {
 		return teamsService.addOrUpdateTeamDetails(poDetailsDto);
+	}
+
+	// @Encrypted
+	@PostMapping("addOrUpdateTeamMembers")
+	public ServiceResponse addOrUpdateTeamMembers(@RequestBody RmgResourceRequirementDto rmgResourceRequirementDto) {
+		return teamsService.addOrUpdateTeamMembers(rmgResourceRequirementDto);
+	} 
+	
+	// @Encrypted
+	@GetMapping("/getActiveTeamDetailsByProjectId")
+	public ServiceResponse getActiveTeamDetailsByProjectId(@RequestParam Integer projectId) {
+		return teamsService.getActiveTeamDetailsByProjectId(projectId);
+	}
+
+	// @Encrypted
+	@PostMapping("/updateDefaultProjectCompletion")
+	public ServiceResponse updateDefaultProjectCompletion(@RequestBody RmgTeamMemberDto rmgTeamMemberDto) {
+		return teamsService.updateDefaultProjectCompletion(rmgTeamMemberDto);
+	}
+
+	// @Encrypted
+	@PostMapping("/removeTeamMembersFromProject")
+	public ServiceResponse removeTeamMembersFromProject(@RequestBody RmgResourceRequirementDto rmgResourceRequirementDto) {
+		return teamsService.removeTeamMembersFromProject(rmgResourceRequirementDto);
+	}
+
+	// @Encrypted
+	@PostMapping("/updateMappingToOtherProjectAsDefault")
+	public ServiceResponse updateMappingToOtherProjectAsDefault(@RequestBody EmployeeOtherActiveProject employeeOtherActiveProject) {
+		return teamsService.updateMappingToOtherProjectAsDefault(employeeOtherActiveProject);
 	}
 	
 }

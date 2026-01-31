@@ -3,12 +3,15 @@ package com.apmosys.employeeportal.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.model.DraftEmployee;
 import com.apmosys.employeeportal.model.Employee;
+
+import javax.transaction.Transactional;
 
 @Repository
 public interface DraftEmployeeRepository extends JpaRepository<DraftEmployee,Long>{
@@ -60,6 +63,11 @@ public interface DraftEmployeeRepository extends JpaRepository<DraftEmployee,Lon
 	List<Object[]> getDraftEmployeeByEmployeementIdForAp(Long employeementId);
 	
 	@Query(nativeQuery = true)
-	List<Object[]> getDraftEmployeeByEmployeementIdForOthers(Long employeementId); 
+	List<Object[]> getDraftEmployeeByEmployeementIdForOthers(Long employeementId);
+
+	@Modifying
+	@Transactional
+	@Query("DELETE FROM DraftEmployee e WHERE e.employeementId = :employeementId")
+	void deleteAllByEmployeementId(@Param("employeementId") Long employeementId);
 
 }

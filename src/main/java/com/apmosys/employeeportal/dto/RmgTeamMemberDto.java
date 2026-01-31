@@ -13,6 +13,7 @@ public class RmgTeamMemberDto {
     private Integer projectId;
     private String projectName;
     private String projectStatus;
+    private String projectType;
     private String poProjectType;
     private String internalProjectType;
 
@@ -23,6 +24,10 @@ public class RmgTeamMemberDto {
     private Long spocId;
     private String spocName;
     private Long etmId;
+    private Long rescRemovedBy;
+    private boolean isCustomDate;
+    private LocalDateTime rescEndDate;
+    private Integer mappedDefaultProjectId;
 
     private Long poId;
     private String poNo;
@@ -52,12 +57,12 @@ public class RmgTeamMemberDto {
 
     private Integer clientId;
     private String clientName;
-    private LocalDateTime rescEndDate;
+
     private Long createdBy;
     private Long updatedBy;
-    private boolean isCustomDate;
 
-    private Long rescRemovedBy;
+    private List<Long> selectedEmpIds;
+    private List<EmployeeOtherActiveProject> otherActiveProjects;
 
     public RmgTeamMemberDto(String memberName, String employeeRole, List<String> employeeRoles, LocalDateTime startDate,
             LocalDateTime endDate, Integer isShadow, Long isMemberActive, boolean defaultProject) {
@@ -69,6 +74,11 @@ public class RmgTeamMemberDto {
         this.isShadow = isShadow;
         this.isMemberActive = isMemberActive;
         this.defaultProject = defaultProject;
+    }
+
+    public RmgTeamMemberDto(Long empId, List<String> employeeRoles) {
+        this.empId = empId;
+        this.employeeRoles = employeeRoles;
     }
 
 }

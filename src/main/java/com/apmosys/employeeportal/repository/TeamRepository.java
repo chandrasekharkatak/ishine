@@ -172,11 +172,11 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 			+ ", etm.startDate, etm.endDate)  \n"
 			+ "FROM Team t \n"
 			+ "INNER JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId \n"
-			+ "INNER JOIN PoRequirementMapping prm ON etm.poRequirementMappingId = prm.id  \n"
+			+ "LEFT JOIN PoRequirementMapping prm ON etm.poRequirementMappingId = prm.id  \n"
 			+ "LEFT JOIN Employee e ON e.empId = etm.empId \n"
-			+ "LEFT JOIN EmpPrimaryProjectMapping eppm ON eppm.empId = e.empId \n"
+			+ "LEFT JOIN EmpPrimaryProjectMapping eppm ON eppm.empId = e.empId AND eppm.isMapped = 'Y' AND 	eppm.primaryProjectId=:projectId \n"
 			+ "WHERE t.teamId =:teamId  \n")
-	List<PoTeamAndMemberDetailsDto> getAllTeamMemberDetailsDtoByPoId(Long teamId);
+	List<PoTeamAndMemberDetailsDto> getAllTeamMemberDetailsDtoByPoId(Long teamId,Long projectId);
 
 	@Query(value = "SELECT DISTINCT new com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto( \n"
 			+ "  prm.poId, prm.id, prm.role, prm.experience, prm.department, prm.active \n"
@@ -184,7 +184,7 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 			+ ", etm.startDate, etm.endDate)  \n"
 			+ "FROM Team t \n"
 			+ "INNER JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId \n"
-			+ "INNER JOIN PoRequirementMapping prm ON etm.poRequirementMappingId = prm.id  \n"
+			+ "LEFT JOIN PoRequirementMapping prm ON etm.poRequirementMappingId = prm.id  \n"
 			+ "LEFT JOIN Employee e ON e.empId = etm.empId \n"
 			+ "LEFT JOIN EmpPrimaryProjectMapping eppm ON eppm.empId = e.empId \n"
 			+ "WHERE t.teamId IN :teamIds  \n")
@@ -202,4 +202,14 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 	@Query(value ="select t.teamName from Team t where t.isActive = 'Y' and t.teamId in (:teamIds)")
 	public List<String> findActiveTeamNameByTeamIds(@Param("teamIds") List<Long> teamIds);
 	public boolean existsByPoIdAndIsActive(Long poId, String string);
+
+	@Query(value = "SELECT DISTINCT new com.apmosys.employeeportal.dto.RmgTeamDto( \n"
+			+ "  t.teamId, t.teamName, t.poId, t.isActive, es.empId, es.name, t.deptIds \n"
+			+ ", t.teamLeadId, tl.name)  \n"
+			+ "FROM Team t \n"
+			+ "LEFT JOIN Employee es ON es.empId = t.spocId \n"
+			+ "LEFT JOIN Employee tl ON tl.empId = t.teamLeadId \n"
+			+ "WHERE t.projectId =:projectId AND t.isActive = 'Y' \n")
+	List<RmgTeamDto> getActiveTeamDetailsByProjectId(Integer projectId);
+
 }

@@ -5437,6 +5437,23 @@ public class EmployeeService {
 				}
 				
 				
+				//Check if LinkedIn Page notification consent given.
+				List<Notification> allLinkedInPageNotifications = notificationRepository
+						.findByNotificationTypeAndIsActive("NewLinkedIn page", "true");
+				
+				if(!allLinkedInPageNotifications.isEmpty()) {
+					for(Notification object: allLinkedInPageNotifications) {
+						EmployeeNotificationConsent linkedInConsentObj = employeeNotificationConsentRepository
+								.findByEmpIdAndNotificationId(employee.getEmpId(), object.getNotificationId());
+						
+						if(linkedInConsentObj == null) {
+							employee.setLinkedinPageNotification(object);
+							break;
+						}
+					}
+				}
+				
+				
 				//Check if all Newsletter is read
 				List<Newsletter> allNewsletters = newsletterRepository.findAll();
 

@@ -27,9 +27,9 @@ public class RmgTeamDto {
 
     private List<Long> deptIds;
     private List<RmgResourceRequirementDto> rmgResourceRequirementList;
-    
     private LocalDateTime endDate;
-
+    private String projectType;
+    
     public RmgTeamDto(Long teamId, String teamName, Long poId, String isActive, Long spocId, String spocName,
             List<Long> deptIds) {
         this.teamId = teamId;

@@ -1,3 +1,5 @@
+import { EmployeeOtherActiveProject } from "./employeeOtherActiveProject";
+
 export class RmgTeamMember {
 
     projectId: any;
@@ -14,6 +16,9 @@ export class RmgTeamMember {
     spocId: any;
     spocName: any;
     etmId: any;
+    isCustomDate: any;
+    rescEndDate: any;
+    rescRemovedBy: any;
 
     poId: any;
     poNo: any;
@@ -22,6 +27,8 @@ export class RmgTeamMember {
     experience: any;
     department: any;
     isPrmActive: any;
+    employeeRole: any;
+    employeeRoles: any[] = [];
 
     empId: any
     memberName: any;
@@ -37,23 +44,22 @@ export class RmgTeamMember {
     employementId: any;
     billableType: any;
     prevExp: any;
-    isNotSaved: boolean = false;
-
-    isMemberSelected: boolean = false;
-    otherActiveProjectIds: any[] = [];
-    employeeRole: any;
-    employeeRoles: any[] = [];
 
     clientId: any;
     clientName: any;
 
+    createdBy: any;
+    updatedBy: any;
+    selectedEmpIds: number[] = [];
+    mappedDefaultProjectId: any;
+    otherActiveProjectIds: any[] = [];
+    otherActiveProjects: EmployeeOtherActiveProject[] = [];
+
+    isNotSaved: boolean = false;
+    isMemberSelected: boolean = false;
+    projectList: any[] = [];
     poDetailsList: any[] = [];
     teamList: any[] = [];
     resourceRequirementList: any[] = [];
-
-    createdBy: any;
-    updatedBy: any;
-    isCustomDate: any;
-    rescEndDate: any;
-    rescRemovedBy: any;
+     selectedProject?: EmployeeOtherActiveProject;
 }

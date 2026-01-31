@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.dto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import lombok.Data;
@@ -18,7 +19,17 @@ public class RmgResourceRequirementDto {
     private Long count;
 
     private List<RmgTeamMemberDto> rmgTeamMemberList;
+    private Integer projectId;
+    private Long teamId;
+    private Long updatedBy;
+    private boolean isupdate;
+    private boolean isNewRequirementInTeam;
 
+    private String clientName;
+    private String projectType;
+    private LocalDateTime endDate;
+    private boolean isCustomEndDate;
+    
     public RmgResourceRequirementDto(Long poRequirementMappingId, Long poId, String role, String experience,
             String department, boolean isPrmActive) {
         this.poRequirementMappingId = poRequirementMappingId;

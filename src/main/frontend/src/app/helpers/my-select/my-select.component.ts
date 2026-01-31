@@ -24,6 +24,7 @@ export class MySelectComponent implements ControlValueAccessor, OnInit {
   @Input() displayKey: string | string[] = '';
   @Input() displaySeparator: string = ' ';
   @Input() valueKey;
+  @Input() isDisabled:boolean = false;
   @Output() selectionChange = new EventEmitter<any>();
   @Output() change = new EventEmitter<any>();
   @Output() dropdownClosed = new EventEmitter<void>();
