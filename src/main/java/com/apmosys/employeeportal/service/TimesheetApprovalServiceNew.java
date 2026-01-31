@@ -123,43 +123,22 @@ public class TimesheetApprovalServiceNew {
 public ServiceResponse bulkApproveTimesheets(TimesheetApprovalNewDTO dto) {
 
     ServiceResponse response = new ServiceResponse();
-
-    // Validation
-    if (dto == null || dto.getTimesheetIds() == null || dto.getTimesheetIds().isEmpty()) {
-        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-        response.setServiceResponse("Timesheet IDs are required");
-        return response;
-    }
-
-    // Fetch timesheets from NEW table
-    List<EmployeeTimesheetsNew> timesheets =
-            employeeTimesheetsNewRepository.findAllById(dto.getTimesheetIds());
-
-    if (timesheets.isEmpty()) {
-        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-        response.setServiceResponse("No matching timesheets found");
-        return response;
-    }
-
-    // Bulk approve
-    for (EmployeeTimesheetsNew ts : timesheets) {
-
-        ts.setStatus(TimesheetAggregationHelper.STATUS_APPROVED);
-        ts.setUpdatedBy(dto.getUpdatedBy());
-        ts.setUpdatedOn(LocalDateTime.now());
-    }
-
-    employeeTimesheetsNewRepository.saveAll(timesheets);
-
-    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-    response.setServiceResponse(
-            "Approved " + timesheets.size() + " timesheets successfully"
-    );
-
+    List<EmployeeTimesheetsNew> timesheetDatas = employeeTimesheetsNewRepository.findAllById(dto.getTimesheetIds());
+    List<EmployeeTimesheetsNew> rmIdMismatchList = timesheetDatas.stream()
+    											.filter(data -> data.getCurrentManagerId() != dto.getRmId())
+    											.collect(Collectors.toList());
+    if(rmIdMismatchList.size() > 0)
+    	throw new IllegalArgumentException("You are not the Approver of some timesheets");
+    	
     return response;
 }
     
-    
+    @Transactional(rollbackFor = Exception.class)
+    public ServiceResponse bulkRejectTimesheets(TimesheetApprovalNewDTO dto) {
+
+        ServiceResponse response = new ServiceResponse();
+        return response;
+    }
 
     
 }

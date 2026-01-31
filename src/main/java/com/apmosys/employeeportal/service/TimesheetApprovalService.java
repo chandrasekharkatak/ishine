@@ -494,67 +494,64 @@ import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 	    }
 	
 	    /**
-	     * Bulk approves timesheet requests.
-	     * 
-	     * @param timesheetDTO Contains bulkApprovedList
-	     * @return ServiceResponse
-	     */
-	    @Transactional(rollbackFor = Exception.class)
-	    public ServiceResponse bulkApproveTimesheetRequest(TimesheetApprovalNewDTO timesheetApprovalNewDTO) {
-	        ServiceResponse response = new ServiceResponse();
-	        // List<TimesheetDTO> timesheetList = timesheetDTO.getBulkApprovedList();
-			
-	        try {
-				if(timesheetApprovalNewDTO == null || timesheetApprovalNewDTO.getTimesheetIds() == null){
-					throw new Exception("Timesheet Ids are empty");
-				}
-
-				if(timesheetA)
-	
-	            // List<Long> timesheetIds = new ArrayList<>(dtoMap.keySet());
-	            List<Timesheet> timesheets = timesheetsRepository.findAllById(timesheetIds);
-	
-	            // Update in batch
-	            for (Timesheet timesheet : timesheets) {
-	                if (timesheet != null) {
-	                    timesheet.setStatus(timesheetDTO.getStatus());
-	                    timesheet.setTimesheetStatusUpdatedBy(timesheetDTO.getUpdatedBy());
-	                    timesheet.setRemarks(timesheetDTO.getRejectReason());
-	                }
-	            }
-	
-	            timesheetsRepository.saveAll(timesheets);
-	
-	            List<TimesheetDTO> withClientSideId = timesheetList == null
-	                    ? Collections.emptyList()
-	                    : timesheetList.stream()
-	                          .filter(t -> t.getClientSideId() != null)
-	                          .collect(Collectors.toList());
-	            
-	            if (!withClientSideId.isEmpty()) {
-	                ServiceResponse approvalResp = bulkTimesheetDocumentApproval(withClientSideId);
-	                if (!ServiceResponse.STATUS_SUCCESS.equals(approvalResp.getServiceStatus())) {
-	                    throw new RuntimeException("Bulk Timesheet Document Approval Failed");
-	                }
-	            }
-	
-	            ServiceResponse logsResp = bulkTimesheetDocumentApprovalLogs(timesheetList);
-	            if (!ServiceResponse.STATUS_SUCCESS.equals(logsResp.getServiceStatus())) {
-	                throw new RuntimeException("Bulk Timesheet Document Approval Logs Failed");
-	            }
-	
-	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	            response.setServiceResponse("Bulk Timesheet Approved Successfully!");
-	
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	            response.setServiceResponse("Something went wrong in bulk approval.");
-	            response.setServiceError(e.getMessage());
+	     	 * Bulk approves timesheet requests.
+	         * 
+	         * @param timesheetIdList Contains bulkApprovedList
+	         * @return ServiceResponse
+	         */
+	        @Transactional(rollbackFor = Exception.class)
+	        public ServiceResponse bulkApproveTimesheetRequest(TimesheetApprovalNewDTO timesheetIdList) {
+	            ServiceResponse response = new ServiceResponse();
+//	            List<TimesheetApprovalNewDTO> timesheetList = timesheetIdList.getBulkApprovedList();
+//	    
+//	            try {
+//	                Map<Long, TimesheetDTO> dtoMap = timesheetList.stream()
+//	                        .collect(Collectors.toMap(TimesheetDTO::getTimesheetId, Function.identity()));
+//	    
+//	                List<Long> timesheetIds = new ArrayList<>(dtoMap.keySet());
+//	                List<Timesheet> timesheets = timesheetsRepository.findAllById(timesheetIds);
+//	    
+//	                // Update in batch
+//	                for (Timesheet timesheet : timesheets) {
+//	                    if (timesheet != null) {
+//	                        timesheet.setStatus(timesheetIdList.getStatus());
+//	                        timesheet.setTimesheetStatusUpdatedBy(timesheetIdList.getUpdatedBy());
+//	                        timesheet.setRemarks(timesheetIdList.getRejectReason());
+//	                    }
+//	                }
+//	    
+//	                timesheetsRepository.saveAll(timesheets);
+//	    
+//	                List<TimesheetDTO> withClientSideId = timesheetList == null
+//	                        ? Collections.emptyList()
+//	                        : timesheetList.stream()
+//	                              .filter(t -> t.getClientSideId() != null)
+//	                              .collect(Collectors.toList());
+//	                
+//	                if (!withClientSideId.isEmpty()) {
+//	                    ServiceResponse approvalResp = bulkTimesheetDocumentApproval(withClientSideId);
+//	                    if (!ServiceResponse.STATUS_SUCCESS.equals(approvalResp.getServiceStatus())) {
+//	                        throw new RuntimeException("Bulk Timesheet Document Approval Failed");
+//	                    }
+//	                }
+//	    
+//	                ServiceResponse logsResp = bulkTimesheetDocumentApprovalLogs(timesheetList);
+//	                if (!ServiceResponse.STATUS_SUCCESS.equals(logsResp.getServiceStatus())) {
+//	                    throw new RuntimeException("Bulk Timesheet Document Approval Logs Failed");
+//	                }
+//	    
+//	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	                response.setServiceResponse("Bulk Timesheet Approved Successfully!");
+//	    
+//	            } catch (Exception e) {
+//	                e.printStackTrace();
+//	                response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//	                response.setServiceResponse("Something went wrong in bulk approval.");
+//	                response.setServiceError(e.getMessage());
+//	            }
+	    
+	            return response;
 	        }
-	
-	        return response;
-	    }
 	
 	    /**
 	     * Bulk rejects timesheet requests.

@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectWithClientAndLocationDTO;
+import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
@@ -59,6 +60,9 @@ public class TimesheetServiceNew {
 
 	@Autowired
 	private EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
+	
+	@Autowired
+	TimesheetApprovalServiceNew timesheetApprovalServiceNew;
 
 	@Autowired
 	private TimesheetMapper timesheetMapper;
@@ -1410,6 +1414,15 @@ public class TimesheetServiceNew {
 			Boolean isClientDashboard, List<String> billableTypes, String employeeActive, String clientSideFilter) {
 		return timesheetDashboardServiceNew.getTimesheetDashboardCountForEmployee(month, year, empId, isClientDashboard,
 				billableTypes, employeeActive, clientSideFilter);
+	}
+	
+	public ServiceResponse bulkApproveOrRejectTimesheet(TimesheetApprovalNewDTO aprOrRejData) {
+		ServiceResponse serviceResponse =  new ServiceResponse();
+		if(aprOrRejData.getStatusId() == 1)
+			serviceResponse = timesheetApprovalServiceNew.bulkApproveTimesheets(aprOrRejData);
+		else if(aprOrRejData.getStatusId() == 2)
+			serviceResponse =  timesheetApprovalServiceNew.bulkRejectTimesheets(aprOrRejData);
+		return serviceResponse;
 	}
 	
 

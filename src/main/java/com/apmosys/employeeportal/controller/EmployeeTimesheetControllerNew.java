@@ -27,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.GetTimesheetDashboardCountForEmployeeDTO;
+import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDeleteRequestDTO;
@@ -383,5 +384,10 @@ public class EmployeeTimesheetControllerNew {
 		  return reponse;
 	 }
 
+	 @PostMapping("/bulkApproveOrRejectTimesheet")
+	 public ServiceResponse bulkApproveOrRejectTimesheet(@RequestBody TimesheetApprovalNewDTO data) {
+		 ServiceResponse reponse= timesheetServiceNew.bulkApproveOrRejectTimesheet(data);
+		  return reponse;
+	 }
 }
 

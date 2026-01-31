@@ -2510,7 +2510,7 @@ public class TimesheetService {
 		return timesheetApprovalService.revokeApprovedTimesheet(timesheetDTO);
 	}
 	
-	@Transactional(rollbackFor = Exception.class)
+	
 	public ServiceResponse bulkApproveTimesheetRequest(TimesheetApprovalNewDTO timesheetIdList) {
 		return timesheetApprovalService.bulkApproveTimesheetRequest(timesheetIdList);
 	}

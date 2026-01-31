@@ -6,8 +6,12 @@ import lombok.Data;
 
 @Data
 public class TimesheetApprovalNewDTO {
-    private List<Long> timesheetIds;
-    private String status;
-    private Long updatedBy;
-    private String rejectReason;
+	private List<Long> timesheetIds;
+	private Long timesheetId;
+	private Long loactionMappingId;
+	private Long projectId;
+	private Long rmId;
+	private Integer statusId;
+	private Integer rejectionReasonId;
+	private String remarks;
 }
