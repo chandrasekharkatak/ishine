@@ -4019,6 +4019,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			"JOIN Date_Parameters dp ON 1=1\n" + //
 			"WHERE \n" + //
 			"etm.start_date <= dp.to_date\n" + //
+			"and p.has_client_side_id = 1 \n"+
 			"AND (etm.end_date IS NULL OR etm.end_date >= dp.from_date)\n" + //
 			"AND (\n" + //
 			" 'All' IN (:billableType) \n" + //
@@ -4100,7 +4101,23 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 			"LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n" + //
 			"        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id\n" + //
 			"        WHERE p.has_client_side_id = 1 \n" + //
-			"and (\n"
+			"        AND (\n"
+			+ "             'All' IN (:billableType) \n"
+			+ "             \n"
+			+ "             OR (p.po_project_type IN (:billableType) and coalesce(etm.is_shadow,0) = 0) \n"
+			+ "             OR p.internal_project_type IN (:billableType) \n"
+			+ "\n"
+			+ "             OR (\n"
+			+ "                 'TNM(Shadow)' IN (:billableType) \n"
+			+ "                 AND p.po_project_type = 'TNM' \n"
+			+ "                 AND etm.is_shadow = 1\n"
+			+ "             )             OR (\n"
+			+ "                 'Fixed Cost(Shadow)' IN (:billableType) \n"
+			+ "                 AND p.po_project_type = 'Fixed Cost' \n"
+			+ "                 AND etm.is_shadow = 1\n"
+			+ "             )\n"
+			+ "        )\n"
+			+ "and (\n"
 			+ "					(:multiPOs = 'All')\n"
 			+ "						or\n"
 			+ "					(:multiPOs = 'Yes' \n"
@@ -5602,17 +5619,17 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 					+ "          AND DATE(etm.start_date) <= (SELECT to_date FROM Date_Parameters)\n"
 					+ "          AND (etm.end_date IS NULL OR DATE(etm.end_date) >= (SELECT from_date FROM Date_Parameters))\n"
 //					+ "          AND (:billableType = 'All' OR p.po_project_type = :billableType)\n"
-+"AND (\n"
-+ "    'All' IN (:billableType)\n"
-+ "    OR p.po_project_type IN (:billableType)\n"
-+ ")\n"
-                  + "          AND (:projectActive = 'All' OR p.active = :projectActive) \n"
-                  + " AND e.emp_id not between 1 and 6 \n"
-                  + "  AND (\n"
-                  + "		e.date_of_relieving IS NULL \n"
-                  + "		OR YEAR(e.date_of_relieving) > :year \n"
-                  + "		OR (YEAR(e.date_of_relieving) = :year AND MONTH(e.date_of_relieving) >= :month)\n"
-                  + "	) \n"
+					+"AND (\n"
+					+ "    'All' IN (:billableType)\n"
+					+ "    OR p.po_project_type IN (:billableType)\n"
+					+ ")\n"
+                  	+ "          AND (:projectActive = 'All' OR p.active = :projectActive) \n"
+                  	+ " AND e.emp_id not between 1 and 6 \n"
+                  	+ "  AND (\n"
+                  	+ "		e.date_of_relieving IS NULL \n"
+                  	+ "		OR YEAR(e.date_of_relieving) > :year \n"
+                  	+ "		OR (YEAR(e.date_of_relieving) = :year AND MONTH(e.date_of_relieving) >= :month)\n"
+                  	+ "	) \n"
 					+ "    ),\n"
 					+ "    Employee_Timesheet_Statuses AS (\n"
 					+ "        SELECT\n"
@@ -6937,6 +6954,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 			"    JOIN Date_Parameters dp ON 1 = 1 \n" +
 			"  WHERE \n" +
 			"    etm.start_date <= dp.to_date \n" +
+			"    and p.has_client_side_id = 1 \n" +
 			"    AND (\n" +
 			"      etm.end_date IS NULL \n" +
 			"      OR etm.end_date >= dp.from_date\n" +
@@ -7091,7 +7109,23 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 			"    AND ecsm.project_id = t.project_id \n" +
 			"  WHERE \n" +
 			"    p.has_client_side_id = 1 \n" +
-			"and (\n"
+			 "        AND (\n"
+			+ "             'All' IN (:billableType) \n"
+			+ "             \n"
+			+ "             OR (p.po_project_type IN (:billableType) and coalesce(etm.is_shadow,0) = 0) \n"
+			+ "             OR p.internal_project_type IN (:billableType) \n"
+			+ "\n"
+			+ "             OR (\n"
+			+ "                 'TNM(Shadow)' IN (:billableType) \n"
+			+ "                 AND p.po_project_type = 'TNM' \n"
+			+ "                 AND etm.is_shadow = 1\n"
+			+ "             )             OR (\n"
+			+ "                 'Fixed Cost(Shadow)' IN (:billableType) \n"
+			+ "                 AND p.po_project_type = 'Fixed Cost' \n"
+			+ "                 AND etm.is_shadow = 1\n"
+			+ "             )\n"
+			+ "        )\n"
+			+"and (\n"
 			+ "					(:multiPOs = 'All')\n"
 			+ "						or\n"
 			+ "					(:multiPOs = 'Yes' \n"
@@ -8061,7 +8095,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 						"        UNION ALL\n" +
 						"        SELECT DATE_ADD(dt, INTERVAL 1 DAY) FROM All_Dates_In_Range, Date_Parameters WHERE dt < Date_Parameters.to_date\n" +
 						"    ),\n" +
-						"                                 Employees_With_Target_Project_Type AS (\n" +
+						"	Employees_With_Target_Project_Type AS (\n" +
 						"    SELECT DISTINCT etm.emp_id\n" +
 						"    FROM employee_team_mapping etm\n" +
 						"    INNER JOIN teams t ON etm.team_id = t.team_id\n" +
@@ -8069,6 +8103,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 						"    JOIN Date_Parameters dp ON 1=1\n" +
 						"    WHERE \n" +
 						"        etm.start_date <= dp.to_date\n" +
+						"        and p.has_client_side_id = 1\n" +
 						"        AND (etm.end_date IS NULL OR etm.end_date >= dp.from_date)\n" +
 						"        AND (\n" +
 						"             'All' IN (:billableType) \n" +
@@ -8130,7 +8165,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 						"        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n" +
 						"        INNER JOIN employee e ON e.emp_id = etm.emp_id\n" +
 						"        INNER JOIN clients c ON c.client_id = p.client_id\n" +
-						"                                    INNER JOIN Employees_With_Target_Project_Type target_emps ON e.emp_id = target_emps.emp_id\n" +
+						"        INNER JOIN Employees_With_Target_Project_Type target_emps ON e.emp_id = target_emps.emp_id\n" +
 						"        left JOIN Authorized_Employees ae ON e.emp_id = ae.emp_id\n" +
 						"        LEFT JOIN employee tl ON tl.emp_id = t.team_lead_id\n" +
 						"        LEFT JOIN employee s ON s.emp_id = t.spoc_id\n" +
@@ -8149,7 +8184,23 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 						"LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n" +
 						"        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id\n" +
 						"        WHERE p.has_client_side_id = 1 \n" +
-						"and (\n"
+						  "        AND (\n"
+						+ "             'All' IN (:billableType) \n"
+						+ "             \n"
+						+ "             OR (p.po_project_type IN (:billableType) and coalesce(etm.is_shadow,0) = 0) \n"
+						+ "             OR p.internal_project_type IN (:billableType) \n"
+						+ "\n"
+						+ "             OR (\n"
+						+ "                 'TNM(Shadow)' IN (:billableType) \n"
+						+ "                 AND p.po_project_type = 'TNM' \n"
+						+ "                 AND etm.is_shadow = 1\n"
+						+ "             )             OR (\n"
+						+ "                 'Fixed Cost(Shadow)' IN (:billableType) \n"
+						+ "                 AND p.po_project_type = 'Fixed Cost' \n"
+						+ "                 AND etm.is_shadow = 1\n"
+						+ "             )\n"
+						+ "        )\n"
+						+ "and (\n"
 						+ "					(:multiPOs = 'All')\n"
 						+ "						or\n"
 						+ "					(:multiPOs = 'Yes' \n"
@@ -8389,6 +8440,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 				+ "						JOIN Date_Parameters dp ON 1=1\n"
 				+ "						WHERE \n"
 				+ "							etm.start_date <= dp.to_date\n"
+				+ "							and p.has_client_side_id = 1 \n"
 				+ "							AND (etm.end_date IS NULL OR etm.end_date >= dp.from_date)\n"
 				+ "							AND (\n"
 				+ "								 'All' IN (:billableType) \n"
@@ -8470,6 +8522,22 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 				+ "							LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n"
 				+ "						LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id\n"
 				+ "						WHERE p.has_client_side_id = 1 \n"
+				+ "        AND (\n"
+				+ "             'All' IN (:billableType) \n"
+				+ "             \n"
+				+ "             OR (p.po_project_type IN (:billableType) and coalesce(etm.is_shadow,0) = 0) \n"
+				+ "             OR p.internal_project_type IN (:billableType) \n"
+				+ "\n"
+				+ "             OR (\n"
+				+ "                 'TNM(Shadow)' IN (:billableType) \n"
+				+ "                 AND p.po_project_type = 'TNM' \n"
+				+ "                 AND etm.is_shadow = 1\n"
+				+ "             )             OR (\n"
+				+ "                 'Fixed Cost(Shadow)' IN (:billableType) \n"
+				+ "                 AND p.po_project_type = 'Fixed Cost' \n"
+				+ "                 AND etm.is_shadow = 1\n"
+				+ "             )\n"
+				+ "        )\n"
 				+ "and (\n"
 				+ "					(:multiPOs = 'All')\n"
 				+ "						or\n"
@@ -9730,8 +9798,8 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    		+ "    ),\n"
 	    		+ "    Q1_Employee_Document_Summary AS (\n"
 	    		+ "        SELECT emp_id, employee_team_map_id,\n"
-	    		+ "               COUNT(DISTINCT CASE WHEN UPPER(client_approval_status) = 'APPROVED' AND final_flag = 1 THEN timesheet_id END) AS approved_days,\n"
-	    		+ "               COUNT(DISTINCT CASE WHEN UPPER(client_approval_status) = 'PENDING'AND NOT EXISTS (SELECT 1 FROM timesheet_document_details WHERE timesheet_id = edsd.timesheet_id AND UPPER(client_approval_status) = 'APPROVED') THEN timesheet_id END) AS pending_days\n"
+	    		+ "               COUNT(DISTINCT CASE WHEN UPPER(client_approval_status) = 'APPROVED' and upper(edsd.status) != 'REJECTED' AND final_flag = 1 THEN timesheet_id END) AS approved_days,\n"
+	    		+ "               COUNT(DISTINCT CASE WHEN UPPER(client_approval_status) = 'PENDING' and upper(edsd.status) != 'REJECTED' AND NOT EXISTS (SELECT 1 FROM timesheet_document_details WHERE timesheet_id = edsd.timesheet_id AND UPPER(client_approval_status) = 'APPROVED') THEN timesheet_id END) AS pending_days\n"
 	    		+ "        FROM Q1_Employee_Document_Summary_Details edsd GROUP BY emp_id, employee_team_map_id\n"
 	    		+ "    ),\n"
 	    		+ "    Q1_Final_Status AS (\n"
@@ -9815,6 +9883,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 					+ "						JOIN Date_Parameters dp ON 1=1\n"
 					+ "						WHERE \n"
 					+ "							etm.start_date <= dp.to_date\n"
+					+ "							and p.has_client_side_id = 1\n"
 					+ "							AND (etm.end_date IS NULL OR etm.end_date >= dp.from_date)\n"
 					+ "							AND (\n"
 					+ "								 'All' IN (:billableType) \n"
@@ -9887,6 +9956,22 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			+ "						LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n"
 	    			+ "			        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id\n"
 	    			+ "			        WHERE p.has_client_side_id = 1 \n"
+					+ "        AND (\n"
+					+ "             'All' IN (:billableType) \n"
+					+ "             \n"
+					+ "             OR (p.po_project_type IN (:billableType) and coalesce(etm.is_shadow,0) = 0) \n"
+					+ "             OR p.internal_project_type IN (:billableType) \n"
+					+ "\n"
+					+ "             OR (\n"
+					+ "                 'TNM(Shadow)' IN (:billableType) \n"
+					+ "                 AND p.po_project_type = 'TNM' \n"
+					+ "                 AND etm.is_shadow = 1\n"
+					+ "             )             OR (\n"
+					+ "                 'Fixed Cost(Shadow)' IN (:billableType) \n"
+					+ "                 AND p.po_project_type = 'Fixed Cost' \n"
+					+ "                 AND etm.is_shadow = 1\n"
+					+ "             )\n"
+					+ "        )\n"
 					+ "and (\n"
 					+ "					(:multiPOs = 'All')\n"
 					+ "						or\n"
@@ -10127,6 +10212,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 					+ "    JOIN Date_Parameters dp ON 1 = 1 \n" 
 					+ "  WHERE \n" 
 					+ "    etm.start_date <= dp.to_date \n" 
+					+ "    and p.has_client_side_id = 1 \n" 
 					+ "    AND (\n" 
 					+ "      etm.end_date IS NULL \n" 
 					+ "      OR etm.end_date >= dp.from_date\n" 
@@ -10200,6 +10286,22 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			+ "						LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n"
 	    			+ "			        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id\n"
 	    			+ "			        WHERE p.has_client_side_id = 1 \n"
+					+ "        AND (\n"
+					+ "             'All' IN (:billableType) \n"
+					+ "             \n"
+					+ "             OR (p.po_project_type IN (:billableType) and coalesce(etm.is_shadow,0) = 0) \n"
+					+ "             OR p.internal_project_type IN (:billableType) \n"
+					+ "\n"
+					+ "             OR (\n"
+					+ "                 'TNM(Shadow)' IN (:billableType) \n"
+					+ "                 AND p.po_project_type = 'TNM' \n"
+					+ "                 AND etm.is_shadow = 1\n"
+					+ "             )             OR (\n"
+					+ "                 'Fixed Cost(Shadow)' IN (:billableType) \n"
+					+ "                 AND p.po_project_type = 'Fixed Cost' \n"
+					+ "                 AND etm.is_shadow = 1\n"
+					+ "             )\n"
+					+ "        )\n"
 					+ "and (\n"
 					+ "					(:multiPOs = 'All')\n"
 					+ "						or\n"
@@ -10547,6 +10649,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 					+ "    JOIN Date_Parameters dp ON 1=1\n" 
 					+ "    WHERE \n" 
 					+ "        etm.start_date <= dp.to_date\n" 
+					+ "			and p.has_client_side_id = 1\n"
 					+ "        AND (etm.end_date IS NULL OR etm.end_date >= dp.from_date)\n" 
 					+ "        AND (\n" 
 					+ "             'All' IN (:billableType) \n" 
@@ -10616,6 +10719,22 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			+ "						LEFT JOIN project_overhead_mapping pom_check ON p.project_id = pom_check.project_id AND pom_check.project_overhead_id = :emp_id\n"
 	    			+ "			        LEFT JOIN employee_client_side_id_mapping ecsm ON e.emp_id = ecsm.emp_id AND ecsm.project_id = t.project_id\n"
 	    			+ "			        WHERE p.has_client_side_id = 1 \n"
+					+ "        AND (\n"
+					+ "             'All' IN (:billableType) \n"
+					+ "             \n"
+					+ "             OR (p.po_project_type IN (:billableType) and coalesce(etm.is_shadow,0) = 0) \n"
+					+ "             OR p.internal_project_type IN (:billableType) \n"
+					+ "\n"
+					+ "             OR (\n"
+					+ "                 'TNM(Shadow)' IN (:billableType) \n"
+					+ "                 AND p.po_project_type = 'TNM' \n"
+					+ "                 AND etm.is_shadow = 1\n"
+					+ "             )             OR (\n"
+					+ "                 'Fixed Cost(Shadow)' IN (:billableType) \n"
+					+ "                 AND p.po_project_type = 'Fixed Cost' \n"
+					+ "                 AND etm.is_shadow = 1\n"
+					+ "             )\n"
+					+ "        )\n"
 					+ "and (\n"
 					+ "					(:multiPOs = 'All')\n"
 					+ "						or\n"
@@ -10828,7 +10947,25 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			  String employmentStatus,String projectStatus, @Param("dept_id")Long deptId, @Param("employeeActive") String employeeActive, @Param("billableType")List<String> billableType, @Param("multiPOs")String multiPOs );
 
            
-	        
+			@Query(value = "SELECT DISTINCT\n" +
+								"etm.emp_id, e.name, p.project_id, p.project_name\n" +
+								"FROM projects p\n" +
+								"INNER JOIN teams t ON p.project_id = t.project_id\n" +
+								"INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n" +
+								"INNER JOIN employee e ON e.emp_id = etm.emp_id\n" +
+								"INNER JOIN employee_timesheets et on et.emp_id = e.emp_id\n" +
+								"where (\n" +
+								"e.date_of_relieving IS NULL \n" +
+								"OR YEAR(e.date_of_relieving) > :year \n" +
+								"OR (YEAR(e.date_of_relieving) = :year AND MONTH(e.date_of_relieving) >= :month)\n" +
+								") \n" +
+								"AND et.current_manager_id = :empId\n" +
+								"AND p.has_client_side_id = 1\n" +
+								"AND e.emp_id not between 1 and 6 \n" +
+								"AND DATE(etm.start_date) <= :toDate\n" +
+								"AND (etm.end_date IS NULL OR DATE(etm.end_date) >= :fromDate)"
+				, nativeQuery = true)
+	        List<Object[]> getMyReporteesAndClientSideProjectsInMonthYearNew(@Param("year") Integer year,@Param("month") Integer month,@Param("empId") Long emp_id, @Param("toDate") LocalDate toDate, @Param("fromDate") LocalDate fromDate);
 	        
 
 }						  

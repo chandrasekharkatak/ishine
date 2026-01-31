@@ -466,6 +466,7 @@ public class NotificationServiceImpl implements NotificationService {
 	@Override
 	public ServiceResponse submitNotificationConsent(NotificationDTO notificationDTO) {
 		ServiceResponse response = new ServiceResponse();
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("Submit Notification Consent");
 		apiLogInfo.setApiUrl("/api/submitNotificationConsent");
@@ -475,16 +476,26 @@ public class NotificationServiceImpl implements NotificationService {
 
 		try {
 			
-			EmployeeNotificationConsent consentObj = new EmployeeNotificationConsent();
+			EmployeeNotificationConsent dbResponse = null;
+		
 			
-			consentObj.setEmpId(notificationDTO.getEmpId());
-			consentObj.setNotificationId(notificationDTO.getNotificationId());
+			boolean consentExists =
+					employeeNotificationConsentRepository.existsByEmpIdAndNotificationId(
+			                notificationDTO.getEmpId(),
+			                notificationDTO.getNotificationId()
+			        );
 			
-			EmployeeNotificationConsent dbResponse = employeeNotificationConsentRepository.save(consentObj);
+		  	if (!consentExists) {
+			    EmployeeNotificationConsent consentObj = new EmployeeNotificationConsent();
+			    consentObj.setEmpId(notificationDTO.getEmpId());
+				consentObj.setNotificationId(notificationDTO.getNotificationId());
+				dbResponse=employeeNotificationConsentRepository.save(consentObj);
+			}
 			
+		  	EmployeeDTO dto = new EmployeeDTO();
 			if(dbResponse != null) {
 				
-				EmployeeDTO dto = new EmployeeDTO();
+				
 				
 				if(notificationDTO.getNotificationType().equals("consentNotification")) {
 					List<Notification> allConsentNotification = notificationRepository
@@ -501,7 +512,7 @@ public class NotificationServiceImpl implements NotificationService {
 							}
 						}
 					}
-				}else {
+				}else if(notificationDTO.getNotificationType().equals("releaseNotes")) {
 					List<Notification> allReleaseNotes = notificationRepository
 							.findByNotificationTypeAndIsActive("releaseNotes", "true");
 					
@@ -512,6 +523,21 @@ public class NotificationServiceImpl implements NotificationService {
 							
 							if(releaseConsentObj == null) {
 								dto.setReleaseNoteNotification(object);
+								break;
+							}
+						}
+					}
+				}else if(notificationDTO.getNotificationType().equals("NewLinkedIn page")) {
+					List<Notification> allLinkedInPageNotifications = notificationRepository
+							.findByNotificationTypeAndIsActive("NewLinkedIn page", "true");
+					
+					if(!allLinkedInPageNotifications.isEmpty()) {
+						for(Notification object: allLinkedInPageNotifications) {
+							EmployeeNotificationConsent linkedInConsentObj = employeeNotificationConsentRepository
+									.findByEmpIdAndNotificationId(notificationDTO.getEmpId(), object.getNotificationId());
+							
+							if(linkedInConsentObj == null) {
+								dto.setLinkedinPageNotification(object);
 								break;
 							}
 						}

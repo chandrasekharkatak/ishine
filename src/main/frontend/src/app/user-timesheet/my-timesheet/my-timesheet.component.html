@@ -118,7 +118,7 @@
                                 Date</label>
                             <mat-form-field style="display: contents;">
                                 <input matInput [matDatepicker]="picker"
-                                    [matDatepickerFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"
+                                    [matDatepickerFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetToDateFilter"
                                     [(ngModel)]="toDate" readonly [min]="fromDate" [max]="maxToDate"
                                     (dateChange)="makeApmosysInTime();makeApmosysOutTime();makeClientInTime();makeClientOutTime()"
                                     [disabled]="!fromDate" required />
@@ -1507,9 +1507,9 @@
     <div class="modal-body text-center">
         <p>Do you have required permission for night shift from your manager?</p>
         <button type="button" class="btn btn-success"
-            (click)="cancelRequest();this.timesheetObj.isNightShift = true;onFromDateChange()">Yes,proceed</button>&nbsp;
+            (click)="confirmNightShift(true);onFromDateChange()">Yes,proceed</button>&nbsp;
         <button type="button" class="btn btn-danger"
-            (click)="cancelRequest();this.timesheetObj.isNightShift = false;onFromDateChange()">No,
+            (click)="confirmNightShift(false);onFromDateChange()">No,
             Cancel</button>&nbsp;
     </div>
 </ng-template>

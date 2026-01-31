@@ -296,6 +296,7 @@ this.isApmosysProduct = isApmosysProduct;
 	
 	private Object notificationConsent;
 	private Notification releaseNoteNotification;
+	private Notification linkedinPageNotification;
 	private String poPortalAllProjectApi;
 	
 	private String unlockTimesheetFor;

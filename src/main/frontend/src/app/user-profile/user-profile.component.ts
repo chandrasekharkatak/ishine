@@ -18,7 +18,7 @@ import { OnBoardingService } from '../services/on-boarding.service';
 import { ValidationService } from '../services/validation.service';
 import { Skills } from '../models/skills';
 import { Certificate } from '../models/certificate';
-
+import { UpdateUserInfoService } from '../services/updateUserInfo.service';
 @Component({
   standalone: false,
   selector: 'app-user-profile',
@@ -47,7 +47,8 @@ export class UserProfileComponent implements OnInit {
 
 
   modalRef1:NgbModalRef;
-
+  draftObj:Employee = new Employee();
+  hasPendingRequest: boolean = false;
   allCertificationList: any[] = [];
   allPreviousEmployment: any[] = [];
   updatedCertificationList: any[] = [];
@@ -71,12 +72,14 @@ export class UserProfileComponent implements OnInit {
     private locationStrategy: LocationStrategy,
     private domainService: DomainService,
     private onBoardingService: OnBoardingService,
+    private updateUserInfoService: UpdateUserInfoService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
   ngOnInit(): void {
     this.onGetEmployeeInfo();
+    this.checkExistingDraft();
     this.getMyAssetList();
 
     // Dynamic Subfeature Flags
@@ -101,6 +104,19 @@ export class UserProfileComponent implements OnInit {
     this.setCalenderMaxDate();
   }
 
+async checkExistingDraft() {
+  try {
+    this.draftObj = await this.updateUserInfoService.getDraftByEmpId();
+
+    if (this.draftObj) {
+      this.hasPendingRequest = true;
+    } else {
+      this.hasPendingRequest = false;
+    }
+  } catch (error) {
+    this.hasPendingRequest = false;
+  }
+}
   currentDateFilter = (d: Date) => {
     const dateFormat = 'YYYY-MM-DD';
     const currentDate = new Date();
@@ -720,7 +736,17 @@ export class UserProfileComponent implements OnInit {
 
   //Employee Info Update
   openUpdateInfo(template: TemplateRef<any>) {
-    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl', backdrop: 'static', keyboard: false });
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-xl', backdrop: true, keyboard: true });
+
+    this.modalRef.result.then(
+      () => { this.resetUpdateState(); },
+      () => { this.resetUpdateState(); }
+    );
+  }
+  private resetUpdateState() {
+    this.isUpdateProfile = false;
+    this.onGetEmployeeInfo();
+    this.checkExistingDraft();
   }
 
   onDocSubmit() {

@@ -5,10 +5,14 @@
 <div class="container-fluid">
     <div class="row justify-content-between mb-3">
         <h3 class="profile__greetings">Welcome, {{currentEmployeeInfo.name}}</h3>
-        <button *ngIf="!isUpdateProfile && userMapping.update_profile" type="submit" class="btn btn-primary btn-sm"
-            (click)="showUpdateProfile()">Update Profile</button>
-        <button *ngIf="isUpdateProfile && userMapping.view_profile" type="submit" class="btn btn-primary btn-sm"
-            (click)="showViewProfile()">View Profile</button>
+      <button (click)="showUpdateProfile()" [ngClass]="'btn-primary'"
+        class="btn d-flex align-items-center gap-2">
+        <span>
+          {{ hasPendingRequest ? 'View Existing Request' : 'Update Profile' }}
+        </span>
+      </button>
+       <!-- <button *ngIf="isUpdateProfile && userMapping.view_profile" type="submit" class="btn btn-primary btn-sm"
+            (click)="showViewProfile()">View Profile</button>-->
     </div>
     <div *ngIf="userMapping.view_profile" class="row">
         <div class="card user-card">
@@ -485,7 +489,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-md-4 mb-0" 
+                                    <div class="col-md-4 mb-0"
                                         *ngIf="currentEmployeeInfo.onRollDate != null">
                                         <div class="info-wrapper">
                                                 <p class="info-label">On Roll Date</p>
@@ -605,7 +609,7 @@
                         </mat-expansion-panel>
 
                         <!-- Previous Employer details will be diplayed only if exprience is "Experienced" -->
-                        <mat-expansion-panel 
+                        <mat-expansion-panel
                             *ngIf="currentEmployeeInfo.experience == 'Experienced' && currentEmployeeInfo.previousEmploymentList && currentEmployeeInfo.previousEmploymentList !==0"
                             class="acc-content">
                             <mat-expansion-panel-header class="accordion-header-bg-color"title="Previous Employment Information">
@@ -757,14 +761,14 @@
                                     <div class="d-flex flex-wrap skill-container">
                                         <div *ngFor="let skill of skills" class="skill-card">
 
-                                          
+
                                             <div class="d-flex justify-content-between align-items-start">
                                                 <span class="skill-name">{{ skill.name }}</span>
                                                 <img src="assets/Images/thumbskill.png" alt="thumbs up"
                                                     class="icon-top" />
                                             </div>
 
-                                           
+
                                             <div class="d-flex justify-content-between align-items-end mt-auto">
                                                 <div >
                                                     <button class="btn p-0 border-0 bg-transparent action-btn">
