@@ -5179,11 +5179,15 @@ List<ProjectFetchDTO> completedInSankhButTeamMappedList(@Param("projectIds")Set<
 		+ "			 and (pdm.deptId IN (:deptIds))")
 List<ProjectFetchDTO> getAllPendingProjectList(@Param("deptIds") List<Long> deptIds);
 
-@Query(value="SELECT  distinct\n"
+@Query(value="(SELECT  distinct\n"
 			+ "			    p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
-			+ "			    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.end_date, ppd.po_no, \n"
-			+ "			    p.po_project_type, p.start_date, ppd.apmosys_rm, ppd.client_rm, p.dept_id, p.is_renewable, p.status,\n"
-			+ "			    ppd.apmosys_rm_email, p.project_completion_date, p.project_status, p.internal_project_type,c.client_name,\n"
+			+ "			    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.end_date,  GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no, \n"
+			+ "			    p.po_project_type, p.start_date, "
+			+" GROUP_CONCAT(DISTINCT ppd.apmosys_rm SEPARATOR ', ') AS apmosys_rm,\n"
+			+" GROUP_CONCAT(DISTINCT ppd.client_rm SEPARATOR ', ')  AS client_rm,\n"
+			+" p.dept_id, p.is_renewable, p.status,\n"
+			+ " GROUP_CONCAT(DISTINCT ppd.apmosys_rm_email SEPARATOR ', ') AS apmosys_rm_email,\n"
+			+" p.project_completion_date, p.project_status, p.internal_project_type,c.client_name,\n"
 			+ "			    'Approved' AS approval_status, \n"
 			+ "			    CASE \n"
 			+ "			      WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id) \n"
@@ -5206,14 +5210,41 @@ List<ProjectFetchDTO> getAllPendingProjectList(@Param("deptIds") List<Long> dept
 			+ "			WHERE p.active = 'true' AND t.is_active = 'Y' AND etm.active != 0\n"
 			+ "			AND p.is_draft_project = 'false'\n"
 			+ "			AND (pdm.dept_id IN (:deptIds))\n"
+			+"GROUP BY\n" 
+							+	"    p.project_id,\n"  
+							+	"    p.created_on,\n" 
+							+	"    p.project_name,\n"  
+							+	"    p.state,\n"  
+							+	"    p.client_id,\n"  
+							+	"    p.po_project_id,\n"  
+							+	"    p.active,\n"  
+							+	"    p.sync_project,\n"  
+							+	"    p.created_by,\n"  
+							+	"    p.updated_by,\n"  
+							+	"    p.updated_on,\n"  
+							+	"    p.is_draft_project,\n"  
+							+	"    p.end_date,\n"  
+							+	"    p.po_project_type,\n"  
+							+	"    p.start_date,\n"  
+							+	"    p.dept_id,\n"  
+							+	"    p.is_renewable,\n"  
+							+	"    p.status,\n"  
+							+	"    p.project_completion_date,\n"  
+							+	"    p.project_status,\n"  
+							+	"    p.internal_project_type,\n"  
+							+	"    c.client_name)\n"
 			+ "			\n"
 			+ "			UNION ALL\n"
 			+ "			\n"
-			+ "			SELECT  distinct\n"
+			+ "			(SELECT  distinct\n"
 			+ "			    p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
-			+ "			    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.end_date, ppd.po_no, \n"
-			+ "			    p.po_project_type, p.start_date, ppd.apmosys_rm, ppd.client_rm, p.dept_id, p.is_renewable, p.status,\n"
-			+ "			    ppd.apmosys_rm_email, p.project_completion_date, p.project_status, p.internal_project_type,c.client_name,\n"
+			+ "			    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.end_date, GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no, \n"
+			+ "			    p.po_project_type, p.start_date,"
+			+" GROUP_CONCAT(DISTINCT ppd.apmosys_rm SEPARATOR ', ') AS apmosys_rm,\n"
+			+" GROUP_CONCAT(DISTINCT ppd.client_rm SEPARATOR ', ')  AS client_rm,\n "
+			+"p.dept_id, p.is_renewable, p.status,\n"
+			+"GROUP_CONCAT(DISTINCT ppd.apmosys_rm_email SEPARATOR ', ') AS apmosys_rm_email,\n" 
+			+"p.project_completion_date, p.project_status, p.internal_project_type,c.client_name,\n"
 			+ "			    'Pending For Approval' AS approval_status,\n"
 			+ "			    CASE \n"
 			+ "			      WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id) \n"
@@ -5233,14 +5264,41 @@ List<ProjectFetchDTO> getAllPendingProjectList(@Param("deptIds") List<Long> dept
 			+ "			LEFT JOIN clients c ON c.client_id = p.client_id \n"
 			+ "			WHERE p.active= 'true' AND p.is_draft_project = 'true'\n"
 			+ "			AND (pdm.dept_id IN (:deptIds))\n"
+			+"GROUP BY\n"  
+								+"    p.project_id,\n"  
+								+"    p.created_on,\n"  
+								+"    p.project_name,\n" 
+								+"    p.state,\n"  
+								+"    p.client_id,\n"  
+								+"    p.po_project_id,\n"  
+								+"    p.active,\n"  
+								+"    p.sync_project,\n"  
+								+"    p.created_by,\n"  
+								+"    p.updated_by,\n"  
+								+"    p.updated_on,\n"  
+								+"    p.is_draft_project,\n"  //
+								+"    p.end_date,\n"  //
+								+"    p.po_project_type,\n"  //
+								+"    p.start_date,\n"  //
+								+"    p.dept_id,\n"  //
+								+"    p.is_renewable,\n"  //
+								+"    p.status,\n"  //
+								+"    p.project_completion_date,\n"  //
+								+"    p.project_status,\n"  //
+								+"    p.internal_project_type,\n"  //
+								+"    c.client_name)"
 			+ "			\n"
 			+ "			UNION ALL\n"
 			+ "			\n"
-			+ "			SELECT  distinct\n"
+			+ "			(SELECT  distinct\n"
 			+ "			    p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
-			+ "			    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.end_date, ppd.po_no, \n"
-			+ "			    p.po_project_type, p.start_date, ppd.apmosys_rm, ppd.client_rm, p.dept_id, p.is_renewable, p.status,\n"
-			+ "			    ppd.apmosys_rm_email, p.project_completion_date, p.project_status, p.internal_project_type,c.client_name,\n"
+			+ "			    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.end_date,  GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no, \n"
+			+ "			    p.po_project_type, p.start_date,"
+			+ " GROUP_CONCAT(DISTINCT ppd.apmosys_rm SEPARATOR ', ') AS apmosys_rm,\n" 
+			+ " GROUP_CONCAT(DISTINCT ppd.client_rm SEPARATOR ', ') AS client_rm,\n"
+			+ "p.dept_id, p.is_renewable, p.status,\n"
+			+ "GROUP_CONCAT(DISTINCT ppd.apmosys_rm_email SEPARATOR ', ') AS apmosys_rm_email,"
+			+ "p.project_completion_date, p.project_status, p.internal_project_type,c.client_name,\n"
 			+ "			    'Not Started' AS approval_status,\n"
 			+ "			    CASE \n"
 			+ "			      WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id) \n"
@@ -5259,14 +5317,37 @@ List<ProjectFetchDTO> getAllPendingProjectList(@Param("deptIds") List<Long> dept
 			+ "			AND NOT EXISTS (SELECT 1 FROM teams t WHERE t.project_id = p.project_id) \n"
 			+ "			AND (p.internal_project_type IS NOT NULL OR DATE(p.end_date) > CURDATE())\n"
 			+ "			AND (pdm.dept_id IN (:deptIds))\n"
+			+ "GROUP BY\n" 
+							+	"    p.project_id,\n" 
+							+	"    p.created_on,\n" 
+							+	"    p.project_name,\n" 
+							+	"    p.state,\n" 
+							+	"    p.client_id,\n" 
+							+	"    p.po_project_id,\n" 
+							+	"    p.active,\n" 
+							+	"    p.sync_project,\n" 
+							+	"    p.created_by,\n" 
+							+	"    p.updated_by,\n" 
+							+	"    p.updated_on,\n" 
+							+	"    p.is_draft_project,\n" 
+							+	"    p.end_date,\n" 
+							+	"    p.po_project_type,\n" 
+							+	"    p.start_date,\n" 
+							+	"    p.dept_id,\n" 
+							+	"    p.is_renewable,\n" 
+							+	"    p.status,\n" 
+							+	"    p.project_completion_date,\n" 
+							+	"    p.project_status,\n" 
+							+	"    p.internal_project_type,\n" 
+							+	"    c.client_name)"
 			+ "			\n"
 			+ "			UNION ALL\n"
 			+ "			\n"
-			+ "			SELECT  distinct\n"
+			+ "			(SELECT  distinct\n"
 			+ "			    p.project_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
-			+ "			    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.end_date, ppd.po_no, \n"
-			+ "			    p.po_project_type, p.start_date, ppd.apmosys_rm, ppd.client_rm, p.dept_id, p.is_renewable, p.status,\n"
-			+ "			    p.apmosys_rm_email, p.project_completion_date, p.project_status, p.internal_project_type,c.client_name,\n"
+			+ "			    p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.end_date, GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no, \n"
+			+ "			    p.po_project_type, p.start_date, GROUP_CONCAT(DISTINCT ppd.apmosys_rm SEPARATOR ', ') AS apmosys_rm, GROUP_CONCAT(DISTINCT ppd.client_rm SEPARATOR ', ') AS client_rm, p.dept_id, p.is_renewable, p.status,\n"
+			+ "			    GROUP_CONCAT(DISTINCT ppd.apmosys_rm_email SEPARATOR ', ') AS apmosys_rm_email, p.project_completion_date, p.project_status, p.internal_project_type,c.client_name,\n"
 			+ "			    'Rejected' AS approval_status,\n"
 			+ "			    CASE \n"
 			+ "			      WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id) \n"
@@ -5286,7 +5367,30 @@ List<ProjectFetchDTO> getAllPendingProjectList(@Param("deptIds") List<Long> dept
 			// + "			INNER JOIN project_department_map pdm ON p.project_id = pdm.project_id\n"
 			+ "			LEFT JOIN clients c ON c.client_id = p.client_id \n"
 			+ "			WHERE p.active= 'true' AND UPPER(p.is_draft_project) = 'REJECTED'\n"
-			+ "			AND (pdm.dept_id IN (:deptIds));" , nativeQuery = true)
+			+ "			AND (pdm.dept_id IN (:deptIds))" 
+			+"GROUP BY\n" 
+							+	"    p.project_id,\n" 
+							+	"    p.created_on,\n" 
+							+	"    p.project_name,\n" 
+							+	"    p.state,\n" 
+							+	"    p.client_id,\n" 
+							+	"    p.po_project_id,\n" 
+							+	"    p.active,\n" 
+							+	"    p.sync_project,\n" 
+							+	"    p.created_by,\n" 
+							+	"    p.updated_by,\n" 
+							+	"    p.updated_on,\n" 
+							+	"    p.is_draft_project,\n" 
+							+	"    p.end_date,\n" 
+							+	"    p.po_project_type,\n" 
+							+	"    p.start_date,\n" 
+							+	"    p.dept_id,\n" 
+							+	"    p.is_renewable,\n" 
+							+	"    p.status,\n" 
+							+	"    p.project_completion_date,\n" 
+							+	"    p.project_status,\n"
+							+	"    p.internal_project_type,\n"
+							+	"    c.client_name)", nativeQuery = true)
 	List<Object[]> getAllTotalProjectList(@Param("deptIds") List<Long> deptIds);
 	
 
@@ -6117,9 +6221,9 @@ List<Object[]> findAllFixedCostProjects(@Param("deptId") List<Long> deptId);
 
 
 @Query(nativeQuery = true, value = "SELECT\n"
-+ "			     distinct p.project_id,p.project_name, ppd.po_no, p.client_id, p.po_project_id, p.active,po_project_type,\n"
++ "			     distinct p.project_id,p.project_name, GROUP_CONCAT(DISTINCT ppd.po_no  SEPARATOR ', ') AS po_no, p.client_id, p.po_project_id, p.active,po_project_type,\n"
 + "			     GROUP_CONCAT(DISTINCT e1.name ORDER BY e1.name SEPARATOR ', ') as Project_Manager,\n"
-+ "			     c.client_name, ppd.client_rm, p.dept_id,ppd.apmosys_rm, date(p.start_date) start_date, date(p.end_date) end_date,\n"
++ "			     c.client_name, GROUP_CONCAT(DISTINCT ppd.client_rm SEPARATOR ', ') AS clientrm, p.dept_id,GROUP_CONCAT(DISTINCT ppd.apmosys_rm  SEPARATOR ', ') AS apmosysrm, date(p.start_date) start_date, date(p.end_date) end_date,\n"
 + "			     p.state, p.created_on, p.status PO_project_status,p.project_completion_date,p.project_status Ishine_project_status, p.internal_project_type,\n"
 + "			      CASE \n"
 + "			     WHEN p.is_draft_project = 'true' THEN 'Pending For Approval' \n"
@@ -6162,7 +6266,7 @@ List<Object[]> findAllFixedCostProjects(@Param("deptId") List<Long> deptId);
 + "			     -- AND DATE(p.end_date) < CURDATE()\n"
 + "				and d.dept_id in (:deptId)\n"
 + "				 GROUP BY\n"
-+ "			     p.project_id,project_name, po_no,p.client_id, p.po_project_id, p.active, po_project_type, c.client_name, p.dept_id, \n"
++ "			     p.project_id,project_name, p.client_id, p.po_project_id, p.active, po_project_type, c.client_name, p.dept_id, \n"
 + "			     start_date, end_date, p.state, p.created_on, p.status,p.project_completion_date,p.project_status, \n"
 + "			     p.internal_project_type")
 List<Object[]> findDelayedFCProject(@Param("deptId") List<Long> deptId);
@@ -6205,9 +6309,11 @@ List<Object[]> findDelayedFCProject(@Param("deptId") List<Long> deptId);
 + "),\n"
 + "in_active_projects AS (\n"
 + "    SELECT d.dept_id, c.client_id, d.name, c.client_name, \n"
-+ "		   p.project_id, p.project_name, ppd.po_no, p.po_project_type, \n"
++ "		   p.project_id, p.project_name,"
++" GROUP_CONCAT(DISTINCT ppd.po_no ORDER BY p.po_no SEPARATOR ', ') AS po_no ,"
++" p.po_project_type, \n"
 + "           GROUP_CONCAT(distinct e1.name order by e1.emp_id separator ', ') as project_manager, \n"
-+ "           ppd.apmosys_rm, ppd.client_rm, p.start_date, p.end_date, \n"
++ "         GROUP_CONCAT(DISTINCT ppd.apmosys_rm SEPARATOR ', ') AS apmosys_rm, GROUP_CONCAT(DISTINCT ppd.client_rm SEPARATOR ', ') AS client_rm, p.start_date, p.end_date, \n"
 + "           p.created_on, p.po_project_id, 'inactive' as project_type,\n"
 + "           CASE WHEN p.po_project_id IS NOT NULL THEN CONCAT('po', p.po_project_id) ELSE CAST(p.project_id AS CHAR) END AS projectViewId"
 + "    FROM projects p\n"
@@ -6232,8 +6338,8 @@ List<Object[]> findDelayedFCProject(@Param("deptId") List<Long> deptId);
 + "    WHERE t.is_active = 'N'\n"
 + "		  and not exists (select 1 from teams t1 where t.project_id = t1.project_id and t1.is_active != 'N')\n"
 + "    GROUP BY d.dept_id, c.client_id, d.name, c.client_name, \n"
-+ "		   p.project_id, p.project_name, p.po_no, p.po_project_type, \n"
-+ "           c.client_name, p.apmosysrm, p.clientrm, p.start_date, p.end_date, \n"
++ "		   p.project_id, p.project_name,  p.po_project_type, \n"
++ "           c.client_name,  p.start_date, p.end_date, \n"
 + "           p.created_on, p.po_project_id,projectViewId \n"
 + ")\n"
 + "select * from (\n"
@@ -6326,7 +6432,7 @@ List<Object[]> getClientAndProjectDataList(
             "GROUP_CONCAT(DISTINCT t.team_name SEPARATOR ', ') AS team_name, " +
             "GROUP_CONCAT(DISTINCT e1.name SEPARATOR ', ') AS project_manager_name, " +
             "GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_name SEPARATOR ', ') AS project_name, " +
-            "GROUP_CONCAT(DISTINCT ppd.po_no ORDER BY p.po_no SEPARATOR ', ') AS po_no_name " + 
+            "GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no " + 
             "FROM employee e " +
             "LEFT JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id AND etm.active = 1 " +
             "LEFT JOIN teams t ON t.team_id = etm.team_id AND t.is_active = 'Y' " +
@@ -6458,6 +6564,33 @@ List <RMGFlatEmployeeProjectTeamDTO>  getExceptionEmployeeReportInDepartment(Lon
 + "        WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' AND e.employmentstatus != 'InActive' \n"
 + "        AND pm.active = 1\n"
 + "        AND date(etm.start_date) < curdate()\n"
++"GROUP BY\n"  //
+		+"    etm.team_id,\n"  //
+		+"    t.team_name,\n"  //
+		+"    e.emp_id,\n"  //
+		+"    e.name,\n"  //
+		+"    etm.employee_role,\n"  //
+		+"    e.billable_type,\n"  //
+		+"    etm.start_date,\n"  //
+		+"    etm.active,\n"  //
+		+"    p.project_id,\n"  //
+		+"    p.project_name,\n" //
+		+"    p.has_client_side_id,\n"  //
+		+"    c.client_id,\n"  //
+		+"    c.client_name,\n"  //
+		+"    ecsm.client_side_id,\n"  //
+		+"    s.name,\n"  //
+		+"    tl.name,\n"  //
+		+"    etm.employee_team_map_id,\n"  //
+		+"    e.reporting_manager_id,\n"  //
+		+"    e.manager_id,\n"  //
+		+"    e.approvals_to,\n"  //
+		+"    e.is_apmosys_product,\n"  //
+		+"    e.employeement_id,\n"  //
+		+"    d.name,\n"  //
+		+"    e1.name,\n"  //
+		+"    e.email,\n"  //
+		+"    e.mobile_no"
 + "    ),\n"
 + "\n"
 + "    Dynamic_Expected_Days AS (\n"
@@ -6828,7 +6961,7 @@ public Optional<List<Object[]>> getAllEmployeeDSROfRM(
 			+ "			            p.active, p.project_id, p.project_name, p.start_date, p.end_date, \n"
 			+ "			            c.client_id, c.client_name, GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no,\n" 
 			+ "			            s.name spoc, tl.name teamLead, etm.employee_team_map_id,p.internal_project_type,p.po_project_type,\n"
-			+ "			            e.reporting_manager_id, ecsm.client_side_id,p.clientrm,\n"
+			+ "			            e.reporting_manager_id, ecsm.client_side_id,GROUP_CONCAT(DISTINCT ppd.client_rm SEPARATOR ', ') AS clientrm,\n"
 			+ "			            CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-',e.employeement_id) ELSE CONCAT('A-',e.employeement_id) END AS employement_id,\n"
 			+ "			            d.name dept_name, e.email, e.mobile_no, GROUP_CONCAT(DISTINCT ppd.apmosys_rm SEPARATOR ', ') AS apmosysrm,GROUP_CONCAT(DISTINCT ppd.apmosys_rm_email SEPARATOR ', ') AS apmosys_rm_email, e.employmentstatus\n"
 			+ "			        FROM projects p\n"
