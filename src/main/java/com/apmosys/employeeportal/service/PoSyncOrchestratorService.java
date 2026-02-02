@@ -472,6 +472,7 @@ public class PoSyncOrchestratorService {
 	        finalHttpStatusCode = HttpStatus.OK.value();
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        response.setServiceResponse("PO linking successful");
+	        response.setServiceResponse1("Not Started");
 	        return response;
 
 	    } catch (Exception e) {
