@@ -25,7 +25,6 @@ import lombok.ToString;
 @Entity
 @ToString
 @Audited
-@Table(uniqueConstraints = @UniqueConstraint(name = "unique_po", columnNames = { "po_id" }))
 public class ProjectPoDetails {
 
     @Id
