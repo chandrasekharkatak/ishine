@@ -2463,7 +2463,7 @@ public class ProjectService {
                  .append("LEFT JOIN ( ")
                  .append("    SELECT etm.emp_id, GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_id) AS project_name, ")
                  .append("           GROUP_CONCAT(DISTINCT p.project_id ORDER BY p.project_id) AS project_id, ")
-                 .append("           GROUP_CONCAT(DISTINCT p.start_date as project_start_date ORDER BY p.project_id) AS start_date, ")
+                 .append("           GROUP_CONCAT(DISTINCT p.start_date ) AS start_date, ")
                  .append("           GROUP_CONCAT(DISTINCT p.end_date ORDER BY p.project_id) AS end_date, ")
                  .append("           GROUP_CONCAT(DISTINCT ppd.po_no ORDER BY p.project_id) AS po_no, ")
                  .append("           GROUP_CONCAT(DISTINCT p.po_project_type ORDER BY p.project_id) AS po_project_type, ")
