@@ -257,7 +257,10 @@ public class PoDetailsService {
 	    po.setActive(true);
 	    po.setClientAddressId(poDto.getClientAddressId());
 	    po.setClientLocationId(Long.valueOf(cl.getClientLocationId()));
-
+	    po.setApmosysRM(poDto.getApmosysRmEmpName());
+	    po.setApmosysRmEmail(poDto.getApmosysRmEmail());
+	    po.setMsg(poDto.getCommentForRmg());
+	    po.setClientRm(poDto.getClientRm());
 	    po.setCreatedBy(
 	            validateAndGetEmployeeEmpId(
 	                    dto.getRenewedByEmpId(),
