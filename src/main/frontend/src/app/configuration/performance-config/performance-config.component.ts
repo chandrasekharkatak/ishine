@@ -1,7 +1,7 @@
 import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
-import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, NgbModalRef} from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { DepartmentService } from './../../services/department.service';
 
@@ -67,7 +67,7 @@ export class PerformanceConfigComponent implements OnInit {
   sortColumnType: any;
   sortDirection = 'asc';
   eligibleEmployees: any[] = [];
-  modalRef: BsModalRef = new BsModalRef();
+  modalRef!: NgbModalRef;
   clickedFinancialYear:any;
   clickedTemplate : TemplateRef<any>;
   clickerQuarterId: any;
@@ -720,7 +720,10 @@ this.validateSelectedQaurterCycle(fromMonth, toMonth, template);
   this.clickedTemplate = template;
 
   this.loadEmployeeData();
-  this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+this.modalRef = this.modalService.open(template, {
+  size: 'lg',
+  backdrop: 'static'
+});
 }
 loadEmployeeData() {
   console.log('Loading page:', this.previewPage);
