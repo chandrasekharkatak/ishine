@@ -87,6 +87,8 @@ export class RmgProjectComponent implements OnInit {
   selectedRemoveMembers: RmgTeamMember[] = [];
 
   fixedCostTypes = ['fixed cost'];
+  allBillableProjectTypes = ['tnm', 'fixed cost', 'monitoring'];
+  allNonBillableProjectTypes = ['internalrndproducts', 'bench', 'internal'];
   employeeRoles: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
   projectTypes: any[] = ['Bench', 'Other'];
 
@@ -461,6 +463,7 @@ export class RmgProjectComponent implements OnInit {
 
     this.deleteTeamsPo = po;
     this.deleteTeamsPo.selectedTeamIds = poObj.selectedTeamIds;
+    this.deleteTeamsPo.projectId = this.rmgProjectObj.projectId;
 
     this.teamService.getTeamDetailsByTeamIdsAndProjectId(poObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
@@ -825,9 +828,29 @@ export class RmgProjectComponent implements OnInit {
   // Steppers Method End
 
   // Team Method & APIs Start
+  getTeamDetails(po: PoDetails) {
+    if (po?.poId != undefined && po?.poId != null) {
+      this.getAllTeamsByPoId(po);
+    } else {
+      this.getAllTeamsByProjectId(po);
+    }
+  }
+
   getAllTeamsByPoId(po: PoDetails) {
     po.teamList = [];
     this.teamService.getAllTeamsByPoId(po?.poId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === "Success") {
+        po.teamList = response.serviceResponse || [];
+        this.setTeamDepartmentNames(po.teamList);
+        this.updateAddTeamButton(po);
+        this.updatePoActionButton(po);
+      }
+    });
+  }
+
+  getAllTeamsByProjectId(po: PoDetails) {
+    po.teamList = [];
+    this.teamService.getActiveTeamDetailsByProjectId(po?.projectId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         po.teamList = response.serviceResponse || [];
         this.setTeamDepartmentNames(po.teamList);
@@ -1019,7 +1042,7 @@ export class RmgProjectComponent implements OnInit {
     this.teamService.deleteSelectedTeams(this.deleteTeamsPo).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         let po = this.rmgProjectObj.poDetailsList.find(po => po.poId === this.deleteTeamsPo.poId);
-        this.getAllTeamsByPoId(po);
+        this.getTeamDetails(po);
         this.openAlertMessageModal(response.serviceResponse);
       } else {
         this.openAlertMessageModal(response.serviceResponse);
@@ -1061,7 +1084,7 @@ export class RmgProjectComponent implements OnInit {
     updateTeamPoDetails.projectType = this.projectType;
     this.teamService.addOrUpdateTeamDetails(updateTeamPoDetails).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.getAllTeamsByPoId(po);
+        this.getTeamDetails(po);
         this.openAlertMessageModal(response.serviceResponse);
       } else {
         this.openAlertMessageModal(response.serviceResponse);
@@ -1125,7 +1148,7 @@ export class RmgProjectComponent implements OnInit {
   // PO List Method & APIs Start
   onPoExpand(po: PoDetails) {
     if (!this.isValidList(po?.teamList)) {
-      this.getAllTeamsByPoId(po);
+      this.getTeamDetails(po);
     }
   }
 

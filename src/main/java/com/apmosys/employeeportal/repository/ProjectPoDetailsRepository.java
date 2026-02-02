@@ -43,7 +43,7 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
                 + "FROM Project p  \n"
                 + "LEFT JOIN ProjectPoDetails ppd ON p.projectId = ppd.projectId AND ppd.poEndDate >= CURRENT_DATE \n"
                 + "LEFT JOIN PoRequirementMapping prm ON ppd.poId=prm.poId \n"
-                + "LEFT JOIN Team t ON t.poId = ppd.poId AND t.isActive = 'Y'  \n"
+                + "LEFT JOIN Team t ON t.projectId = p.projectId AND t.isActive = 'Y'  \n"
                 + "LEFT JOIN EmployeeTeamMap etm ON t.teamId =etm.teamId AND etm.active IN (1, 2)\n"
                 + "where p.projectId=:projectId \n"
                 + "GROUP BY ppd.id, ppd.poId, p.projectId, ppd.poNo, ppd.poStartDate, ppd.poEndDate, ppd.active")
@@ -111,7 +111,7 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
                         + "FROM Project p  \n"
                         + "LEFT JOIN ProjectPoDetails ppd ON p.projectId = ppd.projectId AND ppd.poEndDate >= CURRENT_DATE \n"
                         + "LEFT JOIN PoRequirementMapping prm ON ppd.poId=prm.poId \n"
-                        + "LEFT JOIN Team t ON t.poId = ppd.poId AND t.isActive = 'Y' \n"
+                        + "LEFT JOIN Team t ON t.projectId = p.projectId AND t.isActive = 'Y' \n"
                         + "LEFT JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId AND etm.active IN (1, 2)\n"
                         + "where ppd.poId=:poId \n"
                         + "GROUP BY ppd.poId, p.projectId")
@@ -124,7 +124,7 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
                         + "FROM Project p  \n"
                         + "LEFT JOIN ProjectPoDetails ppd ON p.projectId = ppd.projectId AND ppd.poEndDate >= CURRENT_DATE \n"
                         + "LEFT JOIN PoRequirementMapping prm ON ppd.poId=prm.poId \n"
-                        + "LEFT JOIN Team t ON t.poId = ppd.poId AND t.isActive = 'Y'  \n"
+                        + "LEFT JOIN Team t ON t.projectId = p.projectId AND t.isActive = 'Y'  \n"
                         + "LEFT JOIN EmployeeTeamMap etm ON t.teamId =etm.teamId AND etm.active IN (1, 2) \n"
                         + "where p.projectId=:projectId \n"
                         + "GROUP BY p.projectId, ppd.poId")

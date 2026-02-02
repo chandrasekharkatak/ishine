@@ -46,12 +46,12 @@
                     </div>
                 </div>
             </mat-tab>
-            <mat-tab label="Milestones" *ngIf="fixedCostTypes.includes((projectType ?? '').toLowerCase())">
+            <mat-tab label="Milestones"
+                *ngIf="fixedCostTypes.includes((projectType ?? '').toLowerCase()) && rmgProjectObj.internalProjectType != undefined && rmgProjectObj.internalProjectType != null && rmgProjectObj.internalProjectType != 'Internal'">
                 <div class="card card shadow-sm p-2 m-2">
                     <div class="row" style="height: 90vh; max-height: 500px; overflow-y: auto;overflow-x: hidden;">
                         <div class="col-md-12">
-                            <ng-template *ngIf="fixedCostTypes.includes((projectType ?? '').toLowerCase())"
-                                [ngTemplateOutlet]="fc_milestone_template"></ng-template>
+                            <ng-template [ngTemplateOutlet]="fc_milestone_template"></ng-template>
                         </div>
                     </div>
                 </div>
@@ -224,27 +224,60 @@
                         class="shadow-sm po-list-expansion-panel mb-2" (opened)="onPoExpand(po)">
                         <mat-expansion-panel-header>
                             <mat-panel-title>
-                                <div class="row w-100">
+                                <div class="row w-100"
+                                    *ngIf="allBillableProjectTypes.includes((projectType ?? '').toLowerCase()) && !allNonBillableProjectTypes.includes((rmgProjectObj.internalProjectType ?? '').toLowerCase())">
                                     <div class="col-md-6 mb-0">
                                         <div class="mat-header-column">
                                             <p class="mb-0">Po No : </p>&nbsp;
-                                            <span class="truncate" [title]="po.poNo">{{po.poNo}}</span>
+                                            <span class="truncate" [title]="po.poNo">{{po.poNo || 'NA'}}</span>
                                         </div>
                                     </div>
                                     <div class="col-md-6 mb-0">
                                         <div class="row">
                                             <div class="mat-header-column mr-3">
                                                 <p class="mb-0">Start Date : </p>&nbsp;
-                                                <span class="truncate" [title]="po.poStartDate">{{po.poStartDate |
+                                                <span class="truncate" [title]="po.poStartDate"
+                                                    *ngIf="po.poStartDate">{{po.poStartDate || 'NA'|
+                                                    date:'yyyy-MM-dd' }}</span>
+                                                <span class="truncate" [title]="po.poStartDate"
+                                                    *ngIf="!po.poStartDate">{{'NA'}}</span>
+                                            </div>
+                                            <div class="mat-header-column">
+                                                <p class="mb-0">End Date : </p>&nbsp;
+                                                <span class="truncate" [title]="po.poEndDate"
+                                                    *ngIf="po.poEndDate">{{po.poEndDate || 'NA' |
+                                                    date:'yyyy-MM-dd'}}</span>
+                                                <span class="truncate" [title]="po.poEndDate"
+                                                    *ngIf="!po.poEndDate">{{'NA'}}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row w-100"
+                                    *ngIf="allNonBillableProjectTypes.includes((rmgProjectObj.internalProjectType ?? '').toLowerCase())">
+                                    <div class="col-md-6 mb-0">
+                                        <div class="mat-header-column">
+                                            <p class="mb-0">Project Name : </p>&nbsp;
+                                            <span class="truncate"
+                                                [title]="rmgProjectObj.projectName">{{rmgProjectObj.projectName}}</span>
+                                        </div>
+                                    </div>
+                                    <!-- <div class="col-md-6 mb-0">
+                                        <div class="row">
+                                            <div class="mat-header-column mr-3">
+                                                <p class="mb-0">Start Date : </p>&nbsp;
+                                                <span class="truncate"
+                                                    [title]="rmgProjectObj.startDate">{{rmgProjectObj.startDate |
                                                     date:'yyyy-MM-dd'}}</span>
                                             </div>
                                             <div class="mat-header-column">
                                                 <p class="mb-0">End Date : </p>&nbsp;
-                                                <span class="truncate" [title]="po.poEndDate">{{po.poEndDate |
+                                                <span class="truncate"
+                                                    [title]="rmgProjectObj.endDate">{{rmgProjectObj.endDate |
                                                     date:'yyyy-MM-dd'}}</span>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> -->
                                 </div>
                             </mat-panel-title>
                         </mat-expansion-panel-header>
@@ -469,15 +502,17 @@
                     <div class="row w-100 align-items-center" *ngIf="projectType !== 'TNM'">
                         <div class="col-md-9 mb-0">
                             <div class="mat-header-column">
+                                <p class="mb-0">Team : </p>&nbsp;
                                 <span class="truncate" [title]="team.teamName">{{team.teamName}}
                                 </span>
                             </div>
                         </div>
                         <div class="col-md-3 mb-0 d-flex justify-content-end ">
                             <div class="mat-header-column">
-                                <p class="mb-0">Mapped <i class="fa fa-beat fa-info-circle info-icon" title="Total Resources assigned to This Role Across All Teams"></i>&nbsp; : </p>
-                                <span class="ml-2"
-                                    *ngIf="!requirement?.count || requirement?.count == 0">{{ requirement.assignedApproved + requirement.assignedPending || 0}} </span>
+                                <p class="mb-0">Mapped <i class="fa fa-info-circle info-icon"
+                                        [title]="'Total Mapped Resources'"></i>&nbsp; : </p>
+                                <span class="ml-2">{{ requirement.assignedApproved + requirement.assignedPending || 0}}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -505,11 +540,15 @@
                         </div>
                         <div class="col-md-3 mb-0 d-flex justify-content-end ">
                             <div class="mat-header-column">
-                                <p class="mb-0">Mapped <i class="fa fa-beat fa-info-circle info-icon" title="Total Resources assigned to This Role Across All Teams"></i>&nbsp; : </p>
+                                <p class="mb-0">Mapped <i class="fa fa-beat fa-info-circle info-icon"
+                                        [title]="projectType === 'TNM' ? 'Total Resources assigned to This Role Across All Teams' : 'Total Mapped Resources'"></i>&nbsp;
+                                    : </p>
                                 <span class="ml-2"
-                                    *ngIf="requirement?.count && requirement?.count != 0">{{requirement.assignedApproved + requirement.assignedPending || 0}} / {{requirement?.count || 0}} </span>
+                                    *ngIf="requirement?.count && requirement?.count != 0">{{requirement.assignedApproved
+                                    + requirement.assignedPending || 0}} / {{requirement?.count || 0}} </span>
                                 <span class="ml-2"
-                                    *ngIf="!requirement?.count || requirement?.count == 0">{{requirement.assignedApproved + requirement.assignedPending || 0}} </span>
+                                    *ngIf="!requirement?.count || requirement?.count == 0">{{requirement.assignedApproved
+                                    + requirement.assignedPending || 0}} </span>
                             </div>
                         </div>
                     </div>

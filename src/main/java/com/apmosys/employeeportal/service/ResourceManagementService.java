@@ -13864,7 +13864,7 @@ public class ResourceManagementService {
 					List<Long> overHeadIds = projectOverheadMappingRepository.findProjectOverheadIdByProjectIdAndActive(currentProjectId,1);
 					rmgProjectDto.setProjectOverheadIds(overHeadIds);
 
-					List<PoDetailsDto> poDetailsDtos = getPoDetailsByProjectId(rmgProjectDto.getProjectId());
+					List<PoDetailsDto> poDetailsDtos = getPoDetailsByProjectId(rmgProjectDto.getProjectId(), rmgProjectDto.getInternalProjectType(),rmgProjectDto.getPoProjectType());
 					rmgProjectDto.setPoDetailsList(poDetailsDtos);
 				}
 			}
@@ -13882,22 +13882,24 @@ public class ResourceManagementService {
 		return serviceResponse;
 	}
 
-	private List<PoDetailsDto> getPoDetailsByProjectId(Integer currentProjectId) {
+	private List<PoDetailsDto> getPoDetailsByProjectId(Integer currentProjectId, String internalProjectType, String poProjectType) {
 		List<PoDetailsDto> poDetailsDtos = new ArrayList<>();
 		try {
-			// Integer currentProjectId = project.getProjectId();
-			// Fetch Active POs & Inactive POs but team or member is active data
 			poDetailsDtos = poDetailsRepository.getAllProjectPoDetailsDtoByProjectId(currentProjectId);
-			if (!poDetailsDtos.isEmpty()) {
-				List<Long> poIds = poDetailsDtos.stream().map(PoDetailsDto::getPoId)
-						.collect(Collectors.toList());
-						
-				Map<Long, Long> poIdCountMap = getPoIdAndCountMap(poIds);
-				if (poIdCountMap != null && !poIdCountMap.isEmpty()) {
-					for (PoDetailsDto poDetail : poDetailsDtos) {
-						poDetail.setTotalRequirements(poIdCountMap.getOrDefault(poDetail.getPoId(), 0L));
+			if(poProjectType != null){
+				if (!poDetailsDtos.isEmpty()) {
+					List<Long> poIds = poDetailsDtos.stream().map(PoDetailsDto::getPoId)
+							.collect(Collectors.toList());
+							
+					Map<Long, Long> poIdCountMap = getPoIdAndCountMap(poIds);
+					if (poIdCountMap != null && !poIdCountMap.isEmpty()) {
+						for (PoDetailsDto poDetail : poDetailsDtos) {
+							poDetail.setTotalRequirements(poIdCountMap.getOrDefault(poDetail.getPoId(), 0L));
+						}
 					}
 				}
+			} else {
+
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

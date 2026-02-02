@@ -324,31 +324,31 @@ public class TeamsController {
 	}
 
 	// @Encrypted
-	@PostMapping("migrateTeam")
+	@PostMapping("/migrateTeam")
 	public ServiceResponse migrateTeam(@RequestBody MigrateTeam migrateTeam) {
 		return teamsService.migrateTeam(migrateTeam);
 	}
 
 	// @Encrypted
-	@PostMapping("getTeamDetailsByTeamIdsAndProjectId")
+	@PostMapping("/getTeamDetailsByTeamIdsAndProjectId")
 	public ServiceResponse getTeamDetailsByTeamIdsAndProjectId(@RequestBody PoDetailsDto poDetailsDto) {
 		return teamsService.getTeamDetailsByTeamIdsAndProjectId(poDetailsDto);
 	}
 
 	// @Encrypted
-	@PostMapping("deleteSelectedTeams")
+	@PostMapping("/deleteSelectedTeams")
 	public ServiceResponse deleteSelectedTeams(@RequestBody PoDetailsDto poDetailsDto) {
 		return teamsService.deleteSelectedTeams(poDetailsDto);
 	}
 
 	// @Encrypted
-	@PostMapping("addOrUpdateTeamDetails")
+	@PostMapping("/addOrUpdateTeamDetails")
 	public ServiceResponse addOrUpdateTeamDetails(@RequestBody PoDetailsDto poDetailsDto) {
 		return teamsService.addOrUpdateTeamDetails(poDetailsDto);
 	}
 
 	// @Encrypted
-	@PostMapping("addOrUpdateTeamMembers")
+	@PostMapping("/addOrUpdateTeamMembers")
 	public ServiceResponse addOrUpdateTeamMembers(@RequestBody RmgResourceRequirementDto rmgResourceRequirementDto) {
 		return teamsService.addOrUpdateTeamMembers(rmgResourceRequirementDto);
 	} 

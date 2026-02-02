@@ -31,6 +31,8 @@ public class PoTeamAndMemberDetailsDto {
     private String department;
     private boolean isPrmActive;
     private Long count;
+    private Long assignedPending;
+    private Long assignedApproved;
 
     private Long empId;
     private String memberName;
