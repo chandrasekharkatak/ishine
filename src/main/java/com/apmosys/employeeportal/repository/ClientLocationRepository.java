@@ -26,4 +26,6 @@ public interface ClientLocationRepository extends JpaRepository<ClientLocation, 
 	
 	public Optional<ClientLocation> findByClientIdAndClientLocationAndClientStateIsNull(Integer clientId, String clientLocation);
 
+	public boolean existsByClientId(Integer clientId);
+
 }

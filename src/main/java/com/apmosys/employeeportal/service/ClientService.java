@@ -45,6 +45,21 @@ public class ClientService {
 	    		ExceptionLogContext.add("ClientId or location missing or state missing");
 	         throw new RuntimeException("ClientId or location missing or state missing");
 	     }
+	     
+	     boolean hasAnyLocation =
+	             clientLocationRepository.existsByClientId(clientId);
+
+	     if (!hasAnyLocation) {
+
+	         ClientLocation wfh = new ClientLocation();
+	         wfh.setClientId(clientId);
+	         wfh.setClientLocation("WFH");
+	         wfh.setClientState(null); 
+
+	         clientLocationRepository.save(wfh);
+
+	      
+	     }
 
 	     
 	     Optional<ClientLocation> exact =
@@ -67,6 +82,8 @@ public class ClientService {
 	         cl.setClientState(state);
 	         return clientLocationRepository.save(cl);
 	     }
+	     
+	     
 
 	    
 	     ClientLocation cl = new ClientLocation();
