@@ -33,7 +33,7 @@ public class PoPortalDTO {
 
 	public PoPortalDTO(Long empId, String empName, Long deptId, String employeementStatus, String mailId, Long mobile, Long roleId, Long hodId,
 			Long employeeId, String isHead,String isApmosysProduct) {
-		this.empId = empId != null ? empId.toString() : null;
+		this.empId = employeeId != null ? employeeId.toString() : null; //iShine Primary key
 		this.empName = empName;
 		this.deptId = deptId;
 		this.isActive = employeementStatus != null ? !employeementStatus.equals("InActive") ? "Y" : "N" : null;
@@ -41,7 +41,7 @@ public class PoPortalDTO {
 		this.mobile = mobile != null ? mobile.toString() : null;
 		this.roleId = roleId;
 		this.hodId = hodId != null ? hodId.toString() : null;
-		this.employeeId = employeeId;
+//		this.employeeId = employeeId;
 		this.isHead = isHead;
 		this.employeeMentId=Boolean.TRUE.equals(isApmosysProduct)?"AP-"+empId:"A-"+empId;
 	}
