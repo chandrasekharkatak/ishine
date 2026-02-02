@@ -40,18 +40,18 @@ public class PoDetailsDto {
 
     public PoDetailsDto(Long id, Long poId, Integer projectId, String poNo, LocalDateTime poStartDate,
             LocalDateTime poEndDate,
-            boolean active) {
+            Boolean active) {
         this.id = id;
         this.poId = poId;
         this.projectId = projectId;
         this.poNo = poNo;
         this.poStartDate = poStartDate;
         this.poEndDate = poEndDate;
-        this.active = active;
+        this.active = active != null ? active : false;
     }
 
     public PoDetailsDto(Long id, Long poId, Integer projectId, String poNo, LocalDateTime poStartDate,
-            LocalDateTime poEndDate, boolean active, Long assignedApproved, Long assignedPending,
+            LocalDateTime poEndDate, Boolean active, Long assignedApproved, Long assignedPending,
             Long totalRequirements) {
         this.id = id;
         this.poId = poId;
@@ -59,7 +59,7 @@ public class PoDetailsDto {
         this.poNo = poNo;
         this.poStartDate = poStartDate;
         this.poEndDate = poEndDate;
-        this.active = active;
+        this.active = active != null ? active : false;
         this.assignedApproved = assignedApproved;
         this.assignedPending = assignedPending;
         this.totalRequirements = totalRequirements;
@@ -74,14 +74,14 @@ public class PoDetailsDto {
 
     public PoDetailsDto(Long id, Long poId, Integer projectId, String poNo, LocalDateTime poStartDate,
             LocalDateTime poEndDate,
-            boolean active, Long assignedApproved, Long assignedPending) {
+            Boolean active, Long assignedApproved, Long assignedPending) {
         this.id = id;
         this.poId = poId;
         this.projectId = projectId;
         this.poNo = poNo;
         this.poStartDate = poStartDate;
         this.poEndDate = poEndDate;
-        this.active = active;
+        this.active = active != null ? active : false;
         this.assignedApproved = assignedApproved;
         this.assignedPending = assignedPending;
     }
