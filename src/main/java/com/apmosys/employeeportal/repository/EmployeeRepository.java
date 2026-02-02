@@ -3462,7 +3462,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		"left join Department d on d.deptId = jr.deptId " +
 		"left join ProjectPoDetails ppd " +
   		"on ppd.projectId = p.projectId " +
-  		"and ppd.poStartDate <= CURRENT_DATE" +
+  		"and (ppd.poStartDate <= CURRENT_DATE and ppd.poEndDate >= CURRENT_DATE)" +
 		"where ((e.employmentstatus != 'InActive') OR e.dateOfRelieving between :startDate and :endDate) and ((:listType = 'Billable' AND e.billableType in ('TNM','Fixed Cost')) " +
 		"and e.empId not between 1 and 6 " +
 		"or (:listType = 'Non-Billable' and e.billableType in('InternalRNDProducts','Bench','Shadow')))")
