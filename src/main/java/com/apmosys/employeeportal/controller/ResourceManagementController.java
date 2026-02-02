@@ -680,12 +680,19 @@ public class ResourceManagementController {
 	public ServiceResponse getResourceRequirementByTeamId(@RequestParam Long teamId) {
 		return resourceManagementService.getResourceRequirementByTeamId(teamId);
 	}
-	
-	 @PostMapping("/ishineToPoEmpDetails")
-	 public ServiceResponse ishineToPoEmpDetails(HttpServletRequest httpRequest,@RequestBody IshineToPoRequestDTO ishineToPoRequest) {
-	 	poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
-	 	return resourceManagementService.ishineToPoEmpDetails(ishineToPoRequest);
-	 }
 
+	@PostMapping("/ishineToPoEmpDetails")
+	public ServiceResponse ishineToPoEmpDetails(HttpServletRequest httpRequest, @RequestBody IshineToPoRequestDTO ishineToPoRequest) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		return resourceManagementService.ishineToPoEmpDetails(ishineToPoRequest);
+	}
+
+	// @Encrypted
+	@GetMapping("/getResourceRequirementCountByPoId")
+	public ServiceResponse getResourceRequirementCountByPoId(@RequestParam Long poOrProjectId,@RequestParam String projectType) {
+		return resourceManagementService.getResourceRequirementCountByPoId(poOrProjectId, projectType);
+	}
+
+	 
 	
 }
