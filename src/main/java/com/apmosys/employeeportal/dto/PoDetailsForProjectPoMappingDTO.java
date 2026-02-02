@@ -42,4 +42,5 @@ public class PoDetailsForProjectPoMappingDTO {
     private boolean isRenewable;
     private List<POResourceRequirementDTO> resourceRequirementList;
     private boolean isActive;
+    private String clientRm;
 }
