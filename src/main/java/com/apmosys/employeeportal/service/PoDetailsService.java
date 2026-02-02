@@ -549,6 +549,8 @@ public class PoDetailsService {
 	                projectRepository.findByPoProjectId(deleted.getProjectId());
 
 	        if (deletedProject == null) {
+	        	ExceptionLogContext.add("Deleted project not found | poProjectId="
+	                            + deleted.getProjectId());
 	            throw new RuntimeException(
 	                    "Deleted project not found | poProjectId="
 	                            + deleted.getProjectId());
@@ -611,6 +613,8 @@ public class PoDetailsService {
                     .map(PoDetailsForProjectPoMappingDTO::getPoId)
                     .collect(Collectors.toSet());
 	        if (poIdsFromPortal == null || poIdsFromPortal.isEmpty()) {
+	        	ExceptionLogContext.add("no po's found in deleted proj  | poProjectId="
+                        + deleted.getProjectId());
 	        	throw new RuntimeException(
 	                    "no po's found in deleted proj  | poProjectId="
 	                            + deleted.getProjectId());
@@ -627,7 +631,7 @@ public class PoDetailsService {
 
 	            ProjectPoDetails newPo = new ProjectPoDetails();
 
-	            // ---- COPY EVERYTHING AS-IS ----
+	          
 	            newPo.setPoId(oldPo.getPoId());
 	            newPo.setPoNo(oldPo.getPoNo());
 	            newPo.setPoStartDate(oldPo.getPoStartDate());

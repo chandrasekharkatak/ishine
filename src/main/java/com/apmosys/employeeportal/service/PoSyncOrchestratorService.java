@@ -222,6 +222,7 @@ public class PoSyncOrchestratorService {
 				if(dto.getRenewedPo().getResourceRequirementList() == null || dto.getRenewedPo().getResourceRequirementList().isEmpty() )
 				{
 					finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+					ExceptionLogContext.add("Renewed PO is TNM with no rsrc req from po" + dto.getRenewedPo().getPoId());
 					throw new RuntimeException(
 							"Renewed PO is TNM with no rsrc req from po" + dto.getRenewedPo().getPoId());	
 				}
@@ -234,6 +235,7 @@ public class PoSyncOrchestratorService {
 
 			if (exists) {
 				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+				ExceptionLogContext.add("Renewed PO already exists in system | poId=" + dto.getRenewedPo().getPoId());
 				throw new RuntimeException(
 						"Renewed PO already exists in system | poId=" + dto.getRenewedPo().getPoId());
 			}
@@ -243,6 +245,7 @@ public class PoSyncOrchestratorService {
 			departmentService.syncDepartmentsRTS(newPo.getPoId(), dto.getRenewedPo().getDepartmentList(),project.getProjectId());
 
 			if (dto.getRenewedPo().getResourceRequirementList() != null) {
+				
 				requirementService.syncRequirementsRTS(newPo.getPoId(),
 						dto.getRenewedPo().getResourceRequirementList());
 			}
@@ -296,6 +299,7 @@ public class PoSyncOrchestratorService {
 //	        validateDeletePoPayload(dto);
 
 	        if (dto.getEventType() != SyncRequestType.DELETE_PO) {
+	            ExceptionLogContext.add("Invalid eventType for delete PO");
 	            throw new RuntimeException("Invalid eventType for delete PO");
 	        }
 
