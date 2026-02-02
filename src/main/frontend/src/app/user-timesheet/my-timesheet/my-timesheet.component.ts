@@ -3870,6 +3870,9 @@ checkUploadEligibility() {
   }
 
   getClientDetailsByProjectIdAndEmpId() {
+    if(!this.timesheetObj.dayType || this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday" || this.timesheetObj.dayType == "Comp Off"){
+      return;
+    }
     this.clientDetails = '';
     this.projectList = [];
 
@@ -3883,7 +3886,7 @@ checkUploadEligibility() {
         this.clientDropdownList = [this.clientDetails];
       } else {
         console.error(response.serviceResponse)
-        this.openAlertWithResetMod(this.alertModalWithoutReload, response.serviceResponse);
+        this.openAlertMod(this.alertTemplate, response.serviceResponse);
       }
     });
   }
