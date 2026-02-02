@@ -6194,7 +6194,7 @@ List<Object[]> findExpiredFixedCostProjects(@Param("deptId") List<Long> deptId);
 + "					  FROM projects p\n"
 + "	  			 LEFT JOIN project_po_details ppd \n"
 + "			ON ppd.project_id = p.project_id \n"
-+ " 		AND STR_TO_DATE(ppd.po_start_date, '%Y-%m-%d') <= CURRENT_DATE \n" 
+//+ " 		AND STR_TO_DATE(ppd.po_start_date, '%Y-%m-%d') <= CURRENT_DATE \n" 
 + "			AND (ppd.po_end_date IS NULL OR STR_TO_DATE(ppd.po_end_date, '%Y-%m-%d') >= CURRENT_DATE ) \n"
 // + "			inner join po_department_mapping pdm on pdm.po_id = ppd.po_id \n"
 + "inner join po_department_mapping pdm on \n"
