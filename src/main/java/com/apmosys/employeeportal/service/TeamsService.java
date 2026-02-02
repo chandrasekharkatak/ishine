@@ -39,13 +39,13 @@ import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
 import com.apmosys.employeeportal.dto.EmployeeOtherActiveProject;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
-import com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.MigrateTeam;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
 import com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectRequirementsDTO;
 import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
 import com.apmosys.employeeportal.dto.RmgTeamDto;
 import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
@@ -3361,6 +3361,13 @@ public class TeamsService {
 				return response;
 			}
 
+			List<Long> poIds = objectList.stream().map(PoTeamAndMemberDetailsDto::getPoId)
+					.collect(Collectors.toList());
+
+			Map<Long, Long> poIdCountMap = getPoIdAndCountMap(poIds);
+
+			Map<Long, RmgResourceRequirementDto> poIdAndRequiredCountMap = getPoIdAndRequiredCountMap(poIds);
+
 			List<Long> empIds = objectList.stream().map(PoTeamAndMemberDetailsDto::getEmpId)
 					.collect(Collectors.toList());
 
@@ -3369,7 +3376,7 @@ public class TeamsService {
 			Map<Long, EmployeeInformationDTO> empIdInfoMap = getEmployeeInformationMap(empIds);
 
 			List<RmgResourceRequirementDto> rmgRequirementList = mapRmgResourceRequirementList(objectList,
-					empIdInfoMap, empIdAndOtherProjectIdsMap);
+					empIdInfoMap, empIdAndOtherProjectIdsMap, poIdCountMap, poIdAndRequiredCountMap);
 
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -3410,6 +3417,30 @@ public class TeamsService {
 		return empIdInfoMap;
 	}
 
+	private Map<Long, Long> getPoIdAndCountMap(List<Long> poIds) {
+		Map<Long, Long> poIdCountMap = new HashMap<>();
+		List<Object[]> results = poRequirementMappingRepository.getPoIdAndTotalActiveRequiredCountByPoIdIn(poIds);
+		if (results != null && !results.isEmpty()) {
+			for (Object[] obj : results) {
+				Long poId = TypeConversionUtil.safeParseLong(obj[0]);
+				Long count = TypeConversionUtil.safeParseLong(obj[1]);
+				poIdCountMap.put(poId, count);
+			}
+		}
+		return poIdCountMap;
+	}
+
+	private Map<Long, RmgResourceRequirementDto> getPoIdAndRequiredCountMap(List<Long> poIds) {
+		Map<Long, RmgResourceRequirementDto> poIdAndRequiredCountMap = new HashMap<>();
+		List<RmgResourceRequirementDto> results = poRequirementMappingRepository.getPoIdAndRequiredCountByPoIdIn(poIds);
+		if (results != null && !results.isEmpty()) {
+			return results.stream()
+					.collect(Collectors.toMap(RmgResourceRequirementDto::getPoId, Function.identity(),
+							(existing, replace) -> replace));
+		}
+		return poIdAndRequiredCountMap;
+	}
+
 	private Map<Long, List<EmployeeOtherActiveProject>> getEmployeeOtherActiveProjectIdMap(List<Long> empIds, Integer projectId) {
 		List<EmployeeOtherActiveProject> empOtherActiveProjectList = projectRepository.getOtherActiveProjectsByEmpIdIn(empIds, projectId);
 		if (empOtherActiveProjectList == null || empOtherActiveProjectList.isEmpty()) {
@@ -3421,20 +3452,30 @@ public class TeamsService {
 
 	private List<RmgResourceRequirementDto> mapRmgResourceRequirementList(
 			List<PoTeamAndMemberDetailsDto> objectList, Map<Long, EmployeeInformationDTO> empIdInfoMap,
-			Map<Long, List<EmployeeOtherActiveProject>> empIdAndOtherProjectIdsMap) {
+			Map<Long, List<EmployeeOtherActiveProject>> empIdAndOtherProjectIdsMap, Map<Long, Long> poIdCountMap, Map<Long, RmgResourceRequirementDto> poIdAndRequiredCountMap) {
 
 		List<RmgResourceRequirementDto> rmgRequirementList = objectList.stream()
 				.collect(Collectors.mapping(
-						obj -> new RmgResourceRequirementDto(
-								obj.getPoRequirementMappingId(),
-								obj.getPoId(), obj.getRole(), obj.getExperience(),
-								obj.getDepartment(), obj.isPrmActive()),
+						obj -> getResourceRequirementObj(obj,poIdCountMap,poIdAndRequiredCountMap),
 						Collectors.collectingAndThen(
 								Collectors.toList(),
 								list -> list.stream().distinct().collect(Collectors.toList()))));
 
 		mapRmgTeamMemberDto(rmgRequirementList, objectList, empIdInfoMap, empIdAndOtherProjectIdsMap);
 		return rmgRequirementList;
+	}
+
+	private RmgResourceRequirementDto getResourceRequirementObj(PoTeamAndMemberDetailsDto obj,  Map<Long, Long> poIdCountMap, Map<Long, RmgResourceRequirementDto> poIdAndRequiredCountMap){
+		RmgResourceRequirementDto dto = new RmgResourceRequirementDto(
+			obj.getPoRequirementMappingId(),
+			obj.getPoId(), obj.getRole(), obj.getExperience(),
+			obj.getDepartment(), obj.isPrmActive(),  poIdCountMap.getOrDefault(obj.getPoId(), 0L));
+			if(poIdAndRequiredCountMap != null && !poIdAndRequiredCountMap.isEmpty() && poIdAndRequiredCountMap.containsKey(obj.getPoId())){
+				RmgResourceRequirementDto obj2 = poIdAndRequiredCountMap.get(obj.getPoId());
+				dto.setAssignedApproved(obj2.getAssignedApproved());
+				dto.setAssignedPending(obj2.getAssignedPending());
+			}
+			return dto;
 	}
 
 	private void mapRmgTeamMemberDto(List<RmgResourceRequirementDto> rmgRequirementList,
@@ -4047,6 +4088,13 @@ public class TeamsService {
 				return response;
 			}
 
+			List<Long> poIds = objectList.stream().map(PoTeamAndMemberDetailsDto::getPoId)
+					.collect(Collectors.toList());
+
+			Map<Long, Long> poIdCountMap = getPoIdAndCountMap(poIds);
+
+			Map<Long, RmgResourceRequirementDto> poIdAndRequiredCountMap = getPoIdAndRequiredCountMap(poIds);
+
 			List<Long> empIds = objectList.stream().map(PoTeamAndMemberDetailsDto::getEmpId)
 					.collect(Collectors.toList());
 
@@ -4056,7 +4104,7 @@ public class TeamsService {
 			Map<Long, EmployeeInformationDTO> empIdInfoMap = getEmployeeInformationMap(empIds);
 
 			List<RmgResourceRequirementDto> rmgRequirementList = mapRmgResourceRequirementList(objectList,
-					empIdInfoMap, empIdAndOtherProjectIdsMap);
+					empIdInfoMap, empIdAndOtherProjectIdsMap, poIdCountMap, poIdAndRequiredCountMap);
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(rmgRequirementList);

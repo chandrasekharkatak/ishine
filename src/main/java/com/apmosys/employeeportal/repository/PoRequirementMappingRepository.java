@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.dto.PoRequirementDataDTO;
 import com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto;
+import com.apmosys.employeeportal.dto.ProjectRequirementsDTO;
 import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
 import com.apmosys.employeeportal.model.PoRequirementMapping;
 
@@ -64,24 +65,41 @@ public interface PoRequirementMappingRepository extends JpaRepository<PoRequirem
 	void deleteAllRecords();
 
 	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.RmgResourceRequirementDto(" +
-			"po.poRequirementMappingId, pd.poId," +
-			"po.role, po.experience, po.department, " +
-			"po.active, po.count) " +
-			"FROM PoRequirementMapping po " +
-			"INNER JOIN ProjectPoDetails pd ON pd.poId = po.poId " +
-			"WHERE po.active = true " +
-			"AND po.poId = :poId")
+			"prm.poRequirementMappingId, pd.poId," +
+			"prm.role, prm.experience, prm.department, " +
+			"prm.active, prm.count) " +
+			"FROM PoRequirementMapping prm " +
+			"INNER JOIN ProjectPoDetails pd ON pd.poId = prm.poId " +
+			"WHERE prm.active = true " +
+			"AND prm.poId = :poId")
 	List<RmgResourceRequirementDto> getPoRequirementDataByPoId(@Param("poId") Long poId);
 
 	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.RmgResourceRequirementDto(" +
-			"po.poRequirementMappingId, po.poId," +
-			"po.role, po.experience, po.department, " +
-			"po.active, po.count) " +
-			"FROM PoRequirementMapping po " +
-			"LEFT JOIN EmployeeTeamMap etm ON etm.poRequirementMappingId = po.poRequirementMappingId " +
+			"prm.poRequirementMappingId, prm.poId," +
+			"prm.role, prm.experience, prm.department, " +
+			"prm.active, prm.count) " +
+			"FROM PoRequirementMapping prm " +
+			"LEFT JOIN EmployeeTeamMap etm ON etm.poRequirementMappingId = prm.poRequirementMappingId " +
 			"LEFT JOIN Team t ON etm.teamId = t.teamId " +
-			"WHERE po.active = true " +
+			"WHERE prm.active = true " +
 			"AND t.teamId = :teamId ")
 	List<RmgResourceRequirementDto> getPoRequirementDataByTeamId(@Param("teamId") Long teamId);
 
+	@Query(value = "Select sum(prm.count) from PoRequirementMapping prm where prm.poId=:poId and prm.active = true")
+	public Long getTotalActiveRequiredCountByPoId(Long poId);
+
+	@Query(value = "Select prm.poId,sum(prm.count) from PoRequirementMapping prm where prm.poId IN :poIds and prm.active = true")
+	public List<Object[]> getPoIdAndTotalActiveRequiredCountByPoIdIn(List<Long> poIds);
+
+	@Query(value = "Select new com.apmosys.employeeportal.dto.RmgResourceRequirementDto(prm.poId \n"
+			+ ",COUNT(DISTINCT CASE WHEN etm.active = 2 THEN etm.empId END) \n"
+			+ ",COUNT(DISTINCT CASE WHEN etm.active = 1 THEN etm.empId END)  \n"
+			+ ") \n"
+			+ "FROM PoRequirementMapping prm \n"
+			+ "LEFT JOIN Team t ON t.poId = prm.poId AND t.isActive = 'Y'  \n"
+			+ "LEFT JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId AND etm.active IN (1, 2)\n"
+			+ "where prm.poId IN :poIds \n"
+			+ "GROUP BY prm.poId ")
+	public List<RmgResourceRequirementDto> getPoIdAndRequiredCountByPoIdIn(List<Long> poIds);
+	
 }

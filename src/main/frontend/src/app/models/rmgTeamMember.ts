@@ -40,6 +40,7 @@ export class RmgTeamMember {
     isShadow: any;
     isMemberActive: any;
     defaultProject: any;
+    dbDefaultProject: any;
     memberDepartment: any
     employementId: any;
     billableType: any;
@@ -61,5 +62,5 @@ export class RmgTeamMember {
     poDetailsList: any[] = [];
     teamList: any[] = [];
     resourceRequirementList: any[] = [];
-     selectedProject?: EmployeeOtherActiveProject;
+    selectedProject?: EmployeeOtherActiveProject;
 }

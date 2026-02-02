@@ -36,17 +36,16 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
                         + "GROUP BY p.id, p.poId, p.projectId, p.poNo, p.poStartDate, p.poEndDate, p.active")
         List<PoDetailsDto> getAllPoDetailsDtoByProjectId(Integer projectId);
 
-        @Query(value = "Select DISTINCT new com.apmosys.employeeportal.dto.PoDetailsDto(ppd.id, ppd.poId, p.projectId, ppd.poNo, ppd.poStartDate, ppd.poEndDate, ppd.active \n"
+        @Query(value = "Select new com.apmosys.employeeportal.dto.PoDetailsDto(ppd.id, ppd.poId, p.projectId, ppd.poNo, ppd.poStartDate, ppd.poEndDate, ppd.active \n"
                 + ",COUNT(DISTINCT CASE WHEN etm.active  = 1 THEN etm.empId END)  \n"
                 + ",COUNT(DISTINCT CASE WHEN etm.active  = 2 THEN etm.empId END) \n"
                 + ") \n"
                 + "FROM Project p  \n"
-                + "LEFT JOIN ProjectPoDetails ppd ON p.projectId = ppd.projectId  \n"
+                + "LEFT JOIN ProjectPoDetails ppd ON p.projectId = ppd.projectId AND ppd.poEndDate >= CURRENT_DATE \n"
                 + "LEFT JOIN PoRequirementMapping prm ON ppd.poId=prm.poId \n"
-                + "LEFT JOIN Team t ON t.poId = ppd.poId  \n"
-                + "LEFT JOIN EmployeeTeamMap etm ON t.teamId =etm.teamId \n"
+                + "LEFT JOIN Team t ON t.poId = ppd.poId AND t.isActive = 'Y'  \n"
+                + "LEFT JOIN EmployeeTeamMap etm ON t.teamId =etm.teamId AND etm.active IN (1, 2)\n"
                 + "where p.projectId=:projectId \n"
-                + "AND (ppd.poEndDate >= CURRENT_DATE or etm.active IN (1, 2)) \n"
                 + "GROUP BY ppd.id, ppd.poId, p.projectId, ppd.poNo, ppd.poStartDate, ppd.poEndDate, ppd.active")
         List<PoDetailsDto> getAllProjectPoDetailsDtoByProjectId(Integer projectId);
 
@@ -104,5 +103,31 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
 		List<ProjectPoDetails> findByProjectIdAndActiveFalse(Integer projectId);
 
 		List<ProjectPoDetails> findByProjectIdAndPoIdIn(Integer projectId, Set<Long> poIdsFromPortal);
+
+        @Query(value = "Select new com.apmosys.employeeportal.dto.PoDetailsDto(p.projectId, ppd.poId \n"
+                        + ",COUNT(DISTINCT CASE WHEN etm.active  = 1 THEN etm.empId END)  \n"
+                        + ",COUNT(DISTINCT CASE WHEN etm.active  = 2 THEN etm.empId END) \n"
+                        + ") \n"
+                        + "FROM Project p  \n"
+                        + "LEFT JOIN ProjectPoDetails ppd ON p.projectId = ppd.projectId AND ppd.poEndDate >= CURRENT_DATE \n"
+                        + "LEFT JOIN PoRequirementMapping prm ON ppd.poId=prm.poId \n"
+                        + "LEFT JOIN Team t ON t.poId = ppd.poId AND t.isActive = 'Y' \n"
+                        + "LEFT JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId AND etm.active IN (1, 2)\n"
+                        + "where ppd.poId=:poId \n"
+                        + "GROUP BY ppd.poId, p.projectId")
+        List<PoDetailsDto> getResourceRequirementCountByPoId(Long poId);
+
+        @Query(value = "Select new com.apmosys.employeeportal.dto.PoDetailsDto(p.projectId, ppd.poId \n"
+                        + ",COUNT(DISTINCT CASE WHEN etm.active  = 1 THEN etm.empId END)  \n"
+                        + ",COUNT(DISTINCT CASE WHEN etm.active  = 2 THEN etm.empId END) \n"
+                        + ") \n"
+                        + "FROM Project p  \n"
+                        + "LEFT JOIN ProjectPoDetails ppd ON p.projectId = ppd.projectId AND ppd.poEndDate >= CURRENT_DATE \n"
+                        + "LEFT JOIN PoRequirementMapping prm ON ppd.poId=prm.poId \n"
+                        + "LEFT JOIN Team t ON t.poId = ppd.poId AND t.isActive = 'Y'  \n"
+                        + "LEFT JOIN EmployeeTeamMap etm ON t.teamId =etm.teamId AND etm.active IN (1, 2) \n"
+                        + "where p.projectId=:projectId \n"
+                        + "GROUP BY p.projectId, ppd.poId")
+        List<PoDetailsDto> getResourceRequirementCountByProjectId(Integer projectId);
 
 }

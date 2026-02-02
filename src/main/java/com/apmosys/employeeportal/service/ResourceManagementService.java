@@ -39,6 +39,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,7 +117,6 @@ import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.RestoreProjectPayloadDTO;
 import com.apmosys.employeeportal.dto.RmgProjectDto;
 import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
-import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.SkippedEmployeeDTO;
 import com.apmosys.employeeportal.dto.SpocDTO;
@@ -192,6 +192,7 @@ import com.apmosys.employeeportal.utility.ExceptionUtils;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+import com.apmosys.employeeportal.utility.TypeConversionUtil;
 
 @Service
 public class ResourceManagementService {
@@ -13855,6 +13856,7 @@ public class ResourceManagementService {
 
 					List<Long> deptIds = poDepartmentMappingRepository.findPoDeptIdsByProjectId(rmgProjectDto.getProjectId());
 					rmgProjectDto.setDepartmentIds(deptIds);
+
 					List<Long> projectManagerIds = projectManagerMappingRepository
 							.findProjectManagerIdByProjectIdAndActive(currentProjectId,1);
 					rmgProjectDto.setProjectManagerIds(projectManagerIds);
@@ -13885,16 +13887,36 @@ public class ResourceManagementService {
 		try {
 			// Integer currentProjectId = project.getProjectId();
 			// Fetch Active POs & Inactive POs but team or member is active data
-			poDetailsDtos.addAll(poDetailsRepository.getAllProjectPoDetailsDtoByProjectId(currentProjectId));
-
-			// Fetch Inactive POs but team or member is active
-			// poDetailsDtos.addAll();
-
+			poDetailsDtos = poDetailsRepository.getAllProjectPoDetailsDtoByProjectId(currentProjectId);
+			if (!poDetailsDtos.isEmpty()) {
+				List<Long> poIds = poDetailsDtos.stream().map(PoDetailsDto::getPoId)
+						.collect(Collectors.toList());
+						
+				Map<Long, Long> poIdCountMap = getPoIdAndCountMap(poIds);
+				if (poIdCountMap != null && !poIdCountMap.isEmpty()) {
+					for (PoDetailsDto poDetail : poDetailsDtos) {
+						poDetail.setTotalRequirements(poIdCountMap.getOrDefault(poDetail.getPoId(), 0L));
+					}
+				}
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
 		}
 		return poDetailsDtos;
+	}
+
+	private Map<Long, Long> getPoIdAndCountMap(List<Long> poIds) {
+		Map<Long, Long> poIdCountMap = new HashMap<>();
+		List<Object[]> results = poRequirementMappingRepository.getPoIdAndTotalActiveRequiredCountByPoIdIn(poIds);
+		if (results != null && !results.isEmpty()) {
+			for (Object[] obj : results) {
+				Long poId = TypeConversionUtil.safeParseLong(obj[0]);
+				Long count = TypeConversionUtil.safeParseLong(obj[1]);
+				poIdCountMap.put(poId, count);
+			}
+		}
+		return poIdCountMap;
 	}
 
 	private Set<Long> getValidPoRequirementMappingIds(Long poId) {
@@ -14268,6 +14290,45 @@ private List<RMGFlatEmployeeProjectTeamDTO> groupEmployeeProjectTeamWise(
 	
 		return String.join(", ", set);
 	}
-	
+
+ 	public ServiceResponse getResourceRequirementCountByPoId(Long poOrProjectId, String projectType) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		try {
+			if (poOrProjectId == null) {
+				return failResponse(serviceResponse, apiLogInfo, "Project Id cannot be null!!");
+			}
+			if (projectType == null || StringUtils.isEmpty(projectType)) {
+				return failResponse(serviceResponse, apiLogInfo, "Project type cannot be null!!");
+			}
+			PoDetailsDto poDetailsDto = null;
+			List<PoDetailsDto> projectConfigurationDetailsList = new ArrayList<>();
+			if (projectType.equalsIgnoreCase("TNM")) {
+				projectConfigurationDetailsList = projectPoDetailsRepository
+						.getResourceRequirementCountByPoId(poOrProjectId);
+			} else {
+				projectConfigurationDetailsList = projectPoDetailsRepository
+						.getResourceRequirementCountByProjectId(poOrProjectId.intValue());
+			}
+
+			if (projectConfigurationDetailsList != null && !projectConfigurationDetailsList.isEmpty()) {
+				poDetailsDto = projectConfigurationDetailsList.get(0);
+				if (poDetailsDto != null && projectType.equalsIgnoreCase("TNM")) {
+					poDetailsDto.setTotalRequirements(poRequirementMappingRepository.getTotalActiveRequiredCountByPoId(poOrProjectId));
+				}
+			} else {
+				return failResponse(serviceResponse, apiLogInfo, "Unable to fetch latest requirment count!!");
+			}
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(poDetailsDto);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return failResponse(serviceResponse, apiLogInfo,
+					"Unable to fetch latest requirment count.Something went wrong!!");
+		}
+		return serviceResponse;
+	}
 
 }

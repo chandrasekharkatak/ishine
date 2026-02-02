@@ -28,4 +28,6 @@ export class RmgResourceRequirement {
     projectType: any;
     endDate: any;
     isCustomEndDate: boolean;
+    assignedPending: any;
+    assignedApproved: any;
 }
