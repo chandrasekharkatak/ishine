@@ -69,6 +69,9 @@ export class EmployeeConfigComponent implements OnInit {
   alertTemplate: TemplateRef<any>;
   @ViewChild('change_manager_template')
   changeManagerTemplate: TemplateRef<any>;
+  @ViewChild("change_default_project_template_on_deptUpdate")
+  changeDefaultProjectTemplate: TemplateRef<any>;
+
   feature = 'Employee Config';
   managerFlag: boolean = false;
   data: string;
@@ -1751,30 +1754,33 @@ export class EmployeeConfigComponent implements OnInit {
       return false;
     }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultprojectType) && !this.isUpdation) {
+     const shouldValidateDefaultProject = this.isCreation || (this.isUpdation && employeeObj.isUpdateDefaultProject);
+     if (shouldValidateDefaultProject) {
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultprojectType)) {
       this.alertMessage = "Please select Default project Type !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultProjectId) && !this.isUpdation) {
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultProjectId)) {
       this.alertMessage = "Please select Default project  !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultTeamId) && !this.isUpdation) {
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultTeamId)) {
       this.alertMessage = "Please select Default Team !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
-    if (!this.isUpdation) {
+   
       if ((employeeObj.defaultTeamEmployeeRole.length === 0 || !employeeObj.defaultTeamEmployeeRole)) {
         this.alertMessage = "Please select Employee Role In Default Project !!"
         this.openAlertMod(template, this.alertMessage);
         return false;
       }
-    }
+    
+  }
 
 
 
@@ -2650,6 +2656,7 @@ export class EmployeeConfigComponent implements OnInit {
   showTeamDropdown: any;
   showEmployeeRoleDropdown: any;
   getProjectsAccToDepartmentSelected(template: TemplateRef<any>) {
+     this.resetCascade('PROJECT_TYPE');
     this.showProjectDropdown = true;
     this.showTeamDropdown = false;
     this.showEmployeeRoleDropdown = false;
@@ -2674,6 +2681,7 @@ export class EmployeeConfigComponent implements OnInit {
   }
 
   onProjectChange(event: any) {
+      this.resetCascade('PROJECT');
     const selectedProjectId = +event.target.value;
     const selectedProject = this.projectList.find(p => p.projectId === selectedProjectId);
     this.showEmployeeRoleDropdown = false;
@@ -2700,6 +2708,7 @@ export class EmployeeConfigComponent implements OnInit {
   showResourceRequirementDropdown: boolean = false;
   resourceRequirements: any[] = [];
   onTeamChange(event: any) {
+    this.resetCascade('TEAM');
     const selectedTeamId = +event.target.value;
     const selectedTeam = this.teamList.find(t => t.teamId === selectedTeamId);
 
@@ -3248,11 +3257,106 @@ export class EmployeeConfigComponent implements OnInit {
 
   deptSelected: any;
   getJobRolesByDept(departmentId: any, jobRoleId?: any) {
-    this.deptSelected = true;
+    // this.deptSelected = true;
     this.filteredJobRoleList = [];
     this.filteredJobRoleList = this.allJobRoleList.filter(jobRole => jobRole.departmentId == departmentId);
     jobRoleId ? this.employeeObj.jobRoleId = jobRoleId : this.employeeObj.jobRoleId = '';
   }
+
+   deptdefaultprojectChange(){
+    this.resetCascade('Department');
+
+  if (this.isUpdation) {
+    this.modalRef = this.modalService.open(this.changeDefaultProjectTemplate,{ modalDialogClass: 'modal-sm', backdrop: 'static', keyboard: false } );
+  } else { 
+    this.deptSelected = true;
+  }
+  }
+
+    confirmUpdateDefaultProject(choice: boolean) {
+  this.employeeObj.isUpdateDefaultProject = choice;
+  this.modalRef.close();
+
+  if (choice) {
+    this.deptSelected = true;
+    this.resetDefaultProjectFields();
+  }
+}
+
+resetDefaultProjectFields() {
+  this.employeeObj.defaultprojectType = '';
+  this.employeeObj.defaultProjectId = '';
+  this.employeeObj.defaultTeamId = '';
+  this.employeeObj.selectedResourceOverviewId = '';
+  this.employeeObj.defaultTeamEmployeeRole = [];
+}
+
+
+
+
+
+
+   resetCascade(level: 'PROJECT_TYPE' | 'PROJECT' | 'TEAM' | 'Department') {
+  switch (level) {
+
+    case 'Department':
+      this.employeeObj.defaultprojectType = null
+       this.employeeObj.defaultProjectId = null;
+      this.employeeObj.defaultTeamId = null;
+      this.employeeObj.selectedResourceOverviewId = null;
+      this.employeeObj.defaultTeamEmployeeRole = [];
+      this.employeeObj.isShadowResource = 0;
+
+      this.projectList = [];
+      this.teamList = [];
+      this.resourceRequirements = [];
+
+      this.showProjectDropdown = false;
+      this.showTeamDropdown = false;
+      this.showResourceRequirementDropdown = false;
+      this.showEmployeeRoleDropdown = false;
+      break;
+
+
+    case 'PROJECT_TYPE':
+      this.employeeObj.defaultProjectId = null;
+      this.employeeObj.defaultTeamId = null;
+      this.employeeObj.selectedResourceOverviewId = null;
+      this.employeeObj.defaultTeamEmployeeRole = [];
+      this.employeeObj.isShadowResource = 0;
+
+      this.projectList = [];
+      this.teamList = [];
+      this.resourceRequirements = [];
+
+      this.showProjectDropdown = false;
+      this.showTeamDropdown = false;
+      this.showResourceRequirementDropdown = false;
+      this.showEmployeeRoleDropdown = false;
+      break;
+
+    case 'PROJECT':
+      this.employeeObj.defaultTeamId = null;
+      this.employeeObj.selectedResourceOverviewId = null;
+      this.employeeObj.defaultTeamEmployeeRole = [];
+      this.employeeObj.isShadowResource = 0;
+
+      this.teamList = [];
+      this.resourceRequirements = [];
+
+      this.showTeamDropdown = false;
+      this.showResourceRequirementDropdown = false;
+      this.showEmployeeRoleDropdown = false;
+      break;
+
+    case 'TEAM':
+      this.employeeObj.defaultTeamEmployeeRole = [];
+      this.showEmployeeRoleDropdown = false;
+      break;
+  }
+}
+
+
 
 
   rejectDraftEmployeeApplication(template: TemplateRef<any>) {
