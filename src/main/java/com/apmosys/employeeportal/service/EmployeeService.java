@@ -2504,7 +2504,57 @@ public class EmployeeService {
 				employee.setProbationPeriod(employeedto.getProbationPeriod());
 				employee.setIsConsultant(employeedto.getIsConsultant());
 				employee.setIsApprenticeship(employeedto.getIsApprenticeship());
-				employee.setIsApmosysProduct(employeedto.getIsApmosysProduct());	
+				employee.setIsApmosysProduct(employeedto.getIsApmosysProduct());
+				
+				
+				if(employeedto.getIsUpdateDefaultProject()) {
+					Project proj = new Project();
+					StringBuilder employeeRole = new StringBuilder("");
+					for (String empRole : employeedto.getDefaultTeamEmployeeRole()) {
+						employeeRole.append(empRole).append(",");
+					}
+					
+					if(employeedto.getDefaultProjectId() != null) {
+						Department dept = departmentRepository.findByDeptId(employeedto.getDepartmentId());
+						String departmentname = dept.getName();
+						
+						Long resrcOverviewId = resourceRequirementRepository.findByProjectIdAndDepartmentName(departmentname,employeedto.getDefaultProjectId());
+						resrcOverviewId = resrcOverviewId !=null ? resrcOverviewId:null;
+						
+						
+						
+						
+						
+						EmployeeTeamMap employeeTeamMap = new EmployeeTeamMap();
+						employeeTeamMap.setEmpId(employee.getEmpId());
+						employeeTeamMap.setTeamId(employeedto.getDefaultTeamId());
+						employeeTeamMap.setActive(2l);
+						employeeTeamMap.setStartDate(LocalDateTime.now());
+						employeeTeamMap.setEmployeeRole(employeeRole.toString());
+						employeeTeamMap.setIsShadow(employeedto.getIsShadowResource());
+						employeeTeamMap.setResourceOverviewId(resrcOverviewId);	
+						employeeTeamMap.setUpdatedBy(Long.parseLong(employee.getUpdatedBy().toString()));
+						employeeTeamMap.setUpdatedOn(LocalDateTime.now());	
+					   employeeTeamMapRepository.save(employeeTeamMap);
+					   
+					   Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());
+					    if (project != null) {
+					    	project.setIsDraftProject("true");
+					    	project.setUpdatedBy(Long.parseLong(employee.getUpdatedBy().toString()));
+					    	project.setUpdatedOn(LocalDateTime.now());	
+					        proj = projectRepository.save(project);  
+					    }
+					   
+					   DefaultProjectUpdateDTO dto = new DefaultProjectUpdateDTO();
+					    dto.setUpdatedBy(employeedto.getUpdatedBy().longValue()); 
+					    dto.setProjectId(employeedto.getDefaultProjectId());
+					    dto.setEmpIds(Collections.singletonList(employee.getEmpId()));
+					    dto.setUpdatedBy(Long.parseLong(employee.getUpdatedBy().toString()));
+					    resourceManagementService.setDefaultProjectUpdateBillable(dto);
+					   
+					   }
+					}
+
 				
 				if ("No".equals(employeedto.getOnbenchDate())) {
 				    // Keep the existing value (no need to set it again)
