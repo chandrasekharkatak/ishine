@@ -265,10 +265,14 @@ public class PoDetailsService {
 	            validateAndGetEmployeeEmpId(
 	                    dto.getRenewedByEmpId(),
 	                    dto.getRenewedByEmpName()));
-
+	    
+	    po.setUpdatedBy(validateAndGetEmployeeEmpId(
+                dto.getRenewedByEmpId(),
+                dto.getRenewedByEmpName())); 
 	    po.setPoCreatedOn(poDto.getCreatedOn() != null ? convert(poDto.getCreatedOn()) : null);
 		po.setPoUpdatedOn(poDto.getUpdatedOn() != null ? convert(poDto.getUpdatedOn()) : null);
-	    
+		
+		po.setRenewable(poDto.isRenewable());   
 
 	    return projectPoDetailsRepository.save(po);
 	}
@@ -638,7 +642,12 @@ public class PoDetailsService {
 	           
 	            newPo.setProjectId(primaryProject.getProjectId());
 	            newPo.setPoProjectId(primaryProject.getPoProjectId());
-
+	            newPo.setMsg(oldPo.getMsg());
+	            newPo.setApmosysRM(oldPo.getApmosysRM()); 
+	            newPo.setApmosysRmEmail(oldPo.getApmosysRmEmail());
+	            newPo.setClientRm(oldPo.getClientRm());
+	            
+	            
 	            
 	            newPo.setCreatedBy(oldPo.getCreatedBy());
 	            newPo.setPoCreatedOn(oldPo.getPoCreatedOn());
