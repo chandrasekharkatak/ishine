@@ -14016,7 +14016,7 @@ public class ResourceManagementService {
 		try {
 			
 			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
-					"ishineToPoEmpDetails", "PoPortal", ishineToPoRequest.getUserId(), httpRequest);
+					"ishineToPoEmpDetails", "PoPortal", null, httpRequest);
 
 			if (ishineToPoRequest == null){
 				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
@@ -14024,7 +14024,14 @@ public class ResourceManagementService {
 				response.setServiceResponse("Request recieved from PO is null!!");
 				apiLogInfo.setApiResponse("Request recieved from PO is null!!");
 				return response;
-			}else if (ishineToPoRequest.getPoId() == null){
+			}
+			
+			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+					"ishineToPoEmpDetails", "PoPortal", 
+					ishineToPoRequest.getUserId()!=null?ishineToPoRequest.getUserId():null, httpRequest);
+
+			
+			if (ishineToPoRequest.getPoId() == null){
 				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("PO Id in request is null!!");

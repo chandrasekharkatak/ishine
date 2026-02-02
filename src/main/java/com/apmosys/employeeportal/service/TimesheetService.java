@@ -8592,8 +8592,6 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	    apiLogInfo.setApiUrl("/api/getClientDetailsByProjectIdAndEmpId");
 	    apiLogInfo.setLogLevel("INFO");
 	    StringBuilder logBuilder = new StringBuilder();
-	    logBuilder.append("empId : " +timesheetDTO.getEmpId());
-	    logBuilder.append("projectId : " +timesheetDTO.getProjectId());
 
 	    try {
 	    	
@@ -8607,6 +8605,9 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	    	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    	    return response;
 	    	}
+	    	
+		    logBuilder.append("empId : " +timesheetDTO.getEmpId());
+		    logBuilder.append("projectId : " +timesheetDTO.getProjectId());
 	    	
 	    	Long empId = timesheetDTO.getEmpId();
 	    	Integer projectId = timesheetDTO.getProjectId();

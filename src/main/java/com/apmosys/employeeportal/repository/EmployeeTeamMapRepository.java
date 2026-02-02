@@ -595,8 +595,7 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 				+ "INNER JOIN Project p ON p.projectId = t.projectId \n"
 				+ "INNER JOIN Client c ON c.clientId = p.clientId \n"
 				+ "INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId \n"
-				+ "INNER JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId\n"
-				+ "INNER JOIN ClientLocation cl ON cl.poId = ppd.poId  AND etm.poId = ppd.poId\n"
+				+ "INNER JOIN ClientLocation cl ON cl.clientId = c.clientId\n"
 				+ "where p.projectId = :project_id AND etm.empId = :empId")
 		public List<GetClientDetailsByProjectIdAndEmpIdDTO> getClientDetailsByProjectIdAndEmpId(@Param("project_id")Integer projectId, 
 				@Param("empId")Long empId);

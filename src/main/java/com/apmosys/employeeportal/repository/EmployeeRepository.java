@@ -331,7 +331,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query(value="SELECT new com.apmosys.employeeportal.dto.PoPortalDTO(e.employeementId, e.name, d.deptId, e.employmentstatus, "
 			+ "e.email, e.mobileNo, e.jobRoleId, d.hodId, e.empId, \n"
 			+ "case when e.empId in (select hodId from Department) then 'Y' else 'N'\n"
-			+ "end as isHead) \n" +
+			+ "end as isHead,e.isApmosysProduct) \n" +
 			"FROM Employee e  \n" +
 			"INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId  \n" +
 			"INNER JOIN Department d ON d.deptId = jr.deptId")

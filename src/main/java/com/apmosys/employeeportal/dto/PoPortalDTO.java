@@ -26,9 +26,13 @@ public class PoPortalDTO {
 	private Long employeeId;
 	private Boolean isBillable;
 	private Boolean isTnm;
+	private String employeeMentId;
+	private String isApmosysProduct;
+
+
 
 	public PoPortalDTO(Long empId, String empName, Long deptId, String employeementStatus, String mailId, Long mobile, Long roleId, Long hodId,
-			Long employeeId, String isHead) {
+			Long employeeId, String isHead,String isApmosysProduct) {
 		this.empId = empId != null ? empId.toString() : null;
 		this.empName = empName;
 		this.deptId = deptId;
@@ -39,6 +43,7 @@ public class PoPortalDTO {
 		this.hodId = hodId != null ? hodId.toString() : null;
 		this.employeeId = employeeId;
 		this.isHead = isHead;
+		this.employeeMentId=Boolean.TRUE.equals(isApmosysProduct)?"AP-"+empId:"A-"+empId;
 	}
 
 	public PoPortalDTO(Long deptId, String deptName, Long hodId, String deptAbbreviation, Boolean isBillable, Boolean isTnm) {
