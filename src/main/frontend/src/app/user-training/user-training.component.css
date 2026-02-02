@@ -1,0 +1,295 @@
+/* User Training Component Styles */
+
+.timer-display {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.timer-label {
+    font-size: 14px;
+    color: #6c757d;
+    margin-bottom: 10px;
+}
+
+.timer-value {
+    font-size: 36px;
+    font-weight: bold;
+    color: #007bff;
+    margin: 10px 0;
+}
+
+.timer-value.timer-complete {
+    color: #28a745;
+}
+
+.timer-progress {
+    margin-top: 10px;
+}
+
+/* PPTX Viewer Styles */
+.pptx-viewer-container {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    background: #f8f9fa;
+}
+
+.pptx-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.pptx-slide-container {
+    display: flex;
+    min-height: 500px;
+    gap: 15px;
+}
+
+.pptx-slide-container.with-thumbnails {
+    flex-direction: row;
+}
+
+.pptx-thumbnails {
+    width: 150px;
+    max-height: 600px;
+    overflow-y: auto;
+    border-right: 2px solid #ddd;
+    padding-right: 10px;
+}
+
+.thumbnail-item {
+    margin-bottom: 10px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    padding: 5px;
+    transition: all 0.2s;
+}
+
+.thumbnail-item:hover {
+    border-color: #007bff;
+    background: #e7f3ff;
+}
+
+.thumbnail-item.active {
+    border-color: #007bff;
+    background: #cfe2ff;
+}
+
+.thumbnail-number {
+    font-size: 12px;
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: 5px;
+}
+
+.thumbnail-content {
+    width: 100%;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.thumbnail-content img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.thumbnail-content.empty {
+    color: #6c757d;
+    font-size: 24px;
+}
+
+.pptx-main-slide {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    min-height: 500px;
+    overflow: auto;
+}
+
+.slide-content {
+    width: 100%;
+    max-width: 900px;
+}
+
+.slide-images img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.slide-texts {
+    margin-top: 20px;
+}
+
+.slide-text-item {
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #f8f9fa;
+    border-left: 3px solid #007bff;
+    border-radius: 4px;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.slide-empty {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+}
+
+/* Training Card Styles */
+.card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+}
+
+/* Pending Mandatory Training Highlight */
+.pending-mandatory-highlight {
+    border: 3px solid #ffc107 !important;
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.5) !important;
+    animation: pulse-border 2s ease-in-out infinite;
+    position: relative;
+}
+
+.pending-mandatory-highlight::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border: 2px solid #ffc107;
+    border-radius: 8px;
+    opacity: 0.6;
+    animation: pulse-ring 2s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes pulse-border {
+    0%, 100% {
+        box-shadow: 0 0 15px rgba(255, 193, 7, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 25px rgba(255, 193, 7, 0.8);
+    }
+}
+
+@keyframes pulse-ring {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.6;
+    }
+    50% {
+        transform: scale(1.02);
+        opacity: 0.3;
+    }
+}
+
+.training-card.pending-mandatory-highlight .card-header {
+    position: relative;
+}
+
+.training-card.pending-mandatory-highlight .card-header::after {
+    content: '⚠ Pending Mandatory';
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    font-size: 10px;
+    font-weight: bold;
+    color: #856404;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 2px 6px;
+    border-radius: 3px;
+    animation: blink 1.5s ease-in-out infinite;
+}
+
+@keyframes blink {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Status Badges */
+.badge-success {
+    background-color: #28a745;
+}
+
+.badge-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge-info {
+    background-color: #17a2b8;
+}
+
+.badge-danger {
+    background-color: #dc3545;
+}
+
+.badge-secondary {
+    background-color: #6c757d;
+}
+
+/* Alert Toast Styles */
+.alert-toast-modal .modal-dialog {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    margin: 0;
+    max-width: 400px;
+}
+
+.alert-toast-dialog {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-radius: 8px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .pptx-slide-container {
+        flex-direction: column;
+    }
+    
+    .pptx-thumbnails {
+        width: 100%;
+        max-height: 200px;
+        border-right: none;
+        border-bottom: 2px solid #ddd;
+        padding-right: 0;
+        padding-bottom: 10px;
+        display: flex;
+        overflow-x: auto;
+    }
+    
+    .thumbnail-item {
+        min-width: 100px;
+        margin-right: 10px;
+        margin-bottom: 0;
+    }
+}

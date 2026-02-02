@@ -1,0 +1,982 @@
+<!-- Navigation Buttons - Always Visible -->
+<div class="row mb-3">
+    <div class="col-md-12 px-0">
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" 
+                [ngClass]="{'active': isTable, 'btn-primary': isTable}" 
+                (click)="showTable()">
+            <em class="fa-solid fa-list"></em>&nbsp; View All Trainings
+        </button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-1" 
+                [ngClass]="{'active': isTrainingForm, 'btn-primary': isTrainingForm}" 
+                (click)="showTrainingForm()">
+            <em class="fa-solid fa-plus"></em>&nbsp; Create New Training
+        </button>
+    </div>
+</div>
+
+<!-- Training Form -->
+<div class="row" *ngIf="isTrainingForm">
+    <div class="px-0 mb-3">
+        <button type="button" class="btn btn-outline-primary btn-sm" (click)="showTable()">
+            <em><i class="fa-solid fa-arrow-left-long"></i></em> Back
+        </button>
+    </div>
+    <div class="card col-md-12 px-0 shadow-sm">
+        <div class="card-header bg-primary text-white text-center">
+            <h4 class="mb-0">
+                <i class="fas fa-graduation-cap mr-2"></i>
+                <strong>{{isEditMode ? 'Edit' : 'Create'}} Training</strong>
+            </h4>
+        </div>
+        <div class="card-body bg-light">
+            <form>
+                <!-- Training Basic Information Section -->
+                <div class="mb-4">
+                    <h5 class="text-primary mb-3">
+                        <i class="fas fa-info-circle mr-2"></i>Basic Information
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="info-label font-weight-bold" 
+                                   title="The name of the training program. This will be displayed to employees and must be unique.">
+                                <span class="text-danger">*</span>Training Name
+                                <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
+                            </label>
+                            <input type="text" class="form-control" [(ngModel)]="trainingFormData.trainingName" 
+                                   name="trainingName" maxlength="255" required 
+                                   placeholder="Enter training name"
+                                   title="Enter a unique name for this training program">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="info-label font-weight-bold" 
+                                   title="The category or type of training (e.g., POSH, Cyber Security, Safety, Induction). Helps organize trainings by type.">
+                                <span class="text-danger">*</span>Training Type
+                                <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
+                            </label>
+                            <select class="form-control" [(ngModel)]="trainingFormData.trainingType" name="trainingType" required
+                                    title="Select the category or type of this training">
+                                <option value="">Select Type</option>
+                                <option *ngFor="let type of trainingTypes" [value]="type">{{type}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h5 class="text-primary mb-3">
+                        <i class="fas fa-calendar-alt mr-2"></i>Schedule & Duration
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label class="info-label font-weight-bold" 
+                                   title="The start date when this training becomes effective and available to employees. Training will be active from this date.">
+                                <span class="text-danger">*</span>Effective From
+                                <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
+                            </label>
+                            <input type="date" class="form-control" [(ngModel)]="trainingFormData.effectiveFrom" 
+                                   name="effectiveFrom" required
+                                   title="Select the start date when this training becomes effective">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="info-label font-weight-bold" 
+                                   title="The end date when this training expires. Training will be active until this date. Must be after Effective From date.">
+                                <span class="text-danger">*</span>Effective To
+                                <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
+                            </label>
+                            <input type="date" class="form-control" [(ngModel)]="trainingFormData.effectiveTo" 
+                                   name="effectiveTo" required
+                                   title="Select the end date when this training expires (must be after Effective From)">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="info-label font-weight-bold" 
+                                   title="Number of times employees must complete this training per year (1-12). For example, 2 means employees must complete it twice per year.">
+                                <span class="text-danger">*</span>Frequency Per Year
+                                <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
+                            </label>
+                            <input type="number" class="form-control" [(ngModel)]="trainingFormData.frequencyPerYear" 
+                                   name="frequencyPerYear" min="1" max="12" required
+                                   title="Enter how many times per year employees must complete this training (1-12)">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="info-label font-weight-bold" 
+                                   title="Minimum time (in minutes) employees must spend viewing the training content before they can submit consent. Leave empty if no minimum time is required.">
+                                Min View Time (Minutes)
+                                <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
+                            </label>
+                            <input type="number" class="form-control" [(ngModel)]="trainingFormData.minViewTimeMinutes" 
+                                   name="minViewTimeMinutes" min="1" placeholder="Optional"
+                                   title="Enter minimum viewing time in minutes (optional)">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h5 class="text-primary mb-3">
+                        <i class="fas fa-cog mr-2"></i>Training Settings
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label class="info-label font-weight-bold" 
+                                   title="Whether this training is mandatory for all employees. Mandatory trainings are automatically assigned and tracked for compliance.">
+                                Mandatory
+                                <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
+                            </label>
+                            <select class="form-control" [(ngModel)]="trainingFormData.mandatoryFlag" name="mandatoryFlag"
+                                    title="Select Yes if this training is mandatory for all employees">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="info-label font-weight-bold" 
+                                   title="If enabled, the portal will be locked (employees cannot access other features) until this mandatory training is completed. Use for critical compliance trainings.">
+                                Lock Enabled
+                                <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
+                            </label>
+                            <select class="form-control" [(ngModel)]="trainingFormData.lockEnabled" name="lockEnabled"
+                                    title="Select Yes to lock portal until this training is completed">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="info-label font-weight-bold" 
+                                   title="Whether employees must submit consent after viewing the training content. Consent submission marks the training as completed.">
+                                Consent Required
+                                <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
+                            </label>
+                            <select class="form-control" [(ngModel)]="trainingFormData.consentRequired" name="consentRequired"
+                                    title="Select Yes if employees must submit consent to complete training">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="info-label font-weight-bold" 
+                                   title="Whether employees can temporarily skip this training. If allowed, employees can skip but must complete it later. Skip is not allowed after deadline.">
+                                Skip Allowed
+                                <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
+                            </label>
+                            <select class="form-control" [(ngModel)]="trainingFormData.skipAllowed" name="skipAllowed"
+                                    title="Select Yes if employees can temporarily skip this training">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h5 class="text-primary mb-3">
+                        <i class="fas fa-clock mr-2"></i>Deadline & Status
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label class="info-label font-weight-bold" 
+                                   title="Whether this training has a deadline for completion. If enabled, employees must complete training by the deadline. Skip is not allowed after deadline.">
+                                Deadline Enabled
+                                <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
+                            </label>
+                            <select class="form-control" [(ngModel)]="trainingFormData.deadlineEnabled" name="deadlineEnabled"
+                                    title="Select Yes to enable deadline for this training">
+                                <option value="false">No</option>
+                                <option value="true">Yes</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3" *ngIf="trainingFormData.deadlineEnabled === 'true'">
+                            <label class="info-label font-weight-bold" 
+                                   title="The pattern for calculating deadlines: YEARLY (end of year), MID_YEAR (June 30), QUARTERLY (end of each quarter), or CUSTOM (specified months).">
+                                <span class="text-danger">*</span>Deadline Pattern
+                                <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
+                            </label>
+                            <select class="form-control" [(ngModel)]="trainingFormData.deadlinePattern" name="deadlinePattern"
+                                    title="Select the deadline calculation pattern">
+                                <option value="">Select Pattern</option>
+                                <option *ngFor="let pattern of deadlinePatterns" [value]="pattern.value">
+                                    {{pattern.label}}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3" *ngIf="trainingFormData.deadlinePattern === 'CUSTOM'">
+                            <label class="info-label font-weight-bold" 
+                                   title="Comma-separated month numbers (1-12) for custom deadline pattern. For example, '3,6,9,12' means deadlines on March 31, June 30, September 30, and December 31.">
+                                <span class="text-danger">*</span>Custom Months (comma-separated)
+                                <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
+                            </label>
+                            <input type="text" class="form-control" [(ngModel)]="trainingFormData.customDeadlineMonths" 
+                                   name="customDeadlineMonths" placeholder="e.g., 3,6,9,12"
+                                   title="Enter comma-separated month numbers (1-12)">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="info-label font-weight-bold" 
+                                   title="Whether this training is currently active. Inactive trainings are not shown to employees and cannot be assigned.">
+                                Active Status
+                                <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
+                            </label>
+                            <select class="form-control" [(ngModel)]="trainingFormData.activeStatus" name="activeStatus"
+                                    title="Select Active to make this training available to employees">
+                                <option value="true">Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+
+            <!-- Content Section - Accordion (Always visible during creation, collapsible during edit) -->
+            <div class="row mt-4">
+                <div class="col-md-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-info text-white" 
+                             style="cursor: pointer;" 
+                             (click)="isContentAccordionOpen = !isContentAccordionOpen"
+                             [attr.data-toggle]="'collapse'" 
+                             [attr.data-target]="'#contentAccordion'"
+                             [attr.aria-expanded]="isContentAccordionOpen"
+                             aria-controls="contentAccordion">
+                            <h5 class="mb-0 d-flex justify-content-between align-items-center">
+                                <span>
+                                    <i class="fas fa-file-alt mr-2"></i>
+                                    <strong>Training Content</strong>
+                                    <span class="badge badge-warning ml-2" *ngIf="!isEditMode">Required</span>
+                                </span>
+                                <i class="fas" [ngClass]="isContentAccordionOpen ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                            </h5>
+                        </div>
+                        <div id="contentAccordion" class="collapse" [ngClass]="{'show': isContentAccordionOpen}">
+                            <div class="card-body bg-white">
+                                <!-- Info Alert -->
+                                <div class="alert alert-info mb-3" *ngIf="!isEditMode">
+                                    <i class="fas fa-info-circle mr-2"></i>
+                                    <strong>Note:</strong> Content is required to create a training. Only one content can be active at a time.
+                                </div>
+                                
+                                <!-- Content Form -->
+                                <form>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="info-label font-weight-bold" 
+                                                   title="The type of content: PPT (PowerPoint presentation), PDF (PDF document), VIDEO (video file), AUDIO (audio file), or LINK (external URL).">
+                                                <span class="text-danger">*</span>Content Type
+                                                <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
+                                            </label>
+                                            <select class="form-control" [(ngModel)]="contentFormData.contentType" name="contentType" 
+                                                    (change)="onContentTypeChange()"
+                                                    title="Select the type of content for this training">
+                                                <option *ngFor="let type of contentTypes" [value]="type.value">
+                                                    {{type.label}}
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="info-label font-weight-bold" 
+                                                   title="A descriptive name for this content item. This will be displayed to employees when they view the training content.">
+                                                <span class="text-danger">*</span>Content Name
+                                                <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
+                                            </label>
+                                            <input type="text" class="form-control" [(ngModel)]="contentFormData.contentName" 
+                                                   name="contentName" maxlength="255" required
+                                                   placeholder="Enter content name"
+                                                   title="Enter a descriptive name for this content">
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label class="info-label font-weight-bold" 
+                                                   title="The start date when this content becomes active. Content will be available to employees from this date. Must be within training effective dates.">
+                                                <span class="text-danger">*</span>Effective From
+                                                <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
+                                            </label>
+                                            <input type="date" class="form-control" [(ngModel)]="contentFormData.effectiveFrom" 
+                                                   name="effectiveFrom" required
+                                                   title="Select the start date when this content becomes active">
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="info-label font-weight-bold" 
+                                                   title="The end date when this content expires. Content will be active until this date. Must be after Effective From and within training effective dates.">
+                                                <span class="text-danger">*</span>Effective To
+                                                <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
+                                            </label>
+                                            <input type="date" class="form-control" [(ngModel)]="contentFormData.effectiveTo" 
+                                                   name="effectiveTo" required
+                                                   title="Select the end date when this content expires (must be after Effective From)">
+                                        </div>
+                                        <div class="col-md-4 mb-3" *ngIf="contentFormData.contentType === 'LINK'">
+                                            <label class="info-label font-weight-bold" 
+                                                   title="The external URL where the training content is hosted. Employees will be redirected to this link when they access the training. Must be a valid URL starting with http:// or https://.">
+                                                <span class="text-danger">*</span>External Link URL
+                                                <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
+                                            </label>
+                                            <div class="d-flex align-items-center">
+                                                <input type="url" class="form-control" [(ngModel)]="contentFormData.externalLinkUrl" 
+                                                       name="externalLinkUrl" placeholder="https://example.com"
+                                                       (input)="onExternalLinkChange()"
+                                                       title="Enter the external URL for the training content">
+                                                <button type="button" 
+                                                        class="btn btn-info btn-sm ml-2" 
+                                                        *ngIf="contentFormData.externalLinkUrl"
+                                                        (click)="openPreviewModal()"
+                                                        title="Preview">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-3" *ngIf="contentFormData.contentType !== 'LINK'">
+                                            <label class="info-label font-weight-bold" 
+                                                   title="Upload the training content file. Supported formats: PPT (.ppt, .pptx), PDF (.pdf), VIDEO (.mp4, .avi, .mov, .webm), AUDIO (.mp3, .wav). Maximum file size is {{maxFileSize}}MB.">
+                                                <span class="text-danger">*</span>Select File
+                                                <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
+                                            </label>
+                                            <small class="d-block text-secondary mb-2">
+                                                <i class="fas fa-info-circle"></i> Max size: {{maxFileSize}}MB
+                                            </small>
+                                            <div class="d-flex align-items-center">
+                                                <div class="custom-file flex-grow-1">
+                                                    <input type="file" class="custom-file-input" id="contentFile" (change)="onFileSelect($event)" 
+                                                           [accept]="contentFormData.contentType === 'PPT' ? '.ppt,.pptx' : 
+                                                                     contentFormData.contentType === 'PDF' ? '.pdf' :
+                                                                     contentFormData.contentType === 'VIDEO' ? '.mp4,.avi,.mov,.webm': 
+                                                                     contentFormData.contentType === 'AUDIO' ? '.mp3,.wav' : '*'">
+                                                    <label class="custom-file-label" for="contentFile">
+                                                        {{file ? file.name : 'Choose file...'}}
+                                                    </label>
+                                                </div>
+                                                <button type="button" 
+                                                        class="btn btn-info btn-sm ml-2" 
+                                                        *ngIf="file || (contentFormData.contentType === 'LINK' && contentFormData.externalLinkUrl)"
+                                                        (click)="openPreviewModal()"
+                                                        title="Preview">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
+                                            <small *ngIf="file" class="text-success mt-1 d-block">
+                                                <i class="fas fa-check-circle"></i> Selected: {{file.name}} ({{fileSize.toFixed(2)}} MB)
+                                            </small>
+                                        </div>
+                                    </div>
+                                </form>
+
+                                <!-- Content List (Show only during edit mode) -->
+                                <div class="table-responsive mt-3" *ngIf="isEditMode && trainingContents.length > 0">
+                                    <h6 class="mb-2 text-primary">
+                                        <i class="fas fa-list mr-2"></i><strong>Existing Content:</strong>
+                                    </h6>
+                                    <table class="table table-sm table-bordered table-hover">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th>Content Name</th>
+                                                <th>Type</th>
+                                                <th>Effective From</th>
+                                                <th>Effective To</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr *ngFor="let content of trainingContents">
+                                                <td>{{content.contentName}}</td>
+                                                <td>
+                                                    <span class="badge badge-info">{{content.contentType}}</span>
+                                                </td>
+                                                <td>{{content.effectiveFrom}}</td>
+                                                <td>{{content.effectiveTo || 'N/A'}}</td>
+                                                <td>
+                                                    <span class="badge" 
+                                                          [ngClass]="content.activeStatus === 'true' ? 'badge-success' : 'badge-secondary'">
+                                                        {{content.activeStatus === 'true' ? 'Active' : 'Inactive'}}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <!-- Show message if no content during creation -->
+                                <div *ngIf="!isEditMode && trainingContents.length === 0" class="alert alert-warning mt-3">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                    <strong>No content added yet.</strong> Please add content to proceed with training creation.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="row mt-4">
+                <div class="col-md-12 text-right">
+                    <button type="button" class="btn btn-primary btn-lg px-4" 
+                            (click)="isEditMode ? onUpdateTraining() : onCreateTraining()">
+                        <i class="fas" [ngClass]="isEditMode ? 'fa-save' : 'fa-plus-circle'"></i>&nbsp;
+                        {{isEditMode ? 'Update' : 'Create'}} Training
+                    </button>
+                    <button type="button" class="btn btn-secondary btn-lg px-4 ml-2" (click)="showTable()">
+                        <i class="fas fa-times"></i>&nbsp; Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Form (Standalone - for backward compatibility) -->
+<div class="row" *ngIf="isContentForm && !isTrainingForm">
+    <div class="px-0">
+        <button type="button" class="btn btn-outline-primary btn-sm mb-1" (click)="showTable()">
+            <em><i class="fa-solid fa-arrow-left-long"></i></em> Back
+        </button>
+    </div>
+    <div class="card col-md-12 px-0">
+        <div class="card-header text-center text-uppercase">
+            <strong>Add Content - {{selectedTraining?.trainingName}}</strong>
+        </div>
+        <div class="card-body">
+            <form>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="info-label"><span class="text-danger">*</span>Content Type</label>
+                        <select class="form-control" [(ngModel)]="contentFormData.contentType" name="contentType" 
+                                (change)="file = null; contentFormData.externalLinkUrl = ''">
+                            <option *ngFor="let type of contentTypes" [value]="type.value">{{type.label}}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="info-label"><span class="text-danger">*</span>Content Name</label>
+                        <input type="text" class="form-control" [(ngModel)]="contentFormData.contentName" 
+                               name="contentName" maxlength="255" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="info-label"><span class="text-danger">*</span>Effective From</label>
+                        <input type="date" class="form-control" [(ngModel)]="contentFormData.effectiveFrom" 
+                               name="effectiveFrom" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="info-label">
+                            <span class="text-danger">*</span>Effective To
+                        </label>
+                        <input type="date" class="form-control" [(ngModel)]="contentFormData.effectiveTo" 
+                               name="effectiveTo" required>
+                    </div>
+                    <div class="col-md-4 mb-3" *ngIf="contentFormData.contentType === 'LINK'">
+                        <label class="info-label"><span class="text-danger">*</span>External Link URL</label>
+                        <input type="url" class="form-control" [(ngModel)]="contentFormData.externalLinkUrl" 
+                               name="externalLinkUrl" placeholder="https://example.com">
+                    </div>
+                    <div class="col-md-4 mb-3" *ngIf="contentFormData.contentType !== 'LINK'">
+                        <label class="info-label"><span class="text-danger">*</span>Select File</label>
+                        <small class="d-block text-secondary mb-2">Max size: {{maxFileSize}}MB</small>
+                        <input type="file" class="form-control p-1" (change)="onFileSelect($event)" 
+                               [accept]="contentFormData.contentType === 'PPT' ? '.ppt,.pptx' : 
+                                         contentFormData.contentType === 'PDF' ? '.pdf' :
+                                         contentFormData.contentType === 'VIDEO' ? '.mp4,.avi,.mov,.webm' : 
+                                         contentFormData.contentType === 'AUDIO' ? '.mp3,.wav' : '*'">
+                        <small *ngIf="file" class="text-success">Selected: {{file.name}} ({{fileSize.toFixed(2)}} MB)</small>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-md-12">
+                        <button type="button" class="btn btn-primary btn-sm mx-1" (click)="onAddContent()">Add Content</button>
+                        <button type="button" class="btn btn-secondary btn-sm mx-1" (click)="showTable()">Cancel</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Content List -->
+            <div class="row mt-4" *ngIf="trainingContents.length > 0">
+                <div class="col-md-12">
+                    <h5>Existing Content</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Content Name</th>
+                                    <th>Type</th>
+                                    <th>Effective From</th>
+                                    <th>Effective To</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let content of trainingContents">
+                                    <td>{{content.contentName}}</td>
+                                    <td>{{content.contentType}}</td>
+                                    <td>{{content.effectiveFrom}}</td>
+                                    <td>{{content.effectiveTo || 'N/A'}}</td>
+                                    <td>
+                                        <span class="badge" [ngClass]="content.activeStatus === 'true' ? 'badge-success' : 'badge-secondary'">
+                                            {{content.activeStatus === 'true' ? 'Active' : 'Inactive'}}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Training Table -->
+<div class="row" *ngIf="isTable">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col-md-12 table-header">
+                <h1 class="table-header-title">Training(s)</h1>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="selector-toggle">
+                    <a href="javascript:void(0)" (click)="toggleSearch()">
+                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
+                <div class="overflow-auto">
+                    <table class="table department-table" matSort (matSortChange)="sortData($event)">
+                        <thead class="thead-light">
+                            <tr>
+                                <th scope="col" class="info-label">Sr No.</th>
+                                <th scope="col" class="info-label" mat-sort-header="trainingName|string">Training Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="trainingType|string">Type</th>
+                                <th scope="col" class="info-label" mat-sort-header="mandatoryFlag|string">Mandatory</th>
+                                <th scope="col" class="info-label" mat-sort-header="frequencyPerYear|number">Frequency/Year</th>
+                                <th scope="col" class="info-label" mat-sort-header="lockEnabled|string">Lock Enabled</th>
+                                <th scope="col" class="info-label" mat-sort-header="activeStatus|string">Status</th>
+                                <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By</th>
+                                <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Created On</th>
+                                <th scope="col" class="info-label">Actions</th>
+                            </tr>
+                            <tr app-column-filter-bar *ngIf="isTable && isSearchEnabled" 
+                                [columnList]="trainingsColumns" (onSearch)="onSearch($event)"></tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="trainings.length == 0 || (trainings | colFilter:filters:false).length == 0">
+                                <td colspan="10" class="text-center info-label">No trainings found...</td>
+                            </tr>
+                            <tr *ngFor="let training of trainings | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
+                                <td class="info-label">{{10*(page-1)+i+1}}</td>
+                                <td>{{training.trainingName}}</td>
+                                <td>{{training.trainingType}}</td>
+                                <td>
+                                    <span class="badge" [ngClass]="training.mandatoryFlag === 'true' ? 'badge-danger' : 'badge-secondary'">
+                                        {{training.mandatoryFlag === 'true' ? 'Yes' : 'No'}}
+                                    </span>
+                                </td>
+                                <td>{{training.frequencyPerYear}}</td>
+                                <td>
+                                    <span class="badge" [ngClass]="training.lockEnabled === 'true' ? 'badge-warning' : 'badge-secondary'">
+                                        {{training.lockEnabled === 'true' ? 'Yes' : 'No'}}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge" [ngClass]="training.activeStatus === 'true' ? 'badge-success' : 'badge-secondary'">
+                                        {{training.activeStatus === 'true' ? 'Active' : 'Inactive'}}
+                                    </span>
+                                </td>
+                                <td>{{training.createdByName}}</td>
+                                <td>{{training.createdOn}}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary mx-1" 
+                                            (click)="onEditTraining(training)" title="Edit">
+                                        <em class="fa fa-edit"></em>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-info mx-1" 
+                                            (click)="onViewContent(training)" title="View Content">
+                                        <em class="fa fa-eye"></em>
+                                    </button>
+                                    <button *ngIf="training.activeStatus === 'true'" 
+                                            class="btn btn-sm btn-outline-danger mx-1" 
+                                            (click)="onDeactivateTraining(training, delete_template)" title="Deactivate">
+                                        <em class="fa fa-ban"></em>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <pagination-controls class="my-pagination" [hidden]="trainings.length == 0" 
+                                     (pageChange)="handlePageChange($event)"></pagination-controls>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<ng-template #preview_modal let-modal>
+    <div class="modal-header bg-primary text-white">
+        <h4 class="modal-title">
+            <i class="fas fa-eye mr-2"></i>{{isViewingExistingContent ? 'View Content' : 'Content Preview'}}
+            <small class="ml-2" *ngIf="!isViewingExistingContent">(How it will appear to employees)</small>
+        </h4>
+        <button type="button" class="close text-white" aria-label="Close" (click)="closePreviewModal()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+        <div class="card border-primary">
+            <div class="card-header bg-light">
+                <strong>{{contentFormData.contentName || viewingContent?.contentName || 'Preview'}}</strong>
+                <span class="badge badge-info ml-2">{{contentFormData.contentType || viewingContent?.contentType}}</span>
+                <span *ngIf="viewingContent" class="badge badge-secondary ml-2">
+                    Effective: {{viewingContent.effectiveFrom}} 
+                    <span *ngIf="viewingContent.effectiveTo"> - {{viewingContent.effectiveTo}}</span>
+                </span>
+            </div>
+            <div class="card-body">
+                <!-- External Link Preview -->
+                <div *ngIf="contentFormData.contentType === 'LINK'" class="text-center">
+                    <a [href]="previewUrl" 
+                       target="_blank" 
+                       class="btn btn-primary btn-lg"
+                       style="text-decoration: none;">
+                        <i class="fas fa-external-link-alt mr-2"></i>
+                        Visit Training Link
+                    </a>
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i> Employees will see this button to visit the training link
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Video Preview -->
+                <div *ngIf="contentFormData.contentType === 'VIDEO'" class="text-center">
+                    <video controls [src]="previewUrl" style="max-width: 100%; max-height: 500px;" class="mb-3">
+                        Your browser does not support the video tag.
+                    </video>
+                    <div class="mt-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary" (click)="openPreviewInNewTab()">
+                            <i class="fas fa-external-link-alt mr-1"></i> Open in New Tab
+                        </button>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i> Employees will see this video player during training
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Audio Preview -->
+                <div *ngIf="contentFormData.contentType === 'AUDIO'" class="text-center">
+                    <audio controls [src]="previewUrl" style="width: 100%;" class="mb-3">
+                        Your browser does not support the audio tag.
+                    </audio>
+                    <div class="mt-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary" (click)="openPreviewInNewTab()">
+                            <i class="fas fa-external-link-alt mr-1"></i> Open in New Tab
+                        </button>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i> Employees will see this audio player during training
+                        </small>
+                    </div>
+                </div>
+
+                <!-- PDF Preview -->
+                <div *ngIf="contentFormData.contentType === 'PDF' || viewingContent?.contentType === 'PDF'" class="text-center">
+                    <iframe [src]="safePreviewUrl" 
+                            style="width: 100%; height: 600px; border: 1px solid #ddd;" 
+                            class="mb-3"
+                            (error)="onPDFPreviewError($event)">
+                        Your browser does not support PDF preview. 
+                        <a [href]="previewUrl" target="_blank" class="btn btn-primary">
+                            <i class="fas fa-download mr-1"></i>Download PDF
+                        </a>
+                    </iframe>
+                    <div class="mt-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary" (click)="openPreviewInNewTab()">
+                            <i class="fas fa-external-link-alt mr-1"></i> Open in New Tab
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-success ml-2" (click)="downloadFile()">
+                            <i class="fas fa-download mr-1"></i> Download
+                        </button>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i> Employees will see this PDF viewer during training
+                        </small>
+                    </div>
+                </div>
+
+                <!-- PPT Preview -->
+                <div *ngIf="contentFormData.contentType === 'PPT' || viewingContent?.contentType === 'PPT'">
+                    <!-- PPTX Slides Viewer (for .pptx files) -->
+                    <div *ngIf="pptxSlides.length > 0" class="pptx-viewer-wrapper" [class.fullscreen]="isFullscreen">
+                        <!-- Top Toolbar -->
+                        <div class="pptx-toolbar">
+                            <div class="toolbar-left">
+                                <h5 class="presentation-title mb-0">
+                                    <i class="fas fa-file-powerpoint text-primary mr-2"></i>
+                                    <span class="title-text">{{file?.name}}</span>
+                                </h5>
+                            </div>
+                            <div class="toolbar-center">
+                                <div class="slide-counter-badge">
+                                    <span class="current-slide">{{currentSlideIndex + 1}}</span>
+                                    <span class="separator">/</span>
+                                    <span class="total-slides">{{pptxSlides.length}}</span>
+                                </div>
+                            </div>
+                            <div class="toolbar-right">
+                                <button type="button" class="btn btn-sm btn-outline-secondary toolbar-btn" 
+                                        (click)="showThumbnails = !showThumbnails"
+                                        [title]="showThumbnails ? 'Hide Thumbnails' : 'Show Thumbnails'">
+                                    <i class="fas" [ngClass]="showThumbnails ? 'fa-th-large' : 'fa-th'"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary toolbar-btn" 
+                                        (click)="toggleFullscreen()"
+                                        [title]="isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'">
+                                    <i class="fas" [ngClass]="isFullscreen ? 'fa-compress' : 'fa-expand'"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary toolbar-btn" 
+                                        (click)="downloadPreviewFile()"
+                                        title="Download File">
+                                    <i class="fas fa-download"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Main Content Area -->
+                        <div class="pptx-content-area">
+                            <!-- Thumbnails Sidebar -->
+                            <div class="thumbnails-sidebar" *ngIf="showThumbnails" [class.collapsed]="!showThumbnails">
+                                <div class="thumbnails-header">
+                                    <span class="thumbnails-title">Slides</span>
+                                    <button type="button" class="btn btn-sm btn-link p-0" (click)="showThumbnails = false">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="thumbnails-list">
+                                    <div *ngFor="let slide of pptxSlides; let i = index" 
+                                         class="thumbnail-item"
+                                         [class.active]="i === currentSlideIndex"
+                                         (click)="goToSlide(i)">
+                                        <div class="thumbnail-number">{{i + 1}}</div>
+                                        <div class="thumbnail-preview">
+                                            <div *ngIf="slide.images.length > 0" class="thumbnail-image">
+                                                <img [src]="slide.images[0]" alt="Slide {{i + 1}}">
+                                            </div>
+                                            <div *ngIf="slide.images.length === 0 && slide.texts.length > 0" class="thumbnail-text">
+                                                <i class="fas fa-align-left"></i>
+                                                <span>{{slide.texts[0].substring(0, 30)}}...</span>
+                                            </div>
+                                            <div *ngIf="!slide.hasContent" class="thumbnail-empty">
+                                                <i class="fas fa-file-powerpoint"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide Display Area -->
+                            <div class="slide-display-area" [class.with-thumbnails]="showThumbnails">
+                                <!-- Navigation Controls -->
+                                <button type="button" 
+                                        class="nav-btn nav-btn-prev" 
+                                        (click)="previousSlide()" 
+                                        [disabled]="currentSlideIndex === 0"
+                                        title="Previous Slide (←)">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+
+                                <button type="button" 
+                                        class="nav-btn nav-btn-next" 
+                                        (click)="nextSlide()" 
+                                        [disabled]="currentSlideIndex === pptxSlides.length - 1"
+                                        title="Next Slide (→)">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+
+                                <!-- Slide Container -->
+                                <div class="slide-viewport">
+                                    <div class="slide-container" *ngIf="pptxSlides[currentSlideIndex]">
+                                        <div class="slide-content">
+                                            <!-- Display slide images -->
+                                            <div *ngFor="let imgUrl of pptxSlides[currentSlideIndex].images; let imgIndex = index" 
+                                                 class="slide-image-wrapper"
+                                                 [class.multiple-images]="pptxSlides[currentSlideIndex].images.length > 1">
+                                                <img [src]="imgUrl" 
+                                                     alt="Slide Image {{imgIndex + 1}}" 
+                                                     class="slide-image"
+                                                     [class.single-image]="pptxSlides[currentSlideIndex].images.length === 1">
+                                            </div>
+                                            
+                                            <!-- Display slide text content -->
+                                            <div *ngIf="pptxSlides[currentSlideIndex].texts.length > 0 && pptxSlides[currentSlideIndex].images.length === 0" 
+                                                 class="slide-text-content">
+                                                <div *ngFor="let text of pptxSlides[currentSlideIndex].texts; let textIndex = index" 
+                                                     class="slide-text"
+                                                     [class.text-heading]="textIndex === 0 && text.length < 100">
+                                                     {{text}}
+                                                </div>
+                                            </div>
+
+                                            <!-- Mixed content (images + text) -->
+                                            <div *ngIf="pptxSlides[currentSlideIndex].texts.length > 0 && pptxSlides[currentSlideIndex].images.length > 0" 
+                                                 class="slide-text-overlay">
+                                                <div *ngFor="let text of pptxSlides[currentSlideIndex].texts" 
+                                                     class="slide-text-overlay-item">
+                                                     {{text}}
+                                                </div>
+                                            </div>
+
+                                            <!-- Fallback if no images or text -->
+                                            <div *ngIf="!pptxSlides[currentSlideIndex].hasContent" 
+                                                 class="slide-placeholder">
+                                                <div class="placeholder-icon">
+                                                    <i class="fas fa-file-powerpoint"></i>
+                                                </div>
+                                                <p class="placeholder-title">Slide {{currentSlideIndex + 1}}</p>
+                                                <p class="placeholder-subtitle">No extractable content detected</p>
+                                                <small class="placeholder-note">This slide may contain complex formatting or embedded objects that cannot be previewed.</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Bottom Navigation Bar -->
+                                <div class="bottom-nav-bar">
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-light" 
+                                            (click)="goToSlide(0)"
+                                            [disabled]="currentSlideIndex === 0"
+                                            title="First Slide">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </button>
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-light" 
+                                            (click)="previousSlide()" 
+                                            [disabled]="currentSlideIndex === 0"
+                                            title="Previous Slide">
+                                        <i class="fas fa-chevron-left"></i> Previous
+                                    </button>
+                                    <div class="slide-progress">
+                                        <div class="progress-bar-bg">
+                                            <div class="progress-bar-fill" 
+                                                 [style.width.%]="((currentSlideIndex + 1) / pptxSlides.length) * 100">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-light" 
+                                            (click)="nextSlide()" 
+                                            [disabled]="currentSlideIndex === pptxSlides.length - 1"
+                                            title="Next Slide">
+                                        Next <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-light" 
+                                            (click)="goToSlide(pptxSlides.length - 1)"
+                                            [disabled]="currentSlideIndex === pptxSlides.length - 1"
+                                            title="Last Slide">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div *ngIf="isLoadingPPTX" class="text-center p-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Parsing PowerPoint file...</p>
+                    </div>
+
+                    <!-- Fallback for non-PPTX files or if parsing fails -->
+                    <div *ngIf="!isLoadingPPTX && pptxSlides.length === 0">
+                        <div class="mb-3 text-center">
+                            <div class="ppt-preview-icon mb-3">
+                                <i class="fas fa-file-powerpoint fa-5x text-primary"></i>
+                            </div>
+                            <h5 class="mb-2"><strong>{{file?.name}}</strong></h5>
+                            <p class="text-muted mb-3">
+                                <span class="badge badge-info">{{contentFormData.contentType}}</span>
+                                <span class="ml-2">Size: {{fileSize.toFixed(2)}} MB</span>
+                            </p>
+                            <div class="alert alert-info" *ngIf="file?.name.toLowerCase().endsWith('.ppt')">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                <strong>Legacy PPT format detected.</strong> For better preview, please use PPTX format (.pptx).
+                            </div>
+                        </div>
+                        
+                        <!-- Preview Options -->
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-2">
+                                <button type="button" class="btn btn-primary btn-block btn-lg" (click)="openPreviewInNewTab()">
+                                    <i class="fas fa-external-link-alt mr-2"></i>
+                                    Open in New Tab
+                                </button>
+                                <small class="text-muted d-block mt-1 text-center">
+                                    Opens the file in a new browser tab
+                                </small>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <button type="button" class="btn btn-success btn-block btn-lg" (click)="downloadPreviewFile()">
+                                    <i class="fas fa-download mr-2"></i>
+                                    Download File
+                                </button>
+                                <small class="text-muted d-block mt-1 text-center">
+                                    Download to view in Microsoft PowerPoint
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closePreviewModal()">Close</button>
+    </div>
+</ng-template>
+
+<!-- Alert Modal -->
+<ng-template #alert_message let-modal>
+    <div class="alert-toast-container" [ngClass]="'alert-' + alertType">
+        <div class="alert-toast-icon">
+            <i class="fas" [ngClass]="{
+                'fa-check-circle': alertType === 'success',
+                'fa-exclamation-circle': alertType === 'error',
+                'fa-exclamation-triangle': alertType === 'warning',
+                'fa-info-circle': alertType === 'info'
+            }"></i>
+        </div>
+        <div class="alert-toast-content">
+            <div class="alert-toast-title" [ngClass]="'text-' + alertType">
+                {{alertType === 'success' ? 'Success' : alertType === 'error' ? 'Error' : alertType === 'warning' ? 'Warning' : 'Information'}}
+            </div>
+            <div class="alert-toast-message">{{alertMessage}}</div>
+        </div>
+        <button type="button" class="alert-toast-close" (click)="modal.close('close')" aria-label="Close">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+</ng-template>
+
+<!-- Delete Confirmation Modal -->
+<ng-template #delete_template let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title">Confirm Deactivation</h4>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss('cross click')">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <p>Are you sure you want to deactivate this training? This will release locks for all employees.</p>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">Cancel</button>
+        <button type="button" class="btn btn-danger" (click)="modal.close('confirm')">Deactivate</button>
+    </div>
+</ng-template>
