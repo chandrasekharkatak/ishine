@@ -21,15 +21,15 @@
 
               </div>
               <div class="eligible-box">
-                <span class="textdisplay_total">Eligible Employees
+                <span class="textdisplay_total">Eligible Employees : 
                   <br><strong>{{eligibleEmployees.length}}</strong></span>
 
 
-                <div class="employee-count">
-                  <span class="textdisplay">All Employees: <strong>{{allEmployee.length}}</strong></span><br>
-                  <span class="textdisplay">Eligibility:&nbsp;&nbsp;
-                    <strong>{{eligibleEmployees.length}}</strong></span><br>
-                  <span class="textdisplay">Not Eligible:&nbsp;&nbsp;
+                <div class="employee-count" >
+                  <span class="textdisplay"  style="width: 250px;">All Employees: <strong>{{allEmployee.length}}</strong></span><br>
+                  <!-- <span class="textdisplay">Eligibility:&nbsp;&nbsp;
+                    <strong>{{eligibleEmployees.length}}</strong></span><br> -->
+                  <span class="textdisplay" style="width: 250px;">Not Eligible:&nbsp;&nbsp;
                     <strong>{{allEmployee.length-eligibleEmployees.length}}</strong></span><br>
                 </div>
               </div>
@@ -233,12 +233,13 @@
           title="Click to view Employee 360">{{selectedEmployee.name}}</span></p>
       <p *ngIf="!userMapping.performance_employee_360">Name: {{selectedEmployee.name}}</p> -->
       <p>Name: {{selectedEmployee.name}}</p>
-      <p>Employee Since: {{selectedEmployee.dateOfJoining | date : 'yyyy-mm-dd'}}</p>
+      <p>Employee Since: {{selectedEmployee.dateOfJoining | date : 'yyyy-MM-dd'}}</p>
       <p>Reporting Manager: {{selectedEmployee.managerName}}</p>
       <p>Manager:{{selectedEmployee.managerName}}</p>
       <p>Department: {{selectedEmployee.departmentName}}</p>
       <p>Total Rewards: {{rewardsCount}}</p>
       <p>Total Appreciation: {{appreciationCount}}</p>
+      <p>Average Rating: {{averageRating}}</p>
     </div>
   </div>
 

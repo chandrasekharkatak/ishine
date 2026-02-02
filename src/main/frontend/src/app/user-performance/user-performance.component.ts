@@ -1092,19 +1092,23 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
       }
     });
   }
-
-  getCountOfRewardsAndAppreciation() {
-    this.appreciationCount = '';
-    this.rewardsCount = '';
+  
+  averageRating!:any ;
+  getCountOfRewardsAndAppreciation(){
+    this.appreciationCount='';
+    this.rewardsCount='';
     console.log("this.projectDetails ", this.rewardsCount);
     this.appreciationAndRewardsCount.empId = this.selectedEmployee.empId;
     this.employee360Service.getRewardsAndAppreciationCount(this.appreciationAndRewardsCount).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.rewardsCount = response.serviceResponse[0].rewardsCount;
-        this.appreciationCount = response.serviceResponse[0].appreciationCount;
-        console.log("this.projectDetails ", this.appreciationCount);
-      }
-    });
+          if (response.serviceStatus == "Success") {
+            this.rewardsCount = response.serviceResponse[0].rewardsCount;
+            this.appreciationCount = response.serviceResponse[0].appreciationCount;
+            this.averageRating = response.serviceResponse[0].averageRating;
+
+            console.log("this.projectDetails ",  this.appreciationCount);
+
+          }
+        });
   }
 
 }

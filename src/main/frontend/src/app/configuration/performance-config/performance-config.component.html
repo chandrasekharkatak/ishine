@@ -20,17 +20,61 @@
         <div class="card-header text-center text-uppercase">
             <strong *ngIf="isQuaterCreation">Create Cycle</strong>
             <strong *ngIf="isQuaterUpdation">Update Cycle</strong>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-12 mb-0 text-center">
-                    <h3 class="font-weight-bold"> FINANCIAL YEAR : <span style="color: #00008b;">{{ quarterCycle.fromYear }} - {{ quarterCycle.toYear }}</span></h3>
-                </div>
-            </div>
             
-            <div class="row">
+        </div>
+         <div class="financialyearrow">
                 <!-- From Month -->
                 <div class="col-md-6 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group" style="max-width: 250px;margin-left: 2.5%;">
+                            <label for="financialYear" ><span style="color:red">*</span>Financial Year</label>
+                                <select id="financialYear" class="form-control"
+                                required
+                                [(ngModel)]="selectedFinancialYear"
+                                name="financialYear" required>
+
+                                <option *ngFor="let year of financialYears" [value]="year">
+                                {{ year }}
+                                </option>
+                                </select>
+                        </div> 
+                    </div>
+                </div> 
+                 <div class="fy-display">
+                    <h3 class="font-weight-bold"> FINANCIAL YEAR : <span style="color: #00008b;">{{selectedFinancialYear }}</span></h3>
+                </div>
+
+        </div>    
+        <div class="card-body">
+            <!-- <div class="row">
+                <div class="col-md-12 mb-0 text-center">
+                    <h3 class="font-weight-bold"> FINANCIAL YEAR : <span style="color: #00008b;">{{selectedFinancialYear }}</span></h3>
+                </div>
+            </div> -->
+            
+            <!--startadding a dropdown to select monthly quaterly half yearly annualy options  -->
+
+            <div class="col-md-6 mb-0" *ngIf="selectedFinancialYear!=null" >
+                    <div class="info-wrapper">
+                        <div class="form-group" style="max-width: 250px;">
+                            <label for="cyclefrequency"><span style="color:red">*</span> Cycle Frequency</label>
+                                <select id="cyclefrequency" class="form-control" required 
+                                [(ngModel)]="selectedCycleFrequency"
+                                name = "cyclefrequency"
+                                >
+
+                                <option *ngFor= " let cycleFreq of cycleFrequency" [value]="cycleFreq">
+                                {{ cycleFreq }}
+                                </option>
+                                </select>
+                        </div> 
+                    </div>
+                </div>
+
+            <!-- ended adding dropdown for selection of cycle frequency-->
+            <div class="row-monthly" *ngIf="selectedCycleFrequency == 'Monthly'">
+                <!-- From Month -->
+                <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>From Month</label>
@@ -43,7 +87,7 @@
                     </div>
                 </div>
                 <!-- To Month -->
-                <div class="col-md-6 mb-0">
+                <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>To Month</label>
@@ -56,6 +100,51 @@
                     </div>
                 </div>
             </div>
+            <!-- ended creating dropdown for month -->
+            
+            <!-- dropdown for selecting quarter -->
+
+            <div class="col-md-4 mb-0" *ngIf="selectedCycleFrequency === 'Quarterly'">
+                <div class="info-wrapper">
+                    <div class="form-group" style="max-width: 250px;">
+                        <label><span class="text-danger">*</span>Quarter</label>
+                        <select class="form-control" [(ngModel)]="selectedQaurterCycle" (click)="checkQuaterlyExistance(alert_message)" name="quater">
+                            <option *ngFor="let quarter of qaurterCycle" [value]="quarter.range"> 
+                                {{quarter.abbreviation}}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- dropdown ended for selecting quarter  -->
+            <!-- dropdown for selecting half year -->
+            <div class="col-md-4 mb-0" *ngIf="selectedCycleFrequency === 'Half-Yearly'">
+                <div class="info-wrapper">
+                    <div class="form-group" style="max-width: 250px;">
+                        <label><span class="text-danger">*</span>Half Year</label>
+                        <select class="form-control" [(ngModel)]= "selectedHalfYearCycle" name="halfyear" (click)="checkHalfYearlyExistance(alert_message)" >
+                            <option >H1 (APR-SEP)</option>> 
+                            <option>H2 (OCT-MAR)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <!-- dropdown ended for selecting half year -->
+
+            <!-- dropdown for selecting year -->
+            <div class="col-md-4 mb-0" *ngIf="selectedCycleFrequency === 'Yearly'">
+                <div class="info-wrapper">
+                    <div class="form-group" style="max-width: 250px;">
+                        <label><span class="text-danger">*</span>Year</label>
+                        <select class="form-control" name="year" [(ngModel)]="selectedYearlyCycle" (click)="checkYearlyExistance(alert_message)">
+                            <option>APR-MAR</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <!-- dropdown ended for selecting year -->
+
             <div class="row mt-3">
                 <div class="col-md-12">
                     <button *ngIf="isQuaterCreation" type="submit" class="btn btn-primary btn-sm mx-1"
@@ -137,19 +226,19 @@
                                 *ngFor="let quarter of quarterCyclesList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 17, currentPage: page }, let i = index">
                                 <th class="info-label">{{17*(page-1)+i+1}}</th>
                                 <td>{{quarter.financialYear}}</td>
-                                <td>{{quarter.quarterCycle}}</td>
+                                <td (click)="getQuarterTable(quarter.quarterId,quarter.financialYear,eligiblePreview)" id="clickablefor360"  >{{quarter.quarterCycle}}</td>
                                 <td *ngIf="userMapping.employee360_view_performance_config && quarter.createdByName" id="clickablefor360" [navigateToEmployee360]="quarter.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{quarter.createdByName}}</td>
                                 <td *ngIf="!userMapping.employee360_view_performance_config || !quarter.createdByName">{{quarter.createdByName}}</td>
-                                <td>{{quarter.createdOn}}</td>
+                                <td>{{quarter.createdOn }}</td>
                                 <td *ngIf="userMapping.employee360_view_performance_config && quarter.updatedByName" id="clickablefor360" [navigateToEmployee360]="quarter.emp360UpdatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{quarter.updatedByName}}</td>
-                                <td *ngIf="!userMapping.employee360_view_performance_config || !quarter.updatedByName">{{quarter.updatedByName}}</td>
-                                <td>{{quarter.updatedOn}}</td>
+                                <td *ngIf="!userMapping.employee360_view_performance_config || !quarter.updatedByName">{{quarter.updatedByName ? quarter.updatedByName : 'NA'}}</td>
+                                <td>{{quarter.updatedOn ? quarter.updatedOn : 'NA'}}</td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-primary" type="submit"><em
-                                            (click)="getByQuarterById(quarter.quarterId)"
+                                    <button class="btn btn-sm btn-outline-primary" type="submit" (click)="getByQuarterById(quarter.quarterId)"><em
+                                            
                                             class="fa fa-edit"></em></button>&nbsp;
-                                    <button class="btn btn-sm btn-outline-danger" type="submit"><em
-                                            (click)="DeleteConfirm(quarter.quarterId,delete_template)"
+                                    <button class="btn btn-sm btn-outline-danger" type="submit" (click)="DeleteConfirm(quarter.quarterId,delete_template)"><em
+                                            
                                             class="fa fa-trash"></em></button>&nbsp;
                                     <button *ngIf="quarter.isEnable === false"
                                         (click)="Enable(quarter.quarterId, alert_message)"
@@ -164,8 +253,7 @@
                         </tbody>
                     </table>
                 </div>
-                <pagination-controls class="my-pagination" [hidden]="quarterCyclesList.length == 0"
-                    (pageChange)="handlePageChange($event)"></pagination-controls>
+                
                 <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
                     [hidden]="quarterCyclesList.length == 0" (click)="exportToExcel()">
                     <em class="fa fa-file-arrow-down fa-2x"></em>
@@ -174,7 +262,69 @@
             </div>
         </div>
     </div>
+
 </div>
+
+<ng-template #eligiblePreview>
+  <div class="modal-header">
+    <h5 class="modal-title">Eligible Employee(s) In Selected Cycles</h5>
+    <button type="button" class="close" (click)="modalRef.hide()">
+      &times;
+    </button>
+  </div>
+  
+  <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+        [hidden]="quarterCyclesList.length == 0" (click)="exportToExcelPreviewData()">
+                    <em class="fa fa-file-arrow-down fa-2x"></em>
+        </button>
+                    
+  <div class="overflow-auto" bassHorizontalScroll >
+
+<table class="table table-bordered" id="departmentInfo" matSort (matSortChange)="sortData($event)">
+    <thead class="thead-light" id="departmentInfoTHead">
+        <tr id="departmentInfoTHeadTr">
+            <th scope="col" class="info-label">Employment ID</th>
+            <th scope="col" class="info-label" mat-sort-header="dateOfJoining|datetime">Date Of Joining</th>
+            <th scope="col" class="info-label" mat-sort-header="email|string">Email</th>
+            <th scope="col" class="info-label" mat-sort-header="employmentStatus|string">Employment status</th>
+            <th scope="col" class="info-label" mat-sort-header="name|string">Name</th>
+            <th scope="col" class="info-label" mat-sort-header="department|string">Department</th>
+            <!-- <th scope="col" class="info-label" mat-sort-header="dateOfJoining|datetime"></th> -->
+            <th scope="col" class="info-label" mat-sort-header="Manager|string">Manager</th>
+            <th scope="col" class="info-label" mat-sort-header="reportingManager|string">Reporting Manager</th>
+            <th scope="col" class="info-label" mat-sort-header="hodname|string">Hod Name</th>
+            <!-- <th scope="col" class="info-label" mat-sort-header="financialYear|string">Financial Year</th> -->
+            <th scope="col" class="info-label" mat-sort-header="finalRating|string">Final Rating</th>
+            
+        </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let emp of employeesArray; let i = index">   
+             <!-- <td>{{ (page - 1) * itemsPerPage + i + 1 }}</td> -->
+            <td style="width: auto;">{{ emp.employeementId || emp.employmentId || emp.empId || 'N/A' }}</td>
+            <td style="width: 100px;">{{ emp.dateOfJoining || 'N/A' }}</td>
+            <td style="width: auto;">{{ emp.email || 'N/A' }}</td>
+            <td style="width: auto;">{{ emp.employmentstatus || 'N/A' }}</td>
+            <td style="width: auto;">{{ emp.name || 'N/A' }}</td>
+            <td style="width: auto;">{{ emp.departmentName || 'N/A' }}</td>
+            <td style="width: auto;">{{ emp.managerName || 'N/A' }}</td>
+            <td style="width: auto;">{{ emp.reportingManagerName || 'N/A' }}</td>
+            <td style="width: auto;">{{ emp.hodName || 'N/A' }}</td>
+            <!-- <td style="width: auto;">{{ emp.financialYear || 'N/A' }}</td> -->
+            <td style="width: auto;">{{ emp.finalRating || 'N/A' }}</td>
+          </tr>
+        </tbody>
+      </table>
+  
+
+    </div>
+     <mat-paginator class="custom-paginator" [length]="totalItems" [pageSize]="itemsPerPage" [pageSizeOptions]="[5, 10, 25, 50]" (page)="pageChangedPreview($event)">
+            </mat-paginator>
+
+
+
+  
+</ng-template>
 
 <div class="row" *ngIf="isReviewTable">
     
