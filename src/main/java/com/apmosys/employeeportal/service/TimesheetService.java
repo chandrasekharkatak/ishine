@@ -3616,56 +3616,12 @@ public class TimesheetService {
 			if(data == null) {
 				data =  buildNewDoc(data, timesheetDocumentDetailsDTO, doc);
 				
-//				data = new TimesheetDocumentDetails();
-//				timesheetDocumentDetailsDTO.setActive(true);
-//				timesheetDocumentDetailsDTO.setCreatedOn(LocalDateTime.now());
-//				if(doc != null) timesheetDocumentDetailsDTO.setDocFile(doc);
-//				else throw new DataIntegrityViolationException("No Document found...!!");
-//				data.setDocName(timesheetDocumentDetailsDTO.getDocName());
-//				data.setDocData(timesheetDocumentDetailsDTO.getDocFile().getBytes());
-//				data.setTimesheetId(timesheetDocumentDetailsDTO.getTimesheetId());
-//				data.setEmpId(timesheetDocumentDetailsDTO.getTimesheetId());
-//				if(timesheetDocumentDetailsDTO.getCreatedOn() != null)
-//					data.setCreatedOn(timesheetDocumentDetailsDTO.getCreatedOn());
-//				if(timesheetDocumentDetailsDTO.getCreatedBy() != null)
-//					data.setCreatedBy(timesheetDocumentDetailsDTO.getCreatedBy());
-//				if(timesheetDocumentDetailsDTO.getUpdatedBy() != null)
-//					data.setUpdatedBy(timesheetDocumentDetailsDTO.getUpdatedBy());
-//				if(timesheetDocumentDetailsDTO.getUpdatedOn() != null)
-//					data.setUpdatedOn(timesheetDocumentDetailsDTO.getUpdatedOn());
-//				data.setClientApprovalStatus(timesheetDocumentDetailsDTO.getClientApprovalStatus());
-//			    data.setRmApprovalStatus("Pending");
-//			    data.setFinalFlag(timesheetDocumentDetailsDTO.getFinalFlag());
-//			    data.setDocMimeType(timesheetDocumentDetailsDTO.getDocFile().getContentType());
-//			    data.setActive(true);
 			}
 			timesheetDocumentDetailsDTO.setUpdatedOn(LocalDateTime.now());
 		}else if("Update".equalsIgnoreCase(oprType) && Boolean.FALSE.equals(timesheetDocumentDetailsDTO.getFinalFlag()) ) {
 			data = timesheetDocumentDetailsRepository.findByDocIdAndFinalFlag(timesheetDocumentDetailsDTO.getDocId(),false);
 			if(data == null) {
 				data =  buildNewDoc(data, timesheetDocumentDetailsDTO, doc);
-//				data = new TimesheetDocumentDetails();
-//				timesheetDocumentDetailsDTO.setActive(true);
-//				timesheetDocumentDetailsDTO.setCreatedOn(LocalDateTime.now());
-//				if(doc != null) timesheetDocumentDetailsDTO.setDocFile(doc);
-//				else throw new DataIntegrityViolationException("No Document found...!!");
-//				data.setDocName(timesheetDocumentDetailsDTO.getDocName());
-//				data.setDocData(timesheetDocumentDetailsDTO.getDocFile().getBytes());
-//				data.setTimesheetId(timesheetDocumentDetailsDTO.getTimesheetId());
-//				data.setEmpId(timesheetDocumentDetailsDTO.getTimesheetId());
-//				if(timesheetDocumentDetailsDTO.getCreatedOn() != null)
-//					data.setCreatedOn(timesheetDocumentDetailsDTO.getCreatedOn());
-//				if(timesheetDocumentDetailsDTO.getCreatedBy() != null)
-//					data.setCreatedBy(timesheetDocumentDetailsDTO.getCreatedBy());
-//				if(timesheetDocumentDetailsDTO.getUpdatedBy() != null)
-//					data.setUpdatedBy(timesheetDocumentDetailsDTO.getUpdatedBy());
-//				if(timesheetDocumentDetailsDTO.getUpdatedOn() != null)
-//					data.setUpdatedOn(timesheetDocumentDetailsDTO.getUpdatedOn());
-//				data.setClientApprovalStatus(timesheetDocumentDetailsDTO.getClientApprovalStatus());
-//			    data.setRmApprovalStatus("Pending");
-//			    data.setFinalFlag(timesheetDocumentDetailsDTO.getFinalFlag());
-//			    data.setDocMimeType(timesheetDocumentDetailsDTO.getDocFile().getContentType());
-//			    data.setActive(true);
 			}
 			timesheetDocumentDetailsDTO.setUpdatedOn(LocalDateTime.now());
 		}
@@ -5269,33 +5225,8 @@ public class TimesheetService {
 	        if (empId == null || fromDate == null || toDate == null || file == null || file.isEmpty()) {
 	            throw new IllegalArgumentException("Required input(s) are missing or file is empty.");
 	        }
-			/*
-			 * ================================ BLOCK UPLOAD FOR CURRENT MONTH BEFORE MONTH
-			 * END ================================
-			 */
-
-//			LocalDate today = LocalDate.now();
-//			YearMonth currentMonth = YearMonth.now();
-//			YearMonth fromMonth = YearMonth.from(fromDate);
-//			YearMonth toMonth = YearMonth.from(toDate);
-
-			// If either date is in current month AND today is before month end → block
-//			if ((fromMonth.equals(currentMonth) || toMonth.equals(currentMonth))
-//					&& today.isBefore(currentMonth.atEndOfMonth())) {
-//
-//				throw new IllegalStateException("Final document upload is allowed only after the current month ends.");
-//			}
-
 			List<TimesheetDocumentDetails> docDatas = timesheetDocumentDetailsRepository.getDocsByEmpAndDateRange(empId,
 					fromDate, toDate);
-
-//			if (docDatas == null || docDatas.isEmpty()) {
-//				throw new IllegalStateException("No timesheet documents found for the given employee and date range.");
-//			}
-
-	        /* ================================
-	           CACHE TIMESHEETS (Reduces DB calls)
-	           ================================ */
 
 	        Set<Long> timesheetIds = docDatas.stream()
 	                .map(TimesheetDocumentDetails::getTimesheetId)
