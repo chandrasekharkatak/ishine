@@ -18,7 +18,7 @@ public class IshineToPoRequestDTO {
 	    private Date startDateOfBilling;
 	    private Date endDateOfBilling;
 	    
-	    private Long clientId;
+	    private Integer clientId;
 	    private Long addressId;
 	    
 	    private Long userId;

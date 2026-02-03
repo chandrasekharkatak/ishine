@@ -103,6 +103,32 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
 		List<ProjectPoDetails> findByProjectIdAndActiveFalse(Integer projectId);
 
 		List<ProjectPoDetails> findByProjectIdAndPoIdIn(Integer projectId, Set<Long> poIdsFromPortal);
+		
+        @Query("SELECT new com.apmosys.employeeportal.dto.IshineToPoEmployeeDTO( "
+        		+ "        	        e.employeementId,e.name,prm.role,prm.experience,prm.department,"
+        		+ "        	        d.deptId,prm.clientRoleId,p.clientId,"
+        		+ "        	        COUNT(ts.id),MIN(ts.date),MAX(ts.date),e.isApmosysProduct,etm.poId) "
+        		+ "        	    FROM ProjectPoDetails ppo "
+        		+ "				LEFT JOIN Project p on p.projectId=ppo.projectId "
+        		+ "				LEFT JOIN Team t on t.projectId=p.projectId "
+        		+ "        	    LEFT JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId AND etm.active = 1 "
+        		+ "        	    LEFT JOIN Employee e ON e.empId = etm.empId "
+        		+ "        	    LEFT JOIN PoRequirementMapping prm  "
+        		+ "        	         ON prm.poRequirementMappingId = etm.poRequirementMappingId "
+        		+ "        	    LEFT JOIN Department d ON d.name = prm.department "
+        		+ "        	    LEFT JOIN EmployeeClientSideIdMapping ecsm ON ecsm.empId = etm.empId "
+        		+ "        	    LEFT JOIN Timesheet ts ON ts.empId = e.empId "
+        		+ "        	        AND ts.date BETWEEN :startDate AND :endDate "
+        		+ "        	    WHERE etm.isShadow !=1 "
+        		+ "        	      AND ppo.projectId = :projectId "
+        		+ "				  AND ppo.clientAddressId IS NOT NULL	"
+        		+ "				  AND e.empId = :empId	"
+        		+ "        	    GROUP BY  e.employeementId, e.name,"
+        		+ "        	        prm.role, prm.experience, prm.department,"
+        		+ "        	        d.deptId,prm.clientRoleId, p.clientId,e.isApmosysProduct")
+        	IshineToPoEmployeeDTO findEmployeesWithTimesheetCount(Long empId,
+        	         Integer projectId,LocalDate startDate,LocalDate endDate);
+
 
         @Query(value = "Select new com.apmosys.employeeportal.dto.PoDetailsDto(p.projectId, ppd.poId \n"
                         + ",COUNT(DISTINCT CASE WHEN etm.active  = 1 THEN etm.empId END)  \n"
