@@ -348,7 +348,7 @@ public class PoSyncOrchestratorService {
 	        }
 
 	      //when no associated po and the delte po is also delted
-	        if(dto.getAssociatePos() == null) {
+	        if(dto.getAssociatePos() == null || dto.getAssociatePos().isEmpty()) {
 		        projectService.setActiveFlagAsFalse(project,dto);
 	        }
 	       

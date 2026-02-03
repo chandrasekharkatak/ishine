@@ -65,4 +65,6 @@ public interface PoDepartmentMappingRepository extends JpaRepository<PoDepartmen
 			"WHERE ppo.project_id = :projectId AND DATE(ppo.po_end_date) >= CURRENT_DATE ", nativeQuery = true)
 	List<Long> findPoDeptIdsByProjectId(@Param("projectId") Integer projectId);
 
+	List<PoDepartmentMapping> findByPoIdAndActiveTrue(Long poId);
+
 }

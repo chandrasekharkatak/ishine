@@ -101,5 +101,7 @@ public interface PoRequirementMappingRepository extends JpaRepository<PoRequirem
 			+ "where prm.poId IN :poIds \n"
 			+ "GROUP BY prm.poId ")
 	public List<RmgResourceRequirementDto> getPoIdAndRequiredCountByPoIdIn(List<Long> poIds);
+
+	List<PoRequirementMapping> findByPoIdAndActiveTrue(Long poId);
 	
 }

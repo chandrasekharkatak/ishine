@@ -22,9 +22,13 @@ import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.ClientLocation;
+import com.apmosys.employeeportal.model.PoDepartmentMapping;
+import com.apmosys.employeeportal.model.PoRequirementMapping;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectPoDetails;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.PoDepartmentMappingRepository;
+import com.apmosys.employeeportal.repository.PoRequirementMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectPoDetailsRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
@@ -50,6 +54,13 @@ public class PoDetailsService {
 	
 	@Autowired
 	ValidationService validationService;
+	
+	
+	@Autowired
+	PoDepartmentMappingRepository poDepartmentMappingRepository;
+	
+	@Autowired
+	PoRequirementMappingRepository poRequirementMappingRepository;
 
 	public ProjectPoDetails createPoRTS(Project project, ProjectPoMappingWithResourceDTO dto, Client client) {
 
@@ -425,6 +436,26 @@ public class PoDetailsService {
 	    po.setPoUpdatedOn(convert(deletedOn));
 
 	    projectPoDetailsRepository.save(po);
+	    
+	    
+	    List<PoDepartmentMapping> deptMappings =
+	            poDepartmentMappingRepository
+	                    .findByPoIdAndActiveTrue(po.getPoId());
+
+	    for (PoDepartmentMapping dm : deptMappings) {
+	        dm.setActive(false);
+	    }
+	    poDepartmentMappingRepository.saveAll(deptMappings);
+	    
+	    
+	    List<PoRequirementMapping> reqMappings =
+	            poRequirementMappingRepository
+	                    .findByPoIdAndActiveTrue(po.getPoId());
+
+	    for (PoRequirementMapping rm : reqMappings) {
+	        rm.setActive(false);
+	    }
+	    poRequirementMappingRepository.saveAll(reqMappings);
 	}
 	
 	public void updatePoLinksAfterDeletion(
