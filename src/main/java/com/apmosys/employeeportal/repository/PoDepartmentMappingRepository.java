@@ -66,5 +66,6 @@ public interface PoDepartmentMappingRepository extends JpaRepository<PoDepartmen
 	List<Long> findPoDeptIdsByProjectId(@Param("projectId") Integer projectId);
 
 	List<PoDepartmentMapping> findByPoIdAndActiveTrue(Long poId);
+	List<PoDepartmentMapping> findByProjectIdAndActiveTrue(Integer sourceProjectId);
 
 }

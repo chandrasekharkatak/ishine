@@ -88,6 +88,7 @@ import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForProjectDTO;
 import com.apmosys.employeeportal.dto.GetProjectToEmployeeReportForTeamDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoProjectDTO;
+import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
 import com.apmosys.employeeportal.dto.IshineToPoEmpDetailsSharingDTO;
 import com.apmosys.employeeportal.dto.IshineToPoEmployeeDTO;
 import com.apmosys.employeeportal.dto.IshineToPoRequestDTO;
@@ -96,6 +97,7 @@ import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.NonComplianceProjects;
 import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
+import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.PoTeamDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
@@ -105,6 +107,7 @@ import com.apmosys.employeeportal.dto.ProjectInfoDTO;
 import com.apmosys.employeeportal.dto.ProjectManagersDTO;
 import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.ProjectOverheadsDTO;
+import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.ProjectRequirementResponse;
 import com.apmosys.employeeportal.dto.ProjectRequirementsDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
@@ -272,6 +275,9 @@ public class ResourceManagementService {
 
 	@Autowired
 	private LogService logService;
+	
+	@Autowired
+	ValidationService validationService;
 
 	@Autowired
 	private JobRoleRepository jobRoleRepository;
@@ -14374,5 +14380,441 @@ private List<RMGFlatEmployeeProjectTeamDTO> groupEmployeeProjectTeamWise(
 		}
 		return serviceResponse;
 	}
+ 	
+ 	
+         public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
+		
+		ProjectPoMappingWithResourceDTO primaryProjectDTO = payloadDTO.getPrimaryProject();
+		List<Object[]> primaryTeams = projectRepository.getTeamIdsForPoProjectId(primaryProjectDTO.getProjectId());
+		String ishineProjectStatus = "";
+
+		Set<String> primaryTeamNames = (primaryTeams == null || primaryTeams.isEmpty()) ? Collections.emptySet()
+				: primaryTeams.stream().map(t -> t[1] != null ? t[1].toString() : null).filter(Objects::nonNull)
+						.collect(Collectors.toSet());
+		DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		
+		PoDetailsForProjectPoMappingDTO poDto =
+				payloadDTO.getDeletedProjects().get(0).getPoDetailsList().get(0);
+
+	    Long updatedBy = validationService.
+	            validateAndGetEmployeeEmpId(
+	                    poDto.getUpdatedByEmpId(),
+	                    poDto.getUpdatedByEmpName());
+		
+		for (ProjectPoMappingWithResourceDTO deletedProject : payloadDTO.getDeletedProjects()) {
+			List<Object[]> deletedTeams = projectRepository
+					.getTeamIdsForPoProjectId(deletedProject.getProjectId());
+			List<Long> deletedTeamIds = new ArrayList<>();
+			if (!deletedTeams.isEmpty() || deletedTeams != null) {
+				for (Object[] team : deletedTeams) {
+					Long teamId = team[0] != null ? Long.parseLong(team[0].toString()) : null;
+					String teamName = team[1] != null ? team[1].toString() : null;
+
+					String newTeamName = primaryTeamNames.contains(teamName)
+							? teamName + " | " + deletedProject.getProjectName()
+							: teamName;
+
+					teamRepository.updateTeamName(teamId, newTeamName);
+					deletedTeamIds.add(teamId);
+				}
+			}
+			
+			if (!deletedTeamIds.isEmpty()) {
+				LiftAndShiftTeamsDTO liftAndShiftDTO = new LiftAndShiftTeamsDTO();
+				liftAndShiftDTO.setTeamIds(deletedTeamIds);
+				Project sourceProject = projectRepository.findByPoProjectId(deletedProject.getProjectId());
+				liftAndShiftDTO.setSourceProjectId(sourceProject.getProjectId());
+				Project targetProject = projectRepository.findByPoProjectId(primaryProjectDTO.getProjectId());
+				liftAndShiftDTO.setTargetProjectId(targetProject.getProjectId());
+				liftAndShiftDTO.setCurrentUserEmpId(updatedBy);
+				
+				
+				
+
+
+			     context.getBean(getClass()).liftAndShiftTeamsOneByone(liftAndShiftDTO);
+			}
+			
+			
+			
+		
+		}
+	}
+         
+         
+         
+         public void liftAndShiftTeamsOneByone(LiftAndShiftTeamsDTO dto) {
+        	 
+        	 
+        	 Project sourceProject = projectRepository.findByProjectId(dto.getSourceProjectId());
+ 			Project targetProject = projectRepository.findByProjectId(dto.getTargetProjectId());
+ 			
+ 			// maintain hasclientsideid
+ 			if (sourceProject != null && targetProject != null) {
+ 				targetProject.setHasClientSideId(sourceProject.getHasClientSideId());
+ 				projectRepository.save(targetProject);
+ 			}
+ 			
+ 			// po department mapping
+ 			List<PoDepartmentMapping> sourceMappings =
+ 		            poDepartmentMappingRepository
+ 		                    .findByProjectIdAndActiveTrue(sourceProject.getProjectId());	
+ 			
+ 			if (sourceMappings == null || sourceMappings.isEmpty()) {
+ 		        return;
+ 		    }
+
+ 		   
+ 		    for (PoDepartmentMapping old : sourceMappings) {
+ 		        old.setActive(false);
+ 		    }
+ 		    poDepartmentMappingRepository.saveAll(sourceMappings);
+ 			 
+ 			 
+ 			List<PoDepartmentMapping> newMappings = new ArrayList<>();
+
+ 		    for (PoDepartmentMapping old : sourceMappings) {
+
+ 		        PoDepartmentMapping nm = new PoDepartmentMapping();
+ 		        nm.setPoId(old.getPoId());
+ 		        nm.setDeptId(old.getDeptId());
+ 		        nm.setProjectId(targetProject.getProjectId());	      
+ 		        nm.setActive(true);
+ 		        newMappings.add(nm);
+ 		    }
+ 		   poDepartmentMappingRepository.saveAll(newMappings);
+ 		   
+ 		   //project manager mappings
+ 		   
+ 		  List<ProjectManagerMapping> sourceManagerMappings = projectManagerMappingRepository
+					.findByProjectIdAndActive(Long.parseLong(dto.getSourceProjectId().toString()), 1);
+			List<ProjectManagerMapping> targetManagerMappings = projectManagerMappingRepository
+					.findByProjectIdAndActive(Long.parseLong(dto.getTargetProjectId().toString()), 1);
+			Set<Long> targetManagerIds = targetManagerMappings.stream().map(ProjectManagerMapping::getProjectManagerId)
+					.collect(Collectors.toSet());
+			List<ProjectManagerMapping> newManagerMappings = new ArrayList<>();
+			for (ProjectManagerMapping s : sourceManagerMappings) {
+				if (!targetManagerIds.contains(s.getProjectManagerId())) {
+					ProjectManagerMapping nm = new ProjectManagerMapping();
+					nm.setProjectId(Long.parseLong(dto.getTargetProjectId().toString()));
+					nm.setProjectManagerId(s.getProjectManagerId());
+					nm.setActive(1);
+					nm.setCreatedBy(dto.getCurrentUserEmpId());
+					nm.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+					newManagerMappings.add(nm);
+				}
+			}
+			if (!newManagerMappings.isEmpty())
+				projectManagerMappingRepository.saveAll(newManagerMappings);
+			
+			
+			//project overheadmappings
+			List<ProjectOverheadMapping> sourceOverheadMappings = projectOverheadMappingRepository
+					.findByProjectIdAndActive(Long.parseLong(dto.getSourceProjectId().toString()), 1);
+			List<ProjectOverheadMapping> targetOverheadMappings = projectOverheadMappingRepository
+					.findByProjectIdAndActive(Long.parseLong(dto.getTargetProjectId().toString()), 1);
+			Set<Long> targetOverheadIds = targetOverheadMappings.stream()
+					.map(ProjectOverheadMapping::getProjectOverheadId).collect(Collectors.toSet());
+			List<ProjectOverheadMapping> newOverheadMappings = new ArrayList<>();
+			for (ProjectOverheadMapping s : sourceOverheadMappings) {
+				if (!targetOverheadIds.contains(s.getProjectOverheadId())) {
+					ProjectOverheadMapping nm = new ProjectOverheadMapping();
+					nm.setProjectId(Long.parseLong(dto.getTargetProjectId().toString()));
+					nm.setProjectOverheadId(s.getProjectOverheadId());
+					nm.setActive(1);
+					nm.setCreatedBy(dto.getCurrentUserEmpId());
+					nm.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+					newOverheadMappings.add(nm);
+				}
+			}
+			if (!newOverheadMappings.isEmpty())
+				projectOverheadMappingRepository.saveAll(newOverheadMappings);
+			
+ 		   
+			List<Team> activeTeams = teamRepository.findActiveTeamsByTeamIds(dto.getTeamIds());
+			if (activeTeams.isEmpty()) {
+//				return;    //because prev returned success
+			}
+			List<EmployeeTeamMap> oldEmployeeTeamMaps = employeeTeamMapRepository
+					.activeAndPendingEmployeesByTeamIds(dto.getTeamIds());
+			// activities for old teams
+			List<Activity> oldActivities = activitiesRepository.findByTeamIdIn(dto.getTeamIds());
+			if (oldEmployeeTeamMaps != null || !oldEmployeeTeamMaps.isEmpty()) {
+				// derive empIds from oldEmployeeTeamMaps
+				List<Long> empIds = oldEmployeeTeamMaps.stream().map(EmployeeTeamMap::getEmpId).distinct()
+						.collect(Collectors.toList());
+
+				// --- 4. Mark old teams inactive (persist) ---
+				LocalDateTime now = LocalDateTime.now();
+				activeTeams.forEach(t -> {
+					t.setIsActive("N");
+					t.setUpdatedBy(dto.getCurrentUserEmpId());
+					t.setUpdatedOn(now);
+				});
+				teamRepository.saveAll(activeTeams);
+
+				// --- 5. Create new teams for target project (set oldTeamId transient) ---
+				List<Team> newTeams = activeTeams.stream().map(oldTeam -> {
+					Team newTeam = new Team();
+					newTeam.setTeamName(oldTeam.getTeamName());
+					newTeam.setTeamLeadId(oldTeam.getTeamLeadId());
+					newTeam.setProjectId(dto.getTargetProjectId());
+					newTeam.setTeamLeadName(oldTeam.getTeamLeadName());
+					newTeam.setIsActive("Y");
+					newTeam.setPoTeamId(oldTeam.getPoTeamId());
+					newTeam.setDescription(oldTeam.getDescription());
+					newTeam.setDeptIds(oldTeam.getDeptIds());
+					newTeam.setSpocId(oldTeam.getSpocId());
+					newTeam.setCreatedBy(dto.getCurrentUserEmpId());
+					newTeam.setCreatedOn(Timestamp.valueOf(LocalDateTime.now()));
+					newTeam.setOldTeamId(oldTeam.getTeamId()); // transient helper
+					newTeam.setPoId(oldTeam.getPoId());	
+					
+					return newTeam;
+				}).collect(Collectors.toList());
+
+				List<Team> createdTeams = teamRepository.saveAll(newTeams);
+				if (createdTeams.isEmpty()) {
+					
+					throw new RuntimeException("Failed to create new teams");
+//					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//					response.setServiceResponse("Failed to shift teams to new project");
+//					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+//					apiLogInfo.setApiResponse("Failed to create new teams");
+//					apiLogInfo.setLogLevel("FAIL");
+//					logService.logMyInfo(httpRequest, apiLogInfo);
+//					return response;
+				}
+
+				// Build oldTeamId -> newTeam entity map
+				Map<Long, Team> oldToNewTeamMap = createdTeams.stream().filter(t -> t.getOldTeamId() != null)
+						.collect(Collectors.toMap(Team::getOldTeamId, Function.identity()));
+
+				// --- 6. Employee–Team mappings update ---
+				// Mark old mappings inactive (we already fetched oldEmployeeTeamMaps before)
+				if (oldEmployeeTeamMaps != null || !oldEmployeeTeamMaps.isEmpty()) {
+					oldEmployeeTeamMaps.forEach(etm -> {
+						etm.setActive(0L);
+						etm.setUpdatedOn(LocalDateTime.now());
+						etm.setUpdatedBy(dto.getCurrentUserEmpId());
+					});
+				}
+				employeeTeamMapRepository.saveAll(oldEmployeeTeamMaps);
+
+				// Create new mappings using oldToNewTeamMap
+				List<EmployeeTeamMap> newEmployeeTeamMaps = new ArrayList<>();
+				for (EmployeeTeamMap oldMap : oldEmployeeTeamMaps) {
+					Team mappedNewTeam = oldToNewTeamMap.get(oldMap.getTeamId());
+					if (mappedNewTeam != null) {
+						EmployeeTeamMap newMap = new EmployeeTeamMap();
+						newMap.setEmpId(oldMap.getEmpId());
+						newMap.setTeamId(mappedNewTeam.getTeamId());
+						newMap.setJobRoleId(oldMap.getJobRoleId());
+						newMap.setActive(1L);
+						newMap.setStartDate(LocalDateTime.now());
+						newMap.setEmployeeRole(oldMap.getEmployeeRole());
+						newMap.setEndDate(null);
+						newMap.setUpdatedOn(null);
+						newMap.setUpdatedBy(null);
+						newMap.setPoId(oldMap.getPoId());
+
+						// added storing poRequirementMapping Id
+						if (oldMap.getPoRequirementMappingId() != null) {
+							newMap.setPoRequirementMappingId(oldMap.getPoRequirementMappingId());
+						}
+
+						newMap.setIsShadow(oldMap.getIsShadow());
+						newMap.setCreatedBy(dto.getCurrentUserEmpId());
+						newMap.setCreatedOn(Timestamp.valueOf(LocalDateTime.now()));
+						newEmployeeTeamMaps.add(newMap);
+					}
+				}
+				if (!newEmployeeTeamMaps.isEmpty())
+					employeeTeamMapRepository.saveAll(newEmployeeTeamMaps);
+
+				if (empIds != null || !empIds.isEmpty()) {
+					// --- 7. Employee primary project mapping update (deactivate old, create new)
+					// ---
+					List<EmpPrimaryProjectMapping> oldPrimaryMappings = empPrimaryProjectMappingRepository
+							.findByEmpIdInAndPrimaryProjectIdInAndIsMapped(empIds,
+									Collections.singletonList(dto.getSourceProjectId().longValue()), "Y");
+
+					boolean primaryMappingsChanged = false;
+					if (!oldPrimaryMappings.isEmpty()) {
+						oldPrimaryMappings.forEach(m -> {
+							m.setIsMapped("N");
+							m.setUpdatedOn(LocalDateTime.now());
+							m.setUpdatedBy(dto.getCurrentUserEmpId());
+						});
+						empPrimaryProjectMappingRepository.saveAll(oldPrimaryMappings);
+
+						List<EmpPrimaryProjectMapping> newPrimaryMappings = new ArrayList<>();
+						for (EmpPrimaryProjectMapping oldMap : oldPrimaryMappings) {
+							EmpPrimaryProjectMapping newMap = new EmpPrimaryProjectMapping();
+							newMap.setEmpId(oldMap.getEmpId());
+							newMap.setPrimaryProjectId(dto.getTargetProjectId().longValue());
+							newMap.setPrimaryProjectName(oldMap.getPrimaryProjectName());
+							newMap.setIsMapped("Y");
+							newMap.setUpdatedBy(dto.getCurrentUserEmpId());
+							newMap.setUpdatedOn(LocalDateTime.now());
+							
+							
+							newPrimaryMappings.add(newMap);
+						}
+						empPrimaryProjectMappingRepository.saveAll(newPrimaryMappings);
+						primaryMappingsChanged = true;
+					}
+
+					// --- 8. Only after primary mappings changed, update billable/billableType on
+					// employees ---
+					if (primaryMappingsChanged) {
+						Project refreshedTarget = projectRepository.findByProjectId(dto.getTargetProjectId());
+						String poProjectType = (refreshedTarget != null ? refreshedTarget.getPoProjectType() : null);
+						String ishineProjectType = (refreshedTarget != null ? refreshedTarget.getInternalProjectType()
+								: null);
+
+						String billable = null;
+						String billableType = null;
+
+						if (poProjectType != null) {
+							switch (poProjectType) {
+							case "Fixed Cost":
+								billable = "No";
+								billableType = "Fixed Cost";
+								break;
+							case "TNM":
+								billable = "Yes";
+								billableType = "TNM";
+								break;
+							case "Monitoring":
+								billable = "No";
+								billableType = "Fixed Cost";
+								break;
+							default:
+								billable = null;
+								billableType = null;
+							}
+						} else if (ishineProjectType != null) {
+							switch (ishineProjectType) {
+							case "InternalRNDProducts":
+								billable = "No";
+								billableType = "InternalRNDProducts";
+								break;
+							case "Bench":
+								billable = "No";
+								billableType = "Bench";
+								break;
+							default:
+								billable = null;
+								billableType = null;
+							}
+						}
+
+						if (billable != null || billableType != null) {
+							employeeRepository.updateBillableAndTypeForEmpIds(billable, billableType, empIds);
+						}
+					}
+				}
+
+				// --- 9. Employee client-side ID mappings ---
+				List<EmployeeClientSideIdMapping> oldClientSideMappings = employeeClientSideIdMappingRepository
+						.findByEmpIdInAndProjectIdInAndActive(empIds,
+								Collections.singletonList(dto.getSourceProjectId().longValue()), true);
+
+				if (!oldClientSideMappings.isEmpty()) {
+					oldClientSideMappings.forEach(m -> {
+						m.setActive(false);
+						m.setUpdatedOn(LocalDateTime.now());
+						m.setUpdatedBy(dto.getCurrentUserEmpId());
+					});
+					employeeClientSideIdMappingRepository.saveAll(oldClientSideMappings);
+
+					List<EmployeeClientSideIdMapping> newClientSideMappings = new ArrayList<>();
+					for (EmployeeClientSideIdMapping oldMap : oldClientSideMappings) {
+						EmployeeClientSideIdMapping newMap = new EmployeeClientSideIdMapping();
+						newMap.setClientSideId(oldMap.getClientSideId());
+						newMap.setEmpId(oldMap.getEmpId());
+						newMap.setProjectId(dto.getTargetProjectId().longValue());
+						newMap.setActive(true);
+						newMap.setCreatedBy(dto.getCurrentUserEmpId());
+						newMap.setCreatedOn(LocalDateTime.now());
+						newClientSideMappings.add(newMap);
+					}
+					employeeClientSideIdMappingRepository.saveAll(newClientSideMappings);
+				}
+
+				// --- 10. Activities: recreate for new teamIds (we fetched oldActivities
+				// earlier) ---
+				List<Activity> newActivities = new ArrayList<>();
+				for (Activity oldAct : oldActivities) {
+					Team newTeam = oldToNewTeamMap.get(oldAct.getTeamId());
+					if (newTeam != null) {
+						Activity newAct = new Activity();
+						newAct.setTeamId(newTeam.getTeamId());
+						newAct.setActivity(oldAct.getActivity());
+						newAct.setEta(oldAct.getEta());
+						newAct.setEmployeeRole(oldAct.getEmployeeRole());
+						newAct.setDeptIds(oldAct.getDeptIds());
+						CommonProperties cp = new CommonProperties();
+						cp.setCreatedBy(dto.getCurrentUserEmpId());
+						cp.setCreatedOn(Timestamp.valueOf(LocalDateTime.now()));
+						newAct.setCommonProperty(cp);
+						newActivities.add(newAct);
+					}
+				}
+
+				if (!newActivities.isEmpty())
+					activitiesRepository.saveAll(newActivities);
+			}
+ 		   
+ 		   
+ 		   
+ 		   
+         }
+         
+         
+         public String ishineStatusReturn(List<ProjectPoMappingWithResourceDTO> deletedProjects,Project primaryProject) {
+        	 
+        	 String ishineProjectStatus="";
+        	 
+        	 for (ProjectPoMappingWithResourceDTO deletedProject : deletedProjects) {
+					Project deletedProjEntity = projectRepository.findByPoProjectId(deletedProject.getProjectId());
+					if (deletedProjEntity != null) {
+						String primaryState = getProjectStatusState(primaryProject);
+						String deletedState = getProjectStatusState(deletedProjEntity);
+
+						String resolvedState = resolveProjectStatusState(primaryState, deletedState);
+
+						if ("Pending".equals(resolvedState)) {
+							primaryProject.setIsDraftProject("true");
+							updateEmployeeTeamMapStatus(primaryProject.getProjectId());
+						} else if ("Approved".equals(resolvedState)) {
+							primaryProject.setIsDraftProject("false");
+						} else if ("Rejected".equals(resolvedState)) {
+							primaryProject.setIsDraftProject("Rejected");
+						} else if ("Not Started".equals(resolvedState)) {
+							primaryProject.setIsDraftProject(null);
+						} else if ("Completed".equals(resolvedState)) {
+							primaryProject.setProjectStatus("Completed");
+							updateProjectActiveField(primaryProject.getProjectId());
+						}
+
+						ishineProjectStatus = getIshineProjectStatus(resolvedState);
+					}
+				}
+        	 return ishineProjectStatus;
+         }
+         
+      
+
+         
+
+
+
+
+  
+ 	
+ 	
+ 	
 
 }

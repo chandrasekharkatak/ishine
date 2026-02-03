@@ -66,6 +66,12 @@ public class PoSyncOrchestratorService {
 	
 	@Autowired
 	private ValidationService validationService;
+	
+	@Autowired
+	private TeamsService teamsService;
+	
+	@Autowired
+	private ResourceManagementService resourceManagementService;
 
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse poCrudOperationsInIshineNew(ProjectPoMappingWithResourceDTO dto) {
@@ -453,6 +459,10 @@ public class PoSyncOrchestratorService {
 	                    primaryProject,
 	                    dto
 	            );
+	            
+	            resourceManagementService.liftAndShiftTeamNew(dto);
+	            
+//	            teamsService.liftAndShiftTeams(dto);
 
 	            projectService.deactivateDeletedProjects(
 	                    dto.getDeletedProjects()
@@ -467,6 +477,12 @@ public class PoSyncOrchestratorService {
 	                    primaryProject.getProjectId(),
 	                    dto.getPrimaryProject()
 	            );
+	            
+	            //get ishine status
+	            
+	            resourceManagementService.ishineStatusReturn( dto.getDeletedProjects(),primaryProject);
+	            
+//	            teamsService.liftAndShiftTeams(dto);
 	        }
 
 	        finalHttpStatusCode = HttpStatus.OK.value();

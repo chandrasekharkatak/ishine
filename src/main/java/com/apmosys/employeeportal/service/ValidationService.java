@@ -157,7 +157,7 @@ public class ValidationService {
 			throw new RuntimeException("departmentList cannot be null or empty");
 		}
 
-		// ---------- CREATE vs UPDATE ----------
+		
 		if (dto.getEventType() == SyncRequestType.CREATE_PROJECT) {
 
 			require(poDto.getCreatedByEmpId(), "createdByEmpId");
