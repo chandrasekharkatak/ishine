@@ -110,9 +110,9 @@
 }
 
 .po-list-accordion-body {
-    max-height: 400px;
+    /* max-height: 400px;
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: hidden; */
 }
 
 ::ng-deep .po-list-expansion-panel .mat-expansion-panel-content {
@@ -153,6 +153,11 @@
 }
 
 /* Team Member Table Start */
+.table-container {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+}
 
 .custom-table {
     width: 100%;
@@ -166,9 +171,12 @@
     text-align: center;
 }
 
-.custom-table th {
-    background-color: #ffffff;
+.custom-table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f4f6f8;
     font-weight: 600;
+    z-index: 2;
 }
 
 .custom-table tbody tr:nth-child(odd) {

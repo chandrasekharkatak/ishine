@@ -47,6 +47,7 @@ matSort (matSortChange)="sortData($event)"
     </div>
     <div class="row">
 <div class="table-container">
+    {{'Internal & shankh'}}
     <table class="table" id="project-info" matSort (matSortChange)="sortData($event)">
         <thead class="thead-light">
             <tr id="projectInfoTHeadTr">
@@ -416,9 +417,9 @@ matSort (matSortChange)="sortData($event)"
                         <th scope="col" class="info-label" style="min-width: 200px;"
                         mat-sort-header="poProjectType|string">PO Project Type</th>
                         <th scope="col" class="info-label" style="min-width: 200px;"
-                        mat-sort-header="projectStartDate|string">PO Start Date</th>
+                        mat-sort-header="poStartDate|string">PO Start Date</th>
                         <th scope="col" class="info-label" style="min-width: 200px;"
-                        mat-sort-header="projectEndDate|string">PO End Date</th>
+                        mat-sort-header="poEndDate|string">PO End Date</th>
                     </tr>
                     <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="exceptionTableColumns"
                         (onSearch)="onSearchException($event)">
@@ -465,8 +466,8 @@ matSort (matSortChange)="sortData($event)"
                                 <td class="text-center">{{employee.rmgProjects[0].clientRM}}</td>
                                 <td class="text-center">{{employee.rmgProjects[0].poNo}}</td>
                                 <td class="text-center">{{employee.rmgProjects[0].poProjectType}}</td>
-                                <td class="text-center">{{employee.rmgProjects[0].projectStartDate}}</td>
-                                <td class="text-center">{{employee.rmgProjects[0].projectEndDate}}</td>
+                                <td class="text-center">{{employee.rmgProjects[0].poStartDate  | date: 'dd-MM-yyyy'}}</td>
+                                <td class="text-center">{{employee.rmgProjects[0].poEndDate  | date: 'dd-MM-yyyy'}}</td>
                             </ng-container>
 
                             <ng-container *ngIf="!employee.rmgProjects || employee.rmgProjects.length === 0">

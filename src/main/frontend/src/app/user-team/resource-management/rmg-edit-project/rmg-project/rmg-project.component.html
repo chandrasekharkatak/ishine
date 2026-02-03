@@ -10,7 +10,7 @@
         <mat-tab-group>
             <mat-tab label="Project">
                 <div class="p-2 m-2">
-                    <div class="row" style="height: 90vh; max-height: 500px; overflow-y: auto;overflow-x: hidden;">
+                    <div class="row">
                         <div class="col-md-3" *ngIf="!isProjectPreview">
                             <div class="card shadow-sm h-100 mb-0">
                                 <div class="row ml-0 mr-0 d-flex justify-content-center">
@@ -49,7 +49,7 @@
             <mat-tab label="Milestones"
                 *ngIf="fixedCostTypes.includes((projectType ?? '').toLowerCase()) && rmgProjectObj.internalProjectType != undefined && rmgProjectObj.internalProjectType != null && rmgProjectObj.internalProjectType != 'Internal'">
                 <div class="card card shadow-sm p-2 m-2">
-                    <div class="row" style="height: 90vh; max-height: 500px; overflow-y: auto;overflow-x: hidden;">
+                    <div class="row">
                         <div class="col-md-12">
                             <ng-template [ngTemplateOutlet]="fc_milestone_template"></ng-template>
                         </div>
@@ -411,7 +411,7 @@
 
                             <!-- All Teams List Table  -->
                             <div class="w-100 mb-2 p-2">
-                                <app-floating-scroll-wrapper>
+                                <div class="table-container">
                                     <table class="custom-table">
                                         <thead>
                                             <tr>
@@ -482,7 +482,7 @@
                                             </tr>
                                         </tbody>
                                     </table>
-                                </app-floating-scroll-wrapper>
+                                </div>
                             </div>
                         </div>
                     </mat-expansion-panel>
@@ -648,7 +648,7 @@
             </div>
 
             <div class="w-100 mt-2 mb-2">
-                <app-floating-scroll-wrapper>
+                <div class="table-container">
                     <table class="custom-table">
                         <thead>
                             <tr>
@@ -716,7 +716,7 @@
                             </tr>
                         </tbody>
                     </table>
-                </app-floating-scroll-wrapper>
+                </div>
             </div>
         </div>
     </div>
@@ -729,7 +729,7 @@
             <h6 class="mb-0">Old Resource</h6>
         </div>
         <div class="card-body p-1">
-            <app-floating-scroll-wrapper>
+            <div class="table-container">
                 <table class="custom-table">
                     <thead>
                         <tr>
@@ -753,7 +753,7 @@
                         </tr>
                     </tbody>
                 </table>
-            </app-floating-scroll-wrapper>
+            </div>
         </div>
     </div>
 </ng-template>
@@ -894,7 +894,7 @@
             </div>
         </div>
         <div class="card-body p-2">
-            <app-floating-scroll-wrapper>
+            <div class="table-container">
                 <table class="custom-table">
                     <thead>
                         <tr>
@@ -934,7 +934,7 @@
                         </tr>
                     </tbody>
                 </table>
-            </app-floating-scroll-wrapper>
+            </div>
         </div>
     </div>
 </ng-template>
@@ -1036,7 +1036,7 @@
 
                 <!-- Employee List -->
                 <div class="card p-1">
-                    <app-floating-scroll-wrapper>
+                    <div class="table-container">
                         <table class="custom-table">
                             <thead>
                                 <tr>
@@ -1066,14 +1066,14 @@
                                 </tr>
                             </tbody>
                         </table>
-                    </app-floating-scroll-wrapper>
+                    </div>
                 </div>
             </div>
 
             <!-- Individual Mode -->
             <div class="card p-1" *ngIf="isMarkDefaultProjectCompletionBulk">
                 <div class="individual-mode-section bulk-mapping-table-wrapper">
-                    <app-floating-scroll-wrapper>
+                    <div class="table-container">
                         <table class="custom-table">
                             <thead>
                                 <tr>
@@ -1146,7 +1146,7 @@
                                 </tr>
                             </tbody>
                         </table>
-                    </app-floating-scroll-wrapper>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1191,7 +1191,7 @@
             </div>
         </div>
         <div class="card-body p-2">
-            <app-floating-scroll-wrapper>
+            <div class="table-container">
                 <table class="custom-table">
                     <thead>
                         <tr>
@@ -1232,7 +1232,7 @@
                         </tr>
                     </tbody>
                 </table>
-            </app-floating-scroll-wrapper>
+            </div>
             <div class="row col-md-12 mt-2">
                 <pagination-controls id="projectEmployeeDetailsId" class="my-pagination"
                     [hidden]="employeeExistingProjectDetails.length === 0"

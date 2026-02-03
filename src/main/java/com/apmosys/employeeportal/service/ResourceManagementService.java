@@ -4416,7 +4416,7 @@ public class ResourceManagementService {
 					projectFilterDTO.getApprovalStatus(), projectFilterDTO.getDepartmentsids());
 
 			List<RMGFlatEmployeeProjectTeamDTO> rawData = employeeTeamMapRepository
-					.findEmployeeProjectTeamDetailsByProjectIds(internalProjectIds);
+					.findEmployeeProjectTeamDetailsByInternalProjectIds(internalProjectIds);
 			
 
 					rawData = groupEmployeeProjectTeamWise(rawData);
@@ -4466,7 +4466,9 @@ public class ResourceManagementService {
 					String isApmosysProduct = newDto.getIsApmosysProduct();
 
 					if (employmentId != null) {
-						if ("true".equalsIgnoreCase(isApmosysProduct)) {
+						if ("true".equalsIgnoreCase(isConsultant)) {
+							newDto.setEmployeementIdAccToET("CS-" + employmentId);
+						} else if ("true".equalsIgnoreCase(isApmosysProduct)) {
 							newDto.setEmployeementIdAccToET("AP-" + employmentId);
 						} else {
 							newDto.setEmployeementIdAccToET("A-" + employmentId);
@@ -4485,8 +4487,8 @@ public class ResourceManagementService {
 					rmgProject.setProjectId(row.getProjectId());
 					rmgProject.setProjectName(row.getProjectName());
 					rmgProject.setPoProjectId(row.getPoProjectId());
-					rmgProject.setProjectStartDate(row.getProjectStartDate());
-					rmgProject.setProjectEndDate(row.getProjectEndDate());
+					rmgProject.setPoStartDate(row.getPoStartDate());
+					rmgProject.setPoEndDate(row.getPoEndDate());
 					rmgProject.setApmosysRM(row.getApmosysRM());
 					rmgProject.setClientRM(row.getClientRM());
 					rmgProject.setPoProjectType(row.getPoProjectType());
@@ -4494,7 +4496,6 @@ public class ResourceManagementService {
 					rmgProject.setClientName(row.getClientName());
 					rmgProject.setRmgTeam(new ArrayList<>());
 					rmgProject.setProjectManagers(new ArrayList<>());
-
 					dto.getRmgprojects().add(rmgProject);
 					existingProject = rmgProject;
 				}
@@ -4523,7 +4524,6 @@ public class ResourceManagementService {
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(new ArrayList<>(employeeMap.values()));
-
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -4563,12 +4563,10 @@ public class ResourceManagementService {
 //		    	Set<Integer> projectIdsByManager = employeeTeamMapRepository.findShankhProjectsByProjectManager(empIdd);
 //		    	Set<Integer> projectIdsByOverhead = employeeTeamMapRepository.findShankhProjectsByOverhead(empIdd);
 //		    	Set<Integer> projectIdsBySpocOrTeamLead = employeeTeamMapRepository.findShankhProjectsBySpocOrTeamLead(empIdd);
-//
 //		    	Set<Integer> combinedProjectIds = new HashSet<>();
 //		    	combinedProjectIds.addAll(projectIdsByManager);
 //		    	combinedProjectIds.addAll(projectIdsByOverhead);
 //		    	combinedProjectIds.addAll(projectIdsBySpocOrTeamLead);
-//
 //		    	shankhProjectIds = combinedProjectIds;
 
 				if (departmentRepository.existsByHodId(empIdd)) {
@@ -4629,7 +4627,6 @@ public class ResourceManagementService {
 					newDto.setEmpId(row.getEmpId());
 					newDto.setEmployeementId(row.getEmployeementId());
 					newDto.setName(row.getName());
-
 					newDto.setDepartment(row.getDepartment());
 					newDto.setBillable(row.getBillable());
 					newDto.setBillableType(row.getBillableType());
@@ -4643,7 +4640,9 @@ public class ResourceManagementService {
 					String isApmosysProduct = newDto.getIsApmosysProduct();
 
 					if (employmentId != null) {
-						if ("true".equalsIgnoreCase(isApmosysProduct)) {
+						if ("true".equalsIgnoreCase(isConsultant)) {
+				            newDto.setEmployeementIdAccToET("CS-" + employmentId);
+				        } else if ("true".equalsIgnoreCase(isApmosysProduct)) {
 							newDto.setEmployeementIdAccToET("AP-" + employmentId);
 						} else {
 							newDto.setEmployeementIdAccToET("A-" + employmentId);
@@ -4663,8 +4662,8 @@ public class ResourceManagementService {
 					rmgProject.setProjectId(row.getProjectId());
 					rmgProject.setProjectName(row.getProjectName());
 					rmgProject.setPoProjectId(row.getPoProjectId());
-					rmgProject.setProjectStartDate(row.getProjectStartDate());
-					rmgProject.setProjectEndDate(row.getProjectEndDate());
+					rmgProject.setPoStartDate(row.getPoStartDate());
+					rmgProject.setPoEndDate(row.getPoEndDate());
 					rmgProject.setApmosysRM(row.getApmosysRM());
 					rmgProject.setClientRM(row.getClientRM());
 					rmgProject.setPoProjectType(row.getPoProjectType());
@@ -4672,7 +4671,6 @@ public class ResourceManagementService {
 					rmgProject.setClientName(row.getClientName());
 					rmgProject.setRmgTeam(new ArrayList<>());
 					rmgProject.setProjectManagers(new ArrayList<>());
-
 					dto.getRmgprojects().add(rmgProject);
 					existingProject = rmgProject;
 				}
@@ -4701,7 +4699,6 @@ public class ResourceManagementService {
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(new ArrayList<>(employeeMap.values()));
-
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -5280,7 +5277,9 @@ public class ResourceManagementService {
 					String isApmosysProduct = newDto.getIsApmosysProduct();
 
 					if (employmentId != null) {
-						if ("true".equalsIgnoreCase(isApmosysProduct)) {
+						if ("true".equalsIgnoreCase(isConsultant)) {
+							newDto.setEmployeementIdAccToET("CS-" + employmentId);
+						} else if ("true".equalsIgnoreCase(isApmosysProduct)) {
 							newDto.setEmployeementIdAccToET("AP-" + employmentId);
 						} else {
 							newDto.setEmployeementIdAccToET("A-" + employmentId);
@@ -5299,8 +5298,8 @@ public class ResourceManagementService {
 					rmgProject.setProjectId(row.getProjectId());
 					rmgProject.setProjectName(row.getProjectName());
 					rmgProject.setPoProjectId(row.getPoProjectId());
-					rmgProject.setProjectStartDate(row.getProjectStartDate());
-					rmgProject.setProjectEndDate(row.getProjectEndDate());
+					rmgProject.setPoStartDate(row.getPoStartDate());
+					rmgProject.setPoEndDate(row.getPoEndDate());
 					rmgProject.setApmosysRM(row.getApmosysRM());
 					rmgProject.setClientRM(row.getClientRM());
 					rmgProject.setPoProjectType(row.getPoProjectType());
@@ -6644,22 +6643,20 @@ public class ResourceManagementService {
 
 				// Now construct the RMGProject
 				RMGProject project = new RMGProject();
-				project.setProjectId(
-						obj.getProjectId() != null ? Integer.parseInt(obj.getProjectId().toString()) : null);
+				project.setProjectId(obj.getProjectId() != null ? Integer.parseInt(obj.getProjectId().toString()) : null);
 				project.setProjectName(obj.getProjectName());
 				project.setClientName(obj.getClientName());
 				project.setApmosysRM(obj.getApmosysRM());
 				project.setClientRM(obj.getClientRM());
 				project.setPoNo(obj.getPoNo());
 				project.setPoProjectType(obj.getPoProjectType());
-				project.setProjectStartDate(obj.getProjectStartDate());
-				project.setProjectEndDate(obj.getProjectEndDate());
+				project.setPoStartDate(obj.getPoStartDate());
+				project.setPoEndDate(obj.getPoEndDate());
 
 				dto.getRmgProjects().add(project);
 			}
 
 			List<ExceptionReportDTO> dtoList = new ArrayList<>(dtoMap.values());
-
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(dtoList);
 		} catch (Exception e) {
@@ -14279,65 +14276,46 @@ public class ResourceManagementService {
     return new ArrayList<>(grouped.values());
 }
 
-private List<RMGFlatEmployeeProjectTeamDTO> groupEmployeeProjectTeamWise(
-        List<RMGFlatEmployeeProjectTeamDTO> list) {
+	private List<RMGFlatEmployeeProjectTeamDTO> groupEmployeeProjectTeamWise(
+			List<RMGFlatEmployeeProjectTeamDTO> list) {
+		if (list == null || list.isEmpty()) {
+			return list;
+		}
 
-    if (list == null || list.isEmpty()) {
-        return list;
-    }
+		Map<String, RMGFlatEmployeeProjectTeamDTO> grouped = new LinkedHashMap<>();
+		for (RMGFlatEmployeeProjectTeamDTO row : list) {
+			String key = row.getEmpId() + "_" +
+					row.getProjectId() + "_" +
+					row.getTeamId();
 
-    Map<String, RMGFlatEmployeeProjectTeamDTO> grouped = new LinkedHashMap<>();
-
-    for (RMGFlatEmployeeProjectTeamDTO row : list) {
-
-        String key =
-                row.getEmpId() + "_" +
-                row.getProjectId() + "_" +
-                row.getTeamId();
-
-        if (!grouped.containsKey(key)) {
-            grouped.put(key, row);
-        } else {
-            RMGFlatEmployeeProjectTeamDTO base = grouped.get(key);
-
-            base.setPoNo(
-                groupConcatDistinct(base.getPoNo(), row.getPoNo())
-            );
-
-            base.setApmosysRM(
-                groupConcatDistinct(base.getApmosysRM(), row.getApmosysRM())
-            );
-
-            base.setClientRM(
-                groupConcatDistinct(base.getClientRM(), row.getClientRM())
-            );
-        }
-    }
-
-    return new ArrayList<>(grouped.values());
-}
+			if (!grouped.containsKey(key)) {
+				grouped.put(key, row);
+			} else {
+				RMGFlatEmployeeProjectTeamDTO base = grouped.get(key);
+				base.setPoNo(groupConcatDistinct(base.getPoNo(), row.getPoNo()));
+				base.setApmosysRM(groupConcatDistinct(base.getApmosysRM(), row.getApmosysRM()));
+				base.setClientRM(groupConcatDistinct(base.getClientRM(), row.getClientRM()));
+			}
+		}
+		return new ArrayList<>(grouped.values());
+	}
 
 
 	private String groupConcatDistinct(String existing, String incoming) {
-
 		if (incoming == null || incoming.isBlank()) {
 			return existing;
 		}
-	
 		if (existing == null || existing.isBlank()) {
 			return incoming;
 		}
 	
 		Set<String> set = new LinkedHashSet<>();
-	
 		for (String s : existing.split(",")) {
 			set.add(s.trim());
 		}
-	
 		for (String s : incoming.split(",")) {
 			set.add(s.trim());
 		}
-	
 		return String.join(", ", set);
 	}
 

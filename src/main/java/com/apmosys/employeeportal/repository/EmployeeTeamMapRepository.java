@@ -612,20 +612,17 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 
 		// --------------------------------------------------------------- Below this are the queries that are joined with project po details tabnle
 		
-		@Query(value = "SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO(\n"
+		@Query(value = "SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n"
 		+ "e.empId,e.employeementId,e.billable,e.billableType,e.name,d.name \n" 
-		+ ",p.projectId,p.projectName,p.poProjectId,p.startDate,p.endDate,ppd.apmosysRM,ppd.clientRm,p.poProjectType,ppd.poNo \n"
+		+ ",p.projectId,p.projectName,p.poProjectId,ppd.poStartDate,ppd.poEndDate,ppd.apmosysRM,ppd.clientRm,p.poProjectType,ppd.poNo \n"
 		+ ",c.clientName,t.teamId,t.teamName,t.isActive \n"
 		+ ",etm.employeeRole,etm.active,pm.empId,pm.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) \n"
 		+ "FROM EmployeeTeamMap etm\n"
 		+ "RIGHT JOIN Employee e ON e.empId = etm.empId \n"
 		+ "RIGHT JOIN Team t ON t.teamId = etm.teamId \n"
 		+ "INNER JOIN Project p ON p.projectId = t.projectId \n"
-		+ "LEFT JOIN ProjectPoDetails ppd \n"
-+ "ON ppd.projectId = p.projectId \n"
-+" AND FUNCTION('STR_TO_DATE', ppd.poStartDate, '%Y-%m-%d') <= curdate() \n"
-+" AND ( ppd.poEndDate IS NULL \n" 
-+"       OR FUNCTION('STR_TO_DATE', ppd.poEndDate, '%Y-%m-%d') >= curdate() ) \n"  
+		+ "LEFT JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND ppd.poStartDate <= NOW() \n"
+		+ "AND (ppd.poEndDate IS NULL OR ppd.poEndDate >= NOW() ) \n"  
 		+ "INNER JOIN Client c ON c.clientId = p.clientId \n"
 		+ "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId \n"
 		+ "INNER JOIN Department d ON d.deptId = jr.deptId \n"
@@ -636,7 +633,29 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 		+ "AND t.isActive = 'Y' \n"
 		+ "AND e.employmentstatus != 'InActive' \n"
 		+ "AND pmm.active = 1 AND e.empId NOT BETWEEN 1 AND 6 ")
-List<RMGFlatEmployeeProjectTeamDTO>  findEmployeeProjectTeamDetailsByProjectIds(@Param("projectIds") Set<Integer> projectIds);
+		List<RMGFlatEmployeeProjectTeamDTO>  findEmployeeProjectTeamDetailsByProjectIds(@Param("projectIds") Set<Integer> projectIds);
+
+		@Query(value = "SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n"
+		+ "e.empId,e.employeementId,e.billable,e.billableType,e.name,d.name \n" 
+		+ ",p.projectId,p.projectName,p.poProjectId, p.startDate, p.endDate, p.apmosysRM, p.clientRM,p.poProjectType, p.poNo \n"
+		+ ",c.clientName,t.teamId,t.teamName,t.isActive \n"
+		+ ",etm.employeeRole,etm.active,pm.empId,pm.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) \n"
+		+ "FROM EmployeeTeamMap etm\n"
+		+ "RIGHT JOIN Employee e ON e.empId = etm.empId \n"
+		+ "RIGHT JOIN Team t ON t.teamId = etm.teamId \n"
+		+ "INNER JOIN Project p ON p.projectId = t.projectId \n"
+		+ "INNER JOIN Client c ON c.clientId = p.clientId \n"
+		+ "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId \n"
+		+ "INNER JOIN Department d ON d.deptId = jr.deptId \n"
+		+ "LEFT JOIN  ProjectManagerMapping pmm ON pmm.projectId = p.projectId \n"
+		+ "LEFT JOIN  Employee pm ON pm.empId = pmm.projectManagerId\n"
+		+ "WHERE p.projectId IN :projectIds \n"
+		+ "AND etm.active != 0 \n"
+		+ "AND t.isActive = 'Y' \n"
+		+ "AND e.employmentstatus != 'InActive' \n"
+		+ "AND pmm.active = 1 AND e.empId NOT BETWEEN 1 AND 6 ")
+		List<RMGFlatEmployeeProjectTeamDTO>  findEmployeeProjectTeamDetailsByInternalProjectIds(@Param("projectIds") Set<Integer> projectIds);
+
 
 @Query(value = "SELECT \n"
 		+ "    e.emp_id, \n"
@@ -711,7 +730,7 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 
 @Query("SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO(" +
 	       "e.empId, e.employeementId, e.billable, e.billableType, e.name, d.name, " +
-	       "p.projectId, p.projectName, p.poProjectId, p.startDate, p.endDate, " +
+	       "p.projectId, p.projectName, p.poProjectId,ppd.poStartDate,ppd.poEndDate, " +
 	       "ppd.apmosysRM, ppd.clientRm, p.poProjectType, ppd.poNo, c.clientName, " +
 	       "t.teamId, t.teamName, t.isActive, etm.employeeRole, etm.active, " +
 	       "pm.empId, pm.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) " +
@@ -720,11 +739,8 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 	       "RIGHT JOIN Employee e ON e.empId = etm.empId " +
 	       "RIGHT JOIN Team t ON t.teamId = etm.teamId " +
 	       "INNER JOIN Project p ON p.projectId = t.projectId " +
-		   "LEFT JOIN ProjectPoDetails ppd \n"+
-		   "ON ppd.projectId = p.projectId \n"+
-		   "AND FUNCTION('STR_TO_DATE', ppd.poStartDate, '%Y-%m-%d') <= curdate() \n"+
-		   "AND ( ppd.poEndDate IS NULL \n" +
-		   "OR FUNCTION('STR_TO_DATE', ppd.poEndDate, '%Y-%m-%d') >= curdate() ) \n"  +
+		   "LEFT JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND ppd.poStartDate <= NOW() \n" +
+		   "AND (ppd.poEndDate IS NULL OR ppd.poEndDate >= NOW() ) \n" +
 	       "INNER JOIN Client c ON c.clientId = p.clientId " +
 	       "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
 	       "INNER JOIN Department d ON d.deptId = jr.deptId " +

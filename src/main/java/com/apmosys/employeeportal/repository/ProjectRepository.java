@@ -6456,64 +6456,59 @@ List<Object[]> getClientAndProjectDataList(
        nativeQuery = true)
 List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> projectNames);
 
-@Query(value="SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n"+
-"e.employeementId, e.name, d.name ,e.billableType, p.projectId,p.projectName, p.clientName,  \n" + 
-"ppd.apmosysRM,  ppd.clientRm , ppd.poNo ,p.poProjectType ,p.startDate ,p.endDate )  \n" + 
-"from Project p  \n" + 
-"inner join Team t on p.projectId = t.projectId  \n" + 
-"inner join EmployeeTeamMap etm on t.teamId = etm.teamId  \n" + 
-"inner join Employee e on e.empId = etm.empId  \n" + 
-"inner join JobRole jr on e.jobRoleId = jr.jobRoleId  \n" + 
-"inner join Department d on d.deptId = jr.deptId  \n" + 
-"LEFT JOIN ProjectPoDetails ppd \n"+
-    "ON ppd.projectId = p.projectId \n"+
-	" AND FUNCTION('STR_TO_DATE', ppd.poStartDate, '%Y-%m-%d') <= curdate() \n" +
-	" AND ( ppd.poEndDate IS NULL \n" +
-	"       OR FUNCTION('STR_TO_DATE', ppd.poEndDate, '%Y-%m-%d') >= curdate() ) \n"+
-"where p.active = 'true' AND t.isActive != 'N' AND etm.active != 0  \n" + 
-"AND e.employmentstatus != 'InActive'  \n" + 
-"AND e.billableType = 'Bench' AND (p.poProjectType like 'FIXED%COST' OR p.poProjectType like '%TNM%') \n"+
-"AND e.empId NOT BETWEEN 1 AND 6\n" )
-public List<RMGFlatEmployeeProjectTeamDTO>  getExceptionEmployeeReport();
+	@Query(value = "SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n" +
+			"e.employeementId, e.name, d.name ,e.billableType, p.projectId,p.projectName, p.clientName,  \n" +
+			"ppd.apmosysRM,  ppd.clientRm , ppd.poNo ,p.poProjectType ,ppd.poStartDate,ppd.poEndDate)  \n" +
+			"from Project p  \n" +
+			"INNER JOIN Team t on p.projectId = t.projectId  \n" +
+			"INNER JOIN EmployeeTeamMap etm on t.teamId = etm.teamId  \n" +
+			"INNER JOIN Employee e on e.empId = etm.empId  \n" +
+			"INNER JOIN JobRole jr on e.jobRoleId = jr.jobRoleId  \n" +
+			"INNER JOIN Department d on d.deptId = jr.deptId  \n" +
+			"LEFT  JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND ppd.poStartDate <= NOW() \n" +
+			" AND ( ppd.poEndDate IS NULL OR ppd.poEndDate >= NOW()) \n" +
+			"where p.active = 'true' AND t.isActive != 'N' AND etm.active != 0  \n" +
+			"AND e.employmentstatus != 'InActive'  \n" +
+			"AND e.billableType = 'Bench' \n" +
+			"AND (UPPER(p.poProjectType) like 'FIXED%COST' OR UPPER(p.poProjectType) like '%TNM%') \n" +
+			"AND e.empId NOT BETWEEN 1 AND 6 \n")
+	public List<RMGFlatEmployeeProjectTeamDTO> getExceptionEmployeeReport();
 
-@Query(value="SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n"+
-"e.employeementId, e.name, d.name ,e.billableType, p.projectId,p.projectName, p.clientName,  \n" + 
-"ppd.apmosysRM,ppd.clientRm ,ppd.poNo ,p.poProjectType ,p.startDate ,p.endDate )  \n" + 
-"from Project p  \n" +
-"LEFT JOIN ProjectPoDetails ppd \n"+
-    "ON ppd.projectId = p.projectId \n"+
-	" AND FUNCTION('STR_TO_DATE', ppd.poStartDate, '%Y-%m-%d') <= curdate() \n" +
-	" AND ( ppd.poEndDate IS NULL \n" +
-	"       OR FUNCTION('STR_TO_DATE', ppd.poEndDate, '%Y-%m-%d') >= curdate() ) \n"+  
-"inner join Team t on p.projectId = t.projectId  \n" + 
-"inner join EmployeeTeamMap etm on t.teamId = etm.teamId  \n" + 
-"inner join Employee e on e.empId = etm.empId  \n" + 
-"inner join JobRole jr on e.jobRoleId = jr.jobRoleId  \n" + 
-"inner join Department d on d.deptId = jr.deptId  \n" + 
-"where p.active = 'true' and t.isActive != 'N' and etm.active != 0  \n" + 
-"and e.employmentstatus != 'InActive'  \n" + 
-"and e.billableType = 'Bench' and (p.poProjectType like 'FIXED%COST' OR p.poProjectType like '%TNM%') and d.deptId IN :deptIds AND e.empId NOT BETWEEN 1 AND 6 \n")
-public List<RMGFlatEmployeeProjectTeamDTO> getExceptionEmployeeReportInDepartments(List<Long> deptIds);
+	@Query(value = "SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n" +
+			"e.employeementId, e.name, d.name ,e.billableType, p.projectId,p.projectName, p.clientName,  \n" +
+			"ppd.apmosysRM,ppd.clientRm ,ppd.poNo ,p.poProjectType ,ppd.poStartDate,ppd.poEndDate )  \n" +
+			"from Project p  \n" +
+			"LEFT JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND ppd.poStartDate <= NOW() \n" +
+			" AND (ppd.poEndDate IS NULL OR ppd.poEndDate >= NOW() ) \n" +
+			"inner join Team t on p.projectId = t.projectId  \n" +
+			"inner join EmployeeTeamMap etm on t.teamId = etm.teamId  \n" +
+			"inner join Employee e on e.empId = etm.empId  \n" +
+			"inner join JobRole jr on e.jobRoleId = jr.jobRoleId  \n" +
+			"inner join Department d on d.deptId = jr.deptId  \n" +
+			"where p.active = 'true' and t.isActive != 'N' and etm.active != 0  \n" +
+			"and e.employmentstatus != 'InActive'  \n" +
+			"and e.billableType = 'Bench' \n" +
+			"and (UPPER(p.poProjectType) like 'FIXED%COST' OR UPPER(p.poProjectType) like '%TNM%')  \n" +
+			"and d.deptId IN :deptIds AND e.empId NOT BETWEEN 1 AND 6 \n")
+	public List<RMGFlatEmployeeProjectTeamDTO> getExceptionEmployeeReportInDepartments(List<Long> deptIds);
 
-@Query(value = "SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n"+
-"e.employeementId, e.name, d.name ,e.billableType, p.projectId,p.projectName, p.clientName,  \n" + 
-"ppd.apmosysRM ,ppd.clientRm , ppd.poNo,p.poProjectType ,p.startDate ,p.endDate )  \n" + 
-"from Project p  \n" +
-"LEFT JOIN ProjectPoDetails ppd \n"+
-"ON ppd.projectId = p.projectId \n"+
-" AND FUNCTION('STR_TO_DATE', ppd.poStartDate, '%Y-%m-%d') <= curdate() \n"+
-" AND ( ppd.poEndDate IS NULL \n" +
-"       OR FUNCTION('STR_TO_DATE', ppd.poEndDate, '%Y-%m-%d') >= curdate() ) \n"  +
-"inner join Team t on p.projectId = t.projectId  \n"  +
-"inner join EmployeeTeamMap etm on t.teamId = etm.teamId  \n" + 
-"inner join Employee e on e.empId = etm.empId  \n" + 
-"inner join JobRole jr on e.jobRoleId = jr.jobRoleId  \n" + 
-"inner join Department d on d.deptId = jr.deptId  \n" + 
-"where p.active = 'true' and t.isActive != 'N' and etm.active != 0  \n" + 
-"and e.employmentstatus != 'InActive'  \n" + 
-"and e.billableType = 'Bench' and (p.poProjectType like 'FIXED%COST' OR p.poProjectType like '%TNM%') \n"
-+ "and d.deptId =:deptIds AND e.empId NOT BETWEEN 1 AND 6")
-List <RMGFlatEmployeeProjectTeamDTO>  getExceptionEmployeeReportInDepartment(Long deptId);
+	@Query(value = "SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n" +
+			"e.employeementId, e.name, d.name ,e.billableType, p.projectId,p.projectName, p.clientName,  \n" +
+			"ppd.apmosysRM ,ppd.clientRm , ppd.poNo,p.poProjectType ,ppd.poStartDate,ppd.poEndDate )  \n" +
+			"from Project p  \n" +
+			"LEFT JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND ppd.poStartDate <= NOW() \n" +
+			" AND (ppd.poEndDate IS NULL OR ppd.poEndDate >= NOW() ) \n" +
+			"inner join Team t on p.projectId = t.projectId  \n" +
+			"inner join EmployeeTeamMap etm on t.teamId = etm.teamId  \n" +
+			"inner join Employee e on e.empId = etm.empId  \n" +
+			"inner join JobRole jr on e.jobRoleId = jr.jobRoleId  \n" +
+			"inner join Department d on d.deptId = jr.deptId  \n" +
+			"where p.active = 'true' and t.isActive != 'N' and etm.active != 0  \n" +
+			"and e.employmentstatus != 'InActive'  \n" +
+			"and e.billableType = 'Bench' \n" +
+			" and (UPPER(p.poProjectType) like 'FIXED%COST' OR UPPER(p.poProjectType) like '%TNM%') " +
+			"and d.deptId =:deptIds AND e.empId NOT BETWEEN 1 AND 6")
+	List<RMGFlatEmployeeProjectTeamDTO> getExceptionEmployeeReportInDepartment(Long deptId);
 
 @Query(nativeQuery=true,value="WITH RECURSIVE\n"
 + "    Date_Parameters AS (\n"

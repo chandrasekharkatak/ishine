@@ -1,9 +1,6 @@
 package com.apmosys.employeeportal.dto;
 
-import java.util.List;
-import java.util.Set;
-
-import com.apmosys.employeeportal.model.Notification;
+import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -45,6 +42,9 @@ public class RMGFlatEmployeeProjectTeamDTO {
     private String isConsultant;
     private String isApprenticeship;
     private String isApmosysProduct;
+
+	private LocalDateTime poStartDate;
+    private LocalDateTime poEndDate;
     
 	public RMGFlatEmployeeProjectTeamDTO(Long empId, Long employeementId, String name, String employmentstatus,
 			String billable, String billableType, String department, Integer projectId, String clientName,
@@ -76,6 +76,7 @@ public class RMGFlatEmployeeProjectTeamDTO {
 		this.employeeRole = employeeRole;
 		this.etmActive = etmActive;
 	}
+
 	public RMGFlatEmployeeProjectTeamDTO(Long employeementId, String name, String departmentName, String billableType,
 			Integer projectId, String projectName, String clientName, String apmosysRM, String clientRM, String poNo,
 			String poProjectType, String projectStartDate, String projectEndDate) {
@@ -93,61 +94,92 @@ public class RMGFlatEmployeeProjectTeamDTO {
 		this.poNo = poNo;
 		this.clientName = clientName;
 	}
-	
+
 	public RMGFlatEmployeeProjectTeamDTO(
-		    Long empId,
-		    Long employeementId,
-		    String billable,
-		    String billableType,
-		    String name,
-		    String departmentName,
-		    Integer projectId,
-		    String projectName,
-		    Long poProjectId,
-		    String projectStartDate,
-		    String projectEndDate,
-		    String apmosysRM,
-		    String clientRM,
-		    String poProjectType,
-		    String poNo,
-		    String clientName,
-		    Long teamId,
-		    String teamName,
-		    String teamIsActive,
-		    String employeeRole,
-		    Long etmActive,
-		    Long pmEmpId,
-		    String pmName,
-		    String isConsultant,
-		    String isApprenticeship,
-		    String isApmosysProduct
-		) {
-		    this.empId = empId;
-		    this.employeementId = employeementId;
-		    this.billable = billable;
-		    this.billableType = billableType;
-		    this.name = name;
-		    this.department = departmentName;
-		    this.projectId = projectId;
-		    this.projectName = projectName;
-		    this.poProjectId = poProjectId;
-		    this.projectStartDate = projectStartDate;
-		    this.projectEndDate = projectEndDate;
-		    this.apmosysRM = apmosysRM;
-		    this.clientRM = clientRM;
-		    this.poProjectType = poProjectType;
-		    this.poNo = poNo;
-		    this.clientName = clientName;
-		    this.teamId = teamId;
-		    this.teamName = teamName;
-		    this.teamIsActive = teamIsActive;
-		    this.employeeRole = employeeRole;
-		    this.etmActive = Integer.parseInt(etmActive.toString());
-		    this.pmEmpId = pmEmpId;
-		    this.pmName = pmName;
-		    this.isConsultant = isConsultant;
-		    this.isApprenticeship = isApprenticeship;
-		    this.isApmosysProduct = isApmosysProduct;
-		}
+			Long empId, Long employeementId, String billable, String billableType, String name, String departmentName,
+			Integer projectId, String projectName, Long poProjectId, String projectStartDate, String projectEndDate,
+			String apmosysRM, String clientRM, String poProjectType, String poNo, String clientName, Long teamId,
+			String teamName, String teamIsActive, String employeeRole, Long etmActive, Long pmEmpId, String pmName,
+			String isConsultant, String isApprenticeship, String isApmosysProduct) {
+		this.empId = empId;
+		this.employeementId = employeementId;
+		this.billable = billable;
+		this.billableType = billableType;
+		this.name = name;
+		this.department = departmentName;
+		this.projectId = projectId;
+		this.projectName = projectName;
+		this.poProjectId = poProjectId;
+		this.projectStartDate = projectStartDate;
+		this.projectEndDate = projectEndDate;
+		this.apmosysRM = apmosysRM;
+		this.clientRM = clientRM;
+		this.poProjectType = poProjectType;
+		this.poNo = poNo;
+		this.clientName = clientName;
+		this.teamId = teamId;
+		this.teamName = teamName;
+		this.teamIsActive = teamIsActive;
+		this.employeeRole = employeeRole;
+		this.etmActive = Integer.parseInt(etmActive.toString());
+		this.pmEmpId = pmEmpId;
+		this.pmName = pmName;
+		this.isConsultant = isConsultant;
+		this.isApprenticeship = isApprenticeship;
+		this.isApmosysProduct = isApmosysProduct;
+	}
+
+	public RMGFlatEmployeeProjectTeamDTO(
+			Long empId, Long employeementId, String billable, String billableType, String name,
+			String departmentName, Integer projectId, String projectName, Long poProjectId,
+			LocalDateTime poStartDate, LocalDateTime poEndDate, String apmosysRM, String clientRM,
+			String poProjectType, String poNo, String clientName, Long teamId, String teamName, String teamIsActive,
+			String employeeRole, Long etmActive, Long pmEmpId, String pmName, String isConsultant,
+			String isApprenticeship, String isApmosysProduct) {
+		this.empId = empId;
+		this.employeementId = employeementId;
+		this.billable = billable;
+		this.billableType = billableType;
+		this.name = name;
+		this.department = departmentName;
+		this.projectId = projectId;
+		this.projectName = projectName;
+		this.poProjectId = poProjectId;
+		this.apmosysRM = apmosysRM;
+		this.clientRM = clientRM;
+		this.poProjectType = poProjectType;
+		this.poNo = poNo;
+		this.clientName = clientName;
+		this.teamId = teamId;
+		this.teamName = teamName;
+		this.teamIsActive = teamIsActive;
+		this.employeeRole = employeeRole;
+		this.etmActive = Integer.parseInt(etmActive.toString());
+		this.pmEmpId = pmEmpId;
+		this.pmName = pmName;
+		this.isConsultant = isConsultant;
+		this.isApprenticeship = isApprenticeship;
+		this.isApmosysProduct = isApmosysProduct;
+		this.poStartDate = poStartDate;
+		this.poEndDate = poEndDate;
+	}
+
+	public RMGFlatEmployeeProjectTeamDTO(Long employeementId, String name, String departmentName, String billableType,
+			Integer projectId, String projectName, String clientName, String apmosysRM, String clientRM, String poNo,
+			String poProjectType, LocalDateTime poStartDate, LocalDateTime poEndDate) {
+		this.employeementId = employeementId;
+		this.name = name;
+		this.department = departmentName;
+		this.billableType = billableType;
+		this.projectId = projectId;
+		this.projectName = projectName;
+		this.apmosysRM = apmosysRM;
+		this.clientRM = clientRM;
+		this.poProjectType = poProjectType;
+		this.poNo = poNo;
+		this.clientName = clientName;
+		this.poStartDate = poStartDate;
+		this.poEndDate = poEndDate;
+	}
 
 }
