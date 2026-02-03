@@ -1289,8 +1289,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         	    		       "JOIN TimesheetActivityMap etam ON etam.timesheetId = et.timesheetId " +
         	    		       "JOIN Activity a ON a.activityId = etam.activityId " +
         	    		       "JOIN Team t ON etm.teamId = t.teamId AND a.teamId = t.teamId " +
-        	    		       "JOIN ProjectPoDetails ppd ON ppd.poId = etm.poId " +
-        	    		       "JOIN ClientLocation cl ON cl.poId = ppd.poId  AND etm.poId = ppd.poId " +
+        	    		       "JOIN ClientLocation cl ON cl.clientLocationId = etam.clientLocationId " +
         	    		       "WHERE e.employmentstatus <> 'InActive' " +
         	    		       "AND etm.active <> 0 " +
         	    		       "AND t.isActive = 'Y' " +
@@ -1383,8 +1382,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
             	    			+ "INNER JOIN projects p on p.project_id = t.project_id \n"
             	    			+ "INNER JOIN clients c on c.client_id = p.client_id\n"
             	    			+ "INNER JOIN employee m on m.emp_id = e.manager_id\n"
-            	    			+ "INNER JOIN project_po_details ppd ON ppd.project_id = p.project_id\n"
-            	    			+ "INNER JOIN client_locations cl ON cl.po_id = ppd.po_id  AND etm.po_id = ppd.po_id\n"
+            	    			+ "INNER JOIN client_locations cl on cl.client_location_id = etam.client_location_id\n"
             	    			+ "where e.employmentstatus != 'InActive' and etm.active != 0\n"
             	    			+ "and t.is_active = 'Y' and p.active = 'true'\n"
             	    			+ "and e.emp_id not between 1 and 6 \n"

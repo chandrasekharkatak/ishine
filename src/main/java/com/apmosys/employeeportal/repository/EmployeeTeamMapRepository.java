@@ -43,8 +43,7 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 			+ "inner join projects p on p.project_id = t.project_id\n"
 			+ "inner join clients c on c.client_id = p.client_id\n"
 			+ "Inner join employee as em on et.emp_id=em.emp_id\n"
-			+ "INNER JOIN project_po_details ppd ON ppd.project_id = p.project_id\n"
-			+ "INNER JOIN client_locations cl ON cl.po_id = ppd.po_id \n"
+			+ "INNER JOIN client_locations cl ON cl.client_id = c.client_id \n"
 			+ "where t.team_id= :teamId  group by et.emp_id")
 	public List<Object[]> getTeamMembersByTeamIdBioMax(Long teamId);
 

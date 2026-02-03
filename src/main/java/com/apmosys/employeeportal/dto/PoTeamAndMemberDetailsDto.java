@@ -30,6 +30,9 @@ public class PoTeamAndMemberDetailsDto {
     private String experience;
     private String department;
     private boolean isPrmActive;
+    private Long count;
+    private Long assignedPending;
+    private Long assignedApproved;
 
     private Long empId;
     private String memberName;
@@ -111,6 +114,27 @@ public class PoTeamAndMemberDetailsDto {
         this.defaultProject = defaultProject != null ? defaultProject : false;
         this.startDate = startDate;
         this.endDate = endDate;
+    }
+
+    public PoTeamAndMemberDetailsDto(Long poId, Long poRequirementMappingId, String role,
+            String experience, String department, Boolean isPrmActive,
+            Long empId, String memberName, String employeeRole, Long isMemberActive,
+            Integer isShadow, Boolean defaultProject, LocalDateTime startDate, LocalDateTime endDate, Long count) {
+        this.poId = poId;
+        this.poRequirementMappingId = poRequirementMappingId;
+        this.role = role;
+        this.experience = experience;
+        this.department = department;
+        this.isPrmActive = isPrmActive != null ? isPrmActive : false;
+        this.empId = empId;
+        this.memberName = memberName;
+        this.employeeRole = employeeRole;
+        this.isMemberActive = isMemberActive;
+        this.isShadow = isShadow;
+        this.defaultProject = defaultProject != null ? defaultProject : false;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.count = count;
     }
 
     public PoTeamAndMemberDetailsDto(Integer projectId, String projectName, String projectStatus, String poProjectType,

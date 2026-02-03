@@ -46,6 +46,7 @@ public class RmgTeamMemberDto {
     private Integer isShadow;
     private Long isMemberActive;
     private boolean defaultProject;
+    private boolean dbDefaultProject;
     private String memberDepartment;
     private String employementId;
     private String billableType;
@@ -74,6 +75,7 @@ public class RmgTeamMemberDto {
         this.isShadow = isShadow;
         this.isMemberActive = isMemberActive;
         this.defaultProject = defaultProject;
+        this.dbDefaultProject = defaultProject;
     }
 
     public RmgTeamMemberDto(Long empId, List<String> employeeRoles) {

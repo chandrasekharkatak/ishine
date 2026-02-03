@@ -2387,7 +2387,7 @@ public class ProjectService {
         if ("P".equalsIgnoreCase(dto.getReport())) {
             // === Project Query ===
             query.append("SELECT distinct p.project_id, p.po_project_id, p.project_name, p.project_manager_id, ep.name as projManager, ")
-                 .append("GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no, p.po_project_type, p.start_date, p.end_date, GROUP_CONCAT(DISTINCT ppd.client_rm SEPARATOR ', ') AS clientrm, GROUP_CONCAT(DISTINCT ppd.apmosys_rm SEPARATOR ', ') AS apmosysrm , ")
+                 .append("GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no, p.po_project_type, p.start_date as project_start_date, p.end_date, GROUP_CONCAT(DISTINCT ppd.client_rm SEPARATOR ', ') AS clientrm, GROUP_CONCAT(DISTINCT ppd.apmosys_rm SEPARATOR ', ') AS apmosysrm , ")
                  .append("t.team_id, team_name, etm.emp_id, e.name, etm.start_date, j.name as jobRole, d.name as deptName, e.billable_type, ")
                  .append("e.billable, e.mobile_no, e.email, CASE \n"
                  		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
@@ -2422,7 +2422,7 @@ public class ProjectService {
 				 .append(
    						 " GROUP BY " +
  						 "p.project_id, p.po_project_id, p.project_name, p.project_manager_id, ep.name, " +
-   						 "p.po_project_type, p.start_date, p.end_date, " +
+   						 "p.po_project_type, project_start_date, p.end_date, " +
    						 "t.team_id, t.team_name, " +
    						 "etm.emp_id, e.name, etm.start_date, " +
     					 "j.name, d.name, " +
@@ -2463,7 +2463,7 @@ public class ProjectService {
                  .append("LEFT JOIN ( ")
                  .append("    SELECT etm.emp_id, GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_id) AS project_name, ")
                  .append("           GROUP_CONCAT(DISTINCT p.project_id ORDER BY p.project_id) AS project_id, ")
-                 .append("           GROUP_CONCAT(DISTINCT p.start_date ORDER BY p.project_id) AS start_date, ")
+                 .append("           GROUP_CONCAT(DISTINCT p.start_date ) AS start_date, ")
                  .append("           GROUP_CONCAT(DISTINCT p.end_date ORDER BY p.project_id) AS end_date, ")
                  .append("           GROUP_CONCAT(DISTINCT ppd.po_no ORDER BY p.project_id) AS po_no, ")
                  .append("           GROUP_CONCAT(DISTINCT p.po_project_type ORDER BY p.project_id) AS po_project_type, ")
@@ -2510,7 +2510,7 @@ public class ProjectService {
             query.append("SELECT distinct e.emp_id, e.employeement_id, e.name, e.email, e.mobile_no, ")
 	             .append("e.manager_id, m.name as ManagerName, e.employmentstatus, e.billable, e.billable_type, ")
 	             .append("t.team_id, t.team_name, p.project_id, ")
-	             .append("p.project_name, p.start_date, p.end_date, ")
+	             .append("p.project_name, p.start_date as project_start_date, p.end_date, ")
 	             .append("GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no, c.client_name, cl.client_location, e.work_location, ")
 	             .append("e.total_experience, d.dept_id, d.name as departmentName, p.po_project_type, j.name as jobrole, ")
 	             .append("p.po_project_id, eppm.primary_project_name, eppm.primary_project_id, GROUP_CONCAT(DISTINCT ppd.client_rm SEPARATOR ', ') AS clientrm, ")
@@ -2551,7 +2551,7 @@ public class ProjectService {
     			"e.emp_id, e.employeement_id, e.name, e.email, e.mobile_no, " +
     			"e.manager_id, m.name, e.employmentstatus, e.billable, e.billable_type, " +
     			"t.team_id, t.team_name, " +
-    			"p.project_id, p.project_name, p.start_date, p.end_date, p.po_project_type, p.po_project_id, " +
+    			"p.project_id, p.project_name, project_start_date, p.end_date, p.po_project_type, p.po_project_id, " +
     			"c.client_name, cl.client_location, e.work_location, e.total_experience, " +
     			"d.dept_id, d.name, j.name, " +
     			"eppm.primary_project_name, eppm.primary_project_id, " +

@@ -46,12 +46,12 @@
                     </div>
                 </div>
             </mat-tab>
-            <mat-tab label="Milestones" *ngIf="fixedCostTypes.includes((projectType ?? '').toLowerCase())">
+            <mat-tab label="Milestones"
+                *ngIf="fixedCostTypes.includes((projectType ?? '').toLowerCase()) && rmgProjectObj.internalProjectType != undefined && rmgProjectObj.internalProjectType != null && rmgProjectObj.internalProjectType != 'Internal'">
                 <div class="card card shadow-sm p-2 m-2">
                     <div class="row" style="height: 90vh; max-height: 500px; overflow-y: auto;overflow-x: hidden;">
                         <div class="col-md-12">
-                            <ng-template *ngIf="fixedCostTypes.includes((projectType ?? '').toLowerCase())"
-                                [ngTemplateOutlet]="fc_milestone_template"></ng-template>
+                            <ng-template [ngTemplateOutlet]="fc_milestone_template"></ng-template>
                         </div>
                     </div>
                 </div>
@@ -207,6 +207,11 @@
 
 <ng-template #po_list_template>
     <div class="po-list-container m-1">
+        <ng-container *ngIf="projectConfigStepperIndex == 2 || isProjectPreview">
+            <div class="row m-2">
+                <h5>Resource Config</h5>
+            </div>
+        </ng-container>
         <ng-container *ngIf="!rmgProjectObj?.poDetailsList ||  rmgProjectObj?.poDetailsList?.length <= 0">
             <div class="d-flex justify-content-center align-items-center">
                 <p colspan="5" class="text-center">No Details to display.</p>
@@ -219,27 +224,60 @@
                         class="shadow-sm po-list-expansion-panel mb-2" (opened)="onPoExpand(po)">
                         <mat-expansion-panel-header>
                             <mat-panel-title>
-                                <div class="row w-100">
+                                <div class="row w-100"
+                                    *ngIf="allBillableProjectTypes.includes((projectType ?? '').toLowerCase()) && !allNonBillableProjectTypes.includes((rmgProjectObj.internalProjectType ?? '').toLowerCase())">
                                     <div class="col-md-6 mb-0">
                                         <div class="mat-header-column">
                                             <p class="mb-0">Po No : </p>&nbsp;
-                                            <span class="truncate" [title]="po.poNo">{{po.poNo}}</span>
+                                            <span class="truncate" [title]="po.poNo">{{po.poNo || 'NA'}}</span>
                                         </div>
                                     </div>
                                     <div class="col-md-6 mb-0">
                                         <div class="row">
                                             <div class="mat-header-column mr-3">
                                                 <p class="mb-0">Start Date : </p>&nbsp;
-                                                <span class="truncate" [title]="po.poStartDate">{{po.poStartDate |
+                                                <span class="truncate" [title]="po.poStartDate"
+                                                    *ngIf="po.poStartDate">{{po.poStartDate || 'NA'|
+                                                    date:'yyyy-MM-dd' }}</span>
+                                                <span class="truncate" [title]="po.poStartDate"
+                                                    *ngIf="!po.poStartDate">{{'NA'}}</span>
+                                            </div>
+                                            <div class="mat-header-column">
+                                                <p class="mb-0">End Date : </p>&nbsp;
+                                                <span class="truncate" [title]="po.poEndDate"
+                                                    *ngIf="po.poEndDate">{{po.poEndDate || 'NA' |
+                                                    date:'yyyy-MM-dd'}}</span>
+                                                <span class="truncate" [title]="po.poEndDate"
+                                                    *ngIf="!po.poEndDate">{{'NA'}}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row w-100"
+                                    *ngIf="allNonBillableProjectTypes.includes((rmgProjectObj.internalProjectType ?? '').toLowerCase())">
+                                    <div class="col-md-6 mb-0">
+                                        <div class="mat-header-column">
+                                            <p class="mb-0">Project Name : </p>&nbsp;
+                                            <span class="truncate"
+                                                [title]="rmgProjectObj.projectName">{{rmgProjectObj.projectName}}</span>
+                                        </div>
+                                    </div>
+                                    <!-- <div class="col-md-6 mb-0">
+                                        <div class="row">
+                                            <div class="mat-header-column mr-3">
+                                                <p class="mb-0">Start Date : </p>&nbsp;
+                                                <span class="truncate"
+                                                    [title]="rmgProjectObj.startDate">{{rmgProjectObj.startDate |
                                                     date:'yyyy-MM-dd'}}</span>
                                             </div>
                                             <div class="mat-header-column">
                                                 <p class="mb-0">End Date : </p>&nbsp;
-                                                <span class="truncate" [title]="po.poEndDate">{{po.poEndDate |
+                                                <span class="truncate"
+                                                    [title]="rmgProjectObj.endDate">{{rmgProjectObj.endDate |
                                                     date:'yyyy-MM-dd'}}</span>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> -->
                                 </div>
                             </mat-panel-title>
                         </mat-expansion-panel-header>
@@ -252,12 +290,12 @@
                                     <div class="card resource-requirement-count m-1">
                                         <div class="d-flex justify-content-around align-items-center">
                                             <div class="resource-requirement-count-box m-2">
-                                                <p class="mb-0">Requirements : </p>
-                                                <span class="ml-2">
+                                                <p class="mb-0" style="color: #0121cf;">Requirements : </p>
+                                                <strong class="ml-2" style="color: #0121cf;">
                                                     <ng-container>
                                                         {{ po.totalRequirements || 0 }}
                                                     </ng-container>
-                                                </span>
+                                                </strong>
                                             </div>
                                         </div>
                                     </div>
@@ -267,27 +305,27 @@
                                         <div class="d-flex justify-content-around align-items-center">
                                             <div class="resource-requirement-count-box m-2">
                                                 <p class="mb-0" style="color: #053885;">Assigned:</p>
-                                                <span class="ml-2">
+                                                <strong class="ml-2" style="color: #053885;">
                                                     <ng-container>
                                                         {{ po.assignedApproved + po.assignedPending || 0 }}
                                                     </ng-container>
-                                                </span>
+                                                </strong>
                                             </div>
                                             <div class="resource-requirement-count-box m-2">
                                                 <p class="mb-0" style="color: #4CAF50;">Approved:</p>
-                                                <span class="ml-2">
+                                                <strong class="ml-2" style="color: #4CAF50;">
                                                     <ng-container>
                                                         {{ po.assignedApproved || 0 }}
                                                     </ng-container>
-                                                </span>
+                                                </strong>
                                             </div>
                                             <div class="resource-requirement-count-box m-2">
                                                 <p class="mb-0" style="color: #FFB300;">Pending:</p>
-                                                <span class="ml-2">
+                                                <strong class="ml-2" style="color: #FFB300;">
                                                     <ng-container>
                                                         {{ po.assignedPending || 0 }}
                                                     </ng-container>
-                                                </span>
+                                                </strong>
                                             </div>
                                         </div>
                                     </div>
@@ -297,11 +335,11 @@
                                         <div class="d-flex justify-content-around align-items-center">
                                             <div class="resource-requirement-count-box m-2">
                                                 <p class="mb-0" style="color: #e6241a;">Difference : </p>
-                                                <span class="ml-2">
+                                                <strong class="ml-2" style="color: #e6241a;">
                                                     <ng-container>
                                                         {{ po.difference || 0 }}
                                                     </ng-container>
-                                                </span>
+                                                </strong>
                                             </div>
                                         </div>
                                     </div>
@@ -377,7 +415,8 @@
                                     <table class="custom-table">
                                         <thead>
                                             <tr>
-                                                <th *ngIf="projectConfigStepperIndex === 1">
+                                                <th
+                                                    *ngIf="projectConfigStepperIndex === 1 && po.teamList?.length !== 0">
                                                     <mat-checkbox class="custom-checkbox" color="primary"
                                                         [checked]="po.isPoSelected" title="Select All Teams"
                                                         (change)="onPoCheckboxChange(po)"></mat-checkbox>
@@ -385,7 +424,7 @@
                                                 <th style="max-width: 200px;">Team Name</th>
                                                 <th style="max-width: 200px;">Department(s)</th>
                                                 <th style="max-width: 200px;">SPOC</th>
-                                                <th>Actions</th>
+                                                <th>Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -453,9 +492,9 @@
     </div>
 </ng-template>
 
-<ng-template #role_list_template let-requirement="requirement" let-team="team" let-po="po">
+<ng-template #role_list_template let-requirement="requirement" let-team="team" let-po="po" let-index="index">
     <mat-accordion>
-        <mat-expansion-panel [expanded]="projectType !== 'TNM' ? true : false"
+        <mat-expansion-panel [expanded]="index == 0 ? true : false"
             class="shadow-sm requirement-list-expansion-panel mb-2 mt-1"
             (opened)="setRequirementResourceType(requirement,true)">
             <mat-expansion-panel-header>
@@ -463,14 +502,16 @@
                     <div class="row w-100 align-items-center" *ngIf="projectType !== 'TNM'">
                         <div class="col-md-9 mb-0">
                             <div class="mat-header-column">
+                                <p class="mb-0">Team : </p>&nbsp;
                                 <span class="truncate" [title]="team.teamName">{{team.teamName}}
                                 </span>
                             </div>
                         </div>
                         <div class="col-md-3 mb-0 d-flex justify-content-end ">
                             <div class="mat-header-column">
-                                <p class="mb-0">Mapped : </p>
-                                <span class="ml-2">{{0 || 0}}
+                                <p class="mb-0">Mapped <i class="fa fa-info-circle info-icon"
+                                        [title]="'Total Mapped Resources'"></i>&nbsp; : </p>
+                                <span class="ml-2">{{ requirement.assignedApproved + requirement.assignedPending || 0}}
                                 </span>
                             </div>
                         </div>
@@ -499,9 +540,15 @@
                         </div>
                         <div class="col-md-3 mb-0 d-flex justify-content-end ">
                             <div class="mat-header-column">
-                                <p class="mb-0">Mapped : </p>
-                                <span class="ml-2">{{0 || 0}}
-                                </span>
+                                <p class="mb-0">Mapped <i class="fa fa-beat fa-info-circle info-icon"
+                                        [title]="projectType === 'TNM' ? 'Total Resources assigned to This Role Across All Teams' : 'Total Mapped Resources'"></i>&nbsp;
+                                    : </p>
+                                <span class="ml-2"
+                                    *ngIf="requirement?.count && requirement?.count != 0">{{requirement.assignedApproved
+                                    + requirement.assignedPending || 0}} / {{requirement?.count || 0}} </span>
+                                <span class="ml-2"
+                                    *ngIf="!requirement?.count || requirement?.count == 0">{{requirement.assignedApproved
+                                    + requirement.assignedPending || 0}} </span>
                             </div>
                         </div>
                     </div>
@@ -605,7 +652,7 @@
                     <table class="custom-table">
                         <thead>
                             <tr>
-                                <th *ngIf="projectConfigStepperIndex === 1">
+                                <th *ngIf="projectConfigStepperIndex === 1 && teamMembers?.length !== 0">
                                     <mat-checkbox class="custom-checkbox" color="primary"
                                         [checked]="requirement.isRequirementSelected"
                                         (change)="onRoleCheckboxChange(po, team, requirement)">
@@ -662,7 +709,8 @@
                                 </td>
                                 <td>
                                     <mat-checkbox class="custom-checkbox" color="primary"
-                                        [disabled]="projectConfigStepperIndex !== 1"
+                                        (change)="onDefaultCheckBoxChanged($event,member, requirement)"
+                                        [disabled]="projectConfigStepperIndex !== 1 || (member.dbDefaultProject && (!member.otherActiveProjectIds || member.otherActiveProjectIds?.length === 0))"
                                         [(ngModel)]="member.defaultProject"></mat-checkbox>
                                 </td>
                             </tr>
@@ -781,22 +829,9 @@
         </div>
         <div class="card-body p-2">
             <div class="card p-1">
-                <div class="row align-items-center justify-content-center"
-                    *ngIf="resourceRequirementList?.length > 0 && projectType === 'TNM'">
-                    <div class="col-md-12">
-                        <div class="form-group m-2">
-                            <h6 class="mb-0">Select Resource Requirement</h6>
-                            <app-my-select class="form-control" [(ngModel)]="newPoRequirementMappingId"
-                                [options]="resourceRequirementList" placeholder="Select Resource Requirement"
-                                displayKey="displayValue" valueKey="poRequirementMappingId"
-                                (change)="addResourceRequirementToTeam(currentTeam)">
-                            </app-my-select>
-                        </div>
-                    </div>
-                </div>
-                <ng-container *ngFor="let requirement of currentTeam.rmgResourceRequirementList">
+                <ng-container *ngFor="let requirement of currentTeam.rmgResourceRequirementList, let i = index">
                     <ng-template [ngTemplateOutlet]="role_list_template"
-                        [ngTemplateOutletContext]="{requirement:requirement,team: currentTeam, po: currentPo}">
+                        [ngTemplateOutletContext]="{requirement:requirement,team: currentTeam, po: currentPo, index: i}">
                     </ng-template>
                 </ng-container>
             </div>

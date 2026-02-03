@@ -4,6 +4,6 @@ public enum SyncRequestType {
 	CREATE_PROJECT,
     UPDATE_PO,
     DELETE_PO,
-    RENEW_PO
-
+    RENEW_PO,
+    LINK_PO
 }

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
 import com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto;
 import com.apmosys.employeeportal.dto.ProjectManagerIdAndNameDTO;
+import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
 import com.apmosys.employeeportal.dto.RmgTeamDto;
 import com.apmosys.employeeportal.model.Team;
 
@@ -212,4 +213,14 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 			+ "WHERE t.projectId =:projectId AND t.isActive = 'Y' \n")
 	List<RmgTeamDto> getActiveTeamDetailsByProjectId(Integer projectId);
 
+	@Query(value = "Select new com.apmosys.employeeportal.dto.RmgResourceRequirementDto(t.teamId \n"
+			+ ",COUNT(DISTINCT CASE WHEN etm.active = 2 THEN etm.empId END) \n"
+			+ ",COUNT(DISTINCT CASE WHEN etm.active = 1 THEN etm.empId END)  \n"
+			+ ") \n"
+			+ "FROM Team t \n"
+			+ "LEFT JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId AND etm.active IN (1, 2)\n"
+			+ "where t.teamId IN :teamIds AND t.isActive = 'Y'  \n"
+			+ "GROUP BY t.teamId ")
+	public List<RmgResourceRequirementDto> getTeamIdAndRequiredCountByTeamIdIn(List<Long> teamIds);
+	
 }

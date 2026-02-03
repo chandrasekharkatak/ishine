@@ -29,6 +29,8 @@ public class RmgResourceRequirementDto {
     private String projectType;
     private LocalDateTime endDate;
     private boolean isCustomEndDate;
+    private Long assignedPending;
+    private Long assignedApproved;
     
     public RmgResourceRequirementDto(Long poRequirementMappingId, Long poId, String role, String experience,
             String department, boolean isPrmActive) {
@@ -49,6 +51,25 @@ public class RmgResourceRequirementDto {
         this.department = department;
         this.isPrmActive = isPrmActive;
         this.count = count;
+    }
+
+    public RmgResourceRequirementDto(Long poRequirementMappingId, Long poId, String role, String experience,
+            String department, boolean isPrmActive, Long count, Long assignedPending, Long assignedApproved) {
+        this.poRequirementMappingId = poRequirementMappingId;
+        this.poId = poId;
+        this.role = role;
+        this.experience = experience;
+        this.department = department;
+        this.isPrmActive = isPrmActive;
+        this.count = count;
+        this.assignedPending = assignedPending;
+        this.assignedApproved = assignedApproved;
+    }
+
+    public RmgResourceRequirementDto(Long poId, Long assignedPending, Long assignedApproved) {
+        this.poId = poId;
+        this.assignedPending = assignedPending;
+        this.assignedApproved = assignedApproved;
     }
 
 }

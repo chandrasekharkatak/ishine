@@ -1604,8 +1604,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     		+ " LEFT JOIN teams t ON t.team_id = etm.team_id \n"
     		+ " LEFT JOIN projects p ON p.project_id = t.project_id \n"
     		+ " LEFT JOIN clients c ON c.client_id = p.client_id\n"
-    		+ "INNER JOIN project_po_details ppd ON ppd.project_id = p.project_id\n"
-    		+ "INNER JOIN client_locations cl ON cl.po_id = ppd.po_id  AND etm.po_id = ppd.po_id\n"
+    		+ " LEFT JOIN client_locations cl ON cl.client_id = c.client_id \n"
     		+ " WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'  \n"
     		+ " GROUP BY etm.emp_id ) emp_proj_client ON emp_proj_client.emp_id = e.emp_id\n"
     		+ " WHERE e.employmentstatus != 'InActive' AND emp_proj_client.project_id IS NOT NULL \n"
@@ -2413,8 +2412,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		    			+"	LEFT JOIN teams t ON t.team_id = etm.team_id  \n"
 		    			+"	LEFT JOIN projects p ON p.project_id = t.project_id  \n"
 		    			+"	LEFT JOIN clients c ON c.client_id = p.client_id \n"
-		    			+" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id\n"
-		    			+" LEFT JOIN client_locations cl ON cl.po_id = ppd.po_id  AND etm.po_id = ppd.po_id\n"
+		    			+" LEFT JOIN client_locations cl ON cl.client_id = c.client_id \n"
 		    			+"	LEFT JOIN ( \n"
 		    			+"				select distinct e.emp_id as emp_id, e.name as name, e.email as email \n"
 		    			+"					  ,case when el.emp_id is null then 'No' else 'Yes' end as On_Maternity_Leave \n"
@@ -3462,7 +3460,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		"left join Department d on d.deptId = jr.deptId " +
 		"left join ProjectPoDetails ppd " +
   		"on ppd.projectId = p.projectId " +
-  		"and ppd.poStartDate <= CURRENT_DATE" +
+  		"and (ppd.poStartDate <= CURRENT_DATE and ppd.poEndDate >= CURRENT_DATE)" +
 		"where ((e.employmentstatus != 'InActive') OR e.dateOfRelieving between :startDate and :endDate) and ((:listType = 'Billable' AND e.billableType in ('TNM','Fixed Cost')) " +
 		"and e.empId not between 1 and 6 " +
 		"or (:listType = 'Non-Billable' and e.billableType in('InternalRNDProducts','Bench','Shadow')))")
