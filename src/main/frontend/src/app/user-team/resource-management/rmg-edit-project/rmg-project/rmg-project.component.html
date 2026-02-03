@@ -424,7 +424,7 @@
                                                 <th style="max-width: 200px;">Team Name</th>
                                                 <th style="max-width: 200px;">Department(s)</th>
                                                 <th style="max-width: 200px;">SPOC</th>
-                                                <th>Actions</th>
+                                                <th>Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -652,7 +652,7 @@
                     <table class="custom-table">
                         <thead>
                             <tr>
-                                <th *ngIf="projectConfigStepperIndex === 1">
+                                <th *ngIf="projectConfigStepperIndex === 1 && teamMembers?.length !== 0">
                                     <mat-checkbox class="custom-checkbox" color="primary"
                                         [checked]="requirement.isRequirementSelected"
                                         (change)="onRoleCheckboxChange(po, team, requirement)">

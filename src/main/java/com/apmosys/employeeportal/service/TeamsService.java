@@ -4485,6 +4485,9 @@ public class TeamsService {
 
 		boolean updateProjectFlag = false;
 		for (RmgTeamMemberDto teamMember : teamMemberDtoList) {
+		
+			boolean shadowUpdatedFlag = false;
+			EmployeeTeamMap shadowFlagUpdatedMember = new EmployeeTeamMap();
 
 			EmployeeTeamMap presentMember = existingMappedMemberMap.getOrDefault(teamMember.getEmpId(), null);
 			if (presentMember == null) {
@@ -4498,6 +4501,13 @@ public class TeamsService {
 				presentMember.setActive(Objects.equals(presentMember.getActive(), 1L) ? 1L : 2L);
 				presentMember.setUpdatedOn(LocalDateTime.now());
 				presentMember.setUpdatedBy(currentUserEmpId);
+				// Create a new Entry of Shadow resource
+				if (teamMember.getIsShadow() != null && presentMember.getIsShadow() != null
+						&& !Objects.equals(teamMember.getIsShadow(), presentMember.getIsShadow())) {
+					shadowUpdatedFlag = true;
+					presentMember.setActive(0L);
+				}
+			
 			}
 
 			String employeeRole = teamMember.getEmployeeRoles().stream().map(String::valueOf)
@@ -4508,6 +4518,19 @@ public class TeamsService {
 			presentMember.setIsShadow(teamMember.getIsShadow() != null ? teamMember.getIsShadow() : null);
 			presentMember.setPoRequirementMappingId(dto.getPoRequirementMappingId());
 			updatedMemberList.add(presentMember);
+
+			if(shadowUpdatedFlag){
+				shadowFlagUpdatedMember.setStartDate(LocalDateTime.now());
+				shadowFlagUpdatedMember.setCreatedBy(currentUserEmpId);
+				shadowFlagUpdatedMember.setActive(2L);
+				shadowFlagUpdatedMember.setEmpId(teamMember.getEmpId());
+				shadowFlagUpdatedMember.setEmployeeRole(employeeRole);
+				shadowFlagUpdatedMember.setTeamId(team.getTeamId());
+				shadowFlagUpdatedMember.setIsShadow(teamMember.getIsShadow() != null ? teamMember.getIsShadow() : null);
+				shadowFlagUpdatedMember.setPoRequirementMappingId(dto.getPoRequirementMappingId());
+				updatedMemberList.add(shadowFlagUpdatedMember);
+				newEmpIds.add(teamMember.getEmpId());
+			}
 		}
 		if (!updatedMemberList.isEmpty()) {
 			updatedMemberList = employeeTeamMapRepository.saveAll(updatedMemberList);
