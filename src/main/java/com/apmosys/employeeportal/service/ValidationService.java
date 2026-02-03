@@ -210,11 +210,11 @@ public class ValidationService {
 
 		if (createdByEmpId == null || !createdByEmpId.startsWith("A-")) {
 			ExceptionLogContext.add(
-		            "createdByEmpId or createdByEmpName missing from PO"
-		            + " | createdByEmpId=" + createdByEmpId
-		            + " | createdByEmpName=" + createdByEmpName
+		            "EmpId or EmpName missing from PO"
+		            + " | EmpId=" + createdByEmpId
+		            + " | EmpName=" + createdByEmpName
 		        );
-			throw new RuntimeException("Invalid createdByEmpId format");
+			throw new RuntimeException("Invalid EmpId format");
 		}
 
 		Long employmentId;
@@ -222,10 +222,10 @@ public class ValidationService {
 			employmentId = Long.parseLong(createdByEmpId.substring(2));
 		} catch (NumberFormatException e) {
 			 ExceptionLogContext.add(
-			            "Invalid createdByEmpId format from PO"
-			            + " | createdByEmpId=" + createdByEmpId
+			            "Invalid EmpId format from PO"
+			            + " | EmpId=" + createdByEmpId
 			        );
-			throw new RuntimeException("Invalid employment id in createdByEmpId");
+			throw new RuntimeException("Invalid employment id in EmpId");
 		}
 
 		 return employeeRepository
@@ -237,7 +237,7 @@ public class ValidationService {
 		                    + " | employeeName=" + createdByEmpName
 		                );
 		                return new RuntimeException(
-		                    "Employee mismatch for createdBy employee"
+		                    "Employee mismatch for employee"
 		                );
 		            });
 	}
