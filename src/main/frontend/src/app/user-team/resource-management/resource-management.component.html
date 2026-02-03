@@ -864,6 +864,10 @@
                                                     (click)="openClientSideIdPresent(clientSideIdPresent,project.projectId);">
                                                     <i class="fas fa-id-badge"></i> ClientID Status
                                                 </button>
+                                                <button mat-menu-item *ngIf="project.active === 'false'"
+                                                    (click)="openRestoreInfoTemp(project.projectId);">
+                                                    <i class="fas fa-trash-arrow-up"></i> Restore
+                                                </button>
                                             </mat-menu>
                                         </td>
 
@@ -1728,7 +1732,7 @@
     <div *ngIf="showProjectConfig" class="row mb-4">
         <div class="col-md-12">
             <app-rmg-project [rmgProjectObj]="rmgProjectObj" [managerList]="managerList" [overheadList]="overheadList" [isProjectPreview]="false"
-                [departmentsList]="allDeptList" [spocList]="employeeList"
+                [departmentsList]="allDeptList" [spocList]="employeeList" [isAllProjects]="isAllProjects"
                 (closeProjectConfiguration)="closeProjectConfiguration()">
             </app-rmg-project>
         </div>
@@ -4643,7 +4647,7 @@
 
 <ng-template #project_configuration>
     <app-rmg-project [rmgProjectObj]="rmgProjectObj" [managerList]="managerList" [overheadList]="overheadList" [isProjectPreview]="true"
-        [departmentsList]="allDeptList" [spocList]="employeeList"
+        [departmentsList]="allDeptList" [spocList]="employeeList" [isAllProjects]="isAllProjects"
         (closeProjectConfiguration)="closeProjectConfiguration()">
     </app-rmg-project>
 </ng-template>

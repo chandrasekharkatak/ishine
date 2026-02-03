@@ -4807,9 +4807,8 @@ public class ResourceManagementService {
 							dto.setApmosysRM(row.getApmosysRM());
 							dto.setClientRM(row.getClientRM());
 							dto.setClientName(row.getClientName());
-
-							dto.setProjectStartDate(row.getProjectStartDate());
-							dto.setProjectEndDate(row.getProjectEndDate());
+							dto.setPoStartDate(row.getPoStartDate());
+							dto.setPoEndDate(row.getPoEndDate());
 							dto.setPoNo(row.getPoNo());
 							dto.setPoProjectType(row.getPoProjectType());
 							dto.setProjectManagers(new ArrayList<>());
@@ -4977,7 +4976,9 @@ public class ResourceManagementService {
 					String isApmosysProduct = newDto.getIsApmosysProduct();
 
 					if (employmentId != null) {
-						if ("true".equalsIgnoreCase(isApmosysProduct)) {
+						if ("true".equalsIgnoreCase(isConsultant)) {
+							newDto.setEmployeementIdAccToET("CS-" + employmentId);
+						} else if ("true".equalsIgnoreCase(isApmosysProduct)) {
 							newDto.setEmployeementIdAccToET("AP-" + employmentId);
 						} else {
 							newDto.setEmployeementIdAccToET("A-" + employmentId);
@@ -4996,8 +4997,8 @@ public class ResourceManagementService {
 					rmgProject.setProjectId(row.getProjectId());
 					rmgProject.setProjectName(row.getProjectName());
 					rmgProject.setPoProjectId(row.getPoProjectId());
-					rmgProject.setProjectStartDate(row.getProjectStartDate());
-					rmgProject.setProjectEndDate(row.getProjectEndDate());
+					rmgProject.setPoStartDate(row.getPoStartDate());
+					rmgProject.setPoEndDate(row.getPoEndDate());
 					rmgProject.setApmosysRM(row.getApmosysRM());
 					rmgProject.setClientRM(row.getClientRM());
 					rmgProject.setPoProjectType(row.getPoProjectType());
@@ -13840,7 +13841,7 @@ public class ResourceManagementService {
 
 	}
 
-	public ServiceResponse getProjectConfigurationDetailsByProjectId(Integer projectId) {
+	public ServiceResponse getProjectConfigurationDetailsByProjectId(Integer projectId, boolean isAllProjects) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setLogLevel("INFO");
@@ -13858,7 +13859,7 @@ public class ResourceManagementService {
 				if (rmgProjectDto != null && rmgProjectDto.getProjectId() != null) {
 					Long currentProjectId = Long.parseLong(rmgProjectDto.getProjectId().toString());
 
-					List<Long> deptIds = poDepartmentMappingRepository.findPoDeptIdsByProjectId(rmgProjectDto.getProjectId());
+					List<Long> deptIds = poDepartmentMappingRepository.findPoDeptIdsByProjectId(rmgProjectDto.getProjectId(), isAllProjects);
 					rmgProjectDto.setDepartmentIds(deptIds);
 
 					List<Long> projectManagerIds = projectManagerMappingRepository
@@ -13868,7 +13869,7 @@ public class ResourceManagementService {
 					List<Long> overHeadIds = projectOverheadMappingRepository.findProjectOverheadIdByProjectIdAndActive(currentProjectId,1);
 					rmgProjectDto.setProjectOverheadIds(overHeadIds);
 
-					List<PoDetailsDto> poDetailsDtos = getPoDetailsByProjectId(rmgProjectDto.getProjectId(), rmgProjectDto.getInternalProjectType(),rmgProjectDto.getPoProjectType());
+					List<PoDetailsDto> poDetailsDtos = getPoDetailsByProjectId(rmgProjectDto.getProjectId(), rmgProjectDto.getInternalProjectType(),rmgProjectDto.getPoProjectType(), isAllProjects);
 					rmgProjectDto.setPoDetailsList(poDetailsDtos);
 				}
 			}
@@ -13886,10 +13887,10 @@ public class ResourceManagementService {
 		return serviceResponse;
 	}
 
-	private List<PoDetailsDto> getPoDetailsByProjectId(Integer currentProjectId, String internalProjectType, String poProjectType) {
+	private List<PoDetailsDto> getPoDetailsByProjectId(Integer currentProjectId, String internalProjectType, String poProjectType, boolean isAllProjects) {
 		List<PoDetailsDto> poDetailsDtos = new ArrayList<>();
 		try {
-			poDetailsDtos = poDetailsRepository.getAllProjectPoDetailsDtoByProjectId(currentProjectId);
+			poDetailsDtos = poDetailsRepository.getAllProjectPoDetailsDtoByProjectId(currentProjectId, isAllProjects);
 			if(poProjectType != null){
 				if (!poDetailsDtos.isEmpty()) {
 					List<Long> poIds = poDetailsDtos.stream().map(PoDetailsDto::getPoId)

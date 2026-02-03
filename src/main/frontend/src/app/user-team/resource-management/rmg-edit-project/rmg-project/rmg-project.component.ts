@@ -43,6 +43,7 @@ export class RmgProjectComponent implements OnInit {
   @Input() departmentsList: any[] = [];
   @Input() spocList: any[] = [];
   @Input() isProjectPreview: boolean = true;
+  @Input() isAllProjects: boolean = false;
   @Output() closeProjectConfiguration = new EventEmitter<any>();
 
   @ViewChild("alert_message") alertMessageTemplateRef: TemplateRef<any>;
@@ -1593,7 +1594,7 @@ export class RmgProjectComponent implements OnInit {
 
   getProjectConfigurationDetailsByProjectId(project: any) {
     this.rmgProjectObj = null;
-    this.resourceManagementService.getProjectConfigurationDetailsByProjectId(project?.projectId).pipe(first()).subscribe((response: any) => {
+    this.resourceManagementService.getProjectConfigurationDetailsByProjectId(project?.projectId, this.isAllProjects).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.rmgProjectObj = response.serviceResponse;
         this.rmgProjectObj.state = this.isValidString(this.rmgProjectObj.state) ? this.rmgProjectObj.state : 'NA';

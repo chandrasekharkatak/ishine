@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.dto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import lombok.Getter;
@@ -26,6 +27,8 @@ public class GetProjectToEmployeeReportForProjectDTO {
     private Integer employeeCount;
     private Integer projectCount;
     private String clientName;
+    private LocalDateTime poStartDate;
+	private LocalDateTime poEndDate;
     private List<GetProjectToEmployeeReportForTeamDTO> teamDetails;
 
 }

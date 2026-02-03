@@ -659,8 +659,8 @@ public class ResourceManagementController {
 	
 	// @Encrypted
 	@GetMapping("/getProjectConfigurationDetailsByProjectId")
-	public ServiceResponse getProjectConfigurationDetailsByProjectId(@RequestParam Integer projectId) {
-		return resourceManagementService.getProjectConfigurationDetailsByProjectId(projectId);
+	public ServiceResponse getProjectConfigurationDetailsByProjectId(@RequestParam Integer projectId, @RequestParam boolean isAllProjects) {
+		return resourceManagementService.getProjectConfigurationDetailsByProjectId(projectId, isAllProjects);
 	}
 	
 	// @Encrypted

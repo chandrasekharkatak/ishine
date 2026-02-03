@@ -41,13 +41,13 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
                 + ",COUNT(DISTINCT CASE WHEN etm.active  = 2 THEN etm.empId END) \n"
                 + ") \n"
                 + "FROM Project p  \n"
-                + "LEFT JOIN ProjectPoDetails ppd ON p.projectId = ppd.projectId AND ppd.poEndDate >= CURRENT_DATE \n"
+                + "LEFT JOIN ProjectPoDetails ppd ON p.projectId = ppd.projectId AND (DATE(ppd.poEndDate) >= CURRENT_DATE or :isAllProjects = true ) \n"
                 + "LEFT JOIN PoRequirementMapping prm ON ppd.poId=prm.poId \n"
                 + "LEFT JOIN Team t ON t.projectId = p.projectId AND t.isActive = 'Y'  \n"
                 + "LEFT JOIN EmployeeTeamMap etm ON t.teamId =etm.teamId AND etm.active IN (1, 2)\n"
                 + "where p.projectId=:projectId \n"
                 + "GROUP BY ppd.id, ppd.poId, p.projectId, ppd.poNo, ppd.poStartDate, ppd.poEndDate, ppd.active")
-        List<PoDetailsDto> getAllProjectPoDetailsDtoByProjectId(Integer projectId);
+        List<PoDetailsDto> getAllProjectPoDetailsDtoByProjectId(Integer projectId, boolean isAllProjects);
 
         @Modifying
         @Query("DELETE FROM ProjectPoDetails")

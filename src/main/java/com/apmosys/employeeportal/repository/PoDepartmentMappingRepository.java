@@ -59,7 +59,7 @@ public interface PoDepartmentMappingRepository extends JpaRepository<PoDepartmen
 	@Query(value = "SELECT pdm.* " +
 			"FROM po_department_mapping pdm " +
 			"INNER JOIN project_po_details ppo ON ((ppo.po_id IS NOT NULL AND pdm.po_id = ppo.po_id) "+
-					"OR (ppo.po_id IS NULL AND pdm.project_id = ppo.project_id)) "+
+			"OR (ppo.po_id IS NULL AND pdm.project_id = ppo.project_id)) "+
 			"WHERE ppo.project_id = :projectId AND DATE(ppo.po_end_date) >= CURRENT_DATE ", nativeQuery = true)
 	List<PoDepartmentMapping> findByProjectIdAndActive(@Param("projectId") Integer projectId);
 
@@ -67,8 +67,8 @@ public interface PoDepartmentMappingRepository extends JpaRepository<PoDepartmen
 			"FROM po_department_mapping pdm " +
 			"INNER JOIN project_po_details ppo ON ((ppo.po_id IS NOT NULL AND pdm.po_id = ppo.po_id) " +
 			"OR (ppo.po_id IS NULL AND pdm.project_id = ppo.project_id)) " +
-			"WHERE ppo.project_id = :projectId ", nativeQuery = true)
-	List<Long> findPoDeptIdsByProjectId(@Param("projectId") Integer projectId);
+			"WHERE ppo.project_id = :projectId AND (DATE(ppo.po_end_date) >= CURRENT_DATE or :isAllProjects = true )", nativeQuery = true)
+	List<Long> findPoDeptIdsByProjectId(@Param("projectId") Integer projectId, boolean isAllProjects);
 
 	List<PoDepartmentMapping> findByPoIdAndActiveTrue(Long poId);
 	List<PoDepartmentMapping> findByProjectIdAndActiveTrue(Integer sourceProjectId);
