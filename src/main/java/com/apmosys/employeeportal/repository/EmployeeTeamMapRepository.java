@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.repository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -12,6 +13,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.apmosys.employeeportal.dto.EmpMappingDTO;
 import com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO;
 import com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
@@ -796,5 +798,15 @@ List<RMGProjectToEmployeeFlatDTO> findNonComplianceProjects(
  @Param("fromDate") LocalDate fromDate,
  @Param("toDate") LocalDate toDate
 );
+	
+	@Query(value = "SELECT new com.apmosys.employeeportal.dto.EmpMappingDTO"
+			+ "(etm.empId,etm.startDate,etm.endDate,etm.isShadow,etm.poId,p.clientId,p.projectId) " +
+			"FROM Project p " +
+			"LEFT JOIN Team t ON t.projectId = p.projectId " +
+			"LEFT JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId " +
+			"WHERE p.clientId =:clientId AND etm.active=1 "+
+			"AND etm.startDate BETWEEN :startDate AND :endDate ")
+	List<EmpMappingDTO> getActiveEmpDetails(Integer clientId,LocalDateTime startDate,LocalDateTime endDate );
+
 
 }

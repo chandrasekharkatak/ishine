@@ -1,0 +1,23 @@
+package com.apmosys.employeeportal.dto;
+
+import java.time.LocalDateTime;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class EmpMappingDTO {
+	
+	private Long empId;
+	private LocalDateTime startDate;
+	private LocalDateTime endDate;
+    private Integer isShadow;
+    private Long poId;
+    private Integer clientId;
+	private Integer projectId;
+
+
+}

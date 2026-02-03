@@ -64,6 +64,7 @@ import com.apmosys.employeeportal.controller.ProjectStructureRequest;
 import com.apmosys.employeeportal.dto.BenchEmployeeDetailsDTO;
 import com.apmosys.employeeportal.dto.CombinedPOInternalProjectResponse;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
+import com.apmosys.employeeportal.dto.EmpMappingDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
@@ -14079,16 +14080,53 @@ public class ResourceManagementService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				return response;
 		    }
-		    	
-			List<IshineToPoEmployeeDTO> employees =
-					projectPoDetailsRepository.findEmployeesWithTimesheetStats(
-							ishineToPoRequest.getPoId(), ishineToPoRequest.getProjectId(),
-							startDate, endDate);
-			
-			if (employees == null || employees.isEmpty()) {
-//				response.setServiceResponse(Collections.emptyList());
+		    
+		    List<EmpMappingDTO> etm = employeeTeamMapRepository.getActiveEmpDetails(
+		    		ishineToPoRequest.getClientId(),
+		    		convertToLocalDateTime(ishineToPoRequest.getStartDateOfBilling()),
+		    		convertToLocalDateTime(ishineToPoRequest.getEndDateOfBilling()));
+		    
+		    if(etm == null || etm.isEmpty()){
 				response.setServiceResponse("No active employee mapping found!!");
 				apiLogInfo.setApiResponse("No active employee mapping found!!");
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				return response;
+		    }
+		    
+		    if (etm.stream().allMatch(e -> Integer.valueOf(1).equals(e.getIsShadow()))) {
+		        response.setServiceResponse("Only shadow employee mappings found!!");
+		        apiLogInfo.setApiResponse("Only shadow employee mappings found!!");
+		        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		        return response;
+		    }		    
+		    		 		    	
+			List<IshineToPoEmployeeDTO> employees = new ArrayList<>();
+			
+			for (EmpMappingDTO e : etm) {
+
+				LocalDate effectiveStartDate =
+						e.getStartDate().toLocalDate().isBefore(startDate)
+				                ? startDate: e.getStartDate().toLocalDate();
+				
+			    LocalDate effectiveEndDate = (e.getEndDate() == null)?endDate:
+			    					e.getEndDate().toLocalDate().isBefore(endDate)
+			    					? e.getEndDate().toLocalDate(): endDate;
+
+
+			    if (effectiveStartDate.isAfter(effectiveEndDate)) { continue; } 
+
+			    IshineToPoEmployeeDTO emp =
+	                    projectPoDetailsRepository.findEmployeesWithTimesheetCount(
+	                            e.getEmpId(),ishineToPoRequest.getProjectId(),
+	                            effectiveStartDate,effectiveEndDate);
+
+	            if (emp != null && (emp.getPoId()==null || emp.getPoId().equals(ishineToPoRequest.getPoId())))
+	            		{ employees.add(emp); }
+	        }
+						
+			if (employees == null || employees.isEmpty()) {
+				response.setServiceMessage("No timesheet filled by employee for the given time range!!");
+				apiLogInfo.setApiResponse("No timesheet filled by employee for the given time range!!");
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				return response;
 			}
@@ -14123,8 +14161,12 @@ public class ResourceManagementService {
 	               .atZone(ZoneId.systemDefault())
 	               .toLocalDate();
 	}
-
-
+	
+	private LocalDateTime convertToLocalDateTime(Date date) {
+	    return date.toInstant()
+	               .atZone(ZoneId.systemDefault())
+	               .toLocalDateTime();
+	}
 
 	private List<ProjectFetchDTO> groupOfPoDetilasByProject(List<ProjectFetchDTO> list) {
 
