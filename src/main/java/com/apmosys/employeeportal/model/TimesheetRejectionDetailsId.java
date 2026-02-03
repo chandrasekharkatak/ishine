@@ -19,8 +19,11 @@ public class TimesheetRejectionDetailsId implements Serializable{
 	@Column(name = "timesheet_id")
     private Long timesheetId;
 
+	@Column(name = "location_mapping_id")
+	private Long locationMappingId;
+	
     @Column(name = "project_id")
-    private Long projectId;
+    private Integer projectId;
 
     @Column(name = "rejection_id")
     private Long rejectionId;
@@ -31,12 +34,13 @@ public class TimesheetRejectionDetailsId implements Serializable{
         if (!(o instanceof TimesheetRejectionDetailsId)) return false;
         TimesheetRejectionDetailsId that = (TimesheetRejectionDetailsId) o;
         return Objects.equals(timesheetId, that.timesheetId) &&
+        	   Objects.equals(locationMappingId, that.locationMappingId) &&
                Objects.equals(projectId, that.projectId) &&
                Objects.equals(rejectionId, that.rejectionId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(timesheetId, projectId, rejectionId);
+        return Objects.hash(timesheetId,locationMappingId, projectId, rejectionId);
     }
 }

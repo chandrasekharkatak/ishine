@@ -38,7 +38,7 @@ public class GlobalException {
 	public ResponseEntity<ServiceResponse> handleBadRequestException(BadRequestException ex){
         ServiceResponse response = new ServiceResponse();
         response.setServiceStatus("Unexpected error: " + ex.getMessage());
-        response.setServiceResponse(null);
+        response.setServiceResponse(ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
 	}
 

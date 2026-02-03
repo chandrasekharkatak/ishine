@@ -117,32 +117,24 @@ public class TimesheetAggregationHelper {
      * @return Calculated status
      */
     public Integer calculateEmployeeTimesheetStatus(List<ProjectTimesheetDTO> projectTimesheets) {
+
         if (projectTimesheets == null || projectTimesheets.isEmpty()) {
             return STATUS_PENDING;
         }
 
-        boolean allApproved = projectTimesheets.stream()
-                .allMatch(p -> p.getStatus() != null && p.getStatus().equals(STATUS_APPROVED));
-
-        boolean anyRejected = projectTimesheets.stream()
-                .anyMatch(p -> p.getStatus() != null && p.getStatus().equals(STATUS_REJECTED));
-
-        boolean anyPending = projectTimesheets.stream()
-                .anyMatch(p -> p.getStatus() == null || p.getStatus().equals(STATUS_PENDING));
-
-        if (allApproved) {
-            return STATUS_APPROVED;
-        }
-        if (anyRejected) {
+        if (projectTimesheets.stream()
+                .anyMatch(p -> STATUS_REJECTED.equals(p.getStatus()))) {
             return STATUS_REJECTED;
         }
-        if (anyPending) {
+
+        if (projectTimesheets.stream()
+                .anyMatch(p -> p.getStatus() == null || STATUS_PENDING.equals(p.getStatus()))) {
             return STATUS_PENDING;
         }
-        
-        // Mixed state (some approved, some not)
-        return STATUS_PARTIAL;
+
+        return STATUS_APPROVED;
     }
+
 
     /**
      * Calculate and set totals for EmployeeTimesheet.

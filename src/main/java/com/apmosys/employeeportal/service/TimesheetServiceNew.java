@@ -1418,9 +1418,9 @@ public class TimesheetServiceNew {
 	
 	public ServiceResponse bulkApproveOrRejectTimesheet(TimesheetApprovalNewDTO aprOrRejData) {
 		ServiceResponse serviceResponse =  new ServiceResponse();
-		if(aprOrRejData.getStatusId() == 1)
+		if(aprOrRejData.getStatusId() == 2)
 			serviceResponse = timesheetApprovalServiceNew.bulkApproveTimesheets(aprOrRejData);
-		else if(aprOrRejData.getStatusId() == 2)
+		else if(aprOrRejData.getStatusId() == 3)
 			serviceResponse =  timesheetApprovalServiceNew.bulkRejectTimesheets(aprOrRejData);
 		return serviceResponse;
 	}

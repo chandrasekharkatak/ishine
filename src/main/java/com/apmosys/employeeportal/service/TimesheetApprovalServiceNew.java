@@ -6,16 +6,20 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.InvalidDataAccessResourceUsageException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +28,7 @@ import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.apmosys.employeeportal.Exception.BadRequestException;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.GetMyReporteesTimesheetRequestsPayload;
 import com.apmosys.employeeportal.dto.LogDTO;
@@ -38,15 +43,22 @@ import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqD
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
+import com.apmosys.employeeportal.model.ProjectTimesheetStatusNew;
 import com.apmosys.employeeportal.model.Timesheet;
+import com.apmosys.employeeportal.model.TimesheetActionAuditNew;
 import com.apmosys.employeeportal.model.TimesheetApprovalAllocationLogs;
 import com.apmosys.employeeportal.model.TimesheetDocumentApproval;
+import com.apmosys.employeeportal.model.TimesheetRejectionDetailsId;
+import com.apmosys.employeeportal.model.TimesheetRejectionDetailsNew;
 import com.apmosys.employeeportal.model.TimesheetRejectionReasonsMaster;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
+import com.apmosys.employeeportal.repository.ProjectTimesheetStatusNewRepository;
+import com.apmosys.employeeportal.repository.TimesheetActionAuditNewRepository;
 import com.apmosys.employeeportal.repository.TimesheetApprovalAllocationLogsRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentApprovalRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
+import com.apmosys.employeeportal.repository.TimesheetRejectionDetailsNewRepository;
 import com.apmosys.employeeportal.repository.TimesheetRejectionReasonsMasterRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.service.helper.TimesheetAggregationHelper;
@@ -70,7 +82,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class TimesheetApprovalServiceNew {
-
+	
+	public static final Integer STATUS_PENDING = 1;
+    public static final Integer STATUS_APPROVED = 2;
+    public static final Integer STATUS_REJECTED = 3;
+    public static final String ACTION_TYPE_APPROVAL = "APPROVAL";
+    public static final String ACTION_TYPE_REJECTION = "REJECTION";
+    
     @Autowired
     private TimesheetsRepository timesheetsRepository;
     
@@ -88,6 +106,15 @@ public class TimesheetApprovalServiceNew {
     
     @Autowired
     private TimesheetDocumentDetailsRepository timesheetDocumentDetailsRepository;
+    
+    @Autowired
+    private ProjectTimesheetStatusNewRepository projectTimesheetStatusNewRepository;
+    
+    @Autowired
+    private TimesheetActionAuditNewRepository timesheetActionAuditNewRepository;
+    
+    @Autowired
+    private TimesheetRejectionDetailsNewRepository timesheetRejectionDetailsNewRepository;
     
     @Autowired
     private MailService mailService;
@@ -116,29 +143,258 @@ public class TimesheetApprovalServiceNew {
     /**
      * Bulk approve timesheets by TIMESHEET IDs only.
      *
-     * @param timesheetIds list of timesheetIds
+     * @param TimesheetApprovalNewDTO 
      * @return ServiceResponse
+     * Steps followed:
+     * 1. Check for valid Arguments
+     * 2. Check for valid Approver
+     * 3. Check for valid Timesheets
+     * 4. Check for valid related project status data
+     * 5. Update status of timehseets
+     * 6. Update status of project status data
+     * 7. Save Timesheets and Project status data
+     * 8. Create action logs for each projec stauts
+     * 9. Save all action logs
+     * 
      */
-    @Transactional(rollbackFor = Exception.class)
-public ServiceResponse bulkApproveTimesheets(TimesheetApprovalNewDTO dto) {
+	@Transactional(rollbackFor = Exception.class)
+	public ServiceResponse bulkApproveTimesheets(TimesheetApprovalNewDTO dto) {
 
-    ServiceResponse response = new ServiceResponse();
-    List<EmployeeTimesheetsNew> timesheetDatas = employeeTimesheetsNewRepository.findAllById(dto.getTimesheetIds());
-    List<EmployeeTimesheetsNew> rmIdMismatchList = timesheetDatas.stream()
-    											.filter(data -> data.getCurrentManagerId() != dto.getRmId())
-    											.collect(Collectors.toList());
-    if(rmIdMismatchList.size() > 0)
-    	throw new IllegalArgumentException("You are not the Approver of some timesheets");
-    	
-    return response;
-}
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("bulk_approve_timesheets");
+		apiLogInfo.setApiUrl("/api/bulkApproveTimesheets");
+		apiLogInfo.setLogLevel("INFO");
+
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("rmId : ").append(dto.getRmId()).append(" | statusId : ").append(dto.getStatusId())
+				.append(" | timesheetIds : ").append(dto.getTimesheetIds());
+		try {
+			if (dto.getStatusId() == null|| dto.getStatusId() != STATUS_APPROVED)
+				throw new IllegalArgumentException("Proper Status is not provided for the request");
+
+			List<EmployeeTimesheetsNew> timesheetDatas = employeeTimesheetsNewRepository
+					.findAllById(dto.getTimesheetIds());
+			List<EmployeeTimesheetsNew> rmIdMismatchList = timesheetDatas.stream()
+					.filter(data -> data.getCurrentManagerId() != dto.getRmId()).collect(Collectors.toList());
+			if (rmIdMismatchList.size() > 0)
+				throw new BadRequestException("You are not the Approver of some timesheets");
+
+			Set<Long> existingTimesheetIds = timesheetDatas.stream().map(EmployeeTimesheetsNew::getTimesheetId)
+					.filter(Objects::nonNull).collect(Collectors.toSet());
+
+			List<Long> filteredIds = dto.getTimesheetIds().stream().filter(id -> !existingTimesheetIds.contains(id))
+					.collect(Collectors.toList());
+
+			if (filteredIds.size() > 0)
+				throw new BadRequestException("No timesheets found for the timesheet ids: " + filteredIds);
+
+			List<ProjectTimesheetStatusNew> projectTimesheets = projectTimesheetStatusNewRepository
+					.findAllByIdTimesheetIdIn(existingTimesheetIds);
+
+			Set<Long> timesheetIdsWithProjects = projectTimesheets.stream().map(p -> p.getId().getTimesheetId())
+					.collect(Collectors.toSet());
+
+			List<Long> timesheetsWithNoProjects = existingTimesheetIds.stream()
+					.filter(id -> !timesheetIdsWithProjects.contains(id)).collect(Collectors.toList());
+
+			if (!timesheetsWithNoProjects.isEmpty() || timesheetsWithNoProjects.size() > 0)
+				throw new BadRequestException(
+						"No project entries found for timesheet ids: " + timesheetsWithNoProjects);
+
+			projectTimesheets.forEach(p -> p.setStatus(STATUS_APPROVED));
+			timesheetDatas.forEach(t -> t.setStatus(STATUS_APPROVED));
+
+			List<ProjectTimesheetStatusNew> approvedProjects = projectTimesheetStatusNewRepository
+					.saveAll(projectTimesheets);
+			employeeTimesheetsNewRepository.saveAll(timesheetDatas);
+			Set<TimesheetActionAuditNew> actionAudit = new HashSet<>();
+			if (approvedProjects.size() > 0) {
+				approvedProjects.forEach(p -> {
+					TimesheetActionAuditNew audit = new TimesheetActionAuditNew();
+					audit.setTimesheetId(p.getId().getTimesheetId());
+					audit.setProjectId(p.getId().getProjectId());
+					audit.setActionBy(dto.getRmId());
+					audit.setActionOn(LocalDateTime.now());
+					audit.setActionType(ACTION_TYPE_APPROVAL);
+					actionAudit.add(audit);
+				});
+			}
+			timesheetActionAuditNewRepository.saveAll(actionAudit);
+			response.setServiceResponse("All the timesheets are approved successfully | Approved projects count : " + approvedProjects.size());
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("Approved timesheets count : " + timesheetDatas.size()
+					+ " | Approved projects count : " + approvedProjects.size());
+		} catch (BadRequestException | IllegalArgumentException e) {
+
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse(e.getMessage());
+			response.setServiceError(e.getMessage());
+
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse(e.getMessage());
+			apiLogInfo.setLogLevel("ERROR");
+
+			throw e;
+
+		} catch (Exception e) {
+
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong.");
+			response.setServiceError(e.getMessage());
+
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse(e.getMessage());
+			apiLogInfo.setLogLevel("ERROR");
+
+			throw new RuntimeException("Bulk approval failed", e);
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		return response;
+	}
     
+	/**
+     * Bulk Reject timesheets by TIMESHEET IDs only.
+     *
+     * @param TimesheetApprovalNewDTO 
+     * @return ServiceResponse
+     * Steps followed:
+     * 1. Check for valid Arguments
+     * 2. Check for valid Approver
+     * 3. Check for valid Timesheets
+     * 4. Check for valid related project status data
+     * 5. Update status of timehseets
+     * 6. Update status of project status data
+     * 7. Save Timesheets and Project status data
+     * 8. Crate and save rejection details
+     * 9. Create action logs for each projec stauts
+     * 10. Save all action logs
+     * Missing validation:
+     * 1. Rejection id validation from Rejection master table which is not there for new module
+     */
     @Transactional(rollbackFor = Exception.class)
     public ServiceResponse bulkRejectTimesheets(TimesheetApprovalNewDTO dto) {
 
-        ServiceResponse response = new ServiceResponse();
-        return response;
-    }
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("bulk_approve_timesheets");
+		apiLogInfo.setApiUrl("/api/bulkApproveTimesheets");
+		apiLogInfo.setLogLevel("INFO");
+
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("rmId : ").append(dto.getRmId()).append(" | statusId : ").append(dto.getStatusId())
+				.append(" | timesheetIds : ").append(dto.getTimesheetIds());
+		try {
+			if (dto.getStatusId() == null || dto.getStatusId() != STATUS_REJECTED)throw new IllegalArgumentException("Proper status is not provided for the request");
+			
+			if (dto.getRejectionReasonId() == null) throw new IllegalArgumentException("Rejection reason not provided");
+			
+			List<EmployeeTimesheetsNew> timesheetDatas = employeeTimesheetsNewRepository
+					.findAllById(dto.getTimesheetIds());
+			List<EmployeeTimesheetsNew> rmIdMismatchList = timesheetDatas.stream()
+					.filter(data -> data.getCurrentManagerId() != dto.getRmId()).collect(Collectors.toList());
+			if (rmIdMismatchList.size() > 0)
+				throw new BadRequestException("You do not have the rejection rights of some timesheets");
+
+			Set<Long> existingTimesheetIds = timesheetDatas.stream().map(EmployeeTimesheetsNew::getTimesheetId)
+					.filter(Objects::nonNull).collect(Collectors.toSet());
+
+			List<Long> filteredIds = dto.getTimesheetIds().stream().filter(id -> !existingTimesheetIds.contains(id))
+					.collect(Collectors.toList());
+
+			if (filteredIds.size() > 0)
+				throw new BadRequestException("No timesheets found for the timesheet ids: " + filteredIds);
+
+			List<ProjectTimesheetStatusNew> projectTimesheets = projectTimesheetStatusNewRepository
+					.findAllByIdTimesheetIdIn(existingTimesheetIds);
+
+			Set<Long> timesheetIdsWithProjects = projectTimesheets.stream().map(p -> p.getId().getTimesheetId())
+					.collect(Collectors.toSet());
+
+			List<Long> timesheetsWithNoProjects = existingTimesheetIds.stream()
+					.filter(id -> !timesheetIdsWithProjects.contains(id)).collect(Collectors.toList());
+
+			if (!timesheetsWithNoProjects.isEmpty() || timesheetsWithNoProjects.size() > 0)
+				throw new BadRequestException(
+						"No project entries found for timesheet ids: " + timesheetsWithNoProjects);
+
+			projectTimesheets.forEach(p -> p.setStatus(STATUS_REJECTED));
+			timesheetDatas.forEach(t -> t.setStatus(STATUS_REJECTED));
+
+			List<ProjectTimesheetStatusNew> rejectedProjects = projectTimesheetStatusNewRepository
+					.saveAll(projectTimesheets);
+			employeeTimesheetsNewRepository.saveAll(timesheetDatas);
+			
+			Set<TimesheetRejectionDetailsNew> rejectionMappings = new HashSet<>();
+			
+			Set<TimesheetActionAuditNew> actionAudit = new HashSet<>();
+			if (rejectedProjects.size() > 0) {
+				rejectedProjects.forEach(p -> {
+					TimesheetActionAuditNew audit = new TimesheetActionAuditNew();
+					TimesheetRejectionDetailsNew rejectionMap = new TimesheetRejectionDetailsNew();
+					TimesheetRejectionDetailsId rejectionMapId = new TimesheetRejectionDetailsId();
+					
+					// Audit action data making
+					audit.setTimesheetId(p.getId().getTimesheetId());
+					audit.setProjectId(p.getId().getProjectId());
+					audit.setActionBy(dto.getRmId());
+					audit.setActionOn(LocalDateTime.now());
+					audit.setActionType(ACTION_TYPE_REJECTION);
+					actionAudit.add(audit);
+					
+					// RejectionId data making
+					rejectionMapId.setTimesheetId(p.getId().getTimesheetId());
+					rejectionMapId.setProjectId(p.getId().getProjectId());
+					rejectionMapId.setLocationMappingId(p.getId().getLocationMappingId());
+					rejectionMapId.setRejectionId(dto.getRejectionReasonId());
+					
+					// Rjection data making
+					rejectionMap.setId(rejectionMapId);
+					rejectionMap.setRemarks(dto.getRemarks());
+					rejectionMappings.add(rejectionMap);
+				});
+			}
+			
+			timesheetRejectionDetailsNewRepository.saveAll(rejectionMappings);
+			timesheetActionAuditNewRepository.saveAll(actionAudit);
+			response.setServiceResponse("All the timesheets are rejected successfully | Rejected timesheets count : " + timesheetDatas.size());
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("Rejected timesheets count : " + timesheetDatas.size()
+					+ " | Rejected projects count : " + rejectedProjects.size()
+					+ " | Rejection id: "+ dto.getRejectionReasonId());
+		} catch (BadRequestException | IllegalArgumentException e) {
+
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse(e.getMessage());
+			response.setServiceError(e.getMessage());
+
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse(e.getMessage());
+			apiLogInfo.setLogLevel("ERROR");
+
+			throw e;
+
+		} catch (Exception e) {
+
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong.");
+			response.setServiceError(e.getMessage());
+
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse(e.getMessage());
+			apiLogInfo.setLogLevel("ERROR");
+
+			throw new RuntimeException("Bulk rejection failed", e);
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		return response;
+	}
 
     
 }

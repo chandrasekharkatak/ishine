@@ -12,6 +12,6 @@ public class TimesheetApprovalNewDTO {
 	private Long projectId;
 	private Long rmId;
 	private Integer statusId;
-	private Integer rejectionReasonId;
+	private Long rejectionReasonId;
 	private String remarks;
 }
