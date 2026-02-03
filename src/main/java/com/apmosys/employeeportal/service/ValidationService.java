@@ -205,4 +205,41 @@ public class ValidationService {
 		}
 	}
 	
+	
+	public Long validateAndGetEmployeeEmpId(String createdByEmpId, String createdByEmpName) {
+
+		if (createdByEmpId == null || !createdByEmpId.startsWith("A-")) {
+			ExceptionLogContext.add(
+		            "createdByEmpId or createdByEmpName missing from PO"
+		            + " | createdByEmpId=" + createdByEmpId
+		            + " | createdByEmpName=" + createdByEmpName
+		        );
+			throw new RuntimeException("Invalid createdByEmpId format");
+		}
+
+		Long employmentId;
+		try {
+			employmentId = Long.parseLong(createdByEmpId.substring(2));
+		} catch (NumberFormatException e) {
+			 ExceptionLogContext.add(
+			            "Invalid createdByEmpId format from PO"
+			            + " | createdByEmpId=" + createdByEmpId
+			        );
+			throw new RuntimeException("Invalid employment id in createdByEmpId");
+		}
+
+		 return employeeRepository
+		            .findByEmploymentIdAndEmployeeName(employmentId, createdByEmpName)
+		            .orElseThrow(() -> {
+		                ExceptionLogContext.add(
+		                    "Employee mismatch from PO"
+		                    + " | employmentId=" + employmentId
+		                    + " | employeeName=" + createdByEmpName
+		                );
+		                return new RuntimeException(
+		                    "Employee mismatch for createdBy employee"
+		                );
+		            });
+	}
+	
 }

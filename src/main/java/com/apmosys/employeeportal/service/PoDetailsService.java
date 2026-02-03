@@ -47,6 +47,9 @@ public class PoDetailsService {
 	
 	@Autowired
 	ProjectRepository projectRepository;
+	
+	@Autowired
+	ValidationService validationService;
 
 	public ProjectPoDetails createPoRTS(Project project, ProjectPoMappingWithResourceDTO dto, Client client) {
 
@@ -413,15 +416,13 @@ public class PoDetailsService {
 	        String deletedByEmpId,
 	        String deletedByEmpName,
 	        Date deletedOn) {
+		
+		Long updatedBy = validationService.validateAndGetEmployeeEmpId(deletedByEmpId,
+	                    deletedByEmpName);
 
 	    po.setActive(false);
-	    po.setUpdatedBy(
-	            validateAndGetEmployeeEmpId(
-	                    deletedByEmpId,
-	                    deletedByEmpName
-	            ));
-	    po.setPoUpdatedOn(convert(deletedOn)
-	    );
+	    po.setUpdatedBy(updatedBy);
+	    po.setPoUpdatedOn(convert(deletedOn));
 
 	    projectPoDetailsRepository.save(po);
 	}
@@ -429,6 +430,7 @@ public class PoDetailsService {
 	public void updatePoLinksAfterDeletion(
 	        Integer projectId,
 	        DeletedPoSyncDTO dto) {
+		
 
 	    Map<Long, PoDetailsForProjectPoMappingDTO> incomingMap =
 	            dto.getAssociatePos().stream()
@@ -458,13 +460,14 @@ public class PoDetailsService {
 	            po.setNextPO(incoming.getNextPO());
 	            changed = true;
 	        }
+	        
+	        Long updatedBy =  validationService.validateAndGetEmployeeEmpId(
+                    dto.getDeletedByEmpId(),
+                    dto.getDeletedByEmpName()
+            );
 
 	        if (changed) {
-	            po.setUpdatedBy(
-	                    validateAndGetEmployeeEmpId(
-	                            dto.getDeletedByEmpId(),
-	                            dto.getDeletedByEmpName()
-	                    ));
+	            po.setUpdatedBy(updatedBy);
 	            po.setPoUpdatedOn(convert(dto.getDeletedOn())
 	            );
 	            projectPoDetailsRepository.save(po);

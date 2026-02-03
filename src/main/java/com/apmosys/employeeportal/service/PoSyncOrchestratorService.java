@@ -314,10 +314,6 @@ public class PoSyncOrchestratorService {
 	        }
 
 	      
-	        poDetailsService.validateAssociatedPosIntegrity(
-	                project.getProjectId(),
-	                dto.getAssociatePos()
-	        );
 
 	        
 	        ProjectPoDetails deletedPo =
@@ -339,7 +335,11 @@ public class PoSyncOrchestratorService {
 	                dto.getDeletedOn()
 	        );
 
-	      
+	        poDetailsService.validateAssociatedPosIntegrity(
+	                project.getProjectId(),
+	                dto.getAssociatePos()
+	        );
+	        
 	        if (dto.getAssociatePos() != null && !dto.getAssociatePos().isEmpty()) {
 	            poDetailsService.updatePoLinksAfterDeletion(
 	                    project.getProjectId(),
