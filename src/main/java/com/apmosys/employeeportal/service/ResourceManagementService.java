@@ -14513,6 +14513,7 @@ public class ResourceManagementService {
 			List<Team> activeTeams = teamRepository.findActiveTeamsByTeamIds(dto.getTeamIds());
 			if (activeTeams.isEmpty()) {
 //				return;    //because prev returned success
+				return;
 			}
 			List<EmployeeTeamMap> oldEmployeeTeamMaps = employeeTeamMapRepository
 					.activeAndPendingEmployeesByTeamIds(dto.getTeamIds());
@@ -14594,7 +14595,7 @@ public class ResourceManagementService {
 						newMap.setUpdatedOn(null);
 						newMap.setUpdatedBy(null);
 						newMap.setPoId(oldMap.getPoId());
-
+						
 						// added storing poRequirementMapping Id
 						if (oldMap.getPoRequirementMappingId() != null) {
 							newMap.setPoRequirementMappingId(oldMap.getPoRequirementMappingId());

@@ -399,6 +399,8 @@ public class PoSyncOrchestratorService {
 	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 	    String sourceSystem = httpRequest.getRequestURI().toString();
 	    ServiceResponse response = new ServiceResponse();
+	    String ishineStatus ="" ;
+	    
 
 	    try {
 	        initialLog = apiLogUtility.startLog(
@@ -427,10 +429,7 @@ public class PoSyncOrchestratorService {
 	        // case 1 - when just order of project is changed
 	        if (dto.getDeletedProjects() == null || dto.getDeletedProjects().isEmpty()) {
 
-	            poDetailsService.validateAssociatedPosIntegrity(
-	                    primaryProject.getProjectId(),
-	                    dto.getPrimaryProject().getPoDetailsList()
-	            );
+	            
 
 //	            projectService.updateProjectDatesIfChanged(
 //	                    primaryProject,
@@ -441,6 +440,8 @@ public class PoSyncOrchestratorService {
 	                    primaryProject.getProjectId(),
 	                    dto.getPrimaryProject()
 	            );
+	            
+	            ishineStatus = dto.getPrimaryProject().getIshineProjectStatus();
 	        }
 
 	        // case 2 - when actually project is linked
@@ -460,6 +461,11 @@ public class PoSyncOrchestratorService {
 	                    dto
 	            );
 	            
+	            poDetailsService.validateAssociatedPosIntegrity(
+	                    primaryProject.getProjectId(),
+	                    dto.getPrimaryProject().getPoDetailsList()
+	            );
+	            
 	            resourceManagementService.liftAndShiftTeamNew(dto);
 	            
 //	            teamsService.liftAndShiftTeams(dto);
@@ -467,6 +473,8 @@ public class PoSyncOrchestratorService {
 	            projectService.deactivateDeletedProjects(
 	                    dto.getDeletedProjects()
 	            );
+	            
+	            
 
 	            projectService.updateProjectDatesIfChanged(
 	                    primaryProject,
@@ -478,9 +486,11 @@ public class PoSyncOrchestratorService {
 	                    dto.getPrimaryProject()
 	            );
 	            
+	            
+	            
 	            //get ishine status
 	            
-	            resourceManagementService.ishineStatusReturn( dto.getDeletedProjects(),primaryProject);
+	           ishineStatus = resourceManagementService.ishineStatusReturn( dto.getDeletedProjects(),primaryProject);
 	            
 //	            teamsService.liftAndShiftTeams(dto);
 	        }
@@ -488,7 +498,7 @@ public class PoSyncOrchestratorService {
 	        finalHttpStatusCode = HttpStatus.OK.value();
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        response.setServiceResponse("PO linking successful");
-	        response.setServiceResponse1("Not Started");
+	        response.setServiceResponse1(ishineStatus);
 	        return response;
 
 	    } catch (Exception e) {
