@@ -185,23 +185,23 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 				);
 				
 
-		@Query( "SELECT new com.apmosys.employeeportal.dto.TimesheetIdAndEmpIdDTO(t.timesheetId, t.empId) from Timesheet t \n"+
-				"where t.hasClientSideId = 1 \n"+
-				"and t.projectId = :projectId \n"+
-				"and t.dayType IN ('Working', 'Non-working') \n"+
-				"and t.status = 'Pending' \n"+
-				"and not exists (\n" + 
-					"select 1 from TimesheetDocumentDetails tdd1 where \n" + 
-					"tdd1.timesheetId = t.timesheetId and tdd1.finalFlag = 1 and tdd1.clientApprovalStatus = 'Approved'\n" +
-					") \n" +
-				"and t.date between :fromDate and :toDate \n"+
-				"and t.empId IN :empIds")
-		List<TimesheetIdAndEmpIdDTO> getDocsByEmpIdsAndDateRange(
-		    @Param("empIds") List<Long> empIds,
-		    @Param("fromDate") LocalDate fromDate,
-		    @Param("toDate") LocalDate toDate,
-			@Param("projectId") Integer projectId
-		);
+		// @Query( "SELECT new com.apmosys.employeeportal.dto.TimesheetIdAndEmpIdDTO(t.timesheetId, t.empId) from Timesheet t \n"+
+		// 		"where t.hasClientSideId = 1 \n"+
+		// 		"and t.projectId = :projectId \n"+
+		// 		"and t.dayType IN ('Working', 'Non-working') \n"+
+		// 		"and t.status = 'Pending' \n"+
+		// 		"and not exists (\n" + 
+		// 			"select 1 from TimesheetDocumentDetails tdd1 where \n" + 
+		// 			"tdd1.timesheetId = t.timesheetId and tdd1.finalFlag = 1 and tdd1.clientApprovalStatus = 'Approved'\n" +
+		// 			") \n" +
+		// 		"and t.date between :fromDate and :toDate \n"+
+		// 		"and t.empId IN :empIds")
+		// List<TimesheetIdAndEmpIdDTO> getDocsByEmpIdsAndDateRange(
+		//     @Param("empIds") List<Long> empIds,
+		//     @Param("fromDate") LocalDate fromDate,
+		//     @Param("toDate") LocalDate toDate,
+		// 	@Param("projectId") Integer projectId
+		// );
 
 		@Query( "SELECT new com.apmosys.employeeportal.dto.TimesheetIdAndEmpIdDTO(t.timesheetId, t.empId) from Timesheet t \n"+
 				"where t.hasClientSideId = 1 \n"+
@@ -213,11 +213,12 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 					"tdd1.timesheetId = t.timesheetId and tdd1.finalFlag = 1 and tdd1.clientApprovalStatus = 'Approved'\n" +
 					") \n" +
 				") \n" +
-				"and t.date = :date \n"+
+				"and t.date between :fromDate and :toDate \n"+
 				"and t.empId IN :empIds")
 		List<TimesheetIdAndEmpIdDTO> getDocsByEmpIdsAndDate(
 				@Param("empIds") List<Long> empIds,
-				@Param("date") LocalDate date,
+				@Param("fromDate") LocalDate fromDate,
+				@Param("toDate") LocalDate toDate,
 				@Param("projectId") Integer projectId
 			);
 
