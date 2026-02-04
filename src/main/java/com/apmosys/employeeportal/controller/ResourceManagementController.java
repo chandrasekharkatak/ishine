@@ -689,10 +689,11 @@ public class ResourceManagementController {
 
 	// @Encrypted
 	@GetMapping("/getResourceRequirementCountByPoId")
-	public ServiceResponse getResourceRequirementCountByPoId(@RequestParam Long poOrProjectId,@RequestParam String projectType) {
-		return resourceManagementService.getResourceRequirementCountByPoId(poOrProjectId, projectType);
+	public ServiceResponse getResourceRequirementCountByPoId(
+			@RequestParam(required = false) Long poId, @RequestParam Integer projectId,
+			@RequestParam String projectType) {
+		return resourceManagementService.getResourceRequirementCountByPoId(poId, projectId, projectType);
 	}
-
 	 
 	
 }

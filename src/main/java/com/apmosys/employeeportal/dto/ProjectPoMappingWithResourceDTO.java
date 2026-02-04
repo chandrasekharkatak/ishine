@@ -29,6 +29,7 @@ public class ProjectPoMappingWithResourceDTO {
     private Long clientId;
     private String clientName;
     private String projectStatus;
+    private String  ishineProjectStatus;
     private List<PoDetailsForProjectPoMappingDTO> poDetailsList;
 	
 	

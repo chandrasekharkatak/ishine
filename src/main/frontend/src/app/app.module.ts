@@ -221,6 +221,7 @@ import { RmgProjectComponent } from './user-team/resource-management/rmg-edit-pr
 import { NgbPopoverModule } from '@ng-bootstrap/ng-bootstrap';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {MatRadioModule} from '@angular/material/radio';
+import { ToastrModule } from 'ngx-toastr';
 
 registerLocaleData(localeGb);
 
@@ -448,7 +449,14 @@ registerLocaleData(localeGb);
     MatTabsModule,
     NgbPopoverModule,
     MatSlideToggleModule,
-    MatRadioModule
+    MatRadioModule,
+    ToastrModule.forRoot({
+      positionClass: 'toast-top-right',
+      timeOut: 4000,
+      closeButton: true,
+      preventDuplicates: true,
+      newestOnTop: true
+    })
   ],
   providers: [
     DatePipe,

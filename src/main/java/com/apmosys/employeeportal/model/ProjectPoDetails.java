@@ -9,6 +9,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
@@ -25,6 +26,11 @@ import lombok.ToString;
 @Entity
 @ToString
 @Audited
+@Table(indexes = { @Index(name = "idx_ppd_po_id", columnList = "po_id"),
+        @Index(name = "idx_ppd_project_id", columnList = "project_id"),
+        @Index(name = "idx_ppd_po_start_date", columnList = "po_start_date"),
+        @Index(name = "idx_ppd_po_end_date", columnList = "po_end_date")
+})
 public class ProjectPoDetails {
 
     @Id
