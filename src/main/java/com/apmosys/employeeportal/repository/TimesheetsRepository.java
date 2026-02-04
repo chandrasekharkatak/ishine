@@ -8654,7 +8654,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 			       "LEFT JOIN TimesheetDocumentDetails tdd on tdd.timesheetId = et.timesheetId \n" +
 			       "WHERE et.empId = :empId \n" +
 			       "AND et.dayType in ('Working' , 'Non-working') AND et.hasClientSideId = true\n" +
-			       "AND et.date BETWEEN :fromDate AND :toDate AND tdd.docId is null and et.status='Rejected'")
+			       "AND et.date BETWEEN :fromDate AND :toDate AND et.status='Rejected'")
 		  List<Timesheet> getRejectedTimesheetIdByEmpAndDateRange(
 				    @Param("empId") Long empId,
 				    @Param("fromDate") LocalDate fromDate,
