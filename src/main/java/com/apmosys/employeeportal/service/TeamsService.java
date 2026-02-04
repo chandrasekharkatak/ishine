@@ -3745,7 +3745,7 @@ public class TeamsService {
 		List<PoDepartmentMapping> sourceDeptMappings = poDepartmentMappingRepository
 				.findByProjectIdAndActive(srcProjectId);
 		List<Long> targetDeptIds = poDepartmentMappingRepository
-				.findPoDeptIdsByProjectId(tgtProjectId);
+				.findPoDeptIdsByProjectId(tgtProjectId, false);
 
 		for (PoDepartmentMapping s : sourceDeptMappings) {
 			if (!targetDeptIds.contains(s.getDeptId())) {
