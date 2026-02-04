@@ -14540,7 +14540,6 @@ public class ResourceManagementService {
 					newTeam.setProjectId(dto.getTargetProjectId());
 					newTeam.setTeamLeadName(oldTeam.getTeamLeadName());
 					newTeam.setIsActive("Y");
-					newTeam.setPoTeamId(oldTeam.getPoTeamId());
 					newTeam.setDescription(oldTeam.getDescription());
 					newTeam.setDeptIds(oldTeam.getDeptIds());
 					newTeam.setSpocId(oldTeam.getSpocId());
@@ -14588,8 +14587,7 @@ public class ResourceManagementService {
 						EmployeeTeamMap newMap = new EmployeeTeamMap();
 						newMap.setEmpId(oldMap.getEmpId());
 						newMap.setTeamId(mappedNewTeam.getTeamId());
-						newMap.setJobRoleId(oldMap.getJobRoleId());
-						newMap.setActive(1L);
+						newMap.setJobRoleId(oldMap.getJobRoleId());;
 						newMap.setStartDate(LocalDateTime.now());
 						newMap.setEmployeeRole(oldMap.getEmployeeRole());
 						newMap.setEndDate(null);
