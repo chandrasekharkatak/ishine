@@ -251,8 +251,11 @@ export class ResourceManagementService {
     return this.http.get(`${this.baseUrl}` + `api/getResourceRequirementByTeamId`, { params: httpParams });
   }
 
-  getResourceRequirementCountByPoId(poOrProjectId: any, projectType: any) {
-    let httpParams = new HttpParams().append("poOrProjectId", poOrProjectId).append("projectType", projectType);
+  getResourceRequirementCountByPoId(poId: any, projectId: any, projectType: any) {
+    let httpParams = new HttpParams().append("projectId", projectId).append("projectType", projectType);
+    if (poId && poId != undefined && poId != null) {
+      httpParams.append("poId", poId);
+    }
     return this.http.get(`${this.baseUrl}` + `api/getResourceRequirementCountByPoId`, { params: httpParams });
   }
 

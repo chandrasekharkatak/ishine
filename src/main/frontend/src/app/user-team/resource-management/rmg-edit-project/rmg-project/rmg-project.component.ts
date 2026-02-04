@@ -171,7 +171,9 @@ export class RmgProjectComponent implements OnInit {
   // Modals Start
   openAlertMessageModal(modalMessage: any) {
     this.alertMessage = modalMessage;
-    this.alertMessageModalRef = this.modalService?.open(this.alertMessageTemplateRef, { modalDialogClass: 'modal-sm' });
+    if (!this.alertMessageModalRef) {
+      this.alertMessageModalRef = this.modalService?.open(this.alertMessageTemplateRef, { modalDialogClass: 'modal-sm' });
+    }
   }
 
   closeAlertMessageModal() {
@@ -1201,8 +1203,7 @@ export class RmgProjectComponent implements OnInit {
   }
 
   getResourceRequirementCountByPoId(po: PoDetails) {
-    let poOrProjectId = this.projectType === 'TNM' ? po?.poId : po?.projectId;
-    this.resourceManagementService.getResourceRequirementCountByPoId(poOrProjectId, this.projectType).pipe(first()).subscribe((response: any) => {
+    this.resourceManagementService.getResourceRequirementCountByPoId(po?.poId, po?.projectId, this.projectType).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         const resp = response.serviceResponse;
         po.totalRequirements = resp.totalRequirements || 0;

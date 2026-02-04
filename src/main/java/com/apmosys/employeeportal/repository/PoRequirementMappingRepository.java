@@ -85,22 +85,29 @@ public interface PoRequirementMappingRepository extends JpaRepository<PoRequirem
 			"AND t.teamId = :teamId ")
 	List<RmgResourceRequirementDto> getPoRequirementDataByTeamId(@Param("teamId") Long teamId);
 
-	@Query(value = "Select sum(prm.count) from PoRequirementMapping prm where prm.poId=:poId and prm.active = true")
-	public Long getTotalActiveRequiredCountByPoId(Long poId);
+	@Query(value = "Select sum(prm.count) from PoRequirementMapping prm \n"
+			+ "INNER JOIN ProjectPoDetails ppd on ppd.poId = prm.poId  where prm.poId=:poId and prm.active = true and ppd.projectId=:projectId")
+	public Long getTotalActiveRequiredCountByPoIdAndProjectId(Long poId, Integer projectId);
 
-	@Query(value = "Select prm.poId,sum(prm.count) from PoRequirementMapping prm where prm.poId IN :poIds and prm.active = true")
-	public List<Object[]> getPoIdAndTotalActiveRequiredCountByPoIdIn(List<Long> poIds);
+	@Query(value = "Select prm.poId,sum(prm.count) from PoRequirementMapping prm \n"
+			+ "INNER JOIN ProjectPoDetails ppd on ppd.poId = prm.poId where prm.poId IN :poIds and prm.active = true and ppd.projectId=:projectId group by prm.poId")
+	public List<Object[]> getPoIdAndTotalActiveRequiredCountByPoIdInAndProjectId(List<Long> poIds, Integer projectId);
 
-	@Query(value = "Select new com.apmosys.employeeportal.dto.RmgResourceRequirementDto(prm.poId \n"
+	@Query(value = "Select prm.poRequirementMappingId,sum(prm.count) from PoRequirementMapping prm \n"
+			+ "INNER JOIN ProjectPoDetails ppd on ppd.poId = prm.poId where prm.poId IN :poIds and prm.active = true and ppd.projectId=:projectId group by prm.poRequirementMappingId")
+	public List<Object[]> getPrmIdAndTotalActiveRequiredCountByPoIdInAndProjectId(List<Long> poIds, Integer projectId);
+
+	@Query(value = "Select new com.apmosys.employeeportal.dto.RmgResourceRequirementDto(prm.poRequirementMappingId \n"
 			+ ",COUNT(DISTINCT CASE WHEN etm.active = 2 THEN etm.empId END) \n"
 			+ ",COUNT(DISTINCT CASE WHEN etm.active = 1 THEN etm.empId END)  \n"
 			+ ") \n"
 			+ "FROM PoRequirementMapping prm \n"
+			+ "INNER JOIN ProjectPoDetails ppd on ppd.poId = prm.poId \n"
 			+ "LEFT JOIN Team t ON t.poId = prm.poId AND t.isActive = 'Y'  \n"
 			+ "LEFT JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId AND etm.active IN (1, 2)\n"
-			+ "where prm.poId IN :poIds \n"
+			+ "where prm.poId IN :poIds and ppd.projectId=:projectId \n"
 			+ "GROUP BY prm.poId ")
-	public List<RmgResourceRequirementDto> getPoIdAndRequiredCountByPoIdIn(List<Long> poIds);
+	public List<RmgResourceRequirementDto> getPoIdAndRequiredCountByPoIdInAndProjectId(List<Long> poIds, Integer projectId);
 
 	List<PoRequirementMapping> findByPoIdAndActiveTrue(Long poId);
 	

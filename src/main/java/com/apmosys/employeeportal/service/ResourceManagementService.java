@@ -13887,24 +13887,23 @@ public class ResourceManagementService {
 		return serviceResponse;
 	}
 
-	private List<PoDetailsDto> getPoDetailsByProjectId(Integer currentProjectId, String internalProjectType, String poProjectType, boolean isAllProjects) {
+	private List<PoDetailsDto> getPoDetailsByProjectId(Integer currentProjectId, String internalProjectType,
+			String poProjectType, boolean isAllProjects) {
 		List<PoDetailsDto> poDetailsDtos = new ArrayList<>();
 		try {
 			poDetailsDtos = poDetailsRepository.getAllProjectPoDetailsDtoByProjectId(currentProjectId, isAllProjects);
-			if(poProjectType != null){
+			if (poProjectType != null) {
 				if (!poDetailsDtos.isEmpty()) {
 					List<Long> poIds = poDetailsDtos.stream().map(PoDetailsDto::getPoId)
 							.collect(Collectors.toList());
-							
-					Map<Long, Long> poIdCountMap = getPoIdAndCountMap(poIds);
+
+					Map<Long, Long> poIdCountMap = getPoIdAndCountMap(poIds, currentProjectId);
 					if (poIdCountMap != null && !poIdCountMap.isEmpty()) {
 						for (PoDetailsDto poDetail : poDetailsDtos) {
 							poDetail.setTotalRequirements(poIdCountMap.getOrDefault(poDetail.getPoId(), 0L));
 						}
 					}
 				}
-			} else {
-
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -13913,9 +13912,9 @@ public class ResourceManagementService {
 		return poDetailsDtos;
 	}
 
-	private Map<Long, Long> getPoIdAndCountMap(List<Long> poIds) {
+	private Map<Long, Long> getPoIdAndCountMap(List<Long> poIds, Integer projectId) {
 		Map<Long, Long> poIdCountMap = new HashMap<>();
-		List<Object[]> results = poRequirementMappingRepository.getPoIdAndTotalActiveRequiredCountByPoIdIn(poIds);
+		List<Object[]> results = poRequirementMappingRepository.getPoIdAndTotalActiveRequiredCountByPoIdInAndProjectId(poIds, projectId);
 		if (results != null && !results.isEmpty()) {
 			for (Object[] obj : results) {
 				Long poId = TypeConversionUtil.safeParseLong(obj[0]);
@@ -14320,12 +14319,12 @@ public class ResourceManagementService {
 		return String.join(", ", set);
 	}
 
- 	public ServiceResponse getResourceRequirementCountByPoId(Long poOrProjectId, String projectType) {
+ 	public ServiceResponse getResourceRequirementCountByPoId(Long poId, Integer projectId, String projectType) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setLogLevel("INFO");
 		try {
-			if (poOrProjectId == null) {
+			if (projectId == null) {
 				return failResponse(serviceResponse, apiLogInfo, "Project Id cannot be null!!");
 			}
 			if (projectType == null || StringUtils.isEmpty(projectType)) {
@@ -14335,16 +14334,16 @@ public class ResourceManagementService {
 			List<PoDetailsDto> projectConfigurationDetailsList = new ArrayList<>();
 			if (projectType.equalsIgnoreCase("TNM")) {
 				projectConfigurationDetailsList = projectPoDetailsRepository
-						.getResourceRequirementCountByPoId(poOrProjectId);
+						.getResourceRequirementCountByPoIdAndProjectId(poId, projectId);
 			} else {
 				projectConfigurationDetailsList = projectPoDetailsRepository
-						.getResourceRequirementCountByProjectId(poOrProjectId.intValue());
+						.getResourceRequirementCountByProjectId(projectId);
 			}
 
 			if (projectConfigurationDetailsList != null && !projectConfigurationDetailsList.isEmpty()) {
 				poDetailsDto = projectConfigurationDetailsList.get(0);
 				if (poDetailsDto != null && projectType.equalsIgnoreCase("TNM")) {
-					poDetailsDto.setTotalRequirements(poRequirementMappingRepository.getTotalActiveRequiredCountByPoId(poOrProjectId));
+					poDetailsDto.setTotalRequirements(poRequirementMappingRepository.getTotalActiveRequiredCountByPoIdAndProjectId(poId, projectId));
 				}
 			} else {
 				return failResponse(serviceResponse, apiLogInfo, "Unable to fetch latest requirment count!!");
