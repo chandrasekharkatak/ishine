@@ -976,14 +976,17 @@ updateBillableTypes() {
 
   if (!this.toggleValue) {
     // Employee View
-    this.billableTypes = [...this.employeeBillableTypes];
+
+    // this.billableTypes = [...this.employeeBillableTypes];
+    this.updateBillableTypes();
     this.status = 'All';
     this.currentColumnFilter = { ...this.employeeViewColumnsFilters };
     this.selectedBillableTypes = ['TNM', 'TNM(Shadow)'];
     this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
   } else {
     // Project View
-    this.billableTypes = [...this.projectBillableTypes];
+    // this.billableTypes = [...this.projectBillableTypes];
+    this.updateBillableTypes()
     this.status = 'All';
     this.currentColumnFilter = { ...this.projectViewFilters };
     this.selectedBillableTypes = ['TNM'];

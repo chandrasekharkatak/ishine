@@ -27,6 +27,7 @@ public interface TimesheetDocumentDetailsRepository extends JpaRepository<Timesh
 	@Query("SELECT tdd FROM TimesheetDocumentDetails tdd \n" +
 		       "INNER JOIN Timesheet et on et.timesheetId = tdd.timesheetId \n" +
 		       "WHERE et.empId = :empId \n" +
+		       " AND et.dayType in ('Working','Non-working')\n" +
 		       "AND et.date BETWEEN :fromDate AND :toDate and tdd.active = true")
 		List<TimesheetDocumentDetails> getDocsByEmpAndDateRange(
 		    @Param("empId") Long empId,

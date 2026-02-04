@@ -1462,7 +1462,7 @@
                                                 <!-- <select class="form-control" aria-hidden="true" [(ngModel)]="employeeObj.departmentId" (change)="getJobRolesByDept(employeeObj.departmentId);getDesignationByDeptId(employeeObj.departmentId);clearAfterChange('empDesg','designationName')"> -->
                                                 <select class="form-control" aria-hidden="true"
                                                     [(ngModel)]="employeeObj.departmentId"
-                                                    (change)="getJobRolesByDept(employeeObj.departmentId);getDesignationByDeptId(employeeObj.departmentId);updateDesignationDropdown()">
+                                                    (change)="getJobRolesByDept(employeeObj.departmentId);getDesignationByDeptId(employeeObj.departmentId);updateDesignationDropdown();deptdefaultprojectChange()">
                                                     <option selected="selected" value="" disabled>Select</option>
                                                     <option *ngFor="let dept of allDeptList" value="{{dept.deptId}}">
                                                         {{dept.name}}</option>
@@ -1590,11 +1590,122 @@
                                         </div>
                                     </div> -->
 
+                                     <div class="col-md-4 mb-0"
+                                        *ngIf="deptSelected &&  this.employeeObj.isUpdateDefaultProject">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Default  Project Type</label>
+                                                <select class="form-control" aria-hidden="true"
+                                                    [(ngModel)]="employeeObj.defaultprojectType"
+                                                    (change)="getProjectsAccToDepartmentSelected(alert_message)">
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option value="Bench">Bench</option>
+                                                    <option value="Other">Other</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4 mb-0"
+                                        *ngIf="showProjectDropdown && this.employeeObj.isUpdateDefaultProject">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>{{
+                                                    isUpdation ? 'New Default Project' : 'Default Project' }}</label>
+                                                <select class="form-control" aria-hidden="true"
+                                                    [(ngModel)]="employeeObj.defaultProjectId"
+                                                    (change)="onProjectChange($event)">
+                                                    <option selected="selected" value="" disabled>Select</option>
+                                                    <option *ngFor="let project of projectList"
+                                                        value="{{project.projectId}}">{{project.projectName}}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                     <div class="col-md-4 mb-0"
+                                        *ngIf="showTeamDropdown && this.employeeObj.isUpdateDefaultProject">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>{{
+                                                    isUpdation ? 'New Default Team' : 'Default Team' }}</label>
+                                                <div class="d-flex align-items-center justify-content-between">
+                                                    <select class="form-control me-2" style="width: 75%;"
+                                                        [(ngModel)]="employeeObj.defaultTeamId"
+                                                        (click)="onTeamChange($event)">
+                                                        <option selected value="" disabled>Select</option>
+                                                        <option *ngFor="let team of teamList" [value]="team.teamId">
+                                                            {{ team.teamName }}
+                                                        </option>
+                                                    </select>
+
+                                                    <!-- Shadow Resource Checkbox -->
+                                                    <div class="form-check">
+                                                        <input type="checkbox" class="form-check-input"
+                                                            id="shadowResource" name="shadowResource"
+                                                            [(ngModel)]="employeeObj.isShadowResource"
+                                                            [ngModelOptions]="{standalone: true}"
+                                                            (ngModelChange)="employeeObj.isShadowResource = $event ? 1 : 0" />
+                                                        <label class="form-check-label" for="shadowResource"
+                                                            style="font-size: 13px;">
+                                                            Shadow
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                     <div class="col-md-4 mb-0"
+                                        *ngIf="showResourceRequirementDropdown && this.employeeObj.isUpdateDefaultProject">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Resource
+                                                    Requirement</label>
+                                                <select class="form-control"
+                                                    [(ngModel)]="employeeObj.selectedResourceOverviewId">
+                                                    <option value="" disabled selected>Select</option>
+                                                    <option *ngFor="let requirement of resourceRequirements"
+                                                        [value]="requirement.resourceOverviewId">
+                                                        Role - {{ requirement.role }} || Dept - {{
+                                                        requirement.department }} || Exp - {{ requirement.experience }}
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                     <div class="col-md-4 mb-0"
+                                        *ngIf="showEmployeeRoleDropdown &&  this.employeeObj.isUpdateDefaultProject">
+                                        <div class="info-wrapper">
+                                            <div class="form-group">
+                                                <label class="info-label"><span class="text-danger">*</span>Employee
+                                                    Role</label>
+                                                <mat-select class="form-control" multiple
+                                                    [(ngModel)]="employeeObj.defaultTeamEmployeeRole">
+                                                    <mat-option selected="selected" value=""
+                                                        disabled>Select</mat-option>
+                                                    <mat-option *ngFor="let role of employeeRole"
+                                                        [value]="role">{{role}}</mat-option>
+                                                </mat-select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+
+
+
+
+
                                     <div class="col-md-4 mb-0" *ngIf="isUpdation && employeeObj.defaultProjectName ">
                                         <div class="info-wrapper">
                                             <div class="form-group">
-                                                <label class="info-label"><span class="text-danger">*</span>Default
-                                                    Project Name</label>
+                                               <label class="info-label"><span class="text-danger">*</span>{{
+                                                    isUpdation && this.employeeObj.isUpdateDefaultProject
+                                                    ? 'Current Default Project'
+                                                    : 'Default Project Name' }}</label>
+
 
                                                 <input type="text" class="form-control"
                                                     [(ngModel)]="employeeObj.defaultProjectName"
@@ -1915,4 +2026,16 @@
     </div>
   
   </ng-template>
+
+  <ng-template #change_default_project_template_on_deptUpdate>
+    <div class="modal-body text-center">
+        <p>Department has changed.<br>
+            Do you want to update the default project details?</p>
+
+        <button class="btn btn-success" (click)="confirmUpdateDefaultProject(true)">Yes</button>&nbsp;
+
+        <button class="btn btn-danger" (click)="confirmUpdateDefaultProject(false)">No</button>
+    </div>
+</ng-template>
+
   
