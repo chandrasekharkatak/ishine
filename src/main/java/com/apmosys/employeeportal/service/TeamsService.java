@@ -4442,8 +4442,8 @@ public class TeamsService {
 			handleAddOrUpdateTeamMembers(rmgRequirementDto, project, team);
 
 			response.setServiceResponse(rmgRequirementDto.isIsupdate()
-					? "Team Member(s) Details updated successfully. Please approve it's Project to enable timesheets.!!"
-					: "New Team Member(s) Details Added successfully. Please approve it's Project to enable timesheets.!!");
+					? "Team Member(s) Details updated successfully!!"
+					: "New Team Member(s) Details Added successfully. Please approve it's Project to enable timesheets!!");
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
 			e.printStackTrace();
