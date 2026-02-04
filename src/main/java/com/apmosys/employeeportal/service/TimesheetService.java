@@ -5508,21 +5508,11 @@ public class TimesheetService {
 				}
 			}
 
-				
-			boolean checkIf1day = false;
-
-			if (fromDate.isEqual(toDate)) {
-				checkIf1day = true;
-			}
-
 			Long createdBy = finalBulkUploadDTO.getCreatedBy();
 
 			List<TimesheetIdAndEmpIdDTO> notFilledTimesheetDocumentDetails = new ArrayList<>();
-			if(checkIf1day){
-				notFilledTimesheetDocumentDetails = timesheetDocumentDetailsRepository.getDocsByEmpIdsAndDate(empIds, fromDate, projectId);
-			} else {
-				notFilledTimesheetDocumentDetails = timesheetDocumentDetailsRepository.getDocsByEmpIdsAndDateRange(empIds, fromDate, toDate, projectId);
-			}
+
+			notFilledTimesheetDocumentDetails = timesheetDocumentDetailsRepository.getDocsByEmpIdsAndDate(empIds, fromDate, toDate, projectId);
 
 			if(notFilledTimesheetDocumentDetails == null || notFilledTimesheetDocumentDetails.isEmpty()) {
 				throw new IllegalArgumentException("No Eligible timesheet(s) found for the given employee(s) and date range.");
