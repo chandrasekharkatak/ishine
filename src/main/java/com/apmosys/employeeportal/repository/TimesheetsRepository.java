@@ -4070,12 +4070,12 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				        "s.name AS spoc, tl.name AS teamLead, "+
 				        "e.reporting_manager_id, e.employmentstatus, d.name AS dept_name, "+
 				        "CASE"+
-				            "WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-',e.employeement_id) "+
+				            " WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-',e.employeement_id) "+
 				            "ELSE CONCAT('A-',e.employeement_id) "+
 				        "END AS employement_id "+
 				    "FROM projects p "+
 				    "INNER JOIN teams t ON p.project_id = t.project_id "+
-				    "INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id"+
+				    "INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id "+
 				    "INNER JOIN employee e ON e.emp_id = etm.emp_id "+
 				    "INNER JOIN clients c ON c.client_id = p.client_id "+
 				    "INNER JOIN Employees_With_Target_Project_Type target_emps ON e.emp_id = target_emps.emp_id "+
@@ -4098,8 +4098,8 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				        "(:multiPOs = 'All') "+
 				        "OR (:multiPOs = 'Yes' AND p.project_id IN  "+
 				            "(SELECT pp.project_id FROM project_po_details pp "+
-				             "WHERE pp.po_start_date <= (SELECT to_date FROM Date_Parameters) "+
-				             "AND (pp.po_end_date IS NULL OR pp.po_end_date >= (SELECT from_date FROM Date_Parameters)) "+
+				             "WHERE Date(pp.po_start_date) <= (SELECT to_date FROM Date_Parameters) "+
+				             "AND (pp.po_end_date IS NULL OR Date(pp.po_end_date) >= (SELECT from_date FROM Date_Parameters)) "+
 				             "GROUP BY pp.project_id HAVING count(*) > 1)) "+
 				        "OR (:multiPOs = 'No' AND p.project_id IN  "+
 				            "(SELECT pp.project_id FROM project_po_details pp "+
