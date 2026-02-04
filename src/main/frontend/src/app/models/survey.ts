@@ -14,4 +14,11 @@ export class Survey {
     isAnswered:boolean = false;
 
     employeementId:any;
+    type?: string; // 'quiz' or 'survey'
+    
+    // Training Quiz Mapping fields (for quiz creation from training)
+    trainingId?: number;
+    contentId?: number;
+    isMandatory?: boolean;
+    mustPassToComplete?: boolean;
 }

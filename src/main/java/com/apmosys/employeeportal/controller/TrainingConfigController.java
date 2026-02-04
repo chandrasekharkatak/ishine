@@ -26,22 +26,24 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.ComplianceReportDTO;
-import com.apmosys.employeeportal.dto.TrainingConsentDTO;
 import com.apmosys.employeeportal.dto.TrainingContentDTO;
 import com.apmosys.employeeportal.dto.TrainingMasterDTO;
 import com.apmosys.employeeportal.dto.TrainingRequestDTO;
-import com.apmosys.employeeportal.dto.TrainingSkipDTO;
-import com.apmosys.employeeportal.serviceInterface.TrainingService;
+import com.apmosys.employeeportal.serviceInterface.TrainingConfigService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * Controller for Training Configuration operations (HR/Admin)
+ * Handles CRUD operations for training configuration and content management
+ */
 @RestController
 @RequestMapping(path = "/api/training")
-public class TrainingController {
+public class TrainingConfigController {
 
 	@Autowired
-	private TrainingService trainingService;
+	private TrainingConfigService trainingConfigService;
 	
 	@Value("${file.location.documents.training}")
 	private String trainingFileLocation;
@@ -56,7 +58,15 @@ public class TrainingController {
 	public ServiceResponse getAllTrainings(
 			@RequestParam(required = false) String activeStatus,
 			@RequestParam(required = false) String mandatoryFlag) {
-		return trainingService.getAllTrainings(activeStatus, mandatoryFlag);
+		try {
+			return trainingConfigService.getAllTrainings(activeStatus, mandatoryFlag);
+		} catch (Exception e) {
+			e.printStackTrace();
+			ServiceResponse response = new ServiceResponse();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Error fetching trainings: " + e.getMessage());
+			return response;
+		}
 	}
 
 	@JobRoleAccess(featureIds = {3}) // Training Config - Create Training With Content
@@ -184,8 +194,11 @@ public class TrainingController {
 				contentDTO.setEffectiveTo(Date.valueOf(contentNode.get("effectiveTo").asText()));
 			}
 			
+			// Handle file upload if present - file will be saved in service layer
+			// We don't save file here as service handles it
+			
 			// Date range validation will be done in service layer
-			return trainingService.createTrainingWithContent(trainingDTO, contentDTO, trainingDTO.getCreatedBy(), file);
+			return trainingConfigService.createTrainingWithContent(trainingDTO, contentDTO, trainingDTO.getCreatedBy(), file);
 			
 		} catch (com.fasterxml.jackson.core.JsonProcessingException e) {
 			e.printStackTrace();
@@ -318,7 +331,7 @@ public class TrainingController {
 			}
 			
 			// Date range validation will be done in service layer
-			return trainingService.updateTrainingWithContent(trainingDTO, contentDTO, trainingDTO.getUpdatedBy());
+			return trainingConfigService.updateTrainingWithContent(trainingDTO, contentDTO, trainingDTO.getUpdatedBy());
 			
 		} catch (com.fasterxml.jackson.core.JsonProcessingException e) {
 			e.printStackTrace();
@@ -366,9 +379,10 @@ public class TrainingController {
 				contentDTO.setMimeType(file.getContentType());
 			}
 			
-			return trainingService.addTrainingContent(contentDTO, createdBy);
+			return trainingConfigService.addTrainingContent(contentDTO, createdBy);
 			
 		} catch (Exception e) {
+			e.printStackTrace();
 			ServiceResponse response = new ServiceResponse();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Error processing file: " + e.getMessage());
@@ -379,60 +393,57 @@ public class TrainingController {
 	@JobRoleAccess(featureIds = {3}) // Training Config - Update Content
 	@PostMapping(value = "/updateTrainingContent")
 	public ServiceResponse updateTrainingContent(@RequestBody TrainingContentDTO contentDTO) {
-		return trainingService.updateTrainingContent(contentDTO);
+		try {
+			return trainingConfigService.updateTrainingContent(contentDTO);
+		} catch (Exception e) {
+			e.printStackTrace();
+			ServiceResponse response = new ServiceResponse();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Error updating content: " + e.getMessage());
+			return response;
+		}
 	}
 
 	@JobRoleAccess(featureIds = {3}) // Training Config - View Content
 	@GetMapping(value = "/getTrainingContent/{trainingId}")
 	public ServiceResponse getTrainingContent(@PathVariable Integer trainingId) {
-		return trainingService.getTrainingContent(trainingId);
+		try {
+			return trainingConfigService.getTrainingContent(trainingId);
+		} catch (Exception e) {
+			e.printStackTrace();
+			ServiceResponse response = new ServiceResponse();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Error fetching content: " + e.getMessage());
+			return response;
+		}
 	}
 
 	@JobRoleAccess(featureIds = {3}) // Training Config - Deactivate Training
 	@PostMapping(value = "/deactivateTraining")
 	public ServiceResponse deactivateTraining(@RequestBody TrainingMasterDTO trainingDTO) {
-		return trainingService.deactivateTraining(trainingDTO.getTrainingId(), trainingDTO.getUpdatedBy());
-	}
-
-	// ==================== Employee Training APIs ====================
-	
-	@PostMapping(value = "/getPendingTraining")
-	public ServiceResponse getPendingTraining(@RequestBody TrainingRequestDTO request) {
-		return trainingService.getPendingTraining(request.getEmpId());
-	}
-
-	@PostMapping(value = "/getUserTrainings")
-	public ServiceResponse getUserTrainings(@RequestBody TrainingRequestDTO request) {
-		if (request == null || request.getEmpId() == null) {
+		try {
+			if (trainingDTO == null || trainingDTO.getTrainingId() == null || trainingDTO.getUpdatedBy() == null) {
+				ServiceResponse response = new ServiceResponse();
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Training ID and Updated By are required");
+				return response;
+			}
+			return trainingConfigService.deactivateTraining(trainingDTO.getTrainingId(), trainingDTO.getUpdatedBy());
+		} catch (Exception e) {
+			e.printStackTrace();
 			ServiceResponse response = new ServiceResponse();
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("Employee ID is required");
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Error deactivating training: " + e.getMessage());
 			return response;
 		}
-		return trainingService.getUserTrainings(request.getEmpId());
 	}
 
-	@PostMapping(value = "/submitConsent")
-	public ServiceResponse submitConsent(@RequestBody TrainingConsentDTO consentDTO) {
-		return trainingService.submitConsent(consentDTO);
-	}
-
-	@PostMapping(value = "/skipTraining")
-	public ServiceResponse skipTraining(@RequestBody TrainingSkipDTO skipDTO) {
-		return trainingService.skipTraining(skipDTO);
-	}
-
-	@PostMapping(value = "/getLockStatus")
-	public ServiceResponse getLockStatus(@RequestBody TrainingRequestDTO request) {
-		return trainingService.getLockStatus(request.getEmpId());
-	}
-
-	// Download Content - Accessible to employees (no JobRoleAccess restriction)
+	// Download Content - Accessible to both HR and employees (no JobRoleAccess restriction for viewing)
 	@GetMapping(value = "/downloadContent/{contentId}")
 	public ResponseEntity<Resource> downloadContent(@PathVariable Integer contentId) {
 		try {
 			System.out.println("Download request received for contentId: " + contentId);
-			ServiceResponse response = trainingService.downloadContent(contentId);
+			ServiceResponse response = trainingConfigService.downloadContent(contentId);
 			
 			if (response.getServiceStatus() != null && response.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
 				Resource resource = (Resource) response.getServiceResponse();
@@ -510,39 +521,58 @@ public class TrainingController {
 		}
 	}
 
-
-	@PostMapping(value = "/checkTrainingFrequency")
-	public ServiceResponse checkTrainingFrequency(@RequestBody TrainingRequestDTO request) {
-		return trainingService.checkTrainingFrequency(request.getEmpId(), request.getTrainingId());
-	}
-
 	// ==================== Reporting APIs ====================
 	
 	@JobRoleAccess(featureIds = {3}) // Training Config - View Training History
 	@PostMapping(value = "/getEmployeeTrainingHistory")
 	public ServiceResponse getEmployeeTrainingHistory(@RequestBody TrainingRequestDTO request) {
-		return trainingService.getEmployeeTrainingHistory(request.getEmpId(), request.getTrainingId());
+		try {
+			if (request == null || request.getEmpId() == null) {
+				ServiceResponse response = new ServiceResponse();
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee ID is required");
+				return response;
+			}
+			return trainingConfigService.getEmployeeTrainingHistory(request.getEmpId(), request.getTrainingId());
+		} catch (Exception e) {
+			e.printStackTrace();
+			ServiceResponse response = new ServiceResponse();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Error fetching training history: " + e.getMessage());
+			return response;
+		}
 	}
 
 	@JobRoleAccess(featureIds = {3}) // Training Config - Compliance Report
 	@PostMapping(value = "/getComplianceReport")
 	public ServiceResponse getComplianceReport(@RequestBody ComplianceReportDTO request) {
-		return trainingService.getComplianceReport(
-			request.getTrainingId(),
-			null, // departmentId - to be added to DTO if needed
-			null  // status - to be added to DTO if needed
-		);
-	}
-
-	// ==================== Internal/Cron APIs ====================
-	
-	@PostMapping(value = "/checkTrainingRequirements")
-	public ServiceResponse checkTrainingRequirements(@RequestBody TrainingRequestDTO request) {
-		return trainingService.checkTrainingRequirements(request.getEmpId());
+		try {
+			if (request == null || request.getTrainingId() == null) {
+				ServiceResponse response = new ServiceResponse();
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Training ID is required");
+				return response;
+			}
+			return trainingConfigService.getComplianceReport(
+				request.getTrainingId(),
+				null, // departmentId - to be added to DTO if needed
+				null  // status - to be added to DTO if needed
+			);
+		} catch (Exception e) {
+			e.printStackTrace();
+			ServiceResponse response = new ServiceResponse();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Error generating compliance report: " + e.getMessage());
+			return response;
+		}
 	}
 
 	// ==================== Helper Methods ====================
 	
+	/**
+	 * Save training file to disk
+	 * Note: File saving is actually handled in service layer, but keeping this for backward compatibility
+	 */
 	private String saveTrainingFile(Integer trainingId, MultipartFile file, Long createdBy) throws IOException {
 		// Create directory structure: {trainingFileLocation}/{trainingId}/
 		Path trainingDir = Paths.get(trainingFileLocation, trainingId.toString());

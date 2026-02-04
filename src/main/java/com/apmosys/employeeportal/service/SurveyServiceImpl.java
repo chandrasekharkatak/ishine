@@ -16,9 +16,15 @@ import com.apmosys.employeeportal.dto.SurveyQuestionDTO;
 import com.apmosys.employeeportal.model.Survey;
 import com.apmosys.employeeportal.model.SurveyEmployeeResponse;
 import com.apmosys.employeeportal.model.SurveyQuestion;
+import com.apmosys.employeeportal.model.TrainingContent;
+import com.apmosys.employeeportal.model.TrainingMaster;
+import com.apmosys.employeeportal.model.TrainingQuizMapping;
 import com.apmosys.employeeportal.repository.SurveyEmployeeResponseRepository;
 import com.apmosys.employeeportal.repository.SurveyQuestionRepository;
 import com.apmosys.employeeportal.repository.SurveyRepository;
+import com.apmosys.employeeportal.repository.TrainingContentRepository;
+import com.apmosys.employeeportal.repository.TrainingMasterRepository;
+import com.apmosys.employeeportal.repository.TrainingQuizMappingRepository;
 import com.apmosys.employeeportal.serviceInterface.SurveyService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -46,6 +52,15 @@ public class SurveyServiceImpl implements SurveyService {
 
 	@Autowired
 	private LogService logService;
+	
+	@Autowired
+	private TrainingQuizMappingRepository trainingQuizMappingRepository;
+	
+	@Autowired
+	private TrainingMasterRepository trainingMasterRepository;
+	
+	@Autowired
+	private TrainingContentRepository trainingContentRepository;
 
 	@Override
 	@Transactional
@@ -76,6 +91,11 @@ public class SurveyServiceImpl implements SurveyService {
 			newSurvey.setSurveyName(surveyDTO.getSurveyName());
 			newSurvey.setDescription(surveyDTO.getDescription());
 			newSurvey.setIsActive(surveyDTO.getIsActive());
+			
+			// Set type to "quiz" if created from training context
+			if (surveyDTO.getTrainingId() != null) {
+				newSurvey.setType("quiz");
+			}
 //			newSurvey.setImageUrl(surveyDTO.getImageUrl()); 
 //	        newSurvey.setVideoUrl(surveyDTO.getVideoUrl());
 			
@@ -118,6 +138,39 @@ public class SurveyServiceImpl implements SurveyService {
 				List<SurveyQuestion> listSaved = surveyQuestionRepository.saveAll(list);
 
 				if (listSaved.size() > 0) {
+					// Create training-quiz mapping if quiz is created from training context
+					if (surveyDTO.getTrainingId() != null && newSurveyCreated.getSurveyId() != null) {
+						try {
+							TrainingMaster trainingMaster = trainingMasterRepository.findByTrainingId(surveyDTO.getTrainingId())
+									.orElseThrow(() -> new RuntimeException("Training not found with ID: " + surveyDTO.getTrainingId()));
+							
+							TrainingQuizMapping mapping = new TrainingQuizMapping();
+							mapping.setTrainingMaster(trainingMaster);
+							mapping.setSurvey(newSurveyCreated);
+							mapping.setIsMandatory(surveyDTO.getIsMandatory() != null ? surveyDTO.getIsMandatory() : false);
+							mapping.setMustPassToComplete(surveyDTO.getMustPassToComplete() != null ? surveyDTO.getMustPassToComplete() : false);
+							mapping.setActiveStatus("true");
+							mapping.setCreatedBy(surveyDTO.getCreatedBy());
+							
+							// Set content if provided
+							if (surveyDTO.getContentId() != null) {
+								TrainingContent trainingContent = trainingContentRepository.findByContentId(surveyDTO.getContentId())
+										.orElse(null);
+								if (trainingContent != null) {
+									mapping.setTrainingContent(trainingContent);
+								}
+							}
+							
+							trainingQuizMappingRepository.save(mapping);
+							logBuilder.append(" , Training-Quiz Mapping created for TrainingId: " + surveyDTO.getTrainingId());
+						} catch (Exception mappingException) {
+							// Log error but don't fail the survey creation
+							System.err.println("Error creating training-quiz mapping: " + mappingException.getMessage());
+							mappingException.printStackTrace();
+							logBuilder.append(" , Warning: Training-Quiz Mapping creation failed: " + mappingException.getMessage());
+						}
+					}
+					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Survey created successfully.");
 					apiLogInfo.setApiResponse("Survey Created Successfully");			
@@ -150,7 +203,7 @@ public class SurveyServiceImpl implements SurveyService {
 	}
 
 	@Override
-	public ServiceResponse getAllSurveys() {
+	public ServiceResponse getAllSurveys(Long trainingId) {
 
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -161,7 +214,16 @@ public class SurveyServiceImpl implements SurveyService {
 
 		try {
 
-			List<Object[]> objectList = surveyRepository.getAllSurveys();
+			List<Object[]> objectList;
+
+			if (trainingId != null) {
+			    objectList = surveyRepository.getSurveysByTrainingId(trainingId);
+			    logBuilder.append("Survey fetched in TRAINING context. TrainingId = " + trainingId);
+			} else {
+			    objectList = surveyRepository.getAllSurveys();
+			    logBuilder.append("Survey fetched in GLOBAL context");
+			}
+
 			logBuilder.append("AllSurveyList size : " + objectList.size());
 
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {

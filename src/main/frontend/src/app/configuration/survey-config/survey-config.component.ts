@@ -1,7 +1,7 @@
 import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import * as moment from 'moment';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { ClipboardService } from 'ngx-clipboard';
@@ -75,6 +75,11 @@ export class SurveyConfigComponent implements OnInit {
 
   employeesFor360: any[] = [];
 
+  // Training context (if navigated from training-config)
+  isFromTraining: boolean = false;
+  trainingId: number | null = null;
+  trainingName: string = '';
+
   constructor(
     private validationService: ValidationService,
     private modalService: NgbModal,
@@ -84,12 +89,27 @@ export class SurveyConfigComponent implements OnInit {
     private locationStrategy: LocationStrategy,
     private clipboardService: ClipboardService,
     private router: Router,
+    private route: ActivatedRoute,
     private utilityService: UtilityService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
   async ngOnInit(): Promise<void> {
+
+    // Check if navigated from training-config
+    this.route.queryParams.subscribe(params => {
+      if (params['source'] === 'training') {
+        this.isFromTraining = true;
+        this.trainingId = params['trainingId'] ? +params['trainingId'] : null;
+        this.trainingName = params['trainingName'] || '';
+      } else {
+        // Reset training context if query params are not present (e.g., clicked Survey tab)
+        this.isFromTraining = false;
+        this.trainingId = null;
+        this.trainingName = '';
+      }
+    });
 
     // Dynamic Subfeature Flags
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -105,6 +125,15 @@ export class SurveyConfigComponent implements OnInit {
 
     //console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
     this.preventBackButton();
+  }
+
+  // Navigate back to training-config
+  backToTraining() {
+    this.router.navigate(['/configuration/training-config'], {
+      queryParams: {
+        trainingId: this.trainingId
+      }
+    });
   }
   preventBackButton(){
     history.pushState(null, null, location.href);
@@ -306,6 +335,14 @@ export class SurveyConfigComponent implements OnInit {
     surveyObj.surveyTemplate = surveyTemplate;
     surveyObj.createdBy = this.currentUser.empId;
     surveyObj.isActive = false;
+    
+    // If creating quiz from training context, set type and training mapping fields
+    if (this.isFromTraining && this.trainingId) {
+      surveyObj.type = 'quiz';
+      (surveyObj as any).trainingId = this.trainingId;
+      (surveyObj as any).isMandatory = true; // Default to mandatory for training quizzes
+      (surveyObj as any).mustPassToComplete = false; // Default to false (can be enhanced later)
+    }
 
     surveyObj.surveyQuestionList.forEach((survey:SurveyQuestion) => {
       survey.options = JSON.stringify(survey.optionsList);
@@ -315,7 +352,14 @@ export class SurveyConfigComponent implements OnInit {
     this.surveyService.createSurvey(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
-        this.showSurveys();
+        // If created from training, navigate back to training config
+        if (this.isFromTraining) {
+          setTimeout(() => {
+            this.backToTraining();
+          }, 1500);
+        } else {
+          this.showSurveys();
+        }
       }else{
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -334,7 +378,7 @@ export class SurveyConfigComponent implements OnInit {
     this.sortDirection='';
     this.allSurveyList = [];
 
-    this.surveyService.getAllSurveys().pipe(first()).subscribe((response: any) => {
+    this.surveyService.getAllSurveys(this.trainingId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
        this.allSurveyList = response.serviceResponse;
        this.allSurveyList.forEach(survey => {
@@ -715,8 +759,8 @@ export class SurveyConfigComponent implements OnInit {
       this.sortDirection = sort.direction;
     }
   }
-  onSearch(searchData){
-    this.filters = searchData;
+  onSearch(searchData: any){
+    this.filters = searchData || {};
     //console.log("Updated Filter : ", this.filters);
   }
 

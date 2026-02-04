@@ -28,9 +28,16 @@ export class SurveyService {
         return this.http.post(`${this.baseUrl}` + `api/changeSurveyStatus`, surveyObj);
     }
 
-    getAllSurveys() {
-        return this.http.get(`${this.baseUrl}` + `api/getAllSurveys`);
-    }
+    getAllSurveys(trainingId?: number) {
+     let params: any = {};
+   
+     if (trainingId) {
+            params.trainingId = trainingId;
+          }
+        
+       return this.http.get(`${this.baseUrl}api/getAllSurveys`, { params });
+     }
+
 
     getAllQuestionsBySurveyId(surveyObj: Survey) {
         return this.http.post(`${this.baseUrl}` + `api/getAllQuestionsBySurveyId`, surveyObj);

@@ -25,7 +25,14 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
   
   // All trainings list
   allTrainings: any[] = [];
+  mustAttendTrainings: any[] = []; // Trainings that must be attended (frozen)
   showAllTrainings: boolean = false;
+  
+  // Pagination and filters for All Trainings
+  allTrainingsPage: number = 1;
+  allTrainingsPageSize: number = 6;
+  allTrainingsFilter: string = '';
+  allTrainingsFiltered: any[] = [];
   
   // Currently viewing training (for modal)
   viewingTraining: any = null;
@@ -55,6 +62,10 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
   deadlineCrossedTrainings: any[] = [];
   currentDeadlineCrossedIndex: number = -1;
   isAutoOpening: boolean = false;
+  
+  // Accordion states
+  mustAttendExpanded: boolean = true; // Expanded by default
+  allTrainingsExpanded: boolean = true; // Expanded by default
   
   // Modals
   modalRef: NgbModalRef;
@@ -141,12 +152,24 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
         this.allTrainings = response.serviceResponse || [];
         this.showAllTrainings = true;
         
-        // Separate deadline-crossed trainings (only mandatory with lock enabled)
-        this.deadlineCrossedTrainings = this.allTrainings.filter(t => 
-          t.isDeadlineCrossed === true && 
-          t.status === 'PENDING' && 
-          t.lockEnabled === true &&
-          t.mandatoryFlag === 'true'
+        // Filter "Must Attend" trainings based on new freeze logic:
+        // a) Training mandatory AND lock enabled AND not attended (irrespective of deadline)
+        // b) Training mandatory AND deadline crossed AND not attended (irrespective of lock enabled)
+        this.mustAttendTrainings = this.allTrainings.filter(t => 
+          t.mandatoryFlag === 'true' && 
+          (t.status === 'PENDING' || t.status === 'SKIPPED') && 
+          (
+            (t.lockEnabled === true) || // Case a: lock enabled
+            (t.isDeadlineCrossed === true) // Case b: deadline crossed
+          )
+        );
+        
+        // Apply filter to all trainings
+        this.applyAllTrainingsFilter();
+        
+        // Separate deadline-crossed trainings for auto-opening (only mandatory with lock enabled OR deadline crossed)
+        this.deadlineCrossedTrainings = this.mustAttendTrainings.filter(t => 
+          t.isDeadlineCrossed === true
         );
         
         // Auto-open first deadline-crossed training if any
@@ -156,12 +179,9 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
           this.viewTraining(this.deadlineCrossedTrainings[0], true);
         }
         
-        // Check for single pending training (non-deadline-crossed, mandatory with lock enabled)
-        const singlePending = this.allTrainings.find(t => 
-          t.status === 'PENDING' && 
-          !t.isDeadlineCrossed && 
-          t.lockEnabled === true &&
-          t.mandatoryFlag === 'true'
+        // Check for single pending training (non-deadline-crossed, but must attend)
+        const singlePending = this.mustAttendTrainings.find(t => 
+          !t.isDeadlineCrossed
         );
         
         if (singlePending && this.deadlineCrossedTrainings.length === 0) {
@@ -170,6 +190,8 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       } else {
         this.allTrainings = [];
+        this.mustAttendTrainings = [];
+        this.allTrainingsFiltered = [];
       }
     }, error => {
       this.loading = false;
@@ -178,28 +200,30 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  getPendingTraining() {
-    if (!this.currentUser || !this.currentUser.empId) {
-      return;
+  applyAllTrainingsFilter() {
+    if (!this.allTrainingsFilter || this.allTrainingsFilter.trim() === '') {
+      this.allTrainingsFiltered = [...this.allTrainings];
+    } else {
+      const filterLower = this.allTrainingsFilter.toLowerCase().trim();
+      this.allTrainingsFiltered = this.allTrainings.filter(t => 
+        (t.trainingName && t.trainingName.toLowerCase().includes(filterLower)) ||
+        (t.trainingType && t.trainingType.toLowerCase().includes(filterLower)) ||
+        (t.status && t.status.toLowerCase().includes(filterLower))
+      );
     }
-
-    this.loading = true;
-    this.trainingService.getPendingTraining(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
-      this.loading = false;
-      if (response.serviceStatus === 'Success' && response.serviceResponse) {
-        this.pendingTraining = response.serviceResponse;
-        this.setupTrainingContent();
-      } else {
-        // No pending training
-        this.pendingTraining = null;
-        this.isLocked = false;
-      }
-    }, error => {
-      this.loading = false;
-      console.error('Error getting pending training:', error);
-    });
+    // Reset to first page when filter changes
+    this.allTrainingsPage = 1;
   }
 
+  getPaginatedAllTrainings(): any[] {
+    const start = (this.allTrainingsPage - 1) * this.allTrainingsPageSize;
+    const end = start + this.allTrainingsPageSize;
+    return this.allTrainingsFiltered.slice(start, end);
+  }
+
+  getTotalAllTrainingsPages(): number {
+    return Math.ceil(this.allTrainingsFiltered.length / this.allTrainingsPageSize);
+  }
   setupTrainingContent() {
     if (!this.pendingTraining || !this.pendingTraining.content) {
       return;
@@ -280,20 +304,21 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onSubmitConsent() {
     if (!this.pendingTraining || !this.pendingTraining.content) {
+      this.openAlert('Training information is missing. Please refresh the page.', 'error');
       return;
     }
 
     // Validate minimum time if required
     if (this.pendingTraining.minViewTimeMinutes && this.pendingTraining.minViewTimeMinutes > 0) {
       if (!this.minTimeReached) {
-        this.openAlertMod(this.alertTemplate, `Please view the training for at least ${this.pendingTraining.minViewTimeMinutes} minutes before submitting consent.`);
+        this.openAlert(`Please view the training for at least ${this.pendingTraining.minViewTimeMinutes} minutes before submitting consent.`, 'warning');
         return;
       }
     }
 
     // Validate external link visit
     if (this.isExternalLink && !this.hasVisitedLink) {
-      this.openAlertMod(this.alertTemplate, 'Please click on the external link to visit the training content before submitting consent.');
+      this.openAlert('Please click on the external link to visit the training content before submitting consent.', 'warning');
       return;
     }
 
@@ -306,22 +331,27 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.trainingService.submitConsent(consentData).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === 'Success') {
-        this.openAlertMod(this.alertTemplate, 'Training completed successfully!');
-        
         // Stop timer
         if (this.timerInterval) {
           clearInterval(this.timerInterval);
         }
         
-        // Refresh lock status
+        // Show success message
+        this.openAlert('Training completed successfully! Your consent has been submitted.', 'success');
+        
+        // Clear pending training
+        this.pendingTraining = null;
+        
+        // Reload trainings to remove from mandatory list and update lock status
         setTimeout(() => {
           this.checkLockStatus();
-        }, 1000);
+          this.loadUserTrainings();
+        }, 1500);
       } else {
-        this.openAlertMod(this.alertTemplate, response.serviceResponse || 'Failed to submit consent');
+        this.openAlert(response.serviceResponse || 'Failed to submit consent', 'error');
       }
     }, error => {
-      this.openAlertMod(this.alertTemplate, 'Error submitting consent: ' + error.message);
+      this.openAlert('Error submitting consent: ' + (error.error?.message || error.message), 'error');
     });
   }
 
@@ -694,35 +724,39 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.trainingService.submitConsent(consentData).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === 'Success') {
-        this.openAlert('Training completed successfully!', 'success');
-        
         // Stop timer
         if (this.timerInterval) {
           clearInterval(this.timerInterval);
         }
-        
-        // Close current training view
+          // Close current training view
         this.closeTrainingView();
+        // Show success message
+        this.openAlert('Training completed successfully! Your consent has been submitted.', 'success');
         
-        // Move to next deadline-crossed training if auto-opening
-        if (this.isAutoOpening && this.currentDeadlineCrossedIndex < this.deadlineCrossedTrainings.length - 1) {
-          this.currentDeadlineCrossedIndex++;
-          setTimeout(() => {
-            this.viewTraining(this.deadlineCrossedTrainings[this.currentDeadlineCrossedIndex], true);
-          }, 1000);
-        } else {
-          this.isAutoOpening = false;
-        }
+         this.currentUser.trainingLockStatus = null;
+         this.authenticationService.setcurrentUserSubject(this.currentUser);
         
-        // Reload trainings
+        // Reload trainings to remove from mandatory list and update lock status
         setTimeout(() => {
+          this.checkLockStatus();
           this.loadUserTrainings();
-        }, 1000);
+          
+          // Move to next deadline-crossed training if auto-opening
+          if (this.isAutoOpening && this.deadlineCrossedTrainings.length > 0 && 
+              this.currentDeadlineCrossedIndex < this.deadlineCrossedTrainings.length - 1) {
+            this.currentDeadlineCrossedIndex++;
+            setTimeout(() => {
+              this.viewTraining(this.deadlineCrossedTrainings[this.currentDeadlineCrossedIndex], true);
+            }, 500);
+          } else {
+            this.isAutoOpening = false;
+          }
+        }, 1500);
       } else {
         this.openAlert(response.serviceResponse || 'Failed to submit consent', 'error');
       }
     }, error => {
-      this.openAlert('Error submitting consent: ' + error.message, 'error');
+      this.openAlert('Error submitting consent: ' + (error.error?.message || error.message), 'error');
     });
   }
 
@@ -839,14 +873,6 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
       modalDialogClass: 'alert-toast-dialog',
       size: 'sm'
     });
-    
-    if (type === 'success') {
-      setTimeout(() => {
-        if (this.modalRef) {
-          this.modalRef.close();
-        }
-      }, 3000);
-    }
   }
 
   getProgressPercentageForModal(): number {

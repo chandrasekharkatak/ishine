@@ -4,6 +4,8 @@ import java.sql.Date;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -31,8 +33,8 @@ public interface TrainingContentRepository extends JpaRepository<TrainingContent
 		   "AND tc.effectiveFrom <= CURRENT_DATE " +
 		   "AND (tc.effectiveTo IS NULL OR tc.effectiveTo >= CURRENT_DATE) " +
 		   "ORDER BY tc.effectiveFrom DESC")
-	Optional<TrainingContent> findCurrentActiveContent(@Param("trainingId") Integer trainingId);
-	
+	Page<TrainingContent> findCurrentActiveContent(@Param("trainingId") Integer trainingId,Pageable pageable);
+	//findCurrentActiveContent
 	@Query("SELECT tc FROM TrainingContent tc WHERE tc.trainingMaster.trainingId = :trainingId " +
 		   "AND tc.activeStatus = 'true' " +
 		   "AND ((tc.effectiveFrom <= :effectiveTo AND (tc.effectiveTo IS NULL OR tc.effectiveTo >= :effectiveFrom)) " +

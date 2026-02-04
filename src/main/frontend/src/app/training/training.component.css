@@ -7,6 +7,11 @@
   border-radius: 0;
 }
 
+.enterprise-blue-header {
+  background-color: #003366 !important; /* Enterprise blue color */
+  color: white;
+}
+
 .page-header.bg-danger {
   background-color: #dc3545 !important;
 }
@@ -20,13 +25,56 @@
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1400px; /* Increased to accommodate wider cards */
 }
 
 .card {
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* Ensure cards fill their container width properly */
+.training-card {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.training-card .card-body {
+  flex: 1;
+}
+
+/* Ensure accordion headers are clickable */
+.accordion .card-header {
+  user-select: none;
+}
+
+.accordion .card-header button {
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+
+.accordion .card-header button:hover {
+  text-decoration: none;
+  opacity: 0.9;
+}
+
+.accordion .card-header button:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.accordion .collapse {
+  transition: height 0.35s ease;
+}
+
+.accordion .collapse.show {
+  display: block;
 }
 
 .card:hover {

@@ -50,11 +50,6 @@ export class TrainingService {
     });
   }
 
-  // Employee Training APIs
-  getPendingTraining(empId: number) {
-    return this.http.post(`${this.baseUrl}api/training/getPendingTraining`, { empId: empId });
-  }
-
   getUserTrainings(empId: number) {
     return this.http.post(`${this.baseUrl}api/training/getUserTrainings`, { empId: empId });
   }

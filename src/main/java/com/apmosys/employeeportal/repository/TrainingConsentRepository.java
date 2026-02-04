@@ -33,6 +33,22 @@ public interface TrainingConsentRepository extends JpaRepository<TrainingConsent
 			@Param("contentId") Integer contentId,
 			@Param("cycleNumber") Integer cycleNumber);
 	
+	
+	
+	@Query(
+		    "SELECT CASE WHEN COUNT(tc) > 0 THEN true ELSE false END " +
+		    "FROM TrainingConsent tc " +
+		    "WHERE tc.empId = :empId " +
+		    "AND tc.trainingMaster.trainingId = :trainingId " +
+		    "AND tc.trainingContent.contentId = :contentId"
+		)
+		boolean existsByEmpIdAndTrainingIdAndContentId(
+		        @Param("empId") Long empId,
+		        @Param("trainingId") Integer trainingId,
+		        @Param("contentId") Integer contentId
+		);
+
+	
 	@Query("SELECT COUNT(DISTINCT tc.completionCycleNumber) FROM TrainingConsent tc " +
 		   "WHERE tc.empId = :empId " +
 		   "AND tc.trainingMaster.trainingId = :trainingId " +

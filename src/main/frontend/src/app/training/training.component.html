@@ -2,12 +2,11 @@
 <div class="training-page-container">
     <div class="container-fluid py-4">
         <!-- Page Header -->
-        <div class="page-header mb-4" [ngClass]="{'bg-danger text-white': pendingTraining && isLocked, 'bg-primary text-white': !pendingTraining || !isLocked}">
+        <div class="page-header mb-4 enterprise-blue-header">
             <div class="container">
-                <h4 class="mb-0 py-3">
-                    <i class="fas" [ngClass]="{'fa-lock': pendingTraining && isLocked, 'fa-graduation-cap': !pendingTraining || !isLocked}" class="mr-2"></i>
-                    <span *ngIf="pendingTraining && isLocked">Training Lock Active</span>
-                    <span *ngIf="!pendingTraining || !isLocked">My Trainings</span>
+                <h4 class="my-3 py-3 text-white">
+                    <i class="fas fa-graduation-cap mr-2"></i>
+                    My Trainings
                 </h4>
             </div>
         </div>
@@ -39,7 +38,7 @@
                             <strong>Training Type:</strong> {{pendingTraining.trainingType}}
                         </div>
                         <div class="col-md-6">
-                            <strong>Cycle:</strong> {{pendingTraining.currentCycleNumber}}
+                            <strong>Current Cycle:</strong> {{pendingTraining.currentCycleNumber}}
                         </div>
                     </div>
                     <div class="row mb-3" *ngIf="pendingTraining.currentCycleDeadline">
@@ -182,25 +181,154 @@
                 </div>
             </div>
 
-            <!-- Trainings List -->
-            <div class="row" *ngIf="!loading && allTrainings.length > 0">
+            <!-- Two Accordions -->
+            <div class="row" *ngIf="!loading">
                 <div class="col-md-12">
-                    <!-- Info Alert for Deadline Crossed -->
-                    <div class="alert alert-danger mb-4" *ngIf="deadlineCrossedTrainings.length > 0">
-                        <i class="fas fa-exclamation-triangle mr-2"></i>
-                        <strong>Action Required:</strong> You have {{deadlineCrossedTrainings.length}} mandatory training(s) with crossed deadline. 
-                        These trainings will open automatically and must be completed to unlock the portal.
-                    </div>
-                    
-                    <!-- Info Alert for All Trainings -->
-                    <div class="alert alert-info mb-4">
-                        <i class="fas fa-info-circle mr-2"></i>
-                        <strong>Note:</strong> This list shows all available trainings. Mandatory trainings with lock enabled will block other portal operations until completed.
+                    <!-- Accordion 1: Must Attend Trainings -->
+                    <div class="accordion mb-4" id="mustAttendAccordion">
+                        <div class="card">
+                            <div class="card-header bg-danger text-white" id="mustAttendHeading" style="cursor: pointer;" (click)="mustAttendExpanded = !mustAttendExpanded">
+                                <h5 class="mb-0">
+                                    <button class="btn btn-link text-white" type="button" 
+                                            [attr.aria-expanded]="mustAttendExpanded" 
+                                            aria-controls="mustAttendCollapse"
+                                            (click)="mustAttendExpanded = !mustAttendExpanded; $event.stopPropagation()">
+                                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                                        <strong>Trainings You Must Attend</strong>
+                                        <span class="badge badge-light ml-2">{{mustAttendTrainings.length}}</span>
+                                        <i class="fas ml-2" [ngClass]="{'fa-chevron-down': !mustAttendExpanded, 'fa-chevron-up': mustAttendExpanded}"></i>
+                                    </button>
+                                </h5>
+                            </div>
+                            <div id="mustAttendCollapse" 
+                                 class="collapse"
+                                 [ngClass]="{'show': mustAttendExpanded}"
+                                 [attr.aria-expanded]="mustAttendExpanded"
+                                 aria-labelledby="mustAttendHeading"
+                                 data-parent="#mustAttendAccordion">
+                                <div class="card-body">
+                                    <!-- Info Alert -->
+                                    <div class="alert alert-warning mb-4" *ngIf="mustAttendTrainings.length > 0">
+                                        <i class="fas fa-info-circle mr-2"></i>
+                                        <strong>Important:</strong> These trainings must be completed. 
+                                        You are frozen on this screen until you complete them. 
+                                        <span *ngIf="deadlineCrossedTrainings.length > 0">
+                                            {{deadlineCrossedTrainings.length}} training(s) have crossed deadline and will open automatically.
+                                        </span>
+                                    </div>
+                                    
+                                    <!-- Must Attend Training Cards -->
+                                    <div class="row" *ngIf="mustAttendTrainings.length > 0">
+                                        <div class="col-12 col-md-6 col-lg-6 mb-4" *ngFor="let training of mustAttendTrainings">
+                                            <div class="card shadow-sm h-100 training-card border-danger">
+                                                <div class="card-header bg-danger text-white">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <h6 class="mb-0">
+                                                            <i class="fas fa-lock mr-2"></i>
+                                                            {{training.trainingName}}
+                                                        </h6>
+                                                        <span class="badge badge-light" [ngClass]="getStatusBadgeClass(training.status)">
+                                                            {{training.status}}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="mb-2">
+                                                        <strong>Type:</strong> 
+                                                        <span class="badge badge-secondary">{{training.trainingType}}</span>
+                                                        <span class="badge badge-danger ml-1">Mandatory</span>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <strong>Current Cycle:</strong> {{training.currentCycleNumber}}
+                                                    </div>
+                                                    <div class="mb-2" *ngIf="training.deadline">
+                                                        <strong>Deadline:</strong> 
+                                                        <span [ngClass]="{'text-danger font-weight-bold': training.isDeadlineCrossed}">
+                                                            {{training.deadline | date:'dd-MMM-yyyy'}}
+                                                        </span>
+                                                        <span class="badge badge-danger ml-2" *ngIf="training.isDeadlineCrossed">
+                                                            Deadline Crossed
+                                                        </span>
+                                                    </div>
+                                                    <div class="mb-2" *ngIf="training.lockEnabled === true">
+                                                        <span class="badge badge-warning">Lock Enabled</span>
+                                                    </div>
+                                                    <div class="mb-2" *ngIf="training.content">
+                                                        <strong>Content:</strong> {{training.content.contentName}}
+                                                    </div>
+                                                </div>
+                                                <div class="card-footer bg-light">
+                                                    <button type="button" 
+                                                            class="btn btn-sm btn-primary btn-block"
+                                                            [disabled]="!canViewTraining(training)"
+                                                            (click)="viewTraining(training, training.isDeadlineCrossed)">
+                                                        <i class="fas fa-eye mr-1"></i>
+                                                        View Training
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- No Must Attend Trainings -->
+                                    <div class="alert alert-success text-center" *ngIf="mustAttendTrainings.length === 0">
+                                        <i class="fas fa-check-circle fa-2x mb-3"></i>
+                                        <h5>Great!</h5>
+                                        <p class="mb-0">You don't have any mandatory trainings that require immediate attention.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Training Cards -->
-                    <div class="row">
-                        <div class="col-md-6 col-lg-4 mb-4" *ngFor="let training of allTrainings">
+                    <!-- Accordion 2: All Trainings (with pagination and filter) -->
+                    <div class="accordion" id="allTrainingsAccordion">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white" id="allTrainingsHeading" style="cursor: pointer;" (click)="allTrainingsExpanded = !allTrainingsExpanded">
+                                <h5 class="mb-0">
+                                    <button class="btn btn-link text-white" type="button" 
+                                            [attr.aria-expanded]="allTrainingsExpanded" 
+                                            aria-controls="allTrainingsCollapse"
+                                            (click)="allTrainingsExpanded = !allTrainingsExpanded; $event.stopPropagation()">
+                                        <i class="fas fa-list mr-2"></i>
+                                        <strong>All Trainings</strong>
+                                        <span class="badge badge-light ml-2">{{allTrainings.length}}</span>
+                                        <i class="fas ml-2" [ngClass]="{'fa-chevron-down': !allTrainingsExpanded, 'fa-chevron-up': allTrainingsExpanded}"></i>
+                                    </button>
+                                </h5>
+                            </div>
+                            <div id="allTrainingsCollapse" 
+                                 class="collapse"
+                                 [ngClass]="{'show': allTrainingsExpanded}"
+                                 [attr.aria-expanded]="allTrainingsExpanded"
+                                 aria-labelledby="allTrainingsHeading"
+                                 data-parent="#allTrainingsAccordion">
+                                <div class="card-body">
+                                    <!-- Filter -->
+                                    <div class="row mb-4">
+                                        <div class="col-md-6">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                                </div>
+                                                <input type="text" 
+                                                       class="form-control" 
+                                                       placeholder="Search by name, type, or status..."
+                                                       [(ngModel)]="allTrainingsFilter"
+                                                       (input)="applyAllTrainingsFilter()">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 text-right">
+                                            <small class="text-muted">
+                                                Showing {{getPaginatedAllTrainings().length}} of {{allTrainingsFiltered.length}} trainings
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <!-- All Training Cards -->
+                                    <div class="row" *ngIf="getPaginatedAllTrainings().length > 0">
+                                        <div class="col-12 col-md-6 col-lg-6 mb-4" *ngFor="let training of getPaginatedAllTrainings()"
+                                             [ngClass]="{'col-lg-12': training.status === 'PENDING' && training.mandatoryFlag === 'true'}">
                             <div class="card shadow-sm h-100 training-card" 
                                  [ngClass]="{
                                      'border-danger': training.isDeadlineCrossed && training.status === 'PENDING',
@@ -237,7 +365,7 @@
                                         </span>
                                     </div>
                                     <div class="mb-2">
-                                        <strong>Cycle:</strong> {{training.currentCycleNumber}}
+                                        <strong>Current Cycle:</strong> {{training.currentCycleNumber}}
                                     </div>
                                     <div class="mb-2" *ngIf="training.deadline">
                                         <strong>Deadline:</strong> 
@@ -284,17 +412,61 @@
                                 </div>
                             </div>
                         </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Pagination -->
+                                    <div class="row mt-4" *ngIf="getTotalAllTrainingsPages() > 1">
+                                        <div class="col-md-12">
+                                            <nav aria-label="All trainings pagination">
+                                                <ul class="pagination justify-content-center">
+                                                    <li class="page-item" [ngClass]="{'disabled': allTrainingsPage === 1}">
+                                                        <a class="page-link" href="javascript:void(0)" (click)="allTrainingsPage = 1" *ngIf="allTrainingsPage > 1">First</a>
+                                                    </li>
+                                                    <li class="page-item" [ngClass]="{'disabled': allTrainingsPage === 1}">
+                                                        <a class="page-link" href="javascript:void(0)" (click)="allTrainingsPage = allTrainingsPage - 1" *ngIf="allTrainingsPage > 1">Previous</a>
+                                                    </li>
+                                                    <li class="page-item active">
+                                                        <span class="page-link">
+                                                            Page {{allTrainingsPage}} of {{getTotalAllTrainingsPages()}}
+                                                        </span>
+                                                    </li>
+                                                    <li class="page-item" [ngClass]="{'disabled': allTrainingsPage === getTotalAllTrainingsPages()}">
+                                                        <a class="page-link" href="javascript:void(0)" (click)="allTrainingsPage = allTrainingsPage + 1" *ngIf="allTrainingsPage < getTotalAllTrainingsPages()">Next</a>
+                                                    </li>
+                                                    <li class="page-item" [ngClass]="{'disabled': allTrainingsPage === getTotalAllTrainingsPages()}">
+                                                        <a class="page-link" href="javascript:void(0)" (click)="allTrainingsPage = getTotalAllTrainingsPages()" *ngIf="allTrainingsPage < getTotalAllTrainingsPages()">Last</a>
+                                                    </li>
+                                                </ul>
+                                            </nav>
+                                        </div>
+                                    </div>
+
+                                    <!-- No Trainings Message -->
+                                    <div class="alert alert-info text-center" *ngIf="allTrainingsFiltered.length === 0">
+                                        <i class="fas fa-info-circle fa-2x mb-3"></i>
+                                        <h5>No Trainings Found</h5>
+                                        <p class="mb-0" *ngIf="allTrainingsFilter">
+                                            No trainings match your search criteria. Try a different search term.
+                                        </p>
+                                        <p class="mb-0" *ngIf="!allTrainingsFilter">
+                                            You don't have any trainings assigned at the moment.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- No Trainings Message -->
+            <!-- No Trainings Message (when no trainings at all) -->
             <div class="row" *ngIf="!loading && allTrainings.length === 0">
                 <div class="col-md-12">
                     <div class="alert alert-info text-center">
                         <i class="fas fa-info-circle fa-2x mb-3"></i>
                         <h5>No Trainings Available</h5>
-                        <p class="mb-0">You don't have any mandatory trainings assigned at the moment.</p>
+                        <p class="mb-0">You don't have any trainings assigned at the moment.</p>
                         <button class="btn btn-primary mt-3" (click)="goToHome()">
                             <i class="fas fa-home mr-2"></i>Go to Home
                         </button>
@@ -311,7 +483,6 @@
             <p class="mt-3">Loading training information...</p>
         </div>
     </div>
-</div>
 
 <!-- Training View Modal -->
 <ng-template #training_view_modal let-modal>
@@ -361,7 +532,7 @@
                     <strong>Training Type:</strong> {{viewingTraining.trainingType}}
                 </div>
                 <div class="col-md-6">
-                    <strong>Cycle:</strong> {{viewingTraining.currentCycleNumber}}
+                    <strong>Current Cycle:</strong> {{viewingTraining.currentCycleNumber}}
                 </div>
             </div>
             <div class="row mb-3" *ngIf="viewingTraining.deadline">
@@ -585,15 +756,28 @@
         'bg-warning': alertType === 'warning',
         'bg-info': alertType === 'info'
     }">
-        <h4 class="modal-title text-white">{{alertType === 'success' ? 'Success' : alertType === 'error' ? 'Error' : alertType === 'warning' ? 'Warning' : 'Info'}}</h4>
+        <h4 class="modal-title text-white">
+            <i class="fas" [ngClass]="{
+                'fa-check-circle': alertType === 'success',
+                'fa-exclamation-circle': alertType === 'error',
+                'fa-exclamation-triangle': alertType === 'warning',
+                'fa-info-circle': alertType === 'info'
+            }" class="mr-2"></i>
+            {{alertType === 'success' ? 'Success' : alertType === 'error' ? 'Error' : alertType === 'warning' ? 'Warning' : 'Info'}}
+        </h4>
         <button type="button" class="close text-white" aria-label="Close" (click)="modal.dismiss('cross click')">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
     <div class="modal-body">
-        <p>{{alertMessage}}</p>
+        <p [innerHTML]="alertMessage"></p>
     </div>
     <div class="modal-footer">
-        <button type="button" class="btn btn-primary" (click)="modal.close('ok')">OK</button>
+        <button type="button" class="btn" [ngClass]="{
+            'btn-success': alertType === 'success',
+            'btn-danger': alertType === 'error',
+            'btn-warning': alertType === 'warning',
+            'btn-primary': alertType === 'info'
+        }" (click)="modal.close('ok')">OK</button>
     </div>
 </ng-template>

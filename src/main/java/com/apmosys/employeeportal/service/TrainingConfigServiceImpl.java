@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,6 +40,7 @@ import com.apmosys.employeeportal.dto.TrainingFrequencyDTO;
 import com.apmosys.employeeportal.dto.TrainingHistoryDTO;
 import com.apmosys.employeeportal.dto.TrainingMasterDTO;
 import com.apmosys.employeeportal.dto.TrainingSkipDTO;
+import com.apmosys.employeeportal.dto.UserTrainingDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.TrainingConsent;
 import com.apmosys.employeeportal.model.TrainingContent;
@@ -49,12 +51,16 @@ import com.apmosys.employeeportal.repository.TrainingConsentRepository;
 import com.apmosys.employeeportal.repository.TrainingContentRepository;
 import com.apmosys.employeeportal.repository.TrainingMasterRepository;
 import com.apmosys.employeeportal.repository.TrainingSkipRepository;
-import com.apmosys.employeeportal.serviceInterface.TrainingService;
+import com.apmosys.employeeportal.serviceInterface.TrainingConfigService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
+/**
+ * Service implementation for Training Configuration operations (HR/Admin)
+ * Handles CRUD operations for training configuration and content management
+ */
 @Service
-public class TrainingServiceImpl implements TrainingService {
+public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 	@Autowired
 	private TrainingMasterRepository trainingMasterRepository;
@@ -336,9 +342,17 @@ public class TrainingServiceImpl implements TrainingService {
 			training.setLockEnabled(trainingDTO.getLockEnabled() != null ? trainingDTO.getLockEnabled() : "false");
 			training.setMinViewTimeMinutes(trainingDTO.getMinViewTimeMinutes());
 			training.setConsentRequired(trainingDTO.getConsentRequired() != null ? trainingDTO.getConsentRequired() : "true");
-			training.setSkipAllowed(trainingDTO.getSkipAllowed() != null ? trainingDTO.getSkipAllowed() : "true");
-			training.setDeadlineEnabled(trainingDTO.getDeadlineEnabled() != null ? trainingDTO.getDeadlineEnabled() : "false");
-			training.setDeadlinePattern(trainingDTO.getDeadlinePattern());
+			// If lock is enabled, skip must be false (lock means hard mandatory)
+			if ("true".equals(trainingDTO.getLockEnabled())) {
+				training.setSkipAllowed("false");
+			} else {
+				training.setSkipAllowed(trainingDTO.getSkipAllowed() != null ? trainingDTO.getSkipAllowed() : "true");
+			}
+			// Deadline is mandatory - always enabled
+			training.setDeadlineEnabled("true");
+			// Set default pattern to YEARLY if not provided
+			training.setDeadlinePattern(trainingDTO.getDeadlinePattern() != null && !trainingDTO.getDeadlinePattern().isEmpty() 
+				? trainingDTO.getDeadlinePattern() : "YEARLY");
 			training.setCustomDeadlineMonths(trainingDTO.getCustomDeadlineMonths());
 			training.setActiveStatus(trainingDTO.getActiveStatus() != null ? trainingDTO.getActiveStatus() : "true");
 			training.setCreatedBy(createdBy);
@@ -598,14 +612,19 @@ public class TrainingServiceImpl implements TrainingService {
 			if (trainingDTO.getConsentRequired() != null) {
 				training.setConsentRequired(trainingDTO.getConsentRequired());
 			}
-			if (trainingDTO.getSkipAllowed() != null) {
+			// If lock is enabled, skip must be false (lock means hard mandatory)
+			if ("true".equals(trainingDTO.getLockEnabled())) {
+				training.setSkipAllowed("false");
+			} else if (trainingDTO.getSkipAllowed() != null) {
 				training.setSkipAllowed(trainingDTO.getSkipAllowed());
 			}
-			if (trainingDTO.getDeadlineEnabled() != null) {
-				training.setDeadlineEnabled(trainingDTO.getDeadlineEnabled());
-			}
-			if (trainingDTO.getDeadlinePattern() != null) {
+			// Deadline is mandatory - always enabled
+			training.setDeadlineEnabled("true");
+			// Set pattern (default to YEARLY if not provided)
+			if (trainingDTO.getDeadlinePattern() != null && !trainingDTO.getDeadlinePattern().isEmpty()) {
 				training.setDeadlinePattern(trainingDTO.getDeadlinePattern());
+			} else if (training.getDeadlinePattern() == null || training.getDeadlinePattern().isEmpty()) {
+				training.setDeadlinePattern("YEARLY");
 			}
 			if (trainingDTO.getCustomDeadlineMonths() != null) {
 				training.setCustomDeadlineMonths(trainingDTO.getCustomDeadlineMonths());
@@ -630,7 +649,27 @@ public class TrainingServiceImpl implements TrainingService {
 					return response;
 				}
 			} else {
-				if (contentDTO.getContentPath() == null || contentDTO.getContentPath().isEmpty()) {
+				// For file content types, contentPath is required
+				// If updating existing content (contentId provided) and no new file uploaded,
+				// we need to get the existing contentPath
+				if ((contentDTO.getContentPath() == null || contentDTO.getContentPath().isEmpty()) && 
+					contentDTO.getContentId() != null) {
+					// Try to get existing content path
+					Optional<TrainingContent> existingContentOpt = trainingContentRepository.findByContentId(contentDTO.getContentId());
+					if (existingContentOpt.isPresent() && existingContentOpt.get().getContentPath() != null) {
+						contentDTO.setContentPath(existingContentOpt.get().getContentPath());
+						contentDTO.setFileSizeBytes(existingContentOpt.get().getFileSizeBytes());
+						contentDTO.setMimeType(existingContentOpt.get().getMimeType());
+					} else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Content path is required for file content types. Please upload a file.");
+						apiLogInfo.setApiResponse("Content path is required");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+						apiLogInfo.setApiRequest(logBuilder.toString());
+						logService.logMyInfo(httpRequest, apiLogInfo);
+						return response;
+					}
+				} else if (contentDTO.getContentPath() == null || contentDTO.getContentPath().isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Content path is required for file content types");
 					apiLogInfo.setApiResponse("Content path is required");
@@ -641,31 +680,81 @@ public class TrainingServiceImpl implements TrainingService {
 				}
 			}
 			
-			// Check for overlapping active content
-			List<TrainingContent> overlappingContent = trainingContentRepository.findOverlappingActiveContent(
-				trainingDTO.getTrainingId(),
-				contentDTO.getEffectiveFrom(),
-				contentDTO.getEffectiveTo()
-			);
-			
-			// Deactivate overlapping content
-			for (TrainingContent overlap : overlappingContent) {
-				overlap.setActiveStatus("false");
-				trainingContentRepository.save(overlap);
+			// Check if updating existing content or creating new one
+			TrainingContent content;
+			if (contentDTO.getContentId() != null) {
+				// Update existing content
+				Optional<TrainingContent> existingContentOpt = trainingContentRepository.findByContentId(contentDTO.getContentId());
+				if (existingContentOpt.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Content not found for update");
+					apiLogInfo.setApiResponse("Content not found");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					apiLogInfo.setApiRequest(logBuilder.toString());
+					logService.logMyInfo(httpRequest, apiLogInfo);
+					return response;
+				}
+				content = existingContentOpt.get();
+				
+				// Update fields
+				content.setContentType(contentDTO.getContentType());
+				content.setContentName(contentDTO.getContentName());
+				// Only update contentPath if new file was uploaded (contentPath is set)
+				if (contentDTO.getContentPath() != null && !contentDTO.getContentPath().isEmpty()) {
+					content.setContentPath(contentDTO.getContentPath());
+					content.setFileSizeBytes(contentDTO.getFileSizeBytes());
+					content.setMimeType(contentDTO.getMimeType());
+				}
+				// Otherwise keep existing file path
+				content.setExternalLinkUrl(contentDTO.getExternalLinkUrl());
+				content.setEffectiveFrom(contentDTO.getEffectiveFrom());
+				content.setEffectiveTo(contentDTO.getEffectiveTo());
+				content.setActiveStatus(contentDTO.getActiveStatus() != null ? contentDTO.getActiveStatus() : content.getActiveStatus());
+				content.setUpdatedBy(updatedBy);
+				content.setUpdatedOn(new Timestamp(System.currentTimeMillis()));
+				
+				// Check for overlapping active content (excluding current content)
+				List<TrainingContent> overlappingContent = trainingContentRepository.findOverlappingActiveContent(
+					trainingDTO.getTrainingId(),
+					contentDTO.getEffectiveFrom(),
+					contentDTO.getEffectiveTo()
+				);
+				// Remove current content from overlap list
+				overlappingContent.removeIf(c -> c.getContentId().equals(content.getContentId()));
+				
+				// Deactivate overlapping content
+				for (TrainingContent overlap : overlappingContent) {
+					overlap.setActiveStatus("false");
+					trainingContentRepository.save(overlap);
+				}
+			} else {
+				// Create new content
+				// Check for overlapping active content
+				List<TrainingContent> overlappingContent = trainingContentRepository.findOverlappingActiveContent(
+					trainingDTO.getTrainingId(),
+					contentDTO.getEffectiveFrom(),
+					contentDTO.getEffectiveTo()
+				);
+				
+				// Deactivate overlapping content
+				for (TrainingContent overlap : overlappingContent) {
+					overlap.setActiveStatus("false");
+					trainingContentRepository.save(overlap);
+				}
+				
+				content = new TrainingContent();
+				content.setTrainingMaster(updatedTraining);
+				content.setContentType(contentDTO.getContentType());
+				content.setContentName(contentDTO.getContentName());
+				content.setContentPath(contentDTO.getContentPath());
+				content.setExternalLinkUrl(contentDTO.getExternalLinkUrl());
+				content.setEffectiveFrom(contentDTO.getEffectiveFrom());
+				content.setEffectiveTo(contentDTO.getEffectiveTo());
+				content.setFileSizeBytes(contentDTO.getFileSizeBytes());
+				content.setMimeType(contentDTO.getMimeType());
+				content.setActiveStatus(contentDTO.getActiveStatus() != null ? contentDTO.getActiveStatus() : "true");
+				content.setCreatedBy(updatedBy);
 			}
-			
-			TrainingContent content = new TrainingContent();
-			content.setTrainingMaster(updatedTraining);
-			content.setContentType(contentDTO.getContentType());
-			content.setContentName(contentDTO.getContentName());
-			content.setContentPath(contentDTO.getContentPath());
-			content.setExternalLinkUrl(contentDTO.getExternalLinkUrl());
-			content.setEffectiveFrom(contentDTO.getEffectiveFrom());
-			content.setEffectiveTo(contentDTO.getEffectiveTo());
-			content.setFileSizeBytes(contentDTO.getFileSizeBytes());
-			content.setMimeType(contentDTO.getMimeType());
-			content.setActiveStatus(contentDTO.getActiveStatus() != null ? contentDTO.getActiveStatus() : "true");
-			content.setCreatedBy(updatedBy); // Use updatedBy for new content
 			
 			TrainingContent savedContent = trainingContentRepository.save(content);
 			
@@ -845,291 +934,6 @@ public class TrainingServiceImpl implements TrainingService {
 		return response;
 	}
 
-	// ==================== Employee Training APIs ====================
-	
-	@Override
-	public ServiceResponse getPendingTraining(Long empId) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("Get Pending Training");
-		apiLogInfo.setApiUrl("/api/training/getPendingTraining");
-		apiLogInfo.setLogLevel("INFO");
-		
-		try {
-			TrainingMaster pendingTraining = findPendingMandatoryTraining(empId);
-			
-			if (pendingTraining == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(null); // No pending training
-				apiLogInfo.setApiResponse("No pending training");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				logService.logMyInfo(httpRequest, apiLogInfo);
-				return response;
-			}
-			
-			// Get current active content
-			Optional<TrainingContent> activeContentOpt = trainingContentRepository.findCurrentActiveContent(pendingTraining.getTrainingId());
-			
-			if (activeContentOpt.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(null); // No active content
-				apiLogInfo.setApiResponse("No active content");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				logService.logMyInfo(httpRequest, apiLogInfo);
-				return response;
-			}
-			
-			TrainingContent activeContent = activeContentOpt.get();
-			
-			// Calculate current cycle
-			int currentCycle = calculateCurrentCycle(empId, pendingTraining.getTrainingId());
-			
-			// Calculate deadline
-			LocalDate cycleDeadline = null;
-			boolean isDeadlineCrossed = false;
-			if ("true".equals(pendingTraining.getDeadlineEnabled()) && pendingTraining.getDeadlinePattern() != null) {
-				cycleDeadline = calculateCycleDeadline(pendingTraining, currentCycle);
-				if (cycleDeadline != null) {
-					isDeadlineCrossed = LocalDate.now().isAfter(cycleDeadline);
-				}
-			}
-			
-			PendingTrainingDTO dto = new PendingTrainingDTO();
-			dto.setTrainingId(pendingTraining.getTrainingId());
-			dto.setTrainingName(pendingTraining.getTrainingName());
-			dto.setTrainingType(pendingTraining.getTrainingType());
-			dto.setMinViewTimeMinutes(pendingTraining.getMinViewTimeMinutes());
-			dto.setConsentRequired(pendingTraining.getConsentRequired());
-			dto.setSkipAllowed(pendingTraining.getSkipAllowed());
-			dto.setDeadlineEnabled(pendingTraining.getDeadlineEnabled());
-			dto.setDeadlinePattern(pendingTraining.getDeadlinePattern());
-			dto.setCustomDeadlineMonths(pendingTraining.getCustomDeadlineMonths());
-			dto.setCurrentCycleNumber(currentCycle);
-			if (cycleDeadline != null) {
-				dto.setCurrentCycleDeadline(Date.valueOf(cycleDeadline));
-			}
-			dto.setIsDeadlineCrossed(isDeadlineCrossed);
-			
-			TrainingContentDTO contentDTO = convertToTrainingContentDTO(activeContent);
-			dto.setContent(contentDTO);
-			
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse(dto);
-			apiLogInfo.setApiResponse("Pending training fetched successfully");
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-		
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
-	}
-
-	@Override
-	@Transactional
-	public ServiceResponse submitConsent(TrainingConsentDTO consentDTO) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("Submit Training Consent");
-		apiLogInfo.setApiUrl("/api/training/submitConsent");
-		apiLogInfo.setLogLevel("INFO");
-		
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("Training ID: ").append(consentDTO.getTrainingId())
-				  .append(", Content ID: ").append(consentDTO.getContentId())
-				  .append(", Emp ID: ").append(consentDTO.getEmpId())
-				  .append(", Cycle: ").append(consentDTO.getCompletionCycleNumber());
-		
-		try {
-			// Calculate cycle number if not provided
-			Integer cycleNumber = consentDTO.getCompletionCycleNumber();
-			if (cycleNumber == null || cycleNumber == 0) {
-				cycleNumber = calculateCurrentCycle(consentDTO.getEmpId(), consentDTO.getTrainingId());
-				consentDTO.setCompletionCycleNumber(cycleNumber);
-			}
-			
-			// Validate that content is current active content
-			Optional<TrainingContent> activeContentOpt = trainingContentRepository.findCurrentActiveContent(consentDTO.getTrainingId());
-			
-			if (activeContentOpt.isEmpty() || !activeContentOpt.get().getContentId().equals(consentDTO.getContentId())) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Content is not the current active content for this training");
-				apiLogInfo.setApiResponse("Invalid content");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				apiLogInfo.setApiRequest(logBuilder.toString());
-				logService.logMyInfo(httpRequest, apiLogInfo);
-				return response;
-			}
-			
-			// Check if consent already exists
-			Optional<TrainingConsent> existingConsent = trainingConsentRepository.findByEmpIdAndTrainingIdAndContentIdAndCycleNumber(
-				consentDTO.getEmpId(),
-				consentDTO.getTrainingId(),
-				consentDTO.getContentId(),
-				cycleNumber
-			);
-			
-			if (existingConsent.isPresent()) {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Consent already submitted");
-				apiLogInfo.setApiResponse("Consent already exists");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				apiLogInfo.setApiRequest(logBuilder.toString());
-				logService.logMyInfo(httpRequest, apiLogInfo);
-				return response;
-			}
-			
-			Optional<TrainingMaster> trainingOpt = trainingMasterRepository.findByTrainingId(consentDTO.getTrainingId());
-			Optional<TrainingContent> contentOpt = trainingContentRepository.findByContentId(consentDTO.getContentId());
-			
-			if (trainingOpt.isEmpty() || contentOpt.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Training or content not found");
-				apiLogInfo.setApiResponse("Training/content not found");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				apiLogInfo.setApiRequest(logBuilder.toString());
-				logService.logMyInfo(httpRequest, apiLogInfo);
-				return response;
-			}
-			
-			TrainingConsent consent = new TrainingConsent();
-			consent.setTrainingMaster(trainingOpt.get());
-			consent.setTrainingContent(contentOpt.get());
-			consent.setEmpId(consentDTO.getEmpId());
-			consent.setCompletionCycleNumber(cycleNumber);
-			consent.setCreatedBy(consentDTO.getEmpId());
-			
-			TrainingConsent savedConsent = trainingConsentRepository.save(consent);
-			
-			// Delete skip record if exists (use the same cycle number)
-			Optional<TrainingSkip> skipOpt = trainingSkipRepository.findByEmpIdAndTrainingIdAndCycleNumber(
-				consentDTO.getEmpId(),
-				consentDTO.getTrainingId(),
-				cycleNumber
-			);
-			if (skipOpt.isPresent()) {
-				trainingSkipRepository.delete(skipOpt.get());
-			}
-			
-			// Check lock status
-			LockStatusDTO lockStatus = getLockStatusInternal(consentDTO.getEmpId());
-			
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse("Consent submitted successfully");
-			response.setServiceMessage(lockStatus.getIsLocked().toString());
-			apiLogInfo.setApiResponse("Consent submitted successfully");
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-		
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
-	}
-
-	@Override
-	@Transactional
-	public ServiceResponse skipTraining(TrainingSkipDTO skipDTO) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("Skip Training");
-		apiLogInfo.setApiUrl("/api/training/skipTraining");
-		apiLogInfo.setLogLevel("INFO");
-		
-		try {
-			Optional<TrainingMaster> trainingOpt = trainingMasterRepository.findByTrainingId(skipDTO.getTrainingId());
-			
-			if (trainingOpt.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Training not found");
-				return response;
-			}
-			
-			TrainingMaster training = trainingOpt.get();
-			
-			// Validate skip allowed
-			if (!"true".equals(training.getSkipAllowed())) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Skip is not allowed for this training");
-				return response;
-			}
-			
-			// Calculate cycle number if not provided
-			Integer cycleNumber = skipDTO.getCycleNumber();
-			if (cycleNumber == null || cycleNumber == 0) {
-				cycleNumber = calculateCurrentCycle(skipDTO.getEmpId(), skipDTO.getTrainingId());
-			}
-			
-			// Check deadline
-			if ("true".equals(training.getDeadlineEnabled()) && training.getDeadlinePattern() != null) {
-				LocalDate cycleDeadline = calculateCycleDeadline(training, cycleNumber);
-				
-				if (cycleDeadline != null && LocalDate.now().isAfter(cycleDeadline)) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Deadline has passed. Skip is not allowed");
-					return response;
-				}
-			}
-			
-			// Check if skip record exists
-			Optional<TrainingSkip> skipOpt = trainingSkipRepository.findByEmpIdAndTrainingIdAndCycleNumber(
-				skipDTO.getEmpId(),
-				skipDTO.getTrainingId(),
-				cycleNumber
-			);
-			
-			TrainingSkip skip;
-			if (skipOpt.isPresent()) {
-				// Update existing record
-				skip = skipOpt.get();
-				skip.setSkipCount(skip.getSkipCount() + 1);
-				// last_skipped_on will be auto-updated by database
-			} else {
-				// Create new record
-				skip = new TrainingSkip();
-				skip.setTrainingMaster(training);
-				skip.setEmpId(skipDTO.getEmpId());
-				skip.setCycleNumber(cycleNumber);
-				skip.setSkipCount(1);
-			}
-			
-			TrainingSkip savedSkip = trainingSkipRepository.save(skip);
-			
-			// Check lock status
-			LockStatusDTO lockStatus = getLockStatusInternal(skipDTO.getEmpId());
-			
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse("Training skipped successfully");
-			apiLogInfo.setApiResponse("Training skipped successfully");
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-		
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
-	}
-
-	
 	@Override
 	public ServiceResponse downloadContent(Integer contentId) {
 
@@ -1236,261 +1040,16 @@ public class TrainingServiceImpl implements TrainingService {
 	    }
 
 	    logService.logMyInfo(httpRequest, apiLogInfo);
-	    return response;
-	}
-
-	@Override
-	public ServiceResponse getLockStatus(Long empId) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("Get Lock Status");
-		apiLogInfo.setApiUrl("/api/training/getLockStatus");
-		apiLogInfo.setLogLevel("INFO");
-		
-		try {
-			LockStatusDTO lockStatus = getLockStatusInternal(empId);
-			
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse(lockStatus);
-			apiLogInfo.setApiResponse("Lock status fetched successfully");
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-		
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
-	}
-
-	@Override
-	public ServiceResponse getUserTrainings(Long empId) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("Get User Trainings");
-		apiLogInfo.setApiUrl("/api/training/getUserTrainings");
-		apiLogInfo.setLogLevel("INFO");
-		
-		try {
-			// Get all active trainings (both mandatory and non-mandatory) with effective dates
-			List<TrainingMaster> allActiveTrainings = trainingMasterRepository
-				.findActiveTrainingsWithEffectiveDates("true");
-			
-			List<com.apmosys.employeeportal.dto.UserTrainingDTO> userTrainings = new ArrayList<>();
-			
-			for (TrainingMaster training : allActiveTrainings) {
-				com.apmosys.employeeportal.dto.UserTrainingDTO userTraining = new com.apmosys.employeeportal.dto.UserTrainingDTO();
-				userTraining.setTrainingId(training.getTrainingId());
-				userTraining.setTrainingName(training.getTrainingName());
-				userTraining.setTrainingType(training.getTrainingType());
-				userTraining.setLockEnabled("true".equals(training.getLockEnabled()));
-				userTraining.setMandatoryFlag(training.getMandatoryFlag());
-				userTraining.setMinViewTimeMinutes(training.getMinViewTimeMinutes());
-				userTraining.setConsentRequired(training.getConsentRequired());
-				userTraining.setSkipAllowed(training.getSkipAllowed());
-				userTraining.setRequiredFrequency(training.getFrequencyPerYear());
-				
-				// Calculate completion count
-				int completionCount = countCompletionsInLast12Months(empId, training.getTrainingId());
-				userTraining.setCompletionCount(completionCount);
-				
-				// Get current active content
-				Optional<TrainingContent> activeContentOpt = trainingContentRepository.findCurrentActiveContent(training.getTrainingId());
-				if (activeContentOpt.isEmpty()) {
-					continue; // Skip trainings without active content
-				}
-				
-				TrainingContent activeContent = activeContentOpt.get();
-				TrainingContentDTO contentDTO = convertToTrainingContentDTO(activeContent);
-				userTraining.setContent(contentDTO);
-				
-				// Calculate current cycle
-				int currentCycle = calculateCurrentCycle(empId, training.getTrainingId());
-				userTraining.setCurrentCycleNumber(currentCycle);
-				
-				// Check if consent exists for current active content in current cycle
-				Optional<TrainingConsent> consentOpt = trainingConsentRepository.findByEmpIdAndTrainingIdAndContentIdAndCycleNumber(
-					empId,
-					training.getTrainingId(),
-					activeContent.getContentId(),
-					currentCycle
-				);
-				
-				// Check if skip exists for current cycle
-				Optional<TrainingSkip> skipOpt = trainingSkipRepository.findByEmpIdAndTrainingIdAndCycleNumber(
-					empId,
-					training.getTrainingId(),
-					currentCycle
-				);
-				
-				// Determine status
-				String status;
-				if (consentOpt.isPresent()) {
-					status = "COMPLETED";
-					// Get last completed date (most recent consent)
-					List<TrainingConsent> allConsents = trainingConsentRepository.findByEmpIdAndTrainingId(empId, training.getTrainingId());
-					if (!allConsents.isEmpty()) {
-						// List is already sorted DESC by consentTimestamp, so first element is most recent
-						TrainingConsent mostRecentConsent = allConsents.get(0);
-						if (mostRecentConsent != null && mostRecentConsent.getConsentTimestamp() != null) {
-							java.sql.Date lastCompleted = Date.valueOf(
-							        mostRecentConsent.getConsentTimestamp()
-							                .toLocalDateTime()
-							                .toLocalDate()
-							);
-
-
-							userTraining.setLastCompletedOn(lastCompleted);
-						}
-					}
-				} else if (skipOpt.isPresent()) {
-					status = "SKIPPED";
-					TrainingSkip skip = skipOpt.get();
-					if (skip != null) {
-						userTraining.setSkipCount(skip.getSkipCount());
-					}
-				} else {
-					status = "PENDING";
-				}
-				userTraining.setStatus(status);
-				
-				// Calculate deadline
-				LocalDate cycleDeadline = null;
-				boolean isDeadlineCrossed = false;
-				if ("true".equals(training.getDeadlineEnabled()) && training.getDeadlinePattern() != null) {
-					cycleDeadline = calculateCycleDeadline(training, currentCycle);
-					if (cycleDeadline != null) {
-						isDeadlineCrossed = LocalDate.now().isAfter(cycleDeadline);
-						userTraining.setDeadline(Date.valueOf(cycleDeadline));
-						userTraining.setIsDeadlineCrossed(isDeadlineCrossed);
-					}
-				}
-				
-				userTrainings.add(userTraining);
-			}
-			
-			// Sort by priority: 
-			// 1. Deadline crossed + mandatory + lock enabled first
-			// 2. Then mandatory + lock enabled
-			// 3. Then deadline crossed
-			// 4. Then by deadline date (earliest first)
-			// 5. Then mandatory flag (mandatory first)
-			// 6. Then by training name
-			userTrainings.sort((t1, t2) -> {
-				// Priority 1: Deadline crossed + mandatory + lock enabled
-				boolean t1Priority1 = t1.getIsDeadlineCrossed() != null && t1.getIsDeadlineCrossed() && 
-					"true".equals(t1.getMandatoryFlag()) && t1.getLockEnabled() != null && t1.getLockEnabled();
-				boolean t2Priority1 = t2.getIsDeadlineCrossed() != null && t2.getIsDeadlineCrossed() && 
-					"true".equals(t2.getMandatoryFlag()) && t2.getLockEnabled() != null && t2.getLockEnabled();
-				if (t1Priority1 && !t2Priority1) return -1;
-				if (t2Priority1 && !t1Priority1) return 1;
-				
-				// Priority 2: Mandatory + lock enabled
-				boolean t1Priority2 = "true".equals(t1.getMandatoryFlag()) && t1.getLockEnabled() != null && t1.getLockEnabled();
-				boolean t2Priority2 = "true".equals(t2.getMandatoryFlag()) && t2.getLockEnabled() != null && t2.getLockEnabled();
-				if (t1Priority2 && !t2Priority2) return -1;
-				if (t2Priority2 && !t1Priority2) return 1;
-				
-				// Priority 3: Deadline crossed
-				if (t1.getIsDeadlineCrossed() != null && t1.getIsDeadlineCrossed() && 
-					(t2.getIsDeadlineCrossed() == null || !t2.getIsDeadlineCrossed())) {
-					return -1;
-				}
-				if (t2.getIsDeadlineCrossed() != null && t2.getIsDeadlineCrossed() && 
-					(t1.getIsDeadlineCrossed() == null || !t1.getIsDeadlineCrossed())) {
-					return 1;
-				}
-				
-				// Priority 4: Deadline date (earliest first)
-				if (t1.getDeadline() != null && t2.getDeadline() != null) {
-					return t1.getDeadline().compareTo(t2.getDeadline());
-				}
-				if (t1.getDeadline() != null) return -1;
-				if (t2.getDeadline() != null) return 1;
-				
-				// Priority 5: Mandatory flag (mandatory first)
-				if ("true".equals(t1.getMandatoryFlag()) && !"true".equals(t2.getMandatoryFlag())) {
-					return -1;
-				}
-				if ("true".equals(t2.getMandatoryFlag()) && !"true".equals(t1.getMandatoryFlag())) {
-					return 1;
-				}
-				
-				// Priority 6: Training name
-				return t1.getTrainingName().compareTo(t2.getTrainingName());
-			});
-			
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse(userTrainings);
-			apiLogInfo.setApiResponse("User trainings fetched successfully");
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-		
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
-	}
-
-	@Override
-	public ServiceResponse checkTrainingFrequency(Long empId, Integer trainingId) {
-		ServiceResponse response = new ServiceResponse();
-		
-		try {
-			Optional<TrainingMaster> trainingOpt = trainingMasterRepository.findByTrainingId(trainingId);
-			
-			if (trainingOpt.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Training not found");
-				return response;
-			}
-			
-			TrainingMaster training = trainingOpt.get();
-			
-			// Calculate completion count in last 12 months
-			Timestamp fromDate = Timestamp.valueOf(LocalDate.now().minusMonths(12).atStartOfDay());
-			Long completionCount = trainingConsentRepository.countCompletionsInLast12Months(empId, trainingId, fromDate);
-			
-			TrainingFrequencyDTO dto = new TrainingFrequencyDTO();
-			dto.setTrainingId(trainingId);
-			dto.setTrainingName(training.getTrainingName());
-			dto.setCompletionCount(completionCount != null ? completionCount.intValue() : 0);
-			dto.setRequiredFrequency(training.getFrequencyPerYear());
-			dto.setNeedsAssignment(completionCount < training.getFrequencyPerYear());
-			
-			// Get last completed date
-			List<TrainingConsent> consents = trainingConsentRepository.findByEmpIdAndTrainingId(empId, trainingId);
-			if (!consents.isEmpty()) {
-				dto.setLastCompletedOn(consents.get(0).getConsentTimestamp().toLocalDateTime().toString());
-			}
-			
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse(dto);
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-		}
-		
 		return response;
 	}
 
 	@Override
 	public ServiceResponse getEmployeeTrainingHistory(Long empId, Integer trainingId) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Get Employee Training History");
+		apiLogInfo.setApiUrl("/api/training/getEmployeeTrainingHistory");
+		apiLogInfo.setLogLevel("INFO");
 		
 		try {
 			List<TrainingHistoryDTO> historyList = new ArrayList<>();
@@ -1500,22 +1059,26 @@ public class TrainingServiceImpl implements TrainingService {
 			if (trainingId != null) {
 				consents = trainingConsentRepository.findByEmpIdAndTrainingId(empId, trainingId);
 			} else {
-				// Get all trainings - need to query differently
-				// For now, get by trainingId only
-				consents = trainingConsentRepository.findByEmpIdAndTrainingId(empId, trainingId);
+				// Get all consents for employee (all trainings) - need to get all trainings first
+				// For now, get all active trainings and then get consents for each
+				List<TrainingMaster> allTrainings = trainingMasterRepository.findAll();
+				consents = new ArrayList<>();
+				for (TrainingMaster training : allTrainings) {
+					consents.addAll(trainingConsentRepository.findByEmpIdAndTrainingId(empId, training.getTrainingId()));
+				}
 			}
 			
-			// Get all skips
+			// Get all skips for employee
 			List<TrainingSkip> skips;
 			if (trainingId != null) {
-				Optional<TrainingMaster> trainingOpt = trainingMasterRepository.findByTrainingId(trainingId);
-				if (trainingOpt.isPresent()) {
-					skips = trainingSkipRepository.findByEmpIdAndTrainingId(empId, trainingId);
-				} else {
-					skips = new ArrayList<>();
-				}
+				skips = trainingSkipRepository.findByEmpIdAndTrainingId(empId, trainingId);
 			} else {
-				skips = new ArrayList<>(); // Need to implement getAllSkipsByEmpId if needed
+				// Get all skips for employee (all trainings) - need to get all trainings first
+				List<TrainingMaster> allTrainings = trainingMasterRepository.findAll();
+				skips = new ArrayList<>();
+				for (TrainingMaster training : allTrainings) {
+					skips.addAll(trainingSkipRepository.findByEmpIdAndTrainingId(empId, training.getTrainingId()));
+				}
 			}
 			
 			// Combine consents into history
@@ -1557,14 +1120,19 @@ public class TrainingServiceImpl implements TrainingService {
 			
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(historyList);
+			apiLogInfo.setApiResponse("Training history fetched successfully");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
 		
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -1594,7 +1162,9 @@ public class TrainingServiceImpl implements TrainingService {
 			dto.setTrainingName(training.getTrainingName());
 			
 			// Get current active content for this training
-			Optional<TrainingContent> activeContentOpt = trainingContentRepository.findCurrentActiveContent(trainingId);
+			Optional<TrainingContent> activeContentOpt = trainingContentRepository.findCurrentActiveContent(trainingId, PageRequest.of(0, 1))
+			        .stream()
+			        .findFirst();
 			if (activeContentOpt.isEmpty()) {
 				// No active content means no one can complete, so all are pending
 				Long totalAssigned = employeeRepository.getTotalEmployeeCount();
@@ -1680,196 +1250,22 @@ public class TrainingServiceImpl implements TrainingService {
 		return response;
 	}
 
-	@Override
-	public ServiceResponse checkTrainingRequirements(Long empId) {
-		ServiceResponse response = new ServiceResponse();
-		
-		try {
-			// This is for cron job - check if employee needs training
-			// For Phase-1, just return success
-			// Actual implementation would check all employees if empId is null
-			
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse("Training requirements checked");
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-		}
-		
-		return response;
-	}
-
 	// ==================== Helper Methods ====================
 	
-	private TrainingMaster findPendingMandatoryTraining(Long empId) {
-		List<TrainingMaster> mandatoryTrainings = trainingMasterRepository
-			.findActiveMandatoryTrainings("true", "true");
-		
-		TrainingMaster pendingTraining = null;
-		LocalDate earliestDeadline = null;
-		
-		for (TrainingMaster training : mandatoryTrainings) {
-			int completionCount = countCompletionsInLast12Months(empId, training.getTrainingId());
-			
-			if (completionCount < training.getFrequencyPerYear()) {
-				Optional<TrainingContent> activeContentOpt = trainingContentRepository.findCurrentActiveContent(training.getTrainingId());
-				
-				if (activeContentOpt.isEmpty()) {
-					continue;
-				}
-				
-				TrainingContent activeContent = activeContentOpt.get();
-				int currentCycle = completionCount + 1;
-				
-				Optional<TrainingConsent> consentOpt = trainingConsentRepository.findByEmpIdAndTrainingIdAndContentIdAndCycleNumber(
-					empId,
-					training.getTrainingId(),
-					activeContent.getContentId(),
-					currentCycle
-				);
-				
-				if (consentOpt.isPresent()) {
-					continue;
-				}
-				
-				LocalDate cycleDeadline = null;
-				if ("true".equals(training.getDeadlineEnabled()) && training.getDeadlinePattern() != null) {
-					cycleDeadline = calculateCycleDeadline(training, currentCycle);
-					
-					if (cycleDeadline != null && LocalDate.now().isAfter(cycleDeadline)) {
-						return training;
-					}
-				}
-				
-				if (cycleDeadline != null) {
-					if (earliestDeadline == null || cycleDeadline.isBefore(earliestDeadline)) {
-						earliestDeadline = cycleDeadline;
-						pendingTraining = training;
-					}
-				} else if (pendingTraining == null) {
-					pendingTraining = training;
-				}
-			}
-		}
-		
-		return pendingTraining;
-	}
-	
+	/**
+	 * Count completions in last 12 months for an employee and training
+	 * Used by reporting methods
+	 */
 	private int countCompletionsInLast12Months(Long empId, Integer trainingId) {
 		Timestamp fromDate = Timestamp.valueOf(LocalDate.now().minusMonths(12).atStartOfDay());
 		Long count = trainingConsentRepository.countCompletionsInLast12Months(empId, trainingId, fromDate);
 		return count != null ? count.intValue() : 0;
 	}
 	
-	private int calculateCurrentCycle(Long empId, Integer trainingId) {
-		Integer maxCycle = trainingConsentRepository.findMaxCycleNumber(empId, trainingId);
-		return maxCycle != null ? maxCycle + 1 : 1;
-	}
-	
-	private LocalDate calculateCycleDeadline(TrainingMaster training, int cycleNumber) {
-		if (training.getDeadlinePattern() == null) {
-			return null;
-		}
-		
-		int currentYear = LocalDate.now().getYear();
-		String pattern = training.getDeadlinePattern();
-		
-		switch (pattern) {
-			case "MID_YEAR":
-				if (cycleNumber == 1) {
-					return LocalDate.of(currentYear, 6, 30);
-				} else {
-					return LocalDate.of(currentYear, 12, 31);
-				}
-				
-			case "YEAR_END":
-				if (cycleNumber == 1) {
-					return LocalDate.of(currentYear, 6, 30);
-				} else {
-					return LocalDate.of(currentYear, 12, 31);
-				}
-				
-			case "QUARTERLY":
-				int[] quarterMonths = {3, 6, 9, 12};
-				int quarterMonthIndex = (cycleNumber - 1) % 4;
-				int quarterMonth = quarterMonths[quarterMonthIndex];
-				int quarterLastDay = YearMonth.of(currentYear, quarterMonth).lengthOfMonth();
-				return LocalDate.of(currentYear, quarterMonth, quarterLastDay);
-				
-			case "CUSTOM":
-				if (training.getCustomDeadlineMonths() != null) {
-					String[] months = training.getCustomDeadlineMonths().split(",");
-					int customMonthIndex = (cycleNumber - 1) % months.length;
-					int customMonth = Integer.parseInt(months[customMonthIndex].trim());
-					int customLastDay = YearMonth.of(currentYear, customMonth).lengthOfMonth();
-					return LocalDate.of(currentYear, customMonth, customLastDay);
-				}
-				return null;
-				
-			default:
-				return null;
-		}
-	}
-	
-	private LockStatusDTO getLockStatusInternal(Long empId) {
-		LockStatusDTO lockStatus = new LockStatusDTO();
-		lockStatus.setIsLocked(false);
-		
-		TrainingMaster pendingTraining = findPendingMandatoryTraining(empId);
-		
-		if (pendingTraining == null) {
-			return lockStatus;
-		}
-		
-		if (!"true".equals(pendingTraining.getActiveStatus())) {
-			return lockStatus;
-		}
-		
-		if (!"true".equals(pendingTraining.getLockEnabled())) {
-			return lockStatus;
-		}
-		
-		Optional<TrainingContent> activeContentOpt = trainingContentRepository.findCurrentActiveContent(pendingTraining.getTrainingId());
-		if (activeContentOpt.isEmpty()) {
-			return lockStatus;
-		}
-		
-		int currentCycle = calculateCurrentCycle(empId, pendingTraining.getTrainingId());
-		
-		Optional<TrainingConsent> consentOpt = trainingConsentRepository.findByEmpIdAndTrainingIdAndContentIdAndCycleNumber(
-			empId,
-			pendingTraining.getTrainingId(),
-			activeContentOpt.get().getContentId(),
-			currentCycle
-		);
-		
-		if (consentOpt.isPresent()) {
-			return lockStatus; // Not locked
-		}
-		
-		lockStatus.setIsLocked(true);
-		lockStatus.setLockedTrainingId(pendingTraining.getTrainingId());
-		lockStatus.setLockedTrainingName(pendingTraining.getTrainingName());
-		lockStatus.setLockReason("Mandatory training pending");
-		lockStatus.setCurrentCycleNumber(currentCycle);
-		
-		// Check skip allowed
-		lockStatus.setCanSkip("true".equals(pendingTraining.getSkipAllowed()));
-		
-		// Check deadline
-		if ("true".equals(pendingTraining.getDeadlineEnabled()) && pendingTraining.getDeadlinePattern() != null) {
-			LocalDate cycleDeadline = calculateCycleDeadline(pendingTraining, currentCycle);
-			if (cycleDeadline != null) {
-				lockStatus.setDeadlineCrossed(LocalDate.now().isAfter(cycleDeadline));
-			}
-		}
-		
-		return lockStatus;
-	}
-	
+
+	/**
+	 * Convert TrainingMaster entity to DTO
+	 */
 	private TrainingMasterDTO convertToTrainingMasterDTO(TrainingMaster training) {
 		TrainingMasterDTO dto = new TrainingMasterDTO();
 		dto.setTrainingId(training.getTrainingId());

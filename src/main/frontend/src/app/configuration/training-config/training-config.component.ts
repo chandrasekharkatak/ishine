@@ -3,6 +3,7 @@ import { Sort } from '@angular/material/sort';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
 import { LocationStrategy } from '@angular/common';
+import { Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
@@ -54,8 +55,8 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     minViewTimeMinutes: null,
     consentRequired: 'true',
     skipAllowed: 'true',
-    deadlineEnabled: 'false',
-    deadlinePattern: '',
+    deadlineEnabled: 'true', // Mandatory: deadline always enabled
+    deadlinePattern: 'YEARLY', // Default: once per year (last day of year)
     customDeadlineMonths: '',
     activeStatus: 'true'
   };
@@ -106,14 +107,15 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   fileSize: number = 0;
 
   // Training types
-  trainingTypes: string[] = ['Induction', 'POSH', 'CyberSecurity', 'Compliance', 'Safety', 'Other'];
+  trainingTypes: string[] = ['Induction', 'POSH', 'CyberSecurity', 'Compliance', 'Safety'];
 
   // Deadline patterns
   deadlinePatterns: any[] = [
+    { value: 'YEARLY', label: 'Yearly (December 31 - Last Day of Year)' },
     { value: 'MID_YEAR', label: 'Mid Year (June, December)' },
-    { value: 'YEAR_END', label: 'Year End (June, December)' },
-    { value: 'QUARTERLY', label: 'Quarterly (March, June, September, December)' },
-    { value: 'CUSTOM', label: 'Custom Months' }
+    // { value: 'YEAR_END', label: 'Year End (June, December)' },
+    { value: 'QUARTERLY', label: 'Quarterly (March, June, September, December)' }
+    // { value: 'CUSTOM', label: 'Custom Months' }
   ];
 
   contentTypes: any[] = [
@@ -129,7 +131,8 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     private locationStrategy: LocationStrategy,
     private modalService: NgbModal,
     private trainingService: TrainingService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private router: Router
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -220,11 +223,18 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       minViewTimeMinutes: null,
       consentRequired: 'true',
       skipAllowed: 'true',
-      deadlineEnabled: 'false',
-      deadlinePattern: '',
+      deadlineEnabled: 'true', // Mandatory: deadline always enabled
+      deadlinePattern: 'YEARLY', // Default: once per year (last day of year)
       customDeadlineMonths: '',
       activeStatus: 'true'
     };
+  }
+
+  onLockEnabledChange(value: string) {
+    // When lock is enabled, automatically set skip to false (lock means hard mandatory)
+    if (value === 'true') {
+      this.trainingFormData.skipAllowed = 'false';
+    }
   }
 
   resetContentForm() {
@@ -264,12 +274,98 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     this.trainingService.getTrainingContent(trainingId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === 'Success') {
         this.trainingContents = response.serviceResponse || [];
+        
+        // If editing training, populate content form with active content
+        if (this.isEditMode && this.trainingContents.length > 0) {
+          // Find active content (prefer currently active, otherwise use first one)
+          const activeContent = this.trainingContents.find((c: any) => c.isCurrentlyActive === true) || 
+                                this.trainingContents.find((c: any) => c.activeStatus === 'true') || 
+                                this.trainingContents[0];
+          
+          if (activeContent) {
+            this.populateContentForm(activeContent);
+          }
+        }
       } else {
         this.openAlertMod(this.alertTemplate, 'Failed to load training content', 'error');
       }
     }, error => {
       this.openAlertMod(this.alertTemplate, 'Error loading training content: ' + error.message, 'error');
     });
+  }
+
+  populateContentForm(content: any) {
+    if (!content) {
+      return;
+    }
+    
+    this.contentFormData = {
+      contentType: content.contentType || 'PPT',
+      contentName: content.contentName || '',
+      effectiveFrom: content.effectiveFrom ? moment(content.effectiveFrom).format('YYYY-MM-DD') : '',
+      effectiveTo: content.effectiveTo ? moment(content.effectiveTo).format('YYYY-MM-DD') : '',
+      externalLinkUrl: content.externalLinkUrl || '',
+      file: null, // File cannot be loaded, user needs to re-upload if changing
+      contentId: content.contentId || null,
+      existingContentPath: content.contentPath || null, // Store existing file path
+      existingFileName: content.contentName || null // Store existing file name for display
+    };
+    
+    // Reset file-related fields since we can't load the file
+    this.file = null;
+    this.fileSize = 0;
+    
+    // Generate preview URL for LINK type
+    if (content.contentType === 'LINK' && content.externalLinkUrl) {
+      this.previewUrl = content.externalLinkUrl;
+      this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.previewUrl);
+      this.showPreview = true;
+    } else {
+      this.previewUrl = '';
+      this.safePreviewUrl = null;
+      this.showPreview = false;
+    }
+    
+    // Clear PPTX slides
+    this.pptxSlides = [];
+    this.currentSlideIndex = 0;
+    
+    // Trigger change detection for content type to update form visibility
+    setTimeout(() => {
+      this.onContentTypeChange();
+    }, 100);
+  }
+
+  viewExistingContent() {
+    if (!this.contentFormData.contentId) {
+      return;
+    }
+    
+    // Download/view existing content file
+    this.trainingService.downloadContent(this.contentFormData.contentId)
+      .pipe(first())
+      .subscribe({
+        next: (response: any) => {
+          const blob = response.body;
+          const contentDisposition = response.headers.get('content-disposition');
+          let fileName = this.contentFormData.existingFileName || 'content';
+          
+          if (contentDisposition) {
+            const fileNameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+            if (fileNameMatch && fileNameMatch[1]) {
+              fileName = fileNameMatch[1].replace(/['"]/g, '');
+            }
+          }
+          
+          // Create blob URL and open in new tab
+          const url = window.URL.createObjectURL(blob);
+          window.open(url, '_blank');
+        },
+        error: (error) => {
+          console.error('Error downloading content:', error);
+          this.openAlertMod(this.alertTemplate, 'Failed to view content. Please try again.', 'error');
+        }
+      });
   }
 
   onCreateTraining() {
@@ -347,7 +443,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     }
       // Validate content form
       if (!this.validateContentForm()) {
-        this.openAlertMod(this.alertTemplate, 'Please complete the content form correctly', 'warning');
+        // this.openAlertMod(this.alertTemplate, 'Please complete the content form correctly', 'warning');
         this.isContentAccordionOpen = true;
         return;
       }
@@ -377,13 +473,20 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       formData.append('trainingDTO', JSON.stringify(trainingDTO));
 
       // Content DTO as JSON string
-      const contentDTO = {
+      const contentDTO: any = {
         contentType: this.contentFormData.contentType,
         contentName: this.contentFormData.contentName,
         effectiveFrom: this.contentFormData.effectiveFrom ? moment(this.contentFormData.effectiveFrom).format('YYYY-MM-DD') : null,
         effectiveTo: this.contentFormData.effectiveTo ? moment(this.contentFormData.effectiveTo).format('YYYY-MM-DD') : null,
         externalLinkUrl: this.contentFormData.contentType === 'LINK' ? this.contentFormData.externalLinkUrl : null
       };
+      
+      // Include contentId if editing existing content
+      if (this.contentFormData.contentId) {
+        contentDTO.contentId = this.contentFormData.contentId;
+        // Don't send contentPath if no new file is uploaded - backend will retrieve existing path
+      }
+      
       formData.append('contentDTO', JSON.stringify(contentDTO));
 
       // File (if applicable)
@@ -410,10 +513,22 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     
   }
 
+  onAddQuiz(training: any) {
+    // Navigate to survey-config with training context
+    this.router.navigate(['/configuration/survey-config'], {
+      queryParams: {
+        source: 'training',
+        trainingId: training.trainingId,
+        trainingName: training.trainingName
+      }
+    });
+  }
+
   onEditTraining(training: any) {
     this.isEditMode = true;
     this.isTrainingForm = true;
     this.isTable = false;
+    this.isContentAccordionOpen = true; // Open content accordion when editing
     this.selectedTraining = training; // Store selected training for Add Content
     this.trainingFormData = {
       trainingId: training.trainingId,
@@ -427,12 +542,12 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       minViewTimeMinutes: training.minViewTimeMinutes,
       consentRequired: training.consentRequired,
       skipAllowed: training.skipAllowed,
-      deadlineEnabled: training.deadlineEnabled,
-      deadlinePattern: training.deadlinePattern || '',
+      deadlineEnabled: training.deadlineEnabled || 'true', // Default to true since deadline is mandatory
+      deadlinePattern: training.deadlinePattern || 'YEARLY', // Default to YEARLY if not set
       customDeadlineMonths: training.customDeadlineMonths || '',
       activeStatus: training.activeStatus
     };
-    // Load content when editing
+    // Load content when editing - this will populate the form
     this.getTrainingContent(training.trainingId);
   }
   onViewContent(training: any) {
@@ -1244,9 +1359,13 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       }
     }
 
-    // Deadline validation
-    if (this.trainingFormData.deadlineEnabled === 'true' && !this.trainingFormData.deadlinePattern) {
-      this.openAlertMod(this.alertTemplate, 'Deadline pattern is required when deadline is enabled', 'error');
+    // Deadline validation - deadline is mandatory
+    if (this.trainingFormData.deadlineEnabled !== 'true') {
+      this.openAlertMod(this.alertTemplate, 'Deadline is mandatory for all trainings', 'error');
+      return false;
+    }
+    if (!this.trainingFormData.deadlinePattern) {
+      this.openAlertMod(this.alertTemplate, 'Deadline pattern is required', 'error');
       return false;
     }
     if (this.trainingFormData.deadlinePattern === 'CUSTOM' && !this.trainingFormData.customDeadlineMonths) {
@@ -1328,7 +1447,8 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
         return false;
       }
     } else {
-      if (!this.file) {
+      // File is required for creation, but optional for update if contentId exists
+      if (!this.file && !this.contentFormData.contentId) {
         this.openAlertMod(this.alertTemplate, 'File is required for ' + this.contentFormData.contentType + ' content', 'error');
         return false;
       }
@@ -1352,29 +1472,34 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
         return false;
       }
 
-      const fileExtension = '.' + this.file.name.split('.').pop()?.toLowerCase();
-      if (!fileExtension || fileExtension === '.') {
-        this.openAlertMod(this.alertTemplate, 'File must have a valid extension', 'error');
-        return false;
-      }
+      // File validation - only validate if file is provided (new file upload)
+      // If updating without new file (contentId exists), skip file validation
+      if (this.file) {
+        const fileExtension = '.' + this.file.name.split('.').pop()?.toLowerCase();
+        if (!fileExtension || fileExtension === '.') {
+          this.openAlertMod(this.alertTemplate, 'File must have a valid extension', 'error');
+          return false;
+        }
 
-      if (!allowedExtensions[this.contentFormData.contentType].includes(fileExtension)) {
-        this.openAlertMod(this.alertTemplate,
-          `Invalid file type for ${this.contentFormData.contentType}. Allowed extensions: ${allowedExtensions[this.contentFormData.contentType].join(', ')}`,
-          'error');
-        return false;
-      }
+        if (!allowedExtensions[this.contentFormData.contentType].includes(fileExtension)) {
+          this.openAlertMod(this.alertTemplate,
+            `Invalid file type for ${this.contentFormData.contentType}. Allowed extensions: ${allowedExtensions[this.contentFormData.contentType].join(', ')}`,
+            'error');
+          return false;
+        }
 
-      // Additional MIME type validation (if browser provides it)
-      if (this.file.type && allowedTypes[this.contentFormData.contentType]) {
-        const isValidMimeType = allowedTypes[this.contentFormData.contentType].some(
-          (allowedType: string) => this.file.type.toLowerCase().includes(allowedType.toLowerCase().split('/')[1])
-        );
-        if (!isValidMimeType && !this.file.type.includes('application/octet-stream')) {
-          // Warn but don't block - MIME type can be unreliable
-          console.warn(`MIME type mismatch: Expected ${allowedTypes[this.contentFormData.contentType].join(' or ')}, got ${this.file.type}`);
+        // Additional MIME type validation (if browser provides it)
+        if (this.file.type && allowedTypes[this.contentFormData.contentType]) {
+          const isValidMimeType = allowedTypes[this.contentFormData.contentType].some(
+            (allowedType: string) => this.file.type.toLowerCase().includes(allowedType.toLowerCase().split('/')[1])
+          );
+          if (!isValidMimeType && !this.file.type.includes('application/octet-stream')) {
+            // Warn but don't block - MIME type can be unreliable
+            console.warn(`MIME type mismatch: Expected ${allowedTypes[this.contentFormData.contentType].join(' or ')}, got ${this.file.type}`);
+          }
         }
       }
+      // If no file and contentId exists, it's an update without file change - validation passes
     }
 
     return true;

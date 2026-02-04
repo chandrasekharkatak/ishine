@@ -16,4 +16,8 @@ public class LockStatusDTO {
 	private Boolean canSkip;
 	private Boolean deadlineCrossed;
 	private Integer currentCycleNumber;
+	
+	// Additional fields for routing decisions
+	private Boolean hasMandatoryTrainingPending; // True if mandatory training exists (even if lock not enabled)
+	private Boolean isHardLock; // True if lock enabled AND deadline crossed (blocks all navigation)
 }

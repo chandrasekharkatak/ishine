@@ -134,7 +134,8 @@
                                 <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
                             </label>
                             <select class="form-control" [(ngModel)]="trainingFormData.lockEnabled" name="lockEnabled"
-                                    title="Select Yes to lock portal until this training is completed">
+                                    title="Select Yes to lock portal until this training is completed"
+                                    (ngModelChange)="onLockEnabledChange($event)">
                                 <option value="true">Yes</option>
                                 <option value="false">No</option>
                             </select>
@@ -158,10 +159,14 @@
                                 <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
                             </label>
                             <select class="form-control" [(ngModel)]="trainingFormData.skipAllowed" name="skipAllowed"
-                                    title="Select Yes if employees can temporarily skip this training">
+                                    title="Select Yes if employees can temporarily skip this training. Note: Skip is automatically disabled when Lock Enabled is Yes."
+                                    [disabled]="trainingFormData.lockEnabled === 'true'">
                                 <option value="true">Yes</option>
                                 <option value="false">No</option>
                             </select>
+                            <small class="text-muted" *ngIf="trainingFormData.lockEnabled === 'true'">
+                                <i class="fas fa-info-circle"></i> Skip is disabled because Lock is enabled (hard mandatory)
+                            </small>
                         </div>
                     </div>
                 </div>
@@ -173,25 +178,23 @@
                     <div class="row">
                         <div class="col-md-3 mb-3">
                             <label class="info-label font-weight-bold" 
-                                   title="Whether this training has a deadline for completion. If enabled, employees must complete training by the deadline. Skip is not allowed after deadline.">
-                                Deadline Enabled
+                                   title="Deadline is mandatory for all trainings. Employees must complete training by the deadline. Skip is not allowed after deadline.">
+                                <span class="text-danger">*</span>Deadline Enabled
                                 <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
                             </label>
                             <select class="form-control" [(ngModel)]="trainingFormData.deadlineEnabled" name="deadlineEnabled"
-                                    title="Select Yes to enable deadline for this training">
-                                <option value="false">No</option>
-                                <option value="true">Yes</option>
+                                    title="Deadline is mandatory" [disabled]="true">
+                                <option value="true">Yes (Mandatory)</option>
                             </select>
                         </div>
-                        <div class="col-md-3 mb-3" *ngIf="trainingFormData.deadlineEnabled === 'true'">
+                        <div class="col-md-3 mb-3">
                             <label class="info-label font-weight-bold" 
-                                   title="The pattern for calculating deadlines: YEARLY (end of year), MID_YEAR (June 30), QUARTERLY (end of each quarter), or CUSTOM (specified months).">
+                                   title="The pattern for calculating deadlines: YEARLY (December 31 - last day of year), MID_YEAR (June 30, December 31), QUARTERLY (end of each quarter), or CUSTOM (specified months).">
                                 <span class="text-danger">*</span>Deadline Pattern
                                 <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
                             </label>
                             <select class="form-control" [(ngModel)]="trainingFormData.deadlinePattern" name="deadlinePattern"
-                                    title="Select the deadline calculation pattern">
-                                <option value="">Select Pattern</option>
+                                    title="Select the deadline calculation pattern" required>
                                 <option *ngFor="let pattern of deadlinePatterns" [value]="pattern.value">
                                     {{pattern.label}}
                                 </option>
@@ -250,6 +253,10 @@
                                 <div class="alert alert-info mb-3" *ngIf="!isEditMode">
                                     <i class="fas fa-info-circle mr-2"></i>
                                     <strong>Note:</strong> Content is required to create a training. Only one content can be active at a time.
+                                </div>
+                                <div class="alert alert-warning mb-3" *ngIf="isEditMode && contentFormData.contentId">
+                                    <i class="fas fa-info-circle mr-2"></i>
+                                    <strong>Note:</strong> Editing existing content. If you change the file, please upload a new file. Existing file cannot be loaded.
                                 </div>
                                 
                                 <!-- Content Form -->
@@ -326,12 +333,28 @@
                                         <div class="col-md-4 mb-3" *ngIf="contentFormData.contentType !== 'LINK'">
                                             <label class="info-label font-weight-bold" 
                                                    title="Upload the training content file. Supported formats: PPT (.ppt, .pptx), PDF (.pdf), VIDEO (.mp4, .avi, .mov, .webm), AUDIO (.mp3, .wav). Maximum file size is {{maxFileSize}}MB.">
-                                                <span class="text-danger">*</span>Select File
+                                                <span class="text-danger" *ngIf="!contentFormData.contentId">*</span>Select File
                                                 <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
                                             </label>
                                             <small class="d-block text-secondary mb-2">
                                                 <i class="fas fa-info-circle"></i> Max size: {{maxFileSize}}MB
+                                                <span *ngIf="contentFormData.contentId" class="d-block mt-1 text-info">
+                                                    <i class="fas fa-info-circle"></i> Optional: Upload new file to replace existing one
+                                                </span>
                                             </small>
+                                            <!-- Existing File Info -->
+                                            <div class="alert alert-info mb-2" *ngIf="contentFormData.contentId && contentFormData.existingContentPath && !file">
+                                                <small>
+                                                    <i class="fas fa-file mr-1"></i>
+                                                    <strong>Existing File:</strong> {{contentFormData.existingFileName || 'Current file'}}
+                                                    <button type="button" 
+                                                            class="btn btn-sm btn-link p-0 ml-2" 
+                                                            (click)="viewExistingContent()"
+                                                            title="View/Download existing file">
+                                                        <i class="fas fa-eye"></i> View
+                                                    </button>
+                                                </small>
+                                            </div>
                                             <div class="d-flex align-items-center">
                                                 <div class="custom-file flex-grow-1">
                                                     <input type="file" class="custom-file-input" id="contentFile" (change)="onFileSelect($event)" 
@@ -340,7 +363,7 @@
                                                                      contentFormData.contentType === 'VIDEO' ? '.mp4,.avi,.mov,.webm': 
                                                                      contentFormData.contentType === 'AUDIO' ? '.mp3,.wav' : '*'">
                                                     <label class="custom-file-label" for="contentFile">
-                                                        {{file ? file.name : 'Choose file...'}}
+                                                        {{file ? file.name : (contentFormData.contentId ? 'Choose new file (optional)...' : 'Choose file...')}}
                                                     </label>
                                                 </div>
                                                 <button type="button" 
@@ -591,6 +614,10 @@
                                     <button class="btn btn-sm btn-outline-info mx-1" 
                                             (click)="onViewContent(training)" title="View Content">
                                         <em class="fa fa-eye"></em>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-success mx-1" 
+                                            (click)="onAddQuiz(training)" title="Add Quiz">
+                                        <em class="fa fa-clipboard-check"></em> Quiz
                                     </button>
                                     <button *ngIf="training.activeStatus === 'true'" 
                                             class="btn btn-sm btn-outline-danger mx-1" 

@@ -59,6 +59,9 @@ export class User{
     releaseNoteNotification:any;
     linkedinPageNotification:any;
     
+    // Training lock status
+    trainingLockStatus:any;
+    
     poPortalAllProjectApi:any;
 
     probationPeriod: any;
