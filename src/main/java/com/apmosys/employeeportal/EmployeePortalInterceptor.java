@@ -103,7 +103,9 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			    "/employeeportal/api/getResourceCountListByPoprojectName",
 				"/employeeportal/api/runTheHolidayCron",
 			    "/api/ishineToPoEmpDetails",
-			    "/employeeportal/api/ishineToPoEmpDetails"
+			    "/employeeportal/api/ishineToPoEmpDetails",
+				"/api/getAllEmployeeInfo"
+
 			);
 	
 //	private final List<String> SKYWALKING_PROXIED_PATHS = Arrays.asList(

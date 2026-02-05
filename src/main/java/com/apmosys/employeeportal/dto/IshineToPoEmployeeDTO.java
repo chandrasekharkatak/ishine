@@ -27,7 +27,6 @@ public class IshineToPoEmployeeDTO {
 	    private LocalDate startDate;
 	    private LocalDate endDate;
 	    
-	    private String msg;
 	 	private Long poId;
 
 
@@ -67,9 +66,6 @@ public class IshineToPoEmployeeDTO {
 	        this.startDate = startDate;
 	        this.endDate = endDate;
 	        this.poId=poId;
-	        if(this.poId==null) {
-	        	this.msg ="PO Conflict!!";
-	        }
 	    }
 
 	    

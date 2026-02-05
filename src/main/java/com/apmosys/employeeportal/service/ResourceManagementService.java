@@ -14091,7 +14091,7 @@ public class ResourceManagementService {
 			}
 	
 			IshineToPoEmpDetailsSharingDTO dto = projectPoDetailsRepository
-					.findPoBasicDetails(ishineToPoRequest.getPoId());
+					.findPoBasicDetails(ishineToPoRequest.getPoId(),ishineToPoRequest.getProjectId());
 			
 		    LocalDate startDate = convertToLocalDate(ishineToPoRequest.getStartDateOfBilling());
 		    LocalDate endDate   = convertToLocalDate(ishineToPoRequest.getEndDateOfBilling());
@@ -14103,12 +14103,16 @@ public class ResourceManagementService {
 				apiLogInfo.setApiResponse("Resource onboarding has not started!!");
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				return response;
+		    }else if(!"true".equalsIgnoreCase(project.getActive())) {
+				response.setServiceResponse("Selected Project is no more active!!");
+				apiLogInfo.setApiResponse("Selected Project is no more active!!");
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				return response;
 		    }
 		    
+		    
 		    List<EmpMappingDTO> etm = employeeTeamMapRepository.getActiveEmpDetails(
-		    		ishineToPoRequest.getClientId(),
-		    		convertToLocalDateTime(ishineToPoRequest.getStartDateOfBilling()),
-		    		convertToLocalDateTime(ishineToPoRequest.getEndDateOfBilling()));
+		    		ishineToPoRequest.getClientId(),ishineToPoRequest.getPoId());
 		    
 		    if(etm == null || etm.isEmpty()){
 				response.setServiceResponse("No active employee mapping found!!");
@@ -14128,23 +14132,12 @@ public class ResourceManagementService {
 			
 			for (EmpMappingDTO e : etm) {
 
-				LocalDate effectiveStartDate =
-						e.getStartDate().toLocalDate().isBefore(startDate)
-				                ? startDate: e.getStartDate().toLocalDate();
-				
-			    LocalDate effectiveEndDate = (e.getEndDate() == null)?endDate:
-			    					e.getEndDate().toLocalDate().isBefore(endDate)
-			    					? e.getEndDate().toLocalDate(): endDate;
-
-
-			    if (effectiveStartDate.isAfter(effectiveEndDate)) { continue; } 
-
 			    IshineToPoEmployeeDTO emp =
 	                    projectPoDetailsRepository.findEmployeesWithTimesheetCount(
-	                            e.getEmpId(),ishineToPoRequest.getProjectId(),
-	                            effectiveStartDate,effectiveEndDate);
-
-	            if (emp != null && (emp.getPoId()==null || emp.getPoId().equals(ishineToPoRequest.getPoId())))
+	                            e.getEmpId(),startDate,endDate,
+	                            ishineToPoRequest.getPoId(),ishineToPoRequest.getClientId());
+			    
+	            if (emp != null && (emp.getPoId()!=null && emp.getPoId().equals(ishineToPoRequest.getPoId())))
 	            		{ employees.add(emp); }
 	        }
 						
@@ -14186,12 +14179,6 @@ public class ResourceManagementService {
 	               .toLocalDate();
 	}
 	
-	private LocalDateTime convertToLocalDateTime(Date date) {
-	    return date.toInstant()
-	               .atZone(ZoneId.systemDefault())
-	               .toLocalDateTime();
-	}
-
 	private List<ProjectFetchDTO> groupOfPoDetilasByProject(List<ProjectFetchDTO> list) {
 
 		if (list == null || list.isEmpty()) {
