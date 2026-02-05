@@ -4414,13 +4414,14 @@ public class ProjectService {
 	        project.setEndDate(newEnd);
 	        changed = true;
 	    }
+	    
+	    Long updatedBy = validationService.validateAndGetEmployeeEmpId(
+                dto.getDeletedByEmpId(),
+                dto.getDeletedByEmpName()
+        );
 
 	    if (changed) {
-	        project.setUpdatedBy(
-	                validateAndGetEmployeeEmpId(
-	                        dto.getDeletedByEmpId(),
-	                        dto.getDeletedByEmpName()
-	                ));
+	        project.setUpdatedBy(updatedBy);
 	        project.setUpdatedOn(
 	                dto.getDeletedOn().toInstant()
 	                        .atZone(ZoneId.systemDefault())
@@ -4431,12 +4432,14 @@ public class ProjectService {
 	}
 	
 	public void setActiveFlagAsFalse(Project project,DeletedPoSyncDTO dto) {
+		
+		 Long updatedBy = validationService.validateAndGetEmployeeEmpId(
+                dto.getDeletedByEmpId(),
+                dto.getDeletedByEmpName()
+        );
 		 if (project.getActive().equalsIgnoreCase("true"))	{  
 	            project.setActive("false");
-	            project.setUpdatedBy(validateAndGetEmployeeEmpId(
-	                        dto.getDeletedByEmpId(),
-	                        dto.getDeletedByEmpName()
-	                ));
+	            project.setUpdatedBy(updatedBy);
 	            project.setUpdatedOn(dto.getDeletedOn().toInstant()
 	                        .atZone(ZoneId.systemDefault())
 	                        .toLocalDateTime());           

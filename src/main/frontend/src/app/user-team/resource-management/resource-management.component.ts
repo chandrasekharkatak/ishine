@@ -81,7 +81,7 @@ export class ResourceManagementComponent implements OnInit {
 
   showProjectConfig: boolean = false;
   rmgProjectObj: RmgProject = new RmgProject();
-
+  isAllProjects: boolean = false;
 
   nodes: OrgChartNode[] = [];
 
@@ -8435,6 +8435,7 @@ catch(error){
   }
 
   showProjectConfigurationDetails(project: any, isModal:boolean) {
+    this.isAllProjects = this.isValidString(this.projectFilterDTO.approvalStatus) && this.projectFilterDTO.approvalStatus?.toLowerCase() === 'all';
     forkJoin({
       managers: this.getManagerAndOverheadList(),
       departments: this.getAllDepartmentsList(),
@@ -8550,8 +8551,7 @@ catch(error){
   getProjectConfigurationDetailsByProjectId(project: any) {
     this.showProjectConfig = false;
     this.rmgProjectObj = null;
-
-    return this.resourceManagementService.getProjectConfigurationDetailsByProjectId(project?.projectId).pipe(
+    return this.resourceManagementService.getProjectConfigurationDetailsByProjectId(project?.projectId,this.isAllProjects).pipe(
       first(),
       map((response: any) => {
         if (response.serviceStatus === 'Success') {

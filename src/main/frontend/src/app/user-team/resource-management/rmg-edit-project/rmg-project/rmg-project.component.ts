@@ -28,6 +28,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { Status } from 'src/app/enum/status';
 import { FCProjectMilestone } from 'src/app/models/fcProjectMileStone';
 import { MatCheckboxChange } from '@angular/material/checkbox';
+import { ToastService } from 'src/app/services/toast.service';
 @Component({
   standalone: false,
   selector: 'app-rmg-project',
@@ -43,6 +44,7 @@ export class RmgProjectComponent implements OnInit {
   @Input() departmentsList: any[] = [];
   @Input() spocList: any[] = [];
   @Input() isProjectPreview: boolean = true;
+  @Input() isAllProjects: boolean = false;
   @Output() closeProjectConfiguration = new EventEmitter<any>();
 
   @ViewChild("alert_message") alertMessageTemplateRef: TemplateRef<any>;
@@ -141,17 +143,13 @@ export class RmgProjectComponent implements OnInit {
 
 
   constructor(
-    private filterStateService: FilterStateService,
     public validationService: ValidationService,
-    private employeeService: EmployeeService,
+    private toastService : ToastService,
     private modalService: NgbModal,
     private teamService: TeamService,
     private resourceManagementService: ResourceManagementService,
     private authenticationService: AuthenticationService,
-    private route: ActivatedRoute,
-    private router: Router,
     private projectService: ProjectService,
-    private employee360Service: Employee360Service,
     private sanitizer: DomSanitizer,
     private dialog: MatDialog,
     private loaderService: LoaderService
@@ -170,7 +168,9 @@ export class RmgProjectComponent implements OnInit {
   // Modals Start
   openAlertMessageModal(modalMessage: any) {
     this.alertMessage = modalMessage;
-    this.alertMessageModalRef = this.modalService?.open(this.alertMessageTemplateRef, { modalDialogClass: 'modal-sm' });
+    if (!this.alertMessageModalRef) {
+      this.alertMessageModalRef = this.modalService?.open(this.alertMessageTemplateRef, { modalDialogClass: 'modal-sm' });
+    }
   }
 
   closeAlertMessageModal() {
@@ -267,7 +267,6 @@ export class RmgProjectComponent implements OnInit {
   }
 
   openDeleteEmployeeFromExistingProjectModal(employee: any) {
-    this.closeAlertMessageModal();
     this.employeeProjectEndDate = null;
     if (this.employeeProjectEndDateType !== 'Custom') {
       this.employeeProjectEndDate = employee.endDate;
@@ -516,7 +515,7 @@ export class RmgProjectComponent implements OnInit {
         }
 
       } else {
-        this.openAlertMessageModal(response.serviceResponse || 'Something went wrong!!');
+        this.toastService.error(response.serviceResponse || 'Something went wrong!!');
       }
     });
   }
@@ -903,9 +902,9 @@ export class RmgProjectComponent implements OnInit {
     this.teamMigrationObj.currentUserEmpId = this.currentUser.empId;
     this.teamService.migrateTeam(this.teamMigrationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.openAlertMessageModal(response.serviceResponse);
+        this.toastService.success(response.serviceResponse);
       } else {
-        this.openAlertMessageModal(response.serviceResponse || 'Something went wrong!!');
+        this.toastService.error(response.serviceResponse || 'Something went wrong!!');
       }
     });
   }
@@ -1043,9 +1042,9 @@ export class RmgProjectComponent implements OnInit {
       if (response.serviceStatus === "Success") {
         let po = this.rmgProjectObj.poDetailsList.find(po => po.poId === this.deleteTeamsPo.poId);
         this.getTeamDetails(po);
-        this.openAlertMessageModal(response.serviceResponse);
+        this.toastService.success(response.serviceResponse);
       } else {
-        this.openAlertMessageModal(response.serviceResponse);
+        this.toastService.error(response.serviceResponse);
       }
     });
   }
@@ -1085,9 +1084,9 @@ export class RmgProjectComponent implements OnInit {
     this.teamService.addOrUpdateTeamDetails(updateTeamPoDetails).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.getTeamDetails(po);
-        this.openAlertMessageModal(response.serviceResponse);
+        this.toastService.success(response.serviceResponse);
       } else {
-        this.openAlertMessageModal(response.serviceResponse);
+        this.toastService.error(response.serviceResponse);
       }
     });
   }
@@ -1200,8 +1199,7 @@ export class RmgProjectComponent implements OnInit {
   }
 
   getResourceRequirementCountByPoId(po: PoDetails) {
-    let poOrProjectId = this.projectType === 'TNM' ? po?.poId : po?.projectId;
-    this.resourceManagementService.getResourceRequirementCountByPoId(poOrProjectId, this.projectType).pipe(first()).subscribe((response: any) => {
+    this.resourceManagementService.getResourceRequirementCountByPoId(po?.poId, po?.projectId, this.projectType).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         const resp = response.serviceResponse;
         po.totalRequirements = resp.totalRequirements || 0;
@@ -1282,9 +1280,9 @@ export class RmgProjectComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.closeRoleListModal();
         this.getTeamDetailsByTeamId(team, po);
-        this.openAlertMessageModal(response.serviceResponse);
+        this.toastService.success(response.serviceResponse);
       } else {
-        this.openAlertMessageModal(response.serviceResponse);
+        this.toastService.error(response.serviceResponse);
       }
     });
   }
@@ -1359,7 +1357,7 @@ export class RmgProjectComponent implements OnInit {
           ' | Exp - ' + req.experience + ' yrs | Required Resource Count - ' + req.count;
       }
     } else {
-      this.openAlertMessageModal(response.serviceResponse || "Something went wrong!!");
+      this.toastService.error(response.serviceResponse || "Something went wrong!!");
     }
   }
 
@@ -1395,7 +1393,7 @@ export class RmgProjectComponent implements OnInit {
         member.resourceRequirementList = resourceRequirementList;
         this.teamIdResourceReqListMap.set(member.teamId, resourceRequirementList);
       } else {
-        this.openAlertMessageModal(response.serviceResponse || "Something went wrong!!");
+        this.toastService.error(response.serviceResponse || "Something went wrong!!");
       }
     });
   }
@@ -1418,7 +1416,7 @@ export class RmgProjectComponent implements OnInit {
         this.defaultProjectObj.resourceRequirementList = resourceRequirementList;
         this.teamIdResourceReqListMap.set(this.defaultProjectObj.teamId, resourceRequirementList);
       } else {
-        this.openAlertMessageModal(response.serviceResponse || "Something went wrong!!");
+        this.toastService.error(response.serviceResponse || "Something went wrong!!");
       }
     });
   }
@@ -1448,11 +1446,11 @@ export class RmgProjectComponent implements OnInit {
     this.projectService.updateMappingToOtherProjectAsDefault(employee.selectedProject).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.closeMappingToOtherProjectAsDefaultModal();
-        this.openAlertMessageModal(response.serviceResponse);
+        this.toastService.success(response.serviceResponse);
         this.getTeamDetailsByTeamId(this.currentTeam, this.currentPo);
-        this.openAlertMessageModal(response.serviceResponse);
+        this.toastService.success(response.serviceResponse);
       } else {
-        this.openAlertMessageModal(response.serviceResponse);
+        this.toastService.error(response.serviceResponse);
       }
     });
   }
@@ -1485,7 +1483,7 @@ export class RmgProjectComponent implements OnInit {
         this.closeRoleListModal();
         this.getTeamDetailsByTeamIdForUpdationDefaultProject();
       } else {
-        this.openAlertMessageModal(response.serviceResponse || "Something went wrong!!");
+        this.toastService.error(response.serviceResponse || "Something went wrong!!");
       }
     });
   }
@@ -1517,7 +1515,7 @@ export class RmgProjectComponent implements OnInit {
         this.closeRoleListModal();
         this.getTeamDetailsByTeamIdForUpdationDefaultProject();
       } else {
-        this.openAlertMessageModal(response.serviceResponse || "Something went wrong!!");
+        this.toastService.error(response.serviceResponse || "Something went wrong!!");
       }
     });
   }
@@ -1564,9 +1562,9 @@ export class RmgProjectComponent implements OnInit {
       if (response.serviceStatus == "Success") {
         this.closeEmployeeExistingProjectDetailsModal();
         this.getEmployeeExistingProjectDetailsByEmpId(this.tempRequirement, this.deleteEmployeeExistingProjectMappingObj.empId);
-        this.openAlertMessageModal(response.serviceResponse);
+        this.toastService.success(response.serviceResponse);
       } else {
-        this.openAlertMessageModal(response.serviceResponse);
+        this.toastService.error(response.serviceResponse);
       }
     })
   }
@@ -1593,7 +1591,7 @@ export class RmgProjectComponent implements OnInit {
 
   getProjectConfigurationDetailsByProjectId(project: any) {
     this.rmgProjectObj = null;
-    this.resourceManagementService.getProjectConfigurationDetailsByProjectId(project?.projectId).pipe(first()).subscribe((response: any) => {
+    this.resourceManagementService.getProjectConfigurationDetailsByProjectId(project?.projectId, this.isAllProjects).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.rmgProjectObj = response.serviceResponse;
         this.rmgProjectObj.state = this.isValidString(this.rmgProjectObj.state) ? this.rmgProjectObj.state : 'NA';

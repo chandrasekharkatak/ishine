@@ -66,8 +66,8 @@ public class RmgResourceRequirementDto {
         this.assignedApproved = assignedApproved;
     }
 
-    public RmgResourceRequirementDto(Long poId, Long assignedPending, Long assignedApproved) {
-        this.poId = poId;
+    public RmgResourceRequirementDto(Long poRequirementMappingId, Long assignedPending, Long assignedApproved) {
+        this.poRequirementMappingId = poRequirementMappingId;
         this.assignedPending = assignedPending;
         this.assignedApproved = assignedApproved;
     }

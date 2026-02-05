@@ -3991,59 +3991,59 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 
 
 
-	@Query(value="WITH RECURSIVE\n" + //
-			"    Date_Parameters AS (\n" + //
-			"        SELECT\n" + //
-			"            COALESCE(STR_TO_DATE(CONCAT(:year, '-', :month, '-01'), '%Y-%m-%d'), DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS from_date,\n" + //
-			"            CASE\n" + //
-			"                WHEN :year IS NOT NULL AND :month IS NOT NULL THEN\n" + //
-			"                    IF(:year = YEAR(CURDATE()) AND :month = MONTH(CURDATE()), CURDATE(), LAST_DAY(STR_TO_DATE(CONCAT(:year, '-', :month, '-01'), '%Y-%m-%d')))\n" + //
-			"                ELSE CURDATE()\n" + //
-			"            END AS to_date\n" + //
-			"    ),\n" + //
-			"\n" + //
-			"    All_Dates_In_Range AS (\n" + //
-			"        SELECT from_date AS dt FROM Date_Parameters\n" + //
-			"        UNION ALL\n" + //
-			"        SELECT DATE_ADD(dt, INTERVAL 1 DAY) FROM All_Dates_In_Range, Date_Parameters WHERE dt < Date_Parameters.to_date\n" + //
-			"    ),\n" + //
-			"                             Employees_With_Target_Project_Type AS (\n" + //
-			"SELECT DISTINCT etm.emp_id\n" + //
-			"FROM employee_team_mapping etm\n" + //
-			"INNER JOIN teams t ON etm.team_id = t.team_id\n" + //
-			"INNER JOIN projects p ON t.project_id = p.project_id\n" + //
-			"JOIN Date_Parameters dp ON 1=1\n" + //
-			"WHERE \n" + //
-			"etm.start_date <= dp.to_date\n" + //
+	@Query(value="WITH RECURSIVE\n" + 
+			"    Date_Parameters AS (\n" + 
+			"        SELECT\n" + 
+			"            COALESCE(STR_TO_DATE(CONCAT(:year, '-', :month, '-01'), '%Y-%m-%d'), DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS from_date,\n" + 
+			"            CASE\n" + 
+			"                WHEN :year IS NOT NULL AND :month IS NOT NULL THEN\n" + 
+			"                    IF(:year = YEAR(CURDATE()) AND :month = MONTH(CURDATE()), CURDATE(), LAST_DAY(STR_TO_DATE(CONCAT(:year, '-', :month, '-01'), '%Y-%m-%d')))\n" + 
+			"                ELSE CURDATE()\n" + 
+			"            END AS to_date\n" + 
+			"    ),\n" +
+			"\n" + 
+			"    All_Dates_In_Range AS (\n" + 
+			"        SELECT from_date AS dt FROM Date_Parameters\n" + 
+			"        UNION ALL\n" + 
+			"        SELECT DATE_ADD(dt, INTERVAL 1 DAY) FROM All_Dates_In_Range, Date_Parameters WHERE dt < Date_Parameters.to_date\n" + 
+			"    ),\n" + 
+			"                             Employees_With_Target_Project_Type AS (\n" + 
+			"SELECT DISTINCT etm.emp_id\n" + 
+			"FROM employee_team_mapping etm\n" + 
+			"INNER JOIN teams t ON etm.team_id = t.team_id\n" + 
+			"INNER JOIN projects p ON t.project_id = p.project_id\n" + 
+			"JOIN Date_Parameters dp ON 1=1\n" + 
+			"WHERE \n" + 
+			"etm.start_date <= dp.to_date\n" + 
 			"and p.has_client_side_id = 1 \n"+
-			"AND (etm.end_date IS NULL OR etm.end_date >= dp.from_date)\n" + //
-			"AND (\n" + //
-			" 'All' IN (:billableType) \n" + //
-			" \n" + //
-			" OR (p.po_project_type IN (:billableType) and coalesce(etm.is_shadow,0) = 0) \n" + //
-			" OR p.internal_project_type IN (:billableType) \n" + //
-			"\n" + //
-			" OR (\n" + //
-			" 'TNM(Shadow)' IN (:billableType) \n" + //
-			" AND p.po_project_type = 'TNM' \n" + //
-			" AND etm.is_shadow = 1\n" + //
-			" )             OR (\n" + //
-			" 'Fixed Cost(Shadow)' IN (:billableType) \n" + //
-			" AND p.po_project_type = 'Fixed Cost' \n" + //
-			" AND etm.is_shadow = 1\n" + //
-			" )\n" + //
-			")\n" + //
-			"),\n" + //
-			"    Project_Managers AS (\n" + //
-			"        SELECT pm.project_id, GROUP_CONCAT(DISTINCT e.name ORDER BY e.name SEPARATOR ', ') AS project_manager_name\n" + //
-			"        FROM project_manager_mapping pm\n" + //
-			"        left JOIN employee e ON e.emp_id = pm.project_manager_id\n" + //
-			"        GROUP BY pm.project_id\n" + //
-			"    ),\n" + //
-			"\n" + //
-			"    auth_emp AS (\n" + //
-			"        SELECT etm.emp_id, p.project_id, t.spoc_id, t.team_lead_id, t.team_id,\n" + //
-			"               etm.employee_team_map_id, date(etm.start_date) as start_date, etm.end_date\n" + //
+			"AND (etm.end_date IS NULL OR etm.end_date >= dp.from_date)\n" + 
+			"AND (\n" + 
+			" 'All' IN (:billableType) \n" + 
+			" \n" + 
+			" OR (p.po_project_type IN (:billableType) and coalesce(etm.is_shadow,0) = 0) \n" + 
+			" OR p.internal_project_type IN (:billableType) \n" + 
+			"\n" + 
+			" OR (\n" + 
+			" 'TNM(Shadow)' IN (:billableType) \n" + 
+			" AND p.po_project_type = 'TNM' \n" +
+			" AND etm.is_shadow = 1\n" + 
+			" )             OR (\n" + 
+			" 'Fixed Cost(Shadow)' IN (:billableType) \n" + 
+			" AND p.po_project_type = 'Fixed Cost' \n" + 
+			" AND etm.is_shadow = 1\n" + 
+			" )\n" + 
+			")\n" + 
+			"),\n" + 
+			"    Project_Managers AS (\n" + 
+			"        SELECT pm.project_id, GROUP_CONCAT(DISTINCT e.name ORDER BY e.name SEPARATOR ', ') AS project_manager_name\n" + 
+			"        FROM project_manager_mapping pm\n" + 
+			"        left JOIN employee e ON e.emp_id = pm.project_manager_id\n" + 
+			"        GROUP BY pm.project_id\n" + 
+			"    ),\n" + 
+			"\n" + 
+			"    auth_emp AS (\n" + 
+			"        SELECT etm.emp_id, p.project_id, t.spoc_id, t.team_lead_id, t.team_id,\n" + 
+			"               etm.employee_team_map_id, date(etm.start_date) as start_date, etm.end_date\n" + 
 			"        FROM employee_team_mapping etm\n" + //
 			"        INNER JOIN teams t ON etm.team_id = t.team_id\n" + //
 			"        INNER JOIN projects p ON t.project_id = p.project_id\n" + //
@@ -4070,12 +4070,12 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				        "s.name AS spoc, tl.name AS teamLead, "+
 				        "e.reporting_manager_id, e.employmentstatus, d.name AS dept_name, "+
 				        "CASE"+
-				            "WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-',e.employeement_id) "+
+				            " WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-',e.employeement_id) "+
 				            "ELSE CONCAT('A-',e.employeement_id) "+
 				        "END AS employement_id "+
 				    "FROM projects p "+
 				    "INNER JOIN teams t ON p.project_id = t.project_id "+
-				    "INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id"+
+				    "INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id "+
 				    "INNER JOIN employee e ON e.emp_id = etm.emp_id "+
 				    "INNER JOIN clients c ON c.client_id = p.client_id "+
 				    "INNER JOIN Employees_With_Target_Project_Type target_emps ON e.emp_id = target_emps.emp_id "+
@@ -4098,8 +4098,8 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 				        "(:multiPOs = 'All') "+
 				        "OR (:multiPOs = 'Yes' AND p.project_id IN  "+
 				            "(SELECT pp.project_id FROM project_po_details pp "+
-				             "WHERE pp.po_start_date <= (SELECT to_date FROM Date_Parameters) "+
-				             "AND (pp.po_end_date IS NULL OR pp.po_end_date >= (SELECT from_date FROM Date_Parameters)) "+
+				             "WHERE Date(pp.po_start_date) <= (SELECT to_date FROM Date_Parameters) "+
+				             "AND (pp.po_end_date IS NULL OR Date(pp.po_end_date) >= (SELECT from_date FROM Date_Parameters)) "+
 				             "GROUP BY pp.project_id HAVING count(*) > 1)) "+
 				        "OR (:multiPOs = 'No' AND p.project_id IN  "+
 				            "(SELECT pp.project_id FROM project_po_details pp "+
@@ -8000,7 +8000,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 			"  LEFT JOIN Project_Managers pm ON bpe.project_id = pm.project_id \n" +
 			"  LEFT JOIN employee s_emp ON dsd.shadow_emp_id = s_emp.emp_id \n" +
 			 "LEFT JOIN project_po_details ppd \n"
-			+ "ON ppd.project_id = p.project_id \n"
+			+ "ON ppd.project_id = bpe.project_id \n"
 		    + "AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters)"
 		    + "AND ("
 		    + "ppd.po_end_date IS NULL \n"
@@ -8389,7 +8389,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 						"LEFT JOIN Project_Managers pm ON bpe.project_id = pm.project_id\n" +
 						"LEFT JOIN employee s_emp ON dsd.shadow_emp_id = s_emp.emp_id\n" +
 						 "LEFT JOIN project_po_details ppd \n"
-						+ "ON ppd.project_id = p.project_id \n"
+						+ "ON ppd.project_id = bpe.project_id \n"
 					    + "AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters)"
 					    + "AND ("
 					    + "ppd.po_end_date IS NULL \n"
@@ -8713,7 +8713,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 				+ "				LEFT JOIN Project_Managers pm ON bpe.project_id = pm.project_id\n"
 				+ "				LEFT JOIN employee s_emp ON dsd.shadow_emp_id = s_emp.emp_id\n"
 				+ "LEFT JOIN project_po_details ppd \n"
-				+ "ON ppd.project_id = p.project_id \n"
+				+ "ON ppd.project_id = bpe.project_id \n"
 			    + "AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters)"
 			    + "AND ("
 			    + "ppd.po_end_date IS NULL \n"

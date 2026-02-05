@@ -77,9 +77,9 @@ matSort (matSortChange)="sortData($event)"
                 <th scope="col" class="info-label" style="min-width: 200px;"
                 mat-sort-header="poProjectType|string">PO Project Type</th>
                 <th scope="col" class="info-label" style="min-width: 200px;"
-                mat-sort-header="projectStartDate|string">PO Start Date</th>
+                mat-sort-header="poStartDate|string">PO Start Date</th>
                 <th scope="col" class="info-label" style="min-width: 200px;"
-                mat-sort-header="projectEndDate|string">PO End Date</th>
+                mat-sort-header="poEndDate|string">PO End Date</th>
                 <th scope="col" class="info-label" style="min-width: 250px;"
                 mat-sort-header="projectManagerName|string">Project Manager Name</th>
                 <th scope="col" class="info-label" style="min-width: 200px;"
@@ -138,8 +138,8 @@ matSort (matSortChange)="sortData($event)"
                         <td class="text-center">{{employee.rmgprojects[0].clientRM}}</td>
                         <td class="text-center">{{employee.rmgprojects[0].poNo}}</td>
                         <td class="text-center">{{employee.rmgprojects[0].poProjectType}}</td>
-                        <td class="text-center">{{employee.rmgprojects[0].projectStartDate | date: 'dd-MM-yyyy'}}</td>
-                        <td class="text-center">{{employee.rmgprojects[0].projectEndDate | date: 'dd-MM-yyyy'}}</td>
+                        <td class="text-center">{{employee.rmgprojects[0].poStartDate | date: 'dd-MM-yyyy'}}</td>
+                        <td class="text-center">{{employee.rmgprojects[0].poEndDate | date: 'dd-MM-yyyy'}}</td>
                         <!-- <td class="text-center text-capitalize"
                             id="clickablefor360"
                             *ngIf="userMapping.rmg_employee_360"
@@ -208,8 +208,8 @@ matSort (matSortChange)="sortData($event)"
                                     <td class="text-center">{{empProject.clientRM}}</td>
                                     <td class="text-center">{{empProject.poNo}}</td>
                                     <td class="text-center">{{empProject.poProjectType}}</td>
-                                    <td class="text-center">{{empProject.projectStartDate | date: 'dd-MM-yyyy'}}</td>
-                                    <td class="text-center">{{empProject.projectEndDate | date: 'dd-MM-yyyy'}}</td>
+                                    <td class="text-center">{{empProject.poStartDate | date: 'dd-MM-yyyy'}}</td>
+                                    <td class="text-center">{{empProject.poEndDate | date: 'dd-MM-yyyy'}}</td>
                                     <td class="text-center text-capitalize" *ngIf="userMapping.rmg_employee_360">
                                         <ng-container *ngFor="let manager of empProject.projectManagers; let last = last">
                                             <span 
@@ -416,9 +416,9 @@ matSort (matSortChange)="sortData($event)"
                         <th scope="col" class="info-label" style="min-width: 200px;"
                         mat-sort-header="poProjectType|string">PO Project Type</th>
                         <th scope="col" class="info-label" style="min-width: 200px;"
-                        mat-sort-header="projectStartDate|string">PO Start Date</th>
+                        mat-sort-header="poStartDate|string">PO Start Date</th>
                         <th scope="col" class="info-label" style="min-width: 200px;"
-                        mat-sort-header="projectEndDate|string">PO End Date</th>
+                        mat-sort-header="poEndDate|string">PO End Date</th>
                     </tr>
                     <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="exceptionTableColumns"
                         (onSearch)="onSearchException($event)">
@@ -465,8 +465,8 @@ matSort (matSortChange)="sortData($event)"
                                 <td class="text-center">{{employee.rmgProjects[0].clientRM}}</td>
                                 <td class="text-center">{{employee.rmgProjects[0].poNo}}</td>
                                 <td class="text-center">{{employee.rmgProjects[0].poProjectType}}</td>
-                                <td class="text-center">{{employee.rmgProjects[0].projectStartDate}}</td>
-                                <td class="text-center">{{employee.rmgProjects[0].projectEndDate}}</td>
+                                <td class="text-center">{{employee.rmgProjects[0].poStartDate  | date: 'dd-MM-yyyy'}}</td>
+                                <td class="text-center">{{employee.rmgProjects[0].poEndDate  | date: 'dd-MM-yyyy'}}</td>
                             </ng-container>
 
                             <ng-container *ngIf="!employee.rmgProjects || employee.rmgProjects.length === 0">
@@ -493,8 +493,8 @@ matSort (matSortChange)="sortData($event)"
                                     <td class="text-center">{{project.clientRM}}</td>
                                     <td class="text-center">{{project.poNo}}</td>
                                     <td class="text-center">{{project.poProjectType}}</td>
-                                    <td class="text-center">{{project.projectStartDate}}</td>
-                                    <td class="text-center">{{project.projectEndDate}}</td>
+                                    <td class="text-center">{{project.poStartDate}}</td>
+                                    <td class="text-center">{{project.poEndDate}}</td>
                                 </tr>
                             </ng-container>
                         </ng-container>
@@ -585,9 +585,9 @@ matSort (matSortChange)="sortData($event)"
                         <th scope="col" class="info-label" style="min-width: 200px;"
                         mat-sort-header="poProjectType|string">PO Project Type</th>
                         <th scope="col" class="info-label" style="min-width: 200px;"
-                        mat-sort-header="projectStartDate|string">PO Start Date</th>
+                        mat-sort-header="projectStartDate|string">Project Start Date</th>
                         <th scope="col" class="info-label" style="min-width: 200px;"
-                        mat-sort-header="projectEndDate|string">PO End Date</th>
+                        mat-sort-header="projectEndDate|string">Project End Date</th>
 
                     </tr>
                     <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="tableColumnsBench"
@@ -845,9 +845,9 @@ matSort (matSortChange)="sortData($event)"
                 <th scope="col" class="info-label" style="min-width: 300px;"
                 mat-sort-header="clientRM|string">Client RM</th>
                 <th scope="col" class="info-label" style="min-width: 300px;"
-                mat-sort-header="projectStartDate|string">PO Start Date</th>
+                mat-sort-header="poStartDate|string">PO Start Date</th>
                 <th scope="col" class="info-label" style="min-width: 300px;"
-                mat-sort-header="projectEndDate|string">PO End Date</th>
+                mat-sort-header="poEndDate|string">PO End Date</th>
                 <th scope="col" class="info-label" style="min-width: 250px;"
                 mat-sort-header="poNo|string">Po No</th>
                 <th scope="col" class="info-label" style="min-width: 200px;"
@@ -903,8 +903,8 @@ matSort (matSortChange)="sortData($event)"
                     <td class="text-center">{{ project.projectName }}</td>
                     <td class="text-center">{{ project.apmosysRM }}</td>
                     <td class="text-center">{{ project.clientRM }}</td>
-                    <td class="text-center">{{ project.projectStartDate | date: 'dd-MM-yyyy' }}</td>
-                    <td class="text-center">{{ project.projectEndDate | date: 'dd-MM-yyyy' }}</td>
+                    <td class="text-center">{{ project.poStartDate | date: 'dd-MM-yyyy' }}</td>
+                    <td class="text-center">{{ project.poEndDate | date: 'dd-MM-yyyy' }}</td>
                     <td class="text-center">{{ project.poNo }}</td>
                     <td class="text-center">{{ project.clientName }}</td>
                     <td class="text-center" *ngIf="!userMapping.rmg_employee_360">

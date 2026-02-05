@@ -157,7 +157,7 @@ public class ValidationService {
 			throw new RuntimeException("departmentList cannot be null or empty");
 		}
 
-		// ---------- CREATE vs UPDATE ----------
+		
 		if (dto.getEventType() == SyncRequestType.CREATE_PROJECT) {
 
 			require(poDto.getCreatedByEmpId(), "createdByEmpId");
@@ -203,6 +203,43 @@ public class ValidationService {
 		if (value == null) {
 			throw new RuntimeException(fieldName + " cannot be null from PO");
 		}
+	}
+	
+	
+	public Long validateAndGetEmployeeEmpId(String createdByEmpId, String createdByEmpName) {
+
+		if (createdByEmpId == null || !createdByEmpId.startsWith("A-")) {
+			ExceptionLogContext.add(
+		            "EmpId or EmpName missing from PO"
+		            + " | EmpId=" + createdByEmpId
+		            + " | EmpName=" + createdByEmpName
+		        );
+			throw new RuntimeException("Invalid EmpId format");
+		}
+
+		Long employmentId;
+		try {
+			employmentId = Long.parseLong(createdByEmpId.substring(2));
+		} catch (NumberFormatException e) {
+			 ExceptionLogContext.add(
+			            "Invalid EmpId format from PO"
+			            + " | EmpId=" + createdByEmpId
+			        );
+			throw new RuntimeException("Invalid employment id in EmpId");
+		}
+
+		 return employeeRepository
+		            .findByEmploymentIdAndEmployeeName(employmentId, createdByEmpName)
+		            .orElseThrow(() -> {
+		                ExceptionLogContext.add(
+		                    "Employee mismatch from PO"
+		                    + " | employmentId=" + employmentId
+		                    + " | employeeName=" + createdByEmpName
+		                );
+		                return new RuntimeException(
+		                    "Employee mismatch for employee"
+		                );
+		            });
 	}
 	
 }
