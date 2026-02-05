@@ -9226,7 +9226,7 @@ public class ResourceManagementService {
 					isOther = projectFilterDTO.getIsHod() == null ? true : false;
 				}
 				List<String> teamLeadDeptList = departmentRepository.findDeptIdsForTeamLead(currentUserEmpId);
-				String teamLeadDeptCsv = String.join(",", yug)	;
+				String teamLeadDeptCsv = String.join(",", teamLeadDeptList)	;
 				if (teamLeadDeptCsv != null && !teamLeadDeptCsv.isEmpty()) {
 					logBuilder.append("\n Department list fetched for Team Lead.");
 					List<Long> teamLeadIds = Arrays.stream(teamLeadDeptCsv.split(",")).map(String::trim)
@@ -9243,7 +9243,7 @@ public class ResourceManagementService {
 					}
 				}
 				List<String> spocDeptList = departmentRepository.findDeptIdsForSpoc(currentUserEmpId);
-				String spocDeptCsv = String.join(",", guij);
+				String spocDeptCsv = String.join(",", spocDeptList);
 				if (spocDeptCsv != null && !spocDeptCsv.isEmpty()) {
 					logBuilder.append("\n Department list fetched for Spoc.");
 					List<Long> spocIds = Arrays.stream(spocDeptCsv.split(",")).map(String::trim)
