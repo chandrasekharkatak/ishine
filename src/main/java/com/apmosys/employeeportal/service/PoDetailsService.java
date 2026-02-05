@@ -68,7 +68,11 @@ public class PoDetailsService {
 
 		ClientLocation cl = clientService.resolveClientLocation(client.getClientId(), poDto.getClientLocation(),
 				poDto.getClientState());
-
+		
+		Long createdBy = validationService.validateAndGetEmployeeEmpId(poDto.getCreatedByEmpId(),poDto.getCreatedByEmpName());
+        Long updatedBy = validationService.validateAndGetEmployeeEmpId(poDto.getUpdatedByEmpId(),poDto.getUpdatedByEmpName());
+		
+		
 		ProjectPoDetails po = new ProjectPoDetails();
 		po.setPoId(poDto.getPoId());
 		po.setProjectId(project.getProjectId());
@@ -78,8 +82,8 @@ public class PoDetailsService {
 		po.setPoEndDate(convert(poDto.getPoEndDate()));
 		po.setClientLocationId(Long.valueOf(cl.getClientLocationId()));
 		po.setClientAddressId(poDto.getClientAddressId());
-		po.setCreatedBy(validateAndGetEmployeeEmpId(poDto.getCreatedByEmpId(),poDto.getCreatedByEmpName()));
-		po.setUpdatedBy(validateAndGetEmployeeEmpId(poDto.getUpdatedByEmpId(),poDto.getUpdatedByEmpName()));
+		po.setCreatedBy(createdBy);
+		po.setUpdatedBy(updatedBy);
 		po.setMsg(poDto.getCommentForRmg());
 		po.setApmosysRM(poDto.getApmosysRmEmpName());
 		po.setApmosysRmEmail(poDto.getApmosysRmEmail());
