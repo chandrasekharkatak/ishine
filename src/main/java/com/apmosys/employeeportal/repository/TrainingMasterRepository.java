@@ -35,6 +35,6 @@ public interface TrainingMasterRepository extends JpaRepository<TrainingMaster, 
 	@Query("SELECT t FROM TrainingMaster t WHERE LOWER(t.trainingName) = LOWER(:trainingName)")
 	Optional<TrainingMaster> findByTrainingNameIgnoreCase(@Param("trainingName") String trainingName);
 	
-	@Query("SELECT tm FROM TrainingMaster tm WHERE LOWER(t.trainingName) = LOWER(:trainingName) AND tm.trainingId != :trainingId")
+	@Query("SELECT t FROM TrainingMaster t WHERE LOWER(t.trainingName) = LOWER(:trainingName) AND tm.trainingId != :trainingId")
 	Optional<TrainingMaster> findByTrainingNameAndNotTrainingId(@Param("trainingName") String trainingName, @Param("trainingId") Integer trainingId);
 }
