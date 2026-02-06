@@ -232,5 +232,5 @@ export class Employee{
 	certificateNames:any;
 	skillNames:any;
 	totalCurrentExperience:any;
-	isUpdateDefaultProject:any;
+	isUpdateDefaultProject:boolean = false;
 }

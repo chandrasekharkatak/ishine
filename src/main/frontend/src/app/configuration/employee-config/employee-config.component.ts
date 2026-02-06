@@ -1159,6 +1159,7 @@ export class EmployeeConfigComponent implements OnInit {
     this.employeeObj.isShadowResource = '';
     this.employeeObj.selectedResourceOverviewId = '';
     this.employeeObj.defaultTeamEmployeeRole = [];
+    this.employeeObj.isUpdateDefaultProject = false;
     this.allEmployeeList = [];
     this.filteredJobRoleList = [];
     this.allCertificationList = [];
@@ -2503,6 +2504,9 @@ export class EmployeeConfigComponent implements OnInit {
 
     let employee = Object.assign({}, this.employeeObj);
     employee.updatedBy = this.currentUser.empId;
+    if(employee.isUpdateDefaultProject == null){
+      employee.isUpdateDefaultProject = false;
+    }
 
     // if(this.employeeObj.employeementId.startsWith('A-CS-')){
     //   employee.employeementId  = this.employeeObj.employeementId.substring(5);
