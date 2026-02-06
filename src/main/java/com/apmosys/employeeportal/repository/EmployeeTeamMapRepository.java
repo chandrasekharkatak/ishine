@@ -810,12 +810,12 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			@Param("toDate") LocalDate toDate);
 	
 	@Query(value = "SELECT DISTINCT new com.apmosys.employeeportal.dto.EmpMappingDTO"
-			+ "(etm.empId,etm.startDate,etm.endDate,etm.isShadow,etm.poId,p.clientId,p.projectId) " +
-			"FROM Project p " +
-			"LEFT JOIN Team t ON t.projectId = p.projectId " +
-			"LEFT JOIN EmployeeTeamMap etm ON etm.poId = t.poId " +
-			"WHERE p.clientId =:clientId AND etm.active=1 AND t.poId = :poId ")
-	List<EmpMappingDTO> getActiveEmpDetails(Integer clientId,Long poId);
+			+ "(etm.empId,etm.startDate,etm.endDate,etm.isShadow,etm.poId) " +
+			"FROM EmployeeTeamMap etm " +
+			"LEFT JOIN PoRequirementMapping prm "+
+			"on prm.poRequirementMappingId=etm.poRequirementMappingId "+	
+			"WHERE etm.active=1 AND prm.poId = :poId ")
+	List<EmpMappingDTO> getActiveEmpDetails(Long poId);
 
 
 }

@@ -16,8 +16,7 @@ public class EmpMappingDTO {
 	private LocalDateTime endDate;
     private Integer isShadow;
     private Long poId;
-    private Integer clientId;
-	private Integer projectId;
+    
 
 
 }

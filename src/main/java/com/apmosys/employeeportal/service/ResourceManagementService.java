@@ -14114,8 +14114,8 @@ public class ResourceManagementService {
 		    }
 		    
 		    
-		    List<EmpMappingDTO> etm = employeeTeamMapRepository.getActiveEmpDetails(
-		    		ishineToPoRequest.getClientId(),ishineToPoRequest.getPoId());
+		    List<EmpMappingDTO> etm = employeeTeamMapRepository
+		    		.getActiveEmpDetails(ishineToPoRequest.getPoId());
 		    
 		    if(etm == null || etm.isEmpty()){
 				response.setServiceResponse("No active employee mapping found!!");

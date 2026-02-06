@@ -117,16 +117,17 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
         		+ "		LEFT JOIN Team t on t.teamId=a.teamId "
         		+ "		LEFT JOIN Project p on p.projectId=t.projectId "
         		+ "		LEFT JOIN EmployeeTeamMap etm "
-        		+ "			on etm.empId = et.empId AND etm.poId=t.poId AND etm.active=1"
+        		+ "			on etm.empId = et.empId AND etm.poId=t.poId "
         		+ "		LEFT JOIN Employee e on e.empId=etm.empId "
         		+ "		LEFT JOIN PoRequirementMapping prm "
         		+ "			ON prm.poRequirementMappingId = etm.poRequirementMappingId "
         		+ "		LEFT JOIN Department d ON d.name = prm.department "
-        		+ "     LEFT JOIN ProjectPoDetails ppo on ppo.poId = t.poId AND ppo.active=1"
+        		+ "     LEFT JOIN ProjectPoDetails ppo on ppo.poId = t.poId "
         		+ "		where 1=1 AND et.empId = :empId AND p.clientId = :clientId "
         		+ "        AND t.poId = :poId and et.status in ('Approved','approved') "
         		+ "		   AND edd.clientApprovalStatus in ('Approved','approved') "
-        		+ "        AND ppo.clientAddressId IS NOT NULL and etm.isShadow != 1	"
+        		+ "        AND ppo.clientAddressId IS NOT NULL and etm.isShadow != 1"
+        		+ "        AND etm.active=1 AND ppo.active=1	"
         		+ "        AND edd.finalFlag=1 AND et.date BETWEEN :startDate AND :endDate")
         	IshineToPoEmployeeDTO findEmployeesWithTimesheetCount(Long empId,
         	         LocalDate startDate,LocalDate endDate,Long poId,Integer clientId);
