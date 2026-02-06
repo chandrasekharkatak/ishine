@@ -159,10 +159,10 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 		List<GetDeptIdByRoleDTO> findDeptIdsForProjectOverhead(@Param("empId") Long empId);
 
 		@Query("SELECT t.deptIds FROM Team t WHERE t.teamLeadId = :empId")
-		String findDeptIdsForTeamLead(@Param("empId") Long empId);
+		List<String> findDeptIdsForTeamLead(@Param("empId") Long empId);
 
 		@Query("SELECT t.deptIds FROM Team t WHERE t.spocId = :empId")
-		String findDeptIdsForSpoc(@Param("empId") Long empId);
+		List<String> findDeptIdsForSpoc(@Param("empId") Long empId);
 		
 		@Query("SELECT new com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO(d.deptId, d.name) FROM Department d WHERE d.deptId IN :deptIds")
 		List<GetDeptIdByRoleDTO> findDepartmentsByIds(@Param("deptIds") List<Long> deptIds);
