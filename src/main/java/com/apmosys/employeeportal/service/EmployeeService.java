@@ -2507,7 +2507,7 @@ public class EmployeeService {
 				employee.setIsApmosysProduct(employeedto.getIsApmosysProduct());
 				
 				
-				if(employeedto.getIsUpdateDefaultProject()) {
+				if(Boolean.TRUE.equals(employeedto.getIsUpdateDefaultProject())) {
 					Project proj = new Project();
 					StringBuilder employeeRole = new StringBuilder("");
 					for (String empRole : employeedto.getDefaultTeamEmployeeRole()) {
