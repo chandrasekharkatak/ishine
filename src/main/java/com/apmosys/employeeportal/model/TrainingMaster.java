@@ -40,8 +40,8 @@ public class TrainingMaster {
 	@Column(name = "effective_to")
 	private Date effectiveTo;
 	
-	@Column(name = "frequency_per_year", nullable = false, columnDefinition = "INT DEFAULT 2")
-	private Integer frequencyPerYear;
+//	@Column(name = "frequency_per_year", nullable = false, columnDefinition = "INT DEFAULT 2")
+//	private Integer frequencyPerYear;
 	
 	@Column(name = "lock_enabled", nullable = false, columnDefinition = "VARCHAR(10) DEFAULT 'false'")
 	private String lockEnabled;

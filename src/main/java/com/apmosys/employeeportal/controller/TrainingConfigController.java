@@ -322,16 +322,8 @@ public class TrainingConfigController {
 				}
 			}
 			
-			// Handle file upload if present
-			if (file != null && !file.isEmpty() && trainingDTO.getTrainingId() != null) {
-				String filePath = saveTrainingFile(trainingDTO.getTrainingId(), file, trainingDTO.getUpdatedBy());
-				contentDTO.setContentPath(filePath);
-				contentDTO.setFileSizeBytes(file.getSize());
-				contentDTO.setMimeType(file.getContentType());
-			}
-			
 			// Date range validation will be done in service layer
-			return trainingConfigService.updateTrainingWithContent(trainingDTO, contentDTO, trainingDTO.getUpdatedBy());
+			return trainingConfigService.updateTrainingWithContent(trainingDTO, contentDTO, trainingDTO.getUpdatedBy(),file);
 			
 		} catch (com.fasterxml.jackson.core.JsonProcessingException e) {
 			e.printStackTrace();

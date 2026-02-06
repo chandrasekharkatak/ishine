@@ -87,7 +87,7 @@
                                    name="effectiveTo" required
                                    title="Select the end date when this training expires (must be after Effective From)">
                         </div>
-                        <div class="col-md-3 mb-3">
+                        <!-- <div class="col-md-3 mb-3">
                             <label class="info-label font-weight-bold" 
                                    title="Number of times employees must complete this training per year (1-12). For example, 2 means employees must complete it twice per year.">
                                 <span class="text-danger">*</span>Frequency Per Year
@@ -96,7 +96,7 @@
                             <input type="number" class="form-control" [(ngModel)]="trainingFormData.frequencyPerYear" 
                                    name="frequencyPerYear" min="1" max="12" required
                                    title="Enter how many times per year employees must complete this training (1-12)">
-                        </div>
+                        </div> -->
                         <div class="col-md-3 mb-3">
                             <label class="info-label font-weight-bold" 
                                    title="Minimum time (in minutes) employees must spend viewing the training content before they can submit consent. Leave empty if no minimum time is required.">
@@ -122,11 +122,14 @@
                                 <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
                             </label>
                             <select class="form-control" [(ngModel)]="trainingFormData.mandatoryFlag" name="mandatoryFlag"
-                                    title="Select Yes if this training is mandatory for all employees">
+                                [disabled]="trainingFormData.lockEnabled === 'true'">
+                            
                                 <option value="true">Yes</option>
                                 <option value="false">No</option>
+                            
                             </select>
                         </div>
+  
                         <div class="col-md-3 mb-3">
                             <label class="info-label font-weight-bold" 
                                    title="If enabled, the portal will be locked (employees cannot access other features) until this mandatory training is completed. Use for critical compliance trainings.">

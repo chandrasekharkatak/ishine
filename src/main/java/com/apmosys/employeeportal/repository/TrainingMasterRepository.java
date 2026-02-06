@@ -31,8 +31,10 @@ public interface TrainingMasterRepository extends JpaRepository<TrainingMaster, 
 		   "AND tm.effectiveFrom <= CURRENT_DATE")
 	List<TrainingMaster> findActiveTrainingsWithEffectiveDates(@Param("activeStatus") String activeStatus);
 	
-	Optional<TrainingMaster> findByTrainingName(String trainingName);
 	
-	@Query("SELECT tm FROM TrainingMaster tm WHERE tm.trainingName = :trainingName AND tm.trainingId != :trainingId")
+	@Query("SELECT t FROM TrainingMaster t WHERE LOWER(t.trainingName) = LOWER(:trainingName)")
+	Optional<TrainingMaster> findByTrainingNameIgnoreCase(@Param("trainingName") String trainingName);
+	
+	@Query("SELECT tm FROM TrainingMaster tm WHERE LOWER(t.trainingName) = LOWER(:trainingName) AND tm.trainingId != :trainingId")
 	Optional<TrainingMaster> findByTrainingNameAndNotTrainingId(@Param("trainingName") String trainingName, @Param("trainingId") Integer trainingId);
 }

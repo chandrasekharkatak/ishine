@@ -50,7 +50,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     mandatoryFlag: 'false',
     effectiveFrom: '',
     effectiveTo: '',
-    frequencyPerYear: 2,
+    // frequencyPerYear: 2,
     lockEnabled: 'false',
     minViewTimeMinutes: null,
     consentRequired: 'true',
@@ -97,7 +97,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   // Filter
   filters: any = {};
   isSearchEnabled: boolean = false;
-  trainingsColumns: any[] = ['blank', 'trainingName', 'trainingType', 'mandatoryFlag', 'frequencyPerYear', 'lockEnabled', 'activeStatus', 'createdByName', 'createdOn'];
+  trainingsColumns: any[] = ['blank', 'trainingName', 'trainingType', 'mandatoryFlag', 'lockEnabled', 'activeStatus', 'createdByName', 'createdOn'];
   contentColumns: any[] = ['blank', 'contentName', 'contentType', 'effectiveFrom', 'effectiveTo', 'activeStatus', 'createdByName', 'createdOn'];
 
   // File upload
@@ -218,7 +218,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       mandatoryFlag: 'false',
       effectiveFrom: '',
       effectiveTo: '',
-      frequencyPerYear: 2,
+      // frequencyPerYear: 2,
       lockEnabled: 'false',
       minViewTimeMinutes: null,
       consentRequired: 'true',
@@ -234,6 +234,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     // When lock is enabled, automatically set skip to false (lock means hard mandatory)
     if (value === 'true') {
       this.trainingFormData.skipAllowed = 'false';
+      this.trainingFormData.mandatoryFlag='true';
     }
   }
 
@@ -390,7 +391,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       mandatoryFlag: this.trainingFormData.mandatoryFlag || 'false',
       effectiveFrom: this.trainingFormData.effectiveFrom ? moment(this.trainingFormData.effectiveFrom).format('YYYY-MM-DD') : null,
       effectiveTo: this.trainingFormData.effectiveTo ? moment(this.trainingFormData.effectiveTo).format('YYYY-MM-DD') : null,
-      frequencyPerYear: this.trainingFormData.frequencyPerYear || 2,
+      // frequencyPerYear: this.trainingFormData.frequencyPerYear || 2,
       lockEnabled: this.trainingFormData.lockEnabled || 'false',
       minViewTimeMinutes: this.trainingFormData.minViewTimeMinutes || null,
       consentRequired: this.trainingFormData.consentRequired || 'true',
@@ -459,7 +460,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
         mandatoryFlag: this.trainingFormData.mandatoryFlag || 'false',
         effectiveFrom: this.trainingFormData.effectiveFrom ? moment(this.trainingFormData.effectiveFrom).format('YYYY-MM-DD') : null,
         effectiveTo: this.trainingFormData.effectiveTo ? moment(this.trainingFormData.effectiveTo).format('YYYY-MM-DD') : null,
-        frequencyPerYear: this.trainingFormData.frequencyPerYear || 2,
+        // frequencyPerYear: this.trainingFormData.frequencyPerYear || 2,
         lockEnabled: this.trainingFormData.lockEnabled || 'false',
         minViewTimeMinutes: this.trainingFormData.minViewTimeMinutes || null,
         consentRequired: this.trainingFormData.consentRequired || 'true',
@@ -537,7 +538,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       mandatoryFlag: training.mandatoryFlag,
       effectiveFrom: training.effectiveFrom ? moment(training.effectiveFrom).format('YYYY-MM-DD') : '',
       effectiveTo: training.effectiveTo ? moment(training.effectiveTo).format('YYYY-MM-DD') : '',
-      frequencyPerYear: training.frequencyPerYear,
+      // frequencyPerYear: training.frequencyPerYear,
       lockEnabled: training.lockEnabled,
       minViewTimeMinutes: training.minViewTimeMinutes,
       consentRequired: training.consentRequired,
@@ -1142,10 +1143,6 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     this.previewUrl = '';
     this.file = null;
     this.contentFormData.externalLinkUrl = '';
-    // Regenerate preview if file/URL exists
-    setTimeout(() => {
-      this.generatePreviewUrl();
-    }, 100);
   }
 
   onExternalLinkChange() {
@@ -1341,11 +1338,11 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     }
 
     // Frequency validation
-    if (this.trainingFormData.frequencyPerYear &&
-      (this.trainingFormData.frequencyPerYear < 1 || this.trainingFormData.frequencyPerYear > 12)) {
-      this.openAlertMod(this.alertTemplate, 'Frequency per year must be between 1 and 12', 'error');
-      return false;
-    }
+    // if (this.trainingFormData.frequencyPerYear &&
+    //   (this.trainingFormData.frequencyPerYear < 1 || this.trainingFormData.frequencyPerYear > 12)) {
+    //   this.openAlertMod(this.alertTemplate, 'Frequency per year must be between 1 and 12', 'error');
+    //   return false;
+    // }
 
     // Lock enabled validation
     if (this.trainingFormData.lockEnabled === 'true') {

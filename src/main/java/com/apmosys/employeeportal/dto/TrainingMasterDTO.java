@@ -17,7 +17,7 @@ public class TrainingMasterDTO {
 	private String mandatoryFlag;
 	private Date effectiveFrom;
 	private Date effectiveTo;
-	private Integer frequencyPerYear;
+//	private Integer frequencyPerYear;
 	private String lockEnabled;
 	private Integer minViewTimeMinutes;
 	private String consentRequired;

@@ -103,11 +103,9 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 		
 		try {
 			// Calculate cycle number if not provided
-			Integer cycleNumber = consentDTO.getCompletionCycleNumber();
-			if (cycleNumber == null || cycleNumber == 0) {
-				cycleNumber = calculateCurrentCycle(consentDTO.getEmpId(), consentDTO.getTrainingId());
-				consentDTO.setCompletionCycleNumber(cycleNumber);
-			}
+			   Integer cycleNumber =calculateCurrentCycle(consentDTO.getEmpId(), consentDTO.getTrainingId());
+			    consentDTO.setCompletionCycleNumber(cycleNumber);
+			
 			
 			// Validate that content is current active content
 			Optional<TrainingContent> activeContentOpt = trainingContentRepository.findCurrentActiveContent(consentDTO.getTrainingId() ,PageRequest.of(0, 1))
@@ -452,7 +450,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 				userTraining.setMinViewTimeMinutes(training.getMinViewTimeMinutes());
 				userTraining.setConsentRequired(training.getConsentRequired());
 				userTraining.setSkipAllowed(training.getSkipAllowed());
-				userTraining.setRequiredFrequency(training.getFrequencyPerYear());
+				userTraining.setRequiredFrequency(calculateTotalFrequency(training));
 				
 				// Calculate completion count
 				int completionCount = countCompletionsInLast12Months(empId, training.getTrainingId());
@@ -627,8 +625,8 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 			dto.setTrainingId(trainingId);
 			dto.setTrainingName(training.getTrainingName());
 			dto.setCompletionCount(completionCount != null ? completionCount.intValue() : 0);
-			dto.setRequiredFrequency(training.getFrequencyPerYear());
-			dto.setNeedsAssignment(completionCount < training.getFrequencyPerYear());
+			dto.setRequiredFrequency(calculateTotalFrequency(training));
+			dto.setNeedsAssignment(completionCount < calculateTotalFrequency(training));
 			
 			// Get last completed date
 			List<TrainingConsent> consents = trainingConsentRepository.findByEmpIdAndTrainingId(empId, trainingId);
@@ -763,6 +761,38 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 		}
 	}
 	
+	private int calculateTotalFrequency(TrainingMaster training) {
+
+	    if (training.getDeadlinePattern() == null) {
+	        return 1; // Default
+	    }
+
+	    switch (training.getDeadlinePattern()) {
+
+	        case "YEARLY":
+	            return 1;
+
+	        case "MID_YEAR":
+	        case "YEAR_END":
+	            return 2;
+
+	        case "QUARTERLY":
+	            return 4;
+
+	        case "CUSTOM":
+	            if (training.getCustomDeadlineMonths() != null &&
+	                !training.getCustomDeadlineMonths().trim().isEmpty()) {
+
+	                // Each deadline month represents one cycle
+	                return training.getCustomDeadlineMonths().split(",").length;
+	            }
+	            return 1;
+
+	        default:
+	            return 1;
+	    }
+	}
+	
 	private LocalDate calculateCycleDeadline(TrainingMaster training, int cycleNumber) {
 		if (training.getDeadlinePattern() == null) {
 			return null;
@@ -840,7 +870,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 
 		int completionCount = countCompletionsInLast12Months(empId, training.getTrainingId());
       System.out.println("completionCount > "+completionCount);
-		if (completionCount >= training.getFrequencyPerYear()) {
+		if (completionCount >= calculateTotalFrequency(training)){
 			return Optional.empty(); // No pending
 		}
 

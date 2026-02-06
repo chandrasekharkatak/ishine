@@ -38,7 +38,7 @@ public interface TrainingConfigService {
 	 * @param updatedBy User ID who updated the training
 	 * @return ServiceResponse indicating success or failure
 	 */
-	ServiceResponse updateTrainingWithContent(TrainingMasterDTO trainingDTO, TrainingContentDTO contentDTO, Long updatedBy);
+	ServiceResponse updateTrainingWithContent(TrainingMasterDTO trainingDTO, TrainingContentDTO contentDTO, Long updatedBy, MultipartFile file);
 	
 	/**
 	 * Add content to an existing training

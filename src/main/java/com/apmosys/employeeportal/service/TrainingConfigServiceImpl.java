@@ -10,7 +10,6 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -30,17 +29,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.Exception.FileValidationException;
 import com.apmosys.employeeportal.dto.ComplianceReportDTO;
-import com.apmosys.employeeportal.dto.LockStatusDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
-import com.apmosys.employeeportal.dto.PendingTrainingDTO;
-import com.apmosys.employeeportal.dto.TrainingConsentDTO;
 import com.apmosys.employeeportal.dto.TrainingContentDTO;
-import com.apmosys.employeeportal.dto.TrainingFrequencyDTO;
 import com.apmosys.employeeportal.dto.TrainingHistoryDTO;
 import com.apmosys.employeeportal.dto.TrainingMasterDTO;
-import com.apmosys.employeeportal.dto.TrainingSkipDTO;
-import com.apmosys.employeeportal.dto.UserTrainingDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.TrainingConsent;
 import com.apmosys.employeeportal.model.TrainingContent;
@@ -54,6 +48,7 @@ import com.apmosys.employeeportal.repository.TrainingSkipRepository;
 import com.apmosys.employeeportal.serviceInterface.TrainingConfigService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+import com.apmosys.employeeportal.utility.TrainingFileValidator;
 
 /**
  * Service implementation for Training Configuration operations (HR/Admin)
@@ -88,6 +83,9 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	
 	@Value("${file.location.documents.training}")
 	private String trainingFileLocation;
+	
+	@Value("${file.training.max.size.allowed}")
+	private String maxFileSize;
 
 	// ==================== HR Configuration APIs ====================
 	@Override
@@ -240,7 +238,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
-	public ServiceResponse createTrainingWithContent(TrainingMasterDTO trainingDTO, TrainingContentDTO contentDTO, Long createdBy, org.springframework.web.multipart.MultipartFile file) {
+	public ServiceResponse createTrainingWithContent(TrainingMasterDTO trainingDTO, TrainingContentDTO contentDTO, Long createdBy, MultipartFile file) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("Create Training With Content");
@@ -254,7 +252,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		
 		try {
 			// Validation: Check for duplicate training name
-			Optional<TrainingMaster> existingTraining = trainingMasterRepository.findByTrainingName(trainingDTO.getTrainingName().trim());
+			Optional<TrainingMaster> existingTraining = trainingMasterRepository.findByTrainingNameIgnoreCase(trainingDTO.getTrainingName().trim());
 			if (existingTraining.isPresent()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Training name already exists. Please use a different name.");
@@ -331,6 +329,17 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 				return response;
 			}
 			
+			if (!"LINK".equals(contentDTO.getContentType())) {
+					    TrainingFileValidator.validateFile(
+					            file,
+					            contentDTO.getContentType(),
+					            maxFileSize
+					    );
+					
+				
+			}
+			 
+			
 			// Step 1: Create Training
 			TrainingMaster training = new TrainingMaster();
 			training.setTrainingName(trainingDTO.getTrainingName().trim());
@@ -338,13 +347,14 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 			training.setMandatoryFlag(trainingDTO.getMandatoryFlag() != null ? trainingDTO.getMandatoryFlag() : "false");
 			training.setEffectiveFrom(trainingDTO.getEffectiveFrom());
 			training.setEffectiveTo(trainingDTO.getEffectiveTo());
-			training.setFrequencyPerYear(trainingDTO.getFrequencyPerYear() != null ? trainingDTO.getFrequencyPerYear() : 2);
+//			training.setFrequencyPerYear(trainingDTO.getFrequencyPerYear() != null ? trainingDTO.getFrequencyPerYear() : 2);
 			training.setLockEnabled(trainingDTO.getLockEnabled() != null ? trainingDTO.getLockEnabled() : "false");
 			training.setMinViewTimeMinutes(trainingDTO.getMinViewTimeMinutes());
 			training.setConsentRequired(trainingDTO.getConsentRequired() != null ? trainingDTO.getConsentRequired() : "true");
 			// If lock is enabled, skip must be false (lock means hard mandatory)
 			if ("true".equals(trainingDTO.getLockEnabled())) {
 				training.setSkipAllowed("false");
+				training.setMandatoryFlag("true");
 			} else {
 				training.setSkipAllowed(trainingDTO.getSkipAllowed() != null ? trainingDTO.getSkipAllowed() : "true");
 			}
@@ -370,10 +380,11 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 			}
 			
 			// Step 2: Create Content
+			String filePath=null;
 			// Handle file upload if present
-			if (file != null && !file.isEmpty()) {
+			if (file != null && !file.isEmpty() && !"LINK".equals(contentDTO.getContentType())) {
 				try {
-					String filePath = saveTrainingFile(savedTraining.getTrainingId(), file);
+				    filePath =generateTrainingFilePath( savedTraining.getTrainingId(), file); 
 					contentDTO.setContentPath(filePath);
 					contentDTO.setFileSizeBytes(file.getSize());
 					contentDTO.setMimeType(file.getContentType());
@@ -439,6 +450,10 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 			
 			TrainingContent savedContent = trainingContentRepository.save(content);
 			
+			if (file != null && !file.isEmpty() && !"LINK".equals(contentDTO.getContentType())) {
+			    saveTrainingFile(filePath, file);
+			}
+			
 			if (savedContent.getContentId() != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(savedTraining); // Return training with ID
@@ -452,7 +467,18 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 			
-		} catch (Exception e) {
+		} 
+		
+		catch (FileValidationException e) {
+              e.printStackTrace();
+		    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		    response.setServiceResponse(e.getMessage());
+		    response.setServiceError(e.getMessage());
+
+		    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		    apiLogInfo.setApiResponse(e.getMessage());
+		    apiLogInfo.setLogLevel("WARN");
+		}catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
@@ -465,324 +491,242 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-
+	
+	
+	
 	@Override
-	@Transactional
-	public ServiceResponse updateTrainingWithContent(TrainingMasterDTO trainingDTO, TrainingContentDTO contentDTO, Long updatedBy) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("Update Training With Content");
-		apiLogInfo.setApiUrl("/api/training/updateTrainingWithContent");
-		apiLogInfo.setLogLevel("INFO");
-		
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("Training ID: ").append(trainingDTO.getTrainingId())
-				  .append(", Content Type: ").append(contentDTO.getContentType())
-				  .append(", UpdatedBy: ").append(updatedBy);
-		
-		try {
-			// Step 1: Update Training
-			Optional<TrainingMaster> trainingOpt = trainingMasterRepository.findByTrainingId(trainingDTO.getTrainingId());
-			
-			if (trainingOpt.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Training not found");
-				apiLogInfo.setApiResponse("Training not found");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				apiLogInfo.setApiRequest(logBuilder.toString());
-				logService.logMyInfo(httpRequest, apiLogInfo);
-				return response;
-			}
-			
-			TrainingMaster training = trainingOpt.get();
-			
-			// Validation: Check for duplicate training name (excluding current training)
-			if (trainingDTO.getTrainingName() != null && !trainingDTO.getTrainingName().trim().isEmpty()) {
-				Optional<TrainingMaster> existingTraining = trainingMasterRepository.findByTrainingNameAndNotTrainingId(
-					trainingDTO.getTrainingName().trim(), trainingDTO.getTrainingId());
-				if (existingTraining.isPresent()) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Training name already exists. Please use a different name.");
-					apiLogInfo.setApiResponse("Duplicate training name");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-					apiLogInfo.setApiRequest(logBuilder.toString());
-					logService.logMyInfo(httpRequest, apiLogInfo);
-					return response;
-				}
-			}
-			
-			// Validation: Content effectiveTo date is required
-			if (contentDTO.getEffectiveTo() == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Content effective to date is required");
-				apiLogInfo.setApiResponse("Content effective to date is null");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				apiLogInfo.setApiRequest(logBuilder.toString());
-				logService.logMyInfo(httpRequest, apiLogInfo);
-				return response;
-			}
-			
-			// Validation: Training date range (effectiveFrom < effectiveTo)
-			// Check if dates are being updated, if so validate them
-			Date trainingEffectiveFrom = trainingDTO.getEffectiveFrom() != null ? trainingDTO.getEffectiveFrom() : training.getEffectiveFrom();
-			Date trainingEffectiveTo = trainingDTO.getEffectiveTo() != null ? trainingDTO.getEffectiveTo() : training.getEffectiveTo();
-			
-			// Validate training date range if dates are provided
-			if (trainingDTO.getEffectiveFrom() != null || trainingDTO.getEffectiveTo() != null) {
-				// If updating effectiveTo, ensure it's not null
-				if (trainingDTO.getEffectiveTo() == null && training.getEffectiveTo() == null) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Training effective to date is required");
-					apiLogInfo.setApiResponse("Training effective to date is null");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-					apiLogInfo.setApiRequest(logBuilder.toString());
-					logService.logMyInfo(httpRequest, apiLogInfo);
-					return response;
-				}
-				
-				if (trainingEffectiveFrom.after(trainingEffectiveTo)) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Training effective from date must be before effective to date");
-					apiLogInfo.setApiResponse("Invalid training date range");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-					apiLogInfo.setApiRequest(logBuilder.toString());
-					logService.logMyInfo(httpRequest, apiLogInfo);
-					return response;
-				}
-			}
-			
-			// Validation: Content date range (effectiveFrom < effectiveTo)
-			if (contentDTO.getEffectiveFrom().after(contentDTO.getEffectiveTo())) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Content effective from date must be before effective to date");
-				apiLogInfo.setApiResponse("Invalid content date range");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				apiLogInfo.setApiRequest(logBuilder.toString());
-				logService.logMyInfo(httpRequest, apiLogInfo);
-				return response;
-			}
-			
-			// Validation: Content dates should be within training dates
-			// Both content dates are mandatory, so validate against training dates
-			if (contentDTO.getEffectiveFrom().before(trainingEffectiveFrom) ||
-				contentDTO.getEffectiveFrom().after(trainingEffectiveTo)) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Content effective from date must be within training effective dates");
-				apiLogInfo.setApiResponse("Content date out of training range");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				apiLogInfo.setApiRequest(logBuilder.toString());
-				logService.logMyInfo(httpRequest, apiLogInfo);
-				return response;
-			}
-			
-			if (contentDTO.getEffectiveTo().after(trainingEffectiveTo)) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Content effective to date must be within training effective dates");
-				apiLogInfo.setApiResponse("Content date out of training range");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				apiLogInfo.setApiRequest(logBuilder.toString());
-				logService.logMyInfo(httpRequest, apiLogInfo);
-				return response;
-			}
-			
-			if (trainingDTO.getTrainingName() != null) {
-				training.setTrainingName(trainingDTO.getTrainingName().trim());
-			}
-			if (trainingDTO.getTrainingType() != null) {
-				training.setTrainingType(trainingDTO.getTrainingType());
-			}
-			if (trainingDTO.getMandatoryFlag() != null) {
-				training.setMandatoryFlag(trainingDTO.getMandatoryFlag());
-			}
-			if (trainingDTO.getEffectiveFrom() != null) {
-				training.setEffectiveFrom(trainingDTO.getEffectiveFrom());
-			}
-			if (trainingDTO.getEffectiveTo() != null) {
-				training.setEffectiveTo(trainingDTO.getEffectiveTo());
-			}
-			if (trainingDTO.getFrequencyPerYear() != null) {
-				training.setFrequencyPerYear(trainingDTO.getFrequencyPerYear());
-			}
-			if (trainingDTO.getLockEnabled() != null) {
-				training.setLockEnabled(trainingDTO.getLockEnabled());
-			}
-			if (trainingDTO.getMinViewTimeMinutes() != null) {
-				training.setMinViewTimeMinutes(trainingDTO.getMinViewTimeMinutes());
-			}
-			if (trainingDTO.getConsentRequired() != null) {
-				training.setConsentRequired(trainingDTO.getConsentRequired());
-			}
-			// If lock is enabled, skip must be false (lock means hard mandatory)
-			if ("true".equals(trainingDTO.getLockEnabled())) {
-				training.setSkipAllowed("false");
-			} else if (trainingDTO.getSkipAllowed() != null) {
-				training.setSkipAllowed(trainingDTO.getSkipAllowed());
-			}
-			// Deadline is mandatory - always enabled
-			training.setDeadlineEnabled("true");
-			// Set pattern (default to YEARLY if not provided)
-			if (trainingDTO.getDeadlinePattern() != null && !trainingDTO.getDeadlinePattern().isEmpty()) {
-				training.setDeadlinePattern(trainingDTO.getDeadlinePattern());
-			} else if (training.getDeadlinePattern() == null || training.getDeadlinePattern().isEmpty()) {
-				training.setDeadlinePattern("YEARLY");
-			}
-			if (trainingDTO.getCustomDeadlineMonths() != null) {
-				training.setCustomDeadlineMonths(trainingDTO.getCustomDeadlineMonths());
-			}
-			if (trainingDTO.getActiveStatus() != null) {
-				training.setActiveStatus(trainingDTO.getActiveStatus());
-			}
-			training.setUpdatedBy(updatedBy);
-			
-			TrainingMaster updatedTraining = trainingMasterRepository.save(training);
-			
-			// Step 2: Add/Update Content
-			// Validate content type and required fields
-			if ("LINK".equals(contentDTO.getContentType())) {
-				if (contentDTO.getExternalLinkUrl() == null || contentDTO.getExternalLinkUrl().isEmpty()) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("External link URL is required for LINK content type");
-					apiLogInfo.setApiResponse("External link URL is required");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-					apiLogInfo.setApiRequest(logBuilder.toString());
-					logService.logMyInfo(httpRequest, apiLogInfo);
-					return response;
-				}
-			} else {
-				// For file content types, contentPath is required
-				// If updating existing content (contentId provided) and no new file uploaded,
-				// we need to get the existing contentPath
-				if ((contentDTO.getContentPath() == null || contentDTO.getContentPath().isEmpty()) && 
-					contentDTO.getContentId() != null) {
-					// Try to get existing content path
-					Optional<TrainingContent> existingContentOpt = trainingContentRepository.findByContentId(contentDTO.getContentId());
-					if (existingContentOpt.isPresent() && existingContentOpt.get().getContentPath() != null) {
-						contentDTO.setContentPath(existingContentOpt.get().getContentPath());
-						contentDTO.setFileSizeBytes(existingContentOpt.get().getFileSizeBytes());
-						contentDTO.setMimeType(existingContentOpt.get().getMimeType());
-					} else {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						response.setServiceResponse("Content path is required for file content types. Please upload a file.");
-						apiLogInfo.setApiResponse("Content path is required");
-						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-						apiLogInfo.setApiRequest(logBuilder.toString());
-						logService.logMyInfo(httpRequest, apiLogInfo);
-						return response;
-					}
-				} else if (contentDTO.getContentPath() == null || contentDTO.getContentPath().isEmpty()) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Content path is required for file content types");
-					apiLogInfo.setApiResponse("Content path is required");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-					apiLogInfo.setApiRequest(logBuilder.toString());
-					logService.logMyInfo(httpRequest, apiLogInfo);
-					return response;
-				}
-			}
-			
-			// Check if updating existing content or creating new one
-			TrainingContent content;
-			if (contentDTO.getContentId() != null) {
-				// Update existing content
-				Optional<TrainingContent> existingContentOpt = trainingContentRepository.findByContentId(contentDTO.getContentId());
-				if (existingContentOpt.isEmpty()) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Content not found for update");
-					apiLogInfo.setApiResponse("Content not found");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-					apiLogInfo.setApiRequest(logBuilder.toString());
-					logService.logMyInfo(httpRequest, apiLogInfo);
-					return response;
-				}
-				content = existingContentOpt.get();
-				
-				// Update fields
-				content.setContentType(contentDTO.getContentType());
-				content.setContentName(contentDTO.getContentName());
-				// Only update contentPath if new file was uploaded (contentPath is set)
-				if (contentDTO.getContentPath() != null && !contentDTO.getContentPath().isEmpty()) {
-					content.setContentPath(contentDTO.getContentPath());
-					content.setFileSizeBytes(contentDTO.getFileSizeBytes());
-					content.setMimeType(contentDTO.getMimeType());
-				}
-				// Otherwise keep existing file path
-				content.setExternalLinkUrl(contentDTO.getExternalLinkUrl());
-				content.setEffectiveFrom(contentDTO.getEffectiveFrom());
-				content.setEffectiveTo(contentDTO.getEffectiveTo());
-				content.setActiveStatus(contentDTO.getActiveStatus() != null ? contentDTO.getActiveStatus() : content.getActiveStatus());
-				content.setUpdatedBy(updatedBy);
-				content.setUpdatedOn(new Timestamp(System.currentTimeMillis()));
-				
-				// Check for overlapping active content (excluding current content)
-				List<TrainingContent> overlappingContent = trainingContentRepository.findOverlappingActiveContent(
-					trainingDTO.getTrainingId(),
-					contentDTO.getEffectiveFrom(),
-					contentDTO.getEffectiveTo()
-				);
-				// Remove current content from overlap list
-				overlappingContent.removeIf(c -> c.getContentId().equals(content.getContentId()));
-				
-				// Deactivate overlapping content
-				for (TrainingContent overlap : overlappingContent) {
-					overlap.setActiveStatus("false");
-					trainingContentRepository.save(overlap);
-				}
-			} else {
-				// Create new content
-				// Check for overlapping active content
-				List<TrainingContent> overlappingContent = trainingContentRepository.findOverlappingActiveContent(
-					trainingDTO.getTrainingId(),
-					contentDTO.getEffectiveFrom(),
-					contentDTO.getEffectiveTo()
-				);
-				
-				// Deactivate overlapping content
-				for (TrainingContent overlap : overlappingContent) {
-					overlap.setActiveStatus("false");
-					trainingContentRepository.save(overlap);
-				}
-				
-				content = new TrainingContent();
-				content.setTrainingMaster(updatedTraining);
-				content.setContentType(contentDTO.getContentType());
-				content.setContentName(contentDTO.getContentName());
-				content.setContentPath(contentDTO.getContentPath());
-				content.setExternalLinkUrl(contentDTO.getExternalLinkUrl());
-				content.setEffectiveFrom(contentDTO.getEffectiveFrom());
-				content.setEffectiveTo(contentDTO.getEffectiveTo());
-				content.setFileSizeBytes(contentDTO.getFileSizeBytes());
-				content.setMimeType(contentDTO.getMimeType());
-				content.setActiveStatus(contentDTO.getActiveStatus() != null ? contentDTO.getActiveStatus() : "true");
-				content.setCreatedBy(updatedBy);
-			}
-			
-			TrainingContent savedContent = trainingContentRepository.save(content);
-			
-			if (savedContent.getContentId() != null) {
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Training and content updated successfully");
-				response.setServiceMessage(savedContent.getContentId().toString());
-				apiLogInfo.setApiResponse("Training and content updated successfully");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Training updated but failed to add content");
-				apiLogInfo.setApiResponse("Training updated but failed to add content");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			}
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-		}
-		
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
+	@Transactional(rollbackFor = Exception.class)
+	public ServiceResponse updateTrainingWithContent(TrainingMasterDTO trainingDTO, TrainingContentDTO contentDTO, Long updatedBy, MultipartFile file) {
+
+	    ServiceResponse response = new ServiceResponse();
+
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("Update Training With Content");
+	    apiLogInfo.setApiUrl("/api/training/updateTrainingWithContent");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("Training ID: ").append(trainingDTO.getTrainingId())
+	            .append(", Content Type: ").append(contentDTO.getContentType())
+	            .append(", UpdatedBy: ").append(updatedBy);
+
+	    String filePath = null; 
+
+	    try {
+
+	        Optional<TrainingMaster> trainingOpt = trainingMasterRepository.findByTrainingId(trainingDTO.getTrainingId());
+
+	        if (trainingOpt.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Training not found");
+	            return response;
+	        }
+
+	        TrainingMaster training = trainingOpt.get();
+
+	        /* ================= TRAINING UPDATE (UNCHANGED) ================= */
+
+	        if (trainingDTO.getTrainingName() != null && !trainingDTO.getTrainingName().trim().isEmpty()) {
+
+	            Optional<TrainingMaster> existingTraining =
+	                    trainingMasterRepository.findByTrainingNameAndNotTrainingId(
+	                            trainingDTO.getTrainingName().trim(),
+	                            trainingDTO.getTrainingId());
+
+	            if (existingTraining.isPresent()) {
+	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceResponse("Training name already exists.");
+	                return response;
+	            }
+	        }
+
+	        Date trainingEffectiveFrom =
+	                trainingDTO.getEffectiveFrom() != null
+	                        ? trainingDTO.getEffectiveFrom()
+	                        : training.getEffectiveFrom();
+
+	        Date trainingEffectiveTo =
+	                trainingDTO.getEffectiveTo() != null
+	                        ? trainingDTO.getEffectiveTo()
+	                        : training.getEffectiveTo();
+
+	        if (trainingEffectiveFrom.after(trainingEffectiveTo)) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Training effective from date must be before effective to date");
+	            return response;
+	        }
+
+	        if (trainingDTO.getTrainingName() != null)
+	            training.setTrainingName(trainingDTO.getTrainingName().trim());
+
+	        if (trainingDTO.getTrainingType() != null)
+	            training.setTrainingType(trainingDTO.getTrainingType());
+
+	        if (trainingDTO.getMandatoryFlag() != null)
+	            training.setMandatoryFlag(trainingDTO.getMandatoryFlag());
+
+	        if (trainingDTO.getEffectiveFrom() != null)
+	            training.setEffectiveFrom(trainingDTO.getEffectiveFrom());
+
+	        if (trainingDTO.getEffectiveTo() != null)
+	            training.setEffectiveTo(trainingDTO.getEffectiveTo());
+
+	        if (trainingDTO.getLockEnabled() != null)
+	            training.setLockEnabled(trainingDTO.getLockEnabled());
+
+	        if ("true".equals(trainingDTO.getLockEnabled())) {
+	            training.setSkipAllowed("false");
+	            training.setMandatoryFlag("true");
+
+
+	        }
+	        else if (trainingDTO.getSkipAllowed() != null)
+	            training.setSkipAllowed(trainingDTO.getSkipAllowed());
+
+	        training.setDeadlineEnabled("true");
+
+	        if (trainingDTO.getDeadlinePattern() != null)
+	            training.setDeadlinePattern(trainingDTO.getDeadlinePattern());
+
+	        if (trainingDTO.getCustomDeadlineMonths() != null)
+	            training.setCustomDeadlineMonths(trainingDTO.getCustomDeadlineMonths());
+
+	        if (trainingDTO.getActiveStatus() != null)
+	            training.setActiveStatus(trainingDTO.getActiveStatus());
+
+	        training.setUpdatedBy(updatedBy);
+
+	        TrainingMaster updatedTraining = trainingMasterRepository.save(training);
+
+	        /* ================= CONTENT VALIDATION ================= */
+
+	        if (!"LINK".equals(contentDTO.getContentType())) {
+
+	            if (file != null && !file.isEmpty()) {
+
+	                TrainingFileValidator.validateFile(
+	                        file,
+	                        contentDTO.getContentType(),
+	                        maxFileSize
+	                );
+
+	                filePath = generateTrainingFilePath(trainingDTO.getTrainingId(), file);
+
+	                contentDTO.setContentPath(filePath);
+	                contentDTO.setFileSizeBytes(file.getSize());
+	                contentDTO.setMimeType(file.getContentType());
+	            }
+	        }
+
+	        Optional<TrainingContent> existingContentOpt =
+                    trainingContentRepository.findByContentId(contentDTO.getContentId());
+	        
+	        if (existingContentOpt.isEmpty()) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("Content not found for update");
+                return response;
+            }
+                TrainingContent existing=null;
+                if(existingContentOpt.isPresent()) {
+                	existing=existingContentOpt.get();	
+                }
+                
+                
+	        /* ===== Existing Content Fetch If No File Uploaded ===== */
+                
+             if(existing.getContentType().equals("LINK")){
+	        		
+	        		existing.setContentPath(null);	
+		        	existing.setFileSizeBytes(0L);
+		        	existing.setMimeType(null);
+		        	
+		        	//TODO delete file  if it was not link eirlier
+		        	
+		        	
+	         }
+
+             else if (!"LINK".equals(contentDTO.getContentType())
+	                && (file == null || file.isEmpty())
+	                && contentDTO.getContentId() != null) {
+                    contentDTO.setContentPath(existing.getContentPath());
+	                contentDTO.setFileSizeBytes(existing.getFileSizeBytes());
+	                contentDTO.setMimeType(existing.getMimeType());
+	            
+	        }else if(!"LINK".equals(contentDTO.getContentType())
+	        		&& (file != null || !file.isEmpty() )
+	        		&& ! existing.getContentType().equals("LINK")) {
+	        	
+	        	//TODO Delete old file
+	        }
+	        	
+	        /* ================= CONTENT SAVE ================= */
+
+	        TrainingContent content;
+
+	        if (contentDTO.getContentId() != null) {
+
+	            content = existing;
+                content.setContentType(contentDTO.getContentType());
+	            content.setContentName(contentDTO.getContentName());
+	            content.setExternalLinkUrl(contentDTO.getExternalLinkUrl());
+	            content.setEffectiveFrom(contentDTO.getEffectiveFrom());
+	            content.setEffectiveTo(contentDTO.getEffectiveTo());
+
+	            if (contentDTO.getContentPath() != null) {
+	                content.setContentPath(contentDTO.getContentPath());
+	                content.setFileSizeBytes(contentDTO.getFileSizeBytes());
+	                content.setMimeType(contentDTO.getMimeType());
+	            }
+
+	            content.setUpdatedBy(updatedBy);
+	            content.setUpdatedOn(new Timestamp(System.currentTimeMillis()));
+	        }
+	        else {
+
+	            content = new TrainingContent();
+	            content.setTrainingMaster(updatedTraining);
+	            content.setContentType(contentDTO.getContentType());
+	            content.setContentName(contentDTO.getContentName());
+	            content.setContentPath(contentDTO.getContentPath());
+	            content.setExternalLinkUrl(contentDTO.getExternalLinkUrl());
+	            content.setEffectiveFrom(contentDTO.getEffectiveFrom());
+	            content.setEffectiveTo(contentDTO.getEffectiveTo());
+	            content.setFileSizeBytes(contentDTO.getFileSizeBytes());
+	            content.setMimeType(contentDTO.getMimeType());
+	            content.setActiveStatus("true");
+	            content.setCreatedBy(updatedBy);
+	        }
+
+	        TrainingContent savedContent = trainingContentRepository.save(content);
+	        
+	        
+
+	        /* SAVE FILE AFTER DB SAVE */
+	        if (filePath != null) {
+	            saveTrainingFile(filePath, file);
+	        }
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse("Training and content updated successfully");
+	        response.setServiceMessage(savedContent.getContentId().toString());
+
+	    }
+
+	    catch (FileValidationException e) {
+
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse(e.getMessage());
+	        response.setServiceError(e.getMessage());
+	    }
+
+	    catch (Exception e) {
+
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something Went Wrong.");
+	        response.setServiceError(e.getMessage());
+	    }
+
+	    return response;
 	}
 
 	@Override
@@ -843,11 +787,23 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Content updated successfully");
 			
-		} catch (Exception e) {
+		} 
+		catch (FileValidationException e) {
+            e.printStackTrace();
+		    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		    response.setServiceResponse(e.getMessage());
+		    response.setServiceError(e.getMessage());
+
+		    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		    apiLogInfo.setApiResponse(e.getMessage());
+		    apiLogInfo.setLogLevel("WARN");
+		}catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceResponse("Something Went Wrong."+e.getMessage());
 			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
 		
 		logService.logMyInfo(httpRequest, apiLogInfo);
@@ -1274,7 +1230,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		dto.setMandatoryFlag(training.getMandatoryFlag());
 		dto.setEffectiveFrom(training.getEffectiveFrom());
 		dto.setEffectiveTo(training.getEffectiveTo());
-		dto.setFrequencyPerYear(training.getFrequencyPerYear());
+//		dto.setFrequencyPerYear(training.getFrequencyPerYear());
 		dto.setLockEnabled(training.getLockEnabled());
 		dto.setMinViewTimeMinutes(training.getMinViewTimeMinutes());
 		dto.setConsentRequired(training.getConsentRequired());
@@ -1309,35 +1265,41 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		return dto;
 	}
 	
-	// Helper method to save training file
-	private String saveTrainingFile(Integer trainingId, MultipartFile file) throws IOException {
+	private String generateTrainingFilePath(Integer trainingId, MultipartFile file) {
 
-	    // Base directory: {trainingFileLocation}/{trainingId}/
-	    Path trainingDir = Paths.get(trainingFileLocation)
-	                            .resolve(trainingId.toString())
-	                            .toAbsolutePath()
-	                            .normalize();
-
-	    if (!Files.exists(trainingDir)) {
-	        Files.createDirectories(trainingDir);
-	    }
-
-	    // Safer unique filename
 	    String originalFilename = file.getOriginalFilename();
-	    String safeOriginalName = originalFilename != null ? originalFilename.replaceAll("\\s+", "_") : "file";
+	    String safeOriginalName = originalFilename != null
+	            ? originalFilename.replaceAll("\\s+", "_")
+	            : "file";
+
 	    String newFileName = "content_" + UUID.randomUUID() + "_" + safeOriginalName;
 
-	    Path targetFile = trainingDir.resolve(newFileName).normalize();
+	    return trainingId + "/" + newFileName;
+	}
+	
+	private String saveTrainingFile(String relativePath, MultipartFile file) throws IOException {
 
-	    // Stream-based copy (safe for large files)
+	    // Base directory + relative path
+	    Path targetFile = Paths.get(trainingFileLocation)
+	            .resolve(relativePath)
+	            .toAbsolutePath()
+	            .normalize();
+
+	    // Create directory if not exists
+	    if (!Files.exists(targetFile.getParent())) {
+	        Files.createDirectories(targetFile.getParent());
+	    }
+
+	    // Save file using passed filename
 	    try (InputStream in = file.getInputStream()) {
 	        Files.copy(in, targetFile, StandardCopyOption.REPLACE_EXISTING);
 	    }
 
-	    // Store clean relative path in DB
-	    // Example: "12/content_uuid_policy.pdf"
-	    return trainingId + "/" + newFileName;
+	    // Return same relative path
+	    return relativePath;
 	}
+
+	
 
 	private TrainingContentDTO convertToTrainingContentDTO(TrainingContent content) {
 		TrainingContentDTO dto = new TrainingContentDTO();
