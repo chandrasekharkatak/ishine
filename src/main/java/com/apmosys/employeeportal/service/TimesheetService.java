@@ -5459,11 +5459,11 @@ public class TimesheetService {
 			YearMonth currentYearMonth = YearMonth.from(today);
 			YearMonth fromYearMonth = YearMonth.from(fromDate);
 
-			if (fromYearMonth.equals(currentYearMonth)) {
-				throw new IllegalArgumentException(
-						"From date cannot be in the current month"
-				);
-			}
+			// if (fromYearMonth.equals(currentYearMonth)) {
+			// 	throw new IllegalArgumentException(
+			// 			"From date cannot be in the current month"
+			// 	);
+			// }
 
 			if(fromDate.isAfter(toDate)) {
 				throw new IllegalArgumentException("Invalid date range. From date cannot be greater than to date.");
