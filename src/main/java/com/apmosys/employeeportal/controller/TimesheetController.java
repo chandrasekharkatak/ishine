@@ -1,5 +1,4 @@
-	package com.apmosys.employeeportal.controller;
-	
+package com.apmosys.employeeportal.controller;
 	import java.time.LocalDate;
 	import java.util.List;
 	
@@ -42,12 +41,12 @@ import com.apmosys.employeeportal.service.helper.TimesheetEncryptionHelper;
 		@Autowired
 		TimesheetService timesheetService;
 		
-		@Autowired
-		TimesheetApprovalServiceNew timesheetApprovalServiceNew;
+//		@Autowired
+//		TimesheetApprovalServiceNew timesheetApprovalServiceNew;
 		
 		
-		@Autowired
-		TimesheetEncryptionHelper timesheetEncryptionHelper;
+//		@Autowired
+//		TimesheetEncryptionHelper timesheetEncryptionHelper;
 		
 		@Autowired
 		TimesheetApprovalService timesheetApprovalService;
@@ -68,18 +67,18 @@ import com.apmosys.employeeportal.service.helper.TimesheetEncryptionHelper;
 			return response;
 		}
 		
-		@JobRoleAccess(featureIds = {15})
-		@RequestMapping(value = "/addTimesheetWithClient", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-		public ServiceResponse addTimesheetWithClient(@RequestPart("dto") String encryptedDto,
-				@RequestPart(value = "doc1",required = false) MultipartFile doc1,
-				@RequestPart(value = "doc2",required = false) MultipartFile doc2) throws Exception 
-		{
-			// Decrypt and parse encrypted DTO using helper service
-			TimesheetDTO dto = timesheetEncryptionHelper.decryptAndParseTimesheetDto(encryptedDto);
-			System.out.println("timesheetDTO list : "+dto);
-			ServiceResponse response = timesheetService.addTimesheet(dto,doc1,doc2);
-			return response;
-		}
+//		@JobRoleAccess(featureIds = {15})
+//		@RequestMapping(value = "/addTimesheetWithClient", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//		public ServiceResponse addTimesheetWithClient(@RequestPart("dto") String encryptedDto,
+//				@RequestPart(value = "doc1",required = false) MultipartFile doc1,
+//				@RequestPart(value = "doc2",required = false) MultipartFile doc2) throws Exception 
+//		{
+//			// Decrypt and parse encrypted DTO using helper service
+//			TimesheetDTO dto = timesheetEncryptionHelper.decryptAndParseTimesheetDto(encryptedDto);
+//			System.out.println("timesheetDTO list : "+dto);
+//			ServiceResponse response = timesheetService.addTimesheet(dto,doc1,doc2);
+//			return response;
+//		}
 		@JobRoleAccess(featureIds = {15,16})
 		@RequestMapping(value = "/getAllMyTeamTimesheets", method = RequestMethod.POST)
 		public ServiceResponse getAllMyTeamTimesheets(@RequestBody TimesheetDTO timesheetDTO) {
@@ -101,7 +100,7 @@ import com.apmosys.employeeportal.service.helper.TimesheetEncryptionHelper;
 			ServiceResponse response = timesheetService.getAllMyActivitiesByTimesheetId(timesheetDTO);
 			return response;
 		}
-		@JobRoleAccess(featureIds = {15,16,24})
+//		@JobRoleAccess(featureIds = {15,16,24})
 		@RequestMapping(value = "/getMyReporteesTimesheetRequests", method = RequestMethod.POST)
 		public ServiceResponse getMyReporteesTimesheetRequests(@RequestBody GetMyReporteesTimesheetRequestsPayload timesheetDTO) {
 	
@@ -122,17 +121,17 @@ import com.apmosys.employeeportal.service.helper.TimesheetEncryptionHelper;
 			ServiceResponse response = timesheetService.updateTimesheetRequestById(timesheetDTO);
 			return response;
 		}
-		@JobRoleAccess(featureIds = {15,16,14,3,24})
-		@RequestMapping(value = "/updateTimesheet", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-		public ServiceResponse updateTimesheet(@RequestPart("dto") String encryptedDto,
-				@RequestPart(value = "doc1",required = false) MultipartFile doc1,
-				@RequestPart(value = "doc2",required = false) MultipartFile doc2) throws Exception 
-		{
-			// Decrypt and parse encrypted DTO using helper service
-			TimesheetDTO dto = timesheetEncryptionHelper.decryptAndParseTimesheetDto(encryptedDto);
-			ServiceResponse response = timesheetService.updateTimesheet(dto,doc1,doc2);
-			return response;
-		}
+//		@JobRoleAccess(featureIds = {15,16,14,3,24})
+//		@RequestMapping(value = "/updateTimesheet", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//		public ServiceResponse updateTimesheet(@RequestPart("dto") String encryptedDto,
+//				@RequestPart(value = "doc1",required = false) MultipartFile doc1,
+//				@RequestPart(value = "doc2",required = false) MultipartFile doc2) throws Exception 
+//		{
+//			// Decrypt and parse encrypted DTO using helper service
+//			TimesheetDTO dto = timesheetEncryptionHelper.decryptAndParseTimesheetDto(encryptedDto);
+//			ServiceResponse response = timesheetService.updateTimesheet(dto,doc1,doc2);
+//			return response;
+//		}
 		@JobRoleAccess(featureIds = {16})
 		@RequestMapping(value = "/getMyReporteesApprovedTimesheets", method = RequestMethod.POST)
 		public ServiceResponse getMyReporteesApprovedTimesheets(@RequestBody TimesheetDTO timesheetDTO) {
@@ -204,21 +203,21 @@ import com.apmosys.employeeportal.service.helper.TimesheetEncryptionHelper;
 			ServiceResponse response = timesheetService.revokeApprovedTimesheet(timesheetDTO);
 			return response;
 		}
-		@JobRoleAccess(featureIds = {16,24})
-		@RequestMapping(value = "/bulkApproveTimesheetRequest", method = RequestMethod.POST)
-		public ServiceResponse bulkApproveTimesheetRequest(@RequestBody TimesheetApprovalNewDTO timesheetIdList) {
-			ServiceResponse response = timesheetService.bulkApproveTimesheetRequest(timesheetIdList);
-			    return response;
-		}
+//		@JobRoleAccess(featureIds = {16,24})
+//		@RequestMapping(value = "/bulkApproveTimesheetRequest", method = RequestMethod.POST)
+//		public ServiceResponse bulkApproveTimesheetRequest(@RequestBody TimesheetApprovalNewDTO timesheetIdList) {
+//			ServiceResponse response = timesheetService.bulkApproveTimesheetRequest(timesheetIdList);
+//			    return response;
+//		}
 		
-		@JobRoleAccess(featureIds = {16, 24})
-		@RequestMapping(value = "/bulkApproveTimesheetRequest1", method = RequestMethod.POST)
-		public ServiceResponse bulkApproveTimesheetRequest1(
-		        @RequestBody TimesheetApprovalNewDTO dto) {
-
-		    return timesheetApprovalServiceNew.bulkApproveTimesheets(dto);
-		}
-		
+//		@JobRoleAccess(featureIds = {16, 24})
+//		@RequestMapping(value = "/bulkApproveTimesheetRequest1", method = RequestMethod.POST)
+//		public ServiceResponse bulkApproveTimesheetRequest1(
+//		        @RequestBody TimesheetApprovalNewDTO dto) {
+//
+//		    return timesheetApprovalServiceNew.bulkApproveTimesheets(dto);
+//		}
+//		
 		
 		@PostMapping("/bulkRejectTimesheetRequest1")
 		public ServiceResponse bulkRejectTimesheetRequest1(
@@ -234,13 +233,13 @@ import com.apmosys.employeeportal.service.helper.TimesheetEncryptionHelper;
 		    return timesheetService.bulkRejectTimesheetRequest(timesheetDTO);
 		}
 
-		
-		@JobRoleAccess(featureIds = {16,24})
-		@PostMapping("/timesheets/bulk-approve-by-ids")
-		public ServiceResponse bulkApproveTimesheetsByIds(@RequestBody List<Long> timesheetIds) {
-
-		    return timesheetApprovalService.bulkApproveTimesheetsByIds(timesheetIds);
-		}
+//		
+//		@JobRoleAccess(featureIds = {16,24})
+//		@PostMapping("/timesheets/bulk-approve-by-ids")
+//		public ServiceResponse bulkApproveTimesheetsByIds(@RequestBody List<Long> timesheetIds) {
+//
+//		    return timesheetApprovalService.bulkApproveTimesheetsByIds(timesheetIds);
+//		}
 
 		
 		@JobRoleAccess(featureIds = {26})
