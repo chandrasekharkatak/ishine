@@ -295,7 +295,8 @@ public class EmployeeService {
 	@Value("${rmg.mail}")
 	private String rmgMail;
 	
-	
+	@Value("${training.job.role.exclude}")
+	private String trainingJobRoleExclude;
 	
 	@Value("${bd.mail}")
 	private String businessMail;
@@ -5385,7 +5386,8 @@ public class EmployeeService {
 					employee.setWorkLocation(object[25] != null ? object[25].toString() : null);
 					employee.setMaritalStatus(object[26] != null ? object[26].toString() : null);
 					employee.setJobRoleName(object[27] != null ? object[27].toString() : null);
-					employee.setIsApmosysProduct(object[28] != null ? object[28].toString() : null)	;	
+					employee.setIsApmosysProduct(object[28] != null ? object[28].toString() : null)	;
+					employee.setJobRoleId(object[29] != null ? Long.parseLong(object[29].toString()) : null);	
 					});
 				
 				//Check if all Policy read.
@@ -5483,8 +5485,14 @@ public class EmployeeService {
 				
 				//Check training lock status and mandatory training requirements
 				// This check is critical for routing decisions on login
-				if (employee.getEmpId() != null) {
+				List<Long> jobRoleIds = Arrays.stream(trainingJobRoleExclude.split(","))
+						.map(String::trim)
+						.map(Long::parseLong)
+						.collect(Collectors.toList());
+				Long employeeJobRoleId = employee.getJobRoleId();
+				if (employee.getEmpId() != null && employeeJobRoleId != null && !jobRoleIds.contains(employeeJobRoleId)) {
 					try {
+
 						ServiceResponse lockResponse = trainingUserService.getLockStatus(employee.getEmpId());
 						System.out.println("lockResponse==>  "+lockResponse);
 						if (lockResponse != null && lockResponse.getServiceStatus() != null && 

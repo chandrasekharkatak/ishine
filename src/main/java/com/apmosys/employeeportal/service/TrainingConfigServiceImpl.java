@@ -31,11 +31,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.Exception.BusinessValidationException;
 import com.apmosys.employeeportal.Exception.FileValidationException;
+import com.apmosys.employeeportal.Exception.GlobalException;
 import com.apmosys.employeeportal.dto.ComplianceReportDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TrainingContentDTO;
 import com.apmosys.employeeportal.dto.TrainingHistoryDTO;
 import com.apmosys.employeeportal.dto.TrainingMasterDTO;
+import com.apmosys.employeeportal.exception.BadRequestException;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.TrainingConsent;
 import com.apmosys.employeeportal.model.TrainingContent;
@@ -438,6 +440,12 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		} catch (Exception e) {
 
 			throw new RuntimeException("Failed to create training : "+ e.getMessage());
+			// e.printStackTrace();
+			// response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			// response.setServiceResponse("Something Went Wrong.");
+			// response.setServiceError(e.getMessage());
+			// apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			// apiLogInfo.setLogLevel("ERROR");
 		}
 
 		return response;

@@ -846,7 +846,8 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       formData.append('file', this.file);
     }
 
-    this.trainingService.addTrainingContent(formData).pipe(first()).subscribe((response: any) => {
+    this.trainingService.addTrainingContent(formData).subscribe({
+      next: (response: any) => {
       if (response.serviceStatus === 'Success') {
         this.openAlertMod(this.alertTemplate, 'Content added successfully', 'success');
         // Reload content list
@@ -857,9 +858,13 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       } else {
         this.openAlertMod(this.alertTemplate, response.serviceResponse || 'Failed to add content', 'error');
       }
-    }, error => {
+    },
+    error: (error: any) => {
+      console.log("In the error: ", error);
+      
       this.openAlertMod(this.alertTemplate, 'Error adding content: ' + error.message, 'error');
-    });
+    }
+  });
   }
 
   onEditContent(content: any) {
