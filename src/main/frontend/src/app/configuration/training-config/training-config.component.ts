@@ -534,6 +534,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
             this.getTrainingContent(this.trainingFormData.trainingId);
           }
           this.resetContentForm();
+          this.showTable();
         } else {
           this.openAlertMod(this.alertTemplate, response.serviceResponse || 'Failed to update training', 'error');
         }

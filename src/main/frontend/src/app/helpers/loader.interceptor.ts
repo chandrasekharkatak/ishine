@@ -458,8 +458,18 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/downloadFinalDocuments`,
     `${this.baseUrl}` + `api/getPreviousMinusDays`,
     `${this.baseUrl}` + `api/bulkFinalUploadProjectBased`,
-    `${this.baseUrl}` + `api/getMyReporteesAndClientSideProjectsInMonthYear`
-
+    `${this.baseUrl}` + `api/getMyReporteesAndClientSideProjectsInMonthYear`,
+    `${this.baseUrl}` + `api/training/getAllTrainings`,
+    `${this.baseUrl}` + `api/training/getTrainingContent`,
+    `${this.baseUrl}` + `api/training/getUserTrainings`,
+    `${this.baseUrl}` + `api/training/submitConsent`,
+    `${this.baseUrl}` + `api/training/skipTraining`,
+    `${this.baseUrl}` + `api/training/getLockStatus`,
+    `${this.baseUrl}` + `api/training/downloadContent`,
+    `${this.baseUrl}` + `api/training/checkTrainingFrequency`,
+    `${this.baseUrl}` + `api/training/getEmployeeTrainingHistory`,
+    `${this.baseUrl}` + `api/training/getComplianceReport`,
+    `${this.baseUrl}` + `api/training/updateTrainingWithContent`,
 
   ]
 
