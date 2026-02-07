@@ -1334,7 +1334,7 @@
                     <label class="info-label"><span class="text-danger">*</span>Month-Year</label>
                     <div class="info-wrapper">
                         <input type="month" class="form-control" [(ngModel)]="timesheetObj.monthYear"
-                            (change)="onMonthYearChange()" />
+                            (change)="onMonthYearChange()" [max]="maxMonth" />
                     </div>
                 </div>
             </div>

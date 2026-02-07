@@ -234,4 +234,5 @@ export class Employee{
 	totalCurrentExperience:any;
 	poRequirementMappingId : any;
 	poId : any;
+	isUpdateDefaultProject:boolean = false;
 }

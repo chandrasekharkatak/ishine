@@ -6252,7 +6252,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 			+ "LEFT JOIN Expected_Ishine_Working_Days eiwd ON brd.employee_team_map_id = eiwd.employee_team_map_id\n"
 			+ "LEFT JOIN Ishine_Timesheet_Summary its ON brd.employee_team_map_id = its.employee_team_map_id\n"
 			+ "LEFT JOIN project_po_details ppd \n"
-			+ "ON ppd.project_id = p.project_id \n"
+			+ "ON ppd.project_id = brd.project_id \n"
 		    + "AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters)"
 		    + "AND ("
 		    + "ppd.po_end_date IS NULL \n"
@@ -6276,7 +6276,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 			+ " AND (:employeeName IS NULL OR LOWER(brd.name) LIKE CONCAT('%', :employeeName, '%'))\n"
 			+ " AND (:billableType2 IS NULL OR LOWER(brd.billable_type) = :billableType2)\n"
 			+ " AND (:projectName IS NULL OR LOWER(brd.project_name) LIKE CONCAT('%', :projectName, '%'))\n"
-			+ " AND (:poNo IS NULL OR LOWER(brd.po_no) LIKE CONCAT('%', :poNo, '%'))\n"
+			+ " AND (:poNo IS NULL OR LOWER(ppd.po_no) LIKE CONCAT('%', :poNo, '%'))\n"
 			+ " AND (:department IS NULL OR LOWER(brd.dept_name) LIKE CONCAT('%', :department, '%'))\n"
 			+ " AND (:clientName IS NULL OR LOWER(brd.client_name) LIKE CONCAT('%', :clientName, '%'))\n"
 			+ " AND (:projectManagers IS NULL OR LOWER(pma.Project_Manager_Names) LIKE CONCAT('%', :projectManagers, '%'))\n"
@@ -6601,7 +6601,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 			+ "LEFT JOIN Project_Managers_Aggregated pma ON brd.project_id = pma.project_id\n"
 			+ "LEFT JOIN Employee_Calculated_Status ecs ON brd.employee_team_map_id = ecs.employee_team_map_id\n"
 			+ "LEFT JOIN project_po_details ppd \n"
-			+ "ON ppd.project_id = p.project_id \n"
+			+ "ON ppd.project_id = brd.project_id \n"
 		    + "AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters)"
 		    + "AND ("
 		    + "ppd.po_end_date IS NULL \n"
@@ -6937,7 +6937,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 			+ "LEFT JOIN Project_Managers_Aggregated pma ON brd.project_id = pma.project_id\n"
 			+ "LEFT JOIN Employee_Calculated_Status ecs ON brd.employee_team_map_id = ecs.employee_team_map_id\n"
 			+ "LEFT JOIN project_po_details ppd \n"
-			+ "ON ppd.project_id = p.project_id \n"
+			+ "ON ppd.project_id = brd.project_id \n"
 		    + "AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters)"
 		    + "AND ("
 		    + "ppd.po_end_date IS NULL \n"
@@ -8862,7 +8862,8 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 		@Query("SELECT et FROM Timesheet et\n" +
 			       "LEFT JOIN TimesheetDocumentDetails tdd on tdd.timesheetId = et.timesheetId \n" +
 			       "WHERE et.empId = :empId \n" +
-			       "AND et.date BETWEEN :fromDate AND :toDate and et.status='Rejected'")
+			       "AND et.dayType in ('Working' , 'Non-working') AND et.hasClientSideId = true\n" +
+			       "AND et.date BETWEEN :fromDate AND :toDate AND et.status='Rejected'")
 		  List<Timesheet> getRejectedTimesheetIdByEmpAndDateRange(
 				    @Param("empId") Long empId,
 				    @Param("fromDate") LocalDate fromDate,

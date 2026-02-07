@@ -28,6 +28,7 @@ import { LeaveService } from 'src/app/services/leave.service';
 import { TeamViewService } from 'src/app/services/team-view.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { ProjectBasedBulkUploadPayload } from '../team-timesheet/types';
 
 @Component({
   standalone: false,
@@ -131,6 +132,7 @@ export class MyTimesheetComponent implements OnInit {
 
   isTimesheetLockCheckEnable: any = "true";
   employeeInTNMProject: boolean = false;
+  maxMonth: string;
 
   withVmsbullet:string[] = ["Applicable to resources working on projects with a client-side VMS system.",
 "Daily timesheets must be filled directly in the client’s VMS system.",
@@ -657,6 +659,10 @@ get tooltipCta(): string {
     this.isUpdation = false;
 
     this.isTimesheetBulkForm = true;
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    this.maxMonth = `${year}-${month}`;
     this.reset();
   }
 
@@ -2882,15 +2888,37 @@ getDoscForPreview(docId: any) {
       : this.finalFromDate;
 
     if (this.selectedFile2 != null && this.finalFromDate != null && this.finalToDate != null && this.currentUser.empId != null) {
-      this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2, this.finalFromDate, this.finalToDate, this.currentUser.empId, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus === "Success") {
-         this.resetBulkUploadForm('UPLOAD');
+    //   this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2, this.finalFromDate, this.finalToDate, this.currentUser.empId, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+    //     if (response.serviceStatus === "Success") {
+    //      this.resetBulkUploadForm('UPLOAD');
 
+    //       this.openAlertMod(template, response.serviceResponse);
+    //     } else {
+    //       this.openAlertMod(template, response.serviceResponse);
+    //     }
+    //   });
+
+    const payload: ProjectBasedBulkUploadPayload = {
+        createdBy: this.currentUser.empId,
+        empIds: [this.currentUser.empId],
+        fromDate: this.finalFromDate,
+        toDate: this.finalToDate,
+        projectId: this.timesheetObj.projectId,
+      }
+
+    this.timesheetService.bulkFinalUploadProjectBased(payload, this.selectedFile2).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.resetBulkUploadForm('UPLOAD');
+          this.alertMessage = "Success";
           this.openAlertMod(template, response.serviceResponse);
+          this.showBulkUploadForm();
+
         } else {
-          this.openAlertMod(template, response.serviceResponse);
+          this.alertMessage = response.serviceResponse || "Error while bulk final upload";
+          this.openAlertMod(template, this.alertMessage);
         }
       });
+
     } else {
 
       if (this.finalFromDate == null) {
@@ -3870,6 +3898,9 @@ checkUploadEligibility() {
   }
 
   getClientDetailsByProjectIdAndEmpId() {
+    if(!this.timesheetObj.dayType || this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday" || this.timesheetObj.dayType == "Comp Off"){
+      return;
+    }
     this.clientDetails = '';
     this.projectList = [];
 
@@ -3883,7 +3914,7 @@ checkUploadEligibility() {
         this.clientDropdownList = [this.clientDetails];
       } else {
         console.error(response.serviceResponse)
-        this.openAlertWithResetMod(this.alertModalWithoutReload, response.serviceResponse);
+        this.openAlertMod(this.alertTemplate, response.serviceResponse);
       }
     });
   }
