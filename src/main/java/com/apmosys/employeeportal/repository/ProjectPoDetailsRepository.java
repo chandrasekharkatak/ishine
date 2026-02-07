@@ -107,11 +107,12 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
         @Query("SELECT new com.apmosys.employeeportal.dto.IshineToPoEmployeeDTO( "
         		+ "       e.employeementId,e.name,prm.role,prm.experience,prm.department,"
         		+ "       d.deptId,prm.clientRoleId,p.clientId,COUNT(DISTINCT et.timesheetId),"
-        		+ "       MIN(et.date),MAX(et.date),e.isApmosysProduct,etm.poId) "
+        		+ "       MIN(et.date),MAX(et.date),e.isApmosysProduct,etm.poId,"
+        		+ "		  et.empId,et.shadowEmpId,etm.isShadow) "
         		+ "     FROM Timesheet et  "
         		+ "		LEFT JOIN TimesheetActivityMap etam "
-        		+ "			on etam.timesheetId=et.timesheetId "
         		+ "		LEFT JOIN Activity a on a.activityId=etam.activityId"
+        		+ "			on etam.timesheetId=et.timesheetId "
         		+ "		LEFT JOIN TimesheetDocumentDetails edd "
         		+ "			on edd.timesheetId=et.timesheetId "
         		+ "		LEFT JOIN Team t on t.teamId=a.teamId "
@@ -126,8 +127,8 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
         		+ "		where 1=1 AND et.empId = :empId AND p.clientId = :clientId "
         		+ "        AND t.poId = :poId and et.status in ('Approved','approved') "
         		+ "		   AND edd.clientApprovalStatus in ('Approved','approved') "
-        		+ "        AND ppo.clientAddressId IS NOT NULL and etm.isShadow != 1"
-        		+ "        AND etm.active=1 AND ppo.active=1	"
+        		+ "        AND ppo.clientAddressId IS NOT NULL"
+        		+ "        AND etm.active!= 2 AND ppo.active=1	"
         		+ "        AND edd.finalFlag=1 AND et.date BETWEEN :startDate AND :endDate")
         	IshineToPoEmployeeDTO findEmployeesWithTimesheetCount(Long empId,
         	         LocalDate startDate,LocalDate endDate,Long poId,Integer clientId);

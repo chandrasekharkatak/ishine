@@ -43,7 +43,7 @@ public class PoPortalDTO {
 		this.hodId = hodId != null ? hodId.toString() : null;
 //		this.employeeId = employeeId;
 		this.isHead = isHead;
-		this.employeeMentId=Boolean.TRUE.equals(isApmosysProduct)?"AP-"+empId:"A-"+empId;
+		this.employeeMentId="true".equalsIgnoreCase(isApmosysProduct)? "AP-" + empId: "A-" + empId;;
 		this.ishineEmpId= employeeId != null ? employeeId : null;
 	}
 
