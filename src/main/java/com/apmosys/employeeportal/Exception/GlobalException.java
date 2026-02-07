@@ -26,13 +26,7 @@ public class GlobalException {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ServiceResponse> handleGeneralError(Exception e) {
-        ServiceResponse response = new ServiceResponse();
-        response.setServiceStatus("Unexpected error: " + e.getMessage());
-        response.setServiceResponse(null);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-    }
+
 
     @ExceptionHandler(BadRequestException.class)
 	public ResponseEntity<ServiceResponse> handleBadRequestException(BadRequestException ex){
@@ -41,5 +35,23 @@ public class GlobalException {
         response.setServiceResponse(null);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
 	}
+    
+    @ExceptionHandler(BusinessValidationException.class)
+    public ResponseEntity<ServiceResponse> handleBusiness(BusinessValidationException e) {
+        ServiceResponse response = new ServiceResponse();
+        response.setServiceStatus(e.getMessage());
+        response.setServiceResponse(e.getMessage()); // Add this line
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+    
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ServiceResponse> handleGeneralError(Exception e) {
+        ServiceResponse response = new ServiceResponse();
+        response.setServiceStatus(e.getMessage());
+        response.setServiceResponse(null);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+
+
 
 }

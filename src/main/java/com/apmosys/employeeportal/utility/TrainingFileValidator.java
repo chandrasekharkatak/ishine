@@ -8,26 +8,21 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.tika.Tika;
+import org.springframework.stereotype.Component;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.Exception.FileValidationException;
 
+@Component
 public class TrainingFileValidator {
 
-    private static final Tika tika = new Tika();
+    private final Tika tika = new Tika();
 
-    /* ===============================
-       Allowed MIME Types
-     =============================== */
-    private static final Map<String, List<String>> ALLOWED_MIME_TYPES = new HashMap<>();
+    private final Map<String, List<String>> ALLOWED_MIME_TYPES = new HashMap<>();
+    private final Map<String, List<String>> ALLOWED_EXTENSIONS = new HashMap<>();
 
-    /* ===============================
-       Allowed Extensions
-     =============================== */
-    private static final Map<String, List<String>> ALLOWED_EXTENSIONS = new HashMap<>();
-
-    static {
+    public TrainingFileValidator() {
 
         ALLOWED_MIME_TYPES.put("PPT", Arrays.asList(
                 "application/vnd.ms-powerpoint",
@@ -52,28 +47,21 @@ public class TrainingFileValidator {
         ALLOWED_EXTENSIONS.put("AUDIO", Arrays.asList(".mp3", ".wav", ".ogg", ".webm"));
     }
 
-    /* =========================================================
-       MAIN VALIDATION METHOD
-     ========================================================= */
-    public static void validateFile(
+    public void validateFile(
             MultipartFile file,
             String contentType,
-            String maxFileSizeProperty
-    ) {
+            String maxFileSizeProperty) {
 
-        /* ========= 1. NULL / EMPTY CHECK ========= */
         if (file == null || file.isEmpty()) {
             throw new FileValidationException("File is required.");
         }
 
-        /* ========= 2. CONTENT TYPE CHECK ========= */
         if (contentType == null || contentType.trim().isEmpty()) {
             throw new FileValidationException("Content type is required.");
         }
 
         contentType = contentType.toUpperCase();
 
-        /* ========= 3. FILE SIZE VALIDATION ========= */
         long maxSizeBytes = DataSize.parse(maxFileSizeProperty).toBytes();
 
         if (file.getSize() > maxSizeBytes) {
@@ -82,7 +70,6 @@ public class TrainingFileValidator {
             );
         }
 
-        /* ========= 4. FILENAME VALIDATION ========= */
         String originalFileName = file.getOriginalFilename();
 
         if (originalFileName == null || !originalFileName.contains(".")) {
@@ -94,6 +81,7 @@ public class TrainingFileValidator {
                 .toLowerCase();
 
         List<String> allowedExtensions = ALLOWED_EXTENSIONS.get(contentType);
+        List<String> allowedMimeTypes = ALLOWED_MIME_TYPES.get(contentType);
 
         if (allowedExtensions == null || !allowedExtensions.contains(extension)) {
             throw new FileValidationException(
@@ -101,10 +89,7 @@ public class TrainingFileValidator {
             );
         }
 
-        /* ========= 5. MIME TYPE VALIDATION ========= */
         String mimeType = file.getContentType();
-
-        List<String> allowedMimeTypes = ALLOWED_MIME_TYPES.get(contentType);
 
         if (mimeType == null || allowedMimeTypes == null
                 || !allowedMimeTypes.contains(mimeType)) {
@@ -114,8 +99,7 @@ public class TrainingFileValidator {
             );
         }
 
-        /* ========= 6. ACTUAL FILE CONTENT VALIDATION (TIKA) ========= */
-        try {
+        /*try {
             String detectedMime = tika.detect(file.getInputStream());
 
             if (!allowedMimeTypes.contains(detectedMime)) {
@@ -126,7 +110,9 @@ public class TrainingFileValidator {
             }
 
         } catch (IOException e) {
-            throw new FileValidationException("Error validating file content."+e.getMessage());
-        }
+            throw new FileValidationException(
+                    "Error validating file content. " + e.getMessage()
+            );
+        }*/
     }
 }

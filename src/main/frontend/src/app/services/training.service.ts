@@ -15,7 +15,7 @@ export class TrainingService {
  
 
   // Create training with content in single request (FormData for file support)
-  createTrainingWithContent(formData: FormData) {
+  createTrainingWithContent(formData: FormData){
     return this.http.post(`${this.baseUrl}api/training/createTrainingWithContent`, formData);
   }
 

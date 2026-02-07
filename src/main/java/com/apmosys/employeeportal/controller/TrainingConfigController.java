@@ -69,277 +69,38 @@ public class TrainingConfigController {
 		}
 	}
 
-	@JobRoleAccess(featureIds = {3}) // Training Config - Create Training With Content
-	@PostMapping(value = "/createTrainingWithContent", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ServiceResponse createTrainingWithContent(
-			@RequestPart("trainingDTO") String trainingDTOStr,
-			@RequestPart("contentDTO") String contentDTOStr,
-			@RequestPart(value = "file", required = false) MultipartFile file) {
-		
-		ServiceResponse validationResponse = new ServiceResponse();
-		
-		try {
-			// Basic validation: Check if DTO strings are not null/empty
-			if (trainingDTOStr == null || trainingDTOStr.trim().isEmpty()) {
-				validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				validationResponse.setServiceResponse("Training DTO is required");
-				return validationResponse;
-			}
-			
-			if (contentDTOStr == null || contentDTOStr.trim().isEmpty()) {
-				validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				validationResponse.setServiceResponse("Content DTO is required");
-				return validationResponse;
-			}
-			
-			// Parse Training DTO from JSON string
-			TrainingMasterDTO trainingDTO = objectMapper.readValue(trainingDTOStr, TrainingMasterDTO.class);
-			
-			// Parse Content DTO from JSON string
-			TrainingContentDTO contentDTO = objectMapper.readValue(contentDTOStr, TrainingContentDTO.class);
-			
-			// Validate Training DTO is not null
-			if (trainingDTO == null) {
-				validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				validationResponse.setServiceResponse("Training DTO cannot be null");
-				return validationResponse;
-			}
-			
-			// Validate Content DTO is not null
-			if (contentDTO == null) {
-				validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				validationResponse.setServiceResponse("Content DTO cannot be null");
-				return validationResponse;
-			}
-			
-			// Validate mandatory Training fields
-			if (trainingDTO.getTrainingName() == null || trainingDTO.getTrainingName().trim().isEmpty()) {
-				validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				validationResponse.setServiceResponse("Training name is required");
-				return validationResponse;
-			}
-			
-			if (trainingDTO.getTrainingType() == null || trainingDTO.getTrainingType().trim().isEmpty()) {
-				validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				validationResponse.setServiceResponse("Training type is required");
-				return validationResponse;
-			}
-			
-			if (trainingDTO.getEffectiveFrom() == null) {
-				validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				validationResponse.setServiceResponse("Training effective from date is required");
-				return validationResponse;
-			}
-			
-			if (trainingDTO.getEffectiveTo() == null) {
-				validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				validationResponse.setServiceResponse("Training effective to date is required");
-				return validationResponse;
-			}
-			
-			if (trainingDTO.getCreatedBy() == null) {
-				validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				validationResponse.setServiceResponse("Created by is required");
-				return validationResponse;
-			}
-			
-			// Validate mandatory Content fields
-			if (contentDTO.getContentType() == null || contentDTO.getContentType().trim().isEmpty()) {
-				validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				validationResponse.setServiceResponse("Content type is required");
-				return validationResponse;
-			}
-			
-			if (contentDTO.getContentName() == null || contentDTO.getContentName().trim().isEmpty()) {
-				validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				validationResponse.setServiceResponse("Content name is required");
-				return validationResponse;
-			}
-			
-			if (contentDTO.getEffectiveFrom() == null) {
-				validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				validationResponse.setServiceResponse("Content effective from date is required");
-				return validationResponse;
-			}
-			
-			if (contentDTO.getEffectiveTo() == null) {
-				validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				validationResponse.setServiceResponse("Content effective to date is required");
-				return validationResponse;
-			}
-			
-			// Validate file requirement for non-LINK content types
-			if (!"LINK".equals(contentDTO.getContentType())) {
-				if (file == null || file.isEmpty()) {
-					validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					validationResponse.setServiceResponse("File is required for " + contentDTO.getContentType() + " content type");
-					return validationResponse;
-				}
-			}
-			
-			// Convert date strings to Date objects (JSON sends dates as strings)
-			JsonNode trainingNode = objectMapper.readTree(trainingDTOStr);
-			if (trainingNode.has("effectiveFrom") && !trainingNode.get("effectiveFrom").isNull()) {
-				trainingDTO.setEffectiveFrom(Date.valueOf(trainingNode.get("effectiveFrom").asText()));
-			}
-			if (trainingNode.has("effectiveTo") && !trainingNode.get("effectiveTo").isNull()) {
-				trainingDTO.setEffectiveTo(Date.valueOf(trainingNode.get("effectiveTo").asText()));
-			}
-			
-			JsonNode contentNode = objectMapper.readTree(contentDTOStr);
-			if (contentNode.has("effectiveFrom") && !contentNode.get("effectiveFrom").isNull()) {
-				contentDTO.setEffectiveFrom(Date.valueOf(contentNode.get("effectiveFrom").asText()));
-			}
-			if (contentNode.has("effectiveTo") && !contentNode.get("effectiveTo").isNull()) {
-				contentDTO.setEffectiveTo(Date.valueOf(contentNode.get("effectiveTo").asText()));
-			}
-			
-			// Handle file upload if present - file will be saved in service layer
-			// We don't save file here as service handles it
-			
-			// Date range validation will be done in service layer
-			return trainingConfigService.createTrainingWithContent(trainingDTO, contentDTO, trainingDTO.getCreatedBy(), file);
-			
-		} catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-			e.printStackTrace();
-			ServiceResponse response = new ServiceResponse();
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("Invalid JSON format: " + e.getMessage());
-			return response;
-		} catch (Exception e) {
-			e.printStackTrace();
-			ServiceResponse response = new ServiceResponse();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Error processing request: " + e.getMessage());
-			return response;
-		}
-	}
+	@JobRoleAccess(featureIds = {3})
+    @PostMapping(
+        value = "/createTrainingWithContent",    consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+)
+    public ServiceResponse createTrainingWithContent(
+            @RequestPart("trainingDTO") TrainingMasterDTO trainingDTO,
+            @RequestPart("contentDTO") TrainingContentDTO contentDTO,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
 
-	@JobRoleAccess(featureIds = {3}) // Training Config - Update Training With Content
-	@PostMapping(value = "/updateTrainingWithContent", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        return trainingConfigService.createTrainingWithContent(
+                trainingDTO,
+                contentDTO,
+                file
+        );
+    }
+
+	@JobRoleAccess(featureIds = {3})
+	@PostMapping(
+	        value = "/updateTrainingWithContent",    consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+
+	       	)
 	public ServiceResponse updateTrainingWithContent(
-			@RequestPart("trainingDTO") String trainingDTOStr,
-			@RequestPart("contentDTO") String contentDTOStr,
-			@RequestPart(value = "file", required = false) MultipartFile file) {
-		
-		ServiceResponse validationResponse = new ServiceResponse();
-		
-		try {
-			// Basic validation: Check if DTO strings are not null/empty
-			if (trainingDTOStr == null || trainingDTOStr.trim().isEmpty()) {
-				validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				validationResponse.setServiceResponse("Training DTO is required");
-				return validationResponse;
-			}
-			
-			if (contentDTOStr == null || contentDTOStr.trim().isEmpty()) {
-				validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				validationResponse.setServiceResponse("Content DTO is required");
-				return validationResponse;
-			}
-			
-			// Parse Training DTO from JSON string
-			TrainingMasterDTO trainingDTO = objectMapper.readValue(trainingDTOStr, TrainingMasterDTO.class);
-			
-			// Parse Content DTO from JSON string
-			TrainingContentDTO contentDTO = objectMapper.readValue(contentDTOStr, TrainingContentDTO.class);
-			
-			// Validate Training DTO is not null
-			if (trainingDTO == null) {
-				validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				validationResponse.setServiceResponse("Training DTO cannot be null");
-				return validationResponse;
-			}
-			
-			// Validate Content DTO is not null
-			if (contentDTO == null) {
-				validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				validationResponse.setServiceResponse("Content DTO cannot be null");
-				return validationResponse;
-			}
-			
-			// Validate mandatory Training fields for update
-			if (trainingDTO.getTrainingId() == null) {
-				validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				validationResponse.setServiceResponse("Training ID is required for update");
-				return validationResponse;
-			}
-			
-			if (trainingDTO.getUpdatedBy() == null) {
-				validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				validationResponse.setServiceResponse("Updated by is required");
-				return validationResponse;
-			}
-			
-			// Validate mandatory Content fields
-			if (contentDTO.getContentType() == null || contentDTO.getContentType().trim().isEmpty()) {
-				validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				validationResponse.setServiceResponse("Content type is required");
-				return validationResponse;
-			}
-			
-			if (contentDTO.getContentName() == null || contentDTO.getContentName().trim().isEmpty()) {
-				validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				validationResponse.setServiceResponse("Content name is required");
-				return validationResponse;
-			}
-			
-			if (contentDTO.getEffectiveFrom() == null) {
-				validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				validationResponse.setServiceResponse("Content effective from date is required");
-				return validationResponse;
-			}
-			
-			if (contentDTO.getEffectiveTo() == null) {
-				validationResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				validationResponse.setServiceResponse("Content effective to date is required");
-				return validationResponse;
-			}
-			
-			// Convert date strings to Date objects (JSON sends dates as strings)
-			if (trainingDTO.getEffectiveFrom() == null && trainingDTOStr.contains("\"effectiveFrom\"")) {
-				com.fasterxml.jackson.databind.JsonNode jsonNode = objectMapper.readTree(trainingDTOStr);
-				if (jsonNode.has("effectiveFrom") && !jsonNode.get("effectiveFrom").isNull()) {
-					trainingDTO.setEffectiveFrom(Date.valueOf(jsonNode.get("effectiveFrom").asText()));
-				}
-			}
-			if (trainingDTO.getEffectiveTo() == null && trainingDTOStr.contains("\"effectiveTo\"")) {
-				com.fasterxml.jackson.databind.JsonNode jsonNode = objectMapper.readTree(trainingDTOStr);
-				if (jsonNode.has("effectiveTo") && !jsonNode.get("effectiveTo").isNull()) {
-					trainingDTO.setEffectiveTo(Date.valueOf(jsonNode.get("effectiveTo").asText()));
-				}
-			}
-			if (contentDTO.getEffectiveFrom() == null && contentDTOStr.contains("\"effectiveFrom\"")) {
-				com.fasterxml.jackson.databind.JsonNode jsonNode = objectMapper.readTree(contentDTOStr);
-				if (jsonNode.has("effectiveFrom") && !jsonNode.get("effectiveFrom").isNull()) {
-					contentDTO.setEffectiveFrom(Date.valueOf(jsonNode.get("effectiveFrom").asText()));
-				}
-			}
-			if (contentDTO.getEffectiveTo() == null && contentDTOStr.contains("\"effectiveTo\"")) {
-				com.fasterxml.jackson.databind.JsonNode jsonNode = objectMapper.readTree(contentDTOStr);
-				if (jsonNode.has("effectiveTo") && !jsonNode.get("effectiveTo").isNull()) {
-					contentDTO.setEffectiveTo(Date.valueOf(jsonNode.get("effectiveTo").asText()));
-				}
-			}
-			
-			// Date range validation will be done in service layer
-			return trainingConfigService.updateTrainingWithContent(trainingDTO, contentDTO, trainingDTO.getUpdatedBy(),file);
-			
-		} catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-			e.printStackTrace();
-			ServiceResponse response = new ServiceResponse();
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("Invalid JSON format: " + e.getMessage());
-			return response;
-		} catch (Exception e) {
-			e.printStackTrace();
-			ServiceResponse response = new ServiceResponse();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Error processing request: " + e.getMessage());
-			return response;
-		}
-	}
+	        @RequestPart("trainingDTO") TrainingMasterDTO trainingDTO,
+	        @RequestPart("contentDTO") TrainingContentDTO contentDTO,
+	        @RequestPart(value = "file", required = false) MultipartFile file) {
 
+	    return trainingConfigService.updateTrainingWithContent(
+	            trainingDTO,
+	            contentDTO,
+	            file
+	    );
+	}
 	@JobRoleAccess(featureIds = {3}) // Training Config - Add Content
 	@PostMapping(value = "/addTrainingContent", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ServiceResponse addTrainingContent(

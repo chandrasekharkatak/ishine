@@ -146,6 +146,11 @@
 			<artifactId>opennlp-tools</artifactId>
 			<version>1.9.4</version> <!-- Compatible with Java 8+ -->
 		</dependency>
+		<dependency>
+    <groupId>commons-io</groupId>
+    <artifactId>commons-io</artifactId>
+    <version>2.15.1</version>
+</dependency>
 	<dependency>
     <groupId>org.apache.tika</groupId>
     <artifactId>tika-core</artifactId>

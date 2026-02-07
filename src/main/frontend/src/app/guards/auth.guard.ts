@@ -62,17 +62,7 @@ export class AuthGuard  {
             // Allow navigation to training page
             return true;
           }
-          
-          // Mandatory training pending (but not frozen) - route to training but don't block navigation
-          if (currentUser.trainingLockStatus.hasMandatoryTrainingPending === true) {
-            if (!isTrainingRoute) {
-              // Route to training page for mandatory training (soft routing, not blocking)
-              this.router.navigate(['/training']);
-              return false;
-            }
-            // Allow navigation to training page
-            return true;
-          }
+        
         } 
         if (currentUser.policyReadConsent != null) {
           let policyObj = new UploadPolicy();

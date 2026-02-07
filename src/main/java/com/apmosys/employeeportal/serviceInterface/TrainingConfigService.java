@@ -29,7 +29,8 @@ public interface TrainingConfigService {
 	 * @param file Optional file upload for content
 	 * @return ServiceResponse indicating success or failure
 	 */
-	ServiceResponse createTrainingWithContent(TrainingMasterDTO trainingDTO, TrainingContentDTO contentDTO, Long createdBy, MultipartFile file);
+	ServiceResponse createTrainingWithContent(TrainingMasterDTO trainingDTO, TrainingContentDTO contentDTO,
+			MultipartFile file);
 	
 	/**
 	 * Update an existing training with content
@@ -38,7 +39,7 @@ public interface TrainingConfigService {
 	 * @param updatedBy User ID who updated the training
 	 * @return ServiceResponse indicating success or failure
 	 */
-	ServiceResponse updateTrainingWithContent(TrainingMasterDTO trainingDTO, TrainingContentDTO contentDTO, Long updatedBy, MultipartFile file);
+	ServiceResponse updateTrainingWithContent(TrainingMasterDTO trainingDTO, TrainingContentDTO contentDTO, MultipartFile file);
 	
 	/**
 	 * Add content to an existing training

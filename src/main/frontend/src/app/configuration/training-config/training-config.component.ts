@@ -401,7 +401,6 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       customDeadlineMonths: this.trainingFormData.customDeadlineMonths || null,
       createdBy: this.currentUser.empId
     };
-    formData.append('trainingDTO', JSON.stringify(trainingDTO));
 
     // Content DTO as JSON string
     const contentDTO = {
@@ -411,27 +410,52 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       effectiveTo: this.contentFormData.effectiveTo ? moment(this.contentFormData.effectiveTo).format('YYYY-MM-DD') : null,
       externalLinkUrl: this.contentFormData.contentType === 'LINK' ? this.contentFormData.externalLinkUrl : null
     };
-    formData.append('contentDTO', JSON.stringify(contentDTO));
-
+     formData.append(
+       'trainingDTO',
+       new Blob([JSON.stringify(trainingDTO)], { type: 'application/json' })
+     );
+     
+     formData.append(
+       'contentDTO',
+       new Blob([JSON.stringify(contentDTO)], { type: 'application/json' })
+     );
     // File (if applicable)
     if (this.contentFormData.contentType !== 'LINK' && this.file) {
       formData.append('file', this.file);
     }
 
     // Send training and content together
-    this.trainingService.createTrainingWithContent(formData).pipe(first()).subscribe((response: any) => {
+    this.trainingService.createTrainingWithContent(formData).pipe(first()).
+    subscribe({
+    next: (response: any) => {
+      console.log("success===> ",response)
       if (response.serviceStatus === 'Success') {
-        this.openAlertMod(this.alertTemplate, 'Training and content created successfully', 'success');
+        this.openAlertMod(this.alertTemplate, 
+          'Training and content created successfully', 
+          'success');
         this.resetContentForm();
         this.resetTrainingForm();
-        this.showTable(); // Navigate to table after successful creation
+        this.showTable();
       } else {
-        this.openAlertMod(this.alertTemplate, response.serviceResponse || 'Failed to create training', 'error');
+        this.openAlertMod(this.alertTemplate, 
+          response.serviceStatus || 'Failed to create training', 
+          'error');
       }
-    }, error => {
-      console.log("error=> ", error);
-      this.openAlertMod(this.alertTemplate, 'Error creating training: ' + (error.error?.message || error.message), 'error');
-    });
+    },
+    error: (error: any) => {
+      console.log("HTTP error => ", error);
+
+      const backendMessage =
+        error?.error?.serviceStatus ||
+        error?.error?.serviceResponse ||
+        error?.message ||
+        'Something went wrong';
+         console.log("backendMessage==>  ",backendMessage)
+      this.openAlertMod(this.alertTemplate,
+        backendMessage,
+        'error');
+    }
+  });
   }
 
   onUpdateTraining() {
@@ -471,7 +495,6 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
         activeStatus: this.trainingFormData.activeStatus || 'true',
         updatedBy: this.currentUser.empId
       };
-      formData.append('trainingDTO', JSON.stringify(trainingDTO));
 
       // Content DTO as JSON string
       const contentDTO: any = {
@@ -488,8 +511,15 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
         // Don't send contentPath if no new file is uploaded - backend will retrieve existing path
       }
       
-      formData.append('contentDTO', JSON.stringify(contentDTO));
-
+     formData.append(
+       'trainingDTO',
+       new Blob([JSON.stringify(trainingDTO)], { type: 'application/json' })
+     );
+     
+     formData.append(
+       'contentDTO',
+       new Blob([JSON.stringify(contentDTO)], { type: 'application/json' })
+     );
       // File (if applicable)
       if (this.contentFormData.contentType !== 'LINK' && this.file) {
         formData.append('file', this.file);
