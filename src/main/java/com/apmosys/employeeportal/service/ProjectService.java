@@ -2396,8 +2396,8 @@ public class ProjectService {
                  		+ "  END AS prefixed_employeementId ")
                  .append("FROM projects p  LEFT JOIN project_po_details ppd \n"
 						 +"ON ppd.project_id = p.project_id \n" 
-						 +"AND STR_TO_DATE(ppd.po_start_date, '%Y-%m-%d') <= CURRENT_DATE \n" 
-						 +"AND (ppd.po_end_date IS NULL OR STR_TO_DATE(ppd.po_end_date, '%Y-%m-%d') >= CURRENT_DATE ) \\")
+						 +"AND ppd.po_start_date <= current_timestamp \n" 
+						 +"AND (ppd.po_end_date IS NULL OR ppd.po_end_date >= current_timestamp ) \\")
                  .append("INNER JOIN teams t ON t.project_id = p.project_id ")
                  .append("INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id ")
                  .append("INNER JOIN employee e ON etm.emp_id = e.emp_id ")
@@ -2481,8 +2481,8 @@ public class ProjectService {
                  .append("    LEFT JOIN projects p ON p.project_id = t.project_id \n"
 				 				+"LEFT JOIN project_po_details ppd \n" 
 								+"ON ppd.project_id = p.project_id \n" 
-								+"AND STR_TO_DATE(ppd.po_start_date, '%Y-%m-%d') <= CURRENT_DATE \n" 
-								+"AND (ppd.po_end_date IS NULL OR STR_TO_DATE(ppd.po_end_date, '%Y-%m-%d') >= CURRENT_DATE ) \\")
+								+"AND ppd.po_start_date <= current_timestamp \n" 
+								+"AND (ppd.po_end_date IS NULL OR ppd.po_end_date >= current_timestamp ) \n")
                  .append("    LEFT JOIN clients c ON c.client_id = p.client_id ")
                  .append("    LEFT JOIN client_locations cl ON cl.client_id = p.client_id ")
                  .append("    WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' ")
@@ -2524,8 +2524,8 @@ public class ProjectService {
                  .append("LEFT JOIN projects p ON p.project_id = t.project_id \n "
 						 +"LEFT JOIN project_po_details ppd \n"
 										+"ON ppd.project_id = p.project_id \n" 
-										+"AND STR_TO_DATE(ppd.po_start_date, '%Y-%m-%d') <= CURRENT_DATE \n" 
-										+"AND (ppd.po_end_date IS NULL OR STR_TO_DATE(ppd.po_end_date, '%Y-%m-%d') >= CURRENT_DATE ) \n")
+										+"AND ppd.po_start_date <= current_timestamp \n" 
+										+"AND (ppd.po_end_date IS NULL OR ppd.po_end_date  >= current_timestamp ) \n")
                  .append("INNER JOIN job_role j ON j.job_role_id = e.job_role_id ")
                  .append("INNER JOIN department d ON d.dept_id = j.dept_id ")
                  .append("INNER JOIN employee m ON m.emp_id = e.manager_id ")

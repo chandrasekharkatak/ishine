@@ -3460,7 +3460,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		"left join Department d on d.deptId = jr.deptId " +
 		"left join ProjectPoDetails ppd " +
   		"on ppd.projectId = p.projectId " +
-  		"and (ppd.poStartDate <= CURRENT_DATE and ppd.poEndDate >= CURRENT_DATE)" +
+  		"and (ppd.poStartDate <= CURRENT_TIMESTAMP and ppd.poEndDate >= CURRENT_TIMESTAMP)" +
 		"where ((e.employmentstatus != 'InActive') OR e.dateOfRelieving between :startDate and :endDate) and ((:listType = 'Billable' AND e.billableType in ('TNM','Fixed Cost')) " +
 		"and e.empId not between 1 and 6 " +
 		"or (:listType = 'Non-Billable' and e.billableType in('InternalRNDProducts','Bench','Shadow')))")
@@ -3615,8 +3615,8 @@ public List<Object[]> fetchInActivePOListOfProject(
 	+ "	INNER JOIN projects p ON p.project_id = t.project_id \n"
 	+ " LEFT JOIN project_po_details ppd \n"
 	+ " ON ppd.project_id = p.project_id \n"
-	+ " AND ppd.po_start_date <= :toDate \n"    
-	+ " AND ppd.po_end_date   >= :fromDate \n" 
+	+ " AND DATE(ppd.po_start_date) <= DATE(:toDate) \n"
+	+ " AND DATE(ppd.po_end_date)   >= DATE(:fromDate) \n"
 	+ "	LEFT JOIN clients c ON c.client_id = p.client_id\n"
 	+ "	LEFT JOIN client_locations cl ON cl.client_id = p.client_id\n"
 	+ "	WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'  \n"
@@ -3733,8 +3733,8 @@ public List<Object[]> fetchInActivePOListOfProject(
 		    			+ "LEFT JOIN clients c ON p.client_id = c.client_id \n"
 						+ "LEFT JOIN project_po_details ppd \n"
 						+ "ON ppd.project_id = p.project_id \n"
-						+ "AND ppd.po_start_date <= :toDate \n"
-						+ "AND ppd.po_end_date   >= :fromDate \n"
+						+ "AND DATE(ppd.po_start_date ) <= DATE(:toDate ) \n"
+						+ "AND DATE(ppd.po_end_date)  >= DATE(:fromDate) \n"
 		    			+ "WHERE etm.active != 0 \n"
 		    			+ "    AND t.is_active != 'N' \n"
 		    			+ "    AND p.active != 'false' \n"

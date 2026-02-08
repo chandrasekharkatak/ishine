@@ -458,8 +458,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			// + "left join project_po_details ppo ON ppo.project_id = p.project_id \n"
 			+"LEFT JOIN project_po_details ppo \n"
 			+"ON ppo.project_id = p.project_id \n"
-			+"AND ppo.po_end_date = ( \n"                // CHANGED: latest PO selection
-			+"SELECT MAX(ppd2.po_end_date) \n"     // CHANGED
+			+"AND DATE(ppo.po_end_date) = ( \n"                // CHANGED: latest PO selection
+			+"SELECT distinct MAX(DATE(ppd2.po_end_date)) \n"     // CHANGED
 			+"FROM project_po_details ppd2 \n"     // CHANGED
 			+"WHERE ppd2.project_id = p.project_id \n"
 			+") \n "
@@ -498,8 +498,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			// + "left join project_po_details ppo ON ppo.project_id = p.project_id \n"
 			+ "		LEFT JOIN project_po_details ppo \n"
 			+ "		ON ppo.project_id = p.project_id \n"
-			+ "		AND ppo.po_end_date = ( \n"             
-			+ "		SELECT MAX(ppd2.po_end_date) \n"     
+			+ "		AND DATE(ppo.po_end_date) = ( \n"             
+			+ "		SELECT distinct MAX(DATE(ppd2.po_end_date)) \n"     
 			+ "		FROM project_po_details ppd2 \n"     
 			+ "		WHERE ppd2.project_id = p.project_id \n"
 			+ "		) \n "
@@ -522,7 +522,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			// + "left join project_po_details ppo ON ppo.project_id = p.project_id \n"
 			+ "		LEFT JOIN project_po_details ppo \n"
 			+ "		ON ppo.project_id = p.project_id \n"
-			+ "		AND ppo.po_end_date > curdate() \n"
+			+ "		AND ppo.po_end_date > CURRENT_TIMESTAMP \n"
 			+ "inner join po_department_mapping pdm on \n"
 			+ "((ppo.po_id IS NOT NULL AND pdm.po_id = ppo.po_id)\n"
 			+ "OR (ppo.po_id IS NULL AND pdm.project_id = p.project_id)) \n"
@@ -539,14 +539,14 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "			        FROM projects p \n"
 			// + "inner join project_po_details ppo ON ppo.project_id = p.project_id \n"
             // + "inner join po_department_mapping pdm on pdm.po_id = ppo.po_id \n"
-//			+ "			        INNER JOIN project_department_map pdm ON pdm.project_id = p.project_id \n"
+		   //  + "INNER JOIN project_department_map pdm ON pdm.project_id = p.project_id \n"
             + "		LEFT JOIN project_po_details ppo \n"
-+ "		ON ppo.project_id = p.project_id \n"
-+ "		AND ppo.po_end_date = ( \n"             
-+ "		SELECT MAX(ppd2.po_end_date) \n"     
-+ "		FROM project_po_details ppd2 \n"     
-+ "		WHERE ppd2.project_id = p.project_id \n"
-+ "		) \n "
+			+ "		ON ppo.project_id = p.project_id \n"
+			+ "		AND DATE(ppo.po_end_date) = ( \n"             
+			+ "		SELECT distinct MAX(DATE(ppd2.po_end_date)) \n"     
+			+ "		FROM project_po_details ppd2 \n"     
+			+ "		WHERE ppd2.project_id = p.project_id \n"
+			+ "		) \n "
 			+ "inner join po_department_mapping pdm on \n"
 			+ "((ppo.po_id IS NOT NULL AND pdm.po_id = ppo.po_id)\n" 
 			+ "OR (ppo.po_id IS NULL AND pdm.project_id = p.project_id)) \n"
@@ -560,14 +560,14 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "			        FROM projects p \n"
 			// + "inner join project_po_details ppo ON ppo.project_id = p.project_id \n"
             // + "inner join po_department_mapping pdm on pdm.po_id = ppo.po_id \n"
-//			+ "			        INNER JOIN project_department_map pdm ON pdm.project_id = p.project_id \n"
-+ "		LEFT JOIN project_po_details ppo \n"
-+ "		ON ppo.project_id = p.project_id \n"
-+ "		AND ppo.po_end_date = ( \n"             
-+ "		SELECT MAX(ppd2.po_end_date) \n"     
-+ "		FROM project_po_details ppd2 \n"     
-+ "		WHERE ppd2.project_id = p.project_id \n"
-+ "		) \n "
+			// + "INNER JOIN project_department_map pdm ON pdm.project_id = p.project_id \n"
+			+ "		LEFT JOIN project_po_details ppo \n"
+			+ "		ON ppo.project_id = p.project_id \n"
+			+ "		AND DATE(ppo.po_end_date) = ( \n"             
+			+ "		SELECT distinct MAX(DATE(ppd2.po_end_date)) \n"     
+			+ "		FROM project_po_details ppd2 \n"     
+			+ "		WHERE ppd2.project_id = p.project_id \n"
+			+ "		) \n "
 			+ "inner join po_department_mapping pdm on \n"
 			+ "( (ppo.po_id IS NOT NULL AND pdm.po_id = ppo.po_id)\n"
 			+ "OR (ppo.po_id IS NULL AND pdm.project_id = p.project_id) ) \n"
@@ -599,7 +599,7 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+" ON ppd.projectId = p.projectId \n"
 			// +" AND FUNCTION('STR_TO_DATE', ppd.poStartDate, '%Y-%m-%d') <= curdate() \n" 
 			+" AND ( ppd.poEndDate IS NULL \n" 
-			+" OR FUNCTION('STR_TO_DATE', ppd.poEndDate, '%Y-%m-%d') > curdate() ) \n"  
+			+" OR  ppd.poEndDate > CURRENT_TIMESTAMP ) \n"  
 // + " inner join PoDepartmentMapping pdm on pdm.poId = ppd.poId \n "
 			+ "inner join PoDepartmentMapping pdm on \n"
 			+ "( (ppd.poId IS NOT NULL AND pdm.poId = ppd.poId)\n" 
@@ -757,8 +757,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "FROM projects p\n"
 			+"LEFT JOIN project_po_details ppd \n" 
 			+					"ON ppd.project_id = p.project_id \n" 
-			+					"AND STR_TO_DATE(ppd.po_start_date, '%Y-%m-%d') <= CURRENT_DATE \n" 
-			+					"AND (ppd.po_end_date IS NULL OR STR_TO_DATE(ppd.po_end_date, '%Y-%m-%d') >= CURRENT_DATE) \n"
+			+					"AND ppd.po_start_date <= current_timestamp \n" 
+			+					"AND (ppd.po_end_date IS NULL OR ppd.po_end_date >= current_timestamp) \n"
 			+ "	LEFT JOIN clients c on p.client_id = c.client_id \n"
 			+ "JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
 			+ "WHERE p.active = 'true' AND pm.project_manager_id  =:empId\n"
@@ -805,8 +805,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "FROM projects p\n"
 			+"LEFT JOIN project_po_details ppd \n" 
 			+					"ON ppd.project_id = p.project_id \n"
-			+					"AND STR_TO_DATE(ppd.po_start_date, '%Y-%m-%d') <= CURRENT_DATE \n" 
-			+					"AND (ppd.po_end_date IS NULL OR STR_TO_DATE(ppd.po_end_date, '%Y-%m-%d') >= CURRENT_DATE) \\"
+			+					"AND ppd.po_start_date <= current_timestamp \n" 
+			+					"AND (ppd.po_end_date IS NULL OR ppd.po_end_date >= current_timestamp) \\"
 			+ "JOIN project_overhead_mapping po ON p.project_id = po.project_id\n"
 			+ "	LEFT JOIN clients c on p.client_id = c.client_id \n"
 			+ "WHERE p.active = 'true' AND po.project_overhead_id  =:empId\n"
@@ -854,8 +854,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "FROM projects p\n"
 			+"LEFT JOIN project_po_details ppd \n" 
 			+					"ON ppd.project_id = p.project_id \n"
-			+					"AND STR_TO_DATE(ppd.po_start_date, '%Y-%m-%d') <= CURRENT_DATE \n" 
-			+					"AND (ppd.po_end_date IS NULL OR STR_TO_DATE(ppd.po_end_date, '%Y-%m-%d') >= CURRENT_DATE) \\"
+			+					"AND ppd.po_start_date <= current_timestamp \n" 
+			+					"AND (ppd.po_end_date IS NULL OR ppd.po_end_date >= current_timestamp) \\"
 			+ "	LEFT JOIN clients c on p.client_id = c.client_id \n"
 			+ "JOIN teams t ON p.project_id = t.project_id\n"
 			+ "WHERE p.active = 'true' AND t.is_active = 'Y' AND t.spoc_id  =:empId\n"
@@ -902,8 +902,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			+ "FROM projects p\n"
 			+"LEFT JOIN project_po_details ppd \n" 
 			+					"ON ppd.project_id = p.project_id \n"
-			+					"AND STR_TO_DATE(ppd.po_start_date, '%Y-%m-%d') <= CURRENT_DATE \n" 
-			+					"AND (ppd.po_end_date IS NULL OR STR_TO_DATE(ppd.po_end_date, '%Y-%m-%d') >= CURRENT_DATE) \n"
+			+					"AND ppd.po_start_date <= current_timestamp \n" 
+			+					"AND (ppd.po_end_date IS NULL OR ppd.po_end_date >= current_timestamp) \n"
 			+ "	LEFT JOIN clients c on p.client_id = c.client_id \n"
 			+ "JOIN teams t ON p.project_id = t.project_id\n"
 			+ "WHERE p.active = 'true' AND t.is_active = 'Y' AND t.team_lead_id =:empId\n"
@@ -1382,7 +1382,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	
 	@Query(value="select  count( Distinct p.projectId) from Project p \n"
 			+ "left join ProjectPoDetails ppo on ppo.projectId = p.projectId \n"
-			+ "And ppo.poEndDate = (Select Max(ppo2.poEndDate) from ProjectPoDetails ppo2 where ppo2.projectId = p.projectId)"
+			+ "And FUNCTION('DATE',ppo.poEndDate) = (Select Max(FUNCTION('DATE',ppo2.poEndDate)) from ProjectPoDetails ppo2 where ppo2.projectId = p.projectId)"
 			// + "left join PoDepartmentMapping pdm on pdm.poId = ppo.poId \n"
 			+ "inner join PoDepartmentMapping pdm on \n"
 			+ "( (ppo.poId IS NOT NULL AND pdm.poId = ppo.poId)\n" 
@@ -3822,7 +3822,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 			// + "inner join po_department_mapping pdm on pdm.po_id = ppd.po_id \n"
 			// + "LEFT JOIN project_department_map pdm on p.project_id = pdm.project_id \n"
 			+ "left join project_po_details ppd ON ppd.project_id = p.project_id \n"
-			+ "and ppd.po_end_date = (select max(ppd2.po_end_date) from project_po_details ppd2 where ppd2.project_id = p.project_id) \n"
+			+ "and DATE(ppd.po_end_date) = (select distinct max(DATE(ppd2.po_end_date)) from project_po_details ppd2 where ppd2.project_id = p.project_id) \n"
 			+ "inner join po_department_mapping pdm on \n"
 			+ "( (ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id)\n" 
 			+ "OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id) ) \n"
@@ -4509,12 +4509,13 @@ boolean existsByProjectName(String projectName);
 				+ "           GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no,\n"
 				+ "            COALESCE(p.po_project_type, p.internal_project_type) AS project_type,\n"
 				+ "           GROUP_CONCAT(DISTINCT ppd.apmosys_rm SEPARATOR ', ') AS apmosysrm,\n"
-				+ "           GROUP_CONCAT(DISTINCT ppd.apmosys_rm_email SEPARATOR ', ') AS apmosys_rm_email,\n" 
-				+ "            GROUP_CONCAT(DISTINCT ppd.client_rm  SEPARATOR ', ') AS clientrm,\n"
+				+ "           GROUP_CONCAT(DISTINCT ppd.apmosys_rm_email SEPARATOR ', ') AS apmosys_rm_email,\n"
+				+" 				c.client_name, " 
 				+ "            date(etm.start_date) AS etm_start_date,\n"
 				+ "            etm.end_date AS etm_end_date,\n"
 				+ "            d1.dept_id AS employee_dept_id,\n"
-				+ "            p.clientrm,\n"
+				+ "            GROUP_CONCAT(DISTINCT ppd.client_rm  SEPARATOR ', ') AS clientrm,\n"
+				// + "            p.clientrm,\n"
 				+ "            t.team_id,\n"
 				+ "            p.active,\n"
 				+ "            etm.employee_team_map_id,\n"
@@ -4525,7 +4526,7 @@ boolean existsByProjectName(String projectName);
   				+ "ON ppd.project_id = p.project_id \n"
  				+ "AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters)"
 				+ "AND ("
-        		+ "ppd.po_end_date IS NULL"
+        		+ "ppd.po_end_date IS NULL " 
         		+ "OR DATE(ppd.po_end_date) >= (SELECT from_date FROM Date_Parameters)"
      			+")"
 				+ "        INNER JOIN teams t ON p.project_id = t.project_id\n"
@@ -4850,9 +4851,9 @@ public List<PoTeamAndMemberDetailsDto> getEmployeeExistingProjectDetailsByEmpId(
 	+ "FROM Project p \n"
 	+ "LEFT JOIN Client c ON c.clientId = p.clientId \n"
 	+ "LEFT JOIN ProjectPoDetails ppd on ppd.projectId = p.projectId \n"
-	+" AND FUNCTION('STR_TO_DATE', ppd.poStartDate, '%Y-%m-%d') <= CURRENT_DATE " 
+	+" AND  ppd.poStartDate <= CURRENT_TIMESTAMP " 
 	+" AND ( ppd.poEndDate IS NULL " 
-	+"OR FUNCTION('STR_TO_DATE', ppd.poEndDate, '%Y-%m-%d') >= CURRENT_DATE ) " 
+	+"OR  ppd.poEndDate >= CURRENT_TIMESTAMP ) " 
 //			+ "INNER JOIN Team t ON t.projectId = p.projectId \n"
 //			+ "INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId \n"
 //			+ "INNER JOIN Employee e ON e.empId = etm.empId \n"
@@ -4894,7 +4895,7 @@ List<ProjectFetchDTO> getAllActiveProjectList(@Param("projectStatus")String proj
 + "       	ON ppd.projectId = p.projectId \n"
 // +" AND FUNCTION('STR_TO_DATE', ppd.poStartDate, '%Y-%m-%d') <= curdate() \n" 
 +" AND ( ppd.poEndDate IS NULL \n" 
-+"       OR FUNCTION('STR_TO_DATE', ppd.poEndDate, '%Y-%m-%d') > curdate() ) \n"  
++"       OR  ppd.poEndDate > CURRENT_TIMESTAMP ) \n"  
 // + " inner join PoDepartmentMapping pdm on pdm.poId = ppd.poId \n "
 + "inner join PoDepartmentMapping pdm on \n"
 + "( (ppd.poId IS NOT NULL AND pdm.poId = ppd.poId)\n" 
@@ -4928,8 +4929,8 @@ List<ProjectFetchDTO> getAllNotStartedProjects(@Param("deptIds") List<Long> dept
 + "LEFT JOIN Client c ON c.clientId = p.clientId \n"
 + "LEFT JOIN ProjectPoDetails ppd \n"           
 + "       ON ppd.projectId = p.projectId \n"
-+ "      AND ppd.poEndDate = ( \n"                
-+ "            SELECT MAX(ppd2.poEndDate) \n"    
++ "      AND FUNCTION('DATE',ppd.poEndDate) = ( \n"                
++ "            SELECT MAX(FUNCTION('DATE',ppd2.poEndDate)) \n"    
 + "            FROM ProjectPoDetails ppd2 \n"    
 + "            WHERE ppd2.projectId = p.projectId \n"
 + "      ) \n"
@@ -4972,8 +4973,8 @@ List<ProjectFetchDTO> getAllActiveCompletedProjectList(@Param("projectStatus")St
 + "INNER JOIN JobRole jr on e.jobRoleId = jr.jobRoleId \n"
 + "LEFT JOIN ProjectPoDetails ppd \n"
 + "       ON ppd.projectId = p.projectId \n"
-+ "      AND ppd.poEndDate = ( \n"                // CHANGED: latest PO selection
-+ "            SELECT MAX(ppd2.poEndDate) \n"     // CHANGED
++ "      AND FUNCTION('DATE', ppd.poEndDate) = ( \n"                // CHANGED: latest PO selection
++ "            SELECT MAX(FUNCTION('DATE',ppd2.poEndDate)) \n"     // CHANGED
 + "            FROM ProjectPoDetails ppd2 \n"     // CHANGED
 + "            WHERE ppd2.projectId = p.projectId \n"
 + "      ) \n"
@@ -5009,8 +5010,8 @@ List<ProjectFetchDTO> completedInSankhButTeamMappedList(@Param("projectIds")Set<
 			+ "FROM Project p\n"
 			+ "LEFT JOIN ProjectPoDetails ppd \n"
 			+ "ON ppd.projectId = p.projectId \n"
-			+ "AND ppd.poEndDate = ( \n"                // CHANGED: latest PO selection
-			+ "SELECT MAX(ppd2.poEndDate) \n"     // CHANGED
+			+ "AND FUNCTION('DATE', ppd.poEndDate) = ( \n"                // CHANGED: latest PO selection
+			+ "SELECT MAX(FUNCTION('DATE',ppd2.poEndDate)) \n"     // CHANGED
 			+ "FROM ProjectPoDetails ppd2 \n"     // CHANGED
 			+ "WHERE ppd2.projectId = p.projectId \n"
 			+ ") \n"
@@ -5065,8 +5066,8 @@ List<ProjectFetchDTO> completedInSankhButTeamMappedList(@Param("projectIds")Set<
 		"FROM Project p \n" +
 		 "LEFT JOIN ProjectPoDetails ppd \n"+
 			 "ON ppd.projectId = p.projectId \n"+
-			 "AND ppd.poEndDate = ( \n"+                // CHANGED: latest PO selection
-			 "SELECT MAX(ppd2.poEndDate) \n" +    // CHANGED
+			 "AND FUNCTION('DATE', ppd.poEndDate) = ( \n"+                // CHANGED: latest PO selection
+			 "SELECT MAX(FUNCTION('DATE',ppd2.poEndDate)) \n" +    // CHANGED
 			 "FROM ProjectPoDetails ppd2 \n"  +   // CHANGED
 			 "WHERE ppd2.projectId = p.projectId \n"+
 			 ") \n "+
@@ -5130,8 +5131,8 @@ List<ProjectFetchDTO> completedInSankhButTeamMappedList(@Param("projectIds")Set<
 		"FROM Project p " +
 		"LEFT JOIN ProjectPoDetails ppd \n"+
 		"ON ppd.projectId = p.projectId \n"+
-		"AND ppd.poEndDate = ( \n"+                // CHANGED: latest PO selection
-		"SELECT MAX(ppd2.poEndDate) \n" +    // CHANGED
+		"AND FUNCTION('DATE', ppd.poEndDate) = ( \n"+                // CHANGED: latest PO selection
+		"SELECT MAX(FUNCTION('DATE',ppd2.poEndDate)) \n" +    // CHANGED
 		"FROM ProjectPoDetails ppd2 \n"  +   // CHANGED
 		"WHERE ppd2.projectId = p.projectId \n"+
 		") \n "+
@@ -5165,8 +5166,8 @@ List<ProjectFetchDTO> completedInSankhButTeamMappedList(@Param("projectIds")Set<
 		+ "			FROM Project p   \n"
 		+ "		LEFT JOIN ProjectPoDetails ppd \n"
 		+ "		ON ppd.projectId = p.projectId \n"
-		+ "		AND ppd.poEndDate = ( \n"                // CHANGED: latest PO selection
-		+ "		SELECT MAX(ppd2.poEndDate) \n"     // CHANGED
+		+ "		AND FUNCTION('DATE', ppd.poEndDate) = ( \n"                // CHANGED: latest PO selection
+		+ "		SELECT MAX(FUNCTION('DATE',ppd2.poEndDate)) \n"     // CHANGED
 		+ "		FROM ProjectPoDetails ppd2 \n"     // CHANGED
 		+ "		WHERE ppd2.projectId = p.projectId \n"
 		+ "		) \n "
@@ -5196,8 +5197,8 @@ List<ProjectFetchDTO> getAllPendingProjectList(@Param("deptIds") List<Long> dept
 			+ "			FROM projects p \n"
 			+ "		LEFT JOIN project_po_details ppd \n"
 			+ "		ON ppd.project_id = p.project_id \n"
-			+ "		AND ppd.po_end_date = ( \n"             
-			+ "		SELECT MAX(ppd2.po_end_date) \n"     
+			+ "		AND DATE(ppd.po_end_date) = ( \n"             
+			+ "		SELECT distinct MAX(DATE(ppd2.po_end_date)) \n"     
 			+ "		FROM project_po_details ppd2 \n"     
 			+ "		WHERE ppd2.project_id = p.project_id \n"
 			+ "		) \n "
@@ -5253,9 +5254,9 @@ List<ProjectFetchDTO> getAllPendingProjectList(@Param("deptIds") List<Long> dept
 			+ "			FROM projects p   \n"
 			+ "		LEFT JOIN project_po_details ppd \n"
 			+ "		ON ppd.project_id = p.project_id \n"
-			+ "		AND ppd.po_end_date = ( \n"             
-			+ "		SELECT MAX(ppd2.po_end_date) \n"     
-			+ "		FROM project_po_details ppd2 \n"     
+			+ "		AND DATE(ppd.po_end_date) = ( \n"             
+			+ "		SELECT distinct MAX(DATE(ppd2.po_end_date)) \n"     
+			+ "		FROM project_po_details ppd2 \n"
 			+ "		WHERE ppd2.project_id = p.project_id \n"
 			+ "		) \n "
 			+ "inner join po_department_mapping pdm on \n"
@@ -5307,7 +5308,7 @@ List<ProjectFetchDTO> getAllPendingProjectList(@Param("deptIds") List<Long> dept
 			+ "			FROM projects p   \n"
 			+ "		LEFT JOIN project_po_details ppd \n"
 			+ "		ON ppd.project_id = p.project_id \n"
-			+ "		AND ppd.po_end_date > curdate() \n"
+			+ "		AND ppd.po_end_date > current_timestamp \n"
 			+ "inner join po_department_mapping pdm on \n"
 			+ "( (ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id)\n" 
 			+ "OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id) ) \n"
@@ -5356,8 +5357,8 @@ List<ProjectFetchDTO> getAllPendingProjectList(@Param("deptIds") List<Long> dept
 			+ "			FROM projects p   \n"
 			+ "		LEFT JOIN project_po_details ppd \n"
 			+ "		ON ppd.project_id = p.project_id \n"
-			+ "		AND ppd.po_end_date = ( \n"             
-			+ "		SELECT MAX(ppd2.po_end_date) \n"     
+			+ "		AND DATE(ppd.po_end_date) = ( \n"             
+			+ "		SELECT distinct MAX(DATE(ppd2.po_end_date)) \n"     
 			+ "		FROM project_po_details ppd2 \n"     
 			+ "		WHERE ppd2.project_id = p.project_id \n"
 			+ "		) \n "
@@ -5421,8 +5422,8 @@ List<ProjectFetchDTO> getAllPendingProjectList(@Param("deptIds") List<Long> dept
 		    + "FROM projects p\n"
 			+ " LEFT JOIN project_po_details ppd \n"
 			+ " ON ppd.project_id = p.project_id \n"
-			+ "AND STR_TO_DATE(ppd.po_start_date, '%Y-%m-%d') <= CURRENT_DATE \n" 
-			+ "AND (ppd.po_end_date IS NULL OR STR_TO_DATE(ppd.po_end_date, '%Y-%m-%d') >= CURRENT_DATE ) \n"
+			+ "AND ppd.po_start_date <= current_timestamp \n" 
+			+ "AND (ppd.po_end_date IS NULL OR ppd.po_end_date  >= current_timestamp ) \n"
 		    // + "INNER JOIN project_department_map pd ON p.project_id = pd.project_id\n"
 			// + "inner join po_department_mapping pdm on pdm.po_id = ppd.po_id \n"
 			+ "inner join po_department_mapping pdm on \n"
@@ -5506,8 +5507,8 @@ List<ProjectFetchDTO> getAllPendingProjectList(@Param("deptIds") List<Long> dept
 		"FROM Project p " +
 		"		LEFT JOIN ProjectPoDetails ppd \n"+
 		"		ON ppd.projectId = p.projectId \n"+
-		"		AND ppd.poEndDate = ( \n"          +      // CHANGED: latest PO selection
-		"		SELECT MAX(ppd2.poEndDate) \n"   +  // CHANGED
+		"		AND FUNCTION('DATE', ppd.poEndDate) = ( \n"          +      // CHANGED: latest PO selection
+		"		SELECT MAX(FUNCTION('DATE',ppd2.poEndDate)) \n"   +  // CHANGED
 		"		FROM ProjectPoDetails ppd2 \n"   +  // CHANGED
 		"		WHERE ppd2.projectId = p.projectId \n"+
 		"		) \n "+
@@ -5558,8 +5559,8 @@ List<ProjectFetchDTO> getAllPendingProjectList(@Param("deptIds") List<Long> dept
  + "	   FROM projects p\n"
  + "	   LEFT JOIN project_po_details ppd \n"
  + " 	   ON ppd.project_id = p.project_id \n"
- + "	   AND STR_TO_DATE(ppd.po_start_date, '%Y-%m-%d') <= CURRENT_DATE \n" 
- + "AND (ppd.po_end_date IS NULL OR STR_TO_DATE(ppd.po_end_date, '%Y-%m-%d') >= CURRENT_DATE ) \n"
+ + "	   AND ppd.po_start_date <= current_timestamp \n" 
+ + "AND (ppd.po_end_date IS NULL OR ppd.po_end_date >= current_timestamp ) \n"
 //  + "inner join po_department_mapping pdm on pdm.po_id = ppd.po_id \n"
 //  + "	  left JOIN project_department_map pd ON p.project_id = pd.project_id\n"
 + "inner join po_department_mapping pdm on \n"
@@ -5674,8 +5675,8 @@ Integer getUnfilledPositionsCount(@Param("deptIds") List<Long> deptIds);
 + "	   FROM projects p\n"
 + "	   LEFT JOIN project_po_details ppd \n"
 + " 	   ON ppd.project_id = p.project_id \n"
-+ "	  AND STR_TO_DATE(ppd.po_start_date, '%Y-%m-%d') <= CURRENT_DATE \n" 
-+ "	  AND (ppd.po_end_date IS NULL OR STR_TO_DATE(ppd.po_end_date, '%Y-%m-%d') >= CURRENT_DATE ) \n"
++ "	  AND ppd.po_start_date <= current_timestamp \n" 
++ "	  AND (ppd.po_end_date IS NULL OR ppd.po_end_date >= current_timestamp ) \n"
 // + "	  left JOIN project_department_map pd ON p.project_id = pd.project_id\n"
 // + "inner join po_department_mapping pdm on pdm.po_id = ppd.po_id \n"
 + "inner join po_department_mapping pdm on \n"
@@ -5791,8 +5792,8 @@ public List<Object[]> getAllUnfilledPositionList(List<Long> deptIds);
 + "			      FROM projects p\n"
 + "	  			 LEFT JOIN project_po_details ppd \n"
 + " 	  		 ON ppd.project_id = p.project_id \n"
-+ "	  			 AND STR_TO_DATE(ppd.po_start_date, '%Y-%m-%d') <= CURRENT_DATE \n" 
-+ "				 AND (ppd.po_end_date IS NULL OR STR_TO_DATE(ppd.po_end_date, '%Y-%m-%d') >= CURRENT_DATE ) \n"
++ "	  			 AND ppd.po_start_date <= current_timestamp \n" 
++ "				 AND (ppd.po_end_date IS NULL OR ppd.po_end_date >= current_timestamp ) \n"
 // + "				  inner join po_department_mapping pdm on pdm.po_id = ppd.po_id \n"
 // + "			      inner JOIN project_department_map pd ON p.project_id = pd.project_id\n"
 + "inner join po_department_mapping pdm on \n"
@@ -5880,8 +5881,8 @@ public List<Object[]> getAllInternalList(List<Long> deptIds);
 + "            projects p\n"
 + "	  			 LEFT JOIN project_po_details ppd \n"
 + " 	  		 ON ppd.project_id = p.project_id \n"
-+ "	  			 AND STR_TO_DATE(ppd.po_start_date, '%Y-%m-%d') <= CURRENT_DATE \n" 
-+ "		   AND (ppd.po_end_date IS NULL OR STR_TO_DATE(ppd.po_end_date, '%Y-%m-%d') >= CURRENT_DATE ) \n"
++ "	  			 AND ppd.po_start_date <= current_timestamp \n" 
++ "		   AND (ppd.po_end_date IS NULL OR ppd.po_end_date >= current_timestamp ) \n"
 // + "        INNER JOIN project_department_map pd ON p.project_id = pd.project_id\n"
 // + "		   inner join po_department_mapping pdm on pdm.po_id = ppd.po_id \n"
 + "inner join po_department_mapping pdm on \n"
@@ -5971,8 +5972,8 @@ public List<Object[]> getProjectWithCliendSideID(@Param("emp_id") Long emp_id);
 				+ "            projects p\n"
 				+ "	  			 LEFT JOIN project_po_details ppd \n"
 				+ "			ON ppd.project_id = p.project_id \n"
-				+ " 		AND STR_TO_DATE(ppd.po_start_date, '%Y-%m-%d') <= CURRENT_DATE \n" 
-				+ "			AND (ppd.po_end_date IS NULL OR STR_TO_DATE(ppd.po_end_date, '%Y-%m-%d') >= CURRENT_DATE ) \n"
+				+ " 		AND ppd.po_start_date <= current_timestamp \n" 
+				+ "			AND (ppd.po_end_date IS NULL OR ppd.po_end_date >= current_timestamp ) \n"
 				// + "        INNER JOIN project_department_map pd ON p.project_id = pd.project_id\n"
 				// + "inner join po_department_mapping pdm on pdm.po_id = ppd.po_id \n"
 				+ "inner join po_department_mapping pdm on \n"
@@ -6077,8 +6078,8 @@ public List<Object[]> getProjectWithCliendSideID(@Param("emp_id") Long emp_id);
 				+ "			      FROM projects p\n"
 				+ "	  			 LEFT JOIN project_po_details ppd \n"
 				+ "			ON ppd.project_id = p.project_id \n"
-				+ " 		AND STR_TO_DATE(ppd.po_start_date, '%Y-%m-%d') <= CURRENT_DATE \n" 
-				+ "			AND (ppd.po_end_date IS NULL OR STR_TO_DATE(ppd.po_end_date, '%Y-%m-%d') >= CURRENT_DATE ) \n"
+				+ " 		AND ppd.po_start_date <= current_timestamp \n" 
+				+ "			AND (ppd.po_end_date IS NULL OR ppd.po_end_date >= current_timestamp ) \n"
 				+ "inner join po_department_mapping pdm on \n"
 				+ "( (ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id)\n" 
 				+ "OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id) ) \n"
@@ -6130,7 +6131,7 @@ public List<Object[]> getProjectWithCliendSideID(@Param("emp_id") Long emp_id);
 				+ "	GROUP_CONCAT(DISTINCT d.name ORDER BY d.name SEPARATOR ', ') AS department_names\n"
 				+ "	FROM projects p\n"
 				+ "	LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id \n"
-				+ "	 AND DATE(ppd.po_end_date) = (SELECT DISTINCT MAX(DATE(ppd2.po_end_date)) FROM project_po_details ppd2 WHERE ppd2.project_id = p.project_id) \n "
+				+ "	AND DATE(ppd.po_end_date) = (SELECT DISTINCT MAX(DATE(ppd2.po_end_date)) FROM project_po_details ppd2 WHERE ppd2.project_id = p.project_id) \n "
 				+ " INNER join po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) \n"
 				+ "	INNER JOIN department d ON pdm.dept_id = d.dept_id \n"
 				+ "	INNER JOIN teams t ON p.project_id = t.project_id \n"
@@ -6256,8 +6257,8 @@ public List<Object[]> getProjectWithCliendSideID(@Param("emp_id") Long emp_id);
 + "    FROM projects p\n"
 + "	  			 LEFT JOIN project_po_details ppd \n"
 + "			ON ppd.project_id = p.project_id \n"
-+ " 		AND STR_TO_DATE(ppd.po_start_date, '%Y-%m-%d') <= CURRENT_DATE \n" 
-+ "AND (ppd.po_end_date IS NULL OR STR_TO_DATE(ppd.po_end_date, '%Y-%m-%d') >= CURRENT_DATE ) \n"
++ " 		AND ppd.po_start_date <= current_timestamp \n" 
++ "AND (ppd.po_end_date IS NULL OR ppd.po_end_date >= current_timestamp ) \n"
 + "    INNER JOIN clients c ON p.client_id = c.client_id\n"
 + "    INNER JOIN teams t ON t.project_id = p.project_id \n"
 + "    INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
@@ -6287,8 +6288,8 @@ public List<Object[]> getProjectWithCliendSideID(@Param("emp_id") Long emp_id);
 + "    FROM projects p\n"
 + "	  			 LEFT JOIN project_po_details ppd \n"
 + "			ON ppd.project_id = p.project_id \n"
-+ "		AND ppd.po_end_date = ( \n"                // CHANGED: latest PO selection
-+ "		SELECT MAX(ppd2.po_end_date) \n"     // CHANGED
++ "		AND DATE(ppd.po_end_date) = ( \n"                // CHANGED: latest PO selection
++ "		SELECT distinct MAX(DATE(ppd2.po_end_date)) \n"     // CHANGED
 + "		FROM project_po_details ppd2 \n"     // CHANGED
 + "		WHERE ppd2.project_id = p.project_id \n"
 + "		) \n "
@@ -6367,8 +6368,8 @@ List<Object[]> getClientAndProjectDataList(
 			+ "		FROM Project p \n"
 			+ "	  	Left JOIN ProjectPoDetails ppd \n"
 			+ "			ON ppd.projectId = p.projectId \n"
-			+ "		AND ppd.poEndDate = ( \n"                // CHANGED: latest PO selection
-			+ "		SELECT MAX(ppd2.poEndDate) \n"     // CHANGED
+			+ "		AND FUNCTION('DATE',ppd.poEndDate) = ( \n"                // CHANGED: latest PO selection
+			+ "		SELECT MAX(FUNCTION('DATE', ppd2.poEndDate)) \n"     // CHANGED
 			+ "		FROM ProjectPoDetails ppd2 \n"     // CHANGED
 			+ "		WHERE ppd2.projectId = p.projectId \n"
 			+ "		) \n "
@@ -6408,11 +6409,11 @@ List<Object[]> getClientAndProjectDataList(
             "LEFT JOIN projects p ON p.project_id = t.project_id AND p.active = 'true' " +
 			"	  			 LEFT JOIN project_po_details ppd \n"+
 			"			ON ppd.project_id = p.project_id \n"+
-  			"		AND ppd.po_end_date = ( \n"               +
-   			"		SELECT MAX(ppd2.po_end_date) \n"     + 
+  			"		AND DATE(ppd.po_end_date) = ( \n"               +
+   			"		SELECT DISTINCT MAX(DATE(ppd2.po_end_date)) \n"     + 
    			"		FROM project_po_details ppd2 \n"     +
     		"		WHERE ppd2.project_id = p.project_id \n"+
-		    "And ppd2.po_start_date <CURDATE()"+
+		    "And ppd2.po_start_date < current_timestamp "+
 	 		"		) \n "+
             "LEFT JOIN department d ON d.dept_id = jr.dept_id " +
             "LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id " +
@@ -6511,8 +6512,8 @@ List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> 
 + "        FROM projects p\n"
 + " LEFT JOIN project_po_details ppd \n"
 + " ON ppd.project_id = p.project_id \n"
-+ " AND ppd.po_start_date <= (SELECT to_date FROM Date_Parameters)\n"
-+ "AND( ppd.po_end_date IS NULL OR ppd.po_end_date   >= (SELECT from_date FROM Date_Parameters))\n"
++ " AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters)\n"
++ "AND( ppd.po_end_date IS NULL OR DATE(ppd.po_end_date)   >= (SELECT from_date FROM Date_Parameters))\n"
 + "        INNER JOIN teams t ON p.project_id = t.project_id\n"
 + "        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
 + "        INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
@@ -6695,8 +6696,8 @@ public Optional<List<Object[]>> getAllEmployeeDSROfRM(
 		  							+ "        FROM projects p\n"
 									+ "LEFT JOIN project_po_details ppd \n"
 									+ "ON ppd.project_id = p.project_id \n"
-									+ "AND ppd.po_start_date <= (SELECT to_date FROM Date_Parameters)\n"
-									+ "AND (ppd.po_end_date IS NULL OR ppd.po_end_date   >= (SELECT from_date FROM Date_Parameters))\n"
+									+ "AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters)\n"
+									+ "AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date)   >= (SELECT from_date FROM Date_Parameters))\n"
 		  							+ "        INNER JOIN teams t ON p.project_id = t.project_id\n"
 		  							+ "        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
 		  							+ "        INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
@@ -6921,7 +6922,7 @@ public Optional<List<Object[]>> getAllEmployeeDSROfRM(
 			+ "			        SELECT DISTINCT\n"
 			+ "			            etm.team_id, t.team_name, etm.emp_id, e.name, etm.employee_role, e.billable_type,\n"
 			+ "			            date(etm.start_date) as start_date, date(etm.end_date) as end_date, e.billable,\n"
-			+ "			            p.active, p.project_id, p.project_name, p.start_date, p.end_date, \n"
+			+ "			            p.active, p.project_id, p.project_name, p.start_date as project_start_date , p.end_date as project_end_date, \n"
 			+ "			            c.client_id, c.client_name, GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no,\n" 
 			+ "			            s.name spoc, tl.name teamLead, etm.employee_team_map_id,p.internal_project_type,p.po_project_type,\n"
 			+ "			            e.reporting_manager_id, ecsm.client_side_id,GROUP_CONCAT(DISTINCT ppd.client_rm SEPARATOR ', ') AS clientrm,\n"
@@ -6932,7 +6933,7 @@ public Optional<List<Object[]>> getAllEmployeeDSROfRM(
 			+ "ON ppd.project_id = p.project_id \n"
 		    + "AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters)"
 		    + "AND ("
-		    + "ppd.po_end_date IS NULL"
+		    + "ppd.po_end_date IS NULL "
 		    + "OR DATE(ppd.po_end_date) >= (SELECT from_date FROM Date_Parameters)"
 		    + ")"
 			+ "			        INNER JOIN teams t ON p.project_id = t.project_id\n"
@@ -7062,7 +7063,7 @@ public Optional<List<Object[]>> getAllEmployeeDSROfRM(
 			+ "			        SELECT\n"
 			+ "			            brd.emp_id, brd.project_id, brd.project_name, pms.Project_Manager, brd.po_no,\n"
 			+ "			            COALESCE(brd.po_project_type, brd.internal_project_type) AS project_type, brd.client_name,\n"
-			+ "			            brd.apmosysrm, brd.apmosys_rm_email, brd.clientrm, brd.start_date project_start_date, brd.end_date project_end_date,\n"
+			+ "			            brd.apmosysrm, brd.apmosys_rm_email, brd.clientrm, brd.project_start_date , brd.project_end_date ,\n"
 			+ "			            COALESCE(edc.total_expected_dsr_days, 0) AS expected_dsr_count,\n"
 			+ "			            COALESCE(atfd.filled_working_days, 0) AS ishine_timesheet_filled_count,\n"
 			+ "			            GREATEST(0, COALESCE(edc.total_expected_dsr_days, 0) - (COALESCE(ds.Client_Approved_count, 0) + COALESCE(ds.Client_pending_count, 0))) AS ClientSideNotFilledTimesheets_count,\n"

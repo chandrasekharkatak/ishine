@@ -6974,6 +6974,7 @@ public class TimesheetService {
 	        return response;
 
 	    } catch (Exception e) {
+	    	 e.printStackTrace();
 	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 	        response.setServiceError(e.getMessage());
 	        return response;
