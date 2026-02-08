@@ -12,7 +12,7 @@ import { RestoreProjectPayload } from '../models/restoreProjectPayload';
   providedIn: 'root'
 })
 export class ResourceManagementService {
-  
+
   private baseUrl:any = environment.baseUrl;
 
   constructor(private http: HttpClient) { }
@@ -69,7 +69,7 @@ export class ResourceManagementService {
   completionDateOfProject(project: Project){
     return this.http.post(`${this.baseUrl}` + `api/completionDateOfProject`,project);
   }
-  
+
   combinedPOINTERNALList(ProjectFilterDTO:ProjectFilterDTO){
     return this.http.post(`${this.baseUrl}` + `api/combinedPOINTERNALList`,ProjectFilterDTO);
   }
@@ -112,7 +112,7 @@ export class ResourceManagementService {
   exceptionEmployeeReport(ProjectFilterDTO:ProjectFilterDTO){
     return this.http.post(`${this.baseUrl}` + `api/exceptionEmployeeReport`,ProjectFilterDTO);
   }
-  
+
   getPreviousDefaultProjectDetails(empId: any){
     return this.http.get(`${this.baseUrl}`+`api/getPreviousDefaultProjectDetails`, {params: { empId: empId }});
   }
@@ -131,7 +131,7 @@ export class ResourceManagementService {
 
   setProjectMappingAndDefaultProject(setDefaultProjectObj: any){
     return this.http.post(`${this.baseUrl}`+`api/setProjectMappingAndDefaultProject`, setDefaultProjectObj);
-  }  
+  }
 
   getEmployeeInformationForDefaultProject(setDefaultProjectObj: any){
     return this.http.post(`${this.baseUrl}`+`api/getEmployeeInformationForDefaultProject`, setDefaultProjectObj);
@@ -254,7 +254,7 @@ export class ResourceManagementService {
   getResourceRequirementCountByPoId(poId: any, projectId: any, projectType: any) {
     let httpParams = new HttpParams().append("projectId", projectId).append("projectType", projectType);
     if (poId && poId != undefined && poId != null) {
-      httpParams.append("poId", poId);
+      httpParams =httpParams.append("poId", poId);
     }
     return this.http.get(`${this.baseUrl}` + `api/getResourceRequirementCountByPoId`, { params: httpParams });
   }

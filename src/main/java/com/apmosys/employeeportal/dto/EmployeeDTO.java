@@ -383,6 +383,8 @@ this.isApmosysProduct = isApmosysProduct;
     
     private Long poRequirementMappingId;
     
+    private Boolean isUpdateDefaultProject;
+    
     private String dateRange;
     private List<EmployeeDTO> reportees = new ArrayList<>();
     private Boolean isHierarchy;

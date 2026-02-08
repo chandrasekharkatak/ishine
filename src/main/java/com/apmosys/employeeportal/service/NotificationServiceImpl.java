@@ -489,14 +489,11 @@ public class NotificationServiceImpl implements NotificationService {
 			    EmployeeNotificationConsent consentObj = new EmployeeNotificationConsent();
 			    consentObj.setEmpId(notificationDTO.getEmpId());
 				consentObj.setNotificationId(notificationDTO.getNotificationId());
-				dbResponse=employeeNotificationConsentRepository.save(consentObj);
+				dbResponse=employeeNotificationConsentRepository.saveAndFlush(consentObj);
 			}
 			
 		  	EmployeeDTO dto = new EmployeeDTO();
-			if(dbResponse != null) {
-				
-				
-				
+			
 				if(notificationDTO.getNotificationType().equals("consentNotification")) {
 					List<Notification> allConsentNotification = notificationRepository
 							.findByNotificationTypeAndIsActive("consentNotification", "true");
@@ -551,7 +548,7 @@ public class NotificationServiceImpl implements NotificationService {
                 apiLogInfo.setApiResponse("Dto:" + dto);
                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
-			}
+			
 			
 		}catch(Exception e) {
 			e.printStackTrace();
