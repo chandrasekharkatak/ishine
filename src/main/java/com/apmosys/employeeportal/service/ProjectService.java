@@ -2395,9 +2395,8 @@ public class ProjectService {
                  		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
                  		+ "  END AS prefixed_employeementId ")
                  .append("FROM projects p  LEFT JOIN project_po_details ppd \n"
-						 +"ON ppd.project_id = p.project_id \n" 
-						 +"AND ppd.po_start_date <= current_timestamp \n" 
-						 +"AND (ppd.po_end_date IS NULL OR ppd.po_end_date >= current_timestamp ) \\")
+						 + " ON ppd.project_id = p.project_id and ppd.active = true\n " )
+                 .append(buildPoJoinCondition(flag))
                  .append("INNER JOIN teams t ON t.project_id = p.project_id ")
                  .append("INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id ")
                  .append("INNER JOIN employee e ON etm.emp_id = e.emp_id ")
@@ -2436,7 +2435,7 @@ public class ProjectService {
             query.append("SELECT distinct e.emp_id, e.employeement_id, e.name, e.email, e.mobile_no, ")
                  .append("e.manager_id, m.name as ManagerName, e.employmentstatus, e.billable, e.billable_type, ")
                  .append("emp_proj_client.team_id, emp_proj_client.team_name, emp_proj_client.project_id, ")
-                 .append("emp_proj_client.project_name, emp_proj_client.start_date, emp_proj_client.end_date, ")
+                 .append("emp_proj_client.project_name, emp_proj_client.po_start_date, emp_proj_client.po_end_date, ")
                  .append("emp_proj_client.po_no, emp_proj_client.client_name, emp_proj_client.client_location, e.work_location, ")
                  .append("e.total_experience, d.dept_id, d.name as departmentName, emp_proj_client.po_project_type, j.name as jobrole, ")
                  .append("emp_proj_client.po_project_id, eppm.primary_project_name, eppm.primary_project_id, emp_proj_client.clientrm, ")
@@ -2463,8 +2462,8 @@ public class ProjectService {
                  .append("LEFT JOIN ( ")
                  .append("    SELECT etm.emp_id, GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_id) AS project_name, ")
                  .append("           GROUP_CONCAT(DISTINCT p.project_id ORDER BY p.project_id) AS project_id, ")
-                 .append("           GROUP_CONCAT(DISTINCT p.start_date ) AS start_date, ")
-                 .append("           GROUP_CONCAT(DISTINCT p.end_date ORDER BY p.project_id) AS end_date, ")
+                 .append("           GROUP_CONCAT(DISTINCT DATE(ppd.po_start_date) ) AS po_start_date, ")
+                 .append("           GROUP_CONCAT(DISTINCT DATE(ppd.po_end_date) ORDER BY p.project_id) AS po_end_date, ")
                  .append("           GROUP_CONCAT(DISTINCT ppd.po_no ORDER BY p.project_id) AS po_no, ")
                  .append("           GROUP_CONCAT(DISTINCT p.po_project_type ORDER BY p.project_id) AS po_project_type, ")
                  .append("           GROUP_CONCAT(DISTINCT c.client_name ORDER BY p.project_id) AS client_name, ")
@@ -2475,14 +2474,15 @@ public class ProjectService {
                  .append("           GROUP_CONCAT(DISTINCT ppd.client_rm ORDER BY p.project_id) AS clientrm, ")
                  .append("           GROUP_CONCAT(DISTINCT ppd.apmosys_rm ORDER BY p.project_id) AS apmosysrm, ")
                  .append("           GROUP_CONCAT(DISTINCT etm.start_date ORDER BY p.project_id) AS effective_start_date, ")
-                 .append("           GROUP_CONCAT(DISTINCT etm.end_date ORDER BY p.project_id) AS effective_end_date ")
+                 .append("           GROUP_CONCAT(DISTINCT etm.end_date ORDER BY p.project_id) AS effective_end_date, ")
+                 .append("           GROUP_CONCAT(DISTINCT p.start_date ) AS start_date, ")
+                 .append("           GROUP_CONCAT(DISTINCT p.end_date ORDER BY p.project_id) AS end_date ")
                  .append("    FROM employee_team_mapping etm ")
                  .append("    LEFT JOIN teams t ON t.team_id = etm.team_id ")
                  .append("    LEFT JOIN projects p ON p.project_id = t.project_id \n"
-				 				+"LEFT JOIN project_po_details ppd \n" 
-								+"ON ppd.project_id = p.project_id \n" 
-								+"AND ppd.po_start_date <= current_timestamp \n" 
-								+"AND (ppd.po_end_date IS NULL OR ppd.po_end_date >= current_timestamp ) \n")
+				 				+" LEFT JOIN project_po_details ppd \n" 
+								+" ON ppd.project_id = p.project_id and ppd.active = true\n" )
+				.append(buildPoJoinCondition(flag))
                  .append("    LEFT JOIN clients c ON c.client_id = p.client_id ")
                  .append("    LEFT JOIN client_locations cl ON cl.client_id = p.client_id ")
                  .append("    WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false' ")
@@ -2490,27 +2490,14 @@ public class ProjectService {
                  .append("    GROUP BY etm.emp_id ")
                  .append(") emp_proj_client ON emp_proj_client.emp_id = e.emp_id ")
                  .append("WHERE e.employmentstatus != 'InActive' AND emp_proj_client.project_id IS NOT NULL and e.emp_id not between 1 and 6 ")
-                 .append(buildOuterWhereClause(billableType, deptIds, hideMaternityLeaveEmps))
-				 .append(
-   				 " GROUP BY " +
-   				 "e.emp_id, e.employeement_id, e.name, e.email, e.mobile_no, " +
-   				 "e.manager_id, m.name, e.employmentstatus, e.billable, e.billable_type, " +
-   				 "emp_proj_client.team_id, emp_proj_client.team_name, emp_proj_client.project_id, " +
-    			 "emp_proj_client.project_name, emp_proj_client.start_date, emp_proj_client.end_date, " +
-   				 "emp_proj_client.po_no, emp_proj_client.client_name, emp_proj_client.client_location, " +
-   				 "e.work_location, e.total_experience, d.dept_id, d.name, " +
-   				 "emp_proj_client.po_project_type, j.name, emp_proj_client.po_project_id, " +
-   				 "eppm.primary_project_name, eppm.primary_project_id, " +
-   				 "emp_proj_client.clientrm, emp_proj_client.apmosysrm, " +
-   				 "emp_proj_client.effective_start_date, emp_proj_client.effective_end_date, " +
-   				 "e.is_apmosys_product, e.is_consultant");
+                 .append(buildOuterWhereClause(billableType, deptIds, hideMaternityLeaveEmps));
 
         } else if ("E".equalsIgnoreCase(dto.getReport())) {
             // === Employee Query ===
             query.append("SELECT distinct e.emp_id, e.employeement_id, e.name, e.email, e.mobile_no, ")
 	             .append("e.manager_id, m.name as ManagerName, e.employmentstatus, e.billable, e.billable_type, ")
 	             .append("t.team_id, t.team_name, p.project_id, ")
-	             .append("p.project_name, p.start_date as project_start_date, p.end_date, ")
+	             .append("p.project_name, DATE(ppd.po_start_date) as po_start_date, DATE(ppd.po_end_date), ")
 	             .append("GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no, c.client_name, cl.client_location, e.work_location, ")
 	             .append("e.total_experience, d.dept_id, d.name as departmentName, p.po_project_type, j.name as jobrole, ")
 	             .append("p.po_project_id, eppm.primary_project_name, eppm.primary_project_id, GROUP_CONCAT(DISTINCT ppd.client_rm SEPARATOR ', ') AS clientrm, ")
@@ -2523,9 +2510,8 @@ public class ProjectService {
                  .append("LEFT JOIN teams t ON t.team_id = etm.team_id ")
                  .append("LEFT JOIN projects p ON p.project_id = t.project_id \n "
 						 +"LEFT JOIN project_po_details ppd \n"
-										+"ON ppd.project_id = p.project_id \n" 
-										+"AND ppd.po_start_date <= current_timestamp \n" 
-										+"AND (ppd.po_end_date IS NULL OR ppd.po_end_date  >= current_timestamp ) \n")
+										+"ON ppd.project_id = p.project_id and ppd.active = true \n")
+				.append(buildPoJoinCondition(flag))
                  .append("INNER JOIN job_role j ON j.job_role_id = e.job_role_id ")
                  .append("INNER JOIN department d ON d.dept_id = j.dept_id ")
                  .append("INNER JOIN employee m ON m.emp_id = e.manager_id ")
@@ -2551,8 +2537,8 @@ public class ProjectService {
     			"e.emp_id, e.employeement_id, e.name, e.email, e.mobile_no, " +
     			"e.manager_id, m.name, e.employmentstatus, e.billable, e.billable_type, " +
     			"t.team_id, t.team_name, " +
-    			"p.project_id, p.project_name, project_start_date, p.end_date, p.po_project_type, p.po_project_id, " +
-    			"c.client_name, cl.client_location, e.work_location, e.total_experience, " +
+    			"p.project_id, p.project_name, DATE(ppd.po_start_date), DATE(ppd.po_end_date), p.po_project_type, p.po_project_id, " +
+    			"c.client_name, cl.client_location,  e.total_experience, " +
     			"d.dept_id, d.name, j.name, " +
     			"eppm.primary_project_name, eppm.primary_project_id, " +
     			"etm.start_date, etm.end_date, " +
@@ -4549,6 +4535,52 @@ public class ProjectService {
 	            .atZone(ZoneId.systemDefault())
 	            .toLocalDateTime();
 	}
+	
+	public String buildPoJoinCondition(String flag) {
+
+	    // ACTIVE → only active POs
+	    if ("Active".equalsIgnoreCase(flag)) {
+	        return
+	            " AND ppd.po_start_date <= CURRENT_TIMESTAMP " +
+	            " AND (ppd.po_end_date IS NULL OR ppd.po_end_date >= CURRENT_TIMESTAMP) ";
+	    }
+
+	    // INACTIVE → latest inactive PO only
+	    if ("Inactive".equalsIgnoreCase(flag)) {
+	        return
+	            " AND ppd.po_end_date < CURRENT_TIMESTAMP " +
+	            " AND DATE(ppd.po_end_date) = ( " +
+	            "     SELECT MAX(DATE(ppd0.po_end_date)) " +
+	            "     FROM project_po_details ppd0 " +
+	            "     WHERE ppd0.project_id = ppd.project_id " +
+	            "       AND ppd0.po_end_date < CURRENT_TIMESTAMP " +
+	            " ) ";
+	    }
+
+	    // DEFAULT (flag empty/null)
+	    // → active POs if exist, else latest inactive PO
+	    return
+	        " AND ppd.po_start_date <= CURRENT_TIMESTAMP " +
+	        " AND ( " +
+	        "     (ppd.po_end_date IS NULL OR ppd.po_end_date >= CURRENT_TIMESTAMP) " +
+	        "     OR ( " +
+	        "         ppd.po_end_date < CURRENT_TIMESTAMP " +
+	        "         AND NOT EXISTS ( " +
+	        "             SELECT 1 FROM project_po_details ppd1 " +
+	        "             WHERE ppd1.project_id = ppd.project_id " +
+	        "               AND ppd1.po_start_date <= CURRENT_TIMESTAMP " +
+	        "               AND (ppd1.po_end_date IS NULL OR ppd1.po_end_date >= CURRENT_TIMESTAMP) " +
+	        "         ) " +
+	        "         AND ppd.po_end_date = ( " +
+	        "             SELECT MAX(ppd0.po_end_date) " +
+	        "             FROM project_po_details ppd0 " +
+	        "             WHERE ppd0.project_id = ppd.project_id " +
+	        "               AND ppd0.po_end_date < CURRENT_TIMESTAMP " +
+	        "         ) " +
+	        "     ) " +
+	        " ) ";
+	}
+
 	
 	
 

@@ -565,29 +565,48 @@ public class TimesheetController {
 		 return reponse;
 	}
 	
+	
 	@PostMapping("/downloadFinalDocuments")
 	public ResponseEntity<byte[]> downloadFinalDocuments(
 	        @RequestBody FinalDocumentDownloadDTO dto) {
 
-	    byte[] zipBytes = timesheetService
-	        .downloadFinalDocumentsZip(
-	            dto.getProjectId(),
-	            dto.getMonth(),
-	            dto.getYear(),
-	            dto.getEmpId()
-	        );
+	    try {
+	        byte[] zipBytes = timesheetService
+	                .downloadFinalDocumentsZip(
+	                        dto.getProjectId(),
+	                        dto.getMonth(),
+	                        dto.getYear(),
+	                        dto.getEmpId()
+	                );
 
-	    String zipName =
-	        dto.getProjectName() + "_" +
-	        dto.getMonth() + "_" +
-	        dto.getYear() + ".zip";
+	        String zipName =
+	                dto.getProjectName() + "_" +
+	                dto.getMonth() + "_" +
+	                dto.getYear() + ".zip";
 
-	    return ResponseEntity.ok()
-	        .header(HttpHeaders.CONTENT_DISPOSITION,
-	            "attachment; filename=" + zipName)
-	        .contentType(MediaType.APPLICATION_OCTET_STREAM)
-	        .body(zipBytes);
+//	        return ResponseEntity.ok()
+//	                .header(HttpHeaders.CONTENT_DISPOSITION,
+//	                        "attachment; filename=" + zipName)
+//	                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+//	                .body(zipBytes);
+	        
+	        return ResponseEntity.ok()
+	                .header(
+	                    HttpHeaders.CONTENT_DISPOSITION,
+	                    "attachment; filename=\"" + zipName + "\""
+	                )
+	                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+	                .body(zipBytes);
+
+	    } catch (Exception e) {
+	        e.printStackTrace(); 
+
+	        return ResponseEntity
+	                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+	                .body(null);
+	    }
 	}
+
 	
 	@PostMapping("/getDocumentsBySelectedEmpId")
 	public ServiceResponse getDocumentsBySelectedEmpId(@RequestBody FinalDocumentDownloadDTO dto) {
