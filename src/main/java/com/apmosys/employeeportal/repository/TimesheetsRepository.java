@@ -10008,14 +10008,19 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			+ "			            etm.team_id, t.team_name, etm.emp_id, e.name, etm.employee_role, e.billable_type,\n"
 	    			+ "			            date(etm.start_date) as start_date, date(etm.end_date) as end_date, etm.employee_team_map_id,\n"
 	    			+ "			            etm.active, p.project_id, p.project_name,\n"
-	    			+ "			            c.client_id, c.client_name, ecsm.client_side_id, p.po_no,\n"
+	    			+ "			            c.client_id, c.client_name, ecsm.client_side_id,"
+					+ " 					GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ',') as po_no,\n"
 	    			+ "			            s.name AS spoc, tl.name AS teamLead,\n"
 	    			+ "			            e.reporting_manager_id, e.employmentstatus, d.name AS dept_name,\n"
 	    			+ "			             CASE\n"
 	    			+ "			                                        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-',e.employeement_id)\n"
 	    			+ "			                                        ELSE CONCAT('A-',e.employeement_id)\n"
 	    			+ "			                                    END AS employement_id\n"
-	    			+ "			        FROM projects p\n"
+	    			+ "			        FROM projects p \n"
+	    			+ "       			LEFT JOIN project_po_details ppd \n"
+			        + "					ON ppd.project_id = p.project_id  and ppd.active = true \n"
+			        + "					AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters) \n"
+			        + "					AND (ppd.po_end_date IS NULL OR DATE( ppd.po_end_date ) >= ( SELECT from_date FROM Date_Parameters )) \n"
 	    			+ "			        INNER JOIN teams t ON p.project_id = t.project_id\n"
 	    			+ "			        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
 	    			+ "			        INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
@@ -10090,6 +10095,29 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			+ "									OR (:clientSideFilter = 'true' AND p.client_flag = 1)\n"
 	    			+ "									OR (:clientSideFilter = 'false' AND (p.client_flag = 0 OR p.client_flag IS NULL))\n"
 	    			+ "									)\n"
+	    			+ "    GROUP BY\n"
+	    			+ "    etm.team_id,\n"
+	    			+ "    t.team_name,\n"
+	    			+ "    etm.emp_id,\n"
+	    			+ "    e.name,\n"
+	    			+ "    etm.employee_role,\n"
+	    			+ "    e.billable_type,\n"
+	    			+ "    DATE(etm.start_date),\n"
+	    			+ "    DATE(etm.end_date),\n"
+	    			+ "    etm.employee_team_map_id,\n"
+	    			+ "    etm.active,\n"
+	    			+ "    p.project_id,\n"
+	    			+ "    p.project_name,\n"
+	    			+ "    c.client_id,\n"
+	    			+ "    c.client_name,\n"
+	    			+ "    ecsm.client_side_id,\n"
+	    			+ "    s.name,\n"
+	    			+ "    tl.name,\n"
+	    			+ "    e.reporting_manager_id,\n"
+	    			+ "    e.employmentstatus,\n"
+	    			+ "    d.name,\n"
+	    			+ "    e.is_apmosys_product,\n"
+	    			+ "    e.employeement_id\n"
 	    			+ "			    ),\n"
 	    			+ "			        Timesheet_Base_Data AS (\n"
 	    			+ "			        SELECT DISTINCT\n"
@@ -10338,7 +10366,8 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			+ "			            etm.team_id, t.team_name, etm.emp_id, e.name, etm.employee_role, case when p.po_project_type = 'TNM' AND (etm.is_shadow = 0 OR etm.is_shadow IS NULL) then 'TNM' when p.po_project_type = 'Fixed Cost' AND (etm.is_shadow = 0 OR etm.is_shadow IS NULL) then 'Fixed Cost' when p.po_project_type = 'TNM' and etm.is_shadow = 1 then 'TNM(Shadow)' when p.po_project_type = 'Fixed Cost' and etm.is_shadow = 1 then 'Fixed Cost(Shadow)' when p.po_project_type = 'Monitoring' then 'Fixed Cost' when p.po_project_type is null then internal_project_type end as billable_type,\n"
 	    			+ "			            date(etm.start_date) as start_date, date(etm.end_date) as end_date, etm.employee_team_map_id,\n"
 	    			+ "			            etm.active, p.project_id, p.project_name,\n"
-	    			+ "			            c.client_id, c.client_name, ecsm.client_side_id, p.po_no,\n"
+	    			+ "			            c.client_id, c.client_name, ecsm.client_side_id, "
+					+ "        				GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no,\n"
 	    			+ "			            s.name AS spoc, tl.name AS teamLead,\n"
 	    			+ "			            e.reporting_manager_id, e.employmentstatus, d.name AS dept_name,\n"
 	    			+ "			             CASE\n"
@@ -10346,6 +10375,10 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			+ "			                                        ELSE CONCAT('A-',e.employeement_id)\n"
 	    			+ "			                                    END AS employement_id\n"
 	    			+ "			        FROM projects p\n"
+					+ " LEFT JOIN project_po_details ppd \n"
+				    + " ON ppd.project_id = p.project_id  \n"
+				    + " AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters) \n"
+				    + " AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= (SELECT from_date FROM Date_Parameters)) \n"
 	    			+ "			        INNER JOIN teams t ON p.project_id = t.project_id\n"
 	    			+ "			        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
 	    			+ "			        INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
@@ -10430,6 +10463,31 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			+ "									OR (:clientSideFilter = 'true' AND p.client_flag = 1)\n"
 	    			+ "									OR (:clientSideFilter = 'false' AND (p.client_flag = 0 OR p.client_flag IS NULL))\n"
 	    			+ "									)\n"
+					+ " GROUP BY\n" 
+					+ "    etm.team_id,\n" 
+					+ "    t.team_name,\n" 
+					+ "    etm.emp_id,\n" 
+					+ "    e.name,\n" 
+					+ "    etm.employee_role,\n" 
+					+ "    p.po_project_type,\n" 
+					+ "    etm.is_shadow,\n" 
+					+ "    p.internal_project_type,\n" 
+					+ "    DATE(etm.start_date),\n" 
+					+ "    DATE(etm.end_date),\n" 
+					+ "    etm.employee_team_map_id,\n" 
+					+ "    etm.active,\n"  
+					+ "    p.project_id,\n" 
+					+ "    p.project_name,\n"  
+					+ "    c.client_id,\n" 
+					+ "    c.client_name,\n" 
+					+ "    ecsm.client_side_id,\n"  
+					+ "    s.name,\n" 
+					+ "    tl.name,\n" 
+					+ "    e.reporting_manager_id,\n" 
+					+ "    e.employmentstatus,\n" 
+					+ "    d.name,\n"  
+					+ "    e.is_apmosys_product,\n" 
+					+ "    e.employeement_id"
 	    			+ "			    ),\n"
 	    			+ "			        Timesheet_Base_Data AS (\n"
 	    			+ "			        SELECT DISTINCT\n"
@@ -10771,7 +10829,8 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			+ "			            etm.team_id, t.team_name, etm.emp_id, e.name, etm.employee_role, e.billable_type,\n"
 	    			+ "			            date(etm.start_date) as start_date, date(etm.end_date) as end_date, etm.employee_team_map_id,\n"
 	    			+ "			            etm.active, p.project_id, p.project_name,\n"
-	    			+ "			            c.client_id, c.client_name, ecsm.client_side_id, p.po_no,\n"
+	    			+ "			            c.client_id, c.client_name, ecsm.client_side_id,"
+					+ "       				GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no,\n"
 	    			+ "			            s.name AS spoc, tl.name AS teamLead,\n"
 	    			+ "			            e.reporting_manager_id, e.employmentstatus, d.name AS dept_name,\n"
 	    			+ "			             CASE\n"
@@ -10779,6 +10838,10 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			+ "			                                        ELSE CONCAT('A-',e.employeement_id)\n"
 	    			+ "			                                    END AS employement_id\n"
 	    			+ "			        FROM projects p\n"
+					+ " 				LEFT JOIN project_po_details ppd "
+				    + " 				ON ppd.project_id = p.project_id  "
+				    + " 				AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters) "
+				    + " 				AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= (SELECT from_date FROM Date_Parameters)) "
 	    			+ "			        INNER JOIN teams t ON p.project_id = t.project_id\n"
 	    			+ "			        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
 	    			+ "			        INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
@@ -10853,6 +10916,35 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    			+ "									OR (:clientSideFilter = 'true' AND p.client_flag = 1)\n"
 	    			+ "									OR (:clientSideFilter = 'false' AND (p.client_flag = 0 OR p.client_flag IS NULL))\n"
 	    			+ "									)\n"
+					+ " GROUP BY\n" + //
+												"    etm.team_id,\n" + //
+												"    t.team_name,\n" + //
+												"    etm.emp_id,\n" + //
+												"    e.name,\n" + //
+												"    etm.employee_role,\n" + //
+												"    e.billable_type,\n" + //
+												"\n" + //
+												"    DATE(etm.start_date),\n" + //
+												"    DATE(etm.end_date),\n" + //
+												"    etm.employee_team_map_id,\n" + //
+												"    etm.active,\n" + //
+												"\n" + //
+												"    p.project_id,\n" + //
+												"    p.project_name,\n" + //
+												"\n" + //
+												"    c.client_id,\n" + //
+												"    c.client_name,\n" + //
+												"    ecsm.client_side_id,\n" + //
+												"\n" + //
+												"    s.name,\n" + //
+												"    tl.name,\n" + //
+												"\n" + //
+												"    e.reporting_manager_id,\n" + //
+												"    e.employmentstatus,\n" + //
+												"    d.name,\n" + //
+												"\n" + //
+												"    e.is_apmosys_product,\n" + //
+												"    e.employeement_id"
 	    			+ "			    ),\n"
 	    			+ "			        Timesheet_Base_Data AS (\n"
 	    			+ "			        SELECT DISTINCT\n"
