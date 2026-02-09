@@ -321,7 +321,8 @@ export class TimesheetFormComponent implements OnInit {
     }
     
     this.timesheetLocations.splice(index, 1);
-    this.empHasClientSideId = false;
+    // ✅ Don't set empHasClientSideId = false here - let getListToRenderUpload() handle it
+    // It will check ALL remaining projects and set the correct value
     this.getListToRenderUpload();
     
     // Adjust expanded index if needed
@@ -536,27 +537,33 @@ export class TimesheetFormComponent implements OnInit {
       return;
     }
     
+    // ✅ Validate that clientDetails is available
+    if (!project.clientDetails || !project.clientDetails.project) {
+      this.openAlertMod(
+        this.alertTemplate,
+        'Client details not loaded. Please reselect the project.'
+      );
+      return;
+    }
+    
     this.timesheetLocations.forEach(loc => {
       loc.projects.forEach(proj => {
         if (proj === project) {
           const newActivity = this.createActivity(null, project.projectId);
-          newActivity.clientTeamList = Array.from(
-            new Map(
-              this.activeProjectList
-                .filter((p: any) => p.clientLocationId === proj.clientLocationId && p.clientId === proj.clientId && p.projectId === proj.projectId)
-                .map(p => [
-                  p.teamId,
-                  {
-                    teamId: p.teamId,
-                    teamName: p.teamName
-                  }
-                ])
-            ).values()
-          );
-          if (newActivity.clientTeamList.length == 1) {
-            newActivity.teamId = newActivity.clientTeamList[0].teamId;
-            this.onProjectTeamSelect(newActivity.teamId, proj);
+          
+          // ✅ Use teams from clientDetails API response instead of filtering activeProjectList
+          if (proj.clientDetails && proj.clientDetails.project) {
+            newActivity.clientTeamList = proj.clientDetails.project.teams.map(team => ({
+              teamId: team.teamId,
+              teamName: team.teamName
+            }));
+            
+            if (newActivity.clientTeamList.length == 1) {
+              newActivity.teamId = newActivity.clientTeamList[0].teamId;
+              this.onProjectTeamSelect(newActivity.teamId, proj);
+            }
           }
+          
           proj.activities.push(newActivity);
         }
       });
@@ -622,7 +629,8 @@ export class TimesheetFormComponent implements OnInit {
     if (!this.isDayTypeFillable()) {
       location.locationMappingId = 4;
     }
-    this.empHasClientSideId = false;
+    // ✅ Don't set empHasClientSideId = false here - let getListToRenderUpload() handle it
+    // It will check ALL projects and set the correct value based on all projects
 
     // Check if projects are already loaded (from date selection)
     if (!this.activeProjectList || this.activeProjectList.length === 0) {
@@ -832,9 +840,11 @@ export class TimesheetFormComponent implements OnInit {
           const matchedProject = proj.projectList.find(
             p => p.projectId === proj.projectId
           );
-          proj.hasClientSideId = matchedProject.hasClientSideId;
-          proj.hasClientFlag = matchedProject.hasClientFlag;
-          proj.projectName = matchedProject.projectName;
+          proj.hasClientSideId = matchedProject?.hasClientSideId || false;
+          proj.hasClientFlag = matchedProject?.hasClientFlag || false;
+          proj.projectName = matchedProject?.projectName || '';
+          
+          // Reset project-specific fields
           proj.shadowEmpId = null;
           proj.isShadowTimesheet = false;
           proj.isShadowForSelf = false;
@@ -847,34 +857,92 @@ export class TimesheetFormComponent implements OnInit {
           proj.projectActivities = [];
           proj.clientList = [];
           proj.clientLocationList = [];
-          proj.clientList = Array.from(
-            new Map(
-              this.activeProjectList
-                .filter(p => p.projectId === proj.projectId)
-                .map(p => [
-                  p.clientId,
-                  {
-                    clientId: p.clientId,
-                    clientName: p.clientName
-                  }
-                ])
-            ).values()
-          );
-          if (proj.clientList.length == 1) {
-            proj.clientId = proj.clientList[0].clientId;
-            this.onProjectClientSelect(proj.clientId);
-          }
+          proj.clientDetails = null; // Reset client details
+          
+          // ✅ Fetch client details for this project (replaces incorrect filtering from activeProjectList)
+          this.getClientDetailsByProjectIdAndEmpId(proj);
+          
+          // Fetch client side id (side effect)
+          const targetEmpId = this.timesheetAppliedFor.toLowerCase() === 'self' 
+            ? this.currentUser.empId 
+            : this.timesheetFilledForUser.empId;
+          this.getClientSideIdByProjectIdAndEmpId(projectId, targetEmpId);
+          // ✅ Don't set empHasClientSideId = false here - let getListToRenderUpload() handle it
+          // It will check ALL projects and set the correct value
+          this.getListToRenderUpload();
         }
       });
     });
+  }
 
-    // Fetch client side id (side effect)
-    this.getClientSideIdByProjectIdAndEmpId(
-      projectId,
-      this.currentUser.empId
-    );
-    this.empHasClientSideId = false;
-    this.getListToRenderUpload();
+  /**
+   * Fetch client details for a specific project and employee
+   * This replaces the old form's getClientDetailsByProjectIdAndEmpId()
+   * Stores client details in project.clientDetails for use in dropdowns
+   * @param project - Project entry to fetch client details for
+   */
+  getClientDetailsByProjectIdAndEmpId(project: ProjectEntry): void {
+    if (!project.projectId) {
+      console.error('Project ID is required to fetch client details');
+      return;
+    }
+    
+    // Determine empId (self or team member)
+    const targetEmpId = this.timesheetAppliedFor.toLowerCase() === 'self' 
+      ? this.currentUser.empId 
+      : this.timesheetFilledForUser.empId;
+    
+    if (!targetEmpId) {
+      console.error('Employee ID not available');
+      return;
+    }
+    
+    const payload = {
+      empId: targetEmpId,
+      projectId: project.projectId
+    };
+    
+    this.timesheetService.getClientDetailsByProjectIdAndEmpId(payload)
+      .pipe(first())
+      .subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+          // Store client details in the project object
+          project.clientDetails = response.serviceResponse;
+          
+          // Populate client list (should be single client from API)
+          if (project.clientDetails && project.clientDetails.clientId) {
+            project.clientList = [{
+              clientId: project.clientDetails.clientId,
+              clientName: project.clientDetails.clientName
+            }];
+            
+            // Auto-select client if only one (which is always the case from API)
+            if (project.clientList.length === 1) {
+              project.clientId = project.clientList[0].clientId;
+              // Populate client locations immediately
+              this.onProjectClientSelect(project.clientId, project);
+            }
+          } else {
+            console.error('Client details response missing clientId');
+            this.openAlertMod(
+              this.alertTemplate,
+              'Failed to load client information for this project.'
+            );
+          }
+        } else {
+          console.error('Failed to fetch client details:', response.serviceResponse);
+          this.openAlertMod(
+            this.alertTemplate,
+            'Failed to load client details: ' + (response.serviceResponse || 'Unknown error')
+          );
+        }
+      }, error => {
+        console.error('Error fetching client details:', error);
+        this.openAlertMod(
+          this.alertTemplate,
+          'Error loading client details. Please try again.'
+        );
+      });
   }
 
  /**
@@ -887,8 +955,9 @@ export class TimesheetFormComponent implements OnInit {
       .subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         let clientSideId = response.serviceResponse;
-        this.empHasClientSideId = clientSideId ? true : false;
-        // this.getListToRenderUpload();
+        // ✅ Don't set empHasClientSideId here - let getListToRenderUpload() handle it
+        // This method only sets clientSideId for the specific project
+        // getListToRenderUpload() will check ALL projects and set empHasClientSideId correctly
         if (clientSideId) {
           this.empClientSideObj.clientSideId = clientSideId;
           this.empClientSideObj.projectId = projectId;
@@ -921,27 +990,26 @@ export class TimesheetFormComponent implements OnInit {
     });
   }
   /**
-   * Handle client selection at project level - populate client locations and teams
+   * Handle client selection at project level - populate client locations
+   * @param clientId - Selected client ID
+   * @param project - Project entry where client was selected
    */
-  onProjectClientSelect(clientId: number): void {
+  onProjectClientSelect(clientId: number, project: ProjectEntry): void {
+    // Find the project where client was selected
     this.timesheetLocations.forEach(loc => {
       loc.projects.forEach(proj => {
-
-        proj.clientLocationList = Array.from(
-          new Map(
-            this.activeProjectList
-              .filter(p => p.clientId === proj.clientId && p.projectId === proj.projectId)
-              .map(p => [
-                p.clientLocationId,
-                {
-                  clientLocationId: p.clientLocationId,
-                  clientLocation: p.clientLocation
-                }
-              ])
-          ).values()
-        );
-        if (proj.clientLocationList.length == 1) {
-          proj.clientLocationId = proj.clientLocationList[0].clientLocationId
+        if (proj === project && proj.clientDetails) {
+          // ✅ Use clientLocations from clientDetails API response
+          proj.clientLocationList = proj.clientDetails.clientLocations.map(loc => ({
+            clientLocationId: loc.clientLocationId,
+            clientLocation: loc.clientLocation
+          }));
+          
+          // Auto-select if only one location
+          if (proj.clientLocationList.length === 1) {
+            proj.clientLocationId = proj.clientLocationList[0].clientLocationId;
+            this.onProjectClientLocationSelect(proj.clientLocationId, proj);
+          }
         }
       });
     });
@@ -951,7 +1019,12 @@ export class TimesheetFormComponent implements OnInit {
    * Handle client location selection at project level - populate teams
    * Validates for duplicate client locations
    */
-  onProjectClientLocationSelect(clientLocationId: number): void {
+  /**
+   * Handle client location selection at project level - populate teams
+   * @param clientLocationId - Selected client location ID
+   * @param project - Project entry where location was selected
+   */
+  onProjectClientLocationSelect(clientLocationId: number, project: ProjectEntry): void {
     // Validate that clientLocationId is not null
     if (!clientLocationId) {
       return;
@@ -971,25 +1044,23 @@ export class TimesheetFormComponent implements OnInit {
 
         // ✅ mark as processed
         processedProjects.add(projectKey);
-        proj.activities.forEach(activity => {
-          activity.clientTeamList = Array.from(
-            new Map(
-              this.activeProjectList
-                .filter((p: any) => p.clientLocationId === proj.clientLocationId && p.clientId === proj.clientId && p.projectId === proj.projectId)
-                .map(p => [
-                  p.teamId,
-                  {
-                    teamId: p.teamId,
-                    teamName: p.teamName
-                  }
-                ])
-            ).values()
-          );
-          if (activity.clientTeamList.length == 1) {
-            activity.teamId = activity.clientTeamList[0].teamId;
-            this.onProjectTeamSelect(activity.teamId, proj);
-          }
-        });
+        
+        // ✅ Use teams from clientDetails API response instead of filtering activeProjectList
+        if (proj === project && proj.clientDetails && proj.clientDetails.project) {
+          const teams = proj.clientDetails.project.teams.map(team => ({
+            teamId: team.teamId,
+            teamName: team.teamName
+          }));
+          
+          // Populate teams for all activities in this project
+          proj.activities.forEach(activity => {
+            activity.clientTeamList = teams;
+            if (activity.clientTeamList.length == 1) {
+              activity.teamId = activity.clientTeamList[0].teamId;
+              this.onProjectTeamSelect(activity.teamId, proj);
+            }
+          });
+        }
       }
       );
     });
@@ -1010,9 +1081,13 @@ export class TimesheetFormComponent implements OnInit {
       project.activities.forEach(activity => {
         activity.activityId = null;
       });
+      // ✅ Update document list when approval status is cleared
+      this.getListToRenderUpload();
       return;
     }
     project.clientApprovalStatus = status;
+    // ✅ Update document list when approval status changes (affects which documents to show)
+    this.getListToRenderUpload();
   }
 
   /**
@@ -2317,21 +2392,12 @@ export class TimesheetFormComponent implements OnInit {
         allActivitiesForProject: []
       };
 
-      // Populate team list if client and location are set
-      if (project.clientId && project.clientLocationId) {
-        activity.clientTeamList = Array.from(
-          new Map(
-            this.activeProjectList
-              .filter((p: any) => p.clientLocationId === project.clientLocationId && p.clientId === project.clientId && p.projectId === project.projectId)
-              .map(p => [
-                p.teamId,
-                {
-                  teamId: p.teamId,
-                  teamName: p.teamName
-                }
-              ])
-          ).values()
-        );
+      // ✅ Populate team list from clientDetails if available
+      if (project.clientId && project.clientLocationId && project.clientDetails && project.clientDetails.project) {
+        activity.clientTeamList = project.clientDetails.project.teams.map(team => ({
+          teamId: team.teamId,
+          teamName: team.teamName
+        }));
 
         // Load activities for project if team is selected
         if (activity.teamId) {
@@ -2376,40 +2442,36 @@ export class TimesheetFormComponent implements OnInit {
 
   /**
    * Populate project dropdowns (client, location, team lists)
+   * Fetches client details if not already loaded
    * @param project - Project entry to populate
    */
   populateProjectDropdowns(project: ProjectEntry): void {
-    // Populate client list
-    if (this.activeProjectList && this.activeProjectList.length > 0) {
-      project.clientList = Array.from(
-        new Map(
-          this.activeProjectList
-            .filter(p => p.projectId === project.projectId)
-            .map(p => [
-              p.clientId,
-              {
-                clientId: p.clientId,
-                clientName: p.clientName
-              }
-            ])
-        ).values()
-      );
-
-      // Populate client location list if client is set
-      if (project.clientId) {
-        project.clientLocationList = Array.from(
-          new Map(
-            this.activeProjectList
-              .filter(p => p.clientId === project.clientId && p.projectId === project.projectId)
-              .map(p => [
-                p.clientLocationId,
-                {
-                  clientLocationId: p.clientLocationId,
-                  clientLocation: p.clientLocation
-                }
-              ])
-          ).values()
-        );
+    // ✅ If clientDetails not loaded, fetch it
+    if (!project.clientDetails && project.projectId) {
+      this.getClientDetailsByProjectIdAndEmpId(project);
+    } else if (project.clientDetails) {
+      // ✅ Use clientDetails if already loaded
+      if (project.clientDetails.clientId) {
+        project.clientList = [{
+          clientId: project.clientDetails.clientId,
+          clientName: project.clientDetails.clientName
+        }];
+        
+        // Populate client location list
+        if (project.clientDetails.clientLocations) {
+          project.clientLocationList = project.clientDetails.clientLocations.map(loc => ({
+            clientLocationId: loc.clientLocationId,
+            clientLocation: loc.clientLocation
+          }));
+        }
+        
+        // Populate teams if location is selected
+        if (project.clientLocationId && project.clientDetails.project) {
+          project.projectList = project.clientDetails.project.teams.map(team => ({
+            teamId: team.teamId,
+            teamName: team.teamName
+          }));
+        }
       }
     }
   }
@@ -2953,25 +3015,45 @@ export class TimesheetFormComponent implements OnInit {
   onShadowTimesheetChange(project: ProjectEntry): void {
     if (this.timesheetAppliedFor == 'self') {
       this.getEmployeeListByProjectId(project, this.currentUser.empId);
+      // ✅ Update document list when shadow status changes (affects isShadowForSelf)
+      this.getListToRenderUpload();
     } else {
       this.openAlertMod(this.alertTemplate, "Shadow timesheet is only available when timesheet is filled for self.");
       project.isShadowTimesheet = false;
+      // ✅ Update document list when shadow is disabled
+      this.getListToRenderUpload();
       return;
     }
   }
   /**
    * Generate list of documents to render for upload
    * Based on projects with client side IDs and approval status
+   * Conditions: project.clientSideId exists, !project.isShadowForSelf, isDayTypeFillable()
+   * 
+   * ✅ IMPORTANT: empHasClientSideId is reset at start and set to true only if ANY project qualifies
+   * This ensures the class-level variable correctly reflects if ANY project needs document upload
    */
   getListToRenderUpload(): void {
     this.documentData = [];
     const dataList: Map<number, ProjectEntry> = new Map<number, ProjectEntry>();
+    
+    // ✅ Reset at start - will be set to true only if we find at least one qualifying project
+    this.empHasClientSideId = false;
+    
     this.timesheetLocations.forEach((location) => {
       location.projects.forEach((project) => {
-        if (project.clientSideId) {
+        // ✅ Check all three conditions: clientSideId exists, not shadow for self, and day type is fillable
+        if (project.clientSideId && 
+            !project.isShadowForSelf && 
+            this.isDayTypeFillable()) {
+          
+          // ✅ Set to true if ANY project qualifies (not just the first one)
           this.empHasClientSideId = true;
           dataList.set(project.projectId, project);
+          
+          // Create document entries based on approval status
           if (project.clientApprovalStatus == 2) {
+            // Approved: Show both Filled and Approved documents
             this.documentData.push({
               projectId: project.projectId,
               docType: 'Filled',
@@ -3002,6 +3084,7 @@ export class TimesheetFormComponent implements OnInit {
             });
           }
           else if (project.clientApprovalStatus == 1) {
+            // Pending: Show only Filled document
             this.documentData.push({
               projectId: project.projectId,
               docType: 'Filled',
@@ -3020,6 +3103,7 @@ export class TimesheetFormComponent implements OnInit {
         }
       });
     });
+    
     this.uniqueProjectsList = Array.from(dataList.values());
   }
 

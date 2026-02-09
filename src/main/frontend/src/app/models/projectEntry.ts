@@ -27,4 +27,22 @@ export class ProjectEntry {
   totalClientWorkingMinutes?: number;
   projectHoursMinutes?: number;
   description?: string | null;
+  
+  // Client Details (fetched when project is selected via getClientDetailsByProjectIdAndEmpId API)
+  clientDetails?: {
+    clientId: number;
+    clientName: string;
+    clientLocations: Array<{
+      clientLocationId: number;
+      clientLocation: string;
+    }>;
+    project: {
+      projectId: number;
+      projectName: string;
+      teams: Array<{
+        teamId: number;
+        teamName: string;
+      }>;
+    };
+  };
 }

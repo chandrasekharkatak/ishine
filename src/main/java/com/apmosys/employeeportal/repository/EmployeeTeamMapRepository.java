@@ -611,7 +611,7 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 			    "from EmployeeTeamMap e " +
 			    "where e.empId = :empId " +
 			    "and e.teamId = :teamId " +
-			    "and e.active = 1 " +
+			    "and e.active in (1,0) " +
 			    "and e.startDate <= :endDate " +
 			    "and (e.endDate is null or e.endDate >= :startDate)"
 			)

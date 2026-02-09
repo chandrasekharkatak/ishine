@@ -403,14 +403,16 @@
                                                         <label class="radio-pill">
                                                             <input type="radio"
                                                                 name="shadowForSelf{{lIndex}}_{{pIndex}}" [value]="true"
-                                                                [(ngModel)]="project.isShadowForSelf" />
+                                                                [(ngModel)]="project.isShadowForSelf" 
+                                                                (ngModelChange)="getListToRenderUpload()" />
                                                             <span> Yes</span>
                                                         </label>
 
                                                         <label class="radio-pill">
                                                             <input type="radio"
                                                                 name="shadowForSelf{{lIndex}}_{{pIndex}}"
-                                                                [value]="false" [(ngModel)]="project.isShadowForSelf" />
+                                                                [value]="false" [(ngModel)]="project.isShadowForSelf" 
+                                                                (ngModelChange)="getListToRenderUpload()" />
                                                             <span> No</span>
                                                         </label>
                                                     </div>
@@ -428,7 +430,7 @@
                                                     <app-my-select class="form-control" placeholder="Select Client"
                                                         [(ngModel)]="project.clientId" [options]="project.clientList"
                                                         displayKey="clientName" valueKey="clientId" [multiple]="false"
-                                                        (ngModelChange)="onProjectClientSelect($event)">
+                                                        (ngModelChange)="onProjectClientSelect($event, project)">
                                                     </app-my-select>
                                                 </div>
 
@@ -443,7 +445,7 @@
                                                         [options]="project.clientLocationList"
                                                         displayKey="clientLocation" valueKey="clientLocationId"
                                                         [multiple]="false"
-                                                        (ngModelChange)="onProjectClientLocationSelect($event)">
+                                                        (ngModelChange)="onProjectClientLocationSelect($event, project)">
                                                     </app-my-select>
                                                 </div>
                                                 <div class="col-md-4 mb-3"
@@ -586,7 +588,12 @@
                 </div>
             </div>
             @for (project of uniqueProjectsList; track project.projectId) {
-            <div class="card-body-section document-body" *ngIf="project.clientApprovalStatus === 2 || project.clientApprovalStatus === 1">
+            <!-- Show document section for projects meeting all conditions: clientSideId exists, !isShadowForSelf, isDayTypeFillable, and has approval status -->
+            <div class="card-body-section document-body" 
+                 *ngIf="project.clientSideId && 
+                        !project.isShadowForSelf && 
+                        isDayTypeFillable() && 
+                        (project.clientApprovalStatus === 2 || project.clientApprovalStatus === 1)">
                 <!-- Project Header -->
                 <div class="project-document-header">
                     <div class="project-badge-document">
