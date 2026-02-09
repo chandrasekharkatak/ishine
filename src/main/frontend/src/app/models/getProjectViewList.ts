@@ -23,4 +23,5 @@ export class getProjectViewList{
     dataForExcel :boolean;
     isClientDashboard :boolean;
     columnFilter :any;
+	multiPOs : any;
 }

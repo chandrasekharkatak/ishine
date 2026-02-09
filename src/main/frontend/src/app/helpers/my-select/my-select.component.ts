@@ -143,10 +143,11 @@ export class MySelectComponent implements ControlValueAccessor, OnInit {
       : [...this.filteredOptions];
   }
 
+  // Emit selection change
   this.onChange(this.selectedValue);
   this.onTouched();
-  this.selectionChange.emit(this.selectedValue);
-  this.change.emit(this.sort(this.selectedValue));
+  this.selectionChange?.emit(this.selectedValue);
+  this.change?.emit(this.sort(this.selectedValue));
 }
 
 

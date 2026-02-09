@@ -222,8 +222,7 @@ public class TimesheetDTO {
 	private Long bulkApprovedDocId;
 	private List<Long> empIds;
 	private String monthYear;
-	
-	// ========== CONSTRUCTORS (Backward Compatibility) ==========
+	private String clientSideFilter;
 	
 	public TimesheetDTO(
 			Long employeementId,

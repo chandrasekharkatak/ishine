@@ -425,7 +425,7 @@
       </div>
     </div>
     <div
-      *ngIf="timesheetObj.dayType == 'Holiday' || timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'"
+      *ngIf="timesheetObj.dayType == 'Holiday' || timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off'|| timesheetObj.dayType == 'Comp Off' || timesheetObj.dayType == 'Leave'"
       class="row">
       <div class="col-md-4 mb-0">
         <div class="info-wrapper">
@@ -438,7 +438,7 @@
       </div>
     </div>
     <div
-      *ngIf="timesheetObj.dayType != 'Holiday' && timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'"
+      *ngIf="timesheetObj.dayType != 'Holiday' && timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Comp Off' && timesheetObj.dayType != 'Leave'"
       class="row px-3">
       <!-- <div class="form-group d-flex flex-row ml-auto col-md-3">
       <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
@@ -517,10 +517,23 @@
 <!-- <ng-template #bulkReject_timesheet>
   <div class="modal-body text-center">
     <p>Kindly provide reason(s) for rejecting application.</p>
+     <mat-form-field appearance="fill" class="w-100">
+      <mat-label><span class="text-danger">*</span>Reject Reason</mat-label>
+      <mat-select [(ngModel)]="selectedRejectReason">
+        <mat-option *ngFor="let reason of rejectReasons" [value]="reason.rejectionId">
+          {{ reason.rejectionReason }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field> 
+     </div>
+</ng-template> -->
+<ng-template #bulkReject_timesheet>
+  <div class="modal-body text-center">
+    <p>Kindly provide reason(s) for rejecting application.</p>
     <label><span class="text-danger">*</span>Reject Reason</label>
-    <app-my-select #rejectReasons2 class="form-control" placeholder="Select Reject Reason"
-      [(ngModel)]="selectedRejectReason" [options]="rejectReasons" displayKey="rejectionReason" valueKey="rejectionId"
-      [multiple]="false">
+     <app-my-select #rejectReasons2 class="form-control" placeholder="Select Reject Reason"
+        [(ngModel)]="selectedRejectReason" [options]="rejectReasons"
+        displayKey="rejectionReason" valueKey="rejectionId" [multiple]="false">
     </app-my-select>
     <p> Reject Reason</p>
     <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
@@ -531,8 +544,9 @@
       (click)="cancelRequest()">Reject</button>&nbsp;
     <button type="button" class="btn btn-danger" (click)="cancelRequest();getMyReporteesTimesheetRequests()">No,
       Cancel</button>&nbsp;
-  </div>
-</ng-template> -->
+</div>
+</ng-template>
+
 
 <!-- Night shift confirmation template -->
 <ng-template #night_shift_template>
@@ -1003,6 +1017,11 @@
 
 
 
+
+
+
+
+
 <ng-template #timesheet_template_employee>
   <div class="row" *ngIf="isAllTimesheetRequestTable">
     <div class="col-md-12">
@@ -1237,9 +1256,26 @@
           <label class="info-label"><span class="text-danger">*</span>Month-Year</label>
           <div class="info-wrapper">
             <input type="month" class="form-control" [(ngModel)]="timesheetObj.monthYear"
-              (change)="onMonthYearChange()" />
+              [min]="minMonth" [max]="maxMonth" (change)="onMonthYearChange()" />
           </div>
         </div>
+        <div class="col-md-3 mb-0">
+          <div class="info-wrapper">
+            <div class="form-group">
+
+              <div class="form-group">
+                <label class="info-label"><span class="text-danger">*</span>Project</label>
+                <app-my-select #filterActiveProjects class="form-control" placeholder="Select Project"
+                    [(ngModel)]="timesheetObj.selectedProjectId" [options]="allProjects"
+                    displayKey="projectName" valueKey="projectId" [multiple]="false"
+                    (selectionChange)="onProjectSelectBulk(timesheetObj.selectedProjectId)">
+                </app-my-select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
         <div class="col-md-3 mb-0">
           <div class="info-wrapper">
             <div class="form-group">
@@ -1334,19 +1370,19 @@
             </div>
           </div>
         </div>
-        <div class="row justify-content-center">
-          <div class="col-md-2">
-            <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1"
+         <div class="row justify-content-center" >
+                    <div class="col-md-2">
+                        <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1"
                             (click)="bulkFinalDocumentUpload(alert_message)">Upload</button> -->
-            <button class="btn btn-outline-primary btn-sm mx-1" (click)="bulkFinalDocumentUpload(alert_message)"
-              [disabled]="!isUploadAllowed" matTooltip="{{ !isUploadAllowed ? disableUploadTooltip : '' }}"
-              matTooltipPosition="above">
-              Upload
-            </button>
+                        <button class="btn btn-outline-primary btn-sm mx-1"
+                            (click)="bulkFinalDocumentUpload(alert_message)" [disabled]="!isUploadAllowed"
+                            matTooltip="{{ !isUploadAllowed ? disableUploadTooltip : '' }}" matTooltipPosition="above">
+                            Upload
+                        </button>
 
 
-          </div>
-        </div>
+                    </div>
+                </div>
       </div>
 
     </div>

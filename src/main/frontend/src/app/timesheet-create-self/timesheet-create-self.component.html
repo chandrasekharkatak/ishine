@@ -60,6 +60,7 @@
                                 <option value="Working">Working</option>
                                 <option value="Public Holiday">Public Holiday</option>
                                 <option value="Week Off">Week Off</option>
+                                <option value="Comp Off">Comp Off</option>
                                 <!-- <option value="Leave">Leave</option> -->
                                 <option value="Non-working">Working on non-working day</option>
                             </select>
@@ -67,7 +68,7 @@
                     </div>
                 </div>
             </div>
-            <div *ngIf="timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'"
+            <div *ngIf="timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off'|| timesheetObj.dayType == 'Comp Off' || timesheetObj.dayType == 'Leave'"
                 class="row">
                 <div class="col-md-3 mb-0">
                     <div class="info-wrapper">
@@ -88,7 +89,7 @@
                     </div>
                 </div>
             </div>
-            <div *ngIf="timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off' || timesheetObj.dayType == 'Leave'"
+            <div *ngIf="timesheetObj.dayType == 'Public Holiday' || timesheetObj.dayType == 'Week Off'|| timesheetObj.dayType == 'Comp Off' || timesheetObj.dayType == 'Leave'"
                 class="row">
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
@@ -102,7 +103,7 @@
             </div>
             <!-- IN/OUT Time-->
             <ng-container *ngIf="false">
-            <div *ngIf="timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'"
+            <div *ngIf="timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave' && timesheetObj.dayType != 'Comp Off'"
                 class="row">
                 <div class="col-md-3 mb-0">
                     <!-- <div class="info-wrapper">
@@ -224,7 +225,7 @@
             </app-timesheet-time-entry>
 
 
-            <div *ngIf="timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Leave'"
+            <div *ngIf="timesheetObj.dayType != 'Public Holiday' && timesheetObj.dayType != 'Week Off' && timesheetObj.dayType != 'Comp Off' && timesheetObj.dayType != 'Leave'"
                 class="container-fluid px-0">
                 <div class="row ml-1 mt-5">
                     <h3>Activities</h3>
@@ -247,7 +248,7 @@
                                             (selectionChange)="getClientLocationList(activityObj)"
                                             (closed)="validateClientName($event,activityObj.clientId)"
                                             [multiple]="false" [value]="activityObj.clientId">
-                                          
+
                                             <mat-option [value]="client.clientId"
                                                 *ngFor="let client of clientName.filteredSource">
                                                 {{client.clientName}}
@@ -403,9 +404,9 @@
     <div class="modal-body text-center">
         <p>Do you have required permission for night shift from your manager?</p>
         <button type="button" class="btn btn-success"
-            (click)="cancelRequest();this.timesheetObj.isNightShift = true">Yes,proceed</button>&nbsp;
+            (click)="confirmNightShift(true)">Yes,proceed</button>&nbsp;
         <button type="button" class="btn btn-danger"
-            (click)="cancelRequest();this.timesheetObj.isNightShift = false">No, Cancel</button>&nbsp;
+            (click)="confirmNightShift(false)">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
 

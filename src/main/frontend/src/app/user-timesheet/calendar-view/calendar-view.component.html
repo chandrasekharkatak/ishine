@@ -207,6 +207,15 @@
       </div>
     </div>
 
+    <div *ngIf="fileType === 'excel'" class="ts-preview-other text-center">
+      <p>Excel preview not supported. Download the file to view.</p>
+    
+      <button class="btn btn-outline-primary" (click)="downloadFile()">
+        <i class="fa fa-download me-1"></i>
+        Download Excel
+      </button>
+    </div>
+
     <div *ngIf="fileType === 'other'" class="ts-preview-other">
       <p>Preview not available for this file type.</p>
       <button class="btn btn-outline-primary"

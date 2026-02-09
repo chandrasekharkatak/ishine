@@ -22,4 +22,6 @@ public class ProjectDepartmentMap {
 	private Long deptId;
 	private Long active;
 	
+	
+	
 }

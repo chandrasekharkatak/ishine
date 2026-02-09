@@ -1,9 +1,13 @@
 package com.apmosys.employeeportal.service;
 
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.sql.Date;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -24,8 +28,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -40,21 +47,29 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.query.Param;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.unit.DataSize;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.ClientDetailsForActivityDTO;
 import com.apmosys.employeeportal.dto.ClientLocationDTO;
+import com.apmosys.employeeportal.dto.DepartmentCountDTO;
+import com.apmosys.employeeportal.dto.DepartmentStatusSummaryDTO;
+import com.apmosys.employeeportal.dto.DepartmentWiseStatusDTO;
 import com.apmosys.employeeportal.dto.EmpIdAndNameDTO;
 import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeInfoDTO;
 import com.apmosys.employeeportal.dto.EmployeeViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
+import com.apmosys.employeeportal.dto.FinalBulkUploadDTO;
+import com.apmosys.employeeportal.dto.FinalDocumentDTO;
+import com.apmosys.employeeportal.dto.FinalDocumentDownloadDTO;
 import com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO;
@@ -76,8 +91,10 @@ import com.apmosys.employeeportal.dto.TeamIdTeamNameDTO;
 import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDashboardCountDTO;
+import com.apmosys.employeeportal.dto.TimesheetDashboardResponseDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentApprovalDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
+import com.apmosys.employeeportal.dto.TimesheetIdAndEmpIdDTO;
 import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
 import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
 import com.apmosys.employeeportal.model.Activity;
@@ -217,6 +234,15 @@ public class TimesheetService {
 	
 	@PersistenceContext
     private EntityManager entityManager;
+
+	@Value("${timesheet.minus.days.for.bulk.upload}")
+	private Integer minusDays;
+
+	@Value("${check.minus.days.for.bulk.upload}")
+	private Boolean checkMinusDaysForBulkUpload;
+
+	@Value("${timesheet.max.file.size}")
+	private DataSize maxFileSize;
 
 //	public ServiceResponse getAllProjectsByEmpId(TimesheetDTO timesheetDTO) {
 //		ServiceResponse response = new ServiceResponse();
@@ -716,7 +742,7 @@ public class TimesheetService {
 							: null);
 			newTimesheet.setCurrentManagerId(timesheetDTO.getCurrentManagerId());
 
-			if (timesheetDTO.getDayType().equals("Public Holiday") || timesheetDTO.getDayType().equals("Week Off")
+			if (timesheetDTO.getDayType().equals("Public Holiday") || timesheetDTO.getDayType().equals("Week Off")|| timesheetDTO.getDayType().equals("Comp Off")
 					|| timesheetDTO.getDayType().equals("Leave")
 					|| timesheetDTO.getDayType().equals("Client Holiday")) {
 
@@ -813,7 +839,7 @@ public class TimesheetService {
 				}
 			}
 
-			if (!timesheetDTO.getDayType().equals("Public Holiday") && !timesheetDTO.getDayType().equals("Week Off")
+			if (!timesheetDTO.getDayType().equals("Public Holiday") && !timesheetDTO.getDayType().equals("Week Off") && !timesheetDTO.getDayType().equals("Comp Off")
 					&& !timesheetDTO.getDayType().equals("Leave")
 					&& !timesheetDTO.getDayType().equals("Client Holiday")) {
 
@@ -3400,28 +3426,6 @@ public class TimesheetService {
 			if(data == null) {
 				data =  buildNewDoc(data, timesheetDocumentDetailsDTO, doc);
 				
-//				data = new TimesheetDocumentDetails();
-//				timesheetDocumentDetailsDTO.setActive(true);
-//				timesheetDocumentDetailsDTO.setCreatedOn(LocalDateTime.now());
-//				if(doc != null) timesheetDocumentDetailsDTO.setDocFile(doc);
-//				else throw new DataIntegrityViolationException("No Document found...!!");
-//				data.setDocName(timesheetDocumentDetailsDTO.getDocName());
-//				data.setDocData(timesheetDocumentDetailsDTO.getDocFile().getBytes());
-//				data.setTimesheetId(timesheetDocumentDetailsDTO.getTimesheetId());
-//				data.setEmpId(timesheetDocumentDetailsDTO.getTimesheetId());
-//				if(timesheetDocumentDetailsDTO.getCreatedOn() != null)
-//					data.setCreatedOn(timesheetDocumentDetailsDTO.getCreatedOn());
-//				if(timesheetDocumentDetailsDTO.getCreatedBy() != null)
-//					data.setCreatedBy(timesheetDocumentDetailsDTO.getCreatedBy());
-//				if(timesheetDocumentDetailsDTO.getUpdatedBy() != null)
-//					data.setUpdatedBy(timesheetDocumentDetailsDTO.getUpdatedBy());
-//				if(timesheetDocumentDetailsDTO.getUpdatedOn() != null)
-//					data.setUpdatedOn(timesheetDocumentDetailsDTO.getUpdatedOn());
-//				data.setClientApprovalStatus(timesheetDocumentDetailsDTO.getClientApprovalStatus());
-//			    data.setRmApprovalStatus("Pending");
-//			    data.setFinalFlag(timesheetDocumentDetailsDTO.getFinalFlag());
-//			    data.setDocMimeType(timesheetDocumentDetailsDTO.getDocFile().getContentType());
-//			    data.setActive(true);
 			}
 			timesheetDocumentDetailsDTO.setUpdatedOn(LocalDateTime.now());
 //			timesheetDocumentDetailsDTO.setBulkApprovedDocId(finalDocument.getDocId());
@@ -3430,28 +3434,6 @@ public class TimesheetService {
 //			data = timesheetDocumentDetailsRepository.findByDocIdAndActive(timesheetDocumentDetailsDTO.getDocId(),true);
 			if(data == null) {
 				data =  buildNewDoc(data, timesheetDocumentDetailsDTO, doc);
-//				data = new TimesheetDocumentDetails();
-//				timesheetDocumentDetailsDTO.setActive(true);
-//				timesheetDocumentDetailsDTO.setCreatedOn(LocalDateTime.now());
-//				if(doc != null) timesheetDocumentDetailsDTO.setDocFile(doc);
-//				else throw new DataIntegrityViolationException("No Document found...!!");
-//				data.setDocName(timesheetDocumentDetailsDTO.getDocName());
-//				data.setDocData(timesheetDocumentDetailsDTO.getDocFile().getBytes());
-//				data.setTimesheetId(timesheetDocumentDetailsDTO.getTimesheetId());
-//				data.setEmpId(timesheetDocumentDetailsDTO.getTimesheetId());
-//				if(timesheetDocumentDetailsDTO.getCreatedOn() != null)
-//					data.setCreatedOn(timesheetDocumentDetailsDTO.getCreatedOn());
-//				if(timesheetDocumentDetailsDTO.getCreatedBy() != null)
-//					data.setCreatedBy(timesheetDocumentDetailsDTO.getCreatedBy());
-//				if(timesheetDocumentDetailsDTO.getUpdatedBy() != null)
-//					data.setUpdatedBy(timesheetDocumentDetailsDTO.getUpdatedBy());
-//				if(timesheetDocumentDetailsDTO.getUpdatedOn() != null)
-//					data.setUpdatedOn(timesheetDocumentDetailsDTO.getUpdatedOn());
-//				data.setClientApprovalStatus(timesheetDocumentDetailsDTO.getClientApprovalStatus());
-//			    data.setRmApprovalStatus("Pending");
-//			    data.setFinalFlag(timesheetDocumentDetailsDTO.getFinalFlag());
-//			    data.setDocMimeType(timesheetDocumentDetailsDTO.getDocFile().getContentType());
-//			    data.setActive(true);
 			}
 			timesheetDocumentDetailsDTO.setUpdatedOn(LocalDateTime.now());
 		}
@@ -5178,33 +5160,8 @@ public class TimesheetService {
 	        if (empId == null || fromDate == null || toDate == null || file == null || file.isEmpty()) {
 	            throw new IllegalArgumentException("Required input(s) are missing or file is empty.");
 	        }
-			/*
-			 * ================================ BLOCK UPLOAD FOR CURRENT MONTH BEFORE MONTH
-			 * END ================================
-			 */
-
-//			LocalDate today = LocalDate.now();
-//			YearMonth currentMonth = YearMonth.now();
-//			YearMonth fromMonth = YearMonth.from(fromDate);
-//			YearMonth toMonth = YearMonth.from(toDate);
-//
-//			// If either date is in current month AND today is before month end → block
-//			if ((fromMonth.equals(currentMonth) || toMonth.equals(currentMonth))
-//					&& today.isBefore(currentMonth.atEndOfMonth())) {
-//
-//				throw new IllegalStateException("Final document upload is allowed only after the current month ends.");
-//			}
-
 			List<TimesheetDocumentDetails> docDatas = timesheetDocumentDetailsRepository.getDocsByEmpAndDateRange(empId,
 					fromDate, toDate);
-
-//			if (docDatas == null || docDatas.isEmpty()) {
-//				throw new IllegalStateException("No timesheet documents found for the given employee and date range.");
-//			}
-
-	        /* ================================
-	           CACHE TIMESHEETS (Reduces DB calls)
-	           ================================ */
 
 	        Set<Long> timesheetIds = docDatas.stream()
 	                .map(TimesheetDocumentDetails::getTimesheetId)
@@ -5389,7 +5346,195 @@ public class TimesheetService {
 	    return response;
 	}
 
-	
+	@Transactional(rollbackFor = Exception.class)
+	public ServiceResponse bulkFinalUploadProjectBased(FinalBulkUploadDTO finalBulkUploadDTO, MultipartFile file) {
+	    ServiceResponse response = new ServiceResponse();
+
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("bulkFinalUploadProjectBased");
+	    apiLogInfo.setLogLevel("INFO");
+
+		try {
+
+			List<Long> empIds = finalBulkUploadDTO.getEmpIds();
+
+			if(empIds == null || empIds.isEmpty()) {
+				throw new IllegalArgumentException("Employee ids are required.");
+			}
+
+			Integer projectId = finalBulkUploadDTO.getProjectId();
+
+			LocalDate fromDate = finalBulkUploadDTO.getFromDate();
+			LocalDate toDate = finalBulkUploadDTO.getToDate();
+
+			if(projectId == null || projectId <= 0) {
+				throw new IllegalArgumentException("Project id is required.");
+			}
+
+			if(fromDate == null || toDate == null) {
+				throw new IllegalArgumentException("From date and to date are required.");
+			}
+
+			if(file == null || file.isEmpty()) {
+				throw new IllegalArgumentException("File is required.");
+			}
+
+			if(file.getSize() > maxFileSize.toBytes()) {
+				throw new IllegalArgumentException("File size is too large. Maximum file size is " + maxFileSize.toMegabytes() + "MB");
+			}
+
+			LocalDate today = LocalDate.now();
+			int minusDays = (this.minusDays == null || this.minusDays <= 0)
+					? 45
+					: this.minusDays;
+
+			LocalDate expectedDate = today.minusDays(minusDays);
+
+			YearMonth expectedYearMonth = YearMonth.from(expectedDate);
+			YearMonth currentYearMonth = YearMonth.from(today);
+			YearMonth fromYearMonth = YearMonth.from(fromDate);
+
+			// if (fromYearMonth.equals(currentYearMonth)) {
+			// 	throw new IllegalArgumentException(
+			// 			"From date cannot be in the current month"
+			// 	);
+			// }
+
+			if(fromDate.isAfter(toDate)) {
+				throw new IllegalArgumentException("Invalid date range. From date cannot be greater than to date.");
+			}
+			if(toDate.isBefore(fromDate)){
+				throw new IllegalArgumentException("Invalid date range. To date cannot be less than from date.");
+			}
+
+			List<String> allowedFileExtensions = List.of("png", "jpg", "jpeg", "pdf","xlsx","xls","ods");
+			String fileExtension = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1);
+
+			if(!allowedFileExtensions.contains(fileExtension.toLowerCase())) {
+				throw new IllegalArgumentException(
+						"Invalid file extension. Allowed file extensions are: " + String.join(", ", allowedFileExtensions)
+				);
+			}
+
+			if (checkMinusDaysForBulkUpload) {
+
+				LocalDate expectedToDate = fromYearMonth.atEndOfMonth();
+				if (toDate.isAfter(expectedToDate)) {
+					throw new IllegalArgumentException(
+							"Invalid date range. To date cannot be greater than expected to date."
+					);
+				}
+
+				LocalDate allowedStartDate;
+
+				if (expectedYearMonth.equals(currentYearMonth.minusMonths(1))) {
+					allowedStartDate = expectedYearMonth.atDay(1);
+				} else {
+					allowedStartDate = expectedYearMonth.atDay(15);
+				}
+
+				if (fromDate.isBefore(allowedStartDate)) {
+					throw new IllegalArgumentException(
+							String.format(
+									"Invalid date range. From date cannot be before %s",
+									allowedStartDate
+							)
+					);
+				}
+			}
+
+			Long createdBy = finalBulkUploadDTO.getCreatedBy();
+
+			List<TimesheetIdAndEmpIdDTO> notFilledTimesheetDocumentDetails = new ArrayList<>();
+
+			notFilledTimesheetDocumentDetails = timesheetDocumentDetailsRepository.getDocsByEmpIdsAndDate(empIds, fromDate, toDate, projectId);
+
+			if(notFilledTimesheetDocumentDetails == null || notFilledTimesheetDocumentDetails.isEmpty()) {
+				throw new IllegalArgumentException("No Eligible timesheet(s) found for the given employee(s) and date range.");
+			}
+
+			Set<Long> timesheetIds = notFilledTimesheetDocumentDetails.stream().map(TimesheetIdAndEmpIdDTO::getTimesheetId).collect(Collectors.toSet());
+
+			List<Timesheet> timesheets = timesheetsRepository.findAllById(timesheetIds);
+
+			List<TimesheetDocumentDetails> timesheetDocumentDetailsListToSave = new ArrayList<>();
+			List<Timesheet> timesheetsToSave = new ArrayList<>();
+
+			// Rejected timesheet document details
+			List<TimesheetDocumentDetails> rejectedTimesheetDocsWithFinalFlag = timesheetDocumentDetailsRepository.getDocsByTimesheetIdsAndFinalFlag(new ArrayList<>(timesheetIds));
+
+			byte[] fileBytes = file.getBytes();
+	        String contentType = file.getContentType();
+			String fileName = file.getOriginalFilename();
+
+			for(Timesheet timesheet : timesheets){
+				timesheet.setStatus("Pending");
+				timesheet.setClientApprovalStatus("Approved");
+				timesheetsToSave.add(timesheet);
+
+				TimesheetDocumentDetails timesheetDocumentDetails = new TimesheetDocumentDetails();
+
+				for(TimesheetDocumentDetails tdd : rejectedTimesheetDocsWithFinalFlag){
+					if(tdd.getTimesheetId().equals(timesheet.getTimesheetId()) && tdd.getEmpId().equals(timesheet.getEmpId())){
+						timesheetDocumentDetails.setDocId(tdd.getDocId());
+						timesheetDocumentDetails.setUpdatedBy(createdBy);
+						timesheetDocumentDetails.setUpdatedOn(LocalDateTime.now());
+						timesheetDocumentDetails.setCreatedOn(tdd.getCreatedOn());
+						timesheetDocumentDetails.setCreatedBy(tdd.getCreatedBy());
+						break;
+					}
+				}
+
+				timesheetDocumentDetails.setActive(true);
+				timesheetDocumentDetails.setDocName(fileName);
+				timesheetDocumentDetails.setDocData(fileBytes);
+				timesheetDocumentDetails.setDocMimeType(contentType);
+				timesheetDocumentDetails.setClientApprovalStatus("Approved");
+				timesheetDocumentDetails.setRmApprovalStatus("Pending");
+				timesheetDocumentDetails.setHrApprovalStatus("Pending");
+
+				if(timesheetDocumentDetails.getDocId() == null){
+					timesheetDocumentDetails.setCreatedBy(createdBy);
+					timesheetDocumentDetails.setCreatedOn(LocalDateTime.now());
+				}
+
+				timesheetDocumentDetails.setTimesheetId(timesheet.getTimesheetId());
+				timesheetDocumentDetails.setEmpId(timesheet.getEmpId());
+				timesheetDocumentDetails.setFinalFlag(true);
+				timesheetDocumentDetailsListToSave.add(timesheetDocumentDetails);
+			}			
+			
+			timesheetsRepository.saveAll(timesheets);
+			timesheetDocumentDetailsRepository.saveAll(timesheetDocumentDetailsListToSave);
+			
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("Documents uploaded successfully.");
+			response.setServiceError(null);
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("Documents uploaded successfully.");
+			apiLogInfo.setLogLevel("INFO");
+
+		} catch (IllegalArgumentException | IllegalStateException e) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse(e.getMessage());
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage());
+	        apiLogInfo.setLogLevel("ERROR");
+	        return response;
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage());
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+		return response;
+	}
 	
 	public ServiceResponse getAllDisabledDateListForBulkDocSubmit(Integer projectId, Long empId) {
 		return timesheetDocumentService.getAllDisabledDateListForBulkDocSubmit(projectId, empId);
@@ -6022,7 +6167,7 @@ public class TimesheetService {
 	private ServiceResponse getEmployeeTimesheetAsCalenderInternal(GetEmployeeSummaryOnExportDTO object) {
 		
 		ServiceResponse response = new ServiceResponse();
-
+		System.out.println(object);
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setSubFeatureName("getEmployeeTimesheetAsCalender");
 	    apiLogInfo.setLogLevel("INFO");
@@ -6508,81 +6653,105 @@ public class TimesheetService {
 		    return response;
 		}
 	
-	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year,Long empId,Boolean isClientDashboard,List<String> billableTypes,String employeeActive,String clientSideFilter) {
+	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year,Long empId,Boolean isClientDashboard,List<String> billableTypes,String employeeActive,String clientSideFilter,String multiPOs) {
 		return timesheetDashboardService.getTimesheetDashboardCountForEmployee(
-				month, year, empId, isClientDashboard, billableTypes, employeeActive, clientSideFilter);
+				month, year, empId, isClientDashboard, billableTypes, employeeActive, clientSideFilter, multiPOs);
 	}
 	
 	// Delegate method - implementation moved to TimesheetDashboardService
-	private ServiceResponse getTimesheetDashboardCountForEmployeeInternal(Integer month, Integer year,Long empId,Boolean isClientDashboard,List<String> billableTypes,String employeeActive,String clientSideFilter) {
+	private ServiceResponse getTimesheetDashboardCountForEmployeeInternal(Integer month, Integer year,Long empId,Boolean isClientDashboard,List<String> billableTypes,String employeeActive,String clientSideFilter, String multiPOs) {
 		
 		ServiceResponse response = new ServiceResponse();
 
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setSubFeatureName("getTimesheetDashboardCountForEmployee");
-	    apiLogInfo.setLogLevel("INFO");
-	    StringBuilder logBuilder = new StringBuilder();
-	    logBuilder.append("getTimesheetDashboardCountForEmployee");
 	    try {
-	    	List<Object[]> countForEmployee;
-	    	if(isClientDashboard) {
-	    		countForEmployee = timesheetsRepository.getTimesheetDashboardCountForEmployee(month,year,empId,clientSideFilter);
-	    	}else {
-		    	countForEmployee = timesheetsRepository.getTimesheetDashboardCountForAllEmployee(month,year,empId,billableTypes,employeeActive);	
-	    	}
-	    	if(countForEmployee.isEmpty()){
-	    		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceResponse("Unable to fetch the dashboard count for employee!");
-                apiLogInfo.setApiResponse("Failed to fetch the dashboard count for employee \n");
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-                
-            } else {
-            	if(isClientDashboard) {
-            	Object[] row = countForEmployee.get(0);
-                TimesheetDashboardCountDTO dto = new TimesheetDashboardCountDTO();
-                dto.setTotalApplicableCount(row[0] != null ? ((Number) row[0]).intValue() : 0);
-                dto.setApprovedCount(row[1] != null ? ((Number) row[1]).intValue() : 0);
-                dto.setDefaulterCount(row[3] != null ? ((Number) row[3]).intValue() : 0);
-                dto.setClientSidePendingCount(row[2] != null ? ((Number) row[2]).intValue() : 0);
-                dto.setTotaldefaulterCount(row[4] != null ? ((Number) row[4]).intValue() : 0);
-                      		
-            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-                response.setServiceResponse(dto);
-                apiLogInfo.setApiResponse("Dashboard count fetched successfully ");
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-            	}
-            	else {  
-            		Object[] row = countForEmployee.get(0);
-                    TimesheetDashboardCountDTO dto = new TimesheetDashboardCountDTO();
-                    dto.setTotalApplicableCount(row[0] != null ? ((Number) row[0]).intValue() : 0);
-                    dto.setApprovedCount(row[1] != null ? ((Number) row[1]).intValue() : 0);
-                    dto.setDefaulterCount(row[3] != null ? ((Number) row[3]).intValue() : 0);
-                    dto.setClientSidePendingCount(row[2] != null ? ((Number) row[2]).intValue() : 0);
-                    dto.setTotaldefaulterCount(row[4] != null ? ((Number) row[4]).intValue() : 0);
-                          		
-                	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-                    response.setServiceResponse(dto);
-                    apiLogInfo.setApiResponse("Dashboard count fetched successfully ");
-                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-            		
-            	}
-            }
-            
-            apiLogInfo.setApiRequest(logBuilder.toString());
-    		logService.logMyInfo(httpRequest, apiLogInfo);
-    		return response;
-    		
-	    } catch(Exception e) {
-		    	    e.printStackTrace();
-			        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			        response.setServiceResponse("Something went wrong.");
-			        response.setServiceError(e.getMessage());
-			        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			        apiLogInfo.setApiResponse(e.getMessage()); 
-			        apiLogInfo.setLogLevel("ERROR");
-		    }
-		    
-	    return response;
+	        /* ================= SUMMARY ================= */
+	        List<Object[]> summaryRows =
+	                isClientDashboard
+	                        ? timesheetsRepository.getTimesheetDashboardCountForEmployee( month, year, empId, clientSideFilter,employeeActive, billableTypes,multiPOs)
+	                        : timesheetsRepository.getTimesheetDashboardCountForAllEmployee( month, year, empId, billableTypes, employeeActive);
+
+	        if (summaryRows.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("No dashboard data found");
+	            return response;
+	        }
+
+	        Object[] row = summaryRows.get(0);
+
+	        TimesheetDashboardCountDTO summary = new TimesheetDashboardCountDTO();
+	        summary.setTotalApplicableCount(getInt(row[0]));
+	        summary.setApprovedCount(getInt(row[1]));
+	        summary.setClientSidePendingCount(getInt(row[2]));
+	        summary.setDefaulterCount(getInt(row[3]));
+	        summary.setTotaldefaulterCount(getInt(row[4]));
+
+	        /* ================= DEPARTMENT LIST ================= */
+	        List<Object[]> deptList = timesheetsRepository.getDepartmentList( month, year, empId, "All", clientSideFilter);
+
+	        Map<String, DepartmentWiseStatusDTO> departmentWise =
+	                initDepartmentBuckets();
+
+	        /* ================= DEPT WISE COUNTS ================= */
+	        for (Object[] deptRow : deptList) {
+
+	            Long deptId = ((Number) deptRow[1]).longValue();
+	            String deptName = (String) deptRow[0];
+	            String deptCode = (String) deptRow[2];
+
+	            List<Object[]> counts = timesheetsRepository.getDepartmentWiseTimesheetDashboard( month, year, empId, deptId, clientSideFilter);
+
+	            Object[] c = counts.get(0);
+
+	            int total = getInt(c[0]);
+	            int approved = getInt(c[1]);
+	            int pending = getInt(c[2]);
+	            int defaulter = getInt(c[3]);
+
+	            addDept(departmentWise.get("All"), deptId, deptCode, deptName, total);
+
+	            if (approved > 0) {
+	                addDept(departmentWise.get("Approved"), deptId, deptCode, deptName, approved);
+	            }
+
+	            if (pending > 0) {
+	                addDept(departmentWise.get("ClientSidePending"), deptId, deptCode, deptName, pending);
+	            }
+
+	            if (defaulter > 0) {
+	                addDept(departmentWise.get("Defaulter"), deptId, deptCode, deptName, defaulter);
+	            }
+	        }
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(new TimesheetDashboardResponseDTO(summary, departmentWise));
+	        return response;
+
+	    } catch (Exception e) {
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceError(e.getMessage());
+	        return response;
+	    }
+	}
+
+	private Map<String, DepartmentWiseStatusDTO> initDepartmentBuckets() {
+	    Map<String, DepartmentWiseStatusDTO> map = new LinkedHashMap<>();
+	    map.put("All", new DepartmentWiseStatusDTO(0, new ArrayList<>()));
+	    map.put("Approved", new DepartmentWiseStatusDTO(0, new ArrayList<>()));
+	    map.put("ClientSidePending", new DepartmentWiseStatusDTO(0, new ArrayList<>()));
+	    map.put("Defaulter", new DepartmentWiseStatusDTO(0, new ArrayList<>()));
+	    return map;
+	}
+
+	private void addDept(DepartmentWiseStatusDTO bucket, Long deptId, String deptCode, String deptName, int count) 
+	{
+	    bucket.getDepartments().add(
+	        new DepartmentCountDTO(deptId, deptCode, deptName, count)
+	    );
+	    bucket.setTotal(bucket.getTotal() + count);
+	}
+
+	private int getInt(Object o) {
+	    return o == null ? 0 : ((Number) o).intValue();
 	}
 	
 public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integer year,Long empId,Boolean isClientDashboard ,List<String> billableType,String projectActive) {
@@ -7242,6 +7411,10 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 			    statusCode = "2";
 			}
 			}
+			
+			Boolean isEmployeeRepeated =
+			        Boolean.TRUE.equals(object.getIsEmployeeRepeated());
+
 			List<Long> employeeIds = new ArrayList<Long>();
 			
 			Integer totalDistinctEmployees;
@@ -7272,33 +7445,92 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	                    object.getBillableType(),
 	                    object.getStatus(),object.getEmployeeActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
 	                    projectManagers,clientName,teamName,department,statusCode);
-	        } else {
-	        	employeeIds = timesheetsRepository.getPaginatedEmployeeIdsForClientAttendance(
-	        			object.getMonth(),
-	                    object.getYear(),
-	                    object.getEmpId(),
-	                    object.getStatus(),
-						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,offset,pageSize);
+	        }
+	        else {
+
 	        	
-	            empTimesheet = timesheetsRepository.getEmployeeViewForClientAttendanceStatus(
-	                    object.getMonth(),
-	                    object.getYear(),
-	                    object.getEmpId(),
-	                    object.getStatus(),
-						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,
-	                    object.getSortBy(),
-	                    object.getSortDirection(),employeeIds
-						);
+	        	if (isEmployeeRepeated) {
+	        		
+	                employeeIds = timesheetsRepository
+	                        .getPaginatedEmployeeIdsForClientAttendanceRepeated(
+	                            object.getMonth(),
+	                            object.getYear(),
+	                            object.getEmpId(),
+	                            object.getStatus(),
+	                            object.getClientSideFilter(),
+	                            employmentId, clientsideId, employeeName, billableType,
+	                            projectName, poNo, projectManagers, clientName, teamName,
+	                            department, employmentStatus, statusCode,
+//	                            offset, pageSize,
+	                            object.getDeptId(),object.getEmployeeActive(),object.getBillableType(), object.getMultiPOs()
+	                        );
+	        		
+
+	        	    empTimesheet = timesheetsRepository
+	        	        .getEmployeeViewForClientAttendanceStatusRepeated(
+	        	            object.getMonth(),
+	        	            object.getYear(),
+	        	            object.getEmpId(),
+	        	            object.getStatus(),
+	        	            object.getClientSideFilter(),
+	        	            employmentId, clientsideId, employeeName, billableType,
+	        	            projectName, poNo, projectManagers, clientName, teamName,
+	        	            department, employmentStatus, statusCode,
+	        	            object.getSortBy(),
+	        	            object.getSortDirection(),
+	        	            employeeIds,
+	        	            object.getDeptId(),object.getEmployeeActive(),object.getBillableType(), object.getMultiPOs()
+	        	        );
+	        	    
+	        	    totalDistinctEmployees =
+    	            timesheetsRepository.getTotalEmployeeCountForClientRepeated(
+    	                object.getMonth(),
+    	                object.getYear(),
+    	                object.getEmpId(),
+    	                object.getStatus(),
+    	                object.getClientSideFilter(),
+    	                employmentId, clientsideId, employeeName, billableType,
+    	                projectName, poNo, projectManagers, clientName, teamName,
+    	                department, employmentStatus, statusCode,
+    	                object.getDeptId(),object.getEmployeeActive(),object.getBillableType(), object.getMultiPOs()
+    	            );
+
+	        	} else {
+	        		
+		        	employeeIds = timesheetsRepository.getPaginatedEmployeeIdsForClientAttendance(
+		        			object.getMonth(),
+		                    object.getYear(),
+		                    object.getEmpId(),
+		                    object.getStatus(),
+							object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+		                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,offset,pageSize,object.getDeptId(),object.getEmployeeActive(),object.getBillableType(), object.getMultiPOs());		        	
+		        	empTimesheet = timesheetsRepository
+	        	        .getEmployeeViewForClientAttendanceStatusNew(
+	        	            object.getMonth(),
+	        	            object.getYear(),
+	        	            object.getEmpId(),
+	        	            object.getStatus(),
+	        	            object.getClientSideFilter(),
+	        	            employmentId, clientsideId, employeeName, billableType,
+	        	            projectName, poNo, projectManagers, clientName, teamName,
+	        	            department, employmentStatus, statusCode,
+	        	            object.getSortBy(),
+	        	            object.getSortDirection(),
+	        	            employeeIds,
+	        	            object.getDeptId(),
+							object.getEmployeeActive(), object.getBillableType(),object.getMultiPOs());
+	        	    
+		            totalDistinctEmployees = timesheetsRepository.getTotalEmployeeCountForClientApplicable(
+		            		object.getMonth(),
+		                    object.getYear(),
+		                    object.getEmpId(),
+		                    object.getStatus(),
+							object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+		                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,object.getDeptId(), object.getEmployeeActive(),object.getBillableType(),object.getMultiPOs());
+	        	}
+
 	            
-	            totalDistinctEmployees = timesheetsRepository.getTotalEmployeeCountForClientApplicable(
-	            		object.getMonth(),
-	                    object.getYear(),
-	                    object.getEmpId(),
-	                    object.getStatus(),
-						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode);
+
 	        }
 	        
 	        // Map to hold employees grouped by empId
@@ -7887,9 +8119,8 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	                    object.getEmpId(),
 	                    object.getStatus(),
 						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,0,Integer.MAX_VALUE);
-	        	
-	            empTimesheet = timesheetsRepository.getEmployeeViewForClientAttendanceStatus(
+	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,0,Integer.MAX_VALUE,object.getDeptId(), object.getEmployeeActive(), object.getBillableType(),object.getMultiPOs());       	
+	            empTimesheet = timesheetsRepository.getEmployeeViewForClientAttendanceStatusNew(
 	                    object.getMonth(),
 	                    object.getYear(),
 	                    object.getEmpId(),
@@ -7897,7 +8128,8 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
 	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,
 	                    object.getSortBy(),
-	                    object.getSortDirection(),employeeIds
+	                    object.getSortDirection(),employeeIds,object.getDeptId(),
+						object.getEmployeeActive(), object.getBillableType(),object.getMultiPOs()
 						);
 	        }
 
@@ -8453,7 +8685,249 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	    return finalDocs.get(0);
 	}
 
-	private void replaceApprovedDocumentNewCode(
+	
+	public byte[] downloadFinalDocumentsZip(
+	        Integer projectId,
+	        Integer month,
+	        Integer year,
+	        Long empId) {
+
+	    List<Object[]> rows =
+	            timesheetsRepository.getFinalDocumentsForMonthEnd(
+	                    projectId, month, year, empId);
+
+	    if (rows == null || rows.isEmpty()) {
+	        throw new IllegalArgumentException(
+	                "No final documents found for selected project and month");
+	    }
+
+	    String monthEndDate =
+	            YearMonth.of(year, month).atEndOfMonth().toString();
+
+	    try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+	         ZipOutputStream zos = new ZipOutputStream(baos)) {
+
+	        for (Object[] row : rows) {
+
+	            String employeeName = (String) row[0];
+	            String projectName  = (String) row[2];
+	            Long docId          = row[5] != null ? ((Number) row[5]).longValue() : null;
+	            String docName      = (String) row[7];
+
+	            if (docId == null) {
+	                continue;
+	            }
+
+	            TimesheetDocumentDetails document =
+	                    timesheetDocumentDetailsRepository.findById(docId)
+	                            .orElse(null);
+
+	            if (document == null || document.getDocData() == null) {
+	                continue;
+	            }
+
+	            byte[] fileBytes = document.getDocData();
+
+	            // -------- SAFE FILE NAMING --------
+	            String safeEmployee =
+	                    employeeName.replaceAll("[^a-zA-Z0-9 ]", "")
+	                            .replace(" ", "_");
+
+	            String safeProject =
+	                    projectName.replaceAll("[^a-zA-Z0-9 ]", "")
+	                            .replace(" ", "_");
+
+	            String safeFile =
+	                    docName.replaceAll("[\\\\/:*?\"<>|]", "_");
+
+	            String zipEntryName =
+	                    safeEmployee + "_" +
+	                    safeProject + "_" +
+	                    monthEndDate + "_" +
+	                    docId + "_" +
+	                    safeFile;
+
+	            // -------- ADD TO ZIP --------
+	            zos.putNextEntry(new ZipEntry(zipEntryName));
+	            zos.write(fileBytes);
+	            zos.closeEntry();
+	        }
+
+	        zos.finish();
+	        return baos.toByteArray();
+
+	    } catch (IOException e) {
+	        throw new RuntimeException(
+	                "Failed to generate final documents ZIP", e);
+	    }
+	}
+	
+	
+	public ServiceResponse getDocumentsBySelectedEmpId(FinalDocumentDownloadDTO dto) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("getDocumentsBySelectedEmpId");
+		apiLogInfo.setApiUrl("/api/getDocumentsBySelectedEmpId");
+		apiLogInfo.setLogLevel("INFO");
+
+		StringBuilder logBuilder = new StringBuilder("Received request to get timesheet documents")
+				.append(" | EmpId: ").append(dto.getEmpId());
+		apiLogInfo.setApiRequest(logBuilder.toString());
+
+		try {
+			if (dto == null) {
+				throw new IllegalArgumentException("Request body cannot be null.");
+			}
+			if (dto.getEmpId() == null || dto.getEmpId() <= 0) {
+				throw new IllegalArgumentException("Employee ID must be a valid positive number.");
+			}
+		
+
+			List<Object[]> docs = timesheetDocumentDetailsRepository
+					.getDocumentsBySelectedEmpId( dto.getProjectId(), dto.getMonth(), dto.getYear(), dto.getEmpId(),dto.getSelectedEmpId());
+
+			if (docs == null || docs.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceMessage("No documents found for the given employee and date.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiResponse("No documents found.");
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(docs);
+				response.setServiceMessage("Documents fetched successfully.");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setApiResponse("Fetched " + docs.size() + " document(s).");
+			}
+
+		} catch (IllegalArgumentException ex) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceMessage(ex.getMessage());
+			response.setServiceError(ex.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse("Validation Error: " + ex.getMessage());
+			apiLogInfo.setLogLevel("WARN");
+
+		} catch (Exception ex) {
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceMessage("Unexpected error occurred while fetching documents.");
+			response.setServiceError(ex.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse("Unexpected Exception: " + ex.getMessage());
+			apiLogInfo.setLogLevel("ERROR");
+		} finally {
+			logService.logMyInfo(httpRequest, apiLogInfo);
+		}
+
+		return response;
+	}
+	
+	
+	public ServiceResponse getDepartmentStatusSummary(GetEmployeeSummaryOnExportDTO requestDTO) {
+
+	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("getDepartmentStatusSummary");
+	    apiLogInfo.setApiUrl("/api/getDepartmentStatusSummary");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    StringBuilder logBuilder = new StringBuilder("Received request for Department Status Summary");
+
+	    if (requestDTO != null) {
+	        logBuilder.append(" | ProjectId: ").append(requestDTO.getProjectId())
+	                  .append(" | Month: ").append(requestDTO.getMonth())
+	                  .append(" | Year: ").append(requestDTO.getYear());
+	    }
+
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+
+	    try {
+
+	        if (requestDTO == null) {
+	            throw new IllegalArgumentException("Request body cannot be null.");
+	        }
+	        
+	        String clientSideFilter = "All";
+	        
+	        Integer month = null;
+
+	        if (requestDTO.getMonth() != null ) {
+	            month = requestDTO.getMonth();
+	        }
+
+	        List<Object[]> data = timesheetsRepository.getDepartmentStatusSummary(
+	                requestDTO.getEmpId(),
+	                month,
+	                requestDTO.getYear(),
+	                clientSideFilter, requestDTO.getBillableType(),requestDTO.getEmployeeActive(),requestDTO.getMultiPOs()             
+	        );
+
+	        if (data == null || data.isEmpty()) {
+
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceMessage("No department summary data found.");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	            apiLogInfo.setApiResponse("No data returned from repository.");
+
+	            return response;
+	        }
+
+	        List<DepartmentStatusSummaryDTO> result = new ArrayList<>();
+
+	        for (Object[] row : data) {
+
+	            DepartmentStatusSummaryDTO dto = new DepartmentStatusSummaryDTO();
+	            dto.setDept(row[0] != null ? row[0].toString() : null);
+	            dto.setTotal(row[1] != null ? ((Number) row[1]).intValue() : 0);
+	            dto.setReady(row[2] != null ? ((Number) row[2]).intValue() : 0);
+	            dto.setPending(row[3] != null ? ((Number) row[3]).intValue() : 0);
+	            dto.setDefaulter(row[5] != null ? ((Number) row[5]).intValue() : 0);
+	            dto.setNotFilled(row[4] != null ? ((Number) row[4]).intValue() : 0);
+	            dto.setDeptId(row[6] != null ? ((Number) row[6]).longValue() : 0L);
+	            dto.setApprovedRepeat(row[7] != null ? ((Number) row[7]).intValue() : 0);
+	            dto.setPendingRepeat(row[8] != null ? ((Number) row[8]).intValue() : 0);
+	            dto.setDefaulterRepeat(row[9] != null ? ((Number) row[9]).intValue() : 0);	            
+	            
+	            
+	            result.add(dto);
+	        }
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(result);
+	        response.setServiceMessage("Department status summary fetched successfully.");
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        apiLogInfo.setApiResponse("Fetched " + result.size() + " department record(s).");
+
+	    } catch (IllegalArgumentException ex) {
+
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceMessage(ex.getMessage());
+	        response.setServiceError(ex.toString());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse("Validation Error: " + ex.getMessage());
+	        apiLogInfo.setLogLevel("WARN");
+
+	    } catch (Exception ex) {
+
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceMessage("Unexpected error occurred while fetching department summary.");
+	        response.setServiceError(ex.toString());
+
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse("Unexpected Exception: " + ex.getMessage());
+	        apiLogInfo.setLogLevel("ERROR");
+
+	    } finally {
+	        logService.logMyInfo(httpRequest, apiLogInfo);
+	    }
+
+	    return response;
+	}
+
+
+
+	       private void replaceApprovedDocumentNewCode(
 	        MultipartFile doc2,
 	        TimesheetDocumentDetailsDTO document,
 	        TimesheetDocumentDetails existing,
@@ -8465,7 +8939,7 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	    try {
 	        finalDocumentRepository.deleteById(existing.getBulkApprovedDocId());
 
-	        FinalDocument finalDocument =
+				FinalDocument finalDocument =
 	                finalDocumentRepository.save(
 	                        buildFinalDocument(doc2, document.getEmpId(),true)
 	                );

@@ -453,7 +453,16 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getProjectByMonthRangeAndEmpId`,
     `${this.baseUrl}` + `api/getProjectListForDateAndEmpId`,
     `${this.baseUrl}` + `api/getClientDetailsByProjectIdAndEmpId`,
-    `${this.baseUrl}` + `api/getOtherTeamMembersByDateAndProjectId`
+    `${this.baseUrl}` + `api/getOtherTeamMembersByDateAndProjectId`,
+    `${this.baseUrl}` + `api/getDocumentsBySelectedEmpId`,
+    `${this.baseUrl}` + `api/downloadFinalDocuments`,
+    `${this.baseUrl}` + `api/getPreviousMinusDays`,
+    `${this.baseUrl}` + `api/bulkFinalUploadProjectBased`,
+    `${this.baseUrl}` + `api/getMyReporteesAndClientSideProjectsInMonthYear`,
+    `${this.baseUrl}` + `api/isClientIdMandetory`
+
+
+
   ]
 
   constructor(private loaderService: LoaderService) { }
