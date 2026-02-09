@@ -14098,10 +14098,23 @@ public class ResourceManagementService {
 			
 		    LocalDate startDate = convertToLocalDate(ishineToPoRequest.getStartDateOfBilling());
 		    LocalDate endDate   = convertToLocalDate(ishineToPoRequest.getEndDateOfBilling());
+		    Project project = new Project();
 		    
-		    Project project = projectRepository.findByProjectId(ishineToPoRequest.getProjectId());
+		    if(dto.getProjectId()==null) {
+					response.setServiceResponse("Project Details for the PO not found!!");
+					apiLogInfo.setApiResponse("Project Details for the PO not found!!");
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					return response;
+			    }
 		    
-		    if(project.getIsDraftProject()==null) {
+		      project = projectRepository.findByProjectId(dto.getProjectId());
+		      
+		    if(project==null) {
+				 response.setServiceResponse("Project Details for the PO not found!!");
+				 apiLogInfo.setApiResponse("Project Details for the PO not found!!");
+				 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				 return response;
+			 }else if( project.getIsDraftProject()==null) {
 				response.setServiceResponse("Resource onboarding has not started!!");
 				apiLogInfo.setApiResponse("Resource onboarding has not started!!");
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -14124,12 +14137,12 @@ public class ResourceManagementService {
 				return response;
 		    }
 		    
-		    if (etm.stream().allMatch(e -> Integer.valueOf(1).equals(e.getIsShadow()))) {
-		        response.setServiceResponse("Only shadow employee mappings found!!");
-		        apiLogInfo.setApiResponse("Only shadow employee mappings found!!");
-		        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-		        return response;
-		    }		    
+//		    if (etm.stream().allMatch(e -> Integer.valueOf(1).equals(e.getIsShadow()))) {
+//		        response.setServiceResponse("Only shadow employee mappings found!!");
+//		        apiLogInfo.setApiResponse("Only shadow employee mappings found!!");
+//		        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//		        return response;
+//		    }		    
 		    		 		    	
 			List<IshineToPoEmployeeDTO> employees = new ArrayList<>();
 			

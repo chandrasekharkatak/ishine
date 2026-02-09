@@ -25,10 +25,11 @@ public class IshineToPoEmpDetailsSharingDTO {
 
 	    private List<IshineToPoEmployeeDTO> employees;
 	    
-	    public IshineToPoEmpDetailsSharingDTO(String poNo, Boolean poStatus, Integer clientId) {
+	    public IshineToPoEmpDetailsSharingDTO(String poNo, Boolean poStatus, Integer clientId,Integer projectId ) {
 	        this.poNo = poNo;
 	        this.poStatus = poStatus;
 	        this.clientId = clientId;
+	        this.projectId = projectId;
 	    }
 
 	

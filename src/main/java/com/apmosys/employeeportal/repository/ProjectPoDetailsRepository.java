@@ -56,11 +56,11 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
         List<ProjectPoDetails> findByProjectId(Integer projectId);
         
         @Query("SELECT new com.apmosys.employeeportal.dto.IshineToPoEmpDetailsSharingDTO( "
-        		+ " ppo.poNo,ppo.active,p.clientId) "
+        		+ " ppo.poNo,ppo.active,p.clientId,p.projectId) "
         		+ "   FROM ProjectPoDetails ppo\n"
         		+ "   LEFT JOIN Project p\n"
         		+"    on p.projectId=ppo.projectId"
-        		+ "   WHERE ppo.poId = :poId AND p.projectId = :projectId and ppo.active=1")
+        		+ "   WHERE ppo.poId = :poId AND ppo.poProjectId = :projectId and ppo.active=1")
         IshineToPoEmpDetailsSharingDTO findPoBasicDetails(Long poId,Integer projectId);
         
         @Query("SELECT new com.apmosys.employeeportal.dto.IshineToPoEmployeeDTO( "
