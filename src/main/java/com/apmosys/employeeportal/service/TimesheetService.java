@@ -8663,15 +8663,24 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	    return response;
 	}
 	
+	
 	public byte[] downloadFinalDocumentsZip(
 	        Integer projectId,
 	        Integer month,
 	        Integer year,
 	        Long empId) {
 
+	    System.out.println(">> downloadFinalDocumentsZip() START");
+	    System.out.println("ProjectId=" + projectId +
+	                       ", Month=" + month +
+	                       ", Year=" + year +
+	                       ", EmpId=" + empId);
+
 	    List<Object[]> rows =
 	            timesheetsRepository.getFinalDocumentsForMonthEnd(
 	                    projectId, month, year, empId);
+
+	    System.out.println("Rows fetched: " + (rows == null ? "null" : rows.size()));
 
 	    if (rows == null || rows.isEmpty()) {
 	        throw new IllegalArgumentException(
@@ -8681,8 +8690,12 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	    String monthEndDate =
 	            YearMonth.of(year, month).atEndOfMonth().toString();
 
+	    System.out.println("Month end date: " + monthEndDate);
+
 	    try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
 	         ZipOutputStream zos = new ZipOutputStream(baos)) {
+
+	        int addedFiles = 0;
 
 	        for (Object[] row : rows) {
 
@@ -8690,6 +8703,11 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	            String projectName  = (String) row[2];
 	            Long docId          = row[5] != null ? ((Number) row[5]).longValue() : null;
 	            String docName      = (String) row[7];
+
+	            System.out.println("Processing row → emp=" + employeeName +
+	                               ", project=" + projectName +
+	                               ", docId=" + docId +
+	                               ", docName=" + docName);
 
 	            if (docId == null) {
 	                continue;
@@ -8699,13 +8717,16 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                    timesheetDocumentDetailsRepository.findById(docId)
 	                            .orElse(null);
 
-	            if (document == null || document.getDocData() == null) {
+	            if (document == null) {
+	                continue;
+	            }
+
+	            if (document.getDocData() == null) {
 	                continue;
 	            }
 
 	            byte[] fileBytes = document.getDocData();
 
-	            // -------- SAFE FILE NAMING --------
 	            String safeEmployee =
 	                    employeeName.replaceAll("[^a-zA-Z0-9 ]", "")
 	                            .replace(" ", "_");
@@ -8724,20 +8745,31 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	                    docId + "_" +
 	                    safeFile;
 
-	            // -------- ADD TO ZIP --------
+
 	            zos.putNextEntry(new ZipEntry(zipEntryName));
 	            zos.write(fileBytes);
 	            zos.closeEntry();
+
+	            addedFiles++;
 	        }
 
 	        zos.finish();
+
+//	        System.out.println("ZIP creation complete");
+//	        System.out.println("Total files added: " + addedFiles);
+//	        System.out.println("ZIP size (bytes): " + baos.size());
+//	        System.out.println(">> downloadFinalDocumentsZip() END");
+
 	        return baos.toByteArray();
 
-	    } catch (IOException e) {
+	    } catch (Exception e) {
+	        System.out.println("Exception while generating ZIP");
+	        e.printStackTrace();
 	        throw new RuntimeException(
 	                "Failed to generate final documents ZIP", e);
 	    }
 	}
+
 	
 	
 	public ServiceResponse getDocumentsBySelectedEmpId(FinalDocumentDownloadDTO dto) {
