@@ -122,6 +122,11 @@ export class MyTimesheetComponent implements OnInit {
   timesheetActivities: any[] = [];
   startDate: any;
   endDate: any;
+  
+  // Hierarchical view expansion state
+  expandedTimesheets: Set<number> = new Set(); // timesheetId
+  expandedLocations: Map<string, Set<number>> = new Map(); // "timesheetId" -> Set<locationMappingId>
+  expandedProjects: Map<string, Set<number>> = new Map(); // "timesheetId_locationId" -> Set<projectId>
   isPolicySidebarOpen = false;
   expandedSection = "attendance";
 
@@ -171,12 +176,14 @@ withoutVmsbullet:string[] = ["Applicable to resources without a client-side VMS 
 
 
   selectedTimesheet: any;
+  selectedTimesheetId: number | null = null; // For update timesheet flow
   today = new Date().toISOString().split('T')[0];
 
   filters: any = {};
   isSearchEnabled: boolean = false;
-  selfTimesheetColumns: any[] = ['blank', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours','projectName', 'description', 'totalTime', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'status', 'createdByName', 'createdOn', 'isNightShiftDisplay', 'leaveType','rejectReason' ,'remarks'];
-  teamTimesheetColumns: any[] = ['blank', 'employeeName', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours','projectName', 'description', 'totalTime', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'status', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'rejectReason','remarks'];
+  // Simplified columns for card-based accordion view
+  selfTimesheetColumns: any[] = ['blank', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'status', 'createdByName', 'createdOn', 'isNightShiftDisplay', 'leaveType','rejectReason' ,'remarks'];
+  teamTimesheetColumns: any[] = ['blank', 'employeeName', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'status', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'rejectReason','remarks'];
   tableName: string;
   activeProjectList: Project[];
   selectedProjectId: any;
@@ -776,18 +783,26 @@ get tooltipCta(): string {
 
   }
 
-  checkTimesheetForInActiveActivities(timesheetObj: Timesheet, template: TemplateRef<any>) {
-    console.log("THe timesheet object is",timesheetObj);
-    console.log("Client approval status",this.timesheetObj.clientApprovalStatus);
-    if (timesheetObj.dayType == "Working" && (timesheetObj.status == "Pending" || timesheetObj.status == "Rejected") && timesheetObj?.inactiveTimesheetActivities) {
+  checkTimesheetForInActiveActivities(timesheetObj: any, template: TemplateRef<any>) {
+    console.log("The timesheet object is", timesheetObj);
+    
+    // Handle hierarchical EmployeeTimesheetDTO structure
+    const status = timesheetObj.statusDisplay || this.mapStatusToString(timesheetObj.status);
+    const dayType = timesheetObj.dayType;
+    
+    // Store selected timesheet for inactive activities check
+    this.selectedTimesheet = timesheetObj;
+    
+    if (dayType == "Working" && (status === "Pending" || status === "Rejected") && timesheetObj?.inactiveTimesheetActivities) {
       this.openInActiveUpdateConfimationModal(template, timesheetObj);
-      this.previousFilledDocument = timesheetObj.filledDocument;
-      this.previousApprovedDocument = timesheetObj.approvedDocument;
-
+      // Note: Document handling may need adjustment for hierarchical structure
+      this.previousFilledDocument = timesheetObj.documentData?.find((d: any) => d.docType === 'Filled')?.docId;
+      this.previousApprovedDocument = timesheetObj.documentData?.find((d: any) => d.docType === 'Approved')?.docId;
     } else {
       this.showUpdateTimesheetForm(timesheetObj);
-      this.previousFilledDocument = timesheetObj.filledDocument;
-      this.previousApprovedDocument = timesheetObj.approvedDocument;
+      // Note: Document handling may need adjustment for hierarchical structure
+      this.previousFilledDocument = timesheetObj.documentData?.find((d: any) => d.docType === 'Filled')?.docId;
+      this.previousApprovedDocument = timesheetObj.documentData?.find((d: any) => d.docType === 'Approved')?.docId;
     }
   }
 
@@ -943,6 +958,17 @@ get tooltipCta(): string {
     this.getClientDetailsByProjectIdAndEmpId();
     this.getAllAvailableTimesheetByEmpId(this.timesheetObj.empId);
     this.onProjectSelect(timesheetObj.projectId);
+  }
+
+  /**
+   * Handle timesheet updated event from form component
+   * @param timesheetId - ID of the updated timesheet
+   */
+  onTimesheetUpdated(timesheetId: number): void {
+    // Refresh the timesheet list after update
+    this.getAllMyTimesheetsByEmpId();
+    // Reset form state
+    this.resetTimesheetForm();
   }
 
 
@@ -2284,6 +2310,7 @@ get tooltipCta(): string {
   /* View Timesheets */
   getAllMyTimesheetsByEmpId(template?: TemplateRef<any>) {
     this.allMyTimesheets = [];
+    
     if (this.endDate < this.startDate) {
       if (!this.validationService.validateNullUndefinedEmptyString(this.startDate)) {
         this.alertMessage = "Please enter Start Date !!"
@@ -2311,23 +2338,64 @@ get tooltipCta(): string {
       this.timesheetNewService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           this.allMyTimesheets = response.serviceResponse;
-          this.allMyTimesheets.forEach(timesheet => {
-            timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
-            timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
-            timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
-            timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-            timesheet.isNightShiftDisplay = (timesheet.isNightShift == 'true') ? 'Night Shift' : 'Regular Shift';
-            if (timesheet.clientSideId) {
-              timesheet.clientInTime = (timesheet.clientInTime) ? moment(timesheet.clientInTime).format(AppComponent.DATETIME_FORMAT) : null;
-              timesheet.clientOutTime = (timesheet.clientOutTime) ? moment(timesheet.clientOutTime).format(AppComponent.DATETIME_FORMAT) : null;
-            }
-          });
+          this.processHierarchicalTimesheetData();
         } else {
           console.error(response.serviceResponse)
+          this.allMyTimesheets = [];
         }
+      }, (error) => {
+        console.error("Error fetching timesheets:", error);
+        this.allMyTimesheets = [];
       });
 
     }
+  }
+
+  /**
+   * Process hierarchical timesheet data from API response
+   * Formats dates, calculates totals, and prepares data for display
+   */
+  processHierarchicalTimesheetData(): void {
+    this.allMyTimesheets.forEach(timesheet => {
+      // Format main timesheet dates
+      timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
+      timesheet.workCheckIn = (timesheet.workCheckIn) ? moment(timesheet.workCheckIn).format(AppComponent.DATETIME_FORMAT) : null;
+      timesheet.workCheckOut = (timesheet.workCheckOut) ? moment(timesheet.workCheckOut).format(AppComponent.DATETIME_FORMAT) : null;
+      timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+      timesheet.isNightShiftDisplay = (timesheet.isNightShift == true || timesheet.isNightShift == 'true') ? 'Night Shift' : 'Regular Shift';
+      timesheet.statusDisplay = this.mapStatusToString(timesheet.status);
+      
+      // Process location sessions
+      if (timesheet.locationSessions && timesheet.locationSessions.length > 0) {
+        let totalActivityMinutes = 0;
+        
+        timesheet.locationSessions.forEach((location: any) => {
+          // Format location times (they come as "HH:mm" or "HH:mm:ss" strings from backend)
+          // If they need formatting, we can add it here
+          // location.locationInTime and location.locationOutTime are already strings
+          
+          // Process projects within location
+          if (location.projects && location.projects.length > 0) {
+            location.projects.forEach((project: any) => {
+              // Calculate project total hours from activities
+              if (project.activities && project.activities.length > 0) {
+                let projectTotalMinutes = 0;
+                project.activities.forEach((activity: any) => {
+                  if (activity.durationMinutes) {
+                    projectTotalMinutes += activity.durationMinutes;
+                    totalActivityMinutes += activity.durationMinutes;
+                  }
+                });
+                project.totalActivityMinutes = projectTotalMinutes;
+              }
+            });
+          }
+        });
+        
+        // Store total activity minutes for display
+        timesheet.totalActivitiesMinutes = totalActivityMinutes;
+      }
+    });
   }
 
   /* Timesheets Applied By ME for My Team Members */
@@ -2355,21 +2423,18 @@ get tooltipCta(): string {
     timesheetObj.startDate = this.startDate;
     timesheetObj.endDate = this.endDate;
 
-    //console.log("getAllMyTimesheetsByEmpId :", timesheetObj);
+    // Backend now returns hierarchical EmployeeTimesheetDTO structure
     this.timesheetService.getAllMyTeamTimesheets(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allMyTimesheets = response.serviceResponse;
-        this.allMyTimesheets.forEach(timesheet => {
-          timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
-          timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-          timesheet.isNightShiftDisplay = (timesheet.isNightShift == 'true') ? 'Night Shift' : 'Regular Shift';
-        });
-        //console.log("allMyTimesheets :", this.allMyTimesheets);
+        this.processHierarchicalTimesheetData();
       } else {
         console.error(response.serviceResponse);
+        this.allMyTimesheets = [];
       }
+    }, (error) => {
+      console.error("Error fetching team timesheets:", error);
+      this.allMyTimesheets = [];
     });
   }
 
@@ -3382,6 +3447,11 @@ get tooltipCta(): string {
     this.timeReset();
     this.fromDate = null;
     this.toDate = null;
+    this.selectedTimesheetId = null; // Reset timesheet ID for update flow
+    this.isTimesheetForm = false;
+    this.isUpdation = false;
+    this.isCreation = false;
+    this.isTimesheetTable = true;
     this.timesheetObj.projectId = null;
     this.timesheetObj.clientSideId = null;
     this.timesheetObj.hasClientSideId = false;
@@ -3922,6 +3992,441 @@ onTimesheetAppliedForChange(value: string): void {
       this.noOtherShadowResourceModalRef?.close();
       this.resetTimesheetForm();
     }
+  }
+
+  // ============================================
+  // HIERARCHICAL VIEW - Sample Data & Methods
+  // ============================================
+
+  /**
+   * Load sample hierarchical timesheet data for UI design/testing
+   */
+  loadSampleHierarchicalData(): void {
+    this.allMyTimesheets = [
+      {
+        timesheetId: 1,
+        empId: 123,
+        date: '2025-01-15',
+        dayType: 'Working',
+        dayTypeId: 1,
+        status: 1, // 1=Pending, 2=Approved, 3=Rejected
+        totalWorkingMinutes: 480, // 8 hours
+        totalActivitiesMinutes: 450,
+        isNightShift: false,
+        workCheckIn: '2025-01-15 09:00:00',
+        workCheckOut: '2025-01-15 18:00:00',
+        createdBy: 456,
+        createdOn: '2025-01-15 10:00:00',
+        createdByName: 'John Doe',
+        locationSessions: [
+          {
+            locationMappingId: 101,
+            workLocationType: 'Office',
+            workLocationTypeId: 1,
+            locationInTime: '09:00:00',
+            locationOutTime: '13:00:00',
+            projects: [
+              {
+                timesheetId: 1,
+                projectId: 501,
+                projectName: 'Project Alpha',
+                poNo: 'PO-2025-001',
+                poId: 1001,
+                status: 1,
+                clientApprovalStatus: 1,
+                totalClientWorkingMinutes: 240,
+                clientSideId: 'CLIENT-001',
+                activities: [
+                  {
+                    timesheetId: 1,
+                    activityId: 201,
+                    projectId: 501,
+                    activity: 'Code Review',
+                    description: 'Reviewed PR #123 for authentication module',
+                    durationMinutes: 60
+                  },
+                  {
+                    timesheetId: 1,
+                    activityId: 202,
+                    projectId: 501,
+                    activity: 'Development',
+                    description: 'Implemented user login feature',
+                    durationMinutes: 120
+                  }
+                ]
+              },
+              {
+                timesheetId: 1,
+                projectId: 502,
+                projectName: 'Project Beta',
+                poNo: 'PO-2025-002',
+                poId: 1002,
+                status: 1,
+                clientApprovalStatus: null,
+                totalClientWorkingMinutes: 60,
+                clientSideId: null,
+                activities: [
+                  {
+                    timesheetId: 1,
+                    activityId: 203,
+                    projectId: 502,
+                    activity: 'Meeting',
+                    description: 'Team standup meeting',
+                    durationMinutes: 60
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            locationMappingId: 102,
+            workLocationType: 'Client Site',
+            workLocationTypeId: 2,
+            locationInTime: '14:00:00',
+            locationOutTime: '18:00:00',
+            projects: [
+              {
+                timesheetId: 1,
+                projectId: 501,
+                projectName: 'Project Alpha',
+                poNo: 'PO-2025-001',
+                poId: 1001,
+                status: 1,
+                clientApprovalStatus: 1,
+                totalClientWorkingMinutes: 240,
+                clientSideId: 'CLIENT-001',
+                activities: [
+                  {
+                    timesheetId: 1,
+                    activityId: 204,
+                    projectId: 501,
+                    activity: 'Testing',
+                    description: 'Tested login functionality',
+                    durationMinutes: 120
+                  },
+                  {
+                    timesheetId: 1,
+                    activityId: 205,
+                    projectId: 501,
+                    activity: 'Documentation',
+                    description: 'Updated API documentation',
+                    durationMinutes: 120
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        documentData: [
+          {
+            docId: 1001,
+            projectId: 501,
+            docName: 'filled_document.pdf',
+            docType: 'Filled',
+            finalFlag: false,
+            bulkApprovedDocId: null
+          },
+          {
+            docId: 1002,
+            projectId: 501,
+            docName: 'approved_document.pdf',
+            docType: 'Approved',
+            finalFlag: true,
+            bulkApprovedDocId: null
+          }
+        ]
+      },
+      {
+        timesheetId: 2,
+        empId: 123,
+        date: '2025-01-16',
+        dayType: 'Working',
+        dayTypeId: 1,
+        status: 2, // Approved
+        totalWorkingMinutes: 480,
+        totalActivitiesMinutes: 480,
+        isNightShift: false,
+        workCheckIn: '2025-01-16 09:00:00',
+        workCheckOut: '2025-01-16 18:00:00',
+        createdBy: 456,
+        createdOn: '2025-01-16 10:00:00',
+        createdByName: 'John Doe',
+        locationSessions: [
+          {
+            locationMappingId: 103,
+            workLocationType: 'Office',
+            workLocationTypeId: 1,
+            locationInTime: '09:00:00',
+            locationOutTime: '18:00:00',
+            projects: [
+              {
+                timesheetId: 2,
+                projectId: 503,
+                projectName: 'Project Gamma',
+                poNo: 'PO-2025-003',
+                poId: 1003,
+                status: 2,
+                clientApprovalStatus: 2,
+                totalClientWorkingMinutes: 480,
+                clientSideId: 'CLIENT-002',
+                activities: [
+                  {
+                    timesheetId: 2,
+                    activityId: 206,
+                    projectId: 503,
+                    activity: 'Development',
+                    description: 'Worked on payment integration',
+                    durationMinutes: 480
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        documentData: [
+          {
+            docId: 1003,
+            projectId: 503,
+            docName: 'approved_vms.pdf',
+            docType: 'Approved',
+            finalFlag: true,
+            bulkApprovedDocId: null
+          }
+        ]
+      },
+      {
+        timesheetId: 3,
+        empId: 123,
+        date: '2025-01-17',
+        dayType: 'Leave',
+        dayTypeId: 4,
+        leaveTypeId: 1,
+        status: 1,
+        totalWorkingMinutes: 0,
+        totalActivitiesMinutes: 0,
+        isNightShift: false,
+        workCheckIn: null,
+        workCheckOut: null,
+        createdBy: 456,
+        createdOn: '2025-01-17 10:00:00',
+        createdByName: 'John Doe',
+        locationSessions: [],
+        documentData: []
+      }
+    ];
+
+    // Format dates and times
+    this.allMyTimesheets.forEach(timesheet => {
+      timesheet.date = timesheet.date ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
+      timesheet.workCheckIn = timesheet.workCheckIn ? moment(timesheet.workCheckIn).format(AppComponent.DATETIME_FORMAT) : null;
+      timesheet.workCheckOut = timesheet.workCheckOut ? moment(timesheet.workCheckOut).format(AppComponent.DATETIME_FORMAT) : null;
+      timesheet.createdOn = timesheet.createdOn ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+      timesheet.isNightShiftDisplay = timesheet.isNightShift ? 'Night Shift' : 'Regular Shift';
+      timesheet.statusDisplay = this.mapStatusToString(timesheet.status);
+    });
+  }
+
+  /**
+   * Expansion state management methods
+   */
+  toggleTimesheetExpansion(timesheetId: number): void {
+    if (this.expandedTimesheets.has(timesheetId)) {
+      this.expandedTimesheets.delete(timesheetId);
+      // Also collapse all locations and projects for this timesheet
+      const locationKey = timesheetId.toString();
+      this.expandedLocations.delete(locationKey);
+      this.expandedProjects.delete(locationKey);
+    } else {
+      this.expandedTimesheets.add(timesheetId);
+    }
+  }
+
+  toggleLocationExpansion(timesheetId: number, locationId: number): void {
+    const key = timesheetId.toString();
+    if (!this.expandedLocations.has(key)) {
+      this.expandedLocations.set(key, new Set());
+    }
+    const locationSet = this.expandedLocations.get(key)!;
+    
+    if (locationSet.has(locationId)) {
+      locationSet.delete(locationId);
+      // Also collapse all projects for this location
+      const projectKey = `${timesheetId}_${locationId}`;
+      this.expandedProjects.delete(projectKey);
+    } else {
+      locationSet.add(locationId);
+    }
+  }
+
+  toggleProjectExpansion(timesheetId: number, locationId: number, projectId: number): void {
+    const key = `${timesheetId}_${locationId}`;
+    if (!this.expandedProjects.has(key)) {
+      this.expandedProjects.set(key, new Set());
+    }
+    const projectSet = this.expandedProjects.get(key)!;
+    
+    if (projectSet.has(projectId)) {
+      projectSet.delete(projectId);
+    } else {
+      projectSet.add(projectId);
+    }
+  }
+
+  isTimesheetExpanded(timesheetId: number): boolean {
+    return this.expandedTimesheets.has(timesheetId);
+  }
+
+  isLocationExpanded(timesheetId: number, locationId: number): boolean {
+    const key = timesheetId.toString();
+    return this.expandedLocations.has(key) && this.expandedLocations.get(key)!.has(locationId);
+  }
+
+  isProjectExpanded(timesheetId: number, locationId: number, projectId: number): boolean {
+    const key = `${timesheetId}_${locationId}`;
+    return this.expandedProjects.has(key) && this.expandedProjects.get(key)!.has(projectId);
+  }
+
+  /**
+   * Helper methods to check if expandable
+   */
+  hasLocations(timesheet: any): boolean {
+    return timesheet.locationSessions && timesheet.locationSessions.length > 0;
+  }
+
+  hasProjects(location: any): boolean {
+    return location.projects && location.projects.length > 0;
+  }
+
+  hasActivities(project: any): boolean {
+    return project.activities && project.activities.length > 0;
+  }
+
+  /**
+   * Calculate total hours for location
+   */
+  getTotalLocationHours(location: any): string {
+    if (!location.locationInTime || !location.locationOutTime) return '0.00';
+    // Handle both "HH:mm" and "HH:mm:ss" formats from backend
+    const inTime = moment(location.locationInTime, ['HH:mm:ss', 'HH:mm'], true);
+    const outTime = moment(location.locationOutTime, ['HH:mm:ss', 'HH:mm'], true);
+    
+    if (!inTime.isValid() || !outTime.isValid()) {
+      return '0.00';
+    }
+    
+    const diffMinutes = outTime.diff(inTime, 'minutes');
+    // Handle case where outTime is next day (night shift)
+    const adjustedDiff = diffMinutes < 0 ? diffMinutes + 1440 : diffMinutes;
+    return (adjustedDiff / 60).toFixed(2);
+  }
+
+  /**
+   * Calculate total hours for project
+   */
+  getTotalProjectHours(project: any): string {
+    if (!project.activities || project.activities.length === 0) return '0.00';
+    const totalMinutes = project.activities.reduce((sum: number, act: any) => {
+      return sum + (act.durationMinutes || 0);
+    }, 0);
+    return (totalMinutes / 60).toFixed(2);
+  }
+
+  /**
+   * Get documents for a specific project
+   */
+  getDocumentsForProject(timesheet: any, projectId: number): any[] {
+    if (!timesheet.documentData) return [];
+    return timesheet.documentData.filter((doc: any) => doc.projectId === projectId);
+  }
+
+  /**
+   * Map status integer to string
+   */
+  mapStatusToString(status: number): string {
+    switch (status) {
+      case 1: return 'Pending';
+      case 2: return 'Approved';
+      case 3: return 'Rejected';
+      case 4: return 'Partial';
+      default: return 'Unknown';
+    }
+  }
+
+  /**
+   * Map client approval status integer to string
+   */
+  mapClientApprovalStatusToString(status: number | null): string {
+    if (status === null) return 'NA';
+    switch (status) {
+      case 1: return 'Pending';
+      case 2: return 'Approved';
+      case 3: return 'Rejected';
+      default: return 'NA';
+    }
+  }
+
+  /**
+   * Get total working hours from minutes
+   */
+  getTotalWorkingHours(minutes: number): string {
+    if (!minutes) return '0.00';
+    return (minutes / 60).toFixed(2);
+  }
+
+  /**
+   * Find filled document in timesheet document data
+   */
+  findFilledDocument(timesheet: any): any {
+    if (!timesheet || !timesheet.documentData || timesheet.documentData.length === 0) {
+      return null;
+    }
+    return timesheet.documentData.find((d: any) => d.docType === 'Filled') || null;
+  }
+
+  /**
+   * Find approved document in timesheet document data
+   */
+  findApprovedDocument(timesheet: any): any {
+    if (!timesheet || !timesheet.documentData || timesheet.documentData.length === 0) {
+      return null;
+    }
+    return timesheet.documentData.find((d: any) => d.docType === 'Approved') || null;
+  }
+
+  /**
+   * Find filled document for a specific project
+   */
+  findFilledDocumentForProject(timesheet: any, projectId: number): any {
+    const projectDocs = this.getDocumentsForProject(timesheet, projectId);
+    return projectDocs.find((d: any) => d.docType === 'Filled') || null;
+  }
+
+  /**
+   * Find approved document for a specific project
+   */
+  findApprovedDocumentForProject(timesheet: any, projectId: number): any {
+    const projectDocs = this.getDocumentsForProject(timesheet, projectId);
+    return projectDocs.find((d: any) => d.docType === 'Approved') || null;
+  }
+
+  /**
+   * Calculate total activity hours for a location (sum of all activities across all projects in the location)
+   */
+  getTotalLocationActivityHours(location: any): number {
+    if (!location || !location.projects || location.projects.length === 0) {
+      return 0;
+    }
+    
+    let totalMinutes = 0;
+    for (const project of location.projects) {
+      if (project.activities && project.activities.length > 0) {
+        for (const activity of project.activities) {
+          totalMinutes += activity.durationMinutes || 0;
+        }
+      }
+    }
+    
+    return totalMinutes / 60; // Convert to hours
   }
 
 }

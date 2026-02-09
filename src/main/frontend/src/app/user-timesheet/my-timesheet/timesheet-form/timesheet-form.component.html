@@ -3,9 +3,23 @@
     <div class="main-form-card">
         <!-- Header Section -->
         <div class="form-header-card">
-            <div class="d-flex align-items-center">
-                <i class="fa fa-calendar-check-o form-header-icon"></i>
-                <h4 class="form-header-title mb-0">Timesheet Entry Testing</h4>
+            <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center">
+                    <i class="fa fa-calendar-check-o form-header-icon"></i>
+                    <h4 class="form-header-title mb-0">Timesheet Entry Testing</h4>
+                </div>
+                <div class="update-mode-indicator" *ngIf="isUpdation && timesheetId">
+                    <i class="fa fa-edit"></i>
+                    <span>Editing Timesheet #{{ timesheetId }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Loading Indicator -->
+        <div class="loading-overlay" *ngIf="isLoadingTimesheet">
+            <div class="loading-spinner">
+                <i class="fa fa-spinner fa-spin fa-3x"></i>
+                <p>Loading timesheet data...</p>
             </div>
         </div>
 
@@ -53,7 +67,7 @@
                                     Team Member
                                 </label>
                                 <app-my-select class="form-control"
-                                        [options]="teamMemberList" displayKey="name" valueKey="empId" [isOptionDisabled]="disableEmployee" [(ngModel)]="selectedTeamMember" [readonly]="isUpdation">
+                                        [options]="teamMemberList" displayKey="name" valueKey="empId" [isOptionDisabled]="disableEmployee" [(ngModel)]="selectedTeamMember" (ngModelChange)="onTeamMemberSelect($event)" [readonly]="isUpdation">
                                 </app-my-select>
                             </div>
                         </div>
@@ -74,19 +88,43 @@
                         </div>
                         <div class="col-lg-3 col-md-4 col-sm-6 mb-3" *ngIf="dayType">
                             @if(!isNightShift){
-                            <app-date-time-picker label="Date" mode="date" [required]="true" [(ngModel)]="fromDate"
-                                (ngModelChange)="onFromDateChange()">
+                            <app-date-time-picker 
+                                label="Date" 
+                                mode="date" 
+                                [required]="true" 
+                                [(ngModel)]="fromDate"
+                                (ngModelChange)="onFromDateChange()"
+                                [disabled]="!dayType"
+                                [minDate]="minDateForPicker"
+                                [maxDate]="maxDateForPicker"
+                                [disabledDates]="disabledDatesForPicker">
                             </app-date-time-picker>
+                            
                             }@else{
-                            <app-date-time-picker label="From Date" mode="date" [required]="true" [(ngModel)]="fromDate"
-                                (ngModelChange)="onFromDateChange()">
+                            <app-date-time-picker 
+                                label="From Date" 
+                                mode="date" 
+                                [required]="true" 
+                                [(ngModel)]="fromDate"
+                                (ngModelChange)="onFromDateChange()"
+                                [disabled]="!dayType"
+                                [minDate]="minDateForPicker"
+                                [maxDate]="maxDateForPicker"
+                                [disabledDates]="disabledDatesForPicker">
                             </app-date-time-picker>
                             }
                         </div>
                         <!-- TO DATE (Show only if Night Shift is enabled) -->
                         <div class="col-lg-3 col-md-4 col-sm-6 mb-3" *ngIf="isNightShift && fromDate">
-                            <app-date-time-picker label="To Date" mode="date" [required]="true" [(ngModel)]="toDate"
-                                (ngModelChange)="onToDateChange()">
+                            <app-date-time-picker 
+                                label="To Date" 
+                                mode="date" 
+                                [required]="true" 
+                                [(ngModel)]="toDate"
+                                (ngModelChange)="onToDateChange()"
+                                [minDate]="fromDate"
+                                [maxDate]="maxDateForPicker"
+                                [disabledDates]="disabledDatesForPicker">
                             </app-date-time-picker>
                         </div>
 
@@ -256,7 +294,7 @@
                                         <i class="fa fa-folder-open"></i> Projects
                                     </h6>
                                     <button class="btn btn-sm btn-outline-primary" (click)="addProject(location, null)"
-                                        [disabled]="this.allProjectsList.length == 1">
+                                        [disabled]="this.activeProjectList.length == 1">
                                         <i class="fa fa-plus"></i> Add Project
                                     </button>
                                 </div>
@@ -643,10 +681,10 @@
                                     <span>Choose File</span>
                                 </label>
                             </div>
-                            @if (file.uniqueIdentifier && containsFile(file.uniqueIdentifier)) {
+                            @if ((file.uniqueIdentifier && containsFile(file.uniqueIdentifier)) || file.docId) {
                             <button class="btn-preview-document" 
                                 title="Preview Document"
-                                [disabled]="!file.previewUrl" 
+                                [disabled]="!file.previewUrl && !file.docId" 
                                 (click)="openPreviewModalForTwo(file)">
                                 <i class="fa fa-eye"></i>
                                 <span>Preview</span>
@@ -660,13 +698,13 @@
                                 <span>{{ file.fileError }}</span>
                             </div>
                             }
-                            @else if (file.uniqueIdentifier && containsFile(file.uniqueIdentifier) && !file.fileError) {
+                            @else if ((file.uniqueIdentifier && containsFile(file.uniqueIdentifier)) || file.docId) {
                             <div class="document-success">
                                 <i class="fa fa-check-circle"></i>
-                                <span>{{ file.docName }}</span>
+                                <span>{{ file.docName || 'Document available' }}</span>
                             </div>
                             }
-                            @else if (!file.uniqueIdentifier || !containsFile(file.uniqueIdentifier) && !file.fileError) {
+                            @else if ((!file.uniqueIdentifier || !containsFile(file.uniqueIdentifier)) && !file.docId && !file.fileError) {
                             <div class="document-placeholder">
                                 <i class="fa fa-info-circle"></i>
                                 <span>No file selected</span>
@@ -695,11 +733,16 @@
                 </button>
                 <button *ngIf="isUpdation" 
                     type="button" 
-                    class="btn-update-timesheet">
+                    class="btn-update-timesheet"
+                    (click)="updateTimesheet()"
+                    [disabled]="isLoadingTimesheet">
                     <span class="btn-icon-wrapper">
                         <i class="fa fa-edit"></i>
                     </span>
-                    <span class="btn-text">Update Timesheet</span>
+                    <span class="btn-text">
+                        <span *ngIf="!isLoadingTimesheet">Update Timesheet</span>
+                        <span *ngIf="isLoadingTimesheet">Loading...</span>
+                    </span>
                     <span class="btn-ripple"></span>
                 </button>
             </div>

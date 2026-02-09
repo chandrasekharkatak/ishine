@@ -102,7 +102,6 @@ export class TimesheetNewService {
       formData
     );
   }
-
   getTimesheetDashboardCountForEmployee(
     month: any,
     year: any,
@@ -168,4 +167,58 @@ export class TimesheetNewService {
 
 
 
+  /**
+   * Update existing timesheet
+   * @param employeeTimesheetDTO - Timesheet data with timesheetId
+   * @param selectedFile - Array of new document files to upload
+   */
+  updateTimesheet(
+    employeeTimesheetDTO: EmployeeTimesheetDTO,
+    selectedFile: File[]
+  ): Observable<any> {
+    // Extract timesheetId from DTO (required by backend)
+    const timesheetId = employeeTimesheetDTO.timesheetId;
+    
+    if (!timesheetId) {
+      throw new Error('Timesheet ID is required for update');
+    }
+
+    const formData = new FormData();
+    formData.append('dto', this.encryptionService.encrypt(JSON.stringify(employeeTimesheetDTO)));
+    
+    // Append documents if provided
+    if (selectedFile && selectedFile.length > 0) {
+      selectedFile.forEach((file) => {
+        if (file) {
+          formData.append('documents', file, file.name);
+        }
+      });
+    }
+
+    // Use PUT method with timesheetId as query parameter
+    return this.http.put(
+      `${this.baseUrl}api/v2/timesheet/update?timesheetId=${timesheetId}`,
+      formData
+    );
+  }
+
+  /**
+   * Get timesheet by ID for editing
+   * @param timesheetId - ID of timesheet to retrieve
+   */
+  getTimesheetById(timesheetId: number): Observable<any> {
+    return this.http.get(
+      `${this.baseUrl}api/v2/timesheet/${timesheetId}`
+    );
+  }
+
+  /**
+   * Get document by ID for preview
+   * @param docId - Document ID to retrieve
+   */
+  getDocumentById(docId: number): Observable<any> {
+    return this.http.get(
+      `${this.baseUrl}` + `api/v2/timesheet/document/getById/${docId}`
+    );
+  }
 }

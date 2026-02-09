@@ -9,15 +9,24 @@
 
   <div class="row d-flex align-items-center">
   <div class="col-md-11 pr-0">
-  <input
-    *ngIf="mode === 'date'"
-    type="date"
-    class="form-control"
-    [(ngModel)]="modelValue"
-    (ngModelChange)="onModelChange($event)"
-    [disabled]="disabled"
-    [required]="required"
-  />
+  <!-- Angular Material Datepicker for date mode -->
+  <mat-form-field *ngIf="mode === 'date'" style="display: contents; width: 100%;">
+    <input 
+      matInput 
+      [matDatepicker]="picker"
+      [matDatepickerFilter]="dateFilter"
+      [min]="minDateForMaterial"
+      [max]="maxDateForMaterial"
+      [(ngModel)]="materialDateValue"
+      (dateChange)="onMaterialDateChange($event)"
+      [disabled]="disabled"
+      [required]="required"
+      readonly
+      style="width: 100%;"
+    />
+    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-datepicker #picker></mat-datepicker>
+  </mat-form-field>
 
   <input
     *ngIf="mode === 'time'"
@@ -39,7 +48,7 @@
 </div>
 <div class="col-md-1 pl-0">
   <button
-    *ngIf="modelValue && !disabled"
+    *ngIf="(mode === 'date' ? materialDateValue : modelValue) && !disabled"
     type="button"
     class="btn btn-sm btn-link text-danger dt-clear-btn"
     (click)="clearValue()">

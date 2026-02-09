@@ -35,6 +35,12 @@ public class EmployeeTimesheetDTO {
      * Required for creation
      */
     private Long empId;
+    
+    /**
+     * Employee Name (for team timesheets display)
+     * Optional - only populated for team timesheet views
+     */
+    private String employeeName;
 
     /**
      * Timesheet date
