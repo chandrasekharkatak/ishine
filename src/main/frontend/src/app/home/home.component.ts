@@ -721,7 +721,7 @@ timesheet: any;
     });
   }
  
-  getDoscForPreview(docId:any){
+  getDocsForPreview(docId:any){
       console.log(docId,":docId");
       this.resetPreviewState(); // added to reset all the zoom values 
       this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
@@ -2344,6 +2344,7 @@ timesheet: any;
     });
   }
 
+
   sortData(sort: Sort) {
     //console.log(sort);
     if (sort.active) {
@@ -3397,6 +3398,33 @@ toggleProject(projectIndex: number): void {
     this.expandedProjectIndex = projectIndex; // open project
   }
 }
+
+
+
+downloadExcel(base64Data: string, mimeType: string, fileName: string) {
+
+  const byteCharacters = atob(base64Data);
+  const byteNumbers = new Array(byteCharacters.length);
+
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+
+  const blob = new Blob(
+    [new Uint8Array(byteNumbers)],
+    { type: mimeType }
+  );
+
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+
+  window.URL.revokeObjectURL(url);
+}
+
 
 
 

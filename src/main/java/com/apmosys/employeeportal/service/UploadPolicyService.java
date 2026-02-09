@@ -399,9 +399,16 @@ public class UploadPolicyService {
 			}
 			
 			PolicyReadResponse policyreadresponse = new PolicyReadResponse();
-			policyreadresponse.setEmpId(uploadPolicyDTO.getEmpId());
-			policyreadresponse.setPolicyID(uploadPolicyDTO.getPolicyID());
-			PolicyReadResponse dbResponse = PolicyReadResponseRepository.save(policyreadresponse);
+			PolicyReadResponse dbResponse = new PolicyReadResponse();
+			policyreadresponse = PolicyReadResponseRepository.findByEmpIdAndPolicyID(uploadPolicyDTO.getEmpId(), uploadPolicyDTO.getPolicyID());
+			if(policyreadresponse == null) {
+				PolicyReadResponse policyreadresponseToSave = new PolicyReadResponse();
+				policyreadresponseToSave.setEmpId(uploadPolicyDTO.getEmpId());
+				policyreadresponseToSave.setPolicyID(uploadPolicyDTO.getPolicyID());
+			dbResponse = PolicyReadResponseRepository.save(policyreadresponseToSave);
+			}else {
+				dbResponse = policyreadresponse;
+			}
 			
 			if (dbResponse != null) {
 				

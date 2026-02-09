@@ -33,6 +33,8 @@ import { ProjectEntry } from 'src/app/models/projectEntry';
 import { ActivityNew } from 'src/app/models/activityNew';
 import { TimesheetNewService } from 'src/app/services/timesheet-new.service';
 import { TimesheetFormComponent } from './timesheet-form/timesheet-form.component';
+import { ProjectBasedBulkUploadPayload } from '../team-timesheet/types';
+
 @Component({
   standalone: false,
   selector: 'app-my-timesheet',
@@ -157,6 +159,8 @@ export class MyTimesheetComponent implements OnInit {
 
   isTimesheetLockCheckEnable: any = "true";
   employeeInTNMProject: boolean = false;
+  maxMonth: string;
+
 
   withVmsbullet:string[] = ["Applicable to resources working on projects with a client-side VMS system.",
 "Daily timesheets must be filled directly in the client’s VMS system.",
@@ -203,8 +207,8 @@ withoutVmsbullet:string[] = ["Applicable to resources without a client-side VMS 
   previewUrl2: SafeResourceUrl | null = null;
   rawObjectUrl1: string | null = null;
   rawObjectUrl2: string | null = null;
-  fileType1: '' | 'pdf' | 'image' | null = null;
-  fileType2: '' | 'pdf' | 'image' | null = null;
+fileType1: '' | 'pdf' | 'image' | 'excel' | null = null;
+fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
   fileError1: string = '';
   fileError2: string = '';
   fileName1: any = null;
@@ -645,13 +649,14 @@ get tooltipCta(): string {
     if(this.fromDate && this.timesheetObj.isNightShift){
       const nextDate = new Date(this.fromDate);
     nextDate.setDate(nextDate.getDate() + 1);
+    nextDate.setHours(0, 0, 0, 0);
     this.maxToDate = nextDate;
     this.toDate = nextDate;
     }else if(!this.timesheetObj.isNightShift){
       this.maxToDate = null;
       this.toDate = null;
     }
-    console.log("before method calls ", this.fromDate);
+    this.timesheetToDateFilter = this.timesheetToDateFilter.bind(this);
     this.makeApmosysInTime();
     this.makeApmosysOutTime();
     this.makeClientInTime();
@@ -700,6 +705,10 @@ get tooltipCta(): string {
 
     this.isTimesheetBulkForm = true;
     console.log("Bulk Upload Form",this.isTimesheetBulkForm);
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    this.maxMonth = `${year}-${month}`;
     this.reset();
   }
 
@@ -713,7 +722,7 @@ get tooltipCta(): string {
 
     this.showSelfTimesheets();
   }
-
+ 
   showSelfTimesheets() {
     this.isSelfTimesheets = true;
     this.isTeamTimesheets = false;
@@ -900,7 +909,7 @@ get tooltipCta(): string {
       this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
     }
 
-    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave") {
+    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" ||this.timesheetObj.dayType == "Comp Off" || this.timesheetObj.dayType == "Leave") {
       this.__tempDescription = this.timesheetObj.description;
     }
 
@@ -1395,6 +1404,64 @@ get tooltipCta(): string {
     }
   }
 
+    timesheetToDateFilter = (checkDate: Date) => {
+
+    if (this.timesheetObj?.isNightShift && this.fromDate) {
+        if (this.isNextDay(this.fromDate, checkDate)) {
+            return true;
+        }
+    }
+
+    const DAY_IN_MS = 24 * 60 * 60 * 1000;
+    const time = checkDate?.getTime();
+
+
+    let currentDate = new Date();
+    const dateFormat = 'YYYY-MM-DD';
+    let OPEN_BACKDATED_DAYS = 30;
+    const CURRENT_DAY = 1;
+
+    let dateOfJoining = moment(this.currentUser.dateOfJoining, dateFormat);
+
+    let daysDifference = moment(currentDate, dateFormat).diff(dateOfJoining, 'days');
+
+
+    if (this.currentUser.timesheetBackDatedDays > daysDifference) {
+
+      OPEN_BACKDATED_DAYS = daysDifference;
+
+    } else {
+      OPEN_BACKDATED_DAYS = this.currentUser.timesheetBackDatedDays;
+    }
+
+
+    const dateObj = new Date(this.serverDate + 'T23:59:59');
+    let serverDate = dateObj;
+
+    let endDate = serverDate;
+    let startDate = new Date(endDate.getTime() - ((this.currentUser.timesheetLockDays + CURRENT_DAY) * DAY_IN_MS));
+
+    if (this.isTimesheetForm && this.isUpdation) {
+      this.availableTimesheets = this.availableTimesheets.filter(timesheet => this.datePipe.transform(timesheet.date, "yyyy-MM-dd") != this.datePipe.transform(this.timesheetObj.date, "yyyy-MM-dd"));
+    }
+
+    if (this.isTimesheetLockCheckEnable == "false") {
+      startDate = new Date(endDate.getTime() - ((OPEN_BACKDATED_DAYS + CURRENT_DAY) * DAY_IN_MS));
+      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "yyyy-MM-dd"))) ? true : false;
+    } else {
+      return (checkDate <= endDate && checkDate >= startDate && !this.availableTimesheets.find(timesheet => timesheet.date == this.datePipe.transform(checkDate, "yyyy-MM-dd"))) ? true : false;
+    }
+  }
+
+  private isNextDay(date1: Date, date2: Date): boolean {
+  const DAY_IN_MS = 24 * 60 * 60 * 1000;
+  return (
+    new Date(date2).setHours(0, 0, 0, 0) -
+    new Date(date1).setHours(0, 0, 0, 0)
+  ) === DAY_IN_MS;
+}
+
+
   outTimeFilter = (checkDate: Date) => {
     const dateFormat = 'YYYY-MM-DD';
 
@@ -1415,7 +1482,7 @@ get tooltipCta(): string {
   setMaxInTimeDate(timesheetDate: any) {
     //console.log("timesheetDate : ", moment(timesheetDate).format(moment.HTML5_FMT.DATETIME_LOCAL));
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off"&& this.timesheetObj.dayType != "Comp Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
       let inTimeDate = document.getElementById('officeInTime');
       // //console.log("InTimeDate: ", inTimeDate);
       let officeOutTime = document.getElementById('officeOutTime');
@@ -1491,7 +1558,7 @@ get tooltipCta(): string {
   resetTimeonDayTypeChange() {
     this.fromDate = null;
     this.toDate = null;
-    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday") {
+    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" ||this.timesheetObj.dayType == "Comp Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday") {
       this.timesheetObj.officeInTime = '';
       this.timesheetObj.officeOutTime = '';
       this.timesheetObj.totalWorkingOfficeHours = '';
@@ -1590,13 +1657,21 @@ get tooltipCta(): string {
       return false;
     }
 
+    if(this.timesheetObj.isNightShift &&
+      (!this.validationService.validateNullUndefinedEmptyString(this.toDate))) {
+      this.alertMessage = "Please enter to Date !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+
     if (!this.validationService.validateNullUndefinedEmptyString(timesheetObj.dayType)) {
       this.alertMessage = "Please select Day Type !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
 
-    if (timesheetObj.dayType != "Public Holiday" && timesheetObj.dayType != "Week Off" && timesheetObj.dayType != "Leave" && this.timesheetFillable) {
+    if (timesheetObj.dayType != "Public Holiday" && timesheetObj.dayType != "Week Off"&& timesheetObj.dayType != "Comp Off" && timesheetObj.dayType != "Leave" && this.timesheetFillable) {
       let flag = true;
       let totalActivityTime = 0;
       let totalWorkingHoursInSeconds = 0;
@@ -1774,7 +1849,7 @@ get tooltipCta(): string {
     let inputValidated: boolean = this.validateTimesheetObj(this.timesheetObj, template)
     if (!inputValidated) return;
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off"&& this.timesheetObj.dayType != "Comp Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
       //console.log("allTimesheetActivities :", this.allTimesheetActivities, this.allTimesheetActivities[0]);
       this.timesheetObj.allTimesheetActivities = (Object.keys(this.allTimesheetActivities[0]).length === 0) ? null : this.allTimesheetActivities;
     } else {
@@ -1811,7 +1886,7 @@ get tooltipCta(): string {
     //   this.shadowForSelf = false;
     // }
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Comp Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
       this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
@@ -1865,7 +1940,6 @@ get tooltipCta(): string {
           sessionStorage.setItem('autoFillTimesheet', 'true');
         }
 
-        this.resetTimesheetForm();
         this.openAlertMod(template, response.serviceResponse);
         this.showViewMyTimesheets();
         if (this.timesheetObj.timesheetAppliedFor == "self") {
@@ -1877,6 +1951,7 @@ get tooltipCta(): string {
           this.getMyTeamTimesheets();
         }
         this.clearPreviousSelections();
+        this.resetTimesheetForm();
       } else {
         this.openAlertMod(template, response.serviceResponse);
       }
@@ -1891,7 +1966,7 @@ get tooltipCta(): string {
     if (!inputValidated) return;
 
 
-    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
+    if (this.timesheetObj.dayType != "Public Holiday" && this.timesheetObj.dayType != "Week Off" && this.timesheetObj.dayType != "Comp Off" && this.timesheetObj.dayType != "Leave" && this.timesheetObj.dayType != "Client Holiday") {
       this.timesheetObj.date = moment(this.timesheetObj.officeInTime).format(dateFormat);
       this.timesheetObj.officeInTime = moment(this.timesheetObj.officeInTime).format(dateTimeFormat);
       this.timesheetObj.officeOutTime = moment(this.timesheetObj.officeOutTime).format(dateTimeFormat);
@@ -2021,7 +2096,7 @@ get tooltipCta(): string {
   onTimesheetDescriptionChange() {
     console.log("onTimesheetDescriptionChange called");
     if (this.isUpdation) {
-      if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave") {
+      if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" ||this.timesheetObj.dayType == "Comp Off" || this.timesheetObj.dayType == "Leave") {
         this.timesheetObj.description = (this.__tempDescription != null) ? this.__tempDescription : '';
         if (this.timesheetObj.description) {
           this.__tempDescription = this.timesheetObj.description;
@@ -2635,6 +2710,17 @@ get tooltipCta(): string {
     this.modalRef?.close();
   }
 
+  confirmNightShift(value:Boolean) {
+    this.timesheetObj.isNightShift=value;
+    if (value && this.timesheetObj.date) {
+      this.fromDate = new Date(this.timesheetObj.date);
+      this.fromDate.setHours(0, 0, 0, 0);
+    }
+    this.timesheetToDateFilter = this.timesheetToDateFilter.bind(this);
+    this.modalRef?.close();
+  }
+
+
   openTimesheetDetailsModal(template: TemplateRef<any>, timesheetObj: Timesheet) {
     this.timesheetObj = new Timesheet();
     this.timesheetObj = timesheetObj;
@@ -2868,12 +2954,27 @@ get tooltipCta(): string {
 
 
 
-  getDoscForPreview(docId: any) {
-    this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
+getDoscForPreview(docId: any) {
+  this.timesheetService.getDocumentDataByDocId(docId)
+    .pipe(first())
+    .subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+
         this.docData2 = response.serviceResponse.docData;
-        this.mimeType = response.serviceResponse.docMimeType
-        this.showPreview(this.docData2, this.mimeType)
+        this.mimeType = response.serviceResponse.docMimeType;
+
+        // Excel → Download
+        if (
+          this.mimeType === 'application/vnd.ms-excel' ||
+          this.mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ) {
+          const fileName = response.serviceResponse.docName || 'document.xlsx';
+          this.downloadExcel(this.docData2, this.mimeType, fileName);
+        }
+        // PDF / Image → Preview
+        else {
+          this.showPreview(this.docData2, this.mimeType);
+        }
       }
     });
   }
@@ -2904,15 +3005,37 @@ get tooltipCta(): string {
       : this.finalFromDate;
 
     if (this.selectedFile2 != null && this.finalFromDate != null && this.finalToDate != null && this.currentUser.empId != null) {
-      this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2, this.finalFromDate, this.finalToDate, this.currentUser.empId, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus === "Success") {
-         this.resetBulkUploadForm('UPLOAD');
+    //   this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2, this.finalFromDate, this.finalToDate, this.currentUser.empId, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+    //     if (response.serviceStatus === "Success") {
+    //      this.resetBulkUploadForm('UPLOAD');
 
+    //       this.openAlertMod(template, response.serviceResponse);
+    //     } else {
+    //       this.openAlertMod(template, response.serviceResponse);
+    //     }
+    //   });
+
+    const payload: ProjectBasedBulkUploadPayload = {
+        createdBy: this.currentUser.empId,
+        empIds: [this.currentUser.empId],
+        fromDate: this.finalFromDate,
+        toDate: this.finalToDate,
+        projectId: this.timesheetObj.projectId,
+      }
+
+    this.timesheetService.bulkFinalUploadProjectBased(payload, this.selectedFile2).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.resetBulkUploadForm('UPLOAD');
+          this.alertMessage = "Success";
           this.openAlertMod(template, response.serviceResponse);
+          this.showBulkUploadForm();
+
         } else {
-          this.openAlertMod(template, response.serviceResponse);
+          this.alertMessage = response.serviceResponse || "Error while bulk final upload";
+          this.openAlertMod(template, this.alertMessage);
         }
       });
+
     } else {
 
       if (this.finalFromDate == null) {
@@ -3027,38 +3150,93 @@ get tooltipCta(): string {
     }
   }
 
-  onFinalFileSelected(event: any): void {
-    const file: File = event.target.files[0];
-    this.fileError2 = '';
-    this.previewUrl2 = null;
-    this.fileType2 = null;
+  // onFinalFileSelected(event: any): void {
+  //   const file: File = event.target.files[0];
+  //   this.fileError2 = '';
+  //   this.previewUrl2 = null;
+  //   this.fileType2 = null;
 
-    if (!file) return;
+  //   if (!file) return;
 
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-    const maxSize = 500 * 1024;
+  //   const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+  //   const maxSize = 500 * 1024;
 
-    if (!allowedTypes.includes(file.type)) {
-      this.fileError2 = 'Only PDF, JPG, JPEG, and PNG files are allowed.';
-      return;
-    }
+  //   if (!allowedTypes.includes(file.type)) {
+  //     this.fileError2 = 'Only PDF, JPG, JPEG, and PNG files are allowed.';
+  //     return;
+  //   }
 
-    if (file.size > maxSize) {
-      this.fileError2 = 'File size must be 500Kb or less.';
-      return;
-    }
+  //   if (file.size > maxSize) {
+  //     this.fileError2 = 'File size must be 500Kb or less.';
+  //     return;
+  //   }
 
-    if (this.rawObjectUrl2) {
-      URL.revokeObjectURL(this.rawObjectUrl2);
-    }
+  //   if (this.rawObjectUrl2) {
+  //     URL.revokeObjectURL(this.rawObjectUrl2);
+  //   }
 
-    const objectUrl = URL.createObjectURL(file);
-    this.rawObjectUrl2 = objectUrl;
-    this.previewUrl2 = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
-    this.fileType2 = file.type === 'application/pdf' ? 'pdf' : 'image';
-    this.selectedFile2 = file;
-    this.fileName2 = file.name;
+  //   const objectUrl = URL.createObjectURL(file);
+  //   this.rawObjectUrl2 = objectUrl;
+  //   this.previewUrl2 = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+  //   this.fileType2 = file.type === 'application/pdf' ? 'pdf' : 'image';
+  //   this.selectedFile2 = file;
+  //   this.fileName2 = file.name;
+  // }
+onFinalFileSelected(event: any): void {
+  const file: File = event.target.files[0];
+  this.fileError2 = '';
+  this.previewUrl2 = null;
+  this.fileType2 = null;
+
+  if (!file) return;
+
+  const allowedTypes = [
+    'application/pdf',
+    'image/jpeg',
+    'image/png',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  ];
+
+  const maxSize = 500 * 1024;
+
+  if (!allowedTypes.includes(file.type)) {
+    this.fileError2 =
+      'Only PDF, JPG, JPEG, PNG, XLS, and XLSX files are allowed.';
+    return;
   }
+
+  if (file.size > maxSize) {
+    this.fileError2 = 'File size must be 500Kb or less.';
+    return;
+  }
+
+  // Cleanup old URL
+  if (this.rawObjectUrl2) {
+    URL.revokeObjectURL(this.rawObjectUrl2);
+  }
+
+  const objectUrl = URL.createObjectURL(file);
+  this.rawObjectUrl2 = objectUrl;
+
+  if (file.type === 'application/pdf') {
+    this.previewUrl2 =
+      this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+    this.fileType2 = 'pdf';
+  }
+  else if (file.type.startsWith('image/')) {
+    this.previewUrl2 =
+      this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
+    this.fileType2 = 'image';
+  }
+  else {
+    // Excel
+    this.fileType2 = 'excel';
+  }
+
+  this.selectedFile2 = file;
+  this.fileName2 = file.name;
+}
 
 
   clearPreviousSelections() {
@@ -3817,10 +3995,7 @@ onTimesheetAppliedForChange(value: string): void {
     console.log("I am here");
 
     this.timesheetObj.isShadowTimesheet = false;
-
-
-
-  } else if (value === 'asShadow') {
+     } else if (value === 'asShadow') {
 
     this.resetTimesheetFormForAutoFill();
 
@@ -3837,13 +4012,11 @@ onTimesheetAppliedForChange(value: string): void {
     this.timesheetObj.isShadowTimesheet = false;
 
   }
-
-}
-
-
-  resetTimesheetFormOnDateChange(){
+  }
+    
+  resetTimesheetFormOnDateChange(value?:any){
     this.timeReset();
-    this.toDate = null;
+    // this.toDate = null;
     this.timesheetObj.projectId = null;
     this.timesheetObj.clientSideId = null;
     this.timesheetObj.hasClientSideId = false;
@@ -3853,7 +4026,7 @@ onTimesheetAppliedForChange(value: string): void {
     this.timesheetObj.officeInTime = null;
     this.timesheetObj.officeOutTime = null;
     this.timesheetObj.totalWorkingOfficeHours = null;
-    this.timesheetObj.isNightShift = null;
+    if(value!=='isNightShiftModal'){    this.timesheetObj.isNightShift = null;}
     this.timesheetObj.clientInTime = null;
     this.timesheetObj.clientOutTime = null;
     this.timesheetObj.totalClientWorkingHours = null;
@@ -3869,16 +4042,174 @@ onTimesheetAppliedForChange(value: string): void {
     this.shadowForSelf = false;
     this.finalFromDate = null;
     this.finalFromDate = null ;
-    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday") {
+    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday" || this.timesheetObj.dayType == "Comp Off") {
       this.timesheetFillable = false
     }
     else {
       this.timesheetFillable = true;
     }
     this.allTimesheetActivities = [];
-    this.addInputActivityField();   
+    this.addInputActivityField();
     this.syncTimes = false;
   }
+
+  //  zoomIn() {
+  //   if (this.zoomScale < 2.5) {
+  //     this.zoomScale += 0.1;
+  //     this.zoomLevel = Math.round(this.zoomScale * 100);
+  //   }
+  // }
+
+  // zoomOut() {
+  //   if (this.zoomScale > 0.5) {
+  //     this.zoomScale -= 0.1;
+  //     this.zoomLevel = Math.round(this.zoomScale * 100);
+  //   }
+  // }
+
+  // get transformStyle() {
+  //   return `translate(${this.translateX}px, ${this.translateY}px) scale(${this.zoomScale})`;
+  // }
+
+  // startDrag(event: MouseEvent) {
+  //   if (this.zoomScale <= 1) return; // drag only when zoomed
+
+  //   this.isDragging = true;
+  //   this.startX = event.clientX - this.translateX;
+  //   this.startY = event.clientY - this.translateY;
+  //   event.preventDefault();
+  // }
+
+  // onDrag(event: MouseEvent) {
+  //   if (!this.isDragging) return;
+
+  //   this.translateX = event.clientX - this.startX;
+  //   this.translateY = event.clientY - this.startY;
+  // }
+
+  // endDrag() {
+  //   this.isDragging = false;
+  // }
+
+  // resetPreviewState() {
+  //   this.zoomScale = 1;
+  //   this.zoomLevel = 100;
+  //   this.translateX = 0;
+  //   this.translateY = 0;
+  //   this.isDragging = false;
+  // }
+
+  // openNoOtherShadowResource(message: any) {
+  //   this.alertMessage = message;
+  //   this.noOtherShadowResourceModalRef = this.modalService.open(this.noOtherShadowResourceTemp, { modalDialogClass: 'modal-md' });
+  // }
+
+  // hideNoOtherShadowResource(): void {
+  //   if (this.noOtherShadowResourceModalRef) {
+  //     this.noOtherShadowResourceModalRef?.close();
+  //     this.resetTimesheetForm();
+  //   }
+  // }
+  // getClientDetailsByProjectIdAndEmpId() {
+  //   if(!this.timesheetObj.dayType || this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" || this.timesheetObj.dayType == "Leave" || this.timesheetObj.dayType == "Client Holiday" || this.timesheetObj.dayType == "Comp Off"){
+  //     return;
+  //   }
+  //   this.clientDetails = '';
+  //   this.projectList = [];
+
+  //   const payload = {
+  //     empId: this.timesheetObj.empId,
+  //     projectId: this.timesheetObj.projectId
+  //   };
+  //   this.timesheetService.getClientDetailsByProjectIdAndEmpId(payload).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus == "Success") {
+  //       this.clientDetails = response.serviceResponse;
+  //       this.clientDropdownList = [this.clientDetails];
+  //     } else {
+  //       console.error(response.serviceResponse)
+  //       this.openAlertMod(this.alertTemplate, response.serviceResponse);
+  //     }
+  //   });
+  // }
+
+  // onClientChange(activityObj: any) {
+  //   activityObj.clientLocationList = this.clientDetails.clientLocations || [];
+  //   activityObj.clientLocationId = null;
+  //   activityObj.teamId = null;
+  // }
+
+  // private filterActivitiesByDepartment(activityList: any[]): any[] {
+
+  //   if (!activityList?.length) {
+  //     return [];
+  //   }
+
+  //   if (this.timesheetObj.timesheetAppliedFor === 'team') {
+  //     const teamMember = this.teamMemberList.find(
+  //       emp => emp.empId === this.timesheetObj.empId
+  //     );
+
+  //     return activityList.filter(activity =>
+  //       activity.departmentList?.map(Number).includes(teamMember?.departmentId)
+  //     );
+  //   }
+
+  //   const filteredList = activityList.filter(activity =>
+  //     activity.departmentList?.map(Number).includes(this.currentUser.departmentId)
+  //   );
+
+  //   if (filteredList.length === 0) {
+  //     this.openAlertMod(
+  //       this.alertModalWithoutReload,
+  //       'No activity found for your department!'
+  //     );
+  //   }
+
+  //   return filteredList;
+  // }
+
+ 
+
+  downloadSelectedFile(): void {
+  if (!this.rawObjectUrl2 || !this.selectedFile2) return;
+
+  const a = document.createElement('a');
+  a.href = this.rawObjectUrl2;
+  a.download = this.fileName2;
+  a.click();
+}
+
+isExcelMimeType(mimeType: string): boolean {
+  return mimeType === 'application/vnd.ms-excel'
+    || mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+}
+
+
+downloadExcel(base64Data: string, mimeType: string, fileName: string) {
+
+  const byteCharacters = atob(base64Data);
+  const byteNumbers = new Array(byteCharacters.length);
+
+
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  } 
+
+  const blob = new Blob(
+    [new Uint8Array(byteNumbers)],
+    { type: mimeType }
+  );
+
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+
+  window.URL.revokeObjectURL(url);
+}
+
 
   getClientDetailsByProjectIdAndEmpId() {
     this.clientDetails = '';

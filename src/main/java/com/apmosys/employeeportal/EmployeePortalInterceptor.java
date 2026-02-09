@@ -10,6 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -157,6 +159,8 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 	            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
 	            return false;
         	}
+        	UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(empId, null, List.of());
+            SecurityContextHolder.getContext().setAuthentication(auth);
         }
 
 

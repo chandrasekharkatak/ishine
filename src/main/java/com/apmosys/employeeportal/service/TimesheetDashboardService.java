@@ -83,7 +83,7 @@ public class TimesheetDashboardService {
      */
     public ServiceResponse getTimesheetDashboardCountForEmployee(
             Integer month, Integer year, Long empId, Boolean isClientDashboard,
-            List<String> billableTypes, String employeeActive, String clientSideFilter) {
+            List<String> billableTypes, String employeeActive, String clientSideFilter,String multiPOs) {
         ServiceResponse response = new ServiceResponse();
         LogDTO apiLogInfo = new LogDTO();
         apiLogInfo.setSubFeatureName("getTimesheetDashboardCountForEmployee");
@@ -95,7 +95,7 @@ public class TimesheetDashboardService {
             List<Object[]> countForEmployee;
             if (isClientDashboard) {
                 countForEmployee = timesheetsRepository.getTimesheetDashboardCountForEmployee(
-                        month, year, empId, clientSideFilter);
+                		 month, year, empId, clientSideFilter,employeeActive, billableTypes,multiPOs);
             } else {
                 countForEmployee = timesheetsRepository.getTimesheetDashboardCountForAllEmployee(
                         month, year, empId, billableTypes, employeeActive);

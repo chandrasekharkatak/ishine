@@ -3,7 +3,8 @@ package com.apmosys.employeeportal.controller;
 	import java.util.List;
 	
 	import org.springframework.beans.factory.annotation.Autowired;
-	import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.format.annotation.DateTimeFormat;
 	import org.springframework.http.MediaType;
 	import org.springframework.web.bind.annotation.GetMapping;
 	import org.springframework.web.bind.annotation.PostMapping;
@@ -50,7 +51,12 @@ import com.apmosys.employeeportal.service.helper.TimesheetEncryptionHelper;
 		
 		@Autowired
 		TimesheetApprovalService timesheetApprovalService;
-		
+
+		@Value("${timesheet.minus.days.for.bulk.upload}")
+		private Integer minusDays;
+
+		@Value("${check.minus.days.for.bulk.upload}")
+		private Boolean checkMinusDaysForBulkUpload;
 		
 		@JobRoleAccess(featureIds = {7,15,16})
 		@RequestMapping(value = "/getAllProjectsByEmpId", method = RequestMethod.POST)
@@ -488,7 +494,7 @@ import com.apmosys.employeeportal.service.helper.TimesheetEncryptionHelper;
 	//			String billableType=String.valueOf(payload.getSelectedBillableType());
 			    List<String> billableTypes = payload.getSelectedBillableTypes(); // use the list
 				String employeeActive = String.valueOf(payload.getSelectedEmployeeStatus());
-			 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId,isClientDashboard,billableTypes,employeeActive,payload.getClientSideFilter());
+			 ServiceResponse reponse= timesheetService.getTimesheetDashboardCountForEmployee(month,year,empId,isClientDashboard,billableTypes,employeeActive,payload.getClientSideFilter(),payload.getMultiPOs());
 			  return reponse;
 		 }
 		 

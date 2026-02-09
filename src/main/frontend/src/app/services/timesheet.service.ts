@@ -8,6 +8,7 @@ import { TimesheetRejectReason } from '../models/timesheetRejectionReasons';
 import { EncryptionService } from './EncryptionService';
 import { getEmployeeTimesheetAsCalenderByProjectId } from '../models/getEmployeeTimesheetAsCalenderByProjectId';
 import { EmployeeTimesheetDTO } from '../models/EmployeeTimesheetDTO';
+import { ProjectBasedBulkUploadPayload } from '../user-timesheet/team-timesheet/types';
 
 @Injectable({
   providedIn: 'root'
@@ -324,7 +325,8 @@ export class TimesheetService {
   isClientDashboard: any,
   selectedBillableTypes: any,
   selectedEmployeeStatus: any,
-  clientSideFilter: string
+  clientSideFilter: string,
+  multiPos: any
 ) {
   const payload = {
     month: month,
@@ -333,7 +335,8 @@ export class TimesheetService {
     isClientDashboard: isClientDashboard,
     selectedBillableTypes: selectedBillableTypes,
     selectedEmployeeStatus: selectedEmployeeStatus,
-    clientSideFilter: clientSideFilter
+    clientSideFilter: clientSideFilter,
+    multiPOs: multiPos
   };
 
   return this.http.post(`${this.baseUrl}api/getTimesheetDashboardCountForEmployee`, payload);
@@ -381,7 +384,7 @@ isEmployeeInTNMProject(empId: any): Observable<any> {
   getOtherTeamMembersByDateAndProjectId(payload: any): Observable<any> {
     return this.http.post(`${this.baseUrl}` + `api/getOtherTeamMembersByDateAndProjectId`, payload);
   }
-
+  
   getMyReporteesAndClientSideProjectsInMonthYear(timesheetObj:any){
     return this.http.post(`${this.baseUrl}` + `api/getMyReporteesAndClientSideProjectsInMonthYear`, timesheetObj);
   }
@@ -393,4 +396,48 @@ isEmployeeInTNMProject(empId: any): Observable<any> {
   wasEmployeeInClientProjCurrAndPrevMon(empId:any){
      return this.http.post(`${this.baseUrl}api/wasEmployeeInClientProjCurrAndPrevMon?empId=${empId}`, null);
   }
+
+  downloadFinalDocuments(payload: any) {
+  return this.http.post(
+    `${this.baseUrl}api/downloadFinalDocuments`,
+    payload,
+    {
+      responseType: 'blob'   
+    }
+  );
+}
+
+getDocumentsBySelectedEmpId(payload: any): Observable<any> {
+  return this.http.post(`${this.baseUrl}api/getDocumentsBySelectedEmpId`, payload);
+}
+
+getDepartmentStatusSummary(payload: any) {
+  return this.http.post(
+    `${this.baseUrl}api/getDepartmentStatusSummary`,
+    payload
+  );
+}
+
+  bulkFinalUploadProjectBased(payload: ProjectBasedBulkUploadPayload, file: File) {
+    const formData = new FormData();
+
+    formData.append('finalFile', file);
+
+    formData.append(
+      'finalBulkUploadDTO',
+      new Blob([JSON.stringify(payload)], { type: 'application/json' })
+    );
+
+    return this.http.post(
+      `${this.baseUrl}api/bulkFinalUploadProjectBased`,
+      formData
+    );
+  }
+
+  getPreviousMinusDays(){
+    return this.http.get(
+      `${this.baseUrl}api/getPreviousMinusDays`
+    )
+  }
+
 }

@@ -12,6 +12,7 @@ import { AuthenticationService } from '../services/authentication.service';
 // import * as XLSX from 'xlsx';
 import * as XLSX from 'xlsx-js-style';
 import { ColorAxis } from 'highcharts';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 
 @Component({
@@ -50,14 +51,24 @@ minYear!: Date;
 maxYear!: Date;
   legend: { [key: string]: { label: string; color: string } } = {
     O:  { label: 'Other Project',       color: '#0da79fff' },
-    A:  { label: 'Absent',              color: '#D9534F' },   // Red (alert)
+    A:  { label: 'Absent',              color: '#d8221cff' },   // Red (alert)
     NW: { label: 'Non-Working Day',     color: '#8E8E8E' },   // Muted gray
     AH: { label: 'ApMoSys Holiday',     color: '#0275D8' },   // Corporate blue
     WO: { label: 'Week Off',            color: '#795548' },   // Brownish neutral
+    CO: { label: 'Comp Off',            color: '#295748' },   // Brownish neutral
     H:  { label: 'Holiday',             color: '#FFC107' },   // Golden yellow
     CH: { label: 'Client Holiday',      color: '#FF9800' },   // Orange
     CA: { label: 'Client Approved',   color: '#006400' },   // Dark green
     CN: { label: 'Client Not-Approved',    color: '#F0AD4E' },   // Amber
+      // 🔴 Rejected by RM (improved differentiation)
+    CA_R: {
+      label: 'Client Approved But Rejected By RM',
+      color: '#B71C1C' // Dark red (high-impact rejection)
+    },
+    CN_R: {
+      label: 'Client Not-Approved But Rejected By RM',
+      color: '#E57373' // Soft red (lower severity rejection)
+    },
     P:  { label: 'Present',             color: '#28A745' },   // Bright green
     NA: { label: 'Not Applicable',      color: '#9E9E9E' },   // Light gray
     L:  { label: 'Leave',               color: '#C21807' },   // Deep red
@@ -73,12 +84,31 @@ maxYear!: Date;
   formattedMonthLabel: string = '';
   isClientDashboard: boolean;
   daysInMonth: { dayNumber: number; dayName: string }[] = [];
+  projectName: any;
+  selectedProjectName: string | null = null;
+  selectedEmpId: any;
+  previewBase64!: string;
+  previewMimeType!: string;
+  @ViewChild("previewModal")
+  previewModal: TemplateRef<any>;
+  empId: number;
+  previewUrl: SafeResourceUrl | null = null;
+  fileType: string = '';
+  mimeType: string = '';
+  zoomScale = 1;
+  zoomLevel = 100;
+  isDragging = false;
+  startX = 0;
+  startY = 0;
+  translateX = 0;
+  translateY = 0;
 
   constructor(private route: ActivatedRoute,
     private modalService: NgbModal,
     private exportExcelService: ExportExcelService,
     private timesheetService: TimesheetService,
-    private authenticationService: AuthenticationService
+    private authenticationService: AuthenticationService,
+    private sanitizer: DomSanitizer,
   ){
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -194,6 +224,11 @@ maxYear!: Date;
     this.modalRef = this.modalService.open(this.alertTemplate, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
+
+  openAlertModForDocPreview(template: TemplateRef<any>, message: any) {
+  this.modalRef= this.modalService.open(template, { modalDialogClass: 'modal-sm' });
+  this.alertMessage = message;
+}
 
   cancelRequest() {
    this.modalRef?.close();
@@ -481,5 +516,230 @@ monthSelected(event: Date, datepicker: any) {
       return { dayNumber: day, dayName: weekday };
     });
   }
+
+  downloadFinalDocuments() {
+
+    if (!this.filteredTimesheetData || this.filteredTimesheetData.length === 0) {
+      console.error('No timesheet data available');
+      return;
+    }
+
+    const projectName = this.filteredTimesheetData[0].projectName;
+
+    if (!projectName) {
+      console.error('Project name not found in table data');
+      return;
+    }
+
+    const payload = {
+      projectId: this.projectId,
+      month: this.month,
+      year: this.year,
+      empId: this.currentUser.empId,
+      projectName: projectName
+    };
+
+    const safeProjectName = projectName
+      .replace(/\s+/g, '_')
+      .replace(/[^a-zA-Z0-9_]/g, '');
+
+    const fileName = `${safeProjectName}_${this.month}_${this.year}.zip`;
+
+    this.timesheetService.downloadFinalDocuments(payload)
+      .subscribe((blob: Blob) => {
+
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+
+        window.URL.revokeObjectURL(url);
+      },
+        error => {
+          console.error('Download failed', error);
+        });
+  }
+
+viewEmployeeTimesheet(empId: any, projectId: any): void {
+  this.selectedEmpId = empId;
+
+  const payload = {
+    projectId: this.projectId,
+    month: this.month,
+    year: this.year,
+    empId: this.currentUser.empId,
+    selectedEmpId: this.selectedEmpId
+  };
+
+  this.timesheetService.getDocumentsBySelectedEmpId(payload).subscribe({
+    next: (res: any) => {
+      if (res.serviceStatus === 'Success' && res.serviceResponse) {
+
+        const docArray = res.serviceResponse[0];
+
+        console.log('serviceResponse:', res.serviceResponse);
+console.log('type:', typeof res.serviceResponse);
+console.log('isArray:', Array.isArray(res.serviceResponse));
+
+        const doc = {
+          docMimeType: docArray[6],
+          fileName: docArray[7],
+          docData: docArray[9]
+        };
+
+        if (doc.docData && doc.docMimeType) {
+          this.showPreview(doc.docData, doc.docMimeType, doc.fileName);
+        } else {
+          this.openAlertModForDocPreview(this.alertTemplate, 'No valid document data found.');
+        }
+
+      } else {
+        this.openAlertModForDocPreview(
+          this.alertTemplate,
+          res.serviceMessage || 'No document found.'
+        );
+      }
+    },
+    error: () => {
+      this.openAlertModForDocPreview(this.alertTemplate, 'Error while fetching document.');
+    }
+  });
+}
+
+
+ showPreview(base64Data: string, mimeType: string, fileName?: string): void {
+    const dataUrl = `data:${mimeType};base64,${base64Data}`;
+    this.resetPreviewState();
+    this.previewBase64 = base64Data;
+    this.previewMimeType = mimeType;
+    this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(dataUrl);
+
+    if (mimeType === 'application/pdf') {
+      this.fileType = 'pdf';
+    } else if (mimeType.startsWith('image/')) {
+      this.fileType = 'image';
+    } else if (
+      mimeType === 'application/vnd.ms-excel' ||
+      mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ) {
+      this.fileType = 'excel';
+    }else {
+      this.fileType = 'other';
+    }
+
+    // this.previewFileName = fileName || 'Document Preview';
+    // this.modalRef2 = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-xxl modal-dialog-centered',scrollable: true });
+    
+    this.modalRef = this.modalService.open(this.previewModal, {
+    modalDialogClass: 'modal-xl modal-dialog-centered',
+    scrollable: false   
+    });
+
+  }
+
+  resetPreviewState() {
+  this.zoomScale = 1;
+  this.zoomLevel = 100;
+  this.translateX = 0;
+  this.translateY = 0;
+  this.isDragging = false;
+}
+
+get transformStyle() {
+  return `translate(${this.translateX}px, ${this.translateY}px) scale(${this.zoomScale})`;
+}
+
+startDrag(event: MouseEvent) {
+  if (this.zoomScale <= 1) return; // drag only when zoomed
+
+  this.isDragging = true;
+  this.startX = event.clientX - this.translateX;
+  this.startY = event.clientY - this.translateY;
+  event.preventDefault();
+}
+
+onDrag(event: MouseEvent) {
+  if (!this.isDragging) return;
+
+  this.translateX = event.clientX - this.startX;
+  this.translateY = event.clientY - this.startY;
+}
+
+endDrag() {
+  this.isDragging = false;
+}
+
+  downloadFile(): void {
+    if (!this.previewBase64 || !this.previewMimeType) {
+      return;
+    }
+
+    const byteCharacters = atob(this.previewBase64);
+    const byteNumbers = new Array(byteCharacters.length);
+
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: this.previewMimeType });
+
+    const blobUrl = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    // link.download = this.buildFileName();
+    link.click();
+
+    URL.revokeObjectURL(blobUrl);
+  }
+
+  //   private buildFileName(): string {
+  //   const userName = this.userName || 'User';
+  //   const day = this.dateObj?.day || 'Date';
+  //   const month = this.formattedMonthLabel;
+  //   const project = this.projectList.find(p => p.projectId === this.projectIdForDropDown);
+  //   const projectName = project?.projectName || 'Project';
+  //   const extension = this.getExtensionFromMime(this.previewMimeType);
+
+  //   return `${userName} | ${day} ${month} | ${projectName}.${extension}`;
+  // }
+
+   private getExtensionFromMime(mimeType: string): string {
+    switch (mimeType) {
+      case 'application/pdf':
+        return 'pdf';
+      case 'image/jpeg':
+        return 'jpeg';
+      case 'image/jpg':
+        return 'jpeg';
+      case 'image/png':
+        return 'jpeg';
+      case 'image/webp':
+        return 'jpeg';
+      case 'application/vnd.ms-excel':
+      return 'xls';
+      case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+      return 'xlsx';
+      default:
+        return 'file';
+    }
+  }
+
+  zoomIn() {
+  if (this.zoomScale < 2.5) {
+    this.zoomScale += 0.1;
+    this.zoomLevel = Math.round(this.zoomScale * 100);
+  }
+}
+
+zoomOut() {
+  if (this.zoomScale > 0.5) {
+    this.zoomScale -= 0.1;
+    this.zoomLevel = Math.round(this.zoomScale * 100);
+  }
+}
+
 
 }

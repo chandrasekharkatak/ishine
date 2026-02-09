@@ -23,6 +23,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 import * as XLSX from 'xlsx';
 import { ActivatedRoute } from '@angular/router';
 import { TimesheetNewService } from 'src/app/services/timesheet-new.service';
+import { ProjectBasedBulkUploadPayload } from './types';
 
 
 @Component({
@@ -44,6 +45,8 @@ export class TeamTimesheetComponent implements OnInit {
   @ViewChild("clientSideIdNotMandatoryFound")
   clientSideIdNotMandatoryFound: TemplateRef<any>;
 
+  @ViewChild("alert_message")
+  alertTemplate: TemplateRef<any>;
 
   @ViewChild("update_clientId")
   updateClientId: TemplateRef<any>;
@@ -141,6 +144,7 @@ export class TeamTimesheetComponent implements OnInit {
   empClientSideObj: EmployeeClientSideIdMapping = new EmployeeClientSideIdMapping();
   projectClientIdList: ProjectClientSideId[] = [];
   clientSideIdNotMandatoryFoundModalRef: NgbModalRef;
+  alertMessageModalRef: NgbModalRef;
   zoomScale = 1;
   zoomLevel = 100;
   isDragging = false;
@@ -152,6 +156,11 @@ clientFilter: boolean = false;
 safePdfUrl:SafeResourceUrl | null = null;
   documentData: any;
 alertModal: TemplateRef<any>;
+  maxMonth = '';
+  minMonth = '';
+  allProjects: {projectId: number, projectName: string}[] = [];
+  projectObj: { [projectId: number]: { empId: number; name: string }[] } = {};
+  minusDaysData: {minusDays: number, checkMinusDaysForBulkUpload: boolean} = {minusDays: 45, checkMinusDaysForBulkUpload: true};
 
   constructor(
     public validationService: ValidationService,
@@ -201,6 +210,26 @@ alertModal: TemplateRef<any>;
     this.thisMonthValidation();
 
     this.selectedMonth = new Date(2025, 4, 1);
+
+    // // Set maxMonth to previous month (current month is NOT allowed for selection)
+    // // Set minMonth to the month of (today - 45 days)
+    // const currentMonth = now.getMonth() + 1; // 1-12
+    // const currentYear = now.getFullYear();
+
+    // // Calculate previous month (maxMonth) - current month is blocked
+    // const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+    // const prevMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+    // this.maxMonth = `${prevMonthYear}-${String(prevMonth).padStart(2, '0')}`;
+
+    // if(this.minusDaysData.checkMinusDaysForBulkUpload){ 
+    //   const fortyFiveDaysAgo = new Date(now);
+    //   fortyFiveDaysAgo.setDate(now.getDate() - this.minusDaysData.minusDays);
+    //   const minMonthValue = fortyFiveDaysAgo.getMonth() + 1; // 1-12
+    //   const minMonthYear = fortyFiveDaysAgo.getFullYear();
+    //   this.minMonth = `${minMonthYear}-${String(minMonthValue).padStart(2, '0')}`;
+    // } else {
+    //   this.minMonth = null;
+    // }
   }
   preventBackButton() {
     history.pushState(null, null, location.href);
@@ -252,12 +281,18 @@ alertModal: TemplateRef<any>;
   }
 
   showTMBulkUpload() {
+    if(this.isTMBulkUpload){
+      return;
+    }
     this.isAllTimesheetTable = false;
     this.isAllTimesheetRequestTable = false;
     this.isTMBulkUpload = true;
+    this.resetBulkUploadForm('MONTH');
+    this.resetBulkUploadForm('EMP');
+    this.resetBulkUploadForm('PROJECT');
+    this.resetBulkUploadForm('UPLOAD');
+    this.getPreviousMinusDays();
   }
-
-
 
   getAllTeamTimesheets(template?: TemplateRef<any>) {
     this.allTeamTimesheets = [];
@@ -1764,7 +1799,6 @@ onGlobalSearchChange() {
     this.getMyReporteesTimesheetRequests();
   }
 
-
 zoomIn() {
   if (this.zoomScale < 2.5) {
     this.zoomScale += 0.1;
@@ -2288,7 +2322,76 @@ openSingleProjectRejectModal(
   );
 }
 
+getReporteesFromProjectId(): { empId: number; name: string }[] {
+  const projectId = this.timesheetObj.selectedProjectId;
+  console.log("Project Id : ", projectId);
+  console.log("Project Object : ", this.projectObj[projectId]);
+  
+  return this.projectObj[projectId] ?? [];
 
+}
+
+  getPreviousMinusDays() {
+    this.timesheetService.getPreviousMinusDays().subscribe({
+      next: (response: any) => {
+
+        this.minusDaysData = response.serviceResponse || {
+          checkMinusDaysForBulkUpload: true,
+          minusDays: 45
+        };
+
+        if(response.serviceError != null ){
+          this.openAlertMod(this.alertTemplate, `Document upload is only valid for past ${this.minusDaysData.minusDays} days`);
+        }
+
+        const now = new Date();
+
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+
+        const prevMonthDate = new Date(currentYear, currentMonth - 1, 1);
+        this.maxMonth = `${prevMonthDate.getFullYear()}-${String(prevMonthDate.getMonth() + 1).padStart(2, '0')}`;
+
+        if (this.minusDaysData.checkMinusDaysForBulkUpload) {
+
+          const minusDays = this.minusDaysData.minusDays && this.minusDaysData.minusDays > 0
+            ? this.minusDaysData.minusDays
+            : 45;
+
+          const expectedDate = new Date(now);
+          expectedDate.setDate(now.getDate() - minusDays);
+
+          const expectedYear = expectedDate.getFullYear();
+          const expectedMonth = expectedDate.getMonth();
+
+          this.minMonth = `${expectedYear}-${String(expectedMonth + 1).padStart(2, '0')}`;
+
+          const isPreviousMonth =
+            expectedYear === prevMonthDate.getFullYear() &&
+            expectedMonth === prevMonthDate.getMonth();
+
+          const minDateObj = isPreviousMonth
+            ? new Date(expectedYear, expectedMonth, 1)
+            : new Date(expectedYear, expectedMonth, 15);
+
+          const maxDateObj = new Date(expectedYear, expectedMonth + 1, 0);
+
+          this.minDate = this.toDateString(minDateObj);
+          this.maxDate = this.toDateString(maxDateObj);
+
+        } else {
+          this.minMonth = null;
+          this.minDate = null;
+          this.maxDate = null;
+        }
+
+      },
+    });
+  }
+
+  private toDateString(d: Date): string {
+    return d.toISOString().split('T')[0];
+  }
 
 
 
@@ -2298,6 +2401,6 @@ openSingleProjectRejectModal(
 
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
+
+
 }
-
-

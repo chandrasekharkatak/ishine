@@ -2871,7 +2871,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			}
 			case "Day Type": {
 				String[] status = new String[] { "Working", "Holiday", "Non-working", "Public Holiday", "Leave",
-						"Week Off" };
+						"Week Off","Comp Off" };
 				for (String object : status) {
 					EmployeeDTO dto = new EmployeeDTO();
 					dto.setName(object);
@@ -3201,7 +3201,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				}
 				case "Day Type": {
 					String[] status = new String[] { "Working", "Holiday", "Non-working", "Public Holiday", "Leave",
-							"Week Off" };
+							"Week Off","Comp Off" };
 					for (String object : status) {
 						EmployeeDTO dto = new EmployeeDTO();
 						dto.setName(object);
