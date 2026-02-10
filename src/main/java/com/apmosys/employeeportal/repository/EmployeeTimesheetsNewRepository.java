@@ -10744,4 +10744,18 @@ Page<GetReporteesTimesheetReqFlatDTO> getMyReporteesTimesheetRequests(
 	// 			") AS defaulters", nativeQuery = true)
 	// public Long countIshineNotFilled(@Param("fromDate") Date fromDate, @Param("toDate") Date toDate);
 
+	@Query(value = "SELECT etn.timesheet_id,etn.date,dayname(etn.date) ,\n"+
+	"TIME_FORMAT(SEC_TO_TIME(etn.total_working_minutes * 60), '%H:%i') AS total_working_hours,\n"+
+	"smn.status, dtn.day_type,\n"+
+	"COALESCE(etn.description, ptsn.description, 'N/A') AS description, a.activity,p.project_name \n"+
+	"FROM employee_timesheets_new etn\n"+
+	"LEFT join project_timesheet_status_new ptsn on etn.timesheet_id = ptsn.timesheet_id\n"+
+	"LEFT JOIN projects p on p.project_id = ptsn.project_id \n"+
+	"LEFT join employee_timesheet_activities_mapping_new etamn on etamn.project_id = ptsn.project_id and etamn.timesheet_id = etn.timesheet_id\n"+
+	"LEFT JOIN activities a ON etamn.activity_id = a.activity_id\n"+
+	"INNER JOIN day_type_master_new dtn on dtn.day_type_id = etn.day_type_id\n"+
+	"INNER JOIN status_master_new smn on smn.status_id = etn.status\n"+
+	"where etn.emp_id = :empId and etn.date between :start and :end",nativeQuery = true )
+	List<Object[]> getNewTimesheetDetails(@Param("empId") Long empId, @Param("start") LocalDate start, @Param("end") LocalDate end);
+
 }
