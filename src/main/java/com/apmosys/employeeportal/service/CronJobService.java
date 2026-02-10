@@ -62,6 +62,7 @@ import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
+import com.apmosys.employeeportal.repository.*;
 import org.dhatim.fastexcel.Workbook;
 import org.dhatim.fastexcel.Worksheet;
 import org.dhatim.fastexcel.reader.ReadableWorkbook;
@@ -120,30 +121,6 @@ import com.apmosys.employeeportal.model.ResourceRequirement;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.UserSession;
-import com.apmosys.employeeportal.repository.BiomaxDefaulterRepository;
-import com.apmosys.employeeportal.repository.BiomaxRequestRepository;
-import com.apmosys.employeeportal.repository.BirthdayMailRepository;
-import com.apmosys.employeeportal.repository.ClientLocationRepository;
-import com.apmosys.employeeportal.repository.ClientsRepository;
-import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
-import com.apmosys.employeeportal.repository.DepartmentRepository;
-import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
-import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
-import com.apmosys.employeeportal.repository.EmployeeRepository;
-import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
-import com.apmosys.employeeportal.repository.HolidayRepository;
-import com.apmosys.employeeportal.repository.JobRoleRepository;
-import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
-import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
-import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
-import com.apmosys.employeeportal.repository.PortalConfigRepository;
-import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
-import com.apmosys.employeeportal.repository.ProjectRepository;
-import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
-import com.apmosys.employeeportal.repository.TeamRepository;
-import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
-import com.apmosys.employeeportal.repository.TimesheetsRepository;
-import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -192,6 +169,9 @@ public class CronJobService {
 	
 	@Autowired
 	EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
+
+	@Autowired
+	TimesheetActivityMapNewRepository timesheetActivityMapNewRepository;
 	
 	@Autowired
 	TimesheetsRepository timesheetsRepository;
@@ -2007,8 +1987,8 @@ public class CronJobService {
 				calendar.set(Calendar.DATE,calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
 				LocalDate lastDateOfPreviousMonth = LocalDate.parse(dateFormat.format(calendar.getTime()));
 
-				List<Object[]> allTimesheets = timesheetsRepository.findAllByDateRangeNative(firstDateOfPreviousMonth, lastDateOfPreviousMonth);
-				List<Object[]> allActivities = timesheetActivityMapRepository.findAllActivitiesByDateRange(firstDateOfPreviousMonth, lastDateOfPreviousMonth);
+				List<Object[]> allTimesheets = employeeTimesheetsNewRepository.findAllByDateRangeNative(firstDateOfPreviousMonth, lastDateOfPreviousMonth);
+				List<Object[]> allActivities = timesheetActivityMapNewRepository.findAllActivitiesByDateRange(firstDateOfPreviousMonth, lastDateOfPreviousMonth);
 				Map<Long, List<Object[]>> timesheetByEmpMap = allTimesheets.stream()
 						.collect(Collectors.groupingBy(obj -> Long.parseLong(obj[0].toString())));
 

@@ -23,6 +23,18 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 
 	// ========== NEW METHODS FOR HIERARCHICAL STRUCTURE ==========
 
+	@Query(value = "SELECT et.emp_id FROM employee_timesheets_new et WHERE et.date = :date", nativeQuery = true)
+	List<Long> findEmpIdsByDate(@Param("date") LocalDate date);
+
+	@Query(value = "SELECT et.emp_id, et.timesheet_id, et.date, dtm.day_type, " +
+			"ROUND(CAST(et.total_working_minutes AS DECIMAL(10,2))/60, 2) AS totalTime, " +
+			"sm.status, et.description " +
+			"FROM employee_timesheets_new et " +
+			"INNER JOIN day_type_master_new dtm ON et.day_type_id = dtm.day_type_id " +
+			"INNER JOIN status_master_new sm ON et.status = sm.status_id " +
+			"WHERE et.date BETWEEN :start AND :end " +
+			"ORDER BY et.emp_id, et.date DESC", nativeQuery = true)
+	List<Object[]> findAllByDateRangeNative(@Param("start") LocalDate start, @Param("end") LocalDate end);
 	/**
 	 * Find EmployeeTimesheet by employee ID and date.
 	 * Returns new entity type.
