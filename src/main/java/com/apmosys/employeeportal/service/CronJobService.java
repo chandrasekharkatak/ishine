@@ -130,6 +130,7 @@ import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
@@ -188,6 +189,9 @@ public class CronJobService {
 	
 	@Autowired				
 	EmployeeRepository employeeRepository;
+	
+	@Autowired
+	EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
 	
 	@Autowired
 	TimesheetsRepository timesheetsRepository;
@@ -4408,6 +4412,7 @@ public class CronJobService {
 			System.out.println("***********JOB STARTED*******************");
 		    try {
 		        List<Department> allDepartment = departmentRepository.findAll();
+		        System.out.print(allDepartment);
 
 		        if (!allDepartment.isEmpty()) {
 		            for (Department department : allDepartment) {
@@ -4417,11 +4422,6 @@ public class CronJobService {
 		                    department.getName().equals("unKnown Department")) {
 		                    continue;
 		                }    
-
-		                System.out.println("\n==========================================");
-		                System.out.println("Processing Department: " + department.getName() + " (ID: " + department.getDeptId() + ")");
-		                System.out.println("==========================================");
-
 		                Set<String> defaulterEmails = new HashSet<>();
 		                List<TimesheetDTO> dtoList = new ArrayList<>();
 
@@ -4430,9 +4430,14 @@ public class CronJobService {
 		                LocalDate firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
 		                LocalDate end = LocalDate.now().minusDays(1);
 		                Long period = ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
-//		                Long dept= (long) 26;
-
-		                List<Object[]> timesheetList = timesheetsRepository.getLast9DaysPendingTimesheetReportOLD(firstOfMonth, end);
+//		                List<Object[]> timesheetList = timesheetsRepository.getLast9DaysPendingTimesheetReportOLD(firstOfMonth, end);
+		                List<Object[]> timesheetList =employeeTimesheetsNewRepository.getFilledTimesheetPerEmployeeCount(firstOfMonth, end);
+		                Map<Long, Long> filledCountMap = timesheetList.stream()
+		                	    .filter(ts -> ts[0] != null)
+		                	    .collect(Collectors.toMap(
+		                	        ts -> Long.parseLong(ts[0].toString()),
+		                	        ts -> ts[1] != null ? Long.parseLong(ts[1].toString()) : 0L
+		                	    ));
 		                List<Object[]> employeeList = employeeRepository.getEmployeeByDepartmentId(department.getDeptId());
 		                System.out.println("Employee List (Total: " + employeeList.size() + "):");
 		                String hodMail = null;
@@ -4440,6 +4445,8 @@ public class CronJobService {
 		                
 						for (Object[] emp : employeeList) {
 		                    System.out.println("  -> A-" + emp[0] + " | Email: " + emp[3]);
+		                    System.out.println(Arrays.toString(emp));
+
 
 		                    TimesheetDTO dto = new TimesheetDTO();
 		                    dto.setEmployeementId(emp[0] != null ? Long.parseLong(emp[0].toString()) : null);
@@ -4451,25 +4458,33 @@ public class CronJobService {
 //		                    dto.setPendingEodCount(period);
 		                    dto.setExpectedEODCount(period);
 		                    dto.setEmploymentstatus(emp[6] != null ? emp[6].toString() : null);
+		                    dto.setIsApmosysProduct(emp[8] != null ? emp[8].toString() : null);
 		                    hodMail = emp[7] != null ? emp[7].toString() : null;
 		                    
 		                    
-		                    long filled = 0;
-		                    for (Object[] ts : timesheetList) {
-		                        Long tsEmpId = ts[0] != null ? Long.parseLong(ts[0].toString()) : null;
-		                        Long empId = emp[5] != null ? Long.parseLong(emp[5].toString()) : null;
-		                        
-		                        System.out.println("Total Expected value ::::" +period);
+//		                    long filled = 0;
+//		                    for (Object[] ts : timesheetList) {
+//		                        Long tsEmpId = ts[0] != null ? Long.parseLong(ts[0].toString()) : null;
+//		                        Long empId = emp[5] != null ? Long.parseLong(emp[5].toString()) : null;
+//		                        
+//		                        System.out.println("Total Expected value ::::" +period);
+//
+//		                        if (tsEmpId != null && tsEmpId.equals(empId)) {
+//		                            filled = ts[1] != null ? Long.parseLong(ts[1].toString()) : 0L;
+//		                            dto.setPendingEodCount(period - filled);
+//		                            break;
+//		                        }
+//		                    }
+		                    Long empId = emp[5] != null
+		                            ? Long.parseLong(emp[5].toString())
+		                            : null;
 
-		                        if (tsEmpId != null && tsEmpId.equals(empId)) {
-		                            filled = ts[1] != null ? Long.parseLong(ts[1].toString()) : 0L;
-		                            dto.setPendingEodCount(period - filled);
-		                            break;
-		                        }
-		                    }
+		                    long filled = empId != null
+		                            ? filledCountMap.getOrDefault(empId, 0L)
+		                            : 0L;
 		                    dto.setFilledTimesheetCount(filled);
-		                    
-		                    if (dto.getPendingEodCount() != null && dto.getPendingEodCount() >= 3 && dto.getEmail() != null) {
+		                    dto.setPendingEodCount(period - filled);
+		                    if(dto.getPendingEodCount() != null && dto.getPendingEodCount() >= 3 && dto.getEmail() != null) {
 		                        defaulterEmails.add(dto.getEmail().toLowerCase().trim());
 		                    }
 
@@ -4496,8 +4511,11 @@ public class CronJobService {
 		                            .append("<th>Expected Timesheet Count</th><th>Filled Timesheet Count</th><th>Department</th></tr>");
 
 		                    for (TimesheetDTO dto : dtoList) {
+		                    	boolean isApmosysProd = Boolean.parseBoolean(dto.getIsApmosysProduct());
+
+		                    	String empPrefix = isApmosysProd ? "AP-" : "A-";
 		                        html.append("<tr>")
-		                                .append("<td>A-").append(dto.getEmployeementId()).append("</td>")
+		                                .append("<td>").append(empPrefix).append(dto.getEmployeementId()).append("</td>")
 		                                .append("<td>").append(dto.getEmployeeName()).append("</td>")
 		                                .append("<td>").append(dto.getEmail()).append("</td>")
 		                                .append("<td>").append(dto.getManagerName()).append("</td>")
@@ -4508,7 +4526,10 @@ public class CronJobService {
 		                    }
 
 		                    html.append("</table></body></html>");
-
+		                    System.out.println("ttttt"+
+		                    	    html.toString()
+		                    	        .replace("><", ">\n<")
+		                    	);
 		                    // Send mail to HOD + HR
 		                    try {
 		                        mailService.sendMailWithCC(

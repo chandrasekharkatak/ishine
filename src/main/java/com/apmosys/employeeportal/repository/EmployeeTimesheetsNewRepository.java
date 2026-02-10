@@ -111,9 +111,11 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	// @Query(nativeQuery = true)
 	// public List<Object[]> getAllTimesheetDataOLD();
 	//
-	// @Query(nativeQuery = true)
-	// public List<Object[]> getLast9DaysPendingTimesheetReportOLD(LocalDate start,
-	// LocalDate end);
+	 @Query(nativeQuery = true, value ="SELECT e.emp_id,count(*) filled_eod FROM employee_timesheets_new et "+
+			" INNER JOIN employee e ON e.emp_id = et.emp_id "+
+			 "WHERE date >= :start and date <= :end and e.employmentstatus != 'InActive' "+
+			 " group by e.emp_id")
+	 public List<Object[]> getFilledTimesheetPerEmployeeCount(LocalDate start,LocalDate end);
 	//
 	// @Query(nativeQuery = true)
 	// public List<Object[]> getLast9DaysFilledTimesheetReportOLD(LocalDate start,
