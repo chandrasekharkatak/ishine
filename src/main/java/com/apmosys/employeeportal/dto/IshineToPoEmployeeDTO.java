@@ -17,7 +17,6 @@ public class IshineToPoEmployeeDTO {
 	    private String exp;
 	    private String departmentName;
 
-	    private Long departmentId;
 	    private Long roleId; //Client Role id from project_requirement_mapping
 	    private Integer clientSideId;
 	    private String isApmosysProduct;      
@@ -31,6 +30,7 @@ public class IshineToPoEmployeeDTO {
 		private Long ishineEmpId;
 		private Long shadowEmpId;
 	    private Integer isShadow;
+	    private String msg;
 
 	    public IshineToPoEmployeeDTO(Long empId,String empName,String roleName,String experience,String departmentName,
 	            Long departmentId,Long clientRoleId,Integer clientSideId,Long timesheetFilledCount,
@@ -42,7 +42,6 @@ public class IshineToPoEmployeeDTO {
 	        this.roleName = roleName;
 	        this.exp = experience;
 	        this.departmentName = departmentName;
-	        this.departmentId = departmentId;
 	        this.roleId = clientRoleId;
 	        this.clientSideId = clientSideId;
 	        this.noOfWorkingDays = timesheetFilledCount;
@@ -52,7 +51,7 @@ public class IshineToPoEmployeeDTO {
 	    }
 	    
 	    public IshineToPoEmployeeDTO(Long empId,String empName,String roleName,String experience,String departmentName,
-	            Long departmentId,Long clientRoleId,Integer clientSideId,Long timesheetFilledCount,
+	            Long clientRoleId,Integer clientSideId,Long timesheetFilledCount,
 	            LocalDate startDate,LocalDate endDate,String isApmosysProduct,Long poId,Long ishineEmpId,
 	            Long shadowEmpId,Integer isShadow) {
 	    	
@@ -61,7 +60,6 @@ public class IshineToPoEmployeeDTO {
 	        this.roleName = roleName;
 	        this.exp = experience;
 	        this.departmentName = departmentName;
-	        this.departmentId = departmentId;
 	        this.roleId = clientRoleId; 
 	        this.clientSideId = clientSideId;
 	        this.noOfWorkingDays = timesheetFilledCount;
@@ -72,6 +70,7 @@ public class IshineToPoEmployeeDTO {
 	        this.ishineEmpId=ishineEmpId;
 	        this.shadowEmpId=shadowEmpId;
 	        this.isShadow=isShadow;
+	        this.isApmosysProduct=isApmosysProduct;
 	        
 	    }
 
