@@ -703,6 +703,29 @@ public class PoDetailsService {
 	    }
 	}
 
+	
+	
+	public void validateAllPosAreActive(List<Long> poIds) {
+
+	    
+
+		List<Long> activePoIds =
+	            projectPoDetailsRepository.findDistinctActivePoIds(poIds);
+
+	    Set<Long> activePoIdSet = new HashSet<>(activePoIds);
+
+	  
+	    List<Long> invalidPoIds = poIds.stream()
+	            .filter(poId -> !activePoIdSet.contains(poId))
+	            .collect(Collectors.toList());
+
+	    if (!invalidPoIds.isEmpty()) {
+	        throw new RuntimeException(
+	            "These PO IDs are either not present in iShine or inactive: "
+	                    + invalidPoIds
+	        );
+	    }
+	}
 
 
 

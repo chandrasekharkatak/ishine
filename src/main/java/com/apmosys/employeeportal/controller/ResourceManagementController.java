@@ -36,6 +36,7 @@ import com.apmosys.employeeportal.dto.ProjectStructureWrapper;
 import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.RestoreProjectPayloadDTO;
+import com.apmosys.employeeportal.dto.RmUpdateSyncDto;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimeSheetRequestDto;
@@ -501,6 +502,13 @@ public class ResourceManagementController {
 		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		 return poSyncOrchestratorService.linkPoInIshineNew(dto);
 	 }
+	 
+	 @PostMapping("/updateRmDetailsInPo")
+	 public ServiceResponse updateRmDetailsInPo(HttpServletRequest httpRequest,@RequestBody  RmUpdateSyncDto dto) {
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		 return poSyncOrchestratorService.updateRmOdPos(dto);
+	 }
+	 
 	 
 	 
 

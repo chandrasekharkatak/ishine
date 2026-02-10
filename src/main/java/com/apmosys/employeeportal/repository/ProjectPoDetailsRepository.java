@@ -173,5 +173,32 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
                         + "where p.projectId=:projectId \n"
                         + "GROUP BY p.projectId, ppd.poId")
         List<PoDetailsDto> getResourceRequirementCountByProjectId(Integer projectId);
+        
+        
+        @Query(value = "SELECT DISTINCT p.poId \n"
+        		+ "    FROM ProjectPoDetails p\n"
+        		+ "    WHERE p.poId IN :poIds\n"
+        		+ "      AND p.active = true" )
+        List<Long> findDistinctActivePoIds(@Param("poIds") List<Long> poIds);
+        
+        
+        
+        @Modifying
+        @Query(value ="UPDATE ProjectPoDetails p\n"
+        		+ "       SET p.apmosysRmEmpId = :rmEmpId,\n"
+        		+ "           p.apmosysRM = :rmName,\n"
+        		+ "           p.apmosysRmEmail = :rmEmail,\n"
+        		+ "           p.updatedBy = :updatedBy \n"
+        		+ "     WHERE p.poId IN :poIds\n"
+        		+ "       AND p.active = true")
+        int updateRmForActivePos(
+                @Param("poIds") List<Long> poIds,
+                @Param("rmEmpId") Long rmEmpId,
+                @Param("rmName") String rmName,
+                @Param("rmEmail") String rmEmail,
+                @Param("updatedBy") Long updatedBy
+        );
+        
+        
 
 }

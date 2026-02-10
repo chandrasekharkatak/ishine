@@ -3751,6 +3751,16 @@ public List<Object[]> fetchInActivePOListOfProject(
 		    			@Param("deptIds") List<Long> deptIds,
 		    			@Param("fromDate") String fromDate,
 		    			@Param("toDate") String toDate);
+		    	
+		    	
+		    	@Query(value="SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END\n"
+		    			+ "    FROM Employee e\n"
+		    			+ "    WHERE e.empId = :empId\n"
+		    			+ "      AND e.name = :name")
+		    	boolean existsByEmpIdAndEmployeeName(
+		    	        @Param("empId") Long empId,
+		    	        @Param("name") String name
+		    	);   	
 
 	
 
