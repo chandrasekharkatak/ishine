@@ -1992,7 +1992,11 @@ public class CronJobService {
 		public ServiceResponse monthlyTimesheetExcelGenerator() {
 			ServiceResponse response = new ServiceResponse();
 			try {
-
+				List<PortalConfig> portalConfig = portalConfigRepository.findAll();
+				String folderPath = portalConfig.stream()
+						.filter(c -> "DSR Download Path".equals(c.getConfigName()))
+						.map(PortalConfig::getConfigValue)
+						.findFirst().orElse("");
 				Calendar calendar = Calendar.getInstance();
 				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 				calendar.add(Calendar.MONTH, -1);
@@ -2003,6 +2007,13 @@ public class CronJobService {
 				calendar.set(Calendar.DATE,calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
 				LocalDate lastDateOfPreviousMonth = LocalDate.parse(dateFormat.format(calendar.getTime()));
 
+				List<Object[]> allTimesheets = timesheetsRepository.findAllByDateRangeNative(firstDateOfPreviousMonth, lastDateOfPreviousMonth);
+				List<Object[]> allActivities = timesheetActivityMapRepository.findAllActivitiesByDateRange(firstDateOfPreviousMonth, lastDateOfPreviousMonth);
+				Map<Long, List<Object[]>> timesheetByEmpMap = allTimesheets.stream()
+						.collect(Collectors.groupingBy(obj -> Long.parseLong(obj[0].toString())));
+
+				Map<Long, List<Object[]>> activityByTsMap = allActivities.stream()
+						.collect(Collectors.groupingBy(obj -> Long.parseLong(obj[0].toString())));
 				List<Object[]> employeeList = employeeRepository.getEmployeeDetailForCron();
 				for(Object[] empObj : employeeList) {
 
@@ -2013,19 +2024,9 @@ public class CronJobService {
 					System.out.println("Emp ID :" + empId);
 					System.out.println("Employment ID :" + employeementId);
 
-					List<Object[]> monthlyTimesheet = timesheetsRepository.
-							findAllByEmpIdAndDateNative(empId, firstDateOfPreviousMonth, lastDateOfPreviousMonth);
+					List<Object[]> monthlyTimesheet = timesheetByEmpMap.getOrDefault(empId, new ArrayList<>());
 
-					List<PortalConfig> portalConfig = portalConfigRepository.findAll();
-					String folderPath = null;
-					if(!portalConfig.isEmpty()) {
-						for(PortalConfig portalConfigObj : portalConfig) {
-							if(portalConfigObj.getConfigName().equals("DSR Download Path")) {
-								folderPath = portalConfigObj.getConfigValue();
-							}
-						}
-					}
-					System.out.println("Folder Path : " + folderPath);
+										System.out.println("Folder Path : " + folderPath);
 
 					    Path path = Files.createDirectories(Paths.get(folderPath +"DSR" + File.separator + firstDateOfPreviousMonth.getYear() + File.separator + firstDateOfPreviousMonth.getMonth()));
 						var f = new File(path + File.separator + employeementId + "-" + empName + "-" + firstDateOfPreviousMonth.getMonth() + ".xlsx");
@@ -2056,14 +2057,13 @@ public class CronJobService {
 							String perviousClientLocation = "";
 							for(Object[] tsRow: monthlyTimesheet) {
 
-                                Long tsId        = tsRow[0] != null ? Long.parseLong(tsRow[0].toString()) : null;
-                                String tsDate    = tsRow[1] != null ? tsRow[1].toString() : "";
-                                String tsDayType = tsRow[2] != null ? tsRow[2].toString() : "";
-                                String tsTotalHr = tsRow[3] != null ? tsRow[3].toString() : "0";
-                                String tsStatus  = tsRow[4] != null ? tsRow[4].toString() : "";
-                                String tsDesc    = tsRow[5] != null ? tsRow[5].toString() : "";
-								List<Object[]> objectList = timesheetActivityMapRepository.activitiesByTimesheetId(tsId);
-
+                                Long tsId        = tsRow[1] != null ? Long.parseLong(tsRow[1].toString()) : null;
+                                String tsDate    = tsRow[2] != null ? tsRow[2].toString() : "";
+                                String tsDayType = tsRow[3] != null ? tsRow[3].toString() : "";
+                                String tsTotalHr = tsRow[4] != null ? tsRow[4].toString() : "0";
+                                String tsStatus  = tsRow[5] != null ? tsRow[5].toString() : "";
+                                String tsDesc    = tsRow[6] != null ? tsRow[6].toString() : "";
+								List<Object[]> objectList = activityByTsMap.getOrDefault(tsId, new ArrayList<>());
 
 								if(!objectList.isEmpty()) {
 									for(Object[] object : objectList) {
@@ -2085,6 +2085,7 @@ public class CronJobService {
 											ws.value(rowNum, 1, tsDayType);
 											ws.value(rowNum, 6, tsTotalHr);
 											ws.value(rowNum, 8,tsStatus );
+											ws.value(rowNum, 7, tsDesc);
 										}
 										if(clientName.equals(perviousClientName) && tsDate.equals(perviousDate)) {
 											ws.range(rowNum - 1, 2, rowNum, 2).merge();

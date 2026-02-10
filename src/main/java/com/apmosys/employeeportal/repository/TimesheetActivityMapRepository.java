@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -48,4 +49,17 @@ public interface TimesheetActivityMapRepository extends JpaRepository<TimesheetA
 	@Query(nativeQuery = true)
 	public List<TimesheetActivityMap> getTimesheetActivityByTimesheetId(Long timesheetId);
 
-}
+
+	@Query(value = "SELECT etam.timesheet_id, ac.activity, ac.eta, etam.description, " +
+			"CAST(etam.duration_minutes AS DECIMAL(10,2))/60 AS completion_time, " +
+			"p.project_name, c.client_name, cl.client_location, t.team_name AS team_name " +
+			"FROM employee_timesheet_activities_mapping_new etam " +
+			"INNER JOIN employee_timesheets_new et ON et.timesheet_id = etam.timesheet_id " +
+			"INNER JOIN activities ac ON ac.activity_id = etam.activity_id " +
+			"LEFT JOIN projects p ON p.project_id = etam.project_id " +
+			"LEFT JOIN teams t ON t.team_id = ac.team_id " +
+			"LEFT JOIN clients c ON c.client_id = p.client_id " +
+			"LEFT JOIN project_timesheet_status_new pts ON pts.timesheet_id = etam.timesheet_id AND pts.project_id = etam.project_id " +
+			"LEFT JOIN client_locations cl ON cl.client_location_id = pts.client_location_id " +
+			"WHERE et.date BETWEEN :start AND :end", nativeQuery = true)
+	List<Object[]> findAllActivitiesByDateRange(@Param("start") LocalDate start, @Param("end") LocalDate end);}
