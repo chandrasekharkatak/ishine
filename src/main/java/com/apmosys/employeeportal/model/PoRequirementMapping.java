@@ -32,14 +32,17 @@ public class PoRequirementMapping {
 	    @Column(name = "client_role_id")
 	    private Long clientRoleId;
 	    
-	    @Column(name = "role")
-	    private String role;
+	    @Column(name = "role_id")
+	    private Long roleId;
 	    
-	    @Column(name = "experience")
-	    private String experience;
-	    
-	    @Column(name = "department")
-	    private String department;
+//	    @Column(name = "role")
+//	    private String role;
+//	    
+//	    @Column(name = "experience")
+//	    private String experience;
+//	    
+//	    @Column(name = "department")
+//	    private String department;
 	    
 	    @Column(name = "count")
 	    private Long count;

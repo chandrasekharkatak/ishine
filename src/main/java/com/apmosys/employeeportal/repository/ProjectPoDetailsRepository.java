@@ -183,7 +183,7 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
         
         @Modifying
         @Query(value ="UPDATE ProjectPoDetails p\n"
-        		+ "       SET p.apmosysRmEmpId = :rmEmpId,\n"
+        		+ "       SET p.empIdApmosysRm = :rmEmpId,\n"
         		+ "           p.apmosysRM = :rmName,\n"
         		+ "           p.apmosysRmEmail = :rmEmail,\n"
         		+ "           p.updatedBy = :updatedBy \n"
