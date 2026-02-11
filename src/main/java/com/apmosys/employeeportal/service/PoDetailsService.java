@@ -69,8 +69,8 @@ public class PoDetailsService {
 		ClientLocation cl = clientService.resolveClientLocation(client.getClientId(), poDto.getClientLocation(),
 				poDto.getClientState());
 		
-		Long createdBy = validationService.validateAndGetEmployeeEmpId(poDto.getCreatedByEmpId(),poDto.getCreatedByEmpName());
-        Long updatedBy = validationService.validateAndGetEmployeeEmpId(poDto.getUpdatedByEmpId(),poDto.getUpdatedByEmpName());
+	      validationService.validateEmployeeExists(poDto.getCreatedByEmpId(),poDto.getCreatedByEmpName());
+          validationService.validateEmployeeExists(poDto.getUpdatedByEmpId(),poDto.getUpdatedByEmpName());
 		
 		
 		ProjectPoDetails po = new ProjectPoDetails();
@@ -82,8 +82,8 @@ public class PoDetailsService {
 		po.setPoEndDate(convert(poDto.getPoEndDate()));
 		po.setClientLocationId(Long.valueOf(cl.getClientLocationId()));
 		po.setClientAddressId(poDto.getClientAddressId());
-		po.setCreatedBy(createdBy);
-		po.setUpdatedBy(updatedBy);
+		po.setCreatedBy(poDto.getCreatedByEmpId());
+		po.setUpdatedBy(poDto.getUpdatedByEmpId());
 		po.setMsg(poDto.getCommentForRmg());
 		po.setApmosysRM(poDto.getApmosysRmEmpName());
 		po.setApmosysRmEmail(poDto.getApmosysRmEmail());
@@ -157,6 +157,9 @@ public class PoDetailsService {
 	            dto.getPoDetailsList().get(0);
 
 	    boolean changed = false;
+	    
+	    validationService.validateEmployeeExists(poDto.getUpdatedByEmpId(),
+                poDto.getUpdatedByEmpName());
 
 	    if (!Objects.equals(po.getPoNo(), poDto.getPoNo())) {
 	        po.setPoNo(poDto.getPoNo());
@@ -239,11 +242,8 @@ public class PoDetailsService {
 	   
 
 	    if (changed) {
-	        po.setUpdatedBy(
-	                validateAndGetEmployeeEmpId(
-	                        poDto.getUpdatedByEmpId(),
-	                        poDto.getUpdatedByEmpName())
-	        );
+	        po.setUpdatedBy(poDto.getUpdatedByEmpId());
+	       
 	        po.setPoUpdatedOn(convert(poDto.getUpdatedOn()));
 
 	        projectPoDetailsRepository.save(po);
@@ -545,14 +545,12 @@ public class PoDetailsService {
 	            existingPo.setNextPO(incoming.getNextPO());
 	            changed = true;
 	        }
+	        
+	        validationService.validateEmployeeExists(incoming.getUpdatedByEmpId(),
+                    incoming.getUpdatedByEmpName());
 
 	        if (changed) {
-	            existingPo.setUpdatedBy(
-	                    validateAndGetEmployeeEmpId(
-	                            incoming.getUpdatedByEmpId(),
-	                            incoming.getUpdatedByEmpName()
-	                    )
-	            );
+	            existingPo.setUpdatedBy(incoming.getUpdatedByEmpId());
 	            
 	          
 	            existingPo.setPoUpdatedOn(
@@ -612,7 +610,7 @@ public class PoDetailsService {
 	        List<ProjectPoMappingWithResourceDTO> deletedProjects) {
 		
 		PoDetailsForProjectPoMappingDTO poDto = deletedProjects.get(0).getPoDetailsList().get(0);
-		Long updatedBy =   validateAndGetEmployeeEmpId(
+		   validationService.validateEmployeeExists(
 				poDto.getUpdatedByEmpId(),
 				poDto.getUpdatedByEmpName()
         );
@@ -628,7 +626,7 @@ public class PoDetailsService {
 
 	        for (ProjectPoDetails po : pos) {
 	            po.setActive(false);
-	            po.setUpdatedBy(updatedBy);
+	            po.setUpdatedBy(poDto.getUpdatedByEmpId());
 	            po.setPoUpdatedOn(updatedOn);
 	            projectPoDetailsRepository.save(po);
 	        }

@@ -152,6 +152,7 @@ public class ValidationService {
 		require(poDto.getClientAddressId(), "clientAddressId");
 		require(poDto.getClientLocation(), "clientLocation");
 		require(poDto.getClientState(), "clientState");
+		require(poDto.getApmosysRmEmpId(), "apmosysRmEmpId");	
 		require(poDto.getApmosysRmEmpName(), "apmosysRmEmpName");
 		require(poDto.getApmosysRmEmail(), "apmosysRmEmail");
 		require(poDto.getClientRmName(), "clientRmName");
