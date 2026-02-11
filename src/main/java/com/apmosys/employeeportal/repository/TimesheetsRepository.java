@@ -28,7 +28,6 @@ import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 
 	public List<Timesheet> findAllByEmpIdAndDateBetweenOrderByDateDesc(Long empId,LocalDate start, LocalDate end);
-
 //	@Query(nativeQuery = true)
 //	public List<Object[]> getMyReporteesTimesheetRequests(Long managerId,String status);
 //	

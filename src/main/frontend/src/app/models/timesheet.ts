@@ -1,3 +1,4 @@
+import { ProjectItem } from "../helpers/calendar/calendar.component";
 import { TimesheetDoc } from "./timesheetDoc";
 
 export class Timesheet{
@@ -118,4 +119,5 @@ export class Timesheet{
 
     empIds:any[];
     monthYear:any;
+    projects?: ProjectItem[]
 }

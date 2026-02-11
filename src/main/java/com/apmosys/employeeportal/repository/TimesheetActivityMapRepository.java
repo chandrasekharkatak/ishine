@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -47,5 +48,6 @@ public interface TimesheetActivityMapRepository extends JpaRepository<TimesheetA
 
 	@Query(nativeQuery = true)
 	public List<TimesheetActivityMap> getTimesheetActivityByTimesheetId(Long timesheetId);
+
 
 }
