@@ -44,6 +44,8 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	java.util.Optional<EmployeeTimesheetsNew> findByEmpIdAndDateNew(@Param("empId") Long empId,
 			@Param("date") LocalDate date);
 
+	List<EmployeeTimesheetsNew> findByDateAndEmpIdIn(LocalDate date, List<Long> empIds);
+
 	/**
 	 * Find all EmployeeTimesheets by employee ID and date range.
 	 * Returns new entity type.

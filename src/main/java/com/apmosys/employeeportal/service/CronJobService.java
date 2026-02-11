@@ -1269,187 +1269,309 @@ public class CronJobService {
 	//0 0 21 ? * * - At 21:00:00pm every day
 
 //	@Scheduled(cron = "0 10 16 * * ?")
-	@Scheduled(cron = "0 1 00 ? * *")
+//	@Scheduled(cron = "0 */1 * ? * *")
 //	@Scheduled(cron = "0 36 17 3 11 ?")
 
-		public void automaticTimesheetFiller() {
-
-		System.out.println("Cron----**********----started");
-
-			try {
-				//for hardcoded
-//				LocalDate dateToday = LocalDate.parse("2024-12-14");
-//				LocalDate dateToday = LocalDate.parse("2025-11-17");
-				LocalDate dateToday = LocalDate.now();
-				LocalDateTime dateTimeToday = LocalDateTime.now();
-//				System.out.println("filling timesheet method started");
-				List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCronExludingSomeEmployees();
-//				System.err.println("vghgc"+dateToday);
-				List<Holiday> publicHoliday = holidayRepository.findByDateOfHoliday(dateToday);
-
-//				List<Holiday> publicHoliday = holidayRepository.findByDateOfHolidayBetween(start,end);
-
-			//	Timesheet filler for weekoff day : saturday & sunday
-
-				if(!publicHoliday.isEmpty()) {
-
-					System.out.println("holiday_size"+publicHoliday.size());
-
-					for(Holiday holiday: publicHoliday) {
-						String holidayOccassion = holiday.getOccasion();
-						String dayOfWeek = holiday.getDayOfTheWeek();
-
-						if((holiday.getHolidayType().equals("WeekOff") && dayOfWeek.equals("Saturday")) || (holiday.getHolidayType().equals("WeekOff") && dayOfWeek.equals("Sunday"))) {
-							for(Object[] employeeList: allEmployee) {
-								Long empId = employeeList[0] != null ? Long.parseLong(employeeList[0].toString()) : null;
-								String billableType = employeeList[7] != null ?employeeList[7].toString() : null;
-								
-								Optional<EmployeeTimesheetsNew> empTimesheet = employeeTimesheetsNewRepository.findByEmpIdAndDateNew(empId, dateToday);
-
-								if (empTimesheet.isEmpty()) {
-
-									if (holidayOccassion.equals("Saturday : second saturday")
-											|| holidayOccassion.equals("Saturday : fourth saturday")) {
-										if (billableType != null && !("TNM").equalsIgnoreCase(billableType)) {
-											EmployeeTimesheetsNew newTimesheet = new EmployeeTimesheetsNew();
-											newTimesheet.setCreatedBy(empId);
-											newTimesheet.setDate(dateToday);
-											newTimesheet.setCreatedOn(dateTimeToday);//											newTimesheet.setDaytype("Week Off");
-											newTimesheet.setDescription("WeekOff : Saturday");
-											newTimesheet.setTotalWorkingMinutes(0);
-											newTimesheet.setEmpId(empId);
-											newTimesheet.setIsNightShift(false);
-											newTimesheet.setDayTypeId(4);
-											newTimesheet.setStatus(2);
-											employeeTimesheetsNewRepository.save(newTimesheet);
-										}
-									} else {
-										EmployeeTimesheetsNew newTimesheet = new EmployeeTimesheetsNew();
-										newTimesheet.setCreatedBy(empId);
-										newTimesheet.setDate(dateToday);
-										newTimesheet.setCreatedOn(dateTimeToday);
-//										newTimesheet.setDayType("Week Off");
-										newTimesheet.setIsNightShift(false);
-										newTimesheet.setDescription("WeekOff : Sunday");
-//										newTimesheet.setTotalTime((float) 0);
-										newTimesheet.setDayTypeId(4);
-										newTimesheet.setTotalWorkingMinutes(0);
-										newTimesheet.setEmpId(empId);
-										newTimesheet.setStatus(2);
-										employeeTimesheetsNewRepository.save(newTimesheet);
-									}
-
-									// For weekoff's managers don't have to approve the timesheet, if any employee
-									// worked on weekoff will revoke this ..
-
-//									System.out.println("filling weekoffs");
-
-								}
-							}
-						}
-					}
-				}
-
-		   //	Timesheet filler for public Holiday
-
-				if(!publicHoliday.isEmpty()) {
-					System.out.println("vghgc"+publicHoliday.isEmpty());
-					System.out.println("holiday_size_holiday"+publicHoliday.size());
-					for(Holiday holidays: publicHoliday) {
-						String holidayState = holidays.getState();
-
-						for(Object[] employeeList: allEmployee) {
-							Long empId = employeeList[0] != null ? Long.parseLong(employeeList[0].toString()) : null;
-							String workLocation = employeeList[1] != null ? employeeList[1].toString() : null;
-							String billableType = employeeList[7] != null ?employeeList[7].toString() : null;
-							if(("TNM").equalsIgnoreCase(billableType)) {
-								System.out.println("TNM");
-							}
-							System.out.println("vghgc"+empId);
-							Optional<EmployeeTimesheetsNew> empTimesheet = employeeTimesheetsNewRepository.findByEmpIdAndDateNew(empId,holidays.getDateOfHoliday());
-							if(empTimesheet.isEmpty()) {
-								System.out.println("vghgc"+publicHoliday.isEmpty());
-								if(((holidayState.equals("all") && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))
-										|| (holidayState.equals(workLocation) && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking"))))&& billableType != null &&!("TNM").equalsIgnoreCase(billableType)){
-
-									EmployeeTimesheetsNew newTimesheet = new EmployeeTimesheetsNew();
-									newTimesheet.setCreatedBy(empId);
-									newTimesheet.setDate(holidays.getDateOfHoliday());
-									newTimesheet.setCreatedOn(dateTimeToday);
-									newTimesheet.setDayTypeId(2);
-									newTimesheet.setIsNightShift(false);
-//									newTimesheet.setDayType("Public Holiday");
-									newTimesheet.setDescription("Public Holiday : " + holidays.getOccasion());
-									newTimesheet.setEmpId(empId);
-									newTimesheet.setStatus(2);
-
-//									System.out.println("filling holiday");
-
-									employeeTimesheetsNewRepository.save(newTimesheet);
-									System.out.println("vghgc"+newTimesheet);
-
-								}
-							}
-						}
-					}
-				}
-
-			//	Timesheet filler for leave days
-
-//				List<EmployeeLeave> employeeLeave = employeeLeaveRepository.findByFromDate(dateToday);
+//		public void automaticTimesheetFiller() {
 //
-//				if(!employeeLeave.isEmpty()) {
+//		System.out.println("Cron----**********----started");
 //
-//					for(EmployeeLeave leaveObj: employeeLeave) {
-//						Long empId = leaveObj.getEmpId();
-//						Short approvedLeave = 2;
+//			try {
+//				//for hardcoded
+////				LocalDate dateToday = LocalDate.parse("2024-12-14");
+////				LocalDate dateToday = LocalDate.parse("2025-11-17");
+//				LocalDate dateToday = LocalDate.now();
+//				LocalDateTime dateTimeToday = LocalDateTime.now();
+////				System.out.println("filling timesheet method started");
+//				List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCronExludingSomeEmployees();
+////				System.err.println("vghgc"+dateToday);
+//				List<EmployeeTimesheetsNew> toSave = new ArrayList<>();
+//				List<Holiday> publicHoliday = holidayRepository.findByDateOfHoliday(dateToday);
+//				List<Long> empIds = allEmployee.stream()
+//				        .map(e -> Long.parseLong(e[0].toString()))
+//				        .collect(Collectors.toList());
 //
-//						long elapsedDays = ChronoUnit.DAYS.between(leaveObj.getFromDate(), leaveObj.getToDate());
+//				List<EmployeeTimesheetsNew> existingTimesheets =
+//				        employeeTimesheetsNewRepository.findByDateAndEmpIdIn(dateToday, empIds);
+//				
+//				Map<Long, EmployeeTimesheetsNew> timesheetMap =
+//				        existingTimesheets.stream()
+//				                .collect(Collectors.toMap(
+//				                        EmployeeTimesheetsNew::getEmpId,
+//				                        t -> t
+//				                ));
+////				List<Holiday> publicHoliday = holidayRepository.findByDateOfHolidayBetween(start,end);
 //
-//						if((elapsedDays == 0) && leaveObj.getLeaveStatusId().equals(approvedLeave)) {
+//			//	Timesheet filler for weekoff day : saturday & sunday
 //
-//							Timesheet newTimesheet = new Timesheet();
+//				if(!publicHoliday.isEmpty()) {
 //
-//							newTimesheet.getCommonProperty().setCreatedBy(empId);
-//							newTimesheet.setDate(dateToday);
-//							newTimesheet.setDayType("Holiday");
-//							newTimesheet.setDescription("On leave");
-//							newTimesheet.setEmpId(empId);
-//							newTimesheet.setStatus("Approved");
+//					System.out.println("holiday_size"+publicHoliday.size());
 //
-//							timesheetsRepository.save(newTimesheet);
-//						}
+//					for(Holiday holiday: publicHoliday) {
+//						String holidayOccassion = holiday.getOccasion();
+//						String dayOfWeek = holiday.getDayOfTheWeek();
 //
-//						if((elapsedDays != 0) && leaveObj.getLeaveStatusId().equals(approvedLeave)) {
-//							LocalDate tempDateToday = dateToday;
+//						if((holiday.getHolidayType().equals("WeekOff") && dayOfWeek.equals("Saturday")) || (holiday.getHolidayType().equals("WeekOff") && dayOfWeek.equals("Sunday"))) {
+//							for(Object[] employeeList: allEmployee) {
+//								Long empId = employeeList[0] != null ? Long.parseLong(employeeList[0].toString()) : null;
+//								String billableType = employeeList[7] != null ?employeeList[7].toString() : null;
+//								
+////								Optional<EmployeeTimesheetsNew> empTimesheet = employeeTimesheetsNewRepository.findByEmpIdAndDateNew(empId, dateToday);
 //
-//							while(tempDateToday.compareTo(leaveObj.getToDate()) != 1) {
+//								if (!timesheetMap.containsKey(empId)) {
 //
-//								Timesheet newTimesheet = new Timesheet();
+//									if (holidayOccassion.equals("Saturday : second saturday")
+//											|| holidayOccassion.equals("Saturday : fourth saturday")) {
+//										if (billableType != null && !("TNM").equalsIgnoreCase(billableType)) {
+//											EmployeeTimesheetsNew newTimesheet = new EmployeeTimesheetsNew();
+//											newTimesheet.setCreatedBy(empId);
+//											newTimesheet.setDate(dateToday);
+//											newTimesheet.setCreatedOn(dateTimeToday);//											newTimesheet.setDaytype("Week Off");
+//											newTimesheet.setDescription("WeekOff : Saturday");
+//											newTimesheet.setTotalWorkingMinutes(0);
+//											newTimesheet.setEmpId(empId);
+//											newTimesheet.setIsNightShift(false);
+//											newTimesheet.setDayTypeId(4);
+//											newTimesheet.setStatus(2);
+//											toSave.add(newTimesheet);
+//										}
+//									} else {
+//										EmployeeTimesheetsNew newTimesheet = new EmployeeTimesheetsNew();
+//										newTimesheet.setCreatedBy(empId);
+//										newTimesheet.setDate(dateToday);
+//										newTimesheet.setCreatedOn(dateTimeToday);
+////										newTimesheet.setDayType("Week Off");
+//										newTimesheet.setIsNightShift(false);
+//										newTimesheet.setDescription("WeekOff : Sunday");
+////										newTimesheet.setTotalTime((float) 0);
+//										newTimesheet.setDayTypeId(4);
+//										newTimesheet.setTotalWorkingMinutes(0);
+//										newTimesheet.setEmpId(empId);
+//										newTimesheet.setStatus(2);
+//										toSave.add(newTimesheet);
+//									}
 //
-//								newTimesheet.getCommonProperty().setCreatedBy(empId);
-//								newTimesheet.setDate(tempDateToday);
-//								newTimesheet.setDayType("Holiday");
-//								newTimesheet.setDescription("On leave");
-//								newTimesheet.setEmpId(empId);
-//								newTimesheet.setStatus("Approved");
+//									// For weekoff's managers don't have to approve the timesheet, if any employee
+//									// worked on weekoff will revoke this ..
 //
-//								timesheetsRepository.save(newTimesheet);
+////									System.out.println("filling weekoffs");
 //
-//								tempDateToday = tempDateToday.plusDays(1);
+//								}
 //							}
 //						}
 //					}
 //				}
-				System.out.println("Method end reached");
-				}
-			catch(Exception e) {
-				e.printStackTrace();
-			}
-		}
+//
+//		   //	Timesheet filler for public Holiday
+//
+//				if(!publicHoliday.isEmpty()) {
+//					System.out.println("vghgc"+publicHoliday.isEmpty());
+//					System.out.println("holiday_size_holiday"+publicHoliday.size());
+//					for(Holiday holidays: publicHoliday) {
+//						String holidayState = holidays.getState();
+//
+//						for(Object[] employeeList: allEmployee) {
+//							Long empId = employeeList[0] != null ? Long.parseLong(employeeList[0].toString()) : null;
+//							String workLocation = employeeList[1] != null ? employeeList[1].toString() : null;
+//							String billableType = employeeList[7] != null ?employeeList[7].toString() : null;
+//							if(("TNM").equalsIgnoreCase(billableType)) {
+//								System.out.println("TNM");
+//							}
+//							System.out.println("vghgc"+empId);
+////							Optional<EmployeeTimesheetsNew> empTimesheet = employeeTimesheetsNewRepository.findByEmpIdAndDateNew(empId,holidays.getDateOfHoliday());
+//							if(!timesheetMap.containsKey(empId)) {
+//								System.out.println("vghgc"+publicHoliday.isEmpty());
+//								if(((holidayState.equals("all") && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))
+//										|| (holidayState.equals(workLocation) && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking"))))&& billableType != null &&!("TNM").equalsIgnoreCase(billableType)){
+//
+//									EmployeeTimesheetsNew newTimesheet = new EmployeeTimesheetsNew();
+//									newTimesheet.setCreatedBy(empId);
+//									newTimesheet.setDate(holidays.getDateOfHoliday());
+//									newTimesheet.setCreatedOn(dateTimeToday);
+//									newTimesheet.setDayTypeId(2);
+//									newTimesheet.setIsNightShift(false);
+////									newTimesheet.setDayType("Public Holiday");
+//									newTimesheet.setDescription("Public Holiday : " + holidays.getOccasion());
+//									newTimesheet.setEmpId(empId);
+//									newTimesheet.setStatus(2);
+//
+////									System.out.println("filling holiday");
+//									toSave.add(newTimesheet);
+//									System.out.println("vghgc"+newTimesheet);
+//
+//								}
+//							}
+//						}
+//					}
+//				}
+//
+//			//	Timesheet filler for leave days
+//
+////				List<EmployeeLeave> employeeLeave = employeeLeaveRepository.findByFromDate(dateToday);
+////
+////				if(!employeeLeave.isEmpty()) {
+////
+////					for(EmployeeLeave leaveObj: employeeLeave) {
+////						Long empId = leaveObj.getEmpId();
+////						Short approvedLeave = 2;
+////
+////						long elapsedDays = ChronoUnit.DAYS.between(leaveObj.getFromDate(), leaveObj.getToDate());
+////
+////						if((elapsedDays == 0) && leaveObj.getLeaveStatusId().equals(approvedLeave)) {
+////
+////							Timesheet newTimesheet = new Timesheet();
+////
+////							newTimesheet.getCommonProperty().setCreatedBy(empId);
+////							newTimesheet.setDate(dateToday);
+////							newTimesheet.setDayType("Holiday");
+////							newTimesheet.setDescription("On leave");
+////							newTimesheet.setEmpId(empId);
+////							newTimesheet.setStatus("Approved");
+////
+////							timesheetsRepository.save(newTimesheet);
+////						}
+////
+////						if((elapsedDays != 0) && leaveObj.getLeaveStatusId().equals(approvedLeave)) {
+////							LocalDate tempDateToday = dateToday;
+////
+////							while(tempDateToday.compareTo(leaveObj.getToDate()) != 1) {
+////
+////								Timesheet newTimesheet = new Timesheet();
+////
+////								newTimesheet.getCommonProperty().setCreatedBy(empId);
+////								newTimesheet.setDate(tempDateToday);
+////								newTimesheet.setDayType("Holiday");
+////								newTimesheet.setDescription("On leave");
+////								newTimesheet.setEmpId(empId);
+////								newTimesheet.setStatus("Approved");
+////
+////								timesheetsRepository.save(newTimesheet);
+////
+////								tempDateToday = tempDateToday.plusDays(1);
+////							}
+////						}
+////					}
+////				}
+//				employeeTimesheetsNewRepository.saveAll(toSave);
+//				System.out.println("Method end reached");
+//				}
+//			catch(Exception e) {
+//				e.printStackTrace();
+//			}
+//		}
 
 		// 0 0 12 ? * * - At 12:00:00pm every day
+	@Scheduled(cron = "0 */1 * ? * *")
+	public void automaticTimesheetFiller() {
 
+	    System.out.println("Cron----**********----started");
+
+	    try {
+
+	        LocalDate dateToday = LocalDate.now();
+	        LocalDateTime dateTimeToday = LocalDateTime.now();
+
+	        List<Object[]> allEmployee =
+	                employeeRepository.getEmployeeDetailForCronExludingSomeEmployees();
+
+	        List<Holiday> publicHoliday =
+	                holidayRepository.findByDateOfHoliday(dateToday);
+
+	        if (publicHoliday.isEmpty()) {
+	            System.out.println("No holiday today");
+	            return;
+	        }
+
+	        List<Long> empIds = allEmployee.stream()
+	                .map(e -> Long.parseLong(e[0].toString()))
+	                .collect(Collectors.toList());
+
+	        List<EmployeeTimesheetsNew> existingTimesheets =
+	                employeeTimesheetsNewRepository.findByDateAndEmpIdIn(dateToday, empIds);
+
+	        Map<Long, EmployeeTimesheetsNew> timesheetMap =
+	                existingTimesheets.stream()
+	                        .collect(Collectors.toMap(
+	                                EmployeeTimesheetsNew::getEmpId,
+	                                t -> t
+	                        ));
+
+	        List<EmployeeTimesheetsNew> toSave = new ArrayList<>();
+
+	        for (Holiday holiday : publicHoliday) {
+
+	            String holidayType = holiday.getHolidayType();
+	            String dayOfWeek = holiday.getDayOfTheWeek();
+	            String holidayState = holiday.getState();
+
+	            for (Object[] employeeList : allEmployee) {
+
+	                Long empId = Long.parseLong(employeeList[0].toString());
+	                String workLocation = employeeList[1] != null ? employeeList[1].toString() : null;
+	                String billableType = employeeList[7] != null ? employeeList[7].toString() : null;
+
+	                if (timesheetMap.containsKey(empId)) continue;
+
+	                // ================= WEEKOFF =================
+	                if ("WeekOff".equals(holidayType)
+	                        && ("Saturday".equals(dayOfWeek) || "Sunday".equals(dayOfWeek))
+	                        && billableType != null
+	                        && !"TNM".equalsIgnoreCase(billableType)) {
+
+	                    EmployeeTimesheetsNew ts = new EmployeeTimesheetsNew();
+	                    ts.setCreatedBy(empId);
+	                    ts.setCreatedOn(dateTimeToday);
+	                    ts.setDate(dateToday);
+	                    ts.setEmpId(empId);
+	                    ts.setIsNightShift(false);
+	                    ts.setDayTypeId(4);
+	                    ts.setTotalWorkingMinutes(0);
+	                    ts.setStatus(2);
+	                    ts.setDescription("WeekOff : " + dayOfWeek);
+
+	                    toSave.add(ts);
+	                    timesheetMap.put(empId, ts);
+	                    continue;
+	                }
+
+	                // ================= PUBLIC HOLIDAY =================
+	                if ((("all".equals(holidayState) ||
+	                        holidayState.equals(workLocation))
+	                        && "false".equals(holiday.getOptionalHoliday())
+	                        && ("Festival".equals(holidayType)
+	                            || "nonWorking".equals(holidayType)))
+	                        && billableType != null
+	                        && !"TNM".equalsIgnoreCase(billableType)) {
+
+	                    EmployeeTimesheetsNew ts = new EmployeeTimesheetsNew();
+	                    ts.setCreatedBy(empId);
+	                    ts.setCreatedOn(dateTimeToday);
+	                    ts.setDate(dateToday);
+	                    ts.setEmpId(empId);
+	                    ts.setIsNightShift(false);
+	                    ts.setDayTypeId(2);
+	                    ts.setStatus(2);
+	                    ts.setDescription("Public Holiday : " + holiday.getOccasion());
+
+	                    toSave.add(ts);
+	                    timesheetMap.put(empId, ts);
+	                }
+	            }
+	        }
+
+	        if (!toSave.isEmpty()) {
+	            employeeTimesheetsNewRepository.saveAll(toSave);
+	        }
+
+	        System.out.println("Method end reached");
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+
+	
 		@Scheduled(cron="${mailTrigger.time}")
 		public void protalConfigMailTrigger() {
 			try {
