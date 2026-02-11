@@ -38,7 +38,7 @@ public class EmployeeTeamMap {
 	
 	private Long rescRemovedBy;
 
-//	private Long poRequirementMappingId;
+	private Long poRequirementMappingId;
 	
 	
 
