@@ -19,22 +19,28 @@ import org.springframework.web.bind.annotation.RestController;
 import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
+import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
 import com.apmosys.employeeportal.dto.FilterMatrix;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
+import com.apmosys.employeeportal.dto.IshineToPoRequestDTO;
+import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
 import com.apmosys.employeeportal.dto.LiftAndShiftTeamsDTO;
 import com.apmosys.employeeportal.dto.NonComplianceProjects;
 import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
+import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.ProjectStructureWrapper;
+import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.RestoreProjectPayloadDTO;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimeSheetRequestDto;
 import com.apmosys.employeeportal.dto.UpdateHasClientSideIdDTO;
+import com.apmosys.employeeportal.service.PoSyncOrchestratorService;
 import com.apmosys.employeeportal.service.ResourceManagementService;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -46,6 +52,9 @@ public class ResourceManagementController {
 	
 	@Autowired
 	ResourceManagementService resourceManagementService;
+	
+	@Autowired
+	PoSyncOrchestratorService poSyncOrchestratorService;
 	
 	@Autowired
 	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
@@ -464,6 +473,36 @@ public class ResourceManagementController {
 	 	poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 	 	return resourceManagementService.poCrudOperationsInIshine(poPortalProjects);
 	 }
+	 
+	 
+	 @PostMapping("/poCrudOperationsInIshineNew")
+	 public ServiceResponse poCrudOperationsInIshineNew(HttpServletRequest httpRequest,@RequestBody ProjectPoMappingWithResourceDTO poPortalProjects) {
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		 return poSyncOrchestratorService.poCrudOperationsInIshineNew(poPortalProjects);
+	 }
+	 
+	 
+	 @PostMapping("/renewPoInIshineNew")
+	 public ServiceResponse renewPoInIshineNew(HttpServletRequest httpRequest,@RequestBody  RenewedPoSyncDto dto) {
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		 return poSyncOrchestratorService.renewPoInIshineNew(dto);
+	 }
+	 
+	 
+	 @PostMapping("/deletePoInIshineNew")
+	 public ServiceResponse deletePoInIshineNew(HttpServletRequest httpRequest,@RequestBody  DeletedPoSyncDTO dto) {
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		 return poSyncOrchestratorService.deletePoInIshineNew(dto);
+	 }
+	 
+	 
+	 @PostMapping("/linkPoInIshineNew")
+	 public ServiceResponse linkPoInIshineNew(HttpServletRequest httpRequest,@RequestBody  IshineLinkProjectDto dto) {
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		 return poSyncOrchestratorService.linkPoInIshineNew(dto);
+	 }
+	 
+	 
 
 
 //	@PostMapping("/poCrudOperationsInIshine")
@@ -618,7 +657,43 @@ public class ResourceManagementController {
 		return response;
 	}
 	
+	// @Encrypted
+	@GetMapping("/getProjectConfigurationDetailsByProjectId")
+	public ServiceResponse getProjectConfigurationDetailsByProjectId(@RequestParam Integer projectId, @RequestParam boolean isAllProjects) {
+		return resourceManagementService.getProjectConfigurationDetailsByProjectId(projectId, isAllProjects);
+	}
 	
-	
+	// @Encrypted
+	@GetMapping("/getResourceRequirementByPoId")
+	public ServiceResponse getResourceRequirementByPoId(@RequestParam Long poId) {
+		return resourceManagementService.getResourceRequirementByPoId(poId);
+	}
+
+	// @Encrypted
+	@GetMapping("/getActivePoDetailsByProjectId")
+	public ServiceResponse getActivePoDetailsByProjectId(@RequestParam Integer projectId) {
+		return resourceManagementService.getActivePoDetailsByProjectId(projectId);
+	}
+
+	// @Encrypted
+	@GetMapping("/getResourceRequirementByTeamId")
+	public ServiceResponse getResourceRequirementByTeamId(@RequestParam Long teamId) {
+		return resourceManagementService.getResourceRequirementByTeamId(teamId);
+	}
+
+	@PostMapping("/ishineToPoEmpDetails")
+	public ServiceResponse ishineToPoEmpDetails(HttpServletRequest httpRequest, @RequestBody IshineToPoRequestDTO ishineToPoRequest) {
+		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		return resourceManagementService.ishineToPoEmpDetails(ishineToPoRequest);
+	}
+
+	// @Encrypted
+	@GetMapping("/getResourceRequirementCountByPoId")
+	public ServiceResponse getResourceRequirementCountByPoId(
+			@RequestParam(required = false) Long poId, @RequestParam Integer projectId,
+			@RequestParam String projectType) {
+		return resourceManagementService.getResourceRequirementCountByPoId(poId, projectId, projectType);
+	}
+	 
 	
 }

@@ -28,8 +28,8 @@ public class ProjectPoPortalDTO {
     private String clientState;
     private String createdOn;
     private String poNo;
-    private String poStartDate;
-    private String poEndDate;
+    private String projectStartDate;
+    private String projectEndDate;
     private String poProjectType;
     private String PoProjectId;
     private List<ResourceRequirementDTO> resourceRequirements;

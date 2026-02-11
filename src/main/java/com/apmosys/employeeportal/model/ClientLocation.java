@@ -24,6 +24,7 @@ public class ClientLocation {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "client_location_id")
 	private Integer clientLocationId;
 	
 	private String clientLocation;
@@ -34,6 +35,10 @@ public class ClientLocation {
 	private Timestamp createdOn;
 	
 	private String clientState;
+	
+	private Long poId;
+	
+	
 	
 	public ClientLocation(Integer clientId,String clientLocation){
 		this.clientId = clientId;

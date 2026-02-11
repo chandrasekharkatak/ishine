@@ -133,7 +133,7 @@ import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.service.validator.TimesheetValidatorService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
-import com.apmosys.employeeportal.utility.ToLong_helper;
+import com.apmosys.employeeportal.utility.TypeConversionUtil;
 
 @EnableAsync
 @Service
@@ -3171,7 +3171,6 @@ public class TimesheetService {
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/getLastFilledTimesheetByEmpId");
 	    apiLogInfo.setLogLevel("INFO");
-	    ToLong_helper toLong_helper = new ToLong_helper();
 
 	    try {
 	        List<Object[]> activeCheckList = timesheetsRepository.checkEmployeeActiveOrNot(empId);
@@ -3215,29 +3214,29 @@ public class TimesheetService {
 	            }
 
 	            TimesheetDTO dto = new TimesheetDTO();
-	            dto.setTimesheetId(toLong_helper.safeParseLong(object[0]));
-	            dto.setDate(toLong_helper.getSafeString(object[1]));
-	            dto.setDayType(toLong_helper.getSafeString(object[2]));
-	            dto.setOfficeInTime(toLong_helper.getSafeString(object[3]));
-	            dto.setOfficeOutTime(toLong_helper.getSafeString(object[4]));
-	            dto.setTotalWorkingOfficeHours(toLong_helper.getSafeString(object[5]));
-	            dto.setTotalTime(toLong_helper.safeParseFloat(object[7]));
-	            dto.setDescription(toLong_helper.getSafeString(object[8]));
+	            dto.setTimesheetId(TypeConversionUtil.safeParseLong(object[0]));
+	            dto.setDate(TypeConversionUtil.getSafeString(object[1]));
+	            dto.setDayType(TypeConversionUtil.getSafeString(object[2]));
+	            dto.setOfficeInTime(TypeConversionUtil.getSafeString(object[3]));
+	            dto.setOfficeOutTime(TypeConversionUtil.getSafeString(object[4]));
+	            dto.setTotalWorkingOfficeHours(TypeConversionUtil.getSafeString(object[5]));
+	            dto.setTotalTime(TypeConversionUtil.safeParseFloat(object[7]));
+	            dto.setDescription(TypeConversionUtil.getSafeString(object[8]));
 
-	            dto.setActivityId(toLong_helper.safeParseLong(object[9]));
-	            dto.setActivity(toLong_helper.getSafeString(object[10]));
+	            dto.setActivityId(TypeConversionUtil.safeParseLong(object[9]));
+	            dto.setActivity(TypeConversionUtil.getSafeString(object[10]));
 
-	            dto.setTeamId(toLong_helper.safeParseLong(object[11]));
-	            dto.setTeamName(toLong_helper.getSafeString(object[12]));
-	            dto.setTeamLeadName(toLong_helper.getSafeString(object[13]));
+	            dto.setTeamId(TypeConversionUtil.safeParseLong(object[11]));
+	            dto.setTeamName(TypeConversionUtil.getSafeString(object[12]));
+	            dto.setTeamLeadName(TypeConversionUtil.getSafeString(object[13]));
 
-	            dto.setProjectId(toLong_helper.safeParseInt(object[14]));
-	            dto.setProjectName(toLong_helper.getSafeString(object[15]));
+	            dto.setProjectId(TypeConversionUtil.safeParseInt(object[14]));
+	            dto.setProjectName(TypeConversionUtil.getSafeString(object[15]));
 
-	            dto.setClientId(toLong_helper.safeParseInt(object[16]));
-	            dto.setClientLocationId(toLong_helper.safeParseInt(object[17]));
-	            dto.setClientLocation(toLong_helper.getSafeString(object[18]));
-	            dto.setClientName(toLong_helper.getSafeString(object[19]));
+	            dto.setClientId(TypeConversionUtil.safeParseInt(object[16]));
+	            dto.setClientLocationId(TypeConversionUtil.safeParseInt(object[17]));
+	            dto.setClientLocation(TypeConversionUtil.getSafeString(object[18]));
+	            dto.setClientName(TypeConversionUtil.getSafeString(object[19]));
 
 	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	            response.setServiceResponse(dto);
@@ -6653,13 +6652,13 @@ public class TimesheetService {
 		    return response;
 		}
 	
-	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year,Long empId,Boolean isClientDashboard,List<String> billableTypes,String employeeActive,String clientSideFilter,String multiPOs) {
-		return timesheetDashboardService.getTimesheetDashboardCountForEmployee(
-				month, year, empId, isClientDashboard, billableTypes, employeeActive, clientSideFilter, multiPOs);
-	}
+	// public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year,Long empId,Boolean isClientDashboard,List<String> billableTypes,String employeeActive,String clientSideFilter,String multiPOs) {
+	// 	return timesheetDashboardService.getTimesheetDashboardCountForEmployee(
+	// 			month, year, empId, isClientDashboard, billableTypes, employeeActive, clientSideFilter, multiPOs);
+	// }
 	
 	// Delegate method - implementation moved to TimesheetDashboardService
-	private ServiceResponse getTimesheetDashboardCountForEmployeeInternal(Integer month, Integer year,Long empId,Boolean isClientDashboard,List<String> billableTypes,String employeeActive,String clientSideFilter, String multiPOs) {
+	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year,Long empId,Boolean isClientDashboard,List<String> billableTypes,String employeeActive,String clientSideFilter, String multiPOs) {
 		
 		ServiceResponse response = new ServiceResponse();
 
@@ -6727,6 +6726,7 @@ public class TimesheetService {
 	        return response;
 
 	    } catch (Exception e) {
+	    	 e.printStackTrace();
 	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 	        response.setServiceError(e.getMessage());
 	        return response;
@@ -8395,8 +8395,6 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	    apiLogInfo.setApiUrl("/api/getClientDetailsByProjectIdAndEmpId");
 	    apiLogInfo.setLogLevel("INFO");
 	    StringBuilder logBuilder = new StringBuilder();
-	    logBuilder.append("empId : " +timesheetDTO.getEmpId());
-	    logBuilder.append("projectId : " +timesheetDTO.getProjectId());
 
 	    try {
 	    	
@@ -8410,6 +8408,9 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	    	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    	    return response;
 	    	}
+	    	
+		    logBuilder.append("empId : " +timesheetDTO.getEmpId());
+		    logBuilder.append("projectId : " +timesheetDTO.getProjectId());
 	    	
 	    	Long empId = timesheetDTO.getEmpId();
 	    	Integer projectId = timesheetDTO.getProjectId();
@@ -8692,9 +8693,17 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	        Integer year,
 	        Long empId) {
 
+	    System.out.println(">> downloadFinalDocumentsZip() START");
+	    System.out.println("ProjectId=" + projectId +
+	                       ", Month=" + month +
+	                       ", Year=" + year +
+	                       ", EmpId=" + empId);
+
 	    List<Object[]> rows =
 	            timesheetsRepository.getFinalDocumentsForMonthEnd(
 	                    projectId, month, year, empId);
+
+	    System.out.println("Rows fetched: " + (rows == null ? "null" : rows.size()));
 
 	    if (rows == null || rows.isEmpty()) {
 	        throw new IllegalArgumentException(
@@ -8704,8 +8713,12 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	    String monthEndDate =
 	            YearMonth.of(year, month).atEndOfMonth().toString();
 
+	    System.out.println("Month end date: " + monthEndDate);
+
 	    try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
 	         ZipOutputStream zos = new ZipOutputStream(baos)) {
+
+	        int addedFiles = 0;
 
 	        for (Object[] row : rows) {
 
@@ -8713,6 +8726,11 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	            String projectName  = (String) row[2];
 	            Long docId          = row[5] != null ? ((Number) row[5]).longValue() : null;
 	            String docName      = (String) row[7];
+
+	            System.out.println("Processing row → emp=" + employeeName +
+	                               ", project=" + projectName +
+	                               ", docId=" + docId +
+	                               ", docName=" + docName);
 
 	            if (docId == null) {
 	                continue;
@@ -8722,13 +8740,16 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	                    timesheetDocumentDetailsRepository.findById(docId)
 	                            .orElse(null);
 
-	            if (document == null || document.getDocData() == null) {
+	            if (document == null) {
+	                continue;
+	            }
+
+	            if (document.getDocData() == null) {
 	                continue;
 	            }
 
 	            byte[] fileBytes = document.getDocData();
 
-	            // -------- SAFE FILE NAMING --------
 	            String safeEmployee =
 	                    employeeName.replaceAll("[^a-zA-Z0-9 ]", "")
 	                            .replace(" ", "_");
@@ -8747,20 +8768,31 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	                    docId + "_" +
 	                    safeFile;
 
-	            // -------- ADD TO ZIP --------
+
 	            zos.putNextEntry(new ZipEntry(zipEntryName));
 	            zos.write(fileBytes);
 	            zos.closeEntry();
+
+	            addedFiles++;
 	        }
 
 	        zos.finish();
+
+//	        System.out.println("ZIP creation complete");
+//	        System.out.println("Total files added: " + addedFiles);
+//	        System.out.println("ZIP size (bytes): " + baos.size());
+//	        System.out.println(">> downloadFinalDocumentsZip() END");
+
 	        return baos.toByteArray();
 
-	    } catch (IOException e) {
+	    } catch (Exception e) {
+	        System.out.println("Exception while generating ZIP");
+	        e.printStackTrace();
 	        throw new RuntimeException(
 	                "Failed to generate final documents ZIP", e);
 	    }
 	}
+
 	
 	
 	public ServiceResponse getDocumentsBySelectedEmpId(FinalDocumentDownloadDTO dto) {

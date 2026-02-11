@@ -1,10 +1,14 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from 'src/environments/environment';
 import { MilestoneUpdatedLog } from '../models/MilestoneUpdatedLog';
 import { Project } from '../models/project';
+import { RmgTeamMember } from '../models/rmgTeamMember';
+import { PoDetails } from '../models/poDetails';
+import { RmgProject } from '../models/rmgProject';
+import { EmployeeOtherActiveProject } from '../models/employeeOtherActiveProject';
 
 
 @Injectable({
@@ -137,4 +141,23 @@ getClientVsDepartment(payload){
    getEmployeeProjectCount(payload){
     return this.http.post(`${this.baseUrl}`+`api/getEmployeeProjectCount`,payload);
    }
+
+  getEmployeeExistingProjectDetailsByEmpId(empId: any) {
+    let httpParams = new HttpParams().append("empId", empId);
+    return this.http.get(`${this.baseUrl}` + `api/getEmployeeExistingProjectDetailsByEmpId`, { params: httpParams });
+  }
+
+  updateEmployeeProjectMappingAsInActive(rmgTeamMember: RmgTeamMember) {
+    return this.http.post(`${this.baseUrl}` + `api/updateEmployeeProjectMappingAsInActive`, rmgTeamMember);
+  }
+
+  saveProjectInformation(projectObj: RmgProject) {
+    return this.http.post(`${this.baseUrl}` + `api/saveProjectInformation`, projectObj);
+  }
+
+  updateMappingToOtherProjectAsDefault(otherActiveProject : EmployeeOtherActiveProject) {
+    return this.http.post(`${this.baseUrl}` + `api/updateMappingToOtherProjectAsDefault`, otherActiveProject);
+  }
+  
+  
 }

@@ -220,8 +220,8 @@ this.isApmosysProduct = isApmosysProduct;
 	private Long teamLeadId;
 	private Integer projectId;
 	private String projectName;
-	private String poStartDate;
-	private String poEndDate;
+	private String projectStartDate;
+	private String projectEndDate;
 	private String poNo;
 	private String poProjectType;
 	private String startDate;
@@ -380,6 +380,8 @@ this.isApmosysProduct = isApmosysProduct;
     //added
     private String isApmosysProduct;
     private String employmentIdAcToET;
+    
+    private Long poRequirementMappingId;
     
     private Boolean isUpdateDefaultProject;
     

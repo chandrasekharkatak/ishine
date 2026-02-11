@@ -1,39 +1,42 @@
 package com.apmosys.employeeportal.controller;
 	import java.time.LocalDate;
-	import java.util.List;
-	
-	import org.springframework.beans.factory.annotation.Autowired;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.annotation.DateTimeFormat;
-	import org.springframework.http.MediaType;
-	import org.springframework.web.bind.annotation.GetMapping;
-	import org.springframework.web.bind.annotation.PostMapping;
-	import org.springframework.web.bind.annotation.RequestBody;
-	import org.springframework.web.bind.annotation.RequestMapping;
-	import org.springframework.web.bind.annotation.RequestMethod;
-	import org.springframework.web.bind.annotation.RequestParam;
-	import org.springframework.web.bind.annotation.RequestPart;
-	import org.springframework.web.bind.annotation.RestController;
-	import org.springframework.web.multipart.MultipartFile;
-	
-	import com.apmosys.employeeportal.JobRoleAccess;
-	import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
-	import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
-	import com.apmosys.employeeportal.dto.GetEmployeeSummaryOnExportDTO;
-	import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderByProjectIdDTO;
-	import com.apmosys.employeeportal.dto.GetMyReporteesTimesheetRequestsPayload;
-	import com.apmosys.employeeportal.dto.GetProjectListForDateAndEmpIdPayload;
-	import com.apmosys.employeeportal.dto.GetTimesheetDashboardCountForEmployeeDTO;
-	import com.apmosys.employeeportal.dto.ProjectDTO;
-import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.apmosys.employeeportal.JobRoleAccess;
+import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
+import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
+import com.apmosys.employeeportal.dto.FinalBulkUploadDTO;
+import com.apmosys.employeeportal.dto.FinalDocumentDownloadDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeSummaryOnExportDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderByProjectIdDTO;
+import com.apmosys.employeeportal.dto.GetMyReporteesTimesheetRequestsPayload;
+import com.apmosys.employeeportal.dto.GetProjectListForDateAndEmpIdPayload;
+import com.apmosys.employeeportal.dto.GetTimesheetDashboardCountForEmployeeDTO;
+import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
-	import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
-	import com.apmosys.employeeportal.service.TimesheetApprovalService;
-import com.apmosys.employeeportal.service.TimesheetApprovalServiceNew;
+import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
+import com.apmosys.employeeportal.service.TimesheetApprovalService;
 import com.apmosys.employeeportal.service.TimesheetService;
-import com.apmosys.employeeportal.service.TimesheetServiceNew;
-import com.apmosys.employeeportal.service.helper.TimesheetEncryptionHelper;
-	import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.apmosys.employeeportal.utility.ServiceResponse;
 	
 	@RestController
 	@RequestMapping(path = "/api")
@@ -545,11 +548,11 @@ import com.apmosys.employeeportal.service.helper.TimesheetEncryptionHelper;
 				return timesheetService.isClientMandetory(projectId);
 			} 
 		
-		@PostMapping(value = "/getProjectByMonthRangeAndEmpId")
-		public ServiceResponse getProjectByMonthRangeAndEmpId(@RequestBody GetEmployeeSummaryOnExportDTO object) {  
-			 ServiceResponse reponse= timesheetService.getProjectByMonthRangeAndEmpId(object);
-			 return reponse;
-		}
+		// @PostMapping(value = "/getProjectByMonthRangeAndEmpId")
+		// public ServiceResponse getProjectByMonthRangeAndEmpId(@RequestBody GetEmployeeSummaryOnExportDTO object) {  
+		// 	 ServiceResponse reponse= timesheetService.getProjectByMonthRangeAndEmpId(object);
+		// 	 return reponse;
+		// }
 			
 		@GetMapping(value="/getAllDayTypes")
 		public ServiceResponse getAllDayTipes() {  
@@ -557,32 +560,153 @@ import com.apmosys.employeeportal.service.helper.TimesheetEncryptionHelper;
 			 return reponse;
 		}
 		
-		@JobRoleAccess(featureIds = {7,15,16})
-		@PostMapping(value = "/getClientDetailsByProjectIdAndEmpId")
-		public ServiceResponse getClientDetailsByProjectIdAndEmpId(@RequestBody GetEmployeeSummaryOnExportDTO timesheetDTO) {
+		// @JobRoleAccess(featureIds = {7,15,16})
+		// @PostMapping(value = "/getClientDetailsByProjectIdAndEmpId")
+		// public ServiceResponse getClientDetailsByProjectIdAndEmpId(@RequestBody GetEmployeeSummaryOnExportDTO timesheetDTO) {
 	
-			ServiceResponse response = timesheetService.getClientDetailsByProjectIdAndEmpId(timesheetDTO);
+
+		// 	ServiceResponse response = timesheetService.getClientDetailsByProjectIdAndEmpId(timesheetDTO);
+		// }
+
+	@PostMapping(value = "/getProjectByMonthRangeAndEmpId") 	
+	public ServiceResponse getProjectByMonthRangeAndEmpId(@RequestBody GetEmployeeSummaryOnExportDTO object) {  
+		 ServiceResponse reponse= timesheetService.getProjectByMonthRangeAndEmpId(object);
+		 return reponse;
+	}
+	
+	@JobRoleAccess(featureIds = {7,15,16})
+	@PostMapping(value = "/getClientDetailsByProjectIdAndEmpId")
+	public ServiceResponse getClientDetailsByProjectIdAndEmpId(@RequestBody GetEmployeeSummaryOnExportDTO timesheetDTO) {
+
+		ServiceResponse response = timesheetService.getClientDetailsByProjectIdAndEmpId(timesheetDTO);
+		return response;
+	}
+	
+	@JobRoleAccess(featureIds = {15})
+	 @PostMapping("/getOtherTeamMembersByDateAndProjectId")
+	 public ServiceResponse getOtherTeamMembersByDateAndProjectId(@RequestBody GetProjectListForDateAndEmpIdPayload payload) {
+	     return timesheetService.getOtherTeamMembersByDateAndProjectId(payload);
+	 }
+	
+	@PostMapping(value = "/getMyReporteesAndClientSideProjectsInMonthYear")
+	public ServiceResponse getMyReporteesAndClientSideProjectsInMonthYear(@RequestBody TimesheetDTO timesheetDTO) {  
+		 ServiceResponse reponse= timesheetService.getMyReporteesAndClientSideProjectsInMonthYear(timesheetDTO);
+		 return reponse;
+	}
+	
+	
+	@PostMapping(value = "/getMyProjectsInMonthYear")
+	public ServiceResponse getMyProjectsInMonthYear(@RequestBody TimesheetDTO timesheetDTO) {  
+		 ServiceResponse reponse= timesheetService.getMyProjectsInMonthYear(timesheetDTO);
+		 return reponse;
+	}
+	
+	
+	@PostMapping("/downloadFinalDocuments")
+	public ResponseEntity<byte[]> downloadFinalDocuments(
+	        @RequestBody FinalDocumentDownloadDTO dto) {
+
+	    try {
+	        byte[] zipBytes = timesheetService
+	                .downloadFinalDocumentsZip(
+	                        dto.getProjectId(),
+	                        dto.getMonth(),
+	                        dto.getYear(),
+	                        dto.getEmpId()
+	                );
+
+	        String zipName =
+	                dto.getProjectName() + "_" +
+	                dto.getMonth() + "_" +
+	                dto.getYear() + ".zip";
+
+//	        return ResponseEntity.ok()
+//	                .header(HttpHeaders.CONTENT_DISPOSITION,
+//	                        "attachment; filename=" + zipName)
+//	                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+//	                .body(zipBytes);
+	        
+	        return ResponseEntity.ok()
+	                .header(
+	                    HttpHeaders.CONTENT_DISPOSITION,
+	                    "attachment; filename=\"" + zipName + "\""
+	                )
+	                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+	                .body(zipBytes);
+
+	    } catch (Exception e) {
+	        e.printStackTrace(); 
+
+	        return ResponseEntity
+	                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+	                .body(null);
+	    }
+	}
+
+	
+	@PostMapping("/getDocumentsBySelectedEmpId")
+	public ServiceResponse getDocumentsBySelectedEmpId(@RequestBody FinalDocumentDownloadDTO dto) {
+		ServiceResponse response = timesheetService.getDocumentsBySelectedEmpId(dto);
+		return response;
+	}
+	
+	@PostMapping("/getDepartmentStatusSummary")
+	public ServiceResponse getDepartmentStatusSummary(
+	        @RequestBody GetEmployeeSummaryOnExportDTO requestDTO) {
+
+	    ServiceResponse response =
+	    		timesheetService.getDepartmentStatusSummary(requestDTO);
+
+	    return response;
+	}
+
+	@JobRoleAccess(featureIds = {15,16})
+	@PostMapping(value = "/bulkFinalUploadProjectBased", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ServiceResponse bulkFinalUploadProjectBased(
+			@RequestPart("finalFile") MultipartFile file, @RequestPart("finalBulkUploadDTO") FinalBulkUploadDTO finalBulkUploadDTO ) {
+
+		ServiceResponse reponse= timesheetService.bulkFinalUploadProjectBased(finalBulkUploadDTO, file);
+		return reponse;
+	}
+
+	@JobRoleAccess(featureIds = {15,16})
+	@GetMapping("/getPreviousMinusDays")
+	public ServiceResponse getPreviousMinusDays() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			Map<String, Object> map = new HashMap<>();
+			map.put("minusDays", minusDays);
+			map.put("checkMinusDaysForBulkUpload", checkMinusDaysForBulkUpload);
+			response.setServiceResponse(map);
+			return response;
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceError(ServiceResponse.STATUS_FAIL);
+			response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
 			return response;
 		}
+	}
 		
-		@JobRoleAccess(featureIds = {15})
-		 @PostMapping("/getOtherTeamMembersByDateAndProjectId")
-		 public ServiceResponse getOtherTeamMembersByDateAndProjectId(@RequestBody GetProjectListForDateAndEmpIdPayload payload) {
-		     return timesheetService.getOtherTeamMembersByDateAndProjectId(payload);
-		 }
+		// @JobRoleAccess(featureIds = {15})
+		//  @PostMapping("/getOtherTeamMembersByDateAndProjectId")
+		//  public ServiceResponse getOtherTeamMembersByDateAndProjectId(@RequestBody GetProjectListForDateAndEmpIdPayload payload) {
+		//      return timesheetService.getOtherTeamMembersByDateAndProjectId(payload);
+		//  }
 		
-		@PostMapping(value = "/getMyReporteesAndClientSideProjectsInMonthYear")
-		public ServiceResponse getMyReporteesAndClientSideProjectsInMonthYear(@RequestBody TimesheetDTO timesheetDTO) {  
-			 ServiceResponse reponse= timesheetService.getMyReporteesAndClientSideProjectsInMonthYear(timesheetDTO);
-			 return reponse;
-		}
+		// @PostMapping(value = "/getMyReporteesAndClientSideProjectsInMonthYear")
+		// public ServiceResponse getMyReporteesAndClientSideProjectsInMonthYear(@RequestBody TimesheetDTO timesheetDTO) {  
+		// 	 ServiceResponse reponse= timesheetService.getMyReporteesAndClientSideProjectsInMonthYear(timesheetDTO);
+		// 	 return reponse;
+		// }
 		
 		
-		@PostMapping(value = "/getMyProjectsInMonthYear")
-		public ServiceResponse getMyProjectsInMonthYear(@RequestBody TimesheetDTO timesheetDTO) {  
-			 ServiceResponse reponse= timesheetService.getMyProjectsInMonthYear(timesheetDTO);
-			 return reponse;
-		}
+		// @PostMapping(value = "/getMyProjectsInMonthYear")
+		// public ServiceResponse getMyProjectsInMonthYear(@RequestBody TimesheetDTO timesheetDTO) {  
+		// 	 ServiceResponse reponse= timesheetService.getMyProjectsInMonthYear(timesheetDTO);
+		// 	 return reponse;
+		// }
 		
 	//	@JobRoleAccess(featureIds = {15,16,24})
 	//	@PostMapping("/getMyReporteesTimesheetRequestsNew")

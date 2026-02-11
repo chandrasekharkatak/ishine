@@ -1,6 +1,6 @@
 package com.apmosys.employeeportal.dto;
 
-import java.sql.Date;
+import java.util.Date;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -22,5 +22,10 @@ public class POResourceRequirementDTO {
     private String experience;
     private String department;
     private Long clientRoleId;
+    private Date yearWiseRateCartStartDate;
+    private Date yearWiseRateCartEndDate;
+    private Date lineItemStartDate;
+    private Date lineItemEndDate;
+    private Long poId;
 
 }

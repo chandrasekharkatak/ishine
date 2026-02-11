@@ -1,40 +1,43 @@
 package com.apmosys.employeeportal.model;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.envers.Audited;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
-
 
 @Data
 @Entity
-@Getter
-@Setter
-//@Audited
 @ToString
-@Table(uniqueConstraints = @UniqueConstraint(name = "unique_po",columnNames = {"po_id"}))
+@Audited
+@Table(indexes = { @Index(name = "idx_ppd_po_id", columnList = "po_id"),
+        @Index(name = "idx_ppd_project_id", columnList = "project_id"),
+        @Index(name = "idx_ppd_po_start_date", columnList = "po_start_date"),
+        @Index(name = "idx_ppd_po_end_date", columnList = "po_end_date")
+})
 public class ProjectPoDetails {
-	
-	@Id
+
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-	
-	@Column(name = "po_id")
+
+    @Column(name = "po_id")
     private Long poId;
 	
 	@Column(name = "project_id")
@@ -47,10 +50,10 @@ public class ProjectPoDetails {
     private String poNo;
 	
 	@Column(name = "po_start_date")
-    private String poStartDate;
+    private LocalDateTime poStartDate;
 	
 	@Column(name = "po_end_date")
-    private String poEndDate;
+    private LocalDateTime poEndDate;
    
 	@Column(name = "prev_po")
     private Long prevPO;
@@ -73,10 +76,14 @@ public class ProjectPoDetails {
 	@Column(name = "msg")
     private String msg;
 	
+	@Column(name = "is_renewable")
+	private boolean isRenewable;
 	
+	@Column(name = "client_location_id")
+    private Long clientLocationId;
 	
-//	@Column(name = "client_location_id")
-//    private Long clientLocationId;
+	@Column(name = "client_address_id")
+	private Long clientAddressId;
 	
 	@Column(name = "created_by")
     private Long createdBy;
@@ -87,14 +94,22 @@ public class ProjectPoDetails {
     @Column(name = "created_on",updatable = false)
     private Timestamp createdOn;
     
+    private LocalDateTime poCreatedOn;
+    
     
     @Column(name = "updated_by")
     private Long updatedBy;
+    
+    private LocalDateTime poUpdatedOn;
+    
+    
     
     @UpdateTimestamp
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     @Column(name = "updated_on")
     private Timestamp updatedOn;
+    
+ 
     
 
 

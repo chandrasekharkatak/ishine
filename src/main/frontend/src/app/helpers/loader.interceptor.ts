@@ -459,9 +459,34 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getPreviousMinusDays`,
     `${this.baseUrl}` + `api/bulkFinalUploadProjectBased`,
     `${this.baseUrl}` + `api/getMyReporteesAndClientSideProjectsInMonthYear`,
-    `${this.baseUrl}` + `api/isClientIdMandetory`
-
-
+    `${this.baseUrl}` + `api/isClientIdMandetory`,
+    `${this.baseUrl}` + `api/getAllTeamsByPoId`,
+    `${this.baseUrl}` + `api/getTeamDetailsByTeamId`,
+    `${this.baseUrl}` + `api/migrateTeam`,
+    `${this.baseUrl}` + `api/getTeamDetailsByTeamIdsAndProjectId`,
+    `${this.baseUrl}` + `api/updateTeamDetails`,
+    `${this.baseUrl}` + `api/createTeams`,
+    `${this.baseUrl}` + `api/deleteSelectedTeams`,
+    `${this.baseUrl}` + `api/saveProjectInformation`,
+    `${this.baseUrl}` + `api/addOrUpdateTeamMembers`,
+    `${this.baseUrl}` + `api/getActiveTeamDetailsByProjectId`,
+    `${this.baseUrl}` + `api/addOrUpdateTeamDetails`,
+    `${this.baseUrl}` + `api/getActiveTeamDetailsByPoId`,
+    `${this.baseUrl}` + `api/getAllTeamsAndRoleWiseMembersByPoId`,
+    `${this.baseUrl}` + `api/updateEmployeeProjectMappingAsInActive`,
+    `${this.baseUrl}` + `api/getEmployeeExistingProjectDetailsByEmpId`,
+    `${this.baseUrl}` + `api/updateDefaultProjectCompletion`,
+    `${this.baseUrl}` + `api/removeTeamMembersFromProject`,
+    `${this.baseUrl}` + `api/updateMappingToOtherProjectAsDefault`,
+    `${this.baseUrl}` + `api/getResourceRequirementByPoId`,
+    `${this.baseUrl}` + `api/downloadFinalDocuments`,
+    `${this.baseUrl}` + `api/downloadFinalDocuments`,
+    `${this.baseUrl}` + `api/downloadFinalDocuments`,
+    `${this.baseUrl}` + `api/downloadFinalDocuments`,
+    `${this.baseUrl}` + `api/downloadFinalDocuments`,
+    `${this.baseUrl}` + `api/downloadFinalDocuments`,
+    `${this.baseUrl}` + `api/downloadFinalDocuments`,
+    `${this.baseUrl}` + `api/downloadFinalDocuments`,
 
   ]
 

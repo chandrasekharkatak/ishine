@@ -23,13 +23,13 @@ export class ViewEmployeeComponent implements OnInit {
   sortColumnType: any;
   sortDirection = 'asc';
   allProjectTable: boolean = false;
-  tableColumns :any[]= ['blank','blank','employeementIdAccToET','name','department','billableType','billable','projectName','clientName','apmosysRM','clientRM','poNo','poProjectType','poStartDate','poEndDate','projectManagerName','teamName','employeeRole','status'];
+  tableColumns :any[]= ['blank','blank','employeementIdAccToET','name','department','billableType','billable','projectName','clientName','apmosysRM','clientRM','poNo','poProjectType','projectStartDate','projectEndDate','projectManagerName','teamName','employeeRole','status'];
   tableColumnsInternal :any[]= ['blank','blank','employeementIdAccToET','name','department','billableType','billable','projectName','clientName','projectManagerName','teamName','employeeRole','status'];
   tableColumnsNotMapped : any[] = ['blank','employmentIdAcToET','name','departmentName','billableType','managerName','jobRoleName'] ;
   tableColumnsWithoutBillability : any[] = ['blank','employmentIdAcToET','name','departmentName','managerName','jobRoleName'];
-  exceptionTableColumns: any[] = ['blank','blank','employmentId','employeeName','department','billableType','projectName','clientName','apmosysRM','clientRM','poNumber','poProjectType','poStartDate','poEndDate'];
-  tableColumnsBench :any[]= ['blank', 'blank', 'employeementId', 'name', 'department', 'billableType', 'billable', 'onBenchDate', 'daysOnBench', 'projectName', 'clientName', 'projectManagerName', 'teamName', 'employeeRole', 'status', 'apmosysRM', 'clientRM', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate'];
-  projectInfoColumns: string[] = ['blank', 'blank', 'projectName', 'apmosysRM', 'clientRM', 'poStartDate', 'poEndDate', 'poNo', 'clientName', 'projectManagerName', 'teamName', 'employeeName', 'jobRole', 'deptName', 'mobileNo', 'email', 'billable', 'billableType', 'effectiveStartDate'];
+  exceptionTableColumns: any[] = ['blank','blank','employmentId','employeeName','department','billableType','projectName','clientName','apmosysRM','clientRM','poNumber','poProjectType','projectStartDate','projectEndDate'];
+  tableColumnsBench :any[]= ['blank', 'blank', 'employeementId', 'name', 'department', 'billableType', 'billable', 'onBenchDate', 'daysOnBench', 'projectName', 'clientName', 'projectManagerName', 'teamName', 'employeeRole', 'status', 'apmosysRM', 'clientRM', 'poNo', 'poProjectType', 'projectStartDate', 'projectEndDate'];
+  projectInfoColumns: string[] = ['blank', 'blank', 'projectName', 'apmosysRM', 'clientRM', 'projectStartDate', 'projectEndDate', 'poNo', 'clientName', 'projectManagerName', 'teamName', 'employeeName', 'jobRole', 'deptName', 'mobileNo', 'email', 'billable', 'billableType', 'effectiveStartDate'];
   filters: any = {};
   page = 1;
   isSearchEnabled: boolean = false;
@@ -247,8 +247,8 @@ getHierarchicalSrNo1(pIndex: number, tIndex: number, eIndex: number): string {
             "Client RM": empProject.clientRM,
             "PO No.": empProject.poNo,
             "PO Project Type": empProject.poProjectType,
-            "PO Start Date": empProject.poStartDate,
-            "PO End Date": empProject.poEndDate,
+            "PO Start Date": empProject.projectStartDate,
+            "PO End Date": empProject.projectEndDate,
             "Manager Name": "NA",
             "Team Name": data.teamName,
             "Employee Role": data.employeeRole,
@@ -312,8 +312,8 @@ getHierarchicalSrNo1(pIndex: number, tIndex: number, eIndex: number): string {
   //       "Client RM": employee.clientRM,
   //       "PO No.": employee.poNumber,
   //       "PO Project Type": employee.poProjectType,
-  //       "PO Start Date": employee.poStartDate,
-  //       "PO End Date": employee.poEndDate
+  //       "PO Start Date": employee.projectStartDate,
+  //       "PO End Date": employee.projectEndDate
   //     };
   //   });
 
@@ -342,8 +342,8 @@ exportToExcelBench(): void {
           "Client RM": project.clientRM,
           "PO No.": project.poNo,
           "PO Project Type": project.poProjectType,
-          "PO Start Date": project.poStartDate,
-          "PO End Date": project.poEndDate,
+          "PO Start Date": project.projectStartDate,
+          "PO End Date": project.projectEndDate,
           "Project Managers": this.nameListToString(project.projectManagers),
           "Team Name": team.teamName,
           "Employee Role": team.employeeRole,
@@ -462,8 +462,8 @@ exportExceptionToExcel1(): void {
           "Client RM": project.clientRM,
           "PO No.": project.poNo,
           "PO Project Type": project.poProjectType,
-          "PO Start Date": project.poStartDate,
-          "PO End Date": project.poEndDate
+          "PO Start Date": project.projectStartDate,
+          "PO End Date": project.projectEndDate
         });
       });
     } else {

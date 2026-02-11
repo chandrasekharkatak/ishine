@@ -706,6 +706,7 @@ public class EmployeeController {
 	public ServiceResponse fetchInactivePOListOfEmployee(@RequestBody GetEmployeeProjectReportPayloadDTO employeeDTO) {
 	    return employeeService.fetchInactivePOListOfEmployee(employeeDTO);
 	}
+	
 	@Encrypted
 	@JobRoleAccess(featureIds = {26})
 	@RequestMapping(value="/fetchactivePOCounts",method=RequestMethod.POST)
@@ -908,4 +909,17 @@ public class EmployeeController {
 		return serviceResponse;
 	}
 	
+	@PostMapping("/api/getPoRequirementDataByTeamAndPoId")
+	public ServiceResponse getPoRequirementDataByTeamAndPoId(@RequestBody Map<String, Long> requestBody) {
+	    Long teamId = requestBody.get("teamId");
+	    Long poId = requestBody.get("poId");
+	    return employeeService.getPoRequirementDataByTeamAndPoId(teamId, poId);
+	}
+	
+	// @Encrypted
+	@GetMapping("/getAllActiveEmployeeInformation")
+	public ServiceResponse getAllActiveEmployeeInformation() {
+		return employeeService.getAllActiveEmployeeInformation();
+	}
+
 }

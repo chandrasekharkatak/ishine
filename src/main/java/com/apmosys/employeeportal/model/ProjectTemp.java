@@ -37,11 +37,11 @@ public class ProjectTemp {
 	  private Long empId ; 
 	  private String experience ; 
 	  private String isDraftProject ; 
-	  private String poEndDate ; 
+	  private String projectEndDate ; 
 	  private String poNo ; 
 	  private Long poProjectId ; 
 	  private String poProjectType ; 
-	  private String poStartDate ; 
+	  private String projectStartDate ; 
 	  private Long projectManagerId ; 
 	  private String projectName ; 
 	  private String role ; 

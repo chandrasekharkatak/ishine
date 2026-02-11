@@ -121,6 +121,7 @@ export class EncryptionInterceptor implements HttpInterceptor {
     '/api/getResourceRequirementByPoProjectId',
     '/api/getEmployeeInformation',
     '/api/poCrudOperationsInIshine',
+    '/api/poCrudOperationsInIshineNew',
     '/api/poDump',
     '/api/fillDepartmentforAllProjectsInIshine',
     '/api/getPreviousDefaultProjectDetails',
@@ -143,7 +144,8 @@ export class EncryptionInterceptor implements HttpInterceptor {
     '/api/getProjectStructure',
     '/api/handleTeamsAsPerLinkedPo',
     '/api/sendTimesheetDetailsToShankh',
-    '/api/getEmployeeProjectCount'
+    '/api/getEmployeeProjectCount',
+    // '/api/getProjectConfigurationDetailsByProjectId'
   ];
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {

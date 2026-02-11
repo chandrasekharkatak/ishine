@@ -32,5 +32,7 @@ public class TeamMemberDTO {
 	private Long employeeTeamMapId;
     private Long createdBy;
     private String createdOn;
+    
+    private Long poRequirementMappingId;
 	
 }

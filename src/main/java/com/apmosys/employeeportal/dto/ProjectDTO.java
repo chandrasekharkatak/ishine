@@ -52,6 +52,8 @@ public class ProjectDTO {
 	private String projectManagerName;
 	private String apmosysRM;
 	private String clientRM;
+	
+	private Long poId;
 
 	public ProjectDTO(String clientName ,Integer clientId) {
 		this.clientId = clientId;

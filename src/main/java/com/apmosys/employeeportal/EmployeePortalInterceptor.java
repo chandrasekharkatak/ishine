@@ -65,9 +65,16 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			"/employeeportal/api/downloadFileFromQrCode",
 			"/employeeportal/api/downloadFileFromQrCode/textImg",
 			"/employeeportal/api/downloadFileFromQrCode/pdf",
-//			"/employeeportal/api/getAllEmployees",
-//			"/api/getAllEmployees",
+			"/employeeportal/api/renewPoInIshineNew",
+			"/employeeportal/api/deletePoInIshineNew",
+			"/employeeportal/api/linkPoInIshineNew",
+			"/api/linkPoInIshineNew",
 			"/employeeportal/api/poCrudOperationsInIshine",
+			"/employeeportal/api/poCrudOperationsInIshineNew",
+			"/api/poCrudOperationsInIshine",
+			"/api/poCrudOperationsInIshineNew",
+			"/api/renewPoInIshineNew",
+			"/api/deletePoInIshineNew",
 			"/employeeportal/api/poProjectTimesheetSync",
 			"/employeeportal/api/getEmployeeAndTimesheetDetails",
 			"/employeeportal/api/getProjectDetailsByEmpIdAndDateRange",
@@ -96,7 +103,11 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			    "/api/getResourceCountByPoprojectId",
 			    "/api/getResourceCountListByPoprojectName",
 			    "/employeeportal/api/getResourceCountListByPoprojectName",
-				"/employeeportal/api/runTheHolidayCron"
+				"/employeeportal/api/runTheHolidayCron",
+			    "/api/ishineToPoEmpDetails",
+			    "/employeeportal/api/ishineToPoEmpDetails",
+				"/api/getAllEmployeeInfo"
+
 			);
 	
 //	private final List<String> SKYWALKING_PROXIED_PATHS = Arrays.asList(

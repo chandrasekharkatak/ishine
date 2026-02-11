@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.dto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import lombok.Getter;
@@ -16,8 +17,8 @@ public class RMGProject {
 	private String clientLocation;
 	private String projectName;
 	private Long poProjectId;
-	private String poStartDate;
-	private String poEndDate;
+	private String projectStartDate;
+	private String projectEndDate;
 	private String apmosysRM;
 	private String clientRM;
 	private String poProjectType;
@@ -25,5 +26,7 @@ public class RMGProject {
 	private String active;
 	private List<RMGTeam> rmgTeam;
 	private List<ProjectManagersDTO> projectManagers;
+	private LocalDateTime poStartDate;
+    private LocalDateTime poEndDate;
 	
 }

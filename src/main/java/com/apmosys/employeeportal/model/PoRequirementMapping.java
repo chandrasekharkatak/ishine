@@ -1,28 +1,25 @@
 package com.apmosys.employeeportal.model;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.Table;
 
 import org.hibernate.envers.Audited;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 
 @Data
 @Entity
-@Getter
-@Setter
-//@Audited
 @ToString
+@Audited
+@Table(indexes = {@Index(name = "idx_prm_po_id", columnList = "po_id") })
 public class PoRequirementMapping {
 	
 	    @Id
@@ -47,11 +44,19 @@ public class PoRequirementMapping {
 	    @Column(name = "count")
 	    private Long count;
 	    
+	  
+	    
+	    private LocalDateTime yearWiseRateCartStartDate;
+	    private LocalDateTime yearWiseRateCartEndDate;
+	    private LocalDateTime lineItemStartDate;
+	    private LocalDateTime lineItemEndDate;
+	    
 	    @Column(name = "active")
 	    private boolean active;
 	    
 	    
 	   
 
+   
 
 }

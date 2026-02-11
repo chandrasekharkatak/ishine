@@ -1257,6 +1257,7 @@
                                             </div>
                                         </div>
                                     </div>
+                                   
 
                                     <div class="col-md-4 mb-0" *ngIf="showProjectDropdown && (isCreation || this.employeeObj.isUpdateDefaultProject)">
                                         <div class="info-wrapper">
@@ -1329,6 +1330,25 @@
                                             </div>
                                         </div>
                                     </div>
+                                     <!-- added the PO requirement Mapping tab  -->
+                            <div class="col-md-4 mb-0" *ngIf="showTeamDropdown && !isUpdation">
+                                <div class="info-wrapper">
+                                    <div class="form-group">
+                                        <label class="info-label">
+                                            <span class="text-danger">*</span>PO Requirement
+                                        </label>
+                                        <select class="form-control" [(ngModel)]="employeeObj.poRequirementMappingId"
+                                            (change)="onPoRequirementChange()" [disabled]="poRequirementList.length === 0">
+                                            <option value="" disabled>
+                                                {{poRequirementList.length === 0 ? 'No PO Requirements Available' : 'Select PO Requirement'}}
+                                            </option>
+                                            <option *ngFor="let po of poRequirementList" [value]="po.poRequirementMappingId">
+                                                {{po.role}} - {{po.department}} ({{po.experience}})
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
 
 
 

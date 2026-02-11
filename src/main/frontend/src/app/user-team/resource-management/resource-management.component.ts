@@ -9,7 +9,7 @@ import { ActivatedRoute, Params, Router } from '@angular/router';
 import * as Highcharts from 'highcharts';
 import * as moment from 'moment';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
-import { finalize, first, map, startWith } from 'rxjs/operators';
+import { finalize, first, map, startWith, catchError } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Status } from 'src/app/enum/status';
 import { DefaultProjectUpdate } from 'src/app/models/defaultProjectUpdate';
@@ -51,8 +51,9 @@ import { ViewImageComponent } from '../view-image/view-image.component';
 import { RestoreProjectPayload } from 'src/app/models/restoreProjectPayload';
 import { LoaderService } from 'src/app/services/loader.service';
 import { PaginationInstance } from 'ngx-pagination';
-import { merge } from 'rxjs';
+import { merge, of, forkJoin } from 'rxjs';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
+import { RmgProject } from 'src/app/models/rmgProject';
 
 
 
@@ -70,6 +71,17 @@ class FilterData {
   styleUrls: ['./resource-management.component.css']
 })
 export class ResourceManagementComponent implements OnInit {
+
+
+  @ViewChild("project_configuration") projectConfigurationTemplateRef: TemplateRef<any>;
+  projectConfigurationModalRef: NgbModalRef;
+
+  @ViewChild("alert_message") alertMessageTemplateRef: TemplateRef<any>;
+  alertMessageModalRef: NgbModalRef;
+
+  showProjectConfig: boolean = false;
+  rmgProjectObj: RmgProject = new RmgProject();
+  isAllProjects: boolean = false;
 
   nodes: OrgChartNode[] = [];
 
@@ -316,7 +328,7 @@ expiredProjectsWithin1Month:any;
   isSearchEnabled: boolean = false;
   isSESearchEnabled: boolean = false;
   // projectColumns: any[] = ["blank", "draftStatus", "name", "poNo", "projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status"];
-  projectColumns: any[] = ["blank", "name", "poNo", "combinedProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status","projectStatus", "draftStatus"];
+  projectColumns: any[] = ["blank", "name", "poNo", "combinedProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "projectStartDate", "projectEndDate", "state", "createdOn", "status","projectStatus", "draftStatus"];
 
   projectDetails: any = [];
   projectDetails2: any = [];
@@ -507,17 +519,17 @@ expiredProjectsWithin1Month:any;
   // filters: any = {};
   // isSearchEnabled: boolean = false;
 
-  employeeReportColumnForDetailedProjectViewClub: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience', 'primaryProjectName'];
-  employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'poStartDate', 'poEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience'];
+  employeeReportColumnForDetailedProjectViewClub: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'projectStartDate', 'projectEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience', 'primaryProjectName'];
+  employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementId', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'projectStartDate', 'projectEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience'];
   leaveReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'noOfDays', 'reason', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
   timesheetReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'totalWorkingHours', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'leaveType', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
-  employeeReportColumn: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'poStartDate', 'poEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
+  employeeReportColumn: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'projectStartDate', 'projectEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
   // 'dateOfJoining', 'aadhar', 'aboutMe', 'address', 'permanentAddress', 'city', 'bloodGroup', 'dateOfBirth', 'gender', 'fatherName', 'panNumber', 'placeOfBirth', 'workLocation', 'probationPeriod', 'noticePeriod', 'country', 'totalExperience', 'emergencyContactMobile', 'emergencyContactPerson', 'landline', 'maritalStatus', 'motherTongue', 'alternateMobileNo', 'pincode', 'relation', 'state', 'viewsOnOrganisation', 'passportNumber', 'bankAccountNo', 'bankIFSCCode', 'bankName', 'pfAccountNumber', 'previousPfAccountNumber', 'uan', 'esicNumber', 'graduationType', 'pursuing', 'passingGrade', 'yearOfPassing',
   leaveTimesheetReportColumn: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
   defaultMappingColumns: any[] = ['tabName', 'featureName', 'subFeatureName'];
   employeeReportColumnForDetailedProjecttttView: any[] = ['blank',
     'projectName', 'projectManager', 'apmosysRM', 'clientRM',
-    'poStartDate', 'poEndDate', 'poNo', 'poProjectType', 'teamName',
+    'projectStartDate', 'projectEndDate', 'poNo', 'poProjectType', 'teamName',
     'employeeName', 'jobRole', 'deptName', 'mobileNo', 'email',
     'billable', 'billableType', 'effectiveStartDate'
   ];
@@ -1104,18 +1116,15 @@ toggleDepartments() {
     this.isProjectTable = true;
     this.allProjectTable = true;
     this.isSkillMatrix = false;
-
     this.isHideButton = false;
     this.isEditProject = false;
     this.isCreateForm = false;
     this.isCreation = false;
+    this.showProjectConfig = false;
     this.filters = {};
     this.isSearchEnabled = false;
-
     this.allProjectList = [];
     this.teamCreatedProjectList = [];
-    // this.getManagerList();
-    // this.alreadyCreatedTeam();
   }
 
 
@@ -3276,8 +3285,8 @@ cancelRequest7() {
       'Client': x.clientName || '',
       'Apmosys RM': x.apmosysRM || '',
       'Client RM': x.clientRM || '',
-      'Start Date': x.poStartDate || '',
-      'End Date': x.poEndDate || '',
+      'Start Date': x.projectStartDate || '',
+      'End Date': x.projectEndDate || '',
       'State': x.state || '',
       'Created On': x.createdOn || '',
       'Project Status': x.projectStatus || ''
@@ -3886,7 +3895,7 @@ CombinedPOInternalList(template: TemplateRef<any>, projectFilterDTO: ProjectFilt
             }
 
             this.createDepartmentArray();
-            console.log("this.allProject_Po_Internal", this.allProject_Po_Internal);
+            console.log("this.allProject_Po_Internal final", this.allProject_Po_Internal);
             // this.tabCounts = response.serviceResponse.counts;
             // this.totalCount = this.tabCounts.rejectedCount + this.tabCounts.notStartedCount + this.tabCounts.approvedCount + this.tabCounts.pendingForApprovalCount
         } else {
@@ -8390,6 +8399,10 @@ catch(error){
     }
   }
 
+  isValidString(string: any) {
+    return this.validationService.validateNullUndefinedEmptyStringTrim(string);
+  }
+
   checkIfUserAddingEnabled(){
    if(this.totalNoOfProjectsForAUser>0 && this.projectObj.poProjectType?.toLowerCase() == "tnm" ){
     this.userAdditionEnabled = false;
@@ -8419,6 +8432,161 @@ catch(error){
 
     // No tooltip when enabled
     return null;
+  }
+
+  showProjectConfigurationDetails(project: any, isModal:boolean) {
+    this.isAllProjects = this.isValidString(this.projectFilterDTO.approvalStatus) && this.projectFilterDTO.approvalStatus?.toLowerCase() === 'all';
+    forkJoin({
+      managers: this.getManagerAndOverheadList(),
+      departments: this.getAllDepartmentsList(),
+      employees: this.getEmployeeNameAndEmpld(),
+      projectConfig: this.getProjectConfigurationDetailsByProjectId(project)
+    }).subscribe(result => {
+      if (this.rmgProjectObj) {
+        if(isModal){
+          this.showProjectConfigurationModal();
+        }else{
+          this.showProjectConfiguration();
+        }
+      }
+      console.log('Project Obj:', this.rmgProjectObj);
+      console.log('Departments:', this.allDeptList);
+      console.log('Managers:', this.managerList);
+      console.log('Overhead:', this.overheadList);
+      console.log('Employees:', this.employeeList);
+    });
+  }
+
+  showProjectConfiguration() {
+    this.showProjectConfig = true;
+    this.isSkillMatrix = false;
+    this.isProjectTable = false;
+    this.allProjectTable = false;
+    this.isCreateForm = false;
+    this.isCreation = false;
+  }
+
+  closeProjectConfiguration() {
+    this.showViewProjects();
+  }
+
+  getManagerAndOverheadList() {
+    this.managerList = [];
+    this.filteredManagerList = [];
+    this.overheadList = [];
+    this.filteredOverheadList = [];
+
+    const reqObj = {
+      ...this.employeeObj,
+      role: 'Manager',
+      employeementId: this.employeeObj?.employeementId?.substring(2)
+    };
+
+    return this.employeeService.getAllEmployeesByRole(reqObj).pipe(
+      first(),
+      map((response: any) => {
+        if (response.serviceStatus === 'Success') {
+          const empList = [...response.serviceResponse];
+          this.appendPrefixToEmployee(empList);
+
+          this.managerList = [...empList];
+          this.overheadList = [...empList];
+          this.filteredManagerList = [...empList];
+          this.filteredOverheadList = [...empList];
+        }
+        return true;
+      }),
+      catchError(error => {
+        console.error('Manager list failed', error);
+        return of(false);
+      })
+    );
+  }
+
+  appendPrefixToEmployee(employeeList: any) {
+    if (!this.validationService.validateNullUndefinedEmptyList(employeeList)) {
+      return;
+    }
+    employeeList.forEach((emp) => {
+      emp.employeementId = "A-".concat(emp.employeementId);
+    });
+  }
+
+  getAllDepartmentsList() {
+    this.allDeptList = [];
+
+    return this.departmentService.getAllDepartments().pipe(
+      first(),
+      map((response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.allDeptList = response.serviceResponse;
+        }
+        return true;
+      }),
+      catchError(error => {
+        console.error('Department list failed', error);
+        return of(false);
+      })
+    );
+  }
+
+  getEmployeeNameAndEmpld() {
+    this.employeeList = [];
+
+    return this.employeeService.getAllActiveEmployeeInformation().pipe(
+      first(),
+      map((response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.employeeList = response.serviceResponse;
+        }
+        return true;
+      }),
+      catchError(error => {
+        console.error('Employee list failed', error);
+        return of(false);
+      })
+    );
+  }
+
+  getProjectConfigurationDetailsByProjectId(project: any) {
+    this.showProjectConfig = false;
+    this.rmgProjectObj = null;
+    return this.resourceManagementService.getProjectConfigurationDetailsByProjectId(project?.projectId,this.isAllProjects).pipe(
+      first(),
+      map((response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.rmgProjectObj = response.serviceResponse;
+           this.rmgProjectObj.state = this.isValidString(this.rmgProjectObj.state) ? this.rmgProjectObj.state : 'NA';
+
+        }
+        return true;
+      }),
+      catchError(error => {
+        console.error('Fetch Project Details failed', error);
+        return of(false);
+      })
+    );
+  }
+
+  openAlertMessageModal(modalMessage: any) {
+    this.modalMessage = modalMessage;
+    this.alertMessageModalRef = this.modalService.open(this.alertMessageTemplateRef, { modalDialogClass: 'modal-sm' });
+  }
+
+  closeAlertMessageModal() {
+    if (this.alertMessageModalRef) {
+      this.alertMessageModalRef?.close();
+    }
+  }
+
+  showProjectConfigurationModal() {
+    this.projectConfigurationModalRef = this.modalService.open(this.projectConfigurationTemplateRef, { modalDialogClass: 'modal-lg' });
+  }
+
+  closeProjectConfigurationModal() {
+      if (this.projectConfigurationModalRef) {
+      this.projectConfigurationModalRef?.close();
+    }
   }
 
 }

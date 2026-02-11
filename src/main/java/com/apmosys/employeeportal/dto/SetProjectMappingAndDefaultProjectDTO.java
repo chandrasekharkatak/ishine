@@ -16,4 +16,5 @@ public class SetProjectMappingAndDefaultProjectDTO {
 	private String[] employeeRole;
 	private Long resourceOverViewId;
 	private Long createdBy;
+	private Long poRequirementMappingId;
 }

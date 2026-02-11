@@ -1,6 +1,6 @@
 package com.apmosys.employeeportal.dto;
 
-import java.sql.Date;
+import java.util.Date;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -21,11 +21,16 @@ public class PoDetailsForProjectPoMappingDTO {
     private String poNo;
     private Date poStartDate;
     private Date poEndDate;
+    private Date createdOn;
+    private Date updatedOn;
+    
     private Long clientAddressId;
     private String clientLocation;
     private String clientState;
     private String createdByEmpId;
     private String createdByEmpName;
+    private String updatedByEmpId;
+    private String updatedByEmpName;
     private List<DepartmentIdAndNameDto> departmentList;
     private String commentForRmg;
     private String apmosysRmEmpId;
@@ -34,7 +39,8 @@ public class PoDetailsForProjectPoMappingDTO {
     private String clientRmName;
     private Long prevPo;
     private Long nextPO;
-    private Boolean isRenewable;
+    private boolean isRenewable;
     private List<POResourceRequirementDTO> resourceRequirementList;
     private boolean isActive;
+    private String clientRm;
 }

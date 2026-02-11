@@ -14,8 +14,8 @@ public class ProjectPo {
     private String poNo;
     private String department;
     private String projectName;
-    private Date poStartDate;
-    private Date poEndDate;
+    private Date projectStartDate;
+    private Date projectEndDate;
     private String apmosysRm;
     private boolean isRenewable;
     private String poProjectType;

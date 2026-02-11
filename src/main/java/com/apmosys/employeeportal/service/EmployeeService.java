@@ -2,14 +2,10 @@
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
 import java.lang.reflect.Field;
-import java.util.Base64;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -17,12 +13,13 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -37,12 +34,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
-import javax.persistence.Query;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.FilenameUtils;
@@ -55,29 +50,25 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.EncryptDecrypt;
@@ -93,22 +84,21 @@ import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
 import com.apmosys.employeeportal.dto.EmployeeProjection;
-import com.apmosys.employeeportal.dto.EmployeeRewardsDTO;
-import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
 import com.apmosys.employeeportal.dto.EmployeeSkillProficiencyDTO;
-import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO.PoObject;
 import com.apmosys.employeeportal.dto.GetAllEmployeesWorkAnniversaryTodayDTO;
 import com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
-import com.apmosys.employeeportal.dto.InActivePoDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PageResponseDTO;
 import com.apmosys.employeeportal.dto.PendingTimesheetDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
+import com.apmosys.employeeportal.dto.PoRequirementDataDTO;
 import com.apmosys.employeeportal.dto.PreviousEmploymentDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
@@ -120,7 +110,6 @@ import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.exception.BadRequestException;
 import com.apmosys.employeeportal.exception.DataNotFoundException;
 import com.apmosys.employeeportal.model.ApiLog;
-import com.apmosys.employeeportal.dto.TeamMemberDTO;
 import com.apmosys.employeeportal.model.Asset;
 import com.apmosys.employeeportal.model.CertificateDocumentMapping;
 import com.apmosys.employeeportal.model.CertificateDriveLinkMapping;
@@ -188,6 +177,7 @@ import com.apmosys.employeeportal.repository.NewsletterReadResponseRepository;
 import com.apmosys.employeeportal.repository.NewsletterRepository;
 import com.apmosys.employeeportal.repository.NotificationRepository;
 import com.apmosys.employeeportal.repository.PIPRepository;
+import com.apmosys.employeeportal.repository.PoRequirementMappingRepository;
 import com.apmosys.employeeportal.repository.PolicyReadResponseRepository;
 import com.apmosys.employeeportal.repository.PredefinedSkillsRepository;
 import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
@@ -206,23 +196,18 @@ import com.apmosys.employeeportal.request.EmployeeTimesheetProjectRequest;
 import com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse;
 import com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
-import com.apmosys.employeeportal.request.EmployeeTimesheetProjectRequest;
-import com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse;
-import com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse;
-import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.DbTable;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.LogEvents;
-import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.NotificationUtil;
+import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+import com.apmosys.employeeportal.utility.TypeConversionUtil;
 
 import de.danielbechler.diff.ObjectDifferBuilder;
 import de.danielbechler.diff.node.DiffNode;
 import de.danielbechler.diff.node.Visit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 @Service
@@ -361,6 +346,9 @@ public class EmployeeService {
 
 	@Autowired
 	PolicyReadResponseRepository policyReadResponseRepository;
+	
+	@Autowired
+	PoRequirementMappingRepository poRequirementMappingRepository;
 	
 	@Autowired
 	private ModelMapper mapper;
@@ -690,12 +678,6 @@ public class EmployeeService {
 				Department dept = departmentRepository.findByDeptId(employeedto.getDepartmentId());
 				String departmentname = dept.getName();
 				
-				Long resrcOverviewId = resourceRequirementRepository.findByProjectIdAndDepartmentName(departmentname,employeedto.getDefaultProjectId());
-				resrcOverviewId = resrcOverviewId !=null ? resrcOverviewId:null;
-				
-				
-				
-				
 				
 				EmployeeTeamMap employeeTeamMap = new EmployeeTeamMap();
 				employeeTeamMap.setEmpId(newEmployee.getEmpId());
@@ -704,9 +686,13 @@ public class EmployeeService {
 				employeeTeamMap.setStartDate(LocalDateTime.now());
 				employeeTeamMap.setEmployeeRole(employeeRole.toString());
 				employeeTeamMap.setIsShadow(employeedto.getIsShadowResource());
-				employeeTeamMap.setResourceOverviewId(resrcOverviewId);	
+			
 				employeeTeamMap.setUpdatedBy(Long.parseLong(newEmployee.getCreatedBy().toString()));
 				employeeTeamMap.setUpdatedOn(LocalDateTime.now());	
+				// Set poRequirementMappingId from front-end 
+			    if(employeedto.getPoRequirementMappingId() != null) {
+			        employeeTeamMap.setPoRequirementMappingId(employeedto.getPoRequirementMappingId());
+			    }
 			   employeeTeamMapRepository.save(employeeTeamMap);
 			   
 			   Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());
@@ -2732,7 +2718,7 @@ public class EmployeeService {
 							
 							findAllActiveTeams.forEach(obj ->{
 								obj.setActive(0l);	
-								obj.setEndDate(LocalDate.parse(employeedto.getDateOfRelieving()).atStartOfDay());			
+								obj.setEndDate(LocalDate.parse(employeedto.getDateOfRelieving()).atStartOfDay());	
 								employeeTeamMapRepository.save(obj);
 								});
 						}
@@ -7685,6 +7671,9 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		    		 String teamName = row[3]!=null ? row[3].toString():null;
 		    		 String deptIds = row[4]!=null ? row[4].toString():null;
 		    		 
+		    		 Long poId = row[10] != null ? Long.parseLong(row[10].toString()) : null;
+
+		    		 
 		    		 if (deptIds == null || !Arrays.asList(deptIds.split(",")).contains(departmentId.toString())) {
 		                 continue;
 		             }
@@ -7701,6 +7690,7 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		                 ProjectDTO projectDTO = new ProjectDTO();
 		                 projectDTO.setProjectId(projectId);
 		                 projectDTO.setProjectName(projectName);
+		                 projectDTO.setPoId(poId); // setting po id 
 		                 projectDTO.setTeamList(new ArrayList<>());
 		                 projectDTO.getTeamList().add(teamDTO);
 		                 projectMap.put(projectId, projectDTO);
@@ -8715,8 +8705,8 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	                    employeeDetails.setName(object[1] != null ? object[1].toString() : null);
 	                    employeeDetails.setProjectName(object[4] != null ? object[4].toString() : null);
 	                    employeeDetails.setPoNo(object[7] != null ? object[7].toString() : null);
-	                    employeeDetails.setPoStartDate(object[5] != null ? object[5].toString() : null);
-	                    employeeDetails.setPoEndDate(object[6] != null ? object[6].toString() : null);
+	                    employeeDetails.setProjectStartDate(object[5] != null ? object[5].toString() : null);
+	                    employeeDetails.setProjectEndDate(object[6] != null ? object[6].toString() : null);
 	                    employeeDetails.setClientName(object[8] != null ? object[8].toString() : null);
 	                    employeeDetails.setClientLocation(object[9] != null ? object[9].toString() : null);
 	                    employeeDetails.setDepartmentName(object[10] != null ? object[10].toString() : null);
@@ -8749,8 +8739,8 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	                    projectDetails.setProjectName(object[0] != null ? object[0].toString() : null);
 	                    projectDetails.setPoNo(object[1] != null ? object[1].toString() : null);
 	                    projectDetails.setPoProjectType(object[2] != null ? object[2].toString() : null);
-	                    projectDetails.setPoStartDate(object[3] != null ? object[3].toString() : null);
-	                    projectDetails.setPoEndDate(object[4] != null ? object[4].toString() : null);
+	                    projectDetails.setProjectStartDate(object[3] != null ? object[3].toString() : null);
+	                    projectDetails.setProjectEndDate(object[4] != null ? object[4].toString() : null);
 	                    projectDetails.setClientRM(object[5] != null ? object[5].toString() : null);
 	                    projectDetails.setApmosysRM(object[6] != null ? object[6].toString() : null);
 	                    projectDetails.setClientName(object[7] != null ? object[7].toString() : null);
@@ -9417,8 +9407,8 @@ public ServiceResponse fetchInactivePOListOfEmployee(GetEmployeeProjectReportPay
                     employeeDetails.setName(object[1] != null ? object[1].toString() : null);
                     employeeDetails.setProjectName(object[2] != null ? object[2].toString() : null);
                     employeeDetails.setPoNo(object[5] != null ? object[5].toString() : null);
-                    employeeDetails.setPoStartDate(object[3] != null ? object[3].toString() : null);
-                    employeeDetails.setPoEndDate(object[4] != null ? object[4].toString() : null);
+                    employeeDetails.setProjectStartDate(object[3] != null ? object[3].toString() : null);
+                    employeeDetails.setProjectEndDate(object[4] != null ? object[4].toString() : null);
                     employeeDetails.setClientName(object[6] != null ? object[6].toString() : null);
                     employeeDetails.setClientLocation(object[7] != null ? object[7].toString() : null);
                     employeeDetails.setDepartmentName(object[8] != null ? object[8].toString() : null);
@@ -9452,8 +9442,8 @@ public ServiceResponse fetchInactivePOListOfEmployee(GetEmployeeProjectReportPay
                     projectDetails.setProjectName(object[0] != null ? object[0].toString() : null);
                     projectDetails.setPoNo(object[1] != null ? object[1].toString() : null);
                     projectDetails.setPoProjectType(object[2] != null ? object[2].toString() : null);
-                    projectDetails.setPoStartDate(object[3] != null ? object[3].toString() : null);
-                    projectDetails.setPoEndDate(object[4] != null ? object[4].toString() : null);
+                    projectDetails.setProjectStartDate(object[3] != null ? object[3].toString() : null);
+                    projectDetails.setProjectEndDate(object[4] != null ? object[4].toString() : null);
                     projectDetails.setClientRM(object[5] != null ? object[5].toString() : null);
                     projectDetails.setApmosysRM(object[6] != null ? object[6].toString() : null);
                     projectDetails.setClientName(object[7] != null ? object[7].toString() : null);
@@ -12022,11 +12012,74 @@ public ServiceResponse getPendingTimesheetProjects(Long empId, LocalDate relievi
     return response;
 }
 
+public ServiceResponse getPoRequirementDataByTeamAndPoId(Long teamId, Long poId) {
 
+    ServiceResponse response = new ServiceResponse();
+    LogDTO apiLogInfo = new LogDTO();
+    apiLogInfo.setApiUrl("/api/getPoRequirementDataByTeamAndPoId");
+    try {
+        if (teamId == null || poId == null) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse("Team ID and PO ID are required");
+            return response;
+        }
 
+        List<PoRequirementDataDTO> data =
+                poRequirementMappingRepository
+                        .getPoRequirementDataByTeamAndPoId(teamId, poId);
 
+        if (data != null && !data.isEmpty()) {
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(data);
+            response.setServiceResponse1("PO Requirement data retrieved successfully");
+        } else {
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(null);
+            response.setServiceResponse1("No data found for given Team and PO");
+        }
 
+    } catch (Exception e) {
+        e.printStackTrace();
+        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+        response.setServiceResponse("Error while fetching PO Requirement data");
+        response.setServiceError(e.getMessage());
+    }
 
+    return response;
+}
+
+	public ServiceResponse getAllActiveEmployeeInformation() {
+	ServiceResponse response = new ServiceResponse();
+	LogDTO apiLogInfo = new LogDTO();
+	apiLogInfo.setSubFeatureName("getAllActiveEmployeeInformation");
+	apiLogInfo.setApiUrl("/api/getAllActiveEmployeeInformation");
+	apiLogInfo.setLogLevel("INFO");
+	try {
+		List<Object[]> results = employeeRepository.getAllActiveEmployeeInformation();
+		List<EmployeeInformationDTO> employeeInfoList = new ArrayList<>();
+		if (results != null && !results.isEmpty()) {
+			for (Object[] obj : results) {
+				Long empId = TypeConversionUtil.safeParseLong(obj[0]);
+				EmployeeInformationDTO dto = new EmployeeInformationDTO();
+				dto.setEmpId(empId);
+				dto.setEmploymentId(TypeConversionUtil.getSafeString(obj[1]));
+				dto.setName(TypeConversionUtil.getSafeString(obj[2]));
+				dto.setBillableType(TypeConversionUtil.getSafeString(obj[3]));
+				dto.setJobRole(TypeConversionUtil.getSafeString(obj[4]));
+				dto.setDeptName(TypeConversionUtil.getSafeString(obj[5]));
+				dto.setDeptId(TypeConversionUtil.safeParseLong(obj[6]));
+				employeeInfoList.add(dto);
+			}
+		}
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(employeeInfoList);
+	} catch (Exception e) {
+		e.printStackTrace();
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		response.setServiceResponse("Error : " + e.getMessage());
+	}
+	return response;
+}
 
 }
 	

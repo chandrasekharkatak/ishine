@@ -134,7 +134,7 @@ import { EmployeeInfoComponent } from './user-update-info/employee-info/employee
 import { EmployeeUpdateListComponent } from './user-update-info/employee-update-list/employee-update-list.component';
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
-import{TimesheetCreateSelfComponent} from './timesheet-create-self/timesheet-create-self.component';
+import { TimesheetCreateSelfComponent } from './timesheet-create-self/timesheet-create-self.component';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
@@ -210,7 +210,7 @@ import { FileUploadComponent } from './helpers/form-renderer/FileUpload/FileUplo
 import { LmstabComponent } from './lmstab/lmstab.component';
 import { MySelectComponent } from './helpers/my-select/my-select.component';
 import { FloatingScrollWrapperComponent } from './helpers/floating-scroll-wrapper/floating-scroll-wrapper.component';
-import {MatTimepickerModule} from '@angular/material/timepicker';
+import { MatTimepickerModule } from '@angular/material/timepicker';
 import { MyAutocompleteComponent } from './helpers/my-autocomplete/my-autocomplete.component';
 import { NgxEditorModule } from 'ngx-editor';
 import { MyTimesheetApplicationSelectorComponent } from "./user-timesheet/my-timesheet/my-timesheet-application-selector/my-timesheet-application-selector.component";
@@ -220,6 +220,13 @@ import { TimesheetTimeEntryComponent } from "./timesheet-create-self/timesheet-t
 import { DateTimePickerComponent } from './helpers/date-time-picker/date-time-picker.component';
 import { TimesheetFormComponent } from './user-timesheet/my-timesheet/timesheet-form/timesheet-form.component';
 import { InfoTooltipComponent } from './helpers/shared/info-tooltip/info-tooltip.component';
+import { MatStepperModule } from '@angular/material/stepper';
+import { MatTabsModule } from '@angular/material/tabs';
+import { RmgProjectComponent } from './user-team/resource-management/rmg-edit-project/rmg-project/rmg-project.component';
+import { NgbPopoverModule } from '@ng-bootstrap/ng-bootstrap';
+import {MatSlideToggleModule} from '@angular/material/slide-toggle';
+import {MatRadioModule} from '@angular/material/radio';
+import { ToastrModule } from 'ngx-toastr';
 
 registerLocaleData(localeGb);
 
@@ -406,7 +413,9 @@ registerLocaleData(localeGb);
     TeamAllTimesheetsTableComponent,
     TimesheetFormComponent,
     MyTimesheetApplicationSelectorComponent,
-    InfoTooltipComponent
+    InfoTooltipComponent,
+    RmgProjectComponent,
+ 
   ],
   imports: [
     BrowserModule,
@@ -444,10 +453,22 @@ registerLocaleData(localeGb);
     MatExpansionModule,
     NgxPaginationModule,
     NgxEditorModule,
+    MatStepperModule,
+    MatTabsModule,
+    NgbPopoverModule,
+    MatSlideToggleModule,
+    MatRadioModule,
     CalendarLegendComponent,
     TimesheetTimeEntryComponent,
-    DateTimePickerComponent
-],
+    DateTimePickerComponent,
+    ToastrModule.forRoot({
+      positionClass: 'toast-top-right',
+      timeOut: 4000,
+      closeButton: true,
+      preventDuplicates: true,
+      newestOnTop: true
+    })
+  ],
   providers: [
     DatePipe,
     { provide: LocationStrategy, useClass: HashLocationStrategy },

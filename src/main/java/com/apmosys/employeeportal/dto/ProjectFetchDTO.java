@@ -31,10 +31,10 @@ public class ProjectFetchDTO {
 	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	private LocalDateTime updatedOn;
 	private String isDraftProject;
-	private String poEndDate;
+	private String projectEndDate;
 	private String poNo;
 	private String poProjectType;
-	private String poStartDate;
+	private String projectStartDate;
 	private String apmosysRM;
 	private String clientRM;
 	private String deptId;
@@ -66,6 +66,8 @@ public class ProjectFetchDTO {
     private String poProjectStatus;
     private Timestamp createdOn1;
 
+	List<PoDetailsDto> poDetailsList;
+
     //internal projects
     public ProjectFetchDTO(Object[] row) {
         this.projectId = row[0] != null ? ((Number) row[0]).intValue() : null;          
@@ -80,8 +82,8 @@ public class ProjectFetchDTO {
         this.clientRM = (String) row[9];                                                 
         this.deptId = row[10] != null ? row[10].toString() : null;                     
         this.apmosysRM = (String) row[11];                                              
-        this.poStartDate = row[12] != null ? row[12].toString() : null;                
-        this.poEndDate = row[13] != null ? row[13].toString() : null;                 
+        this.projectStartDate = row[12] != null ? row[12].toString() : null;                
+        this.projectEndDate = row[13] != null ? row[13].toString() : null;                 
         this.state = (String) row[14];                                                 
         this.createdOn = row[15] != null ? (Timestamp) row[15] : null;                 
         this.status = (String) row[16];                                        
@@ -109,10 +111,10 @@ public class ProjectFetchDTO {
         dto.updatedOn = row[10] != null ? 
             (row[10] instanceof Timestamp ? ((Timestamp) row[10]).toLocalDateTime() : null) : null; 
         dto.isDraftProject = (String) row[11];                                      
-        dto.poEndDate = row[12] != null ? row[12].toString() : null;                 
+        dto.projectEndDate = row[12] != null ? row[12].toString() : null;                 
         dto.poNo = (String) row[13];                                               
         dto.poProjectType = (String) row[14];                                        
-        dto.poStartDate = row[15] != null ? row[15].toString() : null;               
+        dto.projectStartDate = row[15] != null ? row[15].toString() : null;               
         dto.apmosysRM = (String) row[16];                                            
         dto.clientRM = (String) row[17];                                             
         dto.deptId = row[18] != null ? row[18].toString() : null;                    
@@ -132,8 +134,8 @@ public class ProjectFetchDTO {
     
 	public ProjectFetchDTO(Integer projectId, Timestamp createdOn, String projectName, String state, Integer clientId,
 			Long poProjectId, String syncProject, Long createdBy, Long updatedBy,
-			LocalDateTime updatedOn, String isDraftProject, String poEndDate, String poNo, String poProjectType,
-			String poStartDate, String apmosysRM, String clientRM, String deptId, Boolean isRenewable, String status,
+			LocalDateTime updatedOn, String isDraftProject, String projectEndDate, String poNo, String poProjectType,
+			String projectStartDate, String apmosysRM, String clientRM, String deptId, Boolean isRenewable, String status,
 			String apmosysRmEmail, String projectCompletionDate, String projectStatus, String internalProjectType,String clientName,
 			String draftStatus, String isTeamCreated) {
 		this.projectId = projectId;
@@ -147,10 +149,10 @@ public class ProjectFetchDTO {
 		this.updatedBy = updatedBy;
 		this.updatedOn = updatedOn;
 		this.isDraftProject = isDraftProject;
-		this.poEndDate = poEndDate;
+		this.projectEndDate = projectEndDate;
 		this.poNo = poNo;
 		this.poProjectType = poProjectType;
-		this.poStartDate = poStartDate;
+		this.projectStartDate = projectStartDate;
 		this.apmosysRM = apmosysRM;
 		this.clientRM = clientRM;
 		this.deptId = deptId;
@@ -167,8 +169,8 @@ public class ProjectFetchDTO {
 	
 	public ProjectFetchDTO(Integer projectId, Timestamp createdOn, String projectName, String state, Integer clientId,
 			Long poProjectId, String active, String syncProject, Long createdBy, Long updatedBy,
-			LocalDateTime updatedOn, String isDraftProject, String poEndDate, String poNo, String poProjectType,
-			String poStartDate, String apmosysRM, String clientRM, String deptId, Boolean isRenewable, String status,
+			LocalDateTime updatedOn, String isDraftProject, String projectEndDate, String poNo, String poProjectType,
+			String projectStartDate, String apmosysRM, String clientRM, String deptId, Boolean isRenewable, String status,
 			String apmosysRmEmail, String projectCompletionDate, String projectStatus,
 			String draftStatus, String clientName) {
 		this.projectId = projectId;
@@ -183,10 +185,10 @@ public class ProjectFetchDTO {
 		this.updatedBy = updatedBy;
 		this.updatedOn = updatedOn;
 		this.isDraftProject = isDraftProject;
-		this.poEndDate = poEndDate;
+		this.projectEndDate = projectEndDate;
 		this.poNo = poNo;
 		this.poProjectType = poProjectType;
-		this.poStartDate = poStartDate;
+		this.projectStartDate = projectStartDate;
 		this.apmosysRM = apmosysRM;
 		this.clientRM = clientRM;
 		this.deptId = deptId;
@@ -200,8 +202,8 @@ public class ProjectFetchDTO {
 	}
 	public ProjectFetchDTO(Integer projectId, Timestamp createdOn, String projectName, String state, Integer clientId,
 			Long poProjectId, String active, String syncProject, Long createdBy, Long updatedBy,
-			LocalDateTime updatedOn, String isDraftProject, String poEndDate, String poNo, String poProjectType,
-			String poStartDate, String apmosysRM, String clientRM, String deptId, Boolean isRenewable, String status,
+			LocalDateTime updatedOn, String isDraftProject, String projectEndDate, String poNo, String poProjectType,
+			String projectStartDate, String apmosysRM, String clientRM, String deptId, Boolean isRenewable, String status,
 			String apmosysRmEmail, String projectCompletionDate, String projectStatus, String internalProjectType,String clientName,
 			String draftStatus, String projectViewId) {
 		this.projectId = projectId;
@@ -216,10 +218,10 @@ public class ProjectFetchDTO {
 		this.updatedBy = updatedBy;
 		this.updatedOn = updatedOn;
 		this.isDraftProject = isDraftProject;
-		this.poEndDate = poEndDate;
+		this.projectEndDate = projectEndDate;
 		this.poNo = poNo;
 		this.poProjectType = poProjectType;
-		this.poStartDate = poStartDate;
+		this.projectStartDate = projectStartDate;
 		this.apmosysRM = apmosysRM;
 		this.clientRM = clientRM;
 		this.deptId = deptId;
@@ -237,8 +239,8 @@ public class ProjectFetchDTO {
 
 	public ProjectFetchDTO(Integer projectId, Date createdOn, String projectName, String state, Integer clientId,
 			Long poProjectId, String active, String syncProject, Long createdBy, Long updatedBy,
-			LocalDateTime updatedOn, String isDraftProject, String poEndDate, String poNo, String poProjectType,
-			String poStartDate, String apmosysRM, String clientRM, String deptId, Boolean isRenewable, String status,
+			LocalDateTime updatedOn, String isDraftProject, String projectEndDate, String poNo, String poProjectType,
+			String projectStartDate, String apmosysRM, String clientRM, String deptId, Boolean isRenewable, String status,
 			String apmosysRmEmail, String projectCompletionDate, String projectStatus, String internalProjectType,
 			String clientName,
 			String draftStatus, String projectViewId) {
@@ -254,10 +256,10 @@ public class ProjectFetchDTO {
 		this.updatedBy = updatedBy;
 		this.updatedOn = updatedOn;
 		this.isDraftProject = isDraftProject;
-		this.poEndDate = poEndDate;
+		this.projectEndDate = projectEndDate;
 		this.poNo = poNo;
 		this.poProjectType = poProjectType;
-		this.poStartDate = poStartDate;
+		this.projectStartDate = projectStartDate;
 		this.apmosysRM = apmosysRM;
 		this.clientRM = clientRM;
 		this.deptId = deptId;
@@ -298,8 +300,8 @@ public class ProjectFetchDTO {
 		dto.clientRM = (String) row[9];                                                 
 		dto.deptId = row[10] != null ? row[10].toString() : null;                     
 		dto.apmosysRM = (String) row[11];                                              
-		dto.poStartDate = row[12] != null ? row[12].toString() : null;                
-		dto.poEndDate = row[13] != null ? row[13].toString() : null;                 
+		dto.projectStartDate = row[12] != null ? row[12].toString() : null;                
+		dto.projectEndDate = row[13] != null ? row[13].toString() : null;                 
 		dto.state = (String) row[14];                                                 
 		dto.createdOn = row[15] != null ? (row[15] instanceof Timestamp ? ((Timestamp) row[15]): null) : null; 
 		dto.status = (String) row[16];                                        

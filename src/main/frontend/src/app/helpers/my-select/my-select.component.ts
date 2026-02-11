@@ -28,6 +28,7 @@ export class MySelectComponent implements ControlValueAccessor, OnInit {
   @Input() valueKey;
   @Input() optionDisabledKey?: string; // e.g. 'disabled'
   @Input() isOptionDisabled?: (option: any) => boolean;
+  // @Input() isDisabled:boolean = false;
   @Output() selectionChange = new EventEmitter<any>();
   @Output() change = new EventEmitter<any>();
   @Output() dropdownClosed = new EventEmitter<void>();
@@ -168,8 +169,8 @@ isAllSelected(): boolean {
   }
 
     let text = (this.searchText || '').toLowerCase();
-    this.filteredOptions = this.options.filter(opt =>
-      this.getDisplayText(opt).toLowerCase().includes(text)
+    this.filteredOptions = this.options?.filter(opt =>
+      this.getDisplayText(opt)?.toLowerCase().includes(text)
     );
   }
 

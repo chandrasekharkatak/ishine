@@ -6310,10 +6310,10 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		                    project.setPoProjectType(dto.getProjectType());
 		                    Date startDate = dto.getStartDate();
 		                    String formattedStartDate = dateFormat.format(startDate);
-		                    project.setPoStartDate(formattedStartDate);
+		                    project.setStartDate(formattedStartDate);
 		                    Date endDate = dto.getEndDate();
 		                    String formattedEndDate = dateFormat.format(endDate);
-		                    project.setPoEndDate(formattedEndDate);
+		                    project.setEndDate(formattedEndDate);
 		                    project.setStatus(dto.getStatus());
 		                    //departmentIds
 		                    List<String> departmentList = dto.getDepartment();
@@ -6427,12 +6427,12 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 //		        po.setPoStartDate(row[3] instanceof Date ? (Date) row[3] : null);
 //		        po.setPoEndDate(row[4] instanceof Date ? (Date) row[4] : null);
 		        if (row[3] instanceof Date) {
-		            po.setPoStartDate((Date) row[3]);
+		            po.setProjectStartDate((Date) row[3]);
 		        } else if (row[3] instanceof Timestamp) {
-		            po.setPoStartDate(new Date(((Timestamp) row[3]).getTime()));
+		            po.setProjectStartDate(new Date(((Timestamp) row[3]).getTime()));
 		        } else if (row[3] instanceof String) {
 		            try {
-						po.setPoStartDate(formatter.parse((String) row[3]));
+						po.setProjectStartDate(formatter.parse((String) row[3]));
 					} catch (ParseException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -6440,12 +6440,12 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		        }
 		        // Handle End Date
 		        if (row[4] instanceof Date) {
-		            po.setPoEndDate((Date) row[4]);
+		            po.setProjectEndDate((Date) row[4]);
 		        } else if (row[4] instanceof Timestamp) {
-		            po.setPoEndDate(new Date(((Timestamp) row[4]).getTime()));
+		            po.setProjectEndDate(new Date(((Timestamp) row[4]).getTime()));
 		        } else if (row[4] instanceof String) {
 		            try {
-						po.setPoEndDate(formatter.parse((String) row[4]));
+						po.setProjectEndDate(formatter.parse((String) row[4]));
 					} catch (ParseException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -6510,8 +6510,8 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 
 		                projectHtmlTable.append("<tr>")
 		                .append("<td>").append(po.getProjectName()).append("</td>")
-		                .append("<td>").append(po.getPoStartDate() != null ? sdf.format(po.getPoStartDate()) : "").append("</td>")
-		                .append("<td>").append(po.getPoEndDate() != null ? sdf.format(po.getPoEndDate()) : "").append("</td>")
+		                .append("<td>").append(po.getProjectStartDate() != null ? sdf.format(po.getProjectStartDate()) : "").append("</td>")
+		                .append("<td>").append(po.getProjectEndDate() != null ? sdf.format(po.getProjectEndDate()) : "").append("</td>")
 		                .append("<td>").append(po.getApmosysRm()).append("</td>")
 		                .append("<td>").append(po.isRenewable()).append("</td>") 
 		                .append("<td>").append(po.getPoProjectType()).append("</td>")

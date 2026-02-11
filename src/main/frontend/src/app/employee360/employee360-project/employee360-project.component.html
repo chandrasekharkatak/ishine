@@ -215,8 +215,8 @@
                            <td class="info-label" *ngIf="project.rescRemovedByName" id="clickablefor360" [navigateToEmployee360]="project.rescRemovedBy" style="cursor: pointer;" title="Click to view Employee 360">{{project.rescRemovedByName}}</td>
                             <td class="info-label" *ngIf="!project.rescRemovedByName">{{project.rescRemovedByName}}</td>
 
-                        <td style="white-space: nowrap;">{{ project.poStartDate | date: 'yyyy-MM-dd'}}</td>
-                        <td style="white-space: nowrap;">{{ project.poEndDate | date: 'yyyy-MM-dd'}}</td>
+                        <td style="white-space: nowrap;">{{ project.projectStartDate | date: 'yyyy-MM-dd'}}</td>
+                        <td style="white-space: nowrap;">{{ project.projectEndDate | date: 'yyyy-MM-dd'}}</td>
                         <td>{{ project.status }}</td>
                         <td>
                             <!-- <button *ngIf="project.endDate == undefined || project.endDate == null" class="btn btn-sm btn-outline-primary mt-1" title="Edit" (click)="editProjectInfo(project)" type="submit"><em class="fa fa-edit"></em></button>&nbsp; -->

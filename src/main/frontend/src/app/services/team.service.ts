@@ -1,9 +1,13 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient,HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Activity } from '../models/activity';
 import { Employee } from '../models/employee';
 import { Team } from '../models/team';
 import { environment } from 'src/environments/environment';
+import { MigrateTeams } from '../models/migrateTeam';
+import { PoDetails } from '../models/poDetails';
+import { RmgResourceRequirement } from '../models/rmgResourceRequirement';
+import { RmgTeamMember } from '../models/rmgTeamMember';
 
 @Injectable({
   providedIn: 'root'
@@ -89,4 +93,58 @@ export class TeamService {
   updateActivityTemplate(team: Team) {
     return this.http.post(`${this.baseUrl}` + `api/updateActivityTemplate`, team);
   }
+
+  getAllTeamsAndRoleWiseMembersByPoId(poId: any) {
+    let httpParams = new HttpParams().append("poId", poId);
+    return this.http.get(`${this.baseUrl}` + `api/getAllTeamsAndRoleWiseMembersByPoId`, { params: httpParams });
+  }
+
+  getAllTeamsByPoId(poId: any) {
+    let httpParams = new HttpParams().append("poId", poId);
+    return this.http.get(`${this.baseUrl}` + `api/getAllTeamsByPoId`, { params: httpParams });
+  }
+
+  getTeamDetailsByTeamId(teamId: any, projectId: any) {
+    let httpParams = new HttpParams().append("teamId", teamId).append("projectId", projectId);
+    return this.http.get(`${this.baseUrl}` + `api/getTeamDetailsByTeamId`, { params: httpParams });
+  }
+
+  getActiveTeamDetailsByPoId(poId: any) {
+    let httpParams = new HttpParams().append("poId", poId);
+    return this.http.get(`${this.baseUrl}` + `api/getActiveTeamDetailsByPoId`, { params: httpParams });
+  }
+
+  migrateTeam(migrateTeam: MigrateTeams) {
+    return this.http.post(`${this.baseUrl}` + `api/migrateTeam`, migrateTeam);
+  }
+
+  getTeamDetailsByTeamIdsAndProjectId(poObj: PoDetails) {
+    return this.http.post(`${this.baseUrl}` + `api/getTeamDetailsByTeamIdsAndProjectId`, poObj);
+  }
+
+  deleteSelectedTeams(deleteTeamsPo: PoDetails) {
+    return this.http.post(`${this.baseUrl}` + `api/deleteSelectedTeams`, deleteTeamsPo);
+  }
+
+  addOrUpdateTeamDetails(updateTeamPoDetails: PoDetails) {
+    return this.http.post(`${this.baseUrl}` + `api/addOrUpdateTeamDetails`, updateTeamPoDetails);
+  }
+
+  addOrUpdateTeamMembers(requirement: RmgResourceRequirement) {
+    return this.http.post(`${this.baseUrl}` + `api/addOrUpdateTeamMembers`, requirement);
+  }
+
+  getActiveTeamDetailsByProjectId(projectId: any) {
+    let httpParams = new HttpParams().append("projectId", projectId);
+    return this.http.get(`${this.baseUrl}` + `api/getActiveTeamDetailsByProjectId`, { params: httpParams });
+  }
+
+  updateDefaultProjectCompletion(rmgTeamMember: RmgTeamMember) {
+    return this.http.post(`${this.baseUrl}` + `api/updateDefaultProjectCompletion`, rmgTeamMember);
+  }
+
+  removeTeamMembersFromProject(requirement: RmgResourceRequirement) {
+    return this.http.post(`${this.baseUrl}` + `api/removeTeamMembersFromProject`, requirement);
+  }
+
 }

@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service;
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collections;
@@ -66,6 +67,8 @@ import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.RmAndHodEmailDto;
 import com.apmosys.employeeportal.model.ApiLog;
+import com.apmosys.employeeportal.model.Client;
+import com.apmosys.employeeportal.model.ClientLocation;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.JobRole;
@@ -75,6 +78,7 @@ import com.apmosys.employeeportal.model.PoRequirementMapping;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectPoDetails;
 import com.apmosys.employeeportal.model.UserSession;
+import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
@@ -90,7 +94,6 @@ import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.PoportalApiException;
 import com.apmosys.employeeportal.utility.ServiceResponse;
-import com.apmosys.employeeportal.utility.ToLong_helper;
 
 @Service
 public class PoPortalAPIService {
@@ -100,6 +103,12 @@ public class PoPortalAPIService {
 	
 	@Value("${poPortal.api.updateMilestones}")
 	private String sendFileUrl;
+	
+	@Autowired
+	ClientsRepository clientRepository;
+	
+	@Autowired
+	ClientService clientService;
 	
 	@Value("${poPortal.api.allProjects}")
 	private String allPoPortalProjects;
@@ -1767,6 +1776,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	                continue;
 	            }
 	            
+	            Client client = clientRepository.findByClientId(project.getClientId());            
 	            Date minPoStartDate = null;
 	            Date maxPoEndDate = null;
 
@@ -1787,7 +1797,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	                }
 	                try {
 	                	logger.info("call to saveSinglePoTransactional \n");
-	                    saveSinglePoTransactional(projectDto, poDto, project);
+	                    saveSinglePoTransactional(projectDto, poDto, project,client);
 	                } catch (PoportalApiException ex) {
 	                	ex.printStackTrace();
 						logger.info("catch for saveSinglePoTransactional \n");
@@ -1904,7 +1914,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	public void saveSinglePoTransactional(
 	        ProjectPoMappingWithResourceDTO projectDto,
 	        PoDetailsForProjectPoMappingDTO poDto,
-	        Project project) {
+	        Project project,Client client) {
 
 	   
 	    if (poDto.getDepartmentList() == null) {
@@ -1918,18 +1928,18 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	    }
 
 	    logger.info("TNM project not missing resources \n");
+	    
+	    ClientLocation cl = clientService.resolveClientLocation(client.getClientId(), poDto.getClientLocation(),
+				poDto.getClientState());
 	   
 	    ProjectPoDetails poDetails = new ProjectPoDetails();
-	    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 	    poDetails.setPoId(poDto.getPoId());
 	    poDetails.setProjectId(project.getProjectId());
 	    poDetails.setPoNo(poDto.getPoNo());
 	    
-        String formattedStartDate = dateFormat.format(poDto.getPoStartDate());
-        poDetails.setPoStartDate(formattedStartDate);
-      
-        String formattedEndDate = dateFormat.format(poDto.getPoEndDate());
-        poDetails.setPoEndDate(formattedEndDate);
+        
+        poDetails.setPoStartDate(convert(poDto.getPoStartDate()));
+        poDetails.setPoEndDate(convert(poDto.getPoEndDate()));
 	   
 	   
 //	    poDetails.setClientLocationId(poDto.getClientAddressId());
@@ -1941,14 +1951,13 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	    poDetails.setNextPO(poDto.getNextPO());
 	    poDetails.setActive(poDto.isActive());
 	    poDetails.setPoProjectId(projectDto.getProjectId());
-	    
-	    
-	    
-	    Long createdByEmpPk = validateAndGetCreatedByEmpId(
-	            poDto.getCreatedByEmpId(),
-	            poDto.getCreatedByEmpName()
-	    );
-	    poDetails.setCreatedBy(createdByEmpPk);
+	    poDetails.setClientLocationId(Long.valueOf(cl.getClientLocationId()));	
+	    poDetails.setClientAddressId(poDto.getClientAddressId());
+//	    Long createdByEmpPk = validateAndGetCreatedByEmpId(
+//	            poDto.getCreatedByEmpId(),
+//	            poDto.getCreatedByEmpName()
+//	    );
+//	    poDetails.setCreatedBy(createdByEmpPk);
 
 //	    poDetails.setCreatedBy(123l);
 	  
@@ -1964,9 +1973,10 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	   
 	    for (DepartmentIdAndNameDto dept : poDto.getDepartmentList()) {
 	        PoDepartmentMapping map = new PoDepartmentMapping();
-	        map.setPoId(poDto.getPoId().intValue());
+	        map.setPoId(poDto.getPoId());
 	        map.setDeptId(dept.getDeptId());
 	        map.setActive(true);
+	        map.setProjectId(project.getProjectId());
 	        System.out.println("saved in poDepartmentMappingRepository");
 	        logger.info("saved in poDepartmentMappingRepository");
 	        poDepartmentMappingRepository.save(map);
@@ -1983,6 +1993,11 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	            prm.setClientRoleId(req.getClientRoleId());
 	            prm.setDepartment(req.getDepartment());            
 	            prm.setActive(true);
+	            prm.setLineItemEndDate(convert(req.getLineItemEndDate()));
+	            prm.setLineItemStartDate(convert(req.getLineItemStartDate()));
+	            prm.setYearWiseRateCartStartDate(convert(req.getYearWiseRateCartStartDate()));   
+	            prm.setYearWiseRateCartEndDate(convert(req.getYearWiseRateCartEndDate()));            
+	            
 		        System.out.println("saved in poRequirementMappingRepository");
 		        logger.info("saved in poRequirementMappingRepository");
 	            poRequirementMappingRepository.save(prm);
@@ -1990,6 +2005,19 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	    }
 	}
 	
+	private LocalDateTime convert(Date date) {
+	    if (date == null) return null;
+
+	    if (date instanceof java.sql.Date) {
+	        return ((java.sql.Date) date)
+	                .toLocalDate()
+	                .atStartOfDay();
+	    }
+
+	    return date.toInstant()
+	            .atZone(ZoneId.systemDefault())
+	            .toLocalDateTime();
+	}
 	
 	private Long validateAndGetCreatedByEmpId(String createdByEmpId,
             String createdByEmpName) {
@@ -2112,9 +2140,9 @@ return empId;
 	                		}
 
 
-	                 project.setPoStartDate(
+	                 project.setStartDate(
 	                         dateFormat.format(projectDto.getProjectStartDate()));
-	                 project.setPoEndDate(
+	                 project.setEndDate(
 	                         dateFormat.format(projectDto.getProjectEndDate()));
 
 	                 projectRepository.save(project);

@@ -36,8 +36,8 @@ mat-sort-header="apmosysRM|string"
 mat-sort-header="clientRM|string"
 mat-sort-header="poNo|string"
 mat-sort-header="poProjectType|string"
-mat-sort-header="poStartDate|datetime"
-mat-sort-header="poEndDate|datetime"
+mat-sort-header="projectStartDate|datetime"
+mat-sort-header="projectEndDate|datetime"
 mat-sort-header="projectManagerName|string"
 mat-sort-header="teamName|string"
 mat-sort-header="teamName|string"
@@ -465,8 +465,8 @@ matSort (matSortChange)="sortData($event)"
                                 <td class="text-center">{{employee.rmgProjects[0].clientRM}}</td>
                                 <td class="text-center">{{employee.rmgProjects[0].poNo}}</td>
                                 <td class="text-center">{{employee.rmgProjects[0].poProjectType}}</td>
-                                <td class="text-center">{{employee.rmgProjects[0].poStartDate}}</td>
-                                <td class="text-center">{{employee.rmgProjects[0].poEndDate}}</td>
+                                <td class="text-center">{{employee.rmgProjects[0].poStartDate  | date: 'dd-MM-yyyy'}}</td>
+                                <td class="text-center">{{employee.rmgProjects[0].poEndDate  | date: 'dd-MM-yyyy'}}</td>
                             </ng-container>
 
                             <ng-container *ngIf="!employee.rmgProjects || employee.rmgProjects.length === 0">
@@ -585,9 +585,9 @@ matSort (matSortChange)="sortData($event)"
                         <th scope="col" class="info-label" style="min-width: 200px;"
                         mat-sort-header="poProjectType|string">PO Project Type</th>
                         <th scope="col" class="info-label" style="min-width: 200px;"
-                        mat-sort-header="poStartDate|string">PO Start Date</th>
+                        mat-sort-header="projectStartDate|string">Project Start Date</th>
                         <th scope="col" class="info-label" style="min-width: 200px;"
-                        mat-sort-header="poEndDate|string">PO End Date</th>
+                        mat-sort-header="projectEndDate|string">Project End Date</th>
 
                     </tr>
                     <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="tableColumnsBench"
@@ -649,8 +649,8 @@ matSort (matSortChange)="sortData($event)"
                                     <td class="text-center">{{ firstProject.clientRM }}</td>
                                     <td class="text-center">{{ firstProject.poNo }}</td>
                                     <td class="text-center">{{ firstProject.poProjectType }}</td>
-                                    <td class="text-center">{{ firstProject.poStartDate | date: 'dd-MM-yyyy' }}</td>
-                                    <td class="text-center">{{ firstProject.poEndDate | date: 'dd-MM-yyyy' }}</td>
+                                    <td class="text-center">{{ firstProject.projectStartDate | date: 'dd-MM-yyyy' }}</td>
+                                    <td class="text-center">{{ firstProject.projectEndDate | date: 'dd-MM-yyyy' }}</td>
 
                                     <ng-container *ngIf="!firstProject.rmgTeam || firstProject.rmgTeam.length === 0">
                                         <td colspan="3" class="text-center">-</td>
@@ -686,9 +686,9 @@ matSort (matSortChange)="sortData($event)"
                                             <td class="text-center">{{ empProject.clientRM }}</td>
                                             <td class="text-center">{{ empProject.poNo }}</td>
                                             <td class="text-center">{{ empProject.poProjectType }}</td>
-                                            <td class="text-center">{{ empProject.poStartDate | date: 'dd-MM-yyyy' }}
+                                            <td class="text-center">{{ empProject.projectStartDate | date: 'dd-MM-yyyy' }}
                                             </td>
-                                            <td class="text-center">{{ empProject.poEndDate | date: 'dd-MM-yyyy' }}</td>
+                                            <td class="text-center">{{ empProject.projectEndDate | date: 'dd-MM-yyyy' }}</td>
                                             
                                         </ng-container>
 

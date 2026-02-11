@@ -65,7 +65,7 @@ export class Employee360ProjectComponent implements OnInit {
   currentUser: User;
   filters: any = {};
   isSearchEnabled: boolean = false;
-  projectColumns: any[] = ['blank', 'projectName', 'teamName', 'clientName', 'billableType', 'combinedProjectType','startDate', 'endDate','rescRemovedByName' ,'poStartDate', 'poEndDate', 'status'];
+  projectColumns: any[] = ['blank', 'projectName', 'teamName', 'clientName', 'billableType', 'combinedProjectType','startDate', 'endDate','rescRemovedByName' ,'projectStartDate', 'poEndDate', 'status'];
   employeesColumns: any[] = ['blank', 'teamName', 'employeeName', 'billableType', 'startDate', 'employeeRole'];
   teamColumns: any[] = ['blank','employmentIdAcToET','name','teamName','teamLeadName']
   alertMessage: any;
