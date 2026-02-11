@@ -5050,64 +5050,108 @@ try {
 						    Set<String> project = new LinkedHashSet<>();
 						    Set<String> clientName = new LinkedHashSet<>();
 
-						    for (Object[] object : objectList) {
+						    if (!objectList.isEmpty()) {
 
-						        if (object[1] != null)
-						            activity.append(object[1]).append(",");
+						        for (Object[] object : objectList) {
 
-						        if (object[3] != null)
-						            description.append(object[3]).append(",");
+						            activity.append(object[1] != null ? object[1].toString() : null)
+						                    .append(",");
 
-						        if (object[5] != null)
-						            project.add(object[5].toString());
+						            description.append(object[3] != null ? object[3].toString() : null)
+						                    .append(",");
 
-						        if (object[6] != null)
-						            clientName.add(object[6].toString());
-						    }
+						            if (object[5] != null)
+						                project.add(object[5].toString());
 
-						    String activityStr = activity.length() > 0
-						            ? activity.substring(0, activity.length() - 1)
-						            : ts.getDescription();
+						            if (object[6] != null)
+						                clientName.add(object[6].toString());
+						        }
 
-						    String descriptionStr = description.length() > 0
-						            ? description.substring(0, description.length() - 1)
-						            : null;
+						        ws.style(rowNum, 3).format("dd-MM-yyyy").set();
+						        ws.style(rowNum, 6).format("dd-MM-yyyy HH:mm:ss").set();
+						        ws.style(rowNum, 7).format("dd-MM-yyyy HH:mm:ss").set();
 
-						    ws.value(rowNum, 0, "A-" + employeementId);
-						    ws.value(rowNum, 1, empName);
-						    ws.value(rowNum, 2, departmentName);
-						    ws.value(rowNum, 3, ts.getDate());
-						    ws.style(rowNum, 3).format("dd-MM-yyyy").set();
-						    ws.value(rowNum, 4, ts.getDaytype());
-						    ws.value(rowNum, 6, ts.getWorkCheckIn());
-						    ws.style(rowNum, 6).format("dd-MM-yyyy HH:mm:ss").set();
-						    ws.value(rowNum, 7, ts.getWorkCheckOut());
-						    ws.style(rowNum, 7).format("dd-MM-yyyy HH:mm:ss").set();
+						        ws.value(rowNum, 0, "A-" + employeementId);
+						        ws.value(rowNum, 1, empName);
+						        ws.value(rowNum, 2, departmentName);
+						        ws.value(rowNum, 3, ts.getDate());
+						        ws.value(rowNum, 4, ts.getDaytype());
+						        ws.value(rowNum, 5, ts.getLeaveTypeMasterId());
+						        ws.value(rowNum, 6, ts.getWorkCheckIn());
+						        ws.value(rowNum, 7, ts.getWorkCheckOut());
 
-						    ws.value(rowNum, 8,
-						            "true".equals(ts.getIsNightShift())
-						                    ? "Night Shift"
-						                    : "Regular Shift");
+						        if (ts.getIsNightShift() == null) {
+						            ws.value(rowNum, 8, "Regular Shift");
+						        } else {
+						            ws.value(rowNum, 8,
+						                    ts.getIsNightShift().equals("true")
+						                            ? "Night Shift"
+						                            : "Regular Shift");
+						        }
 
-						    double hours ;
-						    if(ts.getTotalWorkingMinutes()==null) {
-						    	hours=0.0;
-						    }else {
-						    	hours = ts.getTotalWorkingMinutes() / 60.0;
-						    }
-						    ws.value(rowNum, 9, Math.round(hours * 100.0) / 100.0);
+						        double hours = ts.getTotalWorkingMinutes() == null
+						                ? 0.0
+						                : ts.getTotalWorkingMinutes() / 60.0;
 
-						    ws.value(rowNum, 10, activityStr);
-						    ws.value(rowNum, 11, descriptionStr);
-						    ws.value(rowNum, 12, String.join(",", clientName));
-						    ws.value(rowNum, 13, String.join(",", project));
-						    ws.value(rowNum, 14, ts.getStatus());
+						        ws.value(rowNum, 9,
+						                Math.round(hours * 100.0) / 100.0);
 
-						    rowNum++;
+						        ws.value(rowNum, 10, activity.toString());
+						        ws.value(rowNum, 11, description.toString());
+						        ws.value(rowNum, 12, String.join(",", clientName));
+						        ws.value(rowNum, 13, String.join(",", project));
+						        ws.value(rowNum, 14, ts.getStatus());
+
+						        rowNum++;
+
+						    } else {
+						        List<Object[]> empLeave =
+						                employeeLeaveRepository
+						                        .findLeaveTypeFromEmpIdAndDate(
+						                                empId,
+						                                ts.getDate().toString()
+						                        );
+
+						        String leaveType = null;
+						        String dayType = ts.getDaytype();
+
+						        if (!empLeave.isEmpty()) {
+						            for (Object[] object : empLeave) {
+						                leaveType = object[0] != null
+						                        ? object[0].toString()
+						                        : null;
+						                dayType = "Leave";
+						            }
+						        }
+
+						        ws.style(rowNum, 3).format("dd-MM-yyyy").set();
+						        ws.style(rowNum, 6).format("dd-MM-yyyy HH:mm:ss").set();
+						        ws.style(rowNum, 7).format("dd-MM-yyyy HH:mm:ss").set();
+
+						        ws.value(rowNum, 0, "A-" + employeementId);
+						        ws.value(rowNum, 1, empName);
+						        ws.value(rowNum, 2, departmentName);
+						        ws.value(rowNum, 3, ts.getDate());
+						        ws.value(rowNum, 4, dayType);
+						        ws.value(rowNum, 5, leaveType);
+
+						        double hours = ts.getTotalWorkingMinutes() == null
+						                ? 0.0
+						                : ts.getTotalWorkingMinutes() / 60.0;
+
+						        ws.value(rowNum, 9,
+						                Math.round(hours * 100.0) / 100.0);
+
+						        ws.value(rowNum, 10, ts.getDescription());
+						        ws.value(rowNum, 11, (String) null);
+						        ws.value(rowNum, 14, ts.getStatus());
+
+						        rowNum++;
+
+						        System.out.println("Activity List is empty");
+						    }							
 						}
-
 							
-					
 					}
 					wb.finish();
 				}catch(Exception e) {
