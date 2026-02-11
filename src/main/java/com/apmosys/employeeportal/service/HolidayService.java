@@ -464,7 +464,7 @@ public class HolidayService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	
+	@Transactional
 	public ServiceResponse reconsileHolidayTimesheet(HolidayDTO holidayDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -475,6 +475,11 @@ public class HolidayService {
 		
 		try {
 			
+			if(holidayDTO.getDateOfHoliday()==null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Please provide the date for which reconsile is intended");
+				return response;
+			}
 			LocalDate holidayDate = LocalDate.parse(holidayDTO.getDateOfHoliday());
 			Holiday holidayObj = holidayRepository.findFirstByDateOfHolidayAndState(holidayDate,"all");
 
