@@ -120,6 +120,7 @@ import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingReposito
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.FinalDocumentRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
@@ -243,6 +244,8 @@ public class TimesheetService {
 
 	@Value("${timesheet.max.file.size}")
 	private DataSize maxFileSize;
+	@Autowired
+	private EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
 
 //	public ServiceResponse getAllProjectsByEmpId(TimesheetDTO timesheetDTO) {
 //		ServiceResponse response = new ServiceResponse();
@@ -2465,7 +2468,10 @@ public class TimesheetService {
 
 			LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
 
-			List<Object[]> objectList = timesheetsRepository.getTimesheetsForHomePageByEmpIdOLD(timesheetDTO.getEmpId(),
+			// List<Object[]> objectList = timesheetsRepository.getTimesheetsForHomePageByEmpIdOLD(timesheetDTO.getEmpId(),
+			// 		start, end);
+
+			List<Object[]> objectList = employeeTimesheetsNewRepository.getNewTimesheetDetails(timesheetDTO.getEmpId(),
 					start, end);
 
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
@@ -2487,7 +2493,20 @@ public class TimesheetService {
 						dto.setTimesheetId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 						dto.setDate(object[1] != null ? object[1].toString() : null);
 						dto.setWeekDayName(object[2] != null ? object[2].toString() : null);
-						dto.setTotalWorkingHours(object[3] != null ? Float.parseFloat(object[3].toString()) : 0);
+						// dto.setTotalWorkingHours(object[3] != null ? Float.parseFloat(object[3].toString().trim().split(":")[0]) : 0);
+						float totalHours = 0f;
+
+						if (object[3] != null) {
+							String time = object[3].toString().trim(); 
+							String[] parts = time.split(":");
+
+							int hours = Integer.parseInt(parts[0]);
+							int minutes = Integer.parseInt(parts[1]);
+
+							totalHours = hours + (minutes / 60f);
+						}
+
+						dto.setTotalWorkingHours(totalHours);
 						dto.setStatus(object[4] != null ? object[4].toString() : null);
 						dto.setDayType(object[5] != null ? object[5].toString() : null);
 						dto.setDescription(
@@ -2497,6 +2516,7 @@ public class TimesheetService {
 							);
 
 						dto.setActivity(object[7] != null ? object[7].toString() : null);
+						dto.setProjectName(object[8] != null ? object[8].toString() : null);
 						dtoList.add(dto);
 					});
 

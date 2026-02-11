@@ -1432,31 +1432,72 @@ timesheet: any;
       let rejectedCount = 0;
       let notFilledCount = 0;
 
-      for (let date = moment(timesheetObj.startDate); date.isSameOrBefore(timesheetObj.endDate); date.add(1, 'days')) {
-        let newTimesheetObj = new Timesheet();
-        newTimesheetObj.date = moment(date).format(dateFormat);
+      for (
+          let date = moment(timesheetObj.startDate);
+          date.isSameOrBefore(timesheetObj.endDate);
+          date.add(1, 'days')
+        ) {
+          const currentDateStr = date.format(dateFormat);
 
-        if (newTimesheetObj.date) {
-          let checkedTimesheet = filledTimesheetDetails.find(timesheet => timesheet.date == newTimesheetObj.date);
+          const rows = filledTimesheetDetails.filter(
+            t => t.date === currentDateStr
+          );
 
-          if (checkedTimesheet) {
-            newTimesheetObj = checkedTimesheet;
-            newTimesheetObj.totalWorkingHoursPercentage = (newTimesheetObj.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100 + "%";
+          // ===== LAST 7 DAYS (single row per date) =====
+          if (dateRange === 'Last 7 Days') {
+            const ts = rows[0]; // first is enough
 
-            // For Chart Data
-            if (newTimesheetObj.status == "Pending") { pendingCount++; }
-            else if (newTimesheetObj.status == "Approved") { approvedCount++; }
-            else if (newTimesheetObj.status == "Rejected") rejectedCount++;
+            if (ts) {
+              const clone = { ...ts } as Timesheet;
+              clone.totalWorkingHoursPercentage =
+                (clone.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100 + '%';
+
+              this.timesheetDetails.push(clone);
+
+              if (clone.status === 'Pending') pendingCount++;
+              else if (clone.status === 'Approved') approvedCount++;
+              else if (clone.status === 'Rejected') rejectedCount++;
+            } else {
+              const empty = new Timesheet();
+              empty.date = currentDateStr;
+              empty.status = 'Not Filled';
+              empty.dayType = 'Not Filled';
+              empty.weekDayName = this.getWeekDay(currentDateStr);
+              empty.totalWorkingHoursPercentage = '0%';
+
+              this.timesheetDetails.push(empty);
+              notFilledCount++;
+            }
+
+            continue;
+          }
+
+          // ===== MONTH / OTHER VIEWS (multiple rows per date) =====
+          if (rows.length > 0) {
+            rows.forEach(ts => {
+              const clone = { ...ts } as Timesheet;
+              clone.totalWorkingHoursPercentage =
+                (clone.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100 + '%';
+
+              this.timesheetDetails.push(clone);
+
+              if (clone.status === 'Pending') pendingCount++;
+              else if (clone.status === 'Approved') approvedCount++;
+              else if (clone.status === 'Rejected') rejectedCount++;
+            });
           } else {
-            newTimesheetObj.totalWorkingHoursPercentage = "0%";
-            newTimesheetObj.status = "Not Filled";
-            newTimesheetObj.dayType = "Not Filled";
-            newTimesheetObj.weekDayName = this.getWeekDay(newTimesheetObj.date);
+            const empty = new Timesheet();
+            empty.date = currentDateStr;
+            empty.status = 'Not Filled';
+            empty.dayType = 'Not Filled';
+            empty.weekDayName = this.getWeekDay(currentDateStr);
+            empty.totalWorkingHoursPercentage = '0%';
+
+            this.timesheetDetails.push(empty);
             notFilledCount++;
           }
         }
-        this.timesheetDetails.push(newTimesheetObj);
-      }
+
 
       //console.log("timesheetDetails : ", this.timesheetDetails);
       this.timesheetDetails.sort(this.dateCompare);

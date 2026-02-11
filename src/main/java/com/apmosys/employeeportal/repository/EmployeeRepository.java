@@ -3686,6 +3686,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	)
 	List<Long> getAllAuthorizeEmployeeId(@Param("empId") Long empId);
 
+	@Query(value = "SELECT * FROM employee WHERE employmentstatus = 'Active'", nativeQuery = true)
+	List<Employee> findAllActiveEmployeesObject();
 
 		@Query(value = "SELECT new com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO(e.empId, e.name,  \n " +
 				"CASE  \n " +
