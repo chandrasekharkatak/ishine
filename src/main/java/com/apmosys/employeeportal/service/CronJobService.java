@@ -1281,6 +1281,7 @@ public class CronJobService {
 //				LocalDate dateToday = LocalDate.parse("2024-12-14");
 //				LocalDate dateToday = LocalDate.parse("2025-11-17");
 				LocalDate dateToday = LocalDate.now();
+				LocalDateTime dateTimeToday = LocalDateTime.now();
 //				System.out.println("filling timesheet method started");
 				List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCronExludingSomeEmployees();
 //				System.err.println("vghgc"+dateToday);
@@ -1302,38 +1303,40 @@ public class CronJobService {
 							for(Object[] employeeList: allEmployee) {
 								Long empId = employeeList[0] != null ? Long.parseLong(employeeList[0].toString()) : null;
 								String billableType = employeeList[7] != null ?employeeList[7].toString() : null;
-								if(("TNM").equalsIgnoreCase(billableType)) {
-									System.out.println("TNM");
-								}
-								Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empId, dateToday);
+								
+								Optional<EmployeeTimesheetsNew> empTimesheet = employeeTimesheetsNewRepository.findByEmpIdAndDateNew(empId, dateToday);
 
-								if (empTimesheet == null) {
+								if (empTimesheet.isEmpty()) {
 
 									if (holidayOccassion.equals("Saturday : second saturday")
 											|| holidayOccassion.equals("Saturday : fourth saturday")) {
 										if (billableType != null && !("TNM").equalsIgnoreCase(billableType)) {
-											Timesheet newTimesheet = new Timesheet();
-											newTimesheet.getCommonProperty().setCreatedBy(empId);
+											EmployeeTimesheetsNew newTimesheet = new EmployeeTimesheetsNew();
+											newTimesheet.setCreatedBy(empId);
 											newTimesheet.setDate(dateToday);
-											newTimesheet.setDayType("Week Off");
+											newTimesheet.setCreatedOn(dateTimeToday);//											newTimesheet.setDaytype("Week Off");
 											newTimesheet.setDescription("WeekOff : Saturday");
-											newTimesheet.setTotalTime((float) 0);
-											newTimesheet.setTotalWorkingHours("0");
+											newTimesheet.setTotalWorkingMinutes(0);
 											newTimesheet.setEmpId(empId);
-											newTimesheet.setStatus("Approved");
-											timesheetsRepository.save(newTimesheet);
+											newTimesheet.setIsNightShift(false);
+											newTimesheet.setDayTypeId(4);
+											newTimesheet.setStatus(2);
+											employeeTimesheetsNewRepository.save(newTimesheet);
 										}
 									} else {
-										Timesheet newTimesheet = new Timesheet();
-										newTimesheet.getCommonProperty().setCreatedBy(empId);
+										EmployeeTimesheetsNew newTimesheet = new EmployeeTimesheetsNew();
+										newTimesheet.setCreatedBy(empId);
 										newTimesheet.setDate(dateToday);
-										newTimesheet.setDayType("Week Off");
+										newTimesheet.setCreatedOn(dateTimeToday);
+//										newTimesheet.setDayType("Week Off");
+										newTimesheet.setIsNightShift(false);
 										newTimesheet.setDescription("WeekOff : Sunday");
-										newTimesheet.setTotalTime((float) 0);
-										newTimesheet.setTotalWorkingHours("0");
+//										newTimesheet.setTotalTime((float) 0);
+										newTimesheet.setDayTypeId(4);
+										newTimesheet.setTotalWorkingMinutes(0);
 										newTimesheet.setEmpId(empId);
-										newTimesheet.setStatus("Approved");
-										timesheetsRepository.save(newTimesheet);
+										newTimesheet.setStatus(2);
+										employeeTimesheetsNewRepository.save(newTimesheet);
 									}
 
 									// For weekoff's managers don't have to approve the timesheet, if any employee
@@ -1363,24 +1366,26 @@ public class CronJobService {
 								System.out.println("TNM");
 							}
 							System.out.println("vghgc"+empId);
-							Timesheet empTimesheet = timesheetsRepository.findByEmpIdAndDate(empId,holidays.getDateOfHoliday());
-							if(empTimesheet == null) {
+							Optional<EmployeeTimesheetsNew> empTimesheet = employeeTimesheetsNewRepository.findByEmpIdAndDateNew(empId,holidays.getDateOfHoliday());
+							if(empTimesheet.isEmpty()) {
 								System.out.println("vghgc"+publicHoliday.isEmpty());
 								if(((holidayState.equals("all") && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))
 										|| (holidayState.equals(workLocation) && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking"))))&& billableType != null &&!("TNM").equalsIgnoreCase(billableType)){
 
-									Timesheet newTimesheet = new Timesheet();
-									newTimesheet.getCommonProperty().setCreatedBy(empId);
+									EmployeeTimesheetsNew newTimesheet = new EmployeeTimesheetsNew();
+									newTimesheet.setCreatedBy(empId);
 									newTimesheet.setDate(holidays.getDateOfHoliday());
-
-									newTimesheet.setDayType("Public Holiday");
+									newTimesheet.setCreatedOn(dateTimeToday);
+									newTimesheet.setDayTypeId(2);
+									newTimesheet.setIsNightShift(false);
+//									newTimesheet.setDayType("Public Holiday");
 									newTimesheet.setDescription("Public Holiday : " + holidays.getOccasion());
 									newTimesheet.setEmpId(empId);
-									newTimesheet.setStatus("Approved");
+									newTimesheet.setStatus(2);
 
 //									System.out.println("filling holiday");
 
-									timesheetsRepository.save(newTimesheet);
+									employeeTimesheetsNewRepository.save(newTimesheet);
 									System.out.println("vghgc"+newTimesheet);
 
 								}
