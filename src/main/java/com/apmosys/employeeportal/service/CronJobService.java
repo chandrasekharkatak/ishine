@@ -62,6 +62,7 @@ import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
+import com.apmosys.employeeportal.repository.*;
 import org.dhatim.fastexcel.Workbook;
 import org.dhatim.fastexcel.Worksheet;
 import org.dhatim.fastexcel.reader.ReadableWorkbook;
@@ -88,6 +89,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.BioMaTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.MilestoneExpireDto;
@@ -107,6 +109,7 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
+import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.Holiday;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
@@ -120,30 +123,6 @@ import com.apmosys.employeeportal.model.ResourceRequirement;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.UserSession;
-import com.apmosys.employeeportal.repository.BiomaxDefaulterRepository;
-import com.apmosys.employeeportal.repository.BiomaxRequestRepository;
-import com.apmosys.employeeportal.repository.BirthdayMailRepository;
-import com.apmosys.employeeportal.repository.ClientLocationRepository;
-import com.apmosys.employeeportal.repository.ClientsRepository;
-import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
-import com.apmosys.employeeportal.repository.DepartmentRepository;
-import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
-import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
-import com.apmosys.employeeportal.repository.EmployeeRepository;
-import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
-import com.apmosys.employeeportal.repository.HolidayRepository;
-import com.apmosys.employeeportal.repository.JobRoleRepository;
-import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
-import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
-import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
-import com.apmosys.employeeportal.repository.PortalConfigRepository;
-import com.apmosys.employeeportal.repository.ProjectDepartmentMapRepository;
-import com.apmosys.employeeportal.repository.ProjectRepository;
-import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
-import com.apmosys.employeeportal.repository.TeamRepository;
-import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
-import com.apmosys.employeeportal.repository.TimesheetsRepository;
-import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -190,8 +169,9 @@ public class CronJobService {
 	@Autowired
 	EmployeeRepository employeeRepository;
 	
+
 	@Autowired
-	EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
+	TimesheetActivityMapNewRepository timesheetActivityMapNewRepository;
 	
 	@Autowired
 	TimesheetsRepository timesheetsRepository;
@@ -246,6 +226,9 @@ public class CronJobService {
 
 	@Autowired
 	ResourceRequirementRepository resourceRequirementRepository;
+	
+	@Autowired
+	EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
 
 	@Autowired
 	MailService mailService;
@@ -1992,7 +1975,11 @@ public class CronJobService {
 		public ServiceResponse monthlyTimesheetExcelGenerator() {
 			ServiceResponse response = new ServiceResponse();
 			try {
-
+				List<PortalConfig> portalConfig = portalConfigRepository.findAll();
+				String folderPath = portalConfig.stream()
+						.filter(c -> "DSR Download Path".equals(c.getConfigName()))
+						.map(PortalConfig::getConfigValue)
+						.findFirst().orElse("");
 				Calendar calendar = Calendar.getInstance();
 				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 				calendar.add(Calendar.MONTH, -1);
@@ -2003,6 +1990,13 @@ public class CronJobService {
 				calendar.set(Calendar.DATE,calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
 				LocalDate lastDateOfPreviousMonth = LocalDate.parse(dateFormat.format(calendar.getTime()));
 
+				List<Object[]> allTimesheets = employeeTimesheetsNewRepository.findAllByDateRangeNative(firstDateOfPreviousMonth, lastDateOfPreviousMonth);
+				List<Object[]> allActivities = timesheetActivityMapNewRepository.findAllActivitiesByDateRange(firstDateOfPreviousMonth, lastDateOfPreviousMonth);
+				Map<Long, List<Object[]>> timesheetByEmpMap = allTimesheets.stream()
+						.collect(Collectors.groupingBy(obj -> Long.parseLong(obj[0].toString())));
+
+				Map<Long, List<Object[]>> activityByTsMap = allActivities.stream()
+						.collect(Collectors.groupingBy(obj -> Long.parseLong(obj[0].toString())));
 				List<Object[]> employeeList = employeeRepository.getEmployeeDetailForCron();
 				for(Object[] empObj : employeeList) {
 
@@ -2013,19 +2007,9 @@ public class CronJobService {
 					System.out.println("Emp ID :" + empId);
 					System.out.println("Employment ID :" + employeementId);
 
-					List<Object[]> monthlyTimesheet = timesheetsRepository.
-							findAllByEmpIdAndDateNative(empId, firstDateOfPreviousMonth, lastDateOfPreviousMonth);
+					List<Object[]> monthlyTimesheet = timesheetByEmpMap.getOrDefault(empId, new ArrayList<>());
 
-					List<PortalConfig> portalConfig = portalConfigRepository.findAll();
-					String folderPath = null;
-					if(!portalConfig.isEmpty()) {
-						for(PortalConfig portalConfigObj : portalConfig) {
-							if(portalConfigObj.getConfigName().equals("DSR Download Path")) {
-								folderPath = portalConfigObj.getConfigValue();
-							}
-						}
-					}
-					System.out.println("Folder Path : " + folderPath);
+										System.out.println("Folder Path : " + folderPath);
 
 					    Path path = Files.createDirectories(Paths.get(folderPath +"DSR" + File.separator + firstDateOfPreviousMonth.getYear() + File.separator + firstDateOfPreviousMonth.getMonth()));
 						var f = new File(path + File.separator + employeementId + "-" + empName + "-" + firstDateOfPreviousMonth.getMonth() + ".xlsx");
@@ -2056,14 +2040,13 @@ public class CronJobService {
 							String perviousClientLocation = "";
 							for(Object[] tsRow: monthlyTimesheet) {
 
-                                Long tsId        = tsRow[0] != null ? Long.parseLong(tsRow[0].toString()) : null;
-                                String tsDate    = tsRow[1] != null ? tsRow[1].toString() : "";
-                                String tsDayType = tsRow[2] != null ? tsRow[2].toString() : "";
-                                String tsTotalHr = tsRow[3] != null ? tsRow[3].toString() : "0";
-                                String tsStatus  = tsRow[4] != null ? tsRow[4].toString() : "";
-                                String tsDesc    = tsRow[5] != null ? tsRow[5].toString() : "";
-								List<Object[]> objectList = timesheetActivityMapRepository.activitiesByTimesheetId(tsId);
-
+                                Long tsId        = tsRow[1] != null ? Long.parseLong(tsRow[1].toString()) : null;
+                                String tsDate    = tsRow[2] != null ? tsRow[2].toString() : "";
+                                String tsDayType = tsRow[3] != null ? tsRow[3].toString() : "";
+                                String tsTotalHr = tsRow[4] != null ? tsRow[4].toString() : "0";
+                                String tsStatus  = tsRow[5] != null ? tsRow[5].toString() : "";
+                                String tsDesc    = tsRow[6] != null ? tsRow[6].toString() : "";
+								List<Object[]> objectList = activityByTsMap.getOrDefault(tsId, new ArrayList<>());
 
 								if(!objectList.isEmpty()) {
 									for(Object[] object : objectList) {
@@ -2085,6 +2068,7 @@ public class CronJobService {
 											ws.value(rowNum, 1, tsDayType);
 											ws.value(rowNum, 6, tsTotalHr);
 											ws.value(rowNum, 8,tsStatus );
+											ws.value(rowNum, 7, tsDesc);
 										}
 										if(clientName.equals(perviousClientName) && tsDate.equals(perviousDate)) {
 											ws.range(rowNum - 1, 2, rowNum, 2).merge();
@@ -4902,11 +4886,13 @@ try {
 						System.out.println("Emp ID :" + empId);
 						System.out.println("Employment ID :" + employeementId);
 
-						List<Timesheet> monthlyTimesheet = timesheetsRepository
-								.findAllByEmpIdAndDateBetweenOrderByDateDesc(empId, firstOfMonth, currentDate);
+//						List<Timesheet> monthlyTimesheet = timesheetsRepository
+//								.findAllByEmpIdAndDateBetweenOrderByDateDesc(empId, firstOfMonth, currentDate);
+						List<EmployeeTimesheetsNewDTO> monthlyTimesheet = employeeTimesheetsNewRepository
+									.fetchTimesheetDataWithDateType(empId, firstOfMonth, currentDate);
 
 						if (!monthlyTimesheet.isEmpty()) {
-							for (Timesheet timesheetObj : monthlyTimesheet) {
+							for (EmployeeTimesheetsNewDTO timesheetObj : monthlyTimesheet) {
 								List<Object[]> objectList = timesheetActivityMapRepository
 										.activitiesByTimesheetId(timesheetObj.getTimesheetId());
 
@@ -4932,15 +4918,17 @@ try {
 									ws.value(rowNum, 1, empName);
 									ws.value(rowNum, 2, departmentName);
 									ws.value(rowNum, 3, timesheetObj.getDate());
-									ws.value(rowNum, 4, timesheetObj.getDayType());
-									ws.value(rowNum, 6, timesheetObj.getOfficeInTime());
-									ws.value(rowNum, 7, timesheetObj.getOfficeOutTime());
+									ws.value(rowNum, 4, timesheetObj.getDaytype());
+									ws.value(rowNum, 6, timesheetObj.getWorkCheckIn());
+									ws.value(rowNum, 7, timesheetObj.getWorkCheckOut());
 									if(timesheetObj.getIsNightShift() == null) {
 										ws.value(rowNum, 8, "Regular Shift");
 									}else {
 										ws.value(rowNum, 8, timesheetObj.getIsNightShift().equals("true") ? "Night Shift" : "Regular Shift");
 									}
-									ws.value(rowNum, 9, timesheetObj.getTotalWorkingHours());
+									double hours = timesheetObj.getTotalWorkingMinutes() / 60.0;
+									double roundedHours = Math.round(hours * 100.0) / 100.0;
+									ws.value(rowNum, 9, roundedHours);
 									if (!objectList.isEmpty()) {
 										ws.value(rowNum, 10, activity.toString());
 									} else {
@@ -4977,9 +4965,9 @@ try {
 									//Get leave type
 									List<Object[]> empLeave = employeeLeaveRepository
 											.findLeaveTypeFromEmpIdAndDate(empId, timesheetObj.getDate().toString());
-
+									
 									String leaveType = null;
-									String dayType = timesheetObj.getDayType();
+									String dayType = timesheetObj.getDaytype();
 									if(!empLeave.isEmpty()) {
 										for(Object[] object: empLeave) {
 											leaveType = object[0] != null ? object[0].toString() : null;
@@ -4999,7 +4987,9 @@ try {
 									ws.value(rowNum, 3, timesheetObj.getDate());
 									ws.value(rowNum, 4, dayType);
 									ws.value(rowNum, 5, leaveType);
-									ws.value(rowNum, 9, timesheetObj.getTotalWorkingHours());
+									double hours = timesheetObj.getTotalWorkingMinutes() / 60.0;
+									double roundedHours = Math.round(hours * 100.0) / 100.0;
+									ws.value(rowNum, 9, roundedHours);
 								    ws.value(rowNum, 10, timesheetObj.getDescription());
 								    ws.value(rowNum, 11, (String)null);
 									ws.value(rowNum, 14, timesheetObj.getStatus());

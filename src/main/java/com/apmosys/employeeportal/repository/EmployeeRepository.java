@@ -3618,5 +3618,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	)
 	List<Long> getAllAuthorizeEmployeeId(@Param("empId") Long empId);
 
+	@Query(value = "SELECT * FROM employee WHERE employmentstatus = 'Active'", nativeQuery = true)
+	List<Employee> findAllActiveEmployeesObject();
 
 }

@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO;
 import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -23,6 +24,18 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 
 	// ========== NEW METHODS FOR HIERARCHICAL STRUCTURE ==========
 
+	@Query(value = "SELECT et.emp_id FROM employee_timesheets_new et WHERE et.date = :date", nativeQuery = true)
+	List<Long> findEmpIdsByDate(@Param("date") LocalDate date);
+
+	@Query(value = "SELECT et.emp_id, et.timesheet_id, et.date, dtm.day_type, " +
+			"ROUND(CAST(et.total_working_minutes AS DECIMAL(10,2))/60, 2) AS totalTime, " +
+			"sm.status, et.description " +
+			"FROM employee_timesheets_new et " +
+			"INNER JOIN day_type_master_new dtm ON et.day_type_id = dtm.day_type_id " +
+			"INNER JOIN status_master_new sm ON et.status = sm.status_id " +
+			"WHERE et.date BETWEEN :start AND :end " +
+			"ORDER BY et.emp_id, et.date DESC", nativeQuery = true)
+	List<Object[]> findAllByDateRangeNative(@Param("start") LocalDate start, @Param("end") LocalDate end);
 	/**
 	 * Find EmployeeTimesheet by employee ID and date.
 	 * Returns new entity type.
@@ -40,6 +53,35 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			@Param("startDate") LocalDate startDate,
 			@Param("endDate") LocalDate endDate);
 
+	@Query(
+		    "SELECT new com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO(" +
+		    " e.timesheetId, " +
+		    " e.createdBy, " +
+		    " e.createdOn, " +
+		    " e.updatedBy, " +
+		    " e.isNightShift, " +
+		    " e.updatedOn, " +
+		    " e.date, " +
+		    " e.dayTypeId, " +
+		    " e.empId, " +
+		    " e.status, " +
+		    " e.workCheckIn, " +
+		    " e.workCheckOut, " +
+		    " e.totalWorkingMinutes, " +
+		    " e.leaveTypeMasterId, " +
+		    " e.description, " +
+		    " e.currentManagerId, " +
+		    " d.dayType " +
+		    ") " +
+		    "FROM EmployeeTimesheetsNew e, DayTypeMasterNew d " +
+		    "WHERE e.dayTypeId = d.dayTypeId " +
+		    "AND e.empId = :empId " +
+		    "AND e.date BETWEEN :startDate AND :endDate " +
+		    "ORDER BY e.date DESC"
+		)
+	List<EmployeeTimesheetsNewDTO>fetchTimesheetDataWithDateType(@Param("empId") Long empId,
+			@Param("startDate") LocalDate startDate,
+			@Param("endDate") LocalDate endDate);
 	// ========== OLD METHODS (Backward Compatibility) ==========
 
 	public List<Timesheet> findAllByEmpIdAndDateBetweenOrderByDateDesc(Long empId, LocalDate start, LocalDate end);
@@ -11505,5 +11547,18 @@ Page<GetReporteesTimesheetReqFlatDTO> getMyReporteesTimesheetRequests(
 			@Param("authorizedEmployees") List<Long> authorizedEmployees ,@Param("authorizedProjectIds") List<Integer> authorizedProjectIds);
 
 	
+	@Query(value = "SELECT etn.timesheet_id,etn.date,dayname(etn.date) ,\n"+
+	"TIME_FORMAT(SEC_TO_TIME(etn.total_working_minutes * 60), '%H:%i') AS total_working_hours,\n"+
+	"smn.status, dtn.day_type,\n"+
+	"COALESCE(etn.description, ptsn.description, 'N/A') AS description, a.activity,p.project_name \n"+
+	"FROM employee_timesheets_new etn\n"+
+	"LEFT join project_timesheet_status_new ptsn on etn.timesheet_id = ptsn.timesheet_id\n"+
+	"LEFT JOIN projects p on p.project_id = ptsn.project_id \n"+
+	"LEFT join employee_timesheet_activities_mapping_new etamn on etamn.project_id = ptsn.project_id and etamn.timesheet_id = etn.timesheet_id\n"+
+	"LEFT JOIN activities a ON etamn.activity_id = a.activity_id\n"+
+	"INNER JOIN day_type_master_new dtn on dtn.day_type_id = etn.day_type_id\n"+
+	"INNER JOIN status_master_new smn on smn.status_id = etn.status\n"+
+	"where etn.emp_id = :empId and etn.date between :start and :end",nativeQuery = true )
+	List<Object[]> getNewTimesheetDetails(@Param("empId") Long empId, @Param("start") LocalDate start, @Param("end") LocalDate end);
 
 }

@@ -10,6 +10,8 @@ import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.apmosys.employeeportal.model.*;
+import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,10 +20,6 @@ import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.HolidayDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
-import com.apmosys.employeeportal.model.Department;
-import com.apmosys.employeeportal.model.Employee;
-import com.apmosys.employeeportal.model.Holiday;
-import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
@@ -48,6 +46,9 @@ public class HolidayService {
 	
 	@Autowired
 	TimesheetsRepository timesheetsRepository;
+
+	@Autowired
+	EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
 
 	@Transactional
 	public ServiceResponse addHoliday(HolidayDTO holidayDTO) {
@@ -463,7 +464,7 @@ public class HolidayService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	
+	@Transactional
 	public ServiceResponse reconsileHolidayTimesheet(HolidayDTO holidayDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -474,80 +475,63 @@ public class HolidayService {
 		
 		try {
 			
+			if(holidayDTO.getDateOfHoliday()==null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Please provide the date for which reconsile is intended");
+				return response;
+			}
 			LocalDate holidayDate = LocalDate.parse(holidayDTO.getDateOfHoliday());
 			Holiday holidayObj = holidayRepository.findFirstByDateOfHolidayAndState(holidayDate,"all");
-			System.out.println(" ANurag "+holidayObj+ " holidayDate  : "+holidayDate);
-			
-			List<Employee> allEmployee = employeeRepository.findAll();
-			
-			if(holidayObj != null){
-				if(!allEmployee.isEmpty()) {
-					allEmployee.forEach((emp) -> {
-						
-						if(!emp.getEmploymentstatus().equals("InActive")) {
-							Timesheet timesheetObj = timesheetsRepository.findByEmpIdAndDate(emp.getEmpId(), holidayDate);
-							
-							if(timesheetObj == null) {
-								Timesheet newTimesheet = new Timesheet();
-								
-								newTimesheet.getCommonProperty().setCreatedBy(emp.getEmpId());
-								newTimesheet.setDate(holidayDate);
-								
-								if(holidayObj.getHolidayType().equals("Festival")) {
-									newTimesheet.setDayType("Public Holiday");
-									newTimesheet.setDescription("Public Holiday : " + holidayObj.getOccasion());
-									newTimesheet.setTotalTime((float)0);
-									newTimesheet.setTotalWorkingHours("0");
-								}
-								
-								if(holidayObj.getHolidayType().equals("WeekOff")) {
-									if(holidayObj.getOccasion().equals("Saturday : second saturday") || holidayObj.getOccasion().equals("Saturday : fourth saturday")) {
-										newTimesheet.setDescription("WeekOff : Saturday");
-										newTimesheet.setDayType("Week Off");
-										newTimesheet.setTotalTime((float)0);
-										newTimesheet.setTotalWorkingHours("0");
-									}else{
-										newTimesheet.setDescription("WeekOff : Sunday");
-										newTimesheet.setDayType("Week Off");
-										newTimesheet.setTotalTime((float)0);
-										newTimesheet.setTotalWorkingHours("0");
-									}
-								}
-								
-								newTimesheet.setEmpId(emp.getEmpId());
-								newTimesheet.setStatus("Approved");
-								
-								Timesheet dbResponse = timesheetsRepository.save(newTimesheet);
-								
-								if(dbResponse != null) {
-									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-									response.setServiceResponse("Timesheet Added successfully");
-									apiLogInfo.setApiResponse("Timesheet Added successfully.");
-									apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-								}else {
-									response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-									response.setServiceResponse("Unable to add Timesheet");
-									apiLogInfo.setApiResponse("Unable to add Timesheet");
-									apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-								}
-							}else {
-								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-								response.setServiceResponse("Timesheet Added Earlier for this date ");
-							}
-						}
-					});
-				}else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Employee List is empty");
-					apiLogInfo.setApiResponse("Employee List is empty");
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				}
-			} else {
-			    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			    response.setServiceResponse("No holiday found for the specified date and state");
-			    apiLogInfo.setApiResponse("No holiday found for the specified date and state");
-			    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+			if (holidayObj == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No holiday found for this date");
+				return response;
 			}
+			List<Employee> allEmployees = employeeRepository.findAllActiveEmployeesObject();
+			List<Long> existingEmpIds = employeeTimesheetsNewRepository.findEmpIdsByDate(holidayDate);
+			List<EmployeeTimesheetsNew> batchToSave = new ArrayList<>();
+				if(!allEmployees.isEmpty()) {
+					for (Employee emp : allEmployees) {
+						if (!existingEmpIds.contains(emp.getEmpId())) {
+
+							EmployeeTimesheetsNew newTs = new EmployeeTimesheetsNew();
+							newTs.setEmpId(emp.getEmpId());
+							newTs.setDate(holidayDate);
+							newTs.setIsNightShift(false);
+							newTs.setStatus(2);
+							newTs.setTotalWorkingMinutes(0);
+
+							if ("Festival".equalsIgnoreCase(holidayObj.getHolidayType())) {
+								newTs.setDayTypeId(2);
+								newTs.setDescription("Public Holiday : " + holidayObj.getOccasion());
+							} else if ("WeekOff".equalsIgnoreCase(holidayObj.getHolidayType())) {
+								newTs.setDayTypeId(4	);
+								String desc = holidayObj.getOccasion().toLowerCase().contains("saturday") ?
+										"WeekOff : Saturday" : "WeekOff : Sunday";
+								newTs.setDescription(desc);
+							}
+
+							newTs.setCreatedBy(emp.getEmpId());
+							newTs.setCreatedOn(LocalDateTime.now());
+
+							batchToSave.add(newTs);
+						}
+					}
+
+					if (!batchToSave.isEmpty()) {
+						employeeTimesheetsNewRepository.saveAll(batchToSave);
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse(batchToSave.size() + " timesheets added successfully.");
+						apiLogInfo.setApiResponse(batchToSave.size() + " missing records filled.");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					} else {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Everyone is already up to date.");
+						apiLogInfo.setApiResponse("No missing records found.");
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					}
+				}
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);

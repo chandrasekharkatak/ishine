@@ -1,30 +1,32 @@
 <div *ngFor="let calendarItem of calendar; let i = index">
     <div class="flex-container flex-center">
       <div
-        class="calendar-days hover-section"
-        
+         class="calendar-days hover-section"
         [ngClass]="{'bg-white': day.status === 'Not Filled', 'bg-red': day.status === 'Rejected', 'bg-yellow' : day.status === 'Pending', 'bg-green' : day.status === 'Approved'}"
-        
         [ngClass]="day.className"
-        *ngFor="let day of calendarItem"
+        *ngFor="let day of calendarItem"        
+        >
+        <!-- (mouseenter)="onHoverStart($event, day.projects)"
+        (mouseleave)="onHoverEnd()" -->
+        <!-- (click)="day.displayDate <= todayDate && onDayClick(day)" -->
         
-        (mouseenter)="onHoverStart($event, day.description,day.activity)"
-        (mouseleave)="onHoverEnd()"
-        (click)="day.displayDate <= todayDate && onDayClick(day)"
 
-
-        
-      >
-
-
-       <div *ngIf="day.status === 'Not Filled'  && day.displayDate <= todayDate" class="hover-hint">
+       <div (click)="onDayClick(day)" *ngIf="day.status === 'Not Filled'  && day.displayDate <= todayDate" class="hover-hint">
         Create Timesheet
+      </div>
+
+        <div (click)="showViewTimesheetDetails(day)" *ngIf="day.status === 'Approved' || day.status === 'Pending' || day.status === 'Rejected'" class="hover-hint">
+        View Timesheet
       </div>
       
         <div *ngIf="i === 0"><b>{{day.dayName}}</b></div>
         {{day.day}} <small *ngIf="i === 0 && day.workingHours >= 0" class="float-right"><b>{{day.workingHours}} Hrs </b></small>
         <div *ngIf="i != 0 && day.workingHours >= 0" class="hours"><small><b>{{day.workingHours}} Hrs </b></small></div>
+          
+      
       </div>
+
+
       
     </div>
 </div>
@@ -113,19 +115,54 @@
   </div>
 </div> -->
 
-<div
-  class="popup"
-  *ngIf="isPopupVisible && popupDescription != null && popupDescription.length != 0"
-  [ngStyle]="{ top: pointerY + 'px', left: pointerX + 'px' }"
->
-<p *ngIf="popupActivity != null && popupActivity.length != 0"> Activity: {{popupActivity}}</p>
-<p *ngIf="popupDescription != null && popupDescription.length != 0">  Description: {{ popupDescription }} </p>
-</div>
-
   
 <ng-template #alert_message>
   <div class="modal-body text-center">
     <p>{{ alertMessage }}</p>
     <button type="button" class="btn btn-primary" (click)="cancelRequest_approve_pending()">OK</button>
+  </div>
+</ng-template>
+
+<ng-template #view_timesheet_details>
+  <div class="popup-container" *ngIf="isPopupVisible">
+    <div class="popup-content">
+      <div class="popup-header">
+        <p class="popup-date">Timesheet Details for {{popUpDate | date:'fullDate'}}</p>
+      </div>
+      
+      <div class="popup-body">
+        <ng-container *ngIf="popupDatas && popupDatas.length > 0; else emptyState">
+          <div *ngFor="let project of popupDatas; let i = index" class="popup-item">
+            <div class="popup-project" *ngIf="project.projectName">
+              {{ project.projectName }}
+            </div>
+            
+            <div *ngFor="let activity of project.activity; let j = index" class="popup-activity-item">
+              <div class="popup-activity" *ngIf="activity?.activityName">
+                • {{ activity.activityName }}
+              </div>
+              <div class="popup-description" *ngIf="activity?.description">
+                {{ activity.description }}
+              </div>
+              <hr class="popup-divider" *ngIf="j < project.activity.length - 1">
+            </div>
+            
+            <hr class="popup-divider" *ngIf="i < popupDatas.length - 1">
+          </div>
+        </ng-container>
+        
+        <ng-template #emptyState>
+          <div class="popup-empty">
+            No timesheet details available for this date.
+          </div>
+        </ng-template>
+      </div>
+      
+      <div class="popup-footer">
+        <button type="button" class="popup-close-btn" (click)="hideViewTimesheetDetails()">
+          Close
+        </button>
+      </div>
+    </div>
   </div>
 </ng-template>

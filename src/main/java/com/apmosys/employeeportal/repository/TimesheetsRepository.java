@@ -27,18 +27,6 @@ import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 @Repository
 public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
 
-	@Query(value = "SELECT et.timesheet_id, et.date, dtm.day_type, " +
-			"ROUND(CAST(et.total_working_minutes AS DECIMAL(10,2))/60,2) AS totalTime, " +
-			"sm.status, et.description " +
-			"FROM employee_timesheets_new et " +
-			"INNER JOIN day_type_master_new dtm ON et.day_type_id = dtm.day_type_id " +
-			"INNER JOIN status_master_new sm ON et.status = sm.status_id " +
-			"WHERE et.emp_id = :empId AND et.date BETWEEN :start AND :end " +
-			"ORDER BY et.date DESC", nativeQuery = true)
-	List<Object[]> findAllByEmpIdAndDateNative(@Param("empId") Long empId,
-											   @Param("start") LocalDate start,
-											   @Param("end") LocalDate end);
-
 	public List<Timesheet> findAllByEmpIdAndDateBetweenOrderByDateDesc(Long empId,LocalDate start, LocalDate end);
 //	@Query(nativeQuery = true)
 //	public List<Object[]> getMyReporteesTimesheetRequests(Long managerId,String status);
