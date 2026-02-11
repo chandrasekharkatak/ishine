@@ -1463,7 +1463,7 @@ public class CronJobService {
 //		}
 
 		// 0 0 12 ? * * - At 12:00:00pm every day
-	@Scheduled(cron = "0 */1 * ? * *")
+	@Scheduled(cron = "0 1 00 ? * *")
 	public void automaticTimesheetFiller() {
 
 	    System.out.println("Cron----**********----started");
@@ -2126,9 +2126,12 @@ public class CronJobService {
 				Map<Long, List<Object[]>> activityByTsMap = allActivities.stream()
 						.collect(Collectors.groupingBy(obj -> Long.parseLong(obj[0].toString())));
 				List<Object[]> employeeList = employeeRepository.getEmployeeDetailForCron();
-				for(Object[] empObj : employeeList) {
-
-					Long empId = empObj[0] != null ? Long.parseLong(empObj[0].toString()) : null;
+				Map<Long, Object[]> empDetailMap = employeeList.stream()
+		                .collect(Collectors.toMap(obj -> Long.parseLong(obj[0].toString()), obj -> obj));
+				for(Long empId : timesheetByEmpMap.keySet()) {
+					Object[] empObj = empDetailMap.get(empId);
+		            if (empObj == null) continue;
+//					Long empId = empObj[0] != null ? Long.parseLong(empObj[0].toString()) : null;
 					String empName = empObj[2] != null ? empObj[2].toString() : null;
 					Long employeementId = empObj[3] != null ? Long.parseLong(empObj[3].toString()) : null;
 
