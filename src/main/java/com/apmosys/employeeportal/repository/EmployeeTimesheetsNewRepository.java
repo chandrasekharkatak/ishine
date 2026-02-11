@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO;
 import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -52,6 +53,35 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			@Param("startDate") LocalDate startDate,
 			@Param("endDate") LocalDate endDate);
 
+	@Query(
+		    "SELECT new com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO(" +
+		    " e.timesheetId, " +
+		    " e.createdBy, " +
+		    " e.createdOn, " +
+		    " e.updatedBy, " +
+		    " e.isNightShift, " +
+		    " e.updatedOn, " +
+		    " e.date, " +
+		    " e.dayTypeId, " +
+		    " e.empId, " +
+		    " e.status, " +
+		    " e.workCheckIn, " +
+		    " e.workCheckOut, " +
+		    " e.totalWorkingMinutes, " +
+		    " e.leaveTypeMasterId, " +
+		    " e.description, " +
+		    " e.currentManagerId, " +
+		    " d.dayType " +
+		    ") " +
+		    "FROM EmployeeTimesheetsNew e, DayTypeMasterNew d " +
+		    "WHERE e.dayTypeId = d.dayTypeId " +
+		    "AND e.empId = :empId " +
+		    "AND e.date BETWEEN :startDate AND :endDate " +
+		    "ORDER BY e.date DESC"
+		)
+	List<EmployeeTimesheetsNewDTO>fetchTimesheetDataWithDateType(@Param("empId") Long empId,
+			@Param("startDate") LocalDate startDate,
+			@Param("endDate") LocalDate endDate);
 	// ========== OLD METHODS (Backward Compatibility) ==========
 
 	public List<Timesheet> findAllByEmpIdAndDateBetweenOrderByDateDesc(Long empId, LocalDate start, LocalDate end);

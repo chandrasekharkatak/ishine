@@ -89,6 +89,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.BioMaTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.MilestoneExpireDto;
@@ -108,6 +109,7 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
+import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.Holiday;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
@@ -167,8 +169,6 @@ public class CronJobService {
 	@Autowired
 	EmployeeRepository employeeRepository;
 	
-	@Autowired
-	EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
 
 	@Autowired
 	TimesheetActivityMapNewRepository timesheetActivityMapNewRepository;
@@ -226,6 +226,9 @@ public class CronJobService {
 
 	@Autowired
 	ResourceRequirementRepository resourceRequirementRepository;
+	
+	@Autowired
+	EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
 
 	@Autowired
 	MailService mailService;
@@ -4883,11 +4886,13 @@ try {
 						System.out.println("Emp ID :" + empId);
 						System.out.println("Employment ID :" + employeementId);
 
-						List<Timesheet> monthlyTimesheet = timesheetsRepository
-								.findAllByEmpIdAndDateBetweenOrderByDateDesc(empId, firstOfMonth, currentDate);
+//						List<Timesheet> monthlyTimesheet = timesheetsRepository
+//								.findAllByEmpIdAndDateBetweenOrderByDateDesc(empId, firstOfMonth, currentDate);
+						List<EmployeeTimesheetsNewDTO> monthlyTimesheet = employeeTimesheetsNewRepository
+									.fetchTimesheetDataWithDateType(empId, firstOfMonth, currentDate);
 
 						if (!monthlyTimesheet.isEmpty()) {
-							for (Timesheet timesheetObj : monthlyTimesheet) {
+							for (EmployeeTimesheetsNewDTO timesheetObj : monthlyTimesheet) {
 								List<Object[]> objectList = timesheetActivityMapRepository
 										.activitiesByTimesheetId(timesheetObj.getTimesheetId());
 
@@ -4913,15 +4918,17 @@ try {
 									ws.value(rowNum, 1, empName);
 									ws.value(rowNum, 2, departmentName);
 									ws.value(rowNum, 3, timesheetObj.getDate());
-									ws.value(rowNum, 4, timesheetObj.getDayType());
-									ws.value(rowNum, 6, timesheetObj.getOfficeInTime());
-									ws.value(rowNum, 7, timesheetObj.getOfficeOutTime());
+									ws.value(rowNum, 4, timesheetObj.getDaytype());
+									ws.value(rowNum, 6, timesheetObj.getWorkCheckIn());
+									ws.value(rowNum, 7, timesheetObj.getWorkCheckOut());
 									if(timesheetObj.getIsNightShift() == null) {
 										ws.value(rowNum, 8, "Regular Shift");
 									}else {
 										ws.value(rowNum, 8, timesheetObj.getIsNightShift().equals("true") ? "Night Shift" : "Regular Shift");
 									}
-									ws.value(rowNum, 9, timesheetObj.getTotalWorkingHours());
+									double hours = timesheetObj.getTotalWorkingMinutes() / 60.0;
+									double roundedHours = Math.round(hours * 100.0) / 100.0;
+									ws.value(rowNum, 9, roundedHours);
 									if (!objectList.isEmpty()) {
 										ws.value(rowNum, 10, activity.toString());
 									} else {
@@ -4958,9 +4965,9 @@ try {
 									//Get leave type
 									List<Object[]> empLeave = employeeLeaveRepository
 											.findLeaveTypeFromEmpIdAndDate(empId, timesheetObj.getDate().toString());
-
+									
 									String leaveType = null;
-									String dayType = timesheetObj.getDayType();
+									String dayType = timesheetObj.getDaytype();
 									if(!empLeave.isEmpty()) {
 										for(Object[] object: empLeave) {
 											leaveType = object[0] != null ? object[0].toString() : null;
@@ -4980,7 +4987,9 @@ try {
 									ws.value(rowNum, 3, timesheetObj.getDate());
 									ws.value(rowNum, 4, dayType);
 									ws.value(rowNum, 5, leaveType);
-									ws.value(rowNum, 9, timesheetObj.getTotalWorkingHours());
+									double hours = timesheetObj.getTotalWorkingMinutes() / 60.0;
+									double roundedHours = Math.round(hours * 100.0) / 100.0;
+									ws.value(rowNum, 9, roundedHours);
 								    ws.value(rowNum, 10, timesheetObj.getDescription());
 								    ws.value(rowNum, 11, (String)null);
 									ws.value(rowNum, 14, timesheetObj.getStatus());
