@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -4980,29 +4981,47 @@ try {
 
 					var wb = new Workbook(fos, "Application", "1.0");
 					Worksheet ws = wb.newWorksheet(firstOfMonth.getMonth() + " DSR");
+					 String[] headers = {
+			                    "EmpId", "Emp Name", "Department Name", "Date",
+			                    "Day Type", "Leave Type", "In-Time", "Out-Time",
+			                    "Shift", "Total Working Hours", "Activity",
+			                    "Description", "Client", "Project", "Status"
+			            };
 
-					ws.value(0, 0, "EmpId");
-					ws.value(0, 1, "Emp Name");
-					ws.value(0, 2, "Department Name");
-					ws.value(0, 3, "Date");
-					ws.value(0, 4, "Day Type");
-					ws.value(0, 5, "Leave Type");
-					ws.value(0, 6, "In-Time");
-					ws.value(0, 7, "Out-Time");
-					ws.value(0, 8, "Shift");
-					ws.value(0, 9, "Total Working Hours");
-					ws.value(0, 10, "Activity"); //Comma seperated
-					ws.value(0, 11, "Description");
-					ws.value(0, 12, "Client"); // comma seperated
-					ws.value(0, 13, "Project"); // comma seperated
-					ws.value(0, 14, "Status");
-//					ws.value(0, 14, "BiomaxInTime");
-//					ws.value(0, 15, "BiomaxOutTime");
+			            for (int i = 0; i < headers.length; i++) {
+			                ws.value(0, i, headers[i]);
+			            }
 //
 
 					int rowNum = 1;
 
 					List<Object[]> employeeList = employeeRepository.getEmployeeDetailForDSRCron(firstOfMonth, currentDate);
+					 List<Long> empIds = employeeList.stream()
+				                .map(e -> Long.parseLong(e[0].toString()))
+				                .collect(Collectors.toList());
+					 List<EmployeeTimesheetsNewDTO> allTimesheets =
+				                employeeTimesheetsNewRepository
+				                        .fetchTimesheetDataWithDateTypeForEmployees(
+				                                empIds, firstOfMonth, currentDate);
+					 Map<Long, List<EmployeeTimesheetsNewDTO>> timesheetMap =
+				                allTimesheets.stream()
+				                        .collect(Collectors.groupingBy(
+				                                EmployeeTimesheetsNewDTO::getEmpId
+				                        ));
+					 List<Long> timesheetIds = allTimesheets.stream()
+				                .map(EmployeeTimesheetsNewDTO::getTimesheetId)
+				                .collect(Collectors.toList());
+					 Map<Long, List<Object[]>> activityMap = new HashMap<>();
+					 if (!timesheetIds.isEmpty()) {
+				            List<Object[]> allActivities =
+				                    timesheetActivityMapRepository
+				                            .activitiesByTimesheetIds(timesheetIds);
+
+				            activityMap = allActivities.stream()
+				                    .collect(Collectors.groupingBy(
+				                            obj -> Long.parseLong(obj[0].toString())
+				                    ));
+				        }
 					for (Object[] empObj : employeeList) {
 
 						Long empId = empObj[0] != null ? Long.parseLong(empObj[0].toString()) : null;
@@ -5010,134 +5029,82 @@ try {
 						Long employeementId = empObj[3] != null ? Long.parseLong(empObj[3].toString()) : null;
 						String departmentName = empObj[6] != null ? empObj[6].toString() : null;
 
-						System.out.println("Emp ID :" + empId);
-						System.out.println("Employment ID :" + employeementId);
 
 //						List<Timesheet> monthlyTimesheet = timesheetsRepository
 //								.findAllByEmpIdAndDateBetweenOrderByDateDesc(empId, firstOfMonth, currentDate);
-						List<EmployeeTimesheetsNewDTO> monthlyTimesheet = employeeTimesheetsNewRepository
-									.fetchTimesheetDataWithDateType(empId, firstOfMonth, currentDate);
+						List<EmployeeTimesheetsNewDTO> monthlyTimesheet = timesheetMap.getOrDefault(empId, Collections.emptyList());
+						
+						for (EmployeeTimesheetsNewDTO ts : monthlyTimesheet) {
 
-						if (!monthlyTimesheet.isEmpty()) {
-							for (EmployeeTimesheetsNewDTO timesheetObj : monthlyTimesheet) {
-								List<Object[]> objectList = timesheetActivityMapRepository
-										.activitiesByTimesheetId(timesheetObj.getTimesheetId());
+						    List<Object[]> objectList =
+						            activityMap.getOrDefault(
+						                    ts.getTimesheetId(),
+						                    Collections.emptyList()
+						            );
 
-								StringBuilder activity = new StringBuilder();
-								StringBuilder description = new StringBuilder();
-								Set<String> project = new HashSet<>();
-								Set<String> clientName = new HashSet<>();
+						    StringBuilder activity = new StringBuilder();
+						    StringBuilder description = new StringBuilder();
+						    Set<String> project = new LinkedHashSet<>();
+						    Set<String> clientName = new LinkedHashSet<>();
 
-								if (!objectList.isEmpty()) {
-									for (Object[] object : objectList) {
-										activity.append(object[1] != null ? object[1].toString() : null).append(",");
-										description.append(object[3] != null ? object[3].toString() : null).append(",");
-										project.add(object[5] != null ? object[5].toString() : null);
+						    for (Object[] object : objectList) {
 
-										clientName.add(object[6] != null ? object[6].toString() : null);
-									}
+						        if (object[1] != null)
+						            activity.append(object[1]).append(",");
 
-									ws.style(rowNum, 3).format("dd-MM-yyyy").set();
-									ws.style(rowNum, 6).format("dd-MM-yyyy HH:mm:ss").set();
-									ws.style(rowNum, 7).format("dd-MM-yyyy HH:mm:ss").set();
+						        if (object[3] != null)
+						            description.append(object[3]).append(",");
 
-									ws.value(rowNum, 0, "A-" + employeementId);
-									ws.value(rowNum, 1, empName);
-									ws.value(rowNum, 2, departmentName);
-									ws.value(rowNum, 3, timesheetObj.getDate());
-									ws.value(rowNum, 4, timesheetObj.getDaytype());
-									ws.value(rowNum, 6, timesheetObj.getWorkCheckIn());
-									ws.value(rowNum, 7, timesheetObj.getWorkCheckOut());
-									if(timesheetObj.getIsNightShift() == null) {
-										ws.value(rowNum, 8, "Regular Shift");
-									}else {
-										ws.value(rowNum, 8, timesheetObj.getIsNightShift().equals("true") ? "Night Shift" : "Regular Shift");
-									}
-									double hours = timesheetObj.getTotalWorkingMinutes() / 60.0;
-									double roundedHours = Math.round(hours * 100.0) / 100.0;
-									ws.value(rowNum, 9, roundedHours);
-									if (!objectList.isEmpty()) {
-										ws.value(rowNum, 10, activity.toString());
-									} else {
-										ws.value(rowNum, 10, timesheetObj.getDescription());
-									}
-									if(!objectList.isEmpty()) {
-										ws.value(rowNum,11, description.toString());
-										}else {
-											ws.value(rowNum, 11, (String)null);
-										}
-									ws.value(rowNum, 12, String.join(",", clientName));
-									ws.value(rowNum, 13, String.join(",", project));
-									ws.value(rowNum, 14, timesheetObj.getStatus());
+						        if (object[5] != null)
+						            project.add(object[5].toString());
 
-									rowNum++;
+						        if (object[6] != null)
+						            clientName.add(object[6].toString());
+						    }
 
+						    String activityStr = activity.length() > 0
+						            ? activity.substring(0, activity.length() - 1)
+						            : ts.getDescription();
 
-									 // Check if employeementId exists in finalEmpBioData
-//						            for (BioMaTO bio : finalEmpBioData) {
-//						                if (bio.getEmployeeCode().equalsIgnoreCase(String.valueOf(employeementId))) {
-//
-//						                	ws.value(rowNum, 14, bio.getInTime());
-//						                	ws.value(rowNum, 15, bio.getOutTime());
-//
-//						                    break; // Exit the loop if found
-//						                }
-//						            }
+						    String descriptionStr = description.length() > 0
+						            ? description.substring(0, description.length() - 1)
+						            : null;
 
+						    ws.value(rowNum, 0, "A-" + employeementId);
+						    ws.value(rowNum, 1, empName);
+						    ws.value(rowNum, 2, departmentName);
+						    ws.value(rowNum, 3, ts.getDate());
+						    ws.style(rowNum, 3).format("dd-MM-yyyy").set();
+						    ws.value(rowNum, 4, ts.getDaytype());
+						    ws.value(rowNum, 6, ts.getWorkCheckIn());
+						    ws.style(rowNum, 6).format("dd-MM-yyyy HH:mm:ss").set();
+						    ws.value(rowNum, 7, ts.getWorkCheckOut());
+						    ws.style(rowNum, 7).format("dd-MM-yyyy HH:mm:ss").set();
 
+						    ws.value(rowNum, 8,
+						            "true".equals(ts.getIsNightShift())
+						                    ? "Night Shift"
+						                    : "Regular Shift");
 
+						    double hours ;
+						    if(ts.getTotalWorkingMinutes()==null) {
+						    	hours=0.0;
+						    }else {
+						    	hours = ts.getTotalWorkingMinutes() / 60.0;
+						    }
+						    ws.value(rowNum, 9, Math.round(hours * 100.0) / 100.0);
 
-								} else {
+						    ws.value(rowNum, 10, activityStr);
+						    ws.value(rowNum, 11, descriptionStr);
+						    ws.value(rowNum, 12, String.join(",", clientName));
+						    ws.value(rowNum, 13, String.join(",", project));
+						    ws.value(rowNum, 14, ts.getStatus());
 
-									//Get leave type
-									List<Object[]> empLeave = employeeLeaveRepository
-											.findLeaveTypeFromEmpIdAndDate(empId, timesheetObj.getDate().toString());
-									
-									String leaveType = null;
-									String dayType = timesheetObj.getDaytype();
-									if(!empLeave.isEmpty()) {
-										for(Object[] object: empLeave) {
-											leaveType = object[0] != null ? object[0].toString() : null;
-											dayType = "Leave";
-										}
-									}
-
-									// Fill data of weekoff & leave
-
-									ws.style(rowNum, 3).format("dd-MM-yyyy").set();
-									ws.style(rowNum, 6).format("dd-MM-yyyy HH:mm:ss").set();
-									ws.style(rowNum, 7).format("dd-MM-yyyy HH:mm:ss").set();
-
-									ws.value(rowNum, 0, "A-" + employeementId);
-									ws.value(rowNum, 1, empName);
-									ws.value(rowNum, 2, departmentName);
-									ws.value(rowNum, 3, timesheetObj.getDate());
-									ws.value(rowNum, 4, dayType);
-									ws.value(rowNum, 5, leaveType);
-									double hours = timesheetObj.getTotalWorkingMinutes() / 60.0;
-									double roundedHours = Math.round(hours * 100.0) / 100.0;
-									ws.value(rowNum, 9, roundedHours);
-								    ws.value(rowNum, 10, timesheetObj.getDescription());
-								    ws.value(rowNum, 11, (String)null);
-									ws.value(rowNum, 14, timesheetObj.getStatus());
-
-									 // Check if employeementId exists in finalEmpBioData
-//						            for (BioMaTO bio : finalEmpBioData) {
-//						                if (bio.getEmployeeCode().equalsIgnoreCase(String.valueOf(employeementId))) {
-//
-//						                	ws.value(rowNum, 14, bio.getInTime());
-//						                	ws.value(rowNum, 15, bio.getOutTime());
-//
-//						                    break; // Exit the loop if found
-//						                }
-//						            }
-
-									rowNum++;
-
-									System.out.println("Activity List is empty");
-								}
-							}
+						    rowNum++;
 						}
+
+							
+					
 					}
 					wb.finish();
 				}catch(Exception e) {
