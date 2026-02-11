@@ -36,8 +36,10 @@ import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetStatusCountDTO;
 import com.apmosys.employeeportal.service.TimesheetApprovalService;
 import com.apmosys.employeeportal.service.TimesheetService;
+import com.apmosys.employeeportal.service.TimesheetServiceNew;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.EncryptionUtil;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -54,6 +56,9 @@ public class TimesheetController {
 //		@Autowired
 //		TimesheetApprovalServiceNew timesheetApprovalServiceNew;
 		
+
+		@Autowired
+TimesheetServiceNew timesheetServiceNew;
 		
 //		@Autowired
 //		TimesheetEncryptionHelper timesheetEncryptionHelper;
@@ -700,6 +705,13 @@ public class TimesheetController {
 			return response;
 		}
 	}
+
+	@PostMapping("/getTimesheetStatusCountByManager")
+		public ServiceResponse getTimesheetStatusCountByManager(
+		        @RequestBody TimesheetStatusCountDTO timesheetCount) {
+				ServiceResponse response = timesheetServiceNew.getTimesheetStatusCountsByManager(timesheetCount.getManagerId());
+		    return response;
+	}
 		
 		// @JobRoleAccess(featureIds = {15})
 		//  @PostMapping("/getOtherTeamMembersByDateAndProjectId")
@@ -720,14 +732,14 @@ public class TimesheetController {
 		// 	 return reponse;
 		// }
 		
-	//	@JobRoleAccess(featureIds = {15,16,24})
-	//	@PostMapping("/getMyReporteesTimesheetRequestsNew")
-	//	public ServiceResponse getMyReporteesTimesheetRequestsNew(
-	//	        @RequestBody GetMyReporteesTimesheetRequestsPayload payload) {
-	//
-	//	    return timesheetApprovalService
-	//	            .getMyReporteesTimesheetRequestsNew(payload);
-	//	}
+		@JobRoleAccess(featureIds = {15,16,24})
+		@PostMapping("/getMyReporteesTimesheetRequestsNew")
+		public ServiceResponse getMyReporteesTimesheetRequestsNew(
+		        @RequestBody GetMyReporteesTimesheetRequestsPayload payload) {
+	
+		    return timesheetApprovalService
+		            .getMyReporteesTimesheetRequestsNew(payload);
+		}
 	
 	// @JobRoleAccess(featureIds = {15})
 	//  @PostMapping("/getOtherTeamMembersByDateAndProjectId")

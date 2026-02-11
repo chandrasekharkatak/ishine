@@ -36,7 +36,7 @@ import { ValidationService } from '../services/validation.service';
 import { TimesheetCreateSelfComponent } from '../timesheet-create-self/timesheet-create-self.component';
 import { ProjectService } from '../services/project.service';
 import { EncryptionService } from '../services/EncryptionService';
-
+import {TimesheetNewService} from '../services/timesheet-new.service';
 import { MilestoneToBeExpired } from '../models/milestoneToBeExpired';
 import { MilestoneExtendReason } from '../models/MilestoneExtendReason';
 import { MilestoneUpdatedLog } from '../models/MilestoneUpdatedLog';
@@ -119,6 +119,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
   selectedRejectReason:any;
   //export excel
   excelName: any = '';
+
+  // Timsheet Status Counts
+  pendingCount = 0;
+approvedCount = 0;
+rejectedCount = 0;
 
   birthdayList: any[] = [];
   workAnniversaryList: any[] = [];
@@ -289,7 +294,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   ]
 
 
-   
+
 location: any;
 act: any;
 project: any;
@@ -318,6 +323,7 @@ timesheet: any;
     public employee360Service: Employee360Service,
     public projectService: ProjectService,
     private fb: FormBuilder,
+    private timesheetNewService : TimesheetNewService,
 
   ) {
     this.authenticationService.currentUser.subscribe(x => {
@@ -413,6 +419,7 @@ timesheet: any;
     this.isEmployeeOnBench();
     this.getRejectionReason();
     //console.log('User Mapping', this.userMapping);
+    this.getTimesheetStatusCountsByEmpId();
 
 
   }
@@ -720,10 +727,10 @@ timesheet: any;
       }
     });
   }
- 
+
   getDocsForPreview(docId:any){
       console.log(docId,":docId");
-      this.resetPreviewState(); // added to reset all the zoom values 
+      this.resetPreviewState(); // added to reset all the zoom values
       this.timesheetService.getDocumentDataByDocId(docId).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
           console.log(response.serviceResponse);
@@ -3198,7 +3205,7 @@ public getDaysLeftForExpiry(endDate: string | Date): string {
     this.isHelpHovered = false
   }
 
-  
+
 
 
 openUserManualPdf(): void {
@@ -3319,103 +3326,6 @@ onTimesheetSearch(searchData) {
 }
 
 
-
-
-
-timesheetList1 = [
-  {
-    empId: 'EMP001',
-    employeeName: 'Lituja',
-    date: '02 Jan 2026',
-    totalPresence: '07 hrs',
-    workCheckIn: '10:00 AM',
-    workCheckOut: '05:00 PM',
-    status: 'Submitted',
-    isSelected : false,
-    locations: [
-      {
-        locationCategory: 'CLIENT_LOCATION',
-        login: '10:00 AM',
-        logout: '12:00 PM',
-        duration: '02.00 hrs',
-        isSelected : false,
-        projects: [
-          {
-            projectId: 'PRJ001',
-            poNumber: 'ABC-DEF-OO7',
-            projectName: 'Project A',
-            clientName:"ABC client",
-            teamName: 'Alpha',
-            isSelected : false,
-            isShadow: false,
-            activities: [
-              {
-                activityName: 'Development',
-                description: 'Feature Implementation',
-                
-                hours: 1.5
-              },
-              {
-                activityName: 'Testing',
-                description: 'Unit Testing',
-                shadowFor : 'Ayush',
-                hours: 0.5
-              }
-            ]
-          },
-          {
-            projectId: 'PRJ002',
-            poNumber: 'ABC-DEF-OO7',
-            projectName: 'Project B',
-            clientName: 'XYZ Ltd',
-            teamName: 'Beta',
-            isShadow: false,
-            isSelected : false,
-            activities: [
-              {
-                activityName: 'Support',
-                description: 'Client Call',
-                shadowFor : 'Ayush',
-                hours: 1.0
-              }
-            ]
-          }
-        ]
-      },
-      {
-        locationCategory: 'OFFICE',
-        login: '01:00 PM',
-        logout: '05:00 PM',
-        duration: '04.00 hrs',
-        projects: [
-          {
-            projectId: 'PRJ003',
-            poNumber: 'ABC-DEF-OO7',
-            projectName: 'ApMoSys',
-            teamName: 'Core',
-            clientName:"ABC client",
-            isSelected : false,
-            isShadow: false,
-            activities: [
-              {
-                activityName: 'Documentation',
-                description: 'API Docs',
-                shadowFor : 'Ayush',
-                hours: 1.0
-              },
-              {
-                activityName: 'Meeting',
-                description: 'Sprint Planning',
-                shadowFor : 'Ayush',
-                hours: 1.0
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
-];
 
 expandedTimesheetIndex: number | null = null;
 expandedProjectIndex: number | null = null;
@@ -3585,8 +3495,44 @@ redirectToViewTeamTimesheet() {
 }
 
 
-}
+getTimesheetStatusCountsByEmpId() {
+  const payload : any = {
+    managerId: this.currentUser.empId,
+  };
+  this.timesheetNewService
+.getMyReporteesTimesheetRequestsCount(payload)
+.subscribe({
+  next: (res: any) => {
+    console.log("Status Count Response", res);
+    if (res && res.serviceResponse) {
+      this.pendingCount = 0;
+      this.approvedCount = 0;
+      this.rejectedCount = 0;
 
+      res.serviceResponse.forEach((item: any) => {
+
+        const status = item[0]?.toLowerCase();
+        const count = Number(item[1]) || 0;
+
+        if (status === 'pending') {
+          this.pendingCount = count;
+        }
+        else if (status === 'approved') {
+          this.approvedCount = count;
+        }
+        else if (status === 'rejected') {
+          this.rejectedCount = count;
+        }
+
+      });
+
+
+    }
+  }
+});
+
+}
+}
 
 
 

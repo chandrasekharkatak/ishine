@@ -14,7 +14,7 @@ import lombok.ToString;
 public class GetReporteesTimesheetActivitiesDTO {
 
 	private String activity;
-    private String activityDescription;
+    // private String activityDescription;
     private String durationMinutes;
     private String teamName;
     
