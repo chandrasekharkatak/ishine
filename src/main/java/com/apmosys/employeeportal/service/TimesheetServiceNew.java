@@ -1438,14 +1438,11 @@ public class TimesheetServiceNew {
 	        List<Object[]> counts =
 	                employeeTimesheetsNewRepository.getTimesheetStatusCountsByCurrentManagerId(managerId,null);
 	        
-	        Map<String, Long> result = new HashMap<>();
-
-	        for (Object[] row : counts) {
-	            String status = row[0] != null ? row[0].toString() : null;
-	            Long count = row[1] == null ? 0L : ((Number) row[1]).longValue();
-	           
-	            result.put(status, count);
-	            
+	        Long total = 0L;
+	        
+	        if (!counts.isEmpty()) {
+	            Object[] row = counts.get(0);
+	            total = row[0] == null ? 0L : ((Number) row[0]).longValue();
 	        }
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
