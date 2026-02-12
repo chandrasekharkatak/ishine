@@ -6,7 +6,7 @@
             <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center">
                     <i class="fa fa-calendar-check-o form-header-icon"></i>
-                    <h4 class="form-header-title mb-0">Timesheet Entry Testing</h4>
+                    <h4 class="form-header-title mb-0">{{ isUpdation ? 'Edit Timesheet' : 'Timesheet Entry' }}</h4>
                 </div>
                 <div class="update-mode-indicator" *ngIf="isUpdation && timesheetId">
                     <i class="fa fa-edit"></i>
@@ -216,7 +216,7 @@
                     <h6 class="section-subtitle">
                         <i class="fa fa-map-marker"></i> Locations
                     </h6>
-                    <button class="btn btn-sm btn-outline-primary" (click)="addLocation(null)" [disabled]="disableAdd">
+                    <button class="btn btn-sm btn-outline-primary" (click)="addLocation(null)" [disabled]="disableAdd || timesheetLocations.length >= 5">
                         <i class="fa fa-plus"></i> Add Location
                     </button>
                 </div>
@@ -265,7 +265,7 @@
                                             [(ngModel)]="useApmosysTiming"
                                             (change)="applyApmosysTiming(location.workLocationTypeId)" />
                                         <label class="form-check-label" for="useApmosysTiming">
-                                            Use Check In / Check Out Time
+                                            Use work Check In / Check Out Time
                                         </label>
                                     </div>
                                 </div>
@@ -294,7 +294,8 @@
                                         <i class="fa fa-folder-open"></i> Projects
                                     </h6>
                                     <button class="btn btn-sm btn-outline-primary" (click)="addProject(location, null)"
-                                        [disabled]="this.activeProjectList.length == 1">
+                                        [disabled]="this.activeProjectList.length == 1"
+                                        [title]="this.activeProjectList.length === 1 ? 'Only one project available; it is already added.' : 'Add another project'">
                                         <i class="fa fa-plus"></i> Add Project
                                     </button>
                                 </div>
@@ -313,7 +314,7 @@
                                                 [ngClass]="expandedProjectIndexMap[lIndex] === pIndex ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
                                             <button *ngIf="location.projects.length > 1"
                                                 class="btn btn-sm btn-icon-danger ml-3"
-                                                (click)="removeProject(location, pIndex); $event.stopPropagation()"
+                                                (click)="removeProject(location, project); $event.stopPropagation()"
                                                 title="Remove Project">
                                                 <i class="fa fa-trash"></i>
                                             </button>
@@ -333,7 +334,7 @@
                                                     <app-my-select placeholder="Select Project" class="form-control"
                                                         [(ngModel)]="project.projectId" [options]="project.projectList"
                                                         displayKey="projectName" valueKey="projectId" [multiple]="false"
-                                                        (ngModelChange)="onProjectSelect($event)">
+                                                        (ngModelChange)="onProjectSelect($event, project)">
                                                     </app-my-select>
                                                 </div>
 
@@ -360,8 +361,7 @@
                                                     <app-my-select class="form-control" placeholder="Select Employee"
                                                         [(ngModel)]="project.shadowEmpId"
                                                         [options]="project.shadowForList" displayKey="name"
-                                                        valueKey="empId" [multiple]="false"
-                                                        (ngModelChange)="onProjectSelect($event)">
+                                                        valueKey="empId" [multiple]="false">
                                                     </app-my-select>
                                                 </div>
                                                 <!-- Shadow Timesheet Toggle -->
@@ -731,11 +731,15 @@
                 <button *ngIf="isCreation" 
                     type="button" 
                     class="btn-create-timesheet"
-                    (click)="createTimesheet()">
+                    (click)="createTimesheet()"
+                    [disabled]="isLoadingTimesheet">
                     <span class="btn-icon-wrapper">
-                        <i class="fa fa-save"></i>
+                        <i class="fa" [ngClass]="isLoadingTimesheet ? 'fa-spinner fa-spin' : 'fa-save'"></i>
                     </span>
-                    <span class="btn-text">Create Timesheet</span>
+                    <span class="btn-text">
+                        <span *ngIf="!isLoadingTimesheet">Create Timesheet</span>
+                        <span *ngIf="isLoadingTimesheet">Creating...</span>
+                    </span>
                     <span class="btn-ripple"></span>
                 </button>
                 <button *ngIf="isUpdation" 
@@ -756,6 +760,24 @@
         </div>
     </div>
 </div>
+
+<!-- Remove Location Confirmation Modal -->
+<ng-template #removeLocationConfirmModal>
+  <div class="modal-header">
+    <h5 class="modal-title">Confirm Remove Location</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="cancelRemoveLocation()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body text-center">
+    <p><strong>Are you sure you want to remove this location?</strong></p>
+    <p class="text-muted">This will also remove all projects and activities associated with this location.</p>
+  </div>
+  <div class="modal-footer justify-content-center">
+    <button type="button" class="btn btn-secondary" (click)="cancelRemoveLocation()">Cancel</button>
+    <button type="button" class="btn btn-danger" (click)="confirmRemoveLocation()">Yes, Remove</button>
+  </div>
+</ng-template>
 
 <!-- Night Shift Confirmation Modal -->
 <ng-template #night_shift_template>
