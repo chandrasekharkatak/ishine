@@ -14440,7 +14440,7 @@ public class ResourceManagementService {
 
 	    Long updatedBy = validationService.
 	            validateAndGetEmployeeEmpId(
-	                    poDto.getUpdatedByEmpId(),
+	                    poDto.getUpdatedByEmpId() !=null ? poDto.getUpdatedByEmpId().toString():null,
 	                    poDto.getUpdatedByEmpName());
 		
 		for (ProjectPoMappingWithResourceDTO deletedProject : payloadDTO.getDeletedProjects()) {
