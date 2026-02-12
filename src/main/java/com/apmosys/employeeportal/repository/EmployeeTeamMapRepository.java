@@ -851,7 +851,7 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			+ "(etm.empId,etm.startDate,etm.endDate,etm.isShadow,etm.poId) " +
 			"FROM EmployeeTeamMap etm " +
 			"LEFT JOIN PoRequirementMapping prm "+
-			"on prm.poRequirementMappingId=etm.poRequirementMappingId "+	
+			"on prm.roleId = etm.roleId and prm.poId = etm.poId "+	
 			"WHERE etm.active!=2  AND prm.poId = :poId ")
 	List<EmpMappingDTO> getActiveEmpDetails(Long poId);
 

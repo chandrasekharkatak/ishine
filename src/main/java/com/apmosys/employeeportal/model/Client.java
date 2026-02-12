@@ -26,7 +26,7 @@ public class Client {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer clientId;
-	private Integer poClientId;
+	private Long poClientId;
 	
 	private String clientName;
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
