@@ -14098,16 +14098,15 @@ public class ResourceManagementService {
 			
 		    LocalDate startDate = convertToLocalDate(ishineToPoRequest.getStartDateOfBilling());
 		    LocalDate endDate   = convertToLocalDate(ishineToPoRequest.getEndDateOfBilling());
-		    Project project = new Project();
 		    
-		    if(dto.getProjectId()==null) {
+		    if(dto.getIshineProjectId()==null) {
 					response.setServiceResponse("Project Details for the PO not found!!");
 					apiLogInfo.setApiResponse("Project Details for the PO not found!!");
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					return response;
 			    }
 		    
-		      project = projectRepository.findByProjectId(dto.getProjectId());
+		    Project project = projectRepository.findByProjectId(dto.getIshineProjectId());
 		      
 		    if(project==null) {
 				 response.setServiceResponse("Project Details for the PO not found!!");
@@ -14119,14 +14118,14 @@ public class ResourceManagementService {
 				apiLogInfo.setApiResponse("Resource onboarding has not started!!");
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				return response;
-		    }else if(!"true".equalsIgnoreCase(project.getActive())) {
-				response.setServiceResponse("Selected Project is no more active!!");
-				apiLogInfo.setApiResponse("Selected Project is no more active!!");
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				return response;
 		    }
-		    
-		    
+//			 else if(!"true".equalsIgnoreCase(project.getActive())) {
+//				response.setServiceResponse("Selected Project is no more active!!");
+//				apiLogInfo.setApiResponse("Selected Project is no more active!!");
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				return response;
+//		    }
+		    		    
 		    List<EmpMappingDTO> etm = employeeTeamMapRepository
 		    		.getActiveEmpDetails(ishineToPoRequest.getPoId());
 		    
@@ -14164,6 +14163,71 @@ public class ResourceManagementService {
 				return response;
 			}
 			
+			//Handling shadow logic
+			Map<Long, IshineToPoEmployeeDTO> empMap = new HashMap<>();
+
+			for (IshineToPoEmployeeDTO emp : employees) {
+			    empMap.put(emp.getIshineEmpId(), emp);
+			}
+			
+			for (IshineToPoEmployeeDTO emp : new ArrayList<>(empMap.values())) {
+
+			    if (emp.getIsShadow() != null && emp.getIsShadow() == 1
+			            && emp.getShadowEmpId() != null) {
+
+			        Long shadowEmpId = emp.getIshineEmpId();   // Shadow resource
+			        Long mainEmpId   = emp.getShadowEmpId();   // Main resource
+
+			        IshineToPoEmployeeDTO mainEmp = empMap.get(mainEmpId);
+
+			        // Main resource missing then fetch minimal info
+			        if (mainEmp == null) {
+
+			            Employee mainEmpData = employeeRepository.findByEmpId(mainEmpId);
+			            if (mainEmpData == null) {
+			                continue; 
+			            }
+
+			            mainEmp = new IshineToPoEmployeeDTO();
+	  
+			            mainEmp.setEmpId("true".equalsIgnoreCase(mainEmpData.getIsApmosysProduct())
+			                 ? "AP-" + mainEmpData.getEmployeementId(): "A-" + mainEmpData.getEmployeementId());
+			            
+			            mainEmp.setEmpName(mainEmpData.getName());
+			            mainEmp.setRoleName(emp.getRoleName());
+			            mainEmp.setExp(emp.getExp());
+			            mainEmp.setDepartmentName(emp.getDepartmentName());
+			            mainEmp.setRoleId(emp.getRoleId());
+			            mainEmp.setClientSideId(emp.getClientSideId());
+			            mainEmp.setIsApmosysProduct(emp.getIsApmosysProduct());
+
+			            mainEmp.setNoOfWorkingDays(0L);
+			            mainEmp.setBillableDays(0L);
+			            mainEmp.setStartDate(emp.getStartDate());
+			            mainEmp.setEndDate(emp.getEndDate());
+			            mainEmp.setPoId(emp.getPoId());
+			            mainEmp.setIshineEmpId(mainEmpData.getEmpId());
+
+			            empMap.put(mainEmpId, mainEmp);
+			        }
+
+	    mainEmp.setNoOfWorkingDays(mainEmp.getNoOfWorkingDays() + emp.getNoOfWorkingDays());
+		mainEmp.setBillableDays(mainEmp.getNoOfWorkingDays());
+		
+		if (mainEmp.getStartDate() == null || emp.getStartDate().isBefore(mainEmp.getStartDate())) {
+		    mainEmp.setStartDate(emp.getStartDate());
+		}
+
+		if (mainEmp.getEndDate() == null || emp.getEndDate().isAfter(mainEmp.getEndDate())) {
+		    mainEmp.setEndDate(emp.getEndDate());
+		}
+		
+		mainEmp.setMsg("Shadow's Timesheet Count Added with the Resource!!");	        
+		empMap.remove(shadowEmpId);
+			    }
+			}
+
+			employees = new ArrayList<>(empMap.values());
 			dto.setProjectName(ishineToPoRequest.getProjectName());
 			dto.setProjectId(ishineToPoRequest.getProjectId());
 			dto.setPoId(ishineToPoRequest.getPoId());	

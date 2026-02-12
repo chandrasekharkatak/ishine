@@ -61,7 +61,7 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
         		+ "   LEFT JOIN Project p\n"
         		+"    on p.projectId=ppo.projectId"
         		+ "   WHERE ppo.poId = :poId AND ppo.poProjectId = :projectId and ppo.active=1")
-        IshineToPoEmpDetailsSharingDTO findPoBasicDetails(Long poId,Integer projectId);
+        IshineToPoEmpDetailsSharingDTO findPoBasicDetails(Long poId,Long projectId);
         
         @Query("SELECT new com.apmosys.employeeportal.dto.IshineToPoEmployeeDTO( "
         		+ "        	        e.employeementId,e.name,prm.role,prm.experience,prm.department,"
@@ -106,29 +106,27 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
 		
         @Query("SELECT new com.apmosys.employeeportal.dto.IshineToPoEmployeeDTO( "
         		+ "       e.employeementId,e.name,prm.role,prm.experience,prm.department,"
-        		+ "       d.deptId,prm.clientRoleId,p.clientId,COUNT(DISTINCT et.timesheetId),"
-        		+ "       MIN(et.date),MAX(et.date),e.isApmosysProduct,etm.poId,"
+        		+ "       prm.clientRoleId,p.clientId,COUNT(DISTINCT et.timesheetId),"
+        		+ "       MIN(et.date),MAX(et.date),e.isApmosysProduct,ppo.poId,"
         		+ "		  et.empId,et.shadowEmpId,etm.isShadow ) "
         		+ "     FROM Timesheet et  "
         		+ "		LEFT JOIN TimesheetActivityMap etam on etam.timesheetId=et.timesheetId"
         		+ "		LEFT JOIN Activity a on a.activityId=etam.activityId"
-        		+ "		LEFT JOIN TimesheetDocumentDetails edd "
-        		+ "			on edd.timesheetId=et.timesheetId "
+        		+ "		LEFT JOIN TimesheetDocumentDetails edd on edd.timesheetId=et.timesheetId "
+        		+ "         AND edd.clientApprovalStatus in ('Approved','approved') AND edd.finalFlag=1 "
         		+ "		LEFT JOIN Team t on t.teamId=a.teamId "
         		+ "		LEFT JOIN Project p on p.projectId=t.projectId "
-        		+ "		LEFT JOIN EmployeeTeamMap etm "
-        		+ "			on etm.empId = et.empId AND etm.poId=t.poId "
+        		+ "     LEFT JOIN ProjectPoDetails ppo on ppo.projectId = p.projectId "
+        		+ "          AND ppo.clientAddressId IS NOT NULL AND ppo.active=1"
+        		+ "		LEFT JOIN PoRequirementMapping prm ON prm.poId = ppo.poId "
+        		+ "		LEFT JOIN EmployeeTeamMap etm on etm.empId = et.empId AND etm.poId=t.poId "
+        		+ "            and etm.poRequirementMappingId = prm.poRequirementMappingId"
         		+ "		LEFT JOIN Employee e on e.empId=etm.empId "
-        		+ "		LEFT JOIN PoRequirementMapping prm "
-        		+ "			ON prm.poRequirementMappingId = etm.poRequirementMappingId "
         		+ "		LEFT JOIN Department d ON d.name = prm.department "
-        		+ "     LEFT JOIN ProjectPoDetails ppo on ppo.poId = t.poId "
         		+ "		where 1=1 AND et.empId = :empId AND p.clientId = :clientId "
         		+ "        AND t.poId = :poId and et.status in ('Approved','approved') "
-        		+ "		   AND edd.clientApprovalStatus in ('Approved','approved') "
-        		+ "        AND ppo.clientAddressId IS NOT NULL"
-        		+ "        AND etm.active!= 2 AND ppo.active=1	"
-        		+ "        AND edd.finalFlag=1 AND et.date BETWEEN :startDate AND :endDate")
+        		+ "        AND etm.active!= 2 	"
+        		+ "        AND et.date BETWEEN :startDate AND :endDate")
         	IshineToPoEmployeeDTO findEmployeesWithTimesheetCount(Long empId,
         	         LocalDate startDate,LocalDate endDate,Long poId,Integer clientId);
 
@@ -173,5 +171,32 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
                         + "where p.projectId=:projectId \n"
                         + "GROUP BY p.projectId, ppd.poId")
         List<PoDetailsDto> getResourceRequirementCountByProjectId(Integer projectId);
+        
+        
+        @Query(value = "SELECT DISTINCT p.poId \n"
+        		+ "    FROM ProjectPoDetails p\n"
+        		+ "    WHERE p.poId IN :poIds\n"
+        		+ "      AND p.active = true" )
+        List<Long> findDistinctActivePoIds(@Param("poIds") List<Long> poIds);
+        
+        
+        
+        @Modifying
+        @Query(value ="UPDATE ProjectPoDetails p\n"
+        		+ "       SET p.empIdApmosysRm = :rmEmpId,\n"
+        		+ "           p.apmosysRM = :rmName,\n"
+        		+ "           p.apmosysRmEmail = :rmEmail,\n"
+        		+ "           p.updatedBy = :updatedBy \n"
+        		+ "     WHERE p.poId IN :poIds\n"
+        		+ "       AND p.active = true")
+        int updateRmForActivePos(
+                @Param("poIds") List<Long> poIds,
+                @Param("rmEmpId") Long rmEmpId,
+                @Param("rmName") String rmName,
+                @Param("rmEmail") String rmEmail,
+                @Param("updatedBy") Long updatedBy
+        );
+        
+        
 
 }

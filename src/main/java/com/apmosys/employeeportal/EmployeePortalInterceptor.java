@@ -75,6 +75,7 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			"/api/poCrudOperationsInIshineNew",
 			"/api/renewPoInIshineNew",
 			"/api/deletePoInIshineNew",
+			"/api/updateRmDetailsInPo",
 			"/employeeportal/api/poProjectTimesheetSync",
 			"/employeeportal/api/getEmployeeAndTimesheetDetails",
 			"/employeeportal/api/getProjectDetailsByEmpIdAndDateRange",

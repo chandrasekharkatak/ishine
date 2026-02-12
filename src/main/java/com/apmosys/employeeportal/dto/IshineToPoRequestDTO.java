@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class IshineToPoRequestDTO {
 	
 	 	private Long poId;
-	    private Integer projectId;              
+	    private Long projectId;              
 	    private String projectName;
 
 	    private Date startDateOfBilling;
