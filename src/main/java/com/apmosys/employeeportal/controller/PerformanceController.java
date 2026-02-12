@@ -231,4 +231,10 @@ public class PerformanceController {
 		ServiceResponse response = performanceService.getCurrentUserDepartment(empId);
 		return response;
 	}
+	
+	@RequestMapping(value = "/updateEmployeePerformanceHr",  method = RequestMethod.POST)
+	public ServiceResponse updateEmployeePerformanceHr(@RequestBody PerformanceDTO employeePerformanceDTO) {
+	    ServiceResponse response = performanceService.updateEmployeePerformanceHr(employeePerformanceDTO);
+	    return response;
+	}
 }

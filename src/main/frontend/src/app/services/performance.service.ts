@@ -248,6 +248,9 @@ export class PerformanceService {
   addRemarkAsPerQuestion(marksObject: any){
     return this.http.post(`${this.baseUrl}` + `api/addRemarkAsPerQuestion`, marksObject);
   }
+  updateEmployeePerformanceHr(performance: any) {
+    return this.http.post(`${this.baseUrl}` + `api/updateEmployeePerformanceHr`, performance);
+  }
 }
 
 

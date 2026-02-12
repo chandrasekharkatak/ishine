@@ -594,11 +594,13 @@ public class PerformanceService {
 			employeePerformance.setQuarterId(employeePerformanceDTO.getQuarterId());
 			employeePerformance.setHod_approval_date(LocalDateTime.now());
 			System.out.println(employeePerformanceDTO.getCurrentStatus()+"123456789");
-			if("Not Started".equals(employeePerformanceDTO.getCurrentStatus())) {
-			    employeePerformance.setCompletion_status("Completed");
-			} else {
-			    employeePerformance.setCompletion_status("Ongoing");
-			}
+			if("Not Started".equals(employeePerformanceDTO.getCurrentStatus()) && 
+					   "HOD".equals(employeePerformanceDTO.getActionBy())) {
+					    employeePerformance.setCompletion_status("Completed");
+					} 
+			else {
+					    employeePerformance.setCompletion_status("Ongoing");
+					}
 			EmployeePerformance savedEmployeePerformance = employeePerformanceRepository.save(employeePerformance);
 			if (savedEmployeePerformance != null) {
 
@@ -1717,5 +1719,55 @@ public class PerformanceService {
 		}
 		return response;
 	}
+	
+	public ServiceResponse updateEmployeePerformanceHr(PerformanceDTO employeePerformanceDTO) {
+
+		ServiceResponse response = new ServiceResponse();
+		try {
+			EmployeePerformance savedEmployeePerformance = null;
+			EmployeePerformance employeePerformanceDetails = employeePerformanceRepository
+					.findByPerformanceId(employeePerformanceDTO.getEmployeePerformanceId());
+			if (employeePerformanceDetails != null) {
+
+				employeePerformanceDetails.setFinal_rating(employeePerformanceDTO.getFinalRating());
+				employeePerformanceDetails.setHr_remarks(employeePerformanceDTO.getHrRemark());
+				employeePerformanceDetails.setHr_review_date(LocalDateTime.now());
+				employeePerformanceDetails.setHod_remarks(employeePerformanceDTO.getHodRemarks());
+				employeePerformanceDetails.setCompletion_status("Completed");
+				savedEmployeePerformance = employeePerformanceRepository.save(employeePerformanceDetails);
+			}
+
+			if (savedEmployeePerformance != null) {
+
+				for (PerformanceRatingDTO ratingDTO : employeePerformanceDTO.getPerformanceRatings()) {
+					EmployeeRatingPerformance ratingPerformance = employeeRatingPerformanceRepository
+							.getById(ratingDTO.getPerformanceRatingId());
+					if (ratingPerformance != null) {
+						ratingPerformance.setQuarterId(employeePerformanceDTO.getQuarterId());
+						ratingPerformance.setReviewTypeId(ratingDTO.getReviewTypeId());
+						ratingPerformance.setRatingValue(ratingDTO.getRating());
+						ratingPerformance.setEmpId(employeePerformanceDTO.getEmpId());
+						employeeRatingPerformanceRepository.save(ratingPerformance);
+					}
+
+				}
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Employee Performance updated Successfully.");
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Performance updatation Failed.");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+
+		}
+		return response;
+	}
+
 
 }

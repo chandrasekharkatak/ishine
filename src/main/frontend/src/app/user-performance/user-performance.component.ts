@@ -54,6 +54,7 @@ export class UserPerformanceComponent implements OnInit {
   alertMessage: any;
   modalRef:NgbModalRef;
   submitPerformance: Performance = new Performance();
+  updatePerformanceHr :Performance = new Performance();
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType: any;
@@ -90,10 +91,11 @@ export class UserPerformanceComponent implements OnInit {
   eligibleEmployeesColumns: any[] = ['employmentIdAcToET', 'name', 'designationName', 'departmentName','totalExperience', 'employmentstatus', 'dateOfJoining','completionStatus'];
   finalRating: number;
   hodRemarks: any;
+  hrRemarks: any; 
   quarterId: any;
   rewardsCount:any;
   appreciationCount:any;
-
+  isEditMode:boolean=false;
   appreciationAndRewardsCount:AppreciationAndRewardsCount=new AppreciationAndRewardsCount();
   departmentData: any[] = [
     // { department: 'HR', TotalNumberofemp: 10, ratinggivenbymanager: 7, pendingratinggivenbymanager: 3, managerName: 'Saxena' },
@@ -859,6 +861,12 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     this.submitPerformance.currentStatus = this.currentStatus;
     this.submitPerformance.quarterId = quarter.quarterId;
     this.submitPerformance.hodId = this.currentUser.empId;
+    if(this.userMapping.performance_action_by_hod){
+      this.submitPerformance.actionBy = 'HOD'
+    }
+    else if (this.userMapping.performance_action_by_approvals_tos) {
+      this.submitPerformance.actionBy = 'RM';
+    }
     this.submitPerformance.performanceRatings = [];
     this.filterCriteria.forEach((item, index) => {
       if (this.myList[index] && this.myList[index].silde !== undefined) {
@@ -1141,9 +1149,59 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
       }
     });
   }
-  canEdit :boolean = false;
-  hrReviewEdit()
+   toggleEditMode() {
+    this.isEditMode = !this.isEditMode;
+    console.log("==========edit mode",this.isEditMode);
+  }
+  updateReviewByHr(quarter: any, template: TemplateRef<any>, index: any)
   {
-    this.canEdit = true;
+    console.log(this.hrRemarks);
+    if(this.hrRemarks == null || this.hrRemarks == undefined || this.hrRemarks == ''){
+      this.alertMessage = "Please enter Hr Remarks!";
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+    this.updatePerformanceHr.empId = this.selectedEmployee.empId;
+    this.updatePerformanceHr.quarterId = quarter.quarterId;
+    this.updatePerformanceHr.hrId = this.currentUser.empId;
+    this.updatePerformanceHr.employeePerformanceId = null;
+    this.updatePerformanceHr.performanceRatings = [];
+    this.filterCriteria.forEach((item, index) => {
+      this.updatePerformanceHr.employeePerformanceId = item.employeePerformanceId;
+      if (this.myList[index] && this.myList[index].silde !== undefined) {
+        this.updatePerformanceHr.performanceRatings.push({
+          reviewTypeId: item.reviewTypeId,
+          rating: this.myList[index].silde,
+          performanceRatingId: this.myList[index].performanceRatingId,
+        });
+      }
+    });
+    this.filterRatingCriteria.forEach((item, index) => {
+      this.updatePerformanceHr.employeePerformanceId = item.employeePerformanceId;
+      if (this.myRateList[index] && this.myRateList[index].rate !== undefined) {
+        this.updatePerformanceHr.employeePerformanceId = item.employeePerformanceId;
+        this.updatePerformanceHr.performanceRatings.push({
+          reviewTypeId: item.reviewTypeId,
+          rating: this.myRateList[index].rate,
+          performanceRatingId: this.myRateList[index].performanceRatingId,
+        });
+      }
+    });
+    this.updatePerformanceHr.finalRating = this.finalRating;
+    this.updatePerformanceHr.hodRemarks = this.hodRemarks;
+    this.updatePerformanceHr.hrRemark = this.hrRemarks;
+    console.log(this.updatePerformanceHr, "performance update by hrrrr");
+   
+    this.performanceService.updateEmployeePerformanceHr(this.updatePerformanceHr).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        let collapseElement = document.getElementById('collapse' + index);
+        if (collapseElement) {
+          collapseElement.classList.remove('show'); // Remove 'show' class
+        }
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
   }
 }

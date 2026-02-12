@@ -291,7 +291,15 @@
                 <thead>
                   <tr>
                     <th>Criteria</th>
-                    <th>Rating</th>
+                    <th>Rating
+                         <span *ngIf="userMapping.performance_action_by_hr && (currentStatus === 'Ongoing' || currentStatus === 'Completed')" 
+                              class="ml-2"
+                              style="cursor: pointer;"
+                              (click)="toggleEditMode()"
+                              [title]="isEditMode ? 'Lock Editing' : 'Edit Rating'">
+                          <i class="fa" [ngClass]="isEditMode ? 'fa-lock-open text-success' : 'fa-pen text-primary'"></i>
+                        </span>
+                    </th>
                     <!-- <th *ngIf="filterRatingCriteria[0]?.reviewFieldType === 'rating'">Stars</th> -->
 
                   </tr>
@@ -305,7 +313,7 @@
                         <input type="range" min="0" [max]="item.condition" step="0.5" [(ngModel)]="myList[j].silde"
                           (input)="updateSlide(j, myList[j].silde)" [disabled]="
                           (currentStatus === 'Ongoing' && userMapping.performance_action_by_hod) ? false : 
-                          (currentStatus === 'Ongoing' || currentStatus === 'Completed' || userMapping.performance_action_by_hr)
+                          !isEditMode
                       ">
                         <span>{{ item.condition }}</span>
                         <p>{{ myList[j].silde }}</p>
@@ -322,8 +330,7 @@
                   <td *ngIf="item.reviewFieldType === 'Rating'&& item.quarterId === quarter.quarterId">
                     <div class="stars">
                       <span *ngFor="let star of getRatingList(item.condition);  let k = index"
-                        (click)="updateRating(i, k + 1)" [ngClass]="{'selected': k < myRateList[i].rate ,'disabled': (currentStatus === 'Ongoing' && userMapping.performance_action_by_hod) ? false : 
-                      (currentStatus === 'Ongoing' || currentStatus === 'Completed' || userMapping.performance_action_by_hr)
+                        (click)="updateRating(i, k + 1)" [ngClass]="{'selected': k < myRateList[i].rate ,'disabled': (currentStatus === 'Ongoing' && userMapping.performance_action_by_hod) ? false : !isEditMode
                     }">
                         ★
                       </span>
@@ -399,12 +406,17 @@
                 Review has not been given By manager/Reporting Manager
               </p>
             </div>
+            <div *ngIf="userMapping.performance_action_by_hr && isEditMode">
+                <label for="justification"><span class="text-danger">*</span>Hr Edit Remarks</label>
+              <textarea id="justification" [(ngModel)]="hrRemarks"
+                [disabled]="!userMapping.performance_action_by_hr"></textarea>
+            </div>
             <div class="d-flex justify-content-end"
-            *ngIf=" currentStatus == 'Completed' && userMapping.performance_action_by_hr">
-            <button class="btn btn-primary mt-2">
-              Edit
-            </button>
-          </div>
+              *ngIf=" (currentStatus == 'Completed' || currentStatus =='Ongoing') && userMapping.performance_action_by_hr && isEditMode">
+              <button class="btn btn-primary mt-2" (click)="updateReviewByHr(quarter,alert_message,i)">
+                Edit
+              </button>
+            </div>
           <div *ngIf="filterRatingCriteria.length === 0 && filterCriteria.length === 0 ">
             <p class="text-center">
               No Data to Display
