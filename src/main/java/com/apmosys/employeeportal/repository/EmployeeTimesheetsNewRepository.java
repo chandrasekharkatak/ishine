@@ -44,6 +44,39 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	java.util.Optional<EmployeeTimesheetsNew> findByEmpIdAndDateNew(@Param("empId") Long empId,
 			@Param("date") LocalDate date);
 
+	List<EmployeeTimesheetsNew> findByDateAndEmpIdIn(LocalDate date, List<Long> empIds);
+
+	@Query(
+		    "SELECT new com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO(" +
+		    " e.timesheetId, " +
+		    " e.createdBy, " +
+		    " e.createdOn, " +
+		    " e.updatedBy, " +
+		    " e.isNightShift, " +
+		    " e.updatedOn, " +
+		    " e.date, " +
+		    " e.dayTypeId, " +
+		    " e.empId, " +
+		    " e.status, " +
+		    " e.workCheckIn, " +
+		    " e.workCheckOut, " +
+		    " e.totalWorkingMinutes, " +
+		    " e.leaveTypeMasterId, " +
+		    " e.description, " +
+		    " e.currentManagerId, " +
+		    " d.dayType " +
+		    ") " +
+		    "FROM EmployeeTimesheetsNew e, DayTypeMasterNew d " +
+		    "WHERE e.dayTypeId = d.dayTypeId " +
+		    "AND e.empId IN :empIds " +
+		    "AND e.date BETWEEN :startDate AND :endDate " +
+		    "ORDER BY e.date DESC"
+		)
+		List<EmployeeTimesheetsNewDTO> fetchTimesheetDataWithDateTypeForEmployees(
+		        @Param("empIds") List<Long> empIds,
+		        @Param("startDate") LocalDate startDate,
+		        @Param("endDate") LocalDate endDate
+		);
 	/**
 	 * Find all EmployeeTimesheets by employee ID and date range.
 	 * Returns new entity type.

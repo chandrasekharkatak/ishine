@@ -42,7 +42,46 @@ public interface TimesheetActivityMapRepository extends JpaRepository<TimesheetA
 	public void deleteByTimesheetId(Long timesheetId);
 
 	public List<TimesheetActivityMap> findByTimesheetId(Long timesheetId);
-	
+
+	@Query(value =
+	        "SELECT etam.timesheet_id, " +
+	        "ac.activity, " +
+	        "ac.eta, " +
+	        "etam.description, " +
+	        "CAST(etam.duration_minutes AS DECIMAL(10,2))/60 AS completion_time, " +
+	        "p.project_name, " +
+	        "c.client_name, " +
+	        "cl.client_location, " +
+	        "t.team_name, " +
+	        "e.name as employee, " +
+	        "e2.name as manager, " +
+	        "ac.activity_id, " +
+	        "p.project_id, " +
+	        "etam.id, " +
+	        "c.client_id, " +
+	        "cl.client_location_id, " +
+	        "t.team_id, " +
+	        "e.is_consultant, " +
+	        "e.is_apprenticeship " +
+	        "FROM employee_timesheet_activities_mapping_new etam " +
+	        "INNER JOIN activities ac ON ac.activity_id = etam.activity_id " +
+	        "INNER JOIN teams t ON t.team_id = ac.team_id " +
+	        "INNER JOIN projects p ON p.project_id = etam.project_id " +
+	        "INNER JOIN clients c ON c.client_id = p.client_id " +
+	        "INNER JOIN employee_timesheets_new et ON et.timesheet_id = etam.timesheet_id " +
+	        "INNER JOIN employee e ON e.emp_id = et.emp_id " +
+	        "INNER JOIN employee e2 ON e2.emp_id = et.current_manager_id " +
+	        "INNER JOIN project_timesheet_status_new pts " +
+	        "ON pts.timesheet_id = etam.timesheet_id " +
+	        "AND pts.project_id = etam.project_id " +
+	        "INNER JOIN client_locations cl " +
+	        "ON cl.client_location_id = pts.client_location_id " +
+	        "WHERE etam.timesheet_id IN (:timesheetIds)",
+	        nativeQuery = true)
+	List<Object[]> activitiesByTimesheetIds(
+	        @Param("timesheetIds") List<Long> timesheetIds
+	);
+
 
 	public Long countByActivityId(Long activityId);
 
