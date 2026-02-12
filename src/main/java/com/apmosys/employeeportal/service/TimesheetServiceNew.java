@@ -32,6 +32,7 @@ import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetStatusCountDTO;
 import com.apmosys.employeeportal.enums.DayTypeTransition;
 import com.apmosys.employeeportal.model.EmployeeTimesheetLocationMapping;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
@@ -1444,6 +1445,39 @@ public class TimesheetServiceNew {
 		else if(aprOrRejData.getStatusId() == 3)
 			serviceResponse =  timesheetApprovalServiceNew.bulkRejectTimesheets(aprOrRejData);
 		return serviceResponse;
+	}
+		public ServiceResponse getTimesheetStatusCountsByManager(Long managerId) {
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+
+	        if (managerId == null) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	            response.setServiceResponse("Manager Id is required");
+	            return response;
+	        }
+	        List<Object[]> counts =
+	                employeeTimesheetsNewRepository.getTimesheetStatusCountsByCurrentManagerId(managerId,null);
+	        
+	        Map<String, Long> result = new HashMap<>();
+
+	        for (Object[] row : counts) {
+	            String status = row[0] != null ? row[0].toString() : null;
+	            Long count = row[1] == null ? 0L : ((Number) row[1]).longValue();
+	           
+	            result.put(status, count);
+	            
+	        }
+
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(counts);
+	    } catch (Exception e) {
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceResponse(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceError(e.getMessage());
+	        e.printStackTrace();
+	    }
+
+	    return response;
 	}
 	
 

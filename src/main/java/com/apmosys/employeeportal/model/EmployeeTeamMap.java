@@ -39,6 +39,8 @@ public class EmployeeTeamMap {
 	private Long rescRemovedBy;
 
 	private Long poRequirementMappingId;
+	
+	
 
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = true ,updatable = true)
 	private LocalDateTime startDate;
@@ -62,5 +64,8 @@ public class EmployeeTeamMap {
     
     @Column(name = "po_id")
     private Long poId;
+    
+    @Column(name = "role_id")
+    private Long roleId;
 
 }

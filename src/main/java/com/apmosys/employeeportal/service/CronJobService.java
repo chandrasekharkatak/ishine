@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -1269,187 +1270,309 @@ public class CronJobService {
 	//0 0 21 ? * * - At 21:00:00pm every day
 
 //	@Scheduled(cron = "0 10 16 * * ?")
-	@Scheduled(cron = "0 1 00 ? * *")
+//	@Scheduled(cron = "0 */1 * ? * *")
 //	@Scheduled(cron = "0 36 17 3 11 ?")
 
-		public void automaticTimesheetFiller() {
-
-		System.out.println("Cron----**********----started");
-
-			try {
-				//for hardcoded
-//				LocalDate dateToday = LocalDate.parse("2024-12-14");
-//				LocalDate dateToday = LocalDate.parse("2025-11-17");
-				LocalDate dateToday = LocalDate.now();
-				LocalDateTime dateTimeToday = LocalDateTime.now();
-//				System.out.println("filling timesheet method started");
-				List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCronExludingSomeEmployees();
-//				System.err.println("vghgc"+dateToday);
-				List<Holiday> publicHoliday = holidayRepository.findByDateOfHoliday(dateToday);
-
-//				List<Holiday> publicHoliday = holidayRepository.findByDateOfHolidayBetween(start,end);
-
-			//	Timesheet filler for weekoff day : saturday & sunday
-
-				if(!publicHoliday.isEmpty()) {
-
-					System.out.println("holiday_size"+publicHoliday.size());
-
-					for(Holiday holiday: publicHoliday) {
-						String holidayOccassion = holiday.getOccasion();
-						String dayOfWeek = holiday.getDayOfTheWeek();
-
-						if((holiday.getHolidayType().equals("WeekOff") && dayOfWeek.equals("Saturday")) || (holiday.getHolidayType().equals("WeekOff") && dayOfWeek.equals("Sunday"))) {
-							for(Object[] employeeList: allEmployee) {
-								Long empId = employeeList[0] != null ? Long.parseLong(employeeList[0].toString()) : null;
-								String billableType = employeeList[7] != null ?employeeList[7].toString() : null;
-								
-								Optional<EmployeeTimesheetsNew> empTimesheet = employeeTimesheetsNewRepository.findByEmpIdAndDateNew(empId, dateToday);
-
-								if (empTimesheet.isEmpty()) {
-
-									if (holidayOccassion.equals("Saturday : second saturday")
-											|| holidayOccassion.equals("Saturday : fourth saturday")) {
-										if (billableType != null && !("TNM").equalsIgnoreCase(billableType)) {
-											EmployeeTimesheetsNew newTimesheet = new EmployeeTimesheetsNew();
-											newTimesheet.setCreatedBy(empId);
-											newTimesheet.setDate(dateToday);
-											newTimesheet.setCreatedOn(dateTimeToday);//											newTimesheet.setDaytype("Week Off");
-											newTimesheet.setDescription("WeekOff : Saturday");
-											newTimesheet.setTotalWorkingMinutes(0);
-											newTimesheet.setEmpId(empId);
-											newTimesheet.setIsNightShift(false);
-											newTimesheet.setDayTypeId(4);
-											newTimesheet.setStatus(2);
-											employeeTimesheetsNewRepository.save(newTimesheet);
-										}
-									} else {
-										EmployeeTimesheetsNew newTimesheet = new EmployeeTimesheetsNew();
-										newTimesheet.setCreatedBy(empId);
-										newTimesheet.setDate(dateToday);
-										newTimesheet.setCreatedOn(dateTimeToday);
-//										newTimesheet.setDayType("Week Off");
-										newTimesheet.setIsNightShift(false);
-										newTimesheet.setDescription("WeekOff : Sunday");
-//										newTimesheet.setTotalTime((float) 0);
-										newTimesheet.setDayTypeId(4);
-										newTimesheet.setTotalWorkingMinutes(0);
-										newTimesheet.setEmpId(empId);
-										newTimesheet.setStatus(2);
-										employeeTimesheetsNewRepository.save(newTimesheet);
-									}
-
-									// For weekoff's managers don't have to approve the timesheet, if any employee
-									// worked on weekoff will revoke this ..
-
-//									System.out.println("filling weekoffs");
-
-								}
-							}
-						}
-					}
-				}
-
-		   //	Timesheet filler for public Holiday
-
-				if(!publicHoliday.isEmpty()) {
-					System.out.println("vghgc"+publicHoliday.isEmpty());
-					System.out.println("holiday_size_holiday"+publicHoliday.size());
-					for(Holiday holidays: publicHoliday) {
-						String holidayState = holidays.getState();
-
-						for(Object[] employeeList: allEmployee) {
-							Long empId = employeeList[0] != null ? Long.parseLong(employeeList[0].toString()) : null;
-							String workLocation = employeeList[1] != null ? employeeList[1].toString() : null;
-							String billableType = employeeList[7] != null ?employeeList[7].toString() : null;
-							if(("TNM").equalsIgnoreCase(billableType)) {
-								System.out.println("TNM");
-							}
-							System.out.println("vghgc"+empId);
-							Optional<EmployeeTimesheetsNew> empTimesheet = employeeTimesheetsNewRepository.findByEmpIdAndDateNew(empId,holidays.getDateOfHoliday());
-							if(empTimesheet.isEmpty()) {
-								System.out.println("vghgc"+publicHoliday.isEmpty());
-								if(((holidayState.equals("all") && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))
-										|| (holidayState.equals(workLocation) && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking"))))&& billableType != null &&!("TNM").equalsIgnoreCase(billableType)){
-
-									EmployeeTimesheetsNew newTimesheet = new EmployeeTimesheetsNew();
-									newTimesheet.setCreatedBy(empId);
-									newTimesheet.setDate(holidays.getDateOfHoliday());
-									newTimesheet.setCreatedOn(dateTimeToday);
-									newTimesheet.setDayTypeId(2);
-									newTimesheet.setIsNightShift(false);
-//									newTimesheet.setDayType("Public Holiday");
-									newTimesheet.setDescription("Public Holiday : " + holidays.getOccasion());
-									newTimesheet.setEmpId(empId);
-									newTimesheet.setStatus(2);
-
-//									System.out.println("filling holiday");
-
-									employeeTimesheetsNewRepository.save(newTimesheet);
-									System.out.println("vghgc"+newTimesheet);
-
-								}
-							}
-						}
-					}
-				}
-
-			//	Timesheet filler for leave days
-
-//				List<EmployeeLeave> employeeLeave = employeeLeaveRepository.findByFromDate(dateToday);
+//		public void automaticTimesheetFiller() {
 //
-//				if(!employeeLeave.isEmpty()) {
+//		System.out.println("Cron----**********----started");
 //
-//					for(EmployeeLeave leaveObj: employeeLeave) {
-//						Long empId = leaveObj.getEmpId();
-//						Short approvedLeave = 2;
+//			try {
+//				//for hardcoded
+////				LocalDate dateToday = LocalDate.parse("2024-12-14");
+////				LocalDate dateToday = LocalDate.parse("2025-11-17");
+//				LocalDate dateToday = LocalDate.now();
+//				LocalDateTime dateTimeToday = LocalDateTime.now();
+////				System.out.println("filling timesheet method started");
+//				List<Object[]> allEmployee = employeeRepository.getEmployeeDetailForCronExludingSomeEmployees();
+////				System.err.println("vghgc"+dateToday);
+//				List<EmployeeTimesheetsNew> toSave = new ArrayList<>();
+//				List<Holiday> publicHoliday = holidayRepository.findByDateOfHoliday(dateToday);
+//				List<Long> empIds = allEmployee.stream()
+//				        .map(e -> Long.parseLong(e[0].toString()))
+//				        .collect(Collectors.toList());
 //
-//						long elapsedDays = ChronoUnit.DAYS.between(leaveObj.getFromDate(), leaveObj.getToDate());
+//				List<EmployeeTimesheetsNew> existingTimesheets =
+//				        employeeTimesheetsNewRepository.findByDateAndEmpIdIn(dateToday, empIds);
+//				
+//				Map<Long, EmployeeTimesheetsNew> timesheetMap =
+//				        existingTimesheets.stream()
+//				                .collect(Collectors.toMap(
+//				                        EmployeeTimesheetsNew::getEmpId,
+//				                        t -> t
+//				                ));
+////				List<Holiday> publicHoliday = holidayRepository.findByDateOfHolidayBetween(start,end);
 //
-//						if((elapsedDays == 0) && leaveObj.getLeaveStatusId().equals(approvedLeave)) {
+//			//	Timesheet filler for weekoff day : saturday & sunday
 //
-//							Timesheet newTimesheet = new Timesheet();
+//				if(!publicHoliday.isEmpty()) {
 //
-//							newTimesheet.getCommonProperty().setCreatedBy(empId);
-//							newTimesheet.setDate(dateToday);
-//							newTimesheet.setDayType("Holiday");
-//							newTimesheet.setDescription("On leave");
-//							newTimesheet.setEmpId(empId);
-//							newTimesheet.setStatus("Approved");
+//					System.out.println("holiday_size"+publicHoliday.size());
 //
-//							timesheetsRepository.save(newTimesheet);
-//						}
+//					for(Holiday holiday: publicHoliday) {
+//						String holidayOccassion = holiday.getOccasion();
+//						String dayOfWeek = holiday.getDayOfTheWeek();
 //
-//						if((elapsedDays != 0) && leaveObj.getLeaveStatusId().equals(approvedLeave)) {
-//							LocalDate tempDateToday = dateToday;
+//						if((holiday.getHolidayType().equals("WeekOff") && dayOfWeek.equals("Saturday")) || (holiday.getHolidayType().equals("WeekOff") && dayOfWeek.equals("Sunday"))) {
+//							for(Object[] employeeList: allEmployee) {
+//								Long empId = employeeList[0] != null ? Long.parseLong(employeeList[0].toString()) : null;
+//								String billableType = employeeList[7] != null ?employeeList[7].toString() : null;
+//								
+////								Optional<EmployeeTimesheetsNew> empTimesheet = employeeTimesheetsNewRepository.findByEmpIdAndDateNew(empId, dateToday);
 //
-//							while(tempDateToday.compareTo(leaveObj.getToDate()) != 1) {
+//								if (!timesheetMap.containsKey(empId)) {
 //
-//								Timesheet newTimesheet = new Timesheet();
+//									if (holidayOccassion.equals("Saturday : second saturday")
+//											|| holidayOccassion.equals("Saturday : fourth saturday")) {
+//										if (billableType != null && !("TNM").equalsIgnoreCase(billableType)) {
+//											EmployeeTimesheetsNew newTimesheet = new EmployeeTimesheetsNew();
+//											newTimesheet.setCreatedBy(empId);
+//											newTimesheet.setDate(dateToday);
+//											newTimesheet.setCreatedOn(dateTimeToday);//											newTimesheet.setDaytype("Week Off");
+//											newTimesheet.setDescription("WeekOff : Saturday");
+//											newTimesheet.setTotalWorkingMinutes(0);
+//											newTimesheet.setEmpId(empId);
+//											newTimesheet.setIsNightShift(false);
+//											newTimesheet.setDayTypeId(4);
+//											newTimesheet.setStatus(2);
+//											toSave.add(newTimesheet);
+//										}
+//									} else {
+//										EmployeeTimesheetsNew newTimesheet = new EmployeeTimesheetsNew();
+//										newTimesheet.setCreatedBy(empId);
+//										newTimesheet.setDate(dateToday);
+//										newTimesheet.setCreatedOn(dateTimeToday);
+////										newTimesheet.setDayType("Week Off");
+//										newTimesheet.setIsNightShift(false);
+//										newTimesheet.setDescription("WeekOff : Sunday");
+////										newTimesheet.setTotalTime((float) 0);
+//										newTimesheet.setDayTypeId(4);
+//										newTimesheet.setTotalWorkingMinutes(0);
+//										newTimesheet.setEmpId(empId);
+//										newTimesheet.setStatus(2);
+//										toSave.add(newTimesheet);
+//									}
 //
-//								newTimesheet.getCommonProperty().setCreatedBy(empId);
-//								newTimesheet.setDate(tempDateToday);
-//								newTimesheet.setDayType("Holiday");
-//								newTimesheet.setDescription("On leave");
-//								newTimesheet.setEmpId(empId);
-//								newTimesheet.setStatus("Approved");
+//									// For weekoff's managers don't have to approve the timesheet, if any employee
+//									// worked on weekoff will revoke this ..
 //
-//								timesheetsRepository.save(newTimesheet);
+////									System.out.println("filling weekoffs");
 //
-//								tempDateToday = tempDateToday.plusDays(1);
+//								}
 //							}
 //						}
 //					}
 //				}
-				System.out.println("Method end reached");
-				}
-			catch(Exception e) {
-				e.printStackTrace();
-			}
-		}
+//
+//		   //	Timesheet filler for public Holiday
+//
+//				if(!publicHoliday.isEmpty()) {
+//					System.out.println("vghgc"+publicHoliday.isEmpty());
+//					System.out.println("holiday_size_holiday"+publicHoliday.size());
+//					for(Holiday holidays: publicHoliday) {
+//						String holidayState = holidays.getState();
+//
+//						for(Object[] employeeList: allEmployee) {
+//							Long empId = employeeList[0] != null ? Long.parseLong(employeeList[0].toString()) : null;
+//							String workLocation = employeeList[1] != null ? employeeList[1].toString() : null;
+//							String billableType = employeeList[7] != null ?employeeList[7].toString() : null;
+//							if(("TNM").equalsIgnoreCase(billableType)) {
+//								System.out.println("TNM");
+//							}
+//							System.out.println("vghgc"+empId);
+////							Optional<EmployeeTimesheetsNew> empTimesheet = employeeTimesheetsNewRepository.findByEmpIdAndDateNew(empId,holidays.getDateOfHoliday());
+//							if(!timesheetMap.containsKey(empId)) {
+//								System.out.println("vghgc"+publicHoliday.isEmpty());
+//								if(((holidayState.equals("all") && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking")))
+//										|| (holidayState.equals(workLocation) && holidays.getOptionalHoliday().equals("false") && (holidays.getHolidayType().equals("Festival") || holidays.getHolidayType().equals("nonWorking"))))&& billableType != null &&!("TNM").equalsIgnoreCase(billableType)){
+//
+//									EmployeeTimesheetsNew newTimesheet = new EmployeeTimesheetsNew();
+//									newTimesheet.setCreatedBy(empId);
+//									newTimesheet.setDate(holidays.getDateOfHoliday());
+//									newTimesheet.setCreatedOn(dateTimeToday);
+//									newTimesheet.setDayTypeId(2);
+//									newTimesheet.setIsNightShift(false);
+////									newTimesheet.setDayType("Public Holiday");
+//									newTimesheet.setDescription("Public Holiday : " + holidays.getOccasion());
+//									newTimesheet.setEmpId(empId);
+//									newTimesheet.setStatus(2);
+//
+////									System.out.println("filling holiday");
+//									toSave.add(newTimesheet);
+//									System.out.println("vghgc"+newTimesheet);
+//
+//								}
+//							}
+//						}
+//					}
+//				}
+//
+//			//	Timesheet filler for leave days
+//
+////				List<EmployeeLeave> employeeLeave = employeeLeaveRepository.findByFromDate(dateToday);
+////
+////				if(!employeeLeave.isEmpty()) {
+////
+////					for(EmployeeLeave leaveObj: employeeLeave) {
+////						Long empId = leaveObj.getEmpId();
+////						Short approvedLeave = 2;
+////
+////						long elapsedDays = ChronoUnit.DAYS.between(leaveObj.getFromDate(), leaveObj.getToDate());
+////
+////						if((elapsedDays == 0) && leaveObj.getLeaveStatusId().equals(approvedLeave)) {
+////
+////							Timesheet newTimesheet = new Timesheet();
+////
+////							newTimesheet.getCommonProperty().setCreatedBy(empId);
+////							newTimesheet.setDate(dateToday);
+////							newTimesheet.setDayType("Holiday");
+////							newTimesheet.setDescription("On leave");
+////							newTimesheet.setEmpId(empId);
+////							newTimesheet.setStatus("Approved");
+////
+////							timesheetsRepository.save(newTimesheet);
+////						}
+////
+////						if((elapsedDays != 0) && leaveObj.getLeaveStatusId().equals(approvedLeave)) {
+////							LocalDate tempDateToday = dateToday;
+////
+////							while(tempDateToday.compareTo(leaveObj.getToDate()) != 1) {
+////
+////								Timesheet newTimesheet = new Timesheet();
+////
+////								newTimesheet.getCommonProperty().setCreatedBy(empId);
+////								newTimesheet.setDate(tempDateToday);
+////								newTimesheet.setDayType("Holiday");
+////								newTimesheet.setDescription("On leave");
+////								newTimesheet.setEmpId(empId);
+////								newTimesheet.setStatus("Approved");
+////
+////								timesheetsRepository.save(newTimesheet);
+////
+////								tempDateToday = tempDateToday.plusDays(1);
+////							}
+////						}
+////					}
+////				}
+//				employeeTimesheetsNewRepository.saveAll(toSave);
+//				System.out.println("Method end reached");
+//				}
+//			catch(Exception e) {
+//				e.printStackTrace();
+//			}
+//		}
 
 		// 0 0 12 ? * * - At 12:00:00pm every day
+	@Scheduled(cron = "0 1 00 ? * *")
+	public void automaticTimesheetFiller() {
 
+	    System.out.println("Cron----**********----started");
+
+	    try {
+
+	        LocalDate dateToday = LocalDate.now();
+	        LocalDateTime dateTimeToday = LocalDateTime.now();
+
+	        List<Object[]> allEmployee =
+	                employeeRepository.getEmployeeDetailForCronExludingSomeEmployees();
+
+	        List<Holiday> publicHoliday =
+	                holidayRepository.findByDateOfHoliday(dateToday);
+
+	        if (publicHoliday.isEmpty()) {
+	            System.out.println("No holiday today");
+	            return;
+	        }
+
+	        List<Long> empIds = allEmployee.stream()
+	                .map(e -> Long.parseLong(e[0].toString()))
+	                .collect(Collectors.toList());
+
+	        List<EmployeeTimesheetsNew> existingTimesheets =
+	                employeeTimesheetsNewRepository.findByDateAndEmpIdIn(dateToday, empIds);
+
+	        Map<Long, EmployeeTimesheetsNew> timesheetMap =
+	                existingTimesheets.stream()
+	                        .collect(Collectors.toMap(
+	                                EmployeeTimesheetsNew::getEmpId,
+	                                t -> t
+	                        ));
+
+	        List<EmployeeTimesheetsNew> toSave = new ArrayList<>();
+
+	        for (Holiday holiday : publicHoliday) {
+
+	            String holidayType = holiday.getHolidayType();
+	            String dayOfWeek = holiday.getDayOfTheWeek();
+	            String holidayState = holiday.getState();
+
+	            for (Object[] employeeList : allEmployee) {
+
+	                Long empId = Long.parseLong(employeeList[0].toString());
+	                String workLocation = employeeList[1] != null ? employeeList[1].toString() : null;
+	                String billableType = employeeList[7] != null ? employeeList[7].toString() : null;
+
+	                if (timesheetMap.containsKey(empId)) continue;
+
+	                // ================= WEEKOFF =================
+	                if ("WeekOff".equals(holidayType)
+	                        && ("Saturday".equals(dayOfWeek) || "Sunday".equals(dayOfWeek))
+	                        && billableType != null
+	                        && !"TNM".equalsIgnoreCase(billableType)) {
+
+	                    EmployeeTimesheetsNew ts = new EmployeeTimesheetsNew();
+	                    ts.setCreatedBy(empId);
+	                    ts.setCreatedOn(dateTimeToday);
+	                    ts.setDate(dateToday);
+	                    ts.setEmpId(empId);
+	                    ts.setIsNightShift(false);
+	                    ts.setDayTypeId(4);
+	                    ts.setTotalWorkingMinutes(0);
+	                    ts.setStatus(2);
+	                    ts.setDescription("WeekOff : " + dayOfWeek);
+
+	                    toSave.add(ts);
+	                    timesheetMap.put(empId, ts);
+	                    continue;
+	                }
+
+	                // ================= PUBLIC HOLIDAY =================
+	                if ((("all".equals(holidayState) ||
+	                        holidayState.equals(workLocation))
+	                        && "false".equals(holiday.getOptionalHoliday())
+	                        && ("Festival".equals(holidayType)
+	                            || "nonWorking".equals(holidayType)))
+	                        && billableType != null
+	                        && !"TNM".equalsIgnoreCase(billableType)) {
+
+	                    EmployeeTimesheetsNew ts = new EmployeeTimesheetsNew();
+	                    ts.setCreatedBy(empId);
+	                    ts.setCreatedOn(dateTimeToday);
+	                    ts.setDate(dateToday);
+	                    ts.setEmpId(empId);
+	                    ts.setIsNightShift(false);
+	                    ts.setDayTypeId(2);
+	                    ts.setStatus(2);
+	                    ts.setDescription("Public Holiday : " + holiday.getOccasion());
+
+	                    toSave.add(ts);
+	                    timesheetMap.put(empId, ts);
+	                }
+	            }
+	        }
+
+	        if (!toSave.isEmpty()) {
+	            employeeTimesheetsNewRepository.saveAll(toSave);
+	        }
+
+	        System.out.println("Method end reached");
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+
+	
 		@Scheduled(cron="${mailTrigger.time}")
 		public void protalConfigMailTrigger() {
 			try {
@@ -2003,9 +2126,12 @@ public class CronJobService {
 				Map<Long, List<Object[]>> activityByTsMap = allActivities.stream()
 						.collect(Collectors.groupingBy(obj -> Long.parseLong(obj[0].toString())));
 				List<Object[]> employeeList = employeeRepository.getEmployeeDetailForCron();
-				for(Object[] empObj : employeeList) {
-
-					Long empId = empObj[0] != null ? Long.parseLong(empObj[0].toString()) : null;
+				Map<Long, Object[]> empDetailMap = employeeList.stream()
+		                .collect(Collectors.toMap(obj -> Long.parseLong(obj[0].toString()), obj -> obj));
+				for(Long empId : timesheetByEmpMap.keySet()) {
+					Object[] empObj = empDetailMap.get(empId);
+		            if (empObj == null) continue;
+//					Long empId = empObj[0] != null ? Long.parseLong(empObj[0].toString()) : null;
 					String empName = empObj[2] != null ? empObj[2].toString() : null;
 					Long employeementId = empObj[3] != null ? Long.parseLong(empObj[3].toString()) : null;
 
@@ -4858,29 +4984,47 @@ try {
 
 					var wb = new Workbook(fos, "Application", "1.0");
 					Worksheet ws = wb.newWorksheet(firstOfMonth.getMonth() + " DSR");
+					 String[] headers = {
+			                    "EmpId", "Emp Name", "Department Name", "Date",
+			                    "Day Type", "Leave Type", "In-Time", "Out-Time",
+			                    "Shift", "Total Working Hours", "Activity",
+			                    "Description", "Client", "Project", "Status"
+			            };
 
-					ws.value(0, 0, "EmpId");
-					ws.value(0, 1, "Emp Name");
-					ws.value(0, 2, "Department Name");
-					ws.value(0, 3, "Date");
-					ws.value(0, 4, "Day Type");
-					ws.value(0, 5, "Leave Type");
-					ws.value(0, 6, "In-Time");
-					ws.value(0, 7, "Out-Time");
-					ws.value(0, 8, "Shift");
-					ws.value(0, 9, "Total Working Hours");
-					ws.value(0, 10, "Activity"); //Comma seperated
-					ws.value(0, 11, "Description");
-					ws.value(0, 12, "Client"); // comma seperated
-					ws.value(0, 13, "Project"); // comma seperated
-					ws.value(0, 14, "Status");
-//					ws.value(0, 14, "BiomaxInTime");
-//					ws.value(0, 15, "BiomaxOutTime");
+			            for (int i = 0; i < headers.length; i++) {
+			                ws.value(0, i, headers[i]);
+			            }
 //
 
 					int rowNum = 1;
 
 					List<Object[]> employeeList = employeeRepository.getEmployeeDetailForDSRCron(firstOfMonth, currentDate);
+					 List<Long> empIds = employeeList.stream()
+				                .map(e -> Long.parseLong(e[0].toString()))
+				                .collect(Collectors.toList());
+					 List<EmployeeTimesheetsNewDTO> allTimesheets =
+				                employeeTimesheetsNewRepository
+				                        .fetchTimesheetDataWithDateTypeForEmployees(
+				                                empIds, firstOfMonth, currentDate);
+					 Map<Long, List<EmployeeTimesheetsNewDTO>> timesheetMap =
+				                allTimesheets.stream()
+				                        .collect(Collectors.groupingBy(
+				                                EmployeeTimesheetsNewDTO::getEmpId
+				                        ));
+					 List<Long> timesheetIds = allTimesheets.stream()
+				                .map(EmployeeTimesheetsNewDTO::getTimesheetId)
+				                .collect(Collectors.toList());
+					 Map<Long, List<Object[]>> activityMap = new HashMap<>();
+					 if (!timesheetIds.isEmpty()) {
+				            List<Object[]> allActivities =
+				                    timesheetActivityMapRepository
+				                            .activitiesByTimesheetIds(timesheetIds);
+
+				            activityMap = allActivities.stream()
+				                    .collect(Collectors.groupingBy(
+				                            obj -> Long.parseLong(obj[0].toString())
+				                    ));
+				        }
 					for (Object[] empObj : employeeList) {
 
 						Long empId = empObj[0] != null ? Long.parseLong(empObj[0].toString()) : null;
@@ -4888,134 +5032,126 @@ try {
 						Long employeementId = empObj[3] != null ? Long.parseLong(empObj[3].toString()) : null;
 						String departmentName = empObj[6] != null ? empObj[6].toString() : null;
 
-						System.out.println("Emp ID :" + empId);
-						System.out.println("Employment ID :" + employeementId);
 
 //						List<Timesheet> monthlyTimesheet = timesheetsRepository
 //								.findAllByEmpIdAndDateBetweenOrderByDateDesc(empId, firstOfMonth, currentDate);
-						List<EmployeeTimesheetsNewDTO> monthlyTimesheet = employeeTimesheetsNewRepository
-									.fetchTimesheetDataWithDateType(empId, firstOfMonth, currentDate);
+						List<EmployeeTimesheetsNewDTO> monthlyTimesheet = timesheetMap.getOrDefault(empId, Collections.emptyList());
+						
+						for (EmployeeTimesheetsNewDTO ts : monthlyTimesheet) {
 
-						if (!monthlyTimesheet.isEmpty()) {
-							for (EmployeeTimesheetsNewDTO timesheetObj : monthlyTimesheet) {
-								List<Object[]> objectList = timesheetActivityMapRepository
-										.activitiesByTimesheetId(timesheetObj.getTimesheetId());
+						    List<Object[]> objectList =
+						            activityMap.getOrDefault(
+						                    ts.getTimesheetId(),
+						                    Collections.emptyList()
+						            );
 
-								StringBuilder activity = new StringBuilder();
-								StringBuilder description = new StringBuilder();
-								Set<String> project = new HashSet<>();
-								Set<String> clientName = new HashSet<>();
+						    StringBuilder activity = new StringBuilder();
+						    StringBuilder description = new StringBuilder();
+						    Set<String> project = new LinkedHashSet<>();
+						    Set<String> clientName = new LinkedHashSet<>();
 
-								if (!objectList.isEmpty()) {
-									for (Object[] object : objectList) {
-										activity.append(object[1] != null ? object[1].toString() : null).append(",");
-										description.append(object[3] != null ? object[3].toString() : null).append(",");
-										project.add(object[5] != null ? object[5].toString() : null);
+						    if (!objectList.isEmpty()) {
 
-										clientName.add(object[6] != null ? object[6].toString() : null);
-									}
+						        for (Object[] object : objectList) {
 
-									ws.style(rowNum, 3).format("dd-MM-yyyy").set();
-									ws.style(rowNum, 6).format("dd-MM-yyyy HH:mm:ss").set();
-									ws.style(rowNum, 7).format("dd-MM-yyyy HH:mm:ss").set();
+						            activity.append(object[1] != null ? object[1].toString() : null)
+						                    .append(",");
 
-									ws.value(rowNum, 0, "A-" + employeementId);
-									ws.value(rowNum, 1, empName);
-									ws.value(rowNum, 2, departmentName);
-									ws.value(rowNum, 3, timesheetObj.getDate());
-									ws.value(rowNum, 4, timesheetObj.getDaytype());
-									ws.value(rowNum, 6, timesheetObj.getWorkCheckIn());
-									ws.value(rowNum, 7, timesheetObj.getWorkCheckOut());
-									if(timesheetObj.getIsNightShift() == null) {
-										ws.value(rowNum, 8, "Regular Shift");
-									}else {
-										ws.value(rowNum, 8, timesheetObj.getIsNightShift().equals("true") ? "Night Shift" : "Regular Shift");
-									}
-									double hours = timesheetObj.getTotalWorkingMinutes() / 60.0;
-									double roundedHours = Math.round(hours * 100.0) / 100.0;
-									ws.value(rowNum, 9, roundedHours);
-									if (!objectList.isEmpty()) {
-										ws.value(rowNum, 10, activity.toString());
-									} else {
-										ws.value(rowNum, 10, timesheetObj.getDescription());
-									}
-									if(!objectList.isEmpty()) {
-										ws.value(rowNum,11, description.toString());
-										}else {
-											ws.value(rowNum, 11, (String)null);
-										}
-									ws.value(rowNum, 12, String.join(",", clientName));
-									ws.value(rowNum, 13, String.join(",", project));
-									ws.value(rowNum, 14, timesheetObj.getStatus());
+						            description.append(object[3] != null ? object[3].toString() : null)
+						                    .append(",");
 
-									rowNum++;
+						            if (object[5] != null)
+						                project.add(object[5].toString());
 
+						            if (object[6] != null)
+						                clientName.add(object[6].toString());
+						        }
 
-									 // Check if employeementId exists in finalEmpBioData
-//						            for (BioMaTO bio : finalEmpBioData) {
-//						                if (bio.getEmployeeCode().equalsIgnoreCase(String.valueOf(employeementId))) {
-//
-//						                	ws.value(rowNum, 14, bio.getInTime());
-//						                	ws.value(rowNum, 15, bio.getOutTime());
-//
-//						                    break; // Exit the loop if found
-//						                }
-//						            }
+						        ws.style(rowNum, 3).format("dd-MM-yyyy").set();
+						        ws.style(rowNum, 6).format("dd-MM-yyyy HH:mm:ss").set();
+						        ws.style(rowNum, 7).format("dd-MM-yyyy HH:mm:ss").set();
 
+						        ws.value(rowNum, 0, "A-" + employeementId);
+						        ws.value(rowNum, 1, empName);
+						        ws.value(rowNum, 2, departmentName);
+						        ws.value(rowNum, 3, ts.getDate());
+						        ws.value(rowNum, 4, ts.getDaytype());
+						        ws.value(rowNum, 5, ts.getLeaveTypeMasterId());
+						        ws.value(rowNum, 6, ts.getWorkCheckIn());
+						        ws.value(rowNum, 7, ts.getWorkCheckOut());
 
+						        if (ts.getIsNightShift() == null) {
+						            ws.value(rowNum, 8, "Regular Shift");
+						        } else {
+						            ws.value(rowNum, 8,
+						                    ts.getIsNightShift().equals("true")
+						                            ? "Night Shift"
+						                            : "Regular Shift");
+						        }
 
+						        double hours = ts.getTotalWorkingMinutes() == null
+						                ? 0.0
+						                : ts.getTotalWorkingMinutes() / 60.0;
 
-								} else {
+						        ws.value(rowNum, 9,
+						                Math.round(hours * 100.0) / 100.0);
 
-									//Get leave type
-									List<Object[]> empLeave = employeeLeaveRepository
-											.findLeaveTypeFromEmpIdAndDate(empId, timesheetObj.getDate().toString());
-									
-									String leaveType = null;
-									String dayType = timesheetObj.getDaytype();
-									if(!empLeave.isEmpty()) {
-										for(Object[] object: empLeave) {
-											leaveType = object[0] != null ? object[0].toString() : null;
-											dayType = "Leave";
-										}
-									}
+						        ws.value(rowNum, 10, activity.toString());
+						        ws.value(rowNum, 11, description.toString());
+						        ws.value(rowNum, 12, String.join(",", clientName));
+						        ws.value(rowNum, 13, String.join(",", project));
+						        ws.value(rowNum, 14, ts.getStatus());
 
-									// Fill data of weekoff & leave
+						        rowNum++;
 
-									ws.style(rowNum, 3).format("dd-MM-yyyy").set();
-									ws.style(rowNum, 6).format("dd-MM-yyyy HH:mm:ss").set();
-									ws.style(rowNum, 7).format("dd-MM-yyyy HH:mm:ss").set();
+						    } else {
+						        List<Object[]> empLeave =
+						                employeeLeaveRepository
+						                        .findLeaveTypeFromEmpIdAndDate(
+						                                empId,
+						                                ts.getDate().toString()
+						                        );
 
-									ws.value(rowNum, 0, "A-" + employeementId);
-									ws.value(rowNum, 1, empName);
-									ws.value(rowNum, 2, departmentName);
-									ws.value(rowNum, 3, timesheetObj.getDate());
-									ws.value(rowNum, 4, dayType);
-									ws.value(rowNum, 5, leaveType);
-									double hours = timesheetObj.getTotalWorkingMinutes() / 60.0;
-									double roundedHours = Math.round(hours * 100.0) / 100.0;
-									ws.value(rowNum, 9, roundedHours);
-								    ws.value(rowNum, 10, timesheetObj.getDescription());
-								    ws.value(rowNum, 11, (String)null);
-									ws.value(rowNum, 14, timesheetObj.getStatus());
+						        String leaveType = null;
+						        String dayType = ts.getDaytype();
 
-									 // Check if employeementId exists in finalEmpBioData
-//						            for (BioMaTO bio : finalEmpBioData) {
-//						                if (bio.getEmployeeCode().equalsIgnoreCase(String.valueOf(employeementId))) {
-//
-//						                	ws.value(rowNum, 14, bio.getInTime());
-//						                	ws.value(rowNum, 15, bio.getOutTime());
-//
-//						                    break; // Exit the loop if found
-//						                }
-//						            }
+						        if (!empLeave.isEmpty()) {
+						            for (Object[] object : empLeave) {
+						                leaveType = object[0] != null
+						                        ? object[0].toString()
+						                        : null;
+						                dayType = "Leave";
+						            }
+						        }
 
-									rowNum++;
+						        ws.style(rowNum, 3).format("dd-MM-yyyy").set();
+						        ws.style(rowNum, 6).format("dd-MM-yyyy HH:mm:ss").set();
+						        ws.style(rowNum, 7).format("dd-MM-yyyy HH:mm:ss").set();
 
-									System.out.println("Activity List is empty");
-								}
-							}
+						        ws.value(rowNum, 0, "A-" + employeementId);
+						        ws.value(rowNum, 1, empName);
+						        ws.value(rowNum, 2, departmentName);
+						        ws.value(rowNum, 3, ts.getDate());
+						        ws.value(rowNum, 4, dayType);
+						        ws.value(rowNum, 5, leaveType);
+
+						        double hours = ts.getTotalWorkingMinutes() == null
+						                ? 0.0
+						                : ts.getTotalWorkingMinutes() / 60.0;
+
+						        ws.value(rowNum, 9,
+						                Math.round(hours * 100.0) / 100.0);
+
+						        ws.value(rowNum, 10, ts.getDescription());
+						        ws.value(rowNum, 11, (String) null);
+						        ws.value(rowNum, 14, ts.getStatus());
+
+						        rowNum++;
+
+						        System.out.println("Activity List is empty");
+						    }							
 						}
+							
 					}
 					wb.finish();
 				}catch(Exception e) {

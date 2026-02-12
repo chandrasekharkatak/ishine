@@ -276,7 +276,7 @@
                     <p class="request-title"> <span>Timesheet</span><app-info-tooltip class="me-2" iconBgColor="#750D37" [size]="19"   [content]="rmTimesheetbulletContent">
                         </app-info-tooltip></p>
                     <h4 class="req-card" (click)="openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">
-                        <span class="badge badge-secondary">{{timesheetApplicationCount}}</span>
+                        <span class="badge badge-secondary">{{pendingCount}}</span>
                     </h4>
                 </div>
                 <div class="text-center p-0">
@@ -1581,8 +1581,8 @@
                         </div>
                     </div>
                     <div class="text-center">
-                        <a [href]="notification.notificationMessage" 
-                           target="_blank" 
+                        <a [href]="notification.notificationMessage"
+                           target="_blank"
                            class="btn btn-primary btn-sm"
                            style="text-decoration: none;">
                             <i class="fab fa-linkedin mr-2"></i>

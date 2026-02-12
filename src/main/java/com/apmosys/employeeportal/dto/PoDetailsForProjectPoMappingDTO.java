@@ -27,13 +27,13 @@ public class PoDetailsForProjectPoMappingDTO {
     private Long clientAddressId;
     private String clientLocation;
     private String clientState;
-    private String createdByEmpId;
+    private Long createdByEmpId;
     private String createdByEmpName;
-    private String updatedByEmpId;
+    private Long updatedByEmpId;
     private String updatedByEmpName;
     private List<DepartmentIdAndNameDto> departmentList;
     private String commentForRmg;
-    private String apmosysRmEmpId;
+    private Long apmosysRmEmpId;
     private String apmosysRmEmpName;
     private String apmosysRmEmail;
     private String clientRmName;

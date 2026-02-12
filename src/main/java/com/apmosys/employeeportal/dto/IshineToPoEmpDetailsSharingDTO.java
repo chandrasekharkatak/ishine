@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class IshineToPoEmpDetailsSharingDTO {
 	
 	 	private String projectName;
-	    private Integer projectId;        
+	    private Long projectId;  //po-project id        
 	    private String poNo;
 	    private Long poId;
 
@@ -24,12 +24,14 @@ public class IshineToPoEmpDetailsSharingDTO {
 	    private Integer clientId;
 
 	    private List<IshineToPoEmployeeDTO> employees;
+	    private Integer ishineProjectId;        
+
 	    
 	    public IshineToPoEmpDetailsSharingDTO(String poNo, Boolean poStatus, Integer clientId,Integer projectId ) {
 	        this.poNo = poNo;
 	        this.poStatus = poStatus;
 	        this.clientId = clientId;
-	        this.projectId = projectId;
+	        this.ishineProjectId = projectId;
 	    }
 
 	
