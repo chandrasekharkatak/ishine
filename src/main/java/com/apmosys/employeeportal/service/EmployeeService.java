@@ -1361,13 +1361,20 @@ public class EmployeeService {
 
 					empDTO.setEmployeeConfirmationDate(object[75] != null ? format.format(format.parse(object[75].toString())) : null);		
 					empDTO.setIsApmosysProduct(object[76] != null ? object[76].toString() : null);
-                    String employeeType = (object[76] != null ? object[76].toString() : null);
-                    
-                    if ("true".equalsIgnoreCase(employeeType)) {
-                        empDTO.setEmployeementIdAccToET("AP-" + empDTO.getEmployeementId());
-                    } else {
-                        empDTO.setEmployeementIdAccToET("A-" + empDTO.getEmployeementId());
-                    }
+					String employmentId = empDTO.getEmployeementId().toString();
+
+					if (employmentId != null) {
+
+					    String prefix = "A-"; 
+
+					    if ("true".equalsIgnoreCase(empDTO.getIsApmosysProduct())) {
+					        prefix = "AP-";
+					    } else if ("true".equalsIgnoreCase(empDTO.getIsConsultant())) {
+					        prefix = "CS-";
+					    }
+
+					    empDTO.setEmployeementIdAccToET(prefix + employmentId);
+					}
                     empDTO.setOnRollDate(object[77]!=null ? format.format(format.parse(object[77].toString())) : null);
 					if (object[42] != null) {
 
@@ -2696,12 +2703,15 @@ public class EmployeeService {
 							       
 							        String isApprenticeship = (String) reportee[3];
 							        String isConsultant = (String) reportee[4];
+							        String isApmosysProduct = (String) reportee[5];
 
 							        
 							        if ("true".equalsIgnoreCase(isConsultant)) {
-							            employmentId = "A-" + employmentId;
+							            employmentId = "CS-" + employmentId;
 							        } else if ("true".equalsIgnoreCase(isApprenticeship)) {
 							            employmentId = "A-" + employmentId;
+							        } else if ("true".equalsIgnoreCase(isApmosysProduct)) {
+							            employmentId = "AP-" + employmentId;
 							        } else {
 							            employmentId = "A-" + employmentId;
 							        }
@@ -3575,7 +3585,9 @@ public class EmployeeService {
 	                        empDTO.setEmploymentIdAcToET(
 	                            "true".equalsIgnoreCase(empProj.getIsApmosysProduct())
 	                                ? "AP-" + empProj.getEmployeementId()
-	                                : "A-" + empProj.getEmployeementId()
+	                                : "true".equalsIgnoreCase(empProj.getIsConsultant())
+	                                    ? "CS-" + empProj.getEmployeementId()
+	                                    : "A-" + empProj.getEmployeementId()
 	                        );
 	                    }
 
@@ -5138,8 +5150,8 @@ public class EmployeeService {
 			Employee checkEmployeementId;
 			if ("Apmosys Product".equalsIgnoreCase(employeeType)) {
 				checkEmployeementId = employeeRepository.findByEmployeementIdForApmosysProduct(employeedto.getEmployeementId());
-//			} else if("Consultant".equalsIgnoreCase(employeeType)) {
-//				checkEmployeementId = employeeRepository.findByEmployeementIdForConsultant(employeedto.getEmployeementId());
+			} else if("Consultant".equalsIgnoreCase(employeeType)) {
+				checkEmployeementId = employeeRepository.findByEmployeementIdForConsultant(employeedto.getEmployeementId());
 //			}
 //			else if("Apprentice".equalsIgnoreCase(employeeType)) {
 //				checkEmployeementId = employeeRepository.findByEmployeementIdForApprentice(employeedto.getEmployeementId());

@@ -668,7 +668,7 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
         this.consentNotificationResponse = response.serviceResponse;
 
         this.consentNotificationResponse.forEach((object) => {
-          object.employeementId = ("A-").concat(object.employeementId);
+          object.employeementId = object.employeementIdAccToET;
           object.consentOn = (object.consentOn)? moment(object.consentOn).format(AppComponent.DATETIME_FORMAT) : null;
         });
 

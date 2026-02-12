@@ -286,7 +286,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	public List<Employee> findByManagerId(Long empId);
 	
 	@Query(nativeQuery = true , value="SELECT e.employeement_id,e.name AS employname,d.name AS departmentName,"
-			+ "e.is_apprenticeship,e.is_consultant "
+			+ "e.is_apprenticeship,e.is_consultant, e.is_apmosys_product"
 			+ "FROM employee e "
 			+ "JOIN job_role jr ON e.job_role_id = jr.job_role_id "
 			+ "JOIN department d ON jr.dept_id = d.dept_id "
@@ -1784,7 +1784,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	Employee findByEmployeementIdForApmosysProduct(@Param("empId") Long empId);
 	
 	
-	@Query("Select e from Employee e where e.employeementId = :empId AND (e.isApmosysProduct IS NULL OR e.isApmosysProduct = 'false') ")
+	@Query("Select e from Employee e where e.employeementId = :empId AND (e.isApmosysProduct IS NULL OR e.isApmosysProduct = 'false') AND (e.isConsultant IS NULL OR e.isConsultant = 'false') ")
 	Employee findByEmployeementIdForOthers(@Param("empId") Long empId);
 	
 	@Query("Select e from Employee e where e.employeementId = :empId AND e.isConsultant = 'true'")
