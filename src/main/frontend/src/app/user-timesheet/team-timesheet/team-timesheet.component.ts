@@ -2154,7 +2154,8 @@ BulkRejectByIds(
 
     status: 'REJECTED',
     updatedBy: this.currentUser.empId,
-    rejectReason: rejectReason.trim()
+    rejectReason: rejectReason.trim(),
+    rejectRemark: rejectReason.trim()
   };
 
   this.timesheetNewService
@@ -2264,7 +2265,8 @@ submitSingleReject() {
     projectIds: [],   // ⭐ ADD THIS
     status: 'REJECTED',
     updatedBy: this.currentUser.empId,
-    rejectReason: this.singleRejectReason.trim()
+    rejectReason: this.singleRejectReason.trim(),
+    rejectRemark: this.singleRejectReason.trim()
   };
 
   this.timesheetNewService
@@ -2294,7 +2296,6 @@ approveSingleProject(timesheet: any, project: any, location: any) {
   if (!project?.projectId || !location?.locationMappingId) {
     return;
   }
-
   const payload = {
     timesheetId: timesheet.timesheetId,
     locationMappingId: location.locationMappingId, // ✅ REQUIRED
@@ -2302,7 +2303,6 @@ approveSingleProject(timesheet: any, project: any, location: any) {
     status: 'APPROVED',
     updatedBy: this.currentUser.empId
   };
-
   this.timesheetNewService
     .approveRejectProjects(payload)
     .subscribe({
@@ -2320,7 +2320,7 @@ approveSingleProject(timesheet: any, project: any, location: any) {
     });
 }
 
-// Single proejct Reject
+// Single project Reject
 
 selectedProjectForReject: any = null;
 selectedProjectTimesheet: any = null;
@@ -2378,8 +2378,7 @@ openSingleProjectRejectModal(
   event: MouseEvent
 ): void {
 
-  event.stopPropagation();   // 🔥 CRITICAL
-
+  event.stopPropagation();
   this.selectedProjectForReject = project;
   this.selectedProjectTimesheet = timesheet;
   this.selectedProjectLocation = location;
@@ -2464,9 +2463,6 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
 
   submitSingleTimesheetReject() {
 
-    console.log("Selected Projects →", this.selectedProjects);
-    console.log("Selected Reasons →", this.selectedRejectReasons);
-
     if (!this.selectedTimesheet?.timesheetId) {
       alert("Invalid timesheet");
       return;
@@ -2481,37 +2477,33 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
       alert("Select at least one project");
       return;
     }
+    const projectIds = this.selectedProjects
+      .map(p => typeof p === 'object' ? Number(p.projectId) : Number(p))
+      .filter(x => !!x);
 
-    /* ✅ HANDLE BOTH OBJECT OR ID ARRAY */
-    const projectIds = this.selectedProjects.map(p =>
-      typeof p === 'object' ? Number(p.projectId) : Number(p)
-    ).filter(x => !!x);
+    const rejectReasonString = this.selectedRejectReasons.map(r => {
 
-    /* ✅ HANDLE BOTH OBJECT OR ID ARRAY */
-    const rejectReasonString =
-      this.selectedRejectReasons.map(r => {
+      if (typeof r === 'object') return r.rejectionReason;
 
-        if (typeof r === 'object') {
-          return r.rejectionReason;
-        }
+      const match = this.rejectReasons.find(x => x.rejectionId === r);
+      return match?.rejectionReason;
 
-        const match = this.rejectReasons.find(
-          x => x.rejectionId === r
-        );
+    }).filter(Boolean).join(', ');
 
-        return match?.rejectionReason;
-
-      }).filter(Boolean).join(', ');
+    const rejectRemarkText =
+      this.timesheetObj.rejectReason?.trim() || '';
 
     const payload = {
       timesheetIds: [Number(this.selectedTimesheet.timesheetId)],
       projectIds: projectIds,
       status: 'REJECTED',
       updatedBy: Number(this.currentUser.empId),
-      rejectReason: rejectReasonString
+
+      rejectReason: rejectReasonString,
+  rejectRemark: this.timesheetObj.rejectReason?.trim() || ''
     };
 
-    console.log("FINAL PAYLOAD →", payload);
+  
 
     this.timesheetNewService
       .bulkRejectTimesheetsByIds1(payload)
@@ -2524,6 +2516,8 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
         }
       });
   }
+
+
 
 
   openRejectPopup(template: any, timesheet: any) {

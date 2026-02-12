@@ -963,6 +963,10 @@
     </app-my-select>
 
   </div>
+  <label class="info-label">Reject Remark</label>
+    <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
+      [(ngModel)]="timesheetObj.rejectReason"
+      (input)="validateDescription($event,timesheetObj.rejectReason);getMyReporteesTimesheetRequests()"> </textarea><br>
 
   <div class="modal-footer">
 

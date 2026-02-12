@@ -145,7 +145,8 @@ export class TimesheetNewService {
     projectIds: number[];
     status: string;
     updatedBy: number;
-    rejectReason: string;
+    rejectReason: string,
+  rejectRemark: string
   }) {
     return this.http.post<any>(
       `${this.baseUrl}api/bulkRejectTimesheetRequest1`,
