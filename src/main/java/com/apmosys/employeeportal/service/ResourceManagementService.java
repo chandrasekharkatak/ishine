@@ -14395,8 +14395,8 @@ public class ResourceManagementService {
 		return serviceResponse;
 	}
 
-	public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
-
+public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
+		
 		ProjectPoMappingWithResourceDTO primaryProjectDTO = payloadDTO.getPrimaryProject();
 		List<Object[]> primaryTeams = projectRepository.getTeamIdsForPoProjectId(primaryProjectDTO.getProjectId());
 		String ishineProjectStatus = "";
@@ -14405,22 +14405,18 @@ public class ResourceManagementService {
 				: primaryTeams.stream().map(t -> t[1] != null ? t[1].toString() : null).filter(Objects::nonNull)
 						.collect(Collectors.toSet());
 		DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		
+		PoDetailsForProjectPoMappingDTO poDto =
+				payloadDTO.getDeletedProjects().get(0).getPoDetailsList().get(0);
 
-<<<<<<< HEAD
 	    Long updatedBy = validationService.
 	            validateAndGetEmployeeEmpId(
-	                    poDto.getUpdatedByEmpId() !=null ? poDto.getUpdatedByEmpId().toString():null,
+	                    poDto.getUpdatedByEmpId(),
 	                    poDto.getUpdatedByEmpName());
 		
-=======
-		PoDetailsForProjectPoMappingDTO poDto = payloadDTO.getDeletedProjects().get(0).getPoDetailsList().get(0);
-
-		Long updatedBy = validationService.validateAndGetEmployeeEmpId(poDto.getUpdatedByEmpId(),
-				poDto.getUpdatedByEmpName());
-
->>>>>>> 1.Timesheet api query changes.
 		for (ProjectPoMappingWithResourceDTO deletedProject : payloadDTO.getDeletedProjects()) {
-			List<Object[]> deletedTeams = projectRepository.getTeamIdsForPoProjectId(deletedProject.getProjectId());
+			List<Object[]> deletedTeams = projectRepository
+					.getTeamIdsForPoProjectId(deletedProject.getProjectId());
 			List<Long> deletedTeamIds = new ArrayList<>();
 			if (!deletedTeams.isEmpty() || deletedTeams != null) {
 				for (Object[] team : deletedTeams) {
@@ -14435,7 +14431,7 @@ public class ResourceManagementService {
 					deletedTeamIds.add(teamId);
 				}
 			}
-
+			
 			if (!deletedTeamIds.isEmpty()) {
 				LiftAndShiftTeamsDTO liftAndShiftDTO = new LiftAndShiftTeamsDTO();
 				liftAndShiftDTO.setTeamIds(deletedTeamIds);
@@ -14444,12 +14440,20 @@ public class ResourceManagementService {
 				Project targetProject = projectRepository.findByPoProjectId(primaryProjectDTO.getProjectId());
 				liftAndShiftDTO.setTargetProjectId(targetProject.getProjectId());
 				liftAndShiftDTO.setCurrentUserEmpId(updatedBy);
+				
+				
+				
 
-				context.getBean(getClass()).liftAndShiftTeamsOneByone(liftAndShiftDTO);
+
+			     context.getBean(getClass()).liftAndShiftTeamsOneByone(liftAndShiftDTO);
 			}
-
+			
+			
+			
+		
 		}
 	}
+
 
 	public void liftAndShiftTeamsOneByone(LiftAndShiftTeamsDTO dto) {
 
