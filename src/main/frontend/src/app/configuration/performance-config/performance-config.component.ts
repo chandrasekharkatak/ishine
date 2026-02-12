@@ -111,7 +111,7 @@ export class PerformanceConfigComponent implements OnInit {
     this.generateFinancialYears();
     this.setDefaultYears();
     this.logService.updateLogInfo(this.log);
-
+    this.loadEmployeeData();
    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
    featureMap.subFeatures?.forEach(sub => {
      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
@@ -120,7 +120,8 @@ export class PerformanceConfigComponent implements OnInit {
   }
 
   generateFinancialYears(): void {
-  const startYear = new Date().getFullYear() ;
+  const currentYear = new Date().getFullYear() ;
+  const startYear = currentYear-1;
   const numberOfYears = 5;     // how many future years to be shown on dropdown 
   this.financialYears.push(`${startYear}-${startYear + 1}`);
   for (let i = 1; i < numberOfYears; i++) {
@@ -289,7 +290,18 @@ export class PerformanceConfigComponent implements OnInit {
       // console.log()
        this.quarterCycle.quarterCycle = this.selectedQaurterCycle;
       //  this.quarterCycle.fromMonth = this.selectedQaurterCycle;
-    }else{
+    }
+    else if (this.selectedCycleFrequency.toLowerCase() == 'half-yearly') {
+      this.quarterCycle.quarterCycle = this.selectedHalfYearCycle.slice(
+        this.selectedHalfYearCycle.indexOf('(') + 1,
+        this.selectedHalfYearCycle.indexOf(')')
+
+      );
+    }
+    else if (this.selectedCycleFrequency.toLowerCase() == 'yearly') {
+      this.quarterCycle.quarterCycle = this.selectedYearlyCycle;
+    }
+    else{
       
       this.quarterCycle.quarterCycle = `${this.quarterCycle.fromMonth}-${this.quarterCycle.toMonth}`;
     }
@@ -343,8 +355,6 @@ export class PerformanceConfigComponent implements OnInit {
   fetchExistingQuarters() {
     // const financialYear = `${this.quarterCycle.fromYear}-${this.quarterCycle.toYear}`;
     const financialYear = this.selectedFinancialYear;
-
-
     this.performanceService.getQuartersByYear(financialYear).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.existingQuarters = response.serviceResponse;
@@ -404,6 +414,7 @@ export class PerformanceConfigComponent implements OnInit {
   eligiblePreviewDataForExcel: any[] = [];
 
   exportToExcelPreviewData() {
+    console.log(this.quarterCycle.quarterId);
     this.performanceService.exportExcelForEligiblePreview(this.clickedFinancialYear , this.currentUser.empId).pipe(first()).subscribe((response: any) => {
       if(response.serviceStatus == "Success"){
         this.eligiblePreviewDataForExcel = response.serviceResponse;
@@ -720,10 +731,14 @@ this.validateSelectedQaurterCycle(fromMonth, toMonth, template);
   this.clickedTemplate = template;
 
   this.loadEmployeeData();
-this.modalRef = this.modalService.open(template, {
-  size: 'lg',
-  backdrop: 'static'
-});
+  // this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
+  this.modalRef = this.modalService.open(template, { 
+    size: 'xl',           // Extra large size
+    centered: true,       // Center the modal
+    scrollable: true,     // Enable scrolling
+    backdrop: 'static',   // Prevent closing on backdrop click (optional)
+    windowClass: 'custom-wide-modal' // Custom class for additional styling
+  });
 }
 loadEmployeeData() {
   console.log('Loading page:', this.previewPage);

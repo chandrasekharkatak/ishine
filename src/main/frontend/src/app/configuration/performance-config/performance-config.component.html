@@ -74,7 +74,7 @@
             <!-- ended adding dropdown for selection of cycle frequency-->
             <div class="row-monthly" *ngIf="selectedCycleFrequency == 'Monthly'">
                 <!-- From Month -->
-                <div class="col-md-4 mb-0">
+                <div class="col-md-3 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>From Month</label>
@@ -87,7 +87,7 @@
                     </div>
                 </div>
                 <!-- To Month -->
-                <div class="col-md-4 mb-0">
+                <div class="col-md-3 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label><span class="text-danger">*</span>To Month</label>
@@ -268,8 +268,7 @@
 <ng-template #eligiblePreview>
   <div class="modal-header">
     <h5 class="modal-title">Eligible Employee(s) In Selected Cycles</h5>
-<button type="button" class="btn-close" aria-label="Close"
-        (click)="modalRef.close()">
+    <button type="button" class="close" (click)="modalRef.close()">
       &times;
     </button>
   </div>
@@ -278,10 +277,10 @@
         [hidden]="quarterCyclesList.length == 0" (click)="exportToExcelPreviewData()">
                     <em class="fa fa-file-arrow-down fa-2x"></em>
         </button>
-                    
+
   <div class="overflow-auto" bassHorizontalScroll >
 
-<table class="table table-bordered" id="departmentInfo" matSort (matSortChange)="sortData($event)">
+    <table class="table table-bordered" id="departmentInfo" matSort (matSortChange)="sortData($event)">
     <thead class="thead-light" id="departmentInfoTHead">
         <tr id="departmentInfoTHeadTr">
             <th scope="col" class="info-label">Employment ID</th>
@@ -322,9 +321,10 @@
      <mat-paginator class="custom-paginator" [length]="totalItems" [pageSize]="itemsPerPage" [pageSizeOptions]="[5, 10, 25, 50]" (page)="pageChangedPreview($event)">
             </mat-paginator>
 
+    
 
 
-  
+            
 </ng-template>
 
 <div class="row" *ngIf="isReviewTable">

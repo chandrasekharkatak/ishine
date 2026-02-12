@@ -35,6 +35,9 @@ export class PerformanceService {
     return this.http.get(`${this.baseUrl}` + `api/exportExcelForEligiblePreview?fYear=${fYear}&empId=${empId}`);
   }
 
+  getCurrentUserDepartment(empId:number) {
+    return this.http.get(`${this.baseUrl}` + `api/getCurrentUserDepartment/${empId}`);
+  }
   getAllEmployee() {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployees`);
   }

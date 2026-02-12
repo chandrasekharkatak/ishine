@@ -17,15 +17,18 @@ import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
-
 import com.apmosys.employeeportal.dto.EmployeeteamDto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
-
+import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.ExportExcelPerformance;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.LogDTO;
@@ -53,6 +56,7 @@ import com.apmosys.employeeportal.repository.QuarterCycleRepository;
 import com.apmosys.employeeportal.repository.ReviewTypeRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
 public class PerformanceService {
@@ -75,6 +79,9 @@ public class PerformanceService {
 	@Autowired
 	private DepartmentRepository departmentRepository;
 
+	@Autowired
+	StringToDateTimeParser stringToDateTimeParser;
+	
 	@Autowired
 	LogService logService;
 
@@ -148,6 +155,7 @@ public class PerformanceService {
 	public ServiceResponse createQuarterCycle(QuarterCycleDTO quarterCycleDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
+
 			QuaterCycle quar = new QuaterCycle();
 
 			quar.setFinancialYear(quarterCycleDTO.getFinancialYear());
@@ -170,11 +178,30 @@ public class PerformanceService {
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
 
+
+		QuaterCycle quar = new QuaterCycle();
+		
+		quar.setFinancialYear(quarterCycleDTO.getFinancialYear());
+		quar.setQuarterCycle(quarterCycleDTO.getQuarterCycle());
+		quar.setCreatedBy(quarterCycleDTO.getCreatedBy());
+		quar.setIsActive(quarterCycleDTO.getIsActive());
+		quar.setIsEnable(quarterCycleDTO.getIsEnable());
+		quar.setCycleType(quarterCycleDTO.getCycleType()); // added this to store the cycleType , i.e(monthly , quarterly , halfyearly).
+		
+		
+		QuaterCycle quarterCycle = quarterCycleRepository.save(quar);
+		if (quarterCycle != null) {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("New Cycle Created.");
+		} else {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("New Quarter Cycle creation Failed.");			
 		}
 
+		}
 		return response;
+	
 	}
-
 	public ServiceResponse getQuartersByYear(String financialYear) {
 		ServiceResponse response = new ServiceResponse();
 		try {
@@ -295,7 +322,7 @@ public class PerformanceService {
 
 		return serviceResponse;
 	}
-
+	
 	public ServiceResponse isDelete(QuarterCycleDTO quarterCycleDTO) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 
@@ -566,7 +593,12 @@ public class PerformanceService {
 			employeePerformance.setHod_remarks(employeePerformanceDTO.getHodRemarks());
 			employeePerformance.setQuarterId(employeePerformanceDTO.getQuarterId());
 			employeePerformance.setHod_approval_date(LocalDateTime.now());
-			employeePerformance.setCompletion_status("Ongoing");
+			System.out.println(employeePerformanceDTO.getCurrentStatus()+"123456789");
+			if("Not Started".equals(employeePerformanceDTO.getCurrentStatus())) {
+			    employeePerformance.setCompletion_status("Completed");
+			} else {
+			    employeePerformance.setCompletion_status("Ongoing");
+			}
 			EmployeePerformance savedEmployeePerformance = employeePerformanceRepository.save(employeePerformance);
 			if (savedEmployeePerformance != null) {
 
@@ -795,12 +827,15 @@ public class PerformanceService {
 		logBuilder.append("hrAndHODEmployeePerformanceView : ");
 
 		try {
+
 			List<PerformanceDTO> performance = new ArrayList<>();
 			List<Object[]> hrAndHODEmployeePerformanceViewDetails = employeePerformanceRepository
 					.hrAndHODEmployeePerformanceView(employeePerformanceDTO.getEmpId(),
 							employeePerformanceDTO.getQuarterId());
-
+//			System.out.println("resultset is : "+hrAndHODEmployeePerformanceViewDetails);
 			if (hrAndHODEmployeePerformanceViewDetails != null && !hrAndHODEmployeePerformanceViewDetails.isEmpty()) {
+				System.out.println("resultset is : "+hrAndHODEmployeePerformanceViewDetails);
+
 				for (Object[] object : hrAndHODEmployeePerformanceViewDetails) {
 					PerformanceDTO performanceDetails = new PerformanceDTO();
 					performanceDetails.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
@@ -1209,6 +1244,97 @@ public class PerformanceService {
 		}
 		return response;
 	}
+	
+//	public ServiceResponse getAllEmployeePerformanceForQuarter(String financialYear)
+//	{
+//		ServiceResponse response = new ServiceResponse();
+//		try {
+//            
+//            if (!isValidFYFormat(financialYear)) {
+//                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//                response.setServiceResponse("Invalid Financial Year format. Expected format: 2024-2025");
+//                return response;
+//            }
+//            
+//            Integer fyStartYear = extractYear(financialYear);
+//            
+//            List<EmployeeDTO> eligibleEmployeeList = 
+//            employeeRepository.findEligibleEmployeesByFY(fyStartYear);
+//            
+//            if (eligibleEmployeeList != null && !eligibleEmployeeList.isEmpty()) {
+//            	enrichEmployeeData(eligibleEmployeeList, financialYear);
+//            	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//                response.setServiceResponse(eligibleEmployeeList);
+//            }
+//            else {
+//                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//                response.setServiceResponse("No eligible employees found for increment in FY " + financialYear);
+//            }
+//		}
+//            catch (Exception e) {
+//                e.printStackTrace();
+//                response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+//                response.setServiceResponse("Error fetching eligible employees ");
+//                response.setServiceError(e.getMessage());
+//            }
+//		return response;
+//		
+//		
+//		
+//	}
+//	
+//	 private void enrichEmployeeData(List<EmployeeDTO> employeeList, String financialYear) {
+//	        employeeList.forEach(emp -> {
+//	            // Generate Employment ID with prefix based on product type
+//	            if (emp.getEmployeementId() != null) {
+//	                String prefix = "true".equalsIgnoreCase(emp.getIsApmosysProduct()) ? "AP-" : "A-";
+//	                emp.setEmploymentIdAcToET(prefix + emp.getEmployeementId());
+//	            }
+//	            
+//	            // DateOfJoining is already a String from database - no formatting needed
+//	            // It comes directly from the database in correct format via JPQL projection
+//	            
+//	            // Set Financial Year for reference
+////	            emp.setFinancialYear(financialYear);
+//	        });
+//	    }
+//	 private boolean isValidFYFormat(String financialYear) {
+//	        if (financialYear == null || !financialYear.matches("\\d{4}-\\d{4}")) {
+//	            return false;
+//	        }
+//	        
+//	        String[] parts = financialYear.split("-");
+//	        try {
+//	            int startYear = Integer.parseInt(parts[0]);
+//	            int endYear = Integer.parseInt(parts[1]);
+//	            
+//	            return endYear == startYear + 1;
+//	        } catch (NumberFormatException e) {
+//	            return false;
+//	        }
+//	    }
+//	 private Integer extractYear(String financialYear) {
+//	        String[] parts = financialYear.split("-");
+//	        return Integer.parseInt(parts[0]);
+//	    }
+//	 
+//	 private LocalDate calculateCutoffDate(String financialYear) {
+//	        Integer fyStartYear = extractYear(financialYear);
+//	        
+//	        // Cutoff is always 31-Dec of FY start year
+//	        return LocalDate.of(fyStartYear, 12, 31);
+//	    }
+//	 public LocalDate getCutoffDateForFY(String financialYear) {
+//	        if (!isValidFYFormat(financialYear)) {
+//	            throw new IllegalArgumentException(
+//	                "Invalid Financial Year format. Expected format: YYYY-YYYY (e.g., 2024-2025)"
+//	            );
+//	        }
+//	        return calculateCutoffDate(financialYear);
+//	    }
+//	 
+	 
+
 
 
 	public ServiceResponse exportExcelForHodAndManger(HrHodHrViewPerformance hrHodHrViewPerformance) {
@@ -1438,6 +1564,158 @@ public class PerformanceService {
 		html.append("</body></html>");
 
 		return html.toString();
+	}	
+	public ServiceResponse getAllEmployeePerformanceForQuarter(String financialYear,Long quarterId ,Long empId , int page , int size) {
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+	        String[] fromToYear = financialYear.split("-");
+	        Integer fyStartYear = Integer.parseInt(fromToYear[0]);
+	        
+	        Pageable pageable = PageRequest.of(page, size);
+	        Long empid = empId;
+	        Long quartId = quarterId;
+	        Page<Object[]> pageResult =
+                    employeeRepository.findEligibleEmployeesByFY(
+                            fyStartYear,quartId,empid, pageable
+                    );
+
+	        
+	        List<ExportExcelPerformance> emplist = new ArrayList<ExportExcelPerformance>();
+	        
+	        for (Object[] row : pageResult.getContent()) {
+	        	ExportExcelPerformance dto = new ExportExcelPerformance();
+
+	            dto.setEmployeementId(row[0] != null ? Long.valueOf(row[0].toString()) : null);
+	            dto.setDateOfJoining(row[1]!=null ? row[1].toString():null);
+	            dto.setEmail(row[2] != null ? row[2].toString() : null);
+	            dto.setEmploymentstatus(row[3] != null ? row[3].toString() : null);
+	            dto.setName(row[4] != null ? row[4].toString() : null);
+	            dto.setDepartmentName(row[5] != null ? row[5].toString() : null);
+	            dto.setManagerName(row[6] != null ? row[6].toString() : null);
+	            dto.setReportingManagerName(row[7] != null ? row[7].toString() : null);
+	            dto.setHodName(row[8] != null ? row[8].toString() : null);
+	            dto.setFinancialYear(row[9]!=null ? row[9].toString() : null);
+	            dto.setFinalRating(row[10]!=null ? row[10].toString() : null);
+	            
+	            emplist.add(dto);
+	            
+	        }
+	        
+	            
+	            Map<String, Object> result = new HashMap<>();
+	            result.put("data", emplist);
+	            result.put("totalCount", pageResult.getTotalElements());
+	            result.put("page", page);
+	            result.put("size", size);
+
+	            
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(result);
+	        
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong");
+	        response.setServiceError(e.getMessage());
+	        return response;
+	    }
+
+	    return response;
+	}
+	
+	
+	public ServiceResponse exportExcelForEligiblePreview(String financialYear , Long empId)
+	{
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo=new LogDTO();
+		apiLogInfo.setSubFeatureName("exportExcelForEligiblePreview");
+		apiLogInfo.setApiUrl("/api/exportExcelForEligiblePreview");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("exportExcelForEligiblePreview : ");
+		try {
+	        String[] fromToYear = financialYear.split("-");
+	        Integer fyStartYear = Integer.parseInt(fromToYear[0]);
+	        
+	        Long empid = empId;
+	        List<Object[]> exportList = employeeRepository.exportEligibleEmployeesByFY(fyStartYear, empid);
+	    
+
+	        
+	        List<ExportExcelPerformance> emplist = new ArrayList<ExportExcelPerformance>();
+	        if(exportList!=null) {
+	        exportList.forEach((object)->{
+	        	ExportExcelPerformance dto = new ExportExcelPerformance();
+
+	        	dto.setEmployeementId(object[0] != null ? Long.valueOf(object[0].toString()) : null);
+	            dto.setDateOfJoining(object[1]!=null ? object[1].toString():null);
+	            dto.setEmail(object[2] != null ? object[2].toString() : null);
+	            dto.setEmploymentstatus(object[3] != null ? object[3].toString() : null);
+	            dto.setName(object[4] != null ? object[4].toString() : null);
+	            dto.setDepartmentName(object[5] != null ? object[5].toString() : null);
+	            dto.setManagerName(object[6] != null ? object[6].toString() : null);
+	            dto.setReportingManagerName(object[7] != null ? object[7].toString() : null);
+	            dto.setHodName(object[8] != null ? object[8].toString() : null);
+	            dto.setFinancialYear(object[9]!=null ? object[9].toString() : null);
+	            dto.setFinalRating(object[10]!=null ? object[10].toString() : null);
+	            
+	            emplist.add(dto);
+	            
+	        });
+	        
+	            
+	          
+	            
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(emplist);
+	        }
+	        else 
+	        {
+	        	
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("currentStatus List is null.");
+				
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong");
+	        response.setServiceError(e.getMessage());
+	        return response;
+	    }
+
+	    return response;
+
+	}
+	
+	public ServiceResponse getCurrentUserDepartment(Long empId)
+	{
+		ServiceResponse response = new ServiceResponse();
+		try {
+		String currentUserDepartment = employeePerformanceRepository.getCurrentUserDepartment(empId);
+		if(currentUserDepartment !=null && !currentUserDepartment.trim().isEmpty()) {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(currentUserDepartment);
+			System.out.println("currentUserDepartment" + currentUserDepartment);
+			
+		} else 
+        {
+        	
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("current employee Department not found.");
+			
+        }
+		
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
 	}
 
 }
