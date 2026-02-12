@@ -644,8 +644,8 @@
             (click)="bulkApproveByIds()">
             <i class="fas fa-check-circle"></i>Bulk Approve </button>
 
-          <button class="bulk-action-btn bulk-reject-btn" [disabled]="selectedRows.length === 0"
-            (click)="openBulkRejectModal(reject_timesheet)"> <i class="fas fa-times-circle"></i> Bulk Reject </button>
+          <!-- <button class="bulk-action-btn bulk-reject-btn" [disabled]="selectedRows.length === 0"
+            (click)="openBulkRejectModal(reject_timesheet)"> <i class="fas fa-times-circle"></i> Bulk Reject </button> -->
         </div>
         <button class="clear-selection-btn" (click)="clearAllSelections()" *ngIf="selectedRows.length > 0"> <i
             class="fas fa-times"></i> Clear </button>
@@ -762,7 +762,7 @@
                       <table class="project-table">
                         <thead>
                           <tr>
-                            <th>Select</th>
+                            <th></th>
                             <th>Project</th>
                             <th>PO No</th>
                             <th>Shadow</th>
@@ -773,8 +773,7 @@
                         </thead>
                         <tbody>
                           <tr>
-                            <td> <input type="checkbox" [(ngModel)]="project.isSelected"
-                                (change)="onProjectToggle(timesheet, project)" /> </td>
+                            <td> </td>
                             <td class="project-name" (click)="toggleProject(i, p)"> {{ project.projectName }} </td>
                             <td>{{ project.poNo || '-' }}</td>
                             <td>{{ project.shadowEmp ? 'Yes' : 'No' }}</td>
@@ -912,23 +911,30 @@
 
 <!-- Timesheet Reject Popup -->
 <ng-template #rejectPopup>
+
   <div class="modal-header">
     <h5 class="modal-title text-danger">
       Reject Timesheet
     </h5>
+
     <button type="button"
             class="btn-close"
             (click)="modalRef.close()">
     </button>
   </div>
+
   <div class="modal-body">
+
     <p class="text-center">
       Kindly provide project(s) and reason(s) for rejecting application.
     </p>
-    <!-- PROJECT MULTI SELECT -->
+
+    <!-- ================= PROJECT MULTI SELECT ================= -->
+
     <label>
       <span class="text-danger">*</span> Select Project(s)
     </label>
+
     <app-my-select
       class="form-control"
       placeholder="Select Projects"
@@ -938,10 +944,14 @@
       valueKey="projectId"
       [multiple]="true">
     </app-my-select>
-    <!-- REASON MULTI SELECT -->
+
+
+    <!-- ================= REASON MULTI SELECT ================= -->
+
     <label class="mt-3">
       <span class="text-danger">*</span> Reject Reason(s)
     </label>
+
     <app-my-select
       class="form-control"
       placeholder="Select Reject Reason"
@@ -951,24 +961,24 @@
       valueKey="rejectionId"
       [multiple]="true">
     </app-my-select>
-    <!-- <label class="info-label mt-3">
-      Reject Remark
-    </label>
-    <textarea
-      rows="3"
-      class="form-control"
-      [(ngModel)]="rejectRemark">
-    </textarea> -->
+
   </div>
+
   <div class="modal-footer">
+
     <button class="btn btn-secondary"
             (click)="modalRef.close()">
       Cancel
     </button>
-    <button class="btn btn-danger">
+
+    <button class="btn btn-danger"
+            [disabled]="!selectedProjects?.length || !selectedRejectReasons?.length"
+            (click)="submitSingleTimesheetReject()">
       Reject
     </button>
+
   </div>
+
 </ng-template>
 
 <!-- single project reject modal -->
@@ -1317,7 +1327,6 @@
     <!-- <button class="btn btn-danger" (click)="BulkRejectByIds(timesheetObj.rejectReason)">
       Reject
     </button> -->
-
 
     <button type="button" class="btn btn-danger" (click)="cancelRequest()">No,
       Cancel</button>&nbsp;

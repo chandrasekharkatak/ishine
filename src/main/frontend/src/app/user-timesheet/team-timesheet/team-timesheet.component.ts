@@ -219,6 +219,7 @@ alertModal: TemplateRef<any>;
 
     this.selectedMonth = new Date(2025, 4, 1);
     this.getTimesheetStatusCountsByEmpId();
+    this.getRejectionReason();
 
 
     // // Set maxMonth to previous month (current month is NOT allowed for selection)
@@ -2079,22 +2080,22 @@ rejectRemark: string = '';
 
 projectList: any[] = [];
 
-openRejectPopup(template: any, timesheet: any) {
-  this.selectedTimesheet = timesheet;
-  this.selectedProjects = [];
-  this.selectedRejectReasons = [];
-  this.rejectRemark = '';
+// openRejectPopup(template: any, timesheet: any) {
+//   this.selectedTimesheet = timesheet;
+//   this.selectedProjects = [];
+//   this.selectedRejectReasons = [];
+//   this.rejectRemark = '';
 
-  // Flatten project list from timesheet (UI only)
-  this.projectList =
-    timesheet?.locationSessions?.flatMap((l: any) => l.projects) || [];
+//   // Flatten project list from timesheet (UI only)
+//   this.projectList =
+//     timesheet?.locationSessions?.flatMap((l: any) => l.projects) || [];
 
-  this.modalRef = this.modalService.open(template, {
-    modalDialogClass: 'modal-lg',
-    backdrop: 'static'
-  });
+//   this.modalRef = this.modalService.open(template, {
+//     modalDialogClass: 'modal-lg',
+//     backdrop: 'static'
+//   });
 
-}
+// }
 
 
   // BULK APPROVAL
@@ -2149,6 +2150,8 @@ BulkRejectByIds(
 
   const payload = {
     timesheetIds,
+    projectIds: [],   // ⭐ ADD THIS
+
     status: 'REJECTED',
     updatedBy: this.currentUser.empId,
     rejectReason: rejectReason.trim()
@@ -2258,6 +2261,7 @@ submitSingleReject() {
 
   const payload = {
     timesheetIds: [this.selectedTimesheetForReject.timesheetId],
+    projectIds: [],   // ⭐ ADD THIS
     status: 'REJECTED',
     updatedBy: this.currentUser.empId,
     rejectReason: this.singleRejectReason.trim()
@@ -2457,6 +2461,99 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
   private toDateString(d: Date): string {
     return d.toISOString().split('T')[0];
   }
+
+  submitSingleTimesheetReject() {
+
+    console.log("Selected Projects →", this.selectedProjects);
+    console.log("Selected Reasons →", this.selectedRejectReasons);
+
+    if (!this.selectedTimesheet?.timesheetId) {
+      alert("Invalid timesheet");
+      return;
+    }
+
+    if (!this.selectedRejectReasons?.length) {
+      alert("Select at least one reject reason");
+      return;
+    }
+
+    if (!this.selectedProjects?.length) {
+      alert("Select at least one project");
+      return;
+    }
+
+    /* ✅ HANDLE BOTH OBJECT OR ID ARRAY */
+    const projectIds = this.selectedProjects.map(p =>
+      typeof p === 'object' ? Number(p.projectId) : Number(p)
+    ).filter(x => !!x);
+
+    /* ✅ HANDLE BOTH OBJECT OR ID ARRAY */
+    const rejectReasonString =
+      this.selectedRejectReasons.map(r => {
+
+        if (typeof r === 'object') {
+          return r.rejectionReason;
+        }
+
+        const match = this.rejectReasons.find(
+          x => x.rejectionId === r
+        );
+
+        return match?.rejectionReason;
+
+      }).filter(Boolean).join(', ');
+
+    const payload = {
+      timesheetIds: [Number(this.selectedTimesheet.timesheetId)],
+      projectIds: projectIds,
+      status: 'REJECTED',
+      updatedBy: Number(this.currentUser.empId),
+      rejectReason: rejectReasonString
+    };
+
+    console.log("FINAL PAYLOAD →", payload);
+
+    this.timesheetNewService
+      .bulkRejectTimesheetsByIds1(payload)
+      .subscribe({
+        next: (res: any) => {
+          if (res?.serviceStatus === 'Success') {
+            this.modalRef?.close();
+            this.getMyReporteesTimesheetRequests();
+          }
+        }
+      });
+  }
+
+
+  openRejectPopup(template: any, timesheet: any) {
+
+    this.selectedTimesheet = timesheet;
+    this.selectedProjects = [];
+    this.selectedRejectReasons = [];
+    this.rejectRemark = '';
+
+    /* ⭐ FLATTEN + REMOVE DUPLICATES */
+    const map = new Map();
+
+    (timesheet?.locationSessions || []).forEach((loc: any) => {
+      (loc.projects || []).forEach((proj: any) => {
+        map.set(proj.projectId, proj);
+      });
+    });
+
+    this.projectList = Array.from(map.values());
+
+    console.log("Project List →", this.projectList); // ⭐ CHECK
+
+    this.modalRef = this.modalService.open(template, {
+      modalDialogClass: 'modal-lg',
+      backdrop: 'static'
+    });
+  }
+
+
+
 
 
 
