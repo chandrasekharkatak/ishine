@@ -24,6 +24,8 @@ import * as XLSX from 'xlsx';
 import { ActivatedRoute } from '@angular/router';
 import { TimesheetNewService } from 'src/app/services/timesheet-new.service';
 import { ProjectBasedBulkUploadPayload } from './types';
+import { HttpClient } from '@angular/common/http';
+
 
 
 @Component({
@@ -77,6 +79,11 @@ export class TeamTimesheetComponent implements OnInit {
   allTeamTimesheets: any[] = [];
   allTeamTimesheetRequests: Timesheet[] = [];
 
+
+  // Status Count
+  pendingCount = 0;
+  approvedCount = 0;
+  rejectedCount = 0;
 
   timesheetObj: Timesheet = new Timesheet();
   startDate: any;
@@ -152,6 +159,7 @@ export class TeamTimesheetComponent implements OnInit {
   startY = 0;
   translateX = 0;
   translateY = 0;
+  http :any;
 clientFilter: boolean = false;
 safePdfUrl:SafeResourceUrl | null = null;
   documentData: any;
@@ -210,6 +218,8 @@ alertModal: TemplateRef<any>;
     this.thisMonthValidation();
 
     this.selectedMonth = new Date(2025, 4, 1);
+    this.getTimesheetStatusCountsByEmpId();
+
 
     // // Set maxMonth to previous month (current month is NOT allowed for selection)
     // // Set minMonth to the month of (today - 45 days)
@@ -221,7 +231,7 @@ alertModal: TemplateRef<any>;
     // const prevMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
     // this.maxMonth = `${prevMonthYear}-${String(prevMonth).padStart(2, '0')}`;
 
-    // if(this.minusDaysData.checkMinusDaysForBulkUpload){ 
+    // if(this.minusDaysData.checkMinusDaysForBulkUpload){
     //   const fortyFiveDaysAgo = new Date(now);
     //   fortyFiveDaysAgo.setDate(now.getDate() - this.minusDaysData.minusDays);
     //   const minMonthValue = fortyFiveDaysAgo.getMonth() + 1; // 1-12
@@ -367,6 +377,7 @@ alertModal: TemplateRef<any>;
       status : this.selectedStatus,
     };
 
+
     /* 🔹 GLOBAL SEARCH (as-is) */
     // if (this.searchText?.trim()) {
     //   payload.globalSearch = this.searchText.trim();
@@ -447,10 +458,10 @@ sortData(sort: Sort) {
 
 
 
-onGlobalSearchChange() {
-  this.page1 = 1; // reset pagination
-  this.getMyReporteesTimesheetRequests();
-}
+// onGlobalSearchChange() {
+//   this.page1 = 1; // reset pagination
+//   this.getMyReporteesTimesheetRequests();
+// }
 
 
   /* Approve / Reject Timesheet requests */
@@ -2031,6 +2042,60 @@ closeDocumentPopup() {
   }
 
 
+  getTimesheetStatusCountsByEmpId() {
+    const payload : any = {
+      managerId: this.currentUser.empId,
+    };
+    this.timesheetNewService
+  .getMyReporteesTimesheetRequestsCount(payload)
+  .subscribe({
+    next: (res: any) => {
+      console.log("Status Count Response", res);
+      if (res && res.serviceResponse) {
+        this.pendingCount = 0;
+        this.approvedCount = 0;
+        this.rejectedCount = 0;
+        res.serviceResponse.forEach((item: any) => {
+          const status = item[0]?.toLowerCase();
+          const count = Number(item[1]) || 0;
+          if (status === 'pending') {
+            this.pendingCount = count;
+          }
+          else if (status === 'approved') {
+            this.approvedCount = count;
+          }
+          else if (status === 'rejected') {
+            this.rejectedCount = count;
+          }
+        });
+      }
+    }
+  });
+}
+
+selectedProjects: any[] = [];
+selectedRejectReasons: any[] = [];
+rejectRemark: string = '';
+
+projectList: any[] = [];
+
+openRejectPopup(template: any, timesheet: any) {
+  this.selectedTimesheet = timesheet;
+  this.selectedProjects = [];
+  this.selectedRejectReasons = [];
+  this.rejectRemark = '';
+
+  // Flatten project list from timesheet (UI only)
+  this.projectList =
+    timesheet?.locationSessions?.flatMap((l: any) => l.projects) || [];
+
+  this.modalRef = this.modalService.open(template, {
+    modalDialogClass: 'modal-lg',
+    backdrop: 'static'
+  });
+
+}
+
 
   // BULK APPROVAL
   bulkApproveByIds() {
@@ -2326,7 +2391,7 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
   const projectId = this.timesheetObj.selectedProjectId;
   console.log("Project Id : ", projectId);
   console.log("Project Object : ", this.projectObj[projectId]);
-  
+
   return this.projectObj[projectId] ?? [];
 
 }

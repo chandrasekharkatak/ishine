@@ -1459,59 +1459,59 @@ import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 	    
 	  
 	//  New API
-	//  public ServiceResponse getMyReporteesTimesheetRequestsNew(
-	//          GetMyReporteesTimesheetRequestsPayload payload) {
-	//
-	//      ServiceResponse response = new ServiceResponse();
-	//
-	//      // 1️⃣ Pageable create
-	//      Pageable pageable = PageRequest.of(
-	//              payload.getPage(),
-	//              payload.getSize()
-	//      );
-	//
-	//      // 2️⃣ Repository call (same query)
-	//      Page<GetReporteesTimesheetReqFlatDTO> pageData =
-	//              employeeTimesheetsNewRepository
-	//                      .getMyReporteesTimesheetRequests(
-	//                              payload.getEmpId(),
-	//                              payload.getClientFilter(),
-	//
-	//                              payload.getEmploymentId(),
-	//                              payload.getEmployeeName(),
-	//                              payload.getDayType(),
-	//                              payload.getProjectName(),
-	//                              payload.getClientName(),
-	//                              payload.getClientLocation(),
-	//                              payload.getPoNo(),
-	//                              payload.getShadowEmpName(),
-	//                              payload.getTeamName(),
-	//                              payload.getActivity(),
-	//                              payload.getDate(),
-	//
-	//                              payload.getSearch(),
-	//                              payload.getSortBy(),
-	//                              payload.getSortDir(),
-	//                              pageable
-	//                      );
-	//
-	//      // 3️⃣ Flat → UI DTO
-	//      List<GetReporteesTimesheetReqDTO> data =
-	//              timesheetMapper.map(pageData.getContent());
-	//
-	//      // 4️⃣ FE-friendly pagination response
-	//      Map<String, Object> result = new HashMap<>();
-	//      result.put("content", data);
-	//      result.put("page", pageData.getNumber());
-	//      result.put("size", pageData.getSize());
-	//      result.put("totalElements", pageData.getTotalElements());
-	//      result.put("totalPages", pageData.getTotalPages());
-	//      result.put("isLast", pageData.isLast());
-	//
-	//      response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	//      response.setServiceResponse(result);
-	//      return response;
-	//  }
+	 public ServiceResponse getMyReporteesTimesheetRequestsNew(
+	         GetMyReporteesTimesheetRequestsPayload payload) {
+	
+	     ServiceResponse response = new ServiceResponse();
+	
+	     // 1️⃣ Pageable create
+	     Pageable pageable = PageRequest.of(
+	             payload.getPage(),
+	             payload.getSize()
+	     );
+	
+	     // 2️⃣ Repository call (same query)
+	     Page<GetReporteesTimesheetReqFlatDTO> pageData =
+	             employeeTimesheetsNewRepository
+	                     .getMyReporteesTimesheetRequests(
+	                             payload.getEmpId(),
+	                             payload.getClientFilter(),
+	
+	                             payload.getEmploymentId(),
+	                             payload.getEmployeeName(),
+	                             payload.getDayType(),
+	                             payload.getProjectName(),
+	                             payload.getClientName(),
+	                             payload.getClientLocation(),
+	                             payload.getPoNo(),
+	                             payload.getShadowEmpName(),
+	                             payload.getTeamName(),
+	                             payload.getActivity(),
+	                             payload.getDate(),
+	
+	                             payload.getSearch(),
+//	                             payload.getSortBy(),
+//	                             payload.getSortDir(),
+	                             pageable
+	                     );
+	
+	     // 3️⃣ Flat → UI DTO
+	     List<GetReporteesTimesheetReqDTO> data =
+	             timesheetMapper.map(pageData.getContent());
+	
+	     // 4️⃣ FE-friendly pagination response
+	     Map<String, Object> result = new HashMap<>();
+	     result.put("content", data);
+	     result.put("page", pageData.getNumber());
+	     result.put("size", pageData.getSize());
+	     result.put("totalElements", pageData.getTotalElements());
+	     result.put("totalPages", pageData.getTotalPages());
+	     result.put("isLast", pageData.isLast());
+	
+	     response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	     response.setServiceResponse(result);
+	     return response;
+	 }
 	
 	  
 	

@@ -336,7 +336,7 @@ public class TimesheetMapper {
                 GetReporteesTimesheetActivitiesDTO activity =
                         new GetReporteesTimesheetActivitiesDTO(
                                 r.getActivity(),
-                                r.getActivityDescription(),
+                                // r.getActivityDescription(),
                                 TimesheetFormatUtil.formatMinutes(r.getDurationMinutes()),
                                 r.getTeamName()
                         );
