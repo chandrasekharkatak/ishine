@@ -976,6 +976,35 @@ hr {
 /* ============================================ */
 
 /* Main Wrapper */
+/* ============================================ */
+/* DESIGN TOKENS (theme & spacing)              */
+/* ============================================ */
+.timesheet-form-wrapper {
+  --ts-primary: #667eea;
+  --ts-primary-dark: #764ba2;
+  --ts-border: #e2e8f0;
+  --ts-border-hover: #cbd5e0;
+  --ts-text: #2d3748;
+  --ts-text-muted: #718096;
+  --ts-success: #10b981;
+  --ts-success-dark: #059669;
+  --ts-danger: #ef4444;
+  --ts-danger-soft: #fc8181;
+  --ts-bg-card: #ffffff;
+  --ts-bg-subtle: #f8fafc;
+  --ts-radius-sm: 6px;
+  --ts-radius-md: 8px;
+  --ts-radius-lg: 10px;
+  --ts-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --ts-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --ts-shadow-focus: 0 0 0 3px rgba(102, 126, 234, 0.25);
+  --ts-space-xs: 4px;
+  --ts-space-sm: 8px;
+  --ts-space-md: 12px;
+  --ts-space-lg: 16px;
+  --ts-transition: 0.2s ease;
+}
+
 .timesheet-form-wrapper {
   padding: 12px;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
@@ -1001,9 +1030,13 @@ hr {
 
 .form-bottom-card {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 8px 16px;
+  padding: 12px 16px;
   color: white;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  border-top: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
 }
 
 .form-header-icon {
@@ -1196,6 +1229,11 @@ hr {
   background: linear-gradient(135deg, #edf2f7 0%, #e2e8f0 100%);
 }
 
+.project-header-nested:focus-visible {
+  outline: 2px solid var(--ts-primary);
+  outline-offset: 2px;
+}
+
 .project-badge {
   width: 24px;
   height: 24px;
@@ -1261,6 +1299,13 @@ hr {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
+@media (max-width: 768px) {
+  .activity-row {
+    padding: var(--ts-space-md);
+    min-height: 44px;
+  }
+}
+
 /* Buttons */
 .btn-icon-danger {
   background: transparent;
@@ -1275,6 +1320,11 @@ hr {
   background: #fc8181;
   color: white;
   transform: scale(1.05);
+}
+
+.btn-icon-danger:focus-visible {
+  outline: 2px solid #fc8181;
+  outline-offset: 2px;
 }
 
 .btn-action {
@@ -1436,8 +1486,13 @@ hr {
 }
 
 .form-control:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--ts-primary);
+  box-shadow: var(--ts-shadow-focus);
+}
+
+.timesheet-form-wrapper .form-control:focus-visible {
+  border-color: var(--ts-primary);
+  box-shadow: var(--ts-shadow-focus);
 }
 
 /* Responsive Design */
@@ -1531,17 +1586,21 @@ hr {
 }
 
 .radio-pill input {
-  accent-color: #0d6efd;
+  accent-color: var(--ts-primary);
 }
 
 .radio-pill:hover {
   background: #f9fafb;
-  border-color: #0d6efd;
+  border-color: var(--ts-primary);
 }
 
 .radio-pill input:checked+span {
   font-weight: 600;
-  color: #0d6efd;
+  color: var(--ts-primary);
+}
+
+.radio-pill:focus-within {
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3);
 }
 
 .image-preview-wrapper {
@@ -1724,15 +1783,29 @@ hr {
   color: white;
 }
 
+.btn-create-timesheet:disabled,
 .btn-update-timesheet:disabled {
-  opacity: 0.6;
+  opacity: 0.65;
   cursor: not-allowed;
   transform: none !important;
+  pointer-events: none;
 }
 
+.btn-create-timesheet:disabled:hover,
 .btn-update-timesheet:disabled:hover {
   transform: none !important;
   box-shadow: 0 6px 20px rgba(102, 126, 234, 0.35) !important;
+}
+
+/* Outline action buttons (Add Location, Add Project) */
+.timesheet-form-wrapper .btn-outline-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.timesheet-form-wrapper .btn-outline-primary:disabled:hover {
+  transform: none;
 }
 
 /* ============================================ */
@@ -2164,6 +2237,18 @@ hr {
   outline-offset: 2px;
 }
 
+/* Keyboard focus only (no focus ring on mouse click) */
+.btn-create-timesheet:focus:not(:focus-visible),
+.btn-update-timesheet:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.btn-create-timesheet:focus-visible,
+.btn-update-timesheet:focus-visible {
+  outline: 3px solid rgba(102, 126, 234, 0.5);
+  outline-offset: 2px;
+}
+
 .btn-icon-wrapper {
   display: flex;
   align-items: center;
@@ -2255,6 +2340,31 @@ hr {
   .btn-update-timesheet {
     width: 100%;
     min-width: auto;
+  }
+}
+
+/* Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .timesheet-form-wrapper,
+  .timesheet-form-wrapper * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .info-card:hover,
+  .location-card:hover,
+  .date-display-card:hover,
+  .presence-display-card:hover,
+  .document-upload-item:hover {
+    transform: none;
+  }
+
+  .btn-create-timesheet:hover,
+  .btn-update-timesheet:hover,
+  .file-input-label:hover,
+  .btn-preview-document:hover:not(:disabled) {
+    transform: none;
   }
 }
 

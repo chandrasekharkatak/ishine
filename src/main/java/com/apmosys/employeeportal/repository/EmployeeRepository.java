@@ -8,7 +8,6 @@ import java.util.Set;
 
 import javax.transaction.Transactional;
 
-
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,10 +19,11 @@ import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
+import com.apmosys.employeeportal.dto.EmployeeJobRoleDept;
 import com.apmosys.employeeportal.dto.EmployeeProjection;
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
-import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO;
+import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse;
 
@@ -173,6 +173,57 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	
 //	@Query(nativeQuery = true)
 //	public List<Object[]> getAllEmployeesByDepartmentId(Long departmentId);
+
+	/**
+	 * Team view helper: fetch employees for the given departments using the same
+	 * column order as Employee.getAllTeamView named query.
+	 */
+	@Query(value = "SELECT e.emp_id, e.name, e.email, jr.name AS jobrolename, e.mobile_no, em.name AS manager, " +
+			       "e.employeement_id, e.invalid_access_attempt, e.is_timesheet_lock_check_enable, e.employmentstatus, " +
+			       "e.date_of_relieving, e.pip_flag, p.pip_id, e.is_consultant, e.is_apprenticeship, e.is_apmosys_product " +
+			       "FROM employee e " +
+			       "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id " +
+			       "INNER JOIN department d ON d.dept_id = jr.dept_id " +
+			       "LEFT JOIN pip p ON p.pip_id = e.pip_id " +
+			       "INNER JOIN employee em ON em.emp_id = e.manager_id " +
+			       "WHERE e.employmentstatus NOT LIKE 'InActive' " +
+			       "  AND d.dept_id IN (:deptIds)",
+	       nativeQuery = true)
+	List<Object[]> getAllTeamViewByDepartmentIds(@Param("deptIds") List<Long> deptIds);
+
+	/**
+	 * Fetches employees for given department IDs with same SELECT as Employee.getAllTeamMemberView
+	 * so that TeamsService.getAllTeamMemberView DTO mapping (26 columns) works for 3-A branch.
+	 */
+	@Query(value = "SELECT DISTINCT " +
+	               "e.emp_id, e.name, e.email, jr.name AS jobrolename, e.mobile_no, e.employeement_id, e.employmentstatus, " +
+	               "e.manager_id, em.name AS managerName, em.email AS managerEmail, " +
+	               "d.hod_id, eh.name AS hodName, eh.email AS hodEmail, d.dept_id, " +
+	               "e.is_timesheet_lock_check_enable, e.reporting_manager_id, e.approvals_to, " +
+	               "rm.name AS reportingManager, rm.email AS reportingManagerEmail, " +
+	               "e.date_of_joining, e.probation_period, e.is_consultant, e.is_apprenticeship, e.is_apmosys_product, " +
+	               "GROUP_CONCAT(DISTINCT ecsm.client_side_id ORDER BY ecsm.client_side_id SEPARATOR ', ') AS client_side_ids, " +
+	               "CASE " +
+	               "  WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id) " +
+	               "  WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) " +
+	               "  ELSE CONCAT('A-', e.employeement_id) " +
+	               "END " +
+	               "FROM employee e " +
+	               "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id " +
+	               "INNER JOIN department d ON d.dept_id = jr.dept_id " +
+	               "INNER JOIN employee em ON e.manager_id = em.emp_id " +
+	               "INNER JOIN employee eh ON d.hod_id = eh.emp_id " +
+	               "LEFT JOIN employee rm ON e.reporting_manager_id = rm.emp_id " +
+	               "LEFT JOIN employee_client_side_id_mapping ecsm ON ecsm.emp_id = e.emp_id AND ecsm.active = TRUE " +
+	               "WHERE e.employmentstatus != 'InActive' AND d.dept_id IN (:deptIds) " +
+	               "GROUP BY " +
+	               "  e.emp_id, e.name, e.email, jr.name, e.mobile_no, e.employeement_id, e.employmentstatus, " +
+	               "  e.manager_id, em.name, em.email, d.hod_id, eh.name, eh.email, d.dept_id, " +
+	               "  e.is_timesheet_lock_check_enable, e.reporting_manager_id, e.approvals_to, " +
+	               "  rm.name, rm.email, e.date_of_joining, e.probation_period, e.is_consultant, e.is_apprenticeship, e.is_apmosys_product " +
+	               "ORDER BY e.name",
+	       nativeQuery = true)
+	List<Object[]> getAllTeamMemberViewByDepartmentIds(@Param("deptIds") List<Long> deptIds);
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllTeamView(Long empId);
@@ -1996,6 +2047,55 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		       "INNER JOIN com.apmosys.employeeportal.model.Project p ON p.projectId = t.projectId " +
 		       "WHERE p.projectId = :projectId AND etm.active != 0 AND etm.empId != :currentUser")
 	public List<GetEmployeeListByProjectIdDTO> getEmployeeListByProjectId(Integer projectId,Long currentUser);
+	
+	/**
+	 * Date-aware variant: returns employees mapped to the given project and
+	 * active on the specified date window (startOfDay/endOfDay).
+	 *
+	 * Conditions:
+	 * - etm.startDate <= :endOfDay
+	 * - etm.endDate IS NULL OR etm.endDate >= :startOfDay
+	 * - etm.active != 0
+	 * - exclude currentUser
+	 */
+	@Query("SELECT new com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO(e.empId, e.name) " +
+		       "FROM com.apmosys.employeeportal.model.Employee e " +
+		       "INNER JOIN com.apmosys.employeeportal.model.EmployeeTeamMap etm ON etm.empId = e.empId " +
+		       "INNER JOIN com.apmosys.employeeportal.model.Team t ON t.teamId = etm.teamId " +
+		       "INNER JOIN com.apmosys.employeeportal.model.Project p ON p.projectId = t.projectId " +
+		       "WHERE p.projectId = :projectId " +
+		       "  AND etm.active in (0,1) " +
+		       "  AND etm.empId != :currentUser " +
+		       "  AND etm.startDate <= :endOfDay " +
+		       "  AND (etm.endDate IS NULL OR etm.endDate >= :startOfDay)")
+	public List<GetEmployeeListByProjectIdDTO> getEmployeeListByProjectIdForDate(
+			Integer projectId,
+			Long currentUser,
+			LocalDateTime startOfDay,
+			LocalDateTime endOfDay);
+
+	/**
+	 * Helper query for timesheet flows:
+	 * Given a candidate list of employee IDs, returns only those who have at least
+	 * one active EmployeeTeamMap record on the specified date window.
+	 *
+	 * This keeps all complex \"who is my team\" logic in the existing named query
+	 * (Employee.getAllTeamMemberView), and moves date-window filtering into a
+	 * small, focused query that is easy to maintain.
+	 */
+	@Query("SELECT DISTINCT e.empId " +
+	       "FROM EmployeeTeamMap etm " +
+	       "JOIN Employee e ON e.empId = etm.empId " +
+	       "JOIN Team t ON t.teamId = etm.teamId " +
+	       "JOIN Project p ON p.projectId = t.projectId " +
+	       "WHERE e.empId IN :empIds " +
+	       "  AND p.active = 'true' AND t.isActive = 'Y' AND etm.active != 2 " +
+	       "  AND etm.startDate <= :endOfDay " +
+	       "  AND (etm.endDate IS NULL OR etm.endDate >= :startOfDay)")
+	List<Long> findTeamMemberIdsActiveOnDate(
+			@Param("empIds") List<Long> empIds,
+			@Param("startOfDay") LocalDateTime startOfDay,
+			@Param("endOfDay") LocalDateTime endOfDay);
 	
 	@Query(value = " WITH RECURSIVE\n"
 			+ "       Authorized_Employees AS (\n"
@@ -4067,4 +4167,139 @@ public List<Object[]> fetchInActivePOListOfProject(
 
 	
 
-}
+
+	
+	
+	
+	@Query("select distinct jr.deptId " +
+		       "from JobRole jr " +
+		       "where jr.jobRoleId in :roleIds")
+		List<Long> findDeptIdsByRoleIds(@Param("roleIds") List<Long> roleIds);
+	
+	 List<Long> findJobRoleIdByEmpId(Long empId);
+	 
+	 @Query("SELECT new com.apmosys.employeeportal.dto.EmployeeJobRoleDept(" +
+		        "jr.deptId, " +
+		        "jr.jobRoleId) " +
+		        "FROM Employee e " +
+		        "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
+		        "WHERE e.empId = :empId")
+		List<EmployeeJobRoleDept> findRoleDeptByEmpId(@Param("empId") Long empId);
+
+	/**
+	 * Finds project IDs where the employee is a common team member
+	 * (part of employee_team_mapping for projects where the employee is on a team)
+	 */
+	@Query(value = "SELECT DISTINCT p1.project_id " +
+	               "FROM projects p1 " +
+	               "INNER JOIN teams t1 ON t1.project_id = p1.project_id " +
+	               "INNER JOIN employee_team_mapping etm1 ON etm1.team_id = t1.team_id " +
+	               "WHERE etm1.emp_id = :empId " +
+	               "  AND p1.active = 'true' " +
+	               "  AND t1.is_active = 'Y' " +
+	               "  AND etm1.active = 1",
+	       nativeQuery = true)
+	List<Long> findProjectIdsWhereEmpIsOnTeam(@Param("empId") Long empId);
+
+	/**
+	 * Finds project IDs where the employee is a project manager
+	 */
+	@Query(value = "SELECT DISTINCT p2.project_id " +
+	               "FROM projects p2 " +
+	               "INNER JOIN teams t2 ON t2.project_id = p2.project_id " +
+	               "INNER JOIN employee_team_mapping etm2 ON etm2.team_id = t2.team_id " +
+	               "INNER JOIN project_manager_mapping pm2 ON p2.project_id = pm2.project_id " +
+	               "WHERE pm2.project_manager_id = :empId " +
+	               "  AND p2.active = 'true' " +
+	               "  AND t2.is_active = 'Y' " +
+	               "  AND etm2.active != 0",
+	       nativeQuery = true)
+	List<Long> findProjectIdsWhereEmpIsProjectManager(@Param("empId") Long empId);
+
+	/**
+	 * Finds project IDs where the employee is an overhead
+	 */
+	@Query(value = "SELECT DISTINCT p3.project_id " +
+	               "FROM projects p3 " +
+	               "INNER JOIN teams t3 ON t3.project_id = p3.project_id " +
+	               "INNER JOIN employee_team_mapping etm3 ON etm3.team_id = t3.team_id " +
+	               "INNER JOIN project_overhead_mapping pom3 ON p3.project_id = pom3.project_id " +
+	               "WHERE pom3.project_overhead_id = :empId " +
+	               "  AND p3.active = 'true' " +
+	               "  AND t3.is_active = 'Y' " +
+	               "  AND etm3.active != 0",
+	       nativeQuery = true)
+	List<Long> findProjectIdsWhereEmpIsOverhead(@Param("empId") Long empId);
+
+	/**
+	 * Finds project IDs where the employee is a team lead
+	 */
+	@Query(value = "SELECT DISTINCT p4.project_id " +
+	               "FROM projects p4 " +
+	               "INNER JOIN teams t4 ON t4.project_id = p4.project_id " +
+	               "INNER JOIN employee_team_mapping etm4 ON etm4.team_id = t4.team_id " +
+	               "WHERE t4.team_lead_id = :empId " +
+	               "  AND p4.active = 'true' " +
+	               "  AND t4.is_active = 'Y' " +
+	               "  AND etm4.active != 0",
+	       nativeQuery = true)
+	List<Long> findProjectIdsWhereEmpIsTeamLead(@Param("empId") Long empId);
+
+	/**
+	 * Finds project IDs where the employee is a SPOC
+	 */
+	@Query(value = "SELECT DISTINCT p5.project_id " +
+	               "FROM projects p5 " +
+	               "INNER JOIN teams t5 ON t5.project_id = p5.project_id " +
+	               "INNER JOIN employee_team_mapping etm5 ON etm5.team_id = t5.team_id " +
+	               "WHERE t5.spoc_id = :empId " +
+	               "  AND p5.active = 'true' " +
+	               "  AND t5.is_active = 'Y' " +
+	               "  AND etm5.active != 0",
+	       nativeQuery = true)
+	List<Long> findProjectIdsWhereEmpIsSpoc(@Param("empId") Long empId);
+
+	// ========== Date-aware versions for timesheet filtering ==========
+	
+	/**
+	 * Fetches all team members (employees) for given project IDs.
+	 * SELECT statement is the same as Employee.getAllTeamMemberView (old jpa-named-query)
+	 * so that TeamsService.getAllTeamMemberView DTO mapping works unchanged.
+	 */
+	@Query(value = "SELECT DISTINCT " +
+	               "e.emp_id, e.name, e.email, jr.name AS jobrolename, e.mobile_no, e.employeement_id, e.employmentstatus, " +
+	               "e.manager_id, em.name AS managerName, em.email AS managerEmail, " +
+	               "d.hod_id, eh.name AS hodName, eh.email AS hodEmail, d.dept_id, " +
+	               "e.is_timesheet_lock_check_enable, e.reporting_manager_id, e.approvals_to, " +
+	               "rm.name AS reportingManager, rm.email AS reportingManagerEmail, " +
+	               "e.date_of_joining, e.probation_period, e.is_consultant, e.is_apprenticeship, e.is_apmosys_product, " +
+	               "GROUP_CONCAT(DISTINCT ecsm.client_side_id ORDER BY ecsm.client_side_id SEPARATOR ', ') AS client_side_ids, " +
+	               "CASE " +
+	               "  WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id) " +
+	               "  WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) " +
+	               "  ELSE CONCAT('A-', e.employeement_id) " +
+	               "END " +
+	               "FROM employee e " +
+	               "INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id " +
+	               "INNER JOIN department d ON d.dept_id = jr.dept_id " +
+	               "INNER JOIN employee em ON e.manager_id = em.emp_id " +
+	               "INNER JOIN employee eh ON d.hod_id = eh.emp_id " +
+	               "LEFT JOIN employee rm ON e.reporting_manager_id = rm.emp_id " +
+	               "LEFT JOIN employee_client_side_id_mapping ecsm ON ecsm.emp_id = e.emp_id AND ecsm.active = TRUE " +
+	               "INNER JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id " +
+	               "INNER JOIN teams t ON t.team_id = etm.team_id " +
+	               "INNER JOIN projects p ON p.project_id = t.project_id " +
+	               "WHERE e.employmentstatus != 'InActive' " +
+	               "  AND p.project_id IN (:projectIds) " +
+	               "  AND p.active = 'true' AND t.is_active = 'Y' AND etm.active = 1 " +
+	               "  AND e.emp_id != :excludeEmpId " +
+	               "GROUP BY " +
+	               "  e.emp_id, e.name, e.email, jr.name, e.mobile_no, e.employeement_id, e.employmentstatus, " +
+	               "  e.manager_id, em.name, em.email, d.hod_id, eh.name, eh.email, d.dept_id, " +
+	               "  e.is_timesheet_lock_check_enable, e.reporting_manager_id, e.approvals_to, " +
+	               "  rm.name, rm.email, e.date_of_joining, e.probation_period, e.is_consultant, e.is_apprenticeship, e.is_apmosys_product " +
+	               "ORDER BY e.name",
+	       nativeQuery = true)
+	List<Object[]> getAllTeamMemberViewByProjectIds(@Param("projectIds") List<Long> projectIds, @Param("excludeEmpId") Long excludeEmpId);
+
+	}
