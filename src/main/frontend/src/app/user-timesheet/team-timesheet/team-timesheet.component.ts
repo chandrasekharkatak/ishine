@@ -57,7 +57,7 @@ export class TeamTimesheetComponent implements OnInit {
   feature = "Team Timesheets";
   currentUser: User;
   userMapping: any = {};
-
+  rejectEntries = [];
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType: any;
@@ -2145,59 +2145,59 @@ projectList: any[] = [];
 
 
 // BULK REJECT (FIXED)
-BulkRejectByIds(
-  template: TemplateRef<any>,
-  rejectReason: string
-) {
+// BulkRejectByIds(
+//   template: TemplateRef<any>,
+//   rejectReason: string
+// ) {
 
-  const timesheetIds = this.getSelectedTimesheetIds();
+//   const timesheetIds = this.getSelectedTimesheetIds();
 
-  if (!timesheetIds.length) {
-    this.openAlertMod(template, 'No timesheets selected');
-    return;
-  }
+//   if (!timesheetIds.length) {
+//     this.openAlertMod(template, 'No timesheets selected');
+//     return;
+//   }
 
-  if (!rejectReason || !rejectReason.trim()) {
-    this.openAlertMod(template, 'Reject reason is required');
-    return;
-  }
+//   if (!rejectReason || !rejectReason.trim()) {
+//     this.openAlertMod(template, 'Reject reason is required');
+//     return;
+//   }
 
-  const payload = {
-    timesheetIds,
-    projectIds: [],   // ⭐ ADD THIS
+//   const payload = {
+//     timesheetIds,
+//     projectIds: [],   // ⭐ ADD THIS
 
-    status: 'REJECTED',
-    updatedBy: this.currentUser.empId,
-    rejectReason: rejectReason.trim(),
-    rejectRemark: rejectReason.trim()
-  };
+//     status: 'REJECTED',
+//     updatedBy: this.currentUser.empId,
+//     rejectReason: rejectReason.trim(),
+//     rejectRemark: rejectReason.trim()
+//   };
 
-  this.timesheetNewService
-    .bulkRejectTimesheetsByIds1(payload)
-    .subscribe({
-      next: (res: any) => {
-        if (res?.serviceStatus === 'Success') {
-          this.clearAllSelections();
-          this.modalRef?.close();
-          this.getMyReporteesTimesheetRequests();
-          this.openAlertMod(
-            template,
-            res.serviceResponse || 'Timesheets rejected successfully'
-          );
-        } else {
-          this.openAlertMod(
-            template,
-            res?.serviceResponse || 'Bulk rejection failed'
-          );
-        }
-      },
-      error: () => {
-        this.openAlertMod(template, 'Bulk rejection failed');
-      }
-    });
+//   this.timesheetNewService
+//     .bulkRejectTimesheetsByIds1(payload)
+//     .subscribe({
+//       next: (res: any) => {
+//         if (res?.serviceStatus === 'Success') {
+//           this.clearAllSelections();
+//           this.modalRef?.close();
+//           this.getMyReporteesTimesheetRequests();
+//           this.openAlertMod(
+//             template,
+//             res.serviceResponse || 'Timesheets rejected successfully'
+//           );
+//         } else {
+//           this.openAlertMod(
+//             template,
+//             res?.serviceResponse || 'Bulk rejection failed'
+//           );
+//         }
+//       },
+//       error: () => {
+//         this.openAlertMod(template, 'Bulk rejection failed');
+//       }
+//     });
 
 
-}
+// }
 
 
 
@@ -2262,45 +2262,45 @@ openSingleRejectModal(
 }
 
 // SINGLE TIMESHEET REJECT
-submitSingleReject() {
+// submitSingleReject() {
 
-  if (!this.selectedTimesheetForReject?.timesheetId) {
-    alert('Invalid timesheet');
-    return;
-  }
+//   if (!this.selectedTimesheetForReject?.timesheetId) {
+//     alert('Invalid timesheet');
+//     return;
+//   }
 
-  if (!this.singleRejectReason || !this.singleRejectReason.trim()) {
-    alert('Reject reason is required');
-    return;
-  }
+//   if (!this.singleRejectReason || !this.singleRejectReason.trim()) {
+//     alert('Reject reason is required');
+//     return;
+//   }
 
-  const payload = {
-    timesheetIds: [this.selectedTimesheetForReject.timesheetId],
-    projectIds: [],   // ⭐ ADD THIS
-    status: 'REJECTED',
-    updatedBy: this.currentUser.empId,
-    rejectReason: this.singleRejectReason.trim(),
-    rejectRemark: this.singleRejectReason.trim()
-  };
+//   const payload = {
+//     timesheetIds: [this.selectedTimesheetForReject.timesheetId],
+//     projectIds: [],   // ⭐ ADD THIS
+//     status: 'REJECTED',
+//     updatedBy: this.currentUser.empId,
+//     rejectReason: this.singleRejectReason.trim(),
+//     rejectRemark: this.singleRejectReason.trim()
+//   };
 
-  this.timesheetNewService
-    .bulkRejectTimesheetsByIds1(payload)
-    .subscribe({
-      next: (res: any) => {
-        if (res?.serviceStatus === 'Success') {
-          this.modalRef?.close(); // ✅ close ONLY current modal
-          this.clearAllSelections();
-          this.getMyReporteesTimesheetRequests();
-          alert(res.serviceResponse || 'Timesheet rejected successfully');
-        } else {
-          alert(res?.serviceResponse || 'Timesheet rejection failed');
-        }
-      },
-      error: () => {
-        alert('Timesheet rejection failed');
-      }
-    });
-}
+//   this.timesheetNewService
+//     .bulkRejectTimesheetsByIds1(payload)
+//     .subscribe({
+//       next: (res: any) => {
+//         if (res?.serviceStatus === 'Success') {
+//           this.modalRef?.close(); // ✅ close ONLY current modal
+//           this.clearAllSelections();
+//           this.getMyReporteesTimesheetRequests();
+//           alert(res.serviceResponse || 'Timesheet rejected successfully');
+//         } else {
+//           alert(res?.serviceResponse || 'Timesheet rejection failed');
+//         }
+//       },
+//       error: () => {
+//         alert('Timesheet rejection failed');
+//       }
+//     });
+// }
 
 
 // Single Project Approve
@@ -2475,105 +2475,194 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
     return d.toISOString().split('T')[0];
   }
 
+  // submitSingleTimesheetReject() {
+
+  //   if (!this.selectedTimesheet?.timesheetId) {
+  //     alert("Invalid timesheet");
+  //     return;
+  //   }
+
+  //   if (!this.selectedRejectReasons?.length) {
+  //     alert("Select at least one reject reason");
+  //     return;
+  //   }
+
+  //   if (!this.selectedProjects?.length) {
+  //     alert("Select at least one project");
+  //     return;
+  //   }
+  //   const projectIds = this.selectedProjects
+  //     .map(p => typeof p === 'object' ? Number(p.projectId) : Number(p))
+  //     .filter(x => !!x);
+
+  //   const rejectReasonString = this.selectedRejectReasons.map(r => {
+
+  //     if (typeof r === 'object') return r.rejectionReason;
+
+  //     const match = this.rejectReasons.find(x => x.rejectionId === r);
+  //     return match?.rejectionReason;
+
+  //   }).filter(Boolean).join(', ');
+
+  //   const rejectRemarkText =
+  //     this.timesheetObj.rejectReason?.trim() || '';
+
+  //   const payload = {
+  //     timesheetIds: [Number(this.selectedTimesheet.timesheetId)],
+  //     projectIds: projectIds,
+  //     status: 'REJECTED',
+  //     updatedBy: Number(this.currentUser.empId),
+
+  //     rejectReason: rejectReasonString,
+  // rejectRemark: this.timesheetObj.rejectReason?.trim() || ''
+  //   };
+
+
+
+  //   this.timesheetNewService
+  //     .bulkRejectTimesheetsByIds1(payload)
+  //     .subscribe({
+  //       next: (res: any) => {
+  //          if (res?.serviceStatus === 'Success') {
+
+  //         this.modalRef?.close(); 
+  //         this.getMyReporteesTimesheetRequests();
+
+  //         this.statusModal(
+  //           'Success',
+  //           res.serviceResponse || 'Timesheet rejected successfully'
+  //         );
+
+  //       } else {
+  //         this.statusModal(
+  //           'Error',
+  //           res?.serviceResponse || 'Timesheet rejection failed'
+  //         );
+  //       }
+  //     },
+  //     error: () => {
+  //       this.statusModal('Error', 'Something went wrong');
+  //     }
+  //   });
+  // }
+
+
+
+
+  // openRejectPopup(template: any, timesheet: any) {
+
+  //   this.selectedTimesheet = timesheet;
+  //   this.selectedProjects = [];
+  //   this.selectedRejectReasons = [];
+  //   this.rejectRemark = '';
+
+  //   /* ⭐ FLATTEN + REMOVE DUPLICATES */
+  //   const map = new Map();
+
+  //   (timesheet?.locationSessions || []).forEach((loc: any) => {
+  //     (loc.projects || []).forEach((proj: any) => {
+  //       map.set(proj.projectId, proj);
+  //     });
+  //   });
+
+  //   this.projectList = Array.from(map.values());
+
+  //   console.log("Project List →", this.projectList); // ⭐ CHECK
+
+  //   this.modalRef = this.modalService.open(template, {
+  //     modalDialogClass: 'modal-lg',
+  //     backdrop: 'static'
+  //   });
+  // }
   submitSingleTimesheetReject() {
 
-    if (!this.selectedTimesheet?.timesheetId) {
-      alert("Invalid timesheet");
-      return;
-    }
-
-    if (!this.selectedRejectReasons?.length) {
-      alert("Select at least one reject reason");
-      return;
-    }
-
-    if (!this.selectedProjects?.length) {
-      alert("Select at least one project");
-      return;
-    }
-    const projectIds = this.selectedProjects
-      .map(p => typeof p === 'object' ? Number(p.projectId) : Number(p))
-      .filter(x => !!x);
-
-    const rejectReasonString = this.selectedRejectReasons.map(r => {
-
-      if (typeof r === 'object') return r.rejectionReason;
-
-      const match = this.rejectReasons.find(x => x.rejectionId === r);
-      return match?.rejectionReason;
-
-    }).filter(Boolean).join(', ');
-
-    const rejectRemarkText =
-      this.timesheetObj.rejectReason?.trim() || '';
-
-    const payload = {
-      timesheetIds: [Number(this.selectedTimesheet.timesheetId)],
-      projectIds: projectIds,
-      status: 'REJECTED',
-      updatedBy: Number(this.currentUser.empId),
-
-      rejectReason: rejectReasonString,
-  rejectRemark: this.timesheetObj.rejectReason?.trim() || ''
-    };
-
-
-
-    this.timesheetNewService
-      .bulkRejectTimesheetsByIds1(payload)
-      .subscribe({
-        next: (res: any) => {
-           if (res?.serviceStatus === 'Success') {
-
-          this.modalRef?.close(); 
-          this.getMyReporteesTimesheetRequests();
-
-          this.statusModal(
-            'Success',
-            res.serviceResponse || 'Timesheet rejected successfully'
-          );
-
-        } else {
-          this.statusModal(
-            'Error',
-            res?.serviceResponse || 'Timesheet rejection failed'
-          );
-        }
-      },
-      error: () => {
-        this.statusModal('Error', 'Something went wrong');
-      }
-    });
+  if (!this.selectedTimesheet?.timesheetId) {
+    this.statusModal('Error', 'Invalid timesheet');
+    return;
   }
 
+  const projectRejections = this.rejectEntries.map(entry => ({
 
+  projectId: Number(entry.projectId),
+
+  rejectionIds: entry.reasons.map((r: any) =>
+    typeof r === 'object' ? r.rejectionId : r
+  ),
+
+  rejectRemark: entry.remark?.trim() || ''
+
+}));
+
+  const payload = {
+    timesheetIds: [Number(this.selectedTimesheet.timesheetId)],
+    status: 'REJECTED',
+    updatedBy: Number(this.currentUser.empId),
+    projectRejections
+  };
+
+  this.timesheetNewService
+    .bulkRejectTimesheetsByIds1(payload)
+    .subscribe(res => {
+
+      if (res?.serviceStatus === 'Success') {
+        this.modalRef?.close();
+        this.getMyReporteesTimesheetRequests();
+        this.statusModal('Success', 'Timesheet rejected successfully');
+      } else {
+        this.statusModal('Error', 'Rejection failed');
+      }
+    });
+}
 
 
   openRejectPopup(template: any, timesheet: any) {
 
-    this.selectedTimesheet = timesheet;
-    this.selectedProjects = [];
-    this.selectedRejectReasons = [];
-    this.rejectRemark = '';
+  this.selectedTimesheet = timesheet;
 
-    /* ⭐ FLATTEN + REMOVE DUPLICATES */
-    const map = new Map();
+  const map = new Map();
 
-    (timesheet?.locationSessions || []).forEach((loc: any) => {
-      (loc.projects || []).forEach((proj: any) => {
-        map.set(proj.projectId, proj);
-      });
+  (timesheet?.locationSessions || []).forEach((loc: any) => {
+    (loc.projects || []).forEach((proj: any) => {
+      map.set(proj.projectId, proj);
     });
+  });
 
-    this.projectList = Array.from(map.values());
+  this.projectList = Array.from(map.values());
 
-    console.log("Project List →", this.projectList); // ⭐ CHECK
+  this.rejectEntries = [
+    {
+      projectId: null,
+      reasons: [],
+      remark: ''
+    }
+  ];
 
-    this.modalRef = this.modalService.open(template, {
-      modalDialogClass: 'modal-lg',
-      backdrop: 'static'
-    });
-  }
+  console.log("Project List →", this.projectList);
+
+  this.modalRef = this.modalService.open(template, {
+    modalDialogClass: 'modal-lg',
+    backdrop: 'static'
+  });
+}
+addRejectRow() {
+  this.rejectEntries.push({
+    projectId: null,
+    reasons: [],
+    remark: ''
+  });
+}
+
+removeRejectRow(index: number) {
+  this.rejectEntries.splice(index, 1);
+}
+isRejectFormValid(): boolean {
+  return this.rejectEntries.every(entry =>
+    entry.projectId &&
+    entry.reasons?.length
+  );
+}
+
+
 
 
 

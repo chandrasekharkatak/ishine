@@ -502,10 +502,10 @@
     <textarea id="w3review" name="w3review" rows="3" cols="50" class="form-control"
       [(ngModel)]="timesheetObj.rejectReason"
       (input)="validateDescription($event,timesheetObj.rejectReason);getMyReporteesTimesheetRequests()"> </textarea><br>
-    <button class="btn btn-danger" [disabled]="!timesheetObj.rejectReason?.trim()"
+    <!-- <button class="btn btn-danger" [disabled]="!timesheetObj.rejectReason?.trim()"
       (click)="BulkRejectByIds(alert_message, timesheetObj.rejectReason);getMyReporteesTimesheetRequests()">
       Confirm Reject
-    </button>
+    </button> -->
     &nbsp;
     &nbsp;
     <button type="button" class="btn btn-danger" (click)="cancelRequest();getMyReporteesTimesheetRequests()">No,
@@ -910,7 +910,7 @@
 
 
 <!-- Timesheet Reject Popup -->
-<ng-template #rejectPopup>
+<!-- <ng-template #rejectPopup>
 
   <div class="modal-header">
     <h5 class="modal-title text-danger">
@@ -929,7 +929,6 @@
       Kindly provide project(s) and reason(s) for rejecting application.
     </p>
 
-    <!-- ================= PROJECT MULTI SELECT ================= -->
 
     <label>
       <span class="text-danger">*</span> Select Project(s)
@@ -946,7 +945,6 @@
     </app-my-select>
 
 
-    <!-- ================= REASON MULTI SELECT ================= -->
 
     <label class="mt-3">
       <span class="text-danger">*</span> Reject Reason(s)
@@ -983,7 +981,107 @@
 
   </div>
 
+</ng-template> -->
+
+<ng-template #rejectPopup>
+
+  <div class="modal-header">
+    <h5 class="modal-title text-danger">
+      Reject Timesheet
+    </h5>
+
+    <button type="button"
+            class="btn-close"
+            (click)="modalRef.close()">
+    </button>
+  </div>
+
+  <div class="modal-body">
+
+    <p class="text-center">
+      Kindly provide project(s) and reason(s) for rejecting application.
+    </p>
+
+    <div *ngFor="let entry of rejectEntries; let i = index"
+         class="border rounded p-3 mb-3">
+
+      <!-- Project -->
+      <label>
+        <span class="text-danger">*</span> Select Project
+      </label>
+
+      <app-my-select
+        class="form-control"
+        placeholder="Select Project"
+        [(ngModel)]="entry.projectId"
+        [options]="projectList"
+        displayKey="projectName"
+        valueKey="projectId">
+      </app-my-select>
+
+      <!-- Reasons -->
+      <label class="mt-3">
+        <span class="text-danger">*</span> Reject Reason(s)
+      </label>
+
+      <app-my-select
+        class="form-control"
+        placeholder="Select Reject Reason"
+        [(ngModel)]="entry.reasons"
+        [options]="rejectReasons"
+        displayKey="rejectionReason"
+        valueKey="rejectionId"
+        [multiple]="true">
+      </app-my-select>
+
+      <!-- Remark -->
+      <label class="mt-3">Reject Remark</label>
+
+      <textarea
+        rows="2"
+        class="form-control"
+        [(ngModel)]="entry.remark">
+      </textarea>
+
+      <!-- Remove Button -->
+      <div class="text-end mt-2">
+        <button *ngIf="rejectEntries.length > 1"
+                class="btn btn-sm btn-outline-danger"
+                (click)="removeRejectRow(i)">
+          Remove
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Add Button -->
+    <div class="text-center">
+      <button class="btn btn-sm btn-outline-primary"
+              (click)="addRejectRow()">
+        + Add Another Project
+      </button>
+    </div>
+
+  </div>
+
+  <div class="modal-footer">
+
+    <button class="btn btn-secondary"
+            (click)="modalRef.close()">
+      Cancel
+    </button>
+
+    <button class="btn btn-danger"
+            [disabled]="!isRejectFormValid()"
+            (click)="submitSingleTimesheetReject()">
+      Reject
+    </button>
+
+  </div>
+
 </ng-template>
+
+
 
 <!-- single project reject modal -->
 <!-- <ng-template #projectRejectModal>

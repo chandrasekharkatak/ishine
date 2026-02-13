@@ -109,6 +109,7 @@ import com.apmosys.employeeportal.dto.ProjectManagersDTO;
 import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.ProjectOverheadsDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
+import com.apmosys.employeeportal.dto.ProjectRejectionDTO;
 import com.apmosys.employeeportal.dto.ProjectRequirementResponse;
 import com.apmosys.employeeportal.dto.ProjectRequirementsDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
@@ -165,6 +166,7 @@ import com.apmosys.employeeportal.model.ResourceRequirementTemp;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.model.TimesheetActionAuditNew;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
+import com.apmosys.employeeportal.model.TimesheetRejectionDetailsId;
 import com.apmosys.employeeportal.model.TimesheetRejectionDetailsNew;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.ActivityTemplateRepository;
@@ -14821,7 +14823,7 @@ public class ResourceManagementService {
 
         	    	 saveAuditForApprovalandRejection(TimesheetLists,timesheetProjectMap, updatedBy,status);
         	     if ("REJECTED".equalsIgnoreCase(status)) {
-        	        saveRejectionDetails(timesheetProjectMap, request);
+        	        saveRejectionDetails( request);
         	    }
 
         	     response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -14868,34 +14870,46 @@ public class ResourceManagementService {
 			projectTimesheetStatusNewRepository.processByStatus(TimesheetLists,statusValue);
 			}
          
-         private void saveRejectionDetails(Map<Long, List<Long>> timesheetProjectMap,
-                 BulkTimesheetRequestDTO request) {
+         private void saveRejectionDetails(BulkTimesheetRequestDTO request) {
 
-				List<TimesheetRejectionDetailsNew> rejectionList = new ArrayList<>();
-				LocalDateTime now = LocalDateTime.now();
-				 for (Map.Entry<Long, List<Long>> entry : timesheetProjectMap.entrySet()) {
+        	    List<TimesheetRejectionDetailsNew> rejectionList = new ArrayList<>();
+        	    LocalDateTime now = LocalDateTime.now();
 
-				        Long timesheetId = entry.getKey();
-				        List<Long> projectIds = entry.getValue();
+        	    List<Long> timesheetIds = request.getTimesheetIds();
+        	    Long updatedBy = request.getUpdatedBy();
 
-				        for (Long projectId : projectIds) {
+        	    for (Long timesheetId : timesheetIds) {
 
-				            TimesheetRejectionDetailsNew rejection = new TimesheetRejectionDetailsNew();
+        	        for (ProjectRejectionDTO pr : request.getProjectRejections()) {
 
-//				            rejection.setTimesheetId(timesheetId);
-//				            rejection.setProjectId(projectId.intValue());
-//				            rejection.setLocationMappingId(request.getLocationMappingId());
-//				            rejection.setRejectionId(request.getRejectionId());
-//				            rejection.setRemarks(request.getRejectRemark());
-//				            rejection.setRejectedBy(request.getUpdatedBy());
-//				            rejection.setRejectedOn(now);
+        	            Long projectId = pr.getProjectId();
+        	            String remark = pr.getRejectRemark();
 
-				            rejectionList.add(rejection);
-				        }
-				    }
-				
-				timesheetRejectionDetailsNewRepository.saveAll(rejectionList);
-			}
+        	            Long locationMappingId =
+        	                    projectTimesheetStatusNewRepository
+        	                            .findLocationMappingId(timesheetId, projectId.intValue());
+
+        	            for (Long rejectionId : pr.getRejectionIds()) {
+
+        	                TimesheetRejectionDetailsNew rejection =
+        	                        new TimesheetRejectionDetailsNew();
+
+        	                rejection.setTimesheetId(timesheetId);
+        	                rejection.setLocationMappingId(locationMappingId);
+        	                rejection.setProjectId(projectId.intValue());
+        	                rejection.setRejectionId(rejectionId);
+        	                rejection.setRemarks(remark);
+        	                rejection.setRejectedBy(updatedBy);
+        	                rejection.setRejectedOn(now);
+
+        	                rejectionList.add(rejection);
+        	            }
+        	        }
+        	    }
+
+        	    timesheetRejectionDetailsNewRepository.saveAll(rejectionList);
+        	}
+
 
 
          

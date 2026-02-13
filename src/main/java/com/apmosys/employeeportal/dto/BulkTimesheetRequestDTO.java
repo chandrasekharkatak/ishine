@@ -8,10 +8,8 @@ import lombok.Data;
 @Data
 public class BulkTimesheetRequestDTO {
 //	private Map<Long, List<Long>> timesheetProjectMap;
-	private List<Long> timesheetIds;
-    private List<Long> projectIds;  // optional for approve
+	private List<Long> timesheetIds; // optional for approve
     private String status;           // APPROVED / REJECTED
     private Long updatedBy;
-    private String rejectReason;
-    private String rejectRemark;
+    private List<ProjectRejectionDTO> projectRejections;
 }

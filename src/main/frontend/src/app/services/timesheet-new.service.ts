@@ -140,19 +140,36 @@ export class TimesheetNewService {
     );
   }
 
-  bulkRejectTimesheetsByIds1(payload: {
-    timesheetIds: number[];
-    projectIds: number[];
-    status: string;
-    updatedBy: number;
-    rejectReason: string,
-  rejectRemark: string
-  }) {
-    return this.http.post<any>(
-      `${this.baseUrl}api/bulkApproveTimesheetRequest1`,
-      payload
-    );
-  }
+  // bulkRejectTimesheetsByIds1(payload: {
+  //   timesheetIds: number[];
+  //   projectIds: number[];
+  //   status: string;
+  //   updatedBy: number;
+  //   rejectReason: string,
+  // rejectRemark: string
+  // }) {
+  //   return this.http.post<any>(
+  //     `${this.baseUrl}api/bulkApproveTimesheetRequest1`,
+  //     payload
+  //   );
+  // }
+bulkRejectTimesheetsByIds1(payload: {
+  timesheetIds: number[];
+  status: string;
+  updatedBy: number;
+  projectRejections: {
+    projectId: number;
+    rejectionIds: number[];   
+    rejectRemark: string;
+  }[];
+}) {
+  return this.http.post<any>(
+    `${this.baseUrl}api/bulkApproveTimesheetRequest1`,
+    payload
+  );
+}
+
+
 
   approveRejectProjects(payload: {
     timesheetId: number;
