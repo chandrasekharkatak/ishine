@@ -1,11 +1,14 @@
 package com.apmosys.employeeportal.service;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
 import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
@@ -14,6 +17,7 @@ import com.apmosys.employeeportal.dto.POResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
+import com.apmosys.employeeportal.dto.RequirementChangeDTO;
 import com.apmosys.employeeportal.dto.RmUpdateSyncDto;
 import com.apmosys.employeeportal.enums.SyncRequestType;
 import com.apmosys.employeeportal.model.ApiLog;
@@ -129,7 +133,7 @@ public class PoSyncOrchestratorService {
 				}
 			}
 
-			Client client = clientService.resolveClient(dto.getClientName());
+			Client client = clientService.resolveClient(dto.getClientName(),dto.getClientId());
 
 			if (dto.getEventType() == SyncRequestType.CREATE_PROJECT) {
 
@@ -141,6 +145,8 @@ public class PoSyncOrchestratorService {
 					requirementService.syncRequirementsRTS(po.getPoId(),
 							dto.getPoDetailsList().get(0).getResourceRequirementList());
 				}
+				
+				projectService.recalculateProjectDates(project.getProjectId());
 
 			} else if (dto.getEventType() == SyncRequestType.UPDATE_PO) {
 
@@ -166,8 +172,20 @@ public class PoSyncOrchestratorService {
 				departmentService.syncDepartmentsRTS(po.getPoId(), poDto.getDepartmentList(),project.getProjectId());
 
 				if (poDto.getResourceRequirementList() != null) {
+					 List<RequirementChangeDTO> changes =
+					            requirementService.detectRequirementChanges(
+					                    po.getPoId(),
+					                    poDto.getResourceRequirementList());
+
+					
 					requirementService.syncRequirementsRTS(po.getPoId(), poDto.getResourceRequirementList());
+					
+					if (!changes.isEmpty()) {
+						requirementService.sendRequirementChangeMail(po.getPoId(), changes);
+				    }
 				}
+				
+				projectService.recalculateProjectDates(project.getProjectId());
 			} else {
 				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
 				ExceptionLogContext.add("Unsupported eventType from Po " + dto.getEventType());
@@ -179,6 +197,7 @@ public class PoSyncOrchestratorService {
 			response.setServiceResponse("PO sync successful");
 			return response;
 		} catch (Exception e) {
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 			ExceptionLogContext.add(e);
 			e.printStackTrace();
 //			exceptionDetailsForLog.append(e.printStackTrace());
@@ -358,13 +377,15 @@ public class PoSyncOrchestratorService {
 	        if(dto.getAssociatePos() == null || dto.getAssociatePos().isEmpty()) {
 		        projectService.setActiveFlagAsFalse(project,dto);
 	        }
+	        
+	        projectService.recalculateProjectDates(project.getProjectId());
 	       
 
 	       
-	        projectService.updateProjectDatesAfterDeletion(
-	                project,
-	                dto
-	        );
+//	        projectService.updateProjectDatesAfterDeletion(
+//	                project,
+//	                dto
+//	        );
 
 	        finalHttpStatusCode = HttpStatus.OK.value();
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -372,6 +393,7 @@ public class PoSyncOrchestratorService {
 	        return response;
 
 	    } catch (Exception e) {
+	    	TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 	    	ExceptionLogContext.add(e);
 			e.printStackTrace();
 //			exceptionDetailsForLog.append(e.printStackTrace());

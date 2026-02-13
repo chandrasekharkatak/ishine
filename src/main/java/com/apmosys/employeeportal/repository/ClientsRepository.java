@@ -22,7 +22,7 @@ public interface ClientsRepository extends JpaRepository<Client, Integer> {
 			"INNER JOIN ClientLocation cl on cl.clientId = c.clientId ")
 	public List<ClientsDTO> getClientInfo();
 
-	Client findByPoClientId(Integer poClientId);
+	Optional<Client> findByPoClientId(Long poClientId);
 
 	Client findByClientId(Integer clientId);
 

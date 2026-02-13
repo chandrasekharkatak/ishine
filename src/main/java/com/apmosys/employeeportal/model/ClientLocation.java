@@ -41,6 +41,8 @@ public class ClientLocation {
 	
 	private Long poId;
 	
+	private Long clientAddressId;
+	
 	
 	
 	public ClientLocation(Integer clientId,String clientLocation){
