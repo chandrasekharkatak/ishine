@@ -14815,9 +14815,10 @@ public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
 		ApiLog initialLog = null;
 		String traceId = UUID.randomUUID().toString();
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-		String sourceSystem = httpRequest.getRequestURI();
+		String sourceSystem = (httpRequest != null)? httpRequest.getRequestURI() 
+		              : "CRON_JOB";		
+		
 		LogDTO apiLogInfo = new LogDTO();
-
 		int totalPoClientCount = 0;
 		int totalIshineClientCount = 0;
 		int updatedCount = 0;
