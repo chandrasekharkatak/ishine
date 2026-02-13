@@ -2,8 +2,10 @@ package com.apmosys.employeeportal.service;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1718,7 +1720,7 @@ public class ProjectService {
 
 						Client clientobj = new Client();
 						clientobj.setClientName(poProjectSyncDTO.getClientName());
-						clientobj.setPoClientId(poProjectSyncDTO.getPoClientId());
+						clientobj.setPoClientId(poProjectSyncDTO.getPoClientId().longValue());
 
 						clientDbresponse = clientsRepository.save(clientobj);
 						if (clientDbresponse != null) {
@@ -3863,8 +3865,6 @@ public class ProjectService {
 		p.setPoProjectId(dto.getProjectId());
 		p.setProjectName(dto.getProjectName());
 		p.setPoProjectType(dto.getProjectType());
-		p.setStartDate(dateFormat.format(dto.getProjectStartDate()));
-		p.setEndDate(dateFormat.format(dto.getProjectEndDate()));
 		p.setPoClientId(dto.getClientId());
 		p.setClientId(client.getClientId());
 		p.setActive("true");
@@ -3897,25 +3897,25 @@ public class ProjectService {
 	        changed = true;
 	    }
 
-	    String newStart =
-	            dto.getProjectStartDate() != null
-	                    ? df.format(dto.getProjectStartDate())
-	                    : null;
-
-	    if (!Objects.equals(p.getStartDate(), newStart)) {
-	        p.setStartDate(newStart);
-	        changed = true;
-	    }
-
-	    String newEnd =
-	            dto.getProjectEndDate() != null
-	                    ? df.format(dto.getProjectEndDate())
-	                    : null;
-
-	    if (!Objects.equals(p.getEndDate(), newEnd)) {
-	        p.setEndDate(newEnd);
-	        changed = true;
-	    }
+//	    String newStart =
+//	            dto.getProjectStartDate() != null
+//	                    ? df.format(dto.getProjectStartDate())
+//	                    : null;
+//
+//	    if (!Objects.equals(p.getStartDate(), newStart)) {
+//	        p.setStartDate(newStart);
+//	        changed = true;
+//	    }
+//
+//	    String newEnd =
+//	            dto.getProjectEndDate() != null
+//	                    ? df.format(dto.getProjectEndDate())
+//	                    : null;
+//
+//	    if (!Objects.equals(p.getEndDate(), newEnd)) {
+//	        p.setEndDate(newEnd);
+//	        changed = true;
+//	    }
 	    
 	    if(!Objects.equals(p.getPoClientId(), dto.getClientId())) {   
 	    p.setPoClientId(dto.getClientId());
@@ -4374,58 +4374,58 @@ public class ProjectService {
 		            });
 	}
 	
-	public void updateProjectDatesAfterDeletion(
-	        Project project,
-	        DeletedPoSyncDTO dto) {
-
-	    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-	    boolean changed = false;
-
-	    String newStart =
-	            dto.getProjectStartDateAfterDeletion() != null
-	                    ? df.format(dto.getProjectStartDateAfterDeletion())
-	                    : null;
-
-	    String newEnd =
-	            dto.getProjectEndDateAfterDeletion() != null
-	                    ? df.format(dto.getProjectEndDateAfterDeletion())
-	                    : null;
-
-	    if (!Objects.equals(project.getStartDate(), newStart)) {
-	        project.setStartDate(newStart);
-	        changed = true;
-	    }
-
-	    if (!Objects.equals(project.getEndDate(), newEnd)) {
-	        project.setEndDate(newEnd);
-	        changed = true;
-	    }
-	    
-	    Long updatedBy = validationService.validateAndGetEmployeeEmpId(
-                dto.getDeletedByEmpId(),
-                dto.getDeletedByEmpName()
-        );
-
-	    if (changed) {
-	        project.setUpdatedBy(updatedBy);
-	        project.setUpdatedOn(
-	                dto.getDeletedOn().toInstant()
-	                        .atZone(ZoneId.systemDefault())
-	                        .toLocalDateTime()
-	        );
-	        projectRepository.save(project);
-	    }
-	}
+//	public void updateProjectDatesAfterDeletion(
+//	        Project project,
+//	        DeletedPoSyncDTO dto) {
+//
+//	    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+//	    boolean changed = false;
+//
+//	    String newStart =
+//	            dto.getProjectStartDateAfterDeletion() != null
+//	                    ? df.format(dto.getProjectStartDateAfterDeletion())
+//	                    : null;
+//
+//	    String newEnd =
+//	            dto.getProjectEndDateAfterDeletion() != null
+//	                    ? df.format(dto.getProjectEndDateAfterDeletion())
+//	                    : null;
+//
+//	    if (!Objects.equals(project.getStartDate(), newStart)) {
+//	        project.setStartDate(newStart);
+//	        changed = true;
+//	    }
+//
+//	    if (!Objects.equals(project.getEndDate(), newEnd)) {
+//	        project.setEndDate(newEnd);
+//	        changed = true;
+//	    }
+//	    
+//	    validationService.validateEmployeeExists(
+//                dto.getDeletedByEmpId(),
+//                dto.getDeletedByEmpName()
+//        );
+//
+//	    if (changed) {
+//	        project.setUpdatedBy(dto.getDeletedByEmpId());
+//	        project.setUpdatedOn(
+//	                dto.getDeletedOn().toInstant()
+//	                        .atZone(ZoneId.systemDefault())
+//	                        .toLocalDateTime()
+//	        );
+//	        projectRepository.save(project);
+//	    }
+//	}
 	
 	public void setActiveFlagAsFalse(Project project,DeletedPoSyncDTO dto) {
 		
-		 Long updatedBy = validationService.validateAndGetEmployeeEmpId(
+		validationService.validateEmployeeExists(
                 dto.getDeletedByEmpId(),
                 dto.getDeletedByEmpName()
         );
 		 if (project.getActive().equalsIgnoreCase("true"))	{  
 	            project.setActive("false");
-	            project.setUpdatedBy(updatedBy);
+	            project.setUpdatedBy(dto.getDeletedByEmpId());
 	            project.setUpdatedOn(dto.getDeletedOn().toInstant()
 	                        .atZone(ZoneId.systemDefault())
 	                        .toLocalDateTime());           
@@ -4481,23 +4481,23 @@ public class ProjectService {
 	    boolean changed = false;
 	    
 	    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-	    if (!Objects.equals(
-	                    project.getStartDate(),
-	                    primaryProjectDto.getProjectStartDate())) {
-
-	        project.setStartDate(
-	        		df.format(primaryProjectDto.getProjectStartDate()));
-	        changed = true;
-	    }
-
-	    if ( !Objects.equals(
-	                    project.getEndDate(),
-	                    primaryProjectDto.getProjectEndDate())) {
-
-	        project.setEndDate(
-	                df.format(primaryProjectDto.getProjectEndDate()));
-	        changed = true;
-	    }
+//	    if (!Objects.equals(
+//	                    project.getStartDate(),
+//	                    primaryProjectDto.getProjectStartDate())) {
+//
+//	        project.setStartDate(
+//	        		df.format(primaryProjectDto.getProjectStartDate()));
+//	        changed = true;
+//	    }
+//
+//	    if ( !Objects.equals(
+//	                    project.getEndDate(),
+//	                    primaryProjectDto.getProjectEndDate())) {
+//
+//	        project.setEndDate(
+//	                df.format(primaryProjectDto.getProjectEndDate()));
+//	        changed = true;
+//	    }
 
 	    if (!changed) {
 	        return;
@@ -4580,6 +4580,82 @@ public class ProjectService {
 	        "     ) " +
 	        " ) ";
 	}
+	
+	
+
+	public void recalculateProjectDates(Integer projectId) {
+
+	    Project project = projectRepository.findById(projectId)
+	            .orElseThrow(() ->
+	                    new RuntimeException("Project not found for id=" + projectId)
+	            );
+
+	  
+	    List<ProjectPoDetails> activePos =
+	            projectPoDetailsRepository.findByProjectIdAndActiveTrue(projectId);
+
+//	    if (activePos == null || activePos.isEmpty()) {
+//	        return; 
+//	    }
+
+	   
+	    LocalDateTime minPoStart = activePos.stream()
+	            .map(ProjectPoDetails::getPoStartDate)
+	            .min(LocalDateTime::compareTo)
+	            .orElse(null);
+
+	    LocalDateTime maxPoEnd = activePos.stream()
+	            .map(ProjectPoDetails::getPoEndDate)
+	            .max(LocalDateTime::compareTo)
+	            .orElse(null);
+
+	   
+	    List<Long> teamIds =
+	            teamRepository.findTeamIdsByProjectId(projectId);
+
+	    LocalDateTime employeeMinStart = null;
+
+	    if (teamIds != null && !teamIds.isEmpty()) {
+
+	        employeeMinStart =
+	        		employeeTeamMapRepository.
+	                        findMinEmployeeStartDateByTeamIds(teamIds);
+	    }
+
+	    LocalDateTime finalProjectStart;
+
+	    if (employeeMinStart != null && minPoStart != null) {
+
+	        finalProjectStart =
+	                minPoStart.isBefore(employeeMinStart)
+	                        ? minPoStart
+	                        : employeeMinStart;
+
+	    } else if (minPoStart != null) {
+
+	        finalProjectStart = minPoStart;
+
+	    } else {
+
+	        finalProjectStart = employeeMinStart;
+	    }
+
+
+	   
+	    LocalDateTime finalProjectEnd = maxPoEnd;
+
+	   
+	    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+	    if (finalProjectStart != null) {
+	        project.setStartDate(finalProjectStart.toLocalDate().format(formatter));
+	    }
+
+	    if (maxPoEnd != null) {
+	        project.setEndDate(maxPoEnd.toLocalDate().format(formatter));
+	    }
+	}
+
 
 	
 	

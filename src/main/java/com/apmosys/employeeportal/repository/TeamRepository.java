@@ -224,5 +224,8 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 			+ "where t.teamId IN :teamIds AND t.isActive = 'Y'  \n"
 			+ "GROUP BY t.teamId ")
 	public List<RmgResourceRequirementDto> getTeamIdAndRequiredCountByTeamIdIn(List<Long> teamIds);
+
+	@Query(value ="Select distinct(t.teamId) from Team t where t.projectId = :projectId ")
+	public List<Long> findTeamIdsByProjectId(Integer projectId);
 	
 }

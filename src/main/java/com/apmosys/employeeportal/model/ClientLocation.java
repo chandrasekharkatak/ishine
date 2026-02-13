@@ -43,6 +43,8 @@ public class ClientLocation {
 	
 	
 	
+	
+	
 	public ClientLocation(Integer clientId,String clientLocation){
 		this.clientId = clientId;
 		this.clientLocation = clientLocation;

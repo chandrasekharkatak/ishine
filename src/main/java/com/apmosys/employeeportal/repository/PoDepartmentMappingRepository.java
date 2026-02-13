@@ -72,5 +72,12 @@ public interface PoDepartmentMappingRepository extends JpaRepository<PoDepartmen
 
 	List<PoDepartmentMapping> findByPoIdAndActiveTrue(Long poId);
 	List<PoDepartmentMapping> findByProjectIdAndActiveTrue(Integer sourceProjectId);
+	
+	@Query(value ="SELECT DISTINCT e.email\n"
+			+ "FROM PoDepartmentMapping pd\n"
+			+ "JOIN Department d ON pd.deptId = d.deptId\n"
+			+ "JOIN Employee e ON d.hodId = e.empId\n"
+			+ "WHERE pd.poId = :poId AND pd.active = true")
+	List<String> findHodEmailsByPoId(Long poId);
 
 }

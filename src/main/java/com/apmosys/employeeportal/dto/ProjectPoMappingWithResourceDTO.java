@@ -24,8 +24,8 @@ public class ProjectPoMappingWithResourceDTO {
 	private Long projectId;
     private String projectName;
     private String projectType;
-    private Date projectStartDate;
-    private Date projectEndDate;
+//    private Date projectStartDate;
+//    private Date projectEndDate;
     private Long clientId;
     private String clientName;
     private String projectStatus;
