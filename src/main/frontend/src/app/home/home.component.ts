@@ -3489,7 +3489,7 @@ resetPreviewState() {
 
 redirectToViewTeamTimesheet() {
   this.router.navigate(
-    ['/user-timesheet'],
+    ['/user-timesheet/team-timesheet'],
     { queryParams: { tab: 'team-timesheet', view: 'requests' } }
   );
 }

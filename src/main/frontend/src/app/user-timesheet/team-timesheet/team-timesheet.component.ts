@@ -2503,7 +2503,7 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
   rejectRemark: this.timesheetObj.rejectReason?.trim() || ''
     };
 
-  
+
 
     this.timesheetNewService
       .bulkRejectTimesheetsByIds1(payload)
