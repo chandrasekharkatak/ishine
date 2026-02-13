@@ -151,6 +151,7 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeCertificates;
 import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
+import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.FCLineItem;
 import com.apmosys.employeeportal.model.FCProjectMilestone;
 import com.apmosys.employeeportal.model.JobRole;
@@ -14808,7 +14809,35 @@ public class ResourceManagementService {
         	 try {
         	    String status = request.getStatus();
         	     List<Long> TimesheetLists = request.getTimesheetIds();
-        	     List<Object[]> result=projectTimesheetStatusNewRepository.findProjectsForTimesheetIds(TimesheetLists);
+        	     if ("REJECTED".equalsIgnoreCase(status) && TimesheetLists.size() > 1) {
+        	         throw new IllegalArgumentException("Only one timesheet can be rejected at a time.");
+        	     }
+//        	     List<Object[]> result=projectTimesheetStatusNewRepository.findProjectsForTimesheetIds(TimesheetLists);
+        	     List<EmployeeTimesheetsNew> timesheets =
+        	                employeeTimesheetsNewRepository.findAllById(TimesheetLists);
+        	     Map<Long, String> skippedTimesheets = new HashMap<>();
+        	        List<Long> validTimesheetIds = new ArrayList<>();
+        	     for (EmployeeTimesheetsNew ts : timesheets) {
+
+        	            if (ts.getStatus() == 1) {
+        	                validTimesheetIds.add(ts.getTimesheetId());
+        	            } else if (ts.getStatus() == 2) {
+        	                skippedTimesheets.put(ts.getTimesheetId(), "Already Approved");
+        	            } else if (ts.getStatus() == 3) {
+        	                skippedTimesheets.put(ts.getTimesheetId(), "Already Rejected");
+        	            }
+        	        }
+
+        	        if (validTimesheetIds.isEmpty()) {
+
+        	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        	            response.setServiceResponse("No valid timesheets to process");
+        	            response.setServiceError(skippedTimesheets);
+        	            return response;
+        	        }
+        	        List<Object[]> result =
+        	                projectTimesheetStatusNewRepository
+        	                        .findProjectsForTimesheetIds(validTimesheetIds);
         	     Map<Long, List<Long>>timesheetProjectMap=new HashMap<>();
         	     for (Object[] row : result) {
         	    	 Long timesheetId = ((Number) row[0]).longValue();
@@ -14821,13 +14850,16 @@ public class ResourceManagementService {
         	    Long updatedBy = request.getUpdatedBy();
 
 
-        	    	 saveAuditForApprovalandRejection(TimesheetLists,timesheetProjectMap, updatedBy,status);
+        	    	 saveAuditForApprovalandRejection(validTimesheetIds,timesheetProjectMap, updatedBy,status);
         	     if ("REJECTED".equalsIgnoreCase(status)) {
         	        saveRejectionDetails( request);
         	    }
+        	     Map<String, Object> finalResponse = new HashMap<>();
+        	        finalResponse.put("processed", validTimesheetIds);
+        	        finalResponse.put("skipped", skippedTimesheets);
 
         	     response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-        	        response.setServiceResponse("Timesheets " + status + " successfully");
+        	        response.setServiceResponse(finalResponse);
 
         	    } catch (Exception e) {
 

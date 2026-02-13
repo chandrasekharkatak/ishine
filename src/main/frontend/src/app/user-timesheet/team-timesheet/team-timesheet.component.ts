@@ -2125,13 +2125,32 @@ projectList: any[] = [];
       .bulkApproveTimesheetsByIds1(payload)
       .subscribe({
         next: (res: any) => {
+          this.modalTitle = 'Result';
+        let message = '';
           if (res?.serviceStatus === 'Success') {
-            this.clearAllSelections();
-            this.selectedStatus = 2;
-            this.page1 = 1;
-            this.getMyReporteesTimesheetRequests();
-            this.modalMessage =res.serviceResponse || 'Timesheets approved successfully';
-          } else {
+
+          const processed = res?.serviceResponse?.processed || [];
+          const skipped = res?.serviceResponse?.skipped || {};
+
+          if (processed.length) {
+            message += `${processed.length} timesheet(s) approved successfully.\n`;
+          }
+
+          const skippedKeys = Object.keys(skipped);
+          if (skippedKeys.length) {
+            message += `\nSkipped:\n`;
+            skippedKeys.forEach(id => {
+              message += `Timesheet ${id}: ${skipped[id]}\n`;
+            });
+          }
+
+          this.clearAllSelections();
+          this.selectedStatus = 2;
+          this.page1 = 1;
+          this.getMyReporteesTimesheetRequests();
+          this.modalMessage =message;
+
+        } else {
             this.modalTitle = 'Error';
             this.modalMessage =
             res?.serviceResponse || 'Bulk approval failed';
