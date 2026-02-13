@@ -8530,6 +8530,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "            COALESCE(its.ishine_pending_Days, 0) AS clientSidePendingCount,\n"
 			+ "            COALESCE(its.ishine_approved_Days, 0) AS clientSideApprovedCount,\n"
 			+ "            CASE\n"
+			+ "				   WHEN eiwd.expected_ishine_days is null THEN 'Defaulter'\n"
 			+ "                WHEN GREATEST(0,\n"
 			+ "                    COALESCE(eiwd.expected_ishine_days, 0)\n"
 			+ "                    - (COALESCE(its.ishine_approved_Days, 0) + COALESCE(its.ishine_pending_Days, 0))\n"
