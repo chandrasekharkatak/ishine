@@ -14816,6 +14816,7 @@ public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
 		String traceId = UUID.randomUUID().toString();
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		String sourceSystem = httpRequest.getRequestURI();
+		LogDTO apiLogInfo = new LogDTO();
 
 		int totalPoClientCount = 0;
 		int totalIshineClientCount = 0;
@@ -14858,6 +14859,8 @@ public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
 				finalHttpStatusCode = HttpStatus.EXPECTATION_FAILED.value();
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No Clients found from PO!");
+				apiLogInfo.setApiResponse("No Clients found from PO!");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				return response;
 			}
 
@@ -14894,6 +14897,11 @@ public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
 			response.setServiceResponse("Client Sync Completed. "+updatedUsing+" Total PO Clients: " + totalPoClientCount
 					+ " Total iShine Clients(found in db): " + totalIshineClientCount + ", Updated: " + updatedCount
 					+ ", Inserted: " + insertedCount);
+			apiLogInfo.setApiResponse("Client Sync Completed. "+updatedUsing+" Total PO Clients: " + totalPoClientCount
+					+ " Total iShine Clients(found in db): " + totalIshineClientCount + ", Updated: " + updatedCount
+					+ ", Inserted: " + insertedCount);			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
 
 		} catch (Exception e) {
 
@@ -14906,6 +14914,9 @@ public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
 			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Error: " + errorMessage);
+			apiLogInfo.setApiResponse("Error: " + errorMessage);			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
 
 		} finally {
 			if (!failedClientIds.isEmpty()) {
