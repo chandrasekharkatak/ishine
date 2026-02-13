@@ -309,7 +309,10 @@ public class ResourceManagementService {
 	private ApiLogUtility apiLogUtility;
 
 	@PersistenceContext
-	private EntityManager entityManager;
+	private EntityManager entityManager; 
+	
+	@Autowired
+	private ClientService clientService;
 
 	@Value("${rmg.mail}")
 	private String rmgMail;
@@ -14806,7 +14809,6 @@ public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
 		return ishineProjectStatus;
 	}
 
-	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse oneTimeUpdatePoClientId(String mode) {
 
 		ServiceResponse response = new ServiceResponse();
@@ -14821,6 +14823,7 @@ public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
 		int insertedCount = 0;
 		boolean isOnce = "once".equalsIgnoreCase(mode);
 		String updatedUsing = "";
+		List<Long> failedClientIds = new ArrayList<>();
 
 		try {
 
@@ -14832,21 +14835,26 @@ public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
 			headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
 
 			HttpEntity<?> requestEntity = new HttpEntity<>(headers);
+			log.info("Calling po api : /client/syncCLientDetails");
 
 			ResponseEntity<ClientDetailsSyncDto[]> responseEntity = restTemplate.exchange(syncCLientDetails,
 					HttpMethod.GET, requestEntity, ClientDetailsSyncDto[].class);
 
 			ClientDetailsSyncDto[] poResponseArray = responseEntity.getBody();
+			
+			log.info("Response fetched from api : /client/syncCLientDetails");
 
 			List<ClientDetailsSyncDto> poClientList = Arrays
 					.asList(poResponseArray != null ? poResponseArray : new ClientDetailsSyncDto[0]);
 
 			Map<String, ClientDetailsSyncDto> poClientMap = poClientList.stream()
 					.filter(poDto -> poDto.getClientName() != null)
-					.collect(Collectors.toMap(poDto -> poDto.getClientName().trim().toLowerCase(), poDto -> poDto,
+					.collect(Collectors.toMap(poDto -> poDto.getClientName().trim().toLowerCase()
+							, poDto -> poDto,
 							(existing, replacement) -> existing));
 
 			if (poClientMap.isEmpty()) {
+				log.info("Response fetched from api : /client/syncCLientDetails is empty");
 				finalHttpStatusCode = HttpStatus.EXPECTATION_FAILED.value();
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No Clients found from PO!");
@@ -14863,17 +14871,21 @@ public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
 				List<String> poBatch = poNames.subList(i, Math.min(i + batchSize, poNames.size()));
 
 	            if (isOnce) {
-	                int[] result = processByClientName(poBatch, poClientMap);
+					log.info("Updating clients using ClientName!! isOnce value ",isOnce);
+					Object[] result = processByClientName(poBatch, poClientMap);
 	                updatedUsing = "Updated using ClientName!!";
-	                updatedCount += result[0];
-	                insertedCount += result[1];
-	                totalIshineClientCount += result[2];
+	                updatedCount += (int) result[0];
+	                insertedCount += (int) result[1];
+	                totalIshineClientCount += (int) result[2];
+	                failedClientIds.addAll((List<Long>) result[3]);
 	            } else {
-	                int[] result = processByPoClientId(poBatch, poClientMap);
+					log.info("Updating clients using PoClientId!! isOnce value ",isOnce);
+					Object[] result = processByPoClientId(poBatch, poClientMap);
 	                updatedUsing = "Updated using PoClientId!!";
-	                updatedCount += result[0];
-	                insertedCount += result[1];
-	                totalIshineClientCount += result[2];
+	                updatedCount += (int) result[0];
+	                insertedCount += (int) result[1];
+	                totalIshineClientCount += (int) result[2];
+	                failedClientIds.addAll((List<Long>) result[3]);
 	            }
 	        }
 			
@@ -14891,13 +14903,16 @@ public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
 			if (e.getCause() != null && e.getCause().getMessage() != null) {
 				errorMessage = e.getCause().getMessage();
 			}
+			finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Error: " + errorMessage);
 
 		} finally {
-
+			if (!failedClientIds.isEmpty()) {
+		        log.error("Client Sync Failed For ClientIds: {}", failedClientIds);
+		    }
 			if (initialLog != null) {
-				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, ExceptionLogContext.get(),
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode,failedClientIds + ExceptionLogContext.get(),
 						httpRequest);
 			}
 		}
@@ -14905,11 +14920,12 @@ public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
 		return response;
 	}
 
-	private int[] processByClientName(List<String> poBatch, Map<String, ClientDetailsSyncDto> poClientMap) {
+	private Object[] processByClientName(List<String> poBatch, Map<String, ClientDetailsSyncDto> poClientMap) {
 
 		int updated = 0;
 		int inserted = 0;
 		int iShinecount = 0;
+	    List<Long> failedClientIds = new ArrayList<>();
 
 		List<Client> iShineClients = clientsRepository.findByTrimmedClientNameIn(poBatch);
 		iShinecount = iShineClients.size();
@@ -14921,37 +14937,31 @@ public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
 
 			ClientDetailsSyncDto poDto = poClientMap.get(clientNamePo);
 			Client iShineClient = iShineMap.get(clientNamePo);
+			
+			try {
+		        int[] result = clientService.processSingleClientByName(clientNamePo, poDto, iShineClient);
+		        updated += result[0];
+		        inserted += result[1];
 
-			if (iShineClient != null) {
-
-				if (!Objects.equals(iShineClient.getPoClientId(), poDto.getClientid())) {
-					iShineClient.setPoClientId(poDto.getClientid());
-					updated++;
+		    } catch (Exception e) {
+		    	ExceptionLogContext.add(e);
+				String errorMessage = e.getMessage();
+				if (e.getCause() != null && e.getCause().getMessage() != null) {
+					errorMessage = e.getCause().getMessage();
 				}
-
-				syncClientLocations(iShineClient, poDto);
-
-			} else {
-
-				Client newClient = new Client();
-				newClient.setClientName(poDto.getClientName());
-				newClient.setPoClientId(poDto.getClientid());
-
-				clientsRepository.save(newClient);
-				inserted++;
-
-				syncClientLocations(newClient, poDto);
-			}
-		}
-
-		return new int[] { updated, inserted, iShinecount };
+		        failedClientIds.add(poDto.getClientid());
+		        log.error("Error processing client: {}", clientNamePo, errorMessage);
+		    }
+		}	
+		return new Object[]{updated, inserted, iShinecount, failedClientIds};
 	}
 
-	private int[] processByPoClientId(List<String> poBatch, Map<String, ClientDetailsSyncDto> poClientMap) {
+	private Object[] processByPoClientId(List<String> poBatch, Map<String, ClientDetailsSyncDto> poClientMap) {
 
 		int updated = 0;
 		int inserted = 0;
 		int iShinecount = 0;
+	    List<Long> failedClientIds = new ArrayList<>();
 
 		List<Long> poIds = poBatch.stream().map(name -> poClientMap.get(name).getClientid()).filter(Objects::nonNull)
 				.collect(Collectors.toList());
@@ -14968,83 +14978,23 @@ public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
 			ClientDetailsSyncDto poDto = poClientMap.get(clientNamePo);
 			Client iShineClient = iShineMap.get(poDto.getClientid());
 
-			if (iShineClient != null) {
+			try {
+		        int[] result = clientService.processSingleClientByPoId(poDto, iShineClient);
+		        updated += result[0];
+		        inserted += result[1];
 
-				if (!iShineClient.getClientName().trim().equalsIgnoreCase(poDto.getClientName().trim())) {
-
-					iShineClient.setClientName(poDto.getClientName());
-					updated++;
+		    } catch (Exception e) {
+		    	ExceptionLogContext.add(e);
+				String errorMessage = e.getMessage();
+				if (e.getCause() != null && e.getCause().getMessage() != null) {
+					errorMessage = e.getCause().getMessage();
 				}
-
-				syncClientLocations(iShineClient, poDto);
-
-			} else {
-				Client newClient = new Client();
-				newClient.setClientName(poDto.getClientName());
-				newClient.setPoClientId(poDto.getClientid());
-				clientsRepository.save(newClient);
-				inserted++;
-
-				syncClientLocations(newClient, poDto);
-			}
-		}
-
-		return new int[] { updated, inserted,iShinecount };
+		        failedClientIds.add(poDto.getClientid());
+		        log.error("Error processing clientId: {}", poDto.getClientid(), errorMessage);
+		    }
+		}	
+		return new Object[]{updated, inserted, iShinecount, failedClientIds};
 	}
 
-	private void syncClientLocations(Client iShineClient, ClientDetailsSyncDto poDto) {
-
-		if (poDto.getClientAddress() == null || poDto.getClientAddress().isEmpty()) {
-			return;
-		}
-
-		List<ClientLocation> iShineLocations = clientLocationRepository.findByClientIdPK(iShineClient.getClientId());
-
-		Map<String, ClientLocation> iShineLocationMap = iShineLocations.stream().collect(
-				Collectors.toMap(loc -> loc.getClientLocation().trim().toLowerCase(), loc -> loc, (e1, e2) -> e1));
-
-		List<ClientLocation> locationsToSave = new ArrayList<>();
-
-		for (ClientAddressSyncDto poLocationDto : poDto.getClientAddress()) {
-
-			if (poLocationDto.getClientLocation() == null)
-				continue;
-
-			String poLoc = poLocationDto.getClientLocation().trim().toLowerCase();
-			ClientLocation existingLocation = iShineLocationMap.get(poLoc);
-
-			if (existingLocation != null) {
-
-				boolean updated = false;
-
-				if (existingLocation.getClientState() == null && poLocationDto.getClientState() != null) {
-					existingLocation.setClientState(poLocationDto.getClientState());
-					updated = true;
-				}
-
-				if (existingLocation.getClientAddressId() == null && poLocationDto.getClientAddressId() != null) {
-					existingLocation.setClientAddressId(poLocationDto.getClientAddressId());
-					updated = true;
-				}
-
-				if (updated) {
-					locationsToSave.add(existingLocation);
-				}
-
-			} else {
-				ClientLocation newLocation = new ClientLocation();
-				newLocation.setClientId(iShineClient.getClientId());
-				newLocation.setClientLocation(poLocationDto.getClientLocation());
-				newLocation.setClientState(poLocationDto.getClientState());
-				newLocation.setClientAddressId(poLocationDto.getClientAddressId());
-
-				locationsToSave.add(newLocation);
-			}
-		}
-
-		if (!locationsToSave.isEmpty()) {
-			clientLocationRepository.saveAll(locationsToSave);
-		}
-	}
-
+	
 }
