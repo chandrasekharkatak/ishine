@@ -7518,7 +7518,7 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	        	
 	        	if (isEmployeeRepeated) {
 	        		
-	                employeeIds = timesheetsRepository
+	                employeeIds = employeeTimesheetsNewRepository
 	                        .getPaginatedEmployeeIdsForClientAttendanceRepeated(
 	                            object.getMonth(),
 	                            object.getYear(),
@@ -7533,7 +7533,7 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	                        );
 	        		
 
-	        	    empTimesheet = timesheetsRepository
+	        	    empTimesheet = employeeTimesheetsNewRepository
 	        	        .getEmployeeViewForClientAttendanceStatusRepeated(
 	        	            object.getMonth(),
 	        	            object.getYear(),
@@ -7550,7 +7550,7 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	        	        );
 	        	    
 	        	    totalDistinctEmployees =
-    	            timesheetsRepository.getTotalEmployeeCountForClientRepeated(
+	        	    		employeeTimesheetsNewRepository.getTotalEmployeeCountForClientRepeated(
     	                object.getMonth(),
     	                object.getYear(),
     	                object.getEmpId(),
@@ -7564,14 +7564,14 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 
 	        	} else {
 	        		
-		        	employeeIds = timesheetsRepository.getPaginatedEmployeeIdsForClientAttendance(
+		        	employeeIds = employeeTimesheetsNewRepository.getPaginatedEmployeeIdsForClientAttendance(
 		        			object.getMonth(),
 		                    object.getYear(),
 		                    object.getEmpId(),
 		                    object.getStatus(),
 							object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
 		                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,offset,pageSize,object.getDeptId(),object.getEmployeeActive(),object.getBillableType(), object.getMultiPOs());		        	
-		        	empTimesheet = timesheetsRepository
+		        	empTimesheet = employeeTimesheetsNewRepository
 	        	        .getEmployeeViewForClientAttendanceStatusNew(
 	        	            object.getMonth(),
 	        	            object.getYear(),
@@ -7587,7 +7587,7 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	        	            object.getDeptId(),
 							object.getEmployeeActive(), object.getBillableType(),object.getMultiPOs());
 	        	    
-		            totalDistinctEmployees = timesheetsRepository.getTotalEmployeeCountForClientApplicable(
+		            totalDistinctEmployees = employeeTimesheetsNewRepository.getTotalEmployeeCountForClientApplicable(
 		            		object.getMonth(),
 		                    object.getYear(),
 		                    object.getEmpId(),
