@@ -104,8 +104,8 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
 
 		List<ProjectPoDetails> findByProjectIdAndPoIdIn(Integer projectId, Set<Long> poIdsFromPortal);
 		
-        @Query("SELECT new com.apmosys.employeeportal.dto.IshineToPoEmployeeDTO( "
-        		+ "       e.employeementId,e.name,prm.role,prm.experience,prm.department,"
+		@Query("SELECT new com.apmosys.employeeportal.dto.IshineToPoEmployeeDTO( "
+        		+ "       e.employeementId,e.name,rd.role,rd.experience,rd.department,"
         		+ "       prm.clientRoleId,p.clientId,COUNT(DISTINCT et.timesheetId),"
         		+ "       MIN(et.date),MAX(et.date),e.isApmosysProduct,ppo.poId,"
         		+ "		  et.empId,et.shadowEmpId,etm.isShadow ) "
@@ -120,7 +120,8 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
         		+ "          AND ppo.clientAddressId IS NOT NULL AND ppo.active=1"
         		+ "		LEFT JOIN PoRequirementMapping prm ON prm.poId = ppo.poId "
         		+ "		LEFT JOIN EmployeeTeamMap etm on etm.empId = et.empId AND etm.poId=t.poId "
-        		+ "            and etm.poRequirementMappingId = prm.poRequirementMappingId"
+        		+ "            and etm.roleId = prm.roleId"
+        		+ "		LEFT JOIN RoleDetails rd on rd.roleId = etm.roleId "
         		+ "		LEFT JOIN Employee e on e.empId=etm.empId "
         		+ "		LEFT JOIN Department d ON d.name = prm.department "
         		+ "		where 1=1 AND et.empId = :empId AND p.clientId = :clientId "

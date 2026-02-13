@@ -702,6 +702,12 @@ public class ResourceManagementController {
 			@RequestParam String projectType) {
 		return resourceManagementService.getResourceRequirementCountByPoId(poId, projectId, projectType);
 	}
+	
+//	@Scheduled(cron = "0 0 0 * * ?")
+	@GetMapping("/oneTimeUpdatePoClientId")
+	public ServiceResponse oneTimeUpdatePoClientId(@RequestParam(value = "mode", required = false) String mode) {
+		return resourceManagementService.oneTimeUpdatePoClientId(mode);
+	}
 	 
 	
 }

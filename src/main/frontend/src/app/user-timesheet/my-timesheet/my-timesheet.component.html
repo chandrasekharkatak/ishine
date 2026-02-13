@@ -1,10 +1,3 @@
-<!-- <app-my-timesheet-header [userMapping]="userMapping" [isTimesheetForm]="isTimesheetForm" [isCreation]="isCreation"
-    [isTimesheetBulkForm]="isTimesheetBulkForm" [isTimesheetTable]="isTimesheetTable" [clientIdNeeded]="clientIdNeeded"
-    (createTimesheetClicked)="resetTimesheetForm(); showCreateTimesheetForm()"
-    (bulkUploadClicked)="resetTimesheetForm(); showBulkUploadForm()"
-    (viewMyTimesheetsClicked)="resetTimesheetForm(); showViewMyTimesheets()">
-</app-my-timesheet-header> -->
-
 <div class="row mb-3 ml-2 mr-2">
   <div class="col-md-12 px-0">
     <div class="timesheet-actions">
@@ -16,7 +9,7 @@
         (click)="onFormTypeSelect('createTimesheet')"
       >
         <i class="fa fa-plus-circle me-1"></i>
-        Create Timesheet Testing
+        Create Timesheet
       </button>
 
       <button
@@ -885,9 +878,6 @@
 <!-- ============================================ -->
 <div class="row" *ngIf="isTimesheetForm && isCreation">
     <div class="card col-md-12 px-0">
-        <div class="card-header text-center text-uppercase">
-            <strong>Create Timesheet</strong>
-        </div>
         <div class="card-body">
             <app-timesheet-form 
                 [isCreation]="true"
@@ -905,9 +895,6 @@
 <!-- OLD UPDATE FORM - KEEP FOR NOW (can be replaced later) -->
 <div class="row" *ngIf="isTimesheetForm && isUpdation">
     <div class="card col-md-12 px-0">
-        <div class="card-header text-center text-uppercase">
-            <strong>Update Timesheet</strong>
-        </div>
         <div class="card-body">
             <app-timesheet-form 
                 [isCreation]="false"
@@ -922,34 +909,7 @@
     </div>
 </div>
 
-    <!-- <div *ngIf="employeeInTNMProject">
-        <div class="tnm-rules-wrapper">
-            <button type="button" (click)="openPolicySidebar()" class="tnm-rules" title="View Rules">
-                <div class="tnm-rules-inner">
-                    <img src="assets/Images/transcDragRules.gif" />
-                </div>
-                <span class="rules-label">
-                    <<<< Click To View Rules </span>
-            </button>
-
-            <div class="help-manual-wrapper">
-
-                <span><img src="assets/Images/eye25.gif" /></span>
-                <span class="help-manual-text"> Need help filling the form?</span>
-                <button type="button" (click)="openUserManualPdf()" class="help-manual-btn" title="View User Manual">
-                    <svg class="document-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="12" y1="11" x2="12" y2="17"></line>
-                        <line x1="9" y1="14" x2="15" y2="14"></line>
-                    </svg>
-                </button>
-            </div>
-        </div>
-    </div> -->
-
-
-    <div *ngIf="employeeInTNMProject">
+       <div *ngIf="employeeInTNMProject"> 
         <div class="tnm-rules-wrapper">
 
             <button type="button" (click)="openPolicySidebar()" class="tnm-rules" title="View Rules">
@@ -958,23 +918,7 @@
                 </div>
                 <span class="rules-label">
                     <<< Click To View Rules</span>
-            </button>
-
-            <!-- <div class="help-manual-wrapper" *ngIf="!isPolicySidebarOpen">
-                <img src="assets/Images/eye25.gif" />
-                <span class="help-manual-text">Need help filling the form?</span>
-
-                <button type="button" (click)="openUserManualPdf()" class="help-manual-btn" title="View User Manual">
-                    <svg class="document-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="12" y1="11" x2="12" y2="17"></line>
-                        <line x1="9" y1="14" x2="15" y2="14"></line>
-                    </svg>
-                </button>
-            </div> -->
-
-
+            </button>    
         </div>
     </div>
 
@@ -1635,44 +1579,6 @@
         </div>
     </div>
 </div>
-
-
-<!-- End :: showBulkUploadForm -->
-
-<!-- Advance filter backupcode -->
-
-<!-- <div class="row">
-    <div class="form-group col-md-3 mb-2 mt-4 pt-2">
-        <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
-    </div>
-    <div class="form-group col-md-3 mb-2 mt-4 pt-2">
-        <button type="button" class="btn btn-sm btn-outline-primary mx-1" (click)="openFilterModal(filter, timesheetColumns, 'Filter Timesheet')"><i class="fa-solid fa-filter"></i></button>
-    </div>
-</div> -->
-
-
-
-
-<!-- Filter Modal -->
-<!-- <ng-template #filter>
-<div class="modal-header">
-<b>{{filterData.title}}</b>
-<button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
-    <span aria-hidden="true">&times;</span>
-</button>
-</div>
-<div class="modal-body ">
-<app-custom-filter (filterSubmitted)="onFilterSubmit($event,alert_message)" [data]="filterData"></app-custom-filter>
-</div>
-</ng-template> -->
-
-
-
-
-
-
-
-
 
 <!-- Modals Template -->
 <ng-template #update_timesheet_template>
