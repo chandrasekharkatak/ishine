@@ -14414,7 +14414,7 @@ public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
 
 	    Long updatedBy = validationService.
 	            validateAndGetEmployeeEmpId(
-	                    poDto.getUpdatedByEmpId(),
+	                    poDto.getUpdatedByEmpId().toString(),
 	                    poDto.getUpdatedByEmpName());
 		
 		for (ProjectPoMappingWithResourceDTO deletedProject : payloadDTO.getDeletedProjects()) {
