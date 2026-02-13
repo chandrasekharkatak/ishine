@@ -452,13 +452,6 @@ public class PoSyncOrchestratorService {
 	        // case 1 - when just order of project is changed
 	        if (dto.getDeletedProjects() == null || dto.getDeletedProjects().isEmpty()) {
 
-	            
-
-//	            projectService.updateProjectDatesIfChanged(
-//	                    primaryProject,
-//	                    dto.getPrimaryProject()
-//	            );
-
 	            poDetailsService.updatePoOrderOnly(
 	                    primaryProject.getProjectId(),
 	                    dto.getPrimaryProject()
@@ -475,10 +468,6 @@ public class PoSyncOrchestratorService {
 	                    dto
 	            );
 
-	            poDetailsService.deactivateDeletedProjectsPos(
-	                    dto.getDeletedProjects()
-	            );
-
 	            poDetailsService.movePosToPrimaryProject(
 	                    primaryProject,
 	                    dto
@@ -489,9 +478,8 @@ public class PoSyncOrchestratorService {
 	                    dto.getPrimaryProject().getPoDetailsList()
 	            );
 	            
-	            resourceManagementService.liftAndShiftTeamNew(dto);
 	            
-//	            teamsService.liftAndShiftTeams(dto);
+	            poDetailsService.liftAndShiftTeamNew(dto);
 
 	            projectService.deactivateDeletedProjects(
 	                    dto.getDeletedProjects()

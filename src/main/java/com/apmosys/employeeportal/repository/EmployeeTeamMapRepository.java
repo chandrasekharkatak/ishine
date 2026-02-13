@@ -19,6 +19,7 @@ import com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO;
 import com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO;
+import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse;
@@ -881,6 +882,17 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 	LocalDateTime findMinEmployeeStartDateByTeamIds(
 	        @Param("teamIds") List<Long> teamIds
 	);
+	
+	@Query("SELECT DISTINCT etm.empId\n"
+			+ " FROM EmployeeTeamMap etm\n"
+			+ " INNER JOIN Team t ON t.teamId = etm.teamId\n"
+			+ " INNER JOIN Project p ON p.projectId = t.projectId\n"
+			+ " WHERE p.projectId = :projectId\n"
+			+ "	AND etm.active != 0\n"
+			+ "	AND t.isActive = 'Y'\n"
+			+ "	AND p.active = true")
+	List<Long> findDistinctEmpIdsByProjectId(@Param("projectId") Long projectId);
+
 
 
 }

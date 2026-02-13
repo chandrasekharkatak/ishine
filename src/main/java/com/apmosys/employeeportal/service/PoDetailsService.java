@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -22,14 +23,22 @@ import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.ClientLocation;
+import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
 import com.apmosys.employeeportal.model.PoDepartmentMapping;
 import com.apmosys.employeeportal.model.PoRequirementMapping;
 import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.model.ProjectManagerMapping;
+import com.apmosys.employeeportal.model.ProjectOverheadMapping;
 import com.apmosys.employeeportal.model.ProjectPoDetails;
+import com.apmosys.employeeportal.model.Team;
+import com.apmosys.employeeportal.repository.EmpPrimaryProjectMappingRepository;
+import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.PoDepartmentMappingRepository;
 import com.apmosys.employeeportal.repository.PoRequirementMappingRepository;
+import com.apmosys.employeeportal.repository.ProjectManagerMappingRepository;
+import com.apmosys.employeeportal.repository.ProjectOverheadMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectPoDetailsRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
@@ -59,12 +68,23 @@ public class PoDetailsService {
 	@Autowired
 	EmployeeTeamMapRepository employeeTeamMapRepository;
 	
-	
 	@Autowired
 	PoDepartmentMappingRepository poDepartmentMappingRepository;
 	
 	@Autowired
 	PoRequirementMappingRepository poRequirementMappingRepository;
+	
+	@Autowired
+	EmpPrimaryProjectMappingRepository empPrimaryProjectMappingRepository;
+
+	@Autowired
+	ProjectManagerMappingRepository projectManagerMappingRepository;
+	
+	@Autowired
+	ProjectOverheadMappingRepository projectOverheadMappingRepository;
+	
+	@Autowired
+	private EmployeeClientSideIdMappingRepository employeeClientSideIdMappingRepository;
 
 	public ProjectPoDetails createPoRTS(Project project, ProjectPoMappingWithResourceDTO dto, Client client) {
 
@@ -637,75 +657,73 @@ public class PoDetailsService {
 	    }
 	}
 	
-	public void movePosToPrimaryProject(
-	        Project primaryProject,
-	        IshineLinkProjectDto dto) {
+	public void movePosToPrimaryProject( Project primaryProject, IshineLinkProjectDto dto) {
+
+	    if (primaryProject == null || dto == null || dto.getDeletedProjects() == null) {
+	        ExceptionLogContext.add("Invalid input to movePosToPrimaryProject");
+	        throw new RuntimeException("Invalid input to movePosToPrimaryProject");
+	    }
 
 	    for (ProjectPoMappingWithResourceDTO deleted : dto.getDeletedProjects()) {
 
-	        Project deletedProject =
-	                projectRepository.findByPoProjectId(deleted.getProjectId());
-
-	      
-	        Set<Long> poIdsFromPortal =  
-	        		deleted.getPoDetailsList()
-                    .stream()
-                    .map(PoDetailsForProjectPoMappingDTO::getPoId)
-                    .collect(Collectors.toSet());
-	        if (poIdsFromPortal == null || poIdsFromPortal.isEmpty()) {
-	        	ExceptionLogContext.add("no po's found in deleted proj  | poProjectId="
-                        + deleted.getProjectId());
-	        	throw new RuntimeException(
-	                    "no po's found in deleted proj  | poProjectId="
-	                            + deleted.getProjectId());
+	        if (deleted == null || deleted.getProjectId() == null) {
+	            continue;
 	        }
 
-	        List<ProjectPoDetails> oldPos =
+	        Project deletedProject = projectRepository.findByPoProjectId(deleted.getProjectId());
+
+	        if (deletedProject == null) {
+	            ExceptionLogContext.add(
+	                    "Deleted project not found | poProjectId=" + deleted.getProjectId());
+	            throw new RuntimeException(
+	                    "Deleted project not found | poProjectId=" + deleted.getProjectId());
+	        }
+
+	        if (deleted.getPoDetailsList() == null || deleted.getPoDetailsList().isEmpty()) {
+	            ExceptionLogContext.add(
+	                    "No POs found in deleted project | poProjectId=" + deleted.getProjectId());
+	            throw new RuntimeException(
+	                    "No POs found in deleted project | poProjectId=" + deleted.getProjectId());
+	        }
+
+	        Set<Long> poIdsFromPortal =
+	                deleted.getPoDetailsList()
+	                        .stream()
+	                        .map(PoDetailsForProjectPoMappingDTO::getPoId)
+	                        .filter(Objects::nonNull)
+	                        .collect(Collectors.toSet());
+
+	        if (poIdsFromPortal.isEmpty()) {
+	            ExceptionLogContext.add(
+	                    "PO IDs empty after filtering | poProjectId=" + deleted.getProjectId());
+	            throw new RuntimeException(
+	                    "PO IDs empty after filtering | poProjectId=" + deleted.getProjectId());
+	        }
+
+	        List<ProjectPoDetails> existingPos =
 	                projectPoDetailsRepository
 	                        .findByProjectIdAndPoIdIn(
 	                                deletedProject.getProjectId(),
 	                                poIdsFromPortal
 	                        );
 
-	        for (ProjectPoDetails oldPo : oldPos) {
+	        if (existingPos == null || existingPos.isEmpty()) {
+	            ExceptionLogContext.add(
+	                    "No matching PO records found for update | projectId="
+	                            + deletedProject.getProjectId());
+	            continue;
+	        }
 
-	            ProjectPoDetails newPo = new ProjectPoDetails();
+	        for (ProjectPoDetails po : existingPos) {
 
-	          
-	            newPo.setPoId(oldPo.getPoId());
-	            newPo.setPoNo(oldPo.getPoNo());
-	            newPo.setPoStartDate(oldPo.getPoStartDate());
-	            newPo.setPoEndDate(oldPo.getPoEndDate());
-	            newPo.setPrevPO(oldPo.getPrevPO());
-	            newPo.setNextPO(oldPo.getNextPO());
-	            newPo.setRenewable(oldPo.isRenewable());
+	            po.setProjectId(primaryProject.getProjectId());
+	            po.setPoProjectId(primaryProject.getPoProjectId());
+	            po.setActive(true);
 
-	            newPo.setClientAddressId(oldPo.getClientAddressId());
-	            newPo.setClientLocationId(oldPo.getClientLocationId());
-
-	           
-	            newPo.setProjectId(primaryProject.getProjectId());
-	            newPo.setPoProjectId(primaryProject.getPoProjectId());
-	            newPo.setMsg(oldPo.getMsg());
-	            newPo.setApmosysRM(oldPo.getApmosysRM()); 
-	            newPo.setApmosysRmEmail(oldPo.getApmosysRmEmail());
-	            newPo.setClientRm(oldPo.getClientRm());
-	            
-	            
-	            
-	            newPo.setCreatedBy(oldPo.getCreatedBy());
-	            newPo.setPoCreatedOn(oldPo.getPoCreatedOn());
-	            newPo.setUpdatedBy(oldPo.getUpdatedBy());
-	            newPo.setPoUpdatedOn(oldPo.getPoUpdatedOn());
-
-	            newPo.setActive(true);
-
-	            projectPoDetailsRepository.save(newPo);
+	            projectPoDetailsRepository.save(po);
 	        }
 	    }
 	}
-
-	
 	
 	public void validateAllPosAreActive(List<Long> poIds) {
 
@@ -729,14 +747,221 @@ public class PoDetailsService {
 	    }
 	}
 
+	public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
 
+	    Long updatedBy = fetchUpdatedBy(payloadDTO);
 
+	    ProjectPoMappingWithResourceDTO primaryProjectDTO = payloadDTO.getPrimaryProject();
 
+	    Set<String> primaryTeamNames = fetchPrimaryTeamNames(primaryProjectDTO.getProjectId());
+	    
+	    Set<Long> deletedProjectIds = payloadDTO.getDeletedProjects()
+	            .stream()
+	            .map(ProjectPoMappingWithResourceDTO::getProjectId)
+	            .filter(Objects::nonNull)
+	            .collect(Collectors.toSet());
 
+	    for (ProjectPoMappingWithResourceDTO deletedProject : payloadDTO.getDeletedProjects()) {
 
+	        updateDuplicateTeamNames( deletedProject, primaryTeamNames );
 
+	        maintainHasClientSideId( deletedProject.getProjectId(), primaryProjectDTO.getProjectId(), updatedBy );
 
+	        handlePoDepartmentMappings( deletedProject.getProjectId(), primaryProjectDTO.getProjectId(), updatedBy );
 
+	        handleProjectManagerMappings( deletedProject.getProjectId(), primaryProjectDTO.getProjectId(), updatedBy );
+
+	        handleProjectOverheadMappings( deletedProject.getProjectId(), primaryProjectDTO.getProjectId(), updatedBy );
+
+	        handleTeamsLiftAndShift( deletedProject.getProjectId(), primaryProjectDTO.getProjectId(), updatedBy );
+	        
+	        handleEmployeeClientSideIdMapping( primaryProjectDTO.getProjectId(), deletedProjectIds, updatedBy );
+	    }
+	}
+
+	private Long fetchUpdatedBy(IshineLinkProjectDto payloadDTO) {
+
+	    if (payloadDTO.getDeletedProjects().isEmpty()
+	            || payloadDTO.getDeletedProjects().get(0).getPoDetailsList().isEmpty()) {
+	        throw new RuntimeException("Unable to derive updatedBy from payload");
+	    }
+
+	    PoDetailsForProjectPoMappingDTO poDto = payloadDTO.getDeletedProjects().get(0).getPoDetailsList().get(0);
+
+	    return validationService.validateAndGetEmployeeEmpId(
+	            poDto.getUpdatedByEmpId().toString(),
+	            poDto.getUpdatedByEmpName()
+	    );
+	}
+	
+	private Set<String> fetchPrimaryTeamNames(Long poProjectId) {
+
+	    List<Object[]> teams = projectRepository.getTeamIdsForPoProjectId(poProjectId);
+
+	    if (teams == null || teams.isEmpty()) {
+	        return Collections.emptySet();
+	    }
+
+	    return teams.stream()
+	            .map(t -> t[1] != null ? t[1].toString() : null)
+	            .filter(Objects::nonNull)
+	            .collect(Collectors.toSet());
+	}
+	
+	private void updateDuplicateTeamNames( ProjectPoMappingWithResourceDTO deletedProject, Set<String> primaryTeamNames) {
+
+	    List<Object[]> deletedTeams = projectRepository.getTeamIdsForPoProjectId(deletedProject.getProjectId());
+
+	    if (deletedTeams == null || deletedTeams.isEmpty()) {
+	        return;
+	    }
+
+	    for (Object[] team : deletedTeams) {
+
+	        Long teamId = team[0] != null ? Long.valueOf(team[0].toString()) : null;
+	        String teamName = team[1] != null ? team[1].toString() : null;
+
+	        if (teamId == null || teamName == null) {
+	            continue;
+	        }
+
+	        String newName = primaryTeamNames.contains(teamName)
+	                ? teamName + " | " + deletedProject.getProjectName()
+	                : teamName;
+
+	        teamRepository.updateTeamName(teamId, newName);
+	    }
+	}
+
+	private void maintainHasClientSideId(Long deletedPoProjectId, Long primaryPoProjectId, Long updatedBy) {
+
+	    Project source = projectRepository.findByPoProjectId(deletedPoProjectId);
+	    Project target = projectRepository.findByPoProjectId(primaryPoProjectId);
+
+	    if (source == null || target == null) {
+	        return;
+	    }
+
+	    if (Boolean.TRUE.equals(source.getHasClientSideId())) {
+	        target.setHasClientSideId(true);
+	        target.setUpdatedBy(updatedBy);
+	        target.setUpdatedOn(LocalDateTime.now());
+	        projectRepository.save(target);
+	    }
+	}
+	
+	private void handlePoDepartmentMappings( Long deletedPoProjectId, Long primaryPoProjectId, Long updatedBy) {
+
+	    Project source = projectRepository.findByPoProjectId(deletedPoProjectId);
+	    Project target = projectRepository.findByPoProjectId(primaryPoProjectId);
+
+	    List<PoDepartmentMapping> sourceMappings = poDepartmentMappingRepository.findByProjectIdAndActiveTrue(source.getProjectId());
+
+	    if (sourceMappings == null || sourceMappings.isEmpty()) {
+	        return;
+	    }
+
+	    sourceMappings.forEach(m -> {
+	        m.setActive(false);
+	        m.setUpdatedBy(updatedBy);
+	    });
+	    poDepartmentMappingRepository.saveAll(sourceMappings);
+
+	    List<PoDepartmentMapping> newMappings = sourceMappings.stream().map(old -> {
+	        PoDepartmentMapping nm = new PoDepartmentMapping();
+	        nm.setPoId(old.getPoId());
+	        nm.setDeptId(old.getDeptId());
+	        nm.setProjectId(target.getProjectId());
+	        nm.setActive(true);
+	        nm.setCreatedBy(updatedBy);
+	        return nm;
+	    }).collect(Collectors.toList());
+
+	    poDepartmentMappingRepository.saveAll(newMappings);
+	}
+	
+	private void handleProjectManagerMappings( Long deletedProjectId, Long primaryProjectId, Long updatedBy) {
+
+	    List<ProjectManagerMapping> sourceMappings = projectManagerMappingRepository.findByProjectIdAndActive(deletedProjectId, 1);
+
+	    if (sourceMappings.isEmpty()) {
+	        return;
+	    }
+
+	    sourceMappings.forEach(m -> {
+	        m.setProjectId(primaryProjectId);
+	        m.setUpdatedBy(updatedBy);
+	        m.setUpdatedOn(LocalDateTime.now());
+	    });
+
+	    projectManagerMappingRepository.saveAll(sourceMappings);
+	}
+
+	private void handleProjectOverheadMappings( Long deletedProjectId, Long primaryProjectId, Long updatedBy) {
+
+	    List<ProjectOverheadMapping> sourceMappings = projectOverheadMappingRepository.findByProjectIdAndActive(deletedProjectId, 1);
+
+	    if (sourceMappings.isEmpty()) {
+	        return;
+	    }
+
+	    sourceMappings.forEach(m -> {
+	        m.setProjectId(primaryProjectId);
+	        m.setUpdatedBy(updatedBy);
+	    });
+
+	    projectOverheadMappingRepository.saveAll(sourceMappings);
+	}
+
+	private void handleTeamsLiftAndShift( Long deletedProjectId, Long primaryProjectId, Long updatedBy) {
+
+	    List<Team> teams = teamRepository.findActiveTeamsByProjectId(Integer.parseInt(deletedProjectId.toString()));
+
+	    if (teams.isEmpty()) {
+	        return;
+	    }
+
+	    teams.forEach(t -> {
+	        t.setProjectId(Integer.parseInt(primaryProjectId.toString()));
+	        t.setUpdatedBy(updatedBy);
+	        t.setUpdatedOn(LocalDateTime.now());
+	    });
+
+	    teamRepository.saveAll(teams);
+	}
+	
+	private void handleEmployeeClientSideIdMapping( Long primaryProjectId, Set<Long> deletedProjectIds, Long updatedBy) {
+
+	    if (primaryProjectId == null || deletedProjectIds == null || deletedProjectIds.isEmpty()) {
+	        return;
+	    }
+
+	    // 1. Fetch empIds from primary project (based on active teams & mappings)
+	    List<Long> empIds = employeeTeamMapRepository.findDistinctEmpIdsByProjectId(primaryProjectId);
+
+	    if (empIds == null || empIds.isEmpty()) {
+	        return;
+	    }
+
+	    // 2. Fetch client-side ID mappings for these empIds
+	    //    where projectId belongs to any deleted project
+	    List<EmployeeClientSideIdMapping> mappings = employeeClientSideIdMappingRepository
+	                    .findByEmpIdInAndProjectIdInAndActive(empIds,new ArrayList<>(deletedProjectIds),true);
+
+	    if (mappings == null || mappings.isEmpty()) {
+	        return;
+	    }
+
+	    // 3. Replace deleted projectId with primary projectId
+
+	    mappings.forEach(m -> {
+	        m.setProjectId(primaryProjectId);
+	        m.setUpdatedBy(updatedBy);
+	        m.setUpdatedOn(LocalDateTime.now());
+	    });
+
+	    employeeClientSideIdMappingRepository.saveAll(mappings);
+	}
 
 
 }

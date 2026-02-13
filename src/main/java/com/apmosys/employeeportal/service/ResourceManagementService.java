@@ -14402,12 +14402,10 @@ public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
 		
 		ProjectPoMappingWithResourceDTO primaryProjectDTO = payloadDTO.getPrimaryProject();
 		List<Object[]> primaryTeams = projectRepository.getTeamIdsForPoProjectId(primaryProjectDTO.getProjectId());
-		String ishineProjectStatus = "";
 
 		Set<String> primaryTeamNames = (primaryTeams == null || primaryTeams.isEmpty()) ? Collections.emptySet()
 				: primaryTeams.stream().map(t -> t[1] != null ? t[1].toString() : null).filter(Objects::nonNull)
 						.collect(Collectors.toSet());
-		DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 		
 		PoDetailsForProjectPoMappingDTO poDto =
 				payloadDTO.getDeletedProjects().get(0).getPoDetailsList().get(0);
@@ -14443,17 +14441,9 @@ public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
 				Project targetProject = projectRepository.findByPoProjectId(primaryProjectDTO.getProjectId());
 				liftAndShiftDTO.setTargetProjectId(targetProject.getProjectId());
 				liftAndShiftDTO.setCurrentUserEmpId(updatedBy);
-				
-				
-				
-
 
 			     context.getBean(getClass()).liftAndShiftTeamsOneByone(liftAndShiftDTO);
 			}
-			
-			
-			
-		
 		}
 	}
 
