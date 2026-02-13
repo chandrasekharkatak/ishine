@@ -1395,6 +1395,10 @@ public class TimesheetServiceNew {
 
 	}
 
+	public ServiceResponse getTimesheetMetadataByEmpId(TimesheetDTO timesheetDTO) {
+		return timesheetQueryService.getTimesheetMetadataByEmpId(timesheetDTO);
+	}
+
 	public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(Long empId) {
 
 		return timesheetQueryService.getActiveProjectsAndClientSideIdByEmpId(empId);

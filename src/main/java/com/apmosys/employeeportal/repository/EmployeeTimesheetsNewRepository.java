@@ -229,9 +229,33 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	// ==========
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllMyTeamTimesheets(Long createdBy, LocalDate start, LocalDate end);
-
+	
 	@Query(nativeQuery = true)
 	public List<Object[]> getAllMyTimesheets(Long empId, LocalDate start, LocalDate end);
+
+	/**
+	 * Lightweight timesheet metadata for a single employee in a date range.
+	 * Uses only employee_timesheets_new (no joins) for performance.
+	 */
+	@Query(
+		value = "SELECT " +
+		        "et.timesheet_id, " +
+		        "et.emp_id, " +
+		        "et.date, " +
+		        "et.day_type_id, " +
+		        "et.status " +
+		        "FROM employee_timesheets_new et " +
+		        "WHERE et.emp_id = :empId " +
+		        "  AND et.date >= :startDate " +
+		        "  AND et.date <= :endDate " +
+		        "ORDER BY et.date DESC",
+		nativeQuery = true
+	)
+	List<Object[]> findTimesheetMetadataByEmpIdAndDateRange(
+			@Param("empId") Long empId,
+			@Param("startDate") LocalDate startDate,
+			@Param("endDate") LocalDate endDate
+	);
 
 	@Query(nativeQuery = true)
 	public List<Timesheet> findTimesheetOnLeaveDate(Long empId, String start, String end);

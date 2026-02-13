@@ -209,6 +209,18 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Location options for dropdown: NA only for non-fillable day type, all except NA for fillable.
+   */
+  get locationOptionsForDropdown(): any[] {
+    if (!this.workLocationList?.length) return [];
+    const naId = this.configService.getDefaultWorkLocationTypeId();
+    if (this.isDayTypeFillable()) {
+      return this.workLocationList.filter((loc: any) => loc.workLocationTypeId !== naId);
+    }
+    return this.workLocationList.filter((loc: any) => loc.workLocationTypeId === naId);
+  }
+
+  /**
    * Format date to DD-MM-YYYY format
    */
   formatDateDDMMYYYY(date: Date): string {
@@ -391,7 +403,13 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
     this.pendingLocationToRemove = this.timesheetLocations[index] || null;
     this.removeLocationConfirmModalRef = this.modalService.open(
       this.removeLocationConfirmModal,
-      { modalDialogClass: 'modal-sm', centered: true }
+      { 
+        modalDialogClass: 'remove-location-confirm-modal', 
+        centered: false,
+        backdrop: 'static',
+        keyboard: true,
+        windowClass: 'remove-location-modal-window'
+      }
     );
   }
 
@@ -1022,20 +1040,75 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
     );
     location.projects.forEach(proj => {
       proj.projectList = uniqueProjects;
-      // Auto-select if only one project and load client/location
-      if (uniqueProjects.length === 1) {
-        const single = uniqueProjects[0];
-        proj.projectId = single.projectId;
-        proj.projectName = single.projectName;
-        proj.hasClientSideId = single.hasClientSideId;
-        proj.hasClientFlag = single.hasClientFlag;
-        this.onProjectSelect(proj.projectId!, proj);
-      }
     });
 
     this.disableAdd = true;
     this.expandedLocationIndex = 0;
     this.expandedProjectIndexMap = { 0: 0 };
+    
+    // Auto-select project if only one is available (after projects are loaded)
+    this.autoSelectProjectIfSingle();
+  }
+
+  /**
+   * Auto-select project for non-fillable day types when only one project is available.
+   * Called after projects are loaded or after initializing non-fillable day type.
+   * Also updates project lists for all locations when projects are loaded.
+   */
+  private autoSelectProjectIfSingle(): void {
+    // Only for non-fillable day types
+    if (this.isDayTypeFillable()) {
+      return;
+    }
+
+    // Update project lists for all locations (in case projects were loaded after initialization)
+    if (this.activeProjectList && this.activeProjectList.length > 0) {
+      const uniqueProjects = Array.from(
+        new Map(
+          this.activeProjectList.map(p => [
+            p.projectId,
+            {
+              projectId: p.projectId,
+              projectName: p.projectName,
+              hasClientSideId: p.hasClientSideId || false,
+              hasClientFlag: p.hasClientFlag || false
+            }
+          ])
+        ).values()
+      );
+      
+      this.timesheetLocations.forEach(location => {
+        location.projects.forEach(proj => {
+          proj.projectList = uniqueProjects;
+        });
+      });
+    }
+
+    // Check if exactly one project is available for auto-selection
+    if (!this.activeProjectList || this.activeProjectList.length !== 1) {
+      return;
+    }
+
+    // Find location with unselected project
+    if (!this.timesheetLocations || this.timesheetLocations.length === 0) {
+      return;
+    }
+
+    const location = this.timesheetLocations[0];
+    if (!location || !location.projects || location.projects.length === 0) {
+      return;
+    }
+
+    const project = location.projects[0];
+    
+    // Skip if project is already selected
+    if (project.projectId) {
+      return;
+    }
+
+    // Auto-select the single project (reuses shared helper)
+    const singleProject = this.activeProjectList[0];
+    this.applySingleProjectSelection(project, singleProject);
   }
   
   /**
@@ -1052,8 +1125,10 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
     if (this.timesheetAppliedFor.toLocaleLowerCase() === 'self') {
       this.getTimesheetMetadata();
       // getTimesheetMetadata will call getAllAvailableTimesheetByEmpId
-    } else {
+    } else if(this.timesheetAppliedFor.toLocaleLowerCase() === 'team'){
       this.getAllTeamMemberList();
+    }else {
+      console.error("Invalid selection")
     }
   }
   // ============================================
@@ -1064,7 +1139,8 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
    * Open alert modal with message
    */
   openAlertMod(template: TemplateRef<any>, message: any): void {
-    this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
+    // Use a slightly larger, custom-width modal for better readability of multi-line messages
+    this.modalRef = this.modalService.open(template, { modalDialogClass: 'ts-alert-modal' });
     this.alertMessage = message;
   }
 
@@ -1100,21 +1176,11 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
       return Promise.reject(new Error('Current user empId not available'));
     }
 
-    if (!this.fromDate) {
-      this.openAlertMod(this.alertTemplate, 'Please select date first to load team members for that date.');
-      return Promise.reject(new Error('fromDate not selected'));
-    }
-
-    const parsed = this.parseDDMMYYYY(this.fromDate);
-    if (!parsed) {
-      this.openAlertMod(this.alertTemplate, 'Invalid date format. Please re-select the date.');
-      return Promise.reject(new Error('Invalid fromDate format'));
-    }
-
-    const dateIso = `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, '0')}-${String(parsed.getDate()).padStart(2, '0')}`;
+    let employeeObj = new Employee();
+      employeeObj.empId = this.currentUser.empId;
 
     return new Promise<void>((resolve, reject) => {
-      this.teamViewService.getAllTeamMemberView(this.currentUser.empId)
+      this.teamViewService.getAllTeamMemberView(employeeObj)
         .pipe(first(), takeUntil(this.destroy$))
         .subscribe({
           next: (response: any) => {
@@ -1151,6 +1217,27 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
       if (this.serverDate) {
         this.getAllAvailableTimesheetByEmpId(this.timesheetFilledForUser);
       }
+    }
+  }
+
+  /**
+   * Helper: Apply single project selection to a project entry.
+   * Sets project fields and triggers onProjectSelect to load client/location data.
+   * Used by both populateProjectsForLocation (fillable) and autoSelectProjectIfSingle (non-fillable).
+   */
+  private applySingleProjectSelection(project: ProjectEntry, singleProjectData: any): void {
+    if (!project || !singleProjectData) {
+      return;
+    }
+    
+    project.projectId = singleProjectData.projectId;
+    project.projectName = singleProjectData.projectName;
+    project.hasClientSideId = singleProjectData.hasClientSideId || false;
+    project.hasClientFlag = singleProjectData.hasClientFlag || false;
+    
+    // Trigger onProjectSelect to fetch client details automatically
+    if (project.projectId) {
+      this.onProjectSelect(project.projectId, project);
     }
   }
 
@@ -1194,16 +1281,9 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
     location.projects.forEach(proj => {
       proj.projectList = uniqueProjects;
       
-      // ✅ IMPROVEMENT: Auto-select if only 1 project and set all fields properly
-      if (proj.projectList.length == 1) {
-        const singleProject = proj.projectList[0];
-        proj.projectId = singleProject.projectId;
-        proj.projectName = singleProject.projectName;
-        proj.hasClientSideId = singleProject.hasClientSideId;
-        proj.hasClientFlag = singleProject.hasClientFlag;
-        
-        // ✅ Call onProjectSelect to fetch client details automatically
-        this.onProjectSelect(proj.projectId, proj);
+      // Auto-select if only 1 project available (reuses shared helper)
+      if (proj.projectList.length === 1) {
+        this.applySingleProjectSelection(proj, proj.projectList[0]);
       }
     });
   }
@@ -1780,8 +1860,9 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
     timesheetObj.startDate = moment(startDate).format(AppComponent.DB_DATE_FORMAT);
     timesheetObj.endDate = moment(endDate).format(AppComponent.DB_DATE_FORMAT);
     timesheetObj.createdBy = this.currentUser.empId;
-    
-    this.timesheetNewService.getAllMyTimesheetsByEmpId(timesheetObj)
+
+    // Use lightweight metadata API (no locations/projects/activities) for date picker constraints
+    this.timesheetNewService.getTimesheetMetadataByEmpId(timesheetObj)
       .pipe(first(), takeUntil(this.destroy$))
       .subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1835,7 +1916,7 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
     if (this.isTimesheetLockCheckEnable == "false") {
       startDate = new Date(serverDate.getTime() - ((OPEN_BACKDATED_DAYS + CURRENT_DAY) * DAY_IN_MS));
     } else {
-      const lockDays = this.currentUser.timesheetLockDays || 30; // Default to 30 if not set
+      const lockDays = this.currentUser.timesheetLockDays || 7; // Default to 30 if not set
       startDate = new Date(serverDate.getTime() - ((lockDays + CURRENT_DAY) * DAY_IN_MS));
     }
 
@@ -1884,7 +1965,8 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
 
   /**
    * Handle night shift toggle change
-   * Auto-sets to date if night shift is enabled
+   * For night shift: toDate can be same as fromDate OR exactly one day after fromDate
+   * Auto-sets toDate to next day as default, but user can change it to same date
    */
   onNightShiftChange(): void {
     if (this.isNightShift) {
@@ -1900,7 +1982,20 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
       const fromDate = this.parseDDMMYYYY(this.fromDate);
       if (!fromDate) return;
 
-      this.toDate = this.formatDDMMYYYY(this.addDays(fromDate, 1));
+      // Auto-set toDate to next day as default (user can change to same date if needed)
+      if (!this.toDate) {
+        this.toDate = this.formatDDMMYYYY(this.addDays(fromDate, 1));
+      } else {
+        // Validate existing toDate: must be same as fromDate OR exactly one day after
+        const toDateParsed = this.parseDDMMYYYY(this.toDate);
+        if (toDateParsed) {
+          const diffDays = Math.round((toDateParsed.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24));
+          if (diffDays !== 0 && diffDays !== 1) {
+            // Invalid: reset to next day
+            this.toDate = this.formatDDMMYYYY(this.addDays(fromDate, 1));
+          }
+        }
+      }
     } else {
       this.toDate = null;
     }
@@ -1910,39 +2005,50 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
   }
 
 
-  onFromDateChange() {
+  /** Date changed: reset date-dependent form state and reload for new date. */
+  onFromDateChange(): void {
     if (!this.fromDate) {
       this.totalPresence = 0;
       return;
     }
-
-
     if (this.isNightShift) {
       const fromDate = this.parseDDMMYYYY(this.fromDate);
       if (!fromDate) return;
-
       this.toDate = this.formatDDMMYYYY(this.addDays(fromDate, 1));
     }
+    this.applyChanges();
+  }
 
-    // Recalculate working hours when date changes
+  /** Apply date change: clear date-dependent form state, recalc hours, load projects. */
+  applyChanges(): void {
+    this.resetDateDependentFormState();
+    
+    // For non-fillable day types: re-initialize with default location after reset
+    if (!this.isDayTypeFillable()) {
+      this.clearAndInitForNonFillableDayType();
+    }
+    
     this.calculateTotalWorkingHours();
-    // ✅ CRITICAL FIX: Handle Promise properly
     this.getProjectListForDateAndEmpId().catch(error => {
       console.error('Error loading projects:', error);
     });
-
-    // 
   }
-
 
   /**
    * Handle to date change
-   * Validates to date is exactly one day after from date for night shift
+   * For night shift: validates toDate is same as fromDate OR exactly one day after fromDate
+   * In-time points to fromDate, out-time points to toDate
    */
   onToDateChange(): void {
-
     if (!this.fromDate) {
       this.openAlertMod(this.alertTemplate, 'Please select From Date first.');
+      this.toDate = null;
+      this.calculateTotalWorkingHours();
+      return;
+    }
+
+    // If not night shift, clear toDate and return
+    if (!this.isNightShift) {
       this.toDate = null;
       this.calculateTotalWorkingHours();
       return;
@@ -1958,20 +2064,31 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const diffDays =
-      (toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24);
+    // Calculate difference in days (rounded to handle timezone/rounding issues)
+    const diffDays = Math.round((toDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24));
 
-    if (diffDays !== 1) {
+    // For night shift: toDate must be same (0) OR exactly one day after (1)
+    if (diffDays !== 0 && diffDays !== 1) {
       this.openAlertMod(
         this.alertTemplate,
-        'To Date must be exactly one day after From Date for Night Shift.'
+        'For Night Shift, To Date must be the same as From Date OR exactly one day after From Date.'
       );
-      this.isNightShift = false;
-      this.onNightShiftChange();
-    } else {
-      // Recalculate working hours when toDate changes
+      // Reset to next day as default
+      this.toDate = this.formatDDMMYYYY(this.addDays(fromDate, 1));
       this.calculateTotalWorkingHours();
+      return;
     }
+
+    // Valid date: validate work check times (especially when dates become same)
+    // If fromDate === toDate, out-time must be greater than in-time
+    if (!this.validateWorkCheckTimes()) {
+      // Validation failed and times were reset - recalculate hours
+      this.calculateTotalWorkingHours();
+      return;
+    }
+
+    // Valid: recalculate working hours
+    this.calculateTotalWorkingHours();
   }
 
 
@@ -2011,6 +2128,17 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
     const d = new Date(date);
     d.setDate(d.getDate() + days);
     return d;
+  }
+
+  /**
+   * Max date for To Date picker (night shift): exactly one day after fromDate.
+   * Used so To Date can only be fromDate or fromDate+1.
+   */
+  get maxDateForToDatePicker(): string | null {
+    if (!this.fromDate) return null;
+    const from = this.parseDDMMYYYY(this.fromDate);
+    if (!from) return null;
+    return this.formatDDMMYYYY(this.addDays(from, 1));
   }
 
   /**
@@ -2097,21 +2225,6 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
         return;
       }
 
-      // Determine which date to use for out time
-      let outDate: Date;
-      if (this.isNightShift && this.toDate) {
-        // Use toDate for night shift
-        const toDateParsed = this.parseDDMMYYYY(this.toDate);
-        if (!toDateParsed) {
-          this.totalPresence = 0;
-          return;
-        }
-        outDate = toDateParsed;
-      } else {
-        // Use fromDate for normal shift
-        outDate = fromDateParsed;
-      }
-
       // Parse time strings (handles both HH:mm and HH:mm AM/PM formats)
       const inTime24 = this.parseTimeTo24Hour(this.apmosysInTime);
       const outTime24 = this.parseTimeTo24Hour(this.apmosysOutTime);
@@ -2126,27 +2239,167 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
       const outHour = outTime24.hour;
       const outMinute = outTime24.minute;
 
-      // Create Date objects with date and time
+      // NIGHT SHIFT LOGIC:
+      // 1. In-time always points to fromDate
+      // 2. Out-time points to toDate (if toDate exists and is night shift)
+      // 3. toDate can be same as fromDate OR exactly one day after fromDate
+      // NORMAL SHIFT LOGIC:
+      // 1. Both in-time and out-time always point to fromDate (no +1 day logic)
+      const isNightShift = this.isNightShift;
+      let outDateForCalculation: Date;
+
+      if (isNightShift && this.toDate) {
+        // Night shift with toDate: out-time points to toDate
+        const toDateParsed = this.parseDDMMYYYY(this.toDate);
+        if (!toDateParsed) {
+          this.totalPresence = 0;
+          return;
+        }
+        outDateForCalculation = toDateParsed;
+      } else {
+        // Normal shift OR night shift without toDate: both times on fromDate
+        outDateForCalculation = fromDateParsed;
+      }
+
+      // Create Date objects with date and time (24-hour clock: 00:00–23:59)
+      // In-time always on fromDate
       const inDateTime = new Date(fromDateParsed);
       inDateTime.setHours(inHour, inMinute, 0, 0);
 
-      const outDateTime = new Date(outDate);
+      // Out-time: on toDate for night shift (if toDate exists), otherwise on fromDate
+      const outDateTime = new Date(outDateForCalculation);
       outDateTime.setHours(outHour, outMinute, 0, 0);
 
       // Calculate difference in milliseconds
       const diffMs = outDateTime.getTime() - inDateTime.getTime();
-
-      // Convert to hours (decimal)
       const calculatedHours = diffMs / (1000 * 60 * 60);
 
-      // Ensure non-negative
-      const finalHours = calculatedHours < 0 ? 0 : calculatedHours;
+      // With correct logic above, calculatedHours should be in range [0, ~24]
+      // However, clamp to [0, 24] as safety guard against:
+      // 1. Data corruption/parsing errors
+      // 2. Edge cases in date arithmetic (e.g., DST transitions, leap seconds)
+      // 3. Invalid toDate values (though validated elsewhere)
+      const finalHours = Math.max(0, Math.min(24, calculatedHours));
 
       // Round to 2 decimal places
       this.totalPresence = Math.round(finalHours * 100) / 100;
     } catch (error) {
       this.totalPresence = 0;
     }
+  }
+
+  /**
+   * Validate that work-check-out time is greater than work-check-in time
+   * Applies for: normal days AND night shift when fromDate === toDate
+   * If validation fails, resets both in-time and out-time to null
+   */
+  private validateWorkCheckTimes(): boolean {
+    if (!this.apmosysInTime || !this.apmosysOutTime) {
+      return true; // Skip validation if either time is not set
+    }
+
+    // For night shift: only validate if fromDate === toDate (same date)
+    // For normal shift: always validate (both times on same date)
+    let shouldValidate = true;
+    if (this.isNightShift && this.toDate && this.fromDate) {
+      const fromDateParsed = this.parseDDMMYYYY(this.fromDate);
+      const toDateParsed = this.parseDDMMYYYY(this.toDate);
+      if (fromDateParsed && toDateParsed) {
+        const diffDays = Math.round((toDateParsed.getTime() - fromDateParsed.getTime()) / (1000 * 60 * 60 * 24));
+        if (diffDays !== 0) {
+          // Night shift with different dates: skip validation (out time is on next day)
+          shouldValidate = false;
+        }
+      }
+    }
+
+    if (!shouldValidate) {
+      return true; // Skip validation for night shift with different dates
+    }
+
+    // Parse times to 24-hour format for comparison
+    const inTime24 = this.parseTimeTo24Hour(this.apmosysInTime);
+    const outTime24 = this.parseTimeTo24Hour(this.apmosysOutTime);
+
+    if (!inTime24 || !outTime24) {
+      return true; // Skip if parsing fails
+    }
+
+    // Compare times: out must be greater than in
+    const inTotalMinutes = inTime24.hour * 60 + inTime24.minute;
+    const outTotalMinutes = outTime24.hour * 60 + outTime24.minute;
+
+    if (outTotalMinutes <= inTotalMinutes) {
+      this.openAlertMod(
+        this.alertTemplate,
+        'Work Check-Out time must be greater than Work Check-In time.'
+      );
+      
+      // Reset both work check times to null to force user to fix
+      this.apmosysInTime = null;
+      this.apmosysOutTime = null;
+      
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Validate that location out-time is greater than location in-time
+   * Applies for: normal days AND night shift when fromDate === toDate
+   * Does NOT reset times - only shows alert
+   */
+  private validateLocationTimes(location: LocationEntry): boolean {
+    if (!location?.locationInTime || !location?.locationOutTime) {
+      return true; // Skip validation if either time is not set
+    }
+
+    // For night shift: only validate if fromDate === toDate (same date)
+    // For normal shift: always validate (both times on same date)
+    let shouldValidate = true;
+    if (this.isNightShift && this.toDate && this.fromDate) {
+      const fromDateParsed = this.parseDDMMYYYY(this.fromDate);
+      const toDateParsed = this.parseDDMMYYYY(this.toDate);
+      if (fromDateParsed && toDateParsed) {
+        const diffDays = Math.round((toDateParsed.getTime() - fromDateParsed.getTime()) / (1000 * 60 * 60 * 24));
+        if (diffDays !== 0) {
+          // Night shift with different dates: skip validation (out time is on next day)
+          shouldValidate = false;
+        }
+      }
+    }
+
+    if (!shouldValidate) {
+      return true; // Skip validation for night shift with different dates
+    }
+
+    // Parse times to 24-hour format for comparison
+    const inTime24 = this.parseTimeTo24Hour(location.locationInTime);
+    const outTime24 = this.parseTimeTo24Hour(location.locationOutTime);
+
+    if (!inTime24 || !outTime24) {
+      return true; // Skip if parsing fails
+    }
+
+    // Compare times: out must be greater than in
+    const inTotalMinutes = inTime24.hour * 60 + inTime24.minute;
+    const outTotalMinutes = outTime24.hour * 60 + outTime24.minute;
+
+    if (outTotalMinutes <= inTotalMinutes) {
+      const locationCode = this.workLocationList.find(
+        l => l.workLocationTypeId === location.workLocationTypeId
+      )?.code || 'this location';
+      
+      this.openAlertMod(
+        this.alertTemplate,
+        `Log-Out time for ${locationCode} must be greater than Log-In time.`
+      );
+      
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -2158,6 +2411,15 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
     if (this.useApmosysTiming) {
       this.timesheetLocations[0].locationInTime = this.apmosysInTime;
     }
+    
+    // Validate: out time must be greater than in time
+    // If validation fails, work check times are reset in validateWorkCheckTimes()
+    if (!this.validateWorkCheckTimes()) {
+      // Validation failed and work check times were reset - recalculate hours
+      this.calculateTotalWorkingHours();
+      return;
+    }
+    
     this.calculateTotalWorkingHours();
   }
 
@@ -2170,6 +2432,15 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
     if (this.useApmosysTiming) {
       this.timesheetLocations[0].locationOutTime = this.apmosysOutTime;
     }
+    
+    // Validate: out time must be greater than in time
+    // If validation fails, work check times are reset in validateWorkCheckTimes()
+    if (!this.validateWorkCheckTimes()) {
+      // Validation failed and work check times were reset - recalculate hours
+      this.calculateTotalWorkingHours();
+      return;
+    }
+    
     this.calculateTotalWorkingHours();
   }
 
@@ -2563,6 +2834,44 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
     this.resetPreviewState();
     
     // Flags
+    this.disableAdd = false;
+  }
+
+  /**
+   * Reset only date-dependent form state (locations, projects, activities, documents, in/out times).
+   * Used when user changes the date so that project selections valid for the previous date
+   * are not submitted for the new date. Does not clear dayType, fromDate, or toDate.
+   */
+  private resetDateDependentFormState(): void {
+    // Locations and their projects/activities
+    this.timesheetLocations = [];
+    
+    // Only add location if day type is fillable (addLocation returns early for non-fillable)
+    if (this.isDayTypeFillable()) {
+      this.addLocation(null);
+    }
+
+    // Document data cleanup and revoke object URLs
+    this.cleanupDocumentData();
+    this.documentData = [];
+    this.selectedFile = [];
+    this.uniqueProjectsList = [];
+    this.empHasClientSideId = false;
+
+    // In/out times and presence (clean slate for new date)
+    this.apmosysInTime = null;
+    this.apmosysOutTime = null;
+    this.totalPresence = 0;
+
+    // Location-related UI state
+    this.highlightLocationList = [];
+    this.highlightLocationIdSet = new Set();
+    this.expandedLocationIndex = null;
+    this.expandedProjectIndexMap = {};
+
+    // Preview state
+    this.resetPreviewState();
+
     this.disableAdd = false;
   }
 
@@ -3512,12 +3821,6 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
       return null;
     }
 
-    //  Night shift but no toDate
-    if (this.isNightShift && !toDate) {
-      console.warn('toDate is required for night shift');
-      return null;
-    }
-
     try {
       // ---------- Helpers ----------
       const parseDate = (dateStr: string) => {
@@ -3537,10 +3840,19 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
       };
 
       // ---------- Dates ----------
+      // NIGHT SHIFT LOGIC:
+      // 1. In-time always points to fromDate
+      // 2. Out-time points to toDate (if toDate exists and is night shift)
+      // 3. If night shift but no toDate, treat as same date
       const startDate = parseDate(fromDate);
-      const endDate = this.isNightShift && toDate
-        ? parseDate(toDate)
-        : parseDate(fromDate);
+      let endDate;
+      if (this.isNightShift && toDate) {
+        // Night shift with toDate: out-time points to toDate
+        endDate = parseDate(toDate);
+      } else {
+        // Normal shift OR night shift without toDate: both on fromDate
+        endDate = parseDate(fromDate);
+      }
 
       // ---------- Times ----------
       const inTime = parseTime(location.locationInTime);
@@ -3599,6 +3911,10 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
     let totalLocationHours = 0;
 
     for (const location of this.timesheetLocations) {
+      
+      // Validate location times: out-time must be greater than in-time
+      // (shows alert if invalid, but does not reset times)
+      this.validateLocationTimes(location);
 
       // ---------- Calculate location hours ----------
       location.totalWorkingHours =
@@ -4014,6 +4330,19 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
               } else {
                 this.disableAdd = false;
               }
+              
+              // Update project lists for existing locations (for fillable day types)
+              if (this.isDayTypeFillable()) {
+                this.timesheetLocations.forEach(loc => {
+                  if (loc.workLocationTypeId) {
+                    this.populateProjectsForLocation(loc);
+                  }
+                });
+              }
+              
+              // Auto-select project if non-fillable day type and only one project available
+              this.autoSelectProjectIfSingle();
+              
               resolve();
             } else {
               const errorMsg = response.serviceResponse || 'Failed to fetch projects';

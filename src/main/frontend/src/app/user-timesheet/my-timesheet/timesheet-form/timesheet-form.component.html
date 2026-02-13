@@ -115,6 +115,7 @@
                             }
                         </div>
                         <!-- TO DATE (Show only if Night Shift is enabled) -->
+                        <!-- Min = same as From Date picker min; Max = exactly one day after From Date; no disabled dates (user may need to select a date that already has a timesheet) -->
                         <div class="col-lg-3 col-md-4 col-sm-6 mb-3" *ngIf="isNightShift && fromDate">
                             <app-date-time-picker 
                                 label="To Date" 
@@ -122,9 +123,9 @@
                                 [required]="true" 
                                 [(ngModel)]="toDate"
                                 (ngModelChange)="onToDateChange()"
-                                [minDate]="fromDate"
-                                [maxDate]="maxDateForPicker"
-                                [disabledDates]="disabledDatesForPicker">
+                                [minDate]="minDateForPicker"
+                                [maxDate]="maxDateForToDatePicker"
+                                [disabledDates]="[]">
                             </app-date-time-picker>
                         </div>
 
@@ -205,8 +206,9 @@
         </div>
 
         <!-- Location, Project & Activities Card -->
-        <div class="info-card"
-            *ngIf="dayType && fromDate && ((isDayTypeFillable() && this.apmosysInTime && this.apmosysOutTime) || !isDayTypeFillable())">
+        @if (dayType && fromDate && ((isDayTypeFillable() && this.apmosysInTime && this.apmosysOutTime) || !isDayTypeFillable())) {
+        <div class="info-card">
+            
             <div class="card-header-section">
                 <i class="fa fa-map-marker card-icon"></i>
                 <h6 class="card-title mb-0">Location, Project & Activities</h6>
@@ -220,7 +222,6 @@
                         <i class="fa fa-plus"></i> Add Location
                     </button>
                 </div>
-
                 <!-- LOCATION LOOP *ngFor="let location of timesheetLocations; let lIndex = index"-->
                 @for (location of timesheetLocations; track location.workLocationTypeId; let lIndex = $index) {
                 <div class="location-card mb-3" [ngClass]="{ 'highlight-location': isLocationHighlighted(location) }">
@@ -250,7 +251,7 @@
                                 <div class="col-md-4 mb-3">
                                     <label class="info-label"><span class="text-danger">*</span> Location</label>
                                     <app-my-select placeholder="Select Location" class="form-control"
-                                        [(ngModel)]="location.workLocationTypeId" [options]="workLocationList"
+                                        [(ngModel)]="location.workLocationTypeId" [options]="locationOptionsForDropdown"
                                         displayKey="code" valueKey="workLocationTypeId" [multiple]="false"
                                         [readonly]="!isDayTypeFillable()" (ngModelChange)="onLocationSelect(location)">
                                     </app-my-select>
@@ -572,6 +573,7 @@
                 }
             </div>
         </div>
+        }
 
 
         <!-- Client Approval & Documents Card -->
@@ -763,19 +765,29 @@
 
 <!-- Remove Location Confirmation Modal -->
 <ng-template #removeLocationConfirmModal>
-  <div class="modal-header">
-    <h5 class="modal-title">Confirm Remove Location</h5>
-    <button type="button" class="btn-close" aria-label="Close" (click)="cancelRemoveLocation()">
-      <span aria-hidden="true">&times;</span>
+  <div class="modal-header border-0 pb-0 position-relative">
+    <h5 class="modal-title w-100 text-center">
+      <i class="fa fa-exclamation-triangle text-warning me-2"></i>
+      Remove Location
+    </h5>
+  </div>
+  <div class="modal-body text-center pt-4 pb-4">
+    <div class="mb-3">
+      <i class="fa fa-map-marker text-danger" style="font-size: 3rem;"></i>
+    </div>
+    <h6 class="mb-3 fw-semibold">Are you sure you want to remove this location?</h6>
+    <p class="text-muted mb-0 small">
+      This action will permanently remove the location along with all associated projects and activities. 
+      This cannot be undone.
+    </p>
+  </div>
+  <div class="modal-footer border-0 justify-content-center pt-0 pb-4">
+    <button type="button" class="btn btn-outline-secondary px-4 me-2" (click)="cancelRemoveLocation()">
+      Cancel
     </button>
-  </div>
-  <div class="modal-body text-center">
-    <p><strong>Are you sure you want to remove this location?</strong></p>
-    <p class="text-muted">This will also remove all projects and activities associated with this location.</p>
-  </div>
-  <div class="modal-footer justify-content-center">
-    <button type="button" class="btn btn-secondary" (click)="cancelRemoveLocation()">Cancel</button>
-    <button type="button" class="btn btn-danger" (click)="confirmRemoveLocation()">Yes, Remove</button>
+    <button type="button" class="btn btn-danger px-4" (click)="confirmRemoveLocation()">
+      <i class="fa fa-trash me-1"></i> Remove Location
+    </button>
   </div>
 </ng-template>
 

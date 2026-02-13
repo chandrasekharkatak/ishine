@@ -64,6 +64,17 @@ export class TimesheetNewService {
     );
   }
 
+  /**
+   * Lightweight API: fetch only header-level timesheet data (id, empId, date, dayTypeId, status)
+   * Used for date picker constraints instead of full hierarchical timesheet data.
+   */
+  getTimesheetMetadataByEmpId(timesheetObj: Timesheet) {
+    return this.http.post(
+      `${this.baseUrl}` + `api/v2/timesheet/getTimesheetMetadataByEmpId`,
+      timesheetObj
+    );
+  }
+
   getAllWorkLocation() {
     return this.http.get(
       `${this.baseUrl}` +

@@ -313,6 +313,12 @@ public class EmployeeTimesheetControllerNew {
 		ServiceResponse response = timesheetServiceNew.getAllMyTimesheetsByEmpId(timesheetDTO);
 		return response;
 	}
+
+	@JobRoleAccess(featureIds = {15,16})
+	@PostMapping("/getTimesheetMetadataByEmpId")
+	public ServiceResponse getTimesheetMetadataByEmpId(@RequestBody TimesheetDTO timesheetDTO) {
+		return timesheetServiceNew.getTimesheetMetadataByEmpId(timesheetDTO);
+	}
 	
 	@JobRoleAccess(featureIds = {15})
 	 @PostMapping("/getActiveProjectsAndClientSideIdByEmpId")
