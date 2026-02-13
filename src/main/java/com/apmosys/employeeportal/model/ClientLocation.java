@@ -41,7 +41,7 @@ public class ClientLocation {
 	
 	private Long poId;
 	
-	private Long clientAddressId;
+	
 	
 	
 	
