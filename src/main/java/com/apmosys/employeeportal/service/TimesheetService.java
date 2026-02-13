@@ -6719,13 +6719,13 @@ public class TimesheetService {
 		    return response;
 		}
 	
-	// public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year,Long empId,Boolean isClientDashboard,List<String> billableTypes,String employeeActive,String clientSideFilter,String multiPOs) {
-	// 	return timesheetDashboardService.getTimesheetDashboardCountForEmployee(
-	// 			month, year, empId, isClientDashboard, billableTypes, employeeActive, clientSideFilter, multiPOs);
-	// }
+	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year,Long empId,Boolean isClientDashboard,List<String> billableTypes,String employeeActive,String clientSideFilter, String multiPOs) {
+		return timesheetDashboardService.getTimesheetDashboardCountForEmployee(
+				month, year, empId, isClientDashboard, billableTypes, employeeActive, clientSideFilter, multiPOs);
+	}
 	
 	// Delegate method - implementation moved to TimesheetDashboardService
-	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year,Long empId,Boolean isClientDashboard,List<String> billableTypes,String employeeActive,String clientSideFilter, String multiPOs) {
+	public ServiceResponse getTimesheetDashboardCountForEmployeeNew(Integer month, Integer year,Long empId,Boolean isClientDashboard,List<String> billableTypes,String employeeActive,String clientSideFilter, String multiPOs) {
 		
 		ServiceResponse response = new ServiceResponse();
 
