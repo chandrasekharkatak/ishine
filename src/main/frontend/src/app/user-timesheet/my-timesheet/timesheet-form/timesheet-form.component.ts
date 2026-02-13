@@ -2312,11 +2312,15 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
       ...data
     };
 
+    const getBaseName = (fileName: string) => {
+      return fileName.substring(0, fileName.lastIndexOf('.'));
+    };
+
     // ✅ Keep selectedFile array in sync without introducing undefined entries
     // Only update selectedFile when we actually have a File object
     if (file) {
       const existingIndex = this.selectedFile.findIndex(
-        f => f && f.name === data.uniqueIdentifier
+        f => f && getBaseName(f.name) === getBaseName(data.uniqueIdentifier)
       );
 
       if (existingIndex !== -1) {
@@ -2485,7 +2489,8 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
   renameFile(file: File, projectId: number, docType: 'Filled' | 'Approved'): File {
     const ext = file.name.substring(file.name.lastIndexOf('.'));
     const safeDocType = docType.toLowerCase(); // optional
-    const newFileName = `${projectId}_${safeDocType}_${file.name}`;
+    // const newFileName = `${this.currentUser.empId}_${projectId}_${}_${safeDocType}${ext}`;
+    const newFileName = `${projectId}_${this.fromDate}_${this.dayType}_${safeDocType}${ext}`;
 
     return new File([file], newFileName, { type: file.type });
   }
@@ -3722,6 +3727,10 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
           // ✅ Set to true if ANY project qualifies (not just the first one)
           this.empHasClientSideId = true;
           dataList.set(project.projectId, project);
+
+          if(this.documentData.some(d => d.projectId === project.projectId)){
+            return;
+          }
           
           // Create document entries based on approval status
           if (project.clientApprovalStatus == 2) {

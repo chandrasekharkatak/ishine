@@ -1653,18 +1653,33 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 
 	// ========== UPDATED: New query using _new tables (JPQL - using new entities)
 	// ==========
-	@Query("SELECT et.date FROM EmployeeTimesheetsNew et " +
-			"INNER JOIN TimesheetDocumentDetailsNew tdd ON et.timesheetId = tdd.timesheetId " +
-			"WHERE et.empId = :empId " +
-			"AND EXISTS (SELECT 1 FROM ProjectTimesheetStatusNew pts WHERE pts.id.timesheetId = et.timesheetId AND pts.id.projectId = :projectId) "
-			+
-			"AND EXISTS (SELECT 1 FROM EmployeeClientSideIdMapping ecsm WHERE ecsm.empId = et.empId AND ecsm.projectId = :projectId AND ecsm.active = 1) "
-			+
-			"AND tdd.active IS TRUE " +
-			"AND tdd.finalFlag IS TRUE " +
-			"AND EXISTS (SELECT 1 FROM ClientStatusMasterNew csm WHERE csm.statusId = tdd.clientApprovalStatusId AND (csm.status = 'Approved' OR csm.status = 'Pending')) "
-			+
-			"AND NOT EXISTS (SELECT 1 FROM ClientStatusMasterNew csm2 WHERE csm2.statusId = tdd.clientApprovalStatusId AND csm2.status = 'Rejected')")
+	// @Query("SELECT et.date FROM EmployeeTimesheetsNew et " +
+	// 		"INNER JOIN TimesheetDocumentDetailsNew tdd ON et.timesheetId = tdd.timesheetId " +
+	// 		"WHERE et.empId = :empId " +
+	// 		"AND EXISTS (SELECT 1 FROM ProjectTimesheetStatusNew pts WHERE pts.id.timesheetId = et.timesheetId AND pts.id.projectId = :projectId) "
+	// 		+
+	// 		"AND EXISTS (SELECT 1 FROM EmployeeClientSideIdMapping ecsm WHERE ecsm.empId = et.empId AND ecsm.projectId = :projectId AND ecsm.active = 1) "
+	// 		+
+	// 		"AND tdd.active IS TRUE " +
+	// 		"AND tdd.finalFlag IS TRUE " +
+	// 		"AND EXISTS (SELECT 1 FROM ClientStatusMasterNew csm WHERE csm.statusId = tdd.clientApprovalStatusId AND (csm.status = 'Approved' OR csm.status = 'Pending')) "
+	// 		+
+	// 		"AND NOT EXISTS (SELECT 1 FROM ClientStatusMasterNew csm2 WHERE csm2.statusId = tdd.clientApprovalStatusId AND csm2.status = 'Rejected')")
+	// Set<LocalDate> findDatesByEmpIdAndProjectId(@Param("empId") Long empId,
+	// 		@Param("projectId") Integer projectId);
+
+	@Query("SELECT et.date \n" +
+				"FROM EmployeeTimesheetsNew et\n" +
+				"INNER JOIN TimesheetDocumentDetailsNew tdd ON et.timesheetId = tdd.timesheetId\n" +
+				"INNER JOIN ProjectTimesheetStatusNew ptsn on ptsn.id.timesheetId = et.timesheetId\n" +
+				"INNER JOIN EmployeeClientSideIdMapping ecsm on ecsm.empId = et.empId and ecsm.projectId = ptsn.id.projectId\n" +
+				"WHERE et.empId  = :empId\n" + 
+				"and ptsn.id.projectId = :projectId\n" +
+				"and ecsm.active IS TRUE \n" +
+				"AND tdd.active IS TRUE\n" +
+				"AND tdd.finalFlag IS TRUE\n" +
+				"AND tdd.bulkApprovedDocId IS NOT NULL\n" +
+				"and tdd.clientApprovalStatusId IN (1,3)")
 	Set<LocalDate> findDatesByEmpIdAndProjectId(@Param("empId") Long empId,
 			@Param("projectId") Integer projectId);
 
@@ -4854,13 +4869,26 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 
 	// ========== UPDATED: New query using _new tables (JPQL - using new entities)
 	// ==========
-	@Query("SELECT et.date \n"
-			+ "FROM EmployeeTimesheetsNew et \n"
-			+ "LEFT JOIN DayTypeMasterNew dtm ON dtm.dayTypeId = et.dayTypeId \n"
-			+ "WHERE et.empId = :empId \n"
-			+ "AND EXISTS (SELECT 1 FROM ProjectTimesheetStatusNew pts WHERE pts.id.timesheetId = et.timesheetId AND pts.id.projectId = :projectId) \n"
-			+ "AND et.date BETWEEN :startDate AND :endDate \n"
-			+ "AND dtm.dayType in ('Non-working','Working')")
+	// @Query("SELECT et.date \n"
+	// 		+ "FROM EmployeeTimesheetsNew et \n"
+	// 		+ "LEFT JOIN DayTypeMasterNew dtm ON dtm.dayTypeId = et.dayTypeId \n"
+	// 		+ "WHERE et.empId = :empId \n"
+	// 		+ "AND EXISTS (SELECT 1 FROM ProjectTimesheetStatusNew pts WHERE pts.id.timesheetId = et.timesheetId AND pts.id.projectId = :projectId) \n"
+	// 		+ "AND et.date BETWEEN :startDate AND :endDate \n"
+	// 		+ "AND dtm.dayType in ('Non-working','Working')")
+	// Set<LocalDate> allTimesheetFilledDatesForDateRange(@Param("startDate") LocalDate startDate,
+	// 		@Param("endDate") LocalDate endDate, @Param("projectId") Integer projectId, @Param("empId") Long empId);
+
+	@Query("SELECT et.date\n" +
+				"FROM EmployeeTimesheetsNew et \n" +
+				"inner join ProjectTimesheetStatusNew ptsn on ptsn.id.timesheetId = et.timesheetId\n" +
+				"inner join TimesheetDocumentDetailsNew tdd on tdd.timesheetId = et.timesheetId and tdd.projectId = ptsn.id.projectId\n" +
+				"WHERE et.empId = :empId \n" +
+				"AND et.date BETWEEN :startDate AND :endDate\n" +
+				"AND et.dayTypeId in (1,3)\n" +
+				"and ptsn.id.projectId = :projectId\n" +
+				"and (ptsn.status IN (3)\n" +
+				"or tdd.finalFlag IS FALSE and tdd.bulkApprovedDocId IS NULL)")
 	Set<LocalDate> allTimesheetFilledDatesForDateRange(@Param("startDate") LocalDate startDate,
 			@Param("endDate") LocalDate endDate, @Param("projectId") Integer projectId, @Param("empId") Long empId);
 
@@ -16317,4 +16345,26 @@ Integer getTotalEmployeeCountForClientApplicable(
 		    					@Param("employmentStatus") String employmentStatus,@Param("projectStatus") String projectStatus,
 		    					@Param("sortBy") String sortBy,@Param("sortDirection") String sortDirection,@Param("employeeIds") List<Long> employeeIds, @Param("dept_id")Long deptId, @Param("employeeActive") String employeeActive, @Param("billableType") List<String> billableType, @Param("multiPOs")String multiPOs);
 
+	
+		@Query(value = "SELECT DISTINCT\n" +
+						"etn.emp_id, e.name, p.project_id, p.project_name\n" +
+						"FROM projects p\n" +
+						"INNER JOIN teams t ON p.project_id = t.project_id\n" +
+						"INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n" +
+						"INNER JOIN employee e ON e.emp_id = etm.emp_id\n" +
+						"INNER JOIN employee_timesheets_new etn on etn.emp_id = e.emp_id\n" +
+						"INNER JOIN project_timesheet_status_new ptsn on ptsn.project_id = p.project_id and ptsn.timesheet_id = etn.timesheet_id\n" +
+						"where (\n" +
+						"e.date_of_relieving IS NULL \n" +
+						"OR YEAR(e.date_of_relieving) > :year\n" +
+						"OR (YEAR(e.date_of_relieving) = :year AND MONTH(e.date_of_relieving) >= :month)\n" +
+						") \n" +
+						"AND etn.current_manager_id = :empId\n" +
+						"AND p.has_client_side_id = 1\n" +
+						"AND e.emp_id not between 1 and 6 \n" +
+						"AND DATE(etm.start_date) <= :toDate\n" +
+						"AND (etm.end_date IS NULL OR DATE(etm.end_date) >= :fromDate)"
+			, nativeQuery = true)
+		List<Object[]> getMyReporteesAndClientSideProjectsInMonthYearNew(@Param("year") Integer year,@Param("month") Integer month,@Param("empId") Long emp_id, @Param("toDate") LocalDate toDate, @Param("fromDate") LocalDate fromDate);
+	
 }

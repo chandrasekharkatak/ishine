@@ -94,7 +94,15 @@ public interface ProjectTimesheetStatusNewRepository extends JpaRepository<Proje
     	        @Param("status") Integer status);
 
 
-
+        @Query(
+                "SELECT p FROM ProjectTimesheetStatusNew p \n" +
+                "WHERE p.id.timesheetId IN :timesheetIds \n" +
+                "AND p.id.projectId = :projectId \n" +
+                "AND p.status IN (1,3)"
+        )
+        List<ProjectTimesheetStatusNew> findByTimesheetIdsAndProjectIdAndStatusPending(
+                @Param("timesheetIds") Set<Long> timesheetIds,
+                @Param("projectId") Integer projectId);
 
 
 

@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 import javax.transaction.Transactional;
 
@@ -15,6 +16,7 @@ import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDetailsN
 import com.apmosys.employeeportal.dto.*;
 import com.apmosys.employeeportal.model.ClientStatusMasterNew;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
+import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetailsNew;
 
 public interface TimesheetDocumentDetailsNewRepository extends JpaRepository<TimesheetDocumentDetailsNew, Long> {
@@ -101,6 +103,9 @@ public interface TimesheetDocumentDetailsNewRepository extends JpaRepository<Tim
 
 	List<TimesheetDocumentDetailsNew> findByDocId(Long docId);
 
+	@Query("SELECT tdd FROM TimesheetDocumentDetailsNew tdd WHERE tdd.timesheetId = :timesheetId and tdd.projectId = :projectId and tdd.active = true")
+	List<TimesheetDocumentDetailsNew> findByTimesheetIdAndProjectIdAndActive(@Param("timesheetId") Long timesheetId, @Param("projectId") Integer projectId);
+
 	@Query("SELECT tdd FROM TimesheetDocumentDetailsNew tdd WHERE tdd.timesheetId = :timesheetId and tdd.active = true")
 	List<TimesheetDocumentDetailsNew> findByTimesheetIdAndActive(@Param("timesheetId") Long timesheetId);
 
@@ -115,4 +120,26 @@ public interface TimesheetDocumentDetailsNewRepository extends JpaRepository<Tim
 
 	@Query("SELECT t FROM TimesheetDocumentDetailsNew t WHERE t.projectId = :projectId")
 	List<TimesheetDocumentDetailsNew> findAllByProjectId(Long projectId);
+
+	@Query( "SELECT etn \n" +
+				"FROM EmployeeTimesheetsNew etn\n" +
+				"INNER JOIN ProjectTimesheetStatusNew ptsn on etn.timesheetId = ptsn.id.timesheetId \n" +
+				"INNER JOIN Project p on p.projectId = ptsn.id.projectId\n" +
+				"INNER JOIN TimesheetDocumentDetailsNew tdd on tdd.timesheetId = etn.timesheetId AND tdd.projectId = ptsn.id.projectId\n" +
+				"WHERE p.hasClientSideId = 1 \n" +
+				"AND etn.dayTypeId IN (1,3,8) \n" + 
+				"AND (etn.status = 3 \n" +
+				" OR tdd.bulkApprovedDocId IS NULL) \n"+
+				"AND ptsn.id.projectId = :projectId \n" + 
+				"AND etn.date BETWEEN :fromDate AND :toDate \n" +
+				"AND etn.empId IN :empIds")
+	List<EmployeeTimesheetsNew> getDocsByEmpIdsAndDate(
+			@Param("empIds") List<Long> empIds,
+			@Param("fromDate") LocalDate fromDate,
+			@Param("toDate") LocalDate toDate,
+			@Param("projectId") Integer projectId
+		);
+
+	@Query("SELECT tdd from TimesheetDocumentDetailsNew tdd where tdd.timesheetId IN :timesheetIds and tdd.projectId = :projectId")
+	List<TimesheetDocumentDetailsNew> getDocsByTimesheetIdsAndProjectId(@Param("timesheetIds") Set<Long> timesheetIds, @Param("projectId") Integer projectId);
 }
