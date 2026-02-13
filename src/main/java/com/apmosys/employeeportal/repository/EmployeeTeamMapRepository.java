@@ -893,6 +893,9 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			+ "	AND p.active = true")
 	List<Long> findDistinctEmpIdsByProjectId(@Param("projectId") Long projectId);
 
+	
+	@Query(value = "Select etm from EmployeeTeamMap etm where etm.poId =:previousPoId and etm.roleId =:roleId and etm.active !=0")
+	List<EmployeeTeamMap>findActiveEmployeesForRole(Long previousPoId, Long roleId);
 
 
 }

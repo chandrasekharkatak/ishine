@@ -285,7 +285,14 @@ public class PoDetailsService {
 	    PoDetailsForProjectPoMappingDTO poDto = dto.getRenewedPo();
 	    ClientLocation cl = clientService.resolveClientLocation(client.getClientId(), poDto.getClientLocation(),
 				poDto.getClientState(),poDto.getClientAddressId());
-
+	    
+	    validationService.validateEmployeeExists(dto.getRenewedByEmpId(),
+        dto.getRenewedByEmpName());
+	    
+	    validationService.validateEmployeeExists(dto.getRenewedByEmpId(),
+                dto.getRenewedByEmpName());
+	    
+	    
 	    ProjectPoDetails po = new ProjectPoDetails();
 	    po.setPoId(poDto.getPoId());
 	    po.setProjectId(project.getProjectId());
@@ -303,14 +310,8 @@ public class PoDetailsService {
 	    po.setApmosysRmEmail(poDto.getApmosysRmEmail());
 	    po.setMsg(poDto.getCommentForRmg());
 	    po.setClientRm(poDto.getClientRm());
-	    po.setCreatedBy(
-	            validateAndGetEmployeeEmpId(
-	                    dto.getRenewedByEmpId(),
-	                    dto.getRenewedByEmpName()));
-	    
-	    po.setUpdatedBy(validateAndGetEmployeeEmpId(
-                dto.getRenewedByEmpId(),
-                dto.getRenewedByEmpName())); 
+	    po.setCreatedBy(dto.getRenewedByEmpId());	    
+	    po.setUpdatedBy(dto.getRenewedByEmpId()); 
 	    po.setPoCreatedOn(poDto.getCreatedOn() != null ? convert(poDto.getCreatedOn()) : null);
 		po.setPoUpdatedOn(poDto.getUpdatedOn() != null ? convert(poDto.getUpdatedOn()) : null);
 		
@@ -405,15 +406,12 @@ public class PoDetailsService {
 	            po.setNextPO(incoming.getNextPO());
 	            changed = true;
 	        }
+	        
+	        validationService.validateEmployeeExists(dto.getRenewedByEmpId(), dto.getRenewedByEmpName());
 
 	        if (changed) {
-	            po.setUpdatedBy(
-	                    validateAndGetEmployeeEmpId(
-	                            dto.getRenewedByEmpId(),
-	                            dto.getRenewedByEmpName()));
-	            po.setPoUpdatedOn(convert(dto.getRenewedOn()));
-	           
-	            
+	            po.setUpdatedBy(dto.getRenewedByEmpId());
+	            po.setPoUpdatedOn(convert(dto.getRenewedOn()));       
 	            projectPoDetailsRepository.save(po);
 	        }
 	    }

@@ -254,7 +254,7 @@ public class PoSyncOrchestratorService {
 				}
 			}
 
-			projectService.updateProjectDatesAfterRenewal(project, dto);
+//			projectService.updateProjectDatesAfterRenewal(project, dto);
 
 			boolean exists = projectPoDetailsRepository.existsByPoIdAndProjectId(dto.getRenewedPo().getPoId(),
 					project.getProjectId());
@@ -279,7 +279,10 @@ public class PoSyncOrchestratorService {
 			poDetailsService.validateAssociatedPosIntegrity(project.getProjectId(), dto.getAssociatePosAfterRenewal());
 
 			poDetailsService.updatePoLinksAfterRenewal(project.getProjectId(), dto);
-
+			
+			teamsService.migrateResourcesAfterRenewal(project.getProjectId(),newPo.getPoId(),dto.getRenewedByEmpId());
+			
+			projectService.recalculateProjectDates(project.getProjectId());
 			finalHttpStatusCode = HttpStatus.OK.value();
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -287,6 +290,7 @@ public class PoSyncOrchestratorService {
 			return response;
 
 		} catch (Exception e) {
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 			ExceptionLogContext.add(e);
 			e.printStackTrace();
 //			exceptionDetailsForLog.append(e.printStackTrace());

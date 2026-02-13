@@ -199,5 +199,8 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
         );
         
         
+        Optional<ProjectPoDetails> findByNextPOAndProjectIdAndActiveTrue(Long nextPo, Integer projectId);
+        
+        
 
 }

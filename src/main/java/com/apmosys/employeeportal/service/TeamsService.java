@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.hibernate.Session;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -5225,7 +5226,65 @@ public class TeamsService {
 		return response;
 	}
 	
-	
+	public void migrateResourcesAfterRenewal(Integer projectId,Long renewedPoId,Long renewedBy ) {
+		ProjectPoDetails previousPo =
+                projectPoDetailsRepository
+                        .findByNextPOAndProjectIdAndActiveTrue(renewedPoId, projectId).orElse(null);
+		
+		 if (previousPo == null) {
+			 throw new RuntimeException("No Previous Po found for the renewed po");
+	        }
+		 
+		 Long previousPoId = previousPo.getPoId();
+		 
+		 List<Long> oldRoles =
+	                poRequirementMappingRepository.findRoleIdsByPoId(previousPoId);
+		 
+		 List<Long> newRoles =
+	                poRequirementMappingRepository.findRoleIdsByPoId(renewedPoId);
+		 
+		 Set<Long> carryForwardRoles = oldRoles.stream()
+	                .filter(newRoles::contains)
+	                .collect(Collectors.toSet());
+		 
+		 
+		 if (!carryForwardRoles.isEmpty()) {
+			 for (Long roleId : carryForwardRoles) {
+				 List<EmployeeTeamMap> employees = employeeTeamMapRepository.findActiveEmployeesForRole(previousPoId, roleId);
+			 
+			 
+				 for (EmployeeTeamMap oldRow : employees) {
+
+				       
+				        EmployeeTeamMap newRow = new EmployeeTeamMap();
+				        BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
+
+				        newRow.setPoId(renewedPoId);
+				        newRow.setEndDate(null);
+//				        newRow.setActive(oldRow.getActive()); 
+				        newRow.setCreatedBy(renewedBy);
+				        newRow.setUpdatedBy(renewedBy);
+				        newRow.setUpdatedOn(LocalDateTime.now());
+				        newRow.setStartDate(LocalDateTime.now());
+				        newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+				        
+				        
+				        employeeTeamMapRepository.save(newRow);
+
+
+				       
+				        oldRow.setActive(0L);
+				        oldRow.setEndDate(LocalDateTime.now());
+				        oldRow.setUpdatedBy(renewedBy);
+				        oldRow.setUpdatedOn(LocalDateTime.now());
+
+				        employeeTeamMapRepository.save(oldRow);
+				    }
+		 }
+		 }
+		 
+		 
+	}
 
 	
 }

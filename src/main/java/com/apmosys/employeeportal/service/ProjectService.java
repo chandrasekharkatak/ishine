@@ -4299,44 +4299,44 @@ public class ProjectService {
 	}
 	
 	
-	public void updateProjectDatesAfterRenewal(
-	        Project project,
-	        RenewedPoSyncDto dto) {
-
-	    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-	    boolean changed = false;
-
-	    String newStart =
-	            dto.getProjectStartDateAfterRenewal() != null
-	                    ? df.format(dto.getProjectStartDateAfterRenewal())
-	                    : null;
-
-	    String newEnd =
-	            dto.getProjectEndDateAfterRenewal() != null
-	                    ? df.format(dto.getProjectEndDateAfterRenewal())
-	                    : null;
-
-	    if (!Objects.equals(project.getStartDate(), newStart)) {
-	        project.setStartDate(newStart);
-	        changed = true;
-	    }
-
-	    if (!Objects.equals(project.getEndDate(), newEnd)) {
-	        project.setEndDate(newEnd);
-	        changed = true;
-	    }
-
-	    if (changed) {
-	        project.setUpdatedBy(
-	        		validateAndGetEmployeeEmpId(
-	                        dto.getRenewedByEmpId(),
-	                        dto.getRenewedByEmpName()));
-	        project.setUpdatedOn(dto.getRenewedOn().toInstant()
-	                .atZone(ZoneId.systemDefault())
-	                .toLocalDateTime());
-	        projectRepository.save(project);
-	    }
-	}
+//	public void updateProjectDatesAfterRenewal(
+//	        Project project,
+//	        RenewedPoSyncDto dto) {
+//
+//	    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+//	    boolean changed = false;
+//
+//	    String newStart =
+//	            dto.getProjectStartDateAfterRenewal() != null
+//	                    ? df.format(dto.getProjectStartDateAfterRenewal())
+//	                    : null;
+//
+//	    String newEnd =
+//	            dto.getProjectEndDateAfterRenewal() != null
+//	                    ? df.format(dto.getProjectEndDateAfterRenewal())
+//	                    : null;
+//
+//	    if (!Objects.equals(project.getStartDate(), newStart)) {
+//	        project.setStartDate(newStart);
+//	        changed = true;
+//	    }
+//
+//	    if (!Objects.equals(project.getEndDate(), newEnd)) {
+//	        project.setEndDate(newEnd);
+//	        changed = true;
+//	    }
+//
+//	    if (changed) {
+//	        project.setUpdatedBy(
+//	        		validateAndGetEmployeeEmpId(
+//	                        dto.getRenewedByEmpId(),
+//	                        dto.getRenewedByEmpName()));
+//	        project.setUpdatedOn(dto.getRenewedOn().toInstant()
+//	                .atZone(ZoneId.systemDefault())
+//	                .toLocalDateTime());
+//	        projectRepository.save(project);
+//	    }
+//	}
 	
 	private Long validateAndGetEmployeeEmpId(String createdByEmpId, String createdByEmpName) {
 
