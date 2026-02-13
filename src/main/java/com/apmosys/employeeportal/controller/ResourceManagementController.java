@@ -705,12 +705,12 @@ public class ResourceManagementController {
 	}
 	
 	@GetMapping("/oneTimeUpdatePoClientId")
-	public ServiceResponse oneTimeUpdatePoClientId(@RequestParam(value = "mode", required = false) String mode) {
-		return resourceManagementService.oneTimeUpdatePoClientId(mode);
+	public ServiceResponse oneTimeUpdatePoClientId() {
+		return resourceManagementService.oneTimeUpdatePoClientId("once");
 	}
 	
 	@Scheduled(cron = "0 0 0 * * ?")
-	public void oneTimeUpdatePoClientId() {
+	public void cronToUpdateClient() {
 		 resourceManagementService.oneTimeUpdatePoClientId("");
 	}
 	 
