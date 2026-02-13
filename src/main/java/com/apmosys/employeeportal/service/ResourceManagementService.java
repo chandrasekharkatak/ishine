@@ -14939,7 +14939,7 @@ public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
 			Client iShineClient = iShineMap.get(clientNamePo);
 			
 			try {
-		        int[] result = clientService.processSingleClientByName(clientNamePo, poDto, iShineClient);
+		        int[] result = clientService.processSingleClientByName(poDto, iShineClient);
 		        updated += result[0];
 		        inserted += result[1];
 

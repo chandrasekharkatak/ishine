@@ -103,8 +103,7 @@ public class ClientService {
 	 }
 	 
 	 @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-	    public int[] processSingleClientByName(String clientNamePo,ClientDetailsSyncDto poDto,
-	    		Client iShineClient) {
+	    public int[] processSingleClientByName(ClientDetailsSyncDto poDto,Client iShineClient) {
 		 
 		 	int updated = 0;
 	        int inserted = 0;
@@ -171,7 +170,9 @@ public class ClientService {
 			List<ClientLocation> iShineLocations = clientLocationRepository.findByClientIdPK(iShineClient.getClientId());
 
 			Map<String, ClientLocation> iShineLocationMap = iShineLocations.stream().collect(
-					Collectors.toMap(loc -> loc.getClientLocation().trim().toLowerCase(), loc -> loc, (e1, e2) -> e1));
+					Collectors.toMap(loc -> loc.getClientLocation().trim().toLowerCase(), 
+							loc -> loc
+							, (e1, e2) -> e1));
 
 			List<ClientLocation> locationsToSave = new ArrayList<>();
 
