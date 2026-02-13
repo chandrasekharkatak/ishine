@@ -21,9 +21,8 @@ public class RenewedPoSyncDto {
 	private SyncRequestType eventType;
 	private Long projectId;
 	private String projectName;
-	private Date projectStartDateAfterRenewal;
-	private Date projectEndDateAfterRenewal;
-	private String renewedByEmpId; 
+	
+	private Long renewedByEmpId; 
 	private String renewedByEmpName;
 	private Date renewedOn;   
 	private List<PoDetailsForProjectPoMappingDTO> associatePosAfterRenewal;

@@ -910,43 +910,145 @@ sortData(sort: Sort) {
   }
 
   onMonthYearChange() {
-  this.resetBulkUploadForm('MONTH');
-  this.getMyReporteesAndTheirProjects();
-}
+    this.resetBulkUploadForm('MONTH');
+    this.getMyReporteesAndTheirProjects();
+
+    const [year, month] = this.timesheetObj.monthYear.split('-');
+    const selectedYear = Number(year);
+    const selectedMonth = Number(month);
+
+    const now = new Date();
+
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+
+    const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+    const prevMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+
+    const lastDay = new Date(selectedYear, selectedMonth, 0).getDate();
+    this.maxDate = `${year}-${month}-${lastDay.toString().padStart(2, '0')}`;
+
+    if (this.minusDaysData?.checkMinusDaysForBulkUpload) {
+
+      const minusDays =
+        this.minusDaysData.minusDays && this.minusDaysData.minusDays > 0
+          ? this.minusDaysData.minusDays
+          : 45;
+
+      const expectedDate = new Date(now);
+      expectedDate.setDate(now.getDate() - minusDays);
+
+      const expectedYear = expectedDate.getFullYear();
+      const expectedMonth = expectedDate.getMonth() + 1;
+
+      // Rule: current month never allowed
+      if (selectedYear === currentYear && selectedMonth === currentMonth) {
+        throw new Error('Current month is not allowed');
+      }
+
+      // Rule: determine allowed start day
+      const isPreviousMonth =
+        expectedYear === prevMonthYear &&
+        expectedMonth === prevMonth;
+
+      const startDay = isPreviousMonth ? '01' : selectedMonth === expectedMonth ? '15' : '01';
+
+      this.minDate = `${year}-${month}-${startDay}`;
+
+    } else {
+      this.minDate = null;
+    }
+  }
 
 
 
 
   getMyReporteesAndTheirProjects() {
+      this.timesheetObj.managerId = this.currentUser.empId;
+      
+      this.timesheetService.getMyReporteesAndClientSideProjectsInMonthYear(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.reporteesAndTheirProject = response.serviceResponse;
+          
+          const projectMap = new Map<number, { empId: number; name: string }[]>();
+          
+          for (const employee of this.reporteesAndTheirProject) {
+            const empId = employee.empId;
+            const empName = employee.name;
+            
+            if (employee.projectList) {
+              for (const project of employee.projectList) {
+                const projectId = project.projectId;
+                
+                if (projectId) {
+                  if (!projectMap.has(projectId)) {
+                    projectMap.set(projectId, []);
+                  }
+                  
+                  projectMap.get(projectId).push({ empId, name: empName });
+                }
+              }
+            }
+          }
+          
+          console.log("Project Map:", projectMap);
+          
+          this.projectObj = Object.fromEntries(projectMap);
+          const projectsWithDetails = response.serviceResponse.flatMap(employee => 
+            employee.projectList?.map(project => ({
+              projectId: project.projectId,
+              projectName: project.projectName
+            })) || []
+          );
 
-    this.timesheetObj.managerId = this.currentUser.empId;
-    this.timesheetService.getMyReporteesAndClientSideProjectsInMonthYear(this.timesheetObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.reporteesAndTheirProject = response.serviceResponse;
-        this.reportees = this.reporteesAndTheirProject;
-        console.log("test", this.rejectReasons);
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
+          // Remove duplicates
+          const uniqueProjects: { projectId: number; projectName: string }[] = Array.from(
+            new Map<number, { projectId: number; projectName: string }>(
+              projectsWithDetails
+                .filter(p => p.projectId)
+                .map(p => [p.projectId, p])
+            ).values()
+          );
 
-  }
+          this.allProjects = uniqueProjects;
+          console.log("All Projects:", this.allProjects);
+          
+            
+          // console.log("Project Object:", this.projectObj);
+          
+        } else {
+          console.error(response.serviceResponse);
+        }
+      });
+    }
 
-  onReporteeChange(empId: number) {
-     this.resetBulkUploadForm('EMP');
-    const selectedEmp = this.reporteesAndTheirProject.find(
-      emp => emp.empId === empId
-    );
+ onReporteeChange(empIds: number[]) {
+    //  this.resetBulkUploadForm('EMP');
+    // const selectedEmp = this.reporteesAndTheirProject.find(
+    //   emp => emp.empId === empId
+    // );
 
-    this.projects = selectedEmp ? selectedEmp.projectList : [];
-    this.timesheetObj.selectedProjectId = null;
+    console.log("Empids: ", empIds);
+    
+
+    this.timesheetObj.projectId = this.timesheetObj.selectedProjectId;
+    this.timesheetObj.empIds = empIds;
   }
 
 
   onProjectSelectBulk(projectId: any) {
-    this.resetBulkUploadForm('PROJECT');
+    // this.resetBulkUploadForm('PROJECT');
+
+    this.timesheetObj.empIds = null;
+
+    this.reportees = this.reporteesAndTheirProject.map(rp =>{
+      if(rp.projectId === projectId){
+        return rp;
+      }
+    })
+
     // this.checkIfProjectRequiresClientId(projectId);
-    this.getAllDisabledDateListForBulkDocSubmit(projectId);
+    // this.getAllDisabledDateListForBulkDocSubmit(projectId);
 
   }
 
@@ -1032,40 +1134,46 @@ sortData(sort: Sort) {
       return;
     }
 
-    const from = new Date(this.finalFromDate);
-    const to = new Date(this.finalToDate);
-    const today = new Date();
+    // const from = new Date(this.finalFromDate);
+    // const to = new Date(this.finalToDate);
+    // const today = new Date();
 
-    const currentMonth = today.getMonth(); // 0-11
-    const currentYear = today.getFullYear();
+    // const currentMonth = today.getMonth();
+    // const currentYear = today.getFullYear();
 
-    // Previous month calculation
-    const prevMonth = currentMonth - 1;
-    const prevMonthYear = prevMonth < 0 ? currentYear - 1 : currentYear;
-    const adjustedPrevMonth = (prevMonth + 12) % 12;
+    // const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    // const prevMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
 
-    const lastDayOfCurrentMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    // const fortyFiveDaysAgo = new Date(today);
+    // fortyFiveDaysAgo.setDate(today.getDate() - this.minusDaysData.minusDays);
+    // const minMonthValue = fortyFiveDaysAgo.getMonth();
+    // const minMonthYear = fortyFiveDaysAgo.getFullYear();
 
-    // Check if selection is fully in previous month
-    const isPreviousMonthSelection =
-      from.getMonth() === adjustedPrevMonth &&
-      to.getMonth() === adjustedPrevMonth &&
-      from.getFullYear() === prevMonthYear &&
-      to.getFullYear() === prevMonthYear;
+    // const isPreviousMonthSelection =
+    //   from.getMonth() === prevMonth &&
+    //   to.getMonth() === prevMonth &&
+    //   from.getFullYear() === prevMonthYear &&
+    //   to.getFullYear() === prevMonthYear;
 
-    const isCurrentMonthLastDayUpload =
-      from.getMonth() === currentMonth &&
-      to.getMonth() === currentMonth &&
-      from.getFullYear() === currentYear &&
-      to.getFullYear() === currentYear &&
-      today.getDate() === lastDayOfCurrentMonth;
+    // const isOlderMonthSelection =
+    //   from.getMonth() === minMonthValue &&
+    //   to.getMonth() === minMonthValue &&
+    //   from.getFullYear() === minMonthYear &&
+    //   to.getFullYear() === minMonthYear;
 
-    this.isUploadAllowed = isPreviousMonthSelection || isCurrentMonthLastDayUpload;
+    //   if(this.minusDaysData.checkMinusDaysForBulkUpload){
+    //     this.isUploadAllowed = isPreviousMonthSelection || isOlderMonthSelection;
+    //   } else {
+      //   }
+    this.isUploadAllowed = true;
 
-    // Tooltip message
     this.disableUploadTooltip = this.isUploadAllowed
       ? ""
-      : "Bulk upload is permitted only for dates in the previous month or on the last day of the current month. Please select a valid date range.";
+      : `Bulk upload is permitted only for the previous month (from 1st) or older months within ${this.minusDaysData.minusDays} days (from 15th). Please select a valid date range.`;
+
+      if(this.finalToDate < this.finalFromDate ){
+        this.finalToDate = null;  
+      }
   }
 
 
@@ -1096,11 +1204,12 @@ sortData(sort: Sort) {
 
     if (!file) return;
 
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+    // also "xlsx","xls"
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel','application/vnd.oasis.opendocument.spreadsheet'];
     const maxSize = 500 * 1024;
 
     if (!allowedTypes.includes(file.type)) {
-      this.fileError2 = 'Only PDF, JPG, JPEG, and PNG files are allowed.';
+      this.fileError2 = 'Only PDF, JPG, JPEG, PNG, XLSX, and XLS files are allowed.';
       return;
     }
 
@@ -1117,9 +1226,9 @@ sortData(sort: Sort) {
     this.rawObjectUrl2 = objectUrl;
     this.previewUrl2 = this.sanitizer.bypassSecurityTrustResourceUrl(objectUrl);
     this.fileType2 = file.type === 'application/pdf' ? 'pdf' : 'image';
-    this.selectedFile2 = file;
+    this.selectedFile2 = this.renameFile(file, this.timesheetObj.projectId, 'Approved');
+    console.log("selectedFile2: ",this.selectedFile2);
     this.fileName2 = file.name;
-    console.log(this.selectedFile2, "::this.selectedFile", this.fileName2, "::this.fileName")
   }
 
 
@@ -1150,16 +1259,38 @@ sortData(sort: Sort) {
     console.log(this.finalFromDate);
     console.log(this.finalToDate);
     console.log(this.timesheetObj.projectId);
+    console.log(this.selectedFile2);
     if (this.selectedFile2 != null && this.finalFromDate != null && this.finalToDate != null && this.currentUser.empId != null) {
-      this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2, this.finalFromDate, this.finalToDate, this.timesheetObj.selectedEmpId, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+      // this.timesheetService.bulkFinalDocumentUpload(this.selectedFile2, this.finalFromDate, this.finalToDate, this.timesheetObj.selectedEmpId, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+      //   if (response.serviceStatus === "Success") {
+      //     this.resetBulkUploadForm('UPLOAD');
+
+      //     this.openAlertMod(template, response.serviceResponse);
+      //   } else {
+      //     this.openAlertMod(template, response.serviceResponse);
+      //   }
+      // });
+
+      const payload: ProjectBasedBulkUploadPayload = {
+        createdBy: this.currentUser.empId,
+        empIds: this.timesheetObj.empIds,
+        fromDate: this.finalFromDate,
+        toDate: this.finalToDate,
+        projectId: this.timesheetObj.projectId,
+      }
+      console.log("This payload: ",payload);
+
+      this.timesheetService.bulkFinalUploadProjectBased(payload, this.selectedFile2).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
           this.resetBulkUploadForm('UPLOAD');
-
+          this.alertMessage = "Success";
           this.openAlertMod(template, response.serviceResponse);
         } else {
-          this.openAlertMod(template, response.serviceResponse);
+          this.alertMessage = response.serviceResponse || "Error while bulk final upload";
+          this.openAlertMod(template, this.alertMessage);
         }
       });
+
     } else {
 
       if (this.finalFromDate == null) {
@@ -2389,9 +2520,7 @@ openSingleProjectRejectModal(
 
 getReporteesFromProjectId(): { empId: number; name: string }[] {
   const projectId = this.timesheetObj.selectedProjectId;
-  console.log("Project Id : ", projectId);
-  console.log("Project Object : ", this.projectObj[projectId]);
-
+  
   return this.projectObj[projectId] ?? [];
 
 }
@@ -2458,6 +2587,13 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
     return d.toISOString().split('T')[0];
   }
 
+  renameFile(file: File, projectId: number, docType: 'Filled' | 'Approved'): File {
+    const ext = file.name.substring(file.name.lastIndexOf('.'));
+    const safeDocType = docType.toLowerCase(); // optional
+    const newFileName = `${projectId}_${safeDocType}_${file.name}`;
+
+    return new File([file], newFileName, { type: file.type });
+  }
 
 
 }

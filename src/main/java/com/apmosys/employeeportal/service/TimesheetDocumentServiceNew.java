@@ -109,6 +109,16 @@ public class TimesheetDocumentServiceNew {
         documentDataList.sort(
                 Comparator.comparing(
                         d -> "Filled".equalsIgnoreCase(d.getDocType()) ? 0 : 1));
+        List<TimesheetDocumentDataDTO> filledDocs = new ArrayList<>();
+        List<TimesheetDocumentDataDTO> approvedDocs = new ArrayList<>();
+
+        for (TimesheetDocumentDataDTO docData : documentDataList) {
+            if ("Filled".equalsIgnoreCase(docData.getDocType())) {
+                filledDocs.add(docData);
+            } else if ("Approved".equalsIgnoreCase(docData.getDocType())) {
+                approvedDocs.add(docData);
+            }
+        }
 
         // Create file lookup map - docName must match original filename
         Map<String, MultipartFile> fileMap = documents.stream()
@@ -117,75 +127,121 @@ public class TimesheetDocumentServiceNew {
                         f -> f,
                         (a, b) -> a));
 
-        for (TimesheetDocumentDataDTO docData : documentDataList) {
-            try {
-                // Verify file exists for this document
-                MultipartFile matchedFile = fileMap.get(docData.getUniqueIdentifier());
-                if (matchedFile == null) {
-                    throw new IllegalArgumentException(
-                            "Document is missing: " + docData.getDocName());
-                }
+        // for (TimesheetDocumentDataDTO docData : documentDataList) {
+        //     try {
+        //         // Verify file exists for this document
+        //         MultipartFile matchedFile = fileMap.get(docData.getUniqueIdentifier());
+        //         if (matchedFile == null) {
+        //             throw new IllegalArgumentException(
+        //                     "Document is missing: " + docData.getDocName());
+        //         }
 
-                if ("Filled".equalsIgnoreCase(docData.getDocType())) {
-                    TimesheetDocumentDetailsNew filledDoc = new TimesheetDocumentDetailsNew();
+        //         if ("Filled".equalsIgnoreCase(docData.getDocType())) {
+        //             TimesheetDocumentDetailsNew filledDoc = new TimesheetDocumentDetailsNew();
 
-                    if (docData.getDocId() != null) {
-                        TimesheetDocumentDetailsNew existingDoc = timesheetDocumentDetailsNewRepository
-                                .findById(docData.getDocId()).orElse(null);
-                        if (existingDoc != null) {
-                            deleteFile(existingDoc.getFileUrl());
-                        }
-                        filledDoc.setDocId(docData.getDocId());
-                    }
-                    filledDoc.setProjectId(docData.getProjectId());
-                    filledDoc.setFileUrl(docData.getUniqueIdentifier());
-                    filledDoc.setDocName(docData.getDocName());
-                    filledDoc.setMimeTypeId(getMimeTypeId(matchedFile.getContentType(), docData.getUniqueIdentifier()));
-                    filledDoc.setClientApprovalStatusId(1);
-                    filledDoc.setActive(true);
-                    filledDoc.setTimesheetId(timesheetId);
-                    filledDoc.setCreatedBy(empTs.getCreatedBy());
-                    filledDoc.setUpdatedBy(empTs.getUpdatedBy());
-                    filledDoc.setFinalFlag(false);
-                    timesheetDocumentDetailsNewRepository.save(filledDoc);
+        //             if (docData.getDocId() != null) {
+        //                 TimesheetDocumentDetailsNew existingDoc = timesheetDocumentDetailsNewRepository
+        //                         .findById(docData.getDocId()).orElse(null);
+        //                 if (existingDoc != null) {
+        //                     deleteFile(existingDoc.getFileUrl());
+        //                 }
+        //                 filledDoc.setDocId(docData.getDocId());
+        //             }
+        //             filledDoc.setProjectId(docData.getProjectId());
+        //             filledDoc.setFileUrl(docData.getUniqueIdentifier());
+        //             filledDoc.setDocName(docData.getDocName());
+        //             filledDoc.setMimeTypeId(getMimeTypeId(matchedFile.getContentType(), docData.getUniqueIdentifier()));
+        //             filledDoc.setClientApprovalStatusId(1);
+        //             filledDoc.setActive(true);
+        //             filledDoc.setTimesheetId(timesheetId);
+        //             filledDoc.setCreatedBy(empTs.getCreatedBy());
+        //             filledDoc.setUpdatedBy(empTs.getUpdatedBy());
+        //             filledDoc.setFinalFlag(false);
+        //             timesheetDocumentDetailsNewRepository.save(filledDoc);
 
-                } else if ("Approved".equalsIgnoreCase(docData.getDocType())) {
-                    // timsheetID for safety
-                    List<TimesheetDocumentDetailsNew> existingDetailsNew = timesheetDocumentDetailsNewRepository
-                            .findByTimesheetIdAndActive(timesheetId);
-                    if (existingDetailsNew == null || existingDetailsNew.isEmpty()) {
-                        throw new IllegalArgumentException("Document is missing: " + docData.getDocName());
-                    }
-                    FinalDocumentNew finalDocumentNew = new FinalDocumentNew();
+        //         } else if ("Approved".equalsIgnoreCase(docData.getDocType())) {
+        //             // timsheetID for safety
+        //             List<TimesheetDocumentDetailsNew> existingDetailsNew = timesheetDocumentDetailsNewRepository
+        //                     .findByTimesheetIdAndActive(timesheetId, docData.getProjectId());
+        //             if (existingDetailsNew == null || existingDetailsNew.isEmpty()) {
+        //                 throw new IllegalArgumentException("Document is missing: " + docData.getDocName());
+        //             }
+        //             FinalDocumentNew finalDocumentNew = new FinalDocumentNew();
 
-                    if (docData.getBulkApprovedDocId() != null) {
-                        FinalDocumentNew existingDoc = finalDocumentNewRepository
-                                .findById(docData.getBulkApprovedDocId()).orElse(null);
-                        if (existingDoc != null) {
-                            deleteFile(existingDoc.getFileUrl());
-                        }
-                        finalDocumentNew.setFinalDocId(docData.getBulkApprovedDocId());
-                    }
-                    finalDocumentNew.setProjectId(docData.getProjectId());
-                    finalDocumentNew.setFileUrl(docData.getUniqueIdentifier());
-                    finalDocumentNew.setCreatedBy(empTs.getCreatedBy());
-                    finalDocumentNew.setUpdatedBy(empTs.getUpdatedBy());
-                    finalDocumentNew.setDocName(docData.getDocName());
-                    finalDocumentNew.setMimeTypeId(getMimeTypeId(docData.getDocName(), docData.getUniqueIdentifier()));
-                    finalDocumentNew = finalDocumentNewRepository.save(finalDocumentNew);
+        //             if (docData.getBulkApprovedDocId() != null) {
+        //                 FinalDocumentNew existingDoc = finalDocumentNewRepository
+        //                         .findById(docData.getBulkApprovedDocId()).orElse(null);
+        //                 if (existingDoc != null) {
+        //                     deleteFile(existingDoc.getFileUrl());
+        //                 }
+        //                 finalDocumentNew.setFinalDocId(docData.getBulkApprovedDocId());
+        //             }
+        //             finalDocumentNew.setProjectId(docData.getProjectId());
+        //             finalDocumentNew.setFileUrl(docData.getUniqueIdentifier());
+        //             finalDocumentNew.setCreatedBy(empTs.getCreatedBy());
+        //             finalDocumentNew.setUpdatedBy(empTs.getUpdatedBy());
+        //             finalDocumentNew.setDocName(docData.getDocName());
+        //             finalDocumentNew.setMimeTypeId(getMimeTypeId(docData.getDocName(), docData.getUniqueIdentifier()));
+        //             finalDocumentNew = finalDocumentNewRepository.save(finalDocumentNew);
 
-                    for (TimesheetDocumentDetailsNew doc : existingDetailsNew) {
-                        doc.setBulkApprovedDocId(finalDocumentNew.getFinalDocId());
-                        doc.setFinalFlag(true);
-                        doc.setClientApprovalStatusId(2);
-                        timesheetDocumentDetailsNewRepository.save(doc);
-                    }
+        //             for (TimesheetDocumentDetailsNew doc : existingDetailsNew) {
+        //                 doc.setBulkApprovedDocId(finalDocumentNew.getFinalDocId());
+        //                 doc.setFinalFlag(true);
+        //                 doc.setClientApprovalStatusId(2);
+        //                 timesheetDocumentDetailsNewRepository.save(doc);
+        //             }
 
-                }
-                uploadFile(documents);
-            } catch (Exception e) {
-                e.printStackTrace();
+        //         }
+        //         uploadFile(documents);
+        //     } catch (Exception e) {
+        //         e.printStackTrace();
+        //     }
+        // }
+
+        Map<String, Long> timesheetIdAndProjectIdToFinalDocMap = new HashMap<>();
+
+        for(TimesheetDocumentDataDTO approvedData : approvedDocs) {
+            MultipartFile matchedFile = fileMap.get(approvedData.getUniqueIdentifier());
+            if (matchedFile == null) {
+                throw new IllegalArgumentException(
+                        "Document is missing: " + approvedData.getDocName());
             }
+            FinalDocumentNew finalDocumentNew = new FinalDocumentNew();
+            finalDocumentNew.setFinalDocId(approvedData.getDocId());
+            finalDocumentNew.setProjectId(approvedData.getProjectId());
+            finalDocumentNew.setFileUrl(approvedData.getUniqueIdentifier());
+            finalDocumentNew.setCreatedBy(empTs.getCreatedBy());
+            finalDocumentNew.setUpdatedBy(empTs.getUpdatedBy());
+            finalDocumentNew.setDocName(approvedData.getDocName());
+            finalDocumentNew.setMimeTypeId(getMimeTypeId(approvedData.getDocName(), approvedData.getUniqueIdentifier()));
+            finalDocumentNew = finalDocumentNewRepository.save(finalDocumentNew);
+            timesheetIdAndProjectIdToFinalDocMap.put(empTs.getTimesheetId() + "_" + approvedData.getProjectId(), finalDocumentNew.getFinalDocId());
+        }
+
+        for(TimesheetDocumentDataDTO filledData : filledDocs) {
+            MultipartFile matchedFile = fileMap.get(filledData.getUniqueIdentifier());
+            if (matchedFile == null) {
+                throw new IllegalArgumentException(
+                        "Document is missing: " + filledData.getDocName());
+            }
+            TimesheetDocumentDetailsNew doc = new TimesheetDocumentDetailsNew();
+            doc.setTimesheetId(timesheetId);
+            doc.setProjectId(filledData.getProjectId());
+            doc.setDocId(filledData.getDocId());
+            doc.setFileUrl(filledData.getUniqueIdentifier());
+            doc.setDocName(filledData.getDocName());
+            doc.setMimeTypeId(getMimeTypeId(filledData.getDocName(), filledData.getUniqueIdentifier()));
+            doc.setCreatedBy(empTs.getCreatedBy());
+            doc.setActive(true);
+            doc.setUpdatedBy(empTs.getUpdatedBy());
+            doc.setClientApprovalStatusId(1);
+            doc.setFinalFlag(false);
+            if(timesheetIdAndProjectIdToFinalDocMap.get(timesheetId + "_" + filledData.getProjectId()) != null) {
+                doc.setBulkApprovedDocId(timesheetIdAndProjectIdToFinalDocMap.get(timesheetId + "_" + filledData.getProjectId()));
+                doc.setClientApprovalStatusId(2);
+                doc.setFinalFlag(true);
+            }
+            timesheetDocumentDetailsNewRepository.save(doc);
         }
 
     }
@@ -476,6 +532,18 @@ public class TimesheetDocumentServiceNew {
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Failed to upload file", e);
+        }
+    }
+
+    public Boolean deleteFiles(List<String> fileNames) {
+        try {
+            for (String fileName : fileNames) {
+                deleteFile(fileName);
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
     }
 

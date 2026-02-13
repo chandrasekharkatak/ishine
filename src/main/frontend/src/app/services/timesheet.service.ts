@@ -390,7 +390,7 @@ isEmployeeInTNMProject(empId: any): Observable<any> {
   }
 
   getMyReporteesAndClientSideProjectsInMonthYear(timesheetObj:any){
-    return this.http.post(`${this.baseUrl}` + `api/getMyReporteesAndClientSideProjectsInMonthYear`, timesheetObj);
+    return this.http.post(`${this.baseUrl}` + `api/v2/timesheet/getMyReporteesAndClientSideProjectsInMonthYear`, timesheetObj);
   }
 
   getMyProjectsInMonthYear(timesheetObj:any){
@@ -433,14 +433,14 @@ getDepartmentStatusSummary(payload: any) {
     );
 
     return this.http.post(
-      `${this.baseUrl}api/bulkFinalUploadProjectBased`,
+      `${this.baseUrl}api/v2/timesheet/bulkFinalUploadProjectBased`,
       formData
     );
   }
 
   getPreviousMinusDays(){
     return this.http.get(
-      `${this.baseUrl}api/getPreviousMinusDays`
+      `${this.baseUrl}api/v2/timesheet/getPreviousMinusDays`
     )
   }
 

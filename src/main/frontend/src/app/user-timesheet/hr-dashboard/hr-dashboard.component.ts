@@ -1920,6 +1920,7 @@ cancelHidePopup() {
       console.log(this.selectedEmployeeStatus,":selectedEmployeeStatus")
       this.timesheetService.getTimesheetDashboardCountForEmployee(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableTypes,this.selectedEmployeeStatus,this.viewClientIdFlag,this.globalPoConflictSelection).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
+          console.log("dashboardObj :::::::::", response)
           this.dashboardObj = response.serviceResponse;
           this.getTiles();
           console.log("dashboardObj :::::::::", this.dashboardObj);

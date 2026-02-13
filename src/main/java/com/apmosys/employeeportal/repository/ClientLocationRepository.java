@@ -27,5 +27,11 @@ public interface ClientLocationRepository extends JpaRepository<ClientLocation, 
 	public Optional<ClientLocation> findByClientIdAndClientLocationAndClientStateIsNull(Integer clientId, String clientLocation);
 
 	public boolean existsByClientId(Integer clientId);
+	
+	@Query(value = "select * from client_locations where client_id =:clientId",nativeQuery = true)
+	List<ClientLocation> findByClientIdPK(@Param("clientId") Integer clientId);
+
+
+	public List<ClientLocation> findByClientAddressId(Long clientAddressId);
 
 }

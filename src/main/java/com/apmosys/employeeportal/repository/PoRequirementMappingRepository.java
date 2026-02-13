@@ -111,4 +111,12 @@ public interface PoRequirementMappingRepository extends JpaRepository<PoRequirem
 
 	List<PoRequirementMapping> findByPoIdAndActiveTrue(Long poId);
 	
+	@Query(value ="SELECT distinct p.roleId \n"
+			+ "FROM PoRequirementMapping p\n"
+			+ "WHERE p.poId = :poId")
+	List<Long> findRoleIdsByPoId(Long poId);
+
+	
+	
+	
 }

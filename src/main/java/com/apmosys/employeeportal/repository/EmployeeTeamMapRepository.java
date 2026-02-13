@@ -14,10 +14,12 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.EmpMappingDTO;
+import com.apmosys.employeeportal.dto.EmployeeImpactDTO;
 import com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO;
 import com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO;
+import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse;
@@ -509,15 +511,17 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 	 
 	 
 	 
-	 @Query(value="SELECT DISTINCT p.po_project_id,JSON_ARRAYAGG(e.name) "
-				+ " AS employee_names FROM  projects p "
-				+ " INNER JOIN teams t ON p.project_id = t.project_id "
-				+ " INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id "
-				+ " INNER JOIN employee e ON e.emp_id = etm.emp_id "
-				+ " WHERE p.active = 'true' "
-				+ " AND t.is_active != 'N' "
-				+ " AND etm.active != 0 "
-			    + " GROUP BY p.po_project_id",nativeQuery = true)
+	 @Query(value="SELECT ppo.po_id ,JSON_ARRAYAGG(e.name) "
+	 			+ "	AS employee_names FROM  projects p "
+	 			+ "	INNER JOIN teams t ON p.project_id = t.project_id "
+	 			+ "	INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id "
+	 			+ "	INNER JOIN employee e ON e.emp_id = etm.emp_id \n"
+	 			+ " INNER JOIN project_po_details ppo on ppo.project_id = p.project_id "
+	 			+ " INNER JOIN po_details pd on pd.po_id = ppo.po_id "
+	 			+ "	WHERE p.active = 'true' AND t.is_active != 'N' "
+	 			+ "	   AND etm.active != 0 AND ppo.active=1 "
+	 			+ "    AND CURDATE() BETWEEN pd.po_start_date AND pd.po_end_date "
+	 			+ "	GROUP BY ppo.po_id ",nativeQuery = true)
 				List<Object> getAllApprovedPoWithTimesheet(); 
 	 
 	 
@@ -851,9 +855,47 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			+ "(etm.empId,etm.startDate,etm.endDate,etm.isShadow,etm.poId) " +
 			"FROM EmployeeTeamMap etm " +
 			"LEFT JOIN PoRequirementMapping prm "+
-			"on prm.poRequirementMappingId=etm.poRequirementMappingId "+	
+			"on prm.roleId = etm.roleId and prm.poId = etm.poId "+	
 			"WHERE etm.active!=2  AND prm.poId = :poId ")
 	List<EmpMappingDTO> getActiveEmpDetails(Long poId);
+ 
+	
+	@Query(value ="SELECT new com.apmosys.employeeportal.dto.EmployeeImpactDTO(e.name, t.teamName)\n"
+			+ "FROM EmployeeTeamMap etm\n"
+			+ "LEFT JOIN Employee e ON etm.empId = e.empId\n"
+			+ "LEFT JOIN Team t ON etm.teamId = t.teamId\n"
+			+ "WHERE etm.poId = :poId\n"
+			+ "AND etm.roleId = :roleId\n"
+			+ "AND etm.active != 0")
+	List<EmployeeImpactDTO> findActiveEmployeesByPoAndRole(Long poId, Long roleId);
+	
+	
+	@Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END\n"
+			+ "FROM EmployeeTeamMap e\n"
+			+ "WHERE e.poId = :poId\n"
+			+ "AND e.active != 0")
+	boolean existsActiveTeams(Long poId);
+	
+	@Query(value = "SELECT MIN(e.startDate)\n"
+			+ "FROM EmployeeTeamMap e\n"
+			+ "WHERE e.teamId IN :teamIds")
+	LocalDateTime findMinEmployeeStartDateByTeamIds(
+	        @Param("teamIds") List<Long> teamIds
+	);
+	
+	@Query("SELECT DISTINCT etm.empId\n"
+			+ " FROM EmployeeTeamMap etm\n"
+			+ " INNER JOIN Team t ON t.teamId = etm.teamId\n"
+			+ " INNER JOIN Project p ON p.projectId = t.projectId\n"
+			+ " WHERE p.projectId = :projectId\n"
+			+ "	AND etm.active != 0\n"
+			+ "	AND t.isActive = 'Y'\n"
+			+ "	AND p.active = true")
+	List<Long> findDistinctEmpIdsByProjectId(@Param("projectId") Long projectId);
+
+	
+	@Query(value = "Select etm from EmployeeTeamMap etm where etm.poId =:previousPoId and etm.roleId =:roleId and etm.active !=0")
+	List<EmployeeTeamMap>findActiveEmployeesForRole(Long previousPoId, Long roleId);
 
 
 }
