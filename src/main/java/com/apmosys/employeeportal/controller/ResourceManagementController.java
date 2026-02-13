@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.JobRoleAccess;
+import com.apmosys.employeeportal.dto.BulkTimesheetRequestDTO;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
 import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
 import com.apmosys.employeeportal.dto.FilterMatrix;
@@ -693,6 +694,11 @@ public class ResourceManagementController {
 			@RequestParam(required = false) Long poId, @RequestParam Integer projectId,
 			@RequestParam String projectType) {
 		return resourceManagementService.getResourceRequirementCountByPoId(poId, projectId, projectType);
+	}
+	
+	@PostMapping("/bulkApproveTimesheetRequest1")
+	public ServiceResponse bulkApproveTimesheetRequest1( @RequestBody BulkTimesheetRequestDTO bulkTimesheetRequestDTO){
+		return resourceManagementService.bulkOrSingleApproveOrReject(bulkTimesheetRequestDTO);
 	}
 	 
 	

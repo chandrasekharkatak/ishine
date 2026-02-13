@@ -159,6 +159,7 @@ export class TeamTimesheetComponent implements OnInit {
   startY = 0;
   translateX = 0;
   translateY = 0;
+  isAllSelected: boolean = false;
   http :any;
 clientFilter: boolean = false;
 safePdfUrl:SafeResourceUrl | null = null;
@@ -393,6 +394,13 @@ alertModal: TemplateRef<any>;
     this.addIfPresent(payload, 'poNo', this.filters.poNo);
     this.addIfPresent(payload, 'shadowEmpName', this.filters.shadowEmp);
     this.addIfPresent(payload, 'shadowFor', this.filters.shadowFor);
+    this.addIfPresent(payload, 'workCheckIn', this.filters.workCheckIn);
+    this.addIfPresent(payload, 'workCheckOut', this.filters.workCheckOut);
+    this.addIfPresent(payload, 'locationCount', this.filters.locationCount);
+    this.addIfPresent(payload, 'projectCount', this.filters.projectCount);
+    this.addIfPresent(payload, 'appliedBy', this.filters.appliedBy);
+    this.addIfPresent(payload, 'appliedOn', this.filters.appliedOn);
+
 
 
     this.timesheetService
@@ -419,6 +427,7 @@ totalPages: number = 0;
 
 onPageSizeChange() {
   this.page1 = 1;
+  this.isAllSelected = false; 
   this.getMyReporteesTimesheetRequests();
 }
 

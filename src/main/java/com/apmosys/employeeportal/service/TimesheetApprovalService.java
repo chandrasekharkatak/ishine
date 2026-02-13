@@ -1389,6 +1389,12 @@ import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 	                        payload.getDate(),
 	
 	                        payload.getSearch(),
+	                        payload.getWorkCheckIn(),
+                            payload.getWorkCheckOut(),
+                            payload.getLocationCount(),
+                            payload.getProjectCount(),
+                            payload.getAppliedBy(),
+                            payload.getAppliedOn(),
 	
 	                        pageable
 	                );
@@ -1490,6 +1496,12 @@ import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 	                             payload.getDate(),
 	
 	                             payload.getSearch(),
+	                             payload.getWorkCheckIn(),
+	                             payload.getWorkCheckOut(),
+	                             payload.getLocationCount(),
+	                             payload.getProjectCount(),
+	                             payload.getAppliedBy(),
+	                             payload.getAppliedOn(),
 //	                             payload.getSortBy(),
 //	                             payload.getSortDir(),
 	                             pageable

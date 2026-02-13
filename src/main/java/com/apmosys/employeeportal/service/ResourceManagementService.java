@@ -63,6 +63,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.controller.ProjectStructureRequest;
 import com.apmosys.employeeportal.dto.BenchEmployeeDetailsDTO;
+import com.apmosys.employeeportal.dto.BulkTimesheetRequestDTO;
 import com.apmosys.employeeportal.dto.CombinedPOInternalProjectResponse;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
 import com.apmosys.employeeportal.dto.EmpMappingDTO;
@@ -162,7 +163,9 @@ import com.apmosys.employeeportal.model.ProjectPoDetails;
 import com.apmosys.employeeportal.model.ResourceRequirement;
 import com.apmosys.employeeportal.model.ResourceRequirementTemp;
 import com.apmosys.employeeportal.model.Team;
+import com.apmosys.employeeportal.model.TimesheetActionAuditNew;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
+import com.apmosys.employeeportal.model.TimesheetRejectionDetailsNew;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.ActivityTemplateRepository;
 import com.apmosys.employeeportal.repository.ClientLocationRepository;
@@ -187,7 +190,9 @@ import com.apmosys.employeeportal.repository.ProjectTempRepo;
 import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
 import com.apmosys.employeeportal.repository.ResourceRequirementTempRepo;
 import com.apmosys.employeeportal.repository.TeamRepository;
+import com.apmosys.employeeportal.repository.TimesheetActionAuditNewRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
+import com.apmosys.employeeportal.repository.TimesheetRejectionDetailsNewRepository;
 import com.apmosys.employeeportal.response.ProjectStructureResponse;
 import com.apmosys.employeeportal.response.ResourceRequirementResponse;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
@@ -302,6 +307,12 @@ public class ResourceManagementService {
 
 	@Autowired
 	private ProjectPoDetailsRepository poDetailsRepository;
+	
+	@Autowired
+	private TimesheetActionAuditNewRepository timesheetActionAuditNewRepository;
+	
+	@Autowired
+	private TimesheetRejectionDetailsNewRepository timesheetRejectionDetailsNewRepository;
 
 	@Autowired
 	private ApiLogUtility apiLogUtility;
@@ -14782,10 +14793,82 @@ public class ResourceManagementService {
         	 return ishineProjectStatus;
          }
          
-      
+         public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO request) {
+        	 ServiceResponse response = new ServiceResponse();
+        	    String status = request.getStatus();
+        	     List<Long> TimesheetLists = request.getTimesheetIds();
+        	     Map<Long, List<Long>>timesheetProjectMap=new HashMap<>();
+        	    Long updatedBy = request.getUpdatedBy();
 
+
+        	    	 saveAuditForApprovalandRejection(timesheetProjectMap, updatedBy,status);
+        	     if ("REJECTED".equalsIgnoreCase(status)) {
+        	        saveRejectionDetails(timesheetProjectMap, request);
+        	    }
+
+        	    return response;
+        	}
          
 
+         
+         private void saveAuditForApprovalandRejection(Map<Long, List<Long>> timesheetProjectMap,
+                 Long updatedBy,String status) {
+
+			List<TimesheetActionAuditNew> auditList = new ArrayList<>();
+			LocalDateTime now = LocalDateTime.now();
+			
+			for (Map.Entry<Long, List<Long>> entry : timesheetProjectMap.entrySet()) {
+
+		        Long timesheetId = entry.getKey();
+		        List<Long> projectIds = entry.getValue();
+
+		        for (Long projectId : projectIds) {
+
+		            TimesheetActionAuditNew audit = new TimesheetActionAuditNew();
+		            audit.setTimesheetId(timesheetId);
+		            audit.setProjectId(projectId.intValue());
+		            audit.setActionType(status);
+		            audit.setActionBy(updatedBy);
+		            audit.setActionOn(now);
+
+		            auditList.add(audit);
+		        }
+		    }
+			
+			timesheetActionAuditNewRepository.saveAll(auditList);
+			}
+         
+         private void saveRejectionDetails(Map<Long, List<Long>> timesheetProjectMap,
+                 BulkTimesheetRequestDTO request) {
+
+				List<TimesheetRejectionDetailsNew> rejectionList = new ArrayList<>();
+				LocalDateTime now = LocalDateTime.now();
+				 for (Map.Entry<Long, List<Long>> entry : timesheetProjectMap.entrySet()) {
+
+				        Long timesheetId = entry.getKey();
+				        List<Long> projectIds = entry.getValue();
+
+				        for (Long projectId : projectIds) {
+
+				            TimesheetRejectionDetailsNew rejection = new TimesheetRejectionDetailsNew();
+
+//				            rejection.setTimesheetId(timesheetId);
+//				            rejection.setProjectId(projectId.intValue());
+//				            rejection.setLocationMappingId(request.getLocationMappingId());
+//				            rejection.setRejectionId(request.getRejectionId());
+//				            rejection.setRemarks(request.getRejectRemark());
+//				            rejection.setRejectedBy(request.getUpdatedBy());
+//				            rejection.setRejectedOn(now);
+
+				            rejectionList.add(rejection);
+				        }
+				    }
+				
+				timesheetRejectionDetailsNewRepository.saveAll(rejectionList);
+			}
+
+
+         
 
 
 

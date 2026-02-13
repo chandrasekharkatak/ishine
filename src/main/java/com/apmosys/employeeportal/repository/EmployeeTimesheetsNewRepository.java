@@ -11024,6 +11024,25 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			        + "        :date IS NULL\n"
 			        + "        OR FUNCTION('DATE_FORMAT', etn.date, '%d/%m/%Y') LIKE CONCAT(:date, '%')\n"
 			        + "    )\n"
+			        + "    AND ( \n"
+			        + "        :workCheckIn IS NULL \n"
+			        + "        OR FUNCTION('DATE_FORMAT', etn.workCheckIn, '%h:%i %p') \n"
+			        + "           LIKE CONCAT('%', :workCheckIn, '%') \n"
+			        + "    ) \n"
+			        + "    AND ( \n"
+			        + "        :workCheckOut IS NULL \n"
+			        + "        OR FUNCTION('DATE_FORMAT', etn.workCheckOut, '%h:%i %p') \n"
+			        + "           LIKE CONCAT('%', :workCheckOut, '%') \n"
+			        + "    ) \n"
+			        + "    AND ( \n"
+			        + "        :appliedBy IS NULL \n"
+			        + "        OR LOWER(ab.name) LIKE LOWER(CONCAT('%', :appliedBy, '%')) \n"
+			        + "    ) \n"
+			        + "    AND ( \n"
+			        + "        :appliedOn IS NULL \n"
+			        + "        OR LOWER(FUNCTION('DATE_FORMAT', etn.createdOn, '%h:%i %p')) \n"
+			        + "           LIKE LOWER(CONCAT('%', :appliedOn, '%')) \n"
+			        + "    ) \n"
 			        + "    AND (\n"
 			        + "        :search IS NULL OR :search = ''\n"
 			        + "        OR LOWER(\n"
@@ -11050,6 +11069,14 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			        + "         es.name, ptsn.status, ptsn.totalClientWorkingMinutes, ptsn.description,\n"
 			        + "         a.activity, etamn.description, etamn.durationMinutes, t.teamName,\n"
 			        + "         tddn.docId, tddn.docName, tddn.finalFlag, tddn.bulkApprovedDocId, dmtmn.mimeType"
+			        + " HAVING ( \n"
+			        + "        :locationCount IS NULL \n"
+			        + "        OR COUNT(DISTINCT etlm.locationMappingId) = :locationCount \n"
+			        + "    ) \n"
+			        + "    AND ( \n"
+			        + "        :projectCount IS NULL \n"
+			        + "        OR COUNT(DISTINCT ptsn.id.projectId) = :projectCount \n"
+			        + "    ) \n"
 			        )
 			Page<GetReporteesTimesheetReqFlatDTO> getMyReporteesTimesheetRequests(
 			        @Param("managerId") Long managerId,
@@ -11066,6 +11093,12 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			        @Param("activity") String activity,
 			        @Param("date") String date,
 			        @Param("search") String search,
+			        @Param("workCheckIn") String workCheckIn,
+			        @Param("workCheckOut") String workCheckOut,
+			        @Param("locationCount") Long locationCount,
+			        @Param("projectCount") Long projectCount,
+			        @Param("appliedBy") String appliedBy,
+			        @Param("appliedOn") String appliedOn,
 			        Pageable pageable
 			);	
 //			
