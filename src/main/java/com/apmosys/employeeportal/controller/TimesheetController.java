@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.time.LocalDateTime;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,6 +30,9 @@ import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.FinalBulkUploadDTO;
 import com.apmosys.employeeportal.dto.FinalDocumentDownloadDTO;
+import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeSummaryOnExportDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeTimesheetAsCalenderByProjectIdDTO;
 import com.apmosys.employeeportal.dto.GetMyReporteesTimesheetRequestsPayload;
@@ -36,8 +42,10 @@ import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetStatusCountDTO;
 import com.apmosys.employeeportal.service.TimesheetApprovalService;
 import com.apmosys.employeeportal.service.TimesheetService;
+import com.apmosys.employeeportal.service.TimesheetServiceNew;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.EncryptionUtil;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -54,6 +62,9 @@ public class TimesheetController {
 //		@Autowired
 //		TimesheetApprovalServiceNew timesheetApprovalServiceNew;
 		
+
+		@Autowired
+TimesheetServiceNew timesheetServiceNew;
 		
 //		@Autowired
 //		TimesheetEncryptionHelper timesheetEncryptionHelper;
@@ -279,49 +290,74 @@ public class TimesheetController {
 //            System.err.println("--cron ended----");
 //            
 //    }
-	@JobRoleAccess(featureIds = {15})
-	 @PostMapping("/getProjectListForDateAndEmpId")
-	 public ServiceResponse getProjectListForDateAndEmpId(@RequestBody GetProjectListForDateAndEmpIdPayload payload) {
-	     return timesheetService.getProjectListForDateAndEmpId(payload);
-	 }
+		
+	//	@Scheduled(cron = "0 53 17 * * ?")  // Runs at 3:55 pm
+	//    public void scheduleUpdateCurrentManagerInTimesheets() {
+	//		System.err.println("----cron started-----");
+	//        timesheetService.updateCurrentManagerInTimesheets();
+	//        System.err.println("--cron ended--");
+	//    }
+		
+	//	public void backfillManagerIds() {
+	//		System.err.println("----cron started-----");
+	//            timesheetService.updateTimesheetManagerIds();
+	//            System.err.println("--cron ended----");
+	//            
+	//    }
+		// @JobRoleAccess(featureIds = {15})
+		 @PostMapping("/getProjectListForDateAndEmpId")
+		 public ServiceResponse getProjectListForDateAndEmpId(@RequestBody GetProjectListForDateAndEmpIdPayload payload) {
+		     return timesheetService.getProjectListForDateAndEmpId(payload);
+		 }
+	
+		@JobRoleAccess(featureIds = {15,16})
+		 @PostMapping("/getClientSideIdByProjectId")
+		 public ServiceResponse getClientSideIdByProjectId(@RequestParam Long projectId) {
+		     return timesheetService.getClientSideIdByProjectId(projectId);
+		 }
+		@JobRoleAccess(featureIds = {15})
+		 @PostMapping("/fetchEmploymentIdByEmpId")
+		 public ServiceResponse fetchEmploymentIdByEmpId(@RequestParam Long empId) {
+		     return timesheetService.fetchEmploymentIdByEmpId(empId);
+		 }
+		@JobRoleAccess(featureIds = {15})
+		 @PostMapping("/updateClientSideIdMapping")
+		 public ServiceResponse updateClientSideIdMapping(@RequestBody EmployeeClientSideIdMappingDTO empClientDTO) {
+		     return timesheetService.updateClientSideIdMapping(empClientDTO);
+		 }
+		@JobRoleAccess(featureIds = {15})
+		 @PostMapping("/getActiveProjectsAndClientSideIdByEmpId")
+		 public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(@RequestBody GetProjectListForDateAndEmpIdPayload payload) {
+		     return timesheetService.getActiveProjectsAndClientSideIdByEmpId(payload);
+		 }
 
-	@JobRoleAccess(featureIds = {15,16})
-	 @PostMapping("/getClientSideIdByProjectId")
-	 public ServiceResponse getClientSideIdByProjectId(@RequestParam Long projectId) {
-	     return timesheetService.getClientSideIdByProjectId(projectId);
-	 }
-	@JobRoleAccess(featureIds = {15})
-	 @PostMapping("/fetchEmploymentIdByEmpId")
-	 public ServiceResponse fetchEmploymentIdByEmpId(@RequestParam Long empId) {
-	     return timesheetService.fetchEmploymentIdByEmpId(empId);
-	 }
-	@JobRoleAccess(featureIds = {15})
-	 @PostMapping("/updateClientSideIdMapping")
-	 public ServiceResponse updateClientSideIdMapping(@RequestBody EmployeeClientSideIdMappingDTO empClientDTO) {
-	     return timesheetService.updateClientSideIdMapping(empClientDTO);
-	 }
-	@JobRoleAccess(featureIds = {15})
-	 @PostMapping("/getActiveProjectsAndClientSideIdByEmpId")
-	 public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(@RequestBody GetProjectListForDateAndEmpIdPayload payload) {
-	     return timesheetService.getActiveProjectsAndClientSideIdByEmpId(payload);
-	 }
-	 
-	@JobRoleAccess(featureIds = {15})
-	 @GetMapping("/getEmployeeListByProjectId")
-	 public ServiceResponse getEmployeeListByProjectId(@RequestParam Integer projectId,@RequestParam Long currentUser) {
-	     return timesheetService.getEmployeeListByProjectId(projectId,currentUser);
-	 }
-	@JobRoleAccess(featureIds = {15})
-	 @PostMapping("/getClientSideIdByProjectIdAndEmpId")
-	 public ServiceResponse getClientSideIdByProjectIdAndEmpId(@RequestParam Long projectId,@RequestParam Long empId) {
-	     return timesheetService.getClientSideIdByProjectIdAndEmpId(projectId,empId);
-	 }
-	 
-	@JobRoleAccess(featureIds = {15,16,24})
-	 @GetMapping("/getDocumentDataByDocId")
-	 public ServiceResponse getDocumentDataByDocId(@RequestParam Long docId) {
-	     return timesheetService.getDocumentDataByDocId(docId);
-	 }
+		@JobRoleAccess(featureIds = {15})
+		 @GetMapping("/getEmployeeListByProjectId")
+		 public ServiceResponse getEmployeeListByProjectId(@RequestParam Integer projectId,
+				 @RequestParam Long currentUser,
+				 @RequestParam(required = false) String date) {
+			 
+			 // If date is provided, use date-aware variant (shadow timesheet, etc.)
+			 if (date != null && !date.isEmpty()) {
+				 LocalDate localDate = LocalDate.parse(date.substring(0, 10));
+				 LocalDateTime startOfDay = localDate.atStartOfDay();
+				 LocalDateTime endOfDay = localDate.atTime(23, 59, 59);
+				 return timesheetService.getEmployeeListByProjectIdForDate(projectId, currentUser, startOfDay, endOfDay);
+			 }
+			 
+		     return timesheetService.getEmployeeListByProjectId(projectId,currentUser);
+		 }
+		@JobRoleAccess(featureIds = {15})
+		 @PostMapping("/getClientSideIdByProjectIdAndEmpId")
+		 public ServiceResponse getClientSideIdByProjectIdAndEmpId(@RequestParam Long projectId,@RequestParam Long empId) {
+		     return timesheetService.getClientSideIdByProjectIdAndEmpId(projectId,empId);
+		 }
+		 
+		@JobRoleAccess(featureIds = {15,16,24})
+		 @GetMapping("/getDocumentDataByDocId")
+		 public ServiceResponse getDocumentDataByDocId(@RequestParam Long docId) {
+		     return timesheetService.getDocumentDataByDocId(docId);
+		 }
 		
 		@JobRoleAccess(featureIds = {15,16,24})
 		@GetMapping("/getFinalDocumentDataByDocId")
@@ -700,6 +736,13 @@ public class TimesheetController {
 			return response;
 		}
 	}
+
+	@PostMapping("/getTimesheetStatusCountByManager")
+		public ServiceResponse getTimesheetStatusCountByManager(
+		        @RequestBody TimesheetStatusCountDTO timesheetCount) {
+				ServiceResponse response = timesheetServiceNew.getTimesheetStatusCountsByManager(timesheetCount.getManagerId());
+		    return response;
+	}
 		
 		// @JobRoleAccess(featureIds = {15})
 		//  @PostMapping("/getOtherTeamMembersByDateAndProjectId")
@@ -720,14 +763,14 @@ public class TimesheetController {
 		// 	 return reponse;
 		// }
 		
-	//	@JobRoleAccess(featureIds = {15,16,24})
-	//	@PostMapping("/getMyReporteesTimesheetRequestsNew")
-	//	public ServiceResponse getMyReporteesTimesheetRequestsNew(
-	//	        @RequestBody GetMyReporteesTimesheetRequestsPayload payload) {
-	//
-	//	    return timesheetApprovalService
-	//	            .getMyReporteesTimesheetRequestsNew(payload);
-	//	}
+		@JobRoleAccess(featureIds = {15,16,24})
+		@PostMapping("/getMyReporteesTimesheetRequestsNew")
+		public ServiceResponse getMyReporteesTimesheetRequestsNew(
+		        @RequestBody GetMyReporteesTimesheetRequestsPayload payload) {
+	
+		    return timesheetApprovalService
+		            .getMyReporteesTimesheetRequestsNew(payload);
+		}
 	
 	// @JobRoleAccess(featureIds = {15})
 	//  @PostMapping("/getOtherTeamMembersByDateAndProjectId")

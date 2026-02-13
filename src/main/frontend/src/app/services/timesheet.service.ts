@@ -23,7 +23,7 @@ export class TimesheetService {
   bulkApproveDocuments(payload: { approvedBy: any; documents: any[]; }) {
     throw new Error('Method not implemented.');
   }
-  
+
 
   private baseUrl:any = environment.baseUrl;
 
@@ -219,8 +219,12 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}` + `api/addTimesheet?`, timesheetObj);
   }
 
-  getEmployeeListByProjectId(projectId: any,currentUser: any){
-    return this.http.get(`${this.baseUrl}` + `api/getEmployeeListByProjectId?projectId=${projectId}&currentUser=${currentUser}`);
+  getEmployeeListByProjectId(projectId: any, currentUser: any, date?: string) {
+    let url = `${this.baseUrl}api/getEmployeeListByProjectId?projectId=${projectId}&currentUser=${currentUser}`;
+    if (date) {
+      url += `&date=${date}`;
+    }
+    return this.http.get(url);
   }
 
   getClientSideIdByProjectIdAndEmpId(projectId: any,empId: any): Observable<any> {
@@ -292,9 +296,9 @@ export class TimesheetService {
 
 
 
-  getMyReporteesTimesheetRequests(payload:any){
-    return this.http.post(`${this.baseUrl}`+`api/getMyReporteesTimesheetRequests`,payload);
-  }
+  // getMyReporteesTimesheetRequests(payload:any){
+  //   return this.http.post(`${this.baseUrl}`+`api/getMyReporteesTimesheetRequests`,payload);
+  // }
 
    approveTimesheetRequest(payload:any){
     return this.http.post(`${this.baseUrl}`+`api/approveTimesheetRequest`,payload);
@@ -384,7 +388,7 @@ isEmployeeInTNMProject(empId: any): Observable<any> {
   getOtherTeamMembersByDateAndProjectId(payload: any): Observable<any> {
     return this.http.post(`${this.baseUrl}` + `api/getOtherTeamMembersByDateAndProjectId`, payload);
   }
-  
+
   getMyReporteesAndClientSideProjectsInMonthYear(timesheetObj:any){
     return this.http.post(`${this.baseUrl}` + `api/getMyReporteesAndClientSideProjectsInMonthYear`, timesheetObj);
   }
@@ -402,7 +406,7 @@ isEmployeeInTNMProject(empId: any): Observable<any> {
     `${this.baseUrl}api/downloadFinalDocuments`,
     payload,
     {
-      responseType: 'blob'   
+      responseType: 'blob'
     }
   );
 }
@@ -438,6 +442,10 @@ getDepartmentStatusSummary(payload: any) {
     return this.http.get(
       `${this.baseUrl}api/getPreviousMinusDays`
     )
+  }
+
+  getMyReporteesTimesheetRequests(payload:any){
+    return this.http.post(`${this.baseUrl}`+`api/getMyReporteesTimesheetRequestsNew`,payload);
   }
 
 }

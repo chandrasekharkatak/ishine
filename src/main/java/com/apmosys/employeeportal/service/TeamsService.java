@@ -14,6 +14,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -41,6 +46,7 @@ import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
 import com.apmosys.employeeportal.dto.EmployeeOtherActiveProject;
+import com.apmosys.employeeportal.dto.EmployeeJobRoleDept;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoProjectDTO;
 import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
@@ -1283,8 +1289,8 @@ public class TeamsService {
 			logService.logMyInfo(httpRequest, apiLogInfo);
 			return response;
 		}
-	 
-	 
+	 	
+
 //	MyTeam Servcie
 	
 	public ServiceResponse getAllTeamView(EmployeeDTO employeedto) {
@@ -1301,7 +1307,7 @@ public class TeamsService {
 			List<Object[]> list = employeeRepository.getAllTeamView(employeedto.getEmpId());
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 			if (list.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No teams found");
 				apiLogInfo.setApiResponse("No teams found");			
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
@@ -1371,38 +1377,38 @@ public class TeamsService {
 							Long pendingEodCount = period - filledEodCount;
 
 							if(pendingEodCount >= 3) {
-								dto.setTimesheetStatus("Defaulter");
+		                dto.setTimesheetStatus("Defaulter");
 							}else if (pendingEodCount > 0 && pendingEodCount < 3) {
 								dto.setTimesheetStatus("Pending Timesheets : "+ pendingEodCount);
 							}
 							else {
-								dto.setTimesheetStatus("Timesheets upto date");
-							}
+		                dto.setTimesheetStatus("Timesheets upto date");
+		            }
 						}
 					});
 					
-					
-					dtoList.add(dto);
+
+		            dtoList.add(dto);
 				});
 
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
+		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		        response.setServiceResponse(dtoList);
 				apiLogInfo.setApiResponse("AllTeamView fetched:" + dtoList.size() );			
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 
-		} catch (Exception e) {
+		    } catch (Exception e) {
 			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
+		        response.setServiceError(e.getMessage());
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
-		}
+		    }
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
-	}
+		    return response;
+		}
 	
 	
 	public ServiceResponse getAllTeamView1(EmployeeDTO employeedto) {
@@ -1579,8 +1585,68 @@ public class TeamsService {
 		try {
 
 			LocalDate date = LocalDate.now().minusDays(Long.parseLong(timesheetCheckPeriod));
-			List<Object[]> list = employeeRepository.getAllTeamMemberView(employeedto.getEmpId());
+			//List<Object[]> list = employeeRepository.getAllTeamMemberView(employeedto.getEmpId());
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
+			
+			Long empId = employeedto.getEmpId();
+			Map<Long, Object[]> employeeMap = new LinkedHashMap<>(); // Use LinkedHashMap to preserve order and avoid duplicates
+
+			// ========== 3-A: Full Privilege (Department-based access) ==========
+			// Check if employee has full privilege roles (job_role_id IN (1, 13, 15, 53, 78, 93, 111, 115, 120, 143, 144, 145, 146, 152, 170, 177, 178, 183, 187))
+			List<EmployeeJobRoleDept> roleDeptList = employeeRepository.findRoleDeptByEmpId(empId);
+			Set<Long> fullAccessDeptIds = new HashSet<>();
+			
+			Set<Long> fullPrivilegeRoleIds = Set.of(1L, 13L, 15L, 53L, 78L, 93L, 111L, 115L, 120L, 143L, 144L, 145L, 146L, 152L, 170L, 177L, 178L, 183L, 187L);
+			
+			for (EmployeeJobRoleDept roleDept : roleDeptList) {
+				if (fullPrivilegeRoleIds.contains(roleDept.getJobRoleId())) {
+					fullAccessDeptIds.add(roleDept.getDepartmentId());
+				}
+			}
+
+			// If employee has full privilege, fetch all employees from those departments (same 26-column structure as old query)
+			if (!fullAccessDeptIds.isEmpty()) {
+				List<Object[]> deptEmployees = employeeRepository.getAllTeamMemberViewByDepartmentIds(new ArrayList<>(fullAccessDeptIds));
+				for (Object[] obj : deptEmployees) {
+					Long empIdFromResult = obj[0] != null ? Long.parseLong(obj[0].toString()) : null;
+					if (empIdFromResult != null && !empIdFromResult.equals(empId)) {
+						employeeMap.put(empIdFromResult, obj);
+					}
+				}
+			}
+
+			// ========== 3-B: Project-based access ==========
+			// Collect all project IDs where employee has access through various roles
+			Set<Long> projectIds = new HashSet<>();
+			
+			// 1. Employee is on a team (common team member)
+			projectIds.addAll(employeeRepository.findProjectIdsWhereEmpIsOnTeam(empId));
+			
+			// 2. Employee is a project manager
+			projectIds.addAll(employeeRepository.findProjectIdsWhereEmpIsProjectManager(empId));
+			
+			// 3. Employee is an overhead
+			projectIds.addAll(employeeRepository.findProjectIdsWhereEmpIsOverhead(empId));
+			
+			// 4. Employee is a team lead
+			projectIds.addAll(employeeRepository.findProjectIdsWhereEmpIsTeamLead(empId));
+			
+			// 5. Employee is a SPOC
+			projectIds.addAll(employeeRepository.findProjectIdsWhereEmpIsSpoc(empId));
+
+			// Fetch employees for all collected project IDs
+			if (!projectIds.isEmpty()) {
+				List<Object[]> projectEmployees = employeeRepository.getAllTeamMemberViewByProjectIds(new ArrayList<>(projectIds), empId);
+				for (Object[] obj : projectEmployees) {
+					Long empIdFromResult = obj[0] != null ? Long.parseLong(obj[0].toString()) : null;
+					if (empIdFromResult != null) {
+						employeeMap.put(empIdFromResult, obj); // Map will automatically handle duplicates
+					}
+				}
+			}
+
+			// Convert map values to list
+			List<Object[]> list = new ArrayList<>(employeeMap.values());
 			if (list.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No teams found");
@@ -1629,8 +1695,8 @@ public class TeamsService {
 					dto.setClientSideId(object[24] != null ? object[24].toString() : null);
 					dto.setEmploymentId(object[25] != null ? object[25].toString() : null);
 					
-					Long empId = object[0] != null ? Long.parseLong(object[0].toString()): null;
-					List<Object[]> timesheetFilledByMember = timesheetsRepository.getTimesheetFilledByMemberOLD(empId,date);
+					Long emp_Id = object[0] != null ? Long.parseLong(object[0].toString()): null;
+					List<Object[]> timesheetFilledByMember = timesheetsRepository.getTimesheetFilledByMemberOLD(emp_Id,date);
 					
 					if(timesheetFilledByMember.size() >= Long.parseLong(maximumTimesheetCanBeFilledByTeamMember)) {
 						dto.setIsTimesheetFilledByMember("true");

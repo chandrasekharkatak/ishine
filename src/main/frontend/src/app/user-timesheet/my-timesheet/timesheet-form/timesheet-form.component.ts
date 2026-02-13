@@ -1,8 +1,9 @@
-import { Component, Input, OnInit, Output, EventEmitter, TemplateRef, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, Output, EventEmitter, TemplateRef, ViewChild } from '@angular/core';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import * as moment from 'moment';
-import { first } from 'rxjs';
+import { Subject, first, takeUntil } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Employee } from 'src/app/models/employee';
 import { Timesheet } from 'src/app/models/timesheet';
@@ -31,7 +32,18 @@ import { TimesheetConfigService } from 'src/app/services/TimesheetValidationServ
   templateUrl: './timesheet-form.component.html',
   styleUrl: './timesheet-form.component.css'
 })
-export class TimesheetFormComponent implements OnInit {
+export class TimesheetFormComponent implements OnInit, OnDestroy {
+  
+  // ✅ CRITICAL FIX: Subject for unsubscribing all subscriptions
+  private destroy$ = new Subject<void>();
+  
+  // ✅ MODERATE FIX: Constants for magic numbers
+  private static readonly NON_FILLABLE_DAY_TYPES = [4, 6, 7]; // Public Holiday, Client Holiday, Week Off
+  private static readonly ASYNC_DELAYS = {
+    PROJECT_LOAD: 500,
+    LOCATION_POPULATE: 800,
+    TEAM_MEMBER_LOAD: 300
+  } as const;
 
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
@@ -39,9 +51,14 @@ export class TimesheetFormComponent implements OnInit {
   previewModal: TemplateRef<any>;
   @ViewChild("clientSideIdUpdateOrAddModal")
   clientSideIdUpdateOrAddModal: TemplateRef<any>;
+  @ViewChild("removeLocationConfirmModal")
+  removeLocationConfirmModal: TemplateRef<any>;
   clientSideIdUpdateOrAddModalRef: NgbModalRef;
   alertWithResetModRef: NgbModalRef;
   modalRef: NgbModalRef;
+  removeLocationConfirmModalRef: NgbModalRef;
+  pendingLocationIndexToRemove: number | null = null;
+  pendingLocationToRemove: LocationEntry | null = null;
   @Input() isCreation: boolean = false;
   @Input() isUpdation: boolean = false;
   @Input() isView: boolean = false;
@@ -130,28 +147,45 @@ export class TimesheetFormComponent implements OnInit {
     private configService:TimesheetConfigService,
     private modalService: NgbModal,
     private authenticationService: AuthenticationService,
-    private sanitizer: DomSanitizer) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
+    private sanitizer: DomSanitizer) { 
+      // ✅ CRITICAL FIX: Properly unsubscribe on destroy
+      this.authenticationService.currentUser
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(x => this.currentUser = x); 
+    }
 
   ngOnInit(): void {
     // Initialize form with default values
     this.timesheetAppliedFor = 'self';
-    this.onTimesheetAppliedForChange();
     this.getAllWorkLocationFromLocationMaster();
     this.getAllDayTypes();
     this.getAllDSRApprovalStatusFromMaster();
-    
-    // Load server date and available timesheets for date filtering
-    this.loadServerDate();
-    
-    // Handle update mode
+
     if (this.isUpdation && this.timesheetId) {
+      this.loadServerDate();
       this.loadTimesheetForUpdate(this.timesheetId);
-    } else if(this.isUpdation && this.existingTimesheetData) {
+    } else if (this.isUpdation && this.existingTimesheetData) {
+      this.loadServerDate();
       this.populateFormFromTimesheetData(this.existingTimesheetData);
     } else {
-      // For creation mode, load available timesheets after determining employee
-      // This will be called in onTimesheetAppliedForChange()
+      // Create mode: load server date first, then run init (resetForm + getTimesheetMetadata / team list)
+      // so that getTimesheetMetadata() can call getAllAvailableTimesheetByEmpId() with serverDate set
+      this.loadServerDateThenInitCreate();
     }
+  }
+
+  /**
+   * Create mode only: load server date, then run onTimesheetAppliedForChange() so that
+   * getTimesheetMetadata() → getAllAvailableTimesheetByEmpId() runs with serverDate already set,
+   * avoiding race where date constraints were applied only when loadServerDate() completed later.
+   */
+  private loadServerDateThenInitCreate(): void {
+    this.timesheetService.getServerDate()
+      .pipe(first(), takeUntil(this.destroy$))
+      .subscribe((response: any) => {
+        this.serverDate = response;
+        this.onTimesheetAppliedForChange();
+      });
   }
 
 
@@ -179,6 +213,24 @@ export class TimesheetFormComponent implements OnInit {
    */
   formatDateDDMMYYYY(date: Date): string {
     return `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`;
+  }
+
+  // ✅ MODERATE FIX: Centralized error handling
+  /**
+   * Handles errors consistently across the component
+   * @param error - Error object or message
+   * @param context - Context where error occurred (for logging)
+   * @param showToUser - Whether to show error to user via alert modal
+   * @param userMessage - Optional custom message to show to user
+   */
+  private handleError(error: any, context: string, showToUser: boolean = false, userMessage?: string): void {
+    const errorMessage = error?.message || error?.toString() || 'An unexpected error occurred';
+    console.error(`[${context}]`, error);
+    
+    if (showToUser) {
+      const message = userMessage || `Error: ${errorMessage}. Please try again.`;
+      this.openAlertMod(this.alertTemplate, message);
+    }
   }
 
   // ============================================
@@ -292,6 +344,23 @@ export class TimesheetFormComponent implements OnInit {
   }
 
   addLocation(timesheetId: number): void {
+  // Prevent adding locations when timesheet is not fillable (e.g. view-only mode)
+    if (!this.isDayTypeFillable()) {
+      console.warn('Attempt to add location when timesheet is not fillable.');
+      return;
+    }
+    // ✅ BUSINESS RULE: Maximum 5 locations allowed
+    const MAX_LOCATIONS = 5;
+    if (this.timesheetLocations.length >= MAX_LOCATIONS) {
+      this.handleError(
+        new Error(`Maximum ${MAX_LOCATIONS} locations allowed`),
+        'addLocation',
+        true,
+        `You can add a maximum of ${MAX_LOCATIONS} locations. Please remove an existing location before adding a new one.`
+      );
+      return;
+    }
+    
     this.timesheetLocations.push(this.createLocation(timesheetId));
     // Expand the newly added location
     this.expandedLocationIndex = this.timesheetLocations.length - 1;
@@ -301,13 +370,64 @@ export class TimesheetFormComponent implements OnInit {
 
   /**
    * Remove a location from the timesheet
+   * Shows confirmation dialog before removal
    * Ensures at least one location remains
    * Cleans up associated document data and file references
+   * Recalculates total hours after removal
    */
   removeLocation(index: number): void {
+    // Prevent removing locations when timesheet is not fillable
+    if (!this.isDayTypeFillable()) {
+      console.warn('Attempt to remove location when timesheet is not fillable.');
+      return;
+    }
     if (this.timesheetLocations.length <= 1) {
       this.openAlertMod(this.alertTemplate, 'At least one location is required.');
       return;
+    }
+    
+    // ✅ Show confirmation dialog before removal
+    this.pendingLocationIndexToRemove = index;
+    this.pendingLocationToRemove = this.timesheetLocations[index] || null;
+    this.removeLocationConfirmModalRef = this.modalService.open(
+      this.removeLocationConfirmModal,
+      { modalDialogClass: 'modal-sm', centered: true }
+    );
+  }
+
+  /**
+   * Confirm location removal after user confirms in dialog
+   */
+  confirmRemoveLocation(): void {
+    if (this.pendingLocationIndexToRemove === null && !this.pendingLocationToRemove) {
+      return;
+    }
+    
+    // Resolve the actual index at the time of confirmation to avoid stale index issues
+    let index = -1;
+    if (this.pendingLocationToRemove) {
+      index = this.timesheetLocations.indexOf(this.pendingLocationToRemove);
+    }
+    // Fallback to stored numeric index if reference is not found (should be rare)
+    if (index === -1 && this.pendingLocationIndexToRemove !== null) {
+      index = this.pendingLocationIndexToRemove;
+    }
+
+    // Reset pending state
+    this.pendingLocationIndexToRemove = null;
+    this.pendingLocationToRemove = null;
+
+    if (index < 0 || index >= this.timesheetLocations.length) {
+      console.warn('Location to remove no longer exists or index is out of range.');
+      if (this.removeLocationConfirmModalRef) {
+        this.removeLocationConfirmModalRef.close();
+      }
+      return;
+    }
+    
+    // Close confirmation modal
+    if (this.removeLocationConfirmModalRef) {
+      this.removeLocationConfirmModalRef.close();
     }
     
     // Cleanup document data for projects in this location
@@ -324,6 +444,9 @@ export class TimesheetFormComponent implements OnInit {
     // ✅ Don't set empHasClientSideId = false here - let getListToRenderUpload() handle it
     // It will check ALL remaining projects and set the correct value
     this.getListToRenderUpload();
+    
+    // ✅ Recalculate total hours after removal
+    this.onHoursChange();
     
     // Adjust expanded index if needed
     if (this.expandedLocationIndex === index) {
@@ -345,6 +468,17 @@ export class TimesheetFormComponent implements OnInit {
       }
     });
     this.expandedProjectIndexMap = newMap;
+  }
+
+  /**
+   * Cancel location removal
+   */
+  cancelRemoveLocation(): void {
+    this.pendingLocationIndexToRemove = null;
+    this.pendingLocationToRemove = null;
+    if (this.removeLocationConfirmModalRef) {
+      this.removeLocationConfirmModalRef.close();
+    }
   }
 
   /**
@@ -382,47 +516,135 @@ export class TimesheetFormComponent implements OnInit {
   /**
    * Add a new project to a location
    * Validates that projects are available before adding
+   * Checks for duplicate projects in the same location
+   * Fetches client details automatically if only one project
    */
   addProject(location: LocationEntry, timesheetId: number): void {
+    // Prevent adding projects when timesheet is not fillable
+    if (!this.isDayTypeFillable()) {
+      console.warn('Attempt to add project when timesheet is not fillable.');
+      return;
+    }
+    // Prevent adding projects when timesheet is not fillable
+    if (!this.isDayTypeFillable()) {
+      console.warn('Attempt to add project when timesheet is not fillable.');
+      return;
+    }
+    // ✅ MODERATE FIX: Validate date is selected (required for project fetching)
+    if (!this.fromDate) {
+      this.handleError(
+        new Error('Date must be selected before adding project'),
+        'addProject',
+        true,
+        'Please select a date first before adding a project.'
+      );
+      return;
+    }
+    
     if (!this.activeProjectList || this.activeProjectList.length === 0) {
-      this.openAlertMod(
-        this.alertTemplate,
+      this.handleError(
+        new Error('No projects available'),
+        'addProject',
+        true,
         'No projects available. Please ensure projects are loaded before adding.'
       );
       return;
     }
     
-    location.projects.push(this.createProject(location, timesheetId));
-    // Expand the newly added project
-    const locationIndex = this.timesheetLocations.indexOf(location);
-    this.expandedProjectIndexMap[locationIndex] = location.projects.length - 1;
+    // ✅ MODERATE FIX: Check for duplicate projects in the same location
+    // Same project can't be added twice to the same location
+    // But can be added to different locations
+    const existingProjectIdsInLocation = location.projects
+      .map(p => p.projectId)
+      .filter(id => id !== null && id !== undefined);
+    
+    // Create unique projects list for dropdown
     const uniqueProjects = Array.from(
       new Map(
         this.activeProjectList.map(p => [
           p.projectId,
           {
             projectId: p.projectId,
-            projectName: p.projectName
+            projectName: p.projectName,
+            hasClientSideId: p.hasClientSideId || false,
+            hasClientFlag: p.hasClientFlag || false
           }
         ])
       ).values()
     );
-
+    
+    // ✅ BUG FIX: Check for duplicate before auto-selecting (when only 1 project exists)
+    if (uniqueProjects.length === 1) {
+      const singleProject = uniqueProjects[0];
+      // Check if this project already exists in this location
+      if (existingProjectIdsInLocation.includes(singleProject.projectId)) {
+        this.handleError(
+          new Error('Duplicate project in same location'),
+          'addProject',
+          true,
+          'This project is already added to this location. Please select a different project.'
+        );
+        return;
+      }
+    }
+    
+    // Create new project
+    const newProject = this.createProject(location, timesheetId);
+    newProject.projectList = uniqueProjects;
+    
+    // ✅ MODERATE FIX: Auto-select if only 1 project and set all fields properly
+    if (uniqueProjects.length === 1) {
+      const singleProject = uniqueProjects[0];
+      newProject.projectId = singleProject.projectId;
+      newProject.projectName = singleProject.projectName;
+      newProject.hasClientSideId = singleProject.hasClientSideId;
+      newProject.hasClientFlag = singleProject.hasClientFlag;
+      
+      // ✅ Fetch client details automatically
+      this.onProjectSelect(newProject.projectId!, newProject);
+    }
+    
+    location.projects.push(newProject);
+    
+    // Expand the newly added project
+    const locationIndex = this.timesheetLocations.indexOf(location);
+    this.expandedProjectIndexMap[locationIndex] = location.projects.length - 1;
+    
+    // ✅ MODERATE FIX: Update projectList for all projects in all locations
+    // (This ensures dropdown consistency across all locations)
     this.timesheetLocations.forEach(loc => {
       loc.projects.forEach(proj => {
         proj.projectList = uniqueProjects;
       });
     });
+    
+    // ✅ MODERATE FIX: Update document list after adding project
+    this.getListToRenderUpload();
   }
 
   /**
    * Remove a project from a location
    * Ensures at least one project remains per location
    * Cleans up associated document data
+   * Recalculates location and overall total hours after removal
+   *
+   * Uses project object reference instead of index to avoid index-swapping issues.
    */
-  removeProject(location: LocationEntry, projectIndex: number): void {
+  removeProject(location: LocationEntry, projectToRemove: ProjectEntry): void {
+    // Prevent removing projects when timesheet is not fillable
+    if (!this.isDayTypeFillable()) {
+      console.warn('Attempt to remove project when timesheet is not fillable.');
+      return;
+    }
+
     if (location.projects.length <= 1) {
       this.openAlertMod(this.alertTemplate, 'At least one project is required per location.');
+      return;
+    }
+
+    const projectIndex = location.projects.indexOf(projectToRemove);
+    if (projectIndex === -1) {
+      console.warn('Attempted to remove a project that is no longer present in the location.');
       return;
     }
     
@@ -434,6 +656,9 @@ export class TimesheetFormComponent implements OnInit {
     
     location.projects.splice(projectIndex, 1);
     this.getListToRenderUpload();
+    
+    // ✅ MODERATE FIX: Recalculate location and overall total hours after removal
+    this.onHoursChange();
     
     // Adjust expanded project index if needed
     const locationIndex = this.timesheetLocations.indexOf(location);
@@ -528,10 +753,28 @@ export class TimesheetFormComponent implements OnInit {
    * Validates that client and client location are selected before adding
    */
   addActivity(project: ProjectEntry): void {
+    // Prevent adding activities when timesheet is not fillable
+    if (!this.isDayTypeFillable()) {
+      console.warn('Attempt to add activity when timesheet is not fillable.');
+      return;
+    }
+    // ✅ MODERATE FIX: Add input validation
+    if (!project) {
+      this.handleError(new Error('Project is required'), 'addActivity', true);
+      return;
+    }
+    
+    if (!project.projectId) {
+      this.handleError(new Error('Project ID is required'), 'addActivity', true, 'Please select a project first.');
+      return;
+    }
+    
     // Validate that client and client location are selected
     if (!project.clientId || !project.clientLocationId) {
-      this.openAlertMod(
-        this.alertTemplate,
+      this.handleError(
+        new Error('Client and location required'),
+        'addActivity',
+        true,
         'Please select Client and Client Location before adding activities.'
       );
       return;
@@ -539,8 +782,10 @@ export class TimesheetFormComponent implements OnInit {
     
     // ✅ Validate that clientDetails is available
     if (!project.clientDetails || !project.clientDetails.project) {
-      this.openAlertMod(
-        this.alertTemplate,
+      this.handleError(
+        new Error('Client details not loaded'),
+        'addActivity',
+        true,
         'Client details not loaded. Please reselect the project.'
       );
       return;
@@ -549,10 +794,10 @@ export class TimesheetFormComponent implements OnInit {
     this.timesheetLocations.forEach(loc => {
       loc.projects.forEach(proj => {
         if (proj === project) {
-          const newActivity = this.createActivity(null, project.projectId);
+          const newActivity = this.createActivity(null, project.projectId!);
           
           // ✅ Use teams from clientDetails API response instead of filtering activeProjectList
-          if (proj.clientDetails && proj.clientDetails.project) {
+          if (proj.clientDetails?.project?.teams && Array.isArray(proj.clientDetails.project.teams)) {
             newActivity.clientTeamList = proj.clientDetails.project.teams.map(team => ({
               teamId: team.teamId,
               teamName: team.teamName
@@ -562,6 +807,9 @@ export class TimesheetFormComponent implements OnInit {
               newActivity.teamId = newActivity.clientTeamList[0].teamId;
               this.onProjectTeamSelect(newActivity.teamId, proj);
             }
+          } else {
+            newActivity.clientTeamList = [];
+            console.warn('Teams not available in clientDetails');
           }
           
           proj.activities.push(newActivity);
@@ -576,6 +824,11 @@ export class TimesheetFormComponent implements OnInit {
    * Recalculates project total hours after removal
    */
   removeActivity(project: ProjectEntry, index: number): void {
+    // Prevent removing activities when timesheet is not fillable
+    if (!this.isDayTypeFillable()) {
+      console.warn('Attempt to remove activity when timesheet is not fillable.');
+      return;
+    }
     if (project.activities.length <= 1) {
       this.openAlertMod(this.alertTemplate, 'At least one activity is required per project.');
       return;
@@ -636,23 +889,29 @@ export class TimesheetFormComponent implements OnInit {
     if (!this.activeProjectList || this.activeProjectList.length === 0) {
       // Projects should have been loaded when date was selected
       // If not, fetch them now (fallback scenario)
-      let empId: number;
-      if (this.timesheetAppliedFor.toLowerCase() === 'self') {
-        empId = this.currentUser.empId;
+      // ✅ CRITICAL FIX: Add null checks
+      let empId: number | undefined;
+      if (this.timesheetAppliedFor?.toLowerCase() === 'self') {
+        empId = this.currentUser?.empId;
       } else {
-        const teamMember = this.teamMemberList.find(
-          e => e.empId === this.timesheetFilledForUser.empId
+        const teamMember = this.teamMemberList?.find(
+          e => e.empId === this.timesheetFilledForUser?.empId
         );
         empId = teamMember?.empId;
       }
       
       if (empId) {
-        this.getProjectListForDateAndEmpId(empId);
-        // Wait for projects to load, then populate location
-        setTimeout(() => {
+        // ✅ CRITICAL FIX: Use proper async handling instead of setTimeout
+        this.getProjectListForDateAndEmpId(empId).then(() => {
           this.populateProjectsForLocation(location);
-        }, 500);
-        this.getListToRenderUpload();
+          this.getListToRenderUpload();
+        }).catch(error => {
+          console.error('Error loading projects:', error);
+          this.openAlertMod(this.alertTemplate, 'Failed to load projects. Please try again.');
+        });
+        return;
+      } else {
+        this.openAlertMod(this.alertTemplate, 'Unable to determine employee ID. Please select date and team member first.');
         return;
       }
     }
@@ -670,30 +929,113 @@ export class TimesheetFormComponent implements OnInit {
    * Get all day types from master data
    */
   getAllDayTypes(): void {
-    this.timesheetNewService.getAllDayTypes().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.allDayTypes = response.serviceResponse;
-        if (this.selectedDate && this.allDayTypes.length > 0) {
-          this.loadAutofillData(this.formatDateDDMMYYYY(this.selectedDate));
+    this.timesheetNewService.getAllDayTypes()
+      .pipe(first(), takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus == "Success") {
+            this.allDayTypes = response.serviceResponse || [];
+            if (this.selectedDate && this.allDayTypes.length > 0) {
+              this.loadAutofillData(this.formatDateDDMMYYYY(this.selectedDate));
+            }
+          } else {
+            // ✅ MODERATE FIX: Use centralized error handling
+            this.handleError(
+              new Error(response.serviceResponse || 'Failed to load day types'),
+              'getAllDayTypes',
+              false // Don't show to user, just log
+            );
+            this.allDayTypes = [];
+          }
+        },
+        error: (error) => {
+          this.handleError(error, 'getAllDayTypes', false);
+          this.allDayTypes = [];
         }
-      }
-    });
+      });
   }
   /**
    * Handle day type change
-   * Updates location work location type ID based on fillable status
+   * When switching to non-fillable: clear all user-filled data and re-init with default location (NA)
+   * and one project row; only description is user-fillable at project level.
+   * When switching to fillable: allow user to choose location type freely.
    */
   onDayTypeChange(event: any): void {
-    this.timesheetLocations.forEach(loc => {
-      if (!this.isDayTypeFillable()) {
-        loc.workLocationTypeId = this.configService.getDefaultWorkLocationTypeId();
-        this.disableAdd = true;
-        this.onLocationSelect(loc);
-      } else {
+    const dayTypeFillable = this.isDayTypeFillable();
+
+    if (!dayTypeFillable) {
+      // Switching to non-fillable: clear previous filled data and set up default location + one project
+      this.clearAndInitForNonFillableDayType();
+    } else {
+      // Switching to fillable: allow user to choose location type freely
+      this.timesheetLocations.forEach(loc => {
         loc.workLocationTypeId = null;
         this.disableAdd = false;
+      });
+    }
+
+    this.getListToRenderUpload();
+  }
+
+  /**
+   * Clear all user-filled data and initialize for non-fillable day type:
+   * - Clear presence / check-in / check-out
+   * - Clean document upload data
+   * - Replace locations with one location with default work location (e.g. 4 -> NA)
+   * - One project per location with project list from activeProjectList; user only fills description
+   */
+  private clearAndInitForNonFillableDayType(): void {
+    // Clear presence and attendance time (not used for non-fillable)
+    this.apmosysInTime = null;
+    this.apmosysOutTime = null;
+    this.totalPresence = 0;
+    this.useApmosysTiming = false;
+
+    // Clean document upload (non-fillable does not show document upload)
+    this.cleanupDocumentData();
+    this.documentData = [];
+    this.selectedFile = [];
+    this.uniqueProjectsList = [];
+    this.empHasClientSideId = false;
+
+    // Clear highlight/validation state
+    this.highlightLocationList = [];
+    this.highlightLocationIdSet = new Set();
+
+    // Replace with single location: default work location (4 -> NA), one project
+    this.timesheetLocations = [this.createLocation()];
+    const location = this.timesheetLocations[0];
+
+    // Populate project list for the single project so user can select Project, Client, Client Location
+    const uniqueProjects = Array.from(
+      new Map(
+        (this.activeProjectList || []).map(p => [
+          p.projectId,
+          {
+            projectId: p.projectId,
+            projectName: p.projectName,
+            hasClientSideId: p.hasClientSideId || false,
+            hasClientFlag: p.hasClientFlag || false
+          }
+        ])
+      ).values()
+    );
+    location.projects.forEach(proj => {
+      proj.projectList = uniqueProjects;
+      // Auto-select if only one project and load client/location
+      if (uniqueProjects.length === 1) {
+        const single = uniqueProjects[0];
+        proj.projectId = single.projectId;
+        proj.projectName = single.projectName;
+        proj.hasClientSideId = single.hasClientSideId;
+        proj.hasClientFlag = single.hasClientFlag;
+        this.onProjectSelect(proj.projectId!, proj);
       }
     });
+
+    this.disableAdd = true;
+    this.expandedLocationIndex = 0;
+    this.expandedProjectIndexMap = { 0: 0 };
   }
   
   /**
@@ -750,15 +1092,48 @@ export class TimesheetFormComponent implements OnInit {
 
   /**
    * Get all team members for the current user
+   * @returns Promise that resolves when team members are loaded
    */
-  getAllTeamMemberList(): void {
-    this.resetForm();
-    let employeeObj = new Employee();
-    employeeObj.empId = this.currentUser.empId;
-    this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.teamMemberList = response.serviceResponse;
-      }
+  getAllTeamMemberList(): Promise<void> {
+    // resetForm() already called in onTimesheetAppliedForChange() before this method
+    if (!this.currentUser?.empId) {
+      return Promise.reject(new Error('Current user empId not available'));
+    }
+
+    if (!this.fromDate) {
+      this.openAlertMod(this.alertTemplate, 'Please select date first to load team members for that date.');
+      return Promise.reject(new Error('fromDate not selected'));
+    }
+
+    const parsed = this.parseDDMMYYYY(this.fromDate);
+    if (!parsed) {
+      this.openAlertMod(this.alertTemplate, 'Invalid date format. Please re-select the date.');
+      return Promise.reject(new Error('Invalid fromDate format'));
+    }
+
+    const dateIso = `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, '0')}-${String(parsed.getDate()).padStart(2, '0')}`;
+
+    return new Promise<void>((resolve, reject) => {
+      this.teamViewService.getAllTeamMemberView(this.currentUser.empId)
+        .pipe(first(), takeUntil(this.destroy$))
+        .subscribe({
+          next: (response: any) => {
+            if (response.serviceStatus == "Success") {
+              this.teamMemberList = response.serviceResponse || [];
+              resolve();
+            } else {
+              const errorMsg = response.serviceResponse || 'Failed to load team members';
+              console.error(errorMsg);
+              this.teamMemberList = [];
+              reject(new Error(errorMsg));
+            }
+          },
+          error: (error) => {
+            console.error('Error loading team members:', error);
+            this.teamMemberList = [];
+            reject(error);
+          }
+        });
     });
   }
 
@@ -813,66 +1188,146 @@ export class TimesheetFormComponent implements OnInit {
       ).values()
     );
     
-    // Populate projects for the selected location
-    this.timesheetLocations.forEach(loc => {
-      if (location.workLocationTypeId === loc.workLocationTypeId) {
-        loc.projects = [this.createProject(location, null)]; // Reset to one project
-        loc.projects.forEach(proj => {
-          proj.projectList = uniqueProjects;
-          if (proj.projectList.length == 1) {
-            proj.projectId = proj.projectList[0].projectId;
-          }
-          if (proj.projectId) {
-            this.onProjectSelect(proj.projectId);
-          }
-        });
+    // Populate projects for the selected location ONLY
+    // Do not touch other locations to avoid cross-row data loss
+    location.projects = [this.createProject(location, null)]; // Reset to one project for this location
+    location.projects.forEach(proj => {
+      proj.projectList = uniqueProjects;
+      
+      // ✅ IMPROVEMENT: Auto-select if only 1 project and set all fields properly
+      if (proj.projectList.length == 1) {
+        const singleProject = proj.projectList[0];
+        proj.projectId = singleProject.projectId;
+        proj.projectName = singleProject.projectName;
+        proj.hasClientSideId = singleProject.hasClientSideId;
+        proj.hasClientFlag = singleProject.hasClientFlag;
+        
+        // ✅ Call onProjectSelect to fetch client details automatically
+        this.onProjectSelect(proj.projectId, proj);
       }
     });
   }
-
+ 
   /**
    * Handle project selection - populate clients and reset project-specific fields
+   * Validates for duplicate projects in the same location
+   * @param projectId - selected project ID
+   * @param changedProject - project entry where selection happened
    */
-  onProjectSelect(projectId: number): void {
-    this.timesheetLocations.forEach(loc => {
-      loc.projects.forEach(proj => {
-        if (proj.projectId === projectId) {
-          const matchedProject = proj.projectList.find(
-            p => p.projectId === proj.projectId
-          );
-          proj.hasClientSideId = matchedProject?.hasClientSideId || false;
-          proj.hasClientFlag = matchedProject?.hasClientFlag || false;
-          proj.projectName = matchedProject?.projectName || '';
-          
-          // Reset project-specific fields
-          proj.shadowEmpId = null;
-          proj.isShadowTimesheet = false;
-          proj.isShadowForSelf = false;
-          proj.clientSideId = null;
-          proj.clientId = null;
-          proj.clientLocationId = null;
-          proj.clientApprovalStatus = null;
-          proj.totalWorkingHours = null;
-          proj.activities = [this.createActivity(null, projectId)];
-          proj.projectActivities = [];
-          proj.clientList = [];
-          proj.clientLocationList = [];
-          proj.clientDetails = null; // Reset client details
-          
-          // ✅ Fetch client details for this project (replaces incorrect filtering from activeProjectList)
-          this.getClientDetailsByProjectIdAndEmpId(proj);
-          
-          // Fetch client side id (side effect)
-          const targetEmpId = this.timesheetAppliedFor.toLowerCase() === 'self' 
-            ? this.currentUser.empId 
-            : this.timesheetFilledForUser.empId;
-          this.getClientSideIdByProjectIdAndEmpId(projectId, targetEmpId);
-          // ✅ Don't set empHasClientSideId = false here - let getListToRenderUpload() handle it
-          // It will check ALL projects and set the correct value
-          this.getListToRenderUpload();
-        }
-      });
-    });
+  onProjectSelect(
+    projectId: number | null | undefined,
+    changedProject: ProjectEntry
+  ): void {
+    // ✅ CRITICAL FIX: Add null/undefined check
+    if (!projectId || projectId <= 0) {
+      console.warn('Invalid projectId:', projectId);
+      return;
+    }
+
+    if (!changedProject) {
+      console.warn('onProjectSelect called without project context');
+      return;
+    }
+
+    // Find parent location for this project
+    const parentLocation = this.timesheetLocations.find(loc =>
+      loc.projects.includes(changedProject)
+    );
+
+    if (!parentLocation) {
+      console.warn('Parent location not found for project selection');
+      return;
+    }
+
+    // ✅ BUG FIX: Check for duplicate projects in the same location
+    // Same project can't exist twice in the same location
+    const hasDuplicateInLocation = parentLocation.projects.some(
+      p => p !== changedProject && p.projectId === projectId
+    );
+
+    if (hasDuplicateInLocation) {
+      // Cleanup document data for this duplicate project only
+      if (changedProject.projectId) {
+        this.cleanupProjectDocuments(changedProject.projectId);
+      }
+
+      // Reset the duplicate project's selection and related fields,
+      // but DO NOT remove it from the array to avoid index shifting
+      changedProject.projectId = null;
+      changedProject.projectName = '';
+      changedProject.hasClientSideId = false;
+      changedProject.hasClientFlag = false;
+
+      changedProject.shadowEmpId = null;
+      changedProject.isShadowTimesheet = false;
+      changedProject.isShadowForSelf = false;
+      changedProject.clientSideId = null;
+      changedProject.clientId = null;
+      changedProject.clientLocationId = null;
+      changedProject.clientApprovalStatus = null;
+      changedProject.totalWorkingHours = null;
+      changedProject.activities = [this.createActivity(null, null)];
+      changedProject.projectActivities = [];
+      changedProject.clientList = [];
+      changedProject.clientLocationList = [];
+      changedProject.clientDetails = null;
+
+      // Update document list and hours after reset
+      this.getListToRenderUpload();
+      this.onHoursChange();
+
+      // Show error message
+      this.handleError(
+        new Error('Duplicate project in same location'),
+        'onProjectSelect',
+        true,
+        'This project is already added to this location. Please select a different project.'
+      );
+
+      return;
+    }
+
+    // ✅ No duplicate - update the specific project that changed
+    changedProject.projectId = projectId;
+    const matchedProject = changedProject.projectList?.find(
+      p => p.projectId === projectId
+    );
+    changedProject.hasClientSideId = matchedProject?.hasClientSideId || false;
+    changedProject.hasClientFlag = matchedProject?.hasClientFlag || false;
+    changedProject.projectName = matchedProject?.projectName || '';
+    
+    // Reset project-specific fields for the new valid selection
+    changedProject.shadowEmpId = null;
+    changedProject.isShadowTimesheet = false;
+    changedProject.isShadowForSelf = false;
+    changedProject.clientSideId = null;
+    changedProject.clientId = null;
+    changedProject.clientLocationId = null;
+    changedProject.clientApprovalStatus = null;
+    changedProject.totalWorkingHours = null;
+    changedProject.activities = [this.createActivity(null, projectId)];
+    changedProject.projectActivities = [];
+    changedProject.clientList = [];
+    changedProject.clientLocationList = [];
+    changedProject.clientDetails = null; // Reset client details
+    
+    // ✅ Fetch client details for this project (replaces incorrect filtering from activeProjectList)
+    this.getClientDetailsByProjectIdAndEmpId(changedProject);
+    
+    // ✅ CRITICAL FIX: Add null checks for empId
+    const targetEmpId = this.timesheetAppliedFor?.toLowerCase() === 'self' 
+      ? this.currentUser?.empId 
+      : this.timesheetFilledForUser?.empId;
+    
+    if (targetEmpId) {
+      this.getClientSideIdByProjectIdAndEmpId(projectId, targetEmpId);
+    } else {
+      console.warn('Employee ID not available for project selection');
+    }
+    
+    // ✅ Don't set empHasClientSideId = false here - let getListToRenderUpload() handle it
+    // It will check ALL projects and set the correct value
+    this.getListToRenderUpload();
   }
 
   /**
@@ -893,7 +1348,13 @@ export class TimesheetFormComponent implements OnInit {
       : this.timesheetFilledForUser.empId;
     
     if (!targetEmpId) {
-      console.error('Employee ID not available');
+      this.handleError(new Error('Employee ID not available'), 'getClientDetailsByProjectIdAndEmpId', false);
+      return;
+    }
+    
+    // ✅ MODERATE FIX: Add input validation
+    if (!project || !project.projectId) {
+      this.handleError(new Error('Invalid project: projectId is required'), 'getClientDetailsByProjectIdAndEmpId', true);
       return;
     }
     
@@ -903,14 +1364,25 @@ export class TimesheetFormComponent implements OnInit {
     };
     
     this.timesheetService.getClientDetailsByProjectIdAndEmpId(payload)
-      .pipe(first())
-      .subscribe((response: any) => {
-        if (response.serviceStatus === "Success") {
-          // Store client details in the project object
-          project.clientDetails = response.serviceResponse;
-          
-          // Populate client list (should be single client from API)
-          if (project.clientDetails && project.clientDetails.clientId) {
+      .pipe(first(), takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus === "Success") {
+            // ✅ MODERATE FIX: Validate response structure
+            if (!response.serviceResponse || !response.serviceResponse.clientId) {
+              this.handleError(
+                new Error('Invalid client details response structure'),
+                'getClientDetailsByProjectIdAndEmpId',
+                true,
+                'Failed to load client information for this project. Invalid response format.'
+              );
+              return;
+            }
+            
+            // Store client details in the project object
+            project.clientDetails = response.serviceResponse;
+            
+            // Populate client list (should be single client from API)
             project.clientList = [{
               clientId: project.clientDetails.clientId,
               clientName: project.clientDetails.clientName
@@ -923,25 +1395,22 @@ export class TimesheetFormComponent implements OnInit {
               this.onProjectClientSelect(project.clientId, project);
             }
           } else {
-            console.error('Client details response missing clientId');
-            this.openAlertMod(
-              this.alertTemplate,
-              'Failed to load client information for this project.'
+            this.handleError(
+              new Error(response.serviceResponse || 'Unknown error'),
+              'getClientDetailsByProjectIdAndEmpId',
+              true,
+              'Failed to load client details: ' + (response.serviceResponse || 'Unknown error')
             );
           }
-        } else {
-          console.error('Failed to fetch client details:', response.serviceResponse);
-          this.openAlertMod(
-            this.alertTemplate,
-            'Failed to load client details: ' + (response.serviceResponse || 'Unknown error')
+        },
+        error: (error) => {
+          this.handleError(
+            error,
+            'getClientDetailsByProjectIdAndEmpId',
+            true,
+            'Error loading client details. Please try again.'
           );
         }
-      }, error => {
-        console.error('Error fetching client details:', error);
-        this.openAlertMod(
-          this.alertTemplate,
-          'Error loading client details. Please try again.'
-        );
       });
   }
 
@@ -949,66 +1418,98 @@ export class TimesheetFormComponent implements OnInit {
    * Get client side ID by project ID and employee ID
    * Opens modal if client side ID is required but not found
    */
-  async getClientSideIdByProjectIdAndEmpId(projectId: any, empId: any) {
+  async getClientSideIdByProjectIdAndEmpId(projectId: any, empId: any): Promise<void> {
+    // ✅ MODERATE FIX: Add input validation
+    if (!projectId || projectId <= 0) {
+      this.handleError(new Error('Invalid projectId'), 'getClientSideIdByProjectIdAndEmpId', false);
+      return;
+    }
+    
+    if (!empId || empId <= 0) {
+      this.handleError(new Error('Invalid empId'), 'getClientSideIdByProjectIdAndEmpId', false);
+      return;
+    }
+    
     await this.timesheetService.getClientSideIdByProjectIdAndEmpId(projectId, empId)
-      .pipe(first())
-      .subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        let clientSideId = response.serviceResponse;
-        // ✅ Don't set empHasClientSideId here - let getListToRenderUpload() handle it
-        // This method only sets clientSideId for the specific project
-        // getListToRenderUpload() will check ALL projects and set empHasClientSideId correctly
-        if (clientSideId) {
-          this.empClientSideObj.clientSideId = clientSideId;
-          this.empClientSideObj.projectId = projectId;
-          this.empClientSideObj.empId = empId;
-          this.timesheetLocations.forEach(location => {
-            location.projects.forEach(project => {
-              if (project.projectId == projectId) {
-                project.clientSideId = clientSideId;
-                this.empClientSideObj.projectName = project.projectName;
-                this.empClientSideObj.hasClientSideId = project.hasClientSideId;
-                this.empClientSideObj.hasClientSideFlag = project.hasClientFlag;
-              }
-            });
-          });
-        }
-      } else {
-        this.timesheetLocations.forEach(location => {
-          location.projects.forEach(project => {
-            if (project.projectId == projectId && project.hasClientSideId) {
+      .pipe(first(), takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus == "Success") {
+            let clientSideId = response.serviceResponse;
+            // ✅ Don't set empHasClientSideId here - let getListToRenderUpload() handle it
+            // This method only sets clientSideId for the specific project
+            // getListToRenderUpload() will check ALL projects and set empHasClientSideId correctly
+            if (clientSideId) {
+              this.empClientSideObj.clientSideId = clientSideId;
               this.empClientSideObj.projectId = projectId;
               this.empClientSideObj.empId = empId;
-              this.empClientSideObj.projectName = project.projectName;
-              this.empClientSideObj.hasClientSideId = project.hasClientSideId;
-              this.empClientSideObj.hasClientSideFlag = project.hasClientFlag;
-              this.openClientSideTemplate(project);
+              this.timesheetLocations.forEach(location => {
+                location.projects.forEach(project => {
+                  if (project.projectId == projectId) {
+                    project.clientSideId = clientSideId;
+                    this.empClientSideObj.projectName = project.projectName;
+                    this.empClientSideObj.hasClientSideId = project.hasClientSideId;
+                    this.empClientSideObj.hasClientSideFlag = project.hasClientFlag;
+                  }
+                });
+              });
             }
-          });
-        });
-      }
-    });
+          } else {
+            this.timesheetLocations.forEach(location => {
+              location.projects.forEach(project => {
+                if (project.projectId == projectId && project.hasClientSideId) {
+                  this.empClientSideObj.projectId = projectId;
+                  this.empClientSideObj.empId = empId;
+                  this.empClientSideObj.projectName = project.projectName;
+                  this.empClientSideObj.hasClientSideId = project.hasClientSideId;
+                  this.empClientSideObj.hasClientSideFlag = project.hasClientFlag;
+                  this.openClientSideTemplate(project);
+                }
+              });
+            });
+          }
+        },
+        error: (error) => {
+          this.handleError(error, 'getClientSideIdByProjectIdAndEmpId', false);
+        }
+      });
   }
   /**
    * Handle client selection at project level - populate client locations
    * @param clientId - Selected client ID
    * @param project - Project entry where client was selected
    */
-  onProjectClientSelect(clientId: number, project: ProjectEntry): void {
+  onProjectClientSelect(clientId: number | null | undefined, project: ProjectEntry): void {
+    // ✅ MODERATE FIX: Add input validation
+    if (!clientId || clientId <= 0) {
+      console.warn('Invalid clientId:', clientId);
+      return;
+    }
+    
+    if (!project) {
+      console.warn('Project is required for client selection');
+      return;
+    }
+    
     // Find the project where client was selected
     this.timesheetLocations.forEach(loc => {
       loc.projects.forEach(proj => {
         if (proj === project && proj.clientDetails) {
           // ✅ Use clientLocations from clientDetails API response
-          proj.clientLocationList = proj.clientDetails.clientLocations.map(loc => ({
-            clientLocationId: loc.clientLocationId,
-            clientLocation: loc.clientLocation
-          }));
-          
-          // Auto-select if only one location
-          if (proj.clientLocationList.length === 1) {
-            proj.clientLocationId = proj.clientLocationList[0].clientLocationId;
-            this.onProjectClientLocationSelect(proj.clientLocationId, proj);
+          if (proj.clientDetails.clientLocations && Array.isArray(proj.clientDetails.clientLocations)) {
+            proj.clientLocationList = proj.clientDetails.clientLocations.map(loc => ({
+              clientLocationId: loc.clientLocationId,
+              clientLocation: loc.clientLocation
+            }));
+            
+            // Auto-select if only one location
+            if (proj.clientLocationList.length === 1) {
+              proj.clientLocationId = proj.clientLocationList[0].clientLocationId;
+              this.onProjectClientLocationSelect(proj.clientLocationId, proj);
+            }
+          } else {
+            console.warn('Client locations not available in clientDetails');
+            proj.clientLocationList = [];
           }
         }
       });
@@ -1025,66 +1526,103 @@ export class TimesheetFormComponent implements OnInit {
    * @param project - Project entry where location was selected
    */
   onProjectClientLocationSelect(clientLocationId: number, project: ProjectEntry): void {
-    // Validate that clientLocationId is not null
+    // Validate that clientLocationId and project are not null
     if (!clientLocationId) {
       return;
     }
-    
-    const processedProjects = new Set<string>();
-    this.timesheetLocations.forEach(loc => {
-      loc.projects.forEach(proj => {
-        const projectKey = `${proj.projectId}_${proj.clientId}_${proj.clientLocationId}`;
 
-        // ❌ skip if already processed
-        if (processedProjects.has(projectKey)) {
-          proj.clientLocationId = null;
-          this.openAlertMod(this.alertTemplate, 'You cannot add two projects with same client location')
-          return;
-        }
+    if (!project) {
+      console.warn('Project is required for client location selection');
+      return;
+    }
 
-        // ✅ mark as processed
-        processedProjects.add(projectKey);
-        
-        // ✅ Use teams from clientDetails API response instead of filtering activeProjectList
-        if (proj === project && proj.clientDetails && proj.clientDetails.project) {
-          const teams = proj.clientDetails.project.teams.map(team => ({
-            teamId: team.teamId,
-            teamName: team.teamName
-          }));
-          
-          // Populate teams for all activities in this project
-          proj.activities.forEach(activity => {
-            activity.clientTeamList = teams;
-            if (activity.clientTeamList.length == 1) {
-              activity.teamId = activity.clientTeamList[0].teamId;
-              this.onProjectTeamSelect(activity.teamId, proj);
-            }
-          });
-        }
+    // ✅ Duplicate check scoped to the CURRENT project row
+    // Same (projectId, clientId, clientLocationId) combination should not exist twice
+    const hasDuplicate = this.timesheetLocations.some(loc =>
+      loc.projects.some(p =>
+        p !== project &&
+        p.projectId === project.projectId &&
+        p.clientId === project.clientId &&
+        p.clientLocationId === clientLocationId
+      )
+    );
+
+    if (hasDuplicate) {
+      // Reset ONLY the current project's client location and its teams
+      project.clientLocationId = null;
+      if (project.activities && Array.isArray(project.activities)) {
+        project.activities.forEach(activity => {
+          activity.clientTeamList = [];
+          activity.teamId = null;
+        });
       }
+
+      this.openAlertMod(
+        this.alertTemplate,
+        'You cannot add same projects with difefrent client location'
       );
-    });
+      return;
+    }
+
+    // ✅ Use teams from clientDetails API response instead of filtering activeProjectList
+    if (project.clientDetails && project.clientDetails.project) {
+      const teams = project.clientDetails.project.teams.map(team => ({
+        teamId: team.teamId,
+        teamName: team.teamName
+      }));
+
+      // Populate teams for all activities in this project
+      project.activities.forEach(activity => {
+        activity.clientTeamList = teams;
+        if (activity.clientTeamList.length == 1) {
+          activity.teamId = activity.clientTeamList[0].teamId;
+          this.onProjectTeamSelect(activity.teamId, project);
+        }
+      });
+    } else {
+      console.warn('Client details not available for project when selecting client location');
+    }
   }
 
   /**
    * Handle team selection at project level - load activities for the project
    */
-  onProjectTeamSelect(teamId: number, project: ProjectEntry): void {
+  onProjectTeamSelect(teamId: number | null | undefined, project: ProjectEntry): void {
+    // ✅ MODERATE FIX: Add input validation
+    if (!teamId || teamId <= 0) {
+      console.warn('Invalid teamId:', teamId);
+      return;
+    }
+    
+    if (!project || !project.projectId) {
+      console.warn('Invalid project for team selection');
+      return;
+    }
+    
     // Load activities for the project
     this.loadActivitiesForProject(project, teamId);
   }
 
-  onClientApprovalStatusSelect(location: LocationEntry, project: ProjectEntry, status: any) {
+  onClientApprovalStatusSelect(location: LocationEntry, project: ProjectEntry, status: any): void {
+    // ✅ MODERATE FIX: Add input validation
+    if (!project) {
+      console.warn('Project is required for approval status selection');
+      return;
+    }
+    
     if (!status) {
       project.clientApprovalStatus = null;
       project.projectActivities = [];
-      project.activities.forEach(activity => {
-        activity.activityId = null;
-      });
+      if (project.activities && Array.isArray(project.activities)) {
+        project.activities.forEach(activity => {
+          activity.activityId = null;
+        });
+      }
       // ✅ Update document list when approval status is cleared
       this.getListToRenderUpload();
       return;
     }
+    
     project.clientApprovalStatus = status;
     // ✅ Update document list when approval status changes (affects which documents to show)
     this.getListToRenderUpload();
@@ -1094,8 +1632,28 @@ export class TimesheetFormComponent implements OnInit {
    * Load activities for a project filtered by department
    */
   loadActivitiesForProject(project: ProjectEntry, teamId: number): void {
+    // ✅ MODERATE FIX: Add input validation
+    if (!project) {
+      this.handleError(new Error('Project is required'), 'loadActivitiesForProject', false);
+      return;
+    }
+    
+    if (!project.projectId) {
+      this.handleError(new Error('Project ID is required'), 'loadActivitiesForProject', false);
+      return;
+    }
+    
+    if (!teamId || teamId <= 0) {
+      this.handleError(new Error('Valid team ID is required'), 'loadActivitiesForProject', false);
+      return;
+    }
+    
     if (!project.clientId || !project.clientLocationId) {
-      console.error('Client and Client Location must be selected first');
+      this.handleError(
+        new Error('Client and location required'),
+        'loadActivitiesForProject',
+        false
+      );
       return;
     }
 
@@ -1112,61 +1670,83 @@ export class TimesheetFormComponent implements OnInit {
       return;
     }
     this.timesheetService.getAllActivitiesByProjectIdandEmpId(timesheetObj)
-      .pipe(first())
-      .subscribe((response: any) => {
-        if (response.serviceStatus == "Success") {
-          let allActivityList = response.serviceResponse;
-          if (allActivityList.length === 0) {
-            this.openAlertMod(this.alertTemplate, "No activity found for your department!");
-            this.disableAdd = true;
-          }
-          else {
-            allActivityList = allActivityList.sort((a, b) => a.activity.localeCompare(b.activity));
-            // Filter by department
-            if (this.timesheetAppliedFor == "team") {
-              const teamMember = this.teamMemberList.find(emp => emp.empId == this.timesheetFilledForUser.empId);
-              if (teamMember) {
-                allActivityList = allActivityList.filter(x =>
-                  x.departmentList?.map(d => +d).includes(teamMember.departmentId)
-                );
-              }
-            } else if (this.timesheetAppliedFor == "self") {
-              allActivityList = allActivityList.filter(x =>
-                x.departmentList?.map(d => +d).includes(this.currentUser?.departmentId)
+      .pipe(first(), takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus == "Success") {
+            let allActivityList = response.serviceResponse || [];
+            if (allActivityList.length === 0) {
+              this.handleError(
+                new Error('No activities found'),
+                'loadActivitiesForProject',
+                true,
+                "No activity found for your department!"
               );
-            }
-          }
-
-          // Store activities at project level for all activities to use
-          this.timesheetLocations.forEach(loc => {
-            loc.projects.forEach(proj => {
-              if (proj === project) {
-                proj.activities.forEach(activity => {
-                  activity.allActivitiesForProject = allActivityList;
-                })
+              this.disableAdd = true;
+            } else {
+              allActivityList = allActivityList.sort((a: any, b: any) => a.activity?.localeCompare(b.activity) || 0);
+              // Filter by department
+              if (this.timesheetAppliedFor == "team") {
+                const teamMember = this.teamMemberList?.find(emp => emp.empId == this.timesheetFilledForUser?.empId);
+                if (teamMember?.departmentId) {
+                  allActivityList = allActivityList.filter((x: any) =>
+                    x.departmentList?.map((d: any) => +d).includes(teamMember.departmentId)
+                  );
+                }
+              } else if (this.timesheetAppliedFor == "self") {
+                if (this.currentUser?.departmentId) {
+                  allActivityList = allActivityList.filter((x: any) =>
+                    x.departmentList?.map((d: any) => +d).includes(this.currentUser.departmentId)
+                  );
+                }
               }
+            }
+
+            // Store activities at project level for all activities to use
+            this.timesheetLocations.forEach(loc => {
+              loc.projects.forEach(proj => {
+                if (proj === project) {
+                  if (proj.activities && Array.isArray(proj.activities)) {
+                    proj.activities.forEach(activity => {
+                      activity.allActivitiesForProject = allActivityList;
+                    });
+                  }
+                }
               });
             });
+            project.projectActivities = allActivityList;
           } else {
+            this.handleError(
+              new Error(response.serviceResponse || 'Failed to load activities'),
+              'loadActivitiesForProject',
+              true,
+              'Failed to load activities. Please try again.'
+            );
             project.projectActivities = [];
           }
-        }, (error) => {
+        },
+        error: (error) => {
+          this.handleError(error, 'loadActivitiesForProject', true, 'Error loading activities. Please try again.');
           project.projectActivities = [];
-        });
+        }
+      });
   }
 
   /**
-   * Load server date for date range calculation
+   * Load server date for date range calculation.
+   * Used in update mode; in create mode use loadServerDateThenInitCreate() so init runs after serverDate is set.
    */
   loadServerDate(): void {
-    this.timesheetService.getServerDate().pipe(first()).subscribe((response: any) => {
-      this.serverDate = response;
-      // After server date is loaded, calculate constraints if employee is known
-      if (this.timesheetFilledForUser?.empId || this.currentUser?.empId) {
-        const empId = this.timesheetFilledForUser?.empId || this.currentUser.empId;
-        this.getAllAvailableTimesheetByEmpId({ empId: empId } as User);
-      }
-    });
+    this.timesheetService.getServerDate()
+      .pipe(first(), takeUntil(this.destroy$))
+      .subscribe((response: any) => {
+        this.serverDate = response;
+        // After server date is loaded, calculate constraints if employee is known
+        if (this.timesheetFilledForUser?.empId || this.currentUser?.empId) {
+          const empId = this.timesheetFilledForUser?.empId || this.currentUser.empId;
+          this.getAllAvailableTimesheetByEmpId({ empId: empId } as User);
+        }
+      });
   }
 
   /**
@@ -1201,7 +1781,9 @@ export class TimesheetFormComponent implements OnInit {
     timesheetObj.endDate = moment(endDate).format(AppComponent.DB_DATE_FORMAT);
     timesheetObj.createdBy = this.currentUser.empId;
     
-    this.timesheetNewService.getAllMyTimesheetsByEmpId(timesheetObj).pipe(first()).subscribe((response: any) => {
+    this.timesheetNewService.getAllMyTimesheetsByEmpId(timesheetObj)
+      .pipe(first(), takeUntil(this.destroy$))
+      .subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.availableTimesheets = response.serviceResponse;
         // Calculate date picker constraints after loading timesheets
@@ -1344,7 +1926,10 @@ export class TimesheetFormComponent implements OnInit {
 
     // Recalculate working hours when date changes
     this.calculateTotalWorkingHours();
-    this.getProjectListForDateAndEmpId();
+    // ✅ CRITICAL FIX: Handle Promise properly
+    this.getProjectListForDateAndEmpId().catch(error => {
+      console.error('Error loading projects:', error);
+    });
 
     // 
   }
@@ -1727,10 +2312,20 @@ export class TimesheetFormComponent implements OnInit {
       ...data
     };
 
-    if (this.selectedFile.length > 0 && this.selectedFile.some(f => f.name === data.uniqueIdentifier)) {
-      this.selectedFile[index] = file;
-    } else {
-      this.selectedFile.push(file);
+    // ✅ Keep selectedFile array in sync without introducing undefined entries
+    // Only update selectedFile when we actually have a File object
+    if (file) {
+      const existingIndex = this.selectedFile.findIndex(
+        f => f && f.name === data.uniqueIdentifier
+      );
+
+      if (existingIndex !== -1) {
+        // Replace existing file for this document
+        this.selectedFile[existingIndex] = file;
+      } else {
+        // Add new file entry
+        this.selectedFile.push(file);
+      }
     }
 
   }
@@ -1997,13 +2592,10 @@ export class TimesheetFormComponent implements OnInit {
   }
 
   createTimesheet() {
-
     this.highlightLocationList = [];
-    const convertToYYYYMMDD = (dateStr: string): string => {
-      if (!dateStr) return '';
-      const [day, month, year] = dateStr.split('-');
-      return `${year}-${month}-${day}`;  // Convert "08-01-2026" to "2026-01-08"
-    };
+    
+    // ✅ MODERATE FIX: Use centralized date conversion method
+    const convertToYYYYMMDD = this.convertDDMMYYYYToYYYYMMDD.bind(this);
 
     // Prepare validation context
     const validationContext = {
@@ -2044,18 +2636,26 @@ export class TimesheetFormComponent implements OnInit {
     // Warnings are informational and should not block timesheet creation
     if (validationResult.warnings && validationResult.warnings.length > 0) {
       const warningMessage = this.timesheetValidator.formatWarningsForDisplay(validationResult);
-      // Show warning but don't block - use setTimeout to show after creation starts
-      setTimeout(() => {
+      // ✅ CRITICAL FIX: Use requestAnimationFrame instead of setTimeout for better timing
+      requestAnimationFrame(() => {
         this.openAlertMod(this.alertTemplate, warningMessage);
-      }, 100);
+      });
     }
     
     const dataSet: LocationEntry[] = structuredClone(this.timesheetLocations);
     
-    // Determine correct empId based on timesheet application target
-    const targetEmpId = this.timesheetAppliedFor.toLowerCase() === 'self' 
-      ? this.currentUser.empId 
-      : (this.timesheetFilledForUser?.empId || this.currentUser.empId);
+    // ✅ CRITICAL FIX: Add null checks for empId
+    const targetEmpId = this.timesheetAppliedFor?.toLowerCase() === 'self' 
+      ? this.currentUser?.empId 
+      : (this.timesheetFilledForUser?.empId || this.currentUser?.empId);
+    
+    if (!targetEmpId) {
+      this.openAlertMod(
+        this.alertTemplate,
+        'Employee ID not available. Please refresh and try again.'
+      );
+      return;
+    }
     
     this.createOrUpdateObj = {
       createdBy: this.currentUser.empId,
@@ -2066,8 +2666,8 @@ export class TimesheetFormComponent implements OnInit {
       timesheetId: null,
       // date: this.formatDDMMYYYY(new Date(this.fromDate as string)),
       date: convertToYYYYMMDD(this.fromDate),
-      workCheckIn: [4, 6, 7].includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysInTime, convertToYYYYMMDD(this.fromDate)),
-      workCheckOut: [4, 6, 7].includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate)),
+      workCheckIn: TimesheetFormComponent.NON_FILLABLE_DAY_TYPES.includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysInTime, convertToYYYYMMDD(this.fromDate)),
+      workCheckOut: TimesheetFormComponent.NON_FILLABLE_DAY_TYPES.includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate)),
       currentManagerId: this.currentUser.managerId,
       totalWorkingMinutes: this.totalPresence * 60,
       locationSessions: dataSet,
@@ -2075,17 +2675,11 @@ export class TimesheetFormComponent implements OnInit {
     }
 
     this.createOrUpdateObj.locationSessions.forEach((location: LocationEntry) => {
-      location.locationInTime = [4, 6, 7].includes(this.dayType) ? null : this.formatDateTimeForBackend(location.locationInTime, convertToYYYYMMDD(this.fromDate));
-      location.locationOutTime = [4, 6, 7].includes(this.dayType) ? null : this.formatDateTimeForBackend(location.locationOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate));
+      const isNonFillable = TimesheetFormComponent.NON_FILLABLE_DAY_TYPES.includes(this.dayType);
+      location.locationInTime = isNonFillable ? null : this.formatDateTimeForBackend(location.locationInTime, convertToYYYYMMDD(this.fromDate));
+      location.locationOutTime = isNonFillable ? null : this.formatDateTimeForBackend(location.locationOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate));
       location.projects.forEach((project: ProjectEntry) => {
-        // if (![4, 6, 7].includes(this.dayType)) {
-        //   project?.activities?.forEach((activity: ActivityNew) => {
-        //     activity.durationMinutes = activity.durationMinutes * 60;
-        //   });
-        // } else {
-        //   project.activities = null;
-        // }
-        if([4,6,7].includes(this.dayType)){
+        if (isNonFillable) {
           project.activities = null;
         }
       });
@@ -2095,34 +2689,43 @@ export class TimesheetFormComponent implements OnInit {
     // Keeping for potential future use or backend validation
     // this.generateTotalMinutes(this.createOrUpdateObj);
 
+    this.isLoadingTimesheet = true;
     this.timesheetNewService.createTimesheet(this.createOrUpdateObj, this.selectedFile)
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: any) => {
+          this.isLoadingTimesheet = false;
           if (response.serviceStatus === "Success") {
             this.openAlertMod(this.alertTemplate, "Timesheet created successfully.");
             this.resetForm()
             // Reset form or navigate as needed
           } else {
-            console.error('Timesheet create error:', response);
-
-                 const backendError =
-                   response?.serviceError ||
-                   response?.serviceResponse ||
-                   '"Failed to create timesheet. Please try again.".';
-       
-                 this.openAlertMod(this.alertTemplate, backendError);
-        }
-          
+            // ✅ MODERATE FIX: Use centralized error handling
+            const backendError =
+              response?.serviceError ||
+              response?.serviceResponse ||
+              'Failed to create timesheet. Please try again.';
+            this.handleError(
+              new Error(backendError),
+              'createTimesheet',
+              true,
+              backendError
+            );
+          }
         },
         error: (error) => {
-          console.error('Timesheet create error:', error);
-
+          this.isLoadingTimesheet = false;
+          // ✅ MODERATE FIX: Use centralized error handling
           const backendError =
             error?.error?.serviceError ||
             error?.error?.serviceResponse ||
             'An unexpected error occurred while creating the timesheet.';
-
-          this.openAlertMod(this.alertTemplate, backendError);
+          this.handleError(
+            error,
+            'createTimesheet',
+            true,
+            backendError
+          );
         }
 
       });
@@ -2154,25 +2757,30 @@ export class TimesheetFormComponent implements OnInit {
   loadTimesheetForUpdate(timesheetId: number): void {
     this.isLoadingTimesheet = true;
     this.timesheetNewService.getTimesheetById(timesheetId)
-      .pipe(first())
+      .pipe(
+        first(),
+        takeUntil(this.destroy$),
+        finalize(() => (this.isLoadingTimesheet = false))
+      )
       .subscribe({
         next: (response: any) => {
-          this.isLoadingTimesheet = false;
           if (response.serviceStatus === "Success") {
             const timesheetData: EmployeeTimesheetDTO = response.serviceResponse;
             this.populateFormFromTimesheetData(timesheetData);
           } else {
-            this.openAlertMod(
-              this.alertTemplate,
+            this.handleError(
+              new Error(response.serviceResponse || 'Failed to load timesheet'),
+              'loadTimesheetForUpdate',
+              true,
               response.serviceResponse || 'Failed to load timesheet data. Please try again.'
             );
           }
         },
         error: (error) => {
-          this.isLoadingTimesheet = false;
-          console.error('Error loading timesheet:', error);
-          this.openAlertMod(
-            this.alertTemplate,
+          this.handleError(
+            error,
+            'loadTimesheetForUpdate',
+            true,
             'An error occurred while loading timesheet data. Please try again.'
           );
         }
@@ -2247,30 +2855,40 @@ export class TimesheetFormComponent implements OnInit {
     // Store location sessions temporarily for population after projects load
     const locationSessionsToPopulate = timesheetData.locationSessions;
     
+    // ✅ CRITICAL FIX: Use proper async handling instead of setTimeout
     // Note: this.fromDate is already set from timesheetData.date at line 2106
     // Call getProjectListForDateAndEmpId with empId from timesheet data
     // The method will use this.fromDate which is already populated from timesheetData.date
-    this.getProjectListForDateAndEmpId(timesheetData.empId);
-    
-    // Wait for projects to load, then populate locations
-    // Use a small delay to ensure activeProjectList is populated
-    setTimeout(() => {
-      // 6. Populate Locations (after projects are loaded)
-      this.populateLocations(locationSessionsToPopulate);
+    this.getProjectListForDateAndEmpId(timesheetData.empId)
+      .then(() => {
+        // 6. Populate Locations (after projects are loaded)
+        this.populateLocations(locationSessionsToPopulate);
 
-      // 7. Populate Documents
-      if (timesheetData.documentData) {
-        this.populateDocuments(timesheetData.documentData);
-      }
-
-      // 8. Expand first location for better UX
-      if (locationSessionsToPopulate && locationSessionsToPopulate.length > 0) {
-        this.expandedLocationIndex = 0;
-        if (locationSessionsToPopulate[0].projects && locationSessionsToPopulate[0].projects.length > 0) {
-          this.expandedProjectIndexMap[0] = 0;
+        // 7. Populate Documents
+        if (timesheetData.documentData) {
+          this.populateDocuments(timesheetData.documentData);
         }
-      }
-    }, 800);
+
+        // 8. Expand first location for better UX
+        if (locationSessionsToPopulate && locationSessionsToPopulate.length > 0) {
+          this.expandedLocationIndex = 0;
+          if (locationSessionsToPopulate[0].projects && locationSessionsToPopulate[0].projects.length > 0) {
+            this.expandedProjectIndexMap[0] = 0;
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error loading projects for update:', error);
+        this.openAlertMod(
+          this.alertTemplate,
+          'Failed to load projects. Some data may not display correctly.'
+        );
+        // Still try to populate with empty project list
+        this.populateLocations(locationSessionsToPopulate);
+        if (timesheetData.documentData) {
+          this.populateDocuments(timesheetData.documentData);
+        }
+      });
   }
 
   /**
@@ -2481,21 +3099,34 @@ export class TimesheetFormComponent implements OnInit {
    * @param empId - Employee ID to find in team members
    */
   loadTeamMemberForUpdate(empId: number): void {
-    this.getAllTeamMemberList();
-    // After team members load, find and set the one matching empId
-    setTimeout(() => {
-      const teamMember = this.teamMemberList.find(m => m.empId === empId);
-      if (teamMember) {
-        this.timesheetFilledForUser.empId = teamMember.empId;
-        this.timesheetFilledForUser.name = teamMember.name;
-        this.selectedTeamMember = teamMember;
-        this.getTimesheetMetadata();
-        // Load available timesheets for date filtering
-        if (this.serverDate) {
-          this.getAllAvailableTimesheetByEmpId(this.timesheetFilledForUser);
+    // ✅ CRITICAL FIX: Use proper async handling instead of setTimeout
+    this.getAllTeamMemberList()
+      .then(() => {
+        const teamMember = this.teamMemberList?.find(m => m.empId === empId);
+        if (teamMember) {
+          this.timesheetFilledForUser.empId = teamMember.empId;
+          this.timesheetFilledForUser.name = teamMember.name;
+          this.selectedTeamMember = teamMember;
+          this.getTimesheetMetadata();
+          // Load available timesheets for date filtering
+          if (this.serverDate) {
+            this.getAllAvailableTimesheetByEmpId(this.timesheetFilledForUser);
+          }
+        } else {
+          console.warn(`Team member with empId ${empId} not found`);
+          this.openAlertMod(
+            this.alertTemplate,
+            `Team member not found. Please refresh and try again.`
+          );
         }
-      }
-    }, 300);
+      })
+      .catch(error => {
+        console.error('Error loading team members:', error);
+        this.openAlertMod(
+          this.alertTemplate,
+          'Failed to load team members. Please try again.'
+        );
+      });
   }
 
   /**
@@ -2557,17 +3188,28 @@ export class TimesheetFormComponent implements OnInit {
     // Display warnings if any (non-blocking)
     if (validationResult.warnings && validationResult.warnings.length > 0) {
       const warningMessage = this.timesheetValidator.formatWarningsForDisplay(validationResult);
-      setTimeout(() => {
+      // ✅ CRITICAL FIX: Use requestAnimationFrame instead of setTimeout for better timing
+      requestAnimationFrame(() => {
         this.openAlertMod(this.alertTemplate, warningMessage);
-      }, 100);
+      });
     }
 
     const dataSet: LocationEntry[] = structuredClone(this.timesheetLocations);
 
-    // Determine correct empId
-    const targetEmpId = this.timesheetAppliedFor.toLowerCase() === 'self'
-      ? this.currentUser.empId
-      : (this.timesheetFilledForUser?.empId || this.currentUser.empId);
+    // ✅ MODERATE FIX: Add null checks for empId
+    const targetEmpId = this.timesheetAppliedFor?.toLowerCase() === 'self'
+      ? this.currentUser?.empId
+      : (this.timesheetFilledForUser?.empId || this.currentUser?.empId);
+    
+    if (!targetEmpId) {
+      this.handleError(
+        new Error('Employee ID not available'),
+        'updateTimesheet',
+        true,
+        'Employee ID not available. Please refresh and try again.'
+      );
+      return;
+    }
 
     // Prepare update object
     this.createOrUpdateObj = {
@@ -2579,8 +3221,8 @@ export class TimesheetFormComponent implements OnInit {
       isApmosysProduct: this.currentUser.isApmosysProduct,
       isNightShift: this.isNightShift,
       date: convertToYYYYMMDD(this.fromDate),
-      workCheckIn: [4, 6, 7].includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysInTime, convertToYYYYMMDD(this.fromDate)),
-      workCheckOut: [4, 6, 7].includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate)),
+      workCheckIn: TimesheetFormComponent.NON_FILLABLE_DAY_TYPES.includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysInTime, convertToYYYYMMDD(this.fromDate)),
+      workCheckOut: TimesheetFormComponent.NON_FILLABLE_DAY_TYPES.includes(this.dayType) ? null : this.formatDateTimeForBackend(this.apmosysOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate)),
       currentManagerId: this.currentUser.managerId,
       totalWorkingMinutes: this.totalPresence * 60,
       locationSessions: dataSet,
@@ -2588,11 +3230,12 @@ export class TimesheetFormComponent implements OnInit {
     };
 
     // Format location and project data (same as create)
+    const isNonFillable = TimesheetFormComponent.NON_FILLABLE_DAY_TYPES.includes(this.dayType);
     this.createOrUpdateObj.locationSessions.forEach((location: LocationEntry) => {
-      location.locationInTime = [4, 6, 7].includes(this.dayType) ? null : this.formatDateTimeForBackend(location.locationInTime, convertToYYYYMMDD(this.fromDate));
-      location.locationOutTime = [4, 6, 7].includes(this.dayType) ? null : this.formatDateTimeForBackend(location.locationOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate));
+      location.locationInTime = isNonFillable ? null : this.formatDateTimeForBackend(location.locationInTime, convertToYYYYMMDD(this.fromDate));
+      location.locationOutTime = isNonFillable ? null : this.formatDateTimeForBackend(location.locationOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate));
       location.projects.forEach((project: ProjectEntry) => {
-        if ([4, 6, 7].includes(this.dayType)) {
+        if (isNonFillable) {
           project.activities = null;
         }
       });
@@ -2600,6 +3243,7 @@ export class TimesheetFormComponent implements OnInit {
 
     // Call update API
     this.timesheetNewService.updateTimesheet(this.createOrUpdateObj, this.selectedFile)
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
@@ -2609,21 +3253,31 @@ export class TimesheetFormComponent implements OnInit {
             // Option: Reload updated data
             // this.loadTimesheetForUpdate(this.timesheetId);
           } else {
-            console.error('Timesheet update error:', response);
+            // ✅ MODERATE FIX: Use centralized error handling
             const backendError =
               response?.serviceError ||
               response?.serviceResponse ||
               'Failed to update timesheet. Please try again.';
-            this.openAlertMod(this.alertTemplate, backendError);
+            this.handleError(
+              new Error(backendError),
+              'updateTimesheet',
+              true,
+              backendError
+            );
           }
         },
         error: (error) => {
-          console.error('Timesheet update error:', error);
+          // ✅ MODERATE FIX: Use centralized error handling
           const backendError =
             error?.error?.serviceError ||
             error?.error?.serviceResponse ||
             'An unexpected error occurred while updating the timesheet.';
-          this.openAlertMod(this.alertTemplate, backendError);
+          this.handleError(
+            error,
+            'updateTimesheet',
+            true,
+            backendError
+          );
         }
       });
   }
@@ -2649,7 +3303,7 @@ export class TimesheetFormComponent implements OnInit {
    */
   previewExistingDocument(docId: number): void {
     this.timesheetNewService.getDocumentById(docId)
-      .pipe(first())
+      .pipe(first(), takeUntil(this.destroy$))
       .subscribe({
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
@@ -2658,23 +3312,31 @@ export class TimesheetFormComponent implements OnInit {
             if (docData.base64Data && docData.mimeType) {
               this.showPreview(docData.base64Data, docData.mimeType);
             } else {
-              this.openAlertMod(
-                this.alertTemplate,
+              // ✅ MODERATE FIX: Use centralized error handling
+              this.handleError(
+                new Error('Invalid document data format'),
+                'previewExistingDocument',
+                true,
                 'Document data format is invalid.'
               );
             }
           } else {
-            this.openAlertMod(
-              this.alertTemplate,
+            // ✅ MODERATE FIX: Use centralized error handling
+            this.handleError(
+              new Error(response.serviceResponse || 'Failed to load document'),
+              'previewExistingDocument',
+              true,
               response.serviceResponse || 'Failed to load document for preview.'
             );
           }
         },
         error: (error) => {
-          console.error('Error loading document:', error);
-          this.openAlertMod(
-            this.alertTemplate,
-            'Failed to load document for preview.'
+          // ✅ MODERATE FIX: Use centralized error handling
+          this.handleError(
+            error,
+            'previewExistingDocument',
+            true,
+            'Failed to load document for preview. Please try again.'
           );
         }
       });
@@ -2687,6 +3349,16 @@ export class TimesheetFormComponent implements OnInit {
   /**
    * Convert YYYY-MM-DD to DD-MM-YYYY
    */
+  /**
+   * ✅ MODERATE FIX: Centralized date conversion methods
+   * Convert DD-MM-YYYY to YYYY-MM-DD format
+   */
+  convertDDMMYYYYToYYYYMMDD(dateStr: string): string {
+    if (!dateStr) return '';
+    const [day, month, year] = dateStr.split('-');
+    return `${year}-${month}-${day}`;  // Convert "08-01-2026" to "2026-01-08"
+  }
+
   convertYYYYMMDDToDDMMYYYY(dateStr: string): string {
     if (!dateStr) return null;
     const [year, month, day] = dateStr.split('-');
@@ -2954,12 +3626,12 @@ export class TimesheetFormComponent implements OnInit {
 
       // Validation 1: Project hours cannot exceed location hours
       if (projectHoursForLocation > (location.totalWorkingHours || 0)) {
+        // Show error but DO NOT auto-reset user-entered hours
+        // Let the user manually correct inconsistent values to avoid unexpected data loss
         this.openAlertMod(
           this.alertTemplate,
-          'Total working hours for location cannot be less than sum of project working hours.'
+          'Total working hours for location cannot be less than sum of project working hours. Please adjust your project hours or location hours.'
         );
-
-        this.resetProjectHoursForLocation(location);
         return;
       }
 
@@ -2967,12 +3639,12 @@ export class TimesheetFormComponent implements OnInit {
 
       // Validation 2: Total location hours cannot exceed total presence
       if (totalLocationHours > this.totalPresence) {
+        // Show error but DO NOT auto-reset all hours for the location
+        // This prevents all entered durations from being wiped out unexpectedly
         this.openAlertMod(
           this.alertTemplate,
-          'Total working hours for all locations cannot be more than total presence hours.'
+          'Total working hours for all locations cannot be more than total presence hours. Please adjust your location/project hours.'
         );
-
-        this.resetLocation(location);
         return;
       }
     }
@@ -3111,45 +3783,140 @@ export class TimesheetFormComponent implements OnInit {
    * Get employee list for shadow timesheet by project ID
    */
   getEmployeeListByProjectId(project: ProjectEntry, empId: number): void {
-    this.timesheetService.getEmployeeListByProjectId(project.projectId, empId).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        const shadowEmpList = response.serviceResponse;
-        this.timesheetLocations.forEach(location => {
-          location.projects.forEach(proj => {
-            if (proj === project) {
-              if (!proj.isShadowTimesheet) {
-                proj.shadowEmpId = null;
+    // ✅ MODERATE FIX: Add input validation
+    if (!project || !project.projectId) {
+      this.handleError(new Error('Invalid project'), 'getEmployeeListByProjectId', false);
+      return;
+    }
+
+    // Decide target employee based on applied-for context
+    const appliedFor = this.timesheetAppliedFor?.toLowerCase();
+    const targetEmpId =
+      appliedFor === 'self'
+        ? this.currentUser?.empId
+        : appliedFor === 'team'
+          ? this.timesheetFilledForUser?.empId
+          : empId;
+
+    if (!targetEmpId || targetEmpId <= 0) {
+      this.handleError(new Error('Invalid empId'), 'getEmployeeListByProjectId', false);
+      return;
+    }
+
+    // Need selected date to make employee list date-aware (similar to getProjectListForDateAndEmpId)
+    if (!this.fromDate) {
+      this.openAlertMod(this.alertTemplate, 'Please select date first to load employees for shadow timesheet.');
+      return;
+    }
+
+    const parsedDate = this.parseDDMMYYYY(this.fromDate);
+    if (!parsedDate) {
+      this.openAlertMod(this.alertTemplate, 'Invalid date format. Please re-select the date.');
+      return;
+    }
+
+    // Pass YYYY-MM-DD (controller will derive startOfDay/endOfDay)
+    const dateStr = `${parsedDate.getFullYear()}-${String(parsedDate.getMonth() + 1).padStart(2, '0')}-${String(parsedDate.getDate()).padStart(2, '0')}`;
+
+    this.timesheetService.getEmployeeListByProjectId(project.projectId, targetEmpId, dateStr)
+      .pipe(first(), takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus == "Success") {
+            const shadowEmpList = response.serviceResponse || [];
+            this.timesheetLocations.forEach(location => {
+              location.projects.forEach(proj => {
+                if (proj === project) {
+                  if (!proj.isShadowTimesheet) {
+                    proj.shadowEmpId = null;
+                    proj.shadowForList = [];
+                  }
+                  else if (proj.isShadowTimesheet) {
+                    proj.shadowEmpId = null;
+                    proj.shadowForList = shadowEmpList;
+                  }
+                }
+              });
+            });
+          } else {
+            // ✅ MODERATE FIX: Use centralized error handling
+            this.handleError(
+              new Error(response.serviceResponse || 'Failed to load employee list'),
+              'getEmployeeListByProjectId',
+              false
+            );
+            // Set empty list on error
+            this.timesheetLocations.forEach(location => {
+              location.projects.forEach(proj => {
+                if (proj === project) {
+                  proj.shadowForList = [];
+                }
+              });
+            });
+          }
+        },
+        error: (error) => {
+          this.handleError(error, 'getEmployeeListByProjectId', false);
+          // Set empty list on error
+          this.timesheetLocations.forEach(location => {
+            location.projects.forEach(proj => {
+              if (proj === project) {
                 proj.shadowForList = [];
               }
-              else if (proj.isShadowTimesheet) {
-                proj.shadowEmpId = null;
-                proj.shadowForList = shadowEmpList;
-              }
-            }
+            });
           });
-        });
-      }
-    });
+        }
+      });
   }
   /**
    * Get all work locations from master data
    */
   getAllWorkLocationFromLocationMaster(): void {
-    this.timesheetNewService.getAllWorkLocation().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.workLocationList = response.serviceResponse;
-      } else {
-        console.error(response.serviceResponse)
-      }
-    });
+    this.timesheetNewService.getAllWorkLocation()
+      .pipe(first(), takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus == "Success") {
+            this.workLocationList = response.serviceResponse || [];
+          } else {
+            // ✅ MODERATE FIX: Use centralized error handling
+            this.handleError(
+              new Error(response.serviceResponse || 'Failed to load work locations'),
+              'getAllWorkLocationFromLocationMaster',
+              false // Don't show to user, just log
+            );
+            this.workLocationList = [];
+          }
+        },
+        error: (error) => {
+          this.handleError(error, 'getAllWorkLocationFromLocationMaster', false);
+          this.workLocationList = [];
+        }
+      });
   }
 
-  getAllDSRApprovalStatusFromMaster() {
-    this.timesheetNewService.getAllDSRApprovalStatus().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.clientApprovalStatusList = response.serviceResponse;
-      }
-    });
+  getAllDSRApprovalStatusFromMaster(): void {
+    this.timesheetNewService.getAllDSRApprovalStatus()
+      .pipe(first(), takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          if (response.serviceStatus == "Success") {
+            this.clientApprovalStatusList = response.serviceResponse || [];
+          } else {
+            // ✅ MODERATE FIX: Use centralized error handling
+            this.handleError(
+              new Error(response.serviceResponse || 'Failed to load approval statuses'),
+              'getAllDSRApprovalStatusFromMaster',
+              false // Don't show to user, just log
+            );
+            this.clientApprovalStatusList = [];
+          }
+        },
+        error: (error) => {
+          this.handleError(error, 'getAllDSRApprovalStatusFromMaster', false);
+          this.clientApprovalStatusList = [];
+        }
+      });
   }
 
   /**
@@ -3186,32 +3953,37 @@ export class TimesheetFormComponent implements OnInit {
 
   /**
    * Get project list for a specific date and employee ID
+   * @param empId - Employee ID (optional, defaults to current user or selected team member)
+   * @returns Promise that resolves when projects are loaded
    */
-  getProjectListForDateAndEmpId(empId?: number): void {
-    // Determine empId (for self or team member)
+  getProjectListForDateAndEmpId(empId?: number): Promise<void> {
+    // ✅ CRITICAL FIX: Add null checks
     const targetEmpId = empId || 
-      (this.timesheetAppliedFor.toLowerCase() === 'self' 
-        ? this.currentUser.empId 
-        : this.timesheetFilledForUser.empId);
+      (this.timesheetAppliedFor?.toLowerCase() === 'self' 
+        ? this.currentUser?.empId 
+        : this.timesheetFilledForUser?.empId);
     
     if (!targetEmpId) {
-      console.error('Employee ID not available');
-      return;
+      const error = new Error('Employee ID not available');
+      console.error(error.message);
+      return Promise.reject(error);
     }
     
     // Use fromDate (must be set before calling this method)
     if (!this.fromDate) {
-      console.error('Date (fromDate) not available for fetching projects');
+      const error = new Error('Date (fromDate) not available for fetching projects');
+      console.error(error.message);
       this.disableAdd = true;
       this.openAlertMod(this.alertTemplate, 'Date is required to load projects. Please select a date first.');
-      return;
+      return Promise.reject(error);
     }
     
     // Convert date format: DD-MM-YYYY to YYYY-MM-DDTHH:mm:ss (LocalDateTime)
     const dateParsed = this.parseDDMMYYYY(this.fromDate);
     if (!dateParsed) {
-      console.error('Invalid date format:', this.fromDate);
-      return;
+      const error = new Error(`Invalid date format: ${this.fromDate}`);
+      console.error(error.message);
+      return Promise.reject(error);
     }
     
     const localDateTime = `${dateParsed.getFullYear()}-${String(dateParsed.getMonth() + 1).padStart(2, '0')}-${String(dateParsed.getDate()).padStart(2, '0')}T00:00:00`;
@@ -3221,32 +3993,43 @@ export class TimesheetFormComponent implements OnInit {
       date: localDateTime
     };
 
-    this.timesheetService.getProjectListForDateAndEmpId(payload).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        // Populate activeProjectList
-        // Note: Response only contains projectId and projectName, not client/location info
-        this.activeProjectList = response.serviceResponse || [];
-        
-        if (this.activeProjectList.length === 0) {
-          this.disableAdd = true;
-          if (this.timesheetAppliedFor.toLocaleLowerCase() == 'self') {
-            this.openAlertMod(this.alertTemplate, 'No Projects assigned for the selected date. Please contact RMG.');
-          } else if (this.timesheetAppliedFor.toLocaleLowerCase() == 'team') {
-            let teamMember = this.teamMemberList.find(employee => employee.empId === this.timesheetFilledForUser.empId);
-            this.openAlertMod(this.alertTemplate, 'No Projects assigned to ' + teamMember?.empName + ' for the selected date.');
+    return new Promise<void>((resolve, reject) => {
+      this.timesheetService.getProjectListForDateAndEmpId(payload)
+        .pipe(first(), takeUntil(this.destroy$))
+        .subscribe({
+          next: (response: any) => {
+            if (response.serviceStatus == "Success") {
+              // Populate activeProjectList
+              // Note: Response only contains projectId and projectName, not client/location info
+              this.activeProjectList = response.serviceResponse || [];
+              
+              if (this.activeProjectList.length === 0) {
+                this.disableAdd = true;
+                if (this.timesheetAppliedFor?.toLocaleLowerCase() == 'self') {
+                  this.openAlertMod(this.alertTemplate, 'No Projects assigned for the selected date. Please contact RMG.');
+                } else if (this.timesheetAppliedFor?.toLocaleLowerCase() == 'team') {
+                  let teamMember = this.teamMemberList?.find(employee => employee.empId === this.timesheetFilledForUser?.empId);
+                  this.openAlertMod(this.alertTemplate, 'No Projects assigned to ' + (teamMember?.empName || 'team member') + ' for the selected date.');
+                }
+              } else {
+                this.disableAdd = false;
+              }
+              resolve();
+            } else {
+              const errorMsg = response.serviceResponse || 'Failed to fetch projects';
+              console.error('Failed to fetch projects:', errorMsg);
+              this.disableAdd = true;
+              this.openAlertMod(this.alertTemplate, 'Failed to load projects: ' + errorMsg);
+              reject(new Error(errorMsg));
+            }
+          },
+          error: (error) => {
+            console.error('Error fetching projects:', error);
+            this.disableAdd = true;
+            this.openAlertMod(this.alertTemplate, 'Error loading projects. Please try again.');
+            reject(error);
           }
-        } else {
-          this.disableAdd = false;
-        }
-      } else {
-        console.error('Failed to fetch projects:', response.serviceResponse);
-        this.disableAdd = true;
-        this.openAlertMod(this.alertTemplate, 'Failed to load projects: ' + response.serviceResponse);
-      }
-    }, error => {
-      console.error('Error fetching projects:', error);
-      this.disableAdd = true;
-      this.openAlertMod(this.alertTemplate, 'Error loading projects. Please try again.');
+        });
     });
   }
 
@@ -3269,6 +4052,33 @@ export class TimesheetFormComponent implements OnInit {
       });
     });
     return totalMinutes;
+  }
+
+  /**
+   * ✅ CRITICAL FIX: Cleanup on component destroy
+   * Prevents memory leaks by unsubscribing all subscriptions
+   */
+  ngOnDestroy(): void {
+    // Unsubscribe from all subscriptions
+    this.destroy$.next();
+    this.destroy$.complete();
+    
+    // Cleanup document URLs to prevent memory leaks
+    this.cleanupDocumentData();
+    
+    // Close any open modals
+    if (this.modalRef) {
+      this.modalRef.close();
+    }
+    if (this.clientSideIdUpdateOrAddModalRef) {
+      this.clientSideIdUpdateOrAddModalRef.close();
+    }
+    if (this.alertWithResetModRef) {
+      this.alertWithResetModRef.close();
+    }
+    if (this.removeLocationConfirmModalRef) {
+      this.removeLocationConfirmModalRef.close();
+    }
   }
 
 }

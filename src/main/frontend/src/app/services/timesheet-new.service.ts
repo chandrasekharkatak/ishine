@@ -40,6 +40,10 @@ export class TimesheetNewService {
     );
   }
 
+  getMyReporteesApprovedTimesheets(timesheetObj: Timesheet) {
+    return this.http.post(`${this.baseUrl}` + `api/getMyReporteesApprovedTimesheets`, timesheetObj);
+  }
+
   getActiveProjectsByEmpId(empId: any): Observable<any> {
     return this.http.post(
       `${this.baseUrl}` +
@@ -94,9 +98,13 @@ export class TimesheetNewService {
   ) {
     const formData = new FormData();
     formData.append('dto', this.encryptionService.encrypt(JSON.stringify(employeeTimesheetDTO)));
-    selectedFile.forEach((file) => {
-      formData.append('documents', file, file.name);
-    });
+    if (selectedFile && selectedFile.length > 0) {
+      selectedFile.forEach((file) => {
+        if (file) {
+          formData.append('documents', file, file.name);
+        }
+      });
+    }
     return this.http.post(
       `${this.baseUrl}` + `api/v2/timesheet/create`,
       formData
@@ -178,14 +186,14 @@ export class TimesheetNewService {
   ): Observable<any> {
     // Extract timesheetId from DTO (required by backend)
     const timesheetId = employeeTimesheetDTO.timesheetId;
-    
+
     if (!timesheetId) {
       throw new Error('Timesheet ID is required for update');
     }
 
     const formData = new FormData();
     formData.append('dto', this.encryptionService.encrypt(JSON.stringify(employeeTimesheetDTO)));
-    
+
     // Append documents if provided
     if (selectedFile && selectedFile.length > 0) {
       selectedFile.forEach((file) => {
@@ -221,4 +229,18 @@ export class TimesheetNewService {
       `${this.baseUrl}` + `api/v2/timesheet/document/getById/${docId}`
     );
   }
+  getMyReporteesTimesheetRequestsCount(payload: any) {
+    return this.http.post(
+      `${this.baseUrl}api/getTimesheetStatusCountByManager`,
+      payload
+    );
+  }
+
+  getMyReporteesTimesheetRequests(payload:any){
+    return this.http.post(
+      this.baseUrl + 'api/getMyReporteesTimesheetRequests',
+      payload
+    );
+  }
+
 }

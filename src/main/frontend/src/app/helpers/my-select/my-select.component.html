@@ -19,16 +19,13 @@
 
 
     <mat-option class="mat-option" *ngIf="multiple && filteredOptions.length > 0" (click)="toggleSelectAll($event)" [disabled]="disable">
-    <!-- <mat-option class="mat-option" *ngIf="multiple && filteredOptions.length > 0" (click)="toggleSelectAll($event)" [disabled]="isDisabled"> -->
       <strong>
         {{ isAllSelected() ? 'Deselect All' : 'Select All' }}
       </strong>
     </mat-option>
     <mat-option *ngFor="let opt of filteredOptions" [value]="valueKey?opt[valueKey]:opt" [disabled]="isDisabledOption(opt)"
     [title]="getDisplayText(opt)">
-    <!-- <mat-option *ngFor="let opt of filteredOptions" [value]="valueKey?opt[valueKey]:opt"
-    [title]="getDisplayText(opt)" [disabled]="isDisabled">
-      {{ getDisplayText(opt) }} -->
+      {{ getDisplayText(opt) }}
     </mat-option>
         <mat-option *ngIf="filteredOptions.length === 0" disabled>
         <b>No data found</b>

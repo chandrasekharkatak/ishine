@@ -1,12 +1,16 @@
 package com.apmosys.employeeportal.service;
 
+import java.util.Objects;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.POResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
+import com.apmosys.employeeportal.dto.RmUpdateSyncDto;
 import com.apmosys.employeeportal.enums.SyncRequestType;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -148,6 +152,7 @@ public class ValidationService {
 		require(poDto.getClientAddressId(), "clientAddressId");
 		require(poDto.getClientLocation(), "clientLocation");
 		require(poDto.getClientState(), "clientState");
+		require(poDto.getApmosysRmEmpId(), "apmosysRmEmpId");	
 		require(poDto.getApmosysRmEmpName(), "apmosysRmEmpName");
 		require(poDto.getApmosysRmEmail(), "apmosysRmEmail");
 		require(poDto.getClientRmName(), "clientRmName");
@@ -241,5 +246,72 @@ public class ValidationService {
 		                );
 		            });
 	}
+	
+	
+	public void validateRmUpdateSyncPayload(RmUpdateSyncDto dto) {
+
+	    if (dto == null) {
+			ExceptionLogContext.add("Request payload is missing");
+	        throw new RuntimeException("Request payload is missing");
+	    }
+
+	   
+	    if (dto.getPoIds() == null || dto.getPoIds().isEmpty()) {
+	    	ExceptionLogContext.add("PO IDs cannot be null or empty");
+	        throw new RuntimeException("PO IDs cannot be null or empty");
+	    }
+
+	    if (dto.getPoIds().stream().anyMatch(Objects::isNull)) {
+	    	ExceptionLogContext.add("PO IDs list contains null value");
+	        throw new RuntimeException("PO IDs list contains null value");
+	    }
+
+	   
+	    if (dto.getUpdatedApmosysRmEmpId() == null) {
+	    	ExceptionLogContext.add("RM employee ID is missing");
+	        throw new RuntimeException("RM employee ID is missing");
+	    }
+
+	   
+	    if (dto.getUpdatedApmosysRmEmpName() == null ||
+	        dto.getUpdatedApmosysRmEmpName().trim().isEmpty()) {
+	    	ExceptionLogContext.add("RM employee name is missing");
+	        throw new RuntimeException("RM employee name is missing");
+	    }
+
+	   
+	    if (dto.getUpdatedApmosysRmEmail() == null ||
+	        dto.getUpdatedApmosysRmEmail().trim().isEmpty()) {
+	    	ExceptionLogContext.add("RM email is missing");
+	        throw new RuntimeException("RM email is missing");
+	    }
+
+	    
+	    if (!dto.getUpdatedApmosysRmEmail()
+	            .matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+	    	ExceptionLogContext.add("Invalid RM email format");
+	        throw new RuntimeException("Invalid RM email format");
+	    }
+	}
+	
+	
+	public void validateEmployeeExists(Long empId, String empName) {
+
+	    boolean exists = employeeRepository
+	            .existsByEmpIdAndEmployeeName(empId, empName);
+
+	    if (!exists) {
+	    	ExceptionLogContext.add(
+		            "employee not found for empId=" + empId + ", name=" + empName
+	    	        );
+	        throw new RuntimeException(
+	            "employee not found for empId=" + empId + ", name=" + empName
+	        );
+	    }
+	}
+
+	
+	
+	
 	
 }

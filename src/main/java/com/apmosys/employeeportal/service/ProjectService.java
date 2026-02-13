@@ -4444,8 +4444,8 @@ public class ProjectService {
 	    PoDetailsForProjectPoMappingDTO poDto =
 	            deletedProjects.get(0).getPoDetailsList().get(0);
 
-	    Long updatedBy =
-	            validateAndGetEmployeeEmpId(
+	    
+	            validationService.validateEmployeeExists(
 	                    poDto.getUpdatedByEmpId(),
 	                    poDto.getUpdatedByEmpName()
 	            );
@@ -4466,7 +4466,7 @@ public class ProjectService {
 	        }
 
 	        project.setActive("false");
-	        project.setUpdatedBy(updatedBy);
+	        project.setUpdatedBy(poDto.getUpdatedByEmpId());
 	        project.setUpdatedOn(updatedOn);
 
 	        projectRepository.save(project);
@@ -4507,15 +4507,15 @@ public class ProjectService {
 	    PoDetailsForProjectPoMappingDTO poDto =
 	            primaryProjectDto.getPoDetailsList().get(0);
 
-	    Long updatedBy =
-	            validateAndGetEmployeeEmpId(
+	  
+	            validationService.validateEmployeeExists(
 	                    poDto.getUpdatedByEmpId(),
 	                    poDto.getUpdatedByEmpName()
 	            );
 
 	    LocalDateTime updatedOn =   convert(poDto.getUpdatedOn());
 	    
-	    project.setUpdatedBy(updatedBy);
+	    project.setUpdatedBy(poDto.getUpdatedByEmpId());
 	    project.setUpdatedOn(updatedOn);
 
 	    projectRepository.save(project);
