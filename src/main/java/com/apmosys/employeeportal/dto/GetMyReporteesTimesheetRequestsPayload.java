@@ -34,7 +34,13 @@ public class GetMyReporteesTimesheetRequestsPayload {
     private String teamName;
     private String activity;
     private String date;
-
+    
     private String search;
+    private String workCheckIn;
+    private String workCheckOut;
+    private Long locationCount;
+    private Long projectCount;
+    private String appliedBy;
+    private String appliedOn;
 
 }

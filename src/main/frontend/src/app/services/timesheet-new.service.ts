@@ -149,7 +149,7 @@ export class TimesheetNewService {
   rejectRemark: string
   }) {
     return this.http.post<any>(
-      `${this.baseUrl}api/bulkRejectTimesheetRequest1`,
+      `${this.baseUrl}api/bulkApproveTimesheetRequest1`,
       payload
     );
   }

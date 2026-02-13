@@ -710,7 +710,7 @@
         <table class="timesheet-table" matSort (matSortChange)="sortData($event)" matSortDisableClear>
           <thead>
             <tr>
-              <th> <input type="checkbox" (change)="toggleAllRows($event)" /> </th>
+              <th> <input type="checkbox" [(ngModel)]="isAllSelected" (change)="toggleAllRows($event)" /> </th>
               <th>Sr No.</th>
               <th mat-sort-header="employmentId">Employee Id</th>
               <th mat-sort-header="employeeName">Name</th>
