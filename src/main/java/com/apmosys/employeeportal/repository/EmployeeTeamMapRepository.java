@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.EmpMappingDTO;
+import com.apmosys.employeeportal.dto.EmployeeImpactDTO;
 import com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO;
 import com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
@@ -854,6 +855,30 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			"on prm.roleId = etm.roleId and prm.poId = etm.poId "+	
 			"WHERE etm.active!=2  AND prm.poId = :poId ")
 	List<EmpMappingDTO> getActiveEmpDetails(Long poId);
+ 
+	
+	@Query(value ="SELECT new com.apmosys.employeeportal.dto.EmployeeImpactDTO(e.name, t.teamName)\n"
+			+ "FROM EmployeeTeamMap etm\n"
+			+ "LEFT JOIN Employee e ON etm.empId = e.empId\n"
+			+ "LEFT JOIN Team t ON etm.teamId = t.teamId\n"
+			+ "WHERE etm.poId = :poId\n"
+			+ "AND etm.roleId = :roleId\n"
+			+ "AND etm.active != 0")
+	List<EmployeeImpactDTO> findActiveEmployeesByPoAndRole(Long poId, Long roleId);
+	
+	
+	@Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END\n"
+			+ "FROM EmployeeTeamMap e\n"
+			+ "WHERE e.poId = :poId\n"
+			+ "AND e.active != 0")
+	boolean existsActiveTeams(Long poId);
+	
+	@Query(value = "SELECT MIN(e.startDate)\n"
+			+ "FROM EmployeeTeamMap e\n"
+			+ "WHERE e.teamId IN :teamIds")
+	LocalDateTime findMinEmployeeStartDateByTeamIds(
+	        @Param("teamIds") List<Long> teamIds
+	);
 
 
 }

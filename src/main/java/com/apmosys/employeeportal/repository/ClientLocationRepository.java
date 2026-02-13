@@ -32,4 +32,6 @@ public interface ClientLocationRepository extends JpaRepository<ClientLocation, 
 	List<ClientLocation> findByClientIdPK(@Param("clientId") Integer clientId);
 
 
+	public List<ClientLocation> findByClientAddressId(Long clientAddressId);
+
 }

@@ -110,5 +110,8 @@ public interface PoRequirementMappingRepository extends JpaRepository<PoRequirem
 	public List<RmgResourceRequirementDto> getPoIdAndRequiredCountByPoIdInAndProjectId(List<Long> poIds, Integer projectId);
 
 	List<PoRequirementMapping> findByPoIdAndActiveTrue(Long poId);
+
+	
+	
 	
 }

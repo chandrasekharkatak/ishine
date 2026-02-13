@@ -1930,7 +1930,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	    logger.info("TNM project not missing resources \n");
 	    
 	    ClientLocation cl = clientService.resolveClientLocation(client.getClientId(), poDto.getClientLocation(),
-				poDto.getClientState());
+				poDto.getClientState(),poDto.getClientAddressId());
 	   
 	    ProjectPoDetails poDetails = new ProjectPoDetails();
 	    poDetails.setPoId(poDto.getPoId());
@@ -2049,173 +2049,173 @@ return empId;
 	
 	
 	
-	@Transactional(rollbackFor = PoportalApiException.class)
-	public ServiceResponse updateSDEDOfproject() {
-
-	    ServiceResponse response = new ServiceResponse();
-	    String traceId = UUID.randomUUID().toString();
-	    ApiLog initialLog = null;
-	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-	    StringBuilder exceptionDetailsForLog = new StringBuilder();
-
-	    List<ProjectPoMappingWithResourceDTO> externalApiResponse = new ArrayList<ProjectPoMappingWithResourceDTO>();
-
-	    try {
-	        initialLog = apiLogUtility.startLog(
-	                traceId,
-	                "syncStartDateEndDateOfProjectFromPo",
-	                "Ishine",
-	                6l,
-	                httpRequest
-	        );
-	        
-	        logger.info("log table set start");
-	        
-
-	        HttpHeaders headers = new HttpHeaders();
-	        headers.set("Authorization",
-	                poPortalAPIAuthenticationJWTUtility.generateAccessToken());
-	        headers.set("X-Trace-Id", traceId);
-
-	        HttpEntity<?> entity = new HttpEntity<>(headers);
-	        
-	        logger.info("header set");
-
-	        ResponseEntity<List<ProjectPoMappingWithResourceDTO>> apiResponse =
-	                restTemplate.exchange(
-	                		getStartDateEndDateOfProjectsFromPO,
-	                        HttpMethod.GET,
-	                        entity,
-	                        new ParameterizedTypeReference<List<ProjectPoMappingWithResourceDTO>>() {}
-	                );
-
-	        finalHttpStatusCode = apiResponse.getStatusCodeValue();
-	        externalApiResponse = apiResponse.getBody();
-
-	        if (apiResponse.getStatusCode() != HttpStatus.OK || apiResponse.getBody() == null) {
-		        System.out.println("PO Portal API failed or returned empty response");
-	            throw new PoportalApiException("PO Portal API failed or returned empty response");
-	        }
-	        
-	    	SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-
-	        for (ProjectPoMappingWithResourceDTO projectDto : apiResponse.getBody()) {
-	        		            
-	        	 try {
-	                 Project project = projectRepository
-	                         .findByPoProjectId(projectDto.getProjectId());
-
-	                 if (project == null) {
-	                     exceptionDetailsForLog.append(
-	                             "Project not found | poProjectId=")
-	                             .append(projectDto.getProjectId())
-	                             .append(" || ");
-	                     continue;
-	                 }
-
-	                 if (projectDto.getProjectStartDate() == null &&
-	                		    projectDto.getProjectEndDate() == null) {
-
-	                		    exceptionDetailsForLog.append(
-	                		            "Start & End date missing | poProjectId=")
-	                		            .append(projectDto.getProjectId())
-	                		            .append(" || ");
-	                		    continue;
-	                		}
-
-	                		if (projectDto.getProjectStartDate() == null) {
-	                		    exceptionDetailsForLog.append(
-	                		            "Start date missing | poProjectId=")
-	                		            .append(projectDto.getProjectId())
-	                		            .append(" || ");
-	                		    continue;
-	                		}
-
-	                		if (projectDto.getProjectEndDate() == null) {
-	                		    exceptionDetailsForLog.append(
-	                		            "End date missing | poProjectId=")
-	                		            .append(projectDto.getProjectId())
-	                		            .append(" || ");
-	                		    continue;
-	                		}
-
-
-	                 project.setStartDate(
-	                         dateFormat.format(projectDto.getProjectStartDate()));
-	                 project.setEndDate(
-	                         dateFormat.format(projectDto.getProjectEndDate()));
-
-	                 projectRepository.save(project);
-	                 logger.info("saved in proj table");
-
-	             } catch (Exception ex) {
-	                 exceptionDetailsForLog.append(
-	                         "Update failed | poProjectId=")
-	                         .append(projectDto.getProjectId())
-	                         .append(", reason=")
-	                         .append(ex.getMessage())
-	                         .append(" || ");
-	             }
-	         }
-
-
-	        response.setServiceResponse(externalApiResponse);
-	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceMessage("Project SD ED update completed  ");
-
-	    } catch (PoportalApiException ex) {
-	        exceptionDetailsForLog.append(ex.getMessage());
-
-	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	        response.setServiceMessage("Project SD ED update failed due to external API error.");
-	        response.setServiceError(ex.getMessage());
-
-	        throw ex; 
-
-	    } catch (Exception e) {
-	        exceptionDetailsForLog.append(e.getMessage());
-            response.setServiceResponse(externalApiResponse);      
-            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	        response.setServiceMessage("Project SD ED update completed with warnings.");
-	        return response;
-	    } finally {
-	        try {
-	            if (initialLog != null) {
-	                apiLogUtility.endLog(
-	                        initialLog.getId(),
-	                        getStartDateEndDateOfProjectsFromPO,
-	                        finalHttpStatusCode,
-	                        exceptionDetailsForLog.toString(),
-	                        httpRequest
-	                );
-	            }
-	        } catch (Exception logEx) {
-	            logger.error("Failed to end API log", logEx);
-	        }
-	        try {
-	            if (exceptionDetailsForLog.length() > 0) {
-
-	                String mailBody =
-	                        "<b>Trace ID:</b> " + traceId + "<br/><br/>"
-	                      + "<b>API:</b> updateSDEDOfproject <br/><br/>"
-	                      + "<b>Exception Details:</b><br/>"
-	                      + "<pre>" + exceptionDetailsForLog.toString() + "</pre>";
-
-	                mailService.sendMail(
-	                        "prarthana.lenka@apmosys.com",
-	                        "Project Start Date  end Date Update Issues | TraceId : " + traceId,
-	                        mailBody
-	                );
-	            }
-	        } catch (Exception mailEx) {
-	          
-	            mailEx.printStackTrace();
-	            logger.error("Failed to send exception mail", mailEx);
-	        }
-	    }
-
-	    return response;
-	}
+//	@Transactional(rollbackFor = PoportalApiException.class)
+//	public ServiceResponse updateSDEDOfproject() {
+//
+//	    ServiceResponse response = new ServiceResponse();
+//	    String traceId = UUID.randomUUID().toString();
+//	    ApiLog initialLog = null;
+//	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+//	    StringBuilder exceptionDetailsForLog = new StringBuilder();
+//
+//	    List<ProjectPoMappingWithResourceDTO> externalApiResponse = new ArrayList<ProjectPoMappingWithResourceDTO>();
+//
+//	    try {
+//	        initialLog = apiLogUtility.startLog(
+//	                traceId,
+//	                "syncStartDateEndDateOfProjectFromPo",
+//	                "Ishine",
+//	                6l,
+//	                httpRequest
+//	        );
+//	        
+//	        logger.info("log table set start");
+//	        
+//
+//	        HttpHeaders headers = new HttpHeaders();
+//	        headers.set("Authorization",
+//	                poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+//	        headers.set("X-Trace-Id", traceId);
+//
+//	        HttpEntity<?> entity = new HttpEntity<>(headers);
+//	        
+//	        logger.info("header set");
+//
+//	        ResponseEntity<List<ProjectPoMappingWithResourceDTO>> apiResponse =
+//	                restTemplate.exchange(
+//	                		getStartDateEndDateOfProjectsFromPO,
+//	                        HttpMethod.GET,
+//	                        entity,
+//	                        new ParameterizedTypeReference<List<ProjectPoMappingWithResourceDTO>>() {}
+//	                );
+//
+//	        finalHttpStatusCode = apiResponse.getStatusCodeValue();
+//	        externalApiResponse = apiResponse.getBody();
+//
+//	        if (apiResponse.getStatusCode() != HttpStatus.OK || apiResponse.getBody() == null) {
+//		        System.out.println("PO Portal API failed or returned empty response");
+//	            throw new PoportalApiException("PO Portal API failed or returned empty response");
+//	        }
+//	        
+//	    	SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+//
+//	        for (ProjectPoMappingWithResourceDTO projectDto : apiResponse.getBody()) {
+//	        		            
+//	        	 try {
+//	                 Project project = projectRepository
+//	                         .findByPoProjectId(projectDto.getProjectId());
+//
+//	                 if (project == null) {
+//	                     exceptionDetailsForLog.append(
+//	                             "Project not found | poProjectId=")
+//	                             .append(projectDto.getProjectId())
+//	                             .append(" || ");
+//	                     continue;
+//	                 }
+//
+//	                 if (projectDto.getProjectStartDate() == null &&
+//	                		    projectDto.getProjectEndDate() == null) {
+//
+//	                		    exceptionDetailsForLog.append(
+//	                		            "Start & End date missing | poProjectId=")
+//	                		            .append(projectDto.getProjectId())
+//	                		            .append(" || ");
+//	                		    continue;
+//	                		}
+//
+//	                		if (projectDto.getProjectStartDate() == null) {
+//	                		    exceptionDetailsForLog.append(
+//	                		            "Start date missing | poProjectId=")
+//	                		            .append(projectDto.getProjectId())
+//	                		            .append(" || ");
+//	                		    continue;
+//	                		}
+//
+//	                		if (projectDto.getProjectEndDate() == null) {
+//	                		    exceptionDetailsForLog.append(
+//	                		            "End date missing | poProjectId=")
+//	                		            .append(projectDto.getProjectId())
+//	                		            .append(" || ");
+//	                		    continue;
+//	                		}
+//
+//
+//	                 project.setStartDate(
+//	                         dateFormat.format(projectDto.getProjectStartDate()));
+//	                 project.setEndDate(
+//	                         dateFormat.format(projectDto.getProjectEndDate()));
+//
+//	                 projectRepository.save(project);
+//	                 logger.info("saved in proj table");
+//
+//	             } catch (Exception ex) {
+//	                 exceptionDetailsForLog.append(
+//	                         "Update failed | poProjectId=")
+//	                         .append(projectDto.getProjectId())
+//	                         .append(", reason=")
+//	                         .append(ex.getMessage())
+//	                         .append(" || ");
+//	             }
+//	         }
+//
+//
+//	        response.setServiceResponse(externalApiResponse);
+//	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	        response.setServiceMessage("Project SD ED update completed  ");
+//
+//	    } catch (PoportalApiException ex) {
+//	        exceptionDetailsForLog.append(ex.getMessage());
+//
+//	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//	        response.setServiceMessage("Project SD ED update failed due to external API error.");
+//	        response.setServiceError(ex.getMessage());
+//
+//	        throw ex; 
+//
+//	    } catch (Exception e) {
+//	        exceptionDetailsForLog.append(e.getMessage());
+//            response.setServiceResponse(externalApiResponse);      
+//            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//	        response.setServiceMessage("Project SD ED update completed with warnings.");
+//	        return response;
+//	    } finally {
+//	        try {
+//	            if (initialLog != null) {
+//	                apiLogUtility.endLog(
+//	                        initialLog.getId(),
+//	                        getStartDateEndDateOfProjectsFromPO,
+//	                        finalHttpStatusCode,
+//	                        exceptionDetailsForLog.toString(),
+//	                        httpRequest
+//	                );
+//	            }
+//	        } catch (Exception logEx) {
+//	            logger.error("Failed to end API log", logEx);
+//	        }
+//	        try {
+//	            if (exceptionDetailsForLog.length() > 0) {
+//
+//	                String mailBody =
+//	                        "<b>Trace ID:</b> " + traceId + "<br/><br/>"
+//	                      + "<b>API:</b> updateSDEDOfproject <br/><br/>"
+//	                      + "<b>Exception Details:</b><br/>"
+//	                      + "<pre>" + exceptionDetailsForLog.toString() + "</pre>";
+//
+//	                mailService.sendMail(
+//	                        "prarthana.lenka@apmosys.com",
+//	                        "Project Start Date  end Date Update Issues | TraceId : " + traceId,
+//	                        mailBody
+//	                );
+//	            }
+//	        } catch (Exception mailEx) {
+//	          
+//	            mailEx.printStackTrace();
+//	            logger.error("Failed to send exception mail", mailEx);
+//	        }
+//	    }
+//
+//	    return response;
+//	}
 	
 	
 	

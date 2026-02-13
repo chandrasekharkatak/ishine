@@ -21,9 +21,8 @@ public class DeletedPoSyncDTO {
 	private SyncRequestType eventType; // PO_DELETED
 	private Long projectId;
 	private String projectName;
-	private Date projectStartDateAfterDeletion;
-	private Date projectEndDateAfterDeletion;
-	private String deletedByEmpId;
+	
+	private Long deletedByEmpId;
 	private String deletedByEmpName; 
 	private Date deletedOn; 
 	private List<PoDetailsForProjectPoMappingDTO> associatePos;

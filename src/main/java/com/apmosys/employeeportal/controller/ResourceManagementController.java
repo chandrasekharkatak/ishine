@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -703,10 +704,14 @@ public class ResourceManagementController {
 		return resourceManagementService.getResourceRequirementCountByPoId(poId, projectId, projectType);
 	}
 	
-//	@Scheduled(cron = "0 0 0 * * ?")
 	@GetMapping("/oneTimeUpdatePoClientId")
-	public ServiceResponse oneTimeUpdatePoClientId(@RequestParam(value = "mode", required = false) String mode) {
-		return resourceManagementService.oneTimeUpdatePoClientId(mode);
+	public ServiceResponse oneTimeUpdatePoClientId() {
+		return resourceManagementService.oneTimeUpdatePoClientId("once");
+	}
+	
+	@Scheduled(cron = "0 0 0 * * ?")
+	public void cronToUpdateClient() {
+		 resourceManagementService.oneTimeUpdatePoClientId("");
 	}
 	 
 	

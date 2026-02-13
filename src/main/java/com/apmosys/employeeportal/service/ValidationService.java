@@ -133,8 +133,6 @@ public class ValidationService {
 		require(dto.getProjectId(), "projectId");
 		require(dto.getProjectName(), "projectName");
 		require(dto.getProjectType(), "projectType");
-		require(dto.getProjectStartDate(), "projectStartDate");
-		require(dto.getProjectEndDate(), "projectEndDate");
 		require(dto.getClientId(), "clientId");
 		require(dto.getClientName(), "clientName");
 

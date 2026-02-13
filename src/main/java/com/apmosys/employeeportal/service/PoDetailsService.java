@@ -27,6 +27,7 @@ import com.apmosys.employeeportal.model.PoRequirementMapping;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectPoDetails;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.PoDepartmentMappingRepository;
 import com.apmosys.employeeportal.repository.PoRequirementMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectPoDetailsRepository;
@@ -55,6 +56,9 @@ public class PoDetailsService {
 	@Autowired
 	ValidationService validationService;
 	
+	@Autowired
+	EmployeeTeamMapRepository employeeTeamMapRepository;
+	
 	
 	@Autowired
 	PoDepartmentMappingRepository poDepartmentMappingRepository;
@@ -67,7 +71,7 @@ public class PoDetailsService {
 		PoDetailsForProjectPoMappingDTO poDto = dto.getPoDetailsList().get(0);
 
 		ClientLocation cl = clientService.resolveClientLocation(client.getClientId(), poDto.getClientLocation(),
-				poDto.getClientState());
+				poDto.getClientState(),poDto.getClientAddressId());
 		
 	      validationService.validateEmployeeExists(poDto.getCreatedByEmpId(),poDto.getCreatedByEmpName());
           validationService.validateEmployeeExists(poDto.getUpdatedByEmpId(),poDto.getUpdatedByEmpName());
@@ -184,7 +188,7 @@ public class PoDetailsService {
 	            clientService.resolveClientLocation(
 	                    client.getClientId(),
 	                    poDto.getClientLocation(),
-	                    poDto.getClientState());
+	                    poDto.getClientState(),poDto.getClientAddressId());
 
 	    if (!Objects.equals(
 	            po.getClientLocationId(),
@@ -260,7 +264,7 @@ public class PoDetailsService {
 
 	    PoDetailsForProjectPoMappingDTO poDto = dto.getRenewedPo();
 	    ClientLocation cl = clientService.resolveClientLocation(client.getClientId(), poDto.getClientLocation(),
-				poDto.getClientState());
+				poDto.getClientState(),poDto.getClientAddressId());
 
 	    ProjectPoDetails po = new ProjectPoDetails();
 	    po.setPoId(poDto.getPoId());
@@ -414,7 +418,7 @@ public class PoDetailsService {
 	public void validateNoActiveTeamsForPo(Long poId) {
 
 		boolean hasActiveTeams =
-	            teamRepository.existsByPoIdAndIsActive(poId, "Y");
+				employeeTeamMapRepository.existsActiveTeams(poId);
 
 	    if (hasActiveTeams) {
 	        ExceptionLogContext.add(
@@ -428,38 +432,38 @@ public class PoDetailsService {
 	
 	public void softDeletePo(
 	        ProjectPoDetails po,
-	        String deletedByEmpId,
+	        Long deletedByEmpId,
 	        String deletedByEmpName,
 	        Date deletedOn) {
 		
-		Long updatedBy = validationService.validateAndGetEmployeeEmpId(deletedByEmpId,
+		validationService.validateEmployeeExists(deletedByEmpId,
 	                    deletedByEmpName);
 
 	    po.setActive(false);
-	    po.setUpdatedBy(updatedBy);
+	    po.setUpdatedBy(deletedByEmpId);
 	    po.setPoUpdatedOn(convert(deletedOn));
 
 	    projectPoDetailsRepository.save(po);
 	    
 	    
-	    List<PoDepartmentMapping> deptMappings =
-	            poDepartmentMappingRepository
-	                    .findByPoIdAndActiveTrue(po.getPoId());
-
-	    for (PoDepartmentMapping dm : deptMappings) {
-	        dm.setActive(false);
-	    }
-	    poDepartmentMappingRepository.saveAll(deptMappings);
-	    
-	    
-	    List<PoRequirementMapping> reqMappings =
-	            poRequirementMappingRepository
-	                    .findByPoIdAndActiveTrue(po.getPoId());
-
-	    for (PoRequirementMapping rm : reqMappings) {
-	        rm.setActive(false);
-	    }
-	    poRequirementMappingRepository.saveAll(reqMappings);
+//	    List<PoDepartmentMapping> deptMappings =
+//	            poDepartmentMappingRepository
+//	                    .findByPoIdAndActiveTrue(po.getPoId());
+//
+//	    for (PoDepartmentMapping dm : deptMappings) {
+//	        dm.setActive(false);
+//	    }
+//	    poDepartmentMappingRepository.saveAll(deptMappings);
+//	    
+//	    
+//	    List<PoRequirementMapping> reqMappings =
+//	            poRequirementMappingRepository
+//	                    .findByPoIdAndActiveTrue(po.getPoId());
+//
+//	    for (PoRequirementMapping rm : reqMappings) {
+//	        rm.setActive(false);
+//	    }
+//	    poRequirementMappingRepository.saveAll(reqMappings);
 	}
 	
 	public void updatePoLinksAfterDeletion(
@@ -496,13 +500,13 @@ public class PoDetailsService {
 	            changed = true;
 	        }
 	        
-	        Long updatedBy =  validationService.validateAndGetEmployeeEmpId(
+	        validationService.validateEmployeeExists(
                     dto.getDeletedByEmpId(),
                     dto.getDeletedByEmpName()
             );
 
 	        if (changed) {
-	            po.setUpdatedBy(updatedBy);
+	            po.setUpdatedBy(dto.getDeletedByEmpId());
 	            po.setPoUpdatedOn(convert(dto.getDeletedOn())
 	            );
 	            projectPoDetailsRepository.save(po);
