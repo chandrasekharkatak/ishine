@@ -42,5 +42,6 @@ public class GetMyReporteesTimesheetRequestsPayload {
     private Long projectCount;
     private String appliedBy;
     private String appliedOn;
+    private int status;
 
 }

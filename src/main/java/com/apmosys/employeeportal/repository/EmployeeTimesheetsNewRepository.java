@@ -9,8 +9,10 @@ import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO;
 import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
@@ -43,6 +45,15 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	@Query("SELECT e FROM EmployeeTimesheetsNew e WHERE e.empId = :empId AND e.date = :date")
 	java.util.Optional<EmployeeTimesheetsNew> findByEmpIdAndDateNew(@Param("empId") Long empId,
 			@Param("date") LocalDate date);
+	
+	@Modifying
+	@Transactional
+	@Query("UPDATE EmployeeTimesheetsNew et " +
+	       "SET et.status = :statusValue " +
+	       "WHERE et.timesheetId IN :timesheetIds")
+	int processByStatus(@Param("timesheetIds") List<Long> timesheetIds,
+	                    @Param("statusValue") int statusValue);
+
 
 	/**
 	 * Find all EmployeeTimesheets by employee ID and date range.
@@ -10995,7 +11006,11 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			        + "        WHEN e.approvalsTo = 'Reporting Manager' THEN e.reportingManagerId\n"
 			        + "        ELSE e.managerId\n"
 			        + "    END) = :managerId\n"
-			        + "    AND ptsn.status = 1\n"
+			        + "AND ( \n"
+			        + "       (:status IS NOT NULL AND ptsn.status = :status AND etn.status = :status) \n"
+			        + "        OR \n"
+			        + "        (:status IS NULL AND ptsn.status = 1) \n"
+			        + "    ) \n"
 //			        + "    AND e.employmentstatus !='InActive'\n"
 			        + "    AND (\n"
 			        + "        :clientFilter IS NULL\n"
@@ -11099,6 +11114,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			        @Param("projectCount") Long projectCount,
 			        @Param("appliedBy") String appliedBy,
 			        @Param("appliedOn") String appliedOn,
+			        @Param("status") int status,
 			        Pageable pageable
 			);	
 //			

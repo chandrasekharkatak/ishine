@@ -176,6 +176,7 @@ import com.apmosys.employeeportal.repository.EmployeeCertificatesRepository;
 import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.FCLineItemRepository;
 import com.apmosys.employeeportal.repository.FCProjectMilestoneRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
@@ -187,6 +188,7 @@ import com.apmosys.employeeportal.repository.ProjectOverheadMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectPoDetailsRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.ProjectTempRepo;
+import com.apmosys.employeeportal.repository.ProjectTimesheetStatusNewRepository;
 import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
 import com.apmosys.employeeportal.repository.ResourceRequirementTempRepo;
 import com.apmosys.employeeportal.repository.TeamRepository;
@@ -226,6 +228,9 @@ public class ResourceManagementService {
 
 	@Autowired
 	ProjectDepartmentMapRepository projectDepartmentMapRepository;
+	
+	@Autowired
+	ProjectTimesheetStatusNewRepository projectTimesheetStatusNewRepository;
 
 	@Autowired
 	TeamRepository teamRepository;
@@ -294,6 +299,9 @@ public class ResourceManagementService {
 	private FCProjectMilestoneRepository fCProjectMilestoneRepository;
 
 	@Autowired
+	private EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
+
+	@Autowired
 	private EmployeeClientSideIdMappingRepository employeeClientSideIdMappingRepository;
 
 	@Autowired
@@ -346,7 +354,7 @@ public class ResourceManagementService {
 
 	@Autowired
 	private final RestTemplate restTemplate = new RestTemplate();
-
+	
 	@Autowired
 	private ApplicationContext context;
 
@@ -14795,15 +14803,35 @@ public class ResourceManagementService {
          
          public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO request) {
         	 ServiceResponse response = new ServiceResponse();
+        	 try {
         	    String status = request.getStatus();
         	     List<Long> TimesheetLists = request.getTimesheetIds();
+        	     List<Object[]> result=projectTimesheetStatusNewRepository.findProjectsForTimesheetIds(TimesheetLists);
         	     Map<Long, List<Long>>timesheetProjectMap=new HashMap<>();
+        	     for (Object[] row : result) {
+        	    	 Long timesheetId = ((Number) row[0]).longValue();
+        	    	    Long projectId   = ((Number) row[1]).longValue();
+
+        	    	    timesheetProjectMap
+        	    	        .computeIfAbsent(timesheetId, k -> new ArrayList<>())
+        	    	        .add(projectId);
+        	    	}
         	    Long updatedBy = request.getUpdatedBy();
 
 
-        	    	 saveAuditForApprovalandRejection(timesheetProjectMap, updatedBy,status);
+        	    	 saveAuditForApprovalandRejection(TimesheetLists,timesheetProjectMap, updatedBy,status);
         	     if ("REJECTED".equalsIgnoreCase(status)) {
         	        saveRejectionDetails(timesheetProjectMap, request);
+        	    }
+
+        	     response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        	        response.setServiceResponse("Timesheets " + status + " successfully");
+
+        	    } catch (Exception e) {
+
+        	        e.printStackTrace(); 
+        	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        	        response.setServiceResponse("Something went wrong while processing timesheets");
         	    }
 
         	    return response;
@@ -14811,12 +14839,12 @@ public class ResourceManagementService {
          
 
          
-         private void saveAuditForApprovalandRejection(Map<Long, List<Long>> timesheetProjectMap,
+         private void saveAuditForApprovalandRejection(List<Long> TimesheetLists,Map<Long, List<Long>> timesheetProjectMap,
                  Long updatedBy,String status) {
 
 			List<TimesheetActionAuditNew> auditList = new ArrayList<>();
 			LocalDateTime now = LocalDateTime.now();
-			
+			int statusValue = "APPROVED".equalsIgnoreCase(status) ? 2 : 3;
 			for (Map.Entry<Long, List<Long>> entry : timesheetProjectMap.entrySet()) {
 
 		        Long timesheetId = entry.getKey();
@@ -14836,6 +14864,7 @@ public class ResourceManagementService {
 		    }
 			
 			timesheetActionAuditNewRepository.saveAll(auditList);
+			employeeTimesheetsNewRepository.processByStatus(TimesheetLists,statusValue);
 			}
          
          private void saveRejectionDetails(Map<Long, List<Long>> timesheetProjectMap,

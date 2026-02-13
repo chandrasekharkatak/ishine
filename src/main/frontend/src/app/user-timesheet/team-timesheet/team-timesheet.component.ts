@@ -49,7 +49,7 @@ export class TeamTimesheetComponent implements OnInit {
 
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
-
+  @ViewChild('statusModal') statusModal: any;
   @ViewChild("update_clientId")
   updateClientId: TemplateRef<any>;
 
@@ -170,6 +170,8 @@ alertModal: TemplateRef<any>;
   allProjects: {projectId: number, projectName: string}[] = [];
   projectObj: { [projectId: number]: { empId: number; name: string }[] } = {};
   minusDaysData: {minusDays: number, checkMinusDaysForBulkUpload: boolean} = {minusDays: 45, checkMinusDaysForBulkUpload: true};
+  modalMessage: any;
+  modalTitle: string;
 
   constructor(
     public validationService: ValidationService,
@@ -2128,10 +2130,13 @@ projectList: any[] = [];
             this.selectedStatus = 2;
             this.page1 = 1;
             this.getMyReporteesTimesheetRequests();
-            alert(res.serviceResponse || 'Timesheets approved successfully');
+            this.modalMessage =res.serviceResponse || 'Timesheets approved successfully';
           } else {
-            alert(res?.serviceResponse || 'Bulk approval failed');
+            this.modalTitle = 'Error';
+            this.modalMessage =
+            res?.serviceResponse || 'Bulk approval failed';
           }
+          this.modalService.open(this.statusModal, { centered: true });
         }
 
       });
@@ -2518,12 +2523,27 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
       .bulkRejectTimesheetsByIds1(payload)
       .subscribe({
         next: (res: any) => {
-          if (res?.serviceStatus === 'Success') {
-            this.modalRef?.close();
-            this.getMyReporteesTimesheetRequests();
-          }
+           if (res?.serviceStatus === 'Success') {
+
+          this.modalRef?.close(); 
+          this.getMyReporteesTimesheetRequests();
+
+          this.statusModal(
+            'Success',
+            res.serviceResponse || 'Timesheet rejected successfully'
+          );
+
+        } else {
+          this.statusModal(
+            'Error',
+            res?.serviceResponse || 'Timesheet rejection failed'
+          );
         }
-      });
+      },
+      error: () => {
+        this.statusModal('Error', 'Something went wrong');
+      }
+    });
   }
 
 

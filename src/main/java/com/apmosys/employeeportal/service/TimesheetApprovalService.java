@@ -1395,7 +1395,7 @@ import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
                             payload.getProjectCount(),
                             payload.getAppliedBy(),
                             payload.getAppliedOn(),
-	
+                            payload.getStatus(),
 	                        pageable
 	                );
 	
@@ -1502,6 +1502,7 @@ import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 	                             payload.getProjectCount(),
 	                             payload.getAppliedBy(),
 	                             payload.getAppliedOn(),
+	                             payload.getStatus(),
 //	                             payload.getSortBy(),
 //	                             payload.getSortDir(),
 	                             pageable

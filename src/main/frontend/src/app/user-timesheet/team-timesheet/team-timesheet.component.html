@@ -1489,3 +1489,18 @@
     </div>
   </div>
 </div>
+
+<ng-template #statusModal let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title">{{ modalTitle }}</h5>
+    <button type="button" class="close" (click)="modal.dismiss()">&times;</button>
+  </div>
+
+  <div class="modal-body">
+    <p>{{ modalMessage }}</p>
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn btn-primary" (click)="modal.close()">OK</button>
+  </div>
+</ng-template>
