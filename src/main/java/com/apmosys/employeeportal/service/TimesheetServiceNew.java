@@ -1442,7 +1442,7 @@ public class TimesheetServiceNew {
 	        
 	        if (!counts.isEmpty()) {
 	            Object[] row = counts.get(0);
-	            total = row[0] == null ? 0L : ((Number) row[0]).longValue();
+	            total = row[1] == null ? 0L : ((Number) row[1]).longValue();
 	        }
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

@@ -14865,6 +14865,7 @@ public class ResourceManagementService {
 			
 			timesheetActionAuditNewRepository.saveAll(auditList);
 			employeeTimesheetsNewRepository.processByStatus(TimesheetLists,statusValue);
+			projectTimesheetStatusNewRepository.processByStatus(TimesheetLists,statusValue);
 			}
          
          private void saveRejectionDetails(Map<Long, List<Long>> timesheetProjectMap,
