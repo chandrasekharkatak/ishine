@@ -25,7 +25,8 @@ import { ActivatedRoute } from '@angular/router';
 import { TimesheetNewService } from 'src/app/services/timesheet-new.service';
 import { ProjectBasedBulkUploadPayload } from './types';
 import { HttpClient } from '@angular/common/http';
-
+import { finalize } from 'rxjs/operators';
+import {LoaderService} from 'src/app/services/loader.service';
 
 
 @Component({
@@ -188,6 +189,8 @@ alertModal: TemplateRef<any>;
     private bodyComponent: BodyComponent,
     private sanitizer: DomSanitizer,
     private route: ActivatedRoute,
+    private loaderService: LoaderService,
+
 
 
   ) {
@@ -371,6 +374,8 @@ alertModal: TemplateRef<any>;
   }
   getMyReporteesTimesheetRequests() {
 
+    this.loaderService.requestStarted();
+
     const payload: any = {
       empId: this.currentUser.empId,
       clientFilter: this.clientFilter,
@@ -407,6 +412,7 @@ alertModal: TemplateRef<any>;
 
     this.timesheetService
     .getMyReporteesTimesheetRequests(payload)
+    .pipe(finalize(() => this.loaderService.requestEnded()))
     .subscribe((res: any) => {
 
       if (res.serviceStatus === 'Success') {
@@ -416,9 +422,6 @@ alertModal: TemplateRef<any>;
 
       this.totalRecords =
         res.serviceResponse.totalElements;
-
-
-
       }
     });
   }
@@ -429,7 +432,7 @@ totalPages: number = 0;
 
 onPageSizeChange() {
   this.page1 = 1;
-  this.isAllSelected = false; 
+  this.isAllSelected = false;
   this.getMyReporteesTimesheetRequests();
 }
 
@@ -2058,8 +2061,12 @@ closeDocumentPopup() {
     const payload : any = {
       managerId: this.currentUser.empId,
     };
+
+    this.loaderService.requestStarted();
+
     this.timesheetNewService
   .getMyReporteesTimesheetRequestsCount(payload)
+  .pipe(finalize(() => this.loaderService.requestEnded()))
   .subscribe({
     next: (res: any) => {
       console.log("Status Count Response", res);
@@ -2121,8 +2128,11 @@ projectList: any[] = [];
       updatedBy: this.currentUser.empId
     };
 
+    this.loaderService.requestStarted();
+
     this.timesheetNewService
       .bulkApproveTimesheetsByIds1(payload)
+      .pipe(finalize(() => this.loaderService.requestEnded()))
       .subscribe({
         next: (res: any) => {
           this.modalTitle = 'Result';
@@ -2244,8 +2254,11 @@ approveSingleTimesheet(timesheet: any) {
     updatedBy: this.currentUser.empId
   };
 
+  this.loaderService.requestStarted();
+
   this.timesheetNewService
     .bulkApproveTimesheetsByIds1(payload)
+    .pipe(finalize(() => this.loaderService.requestEnded()))
     .subscribe({
       next: (res: any) => {
         if (res?.serviceStatus === 'Success') {
@@ -2544,7 +2557,7 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
   //       next: (res: any) => {
   //          if (res?.serviceStatus === 'Success') {
 
-  //         this.modalRef?.close(); 
+  //         this.modalRef?.close();
   //         this.getMyReporteesTimesheetRequests();
 
   //         this.statusModal(
@@ -2619,8 +2632,11 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
     projectRejections
   };
 
+  this.loaderService.requestStarted();
+
   this.timesheetNewService
     .bulkRejectTimesheetsByIds1(payload)
+    .pipe(finalize(() => this.loaderService.requestEnded()))
     .subscribe(res => {
 
       if (res?.serviceStatus === 'Success') {
