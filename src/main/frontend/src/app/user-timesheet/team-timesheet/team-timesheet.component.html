@@ -633,7 +633,7 @@
         <h1 class="table-header-title">Timesheets Request</h1>
       </div>
     </div>
-    <div class="bulk-actions-fixed" [class.active]="selectedRows.length > 0">
+    <div class="bulk-actions-fixed"  [class.active]="selectedRows.length >= 2">
       <div class="bulk-actions-wrapper">
         <div class="selection-info">
           <span class="selected-count">{{ selectedRows.length }}</span>
@@ -661,21 +661,21 @@
 
         <div class="status-card pending"
              [class.active]="selectedStatus === 1"
-             (click)="onStatusChange(1)">
+             (click)="onStatusChange(1)" title="Click to view all pending timesheets">
           <div class="status-title">Pending</div>
           <div class="status-count">{{ pendingCount }}</div>
         </div>
 
         <div class="status-card approved"
              [class.active]="selectedStatus === 2"
-             (click)="onStatusChange(2)">
+             (click)="onStatusChange(2)" title="Click to view all approved timesheets">
           <div class="status-title">Approved</div>
           <div class="status-count">{{ approvedCount }}</div>
         </div>
 
         <div class="status-card rejected"
              [class.active]="selectedStatus === 3"
-             (click)="onStatusChange(3)">
+             (click)="onStatusChange(3)" title = "Click to view all rejected timesheets">
           <div class="status-title">Rejected</div>
           <div class="status-count">{{ rejectedCount }}</div>
         </div>
@@ -692,7 +692,7 @@
       <div>
         <button type="button" class="btn btn-sm btn-outline-primary excel-button"
           [hidden]="allTeamTimesheetRequestsProjectView.length === 0" (click)="exportExcel1()"> <em
-            class="fa fa-file-arrow-down fa-2x"></em> </button>
+            class="fa fa-file-arrow-down fa-2x" title = "Export timesheet"></em> </button>
       </div>
     </div>
     <div class="pagination-bar">
@@ -710,7 +710,7 @@
         <table class="timesheet-table" matSort (matSortChange)="sortData($event)" matSortDisableClear>
           <thead>
             <tr>
-              <th> <input type="checkbox" [(ngModel)]="isAllSelected" (change)="toggleAllRows($event)" /> </th>
+              <th *ngIf="selectedStatus === 1"> <input type="checkbox" [(ngModel)]="isAllSelected" (change)="toggleAllRows($event)" /> </th>
               <th>Sr No.</th>
               <th mat-sort-header="employmentId">Employee Id</th>
               <th mat-sort-header="employeeName">Name</th>
@@ -729,10 +729,10 @@
           </thead>
           <tbody> <ng-container *ngFor="let timesheet of allTeamTimesheetRequestsProjectView; let i = index">
               <tr class="main-row" [class.active-row]="expandedTimesheetIndex === i">
-                <td> <input type="checkbox" [(ngModel)]="timesheet.selected"
+                <td *ngIf="selectedStatus === 1"> <input type="checkbox" [(ngModel)]="timesheet.selected"
                     (change)="onEmployeeToggle(timesheet); updateSelectedRows(timesheet)" /> </td>
                 <td>{{ (page1 - 1) * items + i + 1 }}</td>
-                <td class="emp-id" (click)="toggleAccordion(i)"> {{ timesheet.employmentId }} </td>
+                <td class="emp-femp-id" (click)="toggleAccordion(i)" title = "click to view project details"> {{ timesheet.employmentId }} </td>
                 <td>{{ timesheet.employeeName }}</td>
                 <td>{{ timesheet.date }}</td>
                 <td>{{ timesheet.dayType }}</td>
@@ -744,11 +744,11 @@
                 <td>{{ timesheet.appliedOn }}</td>
                 <td>
                   <button class="doc-btn approved" (click)="openDocumentPopup(timesheet)"><i
-                      class="fa fa-eye"></i></button>
-                  <button class="btn-approve" [disabled]="selectedStatus !== 0"
-                    (click)="approveSingleTimesheet(timesheet)"> ✔ </button>
-                    <button class="btn-reject"
-                    (click)="openRejectPopup(rejectPopup, timesheet)">
+                      class="fa fa-eye" title = "view all documents"></i></button>
+                  <button class="btn-approve" *ngIf="selectedStatus === 1"
+                    (click)="approveSingleTimesheet(timesheet)" title = "Approve timesheet"> ✔ </button>
+                    <button class="btn-reject" *ngIf="selectedStatus === 1"
+                    (click)="openRejectPopup(rejectPopup, timesheet)" title = "Reject timesheet">
               ✖
             </button>
                 </td>
@@ -762,7 +762,6 @@
                       <table class="project-table">
                         <thead>
                           <tr>
-                            <th></th>
                             <th>Project</th>
                             <th>PO No</th>
                             <th>Shadow</th>
@@ -773,8 +772,7 @@
                         </thead>
                         <tbody>
                           <tr>
-                            <td> </td>
-                            <td class="project-name" (click)="toggleProject(i, p)"> {{ project.projectName }} </td>
+                            <td class="project-name" (click)="toggleProject(i, p)" title = "click to view team details"> {{ project.projectName }} </td>
                             <td>{{ project.poNo || '-' }}</td>
                             <td>{{ project.shadowEmp ? 'Yes' : 'No' }}</td>
                             <td> <button class="doc-btn pending" style="color:rgb(255, 187, 0)"
