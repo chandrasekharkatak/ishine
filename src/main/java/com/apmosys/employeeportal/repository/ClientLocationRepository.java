@@ -33,5 +33,21 @@ public interface ClientLocationRepository extends JpaRepository<ClientLocation, 
 
 
 	public List<ClientLocation> findByClientAddressId(Long clientAddressId);
+	
+	@Query(value ="SELECT cl\n"
+			+ "    FROM ClientLocation cl\n"
+			+ "    WHERE cl.clientId = :clientId\n"
+			+ "      AND LOWER(TRIM(cl.clientLocation)) = :nLClientLocation\n"
+			+ "      AND  LOWER(TRIM(cl.clientState)) = :nLClientState \n"
+			+ "          )")
+	public Optional<ClientLocation> findByClientIdAndNLClientLocationAndClientState(Integer clientId,String nLClientLocation,String nLClientState);
+	
+	@Query(value ="SELECT cl\n"
+			+ "    FROM ClientLocation cl\n"
+			+ "    WHERE cl.clientId = :clientId\n"
+			+ "      AND LOWER(TRIM(cl.clientLocation)) = :nLClientLocation\n"
+			+ "      AND  cl.clientState IS NULL")
+	public Optional<ClientLocation> findByClientIdAndNLClientLocationAndClientStateNull(Integer clientId,String nLClientLocation);
+	
 
 }

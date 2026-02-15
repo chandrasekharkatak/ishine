@@ -39,6 +39,11 @@ public interface ClientsRepository extends JpaRepository<Client, Integer> {
 
 	@Query(value="SELECT c FROM Client c WHERE poClientId IN :poIds")
 	List<Client> findByPoClientIdIn(List<Long> poIds);
+	
+	@Query(value =" SELECT c\n"
+			+ "    FROM Client c\n"
+			+ "    WHERE LOWER(TRIM(c.clientName)) = :normalizedName")
+	Optional<Client> findByClientNameIgnoreCaseAndTrim(String normalizedLowerClientName);
 
 
 }
