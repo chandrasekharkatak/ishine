@@ -31,6 +31,7 @@ public class RmgProjectDto {
     private List<Long> projectOverheadIds;
     private List<Long> projectManagerIds;
     private List<PoDetailsDto> poDetailsList;
+    private List<RmgTeamDto> teamDetailsList;
 
     private Long updatedBy;
     private String projectType;

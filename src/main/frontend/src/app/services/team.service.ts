@@ -1,4 +1,4 @@
-import { HttpClient,HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Activity } from '../models/activity';
 import { Employee } from '../models/employee';
@@ -6,15 +6,15 @@ import { Team } from '../models/team';
 import { environment } from 'src/environments/environment';
 import { MigrateTeams } from '../models/migrateTeam';
 import { PoDetails } from '../models/poDetails';
-import { RmgResourceRequirement } from '../models/rmgResourceRequirement';
 import { RmgTeamMember } from '../models/rmgTeamMember';
+import { RmgTeam } from '../models/rmgTeam';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TeamService {
 
-  private baseUrl:any = environment.baseUrl;
+  private baseUrl: any = environment.baseUrl;
 
   constructor(private http: HttpClient) { }
 
@@ -72,8 +72,8 @@ export class TeamService {
     return this.http.post(`${this.baseUrl}` + `api/getAllActivitiesByProjectIdAndTeamId`, activityObj);
   }
 
-  checkTeamName(teamObj :Team){
-    return this.http.post(`${this.baseUrl}` + `api/checkTeamName` , teamObj);
+  checkTeamName(teamObj: Team) {
+    return this.http.post(`${this.baseUrl}` + `api/checkTeamName`, teamObj);
   }
 
   // Activity template 
@@ -130,8 +130,8 @@ export class TeamService {
     return this.http.post(`${this.baseUrl}` + `api/addOrUpdateTeamDetails`, updateTeamPoDetails);
   }
 
-  addOrUpdateTeamMembers(requirement: RmgResourceRequirement) {
-    return this.http.post(`${this.baseUrl}` + `api/addOrUpdateTeamMembers`, requirement);
+  addOrUpdateTeamMembers(rmgTeam: RmgTeam) {
+    return this.http.post(`${this.baseUrl}` + `api/addOrUpdateTeamMembers`, rmgTeam);
   }
 
   getActiveTeamDetailsByProjectId(projectId: any) {
@@ -143,8 +143,16 @@ export class TeamService {
     return this.http.post(`${this.baseUrl}` + `api/updateDefaultProjectCompletion`, rmgTeamMember);
   }
 
-  removeTeamMembersFromProject(requirement: RmgResourceRequirement) {
-    return this.http.post(`${this.baseUrl}` + `api/removeTeamMembersFromProject`, requirement);
+  removeTeamMembersFromProject(rmgTeam :RmgTeam) {
+    return this.http.post(`${this.baseUrl}` + `api/removeTeamMembersFromProject`, rmgTeam);
+  }
+
+  migrateTeamMembers(migrateTeam: MigrateTeams) {
+    return this.http.post(`${this.baseUrl}` + `api/migrateTeam`, migrateTeam);
+  }
+
+  validateEmployeeTimesheetFilledToChangeStartDate(rmgTeamMember: RmgTeamMember) {
+    return this.http.post(`${this.baseUrl}` + `api/validateEmployeeTimesheetFilledToChangeStartDate`, rmgTeamMember);
   }
 
 }

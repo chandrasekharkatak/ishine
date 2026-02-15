@@ -42,7 +42,7 @@ public interface ClientsRepository extends JpaRepository<Client, Integer> {
 	
 	@Query(value =" SELECT c\n"
 			+ "    FROM Client c\n"
-			+ "    WHERE LOWER(TRIM(c.clientName)) = :normalizedName")
+			+ "    WHERE LOWER(TRIM(c.clientName)) = :normalizedLowerClientName ")
 	Optional<Client> findByClientNameIgnoreCaseAndTrim(String normalizedLowerClientName);
 
 

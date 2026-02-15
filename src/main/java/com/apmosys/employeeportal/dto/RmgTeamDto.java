@@ -22,14 +22,24 @@ public class RmgTeamDto {
     private Long teamLeadId;
     private String teamLeadName;
 
+    private Long count;
+    private Long assignedPending;
+    private Long assignedApproved;
+
+    private Integer projectId;
+    private List<Long> deptIds;
+    private List<RmgResourceRequirementDto> rmgResourceRequirementList;
+    private boolean isCustomEndDate;
+    private LocalDateTime endDate;
+    private String clientName;
+    private String projectType;
+
+    private List<RmgTeamMemberDto> rmgTeamMemberList;
+    private boolean isupdate;
+
     private Long createdBy;
     private Long updatedBy;
 
-    private List<Long> deptIds;
-    private List<RmgResourceRequirementDto> rmgResourceRequirementList;
-    private LocalDateTime endDate;
-    private String projectType;
-    
     public RmgTeamDto(Long teamId, String teamName, Long poId, String isActive, Long spocId, String spocName,
             List<Long> deptIds) {
         this.teamId = teamId;
