@@ -1,23 +1,43 @@
-import { RmgResourceRequirement } from "./rmgResourceRequirement";
+import { RmgTeamMember } from "./rmgTeamMember";
 
 export class RmgTeam {
 
     teamId: any;
     teamName: any;
-    poId: any;
     isActive: any;
     spocId: any;
     spocName: any;
     teamLeadId: any;
     teamLeadName: any;
-    createdBy: any;
-    updatedBy: any;
+    isCustomEndDate: boolean;
+    endDate: any;
+    projectId: any
+    projectType: any;
+    clientName: any;
+
+    poId:any;
+    poRequirementMappingId: any;
+    count: any;
+    assignedPending: any;
+    assignedApproved: any;
+
     deptIds: any[] = [];
     departmentNames: any;
-    rmgResourceRequirementList: RmgResourceRequirement[] = [];
-    isTeamSelected: boolean = false;
+    requirementType: 'Current Resource' | 'Old Resource' = 'Current Resource';
+    newRmgTeamMember: RmgTeamMember = new RmgTeamMember();
+    rmgTeamMemberList: RmgTeamMember[] = [];
+    rmgCurrentTeamMemberList: RmgTeamMember[] = [];
+    rmgOldTeamMemberList: RmgTeamMember[] = [];
+    employeeExistingProjectDetails: any[] = [];
+
+    isupdate: boolean = false;
     isNotSaved: boolean = false;
-    endDate:any;
-    projectType:any;
+    isAnyMemberSelected: boolean = false;
+    isAllMemberSelected: boolean = false;
+    isAnyNewMemberAdded: boolean = false;
+    isTeamSelected: boolean = false;
+
+    createdBy: any;
+    updatedBy: any;
 
 }

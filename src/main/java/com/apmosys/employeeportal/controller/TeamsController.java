@@ -18,6 +18,7 @@ import com.apmosys.employeeportal.dto.MigrateTeam;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
+import com.apmosys.employeeportal.dto.RmgTeamDto;
 import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -349,8 +350,8 @@ public class TeamsController {
 
 	// @Encrypted
 	@PostMapping("/addOrUpdateTeamMembers")
-	public ServiceResponse addOrUpdateTeamMembers(@RequestBody RmgResourceRequirementDto rmgResourceRequirementDto) {
-		return teamsService.addOrUpdateTeamMembers(rmgResourceRequirementDto);
+	public ServiceResponse addOrUpdateTeamMembers(@RequestBody RmgTeamDto rmgTeamDto) {
+		return teamsService.addOrUpdateTeamMembers(rmgTeamDto);
 	} 
 	
 	// @Encrypted
@@ -367,8 +368,8 @@ public class TeamsController {
 
 	// @Encrypted
 	@PostMapping("/removeTeamMembersFromProject")
-	public ServiceResponse removeTeamMembersFromProject(@RequestBody RmgResourceRequirementDto rmgResourceRequirementDto) {
-		return teamsService.removeTeamMembersFromProject(rmgResourceRequirementDto);
+	public ServiceResponse removeTeamMembersFromProject(@RequestBody RmgTeamDto rmgTeamDto) {
+		return teamsService.removeTeamMembersFromProject(rmgTeamDto);
 	}
 
 	// @Encrypted
@@ -376,5 +377,17 @@ public class TeamsController {
 	public ServiceResponse updateMappingToOtherProjectAsDefault(@RequestBody EmployeeOtherActiveProject employeeOtherActiveProject) {
 		return teamsService.updateMappingToOtherProjectAsDefault(employeeOtherActiveProject);
 	}
+
+	// @Encrypted
+	@PostMapping("/migrateTeamMembers")
+	public ServiceResponse migrateTeamMembers(@RequestBody MigrateTeam migrateTeam) {
+		return teamsService.migrateTeam(migrateTeam);
+	}
 	
+	// @Encrypted
+	@PostMapping("/validateEmployeeTimesheetFilledToChangeStartDate")
+	public ServiceResponse validateEmployeeTimesheetFilledToChangeStartDate(@RequestBody RmgTeamMemberDto rmgTeamMemberDto) {
+		return teamsService.validateEmployeeTimesheetFilledToChangeStartDate(rmgTeamMemberDto);
+	}
+
 }

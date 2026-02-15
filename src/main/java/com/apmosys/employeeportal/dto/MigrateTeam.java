@@ -14,5 +14,7 @@ public class MigrateTeam {
     private Long targetTeamId;
     private Long currentUserEmpId;
     private List<Long> migrationTeamIds;
+    private List<Long> empIds;
     private boolean mergeTeam;
+    private Long targetRoleId;
 }

@@ -16,6 +16,7 @@ import com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto;
 import com.apmosys.employeeportal.dto.ProjectManagerIdAndNameDTO;
 import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
 import com.apmosys.employeeportal.dto.RmgTeamDto;
+import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
 import com.apmosys.employeeportal.model.Team;
 
 @Repository
@@ -202,6 +203,10 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 
 	@Query(value ="select t.teamName from Team t where t.isActive = 'Y' and t.teamId in (:teamIds)")
 	public List<String> findActiveTeamNameByTeamIds(@Param("teamIds") List<Long> teamIds);
+
+	@Query(value ="select t.teamName from Team t where t.isActive = 'Y' and t.projectId =:projectId")
+	public List<String> findActiveTeamNameByProjectId(Integer projectId);
+	
 	public boolean existsByPoIdAndIsActive(Long poId, String string);
 
 	@Query(value = "SELECT DISTINCT new com.apmosys.employeeportal.dto.RmgTeamDto( \n"
@@ -222,5 +227,33 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 			+ "where t.teamId IN :teamIds AND t.isActive = 'Y'  \n"
 			+ "GROUP BY t.teamId ")
 	public List<RmgResourceRequirementDto> getTeamIdAndRequiredCountByTeamIdIn(List<Long> teamIds);
-	
+
+	@Query(value = "SELECT DISTINCT new com.apmosys.employeeportal.dto.RmgTeamMemberDto( \n"
+			+ " etm.employeeTeamMapId, t.teamId, t.teamName, ppd.poId, ppd.poNo, prm.poRequirementMappingId, rd.roleId, rd.role, rd.experience, rd.department, prm.lineItemStartDate, prm.lineItemEndDate \n"
+			+ ", e.empId, e.name, etm.employeeRole, etm.active, etm.isShadow, CASE WHEN eppm.id IS NOT NULL THEN true ELSE false END \n"
+			+ ", etm.startDate, etm.endDate)  \n"
+			+ "FROM Team t \n"
+			+ "INNER JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId \n"
+			+ "LEFT JOIN RoleDetails rd on rd.roleId = etm.roleId \n"
+			+ "LEFT JOIN PoRequirementMapping prm ON etm.roleId = prm.roleId and etm.poId = prm.poId  \n"
+			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId \n"
+			+ "LEFT JOIN Employee e ON e.empId = etm.empId \n"
+			+ "LEFT JOIN EmpPrimaryProjectMapping eppm ON eppm.empId = e.empId AND eppm.isMapped = 'Y' AND eppm.primaryProjectId=:projectId \n"
+			+ "WHERE t.teamId =:teamId  \n")
+	List<RmgTeamMemberDto> getAllTeamMemberDetailsDtoByTeamIdAndProjectId(Long teamId, Long projectId);
+
+	@Query(value = "SELECT DISTINCT new com.apmosys.employeeportal.dto.RmgTeamMemberDto( \n"
+			+ " etm.employeeTeamMapId, t.teamId, t.teamName, ppd.poId, ppd.poNo, prm.poRequirementMappingId, rd.roleId, rd.role, rd.experience, rd.department, prm.lineItemStartDate, prm.lineItemEndDate \n"
+			+ ", e.empId, e.name, etm.employeeRole, etm.active, etm.isShadow, CASE WHEN eppm.id IS NOT NULL THEN true ELSE false END \n"
+			+ ", etm.startDate, etm.endDate)  \n"
+			+ "FROM Team t \n"
+			+ "INNER JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId AND (etm.active != 0 or :activeEtmFlag = false) \n"
+			+ "LEFT JOIN RoleDetails rd on rd.roleId = etm.roleId \n"
+			+ "LEFT JOIN PoRequirementMapping prm ON etm.roleId = prm.roleId and etm.poId = prm.poId  \n"
+			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId \n"
+			+ "LEFT JOIN Employee e ON e.empId = etm.empId \n"
+			+ "LEFT JOIN EmpPrimaryProjectMapping eppm ON eppm.empId = e.empId AND eppm.isMapped = 'Y' AND eppm.primaryProjectId=:projectId \n"
+			+ "WHERE t.teamId In :teamIds  \n")
+	List<RmgTeamMemberDto> getAllTeamMemberDetailsDtoByProjectIdAndTeamIdIn(List<Long> teamIds, Long projectId, boolean activeEtmFlag);
+
 }
