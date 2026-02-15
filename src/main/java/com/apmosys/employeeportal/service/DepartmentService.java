@@ -28,7 +28,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpServerErrorException.InternalServerError;
 
-import com.apmosys.employeeportal.dto.AuditContextPo;
+
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.DepartmentIdAndNameDto;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
@@ -789,7 +789,7 @@ public class DepartmentService {
 //	    }
 //	}
 	
-	public void syncDepartmentsRTS(Long poId, List<DepartmentIdAndNameDto> incoming, Integer projectId, AuditContextPo audit) {
+	public void syncDepartmentsRTS(Long poId, List<DepartmentIdAndNameDto> incoming, Integer projectId, Long empId) {
 
 	    List<PoDepartmentMapping> existing =
 	            poDepartmentMappingRepository.findByPoId(poId);
@@ -807,7 +807,7 @@ public class DepartmentService {
 
 	        if (e.isActive() != shouldBeActive) {
 	            e.setActive(shouldBeActive);
-	            e.setUpdatedBy(audit.getUpdatedBy());
+	            e.setUpdatedBy(empId);
 	            changed = true;
 	        }
 	    }
@@ -828,7 +828,7 @@ public class DepartmentService {
 	            m.setDeptId(deptId);
 	            m.setActive(true);
 	            m.setProjectId(projectId);
-	            m.setCreatedBy(audit.getCreatedBy());
+	            m.setCreatedBy(empId);
 	            poDepartmentMappingRepository.save(m);
 	        }
 	    }
