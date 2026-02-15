@@ -220,10 +220,10 @@ public class ProjectController {
 		return poPortalApiService.getAllMilestoneExtendReason();
 	}
 	
-//	@GetMapping(value = "/getPodetailsPromPOPortal")
-//	public ServiceResponse getPodetailsPromPOPortal() {
-//		return poPortalApiService.syncProjectPoFromPoPortal();
-//	}
+	@GetMapping(value = "/getPodetailsFromPOPortal")
+	public ServiceResponse getPodetailsFromPOPortal() {
+		return poPortalApiService.syncProjectPoFromPoPortal();
+	}
 	
 //	@GetMapping(value = "/getProjectSDEDFromPOPortal")
 //	public ServiceResponse getProjectSDEDFromPOPortal() {

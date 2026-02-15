@@ -77,6 +77,7 @@ import com.apmosys.employeeportal.model.PoDepartmentMapping;
 import com.apmosys.employeeportal.model.PoRequirementMapping;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectPoDetails;
+import com.apmosys.employeeportal.model.RoleDetails;
 import com.apmosys.employeeportal.model.UserSession;
 import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
@@ -88,6 +89,7 @@ import com.apmosys.employeeportal.repository.PoDepartmentMappingRepository;
 import com.apmosys.employeeportal.repository.PoRequirementMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectPoDetailsRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.repository.RoleDetailsRepository;
 import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.response.ResourceRequirementResponse;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
@@ -106,6 +108,9 @@ public class PoPortalAPIService {
 	
 	@Autowired
 	ClientsRepository clientRepository;
+	
+	@Autowired
+	RoleDetailsRepository roleDetailsRepository;
 	
 	@Autowired
 	ClientService clientService;
@@ -2004,6 +2009,320 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 //	        }
 //	    }
 //	}
+	
+	
+	@Transactional(rollbackFor = PoportalApiException.class)
+	public ServiceResponse syncProjectPoFromPoPortal() {
+
+	    ServiceResponse response = new ServiceResponse();
+	    String traceId = UUID.randomUUID().toString();
+	    ApiLog initialLog = null;
+	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+	    StringBuilder exceptionDetailsForLog = new StringBuilder();
+
+	    List<ProjectPoMappingWithResourceDTO> externalApiResponse = new ArrayList<ProjectPoMappingWithResourceDTO>();
+
+	    try {
+	        initialLog = apiLogUtility.startLog(
+	                traceId,
+	                "syncProjectPoFromPoPortal",
+	                "Ishine",
+	                6l,
+	                httpRequest
+	        );
+	        
+	        poRequirementMappingRepository.deleteAllRecords();
+	        poDepartmentMappingRepository.deleteAllRecords();
+	        projectPoDetailsRepository.deleteAllRecords();
+
+	        logger.info("Old PO data cleared before sync");
+	        System.out.println("Old PO data cleared before sync \n");
+
+	        HttpHeaders headers = new HttpHeaders();
+	        headers.set("Authorization",
+	                poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+	        headers.set("X-Trace-Id", traceId);
+	        logger.info("header created \n");
+	        HttpEntity<?> entity = new HttpEntity<>(headers);
+	        logger.info("Initiating call to Shankh Portal \n");
+	        ResponseEntity<List<ProjectPoMappingWithResourceDTO>> apiResponse =
+	                restTemplate.exchange(
+	                        getAllPoOfProjects,
+	                        HttpMethod.GET,
+	                        entity,
+	                        new ParameterizedTypeReference<List<ProjectPoMappingWithResourceDTO>>() {}
+	                );
+
+	        logger.info("Completed call with Shankh Portal \n");
+	        finalHttpStatusCode = apiResponse.getStatusCodeValue();
+	        externalApiResponse = apiResponse.getBody();
+
+	        logger.info("Recieved body with data \n"+externalApiResponse);
+	        if (apiResponse.getStatusCode() != HttpStatus.OK || apiResponse.getBody() == null) {
+		        System.out.println("PO Portal API failed or returned empty response");
+	            throw new PoportalApiException("PO Portal API failed or returned empty response");
+	        }
+
+	        for (ProjectPoMappingWithResourceDTO projectDto : apiResponse.getBody()) {
+
+	            
+	            if (projectDto.getPoDetailsList() == null) {
+	                exceptionDetailsForLog.append(
+	                        "poDetailsList NULL | poProjectId=")
+	                        .append(projectDto.getProjectId())
+	                        .append(" || ");
+
+			        System.out.println("poDetailsList NULL | poProjectId= "+ projectDto.getProjectId());
+			        logger.info("poDetailsList NULL | poProjectId= \n"+ projectDto.getProjectId());
+	                continue;
+	            }
+
+		        logger.info("Initiated query to project repo \n");
+	            Project project = projectRepository
+	                    .findByPoProjectId(projectDto.getProjectId());
+
+	            if (project == null) {
+	                exceptionDetailsForLog.append(
+	                        "Project not found | poProjectId=")
+	                        .append(projectDto.getProjectId())
+	                        .append(" || ");
+	                logger.info("Project not found  | poProjectId= \n" + projectDto.getProjectId());
+	                System.out.println("Project not found  | poProjectId= "+ projectDto.getProjectId());
+	                continue;
+	            }
+	            
+	            Client client = clientRepository.findByClientId(project.getClientId());            
+	            Date minPoStartDate = null;
+	            Date maxPoEndDate = null;
+
+	            for (PoDetailsForProjectPoMappingDTO poDto : projectDto.getPoDetailsList()) {       	
+	                try {
+	                	logger.info("call to saveSinglePoTransactional \n");
+	                    saveSinglePoTransactional(projectDto, poDto, project,client);
+	                } catch (PoportalApiException ex) {
+	                	ex.printStackTrace();
+						logger.info("catch for saveSinglePoTransactional \n");
+	                    exceptionDetailsForLog.append(
+	                            "Rollback PO | poProjectId=")
+	                            .append(projectDto.getProjectId())
+	                            .append(", poId=")
+	                            .append(poDto.getPoId())
+	                            .append(", reason=")
+	                            .append(ex.getMessage())
+	                            .append(" || ");
+	                }
+	            }        
+	        }
+
+	        response.setServiceResponse(externalApiResponse);
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceMessage("PO sync completed with partial validations.");
+
+	    } catch (PoportalApiException ex) {
+	        exceptionDetailsForLog.append(ex.getMessage());
+			logger.info("catch for PoportalApiException \n");
+	        ex.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceMessage("PO sync failed due to external API error.");
+	        response.setServiceError(ex.getMessage());
+
+	        throw ex; 
+
+	    } catch (Exception e) {
+	        exceptionDetailsForLog.append(e.getMessage());
+			logger.info("catch for Exception \n");
+	        e.printStackTrace();
+            response.setServiceResponse(externalApiResponse);      
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceMessage("PO sync completed with warnings.");
+	        return response;
+	    } finally {
+	        try {
+	            if (initialLog != null) {
+	                apiLogUtility.endLog(
+	                        initialLog.getId(),
+	                        getAllPoOfProjects,
+	                        finalHttpStatusCode,
+	                        exceptionDetailsForLog.toString(),
+	                        httpRequest
+	                );
+	            }
+	        } catch (Exception logEx) {
+	        	logEx.printStackTrace();
+			logger.info("catch for Exception logEx \n");
+	            logger.error("Failed to end API log", logEx);
+	        }
+	        try {
+	            if (exceptionDetailsForLog.length() > 0) {
+
+	                String mailBody =
+	                        "<b>Trace ID:</b> " + traceId + "<br/><br/>"
+	                      + "<b>API:</b> syncProjectPoFromPoPortal<br/><br/>"
+	                      + "<b>Exception Details:</b><br/>"
+	                      + "<pre>" + exceptionDetailsForLog.toString() + "</pre>";
+
+	                mailService.sendMail(
+	                        "prarthana.lenka@apmosys.com",
+	                        "PO Sync Issues | TraceId : " + traceId,
+	                        mailBody
+	                );
+	            }
+	        } catch (Exception mailEx) {
+	          
+	            mailEx.printStackTrace();
+	            logger.error("Failed to send exception mail", mailEx);
+	        }
+	    }
+
+	    return response;
+	}
+
+	
+	
+	@Transactional(rollbackFor = PoportalApiException.class)
+	public void saveSinglePoTransactional(
+	        ProjectPoMappingWithResourceDTO projectDto,
+	        PoDetailsForProjectPoMappingDTO poDto,
+	        Project project,Client client) {
+
+	   
+	    if (poDto.getDepartmentList() == null) {
+	        throw new PoportalApiException("Department list is NULL");
+	    }
+	    logger.info("department list is not null \n");
+	    
+	    if ("TNM".equalsIgnoreCase(projectDto.getProjectType())
+	            && poDto.getResourceRequirementList() == null) {
+	        throw new PoportalApiException("TNM project missing resources");
+	    }
+	    
+	    boolean createdExists = employeeRepository
+                .existsByEmpIdAndEmployeeName(
+                        poDto.getCreatedByEmpId(),
+                        poDto.getCreatedByEmpName());
+
+        if (!createdExists) {
+            throw new PoportalApiException(
+                    "Employee not found for createdBy | empId="
+                            + poDto.getCreatedByEmpId()
+                            + ", name=" + poDto.getCreatedByEmpName());
+        }
+
+      
+        boolean updatedExists = employeeRepository
+                .existsByEmpIdAndEmployeeName(
+                        poDto.getUpdatedByEmpId(),
+                        poDto.getUpdatedByEmpName());
+
+        if (!updatedExists) {
+            throw new PoportalApiException(
+                    "Employee not found for updatedBy | empId="
+                            + poDto.getUpdatedByEmpId()
+                            + ", name=" + poDto.getUpdatedByEmpName());
+        }
+	    
+	    
+
+	    logger.info("TNM project not missing resources \n");
+	    
+	    ClientLocation cl = clientService.resolveClientLocation(client.getClientId(), poDto.getClientLocation(),
+				poDto.getClientState(),poDto.getClientAddressId());
+	   
+	    ProjectPoDetails poDetails = new ProjectPoDetails();
+	    poDetails.setPoId(poDto.getPoId());
+	    poDetails.setProjectId(project.getProjectId());
+	    poDetails.setPoNo(poDto.getPoNo());
+	    
+        
+        poDetails.setPoStartDate(convert(poDto.getPoStartDate()));
+        poDetails.setPoEndDate(convert(poDto.getPoEndDate()));
+	   
+	   
+//	    poDetails.setClientLocationId(poDto.getClientAddressId());
+	    poDetails.setMsg(poDto.getCommentForRmg());
+	    poDetails.setApmosysRM(poDto.getApmosysRmEmpName());
+	    poDetails.setApmosysRmEmail(poDto.getApmosysRmEmail());
+	    poDetails.setClientRm(poDto.getClientRmName());
+	    poDetails.setPrevPO(poDto.getPrevPo());
+	    poDetails.setNextPO(poDto.getNextPO());
+	    poDetails.setActive(poDto.isActive());
+	    poDetails.setPoProjectId(projectDto.getProjectId());
+	    poDetails.setClientLocationId(Long.valueOf(cl.getClientLocationId()));	
+	    poDetails.setClientAddressId(poDto.getClientAddressId());
+//	    Long createdByEmpPk = validateAndGetCreatedByEmpId(
+//	            poDto.getCreatedByEmpId(),
+//	            poDto.getCreatedByEmpName()
+//	    );
+//	    poDetails.setCreatedBy(createdByEmpPk);
+
+//	    poDetails.setCreatedBy(123l);
+	    
+	    poDetails.setCreatedBy(poDto.getCreatedByEmpId());
+        poDetails.setUpdatedBy(poDto.getUpdatedByEmpId());
+        poDetails.setPoCreatedOn(convert(poDto.getCreatedOn()));
+        poDetails.setPoUpdatedOn(convert(poDto.getUpdatedOn()));
+	    
+	    
+	  
+
+
+	    
+	    
+	    
+	    System.out.println("saved in po details");
+	    logger.info("saved in po details");
+	    projectPoDetailsRepository.save(poDetails);
+
+	   
+	    for (DepartmentIdAndNameDto dept : poDto.getDepartmentList()) {
+	        PoDepartmentMapping map = new PoDepartmentMapping();
+	        map.setPoId(poDto.getPoId());
+	        map.setDeptId(dept.getDeptId());
+	        map.setActive(true);
+	        map.setProjectId(project.getProjectId());
+	        map.setCreatedBy(poDto.getCreatedByEmpId());
+	        System.out.println("saved in poDepartmentMappingRepository");
+	        logger.info("saved in poDepartmentMappingRepository");
+	        poDepartmentMappingRepository.save(map);
+	    }
+
+	   
+	    if (poDto.getResourceRequirementList() != null) {
+
+            for (POResourceRequirementDTO req : poDto.getResourceRequirementList()) {
+
+              
+                RoleDetails roleDetails = roleDetailsRepository
+                        .findByRoleAndDepartmentAndExperience(
+                                req.getRole(),
+                                req.getDepartment(),
+                                req.getExperience())
+                        .orElseGet(() -> {
+                            RoleDetails role = new RoleDetails();
+                            role.setRole(req.getRole());
+                            role.setDepartment(req.getDepartment());
+                            role.setExperience(req.getExperience());
+                            return roleDetailsRepository.save(role);
+                        });
+
+                PoRequirementMapping prm = new PoRequirementMapping();
+
+                prm.setPoId(poDto.getPoId());
+                prm.setRoleId(roleDetails.getRoleId());
+                prm.setCount(req.getCount());
+                prm.setActive(true);
+
+                prm.setLineItemStartDate(convert(req.getLineItemStartDate()));
+                prm.setLineItemEndDate(convert(req.getLineItemEndDate()));
+                prm.setYearWiseRateCartStartDate(convert(req.getYearWiseRateCartStartDate()));
+                prm.setYearWiseRateCartEndDate(convert(req.getYearWiseRateCartEndDate()));
+
+                prm.setCreatedBy(poDto.getCreatedByEmpId());
+
+                poRequirementMappingRepository.save(prm);
+            }
+        }
+	}
 	
 	private LocalDateTime convert(Date date) {
 	    if (date == null) return null;
