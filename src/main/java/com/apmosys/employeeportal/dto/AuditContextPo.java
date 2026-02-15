@@ -17,6 +17,6 @@ public class AuditContextPo {
 	
 	private Long createdBy;
     private Long updatedBy;
-    private boolean isRenew;
+   
 
 }

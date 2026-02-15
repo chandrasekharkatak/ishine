@@ -145,8 +145,7 @@ public class PoSyncOrchestratorService {
 				
 				AuditContextPo audit = new AuditContextPo(
 				        poDto.getCreatedByEmpId(),
-				        poDto.getCreatedByEmpId(),
-				        false
+				        poDto.getCreatedByEmpId()
 				);
 				departmentService.syncDepartmentsRTS(po.getPoId(), dto.getPoDetailsList().get(0).getDepartmentList(),project.getProjectId(),audit);
 
@@ -180,8 +179,7 @@ public class PoSyncOrchestratorService {
 				
 				AuditContextPo audit = new AuditContextPo(
 				        poDto.getUpdatedByEmpId(),
-				        poDto.getUpdatedByEmpId(),
-				        false
+				        poDto.getUpdatedByEmpId()
 				);
 
 				departmentService.syncDepartmentsRTS(po.getPoId(), poDto.getDepartmentList(),project.getProjectId(),audit);
@@ -286,8 +284,7 @@ public class PoSyncOrchestratorService {
 			
 			AuditContextPo audit = new AuditContextPo(
 					dto.getRenewedByEmpId(),
-					dto.getRenewedByEmpId(),
-			        true
+					dto.getRenewedByEmpId()
 			);
 			departmentService.syncDepartmentsRTS(newPo.getPoId(), dto.getRenewedPo().getDepartmentList(),project.getProjectId(),audit);
 
