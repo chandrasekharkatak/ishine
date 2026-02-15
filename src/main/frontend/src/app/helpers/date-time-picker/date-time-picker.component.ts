@@ -138,7 +138,39 @@ export class DateTimePickerComponent implements ControlValueAccessor {
     }
 
     if (this.mode === 'time') {
-      this.onChange(this.to12HourFormat(val));
+      // Normalize and validate time to ensure hours/minutes are in valid range
+      // HTML time input may allow typing minutes > 59 in some browsers.
+      const timeMatch = /^(\d{1,2}):(\d{1,2})/.exec(val);
+      if (!timeMatch) {
+        // If format is unexpected, reset and ignore the change
+        console.warn('Invalid time format entered:', val);
+        this.modelValue = null;
+        this.onChange(null);
+        return;
+      }
+
+      let hour = Number(timeMatch[1]);
+      let minute = Number(timeMatch[2]);
+
+      if (isNaN(hour) || isNaN(minute)) {
+        this.modelValue = null;
+        this.onChange(null);
+        return;
+      }
+
+      // Clamp to valid ranges: 0–23 hours, 0–59 minutes
+      hour = Math.max(0, Math.min(23, hour));
+      minute = Math.max(0, Math.min(59, minute));
+
+      const normalized = `${hour.toString().padStart(2, '0')}:${minute
+        .toString()
+        .padStart(2, '0')}`;
+
+      // Update modelValue so the input reflects the corrected value
+      this.modelValue = normalized;
+
+      // Store in 12‑hour format (as expected by parent components)
+      this.onChange(this.to12HourFormat(normalized));
     }
 
     if (this.mode === 'datetime') {

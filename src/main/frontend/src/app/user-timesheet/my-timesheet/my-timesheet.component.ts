@@ -3234,8 +3234,8 @@ onFinalFileSelected(event: any): void {
     this.fileType2 = 'excel';
   }
 
-  this.selectedFile2 = file;
-  this.fileName2 = file.name;
+  this.selectedFile2 = this.renameFile(file, this.timesheetObj.projectId, 'Approved');
+  this.fileName2 = this.selectedFile2.name;
 }
 
 
@@ -4758,6 +4758,14 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
     }
     
     return totalMinutes / 60; // Convert to hours
+  }
+
+  renameFile(file: File, projectId: number, docType: 'Filled' | 'Approved'): File {
+    const ext = file.name.substring(file.name.lastIndexOf('.'));
+    const safeDocType = docType.toLowerCase(); // optional
+    const newFileName = `${projectId}_${safeDocType}_${file.name}`;
+
+    return new File([file], newFileName, { type: file.type });
   }
 
 }

@@ -4,12 +4,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -27,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.GetEmployeeSummaryOnExportDTO;
+import com.apmosys.employeeportal.dto.FinalBulkUploadDTO;
 import com.apmosys.employeeportal.dto.GetTimesheetDashboardCountForEmployeeDTO;
 import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -65,6 +70,11 @@ public class EmployeeTimesheetControllerNew {
 	@Autowired
 	TimesheetDocumentServiceNew timesheetDocumentServiceNew;
 	
+	@Value("${timesheet.minus.days.for.bulk.upload}")
+	private Integer minusDays;
+
+	@Value("${check.minus.days.for.bulk.upload}")
+	private Boolean checkMinusDaysForBulkUpload;
 	/**
 	 * API 1.1: Create Timesheet (New Hierarchical Structure)
 	 * Endpoint: POST /api/v2/timesheet/create
@@ -313,6 +323,12 @@ public class EmployeeTimesheetControllerNew {
 		ServiceResponse response = timesheetServiceNew.getAllMyTimesheetsByEmpId(timesheetDTO);
 		return response;
 	}
+
+	@JobRoleAccess(featureIds = {15,16})
+	@PostMapping("/getTimesheetMetadataByEmpId")
+	public ServiceResponse getTimesheetMetadataByEmpId(@RequestBody TimesheetDTO timesheetDTO) {
+		return timesheetServiceNew.getTimesheetMetadataByEmpId(timesheetDTO);
+	}
 	
 	@JobRoleAccess(featureIds = {15})
 	 @PostMapping("/getActiveProjectsAndClientSideIdByEmpId")
@@ -400,5 +416,40 @@ public class EmployeeTimesheetControllerNew {
 		}
 	 
 	 
+
+	@JobRoleAccess(featureIds = {15,16})
+	@PostMapping(value = "/bulkFinalUploadProjectBased", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ServiceResponse bulkFinalUploadProjectBased(
+			@RequestPart("finalFile") MultipartFile file, @RequestPart("finalBulkUploadDTO") FinalBulkUploadDTO finalBulkUploadDTO ) {
+
+		ServiceResponse reponse= timesheetServiceNew.bulkFinalUploadProjectBased(finalBulkUploadDTO, file);
+		return reponse;
+	}
+
+	@JobRoleAccess(featureIds = {15,16})
+	@GetMapping("/getPreviousMinusDays")
+	public ServiceResponse getPreviousMinusDays() {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			Map<String, Object> map = new HashMap<>();
+			map.put("minusDays", minusDays);
+			map.put("checkMinusDaysForBulkUpload", checkMinusDaysForBulkUpload);
+			response.setServiceResponse(map);
+			return response;
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceError(ServiceResponse.STATUS_FAIL);
+			response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+			return response;
+		}
+	}
+
+	@PostMapping(value = "/getMyReporteesAndClientSideProjectsInMonthYear")
+	public ServiceResponse getMyReporteesAndClientSideProjectsInMonthYear(@RequestBody TimesheetDTO timesheetDTO) {  
+		 ServiceResponse reponse= timesheetServiceNew.getMyReporteesAndClientSideProjectsInMonthYear(timesheetDTO);
+		 return reponse;
+	}
 }
 

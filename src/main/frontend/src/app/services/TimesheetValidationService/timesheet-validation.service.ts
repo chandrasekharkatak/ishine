@@ -172,18 +172,27 @@ export class TimesheetValidationService {
       });
     }
 
+    // For night shift on fillable day types: To Date must be same as From Date OR exactly one day after
     if (
       context.isNightShift &&
       isDayTypeFillable &&
       context.toDate &&
-      context.fromDate &&
-      context.toDate <= context.fromDate
+      context.fromDate
     ) {
-      errors.push({
-        field: 'toDate',
-        message: 'To Date must be after From Date',
-        scope: 'TIMESHEET'
-      });
+      const fromDateParsed = this.parseDDMMYYYY(context.fromDate);
+      const toDateParsed = this.parseDDMMYYYY(context.toDate);
+      if (fromDateParsed && toDateParsed) {
+        const diffDays = Math.round(
+          (toDateParsed.getTime() - fromDateParsed.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        if (diffDays !== 0 && diffDays !== 1) {
+          errors.push({
+            field: 'toDate',
+            message: 'For Night Shift, To Date must be the same as From Date OR exactly one day after From Date',
+            scope: 'TIMESHEET'
+          });
+        }
+      }
     }
 
     if (context.isNightShift && !isDayTypeFillable) {
@@ -218,6 +227,40 @@ export class TimesheetValidationService {
           message: 'Your total presence cannot be 0',
           scope: 'TIMESHEET'
         });
+      }
+
+      // Additional validation: Work check-out must be greater than work check-in
+      if (context.apmosysInTime && context.apmosysOutTime) {
+        // For night shift: only validate when From Date and To Date are the same
+        let shouldValidateOrder = true;
+        if (context.isNightShift && context.toDate && context.fromDate) {
+          const fromDateParsed = this.parseDDMMYYYY(context.fromDate);
+          const toDateParsed = this.parseDDMMYYYY(context.toDate);
+          if (fromDateParsed && toDateParsed) {
+            const diffDays = Math.round(
+              (toDateParsed.getTime() - fromDateParsed.getTime()) / (1000 * 60 * 60 * 24)
+            );
+            if (diffDays !== 0) {
+              shouldValidateOrder = false; // Out time is on next day, skip same-day ordering check
+            }
+          }
+        }
+
+        if (shouldValidateOrder) {
+          const inTime24 = this.parseTimeTo24Hour(context.apmosysInTime);
+          const outTime24 = this.parseTimeTo24Hour(context.apmosysOutTime);
+          if (inTime24 && outTime24) {
+            const inTotalMinutes = inTime24.hour * 60 + inTime24.minute;
+            const outTotalMinutes = outTime24.hour * 60 + outTime24.minute;
+            if (outTotalMinutes <= inTotalMinutes) {
+              errors.push({
+                field: 'apmosysOutTime',
+                message: 'Work Check-Out time must be greater than Work Check-In time',
+                scope: 'TIMESHEET'
+              });
+            }
+          }
+        }
       }
     } else {
       // Non-fillable day types should not have times
@@ -319,6 +362,45 @@ export class TimesheetValidationService {
             locationId
           });
           if (locationId) highlightedLocationIds.push(locationId);
+        }
+
+        // Additional validation: Location log-out must be greater than log-in (same-day validation)
+        if (location.locationInTime && location.locationOutTime) {
+          let shouldValidateOrder = true;
+
+          // For night shift: only validate when From Date and To Date are the same
+          if (context.isNightShift && context.toDate && context.fromDate) {
+            const fromDateParsed = this.parseDDMMYYYY(context.fromDate);
+            const toDateParsed = this.parseDDMMYYYY(context.toDate);
+            if (fromDateParsed && toDateParsed) {
+              const diffDays = Math.round(
+                (toDateParsed.getTime() - fromDateParsed.getTime()) / (1000 * 60 * 60 * 24)
+              );
+              if (diffDays !== 0) {
+                shouldValidateOrder = false; // Out time is on next day, skip same-day ordering check
+              }
+            }
+          }
+
+          if (shouldValidateOrder) {
+            const inTime24 = this.parseTimeTo24Hour(location.locationInTime);
+            const outTime24 = this.parseTimeTo24Hour(location.locationOutTime);
+            if (inTime24 && outTime24) {
+              const inTotalMinutes = inTime24.hour * 60 + inTime24.minute;
+              const outTotalMinutes = outTime24.hour * 60 + outTime24.minute;
+              if (outTotalMinutes <= inTotalMinutes) {
+                const locationId = location.workLocationTypeId || 0;
+                errors.push({
+                  field: 'locationTimeOrder',
+                  message: `Log-Out time for location ${selectedLocationData?.code || lIndex + 1} must be greater than Log-In time`,
+                  scope: 'LOCATION',
+                  locationIndex: lIndex,
+                  locationId
+                });
+                if (locationId) highlightedLocationIds.push(locationId);
+              }
+            }
+          }
         }
       }
 
@@ -702,6 +784,40 @@ export class TimesheetValidationService {
   }
 
   /**
+   * Helper: Parse time string (HH:mm or HH:mm AM/PM) to 24-hour components
+   */
+  private parseTimeTo24Hour(timeStr: string): { hour: number; minute: number } | null {
+    if (!timeStr) return null;
+
+    const trimmed = timeStr.trim().toUpperCase();
+    const hasAMPM = trimmed.includes('AM') || trimmed.includes('PM');
+
+    if (hasAMPM) {
+      // Format: "HH:mm AM/PM"
+      const [timePart, meridian] = trimmed.split(' ');
+      if (!timePart || !meridian) return null;
+      const [hhStr, mmStr] = timePart.split(':');
+      const hourRaw = Number(hhStr);
+      const minute = Number(mmStr);
+      if (isNaN(hourRaw) || isNaN(minute)) return null;
+      if (hourRaw < 1 || hourRaw > 12 || minute < 0 || minute > 59) return null;
+
+      let hour = hourRaw;
+      if (meridian === 'PM' && hour !== 12) hour += 12;
+      if (meridian === 'AM' && hour === 12) hour = 0;
+      return { hour, minute };
+    } else {
+      // Format: "HH:mm" (24-hour)
+      const [hhStr, mmStr] = trimmed.split(':');
+      const hour = Number(hhStr);
+      const minute = Number(mmStr);
+      if (isNaN(hour) || isNaN(minute)) return null;
+      if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+      return { hour, minute };
+    }
+  }
+
+  /**
    * Validates location out-time against ApMoSys out-time
    */
   validateLocationOutTime(
@@ -826,17 +942,14 @@ export class TimesheetValidationService {
 
   /**
    * Formats validation errors for display
-   * Returns a single string with all error messages
+   * Returns a single string with all error messages,
+   * each on its own line, prefixed with a pointing finger emoji.
    */
   formatErrorsForDisplay(result: ValidationResult): string {
     if (result.isValid) return '';
-    
-    if (result.errors.length === 1) {
-      return result.errors[0].message;
-    }
 
     return result.errors
-      .map((error, index) => `${index + 1}. ${error.message}`)
+      .map(error => `👉 ${error.message}`)
       .join('\n');
   }
 

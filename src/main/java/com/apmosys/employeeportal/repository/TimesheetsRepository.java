@@ -9087,7 +9087,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 				+ "					(bpe.manager_id = :emp_id AND (bpe.approvals_to = 'Manager' OR bpe.approvals_to IS NULL)) \n"
 				+ "					OR (bpe.reporting_manager_id = :emp_id AND bpe.approvals_to = 'Reporting Manager')\n"
 				+ "					) \n"
-				+ "				 ;")
+				+ "				 ")
 		List<Object[]> getMyReporteesAndClientSideProjectsInMonthYear(Integer year,Integer month,Long emp_id);
 		
 		@Query(value="WITH RECURSIVE\n"

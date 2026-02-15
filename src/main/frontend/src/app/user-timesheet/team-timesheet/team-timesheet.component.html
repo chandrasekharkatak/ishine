@@ -1379,30 +1379,10 @@
 
               </mat-select> -->
               <app-my-select #filterActiveReportees class="form-control" placeholder="Select Reportee"
-                [(ngModel)]="timesheetObj.selectedEmpId" [options]="reportees" displayKey="name" valueKey="empId"
-                [multiple]="false" (selectionChange)="onReporteeChange($event.value)">
-              </app-my-select>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-md-3 mb-0">
-          <div class="info-wrapper">
-            <div class="form-group">
-              <label class="info-label"><span class="text-danger">*</span>Project</label>
-              <!-- <mat-select ngxMatSelect class="form-control" #filterActiveProjects="ngxMatSelect"
-                [displayMember]="'projectName'" [valueMember]="'projectId'" [source]="projects"
-                [useInfiniteScroll]="true" (selectionChange)="onProjectSelectBulk(timesheetObj.selectedProjectId)"
-                [(ngModel)]="timesheetObj.selectedProjectId" [multiple]="false" class="form-control">
-                <mat-option *ngFor="let project of filterActiveProjects.filteredSource" [value]="project.projectId">
-                  {{ project.projectName }}
-                </mat-option>
-              </mat-select> -->
-              <app-my-select #filterActiveProjects class="form-control" placeholder="Select Project"
-                [(ngModel)]="timesheetObj.selectedProjectId" [options]="projects" displayKey="projectName"
-                valueKey="projectId" [multiple]="false"
-                (selectionChange)="onProjectSelectBulk(timesheetObj.selectedProjectId)">
+                [(ngModel)]="timesheetObj.empIds" 
+                  [options]="getReporteesFromProjectId()" 
+                  displayKey="name" valueKey="empId" [multiple]="true"
+                  (selectionChange)="onReporteeChange($event)">
               </app-my-select>
             </div>
           </div>
@@ -1422,7 +1402,7 @@
         </div>
 
         <!-- To Date -->
-        <div class="col-md-3 mb-3">
+        <div class="col-md-3 mb-3" >
           <div class="form-group">
             <label class="info-label" style="margin-bottom: 0rem;"><span class="text-danger">*</span>To
               Date</label>
@@ -1439,7 +1419,7 @@
           </div>
         </div>
 
-        <div class="col-md-3 mb-3">
+        <div class="col-md-3 mb-3" >
           <div class="form-group">
             <label class="info-label"><span class="text-danger">*</span>Bulk Approval Proof</label>
             <div class="d-flex align-items-center">

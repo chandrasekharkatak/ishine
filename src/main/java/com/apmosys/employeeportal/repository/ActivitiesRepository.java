@@ -38,4 +38,6 @@ public interface ActivitiesRepository extends JpaRepository<Activity, Long> {
 		        Long teamId);
 
 
+	 public List<Activity> findByTeamIdAndEmployeeRole(Long teamId, String employeeRole);
+
 }

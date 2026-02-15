@@ -158,6 +158,10 @@ getClientVsDepartment(payload){
   updateMappingToOtherProjectAsDefault(otherActiveProject : EmployeeOtherActiveProject) {
     return this.http.post(`${this.baseUrl}` + `api/updateMappingToOtherProjectAsDefault`, otherActiveProject);
   }
-  
+
+  updateProjectStartDate(projectObj: Project) {
+    return this.http.post(`${this.baseUrl}` + `api/updateProjectStartDate`, projectObj);
+  }
+
   
 }

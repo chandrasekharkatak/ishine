@@ -697,11 +697,17 @@ public class ResourceManagementController {
 	}
 
 	// @Encrypted
-	@GetMapping("/getResourceRequirementCountByPoId")
-	public ServiceResponse getResourceRequirementCountByPoId(
-			@RequestParam(required = false) Long poId, @RequestParam Integer projectId,
-			@RequestParam String projectType) {
-		return resourceManagementService.getResourceRequirementCountByPoId(poId, projectId, projectType);
+	@GetMapping("/getResourceRequirementCountByProjectId")
+	public ServiceResponse getResourceRequirementCountByProjectId(
+			@RequestParam Integer projectId, @RequestParam String projectType) {
+		return resourceManagementService.getResourceRequirementCountByProjectId(projectId, projectType);
+	}
+
+	// @Encrypted
+	@GetMapping("/getResourceRequirementDetailsByProjectId")
+	public ServiceResponse getResourceRequirementDetailsByProjectId(
+			@RequestParam Integer projectId, @RequestParam String projectType, @RequestParam boolean currentActivePO) {
+		return resourceManagementService.getResourceRequirementDetailsByProjectId(projectId, projectType,currentActivePO);
 	}
 	
 	@GetMapping("/oneTimeUpdatePoClientId")

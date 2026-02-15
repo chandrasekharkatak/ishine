@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import com.apmosys.employeeportal.dto.AuditContextPo;
 import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
 import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
 import com.apmosys.employeeportal.dto.LogDTO;
@@ -134,16 +135,23 @@ public class PoSyncOrchestratorService {
 			}
 
 			Client client = clientService.resolveClient(dto.getClientName(),dto.getClientId());
+			
+			
 
 			if (dto.getEventType() == SyncRequestType.CREATE_PROJECT) {
 
 				Project project = projectService.createProjectRTS(dto, client);
 				ProjectPoDetails po = poDetailsService.createPoRTS(project, dto, client);
-				departmentService.syncDepartmentsRTS(po.getPoId(), dto.getPoDetailsList().get(0).getDepartmentList(),project.getProjectId());
+				
+				AuditContextPo audit = new AuditContextPo(
+				        poDto.getCreatedByEmpId(),
+				        poDto.getCreatedByEmpId()
+				);
+				departmentService.syncDepartmentsRTS(po.getPoId(), dto.getPoDetailsList().get(0).getDepartmentList(),project.getProjectId(),audit);
 
 				if (poDto.getResourceRequirementList() != null) {
 					requirementService.syncRequirementsRTS(po.getPoId(),
-							dto.getPoDetailsList().get(0).getResourceRequirementList());
+							dto.getPoDetailsList().get(0).getResourceRequirementList(),audit);
 				}
 				
 				projectService.recalculateProjectDates(project.getProjectId());
@@ -168,8 +176,13 @@ public class PoSyncOrchestratorService {
 				boolean projectChanged = projectService.updateProjectIfChanged(project, dto, client);
 
 				boolean poChanged = poDetailsService.updatePoIfChanged(po, dto, client);
+				
+				AuditContextPo audit = new AuditContextPo(
+				        poDto.getUpdatedByEmpId(),
+				        poDto.getUpdatedByEmpId()
+				);
 
-				departmentService.syncDepartmentsRTS(po.getPoId(), poDto.getDepartmentList(),project.getProjectId());
+				departmentService.syncDepartmentsRTS(po.getPoId(), poDto.getDepartmentList(),project.getProjectId(),audit);
 
 				if (poDto.getResourceRequirementList() != null) {
 					 List<RequirementChangeDTO> changes =
@@ -178,7 +191,7 @@ public class PoSyncOrchestratorService {
 					                    poDto.getResourceRequirementList());
 
 					
-					requirementService.syncRequirementsRTS(po.getPoId(), poDto.getResourceRequirementList());
+					requirementService.syncRequirementsRTS(po.getPoId(), poDto.getResourceRequirementList(),audit);
 					
 					if (!changes.isEmpty()) {
 						requirementService.sendRequirementChangeMail(po.getPoId(), changes);
@@ -254,7 +267,7 @@ public class PoSyncOrchestratorService {
 				}
 			}
 
-			projectService.updateProjectDatesAfterRenewal(project, dto);
+//			projectService.updateProjectDatesAfterRenewal(project, dto);
 
 			boolean exists = projectPoDetailsRepository.existsByPoIdAndProjectId(dto.getRenewedPo().getPoId(),
 					project.getProjectId());
@@ -268,18 +281,26 @@ public class PoSyncOrchestratorService {
 
 			Client client = clientRepository.findByClientId(project.getClientId());
 			ProjectPoDetails newPo = poDetailsService.createRenewedPo(project, dto, client);
-			departmentService.syncDepartmentsRTS(newPo.getPoId(), dto.getRenewedPo().getDepartmentList(),project.getProjectId());
+			
+			AuditContextPo audit = new AuditContextPo(
+					dto.getRenewedByEmpId(),
+					dto.getRenewedByEmpId()
+			);
+			departmentService.syncDepartmentsRTS(newPo.getPoId(), dto.getRenewedPo().getDepartmentList(),project.getProjectId(),audit);
 
 			if (dto.getRenewedPo().getResourceRequirementList() != null) {
 				
 				requirementService.syncRequirementsRTS(newPo.getPoId(),
-						dto.getRenewedPo().getResourceRequirementList());
+						dto.getRenewedPo().getResourceRequirementList(),audit);
 			}
 
 			poDetailsService.validateAssociatedPosIntegrity(project.getProjectId(), dto.getAssociatePosAfterRenewal());
 
 			poDetailsService.updatePoLinksAfterRenewal(project.getProjectId(), dto);
-
+			
+			teamsService.migrateResourcesAfterRenewal(project.getProjectId(),newPo.getPoId(),dto.getRenewedByEmpId());
+			
+			projectService.recalculateProjectDates(project.getProjectId());
 			finalHttpStatusCode = HttpStatus.OK.value();
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -287,6 +308,7 @@ public class PoSyncOrchestratorService {
 			return response;
 
 		} catch (Exception e) {
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 			ExceptionLogContext.add(e);
 			e.printStackTrace();
 //			exceptionDetailsForLog.append(e.printStackTrace());
@@ -452,13 +474,6 @@ public class PoSyncOrchestratorService {
 	        // case 1 - when just order of project is changed
 	        if (dto.getDeletedProjects() == null || dto.getDeletedProjects().isEmpty()) {
 
-	            
-
-//	            projectService.updateProjectDatesIfChanged(
-//	                    primaryProject,
-//	                    dto.getPrimaryProject()
-//	            );
-
 	            poDetailsService.updatePoOrderOnly(
 	                    primaryProject.getProjectId(),
 	                    dto.getPrimaryProject()
@@ -475,10 +490,6 @@ public class PoSyncOrchestratorService {
 	                    dto
 	            );
 
-	            poDetailsService.deactivateDeletedProjectsPos(
-	                    dto.getDeletedProjects()
-	            );
-
 	            poDetailsService.movePosToPrimaryProject(
 	                    primaryProject,
 	                    dto
@@ -489,9 +500,8 @@ public class PoSyncOrchestratorService {
 	                    dto.getPrimaryProject().getPoDetailsList()
 	            );
 	            
-	            resourceManagementService.liftAndShiftTeamNew(dto);
 	            
-//	            teamsService.liftAndShiftTeams(dto);
+	            poDetailsService.liftAndShiftTeamNew(dto);
 
 	            projectService.deactivateDeletedProjects(
 	                    dto.getDeletedProjects()

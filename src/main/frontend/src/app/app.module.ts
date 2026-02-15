@@ -213,7 +213,6 @@ import { FloatingScrollWrapperComponent } from './helpers/floating-scroll-wrappe
 import { MatTimepickerModule } from '@angular/material/timepicker';
 import { MyAutocompleteComponent } from './helpers/my-autocomplete/my-autocomplete.component';
 import { NgxEditorModule } from 'ngx-editor';
-import { MyTimesheetApplicationSelectorComponent } from "./user-timesheet/my-timesheet/my-timesheet-application-selector/my-timesheet-application-selector.component";
 import { CalendarLegendComponent } from "./user-timesheet/shared/calendar-legend/calendar-legend.component";
 import { TeamAllTimesheetsTableComponent } from "./user-timesheet/team-timesheet/team-all-timesheets-table/team-all-timesheets-table.component";
 import { TimesheetTimeEntryComponent } from "./timesheet-create-self/timesheet-time-entry/timesheet-time-entry.component";
@@ -412,7 +411,6 @@ registerLocaleData(localeGb);
     MyAutocompleteComponent,
     TeamAllTimesheetsTableComponent,
     TimesheetFormComponent,
-    MyTimesheetApplicationSelectorComponent,
     InfoTooltipComponent,
     RmgProjectComponent,
  

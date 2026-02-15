@@ -17,8 +17,10 @@ import com.apmosys.employeeportal.dto.EmpMappingDTO;
 import com.apmosys.employeeportal.dto.EmployeeImpactDTO;
 import com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO;
 import com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO;
+import com.apmosys.employeeportal.dto.PoDetailsDto;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO;
+import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse;
@@ -857,7 +859,35 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			"on prm.roleId = etm.roleId and prm.poId = etm.poId "+	
 			"WHERE etm.active!=2  AND prm.poId = :poId ")
 	List<EmpMappingDTO> getActiveEmpDetails(Long poId);
- 
+	
+	// @Query(value = "Select new com.apmosys.employeeportal.dto.PoDetailsDto(prm.poRequirementMappingId \n"
+	// 		+ ",COUNT(DISTINCT CASE WHEN etm.active  = 1 THEN etm.empId END)  \n"
+	// 		+ ",COUNT(DISTINCT CASE WHEN etm.active  = 2 THEN etm.empId END) \n"
+	// 		+ ") \n"
+	// 		+ "FROM Project p \n"
+	// 		+ "INNER JOIN ProjectPoDetails ppd ON p.projectId = ppd.projectId AND DATE(ppd.poStartDate) <= CURRENT_DATE AND DATE(ppd.poEndDate) >= CURRENT_DATE \n"
+	// 		+ "INNER JOIN PoRequirementMapping prm ON ppd.poId = prm.poId \n"
+	// 		+ "INNER JOIN Team t ON t.projectId = p.projectId \n"
+	// 		+ "INNER JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId AND etm.active IN (1, 2) \n"
+	// 		+ "where p.projectId =:projectId \n"
+	// 		+ "GROUP BY prm.poRequirementMappingId")
+	// List<PoDetailsDto> getAssigedAndApprovedEmployeeCountByProjectId(Integer projectId);
+
+	@Query(value = "Select new com.apmosys.employeeportal.dto.PoDetailsDto(prm.poRequirementMappingId \n"
+			+ ",COUNT(DISTINCT CASE WHEN etm.active  = 1 THEN etm.empId END)  \n"
+			+ ",COUNT(DISTINCT CASE WHEN etm.active  = 2 THEN etm.empId END) \n"
+			+ ") \n"
+			+ "FROM EmployeeTeamMap etm \n"
+			+ "INNER JOIN RoleDetails rd on rd.roleId = etm.roleId \n"
+			+ "INNER JOIN PoRequirementMapping prm ON etm.poId = prm.poId and etm.roleId = prm.roleId  \n"
+			+ "INNER JOIN ProjectPoDetails ppd ON prm.poId = ppd.poId AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND DATE(ppd.poEndDate) >= CURRENT_DATE \n"
+			+ "where ppd.projectId =:projectId \n"
+			+ "GROUP BY prm.poRequirementMappingId")
+	List<PoDetailsDto> getAssigedAndApprovedEmployeeCountByProjectId(Integer projectId, boolean currentActivePO);
+
+	@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.teamId in :teamIds and etm.empId in :empIds and etm.active != 0 ")
+	 List<EmployeeTeamMap> activeAndPendingEmployeesByTeamIdsAndEmpIds(List<Long> teamIds,List<Long> empIds);
+	  
 	
 	@Query(value ="SELECT new com.apmosys.employeeportal.dto.EmployeeImpactDTO(e.name, t.teamName)\n"
 			+ "FROM EmployeeTeamMap etm\n"
@@ -881,6 +911,20 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 	LocalDateTime findMinEmployeeStartDateByTeamIds(
 	        @Param("teamIds") List<Long> teamIds
 	);
+	
+	@Query("SELECT DISTINCT etm.empId\n"
+			+ " FROM EmployeeTeamMap etm\n"
+			+ " INNER JOIN Team t ON t.teamId = etm.teamId\n"
+			+ " INNER JOIN Project p ON p.projectId = t.projectId\n"
+			+ " WHERE p.projectId = :projectId\n"
+			+ "	AND etm.active != 0 \n"
+			+ "	AND t.isActive = 'Y' \n"
+			+ "	AND p.active = 'true' ")
+	List<Long> findDistinctEmpIdsByProjectId(@Param("projectId") Long projectId);
+
+	
+	@Query(value = "Select etm from EmployeeTeamMap etm where etm.poId =:previousPoId and etm.roleId =:roleId and etm.active !=0")
+	List<EmployeeTeamMap>findActiveEmployeesForRole(Long previousPoId, Long roleId);
 
 
 }

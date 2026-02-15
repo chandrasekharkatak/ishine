@@ -28,9 +28,11 @@ export class PoDetails {
     isPoSelected: boolean = false;
     isAnyTeamSelected: boolean = false;
     isAnyNewTeamAdded: boolean = false;
+    activeEtmFlag: boolean = false;
     updatedBy: any;
     isHod: boolean = false;
     isupdate: boolean = true;
     projectType: any;
+    poTitle: any;
 
 }

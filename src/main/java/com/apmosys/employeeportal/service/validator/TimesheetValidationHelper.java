@@ -460,9 +460,9 @@ public class TimesheetValidationHelper {
 
 						String lowerName = fileName.toLowerCase();
 
-						if (lowerName.contains("_filled_")) {
+						if (lowerName.contains("_filled")) {
 							filledPresent = true;
-						} else if (lowerName.contains("_approved_")) {
+						} else if (lowerName.contains("_approved")) {
                        // approved document → optional
 						} else {
 							throw new IllegalArgumentException("Invalid document name format for project: "
@@ -1097,16 +1097,21 @@ public class TimesheetValidationHelper {
 		}
 
 		// Sort by in-time
-		timeBasedLocations.sort(Comparator.comparing(l -> LocalTime.parse(l.getLocationInTime())));
+		timeBasedLocations.sort(Comparator.comparing(l -> {
+            String timeStr = l.getLocationInTime();
+            if (timeStr.contains(" ")) {
+                timeStr = timeStr.split(" ")[1];
+            }
+            return LocalTime.parse(timeStr);
+        }));
 
 		for (int i = 0; i < timeBasedLocations.size() - 1; i++) {
 
 			LocationSessionDTO current = timeBasedLocations.get(i);
 			LocationSessionDTO next = timeBasedLocations.get(i + 1);
 
-			LocalTime currentEnd = LocalTime.parse(current.getLocationOutTime());
-
-			LocalTime nextStart = LocalTime.parse(next.getLocationInTime());
+			LocalTime currentEnd = extractTime(current.getLocationOutTime());
+            LocalTime nextStart = extractTime(next.getLocationInTime());
 
 			if (currentEnd.isAfter(nextStart)) {
 				throw new IllegalStateException("Location time overlap detected between " + current.getLocationInTime()
@@ -1582,7 +1587,13 @@ public class TimesheetValidationHelper {
 
 
 
-
+    private LocalTime extractTime(String dateTimeStr) {
+        if (dateTimeStr.contains(" ")) {
+            String timePart = dateTimeStr.split(" ")[1];
+            return LocalTime.parse(timePart);
+        }
+        return LocalTime.parse(dateTimeStr);
+    }
 
 	
 	

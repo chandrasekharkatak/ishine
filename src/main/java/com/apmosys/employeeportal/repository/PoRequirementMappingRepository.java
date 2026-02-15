@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.dto.PoRequirementDataDTO;
 import com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto;
-import com.apmosys.employeeportal.dto.ProjectRequirementsDTO;
 import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
 import com.apmosys.employeeportal.model.PoRequirementMapping;
 
@@ -64,25 +63,25 @@ public interface PoRequirementMappingRepository extends JpaRepository<PoRequirem
 	@Query("DELETE FROM PoRequirementMapping")
 	void deleteAllRecords();
 
-	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.RmgResourceRequirementDto(" +
-			"prm.poRequirementMappingId, pd.poId," +
-			"prm.role, prm.experience, prm.department, " +
-			"prm.active, prm.count) " +
-			"FROM PoRequirementMapping prm " +
-			"INNER JOIN ProjectPoDetails pd ON pd.poId = prm.poId " +
-			"WHERE prm.active = true " +
-			"AND prm.poId = :poId")
+	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.RmgResourceRequirementDto("
+			+ " prm.poRequirementMappingId, prm.poId "
+			+ ", rd.roleId, rd.role, rd.experience, rd.department "
+			+ ", prm.count, prm.lineItemStartDate, prm.lineItemEndDate) "
+			+ "FROM RoleDetails rd \n"
+			+ "LEFT JOIN PoRequirementMapping prm ON prm.roleId = rd.roleId and prm.poId =:poId \n"
+			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId AND DATE(ppd.poEndDate) >= CURRENT_DATE "
+			+ "WHERE prm.active = true and prm.poId =:poId")
 	List<RmgResourceRequirementDto> getPoRequirementDataByPoId(@Param("poId") Long poId);
-
-	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.RmgResourceRequirementDto(" +
-			"prm.poRequirementMappingId, prm.poId," +
-			"prm.role, prm.experience, prm.department, " +
-			"prm.active, prm.count) " +
-			"FROM PoRequirementMapping prm " +
-			"LEFT JOIN EmployeeTeamMap etm ON etm.poRequirementMappingId = prm.poRequirementMappingId " +
-			"LEFT JOIN Team t ON etm.teamId = t.teamId " +
-			"WHERE prm.active = true " +
-			"AND t.teamId = :teamId ")
+	
+	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.RmgResourceRequirementDto("
+			+ "prm.poRequirementMappingId, prm.poId "
+			+ ", rd.roleId, rd.role, rd.experience, rd.department, prm.active, prm.count) "
+			+ "FROM Team t \n"
+			+ "LEFT JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId \n"
+			+ "LEFT JOIN RoleDetails rd ON etm.roleId = rd.roleId \n"
+			+ "LEFT JOIN PoRequirementMapping prm ON prm.roleId = rd.roleId and prm.poId = etm.poId \n"
+			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId AND DATE(ppd.poEndDate) >= CURRENT_DATE \n"
+			+ "WHERE prm.active = true AND t.teamId = :teamId ")
 	List<RmgResourceRequirementDto> getPoRequirementDataByTeamId(@Param("teamId") Long teamId);
 
 	@Query(value = "Select sum(prm.count) from PoRequirementMapping prm \n"
@@ -110,6 +109,16 @@ public interface PoRequirementMappingRepository extends JpaRepository<PoRequirem
 	public List<RmgResourceRequirementDto> getPoIdAndRequiredCountByPoIdInAndProjectId(List<Long> poIds, Integer projectId);
 
 	List<PoRequirementMapping> findByPoIdAndActiveTrue(Long poId);
+
+	@Query(value = "Select sum(prm.count) from PoRequirementMapping prm \n"
+			+ "INNER JOIN ProjectPoDetails ppd on ppd.poId = prm.poId where DATE(ppd.poStartDate) <= CURRENT_DATE AND DATE(ppd.poEndDate) >= CURRENT_DATE AND ppd.projectId=:projectId")
+	public Long getTotalActiveRequiredCountByProjectId(Integer projectId);
+
+	
+	@Query(value ="SELECT distinct p.roleId \n"
+			+ "FROM PoRequirementMapping p\n"
+			+ "WHERE p.poId = :poId")
+	List<Long> findRoleIdsByPoId(Long poId);
 
 	
 	

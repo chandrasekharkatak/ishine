@@ -20,6 +20,7 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.dto.AuditContextPo;
 import com.apmosys.employeeportal.dto.EmployeeImpactDTO;
 import com.apmosys.employeeportal.dto.POResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.RequirementChangeDTO;
@@ -128,7 +129,7 @@ public class ResourceRequirementService {
 	
 	public void syncRequirementsRTS(
 	        Long poId,
-	        List<POResourceRequirementDTO> incoming) {
+	        List<POResourceRequirementDTO> incoming,AuditContextPo audit) {
 
 	    List<PoRequirementMapping> existing =
 	            poRequirementMappingRepository.findByPoId(poId);
@@ -163,6 +164,7 @@ public class ResourceRequirementService {
 	        m.setLineItemStartDate(convert(r.getLineItemStartDate()));
 	        m.setLineItemEndDate(convert(r.getLineItemEndDate()));
 	        m.setActive(true);
+	        m.setCreatedBy(audit.getCreatedBy());
 
 	        poRequirementMappingRepository.save(m);
 	    }
@@ -178,6 +180,7 @@ public class ResourceRequirementService {
 
 	        if (!existsInIncoming && e.isActive()) {
 	            e.setActive(false);
+	            e.setUpdatedBy(audit.getUpdatedBy());
 	        }
 	    }
 

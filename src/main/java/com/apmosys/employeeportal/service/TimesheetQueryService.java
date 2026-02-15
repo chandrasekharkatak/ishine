@@ -26,6 +26,7 @@ import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
+import com.apmosys.employeeportal.dto.TimesheetMetadataDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
@@ -145,6 +146,67 @@ public class TimesheetQueryService {
             apiLogInfo.setLogLevel("ERROR");
         }
         
+        apiLogInfo.setApiRequest(logBuilder.toString());
+        logService.logMyInfo(httpRequest, apiLogInfo);
+        return response;
+    }
+
+    /**
+     * Lightweight timesheet metadata by employee and date range.
+     * Returns only header-level fields from employee_timesheets_new
+     * (timesheetId, empId, date, dayTypeId, status) for use in UI date pickers.
+     */
+    public ServiceResponse getTimesheetMetadataByEmpId(TimesheetDTO timesheetDTO) {
+        ServiceResponse response = new ServiceResponse();
+        LogDTO apiLogInfo = new LogDTO();
+        apiLogInfo.setSubFeatureName("add_timesheet");
+        apiLogInfo.setApiUrl("/api/v2/timesheet/getTimesheetMetadataByEmpId");
+        apiLogInfo.setLogLevel("INFO");
+
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("empId : ").append(timesheetDTO.getEmpId())
+                  .append(" ,startDate : ").append(timesheetDTO.getStartDate())
+                  .append(" ,endDate : ").append(timesheetDTO.getEndDate());
+
+        try {
+            LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
+            LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
+
+            List<Object[]> rows = employeeTimesheetsNewRepository
+                    .findTimesheetMetadataByEmpIdAndDateRange(timesheetDTO.getEmpId(), start, end);
+
+            if (rows == null || rows.isEmpty()) {
+                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(new ArrayList<TimesheetMetadataDTO>());
+                apiLogInfo.setApiResponse("Timesheet metadata list is empty");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+            } else {
+                List<TimesheetMetadataDTO> metadataList = rows.stream()
+                        .map(row -> {
+                            TimesheetMetadataDTO dto = new TimesheetMetadataDTO();
+                            dto.setTimesheetId(((Number) row[0]).longValue());
+                            dto.setEmpId(((Number) row[1]).longValue());
+                            dto.setDate(((java.sql.Date) row[2]).toLocalDate());
+                            dto.setDayTypeId(row[3] != null ? ((Number) row[3]).intValue() : null);
+                            dto.setStatus(row[4] != null ? ((Number) row[4]).intValue() : null);
+                            return dto;
+                        })
+                        .collect(Collectors.toList());
+
+                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+                response.setServiceResponse(metadataList);
+                apiLogInfo.setApiResponse("metadataList : " + metadataList.size() + " records");
+                apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+            response.setServiceResponse("Something Went Wrong.");
+            response.setServiceError(e.getMessage());
+            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+            apiLogInfo.setLogLevel("ERROR");
+        }
+
         apiLogInfo.setApiRequest(logBuilder.toString());
         logService.logMyInfo(httpRequest, apiLogInfo);
         return response;
@@ -690,128 +752,6 @@ public class TimesheetQueryService {
 
         // The timesheetIds of the timesheets document datas that are already fetched
         List<Long> doneTimesheetIds = new ArrayList<>();
-
-    	// rows.forEach(row -> {
-
-    	//     Long timesheetId = ((Number) row[0]).longValue();
-
-    	//     // ================= TIMESHEET =================
-    	//     EmployeeTimesheetDTO ts =
-    	//         timesheetMap.computeIfAbsent(timesheetId, id -> {
-
-    	//             EmployeeTimesheetDTO dto = new EmployeeTimesheetDTO();
-    	//             dto.setTimesheetId(id);
-    	//             dto.setEmpId(((Number) row[1]).longValue());
-    	//             dto.setDate(((java.sql.Date) row[2]).toLocalDate());
-    	//             dto.setDayType(row[3].toString());
-    	//             dto.setStatus(((Number) row[4]).intValue());
-    	//             dto.setTotalWorkingMinutes(
-    	//                     row[5] != null ? ((Number) row[5]).intValue() : null);
-
-    	//             LocalDateTime ldt_checkIn = 
-    	//             		row[6] != null ? ((Timestamp) row[6]).toLocalDateTime()
-    	//                     : null;
-    	            		
-    	//             dto.setWorkCheckIn(ldt_checkIn!= null  ? DateConversionUtil.localDateTimeToString(ldt_checkIn, pattern):null);
-    	            
-    	//             LocalDateTime ltd_checkOut = 
-    	//             		row[7] != null
-    	//                     ? ((Timestamp) row[7]).toLocalDateTime()
-    	//                             : null;
-
-    	//             dto.setWorkCheckOut(ltd_checkOut!= null  ? DateConversionUtil.localDateTimeToString(ltd_checkOut, pattern):null);
-
-    	//             dto.setIsNightShift(row[8] != null && ((Boolean)row[8]));
-    	//             dto.setCreatedOn(((java.sql.Timestamp) row[9]).toLocalDateTime());
-
-    	//             dto.setLocationSessions(new ArrayList<>());
-        //             dto.setDocumentData(new ArrayList<>());
-    	//             return dto;
-    	//         });
-
-    	//     // ================= LOCATION SESSION =================
-    	//     Long locationMappingId = row[10] != null
-    	//             ? ((Number) row[10]).longValue()
-    	//             : null;
-            
-        //     List<Long> projectIds = new ArrayList<>();
-
-    	//     if (locationMappingId == null) return;
-
-    	//     LocationSessionDTO location =
-    	//         ts.getLocationSessions()
-    	//           .stream()
-    	//           .filter(l -> locationMappingId.equals(l.getLocationMappingId()))
-    	//           .findFirst()
-    	//           .orElseGet(() -> {
-
-    	//               LocationSessionDTO l = new LocationSessionDTO();
-    	//               l.setLocationMappingId(locationMappingId);
-    	//               l.setWorkLocationTypeId(((Number) row[11]).intValue());
-    	//               l.setWorkLocationType(row[12].toString());
-
-    	//               l.setLocationInTime(
-    	//                       row[13] != null
-    	//                               ? ((java.sql.Timestamp) row[13])
-    	//                                       .toLocalDateTime().toLocalTime().toString()
-    	//                               : null);
-
-    	//               l.setLocationOutTime(
-    	//                       row[14] != null
-    	//                               ? ((java.sql.Timestamp) row[14])
-    	//                                       .toLocalDateTime().toLocalTime().toString()
-    	//                               : null);
-
-    	//               l.setProjects(new ArrayList<>());
-    	//               ts.getLocationSessions().add(l);
-    	//               return l;
-    	//           });
-
-    	//     // ================= PROJECT =================
-    	//     if (row[15] == null) return;
-
-    	//     Integer projectId = ((Number) row[15]).intValue();
-        //     projectIds.add(projectId.longValue());
-
-    	//     ProjectTimesheetDTO project =
-    	//         location.getProjects()
-    	//                 .stream()
-    	//                 .filter(p -> p.getProjectId().equals(projectId))
-    	//                 .findFirst()
-    	//                 .orElseGet(() -> {
-
-    	//                     ProjectTimesheetDTO p = new ProjectTimesheetDTO();
-    	//                     p.setTimesheetId(timesheetId);
-    	//                     p.setProjectId(projectId);
-    	//                     p.setPoNo((String) row[16]);
-    	//                     p.setPoId(row[17] != null ? ((Number) row[17]).longValue() : null);
-    	//                     p.setStatus(((Number) row[18]).intValue());
-    	//                     p.setClientApprovalStatus(
-    	//                             row[19] != null ? ((Number) row[19]).intValue() : null);
-    	//                     p.setProjectHoursMinutes(
-    	//                             row[20] != null ? ((Number) row[20]).intValue() : null);
-    	//                     p.setShadowEmpId(
-    	//                             row[21] != null ? ((Number) row[21]).longValue() : null);
-    	//                     p.setClientLocationId(
-    	//                             row[23] != null ? ((Number) row[23]).longValue() : null);
-
-    	//                     p.setActivities(new ArrayList<>());
-    	//                     p.setIsNightShift(row[8]!=null?true:false);
-    	//                     p.setClientSideId(row[24]!=null?(String)row[24]:null);
-    	//                     location.getProjects().add(p);    	    
-    	//                     return p;
-    	//                 });
-
-        //         // ======================Documents======================
-                
-        //         if(!doneTimesheetIds.contains(timesheetId)){
-        //             List<TimesheetDocumentDataDTO> timesheetDocs = timesheetDocumentServiceNew.getTimesheetDocumentDataByTimesheetId(timesheetId);
-        //             doneTimesheetIds.add(timesheetId);
-        //             ts.setDocumentData(timesheetDocs);
-        //         }
-
-        //     });
-
 
 rows.forEach(row -> {
 
