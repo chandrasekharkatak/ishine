@@ -1533,7 +1533,7 @@ public class TimesheetServiceNew {
         	
 			List<Integer> authorizedProjectIds = employeeTimesheetsNewRepository.getAllAuthorizedProjectIds(authorizedEmployees);
 
-	        if (object.getAllEmp()) {
+//	        if (object.getAllEmp()) {
 	        	
 	        	LocalDate fromLocalDate = LocalDate.of(object.getYear(), object.getMonth(), 1);
 	        	LocalDate toLocalDate = YearMonth.of(object.getYear(), object.getMonth()).atEndOfMonth();
@@ -1593,36 +1593,37 @@ public class TimesheetServiceNew {
 	                    projectManagers,clientName,teamName,department,statusCode , authorizedEmployees , authorizedProjectIds);
 	            
 	            
-	        } else {
-	        	System.out.println("else"+authorizedEmployees);
-	        	System.out.println(authorizedProjectIds);
-	        	employeeIds = employeeTimesheetsNewRepository.getPaginatedEmployeeIdsForClientAttendance(
-	        			object.getMonth(),
-	                    object.getYear(),
-	                    object.getEmpId(),
-	                    object.getStatus(),
-						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,offset,pageSize);
-	        	
-	            empTimesheet = employeeTimesheetsNewRepository.getEmployeeViewForClientAttendanceStatus(
-	                    object.getMonth(),
-	                    object.getYear(),
-	                    object.getEmpId(),
-	                    object.getStatus(),
-						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,
-	                    object.getSortBy(),
-	                    object.getSortDirection(),employeeIds
-						);
-	            
-	            totalDistinctEmployees = employeeTimesheetsNewRepository.getTotalEmployeeCountForClientApplicable(
-	            		object.getMonth(),
-	                    object.getYear(),
-	                    object.getEmpId(),
-	                    object.getStatus(),
-						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
-	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode);
-	        }
+//	        } 
+//	        else {
+//	        	System.out.println("else"+authorizedEmployees);
+//	        	System.out.println(authorizedProjectIds);
+//	        	employeeIds = employeeTimesheetsNewRepository.getPaginatedEmployeeIdsForClientAttendance(
+//	        			object.getMonth(),
+//	                    object.getYear(),
+//	                    object.getEmpId(),
+//	                    object.getStatus(),
+//						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+//	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,offset,pageSize);
+//	        	
+//	            empTimesheet = employeeTimesheetsNewRepository.getEmployeeViewForClientAttendanceStatus(
+//	                    object.getMonth(),
+//	                    object.getYear(),
+//	                    object.getEmpId(),
+//	                    object.getStatus(),
+//						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+//	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,
+//	                    object.getSortBy(),
+//	                    object.getSortDirection(),employeeIds
+//						);
+//	            
+//	            totalDistinctEmployees = employeeTimesheetsNewRepository.getTotalEmployeeCountForClientApplicable(
+//	            		object.getMonth(),
+//	                    object.getYear(),
+//	                    object.getEmpId(),
+//	                    object.getStatus(),
+//						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+//	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode);
+//	        }
 	        
 	        // Map to hold employees grouped by empId
 	        Map<Long, EmployeeInfoDTO> employeeMap = new HashMap<>();

@@ -1266,7 +1266,8 @@ public class ProjectService {
 				List<Employee> managerObjs = getEmployeesByEmployeementIds(poProjectSyncDTO.getPoProjectManagers());
 				Integer clientId = null;
 
-				Client client = clientsRepository.findByPoClientId(poProjectSyncDTO.getPoClientId());
+				Optional<Client> clientOptinal = clientsRepository.findByPoClientId(poProjectSyncDTO.getPoClientId().longValue());
+				Client client = clientOptinal.get();
 				ClientLocation clientLocation = null;
 				if (client != null) {
 					clientId = client.getClientId();

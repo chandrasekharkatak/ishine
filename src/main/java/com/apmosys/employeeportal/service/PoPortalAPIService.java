@@ -1813,8 +1813,10 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	            }
 	            if (minPoStartDate != null && maxPoEndDate != null) {
 
-	                Date projectStartDate = projectDto.getProjectStartDate();
-	                Date projectEndDate = projectDto.getProjectEndDate();
+	                Date projectStartDate = new Date();
+//	                		projectDto.getProjectStartDate();
+	                Date projectEndDate = new Date();
+//	                		projectDto.getProjectEndDate();
 
 	                boolean mismatch = false;
 
