@@ -2246,16 +2246,38 @@ projectList: any[] = [];
           const skipped = res?.serviceResponse?.skipped || {};
 
           if (processed.length) {
-            message += `${processed.length} timesheet(s) approved successfully.\n`;
-          }
+              message += `<p><strong>${processed.length} timesheet(s) approved successfully.</strong></p>`;
+            }
 
           const skippedKeys = Object.keys(skipped);
-          if (skippedKeys.length) {
-            message += `\nSkipped:\n`;
-            skippedKeys.forEach(id => {
-              message += `Timesheet ${id}: ${skipped[id]}\n`;
-            });
-          }
+          if (skipped.length) {
+
+              message += `
+                <p><strong>Skipped Timesheets</strong></p>
+                <table class="table table-bordered table-sm">
+                  <thead>
+                    <tr>
+                      <th>EMP ID</th>
+                      <th>Date</th>
+                      <th>Reason</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+              `;
+
+              skipped.forEach((item: any) => {
+                message += `
+                  <tr>
+                    <td>${item.employmentId}</td>
+                    <td>${item.date}</td>
+                    <td>${item.reason}</td>
+                  </tr>
+                `;
+              });
+
+              message += `</tbody></table>`;
+            }
+
 
           this.clearAllSelections();
           this.selectedStatus = 2;

@@ -71,6 +71,7 @@ import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
+import com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO;
 import com.apmosys.employeeportal.dto.ExceptionReportDTO;
 import com.apmosys.employeeportal.dto.ExpiredPoDto;
 import com.apmosys.employeeportal.dto.FCLineItemDTO;
@@ -125,6 +126,7 @@ import com.apmosys.employeeportal.dto.RmgProjectDto;
 import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.SkippedEmployeeDTO;
+import com.apmosys.employeeportal.dto.SkippedTimesheetDTO;
 import com.apmosys.employeeportal.dto.SpocDTO;
 import com.apmosys.employeeportal.dto.SummaryChartDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
@@ -14813,18 +14815,41 @@ public class ResourceManagementService {
         	         throw new IllegalArgumentException("Only one timesheet can be rejected at a time.");
         	     }
 //        	     List<Object[]> result=projectTimesheetStatusNewRepository.findProjectsForTimesheetIds(TimesheetLists);
-        	     List<EmployeeTimesheetsNew> timesheets =
-        	                employeeTimesheetsNewRepository.findAllById(TimesheetLists);
-        	     Map<Long, String> skippedTimesheets = new HashMap<>();
-        	        List<Long> validTimesheetIds = new ArrayList<>();
-        	     for (EmployeeTimesheetsNew ts : timesheets) {
+        	     List<EmployeeTimesheetsNewDTO> timesheets =
+        	                employeeTimesheetsNewRepository.fetchTimesheetsWithEmploymentId(TimesheetLists);
+        	     List<SkippedTimesheetDTO> skippedTimesheets = new ArrayList<>();
 
+        	        List<Long> validTimesheetIds = new ArrayList<>();
+        	     for (EmployeeTimesheetsNewDTO ts : timesheets) {
+        	    	 String prefix = "A-";
+
+        	    	 if ("true".equalsIgnoreCase(ts.getIsProd())) {
+        	    	     prefix = "AP-";
+        	    	 }
+
+        	    	 String formattedEmpId = prefix + ts.getEmployementID();
         	            if (ts.getStatus() == 1) {
         	                validTimesheetIds.add(ts.getTimesheetId());
         	            } else if (ts.getStatus() == 2) {
-        	                skippedTimesheets.put(ts.getTimesheetId(), "Already Approved");
+        	            	skippedTimesheets.add(
+        	            		    new SkippedTimesheetDTO(
+        	            		        ts.getTimesheetId(),
+        	            		        formattedEmpId,
+        	            		        ts.getDate(),
+        	            		        "Already Approved"
+        	            		    )
+        	            		);
+
         	            } else if (ts.getStatus() == 3) {
-        	                skippedTimesheets.put(ts.getTimesheetId(), "Already Rejected");
+        	            	skippedTimesheets.add(
+        	            		    new SkippedTimesheetDTO(
+        	            		        ts.getTimesheetId(),
+        	            		        formattedEmpId,
+        	            		        ts.getDate(),
+        	            		        "Already Rejected"
+        	            		    )
+        	            		);
+
         	            }
         	        }
 

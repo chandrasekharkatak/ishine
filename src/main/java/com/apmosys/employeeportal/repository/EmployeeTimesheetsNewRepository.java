@@ -46,6 +46,34 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	java.util.Optional<EmployeeTimesheetsNew> findByEmpIdAndDateNew(@Param("empId") Long empId,
 			@Param("date") LocalDate date);
 	
+	
+	@Query("SELECT new com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO(" +
+		       "et.timesheetId, " +
+		       "et.createdBy, " +
+		       "et.createdOn, " +
+		       "et.updatedBy, " +
+		       "et.isNightShift, " +
+		       "et.updatedOn, " +
+		       "et.date, " +
+		       "et.dayTypeId, " +
+		       "et.empId, " +
+		       "et.status, " +
+		       "et.workCheckIn, " +
+		       "et.workCheckOut, " +
+		       "et.totalWorkingMinutes, " +
+		       "et.leaveTypeMasterId, " +
+		       "et.description, " +
+		       "et.currentManagerId, " +
+		       "e.employeementId, " +
+		       "e.isApmosysProduct) " +
+		       "FROM EmployeeTimesheetsNew et " +
+		       "JOIN Employee e ON et.empId = e.empId "+
+		       "WHERE et.timesheetId IN :timesheetIds")
+		List<EmployeeTimesheetsNewDTO> fetchTimesheetsWithEmploymentId(@Param("timesheetIds") List<Long> timesheetIds);
+
+	
+	
+	
 	@Modifying
 	@Transactional
 	@Query("UPDATE EmployeeTimesheetsNew et " +
