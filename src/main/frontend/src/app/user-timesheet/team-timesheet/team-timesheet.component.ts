@@ -2616,7 +2616,9 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
 
   const projectRejections = this.rejectEntries.map(entry => ({
 
-  projectId: Number(entry.projectId),
+    projectIds: (entry.projectIds || []).map((p: any) =>
+    typeof p === 'object' ? p.projectId : p
+  ),
 
   rejectionIds: entry.reasons.map((r: any) =>
     typeof r === 'object' ? r.rejectionId : r
@@ -2667,7 +2669,7 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
 
   this.rejectEntries = [
     {
-      projectId: null,
+      projectIds: [],
       reasons: [],
       remark: ''
     }
@@ -2682,7 +2684,7 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
 }
 addRejectRow() {
   this.rejectEntries.push({
-    projectId: null,
+    projectIds: [],
     reasons: [],
     remark: ''
   });
@@ -2693,7 +2695,7 @@ removeRejectRow(index: number) {
 }
 isRejectFormValid(): boolean {
   return this.rejectEntries.every(entry =>
-    entry.projectId &&
+    entry.projectIds?.length &&
     entry.reasons?.length &&
     entry.remark?.trim().length > 0
   );

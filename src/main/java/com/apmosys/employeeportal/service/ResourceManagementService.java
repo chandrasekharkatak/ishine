@@ -14914,9 +14914,10 @@ public class ResourceManagementService {
 
         	        for (ProjectRejectionDTO pr : request.getProjectRejections()) {
 
-        	            Long projectId = pr.getProjectId();
+        	        	List<Long> projectIds = pr.getProjectIds();
         	            String remark = pr.getRejectRemark();
 
+        	            for (Long projectId : projectIds) {
         	            Long locationMappingId =
         	                    projectTimesheetStatusNewRepository
         	                            .findLocationMappingId(timesheetId, projectId.intValue());
@@ -14935,6 +14936,7 @@ public class ResourceManagementService {
         	                rejection.setRejectedOn(now);
 
         	                rejectionList.add(rejection);
+        	            }
         	            }
         	        }
         	    }

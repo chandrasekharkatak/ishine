@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 public class ProjectRejectionDTO {
-	 private Long projectId;
+	 private List<Long> projectIds;
 
 	 private List<Long> rejectionIds;
 

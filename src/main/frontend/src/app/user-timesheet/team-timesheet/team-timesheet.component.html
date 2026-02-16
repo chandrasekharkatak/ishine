@@ -1031,10 +1031,11 @@
             <app-my-select
               class="form-control"
               placeholder="Select Project"
-              [(ngModel)]="entry.projectId"
+              [(ngModel)]="entry.projectIds"
               [options]="projectList"
               displayKey="projectName"
-              valueKey="projectId">
+              valueKey="projectId"
+              [multiple]="true">
             </app-my-select>
           </div>
 

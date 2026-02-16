@@ -158,7 +158,7 @@ bulkRejectTimesheetsByIds1(payload: {
   status: string;
   updatedBy: number;
   projectRejections: {
-    projectId: number;
+    projectIds: number[];
     rejectionIds: number[];   
     rejectRemark: string;
   }[];
