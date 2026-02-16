@@ -3,22 +3,17 @@ package com.apmosys.employeeportal.service;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -46,20 +41,15 @@ import com.apmosys.employeeportal.dto.BillableInfo;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
-import com.apmosys.employeeportal.dto.EmployeeOtherActiveProject;
 import com.apmosys.employeeportal.dto.EmployeeJobRoleDept;
+import com.apmosys.employeeportal.dto.EmployeeOtherActiveProject;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
-import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoProjectDTO;
-import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
 import com.apmosys.employeeportal.dto.LeaveDTO;
-import com.apmosys.employeeportal.dto.LiftAndShiftTeamsDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.MigrateTeam;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
 import com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto;
 import com.apmosys.employeeportal.dto.ProjectDTO;
-import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
-import com.apmosys.employeeportal.dto.ProjectRequirementsDTO;
 import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
 import com.apmosys.employeeportal.dto.RmgTeamDto;
 import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
@@ -102,6 +92,7 @@ import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
 import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
 import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
@@ -176,6 +167,9 @@ public class TeamsService {
 	
 	@Autowired
 	TimesheetsRepository timesheetsRepository;
+	
+	@Autowired
+	EmployeeTimesheetsNewRepository timesheetsRepositoryNew;
 
 	@PersistenceContext
     private EntityManager entityManager;
@@ -240,6 +234,9 @@ public class TeamsService {
 	@Value("${timesheet.check.period}")
 	private String timesheetCheckPeriod;
 	
+	@Value("${app.team.fullPrivilegeRoleIds:1,13,15,53,78,93,111,115,120,143,144,145,146,152,170,177,178,183,187}")
+	private String fullPrivilegeRoleIdsConfig;
+
 	@Value("${maximum.timesheetCanBeFilledByMember}")
 	private String maximumTimesheetCanBeFilledByTeamMember;
 
@@ -1593,11 +1590,14 @@ public class TeamsService {
 			Map<Long, Object[]> employeeMap = new LinkedHashMap<>(); // Use LinkedHashMap to preserve order and avoid duplicates
 
 			// ========== 3-A: Full Privilege (Department-based access) ==========
-			// Check if employee has full privilege roles (job_role_id IN (1, 13, 15, 53, 78, 93, 111, 115, 120, 143, 144, 145, 146, 152, 170, 177, 178, 183, 187))
+			// Check if employee has full privilege roles (job_role_id from app.team.fullPrivilegeRoleIds)
 			List<EmployeeJobRoleDept> roleDeptList = employeeRepository.findRoleDeptByEmpId(empId);
 			Set<Long> fullAccessDeptIds = new HashSet<>();
-			
-			Set<Long> fullPrivilegeRoleIds = Set.of(1L, 13L, 15L, 53L, 78L, 93L, 111L, 115L, 120L, 143L, 144L, 145L, 146L, 152L, 170L, 177L, 178L, 183L, 187L);
+			Set<Long> fullPrivilegeRoleIds = Arrays.stream(fullPrivilegeRoleIdsConfig.split(","))
+					.map(String::trim)
+					.filter(s -> !s.isEmpty())
+					.map(Long::parseLong)
+					.collect(Collectors.toSet());
 			
 			for (EmployeeJobRoleDept roleDept : roleDeptList) {
 				if (fullPrivilegeRoleIds.contains(roleDept.getJobRoleId())) {
@@ -1629,12 +1629,10 @@ public class TeamsService {
 			// 3. Employee is an overhead
 			projectIds.addAll(employeeRepository.findProjectIdsWhereEmpIsOverhead(empId));
 			
-			// 4. Employee is a team lead
-			projectIds.addAll(employeeRepository.findProjectIdsWhereEmpIsTeamLead(empId));
+			// 4. Employee is a team lead or SPOC
+			projectIds.addAll(employeeRepository.findProjectIdsWhereEmpIsTeamLeadOrSpoc(empId));
 			
-			// 5. Employee is a SPOC
-			projectIds.addAll(employeeRepository.findProjectIdsWhereEmpIsSpoc(empId));
-
+			
 			// Fetch employees for all collected project IDs
 			if (!projectIds.isEmpty()) {
 				List<Object[]> projectEmployees = employeeRepository.getAllTeamMemberViewByProjectIds(new ArrayList<>(projectIds), empId);
@@ -1697,7 +1695,7 @@ public class TeamsService {
 					dto.setEmploymentId(object[25] != null ? object[25].toString() : null);
 					
 					Long emp_Id = object[0] != null ? Long.parseLong(object[0].toString()): null;
-					List<Object[]> timesheetFilledByMember = timesheetsRepository.getTimesheetFilledByMemberOLD(emp_Id,date);
+					List<Object[]> timesheetFilledByMember = timesheetsRepositoryNew.getTimesheetFilledByMember(emp_Id,date);
 					
 					if(timesheetFilledByMember.size() >= Long.parseLong(maximumTimesheetCanBeFilledByTeamMember)) {
 						dto.setIsTimesheetFilledByMember("true");

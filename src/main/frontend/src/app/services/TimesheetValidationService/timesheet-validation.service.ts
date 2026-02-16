@@ -67,119 +67,108 @@ export class TimesheetValidationService {
   constructor(private configService: TimesheetConfigService) {}
 
   /**
-   * Main validation method for timesheet creation
-   * Validates all aspects of the timesheet form
+   * Main validation method for timesheet creation.
+   * Validates in order (basic → locations → hours → documents). Fail-fast: returns immediately on first error.
    */
   validateCreate(context: TimesheetValidationContext): ValidationResult {
-    const errors: ValidationError[] = [];
-    const warnings: string[] = [];
-    const highlightedLocationIds: number[] = [];
+    // 1. Basic validations (top-level, in order); return on first error
+    const basicResult = this.validateBasicFields(context);
+    if (basicResult.errors.length > 0) {
+      return { ...basicResult, warnings: this.deduplicateWarnings(basicResult.warnings) };
+    }
 
-    // 1. Basic Validations
-    const basicValidationResult = this.validateBasicFields(context);
-    errors.push(...basicValidationResult.errors);
-    warnings.push(...basicValidationResult.warnings);
+    // 2. Location & project validations (location-level fields first, then projects); return on first error
+    const locationResult = this.validateLocationsAndProjects(context);
+    if (locationResult.errors.length > 0) {
+      return {
+        ...locationResult,
+        warnings: this.deduplicateWarnings(locationResult.warnings),
+        highlightedLocationIds: locationResult.highlightedLocationIds || []
+      };
+    }
 
-    // 2. Location & Project Validations
-    const locationValidationResult = this.validateLocationsAndProjects(context);
-    errors.push(...locationValidationResult.errors);
-    warnings.push(...locationValidationResult.warnings);
-    highlightedLocationIds.push(...(locationValidationResult.highlightedLocationIds || []));
+    // 3. Hours validations; return on first error
+    const hoursResult = this.validateHours(context);
+    if (hoursResult.errors.length > 0) {
+      return {
+        ...hoursResult,
+        warnings: this.deduplicateWarnings(hoursResult.warnings),
+        highlightedLocationIds: hoursResult.highlightedLocationIds || []
+      };
+    }
 
-    // 3. Hours Validations
-    const hoursValidationResult = this.validateHours(context);
-    errors.push(...hoursValidationResult.errors);
-    warnings.push(...hoursValidationResult.warnings);
-    highlightedLocationIds.push(...(hoursValidationResult.highlightedLocationIds || []));
+    // 4. Document upload validations; return on first error
+    const documentResult = this.validateDocumentUploads(context);
+    if (documentResult.errors.length > 0) {
+      return { ...documentResult, warnings: this.deduplicateWarnings(documentResult.warnings) };
+    }
 
-    // 4. Document Upload Validations
-    const documentValidationResult = this.validateDocumentUploads(context);
-    errors.push(...documentValidationResult.errors);
-    warnings.push(...documentValidationResult.warnings);
-
+    const warnings = this.deduplicateWarnings([
+      ...basicResult.warnings,
+      ...locationResult.warnings,
+      ...hoursResult.warnings,
+      ...documentResult.warnings
+    ]);
+    const highlightedLocationIds = [
+      ...(locationResult.highlightedLocationIds || []),
+      ...(hoursResult.highlightedLocationIds || [])
+    ];
     return {
-      isValid: errors.length === 0,
-      errors: this.deduplicateErrors(errors),
-      warnings: this.deduplicateWarnings(warnings),
+      isValid: true,
+      errors: [],
+      warnings,
       highlightedLocationIds: [...new Set(highlightedLocationIds)]
     };
   }
 
   /**
-   * Validates basic timesheet fields
+   * Validates basic timesheet fields in order (top to bottom). Returns on first error (fail-fast).
    */
   private validateBasicFields(context: TimesheetValidationContext): ValidationResult {
     const errors: ValidationError[] = [];
     const warnings: string[] = [];
+    const isDayTypeFillable = this.isDayTypeFillable(context.dayType);
 
-    // Employee selection validation
+    // 1. Employee selection
     if (!context.timesheetFilledForUser?.empId) {
-      errors.push({
-        field: 'employee',
-        message: 'Employee selection is required',
-        scope: 'TIMESHEET'
-      });
+      errors.push({ field: 'employee', message: 'Employee selection is required', scope: 'TIMESHEET' });
+      return { isValid: false, errors, warnings };
     }
 
-    // Team timesheet self-selection validation
+    // 2. Team timesheet self-selection
     if (
       context.timesheetAppliedFor?.toUpperCase() === 'TEAM' &&
       context.currentUser?.empId === context.timesheetFilledForUser?.empId
     ) {
-      errors.push({
-        field: 'employee',
-        message: 'You cannot select yourself for Team Timesheet',
-        scope: 'TIMESHEET'
-      });
+      errors.push({ field: 'employee', message: 'You cannot select yourself for Team Timesheet', scope: 'TIMESHEET' });
+      return { isValid: false, errors, warnings };
     }
 
-    // Day type validation
+    // 3. Day type
     if (!context.dayType) {
-      errors.push({
-        field: 'dayType',
-        message: 'Day type cannot be null',
-        scope: 'TIMESHEET'
-      });
+      errors.push({ field: 'dayType', message: 'Day type cannot be null', scope: 'TIMESHEET' });
+      return { isValid: false, errors, warnings };
     }
 
-    // Date validation
+    // 4. From date
     if (!context.fromDate) {
-      errors.push({
-        field: 'fromDate',
-        message: 'Date / From Date cannot be null',
-        scope: 'TIMESHEET'
-      });
-    } else {
-      // Future date validation
-      const fromDateParsed = this.parseDDMMYYYY(context.fromDate);
-      if (fromDateParsed && fromDateParsed > new Date()) {
-        errors.push({
-          field: 'fromDate',
-          message: 'Date / From Date cannot be a future date',
-          scope: 'TIMESHEET'
-        });
-      }
+      errors.push({ field: 'fromDate', message: 'Date / From Date cannot be null', scope: 'TIMESHEET' });
+      return { isValid: false, errors, warnings };
+    }
+    const fromDateParsed = this.parseDDMMYYYY(context.fromDate);
+    if (fromDateParsed && fromDateParsed > new Date()) {
+      errors.push({ field: 'fromDate', message: 'Date / From Date cannot be a future date', scope: 'TIMESHEET' });
+      return { isValid: false, errors, warnings };
     }
 
-    // Night shift validations
-    const isDayTypeFillable = this.isDayTypeFillable(context.dayType);
-    
+    // 5. Night shift: To Date required
     if (context.isNightShift && isDayTypeFillable && !context.toDate) {
-      errors.push({
-        field: 'toDate',
-        message: 'To Date is required for Night Shift',
-        scope: 'TIMESHEET'
-      });
+      errors.push({ field: 'toDate', message: 'To Date is required for Night Shift', scope: 'TIMESHEET' });
+      return { isValid: false, errors, warnings };
     }
 
-    // For night shift on fillable day types: To Date must be same as From Date OR exactly one day after
-    if (
-      context.isNightShift &&
-      isDayTypeFillable &&
-      context.toDate &&
-      context.fromDate
-    ) {
-      const fromDateParsed = this.parseDDMMYYYY(context.fromDate);
+    // 6. Night shift: To Date same or next day
+    if (context.isNightShift && isDayTypeFillable && context.toDate && context.fromDate) {
       const toDateParsed = this.parseDDMMYYYY(context.toDate);
       if (fromDateParsed && toDateParsed) {
         const diffDays = Math.round(
@@ -191,109 +180,78 @@ export class TimesheetValidationService {
             message: 'For Night Shift, To Date must be the same as From Date OR exactly one day after From Date',
             scope: 'TIMESHEET'
           });
+          return { isValid: false, errors, warnings };
         }
       }
     }
 
+    // 7. Night shift not allowed for non-fillable day type
     if (context.isNightShift && !isDayTypeFillable) {
-      errors.push({
-        field: 'nightShift',
-        message: 'Night shift not allowed for selected day type',
-        scope: 'TIMESHEET'
-      });
+      errors.push({ field: 'nightShift', message: 'Night shift not allowed for selected day type', scope: 'TIMESHEET' });
+      return { isValid: false, errors, warnings };
     }
 
-    // Time validations for fillable day types
+    // 8. Time validations for fillable day types
     if (isDayTypeFillable) {
       if (!context.apmosysInTime) {
-        errors.push({
-          field: 'apmosysInTime',
-          message: 'Work check in time must be filled',
-          scope: 'TIMESHEET'
-        });
+        errors.push({ field: 'apmosysInTime', message: 'Work check in time must be filled', scope: 'TIMESHEET' });
+        return { isValid: false, errors, warnings };
       }
-
       if (!context.apmosysOutTime) {
-        errors.push({
-          field: 'apmosysOutTime',
-          message: 'Work check out time must be filled',
-          scope: 'TIMESHEET'
-        });
+        errors.push({ field: 'apmosysOutTime', message: 'Work check out time must be filled', scope: 'TIMESHEET' });
+        return { isValid: false, errors, warnings };
       }
-
       if (context.totalPresence === 0) {
-        errors.push({
-          field: 'totalPresence',
-          message: 'Your total presence cannot be 0',
-          scope: 'TIMESHEET'
-        });
+        errors.push({ field: 'totalPresence', message: 'Your total presence cannot be 0', scope: 'TIMESHEET' });
+        return { isValid: false, errors, warnings };
       }
-
-      // Additional validation: Work check-out must be greater than work check-in
-      if (context.apmosysInTime && context.apmosysOutTime) {
-        // For night shift: only validate when From Date and To Date are the same
-        let shouldValidateOrder = true;
-        if (context.isNightShift && context.toDate && context.fromDate) {
-          const fromDateParsed = this.parseDDMMYYYY(context.fromDate);
-          const toDateParsed = this.parseDDMMYYYY(context.toDate);
-          if (fromDateParsed && toDateParsed) {
-            const diffDays = Math.round(
-              (toDateParsed.getTime() - fromDateParsed.getTime()) / (1000 * 60 * 60 * 24)
-            );
-            if (diffDays !== 0) {
-              shouldValidateOrder = false; // Out time is on next day, skip same-day ordering check
-            }
-          }
+      // Work check-out must be greater than work check-in
+      let shouldValidateOrder = true;
+      if (context.isNightShift && context.toDate && context.fromDate) {
+        const toDateParsed = this.parseDDMMYYYY(context.toDate);
+        if (fromDateParsed && toDateParsed) {
+          const diffDays = Math.round(
+            (toDateParsed.getTime() - fromDateParsed.getTime()) / (1000 * 60 * 60 * 24)
+          );
+          if (diffDays !== 0) shouldValidateOrder = false;
         }
-
-        if (shouldValidateOrder) {
-          const inTime24 = this.parseTimeTo24Hour(context.apmosysInTime);
-          const outTime24 = this.parseTimeTo24Hour(context.apmosysOutTime);
-          if (inTime24 && outTime24) {
-            const inTotalMinutes = inTime24.hour * 60 + inTime24.minute;
-            const outTotalMinutes = outTime24.hour * 60 + outTime24.minute;
-            if (outTotalMinutes <= inTotalMinutes) {
-              errors.push({
-                field: 'apmosysOutTime',
-                message: 'Work Check-Out time must be greater than Work Check-In time',
-                scope: 'TIMESHEET'
-              });
-            }
+      }
+      if (shouldValidateOrder) {
+        const inTime24 = this.parseTimeTo24Hour(context.apmosysInTime);
+        const outTime24 = this.parseTimeTo24Hour(context.apmosysOutTime);
+        if (inTime24 && outTime24) {
+          const inTotalMinutes = inTime24.hour * 60 + inTime24.minute;
+          const outTotalMinutes = outTime24.hour * 60 + outTime24.minute;
+          if (outTotalMinutes <= inTotalMinutes) {
+            errors.push({
+              field: 'apmosysOutTime',
+              message: 'Work Check-Out time must be greater than Work Check-In time',
+              scope: 'TIMESHEET'
+            });
+            return { isValid: false, errors, warnings };
           }
         }
       }
     } else {
-      // Non-fillable day types should not have times
       if (context.apmosysInTime) {
-        errors.push({
-          field: 'apmosysInTime',
-          message: 'Work check in time cannot be filled for this day type',
-          scope: 'TIMESHEET'
-        });
+        errors.push({ field: 'apmosysInTime', message: 'Work check in time cannot be filled for this day type', scope: 'TIMESHEET' });
+        return { isValid: false, errors, warnings };
       }
-
       if (context.apmosysOutTime) {
-        errors.push({
-          field: 'apmosysOutTime',
-          message: 'Work check out time cannot be filled for this day type',
-          scope: 'TIMESHEET'
-        });
+        errors.push({ field: 'apmosysOutTime', message: 'Work check out time cannot be filled for this day type', scope: 'TIMESHEET' });
+        return { isValid: false, errors, warnings };
       }
-
       if (context.totalPresence > 0) {
-        errors.push({
-          field: 'totalPresence',
-          message: 'Total presence cannot be greater than 0 for this day type',
-          scope: 'TIMESHEET'
-        });
+        errors.push({ field: 'totalPresence', message: 'Total presence cannot be greater than 0 for this day type', scope: 'TIMESHEET' });
+        return { isValid: false, errors, warnings };
       }
     }
 
-    return { isValid: errors.length === 0, errors, warnings };
+    return { isValid: true, errors, warnings };
   }
 
   /**
-   * Validates locations and projects
+   * Validates locations and projects. Order: location-level fields first (location selected, then location times), then projects and their fields in order (projectId → clientId → clientLocationId → clientApprovalStatus → activities/description). Returns on first error (fail-fast).
    */
   private validateLocationsAndProjects(context: TimesheetValidationContext): ValidationResult {
     const errors: ValidationError[] = [];
@@ -301,46 +259,48 @@ export class TimesheetValidationService {
     const highlightedLocationIds: number[] = [];
     const isDayTypeFillable = this.isDayTypeFillable(context.dayType);
 
-    if (!context.timesheetLocations || context.timesheetLocations.length === 0) {
-      errors.push({
-        field: 'locations',
-        message: 'At least one location is required',
-        scope: 'LOCATION'
-      });
+    const fail = (err: ValidationError, locationId?: number): ValidationResult => {
+      errors.push(err);
+      if (locationId) highlightedLocationIds.push(locationId);
       return { isValid: false, errors, warnings, highlightedLocationIds };
+    };
+
+    if (!context.timesheetLocations || context.timesheetLocations.length === 0) {
+      return fail({ field: 'locations', message: 'At least one location is required', scope: 'LOCATION' });
     }
 
     for (let lIndex = 0; lIndex < context.timesheetLocations.length; lIndex++) {
       const location = context.timesheetLocations[lIndex];
-      const selectedLocationData = context.workLocationList?.find(
-        l => l.workLocationTypeId === location.workLocationTypeId
-      );
+      const locationId = location.workLocationTypeId || 0;
+      const locLabel = context.workLocationList?.find(l => l.workLocationTypeId === location.workLocationTypeId)?.code || `Location ${lIndex + 1}`;
 
-      // Location time validations for fillable day types
+      // 1. Location must be selected (workLocationTypeId)
+      if (!location.workLocationTypeId) {
+        return fail({
+          field: 'workLocationTypeId',
+          message: `Location must be selected for ${locLabel}`,
+          scope: 'LOCATION',
+          locationIndex: lIndex,
+          locationId
+        }, locationId);
+      }
+
+      // 2. Location times (fillable day types only) – in order: in-time, out-time, out > in
       if (isDayTypeFillable) {
-        // Validate location in-time
         if (
           location.locationInTime &&
           context.fromDate &&
           context.apmosysInTime &&
-          !this.validateLocationInTime(
-            location.locationInTime,
-            context.fromDate,
-            context.apmosysInTime
-          )
+          !this.validateLocationInTime(location.locationInTime, context.fromDate, context.apmosysInTime)
         ) {
-          const locationId = location.workLocationTypeId || 0;
-          errors.push({
+          return fail({
             field: 'locationInTime',
-            message: `Log-In time for location ${selectedLocationData?.code || lIndex + 1} cannot be less than Work Check-In time`,
+            message: `Log-In time for ${locLabel} cannot be less than Work Check-In time`,
             scope: 'LOCATION',
             locationIndex: lIndex,
             locationId
-          });
-          if (locationId) highlightedLocationIds.push(locationId);
+          }, locationId);
         }
-
-        // Validate location out-time
         if (
           location.locationOutTime &&
           context.fromDate &&
@@ -353,22 +313,16 @@ export class TimesheetValidationService {
             context.toDate || undefined
           )
         ) {
-          const locationId = location.workLocationTypeId || 0;
-          errors.push({
+          return fail({
             field: 'locationOutTime',
-            message: `Log-Out time for location ${selectedLocationData?.code || lIndex + 1} cannot exceed Work Check-Out time`,
+            message: `Log-Out time for ${locLabel} cannot exceed Work Check-Out time`,
             scope: 'LOCATION',
             locationIndex: lIndex,
             locationId
-          });
-          if (locationId) highlightedLocationIds.push(locationId);
+          }, locationId);
         }
-
-        // Additional validation: Location log-out must be greater than log-in (same-day validation)
         if (location.locationInTime && location.locationOutTime) {
           let shouldValidateOrder = true;
-
-          // For night shift: only validate when From Date and To Date are the same
           if (context.isNightShift && context.toDate && context.fromDate) {
             const fromDateParsed = this.parseDDMMYYYY(context.fromDate);
             const toDateParsed = this.parseDDMMYYYY(context.toDate);
@@ -376,12 +330,9 @@ export class TimesheetValidationService {
               const diffDays = Math.round(
                 (toDateParsed.getTime() - fromDateParsed.getTime()) / (1000 * 60 * 60 * 24)
               );
-              if (diffDays !== 0) {
-                shouldValidateOrder = false; // Out time is on next day, skip same-day ordering check
-              }
+              if (diffDays !== 0) shouldValidateOrder = false;
             }
           }
-
           if (shouldValidateOrder) {
             const inTime24 = this.parseTimeTo24Hour(location.locationInTime);
             const outTime24 = this.parseTimeTo24Hour(location.locationOutTime);
@@ -389,175 +340,138 @@ export class TimesheetValidationService {
               const inTotalMinutes = inTime24.hour * 60 + inTime24.minute;
               const outTotalMinutes = outTime24.hour * 60 + outTime24.minute;
               if (outTotalMinutes <= inTotalMinutes) {
-                const locationId = location.workLocationTypeId || 0;
-                errors.push({
+                return fail({
                   field: 'locationTimeOrder',
-                  message: `Log-Out time for location ${selectedLocationData?.code || lIndex + 1} must be greater than Log-In time`,
+                  message: `Log-Out time for ${locLabel} must be greater than Log-In time`,
                   scope: 'LOCATION',
                   locationIndex: lIndex,
                   locationId
-                });
-                if (locationId) highlightedLocationIds.push(locationId);
+                }, locationId);
               }
             }
           }
         }
       }
 
-      // Project validations
+      // 3. At least one project
       if (!location.projects || location.projects.length === 0) {
-        const locationId = location.workLocationTypeId || 0;
-        errors.push({
+        return fail({
           field: 'projects',
-          message: `For the location ${selectedLocationData?.code || lIndex + 1} no project is provided`,
+          message: `For ${locLabel} no project is provided`,
           scope: 'PROJECT',
           locationIndex: lIndex,
           locationId
-        });
-        if (locationId) highlightedLocationIds.push(locationId);
-        continue;
+        }, locationId);
       }
 
+      // 4. Each project: projectId → clientId → clientLocationId → clientApprovalStatus → activities / description
       for (let pIndex = 0; pIndex < location.projects.length; pIndex++) {
         const project = location.projects[pIndex];
-        const locationId = location.workLocationTypeId || 0;
 
-        // Project selection validation
         if (!project.projectId) {
-          errors.push({
+          return fail({
             field: 'projectId',
-            message: `Project ${pIndex + 1} is not selected for location ${selectedLocationData?.code || lIndex + 1}`,
+            message: `Project ${pIndex + 1} is not selected for ${locLabel}`,
             scope: 'PROJECT',
             locationIndex: lIndex,
             projectIndex: pIndex,
             locationId
-          });
-          if (locationId) highlightedLocationIds.push(locationId);
-          continue;
+          }, locationId);
         }
-
-        // Client validation
         if (!project.clientId) {
-          errors.push({
+          return fail({
             field: 'clientId',
-            message: `Client is mandatory for Project ${pIndex + 1} in location ${selectedLocationData?.code || lIndex + 1}`,
+            message: `Client is mandatory for Project ${pIndex + 1} in ${locLabel}`,
             scope: 'PROJECT',
             locationIndex: lIndex,
             projectIndex: pIndex,
             locationId
-          });
-          if (locationId) highlightedLocationIds.push(locationId);
+          }, locationId);
         }
-
-        // Client location validation
         if (!project.clientLocationId) {
-          errors.push({
+          return fail({
             field: 'clientLocationId',
-            message: `Client Location is mandatory for Project ${pIndex + 1} in location ${selectedLocationData?.code || lIndex + 1}`,
+            message: `Client Location is mandatory for Project ${pIndex + 1} in ${locLabel}`,
             scope: 'PROJECT',
             locationIndex: lIndex,
             projectIndex: pIndex,
             locationId
-          });
-          if (locationId) highlightedLocationIds.push(locationId);
+          }, locationId);
         }
-
-        // Client approval status validation (for projects with client side ID)
-        if (
-          project.clientSideId &&
-          isDayTypeFillable &&
-          !project.clientApprovalStatus
-        ) {
-          errors.push({
+        if (project.clientSideId && isDayTypeFillable && !project.clientApprovalStatus) {
+          return fail({
             field: 'clientApprovalStatus',
-            message: `Client DSR Approval Status is mandatory for Project ${pIndex + 1} in location ${selectedLocationData?.code || lIndex + 1}`,
+            message: `Client DSR Approval Status is mandatory for Project ${pIndex + 1} in ${locLabel}`,
             scope: 'PROJECT',
             locationIndex: lIndex,
             projectIndex: pIndex,
             locationId
-          });
-          if (locationId) highlightedLocationIds.push(locationId);
+          }, locationId);
         }
 
-        // Activity validations (only for fillable day types)
         if (isDayTypeFillable) {
           if (!project.activities || project.activities.length === 0) {
-            errors.push({
+            return fail({
               field: 'activities',
-              message: `At least one activity is required for Project ${pIndex + 1} in location ${selectedLocationData?.code || lIndex + 1}`,
+              message: `At least one activity is required for Project ${pIndex + 1} in ${locLabel}`,
               scope: 'ACTIVITY',
               locationIndex: lIndex,
               projectIndex: pIndex,
               locationId
-            });
-            if (locationId) highlightedLocationIds.push(locationId);
-            continue;
+            }, locationId);
           }
-
-          // Validate each activity
           for (let aIndex = 0; aIndex < project.activities.length; aIndex++) {
             const activity = project.activities[aIndex];
-
-            // Team validation
             if (!activity.teamId) {
-              errors.push({
+              return fail({
                 field: 'teamId',
-                message: `Team is required for Activity ${aIndex + 1} in Project ${pIndex + 1} (${selectedLocationData?.code || lIndex + 1})`,
+                message: `Team is required for Activity ${aIndex + 1} in Project ${pIndex + 1} (${locLabel})`,
                 scope: 'ACTIVITY',
                 locationIndex: lIndex,
                 projectIndex: pIndex,
                 activityIndex: aIndex,
                 locationId
-              });
-              if (locationId) highlightedLocationIds.push(locationId);
+              }, locationId);
             }
-
-            // Activity validation
             if (!activity.activityId) {
-              errors.push({
+              return fail({
                 field: 'activityId',
-                message: `Activity is required for Activity ${aIndex + 1} in Project ${pIndex + 1} (${selectedLocationData?.code || lIndex + 1})`,
+                message: `Activity is required for Activity in Project ${pIndex + 1} (${locLabel})`,
                 scope: 'ACTIVITY',
                 locationIndex: lIndex,
                 projectIndex: pIndex,
                 activityIndex: aIndex,
                 locationId
-              });
-              if (locationId) highlightedLocationIds.push(locationId);
+              }, locationId);
             }
-
-            // Duration validation
             if (!activity.durationMinutes || activity.durationMinutes <= 0) {
-              errors.push({
+              return fail({
                 field: 'durationMinutes',
-                message: `Hours must be greater than 0 for Activity ${aIndex + 1} in Project ${pIndex + 1} (${selectedLocationData?.code || lIndex + 1})`,
+                message: `Hours must be greater than 0 for Activity ${aIndex + 1} in Project ${pIndex + 1} (${locLabel})`,
                 scope: 'ACTIVITY',
                 locationIndex: lIndex,
                 projectIndex: pIndex,
                 activityIndex: aIndex,
                 locationId
-              });
-              if (locationId) highlightedLocationIds.push(locationId);
+              }, locationId);
             }
           }
         } else {
-          // Description validation for non-fillable day types
           if (!project.description || project.description.trim().length === 0) {
-            errors.push({
+            return fail({
               field: 'description',
-              message: `Description is required for Project ${pIndex + 1} in location ${selectedLocationData?.code || lIndex + 1} for the following day type`,
+              message: `Description is required for Project ${pIndex + 1} in ${locLabel}`,
               scope: 'PROJECT',
               locationIndex: lIndex,
               projectIndex: pIndex,
               locationId
-            });
-            if (locationId) highlightedLocationIds.push(locationId);
+            }, locationId);
           }
         }
       }
     }
 
-    return { isValid: errors.length === 0, errors, warnings, highlightedLocationIds };
+    return { isValid: true, errors, warnings, highlightedLocationIds };
   }
 
   /**
@@ -596,7 +510,7 @@ export class TimesheetValidationService {
         }
       }
 
-      // Validation: Project hours cannot exceed location hours
+      // Validation: Project hours cannot exceed location hours (fail-fast)
       if (
         location.totalWorkingHours !== null &&
         location.totalWorkingHours !== undefined &&
@@ -613,12 +527,14 @@ export class TimesheetValidationService {
           locationId
         });
         if (locationId) highlightedLocationIds.push(locationId);
+        return { isValid: false, errors, warnings, highlightedLocationIds };
       }
 
       totalLocationHours += location.totalWorkingHours || 0;
 
-      // Validation: Total location hours cannot exceed total presence
-      if (totalLocationHours > context.totalPresence) {
+      // Validation: Total location hours cannot exceed total presence (fail-fast)
+      const presenceWithTolerance = (context.totalPresence || 0) + 0.01;
+      if (totalLocationHours > presenceWithTolerance) {
         const selectedLocationData = context.workLocationList?.find(
           l => l.workLocationTypeId === location.workLocationTypeId
         );
@@ -630,6 +546,7 @@ export class TimesheetValidationService {
           locationId
         });
         if (locationId) highlightedLocationIds.push(locationId);
+        return { isValid: false, errors, warnings, highlightedLocationIds };
       }
     }
 
@@ -665,9 +582,8 @@ export class TimesheetValidationService {
         d => d.projectId === project.projectId
       );
 
-      // Filled Attendance Proof validation
+      // Filled Attendance Proof validation (fail-fast)
       const filledDoc = projectDocs.find(d => d.docType === 'Filled');
-
       if (!filledDoc || !filledDoc.uniqueIdentifier || !containsFile(filledDoc.uniqueIdentifier)) {
         errors.push({
           field: 'filledDocument',
@@ -675,19 +591,21 @@ export class TimesheetValidationService {
           scope: 'DOCUMENT',
           projectIndex: project.projectId || undefined
         });
-      } else if (filledDoc.fileError) {
+        return { isValid: false, errors, warnings };
+      }
+      if (filledDoc.fileError) {
         errors.push({
           field: 'filledDocument',
           message: `Filled Attendance Proof has an error for Project ${project.projectName || project.projectId}`,
           scope: 'DOCUMENT',
           projectIndex: project.projectId || undefined
         });
+        return { isValid: false, errors, warnings };
       }
 
-      // Approved Attendance Proof validation (only when status is Approved)
+      // Approved Attendance Proof validation (only when status is Approved) (fail-fast)
       if (project.clientApprovalStatus === 2) {
         const approvedDoc = projectDocs.find(d => d.docType === 'Approved');
-
         if (!approvedDoc || !approvedDoc.uniqueIdentifier || !containsFile(approvedDoc.uniqueIdentifier)) {
           errors.push({
             field: 'approvedDocument',
@@ -695,13 +613,16 @@ export class TimesheetValidationService {
             scope: 'DOCUMENT',
             projectIndex: project.projectId || undefined
           });
-        } else if (approvedDoc.fileError) {
+          return { isValid: false, errors, warnings };
+        }
+        if (approvedDoc.fileError) {
           errors.push({
             field: 'approvedDocument',
             message: `Approved Attendance Proof has an error for Project ${project.projectName || project.projectId}`,
             scope: 'DOCUMENT',
             projectIndex: project.projectId || undefined
           });
+          return { isValid: false, errors, warnings };
         }
       }
     }

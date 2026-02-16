@@ -2385,6 +2385,11 @@ get tooltipCta(): string {
   /* View Timesheets */
   getAllMyTimesheetsByEmpId(template?: TemplateRef<any>) {
     this.allMyTimesheets = [];
+
+    // When called on from date (start date) change: don't call API if end date is not yet set
+    if (this.startDate && (this.endDate == null || this.endDate === '' || this.endDate === undefined)) {
+      return;
+    }
     
     if (this.endDate < this.startDate) {
       if (!this.validationService.validateNullUndefinedEmptyString(this.startDate)) {
@@ -4633,22 +4638,23 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
   }
 
   /**
-   * Calculate total hours for location
+   * Calculate total hours for location.
+   * Uses location in/out times when available; otherwise falls back to sum of activity hours.
    */
   getTotalLocationHours(location: any): string {
-    if (!location.locationInTime || !location.locationOutTime) return '0.00';
-    // Handle both "HH:mm" and "HH:mm:ss" formats from backend
-    const inTime = moment(location.locationInTime, ['HH:mm:ss', 'HH:mm'], true);
-    const outTime = moment(location.locationOutTime, ['HH:mm:ss', 'HH:mm'], true);
-    
-    if (!inTime.isValid() || !outTime.isValid()) {
-      return '0.00';
+    if (location.locationInTime && location.locationOutTime) {
+      // Handle both "HH:mm" and "HH:mm:ss" formats from backend
+      const inTime = moment(location.locationInTime, ['HH:mm:ss', 'HH:mm'], true);
+      const outTime = moment(location.locationOutTime, ['HH:mm:ss', 'HH:mm'], true);
+      if (inTime.isValid() && outTime.isValid()) {
+        const diffMinutes = outTime.diff(inTime, 'minutes');
+        const adjustedDiff = diffMinutes < 0 ? diffMinutes + 1440 : diffMinutes;
+        return (adjustedDiff / 60).toFixed(2);
+      }
     }
-    
-    const diffMinutes = outTime.diff(inTime, 'minutes');
-    // Handle case where outTime is next day (night shift)
-    const adjustedDiff = diffMinutes < 0 ? diffMinutes + 1440 : diffMinutes;
-    return (adjustedDiff / 60).toFixed(2);
+    // Fallback: sum activity hours when in/out times are null (e.g. non-fillable days)
+    const totalActivityHours = this.getTotalLocationActivityHours(location);
+    return totalActivityHours > 0 ? totalActivityHours.toFixed(2) : '0.00';
   }
 
   /**

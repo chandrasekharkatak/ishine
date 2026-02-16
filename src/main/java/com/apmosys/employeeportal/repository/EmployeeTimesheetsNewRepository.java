@@ -14367,7 +14367,7 @@ Integer getTotalEmployeeCountForClientApplicable(
 			 		+ "            COALESCE(eds.pending_days, 0) AS clientSidePendingCount,\n"
 			 		+ "            COALESCE(eds.approved_days, 0) AS clientSideApprovedCount,\n"
 			 		+ "            CASE\n"
-			 		+ "				WHEN eiwd.expected_ishine_days is null THEN 'Defaulter'\\n\""	
+			 		+ "				WHEN eiwd.expected_ishine_days is null THEN 'Defaulter'\n"	
 			 		+ "                WHEN GREATEST(\n"
 			 		+ "                    0,\n"
 			 		+ "                    COALESCE(wds.expected_fill_count, 0)\n"

@@ -890,7 +890,7 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			+ " WHERE p.projectId = :projectId\n"
 			+ "	AND etm.active != 0\n"
 			+ "	AND t.isActive = 'Y'\n"
-			+ "	AND p.active = true")
+			+ "	AND p.active = 'true'")
 	List<Long> findDistinctEmpIdsByProjectId(@Param("projectId") Long projectId);
 
 	
