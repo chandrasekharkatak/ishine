@@ -14,6 +14,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
@@ -86,6 +87,18 @@ public class PoDetailsService {
 	
 	@Autowired
 	private EmployeeClientSideIdMappingRepository employeeClientSideIdMappingRepository;
+	
+	@Autowired
+	MailService mailService;
+	
+	@Value("${rmg.mail}")
+	private String rmgMail;
+	
+	@Value("${bd.mail}")
+	private String bdMail;
+
+	@Value("${finance.mail}")
+	private String financeMail;
 
 	public ProjectPoDetails createPoRTS(Project project, ProjectPoMappingWithResourceDTO dto, Client client) {
 
@@ -538,6 +551,10 @@ public class PoDetailsService {
 	        Integer primaryProjectId,
 	        ProjectPoMappingWithResourceDTO primaryProjectDto) {
 
+		if (primaryProjectDto == null || primaryProjectDto.getPoDetailsList() == null) {
+	        ExceptionLogContext.add("PO update skipped - empty payload | projectId=" + primaryProjectId);
+	        return;
+	    }
 	   
 	    Map<Long, PoDetailsForProjectPoMappingDTO> incomingMap =
 	            primaryProjectDto.getPoDetailsList()
@@ -586,48 +603,55 @@ public class PoDetailsService {
 	}
 	
 	
-	public void validateLinkingProjectsIntegrity(
-	        Project primaryProject,
-	        IshineLinkProjectDto dto) {
+	public void validatePoLinkIntegrity(Project primaryProject, IshineLinkProjectDto dto) {
 
-	    Set<Long> incomingPoIds =
-	            dto.getPrimaryProject().getPoDetailsList()
-	                    .stream()
-	                    .map(PoDetailsForProjectPoMappingDTO::getPoId)
-	                    .collect(Collectors.toSet());
-
-	    Set<Long> dbActivePoIds =
-	            new HashSet<>(
-	                    projectPoDetailsRepository
-	                            .findActivePoIdsByProjectId(primaryProject.getProjectId())
-	            );
-
-	    for (ProjectPoMappingWithResourceDTO deleted : dto.getDeletedProjects()) {
-
-	        Project deletedProject =
-	                projectRepository.findByPoProjectId(deleted.getProjectId());
-
-	        if (deletedProject == null) {
-	        	ExceptionLogContext.add("Deleted project not found | poProjectId="
-	                            + deleted.getProjectId());
-	            throw new RuntimeException(
-	                    "Deleted project not found | poProjectId="
-	                            + deleted.getProjectId());
-	        }
-
-	        dbActivePoIds.addAll(
-	                projectPoDetailsRepository
-	                        .findActivePoIdsByProjectId(deletedProject.getProjectId()));
-	    }
-
-	    if (!incomingPoIds.equals(dbActivePoIds)) {
-	        ExceptionLogContext.add(
-	                "PO mismatch during project linking | incoming=" + incomingPoIds
-	                        + " | db=" + dbActivePoIds);
-	        throw new RuntimeException("PO mismatch during project linking");
-	    }
+		if (primaryProject == null)
+			throw new RuntimeException("Primary project missing");
+		
+		if (dto == null || dto.getPrimaryProject() == null)
+			throw new RuntimeException("Invalid linking payload");
+		
+		// Collect DB POs (primary + deleted)
+		Set<Long> dbTotalPos = new HashSet<>();
+		
+		// Primary DB POs
+		dbTotalPos.addAll(projectPoDetailsRepository.findActivePoIdsByProjectId(primaryProject.getProjectId()));
+		
+		// Deleted DB POs
+		for (ProjectPoMappingWithResourceDTO deleted : dto.getDeletedProjects()) {
+			
+			Project deletedEntity = projectRepository.findByPoProjectId(deleted.getProjectId());
+			
+			if (deletedEntity == null) {
+				throw new RuntimeException(
+				"Deleted project not found | poProjectId=" + deleted.getProjectId());
+			}
+			
+			dbTotalPos.addAll(projectPoDetailsRepository.findActivePoIdsByProjectId(deletedEntity.getProjectId()));
+		}
+		
+		// Collect Portal POs (final merged state)
+		Set<Long> payloadPos = dto.getPrimaryProject().getPoDetailsList()
+								.stream()
+								.map(PoDetailsForProjectPoMappingDTO::getPoId)
+								.filter(Objects::nonNull)
+								.collect(Collectors.toSet());
+		
+		// Compare
+		Set<Long> missingInDb = new HashSet<>(payloadPos);
+		missingInDb.removeAll(dbTotalPos);
+		
+		Set<Long> extraInDb = new HashSet<>(dbTotalPos);
+		extraInDb.removeAll(payloadPos);
+		
+		if (!missingInDb.isEmpty() || !extraInDb.isEmpty()) {
+		
+			throw new RuntimeException(
+			"PO integrity failed during linking | " +
+			"MissingInDB=" + missingInDb +
+			" | ExtraInDB=" + extraInDb);
+		}
 	}
-
 	
 	public void deactivateDeletedProjectsPos(
 	        List<ProjectPoMappingWithResourceDTO> deletedProjects) {
@@ -656,72 +680,102 @@ public class PoDetailsService {
 	    }
 	}
 	
-	public void movePosToPrimaryProject( Project primaryProject, IshineLinkProjectDto dto) {
+	public void movePosToPrimaryProject(Project primaryProject, IshineLinkProjectDto dto) {
 
-	    if (primaryProject == null || dto == null || dto.getDeletedProjects() == null) {
-	        ExceptionLogContext.add("Invalid input to movePosToPrimaryProject");
-	        throw new RuntimeException("Invalid input to movePosToPrimaryProject");
-	    }
+	    Integer primaryProjectId = primaryProject.getProjectId();
 
-	    for (ProjectPoMappingWithResourceDTO deleted : dto.getDeletedProjects()) {
+	    List<Long> deletedPoProjectIds = dto.getDeletedProjects()
+								            .stream()
+								            .map(ProjectPoMappingWithResourceDTO::getProjectId)
+								            .collect(Collectors.toList());
 
-	        if (deleted == null || deleted.getProjectId() == null) {
-	            continue;
+	    // PRIMARY POS
+	    Map<Long, ProjectPoDetails> primaryPos = projectPoDetailsRepository
+								                    .findByProjectIdAndActiveTrue(primaryProjectId)
+								                    .stream()
+								                    .collect(Collectors.toMap(ProjectPoDetails::getPoId, Function.identity()));
+
+	    // DELETED POS
+	    Map<Long, ProjectPoDetails> deletedPos = projectPoDetailsRepository
+								                    .findByPoProjectIdInAndActiveTrue(deletedPoProjectIds)
+								                    .stream()
+								                    .collect(Collectors.toMap(ProjectPoDetails::getPoId, Function.identity()));
+
+	    // PORTAL POS (contains primary + deleted together)
+	    List<PoDetailsForProjectPoMappingDTO> incomingPos = dto.getPrimaryProject().getPoDetailsList();
+
+	    for (PoDetailsForProjectPoMappingDTO incoming : incomingPos) {
+
+	        ProjectPoDetails primaryPo = primaryPos.get(incoming.getPoId());
+	        ProjectPoDetails deletedPo = deletedPos.get(incoming.getPoId());
+
+	        if (primaryPo != null && deletedPo == null) {
+	            updatePrimaryPo(primaryPo, incoming);
 	        }
-
-	        Project deletedProject = projectRepository.findByPoProjectId(deleted.getProjectId());
-
-	        if (deletedProject == null) {
-	            ExceptionLogContext.add(
-	                    "Deleted project not found | poProjectId=" + deleted.getProjectId());
-	            throw new RuntimeException(
-	                    "Deleted project not found | poProjectId=" + deleted.getProjectId());
+	        else if (primaryPo == null && deletedPo != null) {
+	            moveDeletedPoToPrimary(primaryProjectId, deletedPo, incoming);
 	        }
-
-	        if (deleted.getPoDetailsList() == null || deleted.getPoDetailsList().isEmpty()) {
-	            ExceptionLogContext.add(
-	                    "No POs found in deleted project | poProjectId=" + deleted.getProjectId());
-	            throw new RuntimeException(
-	                    "No POs found in deleted project | poProjectId=" + deleted.getProjectId());
-	        }
-
-	        Set<Long> poIdsFromPortal =
-	                deleted.getPoDetailsList()
-	                        .stream()
-	                        .map(PoDetailsForProjectPoMappingDTO::getPoId)
-	                        .filter(Objects::nonNull)
-	                        .collect(Collectors.toSet());
-
-	        if (poIdsFromPortal.isEmpty()) {
-	            ExceptionLogContext.add(
-	                    "PO IDs empty after filtering | poProjectId=" + deleted.getProjectId());
-	            throw new RuntimeException(
-	                    "PO IDs empty after filtering | poProjectId=" + deleted.getProjectId());
-	        }
-
-	        List<ProjectPoDetails> existingPos =
-	                projectPoDetailsRepository
-	                        .findByProjectIdAndPoIdIn(
-	                                deletedProject.getProjectId(),
-	                                poIdsFromPortal
-	                        );
-
-	        if (existingPos == null || existingPos.isEmpty()) {
-	            ExceptionLogContext.add(
-	                    "No matching PO records found for update | projectId="
-	                            + deletedProject.getProjectId());
-	            continue;
-	        }
-
-	        for (ProjectPoDetails po : existingPos) {
-
-	            po.setProjectId(primaryProject.getProjectId());
-	            po.setPoProjectId(primaryProject.getPoProjectId());
-	            po.setActive(true);
-
-	            projectPoDetailsRepository.save(po);
+	        else {
+	            throw new IllegalStateException(
+	                    "Ivalid PO ownership corruption for poId=" + incoming.getPoId());
 	        }
 	    }
+	}
+	
+	private void updatePrimaryPo(ProjectPoDetails existing, PoDetailsForProjectPoMappingDTO incoming) {
+
+	    boolean changed = false;
+
+	    if (!Objects.equals(existing.getPrevPO(), incoming.getPrevPo())) {
+	        existing.setPrevPO(incoming.getPrevPo());
+	        changed = true;
+	    }
+
+	    if (!Objects.equals(existing.getNextPO(), incoming.getNextPO())) {
+	        existing.setNextPO(incoming.getNextPO());
+	        changed = true;
+	    }
+
+	    if (existing.isRenewable() != incoming.isRenewable()) {
+	        existing.setRenewable(incoming.isRenewable());
+	        changed = true;
+	    }
+
+	    if (changed) {
+	        validationService.validateEmployeeExists(
+	                incoming.getUpdatedByEmpId(),
+	                incoming.getUpdatedByEmpName());
+
+	        existing.setUpdatedBy(incoming.getUpdatedByEmpId());
+	        existing.setPoUpdatedOn(convert(incoming.getUpdatedOn()));
+
+	        projectPoDetailsRepository.save(existing);
+	    }
+	}
+
+	private void moveDeletedPoToPrimary( Integer primaryProjectId, ProjectPoDetails deletedPo, PoDetailsForProjectPoMappingDTO incoming) {
+
+	    validationService.validateEmployeeExists(
+	            incoming.getUpdatedByEmpId(),
+	            incoming.getUpdatedByEmpName());
+
+	    deletedPo.setProjectId(primaryProjectId);
+	    if (!Objects.equals(deletedPo.getPrevPO(), incoming.getPrevPo())) {
+	    	deletedPo.setPrevPO(incoming.getPrevPo());
+	    }
+
+	    if (!Objects.equals(deletedPo.getNextPO(), incoming.getNextPO())) {
+	    	deletedPo.setNextPO(incoming.getNextPO());
+	    }
+
+	    if (deletedPo.isRenewable() != incoming.isRenewable()) {
+	    	deletedPo.setRenewable(incoming.isRenewable());
+	    }
+	    
+	    deletedPo.setUpdatedBy(incoming.getUpdatedByEmpId());
+	    deletedPo.setPoUpdatedOn(convert(incoming.getUpdatedOn()));
+
+	    projectPoDetailsRepository.save(deletedPo);
 	}
 	
 	public void validateAllPosAreActive(List<Long> poIds) {
@@ -1012,6 +1066,68 @@ public class PoDetailsService {
 	    projectPoDetailsRepository.saveAll(pos);
 	}
 
+	public void sendPoLinkSuccessMail(Project primaryProject, IshineLinkProjectDto dto) {
 
+	    try {
+	    	
+	        List<Integer> projectIds = new ArrayList<>();
+	        Integer projectId;
+
+	        projectIds.add(primaryProject.getProjectId());
+
+	        for (ProjectPoMappingWithResourceDTO deleted : dto.getDeletedProjects()) {
+	        	Project project = projectRepository.findByPoProjectId(deleted.getProjectId());
+	        	projectId = project.getProjectId();
+	        	projectIds.add(projectId);
+	        }
+
+	        List<String> toEmails = projectRepository.findManagerAndOverheadEmails(projectIds);
+
+	        if (toEmails == null || toEmails.isEmpty()) {
+	            System.err.println("No PM/Overhead emails found for PO link success mail");
+	            return;
+	        }
+
+	        String receiver = String.join(",", toEmails);
+	        
+	        String cc = String.join(",", rmgMail, bdMail, financeMail );
+
+	        String subject = "PO Linking Completed - " + primaryProject.getProjectName();
+
+	        StringBuilder body = new StringBuilder();
+
+	        body.append("Dear Team,<br><br>");
+	        body.append("PO Linking completed successfully in iShine.<br><br>");
+
+	        body.append("<b>Primary Project:</b><br>");
+	        body.append(primaryProject.getProjectName());
+
+	        body.append("<b>Merged Projects:</b><br>");
+	        for (ProjectPoMappingWithResourceDTO deleted : dto.getDeletedProjects()) {
+	            body.append("• ")
+	                .append(deleted.getProjectName())
+	                .append("<br>");
+	        }
+
+	        body.append("<br><b>Final PO List:</b><br>");
+	        for (PoDetailsForProjectPoMappingDTO po : dto.getPrimaryProject().getPoDetailsList()) {
+	            body.append("• ")
+	                .append(po.getPoNo())
+	                .append("<br>");
+	        }
+
+	        body.append("<br>Sincerely,<br>Team RMG - iShine");
+
+	        mailService.sendMailWithCC(
+	        		receiver, 
+	                cc, 
+	                subject,
+	                body.toString()
+	        );
+
+	    } catch (Exception e) {
+	        e.printStackTrace(); 
+	    }
+	}
 
 }

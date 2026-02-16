@@ -595,11 +595,6 @@ public class ResourceManagementController {
 	 	return resourceManagementService.getDocumentDataByDocId(docId);
 	 }
 	
-	@PostMapping(value = "/handleTeamsAsPerLinkedPo")
-	public ServiceResponse handleTeamsAsPerLinkedPo(@RequestBody HandleTeamsAsPerLinkedPoPayloadDTO payloadDTO) {
-		return resourceManagementService.handleTeamsAsPerLinkedPo(payloadDTO);
-	}
-	
 //	@PostMapping(value = "/sendTimesheetDetailsToShankh")
 //	public ServiceResponse sendTimesheetDetailsToShankh(@RequestBody TimeSheetRequestDto payloadDTO) {
 //		return resourceManagementService.sendTimesheetDetailsToShankh(payloadDTO);

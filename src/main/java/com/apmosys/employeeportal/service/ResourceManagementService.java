@@ -12835,176 +12835,6 @@ public class ResourceManagementService {
 		return serviceResponse;
 	}
 
-	@Transactional(rollbackFor = Exception.class)
-	public ServiceResponse handleTeamsAsPerLinkedPo(HandleTeamsAsPerLinkedPoPayloadDTO payloadDTO) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setApiUrl("/api/handleTeamsAsPerLinkedPo");
-		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-
-		try {
-			if (payloadDTO.getPrimaryProject() == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Primary project list received at Ishine is empty!");
-				apiLogInfo.setApiResponse("Empty data(Primary project list) received at Ishine");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				return response;
-			}
-
-			HandleTeamsAsPerLinkedPoProjectDTO primaryProjectDTO = payloadDTO.getPrimaryProject();
-			List<Object[]> primaryTeams = projectRepository.getTeamIdsForPoProjectId(primaryProjectDTO.getProjectId());
-			String ishineProjectStatus = "";
-
-			Set<String> primaryTeamNames = (primaryTeams == null || primaryTeams.isEmpty()) ? Collections.emptySet()
-					: primaryTeams.stream().map(t -> t[1] != null ? t[1].toString() : null).filter(Objects::nonNull)
-							.collect(Collectors.toSet());
-			DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
-			if (payloadDTO.getDeletedProjects() == null || payloadDTO.getDeletedProjects().isEmpty()) {
-
-				logBuilder.append("Deleted project list received at Ishine is empty.");
-				System.err.println("Deleted project list received at Ishine is empty.");
-
-			} else {
-
-				for (HandleTeamsAsPerLinkedPoProjectDTO deletedProject : payloadDTO.getDeletedProjects()) {
-					List<Object[]> deletedTeams = projectRepository
-							.getTeamIdsForPoProjectId(deletedProject.getProjectId());
-					List<Long> deletedTeamIds = new ArrayList<>();
-
-					if (!deletedTeams.isEmpty() || deletedTeams != null) {
-						for (Object[] team : deletedTeams) {
-							Long teamId = team[0] != null ? Long.parseLong(team[0].toString()) : null;
-							String teamName = team[1] != null ? team[1].toString() : null;
-
-							String newTeamName = primaryTeamNames.contains(teamName)
-									? teamName + " | " + deletedProject.getProjectName()
-									: teamName;
-
-							teamRepository.updateTeamName(teamId, newTeamName);
-							deletedTeamIds.add(teamId);
-						}
-					}
-
-					if (!deletedTeamIds.isEmpty()) {
-						LiftAndShiftTeamsDTO liftAndShiftDTO = new LiftAndShiftTeamsDTO();
-						liftAndShiftDTO.setTeamIds(deletedTeamIds);
-						Project sourceProject = projectRepository.findByPoProjectId(deletedProject.getProjectId());
-						liftAndShiftDTO.setSourceProjectId(sourceProject.getProjectId());
-						Project targetProject = projectRepository.findByPoProjectId(primaryProjectDTO.getProjectId());
-						liftAndShiftDTO.setTargetProjectId(targetProject.getProjectId());
-						liftAndShiftDTO.setCurrentUserEmpId(6L);
-
-						ServiceResponse lsResponse = context.getBean(getClass()).liftAndShiftTeams(liftAndShiftDTO);
-
-						if (!ServiceResponse.STATUS_SUCCESS.equals(lsResponse.getServiceStatus())) {
-							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-							response.setServiceResponse(
-									"Team migration failed for project: " + deletedProject.getProjectName());
-							return response;
-						}
-					}
-
-					Project deletedProjEntity = projectRepository.findByPoProjectId(deletedProject.getProjectId());
-					if (deletedProjEntity != null) {
-						deletedProjEntity.setActive("false");
-						deletedProjEntity.setPoNo(deletedProject.getPoNo());
-//		                 deletedProjEntity.setClientId(deletedProject.getClientId());
-						deletedProjEntity.setStartDate(
-								dateFormatter.format(deletedProject.getStartDate().toLocalDateTime().toLocalDate()));
-						deletedProjEntity.setEndDate(
-								dateFormatter.format(deletedProject.getEndDate().toLocalDateTime().toLocalDate()));
-						deletedProjEntity.setProjectName(deletedProject.getProjectName());
-						deletedProjEntity.setUpdatedOn(LocalDateTime.now());
-						deletedProjEntity.setUpdatedBy(6L);
-						projectRepository.save(deletedProjEntity);
-
-					} else {
-						apiLogInfo.setApiResponse("No project found for poProjectId: " + deletedProject.getProjectId());
-					}
-				}
-			}
-
-			Project primaryProjectEntity = projectRepository.findByPoProjectId(primaryProjectDTO.getProjectId());
-			if (primaryProjectEntity != null) {
-				primaryProjectEntity.setPoNo(primaryProjectDTO.getPoNo());
-//	             primaryProjectEntity.setClientId(primaryProjectDTO.getClientId());
-				primaryProjectEntity.setStartDate(
-						dateFormatter.format(primaryProjectDTO.getStartDate().toLocalDateTime().toLocalDate()));
-				primaryProjectEntity.setEndDate(
-						dateFormatter.format(primaryProjectDTO.getEndDate().toLocalDateTime().toLocalDate()));
-				primaryProjectEntity.setProjectName(primaryProjectDTO.getProjectName());
-				primaryProjectEntity.setUpdatedOn(LocalDateTime.now());
-//	             primaryProjectEntity.setIsDraftProject("false");
-				primaryProjectEntity.setUpdatedBy(6L);
-
-				if (payloadDTO.getDeletedProjects() == null || payloadDTO.getDeletedProjects().isEmpty()) {
-					logBuilder.append("Deleted project list received at Ishine is empty.");
-					System.err.println("Deleted project list received at Ishine is empty.");
-					ishineProjectStatus = getProjectStatusState(primaryProjectEntity);
-				} else {
-
-					for (HandleTeamsAsPerLinkedPoProjectDTO deletedProject : payloadDTO.getDeletedProjects()) {
-						Project deletedProjEntity = projectRepository.findByPoProjectId(deletedProject.getProjectId());
-						if (deletedProjEntity != null) {
-							String primaryState = getProjectStatusState(primaryProjectEntity);
-							String deletedState = getProjectStatusState(deletedProjEntity);
-
-							String resolvedState = resolveProjectStatusState(primaryState, deletedState);
-
-							if ("Pending".equals(resolvedState)) {
-								primaryProjectEntity.setIsDraftProject("true");
-								updateEmployeeTeamMapStatus(primaryProjectEntity.getProjectId());
-							} else if ("Approved".equals(resolvedState)) {
-								primaryProjectEntity.setIsDraftProject("false");
-							} else if ("Rejected".equals(resolvedState)) {
-								primaryProjectEntity.setIsDraftProject("Rejected");
-							} else if ("Not Started".equals(resolvedState)) {
-								primaryProjectEntity.setIsDraftProject(null);
-							} else if ("Completed".equals(resolvedState)) {
-								primaryProjectEntity.setProjectStatus("Completed");
-								updateProjectActiveField(primaryProjectEntity.getProjectId());
-							}
-
-							ishineProjectStatus = getIshineProjectStatus(resolvedState);
-						}
-					}
-				}
-
-				projectRepository.save(primaryProjectEntity);
-			}
-
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse("Poject/Team details upated after Linked Po successfully.");
-			response.setServiceResponse1(ishineProjectStatus);
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-
-		} catch (NullPointerException ex) {
-
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("Null value encountered.");
-			response.setServiceError(ex.getMessage());
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-			throw ex;
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			log.error("Error in handleTeamsAsPerLinkedPo", e);
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse(ExceptionUtils.getExceptionMessage(e));
-			response.setServiceError(ExceptionUtils.getExceptionMessage(e));
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-			throw e;
-		}
-
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
-	}
-
 	private String getProjectStatusState(Project projectEntity) {
 		if (projectEntity == null)
 			return "Not Started";
@@ -14877,36 +14707,71 @@ public class ResourceManagementService {
 
 	}
 
-	public String ishineStatusReturn(List<ProjectPoMappingWithResourceDTO> deletedProjects, Project primaryProject) {
+	public String ishineStatusReturn(List<ProjectPoMappingWithResourceDTO> deletedProjects,
+            Project primaryProject) {
 
-		String ishineProjectStatus = "";
-
+		Set<String> states = new HashSet<>();
+		states.add(getProjectStatusState(primaryProject));
+		
 		for (ProjectPoMappingWithResourceDTO deletedProject : deletedProjects) {
-			Project deletedProjEntity = projectRepository.findByPoProjectId(deletedProject.getProjectId());
+			Project deletedProjEntity =
+			projectRepository.findByPoProjectId(deletedProject.getProjectId());
+			
 			if (deletedProjEntity != null) {
-				String primaryState = getProjectStatusState(primaryProject);
-				String deletedState = getProjectStatusState(deletedProjEntity);
-
-				String resolvedState = resolveProjectStatusState(primaryState, deletedState);
-
-				if ("Pending".equals(resolvedState)) {
-					primaryProject.setIsDraftProject("true");
-					updateEmployeeTeamMapStatus(primaryProject.getProjectId());
-				} else if ("Approved".equals(resolvedState)) {
-					primaryProject.setIsDraftProject("false");
-				} else if ("Rejected".equals(resolvedState)) {
-					primaryProject.setIsDraftProject("Rejected");
-				} else if ("Not Started".equals(resolvedState)) {
-					primaryProject.setIsDraftProject(null);
-				} else if ("Completed".equals(resolvedState)) {
-					primaryProject.setProjectStatus("Completed");
-					updateProjectActiveField(primaryProject.getProjectId());
-				}
-
-				ishineProjectStatus = getIshineProjectStatus(resolvedState);
+			states.add(getProjectStatusState(deletedProjEntity));
 			}
 		}
-		return ishineProjectStatus;
+		
+		String resolvedState = resolveFinalState(states);
+		
+		applyStateToPrimaryProject(primaryProject, resolvedState);
+		
+		return getIshineProjectStatus(resolvedState);
+	}
+
+	private String resolveFinalState(Set<String> states) {
+
+	    if (states.contains("Completed"))
+	        return "Completed";
+
+	    if (states.contains("Pending"))
+	        return "Pending";
+
+	    if (states.contains("Rejected"))
+	        return "Rejected";
+
+	    if (states.contains("Approved"))
+	        return "Approved";
+
+	    return "Not Started";
+	}
+	
+	private void applyStateToPrimaryProject(Project primaryProject, String resolvedState) {
+
+	    switch (resolvedState) {
+
+	        case "Pending":
+	            primaryProject.setIsDraftProject("true");
+	            updateEmployeeTeamMapStatus(primaryProject.getProjectId());
+	            break;
+
+	        case "Approved":
+	            primaryProject.setIsDraftProject("false");
+	            break;
+
+	        case "Rejected":
+	            primaryProject.setIsDraftProject("Rejected");
+	            break;
+
+	        case "Not Started":
+	            primaryProject.setIsDraftProject(null);
+	            break;
+
+	        case "Completed":
+	            primaryProject.setProjectStatus("Completed");
+	            updateProjectActiveField(primaryProject.getProjectId());
+	            break;
+	    }
 	}
     
 	public ServiceResponse oneTimeUpdatePoClientId(String mode) {

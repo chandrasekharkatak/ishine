@@ -30,6 +30,7 @@ import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.ProjectPoDetailsRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
+import com.apmosys.employeeportal.utility.EmailTrigger;
 import com.apmosys.employeeportal.utility.ExceptionLogContext;
 import com.apmosys.employeeportal.utility.ExceptionUtils;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
@@ -447,10 +448,7 @@ public class PoSyncOrchestratorService {
 	                httpRequest
 	        );
 
-	       
-//	        linkPoValidator.validate(dto);
-
-	        // 2. Primary project must exist
+	        // Primary project must exist
 	        Project primaryProject =
 	                projectRepository.findByPoProjectId(
 	                        dto.getPrimaryProject().getProjectId());
@@ -462,7 +460,6 @@ public class PoSyncOrchestratorService {
 	            throw new RuntimeException("Primary project does not exist");
 	        }
 
-	        // case 1 - when just order of project is changed
 	        if (dto.getDeletedProjects() == null || dto.getDeletedProjects().isEmpty()) {
 
 	            poDetailsService.updatePoOrderOnly(
@@ -473,10 +470,9 @@ public class PoSyncOrchestratorService {
 	            ishineStatus = dto.getPrimaryProject().getIshineProjectStatus();
 	        }
 
-	        // case 2 - when actually project is linked
 	        else {
 
-	            poDetailsService.validateLinkingProjectsIntegrity(
+	            poDetailsService.validatePoLinkIntegrity(
 	                    primaryProject,
 	                    dto
 	            );
@@ -497,26 +493,20 @@ public class PoSyncOrchestratorService {
 	            projectService.deactivateDeletedProjects(
 	                    dto.getDeletedProjects()
 	            );
-	            
-	            
-
-	            projectService.updateProjectDatesIfChanged(
-	                    primaryProject,
-	                    dto.getPrimaryProject()
-	            );
 
 	            poDetailsService.updatePoOrderOnly(
 	                    primaryProject.getProjectId(),
 	                    dto.getPrimaryProject()
 	            );
-	            
-	            
-	            
-	            //get ishine status
+
+		        projectService.recalculateProjectDates(primaryProject.getProjectId());
 	            
 	           ishineStatus = resourceManagementService.ishineStatusReturn( dto.getDeletedProjects(),primaryProject);
-	            
-//	            teamsService.liftAndShiftTeams(dto);
+	           
+	           EmailTrigger.sendAfterCommit(() ->
+	           		poDetailsService.sendPoLinkSuccessMail(primaryProject, dto)
+		       );
+
 	        }
 
 	        finalHttpStatusCode = HttpStatus.OK.value();
@@ -526,6 +516,7 @@ public class PoSyncOrchestratorService {
 	        return response;
 
 	    } catch (Exception e) {
+	    	TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 	        ExceptionLogContext.add(e);
 	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	        response.setServiceError(e.getMessage());
