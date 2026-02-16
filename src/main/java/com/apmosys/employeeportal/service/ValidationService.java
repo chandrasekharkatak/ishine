@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.POResourceRequirementDTO;
+import com.apmosys.employeeportal.dto.PoClientAddressUpdateDTO;
 import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
@@ -307,6 +308,30 @@ public class ValidationService {
 	        );
 	    }
 	}
+	
+	public void validatePoClientAddressUpdatePayload(PoClientAddressUpdateDTO dto) {
+
+	    if (dto == null) {
+	        throw new RuntimeException("Request payload is missing");
+	    }
+
+	    if (dto.getPoIds() == null || dto.getPoIds().isEmpty()) {
+	        throw new RuntimeException("PO IDs cannot be null or empty");
+	    }
+
+	    if (dto.getClientAddressId() == null) {
+	        throw new RuntimeException("Client address ID is mandatory");
+	    }
+
+	    if (dto.getClientLocation() == null || dto.getClientLocation().trim().isEmpty()) {
+	        throw new RuntimeException("Client location is mandatory");
+	    }
+
+	    if (dto.getClientState() == null || dto.getClientState().trim().isEmpty()) {
+	        throw new RuntimeException("Client state is mandatory");
+	    }
+	}
+
 
 	
 	

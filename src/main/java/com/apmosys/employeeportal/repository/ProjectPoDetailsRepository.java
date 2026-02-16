@@ -203,6 +203,8 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
 
     Optional<ProjectPoDetails> findByNextPOAndProjectIdAndActiveTrue(Long nextPo, Integer projectId);
         
-        
+       
+    @Query(value =" Select ppo from ProjectPoDetails ppo where ppo.poId IN :poIds and ppo.active = true ")
+    List<ProjectPoDetails> findByPoIdInAndActive(List<Long> poIds);
 
 }
