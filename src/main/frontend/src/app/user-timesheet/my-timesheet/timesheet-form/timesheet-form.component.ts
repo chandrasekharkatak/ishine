@@ -110,6 +110,8 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
   expandedProjectIndexMap: { [locationIndex: number]: number | null } = {}; // Track expanded project per location
   empHasClientSideId: boolean = false;
   projectActivityHoursError: { [projectIndex: number]: string } = {}; // Store validation errors per project
+  /** When true, only the first client-details error is shown (avoids N popups when loading edit for multiple projects) */
+  private clientDetailsErrorShownThisPopulate = false;
 
   // File upload properties
   selectedFile: File[] = [];
@@ -538,16 +540,7 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
    * Fetches client details automatically if only one project
    */
   addProject(location: LocationEntry, timesheetId: number): void {
-    // Prevent adding projects when timesheet is not fillable
-    if (!this.isDayTypeFillable()) {
-      console.warn('Attempt to add project when timesheet is not fillable.');
-      return;
-    }
-    // Prevent adding projects when timesheet is not fillable
-    if (!this.isDayTypeFillable()) {
-      console.warn('Attempt to add project when timesheet is not fillable.');
-      return;
-    }
+
     // ✅ MODERATE FIX: Validate date is selected (required for project fetching)
     if (!this.fromDate) {
       this.handleError(
@@ -565,6 +558,15 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
         'addProject',
         true,
         'No projects available. Please ensure projects are loaded before adding.'
+      );
+      return;
+    }
+
+    // Max projects per location = number of available projects (e.g. 2 available → max 2 project rows)
+    if (location.projects.length >= this.activeProjectList.length) {
+      this.openAlertMod(
+        this.alertTemplate,
+        `Maximum ${this.activeProjectList.length} project(s) allowed at this location. You have ${this.activeProjectList.length} available.`
       );
       return;
     }
@@ -641,6 +643,19 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Tooltip for Add Project button: explains why disabled or invites to add another.
+   */
+  getAddProjectButtonTitle(location: LocationEntry): string {
+    if (!this.activeProjectList?.length) {
+      return 'No projects available.';
+    }
+    if (location.projects.length >= this.activeProjectList.length) {
+      return `Maximum ${this.activeProjectList.length} project(s) at this location (all available added).`;
+    }
+    return 'Add another project';
+  }
+
+  /**
    * Remove a project from a location
    * Ensures at least one project remains per location
    * Cleans up associated document data
@@ -650,11 +665,6 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
    */
   removeProject(location: LocationEntry, projectToRemove: ProjectEntry): void {
     // Prevent removing projects when timesheet is not fillable
-    if (!this.isDayTypeFillable()) {
-      console.warn('Attempt to remove project when timesheet is not fillable.');
-      return;
-    }
-
     if (location.projects.length <= 1) {
       this.openAlertMod(this.alertTemplate, 'At least one project is required per location.');
       return;
@@ -1412,84 +1422,72 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
 
   /**
    * Fetch client details for a specific project and employee
-   * This replaces the old form's getClientDetailsByProjectIdAndEmpId()
    * Stores client details in project.clientDetails for use in dropdowns
    * @param project - Project entry to fetch client details for
+   * @param empIdOverride - When provided (e.g. from edit populate), use this empId instead of deriving
+   * @param isPopulateMode - When true, show at most one error popup (avoids duplicate popups for multiple projects)
    */
-  getClientDetailsByProjectIdAndEmpId(project: ProjectEntry): void {
+  getClientDetailsByProjectIdAndEmpId(project: ProjectEntry, empIdOverride?: number, isPopulateMode?: boolean): void {
     if (!project.projectId) {
       console.error('Project ID is required to fetch client details');
       return;
     }
-    
-    // Determine empId (self or team member)
-    const targetEmpId = this.timesheetAppliedFor.toLowerCase() === 'self' 
-      ? this.currentUser.empId 
-      : this.timesheetFilledForUser.empId;
-    
-    if (!targetEmpId) {
+
+    const targetEmpId = empIdOverride != null
+      ? empIdOverride
+      : (this.timesheetAppliedFor?.toLowerCase() === 'self' ? this.currentUser?.empId : this.timesheetFilledForUser?.empId);
+
+    if (targetEmpId == null || targetEmpId === undefined) {
       this.handleError(new Error('Employee ID not available'), 'getClientDetailsByProjectIdAndEmpId', false);
       return;
     }
-    
-    // ✅ MODERATE FIX: Add input validation
+
     if (!project || !project.projectId) {
       this.handleError(new Error('Invalid project: projectId is required'), 'getClientDetailsByProjectIdAndEmpId', true);
       return;
     }
-    
+
     const payload = {
-      empId: targetEmpId,
+      empId: Number(targetEmpId),
       projectId: project.projectId
     };
-    
+
+    const showClientDetailsError = (userMessage: string) => {
+      if (isPopulateMode && this.clientDetailsErrorShownThisPopulate) return;
+      if (isPopulateMode) this.clientDetailsErrorShownThisPopulate = true;
+      this.handleError(
+        new Error(userMessage),
+        'getClientDetailsByProjectIdAndEmpId',
+        true,
+        userMessage
+      );
+    };
+
     this.timesheetService.getClientDetailsByProjectIdAndEmpId(payload)
       .pipe(first(), takeUntil(this.destroy$))
       .subscribe({
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
-            // ✅ MODERATE FIX: Validate response structure
             if (!response.serviceResponse || !response.serviceResponse.clientId) {
-              this.handleError(
-                new Error('Invalid client details response structure'),
-                'getClientDetailsByProjectIdAndEmpId',
-                true,
-                'Failed to load client information for this project. Invalid response format.'
-              );
+              showClientDetailsError('Failed to load client information for this project. Invalid response format.');
               return;
             }
-            
-            // Store client details in the project object
             project.clientDetails = response.serviceResponse;
-            
-            // Populate client list (should be single client from API)
             project.clientList = [{
               clientId: project.clientDetails.clientId,
               clientName: project.clientDetails.clientName
             }];
-            
-            // Auto-select client if only one (which is always the case from API)
             if (project.clientList.length === 1) {
               project.clientId = project.clientList[0].clientId;
-              // Populate client locations immediately
               this.onProjectClientSelect(project.clientId, project);
             }
           } else {
-            this.handleError(
-              new Error(response.serviceResponse || 'Unknown error'),
-              'getClientDetailsByProjectIdAndEmpId',
-              true,
-              'Failed to load client details: ' + (response.serviceResponse || 'Unknown error')
-            );
+            const msg = response.serviceResponse || 'No valid client details found.';
+            showClientDetailsError('Failed to load client details: ' + msg);
           }
         },
         error: (error) => {
-          this.handleError(
-            error,
-            'getClientDetailsByProjectIdAndEmpId',
-            true,
-            'Error loading client details. Please try again.'
-          );
+          showClientDetailsError('Error loading client details. Please try again.');
         }
       });
   }
@@ -2000,8 +1998,10 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
       this.toDate = null;
     }
 
-    // Recalculate working hours when night shift changes
-    this.calculateTotalWorkingHours();
+    // Recalculate total presence when night shift changes (e.g. toggle OFF:
+    // presence must be recomputed from same-day in/out instead of cross-day).
+    // Defer so ngModel has updated isNightShift before we read it.
+    setTimeout(() => this.calculateTotalWorkingHours(), 0);
   }
 
 
@@ -2080,9 +2080,8 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
     }
 
     // Valid date: validate work check times (especially when dates become same)
-    // If fromDate === toDate, out-time must be greater than in-time
+    // If fromDate === toDate, out-time must be greater than in-time. No reset on failure.
     if (!this.validateWorkCheckTimes()) {
-      // Validation failed and times were reset - recalculate hours
       this.calculateTotalWorkingHours();
       return;
     }
@@ -2289,9 +2288,10 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Validate that work-check-out time is greater than work-check-in time
-   * Applies for: normal days AND night shift when fromDate === toDate
-   * If validation fails, resets both in-time and out-time to null
+   * Validate that work-check-out time is greater than work-check-in time.
+   * Applies for: normal days AND night shift when fromDate === toDate.
+   * Runs on every in/out time change (including hour, minute, AM/PM).
+   * Does NOT reset in/out times on failure so user can correct (e.g. change AM to PM) without re-entering.
    */
   private validateWorkCheckTimes(): boolean {
     if (!this.apmosysInTime || !this.apmosysOutTime) {
@@ -2334,11 +2334,7 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
         this.alertTemplate,
         'Work Check-Out time must be greater than Work Check-In time.'
       );
-      
-      // Reset both work check times to null to force user to fix
-      this.apmosysInTime = null;
-      this.apmosysOutTime = null;
-      
+      // Do not reset in/out times - keep values so user can correct (e.g. change AM to PM)
       return false;
     }
 
@@ -2408,14 +2404,14 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
    */
   onApMoSysInTimeChange(time: string): void {
     this.apmosysInTime = time;
+    console.log('apmosysInTime ===> ',this.apmosysInTime)
     if (this.useApmosysTiming) {
       this.timesheetLocations[0].locationInTime = this.apmosysInTime;
     }
     
-    // Validate: out time must be greater than in time
-    // If validation fails, work check times are reset in validateWorkCheckTimes()
+    // Validate: out time must be greater than in time (on every change including AM/PM)
+    // On failure we show alert only; in/out times are kept so user can correct without re-entering
     if (!this.validateWorkCheckTimes()) {
-      // Validation failed and work check times were reset - recalculate hours
       this.calculateTotalWorkingHours();
       return;
     }
@@ -2424,23 +2420,30 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Handle ApMoSys Out Time change
-   * Updates location out-time if using ApMoSys timing
+   * Handle ApMoSys Out Time change (value updated from picker).
+   * Updates location out-time if using ApMoSys timing. Validation popup runs only on AM/PM change (see onOutTimePartChange).
    */
   onApMoSysOutTimeChange(time: string): void {
     this.apmosysOutTime = time;
+    console.log('apmosysOutTime ===> ',this.apmosysOutTime)
     if (this.useApmosysTiming) {
       this.timesheetLocations[0].locationOutTime = this.apmosysOutTime;
     }
-    
-    // Validate: out time must be greater than in time
-    // If validation fails, work check times are reset in validateWorkCheckTimes()
-    if (!this.validateWorkCheckTimes()) {
-      // Validation failed and work check times were reset - recalculate hours
-      this.calculateTotalWorkingHours();
-      return;
+    this.calculateTotalWorkingHours();
+  }
+
+  /**
+   * Called when user changes a part of Work Check-Out time (hour, minute, or AM/PM).
+   * Show "out must be greater than in" popup only when AM/PM is changed, so we don't show it
+   * as soon as HH/MM are selected (default AM would trigger the error before user picks PM).
+   */
+  onOutTimePartChange(part: 'hour' | 'minute' | 'ampm'): void {
+    if (part === 'ampm') {
+      if (!this.validateWorkCheckTimes()) {
+        this.calculateTotalWorkingHours();
+        return;
+      }
     }
-    
     this.calculateTotalWorkingHours();
   }
 
@@ -2995,6 +2998,17 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
       location.projects.forEach((project: ProjectEntry) => {
         if (isNonFillable) {
           project.activities = null;
+        } else if (project.activities) {
+          // Form stores hours; backend duration_minutes expects integer minutes
+          project.activities.forEach((activity) => {
+            const hours = Number(activity.durationMinutes);
+            if (hours != null && !Number.isNaN(hours) && hours >= 0) {
+              const minutes = Math.round(hours * 60);
+              activity.durationMinutes = minutes <= 0 ? null : minutes;
+            } else {
+              activity.durationMinutes = null;
+            }
+          });
         }
       });
     });
@@ -3153,30 +3167,28 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
       ? timesheetData.totalWorkingMinutes / 60
       : 0;
 
-    // 4. Timesheet Applied For
-    // Determine from timesheetData.empId vs currentUser.empId
-    if (timesheetData.empId === this.currentUser.empId) {
+    // 4. Timesheet Applied For (use Number() so string/number empId from API matches)
+    const timesheetEmpId = timesheetData.empId != null ? Number(timesheetData.empId) : null;
+    const currentEmpId = this.currentUser?.empId != null ? Number(this.currentUser.empId) : null;
+    if (timesheetEmpId !== null && currentEmpId !== null && timesheetEmpId === currentEmpId) {
       this.timesheetAppliedFor = 'self';
       this.timesheetFilledForUser.empId = this.currentUser.empId;
       this.getTimesheetMetadata();
     } else {
       this.timesheetAppliedFor = 'team';
-      // Load team member and set timesheetFilledForUser
+      this.timesheetFilledForUser.empId = timesheetData.empId;
+      this.timesheetFilledForUser.name = (timesheetData as any).employeeName ?? this.timesheetFilledForUser.name;
       this.loadTeamMemberForUpdate(timesheetData.empId);
     }
 
     // 5. Load Projects for Employee (needed for dropdowns) then populate locations
-    // Store location sessions temporarily for population after projects load
     const locationSessionsToPopulate = timesheetData.locationSessions;
     
-    // ✅ CRITICAL FIX: Use proper async handling instead of setTimeout
-    // Note: this.fromDate is already set from timesheetData.date at line 2106
-    // Call getProjectListForDateAndEmpId with empId from timesheet data
-    // The method will use this.fromDate which is already populated from timesheetData.date
     this.getProjectListForDateAndEmpId(timesheetData.empId)
       .then(() => {
-        // 6. Populate Locations (after projects are loaded)
-        this.populateLocations(locationSessionsToPopulate);
+        this.clientDetailsErrorShownThisPopulate = false; // reset so only first error shows
+        // 6. Populate Locations (pass timesheet empId so client-details API uses correct employee)
+        this.populateLocations(locationSessionsToPopulate, timesheetEmpId ?? undefined);
 
         // 7. Populate Documents
         if (timesheetData.documentData) {
@@ -3197,8 +3209,8 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
           this.alertTemplate,
           'Failed to load projects. Some data may not display correctly.'
         );
-        // Still try to populate with empty project list
-        this.populateLocations(locationSessionsToPopulate);
+        const empIdForPopulate = timesheetData.empId != null ? Number(timesheetData.empId) : undefined;
+        this.populateLocations(locationSessionsToPopulate, empIdForPopulate);
         if (timesheetData.documentData) {
           this.populateDocuments(timesheetData.documentData);
         }
@@ -3208,8 +3220,9 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
   /**
    * Populate locations from server data
    * @param locationSessions - Location sessions from server
+   * @param timesheetEmpId - Optional empId for client-details API (used when loading for edit)
    */
-  populateLocations(locationSessions: LocationEntry[]): void {
+  populateLocations(locationSessions: LocationEntry[], timesheetEmpId?: number): void {
     this.timesheetLocations = [];
 
     if (!locationSessions || locationSessions.length === 0) {
@@ -3228,11 +3241,9 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
         projects: []
       };
 
-      // Populate projects for this location
       if (locationData.projects && locationData.projects.length > 0) {
-        location.projects = this.populateProjects(locationData.projects, location);
+        location.projects = this.populateProjects(locationData.projects, location, timesheetEmpId);
       } else {
-        // Ensure at least one project
         location.projects = [this.createProject(location, null)];
       }
 
@@ -3244,8 +3255,9 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
    * Populate projects from server data
    * @param projectsData - Projects data from server
    * @param location - Parent location entry
+   * @param timesheetEmpId - Optional empId for client-details API (used when loading for edit)
    */
-  populateProjects(projectsData: ProjectEntry[], location: LocationEntry): ProjectEntry[] {
+  populateProjects(projectsData: ProjectEntry[], location: LocationEntry, timesheetEmpId?: number): ProjectEntry[] {
     const projects: ProjectEntry[] = [];
 
     projectsData.forEach((projectData) => {
@@ -3293,9 +3305,8 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
         }
       }
 
-      // Populate client and location lists if project is selected
       if (project.projectId) {
-        this.populateProjectDropdowns(project);
+        this.populateProjectDropdowns(project, timesheetEmpId);
       }
 
       projects.push(project);
@@ -3313,10 +3324,14 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
     const activities: ActivityNew[] = [];
 
     activitiesData.forEach((activityData) => {
+      // Backend returns duration_minutes (minutes); form displays Hours, so convert to hours for display
+      const durationHours = activityData.durationMinutes != null
+        ? Math.round((Number(activityData.durationMinutes) / 60) * 100) / 100
+        : null;
       const activity: ActivityNew = {
         activityId: activityData.activityId,
         description: activityData.description,
-        durationMinutes: activityData.durationMinutes, // Already in hours format
+        durationMinutes: durationHours,
         projectId: project.projectId,
         teamId: activityData.teamId,
         timesheetId: activityData.timesheetId,
@@ -3376,11 +3391,11 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
    * Populate project dropdowns (client, location, team lists)
    * Fetches client details if not already loaded
    * @param project - Project entry to populate
+   * @param timesheetEmpIdOverride - When provided (e.g. from edit load), use this empId for client-details API
    */
-  populateProjectDropdowns(project: ProjectEntry): void {
-    // ✅ If clientDetails not loaded, fetch it
+  populateProjectDropdowns(project: ProjectEntry, timesheetEmpIdOverride?: number): void {
     if (!project.clientDetails && project.projectId) {
-      this.getClientDetailsByProjectIdAndEmpId(project);
+      this.getClientDetailsByProjectIdAndEmpId(project, timesheetEmpIdOverride, !!timesheetEmpIdOverride);
     } else if (project.clientDetails) {
       // ✅ Use clientDetails if already loaded
       if (project.clientDetails.clientId) {
@@ -3551,6 +3566,17 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
       location.projects.forEach((project: ProjectEntry) => {
         if (isNonFillable) {
           project.activities = null;
+        } else if (project.activities) {
+          // Form stores hours; backend duration_minutes expects integer minutes
+          project.activities.forEach((activity) => {
+            const hours = Number(activity.durationMinutes);
+            if (hours != null && !Number.isNaN(hours) && hours >= 0) {
+              const minutes = Math.round(hours * 60);
+              activity.durationMinutes = minutes <= 0 ? null : minutes;
+            } else {
+              activity.durationMinutes = null;
+            }
+          });
         }
       });
     });
@@ -3885,15 +3911,8 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
       );
 
       // ---------- VALIDATIONS ----------
-
-      const selectedLocationData = this.workLocationList.find(
-        l => l.workLocationTypeId === location.workLocationTypeId);
-      // Invalid interval - out time before in time
+      // Invalid interval - out time before in time (don't show popup here; validateLocationTimes shows it on AM/PM change)
       if (outDateTime.getTime() < inDateTime.getTime()) {
-        this.openAlertMod(
-          this.alertTemplate,
-          `The Log-Out time for location ${selectedLocationData?.code || ''} cannot be before Log-In time`
-        );
         return 0;
       }
 
@@ -3911,15 +3930,22 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
   }
 
 
-  onHoursChange(): void {
+  /**
+   * Called when user changes a part of location Log In or Log Out time (hour, minute, or AM/PM).
+   * Show "Log-Out must be greater than Log-In" popup only when AM/PM is changed (same as work check-in/out),
+   * so we don't show it as soon as HH/MM are selected (default AM would trigger error before user picks PM).
+   * Hours recalculation is already triggered by ngModelChange on the picker.
+   */
+  onLocationTimePartChange(location: LocationEntry, part: 'hour' | 'minute' | 'ampm'): void {
+    if (part === 'ampm') {
+      this.validateLocationTimes(location);
+    }
+  }
 
+  onHoursChange(): void {
     let totalLocationHours = 0;
 
     for (const location of this.timesheetLocations) {
-      
-      // Validate location times: out-time must be greater than in-time
-      // (shows alert if invalid, but does not reset times)
-      this.validateLocationTimes(location);
 
       // ---------- Calculate location hours ----------
       location.totalWorkingHours =
@@ -3959,7 +3985,9 @@ export class TimesheetFormComponent implements OnInit, OnDestroy {
       totalLocationHours += location.totalWorkingHours || 0;
 
       // Validation 2: Total location hours cannot exceed total presence
-      if (totalLocationHours > this.totalPresence) {
+      // Use small tolerance (0.01 hrs) to avoid false errors from floating-point rounding
+      const presenceWithTolerance = (this.totalPresence || 0) + 0.01;
+      if (totalLocationHours > presenceWithTolerance) {
         // Show error but DO NOT auto-reset all hours for the location
         // This prevents all entered durations from being wiped out unexpectedly
         this.openAlertMod(
