@@ -1,5 +1,5 @@
 import { LocationStrategy } from '@angular/common';
-import { Component,Input,Output,EventEmitter, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component,Input,Output,EventEmitter, ElementRef, OnInit, TemplateRef, ViewChild, NgModule } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import * as moment from 'moment';
@@ -26,7 +26,8 @@ import { TimesheetNewService } from 'src/app/services/timesheet-new.service';
 import { ProjectBasedBulkUploadPayload } from './types';
 import { HttpClient } from '@angular/common/http';
 import { finalize } from 'rxjs/operators';
-import {LoaderService} from 'src/app/services/loader.service';
+import {LoaderService} from 'src/app/services/loader.service';import { MatSortModule } from '@angular/material/sort';
+
 
 
 @Component({
@@ -2693,7 +2694,8 @@ removeRejectRow(index: number) {
 isRejectFormValid(): boolean {
   return this.rejectEntries.every(entry =>
     entry.projectId &&
-    entry.reasons?.length
+    entry.reasons?.length &&
+    entry.remark?.trim().length > 0
   );
 }
 
