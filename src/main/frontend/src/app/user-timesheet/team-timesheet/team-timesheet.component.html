@@ -685,7 +685,7 @@
       <div class="selector-toggle"> <a href="javascript:void(0)" (click)="toggleSearch()"> <i *ngIf="!isSearchEnabled"
             class="fa fa-search"></i> <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i> </a> </div>
       <div class="form-inline col-md-4"> <small>Filter:</small> <select class="form-select-sm align-items-center mx-1"
-          [(ngModel)]="clientFilter" (change)="getMyReporteesTimesheetRequests()">
+          [(ngModel)]="clientFilter" (change)="onClientFilterChange()">
           <option [ngValue]=false>All Employees</option>
           <option [ngValue]=true>Client Side Applicable Employees</option>
         </select> </div>

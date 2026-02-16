@@ -1426,7 +1426,7 @@ public class TimesheetServiceNew {
 			serviceResponse =  timesheetApprovalServiceNew.bulkRejectTimesheets(aprOrRejData);
 		return serviceResponse;
 	}
-		public ServiceResponse getTimesheetStatusCountsByManager(Long managerId) {
+		public ServiceResponse getTimesheetStatusCountsByManager(Long managerId,  Boolean clientFilter) {
 	    ServiceResponse response = new ServiceResponse();
 	    try {
 
@@ -1436,7 +1436,7 @@ public class TimesheetServiceNew {
 	            return response;
 	        }
 	        List<Object[]> counts =
-	                employeeTimesheetsNewRepository.getTimesheetStatusCountsByCurrentManagerId(managerId,null);
+	                employeeTimesheetsNewRepository.getTimesheetStatusCountsByCurrentManagerId(managerId,clientFilter);
 	        
 	        Long total = 0L;
 	        

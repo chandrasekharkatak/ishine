@@ -709,7 +709,7 @@ TimesheetServiceNew timesheetServiceNew;
 	@PostMapping("/getTimesheetStatusCountByManager")
 		public ServiceResponse getTimesheetStatusCountByManager(
 		        @RequestBody TimesheetStatusCountDTO timesheetCount) {
-				ServiceResponse response = timesheetServiceNew.getTimesheetStatusCountsByManager(timesheetCount.getManagerId());
+				ServiceResponse response = timesheetServiceNew.getTimesheetStatusCountsByManager(timesheetCount.getManagerId(),timesheetCount.getClientFilter());
 		    return response;
 	}
 		

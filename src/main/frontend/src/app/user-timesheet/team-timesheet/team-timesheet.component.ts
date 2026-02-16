@@ -2061,6 +2061,7 @@ closeDocumentPopup() {
   getTimesheetStatusCountsByEmpId() {
     const payload : any = {
       managerId: this.currentUser.empId,
+      clientFilter: this.clientFilter
     };
 
     this.loaderService.requestStarted();
@@ -2288,10 +2289,10 @@ approveSingleTimesheet(timesheet: any) {
           this.page1 = 1;
 
           this.getMyReporteesTimesheetRequests();
-          this.getTimesheetStatusCountsByEmpId();
+          this.getTimesheetStatusCountsByEmpId();  
 
           this.modalMessage = message;
-          
+
         } else {
            this.modalTitle = 'Error';
           this.modalMessage =
@@ -2766,11 +2767,11 @@ isRejectFormValid(): boolean {
 }
 
 
-
-
-
-
-
+onClientFilterChange() {
+  this.page1 = 1;
+  this.getMyReporteesTimesheetRequests();
+  this.getTimesheetStatusCountsByEmpId();
+}
 
 }
 
