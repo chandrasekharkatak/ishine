@@ -14849,9 +14849,10 @@ public class ResourceManagementService {
         	    	}
         	    Long updatedBy = request.getUpdatedBy();
 
-
-        	    	 saveAuditForApprovalandRejection(validTimesheetIds,timesheetProjectMap, updatedBy,status);
-        	     if ("REJECTED".equalsIgnoreCase(status)) {
+        	    if ("APPROVED".equalsIgnoreCase(status)) {
+        	    	 saveAuditForApproval(validTimesheetIds,timesheetProjectMap, updatedBy,status);
+        	    }
+        	    else if ("REJECTED".equalsIgnoreCase(status)) {
         	        saveRejectionDetails( request);
         	    }
         	     Map<String, Object> finalResponse = new HashMap<>();
@@ -14873,7 +14874,7 @@ public class ResourceManagementService {
          
 
          
-         private void saveAuditForApprovalandRejection(List<Long> TimesheetLists,Map<Long, List<Long>> timesheetProjectMap,
+         private void saveAuditForApproval(List<Long> TimesheetLists,Map<Long, List<Long>> timesheetProjectMap,
                  Long updatedBy,String status) {
 
 			List<TimesheetActionAuditNew> auditList = new ArrayList<>();
@@ -14908,6 +14909,7 @@ public class ResourceManagementService {
         	    LocalDateTime now = LocalDateTime.now();
 
         	    List<Long> timesheetIds = request.getTimesheetIds();
+        	    List<TimesheetActionAuditNew> auditList = new ArrayList<>();
         	    Long updatedBy = request.getUpdatedBy();
 
         	    for (Long timesheetId : timesheetIds) {
@@ -14921,8 +14923,21 @@ public class ResourceManagementService {
         	            Long locationMappingId =
         	                    projectTimesheetStatusNewRepository
         	                            .findLocationMappingId(timesheetId, projectId.intValue());
+        	            projectTimesheetStatusNewRepository
+    	                .processByTSandProject(timesheetId,
+    	                                                   projectId.intValue(),
+    	                                                   3);
+        	            TimesheetActionAuditNew audit = new TimesheetActionAuditNew();
+        	            audit.setTimesheetId(timesheetId);
+        	            audit.setProjectId(projectId.intValue());
+        	            audit.setActionType("REJECTED");
+        	            audit.setActionBy(updatedBy);
+        	            audit.setActionOn(now);
+
+        	            auditList.add(audit);
 
         	            for (Long rejectionId : pr.getRejectionIds()) {
+        	            	
 
         	                TimesheetRejectionDetailsNew rejection =
         	                        new TimesheetRejectionDetailsNew();
@@ -14940,7 +14955,8 @@ public class ResourceManagementService {
         	            }
         	        }
         	    }
-
+        	    timesheetActionAuditNewRepository.saveAll(auditList);
+        	    employeeTimesheetsNewRepository.processByStatus(timesheetIds, 3);
         	    timesheetRejectionDetailsNewRepository.saveAll(rejectionList);
         	}
 

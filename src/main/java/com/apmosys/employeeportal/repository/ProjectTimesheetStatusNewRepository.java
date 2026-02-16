@@ -42,6 +42,16 @@ public interface ProjectTimesheetStatusNewRepository extends JpaRepository<Proje
 	                    @Param("statusValue") int statusValue);
     
     @Modifying
+	@Transactional
+	@Query("UPDATE ProjectTimesheetStatusNew et " +
+	       "SET et.status = :status " +
+	       "WHERE et.id.timesheetId = :timesheetId "+
+			"AND et.id.projectId = :projectId")
+	int processByTSandProject( @Param("timesheetId") Long timesheetId,
+	        @Param("projectId") Integer projectId,
+	        @Param("status") Integer status);
+    
+    @Modifying
     @Transactional
     @Query("DELETE FROM ProjectTimesheetStatusNew p WHERE p.id.timesheetId = :timesheetId")
     void deleteByTimesheetId(@Param("timesheetId") Long timesheetId);
