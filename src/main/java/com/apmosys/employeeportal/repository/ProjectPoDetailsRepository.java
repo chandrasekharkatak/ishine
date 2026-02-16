@@ -125,7 +125,7 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
         		+ "		LEFT JOIN Department d ON d.name = prm.department "
         		+ "		where 1=1 AND et.empId = :empId AND p.clientId = :clientId "
         		+ "        AND t.poId = :poId and et.status in ('Approved','approved') "
-        		+ "        AND etm.active!= 2 	"
+        		+ "        AND etm.active!= 2 AND et.dayType not in ('Leave') "
         		+ "        AND et.date BETWEEN :startDate AND :endDate")
         	IshineToPoEmployeeDTO findEmployeesWithTimesheetCount(Long empId,
         	         LocalDate startDate,LocalDate endDate,Long poId,Integer clientId);

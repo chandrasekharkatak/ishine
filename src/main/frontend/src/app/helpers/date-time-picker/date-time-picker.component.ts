@@ -1,6 +1,8 @@
 import {
   Component,
   Input,
+  Output,
+  EventEmitter,
   forwardRef,
   ViewChild
 } from '@angular/core';
@@ -29,6 +31,7 @@ import * as moment from 'moment';
     MatInputModule
   ],
   templateUrl: './date-time-picker.component.html',
+  styleUrls: ['./date-time-picker.component.css'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -49,8 +52,19 @@ export class DateTimePickerComponent implements ControlValueAccessor {
   @Input() maxDate?: string; // dd-MM-yyyy
   @Input() disabledDates: string[] = []; // dd-MM-yyyy[]
 
+  /** Emits which part changed ('hour' | 'minute' | 'ampm') when mode is 'time'. Use to run validation only after AM/PM is set. */
+  @Output() timePartChange = new EventEmitter<'hour' | 'minute' | 'ampm'>();
+
   modelValue: string | null = null;
   materialDateValue: Date | null = null; // For Material datepicker (Date object)
+
+  /** 12-hour time mode: hour 1–12, minute 0–59, AM/PM (no 24h conversion needed for user input) */
+  timeHour: number | null = null;
+  timeMinute: number | null = null;
+  timeAmPm: 'AM' | 'PM' = 'AM';
+
+  readonly hourOptions = Array.from({ length: 12 }, (_, i) => i + 1);
+  readonly minuteOptions = Array.from({ length: 60 }, (_, i) => i);
 
   @ViewChild('picker') picker: any; // Reference to Material datepicker
 
@@ -93,8 +107,11 @@ export class DateTimePickerComponent implements ControlValueAccessor {
         this.materialDateValue = null;
         this.modelValue = null;
       }
+    } else if (this.mode === 'time') {
+      this.materialDateValue = null;
+      this.applyTimeValueFromParent(value);
     } else {
-      // For time/datetime modes, use regular modelValue
+      // datetime mode
       this.modelValue = this.toInputValue(value);
       this.materialDateValue = null;
     }
@@ -138,39 +155,8 @@ export class DateTimePickerComponent implements ControlValueAccessor {
     }
 
     if (this.mode === 'time') {
-      // Normalize and validate time to ensure hours/minutes are in valid range
-      // HTML time input may allow typing minutes > 59 in some browsers.
-      const timeMatch = /^(\d{1,2}):(\d{1,2})/.exec(val);
-      if (!timeMatch) {
-        // If format is unexpected, reset and ignore the change
-        console.warn('Invalid time format entered:', val);
-        this.modelValue = null;
-        this.onChange(null);
-        return;
-      }
-
-      let hour = Number(timeMatch[1]);
-      let minute = Number(timeMatch[2]);
-
-      if (isNaN(hour) || isNaN(minute)) {
-        this.modelValue = null;
-        this.onChange(null);
-        return;
-      }
-
-      // Clamp to valid ranges: 0–23 hours, 0–59 minutes
-      hour = Math.max(0, Math.min(23, hour));
-      minute = Math.max(0, Math.min(59, minute));
-
-      const normalized = `${hour.toString().padStart(2, '0')}:${minute
-        .toString()
-        .padStart(2, '0')}`;
-
-      // Update modelValue so the input reflects the corrected value
-      this.modelValue = normalized;
-
-      // Store in 12‑hour format (as expected by parent components)
-      this.onChange(this.to12HourFormat(normalized));
+      // Handled by onTimePartChange(); modelValue is set there
+      return;
     }
 
     if (this.mode === 'datetime') {
@@ -181,7 +167,31 @@ export class DateTimePickerComponent implements ControlValueAccessor {
   clearValue() {
     this.modelValue = null;
     this.materialDateValue = null;
+    if (this.mode === 'time') {
+      this.timeHour = null;
+      this.timeMinute = null;
+      this.timeAmPm = 'AM';
+    }
     this.onChange(null);
+  }
+
+  /** Called when any 12-hour time part (hour, minute, AM/PM) changes. Emits which part changed for parent (e.g. to validate only after AM/PM). */
+  onTimePartChange(part: 'hour' | 'minute' | 'ampm'): void {
+    this.onTouched();
+    if (this.timeHour == null || this.timeMinute == null) {
+      this.modelValue = null;
+      this.onChange(null);
+      if (part) this.timePartChange.emit(part);
+      return;
+    }
+    const hour = Math.max(1, Math.min(12, this.timeHour));
+    const minute = Math.max(0, Math.min(59, this.timeMinute));
+    const h = hour.toString().padStart(2, '0');
+    const m = minute.toString().padStart(2, '0');
+    const value = `${h}:${m} ${this.timeAmPm}`;
+    this.modelValue = value;
+    this.onChange(value);
+    if (part) this.timePartChange.emit(part);
   }
 
   /* ---------------- Helpers ---------------- */
@@ -195,7 +205,8 @@ export class DateTimePickerComponent implements ControlValueAccessor {
     }
 
     if (this.mode === 'time') {
-      return this.to24HourFormat(val);
+      // Keep 12h as-is; convert 24h to 12h for our internal state
+      return this.normalizeTo12HourString(val);
     }
 
     if (this.mode === 'datetime') {
@@ -203,6 +214,46 @@ export class DateTimePickerComponent implements ControlValueAccessor {
     }
 
     return val;
+  }
+
+  /** Normalize incoming time to 12-hour string "HH:mm AM/PM" (for display and parsing) */
+  private normalizeTo12HourString(val: string): string {
+    if (val.includes('AM') || val.includes('PM')) return val.trim();
+    return this.to12HourFormat(val);
+  }
+
+  /** Parse parent value (12h or 24h) and set time dropdowns + modelValue */
+  private applyTimeValueFromParent(value: string | null): void {
+    if (!value || value.trim() === '') {
+      this.timeHour = null;
+      this.timeMinute = null;
+      this.timeAmPm = 'AM';
+      this.modelValue = null;
+      return;
+    }
+    const normalized = this.normalizeTo12HourString(value);
+    const parsed = this.parse12HourString(normalized);
+    if (!parsed) {
+      this.timeHour = null;
+      this.timeMinute = null;
+      this.timeAmPm = 'AM';
+      this.modelValue = null;
+      return;
+    }
+    this.timeHour = parsed.hour;
+    this.timeMinute = parsed.minute;
+    this.timeAmPm = parsed.ampm;
+    this.modelValue = normalized;
+  }
+
+  /** Parse "HH:mm AM/PM" into { hour, minute, ampm } */
+  private parse12HourString(s: string): { hour: number; minute: number; ampm: 'AM' | 'PM' } | null {
+    const match = /^\s*(\d{1,2}):(\d{1,2})\s*(AM|PM)\s*$/i.exec(s.trim());
+    if (!match) return null;
+    const hour = parseInt(match[1], 10);
+    const minute = parseInt(match[2], 10);
+    if (hour < 1 || hour > 12 || minute < 0 || minute > 59) return null;
+    return { hour, minute, ampm: match[3].toUpperCase() as 'AM' | 'PM' };
   }
 
   /** 🕒 24 → 12 hour */

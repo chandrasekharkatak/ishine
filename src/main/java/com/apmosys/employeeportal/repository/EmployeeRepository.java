@@ -4242,32 +4242,18 @@ public List<Object[]> fetchInActivePOListOfProject(
 	List<Long> findProjectIdsWhereEmpIsOverhead(@Param("empId") Long empId);
 
 	/**
-	 * Finds project IDs where the employee is a team lead
+	 * Finds project IDs where the employee is a team lead OR SPOC
 	 */
-	@Query(value = "SELECT DISTINCT p4.project_id " +
-	               "FROM projects p4 " +
-	               "INNER JOIN teams t4 ON t4.project_id = p4.project_id " +
-	               "INNER JOIN employee_team_mapping etm4 ON etm4.team_id = t4.team_id " +
-	               "WHERE t4.team_lead_id = :empId " +
-	               "  AND p4.active = 'true' " +
-	               "  AND t4.is_active = 'Y' " +
-	               "  AND etm4.active != 0",
+	@Query(value = "SELECT DISTINCT p.project_id " +
+	               "FROM projects p " +
+	               "INNER JOIN teams t ON t.project_id = p.project_id " +
+	               "INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id " +
+	               "WHERE (t.team_lead_id = :empId OR t.spoc_id = :empId) " +
+	               "  AND p.active = 'true' " +
+	               "  AND t.is_active = 'Y' " +
+	               "  AND etm.active != 0",
 	       nativeQuery = true)
-	List<Long> findProjectIdsWhereEmpIsTeamLead(@Param("empId") Long empId);
-
-	/**
-	 * Finds project IDs where the employee is a SPOC
-	 */
-	@Query(value = "SELECT DISTINCT p5.project_id " +
-	               "FROM projects p5 " +
-	               "INNER JOIN teams t5 ON t5.project_id = p5.project_id " +
-	               "INNER JOIN employee_team_mapping etm5 ON etm5.team_id = t5.team_id " +
-	               "WHERE t5.spoc_id = :empId " +
-	               "  AND p5.active = 'true' " +
-	               "  AND t5.is_active = 'Y' " +
-	               "  AND etm5.active != 0",
-	       nativeQuery = true)
-	List<Long> findProjectIdsWhereEmpIsSpoc(@Param("empId") Long empId);
+	List<Long> findProjectIdsWhereEmpIsTeamLeadOrSpoc(@Param("empId") Long empId);
 
 	// ========== Date-aware versions for timesheet filtering ==========
 	

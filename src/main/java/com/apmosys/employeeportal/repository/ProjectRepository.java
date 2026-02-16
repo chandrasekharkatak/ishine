@@ -4277,7 +4277,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	@Query("select new com.apmosys.employeeportal.dto.TimeSheetDetailsDto(" +
 		       "t.timesheetId, t.projectId, a.teamId, t.empId, t.dayType, t.date, " +
 		       "t.officeInTime, t.officeOutTime, t.clientInTime, t.clientOutTime, " +
-		       "t.isShadowTimesheet, t.shadowEmpId, tdoc.docId, e.name ,tdoc.clientApprovalStatus) " +
+		       "t.isShadowTimesheet, t.shadowEmpId, tdoc.docId, e.name ,tdoc.clientApprovalStatus,rd.role ) " +
 		       "from Timesheet t " +
 		       "inner join TimesheetActivityMap tam on tam.timesheetId = t.timesheetId " +
 		       "inner join Activity a on a.activityId = tam.activityId " +
@@ -4289,8 +4289,12 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 		       "        where tdoc2.timesheetId = t.timesheetId " +
 		       "          and tdoc2.active = true" +
 		       "   ) " +
-		       "left join Employee e on e.empId = t.shadowEmpId " +
-		       "where a.teamId = :team_id " +
+		       "left join Employee e on e.empId = t.shadowEmpId "
+		       + " LEFT JOIN Team tm on tm.teamId=a.teamId "
+		       + " LEFT JOIN EmployeeTeamMap etm on etm.empId = t.empId "
+		       + "    AND etm.poId=tm.poId and etm.active !=2 "
+		       + " LEFT JOIN RoleDetails rd on rd.roleId = etm.roleId" +
+		       " where a.teamId = :team_id " +
 		       "  and t.empId = :emp_id " +
 		       "  and t.date between :startDate and :endDate")
 		List<TimeSheetDetailsDto> findByProjectIdAndEmployeeIdAndWorkDateBetween(

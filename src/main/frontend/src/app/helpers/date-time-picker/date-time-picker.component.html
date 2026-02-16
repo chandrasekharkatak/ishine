@@ -8,7 +8,8 @@
   </label>
 
   <div class="row d-flex align-items-center">
-  <div class="col-md-11 pr-0">
+  <div class="col-12 pr-0">
+  <!-- col-md-11 when clear button is shown -->
   <!-- Angular Material Datepicker for date mode -->
   <mat-form-field *ngIf="mode === 'date'" style="display: contents; width: 100%;">
     <input 
@@ -28,14 +29,39 @@
     <mat-datepicker #picker></mat-datepicker>
   </mat-form-field>
 
-  <input
-    *ngIf="mode === 'time'"
-    type="time"
-    class="form-control"
-    [(ngModel)]="modelValue"
-    (ngModelChange)="onModelChange($event)"
-    [disabled]="disabled"
-  />
+  <!-- 12-hour time: Hour, Minute, AM/PM dropdowns (user-friendly, no 24h conversion) -->
+  <div *ngIf="mode === 'time'" class="dt-time-12h">
+    <select
+      class="form-control dt-time-select dt-hour"
+      [ngModel]="timeHour"
+      (ngModelChange)="timeHour = $event; onTimePartChange('hour')"
+      [disabled]="disabled"
+      [required]="required"
+      aria-label="Hour">
+      <option [ngValue]="null" disabled>HH</option>
+      <option *ngFor="let h of hourOptions" [ngValue]="h">{{ h < 10 ? '0' + h : h }}</option>
+    </select>
+    <span class="dt-time-sep">:</span>
+    <select
+      class="form-control dt-time-select dt-minute"
+      [ngModel]="timeMinute"
+      (ngModelChange)="timeMinute = $event; onTimePartChange('minute')"
+      [disabled]="disabled"
+      [required]="required"
+      aria-label="Minute">
+      <option [ngValue]="null" disabled>MM</option>
+      <option *ngFor="let m of minuteOptions" [ngValue]="m">{{ m < 10 ? '0' + m : m }}</option>
+    </select>
+    <select
+      class="form-control dt-time-select dt-ampm"
+      [ngModel]="timeAmPm"
+      (ngModelChange)="timeAmPm = $event; onTimePartChange('ampm')"
+      [disabled]="disabled"
+      aria-label="AM or PM">
+      <option value="AM">AM</option>
+      <option value="PM">PM</option>
+    </select>
+  </div>
 
   <input
     *ngIf="mode === 'datetime'"
@@ -46,6 +72,7 @@
     [disabled]="disabled"
   />
 </div>
+<!-- Clear button (commented out for now)
 <div class="col-md-1 pl-0">
   <button
     *ngIf="(mode === 'date' ? materialDateValue : modelValue) && !disabled"
@@ -55,5 +82,6 @@
       ✖
     </button>
   </div>
+-->
 </div>
 </div>

@@ -424,7 +424,7 @@ public class TimesheetValidationHelper {
 
 					Boolean isClientIdMandatory = projectRepository.getClientSideIdMandatory(projectId);
 
-					if (Boolean.FALSE.equals(isClientIdMandatory)) {
+					if (isClientIdMandatory==null || Boolean.FALSE.equals(isClientIdMandatory)) {
 						continue;
 					}
 

@@ -519,10 +519,9 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 	 			+ "	INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id "
 	 			+ "	INNER JOIN employee e ON e.emp_id = etm.emp_id \n"
 	 			+ " INNER JOIN project_po_details ppo on ppo.project_id = p.project_id "
-	 			+ " INNER JOIN po_details pd on pd.po_id = ppo.po_id "
 	 			+ "	WHERE p.active = 'true' AND t.is_active != 'N' "
 	 			+ "	   AND etm.active != 0 AND ppo.active=1 "
-	 			+ "    AND CURDATE() BETWEEN pd.po_start_date AND pd.po_end_date "
+	 			+ "    AND CURDATE() BETWEEN ppo.po_start_date AND ppo.po_end_date "
 	 			+ "	GROUP BY ppo.po_id ",nativeQuery = true)
 				List<Object> getAllApprovedPoWithTimesheet(); 
 	 
@@ -918,9 +917,9 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			+ " INNER JOIN Team t ON t.teamId = etm.teamId\n"
 			+ " INNER JOIN Project p ON p.projectId = t.projectId\n"
 			+ " WHERE p.projectId = :projectId\n"
-			+ "	AND etm.active != 0 \n"
-			+ "	AND t.isActive = 'Y' \n"
-			+ "	AND p.active = 'true' ")
+			+ "	AND etm.active != 0\n"
+			+ "	AND t.isActive = 'Y'\n"
+			+ "	AND p.active = 'true'")
 	List<Long> findDistinctEmpIdsByProjectId(@Param("projectId") Long projectId);
 
 	
