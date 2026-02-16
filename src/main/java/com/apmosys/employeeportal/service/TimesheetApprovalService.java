@@ -1465,70 +1465,140 @@ import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 	    
 	  
 	//  New API
-	 public ServiceResponse getMyReporteesTimesheetRequestsNew(
-	         GetMyReporteesTimesheetRequestsPayload payload) {
-	
-	     ServiceResponse response = new ServiceResponse();
-	
-	     // 1️⃣ Pageable create
-	     Pageable pageable = PageRequest.of(
-	             payload.getPage(),
-	             payload.getSize()
-	     );
-	
-	     // 2️⃣ Repository call (same query)
-	     Page<GetReporteesTimesheetReqFlatDTO> pageData =
-	             employeeTimesheetsNewRepository
-	                     .getMyReporteesTimesheetRequests(
-	                             payload.getEmpId(),
-	                             payload.getClientFilter(),
-	
-	                             payload.getEmploymentId(),
-	                             payload.getEmployeeName(),
-	                             payload.getDayType(),
-	                             payload.getProjectName(),
-	                             payload.getClientName(),
-	                             payload.getClientLocation(),
-	                             payload.getPoNo(),
-	                             payload.getShadowEmpName(),
-	                             payload.getTeamName(),
-	                             payload.getActivity(),
-	                             payload.getDate(),
-	
-	                             payload.getSearch(),
-	                             payload.getWorkCheckIn(),
-	                             payload.getWorkCheckOut(),
-	                             payload.getLocationCount(),
-	                             payload.getProjectCount(),
-	                             payload.getAppliedBy(),
-	                             payload.getAppliedOn(),
-	                             payload.getStatus(),
-//	                             payload.getSortBy(),
-//	                             payload.getSortDir(),
-	                             pageable
-	                     );
-	
-	     // 3️⃣ Flat → UI DTO
-	     List<GetReporteesTimesheetReqDTO> data =
-	             timesheetMapper.map(pageData.getContent());
-	
-	     // 4️⃣ FE-friendly pagination response
-	     Map<String, Object> result = new HashMap<>();
-	     result.put("content", data);
-	     result.put("page", pageData.getNumber());
-	     result.put("size", pageData.getSize());
-	     result.put("totalElements", pageData.getTotalElements());
-	     result.put("totalPages", pageData.getTotalPages());
-	     result.put("isLast", pageData.isLast());
-	
-	     response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	     response.setServiceResponse(result);
-	     return response;
-	 }
-	
-	  
-	
-	    
-	    
+public ServiceResponse getMyReporteesTimesheetRequestsNew(GetMyReporteesTimesheetRequestsPayload payload) {
+
+    ServiceResponse response = new ServiceResponse();
+
+    try {
+
+        // ---------- VALIDATION ----------
+        if (payload == null || payload.getEmpId() == null) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse("Employee information is required");
+            return response;
+        }
+
+        boolean clientFilter = Boolean.TRUE.equals(payload.getClientFilter());
+
+        // ---------- SAFE PAGE ----------
+        int page = (payload.getPage() != null && payload.getPage() >= 0)
+                ? payload.getPage()
+                : 0;
+
+        int size = (payload.getSize() != null && payload.getSize() > 0)
+                ? payload.getSize()
+                : 10;
+
+        // ---------- SORT ----------
+        String sortBy = payload.getSortBy();
+        String sortDir = payload.getSortDir();
+
+        Sort.Direction direction =
+                "ASC".equalsIgnoreCase(sortDir)
+                        ? Sort.Direction.ASC
+                        : Sort.Direction.DESC;
+
+        String sortExpr;
+
+        if (sortBy == null || sortBy.isBlank()) {
+            sortExpr = "createdOn";
+        } else if ("employeeName".equals(sortBy)) {
+            sortExpr = "e.name";
+        } else if ("employmentId".equals(sortBy)) {
+            sortExpr = "e.employeementId";
+        } else if ("dayType".equals(sortBy)) {
+            sortExpr = "dtmn.dayType";
+        } else if ("date".equals(sortBy)) {
+            sortExpr = "date";
+        } else if ("appliedOn".equals(sortBy)) {
+            sortExpr = "createdOn";
+        } else if ("projectName".equals(sortBy)) {
+            sortExpr = "p.projectName";
+        } else if ("clientName".equals(sortBy)) {
+            sortExpr = "c.clientName";
+        } else if ("teamName".equals(sortBy)) {
+            sortExpr = "t.teamName";
+        } else {
+            sortExpr = "createdOn";
+        }
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                JpaSort.unsafe(direction, sortExpr)
+        );
+
+        // ---------- REPO CALL ----------
+        Page<GetReporteesTimesheetReqFlatDTO> pageResult =
+                employeeTimesheetsNewRepository.getMyReporteesTimesheetRequests(
+                        payload.getEmpId(),
+                        clientFilter,
+
+                        payload.getEmploymentId(),
+                        payload.getEmployeeName(),
+                        payload.getDayType(),
+                        payload.getProjectName(),
+                        payload.getClientName(),
+                        payload.getClientLocation(),
+                        payload.getPoNo(),
+                        payload.getShadowEmpName(),
+                        payload.getTeamName(),
+                        payload.getActivity(),
+                        payload.getDate(),
+
+                        payload.getSearch(),
+                        payload.getWorkCheckIn(),
+                        payload.getWorkCheckOut(),
+                        payload.getLocationCount(),
+                        payload.getProjectCount(),
+                        payload.getAppliedBy(),
+                        payload.getAppliedOn(),
+                        payload.getStatus(),
+                        pageable
+                );
+
+        // ---------- EMPTY ----------
+        if (pageResult == null || pageResult.isEmpty()) {
+
+            Map<String, Object> empty = new HashMap<>();
+            empty.put("content", Collections.emptyList());
+            empty.put("page", page);
+            empty.put("size", size);
+            empty.put("totalElements", 0);
+            empty.put("totalPages", 0);
+            empty.put("hasNext", false);
+
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(empty);
+            return response;
+        }
+
+        // ---------- MAP ----------
+        List<GetReporteesTimesheetReqDTO> mapped =
+                timesheetMapper.map(pageResult.getContent());
+
+        // ---------- FINAL RESPONSE ----------
+        Map<String, Object> finalResponse = new HashMap<>();
+        finalResponse.put("content", mapped);//
+        finalResponse.put("page", pageResult.getNumber());//
+        finalResponse.put("size", pageResult.getSize());//
+        finalResponse.put("totalElements", pageResult.getTotalElements());
+        finalResponse.put("totalPages", pageResult.getTotalPages());//
+        finalResponse.put("hasNext", pageResult.hasNext());//
+
+        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        response.setServiceResponse(finalResponse);
+
+    } catch (Exception ex) {
+
+        ex.printStackTrace();
+
+        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+        response.setServiceResponse("Failed to fetch timesheet requests");
+        response.setServiceError(ex.getMessage());
+    }
+
+    return response;
+}
 	}
 	

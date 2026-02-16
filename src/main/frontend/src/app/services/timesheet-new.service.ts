@@ -239,11 +239,21 @@ bulkRejectTimesheetsByIds1(payload: {
    * Get document by ID for preview
    * @param docId - Document ID to retrieve
    */
-  getDocumentById(docId: number): Observable<any> {
-    return this.http.get(
-      `${this.baseUrl}` + `api/v2/timesheet/document/getById/${docId}`
-    );
-  }
+// getDocumentById(docId: number, approvedDocType?: boolean) {
+
+//   return this.http.get(
+//     `${this.baseUrl}api/v2/timesheet/document/getById/${docId}?approvedDocType=${approvedDocType}`
+//   );
+
+// }
+getDocumentById(docId: number, approvedDocType?: boolean) {
+  return this.http.get(
+    `${this.baseUrl}api/v2/timesheet/document/getById/${docId}?approvedDocType=${approvedDocType}`,
+    { responseType: 'blob' }
+  );
+}
+
+
   getMyReporteesTimesheetRequestsCount(payload: any) {
     return this.http.post(
       `${this.baseUrl}api/getTimesheetStatusCountByManager`,

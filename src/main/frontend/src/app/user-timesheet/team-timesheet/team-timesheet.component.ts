@@ -174,6 +174,8 @@ alertModal: TemplateRef<any>;
   minusDaysData: {minusDays: number, checkMinusDaysForBulkUpload: boolean} = {minusDays: 45, checkMinusDaysForBulkUpload: true};
   modalMessage: any;
   modalTitle: string;
+  
+
 
   constructor(
     public validationService: ValidationService,
@@ -373,74 +375,77 @@ alertModal: TemplateRef<any>;
     activityObj.description = sanitizedValue;
     event.target.value = sanitizedValue; // reflect the change in the UI
   }
-  getMyReporteesTimesheetRequests() {
-
-    this.loaderService.requestStarted();
-
-    const payload: any = {
-      empId: this.currentUser.empId,
-      clientFilter: this.clientFilter,
-      page: this.page1 - 1,
-      size :this.items,
-      sortBy: this.sortColumn || 'date',
-      sortDir: this.sortDirection || 'DESC',
-      status : this.selectedStatus,
-    };
 
 
-    /* 🔹 GLOBAL SEARCH (as-is) */
-    // if (this.searchText?.trim()) {
-    //   payload.globalSearch = this.searchText.trim();
-    // }
+page1: number = 0;
+items: number = 10;
+totalRecords: number = 0;
+totalPages: number = 0;
 
-    /* 🔹 COLUMN FILTERS (toggle search) */
-    this.addIfPresent(payload, 'employmentId', this.filters.employmentId);
-    this.addIfPresent(payload, 'employeeName', this.filters.employeeName);
-    this.addIfPresent(payload, 'date', this.filters.date);
-    this.addIfPresent(payload, 'dayType', this.filters.dayType);
-    this.addIfPresent(payload, 'projectName', this.filters.projectName);
-    this.addIfPresent(payload, 'poNo', this.filters.poNo);
-    this.addIfPresent(payload, 'shadowEmpName', this.filters.shadowEmp);
-    this.addIfPresent(payload, 'shadowFor', this.filters.shadowFor);
-    this.addIfPresent(payload, 'workCheckIn', this.filters.workCheckIn);
-    this.addIfPresent(payload, 'workCheckOut', this.filters.workCheckOut);
-    this.addIfPresent(payload, 'locationCount', this.filters.locationCount);
-    this.addIfPresent(payload, 'projectCount', this.filters.projectCount);
-    this.addIfPresent(payload, 'appliedBy', this.filters.appliedBy);
-    this.addIfPresent(payload, 'appliedOn', this.filters.appliedOn);
+ getMyReporteesTimesheetRequests() {
 
+  this.loaderService.requestStarted();
 
+  const payload: any = {
+    empId: this.currentUser.empId,
+    clientFilter: this.clientFilter,
+    page: this.page1,
+    size: Number(this.items),
+    sortBy: this.sortColumn || 'date',
+    sortDir: this.sortDirection || 'DESC',
+    status: this.selectedStatus
+  };
 
-    this.timesheetService
-    .getMyReporteesTimesheetRequests(payload)
+  /* 🔹 COLUMN FILTERS */
+  this.addIfPresent(payload, 'employmentId', this.filters.employmentId);
+  this.addIfPresent(payload, 'employeeName', this.filters.employeeName);
+  this.addIfPresent(payload, 'date', this.filters.date);
+  this.addIfPresent(payload, 'dayType', this.filters.dayType);
+  this.addIfPresent(payload, 'projectName', this.filters.projectName);
+  this.addIfPresent(payload, 'poNo', this.filters.poNo);
+  this.addIfPresent(payload, 'shadowEmpName', this.filters.shadowEmp);
+  this.addIfPresent(payload, 'shadowFor', this.filters.shadowFor);
+  this.addIfPresent(payload, 'workCheckIn', this.filters.workCheckIn);
+  this.addIfPresent(payload, 'workCheckOut', this.filters.workCheckOut);
+  this.addIfPresent(payload, 'locationCount', this.filters.locationCount);
+  this.addIfPresent(payload, 'projectCount', this.filters.projectCount);
+  this.addIfPresent(payload, 'appliedBy', this.filters.appliedBy);
+  this.addIfPresent(payload, 'appliedOn', this.filters.appliedOn);
+
+  
+  this.timesheetService.getMyReporteesTimesheetRequests(payload)
     .pipe(finalize(() => this.loaderService.requestEnded()))
     .subscribe((res: any) => {
 
       if (res.serviceStatus === 'Success') {
 
         this.allTeamTimesheetRequestsProjectView =
-        res.serviceResponse.content;
+          res.serviceResponse.content || [];
 
-      this.totalRecords =
-        res.serviceResponse.totalElements;
+        this.totalRecords =
+          res.serviceResponse.totalElements || 0;
+
+        this.totalPages =
+          res.serviceResponse.totalPages || 0;
       }
     });
-  }
-  page1: number = 1;
-items: number = 10;
-totalRecords: number = 0;
-totalPages: number = 0;
+    //console.log(this.items);
+  
+}
 
 onPageSizeChange() {
-  this.page1 = 1;
+  this.items = Number(this.items); 
+  this.page1 = 0;
   this.isAllSelected = false;
   this.getMyReporteesTimesheetRequests();
 }
 
 
 
-onPageChange(page: number) {
-  this.page1 = page;
+onPageChange(event: any) {
+  this.page1 = event.pageIndex;
+this.items = event.pageSize;
+
   this.getMyReporteesTimesheetRequests(); // 🔥 BACKEND HIT
 }
 
@@ -1944,31 +1949,57 @@ closeDocumentPopup() {
    ======================= */
 
    @ViewChild('documentViewerModal') documentViewerModal!: TemplateRef<any>;
+   @ViewChild('documentViewerModalToggle') documentViewerModalToggle: TemplateRef<any>;
 
    activeDocProject: any = null;
    activeDocType: 'Pending' | 'Approved' = 'Pending';
+   isToggleMode: boolean = false;
    activePreviewFile: any = null;
    selectedTimesheet: any = null;
 
    /* OPEN POPUP */
-   openDocumentPopup(timesheet: any): void {
-     this.selectedTimesheet = timesheet;
+openDocumentPopup(
+  timesheet: any,
+  docType: 'Pending' | 'Approved',
+  toggleMode: boolean = false,
+  project?: any
+): void {
 
-     const projects = this.getUniqueProjectsFromTimesheet(timesheet);
+  this.selectedTimesheet = timesheet;
+  this.isToggleMode = toggleMode;
+  this.activeDocProject = project;
 
-    //  if (!projects.length) {
-    //    this.openAlertMod(this.alertTemplate, 'No projects available');
-    //    return;
-    //  }
+  // ✅ ONLY set doc type for NON toggle mode
+  if (!toggleMode) {
+    this.activeDocType = docType;
+  } else {
+    this.activeDocType = 'Pending'; // default when View All
+  }
 
-     this.activeDocProject = projects[0];
-     this.setDefaultDocForProject();
+  // ✅ OPEN DIFFERENT MODALS
+  if (toggleMode) {
 
-     this.modalRef = this.modalService.open(
-       this.documentViewerModal,
-       { modalDialogClass: 'modal-xl', backdrop: 'static' }
-     );
-   }
+    // 🟢 VIEW ALL → FIRST MODAL
+    this.modalRef = this.modalService.open(
+      this.documentViewerModal,
+      { modalDialogClass: 'modal-xl', backdrop: 'static' }
+    );
+
+    this.loadActiveDocument();
+
+  } else {
+
+    // 🟡 Pending / Approved → SECOND MODAL
+    this.modalRef = this.modalService.open(
+      this.documentViewerModalToggle,
+      { modalDialogClass: 'modal-xl', backdrop: 'static' }
+    );
+
+    this.getDocument(this.activeDocType);
+  }
+}
+
+
 
    /* PROJECT LIST */
    getUniqueProjectsFromTimesheet(timesheet: any): any[] {
@@ -2015,18 +2046,17 @@ closeDocumentPopup() {
    }
 
    /* LOAD DOC */
-   loadActiveDocument(): void {
-     if (!this.activeDocProject) {
-       this.activePreviewFile = null;
-       return;
-     }
+loadActiveDocument(): void {
 
-     this.activePreviewFile =
-       this.getDocument(
-         this.activeDocProject.projectId,
-         this.activeDocType
-       );
-   }
+  if (!this.selectedTimesheet) {
+    this.safePdfUrl = null;
+    return;
+  }
+
+  this.getDocument(this.activeDocType);
+
+}
+
 
    /* HELPERS */
    hasPendingDoc(projectId: number): boolean {
@@ -2041,12 +2071,83 @@ closeDocumentPopup() {
      );
    }
 
-   getDocument(projectId: number, type: 'Pending' | 'Approved'): any {
-     return this.selectedTimesheet?.documentData?.find(d =>
-       d.projectId === projectId &&
-       (type === 'Pending' ? !d.finalFlag : d.finalFlag)
-     );
-   }
+  //  getDocument(projectId: number, type: 'Pending' | 'Approved'): any {
+  //    return this.selectedTimesheet?.doumentData?.find(d =>
+  //      d.projectId === projectId && 
+  //      (type === 'Pending' ? !d.finalFlag : d.finalFlag)
+  //    );
+  //  }
+
+// getDocument(type: 'Pending' | 'Approved'): void {
+
+//   const doc = this.selectedTimesheet?.documentData?.find(d =>
+//     type === 'Pending' ? !d.finalFlag : d.finalFlag
+//   );
+
+//   if (!doc?.docId) {
+//     this.activePreviewFile = null;
+//     return;
+//   }
+
+//   const approvedDocType = type === 'Approved';
+
+//   this.timesheetNewService
+//     .getDocumentById(doc.docId, doc?.finalFlag)
+//     .subscribe({
+//       next: (res: any) => {
+
+//         const fileData = res?.serviceResponse?.fileData;
+
+//         if (!fileData) {
+//           this.activePreviewFile = null;
+//           return;
+//         }
+
+//         this.safePdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+//           `data:application/pdf;base64,${fileData}`
+//         );
+
+//       },
+//       error: err => {
+//         console.error("Document fetch failed", err);
+//         this.activePreviewFile = null;
+//       }
+//     });
+
+// }
+getDocument(type: 'Pending' | 'Approved'): void {
+
+  const doc = this.selectedTimesheet?.documentData?.find(d =>
+    type === 'Pending' ? !d.finalFlag : d.finalFlag
+  );
+
+  if (!doc?.docId) {
+    this.activePreviewFile = null;
+     this.safePdfUrl = null;
+    return;
+  }
+
+  this.timesheetNewService
+    .getDocumentById(doc.docId, doc?.finalFlag)
+    .subscribe({
+      next: (blob: Blob) => {
+
+        const fileURL = URL.createObjectURL(blob);
+
+        this.safePdfUrl =
+          this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
+
+      },
+      error: err => {
+        console.error("Document fetch failed", err);
+        this.activePreviewFile = null;
+      }
+    });
+}
+
+
+
+
 
   //  Navigation CARDS
 
@@ -2376,8 +2477,8 @@ approveSingleProject(timesheet: any, project: any, location: any) {
   }
   const payload = {
     timesheetId: timesheet.timesheetId,
-    locationMappingId: location.locationMappingId, // ✅ REQUIRED
-    projectIds: [project.projectId],                // ✅ ARRAY
+    locationMappingId: location.locationMappingId, 
+    projectIds: [project.projectId],              
     status: 'APPROVED',
     updatedBy: this.currentUser.empId
   };

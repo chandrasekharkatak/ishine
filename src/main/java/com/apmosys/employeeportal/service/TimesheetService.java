@@ -111,6 +111,7 @@ import com.apmosys.employeeportal.model.TimesheetApprovalAllocationLogs;
 import com.apmosys.employeeportal.model.TimesheetDataDTO;
 import com.apmosys.employeeportal.model.TimesheetDocumentApproval;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
+import com.apmosys.employeeportal.model.TimesheetDocumentDetailsNew;
 import com.apmosys.employeeportal.model.TimesheetRejectionReasonsMaster;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.AuditCustomRepository;
@@ -128,6 +129,7 @@ import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
 import com.apmosys.employeeportal.repository.TimesheetApprovalAllocationLogsRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentApprovalRepository;
+import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsNewRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
 import com.apmosys.employeeportal.repository.TimesheetRejectionReasonsMasterRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
@@ -142,6 +144,11 @@ public class TimesheetService {
 
 	@Autowired
 	TimesheetsRepository timesheetsRepository;
+	
+	
+	
+	@Autowired
+	TimesheetDocumentDetailsNewRepository timesheetDocumentDetailsNewRepository;
 	
 	@Autowired
 	DepartmentRepository departmentRepository;
@@ -3846,8 +3853,10 @@ public class TimesheetService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append( "docId:" +docId+"\n");
 		 try {
-			 TimesheetDocumentDetails docDetails = new TimesheetDocumentDetails();
-			 docDetails = timesheetDocumentDetailsRepository.findByDocIdAndActive(docId,true);
+			 TimesheetDocumentDetailsNew docDetails = new TimesheetDocumentDetailsNew();
+			// docDetails = timesheetDocumentDetailsRepository.findByDocIdAndActive(docId,true);
+			 docDetails = timesheetDocumentDetailsNewRepository.findByDocIdAndActive(docId,true);
+			 
 			 if(docDetails == null) {
 				 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		            response.setServiceResponse("Document not found...!!");

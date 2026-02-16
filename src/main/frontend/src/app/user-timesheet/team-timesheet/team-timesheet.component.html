@@ -696,13 +696,18 @@
       </div>
     </div>
     <div class="pagination-bar">
-      <div class="page-size"> Show <select [(ngModel)]="items" (change)="onPageSizeChange()">
-          <option [value]="10">10</option>
-          <option [value]="20">20</option>
-          <option [value]="50">50</option>
-          <option [value]="100">100</option>
-          <option [value]="200">200</option>
-        </select> entries </div>
+     <!-- <div class="page-size">
+  Show
+  <select [(ngModel)]="items" (change)="onPageSizeChange()">
+    <option [ngValue]="10">10</option>
+    <option [ngValue]="20">20</option>
+    <option [ngValue]="50">50</option>
+    <option [ngValue]="100">100</option>
+    <option [ngValue]="200">200</option>
+  </select>
+  entries
+</div> -->
+
       <div class="total-count"> Total Records: <strong>{{ totalRecords }}</strong> </div>
     </div>
     <div class="table-container-ts">
@@ -731,7 +736,8 @@
               <tr class="main-row" [class.active-row]="expandedTimesheetIndex === i">
                 <td *ngIf="selectedStatus === 1"> <input type="checkbox" [(ngModel)]="timesheet.selected"
                     (change)="onEmployeeToggle(timesheet); updateSelectedRows(timesheet)" /> </td>
-                <td>{{ (page1 - 1) * items + i + 1 }}</td>
+               <td>{{ (page1 * items) + i + 1 }}</td>
+
                 <td class="emp-femp-id" (click)="toggleAccordion(i)" title = "click to view project details"> {{ timesheet.employmentId }} </td>
                 <td>{{ timesheet.employeeName }}</td>
                 <td>{{ timesheet.date }}</td>
@@ -743,7 +749,7 @@
                 <td>{{ timesheet.appliedBy }}</td>
                 <td>{{ timesheet.appliedOn }}</td>
                 <td>
-                  <button class="doc-btn approved" (click)="openDocumentPopup(timesheet)"><i
+                  <button class="doc-btn approved" (click)="openDocumentPopup(timesheet, null, true)"><i
                       class="fa fa-eye" title = "view all documents"></i></button>
                   <button class="btn-approve" *ngIf="selectedStatus === 1"
                     (click)="approveSingleTimesheet(timesheet)" title = "Approve timesheet"> ✔ </button>
@@ -776,9 +782,9 @@
                             <td>{{ project.poNo || '-' }}</td>
                             <td>{{ project.shadowEmp ? 'Yes' : 'No' }}</td>
                             <td> <button class="doc-btn pending" style="color:rgb(255, 187, 0)"
-                                (click)="openDocumentPopup(timesheet)"> <i class="fa fa-eye"></i> </button></td>
+                                (click)="openDocumentPopup(timesheet, 'Pending', false)"> <i class="fa fa-eye"></i> </button></td>
                             <td> <button class="doc-btn approved" style="color:green"
-                                (click)="openDocumentPopup(timesheet)"> <i class="fa fa-eye"></i> </button></td>
+                                (click)="openDocumentPopup(timesheet, 'Approved', false)"> <i class="fa fa-eye"></i> </button></td>
                             <!-- <td>
                               <div class="action-buttons-container">
                               <button class="btn-approve"
@@ -823,7 +829,18 @@
           </tbody>
         </table>
       </div>
-      <pagination-controls (pageChange)="page1 = $event; getMyReporteesTimesheetRequests()"> </pagination-controls>
+
+     <!-- <pagination-controls (pageChange)="page1 = $event; getMyReporteesTimesheetRequests()"> </pagination-controls>
+    -->
+
+<mat-paginator
+  [length]="totalRecords"
+  [pageSize]="items"
+  [pageSizeOptions]="[10, 20, 50, 100, 200]"
+  (page)="onPageChange($event)">
+</mat-paginator>
+
+
     </div>
   </div>
 </div>
@@ -859,17 +876,89 @@
             </tbody>
           </table>
         </div>
-        <div class="doc-right">
+        <!-- <div class="doc-right">
           <div class="doc-toggle"> <button [class.active]="activeDocType === 'Pending'"
               (click)="switchDocType('Pending')" [disabled]="!hasPendingDoc(activeDocProject?.projectId)"> Pending
             </button> <button [class.active]="activeDocType === 'Approved'" (click)="switchDocType('Approved')"
               [disabled]="!hasApprovedDoc(activeDocProject?.projectId)"> Approved </button> </div>
           <div class="doc-preview"> <iframe [src]="safePdfUrl" width="100%" height="100%" frameborder="0"> </iframe>
           </div>
-        </div>
+        </div> -->
+        <div class="doc-right">
+
+  <div class="doc-toggle">
+
+  <button *ngIf="activeDocType === 'Pending'" (click)="switchDocType('Pending')">Pending</button>
+
+    <button *ngIf="activeDocType === 'Approved'" (click)="switchDocType('Approved')"> Approved</button>
+
+  </div>
+
+  <div class="doc-preview">
+    <iframe
+      [src]="safePdfUrl"
+      width="100%"
+      height="100%"
+      frameborder="0">
+    </iframe>
+  </div>
+
+</div>
+
     </div>
   </div>
 </ng-template>
+
+<ng-template #documentViewerModalToggle>
+  <div class="doc-modal-lg">
+    <div class="doc-header">
+      <h5>Documents</h5> <button class="close-btn" (click)="modalRef.close()">✖</button>
+    </div>
+      <div class="doc-body">
+     
+        <!-- <div class="doc-right">
+          <div class="doc-toggle"> <button [class.active]="activeDocType === 'Pending'"
+              (click)="switchDocType('Pending')" [disabled]="!hasPendingDoc(activeDocProject?.projectId)"> Pending
+            </button> <button [class.active]="activeDocType === 'Approved'" (click)="switchDocType('Approved')"
+              [disabled]="!hasApprovedDoc(activeDocProject?.projectId)"> Approved </button> </div>
+          <div class="doc-preview"> <iframe [src]="safePdfUrl" width="100%" height="100%" frameborder="0"> </iframe>
+          </div>
+        </div> -->
+        <div class="doc-right">
+
+<div class="doc-toggle" *ngIf="isToggleMode">
+
+  <button
+    [class.active]="activeDocType === 'Pending'"
+    (click)="activeDocType='Pending'; loadActiveDocument()">
+    Pending
+  </button>
+
+  <button
+    [class.active]="activeDocType === 'Approved'"
+    (click)="activeDocType='Approved'; loadActiveDocument()">
+    Approved
+  </button>
+
+</div>
+
+
+  <div class="doc-preview">
+    <iframe
+      [src]="safePdfUrl"
+      width="100%"
+      height="100%"
+      frameborder="0">
+    </iframe>
+  </div>
+
+</div>
+
+    </div>
+  </div>
+</ng-template>
+
+
 
 <!-- single timesheet reject modal -->
 <!-- <ng-template #singleRejectModal>
