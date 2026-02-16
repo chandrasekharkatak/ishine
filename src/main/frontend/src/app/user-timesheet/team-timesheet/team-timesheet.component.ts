@@ -2159,6 +2159,7 @@ projectList: any[] = [];
           this.selectedStatus = 2;
           this.page1 = 1;
           this.getMyReporteesTimesheetRequests();
+          this.getTimesheetStatusCountsByEmpId();
           this.modalMessage =message;
 
         } else {
@@ -2262,13 +2263,42 @@ approveSingleTimesheet(timesheet: any) {
     .pipe(finalize(() => this.loaderService.requestEnded()))
     .subscribe({
       next: (res: any) => {
+         this.modalTitle = 'Result';
+        let message = '';
+
         if (res?.serviceStatus === 'Success') {
+
+          const processed = res?.serviceResponse?.processed || [];
+          const skipped = res?.serviceResponse?.skipped || {};
+
+          if (processed.length) {
+            message += `${processed.length} timesheet(s) approved successfully.\n`;
+          }
+
+          const skippedKeys = Object.keys(skipped);
+          if (skippedKeys.length) {
+            message += `\nSkipped:\n`;
+            skippedKeys.forEach(id => {
+              message += `Timesheet ${id}: ${skipped[id]}\n`;
+            });
+          }
+
           this.clearAllSelections();
+          this.selectedStatus = 2;
+          this.page1 = 1;
+
           this.getMyReporteesTimesheetRequests();
-          alert(res.serviceResponse || 'Timesheet approved successfully');
+          this.getTimesheetStatusCountsByEmpId();
+
+          this.modalMessage = message;
+          
         } else {
-          alert(res?.serviceResponse || 'Timesheet approval failed');
+           this.modalTitle = 'Error';
+          this.modalMessage =
+            res?.serviceResponse || 'Timesheet approval failed';
         }
+        this.modalService.open(this.statusModal, { centered: true });
+
       },
       error: () => {
         alert('Timesheet approval failed');
@@ -2610,7 +2640,9 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
   submitSingleTimesheetReject() {
 
   if (!this.selectedTimesheet?.timesheetId) {
-    this.statusModal('Error', 'Invalid timesheet');
+    this.modalTitle = 'Error';
+    this.modalMessage = 'Invalid timesheet';
+    this.modalService.open(this.statusModal, { centered: true });
     return;
   }
 
@@ -2640,16 +2672,48 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
   this.timesheetNewService
     .bulkRejectTimesheetsByIds1(payload)
     .pipe(finalize(() => this.loaderService.requestEnded()))
-    .subscribe(res => {
-
+    .subscribe({
+      next: (res: any) => {
+      this.modalTitle = 'Result';
+        let message = '';
       if (res?.serviceStatus === 'Success') {
-        this.modalRef?.close();
-        this.getMyReporteesTimesheetRequests();
-        this.statusModal('Success', 'Timesheet rejected successfully');
+        const processed = res?.serviceResponse?.processed || [];
+          const skipped = res?.serviceResponse?.skipped || {};
+
+          if (processed.length) {
+            message += `${processed.length} timesheet(s) rejected successfully.\n`;
+          }
+
+          const skippedKeys = Object.keys(skipped);
+          if (skippedKeys.length) {
+            message += `\nSkipped:\n`;
+            skippedKeys.forEach(id => {
+              message += `Timesheet ${id}: ${skipped[id]}\n`;
+            });
+          }
+
+          this.modalRef?.close();
+          this.page1 = 1;
+
+          this.getMyReporteesTimesheetRequests();
+          this.getTimesheetStatusCountsByEmpId();
+
+          this.modalMessage = message;
       } else {
-        this.statusModal('Error', 'Rejection failed');
+          this.modalTitle = 'Error';
+          this.modalMessage =
+            res?.serviceResponse || 'Timesheet rejection failed';
+
+      }
+       this.modalService.open(this.statusModal, { centered: true });
+      },
+      error: () => {
+        this.modalTitle = 'Error';
+        this.modalMessage = 'Timesheet rejection failed';
+        this.modalService.open(this.statusModal, { centered: true });
       }
     });
+    this.getTimesheetStatusCountsByEmpId();
 }
 
 
