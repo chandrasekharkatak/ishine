@@ -284,6 +284,39 @@
     </div>
 </ng-template>
 
+<ng-template #update_project_start_date_error>
+    <div class="modal-body text-center">
+        <p>The member’s start date is earlier than the project start date. To proceed, the project start date must be
+            updated accordingly.
+            <br>
+            Do you want to continue?
+        </p>
+        <div class="row justify-content-center align-items-center">
+            <button type="button" class="btn btn-success"
+                (click)="openUpdateProjectStartDateConfirmationModal();closeErrorModal()">Yes,
+                proceed</button>&nbsp;
+            <button type="button" class="btn btn-danger" (click)="closeErrorModal()">No,
+                Cancel</button>&nbsp;
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #update_project_start_date_confirmation>
+    <div class="modal-body text-center">
+        <div class="row justify-content-center align-items-center">
+            <label class="info-label">Select New Project Start Date</label>
+        </div>
+        <div class="row justify-content-center align-items-center m-2">
+            <input type="date" class="form-control" autocomplete="none" [(ngModel)]="projectNewStartDate">
+        </div>
+        <div class="row justify-content-center align-items-center">
+            <button type="button" class="btn btn-success" (click)="updateProjectStartDate();">Yes,
+                proceed</button>&nbsp;
+            <button type="button" class="btn btn-danger" (click)="closeUpdateProjectStartDateConfirmationModal()">No,
+                Cancel</button>&nbsp;
+        </div>
+    </div>
+</ng-template>
 
 <ng-template #edit_enddate_template>
     <div class="modal-body text-center">
