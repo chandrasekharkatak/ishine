@@ -243,7 +243,7 @@ public class ClientService {
 
 		    if (!addressMatches.isEmpty()) {
 
-		        // 1️⃣ Update location/state if changed (sync from PO)
+		        // 1 Update location/state if changed (sync from PO)
 		        for (ClientLocation cl : addressMatches) {
 
 		            boolean changed = false;
@@ -263,7 +263,7 @@ public class ClientService {
 		            }
 		        }
 
-		        // 2️⃣ Check if this client already mapped with this addressId
+		        // 2 Check if this client already mapped with this addressId
 		        Optional<ClientLocation> clientSpecific =
 		                addressMatches.stream()
 		                        .filter(cl -> cl.getClientId().equals(clientId))
@@ -273,7 +273,7 @@ public class ClientService {
 		            return clientSpecific.get();
 		        }
 
-		        // 3️⃣ If not mapped for this client → fall back to old logic
+		        // 3 If not mapped for this client → fall back to old logic
 		        // (maybe exact match exists without addressId)
 
 		        Optional<ClientLocation> exact =
@@ -299,7 +299,7 @@ public class ClientService {
 		            return clientLocationRepository.save(cl);
 		        }
 
-		        // 4️⃣ Finally create new mapping for this client
+		        // 4 Finally create new mapping for this client
 		        ClientLocation newLoc = new ClientLocation();
 		        newLoc.setClientId(clientId);
 		        newLoc.setClientLocation(location);

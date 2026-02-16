@@ -15,6 +15,7 @@ import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
 import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.POResourceRequirementDTO;
+import com.apmosys.employeeportal.dto.PoClientAddressUpdateDTO;
 import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
@@ -590,6 +591,61 @@ public class PoSyncOrchestratorService {
 	        return response;
 	        
 	       
+	    }catch (Exception e) {
+	    	finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+	        ExceptionLogContext.add(e);
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceError(e.getMessage());
+	        return response;
+	    } finally {
+	        if (initialLog != null) {
+	            apiLogUtility.endLog(
+	                    initialLog.getId(),
+	                    sourceSystem,
+	                    finalHttpStatusCode,
+	                    ExceptionLogContext.get(),
+	                    httpRequest
+	            );
+	        }
+	    }
+	}
+	
+	@Transactional(rollbackFor = Exception.class)
+	public ServiceResponse updateClientAddressIdOfPos(PoClientAddressUpdateDTO dto) {
+		ApiLog initialLog = null;
+	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+	    String sourceSystem = httpRequest.getRequestURI().toString();
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+	    	
+	    	 initialLog = apiLogUtility.startLog(
+		                poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+		                "updateClientAddrIdOfPoInIshine",
+		                "PoPortal",
+		                null,
+		                httpRequest
+		        );
+	    	 
+	    	 
+	    	 validationService.validatePoClientAddressUpdatePayload(dto);
+	    	 
+	    	 validationService.validateEmployeeExists(
+	                 dto.getUpdatedByEmpId(),
+	                 dto.getUpdatedByEmpName()
+	         );
+	    	 
+	    	 poDetailsService.validateAllPosAreActive(dto.getPoIds());
+	    	 
+	    	 
+	    	 poDetailsService.updateClientAddressForPos(dto);
+	    	
+
+	         finalHttpStatusCode = HttpStatus.OK.value();
+	         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	         response.setServiceResponse("Client address updated successfully");
+
+	         return response;
+	    	
 	    }catch (Exception e) {
 	    	finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
 	        ExceptionLogContext.add(e);

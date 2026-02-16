@@ -684,7 +684,7 @@ public class EmployeeController {
 
 	 @PostMapping("/getTeamAndTimeSheetDetails")
 	 public ServiceResponse getTeamAndTimeSheetDetails(HttpServletRequest request,@RequestBody GetTeamAndTimesheetDetailsDTO teamAndTimesheetDetailsDTO) {
-		  poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(request);
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(request);
 		return employeeService.getTeamAndTimeSheetDetails(teamAndTimesheetDetailsDTO);
 	 }
 	 
