@@ -27,6 +27,8 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	@Query(value = "SELECT et.emp_id FROM employee_timesheets_new et WHERE et.date = :date", nativeQuery = true)
 	List<Long> findEmpIdsByDate(@Param("date") LocalDate date);
 
+	List<EmployeeTimesheetsNew> findByEmpIdAndDateBetween(Long empId, LocalDate fromDate, LocalDate toDate);
+
 	@Query(value = "SELECT et.emp_id, et.timesheet_id, et.date, dtm.day_type, " +
 			"ROUND(CAST(et.total_working_minutes AS DECIMAL(10,2))/60, 2) AS totalTime, " +
 			"sm.status, et.description " +
