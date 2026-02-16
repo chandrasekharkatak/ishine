@@ -465,21 +465,22 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 	// 	    @Param("toDate") LocalDate toDate
 	// 	);
 	 
-		@Query(value = "SELECT new com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse(ete.empId, ete.employeementId, " +
-				"ete.name, te.deptIds, tm.employeeRole, te.teamName, te.teamId, " +
-				"etl.name, etm.name, " +
-				"p.projectId, p.projectName, etpm.name, tm.active) " +
-				"FROM EmployeeTeamMap tm " +
-				"LEFT JOIN Team te ON tm.teamId = te.teamId " +
-				"LEFT JOIN Employee etl ON te.teamLeadId = etl.empId " +
-				"LEFT JOIN Employee ete ON tm.empId = ete.empId " +
-				"LEFT JOIN JobRole jr ON ete.jobRoleId = jr.jobRoleId " +
-				"LEFT JOIN Employee etm ON ete.managerId = etm.empId " +
-				"LEFT JOIN Project p ON te.projectId = p.projectId " +
-				"left join ProjectManagerMapping pmm on pmm.projectId =p.projectId and pmm.active = 1 " +
-				"LEFT JOIN Employee etpm ON etpm.empId = pmm.projectManagerId " +
-				"WHERE p.poProjectId =:id ")
-		List<TeamTimesheetDetailsResponse> getTeamAndTimeSheetDetails(Long id);
+		// @Query(value = "SELECT new com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse(ete.empId, ete.employeementId, " +
+		// 		"ete.name, te.deptIds, tm.employeeRole, te.teamName, te.teamId, " +
+		// 		"etl.name, etm.name, " +
+		// 		"p.projectId, p.projectName, etpm.name, tm.active) " +
+		// 		"FROM EmployeeTeamMap tm " +
+		// 		"LEFT JOIN Team te ON tm.teamId = te.teamId " +
+		// 		"LEFT JOIN Employee etl ON te.teamLeadId = etl.empId " +
+		// 		"LEFT JOIN Employee ete ON tm.empId = ete.empId " +
+		// 		"LEFT JOIN JobRole jr ON ete.jobRoleId = jr.jobRoleId " +
+		// 		"LEFT JOIN Employee etm ON ete.managerId = etm.empId " +
+		// 		"LEFT JOIN Project p ON te.projectId = p.projectId " +
+		// 		"LEFT JOIN ProjectPoDetails ppd on ppd.poProjectId = p.poProjectId and ppd.poId = tm.poId and ppd.active = 1 "+
+		// 		"left join ProjectManagerMapping pmm on pmm.projectId =p.projectId and pmm.active = 1 " +
+		// 		"LEFT JOIN Employee etpm ON etpm.empId = pmm.projectManagerId " +
+		// 		"WHERE ppd.poId =:id ")
+		// List<TeamTimesheetDetailsResponse> getTeamAndTimeSheetDetails(Long id);
 
 		@Query(value = "SELECT new com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse(ete.empId, ete.employeementId, " +
 				"ete.name, te.deptIds, tm.employeeRole, te.teamName, te.teamId, " +
@@ -916,9 +917,9 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			+ " INNER JOIN Team t ON t.teamId = etm.teamId\n"
 			+ " INNER JOIN Project p ON p.projectId = t.projectId\n"
 			+ " WHERE p.projectId = :projectId\n"
-			+ "	AND etm.active != 0 \n"
-			+ "	AND t.isActive = 'Y' \n"
-			+ "	AND p.active = 'true' ")
+			+ "	AND etm.active != 0\n"
+			+ "	AND t.isActive = 'Y'\n"
+			+ "	AND p.active = 'true'")
 	List<Long> findDistinctEmpIdsByProjectId(@Param("projectId") Long projectId);
 
 	
@@ -926,4 +927,39 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 	List<EmployeeTeamMap>findActiveEmployeesForRole(Long previousPoId, Long roleId);
 
 
+	@Query(value = "SELECT new com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse(ete.empId, ete.employeementId, " +
+	"ete.name, te.deptIds, prm.role, te.teamName, te.teamId, " +
+	"etl.name, etm.name, " +
+	"p.projectId, p.projectName, etpm.name, tm.active,ppd.poId) " +
+	"FROM EmployeeTeamMap tm " +
+	"LEFT JOIN Team te ON tm.teamId = te.teamId " + 
+	"LEFT JOIN PoRequirementMapping prm on prm.roleId = tm.roleId and prm.poId = tm.poId " +
+	"LEFT JOIN Employee etl ON te.teamLeadId = etl.empId " +
+	"LEFT JOIN Employee ete ON tm.empId = ete.empId " +
+	"LEFT JOIN JobRole jr ON ete.jobRoleId = jr.jobRoleId " +
+	"LEFT JOIN Employee etm ON ete.managerId = etm.empId " +
+	"LEFT JOIN Project p ON te.projectId = p.projectId " +
+	"LEFT JOIN ProjectPoDetails ppd on ppd.poProjectId = p.poProjectId and ppd.poId = tm.poId and ppd.active = 1 "+
+	"left join ProjectManagerMapping pmm on pmm.projectId =p.projectId and pmm.active = 1 " +
+	"LEFT JOIN Employee etpm ON etpm.empId = pmm.projectManagerId " +
+	"WHERE ppd.poId =:poId And ppd.poProjectId = :poProjectId and ( tm.startDate <= :endDate And  (tm.endDate Is Null OR  tm.endDate >= :startDate) )")
+List<TeamTimesheetDetailsResponse> getTeamAndTimeSheetDetails(Long poId,Long poProjectId,LocalDateTime startDate,LocalDateTime endDate);
+
+@Query(value = "SELECT new com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse(ete.empId, ete.employeementId, " +
+"ete.name, te.deptIds, prm.role, te.teamName, te.teamId, " +
+"etl.name, etm.name, " +
+"p.projectId, p.projectName, etpm.name, tm.active,ppd.poId) " +
+"FROM EmployeeTeamMap tm " +
+"LEFT JOIN Team te ON tm.teamId = te.teamId " + 
+"LEFT JOIN PoRequirementMapping prm on prm.roleId = tm.roleId and prm.poId = tm.poId " +
+"LEFT JOIN Employee etl ON te.teamLeadId = etl.empId " +
+"LEFT JOIN Employee ete ON tm.empId = ete.empId " +
+"LEFT JOIN JobRole jr ON ete.jobRoleId = jr.jobRoleId " +
+"LEFT JOIN Employee etm ON ete.managerId = etm.empId " +
+"LEFT JOIN Project p ON te.projectId = p.projectId " +
+"LEFT JOIN ProjectPoDetails ppd on ppd.poProjectId = p.poProjectId and ppd.poId = tm.poId and ppd.active = 1 "+
+"left join ProjectManagerMapping pmm on pmm.projectId =p.projectId and pmm.active = 1 " +
+"LEFT JOIN Employee etpm ON etpm.empId = pmm.projectManagerId " +
+"WHERE ppd.poId =:poId And p.projectName = :projectName and ( tm.startDate <= :endDate And  (tm.endDate Is Null OR  tm.endDate >= :startDate) )")
+List<TeamTimesheetDetailsResponse> getTeamAndTimeSheetDetails2(Long poId,String projectName,LocalDateTime startDate,LocalDateTime endDate);
 }

@@ -18,18 +18,6 @@ public interface PoDepartmentMappingRepository extends JpaRepository<PoDepartmen
 	@Query("DELETE FROM PoDepartmentMapping")
 	void deleteAllRecords();
 
-	@Query(value = "SELECT " +
-			"p.project_id, p.client_name, p.client_location, p.state, p.project_name, " +
-			"p.description, p.project_manager_id, p.emp_id, p.approved_on, p.created_on, " +
-			"p.client_id, p.department_name, p.po_project_id, p.active, p.sync_project, " +
-			"p.is_draft_project, p.created_by, p.updated_by, p.updated_on, p.role, " +
-			"p.count, p.experience, p.po_start_date, p.po_end_date, p.po_no, " +
-			"p.po_project_type, p.apmosys_rm, p.client_rm, p.is_renewable, p.dept_id, " +
-			"p.status, p.apmosys_rm_email, p.project_completion_date, p.project_status, " +
-			"p.internal_project_type, p.has_client_side_id, p.client_flag, po.po_id " +
-			"FROM projects p " +
-			"LEFT JOIN project_po_details po ON p.project_id = po.project_id", nativeQuery = true)
-	List<ProjectPoDepartmentMapDTO> findAllProjectsWithPoDetails();
 
 	public PoDepartmentMapping findByPoIdAndDeptId(Integer poId, Long deptId);
 
@@ -38,25 +26,34 @@ public interface PoDepartmentMappingRepository extends JpaRepository<PoDepartmen
 	@Query(nativeQuery = true)
 	public List<Object[]> getDepartmentByPoId(int projectId);
 
-	@Query(value = "SELECT pdm.* " +
-			"FROM po_department_mapping pdm " +
-			"INNER JOIN project_po_details ppo ON " 
-			+ "((ppo.po_id IS NOT NULL AND pdm.po_id = ppo.po_id) "
-			+ "OR (ppo.po_id IS NULL AND pdm.project_id = ppo.project_id)) " +
-			"WHERE ppo.project_id = :projectId AND pdm.dept_id = :deptId", nativeQuery = true)
-	List<PoDepartmentMapping> findByProjectIdAndDeptId(@Param("projectId") Integer projectId,
-			@Param("deptId") Long deptId);
+	@Query(value = "SELECT pdm.po_department_map_id , pdm.active , pdm.dept_id , " +
+	        "ppo.po_no , ppo.apmosys_rm , ppo.apmosys_rm_email , " +
+	        "ppo.client_address_id , ppo.client_location_id , ppo.client_rm , " +
+	        "ppo.created_by , ppo.created_on , ppo.is_renewable , ppo.msg , " +
+	        "ppo.po_end_date , ppo.po_start_date , ppo.next_po , " +
+	        "ppo.po_project_id , ppo.po_created_on , ppo.po_updated_on " +
+	        "FROM po_department_mapping pdm " +
+	        "INNER JOIN project_po_details ppo ON " +
+	        "((ppo.po_id IS NOT NULL AND pdm.po_id = ppo.po_id) " +
+	        " OR (ppo.po_id IS NULL AND pdm.project_id = ppo.project_id)) " +
+	        "WHERE ppo.project_id = :projectId " +
+	        "AND pdm.dept_id = :deptId",
+	        nativeQuery = true)
+	List<Object[]> findByProjectIdAndDeptId(@Param("projectId") Integer projectId,
+	                                        @Param("deptId") Long deptId);
 
-	@Query(value = "SELECT pdm.* " +
-			"FROM po_department_mapping pdm " +
-			"INNER JOIN project_po_details ppo ON ((ppo.po_id IS NOT NULL AND pdm.po_id = ppo.po_id) \n"
-			+ "OR (ppo.po_id IS NULL AND pdm.project_id = ppo.project_id)) " +
-			"WHERE ppo.project_id = :projectId", nativeQuery = true)
-	List<PoDepartmentMapping> findByProjectId(@Param("projectId") Integer projectId);
+
+	@Query(value = "SELECT  pdm.dept_id , pdm.po_id , pdm.project_id ,\n"
+			+ "         pdm.active \n"
+			+ "			FROM po_department_mapping pdm \n"
+			+ "			INNER JOIN project_po_details ppo ON ((ppo.po_id IS NOT NULL AND pdm.po_id = ppo.po_id)\n"
+			+ "			OR (ppo.po_id IS NULL AND pdm.project_id = ppo.project_id))\n"
+			+ "			WHERE ppo.project_id = :projectId", nativeQuery = true)
+	List<Object[]> findByProjectId(@Param("projectId") Integer projectId);
 
 	public List<PoDepartmentMapping> findByPoId(Long poId);
 
-	@Query(value = "SELECT pdm.* " +
+	@Query(value = "SELECT pdm.dept_id , pdm.po_id , pdm.project_id , pdm.active " +
 			"FROM po_department_mapping pdm " +
 			"INNER JOIN project_po_details ppo ON ((ppo.po_id IS NOT NULL AND pdm.po_id = ppo.po_id) "+
 			"OR (ppo.po_id IS NULL AND pdm.project_id = ppo.project_id)) "+

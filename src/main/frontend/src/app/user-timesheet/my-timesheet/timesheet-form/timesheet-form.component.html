@@ -197,7 +197,8 @@
                     <!-- Check-Out Time -->
                     <div class="col-lg-3 col-md-6 col-sm-6 mb-3">
                         <app-date-time-picker label="Work Check-Out" mode="time" [required]="true"
-                            [(ngModel)]="apmosysOutTime" (ngModelChange)="onApMoSysOutTimeChange($event)">
+                            [(ngModel)]="apmosysOutTime" (ngModelChange)="onApMoSysOutTimeChange($event)"
+                            (timePartChange)="onOutTimePartChange($event)">
                         </app-date-time-picker>
                     </div>
                 </div>
@@ -218,7 +219,9 @@
                     <h6 class="section-subtitle">
                         <i class="fa fa-map-marker"></i> Locations
                     </h6>
-                    <button class="btn btn-sm btn-outline-primary" (click)="addLocation(null)" [disabled]="disableAdd || timesheetLocations.length >= 5">
+                    <button class="btn btn-sm btn-outline-primary" (click)="addLocation(null)"
+                        [disabled]="disableAdd || timesheetLocations.length >= 5 || !isDayTypeFillable()"
+                        [title]="!isDayTypeFillable() ? 'Only one location (NA) for this day type.' : (timesheetLocations.length >= 5 ? 'Maximum 5 locations allowed.' : 'Add another location')">
                         <i class="fa fa-plus"></i> Add Location
                     </button>
                 </div>
@@ -273,6 +276,7 @@
                                 <div class="col-md-3 mb-3" *ngIf="location.workLocationTypeId">
                                     <app-date-time-picker label="Log In" mode="time" [required]="true"
                                         [(ngModel)]="location.locationInTime" (ngModelChange)="onHoursChange()"
+                                        (timePartChange)="onLocationTimePartChange(location, $event)"
                                         [disabled]="disableAdd">
                                     </app-date-time-picker>
                                 </div>
@@ -281,6 +285,7 @@
                                 <div class="col-md-3 mb-3" *ngIf="location.workLocationTypeId">
                                     <app-date-time-picker label="Log Out" mode="time" [required]="true"
                                         [(ngModel)]="location.locationOutTime" (ngModelChange)="onHoursChange()"
+                                        (timePartChange)="onLocationTimePartChange(location, $event)"
                                         [disabled]="disableAdd">
                                     </app-date-time-picker>
                                 </div>
@@ -295,8 +300,8 @@
                                         <i class="fa fa-folder-open"></i> Projects
                                     </h6>
                                     <button class="btn btn-sm btn-outline-primary" (click)="addProject(location, null)"
-                                        [disabled]="this.activeProjectList.length == 1"
-                                        [title]="this.activeProjectList.length === 1 ? 'Only one project available; it is already added.' : 'Add another project'">
+                                        [disabled]="!activeProjectList?.length || location.projects.length >= activeProjectList.length"
+                                        [title]="getAddProjectButtonTitle(location)">
                                         <i class="fa fa-plus"></i> Add Project
                                     </button>
                                 </div>
@@ -505,7 +510,7 @@
                                                             </app-my-select>
                                                         </div>
                                                         <div class="col-md-3 mb-2">
-                                                            <label class="info-label small">Activity</label>
+                                                            <label class="info-label small"><span class="text-danger">*</span> Activity</label>
                                                             <app-my-select class="form-control form-control-sm"
                                                                 placeholder="Activity" [(ngModel)]="activity.activityId"
                                                                 [options]="activity.allActivitiesForProject"
@@ -524,7 +529,7 @@
 
                                                         <!-- Hours -->
                                                         <div class="col-md-2 mb-2">
-                                                            <label class="info-label small">Hours</label>
+                                                            <label class="info-label small"><span class="text-danger">*</span> Hours</label>
                                                             <input type="number" step="0.01" min="0" max="24"
                                                                 class="form-control form-control-sm" placeholder="Hrs"
                                                                 [(ngModel)]="activity.durationMinutes"
@@ -554,7 +559,7 @@
 
                                                 <div class="row">
                                                     <div class="col-md-12">
-                                                        <label class="info-label small">Description</label>
+                                                        <label class="info-label small"><span class="text-danger">*</span> Description</label>
                                                         <textarea class="form-control" rows="2"
                                                             placeholder="Enter description"
                                                             [(ngModel)]="project.description"></textarea>

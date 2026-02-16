@@ -34,6 +34,7 @@ import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
+import com.apmosys.employeeportal.dto.GetTeamAndTimesheetDetailsDTO;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.SearchEmpPayloadDTO;
 import com.apmosys.employeeportal.dto.SkillCertConfigDTO;
@@ -682,9 +683,9 @@ public class EmployeeController {
 	 }
 
 	 @PostMapping("/getTeamAndTimeSheetDetails")
-	 public ServiceResponse getTeamAndTimeSheetDetails(HttpServletRequest request,@RequestBody Long id) {
-		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(request);
-		return employeeService.getTeamAndTimeSheetDetails(id);
+	 public ServiceResponse getTeamAndTimeSheetDetails(HttpServletRequest request,@RequestBody GetTeamAndTimesheetDetailsDTO teamAndTimesheetDetailsDTO) {
+		//  poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(request);
+		return employeeService.getTeamAndTimeSheetDetails(teamAndTimesheetDetailsDTO);
 	 }
 	 
 	 @PostMapping("/getProjectDetailsByEmpIdAndDateRange")

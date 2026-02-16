@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +22,6 @@ import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
-import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
 import com.apmosys.employeeportal.dto.TimesheetMetadataDTO;
@@ -757,6 +755,7 @@ rows.forEach(row -> {
 
     /* ================= TIMESHEET ================= */
     Long timesheetId = ((Number) row[0]).longValue();
+    	System.out.println("timesheetId==> "+timesheetId);
 
     EmployeeTimesheetDTO timesheet =
         timesheetMap.computeIfAbsent(timesheetId, id -> {
@@ -782,9 +781,9 @@ rows.forEach(row -> {
 
             dto.setWorkCheckOut(ltd_checkOut!= null  ? DateConversionUtil.localDateTimeToString(ltd_checkOut, pattern):null);
             dto.setIsNightShift(row[8]!=null&& ((Boolean)row[8]));
-            dto.setCreatedBy(row[35]!=null?((Number)row[35]).longValue():null);
+            dto.setCreatedBy(row[37]!=null?((Number)row[37]).longValue():null);
             dto.setCreatedOn(row[9]!=null?((Timestamp)row[9]).toLocalDateTime():null);
-            dto.setDayTypeId(row[36]!=null?((Number)row[36]).intValue():null);
+            dto.setDayTypeId(row[38]!=null?((Number)row[38]).intValue():null);
             dto.setLocationSessions(new ArrayList<>());
             dto.setDocumentData(new ArrayList<>());
             return dto;
@@ -818,7 +817,7 @@ rows.forEach(row -> {
     Long projectId =
         row[15] != null ? ((Number) row[15]).longValue() : null;
     Long clientLocationId =
-        row[30] != null ? ((Number) row[30]).longValue() : null;
+        row[32] != null ? ((Number) row[32]).longValue() : null;
 
     if (projectId == null) return;
 
@@ -835,10 +834,8 @@ rows.forEach(row -> {
                 p.setTimesheetId(timesheetId);
                 p.setProjectId(projectId.intValue());
                 p.setProjectName(row[16] != null ? row[16].toString() : null);
-//                p.setClientLocation(row[24] != null ? row[24].toString() : null);
-//                p.setClientName(row[25] != null ? row[25].toString() : null);
                 p.setClientLocationId(clientLocationId);
-                p.setClientSideId(row[31] != null ? row[31].toString() : null);
+                p.setClientSideId(row[33] != null ? row[33].toString() : null);
                 p.setPoNo(row[17] != null ? row[17].toString() : null);
                 p.setPoId(row[18] != null ? ((Number) row[18]).longValue() : null);
                 p.setStatus(((Number) row[19]).intValue());
@@ -848,12 +845,8 @@ rows.forEach(row -> {
                 p.setTotalClientWorkingMinutes(
                     row[21] != null ? ((Number) row[21]).intValue() : null
                 );
-//                p.setVmsFilled(
-//                    row[32] != null && ((Number) row[32]).intValue() == 1
-//                );
-//                p.setRemarks(row[33] != null ? row[33].toString() : null);
                 p.setActivities(new ArrayList<>());
-                p.setClientId(row[34] != null ? ((Number) row[34]).longValue() : null);
+                p.setClientId(row[36] != null ? ((Number) row[36]).longValue() : null);
                 p.setShadowEmpId(row[22]!=null?((Number)row[22]).longValue():null);
                 location.getProjects().add(p);
                 return p;
@@ -862,14 +855,18 @@ rows.forEach(row -> {
     /* ================= ACTIVITY ================= */
     if (row[26] != null) {
         ActivityTimesheetDTO activity = new ActivityTimesheetDTO();
+        activity.setId(row[27] != null ? ((Number) row[27]).longValue() : null);
+        activity.setTimesheetId(timesheetId);
+        activity.setProjectId(projectId != null ? projectId.intValue() : null);
         activity.setActivityId(((Number) row[26]).longValue());
-        activity.setActivity(row[27] != null ? row[27].toString() : null);
+        activity.setActivity(row[28] != null ? row[28].toString() : null);
         activity.setDurationMinutes(
-            row[28] != null ? ((Short) row[28]) : null
+            row[29] != null ? ((Short) row[29]) : null
         );
         activity.setDescription(
-            row[29] != null ? row[29].toString() : null
+            row[30] != null ? row[30].toString() : null
         );
+        activity.setTeamId(row[31] != null ? ((Number) row[31]).longValue() : null);
         project.getActivities().add(activity);
     }
 
@@ -882,16 +879,7 @@ rows.forEach(row -> {
                 }
 });
 
-
-
-           	timesheetMap.values().forEach(timesheetDto -> {
-
-   	         if (timesheetDto.getStatus() == 1) {
-   	            setInactiveActivitiesNew(timesheetDto);
-   	        }
-        });
-
-        	List<EmployeeTimesheetDTO> response =
+	List<EmployeeTimesheetDTO> response =
 	        new ArrayList<>(timesheetMap.values());
 
         	return response;
@@ -1032,60 +1020,6 @@ rows.forEach(row -> {
         }
     }
     
-    
-    // public void setInactiveActivitiesNew(TimesheetResponseDTONew timesheetDto) {
-
-    //     if (timesheetDto == null
-    //             || timesheetDto.getTimesheetId() == null
-    //             || timesheetDto.getProjectEntries() == null
-    //             || timesheetDto.getProjectEntries().isEmpty()) {
-    //         return;
-    //     }
-
-    //     List<Object[]> inactiveRows =
-    //             employeeTimesheetsNewRepository.getInactiveActivitiesByTimesheetId(
-    //                     timesheetDto.getTimesheetId());
-
-    //     if (inactiveRows == null || inactiveRows.isEmpty()) {
-    //         return;
-    //     }
-
-    //     // Map projectId -> ProjectEntry
-    //     Map<Long, ProjectEntryResponseDTONew> projectMap =
-    //             timesheetDto.getProjectEntries()
-    //                     .stream()
-    //                     .collect(Collectors.toMap(
-    //                             ProjectEntryResponseDTONew::getProjectId,
-    //                             Function.identity()
-    //                     ));
-
-    //     inactiveRows.forEach(row -> {
-
-    //         if (row[0] == null) return;
-
-    //         String activityMapId = row[0].toString();
-    //         String[] parts = activityMapId.split("_");
-
-    //         if (parts.length != 3) return;
-
-    //         Long activityId = Long.parseLong(parts[1]);
-    //         Long projectId = Long.parseLong(parts[2]);
-
-    //         ProjectEntryResponseDTONew projectDto = projectMap.get(projectId);
-    //         if (projectDto == null) return;
-
-    //         ActivityResponseDTONew activity = new ActivityResponseDTONew();
-    //         activity.setActivityId(activityId);
-            
-
-    //         if (projectDto.getActivities() == null) {
-    //             projectDto.setActivities(new ArrayList<>());
-    //         }
-
-    //         projectDto.getActivities().add(activity);
-    //     });
-    // }
-    
     public ServiceResponse getActiveProjectsAndClientSideIdByEmpId(Long empId) {
 		
 //		return timesheetQueryService.getActiveProjectsAndClientSideIdByEmpId(empId);
@@ -1130,38 +1064,6 @@ rows.forEach(row -> {
 	    return response;
 	}
 	
-public void setInactiveActivitiesNew(EmployeeTimesheetDTO ts) {
-
-    List<Object[]> rows =
-        employeeTimesheetsNewRepository
-            .getInactiveActivitiesByTimesheetId(ts.getTimesheetId());
-
-    if (rows == null || rows.isEmpty()) return;
-
-    Map<Long, ProjectTimesheetDTO> projectMap = new HashMap<>();
-
-    ts.getLocationSessions().forEach(loc ->
-        loc.getProjects().forEach(p ->
-            projectMap.put(p.getProjectId().longValue(), p)));
-
-    rows.forEach(row -> {
-
-        String[] parts = row[0].toString().split("_");
-        Long activityId = Long.parseLong(parts[1]);
-        Long projectId = Long.parseLong(parts[2]);
-
-        ProjectTimesheetDTO project = projectMap.get(projectId);
-        if (project == null) return;
-
-        ActivityTimesheetDTO act = new ActivityTimesheetDTO();
-        act.setTimesheetId(ts.getTimesheetId());
-        act.setProjectId(project.getProjectId());
-        act.setActivityId(activityId);
-
-        project.getActivities().add(act);
-    });
-}
-
 public ServiceResponse getAlreadyFilledTimesheetDatesByEmpId(Long empId,String dayType){
     try 
     {

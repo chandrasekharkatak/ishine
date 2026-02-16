@@ -33,10 +33,11 @@ public class TeamTimesheetDetailsResponse {
 	private LocalDateTime startDate;
 	private LocalDateTime endDate;
 	private Long isEmployeeActive;
+	private Long poId;
 
 	public TeamTimesheetDetailsResponse(Long empId, Long employementId, String empName, String department, String role,
 			String teamName, Long teamId, String teamLeadName, String managerName, Integer projectId,
-			String projectName, String projectManagerName, Long isEmployeeActive) {
+			String projectName, String projectManagerName, Long isEmployeeActive, Long poId) {
 		this.empId = empId;
 		this.employementId = employementId;
 		this.empName = empName;
@@ -51,6 +52,7 @@ public class TeamTimesheetDetailsResponse {
 		this.projectName = projectName;
 		this.projectManagerName = projectManagerName;
 		this.isEmployeeActive = isEmployeeActive;
+		this.poId = poId;
 	}
 
 //	long, long, java.lang.String, java.lang.String, java.lang.String, java.lang.String, long, java.lang.String, java.lang.String, int, java.lang.String, java.lang.String, java.util.Date, java.time.LocalDateTime
