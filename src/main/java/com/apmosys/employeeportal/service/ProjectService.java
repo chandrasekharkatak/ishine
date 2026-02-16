@@ -38,7 +38,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.HttpServerErrorException.InternalServerError;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -73,7 +72,6 @@ import com.apmosys.employeeportal.dto.ProjectIdAndNameDTO;
 import com.apmosys.employeeportal.dto.ProjectManagerIdAndNameDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
-import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.RmgProjectDto;
@@ -2253,7 +2251,7 @@ public class ProjectService {
 		project.setClientId(clientId);
 	}
 
-	public ServiceResponse poProjectTimesheetSync(Set<Long> poProjectIdList) {
+	public ServiceResponse poProjectTimesheetSync(Set<Long> poIdList) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setApiUrl("/api/poProjectTimesheetSync");
@@ -2267,16 +2265,16 @@ public class ProjectService {
 			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
 					"poProjectTimesheetSync", "PoPortal", null, httpRequest);
 
-			if (poProjectIdList == null || poProjectIdList.isEmpty()) {
+			if (poIdList == null || poIdList.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("PoprojectId's are empty");
-				response.setServiceError("PoprojectId's are empty");
+				response.setServiceResponse("PoId's are empty");
+				response.setServiceError("PoId's are empty");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				apiLogInfo.setLogLevel("ERROR");
 				return response;
 			}
 			List<Object[]> poProjectTimesheetSyncDTOObjectList = projectRepository
-					.poProjectTimesheetSync(poProjectIdList);
+					.poProjectTimesheetSync(poIdList);
 			if (poProjectTimesheetSyncDTOObjectList == null || poProjectTimesheetSyncDTOObjectList.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(null);
@@ -2318,13 +2316,13 @@ public class ProjectService {
 		Map<Long, PoProjectTimesheetSyncDTO> projectMap = new HashMap<>();
 		for (Object[] object : poProjectTimesheetSyncDTOObjectList) {
 			try {
-				Long poProjectId = parseLong(object[0]);
-				if (poProjectId == null)
+				Long poId = parseLong(object[0]);
+				if (poId == null)
 					continue;
 
-				PoProjectTimesheetSyncDTO projectDTO = projectMap.computeIfAbsent(poProjectId, id -> {
+				PoProjectTimesheetSyncDTO projectDTO = projectMap.computeIfAbsent(poId, id -> {
 					PoProjectTimesheetSyncDTO dto = new PoProjectTimesheetSyncDTO();
-					dto.setPoProjectId(id);
+					dto.setPoId(id);
 					dto.setIshineStoredProjectName(toStr(object[1]));
 					dto.setIshineStoredPoNo(toStr(object[2]));
 					dto.setTeamDetails(new ArrayList<>());

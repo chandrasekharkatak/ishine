@@ -93,6 +93,7 @@ import com.apmosys.employeeportal.dto.GetAllEmployeesWorkAnniversaryTodayDTO;
 import com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
+import com.apmosys.employeeportal.dto.GetTeamAndTimesheetDetailsDTO;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PageResponseDTO;
@@ -8264,24 +8265,56 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 		return response;
 	}
 
-    public ServiceResponse getTeamAndTimeSheetDetails(Long poProjectId) {
+    public ServiceResponse getTeamAndTimeSheetDetails(GetTeamAndTimesheetDetailsDTO dto) {
     	ServiceResponse response = new ServiceResponse();
     	LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setApiUrl("/api/getTeamAndTimeSheetDetails");
 	    apiLogInfo.setLogLevel("INFO");
 		try {
-			if(poProjectId == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-		        response.setServiceResponse("Project not found in Ishine!");
-		        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " Empty project id received at Ishine! PoProjectId :- " + poProjectId );
-		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-		        return response;
+
+			Long poId = dto.getPoId();
+			Long poProjectId = dto.getPoProjectId();
+			LocalDate startDate = dto.getStartDate();
+			LocalDate endDate = dto.getEndDate();
+			LocalDateTime startDateTime = null;
+			LocalDateTime endDateTime = null;
+			String projectName = dto.getProjectName();
+			if(poId == null) {
+				return buildFailureResponse(response, apiLogInfo,
+				"PO Id must not be null.");
 			}
-			List<TeamTimesheetDetailsResponse> teamTimesheetDetailsResponseList = employeeTeamMapRepository.getTeamAndTimeSheetDetails(poProjectId);
+			// if (poProjectId == null) {
+			// 	return buildFailureResponse(response, apiLogInfo,
+			// 			"PO Project Id must not be null.");
+			// }
+
+			if (startDate == null) {
+				return buildFailureResponse(response, apiLogInfo,
+						"Start Date must not be null.");
+			}
+	
+			if (endDate == null) {
+				return buildFailureResponse(response, apiLogInfo,
+						"End Date must not be null.");
+			}
+	
+			if (endDate.isBefore(startDate)) {
+				return buildFailureResponse(response, apiLogInfo,
+						"End Date must be greater than or equal to Start Date.");
+			}
+			if(projectName == null){
+				return buildFailureResponse(response, apiLogInfo,
+						"Projectname can not be null.");
+			}
+			startDateTime = startDate.atStartOfDay();
+			endDateTime = endDate.atTime(23, 59, 59, 999999999);
+			// List<TeamTimesheetDetailsResponse> teamTimesheetDetailsResponseList = employeeTeamMapRepository.getTeamAndTimeSheetDetails(poId,poProjectId,startDateTime,endDateTime);
+			List<TeamTimesheetDetailsResponse> teamTimesheetDetailsResponseList = employeeTeamMapRepository.getTeamAndTimeSheetDetails2(poId,projectName,startDateTime,endDateTime);
+
 			if(teamTimesheetDetailsResponseList == null || teamTimesheetDetailsResponseList.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		        response.setServiceResponse("No timesheet detail fetched for the employee of this project!");
-		        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " | No timesheet detail fetched for this employee in the given date range! Start Date:- " + poProjectId );
+		        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " | No timesheet detail fetched for this employee in the given date range! Start Date:- " + poId );
 		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 		        return response;
 			}
@@ -12079,6 +12112,17 @@ public ServiceResponse getPoRequirementDataByTeamAndPoId(Long teamId, Long poId)
 		response.setServiceResponse("Error : " + e.getMessage());
 	}
 	return response;
+}
+
+private ServiceResponse buildFailureResponse(ServiceResponse response,
+                                             LogDTO apiLogInfo,
+                                             String message) {
+
+    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+    response.setServiceResponse(message);
+    apiLogInfo.setApiResponse(message);
+    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+    return response;
 }
 
 }

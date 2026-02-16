@@ -11,7 +11,7 @@ import lombok.ToString;
 @ToString
 public class PoProjectTimesheetSyncDTO {
 	
-	private Long poProjectId;
+	private Long poId;
     private String ishineStoredProjectName;
     private String ishineStoredPoNo;
     private List<PoTeamTimesheetSyncDTO> teamDetails;
