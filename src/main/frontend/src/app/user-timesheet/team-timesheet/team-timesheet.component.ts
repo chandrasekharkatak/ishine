@@ -2412,7 +2412,7 @@ approveSingleTimesheet(timesheet: any) {
           this.page1 = 1;
 
           this.getMyReporteesTimesheetRequests();
-          this.getTimesheetStatusCountsByEmpId();  
+          this.getTimesheetStatusCountsByEmpId(); 
 
           this.modalMessage = message;
 

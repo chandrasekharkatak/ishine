@@ -836,7 +836,7 @@
 <mat-paginator
   [length]="totalRecords"
   [pageSize]="items"
-  [pageSizeOptions]="[10, 20, 50, 100, 200]"
+  [pageSizeOptions]="[10, 20, 50, 100, 200,10000]"
   (page)="onPageChange($event)">
 </mat-paginator>
 
@@ -915,7 +915,7 @@
       <h5>Documents</h5> <button class="close-btn" (click)="modalRef.close()">✖</button>
     </div>
       <div class="doc-body">
-     
+
         <!-- <div class="doc-right">
           <div class="doc-toggle"> <button [class.active]="activeDocType === 'Pending'"
               (click)="switchDocType('Pending')" [disabled]="!hasPendingDoc(activeDocProject?.projectId)"> Pending
@@ -1074,7 +1074,7 @@
 
   <!-- HEADER -->
   <div class="modal-header bg-danger text-white d-flex justify-content-between align-items-center">
-  
+
   <h5 class="modal-title fw-semibold mb-0">
     <i class="bi bi-x-circle me-2"></i>
     Reject Timesheet
@@ -1156,7 +1156,7 @@
               [(ngModel)]="entry.remark"
               required>
             </textarea>
-            
+
           </div>
 
         </div>
@@ -1167,7 +1167,7 @@
     <div class="text-center mt-3">
       <button class="btn btn-outline-primary px-4"
       [disabled]="!isRejectFormValid()"
-      [attr.title]="!isRejectFormValid() ? 
+      [attr.title]="!isRejectFormValid() ?
         'Fill Project, Reasons, and Remark first' : null"
               (click)="addRejectRow()">
         <i class="bi bi-plus-circle me-1"></i>
