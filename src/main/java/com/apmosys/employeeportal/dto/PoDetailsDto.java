@@ -37,6 +37,10 @@ public class PoDetailsDto {
     private List<RmgTeamDto> teamList;
     private boolean isupdate;
     private Long updatedBy;
+    private Long roleId;
+    private Long poRequirementMappingId;
+
+    private boolean activeEtmFlag;
 
     public PoDetailsDto(Long id, Long poId, Integer projectId, String poNo, LocalDateTime poStartDate,
             LocalDateTime poEndDate,
@@ -109,4 +113,24 @@ public class PoDetailsDto {
         this.assignedPending = assignedPending;
     }
 
+    public PoDetailsDto(Long poId, Long roleId, Long poRequirementMappingId, Long assignedApproved,
+            Long assignedPending) {
+        this.poId = poId;
+        this.roleId = roleId;
+        this.poRequirementMappingId = poRequirementMappingId;
+        this.assignedApproved = assignedApproved;
+        this.assignedPending = assignedPending;
+    }
+
+    public PoDetailsDto(Long poRequirementMappingId, Long assignedApproved, Long assignedPending) {
+        this.poRequirementMappingId = poRequirementMappingId;
+        this.assignedApproved = assignedApproved;
+        this.assignedPending = assignedPending;
+    }
+
+    public PoDetailsDto(Integer projectId, Long assignedApproved, Long assignedPending) {
+        this.projectId = projectId;
+        this.assignedApproved = assignedApproved;
+        this.assignedPending = assignedPending;
+    }
 }

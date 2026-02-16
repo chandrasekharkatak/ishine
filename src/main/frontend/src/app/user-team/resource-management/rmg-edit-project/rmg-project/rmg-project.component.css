@@ -48,7 +48,7 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-around;
+    justify-content: space-evenly;
 }
 
 .team-row {
@@ -109,12 +109,6 @@
     border-bottom-color: #94a3b8;
 }
 
-.po-list-accordion-body {
-    /* max-height: 400px;
-    overflow-y: auto;
-    overflow-x: hidden; */
-}
-
 ::ng-deep .po-list-expansion-panel .mat-expansion-panel-content {
     overflow: visible !important;
 }
@@ -152,16 +146,18 @@
     color: #991b1b;
 }
 
-/* Team Member Table Start */
+/* Table Start */
 .table-container {
     max-height: 400px;
     overflow-y: auto;
     border: 1px solid #ccc;
+    border-radius: 5px;
 }
 
 .custom-table {
     width: 100%;
     border-collapse: collapse;
+    border-radius: 5px;
 }
 
 .custom-table th,
@@ -176,7 +172,7 @@
     top: 0;
     background-color: #f4f6f8;
     font-weight: 600;
-    z-index: 2;
+    z-index: 3;
 }
 
 .custom-table tbody tr:nth-child(odd) {
@@ -191,7 +187,20 @@
     color: unset !important;
 }
 
-/* Team Member Table End */
+::ng-deep .custom-filter-row .form-group {
+    margin-bottom: 0 !important;
+    padding: 0.25rem !important;
+}
+
+::ng-deep .custom-filter-row td {
+    border: 1px solid #ddd;
+    position: sticky;
+    /* top: 65px; */
+    background-color: #f4f6f8;
+    z-index: 2;
+}
+
+/* Table End */
 
 /* Employee Info Start */
 .emp-name {
@@ -250,10 +259,40 @@
     max-width: 150px;
 }
 
+.min-width100 {
+    min-width: 100px;
+}
+
 .min-width150 {
     min-width: 150px;
 }
 
 .max-width200 {
     max-width: 200px;
+}
+
+.date-input-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.date-input {
+    padding-right: 36px;
+    cursor: pointer;
+    background-color: white;
+}
+
+.calendar-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #656565;
+}
+
+.custom-border {
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    border-radius: 5px;
 }

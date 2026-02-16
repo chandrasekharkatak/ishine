@@ -23,9 +23,12 @@ export class RmgTeamMember {
     poId: any;
     poNo: any;
     poRequirementMappingId: any;
+    
+    roleId:any;
     role: any;
     experience: any;
     department: any;
+    displayRequirement: any;
     isPrmActive: any;
     employeeRole: any;
     employeeRoles: any[] = [];
@@ -36,8 +39,10 @@ export class RmgTeamMember {
     currentExp: any;
     totalExp: any;
     startDate: any;
+    dbStartDate:any
     endDate: any;
     isShadow: any;
+    dbIsShadow: any;
     isMemberActive: any;
     defaultProject: any;
     dbDefaultProject: any;

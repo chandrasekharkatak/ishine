@@ -5,6 +5,7 @@ export class SetDefaultProjectObj {
 	projectId: any;
 	poId: any;
 	teamId: any;
+	roleId: any;
 	employeeRole: any;
 	poRequirementMappingId: any
 	resourceOverViewId: any;

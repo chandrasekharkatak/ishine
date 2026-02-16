@@ -123,6 +123,8 @@ import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.RestoreProjectPayloadDTO;
 import com.apmosys.employeeportal.dto.RmgProjectDto;
 import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
+import com.apmosys.employeeportal.dto.RmgTeamDto;
+import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.SkippedEmployeeDTO;
 import com.apmosys.employeeportal.dto.SpocDTO;
@@ -13867,9 +13869,8 @@ public class ResourceManagementService {
 							.findProjectOverheadIdByProjectIdAndActive(currentProjectId, 1);
 					rmgProjectDto.setProjectOverheadIds(overHeadIds);
 
-					List<PoDetailsDto> poDetailsDtos = getPoDetailsByProjectId(rmgProjectDto.getProjectId(),
-							rmgProjectDto.getInternalProjectType(), rmgProjectDto.getPoProjectType(), isAllProjects);
-					rmgProjectDto.setPoDetailsList(poDetailsDtos);
+					List<RmgTeamDto> rmgTeamDtoList = teamRepository.getActiveTeamDetailsByProjectId(projectId);
+					rmgProjectDto.setTeamDetailsList(rmgTeamDtoList);
 				}
 			}
 			if (rmgProjectDto != null) {
@@ -13884,44 +13885,6 @@ public class ResourceManagementService {
 			return failResponse(serviceResponse, apiLogInfo, "Something went wrong.");
 		}
 		return serviceResponse;
-	}
-
-	private List<PoDetailsDto> getPoDetailsByProjectId(Integer currentProjectId, String internalProjectType,
-			String poProjectType, boolean isAllProjects) {
-		List<PoDetailsDto> poDetailsDtos = new ArrayList<>();
-		try {
-			poDetailsDtos = poDetailsRepository.getAllProjectPoDetailsDtoByProjectId(currentProjectId, isAllProjects);
-			if (poProjectType != null) {
-				if (!poDetailsDtos.isEmpty()) {
-					List<Long> poIds = poDetailsDtos.stream().map(PoDetailsDto::getPoId).collect(Collectors.toList());
-
-					Map<Long, Long> poIdCountMap = getPoIdAndCountMap(poIds, currentProjectId);
-					if (poIdCountMap != null && !poIdCountMap.isEmpty()) {
-						for (PoDetailsDto poDetail : poDetailsDtos) {
-							poDetail.setTotalRequirements(poIdCountMap.getOrDefault(poDetail.getPoId(), 0L));
-						}
-					}
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw e;
-		}
-		return poDetailsDtos;
-	}
-
-	private Map<Long, Long> getPoIdAndCountMap(List<Long> poIds, Integer projectId) {
-		Map<Long, Long> poIdCountMap = new HashMap<>();
-		List<Object[]> results = poRequirementMappingRepository
-				.getPoIdAndTotalActiveRequiredCountByPoIdInAndProjectId(poIds, projectId);
-		if (results != null && !results.isEmpty()) {
-			for (Object[] obj : results) {
-				Long poId = TypeConversionUtil.safeParseLong(obj[0]);
-				Long count = TypeConversionUtil.safeParseLong(obj[1]);
-				poIdCountMap.put(poId, count);
-			}
-		}
-		return poIdCountMap;
 	}
 
 	private Set<Long> getValidPoRequirementMappingIds(Long poId) {
@@ -13957,11 +13920,14 @@ public class ResourceManagementService {
 
 			List<RmgResourceRequirementDto> resourceRequirementList = poRequirementMappingRepository
 					.getPoRequirementDataByPoId(poId);
-
 			if (resourceRequirementList == null || resourceRequirementList.isEmpty()) {
-				response.setServiceResponse("No Resource Requirement Found!!");
+				response.setServiceResponse("No Resource Requirement Found, please contact Admin!!");
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				return response;
+			}
+
+			for (RmgResourceRequirementDto obj : resourceRequirementList) {
+				obj.setDisplayRequirement(getDisplayRequirement(obj));
 			}
 			response.setServiceResponse(resourceRequirementList);
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -13972,6 +13938,23 @@ public class ResourceManagementService {
 			response.setServiceResponse("Something went wrong!!");
 		}
 		return response;
+	}
+
+	private String getDisplayRequirement(RmgResourceRequirementDto obj) {
+		StringBuilder sb = new StringBuilder();
+		appendIfNotNull(sb, "Role", obj.getRole());
+		appendIfNotNull(sb, "Experience", obj.getExperience());
+		appendIfNotNull(sb, "Department", obj.getDepartment());
+		return sb.toString();
+	}
+
+	private void appendIfNotNull(StringBuilder sb, String label, Object value) {
+		if (value != null) {
+			if (sb.length() > 0) {
+				sb.append(" | ");
+			}
+			sb.append(label).append(" : ").append(value);
+		}
 	}
 
 	public ServiceResponse getActivePoDetailsByProjectId(Integer projectId) {
@@ -14015,12 +13998,15 @@ public class ResourceManagementService {
 
 			List<RmgResourceRequirementDto> resourceRequirementList = poRequirementMappingRepository
 					.getPoRequirementDataByTeamId(teamId);
-
 			if (resourceRequirementList == null || resourceRequirementList.isEmpty()) {
 				response.setServiceResponse("No Resource Requirement Found!!");
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				return response;
 			}
+			for (RmgResourceRequirementDto obj : resourceRequirementList) {
+				obj.setDisplayRequirement(getDisplayRequirement(obj));
+			}
+			
 			response.setServiceResponse(resourceRequirementList);
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			return response;
@@ -14357,7 +14343,7 @@ public class ResourceManagementService {
 		return String.join(", ", set);
 	}
 
-	public ServiceResponse getResourceRequirementCountByPoId(Long poId, Integer projectId, String projectType) {
+ 	public ServiceResponse getResourceRequirementCountByProjectId(Integer projectId, String projectType) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setLogLevel("INFO");
@@ -14368,21 +14354,19 @@ public class ResourceManagementService {
 			if (projectType == null || StringUtils.isEmpty(projectType)) {
 				return failResponse(serviceResponse, apiLogInfo, "Project type cannot be null!!");
 			}
+
 			PoDetailsDto poDetailsDto = null;
-			List<PoDetailsDto> projectConfigurationDetailsList = new ArrayList<>();
-			if (projectType.equalsIgnoreCase("TNM")) {
-				projectConfigurationDetailsList = projectPoDetailsRepository
-						.getResourceRequirementCountByPoIdAndProjectId(poId, projectId);
-			} else {
-				projectConfigurationDetailsList = projectPoDetailsRepository
-						.getResourceRequirementCountByProjectId(projectId);
-			}
+			List<PoDetailsDto> projectConfigurationDetailsList = projectPoDetailsRepository
+					.getResourceRequirementCountByProjectId(projectId, true);
 
 			if (projectConfigurationDetailsList != null && !projectConfigurationDetailsList.isEmpty()) {
 				poDetailsDto = projectConfigurationDetailsList.get(0);
 				if (poDetailsDto != null && projectType.equalsIgnoreCase("TNM")) {
-					poDetailsDto.setTotalRequirements(poRequirementMappingRepository
-							.getTotalActiveRequiredCountByPoIdAndProjectId(poId, projectId));
+					poDetailsDto.setTotalRequirements(poRequirementMappingRepository.getTotalActiveRequiredCountByProjectId(projectId));
+					Integer total = poDetailsDto.getTotalRequirements() != null ? poDetailsDto.getTotalRequirements().intValue() : 0;
+					Integer assigned = (poDetailsDto.getAssignedApproved() != null ? poDetailsDto.getAssignedApproved().intValue() : 0) +
+										(poDetailsDto.getAssignedPending() != null ? poDetailsDto.getAssignedPending().intValue() : 0);
+					poDetailsDto.setDifference(total - assigned);
 				}
 			} else {
 				return failResponse(serviceResponse, apiLogInfo, "Unable to fetch latest requirment count!!");
@@ -14392,13 +14376,13 @@ public class ResourceManagementService {
 			serviceResponse.setServiceResponse(poDetailsDto);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return failResponse(serviceResponse, apiLogInfo,
-					"Unable to fetch latest requirment count.Something went wrong!!");
+			return failResponse(serviceResponse, apiLogInfo, "Unable to fetch latest requirment count.Something went wrong!!");
 		}
 		return serviceResponse;
 	}
-
-public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
+ 	
+ 	
+    public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
 		
 		ProjectPoMappingWithResourceDTO primaryProjectDTO = payloadDTO.getPrimaryProject();
 		List<Object[]> primaryTeams = projectRepository.getTeamIdsForPoProjectId(primaryProjectDTO.getProjectId());
@@ -14798,7 +14782,7 @@ public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
 		}
 		return ishineProjectStatus;
 	}
-
+    
 	public ServiceResponse oneTimeUpdatePoClientId(String mode) {
 
 		ServiceResponse response = new ServiceResponse();
@@ -14998,5 +14982,71 @@ public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
 		return new Object[]{updated, inserted, iShinecount, failedClientIds};
 	}
 
-	
+	public ServiceResponse getResourceRequirementDetailsByProjectId(Integer projectId, String projectType,
+			boolean currentActivePO) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setLogLevel("INFO");
+		try {
+			if (projectId == null) {
+				return failResponse(serviceResponse, apiLogInfo, "Project Id cannot be null!!");
+			}
+			if (projectType == null || StringUtils.isEmpty(projectType)) {
+				return failResponse(serviceResponse, apiLogInfo, "Project type cannot be null!!");
+			}
+
+			List<RmgResourceRequirementDto> rmgProjectResourceRequirementList = projectPoDetailsRepository
+					.getResourceRequirementDetailsByProjectId(projectId, currentActivePO);
+			if (rmgProjectResourceRequirementList == null || rmgProjectResourceRequirementList.isEmpty()) {
+				return failResponse(serviceResponse, apiLogInfo,
+						"Unable to fetch latest resource requirement details!!");
+			}
+
+			List<PoDetailsDto> tempList = new ArrayList<>();
+			if (projectType.equalsIgnoreCase("TNM")) {
+				tempList = employeeTeamMapRepository.getAssigedAndApprovedEmployeeCountByProjectId(projectId, currentActivePO);
+			} else {
+				tempList = projectPoDetailsRepository.getResourceRequirementCountByProjectId(projectId, currentActivePO);
+			}
+
+			for (RmgResourceRequirementDto resourceRequirementDto : rmgProjectResourceRequirementList) {
+				PoDetailsDto poDetailsDto = null;
+
+				if (projectType.equalsIgnoreCase("TNM")) {
+					poDetailsDto = tempList.stream().filter(
+							t -> t.getPoRequirementMappingId()
+									.equals(resourceRequirementDto.getPoRequirementMappingId()))
+							.findFirst().orElse(null);
+				} else {
+					poDetailsDto = tempList.stream().filter(
+							t -> t.getPoId()
+									.equals(resourceRequirementDto.getPoId()))
+							.findFirst().orElse(null);
+				}
+
+				if (poDetailsDto == null) {
+					resourceRequirementDto.setAssignedApproved(0l);
+					resourceRequirementDto.setAssignedPending(0l);
+				} else {
+					resourceRequirementDto.setAssignedApproved(poDetailsDto.getAssignedApproved());
+					resourceRequirementDto.setAssignedPending(poDetailsDto.getAssignedPending());
+				}
+
+				Integer total = resourceRequirementDto.getCount() != null ? resourceRequirementDto.getCount().intValue() : 0;
+				Integer assigned = (resourceRequirementDto.getAssignedApproved() != null ? resourceRequirementDto.getAssignedApproved().intValue() : 0) +
+									(resourceRequirementDto.getAssignedPending() != null ? resourceRequirementDto.getAssignedPending().intValue() : 0);
+				resourceRequirementDto.setDifference(total - assigned);
+				resourceRequirementDto.setDisplayRequirement(getDisplayRequirement(resourceRequirementDto));
+			}
+
+			serviceResponse.setServiceResponse(rmgProjectResourceRequirementList);
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return failResponse(serviceResponse, apiLogInfo,
+					"Unable to fetch latest requirement details.Something went wrong!!");
+		}
+		return serviceResponse;
+	}
+
 }

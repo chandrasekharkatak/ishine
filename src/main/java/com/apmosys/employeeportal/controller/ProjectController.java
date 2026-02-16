@@ -22,12 +22,12 @@ import org.springframework.web.multipart.MultipartFile;
 import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.ClientProjectReportDTO;
-import com.apmosys.employeeportal.dto.EmployeeOtherActiveProject;
 import com.apmosys.employeeportal.dto.FCProjectMilestoneDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.MilestoneUpdatedLogDto;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectDto;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.RmgProjectDto;
 import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
@@ -220,10 +220,10 @@ public class ProjectController {
 		return poPortalApiService.getAllMilestoneExtendReason();
 	}
 	
-//	@GetMapping(value = "/getPodetailsPromPOPortal")
-//	public ServiceResponse getPodetailsPromPOPortal() {
-//		return poPortalApiService.syncProjectPoFromPoPortal();
-//	}
+	@GetMapping(value = "/getPodetailsFromPOPortal")
+	public ServiceResponse getPodetailsFromPOPortal() {
+		return poPortalApiService.syncProjectPoFromPoPortal();
+	}
 	
 //	@GetMapping(value = "/getProjectSDEDFromPOPortal")
 //	public ServiceResponse getProjectSDEDFromPOPortal() {
@@ -316,6 +316,13 @@ public class ProjectController {
 	@PostMapping("/saveProjectInformation")
 	public ServiceResponse saveProjectInformation(@RequestBody RmgProjectDto rmgProjectDto) {
 		return projectService.saveProjectInformation(rmgProjectDto);
+	}
+
+	// @Encrypted
+	@PostMapping(value = "/updateProjectStartDate")
+	public ServiceResponse updateProjectStartDate(@RequestBody ProjectDto projectDto) {
+		// employeeService.clearEmployeeCache();
+		return projectService.updateProjectStartDate(projectDto);
 	}
 
 }

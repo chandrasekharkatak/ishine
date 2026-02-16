@@ -19,6 +19,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
@@ -65,6 +66,7 @@ import com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto;
 import com.apmosys.employeeportal.dto.PoTeamDTO;
 import com.apmosys.employeeportal.dto.PoTeamTimesheetSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectDto;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectIdAndNameDTO;
@@ -1266,7 +1268,8 @@ public class ProjectService {
 				List<Employee> managerObjs = getEmployeesByEmployeementIds(poProjectSyncDTO.getPoProjectManagers());
 				Integer clientId = null;
 
-				Client client = clientsRepository.findByPoClientId(poProjectSyncDTO.getPoClientId());
+				Optional<Client> clientOptinal = clientsRepository.findByPoClientId(poProjectSyncDTO.getPoClientId().longValue());
+				Client client = clientOptinal.get();
 				ClientLocation clientLocation = null;
 				if (client != null) {
 					clientId = client.getClientId();
@@ -4657,8 +4660,39 @@ public class ProjectService {
 	}
 
 
-	
-	
+  	public ServiceResponse updateProjectStartDate(ProjectDto projectDto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (projectDto == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Request body cannot be null!!");
+				return response;
+			}
+			if (projectDto.getProjectId() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project Id cannot be null!!");
+				return response;
+			}
+
+			Project project = projectRepository.findByProjectId(projectDto.getProjectId());
+			if (project == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project not found!!");
+				return response;
+			}
+
+			project.setStartDate(projectDto.getStartDate());
+			project.setUpdatedBy(projectDto.getUpdatedBy());
+			projectRepository.save(project);
+			response.setServiceResponse("Project Start Date Updated Successfully!!");
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceResponse("Something went wrong!!");
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		}
+		return response;
+	}
 
 
 }

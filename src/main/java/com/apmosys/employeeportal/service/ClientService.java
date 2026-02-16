@@ -31,6 +31,10 @@ public class ClientService {
 	
 	 public Client resolveClient(String clientName,Long poClientId) {
 		 
+		 String normalizedName = clientName.trim();
+		    String normalizedLower = normalizedName.toLowerCase();
+
+		 
 		 
 		 Optional<Client> byPoClient =
 	                clientRepository.findByPoClientId(poClientId);
@@ -39,16 +43,20 @@ public class ClientService {
 
 	            Client existing = byPoClient.get();
 
-	            // If name mismatch → update from PO
-	            if (!existing.getClientName().equalsIgnoreCase(clientName)) {
-	                existing.setClientName(clientName);
+	            String existingNormalized =
+	                    existing.getClientName() != null
+	                            ? existing.getClientName().trim()
+	                            : "";
+
+	            if (!existingNormalized.equalsIgnoreCase(normalizedName)) {
+	                existing.setClientName(normalizedName);
 	                return clientRepository.save(existing);
 	            }
 
 	            return existing;
 	        }else {
 	        	Optional<Client> byName =
-	                    clientRepository.findByClientName(clientName);
+	                    clientRepository.findByClientNameIgnoreCaseAndTrim(normalizedLower);
 
 	            if (byName.isPresent()) {
 	                Client existing = byName.get();
@@ -211,7 +219,11 @@ public class ClientService {
 		        String state,
 		        Long clientAddressId) {
 
-		  
+		 String normalizedLocation = location.trim();
+		    String normalizedLocationLower = normalizedLocation.toLowerCase();
+
+		    String normalizedState = state.trim() ;
+		    String normalizedStateLower = normalizedState.toLowerCase();
 
 		    // Ensure at least one location exists
 		    boolean hasAnyLocation =
@@ -225,9 +237,7 @@ public class ClientService {
 		        clientLocationRepository.save(wfh);
 		    }
 
-		    // =========================
-		    // STEP 1: Master check by clientAddressId
-		    // =========================
+		   
 		    List<ClientLocation> addressMatches =
 		            clientLocationRepository.findByClientAddressId(clientAddressId);
 
@@ -238,13 +248,12 @@ public class ClientService {
 
 		            boolean changed = false;
 
-		            if (!location.equalsIgnoreCase(cl.getClientLocation())) {
+		            if (!normalizedLocation.equalsIgnoreCase(cl.getClientLocation().trim())) {
 		                cl.setClientLocation(location);
 		                changed = true;
 		            }
 
-		            if (cl.getClientState() == null ||
-		                    !state.equalsIgnoreCase(cl.getClientState())) {
+		            if (!normalizedState.equalsIgnoreCase(cl.getClientState().trim())) {
 		                cl.setClientState(state);
 		                changed = true;
 		            }
@@ -269,8 +278,8 @@ public class ClientService {
 
 		        Optional<ClientLocation> exact =
 		                clientLocationRepository
-		                        .findByClientIdAndClientLocationAndClientState(
-		                                clientId, location, state);
+		                        .findByClientIdAndNLClientLocationAndClientState(
+		                                clientId, normalizedLocationLower, normalizedStateLower);
 
 		        if (exact.isPresent()) {
 		            ClientLocation cl = exact.get();
@@ -280,8 +289,8 @@ public class ClientService {
 
 		        Optional<ClientLocation> legacy =
 		                clientLocationRepository
-		                        .findByClientIdAndClientLocationAndClientStateIsNull(
-		                                clientId, location);
+		                        .findByClientIdAndNLClientLocationAndClientStateNull(
+		                                clientId, normalizedLocationLower);
 
 		        if (legacy.isPresent()) {
 		            ClientLocation cl = legacy.get();
@@ -306,8 +315,8 @@ public class ClientService {
 
 		    Optional<ClientLocation> exact =
 		            clientLocationRepository
-		                    .findByClientIdAndClientLocationAndClientState(
-		                            clientId, location, state);
+		                    .findByClientIdAndNLClientLocationAndClientState(
+		                            clientId, normalizedLocationLower, normalizedStateLower);
 
 		    if (exact.isPresent()) {
 		        ClientLocation cl = exact.get();
@@ -317,8 +326,8 @@ public class ClientService {
 
 		    Optional<ClientLocation> legacy =
 		            clientLocationRepository
-		                    .findByClientIdAndClientLocationAndClientStateIsNull(
-		                            clientId, location);
+		                    .findByClientIdAndNLClientLocationAndClientStateNull(
+		                            clientId, normalizedLocationLower);
 
 		    if (legacy.isPresent()) {
 		        ClientLocation cl = legacy.get();
