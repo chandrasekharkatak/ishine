@@ -29,7 +29,7 @@ public class SurveyController {
 	@JobRoleAccess(featureIds = {30,31,37})
 	@RequestMapping(value = "/getAllSurveys", method = RequestMethod.GET)
 	public ServiceResponse getAllSurveys(
-	        @RequestParam(required = false) Long trainingId) {
+	        @RequestParam(required = false) Integer trainingId) {
 
 	    return surveyService.getAllSurveys(trainingId);
 	}

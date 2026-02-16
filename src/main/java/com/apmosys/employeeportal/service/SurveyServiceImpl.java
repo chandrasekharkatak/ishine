@@ -203,7 +203,7 @@ public class SurveyServiceImpl implements SurveyService {
 	}
 
 	@Override
-	public ServiceResponse getAllSurveys(Long trainingId) {
+	public ServiceResponse getAllSurveys(Integer trainingId) {
 
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();

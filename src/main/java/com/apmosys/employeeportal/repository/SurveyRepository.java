@@ -33,7 +33,7 @@ public interface SurveyRepository extends JpaRepository<Survey, Long> {
 		    "WHERE tqm.trainingMaster.trainingId = :trainingId " +
 		    "AND tqm.activeStatus = 'true'"
 		)
-		List<Object[]> getSurveysByTrainingId(@Param("trainingId") Long trainingId);
+		List<Object[]> getSurveysByTrainingId(@Param("trainingId") Integer trainingId);
 
 
 }

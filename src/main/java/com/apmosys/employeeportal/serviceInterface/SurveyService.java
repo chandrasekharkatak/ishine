@@ -7,7 +7,7 @@ public interface SurveyService {
 
 	ServiceResponse createSurvey(SurveyDTO surveyDTO);
 
-	ServiceResponse getAllSurveys(Long trainingId);
+	ServiceResponse getAllSurveys(Integer trainingId);
 
 	ServiceResponse getAllQuestionsBySurveyId(SurveyDTO surveyDTO);
 
