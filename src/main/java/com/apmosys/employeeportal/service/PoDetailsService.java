@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
 import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
+import com.apmosys.employeeportal.dto.PoClientAddressUpdateDTO;
 import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
@@ -960,6 +961,57 @@ public class PoDetailsService {
 
 	    employeeClientSideIdMappingRepository.saveAll(mappings);
 	}
+	
+	
+	
+	public void updateClientAddressForPos(PoClientAddressUpdateDTO dto) {
+
+	    List<ProjectPoDetails> pos =
+	            projectPoDetailsRepository.findByPoIdInAndActive(dto.getPoIds());
+
+	    if (pos.size() != dto.getPoIds().size()) {
+	        throw new RuntimeException("Some PO IDs not found");
+	    }
+
+	    // Group by clientId
+	    Map<Integer, List<ProjectPoDetails>> posByClient =
+	            pos.stream().collect(Collectors.groupingBy(po -> {
+
+	                Project project = projectRepository
+	                        .findByProjectId(po.getProjectId());
+
+	                if (project == null || !"true".equalsIgnoreCase(project.getActive())) {
+	                    throw new RuntimeException("Inactive or missing project for PO: " + po.getPoId());
+	                }
+
+	                return project.getClientId();
+	            }));
+
+	    for (Map.Entry<Integer, List<ProjectPoDetails>> entry : posByClient.entrySet()) {
+
+	        Integer clientId = entry.getKey();
+
+	        ClientLocation clientLocation =
+	                clientService.resolveClientLocation(
+	                        clientId,
+	                        dto.getClientLocation(),
+	                        dto.getClientState(),
+	                        dto.getClientAddressId()
+	                );
+
+	        for (ProjectPoDetails po : entry.getValue()) {
+
+	            po.setClientAddressId(dto.getClientAddressId());
+	            po.setClientLocationId(
+	                    Long.valueOf(clientLocation.getClientLocationId()));
+	            po.setUpdatedBy(dto.getUpdatedByEmpId());
+	          
+	        }
+	    }
+
+	    projectPoDetailsRepository.saveAll(pos);
+	}
+
 
 
 }

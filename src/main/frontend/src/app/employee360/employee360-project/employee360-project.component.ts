@@ -1,4 +1,4 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, OnInit, TemplateRef, viewChild, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { Router } from '@angular/router';
 import { saveAs } from 'file-saver';
@@ -36,6 +36,12 @@ export class Employee360ProjectComponent implements OnInit {
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
 
+  @ViewChild("update_project_start_date_error") 
+  startDateErrorModel :TemplateRef<any>;
+
+  @ViewChild("update_project_start_date_confirmation")
+  updateProjStartDateModal :TemplateRef<any>;
+
   isEditProject: boolean = false;
   isHideButton: boolean = false;
   //added by rahul
@@ -71,6 +77,10 @@ export class Employee360ProjectComponent implements OnInit {
   alertMessage: any;
   modalRef:NgbModalRef;
   newteamMember: TeamMember = new TeamMember();
+  errModalRef:NgbModalRef;
+  updateProjectStartDateConfirmationModalRef:NgbModalRef;
+  projectNewStartDate: any
+  alertMessageModalRef: NgbModalRef;
 
   projectObj: Project = new Project();
   projectEditObj: Project = new Project();
@@ -523,6 +533,9 @@ async getExistingProjectsByUser() {
 
   cancelRequest() {
     this.modalRef?.close();
+    if (this.alertMessageModalRef) {
+			this.alertMessageModalRef?.close();
+		}
   }
 
   editStartdateModal(template: TemplateRef<any>, projObj) {
@@ -555,7 +568,12 @@ async getExistingProjectsByUser() {
     projectObj.teamId = this.projectObj.teamId;
     projectObj.empId = this.projectObj.empId;
     projectObj.startDate = this.startDate;
-
+    
+    if(this.isBefore(this.projectObj.projectStartDate,projectObj.startDate)){
+      this.errModalRef = this.modalService.open(this.startDateErrorModel, 
+                { modalDialogClass: 'modal-md' });
+      return;          
+    }
 
     console.log("team details ", projectObj)
     projectObj.updatedBy = this.currentUser.empId;
@@ -568,6 +586,13 @@ async getExistingProjectsByUser() {
         // this.getTeamByProjectId(this.projectObj.projectId);
       }
     })
+  }
+
+  isBefore(startDate,newStartDate){
+    const startDate1=new Date(startDate).getTime()
+    const newStartDate1=new Date(newStartDate).getTime()
+    return newStartDate1<startDate1;
+
   }
 
 
@@ -966,4 +991,67 @@ console.log("mapping ID",this.employeeTeamMapId);
       }
     });
   }
+
+  updateProjectStartDate() {
+      if (!this.projectNewStartDate || this.projectNewStartDate == undefined || this.projectNewStartDate == null) {
+        this.openAlertMessageModal("Kindly provide new Project Start Date!!");
+        return;
+      }
+      let projectObj: Project = new Project();
+      projectObj.projectId = this.projectObj.projectId;
+      projectObj.startDate = moment(this.normalizeDate(this.projectNewStartDate)).format('YYYY-MM-DD');
+      projectObj.updatedBy = this.currentUser.empId;
+  
+      this.projectService.updateProjectStartDate(projectObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.projectObj.projectStartDate = this.normalizeDate(this.projectNewStartDate);
+          this.closeUpdateProjectStartDateConfirmationModal();
+          this.openAlertMessageModal(response.serviceResponse);
+        } else {
+          this.openAlertMessageModal(response.serviceResponse || "Something went wrong!");
+        }
+      });
+    }
+
+   normalizeDate(dateInput: any): Date | null {
+		if (!dateInput) {
+			return null;
+		}
+
+		const date = new Date(dateInput);
+		if (isNaN(date.getTime())) {
+			return null;
+		}
+
+		return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+	} 
+
+  closeUpdateProjectStartDateConfirmationModal() {
+		if (this.updateProjectStartDateConfirmationModalRef) {
+			this.updateProjectStartDateConfirmationModalRef?.close();
+		}
+	}
+
+  closeErrorModal() {
+		if (this.errModalRef) {
+			this.errModalRef?.close();
+		}
+    this.startDate = '';
+	}
+
+  openUpdateProjectStartDateConfirmationModal() {
+		this.projectNewStartDate = null;
+		this.updateProjectStartDateConfirmationModalRef = this.modalService.open(this.updateProjStartDateModal, 
+      { modalDialogClass: 'modal-sm', backdrop: 'static', keyboard: false });
+	}
+
+  openAlertMessageModal(modalMessage: any) {
+		this.alertMessage = modalMessage;
+		if (this.alertMessageModalRef) {
+			this.cancelRequest();
+		}
+		this.alertMessageModalRef = this.modalService?.open(this.alertTemplate, { modalDialogClass: 'modal-sm' });
+	}
+
+  
 }
