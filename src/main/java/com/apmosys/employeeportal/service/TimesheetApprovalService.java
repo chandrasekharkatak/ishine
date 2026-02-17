@@ -1531,10 +1531,29 @@ public ServiceResponse getMyReporteesTimesheetRequestsNew(GetMyReporteesTimeshee
         Page<Long> timesheetPage =
                 employeeTimesheetsNewRepository.getPagedTimesheetIds(
                         payload.getEmpId(),
-                        payload.getStatus(),
                         clientFilter,
+                        payload.getEmploymentId(),
+                        payload.getEmployeeName(),
+                        payload.getDayType(),
+                        payload.getProjectName(),
+                        payload.getClientName(),
+                        payload.getClientLocation(),
+                        payload.getPoNo(),
+                        payload.getShadowEmpName(),
+                        payload.getTeamName(),
+                        payload.getActivity(),
+                        payload.getDate(),
+                        payload.getSearch(),
+                        payload.getWorkCheckIn(),
+                        payload.getWorkCheckOut(),
+                        payload.getLocationCount(),
+                        payload.getProjectCount(),
+                        payload.getAppliedBy(),
+                        payload.getAppliedOn(),
+                        payload.getStatus(),
                         pageable
                 );
+
 
         List<Long> timesheetIds = timesheetPage.getContent();
 
