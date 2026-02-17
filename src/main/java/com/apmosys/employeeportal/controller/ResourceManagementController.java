@@ -37,6 +37,7 @@ import com.apmosys.employeeportal.dto.ProjectStructureWrapper;
 import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.RestoreProjectPayloadDTO;
+import com.apmosys.employeeportal.dto.RmUpdateSyncDto;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimeSheetRequestDto;
@@ -503,6 +504,13 @@ public class ResourceManagementController {
 		 return poSyncOrchestratorService.linkPoInIshineNew(dto);
 	 }
 	 
+	 @PostMapping("/updateRmDetailsInPo")
+	 public ServiceResponse updateRmDetailsInPo(HttpServletRequest httpRequest,@RequestBody  RmUpdateSyncDto dto) {
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		 return poSyncOrchestratorService.updateRmOdPos(dto);
+	 }
+	 
+	 
 	 
 
 
@@ -699,6 +707,13 @@ public class ResourceManagementController {
 	@PostMapping("/bulkApproveTimesheetRequest1")
 	public ServiceResponse bulkApproveTimesheetRequest1( @RequestBody BulkTimesheetRequestDTO bulkTimesheetRequestDTO){
 		return resourceManagementService.bulkOrSingleApproveOrReject(bulkTimesheetRequestDTO);
+	}
+
+//	@Scheduled(cron = "0 0 0 * * ?")
+	@GetMapping("/oneTimeUpdatePoClientId")
+	public ServiceResponse oneTimeUpdatePoClientId(@RequestParam(value = "mode", required = false) String mode) {
+		return resourceManagementService.oneTimeUpdatePoClientId(mode);
+
 	}
 	 
 	

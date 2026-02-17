@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.JobRoleAccess;
+import com.apmosys.employeeportal.dto.GetEmployeeSummaryOnExportDTO;
 import com.apmosys.employeeportal.dto.GetTimesheetDashboardCountForEmployeeDTO;
 import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -389,5 +390,15 @@ public class EmployeeTimesheetControllerNew {
 		 ServiceResponse reponse= timesheetServiceNew.bulkApproveOrRejectTimesheet(data);
 		  return reponse;
 	 }
+	 
+     // changes have been made in the timesheetservicenew and new timesheet repo 
+	 
+	 @PostMapping(value = "/getEmployeeViewForClientAttendanceStatus")
+		public ServiceResponse getEmployeeViewForClientAttendanceStatus(@RequestBody GetEmployeeSummaryOnExportDTO object) {  
+			 ServiceResponse reponse= timesheetServiceNew.getEmployeeViewForClientAttendanceStatus(object);
+			 return reponse;
+		}
+	 
+	 
 }
 

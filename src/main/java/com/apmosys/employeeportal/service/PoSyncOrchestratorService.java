@@ -14,6 +14,7 @@ import com.apmosys.employeeportal.dto.POResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
+import com.apmosys.employeeportal.dto.RmUpdateSyncDto;
 import com.apmosys.employeeportal.enums.SyncRequestType;
 import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.Client;
@@ -502,6 +503,73 @@ public class PoSyncOrchestratorService {
 	        return response;
 
 	    } catch (Exception e) {
+	        ExceptionLogContext.add(e);
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceError(e.getMessage());
+	        return response;
+	    } finally {
+	        if (initialLog != null) {
+	            apiLogUtility.endLog(
+	                    initialLog.getId(),
+	                    sourceSystem,
+	                    finalHttpStatusCode,
+	                    ExceptionLogContext.get(),
+	                    httpRequest
+	            );
+	        }
+	    }
+	}
+	
+	
+	@Transactional(rollbackFor = Exception.class)
+	public ServiceResponse updateRmOdPos(RmUpdateSyncDto dto) {
+
+	    ApiLog initialLog = null;
+	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+	    String sourceSystem = httpRequest.getRequestURI().toString();
+	    ServiceResponse response = new ServiceResponse();
+	    
+	    
+
+	    try {
+	        initialLog = apiLogUtility.startLog(
+	                poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+	                "updateRmOfPoInIshine",
+	                "PoPortal",
+	                null,
+	                httpRequest
+	        );
+	        validationService.validateRmUpdateSyncPayload(dto);
+	        poDetailsService.validateAllPosAreActive(dto.getPoIds());
+	        validationService.validateEmployeeExists(
+	                dto.getUpdatedApmosysRmEmpId(),
+	                dto.getUpdatedApmosysRmEmpName()
+	        );
+	        
+	       
+	        int updatedCount = projectPoDetailsRepository.updateRmForActivePos(
+	                dto.getPoIds(),
+	                dto.getUpdatedApmosysRmEmpId(),
+	                dto.getUpdatedApmosysRmEmpName(),
+	                dto.getUpdatedApmosysRmEmail(),
+	                dto.getUpdatedApmosysRmEmpId()
+	                
+	        );
+	        
+	        if (updatedCount != dto.getPoIds().size()) {
+	            throw new RuntimeException(" PO records updation failed");
+	        }
+
+	        finalHttpStatusCode = HttpStatus.OK.value();
+	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        response.setServiceResponse(
+	                "RM updated successfully for " + updatedCount + " PO(s)"
+	        );
+	        return response;
+	        
+	       
+	    }catch (Exception e) {
+	    	finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
 	        ExceptionLogContext.add(e);
 	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	        response.setServiceError(e.getMessage());

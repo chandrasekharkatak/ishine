@@ -65,6 +65,7 @@ import com.apmosys.employeeportal.dto.EmpIdAndNameDTO;
 import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeInfoDTO;
+import com.apmosys.employeeportal.dto.EmployeeJobRoleDept;
 import com.apmosys.employeeportal.dto.EmployeeViewForClientAttendanceStatusDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.FinalBulkUploadDTO;
@@ -966,9 +967,6 @@ public class TimesheetService {
 
 	    return dtoList;
 	}
-
-
-
 	
 	private void handleDocumentUpload(TimesheetDTO timesheetDTO, Timesheet newTimesheetCreated, MultipartFile file,
 			boolean isFinal) throws IOException {
@@ -3726,6 +3724,55 @@ public class TimesheetService {
 
 	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
+	}
+
+	/**
+	 * Date-aware variant of getEmployeeListByProjectId.
+	 * Filters employees by EmployeeTeamMap date window similar to
+	 * getProjectListForDateAndEmpId.
+	 */
+	public ServiceResponse getEmployeeListByProjectIdForDate(Integer projectId, Long currentUser,
+			LocalDateTime startOfDay, LocalDateTime endOfDay) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getEmployeeListByProjectId");
+		apiLogInfo.setLogLevel("INFO");
+
+		try {
+			List<GetEmployeeListByProjectIdDTO> empList =
+					employeeRepository.getEmployeeListByProjectIdForDate(projectId, currentUser, startOfDay, endOfDay);
+
+			if (empList == null || empList.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No Active employees found for this Project on selected date!");
+				response.setServiceMessage("No Active employees found for the Project with ProjectId: " + projectId);
+
+				apiLogInfo.setApiResponse("No Active employees found for the Project with ProjectId: " + projectId);
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				return response;
+			}
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(empList);
+			response.setServiceMessage("Employee List fetched successfully!");
+
+			apiLogInfo.setApiResponse("Employee List fetched successfully!");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong.");
+			response.setServiceError(e.getMessage());
+
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse(e.getMessage());
+			apiLogInfo.setLogLevel("ERROR");
+		}
+
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
 	}
 	
 	public ServiceResponse getClientSideIdByProjectIdAndEmpId(Long projectId, Long empId) {
@@ -6681,13 +6728,13 @@ public class TimesheetService {
 		    return response;
 		}
 	
-	// public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year,Long empId,Boolean isClientDashboard,List<String> billableTypes,String employeeActive,String clientSideFilter,String multiPOs) {
-	// 	return timesheetDashboardService.getTimesheetDashboardCountForEmployee(
-	// 			month, year, empId, isClientDashboard, billableTypes, employeeActive, clientSideFilter, multiPOs);
-	// }
+	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year,Long empId,Boolean isClientDashboard,List<String> billableTypes,String employeeActive,String clientSideFilter, String multiPOs) {
+		return timesheetDashboardService.getTimesheetDashboardCountForEmployee(
+				month, year, empId, isClientDashboard, billableTypes, employeeActive, clientSideFilter, multiPOs);
+	}
 	
 	// Delegate method - implementation moved to TimesheetDashboardService
-	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year,Long empId,Boolean isClientDashboard,List<String> billableTypes,String employeeActive,String clientSideFilter, String multiPOs) {
+	public ServiceResponse getTimesheetDashboardCountForEmployeeNew(Integer month, Integer year,Long empId,Boolean isClientDashboard,List<String> billableTypes,String employeeActive,String clientSideFilter, String multiPOs) {
 		
 		ServiceResponse response = new ServiceResponse();
 

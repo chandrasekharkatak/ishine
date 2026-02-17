@@ -98,9 +98,13 @@ export class TimesheetNewService {
   ) {
     const formData = new FormData();
     formData.append('dto', this.encryptionService.encrypt(JSON.stringify(employeeTimesheetDTO)));
-    selectedFile.forEach((file) => {
-      formData.append('documents', file, file.name);
-    });
+    if (selectedFile && selectedFile.length > 0) {
+      selectedFile.forEach((file) => {
+        if (file) {
+          formData.append('documents', file, file.name);
+        }
+      });
+    }
     return this.http.post(
       `${this.baseUrl}` + `api/v2/timesheet/create`,
       formData

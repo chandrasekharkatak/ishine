@@ -2,12 +2,16 @@ package com.apmosys.employeeportal.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,7 +20,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.dto.EmployeeInfoDTO;
+import com.apmosys.employeeportal.dto.GetEmployeeSummaryOnExportDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.ProjectTimesheetInfoDTO;
 import com.apmosys.employeeportal.dto.ProjectWithClientAndLocationDTO;
 import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -31,6 +38,7 @@ import com.apmosys.employeeportal.model.EmployeeTimesheetLocationMapping;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.FinalDocumentNew;
 import com.apmosys.employeeportal.model.ProjectTimesheetStatusNew;
+import com.apmosys.employeeportal.model.TimesheetDataDTO;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetailsNew;
 import com.apmosys.employeeportal.repository.DayTypeMasterNewRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
@@ -111,6 +119,7 @@ public class TimesheetServiceNew {
 	@Autowired
 	private TimesheetQueryService timesheetQueryService;
 
+
 	@Autowired
 	EmployeeAssignmentValidationService employeeAssignmentValidationService;
 
@@ -121,6 +130,16 @@ public class TimesheetServiceNew {
 	private TimesheetDashboardServiceNew timesheetDashboardServiceNew;
 
 	private final String pattern = "yyyy-MM-dd HH:mm:ss";
+
+	
+
+	@Autowired
+	private LogService logService;
+	
+	@Autowired
+	private HttpServletRequest httpRequest;
+	
+	
 
 	/**
 	 * Get current user ID from security context. TODO: Implement proper security
@@ -1412,6 +1431,7 @@ public class TimesheetServiceNew {
 	// approvedOrRejectedBy, approvalStatus);
 	// }
 
+
 	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year, Long empId,
 			Boolean isClientDashboard, List<String> billableTypes, String employeeActive, String clientSideFilter) {
 		return timesheetDashboardServiceNew.getTimesheetDashboardCountForEmployee(month, year, empId, isClientDashboard,
@@ -1457,5 +1477,362 @@ public class TimesheetServiceNew {
 	    return response;
 	}
 	
+
+
+
+	public ServiceResponse getEmployeeViewForClientAttendanceStatus(GetEmployeeSummaryOnExportDTO object) {
+
+	    ServiceResponse response = new ServiceResponse();
+
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("getEmployeeViewForClientAttendanceStatus");
+	    apiLogInfo.setLogLevel("INFO");
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("getEmployeeViewForClientAttendanceStatus	");
+
+	    try {
+
+	        List<Object[]> empTimesheet;
+	        int page = object.getPage(); 
+			int pageSize = object.getSize();
+			int offset = (page-1) * pageSize; 
+			String employmentId = getStringColumnFilterValue(object.getFilters().getEmploymentId());
+			String clientsideId = getStringColumnFilterValue(object.getFilters().getClientSideId());
+			String employeeName = getStringColumnFilterValue(object.getFilters().getEmployeeName());
+			String billableType = getStringColumnFilterValue(object.getFilters().getBillableType());
+			String projectName = getStringColumnFilterValue(object.getFilters().getProjectName());
+			String poNo = getStringColumnFilterValue(object.getFilters().getPoNo());
+			String projectManagers = getStringColumnFilterValue(object.getFilters().getProjectManagerName());
+			String clientName = getStringColumnFilterValue(object.getFilters().getClientName());
+			String teamName = getStringColumnFilterValue(object.getFilters().getTeamName());
+			String department = getStringColumnFilterValue(object.getFilters().getDepartment());
+			String employmentStatus = getStringColumnFilterValue(object.getFilters().getEmploymentStatus());
+			String projectStatus = getStringColumnFilterValue(object.getFilters().getProjectStatus());
+			String statusCode = null;
+			if( projectStatus !=null && !projectStatus.isEmpty()) {
+			if ("Mapped".equalsIgnoreCase(projectStatus) || projectStatus.contains("map") || projectStatus.startsWith("m") ) {
+			    statusCode = "1";
+			} else if ("Removed".equalsIgnoreCase(projectStatus)|| projectStatus.contains("re") || projectStatus.startsWith("r") ) {
+			    statusCode = "0";
+			} else if ("Approval Pending".equalsIgnoreCase(projectStatus) || projectStatus.contains("Ap") || projectStatus.startsWith("a")) {
+			    statusCode = "2";
+			}
+			}
+			List<Long> employeeIds = new ArrayList<Long>();
+			
+			Integer totalDistinctEmployees;
+
+			//			authorized_employee CTE in query is replaced with the list of authorizedEmployeeList
+			
+			List<Long> authorizedEmployees  = employeeTimesheetsNewRepository.getAllAuthorizedEmployees(object.getEmpId());
+
+			//			authorizedProjectIds CTE in query is replaced with the list of authorizedProject 
+        	
+			List<Integer> authorizedProjectIds = employeeTimesheetsNewRepository.getAllAuthorizedProjectIds(authorizedEmployees);
+
+	        if (object.getAllEmp()) {
+	        	
+	        	LocalDate fromLocalDate = LocalDate.of(object.getYear(), object.getMonth(), 1);
+	        	LocalDate toLocalDate = YearMonth.of(object.getYear(), object.getMonth()).atEndOfMonth();
+	        	if (object.getYear() == LocalDate.now().getYear() 
+	        			&& object.getMonth() == LocalDate.now().getMonthValue()) {
+	        		toLocalDate = LocalDate.now();
+	        	}   	
+	        	String fromDate = fromLocalDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
+	        	String toDate   = toLocalDate.format(DateTimeFormatter.ISO_LOCAL_DATE);
+
+	        	System.out.println(fromLocalDate+"-----"+toLocalDate);
+//	        	employeeIds = employeeTimesheetsNewRepository.getPaginatedEmployeeIds(
+//						object.getMonth(),
+//	                    object.getYear(),
+//	                    object.getEmpId(),   
+//	                    object.getBillableType(),
+//	                    object.getStatus(),object.getEmployeeActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+//	                    projectManagers,clientName,teamName,department,statusCode,offset,pageSize );
+
+	        	employeeIds = employeeTimesheetsNewRepository.getPaginatedEmployeeIdsNew(
+	                    object.getBillableType(),
+	                    object.getStatus(),object.getEmployeeActive(),fromDate , toDate,employmentId,
+	                    clientsideId,employeeName,billableType,projectName,poNo,projectManagers, 
+	                    clientName,teamName,department,statusCode,offset,pageSize , 
+	                    authorizedEmployees , authorizedProjectIds);
+
+	        	
+//	            empTimesheet = employeeTimesheetsNewRepository.getEmployeeSummaryReportAllEMP(
+//	                    object.getMonth(),
+//	                    object.getYear(),
+//	                    object.getEmpId(),   
+//	                    object.getBillableType(),
+//	                    object.getStatus(),object.getEmployeeActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+//	                    projectManagers,clientName,teamName,department,statusCode,
+//	                    object.getSortBy(),
+//	                    object.getSortDirection(),employeeIds);
+	            
+	            empTimesheet = employeeTimesheetsNewRepository.getEmployeeSummaryReportAllEMPNew(  
+	                    object.getBillableType(),
+	                    object.getStatus(),object.getEmployeeActive(),fromDate , toDate , employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+	                    projectManagers,clientName,teamName,department,statusCode,
+	                    object.getSortBy(),
+	                    object.getSortDirection(),employeeIds , authorizedEmployees , authorizedProjectIds);
+	            
+//	            totalDistinctEmployees = employeeTimesheetsNewRepository.getTotalEmployeeCount(
+//						object.getMonth(),
+//	                    object.getYear(),
+//	                    object.getEmpId(),   
+//	                    object.getBillableType(),
+//	                    object.getStatus(),object.getEmployeeActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+//	                    projectManagers,clientName,teamName,department,statusCode);
+//	            
+	            
+	            totalDistinctEmployees = employeeTimesheetsNewRepository.getTotalEmployeeCountNew(  
+	                    object.getBillableType(),
+	                    object.getStatus(),object.getEmployeeActive(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+	                    projectManagers,clientName,teamName,department,statusCode , authorizedEmployees , authorizedProjectIds);
+	            
+	            
+	        } else {
+	        	System.out.println("else"+authorizedEmployees);
+	        	System.out.println(authorizedProjectIds);
+	        	employeeIds = employeeTimesheetsNewRepository.getPaginatedEmployeeIdsForClientAttendance(
+	        			object.getMonth(),
+	                    object.getYear(),
+	                    object.getEmpId(),
+	                    object.getStatus(),
+						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,offset,pageSize);
+	        	
+	            empTimesheet = employeeTimesheetsNewRepository.getEmployeeViewForClientAttendanceStatus(
+	                    object.getMonth(),
+	                    object.getYear(),
+	                    object.getEmpId(),
+	                    object.getStatus(),
+						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode,
+	                    object.getSortBy(),
+	                    object.getSortDirection(),employeeIds
+						);
+	            
+	            totalDistinctEmployees = employeeTimesheetsNewRepository.getTotalEmployeeCountForClientApplicable(
+	            		object.getMonth(),
+	                    object.getYear(),
+	                    object.getEmpId(),
+	                    object.getStatus(),
+						object.getClientSideFilter(),employmentId,clientsideId,employeeName,billableType,projectName,poNo,
+	                    projectManagers,clientName,teamName,department,employmentStatus,statusCode);
+	        }
+	        
+	        // Map to hold employees grouped by empId
+	        Map<Long, EmployeeInfoDTO> employeeMap = new HashMap<>();
+
+	        for (Object[] obj : empTimesheet) {
+
+	            Long empId = obj[0] != null ? Long.parseLong(obj[0].toString()) : null;
+
+	            // ---------- Create EmployeeInfoDTO only once per Employee ----------
+	            EmployeeInfoDTO employeeInfo = employeeMap.get(empId);
+
+	            if (employeeInfo == null) {
+
+	                employeeInfo = new EmployeeInfoDTO();
+
+	                employeeInfo.setEmpId(empId);
+	                employeeInfo.setEmployeeName(obj[5] != null ? obj[5].toString() : null);
+	                employeeInfo.setDepartment(obj[9] != null ? obj[9].toString() : null);
+	                employeeInfo.setEmploymentId(obj[114] != null ? obj[114].toString() : null);
+
+	                employeeInfo.setProjectTimesheet(new ArrayList<>());
+
+	                employeeMap.put(empId, employeeInfo);
+	            }
+
+	            // ---------- Create project + timesheet DTO ----------
+	            ProjectTimesheetInfoDTO projectInfo = new ProjectTimesheetInfoDTO();
+
+	            projectInfo.setClientSideId(obj[1] != null ? obj[1].toString() : null);
+	            projectInfo.setStartDate(obj[2] != null ? obj[2].toString() : null);
+	            projectInfo.setTeamName(obj[3] != null ? obj[3].toString() : null);
+	            projectInfo.setTeamId(obj[4] != null ? Long.parseLong(obj[4].toString()) : null);
+	            projectInfo.setSpoc(obj[6] != null ? obj[6].toString() : null);
+	            projectInfo.setBillableType(obj[7] != null ? obj[7].toString() : null);
+	            projectInfo.setEmployeeRole(obj[8] != null ? obj[8].toString() : null);
+	            projectInfo.setProjectId(obj[10] != null ? Integer.parseInt(obj[10].toString()) : null);
+	            projectInfo.setProjectName(obj[11] != null ? obj[11].toString() : null);
+	            projectInfo.setProjectManagerName(obj[12] != null ? obj[12].toString() : null);
+	            projectInfo.setPoNo(obj[13] != null ? obj[13].toString() : null);
+	            projectInfo.setClientName(obj[14] != null ? obj[14].toString() : null);
+	            projectInfo.setReportingManagerId(obj[15] != null ? Long.parseLong(obj[15].toString()) : null);
+	            projectInfo.setMonthName(obj[16] != null ? obj[16].toString() : null);
+
+	            projectInfo.setExpectedTimesheetFillCount(obj[17] != null ? Integer.parseInt(obj[17].toString()) : null);
+	            projectInfo.setClientSideNotFilledCount(obj[18] != null ? Integer.parseInt(obj[18].toString()) : null);
+	            projectInfo.setClientSidePendingCount(obj[19] != null ? Integer.parseInt(obj[19].toString()) : null);
+	            projectInfo.setClientSideApprovedCount(obj[20] != null ? Integer.parseInt(obj[20].toString()) : null);
+
+	            // ---------- 31 days timesheet mapping ----------
+	            Map<String, TimesheetDataDTO> timesheetData = new HashMap<>();
+	            DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S");
+	            DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("hh:mm a");
+
+	            for (int i = 0; i < 31; i++) {
+
+	                int baseIndex = 21 + (i * 3);
+
+	                String status = obj.length > baseIndex && obj[baseIndex] != null
+	                        ? obj[baseIndex].toString()
+	                        : null;
+
+	                String inTimeRaw = obj.length > (baseIndex + 1) && obj[baseIndex + 1] != null
+	                        ? obj[baseIndex + 1].toString()
+	                        : null;
+
+	                String outTimeRaw = obj.length > (baseIndex + 2) && obj[baseIndex + 2] != null
+	                        ? obj[baseIndex + 2].toString()
+	                        : null;
+
+	                String inTime = null;
+	                String outTime = null;
+
+	                try {
+	                    if (inTimeRaw != null && !inTimeRaw.isEmpty()) {
+	                        LocalDateTime inDateTime = LocalDateTime.parse(inTimeRaw, inputFormatter);
+	                        inTime = inDateTime.format(outputFormatter);
+	                    }
+	                    if (outTimeRaw != null && !outTimeRaw.isEmpty()) {
+	                        LocalDateTime outDateTime = LocalDateTime.parse(outTimeRaw, inputFormatter);
+	                        outTime = outDateTime.format(outputFormatter);
+	                    }
+	                } catch (Exception e) {}
+
+	                TimesheetDataDTO dayData = new TimesheetDataDTO();
+	                dayData.setStatus(status);
+	                dayData.setInTime(inTime);
+	                dayData.setOutTime(outTime);
+
+	                timesheetData.put("d" + (i + 1), dayData);
+	            }
+
+	            projectInfo.setTimesheetData(timesheetData);
+
+	            // ---------- Summary fields ----------
+	            projectInfo.setPresent(obj[115] != null ? obj[115].toString() : null);
+	            projectInfo.setWeekOff(obj[116] != null ? obj[116].toString() : null);
+	            projectInfo.setHoliday(obj[117] != null ? obj[117].toString() : null);
+	            projectInfo.setLeave(obj[118] != null ? obj[118].toString() : null);
+	            projectInfo.setCompOff(obj[119] != null ? obj[119].toString() : null);
+	            projectInfo.setNa(obj[120] != null ? obj[120].toString() : null);
+	            projectInfo.setHalfDay(obj[121] != null ? obj[121].toString() : null);
+	            projectInfo.setTotalNoOfDays(obj[122] != null ? obj[122].toString() : null);
+	            projectInfo.setApmosysTimesheetFilledCount(obj[123] != null ? Integer.parseInt(obj[123].toString()) : null);
+	            projectInfo.setEmploymentStatus(obj[124] != null ? obj[124].toString() : null);
+	            projectInfo.setEndDate(obj[125] != null ? obj[125].toString() : null);
+	            projectInfo.setReadyForInvoicing(obj[126] != null ? obj[126].toString() : null);
+
+	            // ---------- Project Status (Integer) ----------
+	            if (obj[127] != null) {
+	                int active = Integer.parseInt(obj[127].toString());
+	                switch (active) {
+	                    case 1:
+	                        projectInfo.setProjectStatus("Mapped");
+	                        break;
+	                    case 0:
+	                        projectInfo.setProjectStatus("Removed");
+	                        break;
+	                    case 2:
+	                        projectInfo.setProjectStatus("Approval Pending");
+	                        break;
+	                    default:
+	                        projectInfo.setProjectStatus("Undefined");
+	                }
+	            }
+
+	            // ---------- Project Active (Boolean) ----------
+	            if (obj[128] != null) {
+	                String active = obj[128].toString();
+	                if ("true".equals(active)) projectInfo.setProjectActive("Active");
+	                else if ("false".equals(active)) projectInfo.setProjectActive("Inactive");
+	                else projectInfo.setProjectActive("Undefined");
+	            }
+
+	            // Add project info to employee
+	            employeeInfo.getProjectTimesheet().add(projectInfo);
+	        }
+
+	        // Convert map to list
+	        List<EmployeeInfoDTO> finalList = new ArrayList<>(employeeMap.values());
+
+			//code for sorting project-status mapped first then removed.
+			for (EmployeeInfoDTO employee : finalList) {
+
+				if (employee.getProjectTimesheet() != null && !employee.getProjectTimesheet().isEmpty()) {
+					
+					List<ProjectTimesheetInfoDTO> sortedProjects = employee.getProjectTimesheet().stream()
+						.sorted((p1, p2) -> {
+
+							boolean p1IsMapped = "Mapped".equalsIgnoreCase(p1.getProjectStatus());
+							boolean p2IsMapped = "Mapped".equalsIgnoreCase(p2.getProjectStatus());
+							
+							if (p1IsMapped && !p2IsMapped) {
+								return -1; // p1 comes first
+							} else if (!p1IsMapped && p2IsMapped) {
+								return 1; // p2 comes first
+							} else {
+								// If both are same status, you can add secondary sorting here
+								// For example, by project name or start date
+								return 0;
+							}
+						})
+						.collect(Collectors.toList());
+					
+					employee.setProjectTimesheet(sortedProjects);
+				}
+			}
+
+	        if (finalList.isEmpty()) {
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceResponse("Unable to fetch the timesheet Data !!!");
+	            apiLogInfo.setApiResponse("Failed to set the data in dto \n");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        } else {
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse(finalList);
+		        response.setTotalElements(totalDistinctEmployees);
+	            apiLogInfo.setApiResponse("Timesheet Data fetched successfully ");
+	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	        }
+
+	        apiLogInfo.setApiRequest(logBuilder.toString());
+	        logService.logMyInfo(httpRequest, apiLogInfo);
+	        return response;
+
+	    } catch (Exception e) {
+
+	        e.printStackTrace();
+	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+	        response.setServiceResponse("Something went wrong.");
+	        response.setServiceError(e.getMessage());
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	        apiLogInfo.setApiResponse(e.getMessage());
+	        apiLogInfo.setLogLevel("ERROR");
+	    }
+
+	    return response;
+	}
+
+	private String getStringColumnFilterValue(String columnValue) {
+		if(columnValue == null || columnValue.isBlank()) {
+			return null;
+		}
+		return columnValue.toLowerCase();
+	}
+	
+//	private Integer getIntegerColumnFilterValue(Integer columnValue) {
+//		if(columnValue == null || columnValue.toString().isBlank()) {
+//			return null;
+//		}
+//		return columnValue;
+//	}
+
+	
+
 
 }

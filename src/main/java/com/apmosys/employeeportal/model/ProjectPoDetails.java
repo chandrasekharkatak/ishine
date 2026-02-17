@@ -61,8 +61,13 @@ public class ProjectPoDetails {
 	@Column(name = "next_po")
     private Long nextPO;
 	
+	@Column(name = "emp_id_apmosys_rm")
+	private Long empIdApmosysRm;
+	
 	@Column(name = "apmosys_rm")
     private String apmosysRM;
+	
+	
 	
 	@Column(name = "client_rm")
     private String clientRm;

@@ -29,12 +29,15 @@ public class ClientLocation {
 	
 	private String clientLocation;
 	
+	private String clientState;
+	
+	private Long clientAddressId;
+	
 	private Integer clientId;
 	
 	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
 	private Timestamp createdOn;
 	
-	private String clientState;
 	
 	private Long poId;
 	
