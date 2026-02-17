@@ -109,18 +109,18 @@ TimesheetServiceNew timesheetServiceNew;
 //		            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
 //		            .body(resource);
 //	}
-		    @GetMapping("v2/timesheet/document/getById/{docId}")
-		    public ResponseEntity<Resource> getDocumentById(
-		            @PathVariable Long docId,
-		            @RequestParam(required = false) Boolean approvedDocType) {
-
-		        Resource resource = timesheetServiceNew.getDocumentDataByDocId(docId, approvedDocType);
-
-		        return ResponseEntity.ok()
-		                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=document.pdf")
-		                .header(HttpHeaders.CONTENT_TYPE, "application/pdf")
-		                .body(resource);
-		    }
+//		    @GetMapping("v2/timesheet/document/getById/{docId}")
+//		    public ResponseEntity<Resource> getDocumentById(
+//		            @PathVariable Long docId,
+//		            @RequestParam(required = false) Boolean approvedDocType) {
+//
+//		        Resource resource = timesheetServiceNew.getDocumentDataByDocId(docId, approvedDocType);
+//
+//		        return ResponseEntity.ok()
+//		                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=document.pdf")
+//		                .header(HttpHeaders.CONTENT_TYPE, "application/pdf")
+//		                .body(resource);
+//		    }
 
 
 
