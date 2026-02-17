@@ -2175,7 +2175,7 @@ getDocument(type: 'Pending' | 'Approved'): void {
    selectedStatus: number = 1;
    onStatusChange(status: number) {
     this.selectedStatus = status;
-    this.page1 = 1; // pagination reset
+    this.page1 = 0; // pagination reset
     this.getMyReporteesTimesheetRequests();
   }
 
