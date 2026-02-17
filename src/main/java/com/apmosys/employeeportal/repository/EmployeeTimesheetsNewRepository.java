@@ -11317,6 +11317,102 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 			        @Param("status") int status,
 			        Pageable pageable
 			);
+			
+			@Query(value =
+			        "SELECT DISTINCT etn.timesheetId " +
+			        "FROM EmployeeTimesheetsNew etn " +
+			        "INNER JOIN Employee e ON etn.empId = e.empId " +
+			        "INNER JOIN ProjectTimesheetStatusNew ptsn ON ptsn.id.timesheetId = etn.timesheetId " +
+			        "INNER JOIN Project p ON p.projectId = ptsn.id.projectId " +
+			        "WHERE " +
+			        "    (CASE " +
+			        "        WHEN e.approvalsTo = 'Reporting Manager' " +
+			        "        THEN e.reportingManagerId " +
+			        "        ELSE e.managerId " +
+			        "    END) = :managerId " +
+			        "AND etn.status = :status " +
+			        "AND ( " +
+			        "    :clientFilter IS NULL " +
+			        "    OR :clientFilter = FALSE " +
+			        "    OR p.hasClientSideId = TRUE " +
+			        ")",
+			countQuery =
+			        "SELECT COUNT(DISTINCT etn.timesheetId) " +
+			        "FROM EmployeeTimesheetsNew etn " +
+			        "INNER JOIN Employee e ON etn.empId = e.empId " +
+			        "INNER JOIN ProjectTimesheetStatusNew ptsn ON ptsn.id.timesheetId = etn.timesheetId " +
+			        "INNER JOIN Project p ON p.projectId = ptsn.id.projectId " +
+			        "WHERE " +
+			        "    (CASE " +
+			        "        WHEN e.approvalsTo = 'Reporting Manager' " +
+			        "        THEN e.reportingManagerId " +
+			        "        ELSE e.managerId " +
+			        "    END) = :managerId " +
+			        "AND etn.status = :status " +
+			        "AND ( " +
+			        "    :clientFilter IS NULL " +
+			        "    OR :clientFilter = FALSE " +
+			        "    OR p.hasClientSideId = TRUE " +
+			        ")"
+			)
+			Page<Long> getPagedTimesheetIds(
+			        @Param("managerId") Long managerId,
+			        @Param("status") int status,
+			        @Param("clientFilter") Boolean clientFilter,
+			        Pageable pageable
+			);
+			
+			
+			@Query(value =
+			        "SELECT DISTINCT new com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO( " +
+			        "    etn.timesheetId, etn.empId, " +
+			        "    CASE " +
+			        "        WHEN e.isApmosysProduct = 'true' THEN CONCAT('AP-', e.employeementId) " +
+			        "        ELSE CONCAT('A-', e.employeementId) " +
+			        "    END, " +
+			        "    e.name, dtmn.dayType, etn.date, etn.isNightShift, etn.workCheckIn, etn.workCheckOut, " +
+			        "    COUNT(DISTINCT ptsn.id.projectId), COUNT(DISTINCT etlm.locationMappingId), ab.name, etn.createdOn, " +
+			        "    wltm.code, etlm.locationInTime, etlm.locationOutTime, etlm.locationMappingId, " +
+			        "    ptsn.id.projectId, p.projectName, c.clientName, cl.clientLocation, " +
+			        "    ptsn.poNo, es.name, ptsn.status, ptsn.totalClientWorkingMinutes, " +
+			        "    ptsn.description, a.activity, etamn.description, " +
+			        "    etamn.durationMinutes, t.teamName, " +
+			        "    tddn.docId, tddn.docName, tddn.finalFlag, " +
+			        "    tddn.bulkApprovedDocId, dmtmn.mimeType " +
+			        ") " +
+			        "FROM EmployeeTimesheetsNew etn " +
+			        "INNER JOIN Employee e ON etn.empId = e.empId " +
+			        "INNER JOIN Employee ab ON ab.empId = etn.createdBy " +
+			        "INNER JOIN ProjectTimesheetStatusNew ptsn ON ptsn.id.timesheetId = etn.timesheetId " +
+			        "INNER JOIN Project p ON p.projectId = ptsn.id.projectId " +
+			        "INNER JOIN Team t ON t.projectId = p.projectId " +
+			        "INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId AND etm.empId = e.empId " +
+			        "LEFT JOIN EmployeeTimesheetLocationMapping etlm ON etlm.timesheetId = etn.timesheetId " +
+			        "LEFT JOIN EmployeeTimesheetActivitiesMappingNew etamn ON etamn.timesheetId = etn.timesheetId " +
+			        "LEFT JOIN Activity a ON a.activityId = etamn.activityId " +
+			        "LEFT JOIN Client c ON c.clientId = ptsn.clientSideId " +
+			        "LEFT JOIN ClientLocation cl ON cl.clientLocationId = ptsn.clientLocationId " +
+			        "LEFT JOIN WorkLocationTypeMaster wltm ON wltm.workLocationTypeId = etlm.locationTypeId " +
+			        "LEFT JOIN DayTypeMasterNew dtmn ON dtmn.dayTypeId = etn.dayTypeId " +
+			        "LEFT JOIN TimesheetDocumentDetailsNew tddn ON tddn.timesheetId = etn.timesheetId " +
+			        "LEFT JOIN Employee es ON ptsn.shadowEmpId = es.empId " +
+			        "LEFT JOIN DocMimeTypeMasterNew dmtmn ON dmtmn.mimeTypeId = tddn.mimeTypeId " +
+			        "WHERE etn.timesheetId IN :timesheetIds " +
+			        "AND etn.status = :status " +
+			        "GROUP BY etn.timesheetId, etn.empId, e.isApmosysProduct, e.employeementId, e.name, dtmn.dayType, etn.date, " +
+			        "         etn.isNightShift, etn.workCheckIn, etn.workCheckOut, ab.name, etn.createdOn, " +
+			        "         wltm.code, etlm.locationInTime, etlm.locationOutTime, etlm.locationMappingId, " +
+			        "         ptsn.id.projectId, p.projectName, c.clientName, cl.clientLocation, ptsn.poNo, " +
+			        "         es.name, ptsn.status, ptsn.totalClientWorkingMinutes, ptsn.description, " +
+			        "         a.activity, etamn.description, etamn.durationMinutes, t.teamName, " +
+			        "         tddn.docId, tddn.docName, tddn.finalFlag, tddn.bulkApprovedDocId, dmtmn.mimeType "
+			)
+			List<GetReporteesTimesheetReqFlatDTO> getTimesheetDetailsByIds(
+			        @Param("timesheetIds") List<Long> timesheetIds,
+			        @Param("status") int status
+			);
+
+
 
 	
 	

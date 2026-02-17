@@ -1527,34 +1527,22 @@ public ServiceResponse getMyReporteesTimesheetRequestsNew(GetMyReporteesTimeshee
                 size,
                 JpaSort.unsafe(direction, sortExpr)
         );
+//        timesheet id list (pagable); 10 timesheet id
+        Page<Long> timesheetPage =
+                employeeTimesheetsNewRepository.getPagedTimesheetIds(
+                        payload.getEmpId(),
+                        payload.getStatus(),
+                        clientFilter,
+                        pageable
+                );
+
+        List<Long> timesheetIds = timesheetPage.getContent();
+
 
         // ---------- REPO CALL ----------
-        Page<GetReporteesTimesheetReqFlatDTO> pageResult =
-                employeeTimesheetsNewRepository.getMyReporteesTimesheetRequests(
-                        payload.getEmpId(),
-                        clientFilter,
-
-                        payload.getEmploymentId(),
-                        payload.getEmployeeName(),
-                        payload.getDayType(),
-                        payload.getProjectName(),
-                        payload.getClientName(),
-                        payload.getClientLocation(),
-                        payload.getPoNo(),
-                        payload.getShadowEmpName(),
-                        payload.getTeamName(),
-                        payload.getActivity(),
-                        payload.getDate(),
-
-                        payload.getSearch(),
-                        payload.getWorkCheckIn(),
-                        payload.getWorkCheckOut(),
-                        payload.getLocationCount(),
-                        payload.getProjectCount(),
-                        payload.getAppliedBy(),
-                        payload.getAppliedOn(),
-                        payload.getStatus(),
-                        pageable
+        List<GetReporteesTimesheetReqFlatDTO> pageResult =
+                employeeTimesheetsNewRepository.getTimesheetDetailsByIds(
+                		timesheetIds, payload.getStatus()
                 );
 
         // ---------- EMPTY ----------
@@ -1573,18 +1561,18 @@ public ServiceResponse getMyReporteesTimesheetRequestsNew(GetMyReporteesTimeshee
             return response;
         }
 
-        // ---------- MAP ----------
+     // ---------- MAP ----------
         List<GetReporteesTimesheetReqDTO> mapped =
-                timesheetMapper.map(pageResult.getContent());
+                timesheetMapper.map(pageResult);
 
         // ---------- FINAL RESPONSE ----------
         Map<String, Object> finalResponse = new HashMap<>();
-        finalResponse.put("content", mapped);//
-        finalResponse.put("page", pageResult.getNumber());//
-        finalResponse.put("size", pageResult.getSize());//
-        finalResponse.put("totalElements", pageResult.getTotalElements());
-        finalResponse.put("totalPages", pageResult.getTotalPages());//
-        finalResponse.put("hasNext", pageResult.hasNext());//
+        finalResponse.put("content", mapped);
+        finalResponse.put("page", timesheetPage.getNumber());
+        finalResponse.put("size", timesheetPage.getSize());
+        finalResponse.put("totalElements", timesheetPage.getTotalElements());
+        finalResponse.put("totalPages", timesheetPage.getTotalPages());
+        finalResponse.put("hasNext", timesheetPage.hasNext());
 
         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
         response.setServiceResponse(finalResponse);
