@@ -101,7 +101,7 @@ public class TimesheetDocumentServiceNew {
             List<MultipartFile> documents, List<TimesheetDocumentDataDTO> documentDataList) {
 
         if (documents.size() != documentDataList.size()) {
-            throw new IllegalArgumentException("Documents count mismatch for timesheet");
+            throw new IllegalArgumentException("Please ensure all required documents are attached.");
         }
 
         // Sort: Filled first, then Approved - ensures Filled are processed before
@@ -206,10 +206,11 @@ public class TimesheetDocumentServiceNew {
                 throw new IllegalArgumentException(
                         "Document is missing: " + approvedData.getDocName());
             }
+            String storedFileName = uploadFile(matchedFile, approvedData.getUniqueIdentifier());
             FinalDocumentNew finalDocumentNew = new FinalDocumentNew();
             finalDocumentNew.setFinalDocId(approvedData.getDocId());
             finalDocumentNew.setProjectId(approvedData.getProjectId());
-            finalDocumentNew.setFileUrl(approvedData.getUniqueIdentifier());
+            finalDocumentNew.setFileUrl(storedFileName);
             finalDocumentNew.setCreatedBy(empTs.getCreatedBy());
             finalDocumentNew.setUpdatedBy(empTs.getUpdatedBy());
             finalDocumentNew.setDocName(approvedData.getDocName());
@@ -222,13 +223,14 @@ public class TimesheetDocumentServiceNew {
             MultipartFile matchedFile = fileMap.get(filledData.getUniqueIdentifier());
             if (matchedFile == null) {
                 throw new IllegalArgumentException(
-                        "Document is missing: " + filledData.getDocName());
+                        "Filled document is missing. Please upload the required document.");
             }
+            String storedFileName = uploadFile(matchedFile, filledData.getUniqueIdentifier());
             TimesheetDocumentDetailsNew doc = new TimesheetDocumentDetailsNew();
             doc.setTimesheetId(timesheetId);
             doc.setProjectId(filledData.getProjectId());
             doc.setDocId(filledData.getDocId());
-            doc.setFileUrl(filledData.getUniqueIdentifier());
+            doc.setFileUrl(storedFileName);
             doc.setDocName(filledData.getDocName());
             doc.setMimeTypeId(getMimeTypeId(filledData.getDocName(), filledData.getUniqueIdentifier()));
             doc.setCreatedBy(empTs.getCreatedBy());
@@ -385,7 +387,7 @@ public class TimesheetDocumentServiceNew {
             List<TimesheetDocumentDetailsNew> docs = timesheetDocumentDetailsNewRepository
                     .getDocsByBulkApproverDocId(bulkApproverDocId);
             if (docs == null || docs.isEmpty()) {
-                throw new IllegalArgumentException("No documents found for bulk approver ID: " + bulkApproverDocId);
+                throw new IllegalArgumentException("No documents found for approval.");
             }
 
             List<TimesheetDocumentDetailsNew> finalDocs = new ArrayList<>();
@@ -429,14 +431,50 @@ public class TimesheetDocumentServiceNew {
         return allDocs;
     }
 
+    /**
+     * Fetches document data for a timesheet for update form.
+     * Pick one from TimesheetDocumentDetailsNew (Filled) and one from FinalDocumentNew (Approved).
+     * Storage: Filled metadata in TimesheetDocumentDetailsNew; Approved metadata in FinalDocumentNew,
+     * linked via bulkApprovedDocId on the filled row.
+     */
     public List<TimesheetDocumentDataDTO> getTimesheetDocumentDataByTimesheetId(Long timesheetId) {
-        List<TimesheetDocumentDetailsNew> allDocs = timesheetDocumentDetailsNewRepository.findByTimesheetIdAndActive(timesheetId);
-
-        if(allDocs == null || allDocs.isEmpty()){
+        if (timesheetId == null) {
             return new ArrayList<>();
         }
+        List<TimesheetDocumentDetailsNew> allDocs = timesheetDocumentDetailsNewRepository.findAllByTimesheetId(timesheetId);
+        if (allDocs == null || allDocs.isEmpty()) {
+            return new ArrayList<>();
+        }
+        List<TimesheetDocumentDetailsNew> activeDocs = allDocs.stream()
+                .filter(doc -> doc.getActive() == null || Boolean.TRUE.equals(doc.getActive()))
+                .collect(Collectors.toList());
 
-        return allDocs.stream().map(doc -> new TimesheetDocumentDataDTO(doc)).collect(Collectors.toList());
+        List<TimesheetDocumentDataDTO> result = new ArrayList<>();
+        List<Long> approvedDocIds = activeDocs.stream()
+                .map(TimesheetDocumentDetailsNew::getBulkApprovedDocId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+
+        Map<Long, FinalDocumentNew> finalDocMap = new HashMap<>();
+        if (!approvedDocIds.isEmpty()) {
+            List<FinalDocumentNew> finalDocs = finalDocumentNewRepository.findAllById(approvedDocIds);
+            if (finalDocs != null) {
+                finalDocs.forEach(fd -> finalDocMap.put(fd.getFinalDocId(), fd));
+            }
+        }
+
+        for (TimesheetDocumentDetailsNew doc : activeDocs) {
+            result.add(new TimesheetDocumentDataDTO(doc));
+            Long bulkApprovedDocId = doc.getBulkApprovedDocId();
+            if (bulkApprovedDocId != null) {
+                FinalDocumentNew approvedDoc = finalDocMap.get(bulkApprovedDocId);
+                if (approvedDoc != null) {
+                    result.add(TimesheetDocumentDataDTO.fromFinalDocument(approvedDoc));
+                }
+            }
+        }
+        return result;
     }
 
     @Transactional
@@ -531,7 +569,7 @@ public class TimesheetDocumentServiceNew {
             return uniqueFileName;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("Failed to upload file", e);
+            throw new RuntimeException("Failed to upload document. Please try again.", e);
         }
     }
 
@@ -562,7 +600,7 @@ public class TimesheetDocumentServiceNew {
     /**
      * Views a file from the storage path
      * 
-     * @param fileName The name of the file to view
+     * @param fileName The name or path of the file to view (relative to storagePath, or absolute)
      * @throws IllegalArgumentException if file name is invalid
      * @throws RuntimeException         if file not found
      */
@@ -575,23 +613,36 @@ public class TimesheetDocumentServiceNew {
             throw new IllegalArgumentException("Invalid file name");
         }
 
-        String ext = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
-        if (!ALLOWED_EXTENSIONS.contains(ext)) {
-            throw new IllegalArgumentException("File type not allowed");
+        int lastDot = fileName.lastIndexOf('.');
+        if (lastDot >= 0 && lastDot < fileName.length() - 1) {
+            String ext = fileName.substring(lastDot + 1).toLowerCase();
+            if (!ALLOWED_EXTENSIONS.contains(ext)) {
+                throw new IllegalArgumentException("File type not allowed: " + ext);
+            }
         }
 
         try {
-            Path filePath = Paths.get(storagePath).resolve(fileName).normalize();
+            Path basePath = Paths.get(storagePath).normalize();
+            Path filePath = basePath.resolve(fileName).normalize();
 
             if (!Files.exists(filePath) || !Files.isReadable(filePath)) {
-                throw new FileNotFoundException("File not found");
+                Path fileNameOnly = Paths.get(fileName).getFileName();
+                if (fileNameOnly != null && !fileName.equals(fileNameOnly.toString())) {
+                    Path altPath = basePath.resolve(fileNameOnly.toString()).normalize();
+                    if (Files.exists(altPath) && Files.isReadable(altPath)) {
+                        return new UrlResource(altPath.toUri());
+                    }
+                }
+                throw new FileNotFoundException("File not found: " + filePath);
             }
 
             return new UrlResource(filePath.toUri());
 
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException("File not found: " + fileName, e);
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("Failed to load file", e);
+            throw new RuntimeException("Failed to load file: " + fileName, e);
         }
     }
 

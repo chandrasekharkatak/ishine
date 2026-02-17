@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +42,7 @@ import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.service.ActivityTimesheetService;
 import com.apmosys.employeeportal.service.ProjectTimesheetService;
+import com.apmosys.employeeportal.service.TimesheetDocumentServiceNew;
 import com.apmosys.employeeportal.service.TimesheetService;
 import com.apmosys.employeeportal.service.helper.TimesheetAggregationHelper;
 import com.apmosys.employeeportal.utility.DateConversionUtil;
@@ -99,7 +101,7 @@ public class TimesheetValidationHelper {
     public void validateNullAndUnexpectedData(EmployeeTimesheetDTO dto) {
 
 		if (dto == null) {
-			throw new IllegalArgumentException("EmployeeTimesheetDTO cannot be null");
+			throw new IllegalArgumentException("Timesheet data is required.");
 		}
 
 		if (dto.getEmpId() == null) {
@@ -239,7 +241,7 @@ public class TimesheetValidationHelper {
                                      EmployeeTimesheetDTO empDTO) {
 
             if (project.getProjectId() == null) {
-            throw new IllegalArgumentException("Project ID is required");
+            throw new IllegalArgumentException("Please select a project.");
         }
 
 
@@ -262,8 +264,7 @@ public class TimesheetValidationHelper {
            if (isWorkingDay &&
                 (project.getActivities() == null || project.getActivities().isEmpty())) {
                 throw new IllegalArgumentException(
-                        "At least one activity is required for project "
-                                + project.getProjectId());
+                        "At least one activity is required for the selected project.");
             }
 
             if (project.getActivities() != null) {
@@ -281,7 +282,7 @@ public class TimesheetValidationHelper {
                                       ProjectTimesheetDTO project) {
 
             if (activity.getActivityId() == null) {
-                throw new IllegalArgumentException("Activity ID is required");
+                throw new IllegalArgumentException("Please select an activity.");
             }
 
             if (activity.getDurationMinutes() == null ||
@@ -305,8 +306,9 @@ public class TimesheetValidationHelper {
                 return;
             }
 
-            // 1️⃣ Skip validation for non-working day types
-            if (isNonWorkingDay(empDTO.getDayType())) {
+            // 1️⃣ Skip validation for non-working day types (use dayTypeId when available)
+            if (isNonWorkingDayByDayTypeId(empDTO.getDayTypeId()) 
+                    || isNonWorkingDay(empDTO.getDayType())) {
                 return;
             }
 
@@ -348,131 +350,176 @@ public class TimesheetValidationHelper {
 
                     if (!documentPresentForProject) {
                         throw new IllegalArgumentException(
-                                "Client-side ID is mandatory. Please upload required documents for projectId: "
-                                        + projectId);
+                                "Please upload required documents for the selected project.");
                     }
                 }
         }
     }
         /**
+         * Validate uploaded document files (create flow).
+         * Delegates to validateUploadedDocuments(empDTO, documents, null).
+         */
+		public void validateUploadedDocuments(EmployeeTimesheetDTO empDTO, List<MultipartFile> documents) {
+			validateUploadedDocuments(empDTO, documents, null);
+		}
+
+        /**
          * Validate uploaded document files based on new contract rules.
          *
-         * Rules:
-         * - Applies only if client-side document is mandatory for project
-         * - At least ONE filled document is mandatory per project
-         * - Approved document is optional
+         * Create (timesheetId == null): All client-side projects must have documents in request.
+         * Update (timesheetId != null): Validate only when:
+         *   a) User re-uploaded file for an existing project (documents contains file for that project)
+         *   b) User added new project with client-side (project not in existing timesheet)
+         *   c) Existing project with client-side has no docs in DB (edge case - require upload)
+         *
+         * Rules when validation applies:
+         * - At least ONE filled document per project
          * - Max 2 documents per project (filled + approved)
          * - File name format: projectId_filled_xxx OR projectId_approved_xxx
          */
-		public void validateUploadedDocuments(EmployeeTimesheetDTO empDTO, List<MultipartFile> documents) {
+		public void validateUploadedDocuments(EmployeeTimesheetDTO empDTO, List<MultipartFile> documents, Long timesheetId) {
 
 			if (empDTO == null) {
 				return;
 			}
 
-       // 1️ Skip validation for non-working days
-			if (isNonWorkingDay(empDTO.getDayType())) {
+			if (isNonWorkingDayByDayTypeId(empDTO.getDayTypeId()) || isNonWorkingDay(empDTO.getDayType())) {
 				return;
 			}
 
-			boolean isAnyProjectDocMandatory = false;
+			boolean isCreate = (timesheetId == null);
 
-			for (LocationSessionDTO location : empDTO.getLocationSessions()) {
-				if (location.getProjects() == null)
-					continue;
-
+			// Collect target projects with client-side mandatory (from request)
+			Set<Integer> targetProjectIdsWithClientSide = new java.util.HashSet<>();
+			Map<Integer, ProjectTimesheetDTO> projectMap = new HashMap<>();
+			List<LocationSessionDTO> locationSessions = empDTO.getLocationSessions() != null
+					? empDTO.getLocationSessions() : Collections.<LocationSessionDTO>emptyList();
+			for (LocationSessionDTO location : locationSessions) {
+				if (location.getProjects() == null) continue;
 				for (ProjectTimesheetDTO project : location.getProjects()) {
-					if (project.getIsShadowForSelf())
-						continue;
-
-					Boolean isClientIdMandatory = projectRepository.getClientSideIdMandatory(project.getProjectId());
-
-					if (Boolean.TRUE.equals(isClientIdMandatory)) {
-						isAnyProjectDocMandatory = true;
-						break;
+					if (project.getIsShadowForSelf()) continue;
+					if (Boolean.TRUE.equals(projectRepository.getClientSideIdMandatory(project.getProjectId()))) {
+						targetProjectIdsWithClientSide.add(project.getProjectId());
+						projectMap.put(project.getProjectId(), project);
 					}
 				}
-				if (isAnyProjectDocMandatory)
-					break;
 			}
 
-			if (isAnyProjectDocMandatory && (documents == null || documents.isEmpty())) {
+			if (targetProjectIdsWithClientSide.isEmpty()) {
+				return;
+			}
 
+			// UPDATE FLOW: Determine which projects need validation
+			Set<Integer> existingProjectIds = new java.util.HashSet<>();
+			Set<Integer> projectsWithExistingDocs = new java.util.HashSet<>();
+			Set<Integer> projectIdsWithNewFiles = new java.util.HashSet<>();
+
+			if (!isCreate) {
+				existingProjectIds = projectTimesheetService.findByTimesheetId(timesheetId).stream()
+						.map(ProjectTimesheetDTO::getProjectId)
+						.filter(Objects::nonNull)
+						.collect(Collectors.toSet());
+				List<TimesheetDocumentDataDTO> existingDocs = timesheetDocumentServiceNew.getTimesheetDocumentDataByTimesheetId(timesheetId);
+				if (existingDocs != null) {
+					projectsWithExistingDocs = existingDocs.stream()
+							.filter(d -> "Filled".equalsIgnoreCase(d.getDocType()))
+							.map(TimesheetDocumentDataDTO::getProjectId)
+							.filter(Objects::nonNull)
+							.collect(Collectors.toSet());
+				}
+				if (documents != null && !documents.isEmpty()) {
+					try {
+						Map<Integer, List<MultipartFile>> filesByProject = groupFilesByProjectId(documents);
+						projectIdsWithNewFiles.addAll(filesByProject.keySet());
+					} catch (IllegalArgumentException e) {
+						throw e; // rethrow filename format errors
+					}
+				}
+			}
+
+			// Projects that MUST have documents in this request
+			Set<Integer> projectsRequiringDocsInRequest = new java.util.HashSet<>();
+			if (isCreate) {
+				projectsRequiringDocsInRequest.addAll(targetProjectIdsWithClientSide);
+			} else {
+				Set<Integer> newProjectIds = new java.util.HashSet<>(targetProjectIdsWithClientSide);
+				newProjectIds.removeAll(existingProjectIds);
+				projectsRequiringDocsInRequest.addAll(newProjectIds);
+				for (Integer pid : targetProjectIdsWithClientSide) {
+					if (!projectsWithExistingDocs.contains(pid) && !newProjectIds.contains(pid)) {
+						projectsRequiringDocsInRequest.add(pid); // existing project with no docs - require upload
+					}
+				}
+			}
+
+			// Check: if any project requires docs but documents list is empty
+			if (!projectsRequiringDocsInRequest.isEmpty() && (documents == null || documents.isEmpty())) {
+				Integer first = projectsRequiringDocsInRequest.iterator().next();
+				String name = projectMap.getOrDefault(first, new ProjectTimesheetDTO()).getProjectName();
 				throw new IllegalArgumentException(
-						"Client-side document is mandatory for client project. Please upload required documents.");
+						"Please upload required documents for the selected project.");
 			}
 
 			if (documents == null || documents.isEmpty()) {
-				return; // no project requires documents
+				return;
 			}
 
-         // Group uploaded files by projectId (parsed from filename)
-			Map<Integer, List<MultipartFile>> filesByProject = groupFilesByProjectId(documents);
+			Map<Integer, List<MultipartFile>> filesByProject;
+			try {
+				filesByProject = groupFilesByProjectId(documents);
+			} catch (IllegalArgumentException e) {
+				throw e;
+			}
 
-           // Validate project-wise
-			for (LocationSessionDTO location : empDTO.getLocationSessions()) {
-				if (location.getProjects() == null)
-					continue;
+			// Projects to validate (have files in request)
+			Set<Integer> projectsToValidate = new java.util.HashSet<>(filesByProject.keySet());
+			if (!isCreate) {
+				projectsToValidate.retainAll(targetProjectIdsWithClientSide);
+			}
 
-				for (ProjectTimesheetDTO project : location.getProjects()) {
+			for (Integer projectId : projectsToValidate) {
+				ProjectTimesheetDTO project = projectMap.get(projectId);
+				String projectName = project != null ? project.getProjectName() : "Project " + projectId;
+				List<MultipartFile> projectFiles = filesByProject.getOrDefault(projectId, List.of());
 
-					Integer projectId = project.getProjectId();
-					String projectName = project.getProjectName();
+				if (projectFiles.isEmpty()) {
+					throw new IllegalArgumentException("Please upload the filled document for the selected project.");
+				}
+				if (projectFiles.size() > 2) {
+					throw new IllegalArgumentException(
+							"Maximum 2 documents (filled and approved) are allowed per project.");
+				}
+				if (project != null && project.getClientApprovalStatus() != null && project.getClientApprovalStatus() == 2
+						&& projectFiles.size() != 2) {
+					throw new IllegalArgumentException(
+							"Both filled and approved documents are required for the selected project.");
+				}
 
-					if (project.getIsShadowForSelf())
-						continue;
-
-					Boolean isClientIdMandatory = projectRepository.getClientSideIdMandatory(projectId);
-
-					if (isClientIdMandatory==null || Boolean.FALSE.equals(isClientIdMandatory)) {
-						continue;
+				boolean filledPresent = false;
+				for (MultipartFile file : projectFiles) {
+					String fileName = file.getOriginalFilename();
+					if (fileName == null) {
+						throw new IllegalArgumentException("Invalid document for the selected project.");
 					}
-
-					List<MultipartFile> projectFiles = filesByProject.getOrDefault(projectId, List.of());
-
-                 // Enforce min rule
-					if (projectFiles.isEmpty()) {
-						throw new IllegalArgumentException("Filled document is mandatory for project: " + projectName);
+					String lowerName = fileName.toLowerCase();
+					if (lowerName.contains("_filled")) {
+						filledPresent = true;
+					} else if (!lowerName.contains("_approved")) {
+						throw new IllegalArgumentException("Invalid document file name. Use format: projectId_filled_filename or projectId_approved_filename.");
 					}
+				}
+				if (!filledPresent) {
+					throw new IllegalArgumentException("Please upload the filled document for the selected project.");
+				}
+			}
 
-                    // Enforce max rule
-					if (projectFiles.size() > 2) {
-						throw new IllegalArgumentException(
-								"Maximum 2 documents (filled + approved) allowed for project: " + projectName);
-					}
-
-                    // Approved attendance requires both docs
-					if (project.getClientApprovalStatus() == 2 && projectFiles.size() != 2) {
-						throw new IllegalArgumentException(
-								"Filled and approved documents are required for client approved project: "
-										+ projectName);
-					}
-
-					boolean filledPresent = false;
-
-                   // Validate file naming
-					for (MultipartFile file : projectFiles) {
-
-						String fileName = file.getOriginalFilename();
-						if (fileName == null) {
-							throw new IllegalArgumentException("Invalid document name for project: " + projectName);
-						}
-
-						String lowerName = fileName.toLowerCase();
-
-						if (lowerName.contains("_filled")) {
-							filledPresent = true;
-						} else if (lowerName.contains("_approved")) {
-                       // approved document → optional
-						} else {
-							throw new IllegalArgumentException("Invalid document name format for project: "
-									+ projectName + ". Expected: projectName_filled_xxx or projectName_approved_xxx");
-						}
-					}
-
-                       // Filled doc is mandatory
-					if (!filledPresent) {
-						throw new IllegalArgumentException("Filled document is mandatory for project: " + projectName);
+			// UPDATE: New projects with client-side must have documents
+			if (!isCreate && !projectsRequiringDocsInRequest.isEmpty()) {
+				for (Integer pid : projectsRequiringDocsInRequest) {
+					if (!projectsToValidate.contains(pid)) {
+						String name = projectMap.getOrDefault(pid, new ProjectTimesheetDTO()).getProjectName();
+                    throw new IllegalArgumentException(
+                                "Please upload required documents for the new project.");
 					}
 				}
 			}
@@ -495,8 +542,7 @@ public class TimesheetValidationHelper {
                 String fileName = file.getOriginalFilename();
                 if (fileName == null || !fileName.contains("_")) {
                     throw new IllegalArgumentException(
-                            "Invalid document name: " + fileName +
-                            ". Expected format: projectId_filled_xxx");
+                            "Invalid document file name. Use the correct format.");
                 }
 
                 String[] parts = fileName.split("_", 2);
@@ -506,7 +552,7 @@ public class TimesheetValidationHelper {
                     projectId = Integer.parseInt(parts[0]);
                 } catch (NumberFormatException ex) {
                     throw new IllegalArgumentException(
-                            "Invalid projectId in document name: " + fileName);
+                            "Invalid document file name. The file name does not match the required format.");
                 }
 
                 map.computeIfAbsent(projectId, k -> new ArrayList<>()).add(file);
@@ -584,9 +630,7 @@ public class TimesheetValidationHelper {
 
             if (totalLocationMinutes > totalWorkMinutes) {
                 throw new IllegalArgumentException(
-                        "Sum of location session duration (" + totalLocationMinutes +
-                        " mins) cannot exceed total working duration (" +
-                        totalWorkMinutes + " mins)");
+                        "Total location time exceeds office working hours. Please adjust your entries.");
             }
 
             //Sum of all activity durations
@@ -610,9 +654,7 @@ public class TimesheetValidationHelper {
 
             if (totalActivityMinutes > totalWorkMinutes) {
                 throw new IllegalArgumentException(
-                        "Total activity duration (" + totalActivityMinutes +
-                        " mins) cannot exceed total working duration (" +
-                        totalWorkMinutes + " mins)");
+                        "Total activity hours exceed office working hours. Please adjust your entries.");
             }
         }
         
@@ -625,7 +667,7 @@ public class TimesheetValidationHelper {
             DayTypeMasterNew dayType = dayTypeMasterNewRepository
                     .findById(dto.getDayTypeId())
                     .orElseThrow(() ->
-                            new IllegalArgumentException("Invalid dayTypeId"));
+                            new IllegalArgumentException("Invalid day type selected. Please try again."));
 
             // Java authoritative meaning
             DayTypeCode dayTypeCode =
@@ -638,11 +680,7 @@ public class TimesheetValidationHelper {
             // Safety check — mismatch should NEVER happen silently
             if (dbSaysWorking != dayTypeCode.isWorkingDay()) {
                 throw new IllegalStateException(
-                        "DayType mismatch detected. dayType='"
-                                + dayType.getDayType()
-                                + "', DB=" + dbSaysWorking
-                                + ", Java=" + dayTypeCode.isWorkingDay()
-                );
+                        "Invalid day type configuration. Please refresh and try again.");
             }
 
             return dayTypeCode.isWorkingDay();
@@ -662,7 +700,7 @@ public class TimesheetValidationHelper {
                 int second = parts.length > 2 ? Integer.parseInt(parts[2]) : 0;
                 return LocalDateTime.of(date, java.time.LocalTime.of(hour, minute, second));
             } catch (Exception e) {
-                throw new IllegalArgumentException("Invalid location time format: " + timeStr);
+                throw new IllegalArgumentException("Invalid time format for location. Please use HH:mm or HH:mm:ss.");
             }
         }
         
@@ -675,6 +713,21 @@ public class TimesheetValidationHelper {
                 || "Week Off".equalsIgnoreCase(dayType)
                 || "Leave".equalsIgnoreCase(dayType)
                 || "Client Holiday".equalsIgnoreCase(dayType);
+        }
+
+        /**
+         * Check if day type is non-working by dayTypeId (consistent with day_type_master_new).
+         */
+        private boolean isNonWorkingDayByDayTypeId(Integer dayTypeId) {
+            if (dayTypeId == null) {
+                return false;
+            }
+            try {
+                DayTypeCode code = resolveDayType(dayTypeId);
+                return !code.isWorkingDay();
+            } catch (Exception e) {
+                return false;
+            }
         }   
     /**
      * Validate date is not within lock period.
@@ -748,7 +801,7 @@ public class TimesheetValidationHelper {
      */
     public void validateProjectAssignment(Long empId, Long projectId) {
         if (empId == null || projectId == null) {
-            throw new IllegalArgumentException("Employee ID and Project ID are required");
+            throw new IllegalArgumentException("Employee and project selection are required.");
         }
 
         // Check if employee is assigned to any team in the project
@@ -757,7 +810,7 @@ public class TimesheetValidationHelper {
                 .anyMatch(etm -> etm.getEmpId().equals(empId));
 
         if (!isAssigned) {
-            throw new IllegalArgumentException("Employee " + empId + " is not assigned to project " + projectId);
+            throw new IllegalArgumentException("You are not assigned to the selected project. Please contact your manager.");
         }
     }
 
@@ -832,7 +885,7 @@ public class TimesheetValidationHelper {
             LocalDate date) {
 
         if (empDTO == null || empId == null || date == null) {
-            throw new IllegalArgumentException("Employee, Date and DTO are required");
+            throw new IllegalArgumentException("Employee and date are required.");
         }
 
         Optional<EmployeeTimesheetsNew> existingOpt =
@@ -853,9 +906,7 @@ public class TimesheetValidationHelper {
 
         //Everything else is blocked
         throw new IllegalArgumentException(
-                "Timesheet already exists for employee "
-                        + empId + " on date " + date
-                        + " (DayType=" + dayType + ")"
+                "A timesheet already exists for the selected employee on this date."
         );
     }
 
@@ -876,7 +927,7 @@ public class TimesheetValidationHelper {
                 code.isWorkingDay())) {
 
             throw new IllegalStateException(
-                    "DayType mismatch for " + dayType.getDayType());
+                    "Invalid day type. Please try again.");
         }
 
         return code;
@@ -894,6 +945,9 @@ public class TimesheetValidationHelper {
     @Autowired
     ActivityTimesheetService activityTimesheetService;
     
+    @Autowired
+    TimesheetDocumentServiceNew timesheetDocumentServiceNew;
+    
     
     
     public EmployeeTimesheetsNew validateTimesheetUpdatable(
@@ -905,7 +959,7 @@ public class TimesheetValidationHelper {
                 .findById(timesheetId)
                 .orElseThrow(() ->
                         new IllegalStateException(
-                                "Timesheet with ID " + timesheetId + " does not exist"));
+                                "Timesheet not found. It may have been deleted."));
 
         // Status validation
         Integer currentStatus = empTS.getStatus();
@@ -914,8 +968,7 @@ public class TimesheetValidationHelper {
                 && !currentStatus.equals(TimesheetAggregationHelper.STATUS_REJECTED)) {
 
             throw new IllegalStateException(
-                    "Timesheet can only be updated when status is PENDING or REJECTED. Current status: "
-                            + currentStatus);
+                    "This timesheet can only be updated when it is Pending or Rejected.");
         }
 
         // Duplicate timesheet date check
@@ -927,10 +980,7 @@ public class TimesheetValidationHelper {
                             !existing.getTimesheetId().equals(timesheetId))
                     .ifPresent(existing -> {
                         throw new IllegalStateException(
-                                "A timesheet already exists for employee "
-                                        + newEmpDTO.getEmpId()
-                                        + " on date "
-                                        + newEmpDTO.getDate());
+                                "A timesheet already exists for the selected employee on this date.");
                     });
         }
 
@@ -943,7 +993,7 @@ public class TimesheetValidationHelper {
 
         if (existingEntity == null || incomingDTO == null) {
             throw new IllegalArgumentException(
-                    "Existing timesheet and incoming data are required"
+                    "Unable to process update. Please try again."
             );
         }
 
@@ -952,15 +1002,13 @@ public class TimesheetValidationHelper {
 
         if (existingDate == null || incomingDate == null) {
             throw new IllegalArgumentException(
-                    "Timesheet date cannot be null"
+                    "Please select a date."
             );
         }
 
         if (!existingDate.equals(incomingDate)) {
             throw new IllegalArgumentException(
-                    "Timesheet date cannot be changed. "
-                    + "Existing date: " + existingDate
-                    + ", Requested date: " + incomingDate
+                    "The timesheet date cannot be changed."
             );
         }
     }
@@ -970,7 +1018,7 @@ public class TimesheetValidationHelper {
 
         if (existingEntity == null || incomingDTO == null) {
             throw new IllegalArgumentException(
-                    "Existing timesheet and incoming data are required"
+                    "Unable to process update. Please try again."
             );
         }
 
@@ -979,7 +1027,7 @@ public class TimesheetValidationHelper {
 
         if (existingEmpId == null || incomingEmpId == null) {
             throw new IllegalArgumentException(
-                    "Employee ID cannot be null"
+                    "Please select an employee."
             );
         }
 
@@ -995,10 +1043,7 @@ public class TimesheetValidationHelper {
 
         if (hasApprovedProject) {
             throw new IllegalArgumentException(
-                    "Employee cannot be changed because one or more projects "
-                  + "in the timesheet are already approved. "
-                  + "Existing EmpId=" + existingEmpId
-                  + ", Requested EmpId=" + incomingEmpId
+                    "Employee cannot be changed because the timesheet has approved projects."
             );
         }
     }
@@ -1054,6 +1099,9 @@ public class TimesheetValidationHelper {
     public void  validateProjectDeletionRules( Long timesheetId,
             List<LocationSessionDTO> incomingLocations) {
 
+    	  if (incomingLocations == null) {
+    	      incomingLocations = List.of();
+    	  }
     	  Set<Long> incomingLocationMappingIds =
     	      incomingLocations.stream()
     	        .map(LocationSessionDTO::getLocationMappingId)
@@ -1114,9 +1162,7 @@ public class TimesheetValidationHelper {
             LocalTime nextStart = extractTime(next.getLocationInTime());
 
 			if (currentEnd.isAfter(nextStart)) {
-				throw new IllegalStateException("Location time overlap detected between " + current.getLocationInTime()
-						+ " - " + current.getLocationOutTime() + " and " + next.getLocationInTime() + " - "
-						+ next.getLocationOutTime());
+				throw new IllegalStateException("Location times overlap. Please ensure each location has distinct time slots.");
 			}
 		}
 	}
@@ -1134,8 +1180,15 @@ public class TimesheetValidationHelper {
 				continue;
 			}
 
-			LocalTime start = LocalTime.parse(location.getLocationInTime());
-			LocalTime end = LocalTime.parse(location.getLocationOutTime());
+			LocalTime start;
+			LocalTime end;
+			try {
+				start = extractTime(location.getLocationInTime());
+				end = extractTime(location.getLocationOutTime());
+			} catch (Exception e) {
+				throw new IllegalArgumentException(
+						"Invalid time format. Please use HH:mm or HH:mm:ss.");
+			}
 
 			long locationMinutes = Duration.between(start, end).toMinutes();
 
@@ -1143,7 +1196,7 @@ public class TimesheetValidationHelper {
 				throw new IllegalArgumentException("Invalid location time range");
 			}
 
-			double totalActivityMinutes = 0;
+			long totalActivityMinutes = 0;
 
 			for (ProjectTimesheetDTO project : location.getProjects()) {
 
@@ -1154,14 +1207,13 @@ public class TimesheetValidationHelper {
 				for (ActivityTimesheetDTO activity : project.getActivities()) {
 
 					if (activity.getDurationMinutes() != null) {
-						totalActivityMinutes += activity.getDurationMinutes() * 60;
+						totalActivityMinutes += activity.getDurationMinutes();
 					}
 				}
 			}
 
 			if (totalActivityMinutes > locationMinutes) {
-				throw new IllegalStateException("Total activity duration (" + totalActivityMinutes / 60
-						+ " hrs) exceeds location duration (" + locationMinutes / 60 + " hrs)");
+				throw new IllegalStateException("Total activity hours exceed the location time. Please reduce activity hours or increase location time.");
 			}
 		}
 	}
@@ -1262,9 +1314,7 @@ public class TimesheetValidationHelper {
 	    // Add/remove activity
 	    if (!existingMap.keySet().equals(incomingMap.keySet())) {
 	        throw new IllegalStateException(
-	                "Activities cannot be changed for approved project. "
-	                + "ProjectId=" + projectId
-	                + ", LocationMappingId=" + locationMappingId);
+	                "Activities cannot be changed for an approved project.");
 	    }
 
 	    // Duration change
@@ -1275,10 +1325,7 @@ public class TimesheetValidationHelper {
 	                incomingMap.get(activityId).getDurationMinutes())) {
 
 	            throw new IllegalStateException(
-	                    "Activity duration cannot be modified for approved project. "
-	                    + "ProjectId=" + projectId
-	                    + ", ActivityId=" + activityId
-	                    + ", LocationMappingId=" + locationMappingId);
+	                    "Activity duration cannot be modified for an approved project.");
 	        }
 	    }
 	}
@@ -1337,7 +1384,7 @@ public class TimesheetValidationHelper {
 		
 		if (existingTS == null || newDTO == null) {
 	        throw new IllegalArgumentException(
-	                "Existing timesheet and incoming data are required");
+	                "Unable to process. Please try again.");
 	    }
 
 	    Integer oldDayTypeId = existingTS.getDayTypeId();
@@ -1364,7 +1411,7 @@ public class TimesheetValidationHelper {
 
 	    if (existingTS == null || newDTO == null) {
 	        throw new IllegalArgumentException(
-	                "Existing timesheet and incoming data are required");
+	                "Unable to process. Please try again.");
 	    }
 
 	    Integer oldDayTypeId = existingTS.getDayTypeId();
@@ -1405,7 +1452,7 @@ public class TimesheetValidationHelper {
 
 	    if (existingTS == null || newDTO == null) {
 	        throw new IllegalArgumentException(
-	                "Existing timesheet and incoming data are required");
+	                "Unable to process. Please try again.");
 	    }
 
 	    Integer oldDayTypeId = existingTS.getDayTypeId();
@@ -1430,7 +1477,7 @@ public class TimesheetValidationHelper {
 
 	    if (existingTS == null || newDTO == null) {
 	        throw new IllegalArgumentException(
-	                "Existing timesheet and incoming data are required");
+	                "Unable to process. Please try again.");
 	    }
 
 	    Integer oldDayTypeId = existingTS.getDayTypeId();

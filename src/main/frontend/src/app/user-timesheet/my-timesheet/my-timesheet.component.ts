@@ -792,7 +792,7 @@ get tooltipCta(): string {
 
   }
 
-  checkTimesheetForInActiveActivities(timesheetObj: any, template: TemplateRef<any>) {
+  checkTimesheetForInActiveActivitiesOLD(timesheetObj: any, template: TemplateRef<any>) {
     console.log("The timesheet object is", timesheetObj);
     
     // Handle hierarchical EmployeeTimesheetDTO structure
@@ -814,6 +814,17 @@ get tooltipCta(): string {
       this.previousApprovedDocument = timesheetObj.documentData?.find((d: any) => d.docType === 'Approved')?.docId;
     }
   }
+
+    openEditTimesheetForm(timesheetObj: any) {
+     console.log("The timesheet object is", timesheetObj);
+     this.showUpdateTimesheetForm(timesheetObj);
+     // Note: Document handling may need adjustment for hierarchical structure
+     this.previousFilledDocument = timesheetObj.documentData?.find((d: any) => d.docType === 'Filled')?.docId;
+     this.previousApprovedDocument = timesheetObj.documentData?.find((d: any) => d.docType === 'Approved')?.docId;
+    }
+
+
+
 
   updateInactiveActivitiesTimesheet() {
     this.showUpdateTimesheetForm(this.selectedTimesheet);
@@ -880,93 +891,43 @@ get tooltipCta(): string {
 
 
 
+  /**
+   * Open the update timesheet form (new implementation).
+   * Minimal flow: set only what app-timesheet-form needs. Form loads all data via loadTimesheetForUpdate(timesheetId).
+   * No parent API calls here (getAllAvailableTimesheetByEmpId, getProjectList, getClientDetails, etc.) – form is self-contained.
+   */
   showUpdateTimesheetForm(timesheetObj: Timesheet) {
-    this.isTimesheetForm = true;
-    this.isUpdation = true;
+    const timesheetId = timesheetObj.timesheetId ?? null;
+    if (timesheetId == null) {
+      console.error('showUpdateTimesheetForm: timesheetId is required');
+      return;
+    }
+
+    // Reset so form is destroyed, then show with correct inputs in next tick
+    this.isTimesheetForm = false;
+    this.isUpdation = false;
+    this.selectedTimesheetId = null;
+    this.selectedDate = undefined;
 
     this.isTimesheetTable = false;
     this.isCreation = false;
     this.isTimesheetUpdate = true;
-    // console.log("OLD", timesheetObj);
 
+    this.selectedTimesheetId = timesheetId;
+    this.selectedDate = this.parseTimesheetRowDate(timesheetObj.date);
 
-    this.timesheetObj = Object.assign({}, timesheetObj);
+    setTimeout(() => {
+      this.isTimesheetForm = true;
+      this.isUpdation = true;
+    }, 0);
+  }
 
-    this.timesheetObj.updatedTimesheetActivities = [];
-    this.timesheetObj.date = (this.timesheetObj.date) ? moment(timesheetObj.date, "DD-MM-YYYY").toDate() : '';
-    this.fromDate = new Date(this.timesheetObj.date);
-    this.timesheetObj.officeInTime = (this.timesheetObj.officeInTime) ? moment(timesheetObj.officeInTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
-    this.timesheetObj.officeOutTime = (this.timesheetObj.officeOutTime) ? moment(timesheetObj.officeOutTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
-    this.timesheetObj.createdOn = (this.timesheetObj.createdOn) ? moment(timesheetObj.createdOn, "DD-MM-YYYY HH:mm:ss").toDate() : '';
-    this.timesheetObj.dayType = (this.timesheetObj.dayType == "Holiday") ? "Week Off" : this.timesheetObj.dayType;
-    this.timesheetObj.clientInTime = (this.timesheetObj.clientInTime) ? moment(timesheetObj.clientInTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
-    this.timesheetObj.clientOutTime = (this.timesheetObj.clientOutTime) ? moment(timesheetObj.clientOutTime, "DD-MM-YYYY HH:mm:ss").toDate() : '';
-    console.log("timesheetObj.bulkApprovedDocId",timesheetObj.bulkApprovedDocId);
-    this.timesheetObj.bulkApprovedDocId = timesheetObj.bulkApprovedDocId;
-    console.log("NEW", this.timesheetObj);
-
-    if (this.timesheetObj.officeInTime) {
-      this.maxOutTimeDate = new Date(moment(this.timesheetObj.officeInTime).add(1, 'd').toString());
-    }
-
-    if (this.timesheetObj.dayType == "Public Holiday" || this.timesheetObj.dayType == "Week Off" ||this.timesheetObj.dayType == "Comp Off" || this.timesheetObj.dayType == "Leave") {
-      this.__tempDescription = this.timesheetObj.description;
-    }
-
-    let userObj: User = new User();
-    if (this.isSelfTimesheets) {
-      this.timesheetObj.timesheetAppliedFor = "self";
-      this.timesheetObj.empId = this.currentUser.empId;
-      // this.timesheetObj.shadowFor = "Self";
-
-      userObj.empId = this.currentUser.empId;
-      userObj.isTimesheetLockCheckEnable = this.currentUser.isTimesheetLockCheckEnable;
-    } else if (this.isTeamTimesheets) {
-      this.timesheetObj.timesheetAppliedFor = "team";
-
-      let teamMember = this.teamMemberList.find(employee => employee.empId == timesheetObj.empId)
-      //console.log("Team Member : ", teamMember);
-      userObj.empId = teamMember.empId;
-      userObj.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
-      this.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
-    }
-
-    this.fromDate = new Date(this.timesheetObj.date);
-    this.toDate = this.timesheetObj.officeOutTime ? new Date(moment(this.timesheetObj.officeOutTime, "DD-MM-YYYY HH:mm:ss").format("YYYY-MM-DD")) : '';
-    if (this.timesheetObj.officeInTime) {
-      this.setTimeDropdowns(this.timesheetObj.officeInTime, 'In');
-    }
-    if (this.timesheetObj.officeOutTime) {
-      this.setTimeDropdowns(this.timesheetObj.officeOutTime, 'Out');
-    }
-    const status = (this.timesheetObj.clientApprovalStatus || '').toLowerCase();
-    this.clientSideIdNotMandatory = !(status === 'pending' || status === 'approved');
-
-    if (!this.clientSideIdNotMandatory) {
-      const officeIn = this.timesheetObj.officeInTime;
-      const officeOut = this.timesheetObj.officeOutTime;
-      const clientIn = this.timesheetObj.clientInTime;
-      const clientOut = this.timesheetObj.clientOutTime;
-
-      if (officeIn && officeOut && clientIn && clientOut) {
-
-        const isInSame = moment(officeIn).isSame(moment(clientIn), 'minute');
-        const isOutSame = moment(officeOut).isSame(moment(clientOut), 'minute');
-
-        this.syncTimes = isInSame && isOutSame;
-
-      }
-      if (this.timesheetObj.clientInTime) {
-        this.setTimeDropdowns(this.timesheetObj.clientInTime, 'ClientIn');
-      }
-      if (this.timesheetObj.clientOutTime) {
-        this.setTimeDropdowns(this.timesheetObj.clientOutTime, 'ClientOut');
-      }
-    }
-    this.getProjectListForDateAndEmpId();
-    this.getClientDetailsByProjectIdAndEmpId();
-    this.getAllAvailableTimesheetByEmpId(this.timesheetObj.empId);
-    this.onProjectSelect(timesheetObj.projectId);
+  /** Parse date from table row (DD-MM-YYYY string or Date) to Date for selectedDate. */
+  private parseTimesheetRowDate(date: any): Date | undefined {
+    if (date == null) return undefined;
+    if (date instanceof Date) return date;
+    const parsed = moment(date, ['DD-MM-YYYY', 'YYYY-MM-DD'], true);
+    return parsed.isValid() ? parsed.toDate() : undefined;
   }
 
   /**
@@ -974,6 +935,8 @@ get tooltipCta(): string {
    * @param timesheetId - ID of the updated timesheet
    */
   onTimesheetUpdated(timesheetId: number): void {
+    // Show success message to user
+    this.openAlertMod(this.alertTemplate, 'Timesheet updated successfully.');
     // Refresh the timesheet list after update
     this.getAllMyTimesheetsByEmpId();
     // Reset form state

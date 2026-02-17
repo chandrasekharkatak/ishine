@@ -33,7 +33,6 @@ import { RewardsServiceService } from '../services/rewards-service.service';
 import { TimesheetService } from '../services/timesheet.service';
 import { UtilityService } from '../services/utility.service';
 import { ValidationService } from '../services/validation.service';
-import { TimesheetCreateSelfComponent } from '../timesheet-create-self/timesheet-create-self.component';
 import { ProjectService } from '../services/project.service';
 import { EncryptionService } from '../services/EncryptionService';
 import {TimesheetNewService} from '../services/timesheet-new.service';
@@ -65,10 +64,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
   lines: any = [];
   probationNotifications: any[] = [];
   isLoadingNotifications = false;
-
-  @ViewChild(TimesheetCreateSelfComponent)
-  childComp!: TimesheetCreateSelfComponent;
-
 
     @ViewChild("previewTemplate")
     previewModal : TemplateRef<any>;

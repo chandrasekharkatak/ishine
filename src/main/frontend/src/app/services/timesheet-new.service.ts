@@ -232,13 +232,16 @@ export class TimesheetNewService {
   }
 
   /**
-   * Get document by ID for preview
-   * @param docId - Document ID to retrieve
+   * Get document by ID for preview (returns blob)
+   * @param docId - Document ID
+   * @param approvedDocType - true for Approved (FinalDocumentNew), false/omit for Filled (TimesheetDocumentDetailsNew)
    */
-  getDocumentById(docId: number): Observable<any> {
-    return this.http.get(
-      `${this.baseUrl}` + `api/v2/timesheet/document/getById/${docId}`
-    );
+  getDocumentById(docId: number, approvedDocType?: boolean): Observable<Blob> {
+    let url = `${this.baseUrl}api/v2/timesheet/document/getById/${docId}`;
+    if (approvedDocType != null) {
+      url += `?approvedDocType=${approvedDocType}`;
+    }
+    return this.http.get(url, { responseType: 'blob' });
   }
   getMyReporteesTimesheetRequestsCount(payload: any) {
     return this.http.post(
