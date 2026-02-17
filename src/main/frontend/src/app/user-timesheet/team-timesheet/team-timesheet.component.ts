@@ -4,7 +4,7 @@ import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import * as moment from 'moment';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
-import { first } from 'rxjs/operators';
+import { catchError, first, map } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { BodyComponent } from 'src/app/body/body.component';
 import { EmployeeClientSideIdMapping } from 'src/app/models/employeeClientSideIdMapping';
@@ -27,6 +27,7 @@ import { ProjectBasedBulkUploadPayload } from './types';
 import { HttpClient } from '@angular/common/http';
 import { finalize } from 'rxjs/operators';
 import {LoaderService} from 'src/app/services/loader.service';import { MatSortModule } from '@angular/material/sort';
+import { Observable, of } from 'rxjs';
 
 
 
@@ -250,6 +251,7 @@ alertModal: TemplateRef<any>;
     // } else {
     //   this.minMonth = null;
     // }
+
   }
   preventBackButton() {
     history.pushState(null, null, location.href);
@@ -1979,7 +1981,7 @@ openDocumentPopup(
   // ✅ OPEN DIFFERENT MODALS
   if (toggleMode) {
 
-    // 🟢 VIEW ALL → FIRST MODAL
+    
     this.modalRef = this.modalService.open(
       this.documentViewerModal,
       { modalDialogClass: 'modal-xl', backdrop: 'static' }
@@ -1989,7 +1991,6 @@ openDocumentPopup(
 
   } else {
 
-    // 🟡 Pending / Approved → SECOND MODAL
     this.modalRef = this.modalService.open(
       this.documentViewerModalToggle,
       { modalDialogClass: 'modal-xl', backdrop: 'static' }
@@ -2078,34 +2079,36 @@ loadActiveDocument(): void {
   //    );
   //  }
 
+
 // getDocument(type: 'Pending' | 'Approved'): void {
 
 //   const doc = this.selectedTimesheet?.documentData?.find(d =>
 //     type === 'Pending' ? !d.finalFlag : d.finalFlag
 //   );
-
 //   if (!doc?.docId) {
 //     this.activePreviewFile = null;
+//     this.safePdfUrl = null;
 //     return;
 //   }
 
-//   const approvedDocType = type === 'Approved';
+  
+//   if (type === 'Pending') {
+//     console.log("Pending DocId:", doc.docId);
+//   } else if (type === 'Approved') {
+    
+//     console.log("Approved bulkApprovedDocId:", doc.bulkApprovedDocId);
+//   }
+
 
 //   this.timesheetNewService
 //     .getDocumentById(doc.docId, doc?.finalFlag)
 //     .subscribe({
-//       next: (res: any) => {
+//       next: (blob: Blob) => {
 
-//         const fileData = res?.serviceResponse?.fileData;
+//         const fileURL = URL.createObjectURL(blob);
 
-//         if (!fileData) {
-//           this.activePreviewFile = null;
-//           return;
-//         }
-
-//         this.safePdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-//           `data:application/pdf;base64,${fileData}`
-//         );
+//         this.safePdfUrl =
+//           this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
 
 //       },
 //       error: err => {
@@ -2113,22 +2116,41 @@ loadActiveDocument(): void {
 //         this.activePreviewFile = null;
 //       }
 //     });
-
 // }
+
+
 getDocument(type: 'Pending' | 'Approved'): void {
 
-  const doc = this.selectedTimesheet?.documentData?.find(d =>
-    type === 'Pending' ? !d.finalFlag : d.finalFlag
-  );
+  const doc = this.selectedTimesheet?.documentData[0];
 
+ 
   if (!doc?.docId) {
     this.activePreviewFile = null;
-     this.safePdfUrl = null;
+    this.safePdfUrl = null;
     return;
   }
 
+
+  let docType: boolean = doc.finalFlag;
+
+
+  let docIdToSend: number = doc.docId;
+
+  if (type === 'Approved' && doc.bulkApprovedDocId) {
+    docIdToSend = doc.bulkApprovedDocId;
+  }
+
+
+  if (type === 'Pending') {
+    console.log("Pending DocId:", doc.docId);
+  } else {
+    docType = true;
+    console.log("Approved bulkApprovedDocId:", doc.bulkApprovedDocId);
+  }
+
+
   this.timesheetNewService
-    .getDocumentById(doc.docId, doc?.finalFlag)
+    .getDocumentById(docIdToSend, docType)
     .subscribe({
       next: (blob: Blob) => {
 
@@ -2144,7 +2166,6 @@ getDocument(type: 'Pending' | 'Approved'): void {
       }
     });
 }
-
 
 
 
@@ -2905,3 +2926,4 @@ function compare(a: number | string, b: number | string, isAsc: boolean) {
 
 
 }
+

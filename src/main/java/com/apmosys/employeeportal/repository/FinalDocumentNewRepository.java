@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.transaction.Transactional;
 
@@ -16,5 +17,8 @@ public interface FinalDocumentNewRepository extends JpaRepository<FinalDocumentN
     @Query("SELECT fd FROM FinalDocumentNew fd WHERE fd.projectId = :projectId")
     List<FinalDocumentNew> findByProjectId(@Param("projectId") Long projectId);
     
+//    @Query("SELECT fd FROM FinalDocumentNew fd WHERE fd.finalDocId = :finalDocId")
+//    Optional<FinalDocumentNew> findByFinalDocId(@Param("finalDocId") Long finalDocId);
+
 	
  }
