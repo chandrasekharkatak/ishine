@@ -724,10 +724,10 @@ public class ResourceManagementController {
 		 resourceManagementService.oneTimeUpdatePoClientId("");
 	}
 
-//	@PostMapping("/bulkApproveTimesheetRequest1")
-//	public ServiceResponse bulkApproveTimesheetRequest1( @RequestBody BulkTimesheetRequestDTO bulkTimesheetRequestDTO){
-//		return resourceManagementService.bulkOrSingleApproveOrReject(bulkTimesheetRequestDTO);
-//	}
+	@PostMapping("/bulkApproveTimesheetRequest1")
+	public ServiceResponse bulkApproveTimesheetRequest1( @RequestBody BulkTimesheetRequestDTO bulkTimesheetRequestDTO){
+		return resourceManagementService.bulkOrSingleApproveOrReject(bulkTimesheetRequestDTO);
+	}
 //
 ////	@Scheduled(cron = "0 0 0 * * ?")
 //	@GetMapping("/oneTimeUpdatePoClientId")
