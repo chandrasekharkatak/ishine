@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -78,6 +80,7 @@ TimesheetServiceNew timesheetServiceNew;
 	@Value("${check.minus.days.for.bulk.upload}")
 	private Boolean checkMinusDaysForBulkUpload;
 	
+
 	
 	@JobRoleAccess(featureIds = {7,15,16})
 	@RequestMapping(value = "/getAllProjectsByEmpId", method = RequestMethod.POST)
@@ -93,6 +96,35 @@ TimesheetServiceNew timesheetServiceNew;
 		ServiceResponse response = timesheetService.getAllActivitiesByProjectIdandEmpId(timesheetDTO);
 		return response;
 	}
+
+
+//	@RequestMapping(value = "v2/timesheet/document/getById/{docId}", method = RequestMethod.GET)
+//	public ResponseEntity<Resource> getDocumentById(
+//	        @PathVariable Long docId,
+//	        @RequestParam(required = false) Boolean approvedDocType) {
+//
+//		 Resource resource = timesheetServiceNew.getDocumentDataByDocId(docId, approvedDocType);
+//
+//		    return ResponseEntity.ok()
+//		            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+//		            .body(resource);
+//	}
+		    @GetMapping("v2/timesheet/document/getById/{docId}")
+		    public ResponseEntity<Resource> getDocumentById(
+		            @PathVariable Long docId,
+		            @RequestParam(required = false) Boolean approvedDocType) {
+
+		        Resource resource = timesheetServiceNew.getDocumentDataByDocId(docId, approvedDocType);
+
+		        return ResponseEntity.ok()
+		                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=document.pdf")
+		                .header(HttpHeaders.CONTENT_TYPE, "application/pdf")
+		                .body(resource);
+		    }
+
+
+
+
 	
 	@JobRoleAccess(featureIds = {15})
 	@RequestMapping(value = "/addTimesheetWithClient", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -735,7 +767,7 @@ TimesheetServiceNew timesheetServiceNew;
 	@PostMapping("/getTimesheetStatusCountByManager")
 		public ServiceResponse getTimesheetStatusCountByManager(
 		        @RequestBody TimesheetStatusCountDTO timesheetCount) {
-				ServiceResponse response = timesheetServiceNew.getTimesheetStatusCountsByManager(timesheetCount.getManagerId());
+				ServiceResponse response = timesheetServiceNew.getTimesheetStatusCountsByManager(timesheetCount.getManagerId(),timesheetCount.getClientFilter());
 		    return response;
 	}
 		

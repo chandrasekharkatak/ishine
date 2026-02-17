@@ -1571,7 +1571,7 @@ public class TimesheetServiceNew {
 			serviceResponse =  timesheetApprovalServiceNew.bulkRejectTimesheets(aprOrRejData);
 		return serviceResponse;
 	}
-		public ServiceResponse getTimesheetStatusCountsByManager(Long managerId) {
+		public ServiceResponse getTimesheetStatusCountsByManager(Long managerId,  Boolean clientFilter) {
 	    ServiceResponse response = new ServiceResponse();
 	    try {
 
@@ -1581,16 +1581,13 @@ public class TimesheetServiceNew {
 	            return response;
 	        }
 	        List<Object[]> counts =
-	                employeeTimesheetsNewRepository.getTimesheetStatusCountsByCurrentManagerId(managerId,null);
+	                employeeTimesheetsNewRepository.getTimesheetStatusCountsByCurrentManagerId(managerId,clientFilter);
 	        
-	        Map<String, Long> result = new HashMap<>();
-
-	        for (Object[] row : counts) {
-	            String status = row[0] != null ? row[0].toString() : null;
-	            Long count = row[1] == null ? 0L : ((Number) row[1]).longValue();
-	           
-	            result.put(status, count);
-	            
+	        Long total = 0L;
+	        
+	        if (!counts.isEmpty()) {
+	            Object[] row = counts.get(0);
+	            total = row[1] == null ? 0L : ((Number) row[1]).longValue();
 	        }
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

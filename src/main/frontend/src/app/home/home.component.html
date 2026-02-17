@@ -275,7 +275,7 @@
 
                     <p class="request-title"> <span>Timesheet</span><app-info-tooltip class="me-2" iconBgColor="#750D37" [size]="19"   [content]="rmTimesheetbulletContent">
                         </app-info-tooltip></p>
-                    <h4 class="req-card" (click)="openReqMod(TimesheetReq);getMyReporteesTimesheetRequests()">
+                    <h4 class="req-card" (click)="redirectToViewTeamTimesheet();getTimesheetStatusCountsByEmpId()">
                         <span class="badge badge-secondary">{{pendingCount}}</span>
                     </h4>
                 </div>

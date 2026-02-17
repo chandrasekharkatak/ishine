@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.JobRoleAccess;
+import com.apmosys.employeeportal.dto.BulkTimesheetRequestDTO;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
 import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
 import com.apmosys.employeeportal.dto.FilterMatrix;
@@ -722,6 +723,19 @@ public class ResourceManagementController {
 	public void cronToUpdateClient() {
 		 resourceManagementService.oneTimeUpdatePoClientId("");
 	}
+
+//	@PostMapping("/bulkApproveTimesheetRequest1")
+//	public ServiceResponse bulkApproveTimesheetRequest1( @RequestBody BulkTimesheetRequestDTO bulkTimesheetRequestDTO){
+//		return resourceManagementService.bulkOrSingleApproveOrReject(bulkTimesheetRequestDTO);
+//	}
+//
+////	@Scheduled(cron = "0 0 0 * * ?")
+//	@GetMapping("/oneTimeUpdatePoClientId")
+//	public ServiceResponse oneTimeUpdatePoClientId(@RequestParam(value = "mode", required = false) String mode) {
+//		return resourceManagementService.oneTimeUpdatePoClientId(mode);
+//
+//	}
+
 	 
 	
 }
