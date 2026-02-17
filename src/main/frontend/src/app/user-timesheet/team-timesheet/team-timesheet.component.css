@@ -3437,6 +3437,162 @@ tr[app-column-filter-bar] .clear-filter:hover {
   color: #ef4444;
 }
 
+/* ================================
+   PREMIUM MODAL CONTAINER
+================================ */
+::ng-deep .modal-content {
+  border: none;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow:
+    0 40px 120px rgba(15, 23, 42, 0.18),
+    0 8px 32px rgba(15, 23, 42, 0.12);
+  animation: premiumModalEntry 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ================================
+   HEADER
+================================ */
+::ng-deep .modal-header {
+  border-bottom: 1px solid #eef2f7;
+  padding: 20px 26px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Title */
+::ng-deep .modal-title {
+  font-size: 19px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: 0.2px;
+}
+
+/* Close Button */
+::ng-deep .modal-header .close {
+  font-size: 20px;
+  font-weight: 300;
+  color: #64748b;
+  opacity: 1;
+  transition: all 0.25s ease;
+}
+
+::ng-deep .modal-header .close:hover {
+  color: #0f172a;
+  transform: rotate(90deg) scale(1.08);
+}
+
+/* ================================
+   BODY
+================================ */
+::ng-deep .modal-body {
+  padding: 26px;
+  font-size: 15.5px;
+  color: #334155;
+  line-height: 1.7;
+  background: #ffffff;
+}
+
+/* Message Formatting */
+::ng-deep .modal-body div {
+  white-space: pre-line;
+}
+
+/* ================================
+   FOOTER
+================================ */
+::ng-deep .modal-footer {
+  border-top: 1px solid #f1f5f9;
+  padding: 18px 26px;
+  background: #fafbfd;
+}
+
+/* ================================
+   PREMIUM BUTTON
+================================ */
+::ng-deep .modal-footer .btn-primary {
+  border: none;
+  border-radius: 12px;
+  padding: 10px 28px;
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  background: #2563eb;
+  color: white;
+
+  box-shadow:
+    0 10px 25px rgba(37, 99, 235, 0.25);
+
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+::ng-deep .modal-footer .btn-primary:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow:
+    0 16px 40px rgba(37, 99, 235, 0.35);
+}
+
+::ng-deep .modal-footer .btn-primary:active {
+  transform: translateY(0px);
+  box-shadow:
+    0 6px 18px rgba(37, 99, 235, 0.25);
+}
+
+/* ================================
+   BACKDROP (Premium Blur)
+================================ */
+::ng-deep .modal-backdrop.show {
+  opacity: 0.55;
+  backdrop-filter: blur(6px);
+}
+
+/* ================================
+   ENTRY ANIMATION
+================================ */
+@keyframes premiumModalEntry {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ================================
+   SUCCESS / ERROR ACCENTS
+================================ */
+
+::ng-deep .success-modal .modal-title {
+  color: #059669;
+}
+
+::ng-deep .error-modal .modal-title {
+  color: #dc2626;
+}
+
+/* ================================
+   MOBILE OPTIMIZATION
+================================ */
+@media (max-width: 768px) {
+  ::ng-deep .modal-content {
+    border-radius: 14px;
+  }
+
+  ::ng-deep .modal-body {
+    padding: 22px;
+  }
+
+  ::ng-deep .modal-header,  
+  ::ng-deep .modal-footer {
+    padding: 16px 20px;
+  }
+}
 
 
 
