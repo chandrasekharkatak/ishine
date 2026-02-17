@@ -11280,7 +11280,19 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			        "AND (\n" +
 			        "    :projectCount IS NULL\n" +
 			        "    OR COUNT(DISTINCT ptsn.id.projectId) = :projectCount\n" +
-			        ")")
+			        ")",
+			        
+countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
+        "FROM EmployeeTimesheetsNew etn " +
+        "INNER JOIN Employee e ON etn.empId = e.empId " +
+        "INNER JOIN ProjectTimesheetStatusNew ptsn ON ptsn.id.timesheetId = etn.timesheetId " +
+        "LEFT JOIN Client c ON c.clientId = ptsn.clientSideId " +
+        "LEFT JOIN ClientLocation cl ON cl.clientLocationId = ptsn.clientLocationId " +
+        "LEFT JOIN DayTypeMasterNew dtmn ON dtmn.dayTypeId = etn.dayTypeId " +
+        "LEFT JOIN Employee es ON ptsn.shadowEmpId = es.empId " +
+        "WHERE " +
+        "    (CASE WHEN e.approvalsTo = 'Reporting Manager' THEN e.reportingManagerId ELSE e.managerId END) = :managerId " +
+        "AND etn.status = :status")
 			Page<GetReporteesTimesheetReqFlatDTO> getMyReporteesTimesheetRequests(
 			        @Param("managerId") Long managerId,
 			        @Param("clientFilter") Boolean clientFilter,
