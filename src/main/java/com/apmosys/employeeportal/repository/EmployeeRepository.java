@@ -285,12 +285,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	public List<Employee> findByManagerId(Long empId);
 	
-	@Query(nativeQuery = true , value="SELECT e.employeement_id,e.name AS employname,d.name AS departmentName,"
-			+ "e.is_apprenticeship,e.is_consultant, e.is_apmosys_product"
-			+ "FROM employee e "
-			+ "JOIN job_role jr ON e.job_role_id = jr.job_role_id "
-			+ "JOIN department d ON jr.dept_id = d.dept_id "
-			+ "where e.manager_id= :managerId AND e.employmentstatus!='InActive'")
+	@Query(nativeQuery = true , value= " SELECT e.employeement_id,e.name AS employname,d.name AS departmentName,\n"
+			+ "			e.is_apprenticeship,e.is_consultant, e.is_apmosys_product\n"
+			+ "			FROM employee e \n"
+			+ "			JOIN job_role jr ON e.job_role_id = jr.job_role_id \n"
+			+ "			JOIN department d ON jr.dept_id = d.dept_id \n"
+			+ "			where e.manager_id= :managerId AND e.employmentstatus!='InActive'")
 	public List<Object[]> findReporteesOfManager(Long managerId);
 	
 	public Employee findByEmpId(Long empid);	
