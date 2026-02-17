@@ -18,4 +18,7 @@ public class GetTeamAndTimesheetDetailsDTO {
     private LocalDate startDate;
     private LocalDate endDate;
     private String projectName;
+    private String departmentName;
+    private String listType;
+	private Long empId;
 }

@@ -29,6 +29,7 @@ import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
 import com.apmosys.employeeportal.dto.LiftAndShiftTeamsDTO;
 import com.apmosys.employeeportal.dto.NonComplianceProjects;
 import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
+import com.apmosys.employeeportal.dto.PoClientAddressUpdateDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
@@ -511,6 +512,13 @@ public class ResourceManagementController {
 	 }
 	 
 	 
+	 @PostMapping("/updateAddressInPos")
+	 public ServiceResponse updateClientAddressIdOfPos(HttpServletRequest httpRequest,@RequestBody  PoClientAddressUpdateDTO dto) {
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		 return poSyncOrchestratorService.updateClientAddressIdOfPos(dto);
+	 }
+	 
+	 
 	 
 
 
@@ -586,11 +594,6 @@ public class ResourceManagementController {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 	 	return resourceManagementService.getDocumentDataByDocId(docId);
 	 }
-	
-	@PostMapping(value = "/handleTeamsAsPerLinkedPo")
-	public ServiceResponse handleTeamsAsPerLinkedPo(@RequestBody HandleTeamsAsPerLinkedPoPayloadDTO payloadDTO) {
-		return resourceManagementService.handleTeamsAsPerLinkedPo(payloadDTO);
-	}
 	
 //	@PostMapping(value = "/sendTimesheetDetailsToShankh")
 //	public ServiceResponse sendTimesheetDetailsToShankh(@RequestBody TimeSheetRequestDto payloadDTO) {

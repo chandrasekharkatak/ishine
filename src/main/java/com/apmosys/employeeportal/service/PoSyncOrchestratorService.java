@@ -15,6 +15,7 @@ import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
 import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.POResourceRequirementDTO;
+import com.apmosys.employeeportal.dto.PoClientAddressUpdateDTO;
 import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
@@ -29,6 +30,7 @@ import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.ProjectPoDetailsRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
+import com.apmosys.employeeportal.utility.EmailTrigger;
 import com.apmosys.employeeportal.utility.ExceptionLogContext;
 import com.apmosys.employeeportal.utility.ExceptionUtils;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
@@ -446,10 +448,7 @@ public class PoSyncOrchestratorService {
 	                httpRequest
 	        );
 
-	       
-//	        linkPoValidator.validate(dto);
-
-	        // 2. Primary project must exist
+	        // Primary project must exist
 	        Project primaryProject =
 	                projectRepository.findByPoProjectId(
 	                        dto.getPrimaryProject().getProjectId());
@@ -461,7 +460,6 @@ public class PoSyncOrchestratorService {
 	            throw new RuntimeException("Primary project does not exist");
 	        }
 
-	        // case 1 - when just order of project is changed
 	        if (dto.getDeletedProjects() == null || dto.getDeletedProjects().isEmpty()) {
 
 	            poDetailsService.updatePoOrderOnly(
@@ -472,10 +470,9 @@ public class PoSyncOrchestratorService {
 	            ishineStatus = dto.getPrimaryProject().getIshineProjectStatus();
 	        }
 
-	        // case 2 - when actually project is linked
 	        else {
 
-	            poDetailsService.validateLinkingProjectsIntegrity(
+	            poDetailsService.validatePoLinkIntegrity(
 	                    primaryProject,
 	                    dto
 	            );
@@ -496,26 +493,20 @@ public class PoSyncOrchestratorService {
 	            projectService.deactivateDeletedProjects(
 	                    dto.getDeletedProjects()
 	            );
-	            
-	            
-
-	            projectService.updateProjectDatesIfChanged(
-	                    primaryProject,
-	                    dto.getPrimaryProject()
-	            );
 
 	            poDetailsService.updatePoOrderOnly(
 	                    primaryProject.getProjectId(),
 	                    dto.getPrimaryProject()
 	            );
-	            
-	            
-	            
-	            //get ishine status
+
+		        projectService.recalculateProjectDates(primaryProject.getProjectId());
 	            
 	           ishineStatus = resourceManagementService.ishineStatusReturn( dto.getDeletedProjects(),primaryProject);
-	            
-//	            teamsService.liftAndShiftTeams(dto);
+	           
+	           EmailTrigger.sendAfterCommit(() ->
+	           		poDetailsService.sendPoLinkSuccessMail(primaryProject, dto)
+		       );
+
 	        }
 
 	        finalHttpStatusCode = HttpStatus.OK.value();
@@ -525,6 +516,7 @@ public class PoSyncOrchestratorService {
 	        return response;
 
 	    } catch (Exception e) {
+	    	TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
 	        ExceptionLogContext.add(e);
 	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	        response.setServiceError(e.getMessage());
@@ -590,6 +582,61 @@ public class PoSyncOrchestratorService {
 	        return response;
 	        
 	       
+	    }catch (Exception e) {
+	    	finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+	        ExceptionLogContext.add(e);
+	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	        response.setServiceError(e.getMessage());
+	        return response;
+	    } finally {
+	        if (initialLog != null) {
+	            apiLogUtility.endLog(
+	                    initialLog.getId(),
+	                    sourceSystem,
+	                    finalHttpStatusCode,
+	                    ExceptionLogContext.get(),
+	                    httpRequest
+	            );
+	        }
+	    }
+	}
+	
+	@Transactional(rollbackFor = Exception.class)
+	public ServiceResponse updateClientAddressIdOfPos(PoClientAddressUpdateDTO dto) {
+		ApiLog initialLog = null;
+	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+	    String sourceSystem = httpRequest.getRequestURI().toString();
+	    ServiceResponse response = new ServiceResponse();
+	    try {
+	    	
+	    	 initialLog = apiLogUtility.startLog(
+		                poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+		                "updateClientAddrIdOfPoInIshine",
+		                "PoPortal",
+		                null,
+		                httpRequest
+		        );
+	    	 
+	    	 
+	    	 validationService.validatePoClientAddressUpdatePayload(dto);
+	    	 
+	    	 validationService.validateEmployeeExists(
+	                 dto.getUpdatedByEmpId(),
+	                 dto.getUpdatedByEmpName()
+	         );
+	    	 
+	    	 poDetailsService.validateAllPosAreActive(dto.getPoIds());
+	    	 
+	    	 
+	    	 poDetailsService.updateClientAddressForPos(dto);
+	    	
+
+	         finalHttpStatusCode = HttpStatus.OK.value();
+	         response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	         response.setServiceResponse("Client address updated successfully");
+
+	         return response;
+	    	
 	    }catch (Exception e) {
 	    	finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
 	        ExceptionLogContext.add(e);

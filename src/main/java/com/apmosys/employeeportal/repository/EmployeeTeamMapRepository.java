@@ -31,6 +31,14 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	@Transactional
 	void deleteAllByTeamId(Long teamId);
 	
+	@Query("SELECT DISTINCT t.projectId FROM EmployeeTeamMap etm " +
+		       "JOIN Team t ON etm.teamId = t.teamId " +
+		       "WHERE etm.empId = :empId " +
+		       "AND etm.active = 1 " + 
+		       "AND (:date >= etm.startDate OR etm.startDate IS NULL) " +
+		       "AND (:date <= etm.endDate OR etm.endDate IS NULL)")
+		List<Integer> findActiveProjectIdsByEmpIdAndDate(@Param("empId") Long empId, @Param("date") LocalDateTime date);
+	
 		@Query(nativeQuery = true)
 		List<Object[]> findEmployeeByTeamId(Long team_id);
 

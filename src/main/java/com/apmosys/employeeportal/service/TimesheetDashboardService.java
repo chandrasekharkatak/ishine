@@ -619,10 +619,10 @@ public class TimesheetDashboardService {
             Boolean flag = timesheetsRepository.checkProjectIsClientApplicable(projectId);
             
             if (flag == null || flag == false) {
-                empTimesheet = timesheetsRepository.getEmployeeTimesheetAsCalenderForAllEmp(
+                empTimesheet = timesheetsNewRepository.getEmployeeTimesheetAsCalenderForAllEmp(
                         empId, month, year, projectId);
             } else {
-                empTimesheet = timesheetsRepository.getEmployeeTimesheetAsCalender(
+                empTimesheet = timesheetsNewRepository.getEmployeeTimesheetAsCalender(
                         empId, month, year, projectId);
             }
             
@@ -630,7 +630,7 @@ public class TimesheetDashboardService {
 
             if (dtoList.isEmpty()) {
                 response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceResponse("Unable to fetch the timesheet Data for Employee !!!");
+                response.setServiceResponse("No timesheet Data available for Employee !!!");
                 apiLogInfo.setApiResponse("Failed to set the data in dto \n");
                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
             } else {

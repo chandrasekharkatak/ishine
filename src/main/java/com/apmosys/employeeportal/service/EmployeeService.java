@@ -8312,10 +8312,10 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 			List<TeamTimesheetDetailsResponse> teamTimesheetDetailsResponseList = employeeTeamMapRepository.getTeamAndTimeSheetDetails2(poId,projectName,startDateTime,endDateTime);
 
 			if(teamTimesheetDetailsResponseList == null || teamTimesheetDetailsResponseList.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		        response.setServiceResponse("No timesheet detail fetched for the employee of this project!");
 		        apiLogInfo.setApiResponse(apiLogInfo.getApiResponse() + " | No timesheet detail fetched for this employee in the given date range! Start Date:- " + poId );
-		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 		        return response;
 			}
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

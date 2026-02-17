@@ -76,6 +76,7 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			"/api/renewPoInIshineNew",
 			"/api/deletePoInIshineNew",
 			"/api/updateRmDetailsInPo",
+			"/api/updateAddressInPos",
 			"/employeeportal/api/poProjectTimesheetSync",
 			"/employeeportal/api/getEmployeeAndTimesheetDetails",
 			"/employeeportal/api/getProjectDetailsByEmpIdAndDateRange",
@@ -107,8 +108,9 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 				"/employeeportal/api/runTheHolidayCron",
 			    "/api/ishineToPoEmpDetails",
 			    "/employeeportal/api/ishineToPoEmpDetails",
-				"/api/getAllEmployeeInfo"
-
+				"/api/getAllEmployeeInfo",
+				"/employeeportal/api/oneTimeUpdatePoClientId",
+				"/api/oneTimeUpdatePoClientId"
 			);
 	
 //	private final List<String> SKYWALKING_PROXIED_PATHS = Arrays.asList(

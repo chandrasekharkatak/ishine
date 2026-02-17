@@ -9,12 +9,17 @@ import org.springframework.data.repository.query.Param;
 
 import com.apmosys.employeeportal.model.EmployeeTimesheetLocationMapping;
 
+import javax.transaction.Transactional;
+
 public interface EmployeeTimesheetLocationMappingRepository
         extends JpaRepository<EmployeeTimesheetLocationMapping, Long> {
 
     List<EmployeeTimesheetLocationMapping> findByTimesheetId(Long timesheetId);
-    
-    
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM EmployeeTimesheetLocationMapping l WHERE l.timesheetId = :timesheetId")
+    void deleteByTimesheetId(@Param("timesheetId") Long timesheetId);
     
     @Modifying
     @Query(

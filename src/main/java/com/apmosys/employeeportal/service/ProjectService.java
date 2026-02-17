@@ -4489,15 +4489,10 @@ public class ProjectService {
 
 	    for (ProjectPoMappingWithResourceDTO deletedDto : deletedProjects) {
 
-	        Project project =
-	                projectRepository.findByPoProjectId(
-	                        deletedDto.getProjectId()
-	                );
+	        Project project = projectRepository.findByPoProjectId( deletedDto.getProjectId());
 
 	        if (project == null) {
-	        	 throw new RuntimeException(
-		                    "Deleted project not found | poProjectId="
-		                            + project.getProjectId());
+	        	 throw new RuntimeException("Deleted project not found");
 	        }
 
 	        project.setActive("false");
@@ -4507,55 +4502,6 @@ public class ProjectService {
 	        projectRepository.save(project);
 	    }
 	}
-	
-	
-	public void updateProjectDatesIfChanged(
-	        Project project,
-	        ProjectPoMappingWithResourceDTO primaryProjectDto) {
-
-	    boolean changed = false;
-	    
-	    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-//	    if (!Objects.equals(
-//	                    project.getStartDate(),
-//	                    primaryProjectDto.getProjectStartDate())) {
-//
-//	        project.setStartDate(
-//	        		df.format(primaryProjectDto.getProjectStartDate()));
-//	        changed = true;
-//	    }
-//
-//	    if ( !Objects.equals(
-//	                    project.getEndDate(),
-//	                    primaryProjectDto.getProjectEndDate())) {
-//
-//	        project.setEndDate(
-//	                df.format(primaryProjectDto.getProjectEndDate()));
-//	        changed = true;
-//	    }
-
-	    if (!changed) {
-	        return;
-	    }
-
-	    
-	    PoDetailsForProjectPoMappingDTO poDto =
-	            primaryProjectDto.getPoDetailsList().get(0);
-
-	  
-	            validationService.validateEmployeeExists(
-	                    poDto.getUpdatedByEmpId(),
-	                    poDto.getUpdatedByEmpName()
-	            );
-
-	    LocalDateTime updatedOn =   convert(poDto.getUpdatedOn());
-	    
-	    project.setUpdatedBy(poDto.getUpdatedByEmpId());
-	    project.setUpdatedOn(updatedOn);
-
-	    projectRepository.save(project);
-	}
-
 
 	private LocalDateTime convert(Date date) {
 	    if (date == null) return null;
