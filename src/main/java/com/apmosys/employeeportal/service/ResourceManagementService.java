@@ -14761,6 +14761,7 @@ public void liftAndShiftTeamNew(IshineLinkProjectDto payloadDTO) {
 		        log.error("Client Sync Failed For ClientIds: {}", failedClientIds);
 		    }
 			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, exceptionDetailsForLog,
 						httpRequest);
 			}
 		}

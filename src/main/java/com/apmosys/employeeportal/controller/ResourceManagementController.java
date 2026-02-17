@@ -704,17 +704,17 @@ public class ResourceManagementController {
 		return resourceManagementService.getResourceRequirementCountByPoId(poId, projectId, projectType);
 	}
 	
-	@PostMapping("/bulkApproveTimesheetRequest1")
-	public ServiceResponse bulkApproveTimesheetRequest1( @RequestBody BulkTimesheetRequestDTO bulkTimesheetRequestDTO){
-		return resourceManagementService.bulkOrSingleApproveOrReject(bulkTimesheetRequestDTO);
-	}
-
-//	@Scheduled(cron = "0 0 0 * * ?")
-	@GetMapping("/oneTimeUpdatePoClientId")
-	public ServiceResponse oneTimeUpdatePoClientId(@RequestParam(value = "mode", required = false) String mode) {
-		return resourceManagementService.oneTimeUpdatePoClientId(mode);
-
-	}
+//	@PostMapping("/bulkApproveTimesheetRequest1")
+//	public ServiceResponse bulkApproveTimesheetRequest1( @RequestBody BulkTimesheetRequestDTO bulkTimesheetRequestDTO){
+//		return resourceManagementService.bulkOrSingleApproveOrReject(bulkTimesheetRequestDTO);
+//	}
+//
+////	@Scheduled(cron = "0 0 0 * * ?")
+//	@GetMapping("/oneTimeUpdatePoClientId")
+//	public ServiceResponse oneTimeUpdatePoClientId(@RequestParam(value = "mode", required = false) String mode) {
+//		return resourceManagementService.oneTimeUpdatePoClientId(mode);
+//
+//	}
 	 
 	
 }

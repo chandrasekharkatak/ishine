@@ -1718,7 +1718,7 @@ public class ProjectService {
 
 						Client clientobj = new Client();
 						clientobj.setClientName(poProjectSyncDTO.getClientName());
-						clientobj.setPoClientId(poProjectSyncDTO.getPoClientId());
+						clientobj.setPoClientId(poProjectSyncDTO.getPoClientId().longValue());
 
 						clientDbresponse = clientsRepository.save(clientobj);
 						if (clientDbresponse != null) {
