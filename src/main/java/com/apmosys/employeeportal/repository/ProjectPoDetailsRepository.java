@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import com.apmosys.employeeportal.dto.IshineToPoEmpDetailsSharingDTO;
 import com.apmosys.employeeportal.dto.IshineToPoEmployeeDTO;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
+import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
 import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
 import com.apmosys.employeeportal.model.ProjectPoDetails;
 
@@ -202,7 +203,11 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
     List<RmgResourceRequirementDto> getResourceRequirementDetailsByProjectId(Integer projectId, boolean currentActivePO);
 
     Optional<ProjectPoDetails> findByNextPOAndProjectIdAndActiveTrue(Long nextPo, Integer projectId);
+
+    List<ProjectPoDetails> findByPoProjectIdInAndActiveTrue(List<Long> poProjectIds);
         
-        
+       
+    @Query(value =" Select ppo from ProjectPoDetails ppo where ppo.poId IN :poIds and ppo.active = true ")
+    List<ProjectPoDetails> findByPoIdInAndActive(List<Long> poIds);
 
 }

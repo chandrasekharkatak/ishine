@@ -864,7 +864,11 @@
                                                     (click)="openClientSideIdPresent(clientSideIdPresent,project.projectId);">
                                                     <i class="fas fa-id-badge"></i> ClientID Status
                                                 </button>
-                                                <button mat-menu-item *ngIf="project.active === 'false'"
+                                                <!-- <button mat-menu-item *ngIf="project.active === 'false'"
+                                                    (click)="openRestoreInfoTemp(project.projectId);">
+                                                    <i class="fas fa-trash-arrow-up"></i> Restore
+                                                </button> -->
+                                                <button mat-menu-item *ngIf="project.projectStatus === 'Completed'"
                                                     (click)="openRestoreInfoTemp(project.projectId);">
                                                     <i class="fas fa-trash-arrow-up"></i> Restore
                                                 </button>

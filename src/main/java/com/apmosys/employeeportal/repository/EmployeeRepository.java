@@ -2639,12 +2639,12 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		        
 		        @Query(value = "SELECT DISTINCT p.project_name, \n"
 		    			+ " GROUP_CONCAT( DISTINCT ppd.po_no SEPARATOR ', ' ) AS po_no,\n"
-						+ " p.po_project_type, p.start_date, p.end_date,\n"
-		    			+ " GROUP_CONCAT( DISTINCT ppd.clientrm SEPARATOR ', ') AS clientrm, \n"
-						+ " GROUP_CONCAT( DISTINCT ppd.apmosysrm SEPARATOR ', ') AS apmosysrm, \n"
+						+ " p.po_project_type, ppd.po_start_date, ppd.po_end_date,\n"
+		    			+ " GROUP_CONCAT( DISTINCT ppd.client_rm SEPARATOR ', ') AS clientrm, \n"
+						+ " GROUP_CONCAT( DISTINCT ppd.apmosys_rm SEPARATOR ', ') AS apmosysrm, \n"
 						+ " c.client_name, p.client_location \n"
 		    			+ "FROM projects p \n"
-						+ "LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id"
+						+ "LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id \n"
 						+ "AND ( DATE(ppd.po_start_date) <= STR_TO_DATE(:toDate, '%Y-%m-%d') AND DATE(ppd.po_end_date) >= STR_TO_DATE(:fromDate, '%Y-%m-%d') ) \n"
 		    			+ "INNER JOIN teams t ON t.project_id = p.project_id \n"
 		    			+ "INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id \n"
@@ -2664,8 +2664,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 						+ "GROUP BY\n" + 
 						"    p.project_name,\n" + 
 						"    p.po_project_type,\n" +
-						"    p.start_date,\n" + 
-						"    p.end_date,\n" + 
+						"    ppd.po_start_date,\n" + 
+						"    ppd.po_end_date,\n" + 
 						"    c.client_name,\n" +
 						"    p.client_location", nativeQuery = true)
 		    	public List<Object[]> fetchInActivePOListOfProjectNew(
@@ -4023,8 +4023,8 @@ public List<Object[]> fetchInActivePOListOfProject(
 	+ "	GROUP_CONCAT(DISTINCT p.po_project_type ORDER BY p.project_id) AS po_project_type,\n"
 	+ "	GROUP_CONCAT(DISTINCT c.client_name ORDER BY p.project_id) AS client_name,\n"
 	+ "	GROUP_CONCAT(DISTINCT cl.client_location ORDER BY p.project_id) AS client_location, "
-	+ "	GROUP_CONCAT(DISTINCT p.start_date ORDER BY p.project_id) AS start_date, \n"
-	+ "	GROUP_CONCAT(DISTINCT p.end_date ORDER BY p.project_id) AS end_date  \n"
+	+ "	p.start_date AS start_date, \n"
+	+ "	p.end_date  AS end_date  \n"
 	+ "	FROM employee_team_mapping etm     \n"
 	+ "	INNER JOIN teams t ON t.team_id = etm.team_id \n"
 	+ "	INNER JOIN projects p ON p.project_id = t.project_id \n"
@@ -4035,7 +4035,7 @@ public List<Object[]> fetchInActivePOListOfProject(
 	+ "	LEFT JOIN clients c ON c.client_id = p.client_id\n"
 	+ "	LEFT JOIN client_locations cl ON cl.client_id = p.client_id\n"
 	+ "	WHERE etm.active != 0 AND t.is_active != 'N' AND p.active != 'false'  \n"
-	+ "	GROUP BY etm.emp_id \n"
+	+ "	GROUP BY etm.emp_id , p.start_date, p.end_date \n"
 	+ ") emp_proj_client ON emp_proj_client.emp_id = e.emp_id \n"
 	+ "LEFT JOIN (\n"
 	+ "	select distinct e.emp_id as emp_id, e.name as name, e.email as email\n"
@@ -4057,7 +4057,7 @@ public List<Object[]> fetchInActivePOListOfProject(
 	+ "			or \n"
 	+ "		(:leave_filter != true and eld.On_Maternity_Leave = 'No')\n"
 	+ "	)\n"
-	+ "AND (j.employee_role = 'SuperAdmin' OR d.dept_id IN (:deptIds))", nativeQuery = true)
+	+ "AND ( d.dept_id IN (:deptIds))", nativeQuery = true)
 	public List<Object[]> fetchInactivePOListOfEmployeeNew(
 			@Param("poProjectType") String poProjectType,
 			@Param("deptIds") List<Long> deptIds,

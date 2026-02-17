@@ -87,4 +87,5 @@ export class Project {
 	deptIds: any[] = [];
 	poDetailsList: any[] = [];
 	deptName:any;
+	projectStartDate:any
 }
