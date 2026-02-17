@@ -14889,10 +14889,9 @@ public class ResourceManagementService {
 			if (!failedClientIds.isEmpty()) {
 		        log.error("Client Sync Failed For ClientIds: {}", failedClientIds);
 		    }
-//			if (initialLog != null) {
-//				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, exceptionDetailsForLog,
-//						httpRequest);
-//			}
+			if (initialLog != null) {
+			apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode,failedClientIds + ExceptionLogContext.get(),	httpRequest);
+			}
 		}
 
 		return response;
