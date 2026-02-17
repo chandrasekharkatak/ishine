@@ -14680,7 +14680,8 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 			        @Param("appliedBy") String appliedBy,
 			        @Param("appliedOn") String appliedOn,
 			        @Param("status") int status,
-			        Pageable pageable			);	
+			        Pageable pageable
+			);	
 			
 			
 			
