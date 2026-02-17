@@ -9,6 +9,7 @@ import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -19,10 +20,15 @@ import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.Timesheet;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeTimesheetsNew, Long> {
 
 	// ========== NEW METHODS FOR HIERARCHICAL STRUCTURE ==========
+	@Modifying
+	@Transactional
+	@Query(value = "CALL sp_clean_timesheet_by_id(:timesheetId)", nativeQuery = true)
+	void cleanTimesheetById(@Param("timesheetId") Long timesheetId);
 
 	@Query(value = "SELECT et.emp_id FROM employee_timesheets_new et WHERE et.date = :date", nativeQuery = true)
 	List<Long> findEmpIdsByDate(@Param("date") LocalDate date);
