@@ -39,6 +39,7 @@ import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetLocationMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
+import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.service.ActivityTimesheetService;
 import com.apmosys.employeeportal.service.ProjectTimesheetService;
@@ -81,6 +82,8 @@ public class TimesheetValidationHelper {
     @Autowired
     private EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
     
+    @Autowired
+    private HolidayRepository holidayRepository;
     
     
     public void validateEmployeeAuthorization(EmployeeTimesheetDTO timesheetDTO) {
@@ -274,6 +277,46 @@ public class TimesheetValidationHelper {
                     validateActivity(activity, project);
                 }
             }
+        }
+
+        /**
+         * Ensure that for a given timesheet, the same project (projectId) does not have
+         * conflicting client approval statuses across different locations.
+         * Applies only for working-day timesheets and projects with clientSideId.
+         */
+        public void validateClientApprovalStatusConsistency(EmployeeTimesheetDTO empDTO) {
+
+        	if (empDTO == null || empDTO.getLocationSessions() == null || empDTO.getLocationSessions().isEmpty()) {
+        		return;
+        	}
+
+        	boolean isWorkingDay = isWorkingDay(empDTO);
+        	if (!isWorkingDay) {
+        		return;
+        	}
+
+        	Map<Integer, Integer> statusByProject = new HashMap<>();
+
+        	for (LocationSessionDTO location : empDTO.getLocationSessions()) {
+        		if (location.getProjects() == null) continue;
+
+        		for (ProjectTimesheetDTO project : location.getProjects()) {
+        			if (project.getProjectId() == null) continue;
+        			if (project.getClientSideId() == null || project.getClientSideId().trim().isEmpty()) continue;
+
+        			Integer status = project.getClientApprovalStatus();
+        			if (status == null) continue;
+
+        			Integer projId = project.getProjectId();
+        			Integer existing = statusByProject.get(projId);
+        			if (existing == null) {
+        				statusByProject.put(projId, status);
+        			} else if (!existing.equals(status)) {
+        				throw new IllegalArgumentException(
+        						"Client DSR Approval Status must be same for all locations of the same project.");
+        			}
+        		}
+        	}
         }
 
         /* =====================================================
@@ -1563,6 +1606,38 @@ public class TimesheetValidationHelper {
 	        );
 	    }
 
+	}
+	
+	/**
+	 * Validate that Working / Half-day Working is not used on dates configured as Holiday / Week Off.
+	 * Business rule: if date is a holiday/week-off in holiday table, only Non-working style day types are allowed.
+	 */
+	public void validateDayTypeAgainstHoliday(LocalDate timesheetDate, Integer dayTypeId) {
+		
+		if (timesheetDate == null || dayTypeId == null) {
+			return;
+		}
+		
+		DayTypeMasterNew dayType = dayTypeMasterNewRepository
+				.findById(dayTypeId)
+				.orElseThrow(() -> new IllegalArgumentException("Invalid dayTypeId"));
+		
+		DayTypeCode incomingDayType = DayTypeCode.fromDbValue(dayType.getDayType());
+		
+		// Only restrict for Working / Half-day Working types
+		if (incomingDayType != DayTypeCode.WORKING && incomingDayType != DayTypeCode.HALF_DAY_WORKING) {
+			return;
+		}
+		
+		// Check if this date is configured as a holiday/week-off for any location ('All' or specific)
+		// We pass null for location so repository returns all holidays (state = 'All' or any state),
+		// which is a safe guardrail to avoid working timesheets on configured holiday/week-off dates.
+		if (holidayRepository != null) {
+			if (!holidayRepository.findHolidaysWithinBuffer(timesheetDate, timesheetDate, null).isEmpty()) {
+				throw new IllegalArgumentException(
+						"Date is configured as Holiday/Week Off. Only Non-working timesheet is allowed on this date.");
+			}
+		}
 	}
 	
 	

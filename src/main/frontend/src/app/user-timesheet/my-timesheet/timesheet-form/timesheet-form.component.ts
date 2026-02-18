@@ -8,9 +8,11 @@ import { AppComponent } from 'src/app/app.component';
 import { Employee } from 'src/app/models/employee';
 import { Timesheet } from 'src/app/models/timesheet';
 import { User } from 'src/app/models/user';
+import { Holiday } from 'src/app/models/holiday';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { TeamViewService } from 'src/app/services/team-view.service';
 import { TimesheetService } from 'src/app/services/timesheet.service';
+import { HolidayService } from 'src/app/services/holiday.service';
 import { ProjectEntry } from 'src/app/models/projectEntry';
 import { ActivityNew } from 'src/app/models/activityNew';
 import { EmployeeClientSideIdMapping } from 'src/app/models/employeeClientSideIdMapping';
@@ -93,6 +95,16 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   minDateForPicker: string | null = null; // Minimum selectable date (dd-MM-yyyy format)
   maxDateForPicker: string | null = null; // Maximum selectable date (dd-MM-yyyy format)
   disabledDatesForPicker: string[] = []; // Dates to disable (dd-MM-yyyy format)
+  /** Base disabled dates independent of day type (already-filled timesheets, etc.) */
+  private disabledDatesBase: string[] = [];
+  /** Allowed dates for Non-working day type (holidays + week-offs within min/max window) */
+  private nonWorkingAllowedDates: string[] = [];
+  /** Cache the range for which nonWorkingAllowedDates was last loaded */
+  private nonWorkingRangeCache: { min: string | null; max: string | null } | null = null;
+  /** Track current holiday API request to prevent race conditions */
+  private holidayLoadRequestId: number = 0;
+  /** Last selected day type ID (used to revert invalid changes) */
+  private lastDayTypeId: number | null = null;
   allDayTypes: any[] = [];
   empClientSideObj: EmployeeClientSideIdMapping = new EmployeeClientSideIdMapping();
   apmosysInTime: any = null;
@@ -144,6 +156,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     private configService:TimesheetConfigService,
     private modalService: NgbModal,
     private authenticationService: AuthenticationService,
+    private holidayService: HolidayService,
     private sanitizer: DomSanitizer,
     private cdr: ChangeDetectorRef) { 
       // ✅ CRITICAL FIX: Properly unsubscribe on destroy
@@ -1025,6 +1038,36 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    * When switching to fillable: allow user to choose location type freely.
    */
   onDayTypeChange(event: any): void {
+    const newDayTypeId = this.dayType;
+
+    // If current date is a Holiday/Week-off and user tries to switch to Working / Half-day Working,
+    // prevent change on UI itself (backend will also enforce).
+    const isHolidayOrWeekOffDate =
+      !!this.fromDate &&
+      this.nonWorkingAllowedDates.length > 0 &&
+      this.nonWorkingAllowedDates.includes(this.fromDate);
+
+    if (isHolidayOrWeekOffDate && newDayTypeId != null) {
+      const dt = this.allDayTypes?.find((d: any) => d.dayTypeId === newDayTypeId);
+      const name = dt?.dayType ? String(dt.dayType).toLowerCase() : '';
+      const isWorkingLike =
+        name === 'working' ||
+        name === 'half-day working';
+
+      if (isWorkingLike) {
+        // Revert change
+        if (this.lastDayTypeId != null) {
+          this.dayType = this.lastDayTypeId;
+        }
+        this.openAlertMod(
+          this.alertTemplate,
+          'Date is configured as Holiday/Week Off. Only Non-working timesheet is allowed on this date.'
+        );
+        // Do not proceed with rest of change handling
+        return;
+      }
+    }
+
     const dayTypeFillable = this.isDayTypeFillable();
 
     if (!dayTypeFillable) {
@@ -1039,6 +1082,198 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     this.getListToRenderUpload();
+
+    // Update lastDayTypeId after successful change
+    this.lastDayTypeId = this.dayType;
+
+    // Recompute date picker disabled dates based on updated day type
+    this.recalculateDisabledDatesForPicker();
+  }
+
+  /**
+   * Helper: check if current day type is \"Non-working\" (fillable non-working day).
+   * Uses allDayTypes metadata to match by name.
+   */
+  private isNonWorkingDayType(): boolean {
+    if (!this.dayType || !this.allDayTypes?.length) return false;
+    const dt = this.allDayTypes.find((d: any) => d.dayTypeId === this.dayType);
+    if (!dt || typeof dt.dayType !== 'string') return false;
+    return dt.dayType.toLowerCase() === 'non-working';
+  }
+
+  /**
+   * Load all holidays (including week-offs) for the user's location,
+   * then derive allowed Non-working dates within [minDateForPicker..maxDateForPicker].
+   * 
+   * Race condition protection:
+   * - Uses requestId to ignore stale responses
+   * - Captures min/max at request start and validates in response handler
+   */
+  private loadNonWorkingSelectableDates(): void {
+    if (!this.minDateForPicker || !this.maxDateForPicker) {
+      this.nonWorkingAllowedDates = [];
+      return;
+    }
+
+    // Avoid refetch when range unchanged
+    if (
+      this.nonWorkingRangeCache &&
+      this.nonWorkingRangeCache.min === this.minDateForPicker &&
+      this.nonWorkingRangeCache.max === this.maxDateForPicker &&
+      this.nonWorkingAllowedDates.length > 0
+    ) {
+      this.applyNonWorkingDisabledDates();
+      return;
+    }
+
+    // Increment request ID to invalidate any in-flight requests
+    const currentRequestId = ++this.holidayLoadRequestId;
+    
+    // Capture min/max at request start to validate in response handler
+    const requestMin = this.minDateForPicker;
+    const requestMax = this.maxDateForPicker;
+
+    const holidayObj = new Holiday();
+    // Use employee work location; backend will merge state-specific + 'All'
+    (holidayObj as any).state = this.currentUser?.workLocation || null;
+
+    this.holidayService.getAllHolidays(holidayObj)
+      .pipe(first(), takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          // Ignore stale responses: check if this request is still current
+          if (currentRequestId !== this.holidayLoadRequestId) {
+            console.log(`[loadNonWorkingSelectableDates] Ignoring stale response (requestId ${currentRequestId} vs current ${this.holidayLoadRequestId})`);
+            return;
+          }
+
+          // Validate that min/max haven't changed during the async call
+          if (this.minDateForPicker !== requestMin || this.maxDateForPicker !== requestMax) {
+            console.log(`[loadNonWorkingSelectableDates] Min/max changed during request, ignoring response`);
+            // Retry with new range
+            this.recalculateDisabledDatesForPicker();
+            return;
+          }
+
+          if (response?.serviceStatus === 'Success' && Array.isArray(response.serviceResponse)) {
+            const min = moment(requestMin, 'DD-MM-YYYY').startOf('day');
+            const max = moment(requestMax, 'DD-MM-YYYY').endOf('day');
+
+            this.nonWorkingAllowedDates = response.serviceResponse
+              .map((h: any) => h.dateOfHoliday as string | undefined)
+              .filter((d: string | undefined) => !!d)
+              .map((d: string) => moment(d, 'YYYY-MM-DD'))
+              .filter((m) => m.isValid() && !m.isBefore(min, 'day') && !m.isAfter(max, 'day'))
+              .map((m) => m.format('DD-MM-YYYY'));
+
+            this.nonWorkingRangeCache = {
+              min: requestMin,
+              max: requestMax
+            };
+
+            this.applyNonWorkingDisabledDates();
+          } else {
+            // On failure, fall back to base behavior
+            this.nonWorkingAllowedDates = [];
+            this.nonWorkingRangeCache = null;
+            this.disabledDatesForPicker = [...this.disabledDatesBase];
+          }
+        },
+        error: () => {
+          // Ignore errors from stale requests
+          if (currentRequestId !== this.holidayLoadRequestId) {
+            return;
+          }
+          this.nonWorkingAllowedDates = [];
+          this.nonWorkingRangeCache = null;
+          this.disabledDatesForPicker = [...this.disabledDatesBase];
+        }
+      });
+  }
+
+  /**
+   * Build full date range [minDateForPicker..maxDateForPicker] in dd-MM-YYYY format.
+   */
+  private buildDateRangeDDMMYYYY(): string[] {
+    if (!this.minDateForPicker || !this.maxDateForPicker) return [];
+    const start = moment(this.minDateForPicker, 'DD-MM-YYYY');
+    const end = moment(this.maxDateForPicker, 'DD-MM-YYYY');
+    if (!start.isValid() || !end.isValid()) return [];
+
+    const result: string[] = [];
+    for (let m = start.clone(); !m.isAfter(end, 'day'); m.add(1, 'day')) {
+      result.push(m.format('DD-MM-YYYY'));
+    }
+    return result;
+  }
+
+  /**
+   * Apply Non-working rules to disabledDatesForPicker:
+   * - Start from disabledDatesBase (already-filled, etc.)
+   * - For Non-working: additionally disable all dates in range that are NOT in nonWorkingAllowedDates.
+   */
+  private applyNonWorkingDisabledDates(): void {
+    if (!this.isNonWorkingDayType()) {
+      this.disabledDatesForPicker = [...this.disabledDatesBase];
+      return;
+    }
+
+    if (!this.minDateForPicker || !this.maxDateForPicker) {
+      this.disabledDatesForPicker = [...this.disabledDatesBase];
+      return;
+    }
+
+    const allDates = this.buildDateRangeDDMMYYYY();
+    const allowedSet = new Set(this.nonWorkingAllowedDates);
+
+    const toDisableExtra = allDates.filter(d => !allowedSet.has(d));
+    const merged = new Set(this.disabledDatesBase);
+    toDisableExtra.forEach(d => merged.add(d));
+
+    this.disabledDatesForPicker = Array.from(merged);
+  }
+
+  /**
+   * Recalculate disabled dates for date picker based on:
+   * - Base disabled dates (existing timesheets)
+   * - Day type (Non-working → only holiday/week-off dates enabled)
+   * 
+   * Race condition protection:
+   * - Invalidates any in-flight holiday requests when called
+   * - Ensures only the latest request's response is applied
+   */
+  private recalculateDisabledDatesForPicker(): void {
+    if (!this.minDateForPicker || !this.maxDateForPicker) {
+      this.disabledDatesForPicker = [...this.disabledDatesBase];
+      // Clear cache if min/max are invalid
+      this.nonWorkingRangeCache = null;
+      this.nonWorkingAllowedDates = [];
+      return;
+    }
+
+    if (!this.isNonWorkingDayType()) {
+      // For all other day types, use base rules only
+      this.disabledDatesForPicker = [...this.disabledDatesBase];
+      // Clear Non-working cache when switching away from Non-working
+      this.nonWorkingRangeCache = null;
+      this.nonWorkingAllowedDates = [];
+      return;
+    }
+
+    // For Non-working, ensure we have holiday/week-off dates loaded
+    // Check cache validity: range must match exactly
+    if (
+      this.nonWorkingRangeCache &&
+      this.nonWorkingRangeCache.min === this.minDateForPicker &&
+      this.nonWorkingRangeCache.max === this.maxDateForPicker &&
+      this.nonWorkingAllowedDates.length > 0
+    ) {
+      // Cache hit: apply immediately
+      this.applyNonWorkingDisabledDates();
+    } else {
+      // Cache miss or invalid: load holidays (will increment requestId, invalidating any in-flight requests)
+      this.loadNonWorkingSelectableDates();
+    }
   }
 
   /**
@@ -2081,7 +2316,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
 
     // Extract dates from availableTimesheets to disable
     // Handle update mode: exclude current timesheet date
-    this.disabledDatesForPicker = this.availableTimesheets
+    this.disabledDatesBase = this.availableTimesheets
       .filter((ts: any) => {
         // If updating, exclude current timesheet date
         if (this.isUpdation && this.timesheetId && ts.timesheetId === this.timesheetId) {
@@ -2111,6 +2346,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
                date !== 'Invalid Date' && 
                moment(date, 'DD-MM-YYYY', true).isValid();
       });
+
+    // Apply day-type-specific rules (e.g. Non-working → only holidays/week-offs)
+    this.recalculateDisabledDatesForPicker();
   }
 
   /**
@@ -3294,6 +3532,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
 
     // 1. Basic Fields
     this.dayType = timesheetData.dayTypeId;
+    // Initialize lastDayTypeId for later revert-on-invalid-change behavior
+    this.lastDayTypeId = this.dayType;
     if (timesheetData.date) {
       this.fromDate = this.convertYYYYMMDDToDDMMYYYY(timesheetData.date);
     }

@@ -269,6 +269,10 @@ export class TimesheetValidationService {
       return fail({ field: 'locations', message: 'At least one location is required', scope: 'LOCATION' });
     }
 
+    // Track client approval status per project across all locations (for consistency validation)
+    const projectStatusMap: Map<number, { status: number; locationIndex: number; projectIndex: number; locLabel: string }> =
+      new Map();
+
     for (let lIndex = 0; lIndex < context.timesheetLocations.length; lIndex++) {
       const location = context.timesheetLocations[lIndex];
       const locationId = location.workLocationTypeId || 0;
@@ -407,6 +411,31 @@ export class TimesheetValidationService {
             projectIndex: pIndex,
             locationId
           }, locationId);
+        }
+
+        // Track client approval status consistency across locations for the same project
+        if (
+          isDayTypeFillable &&
+          project.clientSideId &&
+          project.projectId != null &&
+          project.clientApprovalStatus != null
+        ) {
+          const projId = Number(project.projectId);
+          const status = Number(project.clientApprovalStatus);
+          const existing = projectStatusMap.get(projId);
+          if (!existing) {
+            projectStatusMap.set(projId, { status, locationIndex: lIndex, projectIndex: pIndex, locLabel });
+          } else if (existing.status !== status) {
+            // Inconsistent client approval status for same project across locations
+            return fail({
+              field: 'clientApprovalStatus',
+              message: `Client DSR Approval Status must be same for Project ${pIndex + 1} across all locations.`,
+              scope: 'PROJECT',
+              locationIndex: lIndex,
+              projectIndex: pIndex,
+              locationId
+            }, locationId);
+          }
         }
 
         if (isDayTypeFillable) {

@@ -293,6 +293,8 @@ public class TimesheetServiceNew {
 			if (timesheetValidationHelper.isWorkingDay(empDTO)) {
 				timesheetValidationHelper.validateDayTypeAgainstLeave(empDTO.getEmpId(), empDTO.getDate(),
 						empDTO.getDayTypeId());
+				// Prevent Working / Half-day Working on dates configured as Holiday / Week Off
+				timesheetValidationHelper.validateDayTypeAgainstHoliday(empDTO.getDate(), empDTO.getDayTypeId());
 			}
 
 			EmployeeTimesheetsNew existing = timesheetValidationHelper.validateTimesheetAlreadyExists(empDTO,
@@ -315,6 +317,8 @@ public class TimesheetServiceNew {
 				timesheetValidationHelper.validateLocationTimeOverlap(empDTO.getLocationSessions());
 
 				timesheetValidationHelper.validateLocationWiseProjectAndActivities(empDTO);
+				// Ensure same project has consistent client approval status across locations
+				timesheetValidationHelper.validateClientApprovalStatusConsistency(empDTO);
 
 				timesheetValidationHelper.validateDocumentsDTO(empDTO);
 
@@ -910,6 +914,8 @@ public class TimesheetServiceNew {
 			if (timesheetValidationHelper.isWorkingDay(newEmpDTO)) {
 				timesheetValidationHelper.validateDayTypeAgainstLeave(newEmpDTO.getEmpId(), newEmpDTO.getDate(),
 						newEmpDTO.getDayTypeId());
+				// Prevent Working / Half-day Working on dates configured as Holiday / Week Off
+				timesheetValidationHelper.validateDayTypeAgainstHoliday(newEmpDTO.getDate(), newEmpDTO.getDayTypeId());
 			}
 
 			// Based on day type transition we have to take validation action
@@ -925,6 +931,8 @@ public class TimesheetServiceNew {
 				timesheetValidationHelper.validateWorkInWorkOutTime(newEmpDTO);
 				timesheetValidationHelper.validateLocationTimeOverlap(newEmpDTO.getLocationSessions());
 				timesheetValidationHelper.validateLocationWiseProjectAndActivities(newEmpDTO);
+				// Ensure same project has consistent client approval status across locations
+				timesheetValidationHelper.validateClientApprovalStatusConsistency(newEmpDTO);
 				timesheetValidationHelper.validateDocumentsDTO(newEmpDTO);
 				timesheetValidationHelper.validateUploadedDocuments(newEmpDTO, documents, timesheetId);
 				timesheetValidationHelper.validateActivityDurationWithinLocation(newEmpDTO.getLocationSessions());
@@ -934,6 +942,8 @@ public class TimesheetServiceNew {
 				timesheetValidationHelper.validateWorkInWorkOutTime(newEmpDTO);
 				timesheetValidationHelper.validateLocationTimeOverlap(newEmpDTO.getLocationSessions());
 				timesheetValidationHelper.validateLocationWiseProjectAndActivities(newEmpDTO);
+				// Ensure same project has consistent client approval status across locations
+				timesheetValidationHelper.validateClientApprovalStatusConsistency(newEmpDTO);
 				timesheetValidationHelper.validateDocumentsDTO(newEmpDTO);
 				timesheetValidationHelper.validateUploadedDocuments(newEmpDTO, documents, timesheetId);
 				timesheetValidationHelper.validateActivityDurationWithinLocation(newEmpDTO.getLocationSessions());
