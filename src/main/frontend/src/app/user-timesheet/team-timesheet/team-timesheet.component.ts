@@ -268,9 +268,27 @@ alertModal: TemplateRef<any>;
     }
   }
 
+  // getTotalDocCount(projectId: number): number {
+  //   return this.documentData?.filter(d => d.projectId === projectId).length || 0;
+  // }
+
   getTotalDocCount(projectId: number): number {
-    return this.documentData?.filter(d => d.projectId === projectId).length || 0;
+  if (!this.selectedTimesheet?.documentData || !this.selectedTimesheet.documentData.length) {
+    return 0;
   }
+
+  // Count documents for this project
+  let count = 0;
+
+  this.selectedTimesheet.documentData.forEach(doc => {
+    // Increment for docId
+    if (doc.docId) count += 1;
+    // Increment for bulkApprovedDocId if it exists
+    if (doc.bulkApprovedDocId) count += 1;
+  });
+
+  return count;
+}
 
 
   disableMannualDateInput() {
@@ -2194,17 +2212,32 @@ loadActiveDocument(): void {
 
 
    /* HELPERS */
-   hasPendingDoc(projectId: number): boolean {
-     return this.selectedTimesheet?.documentData?.some(
-       d => d.projectId === projectId && !d.finalFlag
-     );
-   }
+hasPendingDoc(projectId: number): boolean {
+  return this.selectedTimesheet?.documentData?.some(
+    d => d.docId != null
+  ) || false;
+}
 
-   hasApprovedDoc(projectId: number): boolean {
-     return this.selectedTimesheet?.documentData?.some(
-       d => d.projectId === projectId && d.finalFlag
-     );
-   }
+hasApprovedDoc(projectId: number): boolean {
+  return this.selectedTimesheet?.documentData?.some(
+    d => d.bulkApprovedDocId != null
+  ) || false;
+}
+
+
+  getFilledStatus(projectId: number): string {
+
+  const docs = this.selectedTimesheet?.documentData || [];
+
+  const hasPending = docs.some(d => d.docId != null);
+  const hasApproved = docs.some(d => d.bulkApprovedDocId != null);
+
+  if (hasPending && hasApproved) return 'Pending , Approved';
+  if (hasPending) return 'Pending';
+  if (hasApproved) return 'Approved';
+
+  return '';
+}
 
   //  getDocument(projectId: number, type: 'Pending' | 'Approved'): any {
   //    return this.selectedTimesheet?.doumentData?.find(d =>

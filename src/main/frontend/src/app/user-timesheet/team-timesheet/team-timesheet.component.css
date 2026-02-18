@@ -2104,6 +2104,28 @@ th {
   height: 100%;
   background: white;
 }
+.doc-body-full .doc-left {
+  display: none;
+}
+
+.doc-body-full .doc-right {
+  width: 100%;
+}
+
+/* OPTIONAL UI POLISH */
+.doc-toggle {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.no-doc-msg {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: #6b7280;
+  font-size: 14px;
+}
 /* =========================
    DOCUMENT MODAL HEADER
    ========================= */
