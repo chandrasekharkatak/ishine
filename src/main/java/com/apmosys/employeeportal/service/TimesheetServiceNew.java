@@ -5,13 +5,17 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.springframework.data.domain.PageRequest;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -41,6 +45,8 @@ import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetStatusCountDTO;
 import com.apmosys.employeeportal.enums.DayTypeTransition;
+import com.apmosys.employeeportal.enums.DayTypeCode;
+import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
 import com.apmosys.employeeportal.model.DocMimeTypeMasterNew;
 import com.apmosys.employeeportal.model.EmployeeTimesheetLocationMapping;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
@@ -277,16 +283,17 @@ public class TimesheetServiceNew {
 
 			timesheetValidationHelper.validateNullAndUnexpectedData(empDTO);
 
-			if (timesheetLockDays != null) {
-				timesheetValidationHelper.validateTimesheetLockPeriod(empDTO.getEmpId(), empDTO.getDate(),
-						timesheetLockDays);
-			}
+			Integer effectiveLockDays = (timesheetLockDays != null) ? timesheetLockDays : 30;
+			timesheetValidationHelper.validateTimesheetLockPeriod(empDTO.getEmpId(), empDTO.getDate(),
+					effectiveLockDays);
 
 			employeeAssignmentValidationService.validateEmployeeAssignments(empDTO.getEmpId(), empDTO.getDate(),
 					empDTO.getLocationSessions());
 
-			timesheetValidationHelper.validateDayTypeAgainstLeave(empDTO.getEmpId(), empDTO.getDate(),
-					empDTO.getDayTypeId());
+			if (timesheetValidationHelper.isWorkingDay(empDTO)) {
+				timesheetValidationHelper.validateDayTypeAgainstLeave(empDTO.getEmpId(), empDTO.getDate(),
+						empDTO.getDayTypeId());
+			}
 
 			EmployeeTimesheetsNew existing = timesheetValidationHelper.validateTimesheetAlreadyExists(empDTO,
 					empDTO.getEmpId(), empDTO.getDate());
@@ -346,35 +353,27 @@ public class TimesheetServiceNew {
 			}
 			return response;
 
+		} catch (UnauthorizedAccessException e) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Unauthorized");
+			response.setServiceError(e.getMessage());
+
 		} catch (IllegalArgumentException e) {
-			// delete the file uploaded if any
-//			if(documents != null && documents.size() > 0) {
-//				for(MultipartFile document : documents) {
-//					if(document != null) {
-//						timesheetDocumentService.deleteFile(document.getOriginalFilename());
-//					}
-//				}
-//			}
-			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Validation failed: " + e.getMessage());
+			response.setServiceError(e.getMessage());
+
+		} catch (IllegalStateException e) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Validation failed: " + e.getMessage());
 			response.setServiceError(e.getMessage());
 
 		} catch (Exception e) {
-
-			// delete the file uploaded if any
-			if (documents != null && documents.size() > 0) {
-				for (MultipartFile document : documents) {
-					if (document != null) {
-						timesheetDocumentService.deleteFile(document.getOriginalFilename());
-					}
-				}
-			}
-
+			// Clean up any partially uploaded documents on failure
+			cleanupDocumentsOnFailure(documents);
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceError(e.getMessage());
-			e.printStackTrace();
 		}
 
 		return response;
@@ -477,6 +476,9 @@ public class TimesheetServiceNew {
 
 		Long timesheetId = empTS.getTimesheetId();
 
+		if (empDTO.getLocationSessions() == null || empDTO.getLocationSessions().isEmpty()) {
+			throw new IllegalArgumentException("Location session is required for Non-Working day");
+		}
 		LocationSessionDTO location = empDTO.getLocationSessions().get(0);
 
 		// 1 Create single LOCATION mapping (NA)
@@ -905,6 +907,11 @@ public class TimesheetServiceNew {
 			employeeAssignmentValidationService.validateEmployeeAssignments(newEmpDTO.getEmpId(), newEmpDTO.getDate(),
 					newEmpDTO.getLocationSessions());
 
+			if (timesheetValidationHelper.isWorkingDay(newEmpDTO)) {
+				timesheetValidationHelper.validateDayTypeAgainstLeave(newEmpDTO.getEmpId(), newEmpDTO.getDate(),
+						newEmpDTO.getDayTypeId());
+			}
+
 			// Based on day type transition we have to take validation action
 
 			DayTypeTransition transition = timesheetValidationHelper.resolveDayTypeTransition(empTS, newEmpDTO);
@@ -919,11 +926,8 @@ public class TimesheetServiceNew {
 				timesheetValidationHelper.validateLocationTimeOverlap(newEmpDTO.getLocationSessions());
 				timesheetValidationHelper.validateLocationWiseProjectAndActivities(newEmpDTO);
 				timesheetValidationHelper.validateDocumentsDTO(newEmpDTO);
-				timesheetValidationHelper.validateUploadedDocuments(newEmpDTO, documents);
+				timesheetValidationHelper.validateUploadedDocuments(newEmpDTO, documents, timesheetId);
 				timesheetValidationHelper.validateActivityDurationWithinLocation(newEmpDTO.getLocationSessions());
-
-				timesheetValidationHelper.validateDocumentsDTO(newEmpDTO);
-				timesheetValidationHelper.validateUploadedDocuments(newEmpDTO, documents);
 
 			} else if (transition == DayTypeTransition.NON_WORKING_TO_WORKING) {
 
@@ -931,11 +935,8 @@ public class TimesheetServiceNew {
 				timesheetValidationHelper.validateLocationTimeOverlap(newEmpDTO.getLocationSessions());
 				timesheetValidationHelper.validateLocationWiseProjectAndActivities(newEmpDTO);
 				timesheetValidationHelper.validateDocumentsDTO(newEmpDTO);
-				timesheetValidationHelper.validateUploadedDocuments(newEmpDTO, documents);
+				timesheetValidationHelper.validateUploadedDocuments(newEmpDTO, documents, timesheetId);
 				timesheetValidationHelper.validateActivityDurationWithinLocation(newEmpDTO.getLocationSessions());
-
-				timesheetValidationHelper.validateDocumentsDTO(newEmpDTO);
-				timesheetValidationHelper.validateUploadedDocuments(newEmpDTO, documents);
 
 			} else if (transition == DayTypeTransition.WORKING_TO_NON_WORKING) {
 				timesheetValidationHelper.validateNonWorkingDayTimesheet(newEmpDTO);
@@ -955,7 +956,9 @@ public class TimesheetServiceNew {
 			handleUpdateTimesheet(timesheetId, newEmpDTO);
 
 			Long currentUserId = getCurrentUserId();
-			newEmpDTO.setUpdatedBy(currentUserId != null ? currentUserId : newEmpDTO.getEmpId());
+			Long updatedBy = currentUserId != null ? currentUserId
+					: (newEmpDTO.getUpdatedBy() != null ? newEmpDTO.getUpdatedBy() : newEmpDTO.getEmpId());
+			newEmpDTO.setUpdatedBy(updatedBy);
 			newEmpDTO.setUpdatedOn(LocalDateTime.now());
 
 			// Update basic fields (Note: empId and date should not change, but keeping for
@@ -996,21 +999,52 @@ public class TimesheetServiceNew {
 			response.setServiceResponse(responseDTO);
 			response.setServiceMessage("Timesheet updated successfully");
 
+		} catch (UnauthorizedAccessException e) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Unauthorized");
+			response.setServiceError(e.getMessage());
+
 		} catch (IllegalArgumentException e) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Validation failed: " + e.getMessage());
 			response.setServiceError(e.getMessage());
+
+		} catch (IllegalStateException e) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Validation failed: " + e.getMessage());
+			response.setServiceError(e.getMessage());
+
 		} catch (Exception e) {
+			cleanupDocumentsOnFailure(documents);
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceError(e.getMessage());
-			e.printStackTrace();
 		}
 
 		return response;
 	}
 
+	/**
+	 * Clean up any partially uploaded documents on failure.
+	 */
+	private void cleanupDocumentsOnFailure(List<MultipartFile> documents) {
+		if (documents != null && !documents.isEmpty()) {
+			for (MultipartFile document : documents) {
+				try {
+					if (document != null && document.getOriginalFilename() != null) {
+						timesheetDocumentService.deleteFile(document.getOriginalFilename());
+					}
+				} catch (Exception ex) {
+					// Log but don't propagate - cleanup failure should not mask original error
+				}
+			}
+		}
+	}
+
 	private void handleUpdateTimesheet(Long timesheetId, EmployeeTimesheetDTO newEmpDTO) {
+		if (newEmpDTO.getLocationSessions() == null || newEmpDTO.getLocationSessions().isEmpty()) {
+			throw new IllegalArgumentException("At least one location session is required");
+		}
 		// Existing locations from DB
 		Map<Long, EmployeeTimesheetLocationMapping> existingLocationMap = employeeTimesheetLocationMappingRepository
 				.findByTimesheetId(timesheetId).stream()
@@ -1040,7 +1074,7 @@ public class TimesheetServiceNew {
 				locationMapping = existingLocationMap.get(locationDTO.getLocationMappingId());
 
 				if (locationMapping == null) {
-					throw new IllegalStateException("Invalid locationMappingId");
+					throw new IllegalStateException("Invalid location. Please refresh the page and try again.");
 				}
 
 				locationMapping.setLocationInTime(
@@ -1053,8 +1087,10 @@ public class TimesheetServiceNew {
 			}
 
 			// 3️ HANDLE PROJECTS UNDER LOCATION
+			Long createdBy = newEmpDTO.getCreatedBy() != null ? newEmpDTO.getCreatedBy()
+					: (newEmpDTO.getUpdatedBy() != null ? newEmpDTO.getUpdatedBy() : newEmpDTO.getEmpId());
 			handleProjectsUnderLocationMapping(timesheetId, locationMapping.getLocationMappingId(),
-					locationDTO.getProjects(), newEmpDTO.getCreatedBy());
+					locationDTO.getProjects(), createdBy);
 		}
 	}
 
@@ -1087,6 +1123,12 @@ public class TimesheetServiceNew {
 				}
 
 				projectTimesheetService.create(timesheetId, projectDTO, createdBy);
+
+				// Create activities for the new project
+				if (projectDTO.getActivities() != null && !projectDTO.getActivities().isEmpty()) {
+					activityTimesheetService.createAll(timesheetId, locationMappingId, projectDTO.getProjectId(),
+							projectDTO.getActivities());
+				}
 			}
 			// 2️ UPDATE project (only PENDING ones)
 			else {
@@ -1136,12 +1178,45 @@ public class TimesheetServiceNew {
 			return; // No documents to handle
 		}
 
-		// Validate documents list matches documentData
-		if (documents != null && documents.size() == documentDataList.size()) {
-			/*
-			 * Log warning: document count mismatch For now, proceed with available
-			 * documents TODO: Decide on validation strategy - strict match or allow partial
-			 */
+		boolean isUpdate = (timesheetId != null);
+
+		// Update: existing docs don't need files - only process entries that have new uploads
+		if (isUpdate && (documents == null || documents.isEmpty())) {
+			return; // No new files to upload; existing docs already in DB
+		}
+
+		if (isUpdate) {
+			// Filter to only documentData entries that have a matching new file
+			Set<String> fileNames = documents.stream()
+					.map(MultipartFile::getOriginalFilename)
+					.filter(Objects::nonNull)
+					.collect(Collectors.toSet());
+
+			List<TimesheetDocumentDataDTO> toUpload = new ArrayList<>();
+			List<MultipartFile> filesToUpload = new ArrayList<>();
+			for (TimesheetDocumentDataDTO docData : documentDataList) {
+				String id = docData.getUniqueIdentifier();
+				if (id != null && fileNames.contains(id)) {
+					toUpload.add(docData);
+					for (MultipartFile f : documents) {
+						if (id.equals(f.getOriginalFilename())) {
+							filesToUpload.add(f);
+							break;
+						}
+					}
+				}
+			}
+
+			if (toUpload.isEmpty()) {
+				return; // No new files to upload
+			}
+			timesheetDocumentService.handleDocumentUpload(empTS, timesheetId, filesToUpload, toUpload);
+		} else {
+			// Create: strict match required - every documentData must have a file
+			if (documents == null || documents.size() != documentDataList.size()) {
+				throw new IllegalArgumentException(
+						"Please ensure all required documents are attached.");
+			}
 			timesheetDocumentService.handleDocumentUpload(empTS, timesheetId, documents, documentDataList);
 		}
 
@@ -1276,7 +1351,9 @@ public class TimesheetServiceNew {
 		if (locationMappings == null || locationMappings.isEmpty()) {
 			// Backward compatibility: populate old structure
 			List<ProjectTimesheetDTO> projects = projectTimesheetService.findByTimesheetId(timesheetId);
-
+			if (projects == null) {
+				return empDTO;
+			}
 			for (ProjectTimesheetDTO project : projects) {
 				List<ActivityTimesheetDTO> activities = activityTimesheetService
 						.findByTimesheetIdAndProjectId(timesheetId, project.getProjectId());
@@ -1284,6 +1361,9 @@ public class TimesheetServiceNew {
 			}
 
 //            empDTO.setProjectTimesheets(projects);
+			// Populate documentData for update form (backward compat path)
+			List<TimesheetDocumentDataDTO> docsCompat = getDocumentDataForTimesheet(timesheetId);
+			empDTO.setDocumentData(docsCompat);
 			return empDTO;
 		}
 
@@ -1328,12 +1408,146 @@ public class TimesheetServiceNew {
 		// 6️ Set NEW CONTRACT fields
 		empDTO.setLocationSessions(locationSessions);
 
-		// 7️ (Optional) keep backward compatibility
-//        empDTO.setProjectTimesheets(
-//                projectTimesheetService.findByTimesheetId(timesheetId)
-//        );
+		// 7️ Populate documentData for update form
+		List<TimesheetDocumentDataDTO> docs = getDocumentDataForTimesheet(timesheetId);
+		empDTO.setDocumentData(docs);
 
 		return empDTO;
+	}
+
+	/**
+	 * Find last working-day timesheet for an employee (before a target date) and
+	 * return it as an autofill template.
+	 *
+	 * Rules:
+	 * - Only considers days where day type is "working" (via DayTypeCode).
+	 * - Only looks at dates STRICTLY before the targetDate.
+	 * - Each project must be active for the target date (same logic as getProjectListForDateAndEmpId:
+	 *   mapping startDate/endDate valid for targetDate).
+	 * - Each project must pass validateProjectAssignment (employee assigned to project).
+	 * - If any project fails either check, no autofill data is returned.
+	 * - Documents are NOT included in the template (documentData is set to null).
+	 *
+	 * @param empId       Employee ID
+	 * @param targetDate  Date user wants to fill (autofill looks before this date)
+	 * @return ServiceResponse with EmployeeTimesheetDTO or null (no template)
+	 */
+	public ServiceResponse getAutofillTimesheetTemplate(Long empId, LocalDate targetDate) {
+
+		ServiceResponse response = new ServiceResponse();
+
+		if (empId == null || targetDate == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Employee and date are required for autofill.");
+			response.setServiceError("Missing empId or targetDate in autofill request");
+			return response;
+		}
+
+		// We look for any previous working-day timesheet in a reasonable window
+		LocalDate endDate = targetDate.minusDays(1);
+		if (!endDate.isBefore(targetDate)) {
+			// If targetDate is the earliest possible, nothing to search
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(null);
+			response.setServiceMessage("No previous working timesheet found for autofill.");
+			return response;
+		}
+
+		// Fetch ONLY the latest working-day timesheet BEFORE targetDate within a 3‑month window.
+		// Uses repository-level paging so we don't pull the entire history.
+		LocalDate startDate = endDate.minusMonths(3);
+		List<EmployeeTimesheetsNew> history = employeeTimesheetsNewRepository
+				.findLatestWorkingTimesheetBeforeDate(empId, startDate, endDate, PageRequest.of(0, 1));
+
+		if (history == null || history.isEmpty()) {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(null);
+			response.setServiceMessage("No previous timesheet history found for autofill.");
+			return response;
+		}
+
+		// PageRequest.of(0,1) ensures at most one entity
+		EmployeeTimesheetsNew candidate = history.get(0);
+
+		if (candidate == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(null);
+			response.setServiceMessage("No previous working timesheet found for autofill.");
+			return response;
+		}
+
+		Long candidateTimesheetId = candidate.getTimesheetId();
+		if (candidateTimesheetId == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(null);
+			response.setServiceMessage("No valid previous working timesheet found for autofill.");
+			return response;
+		}
+
+		// Validate that all projects under this timesheet are still active for the employee
+		// and active for the target date (same logic as getProjectListForDateAndEmpId)
+		List<ProjectTimesheetDTO> projects = projectTimesheetService.findByTimesheetId(candidateTimesheetId);
+		if (projects != null && !projects.isEmpty()) {
+			// 1. Get projects active for empId + targetDate (mapping startDate/endDate valid)
+			List<Integer> activeProjectIds = employeeTeamMapRepository
+					.findActiveProjectIdsByEmpIdAndDate(empId, targetDate.atStartOfDay());
+			Set<Integer> activeSet = new HashSet<>(activeProjectIds != null ? activeProjectIds : List.of());
+
+			for (ProjectTimesheetDTO project : projects) {
+				if (project.getProjectId() == null) {
+					continue;
+				}
+				// 2. Project must be active for target date
+				if (!activeSet.contains(project.getProjectId().intValue())) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(null);
+					response.setServiceMessage("Previous timesheet projects are not active for the selected date.");
+					return response;
+				}
+				try {
+					// 3. Re-use existing assignment validation (checks active mapping)
+					timesheetValidationHelper.validateProjectAssignment(empId, project.getProjectId().longValue());
+				} catch (IllegalArgumentException ex) {
+					// If any project is no longer active for this employee, do not autofill
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(null);
+					response.setServiceMessage("Previous timesheet projects are no longer active for autofill.");
+					return response;
+				}
+			}
+		}
+
+		// Fetch full hierarchical data for this timesheet
+		EmployeeTimesheetDTO template = getTimesheetByIdInternalNew(candidateTimesheetId);
+		if (template == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(null);
+			response.setServiceMessage("Unable to load previous timesheet for autofill.");
+			return response;
+		}
+
+		// Do NOT send documents as part of autofill template
+		template.setDocumentData(null);
+
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(template);
+		response.setServiceMessage("Autofill template fetched successfully.");
+		return response;
+	}
+
+	/**
+	 * Fetch document data for a timesheet. Returns empty list on error or when no docs exist.
+	 */
+	private List<TimesheetDocumentDataDTO> getDocumentDataForTimesheet(Long timesheetId) {
+		if (timesheetId == null) {
+			return new ArrayList<>();
+		}
+		try {
+			List<TimesheetDocumentDataDTO> docs = timesheetDocumentService.getTimesheetDocumentDataByTimesheetId(timesheetId);
+			return docs != null ? docs : new ArrayList<>();
+		} catch (Exception e) {
+			return new ArrayList<>();
+		}
 	}
 
 	public ServiceResponse getAllProjectsByEmpId(Long empId) {
@@ -1443,14 +1657,23 @@ public class TimesheetServiceNew {
 
 	public Resource getDocumentDataByDocId(Long docId, Boolean approvedDocType) {
 		try {
-			TimesheetDocumentDetailsNew docDetails = new TimesheetDocumentDetailsNew();
-			docDetails = timesheetDocumentDetailsNewRepository.findByDocIdAndActive(docId, true);
-			if (approvedDocType == null || !approvedDocType) {
-				return timesheetDocumentService.viewFile(docDetails.getFileUrl());
+			if (Boolean.TRUE.equals(approvedDocType)) {
+				FinalDocumentNew finalDocument = finalDocumentNewRepository.findById(docId).orElse(null);
+				if (finalDocument != null && finalDocument.getFileUrl() != null) {
+					return timesheetDocumentService.viewFile(finalDocument.getFileUrl());
+				}
+			} else {
+				TimesheetDocumentDetailsNew docDetails = timesheetDocumentDetailsNewRepository.findByDocIdAndActive(docId, true);
+				if (docDetails != null && docDetails.getFileUrl() != null) {
+					return timesheetDocumentService.viewFile(docDetails.getFileUrl());
+				}
+				if (approvedDocType == null) {
+					FinalDocumentNew finalDocument = finalDocumentNewRepository.findById(docId).orElse(null);
+					if (finalDocument != null && finalDocument.getFileUrl() != null) {
+						return timesheetDocumentService.viewFile(finalDocument.getFileUrl());
+					}
+				}
 			}
-			FinalDocumentNew finalDocument = finalDocumentNewRepository.findById(docId)
-					.orElseThrow(() -> new RuntimeException("Document not found"));
-			return timesheetDocumentService.viewFile(finalDocument.getFileUrl());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -1479,7 +1702,7 @@ public class TimesheetServiceNew {
 			serviceResponse =  timesheetApprovalServiceNew.bulkRejectTimesheets(aprOrRejData);
 		return serviceResponse;
 	}
-		public ServiceResponse getTimesheetStatusCountsByManager(Long managerId) {
+		public ServiceResponse getTimesheetStatusCountsByManager(Long managerId,  Boolean clientFilter) {
 	    ServiceResponse response = new ServiceResponse();
 	    try {
 
@@ -1489,16 +1712,13 @@ public class TimesheetServiceNew {
 	            return response;
 	        }
 	        List<Object[]> counts =
-	                employeeTimesheetsNewRepository.getTimesheetStatusCountsByCurrentManagerId(managerId,null);
+	                employeeTimesheetsNewRepository.getTimesheetStatusCountsByCurrentManagerId(managerId,clientFilter);
 	        
-	        Map<String, Long> result = new HashMap<>();
-
-	        for (Object[] row : counts) {
-	            String status = row[0] != null ? row[0].toString() : null;
-	            Long count = row[1] == null ? 0L : ((Number) row[1]).longValue();
-	           
-	            result.put(status, count);
-	            
+	        Long total = 0L;
+	        
+	        if (!counts.isEmpty()) {
+	            Object[] row = counts.get(0);
+	            total = row[1] == null ? 0L : ((Number) row[1]).longValue();
 	        }
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1526,7 +1746,7 @@ public class TimesheetServiceNew {
 			List<Long> empIds = finalBulkUploadDTO.getEmpIds();
 
 			if(empIds == null || empIds.isEmpty()) {
-				throw new IllegalArgumentException("Employee ids are required.");
+				throw new IllegalArgumentException("Please select at least one employee.");
 			}
 
 			Integer projectId = finalBulkUploadDTO.getProjectId();
@@ -1535,7 +1755,7 @@ public class TimesheetServiceNew {
 			LocalDate toDate = finalBulkUploadDTO.getToDate();
 
 			if(projectId == null || projectId <= 0) {
-				throw new IllegalArgumentException("Project id is required.");
+				throw new IllegalArgumentException("Please select a project.");
 			}
 
 			if(fromDate == null || toDate == null) {

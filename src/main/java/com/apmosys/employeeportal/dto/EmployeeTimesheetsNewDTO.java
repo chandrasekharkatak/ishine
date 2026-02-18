@@ -39,6 +39,8 @@ public class EmployeeTimesheetsNewDTO {
 
 	    private Long currentManagerId;
 	    private String daytype;
+	    private Long EmployementID;
+	    private String isProd;
 	    
 	    public EmployeeTimesheetsNewDTO(
 	            Long timesheetId,
@@ -76,5 +78,46 @@ public class EmployeeTimesheetsNewDTO {
 	        this.description = description;
 	        this.currentManagerId = currentManagerId;
 	        this.daytype = daytype;
+	    }
+	    
+
+	    public EmployeeTimesheetsNewDTO(
+	            Long timesheetId,
+	            Long createdBy,
+	            LocalDateTime createdOn,
+	            Long updatedBy,
+	            Boolean isNightShift,
+	            LocalDateTime updatedOn,
+	            LocalDate date,
+	            Integer dayTypeId,
+	            Long empId,
+	            Integer status,
+	            LocalDateTime workCheckIn,
+	            LocalDateTime workCheckOut,
+	            Integer totalWorkingMinutes,
+	            Long leaveTypeMasterId,
+	            String description,
+	            Long currentManagerId,
+	            Long employementID,
+	            String isProd
+	    ) {
+	        this.timesheetId = timesheetId;
+	        this.createdBy = createdBy;
+	        this.createdOn = createdOn;
+	        this.updatedBy = updatedBy;
+	        this.isNightShift = isNightShift;
+	        this.updatedOn = updatedOn;
+	        this.date = date;
+	        this.dayTypeId = dayTypeId;
+	        this.empId = empId;
+	        this.status = status;
+	        this.workCheckIn = workCheckIn;
+	        this.workCheckOut = workCheckOut;
+	        this.totalWorkingMinutes = totalWorkingMinutes;
+	        this.leaveTypeMasterId = leaveTypeMasterId;
+	        this.description = description;
+	        this.currentManagerId = currentManagerId;
+	        this.EmployementID = employementID;
+	        this.isProd=isProd;
 	    }
 }

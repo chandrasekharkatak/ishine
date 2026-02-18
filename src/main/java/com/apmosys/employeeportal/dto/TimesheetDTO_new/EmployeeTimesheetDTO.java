@@ -1,11 +1,13 @@
 package com.apmosys.employeeportal.dto.TimesheetDTO_new;
 
+import java.util.ArrayList;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -168,7 +170,9 @@ public class EmployeeTimesheetDTO {
      * Document data - NEW CONTRACT STRUCTURE
      * List of documents associated with timesheet projects
      * Optional - for attendance proof and approval documents
+     * Always serialized (even when empty) so frontend receives [] not null
      */
-    private List<TimesheetDocumentDataDTO> documentData;
+    @JsonInclude(JsonInclude.Include.ALWAYS)
+    private List<TimesheetDocumentDataDTO> documentData = new ArrayList<>();
 }
 

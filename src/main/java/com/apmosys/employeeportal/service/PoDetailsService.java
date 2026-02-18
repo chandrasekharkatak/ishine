@@ -834,17 +834,19 @@ public class PoDetailsService {
 
 	private Long fetchUpdatedBy(IshineLinkProjectDto payloadDTO) {
 
-	    if (payloadDTO.getDeletedProjects().isEmpty()
+		if (payloadDTO.getDeletedProjects().isEmpty()
 	            || payloadDTO.getDeletedProjects().get(0).getPoDetailsList().isEmpty()) {
 	        throw new RuntimeException("Unable to derive updatedBy from payload");
 	    }
 
 	    PoDetailsForProjectPoMappingDTO poDto = payloadDTO.getDeletedProjects().get(0).getPoDetailsList().get(0);
 
-	    return validationService.validateAndGetEmployeeEmpId(
-	            poDto.getUpdatedByEmpId().toString(),
+		validationService.validateEmployeeExists(
+	            poDto.getUpdatedByEmpId(),
 	            poDto.getUpdatedByEmpName()
 	    );
+		
+	    return poDto.getUpdatedByEmpId();
 	}
 	
 	private Set<String> fetchPrimaryTeamNames(Long poProjectId) {

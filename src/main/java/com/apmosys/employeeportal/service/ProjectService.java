@@ -4564,7 +4564,7 @@ public class ProjectService {
 	
 	
 
-	public void recalculateProjectDates(Integer projectId) {
+	public void recalculateProjectDates(Integer projectId,boolean isRenew) {
 
 	    Project project = projectRepository.findById(projectId)
 	            .orElseThrow(() ->
@@ -4635,6 +4635,14 @@ public class ProjectService {
 	    if (maxPoEnd != null) {
 	        project.setEndDate(maxPoEnd.toLocalDate().format(formatter));
 	    }
+	    if (isRenew &&
+	            "Completed".equalsIgnoreCase(project.getProjectStatus())) {
+
+	        project.setProjectStatus("Not Started");
+	    }
+	    
+	    projectRepository.save(project);
+	    
 	}
 
 

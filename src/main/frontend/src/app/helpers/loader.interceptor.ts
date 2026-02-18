@@ -488,25 +488,52 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/downloadFinalDocuments`,
     `${this.baseUrl}` + `api/downloadFinalDocuments`,
 
+    /** v2 Timesheet APIs (new hierarchical timesheet) */
+    `${this.baseUrl}` + `api/v2/timesheet/addTimesheetWithClientNew`,
+    `${this.baseUrl}` + `api/v2/timesheet/getAllProjectsByEmpId`,
+    `${this.baseUrl}` + `api/v2/timesheet/getAllMyTimesheetsByEmpId`,
+    `${this.baseUrl}` + `api/v2/timesheet/getTimesheetMetadataByEmpId`,
+    `${this.baseUrl}` + `api/v2/timesheet/getActiveProjectsAndClientSideIdByEmpId`,
+    `${this.baseUrl}` + `api/v2/timesheet/getAlreadyFilledTimesheetDatesByEmpId`,
+    `${this.baseUrl}` + `api/v2/timesheet/create`,
+    `${this.baseUrl}` + `api/v2/timesheet/getTimesheetDashboardCountForEmployee`,
+    `${this.baseUrl}` + `api/v2/timesheet/by-date`,
+    `${this.baseUrl}` + `api/v2/timesheet/by-date-range`,
+    `${this.baseUrl}` + `api/v2/timesheet/update-status`,
+    `${this.baseUrl}` + `api/v2/timesheet/project`,
+    `${this.baseUrl}` + `api/v2/timesheet/activity`,
+    `${this.baseUrl}` + `api/v2/timesheet/getDocumentDataByDocId`,
+    /** v2 Master APIs (used by timesheet form) */
+    `${this.baseUrl}` + `api/v2/master/day-type/getAllActiveDayType`,
+    `${this.baseUrl}` + `api/v2/master/work-location-type/getAllActiveLocationTypes`,
+    `${this.baseUrl}` + `api/v2/master/client-status/getAllActiveStatusForClient`,
+
   ]
 
   constructor(private loaderService: LoaderService) { }
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+    let showLoader = false;
+
+    // Exact URL match from whitelist
     this.URL_whiteList.forEach((element) => {
-
-      if (request.url == element) {
-
-        request = request.clone({
-          setHeaders: {
-            loader: 'true'
-          }
-        });
+      if (request.url === element) {
+        showLoader = true;
       }
+    });
 
+    // Pattern match for v2 timesheet APIs with dynamic paths (e.g. /123, /document/getById/456, update?timesheetId=1)
+    if (!showLoader && request.url.includes('api/v2/timesheet')) {
+      showLoader = true;
+    }
 
-
-    })
+    if (showLoader) {
+      request = request.clone({
+        setHeaders: {
+          loader: 'true'
+        }
+      });
+    }
 
     if (request.headers.get('loader')) {
       this.loaderService.requestStarted();

@@ -134,7 +134,6 @@ import { EmployeeInfoComponent } from './user-update-info/employee-info/employee
 import { EmployeeUpdateListComponent } from './user-update-info/employee-update-list/employee-update-list.component';
 import { InformationPreviewComponent } from './user-update-info/information-preview/information-preview.component';
 import { UserUpdateInfoComponent } from './user-update-info/user-update-info.component';
-import { TimesheetCreateSelfComponent } from './timesheet-create-self/timesheet-create-self.component';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
@@ -215,7 +214,6 @@ import { MyAutocompleteComponent } from './helpers/my-autocomplete/my-autocomple
 import { NgxEditorModule } from 'ngx-editor';
 import { CalendarLegendComponent } from "./user-timesheet/shared/calendar-legend/calendar-legend.component";
 import { TeamAllTimesheetsTableComponent } from "./user-timesheet/team-timesheet/team-all-timesheets-table/team-all-timesheets-table.component";
-import { TimesheetTimeEntryComponent } from "./timesheet-create-self/timesheet-time-entry/timesheet-time-entry.component";
 import { DateTimePickerComponent } from './helpers/date-time-picker/date-time-picker.component';
 import { TimesheetFormComponent } from './user-timesheet/my-timesheet/timesheet-form/timesheet-form.component';
 import { InfoTooltipComponent } from './helpers/shared/info-tooltip/info-tooltip.component';
@@ -349,7 +347,6 @@ registerLocaleData(localeGb);
     SafePipe,
     TravelConfigComponent,
     ReimbursmentConfigComponent,
-    TimesheetCreateSelfComponent,
     HrDashboardComponent,
     TimesheetConfigComponent,
     TeamEmployeeTimesheetViewComponent,
@@ -412,7 +409,7 @@ registerLocaleData(localeGb);
     TeamAllTimesheetsTableComponent,
     TimesheetFormComponent,
     InfoTooltipComponent,
-    RmgProjectComponent,
+    RmgProjectComponent
  
   ],
   imports: [
@@ -457,7 +454,6 @@ registerLocaleData(localeGb);
     MatSlideToggleModule,
     MatRadioModule,
     CalendarLegendComponent,
-    TimesheetTimeEntryComponent,
     DateTimePickerComponent,
     ToastrModule.forRoot({
       positionClass: 'toast-top-right',

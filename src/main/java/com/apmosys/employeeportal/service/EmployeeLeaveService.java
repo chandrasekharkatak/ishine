@@ -7,6 +7,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.Period;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
@@ -27,8 +28,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 
+import com.apmosys.employeeportal.dto.*;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.model.*;
+import de.danielbechler.util.Exceptions;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,11 +40,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import com.apmosys.employeeportal.dto.EmployeeDTO;
-import com.apmosys.employeeportal.dto.HolidayDTO;
-import com.apmosys.employeeportal.dto.LeaveDTO;
-import com.apmosys.employeeportal.dto.LeaveExcludeIncludeDTO;
-import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.*;
@@ -1161,10 +1159,8 @@ public class EmployeeLeaveService {
                     if (existingTimeSheet != null && !existingTimeSheet.isEmpty()) {
                         for (EmployeeTimesheetsNew ts : existingTimeSheet) {
                             Long currentTsId = ts.getTimesheetId();
-                            employeeTimesheetActivitiesMappingNewRepository.deleteByTimesheetId(currentTsId);
-                            projectTimesheetStatusNewRepository.deleteByTimesheetId(currentTsId);
-                            employeeTimesheetLocationMappingRepository.deleteByTimesheetId(currentTsId);
-                            employeeTimesheetsNewRepository.deleteById(currentTsId);                  }
+                            employeeTimesheetsNewRepository.cleanTimesheetById(currentTsId);
+                        }
                     }
                     entityManager.flush();
                 }
@@ -1175,7 +1171,9 @@ public class EmployeeLeaveService {
                             || Objects.equals(leaveDTO.getToDateDayType(), 0.5);
 
                     if (!isHalfDay) {
-                        saveRelationalLeaveTimesheet(leaveDTO, fromDate);
+                        LocalDateTime startOfDay = fromDate.atStartOfDay();
+                        LocalDateTime endOfDay = fromDate.atTime(LocalTime.MAX);
+                        saveRelationalLeaveTimesheet(leaveDTO, fromDate,startOfDay, endOfDay);
                     }
                 } else {
                         LocalDate tempDateToday = fromDate;
@@ -1194,7 +1192,9 @@ public class EmployeeLeaveService {
                                     }
                                 }
                                 if (!isHoliday) {
-                                    saveRelationalLeaveTimesheet(leaveDTO, tempDateToday);
+                                	LocalDateTime startOfThisDay = tempDateToday.atStartOfDay();
+                                    LocalDateTime endOfThisDay = tempDateToday.atTime(LocalTime.MAX);
+                                    saveRelationalLeaveTimesheet(leaveDTO, tempDateToday, startOfThisDay, endOfThisDay);                                   
                                 }
                             }
                             tempDateToday = tempDateToday.plusDays(1);
@@ -1234,8 +1234,8 @@ public class EmployeeLeaveService {
         return response;
     }
 
-    private void saveRelationalLeaveTimesheet(LeaveDTO leaveDTO, LocalDate date) {
-       
+    private void saveRelationalLeaveTimesheet(LeaveDTO leaveDTO, LocalDate date,LocalDateTime startOfDay, LocalDateTime endOfDay) {
+        try {
         EmployeeTimesheetsNew tsHeader = new EmployeeTimesheetsNew();
         tsHeader.setEmpId(leaveDTO.getEmpId());
         tsHeader.setDate(date);
@@ -1264,21 +1264,29 @@ public class EmployeeLeaveService {
 
         
         LocalDateTime dateTime = date.atStartOfDay();
-        List<Integer> assignedProjectIds = employeeTeamMapRepository.findActiveProjectIdsByEmpIdAndDate(leaveDTO.getEmpId(), dateTime);
+        List<ProjectNameAndPrjoectIdDTO> projectDTOList = timesheetsRepository.getProjectListForDateAndEmpId(
+                leaveDTO.getEmpId(), startOfDay, endOfDay);
 
-        if (assignedProjectIds != null && !assignedProjectIds.isEmpty()) {
-            for (Integer projectId : assignedProjectIds) {
-                ProjectTimesheetDTO projectDTO = new ProjectTimesheetDTO();
-                projectDTO.setTimesheetId(newTsId);
-                projectDTO.setLocationMappingId(locMapping.getLocationMappingId());
-                projectDTO.setProjectId(projectId);
-                projectDTO.setStatus(2);
-                projectDTO.setActivities(null); 
+        if (projectDTOList != null && !projectDTOList.isEmpty()) {
+            for (ProjectNameAndPrjoectIdDTO projDto : projectDTOList) {
+                try {
+                    ProjectTimesheetDTO projectDTO = new ProjectTimesheetDTO();
+                    projectDTO.setTimesheetId(newTsId);
+                    projectDTO.setLocationMappingId(locMapping.getLocationMappingId());
+                    projectDTO.setProjectId(projDto.getProjectId());
+                    projectDTO.setStatus(2);
+                    projectDTO.setActivities(null);
 
-                projectTimesheetService.create(newTsId, projectDTO, leaveDTO.getCreatedBy());
-            }
+                    projectTimesheetService.create(newTsId, projectDTO, leaveDTO.getCreatedBy());
+                    }catch(Exception e){
+                        System.err.println("Failed to create project status for Project ID: " + projDto.getProjectId());
+                        throw new RuntimeException("Error creating project-level timesheet status", e);
+                    }
+                }
+
+
         } else {
-             
+             try{
             ProjectTimesheetDTO defaultProject = new ProjectTimesheetDTO();
             defaultProject.setTimesheetId(newTsId);
             defaultProject.setLocationMappingId(locMapping.getLocationMappingId());
@@ -1286,10 +1294,16 @@ public class EmployeeLeaveService {
             defaultProject.setStatus(2);
             defaultProject.setActivities(null);
             projectTimesheetService.create(newTsId, defaultProject, leaveDTO.getCreatedBy());
+             } catch (Exception e) {
+                 throw new RuntimeException("Error creating default project timesheet", e);
+             }
         }
-    
+        } catch (Exception e) {
+            throw e;
+        }
     }
-
+    
+    
     public List<Long> getAllTeamMemberView(Long empId) {
 //	    LocalDate d xate = LocalDate.now().minusDays(Long.parseLong(timesheetCheckPeriod));
 	    List<Object[]> list = employeeRepository.getAllTeamMemberView(empId);

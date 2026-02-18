@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.transaction.Transactional;
 
@@ -18,6 +19,7 @@ public interface FinalDocumentNewRepository extends JpaRepository<FinalDocumentN
     @Query("SELECT fd FROM FinalDocumentNew fd WHERE fd.projectId = :projectId")
     List<FinalDocumentNew> findByProjectId(@Param("projectId") Long projectId);
     
+
     @Query("SELECT fdn from FinalDocumentNew fdn \n"+
         "INNER JOIN TimesheetDocumentDetailsNew tdd on tdd.bulkApprovedDocId = fdn.finalDocId \n"+
         "WHERE tdd.projectId = :projectId and tdd.timesheetId in :timesheetIds and tdd.finalFlag = true \n"+
@@ -27,5 +29,6 @@ public interface FinalDocumentNewRepository extends JpaRepository<FinalDocumentN
 				@Param("timesheetIds") List<Long> timesheetIds,
                 @Param("projectId") Integer projectId
 			);
+
 	
  }

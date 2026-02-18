@@ -5188,7 +5188,7 @@ public class TeamsService {
                         .findByNextPOAndProjectIdAndActiveTrue(renewedPoId, projectId).orElse(null);
 		
 		 if (previousPo == null) {
-			 throw new RuntimeException("No Previous Po found for the renewed po");
+			 return;
 	        }
 		 
 		 Long previousPoId = previousPo.getPoId();

@@ -144,10 +144,18 @@ public class TimesheetMapper {
         dto.setTimesheetId(entity.getId().getTimesheetId());
         dto.setProjectId(entity.getId().getProjectId());
         dto.setPoNo(entity.getPoNo());
+        dto.setPoId(entity.getPoId());
         dto.setClientApprovalStatus(entity.getClientApprovalStatus());
         dto.setStatus(entity.getStatus());
         dto.setShadowEmpId(entity.getShadowEmpId());
         dto.setTotalClientWorkingMinutes(entity.getTotalClientWorkingMinutes());
+        // Map clientLocationId (int in entity -> long in DTO)
+        if (entity.getClientLocationId() != null) {
+            dto.setClientLocationId(entity.getClientLocationId().longValue());
+        }
+        // Map description and clientSideId so frontend can use them in update flow
+        dto.setDescription(entity.getDescription());
+        dto.setClientSideId(entity.getClientSideId());
         dto.setActivities(new ArrayList<>()); // Activities will be populated separately
 
         return dto;
@@ -168,11 +176,11 @@ public class TimesheetMapper {
 
         EmployeeTimesheetActivitiesMappingNew entity = new EmployeeTimesheetActivitiesMappingNew();
         
-        // Set composite key
+        // New inserts: do NOT set id - let JPA generate (IDENTITY). Using dto.getId() from
+        // existing rows causes insert failures after delete-replace during update.
         entity.setTimesheetId(timesheetId != null ? timesheetId : dto.getTimesheetId());
         entity.setActivityId(dto.getActivityId());
         entity.setProjectId(projectId != null ? projectId : dto.getProjectId());
-        entity.setId(dto.getId());
         entity.setLocationMappingId(locationMappingId);
 
         entity.setDescription(dto.getDescription());

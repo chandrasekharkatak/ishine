@@ -5,7 +5,8 @@
 	import java.time.format.DateTimeFormatter;
 	import java.util.ArrayList;
 	import java.util.Collections;
-	import java.util.HashMap;
+import java.util.Comparator;
+import java.util.HashMap;
 	import java.util.List;
 	import java.util.Map;
 	import java.util.Objects;
@@ -1389,7 +1390,13 @@ import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 	                        payload.getDate(),
 	
 	                        payload.getSearch(),
-	
+	                        payload.getWorkCheckIn(),
+                            payload.getWorkCheckOut(),
+                            payload.getLocationCount(),
+                            payload.getProjectCount(),
+                            payload.getAppliedBy(),
+                            payload.getAppliedOn(),
+                            payload.getStatus(),
 	                        pageable
 	                );
 	
@@ -1459,63 +1466,183 @@ import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 	    
 	  
 	//  New API
-	 public ServiceResponse getMyReporteesTimesheetRequestsNew(
-	         GetMyReporteesTimesheetRequestsPayload payload) {
-	
-	     ServiceResponse response = new ServiceResponse();
-	
-	     // 1️⃣ Pageable create
-	     Pageable pageable = PageRequest.of(
-	             payload.getPage(),
-	             payload.getSize()
-	     );
-	
-	     // 2️⃣ Repository call (same query)
-	     Page<GetReporteesTimesheetReqFlatDTO> pageData =
-	             employeeTimesheetsNewRepository
-	                     .getMyReporteesTimesheetRequests(
-	                             payload.getEmpId(),
-	                             payload.getClientFilter(),
-	
-	                             payload.getEmploymentId(),
-	                             payload.getEmployeeName(),
-	                             payload.getDayType(),
-	                             payload.getProjectName(),
-	                             payload.getClientName(),
-	                             payload.getClientLocation(),
-	                             payload.getPoNo(),
-	                             payload.getShadowEmpName(),
-	                             payload.getTeamName(),
-	                             payload.getActivity(),
-	                             payload.getDate(),
-	
-	                             payload.getSearch(),
-//	                             payload.getSortBy(),
-//	                             payload.getSortDir(),
-	                             pageable
-	                     );
-	
-	     // 3️⃣ Flat → UI DTO
-	     List<GetReporteesTimesheetReqDTO> data =
-	             timesheetMapper.map(pageData.getContent());
-	
-	     // 4️⃣ FE-friendly pagination response
-	     Map<String, Object> result = new HashMap<>();
-	     result.put("content", data);
-	     result.put("page", pageData.getNumber());
-	     result.put("size", pageData.getSize());
-	     result.put("totalElements", pageData.getTotalElements());
-	     result.put("totalPages", pageData.getTotalPages());
-	     result.put("isLast", pageData.isLast());
-	
-	     response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	     response.setServiceResponse(result);
-	     return response;
-	 }
-	
-	  
-	
-	    
-	    
+public ServiceResponse getMyReporteesTimesheetRequestsNew(GetMyReporteesTimesheetRequestsPayload payload) {
+
+    ServiceResponse response = new ServiceResponse();
+
+    try {
+
+        // ---------- VALIDATION ----------
+        if (payload == null || payload.getEmpId() == null) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse("Employee information is required");
+            return response;
+        }
+
+        boolean clientFilter = Boolean.TRUE.equals(payload.getClientFilter());
+
+        // ---------- SAFE PAGE ----------
+        int page = (payload.getPage() != null && payload.getPage() >= 0)
+                ? payload.getPage()
+                : 0;
+
+        int size = (payload.getSize() != null && payload.getSize() > 0)
+                ? payload.getSize()
+                : 10;
+
+        // ---------- SORT ----------
+        String sortBy = payload.getSortBy();
+        String sortDir = payload.getSortDir();
+
+        Sort.Direction direction =
+                "ASC".equalsIgnoreCase(sortDir)
+                        ? Sort.Direction.ASC
+                        : Sort.Direction.DESC;
+
+        String sortExpr;
+
+        if (sortBy == null || sortBy.isBlank()) {
+            sortExpr = "createdOn";
+        } else if ("employeeName".equals(sortBy)) {
+            sortExpr = "e.name";
+        } else if ("employeementId".equals(sortBy)) {
+        	sortExpr = "e.employeementId";
+        } else if ("dayType".equals(sortBy)) {
+            sortExpr = "dtmn.dayType";
+        }else if ("workCheckIn".equals(sortBy)) {
+
+            sortExpr = "workCheckIn";
+
+        } else if ("workCheckOut".equals(sortBy)) {
+
+            sortExpr = "workCheckOut";
+
+        }else if ("locationCount".equals(sortBy)) {
+
+            sortExpr = "COUNT(DISTINCT etlm.locationMappingId)";
+
+        }  else if ("date".equals(sortBy)) {
+            sortExpr = "date";
+        } else if ("appliedOn".equals(sortBy)) {
+            sortExpr = "createdOn";
+        } else if ("projectName".equals(sortBy)) {
+            sortExpr = "p.projectName";
+        } else if ("clientName".equals(sortBy)) {
+            sortExpr = "c.clientName";
+        } else if ("projectCount".equals(sortBy)) {
+
+            sortExpr = "COUNT(DISTINCT ptsn.id.projectId)";
+
+        } else if ("appliedBy".equals(sortBy)) {
+
+            sortExpr = "ab.name";
+
+        }else if ("appliedOn".equals(sortBy)) {
+
+            sortExpr = "etn.createdOn";
+
+        } else if ("teamName".equals(sortBy)) {
+            sortExpr = "t.teamName";
+        } else {
+            sortExpr = "createdOn";
+        }
+        System.out.println("SORT BY: " + sortBy);
+        System.out.println("SORT EXPR: " + sortExpr);
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                JpaSort.unsafe(direction, sortExpr)
+        );
+//        timesheet id list (pagable); 10 timesheet id
+        Page<Long> timesheetPage =
+                employeeTimesheetsNewRepository.getPagedTimesheetIds(
+                        payload.getEmpId(),
+                        clientFilter,
+                        payload.getEmploymentId(),
+                        payload.getEmployeeName(),
+                        payload.getDayType(),
+                        payload.getProjectName(),
+                        payload.getClientName(),
+                        payload.getClientLocation(),
+                        payload.getPoNo(),
+                        payload.getShadowEmpName(),
+                        payload.getTeamName(),
+                        payload.getActivity(),
+                        payload.getDate(),
+                        payload.getSearch(),
+                        payload.getWorkCheckIn(),
+                        payload.getWorkCheckOut(),
+                        payload.getLocationCount(),
+                        payload.getProjectCount(),
+                        payload.getAppliedBy(),
+                        payload.getAppliedOn(),
+                        payload.getStatus(),
+                        pageable
+                );
+
+
+        List<Long> timesheetIds = timesheetPage.getContent();
+
+
+        // ---------- REPO CALL ----------
+        List<GetReporteesTimesheetReqFlatDTO> pageResult =
+                employeeTimesheetsNewRepository.getTimesheetDetailsByIds(
+                		timesheetIds, payload.getStatus()
+                );
+
+        // ---------- EMPTY ----------
+        if (pageResult == null || pageResult.isEmpty()) {
+
+            Map<String, Object> empty = new HashMap<>();
+            empty.put("content", Collections.emptyList());
+            empty.put("page", page);
+            empty.put("size", size);
+            empty.put("totalElements", 0);
+            empty.put("totalPages", 0);
+            empty.put("hasNext", false);
+
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+            response.setServiceResponse(empty);
+            return response;
+        }
+     // Preserve order based on paginated IDs
+        Map<Long, Integer> orderMap = new HashMap<>();
+        for (int i = 0; i < timesheetIds.size(); i++) {
+            orderMap.put(timesheetIds.get(i), i);
+        }
+
+        pageResult.sort(Comparator.comparingInt(
+                dto -> orderMap.get(dto.getTimesheetId())
+        ));
+
+
+     // ---------- MAP ----------
+        List<GetReporteesTimesheetReqDTO> mapped =
+                timesheetMapper.map(pageResult);
+
+        // ---------- FINAL RESPONSE ----------
+        Map<String, Object> finalResponse = new HashMap<>();
+        finalResponse.put("content", mapped);
+        finalResponse.put("page", timesheetPage.getNumber());
+        finalResponse.put("size", timesheetPage.getSize());
+        finalResponse.put("totalElements", timesheetPage.getTotalElements());
+        finalResponse.put("totalPages", timesheetPage.getTotalPages());
+        finalResponse.put("hasNext", timesheetPage.hasNext());
+
+        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        response.setServiceResponse(finalResponse);
+
+    } catch (Exception ex) {
+
+        ex.printStackTrace();
+
+        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+        response.setServiceResponse("Failed to fetch timesheet requests");
+        response.setServiceError(ex.getMessage());
+    }
+
+    return response;
+}
 	}
 	
