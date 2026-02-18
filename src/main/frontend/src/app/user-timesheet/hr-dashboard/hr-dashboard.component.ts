@@ -559,12 +559,17 @@ isGlobalPoDropdownOpen = false;
     return project && project.projectName ? project.projectName : '';
   }
   filterEmployees(searchText: string) {
-    const lowerText = (searchText || '').toLowerCase();
-    return this.employeeList.filter(emp =>
-      emp.name.toLowerCase().includes(lowerText) ||
-      emp.employmentId.toLowerCase().includes(lowerText)
-    );
+  if (!searchText) {
+    return this.employeeList.slice();
   }
+
+  const lowerText = searchText.toLowerCase();
+
+  return this.employeeList.filter(emp =>
+    emp.name?.toLowerCase().includes(lowerText) ||
+    emp.employmentId?.toLowerCase().includes(lowerText)
+  );
+}
   filterProject(searchText: string) {
     const lowerText = (searchText || '').toLowerCase();
     return this.projectList.filter(emp => {
