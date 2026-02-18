@@ -731,10 +731,10 @@
             </tr>
            <tr app-column-filter-bar
     *ngIf="isSearchEnabled"
-    [columnList]="selectedStatus === 1 
-        ? allTimesheetColumnsVMS 
+    [columnList]="selectedStatus === 1
+        ? allTimesheetColumnsVMS
         : allTimesheetColumnsVMSStatusChange"
-    (onSearch)="onSearch($event); page1 = 0">
+    (onSearch)="onSearch($event);" >
 </tr>
 
           </thead>
@@ -879,7 +879,7 @@
   <span class="badge filled"
         [class.disabled]="!hasPendingDoc(p.projectId) && !hasApprovedDoc(p.projectId)">
 
-    
+
     <small *ngIf="getFilledStatus(p.projectId)">
       ({{ getFilledStatus(p.projectId) }})
     </small>
@@ -922,7 +922,7 @@
     frameborder="0">
   </iframe>
 
- 
+
   <div *ngIf="!safePdfUrl" class="no-doc-msg">
     No document available
   </div>
@@ -1629,8 +1629,8 @@
 
               </mat-select> -->
               <app-my-select #filterActiveReportees class="form-control" placeholder="Select Reportee"
-                [(ngModel)]="timesheetObj.empIds" 
-                  [options]="getReporteesFromProjectId()" 
+                [(ngModel)]="timesheetObj.empIds"
+                  [options]="getReporteesFromProjectId()"
                   displayKey="name" valueKey="empId" [multiple]="true"
                   (selectionChange)="onReporteeChange($event)">
               </app-my-select>
