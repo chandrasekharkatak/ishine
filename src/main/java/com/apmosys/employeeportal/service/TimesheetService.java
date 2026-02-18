@@ -8962,7 +8962,7 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	            month = requestDTO.getMonth();
 	        }
 
-	        List<Object[]> data = timesheetsRepository.getDepartmentStatusSummary(
+	        List<Object[]> data = employeeTimesheetsNewRepository.getDepartmentStatusSummary(
 	                requestDTO.getEmpId(),
 	                month,
 	                requestDTO.getYear(),
@@ -9007,8 +9007,8 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	        apiLogInfo.setApiResponse("Fetched " + result.size() + " department record(s).");
 
 	    } catch (IllegalArgumentException ex) {
-
-	        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	    	ex.printStackTrace();
+	    	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 	        response.setServiceMessage(ex.getMessage());
 	        response.setServiceError(ex.toString());
 
