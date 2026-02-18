@@ -451,5 +451,28 @@ public class EmployeeTimesheetControllerNew {
 		 ServiceResponse reponse= timesheetServiceNew.getMyReporteesAndClientSideProjectsInMonthYear(timesheetDTO);
 		 return reponse;
 	}
+	
+	/* The changes have been made in EmployeeTimesheetsNewRepository for the project view 
+	 * Similarly in TimesheetDashboardService for the following method
+	 * and the same controller is present in TimesheetController pointing to timesheetService(old)
+	 * 
+	 */
+	 @GetMapping(value = "/getTimesheetDashboardCountForProject")
+	 public ServiceResponse getTimesheetDashboardCountForProject(@RequestParam Integer month, @RequestParam Integer year,@RequestParam Long empId,
+			 @RequestParam Boolean isClientDashboard,@RequestParam List<String> billableType,@RequestParam String projectActive) {  
+		 ServiceResponse reponse= timesheetServiceNew.getTimesheetDashboardCountForProject(month,year,empId,isClientDashboard,billableType,projectActive);
+		  return reponse;
+	 }
+	
+	 /* The Required changes have been made in repository methods 
+	  * 
+	  * */
+	 @PostMapping(value = "/getProjectViewForClientAttendanceStatus")
+	 public ServiceResponse getProjectViewForClientAttendanceStatus(@RequestBody TimesheetDTO timesheetDTO) {
+
+		 ServiceResponse reponse= timesheetServiceNew.getProjectViewForClientAttendanceStatus(timesheetDTO);
+	     return reponse;
+	     
+	 }
 }
 
