@@ -5,7 +5,8 @@
 	import java.time.format.DateTimeFormatter;
 	import java.util.ArrayList;
 	import java.util.Collections;
-	import java.util.HashMap;
+import java.util.Comparator;
+import java.util.HashMap;
 	import java.util.List;
 	import java.util.Map;
 	import java.util.Objects;
@@ -1504,11 +1505,23 @@ public ServiceResponse getMyReporteesTimesheetRequestsNew(GetMyReporteesTimeshee
             sortExpr = "createdOn";
         } else if ("employeeName".equals(sortBy)) {
             sortExpr = "e.name";
-        } else if ("employmentId".equals(sortBy)) {
-            sortExpr = "e.employeementId";
+        } else if ("employeementId".equals(sortBy)) {
+        	sortExpr = "e.employeementId";
         } else if ("dayType".equals(sortBy)) {
             sortExpr = "dtmn.dayType";
-        } else if ("date".equals(sortBy)) {
+        }else if ("workCheckIn".equals(sortBy)) {
+
+            sortExpr = "workCheckIn";
+
+        } else if ("workCheckOut".equals(sortBy)) {
+
+            sortExpr = "workCheckOut";
+
+        }else if ("locationCount".equals(sortBy)) {
+
+            sortExpr = "COUNT(DISTINCT etlm.locationMappingId)";
+
+        }  else if ("date".equals(sortBy)) {
             sortExpr = "date";
         } else if ("appliedOn".equals(sortBy)) {
             sortExpr = "createdOn";
@@ -1516,11 +1529,25 @@ public ServiceResponse getMyReporteesTimesheetRequestsNew(GetMyReporteesTimeshee
             sortExpr = "p.projectName";
         } else if ("clientName".equals(sortBy)) {
             sortExpr = "c.clientName";
+        } else if ("projectCount".equals(sortBy)) {
+
+            sortExpr = "COUNT(DISTINCT ptsn.id.projectId)";
+
+        } else if ("appliedBy".equals(sortBy)) {
+
+            sortExpr = "ab.name";
+
+        }else if ("appliedOn".equals(sortBy)) {
+
+            sortExpr = "etn.createdOn";
+
         } else if ("teamName".equals(sortBy)) {
             sortExpr = "t.teamName";
         } else {
             sortExpr = "createdOn";
         }
+        System.out.println("SORT BY: " + sortBy);
+        System.out.println("SORT EXPR: " + sortExpr);
 
         Pageable pageable = PageRequest.of(
                 page,
@@ -1579,6 +1606,16 @@ public ServiceResponse getMyReporteesTimesheetRequestsNew(GetMyReporteesTimeshee
             response.setServiceResponse(empty);
             return response;
         }
+     // Preserve order based on paginated IDs
+        Map<Long, Integer> orderMap = new HashMap<>();
+        for (int i = 0; i < timesheetIds.size(); i++) {
+            orderMap.put(timesheetIds.get(i), i);
+        }
+
+        pageResult.sort(Comparator.comparingInt(
+                dto -> orderMap.get(dto.getTimesheetId())
+        ));
+
 
      // ---------- MAP ----------
         List<GetReporteesTimesheetReqDTO> mapped =

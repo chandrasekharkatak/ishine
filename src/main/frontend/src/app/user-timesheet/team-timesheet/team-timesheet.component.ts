@@ -453,10 +453,13 @@ this.items = event.pageSize;
 
 sortData(sort: Sort) {
   if (!sort.active || sort.direction === '') return;
-
-  this.sortColumn = sort.active;
+ if (sort.active === 'employmentId') {
+    this.sortColumn = 'employeementId'; // raw DB column
+  } else {
+    this.sortColumn = sort.active;
+  }
   this.sortDirection = sort.direction.toUpperCase() as 'ASC' | 'DESC';
-  this.page1 = 1;
+  this.page1 = 0;
   this.getMyReporteesTimesheetRequests();
 }
 
@@ -915,7 +918,7 @@ sortData(sort: Sort) {
   }
   onSearch(searchData: any) {
     this.filters = searchData;   // 🔥 column wise values
-    this.page1 = 1;
+    this.page1 = 0;
     this.getMyReporteesTimesheetRequests();
   }
 
@@ -2433,7 +2436,7 @@ projectList: any[] = [];
 
           this.clearAllSelections();
           this.selectedStatus = 2;
-          this.page1 = 1;
+          this.page1 = 0;
           this.getMyReporteesTimesheetRequests();
           this.getTimesheetStatusCountsByEmpId();
           this.modalMessage =message;
@@ -2561,7 +2564,7 @@ approveSingleTimesheet(timesheet: any) {
 
           this.clearAllSelections();
           this.selectedStatus = 2;
-          this.page1 = 1;
+          this.page1 = 0;
 
           this.getMyReporteesTimesheetRequests();
           this.getTimesheetStatusCountsByEmpId();
@@ -2974,7 +2977,7 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
           }
 
           this.modalRef?.close();
-          this.page1 = 1;
+          this.page1 = 0;
 
           this.getMyReporteesTimesheetRequests();
           this.getTimesheetStatusCountsByEmpId();
@@ -3048,7 +3051,7 @@ isRejectFormValid(): boolean {
 
 
 onClientFilterChange() {
-  this.page1 = 1;
+  this.page1 = 0;
   this.getMyReporteesTimesheetRequests();
   this.getTimesheetStatusCountsByEmpId();
 }
