@@ -99,24 +99,90 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row" *ngIf="(question.optionType == 'checkbox' || question.optionType == 'radio')" >
-                        <div class="col-md-12" *ngFor="let option of question.optionsList; let i = index">
-                            <div class="row">
-                                <div class="col-md-4 mb-0">
-                                    <div class="info-wrapper">
-                                        <div class="form-group">
-                                            <label class="info-label">option - {{i+1}}</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="option.optionValue">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 pt-4 mt-2">
-                                    <button type="button" class="btn btn-outline-primary mx-1" (click)="addOption(i, question)"><i class="fa fa-plus" aria-hidden="true"></i></button>
-                                    <button *ngIf="question.optionsList.length>1" type="button" class="btn btn-outline-primary mx-1" (click)="removeOption(i, question)"><i class="fa fa-trash" aria-hidden="true"></i></button>
-                                </div>
-                            </div>
-                        </div>
+                 <div class="row"
+     *ngIf="(question.optionType == 'checkbox' || question.optionType == 'radio')">
+
+    
+    <div class="col-md-7">
+
+        <div class="row"
+             *ngFor="let option of question.optionsList; let i = index">
+
+            
+            <div class="col-md-8 mb-2">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label">Option - {{i + 1}}</label>
+                        <input type="text"
+                               class="form-control"
+                               [(ngModel)]="option.optionValue"
+                               autocomplete="off">
                     </div>
+                </div>
+            </div>
+
+            <!-- Add / Remove Buttons -->
+            <div class="col-md-4 pt-4">
+                <button type="button"
+                        class="btn btn-outline-primary mx-1"
+                        (click)="addOption(i, question)">
+                    <i class="fa fa-plus"></i>
+                </button>
+
+                <button *ngIf="question.optionsList.length > 1"
+                        type="button"
+                        class="btn btn-outline-danger mx-1"
+                        (click)="removeOption(i, question)">
+                    <i class="fa fa-trash"></i>
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Correct Answer  -->
+    <div class="col-md-5"
+         *ngIf="isFromTraining && question.optionType == 'radio'">
+
+        <div class="info-wrapper p-3"
+             style="background-color:#f8f9fa; border-radius:5px; border:1px solid #e9ecef;">
+
+            <div class="form-group mb-2">
+                <label class="info-label text-success font-weight-bold">
+                    <span class="text-danger">*</span> Correct Answer
+                </label>
+
+                <select class="form-control" [(ngModel)]="question.correctOptionIndex"
+                       >
+
+                    <option [ngValue]="undefined" disabled>
+                        Select Correct Option
+                    </option>
+
+                    <option *ngFor="let opt of question.optionsList; let optIndex = index"
+                            [ngValue]="optIndex">
+                        Option - {{optIndex + 1}}
+                    </option>
+
+                </select>
+            </div>
+
+            <div class="form-group mb-0">
+                <input type="text"
+                       class="form-control bg-white"
+                       readonly
+                       [value]="question.correctOptionIndex !== undefined ? question.optionsList[question.correctOptionIndex]?.optionValue : ''"
+                       placeholder="Selected answer will appear here...">
+            </div>
+
+        </div>
+
+    </div>
+     <!-- Correct Answer  -->
+
+</div>
+
                     <div *ngIf="question.optionType == 'text'" class="row">
                         <div class="col-md-4 mb-0">
                             <div class="info-wrapper">

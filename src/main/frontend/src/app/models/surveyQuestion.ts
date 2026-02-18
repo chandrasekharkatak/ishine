@@ -8,6 +8,7 @@ export class SurveyQuestion{
     description:any;
     response:any;
 
+    correctOptionIndex?: number;
     name:any;
 	employeementId:any;
     employmentIdAccToET:any;
