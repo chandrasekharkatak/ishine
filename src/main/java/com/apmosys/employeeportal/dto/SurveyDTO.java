@@ -34,5 +34,6 @@ public class SurveyDTO {
     private Integer contentId;
     private Boolean isMandatory;
     private Boolean mustPassToComplete;
+	private Integer cycleNumber;
 	
 }

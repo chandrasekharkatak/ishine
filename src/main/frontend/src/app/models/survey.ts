@@ -21,4 +21,5 @@ export class Survey {
     contentId?: number;
     isMandatory?: boolean;
     mustPassToComplete?: boolean;
+    cycleNumber?: number;
 }

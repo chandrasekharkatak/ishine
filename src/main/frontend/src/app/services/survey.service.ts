@@ -28,11 +28,14 @@ export class SurveyService {
         return this.http.post(`${this.baseUrl}` + `api/changeSurveyStatus`, surveyObj);
     }
 
-    getAllSurveys(trainingId?: number) {
+    getAllSurveys(trainingId?: number, type: string = null) {
      let params: any = {};
    
      if (trainingId) {
             params.trainingId = trainingId;
+          }
+     if (type) {
+            params.type = type;
           }
         
        return this.http.get(`${this.baseUrl}api/getAllSurveys`, { params });
@@ -51,8 +54,12 @@ export class SurveyService {
         return this.http.post(`${this.baseUrl}` + `api/getAnsweredSurveysByEmpId`, surveyObj);
     }
 
-    getSurveyResponseByEmpIdAndSurveyId(surveyObj: Survey) {
-        return this.http.post(`${this.baseUrl}` + `api/getSurveyResponseByEmpIdAndSurveyId`, surveyObj);
+    getSurveyResponseByEmpIdAndSurveyId(surveyObj: Survey, isQuizResponse: boolean = false) {
+        let params: any = {};
+        if (isQuizResponse) {
+            params.isQuizResponse = isQuizResponse;
+        }
+        return this.http.post(`${this.baseUrl}` + `api/getSurveyResponseByEmpIdAndSurveyId`, surveyObj, { params });
     }
 
     getSurveyAllResponsesBySurveyId(surveyObj: Survey) {
@@ -84,4 +91,9 @@ export class SurveyService {
         return this._surveyObj;
 
   }
+
+  getQuizQuestionByTrainingId(trainingId: number) {
+    return this.http.get(`${this.baseUrl}api/training/getQuizQuestionByTrainingId/${trainingId}`);
+  }
+
 }

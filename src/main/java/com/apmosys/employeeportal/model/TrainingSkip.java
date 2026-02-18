@@ -29,6 +29,9 @@ public class TrainingSkip {
 	@ManyToOne
 	@JoinColumn(name = "training_id", nullable = false)
 	private TrainingMaster trainingMaster;
+
+	@Column(name = "quiz_id")
+	private Long quizId;
 	
 	@Column(name = "emp_id", nullable = false)
 	private Long empId;

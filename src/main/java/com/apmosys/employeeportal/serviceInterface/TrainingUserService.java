@@ -58,4 +58,7 @@ public interface TrainingUserService {
 	 * @return ServiceResponse containing training requirements status
 	 */
 	ServiceResponse checkTrainingRequirements(Long empId);
+
+	ServiceResponse getQuizQuestionByTrainingId(Integer trainingId);
+
 }

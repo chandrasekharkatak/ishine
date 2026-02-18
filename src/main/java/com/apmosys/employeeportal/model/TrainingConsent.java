@@ -33,6 +33,9 @@ public class TrainingConsent {
 	@ManyToOne
 	@JoinColumn(name = "content_id", nullable = false)
 	private TrainingContent trainingContent;
+
+	@Column(name = "quiz_id")
+	private Long quizId;
 	
 	@Column(name = "emp_id", nullable = false)
 	private Long empId;

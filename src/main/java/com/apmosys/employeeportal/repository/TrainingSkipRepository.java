@@ -16,9 +16,11 @@ public interface TrainingSkipRepository extends JpaRepository<TrainingSkip, Long
 	
 	@Query("SELECT ts FROM TrainingSkip ts WHERE ts.empId = :empId " +
 		   "AND ts.trainingMaster.trainingId = :trainingId " +
+		   "AND (:quizId IS NULL OR ts.quizId = :quizId ) \n"+
 		   "AND ts.cycleNumber = :cycleNumber")
 	Optional<TrainingSkip> findByEmpIdAndTrainingIdAndCycleNumber(@Param("empId") Long empId,
 																   @Param("trainingId") Integer trainingId,
+																   @Param("quizId") Long quizId,
 																   @Param("cycleNumber") Integer cycleNumber);
 	
 	@Query("SELECT ts FROM TrainingSkip ts WHERE ts.empId = :empId " +

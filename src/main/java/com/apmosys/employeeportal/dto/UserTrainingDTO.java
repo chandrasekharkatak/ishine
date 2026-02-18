@@ -28,4 +28,5 @@ public class UserTrainingDTO {
 	private String skipAllowed;
 	private Date lastCompletedOn;
 	private Integer skipCount;
+	private Boolean hasQuiz;
 }

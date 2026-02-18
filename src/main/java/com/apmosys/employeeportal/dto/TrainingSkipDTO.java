@@ -18,4 +18,5 @@ public class TrainingSkipDTO {
 	private Integer skipCount;
 	private String firstSkippedOn;
 	private String lastSkippedOn;
+	private Long quizId;
 }

@@ -10,21 +10,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.apmosys.employeeportal.dto.LockStatusDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.SurveyDTO;
 import com.apmosys.employeeportal.dto.SurveyQuestionDTO;
+import com.apmosys.employeeportal.model.EmployeeQuizResponseStatusMapping;
 import com.apmosys.employeeportal.model.Survey;
 import com.apmosys.employeeportal.model.SurveyEmployeeResponse;
 import com.apmosys.employeeportal.model.SurveyQuestion;
+import com.apmosys.employeeportal.model.TrainingConsent;
 import com.apmosys.employeeportal.model.TrainingContent;
 import com.apmosys.employeeportal.model.TrainingMaster;
 import com.apmosys.employeeportal.model.TrainingQuizMapping;
+import com.apmosys.employeeportal.model.TrainingSkip;
+import com.apmosys.employeeportal.repository.EmployeeQuizResponseStatusMappingRepository;
 import com.apmosys.employeeportal.repository.SurveyEmployeeResponseRepository;
 import com.apmosys.employeeportal.repository.SurveyQuestionRepository;
 import com.apmosys.employeeportal.repository.SurveyRepository;
+import com.apmosys.employeeportal.repository.TrainingConsentRepository;
 import com.apmosys.employeeportal.repository.TrainingContentRepository;
 import com.apmosys.employeeportal.repository.TrainingMasterRepository;
 import com.apmosys.employeeportal.repository.TrainingQuizMappingRepository;
+import com.apmosys.employeeportal.repository.TrainingSkipRepository;
 import com.apmosys.employeeportal.serviceInterface.SurveyService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -61,6 +68,18 @@ public class SurveyServiceImpl implements SurveyService {
 	
 	@Autowired
 	private TrainingContentRepository trainingContentRepository;
+
+	@Autowired
+	private EmployeeQuizResponseStatusMappingRepository employeeQuizResponseStatusMappingRepository;
+
+	@Autowired
+	private TrainingConsentRepository trainingConsentRepository;
+
+	@Autowired
+	private TrainingSkipRepository trainingSkipRepository;
+
+	@Autowired
+	private TrainingUserServiceImpl trainingUserServiceImpl;
 
 	@Override
 	@Transactional
@@ -149,7 +168,7 @@ public class SurveyServiceImpl implements SurveyService {
 							mapping.setSurvey(newSurveyCreated);
 							mapping.setIsMandatory(surveyDTO.getIsMandatory() != null ? surveyDTO.getIsMandatory() : false);
 							mapping.setMustPassToComplete(surveyDTO.getMustPassToComplete() != null ? surveyDTO.getMustPassToComplete() : false);
-							mapping.setActiveStatus("true");
+							mapping.setActiveStatus("false");
 							mapping.setCreatedBy(surveyDTO.getCreatedBy());
 							
 							// Set content if provided
@@ -353,6 +372,7 @@ public class SurveyServiceImpl implements SurveyService {
 	}
 
 	@Override
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse setSurveyResponseByEmpId(SurveyDTO surveyDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -397,6 +417,84 @@ public class SurveyServiceImpl implements SurveyService {
 
 			List<SurveyEmployeeResponse> responseList = surveyEmployeeResponseRepository.saveAll(dtoList);
 
+			if(surveyDTO.getType().equalsIgnoreCase("quiz")){
+				
+				List<EmployeeQuizResponseStatusMapping> employeeQuizResponseStatusMappingList = new ArrayList<EmployeeQuizResponseStatusMapping>();
+				
+				for(SurveyEmployeeResponse sur: responseList){
+					EmployeeQuizResponseStatusMapping employeeQuizResponseStatusMapping = new EmployeeQuizResponseStatusMapping();
+					employeeQuizResponseStatusMapping.setCreatedBy(surveyDTO.getCreatedBy());
+					employeeQuizResponseStatusMapping.setEmployeeId(surveyDTO.getEmpId());
+					employeeQuizResponseStatusMapping.setQuizId(surveyDTO.getSurveyId());
+					employeeQuizResponseStatusMapping.setPassStatus("filled");
+					employeeQuizResponseStatusMapping.setResponseId(sur.getSurveyEmployeeResponseId());
+					employeeQuizResponseStatusMappingList.add(employeeQuizResponseStatusMapping);
+				}
+				
+				employeeQuizResponseStatusMappingRepository.saveAll(employeeQuizResponseStatusMappingList);
+
+				Optional<TrainingConsent> existingConsent = trainingConsentRepository.findByEmpIdAndTrainingIdAndContentIdAndQuizIdAndCycleNumber(
+					surveyDTO.getEmpId(),
+					surveyDTO.getTrainingId(),
+					surveyDTO.getContentId(),
+					surveyDTO.getSurveyId(),
+					surveyDTO.getCycleNumber()
+				);
+				
+				if (existingConsent.isPresent()) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Consent already submitted");
+					apiLogInfo.setApiResponse("Consent already exists");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					apiLogInfo.setApiRequest(logBuilder.toString());
+					logService.logMyInfo(httpRequest, apiLogInfo);
+					throw new Exception("Consent already submitted");
+				}
+
+				Optional<TrainingMaster> trainingOpt = trainingMasterRepository.findByTrainingId(surveyDTO.getTrainingId());
+				Optional<TrainingContent> contentOpt = trainingContentRepository.findByContentId(surveyDTO.getContentId());
+				
+				if (trainingOpt.isEmpty() || contentOpt.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Training or content not found");
+					apiLogInfo.setApiResponse("Training/content not found");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					apiLogInfo.setApiRequest(logBuilder.toString());
+					logService.logMyInfo(httpRequest, apiLogInfo);
+					throw new Exception("Training/content not found");
+				}
+				
+				TrainingConsent consent = new TrainingConsent();
+				consent.setTrainingMaster(trainingOpt.get());
+				consent.setTrainingContent(contentOpt.get());
+				consent.setEmpId(surveyDTO.getEmpId());
+				consent.setCompletionCycleNumber(surveyDTO.getCycleNumber());
+				consent.setCreatedBy(surveyDTO.getEmpId());
+				consent.setQuizId(surveyDTO.getSurveyId());
+				
+				trainingConsentRepository.save(consent);
+				
+				// Delete skip record if exists (use the same cycle number)
+				Optional<TrainingSkip> skipOpt = trainingSkipRepository.findByEmpIdAndTrainingIdAndCycleNumber(
+					surveyDTO.getEmpId(),
+					surveyDTO.getTrainingId(),
+					surveyDTO.getSurveyId(),
+					surveyDTO.getCycleNumber()
+				);
+				if (skipOpt.isPresent()) {
+					trainingSkipRepository.delete(skipOpt.get());
+				}
+				
+				// Check lock status
+				LockStatusDTO lockStatus = trainingUserServiceImpl.getLockStatusInternal(surveyDTO.getEmpId());
+				
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Consent submitted successfully");
+				response.setServiceMessage(lockStatus.getIsLocked().toString());
+				apiLogInfo.setApiResponse("Consent submitted successfully");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+
 			if (responseList.size() > 0)  {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Responses stored successfully.");
@@ -408,6 +506,7 @@ public class SurveyServiceImpl implements SurveyService {
 				response.setServiceResponse("No responses were stored.");
 				apiLogInfo.setApiResponse("No responses were stored");			
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				throw new Exception("No responses were stored");
 
 			}
 		} catch (Exception e) {
@@ -417,7 +516,6 @@ public class SurveyServiceImpl implements SurveyService {
 			response.setServiceError(e.getMessage());
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
-
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
@@ -491,38 +589,46 @@ public class SurveyServiceImpl implements SurveyService {
 		logBuilder.append("SurveyId : " + surveyDTO.getSurveyId());
 
 		try {
+			if(surveyDTO.getType().equalsIgnoreCase("quiz")){
+				surveyRepository.updateAllQuizByTrainingId(surveyDTO.getTrainingId(), surveyDTO.getSurveyId(), surveyDTO.getIsActive());
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Quiz status changed to " + surveyDTO.getIsActive());
+				apiLogInfo.setApiResponse("Quiz status changed to " + surveyDTO.getIsActive());			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				
+			} else {
 
-			Optional<Survey> surveyObject = surveyRepository.findById(surveyDTO.getSurveyId());
-			if (surveyObject.isPresent()) {
-				Survey surveyToBeDeleted = surveyObject.get();
-
-				surveyToBeDeleted.setIsActive(surveyDTO.getIsActive());
-				surveyToBeDeleted.setUpdatedBy(surveyDTO.getUpdatedBy());
-				surveyToBeDeleted.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
-
-				Survey surveyupdated = surveyRepository.save(surveyToBeDeleted);
-
-				if (surveyupdated.getSurveyId() != null) {
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Survey status changed.");
-					apiLogInfo.setApiResponse("Survey status changed");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-
-
+				Optional<Survey> surveyObject = surveyRepository.findById(surveyDTO.getSurveyId());
+				if (surveyObject.isPresent()) {
+					Survey surveyToBeDeleted = surveyObject.get();
+					
+					surveyToBeDeleted.setIsActive(surveyDTO.getIsActive());
+					surveyToBeDeleted.setUpdatedBy(surveyDTO.getUpdatedBy());
+					surveyToBeDeleted.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+					
+					Survey surveyupdated = surveyRepository.save(surveyToBeDeleted);
+					
+					if (surveyupdated.getSurveyId() != null) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Survey status changed.");
+						apiLogInfo.setApiResponse("Survey status changed");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+						
+						
+					} else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Failed to change status.");
+						apiLogInfo.setApiResponse("Failed to change status");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+						
+					}
+					
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Failed to change status.");
-					apiLogInfo.setApiResponse("Failed to change status");			
+					response.setServiceResponse("Survey Not Found.");
+					apiLogInfo.setApiResponse("Survey not found");			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-
 				}
-
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Survey Not Found.");
-				apiLogInfo.setApiResponse("Survey not found");			
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-
 			}
 
 		} catch (Exception e) {
@@ -539,7 +645,7 @@ public class SurveyServiceImpl implements SurveyService {
 	}
 
 	@Override
-	public ServiceResponse getSurveyResponseByEmpIdAndSurveyId(SurveyDTO surveyDTO) {
+	public ServiceResponse getSurveyResponseByEmpIdAndSurveyId(SurveyDTO surveyDTO, Boolean isQuizResponse) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		//apiLogInfo.setSubFeatureName("");
@@ -563,8 +669,15 @@ public class SurveyServiceImpl implements SurveyService {
 				return response;
 			}
 
-			List<Object[]> objectList = surveyEmployeeResponseRepository
+			List<Object[]> objectList = new ArrayList<>();
+
+			if(isQuizResponse){
+				objectList = surveyEmployeeResponseRepository
+					.getAllQuizResponsesByQuizIdAndEmpId(surveyDTO.getEmpId(), surveyDTO.getSurveyId());
+			}else{
+				objectList = surveyEmployeeResponseRepository
 					.getSurveyResponseByEmpIdAndSurveyId(surveyDTO.getEmpId(), surveyDTO.getSurveyId());
+			}
 
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
 
@@ -631,8 +744,15 @@ public class SurveyServiceImpl implements SurveyService {
 				return response;
 			}
 
-			List<Object[]> objectList = surveyEmployeeResponseRepository
-					.getSurveyAllResponsesBySurveyId(surveyDTO.getSurveyId());
+			List<Object[]> objectList = new ArrayList<>();
+
+			if(surveyDTO.getType().equalsIgnoreCase("quiz")){
+				objectList = surveyEmployeeResponseRepository
+						.getAllQuizResponsesByQuizId(surveyDTO.getSurveyId());
+			} else {
+				objectList = surveyEmployeeResponseRepository
+				.getSurveyAllResponsesBySurveyId(surveyDTO.getSurveyId());
+			}
 
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
 

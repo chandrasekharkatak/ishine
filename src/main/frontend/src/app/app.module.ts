@@ -217,6 +217,7 @@ import {MatTimepickerModule} from '@angular/material/timepicker';
 import { MyAutocompleteComponent } from './helpers/my-autocomplete/my-autocomplete.component';
 import { NgxEditorModule } from 'ngx-editor';
 import { InfoTooltipComponent } from './helpers/shared/info-tooltip/info-tooltip.component';
+import { QuizSubmit } from './training/quiz-submit/quiz-submit.component';
 
 registerLocaleData(localeGb);
 
@@ -404,6 +405,7 @@ registerLocaleData(localeGb);
     ProjectColumnFilterPipe,
     MyAutocompleteComponent,
     InfoTooltipComponent,
+    QuizSubmit
   ],
   imports: [
     BrowserModule,

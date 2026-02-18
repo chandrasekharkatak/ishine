@@ -98,4 +98,8 @@ export class TrainingService {
       status: status
     });
   }
+
+  getAllQuizResponsesByTrainingId(trainingId: number) {
+    return this.http.post(`${this.baseUrl}api/training/getAllQuizResponsesByTrainingId`, { trainingId: trainingId });
+  }
 }

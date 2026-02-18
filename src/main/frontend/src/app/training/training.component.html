@@ -544,6 +544,7 @@
                 </div>
             </div>
 
+            <div *ngIf="!showQuizSubmitComponent">
             <!-- Content Section -->
             <div class="card mb-3" *ngIf="viewingTraining.content">
                 <div class="card-header">
@@ -706,7 +707,7 @@
             <div class="text-center mt-4">
                 <button type="button" 
                         class="btn btn-success btn-lg px-5"
-                        *ngIf="(viewingTraining.status === 'PENDING' || viewingTraining.status === 'SKIPPED') && viewingTraining.consentRequired === 'true'"
+                        *ngIf="(viewingTraining.status === 'PENDING' || viewingTraining.status === 'SKIPPED') && viewingTraining.consentRequired === 'true' && !viewingTraining.hasQuiz"
                         [disabled]="!consentButtonEnabled"
                         (click)="onSubmitConsentForModal()">
                     <i class="fas fa-check-circle mr-2"></i>
@@ -722,10 +723,22 @@
                 <button type="button" 
                         class="btn btn-secondary btn-lg px-5 ml-2"
                         *ngIf="viewingTraining.status === 'COMPLETED' || viewingTraining.status === 'SKIPPED' || !isAutoOpening"
-                        (click)="modal.close()">
+                        (click)="closeTrainingView()">
                     <i class="fas fa-times mr-2"></i>
                     Close
                 </button>
+                <button type="button" 
+                        [disabled]="!quizButtonEnabled"
+                        class="btn btn-success btn-lg px-5 ml-2"
+                        *ngIf="(viewingTraining.status === 'PENDING' || viewingTraining.status === 'SKIPPED') && viewingTraining.hasQuiz"
+                        (click)="goToQuiz()">
+                    <i class="fas fa-quiz mr-2"></i>
+                    Got To Quiz
+                </button>
+            </div>
+            </div>
+            <div *ngIf="showQuizSubmitComponent">
+              <app-quiz-submit [cycleNumber]="viewingTraining.currentCycleNumber" [contentId]="viewingTraining.content.contentId" [trainingId]="viewingTraining.trainingId" (quizSubmitted)="onQuizCompleted($event)" ></app-quiz-submit>
             </div>
 
             <!-- Help Text -->
@@ -746,6 +759,7 @@
             </div>
         </div>
     </div>
+    
 </ng-template>
 
 <!-- Alert Modal -->

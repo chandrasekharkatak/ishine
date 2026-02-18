@@ -17,6 +17,7 @@ import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { SurveyService } from 'src/app/services/survey.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { TrainingService } from 'src/app/services/training.service';
 
 @Component({
   standalone: false,
@@ -91,6 +92,7 @@ export class SurveyConfigComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private utilityService: UtilityService,
+    private trainingService: TrainingService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -143,7 +145,11 @@ export class SurveyConfigComponent implements OnInit {
   }
 
   sectionViewInit(){
-    this.showSurveys();
+    // if(this.isFromTraining){
+    //   this.showQuizResponses();
+    // } else {
+      this.showSurveys();
+    // }
   }
 
   showSurveyForm(){
@@ -378,7 +384,7 @@ export class SurveyConfigComponent implements OnInit {
     this.sortDirection='';
     this.allSurveyList = [];
 
-    this.surveyService.getAllSurveys(this.trainingId).pipe(first()).subscribe((response: any) => {
+    this.surveyService.getAllSurveys(this.trainingId, this.isFromTraining ? 'quiz' : null).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
        this.allSurveyList = response.serviceResponse;
        this.allSurveyList.forEach(survey => {
@@ -531,6 +537,11 @@ export class SurveyConfigComponent implements OnInit {
     surveyObj.surveyId = this.surveyObj.surveyId;
     surveyObj.updatedBy = this.currentUser.empId;
     surveyObj.isActive = true;
+
+    if(this.isFromTraining){
+      surveyObj.type = "quiz";
+      surveyObj.trainingId = this.trainingId;
+    }
 
     //console.log("Activate Survey : ", surveyObj);
     this.surveyService.changeSurveyStatus(surveyObj).pipe(first()).subscribe((response: any) => {

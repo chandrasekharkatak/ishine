@@ -28,12 +28,17 @@ public interface TrainingContentRepository extends JpaRepository<TrainingContent
 	List<TrainingContent> findActiveContentByTrainingId(@Param("trainingId") Integer trainingId, 
 														 @Param("currentDate") Date currentDate);
 	
-	@Query("SELECT tc FROM TrainingContent tc WHERE tc.trainingMaster.trainingId = :trainingId " +
+	@Query("SELECT tc FROM TrainingContent tc \n"+
+		   "LEFT JOIN TrainingQuizMapping tqm on tqm.trainingMaster.trainingId = tc.trainingMaster.trainingId \n"+
+		   "LEFT JOIN EmployeeQuizResponseStatusMapping eqrsm ON eqrsm.quizId = tqm.survey.surveyId \n"+
+		   "WHERE tc.trainingMaster.trainingId = :trainingId \n" +
+		   "AND (tqm.mappingId IS NULL OR tqm.activeStatus IN ('true','Completed','false')) \n" +
 		   "AND tc.activeStatus = 'true' " +
 		   "AND tc.effectiveFrom <= CURRENT_DATE " +
 		   "AND (tc.effectiveTo IS NULL OR tc.effectiveTo >= CURRENT_DATE) " +
+		   "AND (eqrsm.id IS NULL OR eqrsm.passStatus IN :passStatus)" +
 		   "ORDER BY tc.effectiveFrom DESC")
-	Page<TrainingContent> findCurrentActiveContent(@Param("trainingId") Integer trainingId,Pageable pageable);
+	Page<TrainingContent> findCurrentActiveContent(@Param("trainingId") Integer trainingId, @Param("passStatus") List<String> passStatus,Pageable pageable);
 	//findCurrentActiveContent
 	@Query("SELECT tc FROM TrainingContent tc WHERE tc.trainingMaster.trainingId = :trainingId " +
 		   "AND tc.activeStatus = 'true' " +

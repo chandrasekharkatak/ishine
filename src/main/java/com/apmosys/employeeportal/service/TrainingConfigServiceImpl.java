@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,6 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,10 +41,12 @@ import com.apmosys.employeeportal.dto.TrainingHistoryDTO;
 import com.apmosys.employeeportal.dto.TrainingMasterDTO;
 import com.apmosys.employeeportal.exception.BadRequestException;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.EmployeeQuizResponseStatusMapping;
 import com.apmosys.employeeportal.model.TrainingConsent;
 import com.apmosys.employeeportal.model.TrainingContent;
 import com.apmosys.employeeportal.model.TrainingMaster;
 import com.apmosys.employeeportal.model.TrainingSkip;
+import com.apmosys.employeeportal.repository.EmployeeQuizResponseStatusMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.TrainingConsentRepository;
 import com.apmosys.employeeportal.repository.TrainingContentRepository;
@@ -87,6 +91,9 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	@Autowired
 	private  TrainingFileValidator trainingFileValidator;
 
+	@Autowired
+	private EmployeeQuizResponseStatusMappingRepository employeeQuizResponseStatusMappingRepository;
+
 	@Value("${file.location.documents.training}")
 	private String trainingFileLocation;
 
@@ -106,7 +113,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 			List<TrainingMaster> trainings;
 
 			if (activeStatus != null && mandatoryFlag != null) {
-				trainings = trainingMasterRepository.findByMandatoryFlagAndActiveStatus(mandatoryFlag, activeStatus);
+				trainings = trainingMasterRepository.findByMandatoryFlagAndActiveStatus(mandatoryFlag, activeStatus, List.of("fail", null));
 			} else if (activeStatus != null) {
 				trainings = trainingMasterRepository.findByActiveStatus(activeStatus);
 			} else {
@@ -1067,7 +1074,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 			// Get current active content for this training
 			Optional<TrainingContent> activeContentOpt = trainingContentRepository
-					.findCurrentActiveContent(trainingId, PageRequest.of(0, 1)).stream().findFirst();
+					.findCurrentActiveContent(trainingId, List.of("filled", "pass", "fail"), PageRequest.of(0, 1)).stream().findFirst();
 			if (activeContentOpt.isEmpty()) {
 				// No active content means no one can complete, so all are pending
 				Long totalAssigned = employeeRepository.getTotalEmployeeCount();
@@ -1320,6 +1327,46 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	@Override
+	public ServiceResponse changeQuizResponse(Long empId, Long quizId, String responseStatus, Long updatedBy) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Change Quiz Response");
+		apiLogInfo.setApiUrl("/api/training/changeQuizResponse");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Employee ID: ").append(empId).append(", Quiz ID: ")
+			.append(quizId).append(", Response Status: ").append(responseStatus);
+		try {
+
+			EmployeeQuizResponseStatusMapping employeeQuizResponseStatusMapping = employeeQuizResponseStatusMappingRepository.findByEmployeeIdAndQuizId(empId, quizId);
+
+			if (employeeQuizResponseStatusMapping == null) {
+				response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+				response.setServiceMessage("Quiz Response Not Found");
+				apiLogInfo.setApiResponse(responseStatus);
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				return response;
+			}
+
+			employeeQuizResponseStatusMapping.setPassStatus(responseStatus);
+			employeeQuizResponseStatusMapping.setUpdatedBy(updatedBy);
+			employeeQuizResponseStatusMappingRepository.save(employeeQuizResponseStatusMapping);
+
+			response.setStatusCode(HttpStatus.OK.value());
+			response.setServiceMessage("Quiz Response Changed Successfully");
+			apiLogInfo.setApiResponse(responseStatus);
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			
+		} catch (Exception e) {
+			response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+			response.setServiceMessage("Failed to Change Quiz Response");
+			apiLogInfo.setApiResponse(responseStatus);
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+		}	
+		return response;
 	}
 
 }

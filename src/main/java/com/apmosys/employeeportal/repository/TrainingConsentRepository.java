@@ -26,11 +26,13 @@ public interface TrainingConsentRepository extends JpaRepository<TrainingConsent
 	@Query("SELECT tc FROM TrainingConsent tc WHERE tc.empId = :empId " +
 		   "AND tc.trainingMaster.trainingId = :trainingId " +
 		   "AND tc.trainingContent.contentId = :contentId " +
+		   "AND (:quizId IS NULL OR tc.quizId = :quizId) \n"+ 
 		   "AND tc.completionCycleNumber = :cycleNumber")
-	Optional<TrainingConsent> findByEmpIdAndTrainingIdAndContentIdAndCycleNumber(
+	Optional<TrainingConsent> findByEmpIdAndTrainingIdAndContentIdAndQuizIdAndCycleNumber(
 			@Param("empId") Long empId,
 			@Param("trainingId") Integer trainingId,
 			@Param("contentId") Integer contentId,
+			@Param("quizId") Long quizId,
 			@Param("cycleNumber") Integer cycleNumber);
 	
 	
@@ -40,12 +42,14 @@ public interface TrainingConsentRepository extends JpaRepository<TrainingConsent
 		    "FROM TrainingConsent tc " +
 		    "WHERE tc.empId = :empId " +
 		    "AND tc.trainingMaster.trainingId = :trainingId " +
+			"AND tc.quizId = :quizId \n"+ 
 		    "AND tc.trainingContent.contentId = :contentId"
 		)
-		boolean existsByEmpIdAndTrainingIdAndContentId(
+		boolean existsByEmpIdAndTrainingIdAndContentIdAndQuizId(
 		        @Param("empId") Long empId,
 		        @Param("trainingId") Integer trainingId,
-		        @Param("contentId") Integer contentId
+		        @Param("contentId") Integer contentId,
+				@Param("quizId") Long quizId
 		);
 
 	
@@ -64,7 +68,15 @@ public interface TrainingConsentRepository extends JpaRepository<TrainingConsent
 	
 	@Query("SELECT tc FROM TrainingConsent tc WHERE tc.empId = :empId " +
 		   "AND tc.trainingMaster.trainingId = :trainingId " +
+		   "AND tc.quizId = :quizId " +
+		   "ORDER BY tc.consentTimestamp DESC")
+	List<TrainingConsent> findByEmpIdAndTrainingIdAndQuizId(@Param("empId") Long empId, 
+																	@Param("trainingId") Integer trainingId, @Param("quizId") Long quizId);
+
+	
+	@Query("SELECT tc FROM TrainingConsent tc WHERE tc.empId = :empId " +
+		   "AND tc.trainingMaster.trainingId = :trainingId " +
 		   "ORDER BY tc.consentTimestamp DESC")
 	List<TrainingConsent> findByEmpIdAndTrainingId(@Param("empId") Long empId, 
-													@Param("trainingId") Integer trainingId);
+																	@Param("trainingId") Integer trainingId);
 }

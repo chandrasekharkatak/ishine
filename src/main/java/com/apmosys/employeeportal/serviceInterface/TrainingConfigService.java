@@ -94,4 +94,14 @@ public interface TrainingConfigService {
 	 * @return ServiceResponse containing compliance report data
 	 */
 	ServiceResponse getComplianceReport(Integer trainingId, Long departmentId, String status);
+
+	/**
+	 * Change quiz response status
+	 * @param empId Employee ID
+	 * @param quizId Quiz ID
+	 * @param responseStatus Response status
+	 * @param updatedBy User ID who updated the response
+	 * @return ServiceResponse indicating success or failure
+	 */
+	ServiceResponse changeQuizResponse(Long empId, Long quizId, String responseStatus, Long updatedBy);
 }

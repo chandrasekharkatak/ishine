@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -345,4 +346,26 @@ public class TrainingConfigController {
 		// Store as "/{trainingId}/{filename}" - download will resolve correctly
 		return "/" + trainingId + "/" + newFileName;
 	}
+
+	@JobRoleAccess(featureIds = {3}) // Training Config - Change Quiz Response
+	@PutMapping(value = "/changeQuizResponse")
+	private ServiceResponse changeQuizResponse(@RequestParam("empId") Long empId, @RequestParam("quizId") Long quizId, @RequestParam("responseStatus") String responseStatus, @RequestParam("updatedBy") Long updatedBy) {
+		try {
+			if (empId == null || quizId == null) {
+				ServiceResponse response = new ServiceResponse();
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee ID and Quiz ID are required");
+				return response;
+			}
+			return trainingConfigService.changeQuizResponse(empId, quizId, responseStatus, updatedBy);
+		} catch (Exception e) {
+			e.printStackTrace();
+			ServiceResponse response = new ServiceResponse();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Error changing quiz response: " + e.getMessage());
+			return response;
+		}
+	}
+
+	
 }

@@ -15,8 +15,10 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -32,6 +34,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.apmosys.employeeportal.dto.LockStatusDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PendingTrainingDTO;
+import com.apmosys.employeeportal.dto.SurveyQuestionDTO;
 import com.apmosys.employeeportal.dto.TrainingConsentDTO;
 import com.apmosys.employeeportal.dto.TrainingContentDTO;
 import com.apmosys.employeeportal.dto.TrainingFrequencyDTO;
@@ -39,14 +42,18 @@ import com.apmosys.employeeportal.dto.TrainingMasterDTO;
 import com.apmosys.employeeportal.dto.TrainingSkipDTO;
 import com.apmosys.employeeportal.dto.UserTrainingDTO;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.EmployeeQuizResponseStatusMapping;
+import com.apmosys.employeeportal.model.SurveyQuestion;
 import com.apmosys.employeeportal.model.TrainingConsent;
 import com.apmosys.employeeportal.model.TrainingContent;
 import com.apmosys.employeeportal.model.TrainingMaster;
 import com.apmosys.employeeportal.model.TrainingSkip;
+import com.apmosys.employeeportal.repository.EmployeeQuizResponseStatusMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.TrainingConsentRepository;
 import com.apmosys.employeeportal.repository.TrainingContentRepository;
 import com.apmosys.employeeportal.repository.TrainingMasterRepository;
+import com.apmosys.employeeportal.repository.TrainingQuizMappingRepository;
 import com.apmosys.employeeportal.repository.TrainingSkipRepository;
 import com.apmosys.employeeportal.serviceInterface.TrainingUserService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -82,6 +89,12 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 	
 	@Autowired
 	private StringToDateTimeParser stringToDateTimeParser;
+
+	@Autowired
+	private EmployeeQuizResponseStatusMappingRepository employeeQuizResponseStatusMappingRepository;
+
+	@Autowired
+	private TrainingQuizMappingRepository trainingQuizMappingRepository;
 	
 	@Value("${file.location.documents.training}")
 	private String trainingFileLocation;
@@ -108,7 +121,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 			
 			
 			// Validate that content is current active content
-			Optional<TrainingContent> activeContentOpt = trainingContentRepository.findCurrentActiveContent(consentDTO.getTrainingId() ,PageRequest.of(0, 1))
+			Optional<TrainingContent> activeContentOpt = trainingContentRepository.findCurrentActiveContent(consentDTO.getTrainingId() ,   List.of("fail"), PageRequest.of(0, 1))
 			        .stream()
 			        .findFirst();
 			
@@ -121,12 +134,19 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 				logService.logMyInfo(httpRequest, apiLogInfo);
 				return response;
 			}
+
+			Long activeQuizId = trainingQuizMappingRepository.findActiveSurveyIdByTraining(consentDTO.getTrainingId());
+
+			if(activeQuizId == null) {
+				activeQuizId = null;
+			}
 			
 			// Check if consent already exists
-			Optional<TrainingConsent> existingConsent = trainingConsentRepository.findByEmpIdAndTrainingIdAndContentIdAndCycleNumber(
+			Optional<TrainingConsent> existingConsent = trainingConsentRepository.findByEmpIdAndTrainingIdAndContentIdAndQuizIdAndCycleNumber(
 				consentDTO.getEmpId(),
 				consentDTO.getTrainingId(),
 				consentDTO.getContentId(),
+				activeQuizId,
 				cycleNumber
 			);
 			
@@ -159,13 +179,15 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 			consent.setEmpId(consentDTO.getEmpId());
 			consent.setCompletionCycleNumber(cycleNumber);
 			consent.setCreatedBy(consentDTO.getEmpId());
+			consent.setQuizId(activeQuizId);
 			
-			TrainingConsent savedConsent = trainingConsentRepository.save(consent);
+			trainingConsentRepository.save(consent);
 			
 			// Delete skip record if exists (use the same cycle number)
 			Optional<TrainingSkip> skipOpt = trainingSkipRepository.findByEmpIdAndTrainingIdAndCycleNumber(
 				consentDTO.getEmpId(),
 				consentDTO.getTrainingId(),
+				activeQuizId,
 				cycleNumber
 			);
 			if (skipOpt.isPresent()) {
@@ -243,6 +265,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 			Optional<TrainingSkip> skipOpt = trainingSkipRepository.findByEmpIdAndTrainingIdAndCycleNumber(
 				skipDTO.getEmpId(),
 				skipDTO.getTrainingId(),
+				skipDTO.getQuizId(),
 				cycleNumber
 			);
 			
@@ -424,6 +447,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 	}
 
 	@Override
+	@Transactional
 	public ServiceResponse getUserTrainings(Long empId) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -434,7 +458,9 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 		try {
 			// Get all active trainings (both mandatory and non-mandatory) with effective dates
 			List<TrainingMaster> allActiveTrainings = trainingMasterRepository
-				.findActiveTrainingsWithEffectiveDates("true");
+				.findActiveTrainingsWithEffectiveDates("true", List.of("fail","pass", "filled"));
+
+			List<Integer> allTrainingsWithQuiz = employeeQuizResponseStatusMappingRepository.getTrainingIdsHavingQuiz(allActiveTrainings.stream().map(TrainingMaster::getTrainingId).collect(Collectors.toList()));
 			
 			System.out.println("userTrainings "+allActiveTrainings.size());
 			
@@ -451,13 +477,14 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 				userTraining.setConsentRequired(training.getConsentRequired());
 				userTraining.setSkipAllowed(training.getSkipAllowed());
 				userTraining.setRequiredFrequency(calculateTotalFrequency(training));
+				userTraining.setHasQuiz(allTrainingsWithQuiz.contains(training.getTrainingId()));
 				
 				// Calculate completion count
 				int completionCount = countCompletionsInLast12Months(empId, training.getTrainingId());
 				userTraining.setCompletionCount(completionCount);
 				
 				// Get current active content
-				Optional<TrainingContent> activeContentOpt = trainingContentRepository.findCurrentActiveContent(training.getTrainingId(), PageRequest.of(0, 1))
+				Optional<TrainingContent> activeContentOpt = trainingContentRepository.findCurrentActiveContent(training.getTrainingId(), List.of("filled","fail","pass"), PageRequest.of(0, 1))
 				        .stream()
 				        .findFirst();
 				if (activeContentOpt.isEmpty()) {
@@ -471,12 +498,19 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 				// Calculate current cycle based on deadline pattern and current date (user action independent)
 				int currentCycle = calculateCurrentCycleByDate(training);
 				userTraining.setCurrentCycleNumber(currentCycle);
+
+				Long activeQuizId = trainingQuizMappingRepository.findActiveSurveyIdByTraining(training.getTrainingId());
+
+				if(activeQuizId == null) {
+					activeQuizId = null;
+				}
 				
 				// Check if consent exists for current active content in current cycle
-				Optional<TrainingConsent> consentOpt = trainingConsentRepository.findByEmpIdAndTrainingIdAndContentIdAndCycleNumber(
+				Optional<TrainingConsent> consentOpt = trainingConsentRepository.findByEmpIdAndTrainingIdAndContentIdAndQuizIdAndCycleNumber(
 					empId,
 					training.getTrainingId(),
 					activeContent.getContentId(),
+					activeQuizId,
 					currentCycle
 				);
 				
@@ -484,6 +518,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 				Optional<TrainingSkip> skipOpt = trainingSkipRepository.findByEmpIdAndTrainingIdAndCycleNumber(
 					empId,
 					training.getTrainingId(),
+					activeQuizId,
 					currentCycle
 				);
 				
@@ -492,7 +527,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 				if (consentOpt.isPresent()) {
 					status = "COMPLETED";
 					// Get last completed date (most recent consent)
-					List<TrainingConsent> allConsents = trainingConsentRepository.findByEmpIdAndTrainingId(empId, training.getTrainingId());
+					List<TrainingConsent> allConsents = trainingConsentRepository.findByEmpIdAndTrainingIdAndQuizId(empId, training.getTrainingId(), activeQuizId);
 					if (!allConsents.isEmpty()) {
 						// List is already sorted DESC by consentTimestamp, so first element is most recent
 						TrainingConsent mostRecentConsent = allConsents.get(0);
@@ -627,9 +662,11 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 			dto.setCompletionCount(completionCount != null ? completionCount.intValue() : 0);
 			dto.setRequiredFrequency(calculateTotalFrequency(training));
 			dto.setNeedsAssignment(completionCount < calculateTotalFrequency(training));
+
+			Long activeQuizId = trainingQuizMappingRepository.findActiveSurveyIdByTraining(trainingId);
 			
 			// Get last completed date
-			List<TrainingConsent> consents = trainingConsentRepository.findByEmpIdAndTrainingId(empId, trainingId);
+			List<TrainingConsent> consents = trainingConsentRepository.findByEmpIdAndTrainingIdAndQuizId(empId, trainingId, activeQuizId);
 			if (!consents.isEmpty()) {
 				dto.setLastCompletedOn(consents.get(0).getConsentTimestamp().toLocalDateTime().toString());
 			}
@@ -842,15 +879,18 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 		}
 	}
 	
-	private LockStatusDTO getLockStatusInternal(Long empId) {
+	public LockStatusDTO getLockStatusInternal(Long empId) {
 
 		LockStatusDTO defaultStatus = createUnlockedStatus();
 
-		List<TrainingMaster> mandatoryTrainings = trainingMasterRepository.findActiveMandatoryTrainings("true", "true");
+		List<TrainingMaster> mandatoryTrainings = trainingMasterRepository.findActiveMandatoryTrainings("true", "true", List.of("fail"));
          System.out.println("mandatoryTrainings "+mandatoryTrainings);
+
 		for (TrainingMaster training : mandatoryTrainings) {
 
-			Optional<LockStatusDTO> evaluated = evaluateTrainingForLock(empId, training);
+			Long activeQuizId = trainingQuizMappingRepository.findActiveSurveyIdByTraining(training.getTrainingId());
+
+			Optional<LockStatusDTO> evaluated = evaluateTrainingForLock(empId, training, activeQuizId);
               System.out.println(" evaluated : "+evaluated.isPresent());
 			// Best case → immediately freeze
 			if (evaluated.isPresent() && evaluated.get().getIsLocked()) {
@@ -866,7 +906,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 		return defaultStatus;
 	}
 
-	private Optional<LockStatusDTO> evaluateTrainingForLock(Long empId, TrainingMaster training) {
+	private Optional<LockStatusDTO> evaluateTrainingForLock(Long empId, TrainingMaster training, Long quizId) {
 
 		int completionCount = countCompletionsInLast12Months(empId, training.getTrainingId());
       System.out.println("completionCount > "+completionCount);
@@ -875,7 +915,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 		}
 
 		Optional<TrainingContent> activeContentOpt = trainingContentRepository
-				.findCurrentActiveContent(training.getTrainingId(), PageRequest.of(0, 1)).stream().findFirst();
+				.findCurrentActiveContent(training.getTrainingId(),List.of("fail"), PageRequest.of(0, 1)).stream().findFirst();
 
 		if (activeContentOpt.isEmpty()) {
 			return Optional.empty();
@@ -885,8 +925,8 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 		TrainingContent activeContent = activeContentOpt.get();
 		 System.out.println("currentCycle > "+currentCycle);
 		Optional<TrainingConsent> consentOpt = trainingConsentRepository
-				.findByEmpIdAndTrainingIdAndContentIdAndCycleNumber(empId, training.getTrainingId(),
-						activeContent.getContentId(), currentCycle);
+				.findByEmpIdAndTrainingIdAndContentIdAndQuizIdAndCycleNumber(empId, training.getTrainingId(),
+						activeContent.getContentId(),quizId, currentCycle);
 		
 		System.err.println("consentOpt : > "+consentOpt.isPresent());
 
@@ -894,8 +934,8 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 			return Optional.empty(); // Current cycle already completed
 		}
 
-		boolean attendedAtLeastOnce = trainingConsentRepository.existsByEmpIdAndTrainingIdAndContentId(empId,
-				training.getTrainingId(), activeContent.getContentId());
+		boolean attendedAtLeastOnce = trainingConsentRepository.existsByEmpIdAndTrainingIdAndContentIdAndQuizId(empId,
+				training.getTrainingId(), activeContent.getContentId(),quizId);
 
 		boolean deadlineCrossed = isDeadlineCrossed(training, currentCycle);
 		boolean lockEnabled = "true".equals(training.getLockEnabled());
@@ -1008,6 +1048,70 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	@Override
+	public ServiceResponse getQuizQuestionByTrainingId(Integer trainingId) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getQuizQuestionByTrainingId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("TrainingId : " + trainingId);
+		try {
+
+			List<SurveyQuestion> questionList = trainingQuizMappingRepository.findActiveByTraining(trainingId);
+
+			if (questionList != null) {
+				Long quizId = questionList.get(0).getSurveyId();
+				if (questionList.size() == 0) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No survey questions found. List is empty.");
+					apiLogInfo.setApiResponse("No survey questions found. list is empty");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+				} else {
+					List<SurveyQuestionDTO> dtoList = new ArrayList<SurveyQuestionDTO>();
+
+					questionList.forEach((object) -> {
+
+						SurveyQuestionDTO dto = new SurveyQuestionDTO();
+
+						dto.setSurveyQuestionId(object.getSurveyQuestionId());
+						dto.setSurveyId(object.getSurveyId());
+						dto.setQuestion(object.getQuestion());
+						dto.setOptionType(object.getOptionType());
+						dto.setOptions(object.getOptions());
+						dto.setRequired(object.getRequired());
+						dto.setDescription(object.getDescription());
+						dtoList.add(dto);
+					});
+
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(Map.of("quizId", quizId, "allSurveyQuestionList", dtoList));
+					apiLogInfo.setApiResponse("All Questions By SurveyId Fetched");			
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+				}
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No survey questions found. List is null.");
+				apiLogInfo.setApiResponse("NO survey questions found.List is null");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
 	}
 	
 }

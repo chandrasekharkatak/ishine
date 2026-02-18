@@ -6,7 +6,7 @@
 </div> -->
 
 <!-- Training Context Banner (if navigated from training-config) -->
-<div class="row mb-3" *ngIf="isFromTraining">
+<div class="row mb-3" *ngIf="isFromTraining && (isCreation || isUpdation)">
     <div class="col-md-12">
         <div class="alert alert-info d-flex justify-content-between align-items-center">
             <div>
@@ -274,7 +274,7 @@
                             <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-outline-danger" type="submit" (click)="openDeleteSurveyMod(delete_template, survey)"><em class="fa fa-trash"></em></button>
                             <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openActivateSurveyMod(activate_template, survey)"><em>Activate</em></button>
 
-                            <button *ngIf="survey.isActive == 'true' && survey.type != 'exit'" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openCompleteSurveyMod(complete_template, survey)"><em>Complete</em></button>
+                            <button *ngIf="survey.isActive == 'true' && !['exit'].includes(survey.type)" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openCompleteSurveyMod(complete_template, survey)"><em>Complete</em></button>
                             <button *ngIf="survey.isActive == 'true' || survey.isActive == 'Completed'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showSurveyResponses(survey)"><em>View Response</em></button>&nbsp;
                             <button *ngIf="survey.isActive == 'true'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="copySurveyLinkToClipBoard(survey,alert_message)"><em>Copy Survey Link</em></button>&nbsp;
                         </td>

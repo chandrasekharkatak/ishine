@@ -168,4 +168,24 @@ public class TrainingUserController {
 			return response;
 		}
 	}
+
+	@GetMapping("/getQuizQuestionByTrainingId/{trainingId}")
+	public ServiceResponse getQuizQuestionByTrainingId(@PathVariable Integer trainingId) {
+		try {
+			if (trainingId == null) {
+				ServiceResponse response = new ServiceResponse();
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Training ID is required");
+				return response;
+			}
+			return trainingUserService.getQuizQuestionByTrainingId(trainingId);
+		} catch (Exception e) {
+			e.printStackTrace();
+			ServiceResponse response = new ServiceResponse();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Error fetching quiz questions: " + e.getMessage());
+			return response;
+		}
+	}
+
 }

@@ -1,5 +1,5 @@
 import { LocationStrategy } from '@angular/common';
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
@@ -25,6 +25,10 @@ export class UserSurveyComponent implements OnInit {
   feature = "Survey";
   currentUser: User;
   userMapping: any = {};
+
+  @Input() isQuizResponse: boolean = false;
+  @Input() trainingId: number;
+  @Input() quizId: number;
 
   currentSurveyId:any;
   currentSurveyIdedit:any;
@@ -153,7 +157,7 @@ export class UserSurveyComponent implements OnInit {
             this.onTakeSurvey(currentSurvey);
 
           }else {
-            this.surveyService.getSurveyResponseByEmpIdAndSurveyId(currentSurvey).pipe(first()).subscribe((response: any) => {
+            this.surveyService.getSurveyResponseByEmpIdAndSurveyId(currentSurvey, this.isQuizResponse).pipe(first()).subscribe((response: any) => {
               if (response.serviceStatus == "Success") {
                 this.currentSurveyId = null;
                 this.router.navigate(['/user-survey']);

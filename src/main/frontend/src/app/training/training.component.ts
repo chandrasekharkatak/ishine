@@ -8,6 +8,8 @@ import { TrainingService } from '../services/training.service';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import * as moment from 'moment';
 import * as JSZip from 'jszip';
+import { SurveyService } from '../services/survey.service';
+import { Survey } from '../models/survey';
 
 @Component({
   standalone: false,
@@ -66,6 +68,8 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
   // Accordion states
   mustAttendExpanded: boolean = true; // Expanded by default
   allTrainingsExpanded: boolean = true; // Expanded by default
+  quizButtonEnabled: boolean = false;
+  showQuizSubmitComponent: boolean = false;
   
   // Modals
   modalRef: NgbModalRef;
@@ -80,7 +84,8 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
     private trainingService: TrainingService,
     private router: Router,
     private modalService: NgbModal,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private surveyService: SurveyService
   ) {
     this.authenticationService.currentUser.subscribe(x => {
       this.currentUser = x;
@@ -277,7 +282,14 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.elapsedTime >= minTimeSeconds) {
         this.minTimeReached = true;
         if (this.pendingTraining.consentRequired === 'true') {
-          this.consentButtonEnabled = true;
+          // this.consentButtonEnabled = true;
+          if(this.viewingTraining.hasQuiz){
+            this.quizButtonEnabled = true;
+            this.consentButtonEnabled = true;
+          }else{
+            this.consentButtonEnabled = true;
+          }
+          
         }
         clearInterval(this.timerInterval);
       }
@@ -290,9 +302,13 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
       this.hasVisitedLink = true;
       
       // For external links, enable consent after clicking
-      if (this.pendingTraining.consentRequired === 'true') {
-        this.consentButtonEnabled = true;
-      }
+        // this.consentButtonEnabled = true;
+        if(this.viewingTraining.hasQuiz){
+          this.quizButtonEnabled = true;
+          this.consentButtonEnabled = true;
+        }else if (this.pendingTraining.consentRequired === 'true') {
+          this.consentButtonEnabled = true;
+        }
     }
   }
 
@@ -538,13 +554,23 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
       this.elapsedTimeDisplay = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
       
       if (this.elapsedTime >= minTimeSeconds) {
+        console.log("min time reached");
+        
         this.minTimeReached = true;
-        if (this.viewingTraining && this.viewingTraining.consentRequired === 'true') {
-          this.consentButtonEnabled = true;
+        if (this.viewingTraining ) {
+          if(this.viewingTraining.hasQuiz && this.viewingTraining.status !== 'COMPLETED'){
+            this.quizButtonEnabled = true;
+            this.consentButtonEnabled =false;
+          } else if(this.viewingTraining.consentRequired === 'true' && this.viewingTraining.status !== 'COMPLETED') {
+            this.consentButtonEnabled = true;
+          } else {
+            this.quizButtonEnabled = false;
+            this.consentButtonEnabled =false;
+          }
         }
         clearInterval(this.timerInterval);
       }
-    }, 1000);
+    }, 200);
   }
 
   async parsePPTXFile(file: File) {
@@ -861,6 +887,7 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
     this.elapsedTimeDisplay = '00:00';
     this.minTimeReached = false;
     this.consentButtonEnabled = false;
+    this.quizButtonEnabled = false;
     this.hasVisitedLink = false;
   }
 
@@ -925,5 +952,34 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
       this.modalRef.close();
       this.modalRef = null;
     }
+  }
+  closeContentModal(){
+    this.modalRef.close();
+    this.modalRef = null;
+  }
+
+  goToQuiz(){
+    this.showQuizSubmitComponent = true;
+  }
+
+  onQuizCompleted(event: boolean){
+    console.log("Event after completion: ", event);
+    
+    this.showQuizSubmitComponent = false;
+    setTimeout(() => {
+      this.checkLockStatus();
+      this.loadUserTrainings();
+      
+      // Move to next deadline-crossed training if auto-opening
+      if (this.isAutoOpening && this.deadlineCrossedTrainings.length > 0 && 
+          this.currentDeadlineCrossedIndex < this.deadlineCrossedTrainings.length - 1) {
+        this.currentDeadlineCrossedIndex++;
+        setTimeout(() => {
+          this.viewTraining(this.deadlineCrossedTrainings[this.currentDeadlineCrossedIndex], true);
+        }, 500);
+      } else {
+        this.isAutoOpening = false;
+      }
+    }, 1500);
   }
 }
