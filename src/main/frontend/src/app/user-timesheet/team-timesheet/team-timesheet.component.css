@@ -2581,3 +2581,1018 @@ th {
   display: block;
   cursor: pointer;
 }
+
+
+/* NEW CSS */
+
+/* Professional Timesheet Table CSS - Fixed Alignment & Spacing */
+
+/* Table Container */
+.table-container-ts {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+  overflow: auto;
+  margin: 24px 0;
+  border: 1px solid #e9edf2;
+  max-width: 100%;
+}
+
+.timesheet-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Main Table */
+.timesheet-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: white;
+  table-layout: fixed; /* Fixed layout for better control */
+}
+
+/* Table Header */
+.timesheet-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.timesheet-table thead th {
+  background: #00357b;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 16px 12px;
+  text-align: left;
+  white-space: nowrap;
+  border-right: 1px solid #2d3a4f;
+}
+
+.timesheet-table thead th:last-child {
+  border-right: none;
+}
+
+/* Column Widths - Fixed for better alignment */
+.timesheet-table th:nth-child(1), /* Checkbox */
+.timesheet-table td:nth-child(1) {
+  width: 50px;
+  min-width: 50px;
+  max-width: 50px;
+}
+
+.timesheet-table th:nth-child(2), /* Sr No. */
+.timesheet-table td:nth-child(2) {
+  width: 70px;
+  min-width: 70px;
+  max-width: 70px;
+  text-align: center;
+}
+
+.timesheet-table th:nth-child(3), /* Employee Id */
+.timesheet-table td:nth-child(3) {
+  width: 120px;
+  min-width: 120px;
+}
+
+.timesheet-table th:nth-child(4), /* Name */
+.timesheet-table td:nth-child(4) {
+  width: 150px;
+  min-width: 150px;
+}
+
+.timesheet-table th:nth-child(5), /* Date */
+.timesheet-table td:nth-child(5) {
+  width: 100px;
+  min-width: 100px;
+}
+
+.timesheet-table th:nth-child(6), /* Day Type */
+.timesheet-table td:nth-child(6) {
+  width: 100px;
+  min-width: 100px;
+}
+
+.timesheet-table th:nth-child(7), /* Work In */
+.timesheet-table td:nth-child(7) {
+  width: 85px;
+  min-width: 85px;
+}
+
+.timesheet-table th:nth-child(8), /* Work Out */
+.timesheet-table td:nth-child(8) {
+  width: 85px;
+  min-width: 85px;
+}
+
+.timesheet-table th:nth-child(9), /* Total Location */
+.timesheet-table td:nth-child(9) {
+  width: 100px;
+  min-width: 100px;
+  text-align: center;
+}
+
+.timesheet-table th:nth-child(10), /* Total Projects */
+.timesheet-table td:nth-child(10) {
+  width: 100px;
+  min-width: 100px;
+  text-align: center;
+}
+
+.timesheet-table th:nth-child(11), /* Applied By */
+.timesheet-table td:nth-child(11) {
+  width: 130px;
+  min-width: 130px;
+}
+
+.timesheet-table th:nth-child(12), /* Applied On */
+.timesheet-table td:nth-child(12) {
+  width: 120px;
+  min-width: 120px;
+}
+
+.timesheet-table th:nth-child(13), /* Actions */
+.timesheet-table td:nth-child(13) {
+  width: 150px;
+  min-width: 150px;
+  white-space: nowrap;
+}
+
+/* Table Body */
+.timesheet-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.timesheet-table tbody td {
+  padding: 14px 12px;
+  color: #2d4059;
+  font-size: 14px;
+  line-height: 1.5;
+  border-bottom: 1px solid #e9edf2;
+  border-right: 1px solid #e9edf2;
+  vertical-align: middle;
+  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timesheet-table tbody td:last-child {
+  border-right: none;
+}
+
+/* Checkbox Styling */
+.timesheet-table input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #3b82f6;
+  border-radius: 4px;
+  margin: 0;
+  vertical-align: middle;
+}
+
+/* Employee ID Column */
+.timesheet-table .emp-id {
+  color: #3b82f6;
+  font-weight: 600;
+  cursor: pointer;
+  /* text-decoration: underline; */
+}
+
+.timesheet-table .emp-id:hover {
+  color: #2563eb;
+  text-decoration: underline;
+
+
+}
+
+/* Action Buttons */
+.timesheet-table td:last-child {
+  white-space: nowrap;
+  text-align: center;
+}
+
+.timesheet-table .doc-btn {
+  background: none;
+  border: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 4px;
+  font-size: 16px;
+}
+
+.timesheet-table .doc-btn.approved {
+  color: #10b981;
+  background: #d1fae5;
+}
+
+.timesheet-table .doc-btn.approved:hover {
+  background: #a7f3d0;
+  transform: translateY(-2px);
+}
+
+.timesheet-table .doc-btn.pending {
+  color: #f59e0b;
+  background: #fef3c7;
+}
+
+.timesheet-table .doc-btn.pending:hover {
+  background: #fde68a;
+  transform: translateY(-2px);
+}
+
+.timesheet-table .btn-approve,
+.timesheet-table .btn-reject {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 4px;
+}
+
+.timesheet-table .btn-approve {
+  background: #10b981;
+  color: white;
+}
+
+.timesheet-table .btn-approve:hover {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+.timesheet-table .btn-reject {
+  background: #ef4444;
+  color: white;
+}
+
+.timesheet-table .btn-reject:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+}
+
+/* Main Row Active State */
+.timesheet-table .main-row.active-row {
+  background: #eff6ff;
+  border-left: 3px solid #3b82f6;
+}
+
+/* Accordion Cell */
+.timesheet-table .accordion-cell {
+  background: #f8fafc;
+  padding: 24px !important;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+/* Location Cards */
+.timesheet-table .location-card {
+  background: white;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.timesheet-table .location-header {
+  background: #f1f5f9;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 15px;
+}
+
+.timesheet-table .location-header .time {
+  color: #475569;
+  font-size: 14px;
+  font-weight: 500;
+  background: white;
+  padding: 6px 16px;
+  border-radius: 30px;
+  border: 1px solid #cbd5e1;
+}
+
+/* Project Table - FIXED ALIGNMENT */
+.timesheet-table .project-card {
+  padding: 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.timesheet-table .project-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+  font-size: 14px;
+  table-layout: fixed; /* Fixed layout for proper alignment */
+}
+
+/* Project Table Column Widths */
+.project-table th:nth-child(1), /* Project */
+.project-table td:nth-child(1) {
+  width: 200px;
+  min-width: 200px;
+}
+
+.project-table th:nth-child(2), /* PO No */
+.project-table td:nth-child(2) {
+  width: 120px;
+  min-width: 120px;
+}
+
+.project-table th:nth-child(3), /* Shadow */
+.project-table td:nth-child(3) {
+  width: 80px;
+  min-width: 80px;
+  text-align: center;
+}
+
+.project-table th:nth-child(4), /* Pending Doc */
+.project-table td:nth-child(4) {
+  width: 100px;
+  min-width: 100px;
+  text-align: center;
+}
+
+.project-table th:nth-child(5), /* Approved Doc */
+.project-table td:nth-child(5) {
+  width: 100px;
+  min-width: 100px;
+  text-align: center;
+}
+
+.project-table th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 14px 12px;
+  border-bottom: 2px solid #cbd5e1;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.project-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: middle;
+  word-break: break-word;
+}
+
+.project-table td:nth-child(3),
+.project-table td:nth-child(4),
+.project-table td:nth-child(5) {
+  text-align: center;
+}
+
+/* Project Name with proper alignment */
+.project-table .project-name {
+  color: #3b82f6;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.project-table .project-name:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+/* Document buttons in project table */
+.project-table .doc-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  margin: 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Activity Table - FIXED ALIGNMENT */
+.timesheet-table .activity-wrapper {
+  margin-top: 16px;
+  padding: 16px;
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.timesheet-table .activity-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  table-layout: fixed; /* Fixed layout for proper alignment */
+}
+
+/* Activity Table Column Widths */
+.activity-table th:nth-child(1), /* Team */
+.activity-table td:nth-child(1) {
+  width: 120px;
+  min-width: 120px;
+}
+
+.activity-table th:nth-child(2), /* Activity */
+.activity-table td:nth-child(2) {
+  width: 120px;
+  min-width: 120px;
+}
+
+.activity-table th:nth-child(3), /* Description */
+.activity-table td:nth-child(3) {
+  width: 200px;
+  min-width: 200px;
+}
+
+.activity-table th:nth-child(4), /* Hours */
+.activity-table td:nth-child(4) {
+  width: 100px;
+  min-width: 100px;
+  text-align: center;
+}
+
+.activity-table th {
+  background: #f1f5f9;
+  color: #334155;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 12px 10px;
+  border-bottom: 2px solid #cbd5e1;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.activity-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #334155;
+  vertical-align: middle;
+  word-break: break-word;
+}
+
+.activity-table td:last-child {
+  text-align: center;
+  font-weight: 600;
+}
+
+/* Responsive Breakpoints */
+
+/* Desktop */
+@media (max-width: 1400px) {
+  .timesheet-table {
+    table-layout: auto; /* Switch to auto for better responsiveness */
+  }
+
+  .project-table,
+  .activity-table {
+    table-layout: auto;
+  }
+}
+
+/* Tablet */
+@media (max-width: 992px) {
+  .timesheet-table-wrapper {
+    overflow-x: auto;
+  }
+
+  .timesheet-table {
+    min-width: 1300px;
+    table-layout: fixed;
+  }
+
+  .project-table {
+    min-width: 600px;
+  }
+
+  .activity-table {
+    min-width: 550px;
+  }
+
+  .timesheet-table .location-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .timesheet-table .location-header .time {
+    align-self: flex-start;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .timesheet-table .accordion-cell {
+    padding: 16px !important;
+  }
+
+  .timesheet-table .project-card {
+    padding: 16px;
+  }
+
+  .project-table th,
+  .project-table td {
+    padding: 10px 8px;
+    font-size: 13px;
+  }
+
+  .activity-table th,
+  .activity-table td {
+    padding: 8px 6px;
+    font-size: 12px;
+  }
+
+  /* Ensure proper alignment on mobile */
+  .project-table td:nth-child(1) {
+    white-space: normal;
+    word-break: break-word;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 576px) {
+  .project-table {
+    min-width: 550px;
+  }
+
+  .activity-table {
+    min-width: 500px;
+  }
+
+  .timesheet-table .doc-btn,
+  .timesheet-table .btn-approve,
+  .timesheet-table .btn-reject {
+    width: 30px;
+    height: 30px;
+    margin: 0 2px;
+    font-size: 14px;
+  }
+}
+
+/* Fix for emoji/icon alignment */
+.project-table td:contains('✅') {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* Ensure consistent vertical alignment */
+.project-table tr,
+.activity-table tr {
+  vertical-align: middle;
+}
+
+/* Zebra striping for better readability */
+.project-table tbody tr:nth-child(even),
+.activity-table tbody tr:nth-child(even) {
+  background-color: #fafbfc;
+}
+
+/* Hover effect for project table rows */
+.project-table tbody tr:hover {
+  background-color: #f1f9ff;
+}
+
+/* Activity table hover */
+.activity-table tbody tr:hover {
+  background-color: #f1f5f9;
+}
+
+/* Fix for the specific issue with first column */
+.project-table td:first-child {
+  font-weight: 500;
+  color: #1e293b;
+  padding-left: 16px;
+}
+
+/* Ensure hours column shows time format properly */
+.activity-table td:last-child {
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 13px;
+}
+
+/* Empty state styling for description */
+.activity-table td:nth-child(3):empty::before,
+.activity-table td:nth-child(3):contains('-') {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Custom scrollbar for nested tables */
+.project-table-wrapper,
+.activity-wrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+}
+
+/* Fix for the "po_no_default" and other placeholder text */
+.project-table td:nth-child(2) {
+  font-family: 'Monaco', 'Menlo', monospace;
+  color: #475569;
+}
+
+/* Shadow column Yes/No styling */
+.project-table td:nth-child(3) {
+  font-weight: 500;
+}
+
+.project-table td:nth-child(3):contains('Yes') {
+  color: #10b981;
+}
+
+.project-table td:nth-child(3):contains('No') {
+  color: #64748b;
+}
+
+/* Document column styling */
+.project-table td:nth-child(4) button,
+.project-table td:nth-child(5) button {
+  margin: 0 auto;
+}
+
+/* Ensure proper spacing for buttons in document columns */
+.project-table td:nth-child(4),
+.project-table td:nth-child(5) {
+  white-space: nowrap;
+}
+
+/* Fix for the "I sec" team name */
+.activity-table td:first-child {
+  font-weight: 500;
+  color: #3b82f6;
+}
+
+/* Fix for hours format */
+.activity-table td:last-child:contains('09:00') {
+  background: #f1f5f9;
+  border-radius: 4px;
+  font-weight: 600;
+  color: #059669;
+}
+
+/* Print styles */
+@media print {
+  .project-table,
+  .activity-table {
+    table-layout: fixed;
+    border: 1px solid #000;
+  }
+
+  .project-table th,
+  .activity-table th {
+    background: #f0f0f0;
+    color: #000;
+  }
+}
+
+
+/* Main Filter Row - Target only rows with this component */
+tr[app-column-filter-bar] {
+  background: #f9fafc !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+/* Filter Cells - Target only td/th inside this specific row */
+tr[app-column-filter-bar] th,
+tr[app-column-filter-bar] td {
+  padding: 12px 8px !important;
+  background: #f9fafc !important;
+  border-bottom: none !important;
+  vertical-align: middle !important;
+}
+
+/* Filter Input Fields - Inside this specific row only */
+tr[app-column-filter-bar] input[type="text"],
+tr[app-column-filter-bar] input[type="search"],
+tr[app-column-filter-bar] select {
+  width: 100%;
+  height: 36px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #1e293b;
+  background: #ffffff;
+  border: 1px solid #d1d9e6;
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+/* Input Hover */
+tr[app-column-filter-bar] input[type="text"]:hover,
+tr[app-column-filter-bar] input[type="search"]:hover,
+tr[app-column-filter-bar] select:hover {
+  border-color: #94a3b8;
+}
+
+/* Input Focus */
+tr[app-column-filter-bar] input[type="text"]:focus,
+tr[app-column-filter-bar] input[type="search"]:focus,
+tr[app-column-filter-bar] select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* Placeholder */
+tr[app-column-filter-bar] input::placeholder {
+  color: #a0afbe;
+  font-size: 12px;
+  font-style: italic;
+}
+
+/* Select Dropdown Arrow */
+tr[app-column-filter-bar] select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+  cursor: pointer;
+}
+
+/* Specific column width adjustments - ONLY for filter row */
+tr[app-column-filter-bar] th:nth-child(1) input, /* Checkbox column - no input normally */
+tr[app-column-filter-bar] td:nth-child(1) input {
+  width: 18px;
+  height: 18px;
+  margin: 0 auto;
+  display: block;
+}
+
+tr[app-column-filter-bar] th:nth-child(2) input, /* Sr No */
+tr[app-column-filter-bar] td:nth-child(2) input {
+  width: 60px;
+  text-align: center;
+}
+
+tr[app-column-filter-bar] th:nth-child(3) input, /* Employee Id */
+tr[app-column-filter-bar] td:nth-child(3) input {
+  min-width: 100px;
+}
+
+tr[app-column-filter-bar] th:nth-child(4) input, /* Name */
+tr[app-column-filter-bar] td:nth-child(4) input {
+  min-width: 120px;
+}
+
+tr[app-column-filter-bar] th:nth-child(5) input, /* Date */
+tr[app-column-filter-bar] td:nth-child(5) input {
+  width: 100px;
+}
+
+tr[app-column-filter-bar] th:nth-child(6) input, /* Day Type */
+tr[app-column-filter-bar] td:nth-child(6) input {
+  width: 90px;
+}
+
+tr[app-column-filter-bar] th:nth-child(7) input, /* Work In */
+tr[app-column-filter-bar] td:nth-child(7) input {
+  width: 75px;
+}
+
+tr[app-column-filter-bar] th:nth-child(8) input, /* Work Out */
+tr[app-column-filter-bar] td:nth-child(8) input {
+  width: 75px;
+}
+
+tr[app-column-filter-bar] th:nth-child(9) input, /* Total Location */
+tr[app-column-filter-bar] td:nth-child(9) input {
+  width: 80px;
+  text-align: center;
+}
+
+tr[app-column-filter-bar] th:nth-child(10) input, /* Total Projects */
+tr[app-column-filter-bar] td:nth-child(10) input {
+  width: 80px;
+  text-align: center;
+}
+
+tr[app-column-filter-bar] th:nth-child(11) input, /* Applied By */
+tr[app-column-filter-bar] td:nth-child(11) input {
+  min-width: 100px;
+}
+
+tr[app-column-filter-bar] th:nth-child(12) input, /* Applied On */
+tr[app-column-filter-bar] td:nth-child(12) input {
+  width: 100px;
+}
+
+tr[app-column-filter-bar] th:nth-child(13) input, /* Actions */
+tr[app-column-filter-bar] td:nth-child(13) input {
+  width: 80px;
+}
+
+/* Search button in actions column - if needed */
+tr[app-column-filter-bar] td:last-child button {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+tr[app-column-filter-bar] td:last-child button:hover {
+  background: #2563eb;
+}
+
+/* Clear filter indicator (if you have any) */
+tr[app-column-filter-bar] .clear-filter {
+  color: #94a3b8;
+  font-size: 14px;
+  cursor: pointer;
+  margin-left: 4px;
+}
+
+tr[app-column-filter-bar] .clear-filter:hover {
+  color: #ef4444;
+}
+
+/* ================================
+   PREMIUM MODAL CONTAINER
+================================ */
+::ng-deep .modal-content {
+  border: none;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow:
+    0 40px 120px rgba(15, 23, 42, 0.18),
+    0 8px 32px rgba(15, 23, 42, 0.12);
+  animation: premiumModalEntry 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ================================
+   HEADER
+================================ */
+::ng-deep .modal-header {
+  border-bottom: 1px solid #eef2f7;
+  padding: 20px 26px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Title */
+::ng-deep .modal-title {
+  font-size: 19px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: 0.2px;
+}
+
+/* Close Button */
+::ng-deep .modal-header .close {
+  font-size: 20px;
+  font-weight: 300;
+  color: #64748b;
+  opacity: 1;
+  transition: all 0.25s ease;
+}
+
+::ng-deep .modal-header .close:hover {
+  color: #0f172a;
+  transform: rotate(90deg) scale(1.08);
+}
+
+/* ================================
+   BODY
+================================ */
+::ng-deep .modal-body {
+  padding: 26px;
+  font-size: 15.5px;
+  color: #334155;
+  line-height: 1.7;
+  background: #ffffff;
+}
+
+/* Message Formatting */
+::ng-deep .modal-body div {
+  white-space: pre-line;
+}
+
+/* ================================
+   FOOTER
+================================ */
+::ng-deep .modal-footer {
+  border-top: 1px solid #f1f5f9;
+  padding: 18px 26px;
+  background: #fafbfd;
+}
+
+/* ================================
+   PREMIUM BUTTON
+================================ */
+::ng-deep .modal-footer .btn-primary {
+  border: none;
+  border-radius: 12px;
+  padding: 10px 28px;
+  font-size: 14.5px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  background: #2563eb;
+  color: white;
+
+  box-shadow:
+    0 10px 25px rgba(37, 99, 235, 0.25);
+
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+::ng-deep .modal-footer .btn-primary:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow:
+    0 16px 40px rgba(37, 99, 235, 0.35);
+}
+
+::ng-deep .modal-footer .btn-primary:active {
+  transform: translateY(0px);
+  box-shadow:
+    0 6px 18px rgba(37, 99, 235, 0.25);
+}
+
+/* ================================
+   BACKDROP (Premium Blur)
+================================ */
+::ng-deep .modal-backdrop.show {
+  opacity: 0.55;
+  backdrop-filter: blur(6px);
+}
+
+/* ================================
+   ENTRY ANIMATION
+================================ */
+@keyframes premiumModalEntry {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ================================
+   SUCCESS / ERROR ACCENTS
+================================ */
+
+::ng-deep .success-modal .modal-title {
+  color: #059669;
+}
+
+::ng-deep .error-modal .modal-title {
+  color: #dc2626;
+}
+
+/* ================================
+   MOBILE OPTIMIZATION
+================================ */
+@media (max-width: 768px) {
+  ::ng-deep .modal-content {
+    border-radius: 14px;
+  }
+
+  ::ng-deep .modal-body {
+    padding: 22px;
+  }
+
+  ::ng-deep .modal-header,  
+  ::ng-deep .modal-footer {
+    padding: 16px 20px;
+  }
+}
+
+
+

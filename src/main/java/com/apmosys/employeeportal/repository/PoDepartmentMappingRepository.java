@@ -26,18 +26,13 @@ public interface PoDepartmentMappingRepository extends JpaRepository<PoDepartmen
 	@Query(nativeQuery = true)
 	public List<Object[]> getDepartmentByPoId(int projectId);
 
-	@Query(value = "SELECT pdm.po_department_map_id , pdm.active , pdm.dept_id , " +
-	        "ppo.po_no , ppo.apmosys_rm , ppo.apmosys_rm_email , " +
-	        "ppo.client_address_id , ppo.client_location_id , ppo.client_rm , " +
-	        "ppo.created_by , ppo.created_on , ppo.is_renewable , ppo.msg , " +
-	        "ppo.po_end_date , ppo.po_start_date , ppo.next_po , " +
-	        "ppo.po_project_id , ppo.po_created_on , ppo.po_updated_on " +
-	        "FROM po_department_mapping pdm " +
-	        "INNER JOIN project_po_details ppo ON " +
-	        "((ppo.po_id IS NOT NULL AND pdm.po_id = ppo.po_id) " +
-	        " OR (ppo.po_id IS NULL AND pdm.project_id = ppo.project_id)) " +
-	        "WHERE ppo.project_id = :projectId " +
-	        "AND pdm.dept_id = :deptId",
+	@Query(value = "SELECT pdm.po_department_map_id , pdm.active , pdm.dept_id  , pdm.project_id , pdm.po_id\n"
+			+ "	        FROM po_department_mapping pdm  \n"
+			+ "	        INNER JOIN project_po_details ppo ON  \n"
+			+ "	        ((ppo.po_id IS NOT NULL AND pdm.po_id = ppo.po_id)  \n"
+			+ "	         OR (ppo.po_id IS NULL AND pdm.project_id = ppo.project_id))  \n"
+			+ "	        WHERE pdm.project_id = :projectId  \n"
+			+ "	        AND pdm.dept_id = :deptId",
 	        nativeQuery = true)
 	List<Object[]> findByProjectIdAndDeptId(@Param("projectId") Integer projectId,
 	                                        @Param("deptId") Long deptId);

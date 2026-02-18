@@ -63,6 +63,8 @@ import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.controller.ProjectStructureRequest;
 import com.apmosys.employeeportal.dto.BenchEmployeeDetailsDTO;
+import com.apmosys.employeeportal.repository.ProjectPoDetailsRepository;
+import com.apmosys.employeeportal.dto.BulkTimesheetRequestDTO;
 import com.apmosys.employeeportal.dto.ClientAddressSyncDto;
 import com.apmosys.employeeportal.dto.ClientDetailsSyncDto;
 import com.apmosys.employeeportal.dto.CombinedPOInternalProjectResponse;
@@ -72,6 +74,7 @@ import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
+import com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO;
 import com.apmosys.employeeportal.dto.ExceptionReportDTO;
 import com.apmosys.employeeportal.dto.ExpiredPoDto;
 import com.apmosys.employeeportal.dto.FCLineItemDTO;
@@ -110,6 +113,7 @@ import com.apmosys.employeeportal.dto.ProjectManagersDTO;
 import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.ProjectOverheadsDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
+import com.apmosys.employeeportal.dto.ProjectRejectionDTO;
 import com.apmosys.employeeportal.dto.ProjectRequirementResponse;
 import com.apmosys.employeeportal.dto.ProjectRequirementsDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
@@ -127,6 +131,7 @@ import com.apmosys.employeeportal.dto.RmgTeamDto;
 import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.SkippedEmployeeDTO;
+import com.apmosys.employeeportal.dto.SkippedTimesheetDTO;
 import com.apmosys.employeeportal.dto.SpocDTO;
 import com.apmosys.employeeportal.dto.SummaryChartDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
@@ -153,6 +158,7 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeCertificates;
 import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
+import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.FCLineItem;
 import com.apmosys.employeeportal.model.FCProjectMilestone;
 import com.apmosys.employeeportal.model.JobRole;
@@ -166,7 +172,10 @@ import com.apmosys.employeeportal.model.ProjectPoDetails;
 import com.apmosys.employeeportal.model.ResourceRequirement;
 import com.apmosys.employeeportal.model.ResourceRequirementTemp;
 import com.apmosys.employeeportal.model.Team;
+import com.apmosys.employeeportal.model.TimesheetActionAuditNew;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
+import com.apmosys.employeeportal.model.TimesheetRejectionDetailsId;
+import com.apmosys.employeeportal.model.TimesheetRejectionDetailsNew;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.ActivityTemplateRepository;
 import com.apmosys.employeeportal.repository.ClientLocationRepository;
@@ -177,6 +186,7 @@ import com.apmosys.employeeportal.repository.EmployeeCertificatesRepository;
 import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.FCLineItemRepository;
 import com.apmosys.employeeportal.repository.FCProjectMilestoneRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
@@ -188,10 +198,13 @@ import com.apmosys.employeeportal.repository.ProjectOverheadMappingRepository;
 import com.apmosys.employeeportal.repository.ProjectPoDetailsRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.ProjectTempRepo;
+import com.apmosys.employeeportal.repository.ProjectTimesheetStatusNewRepository;
 import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
 import com.apmosys.employeeportal.repository.ResourceRequirementTempRepo;
 import com.apmosys.employeeportal.repository.TeamRepository;
+import com.apmosys.employeeportal.repository.TimesheetActionAuditNewRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
+import com.apmosys.employeeportal.repository.TimesheetRejectionDetailsNewRepository;
 import com.apmosys.employeeportal.response.ProjectStructureResponse;
 import com.apmosys.employeeportal.response.ResourceRequirementResponse;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
@@ -225,6 +238,9 @@ public class ResourceManagementService {
 
 	@Autowired
 	ProjectDepartmentMapRepository projectDepartmentMapRepository;
+
+	@Autowired
+	ProjectTimesheetStatusNewRepository projectTimesheetStatusNewRepository;
 
 	@Autowired
 	TeamRepository teamRepository;
@@ -293,6 +309,9 @@ public class ResourceManagementService {
 	private FCProjectMilestoneRepository fCProjectMilestoneRepository;
 
 	@Autowired
+	private EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
+
+	@Autowired
 	private EmployeeClientSideIdMappingRepository employeeClientSideIdMappingRepository;
 
 	@Autowired
@@ -308,11 +327,17 @@ public class ResourceManagementService {
 	private ProjectPoDetailsRepository poDetailsRepository;
 
 	@Autowired
+	private TimesheetActionAuditNewRepository timesheetActionAuditNewRepository;
+
+	@Autowired
+	private TimesheetRejectionDetailsNewRepository timesheetRejectionDetailsNewRepository;
+
+	@Autowired
 	private ApiLogUtility apiLogUtility;
 
 	@PersistenceContext
-	private EntityManager entityManager; 
-	
+	private EntityManager entityManager;
+
 	@Autowired
 	private ClientService clientService;
 
@@ -2265,20 +2290,17 @@ public class ResourceManagementService {
 
 					if (allDeptList != null && !allDeptList.isEmpty()) {
 
-					    List<Long> deptIds = allDeptList.stream()
-					            .map(obj -> obj[0] != null ? ((Number) obj[0]).longValue() : null)
-					            .filter(Objects::nonNull)
-					            .distinct()
-					            .collect(Collectors.toList());
+						List<Long> deptIds = allDeptList.stream()
+								.map(obj -> obj[0] != null ? ((Number) obj[0]).longValue() : null)
+								.filter(Objects::nonNull).distinct().collect(Collectors.toList());
 
-					    List<Department> departments = departmentRepository.findAllById(deptIds);
+						List<Department> departments = departmentRepository.findAllById(deptIds);
 
-					    List<String> deptList = departments.stream()
-					            .map(Department::getName)
-					            .collect(Collectors.toList());
+						List<String> deptList = departments.stream().map(Department::getName)
+								.collect(Collectors.toList());
 
-					    String[] department = deptList.toArray(new String[0]);
-					    projectDTO.setDepartment(department);
+						String[] department = deptList.toArray(new String[0]);
+						projectDTO.setDepartment(department);
 					}
 
 					projectInfo.add(projectDTO);
@@ -6313,93 +6335,85 @@ public class ResourceManagementService {
 
 					List<Object[]> existingRawMaps = poDepartmentMappingRepository.findByProjectId(projectId);
 
-					List<PoDepartmentMapping> existingMaps = existingRawMaps.stream()
-					        .filter(Objects::nonNull)
-					        .map(obj -> {
+					List<PoDepartmentMapping> existingMaps = existingRawMaps.stream().filter(Objects::nonNull)
+							.map(obj -> {
 
-					            PoDepartmentMapping map = new PoDepartmentMapping();
+								PoDepartmentMapping map = new PoDepartmentMapping();
 
+								if (obj[0] != null)
+									map.setDeptId(((Number) obj[0]).longValue());
 
-					            if (obj[0] != null)
-					                map.setDeptId(((Number) obj[0]).longValue());
+								if (obj[1] != null)
+									map.setPoId(((Number) obj[1]).longValue());
 
-					            if (obj[1] != null)
-					                map.setPoId(((Number) obj[1]).longValue());
+								if (obj[2] != null)
+									map.setProjectId(((Number) obj[2]).intValue());
 
-					            if (obj[2] != null)
-					                map.setProjectId(((Number) obj[2]).intValue());
+								map.setActive(true);
 
-					            map.setActive(true);
+								return map;
+							}).collect(Collectors.toList());
 
-					            return map;
-					        })
-					        .collect(Collectors.toList());
-
-
-
-					Map<Long, PoDepartmentMapping> deptIdToMap = existingMaps.stream()
-					        .filter(Objects::nonNull)
-					        .filter(m -> {
-					            boolean hasDept = m.getDeptId() != null;
-					            if (!hasDept) {
-					                System.out.println("Skipping map with null deptId: " + m);
-					            }
-					            return hasDept;
-					        })
-					        .peek(m -> System.out.println("Processing map with deptId: " + m.getDeptId()))
-					        .collect(Collectors.toMap(PoDepartmentMapping::getDeptId, map -> {
-					            System.out.println("Putting in map: deptId = " + map.getDeptId() + ", map = " + map);
-					            return map;
-					        }));
+					Map<Long, PoDepartmentMapping> deptIdToMap = existingMaps.stream().filter(Objects::nonNull)
+							.filter(m -> {
+								boolean hasDept = m.getDeptId() != null;
+								if (!hasDept) {
+									System.out.println("Skipping map with null deptId: " + m);
+								}
+								return hasDept;
+							}).peek(m -> System.out.println("Processing map with deptId: " + m.getDeptId()))
+							.collect(Collectors.toMap(PoDepartmentMapping::getDeptId, map -> {
+								System.out.println("Putting in map: deptId = " + map.getDeptId() + ", map = " + map);
+								return map;
+							}));
 
 					Set<Long> newDeptIdSet = new HashSet<>(newDeptIds);
 
 					for (PoDepartmentMapping map : existingMaps) {
-					    try {
-					        if (map != null && map.getDeptId() != null
-					                && !newDeptIdSet.contains(map.getDeptId())
-					                && map.isActive()) {
+						try {
+							if (map != null && map.getDeptId() != null && !newDeptIdSet.contains(map.getDeptId())
+									&& map.isActive()) {
 
-					            map.setActive(false);
-					            deactivateCount++;
-					        }
-					    } catch (Exception e) {
-					        apiLogInfo.setApiResponse(
-					                "Error while deactivating department mapping (Project ID: " + projectId + ")");
-					        e.printStackTrace();
-					    }
+								map.setActive(false);
+								deactivateCount++;
+							}
+						} catch (Exception e) {
+							apiLogInfo.setApiResponse(
+									"Error while deactivating department mapping (Project ID: " + projectId + ")");
+							e.printStackTrace();
+						}
 					}
 
 					for (Long deptId : newDeptIds) {
-					    try {
-					        if (deptId != null) {
+						try {
+							if (deptId != null) {
 
-					            if (deptIdToMap.containsKey(deptId)) {
+								if (deptIdToMap.containsKey(deptId)) {
 
-					                PoDepartmentMapping existing = deptIdToMap.get(deptId);
+									PoDepartmentMapping existing = deptIdToMap.get(deptId);
 
-					                if (!existing.isActive()) {
-					                    existing.setActive(true);
-					                    updateCount++;
-					                }
+									if (!existing.isActive()) {
+										existing.setActive(true);
+										updateCount++;
+									}
 
-					            } else {
+								} else {
 
-					                PoDepartmentMapping newMap = new PoDepartmentMapping();
-					                newMap.setPoId(poId.longValue());
-					                newMap.setProjectId(projectId);
-					                newMap.setDeptId(deptId);
-					                newMap.setActive(true);
+									PoDepartmentMapping newMap = new PoDepartmentMapping();
+									newMap.setPoId(poId.longValue());
+									newMap.setProjectId(projectId);
+									newMap.setDeptId(deptId);
+									newMap.setActive(true);
 
-					                existingMaps.add(newMap);
-					                insertCount++;
-					            }
-					        }
-					    } catch (Exception e) {
-					        apiLogInfo.setApiResponse(
-					                "Error inserting/updating mapping (Dept ID: " + deptId + ", Po ID: " + poId + ")");
-					        e.printStackTrace();
-					    }
+									existingMaps.add(newMap);
+									insertCount++;
+								}
+							}
+						} catch (Exception e) {
+							apiLogInfo.setApiResponse(
+									"Error inserting/updating mapping (Dept ID: " + deptId + ", Po ID: " + poId + ")");
+							e.printStackTrace();
+						}
 					}
 
 					poDepartmentMappingRepository.saveAll(existingMaps);
@@ -9649,63 +9663,58 @@ public class ResourceManagementService {
 					if (activePoIds.isEmpty()) {
 						activePoIds.add(projectPoDetailsList.get(0).getPoId().intValue());
 					}
-					List<Object[]> existingRawDeptMap =
-					        poDepartmentMappingRepository.findByProjectId(existingProject.getProjectId());
+					List<Object[]> existingRawDeptMap = poDepartmentMappingRepository
+							.findByProjectId(existingProject.getProjectId());
 
-					List<PoDepartmentMapping> existingDeptMap = existingRawDeptMap.stream()
-					        .filter(Objects::nonNull)
-					        .map(obj -> {
-					            PoDepartmentMapping map = new PoDepartmentMapping();
+					List<PoDepartmentMapping> existingDeptMap = existingRawDeptMap.stream().filter(Objects::nonNull)
+							.map(obj -> {
+								PoDepartmentMapping map = new PoDepartmentMapping();
 
+								if (obj[0] != null)
+									map.setDeptId(((Number) obj[0]).longValue());
 
-					            if (obj[0] != null)
-					                map.setDeptId(((Number) obj[0]).longValue());
+								if (obj[1] != null)
+									map.setPoId(((Number) obj[1]).longValue());
 
-					            if (obj[1] != null)
-					                map.setPoId(((Number) obj[1]).longValue());
+								if (obj[2] != null)
+									map.setProjectId(((Number) obj[2]).intValue());
 
-					            if (obj[2] != null)
-					                map.setProjectId(((Number) obj[2]).intValue());
+								map.setActive(true);
 
-					            map.setActive(true);
+								return map;
+							}).collect(Collectors.toList());
 
-					            return map;
-					        })
-					        .collect(Collectors.toList());
-
-					Set<Long> existingDeptIds = existingDeptMap.stream()
-					        .map(PoDepartmentMapping::getDeptId)
-					        .filter(Objects::nonNull)
-					        .collect(Collectors.toSet());
+					Set<Long> existingDeptIds = existingDeptMap.stream().map(PoDepartmentMapping::getDeptId)
+							.filter(Objects::nonNull).collect(Collectors.toSet());
 
 					Set<Long> newDeptIds = new HashSet<>();
 
 					for (String deptName : poPortalProjects.getDepartment()) {
-					    Department dept = departmentRepository.findByName(deptName);
-					    if (dept != null)
-					        newDeptIds.add(dept.getDeptId());
+						Department dept = departmentRepository.findByName(deptName);
+						if (dept != null)
+							newDeptIds.add(dept.getDeptId());
 					}
 
 					if (!existingDeptIds.equals(newDeptIds)) {
 
-					    poDepartmentMappingRepository.deleteAll(existingDeptMap);
+						poDepartmentMappingRepository.deleteAll(existingDeptMap);
 
-					    List<PoDepartmentMapping> newMappings = new ArrayList<>();
+						List<PoDepartmentMapping> newMappings = new ArrayList<>();
 
-					    for (Integer poId : activePoIds) {
-					        for (Long deptId : newDeptIds) {
+						for (Integer poId : activePoIds) {
+							for (Long deptId : newDeptIds) {
 
-					            PoDepartmentMapping pdm = new PoDepartmentMapping();
-					            pdm.setDeptId(deptId);
-					            pdm.setPoId(poId.longValue());
-					            pdm.setProjectId(existingProject.getProjectId()); 
-					            pdm.setActive(true);
+								PoDepartmentMapping pdm = new PoDepartmentMapping();
+								pdm.setDeptId(deptId);
+								pdm.setPoId(poId.longValue());
+								pdm.setProjectId(existingProject.getProjectId());
+								pdm.setActive(true);
 
-					            newMappings.add(pdm);
-					        }
-					    }
+								newMappings.add(pdm);
+							}
+						}
 
-					    poDepartmentMappingRepository.saveAll(newMappings);
+						poDepartmentMappingRepository.saveAll(newMappings);
 					}
 				}
 
@@ -10454,66 +10463,56 @@ public class ResourceManagementService {
 			}
 			activePoIds.add(projectPoDetails.getPoId().intValue());
 		}
-		List<Object[]> existingRaw =
-		        poDepartmentMappingRepository.findByProjectId(project.getProjectId());
+		List<Object[]> existingRaw = poDepartmentMappingRepository.findByProjectId(project.getProjectId());
 
-		List<PoDepartmentMapping> existing = existingRaw.stream()
-		        .filter(Objects::nonNull)
-		        .map(obj -> {
-		            PoDepartmentMapping pdm = new PoDepartmentMapping();
+		List<PoDepartmentMapping> existing = existingRaw.stream().filter(Objects::nonNull).map(obj -> {
+			PoDepartmentMapping pdm = new PoDepartmentMapping();
 
+			if (obj[0] != null)
+				pdm.setDeptId(((Number) obj[0]).longValue());
 
-		            if (obj[0] != null)
-		                pdm.setDeptId(((Number) obj[0]).longValue());
+			if (obj[1] != null)
+				pdm.setPoId(((Number) obj[1]).longValue());
 
-		            if (obj[1] != null)
-		                pdm.setPoId(((Number) obj[1]).longValue());
+			if (obj[2] != null)
+				pdm.setProjectId(((Number) obj[2]).intValue());
 
-		            if (obj[2] != null)
-		                pdm.setProjectId(((Number) obj[2]).intValue());
+			pdm.setActive(true);
 
-		            pdm.setActive(true);
+			return pdm;
+		}).collect(Collectors.toList());
 
-		            return pdm;
-		        })
-		        .collect(Collectors.toList());
+		Set<Long> existingIds = existing.stream().map(PoDepartmentMapping::getDeptId).filter(Objects::nonNull)
+				.collect(Collectors.toSet());
 
-		Set<Long> existingIds = existing.stream()
-		        .map(PoDepartmentMapping::getDeptId)
-		        .filter(Objects::nonNull)
-		        .collect(Collectors.toSet());
-
-		Set<Long> newIds = Arrays.stream(dto.getDepartment())
-		        .map(name -> {
-		            Department dept = departmentRepository.findByName(name);
-		            if (dept == null) {
-		                throw new DataNotFoundException("Invalid department from PO: " + name);
-		            }
-		            return dept.getDeptId();
-		        })
-		        .collect(Collectors.toSet());
+		Set<Long> newIds = Arrays.stream(dto.getDepartment()).map(name -> {
+			Department dept = departmentRepository.findByName(name);
+			if (dept == null) {
+				throw new DataNotFoundException("Invalid department from PO: " + name);
+			}
+			return dept.getDeptId();
+		}).collect(Collectors.toSet());
 		if (!existingIds.equals(newIds)) {
 
-		    existing.forEach(pdm -> pdm.setActive(false));
-		    poDepartmentMappingRepository.saveAll(existing);
+			existing.forEach(pdm -> pdm.setActive(false));
+			poDepartmentMappingRepository.saveAll(existing);
 
-		    List<PoDepartmentMapping> newMaps = new ArrayList<>();
+			List<PoDepartmentMapping> newMaps = new ArrayList<>();
 
-		    for (Integer poId : activePoIds) {
-		        for (Long deptId : newIds) {
+			for (Integer poId : activePoIds) {
+				for (Long deptId : newIds) {
 
-		            PoDepartmentMapping pdm = new PoDepartmentMapping();
-		            pdm.setDeptId(deptId);
-		            pdm.setPoId(poId.longValue());
-		            pdm.setProjectId(project.getProjectId());
-		            pdm.setActive(true);
-		            newMaps.add(pdm);
-		        }
-		    }
+					PoDepartmentMapping pdm = new PoDepartmentMapping();
+					pdm.setDeptId(deptId);
+					pdm.setPoId(poId.longValue());
+					pdm.setProjectId(project.getProjectId());
+					pdm.setActive(true);
+					newMaps.add(pdm);
+				}
+			}
 
-		    poDepartmentMappingRepository.saveAll(newMaps);
+			poDepartmentMappingRepository.saveAll(newMaps);
 		}
-
 
 		String departmentIdsAsString = newIds.stream().map(String::valueOf).collect(Collectors.joining(","));
 		project.setDeptId(departmentIdsAsString);
@@ -10812,27 +10811,26 @@ public class ResourceManagementService {
 
 		for (String deptName : dto.getDepartment()) {
 
-		    Department dept = departmentRepository.findByName(deptName);
+			Department dept = departmentRepository.findByName(deptName);
 
-		    if (dept != null) {
-		        List<Object[]> existingMappings =
-		                poDepartmentMappingRepository.findByProjectIdAndDeptId(
-		                        project.getProjectId(), dept.getDeptId());
+			if (dept != null) {
+				List<Object[]> existingMappings = poDepartmentMappingRepository
+						.findByProjectIdAndDeptId(project.getProjectId(), dept.getDeptId());
 
-		        if (existingMappings == null || existingMappings.isEmpty()) {
+				if (existingMappings == null || existingMappings.isEmpty()) {
 
-		            for (Integer poId : activePoIds) {
+					for (Integer poId : activePoIds) {
 
-		                PoDepartmentMapping map = new PoDepartmentMapping();
-		                map.setPoId(poId.longValue());
-		                map.setDeptId(dept.getDeptId());
-		                map.setProjectId(project.getProjectId()); 
-		                map.setActive(true);
+						PoDepartmentMapping map = new PoDepartmentMapping();
+						map.setPoId(poId.longValue());
+						map.setDeptId(dept.getDeptId());
+						map.setProjectId(project.getProjectId());
+						map.setActive(true);
 
-		                poDepartmentMappingRepository.save(map);
-		            }
-		        }
-		    }
+						poDepartmentMappingRepository.save(map);
+					}
+				}
+			}
 		}
 
 	}
@@ -12373,6 +12371,7 @@ public class ResourceManagementService {
 				if (!newActivities.isEmpty())
 					activitiesRepository.saveAll(newActivities);
 			}
+			
 
 			// done
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -14652,7 +14651,7 @@ public class ResourceManagementService {
 						employeeRepository.updateBillableAndTypeForEmpIds(billable, billableType, empIds);
 					}
 				}
-			}
+
 
 			// --- 9. Employee client-side ID mappings ---
 			List<EmployeeClientSideIdMapping> oldClientSideMappings = employeeClientSideIdMappingRepository
@@ -14705,6 +14704,7 @@ public class ResourceManagementService {
 				activitiesRepository.saveAll(newActivities);
 		}
 
+		}
 	}
 
 	public String ishineStatusReturn(List<ProjectPoMappingWithResourceDTO> deletedProjects,
@@ -14872,6 +14872,7 @@ public class ResourceManagementService {
 		} catch (Exception e) {
 
 			ExceptionLogContext.add(e);
+
 			String errorMessage = e.getMessage();
 
 			if (e.getCause() != null && e.getCause().getMessage() != null) {
@@ -14889,8 +14890,7 @@ public class ResourceManagementService {
 		        log.error("Client Sync Failed For ClientIds: {}", failedClientIds);
 		    }
 			if (initialLog != null) {
-				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode,failedClientIds + ExceptionLogContext.get(),
-						httpRequest);
+			apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode,failedClientIds + ExceptionLogContext.get(),	httpRequest);
 			}
 		}
 
@@ -15040,4 +15040,184 @@ public class ResourceManagementService {
 		return serviceResponse;
 	}
 
+
+	public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO request) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+		   String status = request.getStatus();
+			List<Long> TimesheetLists = request.getTimesheetIds();
+			if ("REJECTED".equalsIgnoreCase(status) && TimesheetLists.size() > 1) {
+				throw new IllegalArgumentException("Only one timesheet can be rejected at a time.");
+			}
+//        	     List<Object[]> result=projectTimesheetStatusNewRepository.findProjectsForTimesheetIds(TimesheetLists);
+			List<EmployeeTimesheetsNewDTO> timesheets =
+					   employeeTimesheetsNewRepository.fetchTimesheetsWithEmploymentId(TimesheetLists);
+			List<SkippedTimesheetDTO> skippedTimesheets = new ArrayList<>();
+
+			   List<Long> validTimesheetIds = new ArrayList<>();
+			for (EmployeeTimesheetsNewDTO ts : timesheets) {
+				String prefix = "A-";
+
+				if ("true".equalsIgnoreCase(ts.getIsProd())) {
+					prefix = "AP-";
+				}
+
+				String formattedEmpId = prefix + ts.getEmployementID();
+				   if (ts.getStatus() == 1) {
+					   validTimesheetIds.add(ts.getTimesheetId());
+				   } else if (ts.getStatus() == 2) {
+					   skippedTimesheets.add(
+							   new SkippedTimesheetDTO(
+								   ts.getTimesheetId(),
+								   formattedEmpId,
+								   ts.getDate(),
+								   "Already Approved"
+							   )
+						   );
+
+				   } else if (ts.getStatus() == 3) {
+					   skippedTimesheets.add(
+							   new SkippedTimesheetDTO(
+								   ts.getTimesheetId(),
+								   formattedEmpId,
+								   ts.getDate(),
+								   "Already Rejected"
+							   )
+						   );
+
+				   }
+			   }
+
+			   if (validTimesheetIds.isEmpty()) {
+
+				   response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				   response.setServiceResponse("No valid timesheets to process");
+				   response.setServiceError(skippedTimesheets);
+				   return response;
+			   }
+			   List<Object[]> result =
+					   projectTimesheetStatusNewRepository
+							   .findProjectsForTimesheetIds(validTimesheetIds);
+			Map<Long, List<Long>>timesheetProjectMap=new HashMap<>();
+			for (Object[] row : result) {
+				Long timesheetId = ((Number) row[0]).longValue();
+				   Long projectId   = ((Number) row[1]).longValue();
+
+				   timesheetProjectMap
+					   .computeIfAbsent(timesheetId, k -> new ArrayList<>())
+					   .add(projectId);
+			   }
+		   Long updatedBy = request.getUpdatedBy();
+
+		   if ("APPROVED".equalsIgnoreCase(status)) {
+				saveAuditForApproval(validTimesheetIds,timesheetProjectMap, updatedBy,status);
+		   }
+		   else if ("REJECTED".equalsIgnoreCase(status)) {
+			   saveRejectionDetails( request);
+		   }
+			Map<String, Object> finalResponse = new HashMap<>();
+			   finalResponse.put("processed", validTimesheetIds);
+			   finalResponse.put("skipped", skippedTimesheets);
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			   response.setServiceResponse(finalResponse);
+
+		   } catch (Exception e) {
+
+			   e.printStackTrace(); 
+			   response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			   response.setServiceResponse("Something went wrong while processing timesheets");
+		   }
+
+		   return response;
+	   }
+	
+
+	
+	private void saveAuditForApproval(List<Long> TimesheetLists,Map<Long, List<Long>> timesheetProjectMap,
+			Long updatedBy,String status) {
+
+	   List<TimesheetActionAuditNew> auditList = new ArrayList<>();
+	   LocalDateTime now = LocalDateTime.now();
+	   int statusValue = "APPROVED".equalsIgnoreCase(status) ? 2 : 3;
+	   for (Map.Entry<Long, List<Long>> entry : timesheetProjectMap.entrySet()) {
+
+		   Long timesheetId = entry.getKey();
+		   List<Long> projectIds = entry.getValue();
+
+		   for (Long projectId : projectIds) {
+
+			   TimesheetActionAuditNew audit = new TimesheetActionAuditNew();
+			   audit.setTimesheetId(timesheetId);
+			   audit.setProjectId(projectId.intValue());
+			   audit.setActionType(status);
+			   audit.setActionBy(updatedBy);
+			   audit.setActionOn(now);
+
+			   auditList.add(audit);
+		   }
+	   }
+	   
+	   timesheetActionAuditNewRepository.saveAll(auditList);
+	   employeeTimesheetsNewRepository.processByStatus(TimesheetLists,statusValue);
+	   projectTimesheetStatusNewRepository.processByStatus(TimesheetLists,statusValue);
+	   }
+	
+	private void saveRejectionDetails(BulkTimesheetRequestDTO request) {
+
+		   List<TimesheetRejectionDetailsNew> rejectionList = new ArrayList<>();
+		   LocalDateTime now = LocalDateTime.now();
+
+		   List<Long> timesheetIds = request.getTimesheetIds();
+		   List<TimesheetActionAuditNew> auditList = new ArrayList<>();
+		   Long updatedBy = request.getUpdatedBy();
+
+		   for (Long timesheetId : timesheetIds) {
+
+			   for (ProjectRejectionDTO pr : request.getProjectRejections()) {
+
+				   List<Long> projectIds = pr.getProjectIds();
+				   String remark = pr.getRejectRemark();
+
+				   for (Long projectId : projectIds) {
+				   Long locationMappingId =
+						   projectTimesheetStatusNewRepository
+								   .findLocationMappingId(timesheetId, projectId.intValue());
+				   projectTimesheetStatusNewRepository
+				   .processByTSandProject(timesheetId,
+													  projectId.intValue(),
+													  3);
+				   TimesheetActionAuditNew audit = new TimesheetActionAuditNew();
+				   audit.setTimesheetId(timesheetId);
+				   audit.setProjectId(projectId.intValue());
+				   audit.setActionType("REJECTED");
+				   audit.setActionBy(updatedBy);
+				   audit.setActionOn(now);
+
+				   auditList.add(audit);
+
+				   for (Long rejectionId : pr.getRejectionIds()) {
+					   
+
+					   TimesheetRejectionDetailsNew rejection =
+							   new TimesheetRejectionDetailsNew();
+
+					   rejection.setTimesheetId(timesheetId);
+					   rejection.setLocationMappingId(locationMappingId);
+					   rejection.setProjectId(projectId.intValue());
+					   rejection.setRejectionId(rejectionId);
+					   rejection.setRemarks(remark);
+					   rejection.setRejectedBy(updatedBy);
+					   rejection.setRejectedOn(now);
+
+					   rejectionList.add(rejection);
+				   }
+				   }
+			   }
+		   }
+		   timesheetActionAuditNewRepository.saveAll(auditList);
+		   employeeTimesheetsNewRepository.processByStatus(timesheetIds, 3);
+		   timesheetRejectionDetailsNewRepository.saveAll(rejectionList);
+	   }
+	
 }

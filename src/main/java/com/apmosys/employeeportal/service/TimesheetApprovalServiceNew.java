@@ -345,16 +345,16 @@ public class TimesheetApprovalServiceNew {
 					audit.setActionType(ACTION_TYPE_REJECTION);
 					actionAudit.add(audit);
 					
-					// RejectionId data making
-					rejectionMapId.setTimesheetId(p.getId().getTimesheetId());
-					rejectionMapId.setProjectId(p.getId().getProjectId());
-					rejectionMapId.setLocationMappingId(p.getId().getLocationMappingId());
-					rejectionMapId.setRejectionId(dto.getRejectionReasonId());
-					
-					// Rjection data making
-					rejectionMap.setId(rejectionMapId);
-					rejectionMap.setRemarks(dto.getRemarks());
-					rejectionMappings.add(rejectionMap);
+
+			        rejectionMap.setTimesheetId(p.getId().getTimesheetId());
+			        rejectionMap.setProjectId(p.getId().getProjectId());
+			        rejectionMap.setLocationMappingId(p.getId().getLocationMappingId());
+			        rejectionMap.setRejectionId(dto.getRejectionReasonId());
+			        rejectionMap.setRemarks(dto.getRemarks());
+			        rejectionMap.setRejectedBy(dto.getRmId());
+			        rejectionMap.setRejectedOn(LocalDateTime.now());
+
+			        rejectionMappings.add(rejectionMap);
 				});
 			}
 			
