@@ -113,6 +113,21 @@ export class TeamTimesheetComponent implements OnInit {
   allTimesheetColumns: any[] = ['blank', 'blank', 'blank', 'employmentIdAcToET', 'employeeName', 'date', 'dayType', 'description', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status', , 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'createdOn'];
   allTimesheetReqColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'createdByName', 'totalTime', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus'];
   allTimesheetColumnsVMS: any[] = ['blank', 'blank', 'employmentId', 'employeeName', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'locationCount', 'projectCount', 'appliedBy', 'appliedOn', 'blank'];
+  allTimesheetColumnsVMSStatusChange: any[] = [
+  'blank',   // Sr No (now becomes first column)
+  'employmentId',
+  'employeeName',
+  'date',
+  'dayType',
+  'workCheckIn',
+  'workCheckOut',
+  'locationCount',
+  'projectCount',
+  'appliedBy',
+  'appliedOn',
+  'blank'    // action column
+];
+
   previewUrl: any;
   fileType: '' | 'pdf' | 'image' | null = null;
   docData: any;
@@ -2343,6 +2358,7 @@ getDocument(type: 'Pending' | 'Approved'): void {
    onStatusChange(status: number) {
     this.selectedStatus = status;
     this.page1 = 0; // pagination reset
+    this.isSearchEnabled = false;
     this.getMyReporteesTimesheetRequests();
   }
 

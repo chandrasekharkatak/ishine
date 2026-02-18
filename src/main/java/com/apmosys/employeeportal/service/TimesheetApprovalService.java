@@ -1,6 +1,7 @@
 	package com.apmosys.employeeportal.service;
 	
-	import java.sql.Timestamp;
+	import java.math.BigInteger;
+import java.sql.Timestamp;
 	import java.time.LocalDateTime;
 	import java.time.format.DateTimeFormatter;
 	import java.util.ArrayList;
@@ -1555,7 +1556,7 @@ public ServiceResponse getMyReporteesTimesheetRequestsNew(GetMyReporteesTimeshee
                 JpaSort.unsafe(direction, sortExpr)
         );
 //        timesheet id list (pagable); 10 timesheet id
-        Page<Long> timesheetPage =
+        Page<BigInteger> timesheetPage =
                 employeeTimesheetsNewRepository.getPagedTimesheetIds(
                         payload.getEmpId(),
                         clientFilter,
@@ -1582,7 +1583,11 @@ public ServiceResponse getMyReporteesTimesheetRequestsNew(GetMyReporteesTimeshee
                 );
 
 
-        List<Long> timesheetIds = timesheetPage.getContent();
+        List<Long> timesheetIds = timesheetPage.getContent()
+                .stream()
+                .map(id -> ((Number) id).longValue())
+                .collect(Collectors.toList());
+
 
 
         // ---------- REPO CALL ----------

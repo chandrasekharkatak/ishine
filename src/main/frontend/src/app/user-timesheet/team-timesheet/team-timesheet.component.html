@@ -729,8 +729,14 @@
               <th mat-sort-header="appliedOn">Applied On</th>
               <th>Actions</th>
             </tr>
-            <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="allTimesheetColumnsVMS"
-              (onSearch)="onSearch($event); page1 = 0"></tr>
+           <tr app-column-filter-bar
+    *ngIf="isSearchEnabled"
+    [columnList]="selectedStatus === 1 
+        ? allTimesheetColumnsVMS 
+        : allTimesheetColumnsVMSStatusChange"
+    (onSearch)="onSearch($event); page1 = 0">
+</tr>
+
           </thead>
           <tbody> <ng-container *ngFor="let timesheet of allTeamTimesheetRequestsProjectView; let i = index">
               <tr class="main-row" [class.active-row]="expandedTimesheetIndex === i">
