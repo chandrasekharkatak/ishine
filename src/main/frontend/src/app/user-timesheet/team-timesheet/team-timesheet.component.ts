@@ -113,6 +113,21 @@ export class TeamTimesheetComponent implements OnInit {
   allTimesheetColumns: any[] = ['blank', 'blank', 'blank', 'employmentIdAcToET', 'employeeName', 'date', 'dayType', 'description', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status', , 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus', 'filledDocument', 'approvedDocument', 'createdOn'];
   allTimesheetReqColumns: any[] = ['blank', 'blank', 'employeementId', 'employeeName', 'date', 'dayType', 'description', 'createdByName', 'totalTime', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'isNightShift', 'status', 'clientInTime', 'clientOutTime', 'totalClientWorkingHours', 'clientApprovalStatus'];
   allTimesheetColumnsVMS: any[] = ['blank', 'blank', 'employmentId', 'employeeName', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'locationCount', 'projectCount', 'appliedBy', 'appliedOn', 'blank'];
+  allTimesheetColumnsVMSStatusChange: any[] = [
+  'blank',   // Sr No (now becomes first column)
+  'employmentId',
+  'employeeName',
+  'date',
+  'dayType',
+  'workCheckIn',
+  'workCheckOut',
+  'locationCount',
+  'projectCount',
+  'appliedBy',
+  'appliedOn',
+  'blank'    // action column
+];
+
   previewUrl: any;
   fileType: '' | 'pdf' | 'image' | null = null;
   docData: any;
@@ -268,9 +283,27 @@ alertModal: TemplateRef<any>;
     }
   }
 
+  // getTotalDocCount(projectId: number): number {
+  //   return this.documentData?.filter(d => d.projectId === projectId).length || 0;
+  // }
+
   getTotalDocCount(projectId: number): number {
-    return this.documentData?.filter(d => d.projectId === projectId).length || 0;
+  if (!this.selectedTimesheet?.documentData || !this.selectedTimesheet.documentData.length) {
+    return 0;
   }
+
+  // Count documents for this project
+  let count = 0;
+
+  this.selectedTimesheet.documentData.forEach(doc => {
+    // Increment for docId
+    if (doc.docId) count += 1;
+    // Increment for bulkApprovedDocId if it exists
+    if (doc.bulkApprovedDocId) count += 1;
+  });
+
+  return count;
+}
 
 
   disableMannualDateInput() {
@@ -453,10 +486,13 @@ this.items = event.pageSize;
 
 sortData(sort: Sort) {
   if (!sort.active || sort.direction === '') return;
-
-  this.sortColumn = sort.active;
+ if (sort.active === 'employmentId') {
+    this.sortColumn = 'employeementId'; // raw DB column
+  } else {
+    this.sortColumn = sort.active;
+  }
   this.sortDirection = sort.direction.toUpperCase() as 'ASC' | 'DESC';
-  this.page1 = 1;
+  this.page1 = 0;
   this.getMyReporteesTimesheetRequests();
 }
 
@@ -915,7 +951,7 @@ sortData(sort: Sort) {
   }
   onSearch(searchData: any) {
     this.filters = searchData;   // 🔥 column wise values
-    this.page1 = 1;
+    this.page1 = 0;
     this.getMyReporteesTimesheetRequests();
   }
 
@@ -2191,17 +2227,32 @@ loadActiveDocument(): void {
 
 
    /* HELPERS */
-   hasPendingDoc(projectId: number): boolean {
-     return this.selectedTimesheet?.documentData?.some(
-       d => d.projectId === projectId && !d.finalFlag
-     );
-   }
+hasPendingDoc(projectId: number): boolean {
+  return this.selectedTimesheet?.documentData?.some(
+    d => d.docId != null
+  ) || false;
+}
 
-   hasApprovedDoc(projectId: number): boolean {
-     return this.selectedTimesheet?.documentData?.some(
-       d => d.projectId === projectId && d.finalFlag
-     );
-   }
+hasApprovedDoc(projectId: number): boolean {
+  return this.selectedTimesheet?.documentData?.some(
+    d => d.bulkApprovedDocId != null
+  ) || false;
+}
+
+
+  getFilledStatus(projectId: number): string {
+
+  const docs = this.selectedTimesheet?.documentData || [];
+
+  const hasPending = docs.some(d => d.docId != null);
+  const hasApproved = docs.some(d => d.bulkApprovedDocId != null);
+
+  if (hasPending && hasApproved) return 'Pending , Approved';
+  if (hasPending) return 'Pending';
+  if (hasApproved) return 'Approved';
+
+  return '';
+}
 
   //  getDocument(projectId: number, type: 'Pending' | 'Approved'): any {
   //    return this.selectedTimesheet?.doumentData?.find(d =>
@@ -2307,6 +2358,7 @@ getDocument(type: 'Pending' | 'Approved'): void {
    onStatusChange(status: number) {
     this.selectedStatus = status;
     this.page1 = 0; // pagination reset
+    this.isSearchEnabled = false;
     this.getMyReporteesTimesheetRequests();
   }
 
@@ -2433,7 +2485,7 @@ projectList: any[] = [];
 
           this.clearAllSelections();
           this.selectedStatus = 2;
-          this.page1 = 1;
+          this.page1 = 0;
           this.getMyReporteesTimesheetRequests();
           this.getTimesheetStatusCountsByEmpId();
           this.modalMessage =message;
@@ -2561,7 +2613,7 @@ approveSingleTimesheet(timesheet: any) {
 
           this.clearAllSelections();
           this.selectedStatus = 2;
-          this.page1 = 1;
+          this.page1 = 0;
 
           this.getMyReporteesTimesheetRequests();
           this.getTimesheetStatusCountsByEmpId();
@@ -2974,7 +3026,7 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
           }
 
           this.modalRef?.close();
-          this.page1 = 1;
+          this.page1 = 0;
 
           this.getMyReporteesTimesheetRequests();
           this.getTimesheetStatusCountsByEmpId();
@@ -3048,7 +3100,7 @@ isRejectFormValid(): boolean {
 
 
 onClientFilterChange() {
-  this.page1 = 1;
+  this.page1 = 0;
   this.getMyReporteesTimesheetRequests();
   this.getTimesheetStatusCountsByEmpId();
 }

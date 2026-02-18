@@ -148,8 +148,8 @@ public class TimesheetServiceNew {
 	@Autowired
 	private DocMimeTypeMasterNewRepository docMimeTypeMasterNewRepository;
 
-	// @Autowired
-	// private TimesheetDashboardService timesheetDashboardService;
+	 @Autowired
+	 private TimesheetDashboardService timesheetDashboardService;
 
 	@Autowired
 	private TimesheetDashboardServiceNew timesheetDashboardServiceNew;
@@ -2390,6 +2390,15 @@ public class TimesheetServiceNew {
 	    return response;
 	}
 	
-
+	public ServiceResponse getTimesheetDashboardCountForProject(Integer month, Integer year,Long empId,Boolean isClientDashboard ,List<String> billableType,String projectActive) {
+		return timesheetDashboardService.getTimesheetDashboardCountForProject(
+				month, year, empId, isClientDashboard, billableType, projectActive);
+	}
+	
+	 public ServiceResponse getProjectViewForClientAttendanceStatus(TimesheetDTO timesheetDTO)
+	 {
+		 return timesheetDashboardService.getProjectViewForClientAttendanceStatus(timesheetDTO);
+	 }
+	
 
 }
