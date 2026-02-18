@@ -2796,14 +2796,6 @@ timesheet: any;
   }
 
 
-
-
-  onTeamMemberSelected(empId: string): void {
-    if (empId) {
-      this.fetchLastTimesheet(empId);
-    }
-  }
-
   // fetchLastTimesheet(empId: number | string): void {
   //   this.timesheetService.getLastFilledTimesheetByEmpId(Number(empId)).subscribe({
   //     next: (res) => {
@@ -2821,43 +2813,6 @@ timesheet: any;
 
   triggerNoTimesheetPopupForInactiveEmployee: boolean = false;
 
-
-  fetchLastTimesheet(empId: number | string): void {
-
-    this.timesheetService.getLastFilledTimesheetByEmpId(Number(empId)).subscribe({
-      next: (res) => {
-
-        if (res.serviceStatus === 'Success') {
-          if (res.serviceResponse1 === 'No Timesheet') {
-
-            this.triggerNoTimesheetPopup = true;
-
-            this.lastTimesheetData = null;
-
-
-
-
-          } if (res.serviceResponse1 === 'Not Active') {
-            this.triggerNoTimesheetPopupForInactiveEmployee = true;
-          } else {
-            this.lastTimesheetData = { ...res.serviceResponse };
-          }
-
-
-
-
-        } else {
-          this.lastTimesheetData = null;
-        }
-
-      },
-      error: (err) => {
-        console.error("Failed to fetch last timesheet", err);
-        this.lastTimesheetData = null;
-
-      }
-    });
-  }
 
   onCreateTimesheet() {
     console.log("Timesheet submitted!");

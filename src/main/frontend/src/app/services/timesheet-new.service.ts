@@ -232,16 +232,35 @@ export class TimesheetNewService {
   }
 
   /**
+   * Get autofill template for last working-day timesheet before a target date.
+   * @param payload - { empId: number; date: string (YYYY-MM-DD) }
+   */
+  getAutofillTimesheet(payload: { empId: number; date: string }): Observable<any> {
+    return this.http.post(
+      `${this.baseUrl}api/v2/timesheet/autofill`,
+      payload
+    );
+  }
+
+  /**
    * Get document by ID for preview (returns blob)
+   * Uses EmployeeTimesheetControllerNew.getDocumentDataByDocId
    * @param docId - Document ID
-   * @param approvedDocType - true for Approved (FinalDocumentNew), false/omit for Filled (TimesheetDocumentDetailsNew)
+   * @param approvedDocType - true for Approved (FinalDocumentNew), false for Filled (TimesheetDocumentDetailsNew)
+   */
+  getDocumentDataByDocId(docId: number, approvedDocType: boolean): Observable<Blob> {
+    const url = `${this.baseUrl}api/v2/timesheet/getDocumentDataByDocId?docId=${docId}&approvedDocType=${approvedDocType}`;
+    return this.http.get(url, { responseType: 'blob' });
+  }
+
+  /**
+   * Get document by ID for preview (returns blob) - alternate path for timesheet-form
+   * @param docId - Document ID
+   * @param approvedDocType - true for Approved, false/omit for Filled
    */
   getDocumentById(docId: number, approvedDocType?: boolean): Observable<Blob> {
-    let url = `${this.baseUrl}api/v2/timesheet/document/getById/${docId}`;
-    if (approvedDocType != null) {
-      url += `?approvedDocType=${approvedDocType}`;
-    }
-    return this.http.get(url, { responseType: 'blob' });
+    const approved = approvedDocType ?? false;
+    return this.getDocumentDataByDocId(docId, approved);
   }
   getMyReporteesTimesheetRequestsCount(payload: any) {
     return this.http.post(

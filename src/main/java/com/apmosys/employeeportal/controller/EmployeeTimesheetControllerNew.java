@@ -416,6 +416,30 @@ public class EmployeeTimesheetControllerNew {
 				.body(resource);
 	}
 
+	/**
+	 * API: Get autofill template for last working-day timesheet.
+	 * Endpoint: POST /api/v2/timesheet/autofill
+	 *
+	 * Request body: EmployeeTimesheetDTO with empId and date (target date for which user is filling).
+	 * Behaviour:
+	 * - Looks for last working-day timesheet strictly before target date.
+	 * - Verifies all projects are still active for the employee.
+	 * - Returns full hierarchical DTO (without documents) to be used as autofill template.
+	 */
+	@PostMapping("/autofill")
+	public ServiceResponse getAutofillTimesheetTemplate(@RequestBody EmployeeTimesheetDTO requestDTO) {
+
+		if (requestDTO == null || requestDTO.getEmpId() == null || requestDTO.getDate() == null) {
+			ServiceResponse response = new ServiceResponse();
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Employee and date are required for autofill.");
+			response.setServiceError("Missing empId or date in autofill request");
+			return response;
+		}
+
+		return timesheetServiceNew.getAutofillTimesheetTemplate(requestDTO.getEmpId(), requestDTO.getDate());
+	}
+
 	@JobRoleAccess(featureIds = {15})
 	@PostMapping(value = "/bulkFinalDocumentUpload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ServiceResponse bulkFinalDocumentUpload(

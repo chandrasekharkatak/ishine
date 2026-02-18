@@ -94,6 +94,23 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			@Param("startDate") LocalDate startDate,
 			@Param("endDate") LocalDate endDate);
 
+	/**
+	 * Find the latest working-day timesheet (based on day_type_master_new.isWorkingDay)
+	 * for an employee strictly before a target date.
+	 * Returns at most one row when called with Pageable.of(0,1).
+	 */
+	@Query("SELECT e FROM EmployeeTimesheetsNew e " +
+	       "JOIN DayTypeMasterNew d ON e.dayTypeId = d.dayTypeId " +
+	       "WHERE e.empId = :empId " +
+	       "AND e.date BETWEEN :startDate AND :targetDate " +
+	       "AND d.isWorkingDay = true " +
+	       "ORDER BY e.date DESC")
+	List<EmployeeTimesheetsNew> findLatestWorkingTimesheetBeforeDate(
+	        @Param("empId") Long empId,
+	        @Param("startDate") LocalDate startDate,
+	        @Param("targetDate") LocalDate targetDate,
+	        org.springframework.data.domain.Pageable pageable);
+
 	@Query(
 		    "SELECT new com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO(" +
 		    " e.timesheetId, " +

@@ -75,6 +75,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   
   // Loading state for update mode
   isLoadingTimesheet: boolean = false;
+  /** Internal flag: when true, populateFormFromTimesheetData is being used for autofill (create template), not hard update */
+  private isAutofillMode = false;
   // timesheetObj: Timesheet = new Timesheet();
   selectedTeamMember: any;
   timesheetFilledForUser: User = new User();
@@ -999,10 +1001,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
         next: (response: any) => {
           if (response.serviceStatus == "Success") {
             this.allDayTypes = response.serviceResponse || [];
-            // Only load autofill data in create mode, not update mode (update loads via loadTimesheetForUpdate)
-            if (this.selectedDate && this.allDayTypes.length > 0 && !this.isUpdation) {
-              this.loadAutofillData(this.formatDateDDMMYYYY(this.selectedDate));
-            }
+            // Autofill moved to onTimesheetAppliedForChange to avoid race with resetForm
           } else {
             // ✅ MODERATE FIX: Use centralized error handling
             this.handleError(
@@ -1171,7 +1170,10 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     this.resetForm();
     if (this.timesheetAppliedFor.toLocaleLowerCase() === 'self') {
       this.getTimesheetMetadata();
-      // getTimesheetMetadata will call getAllAvailableTimesheetByEmpId
+      // Autofill only for self (uses currentUser.empId); run after resetForm to avoid race
+      if (this.selectedDate && !this.isUpdation) {
+        this.loadAutofillData(this.formatDateDDMMYYYY(this.selectedDate));
+      }
     } else if(this.timesheetAppliedFor.toLocaleLowerCase() === 'team'){
       this.getAllTeamMemberList();
     }else {
@@ -3275,7 +3277,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
 
-    if (!timesheetData.timesheetId) {
+    // For normal update flow we require a valid timesheetId.
+    // In autofill mode we intentionally pass a template without ID.
+    if (!timesheetData.timesheetId && !this.isAutofillMode) {
       this.openAlertMod(
         this.alertTemplate,
         'Invalid timesheet data. Missing timesheet ID.'
@@ -3283,8 +3287,10 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
 
-    // Store timesheet ID
-    this.timesheetId = timesheetData.timesheetId;
+    // Store timesheet ID only for update mode (not for autofill templates)
+    if (!this.isAutofillMode) {
+      this.timesheetId = timesheetData.timesheetId;
+    }
 
     // 1. Basic Fields
     this.dayType = timesheetData.dayTypeId;
@@ -3348,7 +3354,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       if (locationData.projects && locationData.projects.length > 0) {
         location.projects = locationData.projects.map((projectData) => {
           console.log("clientLocationId ==> ",projectData.clientLocationId)
-          console.log("projectData ==> ",projectData.clientLocationId)
+          console.log("projectData ==> ",projectData)
           const project: ProjectEntry = {
             projectId: projectData.projectId != null ? Number(projectData.projectId) : null,
             projectName: projectData.projectName,
@@ -3454,6 +3460,10 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
 
     // 10. Recalculate location/project totals so "Total Hours" reflects populated activities
     this.onHoursChange();
+
+    // 11. Build document upload list so upload option is visible when project has clientSideId + clientApprovalStatus
+    // (autofill does not include document data, but upload UI should show for qualifying projects)
+    this.getListToRenderUpload();
   }
 
   /**
@@ -3692,8 +3702,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       finalFlag: doc.finalFlag || false
     }));
 
-    // Update uniqueProjectsList for document upload UI
-    this.getListToRenderUpload();
+    // uniqueProjectsList / empHasClientSideId are updated by populateFormFromTimesheetData step 11 (getListToRenderUpload)
+    // Avoid duplicate call - caller (populateFormFromTimesheetData) calls getListToRenderUpload at the end
   }
 
   /**
@@ -4594,15 +4604,111 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    * Should NOT be called during update mode - update loads data via loadTimesheetForUpdate
    */
   loadAutofillData(selectedDate1: string): void {
-    // Guard: never reset isUpdation if we're already in update mode
+    // Guard: never run autofill while in update mode
     if (this.isUpdation) {
       console.warn('loadAutofillData called during update mode - skipping to prevent data loss');
       return;
     }
-    this.isUpdation = false;
-    this.timesheetAppliedFor = 'self';
-    this.dayType = 1;
-    this.fromDate = selectedDate1;
+
+    // Determine employee for autofill (currently self)
+    const targetEmpId = this.currentUser?.empId;
+    if (!targetEmpId) {
+      console.warn('[loadAutofillData] currentUser.empId not available, skipping autofill.');
+      return;
+    }
+
+    if (!selectedDate1) {
+      console.warn('[loadAutofillData] selected date is empty, skipping autofill.');
+      return;
+    }
+
+    // Convert DD-MM-YYYY -> YYYY-MM-DD for backend
+    const targetDateYMD = this.convertDDMMYYYYToYYYYMMDD(selectedDate1);
+    if (!targetDateYMD) {
+      console.warn('[loadAutofillData] Unable to convert selected date for autofill:', selectedDate1);
+      return;
+    }
+
+    const payload = {
+      empId: targetEmpId,
+      date: targetDateYMD
+    };
+
+    this.timesheetNewService.getAutofillTimesheet(payload)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          if (response?.serviceStatus !== 'Success') {
+            // Soft failure: no blocking error for create flow
+            console.warn('[loadAutofillData] Autofill request failed:', response?.serviceResponse || response?.serviceError);
+            return;
+          }
+
+          const template: EmployeeTimesheetDTO | null = response?.serviceResponse || null;
+          if (!template) {
+            // No previous working timesheet found or projects inactive
+            console.info('[loadAutofillData] No autofill template returned from backend.', response?.serviceMessage);
+            return;
+          }
+
+          // Clone template so we can safely adjust identity fields without mutating original response
+          const cloned: EmployeeTimesheetDTO = JSON.parse(JSON.stringify(template));
+
+          // Ensure this is treated as a CREATE template, not an update
+          cloned.timesheetId = null;
+          cloned.date = targetDateYMD;
+          cloned.documentData = null;
+
+          if (cloned.locationSessions) {
+            cloned.locationSessions.forEach((location: any) => {
+              location.locationMappingId = null;
+              if (location.projects) {
+                location.projects.forEach((project: any) => {
+                  project.timesheetId = null;
+                  project.locationMappingId = null;
+                  if (project.activities) {
+                    project.activities.forEach((activity: any) => {
+                      activity.timesheetId = null;
+                    });
+                  }
+                });
+              }
+            });
+          }
+
+          // Use populateFormFromTimesheetData in a special "autofill" mode
+          this.isAutofillMode = true;
+          try {
+            this.populateFormFromTimesheetData(cloned);
+          } finally {
+            this.isAutofillMode = false;
+          }
+
+          // After autofill, force create mode for the selected date
+          this.timesheetId = null;
+          this.isUpdation = false;
+          this.isCreation = true;
+          this.fromDate = selectedDate1;
+
+          // Recompute toDate for night shift based on new fromDate
+          if (this.isNightShift && this.fromDate) {
+            const parsedFrom = this.parseDDMMYYYY(this.fromDate);
+            if (parsedFrom) {
+              this.toDate = this.formatDDMMYYYY(this.addDays(parsedFrom, 1));
+            }
+          } else {
+            this.toDate = null;
+          }
+
+          // Autofill is always for "self" in current flow
+          this.timesheetAppliedFor = 'self';
+          this.timesheetFilledForUser.empId = targetEmpId;
+        },
+        error: (error) => {
+          // Log only; do not block user from filling timesheet manually
+          console.error('[loadAutofillData] Error while fetching autofill template:', error);
+        }
+      });
   }
   /**
    * Open alert modal with reset option
@@ -4689,16 +4795,19 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
               }
               
               // Update project lists for existing locations (for fillable day types)
-              // In update mode, locations are already populated from server - only update dropdown options, don't replace projects
-              if (this.isDayTypeFillable() && !this.isUpdation) {
-                // Create mode: populate projects for locations from activeProjectList
+              // In update mode OR when already populated from autofill: only update dropdown options, don't replace projects
+              const hasExistingProjectsWithIds = this.timesheetLocations.some(loc =>
+                loc.projects?.some(p => p.projectId != null)
+              );
+              if (this.isDayTypeFillable() && !this.isUpdation && !hasExistingProjectsWithIds) {
+                // Create mode with empty form: populate one project per location from activeProjectList
                 this.timesheetLocations.forEach(loc => {
                   if (loc.workLocationTypeId) {
                     this.populateProjectsForLocation(loc);
                   }
                 });
-              } else if (this.isUpdation && this.isDayTypeFillable()) {
-                // Update mode: only update projectList dropdown options for existing projects, don't replace them
+              } else if ((this.isUpdation || hasExistingProjectsWithIds) && this.isDayTypeFillable()) {
+                // Update mode or autofill: only update projectList dropdown options for existing projects, don't replace them
                 const uniqueProjects = Array.from(
                   new Map(
                     this.activeProjectList.map(p => [

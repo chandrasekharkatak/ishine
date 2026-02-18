@@ -218,6 +218,7 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
   activePreviewUrl: SafeResourceUrl | null = null;
   activeFileType: string | null = null;
   mimeType: any;
+  private previewBlobUrl: string | null = null; // for revoking on modal close
   projectRequiresClientId: Boolean = false;
   projAlertRequireClientId: Boolean = false;
   fromDate: any = null;
@@ -2922,29 +2923,59 @@ get tooltipCta(): string {
 
 
 
-getDoscForPreview(docId: any) {
-  this.timesheetService.getDocumentDataByDocId(docId)
-    .pipe(first())
-    .subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
+  /**
+   * Document preview from My-Timesheet: uses EmployeeTimesheetControllerNew.getDocumentDataByDocId (blob).
+   * @param docId - Document ID
+   * @param approvedDocType - true for Approved (FinalDocumentNew), false for Filled (TimesheetDocumentDetailsNew)
+   */
+  getDoscForPreview(docId: any, approvedDocType: boolean) {
+    this.timesheetNewService.getDocumentDataByDocId(Number(docId), approvedDocType)
+      .pipe(first())
+      .subscribe({
+        next: (blob: Blob) => {
+          const mimeType = blob.type || 'application/octet-stream';
+          if (this.isExcelMimeType(mimeType)) {
+            const fileName = `document.${mimeType.includes('openxml') ? 'xlsx' : 'xls'}`;
+            this.downloadBlobAsFile(blob, fileName);
+          } else {
+            this.showPreviewFromBlob(blob);
+          }
+        },
+        error: () => { /* handle error if needed */ }
+      });
+  }
 
-        this.docData2 = response.serviceResponse.docData;
-        this.mimeType = response.serviceResponse.docMimeType;
-
-        // Excel → Download
-        if (
-          this.mimeType === 'application/vnd.ms-excel' ||
-          this.mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        ) {
-          const fileName = response.serviceResponse.docName || 'document.xlsx';
-          this.downloadExcel(this.docData2, this.mimeType, fileName);
-        }
-        // PDF / Image → Preview
-        else {
-          this.showPreview(this.docData2, this.mimeType);
-        }
+  private showPreviewFromBlob(blob: Blob): void {
+    if (this.previewBlobUrl) {
+      URL.revokeObjectURL(this.previewBlobUrl);
+      this.previewBlobUrl = null;
+    }
+    this.previewBlobUrl = URL.createObjectURL(blob);
+    this.activePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.previewBlobUrl);
+    const mimeType = blob.type || '';
+    if (mimeType === 'application/pdf') {
+      this.activeFileType = 'pdf';
+    } else if (mimeType.startsWith('image/')) {
+      this.activeFileType = 'image';
+    } else {
+      this.activeFileType = '';
+    }
+    this.modalRef = this.modalService.open(this.previewModal, { modalDialogClass: 'modal-lg' });
+    this.modalRef.hidden.pipe(first()).subscribe(() => {
+      if (this.previewBlobUrl) {
+        URL.revokeObjectURL(this.previewBlobUrl);
+        this.previewBlobUrl = null;
       }
     });
+  }
+
+  private downloadBlobAsFile(blob: Blob, fileName: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
   }
   getFinalDocumentDataByDocId(timesheetId:any,docId:any){
         console.log(docId,":docId");

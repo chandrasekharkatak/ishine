@@ -71,7 +71,6 @@
 <div class="row" *ngIf="isTimesheetForm && isCreation">
     <div class="card col-md-12 px-0">
         <div class="card-body">
-            <h1>TEST-101</h1>
             <app-timesheet-form 
                 [isCreation]="true"
                 [isUpdation]="false"
@@ -588,13 +587,13 @@
                                                                     <!-- Document Buttons -->
                                                                     <button *ngIf="findFilledDocumentForProject(timesheet, project.projectId)"
                                                                             class="btn btn-xs btn-outline-primary mr-2"
-                                                                            (click)="getDoscForPreview(findFilledDocumentForProject(timesheet, project.projectId).docId)"
+                                                                            (click)="getDoscForPreview(findFilledDocumentForProject(timesheet, project.projectId).docId, false)"
                                                                             title="View Filled Document">
                                                                         <i class="fa fa-file-pdf"></i> Filled
                                                                     </button>
                                                                     <button *ngIf="findApprovedDocumentForProject(timesheet, project.projectId)"
                                                                             class="btn btn-xs btn-outline-success mr-2"
-                                                                            (click)="getDoscForPreview(findApprovedDocumentForProject(timesheet, project.projectId).docId)"
+                                                                            (click)="getDoscForPreview(findApprovedDocumentForProject(timesheet, project.projectId).docId, true)"
                                                                             title="View Approved Document">
                                                                         <i class="fa fa-file-check"></i> Approved
                                                                     </button>

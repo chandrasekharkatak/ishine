@@ -158,13 +158,15 @@ public class TimesheetValidationHelper {
             String isLockEnabled = employeeRepository.getIsLockEnabled(empId);
 
             if ("true".equalsIgnoreCase(isLockEnabled)) {
-
-                LocalDate lockCutoffDate = LocalDate.now().minusDays(lockDays);
+                // Keep in sync with frontend: frontend uses (lockDays + 1) for the selectable range.
+                // E.g. lockDays=3 → frontend allows today through today-4 (5 days). Backend must match.
+                int effectiveLockDays = lockDays + 1;
+                LocalDate lockCutoffDate = LocalDate.now().minusDays(effectiveLockDays);
 
                 if (timesheetDate.isBefore(lockCutoffDate)) {
                     throw new IllegalArgumentException(
                             "Timesheet is locked. You cannot modify timesheets older than "
-                                    + lockDays + " days.");
+                                    + effectiveLockDays + " days.");
                 }
             }
         }
@@ -742,8 +744,10 @@ public class TimesheetValidationHelper {
             return false;
         }
 
+        // Keep in sync with frontend: frontend uses (lockDays + 1) for selectable range
+        int effectiveLockDays = lockDays + 1;
         LocalDate today = LocalDate.now();
-        LocalDate lockDate = today.minusDays(lockDays);
+        LocalDate lockDate = today.minusDays(effectiveLockDays);
 
         return date.isBefore(lockDate);
     }
@@ -824,7 +828,8 @@ public class TimesheetValidationHelper {
      */
     public void validateDateNotLocked(Long empId, LocalDate date, Integer lockDays) {
         if (isDateLocked(empId, date, lockDays)) {
-            throw new IllegalArgumentException("Timesheet date is locked. Cannot modify timesheets older than " + lockDays + " days");
+            int effectiveLockDays = lockDays != null ? lockDays + 1 : 4;
+            throw new IllegalArgumentException("Timesheet date is locked. Cannot modify timesheets older than " + effectiveLockDays + " days");
         }
     }
     

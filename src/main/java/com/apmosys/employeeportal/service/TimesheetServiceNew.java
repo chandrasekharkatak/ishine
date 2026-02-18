@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -13,6 +14,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.springframework.data.domain.PageRequest;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -42,6 +45,7 @@ import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetStatusCountDTO;
 import com.apmosys.employeeportal.enums.DayTypeTransition;
+import com.apmosys.employeeportal.enums.DayTypeCode;
 import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
 import com.apmosys.employeeportal.model.DocMimeTypeMasterNew;
 import com.apmosys.employeeportal.model.EmployeeTimesheetLocationMapping;
@@ -286,8 +290,10 @@ public class TimesheetServiceNew {
 			employeeAssignmentValidationService.validateEmployeeAssignments(empDTO.getEmpId(), empDTO.getDate(),
 					empDTO.getLocationSessions());
 
-			timesheetValidationHelper.validateDayTypeAgainstLeave(empDTO.getEmpId(), empDTO.getDate(),
-					empDTO.getDayTypeId());
+			if (timesheetValidationHelper.isWorkingDay(empDTO)) {
+				timesheetValidationHelper.validateDayTypeAgainstLeave(empDTO.getEmpId(), empDTO.getDate(),
+						empDTO.getDayTypeId());
+			}
 
 			EmployeeTimesheetsNew existing = timesheetValidationHelper.validateTimesheetAlreadyExists(empDTO,
 					empDTO.getEmpId(), empDTO.getDate());
@@ -901,6 +907,11 @@ public class TimesheetServiceNew {
 			employeeAssignmentValidationService.validateEmployeeAssignments(newEmpDTO.getEmpId(), newEmpDTO.getDate(),
 					newEmpDTO.getLocationSessions());
 
+			if (timesheetValidationHelper.isWorkingDay(newEmpDTO)) {
+				timesheetValidationHelper.validateDayTypeAgainstLeave(newEmpDTO.getEmpId(), newEmpDTO.getDate(),
+						newEmpDTO.getDayTypeId());
+			}
+
 			// Based on day type transition we have to take validation action
 
 			DayTypeTransition transition = timesheetValidationHelper.resolveDayTypeTransition(empTS, newEmpDTO);
@@ -1402,6 +1413,126 @@ public class TimesheetServiceNew {
 		empDTO.setDocumentData(docs);
 
 		return empDTO;
+	}
+
+	/**
+	 * Find last working-day timesheet for an employee (before a target date) and
+	 * return it as an autofill template.
+	 *
+	 * Rules:
+	 * - Only considers days where day type is "working" (via DayTypeCode).
+	 * - Only looks at dates STRICTLY before the targetDate.
+	 * - Each project must be active for the target date (same logic as getProjectListForDateAndEmpId:
+	 *   mapping startDate/endDate valid for targetDate).
+	 * - Each project must pass validateProjectAssignment (employee assigned to project).
+	 * - If any project fails either check, no autofill data is returned.
+	 * - Documents are NOT included in the template (documentData is set to null).
+	 *
+	 * @param empId       Employee ID
+	 * @param targetDate  Date user wants to fill (autofill looks before this date)
+	 * @return ServiceResponse with EmployeeTimesheetDTO or null (no template)
+	 */
+	public ServiceResponse getAutofillTimesheetTemplate(Long empId, LocalDate targetDate) {
+
+		ServiceResponse response = new ServiceResponse();
+
+		if (empId == null || targetDate == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Employee and date are required for autofill.");
+			response.setServiceError("Missing empId or targetDate in autofill request");
+			return response;
+		}
+
+		// We look for any previous working-day timesheet in a reasonable window
+		LocalDate endDate = targetDate.minusDays(1);
+		if (!endDate.isBefore(targetDate)) {
+			// If targetDate is the earliest possible, nothing to search
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(null);
+			response.setServiceMessage("No previous working timesheet found for autofill.");
+			return response;
+		}
+
+		// Fetch ONLY the latest working-day timesheet BEFORE targetDate within a 3‑month window.
+		// Uses repository-level paging so we don't pull the entire history.
+		LocalDate startDate = endDate.minusMonths(3);
+		List<EmployeeTimesheetsNew> history = employeeTimesheetsNewRepository
+				.findLatestWorkingTimesheetBeforeDate(empId, startDate, endDate, PageRequest.of(0, 1));
+
+		if (history == null || history.isEmpty()) {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(null);
+			response.setServiceMessage("No previous timesheet history found for autofill.");
+			return response;
+		}
+
+		// PageRequest.of(0,1) ensures at most one entity
+		EmployeeTimesheetsNew candidate = history.get(0);
+
+		if (candidate == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(null);
+			response.setServiceMessage("No previous working timesheet found for autofill.");
+			return response;
+		}
+
+		Long candidateTimesheetId = candidate.getTimesheetId();
+		if (candidateTimesheetId == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(null);
+			response.setServiceMessage("No valid previous working timesheet found for autofill.");
+			return response;
+		}
+
+		// Validate that all projects under this timesheet are still active for the employee
+		// and active for the target date (same logic as getProjectListForDateAndEmpId)
+		List<ProjectTimesheetDTO> projects = projectTimesheetService.findByTimesheetId(candidateTimesheetId);
+		if (projects != null && !projects.isEmpty()) {
+			// 1. Get projects active for empId + targetDate (mapping startDate/endDate valid)
+			List<Integer> activeProjectIds = employeeTeamMapRepository
+					.findActiveProjectIdsByEmpIdAndDate(empId, targetDate.atStartOfDay());
+			Set<Integer> activeSet = new HashSet<>(activeProjectIds != null ? activeProjectIds : List.of());
+
+			for (ProjectTimesheetDTO project : projects) {
+				if (project.getProjectId() == null) {
+					continue;
+				}
+				// 2. Project must be active for target date
+				if (!activeSet.contains(project.getProjectId().intValue())) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(null);
+					response.setServiceMessage("Previous timesheet projects are not active for the selected date.");
+					return response;
+				}
+				try {
+					// 3. Re-use existing assignment validation (checks active mapping)
+					timesheetValidationHelper.validateProjectAssignment(empId, project.getProjectId().longValue());
+				} catch (IllegalArgumentException ex) {
+					// If any project is no longer active for this employee, do not autofill
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(null);
+					response.setServiceMessage("Previous timesheet projects are no longer active for autofill.");
+					return response;
+				}
+			}
+		}
+
+		// Fetch full hierarchical data for this timesheet
+		EmployeeTimesheetDTO template = getTimesheetByIdInternalNew(candidateTimesheetId);
+		if (template == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(null);
+			response.setServiceMessage("Unable to load previous timesheet for autofill.");
+			return response;
+		}
+
+		// Do NOT send documents as part of autofill template
+		template.setDocumentData(null);
+
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(template);
+		response.setServiceMessage("Autofill template fetched successfully.");
+		return response;
 	}
 
 	/**
