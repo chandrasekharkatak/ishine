@@ -730,7 +730,7 @@
               <th>Actions</th>
             </tr>
             <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="allTimesheetColumnsVMS"
-              (onSearch)="onSearch($event); page1 = 1"></tr>
+              (onSearch)="onSearch($event); page1 = 0"></tr>
           </thead>
           <tbody> <ng-container *ngFor="let timesheet of allTeamTimesheetRequestsProjectView; let i = index">
               <tr class="main-row" [class.active-row]="expandedTimesheetIndex === i">
