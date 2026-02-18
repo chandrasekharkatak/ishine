@@ -16,5 +16,6 @@ public class TimesheetStatusCountDTO {
 	    }
 
 	  private Long managerId;
+	  private Boolean clientFilter;
 
 }

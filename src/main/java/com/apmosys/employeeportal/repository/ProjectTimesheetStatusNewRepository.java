@@ -25,6 +25,32 @@ public interface ProjectTimesheetStatusNewRepository extends JpaRepository<Proje
     
     List<ProjectTimesheetStatusNew> findAllByIdTimesheetIdIn(Set<Long> timesheetIds);
     
+    @Query("SELECT pts.id.locationMappingId " +
+    	       "FROM ProjectTimesheetStatusNew pts " +
+    	       "WHERE pts.id.timesheetId = :timesheetId " +
+    	       "AND pts.id.projectId = :projectId")
+    	Long findLocationMappingId(@Param("timesheetId") Long timesheetId,
+    	                           @Param("projectId") Integer projectId);
+
+    
+    @Modifying
+	@Transactional
+	@Query("UPDATE ProjectTimesheetStatusNew et " +
+	       "SET et.status = :statusValue " +
+	       "WHERE et.id.timesheetId IN :timesheetIds")
+	int processByStatus(@Param("timesheetIds") List<Long> timesheetIds,
+	                    @Param("statusValue") int statusValue);
+    
+    @Modifying
+	@Transactional
+	@Query("UPDATE ProjectTimesheetStatusNew et " +
+	       "SET et.status = :status " +
+	       "WHERE et.id.timesheetId = :timesheetId "+
+			"AND et.id.projectId = :projectId")
+	int processByTSandProject( @Param("timesheetId") Long timesheetId,
+	        @Param("projectId") Integer projectId,
+	        @Param("status") Integer status);
+    
     @Modifying
     @Transactional
     @Query("DELETE FROM ProjectTimesheetStatusNew p WHERE p.id.timesheetId = :timesheetId")
@@ -93,6 +119,12 @@ public interface ProjectTimesheetStatusNewRepository extends JpaRepository<Proje
     	        @Param("projectId") Integer projectId,
     	        @Param("status") Integer status);
 
+    	
+    @Query("SELECT ptsn.id.timesheetId, ptsn.id.projectId " +
+    	       "FROM ProjectTimesheetStatusNew ptsn " +
+    	       "WHERE ptsn.id.timesheetId IN :timesheetIds")
+    	List<Object[]> findProjectsForTimesheetIds(
+    	        @Param("timesheetIds") List<Long> timesheetIds);
 
         @Query(
                 "SELECT p FROM ProjectTimesheetStatusNew p \n" +

@@ -153,7 +153,7 @@ public class PoSyncOrchestratorService {
 							dto.getPoDetailsList().get(0).getResourceRequirementList(),poDto.getCreatedByEmpId());
 				}
 				
-				projectService.recalculateProjectDates(project.getProjectId());
+				projectService.recalculateProjectDates(project.getProjectId(),false);
 
 			} else if (dto.getEventType() == SyncRequestType.UPDATE_PO) {
 
@@ -193,7 +193,7 @@ public class PoSyncOrchestratorService {
 				    }
 				}
 				
-				projectService.recalculateProjectDates(project.getProjectId());
+				projectService.recalculateProjectDates(project.getProjectId(),false);
 			} else {
 				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
 				ExceptionLogContext.add("Unsupported eventType from Po " + dto.getEventType());
@@ -292,7 +292,9 @@ public class PoSyncOrchestratorService {
 			
 			teamsService.migrateResourcesAfterRenewal(project.getProjectId(),newPo.getPoId(),dto.getRenewedByEmpId());
 			
-			projectService.recalculateProjectDates(project.getProjectId());
+			projectService.recalculateProjectDates(project.getProjectId(),true);
+			
+			//when project state is alredy completed after  renew the project status should change to
 			finalHttpStatusCode = HttpStatus.OK.value();
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -392,7 +394,7 @@ public class PoSyncOrchestratorService {
 		        projectService.setActiveFlagAsFalse(project,dto);
 	        }
 	        
-	        projectService.recalculateProjectDates(project.getProjectId());
+	        projectService.recalculateProjectDates(project.getProjectId(),false);
 	       
 
 	       
@@ -499,7 +501,7 @@ public class PoSyncOrchestratorService {
 	                    dto.getPrimaryProject()
 	            );
 
-		        projectService.recalculateProjectDates(primaryProject.getProjectId());
+		        projectService.recalculateProjectDates(primaryProject.getProjectId(),false);
 	            
 	           ishineStatus = resourceManagementService.ishineStatusReturn( dto.getDeletedProjects(),primaryProject);
 	           
