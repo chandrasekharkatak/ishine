@@ -3182,7 +3182,7 @@ private normalizeDate(value: string): string {
 
 onInfoClickModel(box: any, defaultTemplate: TemplateRef<any>, dateRange: string | null, projectTemplate: TemplateRef<any>): void {
   const category = this.selectedTab[this.activeBox];
-
+  this.allInactivePOListOfEmployee = [];
   if (category === 'Project') {
     this.modalRef = this.modalService.open(projectTemplate, { modalDialogClass: 'modal-xl' });
   } else {

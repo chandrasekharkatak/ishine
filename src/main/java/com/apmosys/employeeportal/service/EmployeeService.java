@@ -10020,6 +10020,11 @@ private Map<String, String> getDateRangeForList(String dateRangeType) {
             dateRange.put("toDate", expired9To12MonthEnd.toString());
             break;
             
+        case "total":
+            dateRange.put("fromDate", null);
+            dateRange.put("toDate", null);
+            break;
+            
         default:
             LocalDate defaultExpired = currentDate.minusMonths(1);
             dateRange.put("fromDate", defaultExpired.plusDays(1).toString());
