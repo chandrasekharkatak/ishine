@@ -1030,7 +1030,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			"   SELECT timesheet_id " +
 			"   FROM employee_timesheets " +
 			"   WHERE emp_id = :empId " +
-			"     AND day_type NOT IN ('Public Holiday', 'Week Off', 'Leave') " +
+			"     AND day_type NOT IN ('Public Holiday', 'ApMoSys Holiday','Client Holiday','Week Off', 'Leave','Comp Off') " +
 			"   ORDER BY date DESC " +
 			"   LIMIT 1 " +
 			") latest_ts ON ets.timesheet_id = latest_ts.timesheet_id " +
@@ -1069,7 +1069,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			"   FROM employee_timesheets_new et " +
 			"   LEFT JOIN day_type_master_new dtm ON et.day_type_id = dtm.day_type_id " +
 			"   WHERE et.emp_id = :empId " +
-			"     AND dtm.day_type NOT IN ('Public Holiday', 'Week Off', 'Leave') " +
+			"     AND dtm.day_type NOT IN ('Public Holiday','ApMoSys Holiday','Client Holiday', 'Week Off', 'Leave','Comp Off') " +
 			"   ORDER BY et.date DESC " +
 			"   LIMIT 1 " +
 			") latest_ts ON ets.timesheet_id = latest_ts.timesheet_id " +
@@ -5095,7 +5095,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "            SELECT 1 FROM employee_timesheets_new et1\n"
 			+ "            LEFT JOIN day_type_master_new dtm1 ON et1.day_type_id = dtm1.day_type_id\n"
 			+ "            WHERE et1.emp_id = bpe.emp_id AND adir.dt = et1.date\n"
-			+ "            AND UPPER(dtm1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF')\n"
+			+ "            AND UPPER(dtm1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY','APMOSYS HOLIDAY','WEEK OFF','COMP OFF')\n"
 			+ "        )\n"
 			+ "    ),\n"
 			+ "    \n"
@@ -5917,7 +5917,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "        AND NOT EXISTS (\n"
 			+ "            SELECT 1 FROM Employee_Timesheets_With_Activities etwa_nested\n"
 			+ "            WHERE etwa_nested.emp_id = brd.emp_id AND etwa_nested.date = adir.dt\n"
-			+ "            AND (etwa_nested.day_type LIKE '%Leave%' OR UPPER(etwa_nested.day_type) LIKE '%HOLIDAY%' OR UPPER(etwa_nested.day_type) LIKE '%WEEK%OFF%')\n"
+			+ "            AND (etwa_nested.day_type LIKE '%Leave%' OR UPPER(etwa_nested.day_type) LIKE '%HOLIDAY%' OR UPPER(etwa_nested.day_type) LIKE '%WEEK%OFF%' OR UPPER(etwa_nested.day_type) LIKE '%COMP%OFF%')\n"
 			+ "        )\n"
 			+ "    ),\n"
 			+ "    Actual_Timesheet_Filled AS (\n"
@@ -6782,7 +6782,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "              JOIN Day_Type_Map dtm1 ON dtm1.day_type_id = et1.day_type_id\n"
 			+ "              WHERE et1.emp_id = bpe.emp_id\n"
 			+ "                AND et1.date   = adir.dt\n"
-			+ "                AND UPPER(dtm1.day_type_name) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF', 'COMP OFF')\n"
+			+ "                AND UPPER(dtm1.day_type_name) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY','APMOSYS HOLIDAY', 'WEEK OFF', 'COMP OFF')\n"
 			+ "          )\n"
 			+ "    ),\n"
 			+ "\n"
@@ -6988,7 +6988,8 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "           AND (upper(etwa_nested.day_type) LIKE '%LEAVE%'\n"
 			+ "           OR upper(etwa_nested.day_type) LIKE '%CLIENT%HOLIDAY%'\n"
 			+ "           OR upper(etwa_nested.day_type) LIKE '%PUBLIC%HOLIDAY%'\n"
-			+ "           OR upper(etwa_nested.day_type) LIKE '%WEEK%OFF%')\n"
+			+ "           OR upper(etwa_nested.day_type) LIKE '%WEEK%OFF%'\n"
+			+ "           OR upper(etwa_nested.day_type) LIKE '%COMP%OFF%')\n"
 			+ "       )\n"
 			+ "),\n"
 			+ "-- Updated to join timesheet_document_details_new and client_status_master_new\n"
@@ -7245,7 +7246,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "            SELECT 1 FROM employee_timesheets_new et1\n"
 			+ "            LEFT JOIN day_type_master_new dtm1 ON et1.day_type_id = dtm1.day_type_id\n"
 			+ "            WHERE et1.emp_id = bpe.emp_id AND adir.dt = et1.date\n"
-			+ "            AND UPPER(dtm1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF')\n"
+			+ "            AND UPPER(dtm1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY','APMOSYS HOLIDAY', 'WEEK OFF','COMP OFF')\n"
 			+ "        )\n"
 			+ "    ),\n"
 			+ "    \n"
@@ -7542,7 +7543,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 		    + "                LEFT JOIN day_type_master_new dtm1 ON et1.day_type_id = dtm1.day_type_id\n"
 		    + "                WHERE et1.emp_id = bpe.emp_id\n"
 		    + "                  AND adir.dt = et1.date\n"
-		    + "                  AND UPPER(dtm1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF')\n"
+		    + "                  AND UPPER(dtm1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY','APMOSYS HOLIDAY', 'WEEK OFF','COMP OFF')\n"
 		    + "          )\n"
 		    + "    ),\n"
 
@@ -8015,6 +8016,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	      + "                    etwa_nested.day_type LIKE '%Leave%'\n"
 	      + "                 OR UPPER(etwa_nested.day_type) LIKE '%HOLIDAY%'\n"
 	      + "                 OR UPPER(etwa_nested.day_type) LIKE '%WEEK%OFF%'\n"
+		  + "                 OR UPPER(etwa_nested.day_type) LIKE '%COMP%OFF%'\n"
 	      + "              )\n"
 	      + "          )\n"
 	      + "    ),\n"
@@ -8358,7 +8360,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "			        AND NOT EXISTS (\n"
 			+ "			            SELECT 1 FROM Employee_Timesheets_With_Activities etwa_nested\n"
 			+ "			            WHERE etwa_nested.emp_id = brd.emp_id AND etwa_nested.date = adir.dt\n"
-			+ "			            AND (etwa_nested.day_type LIKE '%Leave%' OR UPPER(etwa_nested.day_type) LIKE '%HOLIDAY%' OR UPPER(etwa_nested.day_type) LIKE '%WEEK%OFF%')\n"
+			+ "			            AND (etwa_nested.day_type LIKE '%Leave%' OR UPPER(etwa_nested.day_type) LIKE '%HOLIDAY%' OR UPPER(etwa_nested.day_type) LIKE '%WEEK%OFF%' OR UPPER(etwa_nested.day_type) LIKE '%COMP%OFF%')\n"
 			+ "			        )\n"
 			+ "			    ),\n"
 			+ "			    Actual_Timesheet_Filled AS (\n"
@@ -8548,7 +8550,8 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "                            AND (ets1.day_type_upper LIKE '%LEAVE%'\n"
 			+ "                            OR ets1.day_type_upper LIKE '%CLIENT%HOLIDAY%'\n"
 			+ "                            OR ets1.day_type_upper LIKE '%PUBLIC%HOLIDAY%'\n"
-			+ "                            OR ets1.day_type_upper LIKE '%WEEK%OFF%')\n"
+			+ "                            OR ets1.day_type_upper LIKE '%WEEK%OFF%'\n"
+			+ "                            OR ets1.day_type_upper LIKE '%COMP%OFF%')\n"
 			+ "                        )\n"
 			+ "    ),\n"
 			+ "    Actual_Timesheet_Filled AS (\n"
@@ -8906,7 +8909,8 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "                AND etwa_nested.date = adir.dt\n"
 			+ "                AND (etwa_nested.day_type LIKE '%Leave%'\n"
 			+ "                     OR UPPER(etwa_nested.day_type) LIKE '%HOLIDAY%'\n"
-			+ "                     OR UPPER(etwa_nested.day_type) LIKE '%WEEK%OFF%')\n"
+			+ "                     OR UPPER(etwa_nested.day_type) LIKE '%WEEK%OFF%'\n"
+			+ "                     OR UPPER(etwa_nested.day_type) LIKE '%COMP%OFF%')\n"
 			+ "          )\n"
 			+ "    ),\n"
 			+ "\n"
@@ -9236,7 +9240,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "              LEFT JOIN Day_Type_Map dtm1 ON dtm1.day_type_id = et1.day_type_id\n"
 			+ "              WHERE et1.emp_id = bpe.emp_id\n"
 			+ "                AND adir.dt = et1.date\n"
-			+ "                AND UPPER(dtm1.day_type_name) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF')\n"
+			+ "                AND UPPER(dtm1.day_type_name) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY','APMOSYS HOLIDAY', 'WEEK OFF','COMP OFF')\n"
 			+ "          )\n"
 			+ "    ),\n"
 			+ "\n"
@@ -9567,7 +9571,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "                  LEFT JOIN Day_Type_Map dtm1 ON dtm1.day_type_id = et1.day_type_id\n"
 			+ "                  WHERE et1.emp_id = bpe.emp_id\n"
 			+ "                    AND adir.dt = et1.date\n"
-			+ "                    AND UPPER(dtm1.day_type_name) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'APMOSYS HOLIDAY', 'WEEK OFF')\n"
+			+ "                    AND UPPER(dtm1.day_type_name) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'APMOSYS HOLIDAY', 'WEEK OFF','COMP OFF')\n"
 			+ "              )\n"
 			+ "\n"
 			+ "            UNION\n"
@@ -10011,6 +10015,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	+ "                    etwa_nested.day_type LIKE '%Leave%'\n"
 	+ "                    OR UPPER(etwa_nested.day_type) LIKE '%HOLIDAY%'\n"
 	+ "                    OR UPPER(etwa_nested.day_type) LIKE '%WEEK%OFF%'\n"
+	+ "                    OR UPPER(etwa_nested.day_type) LIKE '%COMP%OFF%'\n"
 	+ "                )\n"
 	+ "          )\n"
 	+ "    ),\n"
@@ -10436,6 +10441,7 @@ List<Long> getPaginatedEmployeeIds(
 			+ "                    etwa_nested.day_type LIKE '%Leave%'\n"
 			+ "                    OR UPPER(etwa_nested.day_type) LIKE '%HOLIDAY%'\n"
 			+ "                    OR UPPER(etwa_nested.day_type) LIKE '%WEEK%OFF%'\n"
+			+ "                    OR UPPER(etwa_nested.day_type) LIKE '%COMP%OFF%'\n"
 			+ "                )\n"
 			+ "          )\n"
 			+ "    ),\n"
@@ -11056,6 +11062,7 @@ List<Long> getPaginatedEmployeeIds(
 			+ "                    etwa_nested.day_type LIKE '%Leave%'\n"
 			+ "                    OR UPPER(etwa_nested.day_type) LIKE '%HOLIDAY%'\n"
 			+ "                    OR UPPER(etwa_nested.day_type) LIKE '%WEEK%OFF%'\n"
+			+ "                    OR UPPER(etwa_nested.day_type) LIKE '%COMP%OFF%'\n"
 			+ "                )\n"
 			+ "          )\n"
 			+ "    ),\n"
@@ -11315,7 +11322,7 @@ List<Long> getPaginatedEmployeeIds(
 			+ "            SELECT 1 FROM employee_timesheets_new et1\n"
 			+ "            LEFT JOIN day_type_master_new dtm1 ON et1.day_type_id = dtm1.day_type_id\n"
 			+ "            WHERE et1.emp_id = bpe.emp_id AND adir.dt = et1.date\n"
-			+ "            AND UPPER(dtm1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF')\n"
+			+ "            AND UPPER(dtm1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY','APMOSYS HOLIDAY', 'WEEK OFF','COMP OFF')\n"
 			+ "        )\n"
 			+ "    ),\n"
 			+ "\n"
@@ -11843,7 +11850,7 @@ List<Long> getPaginatedEmployeeIds(
 			+ "                    ON et1.day_type_id = dtm1.day_type_id\n"
 			+ "                WHERE et1.emp_id = bpe.emp_id\n"
 			+ "                  AND adir.dt = et1.date\n"
-			+ "                  AND UPPER(dtm1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF','COMP OFF')\n"
+			+ "                  AND UPPER(dtm1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY','APMOSYS HOLIDAY', 'WEEK OFF','COMP OFF')\n"
 			+ "            )\n"
 			+ "    ),\n"
 			+ "\n"
@@ -12327,7 +12334,7 @@ Integer getTotalEmployeeCountForClientApplicable(
 			+ "                LEFT JOIN Day_Type_Map dtm1 ON et1.day_type_id = dtm1.day_type_id\n"
 			+ "                WHERE et1.emp_id = bpe.emp_id\n"
 			+ "                  AND adir.dt = et1.date\n"
-			+ "                  AND UPPER(dtm1.day_type) IN ('LEAVE','CLIENT HOLIDAY','PUBLIC HOLIDAY','WEEK OFF','COMP OFF')\n"
+			+ "                  AND UPPER(dtm1.day_type) IN ('LEAVE','CLIENT HOLIDAY','PUBLIC HOLIDAY','APMOSYS HOLIDAY','WEEK OFF','COMP OFF')\n"
 			+ "          )\n"
 			+ "    ),\n"
 			+ "\n"
@@ -13222,7 +13229,7 @@ Integer getTotalEmployeeCountForClientApplicable(
 			"        et1.emp_id = bpe.emp_id \n" +
 			"        AND adir.dt = et1.date \n" +
 			"        AND UPPER(dtm1.day_type) IN (\n" +
-			"          'LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', \n" +
+			"          'LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY','APMOSYS HOLIDAY','COMP OFF', \n" +
 			"          'WEEK OFF', 'ApMoSys Holiday'\n" +
 			"        )\n" +
 			"    )\n" +
@@ -13781,7 +13788,7 @@ Integer getTotalEmployeeCountForClientApplicable(
 			+ "			        AND NOT EXISTS (\n"
 			+ "			            SELECT 1 FROM Employee_Timesheets_With_Activities etwa_nested\n"
 			+ "			            WHERE etwa_nested.emp_id = brd.emp_id AND etwa_nested.date = adir.dt\n"
-			+ "			            AND (etwa_nested.day_type LIKE '%Leave%' OR UPPER(etwa_nested.day_type) LIKE '%HOLIDAY%' OR UPPER(etwa_nested.day_type) LIKE '%WEEK%OFF%')\n"
+			+ "			            AND (etwa_nested.day_type LIKE '%Leave%' OR UPPER(etwa_nested.day_type) LIKE '%HOLIDAY%' OR UPPER(etwa_nested.day_type) LIKE '%WEEK%OFF%' OR UPPER(etwa_nested.day_type) LIKE '%COMP%OFF%')\n"
 			+ "			        )\n"
 			+ "			    ),\n"
 			+ "			    Actual_Timesheet_Filled AS (\n"
@@ -14122,7 +14129,7 @@ Integer getTotalEmployeeCountForClientApplicable(
 			+ "			        AND NOT EXISTS (\n"
 			+ "			            SELECT 1 FROM Employee_Timesheets_With_Activities etwa_nested\n"
 			+ "			            WHERE etwa_nested.emp_id = brd.emp_id AND etwa_nested.date = adir.dt\n"
-			+ "			            AND (etwa_nested.day_type LIKE '%Leave%' OR UPPER(etwa_nested.day_type) LIKE '%HOLIDAY%' OR UPPER(etwa_nested.day_type) LIKE '%WEEK%OFF%')\n"
+			+ "			            AND (etwa_nested.day_type LIKE '%Leave%' OR UPPER(etwa_nested.day_type) LIKE '%HOLIDAY%' OR UPPER(etwa_nested.day_type) LIKE '%WEEK%OFF%' OR UPPER(etwa_nested.day_type) LIKE '%COMP%OFF%')\n"
 			+ "			        )\n"
 			+ "			    ),\n"
 			+ "			    Actual_Timesheet_Filled AS (\n"
@@ -14986,7 +14993,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 			 		+ "              LEFT JOIN Day_Type_Map dtm1 ON et1.day_type_id = dtm1.day_type_id\n"
 			 		+ "              WHERE et1.emp_id = bpe.emp_id\n"
 			 		+ "                AND adir.dt = et1.date\n"
-			 		+ "                AND UPPER(dtm1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF')\n"
+			 		+ "                AND UPPER(dtm1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY','APMOSYS HOLIDAY', 'WEEK OFF','COMP OFF')\n"
 			 		+ "          )\n"
 			 		+ "    ),\n"
 			 		+ "\n"
@@ -15485,7 +15492,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 			 		+ "              LEFT JOIN Day_Type_Map dtm1 ON et1.day_type_id = dtm1.day_type_id\n"
 			 		+ "              WHERE et1.emp_id = bpe.emp_id\n"
 			 		+ "                AND adir.dt = et1.date\n"
-			 		+ "                AND UPPER(dtm1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF')\n"
+			 		+ "                AND UPPER(dtm1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY','APMOSYS HOLIDAY', 'WEEK OFF','COMP OFF')\n"
 			 		+ "          )\n"
 			 		+ "    ),\n"
 			 		+ "\n"
@@ -16170,7 +16177,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 		    			+ "              LEFT JOIN Day_Type_Map dtm1 ON et1.day_type_id = dtm1.day_type_id\n"
 		    			+ "              WHERE et1.emp_id = bpe.emp_id\n"
 		    			+ "                AND adir.dt = et1.date\n"
-		    			+ "                AND UPPER(dtm1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'WEEK OFF')\n"
+		    			+ "                AND UPPER(dtm1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY','APMOSYS HOLIDAY', 'WEEK OFF','COMP OFF')\n"
 		    			+ "          )\n"
 		    			+ "    ),\n"
 		    			+ "\n"
@@ -16661,7 +16668,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 		    			+ "                LEFT JOIN Day_Type_Map dtm1 ON et1.day_type_id = dtm1.day_type_id\n"
 		    			+ "                WHERE et1.emp_id = bpe.emp_id\n"
 		    			+ "                  AND adir.dt = et1.date\n"
-		    			+ "                  AND UPPER(dtm1.day_type) IN ('LEAVE','CLIENT HOLIDAY','PUBLIC HOLIDAY','WEEK OFF','COMP OFF')\n"
+		    			+ "                  AND UPPER(dtm1.day_type) IN ('LEAVE','CLIENT HOLIDAY','PUBLIC HOLIDAY','APMOSYS HOLIDAY','WEEK OFF','COMP OFF')\n"
 		    			+ "            )\n"
 		    			+ "    ),\n"
 		    			+ "\n"
@@ -17023,7 +17030,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 		    			+ "    SUM(CASE WHEN dsd.daily_status = 'L' THEN 1 ELSE 0 END) AS `Leave`,\n"
 		    			+ "    0 AS `Comp_Off`,\n"
 		    			+ "    SUM(CASE WHEN dsd.daily_status IN ('A','O','CA_R','CN_R') THEN 1 ELSE 0 END) AS `NA_Count`,\n"
-		    			+ "    0 AS `Half_Day`,\n"
+		    			+ "    0 AS `Half_Day`,\n" 
 		    			+ "    SUM(CASE WHEN dsd.daily_status IN ('CA','CN','P','WO','AH','CH','L','A','O','CA_R','CN_R') THEN 1 ELSE 0 END) AS total_days,\n"
 		    			+ "    (COALESCE(ecs.clientSideApprovedCount,0) + COALESCE(ecs.clientSidePendingCount,0)) AS ishine_filled_days,\n"
 		    			+ "    bpe.employmentstatus,\n"
@@ -17408,7 +17415,8 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				+ "               AND (upper(etwa_nested.day_type) LIKE '%LEAVE%'\n"
 				+ "               OR upper(etwa_nested.day_type) LIKE '%CLIENT%HOLIDAY%'\n"
 				+ "               OR upper(etwa_nested.day_type) LIKE '%PUBLIC%HOLIDAY%'\n"
-				+ "               OR upper(etwa_nested.day_type) LIKE '%WEEK%OFF%')\n"
+				+ "               OR upper(etwa_nested.day_type) LIKE '%WEEK%OFF%'\n"
+				+ "               OR upper(etwa_nested.day_type) LIKE '%COMP%OFF%')\n"
 				+ "           )\n"
 				+ "    ),\n"
 				+ "    Actual_Client_Side_Submissions AS (\n"
@@ -17743,7 +17751,8 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 					+ "                            AND (ets1.day_type_upper LIKE '%LEAVE%'\n"
 					+ "                            OR ets1.day_type_upper LIKE '%CLIENT%HOLIDAY%'\n"
 					+ "                            OR ets1.day_type_upper LIKE '%PUBLIC%HOLIDAY%'\n"
-					+ "                            OR ets1.day_type_upper LIKE '%WEEK%OFF%')\n"
+					+ "                            OR ets1.day_type_upper LIKE '%WEEK%OFF%'\n"
+					+ "                            OR ets1.day_type_upper LIKE '%COMP%OFF%')\n"
 					+ "                        )\n"
 					+ "    ),\n"
 					+ "    Actual_Timesheet_Filled AS (\n"
