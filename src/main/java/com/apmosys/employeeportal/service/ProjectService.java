@@ -3890,9 +3890,14 @@ public class ProjectService {
 	public Project createProjectRTS(ProjectPoMappingWithResourceDTO dto, Client client) {
 
 		if (projectRepository.findByPoProjectId(dto.getProjectId()) != null){ 
-			ExceptionLogContext.add("Project already exists in ishine of po project" + dto.getProjectId());
-			throw new RuntimeException("Project already exists");
+			ExceptionLogContext.add("Project already exists in ishine of po project :" + dto.getProjectId());
+			throw new RuntimeException("Project already exists in ishine");
 		}
+		
+		Long createdBy = dto.getPoDetailsList().get(0).getCreatedByEmpId();
+		String createdByname = dto.getPoDetailsList().get(0).getCreatedByEmpName();
+		
+		validationService.validateEmployeeExists(createdBy, createdByname);
 
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -3904,7 +3909,7 @@ public class ProjectService {
 		p.setClientId(client.getClientId());
 		p.setActive("true");
 		p.setProjectStatus("Not Started");
-		p.setCreatedBy(6L);
+		p.setCreatedBy(createdBy);
 		p.setIsDraftProject(null);
 		p.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 		if(dto.getProjectType().equalsIgnoreCase("TNM")) {
@@ -3920,6 +3925,11 @@ public class ProjectService {
 	        Client client) {
 
 	    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+	    
+	    Long updatedBy = dto.getPoDetailsList().get(0).getCreatedByEmpId();
+		String updatedByname = dto.getPoDetailsList().get(0).getCreatedByEmpName();
+		
+		validationService.validateEmployeeExists(updatedBy, updatedByname);
 	    boolean changed = false;
 
 	    if (!Objects.equals(p.getProjectName(), dto.getProjectName())) {
@@ -3927,10 +3937,7 @@ public class ProjectService {
 	        changed = true;
 	    }
 
-	    if (!Objects.equals(p.getPoProjectType(), dto.getProjectType())) {
-	        p.setPoProjectType(dto.getProjectType());
-	        changed = true;
-	    }
+	   
 
 //	    String newStart =
 //	            dto.getProjectStartDate() != null
@@ -3963,7 +3970,7 @@ public class ProjectService {
 	    }
 
 	    if (changed) {
-	    	p.setUpdatedBy(6l);
+	    	p.setUpdatedBy(updatedBy);
 	    	p.setUpdatedOn(LocalDateTime.now());
 	    	projectRepository.save(p);
 	    }
@@ -4565,6 +4572,8 @@ public class ProjectService {
 	
 
 	public void recalculateProjectDates(Integer projectId,boolean isRenew) {
+		
+		projectPoDetailsRepository.flush();
 
 	    Project project = projectRepository.findById(projectId)
 	            .orElseThrow(() ->

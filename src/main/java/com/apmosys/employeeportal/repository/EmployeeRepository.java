@@ -4307,4 +4307,20 @@ public List<Object[]> fetchInActivePOListOfProject(
 	       nativeQuery = true)
 	List<Object[]> getAllTeamMemberViewByProjectIds(@Param("projectIds") List<Long> projectIds, @Param("excludeEmpId") Long excludeEmpId);
 
+	@Query(
+		    value = "SELECT EXISTS ( " +
+		            "SELECT 1 " +
+		            "FROM employee_team_mapping etm " +
+		            "INNER JOIN teams t ON t.team_id = etm.team_id " +
+		            "INNER JOIN projects p ON p.project_id = t.project_id " +
+		            "WHERE etm.emp_id = :empId " +
+		            "AND etm.active = 1 " +
+		            "AND p.po_project_type = 'TNM' " +
+		            "AND p.active = 'true' " +
+		            ")",
+		    nativeQuery = true
+		)
+		Integer checkActiveTNMProject(@Param("empId") Long empId);
+
+
 	}

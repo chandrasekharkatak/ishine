@@ -191,8 +191,7 @@ public class ValidationService {
 
 	private void validateResourceRequirement(POResourceRequirementDTO r) {
 
-		require(r.getResourceOverviewId(), "resourceOverviewId");
-		require(r.getClientRoleId(), "clientRoleId");
+			
 		require(r.getRole(), "role");
 		require(r.getDepartment(), "department");
 		require(r.getExperience(), "experience");

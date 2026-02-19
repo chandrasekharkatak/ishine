@@ -576,4 +576,11 @@ duplicateCertificate(certificateobj:any){
     return this.http.get(`${this.baseUrl}` + `api/getAllActiveEmployeeInformation`);
   }
 
+  checkInactiveValidation(empId: any) {
+  return this.http.get<boolean>(
+    `${this.baseUrl}api/getInActiveableOrNot/${empId}`
+  );
+}
+
+
 }

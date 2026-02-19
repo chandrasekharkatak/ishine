@@ -71,6 +71,8 @@ export class EmployeeConfigComponent implements OnInit {
   changeManagerTemplate: TemplateRef<any>;
   @ViewChild("change_default_project_template_on_deptUpdate")
   changeDefaultProjectTemplate: TemplateRef<any>;
+  @ViewChild("inactiveTemplate")
+  inactiveTemplate: TemplateRef<any>;
 
   feature = 'Employee Config';
   managerFlag: boolean = false;
@@ -1060,14 +1062,12 @@ export class EmployeeConfigComponent implements OnInit {
   stringToNumber(year: any) {
     this.employeeObj.yearOfPassing = Number.parseInt(year);
   }
-
+previousEmploymentStatus: string;
   retainStatus() {
+      const selectedStatus = this.employeeObj.employmentstatus;
+   
+      this.employeeObj.isRetain = selectedStatus === "Retain" ? "Yes" : "No";
 
-    if (this.employeeObj.employmentstatus == "Retain") {
-      this.employeeObj.isRetain = "Yes";
-    } else {
-      this.employeeObj.isRetain = "No";
-    }
     if ( ['Probation','Confirmed','Retain'].includes(this.employeeObj.employmentstatus)) {
       this.employeeObj.employmentReleaseStatus="";
       this.employeeObj.dateOfResign='';
@@ -1076,7 +1076,43 @@ export class EmployeeConfigComponent implements OnInit {
 
     console.log(this.employeeObj.employmentstatus)
     console.log(this.employeeObj.isRetain)
+
+    if (selectedStatus === "InActive") {
+
+    this.employeeService.checkInactiveValidation(this.employeeObj.empId)
+      .subscribe({
+        next: (response: any) => {
+
+          if (response.serviceResponse === true) {
+            this.openInactivePopup();
+          }
+
+        },
+        error: (err) => {
+          console.error("Inactive validation error", err);
+        }
+      });
+    }
   }
+  
+openInactivePopup() {
+
+  this.modalRef = this.modalService.open(this.inactiveTemplate, {
+    backdrop: 'static',
+    keyboard: false
+  });
+}
+onCancel() {
+  if (this.modalRef) {
+    this.modalRef.dismiss(); 
+  }
+
+  this.employeeObj.employmentstatus = this.previousEmploymentStatus;
+}
+storePreviousStatus(){
+    this.previousEmploymentStatus = this.employeeObj.employmentstatus;
+}
+
 
   showCreateForm() {
     this.isForm = true;

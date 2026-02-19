@@ -89,7 +89,7 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
     List<IshineToPoEmployeeDTO> findEmployeesWithTimesheetStats(Long poId,
             Integer projectId, LocalDate startDate, LocalDate endDate);
 
-    Optional<ProjectPoDetails> findByPoIdAndProjectId(Long poId, Integer projectId);
+    Optional<ProjectPoDetails> findByPoIdAndProjectIdAndActiveTrue(Long poId, Integer projectId);
 
     boolean existsByPoIdAndProjectId(Long poId, Integer projectId);
 
@@ -209,5 +209,9 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
        
     @Query(value =" Select ppo from ProjectPoDetails ppo where ppo.poId IN :poIds and ppo.active = true ")
     List<ProjectPoDetails> findByPoIdInAndActive(List<Long> poIds);
+
+	ProjectPoDetails findByPoId(Long poId);
+
+	boolean existsByPoIdAndProjectIdAndActiveTrue(Long poId, Integer projectId);
 
 }
