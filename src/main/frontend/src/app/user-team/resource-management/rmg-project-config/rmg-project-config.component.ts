@@ -28,12 +28,24 @@ import * as moment from 'moment';
 import { firstValueFrom } from 'rxjs';
 import { EmployeeOtherActiveProject } from 'src/app/models/employeeOtherActiveProject';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
+// import { MAT_DATE_FORMATS } from '@angular/material/core';
 
+// export const MY_DATE_FORMATS = {
+// 	parse: {
+// 		dateInput: 'MM/DD/YYYY',
+// 	},
+// 	display: {
+// 		dateInput: 'DD/MM/YYYY',
+// 	},
+// };
 @Component({
 	standalone: false,
-	selector: 'app-rmg-project',
-	templateUrl: './rmg-project.component.html',
-	styleUrl: './rmg-project.component.css'
+	selector: 'app-rmg-project-config',
+	templateUrl: './rmg-project-config.component.html',
+	styleUrl: './rmg-project-config.component.css',
+	// providers: [
+	// 	{ provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS }
+	// ]
 })
 
 export class RmgProjectComponent implements OnInit {
@@ -89,6 +101,7 @@ export class RmgProjectComponent implements OnInit {
 	alertMessage: string = '';
 	projectType: string = '';
 	employeeProjectEndDateType: 'PO' | 'Custom' = 'Custom';
+	todayTimestamp: any;
 
 	// Objects
 	currentTeam: RmgTeam = new RmgTeam();
@@ -423,6 +436,7 @@ export class RmgProjectComponent implements OnInit {
 	openEditEmployee(member: RmgTeamMember) {
 		this.isUnsavedMemberUpdate = true;
 		this.currentTeam.newRmgTeamMember = member;
+		this.currentTeam.newRmgTeamMember.empId = member.empId;
 		this.addNewMemberModalRef = this.modalService.open(this.addNewMemberTemplateRef, { modalDialogClass: 'modal-md', backdrop: 'static', keyboard: false });
 	}
 
@@ -686,11 +700,6 @@ export class RmgProjectComponent implements OnInit {
 
 	setRequirementResourceTypeForTeam(team: RmgTeam, isCurrentResource: boolean) {
 		team.requirementType = isCurrentResource ? 'Current Resource' : 'Old Resource';
-	}
-
-	getTodaysDate() {
-		const today = new Date();
-		return today.toISOString().split('T')[0];
 	}
 
 	handleEmployeeProjectDetailsPageChange(event: any) {
@@ -1508,6 +1517,7 @@ export class RmgProjectComponent implements OnInit {
 
 		this.currentTeam.newRmgTeamMember.isNotSaved = true;
 		this.currentTeam.newRmgTeamMember.teamId = this.currentTeam.teamId;
+		this.currentTeam.newRmgTeamMember.employementId = this.employeeListFilteredByDept?.find(emp => emp?.empId === this.currentTeam.newRmgTeamMember?.empId)?.employmentId;
 		this.currentTeam.newRmgTeamMember.memberName = this.employeeListFilteredByDept?.find(emp => emp?.empId === this.currentTeam.newRmgTeamMember?.empId)?.name;
 		this.currentTeam.newRmgTeamMember.poNo = this.poDetailsList?.find(po => po?.poId === this.currentTeam.newRmgTeamMember?.poId)?.poNo;
 		this.currentTeam.newRmgTeamMember.poRequirementMappingId = this.resourceRequirementList?.find(req => req?.roleId === this.currentTeam.newRmgTeamMember?.roleId)?.poRequirementMappingId;
@@ -1620,6 +1630,7 @@ export class RmgProjectComponent implements OnInit {
 				this.toastService.error(response.serviceResponse);
 			}
 		});
+		this.closeRemoveMembersModal();
 	}
 
 	updateTeamMembersEndDate(currentTeam: RmgTeam) {
@@ -1716,18 +1727,21 @@ export class RmgProjectComponent implements OnInit {
 	}
 
 	onMemberStartDateChange(event: MatDatepickerInputEvent<Date>, member: RmgTeamMember) {
-		const selectedDate = event.value;
+		const selectedDate = this.normalizeDate(event.value);
 		const projectStartDate = this.normalizeDate(this.rmgProjectObj.startDate);
 		if (selectedDate < projectStartDate) {
 			member.startDate = member.dbStartDate;
 			this.openUpdateProjectStartDateErrorModal();
 			return;
 		}
-
 		member.projectId = this.rmgProjectObj.projectId;
+		member.projectStartDate = projectStartDate;
+
 		this.teamService.validateEmployeeTimesheetFilledToChangeStartDate(member).pipe(first()).subscribe((response: any) => {
 			if (response.serviceStatus === "Success") {
-				this.openAlertMessageModal(response.serviceResponse);
+				if (response.serviceResponse !== 'No timesheet records found.') {
+					this.openAlertMessageModal(response.serviceResponse);
+				}
 			} else {
 				this.openAlertMessageModal(response.serviceResponse || "Something went wrong, unable to validate timesheet filled count at the moment for the updated start date!!");
 			}
@@ -1748,6 +1762,9 @@ export class RmgProjectComponent implements OnInit {
 	}
 
 	getResourceRequirementByTeamIdForEmployee(member: RmgTeamMember) {
+		if (this.isInternalProject) {
+			return;
+		}
 		member.poRequirementMappingId = null;
 		member.resourceRequirementList = [];
 		if (this.teamIdResourceReqListMap.has(member.teamId)) {
@@ -1766,6 +1783,9 @@ export class RmgProjectComponent implements OnInit {
 	}
 
 	getResourceRequirementByTeamId() {
+		if (this.isInternalProject) {
+			return;
+		}
 		this.defaultProjectObj.poRequirementMappingId = null;
 		this.defaultProjectObj.resourceRequirementList = [];
 		if (this.teamIdResourceReqListMap.has(this.defaultProjectObj.teamId)) {
@@ -1811,8 +1831,18 @@ export class RmgProjectComponent implements OnInit {
 			if (response.serviceStatus === "Success") {
 				if (currentActivePOs) {
 					this.currentRmgProjectResourceRequirementList = response.serviceResponse || [];
+					this.currentRmgProjectResourceRequirementList?.forEach(req => {
+						req.isExpired =
+							(req.poEndDate && moment(req.poEndDate).format('YYYY-MM-DD') < moment(new Date()).format('YYYY-MM-DD')) ||
+							(req.requirementEndDate && moment(req.requirementEndDate).format('YYYY-MM-DD') < moment(new Date()).format('YYYY-MM-DD'));
+					});
 				} else {
 					this.allRmgProjectResourceRequirementList = response.serviceResponse || [];
+					this.allRmgProjectResourceRequirementList?.forEach(req => {
+						req.isExpired =
+							(req.poEndDate && moment(req.poEndDate).format('YYYY-MM-DD') < moment(new Date()).format('YYYY-MM-DD')) ||
+							(req.requirementEndDate && moment(req.requirementEndDate).format('YYYY-MM-DD') < moment(new Date()).format('YYYY-MM-DD'));
+					});
 				}
 			} else {
 				this.toastService.error(response.serviceResponse || "Something went wrong!!");

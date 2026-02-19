@@ -195,7 +195,6 @@
 ::ng-deep .custom-filter-row td {
     border: 1px solid #ddd;
     position: sticky;
-    /* top: 65px; */
     background-color: #f4f6f8;
     z-index: 2;
 }

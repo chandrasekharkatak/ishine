@@ -2,7 +2,6 @@ package com.apmosys.employeeportal.repository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -20,7 +19,6 @@ import com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO;
-import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse;
@@ -864,7 +862,7 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			+ "(etm.empId,etm.startDate,etm.endDate,etm.isShadow,etm.poId) " +
 			"FROM EmployeeTeamMap etm " +
 			"LEFT JOIN PoRequirementMapping prm "+
-			"on prm.roleId = etm.roleId and prm.poId = etm.poId "+	
+			"on prm.roleId = etm.roleId and prm.poId = etm.poId and prm.active = true "+	
 			"WHERE etm.active!=2  AND prm.poId = :poId ")
 	List<EmpMappingDTO> getActiveEmpDetails(Long poId);
 	
@@ -887,8 +885,8 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			+ ") \n"
 			+ "FROM EmployeeTeamMap etm \n"
 			+ "INNER JOIN RoleDetails rd on rd.roleId = etm.roleId \n"
-			+ "INNER JOIN PoRequirementMapping prm ON etm.poId = prm.poId and etm.roleId = prm.roleId  \n"
-			+ "INNER JOIN ProjectPoDetails ppd ON prm.poId = ppd.poId AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND DATE(ppd.poEndDate) >= CURRENT_DATE \n"
+			+ "INNER JOIN PoRequirementMapping prm ON etm.poId = prm.poId and etm.roleId = prm.roleId and prm.active = true  \n"
+			+ "INNER JOIN ProjectPoDetails ppd ON prm.poId = ppd.poId AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) \n"
 			+ "where ppd.projectId =:projectId \n"
 			+ "GROUP BY prm.poRequirementMappingId")
 	List<PoDetailsDto> getAssigedAndApprovedEmployeeCountByProjectId(Integer projectId, boolean currentActivePO);
@@ -933,6 +931,126 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 	
 	@Query(value = "Select etm from EmployeeTeamMap etm where etm.poId =:previousPoId and etm.roleId =:roleId and etm.active !=0")
 	List<EmployeeTeamMap>findActiveEmployeesForRole(Long previousPoId, Long roleId);
+
+		@Query(value = "SELECT \n"
+				+ "COUNT(DISTINCT e.empId)"
+				+ "FROM Employee e \n"
+				+ "INNER JOIN EmployeeTeamMap etm ON e.empId = etm.empId\n"
+				+ "INNER JOIN Team t ON t.teamId = etm.teamId \n"
+				+ "INNER JOIN Project p ON p.projectId = t.projectId \n"
+				+ "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId \n"
+				+ "INNER JOIN Department d ON d.deptId = jr.deptId \n"
+				+ "LEFT JOIN Client c ON c.clientId = p.clientId \n"
+				+ "LEFT JOIN ProjectManagerMapping pmm ON pmm.projectId = p.projectId \n"
+				+ "LEFT JOIN Employee pm ON pm.empId = pmm.projectManagerId\n"
+				+ "WHERE p.projectId IN :projectIds AND p.status = 'Completed' \n"
+				+ "AND e.employmentstatus != 'InActive' \n"
+				+ "AND e.empId NOT BETWEEN 1 AND 6 ")
+		Long getMappedToShankhAllEmployeeCountByProjectIds(@Param("projectIds") Set<Integer> projectIds);
+
+		@Query(value = "SELECT \n"
+				+ "COUNT(DISTINCT e.empId)"
+				+ "FROM Employee e \n"
+				+ "INNER JOIN EmployeeTeamMap etm ON e.empId = etm.empId\n"
+				+ "INNER JOIN Team t ON t.teamId = etm.teamId \n"
+				+ "INNER JOIN Project p ON p.projectId = t.projectId \n"
+				+ "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId \n"
+				+ "INNER JOIN Department d ON d.deptId = jr.deptId \n"
+				+ "LEFT JOIN Client c ON c.clientId = p.clientId \n"
+				+ "LEFT JOIN ProjectManagerMapping pmm ON pmm.projectId = p.projectId \n"
+				+ "LEFT JOIN Employee pm ON pm.empId = pmm.projectManagerId\n"
+				+ "WHERE p.projectId IN :projectIds \n"
+				+ "AND etm.active != 0 \n"
+				+ "AND t.isActive = 'Y' \n"
+				+ "AND e.employmentstatus != 'InActive' \n"
+				+ "AND pmm.active = 1 AND e.empId NOT BETWEEN 1 AND 6 ")
+		Long getEmployeeCountByProjectIds(@Param("projectIds") Set<Integer> projectIds);
+
+		@Query(value = "SELECT \n"
+				+ "COUNT(DISTINCT e.empId)"
+				+ "FROM Employee e \n"
+				+ "INNER JOIN EmployeeTeamMap etm ON e.empId = etm.empId\n"
+				+ "INNER JOIN Team t ON t.teamId = etm.teamId \n"
+				+ "INNER JOIN Project p ON p.projectId = t.projectId \n"
+				+ "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId \n"
+				+ "INNER JOIN Department d ON d.deptId = jr.deptId \n"
+				+ "LEFT JOIN Client c ON c.clientId = p.clientId \n"
+				+ "LEFT JOIN ProjectManagerMapping pmm ON pmm.projectId = p.projectId \n"
+				+ "LEFT JOIN Employee pm ON pm.empId = pmm.projectManagerId\n"
+				+ "WHERE p.projectId IN :projectIds \n"
+				+ "AND etm.active != 0 \n"
+				+ "AND t.isActive = 'Y' \n"
+				+ "AND e.employmentstatus != 'InActive' AND p.internalProjectType is not null \n"
+				+ "AND pmm.active = 1 AND e.empId NOT BETWEEN 1 AND 6 ")
+		Long getEmployeeCountInternalByProjectIds(@Param("projectIds") Set<Integer> projectIds);
+
+		@Query("SELECT COUNT(DISTINCT e.empId) " +
+				"FROM EmployeeTeamMap etm " +
+				"RIGHT JOIN Employee e ON e.empId = etm.empId " +
+				"RIGHT JOIN Team t ON t.teamId = etm.teamId " +
+				"INNER JOIN Project p ON p.projectId = t.projectId " +
+				"INNER JOIN Client c ON c.clientId = p.clientId " +
+				"INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
+				"INNER JOIN Department d ON d.deptId = jr.deptId " +
+				"LEFT JOIN ProjectManagerMapping pmm ON pmm.projectId = p.projectId " +
+				"LEFT JOIN Employee pm ON pm.empId = pmm.projectManagerId " +
+				"WHERE e.empId IN ( " +
+				"SELECT e1.empId " +
+				"FROM EmployeeTeamMap etm1 " +
+				"JOIN Employee e1 ON e1.empId = etm1.empId " +
+				"JOIN Team t1 ON t1.teamId = etm1.teamId " +
+				"JOIN Project p1 ON p1.projectId = t1.projectId " +
+				"JOIN ProjectManagerMapping pmm1 ON pmm1.projectId = p1.projectId " +
+				"WHERE etm1.active != 0 AND t1.isActive = 'Y' AND e1.employmentstatus != 'InActive' " +
+				"AND pmm1.active = 1 AND p1.projectId IN :projectIds " +
+				"GROUP BY e1.empId " +
+				"HAVING COUNT(CASE WHEN p1.poProjectId IS NULL THEN 1 END) > 0 " +
+				"AND COUNT(CASE WHEN p1.poProjectId IS NOT NULL THEN 1 END) > 0" +
+				") " +
+				"AND etm.active != 0 " +
+				"AND t.isActive = 'Y' " +
+				"AND e.employmentstatus != 'InActive' " +
+				"AND pmm.active = 1 " +
+				"AND e.empId NOT BETWEEN 1 AND 6")
+		Long getInternalAndShankhEmployeeCountByProjectIds(@Param("projectIds") Set<Integer> projectIds);
+		
+
+		@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO(" +
+				"p.projectId, p.projectName, p.apmosysRM, p.clientRM, " +
+				"p.startDate, p.endDate, p.poNo, p.poProjectType, " +
+				"c.clientName, " +
+				"pm.empId, pm.name, " +
+				"t.teamId, t.teamName, " +
+				"e.empId, e.name, " +
+				"jr.name, d.name, e.mobileNo, e.email, " +
+				"e.billable, e.billableType, " +
+				"etm.startDate, " +
+				"e.employeementId" +
+				") " +
+				"FROM Project p " +
+				"INNER JOIN Team t ON t.projectId = p.projectId " +
+				"INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId " +
+				"LEFT JOIN ProjectManagerMapping pmm ON p.projectId = pmm.projectId " +
+				"INNER JOIN Employee pm ON pm.empId = pmm.projectManagerId " +
+				"INNER JOIN Employee e ON e.empId = etm.empId " +
+				"INNER JOIN Client c ON c.clientId = p.clientId " +
+				"INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
+				"INNER JOIN Department d ON jr.deptId = d.deptId " +
+				"WHERE p.projectId NOT IN (" +
+				"  SELECT p2.projectId FROM Timesheet et " +
+				"  INNER JOIN TimesheetActivityMap etam ON et.timesheetId = etam.timesheetId " +
+				"  INNER JOIN Activity a ON a.activityId = etam.activityId " +
+				"  RIGHT JOIN Team t2 ON t2.teamId = a.teamId " +
+				"  INNER JOIN Project p2 ON p2.projectId = t2.projectId " +
+				"  WHERE et.date >= :fromDate AND et.date <= :toDate" +
+				") " +
+				"AND p.active = 'true' " +
+				"AND p.projectId IN :projectIds " +
+				"AND t.isActive = 'Y' " +
+				"AND etm.active != 0 " +
+				"AND e.employmentstatus != 'InActive'")
+		List<RMGProjectToEmployeeFlatDTO> getUnfilledTimesheetProjectDetails(@Param("projectIds") Set<Integer> projectIds, @Param("fromDate") LocalDate fromDate, @Param("toDate") LocalDate toDate);
+	
 
 
 	@Query(value = "SELECT new com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse(ete.empId, ete.employeementId, " +

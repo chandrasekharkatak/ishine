@@ -67,8 +67,6 @@ public class ProjectPoDetails {
 	@Column(name = "apmosys_rm")
     private String apmosysRM;
 	
-	
-	
 	@Column(name = "client_rm")
     private String clientRm;
 	
@@ -93,7 +91,6 @@ public class ProjectPoDetails {
 	@Column(name = "created_by")
     private Long createdBy;
     
-   
     @CreationTimestamp
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     @Column(name = "created_on",updatable = false)
@@ -101,13 +98,10 @@ public class ProjectPoDetails {
     
     private LocalDateTime poCreatedOn;
     
-    
     @Column(name = "updated_by")
     private Long updatedBy;
     
     private LocalDateTime poUpdatedOn;
-    
-    
     
     @UpdateTimestamp
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")

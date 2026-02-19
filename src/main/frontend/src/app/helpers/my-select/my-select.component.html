@@ -5,9 +5,7 @@
     (selectionChange)="onSelectionChange($event.value)"
     (openedChange)="onDropdownOpened($event)"
     [compareWith]="compareObjects"
-    [placeholder]="placeholder"
-    [disabled]="disable"
-  >
+    [placeholder]="placeholder">
     <mat-option>
       <ngx-mat-select-search
       [(ngModel)]="searchText"

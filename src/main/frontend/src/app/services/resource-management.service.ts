@@ -7,6 +7,7 @@ import { ProjectFilterDTO } from '../models/projectFilterDTO';
 import { updateHasClientSideId } from '../models/updateHasClientSideId';
 import { LiftAndShift } from '../models/liftAndShift';
 import { RestoreProjectPayload } from '../models/restoreProjectPayload';
+import { RMGDashboardProjectRequest } from '../models/rmgDashboardProjectRequest';
 
 @Injectable({
   providedIn: 'root'
@@ -260,5 +261,26 @@ export class ResourceManagementService {
     let httpParams = new HttpParams().append("projectId", projectId).append("projectType", projectType).append("currentActivePO", currentActivePO);
     return this.http.get(`${this.baseUrl}` + `api/getResourceRequirementDetailsByProjectId`, { params: httpParams });
   }
+
+  fetchProjectDetailsList(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/fetchProjectDetailsList`, rmgProjectRequest);
+  } 
+  
+  getEmployeeCountByEmployeeGroup(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getEmployeeCountByEmployeeGroup`, rmgProjectRequest);
+  }
+
+  getProjectStatusCount(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getProjectStatusCount`, rmgProjectRequest);
+  }
+
+  getUnfilledTimesheetProjectDetailsList(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getUnfilledTimesheetProjectDetailsList`, rmgProjectRequest);
+  }
+
+  getUnfilledTimesheetProjectDetailsCount(rmgProjectRequest: RMGDashboardProjectRequest) {
+    return this.http.post(`${this.baseUrl}` + `api/getUnfilledTimesheetProjectDetailsCount`, rmgProjectRequest);
+  }
+
 }
 

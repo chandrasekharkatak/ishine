@@ -8,6 +8,7 @@ export class RmgTeamMember {
     projectType: any = 'Bench';
     poProjectType: any;
     internalProjectType: any;
+    projectStartDate: any;
 
     teamId: any;
     teamName: any;
@@ -36,6 +37,7 @@ export class RmgTeamMember {
     empId: any
     memberName: any;
     jobRoleName: any;
+    employmentStatus:any;
     currentExp: any;
     totalExp: any;
     startDate: any;

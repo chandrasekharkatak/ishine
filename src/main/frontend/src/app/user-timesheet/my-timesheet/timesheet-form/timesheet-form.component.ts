@@ -67,7 +67,6 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   @Input() isUpdation: boolean = false;
   @Input() selectedDate: Date | null = null;
   @Input() timesheetId: number | null = null; // ID of timesheet to update
-  @Input() existingTimesheetData: EmployeeTimesheetDTO | null = null; // Pre-loaded data (optional)
   // @Input() isAutoFilled: boolean = false;
   isTimesheetLockCheckEnable: any = "true";
   
@@ -175,18 +174,13 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     console.log('[ngOnInit] Form initialized with:', {
       isUpdation: this.isUpdation,
       timesheetId: this.timesheetId,
-      selectedDate: this.selectedDate,
-      existingTimesheetData: !!this.existingTimesheetData
+      selectedDate: this.selectedDate
     });
 
     if (this.isUpdation && this.timesheetId) {
       console.log('[ngOnInit] Update mode detected, loading timesheet...');
       this.loadServerDate();
       this.loadTimesheetForUpdate(this.timesheetId);
-    } else if (this.isUpdation && this.existingTimesheetData) {
-      console.log('[ngOnInit] Update mode with existing data, populating form...');
-      this.loadServerDate();
-      this.populateFormFromTimesheetData(this.existingTimesheetData);
     } else {
       // Create mode: load server date first, then run init (resetForm + getTimesheetMetadata / team list)
       // so that getTimesheetMetadata() can call getAllAvailableTimesheetByEmpId() with serverDate set
@@ -1498,7 +1492,20 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    * Handle team member selection
    * Load available timesheets for selected team member
    */
-  onTeamMemberSelect(teamMember: any): void {
+  appelectMember:any;
+  onTeamMemberSelect(teamMemberOrId: any): void {
+    // app-my-select emits only the value (empId), not the full object
+    // So we need to look up the full object from teamMemberList if we received just an ID
+    let teamMember: any = null;
+    
+    if (teamMemberOrId && typeof teamMemberOrId === 'object' && teamMemberOrId.empId) {
+      // Already a full object
+      teamMember = teamMemberOrId;
+    } else if (teamMemberOrId != null && this.teamMemberList && this.teamMemberList.length > 0) {
+      // It's just an ID (number), look up the full object from teamMemberList
+      teamMember = this.teamMemberList.find(emp => emp.empId === teamMemberOrId || emp.empId === Number(teamMemberOrId));
+    }
+    
     if (teamMember && teamMember.empId) {
       this.timesheetFilledForUser.empId = teamMember.empId;
       this.timesheetFilledForUser.name = teamMember.name;
@@ -1951,30 +1958,36 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
 
-    // ✅ Duplicate check scoped to the CURRENT project row
-    // Same (projectId, clientId, clientLocationId) combination should not exist twice
-    const hasDuplicate = this.timesheetLocations.some(loc =>
+    // Same project cannot be added with different client location across locations.
+    // If another row has same projectId+clientId but different clientLocationId, reject this selection.
+    const hasSameProjectDifferentLocation = this.timesheetLocations.some(loc =>
       loc.projects.some(p =>
         p !== project &&
         p.projectId === project.projectId &&
         p.clientId === project.clientId &&
-        p.clientLocationId === clientLocationId
+        p.clientLocationId != null &&
+        Number(p.clientLocationId) !== Number(clientLocationId)
       )
     );
 
-    if (hasDuplicate) {
-      // Reset ONLY the current project's client location and its teams
-      project.clientLocationId = null;
-      if (project.activities && Array.isArray(project.activities)) {
-        project.activities.forEach(activity => {
-          activity.clientTeamList = [];
-          activity.teamId = null;
-        });
-      }
+    if (hasSameProjectDifferentLocation) {
+      // Defer reset so ngModel and the select's ControlValueAccessor get the new value in the next tick.
+      // Otherwise the dropdown keeps showing the invalid selection because we're updating in the same
+      // tick as ngModelChange.
+      setTimeout(() => {
+        project.clientLocationId = null;
+        if (project.activities && Array.isArray(project.activities)) {
+          project.activities.forEach(activity => {
+            activity.clientTeamList = [];
+            activity.teamId = null;
+          });
+        }
+        this.cdr.detectChanges();
+      }, 0);
 
       this.openAlertMod(
         this.alertTemplate,
-        'You cannot add same projects with difefrent client location'
+        'You cannot add same projects with different client location'
       );
       return;
     }
