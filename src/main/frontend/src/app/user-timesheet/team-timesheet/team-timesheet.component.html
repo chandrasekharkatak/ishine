@@ -731,10 +731,10 @@
             </tr>
            <tr app-column-filter-bar
     *ngIf="isSearchEnabled"
-    [columnList]="selectedStatus === 1 
-        ? allTimesheetColumnsVMS 
+    [columnList]="selectedStatus === 1
+        ? allTimesheetColumnsVMS
         : allTimesheetColumnsVMSStatusChange"
-    (onSearch)="onSearch($event); page1 = 0">
+    (onSearch)="onSearch($event);" >
 </tr>
 
           </thead>
@@ -787,11 +787,19 @@
                             <td class="project-name" (click)="toggleProject(i, p)" title = "click to view team details"> {{ project.projectName }} </td>
                             <td>{{ project.poNo || '-' }}</td>
                             <td>{{ project.shadowEmp ? 'Yes' : 'No' }}</td>
-                            <td> <button class="doc-btn pending" style="color:rgb(255, 187, 0)"
-                                (click)="openDocumentPopup(timesheet, 'Pending', false)"> <i class="fa fa-eye"></i> </button></td>
-                            <td> <button class="doc-btn approved" style="color:green"
-                                (click)="openDocumentPopup(timesheet, 'Approved', false)"> <i class="fa fa-eye"></i> </button></td>
-                            <!-- <td>
+                           <td> 
+  <button class="doc-btn pending" style="color:rgb(255, 187, 0)"
+      (click)="openDocumentPopup(timesheet, 'Pending', false, project)"> 
+    <i class="fa fa-eye"></i> 
+  </button>
+</td>
+<td> 
+  <button class="doc-btn approved" style="color:green"
+      (click)="openDocumentPopup(timesheet, 'Approved', false, project)"> 
+    <i class="fa fa-eye"></i> 
+  </button>
+</td>
+    <!-- <td>
                               <div class="action-buttons-container">
                               <button class="btn-approve"
                                 (click)="approveSingleProject(timesheet, project,location)">
@@ -879,7 +887,7 @@
   <span class="badge filled"
         [class.disabled]="!hasPendingDoc(p.projectId) && !hasApprovedDoc(p.projectId)">
 
-    
+
     <small *ngIf="getFilledStatus(p.projectId)">
       ({{ getFilledStatus(p.projectId) }})
     </small>
@@ -922,7 +930,7 @@
     frameborder="0">
   </iframe>
 
- 
+
   <div *ngIf="!safePdfUrl" class="no-doc-msg">
     No document available
   </div>
@@ -1629,8 +1637,8 @@
 
               </mat-select> -->
               <app-my-select #filterActiveReportees class="form-control" placeholder="Select Reportee"
-                [(ngModel)]="timesheetObj.empIds" 
-                  [options]="getReporteesFromProjectId()" 
+                [(ngModel)]="timesheetObj.empIds"
+                  [options]="getReporteesFromProjectId()"
                   displayKey="name" valueKey="empId" [multiple]="true"
                   (selectionChange)="onReporteeChange($event)">
               </app-my-select>

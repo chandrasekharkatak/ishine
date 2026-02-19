@@ -17276,7 +17276,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 			        "    ptsn.description, a.activity, etamn.description, " +
 			        "    etamn.durationMinutes, t.teamName, " +
 			        "    tddn.docId, tddn.docName, tddn.finalFlag, " +
-			        "    tddn.bulkApprovedDocId, dmtmn.mimeType " +
+			        "    tddn.bulkApprovedDocId, dmtmn.mimeType , tddn.projectId AS docsProjectId" +
 			        ") " +
 			        "FROM EmployeeTimesheetsNew etn " +
 			        "INNER JOIN Employee e ON etn.empId = e.empId " +
@@ -17303,7 +17303,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 			        "         ptsn.id.projectId, p.projectName, c.clientName, cl.clientLocation, ptsn.poNo, " +
 			        "         es.name, ptsn.status, ptsn.totalClientWorkingMinutes, ptsn.description, " +
 			        "         a.activity, etamn.description, etamn.durationMinutes, t.teamName, " +
-			        "         tddn.docId, tddn.docName, tddn.finalFlag, tddn.bulkApprovedDocId, dmtmn.mimeType "
+			        "         tddn.docId, tddn.docName, tddn.finalFlag, tddn.bulkApprovedDocId, dmtmn.mimeType,  tddn.projectId "
 			)
 			List<GetReporteesTimesheetReqFlatDTO> getTimesheetDetailsByIds(
 			        @Param("timesheetIds") List<Long> timesheetIds,

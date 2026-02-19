@@ -5,9 +5,11 @@ import javax.persistence.OptimisticLockException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.apmosys.employeeportal.utility.ExceptionLogContext;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
 @RestControllerAdvice
@@ -26,9 +28,21 @@ public class GlobalException {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
+	
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<ServiceResponse> handleBadRequestException(HttpMessageNotReadableException ex){
+        ServiceResponse response = new ServiceResponse();
+        System.out.println("=========Test-101==========");
+        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        ExceptionLogContext.add(ex.getLocalizedMessage());
+        response.setServiceResponse("Invalid Request Type");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	}
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ServiceResponse> handleGeneralError(Exception e) {
         ServiceResponse response = new ServiceResponse();
+        System.out.println("=========Test-102=========="+e.getClass());
+
         response.setServiceStatus("Unexpected error: " + e.getMessage());
         response.setServiceResponse(null);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);

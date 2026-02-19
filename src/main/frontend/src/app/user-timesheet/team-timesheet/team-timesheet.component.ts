@@ -27,7 +27,9 @@ import { ProjectBasedBulkUploadPayload } from './types';
 import { HttpClient } from '@angular/common/http';
 import { finalize } from 'rxjs/operators';
 import {LoaderService} from 'src/app/services/loader.service';import { MatSortModule } from '@angular/material/sort';
-import { Observable, of } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
+
 
 
 
@@ -219,6 +221,13 @@ alertModal: TemplateRef<any>;
   }
 
   async ngOnInit(): Promise<void> {
+    this.searchSubject
+    .pipe(debounceTime(400)) // 500ms debounce time
+    .subscribe(filters => {
+      this.filters = filters;
+      this.page1 = 0;
+      this.getMyReporteesTimesheetRequests();
+    });
     const now = new Date();
     this.today = now.toISOString().split('T')[0];
     // Dynamic Subfeature Flags
@@ -283,27 +292,22 @@ alertModal: TemplateRef<any>;
     }
   }
 
-  // getTotalDocCount(projectId: number): number {
-  //   return this.documentData?.filter(d => d.projectId === projectId).length || 0;
-  // }
 
-  getTotalDocCount(projectId: number): number {
-  if (!this.selectedTimesheet?.documentData || !this.selectedTimesheet.documentData.length) {
+getTotalDocCount(projectId: number): number {
+  if (!this.selectedTimesheet?.documentData?.length) {
     return 0;
   }
 
-  // Count documents for this project
-  let count = 0;
-
-  this.selectedTimesheet.documentData.forEach(doc => {
-    // Increment for docId
-    if (doc.docId) count += 1;
-    // Increment for bulkApprovedDocId if it exists
-    if (doc.bulkApprovedDocId) count += 1;
-  });
-
-  return count;
+  return this.selectedTimesheet.documentData
+    .filter(d => d.docsProjectId === projectId)
+    .reduce((count, d) => {
+      let c = 0;
+      if (d.docId != null) c++;               // pending
+      if (d.bulkApprovedDocId != null) c++;   // approved
+      return count + c;
+    }, 0);
 }
+
 
 
   disableMannualDateInput() {
@@ -949,10 +953,14 @@ sortData(sort: Sort) {
     this.filters1 = searchData;
     console.log("Updated Filter : ", this.filters);
   }
+  // onSearch(searchData: any) {
+  //   this.filters = searchData;
+  //   this.page1 = 0;
+  //   this.getMyReporteesTimesheetRequests();
+  // }
+
   onSearch(searchData: any) {
-    this.filters = searchData;   // 🔥 column wise values
-    this.page1 = 0;
-    this.getMyReporteesTimesheetRequests();
+    this.searchSubject.next(searchData);
   }
 
   getRejectionReason() {
@@ -2133,38 +2141,47 @@ openDocumentPopup(
   toggleMode: boolean = false,
   project?: any
 ): void {
-
   this.selectedTimesheet = timesheet;
   this.isToggleMode = toggleMode;
-  this.activeDocProject = project;
 
-  // ✅ ONLY set doc type for NON toggle mode
-  if (!toggleMode) {
-    this.activeDocType = docType;
+
+  if (project) {
+
+    this.activeDocProject = project;
   } else {
-    this.activeDocType = 'Pending'; // default when View All
+    // Otherwise, pick first project that has a document
+    const firstDoc = timesheet.documentData?.[0];
+    if (firstDoc) {
+      this.activeDocProject = this.getProjectById(firstDoc.docsProjectId, timesheet);
+    } else {
+      this.activeDocProject = undefined;
+    }
   }
 
-  // ✅ OPEN DIFFERENT MODALS
+  this.activeDocType = toggleMode ? 'Pending' : docType;
+
+ 
   if (toggleMode) {
-
-
     this.modalRef = this.modalService.open(
       this.documentViewerModal,
       { modalDialogClass: 'modal-xl', backdrop: 'static' }
     );
-
     this.loadActiveDocument();
-
   } else {
-
     this.modalRef = this.modalService.open(
       this.documentViewerModalToggle,
       { modalDialogClass: 'modal-xl', backdrop: 'static' }
     );
-
     this.getDocument(this.activeDocType);
   }
+}
+
+getProjectById(projectId: number, timesheet: any) {
+  for (const loc of timesheet.locationSessions || []) {
+    const proj = loc.projects?.find(p => p.projectId === projectId);
+    if (proj) return proj;
+  }
+  return undefined;
 }
 
 
@@ -2240,6 +2257,21 @@ hasApprovedDoc(projectId: number): boolean {
 }
 
 
+getPendingCount(projectId: number): number {
+  // Count number of pending docs for this project
+  return this.selectedTimesheet?.documentData?.filter(
+    d => d.docsProjectId === projectId && d.docId != null
+  ).length || 0;
+}
+
+getApprovedCount(projectId: number): number {
+  // Count number of approved docs for this project
+  return this.selectedTimesheet?.documentData?.filter(
+    d => d.docsProjectId === projectId && d.bulkApprovedDocId != null
+  ).length || 0;
+}
+
+
   getFilledStatus(projectId: number): string {
 
   const docs = this.selectedTimesheet?.documentData || [];
@@ -2301,60 +2333,97 @@ hasApprovedDoc(projectId: number): boolean {
 // }
 
 
+// getDocument(type: 'Pending' | 'Approved'): void {
+
+//   const doc = this.selectedTimesheet?.documentData[0];
+
+
+//   if (!doc?.docId) {
+//     this.activePreviewFile = null;
+//     this.safePdfUrl = null;
+//     return;
+//   }
+
+
+//   let docType: boolean = doc.finalFlag;
+
+
+//   let docIdToSend: number = doc.docId;
+
+//   if (type === 'Approved' && doc.bulkApprovedDocId) {
+//     docIdToSend = doc.bulkApprovedDocId;
+//   }
+
+
+//   if (type === 'Pending') {
+//     console.log("Pending DocId:", doc.docId);
+//   } else {
+//     docType = true;
+//     console.log("Approved bulkApprovedDocId:", doc.bulkApprovedDocId);
+//   }
+
+
+//   this.timesheetNewService
+//     .getDocumentById(docIdToSend, docType)
+//     .subscribe({
+//       next: (blob: Blob) => {
+
+//         const fileURL = URL.createObjectURL(blob);
+
+//         this.safePdfUrl =
+//           this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
+
+//       },
+//       error: err => {
+//         console.error("Document fetch failed", err);
+//         this.activePreviewFile = null;
+//       }
+//     });
+// }
+
+
+
+
 getDocument(type: 'Pending' | 'Approved'): void {
-
-  const doc = this.selectedTimesheet?.documentData[0];
-
-
-  if (!doc?.docId) {
-    this.activePreviewFile = null;
+  if (!this.selectedTimesheet || !this.activeDocProject) {
     this.safePdfUrl = null;
     return;
   }
 
+  const doc = this.selectedTimesheet.documentData?.find(d => d.docsProjectId === this.activeDocProject.projectId);
 
-  let docType: boolean = doc.finalFlag;
-
-
-  let docIdToSend: number = doc.docId;
-
-  if (type === 'Approved' && doc.bulkApprovedDocId) {
-    docIdToSend = doc.bulkApprovedDocId;
+  if (!doc) {
+    console.log(`No document found for project ${this.activeDocProject.projectId}`);
+    this.safePdfUrl = null;
+    return;
   }
 
+  const docIdToSend = type === 'Approved' ? doc.bulkApprovedDocId : doc.docId;
 
-  if (type === 'Pending') {
-    console.log("Pending DocId:", doc.docId);
-  } else {
-    docType = true;
-    console.log("Approved bulkApprovedDocId:", doc.bulkApprovedDocId);
+  if (!docIdToSend) {
+    console.log(`No ${type} document available for project ${this.activeDocProject.projectId}`);
+    this.safePdfUrl = null;
+    return;
   }
 
-
-  this.timesheetNewService
-    .getDocumentById(docIdToSend, docType)
+  // Fetch document from backend
+  this.timesheetNewService.getDocumentById(docIdToSend, type === 'Approved')
     .subscribe({
       next: (blob: Blob) => {
-
         const fileURL = URL.createObjectURL(blob);
-
-        this.safePdfUrl =
-          this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
-
+        this.safePdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
       },
       error: err => {
         console.error("Document fetch failed", err);
-        this.activePreviewFile = null;
+        this.safePdfUrl = null;
       }
     });
 }
 
-
-
-
   //  Navigation CARDS
 
    selectedStatus: number = 1;
+   private searchSubject = new Subject<any>();
    onStatusChange(status: number) {
     this.selectedStatus = status;
     this.page1 = 0; // pagination reset
