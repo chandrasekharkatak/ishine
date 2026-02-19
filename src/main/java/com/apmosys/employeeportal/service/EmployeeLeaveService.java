@@ -1167,8 +1167,8 @@ public class EmployeeLeaveService {
 
                 // create timesheets for days that are not holidays (and not half-day edges)
                 if (elapsedDays == 0) {
-                    boolean isHalfDay = Objects.equals(leaveDTO.getFromDateDayType(), 0.5)
-                            || Objects.equals(leaveDTO.getToDateDayType(), 0.5);
+                    boolean isHalfDay = Objects.equals(leaveDTO.getFromDateDayType(), 0.5f)
+                            || Objects.equals(leaveDTO.getToDateDayType(), 0.5f);
 
                     if (!isHalfDay) {
                         LocalDateTime startOfDay = fromDate.atStartOfDay();

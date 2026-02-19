@@ -3472,6 +3472,8 @@ public class TeamsService {
 					obj.setPrevExp(dto.getPreviousExperience());
 					obj.setCurrentExp(dto.getCurrentExperience());
 					obj.setTotalExp(dto.getTotalExperience());
+					obj.setTotalExp(dto.getTotalExperience());
+					obj.setEmploymentStatus(dto.getEmploymentStatus());
 				}
 
 				obj.setOtherActiveProjects(empIdAndOtherProjectIdsMap.getOrDefault(dto.getEmpId(), List.of()));
@@ -3537,6 +3539,7 @@ public class TeamsService {
 				dto.setBillableType(TypeConversionUtil.getSafeString(obj[6]));
 				dto.setJobRole(TypeConversionUtil.getSafeString(obj[7]));
 				dto.setDeptName(TypeConversionUtil.getSafeString(obj[8]));
+				dto.setEmploymentStatus(TypeConversionUtil.getSafeString(obj[9]));
 				empIdInfoMap.put(empId, dto);
 			}
 		}
@@ -4160,6 +4163,7 @@ public class TeamsService {
 					obj.setPrevExp(dto.getPreviousExperience());
 					obj.setCurrentExp(dto.getCurrentExperience());
 					obj.setTotalExp(dto.getTotalExperience());
+					obj.setEmploymentStatus(dto.getEmploymentStatus());
 				}
 
 				obj.setOtherActiveProjects(empIdAndOtherProjectIdsMap.getOrDefault(dto.getEmpId(), List.of()));
@@ -4451,7 +4455,7 @@ public class TeamsService {
 		ServiceResponse response = new ServiceResponse();
 		Long currentUserEmpId = dto.getUpdatedBy();
 
-		List<RmgTeamMemberDto> teamMemberDtoList = dto.getRmgTeamMemberList();
+		List<RmgTeamMemberDto> teamMemberDtoList = new ArrayList<>(dto.getRmgTeamMemberList());
 		List<EmployeeTeamMap> existingMappedMember = employeeTeamMapRepository.findByTeamId(team.getTeamId());
 		List<Long> newEmpIds = new ArrayList<>();
 
@@ -5545,10 +5549,47 @@ public class TeamsService {
 				return response;
 			}
 
-			// write a query that returns the timesheet filled count project wise from the
-			// start date till current date & empId
-			// timesheetsRepository.findByEmpIdAndDate(rmgTeamMemberDto.getEmpId(),
-			// rmgTeamMemberDto.getStartDate());
+			List<Object[]> objectArr = timesheetsRepository.findByEmpIdAndDate(rmgTeamMemberDto.getEmpId(),
+					rmgTeamMemberDto.getStartDate());
+
+			StringBuilder sb = new StringBuilder();
+			LocalDate newStartDate = rmgTeamMemberDto.getStartDate().toLocalDate();
+//			LocalDate oldStartDate = rmgTeamMemberDto.getDbStartDate().toLocalDate();
+
+			if (objectArr != null && !objectArr.isEmpty()) {
+
+				for (Object[] obj : objectArr) {
+					// Integer projectId = TypeConversionUtil.safeParseInt(obj[0]);
+					String projectName = TypeConversionUtil.getSafeString(obj[1]);
+					String dateStr = TypeConversionUtil.getSafeString(obj[2]);
+					LocalDate oldStartDate = obj[3] != null 
+							? LocalDate.parse(TypeConversionUtil.getSafeString(obj[3])) : null;
+					Integer timesheetCount = TypeConversionUtil.safeParseInt(obj[4]);
+
+					if (dateStr == null || timesheetCount == null || timesheetCount == 0 || oldStartDate == null) {
+						continue;
+					}
+
+					LocalDate projectStartDate = LocalDate.parse(dateStr);
+					// boolean isSameProject = projectId.equals(rmgTeamMemberDto.getProjectId());
+					// boolean isOtherProject = !isSameProject;
+
+					// if (newStartDate.isAfter(projectStartDate) && isSameProject) {
+					// sb.append(String.format("Total timesheets submitted for this project ('%s')
+					// till date is %d that needs to be rejected for User to Fill Timesheet for
+					// Other Project.", projectName, timesheetCount)).append("\n");
+					// }
+
+					if (newStartDate.isAfter(projectStartDate) || newStartDate.isBefore(oldStartDate)) {
+						sb.append(String.format("Total timesheets submitted for project '%s' is %d.", projectName,
+								timesheetCount)).append("\n");
+					}
+				}
+				sb.append("The existing timesheet entries of the users needs to be rejected.").append("\n");
+				response.setServiceResponse(sb);
+			} else {
+				response.setServiceResponse("No timesheet records found.");
+			}
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {

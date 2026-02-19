@@ -29,4 +29,5 @@ export class RmgResourceRequirement {
 
     isupdate: boolean = false;
     updatedBy: any;
+    isExpired: boolean = false;
 }

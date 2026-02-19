@@ -4214,8 +4214,9 @@ display: inline-block;
 
 .employee-search-label {
     font-size: 12px;
-    margin-bottom: 4px;
+    margin-bottom: -4px;
     font-weight: 500;
+    margin-top: 8px;
 }
 
 .employee-search-input {
@@ -4270,5 +4271,9 @@ display: inline-block;
     color: white;
 }
 
-
-
+.employee-summary-btn {
+  font-size: 12px;
+  padding: 6px 16px;
+  height: 30px;
+  white-space: nowrap;
+}

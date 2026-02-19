@@ -219,11 +219,14 @@ import { TimesheetFormComponent } from './user-timesheet/my-timesheet/timesheet-
 import { InfoTooltipComponent } from './helpers/shared/info-tooltip/info-tooltip.component';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatTabsModule } from '@angular/material/tabs';
-import { RmgProjectComponent } from './user-team/resource-management/rmg-edit-project/rmg-project/rmg-project.component';
+import { RmgProjectComponent } from './user-team/resource-management/rmg-project-config/rmg-project-config.component';
 import { NgbPopoverModule } from '@ng-bootstrap/ng-bootstrap';
 import {MatSlideToggleModule} from '@angular/material/slide-toggle';
 import {MatRadioModule} from '@angular/material/radio';
 import { ToastrModule } from 'ngx-toastr';
+import { MyTableComponent } from './helpers/my-table/my-table.component';
+import { RmgStatusCardsComponent } from './user-team/resource-management/rmg-status-cards/rmg-status-cards/rmg-status-cards.component';
+// import { MatMomentDateModule } from '@angular/material-moment-adapter';
 
 registerLocaleData(localeGb);
 
@@ -409,7 +412,9 @@ registerLocaleData(localeGb);
     TeamAllTimesheetsTableComponent,
     TimesheetFormComponent,
     InfoTooltipComponent,
-    RmgProjectComponent
+    RmgProjectComponent,
+    MyTableComponent,
+    RmgStatusCardsComponent
  
   ],
   imports: [
@@ -461,7 +466,8 @@ registerLocaleData(localeGb);
       closeButton: true,
       preventDuplicates: true,
       newestOnTop: true
-    })
+    }),
+    // MatMomentDateModule
   ],
   providers: [
     DatePipe,
