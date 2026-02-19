@@ -20,5 +20,6 @@ public class EmployeeInformationDTO {
 	private String deptName;
 	private String startDate;
 	private Long deptId;
+	private String employmentStatus;
 
 }

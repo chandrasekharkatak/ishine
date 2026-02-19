@@ -27,7 +27,7 @@ public interface PoRequirementMappingRepository extends JpaRepository<PoRequirem
 			+ "LEFT JOIN EmpPrimaryProjectMapping eppm ON eppm.empId = e.empId \n"
 			+ "INNER JOIN Team t ON t.teamId = etm.teamId \n"
 			+ "LEFT JOIN Employee es ON es.empId = t.spocId \n"
-			+ "WHERE prm.poId =:poId  \n")
+			+ "WHERE prm.poId =:poId and prm.active = true  \n")
 	List<PoTeamAndMemberDetailsDto> getAllTeamAndMemberDetailsDtoByPoId(Long poId);
 
 	PoRequirementMapping findByPoIdAndDepartment(Long poId, String department);
@@ -68,8 +68,8 @@ public interface PoRequirementMappingRepository extends JpaRepository<PoRequirem
 			+ ", rd.roleId, rd.role, rd.experience, rd.department "
 			+ ", prm.count, prm.lineItemStartDate, prm.lineItemEndDate) "
 			+ "FROM RoleDetails rd \n"
-			+ "LEFT JOIN PoRequirementMapping prm ON prm.roleId = rd.roleId and prm.poId =:poId \n"
-			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId AND DATE(ppd.poEndDate) >= CURRENT_DATE "
+			+ "LEFT JOIN PoRequirementMapping prm ON prm.roleId = rd.roleId and prm.poId =:poId and prm.active = true  \n"
+			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) "
 			+ "WHERE prm.active = true and prm.poId =:poId")
 	List<RmgResourceRequirementDto> getPoRequirementDataByPoId(@Param("poId") Long poId);
 	
@@ -79,13 +79,13 @@ public interface PoRequirementMappingRepository extends JpaRepository<PoRequirem
 			+ "FROM Team t \n"
 			+ "LEFT JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId \n"
 			+ "LEFT JOIN RoleDetails rd ON etm.roleId = rd.roleId \n"
-			+ "LEFT JOIN PoRequirementMapping prm ON prm.roleId = rd.roleId and prm.poId = etm.poId \n"
-			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId AND DATE(ppd.poEndDate) >= CURRENT_DATE \n"
+			+ "LEFT JOIN PoRequirementMapping prm ON prm.roleId = rd.roleId and prm.poId = etm.poId and prm.active = true  \n"
+			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) \n"
 			+ "WHERE prm.active = true AND t.teamId = :teamId ")
 	List<RmgResourceRequirementDto> getPoRequirementDataByTeamId(@Param("teamId") Long teamId);
 
 	@Query(value = "Select sum(prm.count) from PoRequirementMapping prm \n"
-			+ "INNER JOIN ProjectPoDetails ppd on ppd.poId = prm.poId  where prm.poId=:poId and prm.active = true and ppd.projectId=:projectId")
+			+ "INNER JOIN ProjectPoDetails ppd on ppd.poId = prm.poId where prm.poId=:poId and prm.active = true and ppd.projectId=:projectId")
 	public Long getTotalActiveRequiredCountByPoIdAndProjectId(Long poId, Integer projectId);
 
 	@Query(value = "Select prm.poId,sum(prm.count) from PoRequirementMapping prm \n"
@@ -104,14 +104,14 @@ public interface PoRequirementMappingRepository extends JpaRepository<PoRequirem
 			+ "INNER JOIN ProjectPoDetails ppd on ppd.poId = prm.poId \n"
 			+ "LEFT JOIN Team t ON t.poId = prm.poId AND t.isActive = 'Y'  \n"
 			+ "LEFT JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId AND etm.active IN (1, 2)\n"
-			+ "where prm.poId IN :poIds and ppd.projectId=:projectId \n"
+			+ "where prm.poId IN :poIds and ppd.projectId=:projectId and prm.active = true  \n"
 			+ "GROUP BY prm.poId ")
 	public List<RmgResourceRequirementDto> getPoIdAndRequiredCountByPoIdInAndProjectId(List<Long> poIds, Integer projectId);
 
 	List<PoRequirementMapping> findByPoIdAndActiveTrue(Long poId);
 
 	@Query(value = "Select sum(prm.count) from PoRequirementMapping prm \n"
-			+ "INNER JOIN ProjectPoDetails ppd on ppd.poId = prm.poId where DATE(ppd.poStartDate) <= CURRENT_DATE AND DATE(ppd.poEndDate) >= CURRENT_DATE AND ppd.projectId=:projectId")
+			+ "INNER JOIN ProjectPoDetails ppd on ppd.poId = prm.poId where DATE(ppd.poStartDate) <= CURRENT_DATE AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) AND ppd.projectId=:projectId and prm.active = true ")
 	public Long getTotalActiveRequiredCountByProjectId(Integer projectId);
 
 	

@@ -56,6 +56,9 @@ public class GetReporteesTimesheetReqFlatDTO {
     private Long bulkApprovedDocId;
     private String mimeType;
     private Integer docsProjectId;
+    private String rejectionReason;
+    private String remarks;
+    private LocalDateTime rejectedOn;
 
 
 	public GetReporteesTimesheetReqFlatDTO(Long timesheetId, Long empId, String employmentId, String employeeName,
@@ -65,7 +68,7 @@ public class GetReporteesTimesheetReqFlatDTO {
 			String projectName, String clientName, String clientLocation, String poNo, String shadowEmp, Integer status,
 			Integer totalClientWorkingMinutes, String description, String activity, String activityDescription,
 			Short durationMinutes, String teamName, Long docId, String docName, Boolean finalFlag,
-			Long bulkApprovedDocId, String mimeType, Integer docsProjectId) {
+			Long bulkApprovedDocId, String mimeType, Integer docsProjectId, String rejectionReason, String remarks, LocalDateTime rejectedOn) {
 		super();
 		this.timesheetId = timesheetId;
 		this.empId = empId;
@@ -103,6 +106,9 @@ public class GetReporteesTimesheetReqFlatDTO {
 		this.bulkApprovedDocId = bulkApprovedDocId;
 		this.mimeType = mimeType;
 		this.docsProjectId = docsProjectId;
+		this.rejectionReason = rejectionReason;
+		this.remarks = remarks;
+		this.rejectedOn = rejectedOn;
 	}
 	
 

@@ -1953,7 +1953,7 @@ public class TimesheetServiceNew {
 	}
 
 
-
+	
 	public ServiceResponse getEmployeeViewForClientAttendanceStatus(GetEmployeeSummaryOnExportDTO object) {
 
 	    ServiceResponse response = new ServiceResponse();
@@ -2400,5 +2400,9 @@ public class TimesheetServiceNew {
 	 {
 		 return timesheetDashboardService.getProjectViewForClientAttendanceStatus(timesheetDTO);
 	 }
+	 public ServiceResponse getEmployeeSummaryOnExportAccordingToStatus(GetEmployeeSummaryOnExportDTO object) {
+		 return timesheetDashboardService.getEmployeeSummaryOnExportAccordingToStatus(object);
+	 }
+
 
 }

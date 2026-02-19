@@ -13,8 +13,9 @@ import { FilterStateService } from 'src/app/services/filter-state.service';
 export class ColumnFilterBarComponent implements OnInit {
 
 
-  @Input()
-  columnList:any[];
+  @Input() columnList:any[];
+  @Input() searchOnEnter:boolean = false;
+
   displayColumns:any[] = [];
   currentBreadcrumbList: any[] = [];
   projectManagement: any;

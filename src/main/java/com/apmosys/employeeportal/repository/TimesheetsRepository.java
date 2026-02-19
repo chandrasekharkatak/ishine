@@ -11438,6 +11438,19 @@ List<Object[]> getLastFilledTimesheetByEmp(@Param("empId") Long empId);
 								"AND (etm.end_date IS NULL OR DATE(etm.end_date) >= :fromDate)"
 				, nativeQuery = true)
 	        List<Object[]> getMyReporteesAndClientSideProjectsInMonthYearNew(@Param("year") Integer year,@Param("month") Integer month,@Param("empId") Long emp_id, @Param("toDate") LocalDate toDate, @Param("fromDate") LocalDate fromDate);
-	        
+          
+			@Query(value = "select p.project_id, p.project_name, p.start_date project_start_date, date(etm.start_date) etm_start_date, count(distinct et.timesheet_id) \n"
+					+ "from employee e  \n"
+					+ "inner join employee_team_mapping etm on e.emp_id = etm.emp_id \n"
+					+ "inner join teams t on etm.team_id = t.team_id \n"
+					+ "inner join projects p on t.project_id = p.project_id \n"
+					+ "inner join employee_timesheets_new et on et.emp_id = e.emp_id \n"
+					+ "left join day_type_master_new dt on et.day_type_id = dt.day_type_id \n"
+					+ "inner join employee_timesheet_activities_mapping_new etam on et.timesheet_id = etam.timesheet_id \n"
+					+ "inner join activities a on etam.activity_id = a.activity_id and a.team_id = t.team_id \n"
+					+ "where e.emp_id = :empId and et.date between DATE(:startDate) and CURDATE() \n"
+					+ "and lower(dt.day_type) like '%working%' \n"
+					+ "group by p.project_id, p.project_name, p.start_date, etm.start_date \n",nativeQuery = true)
+			public List<Object[]> findByEmpIdAndDate(Long empId, LocalDateTime startDate);
 
 }						  
