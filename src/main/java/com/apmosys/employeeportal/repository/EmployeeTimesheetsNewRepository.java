@@ -255,6 +255,61 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			 "WHERE date >= :start and date <= :end and e.employmentstatus != 'InActive' "+
 			 " group by e.emp_id")
 	 public List<Object[]> getFilledTimesheetPerEmployeeCount(LocalDate start,LocalDate end);
+	 
+	 @Query(
+			    nativeQuery = true,
+			    value = "SELECT COUNT(*) " +
+			            "FROM employee_timesheets_new et " +
+			            "INNER JOIN employee e ON e.emp_id = et.emp_id " +
+			            "WHERE et.date >= :start " +
+			            "AND et.date <= :end " +
+			            "AND e.employmentstatus != 'InActive' " +
+			            "AND e.emp_id = :empId"
+			)
+			Long getFilledTimesheetCountForEmployee(
+			        @Param("empId") Long empId,
+			        @Param("start") LocalDate start,
+			        @Param("end") LocalDate end
+			);
+	 @Query(
+			    value =
+			        "SELECT EXISTS ( " +
+			        "   SELECT 1 " +
+			        "   FROM ( " +
+			        "       SELECT DATE_ADD(:start, INTERVAL seq DAY) AS dt " +
+			        "       FROM ( " +
+			        "           SELECT 0 seq UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 " +
+			        "           UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 " +
+			        "           UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12 UNION ALL SELECT 13 UNION ALL SELECT 14 " +
+			        "           UNION ALL SELECT 15 UNION ALL SELECT 16 UNION ALL SELECT 17 UNION ALL SELECT 18 UNION ALL SELECT 19 " +
+			        "           UNION ALL SELECT 20 UNION ALL SELECT 21 UNION ALL SELECT 22 UNION ALL SELECT 23 UNION ALL SELECT 24 " +
+			        "           UNION ALL SELECT 25 UNION ALL SELECT 26 UNION ALL SELECT 27 UNION ALL SELECT 28 UNION ALL SELECT 29 " +
+			        "           UNION ALL SELECT 30 " +
+			        "       ) seqs " +
+			        "       WHERE DATE_ADD(:start, INTERVAL seq DAY) <= :end " +
+			        "   ) d " +
+			        "   WHERE NOT EXISTS ( " +
+			        "       SELECT 1 FROM employee_timesheets_new et " +
+			        "       WHERE et.emp_id = :empId " +
+			        "       AND DATE(et.date) = d.dt " +
+			        "   ) " +
+			        "   AND NOT EXISTS ( " +
+			        "       SELECT 1 FROM holiday h " +
+			        "       WHERE h.date_of_holiday = d.dt " +
+			        "       AND h.optional_holiday = 'false' " +
+			        "   ) " +
+			        ")",
+			    nativeQuery = true
+			)
+			Integer hasRealPendingTimesheet(
+			        @Param("empId") Long empId,
+			        @Param("start") LocalDate start,
+			        @Param("end") LocalDate end
+			);
+
+
+
+
 	//
 	// @Query(nativeQuery = true)
 	// public List<Object[]> getLast9DaysFilledTimesheetReportOLD(LocalDate start,

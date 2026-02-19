@@ -168,6 +168,7 @@ import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeSkillProficiencyMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeSpecializationMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.FieldAlterationRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
@@ -221,6 +222,9 @@ public class EmployeeService {
 
 	@Autowired
 	EmployeeRepository employeeRepository;
+	
+	@Autowired
+	EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
 	
 	@Autowired
 	ProjectManagerMappingRepository projectManagerMappingRepository;
@@ -12129,6 +12133,55 @@ private ServiceResponse buildFailureResponse(ServiceResponse response,
     apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
     return response;
 }
+public ServiceResponse getInActiveableOrNot(Long empId) {
+
+    ServiceResponse response = new ServiceResponse();
+    LogDTO apiLogInfo = new LogDTO();
+    apiLogInfo.setSubFeatureName("getInActiveableOrNot");
+    apiLogInfo.setApiUrl("/api/getInActiveableOrNot/{empId}");
+    apiLogInfo.setLogLevel("INFO");
+
+    try {
+    	 boolean isInactiveAllowed = false;
+
+         int currentYear = LocalDate.now().getYear();
+         int currentMonth = LocalDate.now().getMonthValue();
+
+         LocalDate firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
+         LocalDate end = LocalDate.now().minusDays(1);
+
+         long totalDaysTillYesterday =
+                 ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
+
+         Integer pendingFlag =
+        	        employeeTimesheetsNewRepository
+        	                .hasRealPendingTimesheet(empId, firstOfMonth, end);
+
+        	boolean hasPendingTimesheets =
+        	        pendingFlag != null && pendingFlag == 1;
+
+
+         
+
+        Integer TNMStatus = employeeRepository.checkActiveTNMProject(empId);
+        boolean isUnderTNMProject = TNMStatus != null && TNMStatus == 1;
+
+        if (hasPendingTimesheets || isUnderTNMProject) {
+            isInactiveAllowed = true; 
+        }
+
+        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        response.setServiceResponse(isInactiveAllowed);
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        response.setServiceResponse("Error : " + e.getMessage());
+    }
+
+    return response;
+}
+
 
 }
 	
