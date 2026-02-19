@@ -22,5 +22,6 @@ public class GetReporteesTimesheetDocsDTO {
     private Boolean finalFlag;
     private Long bulkApprovedDocId;
     private String mimeType;
+    private Integer docsProjectId;
     
 }
