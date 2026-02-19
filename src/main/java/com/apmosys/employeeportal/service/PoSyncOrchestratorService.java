@@ -163,13 +163,13 @@ public class PoSyncOrchestratorService {
 					finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
 					ExceptionLogContext.add(
 							"Project does not exist in ishine while update po for poProjectId = " + dto.getProjectId());
-					throw new RuntimeException("Project does not exist for poProjectId=" + dto.getProjectId());
+					throw new RuntimeException("Project does not exist");
 				}
 				ProjectPoDetails po = projectPoDetailsRepository
-						.findByPoIdAndProjectId(poDto.getPoId(), project.getProjectId()).orElseThrow(() -> {
+						.findByPoIdAndProjectIdAndActiveTrue(poDto.getPoId(), project.getProjectId()).orElseThrow(() -> {
 							ExceptionLogContext.add("PO does not exist in iShine while update" + " | poId="
 									+ poDto.getPoId() + " | poProjectId=" + dto.getProjectId());
-							return new RuntimeException("PO does not exist for poId=" + poDto.getPoId());
+							return new RuntimeException("PO not found in Ishine");
 						});
 
 				boolean projectChanged = projectService.updateProjectIfChanged(project, dto, client);
@@ -192,6 +192,8 @@ public class PoSyncOrchestratorService {
 						requirementService.sendRequirementChangeMail(po.getPoId(), changes);
 				    }
 				}
+				
+				
 				
 				projectService.recalculateProjectDates(project.getProjectId(),false);
 			} else {

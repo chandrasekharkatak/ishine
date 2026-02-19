@@ -481,7 +481,7 @@ public class ResourceManagementController {
 	 
 	 @PostMapping("/poCrudOperationsInIshineNew")
 	 public ServiceResponse poCrudOperationsInIshineNew(HttpServletRequest httpRequest,@RequestBody ProjectPoMappingWithResourceDTO poPortalProjects) {
-		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+//		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		 return poSyncOrchestratorService.poCrudOperationsInIshineNew(poPortalProjects);
 	 }
 	 

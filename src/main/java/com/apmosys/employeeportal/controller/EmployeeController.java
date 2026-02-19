@@ -922,5 +922,14 @@ public class EmployeeController {
 	public ServiceResponse getAllActiveEmployeeInformation() {
 		return employeeService.getAllActiveEmployeeInformation();
 	}
+	
+	@GetMapping("/getInActiveableOrNot/{empId}")
+	public ServiceResponse getInActiveableOrNot(@PathVariable Long empId) {
+	    return employeeService.getInActiveableOrNot(empId);
+	}
+	
+	
+	
+	
 
 }
