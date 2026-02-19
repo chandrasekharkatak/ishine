@@ -35,6 +35,9 @@ public class EmployeeQuizResponseStatusMapping {
     @Column(name= "pass_status")
     private String passStatus;
 
+    @Column(name = "marks_obtained")
+    private Integer marksObtained;
+
     @Column(name = "created_by")
     private Long createdBy;
     

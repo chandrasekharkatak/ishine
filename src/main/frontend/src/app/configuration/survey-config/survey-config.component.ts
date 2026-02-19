@@ -341,6 +341,7 @@ export class SurveyConfigComponent implements OnInit {
     surveyObj.surveyTemplate = surveyTemplate;
     surveyObj.createdBy = this.currentUser.empId;
     surveyObj.isActive = false;
+    surveyObj.cutOffQuestions = this.surveyObj.cutOffQuestions;
     
     // If creating quiz from training context, set type and training mapping fields
     if (this.isFromTraining && this.trainingId) {
@@ -436,7 +437,7 @@ export class SurveyConfigComponent implements OnInit {
 
   async getAllSurveyResponsesBySurveyId(surveyObj:Survey){
     this.allSurveyResponseList = []
-    this.responseListTableHeaders = ["Employee ID", "Employee Name"];
+    this.responseListTableHeaders = ["Employee ID", "Employee Name", "Marks Obtained", "Pass Status"];
     this.surveyObj = surveyObj;
 
     let questionsList:any[] = [];
@@ -464,7 +465,13 @@ export class SurveyConfigComponent implements OnInit {
       const key = "employeementId"
       let employees = [...new Map(responseList.map((response:SurveyQuestion) => [response[key], response])).values()].map((response:SurveyQuestion) => {
         // return ["A-" + response.employeementId, response.name]
-         return [ response.employmentIdAccToET, response.name]
+        console.log("response : ", response);
+        
+         if(this.isFromTraining){
+            return [ response.employmentIdAccToET, response.name,response.marksObtained, response.passStatus]
+          } else {
+            return [ response.employmentIdAccToET, response.name]
+          }
         // return {
         //   name: response.name,
         //   employeementId : response.employeementId
@@ -483,7 +490,7 @@ export class SurveyConfigComponent implements OnInit {
         });
       });
 
-      //console.log("employees with responses : ", employees);
+      console.log("employees with responses : ", employees);
       this.allSurveyResponseList = employees;
     } else {
       console.error(response.serviceResponse);
@@ -500,6 +507,7 @@ export class SurveyConfigComponent implements OnInit {
     surveyObj = this.surveyObj;
     surveyObj.surveyQuestionList = this.allSurveyQuestionList;
     surveyObj.updatedBy = this.currentUser.empId;
+    surveyObj.cutOffQuestions = this.surveyObj.cutOffQuestions;
 
     surveyObj.surveyQuestionList.forEach((survey:SurveyQuestion) => {
       survey.options = JSON.stringify(survey.optionsList);
@@ -520,14 +528,36 @@ export class SurveyConfigComponent implements OnInit {
     this.cancelRequest();
 
     //console.log("Delete Survey : ", this.surveyObj);
-    this.surveyService.deleteSurvey(this.surveyObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
-        this.showSurveys();
-      }else{
-        this.openAlertMod(template, response.serviceResponse);
+    if(this.isSurveyForm){
+      this.surveyService.deleteSurvey(this.surveyObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.openAlertMod(template, response.serviceResponse);
+          this.showSurveys();
+        }else{
+          this.openAlertMod(template, response.serviceResponse);
+        }
+      });
+    } else {
+      this.cancelRequest();
+
+      let surveyObj = new Survey();
+      surveyObj.surveyId = this.surveyObj.surveyId;
+      surveyObj.updatedBy = this.currentUser.empId;
+      surveyObj.isActive = false;
+
+      if(this.isFromTraining){
+        surveyObj.type = "quiz";
+        surveyObj.trainingId = this.trainingId;
       }
-    });
+      this.surveyService.changeSurveyStatus(surveyObj).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.openAlertMod(template, response.serviceResponse);
+          this.showSurveys();
+        }else{
+          this.openAlertMod(template, response.serviceResponse);
+        }
+      });
+    }
   }
 
   onActivate(template: TemplateRef<any>){

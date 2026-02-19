@@ -40,6 +40,7 @@ export class QuizSubmit implements OnInit {
   alertMessage: string = '';
 
   allSurveyQuestionList: SurveyQuestion[] = [new SurveyQuestion()];
+  correctAnswers: {question:string; answer:string}[];
 
   @Output() quizSubmitted = new EventEmitter<boolean>();
 
@@ -220,7 +221,6 @@ export class QuizSubmit implements OnInit {
     if (!inputValidated) return;
     this.surveyService.setSurveyResponseByEmpId(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
         this.quizSubmitted.emit(true);
       } else {
         this.openAlertMod(template, response.serviceResponse);

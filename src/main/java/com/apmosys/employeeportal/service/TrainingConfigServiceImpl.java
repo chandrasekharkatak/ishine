@@ -1074,7 +1074,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 			// Get current active content for this training
 			Optional<TrainingContent> activeContentOpt = trainingContentRepository
-					.findCurrentActiveContent(trainingId, List.of("filled", "pass", "fail"), PageRequest.of(0, 1)).stream().findFirst();
+					.findCurrentActiveContent(trainingId, PageRequest.of(0, 1)).stream().findFirst();
 			if (activeContentOpt.isEmpty()) {
 				// No active content means no one can complete, so all are pending
 				Long totalAssigned = employeeRepository.getTotalEmployeeCount();

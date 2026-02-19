@@ -110,6 +110,7 @@ public class SurveyServiceImpl implements SurveyService {
 			newSurvey.setSurveyName(surveyDTO.getSurveyName());
 			newSurvey.setDescription(surveyDTO.getDescription());
 			newSurvey.setIsActive(surveyDTO.getIsActive());
+			newSurvey.setCutOffQuestions(surveyDTO.getCutOffQuestions());
 			
 			// Set type to "quiz" if created from training context
 			if (surveyDTO.getTrainingId() != null) {
@@ -150,6 +151,7 @@ public class SurveyServiceImpl implements SurveyService {
 					newSurveyQuestion.setOptions(question.getOptions());
 					newSurveyQuestion.setRequired(question.getRequired());
 					newSurveyQuestion.setDescription(question.getDescription());
+					newSurveyQuestion.setCorrectAnswer(question.getCorrectAnswer());
 
 					list.add(newSurveyQuestion);
 				});
@@ -392,6 +394,19 @@ public class SurveyServiceImpl implements SurveyService {
 				return response;
 			}
 
+			Optional<Survey> currSurvey = surveyRepository.findById(surveyDTO.getSurveyId());
+
+			if(currSurvey.isEmpty()){
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Survey does not exists.");
+				apiLogInfo.setApiResponse("Survey does not Exists.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+				return response;
+			}
+
+			Survey survey = currSurvey.get();
+
 			List<SurveyEmployeeResponse> dtoList = new ArrayList<SurveyEmployeeResponse>();
 
 			surveyDTO.getSurveyQuestionList().forEach((question) -> {
@@ -418,16 +433,38 @@ public class SurveyServiceImpl implements SurveyService {
 			List<SurveyEmployeeResponse> responseList = surveyEmployeeResponseRepository.saveAll(dtoList);
 
 			if(surveyDTO.getType().equalsIgnoreCase("quiz")){
+
+				List<SurveyQuestion> surveyQuestionList = surveyQuestionRepository.findAllBySurveyId(surveyDTO.getSurveyId());
+
+				if(surveyQuestionList == null || surveyQuestionList.isEmpty()){
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No survey questions found. List is null.");
+					apiLogInfo.setApiResponse("NO survey questions found.List is null");				
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+					return response;
+				}
+
 				
 				List<EmployeeQuizResponseStatusMapping> employeeQuizResponseStatusMappingList = new ArrayList<EmployeeQuizResponseStatusMapping>();
 				
 				for(SurveyEmployeeResponse sur: responseList){
+
+					Integer totalPercentage = getQuestionCount(survey.getCutOffQuestions(),surveyDTO.getSurveyQuestionList(), surveyQuestionList);
+
+					Integer totalQuestions = surveyQuestionList.size();
+					Integer cutOffQuestions = survey.getCutOffQuestions();
+
+					Integer cuttOffPercentage = (cutOffQuestions * 100)/totalQuestions;
+
 					EmployeeQuizResponseStatusMapping employeeQuizResponseStatusMapping = new EmployeeQuizResponseStatusMapping();
 					employeeQuizResponseStatusMapping.setCreatedBy(surveyDTO.getCreatedBy());
 					employeeQuizResponseStatusMapping.setEmployeeId(surveyDTO.getEmpId());
 					employeeQuizResponseStatusMapping.setQuizId(surveyDTO.getSurveyId());
-					employeeQuizResponseStatusMapping.setPassStatus("filled");
+					employeeQuizResponseStatusMapping.setPassStatus(totalPercentage >= cuttOffPercentage ? "pass" : "fail");
 					employeeQuizResponseStatusMapping.setResponseId(sur.getSurveyEmployeeResponseId());
+					employeeQuizResponseStatusMapping.setMarksObtained(totalPercentage);
+
 					employeeQuizResponseStatusMappingList.add(employeeQuizResponseStatusMapping);
 				}
 				
@@ -777,6 +814,8 @@ public class SurveyServiceImpl implements SurveyService {
 						dto.setIsConsultant(object[7] != null ? object[7].toString() : null);
 						dto.setIsApprentice(object[8] != null ? object[8].toString() : null);
 						dto.setIsApmosysProduct(object[9] != null ? object[9].toString() : null);
+						dto.setMarksObtained(object[10] != null ? Integer.parseInt(object[10].toString()) : null);
+						dto.setPassStatus(object[11] != null ? object[11].toString() : null);
 						
 						
 						 
@@ -982,4 +1021,24 @@ public class SurveyServiceImpl implements SurveyService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+
+	private Integer getQuestionCount(Integer cutOffQuestions, List<SurveyQuestionDTO> surveyQuestionList, List<SurveyQuestion> surveyQuestionList2){
+		Integer correctAnswer = 0;
+		Integer totalPercentage = 0;
+		
+		for(SurveyQuestionDTO question : surveyQuestionList){
+			for(SurveyQuestion surveyQuestion : surveyQuestionList2){
+				if(question.getSurveyQuestionId().equals(surveyQuestion.getSurveyQuestionId())){
+					if(question.getResponse().equals(surveyQuestion.getCorrectAnswer())){
+						correctAnswer++;
+					}
+				}
+			}
+		}
+		
+		totalPercentage = (correctAnswer * 100) / surveyQuestionList.size();
+		
+		return totalPercentage;
+	}
+
 }

@@ -22,4 +22,5 @@ export class Survey {
     isMandatory?: boolean;
     mustPassToComplete?: boolean;
     cycleNumber?: number;
+    cutOffQuestions?:number;
 }

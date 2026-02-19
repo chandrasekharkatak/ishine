@@ -28,8 +28,9 @@ public interface TrainingMasterRepository extends JpaRepository<TrainingMaster, 
 	@Query("SELECT tm FROM TrainingMaster tm \n" +
 		   "Left JOIN TrainingQuizMapping tqm on tqm.trainingMaster.trainingId = tm.trainingId \n"+
 		   "Left JOIN EmployeeQuizResponseStatusMapping eqrsm ON eqrsm.quizId = tqm.survey.surveyId \n"+ 
-		   "WHERE (tqm.mappingId IS NULL OR tqm.activeStatus = 'true') AND ((tm.mandatoryFlag = :mandatoryFlag AND tm.activeStatus = :activeStatus ) \n"+
+		   "WHERE (tqm.mappingId IS NULL OR tqm.activeStatus = 'true') AND ((tm.mandatoryFlag = :mandatoryFlag) \n"+
 		   "OR (eqrsm.id IS NULL OR eqrsm.passStatus IN :passStatus)) \n" +
+		   "AND tm.activeStatus = :activeStatus \n" +
 		   "AND (tm.effectiveTo IS NULL OR tm.effectiveTo >= CURRENT_DATE) " +
 		   "AND tm.effectiveFrom <= CURRENT_DATE")
 	List<TrainingMaster> findActiveMandatoryTrainings(@Param("mandatoryFlag") String mandatoryFlag, 

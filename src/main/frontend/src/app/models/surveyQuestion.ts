@@ -7,11 +7,11 @@ export class SurveyQuestion{
     required:any = false;
     description:any;
     response:any;
-
-    correctOptionIndex?: number;
+    marksObtained?:number;
+    correctAnswer?:string;
     name:any;
 	employeementId:any;
     employmentIdAccToET:any;
-
+    passStatus?: string;
     optionsList:any[]= [];
 }

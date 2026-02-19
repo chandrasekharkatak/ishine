@@ -28,7 +28,7 @@ public interface SurveyEmployeeResponseRepository extends JpaRepository<SurveyEm
 	public List<Object[]> getAllQuizResponsesByQuizIdAndEmpId(@Param("empId") Long empId, @Param("quizId") Long quizId);
 
 	@Query(value = "SELECT e.employeement_id , e.name , r.created_on , q.survey_question_id, q.question ,q.options, \n" + 
-				"r.response,e.is_consultant,e.is_apprenticeship,e.is_apmosys_product \n" + 
+				"r.response,e.is_consultant,e.is_apprenticeship,e.is_apmosys_product,eqrsm.marks_obtained,eqrsm.pass_status \n" + 
 				"FROM survey_employee_response r \n" + 
 				"INNER JOIN survey_questions q ON r.survey_question_id = q.survey_question_id \n" + 
 				"INNER JOIN employee_quiz_response_status_mapping eqrsm ON eqrsm.response_id = r.survey_employee_response_id\n" +

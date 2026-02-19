@@ -121,7 +121,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 			
 			
 			// Validate that content is current active content
-			Optional<TrainingContent> activeContentOpt = trainingContentRepository.findCurrentActiveContent(consentDTO.getTrainingId() ,   List.of("fail"), PageRequest.of(0, 1))
+			Optional<TrainingContent> activeContentOpt = trainingContentRepository.findCurrentActiveContent(consentDTO.getTrainingId() ,   PageRequest.of(0, 1))
 			        .stream()
 			        .findFirst();
 			
@@ -484,7 +484,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 				userTraining.setCompletionCount(completionCount);
 				
 				// Get current active content
-				Optional<TrainingContent> activeContentOpt = trainingContentRepository.findCurrentActiveContent(training.getTrainingId(), List.of("filled","fail","pass"), PageRequest.of(0, 1))
+				Optional<TrainingContent> activeContentOpt = trainingContentRepository.findCurrentActiveContent(training.getTrainingId(), PageRequest.of(0, 1))
 				        .stream()
 				        .findFirst();
 				if (activeContentOpt.isEmpty()) {
@@ -915,7 +915,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 		}
 
 		Optional<TrainingContent> activeContentOpt = trainingContentRepository
-				.findCurrentActiveContent(training.getTrainingId(),List.of("fail"), PageRequest.of(0, 1)).stream().findFirst();
+				.findCurrentActiveContent(training.getTrainingId(), PageRequest.of(0, 1)).stream().findFirst();
 
 		if (activeContentOpt.isEmpty()) {
 			return Optional.empty();
@@ -928,14 +928,14 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 				.findByEmpIdAndTrainingIdAndContentIdAndQuizIdAndCycleNumber(empId, training.getTrainingId(),
 						activeContent.getContentId(),quizId, currentCycle);
 		
-		System.err.println("consentOpt : > "+consentOpt.isPresent());
-
 		if (consentOpt.isPresent()) {
 			return Optional.empty(); // Current cycle already completed
 		}
 
 		boolean attendedAtLeastOnce = trainingConsentRepository.existsByEmpIdAndTrainingIdAndContentIdAndQuizId(empId,
 				training.getTrainingId(), activeContent.getContentId(),quizId);
+
+		// boolean alreadyAttended = 
 
 		boolean deadlineCrossed = isDeadlineCrossed(training, currentCycle);
 		boolean lockEnabled = "true".equals(training.getLockEnabled());

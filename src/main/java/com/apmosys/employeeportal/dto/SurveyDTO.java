@@ -35,5 +35,5 @@ public class SurveyDTO {
     private Boolean isMandatory;
     private Boolean mustPassToComplete;
 	private Integer cycleNumber;
-	
+	private Integer cutOffQuestions;
 }

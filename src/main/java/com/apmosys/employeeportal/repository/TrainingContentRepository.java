@@ -36,9 +36,9 @@ public interface TrainingContentRepository extends JpaRepository<TrainingContent
 		   "AND tc.activeStatus = 'true' " +
 		   "AND tc.effectiveFrom <= CURRENT_DATE " +
 		   "AND (tc.effectiveTo IS NULL OR tc.effectiveTo >= CURRENT_DATE) " +
-		   "AND (eqrsm.id IS NULL OR eqrsm.passStatus IN :passStatus)" +
+		//    "AND (eqrsm.id IS NULL OR eqrsm.passStatus IN :passStatus)" +
 		   "ORDER BY tc.effectiveFrom DESC")
-	Page<TrainingContent> findCurrentActiveContent(@Param("trainingId") Integer trainingId, @Param("passStatus") List<String> passStatus,Pageable pageable);
+	Page<TrainingContent> findCurrentActiveContent(@Param("trainingId") Integer trainingId,Pageable pageable);
 	//findCurrentActiveContent
 	@Query("SELECT tc FROM TrainingContent tc WHERE tc.trainingMaster.trainingId = :trainingId " +
 		   "AND tc.activeStatus = 'true' " +
