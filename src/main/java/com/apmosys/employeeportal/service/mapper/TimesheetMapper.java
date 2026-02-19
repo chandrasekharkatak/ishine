@@ -368,7 +368,8 @@ public class TimesheetMapper {
                                     r.getDocName(),
                                     r.getFinalFlag(),
                                     r.getBulkApprovedDocId(),
-                                    r.getMimeType()
+                                    r.getMimeType(),
+                                    r.getDocsProjectId()
                             );
 
                     timesheet.getDocumentData().add(doc);
