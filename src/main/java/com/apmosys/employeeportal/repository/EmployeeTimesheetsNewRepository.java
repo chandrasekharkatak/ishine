@@ -10178,7 +10178,7 @@ List<Long> getPaginatedEmployeeIds(
 			+ "        FROM employee_timesheets_new et\n"
 			+ "        JOIN Date_Parameters dp ON et.date BETWEEN dp.from_date AND dp.to_date\n"
 			+ "        LEFT JOIN day_type_master_new dtm ON et.day_type_id = dtm.day_type_id\n"
-			+ "         sm ON et.status = sm.status_id\n"
+			+ "        LEFT JOIN status_master_new sm ON et.status = sm.status_id\n"
 			+ "        LEFT JOIN employee_timesheet_location_mapping etm_lm\n"
 			+ "            ON etm_lm.timesheet_id = et.timesheet_id\n"
 			+ "        LEFT JOIN employee_timesheet_activities_mapping_new etam\n"

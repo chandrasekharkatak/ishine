@@ -550,5 +550,12 @@ public class EmployeeTimesheetControllerNew {
 	     return reponse;
 	     
 	 }
+	 
+	 @PostMapping(value = "/getEmployeeSummaryOnExport")
+		public ServiceResponse getEmployeeSummaryOnExport(@RequestBody GetEmployeeSummaryOnExportDTO object) {  
+			 ServiceResponse reponse= timesheetServiceNew.getEmployeeSummaryOnExportAccordingToStatus(object);
+			 return reponse;
+		}
 }
+
 
