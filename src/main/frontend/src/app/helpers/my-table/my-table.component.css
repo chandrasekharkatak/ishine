@@ -1,0 +1,80 @@
+table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+    /* <-- Key point */
+}
+
+th,
+td {
+    white-space: nowrap;
+    text-align: left;
+    padding: 8px;
+}
+
+.table thead th {
+    width: 100%;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    background-color: #f4f6f8;
+    z-index: 3;
+}
+
+td {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.column-filter-toggle {
+    display: flex;
+    justify-content: left;
+    max-width: fit-content;
+    cursor: pointer;
+}
+
+.column-filter-toggle-btn {
+    color: #193d8a;
+    background-color: #fff;
+}
+
+.export-btn {
+    color: #053885;
+    display: flex;
+    justify-content: left;
+    max-width: fit-content;
+}
+
+.custom-paginator {
+    display: flex;
+    justify-content: flex-start;
+    color: #333;
+    font-weight: 500;
+}
+
+.custom-paginator .mat-paginator-range-label,
+.custom-paginator .mat-select-value,
+.custom-paginator .mat-icon-button {
+    color: #333 !important;
+}
+
+.pointer-cursor {
+    cursor: pointer;
+}
+
+.table-container {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+::ng-deep .custom-filter-row td {
+    border: 1px solid #ddd;
+    background-color: #f4f6f8;
+    position: sticky;
+    top: 40px;
+    z-index: 2;
+}

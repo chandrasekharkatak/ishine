@@ -3831,7 +3831,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 				+ "             TIMESTAMPDIFF(MONTH, e.date_of_joining, CURDATE()) \n"
 				+ "         ) MOD 12, 2,'0' \n"
 				+ " )) AS totalExperience, \n"
-				+ " e.billable_type, jr.name AS jobRole, d.name AS DepartmentName \n"
+				+ " e.billable_type, jr.name AS jobRole, d.name AS DepartmentName, e.employmentstatus \n"
 				+ " FROM employee e  \n"
 				+ " INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
 				+ " INNER JOIN department d ON d.dept_id = jr.dept_id \n"
@@ -4322,5 +4322,15 @@ public List<Object[]> fetchInActivePOListOfProject(
 		)
 		Integer checkActiveTNMProject(@Param("empId") Long empId);
 
-
-	}
+	@Query("SELECT new com.apmosys.employeeportal.dto.EmployeeDTO(e.name, d.deptId, d.name, \n"
+			+ "e.isConsultant, e.isApmosysProduct, e.employmentstatus, e.empId, e.employeementId) \n"
+			+ "FROM Employee e \n"
+			+ "INNER JOIN JobRole jr ON e.jobRoleId = jr.jobRoleId \n"
+			+ "INNER JOIN Department d ON jr.deptId = d.deptId \n"
+			+ "WHERE 1=1 \n"
+			+ "AND e.empId NOT BETWEEN 1 AND 6 \n"
+			+ "AND e.employmentstatus != 'InActive' \n"
+			+ "AND e.empId IN :empIds")
+	public List<EmployeeDTO> getEmployeeDetailsByEmpIds(@Param("empIds") List<Long> empIds);
+	
+}

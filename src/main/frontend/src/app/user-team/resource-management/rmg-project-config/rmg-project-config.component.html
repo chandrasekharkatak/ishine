@@ -470,8 +470,8 @@
                                 </td>
                                 <td class="max-width200 min-width150">
                                     <app-my-select #employeeRoleSelect class="form-control" placeholder="Select Role"
-                                        [disable]="projectConfigStepperIndex !== 1"
-                                        [(ngModel)]="member.employeeRoles" [options]="employeeRoles" [multiple]="true">
+                                        [disable]="projectConfigStepperIndex !== 1" [(ngModel)]="member.employeeRoles"
+                                        [options]="employeeRoles" [multiple]="true">
                                     </app-my-select>
                                 </td>
                                 <td class="max-width200 min-width150">
@@ -485,15 +485,21 @@
                                     </div>
                                 </td>
                                 <td>
-                                    <mat-checkbox class="custom-checkbox" color="primary" disabled
-                                        title="To change this mapping, please deboard the resource by providing an end date and onboard again as a regular/billed employee."
-                                        [(ngModel)]="member.isShadow"></mat-checkbox>
+                                    <span
+                                        [title]="member.isShadow 
+                                        ? 'To change this mapping, please deboard the resource by providing an end date and onboard again as a regular/billed employee.'
+                                        : 'An existing resource can’t be marked as Shadow. If you still need them as a Shadow resource, please deboard the resource and onboard them again as Shadow.'">
+                                        <mat-checkbox class="custom-checkbox" color="primary" [disabled]="true"
+                                            [(ngModel)]="member.isShadow">
+                                        </mat-checkbox>
+                                    </span>
                                 </td>
                                 <td>
                                     <mat-checkbox class="custom-checkbox" color="primary"
                                         (change)="onDefaultCheckBoxChanged($event,member)"
                                         [disabled]="projectConfigStepperIndex !== 1 || (member.dbDefaultProject && (!member.otherActiveProjectIds || member.otherActiveProjectIds?.length === 0))"
-                                        [(ngModel)]="member.defaultProject"></mat-checkbox>
+                                        [(ngModel)]="member.defaultProject">
+                                    </mat-checkbox>
                                 </td>
                             </tr>
                         </ng-container>
@@ -529,6 +535,7 @@
                 <table class="custom-table" matSort (matSortChange)="sortOldTeamMemberData($event)">
                     <thead>
                         <tr>
+                            <th>Info</th>
                             <th class="max-width150 min-width100 text-center" mat-sort-header="employementId|string">
                                 Employment Id
                             </th>
@@ -560,7 +567,7 @@
                     <tbody>
                         <ng-container *ngIf="!teamMembers || teamMembers?.length === 0">
                             <tr>
-                                <td [attr.colspan]="!isInternalProject ? 10 : 8" class="text-center">
+                                <td [attr.colspan]="!isInternalProject ? 11 : 9" class="text-center">
                                     No Resources found.
                                 </td>
                             </tr>
@@ -568,6 +575,19 @@
                         <ng-container
                             *ngFor="let member of teamMembers | multicolFilter: oldTeamMemberFilters : true | sort : [oldTeamMemberSortColumn, oldTeamMemberSortColumnType,oldTeamMemberSortDirection] | paginate: { itemsPerPage: oldTeamMemberPageSize, currentPage: oldTeamMemberPage }; let i= index">
                             <tr>
+                                <td>
+                                    <button class="btn btn-sm">
+                                        <span class="emp-name" triggers="mouseenter:mouseleave" placement="right"
+                                            container="body" popoverClass="emp-popover" [ngbPopover]="popoverTpl">
+                                            <ng-template #popoverTpl>
+                                                <ng-container
+                                                    *ngTemplateOutlet="employeeInfo; context: { member: member }">
+                                                </ng-container>
+                                            </ng-template>
+                                            <i class="fa fa-info-circle info-icon"></i>
+                                        </span>
+                                    </button>
+                                </td>
                                 <td class="max-width150 min-width100 truncate" [title]="member.employementId|| 'NA' ">
                                     {{ member.employementId || 'NA' }}
                                 </td>
@@ -958,12 +978,12 @@
                         </div>
                         <div class="col-md-7 p-1" *ngIf="projectConfigStepperIndex === 1 
                                 && currentTeam.requirementType === 'Old Resource'">
-                            <div class="d-flex justify-content-end m-1 mr-0 pr-0">
+                            <!-- <div class="d-flex justify-content-end m-1 mr-0 pr-0">
                                 <button class="btn btn-primary btn-sm"
                                     *ngIf="currentTeam?.rmgOldTeamMemberList?.length > 0"
                                     (click)="updateTeamMembersEndDate(currentTeam)">Extend Member(s) End Date
                                 </button>&nbsp;
-                            </div>
+                            </div> -->
                         </div>
                     </div>
 
@@ -992,7 +1012,7 @@
             <span class="value">{{ member.employementId }}</span>
         </div>
         <div class="info-row">
-            <span class="label">Job Role</span>
+            <span class="label">ApMoSys Job Role</span>
             <span class="value">{{ member.employeeRole }}</span>
         </div>
         <div class="info-row">
@@ -1006,6 +1026,10 @@
         <div class="info-row">
             <span class="label">Department</span>
             <span class="value">{{ member.memberDepartment }}</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Current Employment Status</span>
+            <span class="value">{{ member.employmentStatus }}</span>
         </div>
         <div class="divider"></div>
 
@@ -1239,14 +1263,22 @@
                                 <td colspan="8" class="text-center">No Details to display.</td>
                             </tr>
                             <tr *ngFor="let employee of markDefaultProjectCompletionList; let i = index">
-                                <td class="max-width150 min-width150">{{ employee.employementId }}</td>
-                                <td class="max-width200 min-width150">{{ employee.memberName }}</td>
-                                <td class="max-width200 min-width150">{{ employee.memberDepartment }}</td>
-                                <td class="max-width200 min-width150">{{ employee.jobRoleName }}</td>
-                                <td class="max-width150 min-width150">{{ employee.billableType }}</td>
-                                <td class="max-width150 min-width150">{{ employee.prevExp }}</td>
-                                <td class="max-width150 min-width150">{{ employee.currentExp }}</td>
-                                <td class="max-width150 min-width150">{{ employee.totalExp }}</td>
+                                <td class="max-width150 min-width150" [title]="employee.employementId || 'NA'">{{
+                                    employee.employementId || 'NA' }}</td>
+                                <td class="max-width200 min-width150" [title]="employee.memberName || 'NA'">{{
+                                    employee.memberName || 'NA' }}</td>
+                                <td class="max-width200 min-width150" [title]="employee.memberDepartment || 'NA'">{{
+                                    employee.memberDepartment || 'NA' }}</td>
+                                <td class="max-width200 min-width150" [title]="employee.jobRoleName || 'NA'">{{
+                                    employee.jobRoleName || 'NA' }}</td>
+                                <td class="max-width150 min-width150" [title]="employee.billableType || 'NA'">{{
+                                    employee.billableType || 'NA' }}</td>
+                                <td class="max-width150 min-width150" [title]="employee.prevExp || 'NA'">{{
+                                    employee.prevExp || 'NA' }}</td>
+                                <td class="max-width150 min-width150" [title]="employee.currentExp || 'NA'">{{
+                                    employee.currentExp || 'NA' }}</td>
+                                <td class="max-width150 min-width150" [title]="employee.totalExp || 'NA'">{{
+                                    employee.totalExp || 'NA' }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1273,8 +1305,10 @@
                                 <td colspan="8" class="text-center">No Details to display.</td>
                             </tr>
                             <tr *ngFor="let employee of markDefaultProjectCompletionList">
-                                <td class="max-width150 min-width150">{{ employee.employementId }}</td>
-                                <td class="max-width200 min-width150">{{ employee.memberName }}</td>
+                                <td class="max-width150 min-width150" [title]="employee.employementId || 'NA'">{{
+                                    employee.employementId || 'NA' }}</td>
+                                <td class="max-width200 min-width150" [title]="employee.memberName || 'NA'">{{
+                                    employee.memberName || 'NA' }}</td>
                                 <td class="max-width200">
                                     <app-my-select class="form-control" placeholder="Select Project Type"
                                         [(ngModel)]="employee.projectType" [options]="projectTypes"
@@ -1343,9 +1377,11 @@
                 <div class="col-md-6">
                     <div class="form-group mb-0">
                         <label class="mb-0">Employee<span class="text-danger">*</span></label>
-                        <app-my-select #newMemberSelect class="form-control" placeholder="Select Employee"
-                            [(ngModel)]="currentTeam.newRmgTeamMember.empId" [options]="employeeListFilteredByDept"
-                            displayKey="name" valueKey="empId" [multiple]="false"
+                        <input *ngIf="isUnsavedMemberUpdate" class="form-control" type="text" disabled
+                            [(ngModel)]="currentTeam.newRmgTeamMember.memberName" />
+                        <app-my-select *ngIf="!isUnsavedMemberUpdate" #newMemberSelect class="form-control"
+                            placeholder="Select Employee" [(ngModel)]="currentTeam.newRmgTeamMember.empId"
+                            [options]="employeeListFilteredByDept" displayKey="name" valueKey="empId" [multiple]="false"
                             (change)="getEmployeeExistingProjectDetailsByEmpId(currentTeam.newRmgTeamMember.empId)">
                         </app-my-select>
                     </div>
@@ -1386,6 +1422,7 @@
                         <label class="mb-0">Start Date<span class="text-danger">*</span></label>
                         <div class="date-input-wrapper">
                             <input class="form-control date-input" [matDatepicker]="startDatepicker"
+                                (dateChange)="onMemberStartDateChange($event, currentTeam.newRmgTeamMember)"
                                 [(ngModel)]="currentTeam.newRmgTeamMember.startDate" readonly />
                             <mat-icon class="calendar-icon" (click)="startDatepicker.open()">calendar_today</mat-icon>
                             <mat-datepicker #startDatepicker></mat-datepicker>
@@ -1679,55 +1716,58 @@
                         <tr *ngIf="!resourceRequirementList || resourceRequirementList?.length === 0">
                             <td colspan="13" class="text-center">No Resource Requirement found.</td>
                         </tr>
-                        <tr *ngFor="let resourceReq of resourceRequirementList; let i = index">
-                            <td>{{i+1}}</td>
-                            <td class="min-width100 max-width200" [title]="resourceReq.poNo">
-                                {{resourceReq.poNo}}
-                            </td>
-                            <td class="min-width150 max-width200"
-                                [title]="(resourceReq.poStartDate | date:'dd-MM-yyyy') || 'NA'">
-                                {{ resourceReq.poStartDate ? (resourceReq.poStartDate | date:'dd-MM-yyyy') : 'NA'}}
-                            </td>
-                            <td class="min-width100 max-width200"
-                                [title]="(resourceReq.poEndDate | date:'dd-MM-yyyy') || 'NA'">
-                                {{resourceReq.poEndDate ? (resourceReq.poEndDate | date:'dd-MM-yyyy') : 'NA'}}
-                            </td>
-                            <td class="min-width100 max-width200" *ngIf="projectType === 'TNM'"
-                                [title]="resourceReq.role">
-                                {{resourceReq.role}}
-                            </td>
-                            <td class="min-width100 max-width200" *ngIf="projectType === 'TNM'"
-                                [title]="resourceReq.department">
-                                {{resourceReq.department}}
-                            </td>
-                            <td class="min-width100 max-width200" *ngIf="projectType === 'TNM'"
-                                [title]="resourceReq.experience">
-                                {{resourceReq.experience}}
-                            </td>
-                            <td class="min-width100 max-width200" *ngIf="projectType === 'TNM'"
-                                [title]="(resourceReq.requirementStartDate |  date:'dd-MM-yyyy') || 'NA'">
-                                {{resourceReq.requirementStartDate ? (resourceReq.requirementStartDate |
-                                date:'dd-MM-yyyy') : 'NA'}}
-                            </td>
-                            <td class="min-width100 max-width200" *ngIf="projectType === 'TNM'"
-                                [title]="resourceReq.requirementEndDate ? (resourceReq.requirementEndDate | date:'dd-MM-yyyy') : 'NA'">
-                                {{resourceReq.requirementEndDate ? (resourceReq.requirementEndDate | date:'dd-MM-yyyy')
-                                : 'NA'}}
-                            </td>
-                            <td class="min-width100  max-width200" *ngIf="projectType === 'TNM'"
-                                [title]="resourceReq.count">
-                                {{resourceReq.count}}
-                            </td>
-                            <td class="min-width100  max-width200" [title]="resourceReq.assignedApproved">
-                                {{resourceReq.assignedApproved}}
-                            </td>
-                            <td class="min-width100  max-width200" [title]="resourceReq.assignedPending">
-                                {{resourceReq.assignedPending}}
-                            </td>
-                            <td class="min-width100  max-width200" [title]="resourceReq.difference">
-                                {{resourceReq.difference}}
-                            </td>
-                        </tr>
+                        <ng-container *ngFor="let resourceReq of resourceRequirementList; let i = index">
+                            <tr [ngStyle]="{'background-color': resourceReq.isExpired ? '#fee2e2' : '#ffffff'}">
+                                <td>{{i+1}}</td>
+                                <td class="min-width100 max-width200" [title]="resourceReq.poNo || 'NA'">
+                                    {{resourceReq.poNo || 'NA'}}
+                                </td>
+                                <td class="min-width150 max-width200"
+                                    [title]="resourceReq.poStartDate ? (resourceReq.poStartDate | date:'dd-MM-yyyy') : 'NA'">
+                                    {{ resourceReq.poStartDate ? (resourceReq.poStartDate | date:'dd-MM-yyyy') : 'NA'}}
+                                </td>
+                                <td class="min-width100 max-width200"
+                                    [title]="resourceReq.poEndDate ? (resourceReq.poEndDate | date:'dd-MM-yyyy') : 'NA'">
+                                    {{resourceReq.poEndDate ? (resourceReq.poEndDate | date:'dd-MM-yyyy') : 'NA'}}
+                                </td>
+                                <td class="min-width100 max-width200" *ngIf="projectType === 'TNM'"
+                                    [title]="resourceReq.role || 'NA'">
+                                    {{resourceReq.role || 'NA'}}
+                                </td>
+                                <td class="min-width100 max-width200" *ngIf="projectType === 'TNM'"
+                                    [title]="resourceReq.department  || 'NA'">
+                                    {{resourceReq.department || 'NA'}}
+                                </td>
+                                <td class="min-width100 max-width200" *ngIf="projectType === 'TNM'"
+                                    [title]="resourceReq.experience || 'NA'">
+                                    {{resourceReq.experience || 'NA'}}
+                                </td>
+                                <td class="min-width100 max-width200" *ngIf="projectType === 'TNM'"
+                                    [title]="resourceReq.requirementStartDate ? (resourceReq.requirementStartDate | date:'dd-MM-yyyy') : 'NA'">
+                                    {{resourceReq.requirementStartDate ? (resourceReq.requirementStartDate |
+                                    date:'dd-MM-yyyy') : 'NA'}}
+                                </td>
+                                <td class="min-width100 max-width200" *ngIf="projectType === 'TNM'"
+                                    [title]="resourceReq.requirementEndDate ? (resourceReq.requirementEndDate | date:'dd-MM-yyyy') : 'NA'">
+                                    {{resourceReq.requirementEndDate ? (resourceReq.requirementEndDate |
+                                    date:'dd-MM-yyyy')
+                                    : 'NA'}}
+                                </td>
+                                <td class="min-width100  max-width200" *ngIf="projectType === 'TNM'"
+                                    [title]="resourceReq.count || 0 ">
+                                    {{resourceReq.count || 0 }}
+                                </td>
+                                <td class="min-width100  max-width200" [title]="resourceReq.assignedApproved || 0">
+                                    {{resourceReq.assignedApproved || 0}}
+                                </td>
+                                <td class="min-width100  max-width200" [title]="resourceReq.assignedPending || 0">
+                                    {{resourceReq.assignedPending || 0}}
+                                </td>
+                                <td class="min-width100  max-width200" [title]="resourceReq.difference || 0">
+                                    {{resourceReq.difference || 0}}
+                                </td>
+                            </tr>
+                        </ng-container>
                     </tbody>
                 </table>
             </div>
