@@ -2360,7 +2360,7 @@ firt share list of feature and then go one by one details, nothing to be missed
           </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let emp of allInactivePOListOfEmployee | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+            <tr *ngFor="let emp of allInactivePOListOfEmployee | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page, id: 'inactivePoPagination' }, let i = index">
             <!-- <td>A-{{ emp.employeementId }}</td>
             <td>{{ emp.name }}</td> -->
             <td>{{ emp.projectName || 'N/A' }}</td>
@@ -2374,7 +2374,7 @@ firt share list of feature and then go one by one details, nothing to be missed
         </tbody>
       </table>
     </div>
-    <pagination-controls class="my-pagination" [hidden]="allInactivePOListOfEmployee.length == 0"
+    <pagination-controls class="my-pagination"  id="inactivePoPagination" [hidden]="allInactivePOListOfEmployee.length == 0"
     (pageChange)="handlePageChange($event)"></pagination-controls>
 
     <div class="text-end mt-3">
