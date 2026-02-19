@@ -59,7 +59,9 @@
                                     Team Member
                                 </label>
                                 <app-my-select class="form-control"
-                                        [options]="teamMemberList" displayKey="name" valueKey="empId" [isOptionDisabled]="disableEmployee" [(ngModel)]="selectedTeamMember" (ngModelChange)="onTeamMemberSelect($event)" [readonly]="isUpdation">
+                                        [options]="teamMemberList" displayKey="name" valueKey="empId" 
+                                        [isOptionDisabled]="disableEmployee" [(ngModel)]="appelectMember" 
+                                        (ngModelChange)="onTeamMemberSelect($event)" [readonly]="isUpdation">
                                 </app-my-select>
                             </div>
                         </div>

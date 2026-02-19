@@ -1492,7 +1492,20 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    * Handle team member selection
    * Load available timesheets for selected team member
    */
-  onTeamMemberSelect(teamMember: any): void {
+  appelectMember:any;
+  onTeamMemberSelect(teamMemberOrId: any): void {
+    // app-my-select emits only the value (empId), not the full object
+    // So we need to look up the full object from teamMemberList if we received just an ID
+    let teamMember: any = null;
+    
+    if (teamMemberOrId && typeof teamMemberOrId === 'object' && teamMemberOrId.empId) {
+      // Already a full object
+      teamMember = teamMemberOrId;
+    } else if (teamMemberOrId != null && this.teamMemberList && this.teamMemberList.length > 0) {
+      // It's just an ID (number), look up the full object from teamMemberList
+      teamMember = this.teamMemberList.find(emp => emp.empId === teamMemberOrId || emp.empId === Number(teamMemberOrId));
+    }
+    
     if (teamMember && teamMember.empId) {
       this.timesheetFilledForUser.empId = teamMember.empId;
       this.timesheetFilledForUser.name = teamMember.name;
