@@ -103,12 +103,33 @@ public class PoDetailsService {
 	public ProjectPoDetails createPoRTS(Project project, ProjectPoMappingWithResourceDTO dto, Client client) {
 
 		PoDetailsForProjectPoMappingDTO poDto = dto.getPoDetailsList().get(0);
+		
+		boolean exists =
+		        projectPoDetailsRepository
+		                .existsByPoIdAndProjectIdAndActiveTrue(
+		                        poDto.getPoId(),
+		                        project.getProjectId()
+		                );
+
+		if (exists) {
+		    ExceptionLogContext.add(
+		            "PO already exists in active state | poId="
+		                    + poDto.getPoId()
+		                    + " | projectId="
+		                    + project.getProjectId()
+		    );
+
+		    throw new RuntimeException(
+		            "PO already exists in active state for this project"
+		    );
+		}
 
 		ClientLocation cl = clientService.resolveClientLocation(client.getClientId(), poDto.getClientLocation(),
 				poDto.getClientState(),poDto.getClientAddressId());
 		
 	      validationService.validateEmployeeExists(poDto.getCreatedByEmpId(),poDto.getCreatedByEmpName());
           validationService.validateEmployeeExists(poDto.getUpdatedByEmpId(),poDto.getUpdatedByEmpName());
+          validationService.validateEmployeeExists(poDto.getApmosysRmEmpId(),poDto.getApmosysRmEmpName());
 		
 		
 		ProjectPoDetails po = new ProjectPoDetails();
@@ -123,6 +144,7 @@ public class PoDetailsService {
 		po.setCreatedBy(poDto.getCreatedByEmpId());
 		po.setUpdatedBy(poDto.getUpdatedByEmpId());
 		po.setMsg(poDto.getCommentForRmg());
+		po.setEmpIdApmosysRm(poDto.getApmosysRmEmpId());
 		po.setApmosysRM(poDto.getApmosysRmEmpName());
 		po.setApmosysRmEmail(poDto.getApmosysRmEmail());
 		po.setClientRm(poDto.getClientRmName());
@@ -198,13 +220,15 @@ public class PoDetailsService {
 	    
 	    validationService.validateEmployeeExists(poDto.getUpdatedByEmpId(),
                 poDto.getUpdatedByEmpName());
+	    
+	    validationService.validateEmployeeExists(poDto.getApmosysRmEmpId(),poDto.getApmosysRmEmpName());
 
 	    if (!Objects.equals(po.getPoNo(), poDto.getPoNo())) {
 	        po.setPoNo(poDto.getPoNo());
 	        changed = true;
 	    }
 	    
-	    LocalDateTime dtoStartDate = convert(poDto.getPoEndDate());
+	    LocalDateTime dtoStartDate = convert(poDto.getPoStartDate());
 
 	    if (!Objects.equals(po.getPoStartDate(), dtoStartDate)) {
 	        po.setPoStartDate(dtoStartDate);
@@ -218,7 +242,7 @@ public class PoDetailsService {
 	        changed = true;
 	    }
 
-	    ClientLocation cl =
+	    ClientLocation cl = 
 	            clientService.resolveClientLocation(
 	                    client.getClientId(),
 	                    poDto.getClientLocation(),
@@ -249,8 +273,9 @@ public class PoDetailsService {
 	        changed = true;
 	    }
 	    
-	    if (!Objects.equals(po.getApmosysRM(), poDto.getApmosysRmEmpName())) {
+	    if (!Objects.equals(po.getEmpIdApmosysRm(), poDto.getApmosysRmEmpId())) {
 	        po.setApmosysRM(poDto.getApmosysRmEmpName());
+	        po.setEmpIdApmosysRm(poDto.getApmosysRmEmpId());
 	        changed = true;
 	    }
 	    
@@ -689,19 +714,19 @@ public class PoDetailsService {
 								            .map(ProjectPoMappingWithResourceDTO::getProjectId)
 								            .collect(Collectors.toList());
 
-	    // PRIMARY POS
+	    // PRIMARY POS  //Po1
 	    Map<Long, ProjectPoDetails> primaryPos = projectPoDetailsRepository
 								                    .findByProjectIdAndActiveTrue(primaryProjectId)
 								                    .stream()
 								                    .collect(Collectors.toMap(ProjectPoDetails::getPoId, Function.identity()));
 
-	    // DELETED POS
+	    // DELETED POS // po2, po3
 	    Map<Long, ProjectPoDetails> deletedPos = projectPoDetailsRepository
 								                    .findByPoProjectIdInAndActiveTrue(deletedPoProjectIds)
 								                    .stream()
 								                    .collect(Collectors.toMap(ProjectPoDetails::getPoId, Function.identity()));
 
-	    // PORTAL POS (contains primary + deleted together)
+	    // PORTAL POS (contains primary + deleted together)   // po1,po3,
 	    List<PoDetailsForProjectPoMappingDTO> incomingPos = dto.getPrimaryProject().getPoDetailsList();
 
 	    for (PoDetailsForProjectPoMappingDTO incoming : incomingPos) {
@@ -758,8 +783,11 @@ public class PoDetailsService {
 	    validationService.validateEmployeeExists(
 	            incoming.getUpdatedByEmpId(),
 	            incoming.getUpdatedByEmpName());
+	    
+	    Long poProjectId = projectRepository.findById(primaryProjectId).get().getPoProjectId();
 
 	    deletedPo.setProjectId(primaryProjectId);
+	    deletedPo.setPoProjectId(poProjectId);
 	    if (!Objects.equals(deletedPo.getPrevPO(), incoming.getPrevPo())) {
 	    	deletedPo.setPrevPO(incoming.getPrevPo());
 	    }
