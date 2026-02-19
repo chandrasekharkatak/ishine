@@ -14368,50 +14368,33 @@ Integer getTotalEmployeeCountForClientApplicable(
 //			);
 	
 	
-	@Query( value ="with base_list as (\n"
-			+ "SELECT etn.timesheet_id\n"
-			+ "FROM employee_timesheets_new etn\n"
-			+ "INNER JOIN employee e ON etn.emp_id = e.emp_id\n"
-			+ "INNER JOIN employee ab ON etn.created_by = ab.emp_id\n"
-			+ "INNER JOIN project_timesheet_status_new ptsn ON ptsn.timesheet_id = etn.timesheet_id\n"
-			+ "INNER JOIN projects p ON p.project_id = ptsn.project_id\n"
-			+ "INNER JOIN teams t ON t.project_id = p.project_id\n"
-			+ "INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id AND etm.emp_id = e.emp_id\n"
-			+ "LEFT JOIN employee_timesheet_location_mapping etlm ON etlm.timesheet_id = etn.timesheet_id\n"
-			+ "LEFT JOIN employee_timesheet_activities_mapping_new etamn ON etamn.timesheet_id = etn.timesheet_id\n"
-			+ "LEFT JOIN activities a ON a.activity_id = etamn.activity_id\n"
-			+ "LEFT JOIN clients c ON ptsn.client_side_id = c.client_id\n"
-			+ "LEFT JOIN client_locations cl ON cl.client_location_id = ptsn.client_location_id\n"
-			+ "LEFT JOIN work_location_type_master wltm ON wltm.work_location_type_id = etlm.location_type_id\n"
-			+ "LEFT JOIN day_type_master_new dtm ON dtm.day_type_id = etn.day_type_id\n"
-			+ "LEFT JOIN timesheet_document_details_new tddn ON tddn.timesheet_id = etn.timesheet_id\n"
-			+ "LEFT JOIN employee es ON es.emp_id = ptsn.shadow_emp_id\n"
-			+ "LEFT JOIN doc_mime_type_master_new dmtmn ON dmtmn.mime_type_id = tddn.mime_type_id\n"
-			+ "WHERE 1=1 \n"
-			+ "AND (CASE\n"
-			+ "        WHEN e.approvals_to = 'Reporting Manager' THEN e.reporting_manager_id\n"
-			+ "        ELSE e.manager_id\n"
-			+ "     END) = :managerId\n"
-			+ "AND (\n"
-			+ "    :clientFilter IS NULL       \n"
-			+ "    OR :clientFilter = FALSE    \n"
-			+ "    OR p.has_client_side_id = TRUE \n"
-			+ ")"
-			+ "GROUP BY \n"
-			+ "    etn.timesheet_id, etn.emp_id, e.is_apmosys_product, e.employeement_id, e.name, \n"
-			+ "    dtm.day_type, etn.date, etn.is_night_shift, etn.work_in_time, etn.work_out_time, \n"
-			+ "    ab.name, etn.created_on, wltm.code, etlm.location_in_time, etlm.location_out_time, \n"
-			+ "    etlm.location_mapping_id, ptsn.project_id, p.project_name, c.client_name, \n"
-			+ "    cl.client_location, ptsn.po_no, es.name, ptsn.status, ptsn.total_client_working_minutes, \n"
-			+ "    ptsn.description, a.activity, etamn.description, etamn.duration_minutes, t.team_name, \n"
-			+ "    tddn.doc_id, tddn.doc_name, tddn.final_flag, tddn.bulk_approved_doc_id, dmtmn.mime_type\n"
-			+ "\n"
-			+ ")\n"
-			+ "select sm.status , count(distinct etn.timesheet_id) from base_list bl \n"
-			+ "inner join employee_timesheets_new etn \n"
-			+ "on bl.timesheet_id = etn.timesheet_id\n"
-			+ "left join status_master_new sm on etn.status = sm.status_id\n"
-			+ "group by etn.status", nativeQuery = true
+	@Query( value ="SELECT sm.status, COUNT(*) AS cnt\n"
+			+ "FROM (\n"
+			+ "    SELECT DISTINCT etn.timesheet_id, etn.status\n"
+			+ "    FROM employee_timesheets_new etn\n"
+			+ "    JOIN employee e ON e.emp_id = etn.emp_id\n"
+			+ "    JOIN project_timesheet_status_new ptsn ON ptsn.timesheet_id = etn.timesheet_id\n"
+			+ "    JOIN projects p ON p.project_id = ptsn.project_id\n"
+			+ "    WHERE\n"
+			+ "        (CASE\n"
+			+ "            WHEN e.approvals_to = 'Reporting Manager' THEN e.reporting_manager_id\n"
+			+ "            ELSE e.manager_id\n"
+			+ "         END) = :managerId\n"
+			+ "      AND (\n"
+			+ "            :clientFilter IS NULL\n"
+			+ "            OR :clientFilter = FALSE\n"
+			+ "            OR p.has_client_side_id = TRUE\n"
+			+ "          )\n"
+			+ "      AND EXISTS (\n"
+			+ "            SELECT 1\n"
+			+ "            FROM teams t\n"
+			+ "            JOIN employee_team_mapping etm ON etm.team_id = t.team_id\n"
+			+ "            WHERE t.project_id = p.project_id\n"
+			+ "              AND etm.emp_id = e.emp_id\n"
+			+ "          )\n"
+			+ ") x\n"
+			+ "LEFT JOIN status_master_new sm ON sm.status_id = x.status\n"
+			+ "GROUP BY x.status, sm.status;", nativeQuery = true
 			)
 			List<Object[]> getTimesheetStatusCountsByCurrentManagerId(
 			        @Param("managerId") Long managerId,
@@ -17269,12 +17252,14 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 			        "    ptsn.description, a.activity, etamn.description, " +
 			        "    etamn.durationMinutes, t.teamName, " +
 			        "    tddn.docId, tddn.docName, tddn.finalFlag, " +
-			        "    tddn.bulkApprovedDocId, dmtmn.mimeType , tddn.projectId AS docsProjectId" +
+			        "    tddn.bulkApprovedDocId, dmtmn.mimeType , tddn.projectId AS docsProjectId, trrm.rejectionReason, trdn.remarks, trdn.rejectedOn" +
 			        ") " +
 			        "FROM EmployeeTimesheetsNew etn " +
 			        "INNER JOIN Employee e ON etn.empId = e.empId " +
 			        "INNER JOIN Employee ab ON ab.empId = etn.createdBy " +
 			        "INNER JOIN ProjectTimesheetStatusNew ptsn ON ptsn.id.timesheetId = etn.timesheetId " +
+			        "LEFT JOIN TimesheetRejectionDetailsNew trdn ON (:status = 3 AND trdn.timesheetId = ptsn.id.timesheetId AND trdn.locationMappingId = ptsn.id.locationMappingId AND trdn.projectId = ptsn.id.projectId)"+ 
+			        "LEFT JOIN TimesheetRejectionReasonsMaster trrm ON (:status = 3 AND trrm.rejectionId = trdn.rejectionId)" +
 			        "INNER JOIN Project p ON p.projectId = ptsn.id.projectId " +
 			        "INNER JOIN Team t ON t.projectId = p.projectId " +
 			        "INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId AND etm.empId = e.empId " +
@@ -17287,7 +17272,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 			        "LEFT JOIN DayTypeMasterNew dtmn ON dtmn.dayTypeId = etn.dayTypeId " +
 			        "LEFT JOIN TimesheetDocumentDetailsNew tddn ON tddn.timesheetId = etn.timesheetId " +
 			        "LEFT JOIN Employee es ON ptsn.shadowEmpId = es.empId " +
-			        "LEFT JOIN DocMimeTypeMasterNew dmtmn ON dmtmn.mimeTypeId = tddn.mimeTypeId " +
+			        "LEFT JOIN DocMimeTypeMasterNew dmtmn ON dmtmn.mimeTypeId = tddn.mimeTypeId "+
 			        "WHERE etn.timesheetId IN :timesheetIds " +
 			        "AND etn.status = :status " +
 			        "GROUP BY etn.timesheetId, etn.empId, e.isApmosysProduct, e.employeementId, e.name, dtmn.dayType, etn.date, " +
@@ -17296,7 +17281,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 			        "         ptsn.id.projectId, p.projectName, c.clientName, cl.clientLocation, ptsn.poNo, " +
 			        "         es.name, ptsn.status, ptsn.totalClientWorkingMinutes, ptsn.description, " +
 			        "         a.activity, etamn.description, etamn.durationMinutes, t.teamName, " +
-			        "         tddn.docId, tddn.docName, tddn.finalFlag, tddn.bulkApprovedDocId, dmtmn.mimeType,  tddn.projectId "
+			        "         tddn.docId, tddn.docName, tddn.finalFlag, tddn.bulkApprovedDocId, dmtmn.mimeType,  tddn.projectId, trrm.rejectionReason, trdn.remarks "
 			)
 			List<GetReporteesTimesheetReqFlatDTO> getTimesheetDetailsByIds(
 			        @Param("timesheetIds") List<Long> timesheetIds,

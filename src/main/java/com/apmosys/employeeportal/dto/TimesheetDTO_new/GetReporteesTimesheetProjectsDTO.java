@@ -27,5 +27,6 @@ public class GetReporteesTimesheetProjectsDTO {
     private String totalClientWorkingMinutes;
     private String description;
 	private List<GetReporteesTimesheetActivitiesDTO> activities;
+	private List<RejectionDataDTO> rejectionReasons;
 
 }

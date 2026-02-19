@@ -252,8 +252,7 @@ alertModal: TemplateRef<any>;
     this.thisMonthValidation();
 
     this.selectedMonth = new Date(2025, 4, 1);
-    this.getTimesheetStatusCountsByEmpId();
-    this.getRejectionReason();
+    
 
 
     // // Set maxMonth to previous month (current month is NOT allowed for selection)
@@ -315,6 +314,9 @@ getTotalDocCount(projectId: number): number {
   }
 
   showAllTimesheetsTable() {
+    this.pendingCount = null;
+    this.approvedCount = null;
+    this.rejectedCount = null;
     this.isAllTimesheetTable = true;
 
     this.isAllTimesheetRequestTable = false;
@@ -325,6 +327,9 @@ getTotalDocCount(projectId: number): number {
   }
 
   showAllTimesheetRequestsTable() {
+
+    this.getTimesheetStatusCountsByEmpId();
+    this.getRejectionReason();
     this.sortColumn = 'date';
     this.sortDirection = 'DESC';
     // this.sortColumnType = [];
@@ -340,6 +345,11 @@ getTotalDocCount(projectId: number): number {
   }
 
   showTMBulkUpload() {
+
+    this.pendingCount = null;
+    this.approvedCount = null;
+    this.rejectedCount = null;
+
     if(this.isTMBulkUpload){
       return;
     }
