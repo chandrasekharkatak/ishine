@@ -863,6 +863,21 @@ export class LeaveComponent implements OnInit {
     let toDate = document.getElementById('toDate');
     toDate?.setAttribute('min', fromDate);
   }
+  syncDayTypeIfSameDate(source: 'from' | 'to') {
+  if (
+    this.leaveObj.fromDate &&
+    this.leaveObj.toDate &&
+    moment(this.leaveObj.fromDate).format('YYYY-MM-DD') ===
+    moment(this.leaveObj.toDate).format('YYYY-MM-DD')
+  ) {
+    if (source === 'from') {
+      this.leaveObj.toDateDayType = this.leaveObj.fromDateDayType;
+    } else {
+      this.leaveObj.fromDateDayType = this.leaveObj.toDateDayType;
+    }
+  }
+}
+
 
   resetToDate() {
     this.leaveObj.toDate = '';
@@ -926,11 +941,19 @@ export class LeaveComponent implements OnInit {
       if (this.leaveObj.leaveTypeCode == 'ML') {
         this.isWeekOffsExcluded = true;
         if (moment(this.leaveObj.fromDate).format(dateFormat) == moment(this.leaveObj.toDate).format(dateFormat)) {
-          this.leaveObj.toDateDayType = 0;
+          if (this.leaveObj.toDateDayType == null) {
+            this.leaveObj.toDateDayType = 0;
+          }
+
         }
         const START_DAY_COUNT = 1;
         const diff = (e, t) => Math.abs(Math.floor((new Date(e).getTime() - new Date(t).getTime()) / (1000 * 60 * 60 * 24)));
-        this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType);
+        if ((moment(this.leaveObj.toDate).format('YYYY-MM-DD') ===
+moment(this.leaveObj.fromDate).format('YYYY-MM-DD')) && this.leaveObj.fromDateDayType==0.5 &&   this.leaveObj.toDateDayType == 0.5){
+          this.leaveObj.noOfDays=0.5;
+        }else{
+        this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType) - this.holidayWeekOffCount;
+        }
         //console.log(" Maternity leave apply :: no of days test ::  ",this.leaveObj.noOfDays);
       } else {
         this.isWeekOffsExcluded = false;
@@ -952,34 +975,57 @@ export class LeaveComponent implements OnInit {
         }
 
         if (moment(this.leaveObj.fromDate).format(dateFormat) == moment(this.leaveObj.toDate).format(dateFormat)) {
-          this.leaveObj.toDateDayType = 0;
+          if (this.leaveObj.toDateDayType == null) {
+            this.leaveObj.toDateDayType = 0;
+          }
+
         }
 
         const START_DAY_COUNT = 1;
         const diff = (e, t) => Math.abs(Math.floor((new Date(e).getTime() - new Date(t).getTime()) / (1000 * 60 * 60 * 24)));
+        if ((moment(this.leaveObj.toDate).format('YYYY-MM-DD') ===
+moment(this.leaveObj.fromDate).format('YYYY-MM-DD')) && this.leaveObj.fromDateDayType==0.5 &&   this.leaveObj.toDateDayType == 0.5){
+          this.leaveObj.noOfDays=0.5;
+        }else{
         this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType) - this.holidayWeekOffCount;
+        }
       }
       if (this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)) {
         this.isWeekOffsExcluded = true;
         if (moment(this.leaveObj.fromDate).format(dateFormat) == moment(this.leaveObj.toDate).format(dateFormat)) {
-          this.leaveObj.toDateDayType = 0;
+          if (this.leaveObj.toDateDayType == null) {
+            this.leaveObj.toDateDayType = 0;
+          }
+
         }
 
         const START_DAY_COUNT = 1;
         const diff = (e, t) => Math.abs(Math.floor((new Date(e).getTime() - new Date(t).getTime()) / (1000 * 60 * 60 * 24)));
-        this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType);
+        if ((moment(this.leaveObj.toDate).format('YYYY-MM-DD') ===
+moment(this.leaveObj.fromDate).format('YYYY-MM-DD')) && this.leaveObj.fromDateDayType==0.5 &&   this.leaveObj.toDateDayType == 0.5){
+          this.leaveObj.noOfDays=0.5;
+        }else{
+        this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType) - this.holidayWeekOffCount;
+        }
       }
     } else {
       let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
       if (this.weekOffExcludedDepartmentList.find(deptId => deptId == teamMember.departmentId)) {
         this.isWeekOffsExcluded = true;
         if (moment(this.leaveObj.fromDate).format(dateFormat) == moment(this.leaveObj.toDate).format(dateFormat)) {
-          this.leaveObj.toDateDayType = 0;
+          if (this.leaveObj.toDateDayType == null) {
+            this.leaveObj.toDateDayType = 0;
+          }
         }
 
         const START_DAY_COUNT = 1;
         const diff = (e, t) => Math.abs(Math.floor((new Date(e).getTime() - new Date(t).getTime()) / (1000 * 60 * 60 * 24)));
-        this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType);
+        if ((moment(this.leaveObj.toDate).format('YYYY-MM-DD') ===
+moment(this.leaveObj.fromDate).format('YYYY-MM-DD')) && this.leaveObj.fromDateDayType==0.5 &&   this.leaveObj.toDateDayType == 0.5){
+          this.leaveObj.noOfDays=0.5;
+        }else{
+        this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType) - this.holidayWeekOffCount;
+        }
       } else {
         this.isWeekOffsExcluded = false;
         // get Holiday Count
@@ -998,12 +1044,20 @@ export class LeaveComponent implements OnInit {
         }
 
         if (moment(this.leaveObj.fromDate).format(dateFormat) == moment(this.leaveObj.toDate).format(dateFormat)) {
-          this.leaveObj.toDateDayType = 0;
+            if (this.leaveObj.toDateDayType == null) {
+              this.leaveObj.toDateDayType = 0;
+            }
+
         }
 
         const START_DAY_COUNT = 1;
         const diff = (e, t) => Math.abs(Math.floor((new Date(e).getTime() - new Date(t).getTime()) / (1000 * 60 * 60 * 24)));
+        if ((moment(this.leaveObj.toDate).format('YYYY-MM-DD') ===
+moment(this.leaveObj.fromDate).format('YYYY-MM-DD')) && this.leaveObj.fromDateDayType==0.5 &&   this.leaveObj.toDateDayType == 0.5){
+          this.leaveObj.noOfDays=0.5;
+        }else{
         this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType) - this.holidayWeekOffCount;
+        }
       }
     }
   }

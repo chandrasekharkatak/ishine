@@ -226,7 +226,7 @@ import {MatRadioModule} from '@angular/material/radio';
 import { ToastrModule } from 'ngx-toastr';
 import { MyTableComponent } from './helpers/my-table/my-table.component';
 import { RmgStatusCardsComponent } from './user-team/resource-management/rmg-status-cards/rmg-status-cards/rmg-status-cards.component';
-import { MatMomentDateModule } from '@angular/material-moment-adapter';
+// import { MatMomentDateModule } from '@angular/material-moment-adapter';
 
 registerLocaleData(localeGb);
 
@@ -412,7 +412,7 @@ registerLocaleData(localeGb);
     TeamAllTimesheetsTableComponent,
     TimesheetFormComponent,
     InfoTooltipComponent,
-    RmgProjectComponent
+    RmgProjectComponent,
     MyTableComponent,
     RmgStatusCardsComponent
  
@@ -467,7 +467,7 @@ registerLocaleData(localeGb);
       preventDuplicates: true,
       newestOnTop: true
     }),
-    MatMomentDateModule
+    // MatMomentDateModule
   ],
   providers: [
     DatePipe,

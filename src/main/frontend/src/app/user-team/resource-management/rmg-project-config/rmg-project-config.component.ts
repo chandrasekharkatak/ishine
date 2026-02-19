@@ -28,24 +28,24 @@ import * as moment from 'moment';
 import { firstValueFrom } from 'rxjs';
 import { EmployeeOtherActiveProject } from 'src/app/models/employeeOtherActiveProject';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
-import { MAT_DATE_FORMATS } from '@angular/material/core';
+// import { MAT_DATE_FORMATS } from '@angular/material/core';
 
-export const MY_DATE_FORMATS = {
-	parse: {
-		dateInput: 'MM/DD/YYYY',
-	},
-	display: {
-		dateInput: 'DD/MM/YYYY',
-	},
-};
+// export const MY_DATE_FORMATS = {
+// 	parse: {
+// 		dateInput: 'MM/DD/YYYY',
+// 	},
+// 	display: {
+// 		dateInput: 'DD/MM/YYYY',
+// 	},
+// };
 @Component({
 	standalone: false,
 	selector: 'app-rmg-project-config',
 	templateUrl: './rmg-project-config.component.html',
 	styleUrl: './rmg-project-config.component.css',
-	providers: [
-		{ provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS }
-	]
+	// providers: [
+	// 	{ provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS }
+	// ]
 })
 
 export class RmgProjectComponent implements OnInit {
