@@ -5,9 +5,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -16,10 +18,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeJobRoleDept;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
@@ -29,6 +33,7 @@ import com.apmosys.employeeportal.enums.DayTypeCode;
 import com.apmosys.employeeportal.enums.DayTypeTransition;
 import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
 import com.apmosys.employeeportal.model.DayTypeMasterNew;
+import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeTimesheetLocationMapping;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
@@ -45,6 +50,7 @@ import com.apmosys.employeeportal.service.ActivityTimesheetService;
 import com.apmosys.employeeportal.service.ProjectTimesheetService;
 import com.apmosys.employeeportal.service.TimesheetDocumentServiceNew;
 import com.apmosys.employeeportal.service.TimesheetService;
+import com.apmosys.employeeportal.service.TimesheetServiceNew;
 import com.apmosys.employeeportal.service.helper.TimesheetAggregationHelper;
 import com.apmosys.employeeportal.utility.DateConversionUtil;
 
@@ -85,21 +91,156 @@ public class TimesheetValidationHelper {
     @Autowired
     private HolidayRepository holidayRepository;
     
+    @Autowired
+    TimesheetService timesheetService;
     
+    @Value("${app.team.fullPrivilegeRoleIds:1,13,15,53,78,93,111,115,120,143,144,145,146,152,170,177,178,183,187}")
+    private String fullPrivilegeRoleIdsConfig;
+    
+    
+    /**
+     * Validates employee authorization for creating/updating timesheet.
+     * Uses optimized authorization check that avoids fetching all team members.
+     * 
+     * Authorization logic:
+     * 1. If createdBy == empId → just check user exists and is active
+     * 2. If createdBy != empId → use optimized check (full privilege or shared projects)
+     * 
+     * @param timesheetDTO Timesheet DTO containing empId and createdBy
+     * @throws UnauthorizedAccessException if not authorized
+     */
     public void validateEmployeeAuthorization(EmployeeTimesheetDTO timesheetDTO) {
-        if (!Objects.equals(timesheetDTO.getEmpId(), timesheetDTO.getCreatedBy())) {
-            TimesheetService timesheetService = new TimesheetService();
-            List<EmployeeDTO> teamList = timesheetService.getAllTeamMemberView(timesheetDTO.getCreatedBy());
-            boolean isEmpPresent = teamList.stream()
-                    .anyMatch(emp -> emp.getEmpId() != null && emp.getEmpId().equals(timesheetDTO.getEmpId()));
+        Long empId = timesheetDTO.getEmpId();
+        Long createdBy = timesheetDTO.getCreatedBy();
+        
+        // If same user, just verify the employee exists and is active
+        if (Objects.equals(empId, createdBy)) {
+            if (empId == null) {
+                throw new IllegalArgumentException("Employee ID cannot be null");
+            }
             
-            if (!isEmpPresent) {
-                log.warn("Unauthorized access attempt: empId={}, createdBy={}", 
-                        timesheetDTO.getEmpId(), timesheetDTO.getCreatedBy());
-                throw new UnauthorizedAccessException("Employee not authorized to perform this action");
+            // Check if employee exists
+            if (!employeeRepository.existsByEmpId(empId)) {
+                log.warn("Employee not found: empId={}", empId);
+                throw new UnauthorizedAccessException("Employee not found");
+            }
+            
+            // Check if employee is active
+            Employee employee = employeeRepository.findByEmpId(empId);
+            if (employee == null) {
+                log.warn("Employee not found: empId={}", empId);
+                throw new UnauthorizedAccessException("Employee not found");
+            }
+            
+            if (employee.getEmploymentstatus() != null && 
+                "InActive".equalsIgnoreCase(employee.getEmploymentstatus())) {
+                log.warn("Inactive employee attempting to create/update timesheet: empId={}", empId);
+                throw new UnauthorizedAccessException("Employee is inactive and cannot create/update timesheet");
+            }
+            
+            log.debug("Self-authorization granted: empId={}", empId);
+            return;
+        }
+        
+        // Different user: use optimized authorization check
+        try {
+            isAuthorizedToManageTimesheet(createdBy, empId);
+            log.debug("Authorization granted: createdBy={}, empId={}", createdBy, empId);
+        } catch (UnauthorizedAccessException e) {
+            log.warn("Unauthorized access attempt: empId={}, createdBy={}", empId, createdBy);
+            throw e;
+        }
+    }
+    
+    /**
+     * Optimized authorization check: Returns true if createdBy user is authorized to create/update timesheet for targetEmpId.
+     * This method avoids fetching all team members and instead checks authorization levels efficiently.
+     * 
+     * Authorization logic:
+     * 1. If createdBy has full privilege roles → check if targetEmpId is in those departments → return true if found
+     * 2. If not, check each project type (common team, PM, overhead, team lead/SPOC) → return true if found
+     * 3. If nothing matched → throw UnauthorizedAccessException
+     * 
+     * @param createdBy Employee ID of the user creating/updating the timesheet
+     * @param targetEmpId Employee ID for whom the timesheet is being created/updated
+     * @return true if authorized
+     * @throws UnauthorizedAccessException if not authorized
+     */
+    public boolean isAuthorizedToManageTimesheet(Long createdBy, Long targetEmpId) {
+        if (createdBy == null || targetEmpId == null) {
+            throw new IllegalArgumentException("createdBy and targetEmpId cannot be null");
+        }
+        
+        // If same user, authorization is granted (will be validated separately for active status)
+        if (Objects.equals(createdBy, targetEmpId)) {
+            return true;
+        }
+        
+        // ========== Step 1: Check Full Privilege (Department-based access) ==========
+        List<EmployeeJobRoleDept> roleDeptList = employeeRepository.findRoleDeptByEmpId(createdBy);
+        Set<Long> fullAccessDeptIds = new HashSet<>();
+        Set<Long> fullPrivilegeRoleIds = Arrays.stream(fullPrivilegeRoleIdsConfig.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(Long::parseLong)
+                .collect(Collectors.toSet());
+        
+        for (EmployeeJobRoleDept roleDept : roleDeptList) {
+            if (fullPrivilegeRoleIds.contains(roleDept.getJobRoleId())) {
+                fullAccessDeptIds.add(roleDept.getDepartmentId());
             }
         }
-       }
+        
+        if (!fullAccessDeptIds.isEmpty()) {
+            List<Object[]> deptEmployees = employeeRepository.getAllTeamMemberViewByDepartmentIds(new ArrayList<>(fullAccessDeptIds));
+            for (Object[] obj : deptEmployees) {
+                Long empIdFromResult = obj[0] != null ? Long.parseLong(obj[0].toString()) : null;
+                if (empIdFromResult != null && empIdFromResult.equals(targetEmpId)) {
+                    return true; // Found in department with full privilege access
+                }
+            }
+        }
+        
+        // ========== Step 2: Check Project-based access ==========
+        List<Long> teamProjectIds = employeeRepository.findProjectIdsWhereEmpIsOnTeam(createdBy);
+        if (!teamProjectIds.isEmpty() && isEmployeeInProjects(targetEmpId, teamProjectIds, createdBy)) {
+            return true;
+        }
+        
+        List<Long> pmProjectIds = employeeRepository.findProjectIdsWhereEmpIsProjectManager(createdBy);
+        if (!pmProjectIds.isEmpty() && isEmployeeInProjects(targetEmpId, pmProjectIds, createdBy)) {
+            return true;
+        }
+        
+        List<Long> overheadProjectIds = employeeRepository.findProjectIdsWhereEmpIsOverhead(createdBy);
+        if (!overheadProjectIds.isEmpty() && isEmployeeInProjects(targetEmpId, overheadProjectIds, createdBy)) {
+            return true;
+        }
+        
+        List<Long> leadSpocProjectIds = employeeRepository.findProjectIdsWhereEmpIsTeamLeadOrSpoc(createdBy);
+        if (!leadSpocProjectIds.isEmpty() && isEmployeeInProjects(targetEmpId, leadSpocProjectIds, createdBy)) {
+            return true;
+        }
+        
+        throw new UnauthorizedAccessException("Employee not authorized to perform this action");
+    }
+    
+    /**
+     * Helper: checks if target employee is in the given list of projects.
+     */
+    private boolean isEmployeeInProjects(Long targetEmpId, List<Long> projectIds, Long excludeEmpId) {
+        if (targetEmpId == null || projectIds == null || projectIds.isEmpty()) {
+            return false;
+        }
+        List<Object[]> projectEmployees = employeeRepository.getAllTeamMemberViewByProjectIds(projectIds, excludeEmpId);
+        for (Object[] obj : projectEmployees) {
+            Long empIdFromResult = obj[0] != null ? Long.parseLong(obj[0].toString()) : null;
+            if (empIdFromResult != null && empIdFromResult.equals(targetEmpId)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public void validateNullAndUnexpectedData(EmployeeTimesheetDTO dto) {
 

@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -105,8 +106,6 @@ public class TimesheetServiceNew {
 	@Autowired
 	private ActivityTimesheetService activityTimesheetService;
 
-	@Autowired
-	private TimesheetValidationHelper timesheetValidationHelper;
 
 	@Autowired
 	private DayTypeMasterNewRepository dayTypeMasterNewRepository;
@@ -138,7 +137,6 @@ public class TimesheetServiceNew {
 	@Autowired
 	private TimesheetQueryService timesheetQueryService;
 
-
 	@Autowired
 	EmployeeAssignmentValidationService employeeAssignmentValidationService;
 
@@ -151,9 +149,12 @@ public class TimesheetServiceNew {
 	 @Autowired
 	 private TimesheetDashboardService timesheetDashboardService;
 
-	@Autowired
+		@Autowired
 	private TimesheetDashboardServiceNew timesheetDashboardServiceNew;
 
+		@Autowired
+	 TimesheetValidationHelper timesheetValidationHelper;
+	 
 	@Value("${timesheet.minus.days.for.bulk.upload}")
 	private Integer minusDays;
 
@@ -363,6 +364,7 @@ public class TimesheetServiceNew {
 			response.setServiceError(e.getMessage());
 
 		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Validation failed: " + e.getMessage());
 			response.setServiceError(e.getMessage());
@@ -1443,7 +1445,6 @@ public class TimesheetServiceNew {
 	 * @return ServiceResponse with EmployeeTimesheetDTO or null (no template)
 	 */
 	public ServiceResponse getAutofillTimesheetTemplate(Long empId, LocalDate targetDate) {
-
 		ServiceResponse response = new ServiceResponse();
 
 		if (empId == null || targetDate == null) {
@@ -2399,6 +2400,5 @@ public class TimesheetServiceNew {
 	 {
 		 return timesheetDashboardService.getProjectViewForClientAttendanceStatus(timesheetDTO);
 	 }
-	
 
 }

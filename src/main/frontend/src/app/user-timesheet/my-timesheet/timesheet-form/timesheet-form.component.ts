@@ -1490,31 +1490,39 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
 
   /**
    * Handle team member selection
-   * Load available timesheets for selected team member
+   * When user selects a different team member, form is reset so previous member's
+   * projects/activities/locations are not shown (different member may have different assignments).
    */
-  appelectMember:any;
+  appelectMember: any;
   onTeamMemberSelect(teamMemberOrId: any): void {
     // app-my-select emits only the value (empId), not the full object
-    // So we need to look up the full object from teamMemberList if we received just an ID
     let teamMember: any = null;
-    
+
     if (teamMemberOrId && typeof teamMemberOrId === 'object' && teamMemberOrId.empId) {
-      // Already a full object
       teamMember = teamMemberOrId;
     } else if (teamMemberOrId != null && this.teamMemberList && this.teamMemberList.length > 0) {
-      // It's just an ID (number), look up the full object from teamMemberList
       teamMember = this.teamMemberList.find(emp => emp.empId === teamMemberOrId || emp.empId === Number(teamMemberOrId));
     }
-    
-    if (teamMember && teamMember.empId) {
-      this.timesheetFilledForUser.empId = teamMember.empId;
-      this.timesheetFilledForUser.name = teamMember.name;
-      this.selectedTeamMember = teamMember;
-      this.getTimesheetMetadata();
-      // Load available timesheets for date filtering
-      if (this.serverDate) {
-        this.getAllAvailableTimesheetByEmpId(this.timesheetFilledForUser);
-      }
+
+    if (!teamMember || !teamMember.empId) {
+      return;
+    }
+
+    const previousEmpId = this.timesheetFilledForUser?.empId ?? null;
+    const newEmpId = teamMember.empId;
+    const isDifferentMember = previousEmpId != null && Number(previousEmpId) !== Number(newEmpId);
+
+    if (isDifferentMember && !this.isUpdation) {
+      // Reset form so we don't show previous member's projects/activities/locations
+      this.resetForm();
+    }
+
+    this.timesheetFilledForUser.empId = teamMember.empId;
+    this.timesheetFilledForUser.name = teamMember.name;
+    this.selectedTeamMember = teamMember;
+    this.getTimesheetMetadata();
+    if (this.serverDate) {
+      this.getAllAvailableTimesheetByEmpId(this.timesheetFilledForUser);
     }
   }
 
