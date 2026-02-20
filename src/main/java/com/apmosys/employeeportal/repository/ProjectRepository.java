@@ -7044,8 +7044,8 @@ public List<Object[]> getProjectWithCliendSideID(@Param("emp_id") Long emp_id);
 + " select * from in_active_projects \n"
 + ") all_projects \n"
 + "where project_type = :projectType\n"
-+ "and (dept_id in :deptIds) \n"
-+ "and (client_id in :clientIds)" , nativeQuery = true)
++ "and (:deptIds IS NULL OR dept_id IN (:deptIds)) \n"
++ "and (:clientIds IS NULL OR client_id IN (:clientIds)) \n" , nativeQuery = true)
 List<Object[]> getClientAndProjectDataList(
 @Param("projectType") String projectType,
 @Param("deptIds") List<Long> deptIds,
