@@ -142,8 +142,7 @@ public class ProjectTimesheetService {
 
         // Calculate project totals
         aggregationHelper.calculateAndSetProjectTimesheetTotals(dto);
-
-        // Update fields
+        entity.setStatus(TimesheetAggregationHelper.STATUS_PENDING);      // Update fields
         entity.setPoNo(dto.getPoNo());
         entity.setClientApprovalStatus(dto.getClientApprovalStatus());
         entity.setShadowEmpId(dto.getShadowEmpId());
@@ -166,7 +165,7 @@ public class ProjectTimesheetService {
         if (dto.getLocationMappingId() != null) {
             entity.getId().setLocationMappingId(dto.getLocationMappingId());
         }
-
+        
         return projectTimesheetStatusNewRepository.save(entity);
     }
 

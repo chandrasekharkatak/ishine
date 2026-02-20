@@ -1386,7 +1386,7 @@ public class TimesheetServiceNew {
 
 			LocationSessionDTO locationSession = new LocationSessionDTO();
 
-			// Work location type (code)
+			locationSession.setLocationMappingId(locationMapping.getLocationMappingId());	// Work location type (code)
 			locationSession.setWorkLocationTypeId(locationMapping.getLocationTypeId());
 
 			// Location in/out time (string format as per contract)

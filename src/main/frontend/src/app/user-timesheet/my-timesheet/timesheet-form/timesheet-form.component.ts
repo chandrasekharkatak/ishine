@@ -3677,7 +3677,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
 
       this.timesheetLocations.push(location);
     });
-
+    console.log(this.timesheetLocations,"timesheetLocations");
     // 6. Populate Documents (if any)
     if (timesheetData.documentData) {
       this.populateDocuments(timesheetData.documentData);
@@ -4103,8 +4103,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       });
     }
 
+    console.log(this.timesheetLocations,'timesheetLocations before API formatting');
     const dataSet: LocationEntry[] = structuredClone(this.timesheetLocations);
-
+    console.log(dataSet,"dataSet before formatting for API");
     // ✅ MODERATE FIX: Add null checks for empId
     const targetEmpId = this.timesheetAppliedFor?.toLowerCase() === 'self'
       ? this.currentUser?.empId
@@ -4137,7 +4138,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       locationSessions: dataSet,
       documentData: this.documentData
     };
-
+    console.log(this.createOrUpdateObj.locationSessions,"createOrUpdateObj.locationSessions");
     // API expects durationMinutes in minutes; form stores hours
     this.convertActivityDurationsToMinutesForApi(this.createOrUpdateObj.locationSessions);
     // Format location and project data (same as create)

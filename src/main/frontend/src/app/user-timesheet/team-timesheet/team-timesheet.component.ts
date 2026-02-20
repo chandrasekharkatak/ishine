@@ -3151,6 +3151,10 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
     }
   ];
 
+  if (this.projectList.length === 1) {
+    this.rejectEntries[0].projectIds = [this.projectList[0].projectId];
+  }
+
   console.log("Project List →", this.projectList);
 
   this.modalRef = this.modalService.open(template, {
