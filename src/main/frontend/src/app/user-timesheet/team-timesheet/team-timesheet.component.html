@@ -901,17 +901,31 @@
 
 <!-- Document View Modal -->
 <ng-template #documentViewerModal>
-  <div class="doc-modal-lg">
+  <div class="doc-modal-lg doc-modal-enterprise">
     <div class="doc-header">
-      <h5>Documents</h5> <button class="close-btn" (click)="modalRef.close()">✖</button>
+      <div class="doc-header-inner">
+        <i class="fas fa-file-alt doc-header-icon" aria-hidden="true"></i>
+        <div>
+          <h5 class="doc-header-title">Document preview</h5>
+          <p class="doc-header-subtitle">Select a project and document type to view</p>
+        </div>
+      </div>
+      <button type="button" class="doc-close-btn" (click)="modalRef.close()" aria-label="Close">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
-      <div class="doc-body">
-        <div class="doc-left">
-          <table class="project-table">
+    <div class="doc-body">
+      <div class="doc-left">
+        <div class="doc-panel-title">
+          <i class="fas fa-briefcase"></i>
+          <span>Projects</span>
+        </div>
+        <div class="doc-table-wrap">
+          <table class="project-table doc-project-table">
             <thead>
               <tr>
-                <th>#</th>
-                <th>Project Name</th>
+                <th>Sr No</th>
+                <th>Project name</th>
                 <th>Docs</th>
                 <th>Filled</th>
                 <th>Approved</th>
@@ -919,111 +933,91 @@
             </thead>
             <tbody>
               <tr *ngFor="let p of getUniqueProjectsFromTimesheet(selectedTimesheet); let i = index"
-                [class.active]="p === activeDocProject" (click)="selectProjectForDoc(p)">
+                  [class.active]="p === activeDocProject" (click)="selectProjectForDoc(p)">
                 <td>{{ i + 1 }}</td>
-                <td class="project-name">{{ p.projectName }}</td>
-                  <td class="count">{{ getTotalDocCount(p.projectId) }}</td>
-                 <td>
-  <span class="badge filled"
-        [class.disabled]="!hasPendingDoc(p.projectId) && !hasApprovedDoc(p.projectId)">
-
-
-    <small *ngIf="getFilledStatus(p.projectId)">
-      ({{ getFilledStatus(p.projectId) }})
-    </small>
-
-  </span>
-</td>
-
-                  <td> <span class="badge approved" [class.disabled]="!hasApprovedDoc(p.projectId)"> Approved </span>
-                  </td>
+                <td class="doc-project-name" [title]="p.projectName">{{ p.projectName }}</td>
+                <td class="count">{{ getTotalDocCount(p.projectId) }}</td>
+                <td>
+                  <span class="badge filled" [class.disabled]="!hasPendingDoc(p.projectId) && !hasApprovedDoc(p.projectId)">
+                    Filled <small *ngIf="getFilledStatus(p.projectId)">({{ getFilledStatus(p.projectId) }})</small>
+                  </span>
+                </td>
+                <td>
+                  <span class="badge approved" [class.disabled]="!hasApprovedDoc(p.projectId)">Approved</span>
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
-        <!-- <div class="doc-right">
-          <div class="doc-toggle"> <button [class.active]="activeDocType === 'Pending'"
-              (click)="switchDocType('Pending')" [disabled]="!hasPendingDoc(activeDocProject?.projectId)"> Pending
-            </button> <button [class.active]="activeDocType === 'Approved'" (click)="switchDocType('Approved')"
-              [disabled]="!hasApprovedDoc(activeDocProject?.projectId)"> Approved </button> </div>
-          <div class="doc-preview"> <iframe [src]="safePdfUrl" width="100%" height="100%" frameborder="0"> </iframe>
+      </div>
+      <div class="doc-right">
+        <div class="doc-panel-title doc-panel-title-right">
+          <i class="fas fa-file-pdf"></i>
+          <span>Preview</span>
+          <div class="doc-toggle">
+            <button type="button" [class.active]="activeDocType === 'Pending'" (click)="switchDocType('Pending')"
+                    [disabled]="!hasPendingDoc(activeDocProject?.projectId)">
+              <i class="fas fa-clock"></i> Filled
+            </button>
+            <button type="button" [class.active]="activeDocType === 'Approved'" (click)="switchDocType('Approved')"
+                    [disabled]="!hasApprovedDoc(activeDocProject?.projectId)">
+              <i class="fas fa-check-circle"></i> Approved
+            </button>
           </div>
-        </div> -->
-        <div class="doc-right">
-
-  <div class="doc-toggle">
-
-  <button *ngIf="activeDocType === 'Pending'" (click)="switchDocType('Approved')">Pending</button>
-
-    <button *ngIf="activeDocType === 'Approved'" (click)="switchDocType('Pending')"> Approved</button>
-
-  </div>
-
- <div class="doc-preview">
-
-
-  <iframe
-    *ngIf="safePdfUrl"
-    [src]="safePdfUrl"
-    width="100%"
-    height="100%"
-    frameborder="0">
-  </iframe>
-
-
-  <div *ngIf="!safePdfUrl" class="no-doc-msg">
-    No document available
-  </div>
-
-</div>
-
-
-</div>
-
+        </div>
+        <div class="doc-preview">
+          <iframe *ngIf="safePdfUrl" [src]="safePdfUrl" width="100%" height="100%" frameborder="0" title="Document preview"></iframe>
+          <div *ngIf="!safePdfUrl" class="no-doc-msg">
+            <i class="fas fa-file-alt no-doc-icon"></i>
+            <p class="no-doc-title">No document available</p>
+            <p class="no-doc-hint">Select a project and document type above</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </ng-template>
 
 <ng-template #documentViewerModalToggle>
-  <div class="doc-modal-lg">
+  <div class="doc-modal-lg doc-modal-enterprise">
     <div class="doc-header">
-      <h5>Documents</h5>
-      <button class="close-btn" (click)="modalRef.close()">✖</button>
-    </div>
-
-    <div class="doc-body doc-body-full">
-
-      <div class="doc-right">
-
-        <div class="doc-toggle" *ngIf="isToggleMode">
-          <button
-            [class.active]="activeDocType === 'Pending'"
-            (click)="activeDocType='Pending'; loadActiveDocument()">
-            Pending
-          </button>
-
-          <button
-            [class.active]="activeDocType === 'Approved'"
-            (click)="activeDocType='Approved'; loadActiveDocument()">
-            Approved
-          </button>
+      <div class="doc-header-inner">
+        <i class="fas fa-file-alt doc-header-icon" aria-hidden="true"></i>
+        <div>
+          <h5 class="doc-header-title">Document preview</h5>
+          <p class="doc-header-subtitle">View document</p>
         </div>
-
-        <div class="doc-preview">
-          <iframe *ngIf="safePdfUrl"
-                  [src]="safePdfUrl"
-                  width="100%"
-                  height="100%"
-                  frameborder="0">
-          </iframe>
-
-          <div *ngIf="!safePdfUrl" class="no-doc-msg">
-            No document available
+      </div>
+      <button type="button" class="doc-close-btn" (click)="modalRef.close()" aria-label="Close">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="doc-body doc-body-full">
+      <div class="doc-right">
+        <div class="doc-panel-title doc-panel-title-right" *ngIf="isToggleMode">
+          <i class="fas fa-file-pdf"></i>
+          <span>Preview</span>
+          <div class="doc-toggle">
+            <button type="button" [class.active]="activeDocType === 'Pending'" (click)="activeDocType='Pending'; loadActiveDocument()">
+              <i class="fas fa-clock"></i> Pending
+            </button>
+            <button type="button" [class.active]="activeDocType === 'Approved'" (click)="activeDocType='Approved'; loadActiveDocument()">
+              <i class="fas fa-check-circle"></i> Approved
+            </button>
           </div>
         </div>
-
+        <div class="doc-panel-title doc-panel-title-right" *ngIf="!isToggleMode">
+          <i class="fas fa-file-pdf"></i>
+          <span>Preview</span>
+        </div>
+        <div class="doc-preview">
+          <iframe *ngIf="safePdfUrl" [src]="safePdfUrl" width="100%" height="100%" frameborder="0" title="Document preview"></iframe>
+          <div *ngIf="!safePdfUrl" class="no-doc-msg">
+            <i class="fas fa-file-alt no-doc-icon"></i>
+            <p class="no-doc-title">No document available</p>
+          </div>
+        </div>
       </div>
-
     </div>
   </div>
 </ng-template>
