@@ -29,4 +29,5 @@ public class UserTrainingDTO {
 	private Date lastCompletedOn;
 	private Integer skipCount;
 	private Boolean hasQuiz;
+	private Boolean quizAttempted;
 }

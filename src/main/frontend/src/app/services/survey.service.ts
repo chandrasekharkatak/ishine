@@ -54,12 +54,8 @@ export class SurveyService {
         return this.http.post(`${this.baseUrl}` + `api/getAnsweredSurveysByEmpId`, surveyObj);
     }
 
-    getSurveyResponseByEmpIdAndSurveyId(surveyObj: Survey, isQuizResponse: boolean = false) {
-        let params: any = {};
-        if (isQuizResponse) {
-            params.isQuizResponse = isQuizResponse;
-        }
-        return this.http.post(`${this.baseUrl}` + `api/getSurveyResponseByEmpIdAndSurveyId`, surveyObj, { params });
+    getSurveyResponseByEmpIdAndSurveyId(surveyObj: Survey) {
+        return this.http.post(`${this.baseUrl}` + `api/getSurveyResponseByEmpIdAndSurveyId`, surveyObj);
     }
 
     getSurveyAllResponsesBySurveyId(surveyObj: Survey) {

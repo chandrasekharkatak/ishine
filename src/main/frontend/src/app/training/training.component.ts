@@ -357,6 +357,7 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
         
         // Clear pending training
         this.pendingTraining = null;
+        this.resetQuizView();
         
         // Reload trainings to remove from mandatory list and update lock status
         setTimeout(() => {
@@ -431,7 +432,7 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
       this.openAlert('Training content not available', 'warning');
       return;
     }
-
+    this.showQuizSubmitComponent = false;
     this.viewingTraining = training;
     this.isViewingTraining = true;
     
@@ -570,7 +571,7 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
         }
         clearInterval(this.timerInterval);
       }
-    }, 200);
+    }, 10);
   }
 
   async parsePPTXFile(file: File) {
@@ -956,6 +957,7 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
   closeContentModal(){
     this.modalRef.close();
     this.modalRef = null;
+    this.resetQuizView();
   }
 
   goToQuiz(){
@@ -963,8 +965,7 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onQuizCompleted(event: boolean){
-    console.log("Event after completion: ", event);
-    
+    this.resetQuizView();
     this.showQuizSubmitComponent = false;
     setTimeout(() => {
       this.checkLockStatus();
@@ -982,4 +983,22 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }, 1500);
   }
+
+  resetQuizView(){
+    this.viewingTraining = null;
+    this.isViewingTraining = false;
+    this.previewUrl = '';
+    this.safePreviewUrl = null;
+    this.file = null;
+    this.fileSize = 0;
+    this.pptxSlides = [];
+    this.currentSlideIndex = 0;
+    this.elapsedTime = 0;
+    this.elapsedTimeDisplay = '00:00';
+    this.minTimeReached = false;
+    this.consentButtonEnabled = false;
+    this.quizButtonEnabled = false;
+    this.hasVisitedLink = false;
+  }
+
 }

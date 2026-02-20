@@ -576,6 +576,8 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	                .orElseThrow(() ->
 	                        new RuntimeException("Content not found for update"));
 
+			TrainingContent newTrainingContent = new TrainingContent();
+
 		     String newFilePath=null;
 
 	        /* ===========================
@@ -609,9 +611,9 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		  // CASE 1: Incoming LINK
 		     if ("LINK".equalsIgnoreCase(contentDTO.getContentType())) {
 
-		         existingContent.setContentPath(null);
-		         existingContent.setFileSizeBytes(0L);
-		         existingContent.setMimeType(null);
+		         newTrainingContent.setContentPath(null);
+		         newTrainingContent.setFileSizeBytes(0L);
+		         newTrainingContent.setMimeType(null);
 		     }
 
 		     // CASE 2: Incoming FILE with new upload
@@ -620,26 +622,36 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		         newFilePath = generateTrainingFilePath(
 		                 updatedTraining.getTrainingId(), file);
 
-		         existingContent.setContentPath(newFilePath);
-		         existingContent.setFileSizeBytes(file.getSize());
-		         existingContent.setMimeType(file.getContentType());
+		         newTrainingContent.setContentPath(newFilePath);
+		         newTrainingContent.setFileSizeBytes(file.getSize());
+		         newTrainingContent.setMimeType(file.getContentType());
 		     }
 
 	        /* ===========================
 	           9️⃣ UPDATE CONTENT FIELDS
 	        =========================== */
 
-	        existingContent.setContentType(contentDTO.getContentType());
-	        existingContent.setContentName(contentDTO.getContentName());
-	        existingContent.setExternalLinkUrl(contentDTO.getExternalLinkUrl());
-	        existingContent.setEffectiveFrom(contentDTO.getEffectiveFrom());
-	        existingContent.setEffectiveTo(contentDTO.getEffectiveTo());
+	        newTrainingContent.setContentType(contentDTO.getContentType());
+	        newTrainingContent.setContentName(contentDTO.getContentName());
+	        newTrainingContent.setExternalLinkUrl(contentDTO.getExternalLinkUrl());
+	        newTrainingContent.setEffectiveFrom(contentDTO.getEffectiveFrom());
+	        newTrainingContent.setEffectiveTo(contentDTO.getEffectiveTo());
+			newTrainingContent.setActiveStatus("true");
+			newTrainingContent.setCreatedBy(trainingDTO.getUpdatedBy());
+			newTrainingContent.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+			newTrainingContent.setTrainingMaster(updatedTraining);
 
-	        existingContent.setUpdatedBy(trainingDTO.getUpdatedBy());
-	        existingContent.setUpdatedOn(new Timestamp(System.currentTimeMillis()));
+
+			existingContent.setActiveStatus("false");
+			existingContent.setUpdatedBy(trainingDTO.getUpdatedBy());
+			existingContent.setUpdatedOn(new Timestamp(System.currentTimeMillis()));
+
+	        // newTrainingContent.setUpdatedBy(trainingDTO.getUpdatedBy());
+	        // newTrainingContent.setUpdatedOn(new Timestamp(System.currentTimeMillis()));
 
 	        TrainingContent savedContent =
-	                trainingContentRepository.save(existingContent);
+	                trainingContentRepository.save(newTrainingContent);
+				trainingContentRepository.save(existingContent);
 
 	  
 	        /* ===========================
@@ -671,7 +683,11 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	        response.setServiceMessage(savedContent.getContentId().toString());
 
 	    } catch (Exception e) {
-	        throw new RuntimeException(e.getMessage(), e);
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Training and content update failed");
+			response.setServiceMessage(e.getMessage());
+	        // throw new RuntimeException(e.getMessage(), e);
 	    }
 
 	    return response;

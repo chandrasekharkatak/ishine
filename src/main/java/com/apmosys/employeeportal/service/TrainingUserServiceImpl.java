@@ -38,6 +38,7 @@ import com.apmosys.employeeportal.dto.SurveyQuestionDTO;
 import com.apmosys.employeeportal.dto.TrainingConsentDTO;
 import com.apmosys.employeeportal.dto.TrainingContentDTO;
 import com.apmosys.employeeportal.dto.TrainingFrequencyDTO;
+import com.apmosys.employeeportal.dto.TrainingIdResponsePassStatusDTO;
 import com.apmosys.employeeportal.dto.TrainingMasterDTO;
 import com.apmosys.employeeportal.dto.TrainingSkipDTO;
 import com.apmosys.employeeportal.dto.UserTrainingDTO;
@@ -461,8 +462,8 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 				.findActiveTrainingsWithEffectiveDates("true", List.of("fail","pass", "filled"));
 
 			List<Integer> allTrainingsWithQuiz = employeeQuizResponseStatusMappingRepository.getTrainingIdsHavingQuiz(allActiveTrainings.stream().map(TrainingMaster::getTrainingId).collect(Collectors.toList()));
-			
-			System.out.println("userTrainings "+allActiveTrainings.size());
+
+			List<TrainingIdResponsePassStatusDTO> alreadyAttemptedQuizes = employeeQuizResponseStatusMappingRepository.getTrainingIdsHavingQuizAndEmpId(allTrainingsWithQuiz, empId);
 			
 			List<UserTrainingDTO> userTrainings = new ArrayList<>();
 			
@@ -478,6 +479,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 				userTraining.setSkipAllowed(training.getSkipAllowed());
 				userTraining.setRequiredFrequency(calculateTotalFrequency(training));
 				userTraining.setHasQuiz(allTrainingsWithQuiz.contains(training.getTrainingId()));
+				userTraining.setQuizAttempted(alreadyAttemptedQuizes.stream().anyMatch(e -> e.getTrainingId().equals(training.getTrainingId())));
 				
 				// Calculate completion count
 				int completionCount = countCompletionsInLast12Months(empId, training.getTrainingId());

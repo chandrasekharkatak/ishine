@@ -735,10 +735,17 @@
                     <i class="fas fa-quiz mr-2"></i>
                     Got To Quiz
                 </button>
+                <button type="button" 
+                        class="btn btn-success btn-lg px-5 ml-2"
+                        *ngIf="(viewingTraining.status === 'COMPLETED') && viewingTraining.hasQuiz && viewingTraining.quizAttempted"
+                        (click)="goToQuiz()">
+                    <i class="fas fa-quiz mr-2"></i>
+                    View Quiz Response
+                </button>
             </div>
             </div>
             <div *ngIf="showQuizSubmitComponent">
-              <app-quiz-submit [cycleNumber]="viewingTraining.currentCycleNumber" [contentId]="viewingTraining.content.contentId" [trainingId]="viewingTraining.trainingId" (quizSubmitted)="onQuizCompleted($event)" ></app-quiz-submit>
+              <app-quiz-submit [cycleNumber]="viewingTraining.currentCycleNumber" [contentId]="viewingTraining.content.contentId" [trainingId]="viewingTraining.trainingId" (quizSubmitted)="onQuizCompleted($event)" (closeTrainingView)="closeTrainingView()" [isAlreadySubmitted]="viewingTraining.quizAttempted" ></app-quiz-submit>
             </div>
 
             <!-- Help Text -->

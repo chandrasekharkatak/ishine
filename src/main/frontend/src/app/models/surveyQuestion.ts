@@ -14,4 +14,5 @@ export class SurveyQuestion{
     employmentIdAccToET:any;
     passStatus?: string;
     optionsList:any[]= [];
+    cuttOffQuestions?:number;
 }

@@ -36,4 +36,6 @@ public class SurveyDTO {
     private Boolean mustPassToComplete;
 	private Integer cycleNumber;
 	private Integer cutOffQuestions;
+	private Boolean isQuizResponse;
+	private Boolean isAttendingQuiz;
 }

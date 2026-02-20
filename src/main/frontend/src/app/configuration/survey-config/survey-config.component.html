@@ -49,6 +49,14 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label title="How many question have to be correct to pass the survey" class="info-label">Cut-Off Questions</label>
+                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="surveyObj.cutOffQuestions">
+                        </div>
+                    </div>
+                </div>
             </div>
             <hr>
             <div *ngFor="let question of allSurveyQuestionList; let i = index" class="row" [class.question-input]="allSurveyQuestionList.length>1">
@@ -271,7 +279,7 @@
                             <button class="btn btn-sm btn-outline-primary" type="submit" (click)="onSurveyPreview(survey, preview_template)"><em>Preview</em></button>
 
                             <button *ngIf="survey.isActive == 'false' || survey.type == 'exit'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showSurveyUpdate(survey, alert_message)"><em class="fa fa-edit"></em></button>
-                            <button *ngIf="survey.isActive == 'false'" [matTooltip]="isFromTraining ? 'Deactivate Quiz' : 'Delete Survey'"class="btn btn-sm btn-outline-danger" type="submit" (click)="openDeleteSurveyMod(delete_template, survey)"><em class="fa fa-trash"></em></button>
+                            <button *ngIf="!survey.isActive || survey.isActive == 'false'" [matTooltip]="isFromTraining ? 'Deactivate Quiz' : 'Delete Survey'"class="btn btn-sm btn-outline-danger" type="submit" (click)="openDeleteSurveyMod(delete_template, survey)"><em class="fa fa-trash"></em></button>
                             <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openActivateSurveyMod(activate_template, survey)"><em>Activate</em></button>
 
                             <button *ngIf="survey.isActive == 'true' && !['exit'].includes(survey.type)" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openCompleteSurveyMod(complete_template, survey)"><em>Complete</em></button>

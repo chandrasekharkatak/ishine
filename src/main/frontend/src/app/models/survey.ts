@@ -23,4 +23,11 @@ export class Survey {
     mustPassToComplete?: boolean;
     cycleNumber?: number;
     cutOffQuestions?:number;
+    isQuizResponse?: boolean;
+    isAttendingQuiz?: boolean;
+    correctAnswersCount?: number;
+    passStatus?: string;
+    cutOffQuestion?: number;
+    totalQuestions?: number;
+    correctAnswers?: { [key: string]: string };
 }

@@ -17,7 +17,7 @@ public interface SurveyService {
 
 	ServiceResponse changeSurveyStatus(SurveyDTO surveyDTO);
 
-	ServiceResponse getSurveyResponseByEmpIdAndSurveyId(SurveyDTO surveyDTO, Boolean isQuizResponse);
+	ServiceResponse getSurveyResponseByEmpIdAndSurveyId(SurveyDTO surveyDTO, Boolean isQuizResponse, Boolean isTrainingResponse);
 
 	ServiceResponse getSurveyAllResponsesBySurveyId(SurveyDTO surveyDTO);
 

@@ -103,7 +103,6 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   // File upload
   file: any = null;
   maxFileSize: any;
-  maxRequestSize: any;
   fileSize: number = 0;
 
   // Training types
@@ -147,8 +146,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
 
     this.sectionViewInit();
     this.preventBackButton();
-    this.maxFileSize = parseInt(sessionStorage.maxFileSize || '20');
-    this.maxRequestSize = parseInt(sessionStorage.maxRequestSize || '50');
+    this.maxFileSize = 20;
   }
 
   preventBackButton() {

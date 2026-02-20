@@ -28,5 +28,6 @@ public class SurveyQuestionDTO {
 	private Integer marksObtained;
 	private String passStatus;
 	private String correctAnswer;
+	private Integer cuttOffQuestions;
 
 }

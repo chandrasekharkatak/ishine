@@ -147,17 +147,19 @@ export class UserSurveyComponent implements OnInit {
 
         this.allSurveyList = this.allSurveyList.filter(x => x.type != "exit" && x.isActive == "true");
         if(this.currentSurveyId != null){
-          let currentSurvey = this.allSurveyList.find(x => x.surveyId == this.currentSurveyId);
+          let currentSurvey : Survey = this.allSurveyList.find(x => x.surveyId == this.currentSurveyId);
 
           // Check if user has already taken survey
           currentSurvey.empId = this.currentUser.empId;
+          currentSurvey.isQuizResponse = this.isQuizResponse;
+          // currentSurvey.isAttendingQuiz = false;
           if(this.isEdit){
             this.surveyObj = this.surveyService.getSurveyData();
             this.onViewMyResponse(this.surveyObj);
             this.onTakeSurvey(currentSurvey);
 
           }else {
-            this.surveyService.getSurveyResponseByEmpIdAndSurveyId(currentSurvey, this.isQuizResponse).pipe(first()).subscribe((response: any) => {
+            this.surveyService.getSurveyResponseByEmpIdAndSurveyId(currentSurvey).pipe(first()).subscribe((response: any) => {
               if (response.serviceStatus == "Success") {
                 this.currentSurveyId = null;
                 this.router.navigate(['/user-survey']);
