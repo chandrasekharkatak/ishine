@@ -562,6 +562,9 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	        if (trainingDTO.getActiveStatus() != null)
 	            training.setActiveStatus(trainingDTO.getActiveStatus());
 
+			training.setMinViewTimeMinutes(trainingDTO.getMinViewTimeMinutes());
+			training.setConsentRequired(trainingDTO.getConsentRequired());
+
 	        training.setUpdatedBy(trainingDTO.getUpdatedBy());
 
 	        TrainingMaster updatedTraining =
