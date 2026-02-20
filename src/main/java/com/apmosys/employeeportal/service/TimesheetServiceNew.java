@@ -320,6 +320,7 @@ public class TimesheetServiceNew {
 				timesheetValidationHelper.validateLocationWiseProjectAndActivities(empDTO);
 				// Ensure same project has consistent client approval status across locations
 				timesheetValidationHelper.validateClientApprovalStatusConsistency(empDTO);
+				timesheetValidationHelper.validateShadowConsistencyAcrossLocations(empDTO);
 
 				timesheetValidationHelper.validateDocumentsDTO(empDTO);
 
@@ -375,6 +376,7 @@ public class TimesheetServiceNew {
 			response.setServiceError(e.getMessage());
 
 		} catch (Exception e) {
+			e.printStackTrace();
 			// Clean up any partially uploaded documents on failure
 			cleanupDocumentsOnFailure(documents);
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -935,6 +937,7 @@ public class TimesheetServiceNew {
 				timesheetValidationHelper.validateLocationWiseProjectAndActivities(newEmpDTO);
 				// Ensure same project has consistent client approval status across locations
 				timesheetValidationHelper.validateClientApprovalStatusConsistency(newEmpDTO);
+				timesheetValidationHelper.validateShadowConsistencyAcrossLocations(newEmpDTO);
 				timesheetValidationHelper.validateDocumentsDTO(newEmpDTO);
 				timesheetValidationHelper.validateUploadedDocuments(newEmpDTO, documents, timesheetId);
 				timesheetValidationHelper.validateActivityDurationWithinLocation(newEmpDTO.getLocationSessions());
@@ -946,6 +949,7 @@ public class TimesheetServiceNew {
 				timesheetValidationHelper.validateLocationWiseProjectAndActivities(newEmpDTO);
 				// Ensure same project has consistent client approval status across locations
 				timesheetValidationHelper.validateClientApprovalStatusConsistency(newEmpDTO);
+				timesheetValidationHelper.validateShadowConsistencyAcrossLocations(newEmpDTO);
 				timesheetValidationHelper.validateDocumentsDTO(newEmpDTO);
 				timesheetValidationHelper.validateUploadedDocuments(newEmpDTO, documents, timesheetId);
 				timesheetValidationHelper.validateActivityDurationWithinLocation(newEmpDTO.getLocationSessions());
@@ -1398,18 +1402,22 @@ public class TimesheetServiceNew {
 					? locationMapping.getLocationOutTime().toLocalTime().toString()
 					: null);
 
-			// 4️⃣ Fetch projects (TEMP: until locationMappingId is added to project table)
-			List<ProjectTimesheetDTO> projects = projectTimesheetService.findByTimesheetId(timesheetId);
+			// 4️⃣ Fetch projects for THIS location only (by locationMappingId) to avoid duplicate projects per location
+			Long locationMappingId = locationMapping.getLocationMappingId();
+			List<ProjectTimesheetDTO> projects = projectTimesheetService
+					.findByTimesheetIdAndLocationMappingId(timesheetId, locationMappingId);
 
 			List<ProjectTimesheetDTO> mappedProjects = new ArrayList<>();
 
 			for (ProjectTimesheetDTO projectDTO : projects) {
 
-				// 5️⃣ Fetch activities
+				// 5️⃣ Fetch activities for this project under THIS location only (by locationMappingId)
 				List<ActivityTimesheetDTO> activities = activityTimesheetService
-						.findByTimesheetIdAndProjectId(timesheetId, projectDTO.getProjectId());
+						.findByTimesheetIdAndLocationMappingIdAndProjectId(timesheetId, locationMappingId,
+								projectDTO.getProjectId());
 
 				projectDTO.setActivities(activities);
+				projectDTO.setLocationMappingId(locationMappingId);
 				mappedProjects.add(projectDTO);
 			}
 

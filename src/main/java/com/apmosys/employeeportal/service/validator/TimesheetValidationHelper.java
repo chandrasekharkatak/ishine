@@ -443,6 +443,8 @@ public class TimesheetValidationHelper {
 
         		for (ProjectTimesheetDTO project : location.getProjects()) {
         			if (project.getProjectId() == null) continue;
+        			// Skip client approval validation when Shadow for self is selected
+        			if (Boolean.TRUE.equals(project.getIsShadowForSelf())) continue;
         			if (project.getClientSideId() == null || project.getClientSideId().trim().isEmpty()) continue;
 
         			Integer status = project.getClientApprovalStatus();
@@ -457,6 +459,55 @@ public class TimesheetValidationHelper {
         						"Client DSR Approval Status must be same for all locations of the same project.");
         			}
         		}
+        	}
+        }
+
+        /**
+         * Ensure that for a given timesheet, the same project (projectId) has the same shadow option
+         * (isShadowTimesheet, isShadowForSelf, shadowEmpId) across all locations.
+         * If the same project appears in multiple locations (e.g. Apmosys Office and Work from Home),
+         * shadow choice must be identical.
+         */
+        public void validateShadowConsistencyAcrossLocations(EmployeeTimesheetDTO empDTO) {
+        	if (empDTO == null || empDTO.getLocationSessions() == null || empDTO.getLocationSessions().isEmpty()) {
+        		return;
+        	}
+        	if (!isWorkingDay(empDTO)) {
+        		return;
+        	}
+        	// key: projectId, value: { isShadowTimesheet, isShadowForSelf, shadowEmpId }
+        	Map<Integer, ShadowState> shadowByProject = new HashMap<>();
+        	for (LocationSessionDTO location : empDTO.getLocationSessions()) {
+        		if (location.getProjects() == null) continue;
+        		for (ProjectTimesheetDTO project : location.getProjects()) {
+        			if (project.getProjectId() == null) continue;
+        			Integer projId = project.getProjectId();
+        			boolean isShadow = Boolean.TRUE.equals(project.getIsShadowTimesheet());
+        			boolean isShadowForSelf = Boolean.TRUE.equals(project.getIsShadowForSelf());
+        			Long shadowEmpId = project.getShadowEmpId();
+        			ShadowState existing = shadowByProject.get(projId);
+        			if (existing == null) {
+        				shadowByProject.put(projId, new ShadowState(isShadow, isShadowForSelf, shadowEmpId));
+        			} else {
+        				boolean sameEmp = (existing.shadowEmpId == null && shadowEmpId == null)
+        					|| (existing.shadowEmpId != null && existing.shadowEmpId.equals(shadowEmpId));
+        				if (existing.isShadowTimesheet != isShadow || existing.isShadowForSelf != isShadowForSelf || !sameEmp) {
+        					throw new IllegalArgumentException(
+        						"Shadow option (Shadow timesheet / Shadow for self / Shadow for) must be the same for the same project across all locations.");
+        				}
+        			}
+        		}
+        	}
+        }
+
+        private static class ShadowState {
+        	final boolean isShadowTimesheet;
+        	final boolean isShadowForSelf;
+        	final Long shadowEmpId;
+        	ShadowState(boolean isShadowTimesheet, boolean isShadowForSelf, Long shadowEmpId) {
+        		this.isShadowTimesheet = isShadowTimesheet;
+        		this.isShadowForSelf = isShadowForSelf;
+        		this.shadowEmpId = shadowEmpId;
         	}
         }
 
