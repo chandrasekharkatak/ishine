@@ -1063,17 +1063,18 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     const dayTypeFillable = this.isDayTypeFillable();
-
-    if (!dayTypeFillable) {
-      // Switching to non-fillable: clear previous filled data and set up default location + one project
-      this.clearAndInitForNonFillableDayType();
-    } else {
-      // Switching to fillable: allow user to choose location type freely
-      this.timesheetLocations.forEach(loc => {
-        loc.workLocationTypeId = null;
-        this.disableAdd = false;
-      });
-    }
+    this.clearAndInitOnDayTypeChange(dayTypeFillable);
+    // if (!dayTypeFillable) {
+    //   // Switching to non-fillable: clear previous filled data and set up default location + one project
+    //   this.clearAndInitForNonFillableDayType();
+    // } else {
+    //   // Switching to fillable: allow user to choose location type freely
+    //   // this.timesheetLocations.forEach(loc => {
+    //   //   loc.workLocationTypeId = null;
+    //   //   this.disableAdd = false;
+    //   // });
+    //   this.resetForm();
+    // }
 
     this.getListToRenderUpload();
 
@@ -1277,7 +1278,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    * - Replace locations with one location with default work location (e.g. 4 -> NA)
    * - One project per location with project list from activeProjectList; user only fills description
    */
-  private clearAndInitForNonFillableDayType(): void {
+  private clearAndInitOnDayTypeChange(isDayTypeFillable:any): void {
     // Clear presence and attendance time (not used for non-fillable)
     this.apmosysInTime = null;
     this.apmosysOutTime = null;
@@ -1317,7 +1318,12 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       proj.projectList = uniqueProjects;
     });
 
-    this.disableAdd = true;
+    if(isDayTypeFillable){
+     this.disableAdd = false;
+    }else{
+      this.disableAdd = true;
+    }
+    
     this.expandedLocationIndex = 0;
     this.expandedProjectIndexMap = { 0: 0 };
     
@@ -2433,12 +2439,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   /** Apply date change: clear date-dependent form state, recalc hours, load projects. */
   applyChanges(): void {
     this.resetDateDependentFormState();
-    
-    // For non-fillable day types: re-initialize with default location after reset
-    if (!this.isDayTypeFillable()) {
-      this.clearAndInitForNonFillableDayType();
-    }
-    
+    this.clearAndInitOnDayTypeChange(this.isDayTypeFillable());
     this.calculateTotalWorkingHours();
     this.getProjectListForDateAndEmpId().catch(error => {
       console.error('Error loading projects:', error);

@@ -376,6 +376,7 @@ public class TimesheetServiceNew {
 			response.setServiceError(e.getMessage());
 
 		} catch (Exception e) {
+			e.printStackTrace();
 			// Clean up any partially uploaded documents on failure
 			cleanupDocumentsOnFailure(documents);
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
