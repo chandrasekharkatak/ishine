@@ -260,7 +260,7 @@ th {
     transform: scale(1.05);
   }
 
-  /* ACCORDION */
+  /* ACCORDION - Timesheet → Location → Project → Activity (aligned with my-timesheet) */
   .accordion-cell {
     background: #f8fafc;
     padding: 12px;
@@ -268,13 +268,36 @@ th {
     z-index: 1;
   }
 
-  /* LOCATION */
+  .timesheet-details-accordion {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-top: 2px solid #dee2e6;
+  }
+
+  /* LOCATION CARD */
   .location-card {
     background: #ffffff;
-    border-radius: 10px;
+    border-radius: 8px;
     border: 1px solid #e2e8f0;
     margin-bottom: 12px;
     overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  }
+
+  .location-card-header {
+    background-color: #e3f2fd;
+    padding: 12px 15px;
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .location-card-header:hover {
+    background-color: #bbdefb;
+  }
+
+  .location-card-body {
+    padding: 10px 15px;
+    background-color: #ffffff;
   }
 
   .location-header {
@@ -291,9 +314,35 @@ th {
     font-size: 12px;
   }
 
-  /* PROJECT */
+  /* PROJECT CARD (nested under location) */
   .project-card {
-    border-top: 1px dashed #e2e8f0;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    overflow: hidden;
+    background: #fafafa;
+  }
+
+  .project-card-header {
+    background-color: #fafafa;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .project-card-header:hover {
+    background-color: #f0f0f0;
+  }
+
+  .project-card-header.expanded {
+    background-color: #e8eaf6;
+    border-bottom: 2px solid #3f51b5;
+  }
+
+  .project-card-body {
+    padding: 8px 12px;
+    background-color: #ffffff;
   }
 
   .project-header {
@@ -317,17 +366,36 @@ th {
     color: #64748b;
   }
 
-  /* ACTIVITY TABLE */
+  /* ACTIVITY LIST (aligned with my-timesheet hierarchy) */
+  .activity-list {
+    padding-left: 10px;
+  }
+
+  .activity-item {
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    background-color: #f9f9f9;
+    border-left: 3px solid #4caf50;
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+  }
+
+  .activity-item:hover {
+    background-color: #f0f0f0;
+  }
+
+  .activity-description {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+
   .activity-wrapper {
     padding: 12px;
     background: #ffffff;
-    color : linear-gradient(135deg, #667eea, #764ba2);
-
   }
-  /* .activity-table-header{
-    background-color: linear-gradient(135deg, #667eea, #764ba2);
-    color:white;
-  } */
+
   .activity-table {
     width: 100%;
     font-size: 12px;
@@ -3642,6 +3710,513 @@ tr[app-column-filter-bar] .clear-filter:hover {
   ::ng-deep .modal-header,  
   ::ng-deep .modal-footer {
     padding: 16px 20px;
+  }
+}
+
+/* ================================
+   ENTERPRISE UX – Timesheets Request
+================================ */
+
+/* Page header card */
+.ts-page-header-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.ts-page-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ts-page-title-block {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ts-page-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1e3a5f 0%, #2d4a6f 100%);
+  color: #fff;
+  font-size: 1.25rem;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.ts-page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
+}
+
+.ts-page-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Status cards – enterprise */
+/* Status section – enterprise panel */
+.ts-status-section {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.ts-status-section-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.ts-status-section-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #1e293b;
+  letter-spacing: -0.01em;
+}
+
+.ts-status-section-desc {
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+/* Status cards row */
+.ts-status-cards {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.ts-status-card {
+  flex: 1 1 0;
+  min-width: 180px;
+  max-width: 320px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.22s ease;
+  background: #fafbfc;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  position: relative;
+  outline: none;
+}
+
+.ts-status-card:hover {
+  background: #fff;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.ts-status-card:focus-visible {
+  outline: 2px solid #1e3a5f;
+  outline-offset: 2px;
+}
+
+.ts-status-card.active {
+  background: #fff;
+  border-color: #1e3a5f;
+  border-width: 2px;
+  box-shadow: 0 4px 14px rgba(30, 58, 95, 0.12);
+}
+
+/* Card icon circle */
+.ts-status-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.125rem;
+}
+
+.ts-status-icon-pending {
+  background: rgba(245, 158, 11, 0.12);
+  color: #b45309;
+}
+
+.ts-status-card.pending.active .ts-status-card-icon {
+  background: #f59e0b;
+  color: #fff;
+}
+
+.ts-status-icon-approved {
+  background: rgba(5, 150, 105, 0.12);
+  color: #047857;
+}
+
+.ts-status-card.approved.active .ts-status-card-icon {
+  background: #059669;
+  color: #fff;
+}
+
+.ts-status-icon-rejected {
+  background: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+}
+
+.ts-status-card.rejected.active .ts-status-card-icon {
+  background: #dc2626;
+  color: #fff;
+}
+
+/* Card content */
+.ts-status-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ts-status-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.045em;
+  color: #64748b;
+}
+
+.ts-status-card.active .ts-status-label {
+  color: #1e293b;
+}
+
+.ts-status-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.ts-status-card.active .ts-status-value {
+  color: #1e3a5f;
+}
+
+/* Selected checkmark (visible when active) */
+.ts-status-card-check {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #1e3a5f;
+  color: #fff;
+  font-size: 0.625rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.8);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.ts-status-card.active .ts-status-card-check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Toolbar card */
+.ts-toolbar-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px 20px;
+  margin-bottom: 16px;
+}
+
+.ts-toolbar-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.ts-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #475569;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ts-toolbar-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #1e293b;
+}
+
+.ts-toolbar-btn.active {
+  background: #1e3a5f;
+  border-color: #1e3a5f;
+  color: #fff;
+}
+
+.ts-toolbar-btn-label {
+  display: none;
+}
+
+@media (min-width: 576px) {
+  .ts-toolbar-btn-label { display: inline; }
+}
+
+.ts-toolbar-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ts-toolbar-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #475569;
+  margin: 0;
+}
+
+.ts-toolbar-select {
+  min-width: 220px;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 0.875rem;
+  color: #1e293b;
+  cursor: pointer;
+}
+
+.ts-toolbar-select:hover,
+.ts-toolbar-select:focus {
+  border-color: #64748b;
+  outline: none;
+}
+
+.ts-toolbar-export {
+  margin-left: auto;
+  color: #059669;
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+}
+
+.ts-toolbar-export:hover {
+  background: #d1fae5;
+  border-color: #6ee7b7;
+  color: #047857;
+}
+
+/* Pagination bar */
+.ts-pagination-bar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.ts-total-count {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.ts-total-count strong {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+/* Table card */
+.ts-table-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+/* Table header – enterprise */
+.timesheet-table.ts-data-table .ts-thead tr:first-child th {
+  background: #1e3a5f;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 14px 12px;
+  border: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.timesheet-table.ts-data-table .ts-thead tr:first-child th:last-child {
+  border-right: none;
+}
+
+.timesheet-table.ts-data-table .ts-thead tr:first-child th:first-child {
+  border-top-left-radius: 10px;
+}
+
+.timesheet-table.ts-data-table .ts-thead tr:first-child th:last-child {
+  border-top-right-radius: 10px;
+}
+
+.timesheet-table.ts-data-table .ts-thead tr:nth-child(2) th {
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.8125rem;
+  padding: 10px 12px;
+  border-right: 1px solid #e2e8f0;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* Action buttons – enterprise */
+.ts-actions-cell {
+  white-space: nowrap;
+  text-align: center;
+}
+
+.ts-action-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 3px;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.ts-doc-btn {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.ts-doc-btn:hover {
+  background: #d1fae5;
+  color: #047857;
+  transform: translateY(-1px);
+}
+
+.ts-approve-btn {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.ts-approve-btn:hover {
+  background: #bfdbfe;
+  color: #1e40af;
+  transform: translateY(-1px);
+}
+
+.ts-reject-btn {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.ts-reject-btn:hover {
+  background: #fecaca;
+  color: #b91c1c;
+  transform: translateY(-1px);
+}
+
+/* Bulk action bar – enterprise */
+.bulk-actions-fixed .ts-bulk-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bulk-actions-fixed .ts-bulk-approve {
+  background: #059669;
+  color: #fff;
+}
+
+.bulk-actions-fixed .ts-bulk-approve:hover {
+  background: #047857;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
+}
+
+.bulk-actions-fixed .ts-bulk-clear {
+  padding: 10px 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.bulk-actions-fixed .ts-bulk-clear:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+  border-color: #cbd5e1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ts-status-section {
+    padding: 16px 18px;
+  }
+  .ts-status-section-header {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .ts-status-cards {
+    flex-direction: column;
+  }
+  .ts-status-card {
+    max-width: none;
+  }
+  .ts-toolbar-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .ts-toolbar-export {
+    margin-left: 0;
   }
 }
 
