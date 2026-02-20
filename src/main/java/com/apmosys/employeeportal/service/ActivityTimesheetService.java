@@ -124,6 +124,29 @@ public class ActivityTimesheetService {
     }
 
     /**
+     * Find all activities for a timesheet, location and project (for edit response so each location gets only its activities).
+     *
+     * @param timesheetId       Timesheet ID
+     * @param locationMappingId Location mapping ID
+     * @param projectId         Project ID
+     * @return List of ActivityTimesheetDTO
+     */
+    public List<ActivityTimesheetDTO> findByTimesheetIdAndLocationMappingIdAndProjectId(Long timesheetId,
+                                                                                         Long locationMappingId,
+                                                                                         Integer projectId) {
+        if (timesheetId == null || locationMappingId == null || projectId == null) {
+            return List.of();
+        }
+
+        List<EmployeeTimesheetActivitiesMappingNew> entities = timesheetActivityMapNewRepository
+                .findByTimesheetIdAndLocationMappingIdAndProjectId(timesheetId, locationMappingId, projectId);
+
+        return entities.stream()
+                .map(timesheetMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Find Activity by composite key.
      * 
      * @param timesheetId Timesheet ID

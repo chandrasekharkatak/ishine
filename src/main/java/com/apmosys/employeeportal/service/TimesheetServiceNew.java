@@ -1401,18 +1401,22 @@ public class TimesheetServiceNew {
 					? locationMapping.getLocationOutTime().toLocalTime().toString()
 					: null);
 
-			// 4️⃣ Fetch projects (TEMP: until locationMappingId is added to project table)
-			List<ProjectTimesheetDTO> projects = projectTimesheetService.findByTimesheetId(timesheetId);
+			// 4️⃣ Fetch projects for THIS location only (by locationMappingId) to avoid duplicate projects per location
+			Long locationMappingId = locationMapping.getLocationMappingId();
+			List<ProjectTimesheetDTO> projects = projectTimesheetService
+					.findByTimesheetIdAndLocationMappingId(timesheetId, locationMappingId);
 
 			List<ProjectTimesheetDTO> mappedProjects = new ArrayList<>();
 
 			for (ProjectTimesheetDTO projectDTO : projects) {
 
-				// 5️⃣ Fetch activities
+				// 5️⃣ Fetch activities for this project under THIS location only (by locationMappingId)
 				List<ActivityTimesheetDTO> activities = activityTimesheetService
-						.findByTimesheetIdAndProjectId(timesheetId, projectDTO.getProjectId());
+						.findByTimesheetIdAndLocationMappingIdAndProjectId(timesheetId, locationMappingId,
+								projectDTO.getProjectId());
 
 				projectDTO.setActivities(activities);
+				projectDTO.setLocationMappingId(locationMappingId);
 				mappedProjects.add(projectDTO);
 			}
 
