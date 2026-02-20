@@ -272,6 +272,7 @@ public class SurveyServiceImpl implements SurveyService {
 						dto.setType(object[8] != null ? object[8].toString() : null);
 						dto.setCreatedBy(object[9] != null ? Long.parseLong(object[9].toString()) : null);
 						dto.setUpdatedBy(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+						dto.setCutOffQuestions(object[11] != null ? Integer.parseInt(object[11].toString()) : null);
 						
 						dtoList.add(dto);
 					});
@@ -303,7 +304,7 @@ public class SurveyServiceImpl implements SurveyService {
 	}
 
 	@Override
-	public ServiceResponse getAllQuestionsBySurveyId(SurveyDTO surveyDTO) {
+	public ServiceResponse getAllQuestionsBySurveyId(SurveyDTO surveyDTO, Boolean isEditing) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		//apiLogInfo.setSubFeatureName("");
@@ -345,6 +346,11 @@ public class SurveyServiceImpl implements SurveyService {
 						dto.setOptions(object.getOptions());
 						dto.setRequired(object.getRequired());
 						dto.setDescription(object.getDescription());
+
+						if(isEditing){
+							dto.setCorrectAnswer(object.getCorrectAnswer());
+						}
+
 						dtoList.add(dto);
 					});
 
@@ -654,7 +660,7 @@ public class SurveyServiceImpl implements SurveyService {
 		logBuilder.append("SurveyId : " + surveyDTO.getSurveyId());
 
 		try {
-			if(surveyDTO.getType().equalsIgnoreCase("quiz")){
+			if(surveyDTO.getType() != null && surveyDTO.getType().equalsIgnoreCase("quiz")){
 				surveyRepository.updateAllQuizByTrainingId(surveyDTO.getTrainingId(), surveyDTO.getSurveyId(), surveyDTO.getIsActive());
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Quiz status changed to " + surveyDTO.getIsActive());
@@ -991,14 +997,57 @@ public class SurveyServiceImpl implements SurveyService {
 
 				// Survey with Active(true) and Completed(Completed) status cannot be updated.
 				// Survey with Active(true), but with Type(exit) can be updated.
-				if (survey.getIsActive().equals("false") || survey.getType().equals("exit")) {
+				survey.setUpdatedBy(surveyDTO.getUpdatedBy());
+				survey.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+				survey.setSurveyName(surveyDTO.getSurveyName());
+				survey.setDescription(surveyDTO.getDescription());
+				survey.setCutOffQuestions(surveyDTO.getCutOffQuestions());
+				Survey surveyUpdated = surveyRepository.save(survey);
 
-					survey.setUpdatedBy(surveyDTO.getUpdatedBy());
-					survey.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
-					survey.setSurveyName(surveyDTO.getSurveyName());
-					survey.setDescription(surveyDTO.getDescription());
+				if(surveyDTO.getType() != null && surveyDTO.getType().equalsIgnoreCase("quiz")){
 
-					Survey surveyUpdated = surveyRepository.save(survey);
+					
+					if (surveyUpdated.getSurveyId() != null) {
+						
+						List<SurveyQuestion> questionList = surveyQuestionRepository.findBySurveyId(surveyUpdated.getSurveyId());
+						
+						List<SurveyQuestion> list = new ArrayList<>();
+						Long surveyId = surveyUpdated.getSurveyId();
+
+						surveyDTO.getSurveyQuestionList().forEach((question) -> {
+							SurveyQuestion newSurveyQuestion = new SurveyQuestion();
+
+							newSurveyQuestion.setSurveyQuestionId(
+								questionList.stream().filter(q -> q.getSurveyQuestionId().equals(question.getSurveyQuestionId())).findFirst().orElse(null)
+								.getSurveyQuestionId()
+							);
+							newSurveyQuestion.setSurveyId(surveyId);
+							newSurveyQuestion.setQuestion(question.getQuestion());
+							newSurveyQuestion.setOptionType(question.getOptionType());
+							newSurveyQuestion.setOptions(question.getOptions());
+							newSurveyQuestion.setRequired(question.getRequired());
+							newSurveyQuestion.setDescription(question.getDescription());
+							newSurveyQuestion.setCorrectAnswer(question.getCorrectAnswer());
+
+							list.add(newSurveyQuestion);
+						});
+
+						List<SurveyQuestion> listSaved = surveyQuestionRepository.saveAll(list);
+
+						if (listSaved.size() > 0) {
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse("Survey updated successfully.");
+							apiLogInfo.setApiResponse("Survey updated successfully");			
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+						} else {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Survey updated but no questions were added to survey.");
+							apiLogInfo.setApiResponse("Survey updated but no questions were added to survey");			
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+						}
+				}}else if (survey.getIsActive().equals("false") || survey.getType().equals("exit")) {
 
 					if (surveyUpdated.getSurveyId() != null) {
 						
@@ -1049,7 +1098,8 @@ public class SurveyServiceImpl implements SurveyService {
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 
 					}
-				} else {
+				} 
+				else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Active/Completed survey cannot be updated.");
 					apiLogInfo.setApiResponse("Active/Completed survey cannot be updated");			

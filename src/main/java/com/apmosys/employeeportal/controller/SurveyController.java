@@ -36,9 +36,9 @@ public class SurveyController {
 
 	@JobRoleAccess(featureIds = {30,31,37})
 	@RequestMapping(value = "/getAllQuestionsBySurveyId", method = RequestMethod.POST)
-	public ServiceResponse getAllQuestionsBySurveyId(@RequestBody SurveyDTO surveyDTO) {
+	public ServiceResponse getAllQuestionsBySurveyId(@RequestBody SurveyDTO surveyDTO, @RequestParam(required = false) Boolean isEditing) {
 
-		ServiceResponse response = surveyService.getAllQuestionsBySurveyId(surveyDTO);
+		ServiceResponse response = surveyService.getAllQuestionsBySurveyId(surveyDTO, isEditing);
 		return response;
 	}
 	@JobRoleAccess(featureIds = {30})

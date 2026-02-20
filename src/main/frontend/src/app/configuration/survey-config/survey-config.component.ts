@@ -199,7 +199,13 @@ export class SurveyConfigComponent implements OnInit {
     this.surveyObj = new Survey();
     this.allSurveyQuestionList = [];
 
-    this.surveyService.getAllQuestionsBySurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
+    let isEdting = false;
+
+    if(this.isFromTraining){
+      isEdting= true;
+    }
+
+    this.surveyService.getAllQuestionsBySurveyId(surveyObj, isEdting).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allSurveyQuestionList = response.serviceResponse;
         //console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
@@ -443,7 +449,12 @@ export class SurveyConfigComponent implements OnInit {
     let questionsList:any[] = [];
     let responseList:any[] = [];
 
-    const questionResponse: any = await this.surveyService.getAllQuestionsBySurveyId(surveyObj).toPromise();
+    let isEditing = false;
+    if(this.isFromTraining){
+      isEditing = true;
+    }
+
+    const questionResponse: any = await this.surveyService.getAllQuestionsBySurveyId(surveyObj, isEditing).toPromise();
     if (questionResponse.serviceStatus == "Success") {
       questionsList = questionResponse.serviceResponse;
       //console.log("questionsList : ", questionsList);
@@ -510,6 +521,7 @@ export class SurveyConfigComponent implements OnInit {
     surveyObj.cutOffQuestions = this.surveyObj.cutOffQuestions;
 
     surveyObj.surveyQuestionList.forEach((survey:SurveyQuestion) => {
+      survey.surveyQuestionId = survey.surveyQuestionId;
       survey.options = JSON.stringify(survey.optionsList);
     });
 
@@ -591,6 +603,11 @@ export class SurveyConfigComponent implements OnInit {
     surveyObj.surveyId = this.surveyObj.surveyId;
     surveyObj.updatedBy = this.currentUser.empId;
     surveyObj.isActive = "Completed";
+
+    if(this.isFromTraining){
+      surveyObj.type = "quiz";
+      surveyObj.trainingId = this.trainingId;
+    }
 
     //console.log("Complete Survey : ", surveyObj);
     this.surveyService.changeSurveyStatus(surveyObj).pipe(first()).subscribe((response: any) => {
@@ -675,7 +692,12 @@ export class SurveyConfigComponent implements OnInit {
     let responseList:any[] = [];
     let dataForExcel:any[] = [];
 
-    const questionResponse: any = await this.surveyService.getAllQuestionsBySurveyId(this.surveyObj).toPromise();
+    let isEditing = false;
+    if(this.isFromTraining){
+      isEditing = true;
+    }
+
+    const questionResponse: any = await this.surveyService.getAllQuestionsBySurveyId(this.surveyObj, isEditing).toPromise();
     if (questionResponse.serviceStatus == "Success") {
       questionsList = questionResponse.serviceResponse;
       //console.log("questionsList : ", questionsList);

@@ -571,7 +571,7 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
         }
         clearInterval(this.timerInterval);
       }
-    }, 10);
+    }, 200);
   }
 
   async parsePPTXFile(file: File) {

@@ -42,8 +42,12 @@ export class SurveyService {
      }
 
 
-    getAllQuestionsBySurveyId(surveyObj: Survey) {
-        return this.http.post(`${this.baseUrl}` + `api/getAllQuestionsBySurveyId`, surveyObj);
+    getAllQuestionsBySurveyId(surveyObj: Survey, isEditing: boolean = false) {
+        return this.http.post(`${this.baseUrl}` + `api/getAllQuestionsBySurveyId`, surveyObj, {
+            params: {
+                isEditing
+            }
+        });
     }
 
     setSurveyResponseByEmpId(surveyObj: Survey) {

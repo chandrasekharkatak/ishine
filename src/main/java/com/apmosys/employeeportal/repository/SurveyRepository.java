@@ -32,7 +32,7 @@ public interface SurveyRepository extends JpaRepository<Survey, Long> {
 		    " s.updatedOn, " +
 		    " s.type, " +
 		    " s.createdBy, " +
-		    " s.updatedBy " +
+		    " s.updatedBy, s.cutOffQuestions " +
 		    "FROM TrainingQuizMapping tqm " +
 		    "JOIN tqm.survey s " +
 		    "LEFT JOIN Employee cb ON cb.empId = s.createdBy " +

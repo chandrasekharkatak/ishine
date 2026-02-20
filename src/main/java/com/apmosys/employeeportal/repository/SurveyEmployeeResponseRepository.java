@@ -25,7 +25,7 @@ public interface SurveyEmployeeResponseRepository extends JpaRepository<SurveyEm
 				"INNER JOIN surveys s ON q.survey_id = s.survey_id \n" +
 				"INNER JOIN employee_quiz_response_status_mapping eqrsm ON eqrsm.response_id = r.survey_employee_response_id\n" +
 				"INNER JOIN employee e ON e.emp_id = r.emp_id \n" +
-				"WHERE r.emp_id = :empId AND q.survey_id = :quizId order by e.name", nativeQuery = true)
+				"WHERE r.emp_id = :empId AND q.survey_id = :quizId group by r.survey_question_id order by e.name", nativeQuery = true)
 	public List<Object[]> getAllQuizResponsesByQuizIdAndEmpId(@Param("empId") Long empId, @Param("quizId") Long quizId);
 
 	@Query(value = "SELECT e.employeement_id , e.name , r.created_on , q.survey_question_id, q.question ,q.options, \n" + 
