@@ -320,6 +320,7 @@ public class TimesheetServiceNew {
 				timesheetValidationHelper.validateLocationWiseProjectAndActivities(empDTO);
 				// Ensure same project has consistent client approval status across locations
 				timesheetValidationHelper.validateClientApprovalStatusConsistency(empDTO);
+				timesheetValidationHelper.validateShadowConsistencyAcrossLocations(empDTO);
 
 				timesheetValidationHelper.validateDocumentsDTO(empDTO);
 
@@ -935,6 +936,7 @@ public class TimesheetServiceNew {
 				timesheetValidationHelper.validateLocationWiseProjectAndActivities(newEmpDTO);
 				// Ensure same project has consistent client approval status across locations
 				timesheetValidationHelper.validateClientApprovalStatusConsistency(newEmpDTO);
+				timesheetValidationHelper.validateShadowConsistencyAcrossLocations(newEmpDTO);
 				timesheetValidationHelper.validateDocumentsDTO(newEmpDTO);
 				timesheetValidationHelper.validateUploadedDocuments(newEmpDTO, documents, timesheetId);
 				timesheetValidationHelper.validateActivityDurationWithinLocation(newEmpDTO.getLocationSessions());
@@ -946,6 +948,7 @@ public class TimesheetServiceNew {
 				timesheetValidationHelper.validateLocationWiseProjectAndActivities(newEmpDTO);
 				// Ensure same project has consistent client approval status across locations
 				timesheetValidationHelper.validateClientApprovalStatusConsistency(newEmpDTO);
+				timesheetValidationHelper.validateShadowConsistencyAcrossLocations(newEmpDTO);
 				timesheetValidationHelper.validateDocumentsDTO(newEmpDTO);
 				timesheetValidationHelper.validateUploadedDocuments(newEmpDTO, documents, timesheetId);
 				timesheetValidationHelper.validateActivityDurationWithinLocation(newEmpDTO.getLocationSessions());

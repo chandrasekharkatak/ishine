@@ -3371,7 +3371,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     }
     
     const dataSet: LocationEntry[] = structuredClone(this.timesheetLocations);
-    
+    // Ensure Shadow for self projects do not send client approval status (not required, dropdown hidden)
+    dataSet.forEach((loc) => loc.projects?.forEach((p) => { if (p.isShadowForSelf) p.clientApprovalStatus = null; }));
+
     // ✅ CRITICAL FIX: Add null checks for empId
     const targetEmpId = this.timesheetAppliedFor?.toLowerCase() === 'self' 
       ? this.currentUser?.empId 
@@ -4104,6 +4106,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     const dataSet: LocationEntry[] = structuredClone(this.timesheetLocations);
+    // Ensure Shadow for self projects do not send client approval status (not required, dropdown hidden)
+    dataSet.forEach((loc) => loc.projects?.forEach((p) => { if (p.isShadowForSelf) p.clientApprovalStatus = null; }));
 
     // ✅ MODERATE FIX: Add null checks for empId
     const targetEmpId = this.timesheetAppliedFor?.toLowerCase() === 'self'
@@ -4631,21 +4635,57 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
 
 
   /**
+   * Sync shadow options (isShadowTimesheet, isShadowForSelf, shadowEmpId, shadowForList) for the same project
+   * across all locations so the user cannot have different shadow choice for the same project in different locations.
+   */
+  syncShadowForProjectAcrossLocations(sourceProject: ProjectEntry): void {
+    if (!sourceProject?.projectId || !this.timesheetLocations?.length) return;
+    const projectId = sourceProject.projectId;
+    this.timesheetLocations.forEach((location) => {
+      location.projects?.forEach((proj) => {
+        if (proj !== sourceProject && Number(proj.projectId) === Number(projectId)) {
+          proj.isShadowTimesheet = sourceProject.isShadowTimesheet;
+          proj.isShadowForSelf = sourceProject.isShadowForSelf;
+          proj.shadowEmpId = sourceProject.shadowEmpId;
+          if (sourceProject.shadowForList?.length) {
+            proj.shadowForList = sourceProject.shadowForList;
+          }
+        }
+      });
+    });
+  }
+
+  /**
    * Handle shadow timesheet toggle change
-   * Validates shadow timesheet is only available for self timesheet
+   * Validates shadow timesheet is only available for self timesheet and syncs same project across locations.
    */
   onShadowTimesheetChange(project: ProjectEntry): void {
     if (this.timesheetAppliedFor == 'self') {
+      this.syncShadowForProjectAcrossLocations(project);
       this.getEmployeeListByProjectId(project, this.currentUser.empId);
-      // ✅ Update document list when shadow status changes (affects isShadowForSelf)
       this.getListToRenderUpload();
     } else {
       this.openAlertMod(this.alertTemplate, "Shadow timesheet is only available when timesheet is filled for self.");
       project.isShadowTimesheet = false;
-      // ✅ Update document list when shadow is disabled
+      this.syncShadowForProjectAcrossLocations(project);
       this.getListToRenderUpload();
       return;
     }
+  }
+
+  /**
+   * Handle Shadow for self change – sync same project across locations and refresh document list.
+   */
+  onShadowForSelfChange(project: ProjectEntry): void {
+    this.syncShadowForProjectAcrossLocations(project);
+    this.getListToRenderUpload();
+  }
+
+  /**
+   * Handle Shadow for (employee) change – sync same project across locations so shadow emp is consistent.
+   */
+  onShadowEmpIdChange(project: ProjectEntry): void {
+    this.syncShadowForProjectAcrossLocations(project);
   }
   /**
    * Generate list of documents to render for upload
@@ -4656,6 +4696,15 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    * This ensures the class-level variable correctly reflects if ANY project needs document upload
    */
   getListToRenderUpload(): void {
+    // ✅ When Shadow for self is selected, clear client approval status (not required and dropdown is hidden)
+    this.timesheetLocations.forEach((location) => {
+      location.projects.forEach((project) => {
+        if (project.isShadowForSelf) {
+          project.clientApprovalStatus = null;
+        }
+      });
+    });
+
     // ✅ Preserve existing documentData from server (update mode) - getListToRenderUpload must not wipe it
     const existingDocs = [...this.documentData];
     this.documentData = [];
@@ -4776,6 +4825,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
                 }
               });
             });
+            this.syncShadowForProjectAcrossLocations(project);
           } else {
             // ✅ MODERATE FIX: Use centralized error handling
             this.handleError(
