@@ -266,7 +266,7 @@ public class PoSyncOrchestratorService {
 
 //			projectService.updateProjectDatesAfterRenewal(project, dto);
 
-			boolean exists = projectPoDetailsRepository.existsByPoIdAndProjectId(dto.getRenewedPo().getPoId(),
+			boolean exists = projectPoDetailsRepository.existsByPoIdAndProjectIdAndActiveTrue(dto.getRenewedPo().getPoId(),
 					project.getProjectId());
 
 			if (exists) {
