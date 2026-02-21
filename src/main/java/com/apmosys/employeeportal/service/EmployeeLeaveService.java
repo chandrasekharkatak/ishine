@@ -1542,12 +1542,16 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 				
 				
 				//Autofill timesheet delete on deleting pending leave
-				
-				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-			    DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-			    
-			    String start =  LocalDate.parse(leaveDTO.getFromDate(), formatter).format(formatter2);
-			    String end =  LocalDate.parse(leaveDTO.getToDate(), formatter).format(formatter2);
+				try {
+//				DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+//			    DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+//			    
+//			    String start =  LocalDate.parse(leaveDTO.getFromDate(), formatter).format(formatter2);
+//			    String end =  LocalDate.parse(leaveDTO.getToDate(), formatter).format(formatter2);
+					
+					DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+				    LocalDate start = LocalDate.parse(leaveDTO.getFromDate(), dtf);
+				    LocalDate end = LocalDate.parse(leaveDTO.getToDate(), dtf);
 
 				 // DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 //				  LocalDate start = LocalDate.parse(leaveDTO.getFromDate(),df);
@@ -1559,13 +1563,23 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 //		        LocalDate end = LocalDate.parse(leaveDTO.getToDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
 				
-				List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDateOLD(leaveDTO.getEmpId(),start,end);
-
-				if (empTimeSheet != null) {
-
-					empTimeSheet.forEach((timesheet)->{
-						timesheetsRepository.deleteById(timesheet.getTimesheetId());
-					});
+					List<EmployeeTimesheetsNew> existingTimeSheets = employeeTimesheetsNewRepository.findByEmpIdAndDateBetween(leaveDTO.getEmpId(),start,end);
+	
+					if (existingTimeSheets != null && !existingTimeSheets.isEmpty()) {
+				        for (EmployeeTimesheetsNew ts : existingTimeSheets) {
+				     
+				    
+				            if (ts.getDayTypeId() != null && ts.getDayTypeId().equals(5)) {
+				                employeeTimesheetsNewRepository.cleanTimesheetById(ts.getTimesheetId());
+				            }
+				        }
+				        
+				        entityManager.flush();
+				    }
+				} catch (Exception e) {
+				    System.err.println("Error flushing timesheets during leave deletion: " + e.getMessage());
+				    
+				    
 				}
 
 			} else {

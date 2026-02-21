@@ -1650,6 +1650,9 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 							query.append("e1.employeement_id = '").append(value).append("'");
 						}
 					}
+					else if (operator.equalsIgnoreCase("LIKE")) {
+				        query.append("e1.employeement_id LIKE '%").append(value).append("%'");
+				    }
 					break;
 
 				case "Full Name":
@@ -1667,12 +1670,26 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				case "Date":
 				case "From Date":
 				case "To Date":
-					query.append("DATE(et.date) ").append(operator)
-							.append(" '").append(value).append("'");
+					if (operator.equalsIgnoreCase("LIKE")) {
+			            query.append("CAST(et.date AS CHAR) LIKE '%").append(value).append("%'");
+			        } else {
+			            query.append("DATE(et.date) ").append(operator).append(" '").append(value).append("'");
+			        }
 					break;
+				case "Day Type": 
+			        query.append("LOWER(et.day_type) LIKE LOWER('%").append(value).append("%')");
+			        break;
+
+			    case "Description": 
+			        query.append("LOWER(et.description) LIKE LOWER('%").append(value).append("%')");
+			        break;
 
 				case "Created On":
-					appendDateFilter(query, "et.created_on", operator, value);
+					if (operator.equalsIgnoreCase("LIKE")) {
+			            query.append("CAST(et.created_on AS CHAR) LIKE '%").append(value).append("%'");
+			        } else {
+			            appendDateFilter(query, "et.created_on", operator, value);
+			        }
 					break;
 
 				case "Updated On":
