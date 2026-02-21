@@ -1,7 +1,7 @@
 package com.apmosys.employeeportal.model;
 
-import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -44,10 +44,10 @@ public class TrainingContent {
 	private String externalLinkUrl;
 	
 	@Column(name = "effective_from", nullable = false)
-	private Date effectiveFrom;
+	private LocalDate effectiveFrom;
 	
 	@Column(name = "effective_to")
-	private Date effectiveTo;
+	private LocalDate effectiveTo;
 	
 	@Column(name = "file_size_bytes")
 	private Long fileSizeBytes;

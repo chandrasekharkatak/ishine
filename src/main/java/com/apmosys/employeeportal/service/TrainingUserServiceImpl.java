@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -534,11 +533,9 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 						// List is already sorted DESC by consentTimestamp, so first element is most recent
 						TrainingConsent mostRecentConsent = allConsents.get(0);
 						if (mostRecentConsent != null && mostRecentConsent.getConsentTimestamp() != null) {
-							java.sql.Date lastCompleted = Date.valueOf(
-							        mostRecentConsent.getConsentTimestamp()
+							LocalDate lastCompleted = mostRecentConsent.getConsentTimestamp()
 							                .toLocalDateTime()
-							                .toLocalDate()
-							);
+							                .toLocalDate();
 
 
 							userTraining.setLastCompletedOn(lastCompleted);
@@ -562,7 +559,8 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 					cycleDeadline = calculateCycleDeadline(training, currentCycle);
 					if (cycleDeadline != null) {
 						isDeadlineCrossed = LocalDate.now().isAfter(cycleDeadline);
-						userTraining.setDeadline(Date.valueOf(cycleDeadline));
+						// userTraining.setDeadline(Date.valueOf(cycleDeadline));
+						userTraining.setDeadline(cycleDeadline);
 						userTraining.setIsDeadlineCrossed(isDeadlineCrossed);
 					}
 				}

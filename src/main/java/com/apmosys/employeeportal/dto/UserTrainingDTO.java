@@ -1,6 +1,6 @@
 package com.apmosys.employeeportal.dto;
 
-import java.sql.Date;
+import java.time.LocalDate;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -16,7 +16,7 @@ public class UserTrainingDTO {
 	private String trainingType;
 	private String status; // PENDING, IN_PROGRESS, COMPLETED, SKIPPED
 	private Integer currentCycleNumber;
-	private Date deadline;
+	private LocalDate deadline;
 	private Boolean isDeadlineCrossed;
 	private Boolean lockEnabled;
 	private String mandatoryFlag;
@@ -26,7 +26,7 @@ public class UserTrainingDTO {
 	private Integer minViewTimeMinutes;
 	private String consentRequired;
 	private String skipAllowed;
-	private Date lastCompletedOn;
+	private LocalDate lastCompletedOn;
 	private Integer skipCount;
 	private Boolean hasQuiz;
 	private Boolean quizAttempted;

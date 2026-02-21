@@ -1,7 +1,8 @@
 package com.apmosys.employeeportal.model;
 
-import java.sql.Date;
-import java.sql.Timestamp;
+
+import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -35,10 +36,10 @@ public class TrainingMaster {
 	private String mandatoryFlag;
 	
 	@Column(name = "effective_from", nullable = false)
-	private Date effectiveFrom;
+	private LocalDate effectiveFrom;
 	
 	@Column(name = "effective_to")
-	private Date effectiveTo;
+	private LocalDate effectiveTo;
 	
 //	@Column(name = "frequency_per_year", nullable = false, columnDefinition = "INT DEFAULT 2")
 //	private Integer frequencyPerYear;
@@ -71,12 +72,12 @@ public class TrainingMaster {
 	private Long createdBy;
 	
 	@Column(name = "created_on", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP", insertable = false, updatable = false)
-	private Timestamp createdOn;
+	private LocalDateTime createdOn;
 	
 	@Column(name = "updated_by")
 	private Long updatedBy;
 	
 	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
 	@Column(name = "updated_on")
-	private Timestamp updatedOn;
+	private LocalDateTime updatedOn;
 }

@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Date;
+import java.time.LocalDate;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -119,9 +119,9 @@ public class TrainingConfigController {
 			contentDTO.setTrainingId(trainingId);
 			contentDTO.setContentType(contentType);
 			contentDTO.setContentName(contentName);
-			contentDTO.setEffectiveFrom(Date.valueOf(effectiveFromStr));
+			contentDTO.setEffectiveFrom(LocalDate.parse(effectiveFromStr));
 			if (effectiveToStr != null && !effectiveToStr.isEmpty()) {
-				contentDTO.setEffectiveTo(Date.valueOf(effectiveToStr));
+				contentDTO.setEffectiveTo(LocalDate.parse(effectiveToStr));
 			}
 			contentDTO.setExternalLinkUrl(externalLinkUrl);
 			

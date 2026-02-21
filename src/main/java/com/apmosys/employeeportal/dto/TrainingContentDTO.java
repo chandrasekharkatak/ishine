@@ -1,6 +1,6 @@
 package com.apmosys.employeeportal.dto;
 
-import java.sql.Date;
+import java.time.LocalDate;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -18,8 +18,8 @@ public class TrainingContentDTO {
 	private String contentName;
 	private String contentPath;
 	private String externalLinkUrl;
-	private Date effectiveFrom;
-	private Date effectiveTo;
+	private LocalDate effectiveFrom;
+	private LocalDate effectiveTo;
 	private Long fileSizeBytes;
 	private String mimeType;
 	private String activeStatus;

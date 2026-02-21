@@ -272,7 +272,9 @@ public class SurveyServiceImpl implements SurveyService {
 						dto.setType(object[8] != null ? object[8].toString() : null);
 						dto.setCreatedBy(object[9] != null ? Long.parseLong(object[9].toString()) : null);
 						dto.setUpdatedBy(object[10] != null ? Long.parseLong(object[10].toString()) : null);
-						dto.setCutOffQuestions(object[11] != null ? Integer.parseInt(object[11].toString()) : null);
+						if(object.length > 11) {
+							dto.setCutOffQuestions(object[11] != null ? Integer.parseInt(object[11].toString()) : null);
+						}
 						
 						dtoList.add(dto);
 					});

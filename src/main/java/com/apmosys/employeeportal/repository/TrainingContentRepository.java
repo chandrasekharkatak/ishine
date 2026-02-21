@@ -1,6 +1,6 @@
 package com.apmosys.employeeportal.repository;
 
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,7 +26,7 @@ public interface TrainingContentRepository extends JpaRepository<TrainingContent
 		   "AND (tc.effectiveTo IS NULL OR tc.effectiveTo >= :currentDate) " +
 		   "ORDER BY tc.effectiveFrom DESC")
 	List<TrainingContent> findActiveContentByTrainingId(@Param("trainingId") Integer trainingId, 
-														 @Param("currentDate") Date currentDate);
+														 @Param("currentDate") LocalDate currentDate);
 	
 	@Query("SELECT tc FROM TrainingContent tc \n"+
 		   "LEFT JOIN TrainingQuizMapping tqm on tqm.trainingMaster.trainingId = tc.trainingMaster.trainingId \n"+
@@ -45,6 +45,6 @@ public interface TrainingContentRepository extends JpaRepository<TrainingContent
 		   "AND ((tc.effectiveFrom <= :effectiveTo AND (tc.effectiveTo IS NULL OR tc.effectiveTo >= :effectiveFrom)) " +
 		   "OR (tc.effectiveTo IS NULL AND tc.effectiveFrom <= :effectiveTo))")
 	List<TrainingContent> findOverlappingActiveContent(@Param("trainingId") Integer trainingId,
-														@Param("effectiveFrom") Date effectiveFrom,
-														@Param("effectiveTo") Date effectiveTo);
+														@Param("effectiveFrom") LocalDate effectiveFrom,
+														@Param("effectiveTo") LocalDate effectiveTo);
 }

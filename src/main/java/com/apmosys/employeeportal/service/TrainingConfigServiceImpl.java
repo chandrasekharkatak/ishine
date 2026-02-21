@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -110,23 +109,21 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		apiLogInfo.setLogLevel("INFO");
 
 		try {
-			List<TrainingMaster> trainings;
+			List<TrainingMasterDTO> trainings;
 
 			if (activeStatus != null && mandatoryFlag != null) {
 				trainings = trainingMasterRepository.findByMandatoryFlagAndActiveStatus(mandatoryFlag, activeStatus, List.of("fail", null));
-			} else if (activeStatus != null) {
-				trainings = trainingMasterRepository.findByActiveStatus(activeStatus);
-			} else {
-				trainings = trainingMasterRepository.findAll();
-			}
+			} else  {
+				trainings = trainingMasterRepository.findByActiveStatus(activeStatus == null ? null : activeStatus);
+			} 
 
-			List<TrainingMasterDTO> dtoList = trainings.stream().map(training -> {
-				TrainingMasterDTO dto = convertToTrainingMasterDTO(training);
-				return dto;
-			}).collect(Collectors.toList());
+			// List<TrainingMasterDTO> dtoList = trainings.stream().map(training -> {
+			// 	TrainingMasterDTO dto = convertToTrainingMasterDTO(training);
+			// 	return dto;
+			// }).collect(Collectors.toList());
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse(dtoList);
+			response.setServiceResponse(trainings);
 			apiLogInfo.setApiResponse("Trainings fetched successfully");
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
@@ -270,14 +267,14 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 	private void validateDateLogic(TrainingMasterDTO training, TrainingContentDTO content) {
 
-		if (training.getEffectiveFrom().after(training.getEffectiveTo()))
+		if (training.getEffectiveFrom().isAfter(training.getEffectiveTo()))
 			throw new RuntimeException("Invalid training date range");
 
-		if (content.getEffectiveFrom().after(content.getEffectiveTo()))
+		if (content.getEffectiveFrom().isAfter(content.getEffectiveTo()))
 			throw new RuntimeException("Invalid content date range");
 
-		if (content.getEffectiveFrom().before(training.getEffectiveFrom())
-				|| content.getEffectiveTo().after(training.getEffectiveTo()))
+		if (content.getEffectiveFrom().isBefore(training.getEffectiveFrom())
+				|| content.getEffectiveTo().isAfter(training.getEffectiveTo()))
 			throw new RuntimeException("Content dates must be within training dates");
 	}
 
@@ -512,15 +509,15 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	           4️⃣ DATE VALIDATION
 	        =========================== */
 
-	        Date effectiveFrom = trainingDTO.getEffectiveFrom() != null
+	        LocalDate effectiveFrom = trainingDTO.getEffectiveFrom() != null
 	                ? trainingDTO.getEffectiveFrom()
 	                : training.getEffectiveFrom();
 
-	        Date effectiveTo = trainingDTO.getEffectiveTo() != null
+	        LocalDate effectiveTo = trainingDTO.getEffectiveTo() != null
 	                ? trainingDTO.getEffectiveTo()
 	                : training.getEffectiveTo();
 
-	        if (effectiveFrom.after(effectiveTo))
+	        if (effectiveFrom.isAfter(effectiveTo))
 	            throw new RuntimeException(
 	                    "Training effective from must be before effective to");
 
@@ -802,8 +799,8 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 				// Check if currently active
 				boolean isActive = "true".equals(content.getActiveStatus())
-						&& content.getEffectiveFrom().toLocalDate().isBefore(today)
-						&& (content.getEffectiveTo() == null || content.getEffectiveTo().toLocalDate().isAfter(today));
+						&& content.getEffectiveFrom().isBefore(today)
+						&& (content.getEffectiveTo() == null || content.getEffectiveTo().isAfter(today));
 				dto.setIsCurrentlyActive(isActive);
 
 				return dto;
@@ -843,7 +840,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 			TrainingMaster training = trainingOpt.get();
 			training.setActiveStatus("false");
 			training.setUpdatedBy(updatedBy);
-			training.setUpdatedOn(new Timestamp(System.currentTimeMillis()));
+			training.setUpdatedOn(LocalDateTime.now());
 
 			trainingMasterRepository.save(training);
 
@@ -1200,48 +1197,48 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	/**
 	 * Convert TrainingMaster entity to DTO
 	 */
-	private TrainingMasterDTO convertToTrainingMasterDTO(TrainingMaster training) {
-		TrainingMasterDTO dto = new TrainingMasterDTO();
-		dto.setTrainingId(training.getTrainingId());
-		dto.setTrainingName(training.getTrainingName());
-		dto.setTrainingType(training.getTrainingType());
-		dto.setMandatoryFlag(training.getMandatoryFlag());
-		dto.setEffectiveFrom(training.getEffectiveFrom());
-		dto.setEffectiveTo(training.getEffectiveTo());
-//		dto.setFrequencyPerYear(training.getFrequencyPerYear());
-		dto.setLockEnabled(training.getLockEnabled());
-		dto.setMinViewTimeMinutes(training.getMinViewTimeMinutes());
-		dto.setConsentRequired(training.getConsentRequired());
-		dto.setSkipAllowed(training.getSkipAllowed());
-		dto.setDeadlineEnabled(training.getDeadlineEnabled());
-		dto.setDeadlinePattern(training.getDeadlinePattern());
-		dto.setCustomDeadlineMonths(training.getCustomDeadlineMonths());
-		dto.setActiveStatus(training.getActiveStatus());
-		dto.setCreatedBy(training.getCreatedBy());
+// 	private TrainingMasterDTO convertToTrainingMasterDTO(TrainingMaster training) {
+// 		TrainingMasterDTO dto = new TrainingMasterDTO();
+// 		dto.setTrainingId(training.getTrainingId());
+// 		dto.setTrainingName(training.getTrainingName());
+// 		dto.setTrainingType(training.getTrainingType());
+// 		dto.setMandatoryFlag(training.getMandatoryFlag());
+// 		dto.setEffectiveFrom(training.getEffectiveFrom());
+// 		dto.setEffectiveTo(training.getEffectiveTo());
+// //		dto.setFrequencyPerYear(training.getFrequencyPerYear());
+// 		dto.setLockEnabled(training.getLockEnabled());
+// 		dto.setMinViewTimeMinutes(training.getMinViewTimeMinutes());
+// 		dto.setConsentRequired(training.getConsentRequired());
+// 		dto.setSkipAllowed(training.getSkipAllowed());
+// 		dto.setDeadlineEnabled(training.getDeadlineEnabled());
+// 		dto.setDeadlinePattern(training.getDeadlinePattern());
+// 		dto.setCustomDeadlineMonths(training.getCustomDeadlineMonths());
+// 		dto.setActiveStatus(training.getActiveStatus());
+// 		dto.setCreatedBy(training.getCreatedBy());
 
-		if (training.getCreatedOn() != null) {
-			dto.setCreatedOn(formatTimestampToString(training.getCreatedOn()));
-		}
-		if (training.getUpdatedOn() != null) {
-			dto.setUpdatedOn(formatTimestampToString(training.getUpdatedOn()));
-		}
+// 		if (training.getCreatedOn() != null) {
+// 			dto.setCreatedOn(formatTimestampToString(training.getCreatedOn()));
+// 		}
+// 		if (training.getUpdatedOn() != null) {
+// 			dto.setUpdatedOn(formatTimestampToString(training.getUpdatedOn()));
+// 		}
 
-		// Get employee names
-		if (training.getCreatedBy() != null) {
-			Optional<Employee> empOpt = employeeRepository.findById(training.getCreatedBy());
-			if (empOpt.isPresent()) {
-				dto.setCreatedByName(empOpt.get().getName());
-			}
-		}
-		if (training.getUpdatedBy() != null) {
-			Optional<Employee> empOpt = employeeRepository.findById(training.getUpdatedBy());
-			if (empOpt.isPresent()) {
-				dto.setUpdatedByName(empOpt.get().getName());
-			}
-		}
+// 		// Get employee names
+// 		if (training.getCreatedBy() != null) {
+// 			Optional<Employee> empOpt = employeeRepository.findById(training.getCreatedBy());
+// 			if (empOpt.isPresent()) {
+// 				dto.setCreatedByName(empOpt.get().getName());
+// 			}
+// 		}
+// 		if (training.getUpdatedBy() != null) {
+// 			Optional<Employee> empOpt = employeeRepository.findById(training.getUpdatedBy());
+// 			if (empOpt.isPresent()) {
+// 				dto.setUpdatedByName(empOpt.get().getName());
+// 			}
+// 		}
 
-		return dto;
-	}
+// 		return dto;
+// 	}
 
 	private String generateTrainingFilePath(Integer trainingId, MultipartFile file) {
 

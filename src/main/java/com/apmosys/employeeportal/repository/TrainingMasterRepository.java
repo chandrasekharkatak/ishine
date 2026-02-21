@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.apmosys.employeeportal.dto.TrainingMasterDTO;
 import com.apmosys.employeeportal.model.TrainingMaster;
 
 @Repository
@@ -15,12 +16,13 @@ public interface TrainingMasterRepository extends JpaRepository<TrainingMaster, 
 	
 	Optional<TrainingMaster> findByTrainingId(Integer trainingId);
 	
-	@Query("SELECT tm FROM TrainingMaster tm \n" + 
+	@Query("SELECT new com.apmosys.employeeportal.dto.TrainingMasterDTO(tm.trainingId, tm.trainingName, tm.trainingType, tm.mandatoryFlag, tm.effectiveFrom, tm.effectiveTo, tm.lockEnabled, tm.minViewTimeMinutes, tm.consentRequired, tm.skipAllowed, tm.deadlineEnabled, tm.deadlinePattern, tm.customDeadlineMonths, tm.activeStatus, tm.createdBy, e.name, tm.createdOn, tm.updatedBy, tm.updatedOn) FROM TrainingMaster tm \n" + 
        "Left JOIN TrainingQuizMapping tqm on tqm.trainingMaster.trainingId = tm.trainingId \n"+
        "LEFT JOIN EmployeeQuizResponseStatusMapping eqrsm ON eqrsm.quizId = tqm.survey.surveyId \n"+
+	   "INNER JOIN Employee e ON e.empId = tm.createdBy \n"+
        "WHERE (tqm.mappingId IS NULL OR tqm.activeStatus = 'true') AND (tm.mandatoryFlag = :mandatoryFlag AND tm.activeStatus = :activeStatus ) \n"+
        "OR (eqrsm.id IS NULL OR eqrsm.passStatus IN :passStatus)")
-	List<TrainingMaster> findByMandatoryFlagAndActiveStatus(@Param("mandatoryFlag") String mandatoryFlag, 
+	List<TrainingMasterDTO> findByMandatoryFlagAndActiveStatus(@Param("mandatoryFlag") String mandatoryFlag, 
 															@Param("activeStatus") String activeStatus,
 															@Param("passStatus") List<String> passStatus);
 
@@ -37,11 +39,14 @@ public interface TrainingMasterRepository extends JpaRepository<TrainingMaster, 
 													   @Param("activeStatus") String activeStatus,
 													   @Param("passStatus") List<String> passStatus);
 	
-	@Query("SELECT tm FROM TrainingMaster tm \n"+ 
+	@Query("SELECT distinct new com.apmosys.employeeportal.dto.TrainingMasterDTO(tm.trainingId, tm.trainingName, tm.trainingType, tm.mandatoryFlag, tm.effectiveFrom, tm.effectiveTo, tm.lockEnabled, tm.minViewTimeMinutes, tm.consentRequired, tm.skipAllowed, tm.deadlineEnabled, tm.deadlinePattern, tm.customDeadlineMonths, tm.activeStatus, tm.createdBy, \n"+ 
+	"e.name, \n"+
+	"tm.createdOn, tm.updatedBy, tm.updatedOn) FROM TrainingMaster tm \n"+ 
 			"Left JOIN TrainingQuizMapping tqm on tqm.trainingMaster.trainingId = tm.trainingId \n"+
 			"Left JOIN EmployeeQuizResponseStatusMapping eqrsm ON eqrsm.quizId = tqm.survey.surveyId \n"+
-			"WHERE tm.activeStatus = :activeStatus")
-	List<TrainingMaster> findByActiveStatus(@Param("activeStatus") String activeStatus);
+			"Left JOIN Employee e ON e.empId = tm.createdBy \n"+
+			"WHERE (:activeStatus IS NULL OR tm.activeStatus = :activeStatus)")
+	List<TrainingMasterDTO> findByActiveStatus(@Param("activeStatus") String activeStatus);
 	
 	@Query("SELECT DISTINCT tm FROM TrainingMaster tm \n" +
        "LEFT JOIN TrainingQuizMapping tqm ON tqm.trainingMaster.trainingId = tm.trainingId \n" +
