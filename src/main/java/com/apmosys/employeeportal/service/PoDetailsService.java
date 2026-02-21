@@ -128,7 +128,7 @@ public class PoDetailsService {
 				poDto.getClientState(),poDto.getClientAddressId());
 		
 	      validationService.validateEmployeeExists(poDto.getCreatedByEmpId(),poDto.getCreatedByEmpName());
-          validationService.validateEmployeeExists(poDto.getUpdatedByEmpId(),poDto.getUpdatedByEmpName());
+//          validationService.validateEmployeeExists(poDto.getUpdatedByEmpId(),poDto.getUpdatedByEmpName());
           validationService.validateEmployeeExists(poDto.getApmosysRmEmpId(),poDto.getApmosysRmEmpName());
 		
 		
@@ -142,7 +142,7 @@ public class PoDetailsService {
 		po.setClientLocationId(Long.valueOf(cl.getClientLocationId()));
 		po.setClientAddressId(poDto.getClientAddressId());
 		po.setCreatedBy(poDto.getCreatedByEmpId());
-		po.setUpdatedBy(poDto.getUpdatedByEmpId());
+//		po.setUpdatedBy(poDto.getUpdatedByEmpId());
 		po.setMsg(poDto.getCommentForRmg());
 		po.setEmpIdApmosysRm(poDto.getApmosysRmEmpId());
 		po.setApmosysRM(poDto.getApmosysRmEmpName());
@@ -331,6 +331,8 @@ public class PoDetailsService {
 	    validationService.validateEmployeeExists(dto.getRenewedByEmpId(),
                 dto.getRenewedByEmpName());
 	    
+	    validationService.validateEmployeeExists(poDto.getApmosysRmEmpId(),poDto.getApmosysRmEmpName());
+	    
 	    
 	    ProjectPoDetails po = new ProjectPoDetails();
 	    po.setPoId(poDto.getPoId());
@@ -345,6 +347,7 @@ public class PoDetailsService {
 	    po.setActive(true);
 	    po.setClientAddressId(poDto.getClientAddressId());
 	    po.setClientLocationId(Long.valueOf(cl.getClientLocationId()));
+	    po.setEmpIdApmosysRm(poDto.getApmosysRmEmpId());
 	    po.setApmosysRM(poDto.getApmosysRmEmpName());
 	    po.setApmosysRmEmail(poDto.getApmosysRmEmail());
 	    po.setMsg(poDto.getCommentForRmg());

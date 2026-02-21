@@ -138,8 +138,10 @@ matSort (matSortChange)="sortData($event)"
                         <td class="text-center">{{employee.rmgprojects[0].clientRM}}</td>
                         <td class="text-center">{{employee.rmgprojects[0].poNo}}</td>
                         <td class="text-center">{{employee.rmgprojects[0].poProjectType}}</td>
-                        <td class="text-center">{{employee.rmgprojects[0].poStartDate | date: 'dd-MM-yyyy'}}</td>
-                        <td class="text-center">{{employee.rmgprojects[0].poEndDate | date: 'dd-MM-yyyy'}}</td>
+                        <!-- // Note: `projectStartDate` is actually the PO start date (group-concatenated).
+                        // The alias name differs, but the value sent from backend is PO start date. -->
+                        <td class="text-center">{{employee.rmgprojects[0].poStartDate ?? employee.rmgprojects[0]?.projectStartDate }}</td> 
+                        <td class="text-center">{{employee.rmgprojects[0].poEndDate ?? employee.rmgprojects[0]?.projectEndDate }}</td>
                         <!-- <td class="text-center text-capitalize"
                             id="clickablefor360"
                             *ngIf="userMapping.rmg_employee_360"

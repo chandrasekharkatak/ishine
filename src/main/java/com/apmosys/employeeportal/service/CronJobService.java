@@ -2108,6 +2108,12 @@ public class CronJobService {
 						.filter(c -> "DSR Download Path".equals(c.getConfigName()))
 						.map(PortalConfig::getConfigValue)
 						.findFirst().orElse("");
+				File rootDir = new File(folderPath);
+		        if (folderPath.isEmpty() || !rootDir.exists() || !rootDir.isDirectory()) {
+		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		            response.setServiceResponse("The configured DSR Download Path is invalid or does not exist in your system.");
+		            return response;
+		        }
 				Calendar calendar = Calendar.getInstance();
 				SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 				calendar.add(Calendar.MONTH, -1);

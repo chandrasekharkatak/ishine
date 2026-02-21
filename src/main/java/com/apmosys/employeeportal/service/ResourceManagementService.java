@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.service;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.DateTimeException;
@@ -32,6 +34,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.core.io.Resource;
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
 import javax.persistence.EntityManager;
@@ -60,6 +63,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpServerErrorException.InternalServerError;
@@ -170,6 +174,7 @@ import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.FCLineItem;
 import com.apmosys.employeeportal.model.FCProjectMilestone;
+import com.apmosys.employeeportal.model.FinalDocumentNew;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.PoDepartmentMapping;
 import com.apmosys.employeeportal.model.PoRequirementMapping;
@@ -183,6 +188,7 @@ import com.apmosys.employeeportal.model.ResourceRequirementTemp;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.model.TimesheetActionAuditNew;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
+import com.apmosys.employeeportal.model.TimesheetDocumentDetailsNew;
 import com.apmosys.employeeportal.model.TimesheetRejectionDetailsId;
 import com.apmosys.employeeportal.model.TimesheetRejectionDetailsNew;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
@@ -198,6 +204,7 @@ import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.FCLineItemRepository;
 import com.apmosys.employeeportal.repository.FCProjectMilestoneRepository;
+import com.apmosys.employeeportal.repository.FinalDocumentNewRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.PoDepartmentMappingRepository;
 import com.apmosys.employeeportal.repository.PoRequirementMappingRepository;
@@ -212,6 +219,7 @@ import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
 import com.apmosys.employeeportal.repository.ResourceRequirementTempRepo;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.repository.TimesheetActionAuditNewRepository;
+import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsNewRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
 import com.apmosys.employeeportal.repository.TimesheetRejectionDetailsNewRepository;
 import com.apmosys.employeeportal.response.ProjectStructureResponse;
@@ -326,8 +334,8 @@ public class ResourceManagementService {
 	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
 
 	@Autowired
-	private TimesheetDocumentDetailsRepository timesheetDocumentDetailsRepository;
-
+	private TimesheetDocumentDetailsNewRepository timesheetDocumentDetailsNewRepository;
+	// private TimesheetDocumentDetailsRepository timesheetDocumentDetailsRepository;
 	@Autowired
 	PoRequirementMappingRepository poRequirementMappingRepository;
 
@@ -348,6 +356,9 @@ public class ResourceManagementService {
 
 	@Autowired
 	private ClientService clientService;
+	
+	@Autowired
+	private TimesheetDocumentServiceNew timesheetDocumentService;
 
 	@Value("${rmg.mail}")
 	private String rmgMail;
@@ -382,6 +393,9 @@ public class ResourceManagementService {
 	@Autowired
 	private ApplicationContext context;
 
+	@Autowired
+	private FinalDocumentNewRepository finalDocumentNewRepository;
+	
 	@Autowired
 	private ProjectCustomRepository projectCustomRepository;
 
@@ -12659,7 +12673,7 @@ public class ResourceManagementService {
 		return serviceResponse;
 	}
 
-	public ServiceResponse getDocumentDataByDocId(Long docId) {
+	public ServiceResponse getDocumentDataByDocId(Long docId) throws Exception {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setApiUrl("/api/getResourceCountFromProjectId");
@@ -12672,8 +12686,9 @@ public class ResourceManagementService {
 
 		String sourceSystem = httpRequest.getRequestURI().toString();
 		try {
-			TimesheetDocumentDetails docDetails = new TimesheetDocumentDetails();
-			docDetails = timesheetDocumentDetailsRepository.findByDocIdAndActive(docId, true);
+//			TimesheetDocumentDetails docDetails = new TimesheetDocumentDetails();
+			TimesheetDocumentDetailsNew docDetails = new TimesheetDocumentDetailsNew();
+			docDetails = timesheetDocumentDetailsNewRepository.findByDocIdAndActive(docId, true);
 			if (docDetails == null) {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				serviceResponse.setServiceResponse("Document not found...!!");
@@ -12685,11 +12700,28 @@ public class ResourceManagementService {
 				return serviceResponse;
 			} else {
 				TimesheetDocumentDetailsDTO timesheetDocumentDetailsDTO = new TimesheetDocumentDetailsDTO();
+				if(docDetails.getFinalFlag().equals(false))  {
+					Resource pendingDocData = timesheetDocumentService.viewFile(docDetails.getFileUrl());
+					String mimeType = Files.probeContentType(pendingDocData.getFile().toPath());
+					byte[] pendindDateInByteFormat = convertResourceToByteArray(pendingDocData);
+					timesheetDocumentDetailsDTO.setDocId(docDetails.getDocId());
+					timesheetDocumentDetailsDTO.setDocName(docDetails.getDocName());
+					timesheetDocumentDetailsDTO.setDocData(pendindDateInByteFormat);
+					timesheetDocumentDetailsDTO.setMimeType(mimeType);
+					
+				}
+				else{
+					Long approvedDocId = docDetails.getBulkApprovedDocId();
+					FinalDocumentNew finalDocument = finalDocumentNewRepository.findById(approvedDocId).orElse(null);
+					Resource approvedDocData = timesheetDocumentService.viewFile(finalDocument.getFileUrl());
+					String mimeType = Files.probeContentType(approvedDocData.getFile().toPath());
+					byte[] approvedDataInByteFormat = convertResourceToByteArray(approvedDocData);
+					timesheetDocumentDetailsDTO.setDocId(approvedDocId);
+					timesheetDocumentDetailsDTO.setDocName(finalDocument.getDocName());
+					timesheetDocumentDetailsDTO.setDocData(approvedDataInByteFormat);
+					timesheetDocumentDetailsDTO.setMimeType(mimeType);
+				}
 
-				timesheetDocumentDetailsDTO.setDocId(docDetails.getDocId());
-				timesheetDocumentDetailsDTO.setDocName(docDetails.getDocName());
-				timesheetDocumentDetailsDTO.setDocData(docDetails.getDocData());
-				timesheetDocumentDetailsDTO.setMimeType(docDetails.getDocMimeType());
 
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				serviceResponse.setServiceResponse(timesheetDocumentDetailsDTO);
@@ -16480,6 +16512,19 @@ public class ResourceManagementService {
 		   employeeTimesheetsNewRepository.processByStatus(timesheetIds, 3);
 		   timesheetRejectionDetailsNewRepository.saveAll(rejectionList);
 	   }
+	
+	public byte[] convertResourceToByteArray(Resource resource) {
+	    try {
+	        if (resource == null) {
+	            return null;
+	        }
+
+	        return StreamUtils.copyToByteArray(resource.getInputStream());
+
+	    } catch (IOException e) {
+	        throw new RuntimeException("Failed to convert resource to byte array", e);
+	    }
+	}
 	
 	 // new method for getAllUnfilledTimesheetsProjects and helper method also (resolveProjectIds , parseDeptIds , isCurrentUserRole)
 	

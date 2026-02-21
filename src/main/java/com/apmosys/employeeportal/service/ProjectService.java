@@ -2389,8 +2389,8 @@ public class ProjectService {
 						empDTO.setCurrentStatus(toStr(object[8]));
 						empDTO.setStartDate(toTimestamp(object[9]));
 						empDTO.setEndDate(toTimestamp(object[10]));
-						empDTO.setLastTimesheetFilledPoProjectId(parseLong(object[11]));
-						empDTO.setLastTimesheetFilledProjectName(toStr(object[12]));
+						// empDTO.setLastTimesheetFilledPoProjectId(parseLong(object[11]));
+						empDTO.setLastTimesheetFilledProjectName(toStr(object[11]));
 						empDTO.setIsInternal(object[11] != null);
 						teamDTO.getEmployeesMapped().add(empDTO);
 					}

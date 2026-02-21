@@ -638,6 +638,7 @@ Objects.equals(e.getLineItemEndDate(),
 	    public void sendRequirementChangeMail(
 	            Long poId,
 	            List<RequirementChangeDTO> changes) throws Exception {
+	    	 ProjectPoDetails po = projectPoDetailsRepository.findByPoId(poId);
 
 	        List<String> hodEmails =
 	                poDepartmentMappingRepository.findHodEmailsByPoId(poId);
@@ -647,7 +648,7 @@ Objects.equals(e.getLineItemEndDate(),
 	        String to = String.join(",", hodEmails);
 	        String cc = "prarthana.lenka@apmosys.com";
 
-	        String subject = "PO Resource Requirement Update - PO ID: " + poId;
+	        String subject = "PO Resource Requirement Update - PO NO: " + po.getPoNo();
 
 	        String body = buildHtmlBody(poId, changes);
 
@@ -709,7 +710,6 @@ Objects.equals(e.getLineItemEndDate(),
 	        sb.append("<div class='header'>")
 	                .append("<h1>Resource Requirement Update</h1>")
 	                .append("<div class='po-info'>PO No: <strong>").append(po.getPoNo()).append("</strong></div>")
-	                .append("</div>")
 	                .append("<div class='po-info'>Project: <strong>").append(project.get().getProjectName()).append("</strong></div>")
 	                .append("</div>");
 	        

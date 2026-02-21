@@ -105,32 +105,32 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
 
 		List<ProjectPoDetails> findByProjectIdAndPoIdIn(Integer projectId, Set<Long> poIdsFromPortal);
 		
-		@Query("SELECT new com.apmosys.employeeportal.dto.IshineToPoEmployeeDTO( "
-        		+ "       e.employeementId,e.name,rd.role,rd.experience,rd.department,"
-        		+ "       prm.clientRoleId,p.clientId,COUNT(DISTINCT et.timesheetId),"
-        		+ "       MIN(et.date),MAX(et.date),e.isApmosysProduct,ppo.poId,"
-        		+ "		  et.empId,et.shadowEmpId,etm.isShadow ) "
-        		+ "     FROM Timesheet et  "
-        		+ "		LEFT JOIN TimesheetActivityMap etam on etam.timesheetId=et.timesheetId"
-        		+ "		LEFT JOIN Activity a on a.activityId=etam.activityId"
-        		+ "		LEFT JOIN TimesheetDocumentDetails edd on edd.timesheetId=et.timesheetId "
-        		+ "         AND edd.clientApprovalStatus in ('Approved','approved') AND edd.finalFlag=1 "
-        		+ "		LEFT JOIN Team t on t.teamId=a.teamId "
-        		+ "		LEFT JOIN Project p on p.projectId=t.projectId "
-        		+ "     LEFT JOIN ProjectPoDetails ppo on ppo.projectId = p.projectId "
-        		+ "          AND ppo.clientAddressId IS NOT NULL AND ppo.active=1"
-        		+ "		LEFT JOIN PoRequirementMapping prm ON prm.poId = ppo.poId "
-        		+ "		LEFT JOIN EmployeeTeamMap etm on etm.empId = et.empId AND etm.poId=t.poId "
-        		+ "            and etm.roleId = prm.roleId"
-        		+ "		LEFT JOIN RoleDetails rd on rd.roleId = etm.roleId "
-        		+ "		LEFT JOIN Employee e on e.empId=etm.empId "
-        		+ "		LEFT JOIN Department d ON d.name = prm.department "
-        		+ "		where 1=1 AND et.empId = :empId AND p.clientId = :clientId "
-        		+ "        AND t.poId = :poId and et.status in ('Approved','approved') "
-        		+ "        AND etm.active!= 2 AND et.dayType not in ('Leave') "
-        		+ "        AND et.date BETWEEN :startDate AND :endDate")
-        	IshineToPoEmployeeDTO findEmployeesWithTimesheetCount(Long empId,
-        	         LocalDate startDate,LocalDate endDate,Long poId,Integer clientId);
+		// @Query("SELECT new com.apmosys.employeeportal.dto.IshineToPoEmployeeDTO( "
+        	// 	+ "       e.employeementId,e.name,rd.role,rd.experience,rd.department,"
+        	// 	+ "       prm.clientRoleId,p.clientId,COUNT(DISTINCT et.timesheetId),"
+        	// 	+ "       MIN(et.date),MAX(et.date),e.isApmosysProduct,ppo.poId,"
+        	// 	+ "		  et.empId,et.shadowEmpId,etm.isShadow ) "
+        	// 	+ "     FROM Timesheet et  "
+        	// 	+ "		LEFT JOIN TimesheetActivityMap etam on etam.timesheetId=et.timesheetId"
+        	// 	+ "		LEFT JOIN Activity a on a.activityId=etam.activityId"
+        	// 	+ "		LEFT JOIN TimesheetDocumentDetails edd on edd.timesheetId=et.timesheetId "
+        	// 	+ "         AND edd.clientApprovalStatus in ('Approved','approved') AND edd.finalFlag=1 "
+        	// 	+ "		LEFT JOIN Team t on t.teamId=a.teamId "
+        	// 	+ "		LEFT JOIN Project p on p.projectId=t.projectId "
+        	// 	+ "     LEFT JOIN ProjectPoDetails ppo on ppo.projectId = p.projectId "
+        	// 	+ "          AND ppo.clientAddressId IS NOT NULL AND ppo.active=1"
+        	// 	+ "		LEFT JOIN PoRequirementMapping prm ON prm.poId = ppo.poId "
+        	// 	+ "		LEFT JOIN EmployeeTeamMap etm on etm.empId = et.empId AND etm.poId=t.poId "
+        	// 	+ "            and etm.roleId = prm.roleId"
+        	// 	+ "		LEFT JOIN RoleDetails rd on rd.roleId = etm.roleId "
+        	// 	+ "		LEFT JOIN Employee e on e.empId=etm.empId "
+        	// 	+ "		LEFT JOIN Department d ON d.name = prm.department "
+        	// 	+ "		where 1=1 AND et.empId = :empId AND p.clientId = :clientId "
+        	// 	+ "        AND t.poId = :poId and et.status in ('Approved','approved') "
+        	// 	+ "        AND etm.active!= 2 AND et.dayType not in ('Leave') "
+        	// 	+ "        AND et.date BETWEEN :startDate AND :endDate")
+        	// IshineToPoEmployeeDTO findEmployeesWithTimesheetCount(Long empId,
+        	//          LocalDate startDate,LocalDate endDate,Long poId,Integer clientId);
 
 
     @Query(value = "Select new com.apmosys.employeeportal.dto.PoDetailsDto(p.projectId, ppd.poId \n"
@@ -211,6 +211,38 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
     @Query(value =" Select ppo from ProjectPoDetails ppo where ppo.poId IN :poIds and ppo.active = true ")
     List<ProjectPoDetails> findByPoIdInAndActive(List<Long> poIds);
 
+
+    @Query("SELECT new com.apmosys.employeeportal.dto.IshineToPoEmployeeDTO( "
+        		+ "       e.employeementId,e.name,rd.role,rd.experience,rd.department,"
+        		+ "       prm.clientRoleId,p.clientId,COUNT(DISTINCT et.timesheetId),"
+        		+ "       MIN(et.date),MAX(et.date),e.isApmosysProduct,ppo.poId,"
+        		+ "		  et.empId,ptsn.shadowEmpId, etm.isShadow ) "
+        		+ "     FROM EmployeeTimesheetsNew et  "
+                        + " inner join EmployeeTimesheetLocationMapping etlm on etlm.timesheetId = et.timesheetId "
+                        + " inner join ProjectTimesheetStatusNew ptsn on ptsn.id.timesheetId = etlm.timesheetId "
+                        + " and etlm.locationMappingId = ptsn.id.locationMappingId "
+                        + " left join EmployeeTimesheetActivitiesMappingNew etam on etam.timesheetId = et.timesheetId "
+        		// + "		LEFT JOIN TimesheetActivityMap etam on etam.timesheetId=et.timesheetId"
+                        + " and ptsn.id.projectId = etam.projectId and etlm.locationMappingId = etam.locationMappingId "
+        		+ "		LEFT JOIN Activity a on a.activityId=etam.activityId"
+        		+ "		LEFT JOIN TimesheetDocumentDetailsNew edd on edd.timesheetId=et.timesheetId "
+        		+ "         AND edd.clientApprovalStatusId = 1 AND edd.finalFlag = 1 "
+        		+ "		LEFT JOIN Team t on t.teamId=a.teamId "
+        		+ "		LEFT JOIN Project p on p.projectId=t.projectId "
+        		+ "     LEFT JOIN ProjectPoDetails ppo on ppo.projectId = p.projectId "
+        		+ "          AND ppo.clientAddressId IS NOT NULL AND ppo.active=1"
+        		+ "		LEFT JOIN PoRequirementMapping prm ON prm.poId = ppo.poId "
+        		+ "		LEFT JOIN EmployeeTeamMap etm on etm.empId = et.empId AND etm.poId=ppo.poId "
+        		+ "            and etm.roleId = prm.roleId"
+        		+ "		LEFT JOIN RoleDetails rd on rd.roleId = etm.roleId "
+        		+ "		LEFT JOIN Employee e on e.empId=etm.empId "
+        		+ "		LEFT JOIN Department d ON d.name = prm.department "
+        		+ "		where 1=1 AND et.empId = :empId AND p.clientId = :clientId "
+        		+ "        AND etm.poId = :poId and et.status = 2 "
+        		+ "        AND etm.active!= 2 AND et.dayTypeId != 5 "
+        		+ "        AND et.date BETWEEN :startDate AND :endDate")
+        	IshineToPoEmployeeDTO findEmployeesWithTimesheetCount(Long empId,
+        	         LocalDate startDate,LocalDate endDate,Long poId,Integer clientId);
 	ProjectPoDetails findByPoId(Long poId);
 
 	boolean existsByPoIdAndProjectIdAndActiveTrue(Long poId, Integer projectId);
