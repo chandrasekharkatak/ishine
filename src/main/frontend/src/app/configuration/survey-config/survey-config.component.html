@@ -180,7 +180,7 @@
                 <input type="text"
                        class="form-control bg-white"
                        readonly
-                       [value]="question.correctAnswer"
+                       [value]="!question.correctAnswer ? 'Selected answer will appear here...' : question.correctAnswer"
                        placeholder="Selected answer will appear here...">
             </div>
 

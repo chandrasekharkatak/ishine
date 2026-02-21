@@ -341,6 +341,40 @@ export class SurveyConfigComponent implements OnInit {
 
     const surveyTemplate:string = this.createTemplate();
 
+    if(this.surveyObj.cutOffQuestions > this.allSurveyQuestionList.length){
+      this.alertMessage = "Cut Off Questions should be less than or equal to Total Questions !!";
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+
+    if(this.isFromTraining){
+      let flag = true;
+
+      this.allSurveyQuestionList.forEach((question:SurveyQuestion, index) => {
+        if(!question.correctAnswer){
+          flag = false;
+          this.alertMessage = `Please provide correct answer for Question ${index + 1} !!`;
+          this.openAlertMod(template, this.alertMessage);
+          return;
+        }
+        if(question.optionType == "radio"){
+          if (question.optionsList.length < 2) {
+            flag = false;
+            this.alertMessage = `Please provide atleast 2 options for Question ${index + 1} !!`;
+            this.openAlertMod(template, this.alertMessage);
+            return;
+          }
+        } else {
+          flag = false;
+          this.alertMessage = `Please provide radio as option type for Question ${index + 1} !!`;
+          this.openAlertMod(template, this.alertMessage);
+          return;
+        }
+      });
+
+      if(!flag) return;
+    }
+
     let surveyObj = new Survey();
     surveyObj.surveyName = this.surveyObj.surveyName;
     surveyObj.description = this.surveyObj.description;
@@ -361,7 +395,6 @@ export class SurveyConfigComponent implements OnInit {
     surveyObj.surveyQuestionList.forEach((survey:SurveyQuestion) => {
       survey.options = JSON.stringify(survey.optionsList);
     });
-
     //console.log("survey : ", surveyObj);
     this.surveyService.createSurvey(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

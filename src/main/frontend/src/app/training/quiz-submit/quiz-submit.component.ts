@@ -22,7 +22,6 @@ import { ValidationService } from 'src/app/services/validation.service';
   selector: 'app-quiz-submit',
   templateUrl: './quiz-submit.component.html',
   styleUrl: './quiz-submit.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false
 })
 export class QuizSubmit implements OnInit {

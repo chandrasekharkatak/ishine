@@ -559,7 +559,11 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
         
         this.minTimeReached = true;
         if (this.viewingTraining ) {
-          if(this.viewingTraining.hasQuiz && this.viewingTraining.status !== 'COMPLETED'){
+          if(this.viewingTraining.lastCompletedOn != null && this.viewingTraining.status == 'PENDING' ){
+            this.consentButtonEnabled = true;
+            this.quizButtonEnabled = false;
+          }
+          else if(this.viewingTraining.hasQuiz && this.viewingTraining.status !== 'COMPLETED'){
             this.quizButtonEnabled = true;
             this.consentButtonEnabled =false;
           } else if(this.viewingTraining.consentRequired === 'true' && this.viewingTraining.status !== 'COMPLETED') {
@@ -571,7 +575,7 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
         }
         clearInterval(this.timerInterval);
       }
-    }, 200);
+    }, 100);
   }
 
   async parsePPTXFile(file: File) {
@@ -967,6 +971,8 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
   onQuizCompleted(event: boolean){
     this.resetQuizView();
     this.showQuizSubmitComponent = false;
+    this.modalRef.close();
+    this.modalRef = null;
     setTimeout(() => {
       this.checkLockStatus();
       this.loadUserTrainings();

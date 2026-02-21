@@ -707,7 +707,7 @@
             <div class="text-center mt-4">
                 <button type="button" 
                         class="btn btn-success btn-lg px-5"
-                        *ngIf="(viewingTraining.status === 'PENDING' || viewingTraining.status === 'SKIPPED') && viewingTraining.consentRequired === 'true' && !viewingTraining.hasQuiz"
+                        *ngIf="(viewingTraining.status === 'PENDING' || viewingTraining.status === 'SKIPPED') && ((viewingTraining.lastCompletedOn != null && viewingTraining.status === 'PENDING') || !viewingTraining.hasQuiz)"
                         [disabled]="!consentButtonEnabled"
                         (click)="onSubmitConsentForModal()">
                     <i class="fas fa-check-circle mr-2"></i>
@@ -730,7 +730,7 @@
                 <button type="button" 
                         [disabled]="!quizButtonEnabled"
                         class="btn btn-success btn-lg px-5 ml-2"
-                        *ngIf="(viewingTraining.status === 'PENDING' || viewingTraining.status === 'SKIPPED') && viewingTraining.hasQuiz"
+                        *ngIf="viewingTraining.lastCompletedOn == null && viewingTraining.hasQuiz && !viewingTraining.quizAttempted"
                         (click)="goToQuiz()">
                     <i class="fas fa-quiz mr-2"></i>
                     Got To Quiz

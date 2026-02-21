@@ -549,6 +549,20 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 					}
 				} else {
 					status = "PENDING";
+
+					List<TrainingConsent> allConsents = trainingConsentRepository.findByEmpIdAndTrainingIdAndQuizId(empId, training.getTrainingId(), activeQuizId);
+					if (!allConsents.isEmpty()) {
+						// List is already sorted DESC by consentTimestamp, so first element is most recent
+						TrainingConsent mostRecentConsent = allConsents.get(0);
+						if (mostRecentConsent != null && mostRecentConsent.getConsentTimestamp() != null) {
+							LocalDate lastCompleted = mostRecentConsent.getConsentTimestamp()
+							                .toLocalDateTime()
+							                .toLocalDate();
+
+
+							userTraining.setLastCompletedOn(lastCompleted);
+						}
+					}
 				}
 				userTraining.setStatus(status);
 				

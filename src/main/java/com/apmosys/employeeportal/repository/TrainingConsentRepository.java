@@ -25,7 +25,7 @@ public interface TrainingConsentRepository extends JpaRepository<TrainingConsent
 	
 	@Query("SELECT tc FROM TrainingConsent tc WHERE tc.empId = :empId " +
 		   "AND tc.trainingMaster.trainingId = :trainingId " +
-		   "AND tc.trainingContent.contentId = :contentId " +
+		   "AND (:contentId IS NULL OR tc.trainingContent.contentId = :contentId) " +
 		   "AND (:quizId IS NULL OR tc.quizId = :quizId) \n"+ 
 		   "AND tc.completionCycleNumber = :cycleNumber")
 	Optional<TrainingConsent> findByEmpIdAndTrainingIdAndContentIdAndQuizIdAndCycleNumber(
