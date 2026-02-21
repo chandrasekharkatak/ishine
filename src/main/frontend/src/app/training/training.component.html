@@ -605,66 +605,232 @@
                         </iframe>
                     </div>
 
-                    <!-- PPTX Content -->
-                    <div *ngIf="contentType === 'PPT' && pptxSlides.length > 0" class="pptx-viewer-container mb-3">
-                        <div class="pptx-controls mb-3">
-                            <button type="button" class="btn btn-sm btn-outline-primary" (click)="previousSlide()" [disabled]="currentSlideIndex === 0">
-                                <i class="fas fa-chevron-left"></i> Previous
-                            </button>
-                            <span class="mx-3">
-                                Slide {{currentSlideIndex + 1}} of {{pptxSlides.length}}
-                            </span>
-                            <button type="button" class="btn btn-sm btn-outline-primary" (click)="nextSlide()" [disabled]="currentSlideIndex === pptxSlides.length - 1">
-                                Next <i class="fas fa-chevron-right"></i>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary ml-2" (click)="toggleThumbnails()">
-                                <i class="fas fa-th"></i> {{showThumbnails ? 'Hide' : 'Show'}} Thumbnails
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-info ml-2" (click)="toggleFullscreen()">
-                                <i class="fas fa-expand"></i> Fullscreen
-                            </button>
-                        </div>
-
-                        <div class="pptx-slide-container" [ngClass]="{'with-thumbnails': showThumbnails}">
-                            <!-- Thumbnails Sidebar -->
-                            <div class="pptx-thumbnails" *ngIf="showThumbnails">
-                                <div *ngFor="let slide of pptxSlides; let i = index" 
-                                     class="thumbnail-item" 
-                                     [ngClass]="{'active': i === currentSlideIndex}"
-                                     (click)="goToSlide(i)">
-                                    <div class="thumbnail-number">{{i + 1}}</div>
-                                    <div class="thumbnail-content" *ngIf="slide.images && slide.images.length > 0">
-                                        <img [src]="slide.images[0]" alt="Slide {{i + 1}}" />
+                    <div *ngIf="contentType === 'PPT'">
+                        <!-- PPTX Slides Viewer (for .pptx files) -->
+                        <div *ngIf="pptxSlides.length > 0" class="pptx-viewer-wrapper" [class.fullscreen]="isFullscreen">
+                            <!-- Top Toolbar -->
+                            <div class="pptx-toolbar">
+                                <div class="toolbar-left">
+                                    <h5 class="presentation-title mb-0">
+                                        <i class="fas fa-file-powerpoint text-primary mr-2"></i>
+                                        <span class="title-text">{{file?.name}}</span>
+                                    </h5>
+                                </div>
+                                <div class="toolbar-center">
+                                    <div class="slide-counter-badge">
+                                        <span class="current-slide">{{currentSlideIndex + 1}}</span>
+                                        <span class="separator">/</span>
+                                        <span class="total-slides">{{pptxSlides.length}}</span>
                                     </div>
-                                    <div class="thumbnail-content empty" *ngIf="!slide.images || slide.images.length === 0">
-                                        <i class="fas fa-file-powerpoint"></i>
-                                    </div>
+                                </div>
+                                <div class="toolbar-right">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary toolbar-btn" 
+                                            (click)="showThumbnails = !showThumbnails"
+                                            [title]="showThumbnails ? 'Hide Thumbnails' : 'Show Thumbnails'">
+                                        <i class="fas" [ngClass]="showThumbnails ? 'fa-th-large' : 'fa-th'"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary toolbar-btn" 
+                                            (click)="toggleFullscreen()"
+                                            [title]="isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'">
+                                        <i class="fas" [ngClass]="isFullscreen ? 'fa-compress' : 'fa-expand'"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary toolbar-btn" 
+                                            (click)="downloadPreviewFile()"
+                                            title="Download File">
+                                        <i class="fas fa-download"></i>
+                                    </button>
                                 </div>
                             </div>
 
-                            <!-- Main Slide Display -->
-                            <div class="pptx-main-slide">
-                                <div class="slide-content" *ngIf="pptxSlides[currentSlideIndex]">
-                                    <div class="slide-images" *ngIf="pptxSlides[currentSlideIndex].images && pptxSlides[currentSlideIndex].images.length > 0">
-                                        <img *ngFor="let img of pptxSlides[currentSlideIndex].images" 
-                                             [src]="img" 
-                                             alt="Slide {{currentSlideIndex + 1}}"
-                                             style="max-width: 100%; height: auto; margin-bottom: 10px;" />
+                            <!-- Main Content Area -->
+                            <div class="pptx-content-area">
+                                <!-- Thumbnails Sidebar -->
+                                <div class="thumbnails-sidebar" *ngIf="showThumbnails" [class.collapsed]="!showThumbnails">
+                                    <div class="thumbnails-header">
+                                        <span class="thumbnails-title">Slides</span>
+                                        <button type="button" class="btn btn-sm btn-link p-0" (click)="showThumbnails = false">
+                                            <i class="fas fa-times"></i>
+                                        </button>
                                     </div>
-                                    <div class="slide-texts" *ngIf="pptxSlides[currentSlideIndex].texts && pptxSlides[currentSlideIndex].texts.length > 0">
-                                        <div *ngFor="let text of pptxSlides[currentSlideIndex].texts" class="slide-text-item">
-                                            {{text}}
+                                    <div class="thumbnails-list">
+                                        <div *ngFor="let slide of pptxSlides; let i = index" 
+                                            class="thumbnail-item"
+                                            [class.active]="i === currentSlideIndex"
+                                            (click)="goToSlide(i)">
+                                            <div class="thumbnail-number">{{i + 1}}</div>
+                                            <div class="thumbnail-preview">
+                                                <div *ngIf="slide.images.length > 0" class="thumbnail-image">
+                                                    <img [src]="slide.images[0]" alt="Slide {{i + 1}}">
+                                                </div>
+                                                <div *ngIf="slide.images.length === 0 && slide.texts.length > 0" class="thumbnail-text">
+                                                    <i class="fas fa-align-left"></i>
+                                                    <span>{{slide.texts[0].substring(0, 30)}}...</span>
+                                                </div>
+                                                <div *ngIf="!slide.hasContent" class="thumbnail-empty">
+                                                    <i class="fas fa-file-powerpoint"></i>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="slide-empty" *ngIf="(!pptxSlides[currentSlideIndex].images || pptxSlides[currentSlideIndex].images.length === 0) && 
-                                                                     (!pptxSlides[currentSlideIndex].texts || pptxSlides[currentSlideIndex].texts.length === 0)">
-                                        <i class="fas fa-file-powerpoint fa-3x text-muted"></i>
-                                        <p class="text-muted">Slide {{currentSlideIndex + 1}}</p>
+                                </div>
+
+                                <!-- Slide Display Area -->
+                                <div class="slide-display-area" [class.with-thumbnails]="showThumbnails">
+                                    <!-- Navigation Controls -->
+                                    <button type="button" 
+                                            class="nav-btn nav-btn-prev" 
+                                            (click)="previousSlide()" 
+                                            [disabled]="currentSlideIndex === 0"
+                                            title="Previous Slide (←)">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+
+                                    <button type="button" 
+                                            class="nav-btn nav-btn-next" 
+                                            (click)="nextSlide()" 
+                                            [disabled]="currentSlideIndex === pptxSlides.length - 1"
+                                            title="Next Slide (→)">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+
+                                    <!-- Slide Container -->
+                                    <div class="slide-viewport">
+                                        <div class="slide-container" *ngIf="pptxSlides[currentSlideIndex]">
+                                            <div class="slide-content">
+                                                <!-- Display slide images -->
+                                                <div *ngFor="let imgUrl of pptxSlides[currentSlideIndex].images; let imgIndex = index" 
+                                                    class="slide-image-wrapper"
+                                                    [class.multiple-images]="pptxSlides[currentSlideIndex].images.length > 1">
+                                                    <img [src]="imgUrl" 
+                                                        alt="Slide Image {{imgIndex + 1}}" 
+                                                        class="slide-image"
+                                                        [class.single-image]="pptxSlides[currentSlideIndex].images.length === 1">
+                                                </div>
+                                                
+                                                <!-- Display slide text content -->
+                                                <div *ngIf="pptxSlides[currentSlideIndex].texts.length > 0 && pptxSlides[currentSlideIndex].images.length === 0" 
+                                                    class="slide-text-content">
+                                                    <div *ngFor="let text of pptxSlides[currentSlideIndex].texts; let textIndex = index" 
+                                                        class="slide-text"
+                                                        [class.text-heading]="textIndex === 0 && text.length < 100">
+                                                        {{text}}
+                                                    </div>
+                                                </div>
+
+                                                <!-- Mixed content (images + text) -->
+                                                <div *ngIf="pptxSlides[currentSlideIndex].texts.length > 0 && pptxSlides[currentSlideIndex].images.length > 0" 
+                                                    class="slide-text-overlay">
+                                                    <div *ngFor="let text of pptxSlides[currentSlideIndex].texts" 
+                                                        class="slide-text-overlay-item">
+                                                        {{text}}
+                                                    </div>
+                                                </div>
+
+                                                <!-- Fallback if no images or text -->
+                                                <div *ngIf="!pptxSlides[currentSlideIndex].hasContent" 
+                                                    class="slide-placeholder">
+                                                    <div class="placeholder-icon">
+                                                        <i class="fas fa-file-powerpoint"></i>
+                                                    </div>
+                                                    <p class="placeholder-title">Slide {{currentSlideIndex + 1}}</p>
+                                                    <p class="placeholder-subtitle">No extractable content detected</p>
+                                                    <small class="placeholder-note">This slide may contain complex formatting or embedded objects that cannot be previewed.</small>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
+
+                                    <!-- Bottom Navigation Bar -->
+                                    <div class="bottom-nav-bar">
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-light" 
+                                                (click)="goToSlide(0)"
+                                                [disabled]="currentSlideIndex === 0"
+                                                title="First Slide">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </button>
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-light" 
+                                                (click)="previousSlide()" 
+                                                [disabled]="currentSlideIndex === 0"
+                                                title="Previous Slide">
+                                            <i class="fas fa-chevron-left"></i> Previous
+                                        </button>
+                                        <div class="slide-progress">
+                                            <div class="progress-bar-bg">
+                                                <div class="progress-bar-fill" 
+                                                    [style.width.%]="((currentSlideIndex + 1) / pptxSlides.length) * 100">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-light" 
+                                                (click)="nextSlide()" 
+                                                [disabled]="currentSlideIndex === pptxSlides.length - 1"
+                                                title="Next Slide">
+                                            Next <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-light" 
+                                                (click)="goToSlide(pptxSlides.length - 1)"
+                                                [disabled]="currentSlideIndex === pptxSlides.length - 1"
+                                                title="Last Slide">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Loading State -->
+                        <div *ngIf="isLoadingPPTX" class="text-center p-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                            <p class="mt-3 text-muted">Parsing PowerPoint file...</p>
+                        </div>
+
+                        <!-- Fallback for non-PPTX files or if parsing fails -->
+                        <div *ngIf="!isLoadingPPTX && pptxSlides.length === 0">
+                            <div class="mb-3 text-center">
+                                <div class="ppt-preview-icon mb-3">
+                                    <i class="fas fa-file-powerpoint fa-5x text-primary"></i>
+                                </div>
+                                <h5 class="mb-2"><strong>{{file?.name}}</strong></h5>
+                                <p class="text-muted mb-3">
+                                    <span class="badge badge-info">{{contentFormData.contentType}}</span>
+                                    <span class="ml-2">Size: {{fileSize.toFixed(2)}} MB</span>
+                                </p>
+                                <div class="alert alert-info" *ngIf="file?.name.toLowerCase().endsWith('.ppt')">
+                                    <i class="fas fa-info-circle mr-2"></i>
+                                    <strong>Legacy PPT format detected.</strong> For better preview, please use PPTX format (.pptx).
+                                </div>
+                            </div>
+                            
+                            <!-- Preview Options -->
+                            <div class="row mb-3">
+                                <div class="col-md-6 mb-2">
+                                    <button type="button" class="btn btn-primary btn-block btn-lg" (click)="openPreviewInNewTab()">
+                                        <i class="fas fa-external-link-alt mr-2"></i>
+                                        Open in New Tab
+                                    </button>
+                                    <small class="text-muted d-block mt-1 text-center">
+                                        Opens the file in a new browser tab
+                                    </small>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <button type="button" class="btn btn-success btn-block btn-lg" (click)="downloadPreviewFile()">
+                                        <i class="fas fa-download mr-2"></i>
+                                        Download File
+                                    </button>
+                                    <small class="text-muted d-block mt-1 text-center">
+                                        Download to view in Microsoft PowerPoint
+                                    </small>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    
 
                     <!-- File Download (fallback) -->
                     <div *ngIf="contentType !== 'LINK' && contentType !== 'VIDEO' && contentType !== 'AUDIO' && contentType !== 'PDF' && !(contentType === 'PPT' && pptxSlides.length > 0)" 

@@ -945,11 +945,196 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
          }
        }
      
+  // async parsePPTXFile(file: File) {
+  //   try {
+  //     this.isLoadingPPTX = true;
+  //     this.pptxSlides = [];
+  //     this.currentSlideIndex = 0;
+
+  //     // Read the file as array buffer
+  //     const arrayBuffer = await file.arrayBuffer();
+  //     const zip = await JSZip.loadAsync(arrayBuffer);
+
+  //     // Get slide files (ppt/slides/slide1.xml, slide2.xml, etc.)
+  //     const slideFiles: any[] = [];
+  //     zip.forEach((relativePath, file) => {
+  //       if (relativePath.startsWith('ppt/slides/slide') && relativePath.endsWith('.xml') && !relativePath.includes('_rels')) {
+  //         slideFiles.push({ path: relativePath, file: file });
+  //       }
+  //     });
+
+  //     // Sort slides by number
+  //     slideFiles.sort((a, b) => {
+  //       const numA = parseInt(a.path.match(/slide(\d+)/)?.[1] || '0');
+  //       const numB = parseInt(b.path.match(/slide(\d+)/)?.[1] || '0');
+  //       return numA - numB;
+  //     });
+
+  //     // Extract images and text from slides
+  //     for (let i = 0; i < slideFiles.length; i++) {
+  //       const slideFile = slideFiles[i];
+  //       const slideXml = await slideFile.file.async('string');
+
+  //       // Parse slide XML
+  //       const parser = new DOMParser();
+  //       const xmlDoc = parser.parseFromString(slideXml, 'text/xml');
+
+  //       // Get slide number for relationship file lookup
+  //       const slideNum = slideFile.path.match(/slide(\d+)/)?.[1] || (i + 1).toString();
+  //       const relsPath = `ppt/slides/_rels/slide${slideNum}.xml.rels`;
+
+  //       // Parse relationship file to map IDs to actual file paths
+  //       const relationshipMap: Map<string, string> = new Map();
+  //       try {
+  //         const relsFile = zip.file(relsPath);
+  //         if (relsFile) {
+  //           const relsXml = await relsFile.async('string');
+  //           const relsDoc = parser.parseFromString(relsXml, 'text/xml');
+  //           const relationships = relsDoc.getElementsByTagName('Relationship');
+
+  //           for (let r = 0; r < relationships.length; r++) {
+  //             const rel = relationships[r];
+  //             const id = rel.getAttribute('Id');
+  //             const target = rel.getAttribute('Target');
+  //             const type = rel.getAttribute('Type');
+
+  //             // Map image relationships
+  //             if (id && target && type && type.includes('image')) {
+  //               // Resolve relative path
+  //               let imagePath = target;
+  //               if (target.startsWith('../')) {
+  //                 imagePath = target.replace('../', 'ppt/');
+  //               } else if (!target.startsWith('ppt/')) {
+  //                 imagePath = `ppt/${target}`;
+  //               }
+  //               relationshipMap.set(id, imagePath);
+  //             }
+  //           }
+  //         }
+  //       } catch (relsError) {
+  //         console.warn('Could not parse relationship file:', relsPath, relsError);
+  //       }
+
+  //       // Extract images using relationship mapping
+  //       const slideImages: string[] = [];
+  //       const imageElements = xmlDoc.getElementsByTagName('a:blip');
+
+  //       for (let j = 0; j < imageElements.length; j++) {
+  //         const embedId = imageElements[j].getAttribute('r:embed');
+  //         if (embedId) {
+  //           // Look up the actual image path from relationship map
+  //           let imagePath = relationshipMap.get(embedId);
+
+  //           // Fallback: try direct path if relationship map doesn't have it
+  //           if (!imagePath) {
+  //             // Try different possible paths
+  //             const possiblePaths = [
+  //               `ppt/media/${embedId}`,
+  //               `ppt/media/image${embedId}.png`,
+  //               `ppt/media/image${embedId}.jpg`,
+  //               `ppt/media/image${embedId}.jpeg`
+  //             ];
+
+  //             for (const path of possiblePaths) {
+  //               if (zip.file(path)) {
+  //                 imagePath = path;
+  //                 break;
+  //               }
+  //             }
+  //           }
+
+  //           if (imagePath) {
+  //             const imageFile = zip.file(imagePath);
+  //             if (imageFile) {
+  //               try {
+  //                 const imageBlob = await imageFile.async('blob');
+  //                 const imageUrl = URL.createObjectURL(imageBlob);
+  //                 slideImages.push(imageUrl);
+  //               } catch (imgError) {
+  //                 console.warn('Error loading image:', imagePath, imgError);
+  //               }
+  //             }
+  //           }
+  //         }
+  //       }
+
+  //       // Extract text content - check multiple possible text element tags
+  //       const slideTexts: string[] = [];
+
+  //       // Method 1: Direct text elements (a:t)
+  //       const textElements = xmlDoc.getElementsByTagName('a:t');
+  //       for (let k = 0; k < textElements.length; k++) {
+  //         const text = textElements[k].textContent;
+  //         if (text && text.trim()) {
+  //           slideTexts.push(text.trim());
+  //         }
+  //       }
+
+  //       // Method 2: Text paragraphs (a:p)
+  //       const paraElements = xmlDoc.getElementsByTagName('a:p');
+  //       for (let p = 0; p < paraElements.length; p++) {
+  //         const para = paraElements[p];
+  //         const paraTexts = para.getElementsByTagName('a:t');
+  //         let paraText = '';
+  //         for (let pt = 0; pt < paraTexts.length; pt++) {
+  //           const text = paraTexts[pt].textContent;
+  //           if (text) {
+  //             paraText += text;
+  //           }
+  //         }
+  //         if (paraText.trim()) {
+  //           // Avoid duplicates
+  //           if (!slideTexts.includes(paraText.trim())) {
+  //             slideTexts.push(paraText.trim());
+  //           }
+  //         }
+  //       }
+
+  //       // Method 3: Text runs (a:r)
+  //       const runElements = xmlDoc.getElementsByTagName('a:r');
+  //       for (let r = 0; r < runElements.length; r++) {
+  //         const run = runElements[r];
+  //         const runTexts = run.getElementsByTagName('a:t');
+  //         let runText = '';
+  //         for (let rt = 0; rt < runTexts.length; rt++) {
+  //           const text = runTexts[rt].textContent;
+  //           if (text) {
+  //             runText += text;
+  //           }
+  //         }
+  //         if (runText.trim()) {
+  //           // Avoid duplicates
+  //           if (!slideTexts.includes(runText.trim())) {
+  //             slideTexts.push(runText.trim());
+  //           }
+  //         }
+  //       }
+
+  //       // If we have content (images or text), add the slide
+  //       // Even if empty, we'll add it to show the slide structure
+  //       this.pptxSlides.push({
+  //         slideNumber: i + 1,
+  //         images: slideImages,
+  //         texts: slideTexts,
+  //         hasContent: slideImages.length > 0 || slideTexts.length > 0
+  //       });
+  //     }
+
+  //     this.isLoadingPPTX = false;
+  //   } catch (error) {
+  //     console.error('Error parsing PPTX file:', error);
+  //     this.isLoadingPPTX = false;
+  //     // Fallback: show download option
+  //     this.pptxSlides = [];
+  //   }
+  // }
+
   async parsePPTXFile(file: File) {
     try {
       this.isLoadingPPTX = true;
       this.pptxSlides = [];
       this.currentSlideIndex = 0;
+      this.isFullscreen = false;
 
       // Read the file as array buffer
       const arrayBuffer = await file.arrayBuffer();

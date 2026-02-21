@@ -13,6 +13,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -29,6 +30,7 @@ public class TrainingContent {
 	
 	@ManyToOne
 	@JoinColumn(name = "training_id", nullable = false)
+	@JsonIgnore
 	private TrainingMaster trainingMaster;
 	
 	@Column(name = "content_type", nullable = false)
