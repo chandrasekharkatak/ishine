@@ -110,6 +110,7 @@ export class SurveyConfigComponent implements OnInit {
         this.isFromTraining = false;
         this.trainingId = null;
         this.trainingName = '';
+        this.sectionViewInit();
       }
     });
 
