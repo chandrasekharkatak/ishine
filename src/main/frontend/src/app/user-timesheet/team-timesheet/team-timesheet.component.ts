@@ -2416,10 +2416,18 @@ getDocument(type: 'Pending' | 'Approved'): void {
     return;
   }
 
+  this.safePdfUrl=null;
+
   // Fetch document from backend
   this.timesheetNewService.getDocumentById(docIdToSend, type === 'Approved')
     .subscribe({
       next: (blob: Blob) => {
+
+        if(!blob || blob.size===0){
+          console.error("Document not exist only metadata found");
+          this.safePdfUrl=null;
+          return;
+        }
         const fileURL = URL.createObjectURL(blob);
         this.safePdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
       },
