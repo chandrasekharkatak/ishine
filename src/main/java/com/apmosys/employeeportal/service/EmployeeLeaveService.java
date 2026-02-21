@@ -2657,15 +2657,13 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 
 
 
-                    List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetsForRejection(leaveDTO.getLeaveEmpId(), startDate, endDate);
+                    List<EmployeeTimesheetsNew> empTimeSheet = employeeTimesheetsNewRepository.findByEmpIdAndDateBetween(leaveDTO.getLeaveEmpId(), startDate, endDate);
 
                     if (empTimeSheet != null && !empTimeSheet.isEmpty()) {
-
-                        empTimeSheet.forEach((timesheet) -> {
-                            System.out.println("Deleting Timesheet ID: " + timesheet.getTimesheetId());
-                            timesheetsRepository.deleteById(timesheet.getTimesheetId());
-                        });
-
+                        for (EmployeeTimesheetsNew ts : empTimeSheet) {
+                            employeeTimesheetsNewRepository.cleanTimesheetById(ts.getTimesheetId());
+                        }
+                    entityManager.flush();
                     } else {
                         System.out.println("Result is NULL or Empty. No timesheets found to delete.");
                     }
