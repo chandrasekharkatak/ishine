@@ -29,9 +29,9 @@ public class EmployeeTeamMap {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long employeeTeamMapId;
-	
 	private Long empId;
 	private Long teamId;
+	private Long empTeamDepartmentId;
 	
 	private Long jobRoleId;
 	private Long active;

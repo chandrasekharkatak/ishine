@@ -23,9 +23,11 @@ export class RmgTeamMember {
 
     poId: any;
     poNo: any;
+    poStartDate: any;
+    poEndDate: any;
     poRequirementMappingId: any;
-    
-    roleId:any;
+
+    roleId: any;
     role: any;
     experience: any;
     department: any;
@@ -35,13 +37,15 @@ export class RmgTeamMember {
     employeeRoles: any[] = [];
 
     empId: any
+    empTeamDepartmentId: any;
+    empTeamDepartmentName: any;
     memberName: any;
     jobRoleName: any;
-    employmentStatus:any;
+    employmentStatus: any;
     currentExp: any;
     totalExp: any;
     startDate: any;
-    dbStartDate:any
+    dbStartDate: any
     endDate: any;
     isShadow: any;
     dbIsShadow: any;

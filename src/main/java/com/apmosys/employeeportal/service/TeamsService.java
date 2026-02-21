@@ -4440,7 +4440,8 @@ public class TeamsService {
 
 			response.setServiceResponse(rmgTeamDto.isIsupdate()
 					? "Team Member(s) Details updated successfully!!"
-					: "New Team Member(s) Details Added successfully. Please approve Project to allow employees to fill timesheet!!");
+					: "New Team Member(s) Details Added successfully. Please approve Project to allow newly added employees to fill timesheet!!");
+			response.setServiceResponse1(getDeptIdListFromString(team.getDeptIds()));
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -4464,7 +4465,9 @@ public class TeamsService {
 
 		List<EmployeeTeamMap> updatedMemberDbResponse = getTeamMembersObj(teamMemberDtoList, existingMappedMemberMap,
 				project, team, currentUserEmpId, dto, newEmpIds);
-
+		
+		team = updateTeamDepartmentIds(team,updatedMemberDbResponse);
+		
 		List<Long> defaultProjectEmpIds = teamMemberDtoList.stream()
 				.filter(RmgTeamMemberDto :: isDefaultProject)
 				.map(RmgTeamMemberDto :: getEmpId).distinct().collect(Collectors.toList());
@@ -4473,7 +4476,7 @@ public class TeamsService {
 				.map(RmgTeamMemberDto::getEmpId).distinct().collect(Collectors.toList());
 
 		updateEmployeeDefaultProjectIfUpdated(allEmpIds, defaultProjectEmpIds, project, currentUserEmpId);
-
+		
 		if (!newEmpIds.isEmpty()) {
 			String clientName = dto.getClientName();
 			createActivityForEmployeeRole(team.getTeamId(), currentUserEmpId, newEmpIds, teamMemberDtoList);
@@ -4552,6 +4555,7 @@ public class TeamsService {
 			presentMember.setEndDate(teamMember.getEndDate() != null ? teamMember.getEndDate() : null);
 			presentMember.setRoleId(teamMember.getRoleId());
 			presentMember.setPoId(teamMember.getPoId());
+			presentMember.setEmpTeamDepartmentId(teamMember.getEmpTeamDepartmentId());
 			updatedMemberList.add(presentMember);
 
 			if(shadowUpdatedFlag){
@@ -4566,7 +4570,7 @@ public class TeamsService {
 				shadowFlagUpdatedMember.setRoleId(teamMember.getRoleId());
 				shadowFlagUpdatedMember.setPoId(teamMember.getPoId());
 				shadowFlagUpdatedMember.setIsShadow(isShadow);
-				shadowFlagUpdatedMember.setPoRequirementMappingId(teamMember.getPoRequirementMappingId());
+				shadowFlagUpdatedMember.setEmpTeamDepartmentId(teamMember.getEmpTeamDepartmentId());
 				updatedMemberList.add(shadowFlagUpdatedMember);
 				newEmpIds.add(teamMember.getEmpId());
 			}
@@ -4620,6 +4624,30 @@ public class TeamsService {
 		if (a == null || b == null)
 			return true;
 		return !a.toLocalDate().equals(b.toLocalDate());
+	}
+	
+	private Team updateTeamDepartmentIds(Team team, List<EmployeeTeamMap> updatedMemberDbResponse) {
+	    if (updatedMemberDbResponse == null || updatedMemberDbResponse.isEmpty()) {
+	        return team;
+	    }
+
+	    Set<Long> employeeDeptIds = updatedMemberDbResponse.stream()
+	            .filter(emp -> emp.getActive() != null && emp.getActive() != 0L)
+	            .map(EmployeeTeamMap::getEmpTeamDepartmentId)
+	            .filter(Objects::nonNull)
+	            .collect(Collectors.toSet());
+
+	    Set<Long> teamDeptIdSet = (team.getDeptIds() != null && !team.getDeptIds().isBlank())
+	            ? Arrays.stream(team.getDeptIds().split(","))
+	                    .map(String::trim)
+	                    .map(Long::parseLong)
+	                    .collect(Collectors.toSet())
+	            : new HashSet<>();
+
+	    teamDeptIdSet.addAll(employeeDeptIds);
+		team.setDeptIds(teamDeptIdSet.stream().map(String::valueOf).collect(Collectors.joining(",")));
+
+	    return teamRepository.save(team);
 	}
 
 	private void createActivityForEmployeeRole(Long teamId, Long currentUserEmpId, List<Long> newEmpIds,
@@ -4896,8 +4924,18 @@ public class TeamsService {
 	private String getAllHodMails(List<EmployeeTeamMap> mappings) {
 		return mappings.stream().map(m -> employeeRepository.findHodMail(m.getEmpId())).filter(Objects::nonNull)
 				.distinct().collect(Collectors.joining(","));
-	}
-
+	} 
+	
+	private List<Long> getDeptIdListFromString(String deptIds) {
+        return Optional.ofNullable(deptIds)
+                .filter(s -> !s.isBlank())
+                .map(s -> Arrays.stream(s.split(","))
+                        .map(String::trim)
+                        .map(Long::valueOf)
+                        .collect(Collectors.toList()))
+                .orElse(List.of());
+    }
+	
 	public ServiceResponse getActiveTeamDetailsByProjectId(Integer projectId) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -4993,6 +5031,7 @@ public class TeamsService {
 					empTeamMap.setUpdatedBy(currentUserEmpId);
 					empTeamMap.setRoleId(teamMember.getRoleId());
 					empTeamMap.setPoId(teamMember.getPoId());
+					empTeamMap.setEmpTeamDepartmentId(teamMember.getEmpTeamDepartmentId());
 					if (teamMember.isDefaultProject()) {
 						defaultProjectEmpIds.add(empId);
 					}

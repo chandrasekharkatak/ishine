@@ -1451,9 +1451,14 @@ timesheet: any;
 
             if (ts) {
               const clone = { ...ts } as Timesheet;
-              clone.totalWorkingHoursPercentage =
-                (clone.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100 + '%';
+              // clone.totalWorkingHoursPercentage =
+              //   (clone.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100 + '%';
+              clone.totalWorkingHours = this.roundToTwo(clone.totalWorkingHours || 0);
 
+              clone.totalWorkingHoursPercentage =
+                this.roundToTwo(
+                  (clone.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100
+                ) + '%';
               this.timesheetDetails.push(clone);
 
               if (clone.status === 'Pending') pendingCount++;
@@ -1478,8 +1483,12 @@ timesheet: any;
           if (rows.length > 0) {
             rows.forEach(ts => {
               const clone = { ...ts } as Timesheet;
-              clone.totalWorkingHoursPercentage =
-                (clone.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100 + '%';
+              clone.totalWorkingHours = this.roundToTwo(clone.totalWorkingHours || 0);
+
+          clone.totalWorkingHoursPercentage =
+            this.roundToTwo(
+              (clone.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100
+            ) + '%';
 
               this.timesheetDetails.push(clone);
 
@@ -1532,7 +1541,9 @@ timesheet: any;
 
   }
 
-
+private roundToTwo(num: number): number {
+  return Math.round((num + Number.EPSILON) * 100) / 100;
+}
   //Employee Info Update
   openUpdateInfo(template: TemplateRef<any>) {
     this.modalRef = this.modalService.open(template, { modalDialogClass:'modal-xl' });

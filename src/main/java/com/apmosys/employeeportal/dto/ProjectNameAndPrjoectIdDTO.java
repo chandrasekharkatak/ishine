@@ -15,6 +15,7 @@ public class ProjectNameAndPrjoectIdDTO {
 	private Integer projectId;
 	private String projectName;
 	private String internalProjectType;
+	private String poProjectType;
 
 	public ProjectNameAndPrjoectIdDTO(Integer projectId, String projectName) {
 		this.projectId = projectId;
@@ -25,6 +26,15 @@ public class ProjectNameAndPrjoectIdDTO {
 		this.projectId = projectId;
 		this.projectName = projectName;
 		this.internalProjectType = internalProjectType;
+	}
+
+	public ProjectNameAndPrjoectIdDTO(Integer projectId, String projectName, String internalProjectType,
+			String poProjectType) {
+		super();
+		this.projectId = projectId;
+		this.projectName = projectName;
+		this.internalProjectType = internalProjectType;
+		this.poProjectType = poProjectType;
 	}
 
 }

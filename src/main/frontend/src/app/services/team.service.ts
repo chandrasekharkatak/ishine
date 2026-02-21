@@ -148,7 +148,7 @@ export class TeamService {
   }
 
   migrateTeamMembers(migrateTeam: MigrateTeams) {
-    return this.http.post(`${this.baseUrl}` + `api/migrateTeam`, migrateTeam);
+    return this.http.post(`${this.baseUrl}` + `api/migrateTeamMembers`, migrateTeam);
   }
 
   validateEmployeeTimesheetFilledToChangeStartDate(rmgTeamMember: RmgTeamMember) {
