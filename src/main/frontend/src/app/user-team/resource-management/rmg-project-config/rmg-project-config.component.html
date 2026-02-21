@@ -399,6 +399,10 @@
                             <th class="max-width200 min-width150 text-center" *ngIf="!isInternalProject"
                                 mat-sort-header="displayRequirement|string">Requirement Role</th>
                             <th class="max-width200 min-width150 text-center">Employee Role</th>
+                            <th class="max-width200 min-width150 text-center"
+                                mat-sort-header="empTeamDepartmentName|string">
+                                Employee Assigned Department
+                            </th>
                             <th class="max-width200 min-width150 text-center">Start Date</th>
                             <th class="max-width150 min-width100 text-center">Shadow</th>
                             <th class="max-width150 min-width100 text-center">Default</th>
@@ -417,7 +421,7 @@
                     <tbody>
                         <ng-container *ngIf="!teamMembers || teamMembers?.length === 0">
                             <tr>
-                                <td [attr.colspan]="projectConfigStepperIndex === 1 ? !isInternalProject ? 11 : 9 : !isInternalProject ? 10 : 8"
+                                <td [attr.colspan]="projectConfigStepperIndex === 1 ? !isInternalProject ? 12 : 10 : !isInternalProject ? 11 : 9"
                                     class="text-center">No Resources found.</td>
                             </tr>
                         </ng-container>
@@ -473,6 +477,10 @@
                                         [disable]="projectConfigStepperIndex !== 1" [(ngModel)]="member.employeeRoles"
                                         [options]="employeeRoles" [multiple]="true">
                                     </app-my-select>
+                                </td>
+                                <td class="max-width150 min-width100 truncate"
+                                    [title]="member.empTeamDepartmentName|| 'NA' ">
+                                    {{ member.empTeamDepartmentName || 'NA' }}
                                 </td>
                                 <td class="max-width200 min-width150">
                                     <div class="date-input-wrapper">
@@ -541,14 +549,21 @@
                             </th>
                             <th class="max-width150 min-width100 text-center" mat-sort-header="memberName|string">Name
                             </th>
+                            <th class="max-width150 min-width100 text-center" mat-sort-header="memberDepartment|string">
+                                Employee Department
+                            </th>
                             <th class="max-width150 min-width100 text-center" *ngIf="!isInternalProject"
                                 mat-sort-header="poNo|string">PO No.</th>
                             <th class="max-width150 min-width100 text-center" *ngIf="!isInternalProject"
-                                mat-sort-header="displayRequirement|string">Requirement Role</th>
-                            <th class="max-width150 min-width100 text-center" mat-sort-header="employeeRole|string">Role
+                                mat-sort-header="displayRequirement|string">
+                                Requirement Role
                             </th>
-                            <th class="max-width150 min-width100 text-center" mat-sort-header="memberDepartment|string">
-                                Department
+                            <th class="max-width150 min-width100 text-center" mat-sort-header="employeeRole|string">
+                                Role
+                            </th>
+                            <th class="max-width150 min-width100 text-center"
+                                mat-sort-header="empTeamDepartmentName|string">
+                                Employee Assigned Department
                             </th>
                             <th class="max-width150 min-width100 text-center">Start Date</th>
                             <th class="max-width150 min-width100 text-center">End Date</th>
@@ -567,7 +582,7 @@
                     <tbody>
                         <ng-container *ngIf="!teamMembers || teamMembers?.length === 0">
                             <tr>
-                                <td [attr.colspan]="!isInternalProject ? 11 : 9" class="text-center">
+                                <td [attr.colspan]="!isInternalProject ? 12 : 10" class="text-center">
                                     No Resources found.
                                 </td>
                             </tr>
@@ -594,6 +609,10 @@
                                 <td class="max-width150 min-width100 truncate" [title]="member.memberName|| 'NA' ">
                                     {{ member.memberName || 'NA' }}
                                 </td>
+                                <td class="max-width150 min-width100 truncate"
+                                    [title]="member.memberDepartment|| 'NA' ">
+                                    {{ member.memberDepartment || 'NA' }}
+                                </td>
                                 <td class="max-width150 min-width100 truncate" *ngIf="!isInternalProject"
                                     [title]="member.poNo|| 'NA' ">
                                     {{ member.poNo || 'NA' }}
@@ -606,8 +625,8 @@
                                     {{ member.employeeRole || 'NA' }}
                                 </td>
                                 <td class="max-width150 min-width100 truncate"
-                                    [title]="member.memberDepartment|| 'NA' ">
-                                    {{ member.memberDepartment || 'NA' }}
+                                    [title]="member.empTeamDepartmentName|| 'NA' ">
+                                    {{ member.empTeamDepartmentName || 'NA' }}
                                 </td>
                                 <td class="max-width150 min-width100 truncate"
                                     [title]="member.startDate ? ( member.startDate | date:'dd-MM-yyyy'): 'NA'">
@@ -653,18 +672,21 @@
             </div>
         </div>
         <div class="row justify-content-center align-items-center m-1">
-            <div [ngClass]="{'col-md-2': projectType === 'TNM', 'col-md-3': projectType !== 'TNM'}">
+            <div
+                [ngClass]="{'col-md-2': !teamMembersMigrationObj.isInternalProject, 'col-md-3': teamMembersMigrationObj.isInternalProject }">
                 <label class="mb-0">Target Project<span class="text-danger">*</span>
                 </label>
             </div>
-            <div [ngClass]="{'col-md-4': projectType === 'TNM', 'col-md-6': projectType !== 'TNM'}">
+            <div
+                [ngClass]="{'col-md-4': !teamMembersMigrationObj.isInternalProject, 'col-md-6': teamMembersMigrationObj.isInternalProject}">
                 <app-my-select #filterActiveProject class="form-control w-100" placeholder="Select Target Project"
                     [(ngModel)]="teamMembersMigrationObj.targetProjectId" [options]="projectList"
                     displayKey="projectName" valueKey="projectId" [multiple]="false"
                     (change)="getActivePoDetailsByProjectIdForTeamMigration()">
                 </app-my-select>
             </div>
-            <div class="col-md-6 d-flex justify-content-end align-items-center p-1" *ngIf="projectType === 'TNM'">
+            <div class="col-md-6 d-flex justify-content-end align-items-center p-1"
+                *ngIf="!teamMembersMigrationObj.isInternalProject">
                 <mat-slide-toggle color="primary" [(ngModel)]="isBulkTeamMemberMigration">
                 </mat-slide-toggle>&nbsp;&nbsp;
                 <h6 *ngIf="!isBulkTeamMemberMigration" class="section-title mb-0">Bulk Team Member Migration</h6>
@@ -673,7 +695,7 @@
             </div>
         </div>
 
-        <div class="card-body p-2" *ngIf="projectType === 'TNM'">
+        <div class="card-body p-2" *ngIf="!teamMembersMigrationObj.isInternalProject">
             <div class="row justify-content-start align-items-center m-1 custom-border"
                 *ngIf="!isBulkTeamMemberMigration">
                 <div class="col-3 p-1">
@@ -686,7 +708,7 @@
                         </app-my-select>
                     </div>
                 </div>
-                <div class="col-3 p-1" *ngIf="projectType === 'TNM'">
+                <div class="col-3 p-1" *ngIf="teamMembersMigrationObj.projectType === 'TNM'">
                     <div class="form-group mb-0">
                         <label>Requirement Role</label>
                         <app-my-select class="form-control" [(ngModel)]="teamMembersMigrationObj.targetRoleId"
@@ -695,7 +717,16 @@
                         </app-my-select>
                     </div>
                 </div>
-                <div class="col-1 offset-5 d-flex justify-content-end p-3">
+                <div class="col-4 p-1" *ngIf="teamMembersMigrationObj.projectType === 'TNM'">
+                    <div class="form-group mb-0">
+                        <label>Employee Team Assigned Department</label>
+                        <app-my-select class="form-control" placeholder="Select Department"
+                            [(ngModel)]="teamMembersMigrationObj.targetEmpTeamDepartmentId" [options]="departmentsList" displayKey="name"
+                            valueKey="deptId" [multiple]="false">
+                        </app-my-select>
+                    </div>
+                </div>
+                <div class="col-1 offset-1 d-flex justify-content-end p-3">
                     <button class="btn btn-sm btn-outline-primary" (click)="migrateTeamMembersBulk()"
                         title="Bulk Migrate Team Member(s)">
                         <em class="fa fa-exchange"></em>
@@ -749,22 +780,29 @@
                                         (change)="updateAllMemberTeamMigrationCheckBox()"></mat-checkbox>
                                 </th>
                                 <th class="max-width150 min-width150 text-center"
-                                    mat-sort-header="employementId|string">Employment
-                                    Id</th>
+                                    mat-sort-header="employementId|string">
+                                    Employment Id
+                                </th>
                                 <th class="max-width200 min-width150 text-center" mat-sort-header="memberName|string">
                                     Employee Name
                                 </th>
                                 <th class="max-width200 min-width150 text-center" mat-sort-header="teamName|string">
-                                    Current Team
-                                    Name</th>
+                                    Current Team Name
+                                </th>
                                 <th class="max-width200 min-width150 text-center" mat-sort-header="employeeRole|string">
-                                    Current
-                                    Employee Role</th>
-                                <th class="max-width200 min-width150 text-center" mat-sort-header="poNo|string">Current
-                                    PO No</th>
+                                    Current Employee Role
+                                </th>
+                                <th class="max-width200 min-width150 text-center"
+                                    mat-sort-header="empTeamDepartmentName|string">
+                                    Current Employee Assigned Department
+                                </th>
+                                <th class="max-width200 min-width150 text-center" mat-sort-header="poNo|string">
+                                    Current PO No
+                                </th>
                                 <th class="max-width200 min-width150 text-center"
                                     mat-sort-header="displayRequirement|string">
-                                    Current Requirement Role</th>
+                                    Current Requirement Role
+                                </th>
                             </tr>
                             <ng-container *ngIf="isMigrateTeamMemberSearchEnabled">
                                 <tr class="custom-filter-row" app-column-filter-bar
@@ -776,7 +814,7 @@
                         <tbody>
                             <ng-container *ngIf="teamMigrationTeamMembersList.length === 0">
                                 <tr>
-                                    <td colspan="7" class="text-center">No Details to display.</td>
+                                    <td colspan="9" class="text-center">No Details to display.</td>
                                 </tr>
                             </ng-container>
                             <ng-container
@@ -788,26 +826,27 @@
                                             (change)="onMemberMigrationMemberCheckboxChange(employee)">
                                         </mat-checkbox>
                                     </td>
-                                    <td class="max-width150 min-width150 truncate"
-                                        [title]="employee.employementId || 'NA'">
+                                    <td class="max-width150 min-width150 truncate" [title]="employee.employementId || 'NA'">
                                         {{employee.employementId }}
                                     </td>
-                                    <td class="max-width200 min-width150 truncate"
-                                        [title]=" employee.memberName || 'NA'">
+                                    <td class="max-width200 min-width150 truncate" [title]=" employee.memberName || 'NA'">
                                         {{ employee.memberName }}
                                     </td>
                                     <td class="max-width200 min-width150 truncate" [title]="employee.teamName || 'NA'">
-                                        {{ employee.teamName }}
+                                        {{ employee.teamName  || 'NA'  }}
+                                    </td>
+                                    <td class="max-width200 min-width150 truncate" [title]="employee.employeeRole || 'NA'">
+                                        {{ employee.employeeRole  || 'NA'  }}
                                     </td>
                                     <td class="max-width200 min-width150 truncate"
-                                        [title]="employee.employeeRole || 'NA'">
-                                        {{ employee.employeeRole }}
+                                        [title]="employee.empTeamDepartmentName|| 'NA' ">
+                                        {{ employee.empTeamDepartmentName || 'NA' }}
                                     </td>
                                     <td class="max-width150 min-width150 truncate" [title]="employee.poNo || 'NA'">
-                                        {{ employee.poNo }}</td>
-                                    <td class="max-width150 min-width150 truncate"
-                                        [title]="employee.displayRequirement || 'NA'">
-                                        {{ employee.displayRequirement }}
+                                        {{ employee.poNo || 'NA'}}
+                                    </td>
+                                    <td class="max-width150 min-width150 truncate" [title]="employee.displayRequirement || 'NA'">
+                                        {{ employee.displayRequirement || 'NA' }}
                                     </td>
                                 </tr>
                             </ng-container>
@@ -827,18 +866,19 @@
                                     Employee Name
                                 </th>
                                 <th class="max-width200 min-width150 text-center" mat-sort-header="teamName|string">
-                                    Current Team
-                                    Name</th>
+                                    Current Team Name</th>
                                 <th class="max-width200 min-width150 text-center" mat-sort-header="employeeRole|string">
-                                    Current
-                                    Employee Role</th>
-                                <th class="max-width200 min-width150 text-center" mat-sort-header="poNo|string">Current
-                                    PO No</th>
+                                    Current Employee Role</th>
+                                <th class="max-width200 min-width150 text-center" mat-sort-header="poNo|string">
+                                    Current PO No</th>
                                 <th class="max-width200 min-width150 text-center"
                                     mat-sort-header="displayRequirement|string">
                                     Current Requirement Role</th>
                                 <th class="max-width200 min-width150 text-center">Target PO</th>
                                 <th class="max-width200 min-width150 text-center">Target Requirement Role</th>
+                                <th class="max-width200 min-width150 text-center">
+                                    Target Employee Assigned Department
+                                </th>
                                 <th>Action</th>
                             </tr>
                             <ng-container *ngIf="isMigrateIndividualTeamMemberSearchEnabled">
@@ -851,7 +891,7 @@
                         <tbody>
                             <ng-container>
                                 <tr *ngIf="teamMigrationTeamMembersList.length === 0">
-                                    <td colspan="9" class="text-center">No Details to display.</td>
+                                    <td colspan="11" class="text-center">No Details to display.</td>
                                 </tr>
                             </ng-container>
                             <ng-container
@@ -873,15 +913,15 @@
                                         {{ employee.employeeRole }}
                                     </td>
                                     <td class="max-width150 min-width150 truncate" [title]="employee.poNo || 'NA'">
-                                        {{ employee.poNo }}
+                                        {{ employee.poNo || 'NA' }}
                                     </td>
                                     <td class="max-width150 min-width150 truncate"
                                         [title]="employee.displayRequirement || 'NA'">
-                                        {{employee.displayRequirement }}
+                                        {{employee.displayRequirement || 'NA' }}
                                     </td>
                                     <td class="max-width200">
                                         <app-my-select class="form-control" placeholder="Select PO"
-                                            [(ngModel)]="employee.poId" displayKey="poNo" valueKey="poId"
+                                            [(ngModel)]="employee.targetPoId" displayKey="poNo" valueKey="poId"
                                             [options]="employee.poDetailsList"
                                             (change)="getResourceRequirementDetailsByProjectIdForTeamMemberMigrationAndForEmployee(employee,teamMembersMigrationObj.targetProjectId)">
                                         </app-my-select>
@@ -891,6 +931,12 @@
                                             [(ngModel)]="employee.roleId" valueKey="roleId"
                                             displayKey="displayRequirement"
                                             [options]="employee.resourceRequirementList">
+                                        </app-my-select>
+                                    </td>
+                                    <td class="max-width200">
+                                        <app-my-select class="form-control" placeholder="Select Department"
+                                            [(ngModel)]="employee.empTeamDepartmentId" [options]="departmentsList"
+                                            displayKey="name" valueKey="deptId" [multiple]="false">
                                         </app-my-select>
                                     </td>
                                     <td>
@@ -907,7 +953,7 @@
             </div>
         </div>
 
-        <div class="row justify-content-center mt-2 mb-2" *ngIf="projectType !== 'TNM'">
+        <div class="row justify-content-center mt-2 mb-2"  *ngIf="teamMembersMigrationObj.isInternalProject">
             <button class="btn btn-sm btn-outline-primary" (click)="migrateTeam()">Yes, Proceed</button>&nbsp;&nbsp;
             <button class="btn btn-sm btn-primary" (click)="closeMigrateTeamModal()">No, Cancel</button>
         </div>
@@ -1094,6 +1140,9 @@
                             <th class="max-width200 min-width150 text-center">PO No</th>
                             <th class="max-width200 min-width150 text-center">Team</th>
                             <th class="max-width200 min-width150 text-center">Employee Role</th>
+                            <th class="max-width200 min-width150 text-center">
+                                Employee Assigned Department
+                            </th>
                             <th class="max-width200 min-width150 text-center">Requirement Role</th>
                             <th>Action</th>
                         </tr>
@@ -1138,6 +1187,10 @@
                                 <td class="max-width200 min-width150 truncate"
                                     [title]="employee.selectedProject?.employeeRole || 'NA'">
                                     {{ employee.selectedProject?.employeeRole || 'NA' }}
+                                </td>
+                                <td class="max-width150 min-width100 truncate"
+                                    [title]="employee.selectedProject?.empTeamDepartmentName|| 'NA' ">
+                                    {{ employee.selectedProject?.empTeamDepartmentName || 'NA' }}
                                 </td>
                                 <td class="max-width200 min-width150 truncate"
                                     [title]="employee.selectedProject?.resourceRequirement || 'NA'">
@@ -1230,6 +1283,15 @@
                     </div>
                     <div class="col-3 p-1">
                         <div class="form-group">
+                            <label>Employee's Team Department</label>
+                            <app-my-select class="form-control" placeholder="Select Department"
+                                [(ngModel)]="defaultProjectObj.empTeamDepartmentId" [options]="departmentsList"
+                                displayKey="name" valueKey="deptId" [multiple]="false">
+                            </app-my-select>
+                        </div>
+                    </div>
+                    <div class="col-3 p-1">
+                        <div class="form-group">
                             <label>Project Requirement</label>
                             <app-my-select class="form-control" [(ngModel)]="defaultProjectObj.roleId" valueKey="roleId"
                                 displayKey="displayRequirement" [options]="defaultProjectObj.resourceRequirementList">
@@ -1244,118 +1306,226 @@
             </div>
             <div class="mb-4">
                 <!-- Bulk Update Mode -->
+                <div class="row align-items-center mb-1"
+                    *ngIf="markDefaultProjectCompletionList.length > 0 && !isMarkDefaultProjectCompletionBulk">
+                    <div class="col-md-2 d-flex justify-content-start">
+                        <button class="btn btn-sm btn-outline-primary"
+                            (click)="toggleMarkDefaultProjectCompletionSearch()">
+                            <i
+                                [ngClass]="{ 'fa fa-search' : !isMarkDefaultProjectCompletionSearchEnabled, 'fa-solid fa-xmark': isMarkDefaultProjectCompletionSearchEnabled}"></i>
+                        </button>
+                    </div>
+                    <div class="col-md-6 offset-4 d-flex justify-content-end">
+                        <mat-paginator [length]="markDefaultProjectCompletionList.length"
+                            [pageIndex]="markDefaultProjectCompletionPage-1"
+                            [pageSize]="markDefaultProjectCompletionPageSize" [pageSizeOptions]="[5, 10, 20, 50]"
+                            (page)="markDefaultProjectCompletionPageChange($event)">
+                        </mat-paginator>
+                    </div>
+                </div>
+                <div class="row align-items-center mb-1"
+                    *ngIf="markDefaultProjectCompletionList.length > 0 && isMarkDefaultProjectCompletionBulk">
+                    <div class="col-md-2 d-flex justify-content-start">
+                        <button class="btn btn-sm btn-outline-primary"
+                            (click)="toggleMarkDefaultProjectCompletionIndividualSearch()">
+                            <i
+                                [ngClass]="{ 'fa fa-search' : !isMarkDefaultProjectCompletionIndividualSearchEnabled, 'fa-solid fa-xmark': isMarkDefaultProjectCompletionIndividualSearchEnabled}"></i>
+                        </button>
+                    </div>
+                    <div class="col-md-6 offset-4 d-flex justify-content-end">
+                        <mat-paginator [length]="markDefaultProjectCompletionList.length"
+                            [pageIndex]="markDefaultProjectCompletionIndividualPage-1"
+                            [pageSize]="markDefaultProjectCompletionIndividualPageSize"
+                            [pageSizeOptions]="[5, 10, 20, 50]"
+                            (page)="markDefaultProjectCompletionIndividualPageChange($event)">
+                        </mat-paginator>
+                    </div>
+                </div>
                 <div class="table-container" *ngIf="!isMarkDefaultProjectCompletionBulk">
-                    <table class="custom-table">
+                    <table class="custom-table" matSort (matSortChange)="sortMarkDefaultProjectCompletionData($event)">
                         <thead>
                             <tr>
-                                <th class="max-width150 text-center">Employment Id</th>
-                                <th class="max-width200 text-center">Employee Name</th>
-                                <th class="max-width200 text-center">Department</th>
-                                <th class="max-width200 text-center">Job Role</th>
-                                <th class="max-width150 text-center">Billable Type</th>
-                                <th class="max-width150 text-center">Previous Exp</th>
-                                <th class="max-width150 text-center">Current Exp</th>
-                                <th class="max-width150 text-center">Total Exp</th>
+                                <th class="max-width150 text-center" mat-sort-header="employementId|string">
+                                    Employment Id
+                                </th>
+                                <th class="max-width200 text-center" mat-sort-header="memberName|string">
+                                    Employee Name
+                                </th>
+                                <th class="max-width200 text-center" mat-sort-header="memberDepartment|string">
+                                    Employee Department
+                                </th>
+                                <th class="max-width200 text-center" mat-sort-header="jobRoleName|string">
+                                    Job Role
+                                </th>
+                                <th class="max-width200 min-width150 text-center"
+                                    mat-sort-header="empTeamDepartmentName|string">
+                                    Employee Assigned Department
+                                </th>
+                                <th class="max-width150 text-center" mat-sort-header="billableType|string">
+                                    Billable Type
+                                </th>
+                                <th class="max-width150 text-center" mat-sort-header="prevExp|string">
+                                    Previous Exp
+                                </th>
+                                <th class="max-width150 text-center" mat-sort-header="currentExp|string">
+                                    Current Exp
+                                </th>
+                                <th class="max-width150 text-center" mat-sort-header="totalExp|string">
+                                    Total Exp
+                                </th>
                             </tr>
+                            <ng-container *ngIf="isMarkDefaultProjectCompletionSearchEnabled">
+                                <tr class="custom-filter-row" app-column-filter-bar
+                                    [columnList]="markDefaultProjectCompletionColumnListBulk"
+                                    (onSearch)="searchMarkDefaultProjectCompletion($event)">
+                                </tr>
+                            </ng-container>
                         </thead>
                         <tbody>
-                            <tr *ngIf="markDefaultProjectCompletionList.length === 0">
-                                <td colspan="8" class="text-center">No Details to display.</td>
-                            </tr>
-                            <tr *ngFor="let employee of markDefaultProjectCompletionList; let i = index">
-                                <td class="max-width150 min-width150" [title]="employee.employementId || 'NA'">{{
-                                    employee.employementId || 'NA' }}</td>
-                                <td class="max-width200 min-width150" [title]="employee.memberName || 'NA'">{{
-                                    employee.memberName || 'NA' }}</td>
-                                <td class="max-width200 min-width150" [title]="employee.memberDepartment || 'NA'">{{
-                                    employee.memberDepartment || 'NA' }}</td>
-                                <td class="max-width200 min-width150" [title]="employee.jobRoleName || 'NA'">{{
-                                    employee.jobRoleName || 'NA' }}</td>
-                                <td class="max-width150 min-width150" [title]="employee.billableType || 'NA'">{{
-                                    employee.billableType || 'NA' }}</td>
-                                <td class="max-width150 min-width150" [title]="employee.prevExp || 'NA'">{{
-                                    employee.prevExp || 'NA' }}</td>
-                                <td class="max-width150 min-width150" [title]="employee.currentExp || 'NA'">{{
-                                    employee.currentExp || 'NA' }}</td>
-                                <td class="max-width150 min-width150" [title]="employee.totalExp || 'NA'">{{
-                                    employee.totalExp || 'NA' }}</td>
-                            </tr>
+                            <ng-container *ngIf="markDefaultProjectCompletionList.length === 0">
+                                <tr>
+                                    <td colspan="8" class="text-center">No Details to display.</td>
+                                </tr>
+                            </ng-container>
+                            <ng-container
+                                *ngFor="let employee of markDefaultProjectCompletionList | multicolFilter: markDefaultProjectCompletionFilters : true | sort : [markDefaultProjectCompletionSortColumn, markDefaultProjectCompletionSortColumnType,markDefaultProjectCompletionSortDirection] | paginate: { itemsPerPage: markDefaultProjectCompletionPageSize, currentPage: markDefaultProjectCompletionPage }; let i= index">
+                                <tr>
+                                    <td class="max-width150 min-width150" [title]="employee.employementId || 'NA'">
+                                        {{ employee.employementId || 'NA' }}
+                                    </td>
+                                    <td class="max-width200 min-width150" [title]="employee.memberName || 'NA'">
+                                        {{ employee.memberName || 'NA' }}
+                                    </td>
+                                    <td class="max-width200 min-width150" [title]="employee.memberDepartment || 'NA'">
+                                        {{ employee.memberDepartment || 'NA' }}
+                                    </td>
+                                    <td class="max-width200 min-width150" [title]="employee.jobRoleName || 'NA'">
+                                        {{ employee.jobRoleName || 'NA' }}
+                                    </td>
+                                    <td class="max-width150 min-width100 truncate"
+                                        [title]="employee.empTeamDepartmentName|| 'NA' ">
+                                        {{ employee.empTeamDepartmentName || 'NA' }}
+                                    </td>
+                                    <td class="max-width150 min-width150" [title]="employee.billableType || 'NA'">
+                                        {{ employee.billableType || 'NA' }}
+                                    </td>
+                                    <td class="max-width150 min-width150" [title]="employee.prevExp || 'NA'">
+                                        {{ employee.prevExp || 'NA' }}
+                                    </td>
+                                    <td class="max-width150 min-width150" [title]="employee.currentExp || 'NA'">
+                                        {{ employee.currentExp || 'NA' }}
+                                    </td>
+                                    <td class="max-width150 min-width150" [title]="employee.totalExp || 'NA'">
+                                        {{ employee.totalExp || 'NA' }}
+                                    </td>
+                                </tr>
+                            </ng-container>
                         </tbody>
                     </table>
                 </div>
 
                 <!-- Individual Mode -->
                 <div class="table-container" *ngIf="isMarkDefaultProjectCompletionBulk">
-                    <table class="custom-table">
+                    <table class="custom-table" matSort
+                        (matSortChange)="sortMarkDefaultProjectCompletionIndividualData($event)">
                         <thead>
                             <tr>
-                                <th class="max-width150 min-width150 text-center">Employment Id</th>
-                                <th class="max-width200 min-width150 text-center">Name</th>
+                                <th class="max-width150 min-width150 text-center"
+                                    mat-sort-header="employementId|string">Employment Id
+                                </th>
+                                <th class="max-width200 min-width150 text-center" mat-sort-header="memberName|string">
+                                    Name</th>
                                 <th class="max-width200 min-width150 text-center">Project Type</th>
                                 <th class="max-width200 min-width150 text-center">Project</th>
                                 <th class="max-width200 min-width150 text-center">PO No</th>
                                 <th class="max-width200 min-width150 text-center">Team</th>
-                                <th class="max-width200 min-width150 text-center">Role</th>
+                                <th class="max-width200 min-width150 text-center">Employee Role</th>
+                                <th class="max-width200 min-width150 text-center">
+                                    Employee Assigned Department
+                                </th>
                                 <th class="max-width200 min-width150 text-center">Requirement</th>
                                 <th>Action</th>
                             </tr>
+                            <ng-container *ngIf="isMarkDefaultProjectCompletionIndividualSearchEnabled">
+                                <tr class="custom-filter-row" app-column-filter-bar
+                                    [columnList]="markDefaultProjectCompletionIndividualColumnList"
+                                    (onSearch)="searchMarkDefaultProjectCompletionIndividual($event)">
+                                </tr>
+                            </ng-container>
                         </thead>
                         <tbody>
-                            <tr *ngIf="markDefaultProjectCompletionList.length === 0">
-                                <td colspan="8" class="text-center">No Details to display.</td>
-                            </tr>
-                            <tr *ngFor="let employee of markDefaultProjectCompletionList">
-                                <td class="max-width150 min-width150" [title]="employee.employementId || 'NA'">{{
-                                    employee.employementId || 'NA' }}</td>
-                                <td class="max-width200 min-width150" [title]="employee.memberName || 'NA'">{{
-                                    employee.memberName || 'NA' }}</td>
-                                <td class="max-width200">
-                                    <app-my-select class="form-control" placeholder="Select Project Type"
-                                        [(ngModel)]="employee.projectType" [options]="projectTypes"
-                                        (change)="changeProjectTypeForEmployee(employee)">
-                                    </app-my-select>
-                                </td>
-                                <td class="max-width200">
-                                    <app-my-select class="form-control" placeholder="Select Project"
-                                        [(ngModel)]="employee.projectId" displayKey="projectName" valueKey="projectId"
-                                        [options]="employee.projectType !== 'Bench' ? projectsOther : projectsBench"
-                                        (change)="getTeamOrPoBasedOnProjectTypeForEmployee(employee)">
-                                    </app-my-select>
-                                </td>
-                                <td class="max-width200">
-                                    <app-my-select class="form-control" *ngIf="employee.projectType !== 'Bench'"
-                                        placeholder="Select PO" [(ngModel)]="employee.poId" displayKey="poNo"
-                                        valueKey="poId" [options]="employee.poDetailsList"
-                                        (change)="getActiveTeamDetailsByPoIdForEmployee(employee)">
-                                    </app-my-select>
-                                    <span *ngIf="employee.projectType === 'Bench'">--</span>
-                                </td>
-                                <td class="max-width200">
-                                    <app-my-select class="form-control" placeholder="Search Team"
-                                        [(ngModel)]="employee.teamId" displayKey="teamName" valueKey="teamId"
-                                        [options]="employee.teamList"
-                                        (change)="getResourceRequirementByTeamIdForEmployee(employee)">
-                                    </app-my-select>
-                                </td>
-                                <td class="max-width200">
-                                    <app-my-select class="form-control" placeholder="Select Role"
-                                        [(ngModel)]="employee.employeeRoles" [options]="employeeRoles"
-                                        [multiple]="true">
-                                    </app-my-select>
-                                </td>
-                                <td class="max-width200">
-                                    <app-my-select class="form-control" placeholder="Search Requirement"
-                                        [(ngModel)]="employee.roleId" valueKey="roleId" displayKey="displayRequirement"
-                                        [options]="employee.resourceRequirementList">
-                                    </app-my-select>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-primary" title="Set Default Project"
-                                        (click)="updateDefaultProjectCompletion(employee, false)">
-                                        Update
-                                    </button>
-                                </td>
-                            </tr>
+                            <ng-container *ngIf="markDefaultProjectCompletionList.length === 0">
+                                <tr>
+                                    <td colspan="8" class="text-center">No Details to display.</td>
+                                </tr>
+                            </ng-container>
+                            <ng-container
+                                *ngFor="let employee of markDefaultProjectCompletionList | multicolFilter: markDefaultProjectCompletionIndividualFilters : true | sort : [markDefaultProjectCompletionIndividualSortColumn, markDefaultProjectCompletionIndividualSortColumnType,markDefaultProjectCompletionIndividualSortDirection] | paginate: { itemsPerPage: markDefaultProjectCompletionIndividualPageSize, currentPage: markDefaultProjectCompletionIndividualPage }; let i= index">
+                                <tr>
+                                    <td class="max-width150 min-width150" [title]="employee.employementId || 'NA'">
+                                        {{ employee.employementId || 'NA' }}
+                                    </td>
+                                    <td class="max-width200 min-width150" [title]="employee.memberName || 'NA'">
+                                        {{ employee.memberName || 'NA' }}
+                                    </td>
+                                    <td class="max-width200">
+                                        <app-my-select class="form-control" placeholder="Select Project Type"
+                                            [(ngModel)]="employee.projectType" [options]="projectTypes"
+                                            (change)="changeProjectTypeForEmployee(employee)">
+                                        </app-my-select>
+                                    </td>
+                                    <td class="max-width200">
+                                        <app-my-select class="form-control" placeholder="Select Project"
+                                            [(ngModel)]="employee.projectId" displayKey="projectName"
+                                            valueKey="projectId"
+                                            [options]="employee.projectType !== 'Bench' ? projectsOther : projectsBench"
+                                            (change)="getTeamOrPoBasedOnProjectTypeForEmployee(employee)">
+                                        </app-my-select>
+                                    </td>
+                                    <td class="max-width200">
+                                        <app-my-select class="form-control" *ngIf="employee.projectType !== 'Bench'"
+                                            placeholder="Select PO" [(ngModel)]="employee.poId" displayKey="poNo"
+                                            valueKey="poId" [options]="employee.poDetailsList"
+                                            (change)="getActiveTeamDetailsByPoIdForEmployee(employee)">
+                                        </app-my-select>
+                                        <span *ngIf="employee.projectType === 'Bench'">--</span>
+                                    </td>
+                                    <td class="max-width200">
+                                        <app-my-select class="form-control" placeholder="Search Team"
+                                            [(ngModel)]="employee.teamId" displayKey="teamName" valueKey="teamId"
+                                            [options]="employee.teamList"
+                                            (change)="getResourceRequirementByTeamIdForEmployee(employee)">
+                                        </app-my-select>
+                                    </td>
+                                    <td class="max-width200">
+                                        <app-my-select class="form-control" placeholder="Select Role"
+                                            [(ngModel)]="employee.employeeRoles" [options]="employeeRoles"
+                                            [multiple]="true">
+                                        </app-my-select>
+                                    </td>
+                                    <td class="max-width200">
+                                        <app-my-select class="form-control" placeholder="Select Department"
+                                            [(ngModel)]="employee.empTeamDepartmentId" [options]="departmentsList"
+                                            displayKey="name" valueKey="deptId" [multiple]="false">
+                                        </app-my-select>
+                                    </td>
+                                    <td class="max-width200">
+                                        <app-my-select class="form-control" *ngIf="employee.projectType !== 'Bench'"
+                                            placeholder="Search Requirement" [(ngModel)]="employee.roleId"
+                                            valueKey="roleId" displayKey="displayRequirement"
+                                            [options]="employee.resourceRequirementList">
+                                        </app-my-select>
+                                        <span *ngIf="employee.projectType === 'Bench'">--</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary" title="Set Default Project"
+                                            (click)="updateDefaultProjectCompletion(employee, false)">
+                                            Update
+                                        </button>
+                                    </td>
+                                </tr>
+                            </ng-container>
+
                         </tbody>
                     </table>
                 </div>
@@ -1417,6 +1587,15 @@
                 </div>
             </div>
             <div class="row mb-1">
+                <div class="col-md-6">
+                    <div class="form-group mb-0">
+                        <label class="mb-0">Employee's Team Department<span class="text-danger">*</span></label>
+                        <app-my-select #memberDepartmentSelect class="form-control" placeholder="Select Department"
+                            [(ngModel)]="currentTeam.newRmgTeamMember.empTeamDepartmentId" [options]="departmentsList"
+                            displayKey="name" valueKey="deptId" [multiple]="false">
+                        </app-my-select>
+                    </div>
+                </div>
                 <div class="col-md-6">
                     <div class="form-group mb-0">
                         <label class="mb-0">Start Date<span class="text-danger">*</span></label>
@@ -1596,6 +1775,13 @@
         <p>Are you sure you want to delete the resource from the Project ?</p>
         <div class="row justify-content-center align-items-center">
             <label class="info-label">Select End Date</label>
+        </div>
+        <div class="row justify-content-center align-items-center">
+            <mat-radio-group [(ngModel)]="employeeProjectEndDateType"
+                (change)="onMemberRemoveEndDateTypeChange($event)">
+                <mat-radio-button value="PO">PO End Date</mat-radio-button>
+                <mat-radio-button value="Custom">Custom End Date</mat-radio-button>
+            </mat-radio-group>
         </div>
         <div class="row justify-content-center align-items-center m-2">
             <input type="date" class="form-control" autocomplete="none" [(ngModel)]="employeeProjectEndDate">

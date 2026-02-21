@@ -3257,7 +3257,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	// 	    @Param("toDate") String toDate);
 
 	
-	@Query("SELECT DISTINCT NEW com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(projectId,projectName,internalProjectType)\n"
+	@Query("SELECT DISTINCT NEW com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(projectId,projectName,internalProjectType,poProjectType)\n"
 			+ " from Project where active = 'true' ")
 	public List<ProjectNameAndPrjoectIdDTO> getActiveProjectList();
 	
@@ -5412,16 +5412,15 @@ boolean existsByProjectName(String projectName);
 			+ "p.projectId, p.projectName,p.status,p.poProjectType,p.internalProjectType, \n"
 			+ "ppd.poId, ppd.poNo, prm.poRequirementMappingId, prm.role, prm.experience, prm.department, \n"
 			+ "t.teamId, t.teamName, c.clientId, c.clientName, \n"
-			+ "e.empId, e.billableType, etm.active, etm.startDate, etm.endDate, etm.employeeTeamMapId) \n"
+			+ "e.empId, e.billableType, etm.active, etm.startDate, etm.endDate, etm.employeeTeamMapId, ppd.poStartDate, ppd.poEndDate) \n"
 			+ "FROM EmployeeTeamMap etm \n"
-			+ "INNER JOIN Employee e on e.empId = etm.empId \n"
+			+ "LEFT JOIN Employee e on e.empId = etm.empId \n"
+			+ "LEFT JOIN Team t ON etm.teamId = t.teamId \n"
+			+ "LEFT JOIN Project p ON t.projectId = p.projectId \n"
+			+ "LEFT JOIN Client c ON p.clientId = c.clientId \n"
+			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = etm.poId \n"
 			+ "LEFT JOIN PoRequirementMapping prm ON  etm.roleId = prm.roleId and etm.poId = prm.poId and prm.active = true \n"
-			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId \n"
-			+ "INNER JOIN Team t ON etm.teamId = t.teamId \n"
-			+ "INNER JOIN Project p ON t.projectId = p.projectId \n"
-			+ "INNER JOIN Client c ON p.clientId = c.clientId \n"
-			+ "WHERE 1=1 \n"
-		+ "AND etm.empId= :empId AND etm.active != 0 \n"
+			+ "WHERE 1=1 AND etm.empId= :empId AND etm.active != 0 \n"
 			+ "AND t.isActive != 'N' AND p.active != 'false' \n")
 public List<PoTeamAndMemberDetailsDto> getEmployeeExistingProjectDetailsByEmpId(Long empId);
 
