@@ -123,7 +123,7 @@ public class TimesheetQueryService {
                     apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
                 } else {
                     // Return hierarchical structure - UI will handle display
-                    List<EmployeeTimesheetDTO> dtoList = buildTimesheetDTOList(list);
+                    List<EmployeeTimesheetDTO> dtoList = buildTimesheetDTOList(list, false);
                     response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
                     response.setServiceResponse(dtoList);
                     apiLogInfo.setApiResponse("dtoList : " + dtoList.size() + " timesheets");
@@ -241,7 +241,7 @@ public class TimesheetQueryService {
                     apiLogInfo.setApiResponse("Timesheet list is empty");
                     apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
                 } else {
-                    List<EmployeeTimesheetDTO> dtoList = buildTimesheetDTOList(list);
+                    List<EmployeeTimesheetDTO> dtoList = buildTimesheetDTOList(list , true);
                     response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
                     response.setServiceResponse(dtoList);
                     apiLogInfo.setApiResponse("dtoList : " + dtoList);
@@ -744,7 +744,7 @@ public class TimesheetQueryService {
     /**
      * Builds timesheet DTO list from object array.
      */
-    private List<EmployeeTimesheetDTO> buildTimesheetDTOList(List<Object[]> rows) {
+    private List<EmployeeTimesheetDTO> buildTimesheetDTOList(List<Object[]> rows , boolean isTeam) {
 
     	Map<Long, EmployeeTimesheetDTO> timesheetMap = new LinkedHashMap<>();
 
@@ -786,7 +786,9 @@ rows.forEach(row -> {
             dto.setDayTypeId(row[38]!=null?((Number)row[38]).intValue():null);
             dto.setLocationSessions(new ArrayList<>());
             dto.setDocumentData(new ArrayList<>());
-            dto.setEmployeeName(row[39]!=null?((String)row[39]):null);
+            if(isTeam)  {
+                dto.setEmployeeName(row[39]!=null?((String)row[39]):null);
+            }
             return dto;
         });
 
