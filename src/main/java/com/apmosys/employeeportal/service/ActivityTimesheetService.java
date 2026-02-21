@@ -86,23 +86,7 @@ public class ActivityTimesheetService {
         return timesheetActivityMapNewRepository.saveAll(entities);
     }
 
-    /**
-     * Find all Activities for a timesheet.
-     * 
-     * @param timesheetId Timesheet ID
-     * @return List of ActivityTimesheetDTO
-     */
-    public List<ActivityTimesheetDTO> findByTimesheetId(Long timesheetId) {
-        if (timesheetId == null) {
-            return List.of();
-        }
-
-        List<EmployeeTimesheetActivitiesMappingNew> entities = timesheetActivityMapNewRepository
-                .findByIdTimesheetId(timesheetId);
-        return timesheetMapper.toActivityDTOList(entities);
-    }
-
-    /**
+     /**
      * Find all Activities for a timesheet and project.
      * 
      * @param timesheetId Timesheet ID

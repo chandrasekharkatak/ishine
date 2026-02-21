@@ -993,7 +993,8 @@ public class TimesheetServiceNew {
 
 			// Update employee timesheet with calculated totals
 			empTS.setTotalWorkingMinutes(newEmpDTO.getTotalWorkingMinutes());
-			empTS.setStatus(newEmpDTO.getStatus());
+			empTS.setStatus(TimesheetAggregationHelper.STATUS_PENDING);
+			
 			empTS = employeeTimesheetsNewRepository.save(empTS);
 			if (newEmpDTO.getDocumentData() != null && !newEmpDTO.getDocumentData().isEmpty()) {
 				// NEW CONTRACT: Handle document uploads/updates for multiple projects

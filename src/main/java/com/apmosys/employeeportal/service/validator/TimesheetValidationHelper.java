@@ -46,6 +46,7 @@ import com.apmosys.employeeportal.repository.EmployeeTimesheetLocationMappingRep
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.repository.TimesheetActivityMapNewRepository;
 import com.apmosys.employeeportal.service.ActivityTimesheetService;
 import com.apmosys.employeeportal.service.ProjectTimesheetService;
 import com.apmosys.employeeportal.service.TimesheetDocumentServiceNew;
@@ -1495,6 +1496,10 @@ public class TimesheetValidationHelper {
 	                                    )),
 	                            (a, b) -> a
 	                    ));
+	    
+	  
+	    
+	    
 
 	    for (ProjectTimesheetDTO approved : approvedMappings) {
 
@@ -1516,10 +1521,19 @@ public class TimesheetValidationHelper {
 
 	        ProjectTimesheetDTO incomingProject =
 	                incomingProjectsAtLocation.get(projectId);
+	        
+	      
 
-	        // Activities immutability
-	        validateApprovedProjectActivitiesImmutable(
-	                approved.getActivities(),
+		    List<ActivityTimesheetDTO> activityList=activityTimesheetService.findByTimesheetIdAndLocationMappingIdAndProjectId(timesheetId,locationMappingId,projectId);
+		    // Activities immutability
+		    System.out.println("incomingProject ==> ");
+		    System.out.println(incomingProject.toString());
+		    System.out.println("incomingProject.getActivities().==> ");
+		    System.out.println(incomingProject.getActivities().toString());
+		    
+		    
+		    validateApprovedProjectActivitiesImmutable(
+	        		activityList,
 	                incomingProject.getActivities(),
 	                projectId,
 	                locationMappingId);
