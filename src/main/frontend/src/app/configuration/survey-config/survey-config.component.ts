@@ -688,7 +688,7 @@ export class SurveyConfigComponent implements OnInit {
   name = 'EmployeeSheet.xlsx';
   async exportToExcel(): Promise<void> {
 
-    let headers:any[] = ["Employee ID", "Employee Name"];
+    let headers:any[] = ["Employee ID", "Employee Name", "Marks Obtained", "Pass Status"];
     let questionsList:any[] = [];
     let responseList:any[] = [];
     let dataForExcel:any[] = [];
@@ -719,7 +719,12 @@ export class SurveyConfigComponent implements OnInit {
       //console.log("responseList : ", responseList);
       const key = "employeementId"
       let employees = [...new Map(responseList.map((response:SurveyQuestion) => [response[key], response])).values()].map((response:SurveyQuestion) => {
-        return [response.employmentIdAccToET, response.name]
+        // return [response.employmentIdAccToET, response.name]
+        if(this.isFromTraining){
+          return  [response.employmentIdAccToET, response.name,response.marksObtained, response.passStatus]
+        } else {
+          return [response.employmentIdAccToET, response.name];
+        }
         // return {
         //   name: response.name,
         //   employeementId : response.employeementId
