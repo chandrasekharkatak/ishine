@@ -263,7 +263,7 @@ export class QuizSubmit implements OnInit {
           <div class="col-md-9 text-end">
             <div class="d-inline-block me-4">
               <span class="fw-bold">Score:</span>
-              <span class="ms-2 badge bg-primary fs-6">${this.marksObtained || this.correctAnswersCount}/${this.totalQuestions}</span>
+              <span class="ms-2 badge bg-primary fs-6">${this.correctAnswersCount}/${this.totalQuestions}</span>
             </div>
             <div class="d-inline-block me-4">
               <span class="fw-bold">Status:</span>
