@@ -41,7 +41,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
-import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.*;
 import com.apmosys.employeeportal.repository.CompOffMasterRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
@@ -1236,6 +1235,14 @@ public class EmployeeLeaveService {
 
     private void saveRelationalLeaveTimesheet(LeaveDTO leaveDTO, LocalDate date,LocalDateTime startOfDay, LocalDateTime endOfDay) {
         try {
+        	Long userId = (leaveDTO.getCreatedBy() != null) ? leaveDTO.getCreatedBy() : leaveDTO.getUpdatedBy();
+	        
+            if (userId == null) {
+                throw new RuntimeException("Cannot save timesheet: Both CreatedBy and UpdatedBy are null in LeaveDTO.");
+            }
+            if(leaveDTO.getCreatedBy() == null){
+                leaveDTO.setCreatedBy(userId);
+            }
         EmployeeTimesheetsNew tsHeader = new EmployeeTimesheetsNew();
         tsHeader.setEmpId(leaveDTO.getEmpId());
         tsHeader.setDate(date);
@@ -1604,7 +1611,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-
+	
 	@Transactional
 	public ServiceResponse updatePendingLeave(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
@@ -1623,6 +1630,8 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 			if (leaveObject.isPresent()) {
 				EmployeeLeave leaveToBeUpdated = leaveObject.get();
 				
+                LocalDate oldFromDate = leaveObject.get().getFromDate();
+                LocalDate oldToDate = leaveObject.get().getToDate();
 				Optional<LeaveTypeMaster> leavetype = leaveTypeMasterRepository.findById(leaveToBeUpdated.getLeaveTypeMasterId());
 				
 				List<Object[]> empObj = employeeRepository.getManagerEmail(leaveToBeUpdated.getEmpId());
@@ -1789,7 +1798,8 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 
 						
 						
-						if(leaveDTO.getUpdatedBy().equals(leaveDTO.getEmpId())){
+						if(leaveDTO.getUpdatedBy() != null && leaveDTO.getEmpId() != null && 
+    leaveDTO.getUpdatedBy().longValue() == leaveDTO.getEmpId().longValue()){
 							//Leave Applied for self
 							
 							mailService.sendMailWithCC(leaveDTO.getApproverEmail(), hrMailAddress +","+ leaveDTO.getEmail()+ managerEmail,
@@ -1841,101 +1851,48 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 						}
 						
 						cronJobService.sendHrDepartmentNotificationUpdateCase(leaveDTO, leavetype);
-						
+						List<EmployeeTimesheetsNew> existingTS = employeeTimesheetsNewRepository.findByEmpIdAndDateBetween(leaveDTO.getEmpId(),oldFromDate,oldToDate);
+						    if (existingTS != null && !existingTS.isEmpty()) {
+	                            for (EmployeeTimesheetsNew ts : existingTS) {
+	                                employeeTimesheetsNewRepository.cleanTimesheetById(ts.getTimesheetId());
+	                            }
+	                        }
+	                        entityManager.flush();
 						//Timesheet Update
 						// IF Employee is Applying Leave for Half Day then, Automatic timesheet will not be filled as Leave
 						if(leaveDTO.getNoOfDays() > 0.5) {
 							LocalDate fromDate = LocalDate.parse(leaveDTO.getFromDate());
 							LocalDate toDate = LocalDate.parse( leaveDTO.getToDate());
 
-							long elapsedDays = ChronoUnit.DAYS.between(fromDate,toDate);
+							// long elapsedDays = ChronoUnit.DAYS.between(fromDate,toDate);
+													
+						    
+	                        
+	                        List<Object[]> holidayList = holidayRepository.getHolidayWeekOffSize(leaveDTO.getFromDate(), leaveDTO.getToDate(), leaveDTO.getState());
+	                        //after timesheet deletion
+	                        LocalDate tempDate = fromDate;
+	                        while (!tempDate.isAfter(toDate)) {
+	                            boolean isStartHalf = tempDate.isEqual(fromDate) && (leaveDTO.getFromDateDayType() != null && leaveDTO.getFromDateDayType() == 0.5f);
+	                            boolean isEndHalf = tempDate.isEqual(toDate) && (leaveDTO.getToDateDayType() != null && leaveDTO.getToDateDayType() == 0.5f);
+
+	                            if (!isStartHalf && !isEndHalf) {
+	                                boolean isHoliday = false;
+	                                if ("false".equalsIgnoreCase(leaveDTO.getIsWeekOffsExcluded()) && holidayList != null) {
+	                                    for (Object[] holiday : holidayList) {
+	                                        if (holiday[1] != null && tempDate.equals(LocalDate.parse(holiday[1].toString()))) {
+	                                            isHoliday = true;
+	                                            break;
+	                                        }
+	                                    }
+	                                }
+
+	                                if (!isHoliday) {
+	                                    saveRelationalLeaveTimesheet(leaveDTO, tempDate, tempDate.atStartOfDay(), tempDate.atTime(LocalTime.MAX));
+	                                }
+	                            }
+	                            tempDate = tempDate.plusDays(1);
+	                        }
 							
-							List<Object[]> holidayList = holidayRepository.getHolidayWeekOffSize(leaveDTO.getFromDate(), leaveDTO.getToDate(), leaveDTO.getState());
-							
-						    List<Timesheet> empTimeSheet = timesheetsRepository.findTimesheetOnLeaveDateOLD(leaveDTO.getEmpId(),leaveDTO.getFromDate(),leaveDTO.getToDate());
-						    if(!empTimeSheet.isEmpty()) {
-						    empTimeSheet.forEach((timesheet)->{
-						     	
-						    	List<TimesheetActivityMap> timesheetactivities = timesheetActivityRepository.getTimesheetActivityByTimesheetId(timesheet.getTimesheetId());
-						    	
-						    	timesheetactivities.forEach((timesheetactivity)->{
-						    		
-						    		timesheetActivityRepository.deleteById(timesheetactivity.getTimesheetActivityMapId());
-
-						    	});
-						    	
-						    	if(!timesheet.getDayType().equals("Public Holiday") && !timesheet.getDayType().equals("Week Off")) {
-						    		timesheetsRepository.deleteById(timesheet.getTimesheetId());				    		
-						    	}
-						    });
-						    }
-						    //after timesheet deletion
-						    List<Timesheet> empTimeSheetAfterDelete = timesheetsRepository.findTimesheetOnLeaveDateOLD(leaveDTO.getEmpId(),leaveDTO.getFromDate(),leaveDTO.getToDate());
-
-							if((elapsedDays == 0)) {
-								
-								if(holidayList.isEmpty()) {
-									Timesheet newTimesheet = new Timesheet();
-									
-									newTimesheet.getCommonProperty().setCreatedBy(leaveDTO.getCreatedBy());
-									newTimesheet.setDate(fromDate);
-									newTimesheet.setDayType("Leave");
-									newTimesheet.setDescription("On leave");
-									newTimesheet.setEmpId(leaveDTO.getEmpId());
-									newTimesheet.setStatus("Approved");
-									newTimesheet.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
-
-									timesheetsRepository.save(newTimesheet);
-								}
-							}
-							if((elapsedDays != 0)) {
-								LocalDate tempDateToday = fromDate;
-
-								while(tempDateToday.compareTo(toDate) != 1) {
-									
-									if(tempDateToday.isEqual(fromDate) && leaveDTO.getFromDateDayType() == 0.5) {
-										System.out.println("From Date is Half Day");
-									}else if(tempDateToday.isEqual(toDate) && leaveDTO.getToDateDayType() == 0.5) {
-										System.out.println("To Date is Half Day");
-									}else {
-										boolean isHoliday = false;
-										
-										if(leaveDTO.getIsWeekOffsExcluded().equals("false")) {
-											if(!holidayList.isEmpty()) {
-												for(Object[] holiday: holidayList) {
-													if(holiday[1].toString() != null) {
-														LocalDate holidayDate = LocalDate.parse(holiday[1].toString());
-														
-														if(tempDateToday.isEqual(holidayDate)){
-															isHoliday = true;
-															break;
-														}
-													}
-												}
-											}	
-										}
-										
-										System.out.println("check Date : "+ tempDateToday.toString() +", isHoliday : "+ isHoliday);
-										
-										if(!isHoliday) {
-											Timesheet newTimesheet = new Timesheet();
-
-											newTimesheet.getCommonProperty().setCreatedBy(leaveDTO.getCreatedBy());
-											newTimesheet.setDate(tempDateToday);
-											newTimesheet.setDayType("Leave");
-											newTimesheet.setDescription("On leave");
-											newTimesheet.setEmpId(leaveDTO.getEmpId());
-											newTimesheet.setStatus("Approved");
-											newTimesheet.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
-
-											timesheetsRepository.save(newTimesheet);
-										}
-									}
-									
-									tempDateToday = tempDateToday.plusDays(1);
-									
-								}
-							}
 						}
 					} else {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
