@@ -3112,6 +3112,7 @@ public class TeamsService {
 		return response;
 	}
 
+    @Transactional
 	public ServiceResponse revokeReporteeLeave(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
