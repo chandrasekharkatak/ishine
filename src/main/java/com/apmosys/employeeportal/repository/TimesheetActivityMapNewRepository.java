@@ -68,7 +68,13 @@ public interface TimesheetActivityMapNewRepository extends JpaRepository<Employe
 
 	@Query("SELECT a FROM EmployeeTimesheetActivitiesMappingNew a WHERE a.id.timesheetId = :timesheetId")
 	List<EmployeeTimesheetActivitiesMappingNew> findByIdTimesheetId(@Param("timesheetId") Long timesheetId);
-	
+
+	@Query("SELECT a FROM EmployeeTimesheetActivitiesMappingNew a WHERE a.timesheetId = :timesheetId AND a.locationMappingId = :locationMappingId AND a.projectId = :projectId")
+	List<EmployeeTimesheetActivitiesMappingNew> findByTimesheetIdAndLocationMappingIdAndProjectId(
+			@Param("timesheetId") Long timesheetId,
+			@Param("locationMappingId") Long locationMappingId,
+			@Param("projectId") Integer projectId);
+
 	/**
 	 * Find all activities by timesheet ID (alias for findByIdTimesheetId).
 	 */

@@ -20,6 +20,7 @@ import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqD
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.RejectionDataDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
 import com.apmosys.employeeportal.model.EmployeeTimesheetActivitiesMappingNew;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
@@ -264,8 +265,8 @@ public class TimesheetMapper {
 
         Map<Long, GetReporteesTimesheetReqDTO> timesheetMap = new LinkedHashMap<>();
 
+        System.out.println(rows);
         for (GetReporteesTimesheetReqFlatDTO r : rows) {
-
             /* ================= TIMESHEET LEVEL ================= */
             GetReporteesTimesheetReqDTO timesheet =
                     timesheetMap.computeIfAbsent(
@@ -331,7 +332,7 @@ public class TimesheetMapper {
                                                 r.getStatus(),
                                                 TimesheetFormatUtil.formatMinutes(r.getTotalClientWorkingMinutes()),
                                                 r.getDescription(),
-                                                new ArrayList<>()
+                                                new ArrayList<>(), new ArrayList<>()
                                         );
 
                                 location.getProjects().add(p);
@@ -368,11 +369,18 @@ public class TimesheetMapper {
                                     r.getDocName(),
                                     r.getFinalFlag(),
                                     r.getBulkApprovedDocId(),
-                                    r.getMimeType()
+                                    r.getMimeType(),
+                                    r.getDocsProjectId()
                             );
 
                     timesheet.getDocumentData().add(doc);
                 }
+            }
+            /* ================= REJECTION LEVEL ================= */
+            if(r.getRejectionReason() != null && r.getRemarks() != null) {
+            	RejectionDataDTO rejectionData = new RejectionDataDTO(r.getDocsProjectId(),r.getLocationMappingId(),r.getTimesheetId(), r.getRejectionReason() , r.getRemarks(), r.getRejectedOn());
+            	if(!project.getRejectionReasons().contains(rejectionData))
+            	project.getRejectionReasons().add(rejectionData);
             }
         }
 

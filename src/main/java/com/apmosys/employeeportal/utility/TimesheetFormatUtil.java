@@ -20,11 +20,11 @@ public class TimesheetFormatUtil {
 
     public static String formatMinutes(Number minutes) {
         if (minutes == null) return "00:00";
-
+        System.out.println(minutes);
         int totalMinutes = minutes.intValue(); // works for Short, Integer, Long
         int hrs = totalMinutes / 60;
         int mins = totalMinutes % 60;
-
+        System.out.println(hrs + ":" +mins);
         return String.format("%02d:%02d", hrs, mins);
     }
     

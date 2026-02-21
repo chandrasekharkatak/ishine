@@ -671,6 +671,7 @@
                                                     Status</label>
                                                 <select class="form-control" aria-hidden="true"
                                                     [(ngModel)]="employeeObj.employmentstatus"
+                                                    (focus)="storePreviousStatus()"
                                                     (change)="retainStatus()">
                                                     <option selected="selected" value="" disabled>Select</option>
                                                     <option value="Probation">Probation</option>
@@ -4608,3 +4609,45 @@
         
     </div>
 </ng-template>
+<ng-template #inactiveTemplate>
+  <div class="modal-header border-0 pb-0">
+    <h5 class="modal-title fw-semibold text-dark">
+      Change Employment Status
+    </h5>
+    <!-- <button type="button" class="btn-close" aria-label="Close" (click)="onCancel()"></button> -->
+  </div>
+
+  <div class="modal-body pt-2">
+    <div class="d-flex align-items-start">
+      <div class="me-3">
+        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center"
+             style="width:40px;height:40px;">
+          <i class="fa fa-exclamation text-danger"></i>
+        </div>
+      </div>
+
+      <div>
+        <p class="mb-2 text-muted">
+          This employee has pending timesheets or is currently assigned to an active TNM project.
+        </p>
+
+        <p class="mb-0 fw-medium">
+          Do you want to proceed with marking the employee as
+          <span class="text-danger">Inactive</span>?
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer border-0 pt-3">
+    <button class="btn btn-light px-4" (click)="onCancel()">
+      Cancel
+    </button>
+    <button class="btn btn-danger px-4" (click)="cancelRequest()">
+      Confirm
+    </button>
+  </div>
+</ng-template>
+
+
+

@@ -1,4 +1,4 @@
-<div class="row mb-3">
+<div class="row mb-3"> 
   <div class="col-md-12 px-0">
     <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_my_teams_timesheets"
       [ngClass]="{'active' : isAllTimesheetTable}" (click)="showAllTimesheetsTable()">Teams All Timesheets</button>
@@ -627,61 +627,70 @@
 <!-- Request for Timesheets starts -->
 
 <div class="row" *ngIf="isAllTimesheetRequestTable">
-  <div class="col-md-12">
-    <div class="row">
-      <div class="col-md-12 table-header">
-        <h1 class="table-header-title">Timesheets Request</h1>
+  <div class="col-md-12 ts-enterprise-wrap">
+    <div class="ts-page-header-card">
+      <div class="ts-page-header-inner">
+        <div class="ts-page-title-block">
+          <i class="fas fa-clipboard-list ts-page-icon"></i>
+          <div>
+            <h1 class="ts-page-title">Timesheets Request</h1>
+            <p class="ts-page-subtitle">Review and approve team timesheet submissions</p>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="bulk-actions-fixed"  [class.active]="selectedRows.length >= 2">
+    <div class="bulk-actions-fixed" [class.active]="selectedRows.length >= 2">
       <div class="bulk-actions-wrapper">
         <div class="selection-info">
           <span class="selected-count">{{ selectedRows.length }}</span>
           <span class="selected-text">item{{ selectedRows.length !== 1 ? 's' : '' }} selected</span>
         </div>
         <div class="bulk-buttons-group">
-          <button class="bulk-action-btn bulk-approve-btn"
-            (click)="bulkApproveByIds()">
-            <i class="fas fa-check-circle"></i>Bulk Approve </button>
-
-          <!-- <button class="bulk-action-btn bulk-reject-btn" [disabled]="selectedRows.length === 0"
-            (click)="openBulkRejectModal(reject_timesheet)"> <i class="fas fa-times-circle"></i> Bulk Reject </button> -->
+          <button type="button" class="ts-bulk-btn ts-bulk-approve" (click)="bulkApproveByIds()">
+            <i class="fas fa-check-circle"></i> Bulk Approve
+          </button>
         </div>
-        <button class="clear-selection-btn" (click)="clearAllSelections()" *ngIf="selectedRows.length > 0"> <i
-            class="fas fa-times"></i> Clear </button>
+        <button type="button" class="ts-bulk-clear" (click)="clearAllSelections()" *ngIf="selectedRows.length > 0">
+          <i class="fas fa-times"></i> Clear
+        </button>
       </div>
     </div>
-    <div class="status-container">
-      <!-- <div class="status-card pending" [class.active]="selectedStatus === 1" (click)="onStatusChange(1)"> Pending </div>
-      <div class="status-card approved" [class.active]="selectedStatus === 2" (click)="onStatusChange(2)"> Approved
+    <div class="ts-status-section">
+      <div class="ts-status-section-header">
+        <span class="ts-status-section-title">View by status</span>
+        <span class="ts-status-section-desc">Select a status to filter timesheets</span>
       </div>
-      <div class="status-card rejected" [class.active]="selectedStatus === 3" (click)="onStatusChange(3)"> Rejected
-      </div> -->
-      <div class="status-container">
-
-        <div class="status-card pending"
-             [class.active]="selectedStatus === 1"
-             (click)="onStatusChange(1)" title="Click to view all pending timesheets">
-          <div class="status-title">Pending</div>
-          <div class="status-count">{{ pendingCount }}</div>
+      <div class="ts-status-cards">
+        <div class="ts-status-card pending" [class.active]="selectedStatus === 1"
+             (click)="onStatusChange(1)" title="Click to view all pending timesheets" role="button" tabindex="0">
+          <div class="ts-status-card-icon ts-status-icon-pending"><i class="fas fa-clock"></i></div>
+          <div class="ts-status-card-content">
+            <span class="ts-status-label">Pending</span>
+            <span class="ts-status-value">{{ pendingCount }}</span>
+          </div>
+          <div class="ts-status-card-check" aria-hidden="true"><i class="fas fa-check"></i></div>
         </div>
-
-        <div class="status-card approved"
-             [class.active]="selectedStatus === 2"
-             (click)="onStatusChange(2)" title="Click to view all approved timesheets">
-          <div class="status-title">Approved</div>
-          <div class="status-count">{{ approvedCount }}</div>
+        <div class="ts-status-card approved" [class.active]="selectedStatus === 2"
+             (click)="onStatusChange(2)" title="Click to view all approved timesheets" role="button" tabindex="0">
+          <div class="ts-status-card-icon ts-status-icon-approved"><i class="fas fa-check-circle"></i></div>
+          <div class="ts-status-card-content">
+            <span class="ts-status-label">Approved</span>
+            <span class="ts-status-value">{{ approvedCount }}</span>
+          </div>
+          <div class="ts-status-card-check" aria-hidden="true"><i class="fas fa-check"></i></div>
         </div>
-
-        <div class="status-card rejected"
-             [class.active]="selectedStatus === 3"
-             (click)="onStatusChange(3)" title = "Click to view all rejected timesheets">
-          <div class="status-title">Rejected</div>
-          <div class="status-count">{{ rejectedCount }}</div>
+        <div class="ts-status-card rejected" [class.active]="selectedStatus === 3"
+             (click)="onStatusChange(3)" title="Click to view all rejected timesheets" role="button" tabindex="0">
+          <div class="ts-status-card-icon ts-status-icon-rejected"><i class="fas fa-times-circle"></i></div>
+          <div class="ts-status-card-content">
+            <span class="ts-status-label">Rejected</span>
+            <span class="ts-status-value">{{ rejectedCount }}</span>
+          </div>
+          <div class="ts-status-card-check" aria-hidden="true"><i class="fas fa-check"></i></div>
         </div>
       </div>
     </div>
-    <div class="d-flex justify-content-between align-items-center mb-2">
+    <!-- <div class="d-flex justify-content-between align-items-center mb-2">
       <div class="selector-toggle"> <a href="javascript:void(0)" (click)="toggleSearch()"> <i *ngIf="!isSearchEnabled"
             class="fa fa-search"></i> <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i> </a> </div>
       <div class="form-inline col-md-4"> <small>Filter:</small> <select class="form-select-sm align-items-center mx-1"
@@ -694,8 +703,32 @@
           [hidden]="allTeamTimesheetRequestsProjectView.length === 0" (click)="exportExcel1()"> <em
             class="fa fa-file-arrow-down fa-2x" title = "Export timesheet"></em> </button>
       </div>
+    </div> -->
+
+    <div class="ts-toolbar-card">
+      <div class="ts-toolbar-row">
+        <button type="button" class="ts-toolbar-btn ts-toolbar-search" (click)="toggleSearch()" [class.active]="isSearchEnabled" title="Toggle search filters">
+          <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+          <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+          <span class="ts-toolbar-btn-label">{{ isSearchEnabled ? 'Close filters' : 'Search' }}</span>
+        </button>
+        <div class="ts-toolbar-filter">
+          <label class="ts-toolbar-label">Filter</label>
+          <select class="ts-toolbar-select" [(ngModel)]="clientFilter" (change)="onClientFilterChange()">
+            <option [ngValue]="false">All Employees</option>
+            <option [ngValue]="true">Client Side Applicable Employees</option>
+          </select>
+        </div>
+        <button type="button" class="ts-toolbar-btn ts-toolbar-export"
+          [hidden]="allTeamTimesheetRequestsProjectView.length === 0"
+          (click)="exportExcel1()" title="Export to Excel">
+          <i class="fa fa-file-export"></i>
+          <span class="ts-toolbar-btn-label">Export</span>
+        </button>
+      </div>
     </div>
-    <div class="pagination-bar">
+
+    <div class="ts-pagination-bar">
      <!-- <div class="page-size">
   Show
   <select [(ngModel)]="items" (change)="onPageSizeChange()">
@@ -708,12 +741,12 @@
   entries
 </div> -->
 
-      <div class="total-count"> Total Records: <strong>{{ totalRecords }}</strong> </div>
+      <div class="ts-total-count">Total records: <strong>{{ totalRecords }}</strong></div>
     </div>
-    <div class="table-container-ts">
+    <div class="ts-table-card">
       <div class="timesheet-table-wrapper">
-        <table class="timesheet-table" matSort (matSortChange)="sortData($event)" matSortDisableClear>
-          <thead>
+        <table class="timesheet-table ts-data-table" matSort (matSortChange)="sortData($event)" matSortDisableClear>
+          <thead class="ts-thead">
             <tr>
               <th *ngIf="selectedStatus === 1"> <input type="checkbox" [(ngModel)]="isAllSelected" (change)="toggleAllRows($event)" /> </th>
               <th>Sr No.</th>
@@ -731,10 +764,10 @@
             </tr>
            <tr app-column-filter-bar
     *ngIf="isSearchEnabled"
-    [columnList]="selectedStatus === 1 
-        ? allTimesheetColumnsVMS 
+    [columnList]="selectedStatus === 1
+        ? allTimesheetColumnsVMS
         : allTimesheetColumnsVMSStatusChange"
-    (onSearch)="onSearch($event); page1 = 0">
+    (onSearch)="onSearch($event);" >
 </tr>
 
           </thead>
@@ -744,7 +777,7 @@
                     (change)="onEmployeeToggle(timesheet); updateSelectedRows(timesheet)" /> </td>
                <td>{{ (page1 * items) + i + 1 }}</td>
 
-                <td class="emp-femp-id" (click)="toggleAccordion(i)" title = "click to view project details"> {{ timesheet.employmentId }} </td>
+                <td class="emp-id emp-femp-id" (click)="toggleAccordion(i)" title="Click to view location → project → activity details">{{ timesheet.employmentId }}</td>
                 <td>{{ timesheet.employeeName }}</td>
                 <td>{{ timesheet.date }}</td>
                 <td>{{ timesheet.dayType }}</td>
@@ -754,79 +787,94 @@
                 <td>{{ timesheet.locationCount }}</td>
                 <td>{{ timesheet.appliedBy }}</td>
                 <td>{{ timesheet.appliedOn }}</td>
-                <td>
-                  <button class="doc-btn approved" (click)="openDocumentPopup(timesheet, null, true)"><i
-                      class="fa fa-eye" title = "view all documents"></i></button>
-                  <button class="btn-approve" *ngIf="selectedStatus === 1"
-                    (click)="approveSingleTimesheet(timesheet)" title = "Approve timesheet"> ✔ </button>
-                    <button class="btn-reject" *ngIf="selectedStatus === 1"
-                    (click)="openRejectPopup(rejectPopup, timesheet)" title = "Reject timesheet">
-              ✖
-            </button>
+                <td class="ts-actions-cell">
+                  <button type="button" class="ts-action-btn ts-doc-btn" (click)="openDocumentPopup(timesheet, null, true)" title="View all documents">
+                    <i class="fa fa-eye"></i>
+                  </button>
+                  <button type="button" class="ts-action-btn ts-approve-btn" *ngIf="selectedStatus === 1"
+                    (click)="approveSingleTimesheet(timesheet)" title="Approve timesheet">
+                    <i class="fas fa-check"></i>
+                  </button>
+                  <button type="button" class="ts-action-btn ts-reject-btn" *ngIf="selectedStatus === 1"
+                    (click)="openRejectPopup(rejectPopup, timesheet)" title="Reject timesheet">
+                    <i class="fas fa-times"></i>
+                  </button>
                 </td>
               </tr>
               <tr *ngIf="expandedTimesheetIndex === i">
                 <td colspan="13" class="accordion-cell">
-                  <div *ngFor="let location of timesheet.locationSessions || []" class="location-card">
-                    <div class="location-header"> <strong>📍 {{ location.workLocationType }}</strong> <span
-                        class="time"> {{ location.locationInTime }} - {{ location.locationOutTime }} </span> </div>
-                    <div *ngFor="let project of location.projects || []; let p = index" class="project-card">
-                      <table class="project-table">
-                        <thead>
-                          <tr>
-                            <th>Project</th>
-                            <th>PO No</th>
-                            <th>Shadow</th>
-                            <th>Pending Doc</th>
-                            <th>Approved Doc</th>
-                            <!-- <th>Actions</th> -->
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr>
-                            <td class="project-name" (click)="toggleProject(i, p)" title = "click to view team details"> {{ project.projectName }} </td>
-                            <td>{{ project.poNo || '-' }}</td>
-                            <td>{{ project.shadowEmp ? 'Yes' : 'No' }}</td>
-                            <td> <button class="doc-btn pending" style="color:rgb(255, 187, 0)"
-                                (click)="openDocumentPopup(timesheet, 'Pending', false)"> <i class="fa fa-eye"></i> </button></td>
-                            <td> <button class="doc-btn approved" style="color:green"
-                                (click)="openDocumentPopup(timesheet, 'Approved', false)"> <i class="fa fa-eye"></i> </button></td>
-                            <!-- <td>
-                              <div class="action-buttons-container">
-                              <button class="btn-approve"
-                                (click)="approveSingleProject(timesheet, project,location)">
-                                ✔
-                              </button>
-                              <button
-                              class="btn-reject"
-                              (click)="openSingleProjectRejectModal(projectRejectModal, timesheet, project, location, $event)">
-                              ✖
-                            </button>
-                                                        </div>
-                            </td> -->
-                          </tr>
-                        </tbody>
-                      </table>
-                      <div class="activity-wrapper" *ngIf="expandedProjectKey === i + '-' + p">
-                        <table class="activity-table">
-                          <thead>
-                            <tr>
-                              <th>Team</th>
-                              <th>Activity</th>
-                              <th>Description</th>
-                              <th>Hours</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr *ngFor="let act of project.activities || []">
-                              <td>{{ act.teamName }}</td>
-                              <td>{{ act.activity }}</td>
-                              <td>{{ act.activityDescription || '-' }}</td>
-                              <td>{{ act.durationMinutes }}</td>
-                            </tr>
-                          </tbody>
-                        </table>
+                  <div class="timesheet-details-accordion">
+                    <div *ngFor="let location of timesheet.locationSessions || []" class="location-card mb-3">
+                      <div class="location-card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                          <div>
+                            <i class="fas fa-map-marker-alt mr-2 text-primary"></i>
+                            <strong>{{ location.workLocationType || 'Location' }}</strong>
+                            <span class="ml-3 text-muted">
+                              <i class="far fa-clock mr-1"></i>
+                              {{ location.locationInTime || 'NA' }} - {{ location.locationOutTime || 'NA' }}
+                            </span>
+                          </div>
+                        </div>
                       </div>
+                      <div class="location-card-body">
+                        <div *ngFor="let project of location.projects || []; let p = index" class="project-card mb-2">
+                          <div class="project-card-header"
+                               (click)="toggleProject(i, p)"
+                               [class.expanded]="expandedProjectKey === (i + '-' + p)"
+                               title="Click to view activity details">
+                            <div class="d-flex justify-content-between align-items-center">
+                              <div class="flex-grow-1">
+                                <i class="fas fa-briefcase mr-2 text-info"></i>
+                                <strong>{{ project.projectName }}</strong>
+                                <span class="ml-3 text-muted small">PO: {{ project.poNo || '-' }}</span>
+                                <span class="ml-2 small">{{ project.shadowEmp ? '(Shadow)' : '' }}</span>
+                              </div>
+                              <div class="d-flex align-items-center">
+                                <button type="button" class="btn btn-xs btn-outline-warning mr-2"
+                                  *ngIf="project.projectId"
+                                  (click)="openDocumentPopup(timesheet, 'Pending', false, project); $event.stopPropagation()"
+                                  title="View Filled Document">
+                                  <i class="fa fa-eye"></i> Filled
+                                </button>
+                                <button type="button" class="btn btn-xs btn-outline-success mr-2"
+                                  *ngIf="project.projectId"
+                                  (click)="openDocumentPopup(timesheet, 'Approved', false, project); $event.stopPropagation()"
+                                  title="View Approved Document">
+                                  <i class="fa fa-eye"></i> Approved
+                                </button>
+                                <button type="button" class="btn btn-sm btn-link p-0" *ngIf="(project.activities?.length || 0) > 0">
+                                  <i class="fas"
+                                    [class.fa-chevron-down]="expandedProjectKey === (i + '-' + p)"
+                                    [class.fa-chevron-right]="expandedProjectKey !== (i + '-' + p)"></i>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="project-card-body"
+                               *ngIf="expandedProjectKey === (i + '-' + p) && (project.activities?.length || 0) > 0">
+                            <div class="activity-list">
+                              <div *ngFor="let act of project.activities" class="activity-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                  <div class="flex-grow-1">
+                                    <i class="fas fa-tasks mr-2 text-success"></i>
+                                    <strong>{{ act.activity }}</strong>
+                                    <span class="ml-3 badge badge-light">{{ act.teamName || '-' }}</span>
+                                    <span class="ml-2 badge badge-secondary">{{ act.durationMinutes }} Hours</span>
+                                  </div>
+                                </div>
+                                <div *ngIf="act.activityDescription" class="activity-description ml-4 mt-1">
+                                  <small class="text-muted">{{ act.activityDescription }}</small>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div *ngIf="!timesheet.locationSessions?.length" class="text-center text-muted p-3">
+                      <i class="fa fa-info-circle mr-2"></i>
+                      No location sessions for this timesheet
                     </div>
                   </div>
                 </td>
@@ -853,17 +901,31 @@
 
 <!-- Document View Modal -->
 <ng-template #documentViewerModal>
-  <div class="doc-modal-lg">
+  <div class="doc-modal-lg doc-modal-enterprise">
     <div class="doc-header">
-      <h5>Documents</h5> <button class="close-btn" (click)="modalRef.close()">✖</button>
+      <div class="doc-header-inner">
+        <i class="fas fa-file-alt doc-header-icon" aria-hidden="true"></i>
+        <div>
+          <h5 class="doc-header-title">Document preview</h5>
+          <p class="doc-header-subtitle">Select a project and document type to view</p>
+        </div>
+      </div>
+      <button type="button" class="doc-close-btn" (click)="modalRef.close()" aria-label="Close">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
-      <div class="doc-body">
-        <div class="doc-left">
-          <table class="project-table">
+    <div class="doc-body">
+      <div class="doc-left">
+        <div class="doc-panel-title">
+          <i class="fas fa-briefcase"></i>
+          <span>Projects</span>
+        </div>
+        <div class="doc-table-wrap">
+          <table class="project-table doc-project-table">
             <thead>
               <tr>
-                <th>#</th>
-                <th>Project Name</th>
+                <th>Sr No</th>
+                <th>Project name</th>
                 <th>Docs</th>
                 <th>Filled</th>
                 <th>Approved</th>
@@ -871,111 +933,91 @@
             </thead>
             <tbody>
               <tr *ngFor="let p of getUniqueProjectsFromTimesheet(selectedTimesheet); let i = index"
-                [class.active]="p === activeDocProject" (click)="selectProjectForDoc(p)">
+                  [class.active]="p === activeDocProject" (click)="selectProjectForDoc(p)">
                 <td>{{ i + 1 }}</td>
-                <td class="project-name">{{ p.projectName }}</td>
-                  <td class="count">{{ getTotalDocCount(p.projectId) }}</td>
-                 <td>
-  <span class="badge filled"
-        [class.disabled]="!hasPendingDoc(p.projectId) && !hasApprovedDoc(p.projectId)">
-
-    
-    <small *ngIf="getFilledStatus(p.projectId)">
-      ({{ getFilledStatus(p.projectId) }})
-    </small>
-
-  </span>
-</td>
-
-                  <td> <span class="badge approved" [class.disabled]="!hasApprovedDoc(p.projectId)"> Approved </span>
-                  </td>
+                <td class="doc-project-name" [title]="p.projectName">{{ p.projectName }}</td>
+                <td class="count">{{ getTotalDocCount(p.projectId) }}</td>
+                <td>
+                  <span class="badge filled" [class.disabled]="!hasPendingDoc(p.projectId) && !hasApprovedDoc(p.projectId)">
+                    Filled <small *ngIf="getFilledStatus(p.projectId)">({{ getFilledStatus(p.projectId) }})</small>
+                  </span>
+                </td>
+                <td>
+                  <span class="badge approved" [class.disabled]="!hasApprovedDoc(p.projectId)">Approved</span>
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
-        <!-- <div class="doc-right">
-          <div class="doc-toggle"> <button [class.active]="activeDocType === 'Pending'"
-              (click)="switchDocType('Pending')" [disabled]="!hasPendingDoc(activeDocProject?.projectId)"> Pending
-            </button> <button [class.active]="activeDocType === 'Approved'" (click)="switchDocType('Approved')"
-              [disabled]="!hasApprovedDoc(activeDocProject?.projectId)"> Approved </button> </div>
-          <div class="doc-preview"> <iframe [src]="safePdfUrl" width="100%" height="100%" frameborder="0"> </iframe>
+      </div>
+      <div class="doc-right">
+        <div class="doc-panel-title doc-panel-title-right">
+          <i class="fas fa-file-pdf"></i>
+          <span>Preview</span>
+          <div class="doc-toggle">
+            <button type="button" [class.active]="activeDocType === 'Pending'" (click)="switchDocType('Pending')"
+                    [disabled]="!hasPendingDoc(activeDocProject?.projectId)">
+              <i class="fas fa-clock"></i> Filled
+            </button>
+            <button type="button" [class.active]="activeDocType === 'Approved'" (click)="switchDocType('Approved')"
+                    [disabled]="!hasApprovedDoc(activeDocProject?.projectId)">
+              <i class="fas fa-check-circle"></i> Approved
+            </button>
           </div>
-        </div> -->
-        <div class="doc-right">
-
-  <div class="doc-toggle">
-
-  <button *ngIf="activeDocType === 'Pending'" (click)="switchDocType('Approved')">Pending</button>
-
-    <button *ngIf="activeDocType === 'Approved'" (click)="switchDocType('Pending')"> Approved</button>
-
-  </div>
-
- <div class="doc-preview">
-
-
-  <iframe
-    *ngIf="safePdfUrl"
-    [src]="safePdfUrl"
-    width="100%"
-    height="100%"
-    frameborder="0">
-  </iframe>
-
- 
-  <div *ngIf="!safePdfUrl" class="no-doc-msg">
-    No document available
-  </div>
-
-</div>
-
-
-</div>
-
+        </div>
+        <div class="doc-preview">
+          <iframe *ngIf="safePdfUrl" [src]="safePdfUrl" width="100%" height="100%" frameborder="0" title="Document preview"></iframe>
+          <div *ngIf="!safePdfUrl" class="no-doc-msg">
+            <i class="fas fa-file-alt no-doc-icon"></i>
+            <p class="no-doc-title">No document available</p>
+            <p class="no-doc-hint">Select a project and document type above</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </ng-template>
 
 <ng-template #documentViewerModalToggle>
-  <div class="doc-modal-lg">
+  <div class="doc-modal-lg doc-modal-enterprise">
     <div class="doc-header">
-      <h5>Documents</h5>
-      <button class="close-btn" (click)="modalRef.close()">✖</button>
-    </div>
-
-    <div class="doc-body doc-body-full">
-
-      <div class="doc-right">
-
-        <div class="doc-toggle" *ngIf="isToggleMode">
-          <button
-            [class.active]="activeDocType === 'Pending'"
-            (click)="activeDocType='Pending'; loadActiveDocument()">
-            Pending
-          </button>
-
-          <button
-            [class.active]="activeDocType === 'Approved'"
-            (click)="activeDocType='Approved'; loadActiveDocument()">
-            Approved
-          </button>
+      <div class="doc-header-inner">
+        <i class="fas fa-file-alt doc-header-icon" aria-hidden="true"></i>
+        <div>
+          <h5 class="doc-header-title">Document preview</h5>
+          <p class="doc-header-subtitle">View document</p>
         </div>
-
-        <div class="doc-preview">
-          <iframe *ngIf="safePdfUrl"
-                  [src]="safePdfUrl"
-                  width="100%"
-                  height="100%"
-                  frameborder="0">
-          </iframe>
-
-          <div *ngIf="!safePdfUrl" class="no-doc-msg">
-            No document available
+      </div>
+      <button type="button" class="doc-close-btn" (click)="modalRef.close()" aria-label="Close">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="doc-body doc-body-full">
+      <div class="doc-right">
+        <div class="doc-panel-title doc-panel-title-right" *ngIf="isToggleMode">
+          <i class="fas fa-file-pdf"></i>
+          <span>Preview</span>
+          <div class="doc-toggle">
+            <button type="button" [class.active]="activeDocType === 'Pending'" (click)="activeDocType='Pending'; loadActiveDocument()">
+              <i class="fas fa-clock"></i> Pending
+            </button>
+            <button type="button" [class.active]="activeDocType === 'Approved'" (click)="activeDocType='Approved'; loadActiveDocument()">
+              <i class="fas fa-check-circle"></i> Approved
+            </button>
           </div>
         </div>
-
+        <div class="doc-panel-title doc-panel-title-right" *ngIf="!isToggleMode">
+          <i class="fas fa-file-pdf"></i>
+          <span>Preview</span>
+        </div>
+        <div class="doc-preview">
+          <iframe *ngIf="safePdfUrl" [src]="safePdfUrl" width="100%" height="100%" frameborder="0" title="Document preview"></iframe>
+          <div *ngIf="!safePdfUrl" class="no-doc-msg">
+            <i class="fas fa-file-alt no-doc-icon"></i>
+            <p class="no-doc-title">No document available</p>
+          </div>
+        </div>
       </div>
-
     </div>
   </div>
 </ng-template>
@@ -1145,6 +1187,7 @@
               placeholder="Select Project"
               [(ngModel)]="entry.projectIds"
               [options]="projectList"
+              [disabled]="projectList.length == 1"
               displayKey="projectName"
               valueKey="projectId"
               [multiple]="true">
@@ -1187,6 +1230,7 @@
     </div>
 
     <!-- ADD BUTTON -->
+     @if(projectList.length > 1){
     <div class="text-center mt-3">
       <button class="btn btn-outline-primary px-4"
       [disabled]="!isRejectFormValid()"
@@ -1197,6 +1241,7 @@
         Add Another Project
       </button>
     </div>
+  }
 
   </div>
 
@@ -1629,8 +1674,8 @@
 
               </mat-select> -->
               <app-my-select #filterActiveReportees class="form-control" placeholder="Select Reportee"
-                [(ngModel)]="timesheetObj.empIds" 
-                  [options]="getReporteesFromProjectId()" 
+                [(ngModel)]="timesheetObj.empIds"
+                  [options]="getReporteesFromProjectId()"
                   displayKey="name" valueKey="empId" [multiple]="true"
                   (selectionChange)="onReporteeChange($event)">
               </app-my-select>

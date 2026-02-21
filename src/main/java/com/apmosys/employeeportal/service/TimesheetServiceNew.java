@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -105,8 +106,6 @@ public class TimesheetServiceNew {
 	@Autowired
 	private ActivityTimesheetService activityTimesheetService;
 
-	@Autowired
-	private TimesheetValidationHelper timesheetValidationHelper;
 
 	@Autowired
 	private DayTypeMasterNewRepository dayTypeMasterNewRepository;
@@ -138,7 +137,6 @@ public class TimesheetServiceNew {
 	@Autowired
 	private TimesheetQueryService timesheetQueryService;
 
-
 	@Autowired
 	EmployeeAssignmentValidationService employeeAssignmentValidationService;
 
@@ -151,9 +149,12 @@ public class TimesheetServiceNew {
 	 @Autowired
 	 private TimesheetDashboardService timesheetDashboardService;
 
-	@Autowired
+		@Autowired
 	private TimesheetDashboardServiceNew timesheetDashboardServiceNew;
 
+		@Autowired
+	 TimesheetValidationHelper timesheetValidationHelper;
+	 
 	@Value("${timesheet.minus.days.for.bulk.upload}")
 	private Integer minusDays;
 
@@ -319,6 +320,7 @@ public class TimesheetServiceNew {
 				timesheetValidationHelper.validateLocationWiseProjectAndActivities(empDTO);
 				// Ensure same project has consistent client approval status across locations
 				timesheetValidationHelper.validateClientApprovalStatusConsistency(empDTO);
+				timesheetValidationHelper.validateShadowConsistencyAcrossLocations(empDTO);
 
 				timesheetValidationHelper.validateDocumentsDTO(empDTO);
 
@@ -363,6 +365,7 @@ public class TimesheetServiceNew {
 			response.setServiceError(e.getMessage());
 
 		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Validation failed: " + e.getMessage());
 			response.setServiceError(e.getMessage());
@@ -373,6 +376,7 @@ public class TimesheetServiceNew {
 			response.setServiceError(e.getMessage());
 
 		} catch (Exception e) {
+			e.printStackTrace();
 			// Clean up any partially uploaded documents on failure
 			cleanupDocumentsOnFailure(documents);
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -933,6 +937,7 @@ public class TimesheetServiceNew {
 				timesheetValidationHelper.validateLocationWiseProjectAndActivities(newEmpDTO);
 				// Ensure same project has consistent client approval status across locations
 				timesheetValidationHelper.validateClientApprovalStatusConsistency(newEmpDTO);
+				timesheetValidationHelper.validateShadowConsistencyAcrossLocations(newEmpDTO);
 				timesheetValidationHelper.validateDocumentsDTO(newEmpDTO);
 				timesheetValidationHelper.validateUploadedDocuments(newEmpDTO, documents, timesheetId);
 				timesheetValidationHelper.validateActivityDurationWithinLocation(newEmpDTO.getLocationSessions());
@@ -944,6 +949,7 @@ public class TimesheetServiceNew {
 				timesheetValidationHelper.validateLocationWiseProjectAndActivities(newEmpDTO);
 				// Ensure same project has consistent client approval status across locations
 				timesheetValidationHelper.validateClientApprovalStatusConsistency(newEmpDTO);
+				timesheetValidationHelper.validateShadowConsistencyAcrossLocations(newEmpDTO);
 				timesheetValidationHelper.validateDocumentsDTO(newEmpDTO);
 				timesheetValidationHelper.validateUploadedDocuments(newEmpDTO, documents, timesheetId);
 				timesheetValidationHelper.validateActivityDurationWithinLocation(newEmpDTO.getLocationSessions());
@@ -1384,7 +1390,7 @@ public class TimesheetServiceNew {
 
 			LocationSessionDTO locationSession = new LocationSessionDTO();
 
-			// Work location type (code)
+			locationSession.setLocationMappingId(locationMapping.getLocationMappingId());	// Work location type (code)
 			locationSession.setWorkLocationTypeId(locationMapping.getLocationTypeId());
 
 			// Location in/out time (string format as per contract)
@@ -1396,18 +1402,22 @@ public class TimesheetServiceNew {
 					? locationMapping.getLocationOutTime().toLocalTime().toString()
 					: null);
 
-			// 4️⃣ Fetch projects (TEMP: until locationMappingId is added to project table)
-			List<ProjectTimesheetDTO> projects = projectTimesheetService.findByTimesheetId(timesheetId);
+			// 4️⃣ Fetch projects for THIS location only (by locationMappingId) to avoid duplicate projects per location
+			Long locationMappingId = locationMapping.getLocationMappingId();
+			List<ProjectTimesheetDTO> projects = projectTimesheetService
+					.findByTimesheetIdAndLocationMappingId(timesheetId, locationMappingId);
 
 			List<ProjectTimesheetDTO> mappedProjects = new ArrayList<>();
 
 			for (ProjectTimesheetDTO projectDTO : projects) {
 
-				// 5️⃣ Fetch activities
+				// 5️⃣ Fetch activities for this project under THIS location only (by locationMappingId)
 				List<ActivityTimesheetDTO> activities = activityTimesheetService
-						.findByTimesheetIdAndProjectId(timesheetId, projectDTO.getProjectId());
+						.findByTimesheetIdAndLocationMappingIdAndProjectId(timesheetId, locationMappingId,
+								projectDTO.getProjectId());
 
 				projectDTO.setActivities(activities);
+				projectDTO.setLocationMappingId(locationMappingId);
 				mappedProjects.add(projectDTO);
 			}
 
@@ -1443,7 +1453,6 @@ public class TimesheetServiceNew {
 	 * @return ServiceResponse with EmployeeTimesheetDTO or null (no template)
 	 */
 	public ServiceResponse getAutofillTimesheetTemplate(Long empId, LocalDate targetDate) {
-
 		ServiceResponse response = new ServiceResponse();
 
 		if (empId == null || targetDate == null) {
@@ -1952,7 +1961,7 @@ public class TimesheetServiceNew {
 	}
 
 
-
+	
 	public ServiceResponse getEmployeeViewForClientAttendanceStatus(GetEmployeeSummaryOnExportDTO object) {
 
 	    ServiceResponse response = new ServiceResponse();
@@ -2399,6 +2408,9 @@ public class TimesheetServiceNew {
 	 {
 		 return timesheetDashboardService.getProjectViewForClientAttendanceStatus(timesheetDTO);
 	 }
-	
+	 public ServiceResponse getEmployeeSummaryOnExportAccordingToStatus(GetEmployeeSummaryOnExportDTO object) {
+		 return timesheetDashboardService.getEmployeeSummaryOnExportAccordingToStatus(object);
+	 }
+
 
 }

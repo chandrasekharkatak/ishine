@@ -1205,33 +1205,33 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 
 	
 
-	@Query(nativeQuery = true,value ="(\n"
-			+ "        SELECT p.project_id\n"
-			+ "        FROM projects p\n"
-			+ "        JOIN project_manager_mapping pm ON p.project_id = pm.project_id\n"
-			+ "        WHERE p.active = 'true'  AND pm.project_manager_id = :empId\n"
-			+ "    )\n"
-			+ "    UNION\n"
-			+ "    (\n"
-			+ "        SELECT p.project_id\n"
-			+ "        FROM projects p\n"
-			+ "        JOIN project_overhead_mapping po ON p.project_id = po.project_id\n"
-			+ "        WHERE p.active = 'true' AND po.project_overhead_id = :empId\n"
-			+ "    )\n"
-			+ "    UNION\n"
-			+ "    (\n"
-			+ "        SELECT p.project_id\n"
-			+ "        FROM projects p\n"
-			+ "        JOIN teams t ON p.project_id = t.project_id\n"
+	@Query(nativeQuery = true,value ="( \n"
+			+ "        SELECT p.project_id \n"
+			+ "        FROM projects p \n"
+			+ "        INNER JOIN project_manager_mapping pm ON p.project_id = pm.project_id \n"
+			+ "        WHERE p.active = 'true'  AND pm.project_manager_id = :empId \n"
+			+ "    ) \n"
+			+ "    UNION \n"
+			+ "    ( \n"
+			+ "        SELECT p.project_id \n"
+			+ "        FROM projects p \n"
+			+ "        INNER JOIN project_overhead_mapping po ON p.project_id = po.project_id \n"
+			+ "        WHERE p.active = 'true' AND po.project_overhead_id = :empId \n"
+			+ "    ) \n"
+			+ "    UNION \n"
+			+ "    ( \n"
+			+ "        SELECT p.project_id \n"
+			+ "        FROM projects p \n"
+			+ "        INNER JOIN teams t ON p.project_id = t.project_id \n"
 			+ "        WHERE p.active = 'true' \n"
-			+ "          AND t.is_active = 'Y' AND t.spoc_id = :empId\n"
-			+ "    )\n"
-			+ "    UNION\n"
-			+ "    (SELECT p.project_id\n"
-			+ "        FROM projects p\n"
-			+ "        JOIN teams t ON p.project_id = t.project_id\n"
-			+ "        WHERE p.active = 'true'\n"
-			+ "          AND t.is_active = 'Y' AND t.team_lead_id = :empId\n"
+			+ "          AND t.is_active = 'Y' AND t.spoc_id = :empId \n"
+			+ "    ) \n"
+			+ "    UNION \n"
+			+ "    (SELECT p.project_id \n"
+			+ "        FROM projects p \n"
+			+ "        INNER JOIN teams t ON p.project_id = t.project_id \n"
+			+ "        WHERE p.active = 'true' \n"
+			+ "          AND t.is_active = 'Y' AND t.team_lead_id = :empId \n"
 			+ "    )")
 	Set<Integer> findAllShankhInternalProjectsByManagerOverheadOrSpocOrTeamLead(@Param("empId") Long empId);
 	
@@ -5415,7 +5415,7 @@ boolean existsByProjectName(String projectName);
 			+ "e.empId, e.billableType, etm.active, etm.startDate, etm.endDate, etm.employeeTeamMapId) \n"
 			+ "FROM EmployeeTeamMap etm \n"
 			+ "INNER JOIN Employee e on e.empId = etm.empId \n"
-			+ "LEFT JOIN PoRequirementMapping prm ON prm.poRequirementMappingId = etm.poRequirementMappingId \n"
+			+ "LEFT JOIN PoRequirementMapping prm ON  etm.roleId = prm.roleId and etm.poId = prm.poId and prm.active = true \n"
 			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId \n"
 			+ "INNER JOIN Team t ON etm.teamId = t.teamId \n"
 			+ "INNER JOIN Project p ON t.projectId = p.projectId \n"
@@ -7044,8 +7044,8 @@ public List<Object[]> getProjectWithCliendSideID(@Param("emp_id") Long emp_id);
 + " select * from in_active_projects \n"
 + ") all_projects \n"
 + "where project_type = :projectType\n"
-+ "and (dept_id in :deptIds) \n"
-+ "and (client_id in :clientIds)" , nativeQuery = true)
++ "and (:deptIds IS NULL OR dept_id IN (:deptIds)) \n"
++ "and (:clientIds IS NULL OR client_id IN (:clientIds)) \n" , nativeQuery = true)
 List<Object[]> getClientAndProjectDataList(
 @Param("projectType") String projectType,
 @Param("deptIds") List<Long> deptIds,
@@ -8240,7 +8240,7 @@ List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> 
 			+ "INNER JOIN Team t ON t.projectId = p.projectId AND t.isActive != 'N' \n"
 			+ "INNER JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId AND etm.active != 0 \n"
 			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND ppd.active = true \n"
-			+ "LEFT JOIN PoRequirementMapping prm ON prm.poRequirementMappingId = etm.poRequirementMappingId  \n"
+			+ "LEFT JOIN PoRequirementMapping prm ON etm.roleId = prm.roleId and etm.poId = prm.poId and prm.active = true  \n"
 			+ "WHERE 1=1 \n"
 			+ "AND p.active != 'false' \n"
 			+ "AND etm.empId IN :empIds \n"
@@ -8657,7 +8657,7 @@ List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> 
 		        @Param("proj_ID") Integer projectId,
 		        @Param("from_Date") String fromDate,
 		        @Param("to_Date") String toDate,String employmentId,String name,String sortBy,String sortDirection,int offset,int pageSize);
-
+			
 		    @Query(value = "SELECT DISTINCT e.email\n"
 		    		+ "		            FROM Employee e\n"
 		    		+ "		            LEFT JOIN ProjectManagerMapping pmm \n"
@@ -8706,4 +8706,76 @@ List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> 
 	 List<TimeSheetDetailsDto> findByProjectIdAndEmployeeIdAndWorkDateBetween(
 			 Long team_id, Long emp_id, LocalDate startDate, LocalDate endDate);
 
+			@Query(value = "SELECT p.projectId FROM Project p where active = 'true' \n"
+					+ "and p.projectId NOT IN (SELECT ppd.projectId FROM ProjectPoDetails ppd)")
+			Set<Integer> findAllActiveProjectIdsNotInProjectPoDetails();
+			
+			@Query(nativeQuery = true,value ="( \n"
+					+ "        SELECT p.project_id \n"
+					+ "        FROM projects p \n"
+					+ "		   INNER JOIN project_po_details ppd ON ppd.project_id = p.project_id AND (DATE(ppd.po_start_date) <= CURRENT_DATE ) AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) \n"
+					+ "        INNER JOIN project_manager_mapping pm ON p.project_id = pm.project_id \n"
+					+ "        WHERE p.active = 'true' AND pm.project_manager_id = :empId \n"
+					+ "    ) \n"
+					+ "    UNION \n"
+					+ "    ( \n"
+					+ "        SELECT p.project_id \n"
+					+ "        FROM projects p \n"
+					+ "		   INNER JOIN project_po_details ppd ON ppd.project_id = p.project_id AND (DATE(ppd.po_start_date) <= CURRENT_DATE ) AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) \n"
+					+ "        INNER JOIN project_overhead_mapping po ON p.project_id = po.project_id \n"
+					+ "        WHERE p.active = 'true' AND po.project_overhead_id = :empId \n"
+					+ "    ) \n"
+					+ "    UNION \n"
+					+ "    ( \n"
+					+ "        SELECT p.project_id \n"
+					+ "        FROM projects p \n"
+					+ "		   INNER JOIN project_po_details ppd ON ppd.project_id = p.project_id AND (DATE(ppd.po_start_date) <= CURRENT_DATE ) AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) \n"
+					+ "        INNER JOIN teams t ON p.project_id = t.project_id \n"
+					+ "        WHERE p.active = 'true' AND p.po_project_id IS NOT NULL \n"
+					+ "        AND t.is_active = 'Y' AND t.spoc_id = :empId \n"
+					+ "    ) \n"
+					+ "    UNION \n"
+					+ "    (SELECT p.project_id \n"
+					+ "        FROM projects p \n"
+					+ "        INNER JOIN project_po_details ppd ON ppd.project_id = p.project_id AND (DATE(ppd.po_start_date) <= CURRENT_DATE ) AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) \n"
+					+ "        INNER JOIN teams t ON p.project_id = t.project_id \n"
+					+ "        WHERE p.active = 'true' AND p.po_project_id IS NOT NULL \n"
+					+ "        AND t.is_active = 'Y' AND t.team_lead_id = :empId \n"
+					+ "    )")
+			Set<Integer> findPoPortalProjectsByManagerOverheadOrSpocOrTeamLead(@Param("empId") Long empId);
+			
+			@Query(nativeQuery = true,value ="( \n"
+					+ "        SELECT p.project_id \n"
+					+ "        FROM projects p \n"
+					+ "        INNER JOIN project_manager_mapping pm ON p.project_id = pm.project_id \n"
+					+ "        WHERE p.active = 'true' AND pm.project_manager_id = :empId \n"
+					+ "		   AND p.project_id not in(SELECT ppd.project_id from project_po_details) \n"
+					+ "    ) \n"
+					+ "    UNION \n"
+					+ "    ( \n"
+					+ "        SELECT p.project_id \n"
+					+ "        FROM projects p \n"
+					+ "        INNER JOIN project_overhead_mapping po ON p.project_id = po.project_id \n"
+					+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL AND po.project_overhead_id = :empId \n"
+					+ "		   AND p.project_id not in(SELECT ppd.project_id from project_po_details) \n"
+					+ "    ) \n"
+					+ "    UNION \n"
+					+ "    ( \n"
+					+ "        SELECT p.project_id \n"
+					+ "        FROM projects p \n"
+					+ "        INNER JOIN teams t ON p.project_id = t.project_id \n"
+					+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL \n"
+					+ "          AND t.is_active = 'Y' AND t.spoc_id = :empId \n"
+					+ "		   AND p.project_id not in(SELECT ppd.project_id from project_po_details) \n"
+					+ "    ) \n"
+					+ "    UNION \n"
+					+ "    (SELECT p.project_id \n"
+					+ "        FROM projects p \n"
+					+ "        INNER JOIN teams t ON p.project_id = t.project_id \n"
+					+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL \n"
+					+ "        AND t.is_active = 'Y' AND t.team_lead_id = :empId \n"
+					+ "		   AND p.project_id not in(SELECT ppd.project_id from project_po_details) \n"
+					+ "    )")
+			Set<Integer> findInternalProjectsByManagerOverheadOrSpocOrTeamLeadAndNotInPoDetails(@Param("empId") Long empId);
+			
 }

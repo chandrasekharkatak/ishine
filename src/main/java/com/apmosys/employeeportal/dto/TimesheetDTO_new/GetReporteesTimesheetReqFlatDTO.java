@@ -12,7 +12,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@AllArgsConstructor
+//@AllArgsConstructor
 @NoArgsConstructor
 public class GetReporteesTimesheetReqFlatDTO {
 	
@@ -55,5 +55,108 @@ public class GetReporteesTimesheetReqFlatDTO {
     private Boolean finalFlag;
     private Long bulkApprovedDocId;
     private String mimeType;
+    private Integer docsProjectId;
+    private String rejectionReason;
+    private String remarks;
+    private LocalDateTime rejectedOn;
 
+
+	public GetReporteesTimesheetReqFlatDTO(Long timesheetId, Long empId, String employmentId, String employeeName,
+			String dayType, LocalDate date, Boolean isNightShift, LocalDateTime workCheckIn, LocalDateTime workCheckOut,
+			Long projectCount, Long locationCount, String appliedBy, LocalDateTime appliedOn, String workLocationType,
+			LocalDateTime locationInTime, LocalDateTime locationOutTime, Long locationMappingId, Integer projectId,
+			String projectName, String clientName, String clientLocation, String poNo, String shadowEmp, Integer status,
+			Integer totalClientWorkingMinutes, String description, String activity, String activityDescription,
+			Short durationMinutes, String teamName, Long docId, String docName, Boolean finalFlag,
+			Long bulkApprovedDocId, String mimeType, Integer docsProjectId, String rejectionReason, String remarks, LocalDateTime rejectedOn) {
+		super();
+		this.timesheetId = timesheetId;
+		this.empId = empId;
+		this.employmentId = employmentId;
+		this.employeeName = employeeName;
+		this.dayType = dayType;
+		this.date = date;
+		this.isNightShift = isNightShift;
+		this.workCheckIn = workCheckIn;
+		this.workCheckOut = workCheckOut;
+		this.projectCount = projectCount;
+		this.locationCount = locationCount;
+		this.appliedBy = appliedBy;
+		this.appliedOn = appliedOn;
+		this.workLocationType = workLocationType;
+		this.locationInTime = locationInTime;
+		this.locationOutTime = locationOutTime;
+		this.locationMappingId = locationMappingId;
+		this.projectId = projectId;
+		this.projectName = projectName;
+		this.clientName = clientName;
+		this.clientLocation = clientLocation;
+		this.poNo = poNo;
+		this.shadowEmp = shadowEmp;
+		this.status = status;
+		this.totalClientWorkingMinutes = totalClientWorkingMinutes;
+		this.description = description;
+		this.activity = activity;
+		this.activityDescription = activityDescription;
+		this.durationMinutes = durationMinutes;
+		this.teamName = teamName;
+		this.docId = docId;
+		this.docName = docName;
+		this.finalFlag = finalFlag;
+		this.bulkApprovedDocId = bulkApprovedDocId;
+		this.mimeType = mimeType;
+		this.docsProjectId = docsProjectId;
+		this.rejectionReason = rejectionReason;
+		this.remarks = remarks;
+		this.rejectedOn = rejectedOn;
+	}
+	
+
+	public GetReporteesTimesheetReqFlatDTO(Long timesheetId, Long empId, String employmentId, String employeeName,
+			String dayType, LocalDate date, Boolean isNightShift, LocalDateTime workCheckIn, LocalDateTime workCheckOut,
+			Long projectCount, Long locationCount, String appliedBy, LocalDateTime appliedOn, String workLocationType,
+			LocalDateTime locationInTime, LocalDateTime locationOutTime, Long locationMappingId, Integer projectId,
+			String projectName, String clientName, String clientLocation, String poNo, String shadowEmp, Integer status,
+			Integer totalClientWorkingMinutes, String description, String activity, String activityDescription,
+			Short durationMinutes, String teamName, Long docId, String docName, Boolean finalFlag,
+			Long bulkApprovedDocId, String mimeType) {
+		super();
+		this.timesheetId = timesheetId;
+		this.empId = empId;
+		this.employmentId = employmentId;
+		this.employeeName = employeeName;
+		this.dayType = dayType;
+		this.date = date;
+		this.isNightShift = isNightShift;
+		this.workCheckIn = workCheckIn;
+		this.workCheckOut = workCheckOut;
+		this.projectCount = projectCount;
+		this.locationCount = locationCount;
+		this.appliedBy = appliedBy;
+		this.appliedOn = appliedOn;
+		this.workLocationType = workLocationType;
+		this.locationInTime = locationInTime;
+		this.locationOutTime = locationOutTime;
+		this.locationMappingId = locationMappingId;
+		this.projectId = projectId;
+		this.projectName = projectName;
+		this.clientName = clientName;
+		this.clientLocation = clientLocation;
+		this.poNo = poNo;
+		this.shadowEmp = shadowEmp;
+		this.status = status;
+		this.totalClientWorkingMinutes = totalClientWorkingMinutes;
+		this.description = description;
+		this.activity = activity;
+		this.activityDescription = activityDescription;
+		this.durationMinutes = durationMinutes;
+		this.teamName = teamName;
+		this.docId = docId;
+		this.docName = docName;
+		this.finalFlag = finalFlag;
+		this.bulkApprovedDocId = bulkApprovedDocId;
+		this.mimeType = mimeType;
+	}
+    
+    
 }

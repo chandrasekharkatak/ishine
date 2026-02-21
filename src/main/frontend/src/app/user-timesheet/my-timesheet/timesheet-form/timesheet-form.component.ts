@@ -67,7 +67,6 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   @Input() isUpdation: boolean = false;
   @Input() selectedDate: Date | null = null;
   @Input() timesheetId: number | null = null; // ID of timesheet to update
-  @Input() existingTimesheetData: EmployeeTimesheetDTO | null = null; // Pre-loaded data (optional)
   // @Input() isAutoFilled: boolean = false;
   isTimesheetLockCheckEnable: any = "true";
   
@@ -175,18 +174,13 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     console.log('[ngOnInit] Form initialized with:', {
       isUpdation: this.isUpdation,
       timesheetId: this.timesheetId,
-      selectedDate: this.selectedDate,
-      existingTimesheetData: !!this.existingTimesheetData
+      selectedDate: this.selectedDate
     });
 
     if (this.isUpdation && this.timesheetId) {
       console.log('[ngOnInit] Update mode detected, loading timesheet...');
       this.loadServerDate();
       this.loadTimesheetForUpdate(this.timesheetId);
-    } else if (this.isUpdation && this.existingTimesheetData) {
-      console.log('[ngOnInit] Update mode with existing data, populating form...');
-      this.loadServerDate();
-      this.populateFormFromTimesheetData(this.existingTimesheetData);
     } else {
       // Create mode: load server date first, then run init (resetForm + getTimesheetMetadata / team list)
       // so that getTimesheetMetadata() can call getAllAvailableTimesheetByEmpId() with serverDate set
@@ -1069,17 +1063,18 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     const dayTypeFillable = this.isDayTypeFillable();
-
-    if (!dayTypeFillable) {
-      // Switching to non-fillable: clear previous filled data and set up default location + one project
-      this.clearAndInitForNonFillableDayType();
-    } else {
-      // Switching to fillable: allow user to choose location type freely
-      this.timesheetLocations.forEach(loc => {
-        loc.workLocationTypeId = null;
-        this.disableAdd = false;
-      });
-    }
+    this.clearAndInitOnDayTypeChange(dayTypeFillable);
+    // if (!dayTypeFillable) {
+    //   // Switching to non-fillable: clear previous filled data and set up default location + one project
+    //   this.clearAndInitForNonFillableDayType();
+    // } else {
+    //   // Switching to fillable: allow user to choose location type freely
+    //   // this.timesheetLocations.forEach(loc => {
+    //   //   loc.workLocationTypeId = null;
+    //   //   this.disableAdd = false;
+    //   // });
+    //   this.resetForm();
+    // }
 
     this.getListToRenderUpload();
 
@@ -1283,7 +1278,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    * - Replace locations with one location with default work location (e.g. 4 -> NA)
    * - One project per location with project list from activeProjectList; user only fills description
    */
-  private clearAndInitForNonFillableDayType(): void {
+  private clearAndInitOnDayTypeChange(isDayTypeFillable:any): void {
     // Clear presence and attendance time (not used for non-fillable)
     this.apmosysInTime = null;
     this.apmosysOutTime = null;
@@ -1323,7 +1318,12 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       proj.projectList = uniqueProjects;
     });
 
-    this.disableAdd = true;
+    if(isDayTypeFillable){
+     this.disableAdd = false;
+    }else{
+      this.disableAdd = true;
+    }
+    
     this.expandedLocationIndex = 0;
     this.expandedProjectIndexMap = { 0: 0 };
     
@@ -1496,18 +1496,39 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
 
   /**
    * Handle team member selection
-   * Load available timesheets for selected team member
+   * When user selects a different team member, form is reset so previous member's
+   * projects/activities/locations are not shown (different member may have different assignments).
    */
-  onTeamMemberSelect(teamMember: any): void {
-    if (teamMember && teamMember.empId) {
-      this.timesheetFilledForUser.empId = teamMember.empId;
-      this.timesheetFilledForUser.name = teamMember.name;
-      this.selectedTeamMember = teamMember;
-      this.getTimesheetMetadata();
-      // Load available timesheets for date filtering
-      if (this.serverDate) {
-        this.getAllAvailableTimesheetByEmpId(this.timesheetFilledForUser);
-      }
+  appelectMember: any;
+  onTeamMemberSelect(teamMemberOrId: any): void {
+    // app-my-select emits only the value (empId), not the full object
+    let teamMember: any = null;
+
+    if (teamMemberOrId && typeof teamMemberOrId === 'object' && teamMemberOrId.empId) {
+      teamMember = teamMemberOrId;
+    } else if (teamMemberOrId != null && this.teamMemberList && this.teamMemberList.length > 0) {
+      teamMember = this.teamMemberList.find(emp => emp.empId === teamMemberOrId || emp.empId === Number(teamMemberOrId));
+    }
+
+    if (!teamMember || !teamMember.empId) {
+      return;
+    }
+
+    const previousEmpId = this.timesheetFilledForUser?.empId ?? null;
+    const newEmpId = teamMember.empId;
+    const isDifferentMember = previousEmpId != null && Number(previousEmpId) !== Number(newEmpId);
+
+    if (isDifferentMember && !this.isUpdation) {
+      // Reset form so we don't show previous member's projects/activities/locations
+      this.resetForm();
+    }
+
+    this.timesheetFilledForUser.empId = teamMember.empId;
+    this.timesheetFilledForUser.name = teamMember.name;
+    this.selectedTeamMember = teamMember;
+    this.getTimesheetMetadata();
+    if (this.serverDate) {
+      this.getAllAvailableTimesheetByEmpId(this.timesheetFilledForUser);
     }
   }
 
@@ -1951,30 +1972,36 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
 
-    // ✅ Duplicate check scoped to the CURRENT project row
-    // Same (projectId, clientId, clientLocationId) combination should not exist twice
-    const hasDuplicate = this.timesheetLocations.some(loc =>
+    // Same project cannot be added with different client location across locations.
+    // If another row has same projectId+clientId but different clientLocationId, reject this selection.
+    const hasSameProjectDifferentLocation = this.timesheetLocations.some(loc =>
       loc.projects.some(p =>
         p !== project &&
         p.projectId === project.projectId &&
         p.clientId === project.clientId &&
-        p.clientLocationId === clientLocationId
+        p.clientLocationId != null &&
+        Number(p.clientLocationId) !== Number(clientLocationId)
       )
     );
 
-    if (hasDuplicate) {
-      // Reset ONLY the current project's client location and its teams
-      project.clientLocationId = null;
-      if (project.activities && Array.isArray(project.activities)) {
-        project.activities.forEach(activity => {
-          activity.clientTeamList = [];
-          activity.teamId = null;
-        });
-      }
+    if (hasSameProjectDifferentLocation) {
+      // Defer reset so ngModel and the select's ControlValueAccessor get the new value in the next tick.
+      // Otherwise the dropdown keeps showing the invalid selection because we're updating in the same
+      // tick as ngModelChange.
+      setTimeout(() => {
+        project.clientLocationId = null;
+        if (project.activities && Array.isArray(project.activities)) {
+          project.activities.forEach(activity => {
+            activity.clientTeamList = [];
+            activity.teamId = null;
+          });
+        }
+        this.cdr.detectChanges();
+      }, 0);
 
       this.openAlertMod(
         this.alertTemplate,
-        'You cannot add same projects with difefrent client location'
+        'You cannot add same projects with different client location'
       );
       return;
     }
@@ -2412,12 +2439,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   /** Apply date change: clear date-dependent form state, recalc hours, load projects. */
   applyChanges(): void {
     this.resetDateDependentFormState();
-    
-    // For non-fillable day types: re-initialize with default location after reset
-    if (!this.isDayTypeFillable()) {
-      this.clearAndInitForNonFillableDayType();
-    }
-    
+    this.clearAndInitOnDayTypeChange(this.isDayTypeFillable());
     this.calculateTotalWorkingHours();
     this.getProjectListForDateAndEmpId().catch(error => {
       console.error('Error loading projects:', error);
@@ -3350,7 +3372,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     }
     
     const dataSet: LocationEntry[] = structuredClone(this.timesheetLocations);
-    
+    // Ensure Shadow for self projects do not send client approval status (not required, dropdown hidden)
+    dataSet.forEach((loc) => loc.projects?.forEach((p) => { if (p.isShadowForSelf) p.clientApprovalStatus = null; }));
+
     // ✅ CRITICAL FIX: Add null checks for empId
     const targetEmpId = this.timesheetAppliedFor?.toLowerCase() === 'self' 
       ? this.currentUser?.empId 
@@ -3656,7 +3680,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
 
       this.timesheetLocations.push(location);
     });
-
+    console.log(this.timesheetLocations,"timesheetLocations");
     // 6. Populate Documents (if any)
     if (timesheetData.documentData) {
       this.populateDocuments(timesheetData.documentData);
@@ -4082,7 +4106,11 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       });
     }
 
+    console.log(this.timesheetLocations,'timesheetLocations before API formatting');
     const dataSet: LocationEntry[] = structuredClone(this.timesheetLocations);
+
+    // Ensure Shadow for self projects do not send client approval status (not required, dropdown hidden)
+    dataSet.forEach((loc) => loc.projects?.forEach((p) => { if (p.isShadowForSelf) p.clientApprovalStatus = null; }));
 
     // ✅ MODERATE FIX: Add null checks for empId
     const targetEmpId = this.timesheetAppliedFor?.toLowerCase() === 'self'
@@ -4116,7 +4144,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       locationSessions: dataSet,
       documentData: this.documentData
     };
-
+    console.log(this.createOrUpdateObj.locationSessions,"createOrUpdateObj.locationSessions");
     // API expects durationMinutes in minutes; form stores hours
     this.convertActivityDurationsToMinutesForApi(this.createOrUpdateObj.locationSessions);
     // Format location and project data (same as create)
@@ -4610,21 +4638,57 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
 
 
   /**
+   * Sync shadow options (isShadowTimesheet, isShadowForSelf, shadowEmpId, shadowForList) for the same project
+   * across all locations so the user cannot have different shadow choice for the same project in different locations.
+   */
+  syncShadowForProjectAcrossLocations(sourceProject: ProjectEntry): void {
+    if (!sourceProject?.projectId || !this.timesheetLocations?.length) return;
+    const projectId = sourceProject.projectId;
+    this.timesheetLocations.forEach((location) => {
+      location.projects?.forEach((proj) => {
+        if (proj !== sourceProject && Number(proj.projectId) === Number(projectId)) {
+          proj.isShadowTimesheet = sourceProject.isShadowTimesheet;
+          proj.isShadowForSelf = sourceProject.isShadowForSelf;
+          proj.shadowEmpId = sourceProject.shadowEmpId;
+          if (sourceProject.shadowForList?.length) {
+            proj.shadowForList = sourceProject.shadowForList;
+          }
+        }
+      });
+    });
+  }
+
+  /**
    * Handle shadow timesheet toggle change
-   * Validates shadow timesheet is only available for self timesheet
+   * Validates shadow timesheet is only available for self timesheet and syncs same project across locations.
    */
   onShadowTimesheetChange(project: ProjectEntry): void {
     if (this.timesheetAppliedFor == 'self') {
+      this.syncShadowForProjectAcrossLocations(project);
       this.getEmployeeListByProjectId(project, this.currentUser.empId);
-      // ✅ Update document list when shadow status changes (affects isShadowForSelf)
       this.getListToRenderUpload();
     } else {
       this.openAlertMod(this.alertTemplate, "Shadow timesheet is only available when timesheet is filled for self.");
       project.isShadowTimesheet = false;
-      // ✅ Update document list when shadow is disabled
+      this.syncShadowForProjectAcrossLocations(project);
       this.getListToRenderUpload();
       return;
     }
+  }
+
+  /**
+   * Handle Shadow for self change – sync same project across locations and refresh document list.
+   */
+  onShadowForSelfChange(project: ProjectEntry): void {
+    this.syncShadowForProjectAcrossLocations(project);
+    this.getListToRenderUpload();
+  }
+
+  /**
+   * Handle Shadow for (employee) change – sync same project across locations so shadow emp is consistent.
+   */
+  onShadowEmpIdChange(project: ProjectEntry): void {
+    this.syncShadowForProjectAcrossLocations(project);
   }
   /**
    * Generate list of documents to render for upload
@@ -4635,6 +4699,15 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    * This ensures the class-level variable correctly reflects if ANY project needs document upload
    */
   getListToRenderUpload(): void {
+    // ✅ When Shadow for self is selected, clear client approval status (not required and dropdown is hidden)
+    this.timesheetLocations.forEach((location) => {
+      location.projects.forEach((project) => {
+        if (project.isShadowForSelf) {
+          project.clientApprovalStatus = null;
+        }
+      });
+    });
+
     // ✅ Preserve existing documentData from server (update mode) - getListToRenderUpload must not wipe it
     const existingDocs = [...this.documentData];
     this.documentData = [];
@@ -4755,6 +4828,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
                 }
               });
             });
+            this.syncShadowForProjectAcrossLocations(project);
           } else {
             // ✅ MODERATE FIX: Use centralized error handling
             this.handleError(

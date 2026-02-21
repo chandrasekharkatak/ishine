@@ -12,6 +12,7 @@ import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.model.EmployeeTimesheetLocationMapping;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetLocationMappingRepository;
+import com.apmosys.employeeportal.repository.TimesheetRejectionDetailsNewRepository;
 import com.apmosys.employeeportal.service.ActivityTimesheetService;
 import com.apmosys.employeeportal.service.ProjectTimesheetService;
 
@@ -29,6 +30,9 @@ public class TimesheetStructureCleanupService {
 
 	@Autowired
 	private ActivityTimesheetService activityTimesheetService;
+	
+	@Autowired
+	private TimesheetRejectionDetailsNewRepository timesheetRejectionDetailsNewRepository;
 
 	public void cleanupRemovedLocations(Long timesheetId, List<LocationSessionDTO> incomingLocations) {
 
@@ -93,6 +97,7 @@ public class TimesheetStructureCleanupService {
 		}
 
 
+		timesheetRejectionDetailsNewRepository.deleteRow(timesheetId, locationMappingId, projectId);
 		activityTimesheetService.deleteActivitiesForProject(timesheetId, locationMappingId, projectId);
 
 		projectTimesheetService.deleteByTimesheetIdAndLocationMappingIdAndProjectId(timesheetId, locationMappingId,

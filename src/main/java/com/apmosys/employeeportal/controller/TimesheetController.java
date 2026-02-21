@@ -60,16 +60,10 @@ public class TimesheetController {
 	
 	@Autowired
 	TimesheetService timesheetService;
-		
-//		@Autowired
-//		TimesheetApprovalServiceNew timesheetApprovalServiceNew;
-		
+			
 
-		@Autowired
-TimesheetServiceNew timesheetServiceNew;
-		
-//		@Autowired
-//		TimesheetEncryptionHelper timesheetEncryptionHelper;
+	@Autowired
+     TimesheetServiceNew timesheetServiceNew;
 		
 		@Autowired
 		TimesheetApprovalService timesheetApprovalService;
@@ -98,56 +92,6 @@ TimesheetServiceNew timesheetServiceNew;
 	}
 
 
-//	@RequestMapping(value = "v2/timesheet/document/getById/{docId}", method = RequestMethod.GET)
-//	public ResponseEntity<Resource> getDocumentById(
-//	        @PathVariable Long docId,
-//	        @RequestParam(required = false) Boolean approvedDocType) {
-//
-//		 Resource resource = timesheetServiceNew.getDocumentDataByDocId(docId, approvedDocType);
-//
-//		    return ResponseEntity.ok()
-//		            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
-//		            .body(resource);
-//	}
-//		    @GetMapping("v2/timesheet/document/getById/{docId}")
-//		    public ResponseEntity<Resource> getDocumentById(
-//		            @PathVariable Long docId,
-//		            @RequestParam(required = false) Boolean approvedDocType) {
-//
-//		        Resource resource = timesheetServiceNew.getDocumentDataByDocId(docId, approvedDocType);
-//
-//		        return ResponseEntity.ok()
-//		                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=document.pdf")
-//		                .header(HttpHeaders.CONTENT_TYPE, "application/pdf")
-//		                .body(resource);
-//		    }
-
-
-
-
-	
-	@JobRoleAccess(featureIds = {15})
-	@RequestMapping(value = "/addTimesheetWithClient", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ServiceResponse addTimesheetWithClient(@RequestPart("dto") String encryptedDto,
-			@RequestPart(value = "doc1",required = false) MultipartFile doc1,
-			@RequestPart(value = "doc2",required = false) MultipartFile doc2) throws Exception 
-//	,@RequestBody TimesheetDTO timesheetDTO, @RequestBody MultipartFile doc
-	{
-		EncryptionUtil encryptionService = new EncryptionUtil();
-		String decryptedJson = encryptionService.decryptMinor(encryptedDto);
-
-	    // 🔹 Convert decrypted JSON into DTO
-		ObjectMapper objectMapper = new ObjectMapper();
-		objectMapper.registerModule(new JavaTimeModule());
-		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
-		objectMapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
-
-	    TimesheetDTO dto = objectMapper.readValue(decryptedJson, TimesheetDTO.class);
-		System.out.println("timesheetDTO list : "+dto);
-		ServiceResponse response = timesheetService.addTimesheet(dto,doc1,doc2);
-		return response;
-	}
 	@JobRoleAccess(featureIds = {15,16})
 	@RequestMapping(value = "/getAllMyTeamTimesheets", method = RequestMethod.POST)
 	public ServiceResponse getAllMyTeamTimesheets(@RequestBody TimesheetDTO timesheetDTO) {
@@ -190,27 +134,7 @@ TimesheetServiceNew timesheetServiceNew;
 		ServiceResponse response = timesheetService.updateTimesheetRequestById(timesheetDTO);
 		return response;
 	}
-	@JobRoleAccess(featureIds = {15,16,14,3,24})
-	@RequestMapping(value = "/updateTimesheet", method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	public ServiceResponse updateTimesheet(@RequestPart("dto") String encryptedDto,
-			@RequestPart(value = "doc1",required = false) MultipartFile doc1,
-			@RequestPart(value = "doc2",required = false) MultipartFile doc2) throws Exception 
-//	,@RequestBody TimesheetDTO timesheetDTO, @RequestBody MultipartFile doc
-	{
-		EncryptionUtil encryptionService = new EncryptionUtil();
-		String decryptedJson = encryptionService.decryptMinor(encryptedDto);
 
-	    // 🔹 Convert decrypted JSON into DTO
-		ObjectMapper objectMapper = new ObjectMapper();
-		objectMapper.registerModule(new JavaTimeModule());
-		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
-		objectMapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL, true);
-
-	    TimesheetDTO dto = objectMapper.readValue(decryptedJson, TimesheetDTO.class);
-		ServiceResponse response = timesheetService.updateTimesheet(dto,doc1,doc2);
-		return response;
-	}
 	@JobRoleAccess(featureIds = {16})
 	@RequestMapping(value = "/getMyReporteesApprovedTimesheets", method = RequestMethod.POST)
 	public ServiceResponse getMyReporteesApprovedTimesheets(@RequestBody TimesheetDTO timesheetDTO) {
@@ -308,34 +232,6 @@ TimesheetServiceNew timesheetServiceNew;
 	     return timesheetService.getLastFilledTimesheetByEmpId(timesheetDTO.getEmpId());
 	 }
 
-	
-//	@Scheduled(cron = "0 53 17 * * ?")  // Runs at 3:55 pm
-//    public void scheduleUpdateCurrentManagerInTimesheets() {
-//		System.err.println("----cron started-----");
-//        timesheetService.updateCurrentManagerInTimesheets();
-//        System.err.println("--cron ended--");
-//    }
-	
-//	public void backfillManagerIds() {
-//		System.err.println("----cron started-----");
-//            timesheetService.updateTimesheetManagerIds();
-//            System.err.println("--cron ended----");
-//            
-//    }
-		
-	//	@Scheduled(cron = "0 53 17 * * ?")  // Runs at 3:55 pm
-	//    public void scheduleUpdateCurrentManagerInTimesheets() {
-	//		System.err.println("----cron started-----");
-	//        timesheetService.updateCurrentManagerInTimesheets();
-	//        System.err.println("--cron ended--");
-	//    }
-		
-	//	public void backfillManagerIds() {
-	//		System.err.println("----cron started-----");
-	//            timesheetService.updateTimesheetManagerIds();
-	//            System.err.println("--cron ended----");
-	//            
-	//    }
 		// @JobRoleAccess(featureIds = {15})
 		 @PostMapping("/getProjectListForDateAndEmpId")
 		 public ServiceResponse getProjectListForDateAndEmpId(@RequestBody GetProjectListForDateAndEmpIdPayload payload) {
@@ -449,9 +345,7 @@ TimesheetServiceNew timesheetServiceNew;
 	     System.out.println("From Date: " + fromDate);
 	     System.out.println("To Date: " + toDate);
 	     
-	     ServiceResponse reponse= timesheetService.replaceAllTemporaryFileWithFinalFile(file,fromDate,toDate,empId,createdBy);
-	     // TODO: Add your processing logic here
-	     
+	     ServiceResponse reponse= timesheetService.replaceAllTemporaryFileWithFinalFile(file,fromDate,toDate,empId,createdBy);	     
 	     return reponse;
 	 }
 	 
@@ -593,14 +487,7 @@ TimesheetServiceNew timesheetServiceNew;
 			return response;
 		}
 		
-
-		// @PostMapping(value = "/getProjectByMonthRangeAndEmpId")
-		// public ServiceResponse getProjectByMonthRangeAndEmpId(@RequestBody GetEmployeeSummaryOnExportDTO object) {  
-		// 	 ServiceResponse reponse= timesheetService.getProjectByMonthRangeAndEmpId(object);
-		// 	 return reponse;
-		// }
-
-		@PostMapping(value = "/getEmployeeSummaryOnExport")
+	@PostMapping(value = "/getEmployeeSummaryOnExport")
 		public ServiceResponse getEmployeeSummaryOnExport(@RequestBody GetEmployeeSummaryOnExportDTO object) {  
 			 ServiceResponse reponse= timesheetService.getEmployeeSummaryOnExportAccordingToStatus(object);
 			 return reponse;
@@ -620,27 +507,12 @@ TimesheetServiceNew timesheetServiceNew;
 		public ServiceResponse isClientMandetory(@RequestBody int projectId) {
 			return timesheetService.isClientMandetory(projectId);
 		} 
-	
-	// @PostMapping(value = "/getProjectByMonthRangeAndEmpId")
-	// public ServiceResponse getProjectByMonthRangeAndEmpId(@RequestBody GetEmployeeSummaryOnExportDTO object) {  
-	// 	 ServiceResponse reponse= timesheetService.getProjectByMonthRangeAndEmpId(object);
-	// 	 return reponse;
-	// }
-
 			
 		@GetMapping(value="/getAllDayTypes")
 		public ServiceResponse getAllDayTipes() {  
 			 ServiceResponse reponse= timesheetService.getAllDayTypes();
 			 return reponse;
 		}
-		
-		// @JobRoleAccess(featureIds = {7,15,16})
-		// @PostMapping(value = "/getClientDetailsByProjectIdAndEmpId")
-		// public ServiceResponse getClientDetailsByProjectIdAndEmpId(@RequestBody GetEmployeeSummaryOnExportDTO timesheetDTO) {
-	
-
-		// 	ServiceResponse response = timesheetService.getClientDetailsByProjectIdAndEmpId(timesheetDTO);
-		// }
 
 	@PostMapping(value = "/getProjectByMonthRangeAndEmpId") 	
 	public ServiceResponse getProjectByMonthRangeAndEmpId(@RequestBody GetEmployeeSummaryOnExportDTO object) {  
@@ -694,12 +566,6 @@ TimesheetServiceNew timesheetServiceNew;
 	                dto.getProjectName() + "_" +
 	                dto.getMonth() + "_" +
 	                dto.getYear() + ".zip";
-
-//	        return ResponseEntity.ok()
-//	                .header(HttpHeaders.CONTENT_DISPOSITION,
-//	                        "attachment; filename=" + zipName)
-//	                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-//	                .body(zipBytes);
 	        
 	        return ResponseEntity.ok()
 	                .header(
@@ -771,24 +637,7 @@ TimesheetServiceNew timesheetServiceNew;
 		    return response;
 	}
 		
-		// @JobRoleAccess(featureIds = {15})
-		//  @PostMapping("/getOtherTeamMembersByDateAndProjectId")
-		//  public ServiceResponse getOtherTeamMembersByDateAndProjectId(@RequestBody GetProjectListForDateAndEmpIdPayload payload) {
-		//      return timesheetService.getOtherTeamMembersByDateAndProjectId(payload);
-		//  }
 		
-		// @PostMapping(value = "/getMyReporteesAndClientSideProjectsInMonthYear")
-		// public ServiceResponse getMyReporteesAndClientSideProjectsInMonthYear(@RequestBody TimesheetDTO timesheetDTO) {  
-		// 	 ServiceResponse reponse= timesheetService.getMyReporteesAndClientSideProjectsInMonthYear(timesheetDTO);
-		// 	 return reponse;
-		// }
-		
-		
-		// @PostMapping(value = "/getMyProjectsInMonthYear")
-		// public ServiceResponse getMyProjectsInMonthYear(@RequestBody TimesheetDTO timesheetDTO) {  
-		// 	 ServiceResponse reponse= timesheetService.getMyProjectsInMonthYear(timesheetDTO);
-		// 	 return reponse;
-		// }
 		
 		@JobRoleAccess(featureIds = {15,16,24})
 		@PostMapping("/getMyReporteesTimesheetRequestsNew")
@@ -799,93 +648,7 @@ TimesheetServiceNew timesheetServiceNew;
 		            .getMyReporteesTimesheetRequestsNew(payload);
 		}
 	
-	// @JobRoleAccess(featureIds = {15})
-	//  @PostMapping("/getOtherTeamMembersByDateAndProjectId")
-	//  public ServiceResponse getOtherTeamMembersByDateAndProjectId(@RequestBody GetProjectListForDateAndEmpIdPayload payload) {
-	//      return timesheetService.getOtherTeamMembersByDateAndProjectId(payload);
-	//  }
 	
-	// @PostMapping(value = "/getMyReporteesAndClientSideProjectsInMonthYear")
-	// public ServiceResponse getMyReporteesAndClientSideProjectsInMonthYear(@RequestBody TimesheetDTO timesheetDTO) {  
-	// 	 ServiceResponse reponse= timesheetService.getMyReporteesAndClientSideProjectsInMonthYear(timesheetDTO);
-	// 	 return reponse;
-	// }
-	
-	
-	// @PostMapping(value = "/getMyProjectsInMonthYear")
-	// public ServiceResponse getMyProjectsInMonthYear(@RequestBody TimesheetDTO timesheetDTO) {  
-	// 	 ServiceResponse reponse= timesheetService.getMyProjectsInMonthYear(timesheetDTO);
-	// 	 return reponse;
-	// }
-	
-	// @PostMapping("/downloadFinalDocuments")
-	// public ResponseEntity<byte[]> downloadFinalDocuments(
-	//         @RequestBody FinalDocumentDownloadDTO dto) {
-
-	//     byte[] zipBytes = timesheetService
-	//         .downloadFinalDocumentsZip(
-	//             dto.getProjectId(),
-	//             dto.getMonth(),
-	//             dto.getYear(),
-	//             dto.getEmpId()
-	//         );
-
-	//     String zipName =
-	//         dto.getProjectName() + "_" +
-	//         dto.getMonth() + "_" +
-	//         dto.getYear() + ".zip";
-
-	//     return ResponseEntity.ok()
-	//         .header(HttpHeaders.CONTENT_DISPOSITION,
-	//             "attachment; filename=" + zipName)
-	//         .contentType(MediaType.APPLICATION_OCTET_STREAM)
-	//         .body(zipBytes);
-	// }
-	
-	// @PostMapping("/getDocumentsBySelectedEmpId")
-	// public ServiceResponse getDocumentsBySelectedEmpId(@RequestBody FinalDocumentDownloadDTO dto) {
-	// 	ServiceResponse response = timesheetService.getDocumentsBySelectedEmpId(dto);
-	// 	return response;
-	// }
-	
-	// @PostMapping("/getDepartmentStatusSummary")
-	// public ServiceResponse getDepartmentStatusSummary(
-	//         @RequestBody GetEmployeeSummaryOnExportDTO requestDTO) {
-
-	//     ServiceResponse response =
-	//     		timesheetService.getDepartmentStatusSummary(requestDTO);
-
-	//     return response;
-	// }
-
-	// @JobRoleAccess(featureIds = {15,16})
-	// @PostMapping(value = "/bulkFinalUploadProjectBased", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	// public ServiceResponse bulkFinalUploadProjectBased(
-	// 		@RequestPart("finalFile") MultipartFile file, @RequestPart("finalBulkUploadDTO") FinalBulkUploadDTO finalBulkUploadDTO ) {
-
-	// 	ServiceResponse reponse= timesheetService.bulkFinalUploadProjectBased(finalBulkUploadDTO, file);
-	// 	return reponse;
-	// }
-
-	// @JobRoleAccess(featureIds = {15,16})
-	// @GetMapping("/getPreviousMinusDays")
-	// public ServiceResponse getPreviousMinusDays() {
-	// 	ServiceResponse response = new ServiceResponse();
-	// 	try {
-	// 		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	// 		Map<String, Object> map = new HashMap<>();
-	// 		map.put("minusDays", minusDays);
-	// 		map.put("checkMinusDaysForBulkUpload", checkMinusDaysForBulkUpload);
-	// 		response.setServiceResponse(map);
-	// 		return response;
-	// 	} catch (Exception e) {
-	// 		e.printStackTrace();
-	// 		response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	// 		response.setServiceError(ServiceResponse.STATUS_FAIL);
-	// 		response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
-	// 		return response;
-	// 	}
-	// }
 
 		 
 }

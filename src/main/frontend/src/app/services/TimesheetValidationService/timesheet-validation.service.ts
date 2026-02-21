@@ -272,6 +272,9 @@ export class TimesheetValidationService {
     // Track client approval status per project across all locations (for consistency validation)
     const projectStatusMap: Map<number, { status: number; locationIndex: number; projectIndex: number; locLabel: string }> =
       new Map();
+    // Track shadow options per project across all locations (must be same for same project)
+    const projectShadowMap: Map<number, { isShadow: boolean; isShadowForSelf: boolean; shadowEmpId: number | null; locLabel: string }> =
+      new Map();
 
     for (let lIndex = 0; lIndex < context.timesheetLocations.length; lIndex++) {
       const location = context.timesheetLocations[lIndex];
@@ -402,7 +405,7 @@ export class TimesheetValidationService {
             locationId
           }, locationId);
         }
-        if (project.clientSideId && isDayTypeFillable && !project.clientApprovalStatus) {
+        if (project.clientSideId && isDayTypeFillable && !project.isShadowForSelf && !project.clientApprovalStatus) {
           return fail({
             field: 'clientApprovalStatus',
             message: `Client DSR Approval Status is mandatory for Project ${pIndex + 1} in ${locLabel}`,
@@ -413,9 +416,10 @@ export class TimesheetValidationService {
           }, locationId);
         }
 
-        // Track client approval status consistency across locations for the same project
+        // Track client approval status consistency across locations for the same project (skip when Shadow for self)
         if (
           isDayTypeFillable &&
+          !project.isShadowForSelf &&
           project.clientSideId &&
           project.projectId != null &&
           project.clientApprovalStatus != null
@@ -435,6 +439,33 @@ export class TimesheetValidationService {
               projectIndex: pIndex,
               locationId
             }, locationId);
+          }
+        }
+
+        // Shadow consistency: same project must have same shadow choice (isShadowTimesheet, isShadowForSelf, shadowEmpId) across all locations
+        if (project.projectId != null && isDayTypeFillable) {
+          const projId = Number(project.projectId);
+          const isShadow = !!project.isShadowTimesheet;
+          const isShadowForSelfVal = !!project.isShadowForSelf;
+          const shadowEmpIdVal = project.shadowEmpId != null ? Number(project.shadowEmpId) : null;
+          const existingShadow = projectShadowMap.get(projId);
+          if (!existingShadow) {
+            projectShadowMap.set(projId, { isShadow, isShadowForSelf: isShadowForSelfVal, shadowEmpId: shadowEmpIdVal, locLabel });
+          } else {
+            const sameShadow =
+              existingShadow.isShadow === isShadow &&
+              existingShadow.isShadowForSelf === isShadowForSelfVal &&
+              (existingShadow.shadowEmpId == null ? shadowEmpIdVal == null : existingShadow.shadowEmpId === shadowEmpIdVal);
+            if (!sameShadow) {
+              return fail({
+                field: 'isShadowTimesheet',
+                message: `Shadow option (Shadow timesheet / Shadow for self / Shadow for) must be the same for the same project across all locations.`,
+                scope: 'PROJECT',
+                locationIndex: lIndex,
+                projectIndex: pIndex,
+                locationId
+              }, locationId);
+            }
           }
         }
 
@@ -602,6 +633,8 @@ export class TimesheetValidationService {
     };
 
     for (const project of context.uniqueProjectsList) {
+      // Skip when Shadow for self (client approval status and documents not required)
+      if (project.isShadowForSelf) continue;
       // Only validate for approved (2) or pending (1) projects
       if (project.clientApprovalStatus !== 1 && project.clientApprovalStatus !== 2) {
         continue;

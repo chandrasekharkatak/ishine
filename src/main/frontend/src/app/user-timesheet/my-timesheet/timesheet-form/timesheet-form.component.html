@@ -59,7 +59,9 @@
                                     Team Member
                                 </label>
                                 <app-my-select class="form-control"
-                                        [options]="teamMemberList" displayKey="name" valueKey="empId" [isOptionDisabled]="disableEmployee" [(ngModel)]="selectedTeamMember" (ngModelChange)="onTeamMemberSelect($event)" [readonly]="isUpdation">
+                                        [options]="teamMemberList" displayKey="name" valueKey="empId" 
+                                        [isOptionDisabled]="disableEmployee" [(ngModel)]="appelectMember" 
+                                        (ngModelChange)="onTeamMemberSelect($event)" [readonly]="isUpdation">
                                 </app-my-select>
                             </div>
                         </div>
@@ -358,6 +360,7 @@
                                                     </label>
                                                     <app-my-select class="form-control" placeholder="Select Employee"
                                                         [(ngModel)]="project.shadowEmpId"
+                                                        (ngModelChange)="onShadowEmpIdChange(project)"
                                                         [options]="project.shadowForList" displayKey="name"
                                                         valueKey="empId" [multiple]="false">
                                                     </app-my-select>
@@ -402,7 +405,7 @@
                                                             <input type="radio"
                                                                 name="shadowForSelf{{lIndex}}_{{pIndex}}" [value]="true"
                                                                 [(ngModel)]="project.isShadowForSelf" 
-                                                                (ngModelChange)="getListToRenderUpload()" />
+                                                                (ngModelChange)="onShadowForSelfChange(project)" />
                                                             <span> Yes</span>
                                                         </label>
 
@@ -410,7 +413,7 @@
                                                             <input type="radio"
                                                                 name="shadowForSelf{{lIndex}}_{{pIndex}}"
                                                                 [value]="false" [(ngModel)]="project.isShadowForSelf" 
-                                                                (ngModelChange)="getListToRenderUpload()" />
+                                                                (ngModelChange)="onShadowForSelfChange(project)" />
                                                             <span> No</span>
                                                         </label>
                                                     </div>
@@ -447,7 +450,7 @@
                                                     </app-my-select>
                                                 </div>
                                                 <div class="col-md-4 mb-3"
-                                                    *ngIf="project.clientSideId && project.clientId && project.clientLocationId && isDayTypeFillable()">
+                                                    *ngIf="project.clientSideId && project.clientId && project.clientLocationId && isDayTypeFillable() && !project.isShadowForSelf">
                                                     <label class="info-label">
                                                         <span class="text-danger">*</span> Client DSR Approval Status
                                                     </label>

@@ -25,17 +25,19 @@ import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
 import com.apmosys.employeeportal.dto.FilterMatrix;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
-import com.apmosys.employeeportal.dto.IshineToPoRequestDTO;
 import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
+import com.apmosys.employeeportal.dto.IshineToPoRequestDTO;
 import com.apmosys.employeeportal.dto.LiftAndShiftTeamsDTO;
 import com.apmosys.employeeportal.dto.NonComplianceProjects;
 import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
 import com.apmosys.employeeportal.dto.PoClientAddressUpdateDTO;
+import com.apmosys.employeeportal.dto.PageDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.ProjectStructureWrapper;
+import com.apmosys.employeeportal.dto.RMGDashboardProjectRequest;
 import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.RestoreProjectPayloadDTO;
@@ -301,7 +303,7 @@ public class ResourceManagementController {
 	@JobRoleAccess(featureIds = {34})
 	@RequestMapping(value ="/rbacUnfilledTimesheetsProjects", method = RequestMethod.POST)
 	public ServiceResponse getAllUnfilledTimesheetsProjects(@RequestBody NonComplianceProjects nonComplianceProjects  ) {
-		ServiceResponse response = resourceManagementService.getAllUnfilledTimesheetsProjects(nonComplianceProjects);
+		ServiceResponse response = resourceManagementService.getAllUnfilledTimesheetsProjectsNEW(nonComplianceProjects);
 		return response;
 	}
 	@Encrypted
@@ -481,7 +483,7 @@ public class ResourceManagementController {
 	 
 	 @PostMapping("/poCrudOperationsInIshineNew")
 	 public ServiceResponse poCrudOperationsInIshineNew(HttpServletRequest httpRequest,@RequestBody ProjectPoMappingWithResourceDTO poPortalProjects) {
-		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+//		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		 return poSyncOrchestratorService.poCrudOperationsInIshineNew(poPortalProjects);
 	 }
 	 
@@ -736,6 +738,40 @@ public class ResourceManagementController {
 //
 //	}
 
-	 
-	
+
+	// @Encrypted
+	@PostMapping("/fetchProjectDetailsList")
+	public ServiceResponse fetchProjectDetailsList(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.fetchProjectDetailsList(rmgDashboardProjectRequest);
+	}
+
+	// @Encrypted
+	@PostMapping("/getEmployeeCountByEmployeeGroup")
+	public ServiceResponse getEmployeeCountByEmployeeGroup(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getEmployeeCountByEmployeeGroup(rmgDashboardProjectRequest);
+	}
+
+	// @Encrypted
+	@PostMapping("/getEmployeeDetailsListByEmployeeGroup")
+	public ServiceResponse getEmployeeDetailsListByEmployeeGroup(@RequestBody PageDTO pageDTO) {
+		return resourceManagementService.getEmployeeDetailsListByEmployeeGroup(pageDTO);
+	}
+
+	// @Encrypted
+	@PostMapping("/getProjectStatusCount")
+	public ServiceResponse getProjectStatusCount(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getProjectStatusCount(rmgDashboardProjectRequest);
+	}
+
+	// @Encrypted
+	@PostMapping("/getUnfilledTimesheetProjectDetailsList")
+	public ServiceResponse getUnfilledTimesheetProjectDetailsList(@RequestBody PageDTO pageDTO) {
+		return resourceManagementService.getUnfilledTimesheetProjectDetailsList(pageDTO);
+	}	
+
+	// @Encrypted
+	@PostMapping("/getUnfilledTimesheetProjectDetailsCount")
+	public ServiceResponse getUnfilledTimesheetProjectDetailsCount(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
+		return resourceManagementService.getUnfilledTimesheetProjectDetailsCount(rmgDashboardProjectRequest);
+	}
 }

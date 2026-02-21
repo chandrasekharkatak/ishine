@@ -479,7 +479,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/removeTeamMembersFromProject`,
     `${this.baseUrl}` + `api/updateMappingToOtherProjectAsDefault`,
     `${this.baseUrl}` + `api/getResourceRequirementByPoId`,
-    `${this.baseUrl}` + `api/downloadFinalDocuments`,
+    `${this.baseUrl}` + `api/fetchProjectDetailsList`,
     `${this.baseUrl}` + `api/downloadFinalDocuments`,
     `${this.baseUrl}` + `api/downloadFinalDocuments`,
     `${this.baseUrl}` + `api/downloadFinalDocuments`,

@@ -121,13 +121,19 @@ import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.repository.TechStackRepository;
 import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.request.ProjectRequest;
+import com.apmosys.employeeportal.service.helper.TimesheetStructureCleanupService;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.ExceptionLogContext;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
+import lombok.extern.slf4j.Slf4j;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 @Service
+@Slf4j
 public class ProjectService {
 
 	@PersistenceContext
@@ -2984,59 +2990,32 @@ public class ProjectService {
 
 	public GetEmployeeProjectReportDTO getEmployeeReport(GetEmployeeProjectReportPayloadDTO dto) {
 		try {
-			Session session = entityManager.unwrap(Session.class);
+//			Session session = entityManager.unwrap(Session.class);
 			String queryStr = buildDynamicQuery(dto);
-			Query query = session.createSQLQuery(queryStr);
+//			Query query = session.createSQLQuery(queryStr);
 			List<Object[]> resultList = entityManager.createNativeQuery(queryStr).getResultList();
 
-			if (resultList.isEmpty())
-				return new GetEmployeeProjectReportDTO(null, null);
+			  if (resultList == null || resultList.isEmpty()) {
+				  log.info("No employee report data found");
+				  return new GetEmployeeProjectReportDTO(Collections.emptyList(),null);
+		        }
+			  
+			  List<GetEmployeeProjectReportForEmployeeDTO> employeeDTOs =
+		                resultList.stream()
+		                        .map(this::mapToEmployeeDTO)
+		                        .collect(Collectors.toList());
+		        log.info("Employee report fetched successfully. Record count: {}", employeeDTOs.size());
 
-			List<GetEmployeeProjectReportForEmployeeDTO> employeeDTOs = resultList.stream().map(record -> {
-				GetEmployeeProjectReportForEmployeeDTO dtoObj = new GetEmployeeProjectReportForEmployeeDTO();
+		        return new GetEmployeeProjectReportDTO(employeeDTOs, Collections.emptyList());
 
-	            dtoObj.setEmpId(record[0] != null ? Long.parseLong(record[0].toString()) : null);
-	            dtoObj.setEmployeementId(record[1] != null ? record[1].toString() : null);
-	            dtoObj.setName(record[2] != null ? record[2].toString() : null);
-	            dtoObj.setEmail(record[3] != null ? record[3].toString() : null);
-	            dtoObj.setMobileNo(record[4] != null ? Long.parseLong(record[4].toString()) : null);
-	            dtoObj.setManagerId(record[5] != null ? Long.parseLong(record[5].toString()) : null);
-	            dtoObj.setManagerName(record[6] != null ? record[6].toString() : null);
-	            dtoObj.setEmploymentstatus(record[7] != null ? record[7].toString() : null);
-	            dtoObj.setBillable(record[8] != null ? record[8].toString() : null);
-	            dtoObj.setBillableType(record[9] != null ? record[9].toString() : null);
-	            dtoObj.setTeamIds(record[10] != null ? record[10].toString() : null);
-	            dtoObj.setTeamName(record[11] != null ? record[11].toString() : null);
-	            dtoObj.setProjectIds(record[12] != null ? record[12].toString() : null);
-	            dtoObj.setProjectName(record[13] != null ? record[13].toString() : null);
-	            dtoObj.setProjectStartDate(record[14] != null ? record[14].toString() : null);
-	            dtoObj.setProjectEndDate(record[15] != null ? record[15].toString() : null);
-	            dtoObj.setPoNo(record[16] != null ? record[16].toString() : null);
-	            dtoObj.setClientName(record[17] != null ? record[17].toString() : null);
-	            dtoObj.setClientLocation(record[18] != null ? record[18].toString() : null);
-	            dtoObj.setWorkLocation(record[19] != null ? record[19].toString() : null);
-	            dtoObj.setTotalExperience(record[20] != null ? Float.parseFloat(record[20].toString()) : null);
-	            dtoObj.setDepartmentId(record[21] != null ? Long.parseLong(record[21].toString()) : null);
-	            dtoObj.setDepartmentName(record[22] != null ? record[22].toString() : null);
-	            dtoObj.setPoProjectType(record[23] != null ? record[23].toString() : null);
-	            dtoObj.setJobRole(record[24] != null ? record[24].toString() : null);
-	            dtoObj.setPoProjectId(record[25] != null ? record[25].toString() : null);
-	            dtoObj.setPrimaryProjectName(record[26] != null ? record[26].toString() : null);
-	            dtoObj.setPrimaryProjectId(record[27] != null ? record[27].toString() : null);
-	            dtoObj.setClientRM(record[28] != null ? record[28].toString() : null);
-	            dtoObj.setApmosysRM(record[29] != null ? record[29].toString() : null);
-	            dtoObj.setEffectiveStartDate(record[30] != null ? record[30].toString() : null);
-	            dtoObj.setEffectiveEndDate(record[31] != null ? record[31].toString() : null);
-	            dtoObj.setEmployeementIdAccToET(record[32] != null ? record[32].toString() : null);
-
-				return dtoObj;
-			}).collect(Collectors.toList());
-
-			return new GetEmployeeProjectReportDTO(employeeDTOs, null);
 
 		} catch (Exception e) {
-			e.printStackTrace();
-			return new GetEmployeeProjectReportDTO(null, null);
+//			e.printStackTrace();
+			log.error("Error fetching employee report", e);
+			 return new GetEmployeeProjectReportDTO(
+		               null ,
+		                Collections.emptyList()
+		        );
 		}
 	}
 
@@ -3607,13 +3586,11 @@ public class ProjectService {
 				String[] deptIdArray = clientProjectReportDTO.getDeptIds().split(",");
 				deptIds = Arrays.stream(deptIdArray).map(String::trim).map(Long::parseLong)
 						.collect(Collectors.toList());
-				System.out.println("filtered department Ids: " + deptIds);
+				log.info("filtered department Ids: " + deptIds);
 			} else {
 				deptIds = projectRepository.deptIds();
-				System.out.println("all department Ids: " + deptIds);
+				log.info("all department Ids: " + deptIds);
 			}
-
-			System.out.println("department Ids as per query:::::::::: " + deptIds);
 
 			List<Object[]> rawData = projectRepository.getClientAndProjectData(deptIds);
 
@@ -3647,7 +3624,8 @@ public class ProjectService {
 			return response;
 
 		} catch (Exception e) {
-			e.printStackTrace();
+//			e.printStackTrace();
+			log.info("Error fetching client and project report" ,e);
 			logBuilder.append("Failed. Exception: ").append(e.getMessage());
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceMessage("Failed to fetch client and project report.");
@@ -3656,7 +3634,7 @@ public class ProjectService {
 			return response;
 		}
 	}
-
+	@Transactional(readOnly = true)
 	public ServiceResponse getClientAndProjectReportDataList(ClientProjectReportDTO clientProjectReportDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -3673,9 +3651,9 @@ public class ProjectService {
 				String[] deptIdArray = clientProjectReportDTO.getDeptIds().split(",");
 				deptIds = Arrays.stream(deptIdArray).map(String::trim).map(Long::parseLong)
 						.collect(Collectors.toList());
-				System.out.println("filtered department Ids: " + deptIds);
+				log.info("Filtered department Ids: {}", deptIds);
 			} else {
-				System.out.println("No department filter applied - fetching all departments");
+				log.info("No department filter applied - fetching all departments");
 			}
 
 			List<Long> clientIds = null;
@@ -3685,23 +3663,20 @@ public class ProjectService {
 				String[] clientIdArray = clientProjectReportDTO.getClientIds().split(",");
 				clientIds = Arrays.stream(clientIdArray).map(String::trim).map(Long::parseLong)
 						.collect(Collectors.toList());
-				System.out.println("filtered client Ids: " + clientIds);
+				log.info("filtered client Ids: " + clientIds);
 			} else {
-				System.out.println("No client filter applied - fetching all clients");
+				log.info("No client filter applied - fetching all clients");
 			}
 
 			String projectType = clientProjectReportDTO.getProjectType();
 
 			if (deptIds == null || deptIds.isEmpty()) {
-				deptIds = Arrays.asList(-1L); // Use a dummy value that won't match any real dept_id
+				deptIds = null;
 			}
 			if (clientIds == null || clientIds.isEmpty()) {
-				clientIds = Arrays.asList(-1L); // Use a dummy value that won't match any real client_id
+				clientIds = null;
 			}
 
-			System.out.println("Project type: " + projectType);
-			System.out.println("Department Ids filter: " + deptIds);
-			System.out.println("Client Ids filter: " + clientIds);
 
 			List<Object[]> rawData = projectRepository.getClientAndProjectDataList(projectType, deptIds, clientIds);
 
@@ -3722,7 +3697,8 @@ public class ProjectService {
                 dto.setClientRM(row[10] != null ? row[10].toString() : null);
                 dto.setProjectStartDate(row[11] != null ? row[11].toString() : null);
                 dto.setProjectEndDate(row[12] != null ? row[12].toString() : null);
-                dto.setCreatedOn(row[13] != null ? Timestamp.valueOf(row[13].toString()) : null);
+//                dto.setCreatedOn(row[13] != null ? Timestamp.valueOf(row[13].toString()) : null);
+                dto.setCreatedOn(row[13] != null ? (Timestamp) row[13] : null);
                 dto.setPoProjectId(row[14] != null ? Long.valueOf(row[14].toString()) : null);
                 dto.setProjectType(row[15] != null ? row[15].toString() : null);
                 dto.setProjectViewId(row[16] != null ? row[16].toString() : null)  ;
@@ -3743,7 +3719,8 @@ public class ProjectService {
 			return response;
 
 		} catch (Exception e) {
-			e.printStackTrace();
+//			e.printStackTrace();
+			log.info("Error fetching client and project report" ,e);	
 			logBuilder.append("Failed. Exception: ").append(e.getMessage());
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceMessage("Failed to fetch client and project report.");
@@ -3890,9 +3867,14 @@ public class ProjectService {
 	public Project createProjectRTS(ProjectPoMappingWithResourceDTO dto, Client client) {
 
 		if (projectRepository.findByPoProjectId(dto.getProjectId()) != null){ 
-			ExceptionLogContext.add("Project already exists in ishine of po project" + dto.getProjectId());
-			throw new RuntimeException("Project already exists");
+			ExceptionLogContext.add("Project already exists in ishine of po project :" + dto.getProjectId());
+			throw new RuntimeException("Project already exists in ishine");
 		}
+		
+		Long createdBy = dto.getPoDetailsList().get(0).getCreatedByEmpId();
+		String createdByname = dto.getPoDetailsList().get(0).getCreatedByEmpName();
+		
+		validationService.validateEmployeeExists(createdBy, createdByname);
 
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -3904,7 +3886,7 @@ public class ProjectService {
 		p.setClientId(client.getClientId());
 		p.setActive("true");
 		p.setProjectStatus("Not Started");
-		p.setCreatedBy(6L);
+		p.setCreatedBy(createdBy);
 		p.setIsDraftProject(null);
 		p.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 		if(dto.getProjectType().equalsIgnoreCase("TNM")) {
@@ -3920,6 +3902,11 @@ public class ProjectService {
 	        Client client) {
 
 	    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+	    
+	    Long updatedBy = dto.getPoDetailsList().get(0).getCreatedByEmpId();
+		String updatedByname = dto.getPoDetailsList().get(0).getCreatedByEmpName();
+		
+		validationService.validateEmployeeExists(updatedBy, updatedByname);
 	    boolean changed = false;
 
 	    if (!Objects.equals(p.getProjectName(), dto.getProjectName())) {
@@ -3927,10 +3914,7 @@ public class ProjectService {
 	        changed = true;
 	    }
 
-	    if (!Objects.equals(p.getPoProjectType(), dto.getProjectType())) {
-	        p.setPoProjectType(dto.getProjectType());
-	        changed = true;
-	    }
+	   
 
 //	    String newStart =
 //	            dto.getProjectStartDate() != null
@@ -3963,7 +3947,7 @@ public class ProjectService {
 	    }
 
 	    if (changed) {
-	    	p.setUpdatedBy(6l);
+	    	p.setUpdatedBy(updatedBy);
 	    	p.setUpdatedOn(LocalDateTime.now());
 	    	projectRepository.save(p);
 	    }
@@ -4565,6 +4549,8 @@ public class ProjectService {
 	
 
 	public void recalculateProjectDates(Integer projectId,boolean isRenew) {
+		
+		projectPoDetailsRepository.flush();
 
 	    Project project = projectRepository.findById(projectId)
 	            .orElseThrow(() ->
@@ -4679,6 +4665,48 @@ public class ProjectService {
 		}
 		return response;
 	}
+  	
+  	private GetEmployeeProjectReportForEmployeeDTO mapToEmployeeDTO(Object[] record) {
+
+  	    GetEmployeeProjectReportForEmployeeDTO dtoObj =
+  	            new GetEmployeeProjectReportForEmployeeDTO();
+
+  	    dtoObj.setEmpId(record[0] != null ? Long.parseLong(record[0].toString()) : null);
+  	    dtoObj.setEmployeementId(record[1] != null ? record[1].toString() : null);
+  	    dtoObj.setName(record[2] != null ? record[2].toString() : null);
+  	    dtoObj.setEmail(record[3] != null ? record[3].toString() : null);
+  	    dtoObj.setMobileNo(record[4] != null ? Long.parseLong(record[4].toString()) : null);
+  	    dtoObj.setManagerId(record[5] != null ? Long.parseLong(record[5].toString()) : null);
+  	    dtoObj.setManagerName(record[6] != null ? record[6].toString() : null);
+  	    dtoObj.setEmploymentstatus(record[7] != null ? record[7].toString() : null);
+  	    dtoObj.setBillable(record[8] != null ? record[8].toString() : null);
+  	    dtoObj.setBillableType(record[9] != null ? record[9].toString() : null);
+  	    dtoObj.setTeamIds(record[10] != null ? record[10].toString() : null);
+  	    dtoObj.setTeamName(record[11] != null ? record[11].toString() : null);
+  	    dtoObj.setProjectIds(record[12] != null ? record[12].toString() : null);
+  	    dtoObj.setProjectName(record[13] != null ? record[13].toString() : null);
+  	    dtoObj.setProjectStartDate(record[14] != null ? record[14].toString() : null);
+  	    dtoObj.setProjectEndDate(record[15] != null ? record[15].toString() : null);
+  	    dtoObj.setPoNo(record[16] != null ? record[16].toString() : null);
+  	    dtoObj.setClientName(record[17] != null ? record[17].toString() : null);
+  	    dtoObj.setClientLocation(record[18] != null ? record[18].toString() : null);
+  	    dtoObj.setWorkLocation(record[19] != null ? record[19].toString() : null);
+  	    dtoObj.setTotalExperience(record[20] != null ? Float.parseFloat(record[20].toString()) : null);
+  	    dtoObj.setDepartmentId(record[21] != null ? Long.parseLong(record[21].toString()) : null);
+  	    dtoObj.setDepartmentName(record[22] != null ? record[22].toString() : null);
+  	    dtoObj.setPoProjectType(record[23] != null ? record[23].toString() : null);
+  	    dtoObj.setJobRole(record[24] != null ? record[24].toString() : null);
+  	    dtoObj.setPoProjectId(record[25] != null ? record[25].toString() : null);
+  	    dtoObj.setPrimaryProjectName(record[26] != null ? record[26].toString() : null);
+  	    dtoObj.setPrimaryProjectId(record[27] != null ? record[27].toString() : null);
+  	    dtoObj.setClientRM(record[28] != null ? record[28].toString() : null);
+  	    dtoObj.setApmosysRM(record[29] != null ? record[29].toString() : null);
+  	    dtoObj.setEffectiveStartDate(record[30] != null ? record[30].toString() : null);
+  	    dtoObj.setEffectiveEndDate(record[31] != null ? record[31].toString() : null);
+  	    dtoObj.setEmployeementIdAccToET(record[32] != null ? record[32].toString() : null);
+
+  	    return dtoObj;
+  	}
 
 
 }

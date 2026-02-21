@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.hibernate.annotations.Where;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -30,7 +31,7 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
             + ",COUNT(DISTINCT CASE WHEN etm.active  = 2 THEN etm.empId END) \n"
             + ") \n"
             + "FROM ProjectPoDetails p  \n"
-            + "INNER JOIN PoRequirementMapping prm ON p.poId=prm.poId \n"
+            + "INNER JOIN PoRequirementMapping prm ON p.poId=prm.poId and prm.active = true  \n"
             + "INNER JOIN EmployeeTeamMap etm ON etm.poRequirementMappingId = prm.poRequirementMappingId   \n"
             + "INNER JOIN Team t ON t.teamId = etm.teamId  \n"
             + "where p.projectId=:projectId \n"
@@ -43,8 +44,8 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
             + ",COUNT(DISTINCT CASE WHEN etm.active  = 2 THEN etm.empId END) \n"
             + ") \n"
             + "FROM Project p  \n"
-            + "LEFT JOIN ProjectPoDetails ppd ON p.projectId = ppd.projectId AND (DATE(ppd.poEndDate) >= CURRENT_DATE or :isAllProjects = true ) \n"
-            + "LEFT JOIN PoRequirementMapping prm ON ppd.poId=prm.poId \n"
+            + "LEFT JOIN ProjectPoDetails ppd ON p.projectId = ppd.projectId AND ((ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) or :isAllProjects = true ) \n"
+            + "LEFT JOIN PoRequirementMapping prm ON ppd.poId=prm.poId and prm.active = true \n"
             + "LEFT JOIN Team t ON t.projectId = p.projectId AND t.isActive = 'Y'  \n"
             + "LEFT JOIN EmployeeTeamMap etm ON t.teamId =etm.teamId AND etm.active IN (1, 2)\n"
             + "where p.projectId=:projectId \n"
@@ -89,7 +90,7 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
     List<IshineToPoEmployeeDTO> findEmployeesWithTimesheetStats(Long poId,
             Integer projectId, LocalDate startDate, LocalDate endDate);
 
-    Optional<ProjectPoDetails> findByPoIdAndProjectId(Long poId, Integer projectId);
+    Optional<ProjectPoDetails> findByPoIdAndProjectIdAndActiveTrue(Long poId, Integer projectId);
 
     boolean existsByPoIdAndProjectId(Long poId, Integer projectId);
 
@@ -137,8 +138,8 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
             + ",COUNT(DISTINCT CASE WHEN etm.active  = 2 THEN etm.empId END) \n"
             + ") \n"
             + "FROM Project p  \n"
-            + "LEFT JOIN ProjectPoDetails ppd ON p.projectId = ppd.projectId AND DATE(ppd.poEndDate) >= CURRENT_DATE \n"
-            + "LEFT JOIN PoRequirementMapping prm ON ppd.poId=prm.poId \n"
+            + "LEFT JOIN ProjectPoDetails ppd ON p.projectId = ppd.projectId AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) \n"
+            + "LEFT JOIN PoRequirementMapping prm ON ppd.poId=prm.poId and prm.active = true \n"
             + "LEFT JOIN Team t ON t.projectId = p.projectId AND t.isActive = 'Y' \n"
             + "LEFT JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId AND etm.active IN (1, 2)\n"
             + "where ppd.poId=:poId \n"
@@ -150,7 +151,7 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
             + ",COUNT(DISTINCT CASE WHEN etm.active  = 2 THEN etm.empId END) \n"
             + ") \n"
             + "FROM Project p  \n"
-            + "LEFT JOIN ProjectPoDetails ppd ON p.projectId = ppd.projectId AND DATE(ppd.poEndDate) >= CURRENT_DATE \n"
+            + "LEFT JOIN ProjectPoDetails ppd ON p.projectId = ppd.projectId AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) \n"
             + "LEFT JOIN PoRequirementMapping prm ON ppd.poId=prm.poId \n"
             + "LEFT JOIN Team t ON t.projectId = p.projectId AND t.isActive = 'Y' \n"
             + "LEFT JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId AND etm.active IN (1, 2)\n"
@@ -163,7 +164,7 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
             + ",COUNT(DISTINCT CASE WHEN etm.active  = 2 THEN etm.empId END) \n"
             + ") \n"
             + "FROM Project p  \n"
-            + "LEFT JOIN ProjectPoDetails ppd ON p.projectId = ppd.projectId AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND DATE(ppd.poEndDate) >= CURRENT_DATE \n"
+            + "LEFT JOIN ProjectPoDetails ppd ON p.projectId = ppd.projectId AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) \n"
         //  + "LEFT JOIN PoRequirementMapping prm ON ppd.poId=prm.poId \n"
             + "LEFT JOIN Team t ON t.projectId = p.projectId AND t.isActive = 'Y'  \n"
             + "LEFT JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId AND etm.active IN (1, 2) \n"
@@ -196,7 +197,7 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
             + " prm.poRequirementMappingId, ppd.poId, ppd.poNo, ppd.poStartDate, ppd.poEndDate, rd.roleId, rd.role, rd.experience, rd.department,prm.lineItemStartDate , prm.lineItemEndDate, prm.count"
             + " )  \n"
             + "FROM Project p \n"
-            + "INNER JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND DATE(ppd.poEndDate) >= CURRENT_DATE \n"
+            + "INNER JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) \n"
             + "LEFT JOIN PoRequirementMapping prm ON prm.poId = ppd.poId AND prm.active = true \n"
             + "LEFT JOIN RoleDetails rd on rd.roleId = prm.roleId \n"
             + "WHERE p.projectId =:projectId  \n")
@@ -242,4 +243,18 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
         		+ "        AND et.date BETWEEN :startDate AND :endDate")
         	IshineToPoEmployeeDTO findEmployeesWithTimesheetCount(Long empId,
         	         LocalDate startDate,LocalDate endDate,Long poId,Integer clientId);
+	ProjectPoDetails findByPoId(Long poId);
+
+	boolean existsByPoIdAndProjectIdAndActiveTrue(Long poId, Integer projectId);
+
+    @Query(value="SELECT DISTINCT p.projectName FROM ProjectPoDetails ppd \n"
+            + "INNER JOIN Project p ON ppd.projectId = p.projectId AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) \n"
+            + "Where LOWER(ppd.poNo) like %:poNo% ")
+    List<String> getProjectNameByPoNoLike(String poNo, boolean currentActivePO);
+        
+   
+    @Query(value="SELECT DISTINCT p.projectId FROM Project p \n"
+            + "INNER JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) \n")
+    Set<Integer> findAllActivePOProjectIds(boolean currentActivePO);
+
 }
