@@ -2926,9 +2926,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     const uniqueFile: File = this.renameFile(file, projectId, docType);
     const uniqueIdentifier = uniqueFile.name;
 
-    // Update entry
+    // Update entry – preserve docId when replacing so backend updates existing row instead of creating new
     this.updateUploadFile({
-      docId: null,
+      docId: previous?.docId ?? null,
       projectId,
       docName: file.name,
       finalFlag: false,
@@ -3062,35 +3062,33 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
 
   /**
    * Open preview modal for uploaded file
-   * Handles both existing documents (from server) and new uploads
+   * Handles: new uploads, replaced files (local preview), and existing docs (fetch by docId)
+   * Prefer local preview when available so that after user replaces a file we show the new file, not the old one from backend.
    */
   openPreviewModalForTwo(file: any): void {
-    // Check if it's an existing document (has docId)
+    // Prefer local file: new upload or replaced file (user picked a new file → we have previewUrl/rawObjectUrl)
+    if (file?.previewUrl && file?.fileType) {
+      this.activePreviewUrl = file.previewUrl;
+      this.activeFileType = file.fileType;
+      this.activeRawObjectUrl = file.rawObjectUrl;
+      this.resetTransformations();
+      this.modalRef = this.modalService.open(this.previewModal, {
+        modalDialogClass: 'modal-lg',
+        scrollable: true
+      });
+      return;
+    }
+
+    // No local file: existing document only (or not yet uploaded) → fetch from backend by docId
     if (file?.docId && this.isExistingDocument(file)) {
-      // Load existing document from server (pass file for docType -> approvedDocType)
       this.previewExistingDocument(file);
       return;
     }
 
-    // Handle new upload (has previewUrl and fileType)
-    if (!file?.previewUrl || !file?.fileType) {
-      this.openAlertMod(
-        this.alertTemplate,
-        'Document preview is not available. Please upload the document first.'
-      );
-      return;
-    }
-
-    this.activePreviewUrl = file.previewUrl;
-    this.activeFileType = file.fileType;
-    this.activeRawObjectUrl = file.rawObjectUrl;
-
-    this.resetTransformations();
-
-    this.modalRef = this.modalService.open(this.previewModal, {
-      modalDialogClass: 'modal-lg',
-      scrollable: true
-    });
+    this.openAlertMod(
+      this.alertTemplate,
+      'Document preview is not available. Please upload the document first.'
+    );
   }
 
   /**
@@ -4158,6 +4156,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
         }
       });
     });
+
+
 
     // Call update API
     this.timesheetNewService.updateTimesheet(this.createOrUpdateObj, this.selectedFile)

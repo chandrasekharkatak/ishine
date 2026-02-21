@@ -129,15 +129,58 @@ public class TimesheetDocumentServiceNew {
 
         Map<String, Long> timesheetIdAndProjectIdToFinalDocMap = new HashMap<>();
 
-        for(TimesheetDocumentDataDTO approvedData : approvedDocs) {
+        for (TimesheetDocumentDataDTO approvedData : approvedDocs) {
             MultipartFile matchedFile = fileMap.get(approvedData.getUniqueIdentifier());
             if (matchedFile == null) {
                 throw new IllegalArgumentException(
                         "Document is missing: " + approvedData.getDocName());
             }
             String storedFileName = uploadFile(matchedFile, approvedData.getUniqueIdentifier());
+
+            if (approvedData.getDocId() != null) {
+                // REPLACE: FinalDocumentNew may be shared by multiple TimesheetDocumentDetailsNew (same/different timesheets).
+                // a) If only one row points to this finalDocId and it's the one we're updating → update in place.
+                // b) If multiple rows point to it → create new FinalDocumentNew and link only current timesheet's row.
+                Long finalDocId = approvedData.getDocId();
+                List<TimesheetDocumentDetailsNew> referrers = timesheetDocumentDetailsNewRepository
+                        .getDocsByBulkApproverDocId(finalDocId);
+                boolean singleReferrerAndThisTimesheet = referrers != null && referrers.size() == 1
+                        && Objects.equals(referrers.get(0).getTimesheetId(), timesheetId)
+                        && Objects.equals(referrers.get(0).getProjectId(), approvedData.getProjectId());
+
+                if (singleReferrerAndThisTimesheet) {
+                    Optional<FinalDocumentNew> existingOpt = finalDocumentNewRepository.findById(finalDocId);
+                    if (existingOpt.isPresent()) {
+                        FinalDocumentNew existing = existingOpt.get();
+                        String oldFileUrl = existing.getFileUrl();
+                        existing.setFileUrl(storedFileName);
+                        existing.setDocName(approvedData.getDocName());
+                        existing.setMimeTypeId(getMimeTypeId(approvedData.getDocName(), approvedData.getUniqueIdentifier()));
+                        existing.setUpdatedBy(empTs.getUpdatedBy());
+                        finalDocumentNewRepository.save(existing);
+                        if (oldFileUrl != null && !oldFileUrl.equals(storedFileName)) {
+                            deleteFile(oldFileUrl);
+                        }
+                        timesheetIdAndProjectIdToFinalDocMap.put(empTs.getTimesheetId() + "_" + approvedData.getProjectId(), existing.getFinalDocId());
+                        continue;
+                    }
+                }
+
+                // Shared by multiple timesheets (or other edge case): create new FinalDocumentNew, link only this timesheet
+                FinalDocumentNew newFinalDoc = new FinalDocumentNew();
+                newFinalDoc.setProjectId(approvedData.getProjectId());
+                newFinalDoc.setFileUrl(storedFileName);
+                newFinalDoc.setCreatedBy(empTs.getCreatedBy());
+                newFinalDoc.setUpdatedBy(empTs.getUpdatedBy());
+                newFinalDoc.setDocName(approvedData.getDocName());
+                newFinalDoc.setMimeTypeId(getMimeTypeId(approvedData.getDocName(), approvedData.getUniqueIdentifier()));
+                newFinalDoc = finalDocumentNewRepository.save(newFinalDoc);
+                timesheetIdAndProjectIdToFinalDocMap.put(empTs.getTimesheetId() + "_" + approvedData.getProjectId(), newFinalDoc.getFinalDocId());
+                continue;
+            }
+
+            // CREATE: new Approved row (no existing docId)
             FinalDocumentNew finalDocumentNew = new FinalDocumentNew();
-            finalDocumentNew.setFinalDocId(approvedData.getDocId());
             finalDocumentNew.setProjectId(approvedData.getProjectId());
             finalDocumentNew.setFileUrl(storedFileName);
             finalDocumentNew.setCreatedBy(empTs.getCreatedBy());
@@ -148,17 +191,41 @@ public class TimesheetDocumentServiceNew {
             timesheetIdAndProjectIdToFinalDocMap.put(empTs.getTimesheetId() + "_" + approvedData.getProjectId(), finalDocumentNew.getFinalDocId());
         }
 
-        for(TimesheetDocumentDataDTO filledData : filledDocs) {
+        for (TimesheetDocumentDataDTO filledData : filledDocs) {
             MultipartFile matchedFile = fileMap.get(filledData.getUniqueIdentifier());
             if (matchedFile == null) {
                 throw new IllegalArgumentException(
                         "Filled document is missing. Please upload the required document.");
             }
             String storedFileName = uploadFile(matchedFile, filledData.getUniqueIdentifier());
+
+            if (filledData.getDocId() != null) {
+                // REPLACE: update existing Filled row so the same document slot shows the new file
+                Optional<TimesheetDocumentDetailsNew> existingOpt = timesheetDocumentDetailsNewRepository.findById(filledData.getDocId());
+                if (existingOpt.isPresent()) {
+                    TimesheetDocumentDetailsNew existing = existingOpt.get();
+                    String oldFileUrl = existing.getFileUrl();
+                    existing.setFileUrl(storedFileName);
+                    existing.setDocName(filledData.getDocName());
+                    existing.setMimeTypeId(getMimeTypeId(filledData.getDocName(), filledData.getUniqueIdentifier()));
+                    existing.setUpdatedBy(empTs.getUpdatedBy());
+                    if (timesheetIdAndProjectIdToFinalDocMap.get(timesheetId + "_" + filledData.getProjectId()) != null) {
+                        existing.setBulkApprovedDocId(timesheetIdAndProjectIdToFinalDocMap.get(timesheetId + "_" + filledData.getProjectId()));
+                        existing.setClientApprovalStatusId(2);
+                        existing.setFinalFlag(true);
+                    }
+                    timesheetDocumentDetailsNewRepository.save(existing);
+                    if (oldFileUrl != null && !oldFileUrl.equals(storedFileName)) {
+                        deleteFile(oldFileUrl);
+                    }
+                    continue;
+                }
+            }
+
+            // CREATE: new Filled row
             TimesheetDocumentDetailsNew doc = new TimesheetDocumentDetailsNew();
             doc.setTimesheetId(timesheetId);
             doc.setProjectId(filledData.getProjectId());
-            doc.setDocId(filledData.getDocId());
             doc.setFileUrl(storedFileName);
             doc.setDocName(filledData.getDocName());
             doc.setMimeTypeId(getMimeTypeId(filledData.getDocName(), filledData.getUniqueIdentifier()));
@@ -167,7 +234,7 @@ public class TimesheetDocumentServiceNew {
             doc.setUpdatedBy(empTs.getUpdatedBy());
             doc.setClientApprovalStatusId(1);
             doc.setFinalFlag(false);
-            if(timesheetIdAndProjectIdToFinalDocMap.get(timesheetId + "_" + filledData.getProjectId()) != null) {
+            if (timesheetIdAndProjectIdToFinalDocMap.get(timesheetId + "_" + filledData.getProjectId()) != null) {
                 doc.setBulkApprovedDocId(timesheetIdAndProjectIdToFinalDocMap.get(timesheetId + "_" + filledData.getProjectId()));
                 doc.setClientApprovalStatusId(2);
                 doc.setFinalFlag(true);

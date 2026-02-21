@@ -726,8 +726,10 @@ public class TimesheetValidationHelper {
 					throw new IllegalArgumentException(
 							"Maximum 2 documents (filled and approved) are allowed per project.");
 				}
-				if (project != null && project.getClientApprovalStatus() != null && project.getClientApprovalStatus() == 2
-						&& projectFiles.size() != 2) {
+				// On CREATE only: approved projects must have both filled and approved docs in this request.
+				// On UPDATE: allow partial upload (e.g. user replacing only one file); do not require all four.
+				if (isCreate && project != null && project.getClientApprovalStatus() != null
+						&& project.getClientApprovalStatus() == 2 && projectFiles.size() != 2) {
 					throw new IllegalArgumentException(
 							"Both filled and approved documents are required for the selected project.");
 				}

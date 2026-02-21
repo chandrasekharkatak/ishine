@@ -1196,18 +1196,21 @@ public class TimesheetServiceNew {
 
 		boolean isUpdate = (timesheetId != null);
 
-		// Update: existing docs don't need files - only process entries that have new uploads
+		// UPDATE: Only process documents that have a new file in this request. Existing docs stay as-is.
+		// Do NOT require all documentData entries to have a file on update (partial upload is allowed).
 		if (isUpdate && (documents == null || documents.isEmpty())) {
 			return; // No new files to upload; existing docs already in DB
 		}
 
 		if (isUpdate) {
-			// Filter to only documentData entries that have a matching new file
+			// Filter to only documentData entries that have a matching new file in this request
 			Set<String> fileNames = documents.stream()
 					.map(MultipartFile::getOriginalFilename)
 					.filter(Objects::nonNull)
 					.collect(Collectors.toSet());
-
+			
+			System.out.println("finlenames");
+			fileNames.forEach(System.out::println);
 			List<TimesheetDocumentDataDTO> toUpload = new ArrayList<>();
 			List<MultipartFile> filesToUpload = new ArrayList<>();
 			for (TimesheetDocumentDataDTO docData : documentDataList) {
@@ -1222,13 +1225,15 @@ public class TimesheetServiceNew {
 					}
 				}
 			}
-
+            System.out.println("toUpload "+toUpload.toString());
+            System.out.println("filesToUpload "+filesToUpload.size()+"  => "+filesToUpload.toString());
 			if (toUpload.isEmpty()) {
-				return; // No new files to upload
+				return; // No new files to upload; nothing to do
 			}
+			// Pass only the subset of docs that have new files (sizes match)
 			timesheetDocumentService.handleDocumentUpload(empTS, timesheetId, filesToUpload, toUpload);
 		} else {
-			// Create: strict match required - every documentData must have a file
+			// CREATE: strict match - every documentData entry must have a file
 			if (documents == null || documents.size() != documentDataList.size()) {
 				throw new IllegalArgumentException(
 						"Please ensure all required documents are attached.");
