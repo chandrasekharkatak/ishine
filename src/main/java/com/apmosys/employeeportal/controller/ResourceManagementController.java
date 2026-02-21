@@ -303,7 +303,7 @@ public class ResourceManagementController {
 	@JobRoleAccess(featureIds = {34})
 	@RequestMapping(value ="/rbacUnfilledTimesheetsProjects", method = RequestMethod.POST)
 	public ServiceResponse getAllUnfilledTimesheetsProjects(@RequestBody NonComplianceProjects nonComplianceProjects  ) {
-		ServiceResponse response = resourceManagementService.getAllUnfilledTimesheetsProjects(nonComplianceProjects);
+		ServiceResponse response = resourceManagementService.getAllUnfilledTimesheetsProjectsNEW(nonComplianceProjects);
 		return response;
 	}
 	@Encrypted
