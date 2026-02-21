@@ -470,7 +470,13 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/training/getEmployeeTrainingHistory`,
     `${this.baseUrl}` + `api/training/getComplianceReport`,
     `${this.baseUrl}` + `api/training/updateTrainingWithContent`,
-
+    `${this.baseUrl}` + `api/training/createTrainingWithContent`,
+    `${this.baseUrl}` + `api/training/getAllQuizResponsesByTrainingId`,
+    `${this.baseUrl}` + `api/training/deactivateTraining`,
+    `${this.baseUrl}` + `api/training/addTrainingContent`,
+    `${this.baseUrl}` + `api/training/updateTrainingContent`,
+    `${this.baseUrl}` + `api/training/changeQuizResponse`,
+    
   ]
 
   constructor(private loaderService: LoaderService) { }
