@@ -591,8 +591,8 @@ public class ResourceManagementController {
 	 }
 	
 	@PostMapping("/getDocumentDataByDocIdForPO")
-	 public ServiceResponse getDocumentDataByDocId(HttpServletRequest httpRequest,@RequestBody Long docId) {
-		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+	 public ServiceResponse getDocumentDataByDocId(HttpServletRequest httpRequest,@RequestBody Long docId) throws Exception {
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 	 	return resourceManagementService.getDocumentDataByDocId(docId);
 	 }
 	

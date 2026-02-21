@@ -786,6 +786,7 @@ rows.forEach(row -> {
             dto.setDayTypeId(row[38]!=null?((Number)row[38]).intValue():null);
             dto.setLocationSessions(new ArrayList<>());
             dto.setDocumentData(new ArrayList<>());
+            dto.setEmployeeName(row[39]!=null?((String)row[39]):null);
             return dto;
         });
 

@@ -4274,31 +4274,31 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	
 	
 	
-	@Query("select new com.apmosys.employeeportal.dto.TimeSheetDetailsDto(" +
-		       "t.timesheetId, t.projectId, a.teamId, t.empId, t.dayType, t.date, " +
-		       "t.officeInTime, t.officeOutTime, t.clientInTime, t.clientOutTime, " +
-		       "t.isShadowTimesheet, t.shadowEmpId, tdoc.docId, e.name ,tdoc.clientApprovalStatus,rd.role ) " +
-		       "from Timesheet t " +
-		       "inner join TimesheetActivityMap tam on tam.timesheetId = t.timesheetId " +
-		       "inner join Activity a on a.activityId = tam.activityId " +
-		       "left join TimesheetDocumentDetails tdoc on tdoc.timesheetId = t.timesheetId " +
-		       "   and tdoc.active = true " +
-		       "   and tdoc.docId = (" +
-		       "        select max(tdoc2.docId) " +
-		       "        from TimesheetDocumentDetails tdoc2 " +
-		       "        where tdoc2.timesheetId = t.timesheetId " +
-		       "          and tdoc2.active = true" +
-		       "   ) " +
-		       "left join Employee e on e.empId = t.shadowEmpId "
-		       + " LEFT JOIN Team tm on tm.teamId=a.teamId "
-		       + " LEFT JOIN EmployeeTeamMap etm on etm.empId = t.empId "
-		       + "    AND etm.poId=tm.poId and etm.active !=2 "
-		       + " LEFT JOIN RoleDetails rd on rd.roleId = etm.roleId" +
-		       " where a.teamId = :team_id " +
-		       "  and t.empId = :emp_id " +
-		       "  and t.date between :startDate and :endDate")
-		List<TimeSheetDetailsDto> findByProjectIdAndEmployeeIdAndWorkDateBetween(
-		        Long team_id, Long emp_id, LocalDate startDate, LocalDate endDate);
+	// @Query("select new com.apmosys.employeeportal.dto.TimeSheetDetailsDto(" +
+	// 	       "t.timesheetId, t.projectId, a.teamId, t.empId, t.dayType, t.date, " +
+	// 	       "t.officeInTime, t.officeOutTime, t.clientInTime, t.clientOutTime, " +
+	// 	       "t.isShadowTimesheet, t.shadowEmpId, tdoc.docId, e.name ,tdoc.clientApprovalStatus,rd.role ) " +
+	// 	       "from Timesheet t " +
+	// 	       "inner join TimesheetActivityMap tam on tam.timesheetId = t.timesheetId " +
+	// 	       "inner join Activity a on a.activityId = tam.activityId " +
+	// 	       "left join TimesheetDocumentDetails tdoc on tdoc.timesheetId = t.timesheetId " +
+	// 	       "   and tdoc.active = true " +
+	// 	       "   and tdoc.docId = (" +
+	// 	       "        select max(tdoc2.docId) " +
+	// 	       "        from TimesheetDocumentDetails tdoc2 " +
+	// 	       "        where tdoc2.timesheetId = t.timesheetId " +
+	// 	       "          and tdoc2.active = true" +
+	// 	       "   ) " +
+	// 	       "left join Employee e on e.empId = t.shadowEmpId "
+	// 	       + " LEFT JOIN Team tm on tm.teamId=a.teamId "
+	// 	       + " LEFT JOIN EmployeeTeamMap etm on etm.empId = t.empId "
+	// 	       + "    AND etm.poId=tm.poId and etm.active !=2 "
+	// 	       + " LEFT JOIN RoleDetails rd on rd.roleId = etm.roleId" +
+	// 	       " where a.teamId = :team_id " +
+	// 	       "  and t.empId = :emp_id " +
+	// 	       "  and t.date between :startDate and :endDate")
+	// 	List<TimeSheetDetailsDto> findByProjectIdAndEmployeeIdAndWorkDateBetween(
+	// 	        Long team_id, Long emp_id, LocalDate startDate, LocalDate endDate);
 
 	
 	
@@ -8670,5 +8670,40 @@ List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> 
 		    		+ "		               OR pom.projectId IN (:projectIds)")
 		    List<String> findManagerAndOverheadEmails(@Param("projectIds") List<Integer> projectIds);
 
+
+			@Query("select new com.apmosys.employeeportal.dto.TimeSheetDetailsDto(" +
+			"t.timesheetId, ptsn.id.projectId, a.teamId, t.empId, dtmn.dayType, t.date, " +
+			"t.workCheckIn, t.workCheckOut, etlm.locationInTime, etlm.locationOutTime, " +
+			"CASE  WHEN ptsn.shadowEmpId IS NOT NULL THEN true  ELSE false END," +
+			" ptsn.shadowEmpId, tdoc.docId, e.name ,csmn.status,rd.role ) " +
+			"from EmployeeTimesheetsNew t " +
+			"inner join EmployeeTimesheetLocationMapping etlm on etlm.timesheetId = t.timesheetId " +
+			"inner join ProjectTimesheetStatusNew ptsn on etlm.timesheetId = ptsn.id.timesheetId " +
+			" and etlm.locationMappingId = ptsn.id.locationMappingId " +
+			" inner join EmployeeTimesheetActivitiesMappingNew tam on tam.timesheetId = t.timesheetId and ptsn.id.projectId = tam.projectId " +
+			" and etlm.locationMappingId = tam.locationMappingId "+
+			// "inner join TimesheetActivityMap tam on tam.timesheetId = t.timesheetId " +
+			"inner join Activity a on a.activityId = tam.activityId " +
+			" inner join DayTypeMasterNew dtmn on dtmn.dayTypeId = t.dayTypeId " +
+			"left join TimesheetDocumentDetailsNew tdoc on tdoc.timesheetId = t.timesheetId " +
+			" and tdoc.projectId = ptsn.id.projectId" +
+			"   and tdoc.active = true " +
+			" inner join ClientStatusMasterNew csmn on csmn.statusId = tdoc.clientApprovalStatusId and csmn.isActive = true" +
+			// "   and tdoc.docId = (" +
+			// "        select max(tdoc2.docId) " +
+			// "        from TimesheetDocumentDetails tdoc2 " +
+			// "        where tdoc2.timesheetId = t.timesheetId " +
+			// "          and tdoc2.active = true" +
+			// "   ) " +
+			"left join Employee e on e.empId = ptsn.shadowEmpId "
+			+ " LEFT JOIN Team tm on tm.teamId= a.teamId "
+			+ " LEFT JOIN EmployeeTeamMap etm on etm.empId = t.empId "
+			+ "    AND etm.teamId = tm.teamId and etm.active !=2 "
+			+ " LEFT JOIN RoleDetails rd on rd.roleId = etm.roleId" +
+			" where a.teamId = :team_id " +
+			"  and t.empId = :emp_id " +
+			"  and t.date between :startDate and :endDate")
+	 List<TimeSheetDetailsDto> findByProjectIdAndEmployeeIdAndWorkDateBetween(
+			 Long team_id, Long emp_id, LocalDate startDate, LocalDate endDate);
 
 }
