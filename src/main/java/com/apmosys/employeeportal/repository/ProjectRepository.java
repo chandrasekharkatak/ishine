@@ -8706,7 +8706,7 @@ List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> 
 			 Long team_id, Long emp_id, LocalDate startDate, LocalDate endDate);
 
 			@Query(value = "SELECT p.projectId FROM Project p where active = 'true' \n"
-					+ "and p.projectId NOT IN (SELECT ppd.projectId FROM ProjectPoDetails ppd)")
+					+ "and p.projectId NOT IN (SELECT ppd.projectId FROM ProjectPoDetails ppd )")
 			Set<Integer> findAllActiveProjectIdsNotInProjectPoDetails();
 			
 			@Query(nativeQuery = true,value ="( \n"
@@ -8748,7 +8748,7 @@ List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> 
 					+ "        FROM projects p \n"
 					+ "        INNER JOIN project_manager_mapping pm ON p.project_id = pm.project_id \n"
 					+ "        WHERE p.active = 'true' AND pm.project_manager_id = :empId \n"
-					+ "		   AND p.project_id not in(SELECT ppd.project_id from project_po_details) \n"
+					+ "		   AND p.project_id not in(SELECT ppd.project_id from project_po_details ppd) \n"
 					+ "    ) \n"
 					+ "    UNION \n"
 					+ "    ( \n"
@@ -8756,7 +8756,7 @@ List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> 
 					+ "        FROM projects p \n"
 					+ "        INNER JOIN project_overhead_mapping po ON p.project_id = po.project_id \n"
 					+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL AND po.project_overhead_id = :empId \n"
-					+ "		   AND p.project_id not in(SELECT ppd.project_id from project_po_details) \n"
+					+ "		   AND p.project_id not in(SELECT ppd.project_id from project_po_details ppd) \n"
 					+ "    ) \n"
 					+ "    UNION \n"
 					+ "    ( \n"
@@ -8765,7 +8765,7 @@ List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> 
 					+ "        INNER JOIN teams t ON p.project_id = t.project_id \n"
 					+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL \n"
 					+ "          AND t.is_active = 'Y' AND t.spoc_id = :empId \n"
-					+ "		   AND p.project_id not in(SELECT ppd.project_id from project_po_details) \n"
+					+ "		   AND p.project_id not in(SELECT ppd.project_id from project_po_details ppd) \n"
 					+ "    ) \n"
 					+ "    UNION \n"
 					+ "    (SELECT p.project_id \n"
@@ -8773,7 +8773,7 @@ List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> 
 					+ "        INNER JOIN teams t ON p.project_id = t.project_id \n"
 					+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL \n"
 					+ "        AND t.is_active = 'Y' AND t.team_lead_id = :empId \n"
-					+ "		   AND p.project_id not in(SELECT ppd.project_id from project_po_details) \n"
+					+ "		   AND p.project_id not in(SELECT ppd.project_id from project_po_details ppd) \n"
 					+ "    )")
 			Set<Integer> findInternalProjectsByManagerOverheadOrSpocOrTeamLeadAndNotInPoDetails(@Param("empId") Long empId);
 			
