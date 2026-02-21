@@ -9513,7 +9513,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "                  LEFT JOIN day_type_master_new dtm1 ON dtm1.day_type_id = et1.day_type_id\n"
 			+ "                  WHERE et1.emp_id = bpe.emp_id\n"
 			+ "                    AND adir.dt = et1.date\n"
-			+ "                    AND UPPER(dtm1.day_type_name) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'APMOSYS HOLIDAY', 'WEEK OFF','COMP OFF')\n"
+			+ "                    AND UPPER(dtm1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'APMOSYS HOLIDAY', 'WEEK OFF','COMP OFF')\n"
 			+ "              )\n"
 			+ "\n"
 			+ "            UNION\n"
