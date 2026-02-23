@@ -2519,7 +2519,8 @@ projectList: any[] = [];
     const payload = {
       timesheetIds,
       status: 'APPROVED',
-      updatedBy: this.currentUser.empId
+      updatedBy: this.currentUser.empId,
+      rmId : this.currentUser.empId
     };
 
     this.loaderService.requestStarted();
@@ -2668,7 +2669,8 @@ approveSingleTimesheet(timesheet: any) {
   const payload = {
     timesheetIds: [timesheet.timesheetId],
     status: 'APPROVED',
-    updatedBy: this.currentUser.empId
+    updatedBy: this.currentUser.empId,
+    rmId: this.currentUser.empId
   };
 
   this.loaderService.requestStarted();
@@ -2841,6 +2843,7 @@ submitSingleProjectReject() {
     projectIds: [this.selectedProjectForReject.projectId],
     status: 'REJECTED',
     updatedBy: this.currentUser.empId,
+    rmId: this.currentUser.empId,
     rejectReason: this.singleProjectRejectReason.trim()
   };
 
@@ -3083,6 +3086,7 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
   const payload = {
     timesheetIds: [Number(this.selectedTimesheet.timesheetId)],
     status: 'REJECTED',
+    rmId: Number(this.currentUser.empId),
     updatedBy: Number(this.currentUser.empId),
     projectRejections
   };
