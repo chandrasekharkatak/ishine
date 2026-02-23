@@ -8779,7 +8779,7 @@ List<Object[]> getClientAndProjectDataList(
 			Set<Integer> findInternalProjectsByManagerOverheadOrSpocOrTeamLeadAndNotInPoDetails(@Param("empId") Long empId);
 			
 
-			@Query(value = "SELECT e.emp_id, e.employeement_id, e.name, d.name AS dept_name, " +
+			@Query(value = "SELECT e.emp_id, e.employeement_id, e.name, rd.department AS dept_name, " +
             "prm.role AS job_role_name," +
             "GROUP_CONCAT(DISTINCT t.team_name SEPARATOR ', ') AS team_name, " +
             "GROUP_CONCAT(DISTINCT e1.name SEPARATOR ', ') AS project_manager_name, " +
@@ -8789,7 +8789,8 @@ List<Object[]> getClientAndProjectDataList(
             "LEFT JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id AND etm.active = 1 " +
 			" LEFT JOIN po_requirement_mapping prm ON prm.role_id = etm.role_id AND prm.po_id = etm.po_id " +
             "LEFT JOIN teams t ON t.team_id = etm.team_id AND t.is_active = 'Y' " +
-            "LEFT JOIN job_role jr ON jr.job_role_id = e.job_role_id " +
+			"LEFT JOIN role_details rd on rd.role_id = etm.role_id " +
+            // "LEFT JOIN job_role jr ON jr.job_role_id = e.job_role_id " +
             "LEFT JOIN projects p ON p.project_id = t.project_id AND p.active = 'true' " +
 			"	  			 LEFT JOIN project_po_details ppd \n"+
 			"			ON ppd.project_id = p.project_id \n"+
@@ -8797,13 +8798,13 @@ List<Object[]> getClientAndProjectDataList(
 			// "ppd.po_start_date <= CURRENT_TIMESTAMP \n"+
 			// "			AND (ppd.po_end_date IS NULL OR ppd.po_end_date >= CURRENT_TIMESTAMP) \n"+
 			" and etm.po_id = ppd.po_id \n" +
-            "LEFT JOIN department d ON d.dept_id = jr.dept_id " +
+            // "LEFT JOIN department d ON d.dept_id = jr.dept_id " +
             "LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id " +
             "LEFT JOIN employee e1 ON pm.project_manager_id = e1.emp_id " +
             "WHERE e.employmentstatus != 'InActive' " +
             "AND ppd.po_no IN (:poNos) " +
             "AND e.emp_id NOT BETWEEN 1 AND 6 " +
-            "GROUP BY e.emp_id, e.employeement_id, e.name, d.name, jr.name, ppd.po_no",
+            "GROUP BY e.emp_id, e.employeement_id, e.name, rd.department, prm.role, ppd.po_no",
        nativeQuery = true)
 List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 }
