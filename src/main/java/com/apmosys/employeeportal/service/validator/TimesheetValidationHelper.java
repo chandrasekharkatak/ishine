@@ -315,6 +315,25 @@ public class TimesheetValidationHelper {
                 }
             }
         }
+        public void validateHalfDayLeaveIfRequired(EmployeeTimesheetDTO empDTO) {
+
+    // Change this to your actual Half Day ID
+    final Integer HALF_WORKING_DAY_ID = 8;
+
+    if (empDTO.getDayTypeId() != null 
+            && empDTO.getDayTypeId().equals(HALF_WORKING_DAY_ID)) {
+
+        Integer leaveCount = employeeLeaveRepository
+                .existsLeaveForDate(empDTO.getEmpId(), empDTO.getDate());
+
+        if (leaveCount == null || leaveCount == 0) {
+
+            throw new RuntimeException(
+                "You need to fill half day leave first to fill half working day timesheet"
+            );
+        }
+    }
+}
 
       public void validateLocationWiseProjectAndActivities(EmployeeTimesheetDTO empDTO) {
 

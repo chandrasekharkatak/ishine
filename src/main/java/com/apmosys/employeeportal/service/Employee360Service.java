@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -19,17 +20,20 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.datetime.DateFormatter;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.apmosys.employeeportal.dto.Employee360DTO;
 import com.apmosys.employeeportal.dto.EmployeeTimesheetDto;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.CompOffLeaveRepository;
 import com.apmosys.employeeportal.repository.Employee360Repository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -44,6 +48,9 @@ public class Employee360Service {
 	
 	@Autowired
 	TimesheetsRepository timesheetsRepository;
+
+    @Autowired
+	EmployeeTimesheetsNewRepository employeeTimesheetsNewRepository;
 	
 	@Autowired
 	private LogService logService;
@@ -283,8 +290,8 @@ public class Employee360Service {
 	    return activityList;
 	}
 
-	
-	public ServiceResponse updateStatus(String status,List<Long>timesheetId,Long updatedBy) {
+	@Transactional(rollbackFor = Exception.class)
+	public ServiceResponse updateStatus(String status,List<Long>timesheetIds,Long updatedBy) {
 		ServiceResponse response = new ServiceResponse();
 		
 		LogDTO apiLogInfo = new LogDTO();
@@ -292,22 +299,29 @@ public class Employee360Service {
 		apiLogInfo.setApiUrl("/api/updateStatus");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("timesheetId : " + timesheetId);
+		logBuilder.append("timesheetId : " + timesheetIds);
 		try {
 			
-			List<Employee360DTO> employeeDtoList = new ArrayList<>();
-			List<Timesheet> timesheet = timesheetsRepository.findByTimesheetIdIn(timesheetId);
-			
-			if (!timesheet.isEmpty()) {
-				for(Timesheet timesheetobj:timesheet){
-					timesheetobj.setStatus(status);
-					timesheetobj.setTimesheetStatusUpdatedBy(updatedBy);
-//					timesheetobj.setUpdatedOn(new Date());
-//					timesheetobj.setRemarks(timesheetDTO.getRejectReason());
-		            timesheetsRepository.save(timesheetobj);
-				}
-				}
-			
+            Integer statusId = 0;
+            if ("Approved".equalsIgnoreCase(status))
+                statusId = 2;
+            else if ("Rejected".equalsIgnoreCase(status))
+                statusId = 3;
+            else if ("Pending".equalsIgnoreCase(status))
+                statusId = 1;
+            if (timesheetIds != null && !timesheetIds.isEmpty()) {
+                List<EmployeeTimesheetsNew> timesheets = employeeTimesheetsNewRepository.findAllById(timesheetIds);
+
+                if (!timesheets.isEmpty()) {
+                    for (EmployeeTimesheetsNew ts : timesheets) {
+                        ts.setStatus(statusId);
+                        ts.setUpdatedBy(updatedBy);
+                        ts.setUpdatedOn(LocalDateTime.now());
+                    }
+                    employeeTimesheetsNewRepository.saveAll(timesheets);
+                }
+            }
+		
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Updated Successfully!!");
 			apiLogInfo.setApiResponse("Employee_Timesheet details updated.");

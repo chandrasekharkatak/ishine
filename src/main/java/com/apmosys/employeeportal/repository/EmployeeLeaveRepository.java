@@ -305,7 +305,13 @@ public List<Object[]> getAllTeamCompOffHistoryViewHirarchy(List<Long> empIds, Lo
 	        @Param("empId") Long empId,
 	        @Param("timesheetDate") LocalDate timesheetDate);
 
-
+	@Query(value = "SELECT COUNT(1) " +
+               "FROM employee_leave el " +
+               "WHERE el.emp_id = :empId " +
+               "AND :date BETWEEN el.from_date AND el.to_date " ,
+       nativeQuery = true)
+		Integer existsLeaveForDate(@Param("empId") Long empId,
+                           @Param("date") LocalDate date);
 
 }
 
