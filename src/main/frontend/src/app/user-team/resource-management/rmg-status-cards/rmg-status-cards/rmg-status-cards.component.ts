@@ -336,7 +336,7 @@ export class RmgStatusCardsComponent {
   ];
 
   allStates: any[] = ["Maharashtra"];
-  projectColumns: any[] = ["blank", "name", "poNo", "combinedProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "projectStartDate", "projectEndDate", "state", "createdOn", "status", "projectStatus", "draftStatus"];
+  projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "projectStartDate", "projectEndDate", "state", "createdOn", "status", "projectStatus", "draftStatus"];
 
 
   currentUser: User;

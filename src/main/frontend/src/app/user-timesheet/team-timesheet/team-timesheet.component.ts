@@ -2407,6 +2407,8 @@ getDocument(type: 'Pending' | 'Approved'): void {
   
 
 
+  this.safePdfUrl=null;
+
   // Fetch document from backend
   this.timesheetNewService.getDocumentById(docIdToSend, type === 'Approved')
     .subscribe({

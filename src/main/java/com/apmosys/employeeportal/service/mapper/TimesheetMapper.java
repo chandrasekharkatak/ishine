@@ -152,6 +152,7 @@ public class TimesheetMapper {
         dto.setStatus(entity.getStatus());
         dto.setShadowEmpId(entity.getShadowEmpId());
         dto.setTotalClientWorkingMinutes(entity.getTotalClientWorkingMinutes());
+        dto.setLocationMappingId(entity.getId().getLocationMappingId());
         // Map clientLocationId (int in entity -> long in DTO)
         if (entity.getClientLocationId() != null) {
             dto.setClientLocationId(entity.getClientLocationId().longValue());

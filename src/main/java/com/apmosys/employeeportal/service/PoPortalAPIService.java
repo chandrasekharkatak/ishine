@@ -1523,7 +1523,7 @@ public class PoPortalAPIService {
 	
 
 	
-	public ServiceResponse getResourceCountByPoprojectId(List<String> projectNames) {
+	public ServiceResponse getResourceCountByPoprojectId(List<String> poNos) {
 	    ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setSubFeatureName("Resource Count");
@@ -1531,12 +1531,12 @@ public class PoPortalAPIService {
 	    apiLogInfo.setLogLevel("INFO");
 
 	    try {
-	        if (projectNames == null || projectNames.isEmpty()) {
-	            throw new IllegalArgumentException("poProjectId list is required");
+	        if (poNos == null || poNos.isEmpty()) {
+	            throw new IllegalArgumentException("poNo list is required");
 	        }
 
 	        Map<String, Integer> resourceCounts = new HashMap<>();
-	        List<Object[]> results = projectRepository.getResourceCountsByProjectType(projectNames);
+	        List<Object[]> results = projectRepository.getResourceCountsByProjectType(poNos);
 
 	        for (Object[] row : results) {
 	            if (row[0] == null) continue;
@@ -1590,7 +1590,7 @@ public class PoPortalAPIService {
 	}
 
 
-	public ServiceResponse getResourceCountListByPoprojectName(List<String> projectNames) {
+	public ServiceResponse getResourceCountListByPoprojectName(List<String> poNos) {
 		ServiceResponse response = new ServiceResponse();
 	    LogDTO apiLogInfo = new LogDTO();
 	    apiLogInfo.setSubFeatureName("Resource List");
@@ -1598,12 +1598,16 @@ public class PoPortalAPIService {
 	    apiLogInfo.setLogLevel("INFO");
 
 	    try {
-	        if (projectNames == null || projectNames.isEmpty()) {
-	            throw new IllegalArgumentException("poProjectName list is required");
+	        // if (projectNames == null || projectNames.isEmpty()) {
+	        //     throw new IllegalArgumentException("poProjectName list is required");
+	        // }
+			 if (poNos == null || poNos.isEmpty()) {
+	            throw new IllegalArgumentException("Po No list is required");
 	        }
 
+
 	        List<Map<String, Object>> resourceList = new ArrayList<Map<String, Object>>();
-	        List<Object[]> results = projectRepository.getResourceListByProjectType(projectNames);
+	        List<Object[]> results = projectRepository.getResourceListByProjectType(poNos);
 	        for (Object[] row : results) {
 	            Map<String, Object> map = new HashMap<String, Object>();
 	            map.put("empId", row[0]);

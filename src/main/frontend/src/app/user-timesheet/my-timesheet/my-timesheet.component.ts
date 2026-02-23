@@ -680,6 +680,10 @@ get tooltipCta(): string {
     this.isUpdation = false;
     this.isTimesheetBulkForm = false;
 
+    // Clear update-mode state so Create form is clean (no previous timesheet data)
+    this.selectedTimesheetId = null;
+    this.selectedDate = undefined;
+
     this.rawObjectUrl1 = null;
     this.previewUrl1 = null;
     this.fileType1 = null;

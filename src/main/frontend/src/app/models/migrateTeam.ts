@@ -6,6 +6,7 @@ export class MigrateTeams {
     targetTeamId: any;
     targetRoleId: any;
     targetPoRequirementMappingId: any
+    targetEmpTeamDepartmentId:any;
     currentUserEmpId: any;
     migrationTeamIds: any[] = [];
     mergeTeam: boolean = false;
@@ -13,6 +14,7 @@ export class MigrateTeams {
 
     empId: any;
     projectType: any = 'Bench';
+    isInternalProject: boolean = true;
     employeeRole: any;
 
     poDetailsList: any[] = [];

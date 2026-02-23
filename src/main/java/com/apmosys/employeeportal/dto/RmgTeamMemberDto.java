@@ -48,6 +48,8 @@ public class RmgTeamMemberDto {
 	private String displayRequirement;
 
 	private Long empId;
+	private Long empTeamDepartmentId;
+	private String empTeamDepartmentName;
 	private String memberName;
 	private String employeeRole;
 	private List<String> employeeRoles;
@@ -132,12 +134,15 @@ public class RmgTeamMemberDto {
 				: List.of("Employee");
 	}
 
-	public RmgTeamMemberDto(Long etmId, Long teamId, String teamName, Long poId, String poNo,
-			Long poRequirementMappingId, Long roleId, String role, String experience, String department,
-			LocalDateTime lineItemStartDate, LocalDateTime lineItemEndDate, LocalDateTime poStartDate,
-			LocalDateTime poEndDate, Long empId, String memberName, String employeeRole, Long isMemberActive,
-			Integer isShadow, Boolean defaultProject, LocalDateTime startDate, LocalDateTime endDate) {
+	public RmgTeamMemberDto(Long etmId, Long empTeamDepartmentId, String empTeamDepartmentName, Long teamId,
+			String teamName, Long poId, String poNo, Long poRequirementMappingId, Long roleId, String role,
+			String experience, String department, LocalDateTime lineItemStartDate, LocalDateTime lineItemEndDate,
+			LocalDateTime poStartDate, LocalDateTime poEndDate, Long empId, String memberName, String employeeRole,
+			Long isMemberActive, Integer isShadow, Boolean defaultProject, LocalDateTime startDate,
+			LocalDateTime endDate) {
 		this.etmId = etmId;
+		this.empTeamDepartmentId = empTeamDepartmentId;
+		this.empTeamDepartmentName = empTeamDepartmentName;
 		this.teamId = teamId;
 		this.teamName = teamName;
 		this.poNo = poNo;

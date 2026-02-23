@@ -3257,7 +3257,7 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	// 	    @Param("toDate") String toDate);
 
 	
-	@Query("SELECT DISTINCT NEW com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(projectId,projectName,internalProjectType)\n"
+	@Query("SELECT DISTINCT NEW com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(projectId,projectName,internalProjectType,poProjectType)\n"
 			+ " from Project where active = 'true' ")
 	public List<ProjectNameAndPrjoectIdDTO> getActiveProjectList();
 	
@@ -4515,12 +4515,13 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	        "FROM projects p " +
 	        "INNER JOIN teams t ON t.project_id = p.project_id AND t.is_active = 'Y' " +
 	        "INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id AND etm.active = 1 " +
+			"Inner join project_po_details ppd on ppd.project_id = p.project_id and etm.po_id = ppd.po_id and ppd.active  = true " +
 	        "WHERE p.active = 'true' " +
-	        "AND p.project_name IN (:projectNames) " +
+	        "AND ppd.po_no IN (:poNos) " +
 	        "AND p.po_project_type IN ('TNM', 'Fixed Cost', 'Monitoring') " +
 	        "GROUP BY p.po_project_type",
 	        nativeQuery = true)
-	List<Object[]> getResourceCountsByProjectType(@Param("projectNames") List<String> projectNames);
+	List<Object[]> getResourceCountsByProjectType(@Param("poNos") List<String> poNos);
 	
 // 	@Query(value = "SELECT e.emp_id, e.employeement_id, e.name, d.name AS dept_name, " +
 //             "jr.name AS job_role_name," +
@@ -5412,16 +5413,15 @@ boolean existsByProjectName(String projectName);
 			+ "p.projectId, p.projectName,p.status,p.poProjectType,p.internalProjectType, \n"
 			+ "ppd.poId, ppd.poNo, prm.poRequirementMappingId, prm.role, prm.experience, prm.department, \n"
 			+ "t.teamId, t.teamName, c.clientId, c.clientName, \n"
-			+ "e.empId, e.billableType, etm.active, etm.startDate, etm.endDate, etm.employeeTeamMapId) \n"
+			+ "e.empId, e.billableType, etm.active, etm.startDate, etm.endDate, etm.employeeTeamMapId, ppd.poStartDate, ppd.poEndDate) \n"
 			+ "FROM EmployeeTeamMap etm \n"
-			+ "INNER JOIN Employee e on e.empId = etm.empId \n"
+			+ "LEFT JOIN Employee e on e.empId = etm.empId \n"
+			+ "LEFT JOIN Team t ON etm.teamId = t.teamId \n"
+			+ "LEFT JOIN Project p ON t.projectId = p.projectId \n"
+			+ "LEFT JOIN Client c ON p.clientId = c.clientId \n"
+			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = etm.poId \n"
 			+ "LEFT JOIN PoRequirementMapping prm ON  etm.roleId = prm.roleId and etm.poId = prm.poId and prm.active = true \n"
-			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId \n"
-			+ "INNER JOIN Team t ON etm.teamId = t.teamId \n"
-			+ "INNER JOIN Project p ON t.projectId = p.projectId \n"
-			+ "INNER JOIN Client c ON p.clientId = c.clientId \n"
-			+ "WHERE 1=1 \n"
-		+ "AND etm.empId= :empId AND etm.active != 0 \n"
+			+ "WHERE 1=1 AND etm.empId= :empId AND etm.active != 0 \n"
 			+ "AND t.isActive != 'N' AND p.active != 'false' \n")
 public List<PoTeamAndMemberDetailsDto> getEmployeeExistingProjectDetailsByEmpId(Long empId);
 
@@ -7126,30 +7126,30 @@ List<Object[]> getClientAndProjectDataList(
 			)
 		List<ProjectFetchDTO> getAllProjectList(@Param("deptIds") List<Long> deptIds);
 
-		@Query(value = "SELECT e.emp_id, e.employeement_id, e.name, d.name AS dept_name, " +
-            "jr.name AS job_role_name," +
-            "GROUP_CONCAT(DISTINCT t.team_name SEPARATOR ', ') AS team_name, " +
-            "GROUP_CONCAT(DISTINCT e1.name SEPARATOR ', ') AS project_manager_name, " +
-            "GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_name SEPARATOR ', ') AS project_name, " +
-            "GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no " + 
-            "FROM employee e " +
-            "LEFT JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id AND etm.active = 1 " +
-            "LEFT JOIN teams t ON t.team_id = etm.team_id AND t.is_active = 'Y' " +
-            "LEFT JOIN job_role jr ON jr.job_role_id = e.job_role_id " +
-            "LEFT JOIN projects p ON p.project_id = t.project_id AND p.active = 'true' " +
-			"	  			 LEFT JOIN project_po_details ppd \n"+
-			"			ON ppd.project_id = p.project_id \n"+
-  			"			AND ppd.active = true and ppd.po_start_date <= CURRENT_TIMESTAMP \n"+
-			"			AND (ppd.po_end_date IS NULL OR ppd.po_end_date >= CURRENT_TIMESTAMP) \n"+
-            "LEFT JOIN department d ON d.dept_id = jr.dept_id " +
-            "LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id " +
-            "LEFT JOIN employee e1 ON pm.project_manager_id = e1.emp_id " +
-            "WHERE e.employmentstatus != 'InActive' " +
-            "AND p.project_name IN (:projectNames) " +
-            "AND e.emp_id NOT BETWEEN 1 AND 6 " +
-            "GROUP BY e.emp_id, e.employeement_id, e.name, d.name, jr.name",
-       nativeQuery = true)
-List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> projectNames);
+// 		@Query(value = "SELECT e.emp_id, e.employeement_id, e.name, d.name AS dept_name, " +
+//             "jr.name AS job_role_name," +
+//             "GROUP_CONCAT(DISTINCT t.team_name SEPARATOR ', ') AS team_name, " +
+//             "GROUP_CONCAT(DISTINCT e1.name SEPARATOR ', ') AS project_manager_name, " +
+//             "GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_name SEPARATOR ', ') AS project_name, " +
+//             "GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no " + 
+//             "FROM employee e " +
+//             "LEFT JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id AND etm.active = 1 " +
+//             "LEFT JOIN teams t ON t.team_id = etm.team_id AND t.is_active = 'Y' " +
+//             "LEFT JOIN job_role jr ON jr.job_role_id = e.job_role_id " +
+//             "LEFT JOIN projects p ON p.project_id = t.project_id AND p.active = 'true' " +
+// 			"	  			 LEFT JOIN project_po_details ppd \n"+
+// 			"			ON ppd.project_id = p.project_id \n"+
+//   			"			AND ppd.active = true and ppd.po_start_date <= CURRENT_TIMESTAMP \n"+
+// 			"			AND (ppd.po_end_date IS NULL OR ppd.po_end_date >= CURRENT_TIMESTAMP) \n"+
+//             "LEFT JOIN department d ON d.dept_id = jr.dept_id " +
+//             "LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id " +
+//             "LEFT JOIN employee e1 ON pm.project_manager_id = e1.emp_id " +
+//             "WHERE e.employmentstatus != 'InActive' " +
+//             "AND p.project_name IN (:projectNames) " +
+//             "AND e.emp_id NOT BETWEEN 1 AND 6 " +
+//             "GROUP BY e.emp_id, e.employeement_id, e.name, d.name, jr.name",
+//        nativeQuery = true)
+// List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> projectNames);
 
 	@Query(value = "SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n" +
 			"e.employeementId, e.name, d.name ,e.billableType, p.projectId,p.projectName, p.clientName,  \n" +
@@ -8688,7 +8688,7 @@ List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> 
 			"left join TimesheetDocumentDetailsNew tdoc on tdoc.timesheetId = t.timesheetId " +
 			" and tdoc.projectId = ptsn.id.projectId" +
 			"   and tdoc.active = true " +
-			" inner join ClientStatusMasterNew csmn on csmn.statusId = tdoc.clientApprovalStatusId and csmn.isActive = true" +
+			" left join ClientStatusMasterNew csmn on csmn.statusId = tdoc.clientApprovalStatusId and csmn.isActive = true " +
 			// "   and tdoc.docId = (" +
 			// "        select max(tdoc2.docId) " +
 			// "        from TimesheetDocumentDetails tdoc2 " +
@@ -8699,7 +8699,7 @@ List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> 
 			+ " LEFT JOIN Team tm on tm.teamId= a.teamId "
 			+ " LEFT JOIN EmployeeTeamMap etm on etm.empId = t.empId "
 			+ "    AND etm.teamId = tm.teamId and etm.active !=2 "
-			+ " LEFT JOIN RoleDetails rd on rd.roleId = etm.roleId" +
+			+ " LEFT JOIN RoleDetails rd on rd.roleId = etm.roleId " +
 			" where a.teamId = :team_id " +
 			"  and t.empId = :emp_id " +
 			"  and t.date between :startDate and :endDate")
@@ -8707,7 +8707,7 @@ List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> 
 			 Long team_id, Long emp_id, LocalDate startDate, LocalDate endDate);
 
 			@Query(value = "SELECT p.projectId FROM Project p where active = 'true' \n"
-					+ "and p.projectId NOT IN (SELECT ppd.projectId FROM ProjectPoDetails ppd)")
+					+ "and p.projectId NOT IN (SELECT ppd.projectId FROM ProjectPoDetails ppd )")
 			Set<Integer> findAllActiveProjectIdsNotInProjectPoDetails();
 			
 			@Query(nativeQuery = true,value ="( \n"
@@ -8749,7 +8749,7 @@ List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> 
 					+ "        FROM projects p \n"
 					+ "        INNER JOIN project_manager_mapping pm ON p.project_id = pm.project_id \n"
 					+ "        WHERE p.active = 'true' AND pm.project_manager_id = :empId \n"
-					+ "		   AND p.project_id not in(SELECT ppd.project_id from project_po_details) \n"
+					+ "		   AND p.project_id not in(SELECT ppd.project_id from project_po_details ppd) \n"
 					+ "    ) \n"
 					+ "    UNION \n"
 					+ "    ( \n"
@@ -8757,7 +8757,7 @@ List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> 
 					+ "        FROM projects p \n"
 					+ "        INNER JOIN project_overhead_mapping po ON p.project_id = po.project_id \n"
 					+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL AND po.project_overhead_id = :empId \n"
-					+ "		   AND p.project_id not in(SELECT ppd.project_id from project_po_details) \n"
+					+ "		   AND p.project_id not in(SELECT ppd.project_id from project_po_details ppd) \n"
 					+ "    ) \n"
 					+ "    UNION \n"
 					+ "    ( \n"
@@ -8766,7 +8766,7 @@ List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> 
 					+ "        INNER JOIN teams t ON p.project_id = t.project_id \n"
 					+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL \n"
 					+ "          AND t.is_active = 'Y' AND t.spoc_id = :empId \n"
-					+ "		   AND p.project_id not in(SELECT ppd.project_id from project_po_details) \n"
+					+ "		   AND p.project_id not in(SELECT ppd.project_id from project_po_details ppd) \n"
 					+ "    ) \n"
 					+ "    UNION \n"
 					+ "    (SELECT p.project_id \n"
@@ -8774,8 +8774,37 @@ List<Object[]> getResourceListByProjectType(@Param("projectNames") List<String> 
 					+ "        INNER JOIN teams t ON p.project_id = t.project_id \n"
 					+ "        WHERE p.active = 'true' AND p.po_project_id IS NULL \n"
 					+ "        AND t.is_active = 'Y' AND t.team_lead_id = :empId \n"
-					+ "		   AND p.project_id not in(SELECT ppd.project_id from project_po_details) \n"
+					+ "		   AND p.project_id not in(SELECT ppd.project_id from project_po_details ppd) \n"
 					+ "    )")
 			Set<Integer> findInternalProjectsByManagerOverheadOrSpocOrTeamLeadAndNotInPoDetails(@Param("empId") Long empId);
 			
+
+			@Query(value = "SELECT e.emp_id, e.employeement_id, e.name, rd.department AS dept_name, " +
+            "prm.role AS job_role_name," +
+            "GROUP_CONCAT(DISTINCT t.team_name SEPARATOR ', ') AS team_name, " +
+            "GROUP_CONCAT(DISTINCT e1.name SEPARATOR ', ') AS project_manager_name, " +
+            "GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_name SEPARATOR ', ') AS project_name, " +
+            " ppd.po_no AS po_no " + 
+            "FROM employee e " +
+            "LEFT JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id AND etm.active = 1 " +
+			" LEFT JOIN po_requirement_mapping prm ON prm.role_id = etm.role_id AND prm.po_id = etm.po_id " +
+            "LEFT JOIN teams t ON t.team_id = etm.team_id AND t.is_active = 'Y' " +
+			"LEFT JOIN role_details rd on rd.role_id = etm.role_id " +
+            // "LEFT JOIN job_role jr ON jr.job_role_id = e.job_role_id " +
+            "LEFT JOIN projects p ON p.project_id = t.project_id AND p.active = 'true' " +
+			"	  			 LEFT JOIN project_po_details ppd \n"+
+			"			ON ppd.project_id = p.project_id \n"+
+  			"			AND ppd.active = true \n" +
+			// "ppd.po_start_date <= CURRENT_TIMESTAMP \n"+
+			// "			AND (ppd.po_end_date IS NULL OR ppd.po_end_date >= CURRENT_TIMESTAMP) \n"+
+			" and etm.po_id = ppd.po_id \n" +
+            // "LEFT JOIN department d ON d.dept_id = jr.dept_id " +
+            "LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id " +
+            "LEFT JOIN employee e1 ON pm.project_manager_id = e1.emp_id " +
+            "WHERE e.employmentstatus != 'InActive' " +
+            "AND ppd.po_no IN (:poNos) " +
+            "AND e.emp_id NOT BETWEEN 1 AND 6 " +
+            "GROUP BY e.emp_id, e.employeement_id, e.name, rd.department, prm.role, ppd.po_no",
+       nativeQuery = true)
+List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 }

@@ -774,4 +774,11 @@ public class ResourceManagementController {
 	public ServiceResponse getUnfilledTimesheetProjectDetailsCount(@RequestBody RMGDashboardProjectRequest rmgDashboardProjectRequest) {
 		return resourceManagementService.getUnfilledTimesheetProjectDetailsCount(rmgDashboardProjectRequest);
 	}
+	
+	//API called by PoPortal(Shankh) application to check if iShine is up and running
+	@GetMapping("/healthCheck")
+	public String healthCheck(HttpServletRequest httpRequest) {
+	    poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+	    return "IShine is online...";
+	}
 }
