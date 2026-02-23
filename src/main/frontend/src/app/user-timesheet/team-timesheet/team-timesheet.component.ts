@@ -165,7 +165,7 @@ export class TeamTimesheetComponent implements OnInit {
   rawObjectUrl2: string | null = null;
   selectedFile2: File | null = null;
   previewUrl1: SafeResourceUrl | null = null;
-  activePreviewUrl: SafeResourceUrl | null = null;
+  // activePreviewUrl: SafeResourceUrl | null = null;
   activeFileType: string | null = null;
   selectedFile: File | null = null;
   empClientSideObj: EmployeeClientSideIdMapping = new EmployeeClientSideIdMapping();
@@ -174,11 +174,8 @@ export class TeamTimesheetComponent implements OnInit {
   alertMessageModalRef: NgbModalRef;
   zoomScale = 1;
   zoomLevel = 100;
-  isDragging = false;
   startX = 0;
   startY = 0;
-  translateX = 0;
-  translateY = 0;
   isAllSelected: boolean = false;
   http :any;
 clientFilter: boolean = false;
@@ -192,7 +189,24 @@ alertModal: TemplateRef<any>;
   minusDaysData: {minusDays: number, checkMinusDaysForBulkUpload: boolean} = {minusDays: 45, checkMinusDaysForBulkUpload: true};
   modalMessage: any;
   modalTitle: string;
+  safePreviewUrl: SafeResourceUrl | null = null;
+  activePreviewUrl: string | null = null;
+  currentObjectUrl: string | null = null;
+  isFullscreen = false;
+  // Image transform state
+  scale = 1;
+  rotationDeg = 0;
+  translateX = 0;
+  translateY = 0;
 
+// Drag state
+ isDragging = false;
+ dragStartX = 0;
+ dragStartY = 0;
+ dragOriginX = 0;
+ dragOriginY = 0;
+activeRawObjectUrl: string | null = null;
+rejectionReasons:any;
 
 
   constructor(
@@ -2018,40 +2032,15 @@ sortData(sort: Sort) {
     this.getMyReporteesTimesheetRequests();
   }
 
-zoomIn() {
-  if (this.zoomScale < 2.5) {
-    this.zoomScale += 0.1;
-    this.zoomLevel = Math.round(this.zoomScale * 100);
-  }
-}
 
-zoomOut() {
-  if (this.zoomScale > 0.5) {
-    this.zoomScale -= 0.1;
-    this.zoomLevel = Math.round(this.zoomScale * 100);
-  }
-}
 
 
 get transformStyle() {
   return `translate(${this.translateX}px, ${this.translateY}px) scale(${this.zoomScale})`;
 }
 
-startDrag(event: MouseEvent) {
-  if (this.zoomScale <= 1) return; // drag only when zoomed
 
-  this.isDragging = true;
-  this.startX = event.clientX - this.translateX;
-  this.startY = event.clientY - this.translateY;
-  event.preventDefault();
-}
 
-onDrag(event: MouseEvent) {
-  if (!this.isDragging) return;
-
-  this.translateX = event.clientX - this.startX;
-  this.translateY = event.clientY - this.startY;
-}
 
 endDrag() {
   this.isDragging = false;
@@ -2212,7 +2201,7 @@ getProjectById(projectId: number, timesheet: any) {
    /* LEFT PROJECT CLICK */
    selectProjectForDoc(project: any): void {
      this.activeDocProject = project;
-     this.setDefaultDocForProject();
+    //  this.setDefaultDocForProject();
    }
 
    /* TOGGLE PENDING / APPROVED */
@@ -2228,10 +2217,10 @@ getProjectById(projectId: number, timesheet: any) {
        return;
      }
 
-     if (this.hasPendingDoc(this.activeDocProject.projectId)) {
-       this.activeDocType = 'Pending';
-     } else if (this.hasApprovedDoc(this.activeDocProject.projectId)) {
+     if (this.hasApprovedDoc(this.activeDocProject.projectId)) {
        this.activeDocType = 'Approved';
+     } else if (this.hasPendingDoc(this.activeDocProject.projectId)) {
+       this.activeDocType = 'Pending';
      } else {
        this.activePreviewFile = null;
        return;
@@ -2395,8 +2384,8 @@ getApprovedCount(projectId: number): number {
 
 
 getDocument(type: 'Pending' | 'Approved'): void {
-  if (!this.selectedTimesheet || !this.activeDocProject) {
-    this.safePdfUrl = null;
+ if (!this.selectedTimesheet || !this.activeDocProject) {
+    this.clearPreview();
     return;
   }
 
@@ -2404,7 +2393,7 @@ getDocument(type: 'Pending' | 'Approved'): void {
 
   if (!doc) {
     console.log(`No document found for project ${this.activeDocProject.projectId}`);
-    this.safePdfUrl = null;
+    this.clearPreview();
     return;
   }
 
@@ -2412,16 +2401,34 @@ getDocument(type: 'Pending' | 'Approved'): void {
 
   if (!docIdToSend) {
     console.log(`No ${type} document available for project ${this.activeDocProject.projectId}`);
-    this.safePdfUrl = null;
+    this.clearPreview();
     return;
   }
+  
+
+
+  this.safePdfUrl=null;
 
   // Fetch document from backend
   this.timesheetNewService.getDocumentById(docIdToSend, type === 'Approved')
     .subscribe({
       next: (blob: Blob) => {
-        const fileURL = URL.createObjectURL(blob);
-        this.safePdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
+        this.clearPreview();
+        this.activeRawObjectUrl = URL.createObjectURL(blob);
+        const mime = (blob?.type || '').toLowerCase();
+        this.currentObjectUrl = URL.createObjectURL(blob);
+        if (mime.includes('pdf')) {
+          this.activeFileType = 'pdf';
+          this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.currentObjectUrl);
+        } else if (mime.startsWith('image/')) {
+          this.activeFileType = 'image';
+          this.activePreviewUrl = this.currentObjectUrl;
+        } else {
+          // fallback: try showing as pdf (some backends send application/octet-stream)
+          // if it fails in iframe, user can still download
+          this.activeFileType = 'pdf';
+          this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.currentObjectUrl);
+        }
       },
       error: err => {
         console.error("Document fetch failed", err);
@@ -2439,6 +2446,7 @@ getDocument(type: 'Pending' | 'Approved'): void {
     this.page1 = 0; // pagination reset
     this.isSearchEnabled = false;
     this.getMyReporteesTimesheetRequests();
+    this.getTimesheetStatusCountsByEmpId();
   }
 
 
@@ -3187,6 +3195,108 @@ onClientFilterChange() {
   this.getMyReporteesTimesheetRequests();
   this.getTimesheetStatusCountsByEmpId();
 }
+
+hasPreview(): boolean {
+  return !!this.safePreviewUrl || !!this.activePreviewUrl;
+}
+get imageTransform(): string {
+    return `
+    translate(-50%, -50%)
+    translate(${this.translateX}px, ${this.translateY}px)
+    scale(${this.scale})
+    rotate(${this.rotationDeg}deg)
+  `;
+  }
+clearPreview(): void {
+  this.isFullscreen = false;
+  this.safePreviewUrl = null;
+  this.activePreviewUrl = null;
+  this.activeFileType = 'unknown';
+  this.resetTransformations();
+
+  if (this.currentObjectUrl) {
+    URL.revokeObjectURL(this.currentObjectUrl);
+    this.currentObjectUrl = null;
+  }
+}
+zoomIn(): void {
+  this.scale = Math.min(this.scale + 0.2, 3);
+}
+
+zoomOut(): void {
+  this.scale = Math.max(this.scale - 0.2, 0.5);
+}
+
+rotate(): void {
+  this.rotationDeg = (this.rotationDeg + 90) % 360;
+}
+
+resetTransformations(): void {
+  this.scale = 1;
+  this.rotationDeg = 0;
+  this.translateX = 0;
+  this.translateY = 0;
+  this.isDragging = false;
+}
+
+/* ---------------- DRAG / PAN ---------------- */
+
+// startDrag(event: MouseEvent): void {
+//   if (this.activeFileType !== 'image') return;
+
+//   this.isDragging = true;
+//   this.dragStartX = event.clientX;
+//   this.dragStartY = event.clientY;
+//   this.dragOriginX = this.translateX;
+//   this.dragOriginY = this.translateY;
+// }
+
+ startDrag(event: MouseEvent): void {
+    this.isDragging = true;
+    this.startX = event.clientX - this.translateX;
+    this.startY = event.clientY - this.translateY;
+  }
+
+onDrag(event: MouseEvent): void {
+  if (!this.isDragging || this.activeFileType !== 'image') return;
+    this.translateX = event.clientX - this.startX;
+    this.translateY = event.clientY - this.startY;
+}
+
+  stopDrag(): void {
+    this.isDragging = false;
+  }
+
+/* ---------------- FULLSCREEN ---------------- */
+
+toggleFullscreen(): void {
+  this.isFullscreen = !this.isFullscreen;
+
+  // Optional UX: reset drag when toggling
+  // this.resetTransformations();
+}
+
+/* ---------------- DOWNLOAD ---------------- */
+
+downloadActiveFile(fileName = 'image-preview'): void {
+ 
+  // Ensure we have a raw object URL
+  if (!this.activeRawObjectUrl || this.activeFileType !== 'image') return;
+
+  const link = document.createElement('a');
+  link.href = this.activeRawObjectUrl;
+  link.download = fileName;
+  link.click();
+}
+
+openRejectReasonsModal(data: any, template: TemplateRef<any>) {
+  this.rejectionReasons = data;
+  this.modalService.open(
+    template,
+    { modalDialogClass: 'modal-lg', backdrop: 'static' }
+  );
+}
+
 
 }
 

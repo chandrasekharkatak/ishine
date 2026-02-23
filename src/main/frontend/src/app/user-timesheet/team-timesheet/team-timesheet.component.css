@@ -2139,6 +2139,24 @@ th {
   border-bottom: 1px solid #e5e7eb;
 }
 
+.badge.filled button{
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #f8fafc;
+  cursor: pointer;
+  font-weight: 600;
+}
+.badge.approved button{
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #f8fafc;
+  cursor: pointer;
+  font-weight: 600;
+}
 .doc-toggle button {
   flex: 1;
   padding: 8px;
@@ -4605,6 +4623,71 @@ tr[app-column-filter-bar] .clear-filter:hover {
   margin: 0;
   font-size: 0.8125rem;
   color: #94a3b8;
+}
+
+/* Preview frame */
+.pdf-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #fff;
+}
+
+/* IMAGE Preview */
+.image-preview-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: #0b1220; /* dark backdrop so image stands out */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.image-scroll-container {
+  flex: 1;
+  min-height: 0;
+  cursor: grab;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.image-scroll-container:active {
+  cursor: grabbing;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 100%;
+  transform-origin: center center;
+  transition: transform 120ms ease;
+  pointer-events: none; /* ensures drag is handled by container */
+}
+
+/* Controls bar */
+.image-controls {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+}
+
+/* Fullscreen mode for preview area ONLY */
+.doc-preview.fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #0b1220;
+  border-radius: 0;
 }
 
 

@@ -5241,6 +5241,29 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     });
     return totalMinutes;
   }
+  allowDecimalOnly(event: KeyboardEvent) {
+  const charCode = event.which ? event.which : event.keyCode;
+
+  // backspace, delete, tab, escape, enter
+  if ([8, 9, 27, 13].includes(charCode)) {
+    return;
+  }
+
+  const inputValue = (event.target as HTMLInputElement).value;
+
+  // only numbers and one decimal point
+  if (
+    (charCode < 48 || charCode > 57) && 
+    charCode !== 46
+  ) {
+    event.preventDefault();
+  }
+
+  // Prevent multiple decimals
+  if (charCode === 46 && inputValue.includes('.')) {
+    event.preventDefault();
+  }
+}
 
   /**
    * ✅ CRITICAL FIX: Cleanup on component destroy

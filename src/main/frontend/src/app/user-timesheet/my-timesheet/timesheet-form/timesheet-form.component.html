@@ -527,7 +527,8 @@
                                                             <input type="number" step="0.01" min="0" max="24"
                                                                 class="form-control form-control-sm" placeholder="Hrs"
                                                                 [(ngModel)]="activity.durationMinutes"
-                                                                (ngModelChange)="onHoursChange()">
+                                                                (ngModelChange)="onHoursChange()"
+                                                                (keypress)="allowDecimalOnly($event)">
                                                         </div>
 
                                                         <!-- Remove Button -->

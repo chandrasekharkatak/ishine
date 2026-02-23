@@ -69,6 +69,7 @@ import com.apmosys.employeeportal.model.EmployeeClientSideIdMapping;
 import com.apmosys.employeeportal.model.EmployeeLeave;
 import com.apmosys.employeeportal.model.EmployeeLeavesMap;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
+import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeavePolicyMaster;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
@@ -3111,6 +3112,7 @@ public class TeamsService {
 		return response;
 	}
 
+    @Transactional
 	public ServiceResponse revokeReporteeLeave(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -3134,15 +3136,15 @@ public class TeamsService {
 					
 					//Delete Timesheet Application regarding leave
 					
-					List<Timesheet> empTimesheet = timesheetsRepository.
-							findTimesheetOnLeaveDateOLD(leaveApplication.getEmpId(),leaveApplication.getFromDate().toString(),leaveApplication.getToDate().toString());
+					List<EmployeeTimesheetsNew> empTimesheet = timesheetsRepositoryNew.findByEmpIdAndDateBetween(leaveApplication.getEmpId(),leaveApplication.getFromDate(),leaveApplication.getToDate());
 
-					if (empTimesheet != null) {
-
-						empTimesheet.forEach((timesheet)->{
-							timesheetsRepository.deleteById(timesheet.getTimesheetId());
-						});
+					if (empTimesheet != null&& !empTimesheet.isEmpty()) {
+						for (EmployeeTimesheetsNew ts : empTimesheet) {
+                            Long currentTsId = ts.getTimesheetId();
+                            timesheetsRepositoryNew.cleanTimesheetById(currentTsId);
+                        }
 					}
+                    entityManager.flush();
 					
 					//Get Expiration Period of CompOff
 					Integer expirationPeriod = null;

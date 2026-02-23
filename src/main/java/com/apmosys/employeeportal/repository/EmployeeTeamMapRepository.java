@@ -1083,7 +1083,7 @@ List<TeamTimesheetDetailsResponse> getTeamAndTimeSheetDetails(Long poId,Long poP
 "LEFT JOIN JobRole jr ON ete.jobRoleId = jr.jobRoleId " +
 "LEFT JOIN Employee etm ON ete.managerId = etm.empId " +
 "LEFT JOIN Project p ON te.projectId = p.projectId " +
-"LEFT JOIN ProjectPoDetails ppd on ppd.poProjectId = p.poProjectId and ppd.poId = tm.poId and ppd.active = 1 "+
+"LEFT JOIN ProjectPoDetails ppd on ppd.projectId = p.projectId and ppd.poId = tm.poId and ppd.active = 1 "+
 "left join ProjectManagerMapping pmm on pmm.projectId =p.projectId and pmm.active = 1 " +
 "LEFT JOIN Employee etpm ON etpm.empId = pmm.projectManagerId " +
 "WHERE ppd.poId =:poId And p.projectName = :projectName and ( tm.startDate <= :endDate And  (tm.endDate Is Null OR  tm.endDate >= :startDate) )")

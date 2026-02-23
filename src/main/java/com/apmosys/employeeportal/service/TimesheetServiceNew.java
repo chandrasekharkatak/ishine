@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeInfoDTO;
@@ -1702,7 +1704,7 @@ public class TimesheetServiceNew {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return null;
+		 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Document file not found");
 	}
 
 	// @Transactional(rollbackFor = Exception.class)
@@ -1711,7 +1713,6 @@ public class TimesheetServiceNew {
 	// return timesheetDocumentService.approveOrRejectDocument(docId,
 	// approvedOrRejectedBy, approvalStatus);
 	// }
-
 
 	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year, Long empId,
 			Boolean isClientDashboard, List<String> billableTypes, String employeeActive, String clientSideFilter) {

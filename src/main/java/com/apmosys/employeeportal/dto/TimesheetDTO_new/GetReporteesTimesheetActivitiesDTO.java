@@ -13,6 +13,9 @@ import lombok.ToString;
 @NoArgsConstructor
 public class GetReporteesTimesheetActivitiesDTO {
 
+	private Long timesheetId;
+	private Long locationMappingId;
+	private Integer projectId;
 	private String activity;
     // private String activityDescription;
     private String durationMinutes;

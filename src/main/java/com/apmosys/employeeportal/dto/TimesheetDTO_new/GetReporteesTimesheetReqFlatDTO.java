@@ -35,6 +35,8 @@ public class GetReporteesTimesheetReqFlatDTO {
     private LocalDateTime locationOutTime;
     private Long locationMappingId;
 
+    private Long projectTimesheetId;
+    private Long projectLocationMappingId;
     private Integer projectId;
     private String projectName;
     private String clientName;
@@ -45,6 +47,9 @@ public class GetReporteesTimesheetReqFlatDTO {
     private Integer totalClientWorkingMinutes;
     private String description;
     
+    private Long activityTimesheetId;
+    private Long activityLocationMappingId;
+    private Integer activityProjectId;
     private String activity;
     private String activityDescription;
     private Short durationMinutes;
@@ -56,19 +61,23 @@ public class GetReporteesTimesheetReqFlatDTO {
     private Long bulkApprovedDocId;
     private String mimeType;
     private Integer docsProjectId;
+    
+    private Long rejectionTimesheetId ;
+    private Long rejectionLocationMappingId;
+    private Integer rejectionProjectId;
     private String rejectionReason;
     private String remarks;
     private LocalDateTime rejectedOn;
 
 
-	public GetReporteesTimesheetReqFlatDTO(Long timesheetId, Long empId, String employmentId, String employeeName,
+    public GetReporteesTimesheetReqFlatDTO(Long timesheetId, Long empId, String employmentId, String employeeName,
 			String dayType, LocalDate date, Boolean isNightShift, LocalDateTime workCheckIn, LocalDateTime workCheckOut,
 			Long projectCount, Long locationCount, String appliedBy, LocalDateTime appliedOn, String workLocationType,
-			LocalDateTime locationInTime, LocalDateTime locationOutTime, Long locationMappingId, Integer projectId,
+			LocalDateTime locationInTime, LocalDateTime locationOutTime, Long locationMappingId,Long projectTimesheetId,Long projectLocationMappingId, Integer projectId,
 			String projectName, String clientName, String clientLocation, String poNo, String shadowEmp, Integer status,
-			Integer totalClientWorkingMinutes, String description, String activity, String activityDescription,
+			Integer totalClientWorkingMinutes, String description,Long activityTimesheetId,Long activityLocationMappingId,Integer activityProjectId, String activity, String activityDescription,
 			Short durationMinutes, String teamName, Long docId, String docName, Boolean finalFlag,
-			Long bulkApprovedDocId, String mimeType, Integer docsProjectId, String rejectionReason, String remarks, LocalDateTime rejectedOn) {
+			Long bulkApprovedDocId, String mimeType, Integer docsProjectId,Long rejectionTimesheetId,Long rejectionLocationMappingId,Integer rejectionProjectId, String rejectionReason, String remarks, LocalDateTime rejectedOn) {
 		super();
 		this.timesheetId = timesheetId;
 		this.empId = empId;
@@ -87,6 +96,8 @@ public class GetReporteesTimesheetReqFlatDTO {
 		this.locationInTime = locationInTime;
 		this.locationOutTime = locationOutTime;
 		this.locationMappingId = locationMappingId;
+		this.projectTimesheetId = projectTimesheetId;
+		this.projectLocationMappingId = projectLocationMappingId;
 		this.projectId = projectId;
 		this.projectName = projectName;
 		this.clientName = clientName;
@@ -96,6 +107,9 @@ public class GetReporteesTimesheetReqFlatDTO {
 		this.status = status;
 		this.totalClientWorkingMinutes = totalClientWorkingMinutes;
 		this.description = description;
+		this.activityTimesheetId = activityTimesheetId;
+		this.activityLocationMappingId = activityLocationMappingId;
+		this.activityProjectId = activityProjectId;
 		this.activity = activity;
 		this.activityDescription = activityDescription;
 		this.durationMinutes = durationMinutes;
@@ -106,6 +120,9 @@ public class GetReporteesTimesheetReqFlatDTO {
 		this.bulkApprovedDocId = bulkApprovedDocId;
 		this.mimeType = mimeType;
 		this.docsProjectId = docsProjectId;
+		this.rejectionTimesheetId = rejectionTimesheetId;
+		this.rejectionLocationMappingId = rejectionLocationMappingId;
+		this.rejectionProjectId = rejectionProjectId;
 		this.rejectionReason = rejectionReason;
 		this.remarks = remarks;
 		this.rejectedOn = rejectedOn;
