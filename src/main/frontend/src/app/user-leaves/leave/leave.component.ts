@@ -958,9 +958,6 @@ export class LeaveComponent implements OnInit {
        if (this.fromDateInput) {
          this.fromDateInput.nativeElement.value = this.lastValidFromDate;
        }
-       if (this.toDateInput) {
-         this.toDateInput.nativeElement.value = this.lastValidToDate;
-       }
 
        this.openAlertMod(this.alertTemplate, "Already Leave has been applied between the dates, please update the existing leave.");
        return;
