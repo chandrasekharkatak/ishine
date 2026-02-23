@@ -8807,4 +8807,6 @@ List<Object[]> getClientAndProjectDataList(
             "GROUP BY e.emp_id, e.employeement_id, e.name, rd.department, prm.role, ppd.po_no",
        nativeQuery = true)
 List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
+
+	List<Project> findByPoProjectIdIn(Set<Long> deletedPoProjectIds);
 }
