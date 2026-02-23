@@ -46,6 +46,7 @@ import com.apmosys.employeeportal.repository.EmployeeTimesheetLocationMappingRep
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.repository.TimesheetActivityMapNewRepository;
 import com.apmosys.employeeportal.service.ActivityTimesheetService;
 import com.apmosys.employeeportal.service.ProjectTimesheetService;
 import com.apmosys.employeeportal.service.TimesheetDocumentServiceNew;
@@ -726,8 +727,10 @@ public class TimesheetValidationHelper {
 					throw new IllegalArgumentException(
 							"Maximum 2 documents (filled and approved) are allowed per project.");
 				}
-				if (project != null && project.getClientApprovalStatus() != null && project.getClientApprovalStatus() == 2
-						&& projectFiles.size() != 2) {
+				// On CREATE only: approved projects must have both filled and approved docs in this request.
+				// On UPDATE: allow partial upload (e.g. user replacing only one file); do not require all four.
+				if (isCreate && project != null && project.getClientApprovalStatus() != null
+						&& project.getClientApprovalStatus() == 2 && projectFiles.size() != 2) {
 					throw new IllegalArgumentException(
 							"Both filled and approved documents are required for the selected project.");
 				}
@@ -1493,6 +1496,10 @@ public class TimesheetValidationHelper {
 	                                    )),
 	                            (a, b) -> a
 	                    ));
+	    
+	  
+	    
+	    
 
 	    for (ProjectTimesheetDTO approved : approvedMappings) {
 
@@ -1514,10 +1521,19 @@ public class TimesheetValidationHelper {
 
 	        ProjectTimesheetDTO incomingProject =
 	                incomingProjectsAtLocation.get(projectId);
+	        
+	      
 
-	        // Activities immutability
-	        validateApprovedProjectActivitiesImmutable(
-	                approved.getActivities(),
+		    List<ActivityTimesheetDTO> activityList=activityTimesheetService.findByTimesheetIdAndLocationMappingIdAndProjectId(timesheetId,locationMappingId,projectId);
+		    // Activities immutability
+		    System.out.println("incomingProject ==> ");
+		    System.out.println(incomingProject.toString());
+		    System.out.println("incomingProject.getActivities().==> ");
+		    System.out.println(incomingProject.getActivities().toString());
+		    
+		    
+		    validateApprovedProjectActivitiesImmutable(
+	        		activityList,
 	                incomingProject.getActivities(),
 	                projectId,
 	                locationMappingId);

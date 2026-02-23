@@ -166,6 +166,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnInit(): void {
     // Initialize form with default values
+    this.resetForm()
     this.timesheetAppliedFor = 'self';
     this.getAllWorkLocationFromLocationMaster();
     this.getAllDayTypes();
@@ -193,14 +194,36 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    * Handle input changes (especially when parent sets timesheetId/isUpdation after ngOnInit)
    */
   ngOnChanges(changes: SimpleChanges): void {
+    // Switch from Update to Create (user clicked Create Timesheet tab after editing): reset form and init create
+    const isCreationChange = changes['isCreation'];
+    const isUpdationChange = changes['isUpdation'];
+    const timesheetIdChange = changes['timesheetId'];
+    const switchedToCreate =
+      (this.isCreation && !this.isUpdation && (this.timesheetId == null || this.timesheetId === undefined)) &&
+      (
+        (isUpdationChange && isUpdationChange.previousValue === true && isUpdationChange.currentValue === false) ||
+        (timesheetIdChange && timesheetIdChange.previousValue != null && (timesheetIdChange.currentValue == null || timesheetIdChange.currentValue === undefined)) ||
+        (isCreationChange && isCreationChange.previousValue === false && isCreationChange.currentValue === true)
+      );
+    if (switchedToCreate) {
+      this.resetForm();
+      this.timesheetAppliedFor = 'self';
+      if (!this.serverDate) {
+        this.loadServerDateThenInitCreate();
+      } else {
+        this.onTimesheetAppliedForChange();
+      }
+      return;
+    }
+
     // When timesheetId or isUpdation changes after initial load, trigger update load
-    if (changes['timesheetId'] || changes['isUpdation']) {
-      const timesheetIdChanged = changes['timesheetId'] && 
-        changes['timesheetId'].currentValue !== changes['timesheetId'].previousValue &&
-        changes['timesheetId'].currentValue != null;
-      const isUpdationChanged = changes['isUpdation'] && 
-        changes['isUpdation'].currentValue !== changes['isUpdation'].previousValue &&
-        changes['isUpdation'].currentValue === true;
+    if (timesheetIdChange || isUpdationChange) {
+      const timesheetIdChanged = timesheetIdChange &&
+        timesheetIdChange.currentValue !== timesheetIdChange.previousValue &&
+        timesheetIdChange.currentValue != null;
+      const isUpdationChanged = isUpdationChange &&
+        isUpdationChange.currentValue !== isUpdationChange.previousValue &&
+        isUpdationChange.currentValue === true;
 
       // Only load if we're in update mode and have a timesheetId, and haven't already loaded
       if ((timesheetIdChanged || isUpdationChanged) && this.isUpdation && this.timesheetId && !this.isLoadingTimesheet) {
@@ -209,10 +232,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
           isUpdation: this.isUpdation,
           timesheetIdChanged,
           isUpdationChanged,
-          previousTimesheetId: changes['timesheetId']?.previousValue,
-          previousIsUpdation: changes['isUpdation']?.previousValue
+          previousTimesheetId: timesheetIdChange?.previousValue,
+          previousIsUpdation: isUpdationChange?.previousValue
         });
-        // Don't call loadServerDate here if it's already been called (check serverDate)
         if (!this.serverDate) {
           this.loadServerDate();
         }
@@ -2926,9 +2948,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     const uniqueFile: File = this.renameFile(file, projectId, docType);
     const uniqueIdentifier = uniqueFile.name;
 
-    // Update entry
+    // Update entry – preserve docId when replacing so backend updates existing row instead of creating new
     this.updateUploadFile({
-      docId: null,
+      docId: previous?.docId ?? null,
       projectId,
       docName: file.name,
       finalFlag: false,
@@ -3062,35 +3084,33 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
 
   /**
    * Open preview modal for uploaded file
-   * Handles both existing documents (from server) and new uploads
+   * Handles: new uploads, replaced files (local preview), and existing docs (fetch by docId)
+   * Prefer local preview when available so that after user replaces a file we show the new file, not the old one from backend.
    */
   openPreviewModalForTwo(file: any): void {
-    // Check if it's an existing document (has docId)
+    // Prefer local file: new upload or replaced file (user picked a new file → we have previewUrl/rawObjectUrl)
+    if (file?.previewUrl && file?.fileType) {
+      this.activePreviewUrl = file.previewUrl;
+      this.activeFileType = file.fileType;
+      this.activeRawObjectUrl = file.rawObjectUrl;
+      this.resetTransformations();
+      this.modalRef = this.modalService.open(this.previewModal, {
+        modalDialogClass: 'modal-lg',
+        scrollable: true
+      });
+      return;
+    }
+
+    // No local file: existing document only (or not yet uploaded) → fetch from backend by docId
     if (file?.docId && this.isExistingDocument(file)) {
-      // Load existing document from server (pass file for docType -> approvedDocType)
       this.previewExistingDocument(file);
       return;
     }
 
-    // Handle new upload (has previewUrl and fileType)
-    if (!file?.previewUrl || !file?.fileType) {
-      this.openAlertMod(
-        this.alertTemplate,
-        'Document preview is not available. Please upload the document first.'
-      );
-      return;
-    }
-
-    this.activePreviewUrl = file.previewUrl;
-    this.activeFileType = file.fileType;
-    this.activeRawObjectUrl = file.rawObjectUrl;
-
-    this.resetTransformations();
-
-    this.modalRef = this.modalService.open(this.previewModal, {
-      modalDialogClass: 'modal-lg',
-      scrollable: true
-    });
+    this.openAlertMod(
+      this.alertTemplate,
+      'Document preview is not available. Please upload the document first.'
+    );
   }
 
   /**
@@ -4144,7 +4164,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       locationSessions: dataSet,
       documentData: this.documentData
     };
-    console.log(this.createOrUpdateObj.locationSessions,"createOrUpdateObj.locationSessions");
+    console.log(this.createOrUpdateObj,"createOrUpdateObj");
     // API expects durationMinutes in minutes; form stores hours
     this.convertActivityDurationsToMinutesForApi(this.createOrUpdateObj.locationSessions);
     // Format location and project data (same as create)
@@ -4158,6 +4178,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
         }
       });
     });
+
+
 
     // Call update API
     this.timesheetNewService.updateTimesheet(this.createOrUpdateObj, this.selectedFile)

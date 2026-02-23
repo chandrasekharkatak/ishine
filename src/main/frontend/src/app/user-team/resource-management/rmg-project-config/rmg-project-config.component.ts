@@ -8,7 +8,6 @@ import { ResourceManagementService } from 'src/app/services/resource-management.
 import { TeamService } from 'src/app/services/team.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { User } from 'src/app/models/user';
-import { Employee } from 'src/app/models/employee';
 import { RmgProject } from 'src/app/models/rmgProject';
 import { first } from 'rxjs/operators';
 import { PoDetails } from 'src/app/models/poDetails';
@@ -146,6 +145,7 @@ export class RmgProjectComponent implements OnInit {
 	isMarkDefaultProjectCompletionBulk: boolean = true;
 	isBulkTeamMemberMigration: boolean = true;
 	isUnsavedMemberUpdate: boolean = false;
+	isDeleteTeam: boolean = false;
 
 	// Dates
 	membersEndDate: any;
@@ -172,8 +172,8 @@ export class RmgProjectComponent implements OnInit {
 	oldTeamMemberSortDirection: string = 'asc';
 	oldTeamMemberFilters: any = {};
 	oldTeamMemberSearchOnEnter: boolean = true;
-	rmgOldTeamMemberColumnList: any[] = ['employementId', 'memberName', 'poNo', 'displayRequirement', 'employeeRole', 'memberDepartment', 'blank', 'blank', 'blank', 'blank'];
-	rmgOldTeamMemberColumnListForInternal = ['employementId', 'memberName', 'employeeRole', 'memberDepartment', 'blank', 'blank', 'blank', 'blank'];
+	rmgOldTeamMemberColumnList: any[] = ['blank', 'employementId', 'memberName', 'memberDepartment', 'poNo', 'displayRequirement', 'employeeRole', 'empTeamDepartmentName', 'blank', 'blank', 'blank'];
+	rmgOldTeamMemberColumnListForInternal = ['blank', 'employementId', 'memberName', 'memberDepartment', 'employeeRole', 'empTeamDepartmentName', 'blank', 'blank', 'blank'];
 
 	// Current Team Member
 	isCurrentTeamMemberSearchEnabled: boolean = false;
@@ -184,8 +184,8 @@ export class RmgProjectComponent implements OnInit {
 	currentTeamMemberSortDirection: string = 'asc';
 	currentTeamMemberFilters: any = {};
 	currentTeamMemberSearchOnEnter: boolean = true;
-	rmgCurrentTeamMemberColumnList: any[] = ['blank', 'blank', 'employementId', 'memberName', 'poNo', 'displayRequirement', 'blank', 'blank', 'blank', 'blank'];
-	rmgCurrentTeamMemberColumnListForInternal: any[] = ['blank', 'blank', 'employementId', 'memberName', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
+	rmgCurrentTeamMemberColumnList: any[] = ['blank', 'blank', 'employementId', 'memberName', 'poNo', 'displayRequirement', 'blank', 'empTeamDepartmentName', 'blank', 'blank', 'blank'];
+	rmgCurrentTeamMemberColumnListForInternal: any[] = ['blank', 'blank', 'employementId', 'memberName', 'blank', 'empTeamDepartmentName', 'blank', 'blank', 'blank'];
 
 	// Migrate Team Member
 	isMigrateTeamMemberSearchEnabled: boolean = false;
@@ -196,7 +196,7 @@ export class RmgProjectComponent implements OnInit {
 	migrateTeamMemberSortDirection: string = 'asc';
 	migrateTeamMemberFilters: any = {};
 	migrateTeamMemberSearchOnEnter: boolean = true;
-	migrateTeamMemberColumnListBulk: any[] = ['blank', 'employementId', 'memberName', 'teamName', 'employeeRole', 'poNo', 'displayRequirement'];
+	migrateTeamMemberColumnListBulk: any[] = ['blank', 'employementId', 'memberName', 'teamName', 'employeeRole', 'empTeamDepartmentName', 'poNo', 'displayRequirement'];
 
 	// Migrate Individual Team Member
 	isMigrateIndividualTeamMemberSearchEnabled: boolean = false;
@@ -207,7 +207,7 @@ export class RmgProjectComponent implements OnInit {
 	migrateIndividualTeamMemberSortDirection: string = 'asc';
 	migrateIndividualTeamMemberFilters: any = {};
 	migrateIndividualTeamMemberSearchOnEnter: boolean = true;
-	migrateIndividualTeamMemberColumnList: any[] = ['employementId', 'memberName', 'teamName', 'employeeRole', 'poNo', 'displayRequirement', 'blank', 'blank', 'blank'];
+	migrateIndividualTeamMemberColumnList: any[] = ['employementId', 'memberName', 'teamName', 'employeeRole', 'poNo', 'displayRequirement', 'blank', 'blank', 'blank','blank'];
 
 	//  Change Employee Default Project Mapping
 	isChangeEmployeeDefaultProjectMappingSearchEnabled: boolean = false;
@@ -218,7 +218,7 @@ export class RmgProjectComponent implements OnInit {
 	changeEmployeeDefaultProjectMappingSortDirection: string = 'asc';
 	changeEmployeeDefaultProjectMappingFilters: any = {};
 	changeEmployeeDefaultProjectMappingSearchOnEnter: boolean = true;
-	changeEmployeeDefaultProjectMappingColumnList: any[] = ['employementId', 'memberName', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
+	changeEmployeeDefaultProjectMappingColumnList: any[] = ['employementId', 'memberName', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
 
 	//  Employee Existing Project Details
 	isEmployeeExistingProjectDetailsSearchEnabled: boolean = false;
@@ -230,6 +230,28 @@ export class RmgProjectComponent implements OnInit {
 	employeeExistingProjectDetailsFilters: any = {};
 	employeeExistingProjectDetailsSearchOnEnter: boolean = true;
 	employeeExistingProjectDetailsColumnList: any[] = ['projectName', 'teamName', 'clientName', 'billableType', 'startDate', 'endDate', 'blank']
+
+	// Mark Default Project Completion
+	isMarkDefaultProjectCompletionSearchEnabled: boolean = false;
+	markDefaultProjectCompletionPage = 1;
+	markDefaultProjectCompletionPageSize = 10;
+	markDefaultProjectCompletionSortColumn: string = '';
+	markDefaultProjectCompletionSortColumnType: string = '';
+	markDefaultProjectCompletionSortDirection: string = 'asc';
+	markDefaultProjectCompletionFilters: any = {};
+	markDefaultProjectCompletionSearchOnEnter: boolean = true;
+	markDefaultProjectCompletionColumnListBulk: any[] = ['employementId', 'memberName', 'memberDepartment', 'jobRoleName', 'empTeamDepartmentName', 'billableType', 'prevExp', 'currentExp', 'totalExp'];
+
+	// Mark Default Project Completion Individual
+	isMarkDefaultProjectCompletionIndividualSearchEnabled: boolean = false;
+	markDefaultProjectCompletionIndividualPage = 1;
+	markDefaultProjectCompletionIndividualPageSize = 10;
+	markDefaultProjectCompletionIndividualSortColumn: string = '';
+	markDefaultProjectCompletionIndividualSortColumnType: string = '';
+	markDefaultProjectCompletionIndividualSortDirection: string = 'asc';
+	markDefaultProjectCompletionIndividualFilters: any = {};
+	markDefaultProjectCompletionIndividualSearchOnEnter: boolean = true;
+	markDefaultProjectCompletionIndividualColumnList: any[] = ['employementId', 'memberName', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
 
 	constructor(
 		public validationService: ValidationService,
@@ -278,11 +300,7 @@ export class RmgProjectComponent implements OnInit {
 				return team.teamId;
 			}
 		});
-		if (this.projectType === 'TNM') {
-			this.getActiveTeamMembersByTeamIdsAndProjectId();
-		} else {
-			this.migrateTeamModalRef = this.modalService?.open(this.migrateTeamTemplateRef, { modalDialogClass: 'modal-md', backdrop: 'static', keyboard: false });
-		}
+		this.migrateTeamModalRef = this.modalService?.open(this.migrateTeamTemplateRef, { modalDialogClass: 'modal-md', backdrop: 'static', keyboard: false });
 	}
 
 	closeMigrateTeamModal() {
@@ -326,10 +344,14 @@ export class RmgProjectComponent implements OnInit {
 		}
 	}
 
-	openMarkDefaultProjectCompletionModal() {
+	openMarkDefaultProjectCompletionModal(isDeleteTeam: boolean) {
+		this.isDeleteTeam = isDeleteTeam;
 		this.defaultProjectObj = new SetDefaultProjectObj();
 		this.defaultProjectObj.projectType = 'Bench'
 		this.getActiveProjectList();
+		if (this.markDefaultProjectCompletionModalRef) {
+			this.markDefaultProjectCompletionModalRef?.close();
+		}
 		this.markDefaultProjectCompletionModalRef = this.modalService?.open(this.markDefaultProjectCompletionTemplateRef, { modalDialogClass: 'modal-xl', backdrop: 'static', keyboard: false });
 	}
 
@@ -339,7 +361,9 @@ export class RmgProjectComponent implements OnInit {
 		}
 	}
 
-	openMappingToOtherProjectAsDefaultModal() {
+	openMappingToOtherProjectAsDefaultModal(isDeleteTeam: boolean) {
+		this.isDeleteTeam = isDeleteTeam;
+		this.closeMappingToOtherProjectAsDefaultModal();
 		this.mappingToOtherProjectAsDefaultModalRef = this.modalService?.open(this.mappingToOtherProjectAsDefaultTemplateRef, { modalDialogClass: 'modal-xl', backdrop: 'static', keyboard: false });
 	}
 
@@ -379,7 +403,8 @@ export class RmgProjectComponent implements OnInit {
 		}
 	}
 
-	openDeleteTeamConfirmationModal() {
+	openDeleteTeamConfirmationModal(isDeleteTeam: boolean) {
+		this.isDeleteTeam = isDeleteTeam;
 		this.deleteTeamConfirmationModalRef = this.modalService?.open(this.deleteTeamConfirmationTemplateRef, { modalDialogClass: 'modal-sm', backdrop: 'static', keyboard: false });
 	}
 
@@ -518,19 +543,7 @@ export class RmgProjectComponent implements OnInit {
 		this.deleteTeamsPo.teamList = this.rmgProjectObj?.teamDetailsList;
 		this.teamService.getTeamDetailsByTeamIdsAndProjectId(poObj).pipe(first()).subscribe((response: any) => {
 			if (response.serviceStatus === "Success") {
-
-				const rmgResourceRequirementList: any[] = response.serviceResponse || [];
-				let teamMembers: RmgTeamMember[] = [];
-
-				for (let req of rmgResourceRequirementList) {
-					if (this.isValidList(req.rmgTeamMemberList)) {
-						for (let member of req.rmgTeamMemberList) {
-							if (member.isMemberActive != 0) {
-								teamMembers.push(member);
-							}
-						}
-					}
-				}
+				let teamMembers: RmgTeamMember[] = response.serviceResponse || [];
 
 				// having no other active projects and this is default project
 				let noOtherActiveAndCurrentIsDefaultProjectEmpIds: number[] = teamMembers
@@ -556,14 +569,14 @@ export class RmgProjectComponent implements OnInit {
 				this.mapProjectListToEmployees(this.mappingToOtherProjectAsDefaultList);
 
 				if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0) {
-					this.openMarkDefaultProjectCompletionModal();
-					this.openMappingToOtherProjectAsDefaultModal();
+					this.openMarkDefaultProjectCompletionModal(true);
+					this.openMappingToOtherProjectAsDefaultModal(true);
 				} else if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length === 0) {
-					this.openMarkDefaultProjectCompletionModal();
+					this.openMarkDefaultProjectCompletionModal(true);
 				} else if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length === 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0) {
-					this.openMappingToOtherProjectAsDefaultModal();
+					this.openMappingToOtherProjectAsDefaultModal(true);
 				} else {
-					this.openDeleteTeamConfirmationModal();
+					this.openDeleteTeamConfirmationModal(true);
 				}
 
 			} else {
@@ -605,12 +618,12 @@ export class RmgProjectComponent implements OnInit {
 
 		this.mapProjectListToEmployees(this.mappingToOtherProjectAsDefaultList);
 		if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0) {
-			this.openMarkDefaultProjectCompletionModal();
-			this.openMappingToOtherProjectAsDefaultModal();
+			this.openMarkDefaultProjectCompletionModal(false);
+			this.openMappingToOtherProjectAsDefaultModal(false);
 		} else if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length === 0) {
-			this.openMarkDefaultProjectCompletionModal();
+			this.openMarkDefaultProjectCompletionModal(false);
 		} else if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length === 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0) {
-			this.openMappingToOtherProjectAsDefaultModal();
+			this.openMappingToOtherProjectAsDefaultModal(false);
 		} else {
 			this.openRemoveMembersModal();
 		}
@@ -664,6 +677,16 @@ export class RmgProjectComponent implements OnInit {
 		}
 	}
 
+	getProjectType(project: any): string {
+		if (this.isValidString(project?.poProjectType)) {
+			return project.poProjectType;
+		} else if (this.isValidString(project?.internalProjectType)) {
+			return project.internalProjectType;
+		} else {
+			return 'NA';
+		}
+	}
+
 	initialiseNewTeamObj() {
 		this.rmgProjectObj.newTeamObj = new RmgTeam();
 	}
@@ -675,7 +698,6 @@ export class RmgProjectComponent implements OnInit {
 					const departmentNames = this.departmentsList
 						.filter(x => team.deptIds?.includes(x.deptId))
 						.map(x => x.name).join(', ');
-
 					team.departmentNames = departmentNames
 				}
 			}
@@ -796,7 +818,7 @@ export class RmgProjectComponent implements OnInit {
 			this.mappingToOtherProjectAsDefaultList = [];
 			this.mappingToOtherProjectAsDefaultList.push(member);
 			this.mapProjectListToEmployees(this.mappingToOtherProjectAsDefaultList);
-			this.openMappingToOtherProjectAsDefaultModal();
+			this.openMappingToOtherProjectAsDefaultModal(false);
 		}
 	}
 
@@ -1066,6 +1088,60 @@ export class RmgProjectComponent implements OnInit {
 			this.employeeExistingProjectDetailsSortDirection = sort.direction;
 		}
 	}
+
+	toggleMarkDefaultProjectCompletionSearch() {
+		this.markDefaultProjectCompletionPage = 0;
+		this.isMarkDefaultProjectCompletionSearchEnabled = !this.isMarkDefaultProjectCompletionSearchEnabled;
+		if (!this.isMarkDefaultProjectCompletionSearchEnabled) {
+			this.markDefaultProjectCompletionFilters = {};
+		}
+	}
+
+	searchMarkDefaultProjectCompletion(searchData: any) {
+		this.markDefaultProjectCompletionPage = 0;
+		this.markDefaultProjectCompletionFilters = searchData;
+	}
+
+	markDefaultProjectCompletionPageChange(event: any) {
+		this.markDefaultProjectCompletionPage = event.pageIndex + 1;
+		this.markDefaultProjectCompletionPageSize = event.pageSize;
+	}
+
+	sortMarkDefaultProjectCompletionData(sort: Sort) {
+		if (sort.active) {
+			let sortParams: any[] = sort.active?.split("|");
+			this.markDefaultProjectCompletionSortColumn = sortParams[0];
+			this.markDefaultProjectCompletionSortColumnType = sortParams[0];
+			this.markDefaultProjectCompletionSortDirection = sort.direction;
+		}
+	}
+
+	toggleMarkDefaultProjectCompletionIndividualSearch() {
+		this.markDefaultProjectCompletionIndividualPage = 0;
+		this.isMarkDefaultProjectCompletionIndividualSearchEnabled = !this.isMarkDefaultProjectCompletionIndividualSearchEnabled;
+		if (!this.isMarkDefaultProjectCompletionIndividualSearchEnabled) {
+			this.markDefaultProjectCompletionIndividualFilters = {};
+		}
+	}
+
+	searchMarkDefaultProjectCompletionIndividual(searchData: any) {
+		this.markDefaultProjectCompletionIndividualPage = 0;
+		this.markDefaultProjectCompletionIndividualFilters = searchData;
+	}
+
+	markDefaultProjectCompletionIndividualPageChange(event: any) {
+		this.markDefaultProjectCompletionIndividualPage = event.pageIndex + 1;
+		this.markDefaultProjectCompletionIndividualPageSize = event.pageSize;
+	}
+
+	sortMarkDefaultProjectCompletionIndividualData(sort: Sort) {
+		if (sort.active) {
+			let sortParams: any[] = sort.active?.split("|");
+			this.markDefaultProjectCompletionIndividualSortColumn = sortParams[0];
+			this.markDefaultProjectCompletionIndividualSortColumnType = sortParams[0];
+			this.markDefaultProjectCompletionIndividualSortDirection = sort.direction;
+		}
+	}
 	// Table Pagination & Searching & Sorting Methods End 
 
 	// Steppers Method Start
@@ -1250,15 +1326,13 @@ export class RmgProjectComponent implements OnInit {
 				this.employeeListFilteredByDept = this.spocList?.filter(emp => team.deptIds?.includes(emp.deptId));
 				this.createCurrentAndOldResourceList(team);
 				this.setRequirementResourceTypeForTeam(team, true);
-				this.openTeamDetailsModal();
-
+				this.updateTeamSelection(team);
 				team?.rmgCurrentTeamMemberList?.map(member => {
 					if (this.selectedMembersEmpId?.includes(member?.empId)) {
 						member.isMemberSelected = true;
 					}
 				});
-
-				this.updateTeamSelection(team);
+				this.openTeamDetailsModal();
 				this.updateRemoveTeamMemberButton(team);
 				this.validateRemoveMembers(team?.rmgCurrentTeamMemberList);
 			} else {
@@ -1447,9 +1521,23 @@ export class RmgProjectComponent implements OnInit {
 		});
 	}
 
-	getActivePoDetailsByProjectIdForTeamMigration() {
+	async getActivePoDetailsByProjectIdForTeamMigration() {
 		this.teamMigrationPoDetailsList = [];
 		this.teamMigrationTeamMembersList?.forEach(emp => { emp.poDetailsList = [] });
+		const project = this.projectList.find(p => p?.projectId === this.teamMembersMigrationObj?.targetProjectId);
+
+		this.teamMembersMigrationObj.projectType = this.getProjectType(project);
+		this.teamMembersMigrationObj.isInternalProject = project?.internalProjectType != undefined && project?.internalProjectType != null && ['internal', 'internalrndproducts', 'bench'].includes(project?.internalProjectType?.trim()?.toLowerCase());
+
+		await this.getActiveTeamMembersByTeamIdsAndProjectId();
+		if (this.migrateTeamModalRef) {
+			this.migrateTeamModalRef?.close();
+		}
+		this.migrateTeamModalRef = this.modalService?.open(this.migrateTeamTemplateRef, { modalDialogClass: 'modal-xl', backdrop: 'static', keyboard: false });
+
+		if (this.teamMembersMigrationObj.isInternalProject) {
+			return;
+		}
 		this.resourceManagementService.getActivePoDetailsByProjectId(this.teamMembersMigrationObj.targetProjectId).pipe(first()).subscribe((response: any) => {
 			if (response.serviceStatus === "Success") {
 				this.teamMigrationPoDetailsList = response.serviceResponse || [];
@@ -1464,20 +1552,22 @@ export class RmgProjectComponent implements OnInit {
 	// PO List Method & APIs End
 
 	//  Team Members Method & APIs Start
-	getActiveTeamMembersByTeamIdsAndProjectId() {
+	async getActiveTeamMembersByTeamIdsAndProjectId() {
 		this.teamMigrationTeamMembersList = [];
 		let poObj = new PoDetails();
 		poObj.activeEtmFlag = true;
 		poObj.projectId = this.rmgProjectObj.projectId;
 		poObj.selectedTeamIds = this.rmgProjectObj?.teamDetailsList.filter(team => team.isTeamSelected).map(team => team.teamId);
-		this.teamService.getTeamDetailsByTeamIdsAndProjectId(poObj).pipe(first()).subscribe((response: any) => {
+		try {
+			const response: any = await firstValueFrom(this.teamService.getTeamDetailsByTeamIdsAndProjectId(poObj));
 			if (response.serviceStatus === "Success") {
 				this.teamMigrationTeamMembersList = response.serviceResponse || [];
-				this.migrateTeamModalRef = this.modalService?.open(this.migrateTeamTemplateRef, { modalDialogClass: 'modal-xl', backdrop: 'static', keyboard: false });
 			} else {
 				this.openAlertMessageModal(response.serviceResponse || "Something went wrong!!");
 			}
-		});
+		} catch (error) {
+			this.toastService.error("Something went wrong!");
+		}
 	}
 
 	addNewTeamMemberToCurrentResourceList() {
@@ -1498,9 +1588,12 @@ export class RmgProjectComponent implements OnInit {
 				return;
 			}
 		}
-
 		if (!this.currentTeam.newRmgTeamMember.startDate || this.currentTeam.newRmgTeamMember.startDate == undefined || this.currentTeam.newRmgTeamMember.startDate == null) {
 			this.openAlertMessageModal("Kindly Provide Start Date!!");
+			return;
+		}
+		if (!this.currentTeam.newRmgTeamMember.empTeamDepartmentId || !this.isValidNumber(this.currentTeam.newRmgTeamMember.empTeamDepartmentId)) {
+			this.openAlertMessageModal("Kindly Select a Department!!");
 			return;
 		}
 
@@ -1522,6 +1615,7 @@ export class RmgProjectComponent implements OnInit {
 		this.currentTeam.newRmgTeamMember.poNo = this.poDetailsList?.find(po => po?.poId === this.currentTeam.newRmgTeamMember?.poId)?.poNo;
 		this.currentTeam.newRmgTeamMember.poRequirementMappingId = this.resourceRequirementList?.find(req => req?.roleId === this.currentTeam.newRmgTeamMember?.roleId)?.poRequirementMappingId;
 		this.currentTeam.newRmgTeamMember.displayRequirement = this.resourceRequirementList?.find(req => req?.poRequirementMappingId === this.currentTeam.newRmgTeamMember?.poRequirementMappingId)?.displayRequirement;
+		this.currentTeam.newRmgTeamMember.empTeamDepartmentName = this.departmentsList?.find(dept => dept.depId === this.currentTeam.newRmgTeamMember?.empTeamDepartmentId)?.name;
 		this.employeeListFilteredByDept = this.employeeListFilteredByDept.filter(emp => emp.empId !== this.currentTeam.newRmgTeamMember?.empId);
 		this.currentTeam.rmgCurrentTeamMemberList.push(this.currentTeam.newRmgTeamMember);
 		this.currentTeam.rmgCurrentTeamMemberList = [...this.currentTeam.rmgCurrentTeamMemberList];
@@ -1574,7 +1668,16 @@ export class RmgProjectComponent implements OnInit {
 		this.teamService.addOrUpdateTeamMembers(team).pipe(first()).subscribe((response: any) => {
 			if (response.serviceStatus == "Success") {
 				this.getTeamDetailsByTeamId(team);
+
 				this.toastService.success(response.serviceResponse);
+
+				team.deptIds = response?.serviceResponse1;
+				if (this.isValidList(team.deptIds)) {
+					const departmentNames = this.departmentsList
+						.filter(x => team.deptIds?.includes(x.deptId))
+						.map(x => x.name).join(', ');
+					team.departmentNames = departmentNames
+				}
 			} else {
 				this.toastService.error(response.serviceResponse);
 			}
@@ -1638,8 +1741,7 @@ export class RmgProjectComponent implements OnInit {
 	}
 
 	migrateTeamMembers(employee: any) {
-
-		if (!employee.targetProjectId || !this.isValidNumber(employee.targetProjectId)) {
+		if (!this.teamMembersMigrationObj.targetProjectId || !this.isValidNumber(this.teamMembersMigrationObj.targetProjectId)) {
 			this.openAlertMessageModal("Kindly Select target Project!!");
 			return;
 		}
@@ -1649,13 +1751,17 @@ export class RmgProjectComponent implements OnInit {
 		}
 		let tempTeamMembersMigrationObj = new MigrateTeams();
 		tempTeamMembersMigrationObj.sourceProjectId = this.rmgProjectObj.projectId;
+		tempTeamMembersMigrationObj.targetProjectId = this.teamMembersMigrationObj.targetProjectId;
 		tempTeamMembersMigrationObj.currentUserEmpId = this.currentUser.empId;
 		tempTeamMembersMigrationObj.empIds = employee.empId ? [employee.empId] : [];
+		tempTeamMembersMigrationObj.targetPoId = employee.targetPoId;
+		tempTeamMembersMigrationObj.targetRoleId = employee.targetRoleId;
+		tempTeamMembersMigrationObj.targetEmpTeamDepartmentId = employee.targetEmpTeamDepartmentId;
+		tempTeamMembersMigrationObj.migrationTeamIds = this.teamMembersMigrationObj.migrationTeamIds;
 		this.teamService.migrateTeamMembers(tempTeamMembersMigrationObj).pipe(first()).subscribe((response: any) => {
 			if (response.serviceStatus == "Success") {
 				this.toastService.success(response.serviceResponse);
-				this.closeMigrateTeamModal();
-				this.openMigrateTeamModal();
+				this.getResourceRequirementDetailsByProjectIdForTeamMemberMigration(this.teamMembersMigrationObj.targetProjectId);
 			} else {
 				this.toastService.error(response.serviceResponse || 'Something went wrong!!');
 			}
@@ -1663,7 +1769,6 @@ export class RmgProjectComponent implements OnInit {
 	}
 
 	migrateTeamMembersBulk() {
-
 		let bulkEmpIds = this.teamMigrationTeamMembersList?.map(employee => {
 			if (employee.isMemberSelected) {
 				return employee.empId;
@@ -1688,8 +1793,7 @@ export class RmgProjectComponent implements OnInit {
 		this.teamService.migrateTeamMembers(this.teamMembersMigrationObj).pipe(first()).subscribe((response: any) => {
 			if (response.serviceStatus == "Success") {
 				this.toastService.success(response.serviceResponse);
-				this.closeMigrateTeamModal();
-				this.openMigrateTeamModal();
+				this.getResourceRequirementDetailsByProjectIdForTeamMemberMigration(this.teamMembersMigrationObj.targetProjectId);
 			} else {
 				this.toastService.error(response.serviceResponse || 'Something went wrong!!');
 			}
@@ -1746,6 +1850,21 @@ export class RmgProjectComponent implements OnInit {
 				this.openAlertMessageModal(response.serviceResponse || "Something went wrong, unable to validate timesheet filled count at the moment for the updated start date!!");
 			}
 		});
+	}
+
+	onMemberRemoveEndDateTypeChange(event: any) {
+		const selectedValue = event.value;
+
+		if (selectedValue === 'PO') {
+			this.employeeProjectEndDate =
+				this.deleteEmployeeExistingProjectMappingObj?.poEndDate
+					? moment(this.deleteEmployeeExistingProjectMappingObj.poEndDate)
+						.format('YYYY-MM-DD')
+					: null;
+		}
+		else if (selectedValue === 'Custom') {
+			this.employeeProjectEndDate = null;
+		}
 	}
 	// Team Members Method & APIs End
 
@@ -1851,7 +1970,7 @@ export class RmgProjectComponent implements OnInit {
 	}
 
 	getResourceRequirementDetailsByProjectIdForTeamMemberMigration(projectId: any) {
-		if (this.projectType !== 'TNM') {
+		if (this.teamMembersMigrationObj.isInternalProject) {
 			return
 		}
 		this.teamMigrationResourceRequirementList = [];
@@ -1865,7 +1984,7 @@ export class RmgProjectComponent implements OnInit {
 	}
 
 	getResourceRequirementDetailsByProjectIdForTeamMemberMigrationAndForEmployee(employee: any, projectId: any) {
-		if (this.projectType !== 'TNM') {
+		if (this.teamMembersMigrationObj.isInternalProject) {
 			return
 		}
 		employee.resourceRequirementList = [];
@@ -1963,9 +2082,14 @@ export class RmgProjectComponent implements OnInit {
 		try {
 			const response: any = await firstValueFrom(this.projectService.updateMappingToOtherProjectAsDefault(employee.selectedProject));
 			if (response.serviceStatus == "Success") {
-				this.closeMappingToOtherProjectAsDefaultModal();
 				this.toastService.success(response.serviceResponse);
-				await this.getTeamDetailsByTeamId(this.currentTeam);
+				this.closeMappingToOtherProjectAsDefaultModal();
+				if (this.isDeleteTeam) {
+					this.validateDeleteTeams();
+				} else {
+					await this.getTeamDetailsByTeamId(this.currentTeam);
+					await this.validateRemoveMembers(this.currentTeam?.rmgCurrentTeamMemberList);
+				}
 			} else {
 				this.toastService.error(response.serviceResponse || "Something went wrong!");
 			}
@@ -1975,12 +2099,24 @@ export class RmgProjectComponent implements OnInit {
 	}
 
 	updateDefaultProjectCompletion(employee: RmgTeamMember, isBulk: boolean) {
-		if (!this.isValidString(employee?.projectType) || !employee.projectId || !employee.teamId) {
-			this.openAlertMessageModal('Project Type, Project, Team, and Employee Role must be selected!!');
+		if (!this.isValidString(employee?.projectType)) {
+			this.openAlertMessageModal('Project Type must be selected!!');
+			return;
+		}
+		if (!employee.projectId) {
+			this.openAlertMessageModal('Kindly Select a Project!!');
+			return;
+		}
+		if (!employee.teamId) {
+			this.openAlertMessageModal('Kindly Select a Team!!');
 			return;
 		}
 		if (!this.isValidList(employee.employeeRoles)) {
 			this.openAlertMessageModal('Employee Role must be selected!!');
+			return;
+		}
+		if (!employee.empTeamDepartmentId) {
+			this.openAlertMessageModal('Kindly Select a Department!!');
 			return;
 		}
 
@@ -1991,6 +2127,7 @@ export class RmgProjectComponent implements OnInit {
 		tempRmgTeamMember.teamId = employee.teamId;
 		tempRmgTeamMember.poId = employee?.poId;
 		tempRmgTeamMember.employeeRoles = employee.employeeRoles;
+		tempRmgTeamMember.empTeamDepartmentId = employee.empTeamDepartmentId;
 		tempRmgTeamMember.roleId = employee.roleId;
 		tempRmgTeamMember.poRequirementMappingId = employee.poRequirementMappingId;
 		tempRmgTeamMember.clientName = this.rmgProjectObj?.clientName;
@@ -2000,7 +2137,11 @@ export class RmgProjectComponent implements OnInit {
 		this.teamService.updateDefaultProjectCompletion(tempRmgTeamMember).pipe(first()).subscribe(async (response: any) => {
 			if (response.serviceStatus == "Success") {
 				this.closeMarkDefaultProjectCompletionModal();
-				await this.getTeamDetailsByTeamIdForUpdationDefaultProject();
+				if (this.isDeleteTeam) {
+					this.validateDeleteTeams();
+				} else {
+					await this.getTeamDetailsByTeamIdForUpdationDefaultProject();
+				}
 			} else {
 				this.toastService.error(response.serviceResponse || "Something went wrong!!");
 			}
@@ -2008,12 +2149,24 @@ export class RmgProjectComponent implements OnInit {
 	}
 
 	updateDefaultProjectCompletionBulk() {
-		if (!this.isValidString(this.defaultProjectObj?.projectType) || !this.defaultProjectObj.projectId || !this.defaultProjectObj.teamId) {
-			this.openAlertMessageModal('Project Type, Project, Team, and Employee Role must be selected!!');
+		if (!this.isValidString(this.defaultProjectObj?.projectType)) {
+			this.openAlertMessageModal('Project Type must be selected!!');
+			return;
+		}
+		if (!this.defaultProjectObj.projectId) {
+			this.openAlertMessageModal('Kindly Select a Project!!');
+			return;
+		}
+		if (!this.defaultProjectObj.teamId) {
+			this.openAlertMessageModal('Kindly Select a Team!!');
 			return;
 		}
 		if (!this.isValidList(this.defaultProjectObj.employeeRoles)) {
 			this.openAlertMessageModal('Employee Role must be selected!!');
+			return;
+		}
+		if (!this.defaultProjectObj.empTeamDepartmentId) {
+			this.openAlertMessageModal('Kindly Select a Department!!');
 			return;
 		}
 
@@ -2024,6 +2177,7 @@ export class RmgProjectComponent implements OnInit {
 		tempRmgTeamMember.teamId = this.defaultProjectObj.teamId;
 		tempRmgTeamMember.poId = this.defaultProjectObj?.poId;
 		tempRmgTeamMember.employeeRoles = this.defaultProjectObj.employeeRoles;
+		tempRmgTeamMember.empTeamDepartmentId = this.defaultProjectObj.empTeamDepartmentId;
 		tempRmgTeamMember.roleId = this.defaultProjectObj.roleId;
 		tempRmgTeamMember.poRequirementMappingId = this.defaultProjectObj.poRequirementMappingId;
 		tempRmgTeamMember.clientName = this.rmgProjectObj?.clientName;
@@ -2033,8 +2187,11 @@ export class RmgProjectComponent implements OnInit {
 		this.teamService.updateDefaultProjectCompletion(tempRmgTeamMember).pipe(first()).subscribe(async (response: any) => {
 			if (response.serviceStatus == "Success") {
 				this.closeMarkDefaultProjectCompletionModal();
-				this.closeTeamDetailsModal();
-				this.getTeamDetailsByTeamIdForUpdationDefaultProject();
+				if (this.isDeleteTeam) {
+					this.validateDeleteTeams();
+				} else {
+					await this.getTeamDetailsByTeamIdForUpdationDefaultProject();
+				}
 			} else {
 				this.toastService.error(response.serviceResponse || "Something went wrong!!");
 			}

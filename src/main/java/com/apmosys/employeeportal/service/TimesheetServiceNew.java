@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeInfoDTO;
@@ -993,7 +995,8 @@ public class TimesheetServiceNew {
 
 			// Update employee timesheet with calculated totals
 			empTS.setTotalWorkingMinutes(newEmpDTO.getTotalWorkingMinutes());
-			empTS.setStatus(newEmpDTO.getStatus());
+			empTS.setStatus(TimesheetAggregationHelper.STATUS_PENDING);
+			
 			empTS = employeeTimesheetsNewRepository.save(empTS);
 			if (newEmpDTO.getDocumentData() != null && !newEmpDTO.getDocumentData().isEmpty()) {
 				// NEW CONTRACT: Handle document uploads/updates for multiple projects
@@ -1196,18 +1199,21 @@ public class TimesheetServiceNew {
 
 		boolean isUpdate = (timesheetId != null);
 
-		// Update: existing docs don't need files - only process entries that have new uploads
+		// UPDATE: Only process documents that have a new file in this request. Existing docs stay as-is.
+		// Do NOT require all documentData entries to have a file on update (partial upload is allowed).
 		if (isUpdate && (documents == null || documents.isEmpty())) {
 			return; // No new files to upload; existing docs already in DB
 		}
 
 		if (isUpdate) {
-			// Filter to only documentData entries that have a matching new file
+			// Filter to only documentData entries that have a matching new file in this request
 			Set<String> fileNames = documents.stream()
 					.map(MultipartFile::getOriginalFilename)
 					.filter(Objects::nonNull)
 					.collect(Collectors.toSet());
-
+			
+			System.out.println("finlenames");
+			fileNames.forEach(System.out::println);
 			List<TimesheetDocumentDataDTO> toUpload = new ArrayList<>();
 			List<MultipartFile> filesToUpload = new ArrayList<>();
 			for (TimesheetDocumentDataDTO docData : documentDataList) {
@@ -1222,13 +1228,15 @@ public class TimesheetServiceNew {
 					}
 				}
 			}
-
+            System.out.println("toUpload "+toUpload.toString());
+            System.out.println("filesToUpload "+filesToUpload.size()+"  => "+filesToUpload.toString());
 			if (toUpload.isEmpty()) {
-				return; // No new files to upload
+				return; // No new files to upload; nothing to do
 			}
+			// Pass only the subset of docs that have new files (sizes match)
 			timesheetDocumentService.handleDocumentUpload(empTS, timesheetId, filesToUpload, toUpload);
 		} else {
-			// Create: strict match required - every documentData must have a file
+			// CREATE: strict match - every documentData entry must have a file
 			if (documents == null || documents.size() != documentDataList.size()) {
 				throw new IllegalArgumentException(
 						"Please ensure all required documents are attached.");
@@ -1696,7 +1704,7 @@ public class TimesheetServiceNew {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return null;
+		 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Document file not found");
 	}
 
 	// @Transactional(rollbackFor = Exception.class)
@@ -1705,7 +1713,6 @@ public class TimesheetServiceNew {
 	// return timesheetDocumentService.approveOrRejectDocument(docId,
 	// approvedOrRejectedBy, approvalStatus);
 	// }
-
 
 	public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year, Long empId,
 			Boolean isClientDashboard, List<String> billableTypes, String employeeActive, String clientSideFilter) {
