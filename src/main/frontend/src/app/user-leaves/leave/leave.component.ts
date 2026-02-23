@@ -1,5 +1,5 @@
 import { DatePipe, LocationStrategy } from '@angular/common';
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { MatCalendarCellClassFunction } from '@angular/material/datepicker';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { first } from 'rxjs/operators';
@@ -36,7 +36,8 @@ export class LeaveComponent implements OnInit {
 
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>
-
+  @ViewChild('toDateInput', { read: ElementRef }) toDateInput: ElementRef;
+  @ViewChild('fromDateInput', { read: ElementRef }) fromDateInput: ElementRef;
   data: string;
   allowedLeaveDays: any;
 
@@ -156,6 +157,7 @@ export class LeaveComponent implements OnInit {
     private portalService: PortalService,
     private employeeService: EmployeeService,
     private departmentService: DepartmentService,
+    private cd: ChangeDetectorRef,
 
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -471,6 +473,7 @@ export class LeaveComponent implements OnInit {
 
     //console.log("this.leaveObj for Update : ", this.leaveObj);
     this.getLeaveMetadata();
+    this.initializeDateMarkers();
   }
 
   // Modals
@@ -735,7 +738,8 @@ export class LeaveComponent implements OnInit {
   }
 
   // Leave Application
-  fromDateFilter = (d: Date) => {
+  fromDateFilter = (d: Date|null) => {
+    if (!d) return false;
     const dateFormat = 'YYYY-MM-DD';
     const currentDate = new Date();
     const DAY_IN_MS = 24 * 60 * 60 * 1000;
@@ -810,7 +814,8 @@ export class LeaveComponent implements OnInit {
     return '';
   }
 
-  toDateFilter = (d: Date) => {
+  toDateFilter = (d: Date|null) => {
+    if (!d) return false;
     const dateFormat = 'YYYY-MM-DD';
     const time = d?.getTime();
     const currentDate = new Date();
@@ -897,8 +902,14 @@ export class LeaveComponent implements OnInit {
     //   }
     // }
   }
+  lastValidFromDate:null;
+  lastValidToDate:null;
 
-  async setNoOfDays(template: TemplateRef<any>) {
+  initializeDateMarkers() {
+    this.lastValidFromDate = this.leaveObj.fromDate;
+    this.lastValidToDate = this.leaveObj.toDate;
+  }
+   setNoOfDays=async(template: TemplateRef<any>) =>{
     const dateFormat = 'YYYY-MM-DD';
     this.isWeekOffsExcluded = false;
 
@@ -938,12 +949,22 @@ export class LeaveComponent implements OnInit {
         return (fromDate <= existTo && toDate >= existFrom) && (object.leaveId !== this.leaveObj.leaveId);
     });
 
-    if (isLeaveContained) {
-      this.leaveObj.toDate = null;
-      this.leaveObj.fromDate = null;
-      this.openAlertMod(this.alertTemplate, "Already Leave has been applied between the dates, please update the existing leave.");
-      return;
-    }
+     if (isLeaveContained) {
+       this.leaveObj.fromDate = this.lastValidFromDate;
+       this.leaveObj.toDate = this.lastValidToDate;
+       if (this.toDateInput) {
+         this.toDateInput.nativeElement.value = this.lastValidToDate;
+       }
+       if (this.fromDateInput) {
+         this.fromDateInput.nativeElement.value = this.lastValidFromDate;
+       }
+       if (this.toDateInput) {
+         this.toDateInput.nativeElement.value = this.lastValidToDate;
+       }
+
+       this.openAlertMod(this.alertTemplate, "Already Leave has been applied between the dates, please update the existing leave.");
+       return;
+     }
 
 
     if (this.leaveObj.leaveAppliedFor == 'self') {
