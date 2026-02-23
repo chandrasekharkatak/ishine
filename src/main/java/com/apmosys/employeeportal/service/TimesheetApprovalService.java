@@ -1760,9 +1760,8 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 
     } catch (Exception e) {
         e.printStackTrace();
-        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-        response.setServiceResponse("Something went wrong while processing timesheets");
-    }
+        throw e;
+       }
 
     return response;
 }
