@@ -88,8 +88,9 @@ public class TimesheetMapper {
         dto.setLeaveTypeId(entity.getLeaveTypeMasterId());
         dto.setStatus(entity.getStatus());
         dto.setTotalWorkingMinutes(entity.getTotalWorkingMinutes());
-        dto.setWorkCheckIn(DateConversionUtil.localDateTimeToString(entity.getWorkCheckIn(),pattern));
-        dto.setWorkCheckOut(DateConversionUtil.localDateTimeToString(entity.getWorkCheckOut(),pattern));
+        // Non-working days have null workCheckIn/workCheckOut; avoid calling localDateTimeToString(null)
+        dto.setWorkCheckIn(entity.getWorkCheckIn() == null ? null : DateConversionUtil.localDateTimeToString(entity.getWorkCheckIn(), pattern));
+        dto.setWorkCheckOut(entity.getWorkCheckOut() == null ? null : DateConversionUtil.localDateTimeToString(entity.getWorkCheckOut(), pattern));
         dto.setCreatedBy(entity.getCreatedBy());
         dto.setCreatedOn(entity.getCreatedOn());
         dto.setUpdatedBy(entity.getUpdatedBy());

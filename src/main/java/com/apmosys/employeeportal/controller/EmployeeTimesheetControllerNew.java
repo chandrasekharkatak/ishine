@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.JobRoleAccess;
+import com.apmosys.employeeportal.Exception.TimesheetValidationFailedException;
 import com.apmosys.employeeportal.dto.GetEmployeeSummaryOnExportDTO;
 import com.apmosys.employeeportal.dto.FinalBulkUploadDTO;
 import com.apmosys.employeeportal.dto.GetTimesheetDashboardCountForEmployeeDTO;
@@ -96,7 +97,6 @@ public class EmployeeTimesheetControllerNew {
 	        @RequestPart(value = "documents", required = false) List<MultipartFile> documents) {
 	    
 	    ServiceResponse response = new ServiceResponse();
-	    
 	    try {
 	        if (encryptedDto == null || encryptedDto.trim().isEmpty()) {
 	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -117,6 +117,7 @@ public class EmployeeTimesheetControllerNew {
                 response.setServiceError("Invalid encrypted data format");
                 return response;
             }
+           
             response = timesheetServiceNew.createTimesheet(dto, documents);
 
         } catch (UnauthorizedAccessException e) {

@@ -136,8 +136,7 @@ public class DateConversionUtil {
     /* LocalDateTime -> String  */
 
     public static String localDateTimeToString(LocalDateTime dateTime, String pattern) {
-
-        if (dateTime == null) {
+       if (dateTime == null) {
         	throw new IllegalArgumentException("Invalid date format.");
         }
 

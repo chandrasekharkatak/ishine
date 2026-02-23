@@ -1605,20 +1605,20 @@ public class TimesheetValidationHelper {
 	    }
 
 	    LocationSessionDTO location = empDTO.getLocationSessions().get(0);
+	    
+       // Location in/out time not allowed
+	    if (isNotEmpty(location.getLocationInTime()) || 
+	        isNotEmpty(location.getLocationOutTime())) {
 
-	    //Location in/out time not allowed
-	    if (location.getLocationInTime() != null ||
-	        location.getLocationOutTime() != null) {
 	        throw new IllegalArgumentException(
-	                "Location in/out time must be empty for Non-Working day"
+	            "Location in/out time must be empty for Non-Working day"
 	        );
 	    }
 
-	    // Activities not allowed
+	    // Activities not allowed (empty list or null is OK; list with only placeholder objects is treated as empty for compatibility)
 	    if (location.getProjects() != null) {
 	        for (ProjectTimesheetDTO project : location.getProjects()) {
-	            if (project.getActivities() != null &&
-	                !project.getActivities().isEmpty()) {
+	            if (!isActivitiesEmptyOrPlaceholder(project.getActivities())) {
 	                throw new IllegalArgumentException(
 	                        "Activities are not allowed for Non-Working day"
 	                );
@@ -1633,6 +1633,27 @@ public class TimesheetValidationHelper {
 	                "At least one project must be selected for Non-Working day"
 	        );
 	    }
+	}
+	
+	private boolean isNotEmpty(String value) {
+	    return value != null && !value.trim().isEmpty();
+	}
+
+	/**
+	 * True when activities is null, empty, or contains only placeholder entries
+	 * (each with activityId == null and teamId == null). Used so that non-working day
+	 * validation accepts either an empty list or a single empty object from the frontend.
+	 */
+	private boolean isActivitiesEmptyOrPlaceholder(List<ActivityTimesheetDTO> activities) {
+	    if (activities == null || activities.isEmpty()) {
+	        return true;
+	    }
+	    for (ActivityTimesheetDTO a : activities) {
+	        if (a.getActivityId() != null || a.getTeamId() != null) {
+	            return false;
+	        }
+	    }
+	    return true;
 	}
 	
 	public void validateDayTypeTransition(EmployeeTimesheetsNew existingTS,

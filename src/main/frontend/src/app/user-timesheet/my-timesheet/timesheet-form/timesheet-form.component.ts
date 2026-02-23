@@ -67,9 +67,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   @Input() isUpdation: boolean = false;
   @Input() selectedDate: Date | null = null;
   @Input() timesheetId: number | null = null; // ID of timesheet to update
-  // @Input() isAutoFilled: boolean = false;
-  isTimesheetLockCheckEnable: any = "true";
-  
+  // @Input() isAutoFilled: boolean = false;  
   // Output events for parent component communication
   @Output() timesheetUpdated = new EventEmitter<number>();
   @Output() updateCancelled = new EventEmitter<void>();
@@ -2281,7 +2279,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       OPEN_BACKDATED_DAYS = this.currentUser.timesheetBackDatedDays;
     }
 
-    if (this.isTimesheetLockCheckEnable == 'false') {
+    if (this.currentUser.isTimesheetLockCheckEnable == 'false') {
       endDate = currentDate;
       startDate = new Date(endDate.getTime() - ((OPEN_BACKDATED_DAYS + 1) * DAY_IN_MS));
     } else {
@@ -2347,7 +2345,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
 
     // Calculate start date based on lock check enable flag
     let startDate: Date;
-    if (this.isTimesheetLockCheckEnable == "false") {
+    if (this.currentUser.isTimesheetLockCheckEnable == "false") {
       startDate = new Date(serverDate.getTime() - ((OPEN_BACKDATED_DAYS + CURRENT_DAY) * DAY_IN_MS));
     } else {
       const lockDays = this.currentUser.timesheetLockDays || 7; // Default to 30 if not set
@@ -3427,13 +3425,13 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
 
     // API expects durationMinutes in minutes; form stores hours
     this.convertActivityDurationsToMinutesForApi(this.createOrUpdateObj.locationSessions);
+    const isNonFillable = !this.isDayTypeFillable();
     this.createOrUpdateObj.locationSessions.forEach((location: LocationEntry) => {
-      const isNonFillable = TimesheetFormComponent.NON_FILLABLE_DAY_TYPES.includes(this.dayType);
       location.locationInTime = isNonFillable ? null : this.formatDateTimeForBackend(location.locationInTime, convertToYYYYMMDD(this.fromDate));
       location.locationOutTime = isNonFillable ? null : this.formatDateTimeForBackend(location.locationOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate));
       location.projects.forEach((project: ProjectEntry) => {
         if (isNonFillable) {
-          project.activities = null;
+          project.activities = [];
         }
       });
     });
@@ -3444,10 +3442,15 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
 
     this.isLoadingTimesheet = true;
     this.timesheetNewService.createTimesheet(this.createOrUpdateObj, this.selectedFile)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isLoadingTimesheet = false;
+          this.cdr.detectChanges();
+        })
+      )
       .subscribe({
         next: (response: any) => {
-          this.isLoadingTimesheet = false;
           if (response.serviceStatus === "Success") {
             this.openAlertMod(this.alertTemplate, "Timesheet created successfully.");
             this.resetForm()
@@ -3467,11 +3470,12 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
           }
         },
         error: (error) => {
-          this.isLoadingTimesheet = false;
-          // ✅ MODERATE FIX: Use centralized error handling
+          console.log("error ==> ",error);
+          // Loader is stopped in finalize(); handle error message
           const backendError =
             error?.error?.serviceError ||
             error?.error?.serviceResponse ||
+            error?.error?.message ||
             'An unexpected error occurred while creating the timesheet.';
           this.handleError(
             error,
@@ -3480,7 +3484,6 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
             backendError
           );
         }
-
       });
   }
 
@@ -3615,10 +3618,15 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     if (timesheetEmpId !== null && currentEmpId !== null && timesheetEmpId === currentEmpId) {
       this.timesheetAppliedFor = 'self';
       this.timesheetFilledForUser.empId = this.currentUser.empId;
+      this.selectedTeamMember = null;
+      this.appelectMember = null;
     } else {
       this.timesheetAppliedFor = 'team';
       this.timesheetFilledForUser.empId = timesheetData.empId;
       this.timesheetFilledForUser.name = (timesheetData as any).employeeName ?? this.timesheetFilledForUser.name;
+      // Show shadow/team selection immediately (dropdown binds to appelectMember)
+      this.selectedTeamMember = { empId: timesheetData.empId, name: this.timesheetFilledForUser.name };
+      this.appelectMember = this.selectedTeamMember;
     }
 
     // 5. SIMPLE, DIRECT MAPPING: map backend locationSessions -> timesheetLocations in one pass
@@ -3748,6 +3756,13 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     // 11. Build document upload list so upload option is visible when project has clientSideId + clientApprovalStatus
     // (autofill does not include document data, but upload UI should show for qualifying projects)
     this.getListToRenderUpload();
+
+    // 12. In update mode, load shadowForList for projects that have isShadowTimesheet so Shadow For dropdown shows options and selected value
+    if (this.isUpdation && this.fromDate && timesheetEmpId != null) {
+      this.timesheetLocations.forEach(loc => loc.projects?.forEach(proj => {
+        if (proj.isShadowTimesheet && proj.projectId) this.getEmployeeListByProjectId(proj, timesheetEmpId);
+      }));
+    }
   }
 
   /**
@@ -4034,16 +4049,18 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     // ✅ CRITICAL FIX: Use proper async handling instead of setTimeout
     this.getAllTeamMemberList()
       .then(() => {
-        const teamMember = this.teamMemberList?.find(m => m.empId === empId);
+        const teamMember = this.teamMemberList?.find(m => m.empId === empId || Number(m.empId) === Number(empId));
         if (teamMember) {
           this.timesheetFilledForUser.empId = teamMember.empId;
           this.timesheetFilledForUser.name = teamMember.name;
           this.selectedTeamMember = teamMember;
+          this.appelectMember = teamMember; // So Team Member dropdown shows selected value
           this.getTimesheetMetadata();
           // Load available timesheets for date filtering
           if (this.serverDate) {
             this.getAllAvailableTimesheetByEmpId(this.timesheetFilledForUser);
           }
+          this.cdr.detectChanges();
         } else {
           console.warn(`Team member with empId ${empId} not found`);
           this.openAlertMod(
@@ -4167,19 +4184,16 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     console.log(this.createOrUpdateObj,"createOrUpdateObj");
     // API expects durationMinutes in minutes; form stores hours
     this.convertActivityDurationsToMinutesForApi(this.createOrUpdateObj.locationSessions);
-    // Format location and project data (same as create)
-    const isNonFillable = TimesheetFormComponent.NON_FILLABLE_DAY_TYPES.includes(this.dayType);
+    const isNonFillable = !this.isDayTypeFillable();
     this.createOrUpdateObj.locationSessions.forEach((location: LocationEntry) => {
       location.locationInTime = isNonFillable ? null : this.formatDateTimeForBackend(location.locationInTime, convertToYYYYMMDD(this.fromDate));
       location.locationOutTime = isNonFillable ? null : this.formatDateTimeForBackend(location.locationOutTime, convertToYYYYMMDD(this.isNightShift ? this.toDate : this.fromDate));
       location.projects.forEach((project: ProjectEntry) => {
         if (isNonFillable) {
-          project.activities = null;
+          project.activities = [];
         }
       });
     });
-
-
 
     // Call update API
     this.timesheetNewService.updateTimesheet(this.createOrUpdateObj, this.selectedFile)
@@ -4206,10 +4220,10 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
           }
         },
         error: (error) => {
-          // ✅ MODERATE FIX: Use centralized error handling
           const backendError =
             error?.error?.serviceError ||
             error?.error?.serviceResponse ||
+            error?.error?.message ||
             'An unexpected error occurred while updating the timesheet.';
           this.handleError(
             error,
@@ -4293,7 +4307,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    */
   private convertActivityDurationsToMinutesForApi(locationSessions: LocationEntry[]): void {
     if (!locationSessions) return;
-    const isNonFillable = TimesheetFormComponent.NON_FILLABLE_DAY_TYPES.includes(this.dayType);
+    const isNonFillable = !this.isDayTypeFillable();
     locationSessions.forEach((location) => {
       if (isNonFillable || !location.projects) return;
       location.projects.forEach((project) => {
@@ -4836,6 +4850,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
         next: (response: any) => {
           if (response.serviceStatus == "Success") {
             const shadowEmpList = response.serviceResponse || [];
+            const preserveShadowEmpId = this.isUpdation && project.shadowEmpId != null;
             this.timesheetLocations.forEach(location => {
               location.projects.forEach(proj => {
                 if (proj === project) {
@@ -4844,7 +4859,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
                     proj.shadowForList = [];
                   }
                   else if (proj.isShadowTimesheet) {
-                    proj.shadowEmpId = null;
+                    if (!preserveShadowEmpId) proj.shadowEmpId = null;
                     proj.shadowForList = shadowEmpList;
                   }
                 }

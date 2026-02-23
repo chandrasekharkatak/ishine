@@ -548,11 +548,11 @@ export class LoaderInterceptor implements HttpInterceptor {
   return next.handle(request).pipe(
     tap((event) => {
       if (event instanceof HttpResponse) {
-        // Success response
         this.loaderService.requestEnded();
       }
     }),
     catchError((error: HttpErrorResponse) => {
+      this.loaderService.requestEnded();
       this.loaderService.resetSpinner();
 
       if (error instanceof HttpErrorResponse) {

@@ -15,6 +15,18 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 @RestControllerAdvice
 public class GlobalException {
 	
+	
+	@ExceptionHandler(TimesheetValidationFailedException.class)
+	public ResponseEntity<ServiceResponse> timesheetValidationFailedException(TimesheetValidationFailedException ex){
+        ServiceResponse response = new ServiceResponse();
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        ExceptionLogContext.add(ex.getLocalizedMessage());
+        response.setServiceResponse(ex.getMessage());
+	    return ResponseEntity
+	            .status(HttpStatus.EXPECTATION_FAILED)
+	            .body(response);
+	}
+	
 	@ExceptionHandler(EmployeeNotFoundException.class)
 	public ResponseEntity<String> handleNotFound(EmployeeNotFoundException ex){
 		return ResponseEntity.badRequest().body("Exception : " + ex.getMessage());

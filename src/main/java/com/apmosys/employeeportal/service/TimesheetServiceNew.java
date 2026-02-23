@@ -289,7 +289,7 @@ public class TimesheetServiceNew {
 					effectiveLockDays);
 
 			employeeAssignmentValidationService.validateEmployeeAssignments(empDTO.getEmpId(), empDTO.getDate(),
-					empDTO.getLocationSessions());
+					empDTO.getLocationSessions(), empDTO.getDayTypeId());
 
 			if (timesheetValidationHelper.isWorkingDay(empDTO)) {
 				timesheetValidationHelper.validateDayTypeAgainstLeave(empDTO.getEmpId(), empDTO.getDate(),
@@ -913,7 +913,7 @@ public class TimesheetServiceNew {
 			timesheetValidationHelper.validateDayTypeTransition(empTS, newEmpDTO);
 
 			employeeAssignmentValidationService.validateEmployeeAssignments(newEmpDTO.getEmpId(), newEmpDTO.getDate(),
-					newEmpDTO.getLocationSessions());
+					newEmpDTO.getLocationSessions(), newEmpDTO.getDayTypeId());
 
 			if (timesheetValidationHelper.isWorkingDay(newEmpDTO)) {
 				timesheetValidationHelper.validateDayTypeAgainstLeave(newEmpDTO.getEmpId(), newEmpDTO.getDate(),

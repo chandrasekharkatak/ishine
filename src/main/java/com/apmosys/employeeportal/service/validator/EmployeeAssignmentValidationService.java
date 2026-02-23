@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.service.validator;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -10,8 +11,10 @@ import org.springframework.stereotype.Component;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
+import com.apmosys.employeeportal.model.DayTypeMasterNew;
 import com.apmosys.employeeportal.model.Team;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
+import com.apmosys.employeeportal.repository.DayTypeMasterNewRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
@@ -33,35 +36,57 @@ public class EmployeeAssignmentValidationService {
 
     @Autowired
     private ActivitiesRepository teamActivityMappingRepository;
-    
-    
+
     @Autowired
     private ProjectRepository projectRepository;
-	
-	
-	
-	
+
+    @Autowired
+    private DayTypeMasterNewRepository dayTypeMasterNewRepository;
+
 	/**
-     * Entry method to validate employee eligibility
+     * Entry method to validate employee eligibility.
+     * For non-fillable day types (holiday, week off, leave, etc.) only project existence is validated;
+     * activity mapping validation is skipped since user does not fill activities on those days.
+     *
+     * @param empId     employee id
+     * @param date      timesheet date
+     * @param locations location sessions (projects and activities)
+     * @param dayTypeId day type id (optional); when non-null and non-working, activity validation is skipped
      */
     public void validateEmployeeAssignments(
             Long empId,
             LocalDate date,
-            List<LocationSessionDTO> locations) {
+            List<LocationSessionDTO> locations,
+            Integer dayTypeId) {
 
         if (locations == null || locations.isEmpty()) {
             return;
         }
 
+        boolean skipActivityValidation = isNonFillableDayType(dayTypeId);
+
         for (LocationSessionDTO location : locations) {
-            validateProjects(empId, date, location);
+            validateProjects(empId, date, location, skipActivityValidation);
         }
     }
-    
+
+    /**
+     * True when dayTypeId is non-null and represents a non-working day (e.g. Holiday, Week Off, Leave).
+     * On such days we skip activity mapping validation.
+     */
+    private boolean isNonFillableDayType(Integer dayTypeId) {
+        if (dayTypeId == null) {
+            return false;
+        }
+        Optional<DayTypeMasterNew> opt = dayTypeMasterNewRepository.findById(dayTypeId);
+        return opt.map(dt -> !Boolean.TRUE.equals(dt.getIsWorkingDay())).orElse(false);
+    }
+
     private void validateProjects(
             Long empId,
             LocalDate date,
-            LocationSessionDTO location) {
+            LocationSessionDTO location,
+            boolean skipActivityValidation) {
 
         if (location.getProjects() == null) {
             return;
@@ -72,13 +97,15 @@ public class EmployeeAssignmentValidationService {
             // Validate project existence (basic sanity)
             validateProjectExists(project.getProjectId());
 
-            // Activity-driven validation
-            validateActivities(
-                    empId,
-                    date,
-                    project.getProjectId(),
-                    project.getActivities()
-            );
+            // Activity mapping validation only for fillable (working) days; user does not fill activities on non-fillable days
+            if (!skipActivityValidation) {
+                validateActivities(
+                        empId,
+                        date,
+                        project.getProjectId(),
+                        project.getActivities()
+                );
+            }
         }
     }
     
