@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.JobRoleAccess;
+import com.apmosys.employeeportal.dto.BulkTimesheetRequestDTO;
 import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
 import com.apmosys.employeeportal.dto.FinalBulkUploadDTO;
@@ -648,6 +649,11 @@ public class TimesheetController {
 		            .getMyReporteesTimesheetRequestsNew(payload);
 		}
 	
+		@PostMapping("/bulkApproveTimesheetRequest1")
+		public ServiceResponse bulkApproveTimesheetRequest1( @RequestBody BulkTimesheetRequestDTO bulkTimesheetRequestDTO){
+			return timesheetApprovalService.bulkOrSingleApproveOrReject(bulkTimesheetRequestDTO);
+		}
+	//
 	
 
 		 
