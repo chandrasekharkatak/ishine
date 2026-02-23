@@ -831,6 +831,12 @@
                                 <span class="ml-2 small">{{ project.shadowEmp ? '(Shadow)' : '' }}</span>
                               </div>
                               <div class="d-flex align-items-center">
+                                <button type="button" class="btn btn-danger mr-2"
+                                  *ngIf="project.projectId && project.rejectionReasons?.length > 0"
+                                  (click)="openRejectReasonsModal(project.rejectionReasons, timesheet_reject_reasons);$event.stopPropagation()"
+                                  title="View Rejection Reason(s)">
+                                  <i class="fa-solid fa-circle-info fa-bounce"></i>
+                                </button>
                                 <button type="button" class="btn btn-xs btn-outline-warning mr-2"
                                   *ngIf="project.projectId"
                                   (click)="openDocumentPopup(timesheet, 'Pending', false, project); $event.stopPropagation()"
@@ -910,7 +916,7 @@
           <p class="doc-header-subtitle">Select a project and document type to view</p>
         </div>
       </div>
-      <button type="button" class="doc-close-btn" (click)="modalRef.close()" aria-label="Close">
+      <button type="button" class="doc-close-btn" (click)="clearPreview();modalRef.close()" aria-label="Close">
         <i class="fas fa-times"></i>
       </button>
     </div>
@@ -933,17 +939,23 @@
             </thead>
             <tbody>
               <tr *ngFor="let p of getUniqueProjectsFromTimesheet(selectedTimesheet); let i = index"
-                  [class.active]="p === activeDocProject" (click)="selectProjectForDoc(p)">
+                  [class.active]="p === activeDocProject" >
                 <td>{{ i + 1 }}</td>
-                <td class="doc-project-name" [title]="p.projectName">{{ p.projectName }}</td>
-                <td class="count">{{ getTotalDocCount(p.projectId) }}</td>
+                <td class="doc-project-name" (click)="selectProjectForDoc(p)">{{ p.projectName }}</td>
+                <td class="count" (click)="selectProjectForDoc(p)">{{ getTotalDocCount(p.projectId) }}</td>
                 <td>
-                  <span class="badge filled" [class.disabled]="!hasPendingDoc(p.projectId) && !hasApprovedDoc(p.projectId)">
-                    Filled <small *ngIf="getFilledStatus(p.projectId)">({{ getFilledStatus(p.projectId) }})</small>
+                  <span class="badge filled" [class.disabled]="!hasPendingDoc(p.projectId) && !hasApprovedDoc(p.projectId)" (click)="switchDocType('Pending')">
+                    Filled <button type="button" [class.active]="activeDocType === 'Pending'" (click)="selectProjectForDoc(p);switchDocType('Pending')"
+                    [disabled]="!hasPendingDoc(activeDocProject?.projectId)">
+                    <i class="fa-solid fa-eye"></i></button>
                   </span>
                 </td>
                 <td>
-                  <span class="badge approved" [class.disabled]="!hasApprovedDoc(p.projectId)">Approved</span>
+                  <span class="badge approved" [class.disabled]="!hasApprovedDoc(p.projectId)">Approved
+                   <button type="button" [class.active]="activeDocType === 'Approved'" (click)="selectProjectForDoc(p);switchDocType('Approved')"
+                    [disabled]="!hasApprovedDoc(activeDocProject?.projectId)">
+                    <i class="fa-solid fa-eye"></i></button>
+                  </span>
                 </td>
               </tr>
             </tbody>
@@ -954,25 +966,98 @@
         <div class="doc-panel-title doc-panel-title-right">
           <i class="fas fa-file-pdf"></i>
           <span>Preview</span>
+          <span>{{ activeDocProject?.projectName }}</span>
           <div class="doc-toggle">
-            <button type="button" [class.active]="activeDocType === 'Pending'" (click)="switchDocType('Pending')"
+            <!-- <button type="button" [class.active]="activeDocType === 'Pending'" (click)="switchDocType('Pending')"
                     [disabled]="!hasPendingDoc(activeDocProject?.projectId)">
               <i class="fas fa-clock"></i> Filled
-            </button>
-            <button type="button" [class.active]="activeDocType === 'Approved'" (click)="switchDocType('Approved')"
+            </button> -->
+            <!-- <button type="button" [class.active]="activeDocType === 'Approved'" (click)="switchDocType('Approved')"
                     [disabled]="!hasApprovedDoc(activeDocProject?.projectId)">
               <i class="fas fa-check-circle"></i> Approved
-            </button>
+            </button> -->
           </div>
         </div>
-        <div class="doc-preview">
+        <!-- <div class="doc-preview">
           <iframe *ngIf="safePdfUrl" [src]="safePdfUrl" width="100%" height="100%" frameborder="0" title="Document preview"></iframe>
           <div *ngIf="!safePdfUrl" class="no-doc-msg">
             <i class="fas fa-file-alt no-doc-icon"></i>
             <p class="no-doc-title">No document available</p>
             <p class="no-doc-hint">Select a project and document type above</p>
           </div>
-        </div>
+        </div> -->
+        <div class="doc-preview" [class.fullscreen]="isFullscreen">
+
+  <!-- PDF -->
+  <iframe
+    *ngIf="hasPreview() && activeFileType === 'pdf'"
+    [src]="safePreviewUrl"
+    class="pdf-frame"
+    scrolling="no"
+    title="PDF preview">
+  </iframe>
+
+  <!-- IMAGE -->
+  <div *ngIf="hasPreview() && activeFileType === 'image'" class="image-preview-wrapper">
+
+    <!-- IMAGE VIEWPORT 
+    <div class="image-scroll-container" (mousedown)="startDrag($event)" (mousemove)="onDrag($event)"
+                (mouseup)="stopDrag()" (mouseleave)="stopDrag()">
+
+                <img [src]="activePreviewUrl" [style.transform]="imageTransform" class="preview-image"
+                    draggable="false" />
+            </div> 
+    -->
+    <div
+      class="image-scroll-container"
+      (mousedown)="startDrag($event)"
+      (mousemove)="onDrag($event)"
+      (mouseup)="stopDrag()"
+      (mouseleave)="stopDrag()">
+
+      <img
+        [src]="activePreviewUrl"
+        [style.transform]="imageTransform"
+        class="preview-image"
+        draggable="false" />
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="image-controls">
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="zoomOut()">
+        <i class="fa-solid fa-magnifying-glass-minus"></i>
+      </button>
+
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="zoomIn()">
+        <i class="fa-solid fa-magnifying-glass-plus"></i>
+      </button>
+
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="rotate()">
+        <i class="fa-solid fa-rotate"></i>
+      </button>
+
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="resetTransformations()">
+        <i class="fa-solid fa-house"></i>
+      </button>
+
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="toggleFullscreen()">
+        <i class="fa-solid" [class.fa-expand]="!isFullscreen" [class.fa-compress]="isFullscreen"></i>
+      </button>
+
+      <button type="button" class="btn btn-sm btn-outline-primary" (click)="downloadActiveFile()">
+        <i class="fa-solid fa-download"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- EMPTY -->
+  <div *ngIf="!hasPreview" class="no-doc-msg">
+    <i class="fas fa-file-alt no-doc-icon"></i>
+    <p class="no-doc-title">No document available</p>
+    <p class="no-doc-hint">Select a project and document type above</p>
+  </div>
+
+</div>
       </div>
     </div>
   </div>
@@ -1764,5 +1849,60 @@
 
   <div class="modal-footer">
     <button class="btn btn-primary" (click)="modal.close()">OK</button>
+  </div>
+</ng-template>
+
+<ng-template #timesheet_reject_reasons let-modal>
+  <div class="modal-header bg-light">
+    <h5 class="modal-title">
+      <i class="fa fa-times-circle text-danger"></i>
+      Rejection Details
+    </h5>
+    <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
+  <div class="modal-body">
+
+    <!-- No Rejection -->
+    <div *ngIf="!rejectReasons || rejectReasons.length === 0" class="text-center text-muted">
+      <i class="fa fa-info-circle"></i>
+      No rejection details available.
+    </div>
+
+    <!-- Rejection List -->
+    
+
+      <!-- Rejection Table -->
+      <table class="table table-sm table-bordered mb-0"
+             *ngIf="rejectionReasons && rejectionReasons.length > 0">
+
+        <thead class="thead-light">
+          <tr>
+            <th style="width: 5%">#</th>
+            <th style="width: 30%">Reason</th>
+            <th style="width: 40%">Remarks</th>
+            <th style="width: 25%">Rejected On</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let r of rejectionReasons; let j = index">
+            <td>{{ j + 1 }}</td>
+            <td>{{ r.rejectionReason || '-' }}</td>
+            <td>{{ r.remark || '-' }}</td>
+            <td>{{ r.rejectedOn || '-' }}</td>
+          </tr>
+        </tbody>
+
+      </table>
+
+    </div>
+
+  <div class="modal-footer text-center">
+    <button type="button" class="btn btn-primary" (click)="modal.close()">
+      OK
+    </button>
   </div>
 </ng-template>

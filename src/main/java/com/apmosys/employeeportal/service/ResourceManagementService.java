@@ -16432,7 +16432,7 @@ public class ResourceManagementService {
 
 	   List<TimesheetActionAuditNew> auditList = new ArrayList<>();
 	   LocalDateTime now = LocalDateTime.now();
-	   int statusValue = "APPROVED".equalsIgnoreCase(status) ? 2 : 3;
+	   int statusValue = 2;
 	   for (Map.Entry<Long, List<Long>> entry : timesheetProjectMap.entrySet()) {
 
 		   Long timesheetId = entry.getKey();

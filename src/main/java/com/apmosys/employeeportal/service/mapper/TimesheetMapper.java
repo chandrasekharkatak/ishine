@@ -3,9 +3,11 @@ package com.apmosys.employeeportal.service.mapper;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
@@ -260,7 +262,7 @@ public class TimesheetMapper {
                 ));
     }
     
-    public List<GetReporteesTimesheetReqDTO> map(
+    public List<GetReporteesTimesheetReqDTO> mapNew(
             List<GetReporteesTimesheetReqFlatDTO> rows) {
 
         Map<Long, GetReporteesTimesheetReqDTO> timesheetMap = new LinkedHashMap<>();
@@ -284,7 +286,7 @@ public class TimesheetMapper {
                                     r.getProjectCount(),
                                     r.getLocationCount(),
                                     r.getAppliedBy(),
-                                    TimesheetFormatUtil.formatTime(r.getAppliedOn()),
+                                    TimesheetFormatUtil.formatDateTime(r.getAppliedOn()),
                                     new ArrayList<>(),
                                     new ArrayList<>()
                             )
@@ -342,15 +344,15 @@ public class TimesheetMapper {
             /* ================= ACTIVITY LEVEL ================= */
             if (r.getActivity() != null) {
 
-                GetReporteesTimesheetActivitiesDTO activity =
-                        new GetReporteesTimesheetActivitiesDTO(
-                                r.getActivity(),
-                                // r.getActivityDescription(),
-                                TimesheetFormatUtil.formatMinutes(r.getDurationMinutes()),
-                                r.getTeamName()
-                        );
+//                GetReporteesTimesheetActivitiesDTO activity =
+//                        new GetReporteesTimesheetActivitiesDTO(
+//                                r.getActivity(),
+//                                // r.getActivityDescription(),
+//                                TimesheetFormatUtil.formatMinutes(r.getDurationMinutes()),
+//                                r.getTeamName()
+//                        );
 
-                project.getActivities().add(activity);
+//                project.getActivities().add(activity);
             }
 
             /* ================= DOCUMENT LEVEL ================= */
@@ -377,10 +379,347 @@ public class TimesheetMapper {
                 }
             }
             /* ================= REJECTION LEVEL ================= */
-            if(r.getRejectionReason() != null && r.getRemarks() != null) {
-            	RejectionDataDTO rejectionData = new RejectionDataDTO(r.getDocsProjectId(),r.getLocationMappingId(),r.getTimesheetId(), r.getRejectionReason() , r.getRemarks(), r.getRejectedOn());
-            	if(!project.getRejectionReasons().contains(rejectionData))
-            	project.getRejectionReasons().add(rejectionData);
+//            if(r.getRejectionReason() != null && r.getRemarks() != null) {
+//            	RejectionDataDTO rejectionData = new RejectionDataDTO(r.getDocsProjectId(),r.getLocationMappingId(),r.getTimesheetId(), r.getRejectionReason() , r.getRemarks(), r.getRejectedOn());
+//            	if(!project.getRejectionReasons().contains(rejectionData))
+//            	project.getRejectionReasons().add(rejectionData);
+//            }
+        }
+
+        return new ArrayList<>(timesheetMap.values());
+    }
+    
+    public List<GetReporteesTimesheetReqDTO> map(List<GetReporteesTimesheetReqFlatDTO> rows) {
+
+        if (rows == null || rows.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        Map<Long, GetReporteesTimesheetReqDTO> timesheetMap = new LinkedHashMap<>();
+
+        // timesheetId -> (locationMappingId -> locationDto)
+        Map<Long, Map<Long, GetReporteesTimesheetLocationsDTO>> tsLocMap = new HashMap<>();
+
+        // timesheetId -> (locationMappingId -> (projectId -> projectDto))
+        // ✅ Still grouped as Timesheet -> Location -> Project (no grouping expectation changed)
+        Map<Long, Map<Long, Map<Integer, GetReporteesTimesheetProjectsDTO>>> tsLocProjectMap = new HashMap<>();
+
+        // Dedupe: project list insert once
+        Map<Long, Map<Long, Set<Integer>>> seenProjects = new HashMap<>();
+
+        // Activity dedupe per actual routing: timesheetId -> actLocId -> actProjectId -> set(actKey)
+        Map<Long, Map<Long, Map<Integer, Set<String>>>> seenActivityKeys = new HashMap<>();
+
+        // Rejection dedupe per actual routing: timesheetId -> rejLocId -> rejProjectId -> set(rejKey)
+        Map<Long, Map<Long, Map<Integer, Set<String>>>> seenRejectionKeys = new HashMap<>();
+
+        // docs at timesheet level
+        Map<Long, Set<Long>> seenDocIds = new HashMap<>();
+
+        for (GetReporteesTimesheetReqFlatDTO row : rows) {
+
+            if (row == null || row.getTimesheetId() == null) continue;
+
+            final Long timesheetId = row.getTimesheetId();
+
+            // =======================
+            // 1) TIMESHEET (create once)
+            // =======================
+            GetReporteesTimesheetReqDTO ts = timesheetMap.computeIfAbsent(timesheetId, id -> {
+                GetReporteesTimesheetReqDTO dto = new GetReporteesTimesheetReqDTO();
+
+                dto.setTimesheetId(id);
+                dto.setEmpId(row.getEmpId());
+                dto.setEmploymentId(row.getEmploymentId());
+                dto.setEmployeeName(row.getEmployeeName());
+                dto.setDayType(row.getDayType());
+
+                dto.setDate(row.getDate() != null ? TimesheetFormatUtil.formatDate(row.getDate()) : null);
+                dto.setIsNightShift(row.getIsNightShift());
+
+                dto.setWorkCheckIn(row.getWorkCheckIn() != null ? TimesheetFormatUtil.formatTime(row.getWorkCheckIn()) : null);
+                dto.setWorkCheckOut(row.getWorkCheckOut() != null ? TimesheetFormatUtil.formatTime(row.getWorkCheckOut()) : null);
+
+                dto.setProjectCount(row.getProjectCount());
+                dto.setLocationCount(row.getLocationCount());
+                dto.setAppliedBy(row.getAppliedBy());
+
+                dto.setAppliedOn(row.getAppliedOn() != null ? TimesheetFormatUtil.formatDateTime(row.getAppliedOn()) : null);
+
+                dto.setLocationSessions(new ArrayList<>());
+                dto.setDocumentData(new ArrayList<>());
+                return dto;
+            });
+
+            // init maps
+            tsLocMap.computeIfAbsent(timesheetId, k -> new LinkedHashMap<>());
+            tsLocProjectMap.computeIfAbsent(timesheetId, k -> new HashMap<>());
+
+            seenProjects.computeIfAbsent(timesheetId, k -> new HashMap<>());
+            seenActivityKeys.computeIfAbsent(timesheetId, k -> new HashMap<>());
+            seenRejectionKeys.computeIfAbsent(timesheetId, k -> new HashMap<>());
+
+            seenDocIds.computeIfAbsent(timesheetId, k -> new HashSet<>());
+
+            // =======================
+            // Helper inline: Ensure Location exists for a given locId
+            // =======================
+            // (No helper methods requested, so this is inline repeated when needed)
+
+            // =======================
+            // 2) BASE ROW: ensure base location & base project exist (if present)
+            // =======================
+            if (row.getLocationMappingId() != null) {
+
+                final Long baseLocId = row.getLocationMappingId();
+                Map<Long, GetReporteesTimesheetLocationsDTO> locMap = tsLocMap.get(timesheetId);
+
+                GetReporteesTimesheetLocationsDTO baseLocDto = locMap.get(baseLocId);
+                if (baseLocDto == null) {
+                    baseLocDto = new GetReporteesTimesheetLocationsDTO();
+                    baseLocDto.setLocationMappingId(baseLocId);
+                    baseLocDto.setWorkLocationType(row.getWorkLocationType());
+                    baseLocDto.setLocationInTime(row.getLocationInTime() != null ? TimesheetFormatUtil.formatDateTime(row.getLocationInTime()) : null);
+                    baseLocDto.setLocationOutTime(row.getLocationOutTime() != null ? TimesheetFormatUtil.formatDateTime(row.getLocationOutTime()) : null);
+                    baseLocDto.setProjects(new ArrayList<>());
+
+                    locMap.put(baseLocId, baseLocDto);
+                    ts.getLocationSessions().add(baseLocDto);
+                }
+
+                tsLocProjectMap.get(timesheetId).computeIfAbsent(baseLocId, k -> new LinkedHashMap<>());
+                seenProjects.get(timesheetId).computeIfAbsent(baseLocId, k -> new HashSet<>());
+
+                // Ensure base project exists under base location (if projectId present)
+                if (row.getProjectId() != null) {
+                    final Integer baseProjectId = row.getProjectId();
+
+                    Map<Integer, GetReporteesTimesheetProjectsDTO> projMap = tsLocProjectMap.get(timesheetId).get(baseLocId);
+                    GetReporteesTimesheetProjectsDTO projDto = projMap.get(baseProjectId);
+
+                    if (projDto == null) {
+                        projDto = new GetReporteesTimesheetProjectsDTO();
+                        projDto.setProjectId(baseProjectId);
+                        projDto.setProjectName(row.getProjectName());
+                        projDto.setClientName(row.getClientName());
+                        projDto.setClientLocation(row.getClientLocation());
+                        projDto.setPoNo(row.getPoNo());
+                        projDto.setShadowEmp(row.getShadowEmp());
+                        projDto.setStatus(row.getStatus());
+                        projDto.setTotalClientWorkingMinutes(
+                                row.getTotalClientWorkingMinutes() != null
+                                        ? TimesheetFormatUtil.formatMinutes(row.getTotalClientWorkingMinutes())
+                                        : null
+                        );
+                        projDto.setDescription(row.getDescription());
+                        projDto.setActivities(new ArrayList<>());
+                        projDto.setRejectionReasons(new ArrayList<>());
+
+                        projMap.put(baseProjectId, projDto);
+                        if (seenProjects.get(timesheetId).get(baseLocId).add(baseProjectId)) {
+                            baseLocDto.getProjects().add(projDto);
+                        }
+                    }
+                }
+            }
+
+            // =======================
+            // 3) ACTIVITY: ROUTE using activityLocationMappingId + activityProjectId
+            // without changing grouping expectations (still stored under Timesheet->Location->Project)
+            // =======================
+            boolean hasActivity =
+                    row.getActivityTimesheetId() != null
+                            || row.getActivityLocationMappingId() != null
+                            || row.getActivityProjectId() != null
+                            || (row.getActivity() != null && !row.getActivity().trim().isEmpty());
+
+            if (hasActivity) {
+
+                // Choose effective routing IDs:
+                final Long actLocId = row.getActivityLocationMappingId() != null
+                        ? row.getActivityLocationMappingId()
+                        : row.getLocationMappingId();
+
+                final Integer actProjectId = row.getActivityProjectId() != null
+                        ? row.getActivityProjectId()
+                        : row.getProjectId();
+
+                if (actLocId != null && actProjectId != null) {
+
+                    // Ensure location exists
+                    Map<Long, GetReporteesTimesheetLocationsDTO> locMap = tsLocMap.get(timesheetId);
+                    GetReporteesTimesheetLocationsDTO actLocDto = locMap.get(actLocId);
+
+                    if (actLocDto == null) {
+                        actLocDto = new GetReporteesTimesheetLocationsDTO();
+                        actLocDto.setLocationMappingId(actLocId);
+                        actLocDto.setWorkLocationType(row.getWorkLocationType());
+                        actLocDto.setLocationInTime(row.getLocationInTime() != null ? TimesheetFormatUtil.formatDateTime(row.getLocationInTime()) : null);
+                        actLocDto.setLocationOutTime(row.getLocationOutTime() != null ? TimesheetFormatUtil.formatDateTime(row.getLocationOutTime()) : null);
+                        actLocDto.setProjects(new ArrayList<>());
+
+                        locMap.put(actLocId, actLocDto);
+                        ts.getLocationSessions().add(actLocDto);
+                    }
+
+                    // Ensure project exists under activity location
+                    tsLocProjectMap.get(timesheetId).computeIfAbsent(actLocId, k -> new LinkedHashMap<>());
+                    seenProjects.get(timesheetId).computeIfAbsent(actLocId, k -> new HashSet<>());
+
+                    Map<Integer, GetReporteesTimesheetProjectsDTO> projMap = tsLocProjectMap.get(timesheetId).get(actLocId);
+                    GetReporteesTimesheetProjectsDTO projDto = projMap.get(actProjectId);
+
+                    if (projDto == null) {
+                        projDto = new GetReporteesTimesheetProjectsDTO();
+                        projDto.setProjectId(actProjectId);
+                        projDto.setProjectName(row.getProjectName());
+                        projDto.setClientName(row.getClientName());
+                        projDto.setClientLocation(row.getClientLocation());
+                        projDto.setPoNo(row.getPoNo());
+                        projDto.setShadowEmp(row.getShadowEmp());
+                        projDto.setStatus(row.getStatus());
+                        projDto.setTotalClientWorkingMinutes(
+                                row.getTotalClientWorkingMinutes() != null
+                                        ? TimesheetFormatUtil.formatMinutes(row.getTotalClientWorkingMinutes())
+                                        : null
+                        );
+                        projDto.setDescription(row.getDescription());
+                        projDto.setActivities(new ArrayList<>());
+                        projDto.setRejectionReasons(new ArrayList<>());
+
+                        projMap.put(actProjectId, projDto);
+                        if (seenProjects.get(timesheetId).get(actLocId).add(actProjectId)) {
+                            actLocDto.getProjects().add(projDto);
+                        }
+                    }
+
+                    // Dedupe structures for activity routing
+                    seenActivityKeys.get(timesheetId).computeIfAbsent(actLocId, k -> new HashMap<>());
+                    seenActivityKeys.get(timesheetId).get(actLocId).computeIfAbsent(actProjectId, k -> new HashSet<>());
+
+                    // Dedupe key: ALL THREE (as requested)
+                    final String actKey =
+                            String.valueOf(row.getActivityTimesheetId())
+                                    + "|" + String.valueOf(row.getActivityLocationMappingId())
+                                    + "|" + String.valueOf(row.getActivityProjectId());
+
+                    if (seenActivityKeys.get(timesheetId).get(actLocId).get(actProjectId).add(actKey)) {
+                        GetReporteesTimesheetActivitiesDTO act = new GetReporteesTimesheetActivitiesDTO();
+
+                        act.setTimesheetId(row.getActivityTimesheetId());
+                        act.setLocationMappingId(row.getActivityLocationMappingId());
+                        act.setProjectId(row.getActivityProjectId());
+                        act.setActivity(row.getActivity());
+                        act.setDurationMinutes(row.getDurationMinutes() != null
+                                ? TimesheetFormatUtil.formatMinutes(row.getDurationMinutes())
+                                : null
+                        );
+
+                        projDto.getActivities().add(act);
+                    }
+                }
+            }
+
+            // =======================
+            // 4) REJECTION: ROUTE using rejectionLocationMappingId + rejectionProjectId
+            // =======================
+            boolean hasRejection =
+                    row.getRejectionReason() != null
+                            || row.getRemarks() != null
+                            || row.getRejectedOn() != null
+                            || row.getRejectionLocationMappingId() != null
+                            || row.getRejectionProjectId() != null;
+
+            if (hasRejection) {
+
+                final Long rejLocId = row.getRejectionLocationMappingId() != null
+                        ? row.getRejectionLocationMappingId()
+                        : row.getLocationMappingId();
+
+                final Integer rejProjectId = row.getRejectionProjectId() != null
+                        ? row.getRejectionProjectId()
+                        : row.getProjectId();
+
+                if (rejLocId != null && rejProjectId != null) {
+
+                    // Ensure location exists
+                    Map<Long, GetReporteesTimesheetLocationsDTO> locMap = tsLocMap.get(timesheetId);
+                    GetReporteesTimesheetLocationsDTO rejLocDto = locMap.get(rejLocId);
+
+                    if (rejLocDto == null) {
+                        rejLocDto = new GetReporteesTimesheetLocationsDTO();
+                        rejLocDto.setLocationMappingId(rejLocId);
+                        rejLocDto.setWorkLocationType(row.getWorkLocationType());
+                        rejLocDto.setLocationInTime(row.getLocationInTime() != null ? TimesheetFormatUtil.formatDateTime(row.getLocationInTime()) : null);
+                        rejLocDto.setLocationOutTime(row.getLocationOutTime() != null ? TimesheetFormatUtil.formatDateTime(row.getLocationOutTime()) : null);
+                        rejLocDto.setProjects(new ArrayList<>());
+
+                        locMap.put(rejLocId, rejLocDto);
+                        ts.getLocationSessions().add(rejLocDto);
+                    }
+
+                    // Ensure project exists under rejection location
+                    tsLocProjectMap.get(timesheetId).computeIfAbsent(rejLocId, k -> new LinkedHashMap<>());
+                    seenProjects.get(timesheetId).computeIfAbsent(rejLocId, k -> new HashSet<>());
+
+                    Map<Integer, GetReporteesTimesheetProjectsDTO> projMap = tsLocProjectMap.get(timesheetId).get(rejLocId);
+                    GetReporteesTimesheetProjectsDTO projDto = projMap.get(rejProjectId);
+
+                    if (projDto == null) {
+                        projDto = new GetReporteesTimesheetProjectsDTO();
+                        projDto.setProjectId(rejProjectId);
+                        projDto.setProjectName(row.getProjectName());
+                        projDto.setClientName(row.getClientName());
+                        projDto.setClientLocation(row.getClientLocation());
+                        projDto.setPoNo(row.getPoNo());
+                        projDto.setShadowEmp(row.getShadowEmp());
+                        projDto.setStatus(row.getStatus());
+                        projDto.setTotalClientWorkingMinutes(
+                                row.getTotalClientWorkingMinutes() != null
+                                        ? TimesheetFormatUtil.formatMinutes(row.getTotalClientWorkingMinutes())
+                                        : null
+                        );
+                        projDto.setDescription(row.getDescription());
+                        projDto.setActivities(new ArrayList<>());
+                        projDto.setRejectionReasons(new ArrayList<>());
+
+                        projMap.put(rejProjectId, projDto);
+                        if (seenProjects.get(timesheetId).get(rejLocId).add(rejProjectId)) {
+                            rejLocDto.getProjects().add(projDto);
+                        }
+                    }
+
+                    // Dedupe structures for rejection routing
+                    seenRejectionKeys.get(timesheetId).computeIfAbsent(rejLocId, k -> new HashMap<>());
+                    seenRejectionKeys.get(timesheetId).get(rejLocId).computeIfAbsent(rejProjectId, k -> new HashSet<>());
+
+                    String rejOnFmt = row.getRejectedOn() != null ? TimesheetFormatUtil.formatDateTime(row.getRejectedOn()) : "";
+                    String rejKey = "RSN:" + (row.getRejectionReason() == null ? "" : row.getRejectionReason().trim())
+                            + "|RMK:" + (row.getRemarks() == null ? "" : row.getRemarks().trim())
+                            + "|ON:" + rejOnFmt;
+
+                    if (seenRejectionKeys.get(timesheetId).get(rejLocId).get(rejProjectId).add(rejKey)) {
+                        RejectionDataDTO rej = new RejectionDataDTO();
+                        rej.setRejectionReason(row.getRejectionReason());
+                        rej.setRemark(row.getRemarks());
+                        rej.setRejectedOn(rejOnFmt);
+                        projDto.getRejectionReasons().add(rej);
+                    }
+                }
+            }
+
+            // =======================
+            // 5) DOCUMENTS (timesheet level, dedupe by docId)
+            // =======================
+            if (row.getDocId() != null && seenDocIds.get(timesheetId).add(row.getDocId())) {
+                GetReporteesTimesheetDocsDTO doc = new GetReporteesTimesheetDocsDTO();
+                doc.setDocId(row.getDocId());
+                doc.setDocName(row.getDocName());
+                doc.setFinalFlag(row.getFinalFlag());
+                doc.setBulkApprovedDocId(row.getBulkApprovedDocId());
+                doc.setMimeType(row.getMimeType());
+                doc.setDocsProjectId(row.getDocsProjectId());
+                ts.getDocumentData().add(doc);
             }
         }
 
