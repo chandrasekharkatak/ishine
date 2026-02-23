@@ -919,15 +919,24 @@ export class LeaveComponent implements OnInit {
       this.leaveObj.noOfDays = null;
       return false
     }
+    if (moment(this.leaveObj.toDate).isBefore(this.leaveObj.fromDate)) {
+      this.leaveObj.toDate = null;
+      this.openAlertMod(template, "To Date cannot be before From Date!");
+      return false;
+    }
 
     //Get Overlaping leave Application
     this.getOverlappedTeamMemberLeave();
 
     //Check if leave has been already applied between from date & toDate
     let fromDate = moment(this.leaveObj.fromDate).format(dateFormat);
-    let toDate = moment(this.leaveObj.toDate).format(dateFormat);
+      let toDate = moment(this.leaveObj.toDate).format(dateFormat);
     //console.log(" from date and todate ",fromDate,toDate);
-    let isLeaveContained = this.previouslyAppliedLeavesList.find(object => object.toDate <= toDate && object.fromDate >= fromDate);
+    let isLeaveContained = this.previouslyAppliedLeavesList.find(object => {
+        let existFrom = moment(object.fromDate).format(dateFormat);
+        let existTo = moment(object.toDate).format(dateFormat);
+        return (fromDate <= existTo && toDate >= existFrom) && (object.leaveId !== this.leaveObj.leaveId);
+    });
 
     if (isLeaveContained) {
       this.leaveObj.toDate = null;
@@ -1084,7 +1093,7 @@ moment(this.leaveObj.fromDate).format('YYYY-MM-DD')) && this.leaveObj.fromDateDa
   onApplyLeave(template: TemplateRef<any>) {
     const dateFormat = 'YYYY-MM-DD';
     this.leaveObj.reason = this.leaveObj.reason?.trim();
-    
+
     console.log("Leave code",this.leaveObj.leaveTypeCode);
 
     // Restrict CL for next year
@@ -1095,7 +1104,7 @@ if (this.leaveObj.leaveTypeCode === 'CL') {
 
   const fromDate = moment(this.leaveObj.fromDate);
   const toDate = moment(this.leaveObj.toDate);
- 
+
   if (
     fromDate.year() > currentYear ||
     toDate.year() > currentYear ||
