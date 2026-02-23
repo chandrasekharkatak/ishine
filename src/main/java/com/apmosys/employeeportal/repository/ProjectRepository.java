@@ -8784,7 +8784,7 @@ List<Object[]> getClientAndProjectDataList(
             "GROUP_CONCAT(DISTINCT t.team_name SEPARATOR ', ') AS team_name, " +
             "GROUP_CONCAT(DISTINCT e1.name SEPARATOR ', ') AS project_manager_name, " +
             "GROUP_CONCAT(DISTINCT p.project_name ORDER BY p.project_name SEPARATOR ', ') AS project_name, " +
-            "GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no " + 
+            " ppd.po_no AS po_no " + 
             "FROM employee e " +
             "LEFT JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id AND etm.active = 1 " +
 			" LEFT JOIN po_requirement_mapping prm ON prm.role_id = etm.role_id AND prm.po_id = etm.po_id " +
@@ -8803,7 +8803,7 @@ List<Object[]> getClientAndProjectDataList(
             "WHERE e.employmentstatus != 'InActive' " +
             "AND ppd.po_no IN (:poNos) " +
             "AND e.emp_id NOT BETWEEN 1 AND 6 " +
-            "GROUP BY e.emp_id, e.employeement_id, e.name, d.name, jr.name",
+            "GROUP BY e.emp_id, e.employeement_id, e.name, d.name, jr.name, ppd.po_no",
        nativeQuery = true)
 List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 }
