@@ -309,6 +309,8 @@ public class TimesheetServiceNew {
 			// Normalize new contract
 			normalizeEmployeeTimesheetFromNewContract(empDTO, empDTO.getDate());
 
+			timesheetValidationHelper.validateHalfDayLeaveIfRequired(empDTO);
+
 			timesheetValidationHelper.validateEmployeeAuthorization(empDTO);
 
 			timesheetValidationHelper.validateNullAndUnexpectedData(empDTO);

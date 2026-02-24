@@ -11,5 +11,6 @@ public class BulkTimesheetRequestDTO {
 	private List<Long> timesheetIds; // optional for approve
     private String status;           // APPROVED / REJECTED
     private Long updatedBy;
+    private Long rmId;
     private List<ProjectRejectionDTO> projectRejections;
 }

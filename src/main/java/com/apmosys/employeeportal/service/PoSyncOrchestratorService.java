@@ -451,6 +451,11 @@ public class PoSyncOrchestratorService {
 	                null,
 	                httpRequest
 	        );
+	        
+	        if(dto.getPrimaryProject() == null || dto.getPrimaryProject().getProjectId() == null) {
+	        	ExceptionLogContext.add("Primary project or po project ID is null ");
+	            throw new RuntimeException("Project information is missing or not yet synchronized with iShine.");
+	        }
 
 	        // Primary project must exist
 	        Project primaryProject =
@@ -491,12 +496,7 @@ public class PoSyncOrchestratorService {
 	                    dto.getPrimaryProject().getPoDetailsList()
 	            );
 	            
-	            
 	            poDetailsService.liftAndShiftTeamNew(dto);
-
-	            projectService.deactivateDeletedProjects(
-	                    dto.getDeletedProjects()
-	            );
 
 	            poDetailsService.updatePoOrderOnly(
 	                    primaryProject.getProjectId(),

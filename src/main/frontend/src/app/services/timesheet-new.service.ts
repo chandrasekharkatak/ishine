@@ -171,6 +171,7 @@ export class TimesheetNewService {
 bulkRejectTimesheetsByIds1(payload: {
   timesheetIds: number[];
   status: string;
+  rmId: number;
   updatedBy: number;
   projectRejections: {
     projectIds: number[];

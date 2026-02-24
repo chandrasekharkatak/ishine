@@ -25,10 +25,15 @@ import java.util.HashMap;
 	import org.springframework.data.jpa.domain.JpaSort;
 	import org.springframework.stereotype.Service;
 	import org.springframework.transaction.annotation.Transactional;
-	
-	import com.apmosys.employeeportal.dto.EmployeeDTO;
-	import com.apmosys.employeeportal.dto.GetMyReporteesTimesheetRequestsPayload;
+
+import com.apmosys.employeeportal.Exception.BadRequestException;
+import com.apmosys.employeeportal.dto.BulkTimesheetRequestDTO;
+import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO;
+import com.apmosys.employeeportal.dto.GetMyReporteesTimesheetRequestsPayload;
 	import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.ProjectRejectionDTO;
+import com.apmosys.employeeportal.dto.SkippedTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 	import com.apmosys.employeeportal.dto.TimesheetDTO;
 	import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
@@ -39,16 +44,22 @@ import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 	import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqDTO;
 	import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO;
 	import com.apmosys.employeeportal.model.Employee;
-	import com.apmosys.employeeportal.model.Timesheet;
-	import com.apmosys.employeeportal.model.TimesheetApprovalAllocationLogs;
+import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
+import com.apmosys.employeeportal.model.Timesheet;
+import com.apmosys.employeeportal.model.TimesheetActionAuditNew;
+import com.apmosys.employeeportal.model.TimesheetApprovalAllocationLogs;
 	import com.apmosys.employeeportal.model.TimesheetDocumentApproval;
-	import com.apmosys.employeeportal.model.TimesheetRejectionReasonsMaster;
+import com.apmosys.employeeportal.model.TimesheetRejectionDetailsNew;
+import com.apmosys.employeeportal.model.TimesheetRejectionReasonsMaster;
 	import com.apmosys.employeeportal.repository.EmployeeRepository;
 	import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
-	import com.apmosys.employeeportal.repository.TimesheetApprovalAllocationLogsRepository;
+import com.apmosys.employeeportal.repository.ProjectTimesheetStatusNewRepository;
+import com.apmosys.employeeportal.repository.TimesheetActionAuditNewRepository;
+import com.apmosys.employeeportal.repository.TimesheetApprovalAllocationLogsRepository;
 	import com.apmosys.employeeportal.repository.TimesheetDocumentApprovalRepository;
 	import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
-	import com.apmosys.employeeportal.repository.TimesheetRejectionReasonsMasterRepository;
+import com.apmosys.employeeportal.repository.TimesheetRejectionDetailsNewRepository;
+import com.apmosys.employeeportal.repository.TimesheetRejectionReasonsMasterRepository;
 	import com.apmosys.employeeportal.repository.TimesheetsRepository;
 	import com.apmosys.employeeportal.service.mapper.TimesheetMapper;
 	import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -79,6 +90,15 @@ import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 	    
 	    @Autowired
 	    private TimesheetDocumentApprovalRepository timesheetDocumentApprovalRepository;
+	    
+	    @Autowired
+	    private TimesheetActionAuditNewRepository timesheetActionAuditNewRepository;
+	    
+	    @Autowired
+	    private ProjectTimesheetStatusNewRepository projectTimesheetStatusNewRepository;
+	    
+	    @Autowired
+	    private TimesheetRejectionDetailsNewRepository timesheetRejectionDetailsNewRepository;
 	    
 	    @Autowired
 	    private TimesheetApprovalAllocationLogsRepository timesheetApprovalAllocationLogsRepository;
@@ -1651,5 +1671,182 @@ public ServiceResponse getMyReporteesTimesheetRequestsNew(GetMyReporteesTimeshee
 
     return response;
 }
-	}
+
+
+public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO request) {
+
+    ServiceResponse response = new ServiceResponse();
+
+    try {
+        String status = request.getStatus();
+        List<Long> timesheetIdsReq = request.getTimesheetIds();
+
+        List<EmployeeTimesheetsNew> timesheetDatas =
+                employeeTimesheetsNewRepository.findAllById(timesheetIdsReq);
+
+        boolean hasMismatch = timesheetDatas.stream()
+                .anyMatch(data -> !java.util.Objects.equals(data.getCurrentManagerId(), request.getRmId()));
+
+        if (hasMismatch) {
+            throw new BadRequestException("You do not have the approval/rejection rights of some timesheets");
+        }
+
+        if ("REJECTED".equalsIgnoreCase(status) && timesheetIdsReq.size() > 1) {
+            throw new IllegalArgumentException("Only one timesheet can be rejected at a time.");
+        }
+
+        List<EmployeeTimesheetsNewDTO> timesheets =
+                employeeTimesheetsNewRepository.fetchTimesheetsWithEmploymentId(timesheetIdsReq);
+
+        List<SkippedTimesheetDTO> skippedTimesheets = new ArrayList<>();
+        List<Long> validTimesheetIds = new ArrayList<>();
+
+        for (EmployeeTimesheetsNewDTO ts : timesheets) {
+
+            String prefix = "true".equalsIgnoreCase(ts.getIsProd()) ? "AP-" : "A-";
+            String formattedEmpId = prefix + ts.getEmployementID();
+
+            Integer tsStatus = ts.getStatus();
+            if (tsStatus != null && tsStatus == 1) {
+                validTimesheetIds.add(ts.getTimesheetId());
+            } else if (tsStatus != null && tsStatus == 2) {
+                skippedTimesheets.add(new SkippedTimesheetDTO(
+                        ts.getTimesheetId(),
+                        formattedEmpId,
+                        ts.getDate(),
+                        "Already Approved"
+                ));
+            } else if (tsStatus != null && tsStatus == 3) {
+                skippedTimesheets.add(new SkippedTimesheetDTO(
+                        ts.getTimesheetId(),
+                        formattedEmpId,
+                        ts.getDate(),
+                        "Already Rejected"
+                ));
+            }
+        }
+
+        if (validTimesheetIds.isEmpty()) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse("No valid timesheets to process");
+            response.setServiceError(skippedTimesheets);
+            return response;
+        }
+
+        List<Object[]> result =
+                projectTimesheetStatusNewRepository.findProjectsForTimesheetIds(validTimesheetIds);
+
+        Map<Long, List<Long>> timesheetProjectMap = new HashMap<>();
+        for (Object[] r : result) {
+            Long timesheetId = ((Number) r[0]).longValue();
+            Long projectId = ((Number) r[1]).longValue();
+            timesheetProjectMap.computeIfAbsent(timesheetId, k -> new ArrayList<>()).add(projectId);
+        }
+
+        Long updatedBy = request.getUpdatedBy();
+
+        if ("APPROVED".equalsIgnoreCase(status)) {
+            saveAuditForApproval(validTimesheetIds, timesheetProjectMap, updatedBy, status);
+        } else if ("REJECTED".equalsIgnoreCase(status)) {
+            saveRejectionDetails(request);
+        }
+
+        Map<String, Object> finalResponse = new HashMap<>();
+        finalResponse.put("processed", validTimesheetIds);
+        finalResponse.put("skipped", skippedTimesheets);
+
+        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        response.setServiceResponse(finalResponse);
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        throw e;
+       }
+
+    return response;
+}
+
+private void saveAuditForApproval(List<Long> timesheetIds, Map<Long, List<Long>> timesheetProjectMap,
+                                  Long updatedBy, String status) {
+
+    List<TimesheetActionAuditNew> auditList = new ArrayList<>();
+    LocalDateTime now = LocalDateTime.now();
+    int statusValue = 2;
+
+    for (Map.Entry<Long, List<Long>> entry : timesheetProjectMap.entrySet()) {
+
+        Long timesheetId = entry.getKey();
+        List<Long> projectIds = entry.getValue();
+
+        for (Long projectId : projectIds) {
+            TimesheetActionAuditNew audit = new TimesheetActionAuditNew();
+            audit.setTimesheetId(timesheetId);
+            audit.setProjectId(projectId.intValue());
+            audit.setActionType(status);
+            audit.setActionBy(updatedBy);
+            audit.setActionOn(now);
+            auditList.add(audit);
+        }
+    }
+
+    timesheetActionAuditNewRepository.saveAll(auditList);
+    employeeTimesheetsNewRepository.processByStatus(timesheetIds, statusValue);
+    projectTimesheetStatusNewRepository.processByStatus(timesheetIds, statusValue);
+}
+
+private void saveRejectionDetails(BulkTimesheetRequestDTO request) {
+
+    List<TimesheetRejectionDetailsNew> rejectionList = new ArrayList<>();
+    List<TimesheetActionAuditNew> auditList = new ArrayList<>();
+    LocalDateTime now = LocalDateTime.now();
+
+    List<Long> timesheetIds = request.getTimesheetIds();
+    Long updatedBy = request.getUpdatedBy();
+
+    List<ProjectRejectionDTO> projectRejections = request.getProjectRejections();
+
+    for (Long timesheetId : timesheetIds) {
+
+        for (ProjectRejectionDTO pr : projectRejections) {
+
+            List<Long> projectIds = pr.getProjectIds();
+            List<Long> rejectionIds = pr.getRejectionIds();
+            String remark = pr.getRejectRemark();
+
+            for (Long projectId : projectIds) {
+
+                Long locationMappingId = projectTimesheetStatusNewRepository
+                        .findLocationMappingId(timesheetId, projectId.intValue());
+
+                projectTimesheetStatusNewRepository
+                        .processByTSandProject(timesheetId, projectId.intValue(), 3);
+
+                TimesheetActionAuditNew audit = new TimesheetActionAuditNew();
+                audit.setTimesheetId(timesheetId);
+                audit.setProjectId(projectId.intValue());
+                audit.setActionType("REJECTED");
+                audit.setActionBy(updatedBy);
+                audit.setActionOn(now);
+                auditList.add(audit);
+
+                for (Long rejectionId : rejectionIds) {
+                    TimesheetRejectionDetailsNew rejection = new TimesheetRejectionDetailsNew();
+                    rejection.setTimesheetId(timesheetId);
+                    rejection.setLocationMappingId(locationMappingId);
+                    rejection.setProjectId(projectId.intValue());
+                    rejection.setRejectionId(rejectionId);
+                    rejection.setRemarks(remark);
+                    rejection.setRejectedBy(updatedBy);
+                    rejection.setRejectedOn(now);
+                    rejectionList.add(rejection);
+                }
+            }
+        }
+    }
+
+    timesheetActionAuditNewRepository.saveAll(auditList);
+    employeeTimesheetsNewRepository.processByStatus(timesheetIds, 3);
+    timesheetRejectionDetailsNewRepository.saveAll(rejectionList);
+}
+}
 	
