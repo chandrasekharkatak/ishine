@@ -17,6 +17,7 @@ import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.MigrateTeam;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.RMGDashboardProjectRequest;
 import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
 import com.apmosys.employeeportal.dto.RmgTeamDto;
 import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
@@ -372,6 +373,12 @@ public class TeamsController {
 		return teamsService.removeTeamMembersFromProject(rmgTeamDto);
 	}
 
+	// @Encrypted
+	@PostMapping("/updateTeamMembersEndDate")
+	public ServiceResponse updateTeamMembersEndDate(@RequestBody RmgTeamDto rmgTeamDto) {
+		return teamsService.updateTeamMembersEndDate(rmgTeamDto);
+	}
+	
 	// @Encrypted
 	@PostMapping("/updateMappingToOtherProjectAsDefault")
 	public ServiceResponse updateMappingToOtherProjectAsDefault(@RequestBody EmployeeOtherActiveProject employeeOtherActiveProject) {

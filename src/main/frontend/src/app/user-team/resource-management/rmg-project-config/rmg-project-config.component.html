@@ -632,16 +632,14 @@
                                     [title]="member.startDate ? ( member.startDate | date:'dd-MM-yyyy'): 'NA'">
                                     {{ member.startDate ? ( member.startDate | date:'dd-MM-yyyy'): 'NA' }}
                                 </td>
-                                <td class="max-width150 min-width100 truncate"
-                                    [title]="member.endDate ? ( member.endDate | date:'dd-MM-yyyy'): 'NA'">
-                                    {{ member.endDate ? ( member.endDate | date:'dd-MM-yyyy'): 'NA' }}
-                                    <!-- <div class="date-input-wrapper">
-                                        <input class="form-control date-input" [matDatepicker]="endDatepicker"
-                                            [min]="member.startDate" [(ngModel)]="member.endDate" readonly />
-                                        <mat-icon class="calendar-icon"
-                                            (click)="endDatepicker.open()">calendar_today</mat-icon>
+                                <td class="max-width200 min-width150">
+                                    <div class="date-input-wrapper">
+                                        <input class="form-control date-input" [matDatepicker]="endDatepicker" [min]="member.startDate"
+                                            (dateChange)="onMemberEndDateChange($event, currentTeam.newRmgTeamMember)"
+                                            [(ngModel)]="member.endDate"/>
+                                        <mat-icon class="calendar-icon" (click)="endDatepicker.open()">calendar_today</mat-icon>
                                         <mat-datepicker #endDatepicker></mat-datepicker>
-                                    </div> -->
+                                    </div>
                                 </td>
                                 <td>
                                     <mat-checkbox class="custom-checkbox" color="primary" disabled="true"
@@ -1024,12 +1022,12 @@
                         </div>
                         <div class="col-md-7 p-1" *ngIf="projectConfigStepperIndex === 1 
                                 && currentTeam.requirementType === 'Old Resource'">
-                            <!-- <div class="d-flex justify-content-end m-1 mr-0 pr-0">
+                            <div class="d-flex justify-content-end m-1 mr-0 pr-0">
                                 <button class="btn btn-primary btn-sm"
                                     *ngIf="currentTeam?.rmgOldTeamMemberList?.length > 0"
-                                    (click)="updateTeamMembersEndDate(currentTeam)">Extend Member(s) End Date
+                                    (click)="extendTeamMembersEndDate(currentTeam)">Extend Member(s) End Date
                                 </button>&nbsp;
-                            </div> -->
+                            </div>
                         </div>
                     </div>
 
@@ -1602,7 +1600,7 @@
                         <div class="date-input-wrapper">
                             <input class="form-control date-input" [matDatepicker]="startDatepicker"
                                 (dateChange)="onMemberStartDateChange($event, currentTeam.newRmgTeamMember)"
-                                [(ngModel)]="currentTeam.newRmgTeamMember.startDate" readonly />
+                                [(ngModel)]="currentTeam.newRmgTeamMember.startDate" [disabled]="!currentTeam.newRmgTeamMember.empId" />
                             <mat-icon class="calendar-icon" (click)="startDatepicker.open()">calendar_today</mat-icon>
                             <mat-datepicker #startDatepicker></mat-datepicker>
                         </div>

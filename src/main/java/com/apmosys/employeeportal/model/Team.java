@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.model;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -41,7 +42,7 @@ public class Team {
 	private String deptIds;
 	private Long spocId;
  
-	
+	@Column(columnDefinition="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" , insertable = false ,updatable = false)
 	private Timestamp createdOn;
 	
 	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")

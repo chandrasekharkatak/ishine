@@ -1656,14 +1656,12 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 						
 						// db : From date & toDate
 						Period dbDateDifference = Period.between(leaveToBeUpdated.getFromDate(), leaveToBeUpdated.getToDate());
-						
 						// new : From date & toDate
 						LocalDate fromDate = stringToDateTimeParser.getDate(leaveDTO.getFromDate(), "yyyy-MM-dd");
 						LocalDate toDate = stringToDateTimeParser.getDate(leaveDTO.getToDate(), "yyyy-MM-dd");
 						
 						Period newDateDifference = Period.between(fromDate, toDate);
-						
-						difference = dbDateDifference.getDays() - newDateDifference.getDays();
+						difference = newDateDifference.getDays() - dbDateDifference.getDays();
 					}
 					
 					// For CompOff
@@ -1683,11 +1681,11 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 					// HERE : Effective Leave Balance = employeeLeavesMap.getBalance()
 					if (!leavetype.get().getLeaveTypeCode().equalsIgnoreCase("LWP") && (employeeLeavesMap.getBalance() == 0
 							|| employeeLeavesMap.getBalance() < difference)) {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Your available balance of " + employeeLeavesMap.getBalance()
 								+ " day(s) is not sufficient for this Leave Application.");
 
-						return response;
+                            return response;
 					}else if(leavetype.get().getLeaveTypeCode().equalsIgnoreCase("CO") && availableCompOffBalance < difference) {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Your available Compensatory off balance of " + availableCompOffBalance
@@ -1697,22 +1695,20 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 					
 					//Update Balance
 						Float balance = employeeLeavesMap.getBalance();
-						if (leavetype.get().getLeaveTypeCode().equalsIgnoreCase("LWP")) {
-							balance = balance;
-						} else {
-							if(difference > 0) {
-								balance = balance + difference;
-							}else if(difference < 0) {
-								balance = balance - difference;
-							}
-						}
-						Float pendingForApproval = employeeLeavesMap.getPendingForApproval();
-						if(difference > 0) {
-							pendingForApproval = pendingForApproval - difference;
-						}else if(difference < 0) {
-							pendingForApproval = pendingForApproval + difference;
-						}
+                        Float pendingForApproval = employeeLeavesMap.getPendingForApproval();
 
+						if (!leavetype.get().getLeaveTypeCode().equalsIgnoreCase("LWP")) {
+							if (difference > 0) {
+                                // Leave extended: deduct more from balance, add to pending
+                                balance = balance - difference;
+                                pendingForApproval = pendingForApproval + difference;
+                            } else if (difference < 0) {
+                                // Leave shortened: return days to balance, reduce pending
+                                balance = balance + Math.abs(difference);
+                                pendingForApproval = pendingForApproval - Math.abs(difference);
+                            }
+						}
+				       
 						employeeLeavesMap.setBalance(balance);
 						employeeLeavesMap.setPendingForApproval(pendingForApproval);
 
@@ -1764,16 +1760,17 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 							log.setBalance(balance);
 							log.setEmpId(leaveToBeUpdated.getEmpId());
 							log.setLeaveTypeMasterId(leaveToBeUpdated.getLeaveTypeMasterId());
-							if(difference > 0) {
-								log.setMessage(
-										LeaveLogMessage.requestUpdateLeaveAdd.replace("0.0", difference.toString()));
-								log.setUpdateBalanceBy("+" + difference);
-							}else if(difference < 0) {
-								log.setMessage(
-										LeaveLogMessage.requestUpdateLeaveSub.replace("0.0", difference.toString()));
-								log.setUpdateBalanceBy("-" + difference);
-							}
-
+					        if (difference > 0) {
+                                // Extended leave → balance was reduced
+                                log.setMessage(
+                                        LeaveLogMessage.requestUpdateLeaveSub.replace("0.0", difference.toString()));
+                                log.setUpdateBalanceBy("-" + difference);
+                            } else if (difference < 0) {
+                                // Shortened leave → balance was restored
+                                log.setMessage(LeaveLogMessage.requestUpdateLeaveAdd.replace("0.0",
+                                        String.valueOf(Math.abs(difference))));
+                                log.setUpdateBalanceBy("+" + Math.abs(difference));
+                            }
 							LeaveBalanceLog dbLogResponse =  leaveBalanceLogRepository.save(log);
 						}
 						

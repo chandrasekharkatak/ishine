@@ -155,4 +155,8 @@ export class TeamService {
     return this.http.post(`${this.baseUrl}` + `api/validateEmployeeTimesheetFilledToChangeStartDate`, rmgTeamMember);
   }
 
+   extendTeamMembersEndDate(rmgTeam :RmgTeam) {
+    return this.http.post(`${this.baseUrl}` + `api/extendTeamMembersEndDate`, rmgTeam);
+  }
+
 }
