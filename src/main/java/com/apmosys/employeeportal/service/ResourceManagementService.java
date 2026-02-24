@@ -3236,19 +3236,32 @@ public class ResourceManagementService {
 
 		try {
 
-			List<GetEmployeeByNameAndEmpldDTO> employees = employeeRepository.getEmployeeByNameAndEmpld();
+//			List<GetEmployeeByNameAndEmpldDTO> employees = employeeRepository.getEmployeeByNameAndEmpld();
+			 List<GetEmployeeByNameAndEmpldDTO> employees = Optional.ofNullable(
+		                employeeRepository.getEmployeeByNameAndEmpld())
+		                .orElse(Collections.emptyList());
 
-			Map<Long, GetEmployeeByNameAndEmpldDTO> uniqueMap = employees.stream().collect(Collectors
-					.toMap(GetEmployeeByNameAndEmpldDTO::getEmpId, dto -> dto, (existing, replacement) -> existing));
-
-			List<GetEmployeeByNameAndEmpldDTO> employeeDTOList = new ArrayList<>(uniqueMap.values());
-			employeeDTOList.sort(Comparator.comparing(GetEmployeeByNameAndEmpldDTO::getName));
-
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse(employeeDTOList);
+//			Map<Long, GetEmployeeByNameAndEmpldDTO> uniqueMap = employees.stream().collect(Collectors
+//					.toMap(GetEmployeeByNameAndEmpldDTO::getEmpId, dto -> dto, (existing, replacement) -> existing));
+//
+//			List<GetEmployeeByNameAndEmpldDTO> employeeDTOList = new ArrayList<>(uniqueMap.values());
+//			employeeDTOList.sort(Comparator.comparing(GetEmployeeByNameAndEmpldDTO::getName));
+//
+//			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//			response.setServiceResponse(employeeDTOList);
+			 if (employees.isEmpty()) {
+		            log.info("No employees found");
+		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse("No employees found.");
+		        } else {
+		            log.info("Fetched {} employees successfully", employees.size());
+		            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		            response.setServiceResponse(employees);
+		        }
 
 		} catch (Exception e) {
-			e.printStackTrace();
+//			e.printStackTrace();
+			log.error("Error fetching employees by name and empId:" , e);
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Error : " + e.getMessage());
 		}
@@ -9348,9 +9361,16 @@ public class ResourceManagementService {
 		try {
 			ProjectFilterDTO projectFilterDTO = new ProjectFilterDTO();
 			projectFilterDTO.setCurrentUserEmpId(currentUserEmpId);
-			Employee employee1 = employeeRepository.findByEmpId(currentUserEmpId);
-			JobRole jobRole = jobRoleRepository.findByjobRoleId(employee1.getJobRoleId());
-			Department department1 = departmentRepository.findByDeptId(jobRole.getDeptId());
+//			Employee employee1 = employeeRepository.findByEmpId(currentUserEmpId);
+//			JobRole jobRole = jobRoleRepository.findByjobRoleId(employee1.getJobRoleId());
+//			Department department1 = departmentRepository.findByDeptId(jobRole.getDeptId());
+			
+			 Employee employee1 = Optional.ofNullable(employeeRepository.findByEmpId(currentUserEmpId))
+		                .orElseThrow(() -> new RuntimeException("Employee not found for empId: " + currentUserEmpId));
+		     JobRole jobRole = Optional.ofNullable(jobRoleRepository.findByjobRoleId(employee1.getJobRoleId()))
+		                .orElseThrow(() -> new RuntimeException("JobRole not found for jobRoleId: " + employee1.getJobRoleId()));
+		     Department department1 = Optional.ofNullable(departmentRepository.findByDeptId(jobRole.getDeptId()))
+		                .orElseThrow(() -> new RuntimeException("Department not found for deptId: " + jobRole.getDeptId()));
 
 			String departmentName = department1.getName();
 			String role = jobRole.getEmployeeRole();
@@ -9362,9 +9382,12 @@ public class ResourceManagementService {
 			Set<Long> accessibleDeptIds = new HashSet<>();
 			Map<Long, String> fullDeptMap = new HashMap<>();
 
-			if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
-					|| name.equalsIgnoreCase("Super Admin") || role.equalsIgnoreCase("Accounts")
-					|| specialDepartments.contains(departmentName)) {
+//			if (role.equalsIgnoreCase("SuperAdmin") || name.equalsIgnoreCase("Director")
+//					|| name.equalsIgnoreCase("Super Admin") || role.equalsIgnoreCase("Accounts")
+//					|| specialDepartments.contains(departmentName)) {
+			Set<String> superAdminRoles = UserRole.getAllValues();
+			if (superAdminRoles.stream().anyMatch(r -> r.equalsIgnoreCase(role) || r.equalsIgnoreCase(name))
+			        || specialDepartments.contains(departmentName)) {
 
 				List<GetDeptIdByRoleDTO> departments = departmentRepository.findAllExceptId1();
 				for (GetDeptIdByRoleDTO dept : departments) {
@@ -9399,7 +9422,8 @@ public class ResourceManagementService {
 						accessibleDeptIds.add(dto.getDeptId());
 						fullDeptMap.put(dto.getDeptId(), dto.getName());
 					}
-					isOther = projectFilterDTO.getIsHod() == null ? true : false;
+//					isOther = projectFilterDTO.getIsHod() == null ? true : false;
+					isOther = projectFilterDTO.getIsHod() == null;
 				}
 
 				List<GetDeptIdByRoleDTO> overheadDeptIds = departmentRepository
@@ -9410,16 +9434,18 @@ public class ResourceManagementService {
 						accessibleDeptIds.add(dto.getDeptId());
 						fullDeptMap.put(dto.getDeptId(), dto.getName());
 					}
-					isOther = projectFilterDTO.getIsHod() == null ? true : false;
+					isOther = projectFilterDTO.getIsHod() == null;
 				}
 				List<String> teamLeadDeptList = departmentRepository.findDeptIdsForTeamLead(currentUserEmpId);
-				String teamLeadDeptCsv = String.join(",", teamLeadDeptList);
-				if (teamLeadDeptCsv != null && !teamLeadDeptCsv.isEmpty()) {
+				List<Long> teamLeadDeptIds = parseDeptIds(teamLeadDeptList);
+				
+//				List<String> teamLeadDeptList = departmentRepository.findDeptIdsForTeamLead(currentUserEmpId);
+//				String teamLeadDeptCsv = String.join(",", teamLeadDeptList);
+				if (teamLeadDeptIds != null && !teamLeadDeptIds.isEmpty()) {
 					logBuilder.append("\n Department list fetched for Team Lead.");
-					List<Long> teamLeadIds = Arrays.stream(teamLeadDeptCsv.split(",")).map(String::trim)
-							.filter(s -> s.matches("\\d+")).map(Long::parseLong)
-							.filter(deptId -> !accessibleDeptIds.contains(deptId)).collect(Collectors.toList());
-
+					 List<Long> teamLeadIds = teamLeadDeptIds.stream()
+					            .filter(deptId -> !accessibleDeptIds.contains(deptId))
+					            .collect(Collectors.toList());
 					if (!teamLeadIds.isEmpty()) {
 						List<GetDeptIdByRoleDTO> teamLeadDepts = departmentRepository.findDepartmentsByIds(teamLeadIds);
 						for (GetDeptIdByRoleDTO dto : teamLeadDepts) {
@@ -9429,13 +9455,15 @@ public class ResourceManagementService {
 						isOther = projectFilterDTO.getIsHod() == null;
 					}
 				}
+//				List<String> spocDeptList = departmentRepository.findDeptIdsForSpoc(currentUserEmpId);
+//				String spocDeptCsv = String.join(",", spocDeptList);
 				List<String> spocDeptList = departmentRepository.findDeptIdsForSpoc(currentUserEmpId);
-				String spocDeptCsv = String.join(",", spocDeptList);
-				if (spocDeptCsv != null && !spocDeptCsv.isEmpty()) {
+				List<Long> spocDeptIds = parseDeptIds(spocDeptList);
+				if (spocDeptIds != null && !spocDeptIds.isEmpty()) {
 					logBuilder.append("\n Department list fetched for Spoc.");
-					List<Long> spocIds = Arrays.stream(spocDeptCsv.split(",")).map(String::trim)
-							.filter(s -> s.matches("\\d+")).map(Long::parseLong)
-							.filter(deptId -> !accessibleDeptIds.contains(deptId)).collect(Collectors.toList());
+					List<Long> spocIds = spocDeptIds.stream()
+				            .filter(deptId -> !accessibleDeptIds.contains(deptId))
+				            .collect(Collectors.toList());
 
 					if (!spocIds.isEmpty()) {
 						List<GetDeptIdByRoleDTO> spocDepts = departmentRepository.findDepartmentsByIds(spocIds);
@@ -9461,9 +9489,14 @@ public class ResourceManagementService {
 
 			} else {
 
-				List<GetDeptIdByRoleDTO> finalDeptList = fullDeptMap.entrySet().stream()
-						.map(entry -> new GetDeptIdByRoleDTO(entry.getKey(), entry.getValue()))
-						.collect(Collectors.toList());
+//				List<GetDeptIdByRoleDTO> finalDeptList = fullDeptMap.entrySet().stream()
+//						.map(entry -> new GetDeptIdByRoleDTO(entry.getKey(), entry.getValue()))
+//						.collect(Collectors.toList());
+				 List<GetDeptIdByRoleDTO> finalDeptList = fullDeptMap.entrySet().stream()
+		                    .map(entry -> new GetDeptIdByRoleDTO(entry.getKey(), entry.getValue()))
+		                    .sorted(Comparator.comparing(GetDeptIdByRoleDTO::getName,
+		                            Comparator.nullsLast(String::compareToIgnoreCase)))
+		                    .collect(Collectors.toList());
 
 				projectFilterDTO.setDepartments(finalDeptList);
 				projectFilterDTO.setDepartmentsids(new ArrayList<>(accessibleDeptIds));
@@ -9474,13 +9507,46 @@ public class ResourceManagementService {
 			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
+//			e.printStackTrace();
+			log.error("Error in getDeptsByRole for empId:",currentUserEmpId, e);
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Something went wrong!");
 			logBuilder.append("\n Exception occurred: ").append(e.getMessage());
 		}
 
 		return response;
+	}
+	
+	public enum UserRole {
+		SUPER_ADMIN("SuperAdmin"), DIRECTOR("Director"), SUPER_ADMIN_SPACE("Super Admin"), ACCOUNTS("Accounts");
+
+		private final String value;
+
+		UserRole(String value) {
+			this.value = value;
+		}
+
+		public String getValue() {
+			return value;
+		}
+
+		public static Set<String> getAllValues() {
+			return Arrays.stream(values()).map(UserRole::getValue).collect(Collectors.toSet());
+		}
+	}
+
+	private List<Long> parseDeptIds(List<String> csvList) {
+	    if (csvList == null || csvList.isEmpty()) {
+	        return new ArrayList<>();
+	    }
+	    return csvList.stream()
+	            .filter(s -> s != null && !s.isBlank())
+	            .flatMap(s -> Arrays.stream(s.split(","))) 
+	            .map(String::trim)
+	            .filter(s -> !s.isEmpty())
+	            .map(Long::parseLong)
+	            .distinct()
+	            .collect(Collectors.toList());
 	}
 
 	private ResourceManagementDTO fetchPoProjectForSync() {
