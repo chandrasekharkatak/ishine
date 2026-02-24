@@ -14057,7 +14057,7 @@ public class ResourceManagementService {
 				return failResponse(serviceResponse, apiLogInfo, "Project details not found.");
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error fetching project configuration details", e);
 			return failResponse(serviceResponse, apiLogInfo, "Something went wrong.");
 		}
 		return serviceResponse;
@@ -15303,6 +15303,7 @@ public class ResourceManagementService {
 		return serviceResponse;
 	}
 
+	@Transactional(readOnly = true)
 	public ServiceResponse fetchProjectDetailsList(RMGDashboardProjectRequest rmgDashboardProjectRequest) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -15320,7 +15321,8 @@ public class ResourceManagementService {
 					? rmgDashboardProjectRequest.getProjectStatus()
 					: "";
 			List<String> projectNames = getAllProjectNamesByPoNo(rmgDashboardProjectRequest.getProjectFilter());
-			List<Long> deptIds = resolveDepartments(rmgDashboardProjectRequest);
+			List<Long> deptIds = Optional.ofNullable(resolveDepartments(rmgDashboardProjectRequest))
+					.orElse(Collections.emptyList());
 			List<Long> selectedDeptIdList = rmgDashboardProjectRequest.getDepartmentIds();
 			Set<Integer> projectIds = getProjectIdsByDeptIds(deptIds);
 
@@ -15347,11 +15349,10 @@ public class ResourceManagementService {
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(rmgDashboardProjectResponse);
 		} catch (BadRequestException be) {
-			be.printStackTrace();
-			return failResponse(serviceResponse, apiLogInfo,
-					"Filtering by PO number isn’t available at the moment. Please try again later.");
+			log.error("Error in fetchProjectDetailsList", be);
+			return failResponse(serviceResponse, apiLogInfo, "Filtering by PO number isn’t available at the moment. Please try again later.");
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error in fetchProjectDetailsList", e);
 			return failResponse(serviceResponse, apiLogInfo, "Something went wrong");
 		}
 		return serviceResponse;
@@ -15366,6 +15367,9 @@ public class ResourceManagementService {
 		}
 		if (dto.getProjectStatus() == null) {
 			return failResponse(response, logInfo, "Invalid input: Project Status cannot be null.");
+		}
+		if (dto.getCurrentUserType() == null) {
+			return failResponse(response, logInfo, "Invalid input: User Type cannot be null.");
 		}
 
 		String userType = dto.getCurrentUserType();
@@ -15553,7 +15557,8 @@ public class ResourceManagementService {
 		}
 		return projectNames;
 	}
-
+	
+	@Transactional(readOnly = true)
 	public ServiceResponse getEmployeeCountByEmployeeGroup(RMGDashboardProjectRequest rmgDashboardProjectRequest) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -15583,6 +15588,7 @@ public class ResourceManagementService {
 				deptFlag = true;
 				hodProjects = getHodProjectIds(empId);
 			} else {
+				deptIds = new ArrayList<>();
 				deptIds.add(employeeRepository.getJobRoleIdByEmpId(empId).orElse(0l));
 			}
 			String employeeGroupKey = rmgDashboardProjectRequest.getEmployeeGroupKey();
@@ -15602,7 +15608,7 @@ public class ResourceManagementService {
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(allEmployeeGroupCount);
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error in getEmployeeCountByEmployeeGroup", e);
 			return failResponse(serviceResponse, apiLogInfo, "Something went wrong.");
 		}
 		return serviceResponse;
@@ -15873,6 +15879,7 @@ public class ResourceManagementService {
 		return projectIds;
 	}
 
+	@Transactional(readOnly = true)
 	public ServiceResponse getEmployeeDetailsListByEmployeeGroup(PageDTO pageDTO) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -15940,7 +15947,8 @@ public class ResourceManagementService {
 				serviceResponse.setServiceResponse("No Employees Found.");
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error in getEmployeeDetailsListByEmployeeGroup : ", e);
+			serviceResponse.setServiceError(e.getMessage());
 			return failResponse(serviceResponse, apiLogInfo, "Something went wrong.");
 		}
 		return serviceResponse;
@@ -16023,6 +16031,7 @@ public class ResourceManagementService {
 		return employeeDetailsList;
 	}
 
+	@Transactional(readOnly = true)
 	public ServiceResponse getProjectStatusCount(RMGDashboardProjectRequest rmgDashboardProjectRequest) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -16034,7 +16043,8 @@ public class ResourceManagementService {
 				return serviceResponse;
 			}
 			serviceResponse = new ServiceResponse();
-			List<Long> deptIds = resolveDepartments(rmgDashboardProjectRequest);
+			List<Long> deptIds = Optional.ofNullable(resolveDepartments(rmgDashboardProjectRequest))
+					.orElse(Collections.emptyList());
 
 			String projectStatus = rmgDashboardProjectRequest.getProjectStatus() != null
 					? rmgDashboardProjectRequest.getProjectStatus()
@@ -16060,7 +16070,8 @@ public class ResourceManagementService {
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(allProjectStatusCount);
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error in getProjectStatusCount", e);
+			serviceResponse.setServiceError(e.getMessage());
 			return failResponse(serviceResponse, apiLogInfo, "Something went wrong.");
 		}
 		return serviceResponse;
@@ -16206,6 +16217,7 @@ public class ResourceManagementService {
 		}
 	}
 
+	@Transactional(readOnly = true)
 	public ServiceResponse getUnfilledTimesheetProjectDetailsCount(
 			RMGDashboardProjectRequest rmgDashboardProjectRequest) {
 		ServiceResponse serviceResponse = new ServiceResponse();
@@ -16218,8 +16230,9 @@ public class ResourceManagementService {
 				return serviceResponse;
 			}
 			serviceResponse = new ServiceResponse();
-			List<Long> deptIds = resolveDepartments(rmgDashboardProjectRequest);
-
+			List<Long> deptIds = Optional.ofNullable(resolveDepartments(rmgDashboardProjectRequest))
+			.orElse(Collections.emptyList());
+			
 			String projectStatus = rmgDashboardProjectRequest.getProjectStatus() != null
 					? rmgDashboardProjectRequest.getProjectStatus()
 					: "";
@@ -16230,14 +16243,12 @@ public class ResourceManagementService {
 				return failResponse(serviceResponse, apiLogInfo, "Employee not found.");
 			}
 			serviceResponse = new ServiceResponse();
-			LocalDate fromDate = null;
-			LocalDate toDate = null;
-			String fromDateStr = rmgDashboardProjectRequest.getFromDate();
-			String toDateStr = rmgDashboardProjectRequest.getToDate();
-
-			fromDate = fromDateStr != null ? LocalDate.parse(fromDateStr) : null;
-			toDate = toDateStr != null ? LocalDate.parse(toDateStr) : null;
-
+			LocalDate fromDate = getLocalDateFromString(rmgDashboardProjectRequest.getFromDate());
+			LocalDate toDate = getLocalDateFromString(rmgDashboardProjectRequest.getToDate());
+			if (fromDate != null && toDate != null && fromDate.isAfter(toDate)) {
+				return failResponse(serviceResponse, apiLogInfo, "From Date Cannot be after the End Date!!");
+			}
+			
 			boolean deptFlag = false;
 			boolean isAllAccessEmployee = determineIfAllAccessEmployee(objList, empId);
 
@@ -16251,21 +16262,33 @@ public class ResourceManagementService {
 
 			Set<Integer> projectIds = getProjectIdsByType("TIMESHEET_NON_COMPLIANCE", isAllAccessEmployee, hodProjects,
 					deptFlag, empId);
-			projectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, "ALL", deptIds);
+			Set<Integer>  filteredProjectIds = filterProjectIdsByProjectStatusAndDepartmentFilter(projectIds, "ALL", deptIds);
 
 			Map<String, Long> allProjectStatusCount = new LinkedHashMap<>();
 			allProjectStatusCount.put(projectStatus,
-					employeeCustomRepository.getUnfilledTimesheetProjectDetailsCount(isAllAccessEmployee, deptIds,projectIds, fromDate, toDate));
+					employeeCustomRepository.getUnfilledTimesheetProjectDetailsCount(isAllAccessEmployee, deptIds, filteredProjectIds, fromDate, toDate));
 
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(allProjectStatusCount);
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error in getUnfilledTimesheetProjectDetailsCount", e);
 			return failResponse(serviceResponse, apiLogInfo, "Something went wrong.");
 		}
 		return serviceResponse;
 	}
 
+	private LocalDate getLocalDateFromString(String stringDate) {
+		if (stringDate == null) {
+			return null;
+		}
+		try {
+			return LocalDate.parse(stringDate);
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	@Transactional(readOnly = true)
 	public ServiceResponse getUnfilledTimesheetProjectDetailsList(PageDTO pageDTO) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -16329,7 +16352,8 @@ public class ResourceManagementService {
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(projectDetailsList);
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error in getUnfilledTimesheetProjectDetailsList : ", e);
+			serviceResponse.setServiceError(e.getMessage());
 			return failResponse(serviceResponse, apiLogInfo, "Something went wrong.");
 		}
 		return serviceResponse;
