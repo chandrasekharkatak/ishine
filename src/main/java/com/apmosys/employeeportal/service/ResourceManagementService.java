@@ -2426,14 +2426,14 @@ public class ResourceManagementService {
 		getAllExistingProjectsAndTeams.forEach(obj -> {
 			ResourceManagementDTO dto = new ResourceManagementDTO();
 
-			dto.setTeamId(obj[0] != null ? (Long) obj[0] : null);
+			dto.setTeamId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
 			dto.setProjectName(obj[1] != null ? obj[1].toString() : null);
 			dto.setTeamName(obj[2] != null ? obj[2].toString() : null);
 			dto.setClientName(obj[3] != null ? obj[3].toString() : null);
 			dto.setBillableType(obj[4] != null ? obj[4].toString() : null);
 			dto.setStartDate(obj[5] != null ? obj[5].toString() : null);
 			dto.setUpdatedOn(obj[6] != null ? obj[6].toString() : null);
-			dto.setEmpId(obj[7] != null ? (Long) obj[7] : null);
+			dto.setEmpId(obj[7] != null ? Long.parseLong(obj[7].toString()) : null);
 			dto.setEndDate(obj[8] != null ? obj[8].toString() : null);
 			dto.setActive(obj[9] != null ? obj[9].toString() : null);
 //			dto.setActive(obj[9] != null ? Integer.parseInt(obj[9].toString()) : null);
@@ -2443,9 +2443,9 @@ public class ResourceManagementService {
 			dto.setStatus(obj[15] != null ? obj[15].toString() : null);
 			dto.setPoProjectType(obj[13] != null ? obj[13].toString() : null);
 			dto.setInternalProjectType(obj[14] != null ? obj[14].toString() : null);
-			dto.setRescRemovedBy(obj[16] != null ? (Long) obj[16] : null);
+			dto.setRescRemovedBy(obj[16] != null ? Long.parseLong(obj[16].toString()) : null);
 			dto.setRescRemovedByName(obj[17] != null ? obj[17].toString() : null);
-			 dto.setEmployeeTeamMapId(obj[18] != null ? (Long) obj[18] : null);
+			 dto.setEmployeeTeamMapId(obj[18] != null ? Long.parseLong(obj[18].toString()) : null);
 			allData.add(dto);
 		});
 
@@ -2457,6 +2457,7 @@ public class ResourceManagementService {
 	        response.setServiceResponse("No projects or teams found for the given employee.");
 	    }
 		    } catch (DataAccessException e) {
+		    	e.printStackTrace();
 		        log.error("Error fetching projects and teams for",
 		                resourceManagementDTO.getEmpId(), e.getMessage(), e);
 		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -15796,8 +15797,7 @@ public class ResourceManagementService {
 				case "MAPPED_TO_PROJECT":
 				case "MAPPED_TO_INTERNAL_AND_SHANKH":
 				case "TIMESHEET_NON_COMPLIANCE":
-					projectIds = projectRepository
-							.findAllShankhInternalProjectsByManagerOverheadOrSpocOrTeamLead(empId);
+					projectIds = projectRepository.findAllShankhInternalProjectsByManagerOverheadOrSpocOrTeamLead(empId);
 					break;
 			}
 			if (deptFlag) {

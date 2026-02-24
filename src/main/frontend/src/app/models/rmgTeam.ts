@@ -15,7 +15,7 @@ export class RmgTeam {
     projectType: any;
     clientName: any;
 
-    poId:any;
+    poId: any;
     poRequirementMappingId: any;
     count: any;
     assignedPending: any;
@@ -29,6 +29,7 @@ export class RmgTeam {
     rmgCurrentTeamMemberList: RmgTeamMember[] = [];
     rmgOldTeamMemberList: RmgTeamMember[] = [];
     employeeExistingProjectDetails: any[] = [];
+    updatedEtmIdAndEmpIdMap: Map<number, number>;
 
     isupdate: boolean = false;
     isNotSaved: boolean = false;

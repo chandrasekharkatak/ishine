@@ -30,10 +30,10 @@
             <div class="col-md-7 d-flex justify-content-start flex-column">
                 <div class="d-flex justify-content-start align-items-center mb-2">
                     <mat-slide-toggle color="primary" *ngIf="currentUser.employeeRole != 'SuperAdmin'" [(ngModel)]="myDept"
-                        (change)="toggleDepartment();clearDepartmentSelection()">
+                        (change)="toggleDepartment()">
                     </mat-slide-toggle>
                     <label>
-                        {{ myDept ? 'My Departments' : 'Departments' }}
+                        {{ !myDept ? 'My Departments' : 'Departments' }}
                     </label>
                 </div>
             
@@ -54,8 +54,9 @@
             <!-- Employee Action Buttons -->
             <div class="col-md-2">
                 <div class="d-flex flex-column">
-                    <button class="rounded-button details-button employee-summary-btn m-1" [disabled]="!selectedEmpId"
-                        [navigateToEmployee360]="this.selectedEmpId">
+                    <button class="rounded-button details-button employee-summary-btn m-1"
+                        [disabled]="!isValidEmployee"
+                        [navigateToEmployee360]="isValidEmployee ? selectedEmpId : null">
                         Employee 360
                     </button>
                     <button class="rounded-button summary-button employee-summary-btn m-1" [disabled]="!selectedEmpId"

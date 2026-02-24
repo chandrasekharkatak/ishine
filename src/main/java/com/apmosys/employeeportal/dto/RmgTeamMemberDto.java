@@ -56,6 +56,7 @@ public class RmgTeamMemberDto {
 	private LocalDateTime startDate;
 	private LocalDateTime dbStartDate;
 	private LocalDateTime endDate;
+	private LocalDateTime dbEndDate;
 	private Integer isShadow;
 	private Integer dbIsShadow;
 	private Long isMemberActive;
@@ -127,6 +128,7 @@ public class RmgTeamMemberDto {
 		this.startDate = startDate;
 		this.dbStartDate = startDate;
 		this.endDate = endDate;
+		this.dbEndDate = endDate;
 	}
 
 	private List<String> getEmployeeRolesFromString(String employeeRole) {
@@ -166,6 +168,7 @@ public class RmgTeamMemberDto {
 		this.startDate = startDate;
 		this.dbStartDate = startDate;
 		this.endDate = endDate;
+		this.dbEndDate = endDate;
 		this.poStartDate = poStartDate;
 		this.poEndDate = poEndDate;
 	}

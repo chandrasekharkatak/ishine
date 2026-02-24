@@ -544,7 +544,6 @@ export class ResourceManagementComponent implements OnInit {
   fallBackMsg: any;
   isApproved: boolean = false;
   advanceFilter: any;
-  skipSelectionChange: boolean = false;
   isLoadingMilestones: any = false;
   activeModalTab: 'info' | 'milestone' = 'info';
   teamMemberTemplate: any;
@@ -961,29 +960,25 @@ export class ResourceManagementComponent implements OnInit {
     this.getManagerList();
   }
 
-  clearDepartmentSelection() {
-    event.stopPropagation();
-    if (this.rmgStatusCardsComponent) {
-      this.rmgStatusCardsComponent.onDepartmentSelectionChange(event);
-    }
-  }
-
   onDepartmentSelectionChange(event: any) {
-    this.skipSelectionChange = false;
     if (this.rmgStatusCardsComponent) {
       this.rmgStatusCardsComponent.onDepartmentSelectionChange(event);
     }
   }
 
-  toggleDepartment(): void {
+  async toggleDepartment() {
     this.filterStateService.myDept = this.myDept;
     if (this.myDept) {
-      this.getDeptsByUser();
+      await this.getDeptsByUser();
     } else {
-      this.getAllDepartmentsByCurrentUserIdAndRole();
+      await this.getAllDepartmentsByCurrentUserIdAndRole();
+    }
+
+    this.selectedDepartmentIds = this.filteredDepartments?.map(dept => dept.deptId) || [];
+    if (this.rmgStatusCardsComponent) {
+      this.rmgStatusCardsComponent.onDepartmentSelectionChange(this.selectedDepartmentIds);
     }
   }
-  
 
   getAllClientList() {
     this.allClientList = [];
@@ -1840,10 +1835,32 @@ export class ResourceManagementComponent implements OnInit {
       series: chartData
     });
   }
+
+  isValidNumber(value: any): boolean {
+		return typeof value === 'number' && !Number.isNaN(value);
+	}
+
+  get isValidEmployee(): boolean {
+    if (!this.selectedEmpId || !this.isValidNumber(this.selectedEmpId) || !this.filteredEmployees?.length) {
+      return false;
+    }
+
+    return this.filteredEmployees.some(
+      emp => emp.empId === this.selectedEmpId
+    );
+  }
   // Helpers End
 
   // Project Timesheet Summary Modal Start
   openProjectTimesheetSummaryModal(selectedEmpId: any) {
+    if (!selectedEmpId || selectedEmpId == undefined || selectedEmpId == null || !this.isValidNumber(selectedEmpId)) {
+      this.openAlertMessageModal("Kindly Select a Valid Employee!!");
+      return;
+    }
+    if (!this.filteredEmployees.some(emp => emp.empId === selectedEmpId)) {
+      this.openAlertMessageModal("Kindly Select a Valid Employee!!");
+      return;
+    }
     this.selectedEmpId = selectedEmpId;
     this.getProjectTimesheetSummaryData();
     this.projectTimesheetSummaryModalRef = this.modalService.open(this.projectTimesheetSummaryTemplateRef, { modalDialogClass: 'modal-lg' });

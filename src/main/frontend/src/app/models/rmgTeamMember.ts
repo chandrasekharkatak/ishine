@@ -47,6 +47,7 @@ export class RmgTeamMember {
     startDate: any;
     dbStartDate: any
     endDate: any;
+    dbEndDate: any;
     isShadow: any;
     dbIsShadow: any;
     isMemberActive: any;

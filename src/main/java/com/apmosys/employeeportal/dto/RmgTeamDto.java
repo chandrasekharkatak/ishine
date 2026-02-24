@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.dto;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -35,6 +36,7 @@ public class RmgTeamDto {
     private String projectType;
 
     private List<RmgTeamMemberDto> rmgTeamMemberList;
+    private HashMap<Long,Long> updatedEtmIdAndEmpIdMap;
     private boolean isupdate;
 
     private Long createdBy;

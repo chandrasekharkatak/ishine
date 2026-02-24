@@ -46,7 +46,7 @@ export class RmgStatusCardsComponent {
   @ViewChild('fixed_cost_projects_summary') fixedCostProjectsSummaryTemplateRef: TemplateRef<any>;
   @ViewChild('total_projects_summary') totalProjectsSummaryTemplateRef: TemplateRef<any>;
   @ViewChild('team_project_status_summary') teamProjectStatusSummaryTemplateRef: TemplateRef<any>;
-  @ViewChild('project_details') projectDetailsTemplateRef: TemplateRef<any>;
+  @ViewChild('timesheet_non_compliance_project_details') timesheetNonComplianceProjectDetailsTemplateRef: TemplateRef<any>;
 
   alertMessageModalRef: NgbModalRef;
   employeeDetailsModalRef: NgbModalRef;
@@ -54,7 +54,7 @@ export class RmgStatusCardsComponent {
   expiredTNMProjectsSummaryModalRef: NgbModalRef;
   fixedCostProjectsSummaryModalRef: NgbModalRef;
   totalProjectsSummaryModalRef: NgbModalRef;
-  projectDetailsModalRef: NgbModalRef;
+  timesheetNonComplianceProjectDetailsModalRef: NgbModalRef;
   teamProjectStatusSummaryModalRef: NgbModalRef;
 
   unfilledTimesheetProjectColumnConfig = [
@@ -134,11 +134,11 @@ export class RmgStatusCardsComponent {
     , this.PROJECT_STATUS.PENDING_FOR_APPROVAL
     , this.PROJECT_STATUS.APPROVED
     , this.PROJECT_STATUS.REJECTED
+    , this.PROJECT_STATUS.UNDERBOARDED
+    , this.PROJECT_STATUS.OVERBOARDED
     , this.PROJECT_STATUS.COMPLETED_IN_ISHINE
     , this.PROJECT_STATUS.COMPLETED_IN_SHANKH
     , this.PROJECT_STATUS.COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE
-    , this.PROJECT_STATUS.UNDERBOARDED
-    , this.PROJECT_STATUS.OVERBOARDED
   ];
 
   // TEAM2_PROJECT_STATUS_LIST = [
@@ -299,7 +299,7 @@ export class RmgStatusCardsComponent {
   FC_PROJECT_FILTERS_LIST = [
     { key: "all", label: 'Active', title: 'Active', count: null, color: '#5cb85c' },
     { key: "defaulter", label: 'Defaulter', title: 'Defaulter', count: null, color: '#d9534f' },
-    { key: "delays", label: 'Delayed', title: 'Delayed', count: null, color: '#5bc0de' },
+    // { key: "delays", label: 'Delayed', title: 'Delayed', count: null, color: '#5bc0de' },
     { key: "ontime", label: 'On Time', title: 'On Time', count: null, color: '#f0ad4e' },
   ];
 
@@ -336,7 +336,7 @@ export class RmgStatusCardsComponent {
   ];
 
   allStates: any[] = ["Maharashtra"];
-  projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "projectStartDate", "projectEndDate", "state", "createdOn", "status", "projectStatus", "draftStatus"];
+  projectColumns: any[] = ["blank", "name", "poNo", "poProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "blank", "blank", "state", "blank", "status", "projectStatus", "draftStatus"];
 
 
   currentUser: User;
@@ -549,12 +549,12 @@ export class RmgStatusCardsComponent {
     this.projectDetailsColumnConfig = projectStatus?.columnConfig;
     this.projectDetailsDefaultSortColumn = projectStatus?.defaultSortColumn;
     this.projectDetailsSubTableColumnConfig = projectStatus?.columnConfig
-    this.projectDetailsModalRef = this.modalService.open(this.projectDetailsTemplateRef, { modalDialogClass: 'modal-xl' });
+    this.timesheetNonComplianceProjectDetailsModalRef = this.modalService.open(this.timesheetNonComplianceProjectDetailsTemplateRef, { modalDialogClass: 'modal-xl' });
   }
 
   closeProjectDetailsModal() {
-    if (this.projectDetailsModalRef) {
-      this.projectDetailsModalRef?.close();
+    if (this.timesheetNonComplianceProjectDetailsModalRef) {
+      this.timesheetNonComplianceProjectDetailsModalRef?.close();
     }
   }
 
@@ -842,6 +842,9 @@ export class RmgStatusCardsComponent {
   }
 
   selectExpiredTNMProjectFilter(expiredTNMProjectStatusObj: any, filter: any) {
+    this.projectPage = 0;
+    const documentHeight = document.body.scrollHeight;
+    this.scroller.scrollToPosition([0, documentHeight]);
     this.selectedExpiredTNMProjectFilter = filter.key;
     this.selectedProjectStatus = this.PROJECT_STATUS.TOTAL_EXPIRED_TNM.key;
     let newRmgDashboardProjectRequest = this.getNewRMGRequestObject();
@@ -852,6 +855,9 @@ export class RmgStatusCardsComponent {
   }
 
   selectFCProjectFilter(fcProjectStatusObj: any, filter: any) {
+    this.projectPage = 0;
+    const documentHeight = document.body.scrollHeight;
+    this.scroller.scrollToPosition([0, documentHeight]);
     this.selectedFCProjectFilter = filter.key;
     this.selectedProjectStatus = this.PROJECT_STATUS.TOTAL_FILTER_FC.key;
     let newRmgDashboardProjectRequest = this.getNewRMGRequestObject();
@@ -864,6 +870,13 @@ export class RmgStatusCardsComponent {
   selectUnfilledTimesheetProjectFilter(filter: any) {
     this.selectedUnfilledTimesheetProjectFilter = filter.key;
     this.getUnFilledTimesheetProjectStatusCount(filter.key);
+    
+  }
+
+  get selectedProjectCount(): number | undefined {
+    const found = this.TIMESHEET_NON_COMPLIANCE_PROJECT_LIST
+      ?.find(t => t.key === this.selectedUnfilledTimesheetProjectFilter);
+    return found?.count ?? this.TEAM5_PROJECT_STATUS_LIST[0]?.count;
   }
   // Count & List APIs & Methods End
 
