@@ -190,7 +190,9 @@ public List<EmployeeLeave> findEmployeeIsOnLeaveToday();
 List<Object[]> reportingManagerIsOnLeave(@Param("empId") Long empId);
 
 
-@Query("SELECT e FROM EmployeeLeave e WHERE e.empId = :empId AND " +
+@Query("SELECT e FROM EmployeeLeave e \n"+
+		"INNER JOIN LeaveTypeMaster ltm ON ltm.leaveTypeMasterId = e.leaveTypeMasterId \n"+
+		   "WHERE e.empId = :empId AND ltm.leaveTypeMasterId NOT IN (3,5) AND " +
 	       "((e.fromDate BETWEEN :startOfMonth AND :endOfMonth) OR " +
 	       " (e.toDate BETWEEN :startOfMonth AND :endOfMonth))")
 	List<EmployeeLeave> findLeavesInCurrentMonth(

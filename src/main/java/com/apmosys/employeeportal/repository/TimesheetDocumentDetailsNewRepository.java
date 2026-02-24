@@ -142,4 +142,12 @@ public interface TimesheetDocumentDetailsNewRepository extends JpaRepository<Tim
 
 	@Query("SELECT tdd from TimesheetDocumentDetailsNew tdd where tdd.timesheetId IN :timesheetIds and tdd.projectId = :projectId")
 	List<TimesheetDocumentDetailsNew> getDocsByTimesheetIdsAndProjectId(@Param("timesheetIds") Set<Long> timesheetIds, @Param("projectId") Integer projectId);
+
+	@Query("SELECT DISTINCT COALESCE(fdn.fileUrl, tdd.fileUrl, 'null') from TimesheetDocumentDetailsNew tdd \n"+
+		   "left join FinalDocumentNew fdn on fdn.finalDocId = tdd.bulkApprovedDocId \n"+
+		   "INNER JOIN EmployeeTimesheetsNew etn on etn.timesheetId = tdd.timesheetId \n"+
+		   "INNER JOIN ProjectTimesheetStatusNew ptsn on ptsn.id.timesheetId = etn.timesheetId \n"+
+		   "where etn.empId = :empId and etn.date = :date and ptsn.id.projectId = :projectId")
+	String findFileUrlByEmpIdAndDate(@Param("empId") Long empId, @Param("date") LocalDate date, @Param("projectId") Integer projectId);
+
 }

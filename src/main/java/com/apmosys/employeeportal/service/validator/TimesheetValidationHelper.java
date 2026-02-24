@@ -756,6 +756,7 @@ public class TimesheetValidationHelper {
 				}
 
 				boolean filledPresent = false;
+                boolean isUpdate = empDTO.getTimesheetId() != null;
 				for (MultipartFile file : projectFiles) {
 					String fileName = file.getOriginalFilename();
 					if (fileName == null) {
@@ -768,7 +769,7 @@ public class TimesheetValidationHelper {
 						throw new TimesheetValidationFailedException("Invalid document file name. Use the correct format for the selected project.");
 					}
 				}
-				if (!filledPresent) {
+				if (!filledPresent && !isUpdate) {
 					throw new TimesheetValidationFailedException("Please upload the filled document for the selected project.");
 				}
 			}
