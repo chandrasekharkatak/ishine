@@ -2693,12 +2693,33 @@ approveSingleTimesheet(timesheet: any) {
           }
 
           const skippedKeys = Object.keys(skipped);
-          if (skippedKeys.length) {
-            message += `\nSkipped:\n`;
-            skippedKeys.forEach(id => {
-              message += `Timesheet ${id}: ${skipped[id]}\n`;
-            });
-          }
+          if (skipped.length) {
+
+              message += `
+                <p><strong>Skipped Timesheets</strong></p>
+                <table class="table table-bordered table-sm">
+                  <thead>
+                    <tr>
+                      <th>EMP ID</th>
+                      <th>Date</th>
+                      <th>Reason</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+              `;
+
+              skipped.forEach((item: any) => {
+                message += `
+                  <tr>
+                    <td>${item.employmentId}</td>
+                    <td>${item.date}</td>
+                    <td>${item.reason}</td>
+                  </tr>
+                `;
+              });
+
+              message += `</tbody></table>`;
+            }
 
           this.clearAllSelections();
           this.selectedStatus = 2;
@@ -2717,8 +2738,15 @@ approveSingleTimesheet(timesheet: any) {
         this.modalService.open(this.statusModal, { centered: true });
 
       },
-      error: () => {
-        alert('Timesheet approval failed');
+      error: (err) => {
+        this.modalTitle = 'Error';
+
+        this.modalMessage =
+          err?.error?.message ||
+          err?.error?.serviceResponse ||
+          'Timesheet approval failed';
+
+        this.modalService.open(this.statusModal, { centered: true });
       }
     });
 }
