@@ -1443,16 +1443,26 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    * Open alert modal with message
    */
   openAlertMod(template: TemplateRef<any>, message: any): void {
-    // Use a dedicated ref so the template's OK button always closes this modal (modalRef is shared with preview etc.)
+    // Close any existing alert so OK always closes the current one (avoids stale ref)
+    this.closeAlertModal();
     this.alertMessage = message;
-    this.alertModalRef = this.modalService.open(template, { modalDialogClass: 'ts-alert-modal' });
+    this.alertModalRef = this.modalService.open(template, {
+      modalDialogClass: 'ts-alert-modal',
+      backdrop: 'static'
+    });
   }
 
   /**
    * Close the simple alert modal (called by OK button in #alert_message template)
    */
   closeAlertModal(): void {
-    this.alertModalRef?.close();
+    if (this.alertModalRef) {
+      try {
+        this.alertModalRef.close();
+      } finally {
+        this.alertModalRef = null;
+      }
+    }
   }
 
   /**
@@ -2435,10 +2445,13 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       this.toDate = null;
     }
 
-    // Recalculate total presence when night shift changes (e.g. toggle OFF:
-    // presence must be recomputed from same-day in/out instead of cross-day).
+    // Recalculate total presence and location hours when night shift changes
+    // (toDate affects both: presence uses toDate for out-time; location hours use toDate for end date).
     // Defer so ngModel has updated isNightShift before we read it.
-    setTimeout(() => this.calculateTotalWorkingHours(), 0);
+    setTimeout(() => {
+      this.calculateTotalWorkingHours();
+      this.onHoursChange();
+    }, 0);
   }
 
 
@@ -2476,6 +2489,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       this.openAlertMod(this.alertTemplate, 'Please select From Date first.');
       this.toDate = null;
       this.calculateTotalWorkingHours();
+      this.onHoursChange();
       return;
     }
 
@@ -2483,6 +2497,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     if (!this.isNightShift) {
       this.toDate = null;
       this.calculateTotalWorkingHours();
+      this.onHoursChange();
       return;
     }
 
@@ -2493,6 +2508,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       this.openAlertMod(this.alertTemplate, 'Invalid date format.');
       this.toDate = null;
       this.calculateTotalWorkingHours();
+      this.onHoursChange();
       return;
     }
 
@@ -2508,6 +2524,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       // Reset to next day as default
       this.toDate = this.formatDDMMYYYY(this.addDays(fromDate, 1));
       this.calculateTotalWorkingHours();
+      this.onHoursChange();
       return;
     }
 
@@ -2515,11 +2532,13 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     // If fromDate === toDate, out-time must be greater than in-time. No reset on failure.
     if (!this.validateWorkCheckTimes()) {
       this.calculateTotalWorkingHours();
+      this.onHoursChange();
       return;
     }
 
-    // Valid: recalculate working hours
+    // Valid: recalculate presence and location hours (toDate affects both)
     this.calculateTotalWorkingHours();
+    this.onHoursChange();
   }
 
 
@@ -2705,12 +2724,10 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       const diffMs = outDateTime.getTime() - inDateTime.getTime();
       const calculatedHours = diffMs / (1000 * 60 * 60);
 
-      // With correct logic above, calculatedHours should be in range [0, ~24]
-      // However, clamp to [0, 24] as safety guard against:
-      // 1. Data corruption/parsing errors
-      // 2. Edge cases in date arithmetic (e.g., DST transitions, leap seconds)
-      // 3. Invalid toDate values (though validated elsewhere)
-      const finalHours = Math.max(0, Math.min(24, calculatedHours));
+      // Do NOT cap at 24: night shift (fromDate to toDate+1) can yield the same value as
+      // location.totalWorkingHours (e.g. 33). Capping totalPresence at 24 while location
+      // hours stay uncapped causes false "location hours exceed presence" validation errors.
+      const finalHours = Math.max(0, calculatedHours);
 
       // Round to 2 decimal places
       this.totalPresence = Math.round(finalHours * 100) / 100;
@@ -3584,13 +3601,32 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     if (timesheetData.date) {
       this.fromDate = this.convertYYYYMMDDToDDMMYYYY(timesheetData.date);
     }
-    this.isNightShift = timesheetData.isNightShift || false;
+    this.isNightShift = !!timesheetData.isNightShift;
 
-    // Handle night shift toDate
+    // Handle night shift toDate dynamically based on stored in/out datetimes
+    this.toDate = null;
     if (this.isNightShift && timesheetData.date) {
       const fromDate = this.parseYYYYMMDD(timesheetData.date);
       if (fromDate) {
-        this.toDate = this.formatDDMMYYYY(this.addDays(fromDate, 1));
+        const workOutRaw: string | null = timesheetData.workCheckOut || null;
+        if (workOutRaw) {
+          const outDatePart = workOutRaw.split(' ')[0]; // yyyy-MM-dd
+          const outDate = this.parseYYYYMMDD(outDatePart);
+          if (outDate) {
+            const diffDays = Math.round(
+              (outDate.getTime() - fromDate.getTime()) / (1000 * 60 * 60 * 24)
+            );
+            const effectiveToDate =
+              diffDays >= 1 ? this.addDays(fromDate, 1) : fromDate;
+            this.toDate = this.formatDDMMYYYY(effectiveToDate);
+          } else {
+            // Fallback: preserve existing behavior (fromDate + 1)
+            this.toDate = this.formatDDMMYYYY(this.addDays(fromDate, 1));
+          }
+        } else {
+          // No stored out-time; fallback to previous behavior
+          this.toDate = this.formatDDMMYYYY(this.addDays(fromDate, 1));
+        }
       }
     }
 
@@ -4629,9 +4665,11 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       totalLocationHours += location.totalWorkingHours || 0;
 
       // Validation 2: Total location hours cannot exceed total presence
-      // Use small tolerance (0.01 hrs) to avoid false errors from floating-point rounding
-      const presenceWithTolerance = (this.totalPresence || 0) + 0.01;
-      if (totalLocationHours > presenceWithTolerance) {
+      // Round both to 2 decimals to avoid false errors when they are equal (e.g. 33 vs 33 after night-shift toggle)
+      const locRounded = Math.round(totalLocationHours * 100) / 100;
+      const presRounded = Math.round((this.totalPresence || 0) * 100) / 100;
+
+      if (locRounded > presRounded) {
         // Show error but DO NOT auto-reset all hours for the location
         // This prevents all entered durations from being wiped out unexpectedly
         this.openAlertMod(
@@ -5157,8 +5195,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
                     this.populateProjectsForLocation(loc);
                   }
                 });
-              } else if ((this.isUpdation || hasExistingProjectsWithIds) && this.isDayTypeFillable()) {
-                // Update mode or autofill: only update projectList dropdown options for existing projects, don't replace them
+              } else if (this.isUpdation || hasExistingProjectsWithIds) {
+                // Update mode or autofill: update projectList dropdown options and projectName for existing projects
+                // Same for both fillable and non-fillable so selected project shows on edit (e.g. non-fillable update)
                 const uniqueProjects = Array.from(
                   new Map(
                     this.activeProjectList.map(p => [

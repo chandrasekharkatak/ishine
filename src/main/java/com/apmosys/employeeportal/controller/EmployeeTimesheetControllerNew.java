@@ -95,57 +95,20 @@ public class EmployeeTimesheetControllerNew {
 	public ServiceResponse createTimesheet(
 	        @RequestPart("dto") String encryptedDto,
 	        @RequestPart(value = "documents", required = false) List<MultipartFile> documents) {
-	    
-	    ServiceResponse response = new ServiceResponse();
+
+	    if (encryptedDto == null || encryptedDto.trim().isEmpty()) {
+	        throw new TimesheetValidationFailedException("Request data is required.");
+	    }
+
+	    EmployeeTimesheetDTO dto;
 	    try {
-	        if (encryptedDto == null || encryptedDto.trim().isEmpty()) {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("Encrypted DTO is required");
-	            response.setServiceError("Missing or empty encryptedDto parameter");
-	            return response;
-	        }
-	          
-	        EmployeeTimesheetDTO dto;
-            try {
-                dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNewMapping(encryptedDto);
-                System.out.println("decrypted DTo In create ==> "+"\n"+ dto.toString());
+	        dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNewMapping(encryptedDto);
+	    } catch (Exception e) {
+	        log.error("Decryption/parsing failed - error: {}", e.getMessage(), e);
+	        throw new TimesheetValidationFailedException("Invalid or corrupted request data. Please try again.");
+	    }
 
-            } catch (Exception e) {
-                log.error("Decryption/parsing failed - error: {}", e.getMessage(), e);
-                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceResponse("Failed to decrypt or parse request data");
-                response.setServiceError("Invalid encrypted data format");
-                return response;
-            }
-           
-            response = timesheetServiceNew.createTimesheet(dto, documents);
-
-        } catch (UnauthorizedAccessException e) {
-            log.warn("Unauthorized access in createTimesheet - empId/createdBy: {}", e.getMessage());
-            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-            response.setServiceResponse("Unauthorized");
-            response.setServiceError(e.getMessage());
-
-        } catch (IllegalArgumentException e) {
-            log.warn("Validation error in createTimesheet: {}", e.getMessage());
-            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-            response.setServiceResponse("Validation failed: " + e.getMessage());
-            response.setServiceError(e.getMessage());
-
-        } catch (IllegalStateException e) {
-            log.warn("State error in createTimesheet: {}", e.getMessage());
-            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-            response.setServiceResponse("Validation failed: " + e.getMessage());
-            response.setServiceError(e.getMessage());
-
-        } catch (Exception e) {
-            log.error("Unexpected error in createTimesheet: {}", e.getMessage(), e);
-            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-            response.setServiceResponse("Failed to process request data");
-            response.setServiceError("Unexpected error: " + e.getMessage());
-        }
-	    
-	    return response;
+	    return timesheetServiceNew.createTimesheet(dto, documents);
 	}
 	
 	@JobRoleAccess(featureIds = {15, 16, 24})
@@ -182,72 +145,27 @@ public class EmployeeTimesheetControllerNew {
             @RequestParam Long timesheetId,
             @RequestPart("dto") String encryptedDto,
             @RequestPart(value = "documents", required = false) List<MultipartFile> documents) {
-        
-        ServiceResponse response = new ServiceResponse();
-        
-        try {
-            // 1. Validate timesheetId parameter
-            if (timesheetId == null) {
-                log.warn("Update timesheet request with null timesheetId");
-                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceResponse("Timesheet ID is required");
-                response.setServiceError("Missing timesheetId parameter");
-                return response;
-            }
-            
-            // 2. Validate encryptedDto parameter
-            if (encryptedDto == null || encryptedDto.trim().isEmpty()) {
-                log.warn("Update timesheet request with empty encryptedDto - timesheetId: {}", timesheetId);
-                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceResponse("Encrypted DTO is required");
-                response.setServiceError("Missing or empty encryptedDto parameter");
-                return response;
-            }
-            
-            // 3. Decrypt and parse encrypted DTO to new structure
-            EmployeeTimesheetDTO dto;
-            try {
-                dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNewMapping(encryptedDto);
-                log.debug("Decrypted DTO for update - timesheetId: {}, empId: {}, date: {}", 
-                    timesheetId, dto.getEmpId(), dto.getDate());
-                System.out.println("decrypted DTo In update ==> "+"\n"+ dto.toString());
-                
-            } catch (Exception e) {
-                log.error("Decryption/parsing failed for update - timesheetId: {}, error: {}", 
-                    timesheetId, e.getMessage(), e);
-                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-                response.setServiceResponse("Failed to decrypt or parse request data");
-                response.setServiceError("Invalid encrypted data format");
-                return response;
-            }
-            response = timesheetServiceNew.updateTimesheet(timesheetId, dto, documents);
 
-        } catch (UnauthorizedAccessException e) {
-            log.warn("Unauthorized access in updateTimesheet - timesheetId: {}, error: {}", timesheetId, e.getMessage());
-            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-            response.setServiceResponse("Unauthorized");
-            response.setServiceError(e.getMessage());
-
-        } catch (IllegalArgumentException e) {
-            log.warn("Validation error in updateTimesheet - timesheetId: {}, error: {}", timesheetId, e.getMessage());
-            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-            response.setServiceResponse("Validation failed: " + e.getMessage());
-            response.setServiceError(e.getMessage());
-
-        } catch (IllegalStateException e) {
-            log.warn("State error in updateTimesheet - timesheetId: {}, error: {}", timesheetId, e.getMessage());
-            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-            response.setServiceResponse("Validation failed: " + e.getMessage());
-            response.setServiceError(e.getMessage());
-
-        } catch (Exception e) {
-            log.error("Unexpected error in updateTimesheet - timesheetId: {}, error: {}", timesheetId, e.getMessage(), e);
-            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-            response.setServiceResponse("Failed to process update request");
-            response.setServiceError("Unexpected error: " + e.getMessage());
+        if (timesheetId == null) {
+            throw new TimesheetValidationFailedException("Timesheet to update is required.");
         }
-        
-        return response;
+
+        if (encryptedDto == null || encryptedDto.trim().isEmpty()) {
+            throw new TimesheetValidationFailedException("Request data is required.");
+        }
+
+        EmployeeTimesheetDTO dto;
+        try {
+            dto = timesheetEncryptionHelper.decryptAndParseTimesheetDtoNewMapping(encryptedDto);
+            log.debug("Decrypted DTO for update - timesheetId: {}, empId: {}, date: {}",
+                    timesheetId, dto.getEmpId(), dto.getDate());
+        } catch (Exception e) {
+            log.error("Decryption/parsing failed for update - timesheetId: {}, error: {}",
+                    timesheetId, e.getMessage(), e);
+            throw new TimesheetValidationFailedException("Invalid or corrupted request data. Please try again.");
+        }
+
+        return timesheetServiceNew.updateTimesheet(timesheetId, dto, documents);
     }
 	
 	/**

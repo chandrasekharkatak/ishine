@@ -53,6 +53,7 @@ import com.apmosys.employeeportal.service.TimesheetDocumentServiceNew;
 import com.apmosys.employeeportal.service.TimesheetService;
 import com.apmosys.employeeportal.service.TimesheetServiceNew;
 import com.apmosys.employeeportal.service.helper.TimesheetAggregationHelper;
+import com.apmosys.employeeportal.Exception.TimesheetValidationFailedException;
 import com.apmosys.employeeportal.utility.DateConversionUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -117,7 +118,7 @@ public class TimesheetValidationHelper {
         // If same user, just verify the employee exists and is active
         if (Objects.equals(empId, createdBy)) {
             if (empId == null) {
-                throw new IllegalArgumentException("Employee ID cannot be null");
+                throw new TimesheetValidationFailedException("Employee ID cannot be null");
             }
             
             // Check if employee exists
@@ -169,7 +170,7 @@ public class TimesheetValidationHelper {
      */
     public boolean isAuthorizedToManageTimesheet(Long createdBy, Long targetEmpId) {
         if (createdBy == null || targetEmpId == null) {
-            throw new IllegalArgumentException("createdBy and targetEmpId cannot be null");
+            throw new TimesheetValidationFailedException("Required information is missing. Please try again.");
         }
         
         // If same user, authorization is granted (will be validated separately for active status)
@@ -246,23 +247,23 @@ public class TimesheetValidationHelper {
     public void validateNullAndUnexpectedData(EmployeeTimesheetDTO dto) {
 
 		if (dto == null) {
-			throw new IllegalArgumentException("Timesheet data is required.");
+			throw new TimesheetValidationFailedException("Timesheet data is required.");
 		}
 
 		if (dto.getEmpId() == null) {
-			throw new IllegalArgumentException("Employee ID is required");
+			throw new TimesheetValidationFailedException("Employee is required.");
 		}
 
 		if (dto.getDate() == null) {
-			throw new IllegalArgumentException("Timesheet date is required");
+			throw new TimesheetValidationFailedException("Timesheet date is required");
 		}
 
 		if (dto.getDate().isAfter(LocalDate.now())) {
-			throw new IllegalArgumentException("Timesheet date cannot be in the future");
+			throw new TimesheetValidationFailedException("Timesheet date cannot be in the future");
 		}
 
 		if (dto.getDayTypeId() == null) {
-			throw new IllegalArgumentException("Day type is required");
+			throw new TimesheetValidationFailedException("Day type is required");
 		}
 
 		
@@ -272,12 +273,12 @@ public class TimesheetValidationHelper {
 		        if (dto.getWorkCheckIn() == null || dto.getWorkCheckOut() == null ||
 						dto.getWorkCheckIn().trim().isEmpty() || dto.getWorkCheckOut().trim().isEmpty())
 				{
-					throw new IllegalArgumentException("workCheckIn and workCheckOut are mandatory for working days");
+					throw new TimesheetValidationFailedException("workCheckIn and workCheckOut are mandatory for working days");
 				}
 
 				if (!DateConversionUtil.stringToLocalDateTime(dto.getWorkCheckOut(),pattern).isAfter(DateConversionUtil.stringToLocalDateTime(dto.getWorkCheckIn(),pattern)))
 				{
-					throw new IllegalArgumentException("workCheckOut must be after workCheckIn");
+					throw new TimesheetValidationFailedException("workCheckOut must be after workCheckIn");
 				}
 			
 		}
@@ -309,7 +310,7 @@ public class TimesheetValidationHelper {
                 LocalDate lockCutoffDate = LocalDate.now().minusDays(effectiveLockDays);
 
                 if (timesheetDate.isBefore(lockCutoffDate)) {
-                    throw new IllegalArgumentException(
+                    throw new TimesheetValidationFailedException(
                             "Timesheet is locked. You cannot modify timesheets older than "
                                     + effectiveLockDays + " days.");
                 }
@@ -322,7 +323,7 @@ public class TimesheetValidationHelper {
 
             if (isWorkingDay &&
                 (empDTO.getLocationSessions() == null || empDTO.getLocationSessions().isEmpty())) {
-                throw new IllegalArgumentException(
+                throw new TimesheetValidationFailedException(
                         "At least one location session is required for working days");
             }
 
@@ -343,19 +344,19 @@ public class TimesheetValidationHelper {
     	  
     	  if (location.getWorkLocationTypeId() == null) 
     	  { 
-    		  throw new IllegalArgumentException("Work location type is required"); 
+    		  throw new TimesheetValidationFailedException("Work location type is required"); 
     	  } 
     	  
     	  if (location.getWorkLocationTypeId()!=3 &&  (location.getLocationInTime() == null || location.getLocationOutTime() == null))
     	  {
-    		  throw new IllegalArgumentException("Location inTime and outTime are required for non-remote locations");
+    		  throw new TimesheetValidationFailedException("Location inTime and outTime are required for non-remote locations");
     	  }
     	  if(location.getWorkLocationTypeId()!=3) {
     		 LocalDateTime locInTime = DateConversionUtil.stringToLocalDateTime(location.getLocationInTime(),pattern);
     		 LocalDateTime locOutTime = DateConversionUtil.stringToLocalDateTime(location.getLocationOutTime(),pattern);
 
       	    if (!locOutTime.isAfter(locInTime)) {
-      	        throw new IllegalArgumentException("Location outTime must be greater than inTime");
+      	        throw new TimesheetValidationFailedException("Location outTime must be greater than inTime");
       	    }
 
       	    LocalDate date = empDTO.getDate();
@@ -366,11 +367,11 @@ public class TimesheetValidationHelper {
       	    if (officeIn != null && officeOut != null) {
 
       	        if (locInTime.isBefore(officeIn) || locInTime.isAfter(officeOut)) {
-      	            throw new IllegalArgumentException("Location inTime must be within work range");
+      	            throw new TimesheetValidationFailedException("Location inTime must be within work range");
       	        }
 
       	        if (locOutTime.isBefore(officeIn) || locOutTime.isAfter(officeOut)) {
-      	            throw new IllegalArgumentException("Location outTime must be within work range");
+      	            throw new TimesheetValidationFailedException("Location outTime must be within work range");
       	        }
       	    }
 
@@ -388,7 +389,7 @@ public class TimesheetValidationHelper {
                                      EmployeeTimesheetDTO empDTO) {
 
             if (project.getProjectId() == null) {
-            throw new IllegalArgumentException("Please select a project.");
+            throw new TimesheetValidationFailedException("Please select a project.");
         }
 
 
@@ -401,7 +402,7 @@ public class TimesheetValidationHelper {
                     && Boolean.FALSE.equals(project.getIsShadowForSelf()) 
                     && project.getShadowEmpId() == null) {
 
-                    throw new IllegalArgumentException(
+                    throw new TimesheetValidationFailedException(
                         String.format("Shadow employee id is mandatory for shadow timesheet on project.")
                     );
                 }
@@ -410,7 +411,7 @@ public class TimesheetValidationHelper {
 
            if (isWorkingDay &&
                 (project.getActivities() == null || project.getActivities().isEmpty())) {
-                throw new IllegalArgumentException(
+                throw new TimesheetValidationFailedException(
                         "At least one activity is required for the selected project.");
             }
 
@@ -456,7 +457,7 @@ public class TimesheetValidationHelper {
         			if (existing == null) {
         				statusByProject.put(projId, status);
         			} else if (!existing.equals(status)) {
-        				throw new IllegalArgumentException(
+        				throw new TimesheetValidationFailedException(
         						"Client DSR Approval Status must be same for all locations of the same project.");
         			}
         		}
@@ -493,7 +494,7 @@ public class TimesheetValidationHelper {
         				boolean sameEmp = (existing.shadowEmpId == null && shadowEmpId == null)
         					|| (existing.shadowEmpId != null && existing.shadowEmpId.equals(shadowEmpId));
         				if (existing.isShadowTimesheet != isShadow || existing.isShadowForSelf != isShadowForSelf || !sameEmp) {
-        					throw new IllegalArgumentException(
+        					throw new TimesheetValidationFailedException(
         						"Shadow option (Shadow timesheet / Shadow for self / Shadow for) must be the same for the same project across all locations.");
         				}
         			}
@@ -520,12 +521,12 @@ public class TimesheetValidationHelper {
                                       ProjectTimesheetDTO project) {
 
             if (activity.getActivityId() == null) {
-                throw new IllegalArgumentException("Please select an activity.");
+                throw new TimesheetValidationFailedException("Please select an activity.");
             }
 
             if (activity.getDurationMinutes() == null ||
                 activity.getDurationMinutes() <= 0) {
-                throw new IllegalArgumentException(
+                throw new TimesheetValidationFailedException(
                         "Activity duration must be greater than 0 minutes");
             }
 
@@ -587,7 +588,7 @@ public class TimesheetValidationHelper {
                                     );
 
                     if (!documentPresentForProject) {
-                        throw new IllegalArgumentException(
+                        throw new TimesheetValidationFailedException(
                                 "Please upload required documents for the selected project.");
                     }
                 }
@@ -669,8 +670,8 @@ public class TimesheetValidationHelper {
 					try {
 						Map<Integer, List<MultipartFile>> filesByProject = groupFilesByProjectId(documents);
 						projectIdsWithNewFiles.addAll(filesByProject.keySet());
-					} catch (IllegalArgumentException e) {
-						throw e; // rethrow filename format errors
+					} catch (TimesheetValidationFailedException e) {
+						throw e; // rethrow validation errors
 					}
 				}
 			}
@@ -694,7 +695,7 @@ public class TimesheetValidationHelper {
 			if (!projectsRequiringDocsInRequest.isEmpty() && (documents == null || documents.isEmpty())) {
 				Integer first = projectsRequiringDocsInRequest.iterator().next();
 				String name = projectMap.getOrDefault(first, new ProjectTimesheetDTO()).getProjectName();
-				throw new IllegalArgumentException(
+				throw new TimesheetValidationFailedException(
 						"Please upload required documents for the selected project.");
 			}
 
@@ -705,7 +706,7 @@ public class TimesheetValidationHelper {
 			Map<Integer, List<MultipartFile>> filesByProject;
 			try {
 				filesByProject = groupFilesByProjectId(documents);
-			} catch (IllegalArgumentException e) {
+			} catch (TimesheetValidationFailedException e) {
 				throw e;
 			}
 
@@ -721,17 +722,17 @@ public class TimesheetValidationHelper {
 				List<MultipartFile> projectFiles = filesByProject.getOrDefault(projectId, List.of());
 
 				if (projectFiles.isEmpty()) {
-					throw new IllegalArgumentException("Please upload the filled document for the selected project.");
+					throw new TimesheetValidationFailedException("Please upload the filled document for the selected project.");
 				}
 				if (projectFiles.size() > 2) {
-					throw new IllegalArgumentException(
+					throw new TimesheetValidationFailedException(
 							"Maximum 2 documents (filled and approved) are allowed per project.");
 				}
 				// On CREATE only: approved projects must have both filled and approved docs in this request.
 				// On UPDATE: allow partial upload (e.g. user replacing only one file); do not require all four.
 				if (isCreate && project != null && project.getClientApprovalStatus() != null
 						&& project.getClientApprovalStatus() == 2 && projectFiles.size() != 2) {
-					throw new IllegalArgumentException(
+					throw new TimesheetValidationFailedException(
 							"Both filled and approved documents are required for the selected project.");
 				}
 
@@ -739,17 +740,17 @@ public class TimesheetValidationHelper {
 				for (MultipartFile file : projectFiles) {
 					String fileName = file.getOriginalFilename();
 					if (fileName == null) {
-						throw new IllegalArgumentException("Invalid document for the selected project.");
+						throw new TimesheetValidationFailedException("Invalid document for the selected project.");
 					}
 					String lowerName = fileName.toLowerCase();
 					if (lowerName.contains("_filled")) {
 						filledPresent = true;
 					} else if (!lowerName.contains("_approved")) {
-						throw new IllegalArgumentException("Invalid document file name. Use format: projectId_filled_filename or projectId_approved_filename.");
+						throw new TimesheetValidationFailedException("Invalid document file name. Use the correct format for the selected project.");
 					}
 				}
 				if (!filledPresent) {
-					throw new IllegalArgumentException("Please upload the filled document for the selected project.");
+					throw new TimesheetValidationFailedException("Please upload the filled document for the selected project.");
 				}
 			}
 
@@ -758,7 +759,7 @@ public class TimesheetValidationHelper {
 				for (Integer pid : projectsRequiringDocsInRequest) {
 					if (!projectsToValidate.contains(pid)) {
 						String name = projectMap.getOrDefault(pid, new ProjectTimesheetDTO()).getProjectName();
-                    throw new IllegalArgumentException(
+                    throw new TimesheetValidationFailedException(
                                 "Please upload required documents for the new project.");
 					}
 				}
@@ -781,7 +782,7 @@ public class TimesheetValidationHelper {
 
                 String fileName = file.getOriginalFilename();
                 if (fileName == null || !fileName.contains("_")) {
-                    throw new IllegalArgumentException(
+                    throw new TimesheetValidationFailedException(
                             "Invalid document file name. Use the correct format.");
                 }
 
@@ -791,7 +792,7 @@ public class TimesheetValidationHelper {
                 try {
                     projectId = Integer.parseInt(parts[0]);
                 } catch (NumberFormatException ex) {
-                    throw new IllegalArgumentException(
+                    throw new TimesheetValidationFailedException(
                             "Invalid document file name. The file name does not match the required format.");
                 }
 
@@ -836,7 +837,7 @@ public class TimesheetValidationHelper {
                     .toMinutes();
 
             if (totalWorkMinutes <= 0) {
-                throw new IllegalArgumentException(
+                throw new TimesheetValidationFailedException(
                         "Invalid workCheckIn/workCheckOut duration");
             }
 
@@ -851,14 +852,15 @@ public class TimesheetValidationHelper {
                         continue;
                     }
 
+                    // Parse as full datetime (yyyy-MM-dd HH:mm:ss) so night shift is correct:
+                    // location in on fromDate, location out on toDate (same as work check-in/out)
                     LocalDateTime locationIn =
-                            parseLocationTime(location.getLocationInTime(), empDTO.getDate());
-
+                            DateConversionUtil.stringToLocalDateTime(location.getLocationInTime(), pattern);
                     LocalDateTime locationOut =
-                            parseLocationTime(location.getLocationOutTime(), empDTO.getDate());
+                            DateConversionUtil.stringToLocalDateTime(location.getLocationOutTime(), pattern);
 
                     if (!locationOut.isAfter(locationIn)) {
-                        throw new IllegalArgumentException(
+                        throw new TimesheetValidationFailedException(
                                 "Location out time must be after location in time");
                     }
 
@@ -869,7 +871,7 @@ public class TimesheetValidationHelper {
             }
 
             if (totalLocationMinutes > totalWorkMinutes) {
-                throw new IllegalArgumentException(
+                throw new TimesheetValidationFailedException(
                         "Total location time exceeds office working hours. Please adjust your entries.");
             }
 
@@ -893,7 +895,7 @@ public class TimesheetValidationHelper {
             }
 
             if (totalActivityMinutes > totalWorkMinutes) {
-                throw new IllegalArgumentException(
+                throw new TimesheetValidationFailedException(
                         "Total activity hours exceed office working hours. Please adjust your entries.");
             }
         }
@@ -907,7 +909,7 @@ public class TimesheetValidationHelper {
             DayTypeMasterNew dayType = dayTypeMasterNewRepository
                     .findById(dto.getDayTypeId())
                     .orElseThrow(() ->
-                            new IllegalArgumentException("Invalid day type selected. Please try again."));
+                            new TimesheetValidationFailedException("Invalid day type. Please try again."));
 
             // Java authoritative meaning
             DayTypeCode dayTypeCode =
@@ -919,7 +921,7 @@ public class TimesheetValidationHelper {
 
             // Safety check — mismatch should NEVER happen silently
             if (dbSaysWorking != dayTypeCode.isWorkingDay()) {
-                throw new IllegalStateException(
+                throw new TimesheetValidationFailedException(
                         "Invalid day type configuration. Please refresh and try again.");
             }
 
@@ -927,22 +929,6 @@ public class TimesheetValidationHelper {
         }
 
 
-        
-        
-        /**
-         * Parse location time string (HH:mm or HH:mm:ss) into LocalDateTime.
-         */
-        private LocalDateTime parseLocationTime(String timeStr, LocalDate date) {
-            try {
-                String[] parts = timeStr.split(":");
-                int hour = Integer.parseInt(parts[0]);
-                int minute = Integer.parseInt(parts[1]);
-                int second = parts.length > 2 ? Integer.parseInt(parts[2]) : 0;
-                return LocalDateTime.of(date, java.time.LocalTime.of(hour, minute, second));
-            } catch (Exception e) {
-                throw new IllegalArgumentException("Invalid time format for location. Please use HH:mm or HH:mm:ss.");
-            }
-        }
         
         
         private boolean isNonWorkingDay(String dayType) {
@@ -999,15 +985,15 @@ public class TimesheetValidationHelper {
      */
     public void validateOfficeTimes(LocalDateTime officeInTime, LocalDateTime officeOutTime) {
         if (officeInTime == null || officeOutTime == null) {
-            throw new IllegalArgumentException("Both office in time and office out time are required");
+            throw new TimesheetValidationFailedException("Both office in time and office out time are required");
         }
 
         if (officeOutTime.isBefore(officeInTime)) {
-            throw new IllegalArgumentException("Office out time cannot be before office in time");
+            throw new TimesheetValidationFailedException("Office out time cannot be before office in time");
         }
 
         if (officeOutTime.isEqual(officeInTime)) {
-            throw new IllegalArgumentException("Office out time cannot be equal to office in time");
+            throw new TimesheetValidationFailedException("Office out time cannot be equal to office in time");
         }
     }
 
@@ -1021,16 +1007,16 @@ public class TimesheetValidationHelper {
      */
     public void validateActivityDuration(Integer durationMinutes) {
         if (durationMinutes == null) {
-            throw new IllegalArgumentException("Duration minutes cannot be null");
+            throw new TimesheetValidationFailedException("Duration minutes cannot be null");
         }
 
         if (durationMinutes <= 0) {
-            throw new IllegalArgumentException("Duration must be greater than 0 minutes");
+            throw new TimesheetValidationFailedException("Duration must be greater than 0 minutes");
         }
 
         // Maximum 24 hours (1440 minutes) per activity
         if (durationMinutes > 1440) {
-            throw new IllegalArgumentException("Duration cannot exceed 24 hours (1440 minutes)");
+            throw new TimesheetValidationFailedException("Duration cannot exceed 24 hours (1440 minutes)");
         }
     }
 
@@ -1043,7 +1029,7 @@ public class TimesheetValidationHelper {
      */
     public void validateProjectAssignment(Long empId, Long projectId) {
         if (empId == null || projectId == null) {
-            throw new IllegalArgumentException("Employee and project selection are required.");
+            throw new TimesheetValidationFailedException("Employee and project selection are required.");
         }
 
         // Check if employee is assigned to any team in the project
@@ -1052,7 +1038,7 @@ public class TimesheetValidationHelper {
                 .anyMatch(etm -> etm.getEmpId().equals(empId));
 
         if (!isAssigned) {
-            throw new IllegalArgumentException("You are not assigned to the selected project. Please contact your manager.");
+            throw new TimesheetValidationFailedException("You are not assigned to the selected project. Please contact your manager.");
         }
     }
 
@@ -1067,7 +1053,7 @@ public class TimesheetValidationHelper {
     public void validateDateNotLocked(Long empId, LocalDate date, Integer lockDays) {
         if (isDateLocked(empId, date, lockDays)) {
             int effectiveLockDays = lockDays != null ? lockDays + 1 : 4;
-            throw new IllegalArgumentException("Timesheet date is locked. Cannot modify timesheets older than " + effectiveLockDays + " days");
+            throw new TimesheetValidationFailedException("Timesheet date is locked. Cannot modify timesheets older than " + effectiveLockDays + " days");
         }
     }
     
@@ -1102,16 +1088,16 @@ public class TimesheetValidationHelper {
         if (isWorkingDay) {
             // For working days, workCheckIn and workCheckOut are required
             if (empDTO.getWorkCheckIn() == null) {
-                throw new IllegalArgumentException("workCheckIn is required for working days");
+                throw new TimesheetValidationFailedException("workCheckIn is required for working days");
             }
             
             if (empDTO.getWorkCheckOut() == null) {
-                throw new IllegalArgumentException("workCheckOut is required for working days");
+                throw new TimesheetValidationFailedException("workCheckOut is required for working days");
             }
             
             // Also validate that officeInTime and officeOutTime are set (after normalization)
             if (empDTO.getWorkCheckIn() == null || empDTO.getWorkCheckOut() == null) {
-                throw new IllegalArgumentException("Office in/out times are required for working days");
+                throw new TimesheetValidationFailedException("Office in/out times are required for working days");
             }
         }
     }
@@ -1128,7 +1114,7 @@ public class TimesheetValidationHelper {
             LocalDate date) {
 
         if (empDTO == null || empId == null || date == null) {
-            throw new IllegalArgumentException("Employee and date are required.");
+            throw new TimesheetValidationFailedException("Employee and date are required.");
         }
 
         Optional<EmployeeTimesheetsNew> existingOpt =
@@ -1148,7 +1134,7 @@ public class TimesheetValidationHelper {
         }
 
         //Everything else is blocked
-        throw new IllegalArgumentException(
+        throw new TimesheetValidationFailedException(
                 "A timesheet already exists for the selected employee on this date."
         );
     }
@@ -1159,7 +1145,7 @@ public class TimesheetValidationHelper {
         DayTypeMasterNew dayType = dayTypeMasterNewRepository
                 .findById(dayTypeId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("Invalid dayTypeId"));
+                        new TimesheetValidationFailedException("Invalid day type. Please try again."));
 
         DayTypeCode code =
                 DayTypeCode.fromDbValue(dayType.getDayType());
@@ -1169,7 +1155,7 @@ public class TimesheetValidationHelper {
                 Boolean.TRUE.equals(dayType.getIsWorkingDay()),
                 code.isWorkingDay())) {
 
-            throw new IllegalStateException(
+            throw new TimesheetValidationFailedException(
                     "Invalid day type. Please try again.");
         }
 
@@ -1210,7 +1196,7 @@ public class TimesheetValidationHelper {
                 && !currentStatus.equals(TimesheetAggregationHelper.STATUS_PENDING)
                 && !currentStatus.equals(TimesheetAggregationHelper.STATUS_REJECTED)) {
 
-            throw new IllegalStateException(
+            throw new TimesheetValidationFailedException(
                     "This timesheet can only be updated when it is Pending or Rejected.");
         }
 
@@ -1222,7 +1208,7 @@ public class TimesheetValidationHelper {
                     .filter(existing ->
                             !existing.getTimesheetId().equals(timesheetId))
                     .ifPresent(existing -> {
-                        throw new IllegalStateException(
+                        throw new TimesheetValidationFailedException(
                                 "A timesheet already exists for the selected employee on this date.");
                     });
         }
@@ -1235,7 +1221,7 @@ public class TimesheetValidationHelper {
             EmployeeTimesheetDTO incomingDTO) {
 
         if (existingEntity == null || incomingDTO == null) {
-            throw new IllegalArgumentException(
+            throw new TimesheetValidationFailedException(
                     "Unable to process update. Please try again."
             );
         }
@@ -1244,13 +1230,13 @@ public class TimesheetValidationHelper {
         LocalDate incomingDate = incomingDTO.getDate();
 
         if (existingDate == null || incomingDate == null) {
-            throw new IllegalArgumentException(
+            throw new TimesheetValidationFailedException(
                     "Please select a date."
             );
         }
 
         if (!existingDate.equals(incomingDate)) {
-            throw new IllegalArgumentException(
+            throw new TimesheetValidationFailedException(
                     "The timesheet date cannot be changed."
             );
         }
@@ -1260,7 +1246,7 @@ public class TimesheetValidationHelper {
             EmployeeTimesheetDTO incomingDTO) {
 
         if (existingEntity == null || incomingDTO == null) {
-            throw new IllegalArgumentException(
+            throw new TimesheetValidationFailedException(
                     "Unable to process update. Please try again."
             );
         }
@@ -1269,7 +1255,7 @@ public class TimesheetValidationHelper {
         Long incomingEmpId = incomingDTO.getEmpId();
 
         if (existingEmpId == null || incomingEmpId == null) {
-            throw new IllegalArgumentException(
+            throw new TimesheetValidationFailedException(
                     "Please select an employee."
             );
         }
@@ -1285,7 +1271,7 @@ public class TimesheetValidationHelper {
                         .existsApprovedProject(existingEntity.getTimesheetId());
 
         if (hasApprovedProject) {
-            throw new IllegalArgumentException(
+            throw new TimesheetValidationFailedException(
                     "Employee cannot be changed because the timesheet has approved projects."
             );
         }
@@ -1328,7 +1314,7 @@ public class TimesheetValidationHelper {
                                 .existsApprovedProjectByLocationMappingId(dbMappingId);
 
                 if (hasApprovedProject) {
-                    throw new IllegalStateException(
+                    throw new TimesheetValidationFailedException(
                             "Cannot delete location session because it contains approved project(s)");
                 }
             }
@@ -1364,7 +1350,7 @@ public class TimesheetValidationHelper {
     	            );
 
     	        if (hasApprovedProject) {
-    	           throw new IllegalStateException(
+    	           throw new TimesheetValidationFailedException(
     	             "Cannot delete location session because approved project exists"
     	           );
     	        }
@@ -1405,7 +1391,7 @@ public class TimesheetValidationHelper {
             LocalTime nextStart = extractTime(next.getLocationInTime());
 
 			if (currentEnd.isAfter(nextStart)) {
-				throw new IllegalStateException("Location times overlap. Please ensure each location has distinct time slots.");
+				throw new TimesheetValidationFailedException("Location times overlap. Please ensure each location has distinct time slots.");
 			}
 		}
 	}
@@ -1423,20 +1409,34 @@ public class TimesheetValidationHelper {
 				continue;
 			}
 
-			LocalTime start;
-			LocalTime end;
-			try {
-				start = extractTime(location.getLocationInTime());
-				end = extractTime(location.getLocationOutTime());
-			} catch (Exception e) {
-				throw new IllegalArgumentException(
-						"Invalid time format. Please use HH:mm or HH:mm:ss.");
+			long locationMinutes;
+			String inStr = location.getLocationInTime().trim();
+			String outStr = location.getLocationOutTime().trim();
+			// Full datetime (e.g. night shift: in on fromDate, out on toDate) — use LocalDateTime so cross-day range is correct
+			if (inStr.contains(" ") && outStr.contains(" ")) {
+				try {
+					LocalDateTime startDt = DateConversionUtil.stringToLocalDateTime(inStr, pattern);
+					LocalDateTime endDt = DateConversionUtil.stringToLocalDateTime(outStr, pattern);
+					locationMinutes = Duration.between(startDt, endDt).toMinutes();
+				} catch (Exception e) {
+					throw new TimesheetValidationFailedException(
+							"Invalid location time format. Please use yyyy-MM-dd HH:mm:ss.");
+				}
+			} else {
+				LocalTime start;
+				LocalTime end;
+				try {
+					start = extractTime(location.getLocationInTime());
+					end = extractTime(location.getLocationOutTime());
+				} catch (Exception e) {
+					throw new TimesheetValidationFailedException(
+							"Invalid time format. Please use HH:mm or HH:mm:ss.");
+				}
+				locationMinutes = Duration.between(start, end).toMinutes();
 			}
 
-			long locationMinutes = Duration.between(start, end).toMinutes();
-
 			if (locationMinutes <= 0) {
-				throw new IllegalArgumentException("Invalid location time range");
+				throw new TimesheetValidationFailedException("Invalid location time range");
 			}
 
 			long totalActivityMinutes = 0;
@@ -1456,7 +1456,7 @@ public class TimesheetValidationHelper {
 			}
 
 			if (totalActivityMinutes > locationMinutes) {
-				throw new IllegalStateException("Total activity hours exceed the location time. Please reduce activity hours or increase location time.");
+				throw new TimesheetValidationFailedException("Total activity hours exceed the location time. Please reduce activity hours or increase location time.");
 			}
 		}
 	}
@@ -1513,10 +1513,8 @@ public class TimesheetValidationHelper {
 	        if (incomingProjectsAtLocation == null
 	                || !incomingProjectsAtLocation.containsKey(projectId)) {
 
-	            throw new IllegalStateException(
-	                    "Approved project cannot be removed from its time slot. "
-	                    + "ProjectId=" + projectId
-	                    + ", LocationMappingId=" + locationMappingId);
+	            throw new TimesheetValidationFailedException(
+	                    "Approved project cannot be removed from its time slot.");
 	        }
 
 	        ProjectTimesheetDTO incomingProject =
@@ -1569,7 +1567,7 @@ public class TimesheetValidationHelper {
 
 	    // Add/remove activity
 	    if (!existingMap.keySet().equals(incomingMap.keySet())) {
-	        throw new IllegalStateException(
+	        throw new TimesheetValidationFailedException(
 	                "Activities cannot be changed for an approved project.");
 	    }
 
@@ -1580,7 +1578,7 @@ public class TimesheetValidationHelper {
 	                existingMap.get(activityId).getDurationMinutes(),
 	                incomingMap.get(activityId).getDurationMinutes())) {
 
-	            throw new IllegalStateException(
+	            throw new TimesheetValidationFailedException(
 	                    "Activity duration cannot be modified for an approved project.");
 	        }
 	    }
@@ -1592,14 +1590,14 @@ public class TimesheetValidationHelper {
 
 	    if (empDTO.getLocationSessions() == null ||
 	        empDTO.getLocationSessions().isEmpty()) {
-	        throw new IllegalArgumentException(
+	        throw new TimesheetValidationFailedException(
 	                "Location session is required for Non-Working day"
 	        );
 	    }
 
 	    //Multiple locations not allowed
 	    if (empDTO.getLocationSessions().size() > 1) {
-	        throw new IllegalArgumentException(
+	        throw new TimesheetValidationFailedException(
 	                "Multiple locations are not allowed for Non-Working day"
 	        );
 	    }
@@ -1610,7 +1608,7 @@ public class TimesheetValidationHelper {
 	    if (isNotEmpty(location.getLocationInTime()) || 
 	        isNotEmpty(location.getLocationOutTime())) {
 
-	        throw new IllegalArgumentException(
+	        throw new TimesheetValidationFailedException(
 	            "Location in/out time must be empty for Non-Working day"
 	        );
 	    }
@@ -1619,7 +1617,7 @@ public class TimesheetValidationHelper {
 	    if (location.getProjects() != null) {
 	        for (ProjectTimesheetDTO project : location.getProjects()) {
 	            if (!isActivitiesEmptyOrPlaceholder(project.getActivities())) {
-	                throw new IllegalArgumentException(
+	                throw new TimesheetValidationFailedException(
 	                        "Activities are not allowed for Non-Working day"
 	                );
 	            }
@@ -1629,7 +1627,7 @@ public class TimesheetValidationHelper {
 	    //  At least one project required
 	    if (location.getProjects() == null ||
 	        location.getProjects().isEmpty()) {
-	        throw new IllegalArgumentException(
+	        throw new TimesheetValidationFailedException(
 	                "At least one project must be selected for Non-Working day"
 	        );
 	    }
@@ -1660,7 +1658,7 @@ public class TimesheetValidationHelper {
 	        EmployeeTimesheetDTO newDTO) {
 		
 		if (existingTS == null || newDTO == null) {
-	        throw new IllegalArgumentException(
+	        throw new TimesheetValidationFailedException(
 	                "Unable to process. Please try again.");
 	    }
 
@@ -1674,7 +1672,7 @@ public class TimesheetValidationHelper {
 	    if (projectTimesheetService.existsApprovedProject(
 	                existingTS.getTimesheetId())) {
 
-	            throw new IllegalArgumentException(
+	            throw new TimesheetValidationFailedException(
 	                    "Cannot change day type "
 	                  + "because approved work already exists.");
 	        }
@@ -1687,7 +1685,7 @@ public class TimesheetValidationHelper {
 	        EmployeeTimesheetDTO newDTO) {
 
 	    if (existingTS == null || newDTO == null) {
-	        throw new IllegalArgumentException(
+	        throw new TimesheetValidationFailedException(
 	                "Unable to process. Please try again.");
 	    }
 
@@ -1728,7 +1726,7 @@ public class TimesheetValidationHelper {
 	        EmployeeTimesheetDTO newDTO) {
 
 	    if (existingTS == null || newDTO == null) {
-	        throw new IllegalArgumentException(
+	        throw new TimesheetValidationFailedException(
 	                "Unable to process. Please try again.");
 	    }
 
@@ -1753,7 +1751,7 @@ public class TimesheetValidationHelper {
 	        EmployeeTimesheetDTO newDTO) {
 
 	    if (existingTS == null || newDTO == null) {
-	        throw new IllegalArgumentException(
+	        throw new TimesheetValidationFailedException(
 	                "Unable to process. Please try again.");
 	    }
 
@@ -1778,7 +1776,19 @@ public class TimesheetValidationHelper {
 	public DayTypeTransition resolveDayTypeTransition(
 	        EmployeeTimesheetsNew existingTS,
 	        EmployeeTimesheetDTO newDTO) {
-		
+
+	    Integer oldDayTypeId = existingTS != null ? existingTS.getDayTypeId() : null;
+	    Integer newDayTypeId = newDTO != null ? newDTO.getDayTypeId() : null;
+
+	    // No change: same day type (update without changing day type)
+	    if (Objects.equals(oldDayTypeId, newDayTypeId)) {
+	        if (oldDayTypeId == null) {
+	            return DayTypeTransition.WORKING_TO_WORKING; // default
+	        }
+	        DayTypeCode code = resolveDayType(oldDayTypeId);
+	        return code.isWorkingDay() ? DayTypeTransition.WORKING_TO_WORKING : DayTypeTransition.NON_WORKING_TO_NON_WORKING;
+	    }
+
 	    if (isWorkingToNonWorking(existingTS, newDTO)) {
 	        return DayTypeTransition.WORKING_TO_NON_WORKING;
 	    }
@@ -1795,7 +1805,7 @@ public class TimesheetValidationHelper {
 	        return DayTypeTransition.NON_WORKING_TO_NON_WORKING;
 	    }
 
-	    throw new IllegalStateException("Unsupported day type transition");
+	    throw new TimesheetValidationFailedException("Unsupported day type transition");
 	}	
 	
 	@Autowired
@@ -1820,7 +1830,7 @@ public class TimesheetValidationHelper {
 	    DayTypeMasterNew dayType = dayTypeMasterNewRepository
 	            .findById(dayTypeId)
 	            .orElseThrow(() ->
-	                    new IllegalArgumentException("Invalid dayTypeId"));
+	                    new TimesheetValidationFailedException("Invalid day type. Please try again."));
 
 	    DayTypeCode incomingDayType =
 	            DayTypeCode.fromDbValue(dayType.getDayType());
@@ -1849,7 +1859,7 @@ public class TimesheetValidationHelper {
 		
 		DayTypeMasterNew dayType = dayTypeMasterNewRepository
 				.findById(dayTypeId)
-				.orElseThrow(() -> new IllegalArgumentException("Invalid dayTypeId"));
+				.orElseThrow(() -> new TimesheetValidationFailedException("Invalid day type. Please try again."));
 		
 		DayTypeCode incomingDayType = DayTypeCode.fromDbValue(dayType.getDayType());
 		
@@ -1863,7 +1873,7 @@ public class TimesheetValidationHelper {
 		// which is a safe guardrail to avoid working timesheets on configured holiday/week-off dates.
 		if (holidayRepository != null) {
 			if (!holidayRepository.findHolidaysWithinBuffer(timesheetDate, timesheetDate, null).isEmpty()) {
-				throw new IllegalArgumentException(
+				throw new TimesheetValidationFailedException(
 						"Date is configured as Holiday/Week Off. Only Non-working timesheet is allowed on this date.");
 			}
 		}
@@ -1909,7 +1919,7 @@ public class TimesheetValidationHelper {
 	    if (timesheetDate.isAfter(fromDate)
 	            && timesheetDate.isBefore(toDate)) {
 
-	        throw new IllegalArgumentException(
+	        throw new TimesheetValidationFailedException(
 	                "Timesheet cannot be created because employee "
 	                        + "is on leave for the selected date."
 	                  );
@@ -1925,7 +1935,7 @@ public class TimesheetValidationHelper {
 	    if (Float.valueOf(HALF_DAY).equals(leaveDayType)) {
 
 	        if (incomingDayType != DayTypeCode.HALF_DAY_WORKING) {
-	            throw new IllegalArgumentException(
+	            throw new TimesheetValidationFailedException(
 	                    "Only Half-Day timesheet is allowed because "
 	                            + "a half-day leave exists on the selected date."
 	                      );
@@ -1934,7 +1944,7 @@ public class TimesheetValidationHelper {
 	    }
 
 	    // Full-day leave
-	    throw new IllegalArgumentException(
+	    throw new TimesheetValidationFailedException(
 	            "Timesheet cannot be created because employee "
 	                    + "is on leave for the selected date."
 	              );

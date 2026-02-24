@@ -174,5 +174,21 @@ public class EmployeeTimesheetDTO {
      */
     @JsonInclude(JsonInclude.Include.ALWAYS)
     private List<TimesheetDocumentDataDTO> documentData = new ArrayList<>();
+
+	@Override
+	public String toString() {
+		return "EmployeeTimesheetDTO [timesheetId=" + timesheetId + ", empId=" + empId + ", employeeName="
+				+ employeeName + ", date=" + date + ", dayTypeId=" + dayTypeId + ", leaveTypeId=" + leaveTypeId
+				+ ", status=" + status + ", totalWorkingMinutes=" + totalWorkingMinutes + ", totalActivitiesMinutes="
+				+ totalActivitiesMinutes + ", createdBy=" + createdBy + ", createdOn=" + createdOn + ", updatedBy="
+				+ updatedBy + ", description=" + description + ", updatedOn=" + updatedOn + ", workCheckIn="
+				+ workCheckIn + ", workCheckOut=" + workCheckOut + ", dayType=" + dayType + ", isNightShift="
+				+ isNightShift + ", currentManagerId=" + currentManagerId + ", isApmosysProduct=" + isApmosysProduct
+				+ "]";
+	}
+    
+    
+    
+    
 }
 

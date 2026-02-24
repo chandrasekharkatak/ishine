@@ -18,6 +18,7 @@ import com.apmosys.employeeportal.repository.DayTypeMasterNewRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
+import com.apmosys.employeeportal.Exception.TimesheetValidationFailedException;
 
 @Component
 public class EmployeeAssignmentValidationService {
@@ -146,9 +147,8 @@ public class EmployeeAssignmentValidationService {
     
     private void validateProjectExists(Integer projectId) {
         if (!projectRepository.existsById(projectId)) {
-            throw new IllegalArgumentException(
-                    "Invalid project selected. ProjectId=" + projectId
-            );
+            throw new TimesheetValidationFailedException(
+                    "Invalid project selected.");
         }
     }
 
@@ -162,11 +162,8 @@ public class EmployeeAssignmentValidationService {
                         projectId
                 );
              if(t==null) {
-            	 throw  new IllegalArgumentException(
-                         "Team is not mapped to the selected project. "
-                       + "ProjectId=" + projectId
-                       + ", TeamId=" + teamId
-                 );
+            	 throw new TimesheetValidationFailedException(
+                         "Team is not mapped to the selected project.");
              }
                        
     }
@@ -210,11 +207,8 @@ public class EmployeeAssignmentValidationService {
                         );
 
         if (!exists) {
-            throw new IllegalArgumentException(
-                    "Selected activity does not belong to the selected team. "
-                  + "ActivityId=" + activityId
-                  + ", TeamId=" + teamId
-            );
+            throw new TimesheetValidationFailedException(
+                    "Selected activity does not belong to the selected team.");
         }
     }
 
