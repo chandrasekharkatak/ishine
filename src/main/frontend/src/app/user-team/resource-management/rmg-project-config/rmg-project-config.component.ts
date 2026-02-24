@@ -1736,8 +1736,46 @@ export class RmgProjectComponent implements OnInit {
 		this.closeRemoveMembersModal();
 	}
 
-	updateTeamMembersEndDate(currentTeam: RmgTeam) {
+	extendTeamMembersEndDate(currentTeam: RmgTeam) {
+		const isAnyMemberEndDateChanged = currentTeam?.rmgOldTeamMemberList.some(member => this.normalizeDate(member.endDate) != this.normalizeDate(member.dbEndDate));
+		if (!isAnyMemberEndDateChanged) {
+			this.openAlertMessageModal("Please change the end date of at least one member before updating the end date!!");
+			return false;
+		}
 
+		let updatedEtmIdAndEmpIdMap = new Map<number, number>();
+		for (let i = 0; i < currentTeam?.rmgOldTeamMemberList?.length; i++) {
+			let member = currentTeam?.rmgOldTeamMemberList[i];
+			if (!member.endDate || member.endDate == undefined || member.endDate == null) {
+				member.endDate = member.dbEndDate;
+				this.openAlertMessageModal(`Kindly provide an End date for Member # ${i + 1}`);
+				return false;
+			}
+			if (this.normalizeDate(member.startDate) > this.normalizeDate(member.endDate)) {
+				member.endDate = member.dbEndDate;
+				this.openAlertMessageModal(`Member End date cannot be less then Member Start date for Member # ${i + 1}`);
+				return false;
+			}
+			if (this.normalizeDate(member.endDate) !== this.normalizeDate(member.dbEndDate)) {
+				updatedEtmIdAndEmpIdMap.set(member.etmId, member.empId);
+			}
+		}
+
+		let rmgTeam = new RmgTeam();
+		rmgTeam.projectId = this.rmgProjectObj.projectId;
+		rmgTeam.teamId = currentTeam?.teamId;
+		rmgTeam.updatedBy = this.currentUser?.empId;
+		rmgTeam.projectType = this.projectType;
+		rmgTeam.updatedEtmIdAndEmpIdMap = updatedEtmIdAndEmpIdMap;
+
+		this.teamService.extendTeamMembersEndDate(rmgTeam).pipe(first()).subscribe(async (response: any) => {
+			if (response.serviceStatus == "Success") {
+				this.toastService.success(response.serviceResponse);
+				await this.getTeamDetailsByTeamId(this.currentTeam);
+			} else {
+				this.toastService.error(response.serviceResponse);
+			}
+		});
 	}
 
 	migrateTeamMembers(employee: any) {
@@ -1865,6 +1903,17 @@ export class RmgProjectComponent implements OnInit {
 		else if (selectedValue === 'Custom') {
 			this.employeeProjectEndDate = null;
 		}
+	}
+
+	onMemberEndDateChange(event: MatDatepickerInputEvent<Date>, member: RmgTeamMember) {
+		const selectedDate = this.normalizeDate(event.value);
+		const memberStartDate = this.normalizeDate(member.startDate);
+		if (selectedDate < memberStartDate) {
+			member.endDate = member.dbEndDate;
+			this.openAlertMessageModal("Member End Date cannot be less than Member Start Date!!");
+			return false;
+		}
+		member.endDate = event.value;
 	}
 	// Team Members Method & APIs End
 

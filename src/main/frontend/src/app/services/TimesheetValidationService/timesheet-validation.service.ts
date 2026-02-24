@@ -951,3 +951,13 @@ export class TimesheetValidationService {
       .join('\n');
   }
 }
+
+/*
+While timesheet creation if user have selected night shift
+then workout date is calculated based on date in toDate selected on UI
+But toDate we don't store directly
+so,during update also we have decide dynamicaly 
+based on workin and workout date time whether toDate is same 
+as from date or different i.e(fromDate+1) Currently during update we always 
+show to date as fromDate+1
+*/

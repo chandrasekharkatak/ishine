@@ -56,7 +56,7 @@ public class ProjectTimesheetService {
             throw new IllegalArgumentException("ProjectTimesheetDTO cannot be null");
         }
         if (dto.getProjectId() == null) {
-            throw new IllegalArgumentException("Project ID is required");
+            throw new IllegalArgumentException("Project is required");
         }
 
         // Calculate project totals
@@ -70,9 +70,10 @@ public class ProjectTimesheetService {
         ProjectTimesheetStatusNew entity = timesheetMapper.toEntity(dto, timesheetId);
 		String description = "";
 
-        
-        if (dto.getActivities()==null || dto.getActivities().isEmpty()) {
-			description = "No activity available in project timesheet";
+        // Non-fillable day types have no activities; use DTO description if provided
+        if (dto.getActivities() == null || dto.getActivities().isEmpty()) {
+			description = (dto.getDescription() != null && !dto.getDescription().trim().isEmpty())
+					? dto.getDescription() : "No activity available in project timesheet";
 		} else {
 			//activityId3
 			for (ActivityTimesheetDTO activity : dto.getActivities()) {
@@ -149,9 +150,10 @@ public class ProjectTimesheetService {
         entity.setTotalClientWorkingMinutes(dto.getTotalClientWorkingMinutes());
         
 		String description = "";
-
-        if (dto.getActivities().isEmpty()) {
-			description = "No activity available in project timesheet";
+        // Non-fillable: use DTO description when activities are empty
+        if (dto.getActivities() == null || dto.getActivities().isEmpty()) {
+			description = (dto.getDescription() != null && !dto.getDescription().trim().isEmpty())
+					? dto.getDescription() : "No activity available in project timesheet";
 		} else {
 			//activityId
 			for (ActivityTimesheetDTO activity : dto.getActivities()) {

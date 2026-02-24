@@ -63,6 +63,7 @@ public class TimesheetMapper {
         entity.setTotalWorkingMinutes(dto.getTotalWorkingMinutes());
         entity.setWorkCheckIn(DateConversionUtil.stringToLocalDateTime(dto.getWorkCheckIn(),pattern));
         entity.setWorkCheckOut(DateConversionUtil.stringToLocalDateTime(dto.getWorkCheckOut(),pattern));
+        entity.setIsNightShift(dto.getIsNightShift());
         entity.setCreatedBy(dto.getCreatedBy());
         entity.setCreatedOn(dto.getCreatedOn() != null ? dto.getCreatedOn() : LocalDateTime.now());
         entity.setUpdatedBy(dto.getUpdatedBy());
@@ -93,6 +94,7 @@ public class TimesheetMapper {
         // Non-working days have null workCheckIn/workCheckOut; avoid calling localDateTimeToString(null)
         dto.setWorkCheckIn(entity.getWorkCheckIn() == null ? null : DateConversionUtil.localDateTimeToString(entity.getWorkCheckIn(), pattern));
         dto.setWorkCheckOut(entity.getWorkCheckOut() == null ? null : DateConversionUtil.localDateTimeToString(entity.getWorkCheckOut(), pattern));
+        dto.setIsNightShift(entity.getIsNightShift());
         dto.setCreatedBy(entity.getCreatedBy());
         dto.setCreatedOn(entity.getCreatedOn());
         dto.setUpdatedBy(entity.getUpdatedBy());
@@ -100,6 +102,7 @@ public class TimesheetMapper {
 
         return dto;
     }
+    
 
     /**
      * Convert ProjectTimesheetDTO to ProjectTimesheetStatusNew entity.

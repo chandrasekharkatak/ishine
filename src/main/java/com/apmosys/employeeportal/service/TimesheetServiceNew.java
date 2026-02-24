@@ -49,6 +49,7 @@ import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetStatusCountDTO;
 import com.apmosys.employeeportal.enums.DayTypeTransition;
 import com.apmosys.employeeportal.enums.DayTypeCode;
+import com.apmosys.employeeportal.Exception.TimesheetValidationFailedException;
 import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
 import com.apmosys.employeeportal.model.DocMimeTypeMasterNew;
 import com.apmosys.employeeportal.model.EmployeeTimesheetLocationMapping;
@@ -224,10 +225,36 @@ public class TimesheetServiceNew {
 				return LocalDateTime.of(date, java.time.LocalTime.of(hour, minute, second));
 			}
 		} catch (Exception e) {
-			throw new IllegalArgumentException("Invalid time format: " + timeStr + ". Expected HH:mm or HH:mm:ss");
+			throw new TimesheetValidationFailedException("Invalid time format. Please use HH:mm or HH:mm:ss.");
 		}
 
 		return null;
+	}
+
+	/**
+	 * Parse location in/out time for update: use full datetime when present (same as create),
+	 * so night shift location out on toDate is preserved. Otherwise combine time with the given date.
+	 */
+	private LocalDateTime parseLocationTimeForUpdate(String timeStr, LocalDate date) {
+		if (timeStr == null || timeStr.trim().isEmpty()) {
+			return null;
+		}
+		if (date == null && !timeStr.trim().contains(" ")) {
+			return null;
+		}
+		// Full datetime from frontend (e.g. "yyyy-MM-dd HH:mm:ss") — use as-is so fromDate/toDate are correct
+		if (timeStr.trim().contains(" ")) {
+			return DateConversionUtil.stringToLocalDateTime(timeStr.trim(), pattern);
+		}
+		return convertTimeStringToLocalDateTime(timeStr, date);
+	}
+
+	/** For update: date to use for location out when time-only. Night shift => workCheckOut date (toDate), else timesheet date. */
+	private LocalDate getLocationOutDateForUpdate(EmployeeTimesheetDTO dto) {
+		if (Boolean.TRUE.equals(dto.getIsNightShift()) && dto.getWorkCheckOut() != null && !dto.getWorkCheckOut().trim().isEmpty()) {
+			return DateConversionUtil.stringToLocalDateTime(dto.getWorkCheckOut(), pattern).toLocalDate();
+		}
+		return dto.getDate();
 	}
 
 	/**
@@ -342,16 +369,15 @@ public class TimesheetServiceNew {
 			newTimesheet.setCurrentManagerId(empDTO.getCurrentManagerId());
 
 			if (!timesheetValidationHelper.isWorkingDay(empDTO)) {
-				// newTimesheet.setDescription(empDTO.getDescription());
-				newTimesheet.setTotalWorkingMinutes(0);
+				newTimesheet.setWorkCheckIn(null);
+				newTimesheet.setWorkCheckOut(null);
 			} else {
-				newTimesheet.setTotalWorkingMinutes(empDTO.getTotalWorkingMinutes());
 				newTimesheet.setWorkCheckIn(DateConversionUtil.stringToLocalDateTime(empDTO.getWorkCheckIn(), pattern));
-				newTimesheet
-						.setWorkCheckOut(DateConversionUtil.stringToLocalDateTime(empDTO.getWorkCheckOut(), pattern));
-				newTimesheet.setCreatedBy(empDTO.getCreatedBy());
+				newTimesheet.setWorkCheckOut(DateConversionUtil.stringToLocalDateTime(empDTO.getWorkCheckOut(), pattern));
+				aggregationHelper.calculateAndSetEmployeeTimesheetTotals(empDTO);
+				newTimesheet.setTotalWorkingMinutes(empDTO.getTotalWorkingMinutes());
 			}
-
+			newTimesheet.setCreatedBy(empDTO.getCreatedBy());
 			EmployeeTimesheetsNew empTS = employeeTimesheetsNewRepository.save(newTimesheet);
 			empDTO.setTimesheetId(empTS.getTimesheetId());
 
@@ -363,32 +389,11 @@ public class TimesheetServiceNew {
 			}
 			return response;
 
-		} catch (UnauthorizedAccessException e) {
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("Unauthorized");
-			response.setServiceError(e.getMessage());
-
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("Validation failed: " + e.getMessage());
-			response.setServiceError(e.getMessage());
-
-		} catch (IllegalStateException e) {
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("Validation failed: " + e.getMessage());
-			response.setServiceError(e.getMessage());
-
 		} catch (Exception e) {
-			e.printStackTrace();
 			// Clean up any partially uploaded documents on failure
 			cleanupDocumentsOnFailure(documents);
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceError(e.getMessage());
+			throw e;
 		}
-
-		return response;
 	}
 
 	public ServiceResponse createTimesheetForWorkingDays(EmployeeTimesheetsNew empTS, EmployeeTimesheetDTO empDTO,
@@ -455,14 +460,6 @@ public class TimesheetServiceNew {
 		 */
 
 		List<ProjectTimesheetDTO> projectDTOs = projectTimesheetService.findByTimesheetId(timesheetId);
-
-		aggregationHelper.calculateAndSetEmployeeTimesheetTotals(empDTO, projectDTOs);
-
-		empTS.setTotalWorkingMinutes(empDTO.getTotalWorkingMinutes());
-		empTS.setStatus(empDTO.getStatus());
-
-		employeeTimesheetsNewRepository.save(empTS);
-
 		/*
 		 * ====================================================== Document handling
 		 * (UNCHANGED) ======================================================
@@ -489,7 +486,7 @@ public class TimesheetServiceNew {
 		Long timesheetId = empTS.getTimesheetId();
 
 		if (empDTO.getLocationSessions() == null || empDTO.getLocationSessions().isEmpty()) {
-			throw new IllegalArgumentException("Location session is required for Non-Working day");
+			throw new TimesheetValidationFailedException("Location session is required for Non-Working day");
 		}
 		LocationSessionDTO location = empDTO.getLocationSessions().get(0);
 
@@ -501,7 +498,7 @@ public class TimesheetServiceNew {
 
 		// 2 Validate project selection
 		if (location.getProjects() == null || location.getProjects().isEmpty()) {
-			throw new IllegalArgumentException("At least one project must be selected for Non-Working day");
+			throw new TimesheetValidationFailedException("At least one project must be selected for Non-Working day");
 		}
 
 		// 3️ Create project timesheets (NO activities)
@@ -855,7 +852,7 @@ public class TimesheetServiceNew {
 			List<ProjectTimesheetDTO> allProjects = projectTimesheetService.findByTimesheetId(timesheetId);
 
 			// Convert to old DTOs for aggregation helper (helper expects old DTOs)
-			aggregationHelper.calculateAndSetEmployeeTimesheetTotals(empDTO, allProjects);
+			aggregationHelper.calculateAndSetEmployeeTimesheetTotals(empDTO);
 
 			// Update employee timesheet with calculated totals from old DTO
 			Optional<EmployeeTimesheetsNew> empTSOpt = employeeTimesheetsNewRepository.findById(timesheetId);
@@ -968,13 +965,10 @@ public class TimesheetServiceNew {
 						newEmpDTO.getLocationSessions());
 
 			} else {
-				throw new IllegalStateException("Invalid day type transition");
+				throw new TimesheetValidationFailedException("Invalid day type transition. Please try again.");
 			}
 
 			timesheetStructureCleanupService.cleanTimesheetStructure(timesheetId, newEmpDTO.getLocationSessions());
-
-			handleUpdateTimesheet(timesheetId, newEmpDTO);
-
 			Long currentUserId = getCurrentUserId();
 			Long updatedBy = currentUserId != null ? currentUserId
 					: (newEmpDTO.getUpdatedBy() != null ? newEmpDTO.getUpdatedBy() : newEmpDTO.getEmpId());
@@ -986,26 +980,27 @@ public class TimesheetServiceNew {
 			empTS.setEmpId(newEmpDTO.getEmpId());
 			empTS.setDate(newEmpDTO.getDate());
 			empTS.setDayTypeId(newEmpDTO.getDayTypeId());
+			empTS.setIsNightShift(newEmpDTO.getIsNightShift());
 			empTS.setLeaveTypeMasterId(newEmpDTO.getLeaveTypeId());
-			empTS.setWorkCheckIn(DateConversionUtil.stringToLocalDateTime(newEmpDTO.getWorkCheckIn(), pattern));
-			empTS.setWorkCheckOut(DateConversionUtil.stringToLocalDateTime(newEmpDTO.getWorkCheckOut(), pattern));
 			empTS.setUpdatedBy(newEmpDTO.getUpdatedBy());
 			empTS.setUpdatedOn(newEmpDTO.getUpdatedOn());
-
-			List<ProjectTimesheetDTO> allProjects = projectTimesheetService.findByTimesheetId(timesheetId);
-			aggregationHelper.calculateAndSetEmployeeTimesheetTotals(newEmpDTO, allProjects);
-
-			// Update employee timesheet with calculated totals
-			empTS.setTotalWorkingMinutes(newEmpDTO.getTotalWorkingMinutes());
 			empTS.setStatus(TimesheetAggregationHelper.STATUS_PENDING);
 			
-			empTS = employeeTimesheetsNewRepository.save(empTS);
-			if (newEmpDTO.getDocumentData() != null && !newEmpDTO.getDocumentData().isEmpty()) {
-				// NEW CONTRACT: Handle document uploads/updates for multiple projects
-
+			// Set work check in/out only for working days (same as createTimesheet)
+			if (timesheetValidationHelper.isWorkingDay(newEmpDTO)) {
+				empTS.setWorkCheckIn(DateConversionUtil.stringToLocalDateTime(newEmpDTO.getWorkCheckIn(), pattern));
+				empTS.setWorkCheckOut(DateConversionUtil.stringToLocalDateTime(newEmpDTO.getWorkCheckOut(), pattern));
+				aggregationHelper.calculateAndSetEmployeeTimesheetTotals(newEmpDTO);
+				empTS.setTotalWorkingMinutes(newEmpDTO.getTotalWorkingMinutes());
+			} else {
+				empTS.setWorkCheckIn(null);
+				empTS.setWorkCheckOut(null);
 			}
-
-			// Handle document uploads if provided (EXISTING LOGIC - for backward
+			
+			empTS = employeeTimesheetsNewRepository.save(empTS);
+			
+			handleUpdateTimesheet(timesheetId, newEmpDTO);
+         	// Handle document uploads if provided (EXISTING LOGIC - for backward
 			// compatibility)
 			// Old contract: filledDocument and finalDocument
 			if (newEmpDTO.getDocumentData() != null) {
@@ -1019,30 +1014,13 @@ public class TimesheetServiceNew {
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(responseDTO);
 			response.setServiceMessage("Timesheet updated successfully");
-
-		} catch (UnauthorizedAccessException e) {
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("Unauthorized");
-			response.setServiceError(e.getMessage());
-
-		} catch (IllegalArgumentException e) {
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("Validation failed: " + e.getMessage());
-			response.setServiceError(e.getMessage());
-
-		} catch (IllegalStateException e) {
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("Validation failed: " + e.getMessage());
-			response.setServiceError(e.getMessage());
+			return response;
 
 		} catch (Exception e) {
+			e.printStackTrace();
 			cleanupDocumentsOnFailure(documents);
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceError(e.getMessage());
+			throw e;
 		}
-
-		return response;
 	}
 
 	/**
@@ -1064,7 +1042,7 @@ public class TimesheetServiceNew {
 
 	private void handleUpdateTimesheet(Long timesheetId, EmployeeTimesheetDTO newEmpDTO) {
 		if (newEmpDTO.getLocationSessions() == null || newEmpDTO.getLocationSessions().isEmpty()) {
-			throw new IllegalArgumentException("At least one location session is required");
+			throw new TimesheetValidationFailedException("At least one location session is required");
 		}
 		// Existing locations from DB
 		Map<Long, EmployeeTimesheetLocationMapping> existingLocationMap = employeeTimesheetLocationMappingRepository
@@ -1075,34 +1053,34 @@ public class TimesheetServiceNew {
 
 			EmployeeTimesheetLocationMapping locationMapping;
 
-			// CREATE new location
+			// CREATE new location — location in on fromDate, location out on toDate when night shift (same as create API)
 			if (locationDTO.getLocationMappingId() == null) {
 
 				locationMapping = EmployeeTimesheetLocationMapping.builder().timesheetId(timesheetId)
 						.locationTypeId(locationDTO.getWorkLocationTypeId())
 						.locationInTime(
-								convertTimeStringToLocalDateTime(locationDTO.getLocationInTime(), newEmpDTO.getDate()))
+								parseLocationTimeForUpdate(locationDTO.getLocationInTime(), newEmpDTO.getDate()))
 						.locationOutTime(
-								convertTimeStringToLocalDateTime(locationDTO.getLocationOutTime(), newEmpDTO.getDate()))
+								parseLocationTimeForUpdate(locationDTO.getLocationOutTime(), getLocationOutDateForUpdate(newEmpDTO)))
 						.build();
 
 				locationMapping = employeeTimesheetLocationMappingRepository.save(locationMapping);
 
 			}
-			// UPDATE existing location (only times)
+			// UPDATE existing location (only times) — same date logic as above
 			else {
 
 				locationMapping = existingLocationMap.get(locationDTO.getLocationMappingId());
 
 				if (locationMapping == null) {
-					throw new IllegalStateException("Invalid location. Please refresh the page and try again.");
+					throw new TimesheetValidationFailedException("Invalid location. Please refresh the page and try again.");
 				}
 
 				locationMapping.setLocationInTime(
-						convertTimeStringToLocalDateTime(locationDTO.getLocationInTime(), newEmpDTO.getDate()));
+						parseLocationTimeForUpdate(locationDTO.getLocationInTime(), newEmpDTO.getDate()));
 
 				locationMapping.setLocationOutTime(
-						convertTimeStringToLocalDateTime(locationDTO.getLocationOutTime(), newEmpDTO.getDate()));
+						parseLocationTimeForUpdate(locationDTO.getLocationOutTime(), getLocationOutDateForUpdate(newEmpDTO)));
 
 				employeeTimesheetLocationMappingRepository.save(locationMapping);
 			}
@@ -1240,7 +1218,7 @@ public class TimesheetServiceNew {
 		} else {
 			// CREATE: strict match - every documentData entry must have a file
 			if (documents == null || documents.size() != documentDataList.size()) {
-				throw new IllegalArgumentException(
+				throw new TimesheetValidationFailedException(
 						"Please ensure all required documents are attached.");
 			}
 			timesheetDocumentService.handleDocumentUpload(empTS, timesheetId, documents, documentDataList);
@@ -1317,6 +1295,8 @@ public class TimesheetServiceNew {
 
 		// Mapper returns old DTO, convert to new DTO
 		EmployeeTimesheetDTO dTO = timesheetMapper.toDTO(entity.get());
+		System.out.println("**********TimesheetDtO**************");
+		System.out.println(dTO.toString());
 		return dTO;
 	}
 
@@ -1374,25 +1354,6 @@ public class TimesheetServiceNew {
 		List<EmployeeTimesheetLocationMapping> locationMappings = employeeTimesheetLocationMappingRepository
 				.findByTimesheetId(timesheetId);
 
-		if (locationMappings == null || locationMappings.isEmpty()) {
-			// Backward compatibility: populate old structure
-			List<ProjectTimesheetDTO> projects = projectTimesheetService.findByTimesheetId(timesheetId);
-			if (projects == null) {
-				return empDTO;
-			}
-			for (ProjectTimesheetDTO project : projects) {
-				List<ActivityTimesheetDTO> activities = activityTimesheetService
-						.findByTimesheetIdAndProjectId(timesheetId, project.getProjectId());
-				project.setActivities(activities);
-			}
-
-//            empDTO.setProjectTimesheets(projects);
-			// Populate documentData for update form (backward compat path)
-			List<TimesheetDocumentDataDTO> docsCompat = getDocumentDataForTimesheet(timesheetId);
-			empDTO.setDocumentData(docsCompat);
-			return empDTO;
-		}
-
 		// 3️⃣ Build location sessions (NEW CONTRACT)
 		List<LocationSessionDTO> locationSessions = new ArrayList<>();
 
@@ -1428,6 +1389,18 @@ public class TimesheetServiceNew {
 
 				projectDTO.setActivities(activities);
 				projectDTO.setLocationMappingId(locationMappingId);
+
+				// Derive shadow flags for response
+				Long shadowEmp = projectDTO.getShadowEmpId();
+				if (shadowEmp != null) {
+					projectDTO.setIsShadowTimesheet(Boolean.TRUE);
+					Long empId = empDTO.getEmpId();
+					projectDTO.setIsShadowForSelf(empId != null && empId.equals(shadowEmp));
+				} else {
+					projectDTO.setIsShadowTimesheet(Boolean.FALSE);
+					projectDTO.setIsShadowForSelf(Boolean.FALSE);
+				}
+
 				mappedProjects.add(projectDTO);
 			}
 

@@ -52,11 +52,11 @@
 
             <!-- <div class="card" *ngFor="let leave of leaveBalance">
                 <div class="card-header">{{leave.leaveType}} : {{leave.balance}}</div>
-                
+
               </div>
             <div class="alert alert-primary" role="alert">
                 <p>Certification(s) are not mandatory, but if added all fields for certificate are mandatory with document in Upload Document section</p>
-            </div> --> 
+            </div> -->
             <div class="row">
                 <div class="col-md-4 col-sm-6 mb-0">
                     <div class="info-wrapper">
@@ -117,15 +117,15 @@
                     <div class="info-wrapper">
                         <div class="form-group" >
                             <label class="info-label"><span class="text-danger">*</span>Day Type</label>
-                            <select  class="form-control"  aria-hidden="true" [(ngModel)]="leaveObj.fromDateDayType" (change)="setNoOfDays(alert_message);syncDayTypeIfSameDate('from')">
+                            <select  class="form-control"  aria-hidden="true" #fromDateInput [(ngModel)]="leaveObj.fromDateDayType" (change)="setNoOfDays(alert_message);syncDayTypeIfSameDate('from')">
                                 <option *ngIf="leaveObj.leaveTypeCode != 'ML'" selected="selected" value="" disabled>Select</option>
                                 <option *ngIf="!isCompOffLeave && leaveObj.leaveTypeCode != 'ML'" value=0.5>Half Day</option>
                                 <option *ngIf="leaveObj.leaveTypeCode != 'ML'" value=0 selected>Full Day</option>
                                 <option *ngIf="leaveObj.leaveTypeCode == 'ML'" selected value=0 >Full Day</option>
                             </select>
-                           
-                           
-                        
+
+
+
                         </div>
                     </div>
                 </div>
@@ -138,7 +138,7 @@
                             <!-- <input id="toDate" type="date" class="form-control" autocomplete="none" [(ngModel)]="leaveObj.toDate" (change)="setNoOfDays(alert_message)"> -->
                             <div class="d-flex">
                                 <input class="form-control" matInput id="toDate" #input (focus)="toDatePicker.open()" [matDatepicker]="toDatePicker" [matDatepickerFilter]="toDateFilter"
-                                 placeholder="Choose a to date" [(ngModel)]="leaveObj.toDate" (dateChange)="setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()" [disabled]="leaveObj.leaveTypeCode == 'ML'" autocomplete="off">
+                                 placeholder="Choose a to date" #toDateInput [(ngModel)]="leaveObj.toDate" (dateChange)="setNoOfDays(alert_message)" (keydown)="disableMannualDateInput()" [disabled]="leaveObj.leaveTypeCode == 'ML'" autocomplete="off">
                                 <mat-datepicker-toggle matSuffix [for]="toDatePicker" style="margin-left: -40px;" [disabled]="(isCreation && leaveObj.fromDate == '' || leaveObj.fromDate == null) || (isUpdation && leaveObj.leaveType == 'Complimentry Off') || leaveObj.leaveTypeCode == 'ML'"></mat-datepicker-toggle>
                             </div>
                             <mat-datepicker [dateClass]="holidayHighlight" #toDatePicker (closed)="input.blur()" [disabled]="(isCreation && (leaveObj.fromDate == '' || leaveObj.fromDate == null)) || (isUpdation && leaveObj.leaveType == 'Complimentry Off')" disabled="false" [startAt]="leaveObj.fromDate"></mat-datepicker>
@@ -155,7 +155,7 @@
                                 <option *ngIf="leaveObj.leaveTypeCode != 'ML'" value=0 selected>Full Day</option>
                                 <option *ngIf="leaveObj.leaveTypeCode == 'ML'" selected value=0 >Full Day</option>
                             </select>
-                            
+
                         </div>
                     </div>
                 </div>
@@ -218,7 +218,7 @@
               <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isTeamLeaveHistory}" (click)="showTeamLeaveHistoryTable()">For Team</button>
             </div>
             <!-- <div class="form-group d-flex flex-row ml-auto col-md-3">
-                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
             </div> -->
         </div>
         <div class="row">
@@ -236,18 +236,18 @@
                     </button>
                 </div>
                 <div class="overflow-auto">
-                    <table class="table" id="leaveHistoryInfo" matSort (matSortChange)="sortData($event)">	
-                        <thead class="thead-light" id="leaveHistoryInfoTHead">	
-                        <tr id="leaveHistoryInfoTHeadTr">	
+                    <table class="table" id="leaveHistoryInfo" matSort (matSortChange)="sortData($event)">
+                        <thead class="thead-light" id="leaveHistoryInfoTHead">
+                        <tr id="leaveHistoryInfoTHeadTr">
                             <th scope="col" class="info-label">Sr No.</th>
                             <th *ngIf="isTeamLeaveHistory" scope="col" class="info-label" mat-sort-header="employeeName|string">Name</th>
-                            <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>	
-                            <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>	
-                            <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>	
-                            <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>	
-                            <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>	
-                            <th *ngIf="isSelfLeaveHistory" scope="col" class="info-label" mat-sort-header="createdByName|string">Applied By</th>	
-                            <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Applied On</th>	
+                            <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>
+                            <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>
+                            <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>
+                            <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>
+                            <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                            <th *ngIf="isSelfLeaveHistory" scope="col" class="info-label" mat-sort-header="createdByName|string">Applied By</th>
+                            <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Applied On</th>
                             <th scope="col" class="wide-col" mat-sort-header="reason|string">Reason</th>
                             <th scope="col" class="info-label" mat-sort-header="currentApprovalLevel|number">Current Approval Level</th>
                             <th scope="col" class="info-label" mat-sort-header="approverName|string">Level 1 Approver Name</th>
@@ -292,8 +292,8 @@
                                 <td [ngStyle]="{'color': (leaveHistory.level3ApprovalStatus == 'Pending') ? 'orange' : (leaveHistory.level3ApprovalStatus == 'Approved') ? 'green' : (leaveHistory.level3ApprovalStatus == 'Rejected') ? 'red' : '#ababab'}">{{leaveHistory.level3ApprovalStatus}}</td>
                                 <td>{{leaveHistory.remark}}</td>
                                 <!-- <td>{{leaveHistory.description}}</td> -->
-                                <td>	
-                                    <button *ngIf="leaveHistory.status == 'Pending' && userMapping.update_leave" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(leaveHistory)"><em class="fa fa-edit"></em></button>&nbsp;	
+                                <td>
+                                    <button *ngIf="leaveHistory.status == 'Pending' && userMapping.update_leave" class="btn btn-sm btn-outline-primary" type="submit" (click)="showUpdateForm(leaveHistory)"><em class="fa fa-edit"></em></button>&nbsp;
                                     <button *ngIf="leaveHistory.status == 'Pending'&& userMapping.delete_leave_application" class="btn btn-sm btn-outline-danger"  type="submit" (click)="openDeleteLeave(delete_leave_application,leaveHistory)"><em class="fa fa-trash"></em></button>&nbsp;
                                     <button *ngIf="((leaveHistory.status == 'Approved' && leaveHistory.checkDate > dateToday) && userMapping.revoke_leave_application)" class="btn btn-sm btn-outline-danger" type="submit" (click)="openRevokeApprovedLeaveApplication(revoke_approved_leave,leaveHistory)" title="Revoke"><em>Revoke</em></button>
                                 </td>
@@ -301,13 +301,13 @@
                         </tbody>
                     </table>
                 </div>
-                <pagination-controls class="my-pagination" [hidden]="leaveHistoryListForTable.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls> 
+                <pagination-controls class="my-pagination" [hidden]="leaveHistoryListForTable.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
                 <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2"
                     [hidden]="leaveHistoryListForTable.length == 0" (click)="exportToExcelForLeave()"><em
                         class="fa fa-file-arrow-down fa-2x"></em></button> -->
                 </div>
         </div>
-    </div>        
+    </div>
 </div>
 <!-- end :: Leave History table -->
 
@@ -322,7 +322,7 @@
 
         <!-- <div class="row">
             <div class="form-group ml-auto col-md-3">
-                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
             </div>
         </div> -->
 
@@ -335,12 +335,12 @@
                     </a>
                 </div>
                 <div class="overflow-auto">
-                    <table class="table leaveBalance-table" id="leaveBalanceInfo" matSort (matSortChange)="sortData($event)">	
-                        <thead class="thead-light text-center" id="leaveBalanceInfoTHead">	
-                          <tr id="leaveBalanceInfoTHeadTr">	
-                            <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>	
-                            <th scope="col" class="info-label" mat-sort-header="totalLeaveBalance|number">Balance</th>	
-                            <th scope="col" class="info-label" mat-sort-header="pendingForApproval|number">Leaves Pending for Approval</th>	
+                    <table class="table leaveBalance-table" id="leaveBalanceInfo" matSort (matSortChange)="sortData($event)">
+                        <thead class="thead-light text-center" id="leaveBalanceInfoTHead">
+                          <tr id="leaveBalanceInfoTHeadTr">
+                            <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>
+                            <th scope="col" class="info-label" mat-sort-header="totalLeaveBalance|number">Balance</th>
+                            <th scope="col" class="info-label" mat-sort-header="pendingForApproval|number">Leaves Pending for Approval</th>
                             <th scope="col" class="info-label" mat-sort-header="balance|number">Effective Leave Balance</th>
                           </tr>
                           <tr app-column-filter-bar *ngIf="isLeaveBalanceTable && isSearchEnabled" [columnList]="leaveBalColumns" (onSearch)="onSearch($event);page=1" ></tr>
@@ -377,7 +377,7 @@
 
         <!-- <div class="row">
             <div class="form-group d-flex flex-row ml-auto col-md-3">
-                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
             </div>
         </div> -->
 
@@ -394,14 +394,14 @@
                     (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
                 <div class="overflow-auto">
-                    <table class="table" id="log-table" matSort (matSortChange)="sortData($event)">	
-                        <thead class="thead-light">	
-                          <tr>	
-                            <th scope="col" class="info-label" >Sr. No</th>	
-                            <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Types</th>	
-                            <th scope="col" class="info-label" mat-sort-header="updateBalanceBy|string">Change</th>	
-                            <th scope="col" class="info-label" mat-sort-header="balance|number">Balance</th>	
-                            <th scope="col" class="info-label" mat-sort-header="message|string">Message</th>	
+                    <table class="table" id="log-table" matSort (matSortChange)="sortData($event)">
+                        <thead class="thead-light">
+                          <tr>
+                            <th scope="col" class="info-label" >Sr. No</th>
+                            <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Types</th>
+                            <th scope="col" class="info-label" mat-sort-header="updateBalanceBy|string">Change</th>
+                            <th scope="col" class="info-label" mat-sort-header="balance|number">Balance</th>
+                            <th scope="col" class="info-label" mat-sort-header="message|string">Message</th>
                             <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Updated On</th>
                           </tr>
                           <tr app-column-filter-bar *ngIf="isLeaveLogTable && isSearchEnabled" [columnList]="leaveLogColumns" (onSearch)="onSearch($event);page=1" ></tr>
@@ -426,7 +426,7 @@
                     (click)="exportToExcel()"><em class="fa fa-file-arrow-down fa-2x"></em></button> -->
             </div>
         </div>
-    </div>    
+    </div>
 </div>
 <!-- end :: Leave log table -->
 
@@ -445,7 +445,7 @@
                 <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isTeamLeaveRevokeApplication}" (click)="showTeamLeaveRevokeApplication()">For Team</button>
             </div>
             <!-- <div class="form-group d-flex flex-row ml-auto col-md-3">
-                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">	
+                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
             </div> -->
         </div>
 
@@ -456,25 +456,25 @@
                         <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
                         <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
                     </a>
-                </div> 
+                </div>
                 <div class="export-button  mt-3">
                     <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
                     [hidden]="revokeLeaveApplicationList.length == 0" (click)="exportToExcel()"><em
                         class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
                 <div class="overflow-auto">
-                    <table class="table" id="revoke-history-table" matSort (matSortChange)="sortData($event)">	
-                        <thead class="thead-light">	
+                    <table class="table" id="revoke-history-table" matSort (matSortChange)="sortData($event)">
+                        <thead class="thead-light">
                           <tr>
                             <th scope="col" class="info-label" >Sr. No</th>
                             <th *ngIf="isTeamLeaveRevokeApplication" scope="col" class="info-label" mat-sort-header="employeeName|string">Name</th>
-                            <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>	
-                            <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>	
-                            <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>	
-                            <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>	
-                            <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>	
-                            <th *ngIf="isSelfLeaveRevokeApplication" scope="col" class="info-label" mat-sort-header="createdByName|string">Applied By</th>	
-                            <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Applied On</th>	
+                            <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type</th>
+                            <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>
+                            <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>
+                            <th scope="col" class="info-label" mat-sort-header="noOfDays|number">Duration</th>
+                            <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                            <th *ngIf="isSelfLeaveRevokeApplication" scope="col" class="info-label" mat-sort-header="createdByName|string">Applied By</th>
+                            <th scope="col" class="info-label" mat-sort-header="createdOn|datetime">Applied On</th>
                             <th scope="col" class="info-label" mat-sort-header="reason|string">Revoke Reason</th>
                             <th scope="col" class="info-label" mat-sort-header="approverName|string">Approver Name</th>
                             <th scope="col" class="info-label">Remarks</th>
@@ -501,7 +501,7 @@
                                 <td>{{leave.remark}}</td>
                             </tr>
                         </tbody>
-                      </table>  
+                      </table>
                 </div>
                 <pagination-controls class="my-pagination" [hidden]="revokeLeaveApplicationList.length == 0" (pageChange)="handlePageChange($event)"></pagination-controls>
                 <!-- <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
@@ -509,7 +509,7 @@
                         class="fa fa-file-arrow-down fa-2x"></em></button> -->
                 </div>
         </div>
-    </div>  
+    </div>
 </div>
 <!-- end :: Leave Revoke Application Table -->
 
@@ -621,12 +621,12 @@
 
 <!-- Modals Template -->
 
-<ng-template #delete_leave_application>	
-    <div class="modal-body text-center">	
-        <p>Are you sure you want to delete leave?</p>	
-        <button type="button" class="btn btn-success" (click)="deletePendingLeave(alert_message);">Yes, proceed</button>&nbsp;	
-        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;	
-    </div>	
+<ng-template #delete_leave_application>
+    <div class="modal-body text-center">
+        <p>Are you sure you want to delete leave?</p>
+        <button type="button" class="btn btn-success" (click)="deletePendingLeave(alert_message);">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
+    </div>
 </ng-template>
 
 <ng-template #alert_message>
@@ -676,12 +676,12 @@
                         class="fa fa-file-arrow-down fa-2x"></em></button>
                 </div>
                 <div class="overflow-auto">
-                    <table class="table" id="overlapsedInfo" matSort (matSortChange)="sortData($event)">	
-                        <thead class="thead-light text-center" id="overlapsedInfoTHead">	
-                          <tr id="overlapsedInfoTHeadTr">	
-                            <th scope="col" class="info-label" mat-sort-header="employeementId|string">Employment Id</th>	
-                            <th scope="col" class="info-label" mat-sort-header="name|string">Team Member Name</th>	
-                            <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>	
+                    <table class="table" id="overlapsedInfo" matSort (matSortChange)="sortData($event)">
+                        <thead class="thead-light text-center" id="overlapsedInfoTHead">
+                          <tr id="overlapsedInfoTHeadTr">
+                            <th scope="col" class="info-label" mat-sort-header="employeementId|string">Employment Id</th>
+                            <th scope="col" class="info-label" mat-sort-header="name|string">Team Member Name</th>
+                            <th scope="col" class="info-label" mat-sort-header="fromDate|date">From Date</th>
                             <th scope="col" class="info-label" mat-sort-header="toDate|date">To Date</th>
                           </tr>
                           <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="overlapsedLeaveColumns" (onSearch)="onSearch($event);page=1" ></tr>

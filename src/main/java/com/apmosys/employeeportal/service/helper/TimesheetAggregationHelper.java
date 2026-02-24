@@ -142,26 +142,14 @@ public class TimesheetAggregationHelper {
      * @param employeeTimesheet Employee timesheet DTO
      * @param projectTimesheets List of project timesheets
      */
-    public void calculateAndSetEmployeeTimesheetTotals(EmployeeTimesheetDTO employeeTimesheet, 
-                                                       List<ProjectTimesheetDTO> projectTimesheets) {
-        // Calculate total activities minutes
-        Integer totalActivitiesMinutes = calculateTotalActivitiesMinutes(projectTimesheets);
-        employeeTimesheet.setTotalActivitiesMinutes(totalActivitiesMinutes);
-
-        // Calculate total working minutes
+    public void calculateAndSetEmployeeTimesheetTotals(EmployeeTimesheetDTO employeeTimesheet) {
+         // Calculate total working minutes
         if (employeeTimesheet.getWorkCheckIn() != null && employeeTimesheet.getWorkCheckOut() != null) {
             Integer totalWorkingMinutes = calculateTotalWorkingMinutes(
             		DateConversionUtil.stringToLocalDateTime(employeeTimesheet.getWorkCheckIn(),pattern), 
             		DateConversionUtil.stringToLocalDateTime(employeeTimesheet.getWorkCheckOut(),pattern));
             employeeTimesheet.setTotalWorkingMinutes(totalWorkingMinutes);
-        } else {
-            // If office times not provided, use activities minutes
-            employeeTimesheet.setTotalWorkingMinutes(totalActivitiesMinutes);
         }
-
-        // Calculate status
-        Integer status = calculateEmployeeTimesheetStatus(projectTimesheets);
-        employeeTimesheet.setStatus(status);
     }
 
     /**

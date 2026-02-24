@@ -248,15 +248,14 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
 	boolean existsByPoIdAndProjectIdAndActiveTrue(Long poId, Integer projectId);
 
     @Query(value="SELECT DISTINCT p.projectName FROM ProjectPoDetails ppd \n"
-            + "INNER JOIN Project p ON ppd.projectId = p.projectId AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) \n"
+            + "INNER JOIN Project p ON ppd.projectId = p.projectId AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) AND ppd.active  = 1 \n"
             + "Where LOWER(ppd.poNo) like %:poNo% ")
     List<String> getProjectNameByPoNoLike(String poNo, boolean currentActivePO);
         
    
     @Query(value="SELECT DISTINCT p.projectId FROM Project p \n"
-            + "INNER JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) \n")
-    
-        Set<Integer> findAllActivePOProjectIds(boolean currentActivePO);
+            + "INNER JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) AND ppd.active  = 1 \n")
+    Set<Integer> findAllActivePOProjectIds(boolean currentActivePO); 
 
         Set<Long> findActivePoIdsByProjectIdIn(Set<Integer> allProjectIds); 
 

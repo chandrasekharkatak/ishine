@@ -3875,6 +3875,7 @@ public class ProjectService {
 		String createdByname = dto.getPoDetailsList().get(0).getCreatedByEmpName();
 		
 		validationService.validateEmployeeExists(createdBy, createdByname);
+		
 
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -4564,6 +4565,19 @@ public class ProjectService {
 //	    if (activePos == null || activePos.isEmpty()) {
 //	        return; 
 //	    }
+	    
+	    if (isRenew && activePos != null && !activePos.isEmpty()) {
+
+	        // revive inactive project
+	        if (!"true".equalsIgnoreCase(project.getActive())) {
+	            project.setActive("true");
+	            project.setProjectStatus("Not Started");	        }
+
+	        // reset completed project
+	        if ("Completed".equalsIgnoreCase(project.getProjectStatus())) {
+	            project.setProjectStatus("Not Started");
+	        }
+	    }
 
 	   
 	    LocalDateTime minPoStart = activePos.stream()
@@ -4621,11 +4635,8 @@ public class ProjectService {
 	    if (maxPoEnd != null) {
 	        project.setEndDate(maxPoEnd.toLocalDate().format(formatter));
 	    }
-	    if (isRenew &&
-	            "Completed".equalsIgnoreCase(project.getProjectStatus())) {
-
-	        project.setProjectStatus("Not Started");
-	    }
+	  
+	   
 	    
 	    projectRepository.save(project);
 	    
