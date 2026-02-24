@@ -1271,7 +1271,7 @@
               class="form-control"
               placeholder="Select Project"
               [(ngModel)]="entry.projectIds"
-              [options]="projectList"
+              [options]="getAvailableProjects(i)"
               [disabled]="projectList.length == 1"
               displayKey="projectName"
               valueKey="projectId"
@@ -1318,9 +1318,12 @@
      @if(projectList.length > 1){
     <div class="text-center mt-3">
       <button class="btn btn-outline-primary px-4"
-      [disabled]="!isRejectFormValid()"
-      [attr.title]="!isRejectFormValid() ?
-        'Fill Project, Reasons, and Remark first' : null"
+      [disabled]="!isRejectFormValid() || !canAddMoreProjects()"
+      [attr.title]="!canAddMoreProjects() 
+          ? 'All projects already added'
+          : (!isRejectFormValid() 
+              ? 'Fill Project, Reasons, and Remark first' 
+              : null)"
               (click)="addRejectRow()">
         <i class="bi bi-plus-circle me-1"></i>
         Add Another Project

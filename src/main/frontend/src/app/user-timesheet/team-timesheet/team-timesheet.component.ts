@@ -2768,7 +2768,25 @@ openSingleRejectModal(
     { modalDialogClass: 'modal-md', backdrop: 'static' }
   );
 }
+getAvailableProjects(currentIndex: number) {
+  // Get all selected project IDs except current row
+  const selectedProjectIds = this.rejectEntries
+    .filter((_, index) => index !== currentIndex)
+    .flatMap(entry => entry.projectIds || []);
 
+  // Return projects that are NOT already selected
+  return this.projectList.filter(
+    project => !selectedProjectIds.includes(project.projectId)
+  );
+}
+canAddMoreProjects(): boolean {
+  const allSelectedProjectIds = this.rejectEntries
+    .flatMap(entry => entry.projectIds || []);
+
+  const uniqueSelected = [...new Set(allSelectedProjectIds)];
+
+  return uniqueSelected.length < this.projectList.length;
+}
 // SINGLE TIMESHEET REJECT
 // submitSingleReject() {
 
