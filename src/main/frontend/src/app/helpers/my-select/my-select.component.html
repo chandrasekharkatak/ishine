@@ -15,7 +15,7 @@
     </mat-option>
 
 
-    <mat-option class="mat-option" *ngIf="multiple && filteredOptions.length > 0" (click)="toggleSelectAll($event)" [disabled]="disable">
+    <mat-option class="mat-option" *ngIf="multiple && filteredOptions.length > 0" (click)="toggleSelectAll($event)" [disabled]="disable || readonly">
       <strong>
         {{ isAllSelected() ? 'Deselect All' : 'Select All' }}
       </strong>
