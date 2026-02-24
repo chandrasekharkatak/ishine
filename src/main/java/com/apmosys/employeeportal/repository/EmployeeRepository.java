@@ -951,13 +951,27 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @Query(value ="select DISTINCT emp_id from employee where employmentstatus !='Inactive'",nativeQuery=true)
     List<Long>findAllActiveEmployees();
     
-    @Query(value="SELECT new com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO(e.empId, e.name,  \n " + 
-			"CASE  \n " + 
-			"  WHEN isApmosysProduct = 'true' THEN CONCAT('AP-', e.employeementId)  \n " + 
-			"  ELSE CONCAT('A-', e.employeementId)  \n " + 
-			"END)  \n " + 
-			"FROM Employee e where e.employmentstatus != 'InActive' and e.empId not between 1 and 6")
+//    @Query(value="SELECT new com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO(e.empId, e.name,  \n " + 
+//			"CASE  \n " + 
+//			"  WHEN isApmosysProduct = 'true' THEN CONCAT('AP-', e.employeementId)  \n " + 
+//			"  ELSE CONCAT('A-', e.employeementId)  \n " + 
+//			"END)  \n " + 
+//			"FROM Employee e where e.employmentstatus != 'InActive' and e.empId not between 1 and 6")
+//    public List<GetEmployeeByNameAndEmpldDTO> getEmployeeByNameAndEmpld();
+    
+    @Query(value=" SELECT new com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO(e.empId, e.name,  \n"
+    		+ "            CASE  \n"
+    		+ "              WHEN isApmosysProduct = 'true' THEN CONCAT('AP-', e.employeementId)  \n"
+    		+ "              ELSE CONCAT('A-', e.employeementId)  \n"
+    		+ "            END)  \n"
+    		+ "            FROM Employee e  \n"
+    		+ "            WHERE e.employmentstatus != 'InActive'  \n"
+    		+ "            AND e.empId NOT BETWEEN 1 AND 6  \n"
+    		+ "            ORDER BY e.name ASC")
     public List<GetEmployeeByNameAndEmpldDTO> getEmployeeByNameAndEmpld();
+    
+    
+   
 	
     @Query(value="select billable_type from employee where emp_id = :empId",nativeQuery=true)
     String findBillableTypeByEmpId(@Param("empId") Long empId);

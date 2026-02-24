@@ -1636,121 +1636,173 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    * @param projectId - selected project ID
    * @param changedProject - project entry where selection happened
    */
-  onProjectSelect(
-    projectId: number | null | undefined,
-    changedProject: ProjectEntry
-  ): void {
-    // ✅ CRITICAL FIX: Add null/undefined check
-    if (!projectId || projectId <= 0) {
-      console.warn('Invalid projectId:', projectId);
-      return;
-    }
+ onProjectSelect(
+  projectId: number | null | undefined,
+  changedProject: ProjectEntry
+): void {
 
-    if (!changedProject) {
-      console.warn('onProjectSelect called without project context');
-      return;
-    }
+  console.log("******executed-1****");
+  console.log('projectId value:', projectId, typeof projectId);
 
-    // Find parent location for this project
-    const parentLocation = this.timesheetLocations.find(loc =>
-      loc.projects.includes(changedProject)
-    );
-
-    if (!parentLocation) {
-      console.warn('Parent location not found for project selection');
-      return;
-    }
-
-    // ✅ BUG FIX: Check for duplicate projects in the same location
-    // Same project can't exist twice in the same location
-    const hasDuplicateInLocation = parentLocation.projects.some(
-      p => p !== changedProject && p.projectId === projectId
-    );
-
-    if (hasDuplicateInLocation) {
-      // Cleanup document data for this duplicate project only
-      if (changedProject.projectId) {
-        this.cleanupProjectDocuments(changedProject.projectId);
-      }
-
-      // Reset the duplicate project's selection and related fields,
-      // but DO NOT remove it from the array to avoid index shifting
-      changedProject.projectId = null;
-      changedProject.projectName = '';
-      changedProject.hasClientSideId = false;
-      changedProject.hasClientFlag = false;
-
-      changedProject.shadowEmpId = null;
-      changedProject.isShadowTimesheet = false;
-      changedProject.isShadowForSelf = false;
-      changedProject.clientSideId = null;
-      changedProject.clientId = null;
-      changedProject.clientLocationId = null;
-      changedProject.clientApprovalStatus = null;
-      changedProject.totalWorkingHours = null;
-      changedProject.activities = [this.createActivity(null, null)];
-      changedProject.projectActivities = [];
-      changedProject.clientList = [];
-      changedProject.clientLocationList = [];
-      changedProject.clientDetails = null;
-
-      // Update document list and hours after reset
-      this.getListToRenderUpload();
-      this.onHoursChange();
-
-      // Show error message
-      this.handleError(
-        new Error('Duplicate project in same location'),
-        'onProjectSelect',
-        true,
-        'This project is already added to this location. Please select a different project.'
-      );
-
-      return;
-    }
-
-    // ✅ No duplicate - update the specific project that changed
-    changedProject.projectId = projectId;
-    const matchedProject = changedProject.projectList?.find(
-      p => p.projectId === projectId
-    );
-    changedProject.hasClientSideId = matchedProject?.hasClientSideId || false;
-    changedProject.hasClientFlag = matchedProject?.hasClientFlag || false;
-    changedProject.projectName = matchedProject?.projectName || '';
-    
-    // Reset project-specific fields for the new valid selection
-    changedProject.shadowEmpId = null;
-    changedProject.isShadowTimesheet = false;
-    changedProject.isShadowForSelf = false;
-    changedProject.clientSideId = null;
-    changedProject.clientId = null;
-    changedProject.clientLocationId = null;
-    changedProject.clientApprovalStatus = null;
-    changedProject.totalWorkingHours = null;
-    changedProject.activities = [this.createActivity(null, projectId)];
-    changedProject.projectActivities = [];
-    changedProject.clientList = [];
-    changedProject.clientLocationList = [];
-    changedProject.clientDetails = null; // Reset client details
-    
-    // ✅ Fetch client details for this project (replaces incorrect filtering from activeProjectList)
-    this.getClientDetailsByProjectIdAndEmpId(changedProject);
-    
-    // ✅ CRITICAL FIX: Add null checks for empId
-    const targetEmpId = this.timesheetAppliedFor?.toLowerCase() === 'self' 
-      ? this.currentUser?.empId 
-      : this.timesheetFilledForUser?.empId;
-    
-    if (targetEmpId) {
-      this.getClientSideIdByProjectIdAndEmpId(projectId, targetEmpId);
-    } else {
-      console.warn('Employee ID not available for project selection');
-    }
-    
-    // ✅ Don't set empHasClientSideId = false here - let getListToRenderUpload() handle it
-    // It will check ALL projects and set the correct value
-    this.getListToRenderUpload();
+  if (!changedProject) {
+    console.warn('onProjectSelect called without project context');
+    return;
   }
+
+  // 🔹 Find parent location
+  const parentLocation = this.timesheetLocations.find(loc =>
+    loc.projects.includes(changedProject)
+  );
+
+  if (!parentLocation) {
+    console.warn('Parent location not found for project selection');
+    return;
+  }
+
+  const projectIndex = parentLocation.projects.indexOf(changedProject);
+
+  // =========================================================
+  // CASE 1: Placeholder selected → RESET
+  // =========================================================
+  if (projectId === null || projectId === undefined) {
+
+    const resetObject: ProjectEntry = {
+      ...changedProject,
+      projectId: null,
+      projectName: '',
+      hasClientSideId: false,
+      hasClientFlag: false,
+      shadowEmpId: null,
+      isShadowTimesheet: false,
+      isShadowForSelf: false,
+      clientSideId: null,
+      clientId: null,
+      clientLocationId: null,
+      clientApprovalStatus: null,
+      totalWorkingHours: null,
+      activities: [this.createActivity(null, null)],
+      projectActivities: [],
+      clientList: [],
+      clientLocationList: [],
+      clientDetails: null,
+      _lastValidProjectId: null,
+      _lastValidProjectName: ''
+    };
+
+    parentLocation.projects[projectIndex] = resetObject;
+
+    this.getListToRenderUpload();
+    this.onHoursChange();
+
+    return;
+  }
+
+  // 🔹 Convert to number safely
+  projectId = Number(projectId);
+
+  if (isNaN(projectId) || projectId <= 0) {
+    console.warn('Invalid projectId:', projectId);
+    return;
+  }
+
+  // =========================================================
+  // CASE 2: Duplicate detection
+  // =========================================================
+  const hasDuplicateInLocation = parentLocation.projects.some(
+    p => p !== changedProject && p.projectId === projectId
+  );
+
+  if (hasDuplicateInLocation) {
+
+    const revertObject: ProjectEntry = {
+      ...changedProject,
+      projectId: null,
+      projectName: '',
+      hasClientSideId: false,
+      hasClientFlag: false,
+      shadowEmpId: null,
+      isShadowTimesheet: false,
+      isShadowForSelf: false,
+      clientSideId: null,
+      clientId: null,
+      clientLocationId: null,
+      clientApprovalStatus: null,
+      totalWorkingHours: null,
+      activities: [this.createActivity(null, null)],
+      projectActivities: [],
+      clientList: [],
+      clientLocationList: [],
+      clientDetails: null,
+      _lastValidProjectId: null,
+      _lastValidProjectName: ''
+    };
+
+    parentLocation.projects[projectIndex] = revertObject;
+
+    this.getListToRenderUpload();
+    this.onHoursChange();
+
+    this.handleError(
+      new Error('Duplicate project in same location'),
+      'onProjectSelect',
+      true,
+      'This project is already added to this location. Please select a different project.'
+    );
+
+    return;
+  }
+
+  // =========================================================
+  // CASE 3: Valid Selection
+  // =========================================================
+
+  const matchedProject = changedProject.projectList?.find(
+    p => p.projectId === projectId
+  );
+
+  const updatedProject: ProjectEntry = {
+    ...changedProject,
+    projectId: projectId,
+    projectName: matchedProject?.projectName || '',
+    hasClientSideId: matchedProject?.hasClientSideId || false,
+    hasClientFlag: matchedProject?.hasClientFlag || false,
+    shadowEmpId: null,
+    isShadowTimesheet: false,
+    isShadowForSelf: false,
+    clientSideId: null,
+    clientId: null,
+    clientLocationId: null,
+    clientApprovalStatus: null,
+    totalWorkingHours: null,
+    activities: [this.createActivity(null, projectId)],
+    projectActivities: [],
+    clientList: [],
+    clientLocationList: [],
+    clientDetails: null,
+    _lastValidProjectId: projectId,
+    _lastValidProjectName: matchedProject?.projectName || ''
+  };
+
+  parentLocation.projects[projectIndex] = updatedProject;
+
+  // 🔹 Fetch client details
+  this.getClientDetailsByProjectIdAndEmpId(updatedProject);
+
+  const targetEmpId =
+    this.timesheetAppliedFor?.toLowerCase() === 'self'
+      ? this.currentUser?.empId
+      : this.timesheetFilledForUser?.empId;
+
+  if (targetEmpId) {
+    this.getClientSideIdByProjectIdAndEmpId(projectId, targetEmpId);
+  } else {
+    console.warn('Employee ID not available for project selection');
+  }
+
+  this.getListToRenderUpload();
+}
+
+
 
   /**
    * Fetch client details for a specific project and employee
@@ -3709,9 +3761,11 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
             locationMappingId: locationData.locationMappingId,
             totalClientWorkingMinutes: projectData.totalClientWorkingMinutes,
             projectHoursMinutes: projectData.projectHoursMinutes,
-            description: projectData.description
+            description: projectData.description,
+            _lastValidProjectId: projectData.projectId != null ? Number(projectData.projectId) : null,
+            _lastValidProjectName: projectData.projectName ?? ''
           };
-          console.log("project =>  ",project)
+          console.log("project => ", project);
           // Populate activities (convert minutes -> hours for display, same as create flow)
           if (projectData.activities && projectData.activities.length > 0) {
             project.activities = this.populateActivities(projectData.activities as any, project);
@@ -4709,7 +4763,6 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       });
     });
   }
-
 
   /**
    * Sync shadow options (isShadowTimesheet, isShadowForSelf, shadowEmpId, shadowForList) for the same project

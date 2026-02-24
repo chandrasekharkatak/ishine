@@ -85,6 +85,8 @@ public class ProjectTimesheetDTO {
      */
     private List<ActivityTimesheetDTO> activities;
     
+    private List<RejectionDataDTO> rejectionDetails;
+    
     // ========== NEW CONTRACT FIELDS ==========
     
     /**

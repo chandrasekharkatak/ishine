@@ -670,9 +670,9 @@ public class EmployeeCustomRepository {
             query.append(" AND po_project_type = 'TNM' \n");
         }
         if (projectStatus.equals("TOTAL_EXPIRED_TNM")) {
-            query.append("  AND DATE(p.po_end_date) < CURDATE() \n");
+            query.append(" AND DATE(p.po_end_date) < CURDATE() \n");
             if (addStartAndEndDate) {
-                query.append("  AND DATE(p.po_end_date) between :startDate and :endDate \n");
+                query.append(" AND DATE(p.po_end_date) between :startDate and :endDate \n");
             }
         } else if (projectStatus.equals("TOTAL_INTERNAL")) {
             query.append(" AND p.internal_project_type is not null \n");
@@ -729,9 +729,9 @@ public class EmployeeCustomRepository {
             query.append(" AND po_project_type = 'TNM' \n");
         }
         if (projectStatus.equals("TOTAL_EXPIRED_TNM")) {
-            query.append("  AND DATE(p.po_end_date) < CURDATE() \n");
+            query.append(" AND DATE(p.po_end_date) < CURDATE() \n");
             if (addStartAndEndDate) {
-                query.append("  AND DATE(p.po_end_date) between :startDate and :endDate \n");
+                query.append(" AND DATE(p.po_end_date) between :startDate and :endDate \n");
             }
         } else if (projectStatus.equals("TOTAL_INTERNAL")) {
             query.append(" AND p.internal_project_type is not null \n");
@@ -770,29 +770,31 @@ public class EmployeeCustomRepository {
     public String getUnfilledTimesheetProjectDetailsQuery(boolean isAllAccessEmployee) {
         StringBuilder query = new StringBuilder();
         query
-                .append("FROM projects p  \n")
-                .append("INNER JOIN teams t ON t.project_id = p.project_id  \n")
-                .append("INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id  \n")
-                .append("LEFT JOIN project_manager_mapping pmm ON p.project_id = pmm.project_id  AND pmm.active = 1  \n")
-                .append("LEFT JOIN employee pm ON pm.emp_id = pmm.project_manager_id \n")
-                .append("INNER JOIN employee e ON e.emp_id = etm.emp_id  \n")
-                .append("INNER JOIN clients c ON c.client_id = p.client_id  \n")
-                .append("INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id  \n")
-                .append("INNER JOIN department d ON jr.dept_id = d.dept_id  \n")
-                .append("WHERE 1=1 \n")
-                .append("AND p.active = 'true' AND t.is_active = 'Y'  \n")
-                .append("AND etm.active != 0 AND e.employmentstatus != 'InActive' \n")
-                .append("AND p.project_id IN :projectIds  \n");
+                .append(" FROM projects p  \n")
+                .append(" INNER JOIN teams t ON t.project_id = p.project_id  \n")
+                .append(" INNER JOIN employee_team_mapping etm ON etm.team_id = t.team_id  \n")
+                .append(" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND etm.po_id = ppd.po_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1 \n")
+                .append(" LEFT JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) \n")
+                .append(" LEFT JOIN project_manager_mapping pmm ON p.project_id = pmm.project_id  AND pmm.active = 1  \n")
+                .append(" LEFT JOIN employee pm ON pm.emp_id = pmm.project_manager_id \n")
+                .append(" INNER JOIN employee e ON e.emp_id = etm.emp_id  \n")
+                .append(" INNER JOIN clients c ON c.client_id = p.client_id  \n")
+                .append(" INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id  \n")
+                .append(" INNER JOIN department d ON jr.dept_id = d.dept_id  \n")
+                .append(" WHERE 1=1 \n")
+                .append(" AND p.active = 'true' AND t.is_active = 'Y'  \n")
+                .append(" AND etm.active != 0 AND e.employmentstatus != 'InActive' \n")
+                .append(" AND p.project_id IN :projectIds  \n");
         if (!isAllAccessEmployee) {
-            query.append("and d.dept_id IN :deptIds ");
+            query.append(" AND d.dept_id IN :deptIds ");
         }
 
-        query.append("AND p.project_id NOT IN (SELECT p2.project_id FROM employee_timesheets et \n")
-                .append("  INNER JOIN employee_timesheet_activities_mapping etam ON et.timesheet_id = etam.timesheet_activity_map_id \n")
-                .append("  INNER JOIN activities a ON a.activity_id = etam.activity_id  \n")
-                .append("  RIGHT JOIN teams t2 ON t2.team_id = a.team_id  \n")
-                .append("  INNER JOIN projects p2 ON p2.project_id = t2.project_id  \n")
-                .append("  WHERE et.date >= :fromDate AND et.date <= :toDate ) \n");
+        query.append(" AND p.project_id NOT IN (SELECT p2.project_id FROM employee_timesheets_new et \n")
+                .append(" INNER JOIN employee_timesheet_activities_mapping_new etam ON et.timesheet_id = etam.timesheet_id \n")
+                .append(" INNER JOIN activities a ON a.activity_id = etam.activity_id  \n")
+                .append(" RIGHT JOIN teams t2 ON t2.team_id = a.team_id  \n")
+                .append(" INNER JOIN projects p2 ON p2.project_id = t2.project_id  \n")
+                .append(" WHERE et.date >= :fromDate AND et.date <= :toDate ) \n");
         return query.toString();
     }
 
@@ -801,9 +803,9 @@ public class EmployeeCustomRepository {
         StringBuilder listQuery = new StringBuilder();
         listQuery.append(
                 " ( SELECT DISTINCT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' then CONCAT('AP-', e.employeement_id) else CONCAT('A-', e.employeement_id) end as employeement_id \n")
-                .append(",e.name emp_name,d.name as department_name,e.billable,e.billable_type \n")
-                .append(",p.project_name,p.client_name as client_name,p.apmosysrm,p.clientrm,p.po_No,p.po_project_type,p.po_start_date,p.po_end_date  \n")
-                .append(",GROUP_CONCAT(DISTINCT pm.name ORDER BY pm.name SEPARATOR ', ') as project_manager_name,t.team_name,etm.employee_role \n")
+                .append(" ,e.name emp_name,d.name as department_name,e.billable,e.billable_type \n")
+                .append(" ,p.project_name,p.client_name as client_name,p.apmosysrm,p.clientrm,p.po_No,p.po_project_type,p.po_start_date,p.po_end_date  \n")
+                .append(" ,GROUP_CONCAT(DISTINCT pm.name ORDER BY pm.name SEPARATOR ', ') as project_manager_name,t.team_name,etm.employee_role \n")
                 .append(baseQuery);
 
         if (empIds != null && !empIds.isEmpty()) {
@@ -824,7 +826,7 @@ public class EmployeeCustomRepository {
             Map<String, String> searchFilter, List<Long> projectIdsTemp) {
         StringBuilder listQuery = new StringBuilder();
         listQuery.append("( SELECT DISTINCT \n")
-                .append("p.project_id, p.project_name, p.apmosysrm, p.clientrm, p.po_start_date, p.po_end_date, p.po_no, p.po_project_type,  \n")
+                .append("p.project_id, p.project_name, ppd.apmosys_rm, ppd.client_rm, ppd.po_start_date, ppd.po_end_date, ppd.po_no, p.po_project_type,  \n")
                 .append("c.client_name, \n")
                 .append("GROUP_CONCAT(DISTINCT pm.name ORDER BY pm.name SEPARATOR ', ') AS project_manager_name, \n")
                 .append("t.team_id, t.team_name,  \n")
@@ -836,7 +838,7 @@ public class EmployeeCustomRepository {
         }
 
         listQuery.append(
-                "GROUP BY p.project_id, p.project_name, p.apmosysrm, p.clientrm, p.po_start_date, p.po_end_date, p.po_no, p.po_project_type,  \n")
+                "GROUP BY p.project_id, p.project_name, ppd.apmosys_rm, ppd.client_rm, ppd.po_start_date, ppd.po_end_date, ppd.po_no, p.po_project_type,  \n")
                 .append("c.client_name, \n")
                 .append("t.team_id, t.team_name,  \n")
                 .append("e.emp_id, e.name , jr.name , d.name  , e.mobile_no, e.email,  e.billable, e.billable_type, etm.start_date, e.employeement_id");

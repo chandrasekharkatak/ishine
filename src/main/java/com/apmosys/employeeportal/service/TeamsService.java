@@ -4373,6 +4373,7 @@ public class TeamsService {
 
 		if (team == null) {
 			team = new Team();
+			team.setCreatedOn(new Timestamp(System.currentTimeMillis())); 
 			team.setCreatedBy(currentUserEmpId);
 		} else {
 			team.setUpdatedBy(currentUserEmpId);
@@ -4524,6 +4525,7 @@ public class TeamsService {
 			if (presentMember == null) {
 				updateProjectFlag = true;
 				presentMember = new EmployeeTeamMap();
+				presentMember.setCreatedOn(new Timestamp(System.currentTimeMillis())); 
 				presentMember.setStartDate(teamMember.getStartDate() != null ? teamMember.getStartDate() : LocalDateTime.now());
 				presentMember.setEndDate(teamMember.getEndDate());
 				presentMember.setCreatedBy(currentUserEmpId);
@@ -5640,6 +5642,11 @@ public class TeamsService {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		}
 		return response;
+	}
+
+	public ServiceResponse updateTeamMembersEndDate(RmgTeamDto rmgTeamDto) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

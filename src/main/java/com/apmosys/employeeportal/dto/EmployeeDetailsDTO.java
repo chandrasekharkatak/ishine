@@ -1,10 +1,11 @@
 package com.apmosys.employeeportal.dto;
 
-import java.security.Timestamp;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import com.apmosys.employeeportal.utility.TypeConversionUtil;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -56,6 +57,7 @@ public class EmployeeDetailsDTO {
     private Long projectManagerId;
     private String apmosysRM;
     private String clientRM;
+    @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime effectiveStartDate;
 
     private List<EmployeeDetailsDTO> expandedRowDetails;
@@ -172,9 +174,18 @@ public class EmployeeDetailsDTO {
         employeeDetailsDTO.email = TypeConversionUtil.getSafeString(row[17]);
         employeeDetailsDTO.billable = TypeConversionUtil.getSafeString(row[18]);
         employeeDetailsDTO.billableType = TypeConversionUtil.getSafeString(row[19]);
-        employeeDetailsDTO.effectiveStartDate = row[20] != null ? ((LocalDateTime) row[20]) : null;
+		employeeDetailsDTO.effectiveStartDate = getLocalDateTime(row[20]);
         employeeDetailsDTO.employeementId = TypeConversionUtil.safeParseLong(row[21]);
         return employeeDetailsDTO;
     }
+    
+	private static LocalDateTime getLocalDateTime(Object obj) {
+		if (obj == null) {
+			return null;
+		}
+		Timestamp timestamp = (Timestamp) obj;
+		LocalDateTime dateTime = timestamp.toLocalDateTime();
+		return dateTime;
+	}
 
 }

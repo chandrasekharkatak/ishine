@@ -169,8 +169,7 @@
                             <div class="col-md-3 pl-0 ">
                                 <div class="project-status-card m-2 p-2"
                                     [attr.style]="TEAM5_PROJECT_STATUS_LIST[0]?.leftstyle"
-                                    [ngClass]="{'project-status-selected-card': selectedProjectStatus === TEAM5_PROJECT_STATUS_LIST[0]?.key}"
-                                    (click)="openProjectDetailsModal(TEAM5_PROJECT_STATUS_LIST[0])">
+                                    [ngClass]="{'project-status-selected-card': selectedProjectStatus === TEAM5_PROJECT_STATUS_LIST[0]?.key}">
                                     <div class="row">
                                         <div
                                             class="col-md-2 d-flex justify-content-between align-items-center m-custom-05">
@@ -178,7 +177,7 @@
                                                 <ng-container
                                                     *ngIf="TEAM5_PROJECT_STATUS_LIST[0]?.count !== null && TEAM5_PROJECT_STATUS_LIST[0]?.count !== undefined; else loading">
                                                     <div [attr.style]="TEAM5_PROJECT_STATUS_LIST[0]?.style">
-                                                        {{ TEAM5_PROJECT_STATUS_LIST[0]?.count }}
+                                                        {{ selectedProjectCount }}
                                                     </div>
                                                 </ng-container>
                                             </div>
@@ -189,7 +188,7 @@
                                                 <button
                                                     [style]="selectedUnfilledTimesheetProjectFilter === filter.key ? TEAM5_PROJECT_STATUS_LIST[0]?.bgstyle :''"
                                                     class="pill-button"
-                                                    (click)="$event.stopPropagation();selectUnfilledTimesheetProjectFilter(filter)"
+                                                    (click)="openProjectDetailsModal(TEAM5_PROJECT_STATUS_LIST[0]);selectUnfilledTimesheetProjectFilter(filter)"
                                                     [title]="filter.label">
                                                     {{ filter.label }}
                                                 </button>
@@ -205,7 +204,7 @@
                                     <div class="label text-muted fw-semibold">
                                         {{TEAM5_PROJECT_STATUS_LIST[0]?.label}}
                                         <i [ngClass]="TEAM5_PROJECT_STATUS_LIST[0]?.i_class"
-                                            (click)="$event.stopPropagation();openProjectDetailsModal(TEAM5_PROJECT_STATUS_LIST[0])"
+                                            (click)="openProjectDetailsModal(TEAM5_PROJECT_STATUS_LIST[0])"
                                             [attr.style]="TEAM5_PROJECT_STATUS_LIST[0]?.style"></i>
                                     </div>
                                 </div>
@@ -466,6 +465,26 @@
         </div>
     </div>
 </ng-container>
+
+<ng-template #timesheet_non_compliance_project_details>
+    <div class="modal-header">
+        <h5>Project Information</h5>
+        <button class="btn btn-sm btn-outline-primary" (click)="closeProjectDetailsModal()"><i
+                class="fa fa-xmark m-0"></i></button>
+    </div>
+    <div class="modal-body mb-3">
+        <app-my-table [apiUrl]="getUnfilledTimesheetProjectDetailsListUrl" [columns]="projectDetailsColumnConfig"
+            [defaultSortColumn]="projectDetailsDefaultSortColumn" [isRowExpandable]="true"
+            [extraParams]="projectDetailsExtraParams" [isExportAllowed]="true" [isSearchAllowed]="true"
+            [subTableColumnConfig]="projectDetailsSubTableColumnConfig" [subTableData]="[]" [mergeRowData]="true"
+            [defaultCellMergeColumn]="'projectName'" [defaultSubTableCellMergeColumn]="">
+        </app-my-table>
+        <div class="modal-actions">
+            <button class="btn btn-outline-primary btn-sm ml-2" (click)="closeProjectDetailsModal()">Cancel</button>
+        </div>
+    </div>
+</ng-template>
+
 
 <ng-template #employee_details>
     <div class="modal-header">
