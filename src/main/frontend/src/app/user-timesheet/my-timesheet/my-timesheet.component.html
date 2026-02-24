@@ -501,7 +501,7 @@
                                                 'badge-info': timesheet.status === 4
                                               }">
                                             {{timesheet.statusDisplay || mapStatusToString(timesheet.status)}}
-                                        </span>
+                                            </span>
                                     </td>
                                     <td *ngIf="isSelfTimesheets">{{timesheet.createdByName || "NA"}}</td>
                                     <td>{{timesheet.createdOn}}</td>
@@ -567,14 +567,18 @@
                                                                         <span class="badge badge-secondary">Client ID: {{project.clientSideId}}</span>
                                                                     </span>
                                                                     <span class="ml-3">
-                                                                        <span class="badge" 
-                                                                              [ngClass]="{
-                                                                                'badge-warning': project.clientApprovalStatus === 1,
-                                                                                'badge-success': project.clientApprovalStatus === 2,
-                                                                                'badge-danger': project.clientApprovalStatus === 3
-                                                                              }">
+                                                                        <span class="badge" [ngClass]="{
+                                                                            'badge-warning': project.clientApprovalStatus === 1,
+                                                                            'badge-success': project.clientApprovalStatus === 2,
+                                                                            'badge-danger': project.clientApprovalStatus === 3
+                                                                          }">
                                                                             {{mapClientApprovalStatusToString(project.clientApprovalStatus)}}
                                                                         </span>
+                                                                        <button type="button" class="btn btn-danger mr-2" *ngIf="project.projectId && project.rejectionDetails?.length > 0"
+                                                                            (click)="openRejectReasonsModal(project.rejectionDetails, timesheet_reject_reasons);$event.stopPropagation()"
+                                                                            title="View Rejection Reason(s)">
+                                                                            <i class="fa-solid fa-circle-info fa-bounce"></i>
+                                                                        </button>
                                                                     </span>
                                                                     <span class="ml-3 text-muted">
                                                                         <strong>Hours:</strong> {{getTotalProjectHours(project)}}
@@ -1174,4 +1178,58 @@
         <h6>{{alertMessage}}</h6>
         <button type="button" class="btn-yes-alert" (click)="hideNoOtherShadowResource()">OK</button>&nbsp;
     </div>
+</ng-template>
+<ng-template #timesheet_reject_reasons let-modal>
+  <div class="modal-header bg-light">
+    <h5 class="modal-title">
+      <i class="fa fa-times-circle text-danger"></i>
+      Rejection Details
+    </h5>
+    <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+
+  <div class="modal-body">
+
+    <!-- No Rejection -->
+    <div *ngIf="!rejectionReasons || rejectionReasons.length === 0" class="text-center text-muted">
+      <i class="fa fa-info-circle"></i>
+      No rejection details available.
+    </div>
+
+    <!-- Rejection List -->
+    
+
+      <!-- Rejection Table -->
+      <table class="table table-sm table-bordered mb-0"
+             *ngIf="rejectionReasons && rejectionReasons.length > 0">
+
+        <thead class="thead-light">
+          <tr>
+            <th style="width: 5%">#</th>
+            <th style="width: 30%">Reason</th>
+            <th style="width: 40%">Remarks</th>
+            <th style="width: 25%">Rejected On</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let r of rejectionReasons; let j = index">
+            <td>{{ j + 1 }}</td>
+            <td>{{ r.rejectionReason || '-' }}</td>
+            <td>{{ r.remark || '-' }}</td>
+            <td>{{ r.rejectedOn || '-' }}</td>
+          </tr>
+        </tbody>
+
+      </table>
+
+    </div>
+
+  <div class="modal-footer text-center">
+    <button type="button" class="btn btn-primary" (click)="modal.close()">
+      OK
+    </button>
+  </div>
 </ng-template>

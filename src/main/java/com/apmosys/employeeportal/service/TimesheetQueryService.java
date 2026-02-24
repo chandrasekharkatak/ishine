@@ -29,6 +29,7 @@ import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.RejectionDataDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -849,6 +850,7 @@ rows.forEach(row -> {
                     row[21] != null ? ((Number) row[21]).intValue() : null
                 );
                 p.setActivities(new ArrayList<>());
+                p.setRejectionDetails(new ArrayList<>());
                 p.setClientId(row[36] != null ? ((Number) row[36]).longValue() : null);
                 p.setShadowEmpId(row[22]!=null?((Number)row[22]).longValue():null);
                 location.getProjects().add(p);
@@ -872,6 +874,41 @@ rows.forEach(row -> {
         activity.setTeamId(row[31] != null ? ((Number) row[31]).longValue() : null);
         project.getActivities().add(activity);
     }
+    
+    /* ================= REJECTION DETAILS ================= */
+ // NOTE: Rejection is project-level, but query rows repeat per activity.
+ // So add once per (timesheetId + locationMappingId + projectId + clientLocationId).
+
+ String remark = row[35] != null ? row[35].toString() : null;     // trd.remarks
+ String rejectionReason = row[39] != null ? row[39].toString() : null; // trrm.rejection_reason
+
+ LocalDateTime rejectedOnLdt =
+         row[40] != null ? ((Timestamp) row[40]).toLocalDateTime() : null; // trd.rejected_on
+
+ String rejectedOn =
+         rejectedOnLdt != null ? DateConversionUtil.localDateTimeToString(rejectedOnLdt, pattern) : null;
+
+ // Add only if any rejection data exists for this project row
+ if (remark != null || rejectionReason != null || rejectedOn != null) {
+
+     boolean alreadyAdded = project.getRejectionDetails().stream().anyMatch(r ->
+             Objects.equals(r.getTimesheetId(), timesheetId) &&
+             Objects.equals(r.getProjectId(), projectId != null ? projectId.intValue() : null) &&
+             Objects.equals(r.getLocationMappingId(), locationMappingId)
+     );
+
+     if (!alreadyAdded) {
+         RejectionDataDTO rejectionData = new RejectionDataDTO();
+         rejectionData.setTimesheetId(timesheetId);
+         rejectionData.setProjectId(projectId != null ? projectId.intValue() : null);
+         rejectionData.setLocationMappingId(locationMappingId); // if your DTO has this; helps uniqueness
+         rejectionData.setRejectionReason(rejectionReason);
+         rejectionData.setRejectedOn(rejectedOn);
+         rejectionData.setRemark(remark);
+
+         project.getRejectionDetails().add(rejectionData);
+     }
+ }
 
       //         // ======================Documents======================
                 
