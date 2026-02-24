@@ -27,7 +27,11 @@ export class ProjectEntry {
   totalClientWorkingMinutes?: number;
   projectHoursMinutes?: number;
   description?: string | null;
-  
+
+  /** Last valid project selection (revert when user selects duplicate in same location) */
+  _lastValidProjectId?: number | null;
+  _lastValidProjectName?: string;
+
   // Client Details (fetched when project is selected via getClientDetailsByProjectIdAndEmpId API)
   clientDetails?: {
     clientId: number;

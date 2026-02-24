@@ -329,13 +329,20 @@
                                             <div class="row">
                                                 <!-- Project Selection -->
                                                 <div class="col-md-3 mb-3">
-                                                    <label class="info-label"><span class="text-danger">*</span>
-                                                        Project</label>
-                                                    <app-my-select placeholder="Select Project" class="form-control"
-                                                        [(ngModel)]="project.projectId" [options]="project.projectList"
-                                                        displayKey="projectName" valueKey="projectId" [multiple]="false"
-                                                        (ngModelChange)="onProjectSelect($event, project)">
-                                                    </app-my-select>
+                                                    <label class="info-label">
+                                                        <span class="text-danger">*</span> Project
+                                                    </label>
+                                                    <select class="form-control"
+                                                        [(ngModel)]="project.projectId"
+                                                        (change)="onProjectSelect(project.projectId, project)">
+                                                        <!-- Disabled placeholder option -->
+                                                        <option [ngValue]="null">Select project</option>
+                                                        <!-- Actual project options -->
+                                                        <option *ngFor="let opt of project.projectList"
+                                                                [ngValue]="opt.projectId">
+                                                          {{ opt.projectName }}
+                                                        </option>
+                                                    </select>
                                                 </div>
 
                                                 <!-- Client Side ID (Show only if exists) *ngIf="project.clientSideId"-->
