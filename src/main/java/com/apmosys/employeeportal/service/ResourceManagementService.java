@@ -5939,7 +5939,7 @@ public class ResourceManagementService {
 //		return response;
 //	}
 //
-
+	
 	public ServiceResponse getResourceRequirementByPoProjectId(Long id) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -15236,6 +15236,7 @@ public class ResourceManagementService {
 		return new Object[]{updated, inserted, iShinecount, failedClientIds};
 	}
 
+	@Transactional(readOnly = true)
 	public ServiceResponse getResourceRequirementDetailsByProjectId(Integer projectId, String projectType,
 			boolean currentActivePO) {
 		ServiceResponse serviceResponse = new ServiceResponse();
@@ -15404,6 +15405,7 @@ public class ResourceManagementService {
 		}
 	}
 
+	@Transactional(readOnly = true)
 	private Slice<ProjectFetchDTO> getProjectDetailsList(RMGDashboardProjectRequest rmgDashboardProjectRequest,
 			String projectStatus, List<Long> deptIds, List<String> projectNames, Set<Integer> projectIds) {
 		Slice<ProjectFetchDTO> projectDetailsList = null;
@@ -16125,6 +16127,7 @@ public class ResourceManagementService {
 		return 0l;
 	}
 
+	@Transactional(readOnly = true)
 	public ServiceResponse getTotalProjectsChartData(RMGDashboardProjectRequest rmgDashboardProjectRequest) {
 		ServiceResponse response = new ServiceResponse();
 		try {

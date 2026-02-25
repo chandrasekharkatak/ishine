@@ -1,5 +1,5 @@
 <ng-container *ngIf="!showReportList">
-    <div class="row m-1">
+    <div class="row m-1" *ngIf="!showProjectConfig">
         <div class="col-md-6 d-flex justify-content-start align-items-center p-0">
             <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isProjectTable}"
                 *ngIf="userMapping.view_all_rmg_projects" (click)="showViewProjects()">
