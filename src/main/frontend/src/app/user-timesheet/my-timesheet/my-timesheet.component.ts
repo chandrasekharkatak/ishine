@@ -68,6 +68,7 @@ export class MyTimesheetComponent implements OnInit {
 
   @ViewChild(TimesheetFormComponent)
   timesheetFormComponent!: TimesheetFormComponent;
+  rejectionReasons: any;
   // Property aliases for template references used in HTML
   get alert_message(): TemplateRef<any> {
     return this.alertTemplate;
@@ -4493,6 +4494,13 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
     return new File([file], newFileName, { type: file.type });
   }
 
+  openRejectReasonsModal(data: any, template: TemplateRef<any>) {
+    this.rejectionReasons = data;
+    this.modalService.open(
+      template,
+      { modalDialogClass: 'modal-lg', backdrop: 'static' }
+    );
+  }
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

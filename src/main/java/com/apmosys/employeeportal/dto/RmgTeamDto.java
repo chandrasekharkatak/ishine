@@ -37,6 +37,7 @@ public class RmgTeamDto {
 
     private List<RmgTeamMemberDto> rmgTeamMemberList;
     private HashMap<Long,Long> updatedEtmIdAndEmpIdMap;
+    private List<RmgMemberEndDateDto> rmgMemberEndDateList;
     private boolean isupdate;
 
     private Long createdBy;

@@ -261,17 +261,24 @@
             <h3 class="mb-0">Project Report</h3>
         </div>
         <div class="card-body p-1 w-100">
-            <div class="row align-items-center mb-1 ml-2" *ngIf="projectDetailsList.length > 0">
+            <div class="row align-items-center mb-1 ml-2" *ngIf="projectDetailsList.length > 0 || isProjectSearchEnabled">
                 <div class="col-md-2 d-flex justify-content-start">
                     <button class="btn btn-sm btn-outline-primary" (click)="toggleProjectSearch()">
                         <i
                             [ngClass]="{ 'fa fa-search' : !isProjectSearchEnabled, 'fa-solid fa-xmark': isProjectSearchEnabled}"></i>
                     </button> &nbsp;&nbsp;
-                    <button class="btn btn-sm btn-outline-primary" (click)="exportProjectDetailsToExcel()">
-                        <i class="fa fa-download"></i>
-                    </button>
+                    <button class="btn btn-sm btn-outline-primary" matButton [matMenuTriggerFor]="downloadMenu" *ngIf="projectDetailsList.length > 0">
+                        <em class="fa fa-download"></em></button>
+                    <mat-menu #downloadMenu="matMenu">
+                        <button mat-menu-item (click)="exportPageProjectDetailsToExcel(projectDetailsList)">
+                            <i class="fa fa-file-download"></i> Download Page Data
+                        </button>
+                        <button mat-menu-item (click)="exportAllFilteredPageProjectDetailsToExcel()">
+                            <i class="fa fa-cloud-download"></i> Download All Data
+                        </button>
+                    </mat-menu>
                 </div>
-                <div class="col-md-6 offset-4 d-flex justify-content-end">
+                <div class="col-md-6 offset-4 d-flex justify-content-end" *ngIf="projectDetailsList.length > 0">
                     <mat-paginator [length]="totalProjectsCount" [pageIndex]="projectPage" [pageSize]="projectPageSize"
                         [pageSizeOptions]="[5, 10, 20, 50]" (page)="onProjectPageChange($event)">
                     </mat-paginator>
@@ -339,7 +346,7 @@
                             <tr>
                                 <td class="text-center">
                                     <!-- Action Button -->
-                                    <button class="btn btn-sm btn-outline-secondary" matButton
+                                    <button class="btn btn-sm" matButton
                                         [matMenuTriggerFor]="actionMenu">
                                         <em class="fa-solid fa-ellipsis-vertical"></em></button>
                                     <mat-menu #actionMenu="matMenu">
@@ -479,9 +486,9 @@
             [subTableColumnConfig]="projectDetailsSubTableColumnConfig" [subTableData]="[]" [mergeRowData]="true"
             [defaultCellMergeColumn]="'projectName'" [defaultSubTableCellMergeColumn]="">
         </app-my-table>
-        <div class="modal-actions">
+        <!-- <div class="modal-actions">
             <button class="btn btn-outline-primary btn-sm ml-2" (click)="closeProjectDetailsModal()">Cancel</button>
-        </div>
+        </div> -->
     </div>
 </ng-template>
 
@@ -499,9 +506,9 @@
             [subTableColumnConfig]="employeeDetailsSubTableColumnConfig" [subTableData]="[]" [mergeRowData]="true"
             [defaultCellMergeColumn]="'employmentIdAcToET'" [defaultSubTableCellMergeColumn]="">
         </app-my-table>
-        <div class="modal-actions">
+        <!-- <div class="modal-actions">
             <button class="btn btn-outline-primary btn-sm ml-2" (click)="closeEmployeeDetailsModal()">Cancel</button>
-        </div>
+        </div> -->
     </div>
 </ng-template>
 

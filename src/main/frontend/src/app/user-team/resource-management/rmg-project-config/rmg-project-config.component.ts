@@ -27,6 +27,7 @@ import * as moment from 'moment';
 import { firstValueFrom } from 'rxjs';
 import { EmployeeOtherActiveProject } from 'src/app/models/employeeOtherActiveProject';
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
+import { RmgMemberEndDate } from 'src/app/models/rmgMemberEndDate';
 // import { MAT_DATE_FORMATS } from '@angular/material/core';
 
 // export const MY_DATE_FORMATS = {
@@ -1743,7 +1744,8 @@ export class RmgProjectComponent implements OnInit {
 			return false;
 		}
 
-		let updatedEtmIdAndEmpIdMap = new Map<number, number>();
+		let tempRmgMemberEndDateList: RmgMemberEndDate[]=[];
+
 		for (let i = 0; i < currentTeam?.rmgOldTeamMemberList?.length; i++) {
 			let member = currentTeam?.rmgOldTeamMemberList[i];
 			if (!member.endDate || member.endDate == undefined || member.endDate == null) {
@@ -1757,7 +1759,7 @@ export class RmgProjectComponent implements OnInit {
 				return false;
 			}
 			if (this.normalizeDate(member.endDate) !== this.normalizeDate(member.dbEndDate)) {
-				updatedEtmIdAndEmpIdMap.set(member.etmId, member.empId);
+				tempRmgMemberEndDateList.push({ etmId: member.etmId, empId: member.empId, memberEndDate: member.endDate });
 			}
 		}
 
@@ -1766,7 +1768,7 @@ export class RmgProjectComponent implements OnInit {
 		rmgTeam.teamId = currentTeam?.teamId;
 		rmgTeam.updatedBy = this.currentUser?.empId;
 		rmgTeam.projectType = this.projectType;
-		rmgTeam.updatedEtmIdAndEmpIdMap = updatedEtmIdAndEmpIdMap;
+		rmgTeam.rmgMemberEndDateList = [...tempRmgMemberEndDateList];
 
 		this.teamService.extendTeamMembersEndDate(rmgTeam).pipe(first()).subscribe(async (response: any) => {
 			if (response.serviceStatus == "Success") {

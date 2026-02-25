@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -33,6 +35,7 @@ import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.Exception.TimesheetValidationFailedException;
 import com.apmosys.employeeportal.dto.GetEmployeeSummaryOnExportDTO;
 import com.apmosys.employeeportal.dto.FinalBulkUploadDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.FinalDocumentDownloadPayloadDTO;
 import com.apmosys.employeeportal.dto.GetTimesheetDashboardCountForEmployeeDTO;
 import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -475,6 +478,37 @@ public class EmployeeTimesheetControllerNew {
 			 ServiceResponse reponse= timesheetServiceNew.getEmployeeSummaryOnExportAccordingToStatus(object);
 			 return reponse;
 		}
+
+	@PostMapping("/getDocumentsByEmpAndDate")
+	public ResponseEntity<Resource> getDocumentsByEmpAndDate(@RequestParam(required = true) Long empId, @RequestParam(required = true) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date, @RequestParam(required = true) Integer projectId ) {
+		Resource resource = timesheetServiceNew.getDocumentsByEmpAndDate(empId,date,projectId);
+
+		if(resource == null){
+			return ResponseEntity.noContent().build();
+		}
+
+		String contentType = "application/octet-stream";
+		String headerValue = "attachment; filename=\"" + resource.getFilename() + "\"";
+
+		return ResponseEntity.ok()
+				.contentType(MediaType.parseMediaType(contentType))
+				.header(HttpHeaders.CONTENT_DISPOSITION, headerValue)
+				.body(resource);
+	}
+
+	@PostMapping("/downloadFinalDocuments")
+	public void downloadFinalDocuments(@RequestBody List<FinalDocumentDownloadPayloadDTO> dto, 
+									HttpServletResponse response) {
+		try {
+			timesheetServiceNew.streamFinalDocumentsZip(
+					dto,
+					response
+			);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+		}
+	}
 }
 
 

@@ -71,6 +71,20 @@
     overflow-x: auto;
     position: relative;
 }
+.timesheet-wrapper {
+  overflow-x: auto;   /* horizontal scroll if needed */
+}
+
+.timesheet-table {
+  min-width: 1200px;  /* adjust if needed */
+  table-layout: auto;
+}
+
+.timesheet-table td,
+.timesheet-table th {
+  white-space: normal !important;   /* allow wrapping */
+  word-break: break-word;
+}
 
 table {
     min-width: 100%;

@@ -4034,6 +4034,11 @@ public class ProjectService {
 				serviceResponse.setServiceResponse("Project Id cannot be null!!");
 				return serviceResponse;
 			}
+			if (rmgProjectDto.getUpdatedBy() == null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse(" Employee Id cannot be null");
+				return serviceResponse;
+			}
 
 			Project project = projectRepository.findByProjectId(rmgProjectDto.getProjectId());
 			if (project == null) {
@@ -4054,6 +4059,7 @@ public class ProjectService {
 			} else {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				serviceResponse.setServiceResponse(responseProjectManager.getServiceResponse());
+				throw new Exception("Unable to Save Project Manager!!");
 			}
 
 			ServiceResponse responseProjectOverhead = setProjectOverheads(rmgProjectDto, dbResponse);
@@ -4064,6 +4070,7 @@ public class ProjectService {
 			} else {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				serviceResponse.setServiceResponse(responseProjectOverhead.getServiceResponse());
+				throw new Exception("Unable to Save Project Overhead!!");
 			}
 
 			if (dbResponse != null) {
@@ -4074,7 +4081,7 @@ public class ProjectService {
 				serviceResponse.setServiceResponse("Unable to update Project!!");
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error Saving Project Information : ", e);
 			serviceResponse.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			serviceResponse.setServiceResponse("Something Went Wrong.");
 			serviceResponse.setServiceError(e.getMessage());
@@ -4095,10 +4102,11 @@ public class ProjectService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				return response;
 			}
+			Long projectId = Long.parseLong(project.getProjectId().toString());
 
 			Set<Long> newManagerIds = new HashSet<>(rmgProjectDto.getProjectManagerIds());
 			List<ProjectManagerMapping> existingMappings = projectManagerMappingRepository
-					.findByProjectId(Long.parseLong(project.getProjectId().toString()));
+					.findByProjectId(projectId);
 
 			if (existingMappings != null && !existingMappings.isEmpty()) {
 				Set<Long> existingActiveManagerIds = existingMappings.stream()
@@ -4113,37 +4121,44 @@ public class ProjectService {
 				}
 
 				// In case a existing project manager is deselected then Inactive
+				List<ProjectManagerMapping> projectManagerMappingList = new ArrayList<ProjectManagerMapping>();
 				existingMappings.forEach(existingMapping -> {
 					if (newManagerIds.contains(existingMapping.getProjectManagerId())) {
 						existingMapping.setActive(0);
 						existingMapping.setUpdatedBy(rmgProjectDto.getUpdatedBy());
 						existingMapping.setUpdatedOn(LocalDateTime.now());
-						projectManagerMappingRepository.save(existingMapping);
+						projectManagerMappingList.add(existingMapping);
 					}
 				});
+				projectManagerMappingRepository.saveAll(projectManagerMappingList);
 			}
-			// In case project manager was present but made inactive then make active again
+			
+			List<ProjectManagerMapping> projectManagerMappingList = new ArrayList<ProjectManagerMapping>();
 			for (Long managerId : newManagerIds) {
 				if (managerId == null){
 					continue;
 				}
 
 				ProjectManagerMapping existingMapping = projectManagerMappingRepository
-						.findByProjectIdAndProjectManagerId(Long.parseLong(project.getProjectId().toString()), managerId);
+						.findByProjectIdAndProjectManagerId(projectId, managerId);
 				if (existingMapping == null) {
 					ProjectManagerMapping newMapping = new ProjectManagerMapping();
-					newMapping.setProjectId(Long.parseLong(project.getProjectId().toString()));
+					newMapping.setProjectId(projectId);
 					newMapping.setProjectManagerId(managerId);
 					newMapping.setActive(1);
 					newMapping.setCreatedBy(rmgProjectDto.getUpdatedBy());
 					newMapping.setCreatedOn(new Timestamp(System.currentTimeMillis()));
-					projectManagerMappingRepository.save(newMapping);
+					projectManagerMappingList.add(newMapping);
 				} else {
+					// In case project manager was present but made inactive then make active again
 					existingMapping.setActive(1);
 					existingMapping.setUpdatedBy(rmgProjectDto.getUpdatedBy());
 					existingMapping.setUpdatedOn(LocalDateTime.now());
-					projectManagerMappingRepository.save(existingMapping);
+					projectManagerMappingList.add(existingMapping);
 				}
+			}
+			if (!projectManagerMappingList.isEmpty()) {
+				projectManagerMappingRepository.saveAll(projectManagerMappingList);
 			}
 			response.setServiceResponse("Project Manager saved successfully!");
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -4161,10 +4176,10 @@ public class ProjectService {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error Setting Project Managers : ", e);
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("\n Something went wrong!");
-			throw new RuntimeException("Error fetching project from PoPortal: " + e.getMessage());
+			throw new RuntimeException("Error Setting Project Managers : " + e.getMessage());
 		}
 		return response;
 	}
@@ -4182,10 +4197,11 @@ public class ProjectService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				return response;
 			}
-
+			Long projectId = Long.parseLong(project.getProjectId().toString());
+			
 			Set<Long> newOverheadIds = new HashSet<>(rmgProjectDto.getProjectOverheadIds());
 			List<ProjectOverheadMapping> existingMappings = projectOverheadMappingRepository
-					.findByProjectId(Long.parseLong(project.getProjectId().toString()));
+					.findByProjectId(projectId);
 
 
 			if (existingMappings != null && !existingMappings.isEmpty()) {
@@ -4199,46 +4215,53 @@ public class ProjectService {
 				}
 
 				// Deactivate removed overheads
+				List<ProjectOverheadMapping> projectOverheadMappingList = new ArrayList<ProjectOverheadMapping>();
 				for (ProjectOverheadMapping existingMapping : existingMappings) {
 					if (!newOverheadIds.contains(existingMapping.getProjectOverheadId())) {
 						existingMapping.setActive(0);
 						existingMapping.setUpdatedBy(rmgProjectDto.getUpdatedBy());
 						existingMapping.setUpdatedOn(LocalDateTime.now());
-						projectOverheadMappingRepository.save(existingMapping);
+						projectOverheadMappingList.add(existingMapping);
 					}
 				}
+				projectOverheadMappingRepository.saveAll(projectOverheadMappingList);
 			}
 
 			// Add or reactivate new overheads
+			List<ProjectOverheadMapping> projectOverheadMappingList = new ArrayList<ProjectOverheadMapping>();
 			for (Long overheadId : newOverheadIds) {
 				if (overheadId == null){
 					continue;
 				}
 				ProjectOverheadMapping existingMapping = projectOverheadMappingRepository
-						.findByProjectIdAndProjectOverheadId(Long.parseLong(project.getProjectId().toString()), overheadId);
+						.findByProjectIdAndProjectOverheadId(projectId, overheadId);
 				if (existingMapping == null) {
 					ProjectOverheadMapping newMapping = new ProjectOverheadMapping();
-					newMapping.setProjectId(Long.parseLong(project.getProjectId().toString()));
+					newMapping.setProjectId(projectId);
 					newMapping.setProjectOverheadId(overheadId);
 					newMapping.setActive(1);
 					newMapping.setCreatedBy(rmgProjectDto.getUpdatedBy());
 					newMapping.setCreatedOn(new Timestamp(System.currentTimeMillis()));
-					projectOverheadMappingRepository.save(newMapping);
+					projectOverheadMappingList.add(newMapping);
 				} else {
 					existingMapping.setActive(1);
 					existingMapping.setUpdatedBy(rmgProjectDto.getUpdatedBy());
 					existingMapping.setUpdatedOn(LocalDateTime.now());
-					projectOverheadMappingRepository.save(existingMapping);
+					projectOverheadMappingList.add(existingMapping);
 				}
+			}
+			if(!projectOverheadMappingList.isEmpty()) {
+				projectOverheadMappingRepository.saveAll(projectOverheadMappingList);
 			}
 
 			response.setServiceResponse("Project Overhead saved successfully!");
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error Setting Project Overhead : ", e);
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Something went wrong!");
+			throw new RuntimeException("Error Setting Project Overhead : " + e.getMessage());
 		}
 		return response;
 	}
@@ -4246,38 +4269,32 @@ public class ProjectService {
 	public ServiceResponse sendProjectInfoToPoPortal(RmgProjectDto rmgProjectDto, Project project) {
 		ServiceResponse response = new ServiceResponse();
 		try {
+			if (project == null) {
+				throw new BadRequestException("Project Cannot be null!!");
+			}
+
 			List<PoProjectSyncDTO> projectInfo = new ArrayList<PoProjectSyncDTO>();
-				if (project != null) {
-					PoProjectSyncDTO projectDTO = new PoProjectSyncDTO();
-					projectDTO.setPoProjectId(project.getPoProjectId());
-					projectDTO.setProjectName(project.getProjectName());
-					List<Object[]> result = projectManagerMappingRepository
-							.findProjectManagersPerProject(Long.parseLong(project.getProjectId().toString()));
-					List<String> projectManagerIds = new ArrayList<>();
-					for (Object[] obj : result) {
-						if (obj[2] != null) {
-							projectManagerIds.add(obj[2].toString());
-						}
-					}
-					projectDTO.setPoProjectManagers(projectManagerIds);
+			PoProjectSyncDTO projectDTO = new PoProjectSyncDTO();
+			projectDTO.setPoProjectId(project.getPoProjectId());
+			projectDTO.setProjectName(project.getProjectName());
+			List<Object[]> result = projectManagerMappingRepository
+					.findProjectManagersPerProject(Long.parseLong(project.getProjectId().toString()));
+			List<String> projectManagerIds = new ArrayList<>();
+			for (Object[] obj : result) {
+				if (obj[2] != null) {
+					projectManagerIds.add(obj[2].toString());
+				}
+			}
+			projectDTO.setPoProjectManagers(projectManagerIds);
 
-					List<Team> teamDetails = teamRepository.findByProjectIdAndIsActive(project.getProjectId(), "Y");
+			List<Team> teamDetails = teamRepository.findByProjectIdAndIsActive(project.getProjectId(), "Y");
 
-					if (!teamDetails.isEmpty()) {
-						teamDetails.forEach((team) -> {
-							List<EmployeeTeamMap> teamMemberDetials = employeeTeamMapRepository.findByTeamIdAndActive(team.getTeamId());
-							if (!teamMemberDetials.isEmpty()) {
-								projectDTO.setIshineProjectStatus("InProgress");
-							} else {
-								if ("Completed".equals(project.getProjectStatus())) {
-									projectDTO.setIshineProjectStatus("Completed");
-								} else if ("Rejected".equalsIgnoreCase(project.getIsDraftProject())) {
-									projectDTO.setIshineProjectStatus("Not Started");
-								} else {
-									projectDTO.setIshineProjectStatus("Not Started");
-								}
-							}
-						});
+			if (!teamDetails.isEmpty()) {
+				teamDetails.forEach((team) -> {
+					List<EmployeeTeamMap> teamMemberDetials = employeeTeamMapRepository
+							.findByTeamIdAndActive(team.getTeamId());
+					if (!teamMemberDetials.isEmpty()) {
+						projectDTO.setIshineProjectStatus("InProgress");
 					} else {
 						if ("Completed".equals(project.getProjectStatus())) {
 							projectDTO.setIshineProjectStatus("Completed");
@@ -4287,37 +4304,44 @@ public class ProjectService {
 							projectDTO.setIshineProjectStatus("Not Started");
 						}
 					}
-					projectInfo.add(projectDTO);
-
-					try {
-						ServiceResponse syncResponse = poPortalAPIService.syncProjectData(projectInfo);
-						if (ServiceResponse.STATUS_SUCCESS.equals(syncResponse.getServiceStatus())) {
-							try {
-								mailService.sendMail(rmgMail, "Regarding Project Sync With PoPortal",
-										"Dear RMG Team ," + "<br>" + "<br>" + "Project : "
-												+ project.getProjectName()
-												+ " has been successfully synced with PoPortal.");
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
-							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-							response.setServiceResponse(syncResponse.getServiceResponse());
-						}
-					} catch (HttpClientErrorException | HttpServerErrorException e) {
-						JSONObject json = new JSONObject(e.getResponseBodyAsString());
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						response.setServiceResponse(json.get("message"));
-					}
+				});
+			} else {
+				if ("Completed".equals(project.getProjectStatus())) {
+					projectDTO.setIshineProjectStatus("Completed");
+				} else if ("Rejected".equalsIgnoreCase(project.getIsDraftProject())) {
+					projectDTO.setIshineProjectStatus("Not Started");
+				} else {
+					projectDTO.setIshineProjectStatus("Not Started");
 				}
+			}
+			projectInfo.add(projectDTO);
+
+			try {
+				ServiceResponse syncResponse = poPortalAPIService.syncProjectData(projectInfo);
+				if (ServiceResponse.STATUS_SUCCESS.equals(syncResponse.getServiceStatus())) {
+					try {
+						mailService.sendMail(rmgMail, "Regarding Project Sync With PoPortal",
+								"Dear RMG Team ," + "<br>" + "<br>" + "Project : " + project.getProjectName()
+										+ " has been successfully synced with PoPortal.");
+					} catch (Exception e) {
+						log.error("Error Sending project Syncing mail : ", e);
+					}
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(syncResponse.getServiceResponse());
+				}
+			} catch (HttpClientErrorException | HttpServerErrorException e) {
+				JSONObject json = new JSONObject(e.getResponseBodyAsString());
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse(json.get("message"));
+			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error syncing project to PO Portal : ", e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong!!");
 			response.setServiceError(e.getMessage());
 		}
 		return response;
 	}
-	
 	
 //	public void updateProjectDatesAfterRenewal(
 //	        Project project,

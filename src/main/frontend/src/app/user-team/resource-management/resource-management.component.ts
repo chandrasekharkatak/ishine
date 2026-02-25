@@ -140,6 +140,8 @@ export class ResourceManagementComponent implements OnInit {
   ];
 
   selectedDepartmentIds: any[] = [];
+  oldSelectedDepartmentIds: any[] = [];
+
 
   allStates: any[] = [
     "Maharashtra",
@@ -884,6 +886,7 @@ export class ResourceManagementComponent implements OnInit {
 
   async getAllDepartmentsByCurrentUserIdAndRole(): Promise<any> {
     this.selectedDepartmentIds = [];
+    this.oldSelectedDepartmentIds = [];
     this.filteredDepartments = [];
     try {
       const response: any = await this.departmentService.getDeptsByRole(this.currentUser.empId).pipe(first()).toPromise();
@@ -901,6 +904,7 @@ export class ResourceManagementComponent implements OnInit {
 
   async getDeptsByUser(): Promise<any> {
     this.selectedDepartmentIds = [];
+    this.oldSelectedDepartmentIds = [];
     this.filteredDepartments = [];
     try {
       const response: any = await this.departmentService.getDeptsByUser(this.currentUser.empId).pipe(first()).toPromise();
@@ -961,6 +965,10 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   onDepartmentSelectionChange(event: any) {
+    if (this.areArraysEqual(this.oldSelectedDepartmentIds, this.selectedDepartmentIds)) {
+      return;
+    }
+    this.oldSelectedDepartmentIds = [...this.selectedDepartmentIds];
     if (this.rmgStatusCardsComponent) {
       this.rmgStatusCardsComponent.onDepartmentSelectionChange(event);
     }
@@ -975,6 +983,7 @@ export class ResourceManagementComponent implements OnInit {
     }
 
     this.selectedDepartmentIds = this.filteredDepartments?.map(dept => dept.deptId) || [];
+    this.oldSelectedDepartmentIds = [...this.selectedDepartmentIds];
     if (this.rmgStatusCardsComponent) {
       this.rmgStatusCardsComponent.onDepartmentSelectionChange(this.selectedDepartmentIds);
     }
@@ -1848,6 +1857,21 @@ export class ResourceManagementComponent implements OnInit {
     return this.filteredEmployees.some(
       emp => emp.empId === this.selectedEmpId
     );
+  }
+
+  private areArraysEqual(arr1: number[], arr2: number[]): boolean {
+    if (!arr1 || !arr2) {
+      return false;
+    }
+    if (arr1?.length !== arr2?.length) {
+      return false;
+    }
+    for (let i = 0; i < arr1?.length; i++) {
+      if (arr1[i] !== arr2[i]) {
+        return false;
+      }
+    }
+    return true;
   }
   // Helpers End
 
