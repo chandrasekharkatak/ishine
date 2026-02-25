@@ -1,5 +1,9 @@
 package com.apmosys.employeeportal.service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -17,17 +21,22 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
@@ -49,6 +58,8 @@ import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetIdAndEmpIdDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.FinalDocumentDownloadDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.FinalDocumentDownloadPayloadDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
@@ -78,6 +89,7 @@ import com.apmosys.employeeportal.repository.EmployeeTimesheetLocationMappingRep
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.FinalDocumentNewRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
+import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.ProjectTimesheetStatusNewRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsNewRepository;
 import com.apmosys.employeeportal.repository.WorkLocationTypeMasterRepository;
@@ -160,6 +172,9 @@ public class TimesheetServiceNew {
 	@Autowired
 	private DocMimeTypeMasterNewRepository docMimeTypeMasterNewRepository;
 
+	@Autowired
+	private ProjectRepository projectRepository;
+
 	 @Autowired
 	 private TimesheetDashboardService timesheetDashboardService;
 
@@ -179,6 +194,9 @@ public class TimesheetServiceNew {
 	private DataSize maxFileSize;
 
 	private final String pattern = "yyyy-MM-dd HH:mm:ss";
+
+	@Value("${upload.path}")
+    private String storagePath;
 
 	
 
@@ -2413,7 +2431,122 @@ public class TimesheetServiceNew {
 		 return timesheetDashboardService.getEmployeeSummaryOnExportAccordingToStatus(object);
 	 }
 	 
-	 public ServiceResponse getAllLeaveTimesheetsWithoutLeaveApplication(TimesheetDTO timesheetDTO) {
+	 public Resource getDocumentsByEmpAndDate(Long empId, LocalDate date,Integer projectId) {
+		LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/v2/timesheet/getDocumentsByEmpAndDate");
+	    apiLogInfo.setLogLevel("INFO");
+		try {
+			String fileUrl = timesheetDocumentDetailsNewRepository.findFileUrlByEmpIdAndDate(empId, date,projectId);
+			if(fileUrl.equalsIgnoreCase("null") || fileUrl == null || fileUrl.isBlank()) {
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiResponse("No document found for given empId and date");
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				return null;
+			}
+			return timesheetDocumentService.viewFile(fileUrl);
+		} catch (Exception e) {
+			e.printStackTrace();
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse(e.getMessage());
+			apiLogInfo.setLogLevel("ERROR");
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			return null;
+		}
+	}
+
+	public void streamZipFromFileUrls(List<String> fileUrls, String zipFileName, HttpServletResponse response) throws IOException {
+		if (fileUrls == null || fileUrls.isEmpty()) {
+			throw new IllegalArgumentException("No files provided for ZIP creation");
+		}
+
+		response.setContentType("application/zip");
+		response.setHeader(HttpHeaders.CONTENT_DISPOSITION, 
+						"attachment; filename=\"" + zipFileName + "\"");
+
+		try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
+			zos.setLevel(1); // Lower compression = faster performance
+			
+			int fileCount = 0;
+			for (String url : fileUrls) {
+				try {
+					Path path = Paths.get(url);
+					if (!path.isAbsolute()) {
+						path = Paths.get(storagePath, url);
+					}
+					path = path.normalize();
+					
+					// Security check
+					if (!path.normalize().startsWith(Paths.get(storagePath).normalize())) {
+						continue;
+					}
+					
+					if (Files.exists(path) && Files.isReadable(path)) {
+						String fileName = path.getFileName().toString();
+						// Use counter to avoid System.currentTimeMillis() collision
+						String uniqueName = fileCount++ + "_" + fileName;
+						
+						zos.putNextEntry(new ZipEntry(uniqueName));
+						Files.copy(path, zos);
+						zos.closeEntry();
+					}
+				} catch (Exception e) {
+					// Log error but continue with next file
+					System.err.println("Failed to add file: " + url + " - " + e.getMessage());
+				}
+			}
+		}
+	}
+
+	/**
+	 * Streams final documents as a single ZIP file directly to the HTTP response
+	 */
+	public void streamFinalDocumentsZip(List<FinalDocumentDownloadPayloadDTO> payloadList, HttpServletResponse response) throws IOException {
+		System.out.println(">> streamFinalDocumentsZip() START");
+		System.out.println("Number of records: " + payloadList.size());
+
+		if (payloadList == null || payloadList.isEmpty()) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			response.getWriter().write("No data provided");
+			return;
+		}
+
+		List<Long> empIds = payloadList.stream()
+			.map(FinalDocumentDownloadPayloadDTO::getEmpId)
+			.collect(Collectors.toList());
+
+		List<Integer> projectIds = payloadList.stream()
+			.map(FinalDocumentDownloadPayloadDTO::getProjectId)
+			.collect(Collectors.toList());
+
+		Integer month = payloadList.get(0).getMonth();
+		Integer year = payloadList.get(0).getYear();
+
+		// Fetch file URLs from database
+		List<FinalDocumentDownloadDTO> fileRecords = finalDocumentNewRepository.getAllFinalDocumentsByEmpIdAndProjectIdInMonthAndYear(
+				empIds, projectIds, month, year);
+
+		System.out.println("File records fetched: " + (fileRecords == null ? "null" : fileRecords.size()));
+
+		if (fileRecords == null || fileRecords.isEmpty()) {
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			response.getWriter().write("No final documents found for selected project and month");
+			return;
+		}
+
+		// Create a single ZIP for all files
+		String monthEndDate = YearMonth.of(year, month).atEndOfMonth().toString();
+		String zipName = String.format("Final_Documents_%s.zip", monthEndDate);
+		
+		// Extract just the file URLs for the zip method
+		List<String> fileUrls = fileRecords.stream()
+			.map(FinalDocumentDownloadDTO::getFileUrl)
+			.filter(Objects::nonNull)
+			.collect(Collectors.toList());
+		
+		// Call the reusable streaming method with all file URLs
+		streamZipFromFileUrls(fileUrls, zipName, response);
+	}
+		 public ServiceResponse getAllLeaveTimesheetsWithoutLeaveApplication(TimesheetDTO timesheetDTO) {
 			ServiceResponse response = new ServiceResponse();
 			LogDTO apiLogInfo = new LogDTO();
 			apiLogInfo.setApiUrl("/api/getAllLeaveTimesheetsWithoutLeaveApplication");

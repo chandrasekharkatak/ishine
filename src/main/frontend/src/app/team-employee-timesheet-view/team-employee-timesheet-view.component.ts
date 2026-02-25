@@ -531,13 +531,21 @@ monthSelected(event: Date, datepicker: any) {
       return;
     }
 
-    const payload = {
-      projectId: this.projectId,
-      month: this.month,
-      year: this.year,
-      empId: this.currentUser.empId,
-      projectName: projectName
-    };
+    const payload:{
+      empId:number;
+      projectId:number;
+      month:number;
+      year:number;
+    }[] = [];
+
+    this.filteredTimesheetData.forEach(emp => {
+      payload.push({
+        empId: emp.empId,
+        projectId: this.projectId,
+        month: this.month,
+        year: this.year
+      });
+    });
 
     const safeProjectName = projectName
       .replace(/\s+/g, '_')

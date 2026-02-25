@@ -88,6 +88,7 @@ import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
 import com.apmosys.employeeportal.dto.EmployeeProjection;
 import com.apmosys.employeeportal.dto.EmployeeSkillProficiencyDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
+import com.apmosys.employeeportal.dto.ExpiredProjectDTOForNotification;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO.PoObject;
 import com.apmosys.employeeportal.dto.GetAllEmployeesWorkAnniversaryTodayDTO;
 import com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO;
@@ -7467,7 +7468,8 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	    try {
 	    	List<ProjectDTO> expiredPoList = new ArrayList<>();
 		      
-		        List<Project> result = projectRepository.getExpiredPolist();
+		        // List<Project> result = projectRepository.getExpiredPolist();
+				List<ExpiredProjectDTOForNotification> result = projectRepository.getExpiredPolist();
 
 		    if (result.isEmpty()) {
 	            serviceResponse.setServiceResponse("No data found");

@@ -513,8 +513,7 @@
             <input type="checkbox" [disabled]="!hasClientSideIdFlag" [(ngModel)]="isClientSideIdFormatted" />
             Is Client Side ID Formatted?
         </label>
-        <i class="info-icon" title="When enabled, the Client Side ID must not begin with “NA”">
-        </i>
+        <i class="fa fa-info-circle info-icon" title="When enabled, the Client Side ID must not begin with “NA”"></i>
         <br>
         <button type="button" class="btn-yes-alert" [disabled]="getValidateResponse()"
             (click)="updateHasClientSideId(hasClientSideIdFlag)">OK</button>&nbsp;
