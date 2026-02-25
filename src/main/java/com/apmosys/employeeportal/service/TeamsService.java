@@ -17,7 +17,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -53,7 +52,7 @@ import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.MigrateTeam;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
 import com.apmosys.employeeportal.dto.ProjectDTO;
-import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
+import com.apmosys.employeeportal.dto.RmgMemberEndDateDto;
 import com.apmosys.employeeportal.dto.RmgTeamDto;
 import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
 import com.apmosys.employeeportal.dto.TeamDTO;
@@ -76,7 +75,6 @@ import com.apmosys.employeeportal.model.LeaveBalanceLog;
 import com.apmosys.employeeportal.model.LeavePolicyMaster;
 import com.apmosys.employeeportal.model.LeaveTypeMaster;
 import com.apmosys.employeeportal.model.PoDepartmentMapping;
-import com.apmosys.employeeportal.model.PoRequirementMapping;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ProjectDepartmentMap;
 import com.apmosys.employeeportal.model.ProjectManagerMapping;
@@ -84,7 +82,6 @@ import com.apmosys.employeeportal.model.ProjectOverheadMapping;
 import com.apmosys.employeeportal.model.ProjectPoDetails;
 import com.apmosys.employeeportal.model.RoleDetails;
 import com.apmosys.employeeportal.model.Team;
-import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.ActivityTemplateRepository;
 import com.apmosys.employeeportal.repository.ClientLocationRepository;
@@ -3490,7 +3487,7 @@ public class TeamsService {
 					obj.setTotalExp(dto.getTotalExperience());
 					obj.setEmploymentStatus(dto.getEmploymentStatus());
 				}
-				obj.setOtherActiveProjects(empIdAndOtherProjectIdsMap.getOrDefault(dto.getEmpId(), List.of()));
+				obj.setOtherActiveProjects(empIdAndOtherProjectIdsMap.getOrDefault(obj.getEmpId(), List.of()));
 				
 				if (obj.getOtherActiveProjects() != null && !obj.getOtherActiveProjects().isEmpty()) {
 					List<Integer> projectIds = obj.getOtherActiveProjects().stream()
@@ -5195,8 +5192,10 @@ public class TeamsService {
 			Map<Long, EmployeeTeamMap> empTeamMap = empMappings.stream().collect(
 					Collectors.toMap(EmployeeTeamMap::getEmpId, Function.identity(), (existing, replace) -> replace));
 
-			handleRemoveTeamMembers(rmgTeamDto, project, team, empTeamMap);
-
+			String removeTeamMemberMessage = handleRemoveTeamMembers(rmgTeamDto, project, team, empTeamMap);
+			if(removeTeamMemberMessage != null && !removeTeamMemberMessage.isBlank()) {
+				response.setServiceResponse("Team Member(s) removed Successfully!! \n" + removeTeamMemberMessage);
+			}
 			response.setServiceResponse("Team Member(s) removed Successfully!!");
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
@@ -5226,10 +5225,10 @@ public class TeamsService {
 				}
 				empTeamMapping.setRescRemovedBy(currentUserEmpId);
 				empTeamMapping.setIsCustomDate(rmgTeamDto.isCustomEndDate());
-				empTeamMapping.setEndDate(rmgTeamMember.getEndDate());
+				empTeamMapping.setEndDate(rmgTeamDto.getEndDate());
 				
-				if (rmgTeamMember.getEndDate() != null) {
-					if (empTeamMapping.getStartDate().isAfter(rmgTeamMember.getEndDate())) {
+				if (empTeamMapping.getEndDate() != null) {
+					if (empTeamMapping.getStartDate().isAfter(empTeamMapping.getEndDate())) {
 						throw new IllegalArgumentException("End date cannot be less than Start date: " + empTeamMapping.getStartDate());
 					}
 					if (!empTeamMapping.getEndDate().toLocalDate().isAfter(LocalDate.now())) {
@@ -5243,7 +5242,7 @@ public class TeamsService {
 				employeeTeamMapRepository.save(empTeamMapping); // Sending mail to Individual So saving one object at a time.
 				sendResourceRemovalMailToRmg(emp.getName(), project.getProjectName(), team.getTeamName());
 			} catch (Exception e) {
-				e.printStackTrace();
+				log.error("Error in handleRemoveTeamMembers : ", e);
 				sb.append("Employee Team Mapping not updated for : ").append(rmgTeamMember.getEmpId())
 						.append(". Something went wrong. \n");
 				;
@@ -5748,8 +5747,32 @@ public class TeamsService {
 				return response;
 			}
 
-			List<Long> empIds = new ArrayList<>();
+			List<Long> etmIds = rmgTeamDto.getRmgMemberEndDateList().stream().map(RmgMemberEndDateDto::getEtmId)
+					.filter(Objects::nonNull).collect(Collectors.toList());
+			if (etmIds == null || etmIds.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("RMG Member(s) Employee Team Mapping Id(s) cannot be Null or Empty!!");
+				return response;
+			}
+			List<EmployeeTeamMap> employeeTeamMappingList = employeeTeamMapRepository.findByEmployeeTeamMapIdIn(etmIds);
+			if (employeeTeamMappingList == null || employeeTeamMappingList.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Team Mapping Not found!!");
+				return response;
+			}
+			
+			Map<Long, RmgMemberEndDateDto> etmIdAndEtmMap = rmgTeamDto.getRmgMemberEndDateList().stream().collect(Collectors.toMap(
+					RmgMemberEndDateDto::getEtmId, Function.identity(), (existing, replace) -> existing));
 
+			for (EmployeeTeamMap employeeTeamMap : employeeTeamMappingList) {
+				RmgMemberEndDateDto rmgMemberEndDateDto = etmIdAndEtmMap.getOrDefault(employeeTeamMap.getEmployeeTeamMapId(), null);
+				if (rmgMemberEndDateDto != null && rmgMemberEndDateDto.getEndDate() != null) {
+					employeeTeamMap.setEndDate(rmgMemberEndDateDto.getEndDate());
+					employeeTeamMap.setUpdatedBy(rmgTeamDto.getUpdatedBy());
+				}
+			}
+
+			employeeTeamMapRepository.saveAll(employeeTeamMappingList);
 			response.setServiceResponse("Team Members End Date updated Successfully!!");
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {

@@ -1830,7 +1830,7 @@ private void saveRejectionDetails(BulkTimesheetRequestDTO request) {
 
             for (Long projectId : projectIds) {
 
-                Long locationMappingId = projectTimesheetStatusNewRepository
+                List<Long> locationMappingIds = projectTimesheetStatusNewRepository
                         .findLocationMappingId(timesheetId, projectId.intValue());
 
                 projectTimesheetStatusNewRepository
@@ -1843,18 +1843,19 @@ private void saveRejectionDetails(BulkTimesheetRequestDTO request) {
                 audit.setActionBy(updatedBy);
                 audit.setActionOn(now);
                 auditList.add(audit);
-
-                for (Long rejectionId : rejectionIds) {
-                    TimesheetRejectionDetailsNew rejection = new TimesheetRejectionDetailsNew();
-                    rejection.setTimesheetId(timesheetId);
-                    rejection.setLocationMappingId(locationMappingId);
-                    rejection.setProjectId(projectId.intValue());
-                    rejection.setRejectionId(rejectionId);
-                    rejection.setRemarks(remark);
-                    rejection.setRejectedBy(updatedBy);
-                    rejection.setRejectedOn(now);
-                    rejectionList.add(rejection);
-                }
+				for (Long locationMappingId : locationMappingIds) {
+					for (Long rejectionId : rejectionIds) {
+						TimesheetRejectionDetailsNew rejection = new TimesheetRejectionDetailsNew();
+						rejection.setTimesheetId(timesheetId);
+						rejection.setLocationMappingId(locationMappingId);
+						rejection.setProjectId(projectId.intValue());
+						rejection.setRejectionId(rejectionId);
+						rejection.setRemarks(remark);
+						rejection.setRejectedBy(updatedBy);
+						rejection.setRejectedOn(now);
+						rejectionList.add(rejection);
+					}
+				}
             }
         }
     }

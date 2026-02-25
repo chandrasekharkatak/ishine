@@ -65,7 +65,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   pendingLocationToRemove: LocationEntry | null = null;
   @Input() isCreation: boolean = false;
   @Input() isUpdation: boolean = false;
-  @Input() selectedDate: any;
+  @Input() selectedDate: Date | null = null;
+  @Input() autoFillEmpId: number | null = null; // Employee ID for whom timesheet should be auto-filled (used when manager creates timesheet on behalf of team member)
   @Input() timesheetId: number | null = null; // ID of timesheet to update
   // @Input() isAutoFilled: boolean = false;  
   // Output events for parent component communication
@@ -169,7 +170,10 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     this.getAllWorkLocationFromLocationMaster();
     this.getAllDayTypes();
     this.getAllDSRApprovalStatusFromMaster();
-
+    console.log(this.selectedDate,"[ngOnInit] Initial selectedDate:", this.selectedDate);
+    if(this.selectedDate){
+      this.loadServerDateThenInitCreate();
+    }
     console.log('[ngOnInit] Form initialized with:', {
       isUpdation: this.isUpdation,
       timesheetId: this.timesheetId,
@@ -1433,7 +1437,11 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     } else if(this.timesheetAppliedFor.toLocaleLowerCase() === 'team'){
       this.getAllTeamMemberList();
     }else {
-      console.error("Invalid selection")
+      if (this.selectedDate) {
+        this.loadAutofillData(this.formatDateDDMMYYYY(this.selectedDate));
+      }else{
+        console.error("Invalid selection")
+      }      
     }
   }
   // ============================================

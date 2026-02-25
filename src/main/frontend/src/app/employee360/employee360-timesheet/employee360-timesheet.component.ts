@@ -809,6 +809,27 @@ let encryptedEmployeeData = localStorage.getItem('employee360Data');
 //         });
 //     }
 
+onDateSelected(event: { date: string, status: string }) {
+  console.log("User clicked date:", event);
+
+  if (event.status === 'Approved') {
+    console.log("Skipping navigation because timesheet is approved.");
+    return;
+  }
+  else if(event.status==='Pending'){
+     console.log("Skipping navigation because timesheet is filled.");
+    return;
+  } else if(event.status==='Rejected'){
+     console.log("Skipping navigation because timesheet is 	Rejected.");
+    return;
+  }
+
+  this.router.navigate(['/user-timesheet/my-timesheet'], {
+    queryParams: { date: event.date ,
+      empId: this.empId
+    }
+  });
+}
 async get360TimesheetDetails(
   activeButton: string,
   empId: number,
@@ -878,7 +899,7 @@ if (encryptedUser) {
 
     // this.currentUser = sessionStorage.getItem('currentUser');
     if (this.currentUser) {
-      const currentUserData = JSON.parse(this.currentUser);
+      const currentUserData = this.currentUser;
       this.managerId = currentUserData.empId;
       console.log(this.managerId);
     }

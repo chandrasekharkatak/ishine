@@ -1822,7 +1822,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id  \n"
 				+ whereClause;
 		
-		System.out.println("=====query of count" + countQueryStr);
+		// System.out.println("=====query of count" + countQueryStr);
 		Number totalElements = ((Number) session.createNativeQuery(countQueryStr).getSingleResult());
 
 		String orderBy = pageable.getSort().isSorted()
@@ -1864,9 +1864,13 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				+ "e1.name AS employeeName,  \n"
 				+ "et.date AS date,  \n"
 				+ "dtm.day_type AS dayType,  \n"
-				+ "et.description AS description,  \n"
+				+ "GROUP_CONCAT(DISTINCT TRIM(REPLACE(REPLACE(pts.description, '<br>', ''), '<br/>', '')) SEPARATOR ' | ') AS description,  \n"
 				+ "sm.status AS status,  \n"
 				+ "ROUND(et.total_working_minutes /60 , 2 ) AS totalTime,  \n"
+                + "DATE_FORMAT(et.work_in_time, '%Y-%m-%d %H:%i:%s') as officeInTime,\n" 
+                + "DATE_FORMAT(et.work_out_time,'%Y-%m-%d %H:%i:%s') as officeOutTime, \n" 
+                + "CONCAT(LPAD(FLOOR(pts.total_client_working_minutes / 60), 2, '0'), ':', "
+                +"LPAD(pts.total_client_working_minutes % 60, 2, '0')) AS totalWorkingHours, "        
 				+ "DATE_FORMAT(et.created_on, '%Y-%m-%d %H:%i:%s') AS createdOn,  \n"
 				+ "DATE_FORMAT(et.updated_on, '%Y-%m-%d %H:%i:%s') AS updatedOn,  \n"
 				+ "e2.name AS statusUpdatedBy,  \n"
@@ -1892,7 +1896,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id  \n"
 				+  whereClause 
 				+ "GROUP BY \n"
-				+ "    e1.employeement_id, et.date, dtm.day_type, et.description, \n"
+				+ "    e1.employeement_id, et.date, dtm.day_type, \n"
 				+ "    sm.status, et.total_working_minutes, et.created_on, \n"
 				+ "    et.updated_on, e2.name, ltm.leave_type, e1.is_apmosys_product\n"
 				+ "ORDER BY " + orderBy ;
@@ -1907,6 +1911,9 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				.addScalar("description", StandardBasicTypes.STRING)
 				.addScalar("status", StandardBasicTypes.STRING)
 				.addScalar("totalTime", StandardBasicTypes.STRING)
+				.addScalar("officeInTime", StandardBasicTypes.STRING)
+				.addScalar("officeOutTime", StandardBasicTypes.STRING)
+				.addScalar("totalWorkingHours", StandardBasicTypes.STRING)
 				.addScalar("createdOn", StandardBasicTypes.STRING)
 				.addScalar("updatedOn", StandardBasicTypes.STRING)
 				.addScalar("statusUpdatedBy", StandardBasicTypes.STRING)
@@ -2129,7 +2136,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 
 	        StringBuilder subQuery = createQueryForTimesheetReport(timesheetDTO.getQueryList());
 	        logBuilder.append(" | Query: ").append(subQuery);
-	        System.out.println("===================="+subQuery);
+	        // System.out.println("===================="+subQuery);
 	        Page<CustomTimesheetReportDTO> page;
 	        Pageable pageable;
 

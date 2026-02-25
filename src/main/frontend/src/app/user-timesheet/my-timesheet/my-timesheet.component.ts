@@ -848,7 +848,7 @@ get tooltipCta(): string {
   }
 
    getMyProjectsInMonthYear() {
-  
+      this.timesheetObj.c
       this.timesheetObj.empId = this.currentUser.empId;
       this.timesheetService.getMyProjectsInMonthYear(this.timesheetObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
@@ -884,6 +884,8 @@ get tooltipCta(): string {
 
     if (level === 'MONTH') {
       this.timesheetObj.projectId = null;
+      this.timesheetObj.clientInTime = null;
+      this.timesheetObj.clientOutTime = null;
       this.projectsInMonthYear = [];
     }
 
