@@ -65,7 +65,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   pendingLocationToRemove: LocationEntry | null = null;
   @Input() isCreation: boolean = false;
   @Input() isUpdation: boolean = false;
-  @Input() selectedDate: Date | null = null;
+  @Input() selectedDate: any;
   @Input() timesheetId: number | null = null; // ID of timesheet to update
   // @Input() isAutoFilled: boolean = false;  
   // Output events for parent component communication
@@ -89,8 +89,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   disableAdd: boolean = false;
   availableTimesheets: any[] = [];
   serverDate: any; // Server's current date for date range calculation
-  minDateForPicker: string | null = null; // Minimum selectable date (dd-MM-yyyy format)
-  maxDateForPicker: string | null = null; // Maximum selectable date (dd-MM-yyyy format)
+  minDateForPicker: any; // Minimum selectable date (dd-MM-yyyy format)
+  maxDateForPicker: any; // Maximum selectable date (dd-MM-yyyy format)
   disabledDatesForPicker: string[] = []; // Dates to disable (dd-MM-yyyy format)
   /** Base disabled dates independent of day type (already-filled timesheets, etc.) */
   private disabledDatesBase: string[] = [];
@@ -183,7 +183,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     } else {
       // Create mode: load server date first, then run init (resetForm + getTimesheetMetadata / team list)
       // so that getTimesheetMetadata() can call getAllAvailableTimesheetByEmpId() with serverDate set
-      console.log('[ngOnInit] Create mode, initializing...');
+      console.log('[ngOnInit] Create mode, initializing...',this.selectedDate);
       this.loadServerDateThenInitCreate();
     }
   }
@@ -192,6 +192,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    * Handle input changes (especially when parent sets timesheetId/isUpdation after ngOnInit)
    */
   ngOnChanges(changes: SimpleChanges): void {
+   console.log('[ngOnChange] Create mode, initializing...',this.selectedDate);
+
     // Switch from Update to Create (user clicked Create Timesheet tab after editing): reset form and init create
     const isCreationChange = changes['isCreation'];
     const isUpdationChange = changes['isUpdation'];
@@ -421,7 +423,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  addLocation(timesheetId: number): void {
+  addLocation(timesheetId): void {
   // Prevent adding locations when timesheet is not fillable (e.g. view-only mode)
     if (!this.isDayTypeFillable()) {
       console.warn('Attempt to add location when timesheet is not fillable.');
@@ -603,7 +605,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    * Checks for duplicate projects in the same location
    * Fetches client details automatically if only one project
    */
-  addProject(location: LocationEntry, timesheetId: number): void {
+  addProject(location: LocationEntry, timesheetId: any): void {
 
     // ✅ MODERATE FIX: Validate date is selected (required for project fetching)
     if (!this.fromDate) {
