@@ -574,11 +574,6 @@
                                                                           }">
                                                                             {{mapClientApprovalStatusToString(project.clientApprovalStatus)}}
                                                                         </span>
-                                                                        <button type="button" class="btn btn-danger mr-2" *ngIf="project.projectId && project.rejectionDetails?.length > 0"
-                                                                            (click)="openRejectReasonsModal(project.rejectionDetails, timesheet_reject_reasons);$event.stopPropagation()"
-                                                                            title="View Rejection Reason(s)">
-                                                                            <i class="fa-solid fa-circle-info fa-bounce"></i>
-                                                                        </button>
                                                                     </span>
                                                                     <span class="ml-3 text-muted">
                                                                         <strong>Hours:</strong> {{getTotalProjectHours(project)}}
@@ -586,6 +581,14 @@
                                                                     <!-- <span class="ml-3" *ngIf="project.totalClientWorkingMinutes">
                                                                         <strong>Client Hours:</strong> {{getTotalWorkingHours(project.totalClientWorkingMinutes)}}
                                                                     </span> -->
+                                                                    <span class="ml-3">
+                                                                        <button type="button" class="btn btn-danger btn-sm mr-2" *ngIf="project.projectId && project.rejectionDetails?.length > 0 && project.status === 3"
+                                                                            (click)="openRejectReasonsModal(project.rejectionDetails, timesheet_reject_reasons);$event.stopPropagation()"
+                                                                            title="View Rejection Reason(s)">
+                                                                            <i class="fa-solid fa-circle-info fa-bounce"></i>
+                                                                        </button>
+                                                                    </span>
+                                                                    
                                                                 </div>
                                                                 <div class="d-flex align-items-center">
                                                                     <!-- Document Buttons -->
@@ -1182,7 +1185,6 @@
 <ng-template #timesheet_reject_reasons let-modal>
   <div class="modal-header bg-light">
     <h5 class="modal-title">
-      <i class="fa fa-times-circle text-danger"></i>
       Rejection Details
     </h5>
     <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
