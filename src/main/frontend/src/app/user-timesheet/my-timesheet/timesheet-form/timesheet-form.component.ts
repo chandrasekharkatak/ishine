@@ -400,26 +400,25 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   // ============================================
 
   /**
-   * Apply ApMoSys timing to the first location
+   * Apply ApMoSys timing to the first location.
+   * Only updates location in/out times; does not replace locations or projects.
+   * Call only when timesheetLocations.length === 1 (checkbox is hidden when multiple locations).
    */
   applyApmosysTiming(workLocatioId: number): void {
-
+    if (this.timesheetLocations.length !== 1) {
+      return;
+    }
+    const loc = this.timesheetLocations[0];
     if (this.useApmosysTiming) {
-      this.timesheetLocations = [this.createLocation()];
-      this.disableAdd = true
-      this.timesheetLocations[0].workLocationTypeId = workLocatioId;
-      this.timesheetLocations[0].locationInTime = this.apmosysInTime;
-      this.timesheetLocations[0].locationOutTime = this.apmosysOutTime;
-      this.onLocationSelect(this.timesheetLocations[0]);
+      this.disableAdd = true;
+      loc.locationInTime = this.apmosysInTime;
+      loc.locationOutTime = this.apmosysOutTime;
+      this.onHoursChange();
     } else {
-      // OPTION 1: Clear timings when unchecked
-      this.disableAdd = false
-      this.timesheetLocations[0].locationInTime = null;
-      this.timesheetLocations[0].locationOutTime = null;
-
+      this.disableAdd = false;
+      // Leave location in/out times as-is; user can edit manually. No need to clear.
       this.onHoursChange();
     }
-
   }
 
   addLocation(timesheetId: number): void {
