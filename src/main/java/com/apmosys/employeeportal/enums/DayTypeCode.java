@@ -9,7 +9,8 @@ public enum DayTypeCode {
     NON_WORKING("Non-Working", true),
     LEAVE("Leave", false),
     CLIENT_HOLIDAY("Client Holiday", false),
-    APMOSYS_HOLIDAY("ApMoSys Holiday", false);
+    APMOSYS_HOLIDAY("ApMoSys Holiday", false),
+    COMP_OFF("Comp Off", false);
 
     private final String dbValue;
     private final boolean workingDay;
