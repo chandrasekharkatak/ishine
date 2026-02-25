@@ -29,7 +29,7 @@ public interface ProjectTimesheetStatusNewRepository extends JpaRepository<Proje
     	       "FROM ProjectTimesheetStatusNew pts " +
     	       "WHERE pts.id.timesheetId = :timesheetId " +
     	       "AND pts.id.projectId = :projectId")
-    	Long findLocationMappingId(@Param("timesheetId") Long timesheetId,
+    	List<Long> findLocationMappingId(@Param("timesheetId") Long timesheetId,
     	                           @Param("projectId") Integer projectId);
 
     
