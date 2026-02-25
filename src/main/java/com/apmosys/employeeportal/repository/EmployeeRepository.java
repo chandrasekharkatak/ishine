@@ -3880,7 +3880,18 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 				"inner join Department d on d.deptId = j.deptId \n" +
 				"where e.empId IN :empIds ")
 		public List<EmployeeDetailsForTeamMemberDTO> getEmployeeDetailsAndDeptIdForTeam(List<Long> empIds);
-
+		
+		@Query(value = "select DISTINCT new com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO( \n"
+				+ "e.empId, e.employeementId, e.name, e.jobRoleId, j.name, etm.empTeamDepartmentId, d.name, e.isConsultant) \n"
+				+ "from Employee e " 
+				+ "left join JobRole j on j.jobRoleId = e.jobRoleId \n" 
+				+ "left join EmployeeTeamMap etm on etm.empId = e.empId and etm.active != 0 "
+				+ "left join Team t on t.teamId = etm.teamId " + "left join JobRole jr on jr.jobRoleId = e.jobRoleId "
+				+ "left join Department d on d.deptId = etm.empTeamDepartmentId \n"
+				+ "where e.empId IN :empIds and t.teamId =:teamId ")
+		public List<EmployeeDetailsForTeamMemberDTO> getEmployeeDetailsAndEtmDeptIdForTeamByTeamId(List<Long> empIds,
+				Long teamId);
+		
 	// -----------------------------------------------Below this are the mew inner joined queries-----------------------------------------
 		@Query(value = "select new com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse(ppd.poNo, p.poProjectId, p.projectId, p.projectName, e.empId, e.employeementId, e.name, e.billableType, d.name, jr.name " +
 		",(select count(etn) from EmployeeTimesheetsNew etn where etn.date between :startDate and :endDate and etn.empId = e.empId) " +

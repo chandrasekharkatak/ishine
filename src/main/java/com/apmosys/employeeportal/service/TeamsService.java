@@ -29,6 +29,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.hibernate.Session;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -236,7 +238,8 @@ public class TeamsService {
 
 	@Autowired
 	private RoleDetailsRepository roleDetailsRepository;
-
+	
+	private static final Logger log = LoggerFactory.getLogger(TeamsService.class);
 
 	@Value("${timesheet.check.period}")
 	private String timesheetCheckPeriod;
@@ -3384,6 +3387,7 @@ public class TeamsService {
 		return response;
 	}
 
+	@Transactional(readOnly = true)
 	public ServiceResponse getAllTeamsByPoId(Long poId) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -3392,6 +3396,14 @@ public class TeamsService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("PoId : " + poId);
 		try {
+			if(poId == null) {
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiResponse("PO Id cannot be null!!");
+				response.setServiceResponse("PO Id cannot be null!!");
+				return response;
+			}
+			
 			List<RmgTeamDto> rmgTeamDtoList = teamRepository.getActiveTeamDetailsByPoId(poId);
 			if (rmgTeamDtoList.isEmpty()) {
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
@@ -3400,13 +3412,13 @@ public class TeamsService {
 				response.setServiceResponse("No teams found. Teams list is empty");
 				return response;
 			}
-			System.out.println(rmgTeamDtoList);
+			
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(rmgTeamDtoList);
 			apiLogInfo.setApiResponse("Teams List fetched successfully!!");
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error in getAllTeamsByPoId : ", e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong!!");
 			response.setServiceError(e.getMessage());
@@ -3418,6 +3430,7 @@ public class TeamsService {
 		return response;
 	}
 
+	@Transactional(readOnly = true)
 	public ServiceResponse getTeamDetailsByTeamId(Long teamId, Integer projectId) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -3446,7 +3459,7 @@ public class TeamsService {
 
 			List<RmgTeamMemberDto> teamMemberDetailsList = teamRepository
 					.getAllTeamMemberDetailsDtoByTeamIdAndProjectId(teamId, projectId.longValue());
-			if (teamMemberDetailsList.isEmpty()) {
+			if (teamMemberDetailsList == null || teamMemberDetailsList.isEmpty()) {
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				apiLogInfo.setApiResponse("Team Members List is Empty!!");
@@ -3477,8 +3490,8 @@ public class TeamsService {
 					obj.setTotalExp(dto.getTotalExperience());
 					obj.setEmploymentStatus(dto.getEmploymentStatus());
 				}
-
 				obj.setOtherActiveProjects(empIdAndOtherProjectIdsMap.getOrDefault(dto.getEmpId(), List.of()));
+				
 				if (obj.getOtherActiveProjects() != null && !obj.getOtherActiveProjects().isEmpty()) {
 					List<Integer> projectIds = obj.getOtherActiveProjects().stream()
 							.map(e -> e.getProjectId())
@@ -3487,16 +3500,14 @@ public class TeamsService {
 				} else {
 					obj.setOtherActiveProjectIds(List.of());
 				}
-
 				obj.setDisplayRequirement(getDisplayRequirement(obj));
 			}
-
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(teamMemberDetailsList);
 			apiLogInfo.setApiResponse("Team Members List fetched successfully!!");
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error in getTeamDetailsByTeamId : ", e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong!!");
 			response.setServiceError(e.getMessage());
@@ -3557,6 +3568,7 @@ public class TeamsService {
             .collect(Collectors.groupingBy(EmployeeOtherActiveProject::getEmpId));
 	}
 
+	@Transactional(readOnly = true)
 	public ServiceResponse getActiveTeamDetailsByPoId(Long poId) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -3565,13 +3577,14 @@ public class TeamsService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("PoId : " + poId);
 		try {
-			if(poId== null){
+			if(poId == null){
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				apiLogInfo.setApiResponse("PO Id cannot be null!!");
 				response.setServiceResponse("PO Id cannot be null!!");
 				return response;
 			}
+			
 			List<RmgTeamDto> rmgTeamDtoList = teamRepository.getActiveTeamDetailsByPoId(poId);
 			if (rmgTeamDtoList.isEmpty()) {
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
@@ -3580,13 +3593,14 @@ public class TeamsService {
 				response.setServiceResponse("No active teams found!!");
 				return response;
 			}
-			System.out.println(rmgTeamDtoList);
+
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(rmgTeamDtoList);
 			apiLogInfo.setApiResponse("Teams List fetched successfully!!");
 		} catch (Exception e) {
 			e.printStackTrace();
+			log.error("Error in getActiveTeamDetailsByPoId : ", e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong!!");
 			response.setServiceError(e.getMessage());
@@ -3607,22 +3621,28 @@ public class TeamsService {
 			if (response != null && response.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
 				return response;
 			}
+			response = new ServiceResponse();
 
-			// Copy hasClientSideId from source -> target project
 			Project sourceProject = projectRepository.findByProjectId(migrateTeam.getSourceProjectId());
 			if (sourceProject == null) {
-				response = new ServiceResponse();
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Source Project not found!!");
 				return response;
 			}
 			Project targetProject = projectRepository.findByProjectId(migrateTeam.getTargetProjectId());
 			if (targetProject == null) {
-				response = new ServiceResponse();
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Target Project not found!!");
 				return response;
 			}
+			List<Team> activeTeams = teamRepository.findActiveTeamsByTeamIds(migrateTeam.getMigrationTeamIds());
+			if (activeTeams == null || activeTeams.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("No Active teams found for this Project");
+				return response;
+			}
+			
+			// Copy hasClientSideId from source -> target project
 			targetProject.setHasClientSideId(sourceProject.getHasClientSideId());
 			projectRepository.save(targetProject);
 
@@ -3630,15 +3650,6 @@ public class TeamsService {
 			copyAndSavePODepartmentMapping(migrateTeam); // PoDepartmentMapping
 			copyAndSaveProjectManagerMapping(migrateTeam); // ProjectManagerMapping
 			copyAndSaveProjectOverheadMapping(migrateTeam); // ProjectOverheadMapping
-
-			// Fetch active teams (Source)
-			List<Team> activeTeams = teamRepository.findActiveTeamsByTeamIds(migrateTeam.getMigrationTeamIds());
-			if (activeTeams == null || activeTeams.isEmpty()) {
-				response = new ServiceResponse();
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("No Active teams found for this Project");
-				return response;
-			}
 
 			response = copyAndSaveTeamAndEmployeeDetails(migrateTeam, activeTeams);
 			if (response != null && response.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
@@ -3651,8 +3662,8 @@ public class TeamsService {
 
 			sendTeamMigrationCompletedMail(migrateTeam, sourceProject, targetProject);
 		} catch (Exception e) {
-			e.printStackTrace();
 			response = new ServiceResponse();
+			log.error("Error in Team Migration : ", e);
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
@@ -3665,6 +3676,11 @@ public class TeamsService {
 		if (migrateTeam == null) {
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Team Migration Object cannot be null!!");
+			return response;
+		}
+		if (migrateTeam.getCurrentUserEmpId() == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Employee Id cannot be null!!");
 			return response;
 		}
 		if (migrateTeam.getSourceProjectId() == null) {
@@ -3796,7 +3812,7 @@ public class TeamsService {
 		return migratedProjectOverheadMappingList;
 	}
 
-	private ServiceResponse copyAndSaveTeamAndEmployeeDetails(MigrateTeam migrateTeam, List<Team> activeSourceTeams) {
+	private ServiceResponse copyAndSaveTeamAndEmployeeDetails(MigrateTeam migrateTeam, List<Team> activeSourceTeams) throws Exception {
 		ServiceResponse serviceResponse = new ServiceResponse();
 
 		Long srcProjectId = Long.parseLong(migrateTeam.getSourceProjectId().toString());
@@ -3818,7 +3834,7 @@ public class TeamsService {
 			if (newTeams == null || newTeams.isEmpty()) {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				serviceResponse.setServiceResponse("Failed to migrate teams to the Selected Project!!");
-				return serviceResponse;
+				throw new Exception("Failed to migrate teams to the Selected Project!!");
 			}
 
 			// Build oldTeamId -> newTeam entity map
@@ -4109,15 +4125,20 @@ public class TeamsService {
 			mailService.sendMailWithCC(String.join(",", toRecipients), String.join(",", ccRecipients), subject,
 					body.toString());
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error in sendTeamMigrationCompletedMail : ", e);
 		}
 	}
 
+	@Transactional(readOnly = true)
 	public ServiceResponse getTeamDetailsByTeamIdsAndProjectId(PoDetailsDto poDetailsDto) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			if (poDetailsDto == null || poDetailsDto.getSelectedTeamIds() == null
-					|| poDetailsDto.getSelectedTeamIds().isEmpty()) {
+			if (poDetailsDto == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Request cannot be null!!");
+				return response;
+			}
+			if (poDetailsDto.getSelectedTeamIds() == null || poDetailsDto.getSelectedTeamIds().isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Selected Team Ids cannot be null!!");
 				return response;
@@ -4148,8 +4169,7 @@ public class TeamsService {
 					.collect(Collectors.toList());
 
 			Map<Long, List<EmployeeOtherActiveProject>> empIdAndOtherProjectIdsMap = getEmployeeOtherActiveProjectIdMap(
-					empIds,
-					poDetailsDto.getProjectId());
+					empIds, poDetailsDto.getProjectId());
 
 			Map<Long, EmployeeInformationDTO> empIdInfoMap = getEmployeeInformationMap(empIds);
 
@@ -4177,13 +4197,12 @@ public class TeamsService {
 				} else {
 					obj.setOtherActiveProjectIds(List.of());
 				}
-
 				obj.setDisplayRequirement(getDisplayRequirement(obj));
 			}
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(teamMemberDetailsList);
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error in getTeamDetailsByTeamIdsAndProjectId : ", e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong!!");
 			response.setServiceError(e.getMessage());
@@ -4195,16 +4214,38 @@ public class TeamsService {
 	public ServiceResponse deleteSelectedTeams(PoDetailsDto poDetailsDto) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			if (poDetailsDto == null || poDetailsDto.getTeamList() == null || poDetailsDto.getTeamList().isEmpty()) {
+			if (poDetailsDto == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Request cannot be null!!");
+				return response;
+			}
+			if (poDetailsDto.getTeamList() == null || poDetailsDto.getTeamList().isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Team Details List cannot be null!!");
 				return response;
 			}
-
+			if (poDetailsDto.getProjectId() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project Id cannot be null!!");
+				return response;
+			}
+			
+			Project existingProject = projectRepository.findByProjectId(poDetailsDto.getProjectId());
+			if (existingProject == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project not found!!");
+				return response;
+			}
+			
 			List<RmgTeamDto> teamDtoList = poDetailsDto.getTeamList();
+			Long currentUserEmpId = teamDtoList.stream().map(RmgTeamDto::getTeamId).filter(Objects::nonNull).findFirst().orElse(null);
+			if (currentUserEmpId == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Emp Id cannot be null!!");
+				return response;
+			}
+			
 			List<Long> selectedTeamIds = teamDtoList.stream().map(RmgTeamDto::getTeamId).collect(Collectors.toList());
-			Long currentUserEmpId = teamDtoList.get(0).getUpdatedBy();
-
 			List<Team> teamList = teamRepository.findActiveTeamsByTeamIds(selectedTeamIds);
 			if (teamList == null || teamList.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -4225,12 +4266,12 @@ public class TeamsService {
 					List<EmployeeTeamMap> employeeTeamMappings = employeeTeamMapRepository
 							.findByTeamIdAndActive(teamDto.getTeamId());
 					employeeTeamMappings.forEach(empTeamMap -> {
-						empTeamMap.setActive(0L);
 						empTeamMap.setRescRemovedBy(currentUserEmpId);
 						empTeamMap.setUpdatedBy(currentUserEmpId);
 						empTeamMap.setUpdatedOn(LocalDateTime.now());
 						empTeamMap.setEndDate(teamDto.getEndDate());
 						if (teamDto.getEndDate() == null) {
+							empTeamMap.setActive(0L);
 							empTeamMap.setEndDate(LocalDateTime.now());
 						}
 					});
@@ -4245,8 +4286,7 @@ public class TeamsService {
 					String teamNames = unableToInactiveTeamNames.stream().map(String::valueOf)
 							.collect(Collectors.joining(", "));
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(
-							"Unable to set the following Team and its Resources to inactive : " + teamNames);
+					response.setServiceResponse("Unable to set the following Team and its Resources to inactive : " + teamNames);
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Team and Its Resources are set to inactive successfully!!");
@@ -4258,8 +4298,10 @@ public class TeamsService {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			log.error("Error in deleteSelectedTeams : ", e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse(e.getMessage());
+			response.setServiceError(e.getMessage());
 		}
 		return response;
 	}
@@ -4293,7 +4335,7 @@ public class TeamsService {
 							+ "<br><br><b>Under Project:</b> " + project.getProjectName()
 							+ "<br><br>Sincerely,<br>Team Ishine - ApMoSys Technologies");
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error in sendTeamDeletedMail : ", e);
 		}
 	}
 
@@ -4301,9 +4343,19 @@ public class TeamsService {
 	public ServiceResponse addOrUpdateTeamDetails(PoDetailsDto poDetailsDto) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			if (poDetailsDto == null || poDetailsDto.getProjectId() == null) {
+			if (poDetailsDto == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Request cannot be null!!");
+				return response;
+			}
+			if (poDetailsDto.getProjectId() == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Project Id cannot be null!!");
+				return response;
+			}
+			if (poDetailsDto.getUpdatedBy() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Emp Id cannot be null!!");
 				return response;
 			}
 			if (poDetailsDto.getTeamList() == null || poDetailsDto.getTeamList().isEmpty()) {
@@ -4325,7 +4377,7 @@ public class TeamsService {
 					: "New Team(s) Details Added successfully!!");
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error in addOrUpdateTeamDetails : ", e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
@@ -4337,15 +4389,16 @@ public class TeamsService {
 		List<Team> updatedTeamList = new ArrayList<>();
 		List<Team> updatedTeamListDB = new ArrayList<>();
 
-		List<Team> allTeamList = teamRepository.findByProjectId(project.getProjectId()); // replace the below with findActiveTeamsByProjectId for active teams
+		List<Team> allTeamList = teamRepository.findByProjectId(project.getProjectId());
+		
 		Map<Long, Team> allTeamIdMap = allTeamList.stream()
 				.collect(Collectors.toMap(Team::getTeamId, Function.identity(), (existing, replace) -> replace));
+		
 		Map<String, Team> allTeamNameMap = allTeamList.stream()
 				.collect(Collectors.toMap(Team::getTeamName, Function.identity(), (existing, replace) -> replace));
 
 		for (RmgTeamDto teamObj : poDetailsDto.getTeamList()) {
-			updatedTeamList
-					.add(getTeamObject(project, allTeamIdMap, allTeamNameMap, teamObj, poDetailsDto.getUpdatedBy()));
+			updatedTeamList.add(getTeamObject(project, allTeamIdMap, allTeamNameMap, teamObj, poDetailsDto.getUpdatedBy()));
 		}
 
 		if (!updatedTeamList.isEmpty()) {
@@ -4356,7 +4409,6 @@ public class TeamsService {
 			RmgTeamDto teamObj = poDetailsDto.getTeamList().stream()
 					.filter(t -> t.getTeamName().equals(team.getTeamName()))
 					.findFirst().orElse(null);
-			;
 			if (teamObj != null) {
 				createActivityForTeam(teamObj, poDetailsDto.getUpdatedBy(), team.getTeamId());
 			}
@@ -4410,12 +4462,23 @@ public class TeamsService {
 		}
 	}
 
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse addOrUpdateTeamMembers(RmgTeamDto rmgTeamDto) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			if (rmgTeamDto == null || rmgTeamDto.getProjectId() == null) {
+			if (rmgTeamDto == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Request cannot be null!!");
+				return response;
+			}
+			if (rmgTeamDto.getProjectId() == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Project Id cannot be null!!");
+				return response;
+			}
+			if (rmgTeamDto.getUpdatedBy() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Emp Id cannot be null!!");
 				return response;
 			}
 			if (rmgTeamDto.getRmgTeamMemberList() == null
@@ -4447,7 +4510,7 @@ public class TeamsService {
 			response.setServiceResponse1(getDeptIdListFromString(team.getDeptIds()));
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error in addOrUpdateTeamMembers : ", e);
 			response.setServiceResponse("Something went wrong!!");
 			response.setServiceError(e.getMessage());
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -4657,7 +4720,7 @@ public class TeamsService {
 	private void createActivityForEmployeeRole(Long teamId, Long currentUserEmpId, List<Long> newEmpIds,
 			List<RmgTeamMemberDto> teamMemberDtoList) {
 		List<EmployeeDetailsForTeamMemberDTO> empInfoList = employeeRepository
-				.getEmployeeDetailsAndDeptIdForTeam(newEmpIds);
+				.getEmployeeDetailsAndEtmDeptIdForTeamByTeamId(newEmpIds, teamId);
 		if (empInfoList == null || empInfoList.isEmpty()) {
 			return;
 		}
@@ -4668,9 +4731,11 @@ public class TeamsService {
 		List<Activity> newActivityList = new ArrayList<>();
 		for (RmgTeamMemberDto teamMember : teamMemberDtoList) {
 			EmployeeDetailsForTeamMemberDTO empInfoObj = empIdInfoMap.getOrDefault(teamMember.getEmpId(), null);
+			
 			if (empInfoObj == null || empInfoObj.getDeptId() == null) {
 				continue;
 			}
+			
 			Long departmentId = empInfoObj.getDeptId();
 			for (String role : teamMember.getEmployeeRoles()) {
 				role = role.trim();
@@ -4700,122 +4765,104 @@ public class TeamsService {
 	}
 
 	public void updateEmployeeDefaultProject(List<Long> empIds, Project project, Long updatedBy) {
-		try {
-			if (empIds == null || empIds.isEmpty()) {
-				return;
+		if (empIds == null || empIds.isEmpty()) {
+			return;
+		}
+		List<Long> uniqueEmpIds = empIds.stream().distinct().collect(Collectors.toList());
+		LocalDateTime now = LocalDateTime.now();
+		Long projectId = project.getProjectId().longValue();
+
+		List<EmpPrimaryProjectMapping> existingMappings = empPrimaryProjectMappingRepository
+				.findByEmpIdInAndIsMapped(uniqueEmpIds);
+		existingMappings.forEach(emp -> {
+			emp.setIsMapped("N");
+			emp.setUpdatedBy(updatedBy);
+			emp.setUpdatedOn(now);
+		});
+
+		Map<Long, Employee> employeeMap = employeeRepository.findByEmpIdIn(uniqueEmpIds).stream()
+				.collect(Collectors.toMap(Employee::getEmpId, Function.identity()));
+
+		List<Long> shadowEmpIds = employeeTeamMapRepository.findShadowMembersByEmpIdsAndProjectId(empIds,
+				project.getProjectId());
+
+		BillableInfo billableInfo = resolveBillableInfo(project);
+
+		List<EmpPrimaryProjectMapping> mappingsToSave = new ArrayList<>(existingMappings);
+		Map<Long, BillableInfo> billableUpdates = new HashMap<>();
+
+		for (Long empId : uniqueEmpIds) {
+			mappingsToSave.add(createNewMapping(empId, project, projectId, updatedBy, now));
+			BillableInfo finalInfo = shadowEmpIds.contains(empId) ? new BillableInfo("Shadow", "No") : billableInfo;
+
+			Employee emp = employeeMap.get(empId);
+			if (emp == null || !Objects.equals(emp.getBillable(), finalInfo.getBillable())
+					|| !Objects.equals(emp.getBillableType(), finalInfo.getBillableType())) {
+				billableUpdates.put(empId, finalInfo);
 			}
-			List<Long> uniqueEmpIds = empIds.stream().distinct().collect(Collectors.toList());
-			LocalDateTime now = LocalDateTime.now();
-			Long projectId = project.getProjectId().longValue();
+		}
+		empPrimaryProjectMappingRepository.saveAll(mappingsToSave);
 
-			List<EmpPrimaryProjectMapping> existingMappings = empPrimaryProjectMappingRepository
-					.findByEmpIdInAndIsMapped(uniqueEmpIds);
-			existingMappings.forEach(emp -> {
-				emp.setIsMapped("N");
-				emp.setUpdatedBy(updatedBy);
-				emp.setUpdatedOn(now);
-			});
-
-			Map<Long, Employee> employeeMap = employeeRepository.findByEmpIdIn(uniqueEmpIds).stream()
-					.collect(Collectors.toMap(Employee::getEmpId, Function.identity()));
-
-			List<Long> shadowEmpIds = employeeTeamMapRepository.findShadowMembersByEmpIdsAndProjectId(empIds,
-					project.getProjectId());
-
-			BillableInfo billableInfo = resolveBillableInfo(project);
-
-			List<EmpPrimaryProjectMapping> mappingsToSave = new ArrayList<>(existingMappings);
-			Map<Long, BillableInfo> billableUpdates = new HashMap<>();
-
-			for (Long empId : uniqueEmpIds) {
-				mappingsToSave.add(createNewMapping(empId, project, projectId, updatedBy, now));
-				BillableInfo finalInfo = shadowEmpIds.contains(empId)
-						? new BillableInfo("Shadow", "No")
-						: billableInfo;
-
-				Employee emp = employeeMap.get(empId);
-				if (emp == null ||
-						!Objects.equals(emp.getBillable(), finalInfo.getBillable()) ||
-						!Objects.equals(emp.getBillableType(), finalInfo.getBillableType())) {
-					billableUpdates.put(empId, finalInfo);
-				}
-			}
-			empPrimaryProjectMappingRepository.saveAll(mappingsToSave);
-
-			for (Map.Entry<Long, BillableInfo> entry : billableUpdates.entrySet()) {
-				BillableInfo empIdToBillable = entry.getValue();
-				employeeRepository.updateBillableFields(entry.getKey(), empIdToBillable.getBillable(),
-						empIdToBillable.getBillableType());
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		for (Map.Entry<Long, BillableInfo> entry : billableUpdates.entrySet()) {
+			BillableInfo empIdToBillable = entry.getValue();
+			employeeRepository.updateBillableFields(entry.getKey(), empIdToBillable.getBillable(),
+					empIdToBillable.getBillableType());
 		}
 	}
 
 	public void updateEmployeeDefaultProjectIfUpdated(List<Long> allEmpIds, List<Long> defaultEmpIds, Project project,
 			Long updatedBy) {
-		try {
-			// if (defaultEmpIds == null || defaultEmpIds.isEmpty()) {
-			// 	return;
-			// }
-			LocalDateTime now = LocalDateTime.now();
-			Long projectId = project.getProjectId().longValue();
-			Set<Long> defaultEmpIdSet = new HashSet<>(defaultEmpIds);
+		LocalDateTime now = LocalDateTime.now();
+		Long projectId = project.getProjectId().longValue();
+		Set<Long> defaultEmpIdSet = new HashSet<>(defaultEmpIds);
 
-			List<EmpPrimaryProjectMapping> existingMappings = empPrimaryProjectMappingRepository
-					.findByEmpIdInAndIsMappedAndProjectId(allEmpIds, project.getProjectId().longValue());
+		List<EmpPrimaryProjectMapping> existingMappings = empPrimaryProjectMappingRepository
+				.findByEmpIdInAndIsMappedAndProjectId(allEmpIds, project.getProjectId().longValue());
 
-			Set<Long> existingMappingEmpIdSet = existingMappings.stream().map(EmpPrimaryProjectMapping::getEmpId)
-					.collect(Collectors.toSet());
+		Set<Long> existingMappingEmpIdSet = existingMappings.stream().map(EmpPrimaryProjectMapping::getEmpId)
+				.collect(Collectors.toSet());
 
-			if(Objects.equals(existingMappingEmpIdSet, defaultEmpIdSet)){
-				return;
+		if (Objects.equals(existingMappingEmpIdSet, defaultEmpIdSet)) {
+			return;
+		}
+
+		existingMappings.forEach(emp -> {
+			if (!defaultEmpIdSet.contains(emp.getEmpId())) {
+				emp.setIsMapped("N");
+				emp.setUpdatedBy(updatedBy);
+				emp.setUpdatedOn(now);
+			}
+		});
+
+		Map<Long, Employee> employeeMap = employeeRepository.findByEmpIdIn(allEmpIds).stream()
+				.collect(Collectors.toMap(Employee::getEmpId, Function.identity()));
+
+		List<Long> shadowEmpIds = employeeTeamMapRepository.findShadowMembersByEmpIdsAndProjectId(allEmpIds,
+				project.getProjectId());
+
+		BillableInfo billableInfo = resolveBillableInfo(project);
+
+		Map<Long, BillableInfo> billableUpdates = new HashMap<>();
+		List<EmpPrimaryProjectMapping> mappingsToSave = new ArrayList<>(existingMappings);
+
+		for (Long empId : allEmpIds) {
+			if (!existingMappingEmpIdSet.contains(empId) && defaultEmpIdSet.contains(empId)) {
+				mappingsToSave.add(createNewMapping(empId, project, projectId, updatedBy, now));
 			}
 
-			existingMappings.forEach(emp -> {
-				if (!defaultEmpIdSet.contains(emp.getEmpId())) {
-					emp.setIsMapped("N");
-					emp.setUpdatedBy(updatedBy);
-					emp.setUpdatedOn(now);
-				}
-			});
-
-			Map<Long, Employee> employeeMap = employeeRepository.findByEmpIdIn(allEmpIds).stream()
-					.collect(Collectors.toMap(Employee::getEmpId, Function.identity()));
-
-			List<Long> shadowEmpIds = employeeTeamMapRepository.findShadowMembersByEmpIdsAndProjectId(allEmpIds,
-					project.getProjectId());
-
-			BillableInfo billableInfo = resolveBillableInfo(project);
-
-			Map<Long, BillableInfo> billableUpdates = new HashMap<>();
-			List<EmpPrimaryProjectMapping> mappingsToSave = new ArrayList<>(existingMappings);
-			
-			for (Long empId : allEmpIds) {
-				if(!existingMappingEmpIdSet.contains(empId) && defaultEmpIdSet.contains(empId)){
-					mappingsToSave.add(createNewMapping(empId, project, projectId, updatedBy, now));
-				}
-
-				BillableInfo finalInfo = shadowEmpIds.contains(empId)
-						? new BillableInfo("Shadow", "No")
-						: billableInfo;
-
-				Employee emp = employeeMap.get(empId);
-				if (emp == null ||
-						!Objects.equals(emp.getBillable(), finalInfo.getBillable()) ||
-						!Objects.equals(emp.getBillableType(), finalInfo.getBillableType())) {
-					billableUpdates.put(empId, finalInfo);
-				}
+			BillableInfo finalInfo = shadowEmpIds.contains(empId) ? new BillableInfo("Shadow", "No") : billableInfo;
+			Employee emp = employeeMap.get(empId);
+			if (emp == null || !Objects.equals(emp.getBillable(), finalInfo.getBillable())
+					|| !Objects.equals(emp.getBillableType(), finalInfo.getBillableType())) {
+				billableUpdates.put(empId, finalInfo);
 			}
-			empPrimaryProjectMappingRepository.saveAll(mappingsToSave);
+		}
+		empPrimaryProjectMappingRepository.saveAll(mappingsToSave);
 
-			for (Map.Entry<Long, BillableInfo> entry : billableUpdates.entrySet()) {
-				BillableInfo empIdToBillable = entry.getValue();
-				employeeRepository.updateBillableFields(entry.getKey(), empIdToBillable.getBillable(),
-						empIdToBillable.getBillableType());
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		for (Map.Entry<Long, BillableInfo> entry : billableUpdates.entrySet()) {
+			BillableInfo empIdToBillable = entry.getValue();
+			employeeRepository.updateBillableFields(entry.getKey(), empIdToBillable.getBillable(),
+					empIdToBillable.getBillableType());
 		}
 	}
 
@@ -4834,25 +4881,20 @@ public class TeamsService {
 		if (TNM.equalsIgnoreCase(project.getPoProjectType())) {
 			return new BillableInfo(TNM, YES);
 		}
-
 		if (FIXED_COST.equalsIgnoreCase(project.getPoProjectType())
 				|| MONITORING.equalsIgnoreCase(project.getPoProjectType())) {
 			return new BillableInfo(FIXED_COST, NO);
 		}
-
 		if (BENCH.equalsIgnoreCase(project.getInternalProjectType())) {
 			return new BillableInfo(BENCH, NO);
 		}
-
 		if (INTERNAL_RND.equalsIgnoreCase(project.getInternalProjectType())) {
 			return new BillableInfo(INTERNAL_RND, NO);
 		}
-
 		return new BillableInfo(null, null);
 	}
 
-	private EmpPrimaryProjectMapping createNewMapping(
-			Long empId, Project project, Long projectId, Long updatedBy, LocalDateTime now) {
+	private EmpPrimaryProjectMapping createNewMapping(Long empId, Project project, Long projectId, Long updatedBy, LocalDateTime now) {
 		EmpPrimaryProjectMapping mapping = new EmpPrimaryProjectMapping();
 		mapping.setEmpId(empId);
 		mapping.setPrimaryProjectId(projectId);
@@ -4881,9 +4923,9 @@ public class TeamsService {
 								+ projectName + "<br><br><br>"
 								+ "Sincerely,<br>Team RMG - ApMoSys Technologies");
 			} catch (AddressException e) {
-				e.printStackTrace();
+				log.error("Error in sendProjectMappingEmailToEmployee : ", e);
 			} catch (MessagingException e) {
-				e.printStackTrace();
+				log.error("Error in sendProjectMappingEmailToEmployee : ", e);
 			}
 		}
 	}
@@ -4921,7 +4963,7 @@ public class TeamsService {
 			String ccMails = getAllHodMails(mappings);
 			mailService.sendMailWithCC(ccMails, rmgMail, "Regarding Team Creation", emailBody.toString());
 		} catch (MessagingException e) {
-			e.printStackTrace();
+			log.error("Error in sendTeamCreationEmail : ", e);
 		}
 	}
 
@@ -4940,6 +4982,7 @@ public class TeamsService {
                 .orElse(List.of());
     }
 	
+	@Transactional(readOnly = true)
 	public ServiceResponse getActiveTeamDetailsByProjectId(Integer projectId) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -4969,7 +5012,7 @@ public class TeamsService {
 			response.setServiceResponse(rmgTeamDtoList);
 			apiLogInfo.setApiResponse("Teams List fetched successfully!!");
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error in getActiveTeamDetailsByProjectId : ", e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong!!");
 			response.setServiceError(e.getMessage());
@@ -4985,18 +5028,13 @@ public class TeamsService {
 	public ServiceResponse updateDefaultProjectCompletion(RmgTeamMemberDto teamMember) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			if (teamMember == null || teamMember.getProjectId() == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Project Id cannot be null!!");
+			response = validateUpdateDefaultProjectCompletionRequest(teamMember, response);
+			if (response != null && response.getServiceStatus() != null
+					&& response.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
 				return response;
 			}
-			if (teamMember.getSelectedEmpIds() == null
-					|| teamMember.getSelectedEmpIds().isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Employee Id(s) cannot be null!!");
-				return response;
-			}
-
+			response = new ServiceResponse();
+			
 			Project project = projectRepository.findByProjectId(teamMember.getProjectId());
 			if (project == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -5066,7 +5104,7 @@ public class TeamsService {
 			response.setServiceResponse("Employee Project Mapping updated successfully!!");
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error in updateDefaultProjectCompletion : ", e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
@@ -5074,22 +5112,62 @@ public class TeamsService {
 		return response;
 	}
 	
+	private ServiceResponse validateUpdateDefaultProjectCompletionRequest(RmgTeamMemberDto teamMember,
+			ServiceResponse response) {
+		if (teamMember == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Request cannot be null!!");
+			return response;
+		}
+		if (teamMember.getProjectId() == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Project Id cannot be null!!");
+			return response;
+		}
+		if (teamMember.getUpdatedBy() == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Current Emp Id cannot be null!!");
+			return response;
+		}
+		if (teamMember.getSelectedEmpIds() == null || teamMember.getSelectedEmpIds().isEmpty()) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Selected Employee Id(s) cannot be null!!");
+			return response;
+		}
+		if (teamMember.getEmployeeRoles() == null || teamMember.getEmployeeRoles().isEmpty()) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Selected Employee Role cannot be null!!");
+			return response;
+		}
+		return null;
+	}
+	
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse removeTeamMembersFromProject(RmgTeamDto rmgTeamDto) {
 		ServiceResponse response = new ServiceResponse();
 		try {
+			if (rmgTeamDto == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Request cannot be null!!");
+				return response;
+			}
+			if (rmgTeamDto.getProjectId() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project Id cannot be null!!");
+				return response;
+			}
+			if (rmgTeamDto.getUpdatedBy() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Current Emp Id cannot be null!!");
+				return response;
+			}
 			if (rmgTeamDto.getRmgTeamMemberList() == null
 					|| rmgTeamDto.getRmgTeamMemberList().isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Team Member List cannot be null!!");
 				return response;
 			}
-			if (rmgTeamDto == null || rmgTeamDto.getProjectId() == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Project Id cannot be null!!");
-				return response;
-			}
-
+			
 			Project project = projectRepository.findByProjectId(rmgTeamDto.getProjectId());
 			if (project == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -5104,17 +5182,6 @@ public class TeamsService {
 				return response;
 			}
 
-			// if (rmgTeamDto.getProjectType().equalsIgnoreCase("TNM")) {
-			// Optional<PoRequirementMapping> poReqMappingOpt =
-			// poRequirementMappingRepository
-			// .findById(rmgRequirementDto.getPoRequirementMappingId());
-			// if (poReqMappingOpt.isEmpty()) {
-			// response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			// response.setServiceResponse("PO Requirement not found!!");
-			// return response;
-			// }
-			// }
-
 			List<Long> empIds = rmgTeamDto.getRmgTeamMemberList().stream().map(emp -> emp.getEmpId())
 					.collect(Collectors.toList());
 			List<EmployeeTeamMap> empMappings = employeeTeamMapRepository.findByEmpIdInAndTeamIdAndActiveStatus(empIds,
@@ -5124,6 +5191,7 @@ public class TeamsService {
 				response.setServiceResponse("Employee Team Mapping not found!!");
 				return response;
 			}
+			
 			Map<Long, EmployeeTeamMap> empTeamMap = empMappings.stream().collect(
 					Collectors.toMap(EmployeeTeamMap::getEmpId, Function.identity(), (existing, replace) -> replace));
 
@@ -5132,7 +5200,7 @@ public class TeamsService {
 			response.setServiceResponse("Team Member(s) removed Successfully!!");
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error in removeTeamMembersFromProject : ", e);
 			response.setServiceResponse("Something went wrong!!");
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		}
@@ -5156,18 +5224,23 @@ public class TeamsService {
 					sb.append("Employee not found for : ").append(empTeamMapping.getEmpId()).append(" \n");
 					continue;
 				}
-				empTeamMapping.setActive(0L);
 				empTeamMapping.setRescRemovedBy(currentUserEmpId);
 				empTeamMapping.setIsCustomDate(rmgTeamDto.isCustomEndDate());
 				empTeamMapping.setEndDate(rmgTeamMember.getEndDate());
-				if (rmgTeamMember.getEndDate() != null
-						&& empTeamMapping.getStartDate().isAfter(rmgTeamMember.getEndDate())) {
-					throw new IllegalArgumentException(
-							"End date cannot be less than Start date: " + empTeamMapping.getStartDate());
+				
+				if (rmgTeamMember.getEndDate() != null) {
+					if (empTeamMapping.getStartDate().isAfter(rmgTeamMember.getEndDate())) {
+						throw new IllegalArgumentException("End date cannot be less than Start date: " + empTeamMapping.getStartDate());
+					}
+					if (!empTeamMapping.getEndDate().toLocalDate().isAfter(LocalDate.now())) {
+						empTeamMapping.setActive(0L);
+					}
 				} else {
+					empTeamMapping.setActive(0L);
 					empTeamMapping.setEndDate(LocalDateTime.now());
 				}
-				employeeTeamMapRepository.save(empTeamMapping);
+
+				employeeTeamMapRepository.save(empTeamMapping); // Sending mail to Individual So saving one object at a time.
 				sendResourceRemovalMailToRmg(emp.getName(), project.getProjectName(), team.getTeamName());
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -5187,18 +5260,29 @@ public class TeamsService {
 							+ teamName + "<br>" + "<br><br>" + "Sincerely," + "<br>"
 							+ "Team RMG - ApMoSys Technologies");
 		} catch (AddressException e) {
-			e.printStackTrace();
+			log.error("Error in sendResourceRemovalMailToRmg : ", e);
 		} catch (MessagingException e) {
-			e.printStackTrace();
+			log.error("Error in sendResourceRemovalMailToRmg : ", e);
 		}
 	}
 
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse updateMappingToOtherProjectAsDefault(EmployeeOtherActiveProject empOtherActiveProject) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			if (empOtherActiveProject == null || empOtherActiveProject.getProjectId() == null) {
+			if (empOtherActiveProject == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Request cannot be null!!");
+				return response;
+			}
+			if (empOtherActiveProject.getProjectId() == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Project Id cannot be null!!");
+				return response;
+			}
+			if (empOtherActiveProject.getEmpId() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Selected Employee Id cannot be null!!");
 				return response;
 			}
 
@@ -5209,12 +5293,6 @@ public class TeamsService {
 				return response;
 			}
 
-			if (empOtherActiveProject.getEmpId() == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Employee Id cannot be null!!");
-				return response;
-			}
-
 			List<Long> empIds = new ArrayList<>();
 			empIds.add(empOtherActiveProject.getEmpId());
 			updateEmployeeDefaultProject(empIds, project, empOtherActiveProject.getUpdatedBy());
@@ -5222,7 +5300,8 @@ public class TeamsService {
 			response.setServiceResponse("Default Project updated Successfully!!");
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error in updateMappingToOtherProjectAsDefault : ", e);
+			response.setServiceError(e.getMessage());
 			response.setServiceResponse("Something went wrong!!");
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		}
@@ -5298,22 +5377,33 @@ public class TeamsService {
 			if (response != null && response.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
 				return response;
 			}
-
-			// Copy hasClientSideId from source -> target project
+			response = new ServiceResponse();
+			if (migrateTeam.getEmpIds() == null || migrateTeam.getEmpIds().isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Team Member Migration Emp Id(s) cannot be null!!");
+				return response;
+			}
+			
 			Project sourceProject = projectRepository.findByProjectId(migrateTeam.getSourceProjectId());
 			if (sourceProject == null) {
-				response = new ServiceResponse();
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Source Project not found!!");
 				return response;
 			}
 			Project targetProject = projectRepository.findByProjectId(migrateTeam.getTargetProjectId());
 			if (targetProject == null) {
-				response = new ServiceResponse();
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Target Project not found!!");
 				return response;
 			}
+			List<Team> activeTeams = teamRepository.findActiveTeamsByTeamIds(migrateTeam.getMigrationTeamIds());
+			if (activeTeams == null || activeTeams.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("No Active teams found for this Project");
+				return response;
+			}
+			
+			// Copy hasClientSideId from source -> target project
 			targetProject.setHasClientSideId(sourceProject.getHasClientSideId());
 			projectRepository.save(targetProject);
 
@@ -5321,15 +5411,6 @@ public class TeamsService {
 			copyAndSavePODepartmentMapping(migrateTeam); // PoDepartmentMapping
 			copyAndSaveProjectManagerMapping(migrateTeam); // ProjectManagerMapping
 			copyAndSaveProjectOverheadMapping(migrateTeam); // ProjectOverheadMapping
-
-			// Fetch active teams (Source)
-			List<Team> activeTeams = teamRepository.findActiveTeamsByTeamIds(migrateTeam.getMigrationTeamIds());
-			if (activeTeams == null || activeTeams.isEmpty()) {
-				response = new ServiceResponse();
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("No Active teams found for this Project");
-				return response;
-			}
 
 			response = copyAndSaveTeamAndEmployeeDetailsForMembersMigration(migrateTeam, activeTeams);
 			if (response != null && response.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
@@ -5342,7 +5423,7 @@ public class TeamsService {
 
 			sendTeamMemberMigrationCompletedMail(migrateTeam, sourceProject, targetProject);
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error in getTeamDetailsByTeamIdsAndProjectId : ", e);
 			response = new ServiceResponse();
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Something Went Wrong.");
@@ -5351,7 +5432,7 @@ public class TeamsService {
 		return response;
 	}
 
-	private ServiceResponse copyAndSaveTeamAndEmployeeDetailsForMembersMigration(MigrateTeam migrateTeam, List<Team> activeSourceTeams) {
+	private ServiceResponse copyAndSaveTeamAndEmployeeDetailsForMembersMigration(MigrateTeam migrateTeam, List<Team> activeSourceTeams) throws Exception {
 		ServiceResponse serviceResponse = new ServiceResponse();
 
 		Long srcProjectId = Long.parseLong(migrateTeam.getSourceProjectId().toString());
@@ -5365,7 +5446,7 @@ public class TeamsService {
 		if (sourceEmployeeTeamMapping == null || sourceEmployeeTeamMapping.isEmpty()) {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				serviceResponse.setServiceResponse("Selected Employee(s) not found in the Team Mapping!!");
-				return serviceResponse;
+				throw new Exception("Selected Employee(s) not found in the Team Mapping!!");
 		}
 
 		List<Activity> sourceTeamActivities = activitiesRepository.findByTeamIdIn(migrationTeamIds);
@@ -5378,8 +5459,8 @@ public class TeamsService {
 			List<Team> newTeams = copyAndSaveTeamForMembersMigration(currentUserEmpId, tgtProjectId, activeSourceTeams, migrateTeam);
 			if (newTeams == null || newTeams.isEmpty()) {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				serviceResponse.setServiceResponse("Failed to migrate teams to the Selected Project!!");
-				return serviceResponse;
+				serviceResponse.setServiceResponse("Failed to migrate team members to the Selected Project!!");
+				throw new Exception("Failed to migrate members to the Selected Project!!");
 			}
 
 			// Build oldTeamId -> newTeam entity map
@@ -5566,6 +5647,7 @@ public class TeamsService {
 		}
 	}
 
+	@Transactional(readOnly = true)
 	public ServiceResponse validateEmployeeTimesheetFilledToChangeStartDate(RmgTeamMemberDto rmgTeamMemberDto) {
 		ServiceResponse response = new ServiceResponse();
 		try {
@@ -5597,16 +5679,14 @@ public class TeamsService {
 
 			StringBuilder sb = new StringBuilder();
 			LocalDate newStartDate = rmgTeamMemberDto.getStartDate().toLocalDate();
-//			LocalDate oldStartDate = rmgTeamMemberDto.getDbStartDate().toLocalDate();
 
 			if (objectArr != null && !objectArr.isEmpty()) {
 
 				for (Object[] obj : objectArr) {
-					// Integer projectId = TypeConversionUtil.safeParseInt(obj[0]);
 					String projectName = TypeConversionUtil.getSafeString(obj[1]);
 					String dateStr = TypeConversionUtil.getSafeString(obj[2]);
-					LocalDate oldStartDate = obj[3] != null 
-							? LocalDate.parse(TypeConversionUtil.getSafeString(obj[3])) : null;
+					LocalDate oldStartDate = obj[3] != null ? LocalDate.parse(TypeConversionUtil.getSafeString(obj[3]))
+							: null;
 					Integer timesheetCount = TypeConversionUtil.safeParseInt(obj[4]);
 
 					if (dateStr == null || timesheetCount == null || timesheetCount == 0 || oldStartDate == null) {
@@ -5614,14 +5694,6 @@ public class TeamsService {
 					}
 
 					LocalDate projectStartDate = LocalDate.parse(dateStr);
-					// boolean isSameProject = projectId.equals(rmgTeamMemberDto.getProjectId());
-					// boolean isOtherProject = !isSameProject;
-
-					// if (newStartDate.isAfter(projectStartDate) && isSameProject) {
-					// sb.append(String.format("Total timesheets submitted for this project ('%s')
-					// till date is %d that needs to be rejected for User to Fill Timesheet for
-					// Other Project.", projectName, timesheetCount)).append("\n");
-					// }
 
 					if (newStartDate.isAfter(projectStartDate) || newStartDate.isBefore(oldStartDate)) {
 						sb.append(String.format("Total timesheets submitted for project '%s' is %d.", projectName,
@@ -5636,17 +5708,76 @@ public class TeamsService {
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
-			e.printStackTrace();
-			response.setServiceResponse(
-					"Something went wrong, unable to validate timesheet filled count at the moment for the updated start date!!");
+			log.error("Error in validateEmployeeTimesheetFilledToChangeStartDate : ", e);
+			response.setServiceResponse("Something went wrong, unable to validate timesheet filled count at the moment for the updated start date!!");
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	@Transactional(rollbackFor = Exception.class)
+	public ServiceResponse extendTeamMembersEndDate(RmgTeamDto rmgTeamDto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (rmgTeamDto == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Request cannot be null!!");
+				return response;
+			}
+			if (rmgTeamDto.getProjectId() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project Id cannot be null!!");
+				return response;
+			}
+			if (rmgTeamDto.getUpdatedBy() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Current User Employee Id cannot be null!!");
+				return response;
+			}
+			if (rmgTeamDto.getRmgMemberEndDateList() == null || rmgTeamDto.getRmgMemberEndDateList().isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("RMG Member(s) End Date List cannot be Null or Empty!!");
+				return response;
+			}
+			
+			Project project = projectRepository.findByProjectId(rmgTeamDto.getProjectId());
+			if (project == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project not found!!");
+				return response;
+			}
+
+			List<Long> empIds = new ArrayList<>();
+
+			response.setServiceResponse("Team Members End Date updated Successfully!!");
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		} catch (Exception e) {
+			log.error("Error in extendTeamMembersEndDate : ", e);
+			response.setServiceError(e.getMessage());
+			response.setServiceResponse("Something went wrong!!");
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		}
 		return response;
 	}
 
-	public ServiceResponse updateTeamMembersEndDate(RmgTeamDto rmgTeamDto) {
-		// TODO Auto-generated method stub
-		return null;
+	public void markTeamMemberAsInactiveAfterEndDate() {
+		try {
+			List<EmployeeTeamMap> membersActiveAfterEndDateList = employeeTeamMapRepository.findEtmActiveAfterEndDate();
+			if (membersActiveAfterEndDateList == null || membersActiveAfterEndDateList.isEmpty()) {
+				return;
+			}
+			
+//			membersActiveAfterEndDateList
+			
+			membersActiveAfterEndDateList.forEach(etm -> {
+				etm.setActive(0L);
+				etm.setUpdatedOn(LocalDateTime.now());
+			});
+			employeeTeamMapRepository.saveAll(membersActiveAfterEndDateList);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 }

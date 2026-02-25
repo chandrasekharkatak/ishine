@@ -16,6 +16,7 @@ import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.dto.EmployeeOtherActiveProject;
 import com.apmosys.employeeportal.dto.ExpiredPoDto;
+import com.apmosys.employeeportal.dto.ExpiredProjectDTOForNotification;
 import com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO;
 import com.apmosys.employeeportal.dto.GetProjectDetailsForBulkDefaultUpdateProjectDTO;
 import com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto;
@@ -87,8 +88,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	// @Query(nativeQuery=true,value="select DISTINCT po_project_type from projects where po_project_type IS NOT NULL")
 	// List<String>finddistinctPoProjectType();
 
-	@Query(nativeQuery=true,value="SELECT * FROM projects p inner join teams t on p.project_id = t.project_id WHERE STR_TO_DATE(p.end_date, '%Y-%m-%d') < CURDATE() ")
-	public List<Project> getExpiredPolist();
+	// @Query(nativeQuery=true,value="SELECT * FROM projects p inner join teams t on p.project_id = t.project_id WHERE STR_TO_DATE(p.end_date, '%Y-%m-%d') < CURDATE() ")
+	// public List<Project> getExpiredPolist();
 	
 	@Query(nativeQuery = true)
 	public List<Object[]> getProjectInfo(Integer projectId);
@@ -8809,4 +8810,49 @@ List<Object[]> getClientAndProjectDataList(
 List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 
 	List<Project> findByPoProjectIdIn(Set<Long> deletedPoProjectIds);
+
+	@Query(value="SELECT \n" +
+       "    p.projectId as projectId,\n" +
+       "    p.clientName as clientName,\n" +
+       "    p.clientLocation as clientLocation,\n" +
+       "    p.state as state,\n" +
+       "    p.projectName as projectName,\n" +
+       "    p.description as description,\n" +
+       "    p.projectManagerId as projectManagerId,\n" +
+       "    p.empId as empId,\n" +
+       "    p.approvedOn as approvedOn,\n" +
+       "    p.createdOn as createdOn,\n" +
+       "    p.clientId as clientId,\n" +
+       "    p.poClientId as poClientId,\n" +
+       "    p.departmentName as departmentName,\n" +
+       "    p.poProjectId as poProjectId,\n" +
+       "    p.active as active,\n" +
+       "    p.syncProject as syncProject,\n" +
+       "    p.isDraftProject as isDraftProject,\n" +
+       "    p.createdBy as createdBy,\n" +
+       "    p.updatedBy as updatedBy,\n" +
+       "    p.updatedOn as updatedOn,\n" +
+       "    p.role as role,\n" +
+       "    p.count as count,\n" +
+       "    p.experience as experience,\n" +
+       "    ppd.poNo as poNo,\n" +
+       "    p.poProjectType as poProjectType,\n" +
+       "    ppd.apmosysRM as apmosysRM,\n" +
+       "    ppd.clientRm as clientRM,\n" +
+       "    p.isRenewable as isRenewable,\n" +
+       "    p.deptId as deptId,\n" +
+       "    p.status as status,\n" +
+       "    ppd.apmosysRmEmail as apmosysRmEmail,\n" +
+       "    p.projectCompletionDate as projectCompletionDate,\n" +
+       "    p.projectStatus as projectStatus,\n" +
+       "    p.internalProjectType as internalProjectType,\n" +
+       "    p.hasClientSideId as hasClientSideId,\n" +
+       "    p.clientFlag as clientFlag,\n" +
+       "    FUNCTION('DATE_FORMAT', ppd.poStartDate, '%Y-%m-%d') as startDate,\n" +
+       "    FUNCTION('DATE_FORMAT', ppd.poEndDate, '%Y-%m-%d') as endDate\n" +
+	   "  FROM Project p \n"
+       + " inner join Team t on p.projectId = t.projectId \n"
+	   + " inner join ProjectPoDetails ppd on ppd.projectId = p.projectId and ppd.active = true \n"
+	   + " WHERE ppd.poEndDate < CURRENT_TIMESTAMP \n")
+	public List<ExpiredProjectDTOForNotification> getExpiredPolist();
 }

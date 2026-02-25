@@ -641,6 +641,19 @@ export class RmgStatusCardsComponent {
     newRmgDashboardProjectRequest.fixedCostFilter = this.rmgProjectFilterDTO?.fixedCostFilter;
     this.loadRMGDashboard(newRmgDashboardProjectRequest);
   }
+
+  normalizeDate(dateInput: any): Date | null {
+		if (!dateInput) {
+			return null;
+		}
+
+		const date = new Date(dateInput);
+		if (isNaN(date.getTime())) {
+			return null;
+		}
+
+		return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+	}
   // Helpers End
 
   // List 
@@ -1119,25 +1132,52 @@ export class RmgStatusCardsComponent {
     }
   }
 
-  exportProjectDetailsToExcel(): void {
+  exportPageProjectDetailsToExcel(projectDetailsList:any[]): void {
     const excelName = "Project Report.xlsx";
-    const exportData = this.projectDetailsList.map(x => ({
-      'Actions': '', // Add appropriate action text or leave empty
-      'Approval Status': x.status,
-      'Project Name': x.name || '',
-      'PO Number': x.poNo || '',
-      'Project Type': x.projectType || '',
-      'Project Manager': x.projectManagers && x.projectManagers.length > 0 ? x.projectManagers[0].projectManagerName : '',
-      'Client': x.clientName || '',
-      'Apmosys RM': x.apmosysRM || '',
-      'Client RM': x.clientRM || '',
-      'Start Date': x.projectStartDate || '',
-      'End Date': x.projectEndDate || '',
-      'State': x.state || '',
-      'Created On': x.createdOn || '',
-      'Project Status': x.projectStatus || ''
+    const exportData = projectDetailsList?.map(x => ({
+      'Project Name': x.name || 'NA',
+      'PO Number': x.poNo || 'NA',
+      'Project Type': x.poProjectType || 'NA',
+      'Project Manager': x.projectManagers && x.projectManagers.length > 0 ? x.projectManagers[0].projectManagerName : 'NA',
+      'Client': x.clientName || 'NA',
+      'Apmosys RM': x.apmosysRM || 'NA',
+      'Client RM': x.clientRM || 'NA',
+      'Start Date': this.normalizeDate(x.projectStartDate) || 'NA',
+      'End Date': this.normalizeDate(x.projectEndDate) || 'NA',
+      'State': x.state || 'NA',
+      'Created On': this.normalizeDate(x.createdOn) || 'NA',
+      'IShine Project Status': x.projectStatus || 'NA',
+      'Approval Status': x.draftStatus || 'NA',
     }));
     this.exportExcelService.exportTableDataToExcel(exportData, excelName);
+  }
+
+  exportAllFilteredPageProjectDetailsToExcel() {
+    let rmgProjectRequest = this.getNewRMGRequestObject();
+    rmgProjectRequest.departmentIds = this.selectedDeptIds;
+    rmgProjectRequest.projectStatus = this.rmgProjectFilterDTO?.projectStatus;
+    rmgProjectRequest.expiredProjectFilter = this.rmgProjectFilterDTO?.expiredProjectFilter;
+    rmgProjectRequest.fixedCostFilter = this.rmgProjectFilterDTO?.fixedCostFilter;
+    rmgProjectRequest.currentUserEmpId = this.currentUser?.empId;
+    rmgProjectRequest.currentUserType = this.determineUserType();
+    rmgProjectRequest.projectFilter = this.projectFilters;
+    rmgProjectRequest.page = 0;
+    rmgProjectRequest.pageSize = 100000;
+    rmgProjectRequest.sortColumn = this.projectSortColumn || 'name';
+    rmgProjectRequest.sortDirection = this.projectSortDirection || 'asc';
+    rmgProjectRequest.sortColumnType = this.projectSortColumnType || 'string';
+
+    this.resourceManagementService.fetchProjectDetailsList(rmgProjectRequest).pipe(first()).subscribe((response: any) => {
+      if (response?.serviceStatus == "Success" && response?.serviceResponse != null && this.validationService.validateNullUndefinedEmptyList(response?.serviceResponse?.projectList)) {
+        const apiResponse = response?.serviceResponse?.projectList?.content || [];
+        this.exportPageProjectDetailsToExcel(apiResponse);
+      } else {
+        this.openAlertMessageModal(response?.serviceResponse || 'Something went wrong!!');
+      }
+    },
+      (error) => {
+        this.openAlertMessageModal('Something went wrong!!');
+      });
   }
   // Projects Table APIs & Methods End
 }

@@ -113,7 +113,7 @@
                 <div class="form-group p-2 mb-0">
                     <label><span class="text-danger">*</span>Project Manager</label>
                     <app-my-select class="form-control" [(ngModel)]="rmgProjectObj.projectManagerIds"
-                        [disable]="projectConfigStepperIndex !== 0" [options]="managerList" displayKey="name"
+                        [readonly]="projectConfigStepperIndex !== 0" [options]="managerList" displayKey="name"
                         valueKey="empId" placeholder="Select Project Manager" [multiple]="true">
                     </app-my-select>
                 </div>
@@ -122,7 +122,7 @@
                 <div class="form-group p-2 mb-0">
                     <label>Project Overhead</label>
                     <app-my-select class="form-control" [(ngModel)]="rmgProjectObj.projectOverheadIds"
-                        [disable]="projectConfigStepperIndex !== 0" [options]="overheadList" displayKey="name"
+                        [readonly]="projectConfigStepperIndex !== 0" [options]="overheadList" displayKey="name"
                         valueKey="empId" placeholder="Select Project Overhead" [multiple]="true">
                     </app-my-select>
                 </div>
@@ -319,19 +319,19 @@
                                     </mat-checkbox>
                                 </td>
                                 <td class="max-width200">
-                                    <input class="form-control" type="text" [(ngModel)]="team.teamName"
+                                    <input class="form-control" type="text" [(ngModel)]="team.teamName" [disabled]="projectConfigStepperIndex !== 1"
                                         placeholder="Enter Team Name" (blur)="validateTeamName(team)" />
                                 </td>
                                 <td class="max-width200">
                                     <app-my-select #teamDepartmentSelect class="form-control"
-                                        [disable]="projectConfigStepperIndex !== 1" placeholder="Select Department"
+                                        [readonly]="projectConfigStepperIndex !== 1" placeholder="Select Department"
                                         [(ngModel)]="team.deptIds" [options]="departmentsList" displayKey="name"
                                         valueKey="deptId" [multiple]="true">
                                     </app-my-select>
                                 </td>
                                 <td class="max-width200">
                                     <app-my-select #teamSpocSelect class="form-control"
-                                        [disable]="projectConfigStepperIndex !== 1" placeholder="Select Employee"
+                                        [readonly]="projectConfigStepperIndex !== 1" placeholder="Select Employee"
                                         [(ngModel)]="team.spocId" [options]="spocList" displayKey="name"
                                         valueKey="empId" [multiple]="false">
                                     </app-my-select>
@@ -474,7 +474,7 @@
                                 </td>
                                 <td class="max-width200 min-width150">
                                     <app-my-select #employeeRoleSelect class="form-control" placeholder="Select Role"
-                                        [disable]="projectConfigStepperIndex !== 1" [(ngModel)]="member.employeeRoles"
+                                        [readonly]="projectConfigStepperIndex !== 1" [(ngModel)]="member.employeeRoles"
                                         [options]="employeeRoles" [multiple]="true">
                                     </app-my-select>
                                 </td>
@@ -484,7 +484,7 @@
                                 </td>
                                 <td class="max-width200 min-width150">
                                     <div class="date-input-wrapper">
-                                        <input class="form-control date-input" [matDatepicker]="startDatepicker"
+                                        <input class="form-control date-input" [matDatepicker]="startDatepicker" [disabled]="projectConfigStepperIndex !== 1"
                                             (dateChange)="onMemberStartDateChange($event, member)"
                                             [(ngModel)]="member.startDate" readonly />
                                         <mat-icon class="calendar-icon"
@@ -634,7 +634,7 @@
                                 </td>
                                 <td class="max-width200 min-width150">
                                     <div class="date-input-wrapper">
-                                        <input class="form-control date-input" [matDatepicker]="endDatepicker" [min]="member.startDate"
+                                        <input class="form-control date-input" [matDatepicker]="endDatepicker" [min]="member.startDate" [disabled]="projectConfigStepperIndex !== 1"
                                             (dateChange)="onMemberEndDateChange($event, currentTeam.newRmgTeamMember)"
                                             [(ngModel)]="member.endDate"/>
                                         <mat-icon class="calendar-icon" (click)="endDatepicker.open()">calendar_today</mat-icon>

@@ -1,4 +1,4 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -353,9 +353,18 @@ export class TimesheetService {
  getLastFilledTimesheetByEmp(emp: Partial<Timesheet>) {
   return this.http.post(`${this.baseUrl}api/getLastFilledTimesheetByEmp`, emp);
 }
-getDocumentsByEmpAndDate(payload: any): Observable<any> {
-  return this.http.post(`${this.baseUrl}api/getDocumentsByEmpAndDate`, payload);
-}
+  getDocumentsByEmpAndDate(empId: number, date: string,projectId:any): Observable<HttpResponse<Blob>> {
+    const params = new HttpParams()
+      .set('empId', empId.toString())
+      .set('date', date)
+      .set('projectId', projectId);
+
+    return this.http.post(`${this.baseUrl}api/v2/timesheet/getDocumentsByEmpAndDate`, null, {
+      params: params,
+      responseType: 'blob',
+      observe: 'response'
+    });
+  }
 
 isEmployeeInTNMProject(empId: any): Observable<any> {
    return this.http.post(`${this.baseUrl}api/isInTNMProject?empId=${empId}`, null);
@@ -403,7 +412,7 @@ isEmployeeInTNMProject(empId: any): Observable<any> {
 
   downloadFinalDocuments(payload: any) {
   return this.http.post(
-    `${this.baseUrl}api/downloadFinalDocuments`,
+    `${this.baseUrl}api/v2/timesheet/downloadFinalDocuments`,
     payload,
     {
       responseType: 'blob'

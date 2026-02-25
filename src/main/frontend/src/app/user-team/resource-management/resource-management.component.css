@@ -4029,20 +4029,6 @@ display: inline-block;
   color: #424242;
 }
 
-.info-icon {
-  position: relative;
-  cursor: pointer;
-  font-size: 12px;
-  color: #fff;
-  /* background-color: #4A90E2; */
-  /* border-radius: 50%; */
-  padding: 4px 7px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-}
 
 /* Tooltip */
 .tooltip {
@@ -4061,10 +4047,6 @@ display: inline-block;
   transition: opacity 0.15s ease;
 }
 
-.info-icon:hover .tooltip {
-  visibility: visible;
-  opacity: 1;        /* appears instantly */
-}
 .button-group {
   display: flex;
   flex-direction: row;
@@ -4085,63 +4067,11 @@ display: inline-block;
 }
 
 .info-icon {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  width: 18px;
-  height: 18px;
-  font-size: 12px;
   border-radius: 50%;
-  background-color: #007bff;
-  color: white;
   cursor: pointer;
-  font-weight: bold;
-  user-select: none;
-  margin-left: .5rem;
-  font-style:normal;
-  position: relative;
-}
-
-/* Tooltip */
-.info-icon::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  top: -40px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #333;
-  color: #fff;
-  padding: 6px 10px;
-  font-size: 12px;
-  border-radius: 6px;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s ease;
-  z-index: 999;
-  visibility: hidden;
-}
-
-/* Tooltip arrow */
-.info-icon::before {
-  content: "";
-  position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 6px;
-  border-style: solid;
-  border-color: transparent transparent #333 transparent;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.2s ease;
-}
-
-/* Show on hover */
-.info-icon:hover::after,
-.info-icon:hover::before {
-  opacity: 1;
-  visibility: visible;
+  color: #193D8A;
+  border-color: #193D8A;
+  background-color: #fff;
 }
 
 .select-flex {

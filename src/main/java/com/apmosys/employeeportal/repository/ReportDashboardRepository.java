@@ -1282,21 +1282,20 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         	    	
         	    	//Added by Dibya
         	    	
-        	    	@Query("SELECT DISTINCT cl.clientLocation, COUNT(DISTINCT e.empId) " +
-        	    		       "FROM Employee e " +
-        	    		       "JOIN EmployeeTeamMap etm ON etm.empId = e.empId " +
-        	    		       "JOIN Timesheet et ON et.empId = etm.empId " +
-        	    		       "JOIN TimesheetActivityMap etam ON etam.timesheetId = et.timesheetId " +
-        	    		       "JOIN Activity a ON a.activityId = etam.activityId " +
-        	    		       "JOIN Team t ON etm.teamId = t.teamId AND a.teamId = t.teamId " +
-        	    		       "JOIN ClientLocation cl ON cl.clientLocationId = etam.clientLocationId " +
-        	    		       "WHERE e.employmentstatus <> 'InActive' " +
-        	    		       "AND etm.active <> 0 " +
-        	    		       "AND t.isActive = 'Y' " +
-        	    		       "AND e.empId NOT BETWEEN 1 AND 6 " +
-        	    		       "GROUP BY cl.clientLocation")
-        	    		List<Object[]> getWorkLocation();
-
+//        	    	@Query("SELECT DISTINCT cl.clientLocation, COUNT(DISTINCT e.empId) " +
+//        	    		       "FROM Employee e " +
+//        	    		       "JOIN EmployeeTeamMap etm ON etm.empId = e.empId " +
+//        	    		       "JOIN Timesheet et ON et.empId = etm.empId " +
+//        	    		       "JOIN TimesheetActivityMap etam ON etam.timesheetId = et.timesheetId " +
+//        	    		       "JOIN Activity a ON a.activityId = etam.activityId " +
+//        	    		       "JOIN Team t ON etm.teamId = t.teamId AND a.teamId = t.teamId " +
+//        	    		       "JOIN ClientLocation cl ON cl.clientLocationId = etam.clientLocationId " +
+//        	    		       "WHERE e.employmentstatus <> 'InActive' " +
+//        	    		       "AND etm.active <> 0 " +
+//        	    		       "AND t.isActive = 'Y' " +
+//        	    		       "AND e.empId NOT BETWEEN 1 AND 6 " +
+//        	    		       "GROUP BY cl.clientLocation")
+        	    		    	    		
         	    	
 //        	    	@Query(nativeQuery = true, value = "SELECT \n"
 //        	    			+ "	CONCAT('A-', REPLACE(e.employeement_id, '-', '')) as EMP_ID,\n"
@@ -1423,4 +1422,20 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
             	    		       "WHERE e.employmentstatus = 'Resigned' " +
             	    		       "ORDER BY e.name")
             	    	Page<EmployeeDTO> getAllResignedEmployees(Pageable pageable);
+
+		@Query("SELECT cl.clientLocation, COUNT(DISTINCT e.empId) " +
+        	        "FROM Employee e " +
+        	        "JOIN EmployeeTeamMap etm ON etm.empId = e.empId " +
+        	        "JOIN Team t ON t.teamId = etm.teamId " +
+        	        "JOIN Project p ON p.projectId = t.projectId " + 
+        	        "JOIN EmployeeTimesheetsNew et ON et.empId = e.empId " +
+        	        "JOIN ProjectTimesheetStatusNew pts ON pts.id.timesheetId = et.timesheetId " +
+        	        "AND pts.id.projectId = p.projectId " + 
+        	        "JOIN ClientLocation cl ON cl.clientLocationId = pts.clientLocationId " +
+        	        "WHERE e.employmentstatus <> 'InActive' " +
+        	        "AND etm.active <> 0 " +
+        	        "AND t.isActive = 'Y' " +
+        	        "AND e.empId NOT BETWEEN 1 AND 6 " +
+        	        "GROUP BY cl.clientLocation")
+        	    	List<Object[]> getWorkLocation();
 }

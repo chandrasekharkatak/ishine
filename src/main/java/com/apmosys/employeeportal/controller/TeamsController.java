@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -374,12 +375,6 @@ public class TeamsController {
 	}
 
 	// @Encrypted
-	@PostMapping("/updateTeamMembersEndDate")
-	public ServiceResponse updateTeamMembersEndDate(@RequestBody RmgTeamDto rmgTeamDto) {
-		return teamsService.updateTeamMembersEndDate(rmgTeamDto);
-	}
-	
-	// @Encrypted
 	@PostMapping("/updateMappingToOtherProjectAsDefault")
 	public ServiceResponse updateMappingToOtherProjectAsDefault(@RequestBody EmployeeOtherActiveProject employeeOtherActiveProject) {
 		return teamsService.updateMappingToOtherProjectAsDefault(employeeOtherActiveProject);
@@ -388,7 +383,7 @@ public class TeamsController {
 	// @Encrypted
 	@PostMapping("/migrateTeamMembers")
 	public ServiceResponse migrateTeamMembers(@RequestBody MigrateTeam migrateTeam) {
-		return teamsService.migrateTeam(migrateTeam);
+		return teamsService.migrateTeamMembers(migrateTeam);
 	}
 	
 	// @Encrypted
@@ -397,4 +392,15 @@ public class TeamsController {
 		return teamsService.validateEmployeeTimesheetFilledToChangeStartDate(rmgTeamMemberDto);
 	}
 
+	// @Encrypted
+	@PostMapping("/extendTeamMembersEndDate")
+	public ServiceResponse extendTeamMembersEndDate(@RequestBody RmgTeamDto rmgTeamDto) {
+		return teamsService.extendTeamMembersEndDate(rmgTeamDto);
+	}
+	
+	@Scheduled(cron = "0 0 1 * * *")
+	@PostMapping("/markTeamMemberAsInactiveAfterEndDate")
+	public void markTeamMemberAsInactiveAfterEndDate() {
+		teamsService.markTeamMemberAsInactiveAfterEndDate();
+	}
 }

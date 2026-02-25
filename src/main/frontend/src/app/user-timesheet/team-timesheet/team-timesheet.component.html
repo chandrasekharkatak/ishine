@@ -443,6 +443,7 @@
       <!-- <div class="form-group d-flex flex-row ml-auto col-md-3">
       <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
       </div> -->
+      <div class="table-responsive timesheet-wrapper">
       <table class="table timesheet-table">
         <thead class="thead-light">
           <tr>
@@ -472,6 +473,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
     </div>
   </div>
   <div class="modal-footer">
@@ -1271,7 +1273,7 @@
               class="form-control"
               placeholder="Select Project"
               [(ngModel)]="entry.projectIds"
-              [options]="projectList"
+              [options]="getAvailableProjects(i)"
               [disabled]="projectList.length == 1"
               displayKey="projectName"
               valueKey="projectId"
@@ -1303,7 +1305,7 @@
             <textarea
               rows="3"
               class="form-control"
-              placeholder="Enter optional remark..."
+              placeholder="Enter remarks for rejecting..."
               [(ngModel)]="entry.remark"
               required>
             </textarea>
@@ -1318,9 +1320,12 @@
      @if(projectList.length > 1){
     <div class="text-center mt-3">
       <button class="btn btn-outline-primary px-4"
-      [disabled]="!isRejectFormValid()"
-      [attr.title]="!isRejectFormValid() ?
-        'Fill Project, Reasons, and Remark first' : null"
+      [disabled]="!isRejectFormValid() || !canAddMoreProjects()"
+      [attr.title]="!canAddMoreProjects() 
+          ? 'All projects already added'
+          : (!isRejectFormValid() 
+              ? 'Fill Project, Reasons, and Remark first' 
+              : null)"
               (click)="addRejectRow()">
         <i class="bi bi-plus-circle me-1"></i>
         Add Another Project

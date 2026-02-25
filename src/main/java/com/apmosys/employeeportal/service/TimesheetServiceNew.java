@@ -1,11 +1,17 @@
 package com.apmosys.employeeportal.service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -15,15 +21,24 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.unit.DataSize;
@@ -43,6 +58,8 @@ import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetIdAndEmpIdDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.EmployeeTimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.FinalDocumentDownloadDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.FinalDocumentDownloadPayloadDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
@@ -52,21 +69,27 @@ import com.apmosys.employeeportal.enums.DayTypeCode;
 import com.apmosys.employeeportal.Exception.TimesheetValidationFailedException;
 import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
 import com.apmosys.employeeportal.model.DocMimeTypeMasterNew;
+import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeTimesheetLocationMapping;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.FinalDocument;
 import com.apmosys.employeeportal.model.FinalDocumentNew;
+import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.ProjectTimesheetStatusNew;
 import com.apmosys.employeeportal.model.TimesheetDataDTO;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetailsNew;
 import com.apmosys.employeeportal.repository.DayTypeMasterNewRepository;
+import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.DocMimeTypeMasterNewRepository;
+import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetLocationMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.FinalDocumentNewRepository;
+import com.apmosys.employeeportal.repository.JobRoleRepository;
+import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.ProjectTimesheetStatusNewRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsNewRepository;
 import com.apmosys.employeeportal.repository.WorkLocationTypeMasterRepository;
@@ -149,6 +172,9 @@ public class TimesheetServiceNew {
 	@Autowired
 	private DocMimeTypeMasterNewRepository docMimeTypeMasterNewRepository;
 
+	@Autowired
+	private ProjectRepository projectRepository;
+
 	 @Autowired
 	 private TimesheetDashboardService timesheetDashboardService;
 
@@ -169,6 +195,9 @@ public class TimesheetServiceNew {
 
 	private final String pattern = "yyyy-MM-dd HH:mm:ss";
 
+	@Value("${upload.path}")
+    private String storagePath;
+
 	
 
 	@Autowired
@@ -177,6 +206,14 @@ public class TimesheetServiceNew {
 	@Autowired
 	private HttpServletRequest httpRequest;
 	
+	@Autowired
+	EmployeeRepository employeeRepository;
+	
+	@Autowired
+	JobRoleRepository jobRoleRepository;
+	
+	@Autowired
+	DepartmentRepository departmentRepository;
 	
 	private Map<String, Integer> mimeTypeMap = new HashMap<>();
 
@@ -2393,6 +2430,304 @@ public class TimesheetServiceNew {
 	 public ServiceResponse getEmployeeSummaryOnExportAccordingToStatus(GetEmployeeSummaryOnExportDTO object) {
 		 return timesheetDashboardService.getEmployeeSummaryOnExportAccordingToStatus(object);
 	 }
+	 
+	 public Resource getDocumentsByEmpAndDate(Long empId, LocalDate date,Integer projectId) {
+		LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setApiUrl("/api/v2/timesheet/getDocumentsByEmpAndDate");
+	    apiLogInfo.setLogLevel("INFO");
+		try {
+			String fileUrl = timesheetDocumentDetailsNewRepository.findFileUrlByEmpIdAndDate(empId, date,projectId);
+			if(fileUrl.equalsIgnoreCase("null") || fileUrl == null || fileUrl.isBlank()) {
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiResponse("No document found for given empId and date");
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				return null;
+			}
+			return timesheetDocumentService.viewFile(fileUrl);
+		} catch (Exception e) {
+			e.printStackTrace();
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiResponse(e.getMessage());
+			apiLogInfo.setLogLevel("ERROR");
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			return null;
+		}
+	}
 
+	public void streamZipFromFileUrls(List<String> fileUrls, String zipFileName, HttpServletResponse response) throws IOException {
+		if (fileUrls == null || fileUrls.isEmpty()) {
+			throw new IllegalArgumentException("No files provided for ZIP creation");
+		}
+
+		response.setContentType("application/zip");
+		response.setHeader(HttpHeaders.CONTENT_DISPOSITION, 
+						"attachment; filename=\"" + zipFileName + "\"");
+
+		try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
+			zos.setLevel(1); // Lower compression = faster performance
+			
+			int fileCount = 0;
+			for (String url : fileUrls) {
+				try {
+					Path path = Paths.get(url);
+					if (!path.isAbsolute()) {
+						path = Paths.get(storagePath, url);
+					}
+					path = path.normalize();
+					
+					// Security check
+					if (!path.normalize().startsWith(Paths.get(storagePath).normalize())) {
+						continue;
+					}
+					
+					if (Files.exists(path) && Files.isReadable(path)) {
+						String fileName = path.getFileName().toString();
+						// Use counter to avoid System.currentTimeMillis() collision
+						String uniqueName = fileCount++ + "_" + fileName;
+						
+						zos.putNextEntry(new ZipEntry(uniqueName));
+						Files.copy(path, zos);
+						zos.closeEntry();
+					}
+				} catch (Exception e) {
+					// Log error but continue with next file
+					System.err.println("Failed to add file: " + url + " - " + e.getMessage());
+				}
+			}
+		}
+	}
+
+	/**
+	 * Streams final documents as a single ZIP file directly to the HTTP response
+	 */
+	public void streamFinalDocumentsZip(List<FinalDocumentDownloadPayloadDTO> payloadList, HttpServletResponse response) throws IOException {
+		System.out.println(">> streamFinalDocumentsZip() START");
+		System.out.println("Number of records: " + payloadList.size());
+
+		if (payloadList == null || payloadList.isEmpty()) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			response.getWriter().write("No data provided");
+			return;
+		}
+
+		List<Long> empIds = payloadList.stream()
+			.map(FinalDocumentDownloadPayloadDTO::getEmpId)
+			.collect(Collectors.toList());
+
+		List<Integer> projectIds = payloadList.stream()
+			.map(FinalDocumentDownloadPayloadDTO::getProjectId)
+			.collect(Collectors.toList());
+
+		Integer month = payloadList.get(0).getMonth();
+		Integer year = payloadList.get(0).getYear();
+
+		// Fetch file URLs from database
+		List<FinalDocumentDownloadDTO> fileRecords = finalDocumentNewRepository.getAllFinalDocumentsByEmpIdAndProjectIdInMonthAndYear(
+				empIds, projectIds, month, year);
+
+		System.out.println("File records fetched: " + (fileRecords == null ? "null" : fileRecords.size()));
+
+		if (fileRecords == null || fileRecords.isEmpty()) {
+			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			response.getWriter().write("No final documents found for selected project and month");
+			return;
+		}
+
+		// Create a single ZIP for all files
+		String monthEndDate = YearMonth.of(year, month).atEndOfMonth().toString();
+		String zipName = String.format("Final_Documents_%s.zip", monthEndDate);
+		
+		// Extract just the file URLs for the zip method
+		List<String> fileUrls = fileRecords.stream()
+			.map(FinalDocumentDownloadDTO::getFileUrl)
+			.filter(Objects::nonNull)
+			.collect(Collectors.toList());
+		
+		// Call the reusable streaming method with all file URLs
+		streamZipFromFileUrls(fileUrls, zipName, response);
+	}
+		 public ServiceResponse getAllLeaveTimesheetsWithoutLeaveApplication(TimesheetDTO timesheetDTO) {
+			ServiceResponse response = new ServiceResponse();
+			LogDTO apiLogInfo = new LogDTO();
+			apiLogInfo.setApiUrl("/api/getAllLeaveTimesheetsWithoutLeaveApplication");
+			apiLogInfo.setLogLevel("INFO");
+
+			StringBuilder logBuilder = new StringBuilder();
+			logBuilder.append("startDate: ").append(timesheetDTO.getStartDate())
+					.append(", endDate: ").append(timesheetDTO.getEndDate())
+					.append(", page: ").append(timesheetDTO.getPage())
+					.append(", size: ").append(timesheetDTO.getSize())
+					.append(", sortBy: ").append(timesheetDTO.getSortByForTimesheetLeaveReport())
+					.append(", sortDirection: ").append(timesheetDTO.getSortDirection());
+
+			try {
+				if (timesheetDTO.getStartDate() == null || timesheetDTO.getEndDate() == null) {
+					throw new IllegalArgumentException("Start date and End date are required.");
+				}
+				if (timesheetDTO.getCurrentUser() == null) {
+					throw new IllegalArgumentException("Current user ID is required.");
+				}
+
+				LocalDate start;
+				LocalDate end;
+				try {
+					start = LocalDate.parse(timesheetDTO.getStartDate());
+					end = LocalDate.parse(timesheetDTO.getEndDate());
+				} catch (DateTimeParseException ex) {
+					throw new IllegalArgumentException("Invalid date format. Expected format: yyyy-MM-dd");
+				}
+
+				int page = (timesheetDTO.getPage() != null) ? timesheetDTO.getPage() : 0;
+				int size = (timesheetDTO.getSize() != null) ? timesheetDTO.getSize() : 10;
+
+				List<String> sortBy = (timesheetDTO.getSortByForTimesheetLeaveReport() != null
+						&& !timesheetDTO.getSortByForTimesheetLeaveReport().isEmpty())
+								? timesheetDTO.getSortByForTimesheetLeaveReport()
+								: Collections.singletonList("date");
+
+				Sort.Direction sortDir = "desc".equalsIgnoreCase(timesheetDTO.getSortDirection())
+						? Sort.Direction.DESC
+						: Sort.Direction.ASC;
+
+				Pageable pageable = null;
+				if (Boolean.TRUE.equals(timesheetDTO.getExportAll())) {
+				    pageable = Pageable.unpaged();
+				} else {
+				    pageable = PageRequest.of(page, size, Sort.by(sortDir, sortBy.toArray(new String[0])));
+				}
+
+				Map<String, String> filters = (timesheetDTO.getFilters() != null)
+						? timesheetDTO.getFilters()
+						: new HashMap<>();
+
+				Long empId = null;
+				String empIdStr = null;
+
+				if (filters.containsKey("employmentIdAcToET") && !filters.get("employmentIdAcToET").isEmpty()) {
+				    String empValue = filters.get("employmentIdAcToET").trim();
+
+				    if (empValue.matches("\\d{6,}")) {
+				        empId = Long.parseLong(empValue);
+				    } else {
+				        empIdStr = "%" + empValue.replaceAll("[^0-9]", "") + "%";
+				    }
+				}
+
+
+				String empName = filters.getOrDefault("employeeName", null);
+				String dayType = filters.getOrDefault("dayType", null);
+				String status = filters.getOrDefault("status", null);
+				String managerName = filters.getOrDefault("managerName", null);
+				String departmentName = filters.getOrDefault("departmentName", null);
+				String updatedBy = filters.getOrDefault("updatedBy", null);
+
+				String dateStr = filters.getOrDefault("date", null);
+				String createdOnStr = filters.getOrDefault("createdOn", null);
+				String updatedOnStr = filters.getOrDefault("updatedOn", null);
+
+				LocalDate date = (dateStr != null && !dateStr.isEmpty()) ? parseFlexibleLocalDate(dateStr) : null;
+				java.sql.Date createdOn = safeParseSqlDate(filters.get("createdOn"));
+				java.sql.Date updatedOn = safeParseSqlDate(filters.get("updatedOn"));
+
+				Employee employee = employeeRepository.findByEmpId(timesheetDTO.getCurrentUser());
+				if (employee == null) {
+					throw new IllegalArgumentException("Employee not found for ID: " + timesheetDTO.getCurrentUser());
+				}
+
+				JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
+				if (jobRole == null) {
+					throw new IllegalArgumentException("JobRole not found for employee: " + employee.getEmpId());
+				}
+
+				String role = jobRole.getEmployeeRole();
+				String roleName = jobRole.getName();
+
+				Page<TimesheetDTO> timesheetPage;
+
+				if ("SuperAdmin".equalsIgnoreCase(role) ||
+						"Director".equalsIgnoreCase(roleName) ||
+						"Super Admin".equalsIgnoreCase(roleName)) {
+
+					timesheetPage = employeeTimesheetsNewRepository.findAllLeaveTimesheetsWithoutLeaveApplication(
+							start, end, empName, empId, date, dayType, status, managerName, departmentName,
+							createdOn, updatedOn, updatedBy, dateStr, createdOnStr, updatedOnStr,empIdStr, pageable);
+
+				} else if (departmentRepository.existsByHodId(timesheetDTO.getCurrentUser())) {
+					List<Long> deptIds = departmentRepository.findDeptIdsByHodId(timesheetDTO.getCurrentUser());
+					timesheetPage = employeeTimesheetsNewRepository.getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentsWise(
+							start, end, empName, empId, date, dayType, status, managerName, departmentName,
+							createdOn, updatedOn, updatedBy, deptIds, empIdStr,pageable);
+				} else {
+					Long deptId = departmentRepository.findDepartmentofCurrentuser(employee.getJobRoleId());
+					timesheetPage = employeeTimesheetsNewRepository.getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
+							start, end, empName, empId, date, dayType, status, managerName, departmentName,
+							createdOn, updatedOn, updatedBy, deptId, dateStr, createdOnStr, updatedOnStr,empIdStr, pageable);
+				}
+
+				if (timesheetPage == null || timesheetPage.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No timesheets found for the given filters.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					apiLogInfo.setApiResponse("No results found");
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(timesheetPage);
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					apiLogInfo.setApiResponse("Fetched " + timesheetPage.getTotalElements() + " records");
+				}
+
+			} catch (IllegalArgumentException ex) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse(ex.getMessage());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setLogLevel("WARN");
+
+			} catch (DataAccessException ex) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Database access error occurred.");
+				response.setServiceError(ex.getMostSpecificCause().getMessage());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setLogLevel("ERROR");
+
+			} catch (Exception ex) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Unexpected error occurred while fetching timesheets.");
+				response.setServiceError(ex.getMessage());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setLogLevel("ERROR");
+			}
+
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			return response;
+		}
+
+		/* helper for date parse */
+		private java.sql.Date safeParseSqlDate(String dateStr) {
+			LocalDate localDate = parseFlexibleLocalDate(dateStr);
+			return (localDate != null) ? java.sql.Date.valueOf(localDate) : null;
+		}
+
+		/* helper for date parse */
+		private LocalDate parseFlexibleLocalDate(String dateStr) {
+			if (dateStr == null || dateStr.trim().isEmpty())
+				return null;
+
+			dateStr = dateStr.trim().replace("/", "-");
+			DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+			DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+			try {
+				return LocalDate.parse(dateStr, formatter1);
+			} catch (Exception e1) {
+				try {
+					return LocalDate.parse(dateStr, formatter2);
+				} catch (Exception e2) {
+					System.err.println("Invalid date format: " + dateStr);
+					return null;
+				}
+			}
+		}
+		
 
 }

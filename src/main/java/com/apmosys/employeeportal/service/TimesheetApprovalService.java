@@ -1681,15 +1681,15 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
         String status = request.getStatus();
         List<Long> timesheetIdsReq = request.getTimesheetIds();
 
-        List<EmployeeTimesheetsNew> timesheetDatas =
-                employeeTimesheetsNewRepository.findAllById(timesheetIdsReq);
+        // List<EmployeeTimesheetsNew> timesheetDatas =
+        //         employeeTimesheetsNewRepository.findAllById(timesheetIdsReq);
 
-        boolean hasMismatch = timesheetDatas.stream()
-                .anyMatch(data -> !java.util.Objects.equals(data.getCurrentManagerId(), request.getRmId()));
+        // boolean hasMismatch = timesheetDatas.stream()
+        //         .anyMatch(data -> !java.util.Objects.equals(data.getCurrentManagerId(), request.getRmId()));
 
-        if (hasMismatch) {
-            throw new BadRequestException("You do not have the approval/rejection rights of some timesheets");
-        }
+        // if (hasMismatch) {
+        //     throw new BadRequestException("You do not have the approval/rejection rights of some timesheets");
+        // }
 
         if ("REJECTED".equalsIgnoreCase(status) && timesheetIdsReq.size() > 1) {
             throw new IllegalArgumentException("Only one timesheet can be rejected at a time.");
@@ -1705,7 +1705,15 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 
             String prefix = "true".equalsIgnoreCase(ts.getIsProd()) ? "AP-" : "A-";
             String formattedEmpId = prefix + ts.getEmployementID();
-
+			if (!java.util.Objects.equals(ts.getCurrentManagerId(), request.getRmId())) {
+        skippedTimesheets.add(new SkippedTimesheetDTO(
+                ts.getTimesheetId(),
+                formattedEmpId,
+                ts.getDate(),
+                "You do not have approval/rejection rights"
+        ));
+        continue; // skip further checks for this timesheet
+    }
             Integer tsStatus = ts.getStatus();
             if (tsStatus != null && tsStatus == 1) {
                 validTimesheetIds.add(ts.getTimesheetId());
@@ -1727,11 +1735,18 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
         }
 
         if (validTimesheetIds.isEmpty()) {
-            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-            response.setServiceResponse("No valid timesheets to process");
-            response.setServiceError(skippedTimesheets);
-            return response;
-        }
+
+			Map<String, Object> finalResponse = new HashMap<>();
+			finalResponse.put("processed", new ArrayList<>());
+			finalResponse.put("skipped", skippedTimesheets);
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS); // important
+			response.setServiceResponse(finalResponse);
+
+			return response;
+		}
+
+		
 
         List<Object[]> result =
                 projectTimesheetStatusNewRepository.findProjectsForTimesheetIds(validTimesheetIds);

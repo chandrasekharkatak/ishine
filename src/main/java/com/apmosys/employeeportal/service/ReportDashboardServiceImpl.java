@@ -54,6 +54,7 @@ import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.ReportDashboardRepository;
 import com.apmosys.employeeportal.repository.ReportDashboardRepository;
 import com.apmosys.employeeportal.repository.ReportDashboardRepository;
@@ -75,6 +76,9 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 
 	@Autowired
 	TimesheetsRepository timesheetsRepository;
+	
+	@Autowired
+	EmployeeTimesheetsNewRepository timesheetsNewRepository ;
 	
 	 @Autowired
 	 private CustomFilterService customFilterService;
@@ -190,12 +194,16 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 
 			LocalDate end = LocalDate.now().minusDays(1);
 
-			List<Object[]> timesheetList = timesheetsRepository.getLast9DaysPendingTimesheetReportOLD(start, end);
+//			List<Object[]> timesheetList = timesheetsRepository.getLast9DaysPendingTimesheetReportOLD(start, end);
 
+			List<Object[]> timesheetList = timesheetsNewRepository.getLast9DaysPendingTimesheetReport(start, end);
+			
 			List<EmployeeProjection>  employeeList = employeeRepository.getAllEmployees();
 
-			List<Object[]> filledTimesheetList = timesheetsRepository.getLast9DaysFilledTimesheetReportOLD(start, end);
+//			List<Object[]> filledTimesheetList = timesheetsRepository.getLast9DaysFilledTimesheetReportOLD(start, end);
 
+			List<Object[]> filledTimesheetList = timesheetsNewRepository.getLast9DaysFilledTimesheetReport(start, end);
+			
 			List<TimesheetDTO> dtoList = new ArrayList<>();
 
 			if (timesheetList != null) {

@@ -2693,12 +2693,33 @@ approveSingleTimesheet(timesheet: any) {
           }
 
           const skippedKeys = Object.keys(skipped);
-          if (skippedKeys.length) {
-            message += `\nSkipped:\n`;
-            skippedKeys.forEach(id => {
-              message += `Timesheet ${id}: ${skipped[id]}\n`;
-            });
-          }
+          if (skipped.length) {
+
+              message += `
+                <p><strong>Skipped Timesheets</strong></p>
+                <table class="table table-bordered table-sm">
+                  <thead>
+                    <tr>
+                      <th>EMP ID</th>
+                      <th>Date</th>
+                      <th>Reason</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+              `;
+
+              skipped.forEach((item: any) => {
+                message += `
+                  <tr>
+                    <td>${item.employmentId}</td>
+                    <td>${item.date}</td>
+                    <td>${item.reason}</td>
+                  </tr>
+                `;
+              });
+
+              message += `</tbody></table>`;
+            }
 
           this.clearAllSelections();
           this.selectedStatus = 2;
@@ -2717,8 +2738,15 @@ approveSingleTimesheet(timesheet: any) {
         this.modalService.open(this.statusModal, { centered: true });
 
       },
-      error: () => {
-        alert('Timesheet approval failed');
+      error: (err) => {
+        this.modalTitle = 'Error';
+
+        this.modalMessage =
+          err?.error?.message ||
+          err?.error?.serviceResponse ||
+          'Timesheet approval failed';
+
+        this.modalService.open(this.statusModal, { centered: true });
       }
     });
 }
@@ -2740,7 +2768,25 @@ openSingleRejectModal(
     { modalDialogClass: 'modal-md', backdrop: 'static' }
   );
 }
+getAvailableProjects(currentIndex: number) {
+  // Get all selected project IDs except current row
+  const selectedProjectIds = this.rejectEntries
+    .filter((_, index) => index !== currentIndex)
+    .flatMap(entry => entry.projectIds || []);
 
+  // Return projects that are NOT already selected
+  return this.projectList.filter(
+    project => !selectedProjectIds.includes(project.projectId)
+  );
+}
+canAddMoreProjects(): boolean {
+  const allSelectedProjectIds = this.rejectEntries
+    .flatMap(entry => entry.projectIds || []);
+
+  const uniqueSelected = [...new Set(allSelectedProjectIds)];
+
+  return uniqueSelected.length < this.projectList.length;
+}
 // SINGLE TIMESHEET REJECT
 // submitSingleReject() {
 

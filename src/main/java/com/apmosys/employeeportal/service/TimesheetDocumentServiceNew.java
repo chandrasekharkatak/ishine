@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.service;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,6 +17,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -731,4 +734,95 @@ public class TimesheetDocumentServiceNew {
         }
         return filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
     }
+
+    /**
+     * Creates a ZIP file from a list of file paths/URLs
+     * Optimized for performance with parallel processing and buffered streaming
+     * 
+     * @param fileUrls List of file paths/URLs to include in the ZIP
+     * @param zipFileName Name of the ZIP file to be created
+     * @return Byte array of the ZIP file
+     * @throws RuntimeException if ZIP creation fails
+     */
+    public byte[] createZipFromFileUrls(List<String> fileUrls, String zipFileName) {
+        if (fileUrls == null || fileUrls.isEmpty()) {
+            throw new IllegalArgumentException("No files provided for ZIP creation");
+        }
+
+        // Validate and normalize all file paths first
+        List<Path> validPaths = fileUrls.parallelStream()
+            .map(url -> {
+                try {
+                    // Handle both absolute and relative paths
+                    Path path = Paths.get(url);
+                    if (!path.isAbsolute()) {
+                        path = Paths.get(storagePath, url);
+                    }
+                    path = path.normalize();
+                    
+                    // Security check - prevent directory traversal
+                    if (!path.normalize().startsWith(Paths.get(storagePath).normalize())) {
+                        System.err.println("Security violation: Attempted to access path outside storage directory: " + url);
+                        return null;
+                    }
+                    
+                    return Files.exists(path) && Files.isReadable(path) ? path : null;
+                } catch (Exception e) {
+                    System.err.println("Invalid file path: " + url + " - " + e.getMessage());
+                    return null;
+                }
+            })
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+
+        if (validPaths.isEmpty()) {
+            throw new IllegalArgumentException("No valid files found to create ZIP");
+        }
+
+        // Use try-with-resources for automatic cleanup
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ZipOutputStream zos = new ZipOutputStream(baos)) {
+            
+            // Set compression level for better performance (0-9, 0=no compression, 9=max)
+            zos.setLevel(5); // Balance between speed and compression
+            
+            // Process files in parallel for better performance
+            validPaths.parallelStream().forEach(path -> {
+                try {
+                    String fileName = path.getFileName().toString();
+                    
+                    // Create unique entry name to avoid collisions
+                    String uniqueName = System.currentTimeMillis() + "_" + 
+                                    fileName.replaceAll("[^a-zA-Z0-9._-]", "_");
+                    
+                    // Synchronize on zos for thread-safe ZIP entry creation
+                    synchronized (zos) {
+                        zos.putNextEntry(new ZipEntry(uniqueName));
+                        
+                        // Use buffered streaming for large files
+                        try (var fis = Files.newInputStream(path)) {
+                            byte[] buffer = new byte[8192]; // 8KB buffer
+                            int bytesRead;
+                            while ((bytesRead = fis.read(buffer)) != -1) {
+                                zos.write(buffer, 0, bytesRead);
+                            }
+                        }
+                        
+                        zos.closeEntry();
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException("Failed to add file to ZIP: " + path, e);
+                }
+            });
+
+            zos.finish();
+            zos.flush();
+            
+            return baos.toByteArray();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate ZIP file: " + zipFileName, e);
+        }
+    }
+
 }

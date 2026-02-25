@@ -1,3 +1,4 @@
+import { RmgMemberEndDate } from "./rmgMemberEndDate";
 import { RmgTeamMember } from "./rmgTeamMember";
 
 export class RmgTeam {
@@ -29,7 +30,7 @@ export class RmgTeam {
     rmgCurrentTeamMemberList: RmgTeamMember[] = [];
     rmgOldTeamMemberList: RmgTeamMember[] = [];
     employeeExistingProjectDetails: any[] = [];
-    updatedEtmIdAndEmpIdMap: Map<number, number>;
+    rmgMemberEndDateList: RmgMemberEndDate[] = [];
 
     isupdate: boolean = false;
     isNotSaved: boolean = false;
