@@ -211,6 +211,12 @@
     line-height: 1.4;
 }
 
+.popup-daytype {
+    color: #666;
+    font-size: 12px;
+}
+
+
 .popup-divider {
     border: none;
     border-top: 1px solid #eee;

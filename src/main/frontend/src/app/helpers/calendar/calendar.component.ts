@@ -55,6 +55,7 @@ export class CalendarComponent implements OnInit {
   @ViewChild('view_timesheet_details') viewTimesheetDetailsTemplate!: TemplateRef<any>;
   popUpDate: string = '';
    dateToDescription: { [key: string]: string[] } = {};
+   dayType: string = '';
 
   constructor(
     private modalService: NgbModal,
@@ -256,6 +257,7 @@ export class CalendarComponent implements OnInit {
     this.popupDatas = [];
     this.isPopupVisible = true;
     this.popUpDate = day.date.format('DD-MM-YYYY');
+    this.dayType = day.dayType
 
     for (const d of day.projects) {
       this.popupDatas.push({
