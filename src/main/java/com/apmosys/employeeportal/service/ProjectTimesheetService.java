@@ -144,7 +144,7 @@ public class ProjectTimesheetService {
         // Calculate project totals
         aggregationHelper.calculateAndSetProjectTimesheetTotals(dto);
         entity.setStatus(TimesheetAggregationHelper.STATUS_PENDING);      // Update fields
-        entity.setPoNo(dto.getPoNo());
+//        entity.setPoNo(dto.getPoNo());
         entity.setClientApprovalStatus(dto.getClientApprovalStatus());
         entity.setShadowEmpId(dto.getShadowEmpId());
         entity.setTotalClientWorkingMinutes(dto.getTotalClientWorkingMinutes());

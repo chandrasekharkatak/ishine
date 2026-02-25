@@ -1006,11 +1006,18 @@ public class TimesheetServiceNew {
 			}
 
 			timesheetStructureCleanupService.cleanTimesheetStructure(timesheetId, newEmpDTO.getLocationSessions());
+
 			Long currentUserId = getCurrentUserId();
 			Long updatedBy = currentUserId != null ? currentUserId
 					: (newEmpDTO.getUpdatedBy() != null ? newEmpDTO.getUpdatedBy() : newEmpDTO.getEmpId());
 			newEmpDTO.setUpdatedBy(updatedBy);
 			newEmpDTO.setUpdatedOn(LocalDateTime.now());
+
+			// Ensure shadowEmpId is populated for "Shadow For Self" projects on update.
+			// Emp selection:
+			// - If applied for SELF (empId == updatedBy)  -> shadowEmpId = empId
+			// - If applied for TEAM (empId != updatedBy) -> shadowEmpId = updatedBy (current user)
+			populateShadowEmpIdForShadowForSelf(newEmpDTO, updatedBy);
 
 			// Update basic fields (Note: empId and date should not change, but keeping for
 			// safety)
@@ -1127,6 +1134,45 @@ public class TimesheetServiceNew {
 					: (newEmpDTO.getUpdatedBy() != null ? newEmpDTO.getUpdatedBy() : newEmpDTO.getEmpId());
 			handleProjectsUnderLocationMapping(timesheetId, locationMapping.getLocationMappingId(),
 					locationDTO.getProjects(), createdBy);
+		}
+	}
+
+	/**
+	 * Populate shadowEmpId for projects marked as "Shadow For Self" when it is missing
+	 * in the incoming DTO (common in update flow).
+	 *
+	 * Emp selection logic (based on appliedFor = self / team):
+	 * - SELF  : empId == filledBy -> shadowEmpId = empId
+	 * - TEAM  : empId != filledBy -> shadowEmpId = filledBy (current user / creator)
+	 *
+	 * This ensures project_timesheet_status_new.shadow_emp_id is never left null
+	 * when isShadowForSelf is true.
+	 */
+	private void populateShadowEmpIdForShadowForSelf(EmployeeTimesheetDTO empDTO, Long filledByEmpId) {
+		if (empDTO == null || empDTO.getLocationSessions() == null || filledByEmpId == null) {
+			return;
+		}
+
+		Long ownerEmpId = empDTO.getEmpId();
+		// Decide whom to store as shadow based on appliedFor semantics
+		Long shadowEmpToSet;
+		if (ownerEmpId != null && ownerEmpId.equals(filledByEmpId)) {
+			// Applied for self: use employee's own empId
+			shadowEmpToSet = ownerEmpId;
+		} else {
+			// Applied for team: use the user who is filling/updating the timesheet
+			shadowEmpToSet = filledByEmpId;
+		}
+
+		for (LocationSessionDTO location : empDTO.getLocationSessions()) {
+			if (location.getProjects() == null) {
+				continue;
+			}
+			for (ProjectTimesheetDTO project : location.getProjects()) {
+				if (Boolean.TRUE.equals(project.getIsShadowForSelf()) && project.getShadowEmpId() == null) {
+					project.setShadowEmpId(shadowEmpToSet);
+				}
+			}
 		}
 	}
 
