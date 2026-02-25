@@ -563,7 +563,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 			training.setConsentRequired(trainingDTO.getConsentRequired());
 
 	        training.setUpdatedBy(trainingDTO.getUpdatedBy());
-
+	        training.setUpdatedOn(LocalDateTime.now());
 	        TrainingMaster updatedTraining =
 	                trainingMasterRepository.save(training);
 

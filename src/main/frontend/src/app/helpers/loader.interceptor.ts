@@ -8,7 +8,7 @@ import {
 } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
-import { catchError, finalize, tap } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { LoaderService } from '../services/loader.service';
 
@@ -476,6 +476,12 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/training/addTrainingContent`,
     `${this.baseUrl}` + `api/training/updateTrainingContent`,
     `${this.baseUrl}` + `api/training/changeQuizResponse`,
+    `${this.baseUrl}` + `api/training/getQuizQuestionByTrainingId`,
+
+    `${this.baseUrl}` + `api/updateSurvey`,
+    `${this.baseUrl}` + `api/deleteSurvey`,
+    `${this.baseUrl}` + `api/getSurveyResponseByEmpIdAndSurveyId`,
+    `${this.baseUrl}` + `api/changeSurveyStatus`,
     
   ]
 

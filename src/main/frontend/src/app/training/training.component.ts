@@ -1,15 +1,13 @@
-import { Component, OnInit, TemplateRef, ViewChild, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import * as JSZip from 'jszip';
 import { first } from 'rxjs/operators';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
-import { TrainingService } from '../services/training.service';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import * as moment from 'moment';
-import * as JSZip from 'jszip';
 import { SurveyService } from '../services/survey.service';
-import { Survey } from '../models/survey';
+import { TrainingService } from '../services/training.service';
 
 @Component({
   standalone: false,
@@ -17,7 +15,7 @@ import { Survey } from '../models/survey';
   templateUrl: './training.component.html',
   styleUrls: ['./training.component.css']
 })
-export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
+export class TrainingComponent implements OnInit, OnDestroy {
 
   currentUser: User;
   pendingTraining: any = null;
@@ -96,7 +94,7 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
     this.authenticationService.currentUser.subscribe(x => {
       this.currentUser = x;
       if (x && x.empId) {
-        this.checkLockStatus();
+        // this.checkLockStatus();
       }
     });
   }
@@ -105,11 +103,11 @@ export class TrainingComponent implements OnInit, AfterViewInit, OnDestroy {
     this.checkLockStatus();
   }
 
-  ngAfterViewInit(): void {
-    setTimeout(() => {
-      this.checkLockStatus();
-    }, 500);
-  }
+  // ngAfterViewInit(): void {
+  //   setTimeout(() => {
+  //     this.checkLockStatus();
+  //   }, 500);
+  // }
 
   checkLockStatus() {
     if (!this.currentUser || !this.currentUser.empId) {

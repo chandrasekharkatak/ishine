@@ -1,9 +1,9 @@
 import { LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
-import { Router, ActivatedRoute } from '@angular/router';
-import * as moment from 'moment';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import * as moment from 'moment';
 import { ClipboardService } from 'ngx-clipboard';
 import { first } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
@@ -15,9 +15,9 @@ import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { SurveyService } from 'src/app/services/survey.service';
+import { TrainingService } from 'src/app/services/training.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
-import { TrainingService } from 'src/app/services/training.service';
 
 @Component({
   standalone: false,
@@ -105,6 +105,12 @@ export class SurveyConfigComponent implements OnInit {
         this.isFromTraining = true;
         this.trainingId = params['trainingId'] ? +params['trainingId'] : null;
         this.trainingName = params['trainingName'] || '';
+        this.sectionViewInit();
+      }else if(params['source'] === 'trainingAccept'){
+        this.isFromTraining = true;
+        this.trainingId = params['trainingId'] ? +params['trainingId'] : null;
+        this.trainingName = params['trainingName'] || '';
+        this.showSurveyForm();
       } else {
         // Reset training context if query params are not present (e.g., clicked Survey tab)
         this.isFromTraining = false;
@@ -124,7 +130,7 @@ export class SurveyConfigComponent implements OnInit {
     // let questionObj = ;
     // questionObj.optionsList.push("");
     // this.allSurveyQuestionList.push(questionObj);
-    this.sectionViewInit();
+    // this.sectionViewInit();
 
     //console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
     this.preventBackButton();

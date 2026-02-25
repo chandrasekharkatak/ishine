@@ -1,15 +1,15 @@
-import { Component, OnInit, OnDestroy, TemplateRef, ViewChild } from '@angular/core';
-import { Sort } from '@angular/material/sort';
-import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
-import { first } from 'rxjs/operators';
 import { LocationStrategy } from '@angular/common';
-import { Router } from '@angular/router';
+import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { Router } from '@angular/router';
+import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
+import * as JSZip from 'jszip';
+import * as moment from 'moment';
+import { first } from 'rxjs/operators';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { TrainingService } from 'src/app/services/training.service';
-import * as moment from 'moment';
-import * as JSZip from 'jszip';
 
 @Component({
   standalone: false,
@@ -93,6 +93,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   alertType: 'success' | 'error' | 'warning' | 'info' = 'info';
   modalRef: NgbModalRef;
   @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
+  @ViewChild('create_quiz_template') createQuizTemplate!: TemplateRef<any>;
 
   // Filter
   filters: any = {};
@@ -428,12 +429,9 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     next: (response: any) => {
       console.log("success===> ",response)
       if (response.serviceStatus === 'Success') {
-        this.openAlertMod(this.alertTemplate, 
-          'Training and content created successfully', 
-          'success');
-        this.resetContentForm();
-        this.resetTrainingForm();
-        this.showTable();
+      const createdTraining = response.serviceResponse;
+
+  this.openCreateQuizModal(createdTraining);
       } else {
         this.openAlertMod(this.alertTemplate, 
           response.serviceStatus || 'Failed to create training', 
@@ -887,6 +885,44 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       }
     });
   }
+
+  private openCreateQuizModal(createdTraining: any): void {
+
+  this.modalRef = this.modalService.open(this.createQuizTemplate, {
+    centered: true
+  });
+
+  this.modalRef.result.then((result) => {
+
+    if (result === 'yes') {
+
+      // Redirect to quiz page
+      this.router.navigate(['/configuration/survey-config'], {
+        queryParams: {
+          source: 'trainingAccept',
+          trainingId: createdTraining.trainingId,
+          trainingName: createdTraining.trainingName,
+
+        }
+      });
+
+    } else {
+
+      // Stay in training page
+      this.resetContentForm();
+      this.resetTrainingForm();
+      this.showTable();
+    }
+
+  }).catch(() => {
+
+    // If dismissed (X button)
+    this.resetContentForm();
+    this.resetTrainingForm();
+    this.showTable();
+  });
+}
+
 
   onFileSelect(event: any) {
     const file = event.target.files[0];
