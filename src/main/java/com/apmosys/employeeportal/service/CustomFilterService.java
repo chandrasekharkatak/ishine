@@ -1677,7 +1677,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			        }
 					break;
 				case "Day Type": 
-			        query.append("LOWER(et.day_type) LIKE LOWER('%").append(value).append("%')");
+			        query.append("LOWER(dtm.day_type) LIKE LOWER('%").append(value).append("%')");
 			        break;
 
 			    case "Description": 
@@ -1697,7 +1697,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 					break;
 
 				case "Status":
-					query.append("et.status ").append(operator.equalsIgnoreCase("like") ? "LIKE" : operator)
+					query.append("sm.status ").append(operator.equalsIgnoreCase("like") ? "LIKE" : operator)
 							.append(" '%").append(value).append("%'");
 					break;
 
@@ -1795,17 +1795,34 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				" AND t.is_active != 'N' " +
 				" AND p.active != 'false' ";
 
-		String countQueryStr = "SELECT COUNT(DISTINCT e1.employeement_id, et.date) " +
-				"FROM employee_timesheets et " +
-				"INNER JOIN employee e1 ON et.emp_id = e1.emp_id " +
-				"LEFT JOIN job_role jr ON e1.job_role_id = jr.job_role_id " +
-				"LEFT JOIN department d ON jr.dept_id = d.dept_id " +
-				"LEFT JOIN employee_team_mapping etm ON etm.emp_id = et.emp_id " +
-				"LEFT JOIN teams t ON t.team_id = etm.team_id " +
-				"LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id " +
-				"LEFT JOIN projects p ON p.project_id = t.project_id " +
-				whereClause;
-
+//		this below old query is replaced with the new table structure of timesheet
+		
+//		String countQueryStr = "SELECT COUNT(DISTINCT e1.employeement_id, et.date) " +
+//				"FROM employee_timesheets et " +
+//				"INNER JOIN employee e1 ON et.emp_id = e1.emp_id " +
+//				"LEFT JOIN job_role jr ON e1.job_role_id = jr.job_role_id " +
+//				"LEFT JOIN department d ON jr.dept_id = d.dept_id " +
+//				"LEFT JOIN employee_team_mapping etm ON etm.emp_id = et.emp_id " +
+//				"LEFT JOIN teams t ON t.team_id = etm.team_id " +
+//				"LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id " +
+//				"LEFT JOIN projects p ON p.project_id = t.project_id " +
+//				whereClause;
+		
+		String countQueryStr = "SELECT COUNT(DISTINCT e1.employeement_id, et.date)  \n"
+				+ "FROM employee_timesheets_new et  \n"
+				+ "INNER JOIN employee e1 ON et.emp_id = e1.emp_id  \n"
+				+ "LEFT JOIN status_master_new sm ON et.status = sm.status_id \n"
+				+ "LEFT JOIN day_type_master_new dtm ON et.day_type_id = dtm.day_type_id \n"
+				+ "LEFT JOIN job_role jr ON e1.job_role_id = jr.job_role_id  \n"
+				+ "LEFT JOIN department d ON jr.dept_id = d.dept_id  \n"
+				+ "LEFT JOIN project_timesheet_status_new pts ON pts.timesheet_id = et.timesheet_id \n"
+			    + "LEFT JOIN projects p ON p.project_id = pts.project_id \n"
+			    + "LEFT JOIN employee_team_mapping etm ON etm.emp_id = et.emp_id \n"
+				+ "LEFT JOIN teams t ON t.team_id = etm.team_id  \n"
+				+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id  \n"
+				+ whereClause;
+		
+		System.out.println("=====query of count" + countQueryStr);
 		Number totalElements = ((Number) session.createNativeQuery(countQueryStr).getSingleResult());
 
 		String orderBy = pageable.getSort().isSorted()
@@ -1813,33 +1830,73 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 						.map(order -> mapSortColumn(order.getProperty()) + " " + order.getDirection().name())
 						.collect(Collectors.joining(", "))
 				: "et.date DESC";
-		String dataQueryStr = "SELECT " +
-				"e1.employeement_id AS employeementId, " + "e1.name AS employeeName, " +
-				"et.date AS date, " +
-				"et.day_type AS dayType, " +
-				"et.description AS description, " +
-				"et.status AS status, " +
-				"et.total_time AS totalTime, " +
-				"DATE_FORMAT(et.created_on, '%Y-%m-%d %H:%i:%s') AS createdOn, " +
-				"DATE_FORMAT(et.updated_on, '%Y-%m-%d %H:%i:%s') AS updatedOn, " +
-				"e2.name AS statusUpdatedBy, " +
-				"t.team_name AS teamName, " +
-				"p.project_name AS projectName, " +
-				"p.client_name AS clientName, " +
-				"ltm.leave_type AS leaveType, " +
-				"e1.is_apmosys_product AS isApmosysProduct " +
-				"FROM employee_timesheets et " +
-				"INNER JOIN employee e1 ON et.emp_id = e1.emp_id " +
-				"LEFT JOIN employee e2 ON et.timesheet_status_updated_by = e2.emp_id " +
-				"LEFT JOIN job_role jr ON e1.job_role_id = jr.job_role_id " +
-				"LEFT JOIN department d ON jr.dept_id = d.dept_id " +
-				"LEFT JOIN employee_team_mapping etm ON etm.emp_id = et.emp_id " +
-				"LEFT JOIN teams t ON t.team_id = etm.team_id " +
-				"LEFT JOIN projects p ON p.project_id = t.project_id " +
-				"LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id " +
-				whereClause +
-				" GROUP BY e1.employeement_id, et.date " +
-				" ORDER BY " + orderBy;
+//		String dataQueryStr = "SELECT " +
+//				"e1.employeement_id AS employeementId, " + "e1.name AS employeeName, " +
+//				"et.date AS date, " +
+//				"et.day_type AS dayType, " +
+//				"et.description AS description, " +
+//				"et.status AS status, " +
+//				"et.total_time AS totalTime, " +
+//				"DATE_FORMAT(et.created_on, '%Y-%m-%d %H:%i:%s') AS createdOn, " +
+//				"DATE_FORMAT(et.updated_on, '%Y-%m-%d %H:%i:%s') AS updatedOn, " +
+//				"e2.name AS statusUpdatedBy, " +
+//				"t.team_name AS teamName, " +
+//				"p.project_name AS projectName, " +
+//				"p.client_name AS clientName, " +
+//				"ltm.leave_type AS leaveType, " +
+//				"e1.is_apmosys_product AS isApmosysProduct " +
+//				"FROM employee_timesheets et " +
+//				"INNER JOIN employee e1 ON et.emp_id = e1.emp_id " +
+//				"LEFT JOIN employee e2 ON et.timesheet_status_updated_by = e2.emp_id " +
+//				"LEFT JOIN job_role jr ON e1.job_role_id = jr.job_role_id " +
+//				"LEFT JOIN department d ON jr.dept_id = d.dept_id " +
+//				"LEFT JOIN employee_team_mapping etm ON etm.emp_id = et.emp_id " +
+//				"LEFT JOIN teams t ON t.team_id = etm.team_id " +
+//				"LEFT JOIN projects p ON p.project_id = t.project_id " +
+//				"LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id " +
+//				whereClause +
+//				" GROUP BY e1.employeement_id, et.date " +
+//				" ORDER BY " + orderBy;
+		
+		
+		String dataQueryStr ="SELECT DISTINCT \n"
+				+ "e1.employeement_id AS employeementId,  \n"
+				+ "e1.name AS employeeName,  \n"
+				+ "et.date AS date,  \n"
+				+ "dtm.day_type AS dayType,  \n"
+				+ "et.description AS description,  \n"
+				+ "sm.status AS status,  \n"
+				+ "ROUND(et.total_working_minutes /60 , 2 ) AS totalTime,  \n"
+				+ "DATE_FORMAT(et.created_on, '%Y-%m-%d %H:%i:%s') AS createdOn,  \n"
+				+ "DATE_FORMAT(et.updated_on, '%Y-%m-%d %H:%i:%s') AS updatedOn,  \n"
+				+ "e2.name AS statusUpdatedBy,  \n"
+				+ "GROUP_CONCAT(DISTINCT t.team_name SEPARATOR ', ') AS teamName,  \n"
+				+ "GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS projectName,  \n"
+				+ "GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS clientName,  \n"
+				+ "ltm.leave_type AS leaveType,  \n"
+				+ "e1.is_apmosys_product AS isApmosysProduct  \n"
+				+ "FROM employee_timesheets_new et  \n"
+				+ "INNER JOIN employee e1 ON et.emp_id = e1.emp_id  \n"
+				+ "LEFT JOIN status_master_new sm ON et.status = sm.status_id \n"
+				+ "LEFT JOIN day_type_master_new dtm ON et.day_type_id = dtm.day_type_id \n"
+				+ "LEFT JOIN timesheet_action_audit taa ON et.timesheet_id = taa.timesheet_id AND taa.audit_id = (select max(taa1.audit_id) from timesheet_action_audit taa1 where taa.timesheet_id = taa1.timesheet_id) \n"
+				+ "LEFT JOIN employee e2 ON taa.action_by = e2.emp_id  \n"
+				+ "LEFT JOIN job_role jr ON e1.job_role_id = jr.job_role_id  \n"
+				+ "LEFT JOIN department d ON jr.dept_id = d.dept_id  \n"
+				+ "LEFT JOIN project_timesheet_status_new pts ON pts.timesheet_id = et.timesheet_id\n"
+				+ "LEFT JOIN projects p ON p.project_id = pts.project_id\n"
+				+ "LEFT JOIN clients c ON c.client_id = p.client_id\n"
+				+ "LEFT JOIN employee_team_mapping etm ON etm.emp_id = et.emp_id \n"
+				+ "AND (etm.end_date IS NULL OR etm.end_date >= et.date)\n"
+				+ "LEFT JOIN teams t ON t.team_id = etm.team_id AND t.project_id = p.project_id\n"
+				+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id  \n"
+				+  whereClause 
+				+ "GROUP BY \n"
+				+ "    e1.employeement_id, et.date, dtm.day_type, et.description, \n"
+				+ "    sm.status, et.total_working_minutes, et.created_on, \n"
+				+ "    et.updated_on, e2.name, ltm.leave_type, e1.is_apmosys_product\n"
+				+ "ORDER BY " + orderBy ;
+		
 		@SuppressWarnings("unchecked")
 		NativeQuery<CustomTimesheetReportDTO> query = (NativeQuery<CustomTimesheetReportDTO>) session
 				.createNativeQuery(dataQueryStr)
@@ -1932,35 +1989,73 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 						.collect(Collectors.joining(", "))
 				: "et.date DESC";
 
-		String queryStr = "SELECT " +
-				"e1.employeement_id AS employeementId, " +
-				"e1.name AS employeeName, " +
-				"et.date AS date, " +
-				"et.day_type AS dayType, " +
-				"et.description AS description, " +
-				"et.status AS status, " +
-				"et.total_time AS totalTime, " +
-				"DATE_FORMAT(et.created_on, '%Y-%m-%d %H:%i:%s') AS createdOn, " +
-				"DATE_FORMAT(et.updated_on, '%Y-%m-%d %H:%i:%s') AS updatedOn, " +
-				"e2.name AS statusUpdatedBy, " +
-				"t.team_name AS teamName, " +
-				"p.project_name AS projectName, " +
-				"p.client_name AS clientName, " +
-				"ltm.leave_type AS leaveType, " +
-				"e1.is_apmosys_product AS isApmosysProduct " +
-				"FROM employee_timesheets et " +
-				"INNER JOIN employee e1 ON et.emp_id = e1.emp_id " +
-				"LEFT JOIN employee e2 ON et.timesheet_status_updated_by = e2.emp_id " +
-				"LEFT JOIN job_role jr ON e1.job_role_id = jr.job_role_id " +
-				"LEFT JOIN department d ON jr.dept_id = d.dept_id " +
-				"LEFT JOIN employee_team_mapping etm ON etm.emp_id = et.emp_id " +
-				"LEFT JOIN teams t ON t.team_id = etm.team_id " +
-				"LEFT JOIN projects p ON p.project_id = t.project_id " +
-				"LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id " +
-				whereClause +
-				" GROUP BY e1.employeement_id, et.date " +
-				" ORDER BY " + orderBy;
-
+//		String queryStr = "SELECT " +
+//				"e1.employeement_id AS employeementId, " +
+//				"e1.name AS employeeName, " +
+//				"et.date AS date, " +
+//				"et.day_type AS dayType, " +
+//				"et.description AS description, " +
+//				"et.status AS status, " +
+//				"et.total_time AS totalTime, " +
+//				"DATE_FORMAT(et.created_on, '%Y-%m-%d %H:%i:%s') AS createdOn, " +
+//				"DATE_FORMAT(et.updated_on, '%Y-%m-%d %H:%i:%s') AS updatedOn, " +
+//				"e2.name AS statusUpdatedBy, " +
+//				"t.team_name AS teamName, " +
+//				"p.project_name AS projectName, " +
+//				"p.client_name AS clientName, " +
+//				"ltm.leave_type AS leaveType, " +
+//				"e1.is_apmosys_product AS isApmosysProduct " +
+//				"FROM employee_timesheets et " +
+//				"INNER JOIN employee e1 ON et.emp_id = e1.emp_id " +
+//				"LEFT JOIN employee e2 ON et.timesheet_status_updated_by = e2.emp_id " +
+//				"LEFT JOIN job_role jr ON e1.job_role_id = jr.job_role_id " +
+//				"LEFT JOIN department d ON jr.dept_id = d.dept_id " +
+//				"LEFT JOIN employee_team_mapping etm ON etm.emp_id = et.emp_id " +
+//				"LEFT JOIN teams t ON t.team_id = etm.team_id " +
+//				"LEFT JOIN projects p ON p.project_id = t.project_id " +
+//				"LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id " +
+//				whereClause +
+//				" GROUP BY e1.employeement_id, et.date " +
+//				" ORDER BY " + orderBy;
+		
+		String queryStr ="SELECT DISTINCT \n"
+				+ "e1.employeement_id AS employeementId,  \n"
+				+ "e1.name AS employeeName,  \n"
+				+ "et.date AS date,  \n"
+				+ "dtm.day_type AS dayType,  \n"
+				+ "et.description AS description,  \n"
+				+ "sm.status AS status,  \n"
+				+ "ROUND(et.total_working_minutes /60 , 2 ) AS totalTime,  \n"
+				+ "DATE_FORMAT(et.created_on, '%Y-%m-%d %H:%i:%s') AS createdOn,  \n"
+				+ "DATE_FORMAT(et.updated_on, '%Y-%m-%d %H:%i:%s') AS updatedOn,  \n"
+				+ "e2.name AS statusUpdatedBy,  \n"
+				+ "GROUP_CONCAT(DISTINCT t.team_name SEPARATOR ', ') AS teamName,  \n"
+				+ "GROUP_CONCAT(DISTINCT p.project_name SEPARATOR ', ') AS projectName,  \n"
+				+ "GROUP_CONCAT(DISTINCT c.client_name SEPARATOR ', ') AS clientName,  \n"
+				+ "ltm.leave_type AS leaveType,  \n"
+				+ "e1.is_apmosys_product AS isApmosysProduct  \n"
+				+ "FROM employee_timesheets_new et  \n"
+				+ "INNER JOIN employee e1 ON et.emp_id = e1.emp_id  \n"
+				+ "LEFT JOIN status_master_new sm ON et.status = sm.status_id \n"
+				+ "LEFT JOIN day_type_master_new dtm ON et.day_type_id = dtm.day_type_id \n"
+				+ "LEFT JOIN timesheet_action_audit taa ON et.timesheet_id = taa.timesheet_id AND taa.audit_id = (select max(taa1.audit_id) from timesheet_action_audit taa1 where taa.timesheet_id = taa1.timesheet_id) \n"
+				+ "LEFT JOIN employee e2 ON taa.action_by = e2.emp_id  \n"
+				+ "LEFT JOIN job_role jr ON e1.job_role_id = jr.job_role_id  \n"
+				+ "LEFT JOIN department d ON jr.dept_id = d.dept_id  \n"
+				+ "LEFT JOIN project_timesheet_status_new pts ON pts.timesheet_id = et.timesheet_id\n"
+				+ "LEFT JOIN projects p ON p.project_id = pts.project_id\n"
+				+ "LEFT JOIN clients c ON c.client_id = p.client_id\n"
+				+ "LEFT JOIN employee_team_mapping etm ON etm.emp_id = et.emp_id \n"
+				+ "AND (etm.end_date IS NULL OR etm.end_date >= et.date)\n"
+				+ "LEFT JOIN teams t ON t.team_id = etm.team_id AND t.project_id = p.project_id\n"
+				+ "LEFT JOIN leave_type_master ltm ON ltm.leave_type_master_id = et.leave_type_master_id  \n"
+				+  whereClause 
+				+ "GROUP BY \n"
+				+ "    e1.employeement_id, et.date, dtm.day_type, et.description, \n"
+				+ "    sm.status, et.total_working_minutes, et.created_on, \n"
+				+ "    et.updated_on, e2.name, ltm.leave_type, e1.is_apmosys_product\n"
+				+ "ORDER BY " + orderBy ;
+		
 		@SuppressWarnings("unchecked")
 		NativeQuery<CustomTimesheetReportDTO> query = (NativeQuery<CustomTimesheetReportDTO>) session
 				.createNativeQuery(queryStr)
@@ -2034,7 +2129,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 
 	        StringBuilder subQuery = createQueryForTimesheetReport(timesheetDTO.getQueryList());
 	        logBuilder.append(" | Query: ").append(subQuery);
-
+	        System.out.println("===================="+subQuery);
 	        Page<CustomTimesheetReportDTO> page;
 	        Pageable pageable;
 

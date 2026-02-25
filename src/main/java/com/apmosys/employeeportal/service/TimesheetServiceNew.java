@@ -4,8 +4,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -16,7 +18,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 
 import javax.servlet.http.HttpServletRequest;
@@ -24,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.unit.DataSize;
@@ -52,21 +58,26 @@ import com.apmosys.employeeportal.enums.DayTypeCode;
 import com.apmosys.employeeportal.Exception.TimesheetValidationFailedException;
 import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
 import com.apmosys.employeeportal.model.DocMimeTypeMasterNew;
+import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeTimesheetLocationMapping;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.FinalDocument;
 import com.apmosys.employeeportal.model.FinalDocumentNew;
+import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.ProjectTimesheetStatusNew;
 import com.apmosys.employeeportal.model.TimesheetDataDTO;
 import com.apmosys.employeeportal.model.Timesheet;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 import com.apmosys.employeeportal.model.TimesheetDocumentDetailsNew;
 import com.apmosys.employeeportal.repository.DayTypeMasterNewRepository;
+import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.DocMimeTypeMasterNewRepository;
+import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetLocationMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import com.apmosys.employeeportal.repository.FinalDocumentNewRepository;
+import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.ProjectTimesheetStatusNewRepository;
 import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsNewRepository;
 import com.apmosys.employeeportal.repository.WorkLocationTypeMasterRepository;
@@ -177,6 +188,14 @@ public class TimesheetServiceNew {
 	@Autowired
 	private HttpServletRequest httpRequest;
 	
+	@Autowired
+	EmployeeRepository employeeRepository;
+	
+	@Autowired
+	JobRoleRepository jobRoleRepository;
+	
+	@Autowired
+	DepartmentRepository departmentRepository;
 	
 	private Map<String, Integer> mimeTypeMap = new HashMap<>();
 
@@ -2393,6 +2412,189 @@ public class TimesheetServiceNew {
 	 public ServiceResponse getEmployeeSummaryOnExportAccordingToStatus(GetEmployeeSummaryOnExportDTO object) {
 		 return timesheetDashboardService.getEmployeeSummaryOnExportAccordingToStatus(object);
 	 }
+	 
+	 public ServiceResponse getAllLeaveTimesheetsWithoutLeaveApplication(TimesheetDTO timesheetDTO) {
+			ServiceResponse response = new ServiceResponse();
+			LogDTO apiLogInfo = new LogDTO();
+			apiLogInfo.setApiUrl("/api/getAllLeaveTimesheetsWithoutLeaveApplication");
+			apiLogInfo.setLogLevel("INFO");
 
+			StringBuilder logBuilder = new StringBuilder();
+			logBuilder.append("startDate: ").append(timesheetDTO.getStartDate())
+					.append(", endDate: ").append(timesheetDTO.getEndDate())
+					.append(", page: ").append(timesheetDTO.getPage())
+					.append(", size: ").append(timesheetDTO.getSize())
+					.append(", sortBy: ").append(timesheetDTO.getSortByForTimesheetLeaveReport())
+					.append(", sortDirection: ").append(timesheetDTO.getSortDirection());
+
+			try {
+				if (timesheetDTO.getStartDate() == null || timesheetDTO.getEndDate() == null) {
+					throw new IllegalArgumentException("Start date and End date are required.");
+				}
+				if (timesheetDTO.getCurrentUser() == null) {
+					throw new IllegalArgumentException("Current user ID is required.");
+				}
+
+				LocalDate start;
+				LocalDate end;
+				try {
+					start = LocalDate.parse(timesheetDTO.getStartDate());
+					end = LocalDate.parse(timesheetDTO.getEndDate());
+				} catch (DateTimeParseException ex) {
+					throw new IllegalArgumentException("Invalid date format. Expected format: yyyy-MM-dd");
+				}
+
+				int page = (timesheetDTO.getPage() != null) ? timesheetDTO.getPage() : 0;
+				int size = (timesheetDTO.getSize() != null) ? timesheetDTO.getSize() : 10;
+
+				List<String> sortBy = (timesheetDTO.getSortByForTimesheetLeaveReport() != null
+						&& !timesheetDTO.getSortByForTimesheetLeaveReport().isEmpty())
+								? timesheetDTO.getSortByForTimesheetLeaveReport()
+								: Collections.singletonList("date");
+
+				Sort.Direction sortDir = "desc".equalsIgnoreCase(timesheetDTO.getSortDirection())
+						? Sort.Direction.DESC
+						: Sort.Direction.ASC;
+
+				Pageable pageable = null;
+				if (Boolean.TRUE.equals(timesheetDTO.getExportAll())) {
+				    pageable = Pageable.unpaged();
+				} else {
+				    pageable = PageRequest.of(page, size, Sort.by(sortDir, sortBy.toArray(new String[0])));
+				}
+
+				Map<String, String> filters = (timesheetDTO.getFilters() != null)
+						? timesheetDTO.getFilters()
+						: new HashMap<>();
+
+				Long empId = null;
+				String empIdStr = null;
+
+				if (filters.containsKey("employmentIdAcToET") && !filters.get("employmentIdAcToET").isEmpty()) {
+				    String empValue = filters.get("employmentIdAcToET").trim();
+
+				    if (empValue.matches("\\d{6,}")) {
+				        empId = Long.parseLong(empValue);
+				    } else {
+				        empIdStr = "%" + empValue.replaceAll("[^0-9]", "") + "%";
+				    }
+				}
+
+
+				String empName = filters.getOrDefault("employeeName", null);
+				String dayType = filters.getOrDefault("dayType", null);
+				String status = filters.getOrDefault("status", null);
+				String managerName = filters.getOrDefault("managerName", null);
+				String departmentName = filters.getOrDefault("departmentName", null);
+				String updatedBy = filters.getOrDefault("updatedBy", null);
+
+				String dateStr = filters.getOrDefault("date", null);
+				String createdOnStr = filters.getOrDefault("createdOn", null);
+				String updatedOnStr = filters.getOrDefault("updatedOn", null);
+
+				LocalDate date = (dateStr != null && !dateStr.isEmpty()) ? parseFlexibleLocalDate(dateStr) : null;
+				java.sql.Date createdOn = safeParseSqlDate(filters.get("createdOn"));
+				java.sql.Date updatedOn = safeParseSqlDate(filters.get("updatedOn"));
+
+				Employee employee = employeeRepository.findByEmpId(timesheetDTO.getCurrentUser());
+				if (employee == null) {
+					throw new IllegalArgumentException("Employee not found for ID: " + timesheetDTO.getCurrentUser());
+				}
+
+				JobRole jobRole = jobRoleRepository.findByjobRoleId(employee.getJobRoleId());
+				if (jobRole == null) {
+					throw new IllegalArgumentException("JobRole not found for employee: " + employee.getEmpId());
+				}
+
+				String role = jobRole.getEmployeeRole();
+				String roleName = jobRole.getName();
+
+				Page<TimesheetDTO> timesheetPage;
+
+				if ("SuperAdmin".equalsIgnoreCase(role) ||
+						"Director".equalsIgnoreCase(roleName) ||
+						"Super Admin".equalsIgnoreCase(roleName)) {
+
+					timesheetPage = employeeTimesheetsNewRepository.findAllLeaveTimesheetsWithoutLeaveApplication(
+							start, end, empName, empId, date, dayType, status, managerName, departmentName,
+							createdOn, updatedOn, updatedBy, dateStr, createdOnStr, updatedOnStr,empIdStr, pageable);
+
+				} else if (departmentRepository.existsByHodId(timesheetDTO.getCurrentUser())) {
+					List<Long> deptIds = departmentRepository.findDeptIdsByHodId(timesheetDTO.getCurrentUser());
+					timesheetPage = employeeTimesheetsNewRepository.getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentsWise(
+							start, end, empName, empId, date, dayType, status, managerName, departmentName,
+							createdOn, updatedOn, updatedBy, deptIds, empIdStr,pageable);
+				} else {
+					Long deptId = departmentRepository.findDepartmentofCurrentuser(employee.getJobRoleId());
+					timesheetPage = employeeTimesheetsNewRepository.getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
+							start, end, empName, empId, date, dayType, status, managerName, departmentName,
+							createdOn, updatedOn, updatedBy, deptId, dateStr, createdOnStr, updatedOnStr,empIdStr, pageable);
+				}
+
+				if (timesheetPage == null || timesheetPage.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No timesheets found for the given filters.");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					apiLogInfo.setApiResponse("No results found");
+				} else {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(timesheetPage);
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					apiLogInfo.setApiResponse("Fetched " + timesheetPage.getTotalElements() + " records");
+				}
+
+			} catch (IllegalArgumentException ex) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse(ex.getMessage());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setLogLevel("WARN");
+
+			} catch (DataAccessException ex) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Database access error occurred.");
+				response.setServiceError(ex.getMostSpecificCause().getMessage());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setLogLevel("ERROR");
+
+			} catch (Exception ex) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Unexpected error occurred while fetching timesheets.");
+				response.setServiceError(ex.getMessage());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setLogLevel("ERROR");
+			}
+
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			return response;
+		}
+
+		/* helper for date parse */
+		private java.sql.Date safeParseSqlDate(String dateStr) {
+			LocalDate localDate = parseFlexibleLocalDate(dateStr);
+			return (localDate != null) ? java.sql.Date.valueOf(localDate) : null;
+		}
+
+		/* helper for date parse */
+		private LocalDate parseFlexibleLocalDate(String dateStr) {
+			if (dateStr == null || dateStr.trim().isEmpty())
+				return null;
+
+			dateStr = dateStr.trim().replace("/", "-");
+			DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+			DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+			try {
+				return LocalDate.parse(dateStr, formatter1);
+			} catch (Exception e1) {
+				try {
+					return LocalDate.parse(dateStr, formatter2);
+				} catch (Exception e2) {
+					System.err.println("Invalid date format: " + dateStr);
+					return null;
+				}
+			}
+		}
+		
 
 }

@@ -2239,18 +2239,18 @@ public class TimesheetService {
 					"Director".equalsIgnoreCase(roleName) ||
 					"Super Admin".equalsIgnoreCase(roleName)) {
 
-				timesheetPage = timesheetsRepository.findAllLeaveTimesheetsWithoutLeaveApplication(
+				timesheetPage = employeeTimesheetsNewRepository.findAllLeaveTimesheetsWithoutLeaveApplication(
 						start, end, empName, empId, date, dayType, status, managerName, departmentName,
 						createdOn, updatedOn, updatedBy, dateStr, createdOnStr, updatedOnStr,empIdStr, pageable);
 
 			} else if (departmentRepository.existsByHodId(timesheetDTO.getCurrentUser())) {
 				List<Long> deptIds = departmentRepository.findDeptIdsByHodId(timesheetDTO.getCurrentUser());
-				timesheetPage = timesheetsRepository.getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentsWise(
+				timesheetPage = employeeTimesheetsNewRepository.getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentsWise(
 						start, end, empName, empId, date, dayType, status, managerName, departmentName,
 						createdOn, updatedOn, updatedBy, deptIds, empIdStr,pageable);
 			} else {
 				Long deptId = departmentRepository.findDepartmentofCurrentuser(employee.getJobRoleId());
-				timesheetPage = timesheetsRepository.getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
+				timesheetPage = employeeTimesheetsNewRepository.getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 						start, end, empName, empId, date, dayType, status, managerName, departmentName,
 						createdOn, updatedOn, updatedBy, deptId, dateStr, createdOnStr, updatedOnStr,empIdStr, pageable);
 			}
@@ -8552,7 +8552,8 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 		  logService.logMyInfo(httpRequest, apiLogInfo);
 		  return response;
 	}
-	 public ServiceResponse getEmployeeSummaryOnExportAccordingToStatus(GetEmployeeSummaryOnExportDTO object) {
+	 
+	public ServiceResponse getEmployeeSummaryOnExportAccordingToStatus(GetEmployeeSummaryOnExportDTO object) {
 		 return timesheetDashboardService.getEmployeeSummaryOnExportAccordingToStatus(object);
 	 }
 	 
