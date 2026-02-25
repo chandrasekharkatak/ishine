@@ -127,7 +127,7 @@
   <div class="popup-container" *ngIf="isPopupVisible">
     <div class="popup-content">
       <div class="popup-header">
-        <p class="popup-date">Timesheet Details for {{popUpDate | date:'fullDate'}}</p>
+        <p class="popup-date">Timesheet Details for {{parseDateString(popUpDate) | date:'fullDate'}}</p>
       </div>
       
       <div class="popup-body">
@@ -146,6 +146,9 @@
               </div>
               <hr class="popup-divider" *ngIf="j < project.activity.length - 1">
             </div>
+            <div class="popup-description" *ngIf="project.activity.length == 0 && project?.description">
+                {{ project.description }}
+              </div>
             
             <hr class="popup-divider" *ngIf="i < popupDatas.length - 1">
           </div>

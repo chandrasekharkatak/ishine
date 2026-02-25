@@ -20,8 +20,8 @@ public interface ProjectTimesheetStatusNewRepository extends JpaRepository<Proje
     @Query("SELECT p FROM ProjectTimesheetStatusNew p WHERE p.id.timesheetId = :timesheetId")
     List<ProjectTimesheetStatusNew> findByTimesheetId(@Param("timesheetId") Long timesheetId);
     
-    @Query("SELECT p FROM ProjectTimesheetStatusNew p WHERE p.id.timesheetId = :timesheetId AND p.id.projectId = :projectId")
-    Optional<ProjectTimesheetStatusNew> findByTimesheetIdAndProjectId(@Param("timesheetId") Long timesheetId, @Param("projectId") Integer projectId);
+    @Query("SELECT p FROM ProjectTimesheetStatusNew p WHERE p.id.timesheetId = :timesheetId AND p.id.projectId = :projectId AND p.id.locationMappingId = :locationMappingId")
+    Optional<ProjectTimesheetStatusNew> findByTimesheetIdAndProjectIdAndLocationMappingId(@Param("timesheetId") Long timesheetId, @Param("projectId") Integer projectId, @Param("locationMappingId") Long locationMappingId);
     
     List<ProjectTimesheetStatusNew> findAllByIdTimesheetIdIn(Set<Long> timesheetIds);
     

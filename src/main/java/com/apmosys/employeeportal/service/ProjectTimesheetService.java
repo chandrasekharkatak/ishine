@@ -108,23 +108,6 @@ public class ProjectTimesheetService {
     }
 
     /**
-     * Find ProjectTimesheet by timesheet ID and project ID.
-     * 
-     * @param timesheetId Timesheet ID
-     * @param projectId Project ID
-     * @return ProjectTimesheetDTO or null if not found
-     */
-    public ProjectTimesheetDTO findByTimesheetIdAndProjectId(Long timesheetId, Integer projectId) {
-        if (timesheetId == null || projectId == null) {
-            return null;
-        }
-
-        Optional<ProjectTimesheetStatusNew> entity = projectTimesheetStatusNewRepository
-                .findByTimesheetIdAndProjectId(timesheetId, projectId);
-        return entity.map(timesheetMapper::toDTO).orElse(null);
-    }
-
-    /**
      * Update ProjectTimesheet.
      * 
      * @param dto ProjectTimesheetDTO with updated data
@@ -137,7 +120,7 @@ public class ProjectTimesheetService {
         }
 
         ProjectTimesheetStatusNew entity = projectTimesheetStatusNewRepository
-                .findByTimesheetIdAndProjectId(dto.getTimesheetId(), dto.getProjectId())
+                .findByTimesheetIdAndProjectIdAndLocationMappingId(dto.getTimesheetId(), dto.getProjectId(),dto.getLocationMappingId())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "ProjectTimesheet not found: timesheetId=" + dto.getTimesheetId() + ", projectId=" + dto.getProjectId()));
 
@@ -178,19 +161,19 @@ public class ProjectTimesheetService {
      * @param timesheetId Timesheet ID
      * @param projectId Project ID
      */
-    @Transactional
-    public void delete(Long timesheetId, Integer projectId) {
-        if (timesheetId == null || projectId == null) {
-            throw new IllegalArgumentException("Timesheet ID and Project ID are required");
-        }
+    // @Transactional
+    // public void delete(Long timesheetId, Integer projectId) {
+    //     if (timesheetId == null || projectId == null) {
+    //         throw new IllegalArgumentException("Timesheet ID and Project ID are required");
+    //     }
 
-        ProjectTimesheetStatusNew entity = projectTimesheetStatusNewRepository
-                .findByTimesheetIdAndProjectId(timesheetId, projectId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "ProjectTimesheet not found: timesheetId=" + timesheetId + ", projectId=" + projectId));
+    //     ProjectTimesheetStatusNew entity = projectTimesheetStatusNewRepository
+    //             .findByTimesheetIdAndProjectId(timesheetId, projectId)
+    //             .orElseThrow(() -> new IllegalArgumentException(
+    //                     "ProjectTimesheet not found: timesheetId=" + timesheetId + ", projectId=" + projectId));
 
-        projectTimesheetStatusNewRepository.delete(entity);
-    }
+    //     projectTimesheetStatusNewRepository.delete(entity);
+    // }
 
     /**
      * Delete all ProjectTimesheets for a timesheet.
@@ -228,15 +211,15 @@ public class ProjectTimesheetService {
      * @param projectId Project ID
      * @return true if exists, false otherwise
      */
-    public boolean exists(Long timesheetId, Integer projectId) {
-        if (timesheetId == null || projectId == null) {
-            return false;
-        }
+    // public boolean exists(Long timesheetId, Integer projectId) {
+    //     if (timesheetId == null || projectId == null) {
+    //         return false;
+    //     }
 
-        return projectTimesheetStatusNewRepository
-                .findByTimesheetIdAndProjectId(timesheetId, projectId)
-                .isPresent();
-    }
+    //     return projectTimesheetStatusNewRepository
+    //             .findByTimesheetIdAndProjectId(timesheetId, projectId)
+    //             .isPresent();
+    // }
     
     public Boolean existsApprovedProjectByLocationMappingId(Long locationMappingId) {
         return projectTimesheetStatusNewRepository

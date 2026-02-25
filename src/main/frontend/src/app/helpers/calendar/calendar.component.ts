@@ -23,6 +23,7 @@ interface CalendarItem {
 
 export interface ProjectItem{
   projectName?: string;  
+  description?: string;
   activity?: ActivityItem[];
 }
 
@@ -53,6 +54,7 @@ export class CalendarComponent implements OnInit {
   popupDatas: ProjectItem[] = [];
   @ViewChild('view_timesheet_details') viewTimesheetDetailsTemplate!: TemplateRef<any>;
   popUpDate: string = '';
+   dateToDescription: { [key: string]: string[] } = {};
 
   constructor(
     private modalService: NgbModal,
@@ -206,7 +208,13 @@ export class CalendarComponent implements OnInit {
       }
 
       rows.forEach(r => {
-        if (!r.projectName) return;
+        if (!r.projectName){
+          if(this.dateToDescription[r.date]){
+            this.dateToDescription[r.date].push(r.description);
+          }else{
+            this.dateToDescription[r.date] = [r.description];
+          }
+        }
 
         let project = day.projects!.find(
           p => p.projectName === r.projectName
@@ -215,6 +223,7 @@ export class CalendarComponent implements OnInit {
         if (!project) {
           project = {
             projectName: r.projectName,
+            description: r.description,
             activity: []
           };
           day.projects!.push(project);
@@ -238,6 +247,9 @@ export class CalendarComponent implements OnInit {
     });
   });
 
+  console.log("This calender: ", this.calendar);
+  
+
 }
 
   showViewTimesheetDetails(day: CalendarItem){
@@ -248,6 +260,7 @@ export class CalendarComponent implements OnInit {
     for (const d of day.projects) {
       this.popupDatas.push({
         projectName: d.projectName,
+        description: d.description,
         activity: d.activity
       });
     }
@@ -350,6 +363,11 @@ onDayClick(day: CalendarItem): void {
 
   cancelRequest_approve_pending(): void {
       this.modalRef?.close();
+  }
+
+  parseDateString(dateStr: string): Date {
+    const [day, month, year] = dateStr.split('-').map(Number);
+    return new Date(year, month - 1, day);
   }
 
 }
