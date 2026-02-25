@@ -1232,7 +1232,7 @@ public class EmployeeLeaveService {
         logService.logMyInfo(httpRequest, apiLogInfo);
         return response;
     }
-
+//method called when leave is applied to fill in timesheets
     private void saveRelationalLeaveTimesheet(LeaveDTO leaveDTO, LocalDate date,LocalDateTime startOfDay, LocalDateTime endOfDay) {
         try {
         	Long userId = (leaveDTO.getCreatedBy() != null) ? leaveDTO.getCreatedBy() : leaveDTO.getUpdatedBy();
