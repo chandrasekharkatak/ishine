@@ -134,7 +134,7 @@
 
 Analyse above component and tell me all feature avaliable in this component
 all feature details, whoc can access this page,purpose is too know all feature in deatails to make  SOP. analyse both front ned and backend to understand properly.
-firt share list of feature and then go one by one details, nothing to be missed  
+firt share list of feature and then go one by one details, nothing to be missed
 
 -->
 <!-- start :: Timesheet Report Table -->
@@ -328,29 +328,29 @@ firt share list of feature and then go one by one details, nothing to be missed
               </tr>
               <tr
                 *ngFor="let timesheet of allTimesheetApplicationsList |paginate: { id: 'viewTimesheetReportPagination', itemsPerPage: itemsPerPage, currentPage: page, totalItems: totalItems }">
-                <td>{{timesheet.employeementId}}</td>
-                <td>{{timesheet.employeeType}}</td>
+                <td>{{timesheet.employeementId|| 'NA'}}</td>
+                <td>{{timesheet.employeeType|| 'NA'}}</td>
                 <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360"
                   [navigateToEmployee360]="timesheet.emp360" style="cursor: pointer;"
-                  title="Click to view Employee 360">{{timesheet.employeeName}}</td>
-                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{timesheet.employeeName}}</td>
-                <td>{{timesheet.date}}</td>
-                <td>{{timesheet.dayType}}</td>
-                <td style="min-width: 250px;">{{timesheet.description}}</td>
-                <td>{{timesheet.status}}</td>
-                <td>{{timesheet.totalWorkingHours}}</td>
-                <td>{{timesheet.officeInTime}}</td>
-                <td>{{timesheet.officeOutTime}}</td>
-                <td>{{timesheet.totalWorkingOfficeHours}}</td>
-                <td>{{timesheet.leaveType}}</td>
-                <td>{{timesheet.createdOn}}</td>
-                <td>{{timesheet.updatedOn}}</td>
+                  title="Click to view Employee 360">{{timesheet.employeeName|| 'NA'}}</td>
+                <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">{{timesheet.employeeName|| 'NA'}}</td>
+                <td>{{timesheet.date|| 'NA'}}</td>
+                <td>{{timesheet.dayType|| 'NA'}}</td>
+                <td style="min-width: 250px;">{{timesheet.description|| 'NA'}}</td>
+                <td>{{timesheet.status|| 'NA'}}</td>
+                <td>{{timesheet.totalTime|| 'NA'}}</td>
+                <td>{{timesheet.officeInTime|| 'NA'}}</td>
+                <td>{{timesheet.officeOutTime||'NA'}}</td>
+                <td>{{timesheet.totalWorkingHours|| 'NA'}}</td>
+                <td>{{timesheet.leaveType|| 'NA'}}</td>
+                <td>{{timesheet.createdOn|| 'NA'}}</td>
+                <td>{{timesheet.updatedOn|| 'NA'}}</td>
                 <td class="text-capitalize"
                   *ngIf="timesheet.timesheetStatusUpdatedByName && userMapping.reports_employee_360"
                   id="clickablefor360" [navigateToEmployee360]="timesheet.emp360UpdatedBy" style="cursor: pointer;"
-                  title="Click to view Employee 360">{{timesheet.timesheetStatusUpdatedByName}}</td>
+                  title="Click to view Employee 360">{{timesheet.timesheetStatusUpdatedByName|| 'NA'}}</td>
                 <td class="text-capitalize" *ngIf="!userMapping.reports_employee_360">
-                  {{timesheet.timesheetStatusUpdatedByName}}</td>
+                  {{timesheet.timesheetStatusUpdatedByName||'NA'}}</td>
               </tr>
             </tbody>
           </table>
@@ -509,7 +509,7 @@ firt share list of feature and then go one by one details, nothing to be missed
           <!-- Billable Type -->
          <div class="count-boxes">
             <div class="count-box" *ngFor="let type of ['Bench', 'Fixed Cost', 'Shadow', 'TNM', 'InternalRNDProducts']"
-              [ngClass]="{'active-btn': selectedBillable[box] === type,'full-width': type === 'InternalRNDProducts'}" 
+              [ngClass]="{'active-btn': selectedBillable[box] === type,'full-width': type === 'InternalRNDProducts'}"
               (click)="selectBillable(box, type, alert_message)">
               <span>
                 {{ type }}
@@ -518,7 +518,7 @@ firt share list of feature and then go one by one details, nothing to be missed
                   <i class="fa-solid fa-circle-info"></i>
                   </button>
                   <div class="info-tooltip1" *ngIf="visibleInfo && box === inActiveBoxinfo">
-                    <div *ngFor="let item of InActivePoCounts" class="tooltip-label-mapped" style="background-color: #772F1A;" 
+                    <div *ngFor="let item of InActivePoCounts" class="tooltip-label-mapped" style="background-color: #772F1A;"
                         (click)="onInfoClickModel(box, inactivePoModal, item.dateRange, projectTemplate)">
                       {{ item.type }}: {{ item.count }}
                     </div>
@@ -529,7 +529,7 @@ firt share list of feature and then go one by one details, nothing to be missed
                   <i class="fa-solid fa-circle-info"></i>
                   </button>
                   <div class="info-tooltip1" *ngIf="visibleInfo1 && box === activeBoxinfo">
-                    <div *ngFor="let item of ActivePoCounts" class="tooltip-label-mapped" style="background-color: #218380;" 
+                    <div *ngFor="let item of ActivePoCounts" class="tooltip-label-mapped" style="background-color: #218380;"
                         (click)="onInfoClickModel1(box, activePoModal, item.dateRange, projectTemplate1)">
                       {{ item.type }}: {{ item.count }}
                     </div>
@@ -994,16 +994,16 @@ firt share list of feature and then go one by one details, nothing to be missed
                   <td class="sticky-col" [class.no-border]="!(team.mappedEmployeeDetails.length > 1 && eIndex === 0)">
                     <ng-container *ngIf="team.mappedEmployeeDetails.length > 1 && eIndex === 0; else emptyCell">
                       <button (click)="extendEmployees(pIndex,eIndex)" [title]="expandedTeams.has(pIndex + '-' + tIndex) ? 'Collapse' : 'Expand'" class="btn-expand">
-                        <i class="fas" 
+                        <i class="fas"
                         [class.fa-chevron-down]="!expandedTeams.has(pIndex + '-' + tIndex)"
                         [class.fa-chevron-up]="expandedTeams.has(pIndex + '-' + tIndex)"></i>
                       </button>
                     </ng-container>
                     <ng-template #emptyCell>
-                     
+
                     </ng-template>
                   </td>
-                  
+
                   <td  *ngIf="eIndex === 0 || expandedTeams.has(pIndex + '-' + tIndex)" [class.no-border]="eIndex != 0">{{ getHierarchicalSrNo(pIndex, tIndex, eIndex) }}</td>
 
 
@@ -1049,7 +1049,7 @@ firt share list of feature and then go one by one details, nothing to be missed
                     title="Click to view Employee 360">
                     {{ emp.employeeName }}
                   </td>
-                  
+
                   <td *ngIf="!userMapping.reports_employee_360 && (eIndex ===0 || expandedTeams.has(pIndex + '-' + tIndex))">{{ emp.employeeName }}</td>
                   <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.jobRole }}</td>
                   <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.deptName }}</td>
@@ -1058,7 +1058,7 @@ firt share list of feature and then go one by one details, nothing to be missed
                   <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.billable }}</td>
                   <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.billableType }}</td>
                   <td *ngIf="eIndex ===0 ||  expandedTeams.has(pIndex + '-' + tIndex)">{{ emp.effectiveStartDate }}</td>
-                
+
                 </tr>
 
               </ng-container>
@@ -1451,7 +1451,7 @@ firt share list of feature and then go one by one details, nothing to be missed
             <!-- <td class="clickable-cell" (click)="toggleClientRow(clientGroup.clientName)">
               {{ clientGroup.clientName }}
             </td> -->
-            <td class="clickable-cell" (click)="toggleClientRow(clientGroup.clientName)" 
+            <td class="clickable-cell" (click)="toggleClientRow(clientGroup.clientName)"
             title="Click to view department wise count bifurcation" style="color: blue;">
               <ng-container *ngIf="clientGroup.clientName">
                 {{ (show === i) ? clientGroup.clientName : (clientGroup.clientName | slice: 0:20) }}
@@ -1467,20 +1467,20 @@ firt share list of feature and then go one by one details, nothing to be missed
             <div class="count-box total">
               {{ clientGroup.departmentProjects[department]?.total || 0 }}
             </div>
-          
+
             <!-- Expanded view: Active & Inactive under Total -->
             <ng-container *ngIf="expandedClients[clientGroup.clientName]">
               <div class="count-box green clickable-cell position-relative" style="cursor: pointer;"
                 (click)="openClientProjectModal(projectDetailsModal, clientGroup.clientName, department + '_active',clientGroup.departmentProjects[department]?.deptId ,clientGroup.departmentProjects[department]?.clientId,'active')"
                 title="Click to view active projects">
                 Active : {{ clientGroup.departmentProjects[department]?.active || 0 }}
-          
+
                 <!-- Info button for employee count -->
                 <i class="fa-solid fa-circle-info text-info ms-2" style="cursor: pointer; font-size: 14px;"
                   (click)="showEmployeeCount($event, clientGroup.clientName, department, 'active')"
                   title="Click to see employee count">
                 </i>
-          
+
                 <!-- Employee count popup -->
                 <div *ngIf="isEmployeePopupActive(clientGroup.clientName, department, 'active')" class="employee-popup"
                   (click)="closeEmployeePopup($event)">
@@ -1499,7 +1499,7 @@ firt share list of feature and then go one by one details, nothing to be missed
                   </div>
                 </div>
               </div>
-          
+
               <div class="count-box red clickable-cell" style="cursor: pointer;"
                 (click)="openClientProjectModal(projectDetailsModal, clientGroup.clientName, department + '_inactive',clientGroup.departmentProjects[department]?.deptId ,clientGroup.departmentProjects[department]?.clientId,'inactive')"
                 title="Click to view inactive projects">
@@ -1523,7 +1523,7 @@ firt share list of feature and then go one by one details, nothing to be missed
           </tr>
         </tbody>
       </table>
-    </div> 
+    </div>
 
     <!-- Pagination -->
     <pagination-controls id="mainPagination" [hidden]="groupedClientProjects.length == 0"
@@ -1535,7 +1535,7 @@ firt share list of feature and then go one by one details, nothing to be missed
 <!-- Project Details Modal -->
 <ng-template #projectDetailsModal>
   <div class="modal-header">
-    <b>Project Details - {{ selectedClientName }} 
+    <b>Project Details - {{ selectedClientName }}
       <span *ngIf="selectedDepartment !== 'all'">
         ({{ selectedDepartment }})
       </span>
@@ -1556,7 +1556,7 @@ firt share list of feature and then go one by one details, nothing to be missed
       <span aria-hidden="true">&times;</span>
     </button>
   </div>
-  
+
   <div class="modal-body d-flex">
     <div class="row col-md-12">
       <div class="selector-toggle">
@@ -1565,7 +1565,7 @@ firt share list of feature and then go one by one details, nothing to be missed
           <i *ngIf="isModalSearchEnabled" class="fa-solid fa-xmark"></i>
         </a>
       </div>
-      
+
       <div class="col d-flex align-items-center">
         <span class="font-weight-bold text-muted small">
           Displaying:
@@ -1573,7 +1573,7 @@ firt share list of feature and then go one by one details, nothing to be missed
           {{ clientAndProjectReportDataList.length }} projects
         </span>
       </div>
-      
+
       <div class="export-button">
         <button
           type="button"
@@ -1584,7 +1584,7 @@ firt share list of feature and then go one by one details, nothing to be missed
           <em class="fa fa-file-arrow-down fa-2x"></em>
         </button>
       </div>
-      
+
       <div class="table-container">
         <table
           class="table scrollable-table"
@@ -1694,7 +1694,7 @@ firt share list of feature and then go one by one details, nothing to be missed
           </tbody>
         </table>
       </div>
-      
+
       <pagination-controls
         class="my-pagination"
         [hidden]="(clientAndProjectReportDataList | colFilter : modalFilters : false).length == 0"
@@ -1762,7 +1762,7 @@ firt share list of feature and then go one by one details, nothing to be missed
       </div>
 
     </div>
- 
+
     <div class="col-md-12">
       <div class="overflow-auto" style="max-height: 75vh;">
         <table class="table table-bordered table-hover table-sticky acl-table" id="aclReportInfo">
@@ -1991,7 +1991,7 @@ firt share list of feature and then go one by one details, nothing to be missed
         </div>
       </div>
       <!-- <div class="form-group ml-auto col-md-3 mb-2 mt-4 pt-2">
-        <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">	
+        <input type="text" class="form-control" placeholder='Search' [(ngModel)]="data" (keyup)="page=1">
       </div> -->
     </div>
 
@@ -2282,16 +2282,16 @@ firt share list of feature and then go one by one details, nothing to be missed
                 </button>
             </div>
             <div class="overflow-auto">
-                <table class="table" id="inactivePoEmployeeInfo" matSort (matSortChange)="sortData($event)">	
-                    <thead class="thead-light" id="inactivePoEmployeeInfoTHead">	
-                    <tr id="inactivePoEmployeeInfoTHeadTr">	
-                        <th scope="col" class="info-label" mat-sort-header="employeementIdAccToET|string">Employee ID</th>	
-                        <th scope="col" class="info-label" mat-sort-header="name|string">Name</th>	
-                        <th scope="col" class="info-label" mat-sort-header="projectName|string">Project Name</th>	
-                        <th scope="col" class="info-label" mat-sort-header="poNo|string">PO No</th>	
-                        <th scope="col" class="info-label" mat-sort-header="poProjectType|string">PO Type</th>	
-                        <th scope="col" class="info-label" mat-sort-header="projectStartDate|string">PO Start</th>	
-                        <th scope="col" class="info-label" mat-sort-header="projectEndDate|datetime">PO End</th>	
+                <table class="table" id="inactivePoEmployeeInfo" matSort (matSortChange)="sortData($event)">
+                    <thead class="thead-light" id="inactivePoEmployeeInfoTHead">
+                    <tr id="inactivePoEmployeeInfoTHeadTr">
+                        <th scope="col" class="info-label" mat-sort-header="employeementIdAccToET|string">Employee ID</th>
+                        <th scope="col" class="info-label" mat-sort-header="name|string">Name</th>
+                        <th scope="col" class="info-label" mat-sort-header="projectName|string">Project Name</th>
+                        <th scope="col" class="info-label" mat-sort-header="poNo|string">PO No</th>
+                        <th scope="col" class="info-label" mat-sort-header="poProjectType|string">PO Type</th>
+                        <th scope="col" class="info-label" mat-sort-header="projectStartDate|string">PO Start</th>
+                        <th scope="col" class="info-label" mat-sort-header="projectEndDate|datetime">PO End</th>
                         <th scope="col" class="info-label" mat-sort-header="clientName|string">Client</th>
                         <th scope="col" class="info-label" mat-sort-header="clientLocation|number">Location</th>
                         <!-- <th scope="col" class="info-label">Comments</th> -->
@@ -2316,7 +2316,7 @@ firt share list of feature and then go one by one details, nothing to be missed
                     </tbody>
                 </table>
             </div>
-            <pagination-controls id="inactivePO" class="my-pagination" [hidden]="allInactivePOListOfEmployee.length == 0" (pageChange)="handlePageChange2($event)"></pagination-controls> 
+            <pagination-controls id="inactivePO" class="my-pagination" [hidden]="allInactivePOListOfEmployee.length == 0" (pageChange)="handlePageChange2($event)"></pagination-controls>
           </div>
     </div>
     <div class="text-end mt-3">
@@ -2415,7 +2415,7 @@ firt share list of feature and then go one by one details, nothing to be missed
             <th>PO End</th>
             <th>Client</th>
             <th>Location</th>
-          </tr>  
+          </tr>
         </thead>
         <tbody>
           <tr *ngFor="let emp of allactivePOListOfEmployee | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 10, currentPage: page }, let i = index">
