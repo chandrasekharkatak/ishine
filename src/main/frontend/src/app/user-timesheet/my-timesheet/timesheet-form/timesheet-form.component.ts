@@ -4873,7 +4873,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     this.timesheetLocations.forEach((location) => {
       location.projects.forEach((project) => {
         // ✅ Check all three conditions: clientSideId exists, not shadow for self, and day type is fillable
-        if (project.clientSideId && 
+        if (project.hasClientSideId && 
             !project.isShadowForSelf && 
             this.isDayTypeFillable()) {
           

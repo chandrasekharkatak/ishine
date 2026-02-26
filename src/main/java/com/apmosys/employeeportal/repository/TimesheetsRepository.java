@@ -492,7 +492,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 //	            added by sakti for duplicate timesheet check
 //	    		Optional<Timesheet> findByEmpIdAndDate(Long empId, Date date);
 	      
-    @Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(p.projectId, p.projectName)\n"
+    @Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(p.projectId, p.projectName, p.clientFlag, p.hasClientSideId)\n"
 		+ "FROM EmployeeTeamMap etm\n"
 		+ "inner join Team t on t.teamId = etm.teamId \n"
 		+ "inner join Project p on p.projectId = t.projectId\n"

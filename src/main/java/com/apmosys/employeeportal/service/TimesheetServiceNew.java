@@ -380,6 +380,7 @@ public class TimesheetServiceNew {
 			}
 
 			if (timesheetValidationHelper.isWorkingDay(empDTO)) {
+//				timesheetValidationHelper.validateClientSideId(empDTO);
 
 				timesheetValidationHelper.validateWorkInWorkOutTime(empDTO);
 
@@ -1125,7 +1126,8 @@ public class TimesheetServiceNew {
 
 				locationMapping.setLocationOutTime(
 						parseLocationTimeForUpdate(locationDTO.getLocationOutTime(), getLocationOutDateForUpdate(newEmpDTO)));
-
+				
+				locationMapping.setLocationTypeId(locationDTO.getWorkLocationTypeId());
 				employeeTimesheetLocationMappingRepository.save(locationMapping);
 			}
 

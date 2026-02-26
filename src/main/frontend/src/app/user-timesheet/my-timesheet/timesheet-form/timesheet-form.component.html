@@ -346,7 +346,7 @@
                                                 </div>
 
                                                 <!-- Client Side ID (Show only if exists) *ngIf="project.clientSideId"-->
-                                                <div class="col-md-3 mb-3" *ngIf="project.clientSideId">
+                                                <div class="col-md-3 mb-3" *ngIf="project.hasClientSideId ?? false">
                                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                                         <label class="info-label mb-0">Client Side ID</label>
 
@@ -456,7 +456,7 @@
                                                     </app-my-select>
                                                 </div>
                                                 <div class="col-md-4 mb-3"
-                                                    *ngIf="project.clientSideId && project.clientId && project.clientLocationId && isDayTypeFillable() && !project.isShadowForSelf">
+                                                    *ngIf="( project.hasClientSideId ?? false) && project.clientId && project.clientLocationId && isDayTypeFillable() && !project.isShadowForSelf">
                                                     <label class="info-label">
                                                         <span class="text-danger">*</span> Client DSR Approval Status
                                                     </label>
@@ -599,7 +599,7 @@
             @for (project of uniqueProjectsList; track project.projectId) {
             <!-- Show document section for projects meeting all conditions: clientSideId exists, !isShadowForSelf, isDayTypeFillable, and has approval status -->
             <div class="card-body-section document-body" 
-                 *ngIf="project.clientSideId && 
+                 *ngIf="project.hasClientSideId && 
                         !project.isShadowForSelf && 
                         isDayTypeFillable() && 
                         (project.clientApprovalStatus === 2 || project.clientApprovalStatus === 1)">
