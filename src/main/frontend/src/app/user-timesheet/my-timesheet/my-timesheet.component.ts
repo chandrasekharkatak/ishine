@@ -157,6 +157,8 @@ export class MyTimesheetComponent implements OnInit {
   disableCreateUpdateTimesheet: boolean = false;
   isAutoFilled: boolean = false;
   selectedDate: Date | undefined;
+  /** When set (e.g. from Employee 360), create form opens in team mode with this employee pre-selected */
+  selectedEmpIdForCreate: number | null = null;
 
   isTimesheetLockCheckEnable: any = "true";
   employeeInTNMProject: boolean = false;
@@ -330,11 +332,17 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
       if (params['date']) {
         this.isAutoFilled = true;
         this.selectedDate = new Date(params['date']);
-        console.log("selected date : ",this.selectedDate)
+        console.log("selected date : ", this.selectedDate);
       }
-      // if (this.isAutoFilled) {
-      //   this.loadAutofillData()
-      // }
+      // From Employee 360: HR/Admin creating timesheet for the employee they were viewing
+      if (params['empId']) {
+        const empId = Number(params['empId']);
+        if (!isNaN(empId)) {
+          this.selectedEmpIdForCreate = empId;
+          this.isAutoFilled = true;
+          console.log("selected empId for create (from 360): ", this.selectedEmpIdForCreate);
+        }
+      }
     });
     this.clientSideIdNotMandatory = true;
     this.shadowForSelf = false;
@@ -3590,6 +3598,9 @@ onFinalFileSelected(event: any): void {
     this.fromDate = null;
     this.toDate = null;
     this.selectedTimesheetId = null; // Reset timesheet ID for update flow
+    this.selectedDate = undefined;
+    this.isAutoFilled = false;
+    this.selectedEmpIdForCreate = null;
     this.isTimesheetForm = false;
     this.isUpdation = false;
     this.isCreation = false;
@@ -4179,10 +4190,23 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
     this.clientDetails = '';
     this.projectList = [];
     
-    const payload = {
+    const payload: any = {
       empId: this.timesheetObj.empId,
       projectId: this.timesheetObj.projectId
     };
+
+    // Add date filter to get only teams active on the selected date
+    if (this.timesheetObj.date) {
+      const dateMoment = moment(this.timesheetObj.date);
+      if (dateMoment.isValid()) {
+        payload.date = dateMoment.format('YYYY-MM-DD') + 'T00:00:00';
+      }
+    } else if (this.fromDate) {
+      const dateMoment = moment(this.fromDate);
+      if (dateMoment.isValid()) {
+        payload.date = dateMoment.format('YYYY-MM-DD') + 'T00:00:00';
+      }
+    }
 
     this.timesheetService.getClientDetailsByProjectIdAndEmpId(payload).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

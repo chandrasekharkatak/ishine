@@ -790,7 +790,7 @@
                 <td>{{ timesheet.appliedBy }}</td>
                 <td>{{ timesheet.appliedOn }}</td>
                 <td class="ts-actions-cell">
-                  <button type="button" class="ts-action-btn ts-doc-btn" (click)="openDocumentPopup(timesheet, null, true)" title="View all documents">
+                  <button type="button" class="ts-action-btn ts-doc-btn" *ngIf="timesheet.documentData.length > 0" (click)="openDocumentPopup(timesheet, null, true)" title="View all documents">
                     <i class="fa fa-eye"></i>
                   </button>
                   <button type="button" class="ts-action-btn ts-approve-btn" *ngIf="selectedStatus === 1"
@@ -840,14 +840,14 @@
                                   <i class="fa-solid fa-circle-info fa-bounce"></i>
                                 </button>
                                 <button type="button" class="btn btn-xs btn-outline-warning mr-2"
-                                  *ngIf="project.projectId"
-                                  (click)="openDocumentPopup(timesheet, 'Pending', false, project); $event.stopPropagation()"
+                                  *ngIf="project.projectId && hasPendingDoc(project.projectId)"
+                                  (click)="openDocumentPopup(timesheet, 'Pending', true, project); $event.stopPropagation()"
                                   title="View Filled Document">
                                   <i class="fa fa-eye"></i> Filled
                                 </button>
                                 <button type="button" class="btn btn-xs btn-outline-success mr-2"
-                                  *ngIf="project.projectId"
-                                  (click)="openDocumentPopup(timesheet, 'Approved', false, project); $event.stopPropagation()"
+                                  *ngIf="project.projectId && hasApprovedDoc(project.projectId)"
+                                  (click)="openDocumentPopup(timesheet, 'Approved', true, project); $event.stopPropagation()"
                                   title="View Approved Document">
                                   <i class="fa fa-eye"></i> Approved
                                 </button>

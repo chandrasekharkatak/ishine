@@ -1377,11 +1377,7 @@ public class TimesheetServiceNew {
 		if (entity.isEmpty()) {
 			return null;
 		}
-
-		// Mapper returns old DTO, convert to new DTO
 		EmployeeTimesheetDTO dTO = timesheetMapper.toDTO(entity.get());
-		System.out.println("**********TimesheetDtO**************");
-		System.out.println(dTO.toString());
 		return dTO;
 	}
 
@@ -1439,7 +1435,7 @@ public class TimesheetServiceNew {
 		List<EmployeeTimesheetLocationMapping> locationMappings = employeeTimesheetLocationMappingRepository
 				.findByTimesheetId(timesheetId);
 
-		// 3️⃣ Build location sessions (NEW CONTRACT)
+		// 3️ Build location sessions (NEW CONTRACT)
 		List<LocationSessionDTO> locationSessions = new ArrayList<>();
 
 		for (EmployeeTimesheetLocationMapping locationMapping : locationMappings) {
@@ -1458,7 +1454,7 @@ public class TimesheetServiceNew {
 					? locationMapping.getLocationOutTime().toLocalTime().toString()
 					: null);
 
-			// 4️⃣ Fetch projects for THIS location only (by locationMappingId) to avoid duplicate projects per location
+			// 4️ Fetch projects for THIS location only (by locationMappingId) to avoid duplicate projects per location
 			Long locationMappingId = locationMapping.getLocationMappingId();
 			List<ProjectTimesheetDTO> projects = projectTimesheetService
 					.findByTimesheetIdAndLocationMappingId(timesheetId, locationMappingId);
@@ -1467,7 +1463,7 @@ public class TimesheetServiceNew {
 
 			for (ProjectTimesheetDTO projectDTO : projects) {
 
-				// 5️⃣ Fetch activities for this project under THIS location only (by locationMappingId)
+				// 5️ Fetch activities for this project under THIS location only (by locationMappingId)
 				List<ActivityTimesheetDTO> activities = activityTimesheetService
 						.findByTimesheetIdAndLocationMappingIdAndProjectId(timesheetId, locationMappingId,
 								projectDTO.getProjectId());
