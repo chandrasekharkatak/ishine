@@ -7853,11 +7853,23 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	    	
 		    logBuilder.append("empId : " +timesheetDTO.getEmpId());
 		    logBuilder.append("projectId : " +timesheetDTO.getProjectId());
+		    logBuilder.append("date : " +timesheetDTO.getDate());
 	    	
 	    	Long empId = timesheetDTO.getEmpId();
 	    	Integer projectId = timesheetDTO.getProjectId();
+	    	LocalDateTime date = timesheetDTO.getDate();
 
-	        List<GetClientDetailsByProjectIdAndEmpIdDTO> flatList = employeeTeamMapRepository.getClientDetailsByProjectIdAndEmpId(projectId,empId); 
+	    	List<GetClientDetailsByProjectIdAndEmpIdDTO> flatList;
+	    	
+	    	if (date != null) {
+	    		LocalDate selectedDate = date.toLocalDate();
+	    		LocalDateTime startOfDay = selectedDate.atStartOfDay();
+	    		LocalDateTime endOfDay = selectedDate.atTime(LocalTime.MAX);
+	    		
+	    		flatList = employeeTeamMapRepository.getClientDetailsByProjectIdAndEmpIdForDate(projectId, empId, startOfDay, endOfDay);
+	    	} else {
+	    		flatList = employeeTeamMapRepository.getClientDetailsByProjectIdAndEmpId(projectId, empId);
+	    	} 
 
 	        if (flatList.isEmpty()) {
 	        	response.setServiceStatus(ServiceResponse.STATUS_FAIL);

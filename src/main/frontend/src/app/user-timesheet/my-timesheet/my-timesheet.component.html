@@ -75,6 +75,7 @@
                 [isCreation]="true"
                 [isUpdation]="false"
                 [selectedDate]="selectedDate"
+                [autoFillEmpId]="selectedEmpIdForCreate"
                 [timesheetId]="null"
                 (timesheetCreated)="resetTimesheetForm(); showViewMyTimesheets()"
                 (timesheetUpdated)="onTimesheetUpdated($event)"

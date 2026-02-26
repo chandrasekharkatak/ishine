@@ -613,6 +613,23 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 				+ "where p.projectId = :project_id AND etm.empId = :empId")
 		public List<GetClientDetailsByProjectIdAndEmpIdDTO> getClientDetailsByProjectIdAndEmpId(@Param("project_id")Integer projectId, 
 				@Param("empId")Long empId);
+
+		@Query(value = "SELECT distinct new com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO( c.clientId, "
+				+ "c.clientName, cl.clientLocationId, cl.clientLocation, t.projectId, p.projectName, t.teamName, t.teamId )\n"
+				+ "FROM Team t \n"
+				+ "INNER JOIN Project p ON p.projectId = t.projectId \n"
+				+ "INNER JOIN Client c ON c.clientId = p.clientId \n"
+				+ "INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId \n"
+				+ "INNER JOIN ClientLocation cl ON cl.clientId = c.clientId\n"
+				+ "WHERE p.projectId = :project_id AND etm.empId = :empId "
+				+ "AND etm.startDate <= :endOfDay "
+				+ "AND (etm.endDate IS NULL OR etm.endDate >= :startOfDay) "
+				+ "AND etm.active != 2")
+		public List<GetClientDetailsByProjectIdAndEmpIdDTO> getClientDetailsByProjectIdAndEmpIdForDate(
+				@Param("project_id") Integer projectId, 
+				@Param("empId") Long empId,
+				@Param("startOfDay") LocalDateTime startOfDay,
+				@Param("endOfDay") LocalDateTime endOfDay);
 		
 		@Query(value="SELECT etm \n"
 				+ "FROM EmployeeTeamMap etm \n"

@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -54,6 +55,7 @@ import com.apmosys.employeeportal.service.TimesheetService;
 import com.apmosys.employeeportal.service.TimesheetServiceNew;
 import com.apmosys.employeeportal.service.helper.TimesheetAggregationHelper;
 import com.apmosys.employeeportal.Exception.TimesheetValidationFailedException;
+import com.apmosys.employeeportal.repository.EmployeeClientSideIdMappingRepository;
 import com.apmosys.employeeportal.utility.DateConversionUtil;
 
 import lombok.extern.slf4j.Slf4j;
@@ -99,7 +101,8 @@ public class TimesheetValidationHelper {
     @Value("${app.team.fullPrivilegeRoleIds:1,13,15,53,78,93,111,115,120,143,144,145,146,152,170,177,178,183,187}")
     private String fullPrivilegeRoleIdsConfig;
     
-    
+    // @Autowired
+    // EmployeeClientSideIdMappingRepository employeeClientSideIdMappingRepository;
     /**
      * Validates employee authorization for creating/updating timesheet.
      * Uses optimized authorization check that avoids fetching all team members.
@@ -414,6 +417,9 @@ public class TimesheetValidationHelper {
 
             boolean isWorkingDay = isWorkingDay(empDTO);
             
+            if(isWorkingDay) {
+            	validateClientSideId(project.getClientSideId(), project.getProjectId());
+            }
             
             if (isWorkingDay) {
 
@@ -1984,7 +1990,26 @@ public class TimesheetValidationHelper {
 	
 	
 	
-	
+	public void validateClientSideId(String clientSideId,Integer projectId) {
+		try {
+//			String clientSideId,Integer projectId;
+//			dto.getLocationSessions().forEach(p->p.getProjects());
+            if(projectId == null){
+                throw new TimesheetValidationFailedException("Project Id is not available.");
+            }
+              Boolean isClientIdneeded = projectRepository.getClientSideIdMandatory(projectId);
+              if(Boolean.TRUE.equals(isClientIdneeded)) {
+                  if (clientSideId == null || clientSideId.isEmpty()) {
+                      throw new TimesheetValidationFailedException("Client side ID is required for this project.");
+                  }
+              }
+			
+
+		} catch(DataAccessException ex) {
+            throw new RuntimeException("Database error while validating Client Side ID.", ex);
+			
+		}
+	}
 
 	    
 }
