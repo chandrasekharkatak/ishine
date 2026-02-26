@@ -159,9 +159,9 @@ public class ProjectController {
 	}
 	
 	@PostMapping(value = "/poProjectTimesheetSync")
-	public ServiceResponse poProjectTimesheetSync(HttpServletRequest httpRequest,@RequestBody Set<Long> projectIdList) {
+	public ServiceResponse poProjectTimesheetSync(HttpServletRequest httpRequest,@RequestBody Set<Long> poIdList) {
 		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
-		return projectService.poProjectTimesheetSync(projectIdList);
+		return projectService.poProjectTimesheetSync(poIdList);
 	}
 
 	@Encrypted
