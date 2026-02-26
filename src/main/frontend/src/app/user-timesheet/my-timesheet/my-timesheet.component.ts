@@ -683,7 +683,7 @@ get tooltipCta(): string {
 
     // Clear update-mode state so Create form is clean (no previous timesheet data)
     this.selectedTimesheetId = null;
-    this.selectedDate = undefined;
+    this.selectedDate = this.isAutoFilled ? this.selectedDate : undefined;
 
     this.rawObjectUrl1 = null;
     this.previewUrl1 = null;

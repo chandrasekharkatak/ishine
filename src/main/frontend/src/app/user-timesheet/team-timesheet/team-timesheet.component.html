@@ -840,14 +840,14 @@
                                   <i class="fa-solid fa-circle-info fa-bounce"></i>
                                 </button>
                                 <button type="button" class="btn btn-xs btn-outline-warning mr-2"
-                                  *ngIf="project.projectId"
-                                  (click)="openDocumentPopup(timesheet, 'Pending', false, project); $event.stopPropagation()"
+                                  *ngIf="project.projectId && hasPendingDoc(project.projectId)"
+                                  (click)="openDocumentPopup(timesheet, 'Pending', true, project); $event.stopPropagation()"
                                   title="View Filled Document">
                                   <i class="fa fa-eye"></i> Filled
                                 </button>
                                 <button type="button" class="btn btn-xs btn-outline-success mr-2"
-                                  *ngIf="project.projectId"
-                                  (click)="openDocumentPopup(timesheet, 'Approved', false, project); $event.stopPropagation()"
+                                  *ngIf="project.projectId && hasApprovedDoc(project.projectId)"
+                                  (click)="openDocumentPopup(timesheet, 'Approved', true, project); $event.stopPropagation()"
                                   title="View Approved Document">
                                   <i class="fa fa-eye"></i> Approved
                                 </button>
