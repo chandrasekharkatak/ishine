@@ -2384,7 +2384,7 @@ public class ProjectService {
 
 					if (object[5] != null) {
 						PoEmployeeTimesheetSyncDTO empDTO = new PoEmployeeTimesheetSyncDTO();
-						empDTO.setEmployeementId(parseLong(object[6]));
+						empDTO.setEmployeeMentId(parseLong(object[6]));
 						empDTO.setEmployeeName(toStr(object[7]));
 						empDTO.setCurrentStatus(toStr(object[8]));
 						empDTO.setStartDate(toTimestamp(object[9]));
