@@ -79,4 +79,7 @@ public interface TrainingConsentRepository extends JpaRepository<TrainingConsent
 		   "ORDER BY tc.consentTimestamp DESC")
 	List<TrainingConsent> findByEmpIdAndTrainingId(@Param("empId") Long empId, 
 																	@Param("trainingId") Integer trainingId);
+	@Query("select tc from TrainingConsent tc\n" +
+				"where tc.trainingContent.activeStatus = 'true' and tc.trainingMaster.trainingId IN :trainingIds and tc.empId = :empId")
+	List<TrainingConsent> findByEmpIdAndTrainingIdsIn(@Param("empId") Long empId, @Param("trainingIds") List<Integer> trainingId);
 }

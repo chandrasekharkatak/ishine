@@ -228,6 +228,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 		
 		try {
 			Optional<TrainingMaster> trainingOpt = trainingMasterRepository.findByTrainingId(skipDTO.getTrainingId());
+			Long activeQuizId = trainingQuizMappingRepository.findActiveSurveyIdByTraining(skipDTO.getTrainingId());
 			
 			if (trainingOpt.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -265,7 +266,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 			Optional<TrainingSkip> skipOpt = trainingSkipRepository.findByEmpIdAndTrainingIdAndCycleNumber(
 				skipDTO.getEmpId(),
 				skipDTO.getTrainingId(),
-				skipDTO.getQuizId(),
+				activeQuizId,
 				cycleNumber
 			);
 			
@@ -274,20 +275,22 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 				// Update existing record
 				skip = skipOpt.get();
 				skip.setSkipCount(skip.getSkipCount() + 1);
+				skip.setQuizId(activeQuizId);
 				// last_skipped_on will be auto-updated by database
 			} else {
 				// Create new record
 				skip = new TrainingSkip();
 				skip.setTrainingMaster(training);
 				skip.setEmpId(skipDTO.getEmpId());
+				skip.setQuizId(activeQuizId);
 				skip.setCycleNumber(cycleNumber);
 				skip.setSkipCount(1);
 			}
 			
-			TrainingSkip savedSkip = trainingSkipRepository.save(skip);
+			trainingSkipRepository.save(skip);
 			
 			// Check lock status
-			LockStatusDTO lockStatus = getLockStatusInternal(skipDTO.getEmpId());
+			getLockStatusInternal(skipDTO.getEmpId());
 			
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Training skipped successfully");
@@ -463,6 +466,8 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 			List<Integer> allTrainingsWithQuiz = employeeQuizResponseStatusMappingRepository.getTrainingIdsHavingQuiz(allActiveTrainings.stream().map(TrainingMaster::getTrainingId).collect(Collectors.toList()));
 
 			List<TrainingIdResponsePassStatusDTO> alreadyAttemptedQuizes = employeeQuizResponseStatusMappingRepository.getTrainingIdsHavingQuizAndEmpId(allTrainingsWithQuiz, empId);
+
+			List<TrainingConsent> alreadySeenContent = trainingConsentRepository.findByEmpIdAndTrainingIdsIn(empId, allActiveTrainings.stream().map(TrainingMaster::getTrainingId).collect(Collectors.toList()));
 			
 			List<UserTrainingDTO> userTrainings = new ArrayList<>();
 			
@@ -478,6 +483,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 				userTraining.setSkipAllowed(training.getSkipAllowed());
 				userTraining.setRequiredFrequency(calculateTotalFrequency(training));
 				userTraining.setHasQuiz(allTrainingsWithQuiz.contains(training.getTrainingId()));
+				userTraining.setHasSeenContent(alreadySeenContent.stream().anyMatch(e -> e.getTrainingMaster().getTrainingId().equals(training.getTrainingId())));
 				userTraining.setQuizAttempted(alreadyAttemptedQuizes.stream().anyMatch(e -> e.getTrainingId().equals(training.getTrainingId())));
 				
 				// Calculate completion count
@@ -528,19 +534,19 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 				if (consentOpt.isPresent()) {
 					status = "COMPLETED";
 					// Get last completed date (most recent consent)
-					List<TrainingConsent> allConsents = trainingConsentRepository.findByEmpIdAndTrainingIdAndQuizId(empId, training.getTrainingId(), activeQuizId);
-					if (!allConsents.isEmpty()) {
-						// List is already sorted DESC by consentTimestamp, so first element is most recent
-						TrainingConsent mostRecentConsent = allConsents.get(0);
-						if (mostRecentConsent != null && mostRecentConsent.getConsentTimestamp() != null) {
-							LocalDate lastCompleted = mostRecentConsent.getConsentTimestamp()
-							                .toLocalDateTime()
-							                .toLocalDate();
+					// List<TrainingConsent> allConsents = trainingConsentRepository.findByEmpIdAndTrainingIdAndQuizId(empId, training.getTrainingId(), activeQuizId);
+					// if (!allConsents.isEmpty()) {
+					// 	// List is already sorted DESC by consentTimestamp, so first element is most recent
+					// 	TrainingConsent mostRecentConsent = allConsents.get(0);
+					// 	if (mostRecentConsent != null && mostRecentConsent.getConsentTimestamp() != null) {
+					// 		LocalDate lastCompleted = mostRecentConsent.getConsentTimestamp()
+					// 		                .toLocalDateTime()
+					// 		                .toLocalDate();
 
 
-							userTraining.setLastCompletedOn(lastCompleted);
-						}
-					}
+					// 		userTraining.setLastCompletedOn(lastCompleted);
+					// 	}
+					// }
 				} else if (skipOpt.isPresent()) {
 					status = "SKIPPED";
 					TrainingSkip skip = skipOpt.get();
@@ -550,7 +556,9 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 				} else {
 					status = "PENDING";
 
-					List<TrainingConsent> allConsents = trainingConsentRepository.findByEmpIdAndTrainingIdAndQuizId(empId, training.getTrainingId(), activeQuizId);
+					
+				}
+				List<TrainingConsent> allConsents = trainingConsentRepository.findByEmpIdAndTrainingIdAndQuizId(empId, training.getTrainingId(), activeQuizId);
 					if (!allConsents.isEmpty()) {
 						// List is already sorted DESC by consentTimestamp, so first element is most recent
 						TrainingConsent mostRecentConsent = allConsents.get(0);
@@ -563,7 +571,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 							userTraining.setLastCompletedOn(lastCompleted);
 						}
 					}
-				}
+				
 				userTraining.setStatus(status);
 				
 				// Calculate deadline

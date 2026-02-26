@@ -847,7 +847,7 @@ public class SurveyServiceImpl implements SurveyService {
 
 			List<Object[]> objectList = new ArrayList<>();
 
-			if(surveyDTO.getType().equalsIgnoreCase("quiz")){
+			if(surveyDTO.getType() != null && surveyDTO.getType().equalsIgnoreCase("quiz")){
 				objectList = surveyEmployeeResponseRepository
 						.getAllQuizResponsesByQuizId(surveyDTO.getSurveyId());
 			} else {
@@ -878,8 +878,12 @@ public class SurveyServiceImpl implements SurveyService {
 						dto.setIsConsultant(object[7] != null ? object[7].toString() : null);
 						dto.setIsApprentice(object[8] != null ? object[8].toString() : null);
 						dto.setIsApmosysProduct(object[9] != null ? object[9].toString() : null);
-						dto.setMarksObtained(object[10] != null ? Integer.parseInt(object[10].toString()) : null);
-						dto.setPassStatus(object[11] != null ? object[11].toString() : null);
+						if(surveyDTO.getType() != null && surveyDTO.getType().equalsIgnoreCase("quiz")){
+							dto.setMarksObtained(object[10] != null ? Integer.parseInt(object[10].toString()) : null);
+							dto.setPassStatus(object[11] != null ? object[11].toString() : null);
+							// dto.setCuttOffQuestions(object[12] != null ? Integer.parseInt(object[12].toString()) : null);
+							// dto.setCorrectAnswer(object[13] != null ? object[13].toString() : null);
+						}
 						
 						
 						 

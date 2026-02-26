@@ -306,22 +306,36 @@
                                 <div class="card-body">
                                     <!-- Filter -->
                                     <div class="row mb-4">
-                                        <div class="col-md-6">
+                                        <div class="col-md-6 d-flex align-items-center gap-2">
                                             <div class="input-group">
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text"><i class="fas fa-search"></i></span>
                                                 </div>
                                                 <input type="text" 
                                                        class="form-control" 
-                                                       placeholder="Search by name, type, or status..."
+                                                       placeholder="Search by name, type..."
                                                        [(ngModel)]="allTrainingsFilter"
                                                        (input)="applyAllTrainingsFilter()">
                                             </div>
+                                                <div class="filter-select-wrapper">
+                                                    <select name="allTrainingsFilter" 
+                                                            id="allTrainingsFilter"
+                                                            [(ngModel)]="selectedFilterStatus"
+                                                            (change)="applyFilterByStatus()">
+                                                        <option value="ALL">All Trainings</option>
+                                                        <option value="PENDING">Pending</option>
+                                                        <option value="COMPLETED">Completed</option>
+                                                        <option value="SKIPPED">Skipped</option>
+                                                    </select>
+                                                    <i class="fas fa-chevron-down select-arrow"></i>
+                                            </div>
                                         </div>
                                         <div class="col-md-6 text-right">
-                                            <small class="text-muted">
-                                                Showing {{getPaginatedAllTrainings().length}} of {{allTrainingsFiltered.length}} trainings
-                                            </small>
+                                                <div class="filter-info d-flex gap-2">
+                                                    <span class="badge badge-warning">{{getCountByStatus('PENDING')}} Pending</span>
+                                                    <span class="badge badge-success">{{getCountByStatus('COMPLETED')}} Completed</span>
+                                                    <span class="badge badge-info">{{getCountByStatus('SKIPPED')}} Skipped</span>
+                                                </div>
                                         </div>
                                     </div>
 
@@ -801,7 +815,7 @@
                                     <span class="badge badge-info">{{contentFormData.contentType}}</span>
                                     <span class="ml-2">Size: {{fileSize.toFixed(2)}} MB</span>
                                 </p>
-                                <div class="alert alert-info" *ngIf="file?.name.toLowerCase().endsWith('.ppt')">
+                                <div class="alert alert-info" *ngIf="file?.name?.toLowerCase()?.endsWith('.ppt')">
                                     <i class="fas fa-info-circle mr-2"></i>
                                     <strong>Legacy PPT format detected.</strong> For better preview, please use PPTX format (.pptx).
                                 </div>
@@ -846,35 +860,38 @@
             </div>
 
             <!-- Timer Display (for pending or skipped trainings) -->
-            <div class="text-center mb-3" *ngIf="(viewingTraining.status === 'PENDING' || viewingTraining.status === 'SKIPPED') && viewingTraining.minViewTimeMinutes && viewingTraining.minViewTimeMinutes > 0">
-                <div class="timer-display">
-                    <div class="timer-label">Viewing Time</div>
-                    <div class="timer-value" [ngClass]="{'timer-complete': minTimeReached}">
-                        {{elapsedTimeDisplay}}
-                    </div>
-                    <div class="timer-progress">
-                        <div class="progress" style="height: 10px;">
-                            <div class="progress-bar" 
-                                 [ngClass]="{'bg-success': minTimeReached, 'bg-warning': !minTimeReached}"
-                                 [style.width.%]="getProgressPercentageForModal()">
+             @if (!viewingTraining.hasSeenContent){
+                <div class="text-center mb-3" *ngIf="(viewingTraining.status === 'PENDING' || viewingTraining.status === 'SKIPPED') && viewingTraining.minViewTimeMinutes && viewingTraining.minViewTimeMinutes > 0">
+                    <div class="timer-display">
+                        <div class="timer-label">Viewing Time</div>
+                        <div class="timer-value" [ngClass]="{'timer-complete': minTimeReached}">
+                            {{elapsedTimeDisplay}}
+                        </div>
+                        <div class="timer-progress">
+                            <div class="progress" style="height: 10px;">
+                                <div class="progress-bar" 
+                                    [ngClass]="{'bg-success': minTimeReached, 'bg-warning': !minTimeReached}"
+                                    [style.width.%]="getProgressPercentageForModal()">
+                                </div>
                             </div>
                         </div>
+                        <small class="text-muted" *ngIf="!minTimeReached">
+                            Minimum {{viewingTraining.minViewTimeMinutes}} minutes required
+                        </small>
+                        <small class="text-success" *ngIf="minTimeReached">
+                            <i class="fas fa-check-circle"></i> Minimum time completed
+                        </small>
                     </div>
-                    <small class="text-muted" *ngIf="!minTimeReached">
-                        Minimum {{viewingTraining.minViewTimeMinutes}} minutes required
-                    </small>
-                    <small class="text-success" *ngIf="minTimeReached">
-                        <i class="fas fa-check-circle"></i> Minimum time completed
-                    </small>
                 </div>
-            </div>
+            }
 
             <!-- Action Buttons -->
+            <!-- *ngIf="(!viewingTraining.hasSeenContent || !viewingTraining.hasQuiz) && (viewingTraining.status === 'PENDING' || viewingTraining.status === 'SKIPPED')" -->
             <div class="text-center mt-4">
                 <button type="button" 
                         class="btn btn-success btn-lg px-5"
-                        *ngIf="(viewingTraining.status === 'PENDING' || viewingTraining.status === 'SKIPPED') && ((viewingTraining.lastCompletedOn != null && viewingTraining.status === 'PENDING') || !viewingTraining.hasQuiz)"
                         [disabled]="!consentButtonEnabled"
+                        *ngIf="canSubmitConsent()"
                         (click)="onSubmitConsentForModal()">
                     <i class="fas fa-check-circle mr-2"></i>
                     Submit Consent
@@ -893,10 +910,11 @@
                     <i class="fas fa-times mr-2"></i>
                     Close
                 </button>
+                <!-- *ngIf="viewingTraining.hasSeenContent && (viewingTraining.hasQuiz && !viewingTraining.quizAttempted) && viewingTraining.lastCompletedOn == null" -->
                 <button type="button" 
-                        [disabled]="!quizButtonEnabled"
+                        [disabled]="!viewingTraining.hasSeenContent && !quizButtonEnabled"
                         class="btn btn-success btn-lg px-5 ml-2"
-                        *ngIf="viewingTraining.lastCompletedOn == null && viewingTraining.hasQuiz && !viewingTraining.quizAttempted"
+                        *ngIf="canShowGoToQuiz()"
                         (click)="goToQuiz()">
                     <i class="fas fa-quiz mr-2"></i>
                     Got To Quiz

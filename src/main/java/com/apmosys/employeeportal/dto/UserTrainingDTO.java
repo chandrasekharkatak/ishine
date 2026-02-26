@@ -30,4 +30,5 @@ public class UserTrainingDTO {
 	private Integer skipCount;
 	private Boolean hasQuiz;
 	private Boolean quizAttempted;
+	private Boolean hasSeenContent;
 }

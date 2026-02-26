@@ -1,4 +1,4 @@
-import { LocationStrategy } from '@angular/common';
+import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnInit, TemplateRef } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -93,6 +93,7 @@ export class SurveyConfigComponent implements OnInit {
     private route: ActivatedRoute,
     private utilityService: UtilityService,
     private trainingService: TrainingService,
+    private datePipe: DatePipe
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -435,7 +436,7 @@ export class SurveyConfigComponent implements OnInit {
       if (response.serviceStatus == "Success") {
        this.allSurveyList = response.serviceResponse;
        this.allSurveyList.forEach(survey => {
-         survey.createdOn = (survey.createdOn)? moment(survey.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
+
          survey.emp360CreatedBy = survey.createdBy;
          survey.emp360UpdatedBy = survey.updatedBy;
 
@@ -483,7 +484,10 @@ export class SurveyConfigComponent implements OnInit {
 
   async getAllSurveyResponsesBySurveyId(surveyObj:Survey){
     this.allSurveyResponseList = []
-    this.responseListTableHeaders = ["Employee ID", "Employee Name", "Marks Obtained", "Pass Status"];
+    this.responseListTableHeaders = ["Employee ID", "Employee Name"];
+    if(this.isFromTraining){
+      this.responseListTableHeaders.push("Marks Obtained", "Pass Status");
+    }
     this.surveyObj = surveyObj;
 
     let questionsList:any[] = [];
@@ -519,7 +523,7 @@ export class SurveyConfigComponent implements OnInit {
         console.log("response : ", response);
         
          if(this.isFromTraining){
-            return [ response.employmentIdAccToET, response.name,response.marksObtained, response.passStatus]
+            return [ response.employmentIdAccToET, response.name,response.marksObtained+"%", response.passStatus]
           } else {
             return [ response.employmentIdAccToET, response.name]
           }
@@ -727,7 +731,10 @@ export class SurveyConfigComponent implements OnInit {
   name = 'EmployeeSheet.xlsx';
   async exportToExcel(): Promise<void> {
 
-    let headers:any[] = ["Employee ID", "Employee Name", "Marks Obtained", "Pass Status"];
+    let headers:any[] = ["Employee ID", "Employee Name"];
+    if(this.isFromTraining){
+      headers.push("Marks Obtained", "Pass Status");
+    }
     let questionsList:any[] = [];
     let responseList:any[] = [];
     let dataForExcel:any[] = [];
@@ -870,6 +877,31 @@ export class SurveyConfigComponent implements OnInit {
   onSearch(searchData: any){
     this.filters = searchData || {};
     //console.log("Updated Filter : ", this.filters);
+  }
+
+  convertWithMoment(dateString: string, format?: string): string | null {
+    if (!dateString) return null;
+    
+    try {
+      const momentDate = moment(dateString);
+      
+      
+      if (!momentDate.isValid()) {
+        console.error('Invalid date string:', dateString);
+        return null;
+      }
+      
+      // Default format if none provided
+      const dateFormat = format || 'MMM DD, YYYY, hh:mm A';
+      
+      
+      const date = momentDate.format(dateFormat);
+      return date;
+      
+    } catch (error) {
+      console.error('Error converting date with moment:', error);
+      return null;
+    }
   }
 
 }

@@ -608,7 +608,7 @@
                                     </span>
                                 </td>
                                 <td>{{training.createdByName}}</td>
-                                <td>{{training.createdOn}}</td>
+                                <td>{{training.createdOn | date: 'medium'}}</td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary mx-1" 
                                             (click)="onEditTraining(training)" title="Edit">

@@ -1,4 +1,4 @@
-import { LocationStrategy } from '@angular/common';
+import { DatePipe, LocationStrategy } from '@angular/common';
 import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -132,7 +132,8 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     private modalService: NgbModal,
     private trainingService: TrainingService,
     private sanitizer: DomSanitizer,
-    private router: Router
+    private router: Router,
+    private date: DatePipe
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }

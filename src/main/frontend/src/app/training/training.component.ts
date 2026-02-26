@@ -70,6 +70,8 @@ export class TrainingComponent implements OnInit, OnDestroy {
   showQuizSubmitComponent: boolean = false;
   isLoadingPPTX: boolean = false;
   isFullscreen: boolean = false;
+  selectedFilterStatus: string = 'ALL';
+  filteredTrainingsByStatus: any[] = [];
 
   contentFormData: any = {
     contentType: ''
@@ -216,8 +218,8 @@ export class TrainingComponent implements OnInit, OnDestroy {
       const filterLower = this.allTrainingsFilter.toLowerCase().trim();
       this.allTrainingsFiltered = this.allTrainings.filter(t => 
         (t.trainingName && t.trainingName.toLowerCase().includes(filterLower)) ||
-        (t.trainingType && t.trainingType.toLowerCase().includes(filterLower)) ||
-        (t.status && t.status.toLowerCase().includes(filterLower))
+        (t.trainingType && t.trainingType.toLowerCase().includes(filterLower)) 
+        // (t.status && t.status.toLowerCase().includes(filterLower))
       );
     }
     // Reset to first page when filter changes
@@ -396,7 +398,8 @@ export class TrainingComponent implements OnInit, OnDestroy {
     const skipData = {
       trainingId: this.pendingTraining.trainingId,
       empId: this.currentUser.empId,
-      cycleNumber: this.pendingTraining.currentCycleNumber
+      cycleNumber: this.pendingTraining.currentCycleNumber,
+      quizId: this.pendingTraining.quizId
     };
 
     this.trainingService.skipTraining(skipData).pipe(first()).subscribe((response: any) => {
@@ -463,14 +466,17 @@ export class TrainingComponent implements OnInit, OnDestroy {
     if (training.status === 'COMPLETED') {
       this.minTimeReached = true;
       this.consentButtonEnabled = false;
+      this.quizButtonEnabled = false;
     } else {
       // For pending or skipped trainings: check if timer needed
-      if (training.minViewTimeMinutes && training.minViewTimeMinutes > 0) {
+      if (!training.hasSeenContent && training.minViewTimeMinutes && training.minViewTimeMinutes > 0) {
         this.startTimerForViewing(training.minViewTimeMinutes);
       } else {
         this.minTimeReached = true;
         if (training.consentRequired === 'true') {
           this.consentButtonEnabled = true;
+        } else if(training.hasQuiz){
+          this.quizButtonEnabled = true;
         }
       }
     }
@@ -1256,5 +1262,87 @@ ngOnDestroy() {
     this.modalRef = null;
   }
 }
+
+    // Add these methods
+    setFilter(status: string) {
+        this.selectedFilterStatus = status;
+        this.applyFilterByStatus();
+    }
+
+    applyFilterByStatus() {
+        if (this.selectedFilterStatus === 'ALL') {
+            this.allTrainingsFiltered = [...this.allTrainings];
+        } else {
+            this.allTrainingsFiltered = this.allTrainings.filter(t => 
+                t.status === this.selectedFilterStatus
+            );
+        }
+        
+        // Apply text search filter on top of status filter
+        if (this.allTrainingsFilter && this.allTrainingsFilter.trim() !== '') {
+            const filterLower = this.allTrainingsFilter.toLowerCase().trim();
+            this.allTrainingsFiltered = this.allTrainingsFiltered.filter(t => 
+                (t.trainingName && t.trainingName.toLowerCase().includes(filterLower)) ||
+                (t.trainingType && t.trainingType.toLowerCase().includes(filterLower))
+            );
+        }
+        
+        // Reset to first page
+        this.allTrainingsPage = 1;
+    }
+
+    getCountByStatus(status: string): number {
+        return this.allTrainings.filter(t => t.status === status).length;
+    }
+
+    applyAllTrainingsFilterStatus() {
+        this.allTrainingsFilter = "";
+        let filtered = this.allTrainings;
+        
+        if (this.selectedFilterStatus !== 'ALL') {
+            filtered = filtered.filter(t => t.status === this.selectedFilterStatus);
+        }
+        
+        if (this.allTrainingsFilter && this.allTrainingsFilter.trim() !== '') {
+            const filterLower = this.allTrainingsFilter.toLowerCase().trim();
+            filtered = filtered.filter(t => 
+                (t.trainingName && t.trainingName.toLowerCase().includes(filterLower)) ||
+                (t.trainingType && t.trainingType.toLowerCase().includes(filterLower))
+            );
+        }
+        
+        this.allTrainingsFiltered = filtered;
+        this.allTrainingsPage = 1;
+    }
+
+    canSubmitConsent():boolean{
+      if(this.viewingTraining.status.toLowerCase() == 'completed'){
+        return false;
+      }
+
+      if(!this.viewingTraining.hasSeenContent){
+        if(!this.viewingTraining.hasQuiz){
+          return true;
+        } else if(this.viewingTraining.hasQuiz && this.viewingTraining.quizAttempted){
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    canShowGoToQuiz():boolean{
+      if(this.viewingTraining.status.toLowerCase() == 'completed'){
+        return false;
+      }
+
+      if(!this.viewingTraining.hasQuiz){
+        return false;
+      } else if(this.viewingTraining.hasQuiz && !this.viewingTraining.quizAttempted){
+        return true;
+      }
+
+      return false;
+    }
 
 }
