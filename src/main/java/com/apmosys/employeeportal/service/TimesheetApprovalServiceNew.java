@@ -543,7 +543,7 @@ public class TimesheetApprovalServiceNew {
 
 	            for (Long projectId : projectIds) {
 
-	                Long locationMappingId = projectTimesheetStatusNewRepository
+	                List<Long> locationMappingIds = projectTimesheetStatusNewRepository
 	                        .findLocationMappingId(timesheetId, projectId.intValue());
 
 	                projectTimesheetStatusNewRepository
@@ -557,6 +557,7 @@ public class TimesheetApprovalServiceNew {
 	                audit.setActionOn(now);
 	                auditList.add(audit);
 
+				for (Long locationMappingId : locationMappingIds) {
 	                for (Long rejectionId : rejectionIds) {
 	                    TimesheetRejectionDetailsNew rejection = new TimesheetRejectionDetailsNew();
 	                    rejection.setTimesheetId(timesheetId);
@@ -569,6 +570,7 @@ public class TimesheetApprovalServiceNew {
 	                    rejectionList.add(rejection);
 	                }
 	            }
+			}
 	        }
 	    }
 

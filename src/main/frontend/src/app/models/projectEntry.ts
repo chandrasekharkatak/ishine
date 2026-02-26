@@ -16,8 +16,8 @@ export class ProjectEntry {
   shadowForList:any[];
   activities: ActivityNew[];
   projectActivities?: any[]; // Activities loaded for the project (shared by all activities)
-  clientList?: any[]; // Clients for this project
-  clientLocationList?: any[]; // Client locations for this project
+  clientList: any[]=[]; // Clients for this project
+  clientLocationList: any[]=[]; // Client locations for this project
   projectList?: any[]; // Teams for this project
   timesheetId?: number;
   poNo?: string;

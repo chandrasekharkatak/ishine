@@ -715,59 +715,59 @@ public class TimesheetServiceNew {
 	/**
 	 * API 1.7: Update Timesheet Status
 	 */
-	@Transactional(rollbackFor = Exception.class)
-	public ServiceResponse updateTimesheetStatus(Long timesheetId, Integer projectId, Integer status, Long updatedBy) {
-		ServiceResponse response = new ServiceResponse();
+	// @Transactional(rollbackFor = Exception.class)
+	// public ServiceResponse updateTimesheetStatus(Long timesheetId, Integer projectId, Integer status, Long updatedBy) {
+	// 	ServiceResponse response = new ServiceResponse();
 
-		try {
-			if (timesheetId == null || projectId == null || status == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Timesheet ID, Project ID, and Status are required");
-				return response;
-			}
+	// 	try {
+	// 		if (timesheetId == null || projectId == null || status == null) {
+	// 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	// 			response.setServiceResponse("Timesheet ID, Project ID, and Status are required");
+	// 			return response;
+	// 		}
 
-			if (updatedBy == null) {
-				updatedBy = getCurrentUserId();
-			}
+	// 		if (updatedBy == null) {
+	// 			updatedBy = getCurrentUserId();
+	// 		}
 
-			// Update project status (using old DTO from service)
-			ProjectTimesheetDTO projectDTO = projectTimesheetService.findByTimesheetIdAndProjectId(timesheetId,
-					projectId);
-			if (projectDTO == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("ProjectTimesheet not found");
-				return response;
-			}
+	// 		// Update project status (using old DTO from service)
+	// 		ProjectTimesheetDTO projectDTO = projectTimesheetService.findByTimesheetIdAndProjectId(timesheetId,
+	// 				projectId);
+	// 		if (projectDTO == null) {
+	// 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	// 			response.setServiceResponse("ProjectTimesheet not found");
+	// 			return response;
+	// 		}
 
-			projectDTO.setStatus(status);
-			projectTimesheetService.update(projectDTO);
+	// 		projectDTO.setStatus(status);
+	// 		projectTimesheetService.update(projectDTO);
 
-			// Recalculate employee timesheet status
-			List<ProjectTimesheetDTO> allProjects = projectTimesheetService.findByTimesheetId(timesheetId);
+	// 		// Recalculate employee timesheet status
+	// 		List<ProjectTimesheetDTO> allProjects = projectTimesheetService.findByTimesheetId(timesheetId);
 
-			// Aggregation helper expects old DTOs (which we already have)
-			Integer calculatedStatus = aggregationHelper.calculateEmployeeTimesheetStatus(allProjects);
+	// 		// Aggregation helper expects old DTOs (which we already have)
+	// 		Integer calculatedStatus = aggregationHelper.calculateEmployeeTimesheetStatus(allProjects);
 
-			// Update employee timesheet status
-			Optional<EmployeeTimesheetsNew> empTSOpt = employeeTimesheetsNewRepository.findById(timesheetId);
-			if (empTSOpt.isPresent()) {
-				EmployeeTimesheetsNew empTS = empTSOpt.get();
-				empTS.setStatus(calculatedStatus);
-				employeeTimesheetsNewRepository.save(empTS);
-			}
+	// 		// Update employee timesheet status
+	// 		Optional<EmployeeTimesheetsNew> empTSOpt = employeeTimesheetsNewRepository.findById(timesheetId);
+	// 		if (empTSOpt.isPresent()) {
+	// 			EmployeeTimesheetsNew empTS = empTSOpt.get();
+	// 			empTS.setStatus(calculatedStatus);
+	// 			employeeTimesheetsNewRepository.save(empTS);
+	// 		}
 
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse("Timesheet status updated successfully");
+	// 		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	// 		response.setServiceResponse("Timesheet status updated successfully");
 
-		} catch (Exception e) {
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceError(e.getMessage());
-			e.printStackTrace();
-		}
+	// 	} catch (Exception e) {
+	// 		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	// 		response.setServiceResponse(ServiceResponse.SOMETHING_WENT_WRONG);
+	// 		response.setServiceError(e.getMessage());
+	// 		e.printStackTrace();
+	// 	}
 
-		return response;
-	}
+	// 	return response;
+	// }
 
 	/**
 	 * API 1.8: Delete Timesheet
@@ -810,108 +810,108 @@ public class TimesheetServiceNew {
 	/**
 	 * API 1.9: Delete Project from Timesheet
 	 */
-	@Transactional(rollbackFor = Exception.class)
-	public ServiceResponse deleteProjectFromTimesheet(Long timesheetId, Integer projectId) {
-		ServiceResponse response = new ServiceResponse();
+	// @Transactional(rollbackFor = Exception.class)
+	// public ServiceResponse deleteProjectFromTimesheet(Long timesheetId, Integer projectId) {
+	// 	ServiceResponse response = new ServiceResponse();
 
-		try {
-			if (timesheetId == null || projectId == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Timesheet ID and Project ID are required");
-				return response;
-			}
+	// 	try {
+	// 		if (timesheetId == null || projectId == null) {
+	// 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	// 			response.setServiceResponse("Timesheet ID and Project ID are required");
+	// 			return response;
+	// 		}
 
-			// Delete activities for this project
-			activityTimesheetService.deleteByTimesheetIdAndProjectId(timesheetId, projectId);
+	// 		// Delete activities for this project
+	// 		activityTimesheetService.deleteByTimesheetIdAndProjectId(timesheetId, projectId);
 
-			// Delete project
-			projectTimesheetService.delete(timesheetId, projectId);
+	// 		// Delete project
+	// 		projectTimesheetService.delete(timesheetId, projectId);
 
-			// Recalculate employee timesheet status
-			List<ProjectTimesheetDTO> remainingProjects = projectTimesheetService.findByTimesheetId(timesheetId);
+	// 		// Recalculate employee timesheet status
+	// 		List<ProjectTimesheetDTO> remainingProjects = projectTimesheetService.findByTimesheetId(timesheetId);
 
-			// Aggregation helper expects old DTOs (which we already have)
-			Integer calculatedStatus = aggregationHelper.calculateEmployeeTimesheetStatus(remainingProjects);
+	// 		// Aggregation helper expects old DTOs (which we already have)
+	// 		Integer calculatedStatus = aggregationHelper.calculateEmployeeTimesheetStatus(remainingProjects);
 
-			// Update employee timesheet status
-			Optional<EmployeeTimesheetsNew> empTSOpt = employeeTimesheetsNewRepository.findById(timesheetId);
-			if (empTSOpt.isPresent()) {
-				EmployeeTimesheetsNew empTS = empTSOpt.get();
-				empTS.setStatus(calculatedStatus);
-				employeeTimesheetsNewRepository.save(empTS);
-			}
+	// 		// Update employee timesheet status
+	// 		Optional<EmployeeTimesheetsNew> empTSOpt = employeeTimesheetsNewRepository.findById(timesheetId);
+	// 		if (empTSOpt.isPresent()) {
+	// 			EmployeeTimesheetsNew empTS = empTSOpt.get();
+	// 			empTS.setStatus(calculatedStatus);
+	// 			employeeTimesheetsNewRepository.save(empTS);
+	// 		}
 
-			timesheetDocumentService.deleteByProjectId(projectId.longValue());
+	// 		timesheetDocumentService.deleteByProjectId(projectId.longValue());
 
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse("Project deleted from timesheet successfully");
+	// 		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	// 		response.setServiceResponse("Project deleted from timesheet successfully");
 
-		} catch (Exception e) {
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceError(e.getMessage());
-			e.printStackTrace();
-		}
+	// 	} catch (Exception e) {
+	// 		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	// 		response.setServiceResponse(ServiceResponse.SOMETHING_WENT_WRONG);
+	// 		response.setServiceError(e.getMessage());
+	// 		e.printStackTrace();
+	// 	}
 
-		return response;
-	}
+	// 	return response;
+	// }
 
 	/**
 	 * API 1.10: Delete Activity from Timesheet
 	 */
-	@Transactional(rollbackFor = Exception.class)
-	public ServiceResponse deleteActivityFromTimesheet(Long id, Long timesheetId, Long activityId, Integer projectId) {
-		ServiceResponse response = new ServiceResponse();
+	// @Transactional(rollbackFor = Exception.class)
+	// public ServiceResponse deleteActivityFromTimesheet(Long id, Long timesheetId, Long activityId, Integer projectId) {
+	// 	ServiceResponse response = new ServiceResponse();
 
-		try {
-			if (timesheetId == null || activityId == null || projectId == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Timesheet ID, Activity ID, and Project ID are required");
-				return response;
-			}
+	// 	try {
+	// 		if (timesheetId == null || activityId == null || projectId == null) {
+	// 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	// 			response.setServiceResponse("Timesheet ID, Activity ID, and Project ID are required");
+	// 			return response;
+	// 		}
 
-			// Delete activity
-			activityTimesheetService.delete(id, timesheetId, activityId, projectId);
+	// 		// Delete activity
+	// 		activityTimesheetService.delete(id, timesheetId, activityId, projectId);
 
-			// Recalculate project totals (using old DTOs from service)
-			ProjectTimesheetDTO projectDTO = projectTimesheetService.findByTimesheetIdAndProjectId(timesheetId,
-					projectId);
-			if (projectDTO != null) {
-				List<ActivityTimesheetDTO> remainingActivities = activityTimesheetService
-						.findByTimesheetIdAndProjectId(timesheetId, projectId);
-				projectDTO.setActivities(remainingActivities);
-				projectTimesheetService.calculateProjectTotals(projectDTO);
-				projectTimesheetService.update(projectDTO);
-			}
+	// 		// Recalculate project totals (using old DTOs from service)
+	// 		ProjectTimesheetDTO projectDTO = projectTimesheetService.findByTimesheetIdAndProjectId(timesheetId,
+	// 				projectId);
+	// 		if (projectDTO != null) {
+	// 			List<ActivityTimesheetDTO> remainingActivities = activityTimesheetService
+	// 					.findByTimesheetIdAndProjectId(timesheetId, projectId);
+	// 			projectDTO.setActivities(remainingActivities);
+	// 			projectTimesheetService.calculateProjectTotals(projectDTO);
+	// 			projectTimesheetService.update(projectDTO);
+	// 		}
 
-			// Recalculate employee timesheet totals
-			EmployeeTimesheetDTO empDTO = findById(timesheetId);
-			List<ProjectTimesheetDTO> allProjects = projectTimesheetService.findByTimesheetId(timesheetId);
+	// 		// Recalculate employee timesheet totals
+	// 		EmployeeTimesheetDTO empDTO = findById(timesheetId);
+	// 		List<ProjectTimesheetDTO> allProjects = projectTimesheetService.findByTimesheetId(timesheetId);
 
-			// Convert to old DTOs for aggregation helper (helper expects old DTOs)
-			aggregationHelper.calculateAndSetEmployeeTimesheetTotals(empDTO);
+	// 		// Convert to old DTOs for aggregation helper (helper expects old DTOs)
+	// 		aggregationHelper.calculateAndSetEmployeeTimesheetTotals(empDTO);
 
-			// Update employee timesheet with calculated totals from old DTO
-			Optional<EmployeeTimesheetsNew> empTSOpt = employeeTimesheetsNewRepository.findById(timesheetId);
-			if (empTSOpt.isPresent()) {
-				EmployeeTimesheetsNew empTS = empTSOpt.get();
-				empTS.setTotalWorkingMinutes(empDTO.getTotalWorkingMinutes());
-				empTS.setStatus(empDTO.getStatus());
-				employeeTimesheetsNewRepository.save(empTS);
-			}
+	// 		// Update employee timesheet with calculated totals from old DTO
+	// 		Optional<EmployeeTimesheetsNew> empTSOpt = employeeTimesheetsNewRepository.findById(timesheetId);
+	// 		if (empTSOpt.isPresent()) {
+	// 			EmployeeTimesheetsNew empTS = empTSOpt.get();
+	// 			empTS.setTotalWorkingMinutes(empDTO.getTotalWorkingMinutes());
+	// 			empTS.setStatus(empDTO.getStatus());
+	// 			employeeTimesheetsNewRepository.save(empTS);
+	// 		}
 
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse("Activity deleted from timesheet successfully");
+	// 		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	// 		response.setServiceResponse("Activity deleted from timesheet successfully");
 
-		} catch (Exception e) {
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceError(e.getMessage());
-			e.printStackTrace();
-		}
+	// 	} catch (Exception e) {
+	// 		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	// 		response.setServiceResponse(ServiceResponse.SOMETHING_WENT_WRONG);
+	// 		response.setServiceError(e.getMessage());
+	// 		e.printStackTrace();
+	// 	}
 
-		return response;
-	}
+	// 	return response;
+	// }
 
 	/**
 	 * Update Timesheet (Full Update) Updates existing timesheet with new data from
@@ -1006,11 +1006,18 @@ public class TimesheetServiceNew {
 			}
 
 			timesheetStructureCleanupService.cleanTimesheetStructure(timesheetId, newEmpDTO.getLocationSessions());
+
 			Long currentUserId = getCurrentUserId();
 			Long updatedBy = currentUserId != null ? currentUserId
 					: (newEmpDTO.getUpdatedBy() != null ? newEmpDTO.getUpdatedBy() : newEmpDTO.getEmpId());
 			newEmpDTO.setUpdatedBy(updatedBy);
 			newEmpDTO.setUpdatedOn(LocalDateTime.now());
+
+			// Ensure shadowEmpId is populated for "Shadow For Self" projects on update.
+			// Emp selection:
+			// - If applied for SELF (empId == updatedBy)  -> shadowEmpId = empId
+			// - If applied for TEAM (empId != updatedBy) -> shadowEmpId = updatedBy (current user)
+			populateShadowEmpIdForShadowForSelf(newEmpDTO, updatedBy);
 
 			// Update basic fields (Note: empId and date should not change, but keeping for
 			// safety)
@@ -1127,6 +1134,45 @@ public class TimesheetServiceNew {
 					: (newEmpDTO.getUpdatedBy() != null ? newEmpDTO.getUpdatedBy() : newEmpDTO.getEmpId());
 			handleProjectsUnderLocationMapping(timesheetId, locationMapping.getLocationMappingId(),
 					locationDTO.getProjects(), createdBy);
+		}
+	}
+
+	/**
+	 * Populate shadowEmpId for projects marked as "Shadow For Self" when it is missing
+	 * in the incoming DTO (common in update flow).
+	 *
+	 * Emp selection logic (based on appliedFor = self / team):
+	 * - SELF  : empId == filledBy -> shadowEmpId = empId
+	 * - TEAM  : empId != filledBy -> shadowEmpId = filledBy (current user / creator)
+	 *
+	 * This ensures project_timesheet_status_new.shadow_emp_id is never left null
+	 * when isShadowForSelf is true.
+	 */
+	private void populateShadowEmpIdForShadowForSelf(EmployeeTimesheetDTO empDTO, Long filledByEmpId) {
+		if (empDTO == null || empDTO.getLocationSessions() == null || filledByEmpId == null) {
+			return;
+		}
+
+		Long ownerEmpId = empDTO.getEmpId();
+		// Decide whom to store as shadow based on appliedFor semantics
+		Long shadowEmpToSet;
+		if (ownerEmpId != null && ownerEmpId.equals(filledByEmpId)) {
+			// Applied for self: use employee's own empId
+			shadowEmpToSet = ownerEmpId;
+		} else {
+			// Applied for team: use the user who is filling/updating the timesheet
+			shadowEmpToSet = filledByEmpId;
+		}
+
+		for (LocationSessionDTO location : empDTO.getLocationSessions()) {
+			if (location.getProjects() == null) {
+				continue;
+			}
+			for (ProjectTimesheetDTO project : location.getProjects()) {
+				if (Boolean.TRUE.equals(project.getIsShadowForSelf()) && project.getShadowEmpId() == null) {
+					project.setShadowEmpId(shadowEmpToSet);
+				}
+			}
 		}
 	}
 
@@ -1251,14 +1297,14 @@ public class TimesheetServiceNew {
 				return; // No new files to upload; nothing to do
 			}
 			// Pass only the subset of docs that have new files (sizes match)
-			timesheetDocumentService.handleDocumentUpload(empTS, timesheetId, filesToUpload, toUpload);
+			timesheetDocumentService.handleDocumentUpload(empTS, timesheetId, filesToUpload, documentDataList, isUpdate);
 		} else {
 			// CREATE: strict match - every documentData entry must have a file
 			if (documents == null || documents.size() != documentDataList.size()) {
 				throw new TimesheetValidationFailedException(
 						"Please ensure all required documents are attached.");
 			}
-			timesheetDocumentService.handleDocumentUpload(empTS, timesheetId, documents, documentDataList);
+			timesheetDocumentService.handleDocumentUpload(empTS, timesheetId, documents, documentDataList, isUpdate);
 		}
 
 		// Process each document data entry
@@ -1893,7 +1939,6 @@ public class TimesheetServiceNew {
 			// both pending and rejected
 			List<TimesheetDocumentDetailsNew> timesheetDocumentDetailsNewList = timesheetDocumentDetailsNewRepository.getDocsByTimesheetIdsAndProjectId(timesheetIds, projectId);
 
-			List<FinalDocumentNew> finalDocumentNewListToSave = new ArrayList<>();
 			List<EmployeeTimesheetsNew> timesheetsToSave = new ArrayList<>();
 			List<ProjectTimesheetStatusNew> projectTimesheetStatusNewListToSave = new ArrayList<>();
 			List<TimesheetDocumentDetailsNew> timesheetDocumentDetailsNewListToSave = new ArrayList<>();
@@ -1937,7 +1982,6 @@ public class TimesheetServiceNew {
 			
 			
 			employeeTimesheetsNewRepository.saveAll(timesheetsToSave);
-			finalDocumentNewRepository.saveAll(finalDocumentNewListToSave);
 			projectTimesheetStatusNewRepository.saveAll(projectTimesheetStatusNewListToSave);
 			timesheetDocumentDetailsNewRepository.saveAll(timesheetDocumentDetailsNewListToSave);
 			

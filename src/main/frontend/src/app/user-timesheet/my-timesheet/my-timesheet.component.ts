@@ -238,8 +238,8 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
 
   previousFilledDocument: any;
   previousApprovedDocument: any;
-  minDate: string;
-  maxDate: string;
+  minDate: any;
+  maxDate: any;
   maxToDate: Date | null = null;
   disableList: any;
   disableListFormatted: Date[] = [];
@@ -330,6 +330,7 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
       if (params['date']) {
         this.isAutoFilled = true;
         this.selectedDate = new Date(params['date']);
+        console.log("selected date : ",this.selectedDate)
       }
       // if (this.isAutoFilled) {
       //   this.loadAutofillData()
@@ -683,7 +684,11 @@ get tooltipCta(): string {
 
     // Clear update-mode state so Create form is clean (no previous timesheet data)
     this.selectedTimesheetId = null;
-    this.selectedDate = undefined;
+    // IMPORTANT: do NOT clear selectedDate when coming from "create from home" (auto-filled via query param)
+    // so that it can be passed down to the child form for autofill.
+    if (!this.isAutoFilled) {
+      this.selectedDate = undefined;
+    }
 
     this.rawObjectUrl1 = null;
     this.previewUrl1 = null;
@@ -843,7 +848,7 @@ get tooltipCta(): string {
   }
 
    getMyProjectsInMonthYear() {
-  
+      this.timesheetObj.c
       this.timesheetObj.empId = this.currentUser.empId;
       this.timesheetService.getMyProjectsInMonthYear(this.timesheetObj).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus == "Success") {
@@ -879,6 +884,8 @@ get tooltipCta(): string {
 
     if (level === 'MONTH') {
       this.timesheetObj.projectId = null;
+      this.timesheetObj.clientInTime = null;
+      this.timesheetObj.clientOutTime = null;
       this.projectsInMonthYear = [];
     }
 

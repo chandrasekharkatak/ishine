@@ -101,9 +101,9 @@ public class TimesheetDocumentServiceNew {
     public void handleDocumentUpload(
             EmployeeTimesheetsNew empTs,
             Long timesheetId,
-            List<MultipartFile> documents, List<TimesheetDocumentDataDTO> documentDataList) {
+            List<MultipartFile> documents, List<TimesheetDocumentDataDTO> documentDataList, boolean isUpdate) {
 
-        if (documents.size() != documentDataList.size()) {
+        if (documents.size() != documentDataList.size() && !isUpdate) {
             throw new IllegalArgumentException("Please ensure all required documents are attached.");
         }
 
@@ -134,11 +134,11 @@ public class TimesheetDocumentServiceNew {
 
         for (TimesheetDocumentDataDTO approvedData : approvedDocs) {
             MultipartFile matchedFile = fileMap.get(approvedData.getUniqueIdentifier());
-            if (matchedFile == null) {
+            if (matchedFile == null && !isUpdate) {
                 throw new IllegalArgumentException(
                         "Document is missing: " + approvedData.getDocName());
             }
-            String storedFileName = uploadFile(matchedFile, approvedData.getUniqueIdentifier());
+            String storedFileName = matchedFile != null ? uploadFile(matchedFile, approvedData.getUniqueIdentifier()) : approvedData.getUniqueIdentifier();
 
             if (approvedData.getDocId() != null) {
                 // REPLACE: FinalDocumentNew may be shared by multiple TimesheetDocumentDetailsNew (same/different timesheets).
@@ -196,11 +196,11 @@ public class TimesheetDocumentServiceNew {
 
         for (TimesheetDocumentDataDTO filledData : filledDocs) {
             MultipartFile matchedFile = fileMap.get(filledData.getUniqueIdentifier());
-            if (matchedFile == null) {
+            if (matchedFile == null && !isUpdate) {
                 throw new IllegalArgumentException(
                         "Filled document is missing. Please upload the required document.");
             }
-            String storedFileName = uploadFile(matchedFile, filledData.getUniqueIdentifier());
+            String storedFileName = matchedFile!= null ? uploadFile(matchedFile, filledData.getUniqueIdentifier()) : filledData.getUniqueIdentifier();
 
             if (filledData.getDocId() != null) {
                 // REPLACE: update existing Filled row so the same document slot shows the new file

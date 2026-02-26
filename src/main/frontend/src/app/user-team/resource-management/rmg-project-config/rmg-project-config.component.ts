@@ -566,7 +566,8 @@ export class RmgProjectComponent implements OnInit {
 
 				this.markDefaultProjectCompletionList = teamMembers.filter(member => noOtherActiveAndCurrentIsDefaultProjectEmpIds.includes(member.empId));
 				this.mappingToOtherProjectAsDefaultList = teamMembers.filter(member => otherActiveAndCurrentIsDefaultProjectEmpIds.includes(member.empId));
-
+				
+				this.resetDefaultProjectCompletion(this.markDefaultProjectCompletionList);
 				this.mapProjectListToEmployees(this.mappingToOtherProjectAsDefaultList);
 
 				if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0) {
@@ -616,8 +617,10 @@ export class RmgProjectComponent implements OnInit {
 
 		this.markDefaultProjectCompletionList = selectedMembers.filter(member => noOtherActiveAndCurrentIsDefaultProjectEmpIds.includes(member.empId));
 		this.mappingToOtherProjectAsDefaultList = selectedMembers.filter(member => otherActiveAndCurrentIsDefaultProjectEmpIds.includes(member.empId));
-
+		
+		this.resetDefaultProjectCompletion(this.markDefaultProjectCompletionList);
 		this.mapProjectListToEmployees(this.mappingToOtherProjectAsDefaultList);
+		
 		if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0) {
 			this.openMarkDefaultProjectCompletionModal(false);
 			this.openMappingToOtherProjectAsDefaultModal(false);
@@ -749,6 +752,20 @@ export class RmgProjectComponent implements OnInit {
 			for (let emp of mappingToOtherProjectAsDefaultList) {
 				emp.selectedProject = new EmployeeOtherActiveProject();
 				emp.projectList = this.projectList.filter(p => emp?.otherActiveProjectIds?.includes(p.projectId));
+			}
+		}
+	}
+	
+	resetDefaultProjectCompletion(markDefaultProjectCompletionList: any[]) {
+		if (this.isValidList(markDefaultProjectCompletionList)) {
+			for (let emp of markDefaultProjectCompletionList) {
+				emp.projectType = null;
+				emp.projectId = null;
+				emp.poId = null;
+				emp.teamId = null;
+				emp.employeeRoles = null;
+				emp.empTeamDepartmentId = null;
+				emp.roleId = null;
 			}
 		}
 	}
@@ -1932,7 +1949,7 @@ export class RmgProjectComponent implements OnInit {
 	}
 
 	getResourceRequirementByTeamIdForEmployee(member: RmgTeamMember) {
-		if (this.isInternalProject) {
+		if (this.allNonBillableProjectTypes.includes(member.projectType?.toLowerCase())) {
 			return;
 		}
 		member.poRequirementMappingId = null;
@@ -1953,7 +1970,7 @@ export class RmgProjectComponent implements OnInit {
 	}
 
 	getResourceRequirementByTeamId() {
-		if (this.isInternalProject) {
+		if (this.allNonBillableProjectTypes.includes(this.defaultProjectObj.projectType?.toLowerCase())) {
 			return;
 		}
 		this.defaultProjectObj.poRequirementMappingId = null;

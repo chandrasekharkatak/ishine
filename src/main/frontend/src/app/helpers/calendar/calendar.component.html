@@ -127,7 +127,8 @@
   <div class="popup-container" *ngIf="isPopupVisible">
     <div class="popup-content">
       <div class="popup-header">
-        <p class="popup-date">Timesheet Details for {{popUpDate | date:'fullDate'}}</p>
+        <p class="popup-date">Timesheet Details for {{parseDateString(popUpDate) | date:'fullDate'}}</p>
+        <p class="popup-daytype">Day Type - {{dayType}}</p>
       </div>
       
       <div class="popup-body">
@@ -137,15 +138,29 @@
               {{ project.projectName }}
             </div>
             
-            <div *ngFor="let activity of project.activity; let j = index" class="popup-activity-item">
-              <div class="popup-activity" *ngIf="activity?.activityName">
-                • {{ activity.activityName }}
+            @if (project.activity.length > 0) {
+              <div *ngFor="let activity of project.activity; let j = index" class="popup-activity-item">
+                <div class="popup-activity" *ngIf="activity?.activityName">
+                  • {{ activity.activityName }}
+                </div>
+                <div class="popup-description" *ngIf="activity?.description">
+                  {{ activity.description }}
+                </div>
+                <hr class="popup-divider" *ngIf="j < project.activity.length - 1">
               </div>
-              <div class="popup-description" *ngIf="activity?.description">
-                {{ activity.description }}
-              </div>
-              <hr class="popup-divider" *ngIf="j < project.activity.length - 1">
-            </div>
+            } @else if (project.activity.length == 0 && project?.description) {
+              <div class="popup-description">
+                  {{ project.description }}
+                </div>
+            } @else if(dateToDescription[popUpDate] != null) {
+              <div *ngFor="let description of dateToDescription[popUpDate]" class="popup-description">
+                  {{ description }}
+                </div>
+            } @else {
+              <div class="popup-description">
+                  No timesheet details available for this date.
+                </div>
+            }
             
             <hr class="popup-divider" *ngIf="i < popupDatas.length - 1">
           </div>
