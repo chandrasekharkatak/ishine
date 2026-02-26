@@ -163,7 +163,8 @@
                             </label>
                             <select class="form-control" [(ngModel)]="trainingFormData.skipAllowed" name="skipAllowed"
                                     title="Select Yes if employees can temporarily skip this training. Note: Skip is automatically disabled when Lock Enabled is Yes."
-                                    [disabled]="trainingFormData.lockEnabled === 'true'">
+                                    [disabled]="true">
+                                    <!-- trainingFormData.lockEnabled === 'true' -->
                                 <option value="true">Yes</option>
                                 <option value="false">No</option>
                             </select>

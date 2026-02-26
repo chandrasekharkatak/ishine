@@ -54,7 +54,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     lockEnabled: 'false',
     minViewTimeMinutes: null,
     consentRequired: 'true',
-    skipAllowed: 'true',
+    skipAllowed: 'false',
     deadlineEnabled: 'true', // Mandatory: deadline always enabled
     deadlinePattern: 'YEARLY', // Default: once per year (last day of year)
     customDeadlineMonths: '',
@@ -222,7 +222,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       lockEnabled: 'false',
       minViewTimeMinutes: null,
       consentRequired: 'true',
-      skipAllowed: 'true',
+      skipAllowed: 'false',
       deadlineEnabled: 'true', // Mandatory: deadline always enabled
       deadlinePattern: 'YEARLY', // Default: once per year (last day of year)
       customDeadlineMonths: '',
@@ -395,7 +395,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       lockEnabled: this.trainingFormData.lockEnabled || 'false',
       minViewTimeMinutes: this.trainingFormData.minViewTimeMinutes || null,
       consentRequired: this.trainingFormData.consentRequired || 'true',
-      skipAllowed: this.trainingFormData.skipAllowed || 'true',
+      skipAllowed: this.trainingFormData.skipAllowed || 'false',
       deadlineEnabled: this.trainingFormData.deadlineEnabled || 'false',
       deadlinePattern: this.trainingFormData.deadlinePattern || null,
       customDeadlineMonths: this.trainingFormData.customDeadlineMonths || null,
@@ -485,7 +485,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
         lockEnabled: this.trainingFormData.lockEnabled || 'false',
         minViewTimeMinutes: this.trainingFormData.minViewTimeMinutes || null,
         consentRequired: this.trainingFormData.consentRequired || 'true',
-        skipAllowed: this.trainingFormData.skipAllowed || 'true',
+        skipAllowed: this.trainingFormData.skipAllowed || 'false',
         deadlineEnabled: this.trainingFormData.deadlineEnabled || 'false',
         deadlinePattern: this.trainingFormData.deadlinePattern || null,
         customDeadlineMonths: this.trainingFormData.customDeadlineMonths || null,
