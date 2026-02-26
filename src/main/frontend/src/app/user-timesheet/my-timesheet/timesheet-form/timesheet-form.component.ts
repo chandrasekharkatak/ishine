@@ -3554,6 +3554,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
             error?.error?.serviceError ||
             error?.error?.serviceResponse ||
             error?.error?.message ||
+            error?.error?.serviceStatus || 
             'An unexpected error occurred while creating the timesheet.';
           this.handleError(
             error,

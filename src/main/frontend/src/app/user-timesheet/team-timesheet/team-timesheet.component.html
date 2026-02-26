@@ -860,8 +860,8 @@
                             </div>
                           </div>
                           <div class="project-card-body"
-                               *ngIf="expandedProjectKey === (i + '-' + p) && (project.activities?.length || 0) > 0">
-                            <div class="activity-list">
+                               *ngIf="expandedProjectKey === (i + '-' + p)">
+                            <div class="activity-list" *ngIf="(project.activities?.length || 0) > 0">
                               <div *ngFor="let act of project.activities" class="activity-item">
                                 <div class="d-flex justify-content-between align-items-start">
                                   <div class="flex-grow-1">
@@ -875,6 +875,16 @@
                                   <small class="text-muted">{{ act.activityDescription }}</small>
                                 </div>
                               </div>
+                            </div>
+                            <div class="activity-list" *ngIf="project.description && project.activities?.length === 0">
+                              <div class="activity-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                  <div class="flex-grow-1">
+                                    <span style="background-color: yellow;"><i class="fa-solid fa-circle-info"></i><strong>Description:</strong>&nbsp;</span>
+                                    <strong>{{ project.description }}</strong>
+                                  </div>
+                                 </div>
+                                </div>    
                             </div>
                           </div>
                         </div>

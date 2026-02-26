@@ -1097,7 +1097,7 @@ public class TimesheetServiceNew {
 
 			EmployeeTimesheetLocationMapping locationMapping;
 
-			// CREATE new location — location in on fromDate, location out on toDate when night shift (same as create API)
+			//// CREATE new location — location in on fromDate, location out on toDate when night shift (same as create API)
 			if (locationDTO.getLocationMappingId() == null) {
 
 				locationMapping = EmployeeTimesheetLocationMapping.builder().timesheetId(timesheetId)
