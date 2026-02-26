@@ -573,7 +573,7 @@
                                 <th scope="col" class="info-label" mat-sort-header="trainingName|string">Training Name</th>
                                 <th scope="col" class="info-label" mat-sort-header="trainingType|string">Type</th>
                                 <th scope="col" class="info-label" mat-sort-header="mandatoryFlag|string">Mandatory</th>
-                                <th scope="col" class="info-label" mat-sort-header="frequencyPerYear|number">Frequency/Year</th>
+                                <!-- <th scope="col" class="info-label" mat-sort-header="frequencyPerYear|number">Frequency/Year</th> -->
                                 <th scope="col" class="info-label" mat-sort-header="lockEnabled|string">Lock Enabled</th>
                                 <th scope="col" class="info-label" mat-sort-header="activeStatus|string">Status</th>
                                 <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By</th>
@@ -596,7 +596,7 @@
                                         {{training.mandatoryFlag === 'true' ? 'Yes' : 'No'}}
                                     </span>
                                 </td>
-                                <td>{{training.frequencyPerYear}}</td>
+                                <!-- <td>{{training.frequencyPerYear}}</td> -->
                                 <td>
                                     <span class="badge" [ngClass]="training.lockEnabled === 'true' ? 'badge-warning' : 'badge-secondary'">
                                         {{training.lockEnabled === 'true' ? 'Yes' : 'No'}}

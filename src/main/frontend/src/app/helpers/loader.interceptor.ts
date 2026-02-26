@@ -481,8 +481,12 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/updateSurvey`,
     `${this.baseUrl}` + `api/deleteSurvey`,
     `${this.baseUrl}` + `api/getSurveyResponseByEmpIdAndSurveyId`,
-    `${this.baseUrl}` + `api/changeSurveyStatus`,
+    `${this.baseUrl}` + `api/changeSurveyStatus`
     
+  ]
+
+  DYNAMIC_URL_whiteList = [
+    `${this.baseUrl}` + `api/training/getTrainingContent/`
   ]
 
   constructor(private loaderService: LoaderService) { }
@@ -501,6 +505,18 @@ export class LoaderInterceptor implements HttpInterceptor {
 
 
 
+    })
+
+    this.DYNAMIC_URL_whiteList.forEach((element) => {
+
+      if (request.url.startsWith(element)) {
+
+        request = request.clone({
+          setHeaders: {
+            loader: 'true'
+          }
+        });
+      }
     })
 
     if (request.headers.get('loader')) {
