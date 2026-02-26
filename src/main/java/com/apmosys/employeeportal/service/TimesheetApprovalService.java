@@ -27,6 +27,7 @@ import java.util.HashMap;
 	import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.Exception.BadRequestException;
+import com.apmosys.employeeportal.Exception.TimesheetApproveValidationFailedException;
 import com.apmosys.employeeportal.dto.BulkTimesheetRequestDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO;
@@ -1681,18 +1682,8 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
         String status = request.getStatus();
         List<Long> timesheetIdsReq = request.getTimesheetIds();
 
-        // List<EmployeeTimesheetsNew> timesheetDatas =
-        //         employeeTimesheetsNewRepository.findAllById(timesheetIdsReq);
-
-        // boolean hasMismatch = timesheetDatas.stream()
-        //         .anyMatch(data -> !java.util.Objects.equals(data.getCurrentManagerId(), request.getRmId()));
-
-        // if (hasMismatch) {
-        //     throw new BadRequestException("You do not have the approval/rejection rights of some timesheets");
-        // }
-
         if ("REJECTED".equalsIgnoreCase(status) && timesheetIdsReq.size() > 1) {
-            throw new IllegalArgumentException("Only one timesheet can be rejected at a time.");
+            throw new TimesheetApproveValidationFailedException("Only one timesheet can be rejected at a time.");
         }
 
         List<EmployeeTimesheetsNewDTO> timesheets =

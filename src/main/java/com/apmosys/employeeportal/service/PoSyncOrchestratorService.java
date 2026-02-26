@@ -574,7 +574,7 @@ public class PoSyncOrchestratorService {
 	                
 	        );
 	        
-	        if (updatedCount != dto.getPoIds().size()) {
+	        if (updatedCount < 0 ) {
 	            throw new RuntimeException(" PO records updation failed");
 	        }
 

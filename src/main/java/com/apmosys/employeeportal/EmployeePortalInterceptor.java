@@ -80,6 +80,7 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			"/employeeportal/api/updateRmDetailsInPo",
 			"/employeeportal/api/updateAddressInPos",
 			"/employeeportal/api/poProjectTimesheetSync",
+			"/api/poProjectTimesheetSync",
 			"/employeeportal/api/getEmployeeAndTimesheetDetails",
 			"/employeeportal/api/getProjectDetailsByEmpIdAndDateRange",
 			"/employeeportal/api/getTeamAndTimeSheetDetails",

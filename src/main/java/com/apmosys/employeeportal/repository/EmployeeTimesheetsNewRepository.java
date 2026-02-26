@@ -17019,51 +17019,79 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 
 			
 			
-			@Query(value =
-					"SELECT DISTINCT new com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO( \n"
-					+ "			            etn.timesheetId, etn.empId, \n"
-					+ "			            CASE \n"
-					+ "			                WHEN e.isApmosysProduct = 'true' THEN CONCAT('AP-', e.employeementId) \n"
-					+ "			                ELSE CONCAT('A-', e.employeementId) \n"
-					+ "			            END, \n"
-					+ "			            e.name, dtmn.dayType, etn.date, etn.isNightShift, etn.workCheckIn, etn.workCheckOut, \n"
-					+ "			            COUNT(DISTINCT ptsn.id.projectId), COUNT(DISTINCT etlm.locationMappingId), ab.name, etn.createdOn, \n"
-					+ "			            wltm.code, etlm.locationInTime, etlm.locationOutTime, etlm.locationMappingId, \n"
-					+ "			            ptsn.id.timesheetId, ptsn.id.locationMappingId,ptsn.id.projectId, p.projectName, c.clientName, cl.clientLocation, \n"
-					+ "			            ptsn.poNo, es.name, ptsn.status, ptsn.totalClientWorkingMinutes, \n"
-					+ "			            ptsn.description,etamn.timesheetId, etamn.locationMappingId, etamn.projectId, a.activity, etamn.description, \n"
-					+ "			            etamn.durationMinutes, t.teamName, \n"
-					+ "			            tddn.docId, tddn.docName, tddn.finalFlag, \n"
-					+ "			            tddn.bulkApprovedDocId, dmtmn.mimeType , tddn.projectId AS docsProjectId, trdn.timesheetId, trdn.locationMappingId, trdn.projectId, trrm.rejectionReason, trdn.remarks, trdn.rejectedOn\n"
-					+ "			        ) \n"
-					+ "			        FROM EmployeeTimesheetsNew etn \n"
-					+ "			        INNER JOIN Employee e ON etn.empId = e.empId \n"
-					+ "			        INNER JOIN Employee ab ON ab.empId = etn.createdBy \n"
-					+ "			        INNER JOIN ProjectTimesheetStatusNew ptsn ON ptsn.id.timesheetId = etn.timesheetId \n"
-					+ "			        LEFT JOIN TimesheetRejectionDetailsNew trdn ON (:status = 3 AND trdn.timesheetId = ptsn.id.timesheetId AND trdn.locationMappingId = ptsn.id.locationMappingId AND trdn.projectId = ptsn.id.projectId) \n"
-					+ "			        LEFT JOIN TimesheetRejectionReasonsMaster trrm ON (:status = 3 AND trrm.rejectionId = trdn.rejectionId)\n"
-					+ "			        INNER JOIN Project p ON p.projectId = ptsn.id.projectId \n"
-					+ "			        INNER JOIN Team t ON t.projectId = p.projectId \n"
-					+ "			        INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId AND etm.empId = e.empId \n"
-					+ "			        LEFT JOIN EmployeeTimesheetLocationMapping etlm ON etlm.timesheetId = etn.timesheetId \n"
-					+ "			        LEFT JOIN EmployeeTimesheetActivitiesMappingNew etamn ON etamn.timesheetId = etn.timesheetId \n"
-					+ "			        LEFT JOIN Activity a ON a.activityId = etamn.activityId \n"
-					+ "			        LEFT JOIN Client c ON c.clientId = ptsn.clientSideId \n"
-					+ "			        LEFT JOIN ClientLocation cl ON cl.clientLocationId = ptsn.clientLocationId \n"
-					+ "			        LEFT JOIN WorkLocationTypeMaster wltm ON wltm.workLocationTypeId = etlm.locationTypeId \n"
-					+ "			        LEFT JOIN DayTypeMasterNew dtmn ON dtmn.dayTypeId = etn.dayTypeId \n"
-					+ "			        LEFT JOIN TimesheetDocumentDetailsNew tddn ON tddn.timesheetId = etn.timesheetId \n"
-					+ "			        LEFT JOIN Employee es ON ptsn.shadowEmpId = es.empId \n"
-					+ "			        LEFT JOIN DocMimeTypeMasterNew dmtmn ON dmtmn.mimeTypeId = tddn.mimeTypeId\n"
-					+ "			        WHERE etn.timesheetId IN :timesheetIds \n"
-					+ "			        AND etn.status = :status \n"
-					+ "			        GROUP BY etn.timesheetId, etn.empId, e.isApmosysProduct, e.employeementId, e.name, dtmn.dayType, etn.date, \n"
-					+ "			                 etn.isNightShift, etn.workCheckIn, etn.workCheckOut, ab.name, etn.createdOn, \n"
-					+ "			                 wltm.code, etlm.locationInTime, etlm.locationOutTime, etlm.locationMappingId, \n"
-					+ "			                 ptsn.id.timesheetId, ptsn.id.locationMappingId,ptsn.id.projectId, p.projectName, c.clientName, cl.clientLocation, ptsn.poNo, \n"
-					+ "			                 es.name, ptsn.status, ptsn.totalClientWorkingMinutes, ptsn.description, \n"
-					+ "			                 etamn.timesheetId, etamn.locationMappingId, etamn.projectId,a.activity, etamn.description, etamn.durationMinutes, t.teamName, \n"
-					+ "			                 tddn.docId, tddn.docName, tddn.finalFlag, tddn.bulkApprovedDocId, dmtmn.mimeType, tddn.projectId, trdn.timesheetId, trdn.locationMappingId, trdn.projectId,trrm.rejectionReason, trdn.remarks "
+			@Query(value ="SELECT DISTINCT new com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO( \n" +
+				"    etn.timesheetId, etn.empId, \n" +
+				"    CASE WHEN e.isApmosysProduct = 'true' THEN CONCAT('AP-', e.employeementId) \n" +
+				"         ELSE CONCAT('A-', e.employeementId) END, \n" +
+				"    e.name, dtmn.dayType, etn.date, etn.isNightShift, etn.workCheckIn, etn.workCheckOut, \n" +
+				"    COUNT(DISTINCT ptsn.id.projectId), COUNT(DISTINCT etlm.locationMappingId), \n" +
+				"    ab.name, etn.createdOn, \n" +
+				"    wltm.code, etlm.locationInTime, etlm.locationOutTime, etlm.locationMappingId, \n" +
+				"    ptsn.id.timesheetId, etamn.locationMappingId, ptsn.id.projectId, \n" +
+				"    p.projectName, c.clientName, cl.clientLocation, \n" +
+				"    ptsn.poNo, es.name, ptsn.status, ptsn.totalClientWorkingMinutes, ptsn.description, \n" +
+				"    etamn.timesheetId, etamn.locationMappingId, etamn.projectId, \n" +
+				"    a.activity, etamn.description, etamn.durationMinutes, \n" +
+				"    t.teamName, \n" +
+				"    tddn.docId, tddn.docName, tddn.finalFlag, \n" +
+				"    tddn.bulkApprovedDocId, dmtmn.mimeType, tddn.projectId, \n" +
+				"    trdn.timesheetId, trdn.locationMappingId, trdn.projectId, \n" +
+				"    trrm.rejectionReason, trdn.remarks, trdn.rejectedOn \n" +
+				") \n" +
+				"FROM EmployeeTimesheetsNew etn \n" +
+				"INNER JOIN Employee e ON etn.empId = e.empId \n" +
+				"INNER JOIN Employee ab ON ab.empId = etn.createdBy \n" +
+
+				"LEFT JOIN EmployeeTimesheetLocationMapping etlm ON etlm.timesheetId = etn.timesheetId \n" +
+
+				"LEFT JOIN EmployeeTimesheetActivitiesMappingNew etamn \n" +
+				"       ON etamn.timesheetId = etn.timesheetId \n" +
+				"      AND etamn.locationMappingId = etlm.locationMappingId \n" +
+
+				"INNER JOIN ProjectTimesheetStatusNew ptsn \n" +
+				"       ON ptsn.id.timesheetId = etamn.timesheetId \n" +
+				"      AND ptsn.id.projectId = etamn.projectId \n" +
+
+				"INNER JOIN Project p ON p.projectId = ptsn.id.projectId \n" +
+				"INNER JOIN Team t ON t.projectId = p.projectId \n" +
+				"INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId AND etm.empId = e.empId \n" +
+
+				"LEFT JOIN Activity a ON a.activityId = etamn.activityId \n" +
+				"LEFT JOIN Client c ON c.clientId = ptsn.clientSideId \n" +
+				"LEFT JOIN ClientLocation cl ON cl.clientLocationId = ptsn.clientLocationId \n" +
+				"LEFT JOIN WorkLocationTypeMaster wltm ON wltm.workLocationTypeId = etlm.locationTypeId \n" +
+				"LEFT JOIN DayTypeMasterNew dtmn ON dtmn.dayTypeId = etn.dayTypeId \n" +
+
+				"LEFT JOIN TimesheetDocumentDetailsNew tddn \n" +
+				"       ON tddn.timesheetId = etn.timesheetId \n" +
+				"      AND tddn.projectId = ptsn.id.projectId \n" +
+
+				"LEFT JOIN Employee es ON ptsn.shadowEmpId = es.empId \n" +
+				"LEFT JOIN DocMimeTypeMasterNew dmtmn ON dmtmn.mimeTypeId = tddn.mimeTypeId \n" +
+
+				"LEFT JOIN TimesheetRejectionDetailsNew trdn \n" +
+				"       ON (:status = 3 AND trdn.timesheetId = ptsn.id.timesheetId \n" +
+				"           AND trdn.locationMappingId = etamn.locationMappingId \n" +
+				"           AND trdn.projectId = ptsn.id.projectId) \n" +
+
+				"LEFT JOIN TimesheetRejectionReasonsMaster trrm \n" +
+				"       ON (:status = 3 AND trrm.rejectionId = trdn.rejectionId) \n" +
+
+				"WHERE etn.timesheetId IN :timesheetIds \n" +
+				"AND etn.status = :status \n" +
+
+				"GROUP BY \n" +
+				"etn.timesheetId, etn.empId, e.isApmosysProduct, e.employeementId, e.name, \n" +
+				"dtmn.dayType, etn.date, etn.isNightShift, etn.workCheckIn, etn.workCheckOut, \n" +
+				"ab.name, etn.createdOn, wltm.code, etlm.locationInTime, etlm.locationOutTime, etlm.locationMappingId, \n" +
+				"ptsn.id.timesheetId, etamn.locationMappingId, ptsn.id.projectId, \n" +
+				"p.projectName, c.clientName, cl.clientLocation, ptsn.poNo, \n" +
+				"es.name, ptsn.status, ptsn.totalClientWorkingMinutes, ptsn.description, \n" +
+				"etamn.timesheetId, etamn.locationMappingId, etamn.projectId, \n" +
+				"a.activity, etamn.description, etamn.durationMinutes, \n" +
+				"t.teamName, \n" +
+				"tddn.docId, tddn.docName, tddn.finalFlag, tddn.bulkApprovedDocId, dmtmn.mimeType, tddn.projectId, \n" +
+				"trdn.timesheetId, trdn.locationMappingId, trdn.projectId, trrm.rejectionReason, trdn.remarks, trdn.rejectedOn"
 			)
 			List<GetReporteesTimesheetReqFlatDTO> getTimesheetDetailsByIds(
 			        @Param("timesheetIds") List<Long> timesheetIds,
