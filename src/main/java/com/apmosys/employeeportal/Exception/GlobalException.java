@@ -26,6 +26,17 @@ public class GlobalException {
 	            .status(HttpStatus.EXPECTATION_FAILED)
 	            .body(response);
 	}
+
+    @ExceptionHandler(TimesheetApproveValidationFailedException.class)
+	public ResponseEntity<ServiceResponse> TimesheetApproveValidationFailedException(TimesheetApproveValidationFailedException ex){
+        ServiceResponse response = new ServiceResponse();
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        ExceptionLogContext.add(ex.getLocalizedMessage());
+        response.setServiceResponse(ex.getMessage());
+	    return ResponseEntity
+	            .status(HttpStatus.BAD_REQUEST)
+	            .body(response);
+	}
 	
 	@ExceptionHandler(EmployeeNotFoundException.class)
 	public ResponseEntity<String> handleNotFound(EmployeeNotFoundException ex){

@@ -27,6 +27,7 @@ import java.util.HashMap;
 	import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.Exception.BadRequestException;
+import com.apmosys.employeeportal.Exception.TimesheetApproveValidationFailedException;
 import com.apmosys.employeeportal.dto.BulkTimesheetRequestDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO;
@@ -1681,18 +1682,8 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
         String status = request.getStatus();
         List<Long> timesheetIdsReq = request.getTimesheetIds();
 
-        // List<EmployeeTimesheetsNew> timesheetDatas =
-        //         employeeTimesheetsNewRepository.findAllById(timesheetIdsReq);
-
-        // boolean hasMismatch = timesheetDatas.stream()
-        //         .anyMatch(data -> !java.util.Objects.equals(data.getCurrentManagerId(), request.getRmId()));
-
-        // if (hasMismatch) {
-        //     throw new BadRequestException("You do not have the approval/rejection rights of some timesheets");
-        // }
-
         if ("REJECTED".equalsIgnoreCase(status) && timesheetIdsReq.size() > 1) {
-            throw new IllegalArgumentException("Only one timesheet can be rejected at a time.");
+            throw new TimesheetApproveValidationFailedException("Only one timesheet can be rejected at a time.");
         }
 
         List<EmployeeTimesheetsNewDTO> timesheets =
@@ -1830,7 +1821,7 @@ private void saveRejectionDetails(BulkTimesheetRequestDTO request) {
 
             for (Long projectId : projectIds) {
 
-                Long locationMappingId = projectTimesheetStatusNewRepository
+                List<Long> locationMappingIds = projectTimesheetStatusNewRepository
                         .findLocationMappingId(timesheetId, projectId.intValue());
 
                 projectTimesheetStatusNewRepository
@@ -1843,18 +1834,19 @@ private void saveRejectionDetails(BulkTimesheetRequestDTO request) {
                 audit.setActionBy(updatedBy);
                 audit.setActionOn(now);
                 auditList.add(audit);
-
-                for (Long rejectionId : rejectionIds) {
-                    TimesheetRejectionDetailsNew rejection = new TimesheetRejectionDetailsNew();
-                    rejection.setTimesheetId(timesheetId);
-                    rejection.setLocationMappingId(locationMappingId);
-                    rejection.setProjectId(projectId.intValue());
-                    rejection.setRejectionId(rejectionId);
-                    rejection.setRemarks(remark);
-                    rejection.setRejectedBy(updatedBy);
-                    rejection.setRejectedOn(now);
-                    rejectionList.add(rejection);
-                }
+				for (Long locationMappingId : locationMappingIds) {
+					for (Long rejectionId : rejectionIds) {
+						TimesheetRejectionDetailsNew rejection = new TimesheetRejectionDetailsNew();
+						rejection.setTimesheetId(timesheetId);
+						rejection.setLocationMappingId(locationMappingId);
+						rejection.setProjectId(projectId.intValue());
+						rejection.setRejectionId(rejectionId);
+						rejection.setRemarks(remark);
+						rejection.setRejectedBy(updatedBy);
+						rejection.setRejectedOn(now);
+						rejectionList.add(rejection);
+					}
+				}
             }
         }
     }
