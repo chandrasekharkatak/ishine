@@ -1788,13 +1788,12 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 	public Page<CustomTimesheetReportDTO> getCustomTimesheetReport(String filterQuery, Long empId, Pageable pageable) {
 		Session session = entityManager.unwrap(Session.class);
 		String deptList = departmentRepository.findAccessibleDeptIdsForEmp(empId);
-
+// in the where clause the conditions are temporarily removed for timesheet report
 		String whereClause = " WHERE " + filterQuery +
-				" AND jr.dept_id IN (" + deptList + ")" +
-				" AND etm.active != 0 " +
-				" AND t.is_active != 'N' " +
-				" AND p.active != 'false' ";
-
+				" AND jr.dept_id IN (" + deptList + ")" ;
+				// " AND etm.active != 0 " +
+				// " AND t.is_active != 'N' " +
+				// " AND p.active != 'false' ";
 //		this below old query is replaced with the new table structure of timesheet
 		
 //		String countQueryStr = "SELECT COUNT(DISTINCT e1.employeement_id, et.date) " +
