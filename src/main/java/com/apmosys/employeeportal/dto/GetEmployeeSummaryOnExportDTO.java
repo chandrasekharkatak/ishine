@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.dto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import lombok.Getter;
@@ -15,6 +16,7 @@ public class GetEmployeeSummaryOnExportDTO {
 	private Integer month;
 	private Integer year;
 	private Long empId;
+	private LocalDateTime date;
 	private Boolean allEmp;
 	private List<String> billableType;
 	private String projectActive;

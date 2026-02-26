@@ -241,7 +241,7 @@ public class TeamsService {
 	@Value("${timesheet.check.period}")
 	private String timesheetCheckPeriod;
 	
-	@Value("${app.team.fullPrivilegeRoleIds:1,13,15,53,78,93,111,115,120,143,144,145,146,152,170,177,178,183,187}")
+	@Value("${app.team.fullPrivilegeRoleIds}")
 	private String fullPrivilegeRoleIdsConfig;
 
 	@Value("${maximum.timesheetCanBeFilledByMember}")

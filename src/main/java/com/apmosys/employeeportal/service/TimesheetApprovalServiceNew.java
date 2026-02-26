@@ -543,8 +543,9 @@ public class TimesheetApprovalServiceNew {
 
 	            for (Long projectId : projectIds) {
 
-	                Long locationMappingId = projectTimesheetStatusNewRepository
-	                        .findLocationMappingId(timesheetId, projectId.intValue());
+	                Long locationMappingId=null;
+//	                = projectTimesheetStatusNewRepository
+//	                        .findLocationMappingId(timesheetId, projectId.intValue());
 
 	                projectTimesheetStatusNewRepository
 	                        .processByTSandProject(timesheetId, projectId.intValue(), 3);

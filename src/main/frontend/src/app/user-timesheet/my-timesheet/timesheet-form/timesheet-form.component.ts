@@ -214,6 +214,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       this.timesheetAppliedFor = 'self';
       if (!this.serverDate) {
         this.loadServerDateThenInitCreate();
+      } else if (this.autoFillEmpId) {
+        this.applyAutoFillFrom360();
       } else {
         this.onTimesheetAppliedForChange();
       }
@@ -245,6 +247,27 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
         this.loadTimesheetForUpdate(this.timesheetId);
       }
     }
+
+    // Create-from-home / create-from-360: parent set selectedDate or autoFillEmpId after form created
+    const selectedDateChange = changes['selectedDate'];
+    const autoFillEmpIdChange = changes['autoFillEmpId'];
+    const dateOrEmpChanged =
+      (selectedDateChange && !selectedDateChange.firstChange && selectedDateChange.currentValue !== selectedDateChange.previousValue) ||
+      (autoFillEmpIdChange && !autoFillEmpIdChange.firstChange && autoFillEmpIdChange.currentValue !== autoFillEmpIdChange.previousValue);
+    if (
+      dateOrEmpChanged &&
+      !this.isUpdation &&
+      this.isCreation &&
+      this.timesheetAppliedFor?.toLowerCase() === 'self'
+    ) {
+      if (!this.serverDate) {
+        this.loadServerDateThenInitCreate();
+      } else if (this.autoFillEmpId) {
+        this.applyAutoFillFrom360();
+      } else {
+        this.onTimesheetAppliedForChange();
+      }
+    }
   }
 
   /**
@@ -257,8 +280,48 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       .pipe(first(), takeUntil(this.destroy$))
       .subscribe((response: any) => {
         this.serverDate = response;
-        this.onTimesheetAppliedForChange();
+        if (this.autoFillEmpId) {
+          this.applyAutoFillFrom360();
+        } else {
+          this.onTimesheetAppliedForChange();
+        }
       });
+  }
+
+  /**
+   * When opened from Employee 360 with date + empId: switch to team mode, pre-select that employee,
+   * then run autofill for the selected date (same as "create from home" but for team member).
+   */
+  private applyAutoFillFrom360(): void {
+    if (!this.autoFillEmpId || this.isUpdation) {
+      this.onTimesheetAppliedForChange();
+      return;
+    }
+    this.timesheetAppliedFor = 'team';
+    this.getAllTeamMemberList()
+      .then(() => {
+        const teamMember = this.teamMemberList?.find(
+          m => m.empId === this.autoFillEmpId || Number(m.empId) === Number(this.autoFillEmpId)
+        );
+        if (teamMember) {
+          this.timesheetFilledForUser.empId = teamMember.empId;
+          this.timesheetFilledForUser.name = teamMember.name;
+          this.selectedTeamMember = teamMember;
+          this.appelectMember = teamMember;
+          this.getTimesheetMetadata();
+          if (this.serverDate) {
+            this.getAllAvailableTimesheetByEmpId(this.timesheetFilledForUser);
+          }
+          if (this.selectedDate) {
+            this.loadAutofillData(this.formatDateDDMMYYYY(this.selectedDate));
+          }
+          this.cdr.detectChanges();
+        } else {
+          console.warn('[applyAutoFillFrom360] Team member not found for empId:', this.autoFillEmpId);
+          this.onTimesheetAppliedForChange();
+        }
+      })
+      .catch(() => this.onTimesheetAppliedForChange());
   }
 
 
@@ -1840,10 +1903,18 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
 
-    const payload = {
+    const payload: any = {
       empId: Number(targetEmpId),
       projectId: project.projectId
     };
+
+    // Add date filter to get only teams active on the selected date
+    if (this.fromDate) {
+      const dateParsed = this.parseDDMMYYYY(this.fromDate);
+      if (dateParsed) {
+        payload.date = `${dateParsed.getFullYear()}-${String(dateParsed.getMonth() + 1).padStart(2, '0')}-${String(dateParsed.getDate()).padStart(2, '0')}T00:00:00`;
+      }
+    }
 
     const showClientDetailsError = (userMessage: string) => {
       if (isPopulateMode && this.clientDetailsErrorShownThisPopulate) return;
@@ -3531,6 +3602,12 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
             this.openAlertMod(this.alertTemplate, "Timesheet created successfully.");
+            
+            // After successful create, refresh disabled dates so just-filled date becomes non-selectable
+            if (targetEmpId) {
+              this.getAllAvailableTimesheetByEmpId({ empId: targetEmpId } as User);
+            }
+
             this.resetForm()
             // Reset form or navigate as needed
           } else {
@@ -5053,6 +5130,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   /**
    * Load autofill data for a selected date (create mode only)
    * Should NOT be called during update mode - update loads data via loadTimesheetForUpdate
+   * Supports both 'self' and 'team' modes - uses timesheetFilledForUser.empId when in team mode
    */
   loadAutofillData(selectedDate1: string): void {
     // Guard: never run autofill while in update mode
@@ -5061,10 +5139,17 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       return;
     }
 
-    // Determine employee for autofill (currently self)
-    const targetEmpId = this.currentUser?.empId;
+    // Preserve current appliedFor mode before autofill (team or self)
+    const currentAppliedFor = this.timesheetAppliedFor;
+    const isTeamMode = currentAppliedFor?.toLowerCase() === 'team';
+
+    // Determine employee for autofill: use team member's empId if in team mode, otherwise current user
+    const targetEmpId = isTeamMode && this.timesheetFilledForUser?.empId
+      ? this.timesheetFilledForUser.empId
+      : this.currentUser?.empId;
+
     if (!targetEmpId) {
-      console.warn('[loadAutofillData] currentUser.empId not available, skipping autofill.');
+      console.warn('[loadAutofillData] empId not available, skipping autofill. isTeamMode:', isTeamMode);
       return;
     }
 
@@ -5084,6 +5169,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       empId: targetEmpId,
       date: targetDateYMD
     };
+
+    console.log('[loadAutofillData] Fetching autofill for empId:', targetEmpId, 'date:', targetDateYMD, 'isTeamMode:', isTeamMode);
 
     this.timesheetNewService.getAutofillTimesheet(payload)
       .pipe(takeUntil(this.destroy$))
@@ -5151,9 +5238,13 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
             this.toDate = null;
           }
 
-          // Autofill is always for "self" in current flow
-          this.timesheetAppliedFor = 'self';
-          this.timesheetFilledForUser.empId = targetEmpId;
+          // Preserve the appliedFor mode and empId - do NOT reset to 'self' if in team mode
+          // This ensures team member selection from 360 view is preserved after autofill
+          if (!isTeamMode) {
+            this.timesheetAppliedFor = 'self';
+            this.timesheetFilledForUser.empId = targetEmpId;
+          }
+          // If isTeamMode, timesheetAppliedFor and timesheetFilledForUser.empId are already set correctly
         },
         error: (error) => {
           // Log only; do not block user from filling timesheet manually
