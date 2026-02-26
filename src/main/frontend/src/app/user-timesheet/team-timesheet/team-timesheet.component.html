@@ -790,7 +790,7 @@
                 <td>{{ timesheet.appliedBy }}</td>
                 <td>{{ timesheet.appliedOn }}</td>
                 <td class="ts-actions-cell">
-                  <button type="button" class="ts-action-btn ts-doc-btn" (click)="openDocumentPopup(timesheet, null, true)" title="View all documents">
+                  <button type="button" class="ts-action-btn ts-doc-btn" *ngIf="timesheet.documentData.length > 0" (click)="openDocumentPopup(timesheet, null, true)" title="View all documents">
                     <i class="fa fa-eye"></i>
                   </button>
                   <button type="button" class="ts-action-btn ts-approve-btn" *ngIf="selectedStatus === 1"
