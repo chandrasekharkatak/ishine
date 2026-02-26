@@ -543,7 +543,7 @@ public class TimesheetApprovalServiceNew {
 
 	            for (Long projectId : projectIds) {
 
-	                Long locationMappingId = projectTimesheetStatusNewRepository
+	                List<Long> locationMappingId = projectTimesheetStatusNewRepository
 	                        .findLocationMappingId(timesheetId, projectId.intValue());
 
 	                projectTimesheetStatusNewRepository
