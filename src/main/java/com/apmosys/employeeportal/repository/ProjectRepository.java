@@ -8674,7 +8674,7 @@ List<Object[]> getClientAndProjectDataList(
 
 			@Query("select new com.apmosys.employeeportal.dto.TimeSheetDetailsDto(" +
 			"t.timesheetId, ptsn.id.projectId, a.teamId, t.empId, dtmn.dayType, t.date, " +
-			"t.workCheckIn, t.workCheckOut, etlm.locationInTime, etlm.locationOutTime, " +
+			"t.workCheckIn, t.workCheckOut, MIN(etlm.locationInTime), MAX(etlm.locationOutTime), " +
 			"CASE  WHEN ptsn.shadowEmpId IS NOT NULL THEN true  ELSE false END," +
 			" ptsn.shadowEmpId, tdoc.docId, e.name ,csmn.status,rd.role ) " +
 			"from EmployeeTimesheetsNew t " +
@@ -8703,7 +8703,20 @@ List<Object[]> getClientAndProjectDataList(
 			+ " LEFT JOIN RoleDetails rd on rd.roleId = etm.roleId " +
 			" where a.teamId = :team_id " +
 			"  and t.empId = :emp_id " +
-			"  and t.date between :startDate and :endDate")
+			"  and t.date between :startDate and :endDate " +
+			"group by\n " + 
+								"    t.timesheetId,\n" + 
+								"    ptsn.id.projectId,\n" + 
+								"    a.teamId,\n" + 
+								"    t.empId,\n" + 
+								"    dtmn.dayType,\n" + 
+								"    t.date,\n" + 
+								"    t.workCheckIn,\n" + 
+								"    t.workCheckOut,\n" + 
+								"    ptsn.shadowEmpId,\n" +
+								"    e.name,\n" + 
+								"    csmn.status,\n" + 
+								"    rd.role")
 	 List<TimeSheetDetailsDto> findByProjectIdAndEmployeeIdAndWorkDateBetween(
 			 Long team_id, Long emp_id, LocalDate startDate, LocalDate endDate);
 
