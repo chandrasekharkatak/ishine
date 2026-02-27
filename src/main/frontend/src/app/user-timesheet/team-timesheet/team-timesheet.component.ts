@@ -515,7 +515,7 @@ this.items = event.pageSize;
 sortData(sort: Sort) {
   if (!sort.active || sort.direction === '') return;
  if (sort.active === 'employmentId') {
-    this.sortColumn = 'employeementId'; // raw DB column
+    this.sortColumn = 'employeement_Id'; // raw DB column
   } else {
     this.sortColumn = sort.active;
   }
