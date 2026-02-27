@@ -57,14 +57,19 @@
                                 <label class="section-title">
                                     <span class="text-danger">*</span>
                                     Team Member
-                                </label>
-                                <app-my-select class="form-control"
-                                        [options]="teamMemberList" displayKey="name" valueKey="empId" 
-                                        [isOptionDisabled]="disableEmployee" [(ngModel)]="appelectMember" 
-                                        (ngModelChange)="onTeamMemberSelect($event)" [readonly]="isUpdation">
-                                </app-my-select>
-                            </div>
-                        </div>
+                                    </label>
+                                    <select class="form-control" [(ngModel)]="appelectMember" (ngModelChange)="onTeamMemberSelect($event)"
+                                        [disabled]="isUpdation">
+                                    
+                                        <option value="" disabled>Select Team Member</option>
+                                    
+                                        <option *ngFor="let emp of teamMemberList" [ngValue]="emp"
+                                            [disabled]="disableEmployee(emp)" >
+                                            {{ emp.name }}
+                                        </option>
+                                    </select>
+                                    </div>
+                                    </div>
                         </div>
                     }
                 <ng-container *ngIf="allDayTypes.length > 0 && ((timesheetAppliedFor == 'self') || (timesheetAppliedFor == 'team' && selectedTeamMember))">

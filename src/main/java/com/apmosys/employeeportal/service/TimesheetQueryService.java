@@ -851,6 +851,7 @@ rows.forEach(row -> {
                 p.setTotalClientWorkingMinutes(
                     row[21] != null ? ((Number) row[21]).intValue() : null
                 );
+                p.setDescription(row[41] != null ? row[41].toString() : null);
                 p.setActivities(new ArrayList<>());
                 p.setRejectionDetails(new ArrayList<>());
                 p.setClientId(row[36] != null ? ((Number) row[36]).longValue() : null);
@@ -1018,7 +1019,7 @@ rows.forEach(row -> {
                                 p.setTotalClientWorkingMinutes(row[21] != null ? ((Number) row[21]).intValue() : null);
                                 p.setShadowEmpId(row[22] != null ? ((Number) row[22]).longValue() : null);
                                 p.setClientId(row[36] != null ? ((Number) row[36]).longValue() : null);
-
+                                p.setDescription(row[42] != null ? row[42].toString() : null);
                                 p.setActivities(new ArrayList<>());
                                 p.setRejectionDetails(new ArrayList<>());
                                 location.getProjects().add(p);
