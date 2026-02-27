@@ -380,6 +380,7 @@ public class TimesheetServiceNew {
 			}
 
 			if (timesheetValidationHelper.isWorkingDay(empDTO)) {
+//				timesheetValidationHelper.validateClientSideId(empDTO);
 
 				timesheetValidationHelper.validateWorkInWorkOutTime(empDTO);
 
@@ -1097,7 +1098,7 @@ public class TimesheetServiceNew {
 
 			EmployeeTimesheetLocationMapping locationMapping;
 
-			// CREATE new location — location in on fromDate, location out on toDate when night shift (same as create API)
+			//// CREATE new location — location in on fromDate, location out on toDate when night shift (same as create API)
 			if (locationDTO.getLocationMappingId() == null) {
 
 				locationMapping = EmployeeTimesheetLocationMapping.builder().timesheetId(timesheetId)
@@ -1125,7 +1126,8 @@ public class TimesheetServiceNew {
 
 				locationMapping.setLocationOutTime(
 						parseLocationTimeForUpdate(locationDTO.getLocationOutTime(), getLocationOutDateForUpdate(newEmpDTO)));
-
+				
+				locationMapping.setLocationTypeId(locationDTO.getWorkLocationTypeId());
 				employeeTimesheetLocationMappingRepository.save(locationMapping);
 			}
 

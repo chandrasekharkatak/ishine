@@ -1,4 +1,4 @@
-<div class="row mb-3"> 
+<div class="row mb-3">
   <div class="col-md-12 px-0">
     <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.view_my_teams_timesheets"
       [ngClass]="{'active' : isAllTimesheetTable}" (click)="showAllTimesheetsTable()">Teams All Timesheets</button>
@@ -779,7 +779,7 @@
                     (change)="onEmployeeToggle(timesheet); updateSelectedRows(timesheet)" /> </td>
                <td>{{ (page1 * items) + i + 1 }}</td>
 
-                <td class="emp-id emp-femp-id" (click)="toggleAccordion(i)" title="Click to view location → project → activity details">{{ timesheet.employmentId }}</td>
+                <td class="emp-id emp-femp-id" (click)="toggleAccordion(i,timesheet)" title="Click to view location → project → activity details">{{ timesheet.employmentId }}</td>
                 <td>{{ timesheet.employeeName }}</td>
                 <td>{{ timesheet.date }}</td>
                 <td>{{ timesheet.dayType }}</td>
@@ -829,7 +829,7 @@
                               <div class="flex-grow-1">
                                 <i class="fas fa-briefcase mr-2 text-info"></i>
                                 <strong>{{ project.projectName }}</strong>
-                                <span class="ml-3 text-muted small">PO: {{ project.poNo || '-' }}</span>
+                               <!-- <span class="ml-3 text-muted small">PO: {{ project.poNo || '-' }}</span>-->
                                 <span class="ml-2 small">{{ project.shadowEmp ? '(Shadow)' : '' }}</span>
                               </div>
                               <div class="d-flex align-items-center">
@@ -860,8 +860,8 @@
                             </div>
                           </div>
                           <div class="project-card-body"
-                               *ngIf="expandedProjectKey === (i + '-' + p) && (project.activities?.length || 0) > 0">
-                            <div class="activity-list">
+                               *ngIf="expandedProjectKey === (i + '-' + p)">
+                            <div class="activity-list" *ngIf="(project.activities?.length || 0) > 0">
                               <div *ngFor="let act of project.activities" class="activity-item">
                                 <div class="d-flex justify-content-between align-items-start">
                                   <div class="flex-grow-1">
@@ -875,6 +875,16 @@
                                   <small class="text-muted">{{ act.activityDescription }}</small>
                                 </div>
                               </div>
+                            </div>
+                            <div class="activity-list" *ngIf="project.description && project.activities?.length === 0">
+                              <div class="activity-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                  <div class="flex-grow-1">
+                                    <span style="background-color: yellow;"><i class="fa-solid fa-circle-info"></i><strong>Description:</strong>&nbsp;</span>
+                                    <strong>{{ project.description }}</strong>
+                                  </div>
+                                 </div>
+                                </div>
                             </div>
                           </div>
                         </div>
@@ -1002,13 +1012,13 @@
   <!-- IMAGE -->
   <div *ngIf="hasPreview() && activeFileType === 'image'" class="image-preview-wrapper">
 
-    <!-- IMAGE VIEWPORT 
+    <!-- IMAGE VIEWPORT
     <div class="image-scroll-container" (mousedown)="startDrag($event)" (mousemove)="onDrag($event)"
                 (mouseup)="stopDrag()" (mouseleave)="stopDrag()">
 
                 <img [src]="activePreviewUrl" [style.transform]="imageTransform" class="preview-image"
                     draggable="false" />
-            </div> 
+            </div>
     -->
     <div
       class="image-scroll-container"
@@ -1321,10 +1331,10 @@
     <div class="text-center mt-3">
       <button class="btn btn-outline-primary px-4"
       [disabled]="!isRejectFormValid() || !canAddMoreProjects()"
-      [attr.title]="!canAddMoreProjects() 
+      [attr.title]="!canAddMoreProjects()
           ? 'All projects already added'
-          : (!isRejectFormValid() 
-              ? 'Fill Project, Reasons, and Remark first' 
+          : (!isRejectFormValid()
+              ? 'Fill Project, Reasons, and Remark first'
               : null)"
               (click)="addRejectRow()">
         <i class="bi bi-plus-circle me-1"></i>
@@ -1877,7 +1887,7 @@
     </div>
 
     <!-- Rejection List -->
-    
+
 
       <!-- Rejection Table -->
       <table class="table table-sm table-bordered mb-0"

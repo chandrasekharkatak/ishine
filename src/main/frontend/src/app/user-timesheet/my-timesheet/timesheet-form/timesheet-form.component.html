@@ -57,14 +57,21 @@
                                 <label class="section-title">
                                     <span class="text-danger">*</span>
                                     Team Member
-                                </label>
-                                <app-my-select class="form-control"
-                                        [options]="teamMemberList" displayKey="name" valueKey="empId" 
-                                        [isOptionDisabled]="disableEmployee" [(ngModel)]="appelectMember" 
-                                        (ngModelChange)="onTeamMemberSelect($event)" [readonly]="isUpdation">
-                                </app-my-select>
-                            </div>
-                        </div>
+                                    </label>
+                                    <select class="form-control" [(ngModel)]="appelectMember" (ngModelChange)="onTeamMemberSelect($event)" 
+                                        [disabled]="isUpdation">
+                                    
+                                        <option [ngValue]="null" disabled>
+                                               Select Team Member
+                                           </option>
+                                    
+                                        <option *ngFor="let emp of teamMemberList" [ngValue]="emp"
+                                            [disabled]="disableEmployee(emp)" >
+                                            {{ emp.name }}
+                                        </option>
+                                    </select>
+                                    </div>
+                                    </div>
                         </div>
                     }
                 <ng-container *ngIf="allDayTypes.length > 0 && ((timesheetAppliedFor == 'self') || (timesheetAppliedFor == 'team' && selectedTeamMember))">
@@ -117,7 +124,7 @@
                                 [required]="true" 
                                 [(ngModel)]="toDate"
                                 (ngModelChange)="onToDateChange()"
-                                [minDate]="minDateForPicker"
+                                [minDate]="fromDate"
                                 [maxDate]="maxDateForToDatePicker"
                                 [disabledDates]="[]">
                             </app-date-time-picker>
@@ -346,7 +353,7 @@
                                                 </div>
 
                                                 <!-- Client Side ID (Show only if exists) *ngIf="project.clientSideId"-->
-                                                <div class="col-md-3 mb-3" *ngIf="project.clientSideId">
+                                                <div class="col-md-3 mb-3" *ngIf="project.hasClientSideId ?? false">
                                                     <div class="d-flex align-items-center justify-content-between mb-1">
                                                         <label class="info-label mb-0">Client Side ID</label>
 
@@ -456,7 +463,7 @@
                                                     </app-my-select>
                                                 </div>
                                                 <div class="col-md-4 mb-3"
-                                                    *ngIf="project.clientSideId && project.clientId && project.clientLocationId && isDayTypeFillable() && !project.isShadowForSelf">
+                                                    *ngIf="( project.hasClientSideId ?? false) && project.clientId && project.clientLocationId && isDayTypeFillable() && !project.isShadowForSelf">
                                                     <label class="info-label">
                                                         <span class="text-danger">*</span> Client DSR Approval Status
                                                     </label>
@@ -599,7 +606,7 @@
             @for (project of uniqueProjectsList; track project.projectId) {
             <!-- Show document section for projects meeting all conditions: clientSideId exists, !isShadowForSelf, isDayTypeFillable, and has approval status -->
             <div class="card-body-section document-body" 
-                 *ngIf="project.clientSideId && 
+                 *ngIf="project.hasClientSideId && 
                         !project.isShadowForSelf && 
                         isDayTypeFillable() && 
                         (project.clientApprovalStatus === 2 || project.clientApprovalStatus === 1)">

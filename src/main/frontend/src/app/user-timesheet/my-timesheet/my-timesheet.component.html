@@ -616,8 +616,8 @@
                                                         
                                                         <!-- Activity List (Nested) -->
                                                         <div class="project-card-body" 
-                                                             *ngIf="isProjectExpanded(timesheet.timesheetId, location.locationMappingId, project.projectId) && hasActivities(project)">
-                                                            <div class="activity-list">
+                                                             *ngIf="isProjectExpanded(timesheet.timesheetId, location.locationMappingId, project.projectId)">
+                                                            <div class="activity-list" *ngIf="project.activities && hasActivities(project)">
                                                                 <div *ngFor="let activity of project.activities" class="activity-item">
                                                                     <div class="d-flex justify-content-between align-items-start">
                                                                         <div class="flex-grow-1">
@@ -633,9 +633,20 @@
                                                                     </div>
                                                                 </div>
                                                             </div>
+                                                                <div class="activity-list" *ngIf="project.description && !hasActivities(project)">
+                                                                    <div class="activity-item">
+                                                                        <div class="d-flex justify-content-between align-items-start">
+                                                                            <div class="flex-grow-1">
+                                                                                <span style="background-color: yellow;"><i
+                                                                                        class="fa-solid fa-circle-info"></i><strong>Description:</strong></span>
+                                                                                <strong>&nbsp;{{ project.description }}</strong>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
                                             </div>
                                             
                                             <!-- No Locations Message -->

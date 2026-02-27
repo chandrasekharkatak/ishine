@@ -3432,6 +3432,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    */
   resetForm(): void {
     // Basic fields
+    this.appelectMember = null;
     this.dayType = null;
     this.fromDate = null;
     this.toDate = null;
@@ -3672,6 +3673,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
             error?.error?.serviceError ||
             error?.error?.serviceResponse ||
             error?.error?.message ||
+            error?.error?.serviceStatus || 
             'An unexpected error occurred while creating the timesheet.';
           this.handleError(
             error,
@@ -4991,7 +4993,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     this.timesheetLocations.forEach((location) => {
       location.projects.forEach((project) => {
         // ✅ Check all three conditions: clientSideId exists, not shadow for self, and day type is fillable
-        if (project.clientSideId && 
+        if (project.hasClientSideId && 
             !project.isShadowForSelf && 
             this.isDayTypeFillable()) {
           

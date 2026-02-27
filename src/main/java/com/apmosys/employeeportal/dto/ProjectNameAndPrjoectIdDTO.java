@@ -16,6 +16,8 @@ public class ProjectNameAndPrjoectIdDTO {
 	private String projectName;
 	private String internalProjectType;
 	private String poProjectType;
+	private Boolean hasClientFlag;
+	private Boolean hasClientSideId;
 
 	public ProjectNameAndPrjoectIdDTO(Integer projectId, String projectName) {
 		this.projectId = projectId;
@@ -36,5 +38,10 @@ public class ProjectNameAndPrjoectIdDTO {
 		this.internalProjectType = internalProjectType;
 		this.poProjectType = poProjectType;
 	}
-
+	public ProjectNameAndPrjoectIdDTO(Integer projectId, String projectName, Boolean clientFlag, Boolean hasClientSideId) {
+		this.projectId = projectId;
+		this.projectName = projectName;
+		this.hasClientFlag = clientFlag;
+		this.hasClientSideId = hasClientSideId;
+	}
 }
