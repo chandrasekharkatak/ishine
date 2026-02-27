@@ -6764,13 +6764,14 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "    Timesheet_Base_Data AS (\n"
 			+ "        SELECT DISTINCT\n"
 			+ "            et.timesheet_id, et.emp_id, pts.project_id, etm.employee_team_map_id,\n"
-			+ "            et.date, dtm.day_type, pts.client_in_time, pts.client_out_time, pts.shadow_emp_id,t.team_id team_id, a.team_id as a_team_id, et.status\n"
+			+ "            et.date, dtm.day_type, etlm.location_in_time, etlm.location_out_time, pts.shadow_emp_id,t.team_id team_id, a.team_id as a_team_id, et.status\n"
 			+ "        FROM employee_timesheets_new et\n"
 			+ "        LEFT JOIN day_type_master_new dtm ON et.day_type_id = dtm.day_type_id\n"
 			+ "        LEFT JOIN employee_timesheet_activities_mapping_new etam ON et.timesheet_id = etam.timesheet_id\n"
 			+ "        LEFT JOIN activities a ON etam.activity_id = a.activity_id\n"
 			+ "        LEFT JOIN teams t ON a.team_id = t.team_id\n"
 			+ "        LEFT JOIN project_timesheet_status_new pts ON pts.timesheet_id = et.timesheet_id AND pts.project_id = etam.project_id\n"
+			+ "        LEFT JOIN employee_timesheet_location_mapping etlm ON etlm.location_mapping_id = pts.location_mapping_id\n"
 			+ "        LEFT JOIN employee_team_mapping etm ON et.emp_id = etm.emp_id and etm.team_id = t.team_id\n"
 			+ "        WHERE et.date BETWEEN (SELECT from_date FROM Date_Parameters) AND (SELECT to_date FROM Date_Parameters)\n"
 			+ "        --  AND et.date BETWEEN DATE(etm.start_date) AND COALESCE(date(etm.end_date), '2099-12-31')\n"
@@ -16951,8 +16952,8 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				    "INNER JOIN project_timesheet_status_new ptsn ON ptsn.timesheet_id = etn.timesheet_id " +
 				    "INNER JOIN projects p ON p.project_id = ptsn.project_id " +
 
-				    "LEFT JOIN clients c ON c.client_id = ptsn.client_side_id " +
 				    "LEFT JOIN client_locations cl ON cl.client_location_id = ptsn.client_location_id " +
+				    "LEFT JOIN clients c ON c.client_id = cl.client_id " +
 				    "LEFT JOIN day_type_master_new dtmn ON dtmn.day_type_id = etn.day_type_id " +
 				    "LEFT JOIN employee es ON ptsn.shadow_emp_id = es.emp_id " +
 				    "LEFT JOIN teams t ON t.project_id = p.project_id " +
