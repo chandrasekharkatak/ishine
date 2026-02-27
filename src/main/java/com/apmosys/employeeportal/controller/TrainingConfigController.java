@@ -27,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.ComplianceReportDTO;
+import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TrainingContentDTO;
 import com.apmosys.employeeportal.dto.TrainingMasterDTO;
 import com.apmosys.employeeportal.dto.TrainingRequestDTO;
@@ -63,10 +64,7 @@ public class TrainingConfigController {
 			return trainingConfigService.getAllTrainings(activeStatus, mandatoryFlag);
 		} catch (Exception e) {
 			e.printStackTrace();
-			ServiceResponse response = new ServiceResponse();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Error fetching trainings: " + e.getMessage());
-			return response;
+			throw e;
 		}
 	}
 
@@ -112,7 +110,12 @@ public class TrainingConfigController {
 			@RequestPart(value = "effectiveTo", required = false) String effectiveToStr,
 			@RequestPart(value = "file", required = false) MultipartFile file,
 			@RequestPart(value = "externalLinkUrl", required = false) String externalLinkUrl,
-			@RequestPart("createdBy") Long createdBy) {
+			@RequestPart("createdBy") Long createdBy) throws Exception {
+
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Add Training Content");
+		apiLogInfo.setApiUrl("/api/training/addTrainingContent");
+		apiLogInfo.setLogLevel("INFO");
 		
 		try {
 			TrainingContentDTO contentDTO = new TrainingContentDTO();
@@ -137,10 +140,10 @@ public class TrainingConfigController {
 			
 		} catch (Exception e) {
 			e.printStackTrace();
-			ServiceResponse response = new ServiceResponse();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Error processing file: " + e.getMessage());
-			return response;
+			apiLogInfo.setApiResponse(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiUrl("/api/training/addTrainingContent");
+			throw e;
 		}
 	}
 
@@ -151,10 +154,7 @@ public class TrainingConfigController {
 			return trainingConfigService.updateTrainingContent(contentDTO);
 		} catch (Exception e) {
 			e.printStackTrace();
-			ServiceResponse response = new ServiceResponse();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Error updating content: " + e.getMessage());
-			return response;
+			throw e;
 		}
 	}
 
@@ -165,10 +165,7 @@ public class TrainingConfigController {
 			return trainingConfigService.getTrainingContent(trainingId);
 		} catch (Exception e) {
 			e.printStackTrace();
-			ServiceResponse response = new ServiceResponse();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Error fetching content: " + e.getMessage());
-			return response;
+			throw e;
 		}
 	}
 
@@ -185,10 +182,7 @@ public class TrainingConfigController {
 			return trainingConfigService.deactivateTraining(trainingDTO.getTrainingId(), trainingDTO.getUpdatedBy());
 		} catch (Exception e) {
 			e.printStackTrace();
-			ServiceResponse response = new ServiceResponse();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Error deactivating training: " + e.getMessage());
-			return response;
+			throw e;
 		}
 	}
 
@@ -290,10 +284,7 @@ public class TrainingConfigController {
 			return trainingConfigService.getEmployeeTrainingHistory(request.getEmpId(), request.getTrainingId());
 		} catch (Exception e) {
 			e.printStackTrace();
-			ServiceResponse response = new ServiceResponse();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Error fetching training history: " + e.getMessage());
-			return response;
+			throw e;
 		}
 	}
 
@@ -314,10 +305,7 @@ public class TrainingConfigController {
 			);
 		} catch (Exception e) {
 			e.printStackTrace();
-			ServiceResponse response = new ServiceResponse();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Error generating compliance report: " + e.getMessage());
-			return response;
+			throw e;
 		}
 	}
 
@@ -360,10 +348,7 @@ public class TrainingConfigController {
 			return trainingConfigService.changeQuizResponse(empId, quizId, responseStatus, updatedBy);
 		} catch (Exception e) {
 			e.printStackTrace();
-			ServiceResponse response = new ServiceResponse();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Error changing quiz response: " + e.getMessage());
-			return response;
+			throw e;
 		}
 	}
 

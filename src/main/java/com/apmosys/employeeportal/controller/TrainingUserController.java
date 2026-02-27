@@ -53,10 +53,11 @@ public class TrainingUserController {
 			return trainingUserService.getUserTrainings(request.getEmpId());
 		} catch (Exception e) {
 			e.printStackTrace();
-			ServiceResponse response = new ServiceResponse();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Error fetching user trainings: " + e.getMessage());
-			return response;
+			// ServiceResponse response = new ServiceResponse();
+			// response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			// response.setServiceResponse("Error fetching user trainings: " + e.getMessage());
+			// return response;
+			throw e;
 		}
 	}
 
@@ -78,10 +79,11 @@ public class TrainingUserController {
 			return trainingUserService.submitConsent(consentDTO);
 		} catch (Exception e) {
 			e.printStackTrace();
-			ServiceResponse response = new ServiceResponse();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Error submitting consent: " + e.getMessage());
-			return response;
+			// ServiceResponse response = new ServiceResponse();
+			// response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			// response.setServiceResponse("Error submitting consent: " + e.getMessage());
+			// return response;
+			throw e;
 		}
 	}
 
@@ -103,10 +105,7 @@ public class TrainingUserController {
 			return trainingUserService.skipTraining(skipDTO);
 		} catch (Exception e) {
 			e.printStackTrace();
-			ServiceResponse response = new ServiceResponse();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Error skipping training: " + e.getMessage());
-			return response;
+			throw e;
 		}
 	}
 
@@ -122,10 +121,7 @@ public class TrainingUserController {
 			return trainingUserService.getLockStatus(request.getEmpId());
 		} catch (Exception e) {
 			e.printStackTrace();
-			ServiceResponse response = new ServiceResponse();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Error fetching lock status: " + e.getMessage());
-			return response;
+			throw e;
 		}
 	}
 
@@ -141,10 +137,7 @@ public class TrainingUserController {
 			return trainingUserService.checkTrainingFrequency(request.getEmpId(), request.getTrainingId());
 		} catch (Exception e) {
 			e.printStackTrace();
-			ServiceResponse response = new ServiceResponse();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Error checking training frequency: " + e.getMessage());
-			return response;
+			throw e;
 		}
 	}
 
@@ -162,10 +155,7 @@ public class TrainingUserController {
 			return trainingUserService.checkTrainingRequirements(request.getEmpId());
 		} catch (Exception e) {
 			e.printStackTrace();
-			ServiceResponse response = new ServiceResponse();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Error checking training requirements: " + e.getMessage());
-			return response;
+			throw e;
 		}
 	}
 
@@ -181,10 +171,7 @@ public class TrainingUserController {
 			return trainingUserService.getQuizQuestionByTrainingId(trainingId);
 		} catch (Exception e) {
 			e.printStackTrace();
-			ServiceResponse response = new ServiceResponse();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Error fetching quiz questions: " + e.getMessage());
-			return response;
+			throw e;
 		}
 	}
 

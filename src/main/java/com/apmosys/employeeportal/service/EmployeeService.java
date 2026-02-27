@@ -297,6 +297,9 @@ public class EmployeeService {
 	
 	@Value("${training.job.role.exclude}")
 	private String trainingJobRoleExclude;
+
+	@Value("${training.dry.run.empids.to.include}")
+	private String trainingDryRunEmpIdsToInclude;
 	
 	@Value("${bd.mail}")
 	private String businessMail;
@@ -5485,12 +5488,18 @@ public class EmployeeService {
 				
 				//Check training lock status and mandatory training requirements
 				// This check is critical for routing decisions on login
-				List<Long> jobRoleIds = Arrays.stream(trainingJobRoleExclude.split(","))
+				// List<Long> jobRoleIds = Arrays.stream(trainingJobRoleExclude.split(","))
+				// 		.map(String::trim)
+				// 		.map(Long::parseLong)
+				// 		.collect(Collectors.toList());
+
+				// Dry run empIds
+				List<Long> empIdsToInclude = Arrays.stream(trainingDryRunEmpIdsToInclude.split(","))
 						.map(String::trim)
 						.map(Long::parseLong)
 						.collect(Collectors.toList());
 				Long employeeJobRoleId = employee.getJobRoleId();
-				if (employee.getEmpId() != null && employeeJobRoleId != null && !jobRoleIds.contains(employeeJobRoleId)) {
+				if (employee.getEmpId() != null && employeeJobRoleId != null && empIdsToInclude.contains(employeeJobRoleId)) {
 					try {
 
 						ServiceResponse lockResponse = trainingUserService.getLockStatus(employee.getEmpId());

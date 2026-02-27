@@ -9,7 +9,6 @@ import {
   ViewChild,
 } from '@angular/core';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
-import { first } from 'rxjs';
 import { SurveyOption } from 'src/app/models/sureyOption';
 import { SurveyQuestion } from 'src/app/models/surveyQuestion';
 import { SurveyService } from 'src/app/services/survey.service';
@@ -63,8 +62,8 @@ export class QuizSubmit implements OnInit {
   }
 
   getQuizForm() {
-    this.surveyService.getQuizQuestionByTrainingId(this.trainingId).pipe(first()).subscribe((response: any) => {
-      if(response.serviceStatus == "Success") {
+    this.surveyService.getQuizQuestionByTrainingId(this.trainingId).subscribe({
+      next: (response: any) => {
         this.allSurveyQuestionList = response.serviceResponse.allSurveyQuestionList;
         this.quizId = response.serviceResponse.quizId;
 
@@ -100,10 +99,9 @@ export class QuizSubmit implements OnInit {
             this.isQuizLoaded = true;
           }
         }, 500);
-
-      } else {  
-        this.showAlertMessage(response.serviceResponse || "something went wrong");
-        return;
+      },
+      error: (error: any) => {
+        this.showAlertMessage(error.error?.serviceStatus || "something went wrong");
       }
     });
   }
@@ -115,8 +113,8 @@ export class QuizSubmit implements OnInit {
     surveyObj.isQuizResponse = true;
     surveyObj.isAttendingQuiz = false;
 
-    this.surveyService.getSurveyResponseByEmpIdAndSurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
-      if(response.serviceStatus == "Success") {
+    this.surveyService.getSurveyResponseByEmpIdAndSurveyId(surveyObj).subscribe({
+      next: (response: any) => {
         this.allSurveyQuestionList = response.serviceResponse.allSurveyQuestionList;
         this.quizId = response.serviceResponse.quizId;
         this.correctAnswers = response.serviceResponse.correctAnswers;
@@ -173,8 +171,9 @@ export class QuizSubmit implements OnInit {
             this.isQuizLoaded = true;
           }
         }, 500);
-      } else {
-        this.showAlertMessage(response.serviceResponse || "something went wrong");
+      },
+      error: (error: any) => {
+        this.showAlertMessage(error.error?.serviceStatus || "something went wrong");
       }
     });
   }
@@ -231,8 +230,8 @@ export class QuizSubmit implements OnInit {
     let inputValidated: boolean = this.validateSurveyResponse(surveyObj, template);
     if (!inputValidated) return;
     
-    this.surveyService.setSurveyResponseByEmpId(surveyObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
+    this.surveyService.setSurveyResponseByEmpId(surveyObj).subscribe({
+      next: (response: any) => {
         const quizResults = response.serviceResponse;
         this.correctAnswers = quizResults.correctAnswers || {};
         this.correctAnswersCount = quizResults.correctAnswersCount || 0;
@@ -244,8 +243,9 @@ export class QuizSubmit implements OnInit {
         setTimeout(() => {
           this.rebuildTemplate();
         }, 100);
-      } else {
-        this.openAlertMod(template, response.serviceResponse);
+      },
+      error: (error: any) => {
+        this.openAlertMod(template, error.error?.serviceStatus || "something went wrong");
       }
     });
   }

@@ -53,5 +53,12 @@ public class GlobalException {
     }
 
 
+    @ExceptionHandler(TrainingException.class)
+    public ResponseEntity<ServiceResponse> handleTrainingException(TrainingException e){
+        ServiceResponse response = new ServiceResponse();
+        response.setServiceStatus(e.getMessage());
+        response.setServiceResponse(null);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
 
 }

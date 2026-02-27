@@ -33,6 +33,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.apmosys.employeeportal.Exception.BusinessValidationException;
 import com.apmosys.employeeportal.Exception.FileValidationException;
 import com.apmosys.employeeportal.Exception.GlobalException;
+import com.apmosys.employeeportal.Exception.ResourceNotFoundException;
+import com.apmosys.employeeportal.Exception.TrainingException;
 import com.apmosys.employeeportal.dto.ComplianceReportDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TrainingContentDTO;
@@ -108,6 +110,9 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		apiLogInfo.setApiUrl("/api/training/getAllTrainings");
 		apiLogInfo.setLogLevel("INFO");
 
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Active Status: ").append(activeStatus).append(", Mandatory Flag: ").append(mandatoryFlag);
+
 		try {
 			List<TrainingMasterDTO> trainings;
 
@@ -129,13 +134,14 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			throw e;
 		}
 
+		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
@@ -157,13 +163,11 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 			Optional<TrainingMaster> trainingOpt = trainingMasterRepository
 					.findByTrainingId(contentDTO.getTrainingId());
 			if (trainingOpt.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Training not found");
 				apiLogInfo.setApiResponse("Training not found");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				apiLogInfo.setApiRequest(logBuilder.toString());
 				logService.logMyInfo(httpRequest, apiLogInfo);
-				return response;
+				throw new ResourceNotFoundException("Training not found");
 			}
 
 			TrainingMaster training = trainingOpt.get();
@@ -171,23 +175,19 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 			// Validate content type and required fields
 			if ("LINK".equals(contentDTO.getContentType())) {
 				if (contentDTO.getExternalLinkUrl() == null || contentDTO.getExternalLinkUrl().isEmpty()) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("External link URL is required for LINK content type");
 					apiLogInfo.setApiResponse("External link URL is required");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					apiLogInfo.setApiRequest(logBuilder.toString());
 					logService.logMyInfo(httpRequest, apiLogInfo);
-					return response;
+					throw new TrainingException("External link URL is required for LINK content type");
 				}
 			} else {
 				if (contentDTO.getContentPath() == null || contentDTO.getContentPath().isEmpty()) {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Content path is required for file content types");
 					apiLogInfo.setApiResponse("Content path is required");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					apiLogInfo.setApiRequest(logBuilder.toString());
 					logService.logMyInfo(httpRequest, apiLogInfo);
-					return response;
+					throw new TrainingException("Content path is required for file content types");
 				}
 			}
 
@@ -223,19 +223,20 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 				apiLogInfo.setApiResponse("Content added successfully");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Failed to add content");
 				apiLogInfo.setApiResponse("Failed to add content");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				throw new TrainingException("Failed to save training content");
 			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			throw e;
 		}
 
 		apiLogInfo.setApiRequest(logBuilder.toString());
@@ -288,14 +289,16 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 			MultipartFile file) {
 
 		ServiceResponse response = new ServiceResponse();
-	
-		try {
-			
-			/*
-			 * ============================= 1️⃣ BASIC VALIDATION
-			 * ==============================
-			 */
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Create Training With Content");
+		apiLogInfo.setApiUrl("/api/training/createTrainingWithContent");
+		apiLogInfo.setLogLevel("INFO");
 
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Training Name: ").append(trainingDTO != null ? trainingDTO.getTrainingName() : "null")
+				.append(", Content Type: ").append(contentDTO != null ? contentDTO.getContentType() : "null");
+
+		try {
 			validateTrainingDTO(trainingDTO);
 			validateContentDTO(contentDTO);
 
@@ -308,7 +311,11 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 					.findByTrainingNameIgnoreCase(trainingDTO.getTrainingName().trim());
 
 			if (existing.isPresent()) {
-				throw new RuntimeException("Training name already exists.");
+				apiLogInfo.setApiResponse("Training name already exists");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				throw new TrainingException("Training name already exists.");
 			}
 
 			/*
@@ -326,7 +333,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 			if (!"LINK".equals(contentDTO.getContentType())) {
 
 				if (file == null || file.isEmpty()) {
-					throw new RuntimeException("File is required for " + contentDTO.getContentType());
+					throw new TrainingException("File is required for " + contentDTO.getContentType());
 				}
 
 				trainingFileValidator.validateFile(file, contentDTO.getContentType(), maxFileSize);
@@ -440,18 +447,20 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(savedTraining);
 			response.setServiceMessage("Training and content created successfully");
+			apiLogInfo.setApiResponse("Training and content created successfully");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 		} catch (Exception e) {
-
-			throw new RuntimeException("Failed to create training : "+ e.getMessage());
-			// e.printStackTrace();
-			// response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			// response.setServiceResponse("Something Went Wrong.");
-			// response.setServiceError(e.getMessage());
-			// apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			// apiLogInfo.setLogLevel("ERROR");
+			e.printStackTrace();
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			throw e;
 		}
 
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -463,35 +472,43 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	        MultipartFile file) {
 
 	    ServiceResponse response = new ServiceResponse();
+	    LogDTO apiLogInfo = new LogDTO();
+	    apiLogInfo.setSubFeatureName("Update Training With Content");
+	    apiLogInfo.setApiUrl("/api/training/updateTrainingWithContent");
+	    apiLogInfo.setLogLevel("INFO");
+
+	    StringBuilder logBuilder = new StringBuilder();
+	    logBuilder.append("Training ID: ").append(trainingDTO != null ? trainingDTO.getTrainingId() : "null")
+	    		.append(", Content ID: ").append(contentDTO != null ? contentDTO.getContentId() : "null");
 
 	    try {
-	    	
-	    	
+	        if (trainingDTO == null || trainingDTO.getTrainingId() == null){
+				apiLogInfo.setApiResponse("Training ID is required for update");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+	            throw new TrainingException("Training ID is required for update");
+			}
 
-	        /* ===========================
-	           1️⃣ BASIC VALIDATION
-	        =========================== */
+	        if (trainingDTO.getUpdatedBy() == null){
+				apiLogInfo.setApiResponse("Updated by is required");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+	            throw new TrainingException("Updated by is required");
+			}
 
-	        if (trainingDTO == null || trainingDTO.getTrainingId() == null)
-	            throw new RuntimeException("Training ID is required for update");
-
-	        if (trainingDTO.getUpdatedBy() == null)
-	            throw new RuntimeException("Updated by is required");
-
-	        if (contentDTO == null)
-	            throw new RuntimeException("Content DTO is required");
-
-	        /* ===========================
-	           2️⃣ FETCH TRAINING
-	        =========================== */
+	        if (contentDTO == null){
+				apiLogInfo.setApiResponse("Content DTO is required");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+	            throw new TrainingException("Content DTO is required");
+			}
 
 	        TrainingMaster training = trainingMasterRepository
 	                .findByTrainingId(trainingDTO.getTrainingId())
-	                .orElseThrow(() -> new RuntimeException("Training not found"));
-
-	        /* ===========================
-	           3️⃣ DUPLICATE NAME CHECK
-	        =========================== */
+	                .orElseThrow(() -> new ResourceNotFoundException("Training not found"));
 
 	        if (trainingDTO.getTrainingName() != null
 	                && !trainingDTO.getTrainingName().trim().isEmpty()) {
@@ -502,7 +519,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	                            trainingDTO.getTrainingId());
 
 	            if (existing.isPresent())
-	                throw new RuntimeException("Training name already exists.");
+	                throw new TrainingException("Training name already exists.");
 	        }
 
 	        /* ===========================
@@ -518,12 +535,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	                : training.getEffectiveTo();
 
 	        if (effectiveFrom.isAfter(effectiveTo))
-	            throw new RuntimeException(
-	                    "Training effective from must be before effective to");
-
-	        /* ===========================
-	           5️⃣ UPDATE TRAINING FIELDS
-	        =========================== */
+	            throw new TrainingException("Training effective from must be before effective to");
 
 	        if (trainingDTO.getTrainingName() != null)
 	            training.setTrainingName(trainingDTO.getTrainingName().trim());
@@ -573,8 +585,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 	        TrainingContent existingContent = trainingContentRepository
 	                .findByContentId(contentDTO.getContentId())
-	                .orElseThrow(() ->
-	                        new RuntimeException("Content not found for update"));
+	                .orElseThrow(() -> new ResourceNotFoundException("Content not found for update"));
 
 			TrainingContent newTrainingContent = new TrainingContent();
 
@@ -678,18 +689,24 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 	         safeDeleteTrainingFile(oldFilePath);
 	     }
+
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 	        response.setServiceResponse("Training and content updated successfully");
 	        response.setServiceMessage(savedContent.getContentId().toString());
+	        apiLogInfo.setApiResponse("Training and content updated successfully");
+	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 	    } catch (Exception e) {
 			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Training and content update failed");
-			response.setServiceMessage(e.getMessage());
-	        // throw new RuntimeException(e.getMessage(), e);
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			throw e;
 	    }
 
+	    apiLogInfo.setApiRequest(logBuilder.toString());
+	    logService.logMyInfo(httpRequest, apiLogInfo);
 	    return response;
 	}
 	
@@ -717,13 +734,18 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		apiLogInfo.setApiUrl("/api/training/updateTrainingContent");
 		apiLogInfo.setLogLevel("INFO");
 
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Content ID: ").append(contentDTO != null ? contentDTO.getContentId() : "null");
+
 		try {
 			Optional<TrainingContent> contentOpt = trainingContentRepository.findByContentId(contentDTO.getContentId());
 
 			if (contentOpt.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Content not found");
-				return response;
+				apiLogInfo.setApiResponse("Content not found");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				throw new ResourceNotFoundException("Content not found");
 			}
 
 			TrainingContent content = contentOpt.get();
@@ -763,25 +785,27 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Content updated successfully");
+			apiLogInfo.setApiResponse("Content updated successfully");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 		} catch (FileValidationException e) {
 			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse(e.getMessage());
-			response.setServiceError(e.getMessage());
-
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setApiResponse(e.getMessage());
 			apiLogInfo.setLogLevel("WARN");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			throw e;
 		} catch (Exception e) {
 			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong." + e.getMessage());
-			response.setServiceError(e.getMessage());
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			throw e;
 		}
 
+		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
@@ -789,6 +813,13 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	@Override
 	public ServiceResponse getTrainingContent(Integer trainingId) {
 		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Get Training Content");
+		apiLogInfo.setApiUrl("/api/training/getTrainingContent");
+		apiLogInfo.setLogLevel("INFO");
+
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Training ID: ").append(trainingId);
 
 		try {
 			List<TrainingContent> contents = trainingContentRepository.findByTrainingMaster_TrainingId(trainingId);
@@ -808,14 +839,20 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(dtoList);
+			apiLogInfo.setApiResponse("Training content fetched successfully");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			throw e;
 		}
 
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 
@@ -832,9 +869,11 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 			Optional<TrainingMaster> trainingOpt = trainingMasterRepository.findByTrainingId(trainingId);
 
 			if (trainingOpt.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Training not found");
-				return response;
+				apiLogInfo.setApiResponse("Training not found");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest("Training ID: " + trainingId + ", Updated By: " + updatedBy);
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				throw new ResourceNotFoundException("Training not found");
 			}
 
 			TrainingMaster training = trainingOpt.get();
@@ -844,10 +883,6 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 			trainingMasterRepository.save(training);
 
-			// Count employees with pending training (for response message)
-			// This would require a query to count pending trainings
-			// For now, just return success
-
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Training deactivated successfully");
 			apiLogInfo.setApiResponse("Training deactivated successfully");
@@ -855,13 +890,14 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
+			apiLogInfo.setApiRequest("Training ID: " + trainingId + ", Updated By: " + updatedBy);
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			throw e;
 		}
 
+		apiLogInfo.setApiRequest("Training ID: " + trainingId + ", Updated By: " + updatedBy);
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
@@ -875,28 +911,37 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		apiLogInfo.setApiUrl("/api/training/downloadContent");
 		apiLogInfo.setLogLevel("INFO");
 
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Content ID: ").append(contentId);
+
 		try {
 			Optional<TrainingContent> contentOpt = trainingContentRepository.findByContentId(contentId);
 
 			if (contentOpt.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Content not found");
-				return response;
+				apiLogInfo.setApiResponse("Content not found");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				throw new ResourceNotFoundException("Content not found");
 			}
 
 			TrainingContent content = contentOpt.get();
 
 			// Block external links
 			if ("LINK".equalsIgnoreCase(content.getContentType())) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("External link content cannot be downloaded");
-				return response;
+				apiLogInfo.setApiResponse("External link content cannot be downloaded");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				throw new TrainingException("External link content cannot be downloaded");
 			}
 
 			if (content.getContentPath() == null || content.getContentPath().isBlank()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Content file path not found");
-				return response;
+				apiLogInfo.setApiResponse("Content file path not found");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				throw new ResourceNotFoundException("Content file path not found");
 			}
 
 			// Resolve paths safely
@@ -906,15 +951,19 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 			// Path traversal protection
 			if (!filePath.startsWith(basePath)) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Invalid file path");
-				return response;
+				apiLogInfo.setApiResponse("Invalid file path");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				throw new ResourceNotFoundException("Invalid file path");
 			}
 
 			if (!Files.exists(filePath) || !Files.isReadable(filePath)) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("File not found on server");
-				return response;
+				apiLogInfo.setApiResponse("File not found on server");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				throw new ResourceNotFoundException("File not found on server");
 			}
 
 			Resource resource = new FileSystemResource(filePath);
@@ -944,11 +993,13 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 			// MIME type handling
 			String mimeType = content.getMimeType();
 			if (mimeType == null || mimeType.isBlank()) {
+				try {
 				mimeType = Files.probeContentType(filePath);
+				} catch (IOException ex) {
+					mimeType = null;
 			}
-			if (mimeType == null) {
-				mimeType = "application/octet-stream";
 			}
+			if (mimeType == null) mimeType = "application/octet-stream";
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(resource);
@@ -959,14 +1010,15 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 			apiLogInfo.setApiResponse("Content downloaded successfully");
 
 		} catch (Exception e) {
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something went wrong");
-			response.setServiceError(e.getMessage());
-
+			e.printStackTrace();
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			throw e;
 		}
 
+		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
@@ -978,6 +1030,9 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		apiLogInfo.setSubFeatureName("Get Employee Training History");
 		apiLogInfo.setApiUrl("/api/training/getEmployeeTrainingHistory");
 		apiLogInfo.setLogLevel("INFO");
+
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Emp ID: ").append(empId).append(", Training ID: ").append(trainingId);
 
 		try {
 			List<TrainingHistoryDTO> historyList = new ArrayList<>();
@@ -1052,13 +1107,14 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			throw e;
 		}
 
+		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
@@ -1071,18 +1127,20 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		apiLogInfo.setApiUrl("/api/training/getComplianceReport");
 		apiLogInfo.setLogLevel("INFO");
 
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Training ID: ").append(trainingId).append(", Dept ID: ").append(departmentId).append(", Status: ").append(status);
+
 		try {
 			ComplianceReportDTO dto = new ComplianceReportDTO();
 			dto.setTrainingId(trainingId);
 
 			Optional<TrainingMaster> trainingOpt = trainingMasterRepository.findByTrainingId(trainingId);
 			if (trainingOpt.isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Training not found");
 				apiLogInfo.setApiResponse("Training not found");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
 				logService.logMyInfo(httpRequest, apiLogInfo);
-				return response;
+				throw new ResourceNotFoundException("Training not found");
 			}
 
 			TrainingMaster training = trainingOpt.get();
@@ -1102,8 +1160,9 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dto);
-				apiLogInfo.setApiResponse("Compliance report generated successfully");
+				apiLogInfo.setApiResponse("Compliance report generated (no active content)");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setApiRequest(logBuilder.toString());
 				logService.logMyInfo(httpRequest, apiLogInfo);
 				return response;
 			}
@@ -1171,13 +1230,14 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			throw e;
 		}
 
+		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
@@ -1360,11 +1420,11 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 			EmployeeQuizResponseStatusMapping employeeQuizResponseStatusMapping = employeeQuizResponseStatusMappingRepository.findByEmployeeIdAndQuizId(empId, quizId);
 
 			if (employeeQuizResponseStatusMapping == null) {
-				response.setStatusCode(HttpStatus.BAD_REQUEST.value());
-				response.setServiceMessage("Quiz Response Not Found");
-				apiLogInfo.setApiResponse(responseStatus);
+				apiLogInfo.setApiResponse("Quiz Response Not Found");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				return response;
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				throw new ResourceNotFoundException("Quiz Response Not Found for empId: " + empId + ", quizId: " + quizId);
 			}
 
 			employeeQuizResponseStatusMapping.setPassStatus(responseStatus);
@@ -1377,11 +1437,16 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			
 		} catch (Exception e) {
-			response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
-			response.setServiceMessage("Failed to Change Quiz Response");
-			apiLogInfo.setApiResponse(responseStatus);
+			e.printStackTrace();
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			throw e;
 		}	
+
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
 

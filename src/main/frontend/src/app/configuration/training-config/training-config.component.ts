@@ -6,7 +6,6 @@ import { Router } from '@angular/router';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import * as JSZip from 'jszip';
 import * as moment from 'moment';
-import { first } from 'rxjs/operators';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { TrainingService } from 'src/app/services/training.service';
@@ -260,20 +259,19 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   }
 
   getAllTrainings() {
-    this.trainingService.getAllTrainings().pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === 'Success') {
+    this.trainingService.getAllTrainings().subscribe({
+      next: (response: any) => {
         this.trainings = response.serviceResponse || [];
-      } else {
-        this.openAlertMod(this.alertTemplate, 'Failed to load trainings', 'error');
+      },
+      error: (error: any) => {
+        this.openAlertMod(this.alertTemplate, error.error?.serviceStatus || 'Failed to load trainings', 'error');
       }
-    }, error => {
-      this.openAlertMod(this.alertTemplate, 'Error loading trainings: ' + error.message, 'error');
     });
   }
 
   getTrainingContent(trainingId: number) {
-    this.trainingService.getTrainingContent(trainingId).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === 'Success') {
+    this.trainingService.getTrainingContent(trainingId).subscribe({
+      next: (response: any) => {
         this.trainingContents = response.serviceResponse || [];
         
         // If editing training, populate content form with active content
@@ -287,11 +285,10 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
             this.populateContentForm(activeContent);
           }
         }
-      } else {
-        this.openAlertMod(this.alertTemplate, 'Failed to load training content', 'error');
+      },
+      error: (error: any) => {
+        this.openAlertMod(this.alertTemplate, error.error?.serviceStatus || 'Failed to load training content', 'error');
       }
-    }, error => {
-      this.openAlertMod(this.alertTemplate, 'Error loading training content: ' + error.message, 'error');
     });
   }
 
@@ -344,7 +341,6 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     
     // Download/view existing content file
     this.trainingService.downloadContent(this.contentFormData.contentId)
-      .pipe(first())
       .subscribe({
         next: (response: any) => {
           const blob = response.body;
@@ -425,31 +421,17 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     }
 
     // Send training and content together
-    this.trainingService.createTrainingWithContent(formData).pipe(first()).
+    this.trainingService.createTrainingWithContent(formData).
     subscribe({
     next: (response: any) => {
       console.log("success===> ",response)
-      if (response.serviceStatus === 'Success') {
       const createdTraining = response.serviceResponse;
-
-  this.openCreateQuizModal(createdTraining);
-      } else {
-        this.openAlertMod(this.alertTemplate, 
-          response.serviceStatus || 'Failed to create training', 
-          'error');
-      }
+      this.openCreateQuizModal(createdTraining);
     },
     error: (error: any) => {
       console.log("HTTP error => ", error);
-
-      const backendMessage =
-        error?.error?.serviceStatus ||
-        error?.error?.serviceResponse ||
-        error?.message ||
-        'Something went wrong';
-         console.log("backendMessage==>  ",backendMessage)
       this.openAlertMod(this.alertTemplate,
-        backendMessage,
+        error?.error?.serviceStatus || 'Something went wrong',
         'error');
     }
   });
@@ -523,8 +505,8 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       }
 
       // Send training and content together
-      this.trainingService.updateTrainingWithContent(formData).pipe(first()).subscribe((response: any) => {
-        if (response.serviceStatus === 'Success') {
+      this.trainingService.updateTrainingWithContent(formData).subscribe({
+        next: (response: any) => {
           this.openAlertMod(this.alertTemplate, 'Training and content updated successfully', 'success');
           // Reload content list after update
           if (this.trainingFormData.trainingId) {
@@ -532,12 +514,11 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
           }
           this.resetContentForm();
           this.showTable();
-        } else {
-          this.openAlertMod(this.alertTemplate, response.serviceResponse || 'Failed to update training', 'error');
+        },
+        error: (error: any) => {
+          console.log("error=> ", error);
+          this.openAlertMod(this.alertTemplate, error.error?.serviceStatus || 'Failed to update training', 'error');
         }
-      }, error => {
-        console.log("error=> ", error);
-        this.openAlertMod(this.alertTemplate, 'Error updating training: ' + (error.error?.message || error.message), 'error');
       });
     
   }
@@ -583,126 +564,122 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
 
     // Step 1: Load training content
     this.trainingService.getTrainingContent(training.trainingId)
-      .pipe(first())
-      .subscribe((response: any) => {
+      .subscribe({
+        next: (response: any) => {
 
-        if (response.serviceStatus !== 'Success') {
-          this.openAlertMod(this.alertTemplate, 'Failed to load training content', 'error');
-          return;
-        }
+          const contents = response.serviceResponse || [];
 
-        const contents = response.serviceResponse || [];
+          if (contents.length === 0) {
+            this.openAlertMod(this.alertTemplate, 'No content available for this training', 'info');
+            return;
+          }
 
-        if (contents.length === 0) {
-          this.openAlertMod(this.alertTemplate, 'No content available for this training', 'info');
-          return;
-        }
+          // Step 2: Pick active content (unchanged logic)
+          const activeContent =
+            contents.find((c: any) => c.activeStatus === 'true') || contents[0];
 
-        // Step 2: Pick active content (unchanged logic)
-        const activeContent =
-          contents.find((c: any) => c.activeStatus === 'true') || contents[0];
+          this.viewingContent = activeContent;
+          this.isViewingExistingContent = true;
 
-        this.viewingContent = activeContent;
-        this.isViewingExistingContent = true;
+          // Step 3: Populate content form (unchanged)
+          this.contentFormData = {
+            contentType: activeContent.contentType,
+            contentName: activeContent.contentName,
+            effectiveFrom: activeContent.effectiveFrom,
+            effectiveTo: activeContent.effectiveTo,
+            externalLinkUrl: activeContent.externalLinkUrl || ''
+          };
 
-        // Step 3: Populate content form (unchanged)
-        this.contentFormData = {
-          contentType: activeContent.contentType,
-          contentName: activeContent.contentName,
-          effectiveFrom: activeContent.effectiveFrom,
-          effectiveTo: activeContent.effectiveTo,
-          externalLinkUrl: activeContent.externalLinkUrl || ''
-        };
+          // Step 4: LINK content handling (unchanged)
+          if (activeContent.contentType === 'LINK') {
+            this.previewUrl = activeContent.externalLinkUrl;
+            this.safePreviewUrl = this.previewUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(this.previewUrl) : null;
+            this.showPreview = true;
+            this.openPreviewModal();
+            return;
+          }
 
-        // Step 4: LINK content handling (unchanged)
-        if (activeContent.contentType === 'LINK') {
-          this.previewUrl = activeContent.externalLinkUrl;
-          this.safePreviewUrl = this.previewUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(this.previewUrl) : null;
-          this.showPreview = true;
-          this.openPreviewModal();
-          return;
-        }
+          // Step 5: FILE content handling (blob download)
+          this.trainingService.downloadContent(activeContent.contentId)
+            .subscribe({
 
-        // Step 5: FILE content handling (blob download)
-        this.trainingService.downloadContent(activeContent.contentId)
-          .pipe(first())
-          .subscribe({
+              next: (resp: any) => {
 
-            next: (resp: any) => {
+                const blob: Blob = resp.body;
+                const contentType =
+                  resp.headers.get('Content-Type') || 'application/octet-stream';
 
-              const blob: Blob = resp.body;
-              const contentType =
-                resp.headers.get('Content-Type') || 'application/octet-stream';
+                // Extract filename from header
+                let fileName = activeContent.contentName || 'content';
+                const disposition = resp.headers.get('Content-Disposition');
 
-              // Extract filename from header
-              let fileName = activeContent.contentName || 'content';
-              const disposition = resp.headers.get('Content-Disposition');
-
-              if (disposition) {
-                const match = disposition.match(/filename="(.+)"/);
-                if (match && match[1]) {
-                  fileName = match[1];
+                if (disposition) {
+                  const match = disposition.match(/filename="(.+)"/);
+                  if (match && match[1]) {
+                    fileName = match[1];
+                  }
                 }
-              }
 
-              // Create preview URL
-              this.previewUrl = URL.createObjectURL(
-                new Blob([blob], { type: contentType })
-              );
-              this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.previewUrl);
-              this.showPreview = true;
+                // Create preview URL
+                this.previewUrl = URL.createObjectURL(
+                  new Blob([blob], { type: contentType })
+                );
+                this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.previewUrl);
+                this.showPreview = true;
 
-              // PPT parsing logic (unchanged)
-              if (
-                activeContent.contentType === 'PPT' &&
-                activeContent.contentPath &&
-                activeContent.contentPath.toLowerCase().endsWith('.pptx')
-              ) {
-                const file = new File([blob], fileName, { type: contentType });
-                this.file = file;
-                this.fileSize = blob.size / 1024 / 1024;
-                this.parsePPTXFile(file);
-              } else {
-                this.file = new File([blob], fileName, { type: contentType });
-                this.fileSize = blob.size / 1024 / 1024;
-              }
+                // PPT parsing logic (unchanged)
+                if (
+                  activeContent.contentType === 'PPT' &&
+                  activeContent.contentPath &&
+                  activeContent.contentPath.toLowerCase().endsWith('.pptx')
+                ) {
+                  const file = new File([blob], fileName, { type: contentType });
+                  this.file = file;
+                  this.fileSize = blob.size / 1024 / 1024;
+                  this.parsePPTXFile(file);
+                } else {
+                  this.file = new File([blob], fileName, { type: contentType });
+                  this.fileSize = blob.size / 1024 / 1024;
+                }
 
-              this.openPreviewModal();
-            },
+                this.openPreviewModal();
+              },
 
-            error: (error) => {
-              // Blob-safe error handling
-              if (error?.error instanceof Blob) {
-                error.error.text().then((text: string) => {
+              error: (error: any) => {
+                // Blob-safe error handling
+                if (error?.error instanceof Blob) {
+                  error.error.text().then((text: string) => {
+                    this.openAlertMod(
+                      this.alertTemplate,
+                      text || 'Error loading content',
+                      'error'
+                    );
+                  });
+                } else {
                   this.openAlertMod(
                     this.alertTemplate,
-                    text || 'Error loading content',
+                    error.error?.serviceStatus || 'Error loading content',
                     'error'
                   );
-                });
-              } else {
-                this.openAlertMod(
-                  this.alertTemplate,
-                  'Error loading content',
-                  'error'
-                );
+                }
               }
-            }
-          });
+            });
 
-      }, error => {
-        this.openAlertMod(
-          this.alertTemplate,
-          'Error loading training content',
-          'error'
-        );
+        },
+        error: (error: any) => {
+          this.openAlertMod(
+            this.alertTemplate,
+            error.error?.serviceStatus || 'Error loading training content',
+            'error'
+          );
+        }
       });
   }
 
   onViewConten1t(training: any) {
     // Load training content first
-    this.trainingService.getTrainingContent(training.trainingId).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === 'Success') {
+    this.trainingService.getTrainingContent(training.trainingId).subscribe({
+      next: (response: any) => {
         const contents = response.serviceResponse || [];
         if (contents.length === 0) {
           this.openAlertMod(this.alertTemplate, 'No content available for this training', 'info');
@@ -732,7 +709,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
           this.openPreviewModal();
         } else {
           // For files, download and create blob URL
-          this.trainingService.downloadContent(activeContent.contentId).pipe(first()).subscribe({
+          this.trainingService.downloadContent(activeContent.contentId).subscribe({
             next: (resp: any) => {
               // With observe: 'response', resp.body contains the blob
               const blob: Blob = resp.body;
@@ -801,17 +778,15 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
                   this.openAlertMod(this.alertTemplate, 'Error loading content', 'error');
                 });
               } else {
-                const errorMsg = error?.error?.message || error?.message || 'Error loading content';
-                this.openAlertMod(this.alertTemplate, errorMsg, 'error');
+                this.openAlertMod(this.alertTemplate, error?.error?.serviceStatus || 'Error loading content', 'error');
               }
             }
           });
         }
-      } else {
-        this.openAlertMod(this.alertTemplate, 'Failed to load training content', 'error');
+      },
+      error: (error: any) => {
+        this.openAlertMod(this.alertTemplate, error.error?.serviceStatus || 'Failed to load training content', 'error');
       }
-    }, error => {
-      this.openAlertMod(this.alertTemplate, 'Error loading training content: ' + error.message, 'error');
     });
   }
 
@@ -873,15 +848,14 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     this.modalRef = this.modalService.open(template, { centered: true });
     this.modalRef.result.then((result) => {
       if (result === 'confirm') {
-        this.trainingService.deactivateTraining(training.trainingId, this.currentUser.empId).pipe(first()).subscribe((response: any) => {
-          if (response.serviceStatus === 'Success') {
+        this.trainingService.deactivateTraining(training.trainingId, this.currentUser.empId).subscribe({
+          next: (response: any) => {
             this.openAlertMod(this.alertTemplate, 'Training deactivated successfully', 'success');
             this.getAllTrainings();
-          } else {
-            this.openAlertMod(this.alertTemplate, response.serviceResponse || 'Failed to deactivate training', 'error');
+          },
+          error: (error: any) => {
+            this.openAlertMod(this.alertTemplate, error.error?.serviceStatus || 'Failed to deactivate training', 'error');
           }
-        }, error => {
-          this.openAlertMod(this.alertTemplate, 'Error deactivating training: ' + error.message, 'error');
         });
       }
     });
