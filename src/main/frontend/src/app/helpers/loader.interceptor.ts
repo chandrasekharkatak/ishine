@@ -537,6 +537,7 @@ export class LoaderInterceptor implements HttpInterceptor {
       }
     }),
     catchError((error: HttpErrorResponse) => {
+      this.loaderService.requestEnded();
       this.loaderService.resetSpinner();
 
       if (error instanceof HttpErrorResponse) {
