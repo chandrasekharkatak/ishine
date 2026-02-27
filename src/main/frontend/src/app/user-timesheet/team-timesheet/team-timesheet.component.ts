@@ -266,7 +266,7 @@ rejectionReasons:any;
     this.thisMonthValidation();
 
     this.selectedMonth = new Date(2025, 4, 1);
-    
+
 
 
     // // Set maxMonth to previous month (current month is NOT allowed for selection)
@@ -515,7 +515,7 @@ this.items = event.pageSize;
 sortData(sort: Sort) {
   if (!sort.active || sort.direction === '') return;
  if (sort.active === 'employmentId') {
-    this.sortColumn = 'employeementId'; // raw DB column
+    this.sortColumn = 'employeement_Id'; // raw DB column
   } else {
     this.sortColumn = sort.active;
   }
@@ -2066,13 +2066,15 @@ toggleProject(tIndex: number, pIndex: number):void {
 /* EMPLOYEE ACCORDION */
 
 /* MAIN ACCORDION */
-toggleAccordion(index: number): void {
+toggleAccordion(index: number,timesheet:any): void {
   if (this.expandedTimesheetIndex === index) {
     this.expandedTimesheetIndex = null;
     this.expandedProjectKey = null;   // close project accordion
+     this.selectedTimesheet = null;
   } else {
     this.expandedTimesheetIndex = index;
     this.expandedProjectKey = null;   // reset project when switching employee
+     this.selectedTimesheet = timesheet;
   }
 }
 
@@ -2159,7 +2161,7 @@ openDocumentPopup(
 
   this.activeDocType = toggleMode ? 'Pending' : docType;
 
- 
+
   if (toggleMode) {
     this.modalRef = this.modalService.open(
       this.documentViewerModal,
@@ -2404,7 +2406,7 @@ getDocument(type: 'Pending' | 'Approved'): void {
     this.clearPreview();
     return;
   }
-  
+
 
 
   this.safePdfUrl=null;
@@ -3329,7 +3331,7 @@ toggleFullscreen(): void {
 /* ---------------- DOWNLOAD ---------------- */
 
 downloadActiveFile(fileName = 'image-preview'): void {
- 
+
   // Ensure we have a raw object URL
   if (!this.activeRawObjectUrl || this.activeFileType !== 'image') return;
 

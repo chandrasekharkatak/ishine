@@ -1526,13 +1526,13 @@ public ServiceResponse getMyReporteesTimesheetRequestsNew(GetMyReporteesTimeshee
         String sortExpr;
 
         if (sortBy == null || sortBy.isBlank()) {
-            sortExpr = "createdOn";
+            sortExpr = "bt.created_on";
         } else if ("employeeName".equals(sortBy)) {
             sortExpr = "e.name";
-        } else if ("employeementId".equals(sortBy)) {
-        	sortExpr = "e.employeementId";
+        } else if ("employeement_Id".equals(sortBy)) {
+        	sortExpr = "e.employeement_Id";
         } else if ("dayType".equals(sortBy)) {
-            sortExpr = "dtmn.dayType";
+            sortExpr = "dtmn.day_Type";
         }else if ("workCheckIn".equals(sortBy)) {
 
             sortExpr = "workCheckIn";
