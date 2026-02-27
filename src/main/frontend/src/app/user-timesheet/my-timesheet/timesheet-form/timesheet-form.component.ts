@@ -95,6 +95,13 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   disabledDatesForPicker: string[] = []; // Dates to disable (dd-MM-yyyy format)
   /** Base disabled dates independent of day type (already-filled timesheets, etc.) */
   private disabledDatesBase: string[] = [];
+  /** 
+   * Map of dates (dd-MM-YYYY) to their existing timesheet's dayTypeId.
+   * Used to identify cron-filled timesheets (holiday/week-off) which should remain selectable.
+   */
+  private existingTimesheetDayTypes: Map<string, number> = new Map();
+  /** Day type IDs for cron-filled timesheets (holiday, week-off) that can be overwritten */
+  private readonly CRON_FILLED_DAY_TYPES: number[] = [2,4, 6]; // 4=Public Holiday, 6=Week Off
   /** Allowed dates for Non-working day type (holidays + week-offs within min/max window) */
   private nonWorkingAllowedDates: string[] = [];
   /** Cache the range for which nonWorkingAllowedDates was last loaded */
@@ -1294,6 +1301,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    * Apply Non-working rules to disabledDatesForPicker:
    * - Start from disabledDatesBase (already-filled, etc.)
    * - For Non-working: additionally disable all dates in range that are NOT in nonWorkingAllowedDates.
+   * - EXCEPTION: Cron-filled timesheets (holiday/week-off dayTypes 4,6) should remain ENABLED
+   *   so users can overwrite them (backend already supports this).
    */
   private applyNonWorkingDisabledDates(): void {
     if (!this.isNonWorkingDayType()) {
@@ -1309,11 +1318,34 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     const allDates = this.buildDateRangeDDMMYYYY();
     const allowedSet = new Set(this.nonWorkingAllowedDates);
 
+    // For Non-working day type: disable dates that are NOT holidays/week-offs
     const toDisableExtra = allDates.filter(d => !allowedSet.has(d));
-    const merged = new Set(this.disabledDatesBase);
+    
+    // Start with disabledDatesBase but EXCLUDE cron-filled dates (holiday/week-off)
+    // Cron service auto-fills timesheets for holidays/week-offs, but users should be able to overwrite them
+    const filteredBase = this.disabledDatesBase.filter(d => !this.isCronFilledTimesheet(d));
+    
+    const merged = new Set(filteredBase);
     toDisableExtra.forEach(d => merged.add(d));
 
     this.disabledDatesForPicker = Array.from(merged);
+    
+    console.log('[applyNonWorkingDisabledDates] Cron-filled dates kept enabled:', 
+      this.disabledDatesBase.filter(d => this.isCronFilledTimesheet(d)));
+  }
+
+  /**
+   * Check if the timesheet for a given date is cron-filled (holiday or week-off).
+   * Cron-filled timesheets can be overwritten by users, so they should remain selectable.
+   * @param dateStr Date in dd-MM-YYYY format
+   * @returns true if the existing timesheet for this date was cron-filled (dayTypeId 4 or 6)
+   */
+  private isCronFilledTimesheet(dateStr: string): boolean {
+    const dayTypeId = this.existingTimesheetDayTypes.get(dateStr);
+    if (dayTypeId == null) {
+      return false;
+    }
+    return this.CRON_FILLED_DAY_TYPES.includes(dayTypeId);
   }
 
   /**
@@ -2503,6 +2535,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     console.log("disabledDatesForPicker===> ",this.disabledDatesForPicker);
     console.log("availableTimesheets count===> ",this.availableTimesheets.length);
 
+    // Clear and rebuild the map of existing timesheet dayTypes
+    this.existingTimesheetDayTypes.clear();
+
     // Extract dates from availableTimesheets to disable
     // Handle update mode: exclude current timesheet date
     this.disabledDatesBase = this.availableTimesheets
@@ -2527,6 +2562,12 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
           // Try to parse as-is (moment handles various formats)
           dateStr = moment(ts.date).format('DD-MM-YYYY');
         }
+        
+        // Store the dayTypeId for this date (used to identify cron-filled timesheets)
+        if (dateStr && dateStr !== 'Invalid date' && dateStr !== 'Invalid Date' && ts.dayTypeId != null) {
+          this.existingTimesheetDayTypes.set(dateStr, ts.dayTypeId);
+        }
+        
         return dateStr;
       })
       .filter((date: string) => {
@@ -5488,5 +5529,25 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       this.removeLocationConfirmModalRef.close();
     }
   }
+
+
+
+/* For disble date we had impleemnted logic 
+   saperately for wokring and non working day 
+   for day other than non-working (like working,half day, leave etc)
+   we disable all dates which have corresponding timesheet filled for that day
+   for non-working we enable date which have holiday 
+   but for disabling we have same logic like if timesheet is available for that day disable that day
+   but it is not correct like for holiday, week-off timesheet is filled by cron service 
+   but we have to allow employee ot fill the timesheet for that day and in backend it
+   is already handle and we allow user to overwrite such timesheet 
+   but in frontend we have kept such date disable so specially for non-workind day if timesheet filled
+   is of type Holiday, weekoff then we have to keep date enable .
+
+   first tell me did u understand the problem and share me possible solution 
+   i suggest we fetch timesheet based on min and max date just ignore date in disble logic 
+   if day type is non-wokring and timesheet filled day id oof type holiday or weekoff
+
+   */
 
 }

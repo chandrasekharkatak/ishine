@@ -16933,7 +16933,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 		@Query(
 				value =
 				    "WITH base_timesheets AS ( " +
-				    "    SELECT DISTINCT etn.timesheet_id, etn.date " +
+				    "    SELECT DISTINCT etn.timesheet_id, etn.date ,etn.work_out_time, etn.work_in_time, etn.created_on" +
 				    "    FROM employee_timesheets_new etn " +
 				    "    INNER JOIN employee e ON etn.emp_id = e.emp_id " +
 				    "    INNER JOIN project_timesheet_status_new ptsn ON ptsn.timesheet_id = etn.timesheet_id " +
@@ -16995,7 +16995,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				    "       OR LOWER(p.project_name) LIKE LOWER(CONCAT('%', :search, '%')) " +
 				    "       OR LOWER(c.client_name) LIKE LOWER(CONCAT('%', :search, '%')) ) " +
 
-				    "GROUP BY bt.timesheet_id, bt.date " +
+				    "GROUP BY bt.timesheet_id, bt.date , bt.work_out_time, bt.work_in_time, bt.created_on " +
 
 				    "HAVING ( :locationCount IS NULL OR COUNT(DISTINCT etlm.location_mapping_id) = :locationCount ) " +
 				    "AND ( :projectCount IS NULL OR COUNT(DISTINCT ptsn.project_id) = :projectCount )",

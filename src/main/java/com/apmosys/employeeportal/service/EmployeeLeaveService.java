@@ -16,6 +16,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -42,20 +43,6 @@ import org.springframework.util.StringUtils;
 
 import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
 import com.apmosys.employeeportal.repository.*;
-import com.apmosys.employeeportal.repository.CompOffMasterRepository;
-import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
-import com.apmosys.employeeportal.repository.EmployeeLeavesMapRepository;
-import com.apmosys.employeeportal.repository.EmployeeRepository;
-import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
-import com.apmosys.employeeportal.repository.EmployeeexcludedFromLeaveRepository;
-import com.apmosys.employeeportal.repository.HolidayRepository;
-import com.apmosys.employeeportal.repository.LeaveBalanceLogRepository;
-import com.apmosys.employeeportal.repository.LeavePolicyMasterRepository;
-import com.apmosys.employeeportal.repository.LeaveRevokeApplicationRepository;
-import com.apmosys.employeeportal.repository.LeaveTypeMasterRepository;
-import com.apmosys.employeeportal.repository.PIPRepository;
-import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
-import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.EmployeeHirarchyCache;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -1161,7 +1148,7 @@ public class EmployeeLeaveService {
                             employeeTimesheetsNewRepository.cleanTimesheetById(currentTsId);
                         }
                     }
-                    entityManager.flush();
+                    // entityManager.flush();
                 }
 
                 // create timesheets for days that are not holidays (and not half-day edges)
@@ -1581,7 +1568,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 				            }
 				        }
 				        
-				        entityManager.flush();
+				        // entityManager.flush();
 				    }
 				} catch (Exception e) {
 				    System.err.println("Error flushing timesheets during leave deletion: " + e.getMessage());
@@ -1854,7 +1841,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 	                                employeeTimesheetsNewRepository.cleanTimesheetById(ts.getTimesheetId());
 	                            }
 	                        }
-	                        entityManager.flush();
+	                        // entityManager.flush();
 						//Timesheet Update
 						// IF Employee is Applying Leave for Half Day then, Automatic timesheet will not be filled as Leave
 						if(leaveDTO.getNoOfDays() > 0.5) {
@@ -1866,21 +1853,24 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 						    
 	                        
 	                        List<Object[]> holidayList = holidayRepository.getHolidayWeekOffSize(leaveDTO.getFromDate(), leaveDTO.getToDate(), leaveDTO.getState());
+                            Set<LocalDate> holidaySet = new HashSet<>();
+                            if (holidayList != null) {
+                                for (Object[] holiday : holidayList) {
+                                    if (holiday[1] != null) {
+                                        holidaySet.add(LocalDate.parse(holiday[1].toString()));
+                                    }
+                                }
+                            }
 	                        //after timesheet deletion
 	                        LocalDate tempDate = fromDate;
 	                        while (!tempDate.isAfter(toDate)) {
 	                            boolean isStartHalf = tempDate.isEqual(fromDate) && (leaveDTO.getFromDateDayType() != null && leaveDTO.getFromDateDayType() == 0.5f);
-	                            boolean isEndHalf = tempDate.isEqual(toDate) && (leaveDTO.getToDateDayType() != null && leaveDTO.getToDateDayType() == 0.5f);
+                                boolean isEndHalf = tempDate.isEqual(toDate) && (leaveDTO.getToDateDayType() != null && leaveDTO.getToDateDayType() == 0.5f);
 
 	                            if (!isStartHalf && !isEndHalf) {
 	                                boolean isHoliday = false;
 	                                if ("false".equalsIgnoreCase(leaveDTO.getIsWeekOffsExcluded()) && holidayList != null) {
-	                                    for (Object[] holiday : holidayList) {
-	                                        if (holiday[1] != null && tempDate.equals(LocalDate.parse(holiday[1].toString()))) {
-	                                            isHoliday = true;
-	                                            break;
-	                                        }
-	                                    }
+	                                   isHoliday = holidaySet.contains(tempDate);
 	                                }
 
 	                                if (!isHoliday) {
@@ -2660,7 +2650,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
                         for (EmployeeTimesheetsNew ts : empTimeSheet) {
                             employeeTimesheetsNewRepository.cleanTimesheetById(ts.getTimesheetId());
                         }
-                    entityManager.flush();
+                    // entityManager.flush();
                     } else {
                         System.out.println("Result is NULL or Empty. No timesheets found to delete.");
                     }

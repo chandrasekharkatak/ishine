@@ -3144,7 +3144,7 @@ public class TeamsService {
                             timesheetsRepositoryNew.cleanTimesheetById(currentTsId);
                         }
 					}
-                    entityManager.flush();
+                    // entityManager.flush();
 					
 					//Get Expiration Period of CompOff
 					Integer expirationPeriod = null;
