@@ -17046,35 +17046,45 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				"    trrm.rejectionReason, trdn.remarks, trdn.rejectedOn \n" +
 				") \n" +
 				"FROM EmployeeTimesheetsNew etn \n" +
-				"INNER JOIN Employee e ON etn.empId = e.empId \n" +
-				"INNER JOIN Employee ab ON ab.empId = etn.createdBy \n" +
-
-				"LEFT JOIN EmployeeTimesheetLocationMapping etlm ON etlm.timesheetId = etn.timesheetId \n" +
-
-				"LEFT JOIN EmployeeTimesheetActivitiesMappingNew etamn \n" +
-				"       ON etamn.timesheetId = etn.timesheetId \n" +
-				"      AND etamn.locationMappingId = etlm.locationMappingId \n" +
-
-				"INNER JOIN ProjectTimesheetStatusNew ptsn \n" +
-				"       ON ptsn.id.timesheetId = etamn.timesheetId \n" +
-				"      AND ptsn.id.projectId = etamn.projectId \n" +
-
-				"INNER JOIN Project p ON p.projectId = ptsn.id.projectId \n" +
-				"INNER JOIN Team t ON t.projectId = p.projectId \n" +
-				"INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId AND etm.empId = e.empId \n" +
-
-				"LEFT JOIN Activity a ON a.activityId = etamn.activityId \n" +
-				"LEFT JOIN Client c ON c.clientId = ptsn.clientSideId \n" +
-				"LEFT JOIN ClientLocation cl ON cl.clientLocationId = ptsn.clientLocationId \n" +
-				"LEFT JOIN WorkLocationTypeMaster wltm ON wltm.workLocationTypeId = etlm.locationTypeId \n" +
-				"LEFT JOIN DayTypeMasterNew dtmn ON dtmn.dayTypeId = etn.dayTypeId \n" +
-
-				"LEFT JOIN TimesheetDocumentDetailsNew tddn \n" +
-				"       ON tddn.timesheetId = etn.timesheetId \n" +
-				"      AND tddn.projectId = ptsn.id.projectId \n" +
-
-				"LEFT JOIN Employee es ON ptsn.shadowEmpId = es.empId \n" +
-				"LEFT JOIN DocMimeTypeMasterNew dmtmn ON dmtmn.mimeTypeId = tddn.mimeTypeId \n" +
+				"INNER JOIN Employee e\n"
+				+ "    ON etn.empId = e.empId\n"
+				+ "INNER JOIN Employee ab\n"
+				+ "    ON ab.empId = etn.createdBy\n"
+				+ "\n"
+				+ "INNER JOIN EmployeeTeamMap etm\n"
+				+ "    ON  etm.empId = e.empId\n"
+				+ "    \n"
+				+ "    INNER JOIN Team t\n"
+				+ "    ON t.teamId = etm.teamId\n"
+				+ "    INNER JOIN Project p\n"
+				+ "    ON p.projectId = t.projectId\n"
+				+ "\n"
+				+ "    INNER JOIN ProjectTimesheetStatusNew ptsn\n"
+				+ "    ON ptsn.id.timesheetId = etn.timesheetId\n"
+				+ "    \n"
+				+ "LEFT JOIN EmployeeTimesheetLocationMapping etlm\n"
+				+ "    ON etlm.timesheetId = etn.timesheetId\n"
+				+ "\n"
+				+ "LEFT JOIN EmployeeTimesheetActivitiesMappingNew etamn\n"
+				+ "    ON etamn.timesheetId = etn.timesheetId\n"
+				+ "    AND etamn.locationMappingId = etlm.locationMappingId\n"
+				+ "LEFT JOIN Activity a\n"
+				+ "    ON a.activityId = etamn.activityId\n"
+				+ "LEFT JOIN Client c\n"
+				+ "    ON c.clientId = ptsn.clientSideId\n"
+				+ "LEFT JOIN ClientLocation cl\n"
+				+ "    ON cl.clientLocationId = ptsn.clientLocationId\n"
+				+ "LEFT JOIN WorkLocationTypeMaster wltm\n"
+				+ "    ON wltm.workLocationTypeId = etlm.locationTypeId\n"
+				+ "LEFT JOIN DayTypeMasterNew dtmn\n"
+				+ "    ON dtmn.dayTypeId = etn.dayTypeId\n"
+				+ "LEFT JOIN TimesheetDocumentDetailsNew tddn\n"
+				+ "    ON tddn.timesheetId = etn.timesheetId\n"
+				+ "    AND tddn.projectId = ptsn.id.projectId\n"
+				+ "LEFT JOIN Employee es\n"
+				+ "    ON ptsn.shadowEmpId = es.empId\n"
+				+ "LEFT JOIN DocMimeTypeMasterNew dmtmn\n"
+				+ "    ON dmtmn.mimeTypeId = tddn.mimeTypeId \n" +
 
 				"LEFT JOIN TimesheetRejectionDetailsNew trdn \n" +
 				"       ON (:status = 3 AND trdn.timesheetId = ptsn.id.timesheetId \n" +
