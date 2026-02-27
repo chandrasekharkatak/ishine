@@ -58,10 +58,12 @@
                                     <span class="text-danger">*</span>
                                     Team Member
                                     </label>
-                                    <select class="form-control" [(ngModel)]="appelectMember" (ngModelChange)="onTeamMemberSelect($event)"
+                                    <select class="form-control" [(ngModel)]="appelectMember" (ngModelChange)="onTeamMemberSelect($event)" 
                                         [disabled]="isUpdation">
                                     
-                                        <option value="" disabled>Select Team Member</option>
+                                        <option [ngValue]="null" disabled>
+                                               Select Team Member
+                                           </option>
                                     
                                         <option *ngFor="let emp of teamMemberList" [ngValue]="emp"
                                             [disabled]="disableEmployee(emp)" >
