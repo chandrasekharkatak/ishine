@@ -3391,7 +3391,6 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    */
   resetForm(): void {
     // Basic fields
-    this.timesheetAppliedFor = 'self';
     this.appelectMember = null;
     this.dayType = null;
     this.fromDate = null;
