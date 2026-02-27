@@ -39,7 +39,9 @@ import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 	import com.apmosys.employeeportal.dto.TimesheetDTO;
 	import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
 	import com.apmosys.employeeportal.dto.TimesheetRejectionReasonsMasterDTO;
-	import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqDTO;
+    import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetLocationsDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetProjectsDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqDTO;
 	import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO;
 	import com.apmosys.employeeportal.dto.TimesheetDTO;
 	import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqDTO;
@@ -1535,20 +1537,20 @@ public ServiceResponse getMyReporteesTimesheetRequestsNew(GetMyReporteesTimeshee
             sortExpr = "dtmn.day_Type";
         }else if ("workCheckIn".equals(sortBy)) {
 
-            sortExpr = "workCheckIn";
+            sortExpr = "work_in_time";
 
         } else if ("workCheckOut".equals(sortBy)) {
 
-            sortExpr = "workCheckOut";
+            sortExpr = "work_out_time";
 
         }else if ("locationCount".equals(sortBy)) {
 
-            sortExpr = "COUNT(DISTINCT etlm.locationMappingId)";
+            sortExpr = "COUNT(DISTINCT etlm.location_mapping_id)";
 
         }  else if ("date".equals(sortBy)) {
             sortExpr = "date";
         } else if ("appliedOn".equals(sortBy)) {
-            sortExpr = "createdOn";
+            sortExpr = "created_on";
         } else if ("projectName".equals(sortBy)) {
             sortExpr = "p.projectName";
         } else if ("clientName".equals(sortBy)) {
@@ -1648,7 +1650,25 @@ public ServiceResponse getMyReporteesTimesheetRequestsNew(GetMyReporteesTimeshee
      // ---------- MAP ----------
         List<GetReporteesTimesheetReqDTO> mapped =
                 timesheetMapper.map(pageResult);
+for (GetReporteesTimesheetReqDTO dto : mapped) {
 
+    List<GetReporteesTimesheetLocationsDTO> locations =
+            Optional.ofNullable(dto.getLocationSessions())
+                    .orElse(Collections.emptyList());
+
+    long locationCount = locations.size();
+
+    long projectCount = locations.stream()
+            .map(GetReporteesTimesheetLocationsDTO::getProjects)
+            .filter(Objects::nonNull)
+            .flatMap(List::stream)
+            .map(GetReporteesTimesheetProjectsDTO::getProjectId)
+            .distinct()
+            .count();
+
+    dto.setLocationCount(locationCount);
+    dto.setProjectCount(projectCount);
+}
         // ---------- FINAL RESPONSE ----------
         Map<String, Object> finalResponse = new HashMap<>();
         finalResponse.put("content", mapped);
