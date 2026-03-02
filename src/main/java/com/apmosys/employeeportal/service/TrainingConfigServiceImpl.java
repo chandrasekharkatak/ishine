@@ -1020,101 +1020,101 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		return response;
 	}
 
-	@Override
-	public ServiceResponse getEmployeeTrainingHistory(Long empId, Integer trainingId) {
-		ServiceResponse response = new ServiceResponse();
-		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setSubFeatureName("Get Employee Training History");
-		apiLogInfo.setApiUrl("/api/training/getEmployeeTrainingHistory");
-		apiLogInfo.setLogLevel("INFO");
+	// @Override
+	// public ServiceResponse getEmployeeTrainingHistory(Long empId, Integer trainingId) {
+	// 	ServiceResponse response = new ServiceResponse();
+	// 	LogDTO apiLogInfo = new LogDTO();
+	// 	apiLogInfo.setSubFeatureName("Get Employee Training History");
+	// 	apiLogInfo.setApiUrl("/api/training/getEmployeeTrainingHistory");
+	// 	apiLogInfo.setLogLevel("INFO");
 
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("Emp ID: ").append(empId).append(", Training ID: ").append(trainingId);
+	// 	StringBuilder logBuilder = new StringBuilder();
+	// 	logBuilder.append("Emp ID: ").append(empId).append(", Training ID: ").append(trainingId);
 
-		try {
-			List<TrainingHistoryDTO> historyList = new ArrayList<>();
+	// 	try {
+	// 		List<TrainingHistoryDTO> historyList = new ArrayList<>();
 
-			// Get all consents for employee
-			List<TrainingConsent> consents;
-			if (trainingId != null) {
-				consents = trainingConsentRepository.findByEmpIdAndTrainingId(empId, trainingId);
-			} else {
-				// Get all consents for employee (all trainings) - need to get all trainings
-				// first
-				// For now, get all active trainings and then get consents for each
-				List<TrainingMaster> allTrainings = trainingMasterRepository.findAll();
-				consents = new ArrayList<>();
-				for (TrainingMaster training : allTrainings) {
-					consents.addAll(
-							trainingConsentRepository.findByEmpIdAndTrainingId(empId, training.getTrainingId()));
-				}
-			}
+	// 		// Get all consents for employee
+	// 		List<TrainingConsent> consents;
+	// 		if (trainingId != null) {
+	// 			consents = trainingConsentRepository.findByEmpIdAndTrainingId(empId, trainingId);
+	// 		} else {
+	// 			// Get all consents for employee (all trainings) - need to get all trainings
+	// 			// first
+	// 			// For now, get all active trainings and then get consents for each
+	// 			List<TrainingMaster> allTrainings = trainingMasterRepository.findAll();
+	// 			consents = new ArrayList<>();
+	// 			for (TrainingMaster training : allTrainings) {
+	// 				consents.addAll(
+	// 						trainingConsentRepository.findByEmpIdAndTrainingId(empId, training.getTrainingId()));
+	// 			}
+	// 		}
 
-			// Get all skips for employee
-			List<TrainingSkip> skips;
-			if (trainingId != null) {
-				skips = trainingSkipRepository.findByEmpIdAndTrainingId(empId, trainingId);
-			} else {
-				// Get all skips for employee (all trainings) - need to get all trainings first
-				List<TrainingMaster> allTrainings = trainingMasterRepository.findAll();
-				skips = new ArrayList<>();
-				for (TrainingMaster training : allTrainings) {
-					skips.addAll(trainingSkipRepository.findByEmpIdAndTrainingId(empId, training.getTrainingId()));
-				}
-			}
+	// 		// Get all skips for employee
+	// 		List<TrainingSkip> skips;
+	// 		if (trainingId != null) {
+	// 			skips = trainingSkipRepository.findByEmpIdAndTrainingId(empId, trainingId);
+	// 		} else {
+	// 			// Get all skips for employee (all trainings) - need to get all trainings first
+	// 			List<TrainingMaster> allTrainings = trainingMasterRepository.findAll();
+	// 			skips = new ArrayList<>();
+	// 			for (TrainingMaster training : allTrainings) {
+	// 				skips.addAll(trainingSkipRepository.findByEmpIdAndTrainingId(empId, training.getTrainingId()));
+	// 			}
+	// 		}
 
-			// Combine consents into history
-			for (TrainingConsent consent : consents) {
-				TrainingHistoryDTO dto = new TrainingHistoryDTO();
-				dto.setTrainingId(consent.getTrainingMaster().getTrainingId());
-				dto.setTrainingName(consent.getTrainingMaster().getTrainingName());
-				dto.setTrainingType(consent.getTrainingMaster().getTrainingType());
-				dto.setCompletedOn(formatTimestampToString(consent.getConsentTimestamp()));
-				dto.setStatus("COMPLETED");
-				dto.setCycleNumber(consent.getCompletionCycleNumber());
-				dto.setContentId(consent.getTrainingContent().getContentId());
-				dto.setContentName(consent.getTrainingContent().getContentName());
-				dto.setContentType(consent.getTrainingContent().getContentType());
+	// 		// Combine consents into history
+	// 		for (TrainingConsent consent : consents) {
+	// 			TrainingHistoryDTO dto = new TrainingHistoryDTO();
+	// 			dto.setTrainingId(consent.getTrainingMaster().getTrainingId());
+	// 			dto.setTrainingName(consent.getTrainingMaster().getTrainingName());
+	// 			dto.setTrainingType(consent.getTrainingMaster().getTrainingType());
+	// 			dto.setCompletedOn(formatTimestampToString(consent.getConsentTimestamp()));
+	// 			dto.setStatus("COMPLETED");
+	// 			dto.setCycleNumber(consent.getCompletionCycleNumber());
+	// 			dto.setContentId(consent.getTrainingContent().getContentId());
+	// 			dto.setContentName(consent.getTrainingContent().getContentName());
+	// 			dto.setContentType(consent.getTrainingContent().getContentType());
 
-				// Count completions
-				Timestamp fromDate = Timestamp.valueOf(LocalDate.now().minusMonths(12).atStartOfDay());
-				Long completionCount = trainingConsentRepository.countCompletionsInLast12Months(empId,
-						consent.getTrainingMaster().getTrainingId(), fromDate);
-				dto.setCompletionCount(completionCount != null ? completionCount.intValue() : 0);
+	// 			// Count completions
+	// 			Timestamp fromDate = Timestamp.valueOf(LocalDate.now().minusMonths(12).atStartOfDay());
+	// 			Long completionCount = trainingConsentRepository.countCompletionsInLast12Months(empId,
+	// 					consent.getTrainingMaster().getTrainingId(), fromDate);
+	// 			dto.setCompletionCount(completionCount != null ? completionCount.intValue() : 0);
 
-				historyList.add(dto);
-			}
+	// 			historyList.add(dto);
+	// 		}
 
-			// Add skips
-			for (TrainingSkip skip : skips) {
-				TrainingHistoryDTO dto = new TrainingHistoryDTO();
-				dto.setTrainingId(skip.getTrainingMaster().getTrainingId());
-				dto.setTrainingName(skip.getTrainingMaster().getTrainingName());
-				dto.setTrainingType(skip.getTrainingMaster().getTrainingType());
-				dto.setStatus("SKIPPED");
-				dto.setCycleNumber(skip.getCycleNumber());
-				dto.setSkipCount(skip.getSkipCount());
-				historyList.add(dto);
-			}
+	// 		// Add skips
+	// 		for (TrainingSkip skip : skips) {
+	// 			TrainingHistoryDTO dto = new TrainingHistoryDTO();
+	// 			dto.setTrainingId(skip.getTrainingMaster().getTrainingId());
+	// 			dto.setTrainingName(skip.getTrainingMaster().getTrainingName());
+	// 			dto.setTrainingType(skip.getTrainingMaster().getTrainingType());
+	// 			dto.setStatus("SKIPPED");
+	// 			dto.setCycleNumber(skip.getCycleNumber());
+	// 			dto.setSkipCount(skip.getSkipCount());
+	// 			historyList.add(dto);
+	// 		}
 
-			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse(historyList);
-			apiLogInfo.setApiResponse("Training history fetched successfully");
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	// 		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	// 		response.setServiceResponse(historyList);
+	// 		apiLogInfo.setApiResponse("Training history fetched successfully");
+	// 		apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
-		} catch (Exception e) {
-			e.printStackTrace();
-			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			apiLogInfo.setLogLevel("ERROR");
-			apiLogInfo.setApiRequest(logBuilder.toString());
-			logService.logMyInfo(httpRequest, apiLogInfo);
-			throw e;
-		}
+	// 	} catch (Exception e) {
+	// 		e.printStackTrace();
+	// 		apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	// 		apiLogInfo.setLogLevel("ERROR");
+	// 		apiLogInfo.setApiRequest(logBuilder.toString());
+	// 		logService.logMyInfo(httpRequest, apiLogInfo);
+	// 		throw e;
+	// 	}
 
-		apiLogInfo.setApiRequest(logBuilder.toString());
-		logService.logMyInfo(httpRequest, apiLogInfo);
-		return response;
-	}
+	// 	apiLogInfo.setApiRequest(logBuilder.toString());
+	// 	logService.logMyInfo(httpRequest, apiLogInfo);
+	// 	return response;
+	// }
 
 	@Override
 	public ServiceResponse getComplianceReport(Integer trainingId, Long departmentId, String status) {
@@ -1245,11 +1245,11 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	 * Count completions in last 12 months for an employee and training Used by
 	 * reporting methods
 	 */
-	private int countCompletionsInLast12Months(Long empId, Integer trainingId) {
-		Timestamp fromDate = Timestamp.valueOf(LocalDate.now().minusMonths(12).atStartOfDay());
-		Long count = trainingConsentRepository.countCompletionsInLast12Months(empId, trainingId, fromDate);
-		return count != null ? count.intValue() : 0;
-	}
+	// private int countCompletionsInLast12Months(Long empId, Integer trainingId) {
+	// 	Timestamp fromDate = Timestamp.valueOf(LocalDate.now().minusMonths(12).atStartOfDay());
+	// 	Long count = trainingConsentRepository.countCompletionsInLast12Months(empId, trainingId, fromDate);
+	// 	return count != null ? count.intValue() : 0;
+	// }
 
 	/**
 	 * Convert TrainingMaster entity to DTO

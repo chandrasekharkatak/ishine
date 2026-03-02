@@ -84,12 +84,12 @@ export class TrainingService {
   }
 
   // Reporting APIs
-  getEmployeeTrainingHistory(empId: number, trainingId?: number) {
-    return this.http.post(`${this.baseUrl}api/training/getEmployeeTrainingHistory`, {
-      empId: empId,
-      trainingId: trainingId
-    });
-  }
+  // getEmployeeTrainingHistory(empId: number, trainingId?: number) {
+  //   return this.http.post(`${this.baseUrl}api/training/getEmployeeTrainingHistory`, {
+  //     empId: empId,
+  //     trainingId: trainingId
+  //   });
+  // }
 
   getComplianceReport(trainingId: number, departmentId?: number, status?: string) {
     return this.http.post(`${this.baseUrl}api/training/getComplianceReport`, {

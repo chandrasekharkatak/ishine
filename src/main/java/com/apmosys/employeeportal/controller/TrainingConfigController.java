@@ -271,22 +271,22 @@ public class TrainingConfigController {
 
 	// ==================== Reporting APIs ====================
 	
-	@JobRoleAccess(featureIds = {3}) // Training Config - View Training History
-	@PostMapping(value = "/getEmployeeTrainingHistory")
-	public ServiceResponse getEmployeeTrainingHistory(@RequestBody TrainingRequestDTO request) {
-		try {
-			if (request == null || request.getEmpId() == null) {
-				ServiceResponse response = new ServiceResponse();
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Employee ID is required");
-				return response;
-			}
-			return trainingConfigService.getEmployeeTrainingHistory(request.getEmpId(), request.getTrainingId());
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw e;
-		}
-	}
+	// @JobRoleAccess(featureIds = {3}) // Training Config - View Training History
+	// @PostMapping(value = "/getEmployeeTrainingHistory")
+	// public ServiceResponse getEmployeeTrainingHistory(@RequestBody TrainingRequestDTO request) {
+	// 	try {
+	// 		if (request == null || request.getEmpId() == null) {
+	// 			ServiceResponse response = new ServiceResponse();
+	// 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	// 			response.setServiceResponse("Employee ID is required");
+	// 			return response;
+	// 		}
+	// 		return trainingConfigService.getEmployeeTrainingHistory(request.getEmpId(), request.getTrainingId());
+	// 	} catch (Exception e) {
+	// 		e.printStackTrace();
+	// 		throw e;
+	// 	}
+	// }
 
 	@JobRoleAccess(featureIds = {3}) // Training Config - Compliance Report
 	@PostMapping(value = "/getComplianceReport")
