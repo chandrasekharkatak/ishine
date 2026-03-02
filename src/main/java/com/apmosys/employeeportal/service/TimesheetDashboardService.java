@@ -138,35 +138,35 @@ public class TimesheetDashboardService {
     	                initDepartmentBuckets();
 
     	        /* ================= DEPT WISE COUNTS ================= */
-    	        for (Object[] deptRow : deptList) {
-
-    	            Long deptId = ((Number) deptRow[1]).longValue();
-    	            String deptName = (String) deptRow[0];
-    	            String deptCode = (String) deptRow[2];
-
-    	            List<Object[]> counts = timesheetsNewRepository.getDepartmentWiseTimesheetDashboard( month, year, empId, deptId, clientSideFilter);
-
-    	            Object[] c = counts.get(0);
-
-    	            int total = getInt(c[0]);
-    	            int approved = getInt(c[1]);
-    	            int pending = getInt(c[2]);
-    	            int defaulter = getInt(c[3]);
-
-    	            addDept(departmentWise.get("All"), deptId, deptCode, deptName, total);
-
-    	            if (approved > 0) {
-    	                addDept(departmentWise.get("Approved"), deptId, deptCode, deptName, approved);
-    	            }
-
-    	            if (pending > 0) {
-    	                addDept(departmentWise.get("ClientSidePending"), deptId, deptCode, deptName, pending);
-    	            }
-
-    	            if (defaulter > 0) {
-    	                addDept(departmentWise.get("Defaulter"), deptId, deptCode, deptName, defaulter);
-    	            }
-    	        }
+//    	        for (Object[] deptRow : deptList) {
+//
+//    	            Long deptId = ((Number) deptRow[1]).longValue();
+//    	            String deptName = (String) deptRow[0];
+//    	            String deptCode = (String) deptRow[2];
+//
+//    	            List<Object[]> counts = timesheetsNewRepository.getDepartmentWiseTimesheetDashboard( month, year, empId, deptId, clientSideFilter);
+//
+//    	            Object[] c = counts.get(0);
+//
+//    	            int total = getInt(c[0]);
+//    	            int approved = getInt(c[1]);
+//    	            int pending = getInt(c[2]);
+//    	            int defaulter = getInt(c[3]);
+//
+//    	            addDept(departmentWise.get("All"), deptId, deptCode, deptName, total);
+//
+//    	            if (approved > 0) {
+//    	                addDept(departmentWise.get("Approved"), deptId, deptCode, deptName, approved);
+//    	            }
+//
+//    	            if (pending > 0) {
+//    	                addDept(departmentWise.get("ClientSidePending"), deptId, deptCode, deptName, pending);
+//    	            }
+//
+//    	            if (defaulter > 0) {
+//    	                addDept(departmentWise.get("Defaulter"), deptId, deptCode, deptName, defaulter);
+//    	            }
+//    	        }
                 
                 response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
                 response.setServiceResponse(new TimesheetDashboardResponseDTO(summary, departmentWise));
