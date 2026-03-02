@@ -961,6 +961,8 @@ sortData(sort: Sort) {
     this.isSearchEnabled = !this.isSearchEnabled;
     if (!this.isSearchEnabled) {
       this.filters = {};
+      this.getMyReporteesTimesheetRequests();
+    this.getTimesheetStatusCountsByEmpId();
     }
 
   }
@@ -2729,7 +2731,7 @@ approveSingleTimesheet(timesheet: any) {
 
           this.getMyReporteesTimesheetRequests();
           this.getTimesheetStatusCountsByEmpId();
-
+          this.onStatusChange(2);
           this.modalMessage = message;
 
         } else {
@@ -3169,7 +3171,7 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
 
           this.getMyReporteesTimesheetRequests();
           this.getTimesheetStatusCountsByEmpId();
-
+          this.onStatusChange(3);
           this.modalMessage = message;
       } else {
           this.modalTitle = 'Error';
