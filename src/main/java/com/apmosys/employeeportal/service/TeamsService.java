@@ -4765,6 +4765,12 @@ public class TeamsService {
 		if (empIds == null || empIds.isEmpty()) {
 			return;
 		}
+		if (project == null || project.getProjectId() == null) {
+			throw new IllegalArgumentException("Project cannot be null");
+		}
+		if (updatedBy == null) {
+    throw new IllegalArgumentException("UpdatedBy cannot be null");
+}
 		List<Long> uniqueEmpIds = empIds.stream().distinct().collect(Collectors.toList());
 		LocalDateTime now = LocalDateTime.now();
 		Long projectId = project.getProjectId().longValue();
@@ -4777,11 +4783,19 @@ public class TeamsService {
 			emp.setUpdatedOn(now);
 		});
 
+		 Set<Long> alreadyPrimaryEmpIds =
+            new HashSet<>(empPrimaryProjectMappingRepository
+                    .findEmpIdByEmpIdInAndPrimaryProjectIdAndIsMapped(
+                            uniqueEmpIds, projectId, "Y"));
+
 		Map<Long, Employee> employeeMap = employeeRepository.findByEmpIdIn(uniqueEmpIds).stream()
 				.collect(Collectors.toMap(Employee::getEmpId, Function.identity()));
 
-		List<Long> shadowEmpIds = employeeTeamMapRepository.findShadowMembersByEmpIdsAndProjectId(empIds,
-				project.getProjectId());
+		// List<Long> shadowEmpIds = employeeTeamMapRepository.findShadowMembersByEmpIdsAndProjectId(empIds,
+		// 		project.getProjectId());
+		Set<Long> shadowEmpIds =
+    new HashSet<>(employeeTeamMapRepository
+        .findShadowMembersByEmpIdsAndProjectId(uniqueEmpIds, project.getProjectId()));
 
 		BillableInfo billableInfo = resolveBillableInfo(project);
 
@@ -4789,7 +4803,10 @@ public class TeamsService {
 		Map<Long, BillableInfo> billableUpdates = new HashMap<>();
 
 		for (Long empId : uniqueEmpIds) {
-			mappingsToSave.add(createNewMapping(empId, project, projectId, updatedBy, now));
+
+        if (!alreadyPrimaryEmpIds.contains(empId)) {
+            mappingsToSave.add(createNewMapping(empId, project, projectId, updatedBy, now));
+        }
 			BillableInfo finalInfo = shadowEmpIds.contains(empId) ? new BillableInfo("Shadow", "No") : billableInfo;
 
 			Employee emp = employeeMap.get(empId);
@@ -4798,8 +4815,9 @@ public class TeamsService {
 				billableUpdates.put(empId, finalInfo);
 			}
 		}
-		empPrimaryProjectMappingRepository.saveAll(mappingsToSave);
-
+		if (!mappingsToSave.isEmpty()) {
+			empPrimaryProjectMappingRepository.saveAll(mappingsToSave);
+		}
 		for (Map.Entry<Long, BillableInfo> entry : billableUpdates.entrySet()) {
 			BillableInfo empIdToBillable = entry.getValue();
 			employeeRepository.updateBillableFields(entry.getKey(), empIdToBillable.getBillable(),
@@ -5284,18 +5302,27 @@ public class TeamsService {
 				response.setServiceResponse("Selected Employee Id cannot be null!!");
 				return response;
 			}
+			if (empOtherActiveProject.getUpdatedBy() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Updated By cannot be null!!");
+				return response;
+			}
 
-			Project project = projectRepository.findByProjectId(empOtherActiveProject.getProjectId());
-			if (project == null) {
+			Optional<Project> optionalProject =
+                projectRepository.findOptionalByProjectId(empOtherActiveProject.getProjectId());
+
+
+			if (optionalProject.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Project not found!!");
 				return response;
 			}
-
+			Project project = optionalProject.get();
 			List<Long> empIds = new ArrayList<>();
 			empIds.add(empOtherActiveProject.getEmpId());
 			updateEmployeeDefaultProject(empIds, project, empOtherActiveProject.getUpdatedBy());
-			
+			 log.info("Successfully updated default project. empId={}, projectId={}",
+                empOtherActiveProject.getEmpId(), empOtherActiveProject.getProjectId());
 			response.setServiceResponse("Default Project updated Successfully!!");
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
@@ -5303,6 +5330,7 @@ public class TeamsService {
 			response.setServiceError(e.getMessage());
 			response.setServiceResponse("Something went wrong!!");
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			throw e;
 		}
 		return response;
 	}
