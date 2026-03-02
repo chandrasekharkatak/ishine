@@ -58,9 +58,12 @@ public interface TrainingConsentRepository extends JpaRepository<TrainingConsent
 	@Query("SELECT COUNT(DISTINCT tc.completionCycleNumber) FROM TrainingConsent tc " +
 		   "WHERE tc.empId = :empId " +
 		   "AND tc.trainingMaster.trainingId = :trainingId " +
+		   "AND ((:quizId IS NULL AND tc.quizId IS NULL) OR " +
+       "(:quizId IS NOT NULL AND tc.quizId = :quizId)) "+
 		   "AND tc.consentTimestamp >= :fromDate")
 	Long countCompletionsInLast12Months(@Param("empId") Long empId,
 										 @Param("trainingId") Integer trainingId,
+										 @Param("quizId") Long quizId,
 										 @Param("fromDate") Timestamp fromDate);
 	
 	@Query("SELECT MAX(tc.completionCycleNumber) FROM TrainingConsent tc " +

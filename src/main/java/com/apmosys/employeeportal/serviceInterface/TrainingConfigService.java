@@ -84,7 +84,7 @@ public interface TrainingConfigService {
 	 * @param trainingId Optional training ID filter
 	 * @return ServiceResponse containing training history
 	 */
-	ServiceResponse getEmployeeTrainingHistory(Long empId, Integer trainingId);
+	// ServiceResponse getEmployeeTrainingHistory(Long empId, Integer trainingId);
 	
 	/**
 	 * Get compliance report for training

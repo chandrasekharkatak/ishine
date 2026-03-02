@@ -516,8 +516,9 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 				userTraining.setHasSeenContent(alreadySeenContent.stream().anyMatch(e -> e.getTrainingMaster().getTrainingId().equals(training.getTrainingId())));
 				userTraining.setQuizAttempted(alreadyAttemptedQuizes.stream().anyMatch(e -> e.getTrainingId().equals(training.getTrainingId())));
 				
+				Long activeQuizId = trainingQuizMappingRepository.findActiveSurveyIdByTraining(training.getTrainingId());
 				// Calculate completion count
-				int completionCount = countCompletionsInLast12Months(empId, training.getTrainingId());
+				int completionCount = countCompletionsInLast12Months(empId, training.getTrainingId(),activeQuizId);
 				userTraining.setCompletionCount(completionCount);
 				
 				// Get current active content
@@ -535,8 +536,6 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 				// Calculate current cycle based on deadline pattern and current date (user action independent)
 				int currentCycle = calculateCurrentCycleByDate(training);
 				userTraining.setCurrentCycleNumber(currentCycle);
-
-				Long activeQuizId = trainingQuizMappingRepository.findActiveSurveyIdByTraining(training.getTrainingId());
 
 				if(activeQuizId == null) {
 					activeQuizId = null;
@@ -716,10 +715,12 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 			}
 			
 			TrainingMaster training = trainingOpt.get();
+
+			Long activeQuizId = trainingQuizMappingRepository.findActiveSurveyIdByTraining(trainingId);
 			
 			// Calculate completion count in last 12 months
 			Timestamp fromDate = Timestamp.valueOf(LocalDate.now().minusMonths(12).atStartOfDay());
-			Long completionCount = trainingConsentRepository.countCompletionsInLast12Months(empId, trainingId, fromDate);
+			Long completionCount = trainingConsentRepository.countCompletionsInLast12Months(empId, trainingId, activeQuizId, fromDate);
 			
 			TrainingFrequencyDTO dto = new TrainingFrequencyDTO();
 			dto.setTrainingId(trainingId);
@@ -728,8 +729,6 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 			dto.setRequiredFrequency(calculateTotalFrequency(training));
 			dto.setNeedsAssignment(completionCount < calculateTotalFrequency(training));
 
-			Long activeQuizId = trainingQuizMappingRepository.findActiveSurveyIdByTraining(trainingId);
-			
 			// Get last completed date
 			List<TrainingConsent> consents = trainingConsentRepository.findByEmpIdAndTrainingIdAndQuizId(empId, trainingId, activeQuizId);
 			if (!consents.isEmpty()) {
@@ -792,9 +791,9 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 
 	
 	
-	private int countCompletionsInLast12Months(Long empId, Integer trainingId) {
+	private int countCompletionsInLast12Months(Long empId, Integer trainingId, Long quizId) {
 		Timestamp fromDate = Timestamp.valueOf(LocalDate.now().minusMonths(12).atStartOfDay());
-		Long count = trainingConsentRepository.countCompletionsInLast12Months(empId, trainingId, fromDate);
+		Long count = trainingConsentRepository.countCompletionsInLast12Months(empId, trainingId,quizId, fromDate);
 		return count != null ? count.intValue() : 0;
 	}
 	
@@ -992,7 +991,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 
 	private Optional<LockStatusDTO> evaluateTrainingForLock(Long empId, TrainingMaster training, Long quizId) {
 
-		int completionCount = countCompletionsInLast12Months(empId, training.getTrainingId());
+		int completionCount = countCompletionsInLast12Months(empId, training.getTrainingId(), quizId);
       System.out.println("completionCount > "+completionCount);
 		if (completionCount >= calculateTotalFrequency(training)){
 			return Optional.empty(); // No pending
