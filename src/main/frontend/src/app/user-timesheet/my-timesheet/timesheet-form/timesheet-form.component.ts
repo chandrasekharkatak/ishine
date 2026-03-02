@@ -1156,6 +1156,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
           'Date is configured as Holiday/Week Off. Only Non-working timesheet is allowed on this date.'
         );
         // Do not proceed with rest of change handling
+        // return;
+        // this.fromDate = null;
+        this.resetForm();
         return;
       }
     }
