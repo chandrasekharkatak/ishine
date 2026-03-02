@@ -1716,8 +1716,21 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 
             String prefix = "true".equalsIgnoreCase(ts.getIsProd()) ? "AP-" : "A-";
             String formattedEmpId = prefix + ts.getEmployementID();
-			if (!java.util.Objects.equals(ts.getCurrentManagerId(), request.getRmId())) {
-        skippedTimesheets.add(new SkippedTimesheetDTO(
+			Long approverId = null;
+
+			if (ts.getApprovalsTo() == null 
+					|| "manager".equalsIgnoreCase(ts.getApprovalsTo())) {
+				
+				approverId = ts.getEmployeeManagerId();
+
+			} else if ("reporting manager".equalsIgnoreCase(ts.getApprovalsTo())) {
+				
+				approverId = ts.getEmployeeReportingManagerId();
+			}
+
+			// Final validation
+			if (!java.util.Objects.equals(approverId, request.getRmId())) {
+        		skippedTimesheets.add(new SkippedTimesheetDTO(
                 ts.getTimesheetId(),
                 formattedEmpId,
                 ts.getDate(),

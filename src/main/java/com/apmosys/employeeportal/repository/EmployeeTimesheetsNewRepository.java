@@ -73,7 +73,10 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 		       "et.description, " +
 		       "et.currentManagerId, " +
 		       "e.employeementId, " +
-		       "e.isApmosysProduct) " +
+		       "e.isApmosysProduct,  " +
+			   "e.managerId, " +
+			   "e.reportingManagerId, " +
+			   "e.approvalsTo) " +
 		       "FROM EmployeeTimesheetsNew et " +
 		       "JOIN Employee e ON et.empId = e.empId "+
 		       "WHERE et.timesheetId IN :timesheetIds")
