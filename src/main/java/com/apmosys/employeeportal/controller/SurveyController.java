@@ -66,7 +66,7 @@ public class SurveyController {
 	@RequestMapping(value = "/getSurveyResponseByEmpIdAndSurveyId", method = RequestMethod.POST)
 	public ServiceResponse getSurveyResponseByEmpIdAndSurveyId(@RequestBody SurveyDTO surveyDTO) {
 
-		ServiceResponse response = surveyService.getSurveyResponseByEmpIdAndSurveyId(surveyDTO, surveyDTO.getIsQuizResponse(), surveyDTO.getIsAttendingQuiz());
+		ServiceResponse response = surveyService.getSurveyResponseByEmpIdAndSurveyId(surveyDTO);
 		return response;
 	}
 	@JobRoleAccess(featureIds = {31})

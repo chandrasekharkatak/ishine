@@ -1351,13 +1351,20 @@ public class EmployeeService {
 
 					empDTO.setEmployeeConfirmationDate(object[75] != null ? format.format(format.parse(object[75].toString())) : null);		
 					empDTO.setIsApmosysProduct(object[76] != null ? object[76].toString() : null);
-                    String employeeType = (object[76] != null ? object[76].toString() : null);
-                    
-                    if ("true".equalsIgnoreCase(employeeType)) {
-                        empDTO.setEmployeementIdAccToET("AP-" + empDTO.getEmployeementId());
-                    } else {
-                        empDTO.setEmployeementIdAccToET("A-" + empDTO.getEmployeementId());
-                    }
+					String employmentId = empDTO.getEmployeementId().toString();
+
+					if (employmentId != null) {
+
+					    String prefix = "A-"; 
+
+					    if ("true".equalsIgnoreCase(empDTO.getIsApmosysProduct())) {
+					        prefix = "AP-";
+					    } else if ("true".equalsIgnoreCase(empDTO.getIsConsultant())) {
+					        prefix = "CS-";
+					    }
+
+					    empDTO.setEmployeementIdAccToET(prefix + employmentId);
+					}
                     empDTO.setOnRollDate(object[77]!=null ? format.format(format.parse(object[77].toString())) : null);
 					if (object[42] != null) {
 
@@ -2494,7 +2501,57 @@ public class EmployeeService {
 				employee.setProbationPeriod(employeedto.getProbationPeriod());
 				employee.setIsConsultant(employeedto.getIsConsultant());
 				employee.setIsApprenticeship(employeedto.getIsApprenticeship());
-				employee.setIsApmosysProduct(employeedto.getIsApmosysProduct());	
+				employee.setIsApmosysProduct(employeedto.getIsApmosysProduct());
+				
+				
+				if(Boolean.TRUE.equals(employeedto.getIsUpdateDefaultProject())) {
+					Project proj = new Project();
+					StringBuilder employeeRole = new StringBuilder("");
+					for (String empRole : employeedto.getDefaultTeamEmployeeRole()) {
+						employeeRole.append(empRole).append(",");
+					}
+					
+					if(employeedto.getDefaultProjectId() != null) {
+						Department dept = departmentRepository.findByDeptId(employeedto.getDepartmentId());
+						String departmentname = dept.getName();
+						
+						Long resrcOverviewId = resourceRequirementRepository.findByProjectIdAndDepartmentName(departmentname,employeedto.getDefaultProjectId());
+						resrcOverviewId = resrcOverviewId !=null ? resrcOverviewId:null;
+						
+						
+						
+						
+						
+						EmployeeTeamMap employeeTeamMap = new EmployeeTeamMap();
+						employeeTeamMap.setEmpId(employee.getEmpId());
+						employeeTeamMap.setTeamId(employeedto.getDefaultTeamId());
+						employeeTeamMap.setActive(2l);
+						employeeTeamMap.setStartDate(LocalDateTime.now());
+						employeeTeamMap.setEmployeeRole(employeeRole.toString());
+						employeeTeamMap.setIsShadow(employeedto.getIsShadowResource());
+						employeeTeamMap.setResourceOverviewId(resrcOverviewId);	
+						employeeTeamMap.setUpdatedBy(Long.parseLong(employee.getUpdatedBy().toString()));
+						employeeTeamMap.setUpdatedOn(LocalDateTime.now());	
+					   employeeTeamMapRepository.save(employeeTeamMap);
+					   
+					   Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());
+					    if (project != null) {
+					    	project.setIsDraftProject("true");
+					    	project.setUpdatedBy(Long.parseLong(employee.getUpdatedBy().toString()));
+					    	project.setUpdatedOn(LocalDateTime.now());	
+					        proj = projectRepository.save(project);  
+					    }
+					   
+					   DefaultProjectUpdateDTO dto = new DefaultProjectUpdateDTO();
+					    dto.setUpdatedBy(employeedto.getUpdatedBy().longValue()); 
+					    dto.setProjectId(employeedto.getDefaultProjectId());
+					    dto.setEmpIds(Collections.singletonList(employee.getEmpId()));
+					    dto.setUpdatedBy(Long.parseLong(employee.getUpdatedBy().toString()));
+					    resourceManagementService.setDefaultProjectUpdateBillable(dto);
+					   
+					   }
+					}
+
 				
 				if ("No".equals(employeedto.getOnbenchDate())) {
 				    // Keep the existing value (no need to set it again)
@@ -2636,12 +2693,15 @@ public class EmployeeService {
 							       
 							        String isApprenticeship = (String) reportee[3];
 							        String isConsultant = (String) reportee[4];
+							        String isApmosysProduct = (String) reportee[5];
 
 							        
 							        if ("true".equalsIgnoreCase(isConsultant)) {
-							            employmentId = "A-" + employmentId;
+							            employmentId = "CS-" + employmentId;
 							        } else if ("true".equalsIgnoreCase(isApprenticeship)) {
 							            employmentId = "A-" + employmentId;
+							        } else if ("true".equalsIgnoreCase(isApmosysProduct)) {
+							            employmentId = "AP-" + employmentId;
 							        } else {
 							            employmentId = "A-" + employmentId;
 							        }
@@ -3515,7 +3575,9 @@ public class EmployeeService {
 	                        empDTO.setEmploymentIdAcToET(
 	                            "true".equalsIgnoreCase(empProj.getIsApmosysProduct())
 	                                ? "AP-" + empProj.getEmployeementId()
-	                                : "A-" + empProj.getEmployeementId()
+	                                : "true".equalsIgnoreCase(empProj.getIsConsultant())
+	                                    ? "CS-" + empProj.getEmployeementId()
+	                                    : "A-" + empProj.getEmployeementId()
 	                        );
 	                    }
 
@@ -5078,8 +5140,8 @@ public class EmployeeService {
 			Employee checkEmployeementId;
 			if ("Apmosys Product".equalsIgnoreCase(employeeType)) {
 				checkEmployeementId = employeeRepository.findByEmployeementIdForApmosysProduct(employeedto.getEmployeementId());
-//			} else if("Consultant".equalsIgnoreCase(employeeType)) {
-//				checkEmployeementId = employeeRepository.findByEmployeementIdForConsultant(employeedto.getEmployeementId());
+			} else if("Consultant".equalsIgnoreCase(employeeType)) {
+				checkEmployeementId = employeeRepository.findByEmployeementIdForConsultant(employeedto.getEmployeementId());
 //			}
 //			else if("Apprentice".equalsIgnoreCase(employeeType)) {
 //				checkEmployeementId = employeeRepository.findByEmployeementIdForApprentice(employeedto.getEmployeementId());

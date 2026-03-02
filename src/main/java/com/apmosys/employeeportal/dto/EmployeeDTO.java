@@ -384,6 +384,8 @@ this.isApmosysProduct = isApmosysProduct;
     private String isApmosysProduct;
     private String employmentIdAcToET;
     
+    private Boolean isUpdateDefaultProject;
+    
     private String dateRange;
     private List<EmployeeDTO> reportees = new ArrayList<>();
     private Boolean isHierarchy;

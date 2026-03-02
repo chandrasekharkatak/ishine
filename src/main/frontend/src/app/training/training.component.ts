@@ -161,7 +161,8 @@ export class TrainingComponent implements OnInit, OnDestroy {
       next: (response: any) => {
         this.loading = false;
         if (response.serviceStatus === 'Success' && response.serviceResponse) {
-          this.allTrainings = response.serviceResponse || [];
+          // this.allTrainings = response.serviceResponse || [];
+          this.allTrainings = this.sortTrainingsByStatusAndDeadline(response.serviceResponse || []);
           this.showAllTrainings = true;
           
           // Filter "Must Attend" trainings based on new freeze logic:
@@ -213,6 +214,35 @@ export class TrainingComponent implements OnInit, OnDestroy {
       }
     });
   }
+
+  // Reusable sort function
+sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PENDING', 'SKIPPED', 'COMPLETED']): any[] {
+  if (!trainings || !Array.isArray(trainings)) {
+    return [];
+  }
+
+  return [...trainings].sort((a, b) => {
+    // Get priority index (lower index = higher priority)
+    const getPriority = (status: string): number => {
+      const index = statusOrder.indexOf(status);
+      return index !== -1 ? index : statusOrder.length; // Unknown statuses go to the end
+    };
+
+    const priorityA = getPriority(a.status);
+    const priorityB = getPriority(b.status);
+
+    // Sort by status priority first
+    if (priorityA !== priorityB) {
+      return priorityA - priorityB;
+    }
+
+    // If same status, sort by deadline (earlier deadline first)
+    const dateA = a.deadline ? new Date(a.deadline).getTime() : Number.MAX_SAFE_INTEGER;
+    const dateB = b.deadline ? new Date(b.deadline).getTime() : Number.MAX_SAFE_INTEGER;
+
+    return dateA - dateB;
+  });
+}
 
   applyAllTrainingsFilter() {
     if (!this.allTrainingsFilter || this.allTrainingsFilter.trim() === '') {
@@ -597,7 +627,7 @@ export class TrainingComponent implements OnInit, OnDestroy {
         }
         clearInterval(this.timerInterval);
       }
-    }, 100);
+    }, 1000);
   }
 
   // async parsePPTXFile(file: File) {

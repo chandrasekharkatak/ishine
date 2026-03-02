@@ -605,16 +605,16 @@ public class TimesheetController {
 	    return response;
 	}
 
-	@JobRoleAccess(featureIds = {16})
-	 @PostMapping(value = "/bulkFinalUploadProjectBased", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	 public ServiceResponse bulkFinalUploadProjectBased(
-	         @RequestPart("finalFile") MultipartFile file, @RequestPart("finalBulkUploadDTO") FinalBulkUploadDTO finalBulkUploadDTO ) {
+	@JobRoleAccess(featureIds = {15,16})
+	@PostMapping(value = "/bulkFinalUploadProjectBased", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ServiceResponse bulkFinalUploadProjectBased(
+			@RequestPart("finalFile") MultipartFile file, @RequestPart("finalBulkUploadDTO") FinalBulkUploadDTO finalBulkUploadDTO ) {
 
-	     ServiceResponse reponse= timesheetService.bulkFinalUploadProjectBased(finalBulkUploadDTO, file);
-	     return reponse;
-	 }
+		ServiceResponse reponse= timesheetService.bulkFinalUploadProjectBased(finalBulkUploadDTO, file);
+		return reponse;
+	}
 
-	@JobRoleAccess(featureIds = {16})
+	@JobRoleAccess(featureIds = {15,16})
 	@GetMapping("/getPreviousMinusDays")
 	public ServiceResponse getPreviousMinusDays() {
 		ServiceResponse response = new ServiceResponse();

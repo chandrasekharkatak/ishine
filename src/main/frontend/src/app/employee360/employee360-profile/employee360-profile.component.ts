@@ -58,6 +58,7 @@ export class Employee360ProfileComponent implements OnInit {
 
   feature = "Profile";
   userMapping: any = {};
+   deptSelected = false;
 
   // <-->
   allDomainList: any[] = [];
@@ -95,9 +96,26 @@ export class Employee360ProfileComponent implements OnInit {
 
   employeeData: any;
 
+  projectList: any[] = [];
+  teamListt: any[] = [];
+  apiResponse: any[] = [];
+  showProjectDropdown: any;
+  showTeamDropdown: any;
+  showEmployeeRoleDropdown: any;
+  teamList: any = [];
+  showResourceRequirementDropdown: boolean = false;
+  resourceRequirements: any[] = [];
+
+   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
+
+
 
   @ViewChild('updateInfo')
   private updateInfoTempRef: TemplateRef<any>;
+
+   @ViewChild("change_default_project_template_on_deptUpdate")
+  changeDefaultProjectTemplate: TemplateRef<any>;
+
 
   constructor(
     private employeeService: EmployeeService,
@@ -931,7 +949,7 @@ export class Employee360ProfileComponent implements OnInit {
         else if (this.employeeObj.isApmosysProduct == 'true')
           this.employeeObj.employeeType = 'Apmosys Product'
         else
-          this.employeeObj.employeeType = 'On roll';
+          this.employeeObj.employeeType = 'Regular';
 
         console.log("employee :", this.employeeObj);
         // employee.employeementId = this.utilityService.appendEmployeementid(employee.employeementId);
@@ -1761,11 +1779,35 @@ export class Employee360ProfileComponent implements OnInit {
       return false;
     }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.billable)) {
-      this.alertMessage = "Please select billable !!"
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultprojectType)) {
+      this.alertMessage = "Please select Default project Type !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultProjectId)) {
+      this.alertMessage = "Please select Default project  !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultTeamId)) {
+      this.alertMessage = "Please select Default Team !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+   
+      if ((employeeObj.defaultTeamEmployeeRole.length === 0 || !employeeObj.defaultTeamEmployeeRole)) {
+        this.alertMessage = "Please select Employee Role In Default Project !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+
+    // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.billable)) {
+    //   this.alertMessage = "Please select billable !!"
+    //   this.openAlertMod(template, this.alertMessage);
+    //   return false;
+    // }
     if (employeeObj.employmentstatus == 'Resigned') {
       if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfResign)) {
         this.alertMessage = "Please Enter Resign Date !!"
@@ -2014,6 +2056,146 @@ export class Employee360ProfileComponent implements OnInit {
     this.modalRef?.close();
   }
 
+  deptdefaultprojectChange(){
+  // this.resetCascade('Department');
+
+  if (this.isUpdation) {
+    this.modalRef = this.modalService.open(this.changeDefaultProjectTemplate,{ modalDialogClass: 'modal-sm', backdrop: 'static', keyboard: false } );
+  } else { 
+    this.deptSelected = true;
+  }
+  }
+
+  getProjectsAccToDepartmentSelected(template: TemplateRef<any>) {
+      this.resetCascade('PROJECT_TYPE');
+      this.showProjectDropdown = true;
+      this.showTeamDropdown = false;
+      this.showEmployeeRoleDropdown = false;
+      const payload = {
+        departmentId: this.employeeObj.departmentId,
+        defaultProjectType: this.employeeObj.defaultprojectType
+      };
+      this.employeeService.getProjectsAccToDepartmentSelected(payload).pipe(first()).subscribe((response: any) => {
+        if (response.serviceStatus === "Success") {
+          this.projectList = response.serviceResponse;
+          if (this.projectList.length === 0) {
+            this.showProjectDropdown = false;
+            this.openAlertMod(template, 'No project exists for the selected department. Please contact RMG to create one.');
+          } else {
+            this.showProjectDropdown = true;
+          }
+        } else {
+          this.showProjectDropdown = false;
+          alert(response.serviceResponse);
+        }
+      });
+    }
+
+    onProjectChange(event: any) {
+    this.resetCascade('PROJECT');
+    const selectedProjectId = +event.target.value;
+    const selectedProject = this.projectList.find(p => p.projectId === selectedProjectId);
+    this.showEmployeeRoleDropdown = false;
+   
+
+    if (selectedProject && selectedProject.teamList) {
+      this.teamList = selectedProject.teamList;
+      this.showTeamDropdown = true;
+    } else {
+      this.teamList = [];
+      this.showTeamDropdown = false;
+    }
+
+    if (selectedProject && selectedProject.resourceRequirement && selectedProject.resourceRequirement.length > 0) {
+      this.resourceRequirements = selectedProject.resourceRequirement;
+      this.showResourceRequirementDropdown = true;
+    } else {
+      this.resourceRequirements = [];
+      this.showResourceRequirementDropdown = false;
+      this.employeeObj.selectedResourceOverviewId = null;
+    }
+  }
+
+
+  onTeamChange(event: any) {
+    this.resetCascade('TEAM');
+    const selectedTeamId = +event.target.value;
+    const selectedTeam = this.teamList.find(t => t.teamId === selectedTeamId);
+
+    if (selectedTeam) {
+      this.showEmployeeRoleDropdown = true;
+
+      this.employeeObj.defaultTeamEmployeeRole = [];
+    } else {
+      this.showEmployeeRoleDropdown = false;
+    }
+  }
+
+
+  resetCascade(level: 'PROJECT_TYPE' | 'PROJECT' | 'TEAM' | 'Department') {
+  switch (level) {
+
+    case 'Department':
+      this.employeeObj.defaultprojectType = null
+       this.employeeObj.defaultProjectId = null;
+      this.employeeObj.defaultTeamId = null;
+      this.employeeObj.selectedResourceOverviewId = null;
+      this.employeeObj.defaultTeamEmployeeRole = [];
+      this.employeeObj.isShadowResource = 0;
+
+      this.projectList = [];
+      this.teamList = [];
+      this.resourceRequirements = [];
+
+      this.showProjectDropdown = false;
+      this.showTeamDropdown = false;
+      this.showResourceRequirementDropdown = false;
+      this.showEmployeeRoleDropdown = false;
+      break;
+
+
+    case 'PROJECT_TYPE':
+      this.employeeObj.defaultProjectId = null;
+      this.employeeObj.defaultTeamId = null;
+      this.employeeObj.selectedResourceOverviewId = null;
+      this.employeeObj.defaultTeamEmployeeRole = [];
+      this.employeeObj.isShadowResource = 0;
+
+      this.projectList = [];
+      this.teamList = [];
+      this.resourceRequirements = [];
+
+      this.showProjectDropdown = false;
+      this.showTeamDropdown = false;
+      this.showResourceRequirementDropdown = false;
+      this.showEmployeeRoleDropdown = false;
+      break;
+
+    case 'PROJECT':
+      this.employeeObj.defaultTeamId = null;
+      this.employeeObj.selectedResourceOverviewId = null;
+      this.employeeObj.defaultTeamEmployeeRole = [];
+      this.employeeObj.isShadowResource = 0;
+
+      this.teamList = [];
+      this.resourceRequirements = [];
+
+      this.showTeamDropdown = false;
+      this.showResourceRequirementDropdown = false;
+      this.showEmployeeRoleDropdown = false;
+      break;
+
+    case 'TEAM':
+      this.employeeObj.defaultTeamEmployeeRole = [];
+      this.showEmployeeRoleDropdown = false;
+      break;
+  }
+}
+
+
+
+
+
 
   newEmployee = new Employee();
 
@@ -2193,6 +2375,26 @@ export class Employee360ProfileComponent implements OnInit {
       }
     });
   }
+
+  confirmUpdateDefaultProject(choice: boolean) {
+  this.employeeObj.isUpdateDefaultProject = choice;
+  this.modalRef.close();
+
+  if (choice) {
+    this.deptSelected = true;
+    this.resetDefaultProjectFields();
+  }
+}
+
+resetDefaultProjectFields() {
+  this.employeeObj.defaultprojectType = '';
+  this.employeeObj.defaultProjectId = '';
+  this.employeeObj.defaultTeamId = '';
+  this.employeeObj.selectedResourceOverviewId = '';
+  this.employeeObj.defaultTeamEmployeeRole = [];
+}
+
+
 
 
 

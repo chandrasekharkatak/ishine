@@ -448,7 +448,7 @@ public class SurveyServiceImpl implements SurveyService {
 			List<SurveyEmployeeResponse> responseList = surveyEmployeeResponseRepository.saveAll(dtoList);
 			List<SurveyQuestion> surveyQuestionList = surveyQuestionRepository.findAllBySurveyId(surveyDTO.getSurveyId());
 
-			if(surveyDTO.getType().equalsIgnoreCase("quiz")){
+			if(surveyDTO.getType() != null && surveyDTO.getType().equalsIgnoreCase("quiz")){
 
 
 				if(surveyQuestionList == null || surveyQuestionList.isEmpty()){
@@ -556,7 +556,7 @@ public class SurveyServiceImpl implements SurveyService {
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 
-			if(surveyDTO.getType().equalsIgnoreCase("quiz") && responseList.size() > 0 ){
+			if(surveyDTO.getType() != null && surveyDTO.getType().equalsIgnoreCase("quiz") && responseList.size() > 0 ){
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(
 					Map.of(
@@ -720,7 +720,7 @@ public class SurveyServiceImpl implements SurveyService {
 	}
 
 	@Override
-	public ServiceResponse getSurveyResponseByEmpIdAndSurveyId(SurveyDTO surveyDTO, Boolean isQuizResponse, Boolean isAttendingQuiz) {
+	public ServiceResponse getSurveyResponseByEmpIdAndSurveyId(SurveyDTO surveyDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		//apiLogInfo.setSubFeatureName("");
@@ -737,7 +737,10 @@ public class SurveyServiceImpl implements SurveyService {
 				return response;
 			}
 
-			if(isQuizResponse){
+			boolean isQuizResponse = surveyDTO.getIsQuizResponse() == null ? false : surveyDTO.getIsQuizResponse();
+			boolean isAttendingQuiz = surveyDTO.getIsAttendingQuiz() == null ? false : surveyDTO.getIsAttendingQuiz();
+
+			if( isQuizResponse){
 				Long quizId = trainingQuizMappingRepository.findActiveSurveyIdByTraining(surveyDTO.getTrainingId());
 				surveyDTO.setSurveyId(quizId);
 			}

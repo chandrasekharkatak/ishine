@@ -314,7 +314,7 @@ onTakeSurvey(surveyObj: Survey) {
     //console.log("For View My Response : ", surveyObj);
     this.surveyService.getSurveyResponseByEmpIdAndSurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.myResponseList = response.serviceResponse;
+        this.myResponseList = response.serviceResponse.allSurveyQuestionList;
         //console.log("this.myResponseList : ", this.myResponseList);
         if(!this.isEdit){
           this.openSurveyPreviewMod(this.previewResponseTemplate);
@@ -346,6 +346,7 @@ onTakeSurvey(surveyObj: Survey) {
 
     let surveyObj = new Survey();
     surveyObj.empId = this.currentUser.empId;
+    surveyObj.surveyId = this.surveyObj.surveyId;
     surveyObj.surveyQuestionList = [];
 
     this.allSurveyQuestionList.forEach((question, index) => {
