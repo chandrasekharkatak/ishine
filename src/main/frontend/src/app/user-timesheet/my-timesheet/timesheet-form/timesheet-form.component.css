@@ -2832,7 +2832,7 @@ flex-wrap: wrap;
 .form-row-v2 {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 24px;
   align-items: flex-start;
 }
 
@@ -2849,7 +2849,7 @@ flex-wrap: wrap;
 }
 
 .field-day-type {
-  flex: 0 0 220px;
+  flex: 0 0 200px;
 }
 
 .field-date {
@@ -2857,7 +2857,7 @@ flex-wrap: wrap;
 }
 
 .field-night-shift {
-  flex: 0 0 140px;
+  flex: 0 0 160px;
 }
 
 /* Hide internal label of app-date-time-picker when using external label */
