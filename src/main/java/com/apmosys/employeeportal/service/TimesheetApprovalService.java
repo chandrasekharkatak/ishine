@@ -29,6 +29,9 @@ import java.util.HashMap;
 import com.apmosys.employeeportal.Exception.BadRequestException;
 import com.apmosys.employeeportal.Exception.TimesheetApproveValidationFailedException;
 import com.apmosys.employeeportal.dto.BulkTimesheetRequestDTO;
+import com.apmosys.employeeportal.dto.PaginatedTimesheetResponse;
+import com.apmosys.employeeportal.dto.TimesheetFilterCriteria;
+import com.apmosys.employeeportal.enums.TimesheetSortField;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeTimesheetsNewDTO;
 import com.apmosys.employeeportal.dto.GetMyReporteesTimesheetRequestsPayload;
@@ -1491,8 +1494,9 @@ import com.apmosys.employeeportal.repository.TimesheetRejectionReasonsMasterRepo
 	    
 	    
 	  
-	//  New API
-public ServiceResponse getMyReporteesTimesheetRequestsNew(GetMyReporteesTimesheetRequestsPayload payload) {
+	// Original API - kept as backup
+@Deprecated
+public ServiceResponse getMyReporteesTimesheetRequestsNew_backup(GetMyReporteesTimesheetRequestsPayload payload) {
 
     ServiceResponse response = new ServiceResponse();
 
@@ -1692,6 +1696,284 @@ for (GetReporteesTimesheetReqDTO dto : mapped) {
 
     return response;
 }
+
+
+// ==================== REFACTORED API ====================
+
+/**
+ * Fetches paginated timesheet requests for manager's reportees.
+ * This is the refactored version with improved maintainability and robustness.
+ *
+ * @param payload the request payload containing filters, pagination, and sort options
+ * @return ServiceResponse containing PaginatedTimesheetResponse or error details
+ */
+public ServiceResponse getMyReporteesTimesheetRequestsNew(GetMyReporteesTimesheetRequestsPayload payload) {
+    ServiceResponse response = new ServiceResponse();
+
+    try {
+        // Step 1: Validate payload
+        String validationError = validatePayload(payload);
+        if (validationError != null) {
+            return buildFailResponse(validationError);
+        }
+
+        // Step 2: Build filter criteria from payload
+        TimesheetFilterCriteria criteria = TimesheetFilterCriteria.fromPayload(payload);
+
+        // Step 3: Build pageable with sort configuration
+        Pageable pageable = buildPageable(payload);
+
+        // Step 4: Fetch paginated timesheet IDs
+        Page<BigInteger> timesheetPage = fetchTimesheetIds(criteria, pageable);
+        List<Long> timesheetIds = extractTimesheetIds(timesheetPage);
+
+        // Step 5: Handle empty results
+        if (timesheetIds.isEmpty()) {
+            return buildSuccessResponse(
+                PaginatedTimesheetResponse.empty(
+                    getSafePage(payload.getPage()),
+                    getSafeSize(payload.getSize())
+                )
+            );
+        }
+
+        // Step 6: Fetch and map timesheet details
+        List<GetReporteesTimesheetReqDTO> mappedTimesheets = fetchAndMapTimesheetDetails(
+            timesheetIds, 
+            criteria.getStatus()
+        );
+
+        // Step 7: Enrich with counts (location count, project count)
+        enrichWithCounts(mappedTimesheets);
+
+        // Step 8: Build final response
+        PaginatedTimesheetResponse paginatedResponse = PaginatedTimesheetResponse.of(
+            mappedTimesheets,
+            timesheetPage.getNumber(),
+            timesheetPage.getSize(),
+            timesheetPage.getTotalElements(),
+            timesheetPage.getTotalPages(),
+            timesheetPage.hasNext()
+        );
+
+        return buildSuccessResponse(paginatedResponse);
+
+    } catch (Exception ex) {
+        log.error("Failed to fetch reportee timesheet requests for empId: {}", 
+                  payload != null ? payload.getEmpId() : "null", ex);
+        return buildErrorResponse("Failed to fetch timesheet requests", ex.getMessage());
+    }
+}
+
+// ==================== PRIVATE HELPER METHODS ====================
+
+/**
+ * Validates the incoming payload for required fields.
+ *
+ * @param payload the request payload
+ * @return error message if validation fails, null otherwise
+ */
+private String validatePayload(GetMyReporteesTimesheetRequestsPayload payload) {
+    if (payload == null) {
+        return "Request payload is required";
+    }
+    if (payload.getEmpId() == null) {
+        return "Employee information is required";
+    }
+    return null;
+}
+
+/**
+ * Builds a Pageable object with sort configuration.
+ *
+ * @param payload the request payload
+ * @return configured Pageable instance
+ */
+private Pageable buildPageable(GetMyReporteesTimesheetRequestsPayload payload) {
+    int page = getSafePage(payload.getPage());
+    int size = getSafeSize(payload.getSize());
+    
+    Sort.Direction direction = "ASC".equalsIgnoreCase(payload.getSortDir())
+            ? Sort.Direction.ASC
+            : Sort.Direction.DESC;
+    
+    String sortColumn = TimesheetSortField.toDbColumn(payload.getSortBy());
+    
+    log.debug("Building pageable - page: {}, size: {}, sortBy: {}, sortColumn: {}, direction: {}",
+              page, size, payload.getSortBy(), sortColumn, direction);
+    
+    return PageRequest.of(page, size, JpaSort.unsafe(direction, sortColumn));
+}
+
+/**
+ * Gets a safe page number, defaulting to 0 if invalid.
+ *
+ * @param page the requested page number
+ * @return valid page number
+ */
+private int getSafePage(Integer page) {
+    return (page != null && page >= 0) ? page : 0;
+}
+
+/**
+ * Gets a safe page size, defaulting to 10 if invalid.
+ *
+ * @param size the requested page size
+ * @return valid page size
+ */
+private int getSafeSize(Integer size) {
+    return (size != null && size > 0) ? size : 10;
+}
+
+/**
+ * Fetches paginated timesheet IDs based on filter criteria.
+ *
+ * @param criteria the filter criteria
+ * @param pageable the pagination configuration
+ * @return Page of timesheet IDs
+ */
+private Page<BigInteger> fetchTimesheetIds(TimesheetFilterCriteria criteria, Pageable pageable) {
+    return employeeTimesheetsNewRepository.getPagedTimesheetIds(
+            criteria.getEmpId(),
+            criteria.getClientFilter(),
+            criteria.getEmploymentId(),
+            criteria.getEmployeeName(),
+            criteria.getDayType(),
+            criteria.getProjectName(),
+            criteria.getClientName(),
+            criteria.getClientLocation(),
+            criteria.getPoNo(),
+            criteria.getShadowEmpName(),
+            criteria.getTeamName(),
+            criteria.getActivity(),
+            criteria.getDate(),
+            criteria.getSearch(),
+            criteria.getWorkCheckIn(),
+            criteria.getWorkCheckOut(),
+            criteria.getLocationCount(),
+            criteria.getProjectCount(),
+            criteria.getAppliedBy(),
+            criteria.getAppliedOn(),
+            criteria.getStatus(),
+            pageable
+    );
+}
+
+/**
+ * Extracts Long IDs from the paginated BigInteger results.
+ *
+ * @param timesheetPage the page of BigInteger IDs
+ * @return List of Long IDs
+ */
+private List<Long> extractTimesheetIds(Page<BigInteger> timesheetPage) {
+    return timesheetPage.getContent()
+            .stream()
+            .map(id -> ((Number) id).longValue())
+            .collect(Collectors.toList());
+}
+
+/**
+ * Fetches timesheet details and maps them to DTOs, preserving the original order.
+ *
+ * @param timesheetIds the list of timesheet IDs to fetch
+ * @param status the status filter
+ * @return List of mapped DTOs in the original order
+ */
+private List<GetReporteesTimesheetReqDTO> fetchAndMapTimesheetDetails(List<Long> timesheetIds, int status) {
+    List<GetReporteesTimesheetReqFlatDTO> flatResults = 
+            employeeTimesheetsNewRepository.getTimesheetDetailsByIds(timesheetIds, status);
+    
+    if (flatResults == null || flatResults.isEmpty()) {
+        return Collections.emptyList();
+    }
+    
+    System.out.print("flatResults : ");
+    System.out.println(flatResults.toString());
+    
+    // Build order map for preserving pagination order
+    Map<Long, Integer> orderMap = new HashMap<>();
+    for (int i = 0; i < timesheetIds.size(); i++) {
+        orderMap.put(timesheetIds.get(i), i);
+    }
+    
+    // Sort by original order
+    flatResults.sort(Comparator.comparingInt(
+            dto -> orderMap.getOrDefault(dto.getTimesheetId(), Integer.MAX_VALUE)
+    ));
+    List<GetReporteesTimesheetReqDTO> li=timesheetMapper.map(flatResults);
+    System.out.print("mapped result : ");
+
+    System.out.println(li.toString());
+    return li;
+}
+
+/**
+ * Enriches the DTOs with calculated counts (location count, project count).
+ *
+ * @param timesheets the list of timesheet DTOs to enrich
+ */
+private void enrichWithCounts(List<GetReporteesTimesheetReqDTO> timesheets) {
+    for (GetReporteesTimesheetReqDTO dto : timesheets) {
+        List<GetReporteesTimesheetLocationsDTO> locations =
+                Optional.ofNullable(dto.getLocationSessions())
+                        .orElse(Collections.emptyList());
+
+        long locationCount = locations.size();
+        long projectCount = locations.stream()
+                .map(GetReporteesTimesheetLocationsDTO::getProjects)
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .map(GetReporteesTimesheetProjectsDTO::getProjectId)
+                .distinct()
+                .count();
+
+        dto.setLocationCount(locationCount);
+        dto.setProjectCount(projectCount);
+    }
+}
+
+/**
+ * Builds a successful ServiceResponse with the given data.
+ *
+ * @param data the response data
+ * @return configured ServiceResponse
+ */
+private ServiceResponse buildSuccessResponse(Object data) {
+    ServiceResponse response = new ServiceResponse();
+    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+    response.setServiceResponse(data);
+    return response;
+}
+
+/**
+ * Builds a failed ServiceResponse with the given message.
+ *
+ * @param message the error message
+ * @return configured ServiceResponse
+ */
+private ServiceResponse buildFailResponse(String message) {
+    ServiceResponse response = new ServiceResponse();
+    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+    response.setServiceResponse(message);
+    return response;
+}
+
+/**
+ * Builds an error ServiceResponse with the given message and error details.
+ *
+ * @param message the error message
+ * @param errorDetails the technical error details
+ * @return configured ServiceResponse
+ */
+private ServiceResponse buildErrorResponse(String message, String errorDetails) {
+    ServiceResponse response = new ServiceResponse();
+    response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+    response.setServiceResponse(message);
+    response.setServiceError(errorDetails);
+    return response;
+}
+
+// ==================== END REFACTORED API ====================
 
 
 public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO request) {
