@@ -12091,7 +12091,7 @@ public ServiceResponse getPoRequirementDataByTeamAndPoId(Long teamId, Long poId)
 
     return response;
 }
-
+	@Transactional(readOnly = true)
 	public ServiceResponse getAllActiveEmployeeInformation() {
 	ServiceResponse response = new ServiceResponse();
 	LogDTO apiLogInfo = new LogDTO();
@@ -12118,7 +12118,8 @@ public ServiceResponse getPoRequirementDataByTeamAndPoId(Long teamId, Long poId)
 		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		response.setServiceResponse(employeeInfoList);
 	} catch (Exception e) {
-		e.printStackTrace();
+		// e.printStackTrace();
+		logger.error("Error in getAllActiveEmployeeInformation", e);
 		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 		response.setServiceResponse("Error : " + e.getMessage());
 	}
