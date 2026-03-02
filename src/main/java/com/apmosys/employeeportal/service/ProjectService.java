@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
@@ -2059,39 +2060,55 @@ public class ProjectService {
 		return response;
 	}
 
+	@Transactional(readOnly = true)
 	public ServiceResponse checkProjectName(ProjectDTO projectDto) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("CheckProjectName");
 		apiLogInfo.setApiUrl("/api/checkProjectName");
 		apiLogInfo.setLogLevel("INFO");
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("ProjectName : " + projectDto.getProjectName());
-		try {
+		// StringBuilder logBuilder = new StringBuilder();
+		// logBuilder.append("ProjectName : " + projectDto.getProjectName());
 
-			Project checkProjectName = projectRepository.findByProjectName(projectDto.getProjectName());
+		String projectName = null;
+		try {
+			if (projectDto == null || !StringUtils.hasText(projectDto.getProjectName())) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project name is required.");
+				apiLogInfo.setApiResponse("Invalid request - project name missing");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				return response;
+			}
+			 projectName = projectDto.getProjectName().trim();
+        	apiLogInfo.setApiRequest("ProjectName : " + projectName);
+
+			Project checkProjectName = projectRepository.findByProjectName(projectName);
 
 			if (checkProjectName != null) {
+				log.info("Project already exists: {}", checkProjectName.getProjectName());
+
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Project Name already exist.");
-				System.out.println(" Project  exist" + checkProjectName);
+				response.setServiceResponse("Project Name already exists.");
+				
 				apiLogInfo.setApiResponse("Project Name already Exists ");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-			} else if (checkProjectName == null) {
+			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				apiLogInfo.setApiResponse("Project Exists");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error in checkProjectName for projectName={}", projectName, e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
 		}
-		apiLogInfo.setApiRequest(logBuilder.toString());
+		// apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
