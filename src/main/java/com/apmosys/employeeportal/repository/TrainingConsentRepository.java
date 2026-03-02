@@ -26,7 +26,8 @@ public interface TrainingConsentRepository extends JpaRepository<TrainingConsent
 	@Query("SELECT tc FROM TrainingConsent tc WHERE tc.empId = :empId " +
 		   "AND tc.trainingMaster.trainingId = :trainingId " +
 		   "AND (:contentId IS NULL OR tc.trainingContent.contentId = :contentId) " +
-		   "AND (:quizId IS NULL OR tc.quizId = :quizId) \n"+ 
+		   "AND ((:quizId IS NULL AND tc.quizId IS NULL) OR " +
+       	   "	(:quizId IS NOT NULL AND tc.quizId = :quizId)) " +
 		   "AND tc.completionCycleNumber = :cycleNumber")
 	Optional<TrainingConsent> findByEmpIdAndTrainingIdAndContentIdAndQuizIdAndCycleNumber(
 			@Param("empId") Long empId,
@@ -42,7 +43,8 @@ public interface TrainingConsentRepository extends JpaRepository<TrainingConsent
 		    "FROM TrainingConsent tc " +
 		    "WHERE tc.empId = :empId " +
 		    "AND tc.trainingMaster.trainingId = :trainingId " +
-			"AND tc.quizId = :quizId \n"+ 
+			"AND ((:quizId IS NULL AND tc.quizId IS NULL) OR " +
+       	   "(:quizId IS NOT NULL AND tc.quizId = :quizId)) \n"+ 
 		    "AND tc.trainingContent.contentId = :contentId"
 		)
 		boolean existsByEmpIdAndTrainingIdAndContentIdAndQuizId(
@@ -68,8 +70,9 @@ public interface TrainingConsentRepository extends JpaRepository<TrainingConsent
 	
 	@Query("SELECT tc FROM TrainingConsent tc WHERE tc.empId = :empId " +
 		   "AND tc.trainingMaster.trainingId = :trainingId " +
-		   "AND tc.quizId = :quizId " +
-		   "ORDER BY tc.consentTimestamp DESC")
+		   "AND((:quizId IS NULL AND tc.quizId IS NULL) OR " +
+       "(:quizId IS NOT NULL AND tc.quizId = :quizId)) " +
+		   "ORDER BY tc.consentTimestamp DESC")	
 	List<TrainingConsent> findByEmpIdAndTrainingIdAndQuizId(@Param("empId") Long empId, 
 																	@Param("trainingId") Integer trainingId, @Param("quizId") Long quizId);
 

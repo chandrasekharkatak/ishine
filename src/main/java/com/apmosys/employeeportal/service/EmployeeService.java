@@ -5488,10 +5488,10 @@ public class EmployeeService {
 				
 				//Check training lock status and mandatory training requirements
 				// This check is critical for routing decisions on login
-				// List<Long> jobRoleIds = Arrays.stream(trainingJobRoleExclude.split(","))
-				// 		.map(String::trim)
-				// 		.map(Long::parseLong)
-				// 		.collect(Collectors.toList());
+				List<Long> jobRoleIds = Arrays.stream(trainingJobRoleExclude.split(","))
+						.map(String::trim)
+						.map(Long::parseLong)
+						.collect(Collectors.toList());
 
 				// Dry run empIds
 				List<Long> empIdsToInclude = Arrays.stream(trainingDryRunEmpIdsToInclude.split(","))
@@ -5499,7 +5499,7 @@ public class EmployeeService {
 						.map(Long::parseLong)
 						.collect(Collectors.toList());
 				Long employeeJobRoleId = employee.getJobRoleId();
-				if (employee.getEmpId() != null && employeeJobRoleId != null && empIdsToInclude.contains(employeeJobRoleId)) {
+				if (employee.getEmpId() != null && employeeJobRoleId != null && !jobRoleIds.contains(employeeJobRoleId) && empIdsToInclude.contains(employee.getEmpId())) {
 					try {
 
 						ServiceResponse lockResponse = trainingUserService.getLockStatus(employee.getEmpId());

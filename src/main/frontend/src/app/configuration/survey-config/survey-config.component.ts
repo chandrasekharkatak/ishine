@@ -156,7 +156,12 @@ export class SurveyConfigComponent implements OnInit {
     // if(this.isFromTraining){
     //   this.showQuizResponses();
     // } else {
-      this.showSurveys();
+
+    if(this.isFromTraining){
+      this.allSurveyQuestionList = [new SurveyQuestion('radio')];
+      this.allSurveyQuestionList[0].optionsList.push(new SurveyOption());
+    }
+    this.showSurveys();
     // }
   }
 
@@ -169,7 +174,12 @@ export class SurveyConfigComponent implements OnInit {
     this.isSurveyResponseList = false;
 
     this.surveyObj = new Survey();
-    this.allSurveyQuestionList = [new SurveyQuestion()];
+    if(this.isFromTraining){
+      this.allSurveyQuestionList = [new SurveyQuestion('radio')];
+      this.allSurveyQuestionList[0].optionsList.push(new SurveyOption());
+    } else {
+      this.allSurveyQuestionList = [new SurveyQuestion()];
+    }
   }
 
   showSurveys(){
@@ -221,7 +231,8 @@ export class SurveyConfigComponent implements OnInit {
         this.surveyObj = surveyObj;
         this.allSurveyQuestionList.forEach((survey: SurveyQuestion) => {
           survey.optionsList = JSON.parse(survey.options);
-          survey.required = JSON.parse(survey.required);
+          survey.required = JSON.parse(survey.required)
+          survey.correctAnswer = JSON.parse(survey.correctAnswer);
         });
 
         //console.log("For Edit SurveyObj ==> ",this.surveyObj, this.allSurveyQuestionList);
@@ -235,7 +246,13 @@ export class SurveyConfigComponent implements OnInit {
 
   // Manage Questions
   addQuestion(i){
-    this.allSurveyQuestionList.splice(i+1,0,new SurveyQuestion());
+    if(this.isFromTraining){
+      this.allSurveyQuestionList.splice(i+1,0,new SurveyQuestion('radio'));
+      // add default option
+      this.allSurveyQuestionList[i+1].optionsList.push(new SurveyOption());
+    }else{
+      this.allSurveyQuestionList.splice(i+1,0,new SurveyQuestion());
+    }
   }
 
   removeQuestion(i){
@@ -348,7 +365,7 @@ export class SurveyConfigComponent implements OnInit {
 
     const surveyTemplate:string = this.createTemplate();
 
-    if(this.surveyObj.cutOffQuestions > this.allSurveyQuestionList.length){
+    if(this.isFromTraining && this.surveyObj.cutOffQuestions > this.allSurveyQuestionList.length){
       this.alertMessage = "Cut Off Questions should be less than or equal to Total Questions !!";
       this.openAlertMod(template, this.alertMessage);
       return;
@@ -455,7 +472,7 @@ export class SurveyConfigComponent implements OnInit {
     this.surveyObj = new Survey();
     this.allSurveyQuestionList = [];
 
-    this.surveyService.getAllQuestionsBySurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
+    this.surveyService.getAllQuestionsBySurveyId(surveyObj, false, true).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.allSurveyQuestionList = response.serviceResponse;
         //console.log("allSurveyQuestionList : ", this.allSurveyQuestionList);
@@ -464,6 +481,9 @@ export class SurveyConfigComponent implements OnInit {
         this.allSurveyQuestionList.forEach((survey: SurveyQuestion) => {
           survey.optionsList = JSON.parse(survey.options);
           survey.required = JSON.parse(survey.required);
+          if(this.isFromTraining){
+            survey.correctAnswer = survey.correctAnswer;
+          }
         });
 
         const surveyTemplate: string = this.createTemplate();
@@ -703,6 +723,9 @@ export class SurveyConfigComponent implements OnInit {
      } else if (question.optionType == "radio") {
 
       let optionTemplate = '';
+      if(!this.isFromTraining){
+        
+      
       question.optionsList.forEach((option:SurveyOption, index) => {
         let radioboxTemplate: any =
         `
@@ -714,6 +737,26 @@ export class SurveyConfigComponent implements OnInit {
 
        optionTemplate = optionTemplate + radioboxTemplate;
       });
+    } else {
+      question.optionsList.forEach((option: SurveyOption, index) => {
+          const isCorrectOption = option.optionValue == question.correctAnswer ? true : null;
+          let optionClass = '';
+          
+          // else if (isUserSelected && !isCorrectOption) optionClass = 'text-danger';
+          if (isCorrectOption) optionClass = 'text-success';
+          
+          optionTemplate += `
+            <div class="form-check">
+              <input class="form-check-input" type="radio" id="q-${qIndex + 1}-radio-option-${index + 1}"
+                    value="${option.optionValue}" name="question-${qIndex + 1}"  disabled>
+              <label class="form-check-label ${optionClass}" for="q-${qIndex + 1}-radio-option-${index + 1}">
+                ${option.optionValue}
+                ${isCorrectOption ? ' ✓ (Correct Answer)' : ''}
+              </label>
+            </div>
+          `;
+        });
+    }
       finalQuestionTemplate = finalQuestionTemplate + optionTemplate;
      }else if(question.optionType == "dropdown"){
              let textTemplate: any =`<textarea class="form-control" rows="1" name="question-${qIndex+1}" disabled ></textarea>`;

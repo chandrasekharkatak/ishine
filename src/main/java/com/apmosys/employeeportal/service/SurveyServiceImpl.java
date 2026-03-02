@@ -107,6 +107,7 @@ public class SurveyServiceImpl implements SurveyService {
 			}
 
 			Survey newSurvey = new Survey();
+			boolean isFromTraining = false;
 
 			newSurvey.setCreatedBy(surveyDTO.getCreatedBy());
 			newSurvey.setSurveyName(surveyDTO.getSurveyName());
@@ -117,6 +118,7 @@ public class SurveyServiceImpl implements SurveyService {
 			// Set type to "quiz" if created from training context
 			if (surveyDTO.getTrainingId() != null) {
 				newSurvey.setType("quiz");
+				isFromTraining = true;
 			}
 //			newSurvey.setImageUrl(surveyDTO.getImageUrl()); 
 //	        newSurvey.setVideoUrl(surveyDTO.getVideoUrl());
@@ -195,20 +197,20 @@ public class SurveyServiceImpl implements SurveyService {
 					}
 					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Survey created successfully.");
-					apiLogInfo.setApiResponse("Survey Created Successfully");			
+					response.setServiceResponse(isFromTraining ? "Quiz created successfully." : "Survey created successfully.");
+					apiLogInfo.setApiResponse(isFromTraining ? "Quiz Created Successfully" : "Survey Created Successfully");			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Survey created but no questions were added to survey.");
-					apiLogInfo.setApiResponse("Survey created but no questions were added to survey");			
+					response.setServiceResponse(isFromTraining ? "Quiz created but no questions were added to quiz." : "Survey created but no questions were added to survey.");
+					apiLogInfo.setApiResponse(isFromTraining ? "Quiz created but no questions were added to quiz" : "Survey created but no questions were added to survey");			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Failed to create survey.");
-				apiLogInfo.setApiResponse("Failed to create survey");			
+				response.setServiceResponse(isFromTraining ? "Failed to create quiz." : "Failed to create survey.");
+				apiLogInfo.setApiResponse(isFromTraining ? "Failed to create quiz" : "Failed to create survey");			
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
@@ -306,7 +308,7 @@ public class SurveyServiceImpl implements SurveyService {
 	}
 
 	@Override
-	public ServiceResponse getAllQuestionsBySurveyId(SurveyDTO surveyDTO, Boolean isEditing) {
+	public ServiceResponse getAllQuestionsBySurveyId(SurveyDTO surveyDTO, Boolean isEditing, Boolean isPreview) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		//apiLogInfo.setSubFeatureName("");
@@ -349,7 +351,7 @@ public class SurveyServiceImpl implements SurveyService {
 						dto.setRequired(object.getRequired());
 						dto.setDescription(object.getDescription());
 
-						if(isEditing){
+						if(isPreview || isEditing){
 							dto.setCorrectAnswer(object.getCorrectAnswer());
 						}
 

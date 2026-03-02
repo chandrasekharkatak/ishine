@@ -42,10 +42,11 @@ export class SurveyService {
      }
 
 
-    getAllQuestionsBySurveyId(surveyObj: Survey, isEditing: boolean = false) {
+    getAllQuestionsBySurveyId(surveyObj: Survey, isEditing: boolean = false, isPreview: boolean = false) {
         return this.http.post(`${this.baseUrl}` + `api/getAllQuestionsBySurveyId`, surveyObj, {
             params: {
-                isEditing
+                isEditing,
+                isPreview
             }
         });
     }

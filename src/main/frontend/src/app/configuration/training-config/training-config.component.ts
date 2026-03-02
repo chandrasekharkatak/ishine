@@ -370,6 +370,9 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.contentFormData.effectiveFrom = this.trainingFormData.effectiveFrom;
+    this.contentFormData.effectiveTo = this.trainingFormData.effectiveTo;
+
     // Validate content is added during creation
     if (!this.validateContentForm()) {
       //this.openAlertMod(this.alertTemplate, 'Content is required to create a training. Please add content first.', 'warning');
@@ -390,7 +393,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       // frequencyPerYear: this.trainingFormData.frequencyPerYear || 2,
       lockEnabled: this.trainingFormData.lockEnabled || 'false',
       minViewTimeMinutes: this.trainingFormData.minViewTimeMinutes || null,
-      consentRequired: this.trainingFormData.consentRequired || 'true',
+      consentRequired:  'true',
       skipAllowed: this.trainingFormData.skipAllowed || 'false',
       deadlineEnabled: this.trainingFormData.deadlineEnabled || 'false',
       deadlinePattern: this.trainingFormData.deadlinePattern || null,
@@ -402,8 +405,8 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     const contentDTO = {
       contentType: this.contentFormData.contentType,
       contentName: this.contentFormData.contentName,
-      effectiveFrom: this.contentFormData.effectiveFrom ? moment(this.contentFormData.effectiveFrom).format('YYYY-MM-DD') : null,
-      effectiveTo: this.contentFormData.effectiveTo ? moment(this.contentFormData.effectiveTo).format('YYYY-MM-DD') : null,
+      effectiveFrom: this.trainingFormData.effectiveFrom ? moment(this.trainingFormData.effectiveFrom).format('YYYY-MM-DD') : null,
+      effectiveTo: this.trainingFormData.effectiveTo ? moment(this.trainingFormData.effectiveTo).format('YYYY-MM-DD') : null,
       externalLinkUrl: this.contentFormData.contentType === 'LINK' ? this.contentFormData.externalLinkUrl : null
     };
      formData.append(
@@ -445,6 +448,9 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     if (!this.trainingFormData.trainingId && this.selectedTraining) {
       this.trainingFormData.trainingId = this.selectedTraining.trainingId;
     }
+
+    this.contentFormData.effectiveFrom = this.trainingFormData.effectiveFrom;
+    this.contentFormData.effectiveTo = this.trainingFormData.effectiveTo;
       // Validate content form
       if (!this.validateContentForm()) {
         // this.openAlertMod(this.alertTemplate, 'Please complete the content form correctly', 'warning');
@@ -466,7 +472,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
         // frequencyPerYear: this.trainingFormData.frequencyPerYear || 2,
         lockEnabled: this.trainingFormData.lockEnabled || 'false',
         minViewTimeMinutes: this.trainingFormData.minViewTimeMinutes || null,
-        consentRequired: this.trainingFormData.consentRequired || 'true',
+        consentRequired:  'true',
         skipAllowed: this.trainingFormData.skipAllowed || 'false',
         deadlineEnabled: this.trainingFormData.deadlineEnabled || 'false',
         deadlinePattern: this.trainingFormData.deadlinePattern || null,
@@ -483,6 +489,15 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
         effectiveTo: this.contentFormData.effectiveTo ? moment(this.contentFormData.effectiveTo).format('YYYY-MM-DD') : null,
         externalLinkUrl: this.contentFormData.contentType === 'LINK' ? this.contentFormData.externalLinkUrl : null
       };
+
+      // if(!this.file){
+      //   contentDTO.contentPath = this.contentFormData.contentPath;
+      //   contentDTO.contentId = this.contentFormData.contentId;
+      //   contentDTO.mimeType = this.contentFormData.mimeType;
+      //   contentDTO.createdBy = this.contentFormData.createdBy;
+      //   contentDTO.createdOn = this.contentFormData.createdOn;
+      //   contentDTO.updatedBy = this.contentFormData.updatedBy;
+      // }
       
       // Include contentId if editing existing content
       if (this.contentFormData.contentId) {

@@ -33,18 +33,31 @@ public interface EmployeeQuizResponseStatusMappingRepository extends JpaReposito
     //         "AND tqm.trainingContent.activeStatus = 'true' AND eqrsm.employeeId = :empId")
     // List<TrainingIdResponsePassStatusDTO> getTrainingIdsHavingQuizAndEmpId(@Param("trainingIds") List<Integer> trainingIds, @Param("empId") Long empId);
 
+    // @Query("SELECT new com.apmosys.employeeportal.dto.TrainingIdResponsePassStatusDTO(" +
+    //     "tqm.trainingMaster.trainingId, eqrsm.passStatus, eqrsm.quizId, eqrsm.marksObtained) " +
+    //     "FROM TrainingQuizMapping tqm " +
+    //     "INNER JOIN TrainingContent tc ON tc.trainingMaster.trainingId = tqm.trainingMaster.trainingId " +
+    //     "INNER JOIN Survey s ON s.surveyId = tqm.survey.surveyId " +
+    //     "LEFT JOIN EmployeeQuizResponseStatusMapping eqrsm ON tqm.survey.surveyId = eqrsm.quizId " +
+    //     "WHERE s.isActive = 'true' " +
+    //     "AND tqm.activeStatus = 'true' " +
+    //     "AND tc.activeStatus = 'true' " +
+    //     "AND tqm.trainingMaster.trainingId IN :trainingIds " +
+    //     "AND eqrsm.employeeId = :empId " +
+    //     "GROUP BY tqm.trainingMaster.trainingId")
+    // List<TrainingIdResponsePassStatusDTO> getTrainingIdsHavingQuizAndEmpId(@Param("trainingIds") List<Integer> trainingIds, @Param("empId") Long empId);
+
     @Query("SELECT new com.apmosys.employeeportal.dto.TrainingIdResponsePassStatusDTO(" +
-        "tqm.trainingMaster.trainingId, eqrsm.passStatus, eqrsm.quizId, eqrsm.marksObtained) " +
-        "FROM TrainingQuizMapping tqm " +
-        "INNER JOIN TrainingContent tc ON tc.trainingMaster.trainingId = tqm.trainingMaster.trainingId " +
-        "INNER JOIN Survey s ON s.surveyId = tqm.survey.surveyId " +
-        "LEFT JOIN EmployeeQuizResponseStatusMapping eqrsm ON tqm.survey.surveyId = eqrsm.quizId " +
-        "WHERE s.isActive = 'true' " +
-        "AND tqm.activeStatus = 'true' " +
-        "AND tc.activeStatus = 'true' " +
-        "AND tqm.trainingMaster.trainingId IN :trainingIds " +
-        "AND eqrsm.employeeId = :empId " +
-        "GROUP BY tqm.trainingMaster.trainingId")
-    List<TrainingIdResponsePassStatusDTO> getTrainingIdsHavingQuizAndEmpId(@Param("trainingIds") List<Integer> trainingIds, @Param("empId") Long empId);
+       "tqm.trainingMaster.trainingId, eqrsm.passStatus, eqrsm.quizId, eqrsm.marksObtained) " +
+       "FROM TrainingQuizMapping tqm " +
+       "INNER JOIN Survey s ON s.surveyId = tqm.survey.surveyId " +
+       "INNER JOIN EmployeeQuizResponseStatusMapping eqrsm ON tqm.survey.surveyId = eqrsm.quizId " +
+       "   AND eqrsm.employeeId = :empId " +
+       "WHERE s.isActive = 'true' " +
+       "AND tqm.activeStatus = 'true' " +
+       "AND tqm.trainingMaster.trainingId IN :trainingIds")
+    List<TrainingIdResponsePassStatusDTO> getTrainingIdsHavingQuizAndEmpId(
+            @Param("trainingIds") List<Integer> trainingIds, 
+            @Param("empId") Long empId);
 
 }

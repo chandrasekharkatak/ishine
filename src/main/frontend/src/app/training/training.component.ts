@@ -992,7 +992,6 @@ export class TrainingComponent implements OnInit, OnDestroy {
             }
           }, 1500);
         } 
-          this.openAlert(response.serviceStatus || 'Failed to submit consent', 'error');
         
       },
       error: (error: any) => {

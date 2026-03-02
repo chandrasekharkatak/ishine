@@ -491,7 +491,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 		try {
 			// Get all active trainings (both mandatory and non-mandatory) with effective dates
 			List<TrainingMaster> allActiveTrainings = trainingMasterRepository
-				.findActiveTrainingsWithEffectiveDates("true", List.of("fail","pass", "filled"));
+				.findActiveTrainingsWithEffectiveDates("true");
 
 			List<Integer> allTrainingsWithQuiz = employeeQuizResponseStatusMappingRepository.getTrainingIdsHavingQuiz(allActiveTrainings.stream().map(TrainingMaster::getTrainingId).collect(Collectors.toList()));
 
@@ -967,7 +967,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 
 		LockStatusDTO defaultStatus = createUnlockedStatus();
 
-		List<TrainingMaster> mandatoryTrainings = trainingMasterRepository.findActiveMandatoryTrainings("true", "true", List.of("fail"));
+		List<TrainingMaster> mandatoryTrainings = trainingMasterRepository.findActiveMandatoryTrainings("true", "true");
          System.out.println("mandatoryTrainings "+mandatoryTrainings);
 
 		for (TrainingMaster training : mandatoryTrainings) {
@@ -1018,8 +1018,6 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 
 		boolean attendedAtLeastOnce = trainingConsentRepository.existsByEmpIdAndTrainingIdAndContentIdAndQuizId(empId,
 				training.getTrainingId(), activeContent.getContentId(),quizId);
-
-		// boolean alreadyAttended = 
 
 		boolean deadlineCrossed = isDeadlineCrossed(training, currentCycle);
 		boolean lockEnabled = "true".equals(training.getLockEnabled());

@@ -149,9 +149,9 @@
                                 Consent Required
                                 <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
                             </label>
-                            <select class="form-control" [(ngModel)]="trainingFormData.consentRequired" name="consentRequired"
+                            <select class="form-control" disabled name="consentRequired"
                                     title="Select Yes if employees must submit consent to complete training">
-                                <option value="true">Yes</option>
+                                <option value="true" selected>Yes</option>
                                 <option value="false">No</option>
                             </select>
                         </div>
@@ -294,7 +294,7 @@
                                     </div>
 
                                     <div class="row">
-                                        <div class="col-md-4 mb-3">
+                                        <!-- <div class="col-md-4 mb-3">
                                             <label class="info-label font-weight-bold" 
                                                    title="The start date when this content becomes active. Content will be available to employees from this date. Must be within training effective dates.">
                                                 <span class="text-danger">*</span>Effective From
@@ -313,7 +313,7 @@
                                             <input type="date" class="form-control" [(ngModel)]="contentFormData.effectiveTo" 
                                                    name="effectiveTo" required
                                                    title="Select the end date when this content expires (must be after Effective From)">
-                                        </div>
+                                        </div> -->
                                         <div class="col-md-4 mb-3" *ngIf="contentFormData.contentType === 'LINK'">
                                             <label class="info-label font-weight-bold" 
                                                    title="The external URL where the training content is hosted. Employees will be redirected to this link when they access the training. Must be a valid URL starting with http:// or https://.">
@@ -654,7 +654,7 @@
     <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
         <div class="card border-primary">
             <div class="card-header bg-light">
-                <strong>{{contentFormData.contentName || viewingContent?.contentName || 'Preview'}}</strong>
+                <strong style="color: black;">{{contentFormData.contentName || viewingContent?.contentName || 'Preview'}}</strong>
                 <span class="badge badge-info ml-2">{{contentFormData.contentType || viewingContent?.contentType}}</span>
                 <span *ngIf="viewingContent" class="badge badge-secondary ml-2">
                     Effective: {{viewingContent.effectiveFrom}} 

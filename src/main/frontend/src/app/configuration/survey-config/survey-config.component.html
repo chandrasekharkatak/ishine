@@ -49,7 +49,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4 mb-0">
+                <div *ngIf="isFromTraining" class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
                             <label title="How many question have to be correct to pass the survey" class="info-label">Cut-Off Questions</label>
@@ -74,10 +74,10 @@
                             <div class="info-wrapper">
                                 <div class="form-group">
                                     <label class="info-label"><span class="text-danger">*</span>Options Type</label>
-                                    <select class="form-control" aria-hidden="true" [(ngModel)]="question.optionType" (change)="setOption(question)">
-                                        <option selected="selected" value="" disabled>Select</option>
+                                    <select class="form-control" [disabled]="isFromTraining" aria-hidden="true" [(ngModel)]="question.optionType" (change)="setOption(question)">
+                                        <option *ngIf="!isFromTraining" selected="selected" value="" disabled>Select</option>
                                         <option *ngIf="!isFromTraining" value="checkbox">checkbox</option>
-                                        <option *ngIf="isFromTraining" value="radio">radio</option>
+                                        <option value="radio">radio</option>
                                         <option *ngIf="!isFromTraining" value="text">text</option>
                                         <option *ngIf="!isFromTraining" value="dropdown">Choose From Employee Dropdown</option>
                                       </select>
@@ -98,7 +98,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-2 mb-0">
+                        <div *ngIf="!isFromTraining" class="col-md-2 mb-0">
                             <div class="info-wrapper">
                                 <div class="custom-control-lg custom-control custom-checkbox mt-4 pt-2">
                                     <input class="custom-control-input" type="checkbox" id="requiredCheck{{i+1}}" [(ngModel)]="question.required">
@@ -284,7 +284,7 @@
 
                             <button *ngIf="survey.isActive == 'true' && !['exit'].includes(survey.type)" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openCompleteSurveyMod(complete_template, survey)"><em>Complete</em></button>
                             <button *ngIf="survey.isActive == 'true' || survey.isActive == 'Completed'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showSurveyResponses(survey)"><em>View Response</em></button>&nbsp;
-                            <button *ngIf="survey.isActive == 'true'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="copySurveyLinkToClipBoard(survey,alert_message)"><em>Copy Survey Link</em></button>&nbsp;
+                            <button *ngIf="survey.isActive == 'true'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="copySurveyLinkToClipBoard(survey,alert_message)"><em>Copy {{isFromTraining ? 'Quiz' : 'Survey'}} Link</em></button>&nbsp;
                         </td>
                       </tr>
                     </tbody>

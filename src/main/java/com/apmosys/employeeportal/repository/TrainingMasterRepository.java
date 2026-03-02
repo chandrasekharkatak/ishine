@@ -17,27 +17,24 @@ public interface TrainingMasterRepository extends JpaRepository<TrainingMaster, 
 	Optional<TrainingMaster> findByTrainingId(Integer trainingId);
 	
 	@Query("SELECT new com.apmosys.employeeportal.dto.TrainingMasterDTO(tm.trainingId, tm.trainingName, tm.trainingType, tm.mandatoryFlag, tm.effectiveFrom, tm.effectiveTo, tm.lockEnabled, tm.minViewTimeMinutes, tm.consentRequired, tm.skipAllowed, tm.deadlineEnabled, tm.deadlinePattern, tm.customDeadlineMonths, tm.activeStatus, tm.createdBy, e.name, tm.createdOn, tm.updatedBy, tm.updatedOn) FROM TrainingMaster tm \n" + 
-       "Left JOIN TrainingQuizMapping tqm on tqm.trainingMaster.trainingId = tm.trainingId \n"+
-       "LEFT JOIN EmployeeQuizResponseStatusMapping eqrsm ON eqrsm.quizId = tqm.survey.surveyId \n"+
+       "Left JOIN TrainingQuizMapping tqm on tqm.trainingMaster.trainingId = tm.trainingId and (tqm.mappingId IS NULL OR tqm.activeStatus = 'true') \n"+
+       "LEFT JOIN EmployeeQuizResponseStatusMapping eqrsm ON eqrsm.quizId = tqm.survey.surveyId and eqrsm.id IS NULL \n"+
 	   "INNER JOIN Employee e ON e.empId = tm.createdBy \n"+
-       "WHERE (tqm.mappingId IS NULL OR tqm.activeStatus = 'true') AND (tm.mandatoryFlag = :mandatoryFlag AND tm.activeStatus = :activeStatus ) \n"+
-       "OR (eqrsm.id IS NULL OR eqrsm.passStatus IN :passStatus)")
+       "WHERE (tm.mandatoryFlag = :mandatoryFlag AND tm.activeStatus = :activeStatus )")
 	List<TrainingMasterDTO> findByMandatoryFlagAndActiveStatus(@Param("mandatoryFlag") String mandatoryFlag, 
-															@Param("activeStatus") String activeStatus,
-															@Param("passStatus") List<String> passStatus);
+															@Param("activeStatus") String activeStatus);
 
 	
 	@Query("SELECT tm FROM TrainingMaster tm \n" +
-		   "Left JOIN TrainingQuizMapping tqm on tqm.trainingMaster.trainingId = tm.trainingId \n"+
-		   "Left JOIN EmployeeQuizResponseStatusMapping eqrsm ON eqrsm.quizId = tqm.survey.surveyId \n"+ 
-		   "WHERE (tqm.mappingId IS NULL OR tqm.activeStatus = 'true') AND ((tm.mandatoryFlag = :mandatoryFlag) \n"+
-		   "OR (eqrsm.id IS NULL OR eqrsm.passStatus IN :passStatus)) \n" +
+		   "Left JOIN TrainingQuizMapping tqm on tqm.trainingMaster.trainingId = tm.trainingId and (tqm.mappingId IS NULL OR tqm.activeStatus = 'true') \n"+
+		//    "Left JOIN EmployeeQuizResponseStatusMapping eqrsm ON eqrsm.quizId = tqm.survey.surveyId \n"+ 
+		   "WHERE (tm.mandatoryFlag = :mandatoryFlag) \n"+
+		//    "OR (eqrsm.id IS NULL )) \n" +
 		   "AND tm.activeStatus = :activeStatus \n" +
 		   "AND (tm.effectiveTo IS NULL OR tm.effectiveTo >= CURRENT_DATE) " +
 		   "AND tm.effectiveFrom <= CURRENT_DATE")
 	List<TrainingMaster> findActiveMandatoryTrainings(@Param("mandatoryFlag") String mandatoryFlag, 
-													   @Param("activeStatus") String activeStatus,
-													   @Param("passStatus") List<String> passStatus);
+													   @Param("activeStatus") String activeStatus);
 	
 	@Query("SELECT distinct new com.apmosys.employeeportal.dto.TrainingMasterDTO(tm.trainingId, tm.trainingName, tm.trainingType, tm.mandatoryFlag, tm.effectiveFrom, tm.effectiveTo, tm.lockEnabled, tm.minViewTimeMinutes, tm.consentRequired, tm.skipAllowed, tm.deadlineEnabled, tm.deadlinePattern, tm.customDeadlineMonths, tm.activeStatus, tm.createdBy, \n"+ 
 	"e.name, \n"+
@@ -50,15 +47,13 @@ public interface TrainingMasterRepository extends JpaRepository<TrainingMaster, 
 	
 	@Query("SELECT DISTINCT tm FROM TrainingMaster tm \n" +
        "LEFT JOIN TrainingQuizMapping tqm ON tqm.trainingMaster.trainingId = tm.trainingId \n" +
-       "LEFT JOIN EmployeeQuizResponseStatusMapping eqrsm ON eqrsm.quizId = tqm.survey.surveyId \n" +
+       "LEFT JOIN EmployeeQuizResponseStatusMapping eqrsm ON eqrsm.quizId = tqm.survey.surveyId AND (eqrsm.id IS NULL) \n" +
        "WHERE tm.activeStatus = :activeStatus \n" +
        "AND (tm.effectiveTo IS NULL OR tm.effectiveTo >= CURRENT_DATE) \n" +
        "AND tm.effectiveFrom <= CURRENT_DATE \n" 
-       +"AND (eqrsm.id IS NULL OR eqrsm.passStatus IN :passStatus)"
 	)
 	List<TrainingMaster> findActiveTrainingsWithEffectiveDates(
-			@Param("activeStatus") String activeStatus,
-			@Param("passStatus") List<String> passStatus);
+			@Param("activeStatus") String activeStatus);
 	
 	@Query("SELECT t FROM TrainingMaster t WHERE LOWER(t.trainingName) = LOWER(:trainingName)")
 	Optional<TrainingMaster> findByTrainingNameIgnoreCase(@Param("trainingName") String trainingName);

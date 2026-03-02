@@ -15,4 +15,8 @@ export class SurveyQuestion{
     passStatus?: string;
     optionsList:any[]= [];
     cuttOffQuestions?:number;
+
+    constructor(optionType?:'radio'){
+        this.optionType = optionType;
+    }
 }

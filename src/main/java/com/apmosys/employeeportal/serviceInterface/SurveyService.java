@@ -9,7 +9,7 @@ public interface SurveyService {
 
 	ServiceResponse getAllSurveys(Integer trainingId);
 
-	ServiceResponse getAllQuestionsBySurveyId(SurveyDTO surveyDTO, Boolean isEditing);
+	ServiceResponse getAllQuestionsBySurveyId(SurveyDTO surveyDTO, Boolean isEditing, Boolean isPreview);
 
 	ServiceResponse setSurveyResponseByEmpId(SurveyDTO surveyDTO);
 

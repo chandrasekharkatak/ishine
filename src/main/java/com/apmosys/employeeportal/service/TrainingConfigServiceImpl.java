@@ -117,7 +117,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 			List<TrainingMasterDTO> trainings;
 
 			if (activeStatus != null && mandatoryFlag != null) {
-				trainings = trainingMasterRepository.findByMandatoryFlagAndActiveStatus(mandatoryFlag, activeStatus, List.of("fail", null));
+				trainings = trainingMasterRepository.findByMandatoryFlagAndActiveStatus(mandatoryFlag, activeStatus);
 			} else  {
 				trainings = trainingMasterRepository.findByActiveStatus(activeStatus == null ? null : activeStatus);
 			} 
@@ -617,6 +617,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	        8️⃣ HANDLE FILE SWITCH CASES
 	     =========================== */
 		     String oldFilePath=existingContent.getContentPath();
+			 TrainingContent savedContent = null;
 
 
 		  // CASE 1: Incoming LINK
@@ -636,33 +637,29 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		         newTrainingContent.setContentPath(newFilePath);
 		         newTrainingContent.setFileSizeBytes(file.getSize());
 		         newTrainingContent.setMimeType(file.getContentType());
-		     }
-
-	        /* ===========================
-	           9️⃣ UPDATE CONTENT FIELDS
-	        =========================== */
-
-	        newTrainingContent.setContentType(contentDTO.getContentType());
-	        newTrainingContent.setContentName(contentDTO.getContentName());
-	        newTrainingContent.setExternalLinkUrl(contentDTO.getExternalLinkUrl());
-	        newTrainingContent.setEffectiveFrom(contentDTO.getEffectiveFrom());
-	        newTrainingContent.setEffectiveTo(contentDTO.getEffectiveTo());
-			newTrainingContent.setActiveStatus("true");
-			newTrainingContent.setCreatedBy(trainingDTO.getUpdatedBy());
-			newTrainingContent.setCreatedOn(new Timestamp(System.currentTimeMillis()));
-			newTrainingContent.setTrainingMaster(updatedTraining);
-
-
-			existingContent.setActiveStatus("false");
-			existingContent.setUpdatedBy(trainingDTO.getUpdatedBy());
-			existingContent.setUpdatedOn(new Timestamp(System.currentTimeMillis()));
-
-	        // newTrainingContent.setUpdatedBy(trainingDTO.getUpdatedBy());
-	        // newTrainingContent.setUpdatedOn(new Timestamp(System.currentTimeMillis()));
-
-	        TrainingContent savedContent =
-	                trainingContentRepository.save(newTrainingContent);
-				trainingContentRepository.save(existingContent);
+				 newTrainingContent.setContentType(contentDTO.getContentType());
+				 newTrainingContent.setContentName(contentDTO.getContentName());
+				 newTrainingContent.setExternalLinkUrl(contentDTO.getExternalLinkUrl());
+				 newTrainingContent.setEffectiveFrom(contentDTO.getEffectiveFrom());
+				 newTrainingContent.setEffectiveTo(contentDTO.getEffectiveTo());
+				 newTrainingContent.setActiveStatus("true");
+				 newTrainingContent.setCreatedBy(trainingDTO.getUpdatedBy());
+				 newTrainingContent.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+				 newTrainingContent.setTrainingMaster(updatedTraining);
+				savedContent = trainingContentRepository.save(newTrainingContent);
+				existingContent.setActiveStatus("false");
+				existingContent.setUpdatedBy(trainingDTO.getUpdatedBy());
+				existingContent.setUpdatedOn(new Timestamp(System.currentTimeMillis()));			
+		     } else {
+				existingContent.setEffectiveFrom(contentDTO.getEffectiveFrom());
+				existingContent.setEffectiveTo(contentDTO.getEffectiveTo());
+				existingContent.setContentName(contentDTO.getContentName());
+				existingContent.setExternalLinkUrl(contentDTO.getExternalLinkUrl());
+				
+				existingContent.setUpdatedBy(trainingDTO.getUpdatedBy());
+				existingContent.setUpdatedOn(new Timestamp(System.currentTimeMillis()));
+				savedContent = trainingContentRepository.save(existingContent);
+			}
 
 	  
 	        /* ===========================
