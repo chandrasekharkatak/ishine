@@ -36,6 +36,7 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 	
 	@Autowired
 	RoleFeatureMapRepository roleFeatureMapRepository;
+
 	
 	private final List<String> WHITELISTED_APIS = Arrays.asList(
 			"/api/authenticateUser",
@@ -94,7 +95,23 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			    "/api/getResourceCountByPoprojectId",
 			    "/api/getResourceCountListByPoprojectName",
 			    "/employeeportal/api/getResourceCountListByPoprojectName",
-				"/employeeportal/api/runTheHolidayCron"
+				"/employeeportal/api/runTheHolidayCron",
+				
+			// Training APIs - Always allowed even when locked
+			"/api/training/getPendingTraining",
+			"/api/training/getUserTrainings",
+			"/api/training/submitConsent",
+			"/api/training/skipTraining",
+			"/api/training/getLockStatus",
+			"/api/training/downloadContent",
+			"/api/training/checkTrainingFrequency",
+			"/employeeportal/api/training/getPendingTraining",
+			"/employeeportal/api/training/getUserTrainings",
+			"/employeeportal/api/training/submitConsent",
+			"/employeeportal/api/training/skipTraining",
+			"/employeeportal/api/training/getLockStatus",
+			"/employeeportal/api/training/downloadContent",
+			"/employeeportal/api/training/checkTrainingFrequency"
 			);
 	
 //	private final List<String> SKYWALKING_PROXIED_PATHS = Arrays.asList(
@@ -121,10 +138,16 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
         }
 
         // ✅ Allow whitelisted APIs
+        boolean isWhitelisted = false;
         for (String api : WHITELISTED_APIS) {
-            if (api.equals(request.getRequestURI())) {
-                return true;
+            if (api.equals(request.getRequestURI()) || request.getRequestURI().startsWith(api.replace("*", ""))) {
+                isWhitelisted = true;
+                break;
             }
+        }
+        
+        if (isWhitelisted) {
+            return true;
         }
 
         // ✅ Get Authorization header

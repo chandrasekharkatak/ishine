@@ -21,6 +21,7 @@ import { SurveyConfigComponent } from 'src/app/configuration/survey-config/surve
 import { TimesheetConfigComponent } from 'src/app/configuration/timesheet-config/timesheet-config.component';
 import { TravelConfigComponent } from 'src/app/configuration/travel-config/travel-config.component';
 import { UploadPoliciesComponent } from 'src/app/configuration/upload-policies/upload-policies.component';
+import { TrainingConfigComponent } from 'src/app/configuration/training-config/training-config.component';
 
 const routes: Routes = [
   {
@@ -46,6 +47,7 @@ const routes: Routes = [
       { path: 'reimbursment-config', component: ReimbursmentConfigComponent },
       { path: 'timesheet-config', component: TimesheetConfigComponent },
       { path: 'skill-certfication-config', component: SkillCertfificationConfigComponent },
+      { path: 'training-config', component: TrainingConfigComponent },
     ]
   }
 ];

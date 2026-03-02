@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.JobRoleAccess;
@@ -27,16 +28,17 @@ public class SurveyController {
 	}
 	@JobRoleAccess(featureIds = {30,31,37})
 	@RequestMapping(value = "/getAllSurveys", method = RequestMethod.GET)
-	public ServiceResponse getAllSurveys() {
+	public ServiceResponse getAllSurveys(
+	        @RequestParam(required = false) Integer trainingId) {
 
-		ServiceResponse response = surveyService.getAllSurveys();
-		return response;
+	    return surveyService.getAllSurveys(trainingId);
 	}
+
 	@JobRoleAccess(featureIds = {30,31,37})
 	@RequestMapping(value = "/getAllQuestionsBySurveyId", method = RequestMethod.POST)
-	public ServiceResponse getAllQuestionsBySurveyId(@RequestBody SurveyDTO surveyDTO) {
+	public ServiceResponse getAllQuestionsBySurveyId(@RequestBody SurveyDTO surveyDTO, @RequestParam(required = false) Boolean isEditing, @RequestParam(required = false) Boolean isPreview) {
 
-		ServiceResponse response = surveyService.getAllQuestionsBySurveyId(surveyDTO);
+		ServiceResponse response = surveyService.getAllQuestionsBySurveyId(surveyDTO, isEditing, isPreview);
 		return response;
 	}
 	@JobRoleAccess(featureIds = {30})

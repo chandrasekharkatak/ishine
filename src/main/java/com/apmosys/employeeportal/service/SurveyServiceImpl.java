@@ -1,7 +1,9 @@
 package com.apmosys.employeeportal.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
@@ -10,15 +12,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.apmosys.employeeportal.dto.LockStatusDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.SurveyDTO;
 import com.apmosys.employeeportal.dto.SurveyQuestionDTO;
+import com.apmosys.employeeportal.model.EmployeeQuizResponseStatusMapping;
 import com.apmosys.employeeportal.model.Survey;
 import com.apmosys.employeeportal.model.SurveyEmployeeResponse;
 import com.apmosys.employeeportal.model.SurveyQuestion;
+import com.apmosys.employeeportal.model.TrainingConsent;
+import com.apmosys.employeeportal.model.TrainingContent;
+import com.apmosys.employeeportal.model.TrainingMaster;
+import com.apmosys.employeeportal.model.TrainingQuizMapping;
+import com.apmosys.employeeportal.model.TrainingSkip;
+import com.apmosys.employeeportal.repository.EmployeeQuizResponseStatusMappingRepository;
 import com.apmosys.employeeportal.repository.SurveyEmployeeResponseRepository;
 import com.apmosys.employeeportal.repository.SurveyQuestionRepository;
 import com.apmosys.employeeportal.repository.SurveyRepository;
+import com.apmosys.employeeportal.repository.TrainingConsentRepository;
+import com.apmosys.employeeportal.repository.TrainingContentRepository;
+import com.apmosys.employeeportal.repository.TrainingMasterRepository;
+import com.apmosys.employeeportal.repository.TrainingQuizMappingRepository;
+import com.apmosys.employeeportal.repository.TrainingSkipRepository;
 import com.apmosys.employeeportal.serviceInterface.SurveyService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
@@ -46,6 +61,27 @@ public class SurveyServiceImpl implements SurveyService {
 
 	@Autowired
 	private LogService logService;
+	
+	@Autowired
+	private TrainingQuizMappingRepository trainingQuizMappingRepository;
+	
+	@Autowired
+	private TrainingMasterRepository trainingMasterRepository;
+	
+	@Autowired
+	private TrainingContentRepository trainingContentRepository;
+
+	@Autowired
+	private EmployeeQuizResponseStatusMappingRepository employeeQuizResponseStatusMappingRepository;
+
+	@Autowired
+	private TrainingConsentRepository trainingConsentRepository;
+
+	@Autowired
+	private TrainingSkipRepository trainingSkipRepository;
+
+	@Autowired
+	private TrainingUserServiceImpl trainingUserServiceImpl;
 
 	@Override
 	@Transactional
@@ -71,11 +107,19 @@ public class SurveyServiceImpl implements SurveyService {
 			}
 
 			Survey newSurvey = new Survey();
+			boolean isFromTraining = false;
 
 			newSurvey.setCreatedBy(surveyDTO.getCreatedBy());
 			newSurvey.setSurveyName(surveyDTO.getSurveyName());
 			newSurvey.setDescription(surveyDTO.getDescription());
 			newSurvey.setIsActive(surveyDTO.getIsActive());
+			newSurvey.setCutOffQuestions(surveyDTO.getCutOffQuestions());
+			
+			// Set type to "quiz" if created from training context
+			if (surveyDTO.getTrainingId() != null) {
+				newSurvey.setType("quiz");
+				isFromTraining = true;
+			}
 //			newSurvey.setImageUrl(surveyDTO.getImageUrl()); 
 //	        newSurvey.setVideoUrl(surveyDTO.getVideoUrl());
 			
@@ -111,6 +155,7 @@ public class SurveyServiceImpl implements SurveyService {
 					newSurveyQuestion.setOptions(question.getOptions());
 					newSurveyQuestion.setRequired(question.getRequired());
 					newSurveyQuestion.setDescription(question.getDescription());
+					newSurveyQuestion.setCorrectAnswer(question.getCorrectAnswer());
 
 					list.add(newSurveyQuestion);
 				});
@@ -118,21 +163,54 @@ public class SurveyServiceImpl implements SurveyService {
 				List<SurveyQuestion> listSaved = surveyQuestionRepository.saveAll(list);
 
 				if (listSaved.size() > 0) {
+					// Create training-quiz mapping if quiz is created from training context
+					if (surveyDTO.getTrainingId() != null && newSurveyCreated.getSurveyId() != null) {
+						try {
+							TrainingMaster trainingMaster = trainingMasterRepository.findByTrainingId(surveyDTO.getTrainingId())
+									.orElseThrow(() -> new RuntimeException("Training not found with ID: " + surveyDTO.getTrainingId()));
+							
+							TrainingQuizMapping mapping = new TrainingQuizMapping();
+							mapping.setTrainingMaster(trainingMaster);
+							mapping.setSurvey(newSurveyCreated);
+							mapping.setIsMandatory(surveyDTO.getIsMandatory() != null ? surveyDTO.getIsMandatory() : false);
+							mapping.setMustPassToComplete(surveyDTO.getMustPassToComplete() != null ? surveyDTO.getMustPassToComplete() : false);
+							mapping.setActiveStatus("false");
+							mapping.setCreatedBy(surveyDTO.getCreatedBy());
+							
+							// Set content if provided
+							if (surveyDTO.getContentId() != null) {
+								TrainingContent trainingContent = trainingContentRepository.findByContentId(surveyDTO.getContentId())
+										.orElse(null);
+								if (trainingContent != null) {
+									mapping.setTrainingContent(trainingContent);
+								}
+							}
+							
+							trainingQuizMappingRepository.save(mapping);
+							logBuilder.append(" , Training-Quiz Mapping created for TrainingId: " + surveyDTO.getTrainingId());
+						} catch (Exception mappingException) {
+							// Log error but don't fail the survey creation
+							System.err.println("Error creating training-quiz mapping: " + mappingException.getMessage());
+							mappingException.printStackTrace();
+							logBuilder.append(" , Warning: Training-Quiz Mapping creation failed: " + mappingException.getMessage());
+						}
+					}
+					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Survey created successfully.");
-					apiLogInfo.setApiResponse("Survey Created Successfully");			
+					response.setServiceResponse(isFromTraining ? "Quiz created successfully." : "Survey created successfully.");
+					apiLogInfo.setApiResponse(isFromTraining ? "Quiz Created Successfully" : "Survey Created Successfully");			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Survey created but no questions were added to survey.");
-					apiLogInfo.setApiResponse("Survey created but no questions were added to survey");			
+					response.setServiceResponse(isFromTraining ? "Quiz created but no questions were added to quiz." : "Survey created but no questions were added to survey.");
+					apiLogInfo.setApiResponse(isFromTraining ? "Quiz created but no questions were added to quiz" : "Survey created but no questions were added to survey");			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Failed to create survey.");
-				apiLogInfo.setApiResponse("Failed to create survey");			
+				response.setServiceResponse(isFromTraining ? "Failed to create quiz." : "Failed to create survey.");
+				apiLogInfo.setApiResponse(isFromTraining ? "Failed to create quiz" : "Failed to create survey");			
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
 
@@ -150,7 +228,7 @@ public class SurveyServiceImpl implements SurveyService {
 	}
 
 	@Override
-	public ServiceResponse getAllSurveys() {
+	public ServiceResponse getAllSurveys(Integer trainingId) {
 
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -161,7 +239,16 @@ public class SurveyServiceImpl implements SurveyService {
 
 		try {
 
-			List<Object[]> objectList = surveyRepository.getAllSurveys();
+			List<Object[]> objectList;
+
+			if (trainingId != null) {
+			    objectList = surveyRepository.getSurveysByTrainingId(trainingId);
+			    logBuilder.append("Survey fetched in TRAINING context. TrainingId = " + trainingId);
+			} else {
+			    objectList = surveyRepository.getAllSurveys();
+			    logBuilder.append("Survey fetched in GLOBAL context");
+			}
+
 			logBuilder.append("AllSurveyList size : " + objectList.size());
 
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
@@ -187,6 +274,9 @@ public class SurveyServiceImpl implements SurveyService {
 						dto.setType(object[8] != null ? object[8].toString() : null);
 						dto.setCreatedBy(object[9] != null ? Long.parseLong(object[9].toString()) : null);
 						dto.setUpdatedBy(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+						if(object.length > 11) {
+							dto.setCutOffQuestions(object[11] != null ? Integer.parseInt(object[11].toString()) : null);
+						}
 						
 						dtoList.add(dto);
 					});
@@ -218,7 +308,7 @@ public class SurveyServiceImpl implements SurveyService {
 	}
 
 	@Override
-	public ServiceResponse getAllQuestionsBySurveyId(SurveyDTO surveyDTO) {
+	public ServiceResponse getAllQuestionsBySurveyId(SurveyDTO surveyDTO, Boolean isEditing, Boolean isPreview) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		//apiLogInfo.setSubFeatureName("");
@@ -260,6 +350,11 @@ public class SurveyServiceImpl implements SurveyService {
 						dto.setOptions(object.getOptions());
 						dto.setRequired(object.getRequired());
 						dto.setDescription(object.getDescription());
+
+						if(isPreview || isEditing){
+							dto.setCorrectAnswer(object.getCorrectAnswer());
+						}
+
 						dtoList.add(dto);
 					});
 
@@ -291,6 +386,7 @@ public class SurveyServiceImpl implements SurveyService {
 	}
 
 	@Override
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse setSurveyResponseByEmpId(SurveyDTO surveyDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -300,6 +396,9 @@ public class SurveyServiceImpl implements SurveyService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("EmpId : " + surveyDTO.getEmpId() + " , SurveyQuestionList :" + surveyDTO.getSurveyQuestionList().size());
 		try {
+				Map<String, String> correctQuestionAnswerMap = new HashMap<>();
+				Integer correctAnswersCount = 0;
+				String passStatus = "fail";
 
 			if (!validationService.validateEmpId(surveyDTO.getEmpId())) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -309,6 +408,19 @@ public class SurveyServiceImpl implements SurveyService {
 
 				return response;
 			}
+
+			Optional<Survey> currSurvey = surveyRepository.findById(surveyDTO.getSurveyId());
+
+			if(currSurvey.isEmpty()){
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Survey does not exists.");
+				apiLogInfo.setApiResponse("Survey does not Exists.");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+				return response;
+			}
+
+			Survey survey = currSurvey.get();
 
 			List<SurveyEmployeeResponse> dtoList = new ArrayList<SurveyEmployeeResponse>();
 
@@ -334,8 +446,131 @@ public class SurveyServiceImpl implements SurveyService {
 			});
 
 			List<SurveyEmployeeResponse> responseList = surveyEmployeeResponseRepository.saveAll(dtoList);
+			List<SurveyQuestion> surveyQuestionList = surveyQuestionRepository.findAllBySurveyId(surveyDTO.getSurveyId());
 
-			if (responseList.size() > 0)  {
+			if(surveyDTO.getType() != null && surveyDTO.getType().equalsIgnoreCase("quiz")){
+
+
+				if(surveyQuestionList == null || surveyQuestionList.isEmpty()){
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("No survey questions found. List is null.");
+					apiLogInfo.setApiResponse("NO survey questions found.List is null");				
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+					return response;
+				}
+
+				
+				List<EmployeeQuizResponseStatusMapping> employeeQuizResponseStatusMappingList = new ArrayList<EmployeeQuizResponseStatusMapping>();
+
+
+				for(SurveyQuestion sq: surveyQuestionList) correctQuestionAnswerMap.put(sq.getQuestion(), sq.getCorrectAnswer());
+
+				Integer totalPercentage = getQuestionCount(survey.getCutOffQuestions(),surveyDTO.getSurveyQuestionList(), surveyQuestionList).get("totalPercentage");
+
+				Integer totalQuestions = surveyQuestionList.size();
+				Integer cutOffQuestions = survey.getCutOffQuestions();
+
+				Integer cuttOffPercentage = (cutOffQuestions * 100)/totalQuestions;
+
+				if(totalPercentage >= cuttOffPercentage){
+					passStatus = "pass";
+				}
+
+				correctAnswersCount = getQuestionCount(survey.getCutOffQuestions(),surveyDTO.getSurveyQuestionList(), surveyQuestionList).get("correctAnswer");
+				
+				for(SurveyEmployeeResponse sur: responseList){					
+
+					EmployeeQuizResponseStatusMapping employeeQuizResponseStatusMapping = new EmployeeQuizResponseStatusMapping();
+					employeeQuizResponseStatusMapping.setCreatedBy(surveyDTO.getCreatedBy());
+					employeeQuizResponseStatusMapping.setEmployeeId(surveyDTO.getEmpId());
+					employeeQuizResponseStatusMapping.setQuizId(surveyDTO.getSurveyId());
+					employeeQuizResponseStatusMapping.setPassStatus(totalPercentage >= cuttOffPercentage ? "pass" : "fail");
+					employeeQuizResponseStatusMapping.setResponseId(sur.getSurveyEmployeeResponseId());
+					employeeQuizResponseStatusMapping.setMarksObtained(totalPercentage);
+
+					employeeQuizResponseStatusMappingList.add(employeeQuizResponseStatusMapping);
+				}
+				
+				employeeQuizResponseStatusMappingRepository.saveAll(employeeQuizResponseStatusMappingList);
+
+				Optional<TrainingConsent> existingConsent = trainingConsentRepository.findByEmpIdAndTrainingIdAndContentIdAndQuizIdAndCycleNumber(
+					surveyDTO.getEmpId(),
+					surveyDTO.getTrainingId(),
+					surveyDTO.getContentId(),
+					surveyDTO.getSurveyId(),
+					surveyDTO.getCycleNumber()
+				);
+				
+				if (existingConsent.isPresent()) {
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse("Consent already submitted");
+					apiLogInfo.setApiResponse("Consent already exists");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					apiLogInfo.setApiRequest(logBuilder.toString());
+					logService.logMyInfo(httpRequest, apiLogInfo);
+					throw new Exception("Consent already submitted");
+				}
+
+				Optional<TrainingMaster> trainingOpt = trainingMasterRepository.findByTrainingId(surveyDTO.getTrainingId());
+				Optional<TrainingContent> contentOpt = trainingContentRepository.findByContentId(surveyDTO.getContentId());
+				
+				if (trainingOpt.isEmpty() || contentOpt.isEmpty()) {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Training or content not found");
+					apiLogInfo.setApiResponse("Training/content not found");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					apiLogInfo.setApiRequest(logBuilder.toString());
+					logService.logMyInfo(httpRequest, apiLogInfo);
+					throw new Exception("Training/content not found");
+				}
+				
+				TrainingConsent consent = new TrainingConsent();
+				consent.setTrainingMaster(trainingOpt.get());
+				consent.setTrainingContent(contentOpt.get());
+				consent.setEmpId(surveyDTO.getEmpId());
+				consent.setCompletionCycleNumber(surveyDTO.getCycleNumber());
+				consent.setCreatedBy(surveyDTO.getEmpId());
+				consent.setQuizId(surveyDTO.getSurveyId());
+				
+				trainingConsentRepository.save(consent);
+				
+				// Delete skip record if exists (use the same cycle number)
+				Optional<TrainingSkip> skipOpt = trainingSkipRepository.findByEmpIdAndTrainingIdAndCycleNumber(
+					surveyDTO.getEmpId(),
+					surveyDTO.getTrainingId(),
+					surveyDTO.getSurveyId(),
+					surveyDTO.getCycleNumber()
+				);
+				if (skipOpt.isPresent()) {
+					trainingSkipRepository.delete(skipOpt.get());
+				}
+				
+				// Check lock status
+				LockStatusDTO lockStatus = trainingUserServiceImpl.getLockStatusInternal(surveyDTO.getEmpId());
+				
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Consent submitted successfully");
+				response.setServiceMessage(lockStatus.getIsLocked().toString());
+				apiLogInfo.setApiResponse("Consent submitted successfully");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+
+			if(surveyDTO.getType() != null && surveyDTO.getType().equalsIgnoreCase("quiz") && responseList.size() > 0 ){
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(
+					Map.of(
+						"correctAnswersCount", correctAnswersCount,
+						"passStatus", passStatus,
+						"correctAnswers",correctQuestionAnswerMap,
+						"cutOffQuestion",survey.getCutOffQuestions(),
+						"totalQuestions",surveyQuestionList.size()
+					)
+				);
+				apiLogInfo.setApiResponse("Responses stored successfully");			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			}
+			else if (responseList.size() > 0)  {				
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Responses stored successfully.");
 				apiLogInfo.setApiResponse("Responses stored successfully");			
@@ -346,6 +581,7 @@ public class SurveyServiceImpl implements SurveyService {
 				response.setServiceResponse("No responses were stored.");
 				apiLogInfo.setApiResponse("No responses were stored");			
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				throw new Exception("No responses were stored");
 
 			}
 		} catch (Exception e) {
@@ -355,7 +591,6 @@ public class SurveyServiceImpl implements SurveyService {
 			response.setServiceError(e.getMessage());
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
-
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
@@ -429,38 +664,46 @@ public class SurveyServiceImpl implements SurveyService {
 		logBuilder.append("SurveyId : " + surveyDTO.getSurveyId());
 
 		try {
+			if(surveyDTO.getType() != null && surveyDTO.getType().equalsIgnoreCase("quiz")){
+				surveyRepository.updateAllQuizByTrainingId(surveyDTO.getTrainingId(), surveyDTO.getSurveyId(), surveyDTO.getIsActive());
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Quiz status changed to " + surveyDTO.getIsActive());
+				apiLogInfo.setApiResponse("Quiz status changed to " + surveyDTO.getIsActive());			
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				
+			} else {
 
-			Optional<Survey> surveyObject = surveyRepository.findById(surveyDTO.getSurveyId());
-			if (surveyObject.isPresent()) {
-				Survey surveyToBeDeleted = surveyObject.get();
-
-				surveyToBeDeleted.setIsActive(surveyDTO.getIsActive());
-				surveyToBeDeleted.setUpdatedBy(surveyDTO.getUpdatedBy());
-				surveyToBeDeleted.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
-
-				Survey surveyupdated = surveyRepository.save(surveyToBeDeleted);
-
-				if (surveyupdated.getSurveyId() != null) {
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse("Survey status changed.");
-					apiLogInfo.setApiResponse("Survey status changed");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-
-
+				Optional<Survey> surveyObject = surveyRepository.findById(surveyDTO.getSurveyId());
+				if (surveyObject.isPresent()) {
+					Survey surveyToBeDeleted = surveyObject.get();
+					
+					surveyToBeDeleted.setIsActive(surveyDTO.getIsActive());
+					surveyToBeDeleted.setUpdatedBy(surveyDTO.getUpdatedBy());
+					surveyToBeDeleted.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+					
+					Survey surveyupdated = surveyRepository.save(surveyToBeDeleted);
+					
+					if (surveyupdated.getSurveyId() != null) {
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setServiceResponse("Survey status changed.");
+						apiLogInfo.setApiResponse("Survey status changed");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+						
+						
+					} else {
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("Failed to change status.");
+						apiLogInfo.setApiResponse("Failed to change status");			
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+						
+					}
+					
 				} else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Failed to change status.");
-					apiLogInfo.setApiResponse("Failed to change status");			
+					response.setServiceResponse("Survey Not Found.");
+					apiLogInfo.setApiResponse("Survey not found");			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-
 				}
-
-			} else {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Survey Not Found.");
-				apiLogInfo.setApiResponse("Survey not found");			
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-
 			}
 
 		} catch (Exception e) {
@@ -493,6 +736,15 @@ public class SurveyServiceImpl implements SurveyService {
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				return response;
 			}
+
+			boolean isQuizResponse = surveyDTO.getIsQuizResponse() == null ? false : surveyDTO.getIsQuizResponse();
+			boolean isAttendingQuiz = surveyDTO.getIsAttendingQuiz() == null ? false : surveyDTO.getIsAttendingQuiz();
+
+			if( isQuizResponse){
+				Long quizId = trainingQuizMappingRepository.findActiveSurveyIdByTraining(surveyDTO.getTrainingId());
+				surveyDTO.setSurveyId(quizId);
+			}
+
 			if (!validationService.validateSurveyId(surveyDTO.getSurveyId())) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Survey Id does not exists.");
@@ -501,8 +753,20 @@ public class SurveyServiceImpl implements SurveyService {
 				return response;
 			}
 
-			List<Object[]> objectList = surveyEmployeeResponseRepository
+			List<Object[]> objectList = new ArrayList<>();
+			Map<String, String> correctQuestionAnswerMap = new HashMap<>();
+
+			List<SurveyQuestion> surveyQuestionList = surveyQuestionRepository.findAllBySurveyId(surveyDTO.getSurveyId());
+
+			for(SurveyQuestion sq: surveyQuestionList) correctQuestionAnswerMap.put(sq.getQuestion(), sq.getCorrectAnswer());
+
+			if(isQuizResponse && !isAttendingQuiz){
+				objectList = surveyEmployeeResponseRepository
+					.getAllQuizResponsesByQuizIdAndEmpId(surveyDTO.getEmpId(), surveyDTO.getSurveyId());
+			}else{
+				objectList = surveyEmployeeResponseRepository
 					.getSurveyResponseByEmpIdAndSurveyId(surveyDTO.getEmpId(), surveyDTO.getSurveyId());
+			}
 
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
 
@@ -517,15 +781,32 @@ public class SurveyServiceImpl implements SurveyService {
 					list.forEach((object) -> {
 
 						SurveyQuestionDTO dto = new SurveyQuestionDTO();
+						
 						dto.setQuestion(object[0] != null ? object[0].toString() : null);
 						dto.setOptions(object[1] != null ? object[1].toString() : null);
 						dto.setResponse(object[2] != null ? object[2].toString() : null);
+
+						if(isQuizResponse){
+							dto.setCorrectAnswer(object[3] != null ? object[3].toString() : null);
+							dto.setMarksObtained(object[4] != null ? Integer.parseInt(object[4].toString()) : null);
+							dto.setPassStatus(object[5] != null ? object[5].toString() : null);
+							dto.setOptionType(object[6] != null ? object[6].toString() : null);
+							dto.setCuttOffQuestions(object[7] != null ? Integer.parseInt(object[7].toString()) : null);
+						} 
+
 						dtoList.add(dto);
 
 					});
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(dtoList);
+					response.setServiceResponse(
+						Map.of(
+							"allSurveyQuestionList", dtoList,
+							"correctAnswers", correctQuestionAnswerMap,
+							"quizId", surveyDTO.getSurveyId(),
+							"totalQuestions", surveyQuestionList.size()
+						)
+					);
 					apiLogInfo.setApiResponse("SurveyResponse By EmpId and SurveyId fetched");			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
@@ -569,8 +850,15 @@ public class SurveyServiceImpl implements SurveyService {
 				return response;
 			}
 
-			List<Object[]> objectList = surveyEmployeeResponseRepository
-					.getSurveyAllResponsesBySurveyId(surveyDTO.getSurveyId());
+			List<Object[]> objectList = new ArrayList<>();
+
+			if(surveyDTO.getType() != null && surveyDTO.getType().equalsIgnoreCase("quiz")){
+				objectList = surveyEmployeeResponseRepository
+						.getAllQuizResponsesByQuizId(surveyDTO.getSurveyId());
+			} else {
+				objectList = surveyEmployeeResponseRepository
+				.getSurveyAllResponsesBySurveyId(surveyDTO.getSurveyId());
+			}
 
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
 
@@ -595,6 +883,12 @@ public class SurveyServiceImpl implements SurveyService {
 						dto.setIsConsultant(object[7] != null ? object[7].toString() : null);
 						dto.setIsApprentice(object[8] != null ? object[8].toString() : null);
 						dto.setIsApmosysProduct(object[9] != null ? object[9].toString() : null);
+						if(surveyDTO.getType() != null && surveyDTO.getType().equalsIgnoreCase("quiz")){
+							dto.setMarksObtained(object[10] != null ? Integer.parseInt(object[10].toString()) : null);
+							dto.setPassStatus(object[11] != null ? object[11].toString() : null);
+							// dto.setCuttOffQuestions(object[12] != null ? Integer.parseInt(object[12].toString()) : null);
+							// dto.setCorrectAnswer(object[13] != null ? object[13].toString() : null);
+						}
 						
 						
 						 
@@ -696,6 +990,7 @@ public class SurveyServiceImpl implements SurveyService {
 	}
 
 	@Override
+	@Transactional
 	public ServiceResponse updateSurvey(SurveyDTO surveyDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -713,14 +1008,57 @@ public class SurveyServiceImpl implements SurveyService {
 
 				// Survey with Active(true) and Completed(Completed) status cannot be updated.
 				// Survey with Active(true), but with Type(exit) can be updated.
-				if (survey.getIsActive().equals("false") || survey.getType().equals("exit")) {
+				survey.setUpdatedBy(surveyDTO.getUpdatedBy());
+				survey.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
+				survey.setSurveyName(surveyDTO.getSurveyName());
+				survey.setDescription(surveyDTO.getDescription());
+				survey.setCutOffQuestions(surveyDTO.getCutOffQuestions());
+				Survey surveyUpdated = surveyRepository.save(survey);
 
-					survey.setUpdatedBy(surveyDTO.getUpdatedBy());
-					survey.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
-					survey.setSurveyName(surveyDTO.getSurveyName());
-					survey.setDescription(surveyDTO.getDescription());
+				if(surveyDTO.getType() != null && surveyDTO.getType().equalsIgnoreCase("quiz")){
 
-					Survey surveyUpdated = surveyRepository.save(survey);
+					
+					if (surveyUpdated.getSurveyId() != null) {
+						
+						List<SurveyQuestion> questionList = surveyQuestionRepository.findBySurveyId(surveyUpdated.getSurveyId());
+						
+						List<SurveyQuestion> list = new ArrayList<>();
+						Long surveyId = surveyUpdated.getSurveyId();
+
+						surveyDTO.getSurveyQuestionList().forEach((question) -> {
+							SurveyQuestion newSurveyQuestion = new SurveyQuestion();
+
+							newSurveyQuestion.setSurveyQuestionId(
+								questionList.stream().filter(q -> q.getSurveyQuestionId().equals(question.getSurveyQuestionId())).findFirst().orElse(null)
+								.getSurveyQuestionId()
+							);
+							newSurveyQuestion.setSurveyId(surveyId);
+							newSurveyQuestion.setQuestion(question.getQuestion());
+							newSurveyQuestion.setOptionType(question.getOptionType());
+							newSurveyQuestion.setOptions(question.getOptions());
+							newSurveyQuestion.setRequired(question.getRequired());
+							newSurveyQuestion.setDescription(question.getDescription());
+							newSurveyQuestion.setCorrectAnswer(question.getCorrectAnswer());
+
+							list.add(newSurveyQuestion);
+						});
+
+						List<SurveyQuestion> listSaved = surveyQuestionRepository.saveAll(list);
+
+						if (listSaved.size() > 0) {
+							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+							response.setServiceResponse("Survey updated successfully.");
+							apiLogInfo.setApiResponse("Survey updated successfully");			
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+
+						} else {
+							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+							response.setServiceResponse("Survey updated but no questions were added to survey.");
+							apiLogInfo.setApiResponse("Survey updated but no questions were added to survey");			
+							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+						}
+				}}else if (survey.getIsActive().equals("false") || survey.getType().equals("exit")) {
 
 					if (surveyUpdated.getSurveyId() != null) {
 						
@@ -743,6 +1081,7 @@ public class SurveyServiceImpl implements SurveyService {
 							newSurveyQuestion.setOptions(question.getOptions());
 							newSurveyQuestion.setRequired(question.getRequired());
 							newSurveyQuestion.setDescription(question.getDescription());
+							newSurveyQuestion.setCorrectAnswer(question.getCorrectAnswer());
 
 							list.add(newSurveyQuestion);
 						});
@@ -770,7 +1109,8 @@ public class SurveyServiceImpl implements SurveyService {
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 
 					}
-				} else {
+				} 
+				else {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Active/Completed survey cannot be updated.");
 					apiLogInfo.setApiResponse("Active/Completed survey cannot be updated");			
@@ -800,4 +1140,24 @@ public class SurveyServiceImpl implements SurveyService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+
+	private Map<String, Integer> getQuestionCount(Integer cutOffQuestions, List<SurveyQuestionDTO> surveyQuestionList, List<SurveyQuestion> surveyQuestionList2){
+		Integer correctAnswer = 0;
+		Integer totalPercentage = 0;
+		
+		for(SurveyQuestionDTO question : surveyQuestionList){
+			for(SurveyQuestion surveyQuestion : surveyQuestionList2){
+				if(question.getSurveyQuestionId().equals(surveyQuestion.getSurveyQuestionId())){
+					if(question.getResponse().equals(surveyQuestion.getCorrectAnswer())){
+						correctAnswer++;
+					}
+				}
+			}
+		}
+		
+		totalPercentage = (correctAnswer * 100) / surveyQuestionList.size();
+		
+		return Map.of("correctAnswer", correctAnswer, "totalPercentage", totalPercentage);
+	}
+
 }
