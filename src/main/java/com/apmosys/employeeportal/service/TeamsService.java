@@ -5665,6 +5665,11 @@ public class TeamsService {
 				response.setServiceResponse("Project Id cannot be null!!");
 				return response;
 			}
+			if (rmgTeamMemberDto.getStartDate() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Start date cannot be null.");
+				return response;
+			}
 
 			Project project = projectRepository.findByProjectId(rmgTeamMemberDto.getProjectId());
 			if (project == null) {
@@ -5675,35 +5680,43 @@ public class TeamsService {
 
 			List<Object[]> objectArr = timesheetsRepository.findByEmpIdAndDate(rmgTeamMemberDto.getEmpId(),
 					rmgTeamMemberDto.getStartDate());
-
+			if (objectArr.isEmpty()) {
+				response.setServiceResponse("No timesheet records found.");
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				return response;
+			}
 			StringBuilder sb = new StringBuilder();
 			LocalDate newStartDate = rmgTeamMemberDto.getStartDate().toLocalDate();
 
-			if (objectArr != null && !objectArr.isEmpty()) {
+			// if (!objectArr.isEmpty()) {
 
 				for (Object[] obj : objectArr) {
 					String projectName = TypeConversionUtil.getSafeString(obj[1]);
 					String dateStr = TypeConversionUtil.getSafeString(obj[2]);
-					LocalDate oldStartDate = obj[3] != null ? LocalDate.parse(TypeConversionUtil.getSafeString(obj[3]))
-							: null;
+					String oldStartDateStr = TypeConversionUtil.getSafeString(obj[3]);
 					Integer timesheetCount = TypeConversionUtil.safeParseInt(obj[4]);
 
-					if (dateStr == null || timesheetCount == null || timesheetCount == 0 || oldStartDate == null) {
+					if (dateStr == null || timesheetCount == null || timesheetCount == 0 || oldStartDateStr == null) {
 						continue;
 					}
 
 					LocalDate projectStartDate = LocalDate.parse(dateStr);
+					LocalDate oldStartDate = LocalDate.parse(oldStartDateStr);
 
-					if (newStartDate.isAfter(projectStartDate) || newStartDate.isBefore(oldStartDate)) {
+					if (isStartDateConflict(newStartDate, projectStartDate, oldStartDate)) {
 						sb.append(String.format("Total timesheets submitted for project '%s' is %d.", projectName,
 								timesheetCount)).append("\n");
 					}
 				}
-				sb.append("The existing timesheet entries of the users needs to be rejected.").append("\n");
-				response.setServiceResponse(sb);
-			} else {
-				response.setServiceResponse("No timesheet records found.");
-			}
+				if (sb.length() > 0) {
+					sb.append("The existing timesheet entries of the users need to be rejected.");
+					response.setServiceResponse(sb.toString());
+				} else {
+					response.setServiceResponse("No conflicting timesheet records found.");
+				}
+			// } else {
+			// 	response.setServiceResponse("No timesheet records found.");
+			// }
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
@@ -5714,6 +5727,13 @@ public class TeamsService {
 		}
 		return response;
 	}
+	private boolean isStartDateConflict(LocalDate newDate,
+                                   LocalDate projectStartDate,
+                                   LocalDate oldStartDate) {
+
+    return newDate.isAfter(projectStartDate)
+            || newDate.isBefore(oldStartDate);
+}
 
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse extendTeamMembersEndDate(RmgTeamDto rmgTeamDto) {
