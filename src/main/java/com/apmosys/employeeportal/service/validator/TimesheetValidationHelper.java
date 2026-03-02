@@ -1874,8 +1874,14 @@ public class TimesheetValidationHelper {
 	}
 	
 	/**
-	 * Validate that Working / Half-day Working is not used on dates configured as Holiday / Week Off.
-	 * Business rule: if date is a holiday/week-off in holiday table, only Non-working style day types are allowed.
+	 * Validate day type against holiday configuration.
+	 * 
+	 * Business rules:
+	 * 1. Working / Half-day Working: NOT allowed on dates configured as Holiday / Week Off.
+	 *    If date is in holiday table, only Non-working style day types are allowed.
+	 * 
+	 * 2. Non-Working: ONLY allowed on dates that are announced as Holiday / Week Off.
+	 *    Non-working day type can only be selected for dates that exist in the holiday table.
 	 */
 	public void validateDayTypeAgainstHoliday(LocalDate timesheetDate, Integer dayTypeId) {
 		
@@ -1889,18 +1895,26 @@ public class TimesheetValidationHelper {
 		
 		DayTypeCode incomingDayType = DayTypeCode.fromDbValue(dayType.getDayType());
 		
-		// Only restrict for Working / Half-day Working types
-		if (incomingDayType != DayTypeCode.WORKING && incomingDayType != DayTypeCode.HALF_DAY_WORKING) {
-			return;
+		// Check if this date is configured as a holiday/week-off for any location ('All' or specific)
+		// We pass null for location so repository returns all holidays (state = 'All' or any state)
+		boolean isHolidayDate = false;
+		if (holidayRepository != null) {
+			isHolidayDate = !holidayRepository.findHolidaysWithinBuffer(timesheetDate, timesheetDate, null).isEmpty();
 		}
 		
-		// Check if this date is configured as a holiday/week-off for any location ('All' or specific)
-		// We pass null for location so repository returns all holidays (state = 'All' or any state),
-		// which is a safe guardrail to avoid working timesheets on configured holiday/week-off dates.
-		if (holidayRepository != null) {
-			if (!holidayRepository.findHolidaysWithinBuffer(timesheetDate, timesheetDate, null).isEmpty()) {
+		// Rule 1: Working / Half-day Working NOT allowed on holiday dates
+		if (incomingDayType == DayTypeCode.WORKING || incomingDayType == DayTypeCode.HALF_DAY_WORKING) {
+			if (isHolidayDate) {
 				throw new TimesheetValidationFailedException(
 						"Date is configured as Holiday/Week Off. Only Non-working timesheet is allowed on this date.");
+			}
+		}
+		
+		// Rule 2: Non-Working ONLY allowed on announced holiday dates
+		if (incomingDayType == DayTypeCode.NON_WORKING) {
+			if (!isHolidayDate) {
+				throw new TimesheetValidationFailedException(
+						"Non-working day type is only allowed on dates announced as Holiday or Week Off.");
 			}
 		}
 	}

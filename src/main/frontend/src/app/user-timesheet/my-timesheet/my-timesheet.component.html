@@ -50,7 +50,9 @@
       </span>
 
       <span *ngIf="isTimesheetBulkForm">
-        <i class="fa fa-file-upload me-2"></i> Final Document Bulk Upload
+        <i class="fa fa-file-upload me-2"></i> Final Document Bulk Upload 
+        <app-info-tooltip class="ms-2"  iconBgColor="#127475" [size]="20"
+            [content]="withVmsbullet"></app-info-tooltip>
       </span>
 
       <span *ngIf="isTimesheetTable">
@@ -346,12 +348,12 @@
 <!-- start :: View Timesheets -->
 <div class="row" *ngIf="isTimesheetTable">
     <div class="col-md-12">
-        <div class="row">
+        <!-- <div class="row">
             <div class="col-md-12 table-header">
                 <h1 class="table-header-title">My Timesheets</h1>
             </div>
 
-        </div>
+        </div> -->
         <div class="row">
             <div class="col-md-12">
                 <button type="button" class="btn btn-outline-primary btn-sm mx-1"
@@ -675,11 +677,11 @@
 <!-- Start :: showBulkUploadForm -->
 <div class="row" *ngIf="isTimesheetBulkForm">
     <div class="card col-md-12 px-0">
-        <div class="card-header text-center ">
+        <!-- <div class="card-header text-center ">
             <strong class="text-uppercase" style="margin-right: 4px;" *ngIf="isTimesheetBulkForm">Final Document Bulk Upload</strong>
             <app-info-tooltip class="ms-2"  iconBgColor="#127475" [size]="20"
             [content]="withVmsbullet"></app-info-tooltip>
-        </div>
+        </div> -->
         <div class="card-body">
             <div class="row">
                 <div class="col-md-3 mb-0">

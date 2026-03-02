@@ -857,6 +857,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    */
   openClientSideTemplate(project: ProjectEntry): void {
     this.empClientSideObj.clientSideId = '';
+    this.empClientSideObj.projectId = project.projectId!;
+    this.empClientSideObj.projectName = project.projectName;
+    this.empClientSideObj.empId = this.timesheetFilledForUser.empId;
     this.clientSideIdUpdateOrAddModalRef = this.modalService.open(
       this.clientSideIdUpdateOrAddModal,
       { modalDialogClass: 'modal-lg' }

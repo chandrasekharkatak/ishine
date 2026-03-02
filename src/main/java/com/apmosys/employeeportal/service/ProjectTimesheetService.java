@@ -131,7 +131,7 @@ public class ProjectTimesheetService {
         entity.setClientApprovalStatus(dto.getClientApprovalStatus());
         entity.setShadowEmpId(dto.getShadowEmpId());
         entity.setTotalClientWorkingMinutes(dto.getTotalClientWorkingMinutes());
-        
+        entity.setClientLocationId(dto.getClientLocationId().intValue());
 		String description = "";
         // Non-fillable: use DTO description when activities are empty
         if (dto.getActivities() == null || dto.getActivities().isEmpty()) {

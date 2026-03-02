@@ -1124,11 +1124,9 @@ flex-wrap: wrap;
 }
 
 .form-bottom-card {
-  background: linear-gradient(135deg, var(--ts-primary-dark) 0%, var(--ts-primary) 100%);
-  padding: 16px 24px;
-  color: white;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: var(--ts-shadow-lg);
+  background: #ffffff;
+  padding: 20px 24px;
+  border-top: 1px solid #e5e7eb;
   position: sticky;
   bottom: 0;
   z-index: 10;
@@ -1889,16 +1887,15 @@ flex-wrap: wrap;
 
 .btn-create-timesheet:disabled,
 .btn-update-timesheet:disabled {
-  opacity: 0.65;
+  background: #9ca3af;
   cursor: not-allowed;
   transform: none !important;
-  pointer-events: none;
 }
 
 .btn-create-timesheet:disabled:hover,
 .btn-update-timesheet:disabled:hover {
+  background: #9ca3af;
   transform: none !important;
-  box-shadow: var(--ts-shadow-md) !important;
 }
 
 /* Outline action buttons (Add Location, Add Project) */
@@ -2278,41 +2275,35 @@ flex-wrap: wrap;
 
 .btn-create-timesheet,
 .btn-update-timesheet {
-  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 28px;
-  background: var(--ts-primary);
+  gap: 8px;
+  padding: 10px 24px;
+  background: #4f46e5;
   color: white;
   border: none;
-  border-radius: var(--ts-radius-md);
-  font-size: 0.9375rem;
+  border-radius: 8px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  overflow: hidden;
-  transition: background var(--ts-transition), box-shadow var(--ts-transition);
-  box-shadow: var(--ts-shadow-md);
-  letter-spacing: 0.02em;
-  text-transform: none;
+  transition: background 0.2s ease, transform 0.1s ease;
   min-width: 160px;
   justify-content: center;
 }
 
 .btn-create-timesheet:hover,
 .btn-update-timesheet:hover {
-  background: var(--ts-primary-dark);
-  box-shadow: var(--ts-shadow-lg);
+  background: #4338ca;
 }
 
 .btn-create-timesheet:active,
 .btn-update-timesheet:active {
-  box-shadow: var(--ts-shadow-sm);
+  transform: scale(0.98);
 }
 
 .btn-create-timesheet:focus,
 .btn-update-timesheet:focus {
-  outline: 3px solid rgba(30, 64, 175, 0.35);
+  outline: 2px solid #a5b4fc;
   outline-offset: 2px;
 }
 
@@ -2321,59 +2312,24 @@ flex-wrap: wrap;
   outline: none;
 }
 
-.btn-create-timesheet:focus-visible,
-.btn-update-timesheet:focus-visible {
-  outline: 3px solid rgba(30, 64, 175, 0.4);
-  outline-offset: 2px;
-}
-
 .btn-icon-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: var(--ts-radius-sm);
-  transition: background var(--ts-transition);
   flex-shrink: 0;
 }
 
-.btn-create-timesheet:hover .btn-icon-wrapper,
-.btn-update-timesheet:hover .btn-icon-wrapper {
-  background: rgba(255, 255, 255, 0.3);
-}
-
 .btn-icon-wrapper i {
-  font-size: 16px;
+  font-size: 14px;
   color: white;
 }
 
 .btn-text {
-  position: relative;
-  z-index: 1;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
 }
 
 .btn-ripple {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
-  transform: scale(0);
-  animation: ripple 0.6s ease-out;
-  pointer-events: none;
-}
-
-@keyframes ripple {
-  to {
-    transform: scale(4);
-    opacity: 0;
-  }
-}
-
-.btn-create-timesheet:active .btn-ripple,
-.btn-update-timesheet:active .btn-ripple {
-  animation: ripple 0.6s ease-out;
+  display: none;
 }
 
 /* Responsive Design for Document Upload */
@@ -2476,5 +2432,625 @@ flex-wrap: wrap;
   }
 }
 
+/* ========================================================================
+   PHASE 1 REDESIGN - Header & Basic Information Section
+   ======================================================================== */
 
+/* --- Header Section V2 --- */
+.form-header-card-v2 {
+  background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(129, 140, 248, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.form-header-card-v2::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.header-content-v2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 1;
+}
+
+.header-left-v2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-icon-wrapper-v2 {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-icon-wrapper-v2 i {
+  font-size: 18px;
+  color: #ffffff;
+}
+
+.header-text-v2 {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.header-title-v2 {
+  font-size: 17px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+.header-subtitle-v2 {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+}
+
+.header-right-v2 {
+  display: flex;
+  align-items: center;
+}
+
+.update-mode-badge-v2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+.badge-icon-v2 {
+  width: 22px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badge-icon-v2 i {
+  font-size: 10px;
+  color: #ffffff;
+}
+
+.update-mode-badge-v2 span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* --- Info Card V2 --- */
+.info-card-v2 {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.card-header-v2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  background: linear-gradient(to right, #f8fafc, #ffffff);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.card-header-left-v2 {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.card-icon-wrapper-v2 {
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+}
+
+.card-icon-wrapper-v2.icon-green {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+
+.card-icon-wrapper-v2.icon-blue {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+.card-icon-wrapper-v2.icon-orange {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+}
+
+.card-icon-wrapper-v2 i {
+  font-size: 18px;
+  color: #ffffff;
+}
+
+.card-header-text-v2 {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.card-title-v2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.card-subtitle-v2 {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.card-body-v2 {
+  padding: 24px;
+}
+
+/* --- Form Section V2 --- */
+.form-section-v2 {
+  margin-bottom: 24px;
+}
+
+.form-label-v2 {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.required-mark {
+  color: #ef4444;
+  margin-right: 4px;
+}
+
+/* --- Radio Cards Container --- */
+.radio-cards-container {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.radio-card-v2 {
+  flex: 1;
+  min-width: 200px;
+  max-width: 280px;
+  cursor: pointer;
+  position: relative;
+}
+
+.radio-card-v2 input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.radio-card-content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  transition: all 0.25s ease;
+}
+
+.radio-card-v2:hover:not(.disabled) .radio-card-content {
+  border-color: #a5b4fc;
+  background: #f1f5f9;
+}
+
+.radio-card-v2.selected .radio-card-content {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+  border-color: #667eea;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+}
+
+.radio-card-v2.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.radio-card-icon {
+  width: 44px;
+  height: 44px;
+  background: #e2e8f0;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+}
+
+.radio-card-v2.selected .radio-card-icon {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.radio-card-icon i {
+  font-size: 18px;
+  color: #64748b;
+  transition: color 0.25s ease;
+}
+
+.radio-card-v2.selected .radio-card-icon i {
+  color: #ffffff;
+}
+
+.radio-card-icon.team-icon i {
+  font-size: 16px;
+}
+
+.radio-card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.radio-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.radio-card-desc {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.radio-card-check {
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.radio-card-v2.selected .radio-card-check {
+  opacity: 1;
+}
+
+.radio-card-check i {
+  font-size: 20px;
+  color: #667eea;
+}
+
+/* --- Team Member Section V2 --- */
+.team-member-section-v2 {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.form-field-v2 {
+  display: flex;
+  flex-direction: column;
+}
+
+.field-input-wrapper {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+.select-wrapper-v2 {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.select-icon-v2 {
+  position: absolute;
+  left: 14px;
+  font-size: 16px;
+  color: #64748b;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.form-select-v2 {
+  width: 100%;
+  max-width: 320px;
+  padding: 12px 40px 12px 42px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  appearance: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.form-select-v2:hover {
+  border-color: #cbd5e1;
+}
+
+.form-select-v2:focus {
+  outline: none;
+  border-color: #667eea;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+.form-select-v2:disabled {
+  background: #f1f5f9;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.select-arrow-v2 {
+  position: absolute;
+  right: 14px;
+  font-size: 12px;
+  color: #64748b;
+  pointer-events: none;
+}
+
+/* --- Divider V2 --- */
+.divider-v2 {
+  height: 1px;
+  background: linear-gradient(to right, transparent, #e2e8f0, transparent);
+  margin: 24px 0;
+}
+
+/* --- Form Row V2 (Aligned Labels) --- */
+.form-row-v2 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.form-row-v2 .form-field-v2 {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-row-v2 .form-label-v2 {
+  height: 20px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.field-day-type {
+  flex: 0 0 200px;
+}
+
+.field-date {
+  flex: 0 0 200px;
+}
+
+.field-night-shift {
+  flex: 0 0 160px;
+}
+
+/* Hide internal label of app-date-time-picker when using external label */
+.form-row-v2 .field-input-wrapper app-date-time-picker ::ng-deep .form-label,
+.form-row-v2 .field-input-wrapper app-date-time-picker ::ng-deep label:not(.toggle-switch-v2) {
+  display: none !important;
+}
+
+/* Custom Select V2 for app-my-select */
+.custom-select-v2 {
+  border-radius: 10px !important;
+  border: 2px solid #e2e8f0 !important;
+  background: #f8fafc !important;
+}
+
+/* --- Night Shift Toggle V2 --- */
+.toggle-switch-v2 {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.toggle-switch-v2 input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider-v2 {
+  display: flex;
+  align-items: center;
+  width: 90px;
+  height: 40px;
+  background: #e2e8f0;
+  border-radius: 20px;
+  padding: 4px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.toggle-switch-v2 input:checked + .toggle-slider-v2 {
+  background: linear-gradient(135deg, #3b4b9e 0%, #5c3d7a 100%);
+}
+
+.toggle-knob-v2 {
+  width: 32px;
+  height: 32px;
+  background: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease;
+  position: relative;
+  z-index: 2;
+}
+
+.toggle-switch-v2 input:checked + .toggle-slider-v2 .toggle-knob-v2 {
+  transform: translateX(50px);
+}
+
+.toggle-knob-v2 i {
+  font-size: 14px;
+}
+
+.toggle-knob-v2 .fa-sun {
+  color: #f59e0b;
+}
+
+.toggle-knob-v2 .fa-moon {
+  color: #3b4b9e;
+}
+
+.toggle-label-v2 {
+  position: absolute;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  color: #64748b;
+  right: 14px;
+}
+
+.toggle-switch-v2 input:checked + .toggle-slider-v2 .toggle-label-v2 {
+  color: rgba(255, 255, 255, 0.9);
+  left: 12px;
+  right: auto;
+}
+
+/* --- Responsive Adjustments for Phase 1 --- */
+@media (max-width: 768px) {
+  .form-header-card-v2 {
+    padding: 20px;
+  }
+  
+  .header-content-v2 {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .header-icon-wrapper-v2 {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .header-icon-wrapper-v2 i {
+    font-size: 20px;
+  }
+  
+  .header-title-v2 {
+    font-size: 18px;
+  }
+  
+  .radio-cards-container {
+    flex-direction: column;
+  }
+  
+  .radio-card-v2 {
+    max-width: 100%;
+  }
+  
+  .form-row-v2 {
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .field-day-type,
+  .field-date,
+  .field-night-shift {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+  
+  .form-select-v2 {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-header-card-v2 {
+    padding: 16px;
+    border-radius: 12px;
+  }
+  
+  .header-left-v2 {
+    gap: 12px;
+  }
+  
+  .header-icon-wrapper-v2 {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+  }
+  
+  .header-title-v2 {
+    font-size: 16px;
+  }
+  
+  .update-mode-badge-v2 {
+    padding: 8px 14px;
+  }
+  
+  .update-mode-badge-v2 span {
+    font-size: 12px;
+  }
+  
+  .card-body-v2 {
+    padding: 16px;
+  }
+  
+  .card-header-v2 {
+    padding: 16px;
+  }
+  
+  .card-icon-wrapper-v2 {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .card-icon-wrapper-v2 i {
+    font-size: 16px;
+  }
+  
+  .radio-card-content {
+    padding: 14px 16px;
+  }
+  
+  .radio-card-icon {
+    width: 38px;
+    height: 38px;
+  }
+}
 
