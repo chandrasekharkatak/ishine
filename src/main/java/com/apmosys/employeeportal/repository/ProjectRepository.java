@@ -66,6 +66,8 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	public List<Object[]> getAllInternalProject();
 
 	public Project findByProjectId(Integer projectId);
+	
+	public Optional<Project> findOptionalByProjectId(Integer projectId);
 
 	// added by anurag
 	@Query(nativeQuery = true)

@@ -12655,47 +12655,63 @@ public class ResourceManagementService {
 		return response;
 	}
 
+	@Transactional(readOnly = true)
 	public ServiceResponse fetchHasClientSideId(UpdateHasClientSideIdDTO dto) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
-		apiLogInfo.setApiUrl("/api/updateHasClientSideId");
+		apiLogInfo.setApiUrl("/api/fetchHasClientSideId");
 		apiLogInfo.setLogLevel("INFO");
 
-		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("projectId: " + dto.getProjectId() + "\n");
+		if (dto == null || dto.getProjectId() == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("ProjectId is required.");
+			response.setServiceMessage("Invalid request payload.");
+
+			apiLogInfo.setApiResponse("ProjectId is null.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			return response;
+		}
+
+		// StringBuilder logBuilder = new StringBuilder();
+		// logBuilder.append("projectId: " + dto.getProjectId() + "\n");
+		 Integer projectId = dto.getProjectId();
+    apiLogInfo.setApiRequest("projectId: " + projectId);
 
 		try {
-			if (dto.getProjectId() != null) {
-				Project project = projectRepository.getByProjectId(dto.getProjectId());
-				UpdateHasClientSideIdDTO responseDTO = new UpdateHasClientSideIdDTO();
+			// if (dto.getProjectId() != null) {
+			// 	Project project = projectRepository.getByProjectId(dto.getProjectId());
+				 Optional<Project> optionalProject =projectRepository.findOptionalByProjectId(projectId);
 
-				if (project == null) {
+				if (optionalProject.isEmpty()) {
 
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Could not update the Client Side Id status!");
-					response.setServiceMessage("No Project fetched for ProjectId: " + dto.getProjectId());
-					apiLogInfo.setApiResponse("No Project fetched for ProjectId: " + dto.getProjectId());
+					response.setServiceResponse("Project not found.");
+					response.setServiceMessage("No Project fetched for ProjectId: " + projectId);
+					apiLogInfo.setApiResponse("No Project fetched for ProjectId: " + projectId);
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					logService.logMyInfo(httpRequest, apiLogInfo);
 
 					return response;
 
-				} else {
-
+				} 
+				Project project = optionalProject.get();
+				UpdateHasClientSideIdDTO responseDTO = new UpdateHasClientSideIdDTO();
 					responseDTO.setHasClientSideId(project.getHasClientSideId());
 					responseDTO.setClientFlag(project.getClientFlag());
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(responseDTO);
 					response.setServiceMessage("Fetched hasClientSideId status successfully !");
-					logBuilder.append("Project id : " + project.getProjectId() + "\n");
+					// logBuilder.append("Project id : " + project.getProjectId() + "\n");
 
 					apiLogInfo.setApiResponse("Fetched hasClientSideId status successfully !");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
-				}
-			}
+			// }
 		} catch (Exception e) {
-			e.printStackTrace();
+			// e.printStackTrace();
+			log.error("Error fetching hasClientSideId for projectId={}", projectId, e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something went wrong.");
 			response.setServiceError(e.getMessage());
@@ -12703,6 +12719,7 @@ public class ResourceManagementService {
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setApiResponse(e.getMessage());
 			apiLogInfo.setLogLevel("ERROR");
+			throw e;
 		}
 
 		logService.logMyInfo(httpRequest, apiLogInfo);
