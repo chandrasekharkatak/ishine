@@ -2190,10 +2190,13 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	        Project project,Client client) {
 
 	   
+		if (project == null || client == null) {
+			throw new PoportalApiException("Project or Client cannot be null");
+		}
 	    if (poDto.getDepartmentList() == null) {
 	        throw new PoportalApiException("Department list is NULL");
 	    }
-	    logger.info("department list is not null \n");
+	    logger.info("department list is not null ");
 	    
 	    if ("TNM".equalsIgnoreCase(projectDto.getProjectType())
 	            && poDto.getResourceRequirementList() == null) {
@@ -2227,8 +2230,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	    
 	    
 
-	    logger.info("TNM project not missing resources \n");
-	    
+	    logger.info("TNM project not missing resources ");
 	    ClientLocation cl = clientService.resolveClientLocation(client.getClientId(), poDto.getClientLocation(),
 				poDto.getClientState(),poDto.getClientAddressId());
 	   
@@ -2267,17 +2269,10 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
         poDetails.setPoUpdatedOn(convert(poDto.getUpdatedOn()));
 	    
 	    
-	  
-
-
-	    
-	    
-	    
-	    System.out.println("saved in po details");
-	    logger.info("saved in po details");
 	    projectPoDetailsRepository.save(poDetails);
-
+		logger.info("PO details saved successfully, poId={}", poDto.getPoId());
 	   
+		List<PoDepartmentMapping> deptMappings = new ArrayList<>();
 	    for (DepartmentIdAndNameDto dept : poDto.getDepartmentList()) {
 	        PoDepartmentMapping map = new PoDepartmentMapping();
 	        map.setPoId(poDto.getPoId());
@@ -2285,14 +2280,16 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	        map.setActive(true);
 	        map.setProjectId(project.getProjectId());
 	        map.setCreatedBy(poDto.getCreatedByEmpId());
-	        System.out.println("saved in poDepartmentMappingRepository");
+	        // System.out.println("saved in poDepartmentMappingRepository");
 	        logger.info("saved in poDepartmentMappingRepository");
-	        poDepartmentMappingRepository.save(map);
+			deptMappings.add(map);
+	        // poDepartmentMappingRepository.save(map);
 	    }
+		poDepartmentMappingRepository.saveAll(deptMappings);
 
 	   
 	    if (poDto.getResourceRequirementList() != null) {
-
+			 List<PoRequirementMapping> requirementMappings = new ArrayList<>();
             for (POResourceRequirementDTO req : poDto.getResourceRequirementList()) {
 
               
@@ -2323,9 +2320,12 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 
                 prm.setCreatedBy(poDto.getCreatedByEmpId());
 
-                poRequirementMappingRepository.save(prm);
+                // poRequirementMappingRepository.save(prm);
+				requirementMappings.add(prm);
             }
+			poRequirementMappingRepository.saveAll(requirementMappings);
         }
+		logger.info("PO sync completed for poId={}", poDto.getPoId());
 	}
 	
 	private LocalDateTime convert(Date date) {
