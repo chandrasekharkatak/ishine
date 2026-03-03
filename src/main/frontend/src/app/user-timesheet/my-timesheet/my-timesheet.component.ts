@@ -3906,7 +3906,8 @@ checkUploadEligibility() {
 
     const payload = {
       empId: this.timesheetObj.empId,
-      projectId: this.timesheetObj.projectId
+      projectId: this.timesheetObj.projectId,
+      date: this.timesheetObj.date = new Date(this.timesheetObj.date).toLocaleDateString('en-CA') // gives YYYY-MM-DD
     };
     this.timesheetService.getClientDetailsByProjectIdAndEmpId(payload).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

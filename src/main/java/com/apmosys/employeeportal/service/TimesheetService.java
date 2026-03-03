@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -8532,8 +8533,11 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	    	
 	    	Long empId = timesheetDTO.getEmpId();
 	    	Integer projectId = timesheetDTO.getProjectId();
+	    	LocalDate localDate = timesheetDTO.getDate();
+	    	Date date = java.sql.Date.valueOf(localDate);
 
-	        List<GetClientDetailsByProjectIdAndEmpIdDTO> flatList = employeeTeamMapRepository.getClientDetailsByProjectIdAndEmpId(projectId,empId); 
+	        List<GetClientDetailsByProjectIdAndEmpIdDTO> flatList = employeeTeamMapRepository.getClientDetailsByProjectIdAndEmpId(
+	        		projectId,empId,date); 
 
 	        if (flatList.isEmpty()) {
 	        	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
