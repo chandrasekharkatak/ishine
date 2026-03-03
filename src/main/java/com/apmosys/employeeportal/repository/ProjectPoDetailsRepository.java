@@ -257,6 +257,10 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
             + "INNER JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) AND ppd.active  = 1 \n")
     Set<Integer> findAllActivePOProjectIds(boolean currentActivePO); 
 
-        Set<Long> findActivePoIdsByProjectIdIn(Set<Integer> allProjectIds); 
+    @Query(value = "SELECT poId \n"
+    		+ "  FROM ProjectPoDetails \n"
+    		+ "  WHERE projectId IN (:projectIds) \n"
+    		+ "  AND active = true")
+	Set<Long> findActivePoIdsByProjectIdIn(@Param("projectIds") Set<Integer> projectIds); 
 
 }

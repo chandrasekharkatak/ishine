@@ -940,7 +940,7 @@ public class PoDetailsService {
 	    }
 
 	    handleEmployeeClientSideIdMapping(
-	            Long.valueOf(primaryProject.getProjectId()),
+	            primaryProject.getProjectId(),
 	            deletedProjectIds,
 	            updatedBy
 	    );
@@ -1078,16 +1078,16 @@ public class PoDetailsService {
 	    teamRepository.saveAll(teams);
 	}
 	
-	private void handleEmployeeClientSideIdMapping( Long primaryProjectId, Set<Long> deletedProjectIds, Long updatedBy) {
+	private void handleEmployeeClientSideIdMapping( Integer primaryProjectId, Set<Long> deletedProjectIds, Long updatedBy) {
 
 	    if (primaryProjectId == null || deletedProjectIds == null || deletedProjectIds.isEmpty()) {
 	        return;
 	    }
 
 	    // 1. Fetch empIds from primary project (based on active teams & mappings)
-	    List<Long> empIds = employeeTeamMapRepository.findDistinctEmpIdsByProjectId(primaryProjectId);
-
-	    if (empIds == null || empIds.isEmpty()) {
+	   
+        List<Long> empIds = employeeTeamMapRepository.findDistinctEmpIdsByProjectId(primaryProjectId);
+        if (empIds == null || empIds.isEmpty()) {
 	        return;
 	    }
 
@@ -1103,12 +1103,13 @@ public class PoDetailsService {
 	    // 3. Replace deleted projectId with primary projectId
 
 	    mappings.forEach(m -> {
-	        m.setProjectId(primaryProjectId);
+	        m.setProjectId(Long.valueOf(primaryProjectId));
 	        m.setUpdatedBy(updatedBy);
 	        m.setUpdatedOn(LocalDateTime.now());
 	    });
 
 	    employeeClientSideIdMappingRepository.saveAll(mappings);
+	    
 	}
 	
 	
@@ -1185,7 +1186,7 @@ public class PoDetailsService {
 
 	        String receiver = String.join(",", toEmails);
 	        
-	        String cc = String.join(",", rmgMail, bdMail, financeMail );
+	        String cc = String.join(",", rmgMail, bdMail, financeMail , ",priyadarshini.singh@apmosys.com" );
 
 	        String subject = "PO Linking Completed - " + primaryProject.getProjectName();
 
