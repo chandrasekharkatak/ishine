@@ -55,7 +55,7 @@ public class TrainingConfigController {
 
 	// ==================== HR Configuration APIs ====================
 	// NOTE: Using Feature ID 3 for quick testing. Change to 64 for production after setting up feature mapping.
-	@JobRoleAccess(featureIds = {3}) // Training Config - View All Trainings
+	@JobRoleAccess(featureIds = {66,74}) // Training Config - View All Trainings
 	@GetMapping(value = "/getAllTrainings")
 	public ServiceResponse getAllTrainings(
 			@RequestParam(required = false) String activeStatus,
@@ -68,7 +68,7 @@ public class TrainingConfigController {
 		}
 	}
 
-	@JobRoleAccess(featureIds = {3})
+	@JobRoleAccess(featureIds = {66,74})
     @PostMapping(
         value = "/createTrainingWithContent",    consumes = MediaType.MULTIPART_FORM_DATA_VALUE
 )
@@ -84,7 +84,7 @@ public class TrainingConfigController {
         );
     }
 
-	@JobRoleAccess(featureIds = {3})
+	@JobRoleAccess(featureIds = {66,74})
 	@PostMapping(
 	        value = "/updateTrainingWithContent",    consumes = MediaType.MULTIPART_FORM_DATA_VALUE
 
@@ -100,7 +100,7 @@ public class TrainingConfigController {
 	            file
 	    );
 	}
-	@JobRoleAccess(featureIds = {3}) // Training Config - Add Content
+	@JobRoleAccess(featureIds = {66,74}) // Training Config - Add Content
 	@PostMapping(value = "/addTrainingContent", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ServiceResponse addTrainingContent(
 			@RequestPart("trainingId") Integer trainingId,
@@ -147,7 +147,7 @@ public class TrainingConfigController {
 		}
 	}
 
-	@JobRoleAccess(featureIds = {3}) // Training Config - Update Content
+	@JobRoleAccess(featureIds = {66,74}) // Training Config - Update Content
 	@PostMapping(value = "/updateTrainingContent")
 	public ServiceResponse updateTrainingContent(@RequestBody TrainingContentDTO contentDTO) {
 		try {
@@ -158,7 +158,7 @@ public class TrainingConfigController {
 		}
 	}
 
-	@JobRoleAccess(featureIds = {3}) // Training Config - View Content
+	@JobRoleAccess(featureIds = {66,67,74,75}) // Training Config - View Content
 	@GetMapping(value = "/getTrainingContent/{trainingId}")
 	public ServiceResponse getTrainingContent(@PathVariable Integer trainingId) {
 		try {
@@ -169,7 +169,7 @@ public class TrainingConfigController {
 		}
 	}
 
-	@JobRoleAccess(featureIds = {3}) // Training Config - Deactivate Training
+	@JobRoleAccess(featureIds = {66,74}) // Training Config - Deactivate Training
 	@PostMapping(value = "/deactivateTraining")
 	public ServiceResponse deactivateTraining(@RequestBody TrainingMasterDTO trainingDTO) {
 		try {
@@ -288,7 +288,7 @@ public class TrainingConfigController {
 	// 	}
 	// }
 
-	@JobRoleAccess(featureIds = {3}) // Training Config - Compliance Report
+	@JobRoleAccess(featureIds = {66,74,67,75}) // Training Config - Compliance Report
 	@PostMapping(value = "/getComplianceReport")
 	public ServiceResponse getComplianceReport(@RequestBody ComplianceReportDTO request) {
 		try {
@@ -335,7 +335,7 @@ public class TrainingConfigController {
 		return "/" + trainingId + "/" + newFileName;
 	}
 
-	@JobRoleAccess(featureIds = {3}) // Training Config - Change Quiz Response
+	@JobRoleAccess(featureIds = {66,67,74,75}) // Training Config - Change Quiz Response
 	@PutMapping(value = "/changeQuizResponse")
 	private ServiceResponse changeQuizResponse(@RequestParam("empId") Long empId, @RequestParam("quizId") Long quizId, @RequestParam("responseStatus") String responseStatus, @RequestParam("updatedBy") Long updatedBy) {
 		try {
