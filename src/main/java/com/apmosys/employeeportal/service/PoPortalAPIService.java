@@ -2015,7 +2015,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 //	}
 	
 	
-	@Transactional(rollbackFor = PoportalApiException.class)
+	
 	public ServiceResponse syncProjectPoFromPoPortal() {
 
 	    ServiceResponse response = new ServiceResponse();
@@ -2035,9 +2035,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	                httpRequest
 	        );
 	        
-	        poRequirementMappingRepository.deleteAllRecords();
-	        poDepartmentMappingRepository.deleteAllRecords();
-	        projectPoDetailsRepository.deleteAllRecords();
+	       
 
 	        logger.info("Old PO data cleared before sync");
 	        System.out.println("Old PO data cleared before sync \n");
@@ -2066,6 +2064,10 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 		        System.out.println("PO Portal API failed or returned empty response");
 	            throw new PoportalApiException("PO Portal API failed or returned empty response");
 	        }
+	        
+	        poRequirementMappingRepository.deleteAllRecords();
+	        poDepartmentMappingRepository.deleteAllRecords();
+	        projectPoDetailsRepository.deleteAllRecords();
 
 	        for (ProjectPoMappingWithResourceDTO projectDto : apiResponse.getBody()) {
 
@@ -2096,8 +2098,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	            }
 	            
 	            Client client = clientRepository.findByClientId(project.getClientId());            
-	            Date minPoStartDate = null;
-	            Date maxPoEndDate = null;
+	            
 
 	            for (PoDetailsForProjectPoMappingDTO poDto : projectDto.getPoDetailsList()) {       	
 	                try {
@@ -2255,13 +2256,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	    poDetails.setPoProjectId(projectDto.getProjectId());
 	    poDetails.setClientLocationId(Long.valueOf(cl.getClientLocationId()));	
 	    poDetails.setClientAddressId(poDto.getClientAddressId());
-//	    Long createdByEmpPk = validateAndGetCreatedByEmpId(
-//	            poDto.getCreatedByEmpId(),
-//	            poDto.getCreatedByEmpName()
-//	    );
-//	    poDetails.setCreatedBy(createdByEmpPk);
 
-//	    poDetails.setCreatedBy(123l);
 	    
 	    poDetails.setCreatedBy(poDto.getCreatedByEmpId());
         poDetails.setUpdatedBy(poDto.getUpdatedByEmpId());
