@@ -405,7 +405,9 @@ export class TimesheetValidationService {
             locationId
           }, locationId);
         }
-        if (project.clientSideId && isDayTypeFillable && !project.isShadowForSelf && !project.clientApprovalStatus) {
+        if (project.clientSideId && isDayTypeFillable && project.hasClientSideId && !project.isShadowForSelf && !project.clientApprovalStatus) {
+          console.log("Project with clientSideId but missing clientApprovalStatus:", project);
+          console.log("project.clientSideId:", project.clientSideId, ", isDayTypeFillable:", isDayTypeFillable, ", project.isShadowForSelf:", project.isShadowForSelf, ", project.clientApprovalStatus:", project.clientApprovalStatus);
           return fail({
             field: 'clientApprovalStatus',
             message: `Client DSR Approval Status is mandatory for Project ${pIndex + 1} in ${locLabel}`,

@@ -1903,7 +1903,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       ? this.currentUser?.empId
       : this.timesheetFilledForUser?.empId;
 
-  if (targetEmpId) {
+  if (targetEmpId && updatedProject.hasClientSideId) {
     this.getClientSideIdByProjectIdAndEmpId(projectId, targetEmpId);
   } else {
     console.warn('Employee ID not available for project selection');
