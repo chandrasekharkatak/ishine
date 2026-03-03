@@ -104,4 +104,11 @@ public interface TrainingConfigService {
 	 * @return ServiceResponse indicating success or failure
 	 */
 	ServiceResponse changeQuizResponse(Long empId, Long quizId, String responseStatus, Long updatedBy);
+
+	/**
+	 * Get training responses
+	 * @param trainingId Training ID
+	 * @return ServiceResponse containing training responses
+	 */
+	ServiceResponse getTrainingResponses(Integer trainingId, Integer offset, Integer limit);
 }
