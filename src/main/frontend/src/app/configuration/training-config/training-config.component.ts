@@ -162,6 +162,10 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   }
 
   showTable() {
+    if(!this.userMapping.get_all_trainings){
+      this.openAlertMod(this.alertTemplate, 'You do not have permission to view all trainings', 'warning');
+      return;
+    }
     this.isTable = true;
     this.isTrainingForm = false;
     this.isContentForm = false;

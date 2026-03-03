@@ -3,12 +3,12 @@
     <div class="col-md-12 px-0">
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" 
                 [ngClass]="{'active': isTable, 'btn-primary': isTable}" 
-                (click)="showTable()">
+                (click)="showTable()" *ngIf="userMapping.get_all_trainings">
             <em class="fa-solid fa-list"></em>&nbsp; View All Trainings
         </button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-1" 
                 [ngClass]="{'active': isTrainingForm, 'btn-primary': isTrainingForm}" 
-                (click)="showTrainingForm()">
+                (click)="showTrainingForm()" *ngIf="userMapping.create_training">
             <em class="fa-solid fa-plus"></em>&nbsp; Create New Training
         </button>
     </div>
@@ -22,7 +22,7 @@
         </button>
     </div>
     <div class="card col-md-12 px-0 shadow-sm">
-        <div class="card-header bg-primary text-white text-center">
+        <div class="card-header bg-primary text-white text-center" *ngIf="userMapping.create_training">
             <h4 class="mb-0">
                 <i class="fas fa-graduation-cap mr-2"></i>
                 <strong>{{isEditMode ? 'Edit' : 'Create'}} Training</strong>
@@ -612,6 +612,7 @@
                                 <td>{{training.createdOn | date: 'medium'}}</td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-primary mx-1" 
+                                            *ngIf="userMapping.update_training"
                                             (click)="onEditTraining(training)" title="Edit">
                                         <em class="fa fa-edit"></em>
                                     </button>
@@ -623,7 +624,7 @@
                                             (click)="onAddQuiz(training)" title="Add Quiz">
                                         <em class="fa fa-clipboard-check"></em> Quiz
                                     </button>
-                                    <button *ngIf="training.activeStatus === 'true'" 
+                                    <button *ngIf="training.activeStatus === 'true' && userMapping.delete_training" 
                                             class="btn btn-sm btn-outline-danger mx-1" 
                                             (click)="onDeactivateTraining(training, delete_template)" title="Deactivate">
                                         <em class="fa fa-ban"></em>
