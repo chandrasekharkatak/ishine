@@ -1869,6 +1869,7 @@ public class ResourceManagementService {
 		return response;
 	}
 
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse rejectPendingProject(ResourceManagementDTO resourceManagementDTO) {
 
 		ServiceResponse response = new ServiceResponse();
@@ -1876,14 +1877,16 @@ public class ResourceManagementService {
 		apiLogInfo.setSubFeatureName("Reject Pending Project");
 		apiLogInfo.setApiUrl("/api/rejectPendingProject");
 		apiLogInfo.setLogLevel("INFO");
-
+		if (resourceManagementDTO == null || resourceManagementDTO.getId() == null) {
+			throw new IllegalArgumentException("resourceManagementDTO or ProjectId cannot be null");
+		}
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("ProjectId: ").append(resourceManagementDTO.getId()).append(", EmployeeId: ")
 				.append(resourceManagementDTO.getEmpId());
 
 		try {
 			Map<String, List<EmployeeTeamMap>> modifiedTeamsMap = new LinkedHashMap<>();
-			Map<String, List<EmployeeTeamMap>> allTeamsMap = new LinkedHashMap<>();
+			// Map<String, List<EmployeeTeamMap>> allTeamsMap = new LinkedHashMap<>();
 
 			Project projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
 			if (projectObj == null) {
@@ -1992,7 +1995,11 @@ public class ResourceManagementService {
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 			} catch (Exception mailEx) {
-				mailEx.printStackTrace();
+				// mailEx.printStackTrace();
+				log.error("Error sending rejection mail. ProjectId={}, EmpId={}",
+                    resourceManagementDTO.getId(),
+                    resourceManagementDTO.getEmpId(),
+                    mailEx);
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Project Rejected but mail sending failed: " + mailEx.getMessage());
 				apiLogInfo.setApiResponse("Project rejected but mail sending failed");
@@ -2000,7 +2007,7 @@ public class ResourceManagementService {
 			}
 
 			// ==== Team Cleanup Logic (Same Logic, Just Cleaner) ====
-			List<Team> teamList = teamRepository.findTeamByProjectId(projectObj.getProjectId());
+			List<Team> teamList = allTeams;
 			for (Team team : teamList) {
 
 				List<EmployeeTeamMap> teamPending = employeeTeamMapRepository.findByTeamIdAndActive(team.getTeamId());
@@ -2037,7 +2044,11 @@ public class ResourceManagementService {
 			response.setServiceResponse("Project Rejected Successfully.");
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			// e.printStackTrace();
+			log.error("Error rejecting project. ProjectId={}, EmpId={}",
+                resourceManagementDTO.getId(),
+                resourceManagementDTO.getEmpId(),
+                e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
