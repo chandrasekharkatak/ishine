@@ -629,6 +629,10 @@
                                             (click)="onDeactivateTraining(training, delete_template)" title="Deactivate">
                                         <em class="fa fa-ban"></em>
                                     </button>
+                                    <!-- <button class="btn btn-sm btn-outline-success mx-1" 
+                                            (click)="onViewTrainingResponse(training)" title="Add Quiz">
+                                        <em class="fa fa-clipboard-check"></em> View Responses
+                                    </button> -->
                                 </td>
                             </tr>
                         </tbody>
@@ -1046,4 +1050,48 @@
             Yes
         </button>
     </div>
+</ng-template>
+
+<ng-template #show_training_response >
+    <div class="row">
+            <div class="col-md-12">
+                <div class="selector-toggle">
+                    <a href="javascript:void(0)" (click)="toggleResponseSearch()">
+                        <i *ngIf="!isResponseSearchEnabled" class="fa fa-search"></i>
+                        <i *ngIf="isResponseSearchEnabled" class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
+                <div class="overflow-auto">
+                    <table class="table department-table" matSort (matSortChange)="sortResponseData($event)">
+                        <thead class="thead-light">
+                            <tr>
+                                <th scope="col" class="info-label">Sr No.</th>
+                                <th scope="col" class="info-label" mat-sort-header="empName|string">Employee Name</th>
+                                <th scope="col" class="info-label" mat-sort-header="lastCompletedCycleNumber|number">Completion Cycle Number</th>
+                                <th scope="col" class="info-label" mat-sort-header="lastCompletedOn|date">Last Completed On</th>
+                            </tr>
+                            <tr app-column-filter-bar *ngIf="isResponseSearchEnabled" 
+                                [columnList]="trainingResponseColumns" (onSearch)="onResponseSearch($event)"></tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="allTrainingResponse.length == 0 || (allTrainingResponse | colFilter:responseTableFilters:false).length == 0">
+                                <td colspan="1" class="text-center info-label">No training Responses found...</td>
+                            </tr>
+                            <tr *ngFor="let training of allTrainingResponse | colFilter:responseTableFilters:false | sort : [sortResponseColumn, sortResponseColumnType, sortResponseDirection] | paginate: { itemsPerPage: 1, currentPage: responsePage }, let i = index">
+                                <td class="info-label">{{1*(responsePage-1)+i+1}}</td>
+                                <td>{{training.empName}}</td>
+                                <td>{{training.lastCompletedCycleNumber}}</td>
+                                <td>{{training.lastCompletedOn}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <pagination-controls class="my-pagination" [hidden]="allTrainingResponse.length == 0" [maxSize]="maxResponseSize" [previousLabel]="'Previous'"
+                [nextLabel]="'Next'" (pageChange)="handleResponsePageChange($event)"></pagination-controls>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="modalRef.close()">OK</button>
+        </div>
 </ng-template>

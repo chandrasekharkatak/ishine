@@ -24,7 +24,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +42,7 @@ import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TrainingContentDTO;
 import com.apmosys.employeeportal.dto.TrainingHistoryDTO;
 import com.apmosys.employeeportal.dto.TrainingMasterDTO;
+import com.apmosys.employeeportal.dto.TrainingResponseDTO;
 import com.apmosys.employeeportal.exception.BadRequestException;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeQuizResponseStatusMapping;
@@ -1445,6 +1448,48 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
+	}
+
+	@Override
+	public ServiceResponse getTrainingResponses(Integer trainingId, Integer limit, Integer offset){
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Get Training Responses");
+		apiLogInfo.setApiUrl("/api/training/getTrainingResponses");
+		apiLogInfo.setLogLevel("INFO");
+
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Training ID: ").append(trainingId);
+		try {
+			TrainingMaster existingTraining = trainingMasterRepository.findById(trainingId).orElse(null);
+			if (existingTraining == null) {
+				apiLogInfo.setApiResponse("Training Not Found");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				throw new ResourceNotFoundException("Training Not Found for trainingId: " + trainingId);
+			}
+
+			Pageable pageable = PageRequest.of(offset, limit);
+
+			Page<TrainingResponseDTO> trainingResponses = trainingConsentRepository.findByTrainingId(trainingId, pageable);
+			response.setStatusCode(HttpStatus.OK.value());
+			response.setServiceResponse(trainingResponses);
+			apiLogInfo.setApiResponse(trainingResponses.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		} catch (Exception e) {
+			e.printStackTrace();
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			throw e;
+		}
+
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+
 	}
 
 }

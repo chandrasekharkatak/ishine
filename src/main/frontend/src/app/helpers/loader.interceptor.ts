@@ -488,7 +488,8 @@ export class LoaderInterceptor implements HttpInterceptor {
   ]
 
   DYNAMIC_URL_whiteList = [
-    `${this.baseUrl}` + `api/training/getTrainingContent/`
+    `${this.baseUrl}` + `api/training/getTrainingContent/`,
+    `${this.baseUrl}` + `api/training/getTrainingResponses/`
   ]
 
   constructor(private loaderService: LoaderService) { }

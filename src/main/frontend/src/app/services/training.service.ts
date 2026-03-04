@@ -102,4 +102,13 @@ export class TrainingService {
   getAllQuizResponsesByTrainingId(trainingId: number) {
     return this.http.post(`${this.baseUrl}api/training/getAllQuizResponsesByTrainingId`, { trainingId: trainingId });
   }
+
+  getTrainingResponses(trainingId: number, limit: number, offset: number){
+    return this.http.get(`${this.baseUrl}api/training/getTrainingResponses/${trainingId}`, {
+      params: {
+        limit: limit,
+        offset: offset
+      }
+    });
+  }
 }

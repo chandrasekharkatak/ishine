@@ -93,6 +93,12 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   modalRef: NgbModalRef;
   @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
   @ViewChild('create_quiz_template') createQuizTemplate!: TemplateRef<any>;
+  @ViewChild('show_training_response') showTrainingResponse!: TemplateRef<any>;
+  isResponseSearchEnabled: boolean = false;
+  responseTableFilters: any = {};
+  responsePage: number = 1;
+  trainingResponseColumns: any[] = ['blank', 'empName', 'lastCompletedCycleNumber', 'lastCompletedOn'];
+  maxResponseSize: number = 10;
 
   // Filter
   filters: any = {};
@@ -124,6 +130,10 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     { value: 'AUDIO', label: 'Audio' },
     { value: 'LINK', label: 'External Link' }
   ];
+  allTrainingResponse: any[] = [];
+  sortResponseColumn: string = '';
+  sortResponseColumnType: string = '';
+  sortResponseDirection: string = '';
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -1791,4 +1801,51 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   handlePageChange(event: number) {
     this.page = event;
   }
+
+  onViewTrainingResponse(training: any) {
+    console.log('View training response for:', training);
+    this.trainingService.getTrainingResponses(training.trainingId, 1, 10*(this.responsePage-1)).subscribe({
+      next: (response:any) =>{
+        this.allTrainingResponse = response.serviceResponse.content || [];
+        this.maxResponseSize = response.serviceResponse.totalElements || 10;
+         this.responsePage = response.serviceResponse.pageable.pageNumber + 1;
+        this.showTrainingResponseModal();
+      }, error: (error) =>{
+        this.openAlertMod(this.alertTemplate, 'Error fetching training responses', 'error');
+        console.log(error);
+      }
+    })
+  }
+
+  showTrainingResponseModal(){
+    this.modalRef = this.modalService.open(this.showTrainingResponse, {
+      backdrop: false,
+      windowClass: 'alert-toast-modal',
+      modalDialogClass: 'alert-toast-dialog',
+      size: 'lg'
+    });
+  }
+
+  handleResponsePageChange(event: number) {
+    this.responsePage = event;
+  }
+
+  onResponseSearch(event: any) {
+    this.responseTableFilters = event;
+    this.responsePage = 1;
+  }
+
+  sortResponseData(event: Sort) {
+    this.sortResponseColumn = event.active;
+    this.sortResponseColumnType = event.active.split('|')[1] || 'string';
+    this.sortResponseDirection = event.direction;
+  }
+
+  toggleResponseSearch() {
+    this.isResponseSearchEnabled = !this.isResponseSearchEnabled;
+    if (!this.isResponseSearchEnabled) {
+      this.responseTableFilters = {};
+    }
+  }
+
 }

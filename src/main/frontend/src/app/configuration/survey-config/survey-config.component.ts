@@ -28,6 +28,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 export class SurveyConfigComponent implements OnInit {
 
   feature = "Survey Config";
+  feature2 = "Training Config";
   currentUser: User;
   userMapping: any = {};
 
@@ -122,11 +123,11 @@ export class SurveyConfigComponent implements OnInit {
     });
 
     // Dynamic Subfeature Flags
-    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == (this.isFromTraining ? this.feature2 : this.feature));
     featureMap.subFeatures?.forEach(sub => {
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
-    //console.log(this.feature, this.userMapping);
+    console.log("This feature mapping: ",this.feature, this.userMapping);
 
     // let questionObj = ;
     // questionObj.optionsList.push("");
