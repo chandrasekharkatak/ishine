@@ -4365,7 +4365,7 @@ public List<Object[]> fetchInActivePOListOfProject(
        "e.employeementId, " +
        "rr.role) " +
        "FROM Employee e " +
-       " JOIN EmployeeTeamMap etm ON etm.empId = e.empId " +
+       " JOIN EmployeeTeamMap etm ON etm.empId = e.empId AND etm.active = 1" +
        " JOIN RoleDetails rr ON rr.roleId = etm.roleId " +
        "WHERE e.empId IN :empIds")
 	List<EmployeeMailDTO> getEmployeeMailDetails(@Param("empIds") Set<Long> empIds);	
