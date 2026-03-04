@@ -20,6 +20,7 @@ import org.springframework.stereotype.Repository;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeJobRoleDept;
+import com.apmosys.employeeportal.dto.EmployeeMailDTO;
 import com.apmosys.employeeportal.dto.EmployeeProjection;
 import com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeListByProjectIdDTO;
@@ -4358,4 +4359,14 @@ public List<Object[]> fetchInActivePOListOfProject(
 			+ "AND e.empId IN :empIds")
 	public List<EmployeeDTO> getEmployeeDetailsByEmpIds(@Param("empIds") List<Long> empIds);
 	
+	@Query("SELECT new com.apmosys.employeeportal.dto.EmployeeMailDTO(" +
+       "e.empId, " +
+       "e.name, " +
+       "e.employeementId, " +
+       "rr.role) " +
+       "FROM Employee e " +
+       "LEFT JOIN EmployeeTeamMap etm ON etm.empId = e.empId " +
+       "LEFT JOIN ResourceRequirement rr ON rr.resourceOverviewId = etm.resourceOverviewId " +
+       "WHERE e.empId IN :empIds")
+	List<EmployeeMailDTO> getEmployeeMailDetails(@Param("empIds") Set<Long> empIds);	
 }

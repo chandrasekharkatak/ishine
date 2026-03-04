@@ -224,6 +224,7 @@ import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsRepository;
 import com.apmosys.employeeportal.repository.TimesheetRejectionDetailsNewRepository;
 import com.apmosys.employeeportal.response.ProjectStructureResponse;
 import com.apmosys.employeeportal.response.ResourceRequirementResponse;
+import com.apmosys.employeeportal.service.helper.ProjectApprovalMailBuilder;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.ExceptionLogContext;
 import com.apmosys.employeeportal.utility.ExceptionUtils;
@@ -236,6 +237,9 @@ public class ResourceManagementService {
 
 	@Autowired
 	ProjectService projectService;
+
+	@Autowired
+	ProjectApprovalMailBuilder projectApprovalMailBuilder;
 
 	@Autowired
 	ProjectRepository projectRepository;
@@ -1563,6 +1567,9 @@ public class ResourceManagementService {
 
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse approvePendingProject(ResourceManagementDTO resourceManagementDTO) {
+		if (resourceManagementDTO == null) {
+			throw new IllegalArgumentException("resourceManagementDTO cannot be null");
+		}
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("ApprovePendingProject");
@@ -1633,12 +1640,16 @@ public class ResourceManagementService {
 				projectDbResponse = projectRepository.save(projectObj);
 
 				if (projectDbResponse != null) {
+					boolean shouldSyncPoPortal =
+						projectType.equalsIgnoreCase("Fixed Cost") ||
+						projectType.equalsIgnoreCase("TNM") ||
+						projectType.equalsIgnoreCase("Monitoring");
 					// STEP 2: Then call PoPortal sync (only for certain types)
-					if (projectType.equalsIgnoreCase("Fixed Cost") || projectType.equalsIgnoreCase("TNM")
-							|| projectType.equalsIgnoreCase("Monitoring")) {
+					if (shouldSyncPoPortal) {
 						ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
 
-						if (poPortalResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
+						if (poPortalResponse != null 
+        					&& ServiceResponse.STATUS_SUCCESS.equals(poPortalResponse.getServiceStatus())) {
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse("Project Approved.");
 							apiLogInfo.setApiResponse("Project Approved");
@@ -1659,8 +1670,12 @@ public class ResourceManagementService {
 								allTeamsMap.put(team.getTeamName(), members);
 							}
 						}
-						String allEmails = null;
-						allEmails = rmgMail + "," + financeMail + "," + bdMail + ",";
+						// String allEmails = null;
+						// allEmails = rmgMail + "," + financeMail + "," + bdMail + ",";
+						List<String> baseEmails = Stream.of(rmgMail, financeMail, bdMail)
+														.filter(Objects::nonNull)
+														.collect(Collectors.toList());
+						String allEmails = String.join(",", baseEmails);
 						ServiceResponse rmBdmailsResponse = poPortalAPIService
 								.getAllMailsByProjectId(projectObj.getPoProjectId());
 						Object responseObj = rmBdmailsResponse.getServiceResponse();
@@ -1673,113 +1688,127 @@ public class ResourceManagementService {
 								}
 							}
 						}
-						allEmails += String.join(",", rmBdmails);
-						System.out.println(allEmails);
+						// allEmails += String.join(",", rmBdmails);
+						List<String> finalEmails = new ArrayList<>(baseEmails);
+						finalEmails.addAll(rmBdmails);
+
+						allEmails = String.join(",", finalEmails);
+						// System.out.println(allEmails);
 						Employee employeeObj = employeeRepository.findByEmpId(resourceManagementDTO.getEmpId());
 						if (employeeObj != null) {
 							try {
-								StringBuilder html = new StringBuilder();
-								html.append("Dear Recipients, <br><br>").append(employeeObj.getName())
-										.append(" has approved the project: <b>")
-										.append(resourceManagementDTO.getName()).append("</b><br>")
-										.append("The Project Info with Team & Team Member details will be shared with PoPortal.<br><br>");
+								// StringBuilder html = new StringBuilder();
+								// html.append("Dear Recipients, <br><br>").append(employeeObj.getName())
+								// 		.append(" has approved the project: <b>")
+								// 		.append(resourceManagementDTO.getName()).append("</b><br>")
+								// 		.append("The Project Info with Team & Team Member details will be shared with PoPortal.<br><br>");
 
-								// ===== Section 1: Modified Teams =====
-								if (modifiedTeamsMap != null && !modifiedTeamsMap.isEmpty()) {
-									html.append(
-											"<h4 style='color:#2E86C1;font-family:Arial, sans-serif;'>Modified Teams With Employees</h4>");
-									html.append(
-											"<table border='1' cellspacing='0' cellpadding='8' style='border-collapse:collapse;width:100%;font-family:Arial, sans-serif;font-size:13px;border:1px solid #BFC9CA;'>");
-									html.append(
-											"<thead style='background-color:#2E86C1;color:#FFFFFF;text-align:left;'>")
-											.append("<tr>")
-											.append("<th style='padding:8px;color:#FFFFFF;'>Team Name</th>")
-											.append("<th style='padding:8px;color:#FFFFFF;'>Employee ID</th>")
-											.append("<th style='padding:8px;color:#FFFFFF;'>Employee Name</th>")
-											.append("<th style='padding:8px;color:#FFFFFF;'>Role</th>").append("</tr>")
-											.append("</thead><tbody>");
+								// // ===== Section 1: Modified Teams =====
+								// if (modifiedTeamsMap != null && !modifiedTeamsMap.isEmpty()) {
+								// 	html.append(
+								// 			"<h4 style='color:#2E86C1;font-family:Arial, sans-serif;'>Modified Teams With Employees</h4>");
+								// 	html.append(
+								// 			"<table border='1' cellspacing='0' cellpadding='8' style='border-collapse:collapse;width:100%;font-family:Arial, sans-serif;font-size:13px;border:1px solid #BFC9CA;'>");
+								// 	html.append(
+								// 			"<thead style='background-color:#2E86C1;color:#FFFFFF;text-align:left;'>")
+								// 			.append("<tr>")
+								// 			.append("<th style='padding:8px;color:#FFFFFF;'>Team Name</th>")
+								// 			.append("<th style='padding:8px;color:#FFFFFF;'>Employee ID</th>")
+								// 			.append("<th style='padding:8px;color:#FFFFFF;'>Employee Name</th>")
+								// 			.append("<th style='padding:8px;color:#FFFFFF;'>Role</th>").append("</tr>")
+								// 			.append("</thead><tbody>");
 
-									boolean alternate = false;
-									for (Map.Entry<String, List<EmployeeTeamMap>> entry : modifiedTeamsMap.entrySet()) {
-										String teamName = entry.getKey();
-										List<EmployeeTeamMap> members = entry.getValue();
+								// 	boolean alternate = false;
+								// 	for (Map.Entry<String, List<EmployeeTeamMap>> entry : modifiedTeamsMap.entrySet()) {
+								// 		String teamName = entry.getKey();
+								// 		List<EmployeeTeamMap> members = entry.getValue();
 
-										for (EmployeeTeamMap member : members) {
-											String name = employeeRepository.getEmployeeName(member.getEmpId());
-											Long employeementId = employeeRepository
-													.getEmployeeEmployeementId(member.getEmpId());
-											List<String> roleList = resourceRequirementRepository
-													.getResourceRoleFromEmpId(member.getEmpId());
-											String role = String.join(",", roleList);
-											String rowColor = alternate ? "#F8F9F9" : "#FFFFFF";
-											alternate = !alternate;
+								// 		for (EmployeeTeamMap member : members) {
+								// 			String name = employeeRepository.getEmployeeName(member.getEmpId());
+								// 			Long employeementId = employeeRepository
+								// 					.getEmployeeEmployeementId(member.getEmpId());
+								// 			List<String> roleList = resourceRequirementRepository
+								// 					.getResourceRoleFromEmpId(member.getEmpId());
+								// 			String role = roleList != null ? String.join(",", roleList) : "-";
+								// 			String rowColor = alternate ? "#F8F9F9" : "#FFFFFF";
+								// 			alternate = !alternate;
 
-											html.append("<tr style='background-color:" + rowColor + ";'>")
-													.append("<td style='padding:8px;'>")
-													.append(teamName != null ? teamName : "-").append("</td>")
-													.append("<td style='padding:8px;'>")
-													.append(employeementId != null ? "A-" + employeementId : "-")
-													.append("</td>").append("<td style='padding:8px;'>")
-													.append(name != null ? name : "-").append("</td>")
-													.append("<td style='padding:8px;'>")
-													.append(role != null ? role : "-").append("</td>").append("</tr>");
-										}
-									}
-									html.append("</tbody></table><br><br>");
+								// 			html.append("<tr style='background-color:" + rowColor + ";'>")
+								// 					.append("<td style='padding:8px;'>")
+								// 					.append(teamName != null ? teamName : "-").append("</td>")
+								// 					.append("<td style='padding:8px;'>")
+								// 					.append(employeementId != null ? "A-" + employeementId : "-")
+								// 					.append("</td>").append("<td style='padding:8px;'>")
+								// 					.append(name != null ? name : "-").append("</td>")
+								// 					.append("<td style='padding:8px;'>")
+								// 					.append(role != null ? role : "-").append("</td>").append("</tr>");
+								// 		}
+								// 	}
+								// 	html.append("</tbody></table><br><br>");
 
-								}
-								if (allTeamsMap != null && !allTeamsMap.isEmpty()) {
-									html.append(
-											"<h4 style='color:#2E86C1;font-family:Arial, sans-serif;'>All Teams & Members</h4>");
+								// }
+								// if (allTeamsMap != null && !allTeamsMap.isEmpty()) {
+								// 	html.append(
+								// 			"<h4 style='color:#2E86C1;font-family:Arial, sans-serif;'>All Teams & Members</h4>");
 
-									for (Map.Entry<String, List<EmployeeTeamMap>> entry : allTeamsMap.entrySet()) {
-										String teamName = entry.getKey();
-										List<EmployeeTeamMap> members = entry.getValue();
+								// 	for (Map.Entry<String, List<EmployeeTeamMap>> entry : allTeamsMap.entrySet()) {
+								// 		String teamName = entry.getKey();
+								// 		List<EmployeeTeamMap> members = entry.getValue();
 
-										html.append(
-												"<h5 style='color:#1F618D;margin-top:10px;font-family:Arial, sans-serif;'>Team: ")
-												.append(teamName != null ? teamName : "-").append("</h5>");
-										html.append(
-												"<table border='1' cellspacing='0' cellpadding='8' style='border-collapse:collapse;width:100%;font-family:Arial, sans-serif;font-size:13px;border:1px solid #BFC9CA;'>");
-										html.append(
-												"<thead style='background-color:#2874A6;color:#FFFFFF;text-align:left;'>")
-												.append("<tr>")
-												.append("<th style='padding:8px;color:#FFFFFF;'>Employee ID</th>")
-												.append("<th style='padding:8px;color:#FFFFFF;'>Employee Name</th>")
-												.append("<th style='padding:8px;color:#FFFFFF;'>Role</th>")
-												.append("</tr>").append("</thead><tbody>");
+								// 		html.append(
+								// 				"<h5 style='color:#1F618D;margin-top:10px;font-family:Arial, sans-serif;'>Team: ")
+								// 				.append(teamName != null ? teamName : "-").append("</h5>");
+								// 		html.append(
+								// 				"<table border='1' cellspacing='0' cellpadding='8' style='border-collapse:collapse;width:100%;font-family:Arial, sans-serif;font-size:13px;border:1px solid #BFC9CA;'>");
+								// 		html.append(
+								// 				"<thead style='background-color:#2874A6;color:#FFFFFF;text-align:left;'>")
+								// 				.append("<tr>")
+								// 				.append("<th style='padding:8px;color:#FFFFFF;'>Employee ID</th>")
+								// 				.append("<th style='padding:8px;color:#FFFFFF;'>Employee Name</th>")
+								// 				.append("<th style='padding:8px;color:#FFFFFF;'>Role</th>")
+								// 				.append("</tr>").append("</thead><tbody>");
 
-										boolean alternate2 = false;
-										for (EmployeeTeamMap member : members) {
-											String name = employeeRepository.getEmployeeName(member.getEmpId());
-											Long employeementId = employeeRepository
-													.getEmployeeEmployeementId(member.getEmpId());
-											List<String> roleList = resourceRequirementRepository
-													.getResourceRoleFromEmpId(member.getEmpId());
-											String role = String.join(",", roleList);
-											String rowColor = alternate2 ? "#F8F9F9" : "#FFFFFF";
-											alternate2 = !alternate2;
+								// 		boolean alternate2 = false;
+								// 		for (EmployeeTeamMap member : members) {
+								// 			String name = employeeRepository.getEmployeeName(member.getEmpId());
+								// 			Long employeementId = employeeRepository
+								// 					.getEmployeeEmployeementId(member.getEmpId());
+								// 			List<String> roleList = resourceRequirementRepository
+								// 					.getResourceRoleFromEmpId(member.getEmpId());
+								// 			// String role = String.join(",", roleList);
+								// 			String role = roleList != null ? String.join(",", roleList) : "-";
+								// 			String rowColor = alternate2 ? "#F8F9F9" : "#FFFFFF";
+								// 			alternate2 = !alternate2;
 
-											html.append("<tr style='background-color:" + rowColor + ";'>")
-													.append("<td style='padding:8px;'>")
-													.append(employeementId != null ? "A-" + employeementId : "-")
-													.append("</td>").append("<td style='padding:8px;'>")
-													.append(name != null ? name : "-").append("</td>")
-													.append("<td style='padding:8px;'>")
-													.append(role != null ? role : "-").append("</td>").append("</tr>");
-										}
-										html.append("</tbody></table><br>");
-									}
+								// 			html.append("<tr style='background-color:" + rowColor + ";'>")
+								// 					.append("<td style='padding:8px;'>")
+								// 					.append(employeementId != null ? "A-" + employeementId : "-")
+								// 					.append("</td>").append("<td style='padding:8px;'>")
+								// 					.append(name != null ? name : "-").append("</td>")
+								// 					.append("<td style='padding:8px;'>")
+								// 					.append(role != null ? role : "-").append("</td>").append("</tr>");
+								// 		}
+								// 		html.append("</tbody></table><br>");
+								// 	}
 
-								}
-								System.out.println(allEmails + "allEmails");
-								System.out.println(html.toString() + "html");
-								html.append("<br><b>Regards,<br>Ishine</b>");
+								// }
+								String html = projectApprovalMailBuilder.buildApprovalMail(
+										employeeObj,
+										resourceManagementDTO.getName(),
+										modifiedTeamsMap,
+										allTeamsMap,
+										employeeRepository
+								);
+								// System.out.println(allEmails + "allEmails");
+								// System.out.println(html.toString() + "html");
+								log.info("All Emails : {}", allEmails);
+								log.debug("Email HTML : {}", html.toString());
+								// html.append("<br><b>Regards,<br>Ishine</b>");
 								mailService.sendMailWithCC(allEmails, employeeObj.getEmail(),
-										"Regarding Project Approval", html.toString());
+										"Regarding Project Approval", html);
 								apiLogInfo.setApiResponse("Project Approved and mail sent");
 							} catch (Exception e) {
-								e.printStackTrace();
+								log.error("Error in approvePendingProject", e);
 								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 								response.setServiceResponse(
 										"Project Approved but unable to send email due to:" + e.getMessage());
@@ -1805,7 +1834,7 @@ public class ResourceManagementService {
 												+ resourceManagementDTO.getName() + "<br>"
 												+ "The above Project Info with Team & Team Member details will not be shared with PoPortal.<br><br>");
 							} catch (Exception e) {
-								e.printStackTrace();
+								log.error("Error in approvePendingProject", e);
 								apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 								apiLogInfo.setLogLevel("ERROR");
 							}
@@ -1825,7 +1854,7 @@ public class ResourceManagementService {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error in approvePendingProject", e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
