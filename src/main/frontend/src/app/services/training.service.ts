@@ -63,7 +63,7 @@ export class TrainingService {
   }
 
   getLockStatus(empId: number) {
-    return this.http.post(`${this.baseUrl}api/training/getLockStatus`, { empId: empId });
+    return this.http.get(`${this.baseUrl}api/training/getLockStatus`, { params: { empId: empId } });
   }
 
 

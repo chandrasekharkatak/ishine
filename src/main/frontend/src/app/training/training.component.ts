@@ -120,14 +120,9 @@ export class TrainingComponent implements OnInit, OnDestroy {
       this.lockStatus = this.currentUser.trainingLockStatus;
       this.isLocked = this.lockStatus.isLocked === true;
       
-      if (this.isLocked) {
-        // If locked, load all trainings to show the list
-        this.loadUserTrainings();
-      } else {
-        // No locked training, load trainings list
-        this.loadUserTrainings();
-      }
-      return;
+      // If locked, load all trainings to show the list
+      this.loadUserTrainings();
+      // return;
     }
 
     // If not in user object, fetch from API

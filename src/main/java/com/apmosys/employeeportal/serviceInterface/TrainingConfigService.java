@@ -111,4 +111,7 @@ public interface TrainingConfigService {
 	 * @return ServiceResponse containing training responses
 	 */
 	ServiceResponse getTrainingResponses(Integer trainingId, Integer offset, Integer limit);
+
+	ServiceResponse getLockStatus(Long empId);
+
 }

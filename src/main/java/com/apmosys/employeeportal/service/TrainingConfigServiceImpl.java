@@ -38,6 +38,7 @@ import com.apmosys.employeeportal.Exception.GlobalException;
 import com.apmosys.employeeportal.Exception.ResourceNotFoundException;
 import com.apmosys.employeeportal.Exception.TrainingException;
 import com.apmosys.employeeportal.dto.ComplianceReportDTO;
+import com.apmosys.employeeportal.dto.LockStatusDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TrainingContentDTO;
 import com.apmosys.employeeportal.dto.TrainingHistoryDTO;
@@ -57,6 +58,7 @@ import com.apmosys.employeeportal.repository.TrainingContentRepository;
 import com.apmosys.employeeportal.repository.TrainingMasterRepository;
 import com.apmosys.employeeportal.repository.TrainingSkipRepository;
 import com.apmosys.employeeportal.serviceInterface.TrainingConfigService;
+import com.apmosys.employeeportal.serviceInterface.TrainingUserService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 import com.apmosys.employeeportal.utility.TrainingFileValidator;
@@ -98,11 +100,20 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	@Autowired
 	private EmployeeQuizResponseStatusMappingRepository employeeQuizResponseStatusMappingRepository;
 
+	@Autowired
+	private TrainingUserService trainingUserService;
+
 	@Value("${file.location.documents.training}")
 	private String trainingFileLocation;
 
 	@Value("${file.training.max.size.allowed}")
 	private String maxFileSize;
+
+	@Value("${training.job.role.exclude}")
+	private String trainingJobRoleExclude;
+
+	@Value("${training.dry.run.empids.to.include}")
+	private String trainingDryRunEmpIdsToInclude;
 
 	// ==================== HR Configuration APIs ====================
 	@Override
@@ -1490,6 +1501,139 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 
+	}
+
+	@Override
+	public ServiceResponse getLockStatus(Long empId) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Get Lock Status");
+		apiLogInfo.setApiUrl("/api/training/getLockStatus");
+		apiLogInfo.setLogLevel("INFO");
+
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Employee ID: ").append(empId);
+
+			List<Long> jobRoleIds = Arrays.stream(trainingJobRoleExclude.split(","))
+						.map(String::trim)
+						.map(Long::parseLong)
+						.collect(Collectors.toList());
+
+			// Dry run empIds
+			List<Long> empIdsToInclude = Arrays.stream(trainingDryRunEmpIdsToInclude.split(","))
+					.map(String::trim)
+					.map(Long::parseLong)
+					.collect(Collectors.toList());
+
+			LockStatusDTO lockStatus = new LockStatusDTO();
+					
+			if (!jobRoleIds.contains(empId) && empIdsToInclude.contains(empId)) {
+				try {
+
+					ServiceResponse lockResponse = trainingUserService.getLockStatus(empId);
+					if (lockResponse != null && lockResponse.getServiceStatus() != null && 
+						lockResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS) &&
+						lockResponse.getServiceResponse() != null) {
+						
+						lockStatus = (LockStatusDTO) lockResponse.getServiceResponse();
+						
+						
+						if (lockStatus.getIsLocked() == null) {
+							lockStatus.setIsLocked(false);
+						}
+						if (lockStatus.getHasMandatoryTrainingPending() == null) {
+							lockStatus.setHasMandatoryTrainingPending(false);
+						}
+						if (lockStatus.getIsHardLock() == null) {
+							lockStatus.setIsHardLock(false);
+						}
+						if (lockStatus.getDeadlineCrossed() == null) {
+							lockStatus.setDeadlineCrossed(false);
+						}
+						
+						// Set training lock status for routing and navigation decisions
+						// This includes:
+						// - hasMandatoryTrainingPending: true if mandatory training exists (for routing)
+						// - isLocked: true if lock enabled (for blocking navigation)
+						// - isHardLock: true if lock enabled AND deadline crossed (hardest lock)
+						// - deadlineCrossed: true if deadline has passed
+						
+						// Log lock status for debugging and monitoring
+						if (lockStatus.getIsHardLock() != null && lockStatus.getIsHardLock()) {
+							System.out.println("Training Lock Status - HARD LOCK: Employee " + empId + 
+								" has deadline-crossed mandatory training with lock enabled. Training: " + 
+								lockStatus.getLockedTrainingName());
+						} else if (lockStatus.getIsLocked() != null && lockStatus.getIsLocked()) {
+							System.out.println("Training Lock Status - LOCKED: Employee " + empId + 
+								" has mandatory training with lock enabled. Training: " + 
+								lockStatus.getLockedTrainingName() + 
+								", Deadline Crossed: " + lockStatus.getDeadlineCrossed());
+						} else if (lockStatus.getHasMandatoryTrainingPending() != null && lockStatus.getHasMandatoryTrainingPending()) {
+							System.out.println("Training Lock Status - MANDATORY PENDING: Employee " + empId + 
+								" has mandatory training pending (no lock). Training: " + 
+								lockStatus.getLockedTrainingName());
+						}
+						apiLogInfo.setApiResponse(lockStatus.toString());
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+						logService.logMyInfo(httpRequest, apiLogInfo);
+						response.setServiceResponse(lockStatus);
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setStatusCode(HttpStatus.OK.value());
+						return response;
+					} else {
+						// If lock check returns failure or null, initialize empty lock status
+						LockStatusDTO emptyLockStatus = new LockStatusDTO();
+						emptyLockStatus.setIsLocked(false);
+						emptyLockStatus.setHasMandatoryTrainingPending(false);
+						emptyLockStatus.setIsHardLock(false);
+						emptyLockStatus.setDeadlineCrossed(false);
+						lockStatus = emptyLockStatus;
+						// System.out.println("Training Lock Status - No lock status returned for employee " + empId);
+						apiLogInfo.setApiResponse("Training Lock Status - No lock status returned for employee " + empId);
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+						apiLogInfo.setApiRequest(logBuilder.toString());
+						logService.logMyInfo(httpRequest, apiLogInfo);
+						response.setServiceResponse(lockStatus);
+						response.setStatusCode(HttpStatus.OK.value());
+						return response;
+					}
+				} catch (Exception e) {
+					// If lock check fails, initialize empty lock status to prevent NPE
+					// Log error but don't fail login - training lock check should not block login
+					e.printStackTrace();
+					LockStatusDTO emptyLockStatus = new LockStatusDTO();
+					emptyLockStatus.setIsLocked(false);
+					emptyLockStatus.setHasMandatoryTrainingPending(false);
+					emptyLockStatus.setIsHardLock(false);
+					emptyLockStatus.setDeadlineCrossed(false);
+					lockStatus = emptyLockStatus;
+					
+					// System.err.println("Error checking training lock on login for employee " + empId + ": " + e.getMessage());\
+					apiLogInfo.setApiResponse("Error checking training lock on login for employee " + empId + ": " + e.getMessage());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					apiLogInfo.setApiRequest(logBuilder.toString());
+					logService.logMyInfo(httpRequest, apiLogInfo);
+					response.setServiceResponse(lockStatus);
+					response.setStatusCode(HttpStatus.OK.value());
+					return response;
+				}
+			} else {
+				// If empId is null, initialize empty lock status
+				LockStatusDTO emptyLockStatus = new LockStatusDTO();
+				emptyLockStatus.setIsLocked(false);
+				emptyLockStatus.setHasMandatoryTrainingPending(false);
+				emptyLockStatus.setIsHardLock(false);
+				emptyLockStatus.setDeadlineCrossed(false);
+				lockStatus = emptyLockStatus;
+				// System.err.println("Warning: Employee ID is null, cannot check training lock status");
+				apiLogInfo.setApiResponse("Warning: Employee ID is null, cannot check training lock status");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				response.setServiceResponse(lockStatus);
+				response.setStatusCode(HttpStatus.OK.value());
+			}
+			return response;
 	}
 
 }
