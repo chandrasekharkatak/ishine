@@ -50,9 +50,9 @@ public class EmployeeCustomRepository {
         TypedQuery<EmployeeDetailsDTO> dataQuery = entityManager.createQuery(listQuery.toString(),
                 EmployeeDetailsDTO.class);
 
-        if (!isAllAccessEmployee) {
+//        if (!isAllAccessEmployee) {
             dataQuery.setParameter("deptIds", deptIds);
-        }
+//        }
         dataQuery.setFirstResult((int) pageable.getOffset());
         dataQuery.setMaxResults(pageable.getPageSize());
 
@@ -61,9 +61,9 @@ public class EmployeeCustomRepository {
 
         String countQueryStr = new String("SELECT COUNT(DISTINCT e.empId) " + baseQuery);
         TypedQuery<Long> countQuery = entityManager.createQuery(countQueryStr, Long.class);
-        if (!isAllAccessEmployee) {
+//        if (!isAllAccessEmployee) {
             countQuery.setParameter("deptIds", deptIds);
-        }
+//        }
         long total = countQuery.getSingleResult();
         return new PageImpl<>(results, pageable, total);
     }
@@ -116,7 +116,7 @@ public class EmployeeCustomRepository {
                 .append(baseQuery);
 
         if (empIds != null && !empIds.isEmpty()) {
-            listQuery.append("AND e.emp_id IN :empIds ");
+            listQuery.append("AND e.emp_id IN :empIds \n");
         }
         listQuery.append("" + String.format(" ORDER BY %s %s ", sortBy, sortDirection));
         System.out.println("ON_BENCH_BUT_PROJECT_MAPPED ================================= query");
@@ -125,9 +125,9 @@ public class EmployeeCustomRepository {
         List<EmployeeDetailsDTO> results = new ArrayList<>();
         try (Session session = entityManager.unwrap(Session.class)) {
             NativeQuery<Object[]> projectQuery = session.createNativeQuery(listQuery.toString());
-            if (!isAllAccessEmployee) {
+//            if (!isAllAccessEmployee) {
                 projectQuery.setParameterList("deptIds", deptIds);
-            }
+//            }
             if (empIds != null && !empIds.isEmpty()) {
                 projectQuery.setParameterList("empIds", empIds);
             }
@@ -135,9 +135,9 @@ public class EmployeeCustomRepository {
             results = groupEmployeesById(projectQuery.getResultList());
             String countQuery = "SELECT COUNT(DISTINCT e.emp_id) " + baseQuery;
             NativeQuery<?> countNative = session.createNativeQuery(countQuery);
-            if (!isAllAccessEmployee) {
+//            if (!isAllAccessEmployee) {
                 countNative.setParameterList("deptIds", deptIds);
-            }
+//            }
             total = ((Number) countNative.getSingleResult()).longValue();
         } catch (Exception e) {
             e.printStackTrace();
@@ -195,9 +195,9 @@ public class EmployeeCustomRepository {
                 projectQuery.setParameterList("empIds", empIds);
             }
             projectQuery.setParameterList("projectIds", projectIds);
-            if (!isAllAccessEmployee) {
+//            if (!isAllAccessEmployee) {
                 projectQuery.setParameter("deptIds", deptIds);
-            }
+//            }
             if (addStartAndEndDate) {
                 projectQuery.setParameter("startDate", startDate);
                 projectQuery.setParameter("endDate", endDate);
@@ -207,9 +207,9 @@ public class EmployeeCustomRepository {
             String countQuery = "SELECT COUNT(DISTINCT e.emp_id) " + baseQuery;
             NativeQuery<?> countNative = session.createNativeQuery(countQuery);
             countNative.setParameterList("projectIds", projectIds);
-            if (!isAllAccessEmployee) {
+//            if (!isAllAccessEmployee) {
                 countNative.setParameter("deptIds", deptIds);
-            }
+//            }
             if (addStartAndEndDate) {
                 countNative.setParameter("startDate", startDate);
                 countNative.setParameter("endDate", endDate);
@@ -263,7 +263,7 @@ public class EmployeeCustomRepository {
                 .append(baseQuery);
 
         if (empIds != null && !empIds.isEmpty()) {
-            listQuery.append("AND e.emp_id IN :empIds ");
+            listQuery.append("AND e.emp_id IN :empIds \n");
         }
         listQuery.append("" + String.format(" ORDER BY %s %s ", sortBy, sortDirection));
         System.out.println("MAPPED_TO_INTERNAL_AND_SHANKH ================================= query");
@@ -279,9 +279,9 @@ public class EmployeeCustomRepository {
                 projectQuery.setParameterList("empIds", empIds);
             }
             projectQuery.setParameterList("projectIds", projectIds);
-            if (!isAllAccessEmployee) {
+//            if (!isAllAccessEmployee) {
                 projectQuery.setParameter("deptIds", deptIds);
-            }
+//            }
             if (addStartAndEndDate) {
                 projectQuery.setParameter("startDate", startDate);
                 projectQuery.setParameter("endDate", endDate);
@@ -292,9 +292,9 @@ public class EmployeeCustomRepository {
             String countQuery = "SELECT COUNT(DISTINCT e.emp_id) " + baseQuery;
             NativeQuery<?> countNative = session.createNativeQuery(countQuery);
             countNative.setParameterList("projectIds", projectIds);
-            if (!isAllAccessEmployee) {
+//            if (!isAllAccessEmployee) {
                 countNative.setParameter("deptIds", deptIds);
-            }
+//            }
             if (addStartAndEndDate) {
                 countNative.setParameter("startDate", startDate);
                 countNative.setParameter("endDate", endDate);
@@ -328,9 +328,9 @@ public class EmployeeCustomRepository {
         List<EmployeeDetailsDTO> results = new ArrayList<>();
         try (Session session = entityManager.unwrap(Session.class)) {
             NativeQuery<Object[]> projectQuery = session.createNativeQuery(query.toString());
-            if (!isAllAccessEmployee) {
+//            if (!isAllAccessEmployee) {
                 projectQuery.setParameterList("deptIds", deptIds);
-            }
+//            }
             int offset = page.getPageNumber() * page.getPageSize();
             projectQuery.setFirstResult(offset);
             projectQuery.setMaxResults(page.getPageSize());
@@ -341,9 +341,9 @@ public class EmployeeCustomRepository {
 
             String countQuery = "SELECT COUNT(DISTINCT emp_id) FROM " + baseQuery;
             NativeQuery<?> countNative = session.createNativeQuery(countQuery);
-            if (!isAllAccessEmployee) {
+//            if (!isAllAccessEmployee) {
                 countNative.setParameterList("deptIds", deptIds);
-            }
+//            }
             total = ((Number) countNative.getSingleResult()).longValue();
         } catch (Exception e) {
             e.printStackTrace();
@@ -382,9 +382,9 @@ public class EmployeeCustomRepository {
 
             NativeQuery<Object[]> projectQuery = session.createNativeQuery(listQuery.toString());
             projectQuery.setParameterList("projectIds", projectIds);
-            if (!isAllAccessEmployee) {
+//            if (!isAllAccessEmployee) {
                 projectQuery.setParameter("deptIds", deptIds);
-            }
+//            }
             if (projectIdsTemp != null && !projectIdsTemp.isEmpty()) {
                 projectQuery.setParameterList("projectIdsTemp", projectIdsTemp);
             }
@@ -400,9 +400,9 @@ public class EmployeeCustomRepository {
 
             NativeQuery<?> countNative = session.createNativeQuery(countQuery.toString());
             countNative.setParameterList("projectIds", projectIds);
-            if (!isAllAccessEmployee) {
+//            if (!isAllAccessEmployee) {
                 countNative.setParameter("deptIds", deptIds);
-            }
+//            }
             if (fromDate != null && toDate != null) {
                 countNative.setParameter("fromDate", fromDate);
                 countNative.setParameter("toDate", toDate);
@@ -424,9 +424,9 @@ public class EmployeeCustomRepository {
         try (Session session = entityManager.unwrap(Session.class)) {
             NativeQuery<Object[]> nativeQuery = session.createNativeQuery(query)
                     .unwrap(org.hibernate.query.NativeQuery.class);
-            if (!isAllAccessEmployee) {
+//            if (!isAllAccessEmployee) {
                 nativeQuery.setParameter("deptIds", deptIds);
-            }
+//            }
 
             // Set pagination offsets
             int offset = page.getPageNumber() * page.getPageSize();
@@ -449,9 +449,9 @@ public class EmployeeCustomRepository {
             NativeQuery<Object[]> nativeQuery = session.createNativeQuery(query)
                     .unwrap(org.hibernate.query.NativeQuery.class);
 
-            if (!isAllAccessEmployee) {
+//            if (!isAllAccessEmployee) {
                 nativeQuery.setParameter("deptIds", deptIds);
-            }
+//            }
             Object count = nativeQuery.getSingleResult();
             return count == null ? 0 : Long.parseLong(count.toString());
 
@@ -484,7 +484,7 @@ public class EmployeeCustomRepository {
         List<Long> empIds;
         try (Session session = entityManager.unwrap(Session.class)) {
             NativeQuery<?> nativeQuery = session.createNativeQuery(query.toString());
-            if (!isAllAccessEmployee && deptIds != null && !deptIds.isEmpty()) {
+            if (deptIds != null && !deptIds.isEmpty()) {
                 nativeQuery.setParameterList("deptIds", deptIds);
             }
             if (projectIds != null) {
@@ -539,9 +539,9 @@ public class EmployeeCustomRepository {
             if (projectIds != null) {
                 nativeQuery.setParameter("projectIds", projectIds);
             }
-            if (!isAllAccessEmployee) {
+//            if (!isAllAccessEmployee) {
                 nativeQuery.setParameter("deptIds", deptIds);
-            }
+//            }
             if (fromDate != null && toDate != null) {
                 nativeQuery.setParameter("fromDate", fromDate);
                 nativeQuery.setParameter("toDate", toDate);
@@ -569,9 +569,9 @@ public class EmployeeCustomRepository {
                 .append("                  WHERE etm.empId = e.empId AND etm.active != 0 AND t.isActive = 'Y' AND p.active = 'true') \n")
                 .append(" and e.employmentstatus != 'InActive' and e.empId NOT BETWEEN 1 AND 6 \n");
 
-        if (!isAllAccessEmployee) {
+//        if (!isAllAccessEmployee) {
             query.append("and d.deptId IN :deptIds ");
-        }
+//        }
         appenCustomSearchToQuery(searchFilter, query);
         return query.toString();
     }
@@ -602,14 +602,10 @@ public class EmployeeCustomRepository {
                 .append("AND e.employmentstatus != 'InActive' \n")
                 .append("AND e.billable_type = 'Bench' \n");
 
-        if (isAllAccessEmployee) {
-            query.append(" AND pmm.active = 1 \n");
-        } else {
-            query.append(" AND d.dept_id IN :deptIds \n");
-            if (deptFlag) {
-                query.append(" AND pmm.active = 1 \n");
-            }
-        }
+//        if (!isAllAccessEmployee) {
+        	query.append(" AND d.dept_id IN :deptIds \n");
+//        } 
+        
         query.append(" GROUP BY e.emp_id,e.name,e.is_apmosys_product,e.employeement_id,d.name,e.billable \n")
                 .append(" ,e.billable_type,etm.start_date,p.project_name,t.team_name,etm.employee_role \n");
         query.append(" ) as T1 \n WHERE 1=1 \n");
@@ -632,9 +628,9 @@ public class EmployeeCustomRepository {
                 .append("AND e.billable_type = 'Bench' AND (p.po_project_type like 'FIXED%COST' OR p.po_project_type like '%TNM%') \n")
                 .append("AND e.emp_id NOT BETWEEN 1 AND 6 \n");
 
-        if (!isAllAccessEmployee) {
+//        if (!isAllAccessEmployee) {
             query.append(" AND d.dept_Id IN :deptIds ");
-        }
+//        }
         appenCustomSearchToNativeQuery(searchFilter, query, false);
         return query.toString();
     }
@@ -654,12 +650,11 @@ public class EmployeeCustomRepository {
                 .append("WHERE p.project_id IN :projectIds  \n")
                 .append("AND e.employmentstatus != 'InActive'  \n")
                 .append("AND e.emp_id NOT BETWEEN 1 AND  6 \n");
-        if (!isAllAccessEmployee) {
+//        if (!isAllAccessEmployee) {
             query.append(" AND d.dept_Id IN :deptIds ");
-        }
+//        }
         if (!projectStatus.equals("COMPLETED_IN_SHANKH")) {
-            query.append("AND etm.active != 0 AND pmm.active = 1 \n")
-                    .append("AND t.is_active = 'Y'  \n");
+            query.append("AND etm.active != 0 AND t.is_active = 'Y' \n");
         }
         if ("COMPLETED_IN_SHANKH".equals(projectStatus)
                 || projectStatus.equals("COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE")) {
@@ -706,18 +701,18 @@ public class EmployeeCustomRepository {
                 .append("JOIN projects p1 ON p1.project_id = t1.project_id  \n")
                 .append("LEFT JOIN project_manager_mapping pmm1 ON pmm1.project_id = p1.project_id AND pmm1.active = 1   \n")
                 .append("WHERE etm1.active != 0 AND t1.is_active = 'Y' AND e1.employmentstatus != 'InActive'  \n")
-                .append("AND pmm1.active = 1 AND p1.project_id IN :projectIds  \n")
+                .append("AND p1.project_id IN :projectIds  \n")
                 .append("GROUP BY e1.emp_id  \n")
                 .append("HAVING COUNT(CASE WHEN p1.po_project_id IS NULL THEN 1 END) > 0  \n")
                 .append("AND COUNT(CASE WHEN p1.po_project_id IS NOT NULL THEN 1 END) > 0  \n")
                 .append(" ) \n")
                 .append("AND e.employmentstatus != 'InActive'  \n")
                 .append("AND e.emp_id NOT BETWEEN 1 AND 6 \n");
-        if (!isAllAccessEmployee) {
+//        if (!isAllAccessEmployee) {
             query.append(" AND d.dept_Id IN :deptIds ");
-        }
+//        }
         if (!projectStatus.equals("COMPLETED_IN_SHANKH")) {
-            query.append("AND etm.active != 0 AND pmm.active = 1 \n")
+            query.append("AND etm.active != 0 \n")
                     .append("AND t.is_active = 'Y'  \n");
         }
         if ("COMPLETED_IN_SHANKH".equals(projectStatus)
@@ -759,9 +754,9 @@ public class EmployeeCustomRepository {
                 .append("AND e.emp_id NOT BETWEEN 1 AND 6  \n")
                 .append("AND e.employmentstatus != 'InActive' \n");
 
-        if (!isAllAccessEmployee) {
+//        if (!isAllAccessEmployee) {
             query.append(" AND d.dept_id IN :deptIds \n");
-        }
+//        }
         query.append(" ) as T1 \n WHERE 1=1 \n");
         appenCustomSearchToNativeQuery(searchFilter, query, true);
         return query.toString();
@@ -785,9 +780,9 @@ public class EmployeeCustomRepository {
                 .append(" AND p.active = 'true' AND t.is_active = 'Y'  \n")
                 .append(" AND etm.active != 0 AND e.employmentstatus != 'InActive' \n")
                 .append(" AND p.project_id IN :projectIds  \n");
-        if (!isAllAccessEmployee) {
+//        if (!isAllAccessEmployee) {
             query.append(" AND d.dept_id IN :deptIds ");
-        }
+//        }
 
         query.append(" AND p.project_id NOT IN (SELECT p2.project_id FROM employee_timesheets_new et \n")
                 .append(" INNER JOIN employee_timesheet_activities_mapping_new etam ON et.timesheet_id = etam.timesheet_id \n")
@@ -809,7 +804,7 @@ public class EmployeeCustomRepository {
                 .append(baseQuery);
 
         if (empIds != null && !empIds.isEmpty()) {
-            listQuery.append("AND e.emp_id IN :empIds ");
+            listQuery.append("AND e.emp_id IN :empIds \n");
         }
 
         listQuery.append(
@@ -1197,9 +1192,9 @@ public class EmployeeCustomRepository {
             String countQuery = "SELECT COUNT(DISTINCT e.emp_id) " + baseQuery;
             NativeQuery<?> countNative = session.createNativeQuery(countQuery);
             countNative.setParameterList("projectIds", projectIds);
-            if (!isAllAccessEmployee) {
+//            if (!isAllAccessEmployee) {
                 countNative.setParameter("deptIds", deptIds);
-            }
+//            }
             if (projectStatus != null && projectStatus.equals("TOTAL_EXPIRED_TNM") && addStartAndEndDate) {
                 countNative.setParameter("startDate", startDate);
                 countNative.setParameter("endDate", endDate);
@@ -1241,9 +1236,9 @@ public class EmployeeCustomRepository {
             String countQuery = "SELECT COUNT(DISTINCT e.emp_id) " + baseQuery;
             NativeQuery<?> countNative = session.createNativeQuery(countQuery);
             countNative.setParameterList("projectIds", projectIds);
-            if (!isAllAccessEmployee) {
+//            if (!isAllAccessEmployee) {
                 countNative.setParameter("deptIds", deptIds);
-            }
+//            }
             if (projectStatus != null && projectStatus.equals("TOTAL_EXPIRED_TNM") && addStartAndEndDate) {
                 countNative.setParameter("startDate", startDate);
                 countNative.setParameter("endDate", endDate);
@@ -1264,9 +1259,9 @@ public class EmployeeCustomRepository {
             StringBuilder countQuery = new StringBuilder("SELECT COUNT(DISTINCT p.project_id) ").append(baseQuery);
             NativeQuery<?> countNative = session.createNativeQuery(countQuery.toString());
             countNative.setParameterList("projectIds", projectIds);
-            if (!isAllAccessEmployee) {
+//            if (!isAllAccessEmployee) {
                 countNative.setParameter("deptIds", deptIds);
-            }
+//            }
             if (fromDate != null && toDate != null) {
                 countNative.setParameter("fromDate", fromDate);
                 countNative.setParameter("toDate", toDate);

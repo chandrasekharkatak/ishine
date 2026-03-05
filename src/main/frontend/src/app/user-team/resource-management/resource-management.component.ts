@@ -815,6 +815,7 @@ export class ResourceManagementComponent implements OnInit {
 
   @ViewChild('teamMemberAuto', { read: MatAutocompleteTrigger }) teamMemberAutoTrigger!: MatAutocompleteTrigger;
 
+  isReportTabToggleViewVisible :boolean = false;
 
   constructor(
     private filterStateService: FilterStateService,
@@ -851,7 +852,7 @@ export class ResourceManagementComponent implements OnInit {
     const deptName = String(this.currentUser.departmentName).trim();
     const empRole = String(this.currentUser.employeeRole).trim();
     this.isAccounts = deptName === 'Accounts';
-
+    this.setReportToggleViewVisible();
     this.mapSubFeatureFlag();
 
     this.route.params.subscribe((params: Params) => {
@@ -951,6 +952,9 @@ export class ResourceManagementComponent implements OnInit {
     this.isSearchEnabled = false;
     this.allProjectList = [];
     this.teamCreatedProjectList = [];
+    if (this.rmgStatusCardsComponent) {
+      this.rmgStatusCardsComponent.onDepartmentSelectionChange(this.selectedDepartmentIds);
+    }
   }
 
   showEditProjectForm(project: any) {
@@ -1169,6 +1173,10 @@ export class ResourceManagementComponent implements OnInit {
 
   toggleReportView() {
     this.showReportList = !this.showReportList;
+  }
+
+  setReportToggleViewVisible() {
+    this.isReportTabToggleViewVisible = this.currentUser?.userMapping?.some(m => m.featureName === 'Reports') ?? false;
   }
 
   goToReportList() {

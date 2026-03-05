@@ -4731,7 +4731,7 @@ boolean existsByProjectName(String projectName);
 			+ "AND DATEDIFF(CURDATE(), etm.start_date) > 30 \n"
 			+ "AND e.employmentstatus != 'InActive' \n"
 			+ "AND e.billable_type = 'Bench' AND pm.active = 1 \n"
-			+ "AND d.dept_id IN :deptIds",nativeQuery = true)
+			+ "AND d.dept_id IN :deptIds and e.emp_id NOT BETWEEN 1 AND 6 ",nativeQuery = true)
 	public Long getAllEmployeeCountOnBenchForMoreThan30DaysByDeptIds(List<Long> deptIds);
 
 	@Query(value="Select p.projectName from Project p Where LOWER(p.poNo) like %:poNo% ")

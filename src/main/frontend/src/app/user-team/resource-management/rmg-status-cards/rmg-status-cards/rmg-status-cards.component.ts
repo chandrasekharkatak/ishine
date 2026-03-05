@@ -1,5 +1,5 @@
 import { ViewportScroller } from '@angular/common';
-import { Component, ElementRef, EventEmitter, Output, Renderer2, TemplateRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, Renderer2, TemplateRef, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { Sort } from '@angular/material/sort';
@@ -37,8 +37,9 @@ import { ValidationService } from 'src/app/services/validation.service';
 
 export class RmgStatusCardsComponent {
 
+  @Input() selectedDepartmentIds: any[] = [];
   @Output() actionTriggered = new EventEmitter<{ action: string; project: any; }>();
-
+  
   @ViewChild("alert_message") alertMessageTemplateRef: TemplateRef<any>;
   @ViewChild('employee_details') employeeDetailsTemplateRef: TemplateRef<any>;
   @ViewChild('employee_project_timesheet_summary') employeeProjectTimesheetSummaryTemplateRef: TemplateRef<any>;
@@ -276,10 +277,10 @@ export class RmgStatusCardsComponent {
   EMPLOYEE_GROUPS_LIST = [
     this.EMPLOYEE_GROUPS.TOTAL,
     this.EMPLOYEE_GROUPS.MAPPED_TO_PROJECT,
+    this.EMPLOYEE_GROUPS.NOT_MAPPED_TO_ANY_PROJECT,
     this.EMPLOYEE_GROUPS.MAPPED_TO_INTERNAL,
     this.EMPLOYEE_GROUPS.MAPPED_TO_SHANKH,
     this.EMPLOYEE_GROUPS.MAPPED_TO_INTERNAL_AND_SHANKH,
-    this.EMPLOYEE_GROUPS.NOT_MAPPED_TO_ANY_PROJECT,
     this.EMPLOYEE_GROUPS.ON_BENCH_BUT_PROJECT_ASSIGNED,
     this.EMPLOYEE_GROUPS.ON_BENCH_FOR_MORE_THAN_30_DAYS,
     this.EMPLOYEE_GROUPS.WITHOUT_ANY_BILLABILITY
@@ -431,6 +432,9 @@ export class RmgStatusCardsComponent {
     this.rmgDashboardProjectRequest.projectStatus = this.PROJECT_STATUS.TOTAL.key;
     this.rmgDashboardProjectRequest.currentUserEmpId = this.currentUser.empId;
     this.rmgDashboardProjectRequest.currentUserType = this.determineUserType();
+    this.projectPageSize = this.filterStateService?.projectPageSize ? this.filterStateService.projectPageSize : 10;
+    this.rmgDashboardProjectRequest.pageSize = this.projectPageSize
+    this.selectedDeptIds = this.selectedDepartmentIds?.length > 0 ? this.selectedDepartmentIds : this.selectedDeptIds;
     this.rmgDashboardProjectRequest.departmentIds = this.selectedDeptIds;
     this.mapSubFeatureFlag();
     this.loadRMGDashboard(this.rmgDashboardProjectRequest);
@@ -1110,6 +1114,7 @@ export class RmgStatusCardsComponent {
   onProjectPageChange(event: any) {
     this.projectPage = event.pageIndex;
     this.projectPageSize = event.pageSize;
+    this.filterStateService.projectPageSize = this.projectPageSize;
     this.fetchProjectDetailsList(this.rmgProjectFilterDTO);
   }
 

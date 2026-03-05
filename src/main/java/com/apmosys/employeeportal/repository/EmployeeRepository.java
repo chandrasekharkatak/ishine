@@ -3544,7 +3544,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "                  JOIN Team t ON t.teamId = etm.teamId \n"
 			+ "                  JOIN Project p ON p.projectId = t.projectId \n"
 			+ "                  WHERE etm.empId = e.empId AND etm.active != 0 AND t.isActive = 'Y' AND p.active = 'true') \n"
-			+ " and e.employmentstatus != 'InActive' and e.empId NOT BETWEEN 1 AND 6")
+			+ " and e.employmentstatus != 'InActive' and e.empId NOT BETWEEN 1 AND 6 ")
 	Long getAllEmployeesCountNotMappedToAnyProject();
 
 	@Query(value = "SELECT COUNT(DISTINCT e.empId) from Employee e  \n"
@@ -3555,7 +3555,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ "                  JOIN Team t ON t.teamId = etm.teamId \n"
 			+ "                  JOIN Project p ON p.projectId = t.projectId \n"
 			+ "                  WHERE etm.empId = e.empId AND etm.active != 0 AND t.isActive = 'Y' AND p.active = 'true') \n"
-			+ "and e.employmentstatus != 'InActive' and d.deptId IN :deptIds")
+			+ "and e.employmentstatus != 'InActive' and d.deptId IN :deptIds and e.empId NOT BETWEEN 1 AND 6 ")
 	Long getAllEmployeesNotMappedToAnyProjectCountByDeptIds(@Param("deptIds") List<Long> deptIds);
 
 	@Query("SELECT jr.deptId "
