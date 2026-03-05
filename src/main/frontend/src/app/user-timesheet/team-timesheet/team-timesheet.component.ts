@@ -41,6 +41,9 @@ import { debounceTime } from 'rxjs/operators';
 })
 export class TeamTimesheetComponent implements OnInit {
 
+  @ViewChild("night_shift_template_revampd")
+  nightShiftConfirmModal: TemplateRef<any>;
+
   @ViewChild("previewTemplate")
   previewModal: TemplateRef<any>;
 
@@ -2515,16 +2518,17 @@ projectList: any[] = [];
 
 
   // BULK APPROVAL
-  bulkApproveByIds() {
+  bulkApproveByIds(confirmNightShift: boolean = false, ids?: number[]) {
 
-    const timesheetIds = this.getSelectedTimesheetIds();
+    const timesheetIds  = ids || this.getSelectedTimesheetIds();
     if (!timesheetIds.length) return;
 
     const payload = {
       timesheetIds,
       status: 'APPROVED',
       updatedBy: this.currentUser.empId,
-      rmId : this.currentUser.empId
+      rmId : this.currentUser.empId,
+      confirmNightShift
     };
 
     this.loaderService.requestStarted();
@@ -2534,6 +2538,24 @@ projectList: any[] = [];
       .pipe(finalize(() => this.loaderService.requestEnded()))
       .subscribe({
         next: (res: any) => {
+          const response = res?.serviceResponse;
+
+          if (response?.requiresNightShiftConfirmation) {
+
+            const modalRef = this.modalService.open(this.nightShiftConfirmModal, { centered: true });
+
+            modalRef.result.then((result) => {
+
+              if (result === 'YES') {
+                this.bulkApproveByIds(true, timesheetIds);
+              } else {
+                this.bulkApproveByIds(true, response.normalTimesheets);
+              }
+
+            }).catch(() => {});
+
+            return;
+          }
           this.modalTitle = 'Result';
         let message = '';
           if (res?.serviceStatus === 'Success') {
