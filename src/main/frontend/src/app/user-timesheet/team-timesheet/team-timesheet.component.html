@@ -804,7 +804,7 @@
                 </td>
               </tr>
               <tr *ngIf="expandedTimesheetIndex === i">
-                <td colspan="13" class="accordion-cell">
+                <td [attr.colspan]="selectedStatus === 1 ? 13 : 12" class="accordion-cell">
                   <div class="timesheet-details-accordion">
                     <div *ngFor="let location of timesheet.locationSessions || []" class="location-card mb-3">
                       <div class="location-card-header">
