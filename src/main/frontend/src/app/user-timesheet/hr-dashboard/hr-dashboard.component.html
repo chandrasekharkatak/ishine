@@ -81,7 +81,7 @@
   </select>
 </div> -->
 
-            <div class="ms-3">
+            <div class="ms-3" *ngIf="!(isClientDashboard && toggleValue)">
                 <label class="info-label mb-1 fw-bold">Billable Type</label>
                 <div class="billable-type-field">
                     <mat-form-field appearance="outline" class="w-100">
