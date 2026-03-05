@@ -321,23 +321,29 @@ public class TimesheetValidationHelper {
         }
         public void validateHalfDayLeaveIfRequired(EmployeeTimesheetDTO empDTO) {
 
-    // Change this to your actual Half Day ID
-    final Integer HALF_WORKING_DAY_ID = 8;
+            if (empDTO == null || empDTO.getDayTypeId() == null) {
+                return;
+            }
 
-    if (empDTO.getDayTypeId() != null 
-            && empDTO.getDayTypeId().equals(HALF_WORKING_DAY_ID)) {
+            DayTypeMasterNew dayType = dayTypeMasterNewRepository
+                    .findById(empDTO.getDayTypeId())
+                    .orElseThrow(() -> new TimesheetValidationFailedException("Invalid day type. Please try again."));
 
-        Integer leaveCount = employeeLeaveRepository
-                .existsLeaveForDate(empDTO.getEmpId(), empDTO.getDate());
+            DayTypeCode incomingDayType = DayTypeCode.fromDbValue(dayType.getDayType());
 
-        if (leaveCount == null || leaveCount == 0) {
+            // Only enforce half‑day leave prerequisite for Half‑day Working timesheets
+            if (incomingDayType != DayTypeCode.HALF_DAY_WORKING) {
+                return;
+            }
 
-            throw new RuntimeException(
-                "You need to fill half day leave first to fill half working day timesheet"
-            );
+            Integer leaveCount = employeeLeaveRepository
+                    .existsLeaveForDate(empDTO.getEmpId(), empDTO.getDate());
+
+            if (leaveCount == null || leaveCount == 0) {
+                throw new TimesheetValidationFailedException(
+                        "You need to fill half day leave first to fill half working day timesheet");
+            }
         }
-    }
-}
 
       public void validateLocationWiseProjectAndActivities(EmployeeTimesheetDTO empDTO) {
 

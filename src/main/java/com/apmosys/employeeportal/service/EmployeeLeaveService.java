@@ -1835,14 +1835,30 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 						}
 						
 						cronJobService.sendHrDepartmentNotificationUpdateCase(leaveDTO, leavetype);
-						List<EmployeeTimesheetsNew> existingTS = employeeTimesheetsNewRepository.findByEmpIdAndDateBetween(leaveDTO.getEmpId(),oldFromDate,oldToDate);
-						    if (existingTS != null && !existingTS.isEmpty()) {
-	                            for (EmployeeTimesheetsNew ts : existingTS) {
-	                                employeeTimesheetsNewRepository.cleanTimesheetById(ts.getTimesheetId());
-	                            }
-	                        }
-	                        // entityManager.flush();
-						//Timesheet Update
+
+						// 1) Clean timesheets for OLD leave date range
+						List<EmployeeTimesheetsNew> existingTS = employeeTimesheetsNewRepository
+								.findByEmpIdAndDateBetween(leaveDTO.getEmpId(), oldFromDate, oldToDate);
+						if (existingTS != null && !existingTS.isEmpty()) {
+							for (EmployeeTimesheetsNew ts : existingTS) {
+								employeeTimesheetsNewRepository.cleanTimesheetById(ts.getTimesheetId());
+							}
+						}
+
+						// 2) Clean timesheets for NEW leave date range as well
+						LocalDate newFromDate = LocalDate.parse(leaveDTO.getFromDate());
+						LocalDate newToDate = LocalDate.parse(leaveDTO.getToDate());
+						List<EmployeeTimesheetsNew> upcomingTS = employeeTimesheetsNewRepository
+								.findByEmpIdAndDateBetween(leaveDTO.getEmpId(), newFromDate, newToDate);
+						if (upcomingTS != null && !upcomingTS.isEmpty()) {
+							for (EmployeeTimesheetsNew ts : upcomingTS) {
+								employeeTimesheetsNewRepository.cleanTimesheetById(ts.getTimesheetId());
+							}
+						}
+
+						// entityManager.flush();
+
+						// Timesheet Update
 						// IF Employee is Applying Leave for Half Day then, Automatic timesheet will not be filled as Leave
 						if(leaveDTO.getNoOfDays() > 0.5) {
 							LocalDate fromDate = LocalDate.parse(leaveDTO.getFromDate());
