@@ -381,7 +381,7 @@ public class TimesheetServiceNew {
 
 			if (timesheetValidationHelper.isWorkingDay(empDTO)) {
 //				timesheetValidationHelper.validateClientSideId(empDTO);
-
+				timesheetValidationHelper.validateClientSideIdMandatory(empDTO);
 				timesheetValidationHelper.validateWorkInWorkOutTime(empDTO);
 
 				timesheetValidationHelper.validateLocationTimeOverlap(empDTO.getLocationSessions());
