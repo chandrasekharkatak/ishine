@@ -17747,5 +17747,11 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 					            Integer totalEmployees,String sortBy,String sortDirection,
 					            int offset,int pageSize
 					    );
+
+						@Query("SELECT t.timesheetId " +
+								"FROM EmployeeTimesheetsNew t " +
+								"WHERE t.timesheetId IN :ids " +
+								"AND t.isNightShift = 1")
+						List<Long> findNightShiftTimesheetIds(@Param("ids") List<Long> ids);
 	
 }
