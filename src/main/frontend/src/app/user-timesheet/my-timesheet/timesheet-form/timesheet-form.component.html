@@ -854,11 +854,11 @@
 <!-- Night Shift Confirmation Modal -->
 <ng-template #night_shift_template>
     <div class="modal-body text-center">
-        <p>Do you have required permission for night shift from your manager?</p>
-        <button type="button" class="btn btn-success me-2">
+        <p>{{ alertMessage }}</p>
+        <button type="button" class="btn btn-success me-2" (click)="confirmNightShift()">
             Yes, proceed
         </button>
-        <button type="button" class="btn btn-danger">
+        <button type="button" class="btn btn-danger" (click)="cancelNightShift()">
             No, cancel
         </button>
     </div>

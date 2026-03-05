@@ -49,6 +49,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
 
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
+  @ViewChild("night_shift_template")
+  night_shift_template: TemplateRef<any>;
   @ViewChild("previewTemplate")
   previewModal: TemplateRef<any>;
   @ViewChild("clientSideIdUpdateOrAddModal")
@@ -2593,7 +2595,24 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    * Auto-sets toDate to next day as default, but user can change it to same date
    */
   onNightShiftChange(): void {
-    if (this.isNightShift) {
+
+  if (this.isNightShift) {
+
+    this.openAlertMod(this.night_shift_template,
+      'Do you have required permission for night shift from your manager?');
+    return;
+
+  }
+
+  this.toDate = null;
+
+  setTimeout(() => {
+    this.calculateTotalWorkingHours();
+    this.onHoursChange();
+  }, 0);
+}
+  confirmNightShift(): void {
+    this.closeAlertModal();
       if (!this.fromDate) {
         this.openAlertMod(
           this.alertTemplate,
@@ -2620,9 +2639,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
           }
         }
       }
-    } else {
-      this.toDate = null;
-    }
+    
 
     // Recalculate total presence and location hours when night shift changes
     // (toDate affects both: presence uses toDate for out-time; location hours use toDate for end date).
@@ -2632,6 +2649,13 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       this.onHoursChange();
     }, 0);
   }
+  
+  cancelNightShift() {
+
+  this.isNightShift = false;
+
+  this.closeAlertModal(); // close modal
+}
 
 
   /** Date changed: reset date-dependent form state and reload for new date. */
