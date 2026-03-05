@@ -600,6 +600,7 @@ public class TimesheetValidationHelper {
                     Integer projectId = project.getProjectId();
                     
                     if(project.getIsShadowForSelf()) continue;
+                    if(project.getIsShadowTimesheet()) continue;
 
                     // Check if client-side document is mandatory for this project
                     Boolean isClientSideMandatory =
@@ -668,6 +669,7 @@ public class TimesheetValidationHelper {
 				if (location.getProjects() == null) continue;
 				for (ProjectTimesheetDTO project : location.getProjects()) {
 					if (project.getIsShadowForSelf()) continue;
+					if (project.getIsShadowTimesheet()) continue;
 					if (Boolean.TRUE.equals(projectRepository.getClientSideIdMandatory(project.getProjectId()))) {
 						targetProjectIdsWithClientSide.add(project.getProjectId());
 						projectMap.put(project.getProjectId(), project);
@@ -2030,7 +2032,68 @@ public class TimesheetValidationHelper {
 			
 		}
 	}
+	public void validateClientSideIdMandatory(EmployeeTimesheetDTO dto) {
 
-	    
+	    if (dto.getLocationSessions() == null) {
+	        return;
+	    }
+
+	    Set<Integer> projectIds = new HashSet<>();
+
+	    for (LocationSessionDTO session : dto.getLocationSessions()) {
+	        if (session.getProjects() != null) {
+	            projectIds.addAll(
+	                session.getProjects().stream()
+	                        .map(ProjectTimesheetDTO::getProjectId)
+	                        .filter(Objects::nonNull)
+	                        .collect(Collectors.toList())
+	            );
+	        }
+	    }
+
+	    if (projectIds.isEmpty()) {
+	        return;
+	    }
+
+	    List<Object[]> result =
+	            projectRepository.findClientSiteMandatoryByProjectIds(new ArrayList<>(projectIds));
+
+	    Map<Integer, boolean[]> projectRulesMap = new HashMap<>();
+
+	    for (Object[] row : result) {
+	        Integer projectId = ((Number) row[0]).intValue();
+	        Boolean hasClientSideId = (Boolean) row[1];
+	        Boolean clientFlag = (Boolean) row[2];
+
+	        projectRulesMap.put(projectId, new boolean[]{hasClientSideId, clientFlag});
+	    }
+
+	    for (LocationSessionDTO session : dto.getLocationSessions()) {
+
+	        if (session.getProjects() == null) continue;
+
+	        for (ProjectTimesheetDTO project : session.getProjects()) {
+
+	            boolean[] rules = projectRulesMap.get(project.getProjectId());
+
+	            if (rules != null) {
+
+	                boolean hasClientSideId = rules[0];
+	                boolean clientFlag = rules[1];
+
+	                if (hasClientSideId && clientFlag) {
+
+	                    String clientSideId = project.getClientSideId();
+
+	                    if (clientSideId == null || clientSideId.trim().startsWith("NA")) {
+	                        throw new TimesheetValidationFailedException(
+	                            "Client Side ID cannot start with 'NA' for project : " + project.getProjectName()
+	                        );
+	                    }
+	                }
+	            }
+	        }
+	    }
+	}
 }
 

@@ -14,12 +14,10 @@
                 Search Employee(Skill Matrix)
             </button>
         </div>
-        <div class="col-md-6 d-flex justify-content-end align-items-center p-0">
-            <span class="toggle-label">Toggle to Employee View</span>&nbsp;&nbsp;
-            <label class="toggle-switch">
-                <input type="checkbox" (change)="goToReportList()" />
-                <span class="slider"></span>
-            </label>
+        <div class="col-md-6 d-flex justify-content-end align-items-center p-0" *ngIf="isReportTabToggleViewVisible">
+            <label> {{ 'Toggle to Employee View' }}</label>&nbsp;&nbsp;
+            <mat-slide-toggle color="primary" color="primary" [checked]="false" (change)="goToReportList()">
+            </mat-slide-toggle>
         </div>
     </div>
 
@@ -74,7 +72,7 @@
 
     <!-- Project Count & List & Employee Status Card Start -->
     <ng-container *ngIf="allProjectTable">
-        <app-rmg-status-cards #rmgStatusCards class="mb-4" (actionTriggered)="handleProjectAction($event)">
+        <app-rmg-status-cards #rmgStatusCards class="mb-4" (actionTriggered)="handleProjectAction($event)" [selectedDepartmentIds]="selectedDepartmentIds">
         </app-rmg-status-cards>
     </ng-container>
     <!-- Project Count & List & Employee Status Card End -->

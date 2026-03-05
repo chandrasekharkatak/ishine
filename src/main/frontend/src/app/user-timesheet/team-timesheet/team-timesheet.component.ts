@@ -2164,7 +2164,7 @@ openDocumentPopup(
     }
   }
 
-  this.activeDocType = toggleMode ? 'Pending' : docType;
+  this.activeDocType =  docType;
 
 
   if (toggleMode) {

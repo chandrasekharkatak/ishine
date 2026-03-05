@@ -1,5 +1,5 @@
 <div class="row mb-3">
-  <div class="col-md-12 px-0">
+  <div class="col-md-10 px-0">
     <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.employee_report"
       [ngClass]="{'active' : isEmployeeReportTable}" (click)="showEmployeeReportTable()">View Employee Report</button>
     <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.leave_report && !isAccounts"
@@ -16,6 +16,11 @@
       Report</button>-->
     <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isCustomQueryForm}"
       *ngIf="userMapping.custom_query_data && !isAccounts" (click)="showCustomQueryForm()">Custom Query Data</button>
+  </div>
+  <div class="col-md-2 px-0 d-flex justify-content-end" *ngIf="isRmgToggleViewVisible">
+    <label> {{ 'Toggle to RMG View' }}</label>&nbsp;&nbsp;
+    <mat-slide-toggle color="primary" color="primary" [checked]="true" (change)="goToRmgPage()">
+    </mat-slide-toggle>
   </div>
 </div>
 

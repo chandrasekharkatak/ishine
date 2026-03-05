@@ -330,6 +330,7 @@ dateRange: string; type: string; count: string;
     'blank'
   ];
 
+  isRmgToggleViewVisible:boolean = false;
 
   constructor(
     private authenticationService: AuthenticationService,
@@ -361,6 +362,8 @@ dateRange: string; type: string; count: string;
       this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
     });
     console.log("userMapping", this.userMapping);
+    this.setRmgToggleViewVisible();
+    
     await this.getAllDepartments();
 
     this.preventBackButton();
@@ -1640,6 +1643,19 @@ onSearchClientProject(searchData: any) {
     this.isLeaveReportTable = false;
     this.isTimesheetReportTable = false;
     this.isLeaveTimesheetReportTable = false;
+  }
+
+  setRmgToggleViewVisible() {
+    this.isRmgToggleViewVisible =
+      this.currentUser?.userMapping
+        ?.find(m => m.featureName === 'Resource Management')
+        ?.subFeatures
+        ?.some(sf => sf.subFeatureName === 'View All RMG Projects' && sf.isActive) ?? false;
+  }
+
+  goToRmgPage(){
+    console.log(this.currentUser.userMapping);
+    this.router.navigate(['/user-team/resource-management'], { state: { returnUrl: this.router.url } });
   }
 
   showDefaultMappingTable() {

@@ -10,6 +10,7 @@ export class FilterStateService {
   public deptIdList: any[] = [];
   public selectedStatusTab: any = null;
   public selectedProjectStatus: any = null;
+  public projectPageSize:any = 10;
   public myDept: boolean = false;
 
   constructor() { }

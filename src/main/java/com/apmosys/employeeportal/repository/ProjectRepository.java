@@ -4731,7 +4731,7 @@ boolean existsByProjectName(String projectName);
 			+ "AND DATEDIFF(CURDATE(), etm.start_date) > 30 \n"
 			+ "AND e.employmentstatus != 'InActive' \n"
 			+ "AND e.billable_type = 'Bench' AND pm.active = 1 \n"
-			+ "AND d.dept_id IN :deptIds",nativeQuery = true)
+			+ "AND d.dept_id IN :deptIds and e.emp_id NOT BETWEEN 1 AND 6 ",nativeQuery = true)
 	public Long getAllEmployeeCountOnBenchForMoreThan30DaysByDeptIds(List<Long> deptIds);
 
 	@Query(value="Select p.projectName from Project p Where LOWER(p.poNo) like %:poNo% ")
@@ -8870,4 +8870,7 @@ List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 	   + " inner join ProjectPoDetails ppd on ppd.projectId = p.projectId and ppd.active = true \n"
 	   + " WHERE ppd.poEndDate < CURRENT_TIMESTAMP \n")
 	public List<ExpiredProjectDTOForNotification> getExpiredPolist();
+	
+	@Query("SELECT p.projectId, p.hasClientSideId,p.clientFlag FROM Project p WHERE p.projectId IN :projectIds")
+	List<Object[]> findClientSiteMandatoryByProjectIds(@Param("projectIds") List<Integer> projectIds);
 }

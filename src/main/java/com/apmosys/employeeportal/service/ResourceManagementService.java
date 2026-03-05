@@ -15855,41 +15855,41 @@ public class ResourceManagementService {
 
 	public Long getNotMappedToAnyProjectEmployeeCount(boolean isAllAccessEmployee, List<Long> deptIds) {
 		Long count = 0l;
-		if (isAllAccessEmployee) {
-			count = employeeRepository.getAllEmployeesCountNotMappedToAnyProject();
-		} else {
+//		if (isAllAccessEmployee) {
+//			count = employeeRepository.getAllEmployeesCountNotMappedToAnyProject();
+//		} else {
 			count = employeeRepository.getAllEmployeesNotMappedToAnyProjectCountByDeptIds(deptIds);
-		}
+//		}
 		return count;
 	}
 
 	public Long getOnBenchButProjectAssignedEmployeeCount(boolean isAllAccessEmployee, List<Long> deptIds) {
 		Long count = 0l;
-		if (isAllAccessEmployee) {
-			count = projectRepository.getAllExceptionEmployeeReportCount();
-		} else {
+//		if (isAllAccessEmployee) {
+//			count = projectRepository.getAllExceptionEmployeeReportCount();
+//		} else {
 			count = projectRepository.getAllExceptionEmployeeReportCountByDeptIds(deptIds);
-		}
+//		}
 		return count;
 	}
 
 	public Long getOnBenchForMoreThan30DaysAssignedEmployeeCount(boolean isAllAccessEmployee, List<Long> deptIds) {
 		Long count = 0l;
-		if (isAllAccessEmployee) {
-			count = projectRepository.getAllEmployeeCountOnBenchForMoreThan30Days();
-		} else {
+//		if (isAllAccessEmployee) {
+//			count = projectRepository.getAllEmployeeCountOnBenchForMoreThan30Days();
+//		} else {
 			count = projectRepository.getAllEmployeeCountOnBenchForMoreThan30DaysByDeptIds(deptIds);
-		}
+//		}
 		return count;
 	}
 
 	public Long getWithoutAnyBillabilityEmployeeCount(boolean isAllAccessEmployee, List<Long> deptIds) {
 		Long count = 0l;
-		if (isAllAccessEmployee) {
-			count = employeeRepository.getAllEmployeesCountWithoutAnyBillable();
-		} else {
+//		if (isAllAccessEmployee) {
+//			count = employeeRepository.getAllEmployeesCountWithoutAnyBillable();
+//		} else {
 			count = employeeRepository.getAllEmployeesCountWithoutAnyBillableByDeptIds(deptIds);
-		}
+//		}
 		return count;
 	}
 
