@@ -1063,7 +1063,7 @@
   </div>
 
   <!-- EMPTY -->
-  <div *ngIf="!hasPreview" class="no-doc-msg">
+  <div *ngIf="!hasPreview()" class="no-doc-msg">
     <i class="fas fa-file-alt no-doc-icon"></i>
     <p class="no-doc-title">No document available</p>
     <p class="no-doc-hint">Select a project and document type above</p>
@@ -1919,5 +1919,15 @@
     <button type="button" class="btn btn-primary" (click)="modal.close()">
       OK
     </button>
+  </div>
+</ng-template>
+
+<ng-template #night_shift_template_revampd let-modal>
+  <div class="modal-body text-center">
+    <p>Are you sure you want to continue, your timesheet bulk update contain Night shift request(s) also?</p>
+    <button type="button" class="btn btn-outline-danger" (click)="modal.close('YES')">Yes, Approve All</button>&nbsp;
+    <button type="button" class="btn btn-outline-primary"
+      (click)="modal.close('NO')">Continue without Night Shift
+      Request(s)</button>&nbsp;
   </div>
 </ng-template>

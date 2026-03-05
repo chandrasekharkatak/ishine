@@ -8,11 +8,13 @@ import java.sql.Timestamp;
 	import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-	import java.util.List;
+import java.util.HashSet;
+import java.util.List;
 	import java.util.Map;
 	import java.util.Objects;
 	import java.util.Optional;
-	import java.util.function.Function;
+import java.util.Set;
+import java.util.function.Function;
 	import java.util.stream.Collectors;
 	
 	import javax.servlet.http.HttpServletRequest;
@@ -2050,6 +2052,33 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 			response.setServiceResponse(finalResponse);
 
 			return response;
+		}
+        boolean isBulkOperation = validTimesheetIds.size() > 1;
+		if (isBulkOperation && !request.isConfirmNightShift()) {
+
+			List<Long> nightShiftTimesheetIds =
+					employeeTimesheetsNewRepository.findNightShiftTimesheetIds(validTimesheetIds);
+
+			Set<Long> nightSet = new HashSet<>(nightShiftTimesheetIds);
+
+			List<Long> normalTimesheetIds = validTimesheetIds.stream()
+					.filter(id -> !nightSet.contains(id))
+					.collect(Collectors.toList());
+
+			if (!nightShiftTimesheetIds.isEmpty()) {
+
+				Map<String, Object> finalResponse = new HashMap<>();
+
+				finalResponse.put("requiresNightShiftConfirmation", true);
+				finalResponse.put("nightShiftTimesheets", nightShiftTimesheetIds);
+				finalResponse.put("normalTimesheets", normalTimesheetIds);
+				finalResponse.put("skipped", skippedTimesheets);
+
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(finalResponse);
+
+				return response;
+			}
 		}
 
 		

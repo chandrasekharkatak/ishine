@@ -8870,4 +8870,7 @@ List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 	   + " inner join ProjectPoDetails ppd on ppd.projectId = p.projectId and ppd.active = true \n"
 	   + " WHERE ppd.poEndDate < CURRENT_TIMESTAMP \n")
 	public List<ExpiredProjectDTOForNotification> getExpiredPolist();
+	
+	@Query("SELECT p.projectId, p.hasClientSideId,p.clientFlag FROM Project p WHERE p.projectId IN :projectIds")
+	List<Object[]> findClientSiteMandatoryByProjectIds(@Param("projectIds") List<Integer> projectIds);
 }
