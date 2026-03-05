@@ -1,10 +1,12 @@
+.project-config-card {
+    border-radius: 20px;
+    width: 100%;
+}
+
 .project-card-header {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px 16px;
-    border-bottom: 1px solid #ddd;
+    background-color: #fff;
+    margin: .5rem !important;
+    margin-bottom: 0 !important;
 }
 
 .card-title {
@@ -30,25 +32,57 @@
     white-space: normal;
 }
 
-.resource-requirement-count-row {
+.resource-count-row {
     align-items: center;
     margin: 0.25rem;
     margin-top: 0.5rem;
     margin-bottom: 0.5rem;
 }
 
-.resource-requirement-count {
-    background: #f7f7f7;
-    border: 1px solid #dcdada;
-    border-radius: 10px;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+.resource-count-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    /* padding: 0.50rem; */
 }
 
-.resource-requirement-count-box {
+.count-item {
     display: flex;
-    flex-direction: row;
     align-items: center;
-    justify-content: space-evenly;
+    padding-right: 30px;
+    gap: 6px;
+    white-space: nowrap;
+    font-size: 16px;
+}
+
+.count-item span {
+    font-weight: 400;
+}
+
+.count-item strong {
+    font-size: 18px;
+}
+
+.primary {
+    color: #0121cf;
+}
+
+.assigned {
+    color: #053885;
+}
+
+.approved {
+    color: #4CAF50;
+}
+
+.pending {
+    color: #FFB300;
+}
+
+.danger {
+    color: #e6241a;
 }
 
 .team-row {
@@ -253,20 +287,28 @@
     white-space: nowrap;
 }
 
-.max-width150 {
-    max-width: 150px;
+.min-width50 {
+    min-width: 50px !important;
 }
 
 .min-width100 {
-    min-width: 100px;
+    min-width: 100px !important;
 }
 
 .min-width150 {
-    min-width: 150px;
+    min-width: 150px !important;
+}
+
+.max-width100 {
+    max-width: 100px !important;
+}
+
+.max-width150 {
+    max-width: 150px !important;
 }
 
 .max-width200 {
-    max-width: 200px;
+    max-width: 200px !important;
 }
 
 .date-input-wrapper {
@@ -293,4 +335,130 @@
 .custom-border {
     border: 1px solid rgba(0, 0, 0, 0.125);
     border-radius: 5px;
+}
+
+.horizontal-row {
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+    width: 100%;
+    border: 1px solid #ddd;
+}
+
+/* New Table Start */
+.new-table-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.new-custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 5px;
+}
+
+.new-custom-table th,
+.new-custom-table td {
+    padding: 5px;
+    text-align: center;
+}
+
+.new-custom-table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f4f6f8;
+    font-weight: 600;
+    z-index: 3;
+    font-size: 14px;
+    height: 7vh;
+}
+
+/* New Table End */
+
+.custom-rounded-border {
+    border-radius: 10px;
+}
+
+.custom-table-border th {
+    border-bottom: 1px solid #dde5ed;
+}
+
+.info-icon {
+    color: #193D8A;
+    border-color: #193D8A;
+    background-color: #fff;
+}
+
+.warning-message {
+    background: #fff2f0;
+    border-left: 4px solid #e03e2b;
+    padding: 0.75rem;
+    border-radius: 16px;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.warning-icon {
+    font-size: 1rem;
+}
+
+.warning-text strong {
+    color: #b13f32;
+    display: block;
+    margin-bottom: 0.3rem;
+    font-size: 1rem;
+}
+
+.warning-text {
+    font-weight: 500;
+    color: #2c3e5c;
+}
+
+.existing-project-details-header {
+    margin-bottom: 1rem;
+    color: #1c3b5e;
+}
+
+.compact-paginator ::ng-deep {
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: 36px !important;
+    background: transparent !important;
+}
+
+.compact-paginator ::ng-deep .mat-mdc-paginator-container {
+    padding: 0 !important;
+    min-height: 36px !important;
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+.compact-paginator ::ng-deep .mat-mdc-paginator-page-size {
+    margin-right: 6px !important;
+}
+
+.compact-paginator ::ng-deep .mat-mdc-paginator-range-label {
+    margin: 0 6px !important;
+    font-size: 12px !important;
+}
+
+.compact-paginator ::ng-deep .mat-mdc-icon-button {
+    width: 30px !important;
+    height: 30px !important;
+    padding: 2px !important;
+}
+
+.compact-paginator ::ng-deep .mat-mdc-select-trigger {
+    height: 28px !important;
+    font-size: 12px !important;
+}
+
+.resource-tab-group ::ng-deep .mat-mdc-tab-body-content {
+    overflow-y: hidden;
+}
+
+.justify-evenly {
+    justify-content: space-evenly !important;
 }

@@ -2,12 +2,10 @@ package com.apmosys.employeeportal.repository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import org.hibernate.annotations.Parent;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,13 +14,11 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.dto.EmpIdAndNameDTO;
+import com.apmosys.employeeportal.dto.EmployeeProjectTimesheetCountDto;
 import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
-import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
-import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Timesheet;
-import com.apmosys.employeeportal.model.TimesheetDocumentDetails;
 
 @Repository
 public interface TimesheetsRepository extends JpaRepository<Timesheet, Long> {
@@ -11439,18 +11435,35 @@ List<Object[]> getLastFilledTimesheetByEmp(@Param("empId") Long empId);
 				, nativeQuery = true)
 	        List<Object[]> getMyReporteesAndClientSideProjectsInMonthYearNew(@Param("year") Integer year,@Param("month") Integer month,@Param("empId") Long emp_id, @Param("toDate") LocalDate toDate, @Param("fromDate") LocalDate fromDate);
           
-			@Query(value = "select p.project_id, p.project_name, p.start_date project_start_date, date(etm.start_date) etm_start_date, count(distinct et.timesheet_id) \n"
-					+ "from employee e  \n"
-					+ "inner join employee_team_mapping etm on e.emp_id = etm.emp_id \n"
-					+ "inner join teams t on etm.team_id = t.team_id \n"
-					+ "inner join projects p on t.project_id = p.project_id \n"
-					+ "inner join employee_timesheets_new et on et.emp_id = e.emp_id \n"
-					+ "left join day_type_master_new dt on et.day_type_id = dt.day_type_id \n"
-					+ "inner join employee_timesheet_activities_mapping_new etam on et.timesheet_id = etam.timesheet_id \n"
-					+ "inner join activities a on etam.activity_id = a.activity_id and a.team_id = t.team_id \n"
-					+ "where e.emp_id = :empId and et.date between DATE(:startDate) and CURDATE() \n"
-					+ "and lower(dt.day_type) like '%working%' \n"
-					+ "group by p.project_id, p.project_name, p.start_date, etm.start_date \n",nativeQuery = true)
-			public List<Object[]> findByEmpIdAndDate(Long empId, LocalDateTime startDate);
+//			@Query(value = "select p.project_id, p.project_name, p.start_date project_start_date, date(etm.start_date) etm_start_date, count(distinct et.timesheet_id) \n"
+//					+ "from employee e  \n"
+//					+ "inner join employee_team_mapping etm on e.emp_id = etm.emp_id \n"
+//					+ "inner join teams t on etm.team_id = t.team_id \n"
+//					+ "inner join projects p on t.project_id = p.project_id \n"
+//					+ "inner join employee_timesheets_new et on et.emp_id = e.emp_id \n"
+//					+ "left join day_type_master_new dt on et.day_type_id = dt.day_type_id \n"
+//					+ "inner join employee_timesheet_activities_mapping_new etam on et.timesheet_id = etam.timesheet_id \n"
+//					+ "inner join activities a on etam.activity_id = a.activity_id and a.team_id = t.team_id \n"
+//					+ "where e.emp_id = :empId and et.date between DATE(:startDate) and CURDATE() \n"
+//					+ "and lower(dt.day_type) like '%working%' \n"
+//					+ "group by p.project_id, p.project_name, p.start_date, etm.start_date \n",nativeQuery = true)
+//			public List<Object[]> findByEmpIdAndDate(Long empId, LocalDateTime startDate);
+			
+			@Query(value = "select new com.apmosys.employeeportal.dto.EmployeeProjectTimesheetCountDto( "
+					+ "p.projectId, p.projectName, date(p.startDate), date(etm.startDate), count(distinct et.timesheetId)) \n"
+					+ "FROM Employee e  \n"
+					+ "INNER JOIN EmployeeTeamMap etm on e.empId = etm.empId \n"
+					+ "INNER JOIN Team t on etm.teamId = t.teamId \n"
+					+ "INNER JOIN Project p on t.projectId = p.projectId \n"
+					+ "INNER JOIN EmployeeTimesheetsNew et on et.empId = e.empId \n"
+					+ "LEFT JOIN DayTypeMasterNew dt on et.dayTypeId = dt.dayTypeId \n"
+					+ "INNER JOIN EmployeeTimesheetActivitiesMappingNew etam on et.timesheetId = etam.timesheetId \n"
+					+ "INNER JOIN Activity a on etam.activityId = a.activityId and a.teamId = t.teamId \n"
+					+ "where e.empId = :empId and et.date between DATE(:startDate) and CURDATE() \n"
+					+ "and lower(dt.dayType) like '%working%' \n"
+					+ "group by p.projectId, p.projectName, p.startDate, etm.startDate \n")
+			public List<EmployeeProjectTimesheetCountDto> findByEmpIdAndDate(Long empId, LocalDateTime startDate);
+
+
 
 }						  

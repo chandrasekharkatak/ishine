@@ -6,6 +6,7 @@ export class RmgTeamMember {
     projectName: any;
     projectStatus: any;
     projectType: any = 'Bench';
+    isInternalProject: boolean;
     poProjectType: any;
     internalProjectType: any;
     projectStartDate: any;

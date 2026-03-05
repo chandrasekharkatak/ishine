@@ -46,6 +46,7 @@ import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
 import com.apmosys.employeeportal.dto.EmployeeJobRoleDept;
 import com.apmosys.employeeportal.dto.EmployeeOtherActiveProject;
+import com.apmosys.employeeportal.dto.EmployeeProjectTimesheetCountDto;
 import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
@@ -119,37 +120,37 @@ public class TeamsService {
 
 	@Autowired
 	ProjectRepository projectRepository;
-	
+
 	@Autowired
 	ProjectPoDetailsRepository projectPoDetailsRepository;
-	
+
 	@Autowired
 	PoDepartmentMappingRepository poDepartmentMappingRepository;
 
 	@Autowired
 	TeamRepository teamRepository;
-	
+
 	@Autowired
 	EmployeeRepository employeeRepository;
-	
+
 	@Autowired
 	EmployeeLeaveRepository employeeLeaveRepository;
 
 	@Autowired
 	EmployeeTeamMapRepository employeeTeamMapRepository;
-	
+
 	@Autowired
 	EmployeeLeavesMapRepository employeeLeavesMapRepository;
-	
+
 	@Autowired
 	LeaveBalanceLogRepository leaveBalanceLogRepository;
-	
+
 	@Autowired
 	ActivitiesRepository activitiesRepository;
-	
+
 	@Autowired
 	ClientsRepository clientsRepository;
-	
+
 	@Autowired
 	ClientLocationRepository clientLocationRepository;
 
@@ -158,34 +159,34 @@ public class TeamsService {
 
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
-	
+
 	@Autowired
 	ActivityTemplateRepository activityTemplateRepository;
-	
+
 	@Autowired
 	DepartmentRepository departmentRepository;
-	
+
 	@Autowired
 	ProjectDepartmentMapRepository projectDepartmentMapRepository;
-	
+
 	@Autowired
 	TimesheetsRepository timesheetsRepository;
-	
+
 	@Autowired
 	EmployeeTimesheetsNewRepository timesheetsRepositoryNew;
 
 	@PersistenceContext
-    private EntityManager entityManager;
-	
+	private EntityManager entityManager;
+
 	@Autowired
 	private MailService mailService;
-	
+
 	@Value("${hr.mail}")
 	private String hrMailAddress;
-	
+
 	@Value("${valid.attempt}")
 	private Integer failedAttempt;
-	
+
 	@Value("${rmg.mail}")
 	private String rmgMail;
 
@@ -200,21 +201,22 @@ public class TeamsService {
 
 	@Autowired
 	LeaveTypeMasterRepository leaveTypeMasterRepository;
-	
+
 	@Autowired
 	LeavePolicyMasterRepository leavePolicyMasterRepository;
-	
+
 	@Autowired
 	CompOffLeaveRepository compOffLeaveRepository;
-	
+
 	@Autowired
 	private HttpServletRequest httpRequest;
 
 	@Autowired
 	private LogService logService;
-	 
-	@Autowired EmployeeHirarchyCache empCache;
-	
+
+	@Autowired
+	EmployeeHirarchyCache empCache;
+
 	@Autowired
 	private ApplicationContext context;
 
@@ -235,12 +237,12 @@ public class TeamsService {
 
 	@Autowired
 	private RoleDetailsRepository roleDetailsRepository;
-	
+
 	private static final Logger log = LoggerFactory.getLogger(TeamsService.class);
 
 	@Value("${timesheet.check.period}")
 	private String timesheetCheckPeriod;
-	
+
 	@Value("${app.team.fullPrivilegeRoleIds}")
 	private String fullPrivilegeRoleIdsConfig;
 
@@ -249,23 +251,23 @@ public class TeamsService {
 
 	public ServiceResponse getAllProjectListByProjectManagerId(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
-        LogDTO apiLogInfo = new LogDTO();
+		LogDTO apiLogInfo = new LogDTO();
         //apiLogInfo.setSubFeatureName(""); 
-        apiLogInfo.setApiUrl("/api/getAllProjectListByProjectManagerId");
-        apiLogInfo.setLogLevel("INFO");
-        StringBuilder logBuilder = new StringBuilder();
+		apiLogInfo.setApiUrl("/api/getAllProjectListByProjectManagerId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
         logBuilder.append("ProjectManagerId : "+ timesheetDTO.getProjectManagerId());
-        
+
 		try {
 
 			List<Object[]> projectList = projectRepository.getAllProject();
-			
+
 			if(projectList != null) {
 				List<ProjectDTO> dtoList = new ArrayList<ProjectDTO>();
-				
+
 				projectList.forEach((object) -> {
 					ProjectDTO projectDto = new ProjectDTO();
-					
+
 					projectDto.setProjectId(object[0] != null ? Integer.valueOf(object[0].toString()) : null);
 					projectDto.setEmployeeName(object[1] != null ? object[1].toString() : null);
 					projectDto.setProjectName(object[2] != null ? object[2].toString() : null);
@@ -273,19 +275,19 @@ public class TeamsService {
 					projectDto.setDepartmentName(object[4] != null ? object[4].toString() : null);
 					projectDto.setClientName(object[5] != null ? object[5].toString() : null);
 					projectDto.setClientLocation(object[6] != null ? object[6].toString() : null);
-					
+
 					dtoList.add(projectDto);
 				});
-				
+
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse("Project List Fetched :" + dtoList.size());			
+				apiLogInfo.setApiResponse("Project List Fetched :" + dtoList.size());
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No Projects found.");
-				apiLogInfo.setApiResponse("No projects found");			
+				apiLogInfo.setApiResponse("No projects found");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 
 			}
@@ -306,31 +308,31 @@ public class TeamsService {
 	@Transactional
 	public ServiceResponse createTeam(TeamDTO teamDTO) {
 		ServiceResponse response = new ServiceResponse();
-        LogDTO apiLogInfo = new LogDTO();
-        apiLogInfo.setSubFeatureName("createTeam");
-        apiLogInfo.setApiUrl("/api/createTeam");
-        apiLogInfo.setLogLevel("INFO");
-        StringBuilder logBuilder = new StringBuilder();
-        logBuilder.append("TeamId : " + teamDTO.getTeamId() + "  ,TeamName : " + teamDTO.getTeamName()
-         + " ,TeamLeadName :" + teamDTO.getTeamLeadName());
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("createTeam");
+		apiLogInfo.setApiUrl("/api/createTeam");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("TeamId : " + teamDTO.getTeamId() + "  ,TeamName : " + teamDTO.getTeamName()
+				+ " ,TeamLeadName :" + teamDTO.getTeamLeadName());
 		try {
 
 			String teamLeadName = null;
-			
+
 			if(teamDTO.getTeamLeadId() != null) {
-				 
+
 				Optional<Employee> getTeamLeadData = employeeRepository.findById(teamDTO.getTeamLeadId());
 				if(!getTeamLeadData.isEmpty()) {
 					Employee empObj = getTeamLeadData.get();
-					
+
 					teamLeadName = empObj.getName();
 				}
 			}else {
 				teamLeadName = "NA";
 			}
-			
+
 			Team newTeam = new Team();
-			
+
 			// Multiple department
 			StringBuilder department = new StringBuilder("");
 			for(String deptId: teamDTO.getDepartmentList()) {
@@ -342,14 +344,14 @@ public class TeamsService {
 			newTeam.setProjectId(teamDTO.getProjectId());
 			newTeam.setTeamLeadName(teamLeadName);
 			newTeam.setCreatedBy(teamDTO.getCreatedBy());
-			newTeam.setCreatedOn(new Timestamp(System.currentTimeMillis())); 
+			newTeam.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 			newTeam.setIsActive("Y");
 			newTeam.setDeptIds(department.toString());
-			
+
 			Team teamCreated = teamRepository.save(newTeam);
 
 			if (teamCreated != null) {
-				
+
 				List<EmployeeTeamMapDTO> teamMembersList = teamDTO.getAllTeamMemberList();
 
 				Optional.ofNullable(teamMembersList).ifPresentOrElse((list) -> {
@@ -366,7 +368,7 @@ public class TeamsService {
 						Project projectObj = projectRepository.getById(teamDTO.getProjectId());
 						List<EmployeeTeamMap> mapList = new ArrayList<>();
 						List<Long> deptIds = new ArrayList<>();
-						
+
 						EmployeeTeamMap map = new EmployeeTeamMap();
 						// Add teamLead
 						if(teamDTO.getTeamLeadId() != null) {
@@ -376,16 +378,16 @@ public class TeamsService {
 							map.setEmployeeRole("TeamLead");
 							mapList.add(map);
 						}
-						
+
 						// Add HOD of selected Department
 						for(String deptId: teamDTO.getDepartmentList()) {
 							Department departmentObj = departmentRepository.getById(Long.parseLong(deptId));
 							deptIds.add(Long.parseLong(deptId));
 							if(departmentObj != null) {
-								
+
 								//Check if HOD is already added
 								EmployeeTeamMap isFound = mapList.stream().filter(team -> departmentObj.getHodId().equals(team.getEmpId())).findFirst().orElse(null);
-								
+
 								if(isFound != null) {
 									isFound.setEmployeeRole(isFound.getEmployeeRole()+","+"HOD");
 								}else {
@@ -394,18 +396,20 @@ public class TeamsService {
 									map.setEmpId(departmentObj.getHodId());
 									map.setTeamId(teamCreated.getTeamId());
 									map.setEmployeeRole("HOD");
-									mapList.add(map);									
+									mapList.add(map);
 								}
-								
+
 							}
 						}
-						
+
 						// Add project Manager
 						if(projectObj != null) {
-							
-							//Check if ProjManager is already added
-							EmployeeTeamMap isFound = mapList.stream().filter(team -> projectObj.getProjectManagerId().equals(team.getEmpId())).findFirst().orElse(null);
-							
+
+							// Check if ProjManager is already added
+							EmployeeTeamMap isFound = mapList.stream()
+									.filter(team -> projectObj.getProjectManagerId().equals(team.getEmpId()))
+									.findFirst().orElse(null);
+
 							if(isFound != null) {
 								isFound.setEmployeeRole(isFound.getEmployeeRole()+","+"Manager");
 							}else {
@@ -414,7 +418,7 @@ public class TeamsService {
 								map.setEmpId(projectObj.getProjectManagerId());
 								map.setTeamId(teamCreated.getTeamId());
 								map.setEmployeeRole("Manager");
-								mapList.add(map);								
+								mapList.add(map);
 							}
 						}
 
@@ -425,7 +429,7 @@ public class TeamsService {
 							}
 							EmployeeTeamMap teamMemberMap = new EmployeeTeamMap();
 							List<Department> deptObj = departmentRepository.findByDeptIdIn(deptIds);
-							
+
 							//check If selected member are not HOD,projManager, TeamLead
 							if(( (teamDTO.getTeamLeadId() == null) || (teamDTO.getTeamLeadId() != null && !teamDTO.getTeamLeadId().equals(teamMember.getEmpId())) ) && 
 									!projectObj.getProjectManagerId().equals(teamMember.getEmpId())
@@ -439,30 +443,30 @@ public class TeamsService {
 								teamMemberMap.setActive((long) 1);
 								teamMemberMap.setEmployeeRole(str.toString());
 								mapList.add(teamMemberMap);
-								
+
 							}else {
 								// If member already added as HOD,manager or teamLead --> check activity persona
 								int index = IntStream.range(0, mapList.size())
-									     .filter(i -> mapList.get(i).getEmpId().equals(teamMember.getEmpId()))
+										.filter(i -> mapList.get(i).getEmpId().equals(teamMember.getEmpId()))
 									     .findFirst()
 									     .orElse(-1);
-								
+
 								if(!str.toString().contains(mapList.get(index).getEmployeeRole())) {
 									str.append(mapList.get(index).getEmployeeRole()).append(",");
 								}
-								
+
 								if(index >= 0) {
 									mapList.get(index).setEmployeeRole(str.toString());
 								}
 							}
 						});
-						
+
 						// Mapp activities to Team according to departments
 						Activity newActivityCreated = null;
 						for(String deptId: teamDTO.getDepartmentList()) {
 							List<ActivityTemplate> activityTemplate = activityTemplateRepository.getByDeptId(Long.parseLong(deptId));
 							if(!activityTemplate.isEmpty()) {
-								
+
 								for(ActivityTemplate object: activityTemplate) {
 									Activity newActivity = new Activity();
 
@@ -531,12 +535,12 @@ public class TeamsService {
 	public ServiceResponse getAllTeamsByProjectId(TeamDTO teamDTO) {
 		ServiceResponse response = new ServiceResponse();
 
-     LogDTO apiLogInfo = new LogDTO();
+		LogDTO apiLogInfo = new LogDTO();
      //apiLogInfo.setSubFeatureName("");
-     apiLogInfo.setApiUrl("/api/getAllTeamsByProjectId");
-     apiLogInfo.setLogLevel("INFO");
-     StringBuilder logBuilder = new StringBuilder();
-     logBuilder.append("ProjectId : " + teamDTO.getProjectId());
+		apiLogInfo.setApiUrl("/api/getAllTeamsByProjectId");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("ProjectId : " + teamDTO.getProjectId());
 		try {
 
 			List<Object[]> objectList = teamRepository.projectTeamsByProjectId(teamDTO.getProjectId());
@@ -546,36 +550,36 @@ public class TeamsService {
 				if (list.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No teams found. Teams list is empty");
-					apiLogInfo.setApiResponse("No teams found. Teams list is empty");			
+					apiLogInfo.setApiResponse("No teams found. Teams list is empty");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-					
-				} else {
-					
-					List<TeamDTO> dtoList = new ArrayList<TeamDTO>();
-						
-						list.forEach((object) -> {
-							TeamDTO dto = new TeamDTO();
 
-							dto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
-							dto.setProjectName(object[1] != null ? object[1].toString() : null);
-							dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
-							dto.setTeamName(object[3] != null ? object[3].toString() : null);
-							dto.setTeamLeadId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
-							dto.setTeamLeadName(object[5] != null ? object[5].toString() : null);
-							dto.setProjectManagerId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
-							dto.setProjectManagerName(object[7] != null ? object[7].toString() : null);
-							dto.setDepartmentName(object[8] != null ? object[8].toString() : null);
-							dto.setCreatedByName(object[9] != null ? object[9].toString() : null);
-							dto.setCreatedOn(object[10] != null ? object[10].toString() : null);
-							dto.setIsActive(object[11] != null ? object[11].toString() : null);
-							dto.setTeamLeadDeptId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
-							dto.setDepartmentList(object[13] != null ? object[13].toString().split(",") : null);
-							dtoList.add(dto);
-						});
-						
+				} else {
+
+					List<TeamDTO> dtoList = new ArrayList<TeamDTO>();
+
+					list.forEach((object) -> {
+						TeamDTO dto = new TeamDTO();
+
+						dto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
+						dto.setProjectName(object[1] != null ? object[1].toString() : null);
+						dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+						dto.setTeamName(object[3] != null ? object[3].toString() : null);
+						dto.setTeamLeadId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
+						dto.setTeamLeadName(object[5] != null ? object[5].toString() : null);
+						dto.setProjectManagerId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+						dto.setProjectManagerName(object[7] != null ? object[7].toString() : null);
+						dto.setDepartmentName(object[8] != null ? object[8].toString() : null);
+						dto.setCreatedByName(object[9] != null ? object[9].toString() : null);
+						dto.setCreatedOn(object[10] != null ? object[10].toString() : null);
+						dto.setIsActive(object[11] != null ? object[11].toString() : null);
+						dto.setTeamLeadDeptId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
+						dto.setDepartmentList(object[13] != null ? object[13].toString().split(",") : null);
+						dtoList.add(dto);
+					});
+
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
-					apiLogInfo.setApiResponse("All Teams By ProjectId fetched" + dtoList.size());			
+					apiLogInfo.setApiResponse("All Teams By ProjectId fetched" + dtoList.size());
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 
@@ -607,24 +611,24 @@ public class TeamsService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("TeamId : " + teamDTO.getTeamId() + " ,teamName:" + teamDTO.getTeamName());
 		try {
-			
+
 			Optional<Team> team = teamRepository.findById(teamDTO.getTeamId());
 			Long teamCount = employeeTeamMapRepository.countByTeamId(teamDTO.getTeamId());
 			if(teamCount == 0) {
-				
+
 				teamRepository.deleteById(teamDTO.getTeamId());
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Team deleted successfully.");
-				apiLogInfo.setApiResponse("team deleted successfully");			
+				apiLogInfo.setApiResponse("team deleted successfully");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}else {
 				team.ifPresent((teamFound) -> {
 					teamFound.setIsActive("N");
 					teamRepository.save(teamFound);
-					});
+				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Team Status changed to InActive");
-				apiLogInfo.setApiResponse("Team Status Changed to InActive");			
+				apiLogInfo.setApiResponse("Team Status Changed to InActive");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 		} catch (Exception e) {
@@ -644,7 +648,7 @@ public class TeamsService {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		//apiLogInfo.setSubFeatureName("");
-		apiLogInfo.setApiUrl("/api/getTeamMembersByTeamId"); 
+		apiLogInfo.setApiUrl("/api/getTeamMembersByTeamId");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("TeamId : " +  teamDTO.getTeamId());
@@ -658,8 +662,8 @@ public class TeamsService {
 				if (list.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No team members found. Team members list is empty");
-                    apiLogInfo.setApiResponse("No team members found.team members list is empty");			
-                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					apiLogInfo.setApiResponse("No team members found.team members list is empty");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				} else {
 					List<EmployeeTeamMapDTO> dtoList = new ArrayList<EmployeeTeamMapDTO>();
 
@@ -674,21 +678,21 @@ public class TeamsService {
 						dto.setEmployeeRole(employeeRole);
 						dto.setTeamMemberName(object[8] != null ? object[8].toString() : null);
 						dto.setTeamMemberDeptId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
-						
+
 						dtoList.add(dto);
 					});
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
-                    apiLogInfo.setApiResponse("TeamMembers List By TeamId fetched:" + dtoList.size());			
-                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					apiLogInfo.setApiResponse("TeamMembers List By TeamId fetched:" + dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 
 			}, () -> {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No team members found. Team members list is null");
-                apiLogInfo.setApiResponse("No team members found. team members list is null");			
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiResponse("No team members found. team members list is null");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			});
 
 		} catch (Exception e) {
@@ -699,7 +703,7 @@ public class TeamsService {
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
 
-			
+
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
@@ -709,7 +713,7 @@ public class TeamsService {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		//apiLogInfo.setSubFeatureName("");
-		apiLogInfo.setApiUrl("/api/getTeamMembersByTeamIdBiomax"); 
+		apiLogInfo.setApiUrl("/api/getTeamMembersByTeamIdBiomax");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("TeamId : " +  teamDTO.getTeamId());
@@ -723,8 +727,8 @@ public class TeamsService {
 				if (list.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No team members found. Team members list is empty");
-                    apiLogInfo.setApiResponse("No team members found.team members list is empty");			
-                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					apiLogInfo.setApiResponse("No team members found.team members list is empty");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				} else {
 					List<EmployeeTeamMapDTO> dtoList = new ArrayList<EmployeeTeamMapDTO>();
 
@@ -739,21 +743,21 @@ public class TeamsService {
 						//dto.setEmployeeRole(employeeRole);
 						dto.setTeamMemberName(object[2] != null ? object[2].toString() : null);
 						//dto.setTeamMemberDeptId(object[9] != null ? Long.parseLong(object[9].toString()) : null);
-						
+
 						dtoList.add(dto);
 					});
 
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
-                    apiLogInfo.setApiResponse("TeamMembers List By TeamId fetched:" + dtoList.size());			
-                    apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+					apiLogInfo.setApiResponse("TeamMembers List By TeamId fetched:" + dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 
 			}, () -> {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No team members found. Team members list is null");
-                apiLogInfo.setApiResponse("No team members found. team members list is null");			
-                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiResponse("No team members found. team members list is null");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			});
 
 		} catch (Exception e) {
@@ -764,7 +768,7 @@ public class TeamsService {
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
 
-			
+
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
@@ -783,7 +787,7 @@ public class TeamsService {
 		try {
 			List<EmployeeTeamMapDTO> allTeamMemberList = teamDTO.getAllTeamMemberList();
 			List<EmployeeTeamMapDTO> updatedTeamMemberList = teamDTO.getUpdatedTeamMemberList();
-			
+
 			String teamLeadName = null;
 			TeamDTO teamObj = new TeamDTO();
 
@@ -794,33 +798,33 @@ public class TeamsService {
 					Employee empObj = getTeamLeadData.get();
 
 					teamLeadName = empObj.getName();
-					teamObj.setTeamLeadName(teamLeadName);	
+					teamObj.setTeamLeadName(teamLeadName);
 				}
 			} else {
 				teamLeadName = "NA";
 			}
-			
+
 			if(!allTeamMemberList.isEmpty()) {
-				
+
 				// Case 5 : Updating Existing Member
 				allTeamMemberList.stream().filter((existingMember) -> existingMember.getEmployeeTeamMapId() != null)
-				.forEach((employee) -> {
-					StringBuilder str = new StringBuilder("");
+						.forEach((employee) -> {
+							StringBuilder str = new StringBuilder("");
 					for(String role: employee.getEmployeeRole()) {
-						str.append(role).append(",");
-					}
-					
+								str.append(role).append(",");
+							}
+
 					EmployeeTeamMap map = employeeTeamMapRepository.findByEmployeeTeamMapId(employee.getEmployeeTeamMapId());
-					map.setEmployeeRole(str.toString());
-					employeeTeamMapRepository.save(map);
-				});
+							map.setEmployeeRole(str.toString());
+							employeeTeamMapRepository.save(map);
+						});
 			}
 
 			if (!updatedTeamMemberList.isEmpty()) {
 				Optional<Team> teamObject = teamRepository.findById(teamDTO.getTeamId());
 
 				teamObject.ifPresentOrElse((teamFound) -> {
-					
+
 					StringBuilder department = new StringBuilder("");
 					for(String deptId: teamDTO.getDepartmentList()) {
 						department.append(deptId).append(",");
@@ -837,12 +841,12 @@ public class TeamsService {
 						// Case 1 : No existing Team Members + Adding New Member in Update
 						updatedTeamMemberList.stream().filter((teamMember) -> teamMember.getEmployeeTeamMapId() == null)
 								.forEach((employee) -> {
-									
+
 									StringBuilder str = new StringBuilder("");
 									for(String role: employee.getEmployeeRole()) {
 										str.append(role).append(",");
 									}
-									
+
 									EmployeeTeamMap map = new EmployeeTeamMap();
 									map.setEmpId(employee.getEmpId());
 									map.setTeamId(teamUpdated.getTeamId());
@@ -855,7 +859,7 @@ public class TeamsService {
 						updatedTeamMemberList.stream().filter((teamMember) -> teamMember.getEmployeeTeamMapId() != null)
 								.forEach((employee) -> {
 //									employee.setActive((long) 0);
-									
+
 									EmployeeTeamMap map = employeeTeamMapRepository.findByEmployeeTeamMapId(employee.getEmployeeTeamMapId());
 									map.setActive((long) 0);
 									map.setUpdatedOn(stringToDateTimeParser.getCurrentDateTime());
@@ -864,17 +868,17 @@ public class TeamsService {
 								});
 
 						// Case 3 : Removed Existing Member + Added New Member (Combination of Case 1&2)
-						
+
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Team updated.");
-						apiLogInfo.setApiResponse("Team updated");			
+						apiLogInfo.setApiResponse("Team updated");
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 
 					} else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Team updation failed.");
-						apiLogInfo.setApiResponse("Team updation failed");			
+						apiLogInfo.setApiResponse("Team updation failed");
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 
 					}
@@ -882,7 +886,7 @@ public class TeamsService {
 				}, () -> {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Team not found.");
-					apiLogInfo.setApiResponse("Team not Found");			
+					apiLogInfo.setApiResponse("Team not Found");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 
 				});
@@ -893,7 +897,7 @@ public class TeamsService {
 				Optional<Team> teamObject = teamRepository.findById(teamDTO.getTeamId());
 
 				teamObject.ifPresentOrElse((teamFound) -> {
-					
+
 					StringBuilder department = new StringBuilder("");
 					for(String deptId: teamDTO.getDepartmentList()) {
 						department.append(deptId).append(",");
@@ -904,17 +908,17 @@ public class TeamsService {
 					teamFound.setTeamLeadName(teamObj.getTeamLeadName());
 					teamFound.setDeptIds(department.toString());
 					Team teamUpdated = teamRepository.save(teamFound);
-					
+
 					if (teamUpdated.getTeamId() != null) {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Team updated.");
-						apiLogInfo.setApiResponse("Team updated");			
+						apiLogInfo.setApiResponse("Team updated");
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 					} else {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Team updation failed.");
-						apiLogInfo.setApiResponse("Team updation failed");			
+						apiLogInfo.setApiResponse("Team updation failed");
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 
 					}
@@ -922,16 +926,16 @@ public class TeamsService {
 				}, () -> {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Team not found.");
-					apiLogInfo.setApiResponse("Team not found");			
+					apiLogInfo.setApiResponse("Team not found");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 
 				});
 			}
-			
+
 			//Add Default Activities which are not mapped
 			List<Activity> activityList = activitiesRepository.findByTeamId(teamDTO.getTeamId());
 			Set<Long> activityDeptId = new HashSet<>();
-			
+
 			if(!activityList.isEmpty()) {
 				activityList.forEach((object) -> {
 					String[] ids = object.getDeptIds().split(",");
@@ -940,7 +944,7 @@ public class TeamsService {
 					}
 				});;
 			}
-			
+
 			//Add activities if not added
 			if(!activityDeptId.isEmpty()){
 				for(Long deptId : activityDeptId) {
@@ -948,15 +952,15 @@ public class TeamsService {
 					Long teamId = teamDTO.getTeamId();
 					List<Activity> activityPresent = activitiesRepository.getActivityByTeamIdAndDepts(departmentId, teamDTO.getTeamId());
 					String[] employeeRoles = {"TeamLead","Employee", "HOD", "Manager"};
-					
+
 					if(!activityPresent.isEmpty()) {
 						for(String role : employeeRoles) {
 							boolean contain = containsEmployeeRole(activityPresent, role);
-							
+
 							if(!contain) {
 								List<ActivityTemplate> activityTemplate = activityTemplateRepository.getByDeptIdAndEmployeeRole(deptId, role);
 								if(!activityTemplate.isEmpty()) {
-									
+
 									for(ActivityTemplate object: activityTemplate) {
 										Activity newActivity = new Activity();
 
@@ -972,15 +976,15 @@ public class TeamsService {
 							}
 						}
 					}
-				}				
+				}
 			}
-			
+
 			// Add activity if new Department added in update team
 			for(String deptId: teamDTO.getDepartmentList()) {
 				if(!activityDeptId.contains(Long.parseLong(deptId))) {
 					List<ActivityTemplate> activityTemplate = activityTemplateRepository.getByDeptId(Long.parseLong(deptId));
 					if(!activityTemplate.isEmpty()) {
-						
+
 						for(ActivityTemplate object: activityTemplate) {
 							Activity newActivity = new Activity();
 
@@ -1008,11 +1012,11 @@ public class TeamsService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	
+
 	public boolean containsEmployeeRole(final List<Activity> list, final String employeeName){
-	    return list.stream().anyMatch(o -> o.getEmployeeRole().equals(employeeName));
+		return list.stream().anyMatch(o -> o.getEmployeeRole().equals(employeeName));
 	}
-	
+
 	public ServiceResponse getAllMyTeamsByEmpId(EmployeeDTO employeeDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -1023,7 +1027,7 @@ public class TeamsService {
 		logBuilder.append("EmpId : " + employeeDTO.getEmpId());
 		String customQuery = "";
 		try {
-			
+
 			String employeeRole = employeeDTO.getEmployeeRole();
 			if(employeeRole.equals("SuperAdmin") || employeeRole.equals("HR") || employeeRole.equals("HOD")) {
 				customQuery = "t.created_by = "+ employeeDTO.getEmpId() +" OR p.department_name = '"+ employeeDTO.getDepartmentName()+"' OR p.project_manager_id = "+ employeeDTO.getEmpId() +" OR t.team_lead_id = "+employeeDTO.getEmpId();
@@ -1034,7 +1038,7 @@ public class TeamsService {
 			}else {
 				customQuery = "t.created_by = "+ employeeDTO.getEmpId();
 			}
-			
+
 			List<Object[]> objectList = getAllMyTeamsByCustomQuery(customQuery);
 
 			Optional.ofNullable(objectList).ifPresentOrElse((list) -> {
@@ -1042,43 +1046,43 @@ public class TeamsService {
 				if (list.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No teams found. Teams list is empty");
-					apiLogInfo.setApiResponse("No teams found. teams list is empty");			
+					apiLogInfo.setApiResponse("No teams found. teams list is empty");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				} else {
-					
-					List<TeamDTO> dtoList = new ArrayList<TeamDTO>();
-						
-						list.forEach((object) -> {
-							TeamDTO dto = new TeamDTO();
 
-							dto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
-							dto.setProjectName(object[1] != null ? object[1].toString() : null);
-							dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
-							dto.setTeamName(object[3] != null ? object[3].toString() : null);
-							dto.setTeamLeadId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
-							dto.setTeamLeadName(object[5] != null ? object[5].toString() : null);
-							dto.setProjectManagerId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
-							dto.setProjectManagerName(object[7] != null ? object[7].toString() : null);
-							dto.setDepartmentName(object[8] != null ? object[8].toString() : null);
-							dto.setCreatedByName(object[9] != null ? object[9].toString() : null);
-							dto.setCreatedOn(object[10] != null ? object[10].toString() : null);
-							dto.setIsActive(object[11] != null ? object[11].toString() : null);
-							dto.setTeamLeadDeptId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
-							dto.setDepartmentList(object[13] != null ? object[13].toString().split(",") : null);
-							dto.setEmpId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
-							dtoList.add(dto);
-						});
-						
+					List<TeamDTO> dtoList = new ArrayList<TeamDTO>();
+
+					list.forEach((object) -> {
+						TeamDTO dto = new TeamDTO();
+
+						dto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
+						dto.setProjectName(object[1] != null ? object[1].toString() : null);
+						dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+						dto.setTeamName(object[3] != null ? object[3].toString() : null);
+						dto.setTeamLeadId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
+						dto.setTeamLeadName(object[5] != null ? object[5].toString() : null);
+						dto.setProjectManagerId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+						dto.setProjectManagerName(object[7] != null ? object[7].toString() : null);
+						dto.setDepartmentName(object[8] != null ? object[8].toString() : null);
+						dto.setCreatedByName(object[9] != null ? object[9].toString() : null);
+						dto.setCreatedOn(object[10] != null ? object[10].toString() : null);
+						dto.setIsActive(object[11] != null ? object[11].toString() : null);
+						dto.setTeamLeadDeptId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
+						dto.setDepartmentList(object[13] != null ? object[13].toString().split(",") : null);
+						dto.setEmpId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
+						dtoList.add(dto);
+					});
+
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
-					apiLogInfo.setApiResponse("All my teams by EmpId fetched :" + dtoList.size());			
+					apiLogInfo.setApiResponse("All my teams by EmpId fetched :" + dtoList.size());
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 
 			}, () -> {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No teams found.Teams list is null");
-				apiLogInfo.setApiResponse("No teams found. Teams List is null");			
+				apiLogInfo.setApiResponse("No teams found. Teams List is null");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			});
 
@@ -1094,7 +1098,7 @@ public class TeamsService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	
+
 	
 //	 List<Object[]> getAllMyTeamsByCustomQuery(String customQuery) {
 //			try {
@@ -1130,12 +1134,12 @@ public class TeamsService {
 //			}
 //			return new ArrayList<>();
 //		}
-	
+
 	@SuppressWarnings("unchecked")
 	public List<Object[]> getAllMyTeamsByCustomQuery(String customQuery) {
-	    try {
-	        Session session = entityManager.unwrap(Session.class);
-	        try {
+		try {
+			Session session = entityManager.unwrap(Session.class);
+			try {
 	            String q = "SELECT DISTINCTROW t.project_id, p.project_name, t.team_id, t.team_name, t.team_lead_id, " +
 	                       "t.team_lead_name, p.project_manager_id , pm.name as projectManager, " +
 	                       "p.department_name, e1.name as teamCreatedByName, t.created_on, t.is_active, " +
@@ -1148,156 +1152,156 @@ public class TeamsService {
 	                       "LEFT JOIN job_role jr ON jr.job_role_id = tl.job_role_id " +
 	                       "WHERE " + customQuery + " ORDER BY p.project_name, t.team_name";
 
-	            System.out.println("Query: " + q);
-	            org.hibernate.query.NativeQuery<Object[]> query = session.createSQLQuery(q);
-	            List<Object[]> result = query.getResultList();
-	            System.out.println("Result List: " + result);
-	            return result;
+				System.out.println("Query: " + q);
+				org.hibernate.query.NativeQuery<Object[]> query = session.createSQLQuery(q);
+				List<Object[]> result = query.getResultList();
+				System.out.println("Result List: " + result);
+				return result;
 
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	        } finally {
-	            if (session != null && session.isOpen()) {
-	                session.close();
-	            }
-	        }
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-	    return new ArrayList<>();
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				if (session != null && session.isOpen()) {
+					session.close();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return new ArrayList<>();
 	}
 
-	 
-		public ServiceResponse getMappedActivityPreview(TeamDTO teamDTO) {
-			ServiceResponse response = new ServiceResponse();
-			LogDTO apiLogInfo = new LogDTO();
+
+	public ServiceResponse getMappedActivityPreview(TeamDTO teamDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
 			//apiLogInfo.setSubFeatureName("");
-			apiLogInfo.setApiUrl("/api/getMappedActivityPreview");
-			apiLogInfo.setLogLevel("INFO");
-			StringBuilder logBuilder = new StringBuilder();
+		apiLogInfo.setApiUrl("/api/getMappedActivityPreview");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
 			logBuilder.append("EmpId : " + teamDTO.getEmpId() + " ,DeptId" + teamDTO.getDeptId()
 			 + " ,EmployeeRole :" + teamDTO.getEmployeeRole());
-			try {
-				
-				List<Object[]> empObj = employeeRepository.getEmployeeData(teamDTO.getEmpId());
-				Long deptId = null;
-				
+		try {
+
+			List<Object[]> empObj = employeeRepository.getEmployeeData(teamDTO.getEmpId());
+			Long deptId = null;
+
 				if(!empObj.isEmpty()){
 					for(Object[] object: empObj) {
-						deptId = object[4] != null ? Long.parseLong(object[4].toString()) : null;
-					}
-				}else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("User Info not found.");
-					apiLogInfo.setApiResponse("User Info not found");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					deptId = object[4] != null ? Long.parseLong(object[4].toString()) : null;
 				}
-				
+				}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("User Info not found.");
+				apiLogInfo.setApiResponse("User Info not found");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			}
+
 				List<ActivityTemplate> activityObj = activityTemplateRepository
 						.getByDeptIdAndEmployeeRoleIn(deptId, teamDTO.getEmployeeRole());
-				
-				if(!activityObj.isEmpty()) {
-					List<ActivityTemplateDTO> dtoList = new ArrayList<>();
-					
-					activityObj.forEach((object) -> {
-						ActivityTemplateDTO dto = new ActivityTemplateDTO();
-						
-						dto.setActivity(object.getTemplateActivity());
-						dto.setEmployeeRole(object.getEmployeeRole());
-						dtoList.add(dto);
-					});
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(dtoList);
-					apiLogInfo.setApiResponse("MappedActivityPreview fetched:" + dtoList.size());			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				}else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("No activity found.");
-					apiLogInfo.setApiResponse("No activity found");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				}
-				
-			}catch(Exception e) {
-				e.printStackTrace();
-				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-				response.setServiceResponse("Something Went Wrong.");
-				response.setServiceError(e.getMessage());
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				apiLogInfo.setLogLevel("ERROR");
 
+				if(!activityObj.isEmpty()) {
+				List<ActivityTemplateDTO> dtoList = new ArrayList<>();
+
+				activityObj.forEach((object) -> {
+					ActivityTemplateDTO dto = new ActivityTemplateDTO();
+
+					dto.setActivity(object.getTemplateActivity());
+					dto.setEmployeeRole(object.getEmployeeRole());
+					dtoList.add(dto);
+				});
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("MappedActivityPreview fetched:" + dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No activity found.");
+				apiLogInfo.setApiResponse("No activity found");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
-			apiLogInfo.setApiRequest(logBuilder.toString());
-			logService.logMyInfo(httpRequest, apiLogInfo);
-			return response;
+
+			}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
-		
-		public ServiceResponse getMappedActivityInUpdateTeam(TeamDTO teamDTO) {
-			ServiceResponse response = new ServiceResponse();
-            LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
+	public ServiceResponse getMappedActivityInUpdateTeam(TeamDTO teamDTO) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
             //apiLogInfo.setSubFeatureName("");
-            apiLogInfo.setApiUrl("/api/getMappedActivityInUpdateTeam");
-            apiLogInfo.setLogLevel("INFO");
-            StringBuilder logBuilder = new StringBuilder();
+		apiLogInfo.setApiUrl("/api/getMappedActivityInUpdateTeam");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
             logBuilder.append("EmpId : " + teamDTO.getEmpId() + " ,TeamId :" + teamDTO.getTeamId() 
              + " ,EmployeeRole :" + teamDTO.getEmployeeTeamRole());
 
-			
-			try {
-				
-				String deptId = null;
-				List<Object[]> empObj = employeeRepository.getEmployeeData(teamDTO.getEmpId());
+
+		try {
+
+			String deptId = null;
+			List<Object[]> empObj = employeeRepository.getEmployeeData(teamDTO.getEmpId());
 				if(!empObj.isEmpty()) {
 					for(Object[] object: empObj) {
-						deptId = object[4] != null ? object[4].toString() : null;
-					}
+					deptId = object[4] != null ? object[4].toString() : null;
 				}
-				
+			}
+
 				List<Activity> activityObj = activitiesRepository
 						.findByTeamIdAndEmployeeRoleIn(teamDTO.getTeamId(), teamDTO.getEmployeeRole());
-				List<Activity> dtoList = new ArrayList<Activity>();
-				
-				if(!activityObj.isEmpty()) {
-					
-					for(Activity object: activityObj) {
-						List<String> list = Arrays.asList(object.getDeptIds().split(","));
-						
-						if (list.contains(deptId)) {
-							Activity dto = new Activity();
-							
-							dto.setActivity(object.getActivity());
-							dto.setEmployeeRole(object.getEmployeeRole());
-							dto.setTeamId(object.getTeamId());
-							dtoList.add(dto);
-						}
-					}
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(dtoList);
-					apiLogInfo.setApiResponse("Mapped Activity List Fetched" + dtoList.size());			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-				}else {
-					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-					response.setServiceResponse("Activity List is empty");
-					apiLogInfo.setApiResponse("Activity List is empty");			
-					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				}
-				
-			}catch(Exception e) {
-				e.printStackTrace();
-				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-				response.setServiceResponse("Something Went Wrong.");
-				response.setServiceError(e.getMessage());
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				apiLogInfo.setLogLevel("ERROR");
+			List<Activity> dtoList = new ArrayList<Activity>();
 
+				if(!activityObj.isEmpty()) {
+
+					for(Activity object: activityObj) {
+					List<String> list = Arrays.asList(object.getDeptIds().split(","));
+
+					if (list.contains(deptId)) {
+						Activity dto = new Activity();
+
+						dto.setActivity(object.getActivity());
+						dto.setEmployeeRole(object.getEmployeeRole());
+						dto.setTeamId(object.getTeamId());
+						dtoList.add(dto);
+					}
+				}
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("Mapped Activity List Fetched" + dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				}else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Activity List is empty");
+				apiLogInfo.setApiResponse("Activity List is empty");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
-			apiLogInfo.setApiRequest(logBuilder.toString());
-			logService.logMyInfo(httpRequest, apiLogInfo);
-			return response;
+
+			}catch(Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+
 		}
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
 	 	
 
 //	MyTeam Servcie
-	
+
 	public ServiceResponse getAllTeamView(EmployeeDTO employeedto) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -1312,25 +1316,25 @@ public class TeamsService {
 			List<Object[]> list = employeeRepository.getAllTeamView(employeedto.getEmpId());
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 			if (list.isEmpty()) {
-		            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No teams found");
-				apiLogInfo.setApiResponse("No teams found");			
+				apiLogInfo.setApiResponse("No teams found");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
-				
+
 				// Date Range to Check Timesheet
 				int currentYear = LocalDate.now().getYear();
 				int currentMonth = LocalDate.now().getMonthValue();
-				
+
 				LocalDate firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
 				LocalDate end = LocalDate.now().minusDays(1);
-				
+
 				Long period = ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
-				
+
 				// Get Filled EOD Count for Team Members
 				List<Object[]> timesheetList = timesheetsRepository.getMyTeamsFilledEodCountByManagerIdOLD(firstOfMonth, end, employeedto.getEmpId());
 				System.err.println(timesheetList.size());
-				
+
 				list.forEach((object) -> {
 					EmployeeDTO dto = new EmployeeDTO();
 					dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()): null);
@@ -1349,28 +1353,28 @@ public class TeamsService {
 					dto.setIsConsultant(object[13] != null ? object[13].toString() : null);
 					dto.setIsApprenticeship(object[14] != null ? object[14].toString() : null);
 					dto.setIsApmosysProduct(object[15] != null ? object[15].toString() : null);
-					
+
 					String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
 //				    String isConsultant = timesheetDto.getIsConsultant();
-				    String isApmosysProduct = dto.getIsApmosysProduct();
+					String isApmosysProduct = dto.getIsApmosysProduct();
 
-				    if (employmentId != null) {
-				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	dto.setEmploymentIdAcToET("AP-" + employmentId);
+					if (employmentId != null) {
+						if ("true".equalsIgnoreCase(isApmosysProduct)) {
+							dto.setEmploymentIdAcToET("AP-" + employmentId);
 				        }else {
-				        	dto.setEmploymentIdAcToET("A-" + employmentId);
-				        }
-				    }
+							dto.setEmploymentIdAcToET("A-" + employmentId);
+						}
+					}
 
 					
-					
+
 					dto.setFailedAttempt(failedAttempt);
 					if(dateOfRelieving != null && dateOfRelieving.isEqual(LocalDate.now())) {
 						dto.setIsDateOfRelievingToday("true");
 					}else {
 						dto.setIsDateOfRelievingToday("false");
 					}
-					
+
 //					 dto.setTimesheetStatus("Defaulter");
 					timesheetList.forEach((timesheet) -> {
 
@@ -1382,105 +1386,105 @@ public class TeamsService {
 							Long pendingEodCount = period - filledEodCount;
 
 							if(pendingEodCount >= 3) {
-		                dto.setTimesheetStatus("Defaulter");
+								dto.setTimesheetStatus("Defaulter");
 							}else if (pendingEodCount > 0 && pendingEodCount < 3) {
 								dto.setTimesheetStatus("Pending Timesheets : "+ pendingEodCount);
 							}
 							else {
-		                dto.setTimesheetStatus("Timesheets upto date");
-		            }
+								dto.setTimesheetStatus("Timesheets upto date");
+							}
 						}
 					});
 					
 
-		            dtoList.add(dto);
+					dtoList.add(dto);
 				});
 
-		        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-		        response.setServiceResponse(dtoList);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
 				apiLogInfo.setApiResponse("AllTeamView fetched:" + dtoList.size() );			
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 
-		    } catch (Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
-		        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
-		        response.setServiceError(e.getMessage());
+			response.setServiceError(e.getMessage());
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
-		    }
+		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
-		    return response;
-		}
-	
+		return response;
+	}
+
 	
 	public ServiceResponse getAllTeamView1(EmployeeDTO employeedto) {
-	    ServiceResponse response = new ServiceResponse();
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setApiUrl("/api/getAllTeamView");
-	    apiLogInfo.setLogLevel("INFO");
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getAllTeamView");
+		apiLogInfo.setLogLevel("INFO");
 
-	    StringBuilder logBuilder = new StringBuilder();
-	    logBuilder.append(" ,EmpId : ").append(employeedto.getEmpId());
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append(" ,EmpId : ").append(employeedto.getEmpId());
 
-	    try {
-	        // Fetch direct team members
-	        List<Object[]> list = employeeRepository.getAllTeamView(employeedto.getEmpId());
-	        List<EmployeeDTO> dtoList = new ArrayList<>();
+		try {
+			// Fetch direct team members
+			List<Object[]> list = employeeRepository.getAllTeamView(employeedto.getEmpId());
+			List<EmployeeDTO> dtoList = new ArrayList<>();
 
-	        if (list.isEmpty()) {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("No teams found");
-	            apiLogInfo.setApiResponse("No teams found");
-	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	        } else {
-	            // Date Range for Timesheet check
-	            int currentYear = LocalDate.now().getYear();
-	            int currentMonth = LocalDate.now().getMonthValue();
-	            LocalDate firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
-	            LocalDate end = LocalDate.now().minusDays(1);
-	            Long period = ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
+			if (list.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No teams found");
+				apiLogInfo.setApiResponse("No teams found");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			} else {
+				// Date Range for Timesheet check
+				int currentYear = LocalDate.now().getYear();
+				int currentMonth = LocalDate.now().getMonthValue();
+				LocalDate firstOfMonth = LocalDate.of(currentYear, currentMonth, 1);
+				LocalDate end = LocalDate.now().minusDays(1);
+				Long period = ChronoUnit.DAYS.between(firstOfMonth, end) + 1;
 
-	            // Get filled EOD counts for team members
+				// Get filled EOD counts for team members
 	            List<Object[]> timesheetList =
 	                timesheetsRepository.getMyTeamsFilledEodCountByManagerIdOLD(
 	                    firstOfMonth, end, employeedto.getEmpId()
 	                );
 
-	            // Map employees
-	            for (Object[] obj : list) {
-	                EmployeeDTO dto = mapObjectToDTO(obj, period, timesheetList);
+				// Map employees
+				for (Object[] obj : list) {
+					EmployeeDTO dto = mapObjectToDTO(obj, period, timesheetList);
 
-	                // If hierarchy requested → recursively build sub-team
-	                if (Boolean.TRUE.equals(employeedto.getIsHierarchy())) {
+					// If hierarchy requested → recursively build sub-team
+					if (Boolean.TRUE.equals(employeedto.getIsHierarchy())) {
 //	                    dto = buildHierarchy(dto, true, period, timesheetList);
-	                    dto = buildHierarchy(dto, true, period, firstOfMonth, end);
+						dto = buildHierarchy(dto, true, period, firstOfMonth, end);
 
-	                }
+					}
 
-	                dtoList.add(dto);
-	            }
+					dtoList.add(dto);
+				}
 
-	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	            response.setServiceResponse(dtoList);
-	            apiLogInfo.setApiResponse("AllTeamView fetched: " + dtoList.size());
-	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-	        }
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("AllTeamView fetched: " + dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			}
 
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        response.setServiceResponse("Something Went Wrong.");
-	        response.setServiceError(e.getMessage());
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	        apiLogInfo.setLogLevel("ERROR");
-	    }
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
 
-	    apiLogInfo.setApiRequest(logBuilder.toString());
-	    logService.logMyInfo(httpRequest, apiLogInfo);
-	    return response;
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
 	}
 
 	/**
@@ -1488,93 +1492,93 @@ public class TeamsService {
 	 */
 	private EmployeeDTO buildHierarchy(EmployeeDTO manager, boolean includeHierarchy,
             Long period, LocalDate firstOfMonth, LocalDate end) {
-	    if (!includeHierarchy) {
-	        return manager;
-	    }
+		if (!includeHierarchy) {
+			return manager;
+		}
 
-	    List<Object[]> subList = employeeRepository.getAllTeamView(manager.getEmpId());
+		List<Object[]> subList = employeeRepository.getAllTeamView(manager.getEmpId());
 	    if(subList.size()<1 ) {
-	    	return manager;
-	    }
-	    
-	    // Fetch timesheet status for this manager's direct reportees
+			return manager;
+		}
+
+		// Fetch timesheet status for this manager's direct reportees
 	    List<Object[]> timesheetList =
 	        timesheetsRepository.getMyTeamsFilledEodCountByManagerIdOLD(
 	            firstOfMonth, end, manager.getEmpId()
 	        );
 	    
-	    
-	    for (Object[] obj : subList) {
-	        EmployeeDTO child = mapObjectToDTO(obj, period, timesheetList);
-//	        EmployeeDTO childWithTeam = buildHierarchy(child, true, period, timesheetList);
-	        EmployeeDTO childWithTeam = buildHierarchy(child, true, period, firstOfMonth, end);
 
-	        manager.getReportees().add(childWithTeam);
-	    }
-	    return manager;
+		for (Object[] obj : subList) {
+			EmployeeDTO child = mapObjectToDTO(obj, period, timesheetList);
+//	        EmployeeDTO childWithTeam = buildHierarchy(child, true, period, timesheetList);
+			EmployeeDTO childWithTeam = buildHierarchy(child, true, period, firstOfMonth, end);
+
+			manager.getReportees().add(childWithTeam);
+		}
+		return manager;
 	}
 
 	/**
 	 * Maps DB object[] → EmployeeDTO
 	 */
 	private EmployeeDTO mapObjectToDTO(Object[] object, Long period, List<Object[]> timesheetList) {
-	    EmployeeDTO dto = new EmployeeDTO();
+		EmployeeDTO dto = new EmployeeDTO();
 
-	    dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-	    dto.setName(object[1] != null ? object[1].toString() : null);
-	    dto.setEmail(object[2] != null ? object[2].toString() : null);
-	    dto.setJobRoleName(object[3] != null ? object[3].toString() : null);
-	    dto.setMobileNo(object[4] != null ? Long.parseLong(object[4].toString()) : null);
-	    dto.setManagerName(object[5] != null ? object[5].toString() : null);
-	    dto.setEmployeementId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
-	    dto.setInvalidAccessAttempt(object[7] != null ? Integer.parseInt(object[7].toString()) : null);
-	    dto.setIsTimesheetLockCheckEnable(object[8] != null ? object[8].toString() : null);
-	    dto.setEmploymentstatus(object[9] != null ? object[9].toString() : null);
-	    LocalDate dateOfRelieving = object[10] != null ? LocalDate.parse(object[10].toString()) : null;
-	    dto.setPipFlag(object[11] != null ? object[11].toString() : null);
-	    dto.setPipId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
-	    dto.setIsConsultant(object[13] != null ? object[13].toString() : null);
-	    dto.setIsApprenticeship(object[14] != null ? object[14].toString() : null);
-	    dto.setIsApmosysProduct(object[15] != null ? object[15].toString() : null);
+		dto.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+		dto.setName(object[1] != null ? object[1].toString() : null);
+		dto.setEmail(object[2] != null ? object[2].toString() : null);
+		dto.setJobRoleName(object[3] != null ? object[3].toString() : null);
+		dto.setMobileNo(object[4] != null ? Long.parseLong(object[4].toString()) : null);
+		dto.setManagerName(object[5] != null ? object[5].toString() : null);
+		dto.setEmployeementId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+		dto.setInvalidAccessAttempt(object[7] != null ? Integer.parseInt(object[7].toString()) : null);
+		dto.setIsTimesheetLockCheckEnable(object[8] != null ? object[8].toString() : null);
+		dto.setEmploymentstatus(object[9] != null ? object[9].toString() : null);
+		LocalDate dateOfRelieving = object[10] != null ? LocalDate.parse(object[10].toString()) : null;
+		dto.setPipFlag(object[11] != null ? object[11].toString() : null);
+		dto.setPipId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
+		dto.setIsConsultant(object[13] != null ? object[13].toString() : null);
+		dto.setIsApprenticeship(object[14] != null ? object[14].toString() : null);
+		dto.setIsApmosysProduct(object[15] != null ? object[15].toString() : null);
 
-	    // Employment Id formatting
-	    String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
-	    String isApmosysProduct = dto.getIsApmosysProduct();
-	    if (employmentId != null) {
-	        if ("true".equalsIgnoreCase(isApmosysProduct)) {
-	            dto.setEmploymentIdAcToET("AP-" + employmentId);
-	        } else {
-	            dto.setEmploymentIdAcToET("A-" + employmentId);
-	        }
-	    }
+		// Employment Id formatting
+		String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
+		String isApmosysProduct = dto.getIsApmosysProduct();
+		if (employmentId != null) {
+			if ("true".equalsIgnoreCase(isApmosysProduct)) {
+				dto.setEmploymentIdAcToET("AP-" + employmentId);
+			} else {
+				dto.setEmploymentIdAcToET("A-" + employmentId);
+			}
+		}
 
-	    // Date of relieving check
-	    if (dateOfRelieving != null && dateOfRelieving.isEqual(LocalDate.now())) {
-	        dto.setIsDateOfRelievingToday("true");
-	    } else {
-	        dto.setIsDateOfRelievingToday("false");
-	    }
+		// Date of relieving check
+		if (dateOfRelieving != null && dateOfRelieving.isEqual(LocalDate.now())) {
+			dto.setIsDateOfRelievingToday("true");
+		} else {
+			dto.setIsDateOfRelievingToday("false");
+		}
 
-	    // Timesheet status
-	    dto.setTimesheetStatus("Defaulter");
-	    for (Object[] timesheet : timesheetList) {
-	        Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
-	        Long employeeEmpId = dto.getEmpId();
-	        if (timesheetEmpId != null && timesheetEmpId.equals(employeeEmpId)) {
-	            Long filledEodCount = timesheet[1] != null ? Long.parseLong(timesheet[1].toString()) : 0L;
-	            Long pendingEodCount = period - filledEodCount;
+		// Timesheet status
+		dto.setTimesheetStatus("Defaulter");
+		for (Object[] timesheet : timesheetList) {
+			Long timesheetEmpId = timesheet[0] != null ? Long.parseLong(timesheet[0].toString()) : null;
+			Long employeeEmpId = dto.getEmpId();
+			if (timesheetEmpId != null && timesheetEmpId.equals(employeeEmpId)) {
+				Long filledEodCount = timesheet[1] != null ? Long.parseLong(timesheet[1].toString()) : 0L;
+				Long pendingEodCount = period - filledEodCount;
 
-	            if (pendingEodCount >= 3) {
-	                dto.setTimesheetStatus("Defaulter");
-	            } else if (pendingEodCount > 0 && pendingEodCount < 3) {
-	                dto.setTimesheetStatus("Pending Timesheets : " + pendingEodCount);
-	            } else {
-	                dto.setTimesheetStatus("OK");
-	            }
-	        }
-	    }
+				if (pendingEodCount >= 3) {
+					dto.setTimesheetStatus("Defaulter");
+				} else if (pendingEodCount > 0 && pendingEodCount < 3) {
+					dto.setTimesheetStatus("Pending Timesheets : " + pendingEodCount);
+				} else {
+					dto.setTimesheetStatus("OK");
+				}
+			}
+		}
 
-	    return dto;
+		return dto;
 	}
 
 
@@ -1592,7 +1596,7 @@ public class TeamsService {
 			LocalDate date = LocalDate.now().minusDays(Long.parseLong(timesheetCheckPeriod));
 			//List<Object[]> list = employeeRepository.getAllTeamMemberView(employeedto.getEmpId());
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
-			
+
 			Long empId = employeedto.getEmpId();
 			Map<Long, Object[]> employeeMap = new LinkedHashMap<>(); // Use LinkedHashMap to preserve order and avoid duplicates
 
@@ -1605,7 +1609,7 @@ public class TeamsService {
 					.filter(s -> !s.isEmpty())
 					.map(Long::parseLong)
 					.collect(Collectors.toSet());
-			
+
 			for (EmployeeJobRoleDept roleDept : roleDeptList) {
 				if (fullPrivilegeRoleIds.contains(roleDept.getJobRoleId())) {
 					fullAccessDeptIds.add(roleDept.getDepartmentId());
@@ -1626,20 +1630,20 @@ public class TeamsService {
 			// ========== 3-B: Project-based access ==========
 			// Collect all project IDs where employee has access through various roles
 			Set<Long> projectIds = new HashSet<>();
-			
+
 			// 1. Employee is on a team (common team member)
 			projectIds.addAll(employeeRepository.findProjectIdsWhereEmpIsOnTeam(empId));
-			
+
 			// 2. Employee is a project manager
 			projectIds.addAll(employeeRepository.findProjectIdsWhereEmpIsProjectManager(empId));
-			
+
 			// 3. Employee is an overhead
 			projectIds.addAll(employeeRepository.findProjectIdsWhereEmpIsOverhead(empId));
-			
+
 			// 4. Employee is a team lead or SPOC
 			projectIds.addAll(employeeRepository.findProjectIdsWhereEmpIsTeamLeadOrSpoc(empId));
 			
-			
+
 			// Fetch employees for all collected project IDs
 			if (!projectIds.isEmpty()) {
 				List<Object[]> projectEmployees = employeeRepository.getAllTeamMemberViewByProjectIds(new ArrayList<>(projectIds), empId);
@@ -1656,7 +1660,7 @@ public class TeamsService {
 			if (list.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No teams found");
-				apiLogInfo.setApiResponse("No teams found");			
+				apiLogInfo.setApiResponse("No teams found");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
 
@@ -1688,34 +1692,34 @@ public class TeamsService {
 					dto.setIsApmosysProduct(object[23] != null ? object[23].toString() : null);
 					String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
 //				    String isConsultant = timesheetDto.getIsConsultant();
-				    String isApmosysProduct = dto.getIsApmosysProduct();
+					String isApmosysProduct = dto.getIsApmosysProduct();
 
-				    if (employmentId != null) {
-				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	dto.setEmploymentIdAcToET("AP-" + employmentId);
+					if (employmentId != null) {
+						if ("true".equalsIgnoreCase(isApmosysProduct)) {
+							dto.setEmploymentIdAcToET("AP-" + employmentId);
 				        }else {
-				        	dto.setEmploymentIdAcToET("A-" + employmentId);
-				        }
-				    }
+							dto.setEmploymentIdAcToET("A-" + employmentId);
+						}
+					}
 
 					dto.setClientSideId(object[24] != null ? object[24].toString() : null);
 					dto.setEmploymentId(object[25] != null ? object[25].toString() : null);
-					
+
 					Long emp_Id = object[0] != null ? Long.parseLong(object[0].toString()): null;
 					List<Object[]> timesheetFilledByMember = timesheetsRepositoryNew.getTimesheetFilledByMember(emp_Id,date);
-					
+
 					if(timesheetFilledByMember.size() >= Long.parseLong(maximumTimesheetCanBeFilledByTeamMember)) {
 						dto.setIsTimesheetFilledByMember("true");
 					}else {
 						dto.setIsTimesheetFilledByMember("false");
 					}
-					
+
 					dtoList.add(dto);
-					
+
 				});
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse("AllTeamMemberView Fetched:" + dtoList.size());			
+				apiLogInfo.setApiResponse("AllTeamMemberView Fetched:" + dtoList.size());
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 
@@ -1742,7 +1746,7 @@ public class TeamsService {
 		logBuilder.append("EmpId : "+ leaveDTO.getEmpId() + " ,FromDate :" + leaveDTO.getFromDate()
 		 + " ,ToDate :" + leaveDTO.getToDate());		
 		try {
-			
+
 			LocalDate start = LocalDate.parse(leaveDTO.getFromDate());
 
 			LocalDate end = LocalDate.parse(leaveDTO.getToDate());
@@ -1752,7 +1756,7 @@ public class TeamsService {
 			if (list.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No teams leave history found");
-				apiLogInfo.setApiResponse("No teams leave history found");			
+				apiLogInfo.setApiResponse("No teams leave history found");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
 
@@ -1771,7 +1775,7 @@ public class TeamsService {
 					dto.setLeaveStatusUpdatedBy(object[10] != null ? Long.parseLong(object[10].toString()) : null);
 					dto.setLeaveId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
 					dto.setRemark(object[12] != null ? object[12].toString() : null);
-					
+
 					dto.setApproverName(object[13] != null ? object[13].toString() : null);
 					dto.setApproverEmail(object[14] != null ? object[14].toString() : null);
 
@@ -1780,22 +1784,22 @@ public class TeamsService {
 					dto.setLevel2ApproverName(object[17] != null ? object[17].toString() : null);
 					dto.setLevel2ApproverEmail(object[18] != null ? object[18].toString() : null);
 					dto.setLevel2ApprovalStatus(object[19] != null ? object[19].toString() : null);
-					
+
 					dto.setLevel3ApproverId(object[20] != null ? Long.parseLong(object[20].toString()) : null);
 					dto.setLevel3ApproverName(object[21] != null ? object[21].toString() : null);
 					dto.setLevel3ApprovalStatus(object[22] != null ? object[22].toString() : null);
 					dto.setLevel3ApproverEmail(object[23] != null ? object[23].toString() : null);
-					
+
 					dto.setCurrentApprovalLevel(object[24] != null ? Integer.parseInt(object[24].toString()) : null);
 					dto.setFinalApprovalLevel(object[25] != null ? Integer.parseInt(object[25].toString()) : null);
 					dto.setEmpId(object[26] != null ? Long.parseLong(object[26].toString()) : null)	;				
-					
-					dtoList.add(dto);					
-					});
+
+					dtoList.add(dto);
+				});
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse("AllTeamLeaveHistoryView fetched:" + dtoList.size());			
+				apiLogInfo.setApiResponse("AllTeamLeaveHistoryView fetched:" + dtoList.size());
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 
@@ -1813,17 +1817,17 @@ public class TeamsService {
 	}
 
 //	from here 
-	
+
 	public ServiceResponse getAllTeamLeaveHistoryView(LeaveDTO leaveDTO) {
-	    ServiceResponse response = new ServiceResponse();
-	    try {
-	        LocalDate start = LocalDate.parse(leaveDTO.getFromDate());
-	        LocalDate end = LocalDate.parse(leaveDTO.getToDate());
+		ServiceResponse response = new ServiceResponse();
+		try {
+			LocalDate start = LocalDate.parse(leaveDTO.getFromDate());
+			LocalDate end = LocalDate.parse(leaveDTO.getToDate());
 
-	        List<LeaveDTO> allLeaves = new ArrayList<>();
+			List<LeaveDTO> allLeaves = new ArrayList<>();
 
-	        if (Boolean.TRUE.equals(leaveDTO.getIsHierarchyView())) {
-	            // allLeaves = getLeavesRecursively(leaveDTO.getEmpId(), start, end);
+			if (Boolean.TRUE.equals(leaveDTO.getIsHierarchyView())) {
+				// allLeaves = getLeavesRecursively(leaveDTO.getEmpId(), start, end);
 				List<Long> empIds = empCache.getEmployeesUnderAnyLeadingPerson(leaveDTO.getEmpId());
 
 				List<Object[]> list = employeeLeaveRepository.getAllTeamLeaveHistoryViewHirarchy(empIds, start, end);
@@ -1831,88 +1835,86 @@ public class TeamsService {
 				allLeaves = list.stream()
 				.map(obj -> mapObjectToDTO(obj))
 				.collect(Collectors.toList());
-	        } else {
+			} else {
 	            List<Object[]> list = employeeLeaveRepository.getAllTeamLeaveHistoryView(leaveDTO.getEmpId(), start, end);
 //	            list.forEach(obj -> allLeaves.add(mapObjectToDTO(obj)));
-	             allLeaves = list.stream()
-                        .map(obj -> mapObjectToDTO(obj))
-                        .collect(Collectors.toList());
+				allLeaves = list.stream().map(obj -> mapObjectToDTO(obj)).collect(Collectors.toList());
 
-	        }
+			}
 
-	        if (allLeaves.isEmpty()) {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("No team leave history found");
-	        } else {
-	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	            response.setServiceResponse(allLeaves);
-	        }
+			if (allLeaves.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No team leave history found");
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(allLeaves);
+			}
 
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        response.setServiceResponse("Something went wrong.");
-	        response.setServiceError(e.getMessage());
-	    }
-	    return response;
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
 	}
 
 	private List<LeaveDTO> getLeavesRecursively(Long managerId, LocalDate start, LocalDate end) {
-	    List<LeaveDTO> result = new ArrayList<>();
+		List<LeaveDTO> result = new ArrayList<>();
 
-	    List<Object[]> list = employeeLeaveRepository.getAllTeamLeaveHistoryView(managerId, start, end);
+		List<Object[]> list = employeeLeaveRepository.getAllTeamLeaveHistoryView(managerId, start, end);
 		Set<Long> empIds = new HashSet<>();
 
-	    for (Object[] obj : list) {
-	        LeaveDTO dto = mapObjectToDTO(obj);
-	        result.add(dto);
+		for (Object[] obj : list) {
+			LeaveDTO dto = mapObjectToDTO(obj);
+			result.add(dto);
 
-	        Long empId = dto.getEmpId();
+			Long empId = dto.getEmpId();
 			if(empId != null) {
 				empIds.add(empId);
 			}
-	        // List<LeaveDTO> subLeaves = getLeavesRecursively(empId, start, end);
-	        // result.addAll(subLeaves);
-	    }
+			// List<LeaveDTO> subLeaves = getLeavesRecursively(empId, start, end);
+			// result.addAll(subLeaves);
+		}
 		for(Long id : empIds) {
 			List<LeaveDTO> subLeaves = getLeavesRecursively(id, start, end);
 			result.addAll(subLeaves);
 		}
-	    return result;
+		return result;
 	}
 
 	// Convert Object[] from repository to LeaveDTO
 	private LeaveDTO mapObjectToDTO(Object[] obj) {
-	    LeaveDTO dto = new LeaveDTO();
-	    dto.setEmployeementId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
-	    dto.setCreatedByName(obj[1] != null ? obj[1].toString() : null);
-	    dto.setFromDate(obj[2] != null ? obj[2].toString() : null);
-	    dto.setToDate(obj[3] != null ? obj[3].toString() : null);
-	    dto.setCreatedOn(obj[4] != null ? obj[4].toString() : null);
-	    dto.setNoOfDays(obj[5] != null ? Float.parseFloat(obj[5].toString()) : null);
-	    dto.setStatus(obj[6] != null ? obj[6].toString() : null);
-	    dto.setReason(obj[7] != null ? obj[7].toString() : null);
-	    dto.setLeaveType(obj[8] != null ? obj[8].toString() : null);
-	    dto.setLeaveStatusUpdatedByName(obj[9] != null ? obj[9].toString() : null);
-	    dto.setLeaveStatusUpdatedBy(obj[10] != null ? Long.parseLong(obj[10].toString()) : null);
-	    dto.setLeaveId(obj[11] != null ? Long.parseLong(obj[11].toString()) : null);
-	    dto.setRemark(obj[12] != null ? obj[12].toString() : null);
-	    dto.setApproverName(obj[13] != null ? obj[13].toString() : null);
-	    dto.setApproverEmail(obj[14] != null ? obj[14].toString() : null);
-	    dto.setManagerApprovalStatus(obj[15] != null ? obj[15].toString() : null);
-	    dto.setLevel2ApproverId(obj[16] != null ? Long.parseLong(obj[16].toString()) : null);
-	    dto.setLevel2ApproverName(obj[17] != null ? obj[17].toString() : null);
-	    dto.setLevel2ApproverEmail(obj[18] != null ? obj[18].toString() : null);
-	    dto.setLevel2ApprovalStatus(obj[19] != null ? obj[19].toString() : null);
-	    dto.setLevel3ApproverId(obj[20] != null ? Long.parseLong(obj[20].toString()) : null);
-	    dto.setLevel3ApproverName(obj[21] != null ? obj[21].toString() : null);
-	    dto.setLevel3ApprovalStatus(obj[22] != null ? obj[22].toString() : null);
-	    dto.setLevel3ApproverEmail(obj[23] != null ? obj[23].toString() : null);
-	    dto.setCurrentApprovalLevel(obj[24] != null ? Integer.parseInt(obj[24].toString()) : null);
-	    dto.setFinalApprovalLevel(obj[25] != null ? Integer.parseInt(obj[25].toString()) : null);
-	    dto.setEmpId(obj[26] != null ? Long.parseLong(obj[26].toString()) : null);
-	    dto.setName(obj[1] != null ? obj[1].toString() : null); // or set employeeName if you prefer
-	    return dto;
+		LeaveDTO dto = new LeaveDTO();
+		dto.setEmployeementId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+		dto.setCreatedByName(obj[1] != null ? obj[1].toString() : null);
+		dto.setFromDate(obj[2] != null ? obj[2].toString() : null);
+		dto.setToDate(obj[3] != null ? obj[3].toString() : null);
+		dto.setCreatedOn(obj[4] != null ? obj[4].toString() : null);
+		dto.setNoOfDays(obj[5] != null ? Float.parseFloat(obj[5].toString()) : null);
+		dto.setStatus(obj[6] != null ? obj[6].toString() : null);
+		dto.setReason(obj[7] != null ? obj[7].toString() : null);
+		dto.setLeaveType(obj[8] != null ? obj[8].toString() : null);
+		dto.setLeaveStatusUpdatedByName(obj[9] != null ? obj[9].toString() : null);
+		dto.setLeaveStatusUpdatedBy(obj[10] != null ? Long.parseLong(obj[10].toString()) : null);
+		dto.setLeaveId(obj[11] != null ? Long.parseLong(obj[11].toString()) : null);
+		dto.setRemark(obj[12] != null ? obj[12].toString() : null);
+		dto.setApproverName(obj[13] != null ? obj[13].toString() : null);
+		dto.setApproverEmail(obj[14] != null ? obj[14].toString() : null);
+		dto.setManagerApprovalStatus(obj[15] != null ? obj[15].toString() : null);
+		dto.setLevel2ApproverId(obj[16] != null ? Long.parseLong(obj[16].toString()) : null);
+		dto.setLevel2ApproverName(obj[17] != null ? obj[17].toString() : null);
+		dto.setLevel2ApproverEmail(obj[18] != null ? obj[18].toString() : null);
+		dto.setLevel2ApprovalStatus(obj[19] != null ? obj[19].toString() : null);
+		dto.setLevel3ApproverId(obj[20] != null ? Long.parseLong(obj[20].toString()) : null);
+		dto.setLevel3ApproverName(obj[21] != null ? obj[21].toString() : null);
+		dto.setLevel3ApprovalStatus(obj[22] != null ? obj[22].toString() : null);
+		dto.setLevel3ApproverEmail(obj[23] != null ? obj[23].toString() : null);
+		dto.setCurrentApprovalLevel(obj[24] != null ? Integer.parseInt(obj[24].toString()) : null);
+		dto.setFinalApprovalLevel(obj[25] != null ? Integer.parseInt(obj[25].toString()) : null);
+		dto.setEmpId(obj[26] != null ? Long.parseLong(obj[26].toString()) : null);
+		dto.setName(obj[1] != null ? obj[1].toString() : null); // or set employeeName if you prefer
+		return dto;
 	}
 
 
@@ -1928,7 +1930,7 @@ public class TeamsService {
 				" ,ToDate :" + leaveDTO.getToDate());
 
 		try {
-			
+
 			LocalDate start = LocalDate.parse(leaveDTO.getFromDate());
 
 			LocalDate end = LocalDate.parse(leaveDTO.getToDate());
@@ -1938,7 +1940,7 @@ public class TeamsService {
 			if (list.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No teams leave history found");
-				apiLogInfo.setApiResponse("NO teams leave history found");			
+				apiLogInfo.setApiResponse("NO teams leave history found");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
 
@@ -1956,15 +1958,15 @@ public class TeamsService {
 					dto.setLeaveStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
 					dto.setLeaveStatusUpdatedBy(object[10] != null ? Long.parseLong(object[10].toString()) : null);
 					dto.setEmpId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
-					
+
 					
 					System.out.println("object[10]"+object[10] != null ? Long.parseLong(object[10].toString()) : null);
-					dtoList.add(dto);					
-					});
+					dtoList.add(dto);
+				});
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse("AllTeamCompoff History View Fetched:" + dtoList.size());			
+				apiLogInfo.setApiResponse("AllTeamCompoff History View Fetched:" + dtoList.size());
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 
@@ -1981,99 +1983,99 @@ public class TeamsService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	
+
 	public ServiceResponse getAllTeamCompOffHistoryView(LeaveDTO leaveDTO) {
-	    ServiceResponse response = new ServiceResponse();
-	    LogDTO apiLogInfo = new LogDTO();
-	    apiLogInfo.setApiUrl("/api/getAllTeamCompOffHistoryView");
-	    apiLogInfo.setLogLevel("INFO");
-	    StringBuilder logBuilder = new StringBuilder();
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getAllTeamCompOffHistoryView");
+		apiLogInfo.setLogLevel("INFO");
+		StringBuilder logBuilder = new StringBuilder();
 	    logBuilder.append("EmpId : " + leaveDTO.getEmpId() + " ,FromDate :" + leaveDTO.getFromDate() +
 	            " ,ToDate :" + leaveDTO.getToDate());
 
-	    try {
-	        LocalDate start = LocalDate.parse(leaveDTO.getFromDate());
-	        LocalDate end = LocalDate.parse(leaveDTO.getToDate());
+		try {
+			LocalDate start = LocalDate.parse(leaveDTO.getFromDate());
+			LocalDate end = LocalDate.parse(leaveDTO.getToDate());
 
-	        List<LeaveDTO> dtoList;
+			List<LeaveDTO> dtoList;
 
-	        if (Boolean.TRUE.equals(leaveDTO.getIsHierarchyView())) {
+			if (Boolean.TRUE.equals(leaveDTO.getIsHierarchyView())) {
 //	            dtoList = getCompOffLeavesRecursively(leaveDTO.getEmpId(), start, end);
-	        	List<Long> empIds = empCache.getEmployeesUnderAnyLeadingPerson(leaveDTO.getEmpId());
-	        	 List<Object[]> list = employeeLeaveRepository.getAllTeamCompOffHistoryViewHirarchy(empIds, start, end);
+				List<Long> empIds = empCache.getEmployeesUnderAnyLeadingPerson(leaveDTO.getEmpId());
+				List<Object[]> list = employeeLeaveRepository.getAllTeamCompOffHistoryViewHirarchy(empIds, start, end);
 		            dtoList = list.stream()
 		                          .map(this::mapCompOffObjectToDTO)
 		                          .collect(Collectors.toList());
 
-	        } else {
+			} else {
 	            List<Object[]> list = employeeLeaveRepository.getAllTeamCompOffHistoryView(leaveDTO.getEmpId(), start, end);
 	            dtoList = list.stream()
 	                          .map(this::mapCompOffObjectToDTO)
 	                          .collect(Collectors.toList());
-	        }
+			}
 
-	        if (dtoList.isEmpty()) {
-	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-	            response.setServiceResponse("No teams comp-off history found");
-	            apiLogInfo.setApiResponse("No teams comp-off history found");
-	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	        } else {
-	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-	            response.setServiceResponse(dtoList);
-	            apiLogInfo.setApiResponse("AllTeamCompOff History View Fetched: " + dtoList.size());
-	            apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-	        }
+			if (dtoList.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No teams comp-off history found");
+				apiLogInfo.setApiResponse("No teams comp-off history found");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			} else {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("AllTeamCompOff History View Fetched: " + dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			}
 
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-	        response.setServiceResponse("Something Went Wrong.");
-	        response.setServiceError(e.getMessage());
-	        apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	        apiLogInfo.setLogLevel("ERROR");
-	    }
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
 
-	    apiLogInfo.setApiRequest(logBuilder.toString());
-	    logService.logMyInfo(httpRequest, apiLogInfo);
-	    return response;
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
 	}
 
 	// Recursive method to fetch comp-off leaves for all hierarchy
 	private List<LeaveDTO> getCompOffLeavesRecursively(Long managerId, LocalDate start, LocalDate end) {
-	    List<LeaveDTO> result = new ArrayList<>();
+		List<LeaveDTO> result = new ArrayList<>();
 
-	    List<Object[]> list = employeeLeaveRepository.getAllTeamCompOffHistoryView(managerId, start, end);
+		List<Object[]> list = employeeLeaveRepository.getAllTeamCompOffHistoryView(managerId, start, end);
 
-	    for (Object[] obj : list) {
-	        LeaveDTO dto = mapCompOffObjectToDTO(obj);
-	        result.add(dto);
+		for (Object[] obj : list) {
+			LeaveDTO dto = mapCompOffObjectToDTO(obj);
+			result.add(dto);
 
-	        Long empId = dto.getEmpId();
-	        List<LeaveDTO> subLeaves = getCompOffLeavesRecursively(empId, start, end);
-	        result.addAll(subLeaves);
-	    }
+			Long empId = dto.getEmpId();
+			List<LeaveDTO> subLeaves = getCompOffLeavesRecursively(empId, start, end);
+			result.addAll(subLeaves);
+		}
 
-	    return result;
+		return result;
 	}
 
 	// For comp-off history
 	private LeaveDTO mapCompOffObjectToDTO(Object[] obj) {
-	    LeaveDTO dto = new LeaveDTO();
-	    dto.setEmployeementId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
-	    dto.setCreatedByName(obj[1] != null ? obj[1].toString() : null);
-	    dto.setFromDate(obj[2] != null ? obj[2].toString() : null);
-	    dto.setToDate(obj[3] != null ? obj[3].toString() : null);
-	    dto.setCreatedOn(obj[4] != null ? obj[4].toString() : null);
-	    dto.setNoOfDays(obj[5] != null ? Float.parseFloat(obj[5].toString()) : null);
-	    dto.setStatus(obj[6] != null ? obj[6].toString() : null);
-	    dto.setReason(obj[7] != null ? obj[7].toString() : null);
-	    dto.setLeaveType(obj[8] != null ? obj[8].toString() : null);
-	    dto.setLeaveStatusUpdatedByName(obj[9] != null ? obj[9].toString() : null);
-	    dto.setLeaveStatusUpdatedBy(obj[10] != null ? Long.parseLong(obj[10].toString()) : null);
-	    dto.setEmpId(obj[11] != null ? Long.parseLong(obj[11].toString()) : null);
-	    return dto;
+		LeaveDTO dto = new LeaveDTO();
+		dto.setEmployeementId(obj[0] != null ? Long.parseLong(obj[0].toString()) : null);
+		dto.setCreatedByName(obj[1] != null ? obj[1].toString() : null);
+		dto.setFromDate(obj[2] != null ? obj[2].toString() : null);
+		dto.setToDate(obj[3] != null ? obj[3].toString() : null);
+		dto.setCreatedOn(obj[4] != null ? obj[4].toString() : null);
+		dto.setNoOfDays(obj[5] != null ? Float.parseFloat(obj[5].toString()) : null);
+		dto.setStatus(obj[6] != null ? obj[6].toString() : null);
+		dto.setReason(obj[7] != null ? obj[7].toString() : null);
+		dto.setLeaveType(obj[8] != null ? obj[8].toString() : null);
+		dto.setLeaveStatusUpdatedByName(obj[9] != null ? obj[9].toString() : null);
+		dto.setLeaveStatusUpdatedBy(obj[10] != null ? Long.parseLong(obj[10].toString()) : null);
+		dto.setEmpId(obj[11] != null ? Long.parseLong(obj[11].toString()) : null);
+		return dto;
 	}
-	
+
 	public ServiceResponse getAllTeamCompOffHistoryViewByEmpId(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -2085,7 +2087,7 @@ public class TeamsService {
 				" ,ToDate :" + leaveDTO.getToDate());
 
 		try {
-			
+
 			LocalDate start = LocalDate.parse(leaveDTO.getFromDate());
 
 			LocalDate end = LocalDate.parse(leaveDTO.getToDate());
@@ -2095,7 +2097,7 @@ public class TeamsService {
 			if (list.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No teams leave history found");
-				apiLogInfo.setApiResponse("NO teams leave history found");			
+				apiLogInfo.setApiResponse("NO teams leave history found");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			} else {
 
@@ -2110,12 +2112,12 @@ public class TeamsService {
 					dto.setReason(object[6] != null ? object[6].toString() : null);
 					dto.setLeaveType(object[7] != null ? object[7].toString() : null);
 					dto.setLeaveStatusUpdatedByName(object[8] != null ? object[8].toString() : null);
-					dtoList.add(dto);					
-					});
+					dtoList.add(dto);
+				});
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse("AllTeamCompoff History View Fetched:" + dtoList.size());			
+				apiLogInfo.setApiResponse("AllTeamCompoff History View Fetched:" + dtoList.size());
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			}
 
@@ -2132,9 +2134,9 @@ public class TeamsService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	
+
 	public ServiceResponse checkTeamName(TeamDTO teamdto) {
-		
+
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("Check Team Name");
@@ -2144,9 +2146,9 @@ public class TeamsService {
 		logBuilder.append("TeamName : "+ teamdto.getTeamName() + " ,TeamId :" + teamdto.getTeamId()
 		 + " ,ProjectId :" + teamdto.getProjectId() + " ,ProjectName : " + teamdto.getProjectName());
 		try {
-			
+
 			if(teamdto.getTeamId() != null && teamdto.getProjectId() != null) {
-				
+
 				Team checkTeamNameByName=teamRepository.findByTeamNameAndTeamIdAndProjectIdAndIsActive(teamdto.getTeamName(),teamdto.getTeamId(), teamdto.getProjectId(), "Y");
 //				if(checkTeamNameByName != null) {
 //					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -2158,45 +2160,45 @@ public class TeamsService {
 					if(checkTeamNameByName != null) {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Team Name already exist!");
-						apiLogInfo.setApiResponse("Team Name already exist!");			
+						apiLogInfo.setApiResponse("Team Name already exist!");
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 					}
 					System.out.println("   checkTeamNameByName = "+checkTeamNameByName);    
 				}
-				
+
 			}else if(teamdto.getProjectId() == null && teamdto.getTeamName() != null && teamdto.getProjectName() != null) {
-				
+
 				Project projectObj = projectRepository.findByProjectName(teamdto.getProjectName());
-				
+
 				if(projectObj != null) {
 					Team checkTeamNameByName=teamRepository.findByTeamNameAndProjectIdAndIsActive(teamdto.getTeamName(), projectObj.getProjectId(), "Y");
-					
+
 					if((checkTeamNameByName != null) && !checkTeamNameByName.getTeamId().equals(teamdto.getTeamId())){
 						if(checkTeamNameByName != null) {
 							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							response.setServiceResponse("Team Name already exist!");
-							apiLogInfo.setApiResponse("Team Name already exist!");			
+							apiLogInfo.setApiResponse("Team Name already exist!");
 							apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 						}
 						System.out.println("   checkTeamNameByName - "+checkTeamNameByName);
 					}
 				}
 			}else {
-				
+
 				Team checkTeamNameByName=teamRepository.findByTeamNameAndProjectId(teamdto.getTeamName(), teamdto.getProjectId());
 				if(checkTeamNameByName != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Team Name already exist!");
-					apiLogInfo.setApiResponse("Team Name already exist!");			
+					apiLogInfo.setApiResponse("Team Name already exist!");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}else {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					apiLogInfo.setApiResponse("TeamName  Does Not Exist!");			
+					apiLogInfo.setApiResponse("TeamName  Does Not Exist!");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 				System.out.println("   checkTeamNameByName : "+checkTeamNameByName);
 			}
-			 
+
 		}catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -2222,60 +2224,60 @@ public class TeamsService {
 			Employee getEmpData = employeeRepository.findByEmployeementId(team.getEmployeementId());
 			Team teamAlreadyPresent = teamRepository.findByTeamName(team.getTeamName());
 			Project projectPresent = projectRepository.findByProjectName(team.getProjectName());
-			
-				// create team & add member
-				
-				if (team.getTeamLeadId() != null) {
+
+			// create team & add member
+
+			if (team.getTeamLeadId() != null) {
 					if(getTeamLeadData != null) {
-						teamLeadName = getTeamLeadData.getName();
+					teamLeadName = getTeamLeadData.getName();
 					}else {
-						teamLeadName = "NA";
-					}
-				}else {
 					teamLeadName = "NA";
 				}
-				
+				}else {
+				teamLeadName = "NA";
+			}
+
 				if(teamAlreadyPresent == null) {
-					
-					Team newTeam = new Team();
 
-					newTeam.setTeamName(team.getTeamName());
-					newTeam.setTeamLeadId(team.getTeamLeadId());
-					newTeam.setProjectId(projectPresent.getProjectId());
-					newTeam.setTeamLeadName(teamLeadName);
-					newTeam.setCreatedBy(team.getCreatedBy());
-					newTeam.setCreatedOn(new Timestamp(System.currentTimeMillis())); 
+				Team newTeam = new Team();
 
-					Team teamCreated = teamRepository.save(newTeam);
+				newTeam.setTeamName(team.getTeamName());
+				newTeam.setTeamLeadId(team.getTeamLeadId());
+				newTeam.setProjectId(projectPresent.getProjectId());
+				newTeam.setTeamLeadName(teamLeadName);
+				newTeam.setCreatedBy(team.getCreatedBy());
+				newTeam.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 
-					if (teamCreated != null) {
+				Team teamCreated = teamRepository.save(newTeam);
 
-						EmployeeTeamMap map = new EmployeeTeamMap();
+				if (teamCreated != null) {
 
-						map.setEmpId(getEmpData.getEmpId());
-						map.setTeamId(teamCreated.getTeamId());
-						// 1: Active 0: InActive
-						map.setActive((long) 1);
-
-						employeeTeamMapRepository.save(map);
-						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-						response.setServiceResponse("Team Created Successfully");
-
-					}else {
-						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-						response.setServiceResponse("Team creation failed.");
-					}
-				} else {
 					EmployeeTeamMap map = new EmployeeTeamMap();
+
 					map.setEmpId(getEmpData.getEmpId());
-					map.setTeamId(teamAlreadyPresent.getTeamId());
+					map.setTeamId(teamCreated.getTeamId());
 					// 1: Active 0: InActive
 					map.setActive((long) 1);
 
 					employeeTeamMapRepository.save(map);
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Team Created Successfully");
+
+					}else {
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					response.setServiceResponse("Team creation failed.");
 				}
+			} else {
+				EmployeeTeamMap map = new EmployeeTeamMap();
+				map.setEmpId(getEmpData.getEmpId());
+				map.setTeamId(teamAlreadyPresent.getTeamId());
+				// 1: Active 0: InActive
+				map.setActive((long) 1);
+
+				employeeTeamMapRepository.save(map);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse("Team Created Successfully");
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -2288,11 +2290,11 @@ public class TeamsService {
 	public ServiceResponse migrateTeamActivityByList(ActivityDTO activityDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			
+
 			Team teamAlreadyPresent = teamRepository.findByTeamName(activityDTO.getTeamName());
-			
+
 			if(teamAlreadyPresent != null) {
-				
+
 				Activity newActivity = new Activity();
 
 				newActivity.setActivity(activityDTO.getActivity());
@@ -2311,12 +2313,12 @@ public class TeamsService {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Failed to add new activity to team.");
 				});
-				
+
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Team Not Found");
 			}
-			
+
 			
 		}catch(Exception e) {
 			e.printStackTrace();
@@ -2330,15 +2332,15 @@ public class TeamsService {
 	public ServiceResponse migrateProjectByList(ProjectDTO project) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			
+
 			Project projectObj = projectRepository.findByProjectName(project.getProjectName());
-			
+
 			if(projectObj != null) {
-				
+
 				projectObj.setPoProjectId(project.getPoProjectId());
-				
+
 				Project projectDbResponse = projectRepository.save(projectObj);
-				
+
 				if(projectDbResponse != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Added PoProject Id.");
@@ -2347,7 +2349,7 @@ public class TeamsService {
 					response.setServiceResponse("Fail.");
 				}
 			}else {
-				
+
 				Integer clientId = null;
 				Optional<Client> clientObj = clientsRepository.findByClientName(project.getClientName());
 				if(!clientObj.isEmpty()) {
@@ -2355,22 +2357,22 @@ public class TeamsService {
 					clientId = clientPresent.getClientId();
 				}else {
 					// Add Client & Client Location
-					
+
 					Client newClient = new Client();
 					newClient.setClientName(project.getClientName());
 					Client clientDbResponse = clientsRepository.save(newClient);
-					
+
 					if(clientDbResponse != null) {
 						clientId = clientDbResponse.getClientId();
 						List<ClientLocation> locations = new ArrayList<>();
-						
-							ClientLocation newClientLocation = new ClientLocation();
-							newClientLocation.setClientId(clientDbResponse.getClientId());
-							newClientLocation.setClientLocation(project.getClientLocation());
-							locations.add(newClientLocation);
-							
+
+						ClientLocation newClientLocation = new ClientLocation();
+						newClientLocation.setClientId(clientDbResponse.getClientId());
+						newClientLocation.setClientLocation(project.getClientLocation());
+						locations.add(newClientLocation);
+
 						List<ClientLocation> clientLocationDbResponse = clientLocationRepository.saveAll(locations);
-						
+
 						if(!clientLocationDbResponse.isEmpty()) {
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse("Client Location added");
@@ -2385,7 +2387,7 @@ public class TeamsService {
 						return response;
 					}
 				}
-				
+
 				//Find ProjectManager empId
 				Long projManagerId = null;
 				if(project.getProjectManagerId() != null) {
@@ -2398,7 +2400,7 @@ public class TeamsService {
 					Department dept = departmentRepository.findByName(project.getDepartmentName());
 					projManagerId = dept.getHodId();
 				}
-				
+
 				//Add project
 				Project newProject = new Project();
 				newProject.setProjectManagerId(projManagerId);
@@ -2410,27 +2412,27 @@ public class TeamsService {
 				newProject.setSyncProject("true");
 				newProject.setCreatedBy(3l);
 				
-				
+
 				Project projectDbResponse = projectRepository.save(newProject);
-				
+
 				
 				
 				if(projectDbResponse != null) {
-					
-						Department departmentObj = departmentRepository.findByName(project.getDepartmentName());
-						
+
+					Department departmentObj = departmentRepository.findByName(project.getDepartmentName());
+
 						if(departmentObj != null) {
 							ProjectDepartmentMap projectDeptMapObj = projectDepartmentMapRepository.
 									findByProjectIdAndDeptId(projectDbResponse.getProjectId(),departmentObj.getDeptId());
 							if(projectDeptMapObj == null) {
 								//add department
-								ProjectDepartmentMap projectDeptMap = new ProjectDepartmentMap();
-								projectDeptMap.setProjectId(projectDbResponse.getProjectId());
-								projectDeptMap.setDeptId(departmentObj.getDeptId());
+							ProjectDepartmentMap projectDeptMap = new ProjectDepartmentMap();
+							projectDeptMap.setProjectId(projectDbResponse.getProjectId());
+							projectDeptMap.setDeptId(departmentObj.getDeptId());
 								ProjectDepartmentMap projDeptMapDbResponse = projectDepartmentMapRepository.save(projectDeptMap);
-							}
 						}
-					
+					}
+
 					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("project added successfully.");
@@ -2438,9 +2440,9 @@ public class TeamsService {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Unable to add Project.");
 				}
-				
+
 			}
-			
+
 //			Employee getEmpData = null;
 //			if(project.getEmployeementId() != null) {
 //				getEmpData = employeeRepository.findByEmployeementId(project.getEmployeementId());
@@ -2471,7 +2473,7 @@ public class TeamsService {
 //					response.setServiceResponse("project creation failed");
 //				}
 //			}
-			
+
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -2484,15 +2486,15 @@ public class TeamsService {
 	public ServiceResponse migrateClientByList(ProjectDTO project) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			
+
 			Optional<Client> clientPresent = clientsRepository.findByClientName(project.getClientName());
-			
+
 			if(clientPresent.isEmpty()) {
-				
+
 				Client clientObj = new Client();
 				clientObj.setClientName(project.getClientName());
 				Client clientSaved = clientsRepository.save(clientObj);
-				
+
 				if(clientSaved != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Client added successfully");
@@ -2500,11 +2502,11 @@ public class TeamsService {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Failed to add new Client");
 				}
-			}else {
+			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Client already present");
 			}
-			
+
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -2517,24 +2519,24 @@ public class TeamsService {
 	public ServiceResponse migrateClientLocationByList(ProjectDTO project) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			
+
 			Optional<Client> clientPresent = clientsRepository.findByClientName(project.getClientName());
-			
+
 			if(!clientPresent.isEmpty()) {
 				Client clientObj = clientPresent.get();
-				
+
 				ClientLocation clientLocationPresent = clientLocationRepository
 						.findByClientIdAndClientLocation(clientObj.getClientId(), project.getClientLocation());
-				
+
 				if(clientLocationPresent != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Client Data Already present");
 				}else {
-					
+
 					ClientLocation clientLocationObj = new ClientLocation();
 					clientLocationObj.setClientId(clientObj.getClientId());
 					clientLocationObj.setClientLocation(project.getClientLocation());
-					
+
 					ClientLocation clientLocationSaved = clientLocationRepository.save(clientLocationObj);
 					if(clientLocationSaved != null) {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -2544,12 +2546,12 @@ public class TeamsService {
 						response.setServiceResponse("Failed to add Client Location");
 					}
 				}
-				
+
 			}else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Client not found");
 			}
-			
+
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -2562,16 +2564,16 @@ public class TeamsService {
 	public ServiceResponse updateProjectByList(ProjectDTO project) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			
+
 			Optional<Client> clientPresent = clientsRepository.findByClientName(project.getClientName());
 			Project projectPresent = projectRepository.findByProjectName(project.getProjectName());
-			
+
 			if(!clientPresent.isEmpty()) {
 				Client clientObj = clientPresent.get();
-				
+
 				if(projectPresent != null) {
 					projectPresent.setClientId(clientObj.getClientId());
-					
+
 					Project projSaved = projectRepository.save(projectPresent);
 					if(projSaved != null) {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -2588,7 +2590,7 @@ public class TeamsService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Client not found");
 			}
-			
+
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -2601,7 +2603,7 @@ public class TeamsService {
 	public ServiceResponse migrateTeamMember(ProjectDTO project) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			
+
 			EmployeeTeamMap map = new EmployeeTeamMap();
 
 			map.setEmpId(project.getEmpId());
@@ -2612,7 +2614,7 @@ public class TeamsService {
 			employeeTeamMapRepository.save(map);
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Team Created Successfully");
-			
+
 		}catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -2622,14 +2624,14 @@ public class TeamsService {
 	public ServiceResponse addDepartmentInProjects() {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			
+
 			List<Project> allProjects = projectRepository.findAll();
-			
+
 			if(allProjects != null) {
-				
+
 				for(Project obj : allProjects) {
 					String deptCode = obj.getProjectName().split("-")[0];
-					
+
 					if(deptCode.equals("AUT")) {
 						obj.setDepartmentName("Automation Testing");;
 					}else if(deptCode.equals("FT")) {
@@ -2654,9 +2656,9 @@ public class TeamsService {
 						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 						response.setServiceResponse("Unknown format");
 					}
-					
+
 					Project dbResponse = projectRepository.save(obj);
-					
+
 					if(dbResponse != null) {
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse("Department added successfully");
@@ -2665,9 +2667,9 @@ public class TeamsService {
 						response.setServiceResponse("department addtion failed");
 					}
 				}
-				
+
 			}
-			
+
 			
 		}catch(Exception e) {
 			e.printStackTrace();
@@ -2681,16 +2683,16 @@ public class TeamsService {
 	public ServiceResponse setPoProjectIdAndDepartment(ProjectDTO projectDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			
+
 			Project projectObj = projectRepository.findByProjectName(projectDTO.getProjectName());
-			
+
 			if(projectObj != null) {
 				projectObj.setPoProjectId(projectDTO.getPoProjectId());
 				projectObj.setDepartmentName(projectDTO.getDepartmentName());
 				
-				
+
 				Project dbResponse = projectRepository.save(projectObj);
-				
+
 				if(dbResponse != null) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("PoProject Id & department added successfully");
@@ -2702,7 +2704,7 @@ public class TeamsService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Project not found in PoPotal");
 			}
-			
+
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -2771,9 +2773,9 @@ public class TeamsService {
 //		logService.logMyInfo(httpRequest, apiLogInfo);
 //		return response;
 //	}
-	
+
 	// added by anurag
-	
+
 	public ServiceResponse getDepartmentLeaveHistory(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -2787,13 +2789,13 @@ public class TeamsService {
 		try {
 			List<String> jobRoles = null;
 			List<Object[]> objectList = null;
-			
+
 			LocalDate start = LocalDate.parse(leaveDTO.getFromDate());
 			LocalDate end = LocalDate.parse(leaveDTO.getToDate());
-			
+
 			
 			if(leaveDTO.getEmployeeRole().equals("HOD")) {
-				 jobRoles = new ArrayList<String>(Arrays.asList("SuperAdmin"));
+				jobRoles = new ArrayList<String>(Arrays.asList("SuperAdmin"));
 				 objectList = employeeLeaveRepository.getDepartmentLeaveHistoryAndNotIn(leaveDTO.getEmpId(),start,end,jobRoles); 
 			}
 			if(leaveDTO.getEmployeeRole().equals("Manager")) {
@@ -2803,12 +2805,12 @@ public class TeamsService {
 			if(leaveDTO.getEmployeeRole().equals("SuperAdmin"))  {
 				 objectList = employeeLeaveRepository.getDepartmentLeaveHistory(leaveDTO.getDeptId(),start,end);
 			}
-			
+
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
 			if (objectList.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No department leave history found");
-				apiLogInfo.setApiResponse("No department leave history found");			
+				apiLogInfo.setApiResponse("No department leave history found");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 
 			} else {
@@ -2825,13 +2827,13 @@ public class TeamsService {
 					dto.setReason(object[7] != null ? object[7].toString() : null);
 					dto.setLeaveType(object[8] != null ? object[8].toString() : null);
 					dto.setLeaveStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
-					
+
 					dto.setLeaveStatusUpdatedBy(object[10] != null ? Long.parseLong(object[10].toString()) : null);
 					dto.setLeaveId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
 					dto.setRemark(object[12] != null ? object[12].toString() : null);
-										
+
 					dto.setApproverName(object[13] != null ? object[13].toString() : null);
-					
+
 					dto.setApproverId(object[14] != null ? Long.parseLong(object[14].toString()) : null);
 
 					dto.setApproverEmail(object[15] != null ? object[15].toString() : null);
@@ -2850,12 +2852,12 @@ public class TeamsService {
 					dto.setCurrentApprovalLevel(object[25] != null ? Integer.parseInt(object[25].toString()) : null);
 					dto.setFinalApprovalLevel(object[26] != null ? Integer.parseInt(object[26].toString()) : null);
 
-					dtoList.add(dto);					
-					});
+					dtoList.add(dto);
+				});
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse("Department leave History fetched");			
+				apiLogInfo.setApiResponse("Department leave History fetched");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 			}
@@ -2864,14 +2866,14 @@ public class TeamsService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
-            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-            apiLogInfo.setLogLevel("ERROR");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
-	}	
-	
+	}
+
 	public ServiceResponse getDepartmentPendingLeaveHistory(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -2883,12 +2885,12 @@ public class TeamsService {
 		 + " ,ToDate : " + leaveDTO.getToDate());
 
 		try {
-			
+
 //			added by anurag
-			
+
 			List<String> jobRoles = null;
 			List<Object[]> objectList = null;
-			
+
 			if(leaveDTO.getEmployeeRole().equals("HOD")) {
 				jobRoles = new ArrayList<String>(Arrays.asList("SuperAdmin"));
 				objectList = employeeLeaveRepository.getDepartmentPendingLeaveHistoryStatusNotIn(leaveDTO.getDeptId(),jobRoles);
@@ -2898,21 +2900,21 @@ public class TeamsService {
 				objectList = employeeLeaveRepository.getDepartmentPendingLeaveHistoryStatusNotIn(leaveDTO.getDeptId(),jobRoles);
 			}
 			if(leaveDTO.getEmployeeRole().equals("SuperAdmin")) {
-				objectList = employeeLeaveRepository.getDepartmentPendingLeaveHistory(leaveDTO.getDeptId());	
+				objectList = employeeLeaveRepository.getDepartmentPendingLeaveHistory(leaveDTO.getDeptId());
 			}
-			
+
 			List<LeaveDTO> dtoList = new ArrayList<LeaveDTO>();
 			if (objectList.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No department leave history found");
-				apiLogInfo.setApiResponse("No department leave history found");			
+				apiLogInfo.setApiResponse("No department leave history found");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 
 			} else {
 
 				objectList.forEach((object) -> {
 					LeaveDTO dto = new LeaveDTO();
-					dto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);					
+					dto.setEmployeementId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 					dto.setCreatedByName(object[1] != null ? object[1].toString() : null);
 					dto.setFromDate(object[2] != null ? object[2].toString() : null);
 					dto.setToDate(object[3] != null ? object[3].toString() : null);
@@ -2924,9 +2926,9 @@ public class TeamsService {
 					dto.setLeaveStatusUpdatedByName(object[9] != null ? object[9].toString() : null);
 					dto.setLeaveId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
 					dto.setRemark(object[11] != null ? object[11].toString() : null);
-					
+
 //					added by anurag
-					
+
 					dto.setApproverName(object[12] != null ? object[12].toString() : null);
 					dto.setApproverEmail(object[13] != null ? object[13].toString() : null);
 
@@ -2935,24 +2937,24 @@ public class TeamsService {
 					dto.setLevel2ApproverName(object[16] != null ? object[16].toString() : null);
 					dto.setLevel2ApproverEmail(object[17] != null ? object[17].toString() : null);
 					dto.setLevel2ApprovalStatus(object[18] != null ? object[18].toString() : null);
-					
+
 					dto.setLevel3ApproverId(object[19] != null ? Long.parseLong(object[19].toString()) : null);
 					dto.setLevel3ApproverName(object[20] != null ? object[20].toString() : null);
 					dto.setLevel3ApprovalStatus(object[21] != null ? object[21].toString() : null);
 					dto.setLevel3ApproverEmail(object[22] != null ? object[22].toString() : null);
-					
+
 					dto.setCurrentApprovalLevel(object[23] != null ? Integer.parseInt(object[23].toString()) : null);
 					dto.setFinalApprovalLevel(object[24] != null ? Integer.parseInt(object[24].toString()) : null);
 					
 					
 					
-					
-					dtoList.add(dto);					
-					});
+
+					dtoList.add(dto);
+				});
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(dtoList);
-				apiLogInfo.setApiResponse("Department leave History fetched");			
+				apiLogInfo.setApiResponse("Department leave History fetched");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 			}
@@ -2961,8 +2963,8 @@ public class TeamsService {
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
-            apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-            apiLogInfo.setLogLevel("ERROR");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
@@ -2970,32 +2972,32 @@ public class TeamsService {
 	}
 
 	
-	
+
 //	end
 	
 	
 
 	public ServiceResponse addDeptIdsInActivities() {
 		ServiceResponse response = new ServiceResponse();
-		
+
 		try {
-			
+
 			List<Team> allTeamList = teamRepository.findAll();
 			if(!allTeamList.isEmpty()) {
 				allTeamList.forEach((teamOBj) -> {
 					// Find team memeber's Department
 					Set<String> deptIds = new HashSet<String>();
-					
+
 					List<EmployeeTeamMap> allTeamMemeber = employeeTeamMapRepository.findByTeamId(teamOBj.getTeamId());
 					if(!allTeamMemeber.isEmpty()) {
 						allTeamMemeber.forEach((teamMapObj) -> {
 							// get Department of each employee
-							
+
 							List<Object[]> getEmpDepartemnt = employeeRepository.getEmployeeData(teamMapObj.getEmpId());
 							if(!getEmpDepartemnt.isEmpty()) {
 								getEmpDepartemnt.forEach((empObj) -> {
 									String deptId = empObj[4] != null ? empObj[4].toString() : null;
-									
+
 									deptIds.add(deptId);
 								});
 							}
@@ -3013,7 +3015,7 @@ public class TeamsService {
 //						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 //						response.setServiceResponse("deptIds failed to add");
 //					}
-					
+
 					// Get team activities to set deptIds
 					List<Activity> teamActivity = activitiesRepository.findByTeamId(teamOBj.getTeamId());
 					if(!teamActivity.isEmpty()) {
@@ -3021,7 +3023,7 @@ public class TeamsService {
 							String departemntIds = String.join(",", deptIds);
 							activityObj.setDeptIds(departemntIds);
 							Activity activityDbResponse = activitiesRepository.save(activityObj);
-							
+
 							if(activityDbResponse != null) {
 								response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 								response.setServiceResponse("deptIds added successfully in Activity table");
@@ -3033,7 +3035,7 @@ public class TeamsService {
 					}
 				});
 			}
-			
+
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -3046,19 +3048,19 @@ public class TeamsService {
 	public ServiceResponse addProjectDepartmentMapping() {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			
+
 			List<Project> allProject = projectRepository.findAll();
 			if(!allProject.isEmpty()) {
 				allProject.forEach((projObj) -> {
 					Department deptObj = departmentRepository.findByName(projObj.getDepartmentName());
-					
+
 					if(deptObj != null) {
 						ProjectDepartmentMap projectDeptMap = new ProjectDepartmentMap();
 						projectDeptMap.setProjectId(projObj.getProjectId());
 						projectDeptMap.setDeptId(deptObj.getDeptId());
 						ProjectDepartmentMap projDeptMapDbResponse = projectDepartmentMapRepository.save(projectDeptMap);
-						
-						if(projDeptMapDbResponse != null) {
+
+						if (projDeptMapDbResponse != null) {
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse("Project Department mapping completed");
 						}else {
@@ -3068,7 +3070,7 @@ public class TeamsService {
 					}
 				});
 			}
-			
+
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -3081,17 +3083,17 @@ public class TeamsService {
 	public ServiceResponse addProjectManager() {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			
+
 			List<Project> allProject = projectRepository.findAll();
-			
+
 			if(!allProject.isEmpty()){
 				allProject.forEach(obj -> {
 					if(obj.getProjectManagerId() == null && (obj.getDepartmentName() != null)) {
 						Department dept = departmentRepository.findByName(obj.getDepartmentName());
-						
+
 						obj.setProjectManagerId(dept.getHodId());
 						Project dbResponse = projectRepository.save(obj);
-						
+
 						if(dbResponse != null) {
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse("Project manager added");
@@ -3102,7 +3104,7 @@ public class TeamsService {
 					}
 				});
 			}
-			
+
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -3112,7 +3114,7 @@ public class TeamsService {
 		return response;
 	}
 
-    @Transactional
+	@Transactional
 	public ServiceResponse revokeReporteeLeave(LeaveDTO leaveDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -3123,29 +3125,29 @@ public class TeamsService {
 		logBuilder.append("LeaveId : "+ leaveDTO.getLeaveId() + " , EmpId :" + leaveDTO.getEmpId() + 
 				 " ,LeaveType :" + leaveDTO.getLeaveType() + " ,leaveRevokeId :"+ leaveDTO.getLeaveRevokeId());
 		try {
-			
+
 			EmployeeLeave leaveApplication = employeeLeaveRepository.findByLeaveId(leaveDTO.getLeaveId());
-			
+
 			if(leaveApplication != null) {
 				leaveApplication.setLeaveStatusId((short)5);
 				leaveApplication.setLeaveStatusUpdatedBy(leaveDTO.getLeaveStatusUpdatedBy());
-				
+
 				EmployeeLeave dbResponse = employeeLeaveRepository.save(leaveApplication);
-				
+
 				if(dbResponse != null) {
-					
+
 					//Delete Timesheet Application regarding leave
-					
+
 					List<EmployeeTimesheetsNew> empTimesheet = timesheetsRepositoryNew.findByEmpIdAndDateBetween(leaveApplication.getEmpId(),leaveApplication.getFromDate(),leaveApplication.getToDate());
 
 					if (empTimesheet != null&& !empTimesheet.isEmpty()) {
 						for (EmployeeTimesheetsNew ts : empTimesheet) {
-                            Long currentTsId = ts.getTimesheetId();
-                            timesheetsRepositoryNew.cleanTimesheetById(currentTsId);
-                        }
+							Long currentTsId = ts.getTimesheetId();
+							timesheetsRepositoryNew.cleanTimesheetById(currentTsId);
+						}
 					}
-                    // entityManager.flush();
-					
+					// entityManager.flush();
+
 					//Get Expiration Period of CompOff
 					Integer expirationPeriod = null;
 					Employee employeeObj = employeeRepository.findByEmpId(leaveApplication.getEmpId());
@@ -3155,26 +3157,26 @@ public class TeamsService {
 						LeavePolicyMaster leavePolicy  = leavePolicyMasterRepository.findByLeaveTypeMasterIdAndEmploymentStatus(leaveTypeObj.getLeaveTypeMasterId(),employeeObj.getEmploymentstatus());
 					      if(leavePolicy != null){
 					    	  if(leavePolicy.getExpirationPeriod().equals("Yes")) {
-						        	 expirationPeriod = leavePolicy.getExpirationPeriodValue();
-				               }
-					      }
+								expirationPeriod = leavePolicy.getExpirationPeriodValue();
+							}
+						}
 					}
-					
+
 					//Manage Employee leave balance
-					
+
 					if(!leaveTypeObj.getLeaveTypeCode().equals("CO")){
 						EmployeeLeavesMap empLeaveMapping = employeeLeavesMapRepository
 								.findByEmpIdAndLeaveTypeMasterId(leaveApplication.getEmpId(), leaveApplication.getLeaveTypeMasterId());
-						
+
 						if(empLeaveMapping != null) {
 							Float prevBalace = empLeaveMapping.getBalance();
 							empLeaveMapping.setBalance(prevBalace + leaveApplication.getNoOfDays());
-							
+
 							EmployeeLeavesMap mapDbResponse = employeeLeavesMapRepository.save(empLeaveMapping);
-							
+
 							if(mapDbResponse != null) {
 								LeaveBalanceLog log = new LeaveBalanceLog();
-								
+
 								log.setBalance(mapDbResponse.getBalance());
 								log.setEmpId(leaveApplication.getEmpId());
 								log.setLeaveTypeMasterId(leaveApplication.getLeaveTypeMasterId());
@@ -3182,14 +3184,14 @@ public class TeamsService {
 								log.setUpdateBalanceBy("+" + leaveDTO.getNoOfDays());
 
 								LeaveBalanceLog balanceDbResponse = leaveBalanceLogRepository.save(log);
-								
+
 								if(balanceDbResponse != null) {
-									
+
 									Employee empObj = employeeRepository.findByEmpId(leaveApplication.getEmpId());
 									Employee managerObj = employeeRepository.findByEmpId(leaveDTO.getLeaveStatusUpdatedBy());
-									
+
 									if(empObj != null && managerObj != null) {
-										
+
 										//Send Mail to User with cc: HR,HOD,Manager
 										mailService.sendMailWithCC(empObj.getEmail(), hrMailAddress +","+ managerObj.getEmail(),
 												"Regarding Revoke Leave Application By Manager",
@@ -3211,9 +3213,9 @@ public class TeamsService {
 												"<br>"+
 												"leave Reason :"+" "+leaveDTO.getRevokeReason());
 									}
-									
+
 									response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-									response.setServiceResponse("Leave revoked successfully.");	
+									response.setServiceResponse("Leave revoked successfully.");
 									apiLogInfo.setApiResponse("Leave revoked successfully");
 									apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
@@ -3233,55 +3235,55 @@ public class TeamsService {
 
 						}
 					}
-					
+
 					// CompOff Leave : 4 (LeaveTypeMasterId)
 					if(leaveTypeObj.getLeaveTypeCode().equals("CO")) {
 						List<CompOffLeave> compOffLeave = compOffLeaveRepository.findByLeaveId(leaveApplication.getLeaveId());
-						
+
 						if(!compOffLeave.isEmpty()) {
-								
+
 								for(CompOffLeave leave: compOffLeave) {
-									
+
 									LocalDate expireDate = leave.getFromDate().plusDays(expirationPeriod != null ? expirationPeriod : 30);
 									if(LocalDate.now().isAfter(expireDate) || LocalDate.now().isEqual(expireDate)) {
-										
-										leave.setCompOffStatus("Expired");
-										compOffLeaveRepository.save(leave);
+
+									leave.setCompOffStatus("Expired");
+									compOffLeaveRepository.save(leave);
 									}else {
-										
+
 										//Update Leave Balance
 
-										EmployeeLeavesMap empLeaveMapping = employeeLeavesMapRepository
+									EmployeeLeavesMap empLeaveMapping = employeeLeavesMapRepository
 												.findByEmpIdAndLeaveTypeMasterId(leaveApplication.getEmpId(), leaveApplication.getLeaveTypeMasterId());
-										
-										if(empLeaveMapping != null) {
-											Float prevBalace = empLeaveMapping.getBalance();
-											empLeaveMapping.setBalance(prevBalace + leave.getNoOfDays());
-											
-											EmployeeLeavesMap mapDbResponse = employeeLeavesMapRepository.save(empLeaveMapping);
-											
-											if(mapDbResponse != null) {
-												LeaveBalanceLog log = new LeaveBalanceLog();
-												
-												log.setBalance(mapDbResponse.getBalance());
-												log.setEmpId(leaveApplication.getEmpId());
-												log.setLeaveTypeMasterId(leaveApplication.getLeaveTypeMasterId());
-												log.setMessage(LeaveLogMessage.leaveRevokedByManager.replace("0.0", leave.getNoOfDays().toString()));
-												log.setUpdateBalanceBy("+" + leave.getNoOfDays());
 
-												LeaveBalanceLog balanceDbResponse = leaveBalanceLogRepository.save(log);
-											}
+										if(empLeaveMapping != null) {
+										Float prevBalace = empLeaveMapping.getBalance();
+										empLeaveMapping.setBalance(prevBalace + leave.getNoOfDays());
+
+											EmployeeLeavesMap mapDbResponse = employeeLeavesMapRepository.save(empLeaveMapping);
+
+											if(mapDbResponse != null) {
+											LeaveBalanceLog log = new LeaveBalanceLog();
+
+											log.setBalance(mapDbResponse.getBalance());
+											log.setEmpId(leaveApplication.getEmpId());
+											log.setLeaveTypeMasterId(leaveApplication.getLeaveTypeMasterId());
+												log.setMessage(LeaveLogMessage.leaveRevokedByManager.replace("0.0", leave.getNoOfDays().toString()));
+											log.setUpdateBalanceBy("+" + leave.getNoOfDays());
+
+											LeaveBalanceLog balanceDbResponse = leaveBalanceLogRepository.save(log);
 										}
-									
-										
-										// change compOff application status
-										leave.setCompOffStatus("Pending");
-										leave.setLeaveId(null);
-										
-										compOffLeaveRepository.save(leave);
 									}
 									
+
+									// change compOff application status
+									leave.setCompOffStatus("Pending");
+									leave.setLeaveId(null);
+
+									compOffLeaveRepository.save(leave);
 								}
+
+							}
 						}
 					}
 				}else {
@@ -3298,7 +3300,7 @@ public class TeamsService {
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 
 			}
-			
+
 		}catch(Exception e) {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
@@ -3313,16 +3315,15 @@ public class TeamsService {
 		return response;
 	}
 
-	
 	public ServiceResponse getAllTeams() {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
-		//apiLogInfo.setSubFeatureName("");
+		// apiLogInfo.setSubFeatureName("");
 		apiLogInfo.setApiUrl("/api/getAllTeams");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
 		try {
-			
+
 			List<Object[]> objectList = teamRepository.getAllTeams();
 			logBuilder.append("AllTeamList : " + objectList.size());
 
@@ -3331,43 +3332,43 @@ public class TeamsService {
 				if (list.isEmpty()) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("No teams found. Teams list is empty");
-					apiLogInfo.setApiResponse("No teams found. Teams list is empty");			
+					apiLogInfo.setApiResponse("No teams found. Teams list is empty");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				} else {
-					
-					List<TeamDTO> dtoList = new ArrayList<TeamDTO>();
-						
-						list.forEach((object) -> {
-							TeamDTO dto = new TeamDTO();
 
-							dto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
-							dto.setProjectName(object[1] != null ? object[1].toString() : null);
-							dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
-							dto.setTeamName(object[3] != null ? object[3].toString() : null);
-							dto.setTeamLeadId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
-							dto.setTeamLeadName(object[5] != null ? object[5].toString() : null);
-							dto.setProjectManagerId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
-							dto.setProjectManagerName(object[7] != null ? object[7].toString() : null);
-							dto.setDepartmentName(object[8] != null ? object[8].toString() : null);
-							dto.setCreatedByName(object[9] != null ? object[9].toString() : null);
-							dto.setCreatedOn(object[10] != null ? object[10].toString() : null);
-							dto.setIsActive(object[11] != null ? object[11].toString() : null);
-							dto.setTeamLeadDeptId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
-							dto.setDepartmentList(object[13] != null ? object[13].toString().split(",") : null);
-							
-							dtoList.add(dto);
-						});
-						
+					List<TeamDTO> dtoList = new ArrayList<TeamDTO>();
+
+					list.forEach((object) -> {
+						TeamDTO dto = new TeamDTO();
+
+						dto.setProjectId(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
+						dto.setProjectName(object[1] != null ? object[1].toString() : null);
+						dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+						dto.setTeamName(object[3] != null ? object[3].toString() : null);
+						dto.setTeamLeadId(object[4] != null ? Long.parseLong(object[4].toString()) : null);
+						dto.setTeamLeadName(object[5] != null ? object[5].toString() : null);
+						dto.setProjectManagerId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+						dto.setProjectManagerName(object[7] != null ? object[7].toString() : null);
+						dto.setDepartmentName(object[8] != null ? object[8].toString() : null);
+						dto.setCreatedByName(object[9] != null ? object[9].toString() : null);
+						dto.setCreatedOn(object[10] != null ? object[10].toString() : null);
+						dto.setIsActive(object[11] != null ? object[11].toString() : null);
+						dto.setTeamLeadDeptId(object[12] != null ? Long.parseLong(object[12].toString()) : null);
+						dto.setDepartmentList(object[13] != null ? object[13].toString().split(",") : null);
+
+						dtoList.add(dto);
+					});
+
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
-					apiLogInfo.setApiResponse("All Team List Fetched");			
+					apiLogInfo.setApiResponse("All Team List Fetched");
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
 
 			}, () -> {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No teams found.Teams list is null");
-				apiLogInfo.setApiResponse("No teams found.Teams List is null");			
+				apiLogInfo.setApiResponse("No teams found.Teams List is null");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			});
 
@@ -3400,7 +3401,7 @@ public class TeamsService {
 				response.setServiceResponse("PO Id cannot be null!!");
 				return response;
 			}
-			
+
 			List<RmgTeamDto> rmgTeamDtoList = teamRepository.getActiveTeamDetailsByPoId(poId);
 			if (rmgTeamDtoList.isEmpty()) {
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
@@ -3409,7 +3410,7 @@ public class TeamsService {
 				response.setServiceResponse("No teams found. Teams list is empty");
 				return response;
 			}
-			
+
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(rmgTeamDtoList);
@@ -3484,11 +3485,10 @@ public class TeamsService {
 					obj.setPrevExp(dto.getPreviousExperience());
 					obj.setCurrentExp(dto.getCurrentExperience());
 					obj.setTotalExp(dto.getTotalExperience());
-					obj.setTotalExp(dto.getTotalExperience());
 					obj.setEmploymentStatus(dto.getEmploymentStatus());
 				}
 				obj.setOtherActiveProjects(empIdAndOtherProjectIdsMap.getOrDefault(obj.getEmpId(), List.of()));
-				
+
 				if (obj.getOtherActiveProjects() != null && !obj.getOtherActiveProjects().isEmpty()) {
 					List<Integer> projectIds = obj.getOtherActiveProjects().stream()
 							.map(e -> e.getProjectId())
@@ -3559,7 +3559,7 @@ public class TeamsService {
 	private Map<Long, List<EmployeeOtherActiveProject>> getEmployeeOtherActiveProjectIdMap(List<Long> empIds, Integer projectId) {
 		List<EmployeeOtherActiveProject> empOtherActiveProjectList = projectRepository.getOtherActiveProjectsByEmpIdIn(empIds, projectId);
 		if (empOtherActiveProjectList == null || empOtherActiveProjectList.isEmpty()) {
-			 return new HashMap<>();
+			return new HashMap<>();
 		}
 		return empOtherActiveProjectList.stream()
             .collect(Collectors.groupingBy(EmployeeOtherActiveProject::getEmpId));
@@ -3581,7 +3581,7 @@ public class TeamsService {
 				response.setServiceResponse("PO Id cannot be null!!");
 				return response;
 			}
-			
+
 			List<RmgTeamDto> rmgTeamDtoList = teamRepository.getActiveTeamDetailsByPoId(poId);
 			if (rmgTeamDtoList.isEmpty()) {
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
@@ -3638,7 +3638,7 @@ public class TeamsService {
 				response.setServiceResponse("No Active teams found for this Project");
 				return response;
 			}
-			
+
 			// Copy hasClientSideId from source -> target project
 			targetProject.setHasClientSideId(sourceProject.getHasClientSideId());
 			projectRepository.save(targetProject);
@@ -3966,32 +3966,32 @@ public class TeamsService {
 
 		if (poProjectType != null) {
 			switch (poProjectType) {
-				case "TNM":
-					billable = "Yes";
-					billableType = "TNM";
-					break;
-				case "Fixed Cost":
-				case "Monitoring":
-					billable = "No";
-					billableType = "Fixed Cost";
-					break;
-				default:
-					billable = null;
-					billableType = null;
+			case "TNM":
+				billable = "Yes";
+				billableType = "TNM";
+				break;
+			case "Fixed Cost":
+			case "Monitoring":
+				billable = "No";
+				billableType = "Fixed Cost";
+				break;
+			default:
+				billable = null;
+				billableType = null;
 			}
 		} else if (ishineProjectType != null) {
 			switch (ishineProjectType) {
-				case "InternalRNDProducts":
-					billable = "No";
-					billableType = "InternalRNDProducts";
-					break;
-				case "Bench":
-					billable = "No";
-					billableType = "Bench";
-					break;
-				default:
-					billable = null;
-					billableType = null;
+			case "InternalRNDProducts":
+				billable = "No";
+				billableType = "InternalRNDProducts";
+				break;
+			case "Bench":
+				billable = "No";
+				billableType = "Bench";
+				break;
+			default:
+				billable = null;
+				billableType = null;
 			}
 		}
 		if (billable != null || billableType != null) {
@@ -4097,9 +4097,8 @@ public class TeamsService {
 
 			List<String> projManagerOverheadHODMails = projectRepository
 					.findProjectManagerAndProjectoverheadEmails(targetProject.getProjectId());
-			Set<String> ccRecipients = projManagerOverheadHODMails.stream().filter(Objects::nonNull)
-					.map(String::trim).filter(s -> !s.isEmpty())
-					.collect(Collectors.toCollection(LinkedHashSet::new));
+			Set<String> ccRecipients = projManagerOverheadHODMails.stream().filter(Objects::nonNull).map(String::trim)
+					.filter(s -> !s.isEmpty()).collect(Collectors.toCollection(LinkedHashSet::new));
 			ccRecipients.removeAll(toRecipients);
 
 			List<Team> teams = teamRepository.findAllById(migrationTeamIds);
@@ -4112,11 +4111,10 @@ public class TeamsService {
 					+ targetProject.getProjectName();
 
 			StringBuilder body = new StringBuilder();
-			body.append("The ").append(teamNames.size() == 1 ? "team" : "teams")
-					.append("<b>").append(teamNamesStr).append(teamNames.size() == 1 ? "has" : "have")
-					.append(" been migrated from <b>").append(sourceProject.getProjectName())
-					.append("</b> to <b>").append(targetProject.getProjectName()).append("</b> by <b>")
-					.append((updatedByemp != null ? updatedByemp.getName() : "System"))
+			body.append("The ").append(teamNames.size() == 1 ? "team" : "teams").append("<b>").append(teamNamesStr)
+					.append(teamNames.size() == 1 ? "has" : "have").append(" been migrated from <b>")
+					.append(sourceProject.getProjectName()).append("</b> to <b>").append(targetProject.getProjectName())
+					.append("</b> by <b>").append((updatedByemp != null ? updatedByemp.getName() : "System"))
 					.append("</b> on ").append(currentDate).append(".");
 
 			mailService.sendMailWithCC(String.join(",", toRecipients), String.join(",", ccRecipients), subject,
@@ -4145,7 +4143,7 @@ public class TeamsService {
 				response.setServiceResponse("Project Id cannot be null!!");
 				return response;
 			}
-			
+
 			Project existingProject = projectRepository.findByProjectId(poDetailsDto.getProjectId());
 			if (existingProject == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -4187,8 +4185,7 @@ public class TeamsService {
 
 				obj.setOtherActiveProjects(empIdAndOtherProjectIdsMap.getOrDefault(dto.getEmpId(), List.of()));
 				if (obj.getOtherActiveProjects() != null && !obj.getOtherActiveProjects().isEmpty()) {
-					List<Integer> projectIds = obj.getOtherActiveProjects().stream()
-							.map(e -> e.getProjectId())
+					List<Integer> projectIds = obj.getOtherActiveProjects().stream().map(e -> e.getProjectId())
 							.collect(Collectors.toList());
 					obj.setOtherActiveProjectIds(projectIds);
 				} else {
@@ -4226,14 +4223,14 @@ public class TeamsService {
 				response.setServiceResponse("Project Id cannot be null!!");
 				return response;
 			}
-			
+
 			Project existingProject = projectRepository.findByProjectId(poDetailsDto.getProjectId());
 			if (existingProject == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Project not found!!");
 				return response;
 			}
-			
+
 			List<RmgTeamDto> teamDtoList = poDetailsDto.getTeamList();
 			Long currentUserEmpId = teamDtoList.stream().map(RmgTeamDto::getTeamId).filter(Objects::nonNull).findFirst().orElse(null);
 			if (currentUserEmpId == null) {
@@ -4241,7 +4238,7 @@ public class TeamsService {
 				response.setServiceResponse("Emp Id cannot be null!!");
 				return response;
 			}
-			
+
 			List<Long> selectedTeamIds = teamDtoList.stream().map(RmgTeamDto::getTeamId).collect(Collectors.toList());
 			List<Team> teamList = teamRepository.findActiveTeamsByTeamIds(selectedTeamIds);
 			if (teamList == null || teamList.isEmpty()) {
@@ -4367,11 +4364,11 @@ public class TeamsService {
 				response.setServiceResponse("Project not found!!");
 				return response;
 			}
-			
+
 			addOrUpdateTeams(existingProject, poDetailsDto);
 
 			response.setServiceResponse(poDetailsDto.isIsupdate() ? "Team(s) Details updated successfully!!"
-					: "New Team(s) Details Added successfully!!");
+					: "New Team details saved successfully!!");
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
 			log.error("Error in addOrUpdateTeamDetails : ", e);
@@ -4387,10 +4384,10 @@ public class TeamsService {
 		List<Team> updatedTeamListDB = new ArrayList<>();
 
 		List<Team> allTeamList = teamRepository.findByProjectId(project.getProjectId());
-		
+
 		Map<Long, Team> allTeamIdMap = allTeamList.stream()
 				.collect(Collectors.toMap(Team::getTeamId, Function.identity(), (existing, replace) -> replace));
-		
+
 		Map<String, Team> allTeamNameMap = allTeamList.stream()
 				.collect(Collectors.toMap(Team::getTeamName, Function.identity(), (existing, replace) -> replace));
 
@@ -4404,8 +4401,7 @@ public class TeamsService {
 
 		for (Team team : updatedTeamListDB) {
 			RmgTeamDto teamObj = poDetailsDto.getTeamList().stream()
-					.filter(t -> t.getTeamName().equals(team.getTeamName()))
-					.findFirst().orElse(null);
+					.filter(t -> t.getTeamName().equals(team.getTeamName())).findFirst().orElse(null);
 			if (teamObj != null) {
 				createActivityForTeam(teamObj, poDetailsDto.getUpdatedBy(), team.getTeamId());
 			}
@@ -4422,7 +4418,7 @@ public class TeamsService {
 
 		if (team == null) {
 			team = new Team();
-			team.setCreatedOn(new Timestamp(System.currentTimeMillis())); 
+			team.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 			team.setCreatedBy(currentUserEmpId);
 		} else {
 			team.setUpdatedBy(currentUserEmpId);
@@ -4478,8 +4474,7 @@ public class TeamsService {
 				response.setServiceResponse("Emp Id cannot be null!!");
 				return response;
 			}
-			if (rmgTeamDto.getRmgTeamMemberList() == null
-					|| rmgTeamDto.getRmgTeamMemberList().isEmpty()) {
+			if (rmgTeamDto.getRmgTeamMemberList() == null || rmgTeamDto.getRmgTeamMemberList().isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Team Member List cannot be null!!");
 				return response;
@@ -4491,6 +4486,8 @@ public class TeamsService {
 				response.setServiceResponse("Project not found!!");
 				return response;
 			}
+
+			log.info("Adding/updating Team members for ProjectId : {}", rmgTeamDto.getProjectId());
 
 			Team team = teamRepository.findByTeamId(rmgTeamDto.getTeamId());
 			if (team == null) {
@@ -4506,6 +4503,7 @@ public class TeamsService {
 					: "New Team Member(s) Details Added successfully. Please approve Project to allow newly added employees to fill timesheet!!");
 			response.setServiceResponse1(getDeptIdListFromString(team.getDeptIds()));
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			log.info("Adding/updating Team members Completed for ProjectId : {}", rmgTeamDto.getProjectId());
 		} catch (Exception e) {
 			log.error("Error in addOrUpdateTeamMembers : ", e);
 			response.setServiceResponse("Something went wrong!!");
@@ -4520,28 +4518,28 @@ public class TeamsService {
 		Long currentUserEmpId = dto.getUpdatedBy();
 
 		List<RmgTeamMemberDto> teamMemberDtoList = new ArrayList<>(dto.getRmgTeamMemberList());
-		List<EmployeeTeamMap> existingMappedMember = employeeTeamMapRepository.findByTeamId(team.getTeamId());
+		List<EmployeeTeamMap> existingMappedMember = Optional
+				.ofNullable(employeeTeamMapRepository.findByTeamId(team.getTeamId())).orElse(Collections.emptyList());
 		List<Long> newEmpIds = new ArrayList<>();
 
-		Map<Long, EmployeeTeamMap> existingMappedMemberMap = existingMappedMember.stream().collect(Collectors
-				.toMap(EmployeeTeamMap::getEmployeeTeamMapId, Function.identity(), (existing, replacement) -> replacement));
+		Map<Long, EmployeeTeamMap> existingMappedMemberMap = existingMappedMember.stream().collect(Collectors.toMap(
+				EmployeeTeamMap::getEmployeeTeamMapId, Function.identity(), (existing, replacement) -> replacement));
 
 		List<EmployeeTeamMap> updatedMemberDbResponse = getTeamMembersObj(teamMemberDtoList, existingMappedMemberMap,
 				project, team, currentUserEmpId, dto, newEmpIds);
-		
-		team = updateTeamDepartmentIds(team,updatedMemberDbResponse);
-		
-		List<Long> defaultProjectEmpIds = teamMemberDtoList.stream()
-				.filter(RmgTeamMemberDto :: isDefaultProject)
-				.map(RmgTeamMemberDto :: getEmpId).distinct().collect(Collectors.toList());
-			
-		List<Long> allEmpIds = teamMemberDtoList.stream()
+
+		team = updateTeamDepartmentIds(team, updatedMemberDbResponse);
+
+		List<Long> defaultProjectEmpIds = teamMemberDtoList.stream().filter(RmgTeamMemberDto::isDefaultProject)
 				.map(RmgTeamMemberDto::getEmpId).distinct().collect(Collectors.toList());
 
+		List<Long> allEmpIds = teamMemberDtoList.stream().map(RmgTeamMemberDto::getEmpId).distinct()
+				.collect(Collectors.toList());
+
 		updateEmployeeDefaultProjectIfUpdated(allEmpIds, defaultProjectEmpIds, project, currentUserEmpId);
-		
+
 		if (!newEmpIds.isEmpty()) {
-			String clientName = dto.getClientName();
+			String clientName = Optional.ofNullable(dto.getClientName()).orElse("");
 			createActivityForEmployeeRole(team.getTeamId(), currentUserEmpId, newEmpIds, teamMemberDtoList);
 			sendProjectMappingEmailToEmployee(project.getProjectName(), clientName, newEmpIds);
 		}
@@ -4553,8 +4551,8 @@ public class TeamsService {
 	}
 
 	private List<EmployeeTeamMap> getTeamMembersObj(List<RmgTeamMemberDto> teamMemberDtoList,
-			Map<Long, EmployeeTeamMap> existingMappedMemberMap, Project project,
-			Team team, Long currentUserEmpId, RmgTeamDto dto, List<Long> newEmpIds) {
+			Map<Long, EmployeeTeamMap> existingMappedMemberMap, Project project, Team team, Long currentUserEmpId,
+			RmgTeamDto dto, List<Long> newEmpIds) {
 
 		List<EmployeeTeamMap> updatedMemberList = new ArrayList<>();
 
@@ -4570,8 +4568,7 @@ public class TeamsService {
 					throw new BadRequestException(
 							"Project Type is TNM & Role Id is null,for EmpId: " + teamMember.getEmpId());
 				}
-				Optional<RoleDetails> roleDetailsOpt = roleDetailsRepository
-						.findById(teamMember.getRoleId());
+				Optional<RoleDetails> roleDetailsOpt = roleDetailsRepository.findById(teamMember.getRoleId());
 				if (roleDetailsOpt.isEmpty()) {
 					throw new BadRequestException("Requirement Role not found,for EmpId: " + teamMember.getEmpId()
 							+ " and Role Id: " + teamMember.getRoleId());
@@ -4585,7 +4582,7 @@ public class TeamsService {
 			if (presentMember == null) {
 				updateProjectFlag = true;
 				presentMember = new EmployeeTeamMap();
-				presentMember.setCreatedOn(new Timestamp(System.currentTimeMillis())); 
+				presentMember.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 				presentMember.setStartDate(teamMember.getStartDate() != null ? teamMember.getStartDate() : LocalDateTime.now());
 				presentMember.setEndDate(teamMember.getEndDate());
 				presentMember.setCreatedBy(currentUserEmpId);
@@ -4622,7 +4619,7 @@ public class TeamsService {
 			presentMember.setEmpTeamDepartmentId(teamMember.getEmpTeamDepartmentId());
 			updatedMemberList.add(presentMember);
 
-			if(shadowUpdatedFlag){
+			if (shadowUpdatedFlag) {
 				shadowFlagUpdatedMember.setStartDate(LocalDateTime.now());
 				shadowFlagUpdatedMember.setStartDate(teamMember.getStartDate() != null ? teamMember.getStartDate() : LocalDateTime.now());
 				shadowFlagUpdatedMember.setEndDate(teamMember.getEndDate());
@@ -4656,30 +4653,25 @@ public class TeamsService {
 									.map(String::toUpperCase)
 									.filter(role -> !role.isEmpty())
 									.collect(Collectors.toList())
-									: Collections.emptyList();
+				: Collections.emptyList();
 		List<String> objEmpRoles = parseRoles(existingMember.getEmployeeRole());
 
-		return isRoleChanged(dtoEmpRoles, objEmpRoles) ||
-				dateChanged(existingMember.getStartDate(), dto.getStartDate()) ||
-				dateChanged(existingMember.getEndDate(), dto.getEndDate()) ||
-				!Objects.equals(existingMember.getIsShadow(), dto.getIsShadow()) ||
-				!Objects.equals(existingMember.getActive(), dto.getIsMemberActive())
-				;
+		return isRoleChanged(dtoEmpRoles, objEmpRoles) || dateChanged(existingMember.getStartDate(), dto.getStartDate())
+				|| dateChanged(existingMember.getEndDate(), dto.getEndDate())
+				|| !Objects.equals(existingMember.getIsShadow(), dto.getIsShadow())
+				|| !Objects.equals(existingMember.getActive(), dto.getIsMemberActive());
 	}
 
 	private List<String> parseRoles(String roles) {
 		if (roles == null || roles.isBlank()) {
 			return Collections.emptyList();
 		}
-		return Arrays.stream(roles.split(","))
-				.map(String::trim)
-				.map(String::toUpperCase)
-				.filter(role -> !role.isEmpty())
-				.collect(Collectors.toList());
+		return Arrays.stream(roles.split(",")).map(String::trim).map(String::toUpperCase)
+				.filter(role -> !role.isEmpty()).collect(Collectors.toList());
 	}
 
 	private boolean isRoleChanged(List<String> dtoEmpRoles, List<String> objEmpRoles) {
-    return !new HashSet<>(dtoEmpRoles).equals(new HashSet<>(objEmpRoles));
+		return !new HashSet<>(dtoEmpRoles).equals(new HashSet<>(objEmpRoles));
 	}
 
 	private boolean dateChanged(LocalDateTime a, LocalDateTime b) {
@@ -4689,29 +4681,24 @@ public class TeamsService {
 			return true;
 		return !a.toLocalDate().equals(b.toLocalDate());
 	}
-	
+
 	private Team updateTeamDepartmentIds(Team team, List<EmployeeTeamMap> updatedMemberDbResponse) {
-	    if (updatedMemberDbResponse == null || updatedMemberDbResponse.isEmpty()) {
-	        return team;
-	    }
+		if (updatedMemberDbResponse == null || updatedMemberDbResponse.isEmpty()) {
+			return team;
+		}
 
-	    Set<Long> employeeDeptIds = updatedMemberDbResponse.stream()
-	            .filter(emp -> emp.getActive() != null && emp.getActive() != 0L)
-	            .map(EmployeeTeamMap::getEmpTeamDepartmentId)
-	            .filter(Objects::nonNull)
-	            .collect(Collectors.toSet());
+		Set<Long> employeeDeptIds = updatedMemberDbResponse.stream()
+				.filter(emp -> emp.getActive() != null && emp.getActive() != 0L)
+				.map(EmployeeTeamMap::getEmpTeamDepartmentId).filter(Objects::nonNull).collect(Collectors.toSet());
 
-	    Set<Long> teamDeptIdSet = (team.getDeptIds() != null && !team.getDeptIds().isBlank())
-	            ? Arrays.stream(team.getDeptIds().split(","))
-	                    .map(String::trim)
-	                    .map(Long::parseLong)
-	                    .collect(Collectors.toSet())
-	            : new HashSet<>();
+		Set<Long> teamDeptIdSet = (team.getDeptIds() != null && !team.getDeptIds().isBlank()) ? Arrays
+				.stream(team.getDeptIds().split(",")).map(String::trim).map(Long::parseLong).collect(Collectors.toSet())
+				: new HashSet<>();
 
-	    teamDeptIdSet.addAll(employeeDeptIds);
+		teamDeptIdSet.addAll(employeeDeptIds);
 		team.setDeptIds(teamDeptIdSet.stream().map(String::valueOf).collect(Collectors.joining(",")));
 
-	    return teamRepository.save(team);
+		return teamRepository.save(team);
 	}
 
 	private void createActivityForEmployeeRole(Long teamId, Long currentUserEmpId, List<Long> newEmpIds,
@@ -4728,16 +4715,16 @@ public class TeamsService {
 		List<Activity> newActivityList = new ArrayList<>();
 		for (RmgTeamMemberDto teamMember : teamMemberDtoList) {
 			EmployeeDetailsForTeamMemberDTO empInfoObj = empIdInfoMap.getOrDefault(teamMember.getEmpId(), null);
-			
+
 			if (empInfoObj == null || empInfoObj.getDeptId() == null) {
 				continue;
 			}
-			
+
 			Long departmentId = empInfoObj.getDeptId();
 			for (String role : teamMember.getEmployeeRoles()) {
 				role = role.trim();
-				List<Activity> existingActivities = activitiesRepository.findByDeptIdsAndEmployeeRoleAndTeamId(
-						departmentId.toString(), role, teamId);
+				List<Activity> existingActivities = activitiesRepository
+						.findByDeptIdsAndEmployeeRoleAndTeamId(departmentId.toString(), role, teamId);
 
 				if (existingActivities.isEmpty()) {
 					List<ActivityTemplate> activityTemplateList = activityTemplateRepository
@@ -4769,8 +4756,8 @@ public class TeamsService {
 			throw new IllegalArgumentException("Project cannot be null");
 		}
 		if (updatedBy == null) {
-    throw new IllegalArgumentException("UpdatedBy cannot be null");
-}
+			throw new IllegalArgumentException("UpdatedBy cannot be null");
+		}
 		List<Long> uniqueEmpIds = empIds.stream().distinct().collect(Collectors.toList());
 		LocalDateTime now = LocalDateTime.now();
 		Long projectId = project.getProjectId().longValue();
@@ -4783,19 +4770,17 @@ public class TeamsService {
 			emp.setUpdatedOn(now);
 		});
 
-		 Set<Long> alreadyPrimaryEmpIds =
-            new HashSet<>(empPrimaryProjectMappingRepository
-                    .findEmpIdByEmpIdInAndPrimaryProjectIdAndIsMapped(
-                            uniqueEmpIds, projectId, "Y"));
+		Set<Long> alreadyPrimaryEmpIds = new HashSet<>(empPrimaryProjectMappingRepository
+				.findEmpIdByEmpIdInAndPrimaryProjectIdAndIsMapped(uniqueEmpIds, projectId, "Y"));
 
 		Map<Long, Employee> employeeMap = employeeRepository.findByEmpIdIn(uniqueEmpIds).stream()
 				.collect(Collectors.toMap(Employee::getEmpId, Function.identity()));
 
-		// List<Long> shadowEmpIds = employeeTeamMapRepository.findShadowMembersByEmpIdsAndProjectId(empIds,
-		// 		project.getProjectId());
-		Set<Long> shadowEmpIds =
-    new HashSet<>(employeeTeamMapRepository
-        .findShadowMembersByEmpIdsAndProjectId(uniqueEmpIds, project.getProjectId()));
+		// List<Long> shadowEmpIds =
+		// employeeTeamMapRepository.findShadowMembersByEmpIdsAndProjectId(empIds,
+		// project.getProjectId());
+		Set<Long> shadowEmpIds = new HashSet<>(
+				employeeTeamMapRepository.findShadowMembersByEmpIdsAndProjectId(uniqueEmpIds, project.getProjectId()));
 
 		BillableInfo billableInfo = resolveBillableInfo(project);
 
@@ -4804,9 +4789,9 @@ public class TeamsService {
 
 		for (Long empId : uniqueEmpIds) {
 
-        if (!alreadyPrimaryEmpIds.contains(empId)) {
-            mappingsToSave.add(createNewMapping(empId, project, projectId, updatedBy, now));
-        }
+			if (!alreadyPrimaryEmpIds.contains(empId)) {
+				mappingsToSave.add(createNewMapping(empId, project, projectId, updatedBy, now));
+			}
 			BillableInfo finalInfo = shadowEmpIds.contains(empId) ? new BillableInfo("Shadow", "No") : billableInfo;
 
 			Employee emp = employeeMap.get(empId);
@@ -4909,7 +4894,8 @@ public class TeamsService {
 		return new BillableInfo(null, null);
 	}
 
-	private EmpPrimaryProjectMapping createNewMapping(Long empId, Project project, Long projectId, Long updatedBy, LocalDateTime now) {
+	private EmpPrimaryProjectMapping createNewMapping(Long empId, Project project, Long projectId, Long updatedBy,
+			LocalDateTime now) {
 		EmpPrimaryProjectMapping mapping = new EmpPrimaryProjectMapping();
 		mapping.setEmpId(empId);
 		mapping.setPrimaryProjectId(projectId);
@@ -4928,14 +4914,11 @@ public class TeamsService {
 			String managerEmail = TypeConversionUtil.getSafeString(object[3]);
 			String hodEmail = TypeConversionUtil.getSafeString(object[4]);
 
-			String ccMail = hodEmail + "," + managerEmail + "," + rmgMail + ","
-					+ adminMail;
+			String ccMail = hodEmail + "," + managerEmail + "," + rmgMail + "," + adminMail;
 			try {
-				mailService.sendMailWithCC(empEmail, ccMail,
-						"Regarding resource mapping to new project",
-						"Dear " + empName + "<br>" + "You have been mapped to client name - "
-								+ clientName + " under the project "
-								+ projectName + "<br><br><br>"
+				mailService.sendMailWithCC(empEmail, ccMail, "Regarding resource mapping to new project",
+						"Dear " + empName + "<br>" + "You have been mapped to client name - " + clientName
+								+ " under the project " + projectName + "<br><br><br>"
 								+ "Sincerely,<br>Team RMG - ApMoSys Technologies");
 			} catch (AddressException e) {
 				log.error("Error in sendProjectMappingEmailToEmployee : ", e);
@@ -4985,18 +4968,14 @@ public class TeamsService {
 	private String getAllHodMails(List<EmployeeTeamMap> mappings) {
 		return mappings.stream().map(m -> employeeRepository.findHodMail(m.getEmpId())).filter(Objects::nonNull)
 				.distinct().collect(Collectors.joining(","));
-	} 
-	
+	}
+
 	private List<Long> getDeptIdListFromString(String deptIds) {
-        return Optional.ofNullable(deptIds)
-                .filter(s -> !s.isBlank())
-                .map(s -> Arrays.stream(s.split(","))
-                        .map(String::trim)
-                        .map(Long::valueOf)
-                        .collect(Collectors.toList()))
-                .orElse(List.of());
-    }
-	
+		return Optional.ofNullable(deptIds).filter(s -> !s.isBlank())
+				.map(s -> Arrays.stream(s.split(",")).map(String::trim).map(Long::valueOf).collect(Collectors.toList()))
+				.orElse(List.of());
+	}
+
 	@Transactional(readOnly = true)
 	public ServiceResponse getActiveTeamDetailsByProjectId(Integer projectId) {
 		ServiceResponse response = new ServiceResponse();
@@ -5049,7 +5028,7 @@ public class TeamsService {
 				return response;
 			}
 			response = new ServiceResponse();
-			
+
 			Project project = projectRepository.findByProjectId(teamMember.getProjectId());
 			if (project == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -5075,8 +5054,8 @@ public class TeamsService {
 					.collect(Collectors.joining(","));
 
 			for (Long empId : teamMember.getSelectedEmpIds()) {
-				EmployeeTeamMap existingMap = employeeTeamMapRepository
-						.findByEmpIdAndTeamIdAndActiveStatus(empId, teamId);
+				EmployeeTeamMap existingMap = employeeTeamMapRepository.findByEmpIdAndTeamIdAndActiveStatus(empId,
+						teamId);
 				if (existingMap == null) {
 					EmployeeTeamMap empTeamMap = new EmployeeTeamMap();
 					empTeamMap.setEmpId(empId);
@@ -5126,7 +5105,7 @@ public class TeamsService {
 		}
 		return response;
 	}
-	
+
 	private ServiceResponse validateUpdateDefaultProjectCompletionRequest(RmgTeamMemberDto teamMember,
 			ServiceResponse response) {
 		if (teamMember == null) {
@@ -5156,7 +5135,7 @@ public class TeamsService {
 		}
 		return null;
 	}
-	
+
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse removeTeamMembersFromProject(RmgTeamDto rmgTeamDto) {
 		ServiceResponse response = new ServiceResponse();
@@ -5176,13 +5155,12 @@ public class TeamsService {
 				response.setServiceResponse("Current Emp Id cannot be null!!");
 				return response;
 			}
-			if (rmgTeamDto.getRmgTeamMemberList() == null
-					|| rmgTeamDto.getRmgTeamMemberList().isEmpty()) {
+			if (rmgTeamDto.getRmgTeamMemberList() == null || rmgTeamDto.getRmgTeamMemberList().isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Team Member List cannot be null!!");
 				return response;
 			}
-			
+
 			Project project = projectRepository.findByProjectId(rmgTeamDto.getProjectId());
 			if (project == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -5206,15 +5184,26 @@ public class TeamsService {
 				response.setServiceResponse("Employee Team Mapping not found!!");
 				return response;
 			}
-			
+
 			Map<Long, EmployeeTeamMap> empTeamMap = empMappings.stream().collect(
 					Collectors.toMap(EmployeeTeamMap::getEmpId, Function.identity(), (existing, replace) -> replace));
 
 			String removeTeamMemberMessage = handleRemoveTeamMembers(rmgTeamDto, project, team, empTeamMap);
-			if(removeTeamMemberMessage != null && !removeTeamMemberMessage.isBlank()) {
-				response.setServiceResponse("Team Member(s) removed Successfully!! \n" + removeTeamMemberMessage);
+			if (removeTeamMemberMessage != null && !removeTeamMemberMessage.isBlank()) {
+				if (removeTeamMemberMessage.equals("Selected Employee(s) not Found!!")) {
+					response.setServiceResponse("Selected Employee(s) not Found!!");
+					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+					return response;
+				} else {
+					response.setServiceResponse(
+							"Team member(s) removed successfully. Members with a future end date will be removed on the specified date!! \n"
+									+ removeTeamMemberMessage);
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					return response;
+				}
 			}
-			response.setServiceResponse("Team Member(s) removed Successfully!!");
+			response.setServiceResponse(
+					"Team member(s) removed successfully. Members with a future end date will be removed on the specified date!!");
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
 			log.error("Error in removeTeamMembersFromProject : ", e);
@@ -5229,6 +5218,16 @@ public class TeamsService {
 		StringBuilder sb = new StringBuilder();
 		Long currentUserEmpId = rmgTeamDto.getUpdatedBy();
 
+		List<Employee> empList = employeeRepository.findByEmpIdIn(rmgTeamDto.getRmgTeamMemberList().stream()
+				.map(RmgTeamMemberDto::getEmpId).collect(Collectors.toList()));
+		if (empList == null || empList.isEmpty()) {
+			sb.append("Selected Employee(s) not Found!!");
+			return sb.toString();
+		}
+
+		Map<Long, Employee> empIdAndEmployeeMap = empList.stream()
+				.collect(Collectors.toMap(Employee::getEmpId, Function.identity()));
+
 		for (RmgTeamMemberDto rmgTeamMember : rmgTeamDto.getRmgTeamMemberList()) {
 			try {
 				EmployeeTeamMap empTeamMapping = empTeamMap.getOrDefault(rmgTeamMember.getEmpId(), null);
@@ -5236,7 +5235,7 @@ public class TeamsService {
 					sb.append("Employee Team Mapping not found for : ").append(rmgTeamMember.getEmpId()).append(" \n");
 					continue;
 				}
-				Employee emp = employeeRepository.findByEmpId(rmgTeamMember.getEmpId());
+				Employee emp = empIdAndEmployeeMap.getOrDefault(rmgTeamMember.getEmpId(), null);
 				if (emp == null) {
 					sb.append("Employee not found for : ").append(empTeamMapping.getEmpId()).append(" \n");
 					continue;
@@ -5244,20 +5243,24 @@ public class TeamsService {
 				empTeamMapping.setRescRemovedBy(currentUserEmpId);
 				empTeamMapping.setIsCustomDate(rmgTeamDto.isCustomEndDate());
 				empTeamMapping.setEndDate(rmgTeamDto.getEndDate());
-				
+
 				if (empTeamMapping.getEndDate() != null) {
 					if (empTeamMapping.getStartDate().isAfter(empTeamMapping.getEndDate())) {
-						throw new IllegalArgumentException("End date cannot be less than Start date: " + empTeamMapping.getStartDate());
+						throw new IllegalArgumentException(
+								"End date cannot be less than Start date: " + empTeamMapping.getStartDate());
 					}
 					if (!empTeamMapping.getEndDate().toLocalDate().isAfter(LocalDate.now())) {
 						empTeamMapping.setActive(0L);
+					} else {
+						// Change the log
 					}
 				} else {
 					empTeamMapping.setActive(0L);
 					empTeamMapping.setEndDate(LocalDateTime.now());
 				}
 
-				employeeTeamMapRepository.save(empTeamMapping); // Sending mail to Individual So saving one object at a time.
+				employeeTeamMapRepository.save(empTeamMapping); // Sending mail to Individual So saving one object at a
+																// time.
 				sendResourceRemovalMailToRmg(emp.getName(), project.getProjectName(), team.getTeamName());
 			} catch (Exception e) {
 				log.error("Error in handleRemoveTeamMembers : ", e);
@@ -5272,9 +5275,8 @@ public class TeamsService {
 	private void sendResourceRemovalMailToRmg(String empName, String projectName, String teamName) {
 		try {
 			mailService.sendMail(rmgMail, "Regarding Resource removed from Project ",
-					"Dear " + empName + "<br>" + "You have been removed from project "
-							+ projectName + "under the team - "
-							+ teamName + "<br>" + "<br><br>" + "Sincerely," + "<br>"
+					"Dear " + empName + "<br>" + "You have been removed from project " + projectName
+							+ "under the team - " + teamName + "<br>" + "<br><br>" + "Sincerely," + "<br>"
 							+ "Team RMG - ApMoSys Technologies");
 		} catch (AddressException e) {
 			log.error("Error in sendResourceRemovalMailToRmg : ", e);
@@ -5308,23 +5310,24 @@ public class TeamsService {
 				return response;
 			}
 
-			Optional<Project> optionalProject =
-                projectRepository.findOptionalByProjectId(empOtherActiveProject.getProjectId());
-
-
-			if (optionalProject.isEmpty()) {
+			Project project = projectRepository.findByProjectId(empOtherActiveProject.getProjectId());
+			if (project == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Project not found!!");
 				return response;
 			}
-			Project project = optionalProject.get();
+			
+			log.info("Updating default project for empId={}, projectId={}", empOtherActiveProject.getEmpId(),
+					empOtherActiveProject.getProjectId());
+			
 			List<Long> empIds = new ArrayList<>();
 			empIds.add(empOtherActiveProject.getEmpId());
 			updateEmployeeDefaultProject(empIds, project, empOtherActiveProject.getUpdatedBy());
-			 log.info("Successfully updated default project. empId={}, projectId={}",
-                empOtherActiveProject.getEmpId(), empOtherActiveProject.getProjectId());
 			response.setServiceResponse("Default Project updated Successfully!!");
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			
+			log.info("Successfully updated default project. empId={}, projectId={}", empOtherActiveProject.getEmpId(),
+					empOtherActiveProject.getProjectId());
 		} catch (Exception e) {
 			log.error("Error in updateMappingToOtherProjectAsDefault : ", e);
 			response.setServiceError(e.getMessage());
@@ -5335,66 +5338,43 @@ public class TeamsService {
 		return response;
 	}
 
-	public void migrateResourcesAfterRenewal(Integer projectId,Long renewedPoId,Long renewedBy ) {
-		ProjectPoDetails previousPo =
-                projectPoDetailsRepository
-                        .findByNextPOAndProjectIdAndActiveTrue(renewedPoId, projectId).orElse(null);
-		
-		 if (previousPo == null) {
-			 return;
-	        }
-		 
-		 Long previousPoId = previousPo.getPoId();
-		 
-		 List<Long> oldRoles =
-	                poRequirementMappingRepository.findRoleIdsByPoId(previousPoId);
-		 
-		 List<Long> newRoles =
-	                poRequirementMappingRepository.findRoleIdsByPoId(renewedPoId);
-		 
-		 Set<Long> carryForwardRoles = oldRoles.stream()
-	                .filter(newRoles::contains)
-	                .collect(Collectors.toSet());
-		 
-		 
-		 if (!carryForwardRoles.isEmpty()) {
-			 for (Long roleId : carryForwardRoles) {
-				 List<EmployeeTeamMap> employees = employeeTeamMapRepository.findActiveEmployeesForRole(previousPoId, roleId);
-			 
-			 
-				 for (EmployeeTeamMap oldRow : employees) {
+	public void migrateResourcesAfterRenewal(Integer projectId, Long renewedPoId, Long renewedBy) {
+		ProjectPoDetails previousPo = projectPoDetailsRepository
+				.findByNextPOAndProjectIdAndActiveTrue(renewedPoId, projectId).orElse(null);
+		if (previousPo == null) {
+			return;
+		}
 
-				       
-				        EmployeeTeamMap newRow = new EmployeeTeamMap();
-				        BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
-
-				        newRow.setPoId(renewedPoId);
-				        newRow.setEndDate(null);
-//				        newRow.setActive(oldRow.getActive()); 
-				        newRow.setCreatedBy(renewedBy);
-				        newRow.setUpdatedBy(renewedBy);
-				        newRow.setUpdatedOn(LocalDateTime.now());
-				        newRow.setStartDate(LocalDateTime.now());
-				        newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
-				        
-				        
-				        employeeTeamMapRepository.save(newRow);
-
-
-				       
-				        oldRow.setActive(0L);
-				        oldRow.setEndDate(LocalDateTime.now());
-				        oldRow.setUpdatedBy(renewedBy);
-				        oldRow.setUpdatedOn(LocalDateTime.now());
-
-				        employeeTeamMapRepository.save(oldRow);
-				    }
-		 }
-		 }
-		 
-		 
+		Long previousPoId = previousPo.getPoId();
+		List<Long> oldRoles = poRequirementMappingRepository.findRoleIdsByPoId(previousPoId);
+		List<Long> newRoles = poRequirementMappingRepository.findRoleIdsByPoId(renewedPoId);
+		Set<Long> carryForwardRoles = oldRoles.stream().filter(newRoles::contains).collect(Collectors.toSet());
+		if (!carryForwardRoles.isEmpty()) {
+			for (Long roleId : carryForwardRoles) {
+				List<EmployeeTeamMap> employees = employeeTeamMapRepository.findActiveEmployeesForRole(previousPoId,
+						roleId);
+				for (EmployeeTeamMap oldRow : employees) {
+					EmployeeTeamMap newRow = new EmployeeTeamMap();
+					BeanUtils.copyProperties(oldRow, newRow, "employeeTeamMapId");
+					newRow.setPoId(renewedPoId);
+					newRow.setEndDate(null);
+//				    newRow.setActive(oldRow.getActive()); 
+					newRow.setCreatedBy(renewedBy);
+					newRow.setUpdatedBy(renewedBy);
+					newRow.setUpdatedOn(LocalDateTime.now());
+					newRow.setStartDate(LocalDateTime.now());
+					newRow.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+					employeeTeamMapRepository.save(newRow);
+					oldRow.setActive(0L);
+					oldRow.setEndDate(LocalDateTime.now());
+					oldRow.setUpdatedBy(renewedBy);
+					oldRow.setUpdatedOn(LocalDateTime.now());
+					employeeTeamMapRepository.save(oldRow);
+				}
+			}
+		}
 	}
-	
+
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse migrateTeamMembers(MigrateTeam migrateTeam) {
 		ServiceResponse response = new ServiceResponse();
@@ -5410,7 +5390,7 @@ public class TeamsService {
 				response.setServiceResponse("Team Member Migration Emp Id(s) cannot be null!!");
 				return response;
 			}
-			
+
 			Project sourceProject = projectRepository.findByProjectId(migrateTeam.getSourceProjectId());
 			if (sourceProject == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -5429,7 +5409,7 @@ public class TeamsService {
 				response.setServiceResponse("No Active teams found for this Project");
 				return response;
 			}
-			
+
 			// Copy hasClientSideId from source -> target project
 			targetProject.setHasClientSideId(sourceProject.getHasClientSideId());
 			projectRepository.save(targetProject);
@@ -5446,7 +5426,8 @@ public class TeamsService {
 
 			response = new ServiceResponse();
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			response.setServiceResponse("Team Member Migration completed successfully for " + activeTeams.size() + " teams.");
+			response.setServiceResponse(
+					"Team Member Migration completed successfully for " + activeTeams.size() + " teams.");
 
 			sendTeamMemberMigrationCompletedMail(migrateTeam, sourceProject, targetProject);
 		} catch (Exception e) {
@@ -5459,7 +5440,8 @@ public class TeamsService {
 		return response;
 	}
 
-	private ServiceResponse copyAndSaveTeamAndEmployeeDetailsForMembersMigration(MigrateTeam migrateTeam, List<Team> activeSourceTeams) throws Exception {
+	private ServiceResponse copyAndSaveTeamAndEmployeeDetailsForMembersMigration(MigrateTeam migrateTeam,
+			List<Team> activeSourceTeams) throws Exception {
 		ServiceResponse serviceResponse = new ServiceResponse();
 
 		Long srcProjectId = Long.parseLong(migrateTeam.getSourceProjectId().toString());
@@ -5471,9 +5453,9 @@ public class TeamsService {
 		List<EmployeeTeamMap> sourceEmployeeTeamMapping = employeeTeamMapRepository
 				.activeAndPendingEmployeesByTeamIdsAndEmpIds(migrationTeamIds, migrationEmpIds);
 		if (sourceEmployeeTeamMapping == null || sourceEmployeeTeamMapping.isEmpty()) {
-				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				serviceResponse.setServiceResponse("Selected Employee(s) not found in the Team Mapping!!");
-				throw new Exception("Selected Employee(s) not found in the Team Mapping!!");
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse("Selected Employee(s) not found in the Team Mapping!!");
+			throw new Exception("Selected Employee(s) not found in the Team Mapping!!");
 		}
 
 		List<Activity> sourceTeamActivities = activitiesRepository.findByTeamIdIn(migrationTeamIds);
@@ -5482,8 +5464,8 @@ public class TeamsService {
 			List<Long> sourceEmpIds = sourceEmployeeTeamMapping.stream().map(EmployeeTeamMap::getEmpId).distinct()
 					.collect(Collectors.toList());
 
-			
-			List<Team> newTeams = copyAndSaveTeamForMembersMigration(currentUserEmpId, tgtProjectId, activeSourceTeams, migrateTeam);
+			List<Team> newTeams = copyAndSaveTeamForMembersMigration(currentUserEmpId, tgtProjectId, activeSourceTeams,
+					migrateTeam);
 			if (newTeams == null || newTeams.isEmpty()) {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				serviceResponse.setServiceResponse("Failed to migrate team members to the Selected Project!!");
@@ -5532,8 +5514,8 @@ public class TeamsService {
 		return null;
 	}
 
-	private List<Team> copyAndSaveTeamForMembersMigration(Long currentUserEmpId, Long tgtProjectId, List<Team> activeSourceTeams,
-			MigrateTeam migrateTeam) {
+	private List<Team> copyAndSaveTeamForMembersMigration(Long currentUserEmpId, Long tgtProjectId,
+			List<Team> activeSourceTeams, MigrateTeam migrateTeam) {
 		List<Team> newTeams = new ArrayList<>();
 
 		for (Team oldTeam : activeSourceTeams) {
@@ -5594,9 +5576,8 @@ public class TeamsService {
 
 		List<Activity> allNewTeamActivities = activitiesRepository.findByTeamIdIn(newTeamIds);
 		if (allNewTeamActivities != null && !allNewTeamActivities.isEmpty()) {
-			teamIdAndEmployeeRoleMap = allNewTeamActivities.stream()
-					.collect(Collectors.groupingBy(Activity::getTeamId,
-							Collectors.mapping(Activity::getEmployeeRole, Collectors.toSet())));
+			teamIdAndEmployeeRoleMap = allNewTeamActivities.stream().collect(Collectors.groupingBy(Activity::getTeamId,
+					Collectors.mapping(Activity::getEmployeeRole, Collectors.toSet())));
 		}
 
 		for (Activity sourceActivity : sourceTeamActivities) {
@@ -5628,8 +5609,7 @@ public class TeamsService {
 	}
 
 	private void sendTeamMemberMigrationCompletedMail(MigrateTeam migrateTeam, Project sourceProject,
-			Project targetProject)
-			throws Exception {
+			Project targetProject) throws Exception {
 		try {
 			List<Long> migrationEmpIds = migrateTeam.getEmpIds();
 			Employee updatedByemp = employeeRepository.findByEmpId(migrateTeam.getCurrentUserEmpId());
@@ -5643,9 +5623,8 @@ public class TeamsService {
 			List<String> projManagerOverheadHODMails = projectRepository
 					.findProjectManagerAndProjectoverheadEmails(targetProject.getProjectId());
 
-			Set<String> ccRecipients = projManagerOverheadHODMails.stream().filter(Objects::nonNull)
-					.map(String::trim).filter(s -> !s.isEmpty())
-					.collect(Collectors.toCollection(LinkedHashSet::new));
+			Set<String> ccRecipients = projManagerOverheadHODMails.stream().filter(Objects::nonNull).map(String::trim)
+					.filter(s -> !s.isEmpty()).collect(Collectors.toCollection(LinkedHashSet::new));
 			ccRecipients.removeAll(toRecipients);
 
 			List<Employee> employees = employeeRepository.findByEmpIdIn(migrationEmpIds);
@@ -5660,11 +5639,10 @@ public class TeamsService {
 					+ targetProject.getProjectName();
 
 			StringBuilder body = new StringBuilder();
-			body.append("The ").append(empNames.size() == 1 ? "team member" : "team members")
-					.append("<b>").append(empNamesStr).append(empNames.size() == 1 ? "has" : "have")
-					.append(" been migrated from <b>").append(sourceProject.getProjectName())
-					.append("</b> to <b>").append(targetProject.getProjectName()).append("</b> by <b>")
-					.append((updatedByemp != null ? updatedByemp.getName() : "System"))
+			body.append("The ").append(empNames.size() == 1 ? "team member" : "team members").append("<b>")
+					.append(empNamesStr).append(empNames.size() == 1 ? "has" : "have").append(" been migrated from <b>")
+					.append(sourceProject.getProjectName()).append("</b> to <b>").append(targetProject.getProjectName())
+					.append("</b> by <b>").append((updatedByemp != null ? updatedByemp.getName() : "System"))
 					.append("</b> on ").append(currentDate).append(".");
 
 			mailService.sendMailWithCC(String.join(",", toRecipients), String.join(",", ccRecipients), subject,
@@ -5706,95 +5684,60 @@ public class TeamsService {
 				return response;
 			}
 
-			List<Object[]> objectArr = timesheetsRepository.findByEmpIdAndDate(rmgTeamMemberDto.getEmpId(),
-					rmgTeamMemberDto.getStartDate());
-			if (objectArr.isEmpty()) {
+			List<EmployeeProjectTimesheetCountDto> employeeProjectTimesheetCountDtoList = timesheetsRepository
+					.findByEmpIdAndDate(rmgTeamMemberDto.getEmpId(), rmgTeamMemberDto.getStartDate());
+			if (employeeProjectTimesheetCountDtoList == null || employeeProjectTimesheetCountDtoList.isEmpty()) {
 				response.setServiceResponse("No timesheet records found.");
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				return response;
 			}
+
 			StringBuilder sb = new StringBuilder();
 			LocalDate newStartDate = rmgTeamMemberDto.getStartDate().toLocalDate();
 
-			// if (!objectArr.isEmpty()) {
-
-				for (Object[] obj : objectArr) {
-					String projectName = TypeConversionUtil.getSafeString(obj[1]);
-					String dateStr = TypeConversionUtil.getSafeString(obj[2]);
-					String oldStartDateStr = TypeConversionUtil.getSafeString(obj[3]);
-					Integer timesheetCount = TypeConversionUtil.safeParseInt(obj[4]);
-
-					if (dateStr == null || timesheetCount == null || timesheetCount == 0 || oldStartDateStr == null) {
-						continue;
-					}
-
-					LocalDate projectStartDate = LocalDate.parse(dateStr);
-					LocalDate oldStartDate = LocalDate.parse(oldStartDateStr);
-
-					if (isStartDateConflict(newStartDate, projectStartDate, oldStartDate)) {
-						sb.append(String.format("Total timesheets submitted for project '%s' is %d.", projectName,
-								timesheetCount)).append("\n");
-					}
+			for (EmployeeProjectTimesheetCountDto dto : employeeProjectTimesheetCountDtoList) {
+				if (dto.getProjectStartDate() == null || dto.getTimesheetFilledCount() == null
+						|| dto.getTimesheetFilledCount().equals(0l) || dto.getEmployeeTeamStartDate() == null) {
+					continue;
 				}
-				if (sb.length() > 0) {
-					sb.append("The existing timesheet entries of the users need to be rejected.");
-					response.setServiceResponse(sb.toString());
-				} else {
-					response.setServiceResponse("No conflicting timesheet records found.");
+
+				if (isStartDateConflict(newStartDate, dto.getProjectStartDate(), dto.getEmployeeTeamStartDate())) {
+					sb.append(String.format("Total timesheets submitted for project '%s' is %d.", dto.getProjectName(),
+							dto.getTimesheetFilledCount())).append("\n");
 				}
-			// } else {
-			// 	response.setServiceResponse("No timesheet records found.");
-			// }
+			}
+
+			if (sb.length() > 0) {
+				sb.append("The existing timesheet entries of the users need to be rejected.");
+				response.setServiceResponse(sb.toString());
+			} else {
+				response.setServiceResponse("No conflicting timesheet records found.");
+			}
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
 			log.error("Error in validateEmployeeTimesheetFilledToChangeStartDate : ", e);
-			response.setServiceResponse("Something went wrong, unable to validate timesheet filled count at the moment for the updated start date!!");
+			response.setServiceResponse(
+					"Something went wrong, unable to validate timesheet filled count at the moment for the updated start date!!");
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceError(e.getMessage());
 		}
 		return response;
 	}
-	private boolean isStartDateConflict(LocalDate newDate,
-                                   LocalDate projectStartDate,
-                                   LocalDate oldStartDate) {
 
-    return newDate.isAfter(projectStartDate)
-            || newDate.isBefore(oldStartDate);
-}
+	private boolean isStartDateConflict(LocalDate newDate, LocalDate projectStartDate, LocalDate oldStartDate) {
+		return newDate.isAfter(projectStartDate) || newDate.isBefore(oldStartDate);
+	}
 
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse extendTeamMembersEndDate(RmgTeamDto rmgTeamDto) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			if (rmgTeamDto == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Request cannot be null!!");
+			response = validateExtendTeamMembersEndDateObject(rmgTeamDto);
+			if (response != null && response.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
 				return response;
 			}
-			if (rmgTeamDto.getProjectId() == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Project Id cannot be null!!");
-				return response;
-			}
-			if (rmgTeamDto.getUpdatedBy() == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Current User Employee Id cannot be null!!");
-				return response;
-			}
-			if (rmgTeamDto.getRmgMemberEndDateList() == null || rmgTeamDto.getRmgMemberEndDateList().isEmpty()) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("RMG Member(s) End Date List cannot be Null or Empty!!");
-				return response;
-			}
-			
-			Project project = projectRepository.findByProjectId(rmgTeamDto.getProjectId());
-			if (project == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Project not found!!");
-				return response;
-			}
-
+			response = new ServiceResponse();
 			List<Long> etmIds = rmgTeamDto.getRmgMemberEndDateList().stream().map(RmgMemberEndDateDto::getEtmId)
 					.filter(Objects::nonNull).collect(Collectors.toList());
 			if (etmIds == null || etmIds.isEmpty()) {
@@ -5802,26 +5745,31 @@ public class TeamsService {
 				response.setServiceResponse("RMG Member(s) Employee Team Mapping Id(s) cannot be Null or Empty!!");
 				return response;
 			}
+
+			Project project = projectRepository.findByProjectId(rmgTeamDto.getProjectId());
+			if (project == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project not found!!");
+				return response;
+			}
+
 			List<EmployeeTeamMap> employeeTeamMappingList = employeeTeamMapRepository.findByEmployeeTeamMapIdIn(etmIds);
 			if (employeeTeamMappingList == null || employeeTeamMappingList.isEmpty()) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee Team Mapping Not found!!");
 				return response;
 			}
-			
-			Map<Long, RmgMemberEndDateDto> etmIdAndEtmMap = rmgTeamDto.getRmgMemberEndDateList().stream().collect(Collectors.toMap(
-					RmgMemberEndDateDto::getEtmId, Function.identity(), (existing, replace) -> existing));
 
-			for (EmployeeTeamMap employeeTeamMap : employeeTeamMappingList) {
-				RmgMemberEndDateDto rmgMemberEndDateDto = etmIdAndEtmMap.getOrDefault(employeeTeamMap.getEmployeeTeamMapId(), null);
-				if (rmgMemberEndDateDto != null && rmgMemberEndDateDto.getEndDate() != null) {
-					employeeTeamMap.setEndDate(rmgMemberEndDateDto.getEndDate());
-					employeeTeamMap.setUpdatedBy(rmgTeamDto.getUpdatedBy());
-				}
+			String sb = updateTeamMembersEndDateInETM(rmgTeamDto, employeeTeamMappingList);
+
+			if (sb != null && !sb.isBlank()) {
+				response.setServiceResponse(
+						"Team Member(s) End Date updated successfully for selected records. \n However, some records could not be updated due to : \n"
+								+ sb.toString());
+			} else {
+				response.setServiceResponse("Team Member(s) End Date updated Successfully!!");
 			}
 
-			employeeTeamMapRepository.saveAll(employeeTeamMappingList);
-			response.setServiceResponse("Team Members End Date updated Successfully!!");
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
 			log.error("Error in extendTeamMembersEndDate : ", e);
@@ -5832,15 +5780,81 @@ public class TeamsService {
 		return response;
 	}
 
+	private ServiceResponse validateExtendTeamMembersEndDateObject(RmgTeamDto rmgTeamDto) {
+		ServiceResponse response = new ServiceResponse();
+		if (rmgTeamDto == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Request cannot be null!!");
+			return response;
+		}
+		if (rmgTeamDto.getProjectId() == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Project Id cannot be null!!");
+			return response;
+		}
+		if (rmgTeamDto.getUpdatedBy() == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Current User Employee Id cannot be null!!");
+			return response;
+		}
+		if (rmgTeamDto.getRmgMemberEndDateList() == null || rmgTeamDto.getRmgMemberEndDateList().isEmpty()) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("RMG Member(s) End Date List cannot be Null or Empty!!");
+			return response;
+		}
+
+		for (RmgMemberEndDateDto dto : rmgTeamDto.getRmgMemberEndDateList()) {
+			if (dto.getEndDate() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Provided End Date cannot be null for EMP ID : " + dto.getEmpId());
+				return response;
+			}
+		}
+		return null;
+	}
+
+	private String updateTeamMembersEndDateInETM(RmgTeamDto rmgTeamDto, List<EmployeeTeamMap> employeeTeamMappingList) {
+		StringBuilder sb = new StringBuilder();
+
+		Map<Long, RmgMemberEndDateDto> etmIdAndEtmMap = rmgTeamDto.getRmgMemberEndDateList().stream().collect(
+				Collectors.toMap(RmgMemberEndDateDto::getEtmId, Function.identity(), (existing, replace) -> existing));
+
+		for (EmployeeTeamMap employeeTeamMap : employeeTeamMappingList) {
+			if (employeeTeamMap.getStartDate() == null) {
+				sb.append("Start Date is null for EMP ID : ").append(employeeTeamMap.getEmpId())
+						.append(", cannot update the End Date. \n");
+				continue;
+			}
+
+			RmgMemberEndDateDto rmgMemberEndDateDto = etmIdAndEtmMap
+					.getOrDefault(employeeTeamMap.getEmployeeTeamMapId(), null);
+
+			if (rmgMemberEndDateDto != null) {
+				if (employeeTeamMap.getStartDate().isAfter(rmgMemberEndDateDto.getEndDate())) {
+					sb.append("Provided End Date is Before Start Date for EMP ID : ").append(employeeTeamMap.getEmpId())
+							.append(", cannot update the End Date. \n");
+				} else {
+					employeeTeamMap.setEndDate(rmgMemberEndDateDto.getEndDate());
+					employeeTeamMap.setUpdatedBy(rmgTeamDto.getUpdatedBy());
+				}
+			} else {
+				sb.append("Employee not found for EMP ID : ").append(employeeTeamMap.getEmpId()).append(". \n");
+			}
+		}
+
+		employeeTeamMapRepository.saveAll(employeeTeamMappingList);
+		return sb.toString();
+	}
+
 	public void markTeamMemberAsInactiveAfterEndDate() {
 		try {
 			List<EmployeeTeamMap> membersActiveAfterEndDateList = employeeTeamMapRepository.findEtmActiveAfterEndDate();
 			if (membersActiveAfterEndDateList == null || membersActiveAfterEndDateList.isEmpty()) {
 				return;
 			}
-			
-//			membersActiveAfterEndDateList
-			
+
+//			make the default project mapping to active then only deactive the etm 
+
 			membersActiveAfterEndDateList.forEach(etm -> {
 				etm.setActive(0L);
 				etm.setUpdatedOn(LocalDateTime.now());

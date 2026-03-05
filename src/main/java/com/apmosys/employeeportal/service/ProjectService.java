@@ -463,26 +463,19 @@ public class ProjectService {
 		apiLogInfo.setSubFeatureName("Create Project");
 		apiLogInfo.setApiUrl("/api/createProject");
 		apiLogInfo.setLogLevel("INFO");
-
+		
 		if (poProjectSyncDTO == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Invalid request payload.");
-				apiLogInfo.setApiResponse("Request object is null.");
-				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-				logService.logMyInfo(httpRequest, apiLogInfo);
-				return response;
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Invalid request payload.");
+			apiLogInfo.setApiResponse("Request object is null.");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			return response;
 		}
-		// StringBuilder logBuilder = new StringBuilder();
-		// logBuilder.append("Project Name : ").append(poProjectSyncDTO.getProjectName()).append(" , ProjectManagerId :")
-		// 		.append(poProjectSyncDTO.getProjectManagerId());
-		apiLogInfo.setApiRequest(
-            "Project Name : " + poProjectSyncDTO.getProjectName() +
-            " , ProjectManagerId :" + poProjectSyncDTO.getProjectManagerId()
-   		);
-
+		apiLogInfo.setApiRequest("Project Name : " + poProjectSyncDTO.getProjectName() + " , ProjectManagerId :" + poProjectSyncDTO.getProjectManagerId());
+		
 		try {
 			// === Data Validation ===
-			
 			if (!StringUtils.hasText(poProjectSyncDTO.getProjectName())) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Project name cannot be null or empty.");
@@ -491,11 +484,6 @@ public class ProjectService {
 				logService.logMyInfo(httpRequest, apiLogInfo);
 				return response;
 			}
-
-			// if (projectRepository.existsByProjectName(poProjectSyncDTO.getProjectName())) {
-			// 	throw new BadRequestException("Project Name already exists..!!");
-			// }
-
 			if (!StringUtils.hasText(poProjectSyncDTO.getCreatedBy())) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("CreatedBy cannot be null or empty.");
@@ -504,7 +492,6 @@ public class ProjectService {
 				logService.logMyInfo(httpRequest, apiLogInfo);
 				return response;
 			}
-
 			if (poProjectSyncDTO.getDepartmentList() == null || poProjectSyncDTO.getDepartmentList().length == 0) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Department list cannot be empty.");
@@ -515,10 +502,9 @@ public class ProjectService {
 			}
 
 			String projectName = poProjectSyncDTO.getProjectName().trim();
-
-        if (projectRepository.existsByProjectName(projectName)) {
-            throw new BadRequestException("Project Name already exists.");
-        }
+			if (projectRepository.existsByProjectName(projectName)) {
+				throw new BadRequestException("Project Name already exists.");
+			}
 
 			// === Find client (Inhouse : Apmosys) ===
 			String internalClient = "Apmosys";
@@ -532,16 +518,13 @@ public class ProjectService {
 				logService.logMyInfo(httpRequest, apiLogInfo);
 				return response;
 			}
-			List<Long> deptIdList = Arrays.stream(poProjectSyncDTO.getDepartmentList())
-                .filter(StringUtils::hasText)
-                .map(Long::parseLong)
-                .collect(Collectors.toList());
-
-        List<Department> departments = departmentRepository.findByDeptIdIn(deptIdList);
-
-        if (departments.size() != deptIdList.size()) {
-            throw new DataNotFoundException("One or more Department IDs are invalid.");
-        }
+			
+			List<Long> deptIdList = Arrays.stream(poProjectSyncDTO.getDepartmentList()).filter(StringUtils::hasText)
+					.map(Long::parseLong).collect(Collectors.toList());
+			List<Department> departments = departmentRepository.findByDeptIdIn(deptIdList);
+			if (departments.size() != deptIdList.size()) {
+				throw new DataNotFoundException("One or more Department IDs are invalid.");
+			}
 
 			// === Create project object ===
 			Project projectObj = new Project();
@@ -551,70 +534,48 @@ public class ProjectService {
 			projectObj.setActive("true");
 			projectObj.setSyncProject("false");
 			projectObj.setCreatedBy(Long.parseLong(poProjectSyncDTO.getCreatedBy()));
+			projectObj.setStartDate(LocalDate.now().toString());
 			projectObj.setCreatedOn(new Timestamp(System.currentTimeMillis()));
 			projectObj.setProjectStatus("Not Started");
 			projectObj.setInternalProjectType(poProjectSyncDTO.getInternalProjectType());
-
-			// === Validate and collect department IDs ===
-			// List<String> deptIds = new ArrayList<>();
-			// for (String department : poProjectSyncDTO.getDepartmentList()) {
-			// 	if (department == null || department.trim().isEmpty()) {
-			// 		continue; // skip invalid department entries
-			// 	}
-			// 	Department departmentObj = departmentRepository.findByDeptId(Long.parseLong(department));
-			// 	if (departmentObj == null) {
-//	                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//	                response.setServiceResponse("Invalid Department ID: " + department);
-//	                apiLogInfo.setApiResponse("Invalid Department ID found: " + department);
-//	                apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-//	                logService.logMyInfo(httpRequest, apiLogInfo);
-//	                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-					// throw new DataNotFoundException("Invalid Department ID: " + department);
-//	                return response;
-			// 	}
-			// 	deptIds.add(departmentObj.getDeptId().toString());
-			// }
-
-			// String commaSeparatedDeptIds = String.join(", ", deptIds);
-			// projectObj.setDeptId(commaSeparatedDeptIds);
-			projectObj.setDeptId(
-                departments.stream()
-                        .map(d -> d.getDeptId().toString())
-                        .collect(Collectors.joining(", "))
-        );
+			projectObj.setDeptId(departments.stream().map(d -> d.getDeptId().toString()).collect(Collectors.joining(", ")));
 
 			// === Save project ===
 			Project projectDbResponse = projectRepository.save(projectObj);
-
 			if (projectDbResponse != null) {
 
 				List<ProjectPoDetails> existingPoList = projectPoDetailsRepository
-				        .findByProjectId(projectDbResponse.getProjectId());
+						.findByProjectId(projectDbResponse.getProjectId());
 
-				if (!existingPoList.isEmpty()) {
-					  List<Integer> activePoIds = existingPoList.stream()
-				                .filter(ProjectPoDetails::isActive)
-				                .map(po -> po.getPoId().intValue())
-				                .collect(Collectors.toList());
-				    
-				    if (activePoIds.isEmpty()) {
-				        activePoIds.add(existingPoList.get(0).getPoId().intValue());
-				    }
-				    List<PoDepartmentMapping> mappingsToSave = new ArrayList<>();
-			        
-			        // for (String department : poProjectSyncDTO.getDepartmentList()) {
-			        //     Department departmentObj = departmentRepository.findByDeptId(Long.parseLong(department));
-			            for (Department department : departments) {
-						// if (departmentObj != null) {
-			                for (Integer poId : activePoIds) {
-			                    PoDepartmentMapping poDeptMap = new PoDepartmentMapping();
-			                    poDeptMap.setPoId(poId.longValue()); 
-			                    poDeptMap.setDeptId(department.getDeptId());
-			                    poDeptMap.setActive(true);
-			                    mappingsToSave.add(poDeptMap);
-			                }
-			            
-			        }
+				if (existingPoList != null && !existingPoList.isEmpty()) {
+					List<Integer> activePoIds = existingPoList.stream().filter(ProjectPoDetails::isActive)
+							.map(po -> po.getPoId().intValue()).collect(Collectors.toList());
+
+					if (activePoIds.isEmpty()) {
+						activePoIds.add(existingPoList.get(0).getPoId().intValue());
+					}
+					List<PoDepartmentMapping> mappingsToSave = new ArrayList<>();
+					for (Department department : departments) {
+						for (Integer poId : activePoIds) {
+							PoDepartmentMapping poDeptMap = new PoDepartmentMapping();
+							poDeptMap.setPoId(poId.longValue());
+							poDeptMap.setDeptId(department.getDeptId());
+							poDeptMap.setActive(true);
+							poDeptMap.setCreatedBy(Long.parseLong(poProjectSyncDTO.getCreatedBy()));
+							mappingsToSave.add(poDeptMap);
+						}
+					}
+					poDepartmentMappingRepository.saveAll(mappingsToSave);
+				} else {
+					List<PoDepartmentMapping> mappingsToSave = new ArrayList<>();
+					for (Department department : departments) {
+							PoDepartmentMapping poDeptMap = new PoDepartmentMapping();
+							poDeptMap.setProjectId(projectDbResponse.getProjectId());
+							poDeptMap.setDeptId(department.getDeptId());
+							poDeptMap.setActive(true);
+							poDeptMap.setCreatedBy(Long.parseLong(poProjectSyncDTO.getCreatedBy()));
+							mappingsToSave.add(poDeptMap);
+					}
 					poDepartmentMappingRepository.saveAll(mappingsToSave);
 				}
 
@@ -647,8 +608,6 @@ public class ProjectService {
 			apiLogInfo.setLogLevel("ERROR");
 			throw e;
 		}
-
-		// apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
@@ -4009,7 +3968,7 @@ public class ProjectService {
 	    return changed;
 	}
 
-
+	@Transactional(readOnly = true)
 	public ServiceResponse getEmployeeExistingProjectDetailsByEmpId(Long empId) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		try {
@@ -4031,17 +3990,23 @@ public class ProjectService {
 			serviceResponse.setServiceResponse(employeeExistingProjectDetailsList);
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
-			e.printStackTrace();
+			serviceResponse.setServiceError(e);
+			log.error("Error fetching Employee Existing Project Details by EmpId : ", e);
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			serviceResponse.setServiceResponse("Something went wrong!!");
 		}
 		return serviceResponse;
 	}
 
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse updateEmployeeProjectMappingAsInActive(RmgTeamMemberDto rmgTeamMemberDto) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		try {
+			if (rmgTeamMemberDto == null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Request cannot be null!!");
+				return serviceResponse;
+			}
 			if (rmgTeamMemberDto.getEtmId() == null) {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				serviceResponse.setServiceResponse("Employee Team Mapping Id cannot be null!!");
@@ -4069,11 +4034,14 @@ public class ProjectService {
 				employeeTeamMapRepository.save(empTeamMap);
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				serviceResponse.setServiceResponse("Resource removed successfully!!");
+				log.info("Resource Removed Successfully : ETM_ID={}, REMOVED_BY={}",empTeamMap.getEmployeeTeamMapId(), rmgTeamMemberDto.getUpdatedBy());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			log.error("Error updating Employee Project Mapping to Inactive : ", e);
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			serviceResponse.setServiceResponse("Something went wrong!!");
+			throw e;
 		}
 		return serviceResponse;
 	}

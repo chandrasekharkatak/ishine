@@ -615,7 +615,9 @@ public class ProjectCustomRepository {
         }
 
 		if (projectStatus.equalsIgnoreCase("NOT_STARTED")) {
-			query.append(" AND p.project_id NOT IN (SELECT  t2.project_id FROM teams t2) \n")
+			query
+//			.append(" AND p.project_id NOT IN (SELECT  t2.project_id FROM teams t2) \n")
+					.append(" AND NOT EXISTS (SELECT 1 FROM teams t2 INNER JOIN employee_team_mapping etm2 ON t2.team_id = etm2.team_id WHERE t2.project_id = p.project_id AND etm2.active IN (1,2) ) \n")
 					.append(" AND p.active = 'true' AND p.is_draft_project IS NULL \n")
 					.append(" AND (p.status != 'Completed' or p.status IS NULL) \n")
 					.append(" AND (DATE(ppd.po_end_date) > CURDATE() OR ppd.po_end_date IS NULL ) \n");

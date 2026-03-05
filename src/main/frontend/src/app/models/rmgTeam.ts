@@ -37,6 +37,8 @@ export class RmgTeam {
     isAnyMemberSelected: boolean = false;
     isAllMemberSelected: boolean = false;
     isAnyNewMemberAdded: boolean = false;
+    addNewTeamMemberToggle: boolean = true;
+
     isTeamSelected: boolean = false;
 
     createdBy: any;

@@ -1871,7 +1871,6 @@ public class ResourceManagementService {
 
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse rejectPendingProject(ResourceManagementDTO resourceManagementDTO) {
-
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("Reject Pending Project");
@@ -1888,7 +1887,7 @@ public class ResourceManagementService {
 			Map<String, List<EmployeeTeamMap>> modifiedTeamsMap = new LinkedHashMap<>();
 			// Map<String, List<EmployeeTeamMap>> allTeamsMap = new LinkedHashMap<>();
 
-			Project projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
+			Project projectObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
 			if (projectObj == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Project not found.");
@@ -1915,7 +1914,6 @@ public class ResourceManagementService {
 			// ==== Update project as REJECTED ====
 			projectObj.setIsDraftProject("Rejected");
 			Project savedProject = projectRepository.save(projectObj);
-
 			if (savedProject == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Unable to update project.");
@@ -1932,7 +1930,6 @@ public class ResourceManagementService {
 
 			ServiceResponse rmBdMailResponse = poPortalAPIService.getAllMailsByProjectId(projectObj.getPoProjectId());
 			Object emailObj = rmBdMailResponse.getServiceResponse();
-
 			if (emailObj instanceof List<?>) {
 				for (Object item : (List<?>) emailObj) {
 					if (item instanceof String) {
@@ -1981,19 +1978,14 @@ public class ResourceManagementService {
 									.append("<td>").append(role != null ? role : "-").append("</td>").append("</tr>");
 						}
 					}
-
 					html.append("</tbody></table><br><br>");
 				}
-
 				html.append("<br><b>Regards,<br>Ishine</b>");
 
 				// ==== Send Email ====
-				mailService.sendMailWithCC(allEmails, employeeObj.getEmail(), "Regarding Project Rejection",
-						html.toString());
-
+				mailService.sendMailWithCC(allEmails, employeeObj.getEmail(), "Regarding Project Rejection", html.toString());
 				apiLogInfo.setApiResponse("Project rejected & mail sent");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-
 			} catch (Exception mailEx) {
 				// mailEx.printStackTrace();
 				log.error("Error sending rejection mail. ProjectId={}, EmpId={}",
@@ -2009,10 +2001,8 @@ public class ResourceManagementService {
 			// ==== Team Cleanup Logic (Same Logic, Just Cleaner) ====
 			List<Team> teamList = allTeams;
 			for (Team team : teamList) {
-
 				List<EmployeeTeamMap> teamPending = employeeTeamMapRepository.findByTeamIdAndActive(team.getTeamId());
-				List<EmployeeTeamMap> activeMembers = employeeTeamMapRepository
-						.findTeammembersByTeamIdAndStatus(team.getTeamId());
+				List<EmployeeTeamMap> activeMembers = employeeTeamMapRepository.findTeammembersByTeamIdAndStatus(team.getTeamId());
 
 				if (teamPending.size() <= 1) {
 					for (EmployeeTeamMap member : teamPending) {
@@ -2023,26 +2013,23 @@ public class ResourceManagementService {
 						}
 					}
 				} else {
-					for (EmployeeTeamMap member : teamPending) {
-						if (member.getActive() == 1) {
-							member.setActive(1L);
-						} else {
-							if (activeMembers.isEmpty()) {
-								activitiesRepository.deleteAll(activitiesRepository.findByTeamId(team.getTeamId()));
-								employeeTeamMapRepository.deleteAllByTeamId(team.getTeamId());
-								teamRepository.delete(team);
-							} else {
-								member.setActive(member.getActive() == 2 ? 0L : 1L);
+					if (activeMembers.isEmpty()) {
+						activitiesRepository.deleteAll(activitiesRepository.findByTeamId(team.getTeamId()));
+						employeeTeamMapRepository.deleteAllByTeamId(team.getTeamId());
+						teamRepository.delete(team);
+					} else {
+						for (EmployeeTeamMap member : teamPending) {
+							if (member.getActive() == 2) {
+								member.setActive(0L);
+								employeeTeamMapRepository.save(member);
 							}
 						}
-						employeeTeamMapRepository.save(member);
 					}
 				}
 			}
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse("Project Rejected Successfully.");
-
 		} catch (Exception e) {
 			// e.printStackTrace();
 			log.error("Error rejecting project. ProjectId={}, EmpId={}",
@@ -2055,7 +2042,6 @@ public class ResourceManagementService {
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
 		}
-
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
@@ -12238,6 +12224,7 @@ public class ResourceManagementService {
 		}
 	}
 
+	@Transactional(readOnly = true)
 	public ServiceResponse getActiveProjectList() {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -12266,6 +12253,7 @@ public class ResourceManagementService {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			log.error("Error fetching Active Project List : ",e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something went wrong.");
 			response.setServiceError(e.getMessage());
@@ -14096,6 +14084,7 @@ public class ResourceManagementService {
 
 	}
 
+	@Transactional(readOnly = true)
 	public ServiceResponse getProjectConfigurationDetailsByProjectId(Integer projectId, boolean isAllProjects) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -14166,6 +14155,7 @@ public class ResourceManagementService {
 		return validPoRequirementMappingIds;
 	}
 
+	@Transactional(readOnly = true)
 	public ServiceResponse getResourceRequirementByPoId(Long poId) {
 		ServiceResponse response = new ServiceResponse();
 		try {
@@ -14174,6 +14164,7 @@ public class ResourceManagementService {
 				response.setServiceResponse("Po Id cannot be null!!");
 				return response;
 			}
+			log.info("Fetching Resource Requirements for PO ID ={}", poId);
 
 			List<RmgResourceRequirementDto> resourceRequirementList = poRequirementMappingRepository
 					.getPoRequirementDataByPoId(poId);
@@ -14190,7 +14181,8 @@ public class ResourceManagementService {
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			return response;
 		} catch (Exception e) {
-			e.printStackTrace();
+			response.setServiceError(e);
+			log.error("Error fetching Resource Requirements by PO Id : ", e);
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceResponse("Something went wrong!!");
 		}
@@ -14214,6 +14206,7 @@ public class ResourceManagementService {
 		}
 	}
 
+	@Transactional(readOnly = true)
 	public ServiceResponse getActivePoDetailsByProjectId(Integer projectId) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -14238,7 +14231,8 @@ public class ResourceManagementService {
 			serviceResponse.setServiceResponse(poDetailsDtos);
 			apiLogInfo.setApiResponse("PO Details fetched successfully!!");
 		} catch (Exception e) {
-			e.printStackTrace();
+			serviceResponse.setServiceError(e);
+			log.error("Error fetching Active PO Details by Project Id : ", e);
 			return failResponse(serviceResponse, apiLogInfo, "Something went wrong.");
 		}
 		return serviceResponse;
@@ -15337,9 +15331,11 @@ public class ResourceManagementService {
 				return failResponse(serviceResponse, apiLogInfo,
 						"Unable to fetch latest resource requirement details!!");
 			}
-
+			
+			boolean isTnm = "TNM".equalsIgnoreCase(projectType);
+			
 			List<PoDetailsDto> tempList = new ArrayList<>();
-			if (projectType.equalsIgnoreCase("TNM")) {
+			if (isTnm) {
 				tempList = employeeTeamMapRepository.getAssigedAndApprovedEmployeeCountByProjectId(projectId, currentActivePO);
 			} else {
 				tempList = projectPoDetailsRepository.getResourceRequirementCountByProjectId(projectId, currentActivePO);
@@ -15348,15 +15344,14 @@ public class ResourceManagementService {
 			for (RmgResourceRequirementDto resourceRequirementDto : rmgProjectResourceRequirementList) {
 				PoDetailsDto poDetailsDto = null;
 
-				if (projectType.equalsIgnoreCase("TNM")) {
+				if (isTnm) {
 					poDetailsDto = tempList.stream().filter(
-							t -> t.getPoRequirementMappingId()
-									.equals(resourceRequirementDto.getPoRequirementMappingId()))
+							t -> Objects.equals(t.getPoRequirementMappingId(),
+									resourceRequirementDto.getPoRequirementMappingId()))
 							.findFirst().orElse(null);
 				} else {
 					poDetailsDto = tempList.stream().filter(
-							t -> t.getPoId()
-									.equals(resourceRequirementDto.getPoId()))
+							t -> Objects.equals(t.getPoId(), resourceRequirementDto.getPoId()))
 							.findFirst().orElse(null);
 				}
 

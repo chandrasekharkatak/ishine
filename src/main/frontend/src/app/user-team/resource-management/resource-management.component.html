@@ -32,8 +32,11 @@
                     <mat-slide-toggle color="primary" *ngIf="currentUser.employeeRole != 'SuperAdmin'" [(ngModel)]="myDept"
                         (change)="toggleDepartment()">
                     </mat-slide-toggle>
-                    <label>
-                        {{ !myDept ? 'My Departments' : 'Departments' }}
+                    <label *ngIf="currentUser.employeeRole !== 'SuperAdmin'">
+                        {{ myDept ? 'My Departments' : 'Departments' }}
+                    </label>
+                    <label *ngIf="currentUser.employeeRole === 'SuperAdmin'">
+                        {{ 'Departments' }}
                     </label>
                 </div>
             

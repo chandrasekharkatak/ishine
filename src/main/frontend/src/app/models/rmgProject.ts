@@ -24,6 +24,7 @@ export class RmgProject {
     difference: any;
     isAnyTeamSelected: boolean = false;
     isAnyNewTeamAdded: boolean = false;
+    addNewTeamToggle: boolean = true;
     isAllTeamsSelected: boolean = false;
 
     selectedTeamIds: any[] = [];

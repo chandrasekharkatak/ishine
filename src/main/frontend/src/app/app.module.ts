@@ -227,6 +227,7 @@ import { ToastrModule } from 'ngx-toastr';
 import { MyTableComponent } from './helpers/my-table/my-table.component';
 import { RmgStatusCardsComponent } from './user-team/resource-management/rmg-status-cards/rmg-status-cards/rmg-status-cards.component';
 // import { MatMomentDateModule } from '@angular/material-moment-adapter';
+import {MatSidenavModule} from '@angular/material/sidenav';
 
 registerLocaleData(localeGb);
 
@@ -467,6 +468,7 @@ registerLocaleData(localeGb);
       preventDuplicates: true,
       newestOnTop: true
     }),
+    MatSidenavModule
     // MatMomentDateModule
   ],
   providers: [
