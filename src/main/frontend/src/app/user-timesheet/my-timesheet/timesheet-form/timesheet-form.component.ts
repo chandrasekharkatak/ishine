@@ -4930,9 +4930,10 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       this.getEmployeeListByProjectId(project, this.currentUser.empId);
       this.getListToRenderUpload();
     } else {
-      this.openAlertMod(this.alertTemplate, "Shadow timesheet is only available when timesheet is filled for self.");
-      project.isShadowTimesheet = false;
+      // this.openAlertMod(this.alertTemplate, "Shadow timesheet is only available when timesheet is filled for self.");
+      // project.isShadowTimesheet = false;
       this.syncShadowForProjectAcrossLocations(project);
+      this.getEmployeeListByProjectId(project, this.timesheetFilledForUser.empId);
       this.getListToRenderUpload();
       return;
     }

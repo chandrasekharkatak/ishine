@@ -594,6 +594,7 @@ public class TimesheetValidationHelper {
                     Integer projectId = project.getProjectId();
                     
                     if(project.getIsShadowForSelf()) continue;
+                    if(project.getIsShadowTimesheet()) continue;
 
                     // Check if client-side document is mandatory for this project
                     Boolean isClientSideMandatory =
@@ -662,6 +663,7 @@ public class TimesheetValidationHelper {
 				if (location.getProjects() == null) continue;
 				for (ProjectTimesheetDTO project : location.getProjects()) {
 					if (project.getIsShadowForSelf()) continue;
+					if (project.getIsShadowTimesheet()) continue;
 					if (Boolean.TRUE.equals(projectRepository.getClientSideIdMandatory(project.getProjectId()))) {
 						targetProjectIdsWithClientSide.add(project.getProjectId());
 						projectMap.put(project.getProjectId(), project);
