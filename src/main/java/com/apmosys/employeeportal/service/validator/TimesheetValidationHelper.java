@@ -2046,7 +2046,7 @@ public class TimesheetValidationHelper {
 	                session.getProjects().stream()
 	                        .map(ProjectTimesheetDTO::getProjectId)
 	                        .filter(Objects::nonNull)
-	                        .toList()
+	                        .collect(Collectors.toList())
 	            );
 	        }
 	    }
