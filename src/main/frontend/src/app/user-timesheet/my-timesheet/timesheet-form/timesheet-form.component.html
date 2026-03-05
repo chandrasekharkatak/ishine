@@ -521,7 +521,7 @@
                                                     <app-my-select class="form-control"
                                                         placeholder="Select Approval Status"
                                                         [(ngModel)]="project.clientApprovalStatus"
-                                                        (ngModelChange)="getListToRenderUpload()"
+                                                        (ngModelChange)="onClientApprovalStatusSelect(location, project, $event)"
                                                         [options]="clientApprovalStatusList" displayKey="status"
                                                         valueKey="statusId" [multiple]="false">
                                                     </app-my-select>

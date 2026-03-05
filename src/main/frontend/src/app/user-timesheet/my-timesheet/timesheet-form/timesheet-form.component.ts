@@ -1578,6 +1578,30 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   /**
+   * Open a simple OK-only alert without a backdrop (click-through background)
+   * Used for non-blocking consistency warnings such as client approval status across locations.
+   */
+  openAlertNoBackdrop(template: TemplateRef<any>, message: any, onOk?: () => void): void {
+    // Close any existing alert of this type
+    this.closeAlertModal();
+    this.alertMessage = message;
+    this.alertModalRef = this.modalService.open(template, {
+      modalDialogClass: 'ts-alert-modal',
+      backdrop: false
+    });
+
+    if (onOk && this.alertModalRef) {
+      this.alertModalRef.result
+        .then(() => {
+          onOk();
+        })
+        .catch(() => {
+          // Dismissed (e.g. ESC) – ignore, as this alert is informational
+        });
+    }
+  }
+
+  /**
    * Get timesheet metadata for current user or selected team member
    */
   getTimesheetMetadata(): void {
@@ -2287,8 +2311,11 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       console.warn('Project is required for approval status selection');
       return;
     }
-    
-    if (!status) {
+
+    // Normalise status value (statusId from dropdown)
+    const newStatus = status != null ? Number(status) : null;
+
+    if (!newStatus) {
       project.clientApprovalStatus = null;
       project.projectActivities = [];
       if (project.activities && Array.isArray(project.activities)) {
@@ -2300,8 +2327,78 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       this.getListToRenderUpload();
       return;
     }
-    
-    project.clientApprovalStatus = status;
+
+    // Apply the selected status to the current project row
+    project.clientApprovalStatus = newStatus;
+
+    // ✅ Enforce consistency: same project (projectId) must have same clientApprovalStatus across all locations
+    // Applies only when:
+    // - Day type is fillable (working / half-day working etc.)
+    // - Project has clientSideId
+    // - Not shadow for self
+    if (this.isDayTypeFillable() && project.hasClientSideId && !project.isShadowForSelf && project.projectId != null) {
+      const targetProjectId = Number(project.projectId);
+      let hasConflict = false;
+
+      if (Array.isArray(this.timesheetLocations)) {
+        for (const loc of this.timesheetLocations) {
+          if (!loc || !Array.isArray(loc.projects)) {
+            continue;
+          }
+          for (const p of loc.projects) {
+            if (!p || p === project) {
+              continue;
+            }
+            if (
+              p.projectId != null &&
+              Number(p.projectId) === targetProjectId &&
+              (p.hasClientSideId ?? false) &&
+              !p.isShadowForSelf &&
+              p.clientApprovalStatus != null &&
+              Number(p.clientApprovalStatus) !== newStatus
+            ) {
+              hasConflict = true;
+              break;
+            }
+          }
+          if (hasConflict) {
+            break;
+          }
+        }
+      }
+
+      if (hasConflict) {
+        const message =
+          'For the same project, client approval status must be consistent across all locations. ' +
+          'The latest selected status will be applied to all locations for this project.';
+
+        this.openAlertNoBackdrop(this.alertTemplate, message, () => {
+          // On OK, apply the latest status to all occurrences of this project across locations
+          if (!Array.isArray(this.timesheetLocations)) {
+            return;
+          }
+          for (const loc of this.timesheetLocations) {
+            if (!loc || !Array.isArray(loc.projects)) {
+              continue;
+            }
+            for (const p of loc.projects) {
+              if (
+                p &&
+                p.projectId != null &&
+                Number(p.projectId) === targetProjectId &&
+                (p.hasClientSideId ?? false) &&
+                !p.isShadowForSelf
+              ) {
+                p.clientApprovalStatus = newStatus;
+              }
+            }
+          }
+          // Recompute document upload list after status harmonisation
+          this.getListToRenderUpload();
+        });
+      }
+    }
+
     // ✅ Update document list when approval status changes (affects which documents to show)
     this.getListToRenderUpload();
   }
