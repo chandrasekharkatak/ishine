@@ -407,6 +407,6 @@ public class TeamsController {
 	@Scheduled(cron = "0 0 1 * * *")
 	@PostMapping("/markTeamMemberAsInactiveAfterEndDate")
 	public void markTeamMemberAsInactiveAfterEndDate() {
-		teamsService.markTeamMemberAsInactiveAfterEndDate();
+		teamsService.updateTeamMemberStatus();
 	}
 }

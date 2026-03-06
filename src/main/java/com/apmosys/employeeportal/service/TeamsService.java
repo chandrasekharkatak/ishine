@@ -5848,23 +5848,23 @@ public class TeamsService {
 		return sb.toString();
 	}
 
-	public void markTeamMemberAsInactiveAfterEndDate() {
+	@Transactional
+	public void updateTeamMemberStatus() {
 		try {
-			List<EmployeeTeamMap> membersActiveAfterEndDateList = employeeTeamMapRepository.findEtmActiveAfterEndDate();
-			if (membersActiveAfterEndDateList == null || membersActiveAfterEndDateList.isEmpty()) {
-				return;
-			}
 
-//			make the default project mapping to active then only deactive the etm 
+	        int activated =
+	            employeeTeamMapRepository.activateMembersBasedOnStartDate();
 
-			membersActiveAfterEndDateList.forEach(etm -> {
-				etm.setActive(0L);
-				etm.setUpdatedOn(LocalDateTime.now());
-			});
-			employeeTeamMapRepository.saveAll(membersActiveAfterEndDateList);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	        int deactivated =
+	            employeeTeamMapRepository.deactivateMembersBasedOnEndDate();
+
+	        log.info("Team Member Status Update | Activated: {} | Deactivated: {}",
+	                activated, deactivated);
+
+	    } catch (Exception e) {
+
+	        log.error("Error updating team member status", e);
+	    }
 	}
 
 	@Transactional(readOnly = true)

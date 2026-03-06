@@ -1112,4 +1112,40 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 	@Query(value = "Select etm FROM EmployeeTeamMap etm WHERE etm.endDate IS NOT NULL AND DATE(etm.endDate) < CURDATE() AND etm.active != 0 ")
 	List<EmployeeTeamMap> findEtmActiveAfterEndDate();
 	
+	@Modifying
+	@Transactional
+	@Query(value = "UPDATE EmployeeTeamMap etm\n"
+			+ "	INNER JOIN Team t ON t.teamId = etm.teamId\n"
+			+ "	INNER JOIN Project p ON p.projectId = t.projectId\n"
+			+ "	INNER JOIN EmpPrimaryProjectMapping eppm \n"
+			+ "	     ON eppm.empId = etm.empId \n"
+			+ "	     AND eppm.projectId = p.projectId\n"
+			+ "	SET \n"
+			+ "	    etm.active = 1,\n"
+			+ "	    etm.updatedOn = NOW(),\n"
+			+ "	    eppm.isMapped = 'Y'\n"
+			+ "	WHERE etm.active = 0\n"
+			+ "	AND etm.startDate IS NOT NULL\n"
+			+ "	AND DATE(etm.startDate) <= CURDATE()\n"
+			+ " AND t.isActive = 'Y' AND p.active = 'true'\n"
+			+ "	AND p.isDraftProject NOT IN ('Rejected','false')", nativeQuery = true)
+	int activateMembersBasedOnStartDate();
+	
+	@Modifying
+	@Transactional
+	@Query(value = "UPDATE EmployeeTeamMap etm\n"
+			+ "	JOIN Team t ON t.teamId = etm.teamId\n"
+			+ "	JOIN Project p ON p.projectId = t.projectId\n"
+			+ "	JOIN EmpPrimaryProjectMapping eppm \n"
+			+ "	     ON eppm.empId = etm.empId \n"
+			+ "	     AND eppm.projectId = p.projectId\n"
+			+ "	SET \n"
+			+ "	    etm.active = 0,\n"
+			+ "	    etm.updated_on = NOW(),\n"
+			+ "	    eppm.isMapped = 'N'\n"
+			+ "	WHERE etm.active = 1\n"
+			+ " AND t.isActive = 'Y' AND p.active = 'true'\n"
+			+ "	AND etm.endDate IS NOT NULL\n"
+			+ "	AND DATE(etm.endDate) < CURDATE()", nativeQuery = true)
+	int deactivateMembersBasedOnEndDate();
 }
