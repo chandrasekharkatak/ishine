@@ -2244,7 +2244,7 @@ public class ResourceManagementService {
 			
 			if (!resourceManagementDTO.getProjectType().equals("Internal")) {
 				
-				projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
+				projectObj = projectRepository.findByPoProjectId(resourceManagementDTO.getPoProjectId());
 //				System.err.println(" projectObj   " + projectObj.getPoProjectId());
 				List<PoProjectSyncDTO> projectInfo = new ArrayList<PoProjectSyncDTO>();
 
@@ -2299,14 +2299,50 @@ public class ResourceManagementService {
 						ServiceResponse syncResponse = poPortalAPIService.syncProjectData(projectInfo);
 
 						if (ServiceResponse.STATUS_SUCCESS.equals(syncResponse.getServiceStatus())) {
-							try {
-								mailService.sendMail(rmgMail, "Regarding Project Sync With PoPortal",
-										"Dear RMG Team ," + "<br>" + "<br>" + "Project : "
-												+ resourceManagementDTO.getName()
-												+ " has been successfully synced with PoPortal.");
-							} catch (Exception e) {
-								e.printStackTrace();
-							}
+						try {
+
+						    String html =
+						        "<div style='font-family: Arial, sans-serif; font-size:14px; color:#333;'>"
+
+						        + "<p>Dear RMG Team,</p>"
+
+						        + "<p>"
+						        + "This is to inform you that the following project has been "
+						        + "<b style='color:#2e7d32;'>successfully synced</b> with PoPortal."
+						        + "</p>"
+
+						        + "<div style='background:#f4f6f8;"
+						        + "border-left:4px solid #2e7d32;"
+						        + "padding:12px 16px;"
+						        + "margin-top:10px;"
+						        + "border-radius:4px;'>"
+
+						        + "<span style='font-size:13px;color:#555;'>Project Name</span><br>"
+						        + "<span style='font-size:16px;font-weight:bold;color:#1a1a1a;'>"
+						        + resourceManagementDTO.getName()
+						        + "</span>"
+
+						        + "</div>"
+
+						        + "<p style='margin-top:18px;'>"
+						        + "If you have any questions or require further clarification, please feel free to reach out."
+						        + "</p>"
+
+						        + "<br>"
+						        + "<p>Regards,<br>"
+						        + "<b>iShine System</b></p>"
+
+						        + "</div>";
+
+						    mailService.sendMail(
+						            rmgMail,
+						            "Project Synced with PoPortal",
+						            html
+						    );
+
+						} catch (Exception e) {
+						    e.printStackTrace();
+						}
 
 							response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 							response.setServiceResponse(syncResponse.getServiceResponse());
