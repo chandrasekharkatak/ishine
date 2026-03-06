@@ -8238,7 +8238,7 @@ List<Object[]> getClientAndProjectDataList(
 
 	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.EmployeeOtherActiveProject( "
 			+ " etm.empId, p.projectId, p.projectName, ppd.poId, t.teamId, prm.poRequirementMappingId \n"
-			+ " , ppd.poNo, t.teamName, etm.employeeRole, prm.role, prm.department, prm.experience, prm.count) "
+			+ " , ppd.poNo, t.teamName, etm.employeeRole, prm.role, prm.department, prm.experience, prm.count, etm.startDate) "
 			+ "FROM Project p \n"
 			+ "INNER JOIN Team t ON t.projectId = p.projectId AND t.isActive != 'N' \n"
 			+ "INNER JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId AND etm.active != 0 \n"

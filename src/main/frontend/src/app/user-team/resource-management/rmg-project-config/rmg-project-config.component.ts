@@ -99,6 +99,7 @@ export class RmgProjectComponent implements OnInit {
     todayTimestamp: any;
     employeeExistingProjectEmpName: any;
     employeeExistingProjectEmploymentId: any;
+    projectConfigStepperErrorMessage: string = '';
 
     // Objects
     currentTeam: RmgTeam = new RmgTeam();
@@ -146,7 +147,7 @@ export class RmgProjectComponent implements OnInit {
     isUnsavedMemberUpdate: boolean = false;
     isDeleteTeam: boolean = false;
     isTeamDetailsForm: boolean = false;
-    isStep1Error: boolean = false;
+    isProjectManagerValid: boolean = false;
 
     // Dates
     membersEndDate: any;
@@ -219,7 +220,7 @@ export class RmgProjectComponent implements OnInit {
     changeEmployeeDefaultProjectMappingSortDirection: string = 'asc';
     changeEmployeeDefaultProjectMappingFilters: any = {};
     changeEmployeeDefaultProjectMappingSearchOnEnter: boolean = true;
-    changeEmployeeDefaultProjectMappingColumnList: any[] = ['employementId', 'memberName', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
+    changeEmployeeDefaultProjectMappingColumnList: any[] = ['employementId', 'memberName', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
 
     //  Employee Existing Project Details
     isEmployeeExistingProjectDetailsSearchEnabled: boolean = false;
@@ -252,7 +253,7 @@ export class RmgProjectComponent implements OnInit {
     markDefaultProjectCompletionIndividualSortDirection: string = 'asc';
     markDefaultProjectCompletionIndividualFilters: any = {};
     markDefaultProjectCompletionIndividualSearchOnEnter: boolean = true;
-    markDefaultProjectCompletionIndividualColumnList: any[] = ['employementId', 'memberName', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
+    markDefaultProjectCompletionIndividualColumnList: any[] = ['employementId', 'memberName', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank', 'blank'];
 
     constructor(
         public validationService: ValidationService,
@@ -272,6 +273,7 @@ export class RmgProjectComponent implements OnInit {
         this.isHOD = ['HOD', 'SuperAdmin', 'Superadmin', 'Super Admin'].includes(this.currentUser.employeeRole);
         this.isInternalProject = this.rmgProjectObj.internalProjectType != undefined && this.rmgProjectObj.internalProjectType != null && ['internal', 'internalrndproducts', 'bench'].includes(this.rmgProjectObj.internalProjectType?.trim()?.toLowerCase());
         this.projectConfigStepperIndex = this.isProjectPreview ? 2 : 0; // Stepper Default to Project Information
+        this.validateProjectManagerIds();
         this.getActiveProjectList();
         this.setProjectType();
         this.initialiseNewTeamObj();
@@ -643,11 +645,23 @@ export class RmgProjectComponent implements OnInit {
         return true;
     }
 
-    validateProjectManagerIds() {
-        this.isStep1Error = false;
-        if (!this.isValidList(this.rmgProjectObj?.projectManagerIds) || this.rmgProjectObj?.projectManagerIds?.length <= 0) {
-            this.isStep1Error = true;
+    validateProjectManagerIds(): void {
+        const { projectManagerIds, dbProjectManagerIds } = this.rmgProjectObj || {};
+        this.isProjectManagerValid = true;
+        this.projectConfigStepperErrorMessage = '';
+        if (!this.isValidList(projectManagerIds) || !projectManagerIds?.length) {
+            return this.setProjectManagerError('Kindly assign at least one Project Manager before proceeding to the next step.');
         }
+        if (!this.validationService.areArraysEqual(projectManagerIds, dbProjectManagerIds)) {
+            return this.setProjectManagerError(
+                'Kindly save the updated Project Manager information before proceeding to the next step.'
+            );
+        }
+    }
+
+    private setProjectManagerError(message: string): void {
+        this.isProjectManagerValid = false;
+        this.projectConfigStepperErrorMessage = message;
     }
     // Validation Methods End
 
@@ -2171,6 +2185,8 @@ export class RmgProjectComponent implements OnInit {
             if (response.serviceStatus === "Success") {
                 this.rmgProjectObj = response.serviceResponse;
                 this.rmgProjectObj.state = this.isValidString(this.rmgProjectObj.state) ? this.rmgProjectObj.state : 'NA';
+                this.rmgProjectObj.dbProjectManagerIds = this.rmgProjectObj?.projectManagerIds || [];
+                this.validateProjectManagerIds();
             } else {
                 this.openAlertMessageModal(response.serviceResponse);
             }
@@ -2276,6 +2292,11 @@ export class RmgProjectComponent implements OnInit {
             this.openAlertMessageModal('Kindly Select a Department!!');
             return;
         }
+        if (!employee.startDate || employee.startDate == undefined || employee.startDate == null) {
+            this.openAlertMessageModal("Kindly Provide Start Date!!");
+            return;
+        }
+
 
         let tempRmgTeamMember = new RmgTeamMember();
         tempRmgTeamMember.empId = employee?.empId;
@@ -2290,6 +2311,7 @@ export class RmgProjectComponent implements OnInit {
         tempRmgTeamMember.clientName = this.rmgProjectObj?.clientName;
         tempRmgTeamMember.selectedEmpIds = isBulk ? this.markDefaultProjectCompletionList?.map(member => member.empId) ?? [] : employee?.empId ? [employee.empId] : [];
         tempRmgTeamMember.projectType = this.projectType;
+        tempRmgTeamMember.startDate = this.normalizeDate(this.defaultProjectObj.startDate);
 
         this.teamService.updateDefaultProjectCompletion(tempRmgTeamMember).pipe(first()).subscribe(async (response: any) => {
             if (response.serviceStatus == "Success") {
@@ -2326,6 +2348,10 @@ export class RmgProjectComponent implements OnInit {
             this.openAlertMessageModal('Kindly Select a Department!!');
             return;
         }
+        if (!this.defaultProjectObj.startDate || this.defaultProjectObj.startDate == undefined || this.defaultProjectObj.startDate == null) {
+            this.openAlertMessageModal("Kindly Provide Start Date!!");
+            return;
+        }
 
         let tempRmgTeamMember = new RmgTeamMember();
         tempRmgTeamMember.empId = this.defaultProjectObj?.empId;
@@ -2340,6 +2366,7 @@ export class RmgProjectComponent implements OnInit {
         tempRmgTeamMember.clientName = this.rmgProjectObj?.clientName;
         tempRmgTeamMember.selectedEmpIds = this.markDefaultProjectCompletionList?.map(member => member.empId) || [];
         tempRmgTeamMember.projectType = this.projectType;
+        tempRmgTeamMember.startDate = this.normalizeDate(this.defaultProjectObj.startDate);
 
         this.teamService.updateDefaultProjectCompletion(tempRmgTeamMember).pipe(first()).subscribe(async (response: any) => {
             if (response.serviceStatus == "Success") {

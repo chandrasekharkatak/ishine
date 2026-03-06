@@ -4144,14 +4144,14 @@ public class ProjectService {
 				// In case a existing project manager is deselected then Inactive
 				List<ProjectManagerMapping> projectManagerMappingList = new ArrayList<ProjectManagerMapping>();
 				existingMappings.forEach(existingMapping -> {
-					if (newManagerIds.contains(existingMapping.getProjectManagerId())) {
+					if (!newManagerIds.contains(existingMapping.getProjectManagerId())) {
 						existingMapping.setActive(0);
 						existingMapping.setUpdatedBy(rmgProjectDto.getUpdatedBy());
 						existingMapping.setUpdatedOn(LocalDateTime.now());
 						projectManagerMappingList.add(existingMapping);
 					}
 				});
-				projectManagerMappingRepository.saveAll(projectManagerMappingList);
+				projectManagerMappingRepository.saveAllAndFlush(projectManagerMappingList);
 			}
 			
 			List<ProjectManagerMapping> projectManagerMappingList = new ArrayList<ProjectManagerMapping>();
@@ -4186,7 +4186,8 @@ public class ProjectService {
 
 			if (project.getInternalProjectType() != null && !project.getInternalProjectType().equals("Internal")) {
 				ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(rmgProjectDto, project);
-				if (poPortalResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
+				if (poPortalResponse != null && poPortalResponse.getServiceStatus() != null
+						&& poPortalResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Project manager details sent to Shankh successfully!");
 				} else {

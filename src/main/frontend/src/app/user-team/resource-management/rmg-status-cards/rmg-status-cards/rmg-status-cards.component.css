@@ -200,3 +200,374 @@
     background-color: #f4f6f8;
     z-index: 2;
 }
+
+/* Projects Total Summary Chart Styling */
+
+
+.filter-section {
+    margin-bottom: 20px;
+}
+
+.filter-header {
+    padding: 12px 0;
+    border-bottom: 2px solid #e3f2fd;
+    margin-bottom: 15px;
+    background: linear-gradient(90deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 6px;
+    padding: 12px 15px;
+}
+
+.filter-header h5 {
+    color: #2c3e50;
+    font-weight: 700;
+    margin: 0;
+    font-size: 16px;
+}
+
+.filter-options {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 8px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.form-check {
+    margin-bottom: 10px;
+    padding-left: 25px;
+}
+
+.form-check-input {
+    margin-top: 5px;
+    transform: scale(1.1);
+}
+
+.form-check-label {
+    font-size: 13px;
+    color: #34495e;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.form-check-input:checked {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+}
+
+/* Table wrapper styling */
+.table-wrapper {
+    border: 2px solid #e3f2fd;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Table styling for project summary */
+.project-summary-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    font-size: 12px;
+    margin-bottom: 0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.project-summary-table td {
+    border: 1px solid #e1e8ed;
+    padding: 10px 15px;
+    text-align: center;
+    vertical-align: middle;
+    min-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: all 0.3s ease;
+}
+
+/* Department header styling */
+.department-header-row {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: bold;
+}
+
+.department-cell {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    font-weight: bold !important;
+    text-align: center;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+}
+
+/* Department header container */
+.department-header-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+}
+
+/* Expand all button in department header */
+.expand-all-btn {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%) !important;
+    color: white !important;
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    font-size: 10px !important;
+    padding: 3px 8px !important;
+    line-height: 1 !important;
+    border-radius: 15px !important;
+    transition: all 0.3s ease-in-out;
+    backdrop-filter: blur(5px);
+    font-weight: 600;
+}
+
+.expand-all-btn:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.2) 100%) !important;
+    border-color: rgba(255, 255, 255, 0.9) !important;
+    transform: scale(1.08);
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.3);
+}
+
+/* Client name styling - left aligned, modern blue theme */
+.client-cell {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important;
+    color: #1565c0 !important;
+    font-weight: 700 !important;
+    font-size: 12px !important;
+    text-align: left !important;
+    padding-left: 18px !important;
+    border-left: 2px solid rgba(33, 150, 243, 0.4) !important;
+    box-shadow: inset 0 1px 3px rgba(33, 150, 243, 0.1);
+}
+
+/* Client name container */
+.client-name-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    width: 100%;
+}
+
+/* Project name styling - right aligned, modern dark theme */
+.project-cell {
+    background: linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%) !important;
+    color: #2c3e50 !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    text-align: right !important;
+    padding-right: 18px !important;
+    border-right: 2px solid rgba(52, 73, 94, 0.3) !important;
+    box-shadow: inset 0 1px 3px rgba(52, 73, 94, 0.1);
+}
+
+/* Project name container */
+.project-name-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    width: 100%;
+}
+
+/* Individual expand buttons - modern glassmorphism style */
+.expand-btn {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%) !important;
+    color: #667eea !important;
+    border: 1px solid rgba(102, 126, 234, 0.3) !important;
+    font-size: 10px !important;
+    padding: 2px 6px !important;
+    line-height: 1 !important;
+    min-width: 22px !important;
+    border-radius: 12px !important;
+    transition: all 0.3s ease-in-out;
+    backdrop-filter: blur(10px);
+    font-weight: 700;
+}
+
+.expand-btn:hover {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%) !important;
+    border-color: rgba(102, 126, 234, 0.6) !important;
+    transform: scale(1.15);
+    box-shadow: 0 3px 12px rgba(102, 126, 234, 0.4);
+    color: #5a67d8 !important;
+}
+
+/* Empty cell styling */
+.empty-cell {
+    background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+    border: 1px solid #e9ecef;
+    height: 40px;
+    opacity: 0.7;
+}
+
+/* Enhanced hover effects */
+.project-summary-table td:hover {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%) !important;
+    cursor: pointer;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 183, 77, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+.department-cell:hover {
+    background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.client-cell:hover {
+    background: linear-gradient(135deg, #bbdefb 0%, #90caf9 100%) !important;
+    color: #0d47a1 !important;
+    transform: translateX(3px);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.project-cell:hover {
+    background: linear-gradient(135deg, #eeeeee 0%, #e0e0e0 100%) !important;
+    color: #1a252f !important;
+    transform: translateX(-3px);
+    box-shadow: 0 4px 12px rgba(52, 73, 94, 0.3);
+}
+
+/* Table responsive container */
+.table-responsive {
+    border-radius: 10px;
+    overflow: auto;
+}
+
+/* Alternating row colors for better readability */
+.project-summary-table tr:nth-child(even) .project-cell {
+    background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
+}
+
+.project-summary-table tr:nth-child(odd) .project-cell {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f8f8 100%);
+}
+
+.project-summary-table tr:nth-child(even) .client-cell {
+    background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
+}
+
+.project-summary-table tr:nth-child(odd) .client-cell {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+}
+
+/* Custom scrollbar styling */
+.table-wrapper::-webkit-scrollbar,
+.filter-options::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+.table-wrapper::-webkit-scrollbar-track,
+.filter-options::-webkit-scrollbar-track {
+    background: linear-gradient(135deg, #f1f3f4 0%, #e8eaf6 100%);
+    border-radius: 6px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb,
+.filter-options::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 6px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover,
+.filter-options::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
+}
+
+/* No data message styling */
+.text-center {
+    color: #6c757d;
+    font-size: 15px;
+    font-style: italic;
+    font-weight: 500;
+}
+
+/* Button styling */
+.btn-outline-primary-custom {
+    border: 2px solid #667eea;
+    color: #667eea;
+    font-size: 12px;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, transparent 0%, rgba(102, 126, 234, 0.1) 100%);
+}
+
+.btn-outline-primary-custom:hover {
+    background: 667eea;
+    border-color: #667eea;
+    color: white;
+    transform: translateY(-2px);
+    /* box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); */
+}
+
+/* Modal close button */
+.close {
+    font-size: 28px;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.8);
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+.close:hover {
+    color: white;
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .project-summary-table td {
+        min-width: 100px;
+        font-size: 11px;
+        padding: 8px 12px;
+    }
+
+    .department-cell {
+        font-size: 12px;
+    }
+
+    .expand-all-btn {
+        font-size: 9px !important;
+        padding: 2px 6px !important;
+    }
+
+    .filter-options .col-md-3 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
+@media (max-width: 576px) {
+    .filter-options .col-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    .project-summary-table td {
+        min-width: 80px;
+        font-size: 10px;
+        padding: 6px 10px;
+    }
+
+    .expand-all-btn {
+        font-size: 8px !important;
+        padding: 2px 5px !important;
+    }
+
+    .expand-btn {
+        min-width: 18px !important;
+        padding: 1px 4px !important;
+    }
+}

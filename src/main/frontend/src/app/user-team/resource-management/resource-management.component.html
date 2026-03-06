@@ -1,4 +1,5 @@
 <ng-container *ngIf="!showReportList">
+    <!-- Navigation Row Start -->
     <div class="row m-1" *ngIf="!showProjectConfig">
         <div class="col-md-6 d-flex justify-content-start align-items-center p-0">
             <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isProjectTable}"
@@ -20,6 +21,7 @@
             </mat-slide-toggle>
         </div>
     </div>
+    <!-- Navigation Row End -->
 
     <!-- Filter & Global Search Row Start -->
     <ng-container *ngIf="allProjectTable">
@@ -480,7 +482,7 @@
                 style="width: 100%; margin-top: 10px;" />
         </div>
         <br/>
-        <button type="button" class="btn btn-primary" (click)="openProjectCompletionDatePickerModal()">Submit</button>
+        <button type="button" class="btn btn-primary" (click)="confirmMarkProjectAsComplete()">Submit</button>
         &nbsp;&nbsp;
         <button type="button" class="btn btn-outline-dark" (click)="closeProjectCompletionDatePickerModal()">No Cancel</button>
     </div>

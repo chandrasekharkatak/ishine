@@ -4183,7 +4183,7 @@ public class TeamsService {
 					obj.setEmploymentStatus(dto.getEmploymentStatus());
 				}
 
-				obj.setOtherActiveProjects(empIdAndOtherProjectIdsMap.getOrDefault(dto.getEmpId(), List.of()));
+				obj.setOtherActiveProjects(empIdAndOtherProjectIdsMap.getOrDefault(obj.getEmpId(), List.of()));
 				if (obj.getOtherActiveProjects() != null && !obj.getOtherActiveProjects().isEmpty()) {
 					List<Integer> projectIds = obj.getOtherActiveProjects().stream().map(e -> e.getProjectId())
 							.collect(Collectors.toList());
@@ -4540,7 +4540,9 @@ public class TeamsService {
 
 		if (!newEmpIds.isEmpty()) {
 			String clientName = Optional.ofNullable(dto.getClientName()).orElse("");
-			createActivityForEmployeeRole(team.getTeamId(), currentUserEmpId, newEmpIds, teamMemberDtoList);
+			Set<Long> newEmpIdSet = new HashSet<>(newEmpIds);
+			List<Long> updatedEmpIds = allEmpIds.stream().filter(empId -> !newEmpIdSet.contains(empId)).collect(Collectors.toList());
+			createActivityForEmployeeRole(team.getTeamId(), currentUserEmpId, updatedEmpIds, teamMemberDtoList);
 			sendProjectMappingEmailToEmployee(project.getProjectName(), clientName, newEmpIds);
 		}
 
@@ -5061,10 +5063,10 @@ public class TeamsService {
 					empTeamMap.setEmpId(empId);
 					empTeamMap.setEmployeeRole(employeeRoleString);
 					empTeamMap.setTeamId(teamId);
-					empTeamMap.setStartDate(LocalDateTime.now());
+					empTeamMap.setStartDate(teamMember.getStartDate() != null ? teamMember.getStartDate() : LocalDateTime.now());
 					empTeamMap.setActive(2L);
 					empTeamMap.setIsShadow(teamMember.getIsShadow() != null ? teamMember.getIsShadow() : null);
-					empTeamMap.setUpdatedBy(currentUserEmpId);
+					empTeamMap.setCreatedBy(currentUserEmpId);
 					empTeamMap.setRoleId(teamMember.getRoleId());
 					empTeamMap.setPoId(teamMember.getPoId());
 					empTeamMap.setEmpTeamDepartmentId(teamMember.getEmpTeamDepartmentId());

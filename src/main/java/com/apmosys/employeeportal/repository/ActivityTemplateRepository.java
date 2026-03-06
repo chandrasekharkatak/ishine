@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.repository;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -24,5 +25,7 @@ public interface ActivityTemplateRepository extends JpaRepository<ActivityTempla
 	@Query(value="SELECT at FROM ActivityTemplate at WHERE at.deptId=:deptId AND at.employeeRole =:employeeRole")
 	List<ActivityTemplate> getByDeptIdAndEmployeeRoleType(Long deptId, String employeeRole);
 
+	@Query(value="SELECT at FROM ActivityTemplate at WHERE at.deptId IN :deptIds AND at.employeeRole IN :employeeRoles ")
+	List<ActivityTemplate> getByDeptIdAndEmployeeRoleTypeIn(Set<Long> deptIds, Set<String> employeeRoles);
 
 }
