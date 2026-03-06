@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -600,7 +601,7 @@ public class TimesheetValidationHelper {
                     Integer projectId = project.getProjectId();
                     
                     if(project.getIsShadowForSelf()) continue;
-                    if(project.getIsShadowTimesheet()) continue;
+                    if(Boolean.TRUE.equals(project.getIsShadowTimesheet()) && project.getClientApprovalStatus() == null) continue;
 
                     // Check if client-side document is mandatory for this project
                     Boolean isClientSideMandatory =
@@ -669,7 +670,7 @@ public class TimesheetValidationHelper {
 				if (location.getProjects() == null) continue;
 				for (ProjectTimesheetDTO project : location.getProjects()) {
 					if (project.getIsShadowForSelf()) continue;
-					if (project.getIsShadowTimesheet()) continue;
+					if (Boolean.TRUE.equals(project.getIsShadowTimesheet()) && project.getClientApprovalStatus() == null) continue;
 					if (Boolean.TRUE.equals(projectRepository.getClientSideIdMandatory(project.getProjectId()))) {
 						targetProjectIdsWithClientSide.add(project.getProjectId());
 						projectMap.put(project.getProjectId(), project);
@@ -2046,7 +2047,7 @@ public class TimesheetValidationHelper {
 	                session.getProjects().stream()
 	                        .map(ProjectTimesheetDTO::getProjectId)
 	                        .filter(Objects::nonNull)
-	                        .toList()
+	                        .collect(Collectors.toList())
 	            );
 	        }
 	    }

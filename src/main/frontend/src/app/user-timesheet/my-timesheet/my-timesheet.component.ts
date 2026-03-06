@@ -959,9 +959,10 @@ get tooltipCta(): string {
     // Show success message to user
     this.openAlertMod(this.alertTemplate, 'Timesheet updated successfully.');
     // Refresh the timesheet list after update
-    this.getAllMyTimesheetsByEmpId();
+    this.isTeamTimesheets = false;
     // Reset form state
     this.resetTimesheetForm();
+    this.getAllMyTimesheetsByEmpId();
   }
 
 

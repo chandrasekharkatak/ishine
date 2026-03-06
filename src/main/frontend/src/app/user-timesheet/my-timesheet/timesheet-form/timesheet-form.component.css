@@ -3054,3 +3054,87 @@ flex-wrap: wrap;
   }
 }
 
+/* CSS */
+.modern-select-wrapper {
+  width: 100%;
+  max-width: 340px;
+}
+
+.modern-select-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.modern-select-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1.5px solid #dbe2ea;
+  border-radius: 12px;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+}
+
+.modern-select-box:hover {
+  border-color: #b8c4d6;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+}
+
+.modern-select-box:focus-within {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
+  background: #ffffff;
+}
+
+.modern-select-box.disabled {
+  background: #f1f5f9;
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.modern-select-icon {
+  position: absolute;
+  left: 14px;
+  color: #64748b;
+  font-size: 14px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.modern-select-arrow {
+  position: absolute;
+  right: 14px;
+  color: #64748b;
+  font-size: 12px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.modern-select {
+  width: 100%;
+  padding: 12px 38px 12px 40px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+}
+
+.modern-select:disabled {
+  cursor: not-allowed;
+}
+
+.modern-select option {
+  color: #334155;
+  background: #ffffff;
+}
