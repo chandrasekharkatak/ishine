@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -26,6 +27,8 @@ import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetLocationMappingRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
+import com.apmosys.employeeportal.repository.JobRoleRepository;
+import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.ProjectTimesheetStatusNewRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -60,6 +63,12 @@ public class HolidayService {
 
     @Autowired
     ProjectTimesheetService projectTimesheetService;
+
+    @Autowired
+	ProjectRepository projectRepository;
+
+    @Autowired
+	JobRoleRepository jobRoleRepository;
 
 	@Transactional
 	public ServiceResponse addHoliday(HolidayDTO holidayDTO) {
@@ -577,7 +586,6 @@ public class HolidayService {
 
         List<ProjectNameAndPrjoectIdDTO> projectDTOList = timesheetsRepository
                 .getProjectListForDateAndEmpId(emp.getEmpId(), startOfDay, endOfDay);
-
         if (projectDTOList != null && !projectDTOList.isEmpty()) {
             for (ProjectNameAndPrjoectIdDTO projDto : projectDTOList) {
                 ProjectTimesheetDTO projectDTO = new ProjectTimesheetDTO();
@@ -592,9 +600,22 @@ public class HolidayService {
             ProjectTimesheetDTO defaultProject = new ProjectTimesheetDTO();
             defaultProject.setTimesheetId(newTsId);
             defaultProject.setLocationMappingId(locMapping.getLocationMappingId());
-            defaultProject.setProjectId(0);
             defaultProject.setStatus(2);
             defaultProject.setActivities(null);
+
+            int resolvedProjectId = 0; // fallback if still not found
+
+            if (emp.getJobRoleId() != null) {
+                JobRole jobRole = jobRoleRepository.findById(emp.getJobRoleId()).orElse(null);
+                if (jobRole != null && jobRole.getDeptId() != null) {
+                    Optional<Integer> benchProjectId = projectRepository
+                            .findBenchProjectIdByDeptId(jobRole.getDeptId());
+                    if (benchProjectId.isPresent()) {
+                        resolvedProjectId = benchProjectId.get();
+                    }
+                }
+            }
+            defaultProject.setProjectId(resolvedProjectId);
             projectTimesheetService.create(newTsId, defaultProject, emp.getEmpId());
         }
     }

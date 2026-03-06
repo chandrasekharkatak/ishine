@@ -145,6 +145,12 @@ public class EmployeeLeaveService {
 	@Autowired
 	EmployeeexcludedFromLeaveRepository employeeexcludedFromLeaveRepository;
 	
+    @Autowired
+    ProjectRepository projectRepository; 
+    
+    @Autowired
+    JobRoleRepository jobRoleRepository;
+
 	@Value("${reminder_Mail_Date}")
 	private Long reminderMailDays;
 
@@ -1284,9 +1290,25 @@ public class EmployeeLeaveService {
             ProjectTimesheetDTO defaultProject = new ProjectTimesheetDTO();
             defaultProject.setTimesheetId(newTsId);
             defaultProject.setLocationMappingId(locMapping.getLocationMappingId());
-            defaultProject.setProjectId(0); 
             defaultProject.setStatus(2);
             defaultProject.setActivities(null);
+            
+            int resolvedProjectId = 0; // fallback if still not found
+            Employee emp = employeeRepository.findByEmpId(leaveDTO.getEmpId());
+            if (emp != null && emp.getJobRoleId() != null) {
+                JobRole jobRole = jobRoleRepository.findById(emp.getJobRoleId()).orElse(null);
+                if (jobRole != null && jobRole.getDeptId() != null) {
+
+                    Optional<Integer> benchProjectId = projectRepository
+                            .findBenchProjectIdByDeptId(jobRole.getDeptId());
+
+                    if (benchProjectId.isPresent()) {
+                        resolvedProjectId = benchProjectId.get();
+                    }
+                }
+            }
+
+            defaultProject.setProjectId(resolvedProjectId);
             projectTimesheetService.create(newTsId, defaultProject, leaveDTO.getCreatedBy());
              } catch (Exception e) {
                  throw new RuntimeException("Error creating default project timesheet", e);

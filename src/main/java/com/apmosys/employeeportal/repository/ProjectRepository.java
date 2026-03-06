@@ -82,6 +82,15 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			"where p.isDraftProject IN ('false','true','Rejected') and p.projectId IN :projectIds")
 	public List<ProjectFetchDTO> findAllProjectByIsDraftAndIsActiveOfProjectIds(@Param("projectIds") Set<Integer> projectIds);
 	
+    //getting default project for a employee using the department id 
+    @Query(value = "SELECT DISTINCT p.project_id FROM projects p " +
+            "INNER JOIN project_department_map pdm ON pdm.project_id = p.project_id " +
+            "WHERE p.project_name LIKE '%bench%' " +
+            "AND p.internal_project_type IS NOT NULL " +
+            "AND p.internal_project_type = 'Bench' " +
+            "AND pdm.active = 1 " +
+            "AND pdm.dept_id = :deptId", nativeQuery = true)
+    Optional<Integer> findBenchProjectIdByDeptId(@Param("deptId") Long deptId);
 
 	public List<Project> findProjectByDepartmentName(String name);
 
