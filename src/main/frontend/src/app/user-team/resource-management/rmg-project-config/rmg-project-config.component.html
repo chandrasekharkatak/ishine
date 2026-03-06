@@ -51,7 +51,7 @@
                                     <ng-template [ngTemplateOutlet]="team_list_template"></ng-template>
                                 </ng-container>
                             </mat-step>
-                            <mat-step *ngIf="isProjectPreview">
+                            <mat-step>
                                 <ng-template matStepLabel>Preview</ng-template>
                                 <ng-container>
                                     <div class="horizontal-row"></div>
@@ -190,7 +190,7 @@
                 <div class="horizontal-row"></div>
             </div>
 
-            <ng-container *ngIf="!isInternalProject">
+            <ng-container *ngIf="projectType === 'TNM'">
                 <div class="mt-3">
                     <ng-template [ngTemplateOutlet]="resource_requirement_template"
                         [ngTemplateOutletContext]="{resourceRequirementList:currentRmgProjectResourceRequirementList, flag:true}">
@@ -1045,7 +1045,7 @@
                         (click)="hideTeamDetails()">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
-                     <button class="btn btn-sm btn-outline-primary" title="Close Team Details" *ngIf="isProjectPreview"
+                    <button class="btn btn-sm btn-outline-primary" title="Close Team Details" *ngIf="isProjectPreview"
                         (click)="closeTeamMemberDetailsPreviewModal()">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
@@ -1055,7 +1055,7 @@
         <div class="card-body pt-1">
             <div class="row">
                 <div class="col-12 p-4" style="padding-top: 0px !important;">
-                    <ng-container *ngIf="!isInternalProject">
+                    <ng-container *ngIf="projectType === 'TNM'">
                         <div class="mt-3">
                             <ng-template [ngTemplateOutlet]="resource_requirement_template"
                                 [ngTemplateOutletContext]="{resourceRequirementList:allRmgProjectResourceRequirementList, flag:false}">
@@ -1348,14 +1348,14 @@
                     </div>
                     <div class="col-3 p-1">
                         <div class="form-group">
-                            <label>Start Date</label>
                             <div class="date-input-wrapper">
+                                <label>Start Date</label>
                                 <input class="form-control date-input"
                                     [matDatepicker]="bulkDefaultProjectMappingStartDatepicker"
                                     (dateChange)="onMemberStartDateChange($event, currentTeam.newRmgTeamMember)"
                                     [(ngModel)]="defaultProjectObj.startDate"
                                     [disabled]="!defaultProjectObj.projectId" />
-                                <mat-icon class="calendar-icon"
+                                <mat-icon class="calendar-icon" style="top:70%"
                                     (click)="bulkDefaultProjectMappingStartDatepicker.open()">calendar_today</mat-icon>
                                 <mat-datepicker #bulkDefaultProjectMappingStartDatepicker></mat-datepicker>
                             </div>

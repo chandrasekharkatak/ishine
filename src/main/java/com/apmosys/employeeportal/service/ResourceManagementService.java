@@ -139,6 +139,7 @@ import com.apmosys.employeeportal.dto.ResourceCountDto;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.RestoreProjectPayloadDTO;
+import com.apmosys.employeeportal.dto.RmgMemberEndDateDto;
 import com.apmosys.employeeportal.dto.RmgProjectDto;
 import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
 import com.apmosys.employeeportal.dto.RmgTeamDto;
@@ -4304,13 +4305,10 @@ public class ResourceManagementService {
 					getTeam.setUpdatedOn(LocalDateTime.now());
 					List<EmployeeTeamMap> findAllMappedEmp = employeeTeamMapRepository
 							.findByTeamIdAndActive(teamDto.getTeamId());
-					System.err
-							.println("findAllMappedEmp for Team: " + teamDto.getTeamName() + " -> " + findAllMappedEmp);
 
 					findAllMappedEmp.forEach(emp -> {
 						emp.setActive(0L);
 						emp.setRescRemovedBy(teamDto.getCreatedBy());
-
 						emp.setUpdatedBy(teamDto.getUpdatedBy());
 						emp.setUpdatedOn(LocalDateTime.now());
 						if (teamDto.getEndDate() != null) {
@@ -4329,16 +4327,13 @@ public class ResourceManagementService {
 					});
 
 					dbTeam = teamRepository.save(getTeam);
-
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Team and Its Resources are Set Inactive");
 				} else {
-
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Team and Its Resources are NOt Set Inactive");
 				}
 			}
-
 			try {
 				TeamDTO team = teamDtos.get(0);
 				Team findTeam = teamRepository.findTeamByTeamId(team.getTeamId());
@@ -4352,7 +4347,6 @@ public class ResourceManagementService {
 				toRecipients.add(adminMail);
 				toRecipients.add(rmgMail);
 				toRecipients.add(financeMail);
-
 				Set<String> ccRecipients = managerOverheadEmails.stream().filter(Objects::nonNull).map(String::trim)
 						.filter(s -> !s.isEmpty()).collect(Collectors.toCollection(LinkedHashSet::new));
 				ccRecipients.removeAll(toRecipients);
@@ -4372,12 +4366,10 @@ public class ResourceManagementService {
 				e.printStackTrace();
 			}
 		} catch (Exception e) {
-
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse(e.getMessage());
 		}
-
 		return response;
 	}
 
@@ -4479,108 +4471,61 @@ public class ResourceManagementService {
 		return response;
 	}
 
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse completionDateOfProject(ResourceManagementDTO resourceManagementDTO) {
-
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("completionDateOfProject");
 		apiLogInfo.setApiUrl("/api/completionDateOfProject");
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
-		logBuilder.append("ProjectType : " + resourceManagementDTO.getProjectType() + " ,ProjectId :"
-				+ resourceManagementDTO.getProjectId() + " ,ProjectName :" + resourceManagementDTO.getName()
-				+ " ,Department :" + resourceManagementDTO.getDeptName() + " ,State:"
-				+ resourceManagementDTO.getClientState());
-
 		try {
-			Project projObj = null;
-			if (resourceManagementDTO.getProjectType().equals("Internal")) {
-				projObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
-			} else {
-				System.err.print(resourceManagementDTO.getId());
-				projObj = projectRepository.findByPoProjectId(resourceManagementDTO.getId());
+			if (resourceManagementDTO == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Request cannot be null!!");
+				return response;
 			}
-
-			if (projObj == null) {
+			if (resourceManagementDTO.getProjectId() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project Id cannot be null!!");
+				return response;
+			}
+			if (resourceManagementDTO.getUpdatedBy() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Current User Employee Id cannot be null!!");
+				return response;
+			}
+			if (resourceManagementDTO.getProjectCompletionDate() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Provided Project Completion Date cannot be null!!");
+				return response;
+			}
+			
+			logBuilder.append("ProjectType : " + resourceManagementDTO.getProjectType() + " ,ProjectId :"
+					+ resourceManagementDTO.getProjectId() + " ,ProjectName :" + resourceManagementDTO.getName());
+			
+			Project projectObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
+			if (projectObj == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("No Project Detais Is Present ");
 				apiLogInfo.setApiResponse("No Project Detais Is Present");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				return response;
 			}
-			Project projectObj = projObj;
-
-			List<Team> teams = teamRepository.findByProjectIdAndIsActive(projectObj.getProjectId(), "Y");
-
-			if (teams.isEmpty()) {
-				logBuilder
-						.append("\n Empty teamlist found in database for method findByProjectIdAndIsActive for project "
-								+ projectObj.getProjectName());
-			} else {
-				List<TeamDTO> teamDTOs = teams.stream().map(team -> {
-					TeamDTO dto = new TeamDTO();
-					dto.setTeamId(team.getTeamId());
-					dto.setUpdatedBy(projectObj.getUpdatedBy());
-					return dto;
-				}).collect(Collectors.toList());
-
-				ServiceResponse response2 = deleteTeamsByIdsBulk(teamDTOs);
-				logBuilder
-						.append("\n " + response2.getServiceResponse() + " for project " + projectObj.getProjectName());
-
-				if (response2.getServiceStatus() != ServiceResponse.STATUS_SUCCESS) {
-					return response2;
-				}
-			}
+			
+			disableActiveTeamsAndMembers(projectObj, resourceManagementDTO.getUpdatedBy(), logBuilder);
 
 			projectObj.setProjectCompletionDate(resourceManagementDTO.getProjectCompletionDate());
 			projectObj.setActive("false");
-			projectObj.setStatus(resourceManagementDTO.getStatus());
 			projectObj.setProjectStatus(resourceManagementDTO.getProjectStatus());
 			projectObj.setUpdatedBy(resourceManagementDTO.getUpdatedBy());
 			projectObj.setUpdatedOn(LocalDateTime.now());
 			Project projectDbResponse = projectRepository.save(projectObj);
-
-			if (projectDbResponse != null) {
-				try {
-					Employee empupdatedBy = employeeRepository.findByEmpId(resourceManagementDTO.getUpdatedBy());
-					List<String> managerOverheadEmails = projectRepository
-							.findProjectManagerAndProjectoverheadEmails(projectObj.getProjectId());
-					Set<String> toRecipients = new HashSet<>();
-					toRecipients.add(bdMail);
-					toRecipients.add(adminMail);
-					toRecipients.add(rmgMail);
-					toRecipients.add(financeMail);
-
-					Set<String> ccRecipients = managerOverheadEmails.stream().filter(Objects::nonNull).map(String::trim)
-							.filter(s -> !s.isEmpty()).collect(Collectors.toCollection(LinkedHashSet::new));
-					ccRecipients.removeAll(toRecipients);
-
-					String subject = "Project Completion Notification - " + projectObj.getProjectName();
-					String body = "<p>The project <b>" + projectObj.getProjectName() + "</b> "
-							+ "has been marked as completed in Ishine on " + projectObj.getProjectCompletionDate()
-							+ ".</p>" + "<p><b>Updated by: " + empupdatedBy.getName() + "</b></p>";
-
-					String to = String.join(",", toRecipients);
-					String cc = String.join(",", managerOverheadEmails);
-
-					mailService.sendMailWithCC(to, cc, subject, body);
-
-				} catch (Exception mailEx) {
-					logBuilder.append("\n Failed to send completion mail: " + mailEx.getMessage());
-				}
-
-				projectManagerMappingRepository
-						.deactivateByProjectId(Long.parseLong(projectObj.getProjectId().toString()));
-				projectOverheadMappingRepository
-						.deactivateByProjectId(Long.parseLong(projectObj.getProjectId().toString()));
-			}
-
+			
 			if (!resourceManagementDTO.getProjectType().equals("Internal")) {
 				ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
-
-				if (poPortalResponse.getServiceStatus().equals("Success")) {
+				if (poPortalResponse != null && poPortalResponse.getServiceStatus() != null
+						&& poPortalResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Completion status updated to Shankh portal!");
 					apiLogInfo.setApiResponse("Reverse synced successfully!");
@@ -4592,30 +4537,110 @@ public class ResourceManagementService {
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				}
 			}
-
+			
+			if (projectDbResponse != null) {
+				sendProjectCompletionMail(projectDbResponse,resourceManagementDTO.getUpdatedBy(), logBuilder);
+			}
+			
 			if (projectDbResponse != null) {
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse("Project Status Updated As Completed !!");
 				apiLogInfo.setApiResponse("Project Status Updated As Completed");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Project Status Not Updated");
 				apiLogInfo.setApiResponse("Project Status Not Updated to Completed");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			}
-
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error occured while marking Project as complete : ", e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
-
 		}
 		return response;
+	}
+
+	private void disableActiveTeamsAndMembers(Project project, Long currentUserEmpId, StringBuilder logBuilder) {
+		List<Team> teams = teamRepository.findByProjectIdAndIsActive(project.getProjectId(), "Y");
+		if (teams.isEmpty()) {
+			logBuilder.append("\n Empty teamlist found in database for method findByProjectIdAndIsActive for project : "
+					+ project.getProjectName());
+			return;
+		}
+		try {
+			List<Long> teamIds = teams.stream().map(Team::getTeamId).collect(Collectors.toList());
+
+			List<EmployeeTeamMap> allTeamsMemberMappings = employeeTeamMapRepository.findActiveByTeamIds(teamIds);
+			Map<Long, List<EmployeeTeamMap>> teamIdAndMemberMap = new HashMap<Long, List<EmployeeTeamMap>>();
+			if (allTeamsMemberMappings != null && !allTeamsMemberMappings.isEmpty()) {
+				teamIdAndMemberMap = allTeamsMemberMappings.stream()
+						.collect(Collectors.groupingBy(EmployeeTeamMap::getTeamId));
+			}
+
+			List<EmployeeTeamMap> updatedEmployeeTeamMappingList = new ArrayList<EmployeeTeamMap>();
+			for (Team team : teams) {
+				team.setIsActive("N");
+				team.setUpdatedBy(currentUserEmpId);
+				team.setUpdatedOn(LocalDateTime.now());
+
+				List<EmployeeTeamMap> allMappedEmp = teamIdAndMemberMap.getOrDefault(team.getTeamId(), List.of());
+				for (EmployeeTeamMap etm : allMappedEmp) {
+					etm.setActive(0L);
+					etm.setRescRemovedBy(currentUserEmpId);
+					etm.setUpdatedBy(currentUserEmpId);
+					etm.setUpdatedOn(LocalDateTime.now());
+					if (etm.getEndDate() != null) {
+						if (etm.getStartDate() != null && !etm.getStartDate().isAfter(etm.getEndDate())) {
+							throw new IllegalArgumentException(
+									"End cannot be less than start date For Emp Id : " + etm.getEmpId());
+						}
+					} else {
+						etm.setEndDate(LocalDateTime.now());
+					}
+					updatedEmployeeTeamMappingList.add(etm);
+				}
+			}
+
+			teamRepository.saveAll(teams);
+			if (!updatedEmployeeTeamMappingList.isEmpty()) {
+				employeeTeamMapRepository.saveAll(updatedEmployeeTeamMappingList);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void sendProjectCompletionMail(Project projectObj, Long currentUserEmpId, StringBuilder logBuilder) {
+		try {
+			Employee empupdatedBy = employeeRepository.findByEmpId(currentUserEmpId);
+			List<String> managerOverheadEmails = projectRepository
+					.findProjectManagerAndProjectoverheadEmails(projectObj.getProjectId());
+			Set<String> toRecipients = new HashSet<>();
+			
+			toRecipients.add(bdMail);
+			toRecipients.add(adminMail);
+			toRecipients.add(rmgMail);
+			toRecipients.add(financeMail);
+			
+			Set<String> ccRecipients = managerOverheadEmails.stream().filter(Objects::nonNull).map(String::trim)
+					.filter(s -> !s.isEmpty()).collect(Collectors.toCollection(LinkedHashSet::new));
+			ccRecipients.removeAll(toRecipients);
+			
+			String subject = "Project Completion Notification - " + projectObj.getProjectName();
+			String body = "<p>The project <b>" + projectObj.getProjectName() + "</b> "
+					+ "has been marked as completed in Ishine on " + projectObj.getProjectCompletionDate() + ".</p>"
+					+ "<p><b>Updated by: " + empupdatedBy.getName() + "</b></p>";
+			String to = String.join(",", toRecipients);
+			String cc = String.join(",", managerOverheadEmails);
+			
+			mailService.sendMailWithCC(to, cc, subject, body);
+		} catch (Exception mailEx) {
+			logBuilder.append("\n Failed to send completion mail: " + mailEx.getMessage());
+		}
 	}
 
 	public ServiceResponse nEWgetAllInternalProjectsNewRMG(ProjectFilterDTO projectFilterDTO) {

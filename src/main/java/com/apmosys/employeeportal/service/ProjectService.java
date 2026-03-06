@@ -3172,7 +3172,7 @@ public class ProjectService {
 				apiLogInfo.setApiResponse("Project Id cannot be null!");
 				return serviceResponse;
 			} else {
-				Project project = projectRepository.findByPoProjectId(projectDto.getPoProjectId());
+				Project project = projectRepository.findByProjectId(projectDto.getPoProjectId().intValue());
 				if (project == null) {
 					apiLogInfo.setApiResponse("Project not found!");
 					serviceResponse.setServiceResponse("Project not found!");

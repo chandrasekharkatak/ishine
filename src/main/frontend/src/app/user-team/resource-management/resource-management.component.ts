@@ -99,6 +99,7 @@ export class ResourceManagementComponent implements OnInit {
 
   showProjectConfig: boolean = false;
   rmgProjectObj: RmgProject = new RmgProject();
+  projectCompletionObj:Project = new Project();
   isAllProjects: boolean = false;
   markProjectCompletionConfig: boolean = false;
 
@@ -294,7 +295,7 @@ export class ResourceManagementComponent implements OnInit {
   selectedStatusTab: string = '';
 
 
-  selectedDate: String | null = null;
+  selectedDate: any | null = null;
   completedProjectDetails: Project = new Project();
   projectFilterDTO: ProjectFilterDTO = new ProjectFilterDTO();
   deptList: ProjectFilterDTO = new ProjectFilterDTO();
@@ -1655,6 +1656,8 @@ export class ResourceManagementComponent implements OnInit {
 
   // Project Completion Start
   initiateProjectCompletion(project: any) {
+    this.selectedDate = null;
+    this.projectCompletionObj = project;
     this.markProjectCompletionConfig = true;
     this.isAllProjects = this.isValidString(this.projectFilterDTO.approvalStatus) && this.projectFilterDTO.approvalStatus?.toLowerCase() === 'all';
     forkJoin({
@@ -1692,15 +1695,22 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   confirmMarkProjectAsComplete() {
-    this.projectObj.projectCompletionDate = new Date();
-    this.projectObj.projectType = this.projectObj.poProjectType;
-    this.projectObj.projectStatus = "Completed";
-    this.resourceManagementService.completionDateOfProject(this.projectObj).pipe(first()).subscribe(
+    if (!this.selectedDate || this.selectedDate == undefined || this.selectedDate == null) {
+      this.openAlertMessageModal('Kindly provide Project completion Date!!');
+      return;
+    }
+
+    let projectObj: Project = new Project();
+    projectObj.projectStatus = "Completed";
+    projectObj.projectType = this.projectCompletionObj.projectType;
+    projectObj.projectId = this.projectCompletionObj.projectId;
+    projectObj.projectCompletionDate = moment(this.selectedDate).format('YYYY-MM-DD');
+    projectObj.updatedBy = this.currentUser.empId;
+    this.resourceManagementService.completionDateOfProject(projectObj).pipe(first()).subscribe(
       (response: any) => {
         if (response.serviceStatus === "Success") {
-          this.openAlertMessageModal(
-            "Since all milestones are completed, the project is marked as complete."
-          );
+          this.closeProjectCompletionDatePickerModal();
+          this.openAlertMessageModal(response.serviceResponse);
         } else {
           this.openAlertMessageModal(response.serviceResponse);
         }
