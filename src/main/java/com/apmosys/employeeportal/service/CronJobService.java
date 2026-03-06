@@ -25,6 +25,7 @@ import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.Month;
 import java.time.OffsetDateTime;
 import java.time.Period;
@@ -215,6 +216,9 @@ public class CronJobService {
 
 	@Autowired
 	AuthenticationService authenticationService;
+
+    @Autowired
+	HolidayService holidayService;
 
 	@Autowired
 	private LogService logService;
@@ -1499,7 +1503,7 @@ public class CronJobService {
 	                        ));
 
 	        List<EmployeeTimesheetsNew> toSave = new ArrayList<>();
-
+            Map<Long, Holiday> empHolidayMap = new HashMap<>();
 	        for (Holiday holiday : publicHoliday) {
 
 	            String holidayType = holiday.getHolidayType();
@@ -1532,6 +1536,7 @@ public class CronJobService {
 	                    ts.setDescription("WeekOff : " + dayOfWeek);
 
 	                    toSave.add(ts);
+                        empHolidayMap.put(empId, holiday);
 	                    timesheetMap.put(empId, ts);
 	                    continue;
 	                }
@@ -1556,13 +1561,28 @@ public class CronJobService {
 	                    ts.setDescription("Public Holiday : " + holiday.getOccasion());
 
 	                    toSave.add(ts);
+                        empHolidayMap.put(empId, holiday); 
 	                    timesheetMap.put(empId, ts);
 	                }
 	            }
 	        }
 
 	        if (!toSave.isEmpty()) {
-	            employeeTimesheetsNewRepository.saveAll(toSave);
+	            Map<Long, Employee> employeeMap = employeeRepository.findAllById(empHolidayMap.keySet())
+                        .stream()
+                        .collect(Collectors.toMap(Employee::getEmpId, e -> e));
+
+                LocalDateTime startOfDay = dateToday.atStartOfDay();
+                LocalDateTime endOfDay = dateToday.atTime(LocalTime.MAX);
+
+                for (Map.Entry<Long, Holiday> entry : empHolidayMap.entrySet()) {
+                    Employee emp = employeeMap.get(entry.getKey());
+                    if (emp != null) {
+                        holidayService.saveRelationalLeaveTimesheet(emp, dateToday, entry.getValue(), startOfDay,
+                                endOfDay);
+                    }
+                }
+
 	        }
 
 	        System.out.println("Method end reached");
