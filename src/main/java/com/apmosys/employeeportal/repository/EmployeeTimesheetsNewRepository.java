@@ -17022,9 +17022,33 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				    "    FROM employee_timesheets_new etn " +
 				    "    INNER JOIN employee e ON etn.emp_id = e.emp_id " +
 				    "    INNER JOIN project_timesheet_status_new ptsn ON ptsn.timesheet_id = etn.timesheet_id " +
+				    "    INNER JOIN projects p ON p.project_id = ptsn.project_id " +
+				    "    LEFT JOIN client_locations cl ON cl.client_location_id = ptsn.client_location_id " +
+				    "    LEFT JOIN clients c ON c.client_id = cl.client_id " +
+				    "    LEFT JOIN day_type_master_new dtmn ON dtmn.day_type_id = etn.day_type_id " +
+				    "    LEFT JOIN employee es ON ptsn.shadow_emp_id = es.emp_id " +
+				    "    LEFT JOIN teams t ON t.project_id = p.project_id " +
+				    "    LEFT JOIN employee_timesheet_location_mapping etlm ON etlm.timesheet_id = etn.timesheet_id " +
+				    "    LEFT JOIN employee_timesheet_activities_mapping_new etamn ON etamn.timesheet_id = etn.timesheet_id " +
+				    "    LEFT JOIN activities a ON a.activity_id = etamn.activity_id " +
+				    "    LEFT JOIN employee ab ON ab.emp_id = etn.created_by " +
+
 				    "    WHERE (CASE WHEN e.approvals_to = 'Reporting Manager' " +
 				    "                THEN e.reporting_manager_id ELSE e.manager_id END) = :managerId " +
-				    "    AND etn.status = :status ) " +
+				    "    AND etn.status = :status " +
+
+				    "    AND ( :clientFilter IS NULL OR :clientFilter = FALSE OR p.has_client_side_id = TRUE ) " +
+				    "    AND ( :employmentId IS NULL OR LOWER(e.employeement_id) LIKE LOWER(CONCAT('%', :employmentId, '%')) ) " +
+				    "    AND ( :employeeName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :employeeName, '%')) ) " +
+				    "    AND ( :projectName IS NULL OR LOWER(p.project_name) LIKE LOWER(CONCAT('%', :projectName, '%')) ) " +
+				    "    AND ( :clientName IS NULL OR LOWER(c.client_name) LIKE LOWER(CONCAT('%', :clientName, '%')) ) " +
+				    "    AND ( :activity IS NULL OR LOWER(a.activity) LIKE LOWER(CONCAT('%', :activity, '%')) ) " +
+
+				    "    GROUP BY etn.timesheet_id " +
+
+				    "    HAVING ( :locationCount IS NULL OR COUNT(DISTINCT etlm.location_mapping_id) = :locationCount ) " +
+				    "    AND ( :projectCount IS NULL OR COUNT(DISTINCT ptsn.project_id) = :projectCount ) " +
+				    ") " +
 				    "SELECT COUNT(*) FROM base_timesheets",
 				nativeQuery = true
 				)

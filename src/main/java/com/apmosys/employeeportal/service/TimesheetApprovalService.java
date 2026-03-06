@@ -2019,27 +2019,43 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
                 formattedEmpId,
                 ts.getDate(),
                 "You do not have approval/rejection rights"
-        ));
-        continue; // skip further checks for this timesheet
-    }
+				));
+				continue; // skip further checks for this timesheet
+			}
             Integer tsStatus = ts.getStatus();
-            if (tsStatus != null && tsStatus == 1) {
-                validTimesheetIds.add(ts.getTimesheetId());
-            } else if (tsStatus != null && tsStatus == 2) {
-                skippedTimesheets.add(new SkippedTimesheetDTO(
-                        ts.getTimesheetId(),
-                        formattedEmpId,
-                        ts.getDate(),
-                        "Already Approved"
-                ));
-            } else if (tsStatus != null && tsStatus == 3) {
-                skippedTimesheets.add(new SkippedTimesheetDTO(
-                        ts.getTimesheetId(),
-                        formattedEmpId,
-                        ts.getDate(),
-                        "Already Rejected"
-                ));
-            }
+
+			if (tsStatus == null) {
+				continue;
+			}
+
+			if (tsStatus == 1) {
+				validTimesheetIds.add(ts.getTimesheetId());
+			}
+
+			else if (tsStatus == 2) {
+
+				if ("REJECTED".equalsIgnoreCase(status)) {
+					// approved can be rejected
+					validTimesheetIds.add(ts.getTimesheetId());
+				} else {
+					skippedTimesheets.add(new SkippedTimesheetDTO(
+							ts.getTimesheetId(),
+							formattedEmpId,
+							ts.getDate(),
+							"Already Approved"
+					));
+				}
+			}
+
+			else if (tsStatus == 3) {
+
+				skippedTimesheets.add(new SkippedTimesheetDTO(
+						ts.getTimesheetId(),
+						formattedEmpId,
+						ts.getDate(),
+						"Already Rejected"
+				));
+			}
         }
 
         if (validTimesheetIds.isEmpty()) {
@@ -2053,7 +2069,7 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 
 			return response;
 		}
-        boolean isBulkOperation = validTimesheetIds.size() > 1;
+        boolean isBulkOperation = timesheetIdsReq.size() > 1;
 		if (isBulkOperation && !request.isConfirmNightShift()) {
 
 			List<Long> nightShiftTimesheetIds =

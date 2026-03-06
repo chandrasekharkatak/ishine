@@ -398,6 +398,12 @@ public class TeamsController {
 		return teamsService.extendTeamMembersEndDate(rmgTeamDto);
 	}
 	
+	// @Encrypted
+	@PostMapping("/getTeamDetailsByProjectId")
+	public ServiceResponse getTeamDetailsByProjectId(@RequestBody PoDetailsDto poDetailsDto) {
+		return teamsService.getTeamDetailsByProjectId(poDetailsDto);
+	}
+	
 	@Scheduled(cron = "0 0 1 * * *")
 	@PostMapping("/markTeamMemberAsInactiveAfterEndDate")
 	public void markTeamMemberAsInactiveAfterEndDate() {

@@ -31,6 +31,7 @@ export class RmgProject {
     departmentIds: any[] = [];
     projectOverheadIds: any[] = [];
     projectManagerIds: any[] = [];
+    dbProjectManagerIds: any[] = [];
     poDetailsList: PoDetails[] = [];
 
     newTeamObj: RmgTeam = new RmgTeam();

@@ -156,6 +156,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     "Enter the client-side ID if already available.",
     "If the client-side ID is not yet assigned, enter “NA (ApMoSys Employee ID)”.",
     "Once the client-side ID is received, update the ID while filling subsequent timesheets."]
+  appelectMember: any;
   constructor(private teamViewService: TeamViewService,
     private timesheetService: TimesheetService,
     private timesheetNewService: TimesheetNewService,
@@ -1665,7 +1666,6 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    * When user selects a different team member, form is reset so previous member's
    * projects/activities/locations are not shown (different member may have different assignments).
    */
-  appelectMember: any;
   onTeamMemberSelect(teamMemberOrId: any): void {
     // app-my-select emits only the value (empId), not the full object
     let teamMember: any = null;
@@ -2702,7 +2702,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   this.toDate = null;
-
+  this.resetFormForNightShift();
   setTimeout(() => {
     this.calculateTotalWorkingHours();
     this.onHoursChange();
@@ -2735,8 +2735,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
             this.toDate = this.formatDDMMYYYY(this.addDays(fromDate, 1));
           }
         }
-    }
-
+      }
+      this.resetFormForNightShift();
 
     // Recalculate total presence and location hours when night shift changes
     // (toDate affects both: presence uses toDate for out-time; location hours use toDate for end date).
@@ -3593,6 +3593,37 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     this.disableAdd = false;
   }
 
+  resetFormForNightShift(): void {
+    // Basic fields
+    this.apmosysInTime = null;
+    this.apmosysOutTime = null;
+    this.totalPresence = 0;
+    this.useApmosysTiming = false;
+    
+    // Locations
+    this.timesheetLocations = [];
+    this.addLocation(null);
+    
+    // Document data cleanup
+    this.cleanupDocumentData();
+    this.documentData = [];
+    this.selectedFile = [];
+    this.uniqueProjectsList = [];
+    this.empHasClientSideId = false;
+    
+    // UI state
+    this.highlightLocationList = [];
+    this.highlightLocationIdSet = new Set();
+    this.expandedLocationIndex = null;
+    this.expandedProjectIndexMap = {};
+    
+    // Preview state
+    this.resetPreviewState();
+    
+    // Flags
+    this.disableAdd = false;
+  }
+
   /**
    * Reset only date-dependent form state (locations, projects, activities, documents, in/out times).
    * Used when user changes the date so that project selections valid for the previous date
@@ -3776,8 +3807,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
             if (targetEmpId) {
               this.getAllAvailableTimesheetByEmpId({ empId: targetEmpId } as User);
             }
-
+            this.appelectMember = null;
             this.resetForm()
+            this.onTimesheetAppliedForChange();
             // Reset form or navigate as needed
           } else {
             // ✅ MODERATE FIX: Use centralized error handling

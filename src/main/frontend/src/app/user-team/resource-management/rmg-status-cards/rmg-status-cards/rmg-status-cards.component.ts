@@ -39,7 +39,7 @@ export class RmgStatusCardsComponent {
 
   @Input() selectedDepartmentIds: any[] = [];
   @Output() actionTriggered = new EventEmitter<{ action: string; project: any; }>();
-  
+
   @ViewChild("alert_message") alertMessageTemplateRef: TemplateRef<any>;
   @ViewChild('employee_details') employeeDetailsTemplateRef: TemplateRef<any>;
   @ViewChild('employee_project_timesheet_summary') employeeProjectTimesheetSummaryTemplateRef: TemplateRef<any>;
@@ -354,9 +354,6 @@ export class RmgStatusCardsComponent {
   selectedExpiredTNMProjectFilter: any = this.EXPIRED_TNM_PROJECT_FILTERS_LIST[0].key;
   selectedUnfilledTimesheetProjectFilter: any = this.TIMESHEET_NON_COMPLIANCE_PROJECT_LIST[0].key;
 
-  expandedProjects: Set<string> = new Set();
-  projectFullText: Map<string, string> = new Map();
-
   isTotalProjectsSummaryDepartmentFilterActive: boolean = false;
   isAccounts: boolean = false;
   isEditProject: boolean;
@@ -373,6 +370,7 @@ export class RmgStatusCardsComponent {
   filteredTeamLeads: Employee[] = [];
   employeeListByDept: Employee[] = [];
   selectedDeptIds: any[] = [];
+  departmentList: any[] = [];
 
   searchOnEnter: boolean = true;
   isProjectSearchEnabled: boolean = false;
@@ -395,6 +393,239 @@ export class RmgStatusCardsComponent {
   projectDetailsDefaultSortColumn: string = '';
   projectDetailsColumnConfig = [] = [];
   projectDetailsSubTableColumnConfig = [] = [];
+
+  // Org Chart 
+  maxRows: number = 0;
+  expandAllProjects: boolean = false;
+  showDepartmentFilter: boolean = true;
+  toggleProjectSummaryDepartmentsVisible: boolean = false;
+  tableData: any[][] = [];
+  orgChartData: any[] = [];
+  selectedDepartments: string[] = [];
+  allDeptartmentList: any[] = [];
+  expandedProjects: Set<string> = new Set();
+  expandedColumns: Set<string> = new Set();
+  projectFullText: Map<string, string> = new Map();
+  filterError: string | null = null;
+  // Currently Kept will make it dynamic later after discussion
+  poDepartments = [
+    {
+      "deptab": "PT",
+      "name": "Performance Testing"
+    },
+    {
+      "deptab": "DEV, IT",
+      "name": "Development, IT"
+    },
+    {
+      "deptab": "FT",
+      "name": "Functional Testing"
+    },
+    {
+      "deptab": "APM, ST",
+      "name": "APM, Security Testing"
+    },
+    {
+      "deptab": "AC",
+      "name": "Accounts"
+    },
+    {
+      "deptab": "RPA",
+      "name": "RPA"
+    },
+    {
+      "deptab": "APM, DEV, FT",
+      "name": "APM, Development, Functional Testing"
+    },
+    {
+      "deptab": "APM",
+      "name": "APM"
+    },
+    {
+      "deptab": "APM, MONT, PS",
+      "name": "APM, Application Performance Monitoring, Production Support"
+    },
+    {
+      "deptab": "AC, ADM",
+      "name": "Accounts, Admin"
+    },
+    {
+      "deptab": "ADM",
+      "name": "Admin"
+    },
+    {
+      "deptab": "BD, DEV",
+      "name": "Business Development, Development"
+    },
+    {
+      "deptab": "BD, HR, RMG, SA",
+      "name": "Business Development, HR, Resource Management Group, Super Admin"
+    },
+    {
+      "deptab": "AUT, IT, RND",
+      "name": "Automation Testing, IT, Products and RND"
+    },
+    {
+      "deptab": "PRSALE",
+      "name": "Presales"
+    },
+    {
+      "deptab": "APM, FT, PT, TRNA",
+      "name": "APM, Functional Testing, Performance Testing, Training"
+    },
+    {
+      "deptab": "AC, AUT",
+      "name": "Accounts, Automation Testing"
+    },
+    {
+      "deptab": "BD",
+      "name": "Business Development"
+    },
+    {
+      "deptab": "DEV, FT, RND",
+      "name": "Development, Functional Testing, Products and RND"
+    },
+    {
+      "deptab": "DEV",
+      "name": "Development"
+    },
+    {
+      "deptab": "APM, DEV",
+      "name": "APM, Development"
+    },
+    {
+      "deptab": "FA, PS",
+      "name": "Floor Automation, Production Support"
+    },
+    {
+      "deptab": "AUT, FT",
+      "name": "Automation Testing, Functional Testing"
+    },
+    {
+      "deptab": "AUT, IT",
+      "name": "Automation Testing, IT"
+    },
+    {
+      "deptab": "AUT, DEV, RND",
+      "name": "Automation Testing, Development, Products and RND"
+    },
+    {
+      "deptab": "APM, PS",
+      "name": "APM, Production Support"
+    },
+    {
+      "deptab": "APM, FT, PT",
+      "name": "APM, Functional Testing, Performance Testing"
+    },
+    {
+      "deptab": "AUT, RPA",
+      "name": "Automation Testing, RPA"
+    },
+    {
+      "deptab": "DEV, FT, RPA, ST",
+      "name": "Development, Functional Testing, RPA, Security Testing"
+    },
+    {
+      "deptab": "HR",
+      "name": "HR"
+    },
+    {
+      "deptab": "APM, DEV, PT",
+      "name": "APM, Development, Performance Testing"
+    },
+    {
+      "deptab": "AUT, DEV",
+      "name": "Automation Testing, Development"
+    },
+    {
+      "deptab": "AUT",
+      "name": "Automation Testing"
+    },
+    {
+      "deptab": "AUT, FT, PS",
+      "name": "Automation Testing, Functional Testing, Production Support"
+    },
+    {
+      "deptab": "DEV, PS",
+      "name": "Development, Production Support"
+    },
+    {
+      "deptab": "PS",
+      "name": "Production Support"
+    },
+    {
+      "deptab": "IT, PS",
+      "name": "IT, Production Support"
+    },
+    {
+      "deptab": "AC, APM, AUT, BD, DEV, FT, HR, SA, ST",
+      "name": "Accounts, APM, Automation Testing, Business Development, Development, Functional Testing, HR, Security Testing, Super Admin"
+    },
+    {
+      "deptab": "AUT, FT, ST",
+      "name": "Automation Testing, Functional Testing, Security Testing"
+    },
+    {
+      "deptab": "FT, PS",
+      "name": "Functional Testing, Production Support"
+    },
+    {
+      "deptab": "AUT, FT, PT",
+      "name": "Automation Testing, Functional Testing, Performance Testing"
+    },
+    {
+      "deptab": "AUT, FT, RPA",
+      "name": "Automation Testing, Functional Testing, RPA"
+    },
+    {
+      "deptab": "APM, PT",
+      "name": "APM, Performance Testing"
+    },
+    {
+      "deptab": "FT, ST",
+      "name": "Functional Testing, Security Testing"
+    },
+    {
+      "deptab": "BD, FT",
+      "name": "Business Development, Functional Testing"
+    },
+    {
+      "deptab": "AUT, RND",
+      "name": "Automation Testing, Products and RND"
+    },
+    {
+      "deptab": "BD, DEV, FT, ST",
+      "name": "Business Development, Development, Functional Testing, Security Testing"
+    },
+    {
+      "deptab": "RND",
+      "name": "Products and RND"
+    },
+    {
+      "deptab": "APM, AUT, DEV, FT, PS, PT, RND, RPA, ST",
+      "name": "APM, Automation Testing, Development, Functional Testing, Performance Testing, Production Support, Products and RND, RPA, Security Testing"
+    },
+    {
+      "deptab": "AC, APM",
+      "name": "Accounts, APM"
+    },
+    {
+      "deptab": "BD, PT",
+      "name": "Business Development, Performance Testing"
+    },
+    {
+      "deptab": "APM, AUT, DEV, FT, PS, RPA",
+      "name": "APM, Automation Testing, Development, Functional Testing, Production Support, RPA"
+    },
+    {
+      "deptab": "FT, PT",
+      "name": "Functional Testing, Performance Testing"
+    },
+    {
+      "deptab": "DIR, FT, PT",
+      "name": "Director, Functional Testing, Performance Testing"
+    }
+  ];
 
   constructor(
     private filterStateService: FilterStateService,
@@ -436,6 +667,7 @@ export class RmgStatusCardsComponent {
     this.rmgDashboardProjectRequest.pageSize = this.projectPageSize
     this.selectedDeptIds = this.selectedDepartmentIds?.length > 0 ? this.selectedDepartmentIds : this.selectedDeptIds;
     this.rmgDashboardProjectRequest.departmentIds = this.selectedDeptIds;
+    this.getAllDepartmentsList();
     this.mapSubFeatureFlag();
     this.loadRMGDashboard(this.rmgDashboardProjectRequest);
   }
@@ -647,17 +879,17 @@ export class RmgStatusCardsComponent {
   }
 
   normalizeDate(dateInput: any): Date | null {
-		if (!dateInput) {
-			return null;
-		}
+    if (!dateInput) {
+      return null;
+    }
 
-		const date = new Date(dateInput);
-		if (isNaN(date.getTime())) {
-			return null;
-		}
+    const date = new Date(dateInput);
+    if (isNaN(date.getTime())) {
+      return null;
+    }
 
-		return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-	}
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
   // Helpers End
 
   // List 
@@ -887,7 +1119,7 @@ export class RmgStatusCardsComponent {
   selectUnfilledTimesheetProjectFilter(filter: any) {
     this.selectedUnfilledTimesheetProjectFilter = filter.key;
     this.getUnFilledTimesheetProjectStatusCount(filter.key);
-    
+
   }
 
   get selectedProjectCount(): number | undefined {
@@ -1081,25 +1313,202 @@ export class RmgStatusCardsComponent {
   }
 
   prepareAndFetchTotalProjectsSummaryChartData() {
-    // let filteredDepts = this.poDepartments;
-    // if (this.departmentIds?.length > 0) {
-    //   const deptIdSet = new Set(this.departmentIds);
-    //   const allowedDeptNames = this.allDepartments
-    //     .filter(dept => deptIdSet.has(dept.deptId))
-    //     .map(d => d.name.toLowerCase().trim());
+    let filteredDepts = this.poDepartments;
+    if (this.selectedDeptIds?.length) {
+      const allowedDeptNames = new Set(this.departmentList?.filter(d => this.selectedDeptIds?.includes(d.deptId)).map(d => d.name.toLowerCase().trim()));
 
-    //   filteredDepts = this.poDepartments.filter(po => {
-    //     const subDepts = po.name.split(",").map(d => d.toLowerCase().trim());
-    //     return subDepts.some(sd => allowedDeptNames.includes(sd));
-    //   });
-    // }
+      filteredDepts = this.poDepartments.filter(po => {
+        const subDepts = po.name.toLowerCase().split(',').map(d => d.trim());
+        return subDepts.some(sd => allowedDeptNames.has(sd));
+      });
+    }
+    this.allDeptartmentList = filteredDepts.map(({ name, deptab }) => ({ name, deptab })).sort((a, b) => a.name.localeCompare(b.name));
+    this.filterError = null;
+    this.selectedDepartments = [];
+    this.getProjectStructure();
+  }
 
-    // this.allDeptList = filteredDepts
-    //   .map(dept => ({ name: dept.name, deptab: dept.deptab }))
-    //   .sort((a, b) => a.name.localeCompare(b.name));
-    // this.filterError = null;
-    // this.selectedDepartments = [];
-    // this.getTotalProjectsChartData();
+  getProjectStructure() {
+    this.orgChartData = [];
+    const projectStructure = {
+      deptName: this.selectedDepartments?.length > 0 ? this.selectedDepartments : null,
+      type: this.selectedProjectStatus || this.PROJECT_STATUS.TOTAL.key,
+      departmentIds: this.selectedDeptIds
+    };
+
+    this.projectService.getProjectStructure(projectStructure).pipe(first()).subscribe((res: any) => {
+      if (res.serviceStatus === "Success") {
+        const projectStructureResponse = res.serviceResponse || [];
+        this.processDataForOrgChart(projectStructureResponse);
+      } else {
+        this.orgChartData = [];
+        console.error("Service call failed:", res.serviceResponse);
+      }
+    });
+  }
+
+  processDataForOrgChart(projectStructureResponse: any) {
+    const departmentMap = this.buildDepartmentMap(projectStructureResponse);
+    this.orgChartData = Array.from(departmentMap.entries()).map(([deptAb, clientMap]) => ({
+      name: deptAb,
+      cssClass: 'department-node',
+      childs: Array.from(clientMap.entries()).map(([clientName, projects]) => ({
+        name: clientName,
+        cssClass: 'client-node',
+        childs: projects.map(p => ({
+          name: p,
+          cssClass: 'project-node'
+        }))
+      }))
+    }));
+    this.processDataForTable(departmentMap);
+  }
+
+  private buildDepartmentMap(data: any[]) {
+    const departmentMap = new Map<string, Map<string, string[]>>();
+    data.forEach(({ deptAb, clientName, projectName }) => {
+      if (!departmentMap.has(deptAb)) {
+        departmentMap.set(deptAb, new Map());
+      }
+
+      const clientMap = departmentMap.get(deptAb)!;
+      if (!clientMap.has(clientName)) {
+        clientMap.set(clientName, []);
+      }
+      clientMap.get(clientName)!.push(projectName);
+    });
+    return departmentMap;
+  }
+
+  processDataForTable(departmentMap: Map<string, Map<string, string[]>>) {
+    this.expandedProjects.clear();
+    this.projectFullText.clear();
+    const tableColumns: any[][] = [];
+
+    departmentMap?.forEach((clientMap, dept) => {
+      const deptColumn: any[] = [dept];
+      clientMap.forEach((projects, clientName) => {
+        deptColumn.push({ type: 'client', name: clientName });
+        projects.forEach(project =>
+          deptColumn.push({ type: 'project', name: project })
+        );
+      });
+      tableColumns.push(deptColumn);
+    });
+
+    this.maxRows = Math.max(...tableColumns.map(c => c.length));
+    tableColumns?.forEach(col => {
+      while (col.length < this.maxRows) col.push('');
+    });
+
+    this.tableData = Array.from({ length: this.maxRows }, (_, rowIndex) =>
+      tableColumns.map(col => col[rowIndex] || '')
+    );
+  }
+
+  toggleExpansion(text: string) {
+    this.expandedProjects.has(text)
+      ? this.expandedProjects.delete(text)
+      : this.expandedProjects.add(text);
+  }
+
+  toggleExpandAllProjects(departmentName: string) {
+    this.expandedColumns.has(departmentName)
+      ? this.expandedColumns.delete(departmentName)
+      : this.expandedColumns.add(departmentName);
+  }
+
+  truncate(text: string, limit = 15, fromStart = false): string {
+    if (!text || text.length <= limit) {
+      return text;
+    }
+
+    return fromStart
+      ? text.substring(0, limit) + '...'
+      : '...' + text.substring(text.length - limit + 3);
+  }
+
+  getCellFullText(cell: any): string {
+    if (typeof cell === 'string') {
+      return cell;
+    }
+    if (cell && cell.name) {
+      return cell.name;
+    }
+    return '';
+  }
+
+  getCellDisplayText(cell: any): string {
+    if (typeof cell === 'string') {
+      return cell;
+    }
+    if (cell && cell.name) {
+      if (cell.type === 'project') {
+        return this.getDisplayProjectName(cell.name);
+      }
+      return cell.name;
+    }
+    return '';
+  }
+
+  getDisplayProjectName(projectName: string, departmentName?: string): string {
+    if (!projectName) {
+      return '';
+    }
+
+    this.projectFullText.set(projectName, projectName);
+    const expanded = (departmentName && this.expandedColumns.has(departmentName)) || this.expandedProjects.has(projectName);
+    return expanded ? projectName : this.truncate(projectName);
+  }
+
+  getDisplayClientName(clientName: string, departmentName?: string): string {
+    if (!clientName) {
+      return '';
+    }
+
+    this.projectFullText.set(clientName, clientName);
+    const expanded = departmentName && this.expandedColumns.has(departmentName) || this.expandedProjects.has(clientName);
+    return expanded ? clientName : this.truncate(clientName, 15, true);
+  }
+
+  isDepartmentHeader(rowIndex: number): boolean {
+    return rowIndex === 0;
+  }
+
+  isClientName(rowIndex: number, colIndex: number): boolean {
+    if (rowIndex === 0) return false;
+    const currentCell = this.tableData[rowIndex][colIndex];
+    return currentCell && typeof currentCell === 'object' && currentCell.type === 'client';
+  }
+
+  isProjectName(rowIndex: number, colIndex: number): boolean {
+    if (rowIndex === 0) return false;
+    const currentCell = this.tableData[rowIndex][colIndex];
+    return currentCell && typeof currentCell === 'object' && currentCell.type === 'project';
+  }
+
+  isDepartmentCell(rowIndex: number, colIndex: number): boolean {
+    if (rowIndex !== 0) return false;
+    const currentCell = this.tableData[rowIndex][colIndex];
+    return typeof currentCell === 'string' && currentCell !== '';
+  }
+
+  isColumnExpanded(departmentName: string): boolean {
+    return this.expandedColumns.has(departmentName);
+  }
+
+  toggleProjectSummaryChartDepartments() {
+    this.toggleProjectSummaryDepartmentsVisible = !this.toggleProjectSummaryDepartmentsVisible;
+  }
+
+  updateSelectedDepartments(department: string, event: any): void {
+    const isChecked = event.target.checked;
+    if (isChecked) {
+      this.selectedDepartments = [department];
+    } else {
+      this.selectedDepartments = [];
+    }
+    this.getProjectStructure();
   }
   // Chart Data APIs & Methods End 
 
@@ -1137,7 +1546,7 @@ export class RmgStatusCardsComponent {
     }
   }
 
-  exportPageProjectDetailsToExcel(projectDetailsList:any[]): void {
+  exportPageProjectDetailsToExcel(projectDetailsList: any[]): void {
     const excelName = "Project Report.xlsx";
     const exportData = projectDetailsList?.map(x => ({
       'Project Name': x.name || 'NA',
@@ -1185,4 +1594,13 @@ export class RmgStatusCardsComponent {
       });
   }
   // Projects Table APIs & Methods End
+
+  getAllDepartmentsList() {
+    this.departmentList = [];
+    this.departmentService.getAllDepartments().pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.departmentList = response.serviceResponse || [];
+      }
+    });
+  }
 }

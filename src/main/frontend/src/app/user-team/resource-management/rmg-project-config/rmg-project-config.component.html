@@ -10,7 +10,11 @@
                 </div>
                 <div class="col-md-1 d-flex justify-content-end">
                     <button class="btn btn-sm btn-outline-primary" title="Close Configuration" *ngIf="!isProjectPreview"
-                        (click)="callCloseProjectConfiguration()">
+                        (click)="closeProjectConfiguration?.emit()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" title="Close Preview Modal" *ngIf="isProjectPreview"
+                        (click)="closeProjectConfigurationModal?.emit()">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -30,17 +34,17 @@
                         <mat-stepper #project_config_stepper linear [(selectedIndex)]="projectConfigStepperIndex"
                             orientation="horizontal" class="custom-stepper"
                             (selectionChange)="onProjectConfigStepChange($event)">
-                            <mat-step [completed]="!isStep1Error">
+                            <mat-step [completed]="isProjectManagerValid" *ngIf="!isProjectPreview">
                                 <ng-template matStepLabel>Project Information</ng-template>
-                                <div *ngIf="isStep1Error" class="danger">
-                                    Kindly assign atleast one Project Manager before proceeding to next step.
+                                <div *ngIf="!isProjectManagerValid" class="danger">
+                                    {{ projectConfigStepperErrorMessage }}
                                 </div>
                                 <ng-container>
                                     <div class="horizontal-row"></div>
                                     <ng-template [ngTemplateOutlet]="project_information_template"></ng-template>
                                 </ng-container>
                             </mat-step>
-                            <mat-step label="Current Resource Requirements \n Old Resource Mapped">
+                            <mat-step *ngIf="!isProjectPreview">
                                 <ng-template matStepLabel>Resource Config</ng-template>
                                 <ng-container>
                                     <div class="horizontal-row"></div>
@@ -186,7 +190,7 @@
                 <div class="horizontal-row"></div>
             </div>
 
-            <ng-container *ngIf="!isInternalProject">
+            <ng-container *ngIf="projectType === 'TNM'">
                 <div class="mt-3">
                     <ng-template [ngTemplateOutlet]="resource_requirement_template"
                         [ngTemplateOutletContext]="{resourceRequirementList:currentRmgProjectResourceRequirementList, flag:true}">
@@ -310,7 +314,7 @@
                                             <i class="fa fa-edit" aria-hidden="true"></i>
                                         </button>
                                         <button class="btn btn-sm" *ngIf="projectConfigStepperIndex === 2"
-                                            title="View Team Details" (click)="getTeamDetailsByTeamId(team)">
+                                            title="View Team Details" (click)="openTeamMemberDetailsPreviewModal(team)">
                                             <i class="fa fa-eye" aria-hidden="true"></i>
                                         </button>
                                     </td>
@@ -1041,13 +1045,17 @@
                         (click)="hideTeamDetails()">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
+                    <button class="btn btn-sm btn-outline-primary" title="Close Team Details" *ngIf="isProjectPreview"
+                        (click)="closeTeamMemberDetailsPreviewModal()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
                 </div>
             </div>
         </div>
         <div class="card-body pt-1">
             <div class="row">
                 <div class="col-12 p-4" style="padding-top: 0px !important;">
-                    <ng-container *ngIf="!isInternalProject">
+                    <ng-container *ngIf="projectType === 'TNM'">
                         <div class="mt-3">
                             <ng-template [ngTemplateOutlet]="resource_requirement_template"
                                 [ngTemplateOutletContext]="{resourceRequirementList:allRmgProjectResourceRequirementList, flag:false}">
@@ -1077,6 +1085,13 @@
             </div>
         </div>
     </div>
+</ng-template>
+
+<ng-template #team_member_details_preview>
+    <ng-container>
+        <ng-template [ngTemplateOutlet]="team_details_new">
+        </ng-template>
+    </ng-container>
 </ng-template>
 
 <ng-template #employeeInfo let-member="member">
@@ -1167,6 +1182,7 @@
                             Name
                         </th>
                         <th class="min-width150 max-width200">Project</th>
+                        <th class="min-width100 max-width150">Start Date</th>
                         <th class="min-width100 max-width150">PO No</th>
                         <th class="min-width100 max-width150">Team</th>
                         <th class="min-width100 max-width150">Employee Role</th>
@@ -1185,7 +1201,7 @@
                 <tbody>
                     <ng-container *ngIf="mappingToOtherProjectAsDefaultList?.length === 0">
                         <tr>
-                            <td colspan="8" class="text-center">No Details to display.</td>
+                            <td colspan="9" class="text-center">No Details to display.</td>
                         </tr>
                     </ng-container>
                     <ng-container
@@ -1210,6 +1226,11 @@
                                         {{ project.projectName }}
                                     </mat-option>
                                 </mat-select>
+                            </td>
+                            <td class="min-width100 max-width150 truncate"
+                                [title]=" employee.selectedProject?.startDate || 'NA'">
+                                {{ employee.selectedProject?.startDate ? ( employee.selectedProject?.startDate | date:
+                                'dd-MM-yyyy') : 'NA'}}
                             </td>
                             <td class="min-width100 max-width150 truncate"
                                 [title]="employee.selectedProject?.poNo || 'NA'">
@@ -1323,6 +1344,21 @@
                             <app-my-select class="form-control" [(ngModel)]="defaultProjectObj.roleId" valueKey="roleId"
                                 displayKey="displayRequirement" [options]="defaultProjectObj.resourceRequirementList">
                             </app-my-select>
+                        </div>
+                    </div>
+                    <div class="col-3 p-1">
+                        <div class="form-group">
+                            <div class="date-input-wrapper">
+                                <label>Start Date</label>
+                                <input class="form-control date-input"
+                                    [matDatepicker]="bulkDefaultProjectMappingStartDatepicker"
+                                    (dateChange)="onMemberStartDateChange($event, currentTeam.newRmgTeamMember)"
+                                    [(ngModel)]="defaultProjectObj.startDate"
+                                    [disabled]="!defaultProjectObj.projectId" />
+                                <mat-icon class="calendar-icon" style="top:70%"
+                                    (click)="bulkDefaultProjectMappingStartDatepicker.open()">calendar_today</mat-icon>
+                                <mat-datepicker #bulkDefaultProjectMappingStartDatepicker></mat-datepicker>
+                            </div>
                         </div>
                     </div>
                     <div class="col-3 p-1 mb-4">
@@ -1475,6 +1511,7 @@
                                     Employee Assigned Department
                                 </th>
                                 <th class="min-width150 max-width200">Requirement</th>
+                                <th class="min-width150 max-width200">Start Date</th>
                                 <th>Action</th>
                             </tr>
                             <ng-container *ngIf="isMarkDefaultProjectCompletionIndividualSearchEnabled">
@@ -1487,7 +1524,7 @@
                         <tbody>
                             <ng-container *ngIf="markDefaultProjectCompletionList.length === 0">
                                 <tr>
-                                    <td colspan="8" class="text-center">No Details to display.</td>
+                                    <td colspan="9" class="text-center">No Details to display.</td>
                                 </tr>
                             </ng-container>
                             <ng-container
@@ -1549,6 +1586,17 @@
                                             [options]="employee.resourceRequirementList">
                                         </app-my-select>
                                         <span *ngIf="employee.projectType === 'Bench'">--</span>
+                                    </td>
+                                    <td class="min-width150 max-width200">
+                                        <div class="date-input-wrapper">
+                                            <input class="form-control date-input"
+                                                [matDatepicker]="defaultProjectMappingStartDatepicker"
+                                                (dateChange)="onMemberStartDateChange($event, employee)"
+                                                [(ngModel)]="employee.startDate" [disabled]="!employee.projectId" />
+                                            <mat-icon class="calendar-icon"
+                                                (click)="defaultProjectMappingStartDatepicker.open()">calendar_today</mat-icon>
+                                            <mat-datepicker #defaultProjectMappingStartDatepicker></mat-datepicker>
+                                        </div>
                                     </td>
                                     <td>
                                         <button class="btn btn-sm btn-primary" title="Set Default Project"
@@ -1625,7 +1673,8 @@
                     <div class="warning-text">
                         <strong>Employee is already mapped to TNM project</strong>
                         <p class="mb-2">{{employeeExistingProjectEmpName}}
-                            {{employeeExistingProjectEmploymentId ? (employeeExistingProjectEmploymentId) : ''}}
+                            {{employeeExistingProjectEmploymentId ? '(' + employeeExistingProjectEmploymentId + ')' :
+                            ''}}
                             cannot be added to another Project or Team!!
                         </p>
                     </div>
@@ -1725,7 +1774,8 @@
         <div class="row justify-content-center align-items-center">
             <label class="info-label">Select End Date</label>
         </div>
-        <div class="row justify-content-center align-items-center" *ngIf="!deleteEmployeeExistingProjectMappingObj.isInternalProject">
+        <div class="row justify-content-center align-items-center"
+            *ngIf="!deleteEmployeeExistingProjectMappingObj.isInternalProject">
             <mat-radio-group color="primary" [(ngModel)]="employeeProjectEndDateType"
                 (change)="onMemberRemoveEndDateTypeChange($event)">
                 <mat-radio-button value="PO">PO End Date</mat-radio-button>

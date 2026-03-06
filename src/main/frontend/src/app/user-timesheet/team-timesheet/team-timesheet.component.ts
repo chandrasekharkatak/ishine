@@ -2063,8 +2063,8 @@ resetPreviewState() {
 expandedTimesheetIndex: number | null = null;
 expandedProjectKey: string | null = null;
 
-toggleProject(tIndex: number, pIndex: number):void {
-  const key = `${tIndex}-${pIndex}`;
+toggleProject(tIndex: number,l: number, pIndex: number):void {
+  const key = `${tIndex}-${l}-${pIndex}`;
   this.expandedProjectKey =
     this.expandedProjectKey === key ? null : key;
 }
@@ -2452,6 +2452,9 @@ getDocument(type: 'Pending' | 'Approved'): void {
     this.selectedStatus = status;
     this.page1 = 0; // pagination reset
     this.isSearchEnabled = false;
+    this.expandedTimesheetIndex = null;
+    this.expandedProjectKey = null;
+    this.filters = {};
     this.getMyReporteesTimesheetRequests();
     this.getTimesheetStatusCountsByEmpId();
   }
@@ -3180,13 +3183,33 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
             message += `${processed.length} timesheet(s) rejected successfully.\n`;
           }
 
-          const skippedKeys = Object.keys(skipped);
-          if (skippedKeys.length) {
-            message += `\nSkipped:\n`;
-            skippedKeys.forEach(id => {
-              message += `Timesheet ${id}: ${skipped[id]}\n`;
-            });
-          }
+          if (skipped.length) {
+
+          message += `
+            <p><strong>Skipped Timesheets</strong></p>
+            <table class="table table-bordered table-sm">
+              <thead>
+                <tr>
+                  <th>EMP ID</th>
+                  <th>Date</th>
+                  <th>Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+          `;
+
+          skipped.forEach((item: any) => {
+            message += `
+              <tr>
+                <td>${item.employmentId}</td>
+                <td>${item.date}</td>
+                <td>${item.reason}</td>
+              </tr>
+            `;
+          });
+
+          message += `</tbody></table>`;
+        }
 
           this.modalRef?.close();
           this.page1 = 0;

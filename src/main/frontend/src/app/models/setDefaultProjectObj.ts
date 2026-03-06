@@ -10,6 +10,7 @@ export class SetDefaultProjectObj {
 	empTeamDepartmentId: any;
 	poRequirementMappingId: any
 	resourceOverViewId: any;
+	startDate: any;
 
 	poDetailsList: any[] = [];
 	teamList: any[] = [];

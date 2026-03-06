@@ -82,6 +82,15 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 			"where p.isDraftProject IN ('false','true','Rejected') and p.projectId IN :projectIds")
 	public List<ProjectFetchDTO> findAllProjectByIsDraftAndIsActiveOfProjectIds(@Param("projectIds") Set<Integer> projectIds);
 	
+    //getting default project for a employee using the department id 
+    @Query(value = "SELECT DISTINCT p.project_id FROM projects p " +
+            "INNER JOIN project_department_map pdm ON pdm.project_id = p.project_id " +
+            "WHERE p.project_name LIKE '%bench%' " +
+            "AND p.internal_project_type IS NOT NULL " +
+            "AND p.internal_project_type = 'Bench' " +
+            "AND pdm.active = 1 " +
+            "AND pdm.dept_id = :deptId", nativeQuery = true)
+    Optional<Integer> findBenchProjectIdByDeptId(@Param("deptId") Long deptId);
 
 	public List<Project> findProjectByDepartmentName(String name);
 
@@ -8238,7 +8247,7 @@ List<Object[]> getClientAndProjectDataList(
 
 	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.EmployeeOtherActiveProject( "
 			+ " etm.empId, p.projectId, p.projectName, ppd.poId, t.teamId, prm.poRequirementMappingId \n"
-			+ " , ppd.poNo, t.teamName, etm.employeeRole, prm.role, prm.department, prm.experience, prm.count) "
+			+ " , ppd.poNo, t.teamName, etm.employeeRole, prm.role, prm.department, prm.experience, prm.count, etm.startDate) "
 			+ "FROM Project p \n"
 			+ "INNER JOIN Team t ON t.projectId = p.projectId AND t.isActive != 'N' \n"
 			+ "INNER JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId AND etm.active != 0 \n"

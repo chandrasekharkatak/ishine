@@ -23,7 +23,7 @@
       <router-outlet></router-outlet>
     </div>
   </mat-sidenav-content>
-  <mat-sidenav #rightDrawer position="end" mode="over" class="global-right-drawer">
+  <mat-sidenav #rightDrawer position="end" mode="over" [disableClose]="true" class="global-right-drawer">
     <ng-container *ngTemplateOutlet="drawerTemplate"></ng-container>
   </mat-sidenav>
 </mat-sidenav-container>

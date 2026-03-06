@@ -797,7 +797,7 @@
                     (click)="approveSingleTimesheet(timesheet)" title="Approve timesheet">
                     <i class="fas fa-check"></i>
                   </button>
-                  <button type="button" class="ts-action-btn ts-reject-btn" *ngIf="selectedStatus === 1"
+                  <button type="button" class="ts-action-btn ts-reject-btn" *ngIf="selectedStatus === 1 || 2"
                     (click)="openRejectPopup(rejectPopup, timesheet)" title="Reject timesheet">
                     <i class="fas fa-times"></i>
                   </button>
@@ -806,7 +806,7 @@
               <tr *ngIf="expandedTimesheetIndex === i">
                 <td [attr.colspan]="selectedStatus === 1 ? 13 : 12" class="accordion-cell">
                   <div class="timesheet-details-accordion">
-                    <div *ngFor="let location of timesheet.locationSessions || []" class="location-card mb-3">
+                    <div *ngFor="let location of timesheet.locationSessions || []; let l = index" class="location-card mb-3">
                       <div class="location-card-header">
                         <div class="d-flex justify-content-between align-items-center">
                           <div>
@@ -822,8 +822,8 @@
                       <div class="location-card-body">
                         <div *ngFor="let project of location.projects || []; let p = index" class="project-card mb-2">
                           <div class="project-card-header"
-                               (click)="toggleProject(i, p)"
-                               [class.expanded]="expandedProjectKey === (i + '-' + p)"
+                               (click)="toggleProject(i,l, p)"
+                               [class.expanded]="expandedProjectKey === (i + '-' +l+'-' + p)"
                                title="Click to view activity details">
                             <div class="d-flex justify-content-between align-items-center">
                               <div class="flex-grow-1">
@@ -853,14 +853,14 @@
                                 </button>
                                 <button type="button" class="btn btn-sm btn-link p-0" *ngIf="(project.activities?.length || 0) > 0">
                                   <i class="fas"
-                                    [class.fa-chevron-down]="expandedProjectKey === (i + '-' + p)"
-                                    [class.fa-chevron-right]="expandedProjectKey !== (i + '-' + p)"></i>
+                                    [class.fa-chevron-down]="expandedProjectKey === (i + '-' +l+ '-' + p)"
+                                    [class.fa-chevron-right]="expandedProjectKey !== (i + '-' +l+ '-' + p)"></i>
                                 </button>
                               </div>
                             </div>
                           </div>
                           <div class="project-card-body"
-                               *ngIf="expandedProjectKey === (i + '-' + p)">
+                               *ngIf="expandedProjectKey === (i + '-' +l+'-' + p)">
                             <div class="activity-list" *ngIf="(project.activities?.length || 0) > 0">
                               <div *ngFor="let act of project.activities" class="activity-item">
                                 <div class="d-flex justify-content-between align-items-start">

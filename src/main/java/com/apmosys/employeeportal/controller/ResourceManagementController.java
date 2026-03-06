@@ -19,24 +19,21 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.JobRoleAccess;
-import com.apmosys.employeeportal.dto.BulkTimesheetRequestDTO;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
 import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
 import com.apmosys.employeeportal.dto.FilterMatrix;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
-import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
 import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
 import com.apmosys.employeeportal.dto.IshineToPoRequestDTO;
 import com.apmosys.employeeportal.dto.LiftAndShiftTeamsDTO;
 import com.apmosys.employeeportal.dto.NonComplianceProjects;
 import com.apmosys.employeeportal.dto.OtherProjectSetDTO;
-import com.apmosys.employeeportal.dto.PoClientAddressUpdateDTO;
 import com.apmosys.employeeportal.dto.PageDTO;
+import com.apmosys.employeeportal.dto.PoClientAddressUpdateDTO;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectFilterDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
-import com.apmosys.employeeportal.dto.ProjectStructureWrapper;
 import com.apmosys.employeeportal.dto.RMGDashboardProjectRequest;
 import com.apmosys.employeeportal.dto.RenewedPoSyncDto;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
@@ -96,14 +93,15 @@ public class ResourceManagementController {
 		ServiceResponse response = resourceManagementService.getPendingForApprovalProject();
 		return response;
 	}
+	
 	@Encrypted
 	@JobRoleAccess(featureIds = {34})
-	@RequestMapping(value = "/approvePendingProject", method = RequestMethod.POST)
-	public ServiceResponse approvePendingProject(@RequestBody ResourceManagementDTO resourceManagementDTO) {
-		
+	@PostMapping(value = "/approvePendingProject")
+	public ServiceResponse approvePendingProject(@RequestBody ResourceManagementDTO resourceManagementDTO) throws Exception {
 		ServiceResponse response = resourceManagementService.approvePendingProject(resourceManagementDTO);
 		return response;
 	}
+	
 	@Encrypted
 	@JobRoleAccess(featureIds = {34})
 	@RequestMapping(value = "/rejectPendingProject", method = RequestMethod.POST)
@@ -569,9 +567,8 @@ public class ResourceManagementController {
 	@Encrypted
 	@JobRoleAccess(featureIds = {34})
 	@PostMapping("/getProjectStructure")
-	public ServiceResponse getProjectStructure(@RequestBody ProjectStructureWrapper wrapper) {
-	    return resourceManagementService.getProjectStructure(wrapper.getProjectStructure(),
-	                                                         wrapper.getProjectFilter());
+	public ServiceResponse getProjectStructure(@RequestBody ProjectStructureRequest projectStructure) {
+	    return resourceManagementService.getProjectStructure(projectStructure);
 	}
 
 	@PostMapping(value = "/sendTimesheetDetailsToShankh")
