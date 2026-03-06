@@ -22,5 +22,23 @@ public class EmailTrigger {
 	        task.run(); // fallback (no transaction)
 	    }
 	}
+	
+	public static void sendAfterCommit2(Runnable task) {
+
+	    if (TransactionSynchronizationManager.isSynchronizationActive()) {
+
+	        TransactionSynchronizationManager.registerSynchronization(
+	            new TransactionSynchronization() {
+	                @Override
+	                public void afterCommit() {
+	                    task.run();
+	                }
+	            }
+	        );
+
+	    } else {
+	        task.run();
+	    }
+	}
 
 }

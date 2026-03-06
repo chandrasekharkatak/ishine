@@ -93,14 +93,15 @@ public class ResourceManagementController {
 		ServiceResponse response = resourceManagementService.getPendingForApprovalProject();
 		return response;
 	}
+	
 	@Encrypted
 	@JobRoleAccess(featureIds = {34})
-	@RequestMapping(value = "/approvePendingProject", method = RequestMethod.POST)
-	public ServiceResponse approvePendingProject(@RequestBody ResourceManagementDTO resourceManagementDTO) {
-		
+	@PostMapping(value = "/approvePendingProject")
+	public ServiceResponse approvePendingProject(@RequestBody ResourceManagementDTO resourceManagementDTO) throws Exception {
 		ServiceResponse response = resourceManagementService.approvePendingProject(resourceManagementDTO);
 		return response;
 	}
+	
 	@Encrypted
 	@JobRoleAccess(featureIds = {34})
 	@RequestMapping(value = "/rejectPendingProject", method = RequestMethod.POST)
