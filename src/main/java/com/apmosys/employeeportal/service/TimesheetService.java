@@ -1917,6 +1917,85 @@ public class TimesheetService {
 		return response;
 	}
 
+	/**
+	 * Lightweight summary API for My Timesheets mini dashboard.
+	 * Uses only employee_timesheets_new to compute:
+	 * - totalFilled: count of all timesheets in range
+	 * - totalApproved: count with status = 2
+	 * - totalRejected: count with status = 3
+	 */
+	public ServiceResponse getMyTimesheetSummary(TimesheetDTO timesheetDTO) {
+		ServiceResponse response = new ServiceResponse();
+
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("view_my_timesheets");
+		apiLogInfo.setApiUrl("/api/v2/timesheet/summary");
+		apiLogInfo.setLogLevel("INFO");
+
+		try {
+			if (timesheetDTO.getEmpId() == null || timesheetDTO.getStartDate() == null || timesheetDTO.getEndDate() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("empId, startDate and endDate are required.");
+				return response;
+			}
+
+			LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
+			LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
+			
+			System.out.println("***START******END**");
+			System.out.println(start);
+			System.out.println(end);
+
+			Object[] row = employeeTimesheetsNewRepository.getTimesheetSummaryCounts(timesheetDTO.getEmpId(), start,
+					end);
+
+			long totalFilled = 0L;
+			long totalApproved = 0L;
+			long totalRejected = 0L;
+			System.out.println("*******row********");
+			System.out.println(row.length);
+
+			if (row != null) {
+				Object[] actualRow;
+
+			    if (row.length == 1 && row[0] instanceof Object[]) {
+			        actualRow = (Object[]) row[0];
+			    } else {
+			        actualRow = row;
+			    }
+
+			    totalFilled = actualRow[0] != null ? ((Number) actualRow[0]).longValue() : 0L;
+			    totalApproved = actualRow[1] != null ? ((Number) actualRow[1]).longValue() : 0L;
+			    totalRejected = actualRow[2] != null ? ((Number) actualRow[2]).longValue() : 0L;
+			}
+
+			Map<String, Long> summary = new HashMap<>();
+			summary.put("totalFilled", totalFilled);
+			summary.put("totalApproved", totalApproved);
+			summary.put("totalRejected", totalRejected);
+			
+			System.out.println(summary);
+
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(summary);
+
+			apiLogInfo.setApiResponse("Timesheet summary loaded successfully");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(ex.getMessage());
+
+			apiLogInfo.setApiError(ex.getMessage());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+		}
+
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
 	public ServiceResponse revokeApprovedTimesheet(TimesheetDTO timesheetDTO) {
 		return timesheetApprovalService.revokeApprovedTimesheet(timesheetDTO);
 	}

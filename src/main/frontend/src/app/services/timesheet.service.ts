@@ -135,6 +135,11 @@ export class TimesheetService {
     return this.http.post(`${this.baseUrl}` + `api/getTimesheetsForHomePageByEmpId`, timesheetObj);
   }
 
+  /* Lightweight summary API for My Timesheets mini dashboard */
+  getMyTimesheetSummary(timesheetObj: Timesheet) {
+    return this.http.post(`${this.baseUrl}` + `api/v2/timesheet/summary`, timesheetObj);
+  }
+
   /* Reports */
   timesheetReport(){
     return this.http.get(`${this.baseUrl}` + `api/timesheetReport`);
