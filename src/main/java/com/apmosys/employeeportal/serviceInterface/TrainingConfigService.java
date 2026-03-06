@@ -110,8 +110,21 @@ public interface TrainingConfigService {
 	 * @param trainingId Training ID
 	 * @return ServiceResponse containing training responses
 	 */
-	ServiceResponse getTrainingResponses(Integer trainingId, Integer offset, Integer limit);
-
+	ServiceResponse getTrainingResponses(Integer trainingId);
+	
+	
 	ServiceResponse getLockStatus(Long empId);
-
+	
+	/*
+	 * add training type 
+	 * return ServiceResponse
+	 * */
+	ServiceResponse addTrainingType(TrainingMasterDTO trainingDTO);
+	
+	/*
+	 * get all the training types for the dropdown
+	 * return ServiceResponse
+	 * 
+	 * */
+	ServiceResponse getAllTrainingTypes();
 }

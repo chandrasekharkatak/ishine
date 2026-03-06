@@ -103,12 +103,17 @@ export class TrainingService {
     return this.http.post(`${this.baseUrl}api/training/getAllQuizResponsesByTrainingId`, { trainingId: trainingId });
   }
 
-  getTrainingResponses(trainingId: number, limit: number, offset: number){
-    return this.http.get(`${this.baseUrl}api/training/getTrainingResponses/${trainingId}`, {
-      params: {
-        limit: limit,
-        offset: offset
-      }
-    });
+  getTrainingResponses(trainingId: number){
+    return this.http.get(`${this.baseUrl}api/training/getTrainingResponses/${trainingId}`);
+  }
+
+  addTrainingType(trainingType: string, createdBy: number) {
+  return this.http.post(`${this.baseUrl}api/training/addTrainingType`, {
+    trainingType: trainingType,
+    createdBy: createdBy
+  });
+}
+  getAllTrainingTypes(): Observable<any> {
+    return this.http.get(`${this.baseUrl}api/training/getAllTrainingTypes`);
   }
 }

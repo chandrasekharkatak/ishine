@@ -94,6 +94,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
   @ViewChild('create_quiz_template') createQuizTemplate!: TemplateRef<any>;
   @ViewChild('show_training_response') showTrainingResponse!: TemplateRef<any>;
+  @ViewChild('add_training_type') addTrainingTypeContent!: TemplateRef<any>;
   isResponseSearchEnabled: boolean = false;
   responseTableFilters: any = {};
   responsePage: number = 1;
@@ -112,8 +113,8 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   fileSize: number = 0;
 
   // Training types
-  trainingTypes: string[] = ['Induction', 'POSH', 'CyberSecurity', 'Compliance', 'Safety'];
-
+  // trainingTypes: string[] = ['Induction', 'POSH', 'CyberSecurity', 'Compliance', 'Safety'];
+  trainingTypes: any[] = [];
   // Deadline patterns
   deadlinePatterns: any[] = [
     { value: 'YEARLY', label: 'Yearly (December 31 - Last Day of Year)' },
@@ -135,6 +136,9 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   sortResponseColumnType: string = '';
   sortResponseDirection: string = '';
 
+  showTypeModal: boolean = false;
+  newTrainingType: string = '';
+  
   constructor(
     private authenticationService: AuthenticationService,
     private locationStrategy: LocationStrategy,
@@ -157,7 +161,8 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
 
     this.sectionViewInit();
     this.preventBackButton();
-    this.maxFileSize = 20;
+    this.getAllTrainingTypes();
+    this.maxFileSize = 30;
   }
 
   preventBackButton() {
@@ -1169,6 +1174,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   //   }
   // }
 
+  
   async parsePPTXFile(file: File) {
     try {
       this.isLoadingPPTX = true;
@@ -1804,11 +1810,11 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
 
   onViewTrainingResponse(training: any) {
     console.log('View training response for:', training);
-    this.trainingService.getTrainingResponses(training.trainingId, 1, 10*(this.responsePage-1)).subscribe({
+    this.trainingService.getTrainingResponses(training.trainingId).subscribe({
       next: (response:any) =>{
-        this.allTrainingResponse = response.serviceResponse.content || [];
-        this.maxResponseSize = response.serviceResponse.totalElements || 10;
-         this.responsePage = response.serviceResponse.pageable.pageNumber + 1;
+        this.allTrainingResponse = response.serviceResponse || [];
+        this.maxResponseSize = this.allTrainingResponse.length;
+         this.responsePage = 1;
         this.showTrainingResponseModal();
       }, error: (error) =>{
         this.openAlertMod(this.alertTemplate, 'Error fetching training responses', 'error');
@@ -1847,5 +1853,65 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       this.responseTableFilters = {};
     }
   }
+  
+  openAddTypeModal() {
+    this.newTrainingType = '';
+    this.modalRef = this.modalService.open(this.addTrainingTypeContent, { 
+      centered: true,
+      backdrop: false, 
+      keyboard: false     
+    });
+  }
+
+  getAllTrainingTypes() {
+    this.trainingService.getAllTrainingTypes().subscribe({
+      next: (response: any) => {
+        console.log(response , '=============');
+        if (response.serviceStatus === 'Success') {
+          this.trainingTypes = response.serviceResponse || [];
+          console.log(this.trainingTypes,'=========training types ==========')
+        } else {
+          this.openAlertMod(this.alertTemplate, response.message || 'Failed to load training types', 'error');
+        }
+      },
+      error: (error: any) => {
+        this.openAlertMod(this.alertTemplate, error.error?.message || 'Failed to load training types', 'error');
+      }
+    });
+  }
+
+  saveNewTrainingType() {
+   const typeName = this.newTrainingType.trim();
+    
+    // Check if input is empty
+    if (!typeName) {
+        this.openAlertMod(this.alertTemplate, 'Please enter a training type name', 'warning');
+        return;
+    }
+
+    console.log('Submitting new training type:', typeName);
+
+    this.trainingService.addTrainingType(this.newTrainingType.trim(), this.currentUser.empId).subscribe({
+      next: (response: any) => {
+         console.log('Response:', response);
+
+        if (response.serviceStatus === 'Success') {
+          this.modalRef.close();
+          this.openAlertMod(this.alertTemplate, 'Training type added successfully', 'success');
+          console.log("=======addedddddd");
+          this.getAllTrainingTypes(); // dropdown method
+          this.newTrainingType = '';
+        } else {
+          this.openAlertMod(this.alertTemplate, response.message || 'Failed to add training type', 'error');
+        }
+      },
+      error: (error: any) => {
+        this.openAlertMod(this.alertTemplate, error.error?.message || 'Failed to add training type', 'error');
+      }
+    });
+  }
+
+
+
 
 }

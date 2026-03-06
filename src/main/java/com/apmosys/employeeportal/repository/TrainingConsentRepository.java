@@ -92,8 +92,12 @@ public interface TrainingConsentRepository extends JpaRepository<TrainingConsent
 				"where tc.trainingContent.activeStatus = 'true' and tc.trainingMaster.trainingId IN :trainingIds and tc.empId = :empId")
 	List<TrainingConsent> findByEmpIdAndTrainingIdsIn(@Param("empId") Long empId, @Param("trainingIds") List<Integer> trainingId);
 
-	@Query("select new com.apmosys.employeeportal.dto.TrainingResponseDTO(tc.trainingMaster.trainingId, tc.completionCycleNumber, e.name, MAX(tc.consentTimestamp)) from TrainingConsent tc \n"+ 
+	@Query("select new com.apmosys.employeeportal.dto.TrainingResponseDTO(tc.trainingMaster.trainingId, tc.completionCycleNumber, e.name, tc.trainingMaster.consentRequired, MAX(tc.consentTimestamp)) from TrainingConsent tc \n"+ 
     "INNER JOIN Employee e on e.empId = tc.empId "+
     "where tc.trainingMaster.trainingId = :trainingId group by tc.empId")
-    Page<TrainingResponseDTO> findByTrainingId(@Param("trainingId") Integer trainingId, Pageable pageable);
+    List<TrainingResponseDTO> findByTrainingId(@Param("trainingId") Integer trainingId);
+	
+	@Query(nativeQuery =true)
+	List<Object[]> findEmpForUnattendedQuiz();
+	
 }
