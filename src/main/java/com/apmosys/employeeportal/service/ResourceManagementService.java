@@ -1800,8 +1800,7 @@ public class ResourceManagementService {
 										employeeObj,
 										resourceManagementDTO.getName(),
 										modifiedTeamsMap,
-										allTeamsMap,
-										employeeRepository
+										allTeamsMap
 								);
 								log.info("All Emails : {}", allEmails);
 								log.debug("Email HTML : {}", html.toString());
