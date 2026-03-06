@@ -1570,7 +1570,7 @@ public class ResourceManagementService {
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse approvePendingProject(ResourceManagementDTO dto) throws Exception {
 
-	    validateRequest(dto);
+		context.getBean(getClass()).validateRequest(dto);
 
 	    ServiceResponse response = new ServiceResponse();
 
@@ -1588,7 +1588,7 @@ public class ResourceManagementService {
 
 	    try {
 
-	        Project project = getProjectOrThrow(dto.getProjectId());
+	        Project project = context.getBean(getClass()).getProjectOrThrow(dto.getProjectId());
 
 	        logBuilder.append("Project Found: ").append(project.getProjectName()).append(" | ");
 
@@ -1602,36 +1602,36 @@ public class ResourceManagementService {
 	        logBuilder.append("Pending Members Count: ").append(pendingMembers.size()).append(" | ");
 
 	        Map<String, List<EmployeeTeamMap>> modifiedTeams =
-	                processTeamMembers(dto, project, pendingMembers, allTeams);
+	        		context.getBean(getClass()).processTeamMembers(dto, project, pendingMembers, allTeams);
 
 	        logBuilder.append("Teams Modified: ").append(modifiedTeams.keySet()).append(" | ");
 
-	        createActivityForEmployeeRole(dto.getEmpId(), project, pendingMembers);
+	        context.getBean(getClass()).createActivityForEmployeeRole(dto.getEmpId(), project, pendingMembers);
 
 	        logBuilder.append("Activity Created For Employees | ");
 
-	        updateDraftStatus(project);
+	        context.getBean(getClass()).updateDraftStatus(project);
 
 	        logBuilder.append("Draft Status Updated | Current Draft Status: ")
 	                .append(project.getIsDraftProject()).append(" | ");
 
-	        Project savedProject = saveProject(project);
+	        Project savedProject = context.getBean(getClass()).saveProject(project);
 
 	        logBuilder.append("Project Saved Successfully | ProjectId: ")
 	                .append(savedProject.getProjectId()).append(" | ");
 
-	        syncPoPortalIfRequired(dto, savedProject);
+	        context.getBean(getClass()).syncPoPortalIfRequired(dto, savedProject);
 
 	        logBuilder.append("PoPortal Sync Completed (if applicable) | ");
 
 	        Map<String, List<EmployeeTeamMap>> allTeamsMap =
-	                buildAllTeamsMap(allTeams);
+	        		context.getBean(getClass()).buildAllTeamsMap(allTeams);
 
 	        logBuilder.append("All Teams Map Built | ");
 
 	        EmailTrigger.sendAfterCommit2(() -> {
 	            try {
-	                sendApprovalMail(dto, savedProject, modifiedTeams, allTeamsMap);
+	            	context.getBean(getClass()).sendApprovalMail(dto, savedProject, modifiedTeams, allTeamsMap);
 	            } catch (Exception e) {
 	                log.error("Mail sending failed after project approval", e);
 	            }
@@ -1662,7 +1662,7 @@ public class ResourceManagementService {
 	    return response;
 	}
 	
-	private void validateRequest(ResourceManagementDTO dto) {
+	protected void validateRequest(ResourceManagementDTO dto) {
 
 	    if (dto == null) {
 	        throw new IllegalArgumentException("Request cannot be null");
@@ -1677,7 +1677,7 @@ public class ResourceManagementService {
 	    }
 	}
 	
-	private Project getProjectOrThrow(Integer projectId) {
+	protected Project getProjectOrThrow(Integer projectId) {
 
 	    Project project = projectRepository.findByProjectId(projectId);
 
@@ -1688,7 +1688,7 @@ public class ResourceManagementService {
 	    return project;
 	}
 	
-	private Map<String, List<EmployeeTeamMap>> processTeamMembers(
+	protected Map<String, List<EmployeeTeamMap>> processTeamMembers(
 	        ResourceManagementDTO dto,
 	        Project project,
 	        List<EmployeeTeamMap> members,
@@ -1698,11 +1698,11 @@ public class ResourceManagementService {
 
 	    LocalDate today = LocalDate.now();
 	    
-	    Map<Long, Team> teamMap = buildTeamMap(allTeams);
+	    Map<Long, Team> teamMap = context.getBean(getClass()).buildTeamMap(allTeams);
 
 	    for (EmployeeTeamMap member : members) {
 
-	        validateStartDate(member, project);
+	    	context.getBean(getClass()).validateStartDate(member, project);
 
 	        LocalDate startDate = member.getStartDate().toLocalDate();
 
@@ -1724,7 +1724,7 @@ public class ResourceManagementService {
 	    return modifiedTeams;
 	}
 	
-	private Map<Long, Team> buildTeamMap(List<Team> teams) {
+	protected Map<Long, Team> buildTeamMap(List<Team> teams) {
 
 	    Map<Long, Team> teamMap = new HashMap<>();
 
@@ -1735,7 +1735,7 @@ public class ResourceManagementService {
 	    return teamMap;
 	}
 	
-	private void validateStartDate(EmployeeTeamMap member, Project project) {
+	protected void validateStartDate(EmployeeTeamMap member, Project project) {
 
 	    if (member.getStartDate() == null) {
 
@@ -1765,7 +1765,7 @@ public class ResourceManagementService {
 	    }
 	}
 	
-	private void updateDraftStatus(Project project) {
+	protected void updateDraftStatus(Project project) {
 
 	    List<Project> draftProjects =
 	            employeeTeamMapRepository
@@ -1782,7 +1782,7 @@ public class ResourceManagementService {
 	    }
 	}
 	
-	private Project saveProject(Project project) {
+	protected Project saveProject(Project project) {
 
 	    Project saved = projectRepository.save(project);
 
@@ -1793,7 +1793,7 @@ public class ResourceManagementService {
 	    return saved;
 	}
 	
-	private void syncPoPortalIfRequired(ResourceManagementDTO dto, Project project) {
+	protected void syncPoPortalIfRequired(ResourceManagementDTO dto, Project project) {
 
 	    String type = dto.getProjectType();
 
@@ -1814,7 +1814,7 @@ public class ResourceManagementService {
 	    }
 	}
 	
-	private Map<String, List<EmployeeTeamMap>> buildAllTeamsMap(List<Team> teams) {
+	protected Map<String, List<EmployeeTeamMap>> buildAllTeamsMap(List<Team> teams) {
 
 	    Map<String, List<EmployeeTeamMap>> map = new LinkedHashMap<>();
 
@@ -1829,7 +1829,7 @@ public class ResourceManagementService {
 	    return map;
 	}
 	
-	private void sendApprovalMail(
+	protected void sendApprovalMail(
 	        ResourceManagementDTO dto,
 	        Project project,
 	        Map<String, List<EmployeeTeamMap>> modifiedTeams,
@@ -1860,7 +1860,7 @@ public class ResourceManagementService {
 	    });
 	}
 
-	private void createActivityForEmployeeRole(Long currentUserEmpId, Project project, List<EmployeeTeamMap> teamMemberMappingList) {
+	protected void createActivityForEmployeeRole(Long currentUserEmpId, Project project, List<EmployeeTeamMap> teamMemberMappingList) {
 		if (teamMemberMappingList == null || teamMemberMappingList.isEmpty()) {
 			return;
 		}
