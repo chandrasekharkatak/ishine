@@ -10,7 +10,11 @@
                 </div>
                 <div class="col-md-1 d-flex justify-content-end">
                     <button class="btn btn-sm btn-outline-primary" title="Close Configuration" *ngIf="!isProjectPreview"
-                        (click)="callCloseProjectConfiguration()">
+                        (click)="closeProjectConfiguration?.emit()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary" title="Close Preview Modal" *ngIf="isProjectPreview"
+                        (click)="closeProjectConfigurationModal?.emit()">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -30,7 +34,7 @@
                         <mat-stepper #project_config_stepper linear [(selectedIndex)]="projectConfigStepperIndex"
                             orientation="horizontal" class="custom-stepper"
                             (selectionChange)="onProjectConfigStepChange($event)">
-                            <mat-step [completed]="isProjectManagerValid">
+                            <mat-step [completed]="isProjectManagerValid" *ngIf="!isProjectPreview">
                                 <ng-template matStepLabel>Project Information</ng-template>
                                 <div *ngIf="!isProjectManagerValid" class="danger">
                                     {{ projectConfigStepperErrorMessage }}
@@ -40,14 +44,14 @@
                                     <ng-template [ngTemplateOutlet]="project_information_template"></ng-template>
                                 </ng-container>
                             </mat-step>
-                            <mat-step>
+                            <mat-step *ngIf="!isProjectPreview">
                                 <ng-template matStepLabel>Resource Config</ng-template>
                                 <ng-container>
                                     <div class="horizontal-row"></div>
                                     <ng-template [ngTemplateOutlet]="team_list_template"></ng-template>
                                 </ng-container>
                             </mat-step>
-                            <mat-step>
+                            <mat-step *ngIf="isProjectPreview">
                                 <ng-template matStepLabel>Preview</ng-template>
                                 <ng-container>
                                     <div class="horizontal-row"></div>
@@ -310,7 +314,7 @@
                                             <i class="fa fa-edit" aria-hidden="true"></i>
                                         </button>
                                         <button class="btn btn-sm" *ngIf="projectConfigStepperIndex === 2"
-                                            title="View Team Details" (click)="getTeamDetailsByTeamId(team)">
+                                            title="View Team Details" (click)="openTeamMemberDetailsPreviewModal(team)">
                                             <i class="fa fa-eye" aria-hidden="true"></i>
                                         </button>
                                     </td>
@@ -1041,6 +1045,10 @@
                         (click)="hideTeamDetails()">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
+                     <button class="btn btn-sm btn-outline-primary" title="Close Team Details" *ngIf="isProjectPreview"
+                        (click)="closeTeamMemberDetailsPreviewModal()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -1077,6 +1085,13 @@
             </div>
         </div>
     </div>
+</ng-template>
+
+<ng-template #team_member_details_preview>
+    <ng-container>
+        <ng-template [ngTemplateOutlet]="team_details_new">
+        </ng-template>
+    </ng-container>
 </ng-template>
 
 <ng-template #employeeInfo let-member="member">
@@ -1658,7 +1673,8 @@
                     <div class="warning-text">
                         <strong>Employee is already mapped to TNM project</strong>
                         <p class="mb-2">{{employeeExistingProjectEmpName}}
-                            {{employeeExistingProjectEmploymentId ? (employeeExistingProjectEmploymentId) : ''}}
+                            {{employeeExistingProjectEmploymentId ? '(' + employeeExistingProjectEmploymentId + ')' :
+                            ''}}
                             cannot be added to another Project or Team!!
                         </p>
                     </div>

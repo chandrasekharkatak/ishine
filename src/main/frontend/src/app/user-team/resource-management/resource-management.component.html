@@ -82,13 +82,25 @@
     <!-- Project Configuration Start -->
     <ng-container *ngIf="showProjectConfig" class="row mb-4">
         <div class="col-md-12">
-            <app-rmg-project-config [rmgProjectObj]="rmgProjectObj" [managerList]="managerList" [overheadList]="overheadList" [isProjectPreview]="false"
+            <app-rmg-project-config #rmgProjectConfig [rmgProjectObj]="rmgProjectObj" [managerList]="managerList" [overheadList]="overheadList" [isProjectPreview]="false"
                 [departmentsList]="allDeptList" [spocList]="employeeList" [isAllProjects]="isAllProjects"
                 (closeProjectConfiguration)="closeProjectConfiguration()">
             </app-rmg-project-config>
         </div>
     </ng-container>
     <!-- Project Configuration End -->
+
+    <!-- Mark Project Completion Start -->
+    <div *ngIf="markProjectCompletionConfig" hidden="true" class="row mb-4">
+        <div class="col-md-12">
+            <app-rmg-project-config #rmgProjectConfig [rmgProjectObj]="rmgProjectObj" [managerList]="managerList"
+                [overheadList]="overheadList" [isProjectPreview]="false" [departmentsList]="allDeptList"
+                [spocList]="employeeList" [isAllProjects]="isAllProjects"
+                (openProjectCompletionDatePicker)="openProjectCompletionDatePickerModal()">
+            </app-rmg-project-config>
+        </div>
+    </div>
+    <!-- Mark Project Completion End -->
 
     <!-- Create & Update Form Start -->
     <div class="card col-md-12 px-0" *ngIf="isCreateForm">
@@ -543,6 +555,6 @@
 <ng-template #project_configuration>
     <app-rmg-project-config [rmgProjectObj]="rmgProjectObj" [managerList]="managerList" [overheadList]="overheadList"
         [isProjectPreview]="true" [departmentsList]="allDeptList" [spocList]="employeeList"
-        [isAllProjects]="isAllProjects" (closeProjectConfiguration)="closeProjectConfiguration()">
+        [isAllProjects]="isAllProjects" (closeProjectConfigurationModal)="closeProjectConfigurationModal()">
     </app-rmg-project-config>
 </ng-template>

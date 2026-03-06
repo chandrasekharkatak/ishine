@@ -5867,4 +5867,78 @@ public class TeamsService {
 		}
 	}
 
+	@Transactional(readOnly = true)
+	public ServiceResponse getTeamDetailsByProjectId(PoDetailsDto poDetailsDto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (poDetailsDto == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Request cannot be null!!");
+				return response;
+			}
+			if (poDetailsDto.getProjectId() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project Id cannot be null!!");
+				return response;
+			}
+
+			Project existingProject = projectRepository.findByProjectId(poDetailsDto.getProjectId());
+			if (existingProject == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project not found!!");
+				return response;
+			}
+
+			List<RmgTeamMemberDto> teamMemberDetailsList = teamRepository
+					.getAllTeamMemberDetailsDtoByProjectId(existingProject.getProjectId().longValue(), poDetailsDto.isActiveEtmFlag());
+			if (teamMemberDetailsList.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(new ArrayList<RmgTeamMemberDto>());
+				return response;
+			}
+
+			List<Long> empIds = teamMemberDetailsList.stream().map(RmgTeamMemberDto::getEmpId)
+					.collect(Collectors.toList());
+
+			Map<Long, List<EmployeeOtherActiveProject>> empIdAndOtherProjectIdsMap = getEmployeeOtherActiveProjectIdMap(
+					empIds, poDetailsDto.getProjectId());
+
+			Map<Long, EmployeeInformationDTO> empIdInfoMap = getEmployeeInformationMap(empIds);
+
+			for (RmgTeamMemberDto obj : teamMemberDetailsList) {
+
+				EmployeeInformationDTO dto = empIdInfoMap.getOrDefault(obj.getEmpId(), null);
+				if (dto != null) {
+					obj.setEmpId(dto.getEmpId());
+					obj.setEmployementId(dto.getEmploymentId());
+					obj.setMemberDepartment(dto.getDeptName());
+					obj.setJobRoleName(dto.getJobRole());
+					obj.setBillableType(dto.getBillableType());
+					obj.setPrevExp(dto.getPreviousExperience());
+					obj.setCurrentExp(dto.getCurrentExperience());
+					obj.setTotalExp(dto.getTotalExperience());
+					obj.setEmploymentStatus(dto.getEmploymentStatus());
+				}
+
+				obj.setOtherActiveProjects(empIdAndOtherProjectIdsMap.getOrDefault(obj.getEmpId(), List.of()));
+				if (obj.getOtherActiveProjects() != null && !obj.getOtherActiveProjects().isEmpty()) {
+					List<Integer> projectIds = obj.getOtherActiveProjects().stream().map(e -> e.getProjectId())
+							.collect(Collectors.toList());
+					obj.setOtherActiveProjectIds(projectIds);
+				} else {
+					obj.setOtherActiveProjectIds(List.of());
+				}
+				obj.setDisplayRequirement(getDisplayRequirement(obj));
+			}
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(teamMemberDetailsList);
+		} catch (Exception e) {
+			log.error("Error in getTeamDetailsByTeamIdsAndProjectId : ", e);
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong!!");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+	
 }

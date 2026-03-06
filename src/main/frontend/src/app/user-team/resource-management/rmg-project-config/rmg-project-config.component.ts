@@ -50,6 +50,8 @@ export class RmgProjectComponent implements OnInit {
     @Input() isProjectPreview: boolean = true;
     @Input() isAllProjects: boolean = false;
     @Output() closeProjectConfiguration = new EventEmitter<any>();
+    @Output() closeProjectConfigurationModal = new EventEmitter<any>();
+    @Output() openProjectCompletionDatePicker = new EventEmitter<any>();
 
     @ViewChild('project_config_stepper') projectConfigStepper!: MatStepper;
     @ViewChild("alert_message") alertMessageTemplateRef: TemplateRef<any>;
@@ -69,6 +71,7 @@ export class RmgProjectComponent implements OnInit {
     @ViewChild("update_project_milestone") updateProjectMilestoneTemplateRef: TemplateRef<any>;
     @ViewChild("project_milestone_document") projectMilestoneDocumentTemplateRef: TemplateRef<any>;
     @ViewChild("mark_complete_fc_project") markCompleteFCProjectTemplateRef: TemplateRef<any>;
+    @ViewChild("team_member_details_preview") teamMemberDetailsPreviewTemplateRef: TemplateRef<any>;
 
     alertMessageModalRef: NgbModalRef;
     migrateTeamModalRef: NgbModalRef;
@@ -87,6 +90,7 @@ export class RmgProjectComponent implements OnInit {
     updateProjectMilestoneModalRef: NgbModalRef;
     projectMilestoneDocumentModalRef: NgbModalRef;
     markCompleteFCProjectModalRef: NgbModalRef;
+    teamMemberDetailsPreviewModalRef: NgbModalRef;
 
     currentUser: User;
     userMapping: any = {};
@@ -476,6 +480,18 @@ export class RmgProjectComponent implements OnInit {
             this.updateProjectStartDateConfirmationModalRef?.close();
         }
     }
+
+    async openTeamMemberDetailsPreviewModal(team) {
+        this.resetTeamDetailsForm();
+        await this.getTeamDetailsByTeamId(team);
+        this.teamMemberDetailsPreviewModalRef = this.modalService.open(this.teamMemberDetailsPreviewTemplateRef, { modalDialogClass: 'modal-lg no-modal-content', backdrop: 'static', keyboard: false });
+    }
+
+    closeTeamMemberDetailsPreviewModal() {
+        if (this.teamMemberDetailsPreviewModalRef) {
+            this.teamMemberDetailsPreviewModalRef?.close();
+        }
+    }
     // Modals End
 
     // Validation Methods Starts
@@ -666,9 +682,9 @@ export class RmgProjectComponent implements OnInit {
     // Validation Methods End
 
     // Helpers Start
-    callCloseProjectConfiguration() {
-        this.closeProjectConfiguration.emit();
-    }
+    // callCloseProjectConfiguration() {
+    //     this.closeProjectConfiguration.emit();
+    // }
 
     setProjectType(): void {
         if (this.isValidString(this.rmgProjectObj.poProjectType)) {
@@ -749,7 +765,11 @@ export class RmgProjectComponent implements OnInit {
     mapProjectListToEmployees(mappingToOtherProjectAsDefaultList: any[]) {
         if (this.isValidList(mappingToOtherProjectAsDefaultList) && this.isValidList(this.projectList)) {
             for (let emp of mappingToOtherProjectAsDefaultList) {
-                emp.selectedProject = new EmployeeOtherActiveProject();
+                if (this.isValidList(emp.otherActiveProjects) && emp.otherActiveProjects?.length == 1) {
+                    emp.selectedProject = emp.otherActiveProjects[0] || new EmployeeOtherActiveProject();
+                } else {
+                    emp.selectedProject = new EmployeeOtherActiveProject();
+                }
                 emp.projectList = this.projectList.filter(p => emp?.otherActiveProjectIds?.includes(p.projectId));
             }
         }
@@ -765,6 +785,7 @@ export class RmgProjectComponent implements OnInit {
                 emp.employeeRoles = null;
                 emp.empTeamDepartmentId = null;
                 emp.roleId = null;
+                emp.startDate = null;
             }
         }
     }
@@ -866,11 +887,11 @@ export class RmgProjectComponent implements OnInit {
 
     get resourceStats() {
         return [
-            { label: 'Requirements', value: this.rmgProjectObj?.totalRequirements ?? 0, class: '', show: this.projectType === 'TNM' },
-            { label: 'Assigned', value: (this.rmgProjectObj?.assignedApproved ?? 0) + (this.rmgProjectObj?.assignedPending ?? 0), class: '', show: true },
-            { label: 'Approved', value: this.rmgProjectObj?.assignedApproved ?? 0, class: '', show: true },
-            { label: 'Pending', value: this.rmgProjectObj?.assignedPending ?? 0, class: '', show: true },
-            { label: 'Difference', value: this.rmgProjectObj?.difference ?? 0, class: '', show: this.projectType === 'TNM' }
+            { label: 'Requirements', value: this.rmgProjectObj?.totalRequirements ?? 0, class: 'primary', show: this.projectType === 'TNM' },
+            { label: 'Assigned', value: (this.rmgProjectObj?.assignedApproved ?? 0) + (this.rmgProjectObj?.assignedPending ?? 0), class: 'assigned', show: true },
+            { label: 'Approved', value: this.rmgProjectObj?.assignedApproved ?? 0, class: 'approved', show: true },
+            { label: 'Pending', value: this.rmgProjectObj?.assignedPending ?? 0, class: 'pending', show: true },
+            { label: 'Difference', value: this.rmgProjectObj?.difference ?? 0, class: 'danger', show: this.projectType === 'TNM' }
         ];
     }
 
@@ -898,9 +919,11 @@ export class RmgProjectComponent implements OnInit {
         this.isTeamDetailsForm = false;
         this.currentTab = 'Project';
         await this.getAllTeamsByProjectId();
-        this.projectConfigStepperIndex = 1;
         if (!this.isInternalProject) {
             this.getResourceRequirementDetailsByProjectId(true);
+        }
+        if (this.projectConfigStepperIndex != 2) {
+            this.projectConfigStepperIndex = 1;
         }
     }
 
@@ -1226,7 +1249,7 @@ export class RmgProjectComponent implements OnInit {
         if (!event) {
             return;
         }
-        if (this.projectConfigStepperIndex === 1) {
+        if (event?.selectedIndex === 1) {
             this.getAllTeamsByProjectId();
             if (!this.isInternalProject) {
                 this.getResourceRequirementDetailsByProjectId(true);
@@ -1660,8 +1683,12 @@ export class RmgProjectComponent implements OnInit {
     }
 
     saveNewTeamMemberDetails() {
-        let newTeamMember = this.currentTeam.newRmgTeamMember;
+        const existingProjectFlag = this.getEmployeeExistingProjectDetailsByEmpId(this.currentTeam.newRmgTeamMember.empId);
+        if (!existingProjectFlag) {
+            return;
+        }
 
+        let newTeamMember = this.currentTeam.newRmgTeamMember;
         if (!newTeamMember?.empId || newTeamMember.empId == undefined || newTeamMember.empId == null) {
             this.openAlertMessageModal(`Kindly Select an Employee!!`);
             return;
@@ -2193,35 +2220,43 @@ export class RmgProjectComponent implements OnInit {
         });
     }
 
-    getActiveProjectList() {
+    async getActiveProjectList() {
         this.projectList = [];
-        this.resourceManagementService.getActiveProjectList().pipe(first()).subscribe((response: any) => {
-            if (response.serviceStatus === "Success") {
+        this.projectsBench = [];
+        this.projectsOther = [];
+        try {
+            const response: any = await firstValueFrom(this.resourceManagementService.getActiveProjectList());
+            if (response.serviceStatus == "Success") {
                 this.projectList = response.serviceResponse;
                 this.projectsBench = this.projectList.filter(project => project.internalProjectType === 'Bench');
                 this.projectsOther = this.projectList.filter(project => project.internalProjectType !== 'Bench');
             } else {
                 this.openAlertMessageModal(response.serviceResponse);
             }
-        });
+        } catch (error) {
+            this.openAlertMessageModal("Something went wrong!");
+        }
     }
 
-    getEmployeeExistingProjectDetailsByEmpId(empId: any) {
+    getEmployeeExistingProjectDetailsByEmpId(empId: any): boolean {
         this.employeeExistingProjectDetails = [];
         this.employeeExistingProjectDetailsPage = 1;
         this.employeeExistingProjectEmploymentId = this.employeeListFilteredByDept?.find(emp => emp?.empId === this.currentTeam.newRmgTeamMember?.empId)?.employmentId;
+        this.currentTeam.newRmgTeamMember.employementId = this.employeeExistingProjectEmploymentId;
         this.employeeExistingProjectEmpName = this.employeeListFilteredByDept?.find(emp => emp?.empId === this.currentTeam.newRmgTeamMember?.empId)?.name;
         this.projectService.getEmployeeExistingProjectDetailsByEmpId(empId).pipe(first()).subscribe((response: any) => {
             if (response?.serviceStatus !== "Success") {
                 this.openAlertMessageModal(response?.serviceResponse || "Something went wrong!!");
-                return;
+                return false;
             }
             this.employeeExistingProjectDetails = this.mapEmployeeProjectDates(response.serviceResponse || []);
             if (!this.isValidList(this.employeeExistingProjectDetails)) {
-                return;
+                return true;
             }
             this.openEmployeeExistingProjectDetailsModal();
+            return false;
         });
+        return true;
     }
 
     updateProjectStartDate() {
@@ -2475,6 +2510,57 @@ export class RmgProjectComponent implements OnInit {
         this.defaultProjectObj.employeeRoles = [];
         this.defaultProjectObj.poRequirementMappingId = null;
         this.defaultProjectObj.resourceRequirementList = [];
+    }
+
+    async validateProjectForCompletion(projectId: any) {
+        this.markDefaultProjectCompletionList = [];
+        this.mappingToOtherProjectAsDefaultList = [];
+        let poObj = new PoDetails();
+        poObj.projectId = projectId;
+        poObj.activeEtmFlag = false;
+        await this.getActiveProjectList();
+        this.teamService.getTeamDetailsByProjectId(poObj).pipe(first()).subscribe((response: any) => {
+            if (response.serviceStatus === "Success") {
+                let teamMembers: RmgTeamMember[] = response.serviceResponse || [];
+
+                // having no other active projects and this is default project
+                let noOtherActiveAndCurrentIsDefaultProjectEmpIds: number[] = teamMembers
+                    .filter(member =>
+                        Array.isArray(member.otherActiveProjectIds) &&
+                        member.otherActiveProjectIds.length === 0 &&
+                        member.defaultProject === true
+                    )
+                    .map(member => member.empId);
+
+                // having other active projects and this is default project
+                const otherActiveAndCurrentIsDefaultProjectEmpIds: number[] = teamMembers
+                    .filter(member =>
+                        Array.isArray(member.otherActiveProjectIds) &&
+                        member.otherActiveProjectIds.length > 0 &&
+                        member.defaultProject === true
+                    )
+                    .map(member => member.empId);
+
+                this.markDefaultProjectCompletionList = teamMembers.filter(member => noOtherActiveAndCurrentIsDefaultProjectEmpIds.includes(member.empId));
+                this.mappingToOtherProjectAsDefaultList = teamMembers.filter(member => otherActiveAndCurrentIsDefaultProjectEmpIds.includes(member.empId));
+
+                this.resetDefaultProjectCompletion(this.markDefaultProjectCompletionList);
+                this.mapProjectListToEmployees(this.mappingToOtherProjectAsDefaultList);
+
+                if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0) {
+                    this.openMarkDefaultProjectCompletionModal(true);
+                    this.openMappingToOtherProjectAsDefaultModal(true);
+                } else if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length === 0) {
+                    this.openMarkDefaultProjectCompletionModal(true);
+                } else if (noOtherActiveAndCurrentIsDefaultProjectEmpIds.length === 0 && otherActiveAndCurrentIsDefaultProjectEmpIds.length !== 0) {
+                    this.openMappingToOtherProjectAsDefaultModal(true);
+                } else {
+                    this.openProjectCompletionDatePicker.emit();
+                }
+            } else {
+                this.toastService.error(response.serviceResponse || 'Something went wrong!!');
+            }
+        });
     }
     // Projects Method & APIs End
 

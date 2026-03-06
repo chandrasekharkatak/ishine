@@ -55,6 +55,7 @@ import { merge, of, forkJoin } from 'rxjs';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { RmgProject } from 'src/app/models/rmgProject';
 import { RmgStatusCardsComponent } from './rmg-status-cards/rmg-status-cards/rmg-status-cards.component';
+import { RmgProjectComponent } from './rmg-project-config/rmg-project-config.component';
 
 class FilterData {
   title: any;
@@ -72,6 +73,7 @@ class FilterData {
 export class ResourceManagementComponent implements OnInit {
 
   @ViewChild('rmgStatusCards') rmgStatusCardsComponent!: RmgStatusCardsComponent;
+  @ViewChild('rmgProjectConfig') rmgProjectComponent!: RmgProjectComponent;
   @ViewChild('chartSection') chartSection!: ElementRef;
   @ViewChild("project_configuration") projectConfigurationTemplateRef: TemplateRef<any>;
   @ViewChild("alert_message") alertMessageTemplateRef: TemplateRef<any>;
@@ -98,6 +100,7 @@ export class ResourceManagementComponent implements OnInit {
   showProjectConfig: boolean = false;
   rmgProjectObj: RmgProject = new RmgProject();
   isAllProjects: boolean = false;
+  markProjectCompletionConfig: boolean = false;
 
   expandedProjects: Set<string> = new Set();
   projectFullText: Map<string, string> = new Map();
@@ -678,6 +681,7 @@ export class ResourceManagementComponent implements OnInit {
     this.isCreateForm = false;
     this.isCreation = false;
     this.showProjectConfig = false;
+    this.markProjectCompletionConfig = false;
     this.filters = {};
     this.isSearchEnabled = false;
     this.allProjectList = [];
@@ -1643,7 +1647,7 @@ export class ResourceManagementComponent implements OnInit {
         this.openAlertMessageModal(response.serviceResponse);
         this.showViewProjects();
       } else {
-        this.openAlertMessageModal( response.serviceResponse);
+        this.openAlertMessageModal(response.serviceResponse);
       }
     });
   }
@@ -1651,8 +1655,20 @@ export class ResourceManagementComponent implements OnInit {
 
   // Project Completion Start
   initiateProjectCompletion(project: any) {
-    // this.MarkAsCompleteDefaultProject, this.OtherProjectDefaultMapping,this.projectCompletionDatePickerTemplateRef
-    this.openProjectCompletionDatePickerModal();
+    this.markProjectCompletionConfig = true;
+    this.isAllProjects = this.isValidString(this.projectFilterDTO.approvalStatus) && this.projectFilterDTO.approvalStatus?.toLowerCase() === 'all';
+    forkJoin({
+      managers: this.getManagerAndOverheadList(),
+      departments: this.getAllDepartmentsList(),
+      employees: this.getEmployeeNameAndEmpld(),
+      projectConfig: this.getProjectConfigurationDetailsByProjectId(project)
+    }).subscribe(result => {
+      if (this.rmgProjectObj) {
+        this.rmgProjectComponent.validateProjectForCompletion(project.projectId);
+      } else {
+          this.openAlertMessageModal("Unable to mark the project as complete at the moment. Please contact the administrator!!");
+      }
+    });
   }
 
   openProjectCompletionDatePickerModal() {
@@ -1916,6 +1932,7 @@ export class ResourceManagementComponent implements OnInit {
 
   showProjectConfiguration() {
     this.showProjectConfig = true;
+    this.markProjectCompletionConfig = false;
     this.isSkillMatrix = false;
     this.isProjectTable = false;
     this.allProjectTable = false;
@@ -2026,7 +2043,7 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   openProjectConfigurationModal() {
-    this.projectConfigurationModalRef = this.modalService.open(this.projectConfigurationTemplateRef, { modalDialogClass: 'modal-lg' });
+    this.projectConfigurationModalRef = this.modalService.open(this.projectConfigurationTemplateRef, { modalDialogClass: 'modal-lg no-modal-content', backdrop: 'static', keyboard: false });
   }
 
   closeProjectConfigurationModal() {
