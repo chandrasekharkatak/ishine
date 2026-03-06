@@ -1,4 +1,5 @@
 <ng-container *ngIf="!showReportList">
+    <!-- Navigation Row Start -->
     <div class="row m-1" *ngIf="!showProjectConfig">
         <div class="col-md-6 d-flex justify-content-start align-items-center p-0">
             <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isProjectTable}"
@@ -20,6 +21,7 @@
             </mat-slide-toggle>
         </div>
     </div>
+    <!-- Navigation Row End -->
 
     <!-- Filter & Global Search Row Start -->
     <ng-container *ngIf="allProjectTable">
@@ -80,13 +82,25 @@
     <!-- Project Configuration Start -->
     <ng-container *ngIf="showProjectConfig" class="row mb-4">
         <div class="col-md-12">
-            <app-rmg-project-config [rmgProjectObj]="rmgProjectObj" [managerList]="managerList" [overheadList]="overheadList" [isProjectPreview]="false"
+            <app-rmg-project-config #rmgProjectConfig [rmgProjectObj]="rmgProjectObj" [managerList]="managerList" [overheadList]="overheadList" [isProjectPreview]="false"
                 [departmentsList]="allDeptList" [spocList]="employeeList" [isAllProjects]="isAllProjects"
                 (closeProjectConfiguration)="closeProjectConfiguration()">
             </app-rmg-project-config>
         </div>
     </ng-container>
     <!-- Project Configuration End -->
+
+    <!-- Mark Project Completion Start -->
+    <div *ngIf="markProjectCompletionConfig" hidden="true" class="row mb-4">
+        <div class="col-md-12">
+            <app-rmg-project-config #rmgProjectConfig [rmgProjectObj]="rmgProjectObj" [managerList]="managerList"
+                [overheadList]="overheadList" [isProjectPreview]="false" [departmentsList]="allDeptList"
+                [spocList]="employeeList" [isAllProjects]="isAllProjects"
+                (openProjectCompletionDatePicker)="openProjectCompletionDatePickerModal()">
+            </app-rmg-project-config>
+        </div>
+    </div>
+    <!-- Mark Project Completion End -->
 
     <!-- Create & Update Form Start -->
     <div class="card col-md-12 px-0" *ngIf="isCreateForm">
@@ -480,7 +494,7 @@
                 style="width: 100%; margin-top: 10px;" />
         </div>
         <br/>
-        <button type="button" class="btn btn-primary" (click)="openProjectCompletionDatePickerModal()">Submit</button>
+        <button type="button" class="btn btn-primary" (click)="confirmMarkProjectAsComplete()">Submit</button>
         &nbsp;&nbsp;
         <button type="button" class="btn btn-outline-dark" (click)="closeProjectCompletionDatePickerModal()">No Cancel</button>
     </div>
@@ -541,6 +555,6 @@
 <ng-template #project_configuration>
     <app-rmg-project-config [rmgProjectObj]="rmgProjectObj" [managerList]="managerList" [overheadList]="overheadList"
         [isProjectPreview]="true" [departmentsList]="allDeptList" [spocList]="employeeList"
-        [isAllProjects]="isAllProjects" (closeProjectConfiguration)="closeProjectConfiguration()">
+        [isAllProjects]="isAllProjects" (closeProjectConfigurationModal)="closeProjectConfigurationModal()">
     </app-rmg-project-config>
 </ng-template>

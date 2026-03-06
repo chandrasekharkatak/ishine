@@ -4207,3 +4207,10 @@ display: inline-block;
   height: 30px;
   white-space: nowrap;
 }
+
+::ng-deep .modal-dialog.modal-lg.no-modal-content .modal-content {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}

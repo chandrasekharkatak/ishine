@@ -2063,8 +2063,8 @@ public class TimesheetValidationHelper {
 
 	    for (Object[] row : result) {
 	        Integer projectId = ((Number) row[0]).intValue();
-	        Boolean hasClientSideId = (Boolean) row[1];
-	        Boolean clientFlag = (Boolean) row[2];
+	         Boolean hasClientSideId = row[1] != null ? (Boolean) row[1] : false;
+    Boolean clientFlag = row[2] != null ? (Boolean) row[2] : false;
 
 	        projectRulesMap.put(projectId, new boolean[]{hasClientSideId, clientFlag});
 	    }

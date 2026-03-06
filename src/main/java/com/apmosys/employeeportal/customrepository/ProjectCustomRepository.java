@@ -559,9 +559,18 @@ public class ProjectCustomRepository {
             String sortDirection, String projectStatus, List<String> projectNames) {
         StringBuilder query = new StringBuilder(projectDetailsStartQuery);
         StringBuilder groupQuery = new StringBuilder(projectDetailsGroupQuery).append(" ) as T1");
-
-        if (projectStatus.equalsIgnoreCase("NOT_STARTED") || projectStatus.equalsIgnoreCase("PENDING_FOR_APPROVAL")
-                || projectStatus.equalsIgnoreCase("REJECTED") || projectStatus.equalsIgnoreCase("ALL")) {
+        
+        if (projectStatus.equalsIgnoreCase("ALL")) {
+			query.append(" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND ppd.active  = 1 AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE \n")
+					.append(" OR EXISTS ( SELECT 1 FROM project_po_details p2 WHERE p2.project_id = ppd.project_id \n")
+					.append(" AND p2.po_no != ppd.po_no AND p2.active = 1 AND (p2.po_start_date <= ppd.po_end_date OR ppd.po_end_date IS NULL) AND  (p2.po_end_date >= ppd.po_start_date OR p2.po_end_date IS NULL))) \n")
+					.append(" LEFT JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) \n")
+					.append(" LEFT JOIN clients c ON c.client_id = p.client_id \n")
+					.append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n")
+					.append(" LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id AND pm.active = 1 \n")
+					.append(" LEFT JOIN employee e1 ON e1.emp_id = pm.project_manager_id \n");
+        } else if (projectStatus.equalsIgnoreCase("NOT_STARTED") || projectStatus.equalsIgnoreCase("PENDING_FOR_APPROVAL")
+                || projectStatus.equalsIgnoreCase("REJECTED")) {
             query.append(" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1 \n")
                     .append(" LEFT JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) \n")
                     .append(" LEFT JOIN clients c ON c.client_id = p.client_id \n")

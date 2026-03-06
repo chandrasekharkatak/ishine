@@ -55,6 +55,7 @@ import { merge, of, forkJoin } from 'rxjs';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { RmgProject } from 'src/app/models/rmgProject';
 import { RmgStatusCardsComponent } from './rmg-status-cards/rmg-status-cards/rmg-status-cards.component';
+import { RmgProjectComponent } from './rmg-project-config/rmg-project-config.component';
 
 class FilterData {
   title: any;
@@ -72,6 +73,7 @@ class FilterData {
 export class ResourceManagementComponent implements OnInit {
 
   @ViewChild('rmgStatusCards') rmgStatusCardsComponent!: RmgStatusCardsComponent;
+  @ViewChild('rmgProjectConfig') rmgProjectComponent!: RmgProjectComponent;
   @ViewChild('chartSection') chartSection!: ElementRef;
   @ViewChild("project_configuration") projectConfigurationTemplateRef: TemplateRef<any>;
   @ViewChild("alert_message") alertMessageTemplateRef: TemplateRef<any>;
@@ -98,6 +100,7 @@ export class ResourceManagementComponent implements OnInit {
   showProjectConfig: boolean = false;
   rmgProjectObj: RmgProject = new RmgProject();
   isAllProjects: boolean = false;
+  markProjectCompletionConfig: boolean = false;
 
   expandedProjects: Set<string> = new Set();
   projectFullText: Map<string, string> = new Map();
@@ -111,33 +114,6 @@ export class ResourceManagementComponent implements OnInit {
   filterError: string | null = null;
   tableData: any[][] = [];
   maxRows: number = 0;
-
-  allDepartments = [
-    { deptId: 1, name: 'Super Admin', isBillable: false },
-    { deptId: 2, name: 'Accounts', isBillable: false },
-    { deptId: 3, name: 'APM', isBillable: true },
-    { deptId: 4, name: 'Application Performance Monitoring', isBillable: true },
-    { deptId: 5, name: 'Automation Testing', isBillable: true },
-    { deptId: 6, name: 'Business Development', isBillable: false },
-    { deptId: 7, name: 'Development', isBillable: true },
-    { deptId: 8, name: 'Functional Testing', isBillable: true },
-    { deptId: 9, name: 'HR', isBillable: false },
-    { deptId: 10, name: 'IT', isBillable: false },
-    { deptId: 11, name: 'Performance Testing', isBillable: true },
-    { deptId: 12, name: 'Production Support', isBillable: true },
-    { deptId: 13, name: 'Security Testing', isBillable: true },
-    { deptId: 14, name: 'Admin', isBillable: false },
-    { deptId: 15, name: 'Director', isBillable: false },
-    { deptId: 16, name: 'Resource Management Group', isBillable: false },
-    { deptId: 18, name: 'Presales', isBillable: false },
-    { deptId: 20, name: 'Production Support 24x7', isBillable: true },
-    { deptId: 21, name: 'Unknown Department', isBillable: false },
-    { deptId: 25, name: 'RPA', isBillable: true },
-    { deptId: 26, name: 'Products and RND', isBillable: true },
-    { deptId: 27, name: 'Consultant', isBillable: false },
-    { deptId: 28, name: 'Training', isBillable: false },
-    { deptId: 29, name: 'Floor Automation', isBillable: true }
-  ];
 
   selectedDepartmentIds: any[] = [];
   oldSelectedDepartmentIds: any[] = [];
@@ -224,11 +200,6 @@ export class ResourceManagementComponent implements OnInit {
   isClientSideIdFormatted: Boolean = false;
   employeeRoleList: any = []
 
-  toggleExpand(): void {
-    this.expandedIndex = !this.expandedIndex;
-  }
-
-
   data: string;
   currentUser: User;
   feature = "Resource Management";
@@ -302,14 +273,11 @@ export class ResourceManagementComponent implements OnInit {
   SEfilters: any = {};
   isSearchEnabled: boolean = false;
   isSESearchEnabled: boolean = false;
-  // projectColumns: any[] = ["blank", "draftStatus", "name", "poNo", "projectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "poStartDate", "poEndDate", "state", "createdOn", "status"];
-  projectColumns: any[] = ["blank", "name", "poNo", "combinedProjectType", "projectManagerName", "clientName", "apmosysRM", "clientRM", "projectStartDate", "projectEndDate", "state", "createdOn", "status", "projectStatus", "draftStatus"];
 
   projectDetails: any = [];
   projectDetails2: any = [];
   copyDepartment: any = [];
   currentBreadcrumbList: any[] = [];
-  // employeesFor360: any[] = [];
   poProjectListFromIshine: any[] = [];
   flagDialogueBox: boolean = false;
   tableName: string;
@@ -566,251 +534,16 @@ export class ResourceManagementComponent implements OnInit {
 
   selectedMembers: any[] = [];
   employeeSelectionHistory: any[] = [];
-  globalSelectAll: boolean = false;
-
-  poDepartments = [
-    {
-      "deptab": "PT",
-      "name": "Performance Testing"
-    },
-    {
-      "deptab": "DEV, IT",
-      "name": "Development, IT"
-    },
-    {
-      "deptab": "FT",
-      "name": "Functional Testing"
-    },
-    {
-      "deptab": "APM, ST",
-      "name": "APM, Security Testing"
-    },
-    {
-      "deptab": "AC",
-      "name": "Accounts"
-    },
-    {
-      "deptab": "RPA",
-      "name": "RPA"
-    },
-    {
-      "deptab": "APM, DEV, FT",
-      "name": "APM, Development, Functional Testing"
-    },
-    {
-      "deptab": "APM",
-      "name": "APM"
-    },
-    {
-      "deptab": "APM, MONT, PS",
-      "name": "APM, Application Performance Monitoring, Production Support"
-    },
-    {
-      "deptab": "AC, ADM",
-      "name": "Accounts, Admin"
-    },
-    {
-      "deptab": "ADM",
-      "name": "Admin"
-    },
-    {
-      "deptab": "BD, DEV",
-      "name": "Business Development, Development"
-    },
-    {
-      "deptab": "BD, HR, RMG, SA",
-      "name": "Business Development, HR, Resource Management Group, Super Admin"
-    },
-    {
-      "deptab": "AUT, IT, RND",
-      "name": "Automation Testing, IT, Products and RND"
-    },
-    {
-      "deptab": "PRSALE",
-      "name": "Presales"
-    },
-    {
-      "deptab": "APM, FT, PT, TRNA",
-      "name": "APM, Functional Testing, Performance Testing, Training"
-    },
-    {
-      "deptab": "AC, AUT",
-      "name": "Accounts, Automation Testing"
-    },
-    {
-      "deptab": "BD",
-      "name": "Business Development"
-    },
-    {
-      "deptab": "DEV, FT, RND",
-      "name": "Development, Functional Testing, Products and RND"
-    },
-    {
-      "deptab": "DEV",
-      "name": "Development"
-    },
-    {
-      "deptab": "APM, DEV",
-      "name": "APM, Development"
-    },
-    {
-      "deptab": "FA, PS",
-      "name": "Floor Automation, Production Support"
-    },
-    {
-      "deptab": "AUT, FT",
-      "name": "Automation Testing, Functional Testing"
-    },
-    {
-      "deptab": "AUT, IT",
-      "name": "Automation Testing, IT"
-    },
-    {
-      "deptab": "AUT, DEV, RND",
-      "name": "Automation Testing, Development, Products and RND"
-    },
-    {
-      "deptab": "APM, PS",
-      "name": "APM, Production Support"
-    },
-    {
-      "deptab": "APM, FT, PT",
-      "name": "APM, Functional Testing, Performance Testing"
-    },
-    {
-      "deptab": "AUT, RPA",
-      "name": "Automation Testing, RPA"
-    },
-    {
-      "deptab": "DEV, FT, RPA, ST",
-      "name": "Development, Functional Testing, RPA, Security Testing"
-    },
-    {
-      "deptab": "HR",
-      "name": "HR"
-    },
-    {
-      "deptab": "APM, DEV, PT",
-      "name": "APM, Development, Performance Testing"
-    },
-    {
-      "deptab": "AUT, DEV",
-      "name": "Automation Testing, Development"
-    },
-    {
-      "deptab": "AUT",
-      "name": "Automation Testing"
-    },
-    {
-      "deptab": "AUT, FT, PS",
-      "name": "Automation Testing, Functional Testing, Production Support"
-    },
-    {
-      "deptab": "DEV, PS",
-      "name": "Development, Production Support"
-    },
-    {
-      "deptab": "PS",
-      "name": "Production Support"
-    },
-    {
-      "deptab": "IT, PS",
-      "name": "IT, Production Support"
-    },
-    {
-      "deptab": "AC, APM, AUT, BD, DEV, FT, HR, SA, ST",
-      "name": "Accounts, APM, Automation Testing, Business Development, Development, Functional Testing, HR, Security Testing, Super Admin"
-    },
-    {
-      "deptab": "AUT, FT, ST",
-      "name": "Automation Testing, Functional Testing, Security Testing"
-    },
-    {
-      "deptab": "FT, PS",
-      "name": "Functional Testing, Production Support"
-    },
-    {
-      "deptab": "AUT, FT, PT",
-      "name": "Automation Testing, Functional Testing, Performance Testing"
-    },
-    {
-      "deptab": "AUT, FT, RPA",
-      "name": "Automation Testing, Functional Testing, RPA"
-    },
-    {
-      "deptab": "APM, PT",
-      "name": "APM, Performance Testing"
-    },
-    {
-      "deptab": "FT, ST",
-      "name": "Functional Testing, Security Testing"
-    },
-    {
-      "deptab": "BD, FT",
-      "name": "Business Development, Functional Testing"
-    },
-    {
-      "deptab": "AUT, RND",
-      "name": "Automation Testing, Products and RND"
-    },
-    {
-      "deptab": "BD, DEV, FT, ST",
-      "name": "Business Development, Development, Functional Testing, Security Testing"
-    },
-    {
-      "deptab": "RND",
-      "name": "Products and RND"
-    },
-    {
-      "deptab": "APM, AUT, DEV, FT, PS, PT, RND, RPA, ST",
-      "name": "APM, Automation Testing, Development, Functional Testing, Performance Testing, Production Support, Products and RND, RPA, Security Testing"
-    },
-    {
-      "deptab": "AC, APM",
-      "name": "Accounts, APM"
-    },
-    {
-      "deptab": "BD, PT",
-      "name": "Business Development, Performance Testing"
-    },
-    {
-      "deptab": "APM, AUT, DEV, FT, PS, RPA",
-      "name": "APM, Automation Testing, Development, Functional Testing, Production Support, RPA"
-    },
-    {
-      "deptab": "FT, PT",
-      "name": "Functional Testing, Performance Testing"
-    },
-    {
-      "deptab": "DIR, FT, PT",
-      "name": "Director, Functional Testing, Performance Testing"
-    }
-  ];
 
   isSkillMatrix = false;
   statusTab: any;
-  toggleDepartmentsVisible: boolean = false;
 
-  toggleDepartments() {
-    this.toggleDepartmentsVisible = !this.toggleDepartmentsVisible;
-  }
   clientSideIdObj: updateHasClientSideId = new updateHasClientSideId();
-  projList: any[] = [];
-  liftAndShiftObj = new LiftAndShift();
-
-  sourceProjectId: any;
-
   hasClientSideIdFlag: Boolean = false;
   fetchClientSideIdObj: updateHasClientSideId = new updateHasClientSideId();
-
-
   restoreProjectPayload = new RestoreProjectPayload();
-
   isRestoreSuccess: Boolean = false;
-
   isCompletionSuccess: Boolean = false;
-
-
   defaultImagePath = 'assets/Images/default-user-image.jpeg';
 
   @ViewChild('teamMemberAuto', { read: MatAutocompleteTrigger }) teamMemberAutoTrigger!: MatAutocompleteTrigger;
@@ -948,6 +681,7 @@ export class ResourceManagementComponent implements OnInit {
     this.isCreateForm = false;
     this.isCreation = false;
     this.showProjectConfig = false;
+    this.markProjectCompletionConfig = false;
     this.filters = {};
     this.isSearchEnabled = false;
     this.allProjectList = [];
@@ -1183,140 +917,6 @@ export class ResourceManagementComponent implements OnInit {
     this.router.navigate(['/user-reports/report-list'], {
       state: { returnUrl: this.router.url }
     });
-  }
-
-  getClientDepartmentChart(projectFilterDTO?: any) {
-    if (projectFilterDTO) {
-      this.projectFilterDTO = projectFilterDTO;
-    }
-    const payload = {
-      projectStructure: {
-        deptName: this.selectedDepartments?.length > 0 ? this.selectedDepartments : null,
-        type: this.selectedStatusTab || 'All'
-      },
-      projectFilter: this.projectFilterDTO
-    };
-    this.projectService.getClientVsDepartment(payload).pipe(first()).subscribe((res: any) => {
-      if (res.serviceStatus === "Success") {
-        this.serviceResponse = res.serviceResponse || [];
-        this.processDataForOrgChart();
-      } else {
-        console.error("Service call failed:", res.serviceResponse);
-        this.serviceResponse = [];
-        this.orgChartData = [];
-      }
-    });
-  }
-
-  processDataForOrgChart() {
-    const departmentMap = new Map<string, Map<string, any[]>>();
-    const dataToProcess = this.serviceResponse;
-    dataToProcess.forEach(item => {
-      const { deptAb, clientName, projectName } = item;
-      if (!departmentMap.has(deptAb)) {
-        departmentMap.set(deptAb, new Map<string, any[]>());
-      }
-      const clientMap = departmentMap.get(deptAb)!;
-      if (!clientMap.has(clientName)) {
-        clientMap.set(clientName, []);
-      }
-      const projects = clientMap.get(clientName)!;
-      projects.push({
-        name: projectName,
-        cssClass: 'project-node'
-      });
-    });
-    this.orgChartData = Array.from(departmentMap.entries()).map(([deptAb, clientMap]) => {
-      return {
-        name: deptAb,
-        cssClass: 'department-node',
-        childs: Array.from(clientMap.entries()).map(([clientName, projects]) => {
-          return {
-            name: clientName,
-            cssClass: 'client-node',
-            childs: projects
-          };
-        })
-      };
-    });
-    this.processDataForTable();
-  }
-
-  getChartsByDepartment() {
-    let charts = this.orgChartData;
-    if (this.searchTerm && this.searchTerm.trim() !== '') {
-      const lowerCaseSearchTerm = this.searchTerm.toLowerCase().trim();
-      charts = this.orgChartData.filter(deptNode =>
-        deptNode.name.toLowerCase().includes(lowerCaseSearchTerm)
-      );
-    }
-    return charts.map(deptNode => [deptNode]);
-  }
-
-  toggleAllDepartments(selectAll: boolean) {
-    if (selectAll) {
-      this.selectedDepartments = this.allDeptList.map(dept => dept.name);
-    } else {
-      this.selectedDepartments = [];
-    }
-    this.getClientDepartmentChart();
-  }
-
-  processDataForTable() {
-    this.expandedProjects.clear();
-    this.projectFullText.clear();
-    const departmentMap = new Map<string, Map<string, any[]>>();
-    const dataToProcess = this.serviceResponse;
-    dataToProcess.forEach(item => {
-      const { deptAb, clientName, projectName } = item;
-      if (!departmentMap.has(deptAb)) {
-        departmentMap.set(deptAb, new Map<string, any[]>());
-      }
-      const clientMap = departmentMap.get(deptAb)!;
-      if (!clientMap.has(clientName)) {
-        clientMap.set(clientName, []);
-      }
-      const projects = clientMap.get(clientName)!;
-      projects.push(projectName);
-    });
-
-    const departments = Array.from(departmentMap.keys());
-    const tableColumns: any[][] = [];
-    departments.forEach(dept => {
-      const clientMap = departmentMap.get(dept)!;
-      const deptColumn: any[] = [dept];
-      Array.from(clientMap.entries()).forEach(([clientName, projects]) => {
-        deptColumn.push({ type: 'client', name: clientName });
-        projects.forEach(project => {
-          deptColumn.push({ type: 'project', name: project });
-        });
-      });
-      tableColumns.push(deptColumn);
-    });
-    this.maxRows = Math.max(...tableColumns.map(col => col.length));
-    tableColumns.forEach(column => {
-      while (column.length < this.maxRows) {
-        column.push('');
-      }
-    });
-    this.tableData = [];
-    for (let i = 0; i < this.maxRows; i++) {
-      const row: any[] = [];
-      tableColumns.forEach(column => {
-        row.push(column[i] || '');
-      });
-      this.tableData.push(row);
-    }
-  }
-
-  updateSelectedDepartments(department: string, event: any): void {
-    const isChecked = event.target.checked;
-    if (isChecked) {
-      this.selectedDepartments = [department];
-    } else {
-      this.selectedDepartments = [];
-    }
-    this.getClientDepartmentChart();
   }
 
 // Skill Matrix Start
@@ -2047,13 +1647,30 @@ export class ResourceManagementComponent implements OnInit {
         this.openAlertMessageModal(response.serviceResponse);
         this.showViewProjects();
       } else {
-        this.openAlertMessageModal( response.serviceResponse);
+        this.openAlertMessageModal(response.serviceResponse);
       }
     });
   }
   // Internal Project End
 
   // Project Completion Start
+  initiateProjectCompletion(project: any) {
+    this.markProjectCompletionConfig = true;
+    this.isAllProjects = this.isValidString(this.projectFilterDTO.approvalStatus) && this.projectFilterDTO.approvalStatus?.toLowerCase() === 'all';
+    forkJoin({
+      managers: this.getManagerAndOverheadList(),
+      departments: this.getAllDepartmentsList(),
+      employees: this.getEmployeeNameAndEmpld(),
+      projectConfig: this.getProjectConfigurationDetailsByProjectId(project)
+    }).subscribe(result => {
+      if (this.rmgProjectObj) {
+        this.rmgProjectComponent.validateProjectForCompletion(project.projectId);
+      } else {
+          this.openAlertMessageModal("Unable to mark the project as complete at the moment. Please contact the administrator!!");
+      }
+    });
+  }
+
   openProjectCompletionDatePickerModal() {
     this.projectCompletionDatePickerModalRef = this.modalService.open(this.projectCompletionDatePickerTemplateRef, { modalDialogClass: 'modal-sm' });
   }
@@ -2315,6 +1932,7 @@ export class ResourceManagementComponent implements OnInit {
 
   showProjectConfiguration() {
     this.showProjectConfig = true;
+    this.markProjectCompletionConfig = false;
     this.isSkillMatrix = false;
     this.isProjectTable = false;
     this.allProjectTable = false;
@@ -2413,7 +2031,7 @@ export class ResourceManagementComponent implements OnInit {
         if (response.serviceStatus === 'Success') {
           this.rmgProjectObj = response.serviceResponse;
           this.rmgProjectObj.state = this.isValidString(this.rmgProjectObj.state) ? this.rmgProjectObj.state : 'NA';
-
+          this.rmgProjectObj.dbProjectManagerIds = this.rmgProjectObj?.projectManagerIds || [];
         }
         return true;
       }),
@@ -2425,7 +2043,7 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   openProjectConfigurationModal() {
-    this.projectConfigurationModalRef = this.modalService.open(this.projectConfigurationTemplateRef, { modalDialogClass: 'modal-lg' });
+    this.projectConfigurationModalRef = this.modalService.open(this.projectConfigurationTemplateRef, { modalDialogClass: 'modal-lg no-modal-content', backdrop: 'static', keyboard: false });
   }
 
   closeProjectConfigurationModal() {
@@ -2445,9 +2063,9 @@ export class ResourceManagementComponent implements OnInit {
       case 'EDIT_NEW':
         this.showProjectConfigurationDetails(project, false);
         break;
-      // case 'MARK_AS_COMPLETE':
-      //   this.openDatePicker(this.MarkAsCompleteDefaultProject, this.OtherProjectDefaultMapping, project, this.projectCompletionDatePickerTemplateRef);
-      //   break;
+      case 'MARK_AS_COMPLETE':
+        this.initiateProjectCompletion(project);
+        break;
       case 'APPROVE':
         this.onApproveProject(project);
         break;

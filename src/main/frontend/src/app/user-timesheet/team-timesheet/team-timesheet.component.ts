@@ -2063,8 +2063,8 @@ resetPreviewState() {
 expandedTimesheetIndex: number | null = null;
 expandedProjectKey: string | null = null;
 
-toggleProject(tIndex: number, pIndex: number):void {
-  const key = `${tIndex}-${pIndex}`;
+toggleProject(tIndex: number,l: number, pIndex: number):void {
+  const key = `${tIndex}-${l}-${pIndex}`;
   this.expandedProjectKey =
     this.expandedProjectKey === key ? null : key;
 }
@@ -2164,7 +2164,7 @@ openDocumentPopup(
     }
   }
 
-  this.activeDocType = toggleMode ? 'Pending' : docType;
+  this.activeDocType =  docType;
 
 
   if (toggleMode) {
@@ -2452,6 +2452,9 @@ getDocument(type: 'Pending' | 'Approved'): void {
     this.selectedStatus = status;
     this.page1 = 0; // pagination reset
     this.isSearchEnabled = false;
+    this.expandedTimesheetIndex = null;
+    this.expandedProjectKey = null;
+    this.filters = {};
     this.getMyReporteesTimesheetRequests();
     this.getTimesheetStatusCountsByEmpId();
   }

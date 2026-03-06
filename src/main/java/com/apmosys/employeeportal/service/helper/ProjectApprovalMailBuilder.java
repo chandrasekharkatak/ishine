@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.apmosys.employeeportal.dto.EmployeeMailDTO;
@@ -16,14 +17,19 @@ import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.ResourceRequirementRepository;
 
+
 @Component
 public class ProjectApprovalMailBuilder {
+	
+
+		@Autowired
+		EmployeeRepository employeeRepository;
+
       public String buildApprovalMail(
             Employee employeeObj,
             String projectName,
             Map<String, List<EmployeeTeamMap>> modifiedTeamsMap,
-            Map<String, List<EmployeeTeamMap>> allTeamsMap,
-            EmployeeRepository employeeRepository) {
+            Map<String, List<EmployeeTeamMap>> allTeamsMap) {
 
         StringBuilder html = new StringBuilder();
 

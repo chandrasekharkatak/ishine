@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.repository;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.Tuple;
 
@@ -23,21 +24,19 @@ public interface ActivitiesRepository extends JpaRepository<Activity, Long> {
 
 	@Query(nativeQuery = true)
 	public List<Activity> getActivityByTeamIdAndDepts(String departmentId, Long teamId);
-	
+
 	List<Activity> findByDeptIdsAndEmployeeRoleAndTeamId(String deptIds, String employeeRole, Long teamId);
-	
-	
-	 @Query("SELECT DISTINCT a.employeeRole FROM Activity a WHERE a.teamId = :teamId")
-	 List<String> findUniqueEmployeeRolesByTeamId(@Param("teamId") Long teamId);
 
-	 List<Activity> findByTeamIdIn(List<Long> teamIds);
-	 
-	 
-	 boolean existsByActivityIdAndTeamId(
-		        Long activityId,
-		        Long teamId);
+	@Query("SELECT DISTINCT a.employeeRole FROM Activity a WHERE a.teamId = :teamId")
+	List<String> findUniqueEmployeeRolesByTeamId(@Param("teamId") Long teamId);
 
+	List<Activity> findByTeamIdIn(List<Long> teamIds);
 
-	 public List<Activity> findByTeamIdAndEmployeeRole(Long teamId, String employeeRole);
+	boolean existsByActivityIdAndTeamId(Long activityId, Long teamId);
+
+	public List<Activity> findByTeamIdAndEmployeeRole(Long teamId, String employeeRole);
+
+	@Query("SELECT DISTINCT a FROM Activity a WHERE a.teamId IN :teamIds and a.deptIds IN :deptIds and a.employeeRole IN :roles ")
+	List<Activity> findByDeptIdsAndEmployeeRoleAndTeamIdIn(Set<String> deptIds, Set<String> roles , Set<Long> teamIds);
 
 }
