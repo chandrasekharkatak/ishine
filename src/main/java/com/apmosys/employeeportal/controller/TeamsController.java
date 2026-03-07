@@ -387,9 +387,9 @@ public class TeamsController {
 	}
 	
 	// @Encrypted
-	@PostMapping("/validateEmployeeTimesheetFilledToChangeStartDate")
-	public ServiceResponse validateEmployeeTimesheetFilledToChangeStartDate(@RequestBody RmgTeamMemberDto rmgTeamMemberDto) {
-		return teamsService.validateEmployeeTimesheetFilledToChangeStartDate(rmgTeamMemberDto);
+	@PostMapping("/validateEmployeeProjectStartDate")
+	public ServiceResponse validateEmployeeProjectStartDate(@RequestBody RmgTeamMemberDto rmgTeamMemberDto) {
+		return teamsService.validateEmployeeProjectStartDate(rmgTeamMemberDto);
 	}
 
 	// @Encrypted

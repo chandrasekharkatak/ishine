@@ -4661,8 +4661,12 @@ public class TeamsService {
 		return isRoleChanged(dtoEmpRoles, objEmpRoles) || dateChanged(existingMember.getStartDate(), dto.getStartDate())
 				|| dateChanged(existingMember.getEndDate(), dto.getEndDate())
 				|| !Objects.equals(existingMember.getIsShadow(), dto.getIsShadow())
-				|| !Objects.equals(existingMember.getActive(), dto.getIsMemberActive());
-	}
+				|| !Objects.equals(existingMember.getActive(), dto.getIsMemberActive())
+				|| !Objects.equals(existingMember.getPoId(), dto.getPoId())
+				|| !Objects.equals(existingMember.getRoleId(), dto.getRoleId())
+				|| !Objects.equals(existingMember.getEmpTeamDepartmentId(), dto.getEmpTeamDepartmentId())
+				;
+		}
 
 	private List<String> parseRoles(String roles) {
 		if (roles == null || roles.isBlank()) {
@@ -5655,32 +5659,22 @@ public class TeamsService {
 	}
 
 	@Transactional(readOnly = true)
-	public ServiceResponse validateEmployeeTimesheetFilledToChangeStartDate(RmgTeamMemberDto rmgTeamMemberDto) {
+	public ServiceResponse validateEmployeeProjectStartDate(RmgTeamMemberDto rmgTeamMemberDto) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			if (rmgTeamMemberDto == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Request body cannot be null!!");
+			response = validateEmployeeProjectStartDateObject(rmgTeamMemberDto, false);
+			if (response != null && response.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
 				return response;
 			}
+			response = new ServiceResponse();
 			if (rmgTeamMemberDto.getEmpId() == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Employee Id cannot be null!!");
 				return response;
 			}
-			if (rmgTeamMemberDto.getProjectId() == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Project Id cannot be null!!");
-				return response;
-			}
-			if (rmgTeamMemberDto.getStartDate() == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Start date cannot be null.");
-				return response;
-			}
-
-			Project project = projectRepository.findByProjectId(rmgTeamMemberDto.getProjectId());
-			if (project == null) {
+			
+			Project currentProject = projectRepository.findByProjectId(rmgTeamMemberDto.getProjectId());
+			if (currentProject == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Project not found!!");
 				return response;
@@ -5726,7 +5720,35 @@ public class TeamsService {
 		}
 		return response;
 	}
+	
+	private ServiceResponse validateEmployeeProjectStartDateObject(RmgTeamMemberDto rmgTeamMemberDto, boolean checkMultiple) {
+		ServiceResponse response = new ServiceResponse();
+		if (rmgTeamMemberDto == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Request body cannot be null!!");
+			return response;
+		}
+		if (rmgTeamMemberDto.getProjectId() == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Project Id cannot be null!!");
+			return response;
+		}
+		if (rmgTeamMemberDto.getStartDate() == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Start date cannot be null.");
+			return response;
+		}
 
+		if (checkMultiple) {
+			for (Long empId : rmgTeamMemberDto.getSelectedEmpIds()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Invalid Start Date for EMP ID : " + empId);
+				return response;
+			}
+		}
+		return null;
+	}
+	
 	private boolean isStartDateConflict(LocalDate newDate, LocalDate projectStartDate, LocalDate oldStartDate) {
 		return newDate.isAfter(projectStartDate) || newDate.isBefore(oldStartDate);
 	}
@@ -5851,20 +5873,13 @@ public class TeamsService {
 	@Transactional
 	public void updateTeamMemberStatus() {
 		try {
+			int activated = employeeTeamMapRepository.activateMembersBasedOnStartDate();
+			int deactivated = employeeTeamMapRepository.deactivateMembersBasedOnEndDate();
 
-	        int activated =
-	            employeeTeamMapRepository.activateMembersBasedOnStartDate();
-
-	        int deactivated =
-	            employeeTeamMapRepository.deactivateMembersBasedOnEndDate();
-
-	        log.info("Team Member Status Update | Activated: {} | Deactivated: {}",
-	                activated, deactivated);
-
-	    } catch (Exception e) {
-
-	        log.error("Error updating team member status", e);
-	    }
+			log.info("Team Member Status Update | Activated: {} | Deactivated: {}", activated, deactivated);
+		} catch (Exception e) {
+			log.error("Error updating team member status", e);
+		}
 	}
 
 	@Transactional(readOnly = true)

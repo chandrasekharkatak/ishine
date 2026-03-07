@@ -157,7 +157,9 @@ import com.apmosys.employeeportal.dto.TeamMemberDTO;
 import com.apmosys.employeeportal.dto.TeamSpocDTO;
 import com.apmosys.employeeportal.dto.TimeSheetDetailsDto;
 import com.apmosys.employeeportal.dto.TimeSheetRequestDto;
+import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
+import com.apmosys.employeeportal.dto.UnmappedEmployeeProjectDto;
 import com.apmosys.employeeportal.dto.UpdateHasClientSideIdDTO;
 import com.apmosys.employeeportal.exception.BadRequestException;
 import com.apmosys.employeeportal.exception.DataNotFoundException;
@@ -15443,7 +15445,7 @@ public class ResourceManagementService {
 					.getResourceRequirementDetailsByProjectId(projectId, currentActivePO);
 			if (rmgProjectResourceRequirementList == null || rmgProjectResourceRequirementList.isEmpty()) {
 				return failResponse(serviceResponse, apiLogInfo,
-						"Unable to fetch latest resource requirement details!!");
+						"Resource requirement details not Found!!");
 			}
 			
 			boolean isTnm = "TNM".equalsIgnoreCase(projectType);
@@ -16945,4 +16947,84 @@ public class ResourceManagementService {
 			return "All";
 		}
 	}
+
+	public void sendDepartmentWiseUnmappedEmployeeProjectMail() {
+		try {
+			List<Department> departments = departmentRepository.findAll();
+			if (departments == null || departments.isEmpty()) {
+				return;
+			}
+			Set<String> excludedDepartmentNames = Set.of("super admin", "director", "unknown department", "ceo office");
+
+			List<Object[]> listObjArray = employeeTeamMapRepository.getUnmappedEmployeeProjectDetails(excludedDepartmentNames);
+			if (listObjArray == null || listObjArray.isEmpty()) {
+				return;
+			}
+
+			List<UnmappedEmployeeProjectDto> unmappedEmployeeDetails = listObjArray.stream()
+					.map(UnmappedEmployeeProjectDto::unmappedEmployeeProject).collect(Collectors.toList());
+			
+			
+			Map<Long, List<UnmappedEmployeeProjectDto>> deptIdAndEmployeeMap = unmappedEmployeeDetails.stream()
+					.collect(Collectors.groupingBy(UnmappedEmployeeProjectDto::getDeptId));
+//
+//			deptIdAndEmployeeMap.forEach((deptId, employees) -> {
+//				
+//				String departmentName = employees.get(0).getDepartmentName();
+//				String hodMail = employees.get(0).getHodMail();
+//				Set<String> rmEmails = employees.stream()
+//
+//				employees.forEach(emp -> {
+//					sendMail(emp, hodMail, departmentName);
+//				});
+//			});
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void sendMailToEmployee(UnmappedEmployeeProjectDto emp, String hodMail, String departmentName) {
+	    String subject = "Employee Unmapped from Project";
+//	    String body = buildHtmlTable(emp, departmentName);
+//	    mailService.sendHtmlMail(emp.getEmail(), List.of(hodMail), subject, body);
+	}
+	
+	private void sendMailToReportingManagers(UnmappedEmployeeProjectDto emp, String hodMail, String departmentName) {
+	    String subject = "Employee Unmapped from Project";
+//	    String body = buildHtmlTable(emp, departmentName);
+//	    mailService.sendHtmlMail(emp .getEmail(), List.of(hodMail), subject, body);
+	}
+	
+	private String createUnmappedEmployeeHtmlTable(UnmappedEmployeeProjectDto emp, String departmentName) {
+	    StringBuilder html = new StringBuilder();
+	    html.append("<html><body>");
+	    html.append("<p>Dear ").append(emp.getName()).append(",</p>");
+	    html.append("<p>The following unmapped project details were identified:</p>");
+	    html.append("<table border='1' style='border-collapse:collapse;padding:8px'>");
+	    html.append("<tr>")
+	            .append("<th>Employee ID</th>")
+	            .append("<th>Name</th>")
+	            .append("<th>Department</th>")
+	            .append("<th>Unmapped Start Date</th>")
+	            .append("<th>Unmapped End Date</th>")
+	            .append("<th>Unmapped Days</th>")
+	            .append("</tr>");
+	    html.append("<tr>")
+	            .append("<td>").append(emp.getEmploymentIdStr()).append("</td>")
+	            .append("<td>").append(emp.getName()).append("</td>")
+	            .append("<td>").append(departmentName).append("</td>")
+	            .append("<td>").append(emp.getUnmapStartDate()).append("</td>")
+	            .append("<td>").append(emp.getUnmapEndDate()).append("</td>")
+	            .append("<td>").append(emp.getUnmappedDaysCount()).append("</td>")
+	            .append("</tr>");
+	    html.append("</table>");
+	    html.append("<br>");
+	    html.append("<p>Please contact your reporting manager for project allocation.</p>");
+	    html.append("<br>");
+	    html.append("<p>Regards,<br>HR Team</p>");
+	    html.append("</body></html>");
+	    return html.toString();
+	}
+	
 }

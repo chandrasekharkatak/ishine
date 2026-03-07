@@ -43,6 +43,7 @@ import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimeSheetRequestDto;
 import com.apmosys.employeeportal.dto.UpdateHasClientSideIdDTO;
+import com.apmosys.employeeportal.service.CronJobService;
 import com.apmosys.employeeportal.service.PoSyncOrchestratorService;
 import com.apmosys.employeeportal.service.ResourceManagementService;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
@@ -773,5 +774,11 @@ public class ResourceManagementController {
 	public String healthCheck(HttpServletRequest httpRequest) {
 	    poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 	    return "IShine is online...";
+	}
+	
+	@Scheduled(cron = "0 0 1 * * *")
+	@GetMapping("/triggerUnmappedEmployeeProjectNotificationJob")
+	public void triggerUnmappedEmployeeProjectNotificationJob() {
+		resourceManagementService.sendDepartmentWiseUnmappedEmployeeProjectMail();
 	}
 }
