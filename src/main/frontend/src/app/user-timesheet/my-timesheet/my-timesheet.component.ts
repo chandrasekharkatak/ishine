@@ -920,16 +920,18 @@ get tooltipCta(): string {
     this.startDate = moment(fromDate).format(AppComponent.DB_DATE_FORMAT);
     this.endDate = moment(today).format(AppComponent.DB_DATE_FORMAT);
 
-    let employeeObj = new Employee();
-    employeeObj.empId = this.currentUser.empId;
-    this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.teamMemberList = response.serviceResponse;
-        //console.log("teamMemberList : ", this.teamMemberList);
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
+    // let employeeObj = new Employee();
+    // employeeObj.empId = this.currentUser.empId;
+    // this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response: any) => {
+    //   if (response.serviceStatus == "Success") {
+    //     this.teamMemberList = response.serviceResponse;
+    //     //console.log("teamMemberList : ", this.teamMemberList);
+    //   } else {
+    //     console.error(response.serviceResponse);
+    //   }
+    // });
+    this.getMyTeamTimesheets();
+    
   }
 
 
