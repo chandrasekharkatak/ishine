@@ -2,6 +2,8 @@ package com.apmosys.employeeportal.repository;
 
 import java.util.List;
 
+import javax.transaction.Transactional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -59,6 +61,8 @@ public interface PoRequirementMappingRepository extends JpaRepository<PoRequirem
 			"WHERE prm.poId = :poId AND prm.active = true")
 	List<PoRequirementMapping> findByPoId(@Param("poId") Long poId);
 
+	
+	@Transactional
 	@Modifying
 	@Query("DELETE FROM PoRequirementMapping")
 	void deleteAllRecords();
