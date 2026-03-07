@@ -1077,7 +1077,7 @@ export class RmgStatusCardsComponent {
     this.projectDetailsList = [];
     let rmgProjectRequest = this.mapToRMGRequest(rmgDashboardProjectRequest);
     this.resourceManagementService.fetchProjectDetailsList(rmgProjectRequest).pipe(first()).subscribe((response: any) => {
-      if (response?.serviceStatus == "Success" && response?.serviceResponse != null && this.validationService.validateNullUndefinedEmptyList(response?.serviceResponse?.projectList)) {
+      if (response?.serviceStatus == "Success" && response?.serviceResponse != null && this.validationService.validateNullUndefinedEmptyList(response?.serviceResponse?.projectList?.content)) {
         const apiResponse = response?.serviceResponse?.projectList;
         this.totalProjectsCount = apiResponse?.totalElements || 0;
         this.projectDetailsList = [...apiResponse?.content];
@@ -1582,7 +1582,7 @@ export class RmgStatusCardsComponent {
     rmgProjectRequest.sortColumnType = this.projectSortColumnType || 'string';
 
     this.resourceManagementService.fetchProjectDetailsList(rmgProjectRequest).pipe(first()).subscribe((response: any) => {
-      if (response?.serviceStatus == "Success" && response?.serviceResponse != null && this.validationService.validateNullUndefinedEmptyList(response?.serviceResponse?.projectList)) {
+      if (response?.serviceStatus == "Success" && response?.serviceResponse != null && this.validationService.validateNullUndefinedEmptyList(response?.serviceResponse?.projectList?.content)) {
         const apiResponse = response?.serviceResponse?.projectList?.content || [];
         this.exportPageProjectDetailsToExcel(apiResponse);
       } else {

@@ -205,33 +205,7 @@ public class EmployeeTimesheetControllerNew {
 		ServiceResponse response = timesheetServiceNew.getTimesheetByDate(requestDTO);
 		return response;
 	}
-	
-	/**
-	 * API 1.5: Get Timesheets by Date Range
-	 * Endpoint: POST /api/v2/timesheet/by-date-range
-	 */
-	@JobRoleAccess(featureIds = {15, 16})
-	@PostMapping(value = "/by-date-range")
-	public ServiceResponse getTimesheetsByDateRange(@RequestBody EmployeeTimesheetDTO requestDTO) {
-		ServiceResponse response = timesheetServiceNew.getTimesheetsByDateRange(requestDTO);
-		return response;
-	}
-	
-	/**
-	 * API 1.7: Update Timesheet Status
-	 * Endpoint: POST /api/v2/timesheet/update-status
-	 */
-	// @JobRoleAccess(featureIds = {15, 16, 24})
-	// @PostMapping(value = "/update-status")
-	// public ServiceResponse updateTimesheetStatus(@RequestBody TimesheetStatusUpdateRequestDTO requestDTO) {
-	// 	ServiceResponse response = timesheetServiceNew.updateTimesheetStatus(
-	// 			requestDTO.getTimesheetId(), 
-	// 			requestDTO.getProjectId(), 
-	// 			requestDTO.getStatus(),
-	// 			requestDTO.getUpdatedBy());
-	// 	return response;
-	// }
-	
+
 	/**
 	 * API 1.8: Delete Timesheet
 	 * Endpoint: DELETE /api/v2/timesheet/{timesheetId}
@@ -242,34 +216,6 @@ public class EmployeeTimesheetControllerNew {
 		ServiceResponse response = timesheetServiceNew.deleteTimesheet(timesheetId);
 		return response;
 	}
-	
-	/**
-	 * API 1.9: Delete Project from Timesheet
-	 * Endpoint: DELETE /api/v2/timesheet/project
-	 */
-	// @JobRoleAccess(featureIds = {15, 16})
-	// @DeleteMapping(value = "/project")
-	// public ServiceResponse deleteProjectFromTimesheet(@RequestBody TimesheetDeleteRequestDTO requestDTO) {
-	// 	ServiceResponse response = timesheetServiceNew.deleteProjectFromTimesheet(
-	// 			requestDTO.getTimesheetId(), 
-	// 			requestDTO.getProjectId());
-	// 	return response;
-	// }
-	
-	/**
-	 * API 1.10: Delete Activity from Timesheet
-	 * Endpoint: DELETE /api/v2/timesheet/activity
-	 */
-	// @JobRoleAccess(featureIds = {15, 16})
-	// @DeleteMapping(value = "/activity")
-	// public ServiceResponse deleteActivityFromTimesheet(@RequestBody TimesheetDeleteRequestDTO requestDTO) {
-	// 	ServiceResponse response = timesheetServiceNew.deleteActivityFromTimesheet(
-	// 			requestDTO.getId(),
-	// 			requestDTO.getTimesheetId(), 
-	// 			requestDTO.getActivityId(),
-	// 			requestDTO.getProjectId());
-	// 	return response;
-	// }
 	
 	@JobRoleAccess(featureIds = {7,15,16})
 	@RequestMapping(value = "/getAllProjectsByEmpId", method = RequestMethod.POST)

@@ -73,7 +73,7 @@ public interface PoRequirementMappingRepository extends JpaRepository<PoRequirem
 			+ ", prm.count, prm.lineItemStartDate, prm.lineItemEndDate) "
 			+ "FROM RoleDetails rd \n"
 			+ "LEFT JOIN PoRequirementMapping prm ON prm.roleId = rd.roleId and prm.poId =:poId and prm.active = true  \n"
-			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) "
+			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId AND ppd.active = true AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) "
 			+ "WHERE prm.active = true and prm.poId =:poId")
 	List<RmgResourceRequirementDto> getPoRequirementDataByPoId(@Param("poId") Long poId);
 	

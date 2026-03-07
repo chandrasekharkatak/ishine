@@ -643,33 +643,7 @@ public class TimesheetServiceNew {
 		return response;
 	}
 
-	/**
-	 * API 1.5: Get Timesheets by Date Range Note: This method should accept
-	 * startDate and endDate as separate parameters For now, keeping the old
-	 * signature that accepts employeeTimesheetMappingDTO_new for backward
-	 * compatibility TODO: Update to use new structure with explicit date parameters
-	 */
-	public ServiceResponse getTimesheetsByDateRange(EmployeeTimesheetDTO requestDTO) {
-		ServiceResponse response = new ServiceResponse();
-
-		try {
-			// For date range queries, we need empId, startDate, and endDate
-			// Since the new structure doesn't have these fields directly,
-			// we'll use getTimesheetsByEmployee which accepts them as parameters
-			// This method signature needs to be updated to accept dates explicitly
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse("Please use getTimesheetsByEmployee endpoint with explicit date parameters");
-			return response;
-
-		} catch (Exception e) {
-			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-			response.setServiceResponse(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceError(e.getMessage());
-			e.printStackTrace();
-		}
-
-		return response;
-	}
+	
 
 	/**
 	 * Get Timesheets by Employee ID and Date Range Similar to

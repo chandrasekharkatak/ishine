@@ -786,6 +786,7 @@ rows.forEach(row -> {
             dto.setIsNightShift(row[8]!=null&& ((Boolean)row[8]));
             dto.setCreatedBy(row[37]!=null?((Number)row[37]).longValue():null);
             dto.setCreatedOn(row[9]!=null?((Timestamp)row[9]).toLocalDateTime():null);
+            dto.setCreatedByName(row[42] != null ? row[42].toString() : null);
             dto.setDayTypeId(row[38]!=null?((Number)row[38]).intValue():null);
             dto.setLocationSessions(new ArrayList<>());
             dto.setDocumentData(new ArrayList<>());
@@ -965,6 +966,7 @@ rows.forEach(row -> {
                         dto.setCreatedBy(row[37] != null ? ((Number) row[37]).longValue() : null);
                         dto.setDayTypeId(row[38] != null ? ((Number) row[38]).intValue() : null);
                         dto.setEmployeeName(row[39] != null ? row[39].toString() : null); // e.name
+                        dto.setCreatedByName(row[43] != null ? row[43].toString() : null); // creator_emp.name
 
                         dto.setLocationSessions(new ArrayList<>());
                         dto.setDocumentData(new ArrayList<>());

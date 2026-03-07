@@ -538,12 +538,12 @@
 <ng-template #reject_project>
     <div class="modal-body text-center">
         <p>Kindly provide reason(s) for rejecting application.</p>
-        <textarea rows="3" cols="50" class="form-control" [(ngModel)]="projectObj.rejectReason">
+        <textarea rows="3" cols="50" class="form-control" [(ngModel)]="projectRejectionReason">
              </textarea>
         <br>
         <button type="button" class="btn btn-success"
-            [disabled]="!this.validationService.validateNullUndefinedEmptyString(projectObj)"
-            (click)="onRejectProject(projectObj);closeRejectProjectModal();">
+            [disabled]="!this.validationService.validateNullUndefinedEmptyString(projectRejectionReason)"
+            (click)="onRejectProject();closeRejectProjectModal();">
             Reject
         </button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="closeRejectProjectModal();">

@@ -25,7 +25,7 @@ import com.apmosys.employeeportal.model.ProjectPoDetails;
 public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetails, Long> {
 
     @Query(value = "Select new com.apmosys.employeeportal.dto.PoDetailsDto(p.id, p.poId, p.projectId, p.poNo, p.poStartDate, p.poEndDate, p.active) \n"
-            + " from ProjectPoDetails p where p.projectId=:projectId and p.active=true")
+            + " from ProjectPoDetails p where p.projectId=:projectId and p.active=true AND (p.poEndDate IS NULL OR DATE(p.poEndDate) >= CURRENT_DATE) ")
     List<PoDetailsDto> getActivePoDetailsDtoByProjectId(Integer projectId);
 
     @Query(value = "Select DISTINCT new com.apmosys.employeeportal.dto.PoDetailsDto(p.id, p.poId, p.projectId, p.poNo, p.poStartDate, p.poEndDate, p.active \n"
