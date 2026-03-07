@@ -15,6 +15,7 @@ import com.apmosys.employeeportal.repository.EmployeeTimesheetLocationMappingRep
 import com.apmosys.employeeportal.repository.TimesheetRejectionDetailsNewRepository;
 import com.apmosys.employeeportal.service.ActivityTimesheetService;
 import com.apmosys.employeeportal.service.ProjectTimesheetService;
+import com.apmosys.employeeportal.service.TimesheetDocumentServiceNew;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,6 +34,9 @@ public class TimesheetStructureCleanupService {
 	
 	@Autowired
 	private TimesheetRejectionDetailsNewRepository timesheetRejectionDetailsNewRepository;
+
+	@Autowired
+	private TimesheetDocumentServiceNew timesheetDocumentServiceNew;
 
 	public void cleanupRemovedLocations(Long timesheetId, List<LocationSessionDTO> incomingLocations) {
 
@@ -83,6 +87,7 @@ public class TimesheetStructureCleanupService {
 				log.info("Deleting removed projectId={} from locationMappingId={}", projectId, locationMappingId);
 
 				deleteProjectCascade(timesheetId, locationMappingId, projectId);
+				 timesheetDocumentServiceNew.deleteDocumentCascade(timesheetId, projectId);
 			}
 		}
 	}
@@ -110,6 +115,7 @@ public class TimesheetStructureCleanupService {
 
 		for (ProjectTimesheetDTO project : projects) {
 			deleteProjectCascade(timesheetId, locationMappingId, project.getProjectId());
+			timesheetDocumentServiceNew.deleteDocumentCascade(timesheetId, project.getProjectId());
 		}
 
 		locationRepo.deleteById(locationMappingId);

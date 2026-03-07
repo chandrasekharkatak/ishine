@@ -2,12 +2,14 @@ package com.apmosys.employeeportal.service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -245,6 +247,10 @@ public class TimesheetDocumentServiceNew {
             timesheetDocumentDetailsNewRepository.save(doc);
         }
 
+        if(isUpdate){
+            // After all the nessecary updates this is for handeling the case where we change doc status from pending to approve.
+            compareDocumentStatusAndChangeAccordingly(documentDataList);
+        }
     }
 
     /**
@@ -825,4 +831,193 @@ public class TimesheetDocumentServiceNew {
         }
     }
 
+    // public void compareDocumentStatusAndChangeAccordingly(Long docId,String approvalStatusFromDTO){
+
+    //     Byte finalFlagByDB  = timesheetDocumentDetailsNewRepository.getFinalFlagByDocId(docId);
+    //     Boolean finalFlag = finalFlagByDB != null && finalFlagByDB == 1;
+    //     // if final flag from db is 2 means it was approved.
+    //     // if final flag from db is 1 means it was not pending.
+    
+    //     // if (!Objects.equals(finalFlagFromDTO, finalFlag)) {
+
+    //         // CASE: Approved -> Pending
+    //         if (Boolean.TRUE.equals(finalFlag) && approvalStatusFromDTO.equalsIgnoreCase("Pending")) {
+    
+                
+    //             List<Object[]> result = timesheetDocumentDetailsNewRepository.getFinalDocIdAndFileUrl(docId);
+    //             Long finalDocId = result.get(0)[0] == null ? null :((BigInteger) result.get(0)[0]).longValue();
+    //             String fileUrl = result.get(0)[1] == null ? null : (String) result.get(0)[1];
+    
+    //             // 2. Delete file from server
+    //             deleteFile(fileUrl);
+    
+    //             // 3. Delete DB record
+    //             finalDocumentNewRepository.deleteById(finalDocId);
+    //         }
+
+    //         // }
+    //     }
+
+    // public void compareDocumentStatusAndChangeAccordingly(Long docId, String approvalStatusFromDTO) {
+
+    //     try {
+    
+    //         if (docId == null || approvalStatusFromDTO == null) {
+    //             return;
+    //         }
+    
+    //         Byte finalFlagByDB = timesheetDocumentDetailsNewRepository.getFinalFlagByDocId(docId);
+    
+    //         Boolean finalFlag = finalFlagByDB != null && finalFlagByDB == 1;
+    
+    //         // CASE: Approved -> Pending
+    //         if (Boolean.TRUE.equals(finalFlag) && "Pending".equalsIgnoreCase(approvalStatusFromDTO)) {
+    
+    //             List<Object[]> result = timesheetDocumentDetailsNewRepository.getFinalDocIdAndFileUrl(docId);
+    
+    //             if (result == null || result.isEmpty()) {
+    //                 return;
+    //             }
+    
+    //             Object[] row = result.get(0);
+    
+    //             Long finalDocId = row[0] == null ? null : ((BigInteger) row[0]).longValue();
+    //             String fileUrl = row[1] == null ? null : row[1].toString();
+    
+    //             // Delete file
+    //             if (fileUrl != null && !fileUrl.isBlank()) {
+    //                 deleteFile(fileUrl);
+    //             }
+    
+    //             // Delete DB record
+    //             if (finalDocId != null) {
+    //                 finalDocumentNewRepository.deleteById(finalDocId);
+    //             }
+    //         }
+    
+    //     } catch (Exception ex) {
+    //         // Best practice: log instead of ignoring
+    //         // log.error("Error while comparing document status for docId: {}", docId, ex);
+    //         throw ex;
+    //     }
+    // }
+    @Transactional
+    public void compareDocumentStatusAndChangeAccordingly(List<TimesheetDocumentDataDTO> documentDataList) {
+    
+        try {
+    
+            if (documentDataList == null || documentDataList.isEmpty()) {
+                return;
+            }
+    
+            // Group documents by project
+            Map<Integer, List<TimesheetDocumentDataDTO>> projectDocs =
+                    documentDataList.stream()
+                            .collect(Collectors.groupingBy(TimesheetDocumentDataDTO::getProjectId));
+    
+            for (Map.Entry<Integer, List<TimesheetDocumentDataDTO>> entry : projectDocs.entrySet()) {
+    
+                Integer projectId = entry.getKey();
+                List<TimesheetDocumentDataDTO> docs = entry.getValue();
+    
+                // Find filled and approved documents
+                TimesheetDocumentDataDTO filledDoc = null;
+                TimesheetDocumentDataDTO approvedDoc = null;
+    
+                for (TimesheetDocumentDataDTO doc : docs) {
+    
+                    if ("Filled".equalsIgnoreCase(doc.getDocType())) {
+                        filledDoc = doc;
+                    }
+    
+                    if ("Approved".equalsIgnoreCase(doc.getDocType())) {
+                        approvedDoc = doc;
+                    }
+                }
+    
+                // CASE: Project changed from Approved -> Pending
+                if (filledDoc != null && approvedDoc == null) {
+    
+                    Long filledDocId = filledDoc.getDocId();
+    
+                    if (filledDocId == null) {
+                        continue;
+                    }
+    
+                    // Fetch approved document info from DB
+                    List<Object[]> result =
+                            timesheetDocumentDetailsNewRepository.getFinalDocIdAndFileUrl(filledDocId);
+    
+                    if (result == null || result.isEmpty()) {
+                        continue;
+                    }
+    
+                    Object[] row = result.get(0);
+    
+                    Long finalDocId = row[0] == null ? null : ((BigInteger) row[0]).longValue();
+                    String fileUrl = row[1] == null ? null : row[1].toString();
+    
+                    // Delete file from server
+                    if (fileUrl != null && !fileUrl.isBlank()) {
+                        deleteFile(fileUrl);
+                    }
+    
+                    // Delete approved document record
+                    if (finalDocId != null) {
+                        finalDocumentNewRepository.deleteById(finalDocId);
+                    }
+    
+                    // Update filled document row
+                    timesheetDocumentDetailsNewRepository.resetApprovalStatus(filledDocId);
+                }
+            }
+    
+        } catch (Exception ex) {
+            throw ex;
+        }
+    }
+
+    public void deleteDocumentCascade(Long timesheetId, Integer projectId){
+        try{
+
+        
+
+        if (timesheetId == null || projectId == null) {
+            throw new IllegalArgumentException("TimesheetId and ProjectId must not be null");
+        }
+
+		List<TimesheetDocumentDetailsNew> pendingDocs = timesheetDocumentDetailsNewRepository.findByTimesheetIdAndProjectIdAndActive(timesheetId, projectId);        
+		List<FinalDocumentNew> approvedDocs = finalDocumentNewRepository.getDocsByTimesheetIdAndFinalFlag(timesheetId, projectId);
+        List<String> fileUrlsToDelete = new ArrayList<>();
+
+		if(pendingDocs != null && !pendingDocs.isEmpty()) {
+            for (TimesheetDocumentDetailsNew pendingDoc : pendingDocs) {
+                fileUrlsToDelete.add(pendingDoc.getFileUrl());
+            }
+        }
+        if(approvedDocs != null && !approvedDocs.isEmpty()) {
+            for (FinalDocumentNew approvedDoc : approvedDocs) {
+                fileUrlsToDelete.add(approvedDoc.getFileUrl());
+            }
+        }
+        
+        if (approvedDocs != null && !approvedDocs.isEmpty()) {
+            finalDocumentNewRepository.deleteAll(approvedDocs);
+        }
+    
+        if (pendingDocs != null && !pendingDocs.isEmpty()) {
+            timesheetDocumentDetailsNewRepository.deleteAll(pendingDocs);
+        }
+
+        if (!fileUrlsToDelete.isEmpty()) {
+            deleteFiles(fileUrlsToDelete);
+        }
+    }
+    catch(Exception e){
+        throw e;
+
+    }
 }
+    }
+
+

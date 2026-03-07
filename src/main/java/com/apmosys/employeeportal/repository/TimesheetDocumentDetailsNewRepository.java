@@ -150,4 +150,26 @@ public interface TimesheetDocumentDetailsNewRepository extends JpaRepository<Tim
 		   "where etn.empId = :empId and etn.date = :date and ptsn.id.projectId = :projectId")
 	String findFileUrlByEmpIdAndDate(@Param("empId") Long empId, @Param("date") LocalDate date, @Param("projectId") Integer projectId);
 
+	@Query(value = "select tddn.final_flag from timesheet_document_details_new tddn where tddn.doc_id = :docId and tddn.active = true", nativeQuery= true)
+	Byte getFinalFlagByDocId(@Param("docId") Long docId);
+
+	@Query(value=" select tddn.bulk_approved_doc_id , fdn.file_url from timesheet_document_details_new tddn inner join final_document_new fdn  on tddn.bulk_approved_doc_id = fdn.final_doc_id "
+	+ " where tddn.doc_id = :docId and tddn.active = true ",nativeQuery = true)
+	List<Object[]> getFinalDocIdAndFileUrl(Long docId);
+
+	@Modifying
+	@Query(value = " UPDATE timesheet_document_details_new SET client_approval_status_id = 1, "+
+    " final_flag = 0, "+
+    " bulk_approved_doc_id = NULL, "+
+    " updated_on = NOW() "+
+	" WHERE doc_id = :docId "
+	, nativeQuery = true)
+	void resetApprovalStatus(Long docId);
+
+	@Modifying
+	@Transactional
+	@Query("DELETE FROM TimesheetDocumentDetailsNew tdd WHERE tdd.timesheetId = :timesheetId and tdd.projectId = :projectId")
+	void deleteByTimesheetIdAndProjectId(@Param("timesheetId") Long timesheetId, @Param("projectId") Integer projectId);
+
+
 }

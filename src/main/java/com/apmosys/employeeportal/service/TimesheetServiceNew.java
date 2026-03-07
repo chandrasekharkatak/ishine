@@ -1259,6 +1259,8 @@ public class TimesheetServiceNew {
 		// UPDATE: Only process documents that have a new file in this request. Existing docs stay as-is.
 		// Do NOT require all documentData entries to have a file on update (partial upload is allowed).
 		if (isUpdate && (documents == null || documents.isEmpty())) {
+			// timesheetDocument(timesheetId, documentDataList);
+			timesheetDocumentService.compareDocumentStatusAndChangeAccordingly(documentDataList);
 			return; // No new files to upload; existing docs already in DB
 		}
 
