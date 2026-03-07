@@ -100,6 +100,11 @@ public class EmployeeTimesheetDTO {
     private LocalDateTime createdOn;
 
     /**
+     * Name of the user who created/submitted the timesheet (for "Applied By" display).
+     */
+    private String createdByName;
+
+    /**
      * Updated by user ID
      * Set automatically from current user context
      */

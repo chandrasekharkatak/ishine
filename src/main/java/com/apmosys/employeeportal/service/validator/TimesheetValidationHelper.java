@@ -1264,7 +1264,7 @@ public class TimesheetValidationHelper {
         LocalDate existingDate = existingEntity.getDate();
         LocalDate incomingDate = incomingDTO.getDate();
 
-        if (existingDate == null || incomingDate == null) {
+        if (incomingDate == null) {
             throw new TimesheetValidationFailedException(
                     "Please select a date."
             );
@@ -1282,14 +1282,14 @@ public class TimesheetValidationHelper {
 
         if (existingEntity == null || incomingDTO == null) {
             throw new TimesheetValidationFailedException(
-                    "Unable to process update. Please try again."
+                    "Unable to process update due to invalid request. Please try again."
             );
         }
 
         Long existingEmpId = existingEntity.getEmpId();
         Long incomingEmpId = incomingDTO.getEmpId();
 
-        if (existingEmpId == null || incomingEmpId == null) {
+        if (incomingEmpId == null) {
             throw new TimesheetValidationFailedException(
                     "Please select an employee."
             );
@@ -1298,18 +1298,11 @@ public class TimesheetValidationHelper {
         // If employee ID is not changing → nothing to validate
         if (existingEmpId.equals(incomingEmpId)) {
             return;
+        }else {
+        	throw new TimesheetValidationFailedException(
+                    "Employee cannot be changed because the timesheet has approved projects.");
         }
 
-        // Check if any project is approved
-        boolean hasApprovedProject =
-                projectTimesheetService
-                        .existsApprovedProject(existingEntity.getTimesheetId());
-
-        if (hasApprovedProject) {
-            throw new TimesheetValidationFailedException(
-                    "Employee cannot be changed because the timesheet has approved projects."
-            );
-        }
     }
 
 
