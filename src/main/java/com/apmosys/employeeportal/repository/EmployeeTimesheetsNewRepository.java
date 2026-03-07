@@ -14254,13 +14254,13 @@ Integer getTotalEmployeeCountForClientApplicable(
 			+ "            OR :clientFilter = FALSE\n"
 			+ "            OR p.has_client_side_id = TRUE\n"
 			+ "          )\n"
-			+ "      AND EXISTS (\n"
-			+ "            SELECT 1\n"
-			+ "            FROM teams t\n"
-			+ "            JOIN employee_team_mapping etm ON etm.team_id = t.team_id\n"
-			+ "            WHERE t.project_id = p.project_id\n"
-			+ "              AND etm.emp_id = e.emp_id\n"
-			+ "          )\n"
+			// + "      AND EXISTS (\n"
+			// + "            SELECT 1\n"
+			// + "            FROM teams t\n"
+			// + "            JOIN employee_team_mapping etm ON etm.team_id = t.team_id\n"
+			// + "            WHERE t.project_id = p.project_id\n"
+			// + "              AND etm.emp_id = e.emp_id\n"
+			// + "          )\n"
 			+ ") x\n"
 			+ "LEFT JOIN status_master_new sm ON sm.status_id = x.status\n"
 			+ "GROUP BY x.status, sm.status;", nativeQuery = true
@@ -16989,6 +16989,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				    "     ) LIKE LOWER(CONCAT('%', :employmentId, '%')) ) " +
 
 				    "AND ( :employeeName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :employeeName, '%')) ) " +
+					"AND ( :employmentId IS NULL OR LOWER(e.employeement_id) LIKE LOWER(CONCAT('%', :employmentId, '%')) ) " +
 				    "AND ( :dayType IS NULL OR LOWER(dtmn.day_type) LIKE LOWER(CONCAT('%', :dayType, '%')) ) " +
 				    "AND ( :projectName IS NULL OR LOWER(p.project_name) LIKE LOWER(CONCAT('%', :projectName, '%')) ) " +
 				    "AND ( :clientName IS NULL OR LOWER(c.client_name) LIKE LOWER(CONCAT('%', :clientName, '%')) ) " +
