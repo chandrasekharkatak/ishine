@@ -418,7 +418,9 @@ public class TimesheetServiceNew {
 			newTimesheet.setCreatedBy(empDTO.getCreatedBy());
 			EmployeeTimesheetsNew empTS = employeeTimesheetsNewRepository.save(newTimesheet);
 			empDTO.setTimesheetId(empTS.getTimesheetId());
-
+			
+			populateShadowEmpIdForShadowForSelf(empDTO, empDTO.getEmpId());
+			
 			if (timesheetValidationHelper.isWorkingDay(empDTO)) {
 				response = createTimesheetForWorkingDays(empTS, empDTO, documents);
 			} else {
@@ -1155,18 +1157,8 @@ public class TimesheetServiceNew {
 			return;
 		}
 
-		Long ownerEmpId = empDTO.getEmpId();
-		// Decide whom to store as shadow based on appliedFor semantics
-		Long shadowEmpToSet;
-		if (ownerEmpId != null && ownerEmpId.equals(filledByEmpId)) {
-			// Applied for self: use employee's own empId
-			shadowEmpToSet = ownerEmpId;
-		} else {
-			// Applied for team: use the user who is filling/updating the timesheet
-			shadowEmpToSet = filledByEmpId;
-		}
-
-		for (LocationSessionDTO location : empDTO.getLocationSessions()) {
+		Long shadowEmpToSet = empDTO.getEmpId();
+			for (LocationSessionDTO location : empDTO.getLocationSessions()) {
 			if (location.getProjects() == null) {
 				continue;
 			}

@@ -34,6 +34,7 @@ import { ActivityNew } from 'src/app/models/activityNew';
 import { TimesheetNewService } from 'src/app/services/timesheet-new.service';
 import { TimesheetFormComponent } from './timesheet-form/timesheet-form.component';
 import { ProjectBasedBulkUploadPayload } from '../team-timesheet/types';
+import { M } from '@angular/material/ripple.d-BxTUZJt7';
 
 @Component({
   standalone: false,
@@ -163,6 +164,37 @@ export class MyTimesheetComponent implements OnInit {
   isTimesheetLockCheckEnable: any = "true";
   employeeInTNMProject: boolean = false;
   maxMonth: string;
+
+  // Summary metrics for mini dashboard (EOD-style counts)
+  summaryCards = [
+    {
+      key: 'last7',
+      title: 'EOD (Last 7 days)',
+      filled: 0,
+      approved: 0,
+      rejected: 0,
+      subtitle: 'Last 7 calendar days',
+      iconClass: 'fa fa-calendar-check'
+    },
+    {
+      key: 'thisMonth',
+      title: 'EOD (This month)',
+      filled: 0,
+      approved: 0,
+      rejected: 0,
+      subtitle: 'From 1st of this month',
+      iconClass: 'fa fa-calendar-alt'
+    },
+    {
+      key: 'lastMonth',
+      title: 'EOD (Last month)',
+      filled: 0,
+      approved: 0,
+      rejected: 0,
+      subtitle: 'Complete previous month',
+      iconClass: 'fa fa-history'
+    }
+  ];
 
 
   withVmsbullet:string[] = ["Applicable to resources working on projects with a client-side VMS system.",
@@ -368,7 +400,109 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
     // this.checkUploadEligibility();
     this.isFullMonthSelected();
 
+    // Load summary metrics for mini dashboard
+    console.log("*****called*******")
+    this.loadTimesheetSummary();
+
   }
+
+  /**
+   * Load summary metrics for EOD-style counts:
+   * - EOD (Last 7 days)
+   * - EOD (This month)
+   * - EOD (Last month)
+   *
+   * Uses the same backend API as Home page (getTimesheetsForHomePageByEmpId),
+   * and counts the number of days with at least one timesheet entry.
+   */
+  private loadTimesheetSummary(): void {
+    if (!this.currentUser || !this.currentUser.empId) {
+      return;
+    }
+
+    this.loadSummaryForRange('last7', 'Last 7 Days');
+    this.loadSummaryForRange('thisMonth', 'This Month');
+    this.loadSummaryForRange('lastMonth', 'Last Month');
+  }
+
+ private loadSummaryForRange(
+  cardKey: 'last7' | 'thisMonth' | 'lastMonth',
+  dateRange: 'Last 7 Days' | 'This Month' | 'Last Month'
+): void {
+
+  const currentDate = new Date();
+  const dateFormat = 'YYYY-MM-DD';
+
+  let fromDate: Date;
+  let toDate: Date;
+
+  const timesheetObj = new Timesheet();
+  timesheetObj.empId = this.currentUser.empId;
+
+  if (dateRange === 'Last 7 Days') {
+
+    const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+    const from = new Date(currentDate.getTime() - 1 * DAY_IN_MS);
+    const to = new Date(currentDate.getTime() - 7 * DAY_IN_MS);
+
+    fromDate = from;
+    toDate = to;
+
+    timesheetObj.startDate = moment(toDate).format(dateFormat);
+    timesheetObj.endDate = moment(fromDate).format(dateFormat);
+
+  } else if (dateRange === 'This Month') {
+
+    fromDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    toDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
+    timesheetObj.startDate = moment(fromDate).format(dateFormat);
+    timesheetObj.endDate = moment(toDate).format(dateFormat);
+
+  } else {
+
+    fromDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+    toDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
+
+    timesheetObj.startDate = moment(fromDate).format(dateFormat);
+    timesheetObj.endDate = moment(toDate).format(dateFormat);
+  }
+
+  this.timesheetService
+    .getMyTimesheetSummary(timesheetObj)
+    .pipe(first())
+    .subscribe(
+      (response: any) => {
+
+        const card = this.summaryCards.find(c => c.key === cardKey);
+
+        if (
+          card &&
+          response &&
+          response.serviceStatus === 'Success' &&
+          response.serviceResponse
+        ) {
+
+          const data = response.serviceResponse;
+
+          card.filled = data.totalFilled || 0;
+          card.approved = data.totalApproved || 0;
+          card.rejected = data.totalRejected || 0;
+        }
+      },
+      () => {
+
+        const card = this.summaryCards.find(c => c.key === cardKey);
+
+        if (card) {
+          card.filled = 0;
+          card.approved = 0;
+          card.rejected = 0;
+        }
+      }
+    );
+}
   preventBackButton() {
     history.pushState(null, null, location.href);
     this.locationStrategy.onPopState(() => {
@@ -748,15 +882,21 @@ get tooltipCta(): string {
 
     this.page = 1;
 
-    this.startDate = null;
-    this.endDate = null;
-
+    // Reset filters and table state
     this.allMyTimesheets = [];
     this.data = '';
-
     this.filters = {};
     this.isSearchEnabled = false;
     this.setStartDateMinMax();
+
+    // Default date range: first day of current month to today
+    const today = new Date();
+    const fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
+    this.startDate = moment(fromDate).format(AppComponent.DB_DATE_FORMAT);
+    this.endDate = moment(today).format(AppComponent.DB_DATE_FORMAT);
+
+    // Load timesheets for default range
+    this.getAllMyTimesheetsByEmpId();
   }
 
   showTeamTimesheets() {
@@ -765,17 +905,20 @@ get tooltipCta(): string {
 
     this.page = 1;
 
-    this.startDate = null;
-    this.endDate = null;
-
+    // Reset filters and table state
     this.allMyTimesheets = [];
     this.data = '';
-
     this.filters = {};
     this.isSearchEnabled = false;
 
     this.teamMemberList = [];
     this.setStartDateMinMax();
+
+    // Default date range: first day of current month to today
+    const today = new Date();
+    const fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
+    this.startDate = moment(fromDate).format(AppComponent.DB_DATE_FORMAT);
+    this.endDate = moment(today).format(AppComponent.DB_DATE_FORMAT);
 
     let employeeObj = new Employee();
     employeeObj.empId = this.currentUser.empId;
@@ -4396,15 +4539,26 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
   getTotalLocationHours(location: any): string {
     if (location.locationInTime && location.locationOutTime) {
       // Handle both "HH:mm" and "HH:mm:ss" formats from backend
-      const inTime = moment(location.locationInTime, ['HH:mm:ss', 'HH:mm'], true);
-      const outTime = moment(location.locationOutTime, ['HH:mm:ss', 'HH:mm'], true);
+      const inTime = moment(location.locationInTime, [
+        'YYYY-MM-DD HH:mm:ss.S',
+        'YYYY-MM-DD HH:mm:ss',
+        'HH:mm:ss', 
+        'HH:mm'], true);
+      const outTime = moment(location.locationOutTime, [
+        'YYYY-MM-DD HH:mm:ss.S',
+        'YYYY-MM-DD HH:mm:ss',
+        'HH:mm:ss', 
+        'HH:mm'], true);
       if (inTime.isValid() && outTime.isValid()) {
         const diffMinutes = outTime.diff(inTime, 'minutes');
         const adjustedDiff = diffMinutes < 0 ? diffMinutes + 1440 : diffMinutes;
+        console.log("adjustedDiff",adjustedDiff)
         return (adjustedDiff / 60).toFixed(2);
+        // return this.getTotalWorkingHours(adjustedDiff);
       }
     }
     // Fallback: sum activity hours when in/out times are null (e.g. non-fillable days)
+    console.log("Logging out side")
     const totalActivityHours = this.getTotalLocationActivityHours(location);
     return totalActivityHours > 0 ? totalActivityHours.toFixed(2) : '0.00';
   }
@@ -4457,9 +4611,17 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
   /**
    * Get total working hours from minutes
    */
-  getTotalWorkingHours(minutes: number): string {
+  getTotalWorkingHours(minutes: number,isActivity:boolean): string {
     if (!minutes) return '0.00';
-    return (minutes / 60).toFixed(2);
+    if(!isActivity){
+      const time:number = Number((minutes / 60).toFixed(2));
+      const hours = Math.floor(time);
+      const minute = Math.round((time - hours) * 60);
+      return `${hours}:${minute.toString().padStart(2, '0')}`;
+    }
+    else{
+      return (minutes / 60).toFixed(2);
+    }
   }
 
   /**

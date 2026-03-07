@@ -39,50 +39,36 @@
             </div>
 
             <div class="card-body-v2">
-                <!-- APPLICATION TYPE - Redesigned -->
+                <!-- APPLICATION TYPE - Simple radios -->
                 <div class="form-section-v2">
                     <label class="form-label-v2">
                         <span class="required-mark">*</span>
                         Timesheet Application For
                     </label>
 
-                    <div class="radio-cards-container">
-                        <label class="radio-card-v2" [class.selected]="timesheetAppliedFor === 'self'" [class.disabled]="isUpdation">
-                            <input type="radio" name="timesheetFor" value="self" 
-                                [(ngModel)]="timesheetAppliedFor" 
+                    <div class="radio-group-simple">
+                        <label class="radio-simple">
+                            <input
+                                type="radio"
+                                name="timesheetFor"
+                                value="self"
+                                [(ngModel)]="timesheetAppliedFor"
                                 (ngModelChange)="onTimesheetAppliedForChange()"
-                                [disabled]="isUpdation" />
-                            <div class="radio-card-content">
-                                <div class="radio-card-icon">
-                                    <i class="fa fa-user"></i>
-                                </div>
-                                <div class="radio-card-text">
-                                    <span class="radio-card-title">Self</span>
-                                    <span class="radio-card-desc">Fill timesheet for yourself</span>
-                                </div>
-                                <div class="radio-card-check">
-                                    <i class="fa fa-check-circle"></i>
-                                </div>
-                            </div>
+                                [disabled]="isUpdation"
+                            />
+                            <span>Self</span>
                         </label>
 
-                        <label class="radio-card-v2" [class.selected]="timesheetAppliedFor === 'team'" [class.disabled]="isUpdation">
-                            <input type="radio" name="timesheetFor" value="team" 
-                                [(ngModel)]="timesheetAppliedFor" 
+                        <label class="radio-simple">
+                            <input
+                                type="radio"
+                                name="timesheetFor"
+                                value="team"
+                                [(ngModel)]="timesheetAppliedFor"
                                 (ngModelChange)="onTimesheetAppliedForChange()"
-                                [disabled]="isUpdation" />
-                            <div class="radio-card-content">
-                                <div class="radio-card-icon team-icon">
-                                    <i class="fa fa-users"></i>
-                                </div>
-                                <div class="radio-card-text">
-                                    <span class="radio-card-title">Team Member</span>
-                                    <span class="radio-card-desc">Fill for a team member</span>
-                                </div>
-                                <div class="radio-card-check">
-                                    <i class="fa fa-check-circle"></i>
-                                </div>
-                            </div>
+                                [disabled]="isUpdation"
+                            />
+                            <span>Team Member</span>
                         </label>
                     </div>
                 </div>

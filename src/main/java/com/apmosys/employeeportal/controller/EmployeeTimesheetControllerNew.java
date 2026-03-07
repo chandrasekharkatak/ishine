@@ -74,6 +74,9 @@ public class EmployeeTimesheetControllerNew {
 
 	@Autowired
 	TimesheetDocumentServiceNew timesheetDocumentServiceNew;
+
+	@Autowired
+	com.apmosys.employeeportal.service.TimesheetService timesheetService;
 	
 	@Value("${timesheet.minus.days.for.bulk.upload}")
 	private Integer minusDays;
@@ -169,6 +172,16 @@ public class EmployeeTimesheetControllerNew {
         }
 
         return timesheetServiceNew.updateTimesheet(timesheetId, dto, documents);
+    }
+    
+    /**
+     * Lightweight summary API used by My Timesheets mini dashboard.
+     * Returns totalFilled, totalApproved, totalRejected for given empId and date range.
+     */
+    @JobRoleAccess(featureIds = {15, 16, 24})
+    @PostMapping("/summary")
+    public ServiceResponse getMyTimesheetSummary(@RequestBody com.apmosys.employeeportal.dto.TimesheetDTO timesheetDTO) {
+        return timesheetService.getMyTimesheetSummary(timesheetDTO);
     }
 	
 	/**

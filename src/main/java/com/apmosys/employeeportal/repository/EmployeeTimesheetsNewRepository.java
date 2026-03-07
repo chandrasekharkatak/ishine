@@ -14099,6 +14099,19 @@ Integer getTotalEmployeeCountForClientApplicable(
 	"where etn.emp_id = :empId and etn.date between :start and :end",nativeQuery = true )
 	List<Object[]> getNewTimesheetDetails(@Param("empId") Long empId, @Param("start") LocalDate start, @Param("end") LocalDate end);
 
+	/**
+	 * Lightweight summary counts for mini dashboard on My Timesheets page.
+	 * Returns one row with: totalFilled, totalApproved, totalRejected.
+	 */
+	@Query(value = "SELECT \n" +
+			"  COUNT(*) AS total_filled,\n" +
+			"  SUM(CASE WHEN etn.status = 2 THEN 1 ELSE 0 END) AS total_approved,\n" +
+			"  SUM(CASE WHEN etn.status = 3 THEN 1 ELSE 0 END) AS total_rejected\n" +
+			"FROM employee_timesheets_new etn\n" +
+			"WHERE etn.emp_id = :empId AND etn.date BETWEEN :start AND :end", nativeQuery = true)
+	Object[] getTimesheetSummaryCounts(@Param("empId") Long empId, @Param("start") LocalDate start,
+			@Param("end") LocalDate end);
+
 	
 	
 //	@Query( value ="WITH Base_List_Data AS(\n"

@@ -51,6 +51,110 @@
 }
 
 /* ============================================
+   SUMMARY DASHBOARD (Mini cards above table)
+   ============================================ */
+
+.summary-dashboard {
+  background-color: var(--ts-bg-card);
+  border-radius: var(--ts-radius-md);
+  padding: 12px 16px;
+  box-shadow: var(--ts-shadow-md);
+}
+
+.summary-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ts-text);
+}
+
+.summary-card-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.summary-card {
+  flex: 1 1 220px;
+  min-width: 0;
+  background: linear-gradient(135deg, var(--ts-bg-subtle) 0%, rgba(37, 99, 235, 0.04) 100%);
+  border-radius: var(--ts-radius-md);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--ts-shadow-sm);
+}
+
+.summary-card-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.summary-card-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ts-text-muted);
+}
+
+.summary-card-value {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--ts-text);
+}
+
+.summary-card-subtitle {
+  font-size: 0.8rem;
+  color: var(--ts-text-muted);
+}
+
+.summary-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  background: rgba(59, 130, 246, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.summary-card-icon i {
+  font-size: 18px;
+  color: var(--ts-primary-light);
+}
+
+.summary-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-right: 6px;
+}
+
+.summary-pill-approved {
+  background: rgba(13, 148, 136, 0.08);
+  color: var(--ts-success-dark);
+}
+
+.summary-pill-rejected {
+  background: var(--ts-danger-soft);
+  color: var(--ts-danger);
+}
+
+@media (max-width: 768px) {
+  .summary-dashboard {
+    padding: 10px 12px;
+  }
+
+  .summary-card {
+    flex: 1 1 100%;
+  }
+}
+
+/* ============================================
    CARD-BASED ACCORDION TIMESHEET VIEW STYLES
    ============================================ */
 

@@ -561,7 +561,10 @@ public class HolidayService {
         tsHeader.setTotalWorkingMinutes(0);
         tsHeader.setCreatedBy(emp.getEmpId());
         tsHeader.setCreatedOn(LocalDateTime.now());
-
+        Long managerId = "Reporting Manager".equals(emp.getApprovalsTo())
+                ? emp.getReportingManagerId()
+                : emp.getManagerId();
+        tsHeader.setCurrentManagerId(managerId);
         if ("Festival".equalsIgnoreCase(holidayObj.getHolidayType())) {
             tsHeader.setDayTypeId(2);
             tsHeader.setDescription("Public Holiday : " + holidayObj.getOccasion());
