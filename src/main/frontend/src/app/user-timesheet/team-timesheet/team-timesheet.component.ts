@@ -1774,6 +1774,9 @@ sortData(sort: Sort) {
       .map(row => row.timesheetId)
       .filter(id => id != null);
   }
+  getSelectedTimesheets(): any[] {
+  return this.selectedRows.filter(row => row?.timesheetId != null);
+}
 
 
   // bulkReject1(template: TemplateRef<any>) {
@@ -2520,11 +2523,36 @@ projectList: any[] = [];
 
 // }
 
+getBulkDocumentDetails(timesheets: any[]) {
 
+  const docs: any[] = [];
+
+  timesheets.forEach((ts: any) => {
+
+    (ts.documentData || []).forEach((doc: any) => {
+
+      docs.push({
+        timesheetId: ts.timesheetId,
+        projectId: doc.docsProjectId,
+        docId: doc.docId,
+        bulkApprovedDocId: doc.bulkApprovedDocId
+      });
+
+    });
+
+  });
+
+  return docs;
+}
   // BULK APPROVAL
   bulkApproveByIds(confirmNightShift: boolean = false, ids?: number[]) {
 
-    const timesheetIds  = ids || this.getSelectedTimesheetIds();
+    // const timesheetIds  = ids || this.getSelectedTimesheetIds();
+     const selectedTimesheets = ids
+    ? this.getSelectedTimesheets().filter(ts => ids.includes(ts.timesheetId))
+    : this.getSelectedTimesheets();
+
+  const timesheetIds = selectedTimesheets.map(ts => ts.timesheetId);
     if (!timesheetIds.length) return;
 
     const payload = {
@@ -2532,7 +2560,8 @@ projectList: any[] = [];
       status: 'APPROVED',
       updatedBy: this.currentUser.empId,
       rmId : this.currentUser.empId,
-      confirmNightShift
+      confirmNightShift,
+      documentDetails: this.getBulkDocumentDetails(selectedTimesheets)
     };
 
     this.loaderService.requestStarted();
@@ -2700,7 +2729,8 @@ approveSingleTimesheet(timesheet: any) {
     timesheetIds: [timesheet.timesheetId],
     status: 'APPROVED',
     updatedBy: this.currentUser.empId,
-    rmId: this.currentUser.empId
+    rmId: this.currentUser.empId,
+    documentDetails: this.getBulkDocumentDetails([timesheet])
   };
 
   this.loaderService.requestStarted();

@@ -48,7 +48,8 @@ import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetProjectsDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqDTO;
 	import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO;
-	import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO;
 	import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqDTO;
 	import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO;
 	import com.apmosys.employeeportal.model.Employee;
@@ -1995,6 +1996,14 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 
         List<SkippedTimesheetDTO> skippedTimesheets = new ArrayList<>();
         List<Long> validTimesheetIds = new ArrayList<>();
+		 Map<Long, List<TimesheetDocumentDataDTO>> docsByTimesheet =
+                request.getDocumentDetails() == null
+                        ? new HashMap<>()
+                        : request.getDocumentDetails()
+                                .stream()
+                                .collect(Collectors.groupingBy(
+                                        TimesheetDocumentDataDTO::getTimesheetId
+                                ));
 
         for (EmployeeTimesheetsNewDTO ts : timesheets) {
 
@@ -2022,6 +2031,32 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 				));
 				continue; // skip further checks for this timesheet
 			}
+
+			List<TimesheetDocumentDataDTO> docs =
+                    docsByTimesheet.get(ts.getTimesheetId());
+
+            if (docs != null) {
+
+                boolean clientApprovalPending =
+                        docs.stream()
+                                .anyMatch(d ->
+                                        d.getDocId() != null &&
+                                        d.getBulkApprovedDocId() == null
+                                );
+
+                if (clientApprovalPending) {
+
+                    skippedTimesheets.add(new SkippedTimesheetDTO(
+                            ts.getTimesheetId(),
+                            formattedEmpId,
+                            ts.getDate(),
+                            "Client document approval pending"
+                    ));
+
+                    continue;
+                }
+            }
+			
             Integer tsStatus = ts.getStatus();
 
 			if (tsStatus == null) {

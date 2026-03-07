@@ -3,6 +3,8 @@ package com.apmosys.employeeportal.dto;
 import java.util.List;
 import java.util.Map;
 
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
+
 import lombok.Data;
 
 @Data
@@ -14,4 +16,5 @@ public class BulkTimesheetRequestDTO {
     private Long rmId;
     private List<ProjectRejectionDTO> projectRejections;
     private boolean confirmNightShift;
+    private List<TimesheetDocumentDataDTO> documentDetails;
 }
