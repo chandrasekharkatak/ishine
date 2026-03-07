@@ -20,7 +20,7 @@ public class CustomRevisionEntityListener implements RevisionListener {
                 .getAuthentication();
 
         if (auth == null || auth.getName() == null) {
-            return 0L; // system / cron job
+            return 1L; // system / cron job
         }
 
         try {

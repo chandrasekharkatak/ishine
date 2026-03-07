@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import com.apmosys.employeeportal.model.*;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,8 @@ import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
+import com.apmosys.employeeportal.enums.DayTypeCode;
+import com.apmosys.employeeportal.repository.DayTypeMasterNewRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetLocationMappingRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
@@ -69,6 +72,9 @@ public class HolidayService {
 
     @Autowired
 	JobRoleRepository jobRoleRepository;
+
+    @Autowired
+    private DayTypeMasterNewRepository dayTypeMasterNewRepository;
 
 	@Transactional
 	public ServiceResponse addHoliday(HolidayDTO holidayDTO) {
@@ -513,12 +519,29 @@ public class HolidayService {
 		    LocalDateTime startOfDay = holidayDate.atStartOfDay();
             LocalDateTime endOfDay = holidayDate.atTime(LocalTime.MAX);
             int savedCount = 0;
+            
+            DayTypeMasterNew holidayDayType = dayTypeMasterNewRepository
+                    .findByDayType(DayTypeCode.APMOSYS_HOLIDAY.getDbValue());
+            DayTypeMasterNew weekoffDayType = dayTypeMasterNewRepository
+                    .findByDayType(DayTypeCode.WEEK_OFF.getDbValue());
 
+            if (holidayDayType == null) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("DayType '" + DayTypeCode.HOLIDAY.getDbValue()
+                        + "' not found in day_type_master_new.");
+                return response;
+            }
+            if (weekoffDayType == null) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("DayType '" + DayTypeCode.WEEK_OFF.getDbValue()
+                        + "' not found in day_type_master_new.");
+                return response;
+            }
 				if(!allEmployees.isEmpty()) {
 					for (Employee emp : allEmployees) {
 						if (!existingEmpIds.contains(emp.getEmpId())) {
 
-							saveRelationalLeaveTimesheet(emp, holidayDate, holidayObj, startOfDay, endOfDay);
+							saveRelationalLeaveTimesheet(emp, holidayDate, holidayObj, startOfDay, endOfDay, holidayDayType, weekoffDayType);
                             savedCount++;
 						}
 					}
@@ -551,10 +574,27 @@ public class HolidayService {
 	
 	 // method called when holiday is filled using reconsileholiday so the holiday context is saved and not leave
     void saveRelationalLeaveTimesheet(Employee emp, LocalDate date, Holiday holidayObj,
-            LocalDateTime startOfDay, LocalDateTime endOfDay) {
+            LocalDateTime startOfDay, LocalDateTime endOfDay, DayTypeMasterNew holidayDayType, DayTypeMasterNew weekoffDayType) {
+        int resolvedDayTypeId;
+        String tsDescription;
+        if ("Festival".equalsIgnoreCase(holidayObj.getHolidayType())
+                || "nonWorking".equalsIgnoreCase(holidayObj.getHolidayType())) {
+            resolvedDayTypeId = holidayDayType.getDayTypeId();
+            tsDescription = holidayDayType.getDayType() + " : " + holidayObj.getOccasion();
 
+        } else if ("WeekOff".equalsIgnoreCase(holidayObj.getHolidayType())) {
+            resolvedDayTypeId = weekoffDayType.getDayTypeId();
+            String day = holidayObj.getDayOfTheWeek().toLowerCase().contains("saturday")
+                    ? "Saturday"
+                    : "Sunday";
+            tsDescription = weekoffDayType.getDayType() + " : " + day;
+
+        } else {
+            resolvedDayTypeId = 0;
+            tsDescription = holidayObj.getDayOfTheWeek();
+        }
         EmployeeTimesheetsNew tsHeader = new EmployeeTimesheetsNew();
-        tsHeader.setEmpId(emp.getEmpId());
+        tsHeader.setEmpId(1L);
         tsHeader.setDate(date);
         tsHeader.setIsNightShift(false);
         tsHeader.setStatus(2);
@@ -565,16 +605,8 @@ public class HolidayService {
                 ? emp.getReportingManagerId()
                 : emp.getManagerId();
         tsHeader.setCurrentManagerId(managerId);
-        if ("Festival".equalsIgnoreCase(holidayObj.getHolidayType())) {
-            tsHeader.setDayTypeId(2);
-            tsHeader.setDescription("Public Holiday : " + holidayObj.getOccasion());
-        } else if ("WeekOff".equalsIgnoreCase(holidayObj.getHolidayType())) {
-            tsHeader.setDayTypeId(4);
-            String desc = holidayObj.getOccasion().toLowerCase().contains("saturday")
-                    ? "WeekOff : Saturday"
-                    : "WeekOff : Sunday";
-            tsHeader.setDescription(desc);
-        }
+        tsHeader.setDayTypeId(resolvedDayTypeId);
+        tsHeader.setDescription(tsDescription);
 
         tsHeader = employeeTimesheetsNewRepository.save(tsHeader);
         Long newTsId = tsHeader.getTimesheetId();
@@ -597,6 +629,7 @@ public class HolidayService {
                 projectDTO.setProjectId(projDto.getProjectId());
                 projectDTO.setStatus(2);
                 projectDTO.setActivities(null);
+                 projectDTO.setDescription(tsDescription);
                 projectTimesheetService.create(newTsId, projectDTO, emp.getEmpId());
             }
         } else {
@@ -605,7 +638,7 @@ public class HolidayService {
             defaultProject.setLocationMappingId(locMapping.getLocationMappingId());
             defaultProject.setStatus(2);
             defaultProject.setActivities(null);
-
+            defaultProject.setDescription(tsDescription);
             int resolvedProjectId = 0; // fallback if still not found
 
             if (emp.getJobRoleId() != null) {
