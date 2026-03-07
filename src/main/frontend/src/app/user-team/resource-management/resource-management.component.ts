@@ -235,6 +235,7 @@ export class ResourceManagementComponent implements OnInit {
 
   currentTeam: any;
   selectedProjToReject: any;
+  projectRejectionReason:string = '';
   currentProjectId: any;
   selectedProjectManager: any;
   excelName: any;
@@ -1820,15 +1821,15 @@ export class ResourceManagementComponent implements OnInit {
     });
   }
 
-  onRejectProject(project: any) {
+  onRejectProject() {
     let projObj = this.selectedProjToReject;
     projObj.empId = this.currentUser.empId;
-    projObj.rejectReason = project.rejectReason;
-    if (project.poProjectType != null) {
-      project.projectType = project.poProjectType;
-    } else {
-      project.projectType = "Internal";
-    }
+    projObj.rejectReason = this.projectRejectionReason;
+    // if (this.selectedProjToReject.poProjectType != null) {
+    //   project.projectType = this.selectedProjToReject.poProjectType;
+    // } else {
+    //   project.projectType = "Internal";
+    // }
 
     this.resourceManagementService.rejectPendingProject(projObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1841,6 +1842,7 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   openRejectProjectModal(projectObj: any) {
+    this.projectRejectionReason = null;
     this.selectedProjToReject = projectObj;
     this.rejectProjectModalRef = this.modalService.open(this.rejectProjectTemplateRef, { modalDialogClass: 'modal-lg' });
   }
@@ -1932,11 +1934,6 @@ export class ResourceManagementComponent implements OnInit {
           this.showProjectConfiguration();
         }
       }
-      console.log('Project Obj:', this.rmgProjectObj);
-      console.log('Departments:', this.allDeptList);
-      console.log('Managers:', this.managerList);
-      console.log('Overhead:', this.overheadList);
-      console.log('Employees:', this.employeeList);
     });
   }
 

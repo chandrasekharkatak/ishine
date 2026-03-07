@@ -100,12 +100,14 @@ import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.RmAndHodEmailDto;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.enums.DayTypeCode;
 import com.apmosys.employeeportal.model.BiomaxDefaulter;
 import com.apmosys.employeeportal.model.BiomaxRequest;
 import com.apmosys.employeeportal.model.BirthdayMail;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.ClientLocation;
 import com.apmosys.employeeportal.model.CompOffLeave;
+import com.apmosys.employeeportal.model.DayTypeMasterNew;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.EmployeeLeave;
@@ -158,6 +160,9 @@ public class CronJobService {
 
 
 	//end of rahul
+
+    @Autowired
+    private DayTypeMasterNewRepository dayTypeMasterNewRepository;
 
 	@Autowired
 	LeaveTypeMasterRepository leaveTypeMasterRepository;
@@ -1467,13 +1472,32 @@ public class CronJobService {
 //		}
 
 		// 0 0 12 ? * * - At 12:00:00pm every day
-	@Scheduled(cron = "0 1 00 ? * *")
+	@Scheduled(cron = "0 03 19 ? * *")
 	public void automaticTimesheetFiller() {
 
 	    System.out.println("Cron----**********----started");
 
 	    try {
+        
+            DayTypeMasterNew holidayDayType = dayTypeMasterNewRepository
+                    .findByDayType(DayTypeCode.APMOSYS_HOLIDAY.getDbValue());
+            DayTypeMasterNew weekoffDayType = dayTypeMasterNewRepository
+                    .findByDayType(DayTypeCode.WEEK_OFF.getDbValue());
 
+            if (holidayDayType == null) {
+                System.out.println("ERROR: DayType '" + DayTypeCode.HOLIDAY.getDbValue()
+                        + "' not found in day_type_master_new. Aborting cron.");
+                return;
+            }
+            if (weekoffDayType == null) {
+                System.out.println("ERROR: DayType '" + DayTypeCode.WEEK_OFF.getDbValue()
+                        + "' not found in day_type_master_new. Aborting cron.");
+                return;
+            }
+            System.out.println("DayType verification passed — Holiday: " + holidayDayType.getDayType()
+                    + " (id=" + holidayDayType.getDayTypeId() + ")"
+                    + ", WeekOff: " + weekoffDayType.getDayType()
+                    + " (id=" + weekoffDayType.getDayTypeId() + ")");
 	        LocalDate dateToday = LocalDate.now();
 	        LocalDateTime dateTimeToday = LocalDateTime.now();
 
@@ -1579,7 +1603,7 @@ public class CronJobService {
                     Employee emp = employeeMap.get(entry.getKey());
                     if (emp != null) {
                         holidayService.saveRelationalLeaveTimesheet(emp, dateToday, entry.getValue(), startOfDay,
-                                endOfDay);
+                                endOfDay ,holidayDayType,weekoffDayType );
                     }
                 }
 

@@ -14254,13 +14254,13 @@ Integer getTotalEmployeeCountForClientApplicable(
 			+ "            OR :clientFilter = FALSE\n"
 			+ "            OR p.has_client_side_id = TRUE\n"
 			+ "          )\n"
-			+ "      AND EXISTS (\n"
-			+ "            SELECT 1\n"
-			+ "            FROM teams t\n"
-			+ "            JOIN employee_team_mapping etm ON etm.team_id = t.team_id\n"
-			+ "            WHERE t.project_id = p.project_id\n"
-			+ "              AND etm.emp_id = e.emp_id\n"
-			+ "          )\n"
+			// + "      AND EXISTS (\n"
+			// + "            SELECT 1\n"
+			// + "            FROM teams t\n"
+			// + "            JOIN employee_team_mapping etm ON etm.team_id = t.team_id\n"
+			// + "            WHERE t.project_id = p.project_id\n"
+			// + "              AND etm.emp_id = e.emp_id\n"
+			// + "          )\n"
 			+ ") x\n"
 			+ "LEFT JOIN status_master_new sm ON sm.status_id = x.status\n"
 			+ "GROUP BY x.status, sm.status;", nativeQuery = true
@@ -16989,6 +16989,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				    "     ) LIKE LOWER(CONCAT('%', :employmentId, '%')) ) " +
 
 				    "AND ( :employeeName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :employeeName, '%')) ) " +
+					"AND ( :employmentId IS NULL OR LOWER(e.employeement_id) LIKE LOWER(CONCAT('%', :employmentId, '%')) ) " +
 				    "AND ( :dayType IS NULL OR LOWER(dtmn.day_type) LIKE LOWER(CONCAT('%', :dayType, '%')) ) " +
 				    "AND ( :projectName IS NULL OR LOWER(p.project_name) LIKE LOWER(CONCAT('%', :projectName, '%')) ) " +
 				    "AND ( :clientName IS NULL OR LOWER(c.client_name) LIKE LOWER(CONCAT('%', :clientName, '%')) ) " +
@@ -17075,7 +17076,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				"    ab.name, etn.createdOn, \n" +
 				"    wltm.code, etlm.locationInTime, etlm.locationOutTime, etlm.locationMappingId, \n" +
 				"    ptsn.id.timesheetId, etamn.locationMappingId, ptsn.id.projectId, \n" +
-				"    p.projectName, c.clientName, cl.clientLocation, \n" +
+				"    p.projectName, c.clientName, cl.clientLocation, ptsn.clientApprovalStatus,\n" +
 				"    ptsn.poNo, es.name, ptsn.status, ptsn.totalClientWorkingMinutes, ptsn.description, \n" +
 				"    etamn.timesheetId, etamn.locationMappingId, etamn.projectId, \n" +
 				"    a.activity, etamn.description, etamn.durationMinutes, \n" +
@@ -17126,7 +17127,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				+ "    ON dmtmn.mimeTypeId = tddn.mimeTypeId \n" +
 
 				"LEFT JOIN TimesheetRejectionDetailsNew trdn \n" +
-				"       ON (:status = 3 AND trdn.timesheetId = ptsn.id.timesheetId \n" +
+				"       ON (:status = 3 AND trdn.isActive IS true AND trdn.timesheetId = ptsn.id.timesheetId \n" +
 				"           AND trdn.locationMappingId = etamn.locationMappingId \n" +
 				"           AND trdn.projectId = ptsn.id.projectId) \n" +
 

@@ -4717,6 +4717,11 @@ tr[app-column-filter-bar] .clear-filter:hover {
   user-select: none;
   pointer-events: none;
 }
+.ts-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  /* pointer-events: none; */
+}
 
 .image-scroll-container {
   position: relative;

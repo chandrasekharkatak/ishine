@@ -72,6 +72,7 @@ export class RmgProjectComponent implements OnInit {
     @ViewChild("project_milestone_document") projectMilestoneDocumentTemplateRef: TemplateRef<any>;
     @ViewChild("mark_complete_fc_project") markCompleteFCProjectTemplateRef: TemplateRef<any>;
     @ViewChild("team_member_details_preview") teamMemberDetailsPreviewTemplateRef: TemplateRef<any>;
+    @ViewChild("existing_employee_project_timesheet_info") existingEmployeeProjectTimesheetInfoTemplateRef: TemplateRef<any>;
 
     alertMessageModalRef: NgbModalRef;
     migrateTeamModalRef: NgbModalRef;
@@ -91,6 +92,8 @@ export class RmgProjectComponent implements OnInit {
     projectMilestoneDocumentModalRef: NgbModalRef;
     markCompleteFCProjectModalRef: NgbModalRef;
     teamMemberDetailsPreviewModalRef: NgbModalRef;
+    existingEmployeeProjectTimesheetInfoModalRef: NgbModalRef;
+
 
     currentUser: User;
     userMapping: any = {};
@@ -138,6 +141,7 @@ export class RmgProjectComponent implements OnInit {
     mappingToOtherProjectAsDefaultList: RmgTeamMember[] = [];
     markDefaultProjectCompletionList: RmgTeamMember[] = [];
     teamMigrationTeamMembersList: RmgTeamMember[] = [];
+    existingEmployeeProjectTimesheetEntries: any[] = [];
 
     // Maps for caching
     projectIdPoListMap = new Map<number, PoDetails[]>();
@@ -190,8 +194,11 @@ export class RmgProjectComponent implements OnInit {
     currentTeamMemberSortDirection: string = 'asc';
     currentTeamMemberFilters: any = {};
     currentTeamMemberSearchOnEnter: boolean = true;
-    rmgCurrentTeamMemberColumnList: any[] = ['blank', 'blank', 'employementId', 'memberName', 'poNo', 'displayRequirement', 'blank', 'empTeamDepartmentName', 'blank', 'blank', 'blank'];
-    rmgCurrentTeamMemberColumnListForInternal: any[] = ['blank', 'blank', 'employementId', 'memberName', 'blank', 'empTeamDepartmentName', 'blank', 'blank', 'blank'];
+    rmgCurrentTeamMemberColumnList: any[] = ['blank', 'blank', 'employementId', 'memberName', 'poNo', 'displayRequirement', 'blank', 'empTeamDepartmentName', 'blank', 'blank', 'blank', 'blank'];
+    rmgCurrentTeamMemberColumnListForInternal: any[] = ['blank', 'blank', 'employementId', 'memberName', 'blank', 'empTeamDepartmentName', 'blank', 'blank', 'blank', 'blank'];
+    rmgCurrentTeamMemberColumnListPreview: any[] = ['blank', 'employementId', 'memberName', 'poNo', 'displayRequirement', 'blank', 'empTeamDepartmentName', 'blank', 'blank', 'blank', 'blank'];
+    rmgCurrentTeamMemberColumnListForInternalPreview: any[] = ['blank', 'employementId', 'memberName', 'blank', 'empTeamDepartmentName', 'blank', 'blank', 'blank', 'blank'];
+
 
     // Migrate Team Member
     isMigrateTeamMemberSearchEnabled: boolean = false;
@@ -492,11 +499,21 @@ export class RmgProjectComponent implements OnInit {
             this.teamMemberDetailsPreviewModalRef?.close();
         }
     }
+
+    openExistingEmployeeProjectTimesheetInfoModal() {
+        this.existingEmployeeProjectTimesheetInfoModalRef = this.modalService.open(this.existingEmployeeProjectTimesheetInfoTemplateRef, { modalDialogClass: 'modal-md', backdrop: 'static', keyboard: false });
+    }
+
+    closeExistingEmployeeProjectTimesheetInfoModal() {
+        if (this.existingEmployeeProjectTimesheetInfoModalRef) {
+            this.existingEmployeeProjectTimesheetInfoModalRef?.close();
+        }
+    }
     // Modals End
 
     // Validation Methods Starts
     isValidList(list: any) {
-        return this.validationService.validateNullUndefinedEmptyList(list);
+        return Array.isArray(list) && this.validationService.validateNullUndefinedEmptyList(list);
     }
 
     isValidString(string: any) {
@@ -727,15 +744,19 @@ export class RmgProjectComponent implements OnInit {
         rmgTeam.newRmgTeamMember = new RmgTeamMember();
         rmgTeam.newRmgTeamMember.isNotSaved = true;
         rmgTeam.rmgCurrentTeamMemberList = rmgTeam?.rmgTeamMemberList?.filter(teamMember => {
-            return teamMember.isMemberActive != 0
+            return teamMember.isMemberActive != 0 || moment(teamMember.startDate).format('YYYY-MM-DD') >= moment(new Date()).format('YYYY-MM-DD')
         }) || [];
+
+        if(!this.isValidList(rmgTeam.rmgCurrentTeamMemberList)){
+            this.toggleAddNewMember(rmgTeam);
+        }
 
         // Removing all the members from the list that are in the current team 
         let empIdList = rmgTeam?.rmgCurrentTeamMemberList?.map(emp => emp.empId) || [];
         this.employeeListFilteredByDept = this.employeeListFilteredByDept?.filter(emp => !empIdList.includes(emp?.empId));
 
         rmgTeam.rmgOldTeamMemberList = rmgTeam?.rmgTeamMemberList?.filter(teamMember => {
-            return teamMember.isMemberActive == 0
+            return teamMember.isMemberActive == 0 && moment(teamMember.startDate).format('YYYY-MM-DD') < moment(new Date()).format('YYYY-MM-DD')
         }) || [];
     }
 
@@ -757,7 +778,7 @@ export class RmgProjectComponent implements OnInit {
 
     addNewObject(team: RmgTeam) {
         team.newRmgTeamMember = new RmgTeamMember();
-        if (!this.isValidList(team.rmgTeamMemberList) && this.projectType !== 'TNM') {
+        if (!this.isValidList(team.rmgTeamMemberList)) {
             team.rmgTeamMemberList = [];
         }
     }
@@ -872,8 +893,7 @@ export class RmgProjectComponent implements OnInit {
         if (isNaN(date.getTime())) {
             return null;
         }
-
-        return moment(dateInput).format('YYYY-MM-DDTHH:mm:ss');
+        return moment(dateInput).startOf('day').format('YYYY-MM-DDTHH:mm:ss');
         // return new Date(date.getFullYear(), date.getMonth(), date.getDate());
     }
 
@@ -1267,6 +1287,9 @@ export class RmgProjectComponent implements OnInit {
             const response: any = await firstValueFrom(this.teamService.getActiveTeamDetailsByProjectId(this.rmgProjectObj?.projectId));
             if (response.serviceStatus === "Success") {
                 this.rmgProjectObj.teamDetailsList = response.serviceResponse || [];
+                if(!this.isValidList(this.rmgProjectObj.teamDetailsList)){
+                    this.toggleAddNewTeam();
+                }
                 this.setTeamDepartmentNames(this.rmgProjectObj?.teamDetailsList);
                 this.updateAddTeamButton();
                 this.updateTeamActionButton();
@@ -1684,8 +1707,9 @@ export class RmgProjectComponent implements OnInit {
     }
 
     async saveNewTeamMemberDetails() {
+        console.log(this.currentTeam.newRmgTeamMember);
         if (this.employeeExistingProjectDetails[0]?.billableType === 'TNM') {
-            const existingProjectFlag = await this.getEmployeeExistingProjectDetailsByEmpId(this.currentTeam.newRmgTeamMember.empId);
+            const existingProjectFlag = await this.getEmployeeExistingProjectDetailsByEmpId(this.currentTeam.newRmgTeamMember.empId,false);
             if (!existingProjectFlag) {
                 return;
             }
@@ -2015,26 +2039,38 @@ export class RmgProjectComponent implements OnInit {
         team.isAnyNewMemberAdded = team.rmgCurrentTeamMemberList.some(member => member.isNotSaved);
     }
 
-    onMemberStartDateChange(event: MatDatepickerInputEvent<Date>, member: RmgTeamMember) {
+    validateEmployeeProjectStartDate(event: MatDatepickerInputEvent<Date>, member: RmgTeamMember) {
+        this.existingEmployeeProjectTimesheetEntries = [];
         const selectedDate = this.normalizeDate(event.value);
         const projectStartDate = this.normalizeDate(this.rmgProjectObj.startDate);
         if (selectedDate < projectStartDate) {
-            // this.currentTeam.newRmgTeamMember.startDate = this.currentTeam.newRmgTeamMember.dbStartDate || null;
             this.openUpdateProjectStartDateErrorModal();
             return;
         }
-        member.projectId = this.rmgProjectObj.projectId;
-        member.projectStartDate = projectStartDate;
-
-        this.teamService.validateEmployeeTimesheetFilledToChangeStartDate(member).pipe(first()).subscribe((response: any) => {
+        let rmgMember = new RmgTeamMember();
+        rmgMember.empId = member.empId;
+        rmgMember.projectId = this.rmgProjectObj.projectId;
+        rmgMember.projectStartDate = projectStartDate;
+        rmgMember.projectType = this.projectType;
+        rmgMember.startDate = selectedDate;
+        this.teamService.validateEmployeeProjectStartDate(rmgMember).pipe(first()).subscribe((response: any) => {
             if (response.serviceStatus === "Success") {
-                if (response.serviceResponse !== 'No timesheet records found.') {
-                    this.openAlertMessageModal(response.serviceResponse);
+                if (response.serviceResponse === 'Conflicting timesheet records found.')  {
+                    this.existingEmployeeProjectTimesheetEntries = response?.serviceResponse2;
+                    this.openExistingEmployeeProjectTimesheetInfoModal();
                 }
             } else {
-                this.openAlertMessageModal(response.serviceResponse || "Something went wrong, unable to validate timesheet filled count at the moment for the updated start date!!");
+                this.openAlertMessageModal(response.serviceResponse || "Something went wrong, unable to validate the selected start date at the moment!!");
             }
         });
+    }
+
+    validateEmployeeProjectStartDateBulk(event: MatDatepickerInputEvent<Date>){
+
+    }
+
+    validateEmployeeProjectStartDateIndividual(event: MatDatepickerInputEvent<Date>, member: RmgTeamMember){
+
     }
 
     onMemberRemoveEndDateTypeChange(event: any) {
@@ -2241,19 +2277,24 @@ export class RmgProjectComponent implements OnInit {
         }
     }
 
-    async getEmployeeExistingProjectDetailsByEmpId(empId: any): Promise<boolean> {
+    async getEmployeeExistingProjectDetailsByEmpId(empId: any, resetObj:boolean): Promise<boolean> {
         this.employeeExistingProjectDetails = [];
         this.employeeExistingProjectDetailsPage = 1;
         this.employeeExistingProjectEmploymentId = this.employeeListFilteredByDept?.find(emp => emp?.empId === this.currentTeam.newRmgTeamMember?.empId)?.employmentId;
-        this.currentTeam.newRmgTeamMember.employementId = this.employeeExistingProjectEmploymentId;
         this.employeeExistingProjectEmpName = this.employeeListFilteredByDept?.find(emp => emp?.empId === this.currentTeam.newRmgTeamMember?.empId)?.name;
+        if(resetObj){
+            this.currentTeam.newRmgTeamMember = new RmgTeamMember();
+        }
+        this.currentTeam.newRmgTeamMember.empId=empId;
+        this.currentTeam.newRmgTeamMember.employementId = this.employeeExistingProjectEmploymentId;
         try {
             const response: any = await firstValueFrom(this.projectService.getEmployeeExistingProjectDetailsByEmpId(empId));
             if (response?.serviceStatus !== "Success") {
                 this.openAlertMessageModal(response?.serviceResponse || "Something went wrong!!");
                 return false;
             }
-            this.employeeExistingProjectDetails = this.mapEmployeeProjectDates(response.serviceResponse || []);
+            const projects = this.isValidList(response.serviceResponse) ? response.serviceResponse || [] : [];
+            this.employeeExistingProjectDetails = this.mapEmployeeProjectDates(projects);
             if (!this.isValidList(this.employeeExistingProjectDetails)) {
                 return true;
             }
@@ -2446,7 +2487,7 @@ export class RmgProjectComponent implements OnInit {
         this.deleteEmployeeExistingProjectMappingObj.rescRemovedBy = this.currentUser.empId;
         this.projectService.updateEmployeeProjectMappingAsInActive(this.deleteEmployeeExistingProjectMappingObj).pipe(first()).subscribe((response: any) => {
             if (response.serviceStatus == "Success") {
-                this.getEmployeeExistingProjectDetailsByEmpId(this.deleteEmployeeExistingProjectMappingObj.empId);
+                this.getEmployeeExistingProjectDetailsByEmpId(this.deleteEmployeeExistingProjectMappingObj.empId, true);
                 this.toastService.success(response.serviceResponse);
             } else {
                 this.toastService.error(response.serviceResponse);
@@ -2601,7 +2642,6 @@ export class RmgProjectComponent implements OnInit {
             if (res.documentContent && res.documentName) {
                 const fileType = this.getFileType(res.documentName);
                 const imageDataUrl = `data:${fileType};base64,${res.documentContent}`;
-                console.log("image url" + imageDataUrl)
                 this.dialog.open(ViewImageComponent, { width: '80%', data: { imageUrl: imageDataUrl, fileName: res.documentName } });
             } else {
                 this.openAlertMessageModal("Image is not available!!")

@@ -404,11 +404,18 @@
                     </th>
                 </tr>
                 <ng-container *ngIf="isCurrentTeamMemberSearchEnabled">
-                    <tr class="custom-filter-row" app-column-filter-bar *ngIf="!isInternalProject"
+                    <tr class="custom-filter-row" app-column-filter-bar *ngIf="!isInternalProject && (projectConfigStepperIndex != 2 && !isProjectPreview)"
                         [columnList]="rmgCurrentTeamMemberColumnList" (onSearch)="searchCurrentTeamMember($event)">
                     </tr>
-                    <tr class="custom-filter-row" app-column-filter-bar *ngIf="isInternalProject"
+                    <tr class="custom-filter-row" app-column-filter-bar *ngIf="isInternalProject && (projectConfigStepperIndex != 2 && !isProjectPreview)"
                         [columnList]="rmgCurrentTeamMemberColumnListForInternal"
+                        (onSearch)="searchCurrentTeamMember($event)">
+                    </tr>
+                     <tr class="custom-filter-row" app-column-filter-bar *ngIf="!isInternalProject && (projectConfigStepperIndex == 2 || isProjectPreview)"
+                        [columnList]="rmgCurrentTeamMemberColumnListPreview" (onSearch)="searchCurrentTeamMember($event)">
+                    </tr>
+                    <tr class="custom-filter-row" app-column-filter-bar *ngIf="isInternalProject && (projectConfigStepperIndex == 2 || isProjectPreview)"
+                        [columnList]="rmgCurrentTeamMemberColumnListForInternalPreview"
                         (onSearch)="searchCurrentTeamMember($event)">
                     </tr>
                 </ng-container>
@@ -433,7 +440,7 @@
                                 placeholder="Select Employee" [(ngModel)]="currentTeam.newRmgTeamMember.empId"
                                 [options]="employeeListFilteredByDept" [displayKey]="employeeDisplayArr"
                                 valueKey="empId" [multiple]="false" displaySeparator=" | "
-                                (change)="getEmployeeExistingProjectDetailsByEmpId(currentTeam.newRmgTeamMember.empId)">
+                                (change)="getEmployeeExistingProjectDetailsByEmpId(currentTeam.newRmgTeamMember.empId, true)">
                             </app-my-select>
                         </td>
                         <td class="min-width150 max-width200" *ngIf="!isInternalProject">
@@ -464,7 +471,7 @@
                         <td class="min-width150 max-width200">
                             <div class="date-input-wrapper">
                                 <input class="form-control date-input" [matDatepicker]="startDatepicker"
-                                    (dateChange)="onMemberStartDateChange($event, currentTeam.newRmgTeamMember)"
+                                    (dateChange)="validateEmployeeProjectStartDate($event, currentTeam.newRmgTeamMember)"
                                     [(ngModel)]="currentTeam.newRmgTeamMember.startDate"
                                     [disabled]="!currentTeam.newRmgTeamMember.empId" />
                                 <mat-icon class="calendar-icon"
@@ -540,7 +547,7 @@
                             <div class="date-input-wrapper">
                                 <input class="form-control date-input" [matDatepicker]="startDatepicker"
                                     [disabled]="projectConfigStepperIndex !== 1"
-                                    (dateChange)="onMemberStartDateChange($event, member)"
+                                    (dateChange)="validateEmployeeProjectStartDate($event, member)"
                                     [(ngModel)]="member.startDate" readonly />
                                 <mat-icon class="calendar-icon"
                                     (click)="startDatepicker.open()">calendar_today</mat-icon>
@@ -1041,11 +1048,11 @@
                     </h6>
                 </div>
                 <div class="col-md-1 d-flex justify-content-end">
-                    <button class="btn btn-sm btn-outline-primary" title="Close Team Details" *ngIf="!isProjectPreview"
+                    <button class="btn btn-sm btn-outline-primary" title="Close Team Details" *ngIf="projectConfigStepperIndex != 2 && !isProjectPreview"
                         (click)="hideTeamDetails()">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-primary" title="Close Team Details" *ngIf="isProjectPreview"
+                    <button class="btn btn-sm btn-outline-primary" title="Close Team Details" *ngIf="projectConfigStepperIndex == 2 || isProjectPreview"
                         (click)="closeTeamMemberDetailsPreviewModal()">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
@@ -1065,7 +1072,7 @@
                     <ng-container>
                         <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" class="resource-tab-group"
                             (selectedTabChange)="onResourceTabChange($event)">
-                            <mat-tab label="Current Resource">
+                            <mat-tab label="Currently Mapped Resource">
                                 <div class="col-md-12">
                                     <ng-template [ngTemplateOutlet]="current_team_member_resource_template"
                                         [ngTemplateOutletContext]="{teamMembers :currentTeam.rmgCurrentTeamMemberList,team: currentTeam}">
@@ -1352,7 +1359,7 @@
                                 <label>Start Date</label>
                                 <input class="form-control date-input"
                                     [matDatepicker]="bulkDefaultProjectMappingStartDatepicker"
-                                    (dateChange)="onMemberStartDateChange($event, currentTeam.newRmgTeamMember)"
+                                    (dateChange)="validateEmployeeProjectStartDate($event, null)"
                                     [(ngModel)]="defaultProjectObj.startDate"
                                     [disabled]="!defaultProjectObj.projectId" />
                                 <mat-icon class="calendar-icon" style="top:70%"
@@ -1591,7 +1598,7 @@
                                         <div class="date-input-wrapper">
                                             <input class="form-control date-input"
                                                 [matDatepicker]="defaultProjectMappingStartDatepicker"
-                                                (dateChange)="onMemberStartDateChange($event, employee)"
+                                                (dateChange)="validateEmployeeProjectStartDate($event, employee)"
                                                 [(ngModel)]="employee.startDate" [disabled]="!employee.projectId" />
                                             <mat-icon class="calendar-icon"
                                                 (click)="defaultProjectMappingStartDatepicker.open()">calendar_today</mat-icon>
@@ -1842,6 +1849,44 @@
                 proceed</button>&nbsp;
             <button type="button" class="btn btn-danger" (click)="closeUpdateProjectStartDateConfirmationModal()">No,
                 Cancel</button>&nbsp;
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #existing_employee_project_timesheet_info>
+    <div class="card-header project-card-header">
+        <div class="row align-items-center">
+            <div class="col-md-11">
+                <h6 class="card-title text-left">
+                    Employee's Existing Project Timesheet Entries
+                </h6>
+            </div>
+            <div class="col-md-1 d-flex justify-content-end">
+                <button class="btn btn-sm btn-outline-primary" title="Close"
+                    (click)="closeExistingEmployeeProjectTimesheetInfoModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-container mt-2">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Sr.No</th>
+                        <th>Project Name</th>
+                        <th>Filled Timesheet Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let item of existingEmployeeProjectTimesheetEntries | keyvalue; let i=index">
+                        <td>{{ i+1 }}</td>
+                        <td>{{ item.key }}</td>
+                        <td>{{ item.value }}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </ng-template>

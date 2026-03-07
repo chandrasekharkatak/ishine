@@ -1,6 +1,10 @@
 package com.apmosys.employeeportal.service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -14,10 +18,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.ClientAddressSyncDto;
 import com.apmosys.employeeportal.dto.ClientDetailsSyncDto;
+import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
+import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.ClientLocation;
+import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.repository.ClientLocationRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
+import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ExceptionLogContext;
 
 @Service
@@ -28,6 +38,16 @@ public class ClientService {
 	
 	@Autowired
 	ClientLocationRepository clientLocationRepository;
+	
+	@Autowired
+	TeamRepository teamRepository;
+
+	@Autowired
+	EmployeeTeamMapRepository employeeTeamMapRepository;
+	
+	@Autowired
+	ProjectRepository projectRepository;
+
 	
 	 public Client resolveClient(String clientName,Long poClientId) {
 		 
@@ -469,6 +489,114 @@ public class ClientService {
 			if (!locationsToSave.isEmpty()) {
 				clientLocationRepository.saveAll(locationsToSave);
 			}
+		}
+	 
+	 public void updateProjectAfterSuccessfulSync(
+		        Project project,
+		        ProjectPoMappingWithResourceDTO projectDto) {
+
+		    if (project == null || projectDto == null) {
+		        return;
+		    }
+
+		   
+		    if (projectDto.getClientId() != null) {
+		        project.setPoClientId(projectDto.getClientId());
+		    }
+
+		    List<PoDetailsForProjectPoMappingDTO> poList = projectDto.getPoDetailsList();
+
+		    LocalDateTime minPoStart = null;
+		    LocalDateTime maxPoEnd = null;
+
+		    
+		    if (poList != null && !poList.isEmpty()) {
+
+		    	minPoStart = poList.stream()
+		                .map(p -> (LocalDateTime) convert(p.getPoStartDate()))
+		                .filter(Objects::nonNull)
+		                .min(LocalDateTime::compareTo)
+		                .orElse(null);
+
+		        maxPoEnd = poList.stream()
+		                .map(p -> (LocalDateTime) convert(p.getPoEndDate()))
+		                .filter(Objects::nonNull)
+		                .max(LocalDateTime::compareTo)
+		                .orElse(null);
+		        
+		        
+		    }
+
+		    
+
+		    List<Long> teamIds =
+		            teamRepository.findTeamIdsByProjectId(project.getProjectId());
+
+		    LocalDateTime employeeMinStart = null;
+
+		    if (teamIds != null && !teamIds.isEmpty()) {
+
+		        employeeMinStart =
+		                employeeTeamMapRepository
+		                        .findMinEmployeeStartDateByTeamIds(teamIds);
+		    }
+
+		    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+		    
+
+		    LocalDateTime finalStart = null;
+
+		    if (minPoStart != null && employeeMinStart != null) {
+
+		        finalStart =
+		                minPoStart.isBefore(employeeMinStart)
+		                        ? minPoStart
+		                        : employeeMinStart;
+
+		    } else if (minPoStart != null) {
+
+		        finalStart = minPoStart;
+
+		    } else if (employeeMinStart != null) {
+
+		        finalStart = employeeMinStart;
+		    }
+
+		   
+
+		    if (finalStart != null) {
+
+		        project.setStartDate(
+		                finalStart.toLocalDate().format(formatter));
+		    }
+
+		   
+
+		    if (maxPoEnd != null) {
+
+		        project.setEndDate(
+		                maxPoEnd.toLocalDate().format(formatter));
+		    }
+
+		   
+
+		    projectRepository.save(project);
+		}
+		
+		
+		private LocalDateTime convert(Date date) {
+		    if (date == null) return null;
+
+		    if (date instanceof java.sql.Date) {
+		        return ((java.sql.Date) date)
+		                .toLocalDate()
+		                .atStartOfDay();
+		    }
+
+		    return date.toInstant()
+		            .atZone(ZoneId.systemDefault())
+		            .toLocalDateTime();
 		}
 	 
 

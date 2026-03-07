@@ -1774,6 +1774,9 @@ sortData(sort: Sort) {
       .map(row => row.timesheetId)
       .filter(id => id != null);
   }
+  getSelectedTimesheets(): any[] {
+  return this.selectedRows.filter(row => row?.timesheetId != null);
+}
 
 
   // bulkReject1(template: TemplateRef<any>) {
@@ -2252,13 +2255,13 @@ loadActiveDocument(): void {
    /* HELPERS */
 hasPendingDoc(projectId: number): boolean {
   return this.selectedTimesheet?.documentData?.some(
-    d => d.docId != null
+    d => d.docId != null && d.docsProjectId === projectId
   ) || false;
 }
 
 hasApprovedDoc(projectId: number): boolean {
   return this.selectedTimesheet?.documentData?.some(
-    d => d.bulkApprovedDocId != null
+    d => d.bulkApprovedDocId != null && d.docsProjectId === projectId
   ) || false;
 }
 
@@ -2450,6 +2453,7 @@ getDocument(type: 'Pending' | 'Approved'): void {
    private searchSubject = new Subject<any>();
    onStatusChange(status: number) {
     this.selectedStatus = status;
+    console.log("Status changed to:", this.selectedStatus);
     this.page1 = 0; // pagination reset
     this.isSearchEnabled = false;
     this.expandedTimesheetIndex = null;
@@ -2519,11 +2523,47 @@ projectList: any[] = [];
 
 // }
 
+getBulkDocumentDetails(timesheets: any[]) {
 
+  const docs: any[] = [];
+
+  timesheets.forEach((ts: any) => {
+
+    (ts.documentData || []).forEach((doc: any) => {
+      let clientApprovalStatus = null;
+
+      // find project approval status
+      (ts.locationSessions || []).forEach((loc: any) => {
+        (loc.projects || []).forEach((proj: any) => {
+          if (proj.projectId === doc.docsProjectId) {
+            clientApprovalStatus = proj.clientApprovalStatus;
+          }
+        });
+      });
+
+      docs.push({
+        timesheetId: ts.timesheetId,
+        projectId: doc.docsProjectId,
+        docId: doc.docId,
+        bulkApprovedDocId: doc.bulkApprovedDocId,
+        clientApprovalStatus: clientApprovalStatus
+      });
+
+    });
+
+  });
+
+  return docs;
+}
   // BULK APPROVAL
   bulkApproveByIds(confirmNightShift: boolean = false, ids?: number[]) {
 
-    const timesheetIds  = ids || this.getSelectedTimesheetIds();
+    // const timesheetIds  = ids || this.getSelectedTimesheetIds();
+     const selectedTimesheets = ids
+    ? this.getSelectedTimesheets().filter(ts => ids.includes(ts.timesheetId))
+    : this.getSelectedTimesheets();
+
+  const timesheetIds = selectedTimesheets.map(ts => ts.timesheetId);
     if (!timesheetIds.length) return;
 
     const payload = {
@@ -2531,7 +2571,8 @@ projectList: any[] = [];
       status: 'APPROVED',
       updatedBy: this.currentUser.empId,
       rmId : this.currentUser.empId,
-      confirmNightShift
+      confirmNightShift,
+      documentDetails: this.getBulkDocumentDetails(selectedTimesheets)
     };
 
     this.loaderService.requestStarted();
@@ -2601,7 +2642,7 @@ projectList: any[] = [];
 
 
           this.clearAllSelections();
-          this.selectedStatus = 2;
+          this.onStatusChange(2);
           this.page1 = 0;
           this.getMyReporteesTimesheetRequests();
           this.getTimesheetStatusCountsByEmpId();
@@ -2686,6 +2727,19 @@ openBulkRejectModal(bulkRejectTimesheet: TemplateRef<any>): void {
     { modalDialogClass: 'modal-lg', backdrop: 'static' }
   );
 }
+hasClientApprovalPending(timesheet: any): boolean {
+
+  if (!timesheet?.locationSessions?.length) {
+    return false;
+  }
+
+  return timesheet.locationSessions.some((location: any) =>
+    (location.projects || []).some((project: any) =>
+      Number(project.clientApprovalStatus) === 1
+    )
+  );
+
+}
 
 // SINGLE TIMESHEET APPROVE
 approveSingleTimesheet(timesheet: any) {
@@ -2699,7 +2753,8 @@ approveSingleTimesheet(timesheet: any) {
     timesheetIds: [timesheet.timesheetId],
     status: 'APPROVED',
     updatedBy: this.currentUser.empId,
-    rmId: this.currentUser.empId
+    rmId: this.currentUser.empId,
+    documentDetails: this.getBulkDocumentDetails([timesheet])
   };
 
   this.loaderService.requestStarted();
@@ -2751,12 +2806,12 @@ approveSingleTimesheet(timesheet: any) {
             }
 
           this.clearAllSelections();
-          this.selectedStatus = 2;
+          // this.selectedStatus = 2;
+          this.onStatusChange(2);
           this.page1 = 0;
 
           this.getMyReporteesTimesheetRequests();
           this.getTimesheetStatusCountsByEmpId();
-          this.onStatusChange(2);
           this.modalMessage = message;
 
         } else {
@@ -3213,10 +3268,9 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
 
           this.modalRef?.close();
           this.page1 = 0;
-
-          this.getMyReporteesTimesheetRequests();
-          this.getTimesheetStatusCountsByEmpId();
           this.onStatusChange(3);
+          // this.getMyReporteesTimesheetRequests();
+          // this.getTimesheetStatusCountsByEmpId();
           this.modalMessage = message;
       } else {
           this.modalTitle = 'Error';

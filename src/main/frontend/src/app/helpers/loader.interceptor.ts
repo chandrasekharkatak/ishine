@@ -492,7 +492,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/v2/timesheet/addTimesheetWithClientNew`,
     `${this.baseUrl}` + `api/v2/timesheet/getAllProjectsByEmpId`,
     `${this.baseUrl}` + `api/v2/timesheet/getAllMyTimesheetsByEmpId`,
-    `${this.baseUrl}` + `api/v2/timesheet/getTimesheetMetadataByEmpId`,
+    // `${this.baseUrl}` + `api/v2/timesheet/getTimesheetMetadataByEmpId`,
     `${this.baseUrl}` + `api/v2/timesheet/getActiveProjectsAndClientSideIdByEmpId`,
     `${this.baseUrl}` + `api/v2/timesheet/getAlreadyFilledTimesheetDatesByEmpId`,
     `${this.baseUrl}` + `api/v2/timesheet/create`,
@@ -525,10 +525,10 @@ export class LoaderInterceptor implements HttpInterceptor {
       }
     });
 
-    // Pattern match for v2 timesheet APIs with dynamic paths (e.g. /123, /document/getById/456, update?timesheetId=1)
-    if (!showLoader && request.url.includes('api/v2/timesheet')) {
-      showLoader = true;
-    }
+    // // Pattern match for v2 timesheet APIs with dynamic paths (e.g. /123, /document/getById/456, update?timesheetId=1)
+    // if (!showLoader && request.url.includes('api/v2/timesheet')) {
+    //   showLoader = true;
+    // }
 
     if (showLoader) {
       request = request.clone({

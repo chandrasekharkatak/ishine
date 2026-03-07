@@ -72,6 +72,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   @Input() timesheetId: number | null = null; // ID of timesheet to update
   // @Input() isAutoFilled: boolean = false;
   // Output events for parent component communication
+  @Output() timesheetCreated = new EventEmitter<void>();
   @Output() timesheetUpdated = new EventEmitter<number>();
   @Output() updateCancelled = new EventEmitter<void>();
   
@@ -1165,7 +1166,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
         return;
       }
     }
-
+this.isNightShift = false;
+        this.toDate = null;
     const dayTypeFillable = this.isDayTypeFillable();
     this.clearAndInitOnDayTypeChange(dayTypeFillable);
     // if (!dayTypeFillable) {
@@ -3803,6 +3805,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
           if (response.serviceStatus === "Success") {
             this.openAlertMod(this.alertTemplate, "Timesheet created successfully.");
             
+            this.timesheetCreated.emit();
             // After successful create, refresh disabled dates so just-filled date becomes non-selectable
             if (targetEmpId) {
               this.getAllAvailableTimesheetByEmpId({ empId: targetEmpId } as User);

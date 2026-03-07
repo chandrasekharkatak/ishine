@@ -157,7 +157,9 @@ import com.apmosys.employeeportal.dto.TeamMemberDTO;
 import com.apmosys.employeeportal.dto.TeamSpocDTO;
 import com.apmosys.employeeportal.dto.TimeSheetDetailsDto;
 import com.apmosys.employeeportal.dto.TimeSheetRequestDto;
+import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDocumentDetailsDTO;
+import com.apmosys.employeeportal.dto.UnmappedEmployeeProjectDto;
 import com.apmosys.employeeportal.dto.UpdateHasClientSideIdDTO;
 import com.apmosys.employeeportal.exception.BadRequestException;
 import com.apmosys.employeeportal.exception.DataNotFoundException;
@@ -2004,6 +2006,10 @@ public class ResourceManagementService {
 	    if (dto == null || dto.getProjectId() == null) {
 	        throw new IllegalArgumentException("ProjectId cannot be null");
 	    }
+	    
+	    if (dto == null || dto.getEmpId() == null) {
+	        throw new IllegalArgumentException("Unable to log current user info!");
+	    }
 	}
 	
 	protected Project getProject(Integer projectId) {
@@ -2066,7 +2072,8 @@ public class ResourceManagementService {
 			mailService.sendMailWithCC(
 //			        String.join(",", allEmails),
 					"priyadarshini.singh@apmosys.com",
-			        employee.getEmail(),
+//			        employee.getEmail(),
+					"",
 			        "Regarding Project Rejection",
 			        emailHtml
 			);
@@ -2077,44 +2084,70 @@ public class ResourceManagementService {
 	}
 	
 	protected String buildEmailHtml(String projectName, String rejectedBy,
-            Map<String, List<EmployeeTeamMap>> teamsMap) {
+	        Map<String, List<EmployeeTeamMap>> teamsMap) {
 
-		StringBuilder html = new StringBuilder();
-		
-		html.append("Dear Recipients,<br><br>")
-		.append(rejectedBy)
-		.append(" has rejected the project: <b>")
-		.append(projectName)
-		.append("</b><br><br>");
-		
-		if (!teamsMap.isEmpty()) {
-		
-			html.append("<h4 style='color:#2E86C1;'>Rejected Changes</h4>")
-			.append("<table border='1' cellpadding='8'>")
-			.append("<tr><th>Team</th><th>EmpId</th><th>Name</th><th>Role</th></tr>");
-		
-			for (var entry : teamsMap.entrySet()) {
-			
-				for (EmployeeTeamMap member : entry.getValue()) {
-				
-					String name = employeeRepository.getEmployeeName(member.getEmpId());
-					Long empCode = employeeRepository.getEmployeeEmployeementId(member.getEmpId());
-					
-					html.append("<tr>")
-					      .append("<td>").append(entry.getKey()).append("</td>")
-					      .append("<td>").append(empCode != null ? "A-" + empCode : "-").append("</td>")
-					      .append("<td>").append(name != null ? name : "-").append("</td>")
-					      .append("<td>-</td>")
-					      .append("</tr>");
-				}
-			}
-		
-			html.append("</table>");
-		}
-		
-		html.append("<br><br>Regards,<br>Ishine");
-		
-		return html.toString();
+	    StringBuilder html = new StringBuilder();
+
+	    html.append("<div style='font-family:Arial, Helvetica, sans-serif; background:#f4f6f8; padding:20px;'>")
+
+	    .append("<div style='max-width:800px; margin:auto; background:white; border-radius:8px; padding:25px; border:1px solid #e0e0e0;'>")
+
+	    // Header
+	    .append("<h2 style='color:#d9534f; margin-top:0;'>Project Rejection Notification</h2>")
+
+	    .append("<p style='font-size:14px;'>Dear Recipients,</p>")
+
+	    .append("<p style='font-size:14px;'>")
+	    .append("<b>").append(rejectedBy).append("</b>")
+	    .append(" has rejected the project <b style='color:#2E86C1;'>")
+	    .append(projectName)
+	    .append("</b>.</p>");
+
+	    if (!teamsMap.isEmpty()) {
+
+	        html.append("<h3 style='margin-top:30px; color:#2E86C1;'>Rejected Team Changes</h3>")
+
+	        .append("<table style='width:100%; border-collapse:collapse; margin-top:10px; font-size:13px;'>")
+
+	        .append("<tr style='background:#2E86C1; color:white;'>")
+	        .append("<th style='padding:10px; text-align:left;'>Team</th>")
+	        .append("<th style='padding:10px; text-align:left;'>Employee ID</th>")
+	        .append("<th style='padding:10px; text-align:left;'>Name</th>")
+	        .append("<th style='padding:10px; text-align:left;'>Role</th>")
+	        .append("</tr>");
+
+	        for (var entry : teamsMap.entrySet()) {
+
+	            for (EmployeeTeamMap member : entry.getValue()) {
+
+	                String name = employeeRepository.getEmployeeName(member.getEmpId());
+	                Long empCode = employeeRepository.getEmployeeEmployeementId(member.getEmpId());
+
+	                html.append("<tr style='border-bottom:1px solid #eeeeee;'>")
+	                        .append("<td style='padding:8px;'>").append(entry.getKey()).append("</td>")
+	                        .append("<td style='padding:8px;'>")
+	                        .append(empCode != null ? "A-" + empCode : "-")
+	                        .append("</td>")
+	                        .append("<td style='padding:8px;'>")
+	                        .append(name != null ? name : "-")
+	                        .append("</td>")
+	                        .append("<td style='padding:8px;'>-</td>")
+	                        .append("</tr>");
+	            }
+	        }
+
+	        html.append("</table>");
+	    }
+
+	    // Footer
+	    html.append("<div style='margin-top:30px; font-size:13px; color:#777;'>")
+	    .append("Regards,<br>")
+	    .append("<b>iShine System</b>")
+	    .append("</div>")
+
+	    .append("</div></div>");
+
+	    return html.toString();
 	}
 	
 	protected void cleanupTeams(Project project, List<Team> teams) {
@@ -2334,12 +2367,12 @@ public class ResourceManagementService {
 					List<Object[]> result = projectManagerMappingRepository
 							.findProjectManagersPerProject(Long.parseLong(projectObj.getProjectId().toString()));
 
-					List<String> projectManagerIds = new ArrayList<>();
+					List<Long> projectManagerIds = new ArrayList<>();
 
 					for (Object[] obj : result) {
 						if (obj[2] != null) {
-							projectManagerIds.add(obj[2].toString());
-						}
+							projectManagerIds.add( Long.parseLong(obj[2].toString()));
+							}
 					}
 
 					projectDTO.setPoProjectManagers(projectManagerIds);
@@ -15443,7 +15476,7 @@ public class ResourceManagementService {
 					.getResourceRequirementDetailsByProjectId(projectId, currentActivePO);
 			if (rmgProjectResourceRequirementList == null || rmgProjectResourceRequirementList.isEmpty()) {
 				return failResponse(serviceResponse, apiLogInfo,
-						"Unable to fetch latest resource requirement details!!");
+						"Resource requirement details not Found!!");
 			}
 			
 			boolean isTnm = "TNM".equalsIgnoreCase(projectType);
@@ -16945,4 +16978,84 @@ public class ResourceManagementService {
 			return "All";
 		}
 	}
+
+	public void sendDepartmentWiseUnmappedEmployeeProjectMail() {
+		try {
+			List<Department> departments = departmentRepository.findAll();
+			if (departments == null || departments.isEmpty()) {
+				return;
+			}
+			Set<String> excludedDepartmentNames = Set.of("super admin", "director", "unknown department", "ceo office");
+
+			List<Object[]> listObjArray = employeeTeamMapRepository.getUnmappedEmployeeProjectDetails(excludedDepartmentNames);
+			if (listObjArray == null || listObjArray.isEmpty()) {
+				return;
+			}
+
+			List<UnmappedEmployeeProjectDto> unmappedEmployeeDetails = listObjArray.stream()
+					.map(UnmappedEmployeeProjectDto::unmappedEmployeeProject).collect(Collectors.toList());
+			
+			
+			Map<Long, List<UnmappedEmployeeProjectDto>> deptIdAndEmployeeMap = unmappedEmployeeDetails.stream()
+					.collect(Collectors.groupingBy(UnmappedEmployeeProjectDto::getDeptId));
+//
+//			deptIdAndEmployeeMap.forEach((deptId, employees) -> {
+//				
+//				String departmentName = employees.get(0).getDepartmentName();
+//				String hodMail = employees.get(0).getHodMail();
+//				Set<String> rmEmails = employees.stream()
+//
+//				employees.forEach(emp -> {
+//					sendMail(emp, hodMail, departmentName);
+//				});
+//			});
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void sendMailToEmployee(UnmappedEmployeeProjectDto emp, String hodMail, String departmentName) {
+	    String subject = "Employee Unmapped from Project";
+//	    String body = buildHtmlTable(emp, departmentName);
+//	    mailService.sendHtmlMail(emp.getEmail(), List.of(hodMail), subject, body);
+	}
+	
+	private void sendMailToReportingManagers(UnmappedEmployeeProjectDto emp, String hodMail, String departmentName) {
+	    String subject = "Employee Unmapped from Project";
+//	    String body = buildHtmlTable(emp, departmentName);
+//	    mailService.sendHtmlMail(emp .getEmail(), List.of(hodMail), subject, body);
+	}
+	
+	private String createUnmappedEmployeeHtmlTable(UnmappedEmployeeProjectDto emp, String departmentName) {
+	    StringBuilder html = new StringBuilder();
+	    html.append("<html><body>");
+	    html.append("<p>Dear ").append(emp.getName()).append(",</p>");
+	    html.append("<p>The following unmapped project details were identified:</p>");
+	    html.append("<table border='1' style='border-collapse:collapse;padding:8px'>");
+	    html.append("<tr>")
+	            .append("<th>Employee ID</th>")
+	            .append("<th>Name</th>")
+	            .append("<th>Department</th>")
+	            .append("<th>Unmapped Start Date</th>")
+	            .append("<th>Unmapped End Date</th>")
+	            .append("<th>Unmapped Days</th>")
+	            .append("</tr>");
+	    html.append("<tr>")
+	            .append("<td>").append(emp.getEmploymentIdStr()).append("</td>")
+	            .append("<td>").append(emp.getName()).append("</td>")
+	            .append("<td>").append(departmentName).append("</td>")
+	            .append("<td>").append(emp.getUnmapStartDate()).append("</td>")
+	            .append("<td>").append(emp.getUnmapEndDate()).append("</td>")
+	            .append("<td>").append(emp.getUnmappedDaysCount()).append("</td>")
+	            .append("</tr>");
+	    html.append("</table>");
+	    html.append("<br>");
+	    html.append("<p>Please contact your reporting manager for project allocation.</p>");
+	    html.append("<br>");
+	    html.append("<p>Regards,<br>HR Team</p>");
+	    html.append("</body></html>");
+	    return html.toString();
+	}
+	
 }

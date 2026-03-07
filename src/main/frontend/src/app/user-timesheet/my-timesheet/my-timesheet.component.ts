@@ -221,8 +221,9 @@ withoutVmsbullet:string[] = ["Applicable to resources without a client-side VMS 
   filters: any = {};
   isSearchEnabled: boolean = false;
   // Simplified columns for card-based accordion view
-  selfTimesheetColumns: any[] = ['blank', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'status', 'createdByName', 'createdOn', 'isNightShiftDisplay', 'leaveType','rejectReason' ,'remarks'];
-  teamTimesheetColumns: any[] = ['blank', 'employeeName', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'status', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'rejectReason','remarks'];
+  // Column order must match table header: expand, Sr No., [Name if team], Date, Day Type, In, Out, Total Hrs, Status, [Applied By if self], Applied On, Shift, Leave Type, Reject Reason, Remarks, Actions
+  selfTimesheetColumns: any[] = ['blank', 'blank', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'totalWorkingMinutes', 'statusDisplay', 'createdByName', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'rejectReason', 'remarks', 'blank'];
+  teamTimesheetColumns: any[] = ['blank', 'blank', 'employeeName', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'totalWorkingMinutes', 'statusDisplay', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'rejectReason', 'remarks', 'blank', 'blank'];
   tableName: string;
   activeProjectList: Project[];
   selectedProjectId: any;
@@ -415,7 +416,7 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
    * Uses the same backend API as Home page (getTimesheetsForHomePageByEmpId),
    * and counts the number of days with at least one timesheet entry.
    */
-  private loadTimesheetSummary(): void {
+  loadTimesheetSummary(): void {
     if (!this.currentUser || !this.currentUser.empId) {
       return;
     }
@@ -920,16 +921,18 @@ get tooltipCta(): string {
     this.startDate = moment(fromDate).format(AppComponent.DB_DATE_FORMAT);
     this.endDate = moment(today).format(AppComponent.DB_DATE_FORMAT);
 
-    let employeeObj = new Employee();
-    employeeObj.empId = this.currentUser.empId;
-    this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.teamMemberList = response.serviceResponse;
-        //console.log("teamMemberList : ", this.teamMemberList);
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
+    // let employeeObj = new Employee();
+    // employeeObj.empId = this.currentUser.empId;
+    // this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response: any) => {
+    //   if (response.serviceStatus == "Success") {
+    //     this.teamMemberList = response.serviceResponse;
+    //     //console.log("teamMemberList : ", this.teamMemberList);
+    //   } else {
+    //     console.error(response.serviceResponse);
+    //   }
+    // });
+    this.getMyTeamTimesheets();
+    
   }
 
 
@@ -1101,11 +1104,12 @@ get tooltipCta(): string {
   onTimesheetUpdated(timesheetId: number): void {
     // Show success message to user
     this.openAlertMod(this.alertTemplate, 'Timesheet updated successfully.');
-    // Refresh the timesheet list after update
+    // Refresh the timesheet list and summary dashboard after update
     this.isTeamTimesheets = false;
     // Reset form state
     this.resetTimesheetForm();
     this.getAllMyTimesheetsByEmpId();
+    this.loadTimesheetSummary();
   }
 
 
@@ -2523,9 +2527,34 @@ get tooltipCta(): string {
       timesheet.workCheckIn = (timesheet.workCheckIn) ? moment(timesheet.workCheckIn).format(AppComponent.DATETIME_FORMAT) : null;
       timesheet.workCheckOut = (timesheet.workCheckOut) ? moment(timesheet.workCheckOut).format(AppComponent.DATETIME_FORMAT) : null;
       timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-      timesheet.isNightShiftDisplay = (timesheet.isNightShift == true || timesheet.isNightShift == 'true') ? 'Night Shift' : 'Regular Shift';
+      timesheet.isNightShiftDisplay = (timesheet.isNightShift == true || timesheet.isNightShift === 'true') ? 'Night Shift' : 'Regular Shift';
       timesheet.statusDisplay = this.mapStatusToString(timesheet.status);
-      
+
+      // Ensure filterable fields exist so column search works (ColFilterPipe uses item[key])
+      timesheet.createdByName = timesheet.createdByName != null ? String(timesheet.createdByName) : '';
+      // For self timesheets, applicant is always current user when backend does not send createdByName yet
+      if (!timesheet.createdByName && this.isSelfTimesheets && this.currentUser?.name) {
+        timesheet.createdByName = this.currentUser.name;
+      }
+      timesheet.leaveType = timesheet.leaveType != null ? String(timesheet.leaveType) : '';
+      timesheet.rejectReason = timesheet.rejectReason != null ? String(timesheet.rejectReason) : '';
+      timesheet.remarks = timesheet.remarks != null ? String(timesheet.remarks) : '';
+      // Populate from first rejection in nested data if not at top level
+      if ((!timesheet.rejectReason || !timesheet.remarks) && timesheet.locationSessions && timesheet.locationSessions.length > 0) {
+        for (const loc of timesheet.locationSessions) {
+          if (loc.projects && loc.projects.length > 0) {
+            for (const proj of loc.projects) {
+              if (proj.rejectionDetails && proj.rejectionDetails.length > 0) {
+                const r = proj.rejectionDetails[0];
+                if (!timesheet.rejectReason && r.rejectionReason) timesheet.rejectReason = r.rejectionReason;
+                if (!timesheet.remarks && r.remark) timesheet.remarks = r.remark;
+                break;
+              }
+            }
+          }
+        }
+      }
+
       // Process location sessions
       if (timesheet.locationSessions && timesheet.locationSessions.length > 0) {
         let totalActivityMinutes = 0;
@@ -2561,6 +2590,8 @@ get tooltipCta(): string {
 
   /* Timesheets Applied By ME for My Team Members */
   getMyTeamTimesheets(template?: TemplateRef<any>) {
+    this.isTeamTimesheets = true;
+     this.isSelfTimesheets = false;
     this.allMyTimesheets = [];
 
     if (this.endDate) {
@@ -2717,32 +2748,66 @@ get tooltipCta(): string {
   exportToExcel(): void {
 
     if (this.isTimesheetTable == true) {
-      this.excelName = 'MyTimeSheet.xlsx'
+      this.excelName = 'MyTimeSheet.xlsx';
 
-      const _allEmployeeList = this.allMyTimesheets.slice()
-      this.allMyTimesheetsDataForExcel = _allEmployeeList.sort((a, b) => (new Date(a.date).getTime() > new Date(b.date).getTime()) ? 1 : -1);
+      // Use filtered data when user has applied search, otherwise all data
+      const sourceList = (this.filters && Object.keys(this.filters).length > 0)
+        ? this.allMyTimesheets.filter(item => {
+            return Object.keys(this.filters).every(key => {
+              const searchVal = this.filters[key];
+              if (searchVal == null || searchVal === '') return true;
+              const cellVal = item[key];
+              const str = cellVal != null ? String(cellVal) : '';
+              try {
+                return new RegExp(String(searchVal).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi').test(str);
+              } catch {
+                return str.toLowerCase().includes(String(searchVal).toLowerCase());
+              }
+            });
+          })
+        : this.allMyTimesheets.slice();
 
-      const onlySpecificDataArr = this.allMyTimesheetsDataForExcel.map(
-        x => ({
-          "Date": x.date,
-          "Day Type": x.dayType,
-          "In Time": x.officeInTime,
-          "Out Time": x.officeOutTime,
-          "Total Working Hours": x.totalWorkingOfficeHours,
-          "Project Name" :x.projectName,
-          "Timesheet Details": x.description?.replaceAll('<br>', ' \n'),
-          "Total Activity Time": x.totalTime,
-          "Status": x.status,
-          "Applied By": x.createdByName,
-          "Applied On": x.createdOn,
-          "Shift Type": x.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift',
-          "Leave Type": x.leaveType,
-          "Remarks": x.remarks
-        })
-      )
-      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+      this.allMyTimesheetsDataForExcel = sourceList.sort((a, b) =>
+        (new Date(a.date).getTime() > new Date(b.date).getTime()) ? 1 : -1
+      );
+
+      const onlySpecificDataArr = this.allMyTimesheetsDataForExcel.map(x => {
+        const projectNames = this.getProjectNamesFromTimesheet(x);
+        return {
+          ...(this.isTeamTimesheets ? { 'Employee Name': x.employeeName ?? '' } : {}),
+          'Date': x.date ?? '',
+          'Day Type': x.dayType ?? '',
+          'In Time': x.workCheckIn ?? '',
+          'Out Time': x.workCheckOut ?? '',
+          'Total Working Hours': this.getTotalWorkingHours(x.totalWorkingMinutes ?? 0, false),
+          'Project Name': projectNames,
+          'Timesheet Details': x.description?.replaceAll('<br>', ' \n') ?? '',
+          'Total Activity Time': this.getTotalWorkingHours(x.totalActivitiesMinutes ?? 0, true),
+          'Status': x.statusDisplay ?? this.mapStatusToString(x.status) ?? '',
+          'Applied By': x.createdByName ?? '',
+          'Applied On': x.createdOn ?? '',
+          'Shift Type': x.isNightShiftDisplay ?? (x.isNightShift === true || x.isNightShift === 'true' ? 'Night Shift' : 'Regular Shift'),
+          'Leave Type': x.leaveType ?? '',
+          'Reject Reason': x.rejectReason ?? '',
+          'Remarks': x.remarks ?? ''
+        };
+      });
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
     }
+  }
 
+  /**
+   * Get comma-separated project names from timesheet locationSessions (for Excel export).
+   */
+  private getProjectNamesFromTimesheet(timesheet: any): string {
+    if (!timesheet?.locationSessions?.length) return '';
+    const names: string[] = [];
+    timesheet.locationSessions.forEach((loc: any) => {
+      (loc.projects || []).forEach((p: any) => {
+        if (p.projectName) names.push(p.projectName);
+      });
+    });
+    return [...new Set(names)].join(', ');
   }
 
   getAllMyLeaveApplicationsByEmpId(userObj: User) {

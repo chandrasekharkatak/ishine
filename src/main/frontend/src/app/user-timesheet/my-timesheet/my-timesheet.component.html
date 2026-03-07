@@ -79,7 +79,7 @@
                 [selectedDate]="selectedDate"
                 [autoFillEmpId]="selectedEmpIdForCreate"
                 [timesheetId]="null"
-                (timesheetCreated)="resetTimesheetForm(); showViewMyTimesheets()"
+                (timesheetCreated)="resetTimesheetForm(); showViewMyTimesheets(); loadTimesheetSummary()"
                 (timesheetUpdated)="onTimesheetUpdated($event)"
                 (cancel)="resetTimesheetForm()">
             </app-timesheet-form>
@@ -96,7 +96,7 @@
                 [isUpdation]="true"
                 [selectedDate]="selectedDate"
                 [timesheetId]="selectedTimesheetId"
-                (timesheetCreated)="resetTimesheetForm(); showViewMyTimesheets()"
+                (timesheetCreated)="resetTimesheetForm(); showViewMyTimesheets(); loadTimesheetSummary()"
                 (timesheetUpdated)="onTimesheetUpdated($event)"
                 (cancel)="resetTimesheetForm()">
             </app-timesheet-form>
@@ -384,7 +384,7 @@
                 <button type="button" class="btn btn-outline-primary btn-sm mx-1"
                     [ngClass]="{'active' : isSelfTimesheets}" (click)="showSelfTimesheets()">Self</button>
                 <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-                    [ngClass]="{'active' : isTeamTimesheets}" (click)="showTeamTimesheets()">For Team</button>
+                    [ngClass]="{'active' : isTeamTimesheets}" (click)="getMyTeamTimesheets()">For Team</button>
             </div>
         </div>
         <div class="row">
@@ -463,18 +463,18 @@
                                 <th scope="col" class="info-label column-md" mat-sort-header="dayType|string">Day
                                     Type
                                 </th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="officeInTime|datetime">In
+                                <th scope="col" class="info-label column-md" mat-sort-header="workCheckIn|datetime">In
                                     Time</th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="officeOutTime|datetime">
+                                <th scope="col" class="info-label column-md" mat-sort-header="workCheckOut|datetime">
                                     Out Time</th>
-                                <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours|string">
+                                <th scope="col" class="info-label" mat-sort-header="totalWorkingMinutes|number">
                                     Total Working Hours</th>
-                                <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                                <th scope="col" class="info-label" mat-sort-header="statusDisplay|string">Status</th>
                                 <th *ngIf="isSelfTimesheets" scope="col" class="info-label column-md"
                                     mat-sort-header="createdByName|string">Applied By</th>
                                 <th scope="col" class="info-label column-md" mat-sort-header="createdOn|datetime">
                                     Applied On</th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="isNightShift|string">
+                                <th scope="col" class="info-label column-md" mat-sort-header="isNightShiftDisplay|string">
                                     Shift
                                 </th>
                                 <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type
