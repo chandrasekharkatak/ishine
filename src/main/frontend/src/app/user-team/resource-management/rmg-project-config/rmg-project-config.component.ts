@@ -72,6 +72,7 @@ export class RmgProjectComponent implements OnInit {
     @ViewChild("project_milestone_document") projectMilestoneDocumentTemplateRef: TemplateRef<any>;
     @ViewChild("mark_complete_fc_project") markCompleteFCProjectTemplateRef: TemplateRef<any>;
     @ViewChild("team_member_details_preview") teamMemberDetailsPreviewTemplateRef: TemplateRef<any>;
+    @ViewChild("existing_employee_project_timesheet_info") existingEmployeeProjectTimesheetInfoTemplateRef: TemplateRef<any>;
 
     alertMessageModalRef: NgbModalRef;
     migrateTeamModalRef: NgbModalRef;
@@ -91,6 +92,8 @@ export class RmgProjectComponent implements OnInit {
     projectMilestoneDocumentModalRef: NgbModalRef;
     markCompleteFCProjectModalRef: NgbModalRef;
     teamMemberDetailsPreviewModalRef: NgbModalRef;
+    existingEmployeeProjectTimesheetInfoModalRef: NgbModalRef;
+
 
     currentUser: User;
     userMapping: any = {};
@@ -138,6 +141,7 @@ export class RmgProjectComponent implements OnInit {
     mappingToOtherProjectAsDefaultList: RmgTeamMember[] = [];
     markDefaultProjectCompletionList: RmgTeamMember[] = [];
     teamMigrationTeamMembersList: RmgTeamMember[] = [];
+    existingEmployeeProjectTimesheetEntries: any[] = [];
 
     // Maps for caching
     projectIdPoListMap = new Map<number, PoDetails[]>();
@@ -493,6 +497,16 @@ export class RmgProjectComponent implements OnInit {
     closeTeamMemberDetailsPreviewModal() {
         if (this.teamMemberDetailsPreviewModalRef) {
             this.teamMemberDetailsPreviewModalRef?.close();
+        }
+    }
+
+    openExistingEmployeeProjectTimesheetInfoModal() {
+        this.existingEmployeeProjectTimesheetInfoModalRef = this.modalService.open(this.existingEmployeeProjectTimesheetInfoTemplateRef, { modalDialogClass: 'modal-md', backdrop: 'static', keyboard: false });
+    }
+
+    closeExistingEmployeeProjectTimesheetInfoModal() {
+        if (this.existingEmployeeProjectTimesheetInfoModalRef) {
+            this.existingEmployeeProjectTimesheetInfoModalRef?.close();
         }
     }
     // Modals End
@@ -2026,6 +2040,7 @@ export class RmgProjectComponent implements OnInit {
     }
 
     validateEmployeeProjectStartDate(event: MatDatepickerInputEvent<Date>, member: RmgTeamMember) {
+        this.existingEmployeeProjectTimesheetEntries = [];
         const selectedDate = this.normalizeDate(event.value);
         const projectStartDate = this.normalizeDate(this.rmgProjectObj.startDate);
         if (selectedDate < projectStartDate) {
@@ -2040,8 +2055,9 @@ export class RmgProjectComponent implements OnInit {
         rmgMember.startDate = selectedDate;
         this.teamService.validateEmployeeProjectStartDate(rmgMember).pipe(first()).subscribe((response: any) => {
             if (response.serviceStatus === "Success") {
-                if (response.serviceResponse !== 'No conflicting timesheet records found.') {
-                    this.openAlertMessageModal(response.serviceResponse);
+                if (response.serviceResponse === 'Conflicting timesheet records found.')  {
+                    this.existingEmployeeProjectTimesheetEntries = response?.serviceResponse2;
+                    this.openExistingEmployeeProjectTimesheetInfoModal();
                 }
             } else {
                 this.openAlertMessageModal(response.serviceResponse || "Something went wrong, unable to validate the selected start date at the moment!!");
