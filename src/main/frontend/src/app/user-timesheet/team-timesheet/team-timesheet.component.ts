@@ -2530,12 +2530,23 @@ getBulkDocumentDetails(timesheets: any[]) {
   timesheets.forEach((ts: any) => {
 
     (ts.documentData || []).forEach((doc: any) => {
+      let clientApprovalStatus = null;
+
+      // find project approval status
+      (ts.locationSessions || []).forEach((loc: any) => {
+        (loc.projects || []).forEach((proj: any) => {
+          if (proj.projectId === doc.docsProjectId) {
+            clientApprovalStatus = proj.clientApprovalStatus;
+          }
+        });
+      });
 
       docs.push({
         timesheetId: ts.timesheetId,
         projectId: doc.docsProjectId,
         docId: doc.docId,
-        bulkApprovedDocId: doc.bulkApprovedDocId
+        bulkApprovedDocId: doc.bulkApprovedDocId,
+        clientApprovalStatus: clientApprovalStatus
       });
 
     });

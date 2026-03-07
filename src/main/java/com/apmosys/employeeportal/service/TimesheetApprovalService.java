@@ -2037,25 +2037,40 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 
             if (docs != null) {
 
-                boolean clientApprovalPending =
-                        docs.stream()
-                                .anyMatch(d ->
-                                        d.getDocId() != null &&
-                                        d.getBulkApprovedDocId() == null
-                                );
+				boolean shouldSkip = docs.stream().anyMatch(d -> {
 
-                if (clientApprovalPending) {
+					Integer statusVal = d.getClientApprovalStatus();
 
-                    skippedTimesheets.add(new SkippedTimesheetDTO(
-                            ts.getTimesheetId(),
-                            formattedEmpId,
-                            ts.getDate(),
-                            "Client document approval pending"
-                    ));
+					// Case 1: null -> allow
+					if (statusVal == null) {
+						return false;
+					}
 
-                    continue;
-                }
-            }
+					// Case 2: 1 -> always restrict
+					if (statusVal == 1) {
+						return true;
+					}
+
+					// Case 3: 2 -> require both docId and bulkApprovedDocId
+					if (statusVal == 2) {
+						return d.getDocId() == null || d.getBulkApprovedDocId() == null;
+					}
+
+					return false;
+				});
+
+				if (shouldSkip) {
+
+					skippedTimesheets.add(new SkippedTimesheetDTO(
+							ts.getTimesheetId(),
+							formattedEmpId,
+							ts.getDate(),
+							"Client approval conditions not satisfied"
+					));
+
+					continue;
+				}
+			}
 			
             Integer tsStatus = ts.getStatus();
 
