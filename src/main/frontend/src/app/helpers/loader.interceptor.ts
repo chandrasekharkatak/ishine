@@ -509,6 +509,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/v2/master/client-status/getAllActiveStatusForClient`,
     `${this.baseUrl}` + `api/getMyProjectsInMonthYear`,
     `${this.baseUrl}` + `api/getAllDisabledDateListForBulkDocSubmit`,
+    `${this.baseUrl}` + `api/updateClientSideIdMapping`,
 
   ]
 

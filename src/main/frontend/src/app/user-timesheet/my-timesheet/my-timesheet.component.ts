@@ -34,6 +34,7 @@ import { ActivityNew } from 'src/app/models/activityNew';
 import { TimesheetNewService } from 'src/app/services/timesheet-new.service';
 import { TimesheetFormComponent } from './timesheet-form/timesheet-form.component';
 import { ProjectBasedBulkUploadPayload } from '../team-timesheet/types';
+import { M } from '@angular/material/ripple.d-BxTUZJt7';
 
 @Component({
   standalone: false,
@@ -920,16 +921,18 @@ get tooltipCta(): string {
     this.startDate = moment(fromDate).format(AppComponent.DB_DATE_FORMAT);
     this.endDate = moment(today).format(AppComponent.DB_DATE_FORMAT);
 
-    let employeeObj = new Employee();
-    employeeObj.empId = this.currentUser.empId;
-    this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.teamMemberList = response.serviceResponse;
-        //console.log("teamMemberList : ", this.teamMemberList);
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
+    // let employeeObj = new Employee();
+    // employeeObj.empId = this.currentUser.empId;
+    // this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response: any) => {
+    //   if (response.serviceStatus == "Success") {
+    //     this.teamMemberList = response.serviceResponse;
+    //     //console.log("teamMemberList : ", this.teamMemberList);
+    //   } else {
+    //     console.error(response.serviceResponse);
+    //   }
+    // });
+    this.getMyTeamTimesheets();
+    
   }
 
 
@@ -4601,15 +4604,26 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
   getTotalLocationHours(location: any): string {
     if (location.locationInTime && location.locationOutTime) {
       // Handle both "HH:mm" and "HH:mm:ss" formats from backend
-      const inTime = moment(location.locationInTime, ['HH:mm:ss', 'HH:mm'], true);
-      const outTime = moment(location.locationOutTime, ['HH:mm:ss', 'HH:mm'], true);
+      const inTime = moment(location.locationInTime, [
+        'YYYY-MM-DD HH:mm:ss.S',
+        'YYYY-MM-DD HH:mm:ss',
+        'HH:mm:ss', 
+        'HH:mm'], true);
+      const outTime = moment(location.locationOutTime, [
+        'YYYY-MM-DD HH:mm:ss.S',
+        'YYYY-MM-DD HH:mm:ss',
+        'HH:mm:ss', 
+        'HH:mm'], true);
       if (inTime.isValid() && outTime.isValid()) {
         const diffMinutes = outTime.diff(inTime, 'minutes');
         const adjustedDiff = diffMinutes < 0 ? diffMinutes + 1440 : diffMinutes;
+        console.log("adjustedDiff",adjustedDiff)
         return (adjustedDiff / 60).toFixed(2);
+        // return this.getTotalWorkingHours(adjustedDiff);
       }
     }
     // Fallback: sum activity hours when in/out times are null (e.g. non-fillable days)
+    console.log("Logging out side")
     const totalActivityHours = this.getTotalLocationActivityHours(location);
     return totalActivityHours > 0 ? totalActivityHours.toFixed(2) : '0.00';
   }
@@ -4662,9 +4676,17 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
   /**
    * Get total working hours from minutes
    */
-  getTotalWorkingHours(minutes: number): string {
+  getTotalWorkingHours(minutes: number,isActivity:boolean): string {
     if (!minutes) return '0.00';
-    return (minutes / 60).toFixed(2);
+    if(!isActivity){
+      const time:number = Number((minutes / 60).toFixed(2));
+      const hours = Math.floor(time);
+      const minute = Math.round((time - hours) * 60);
+      return `${hours}:${minute.toString().padStart(2, '0')}`;
+    }
+    else{
+      return (minutes / 60).toFixed(2);
+    }
   }
 
   /**

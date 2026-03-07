@@ -151,8 +151,8 @@ export class TeamService {
     return this.http.post(`${this.baseUrl}` + `api/migrateTeamMembers`, migrateTeam);
   }
 
-  validateEmployeeTimesheetFilledToChangeStartDate(rmgTeamMember: RmgTeamMember) {
-    return this.http.post(`${this.baseUrl}` + `api/validateEmployeeTimesheetFilledToChangeStartDate`, rmgTeamMember);
+  validateEmployeeProjectStartDate(rmgTeamMember: RmgTeamMember) {
+    return this.http.post(`${this.baseUrl}` + `api/validateEmployeeProjectStartDate`, rmgTeamMember);
   }
 
   extendTeamMembersEndDate(rmgTeam :RmgTeam) {

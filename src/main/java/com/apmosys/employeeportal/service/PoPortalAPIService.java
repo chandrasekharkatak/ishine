@@ -205,6 +205,8 @@ public class PoPortalAPIService {
 	@Autowired
 	MailService mailService;
 	
+
+	
 	@Autowired
 	ProjectRepository projectRepository;
 	
@@ -2015,7 +2017,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 //	}
 	
 	
-	
+//	@Transactional(rollbackFor = PoportalApiException.class)
 	public ServiceResponse syncProjectPoFromPoPortal() {
 
 	    ServiceResponse response = new ServiceResponse();
@@ -2037,8 +2039,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	        
 	       
 
-	        logger.info("Old PO data cleared before sync");
-	        System.out.println("Old PO data cleared before sync \n");
+	        
 
 	        HttpHeaders headers = new HttpHeaders();
 	        headers.set("Authorization",
@@ -2061,15 +2062,28 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 
 	        logger.info("Recieved body with data \n"+externalApiResponse);
 	        if (apiResponse.getStatusCode() != HttpStatus.OK || apiResponse.getBody() == null) {
+	        	 exceptionDetailsForLog.append("PO Portal API failed or returned empty response");
 		        System.out.println("PO Portal API failed or returned empty response");
 	            throw new PoportalApiException("PO Portal API failed or returned empty response");
 	        }
 	        
+	        
+//	        clearOldData();
 	        poRequirementMappingRepository.deleteAllRecords();
 	        poDepartmentMappingRepository.deleteAllRecords();
 	        projectPoDetailsRepository.deleteAllRecords();
+	        
+	        logger.info("Old PO data cleared before sync");
+	        System.out.println("Old PO data cleared before sync \n");
 
 	        for (ProjectPoMappingWithResourceDTO projectDto : apiResponse.getBody()) {
+	        	
+//	        	System.out.println("Processing Project | poProjectId={} | projectName={}"+
+//	        	        projectDto.getProjectId());
+	        	
+	        	 logger.info("Processing Project | poProjectId={} | projectName={}",
+	        	            projectDto.getProjectId(),
+	        	            projectDto.getProjectName());
 
 	            
 	            if (projectDto.getPoDetailsList() == null) {
@@ -2099,13 +2113,22 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	            
 	            Client client = clientRepository.findByClientId(project.getClientId());            
 	            
-
-	            for (PoDetailsForProjectPoMappingDTO poDto : projectDto.getPoDetailsList()) {       	
+	            boolean allPoSuccess = true;
+	            for (PoDetailsForProjectPoMappingDTO poDto : projectDto.getPoDetailsList()) { 
+	            	
+	            	System.out.println("Processing PO | poProjectId={} | projectName={}"+
+	            			poDto.getPoId());
+		        	
+	            	
+	            	 logger.info("Processing PO | poProjectId={} | poId={} | poNo={}",
+	            	            projectDto.getProjectId(),
+	            	            poDto.getPoId());
 	                try {
 	                	logger.info("call to saveSinglePoTransactional \n");
 	                    saveSinglePoTransactional(projectDto, poDto, project,client);
 	                } catch (PoportalApiException ex) {
 	                	ex.printStackTrace();
+	                	allPoSuccess = false;
 						logger.info("catch for saveSinglePoTransactional \n");
 	                    exceptionDetailsForLog.append(
 	                            "Rollback PO | poProjectId=")
@@ -2116,7 +2139,11 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	                            .append(ex.getMessage())
 	                            .append(" || ");
 	                }
-	            }        
+	            }
+	            if (allPoSuccess) {
+	            	clientService.updateProjectAfterSuccessfulSync(project, projectDto);
+	            }
+	            
 	        }
 
 	        response.setServiceResponse(externalApiResponse);
@@ -2204,10 +2231,12 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	        throw new PoportalApiException("TNM project missing resources");
 	    }
 	    
+	    if(poDto.getCreatedByEmpId()!= null) {
 	    boolean createdExists = employeeRepository
                 .existsByEmpIdAndEmployeeName(
                         poDto.getCreatedByEmpId(),
                         poDto.getCreatedByEmpName());
+	    
 
         if (!createdExists) {
             throw new PoportalApiException(
@@ -2215,8 +2244,10 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
                             + poDto.getCreatedByEmpId()
                             + ", name=" + poDto.getCreatedByEmpName());
         }
+	    }
 
       
+	    if(poDto.getUpdatedByEmpId() != null) {
         boolean updatedExists = employeeRepository
                 .existsByEmpIdAndEmployeeName(
                         poDto.getUpdatedByEmpId(),
@@ -2228,6 +2259,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
                             + poDto.getUpdatedByEmpId()
                             + ", name=" + poDto.getUpdatedByEmpName());
         }
+	    }
 	    
 	    
 
@@ -2252,7 +2284,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	    poDetails.setClientRm(poDto.getClientRmName());
 	    poDetails.setPrevPO(poDto.getPrevPo());
 	    poDetails.setNextPO(poDto.getNextPO());
-	    poDetails.setActive(poDto.isActive());
+	    poDetails.setActive(true);
 	    poDetails.setPoProjectId(projectDto.getProjectId());
 	    poDetails.setClientLocationId(Long.valueOf(cl.getClientLocationId()));	
 	    poDetails.setClientAddressId(poDto.getClientAddressId());
@@ -2321,6 +2353,14 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 			poRequirementMappingRepository.saveAll(requirementMappings);
         }
 		logger.info("PO sync completed for poId={}", poDto.getPoId());
+	}
+	
+	
+	@Transactional(rollbackFor = Exception.class)
+	public void clearOldData() {
+	    poRequirementMappingRepository.deleteAllRecords();
+	    poDepartmentMappingRepository.deleteAllRecords();
+	    projectPoDetailsRepository.deleteAllRecords();
 	}
 	
 	private LocalDateTime convert(Date date) {

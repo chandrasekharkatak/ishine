@@ -63,6 +63,9 @@ public class TimesheetDocumentDataDTO {
      */
     private String docType;
 
+    private Long timesheetId;
+    private Integer clientApprovalStatus;
+
     /**
      * Creates DTO for Filled document from TimesheetDocumentDetailsNew.
      * TimesheetDocumentDetailsNew always represents the FILLED doc; Approved metadata is in FinalDocumentNew.

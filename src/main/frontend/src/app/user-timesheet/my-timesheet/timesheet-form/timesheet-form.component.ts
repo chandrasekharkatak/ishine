@@ -860,7 +860,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    * Open client side ID update/add modal
    */
   openClientSideTemplate(project: ProjectEntry): void {
-    this.empClientSideObj.clientSideId = '';
+    this.empClientSideObj.clientSideId = project?.clientSideId ?? '';
     this.empClientSideObj.projectId = project.projectId!;
     this.empClientSideObj.projectName = project.projectName;
     this.empClientSideObj.empId = this.timesheetFilledForUser.empId;
@@ -1166,7 +1166,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
         return;
       }
     }
-
+this.isNightShift = false;
+        this.toDate = null;
     const dayTypeFillable = this.isDayTypeFillable();
     this.clearAndInitOnDayTypeChange(dayTypeFillable);
     // if (!dayTypeFillable) {

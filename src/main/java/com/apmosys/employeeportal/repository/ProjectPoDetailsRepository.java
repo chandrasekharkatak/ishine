@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.transaction.Transactional;
+
 import org.hibernate.annotations.Where;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -23,7 +25,7 @@ import com.apmosys.employeeportal.model.ProjectPoDetails;
 public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetails, Long> {
 
     @Query(value = "Select new com.apmosys.employeeportal.dto.PoDetailsDto(p.id, p.poId, p.projectId, p.poNo, p.poStartDate, p.poEndDate, p.active) \n"
-            + " from ProjectPoDetails p where p.projectId=:projectId and p.active=true")
+            + " from ProjectPoDetails p where p.projectId=:projectId and p.active=true AND (p.poEndDate IS NULL OR DATE(p.poEndDate) >= CURRENT_DATE) ")
     List<PoDetailsDto> getActivePoDetailsDtoByProjectId(Integer projectId);
 
     @Query(value = "Select DISTINCT new com.apmosys.employeeportal.dto.PoDetailsDto(p.id, p.poId, p.projectId, p.poNo, p.poStartDate, p.poEndDate, p.active \n"
@@ -51,7 +53,9 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
             + "where p.projectId=:projectId \n"
             + "GROUP BY ppd.id, ppd.poId, p.projectId, ppd.poNo, ppd.poStartDate, ppd.poEndDate, ppd.active")
     List<PoDetailsDto> getAllProjectPoDetailsDtoByProjectId(Integer projectId, boolean isAllProjects);
-
+    
+    
+    @Transactional
     @Modifying
     @Query("DELETE FROM ProjectPoDetails")
     void deleteAllRecords();

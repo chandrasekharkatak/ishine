@@ -19,6 +19,7 @@ import com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO;
+import com.apmosys.employeeportal.dto.UnmappedEmployeeProjectDto;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse;
@@ -1111,5 +1112,84 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 
 	@Query(value = "Select etm FROM EmployeeTeamMap etm WHERE etm.endDate IS NOT NULL AND DATE(etm.endDate) < CURDATE() AND etm.active != 0 ")
 	List<EmployeeTeamMap> findEtmActiveAfterEndDate();
+
+	@Query(value= " WITH T1 AS (  \n" +
+			" SELECT etm2.emp_id, DATE(start_date) as start_date, DATE(end_date) as end_date,  \n" +
+			" DATE(LAG(end_date) OVER (PARTITION BY etm2.emp_id ORDER BY etm2.start_date)) AS prev_end_date  \n" +
+			" FROM employee_team_mapping etm2  \n" +
+			" INNER JOIN employee e ON etm2.emp_id  = e.emp_id   \n" +
+			" WHERE 1=1  \n" +
+			" AND (etm2.end_date IS NULL OR (DATE(etm2.end_date) BETWEEN CURDATE() - INTERVAL 60 DAY AND CURDATE()))  \n" +
+			" AND (e.date_of_relieving IS NULL OR(DATE(e.date_of_relieving) BETWEEN CURDATE() - INTERVAL 60 DAY AND CURDATE()))  \n" +
+			" ) , T2 AS( \n" +
+			" SELECT e.emp_id \n" +
+			" , DATE(e.date_of_joining) AS gap_start \n" +
+			" , DATE_SUB(MIN(DATE(COALESCE(etm.start_date,CURDATE()))), INTERVAL 1 DAY) AS gap_end \n" +
+			" , DATEDIFF(DATE_SUB(MIN(DATE(COALESCE(etm.start_date,CURDATE()))), INTERVAL 1 DAY), DATE(e.date_of_joining)) AS unmapped_count \n" +
+			" FROM employee e \n" +
+			" LEFT JOIN employee_team_mapping etm ON e.emp_id = etm.emp_id \n" +
+			" WHERE 1=1 \n" +
+			" AND DATE(e.date_of_joining) BETWEEN CURDATE() - INTERVAL 60 DAY AND CURDATE() \n" +
+			" GROUP BY e.emp_id, e.date_of_joining \n" +
+			" HAVING MIN(DATE(COALESCE(etm.start_date,CURDATE()))) >  DATE(e.date_of_joining) \n" +
+			" ), TEMP AS ( \n" +
+			" SELECT T1.emp_id, DATE_ADD(prev_end_date, INTERVAL 1 DAY) AS gap_start, DATE_SUB(T1.start_date, INTERVAL 1 DAY) AS gap_end  \n" +
+			" , COALESCE(DATEDIFF(DATE_SUB(T1.start_date, INTERVAL 1 DAY) , DATE_ADD(prev_end_date, INTERVAL 1 DAY)),0) + 1 as unmapped_count  \n" +
+			" FROM T1 \n" +
+			" WHERE T1.start_date > DATE_ADD(T1.prev_end_date, INTERVAL 1 DAY)  \n" +
+			" UNION ALL \n" +
+			" SELECT T2.emp_id,T2.gap_start,T2.gap_end, T2.unmapped_count + 1 FROM T2 WHERE (T2.unmapped_count + 1) > 0 \n" +
+			" ) \n" +
+			" SELECT distinct e.emp_id, e.employeement_id  \n" +
+			" , CASE WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id) WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-',e.employeement_id) ELSE CONCAT('A-',e.employeement_id) END as employeement_id_str  \n" +
+			" , e.name emp_name, e.email emp_mail, d.dept_id, d.name dept_name, hod.email hod_mail, hod.name hod_name, rm.email rm_mail, rm.name rm_name  \n" +
+			" , t.gap_start, t.gap_end, t.unmapped_count  \n" +
+			" FROM employee e   \n" +
+			" LEFT JOIN employee_team_mapping etm ON e.emp_id = etm.emp_id  \n" +
+			" LEFT JOIN employee rm ON (((e.approvals_to IS NULL OR e.approvals_to = 'Manager') AND e.manager_id = rm.emp_id) OR (e.approvals_to = 'Reporting Manager' AND e.reporting_manager_id = rm.emp_id)) \n" +
+			" LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id   \n" +
+			" LEFT JOIN department d ON jr.dept_id = d.dept_id  \n" +
+			" LEFT JOIN employee hod ON d.hod_id = hod.emp_id  \n" +
+			" INNER JOIN TEMP t ON t.emp_id = e.emp_id  \n" +
+			" WHERE 1=1  \n" +
+			" ORDER BY e.emp_id \n" +
+			" AND LOWER(d.name) NOT IN :deptNames ", nativeQuery=true )
+	List<Object[]> getUnmappedEmployeeProjectDetails(Set<String> deptNames);
 	
+	@Modifying
+	@Transactional
+	@Query(value = "UPDATE EmployeeTeamMap etm\n"
+			+ "	INNER JOIN Team t ON t.teamId = etm.teamId\n"
+			+ "	INNER JOIN Project p ON p.projectId = t.projectId\n"
+			+ "	INNER JOIN EmpPrimaryProjectMapping eppm \n"
+			+ "	     ON eppm.empId = etm.empId \n"
+			+ "	     AND eppm.projectId = p.projectId\n"
+			+ "	SET \n"
+			+ "	    etm.active = 1,\n"
+			+ "	    etm.updatedOn = NOW(),\n"
+			+ "	    eppm.isMapped = 'Y'\n"
+			+ "	WHERE etm.active = 0\n"
+			+ "	AND etm.startDate IS NOT NULL\n"
+			+ "	AND DATE(etm.startDate) <= CURDATE()\n"
+			+ " AND t.isActive = 'Y' AND p.active = 'true'\n"
+			+ "	AND p.isDraftProject NOT IN ('Rejected','false')", nativeQuery = true)
+	int activateMembersBasedOnStartDate();
+	
+	@Modifying
+	@Transactional
+	@Query(value = "UPDATE EmployeeTeamMap etm\n"
+			+ "	JOIN Team t ON t.teamId = etm.teamId\n"
+			+ "	JOIN Project p ON p.projectId = t.projectId\n"
+			+ "	JOIN EmpPrimaryProjectMapping eppm \n"
+			+ "	     ON eppm.empId = etm.empId \n"
+			+ "	     AND eppm.projectId = p.projectId\n"
+			+ "	SET \n"
+			+ "	    etm.active = 0,\n"
+			+ "	    etm.updated_on = NOW(),\n"
+			+ "	    eppm.isMapped = 'N'\n"
+			+ "	WHERE etm.active = 1\n"
+			+ " AND t.isActive = 'Y' AND p.active = 'true'\n"
+			+ "	AND etm.endDate IS NOT NULL\n"
+			+ "	AND DATE(etm.endDate) < CURDATE()", nativeQuery = true)
+	int deactivateMembersBasedOnEndDate();
 }
