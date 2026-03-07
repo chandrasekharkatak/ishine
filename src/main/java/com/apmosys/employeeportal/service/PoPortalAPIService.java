@@ -2193,8 +2193,8 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	                      + "<b>Exception Details:</b><br/>"
 	                      + "<pre>" + exceptionDetailsForLog.toString() + "</pre>";
 
-	                mailService.sendMail(
-	                        "prarthana.lenka@apmosys.com",
+	                mailService.sendMailWithCC(
+	                        "prarthana.lenka@apmosys.com","sumit.modi@apmosys.com",
 	                        "PO Sync Issues | TraceId : " + traceId,
 	                        mailBody
 	                );

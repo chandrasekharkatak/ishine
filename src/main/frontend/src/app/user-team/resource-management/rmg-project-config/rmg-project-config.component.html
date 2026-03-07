@@ -1853,6 +1853,44 @@
     </div>
 </ng-template>
 
+<ng-template #existing_employee_project_timesheet_info>
+    <div class="card-header project-card-header">
+        <div class="row align-items-center">
+            <div class="col-md-11">
+                <h6 class="card-title text-left">
+                    Employee's Existing Project Timesheet Entries
+                </h6>
+            </div>
+            <div class="col-md-1 d-flex justify-content-end">
+                <button class="btn btn-sm btn-outline-primary" title="Close"
+                    (click)="closeExistingEmployeeProjectTimesheetInfoModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-container mt-2">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Sr.No</th>
+                        <th>Project Name</th>
+                        <th>Filled Timesheet Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let item of existingEmployeeProjectTimesheetEntries | keyvalue; let i=index">
+                        <td>{{ i+1 }}</td>
+                        <td>{{ item.key }}</td>
+                        <td>{{ item.value }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</ng-template>
+
 <ng-template #resource_requirement_template let-resourceRequirementList="resourceRequirementList" let-flag="flag">
     <mat-accordion>
         <mat-expansion-panel [expanded]="false" class="shadow-sm team-list-expansion-panel mb-2">

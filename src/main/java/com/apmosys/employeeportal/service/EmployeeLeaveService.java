@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.apmosys.employeeportal.dto.*;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
+import com.apmosys.employeeportal.enums.DayTypeCode;
 import com.apmosys.employeeportal.model.*;
 import de.danielbechler.util.Exceptions;
 import org.json.JSONArray;
@@ -147,6 +148,9 @@ public class EmployeeLeaveService {
 	
     @Autowired
     ProjectRepository projectRepository; 
+
+    @Autowired
+    private DayTypeMasterNewRepository dayTypeMasterNewRepository;
     
     @Autowired
     JobRoleRepository jobRoleRepository;
@@ -1144,9 +1148,20 @@ public class EmployeeLeaveService {
                 // -------------------------
                 long elapsedDays = ChronoUnit.DAYS.between(fromDate, toDate);
                 List<Object[]> holidayList = holidayRepository.getHolidayWeekOffSize(leaveDTO.getFromDate(),leaveDTO.getToDate(), leaveDTO.getState());
-                if (leaveDTO.getNoOfDays() != null && leaveDTO.getNoOfDays() > 0.5) {
+                
+                DayTypeMasterNew leaveDayType = dayTypeMasterNewRepository
+                        .findByDayType(DayTypeCode.LEAVE.getDbValue());
 
-                    List<EmployeeTimesheetsNew> existingTimeSheet = employeeTimesheetsNewRepository.findByEmpIdAndDateBetween(leaveDTO.getEmpId(),
+                if (leaveDayType == null) {
+                    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                    response.setServiceResponse("DayType '" + DayTypeCode.LEAVE.getDbValue()
+                            + "' not found in day_type_master_new.");
+                    return response;
+                }
+   
+              if (leaveDTO.getNoOfDays() != null && leaveDTO.getNoOfDays() > 0.5) {
+
+                 List<EmployeeTimesheetsNew> existingTimeSheet = employeeTimesheetsNewRepository.findByEmpIdAndDateBetween(leaveDTO.getEmpId(),
                             fromDate, toDate);
                     if (existingTimeSheet != null && !existingTimeSheet.isEmpty()) {
                         for (EmployeeTimesheetsNew ts : existingTimeSheet) {
@@ -1165,7 +1180,7 @@ public class EmployeeLeaveService {
                     if (!isHalfDay) {
                         LocalDateTime startOfDay = fromDate.atStartOfDay();
                         LocalDateTime endOfDay = fromDate.atTime(LocalTime.MAX);
-                        saveRelationalLeaveTimesheet(leaveDTO, fromDate,startOfDay, endOfDay);
+                        saveRelationalLeaveTimesheet(leaveDTO, fromDate,startOfDay, endOfDay,leaveDayType);
                     }
                 } else {
                         LocalDate tempDateToday = fromDate;
@@ -1186,7 +1201,7 @@ public class EmployeeLeaveService {
                                 if (!isHoliday) {
                                 	LocalDateTime startOfThisDay = tempDateToday.atStartOfDay();
                                     LocalDateTime endOfThisDay = tempDateToday.atTime(LocalTime.MAX);
-                                    saveRelationalLeaveTimesheet(leaveDTO, tempDateToday, startOfThisDay, endOfThisDay);                                   
+                                    saveRelationalLeaveTimesheet(leaveDTO, tempDateToday, startOfThisDay, endOfThisDay,leaveDayType);                                   
                                 }
                             }
                             tempDateToday = tempDateToday.plusDays(1);
@@ -1226,7 +1241,7 @@ public class EmployeeLeaveService {
         return response;
     }
 //method called when leave is applied to fill in timesheets
-    private void saveRelationalLeaveTimesheet(LeaveDTO leaveDTO, LocalDate date,LocalDateTime startOfDay, LocalDateTime endOfDay) {
+    private void saveRelationalLeaveTimesheet(LeaveDTO leaveDTO, LocalDate date,LocalDateTime startOfDay, LocalDateTime endOfDay,  DayTypeMasterNew leaveDayType) {
         try {
         	Long userId = (leaveDTO.getCreatedBy() != null) ? leaveDTO.getCreatedBy() : leaveDTO.getUpdatedBy();
 	        
@@ -1240,7 +1255,7 @@ public class EmployeeLeaveService {
         tsHeader.setEmpId(leaveDTO.getEmpId());
         tsHeader.setDate(date);
      
-        tsHeader.setDayTypeId(5);
+        tsHeader.setDayTypeId(leaveDayType.getDayTypeId());
         tsHeader.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId().longValue());
         tsHeader.setTotalWorkingMinutes(0);
         tsHeader.setStatus(2); 
@@ -1248,7 +1263,7 @@ public class EmployeeLeaveService {
         tsHeader.setCurrentManagerId(leaveDTO.getManagerId().longValue());
         tsHeader.setCreatedBy(leaveDTO.getCreatedBy());
         tsHeader.setCreatedOn(LocalDateTime.now());
-        tsHeader.setDescription("On leave: " + leaveDTO.getLeaveTypeCode());
+        tsHeader.setDescription(leaveDayType.getDayType());
 
         tsHeader = employeeTimesheetsNewRepository.save(tsHeader);
         Long newTsId = tsHeader.getTimesheetId();
@@ -1879,7 +1894,16 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 						}
 
 						// entityManager.flush();
+                            
+                        DayTypeMasterNew leaveDayType = dayTypeMasterNewRepository
+                                .findByDayType(DayTypeCode.LEAVE.getDbValue());
 
+                        if (leaveDayType == null) {
+                            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                            response.setServiceResponse("DayType '" + DayTypeCode.LEAVE.getDbValue()
+                                    + "' not found in day_type_master_new.");
+                            return response;
+                        }
 						// Timesheet Update
 						// IF Employee is Applying Leave for Half Day then, Automatic timesheet will not be filled as Leave
 						if(leaveDTO.getNoOfDays() > 0.5) {
@@ -1912,7 +1936,7 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 	                                }
 
 	                                if (!isHoliday) {
-	                                    saveRelationalLeaveTimesheet(leaveDTO, tempDate, tempDate.atStartOfDay(), tempDate.atTime(LocalTime.MAX));
+	                                    saveRelationalLeaveTimesheet(leaveDTO, tempDate, tempDate.atStartOfDay(), tempDate.atTime(LocalTime.MAX),leaveDayType);
 	                                }
 	                            }
 	                            tempDate = tempDate.plusDays(1);

@@ -915,6 +915,8 @@ public class TimesheetServiceNew {
 		try {
 			normalizeEmployeeTimesheetFromNewContract(newEmpDTO, newEmpDTO.getDate());
 
+			timesheetValidationHelper.validateHalfDayLeaveIfRequired(newEmpDTO);
+
 			timesheetValidationHelper.validateEmployeeAuthorization(newEmpDTO);
 
 			timesheetValidationHelper.validateNullAndUnexpectedData(newEmpDTO);
@@ -946,6 +948,7 @@ public class TimesheetServiceNew {
 				timesheetValidationHelper.validateLocationDeletionRules(timesheetId, newEmpDTO.getLocationSessions());
 				timesheetValidationHelper.validateApprovedProjectImmutableByLocationMapping(timesheetId,
 						newEmpDTO.getLocationSessions());
+				timesheetValidationHelper.validateClientSideIdMandatory(newEmpDTO);
 
 				timesheetValidationHelper.validateWorkInWorkOutTime(newEmpDTO);
 				timesheetValidationHelper.validateLocationTimeOverlap(newEmpDTO.getLocationSessions());

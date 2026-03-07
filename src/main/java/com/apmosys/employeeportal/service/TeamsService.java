@@ -5672,7 +5672,7 @@ public class TeamsService {
 				response.setServiceResponse("Employee Id cannot be null!!");
 				return response;
 			}
-			
+
 			Project currentProject = projectRepository.findByProjectId(rmgTeamMemberDto.getProjectId());
 			if (currentProject == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -5688,33 +5688,29 @@ public class TeamsService {
 				return response;
 			}
 
-			StringBuilder sb = new StringBuilder();
 			LocalDate newStartDate = rmgTeamMemberDto.getStartDate().toLocalDate();
+			Map<String, Long> projectNameAndTimesheetCount = new HashMap<String, Long>();
 
 			for (EmployeeProjectTimesheetCountDto dto : employeeProjectTimesheetCountDtoList) {
 				if (dto.getProjectStartDate() == null || dto.getTimesheetFilledCount() == null
 						|| dto.getTimesheetFilledCount().equals(0l) || dto.getEmployeeTeamStartDate() == null) {
 					continue;
 				}
-
 				if (isStartDateConflict(newStartDate, dto.getProjectStartDate(), dto.getEmployeeTeamStartDate())) {
-					sb.append(String.format("Total timesheets submitted for project '%s' is %d.", dto.getProjectName(),
-							dto.getTimesheetFilledCount())).append("\n");
+					projectNameAndTimesheetCount.put(dto.getProjectName(), dto.getTimesheetFilledCount());
 				}
 			}
 
-			if (sb.length() > 0) {
-				sb.append("The existing timesheet entries of the users need to be rejected.");
-				response.setServiceResponse(sb.toString());
+			if (!projectNameAndTimesheetCount.isEmpty()) {
+				response.setServiceResponse("Conflicting timesheet records found.");
+				response.setServiceResponse2(projectNameAndTimesheetCount);
 			} else {
 				response.setServiceResponse("No conflicting timesheet records found.");
 			}
-
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 		} catch (Exception e) {
 			log.error("Error in validateEmployeeTimesheetFilledToChangeStartDate : ", e);
-			response.setServiceResponse(
-					"Something went wrong, unable to validate timesheet filled count at the moment for the updated start date!!");
+			response.setServiceResponse("Something went wrong, unable to validate the selected start date at the moment!!");
 			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			response.setServiceError(e.getMessage());
 		}
