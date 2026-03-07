@@ -2642,7 +2642,7 @@ getBulkDocumentDetails(timesheets: any[]) {
 
 
           this.clearAllSelections();
-          this.selectedStatus = 2;
+          this.onStatusChange(2);
           this.page1 = 0;
           this.getMyReporteesTimesheetRequests();
           this.getTimesheetStatusCountsByEmpId();
@@ -2806,12 +2806,12 @@ approveSingleTimesheet(timesheet: any) {
             }
 
           this.clearAllSelections();
-          this.selectedStatus = 2;
+          // this.selectedStatus = 2;
+          this.onStatusChange(2);
           this.page1 = 0;
 
           this.getMyReporteesTimesheetRequests();
           this.getTimesheetStatusCountsByEmpId();
-          this.onStatusChange(2);
           this.modalMessage = message;
 
         } else {
@@ -3268,10 +3268,9 @@ getReporteesFromProjectId(): { empId: number; name: string }[] {
 
           this.modalRef?.close();
           this.page1 = 0;
-
-          this.getMyReporteesTimesheetRequests();
-          this.getTimesheetStatusCountsByEmpId();
           this.onStatusChange(3);
+          // this.getMyReporteesTimesheetRequests();
+          // this.getTimesheetStatusCountsByEmpId();
           this.modalMessage = message;
       } else {
           this.modalTitle = 'Error';
