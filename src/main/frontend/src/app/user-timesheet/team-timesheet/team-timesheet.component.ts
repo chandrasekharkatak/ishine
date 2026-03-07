@@ -2255,13 +2255,13 @@ loadActiveDocument(): void {
    /* HELPERS */
 hasPendingDoc(projectId: number): boolean {
   return this.selectedTimesheet?.documentData?.some(
-    d => d.docId != null
+    d => d.docId != null && d.docsProjectId === projectId
   ) || false;
 }
 
 hasApprovedDoc(projectId: number): boolean {
   return this.selectedTimesheet?.documentData?.some(
-    d => d.bulkApprovedDocId != null
+    d => d.bulkApprovedDocId != null && d.docsProjectId === projectId
   ) || false;
 }
 

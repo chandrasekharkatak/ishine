@@ -604,12 +604,13 @@ public class TimesheetMapper {
                     seenActivityKeys.get(timesheetId).computeIfAbsent(actLocId, k -> new HashMap<>());
                     seenActivityKeys.get(timesheetId).get(actLocId).computeIfAbsent(actProjectId, k -> new HashSet<>());
 
-                    // Dedupe key: ALL THREE (as requested)
+                    // Dedupe key: ALL FOUR (as requested)
                     final String actKey =
                             String.valueOf(row.getActivityTimesheetId())
                                     + "|" + String.valueOf(row.getActivityLocationMappingId())
-                                    + "|" + String.valueOf(row.getActivityProjectId());
-
+                                    + "|" + String.valueOf(row.getActivityProjectId())
+                                    + "|" + String.valueOf(row.getActivity());
+                                    
                     if (seenActivityKeys.get(timesheetId).get(actLocId).get(actProjectId).add(actKey)) {
                         GetReporteesTimesheetActivitiesDTO act = new GetReporteesTimesheetActivitiesDTO();
 
