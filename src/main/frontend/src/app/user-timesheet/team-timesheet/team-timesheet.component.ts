@@ -2716,6 +2716,19 @@ openBulkRejectModal(bulkRejectTimesheet: TemplateRef<any>): void {
     { modalDialogClass: 'modal-lg', backdrop: 'static' }
   );
 }
+hasClientApprovalPending(timesheet: any): boolean {
+
+  if (!timesheet?.locationSessions?.length) {
+    return false;
+  }
+
+  return timesheet.locationSessions.some((location: any) =>
+    (location.projects || []).some((project: any) =>
+      Number(project.clientApprovalStatus) === 1
+    )
+  );
+
+}
 
 // SINGLE TIMESHEET APPROVE
 approveSingleTimesheet(timesheet: any) {
