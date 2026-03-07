@@ -17075,7 +17075,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				"    ab.name, etn.createdOn, \n" +
 				"    wltm.code, etlm.locationInTime, etlm.locationOutTime, etlm.locationMappingId, \n" +
 				"    ptsn.id.timesheetId, etamn.locationMappingId, ptsn.id.projectId, \n" +
-				"    p.projectName, c.clientName, cl.clientLocation, \n" +
+				"    p.projectName, c.clientName, cl.clientLocation, ptsn.clientApprovalStatus,\n" +
 				"    ptsn.poNo, es.name, ptsn.status, ptsn.totalClientWorkingMinutes, ptsn.description, \n" +
 				"    etamn.timesheetId, etamn.locationMappingId, etamn.projectId, \n" +
 				"    a.activity, etamn.description, etamn.durationMinutes, \n" +

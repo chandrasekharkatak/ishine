@@ -24,6 +24,7 @@ public class GetReporteesTimesheetProjectsDTO {
     private String poNo;
     private String shadowEmp;
     private Integer status;
+    private Integer clientApprovalStatus;
     private String totalClientWorkingMinutes;
     private String description;
 	private List<GetReporteesTimesheetActivitiesDTO> activities;

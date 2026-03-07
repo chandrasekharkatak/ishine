@@ -337,6 +337,7 @@ public class TimesheetMapper {
                                                 r.getPoNo(),
                                                 r.getShadowEmp(),
                                                 r.getStatus(),
+                                                r.getClientApprovalStatus() != null ? r.getClientApprovalStatus() : null,
                                                 TimesheetFormatUtil.formatMinutes(r.getTotalClientWorkingMinutes()),
                                                 r.getDescription(),
                                                 new ArrayList<>(), new ArrayList<>()
@@ -516,6 +517,7 @@ public class TimesheetMapper {
                                         ? TimesheetFormatUtil.formatMinutes(row.getTotalClientWorkingMinutes())
                                         : null
                         );
+                        projDto.setClientApprovalStatus(row.getClientApprovalStatus());
                         projDto.setDescription(row.getDescription());
                         projDto.setActivities(new ArrayList<>());
                         projDto.setRejectionReasons(new ArrayList<>());
