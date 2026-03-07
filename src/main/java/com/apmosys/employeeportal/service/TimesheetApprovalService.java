@@ -2173,6 +2173,17 @@ private void saveRejectionDetails(BulkTimesheetRequestDTO request) {
 
     for (Long timesheetId : timesheetIds) {
 
+		List<TimesheetRejectionDetailsNew> existingRejections = timesheetRejectionDetailsNewRepository.findByTimesheetIdAndIsActive(timesheetId, true);
+		List<TimesheetRejectionDetailsNew> toDeactivate = new ArrayList<>();
+		if (existingRejections != null && !existingRejections.isEmpty()) {
+			for (TimesheetRejectionDetailsNew rej : existingRejections) {
+				rej.setIsActive(false);
+				rej.setUpdatedBy(updatedBy);
+				rej.setUpdatedOn(now);
+				toDeactivate.add(rej);
+			}
+			timesheetRejectionDetailsNewRepository.saveAll(toDeactivate);
+		}
         for (ProjectRejectionDTO pr : projectRejections) {
 
             List<Long> projectIds = pr.getProjectIds();
@@ -2204,6 +2215,7 @@ private void saveRejectionDetails(BulkTimesheetRequestDTO request) {
 						rejection.setRemarks(remark);
 						rejection.setRejectedBy(updatedBy);
 						rejection.setRejectedOn(now);
+						rejection.setIsActive(true);
 						rejectionList.add(rejection);
 					}
 				}

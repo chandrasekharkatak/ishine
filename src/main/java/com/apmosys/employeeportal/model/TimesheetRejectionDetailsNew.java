@@ -46,5 +46,14 @@ public class TimesheetRejectionDetailsNew {
 
     @Column(name = "rejected_on")
     private LocalDateTime rejectedOn;
+
+    @Column(name = "updated_on")
+    private LocalDateTime updatedOn;
+
+    @Column(name = "updated_by")
+    private Long updatedBy;
+
+    @Column(name = "is_active")
+    private Boolean isActive;
 }
 

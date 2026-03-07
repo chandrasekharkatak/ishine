@@ -797,7 +797,7 @@
                     (click)="approveSingleTimesheet(timesheet)" title="Approve timesheet">
                     <i class="fas fa-check"></i>
                   </button>
-                  <button type="button" class="ts-action-btn ts-reject-btn" *ngIf="selectedStatus === 1 || 2"
+                  <button type="button" class="ts-action-btn ts-reject-btn" *ngIf="selectedStatus === 1 || selectedStatus === 2"
                     (click)="openRejectPopup(rejectPopup, timesheet)" title="Reject timesheet">
                     <i class="fas fa-times"></i>
                   </button>

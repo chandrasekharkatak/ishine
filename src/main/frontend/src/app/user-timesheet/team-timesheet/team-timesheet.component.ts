@@ -2450,6 +2450,7 @@ getDocument(type: 'Pending' | 'Approved'): void {
    private searchSubject = new Subject<any>();
    onStatusChange(status: number) {
     this.selectedStatus = status;
+    console.log("Status changed to:", this.selectedStatus);
     this.page1 = 0; // pagination reset
     this.isSearchEnabled = false;
     this.expandedTimesheetIndex = null;

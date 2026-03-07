@@ -17113,7 +17113,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				+ "    ON dmtmn.mimeTypeId = tddn.mimeTypeId \n" +
 
 				"LEFT JOIN TimesheetRejectionDetailsNew trdn \n" +
-				"       ON (:status = 3 AND trdn.timesheetId = ptsn.id.timesheetId \n" +
+				"       ON (:status = 3 AND trdn.isActive IS true AND trdn.timesheetId = ptsn.id.timesheetId \n" +
 				"           AND trdn.locationMappingId = etamn.locationMappingId \n" +
 				"           AND trdn.projectId = ptsn.id.projectId) \n" +
 
