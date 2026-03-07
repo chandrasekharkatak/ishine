@@ -594,12 +594,12 @@ public class HolidayService {
             tsDescription = holidayObj.getDayOfTheWeek();
         }
         EmployeeTimesheetsNew tsHeader = new EmployeeTimesheetsNew();
-        tsHeader.setEmpId(1L);
+        tsHeader.setEmpId(emp.getEmpId());
         tsHeader.setDate(date);
         tsHeader.setIsNightShift(false);
         tsHeader.setStatus(2);
         tsHeader.setTotalWorkingMinutes(0);
-        tsHeader.setCreatedBy(emp.getEmpId());
+        tsHeader.setCreatedBy(1L);
         tsHeader.setCreatedOn(LocalDateTime.now());
         Long managerId = "Reporting Manager".equals(emp.getApprovalsTo())
                 ? emp.getReportingManagerId()
