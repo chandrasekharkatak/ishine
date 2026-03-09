@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -175,6 +176,23 @@ public class TrainingUserController {
 			e.printStackTrace();
 			throw e;
 		}
+	}
+
+	@GetMapping("/slides/{trainingId}/{contentId}")
+	public ResponseEntity<List<String>> getAllSlides(
+			@PathVariable Integer trainingId,
+			@PathVariable Integer contentId) throws Exception {
+		
+		return trainingUserService.getAllSlides(trainingId, contentId);
+	}
+
+	@GetMapping("/slide/{trainingId}/{contentId}/{slideName}")
+	public ResponseEntity<Resource> getSlide(
+			@PathVariable Integer trainingId,
+			@PathVariable Integer contentId,
+			@PathVariable String slideName) throws Exception {
+		
+		return trainingUserService.getSlide(trainingId, contentId, slideName);
 	}
 
 }

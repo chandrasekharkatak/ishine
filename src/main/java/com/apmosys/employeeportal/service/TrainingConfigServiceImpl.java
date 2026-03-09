@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.service;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -15,7 +16,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -66,6 +70,8 @@ import com.apmosys.employeeportal.serviceInterface.TrainingUserService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 import com.apmosys.employeeportal.utility.TrainingFileValidator;
+
+import com.apmosys.employeeportal.utility.DocumentSlideUtility;
 
 /**
  * Service implementation for Training Configuration operations (HR/Admin)
@@ -123,6 +129,17 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 	@Value("${training.dry.run.empids.to.include}")
 	private String trainingDryRunEmpIdsToInclude;
+
+	private Map<Integer, String> trainingContentMap = new HashMap<>();
+
+	public String getTrainingContentMap(Integer contentId) {
+		return trainingContentMap.get(contentId);
+	}
+
+	public void setTrainingContentMap(Integer contentId, String slidesPath) {
+		this.trainingContentMap.put(contentId, slidesPath);
+	}
+
 
 	// ==================== HR Configuration APIs ====================
 	@Override
@@ -465,6 +482,21 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 			if (filePath != null) {
 				saveTrainingFile(filePath, file);
+				// DocumentSlideUtility.convertDocumentToSlides(trainingFileLocation, filePath, savedContent.getContentId());
+				String slidesPath = DocumentSlideUtility.convertDocumentToSlides(
+					trainingFileLocation, 
+					filePath, 
+					savedContent.getContentId()
+				);
+				
+				// Count total slides
+				int totalSlides = countSlides(slidesPath);
+				
+				// Update the content with slides path and total slides
+				savedContent.setSlidesPath(slidesPath);
+				savedContent.setTotalSlides(totalSlides);
+				trainingContentRepository.save(savedContent);
+
 			}
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -691,6 +723,22 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	  // Save new file
 	     if (newFilePath != null) {
 	         saveTrainingFile(newFilePath, file);
+			//  DocumentSlideUtility.convertDocumentToSlides(trainingFileLocation, newFilePath, savedContent.getContentId());
+			String slidesPath = DocumentSlideUtility.convertDocumentToSlides(
+				trainingFileLocation, 
+				newFilePath, 
+				savedContent.getContentId()
+			);
+			
+			// Count total slides
+			int totalSlides = countSlides(slidesPath);
+			
+			// Update the content with slides path and total slides
+			savedContent.setSlidesPath(slidesPath);
+			savedContent.setTotalSlides(totalSlides);
+			trainingContentRepository.save(savedContent);
+
+			trainingContentMap.remove(savedContent.getContentId());
 	     }
 
 	     // Delete old file if switching FILE → LINK
@@ -699,6 +747,11 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	             && !oldFilePath.isBlank()) {
 
 	         safeDeleteTrainingFile(oldFilePath);
+
+			 String oldSlidesPath = existingContent.getSlidesPath();
+			if (oldSlidesPath != null) {
+				safeDeleteDirectory(oldSlidesPath);
+			}
 	     }
 
 	     // Delete old file if replacing FILE → FILE
@@ -708,6 +761,10 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	             && !oldFilePath.equals(newFilePath)) {
 
 	         safeDeleteTrainingFile(oldFilePath);
+			 String oldSlidesPath = existingContent.getSlidesPath();
+			if (oldSlidesPath != null) {
+				safeDeleteDirectory(oldSlidesPath);
+			}
 	     }
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -830,6 +887,40 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		return response;
 	}
 
+
+	private int countSlides(String slidesPath) {
+		try {
+			File slidesDir = new File(slidesPath);
+			if (!slidesDir.exists() || !slidesDir.isDirectory()) {
+				return 0;
+			}
+			
+			// Count PNG files that start with "slide-" or "page-"
+			File[] slides = slidesDir.listFiles((dir, name) -> 
+				(name.startsWith("slide-") || name.startsWith("page-")) && 
+				name.endsWith(".png"));
+			
+			return slides != null ? slides.length : 0;
+		} catch (Exception e) {
+			throw new RuntimeException("Error counting slides", e);
+		}
+	}
+
+	private void safeDeleteDirectory(String path) {
+		try {
+			Path dirPath = Paths.get(path);
+			if (Files.exists(dirPath)) {
+				// Delete all files in directory first
+				Files.walk(dirPath)
+					.sorted(Comparator.reverseOrder())
+					.map(Path::toFile)
+					.forEach(File::delete);
+			}
+		} catch (Exception e) {
+			throw new RuntimeException("Error deleting directory", e);
+		}
+	}
+
 	@Override
 	public ServiceResponse getTrainingContent(Integer trainingId) {
 		ServiceResponse response = new ServiceResponse();
@@ -842,20 +933,20 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		logBuilder.append("Training ID: ").append(trainingId);
 
 		try {
-			List<TrainingContent> contents = trainingContentRepository.findByTrainingMaster_TrainingId(trainingId);
 			LocalDate today = LocalDate.now();
+			TrainingContent content = trainingContentRepository.findByTrainingMaster_TrainingId(trainingId, today);
 
-			List<TrainingContentDTO> dtoList = contents.stream().map(content -> {
-				TrainingContentDTO dto = convertToTrainingContentDTO(content);
+			List<TrainingContentDTO> dtoList = new ArrayList<>();
 
-				// Check if currently active
-				boolean isActive = "true".equals(content.getActiveStatus())
-						&& content.getEffectiveFrom().isBefore(today)
-						&& (content.getEffectiveTo() == null || content.getEffectiveTo().isAfter(today));
-				dto.setIsCurrentlyActive(isActive);
+			TrainingContentDTO dto = convertToTrainingContentDTO(content);
 
-				return dto;
-			}).collect(Collectors.toList());
+			// Check if currently active
+			boolean isActive = "true".equals(content.getActiveStatus())
+					&& content.getEffectiveFrom().isBefore(today)
+					&& (content.getEffectiveTo() == null || content.getEffectiveTo().isAfter(today));
+			dto.setIsCurrentlyActive(isActive);
+
+			dtoList.add(dto);
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(dtoList);
@@ -1261,64 +1352,6 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-
-	// ==================== Helper Methods ====================
-
-	/**
-	 * Count completions in last 12 months for an employee and training Used by
-	 * reporting methods
-	 */
-	// private int countCompletionsInLast12Months(Long empId, Integer trainingId) {
-	// 	Timestamp fromDate = Timestamp.valueOf(LocalDate.now().minusMonths(12).atStartOfDay());
-	// 	Long count = trainingConsentRepository.countCompletionsInLast12Months(empId, trainingId, fromDate);
-	// 	return count != null ? count.intValue() : 0;
-	// }
-
-	/**
-	 * Convert TrainingMaster entity to DTO
-	 */
-// 	private TrainingMasterDTO convertToTrainingMasterDTO(TrainingMaster training) {
-// 		TrainingMasterDTO dto = new TrainingMasterDTO();
-// 		dto.setTrainingId(training.getTrainingId());
-// 		dto.setTrainingName(training.getTrainingName());
-// 		dto.setTrainingType(training.getTrainingType());
-// 		dto.setMandatoryFlag(training.getMandatoryFlag());
-// 		dto.setEffectiveFrom(training.getEffectiveFrom());
-// 		dto.setEffectiveTo(training.getEffectiveTo());
-// //		dto.setFrequencyPerYear(training.getFrequencyPerYear());
-// 		dto.setLockEnabled(training.getLockEnabled());
-// 		dto.setMinViewTimeMinutes(training.getMinViewTimeMinutes());
-// 		dto.setConsentRequired(training.getConsentRequired());
-// 		dto.setSkipAllowed(training.getSkipAllowed());
-// 		dto.setDeadlineEnabled(training.getDeadlineEnabled());
-// 		dto.setDeadlinePattern(training.getDeadlinePattern());
-// 		dto.setCustomDeadlineMonths(training.getCustomDeadlineMonths());
-// 		dto.setActiveStatus(training.getActiveStatus());
-// 		dto.setCreatedBy(training.getCreatedBy());
-
-// 		if (training.getCreatedOn() != null) {
-// 			dto.setCreatedOn(formatTimestampToString(training.getCreatedOn()));
-// 		}
-// 		if (training.getUpdatedOn() != null) {
-// 			dto.setUpdatedOn(formatTimestampToString(training.getUpdatedOn()));
-// 		}
-
-// 		// Get employee names
-// 		if (training.getCreatedBy() != null) {
-// 			Optional<Employee> empOpt = employeeRepository.findById(training.getCreatedBy());
-// 			if (empOpt.isPresent()) {
-// 				dto.setCreatedByName(empOpt.get().getName());
-// 			}
-// 		}
-// 		if (training.getUpdatedBy() != null) {
-// 			Optional<Employee> empOpt = employeeRepository.findById(training.getUpdatedBy());
-// 			if (empOpt.isPresent()) {
-// 				dto.setUpdatedByName(empOpt.get().getName());
-// 			}
-// 		}
-
-// 		return dto;
-// 	}
 
 	private String generateTrainingFilePath(Integer trainingId, MultipartFile file) {
 

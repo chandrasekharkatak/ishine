@@ -1,7 +1,13 @@
 package com.apmosys.employeeportal.service;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -18,16 +24,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -99,6 +115,10 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 
 	@Autowired
 	private TrainingQuizMappingRepository trainingQuizMappingRepository;
+
+	@Autowired
+	@Lazy
+	private TrainingConfigServiceImpl trainingConfigServiceImpl;
 	
 	@Value("${file.location.documents.training}")
 	private String trainingFileLocation;
@@ -1320,5 +1340,69 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	
+
+	public ResponseEntity<List<String>> getAllSlides(Integer trainingId, Integer contentId) {
+		// Get the content
+		TrainingContent content = trainingContentRepository.findById(contentId)
+			.orElseThrow(() -> new ResourceNotFoundException("Content not found"));
+		
+		// Get slides directory path from content (you stored this during conversion)
+		String slidesPath = content.getSlidesPath(); // e.g., /path/to/slides-251/
+		
+		// Get all slide images
+		File slidesDir = new File(slidesPath);
+		File[] slideFiles = slidesDir.listFiles((dir, name) -> 
+			name.endsWith(".png") && (name.startsWith("slide-") || name.startsWith("page-")));
+		
+		// Sort slides by number
+		Arrays.sort(slideFiles, (a, b) -> {
+			int numA = extractNumber(a.getName());
+			int numB = extractNumber(b.getName());
+			return Integer.compare(numA, numB);
+		});
+		
+		// Generate URLs for each slide
+		List<String> slideUrls = new ArrayList<>();
+		for (File slide : slideFiles) {
+			String slideUrl = "/api/training/slide/" + trainingId + "/" + contentId + "/" + slide.getName();
+			slideUrls.add(slideUrl);
+		}
+		
+		return ResponseEntity.ok(slideUrls);
+	}
+
+	public ResponseEntity<Resource> getSlide(Integer trainingId, Integer contentId, String slideName) {
+        
+		String slidesPath = "";
+
+		if(trainingConfigServiceImpl.getTrainingContentMap(contentId) != null) {
+			slidesPath = trainingConfigServiceImpl.getTrainingContentMap(contentId);
+		} else {
+			TrainingContent content = trainingContentRepository.findById(contentId)
+				.orElseThrow(() -> new ResourceNotFoundException("Content not found"));
+			slidesPath = content.getSlidesPath();
+			trainingConfigServiceImpl.setTrainingContentMap(contentId, slidesPath);
+		}
+        
+        Path slidePath = Paths.get(slidesPath).resolve(slideName);
+        
+        // Security check
+        Path basePath = Paths.get(trainingFileLocation).toAbsolutePath().normalize();
+        if (!slidePath.toAbsolutePath().normalize().startsWith(basePath)) {
+            throw new RuntimeException("Invalid file path");
+        }
+        
+        Resource resource = new FileSystemResource(slidePath.toFile());
+        
+        return ResponseEntity.ok()
+            .contentType(MediaType.IMAGE_PNG)
+            .header(HttpHeaders.CONTENT_DISPOSITION, "inline")
+            .body(resource);
+    }
+
+    private int extractNumber(String filename) {
+        Matcher matcher = Pattern.compile("\\d+").matcher(filename);
+        return matcher.find() ? Integer.parseInt(matcher.group()) : 0;
+    }
+
 }

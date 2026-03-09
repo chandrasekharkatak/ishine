@@ -366,7 +366,11 @@
                                                     </button>
                                                 </small>
                                             </div>
+                                            <span *ngIf="['PPT', 'PPTX'].includes(contentFormData.contentType)" class="d-block mt-1 text-danger" style="font-size: 0.85em;">
+                                                    <i class="fas fa-info-circle"></i> Please don't upload PPT with animations
+                                                </span>
                                             <div class="d-flex align-items-center">
+                                                
                                                 <div class="custom-file flex-grow-1">
                                                     <input type="file" class="custom-file-input" id="contentFile" (change)="onFileSelect($event)" 
                                                            [accept]="contentFormData.contentType === 'PPT' ? '.ppt,.pptx' : 
@@ -652,6 +656,7 @@
     </div>
 </div>
 
+
 <!-- Preview Modal -->
 <ng-template #preview_modal let-modal>
     <div class="modal-header bg-primary text-white">
@@ -659,18 +664,23 @@
             <i class="fas fa-eye mr-2"></i>{{isViewingExistingContent ? 'View Content' : 'Content Preview'}}
             <small class="ml-2" *ngIf="!isViewingExistingContent">(How it will appear to employees)</small>
         </h4>
-        <button type="button" class="close text-white" aria-label="Close" (click)="closePreviewModal()">
-            <span aria-hidden="true">&times;</span>
-        </button>
+        <div class="ml-auto d-flex align-items-center">
+            <button type="button" class="btn btn-sm btn-outline-light mr-2" (click)="toggleFullscreen()" title="Toggle Fullscreen">
+                <i class="fas" [ngClass]="isFullscreen ? 'fa-compress' : 'fa-expand'"></i>
+            </button>
+            <button type="button" class="close text-white" aria-label="Close" (click)="closePreviewModal()">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
     </div>
-    <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+    <div class="modal-body" [class.fullscreen-mode]="isFullscreen" style="max-height: 70vh; overflow-y: auto;">
         <div class="card border-primary">
             <div class="card-header bg-light">
                 <strong style="color: black;">{{contentFormData.contentName || viewingContent?.contentName || 'Preview'}}</strong>
                 <span class="badge badge-info ml-2">{{contentFormData.contentType || viewingContent?.contentType}}</span>
                 <span *ngIf="viewingContent" class="badge badge-secondary ml-2">
-                    Effective: {{viewingContent.effectiveFrom}} 
-                    <span *ngIf="viewingContent.effectiveTo"> - {{viewingContent.effectiveTo}}</span>
+                    Effective: {{viewingContent.effectiveFrom | date}} 
+                    <span *ngIf="viewingContent.effectiveTo"> - {{viewingContent.effectiveTo | date}}</span>
                 </span>
             </div>
             <div class="card-body">
@@ -690,14 +700,34 @@
                     </div>
                 </div>
 
+                <!-- Image Preview -->
+                <div *ngIf="contentFormData.contentType === 'IMAGE'" class="text-center">
+                    <img [src]="previewUrl" 
+                         (error)="onPreviewError($event)"
+                         alt="Image Preview" 
+                         class="img-fluid"
+                         style="max-height: 500px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                    <div class="mt-3">
+                        <button type="button" class="btn btn-sm btn-outline-primary" (click)="openPreviewInNewTab()">
+                            <i class="fas fa-external-link-alt mr-1"></i> Open in New Tab
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-success ml-2" (click)="downloadFile()">
+                            <i class="fas fa-download mr-1"></i> Download
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Video Preview -->
                 <div *ngIf="contentFormData.contentType === 'VIDEO'" class="text-center">
-                    <video controls [src]="previewUrl" style="max-width: 100%; max-height: 500px;" class="mb-3">
+                    <video controls [controlsList]="'nodownload noplaybackrate'" disablePictureInPicture [src]="previewUrl" style="max-width: 100%; max-height: 500px;" class="mb-3">
                         Your browser does not support the video tag.
                     </video>
                     <div class="mt-2">
                         <button type="button" class="btn btn-sm btn-outline-primary" (click)="openPreviewInNewTab()">
                             <i class="fas fa-external-link-alt mr-1"></i> Open in New Tab
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-success ml-2" (click)="downloadFile()">
+                            <i class="fas fa-download mr-1"></i> Download
                         </button>
                     </div>
                     <div class="mt-2">
@@ -716,6 +746,9 @@
                         <button type="button" class="btn btn-sm btn-outline-primary" (click)="openPreviewInNewTab()">
                             <i class="fas fa-external-link-alt mr-1"></i> Open in New Tab
                         </button>
+                        <button type="button" class="btn btn-sm btn-outline-success ml-2" (click)="downloadFile()">
+                            <i class="fas fa-download mr-1"></i> Download
+                        </button>
                     </div>
                     <div class="mt-2">
                         <small class="text-muted">
@@ -724,260 +757,85 @@
                     </div>
                 </div>
 
-                <!-- PDF Preview -->
-                <div *ngIf="contentFormData.contentType === 'PDF' || viewingContent?.contentType === 'PDF'" class="text-center">
-                    <iframe [src]="safePreviewUrl" 
-                            style="width: 100%; height: 600px; border: 1px solid #ddd;" 
-                            class="mb-3"
-                            (error)="onPDFPreviewError($event)">
-                        Your browser does not support PDF preview. 
-                        <a [href]="previewUrl" target="_blank" class="btn btn-primary">
-                            <i class="fas fa-download mr-1"></i>Download PDF
-                        </a>
-                    </iframe>
-                    <div class="mt-2">
-                        <button type="button" class="btn btn-sm btn-outline-primary" (click)="openPreviewInNewTab()">
-                            <i class="fas fa-external-link-alt mr-1"></i> Open in New Tab
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-success ml-2" (click)="downloadFile()">
-                            <i class="fas fa-download mr-1"></i> Download
-                        </button>
+                <!-- PPT/PDF Full Preview with Navigation and Preloading -->
+                <div *ngIf="contentFormData.contentType === 'PPT' || contentFormData.contentType === 'PPTX' || contentFormData.contentType === 'PDF'" class="text-center">
+                    <!-- Loading Spinner -->
+                    <div *ngIf="isLoadingPreview" class="spinner-border text-primary mb-3" role="status">
+                        <span class="sr-only">Loading slide...</span>
                     </div>
-                    <div class="mt-2">
-                        <small class="text-muted">
-                            <i class="fas fa-info-circle"></i> Employees will see this PDF viewer during training
-                        </small>
-                    </div>
-                </div>
-
-<div *ngIf="contentFormData.contentType === 'PPT' || viewingContent.contentType === 'PPT'">
-    <!-- PPTX Slides Viewer (for .pptx files) -->
-    <div *ngIf="pptxSlides.length > 0" class="pptx-viewer-wrapper" [class.fullscreen]="isFullscreen">
-        <!-- Top Toolbar -->
-        <div class="pptx-toolbar">
-            <div class="toolbar-left">
-                <h5 class="presentation-title mb-0">
-                    <i class="fas fa-file-powerpoint text-primary mr-2"></i>
-                    <span class="title-text">{{file?.name}}</span>
-                </h5>
-            </div>
-            <div class="toolbar-center">
-                <div class="slide-counter-badge">
-                    <span class="current-slide">{{currentSlideIndex + 1}}</span>
-                    <span class="separator">/</span>
-                    <span class="total-slides">{{pptxSlides.length}}</span>
-                </div>
-            </div>
-            <div class="toolbar-right">
-                <button type="button" class="btn btn-sm btn-outline-secondary toolbar-btn" 
-                        (click)="showThumbnails = !showThumbnails"
-                        [title]="showThumbnails ? 'Hide Thumbnails' : 'Show Thumbnails'">
-                    <i class="fas" [ngClass]="showThumbnails ? 'fa-th-large' : 'fa-th'"></i>
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-secondary toolbar-btn" 
-                        (click)="toggleFullscreen()"
-                        [title]="isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'">
-                    <i class="fas" [ngClass]="isFullscreen ? 'fa-compress' : 'fa-expand'"></i>
-                </button>
-                <button type="button" class="btn btn-sm btn-outline-primary toolbar-btn" 
-                        (click)="downloadPreviewFile()"
-                        title="Download File">
-                    <i class="fas fa-download"></i>
-                </button>
-            </div>
-        </div>
-
-        <!-- Main Content Area -->
-        <div class="pptx-content-area">
-            <!-- Thumbnails Sidebar -->
-            <div class="thumbnails-sidebar" *ngIf="showThumbnails" [class.collapsed]="!showThumbnails">
-                <div class="thumbnails-header">
-                    <span class="thumbnails-title">Slides</span>
-                    <button type="button" class="btn btn-sm btn-link p-0" (click)="showThumbnails = false">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="thumbnails-list">
-                    <div *ngFor="let slide of pptxSlides; let i = index" 
-                        class="thumbnail-item"
-                        [class.active]="i === currentSlideIndex"
-                        (click)="goToSlide(i)">
-                        <div class="thumbnail-number">{{i + 1}}</div>
-                                            <div class="thumbnail-preview">
-                                                <div *ngIf="slide.images.length > 0" class="thumbnail-image">
-                                                    <img [src]="slide.images[0]" alt="Slide {{i + 1}}">
-                                                </div>
-                                                <div *ngIf="slide.images.length === 0 && slide.texts.length > 0" class="thumbnail-text">
-                                    <i class="fas fa-align-left"></i>
-                                                    <span>{{slide.texts[0].substring(0, 30)}}...</span>
-                            </div>
-                            <div *ngIf="!slide.hasContent" class="thumbnail-empty">
-                                <i class="fas fa-file-powerpoint"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Slide Display Area -->
-            <div class="slide-display-area" [class.with-thumbnails]="showThumbnails">
-                <!-- Navigation Controls -->
-                <button type="button" 
-                        class="nav-btn nav-btn-prev" 
-                        (click)="previousSlide()" 
-                        [disabled]="currentSlideIndex === 0"
-                        title="Previous Slide (←)">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-
-                <button type="button" 
-                        class="nav-btn nav-btn-next" 
-                        (click)="nextSlide()" 
-                        [disabled]="currentSlideIndex === pptxSlides.length - 1"
-                        title="Next Slide (→)">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-
-                <!-- Slide Container -->
-                <div class="slide-viewport">
-                    <div class="slide-container" *ngIf="pptxSlides[currentSlideIndex]">
-                                            <div class="slide-content">
-                                                <!-- Display slide images -->
-                                                <div *ngFor="let imgUrl of pptxSlides[currentSlideIndex].images; let imgIndex = index" 
-                                                    class="slide-image-wrapper"
-                                                    [class.multiple-images]="pptxSlides[currentSlideIndex].images.length > 1">
-                                                    <img [src]="imgUrl" 
-                                                        alt="Slide Image {{imgIndex + 1}}" 
-                                                        class="slide-image"
-                                                        [class.single-image]="pptxSlides[currentSlideIndex].images.length === 1">
-                                                </div>
-                                
-                                                <!-- Display slide text content -->
-                                                <div *ngIf="pptxSlides[currentSlideIndex].texts.length > 0 && pptxSlides[currentSlideIndex].images.length === 0" 
-                                                    class="slide-text-content">
-                                                    <div *ngFor="let text of pptxSlides[currentSlideIndex].texts; let textIndex = index" 
-                                                        class="slide-text"
-                                                        [class.text-heading]="textIndex === 0 && text.length < 100">
-                                                        {{text}}
-                                                    </div>
-                                </div>
-
-                                                <!-- Mixed content (images + text) -->
-                                                <div *ngIf="pptxSlides[currentSlideIndex].texts.length > 0 && pptxSlides[currentSlideIndex].images.length > 0" 
-                                                    class="slide-text-overlay">
-                                                    <div *ngFor="let text of pptxSlides[currentSlideIndex].texts" 
-                                                        class="slide-text-overlay-item">
-                                                        {{text}}
-                                                    </div>
-                            </div>
-
-                                                <!-- Fallback if no images or text -->
-                            <div *ngIf="!pptxSlides[currentSlideIndex].hasContent" 
-                                 class="slide-placeholder">
-                                <div class="placeholder-icon">
-                                    <i class="fas fa-file-powerpoint"></i>
-                                </div>
-                                <p class="placeholder-title">Slide {{currentSlideIndex + 1}}</p>
-                                <p class="placeholder-subtitle">No extractable content detected</p>
-                                <small class="placeholder-note">This slide may contain complex formatting or embedded objects that cannot be previewed.</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Bottom Navigation Bar -->
-                <div class="bottom-nav-bar">
-                    <button type="button" 
-                            class="btn btn-sm btn-outline-light" 
-                            (click)="goToSlide(0)"
-                            [disabled]="currentSlideIndex === 0"
-                            title="First Slide">
-                        <i class="fas fa-angle-double-left"></i>
-                    </button>
-                    <button type="button" 
-                            class="btn btn-sm btn-outline-light" 
-                            (click)="previousSlide()" 
-                            [disabled]="currentSlideIndex === 0"
-                            title="Previous Slide">
-                        <i class="fas fa-chevron-left"></i> Previous
-                    </button>
-                    <div class="slide-progress">
-                        <div class="progress-bar-bg">
-                            <div class="progress-bar-fill" 
-                                [style.width.%]="((currentSlideIndex + 1) / pptxSlides.length) * 100">
-                            </div>
-                        </div>
-                    </div>
-                    <button type="button" 
-                            class="btn btn-sm btn-outline-light" 
-                            (click)="nextSlide()" 
-                            [disabled]="currentSlideIndex === pptxSlides.length - 1"
-                            title="Next Slide">
-                        Next <i class="fas fa-chevron-right"></i>
-                    </button>
-                    <button type="button" 
-                            class="btn btn-sm btn-outline-light" 
-                            (click)="goToSlide(pptxSlides.length - 1)"
-                            [disabled]="currentSlideIndex === pptxSlides.length - 1"
-                            title="Last Slide">
-                        <i class="fas fa-angle-double-right"></i>
-                    </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-                        <!-- Loading State -->
-                        <div *ngIf="isLoadingPPTX" class="text-center p-5">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="sr-only">Loading...</span>
-                            </div>
-                            <p class="mt-3 text-muted">Parsing PowerPoint file...</p>
-                        </div>
-
-                        <!-- Fallback for non-PPTX files or if parsing fails -->
-                        <div *ngIf="!isLoadingPPTX && pptxSlides.length === 0">
-                            <div class="mb-3 text-center">
-                                <div class="ppt-preview-icon mb-3">
-                                    <i class="fas fa-file-powerpoint fa-5x text-primary"></i>
-                                </div>
-                                <h5 class="mb-2"><strong>{{file?.name}}</strong></h5>
-                                <p class="text-muted mb-3">
-                                    <span class="badge badge-info">{{contentFormData.contentType}}</span>
-                                    <span class="ml-2">Size: {{fileSize.toFixed(2)}} MB</span>
-                                </p>
-                                <div class="alert alert-info" *ngIf="file?.name.toLowerCase().endsWith('.ppt')">
-                                    <i class="fas fa-info-circle mr-2"></i>
-                                    <strong>Legacy PPT format detected.</strong> For better preview, please use PPTX format (.pptx).
-                                </div>
+                    
+                    <!-- Slide Image -->
+                    <div *ngIf="!isLoadingPreview && previewImageBlob">
+                        <!-- Top Navigation Bar -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <button class="btn btn-sm btn-outline-primary mr-2" 
+                                        (click)="goToSlide(0)" 
+                                        [disabled]="currentSlideIndex === 0"
+                                        title="First Slide">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary" 
+                                        (click)="previousSlide()" 
+                                        [disabled]="currentSlideIndex === 0"
+                                        title="Previous Slide">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
                             </div>
                             
-                            <!-- Preview Options -->
-                            <div class="row mb-3">
-                                <div class="col-md-6 mb-2">
-                                    <button type="button" class="btn btn-primary btn-block btn-lg" (click)="openPreviewInNewTab()">
-                                        <i class="fas fa-external-link-alt mr-2"></i>
-                                        Open in New Tab
-                                    </button>
-                                    <small class="text-muted d-block mt-1 text-center">
-                                        Opens the file in a new browser tab
-                                    </small>
-                                </div>
-                                <div class="col-md-6 mb-2">
-                                    <button type="button" class="btn btn-success btn-block btn-lg" (click)="downloadPreviewFile()">
-                                        <i class="fas fa-download mr-2"></i>
-                                        Download File
-                                    </button>
-                                    <small class="text-muted d-block mt-1 text-center">
-                                        Download to view in Microsoft PowerPoint
-                                    </small>
+                            <div class="d-flex align-items-center">
+                                <span class="badge badge-info badge-pill px-3 py-2 mr-2">
+                                    Slide {{currentSlideIndex + 1}} of {{totalSlides}}
+                                </span>
+                                <div class="slide-progress" style="width: 200px;">
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-info" 
+                                            [style.width.%]="((currentSlideIndex + 1) / totalSlides) * 100">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+
+                            <div>
+                                <button class="btn btn-sm btn-outline-primary" 
+                                        (click)="nextSlide()" 
+                                        [disabled]="currentSlideIndex === totalSlides - 1"
+                                        title="Next Slide">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary ml-2" 
+                                        (click)="goToSlide(totalSlides - 1)" 
+                                        [disabled]="currentSlideIndex === totalSlides - 1"
+                                        title="Last Slide">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Main Slide Image Container - FIXED SECTION -->
+                        <div class="slide-main-container mb-3">
+                            <img [src]="previewImageBlob" 
+                                (error)="onPreviewError($event)"
+                                alt="Slide {{currentSlideIndex + 1}}" 
+                                class="slide-image-full"
+                                (click)="toggleFullscreen()"
+                                title="Click for fullscreen">
+                        </div>
+
+                        <!-- No Slides Available -->
+                        <div *ngIf="!isLoadingPreview && !previewImageBlob && totalSlides === 0" class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            No slides available
+                        </div>
+                        
+                        <!-- Download Button -->
+                        <div class="mt-3">
+                            <button type="button" class="btn btn-sm btn-outline-success" (click)="downloadFile()">
+                                <i class="fas fa-download mr-1"></i> Download Original File
+                            </button>
                         </div>
                     </div>
-
-
-
+                </div>
             </div>
         </div>
     </div>
