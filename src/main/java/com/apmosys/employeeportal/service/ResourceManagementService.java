@@ -15341,29 +15341,19 @@ public class ResourceManagementService {
 				Future<Object[]> future = executor.submit(() -> {
 
 					if (isOnce) {
-
 						log.info("Updating clients using ClientName");
-
 						return processByClientName(poBatch, poClientMap);
-
 					} else {
-
 						log.info("Updating clients using PoClientId");
-
 						return processByPoClientId(poBatch, poClientMap);
 					}
-
 				});
-
 				futures.add(future);
 			}
 
 			for (Future<Object[]> future : futures) {
-
 				try {
-
 					Object[] result = future.get();
-
 					updatedCount += (int) result[0];
 					insertedCount += (int) result[1];
 					totalIshineClientCount += (int) result[2];
@@ -15371,9 +15361,7 @@ public class ResourceManagementService {
 					failedClientIds.addAll((List<Long>) result[3]);
 
 				} catch (Exception e) {
-
 					ExceptionLogContext.add(e);
-
 					log.error("Batch execution error", e);
 				}
 			}
@@ -15435,8 +15423,20 @@ public class ResourceManagementService {
 		List<Client> iShineClients = clientsRepository.findByTrimmedClientNameIn(poBatch);
 		iShinecount = iShineClients.size();
 
+//		Map<String, Client> iShineMap = iShineClients.stream()
+//				.collect(Collectors.toMap(c -> c.getClientName().trim().toLowerCase(), c -> c));
+		
 		Map<String, Client> iShineMap = iShineClients.stream()
-				.collect(Collectors.toMap(c -> c.getClientName().trim().toLowerCase(), c -> c));
+		        .filter(c -> c.getClientName() != null)
+		        .collect(Collectors.toMap(
+		                c -> c.getClientName().trim().toLowerCase(),
+		                c -> c,
+		                (existing, duplicate) -> {
+		                    failedClientIds.add(duplicate.getPoClientId());
+		                    log.error("Duplicate clientName found in DB: {}", duplicate.getClientName());
+		                    return existing;
+		                }
+		        ));
 
 		List<Integer> clientIds = iShineClients.stream()
 				.map(Client::getClientId)
@@ -15497,8 +15497,20 @@ public class ResourceManagementService {
 
 		iShinecount = iShineClients.size();
 
+//		Map<Long, Client> iShineMap = iShineClients.stream()
+//				.collect(Collectors.toMap(Client::getPoClientId, c -> c));
+		
 		Map<Long, Client> iShineMap = iShineClients.stream()
-				.collect(Collectors.toMap(Client::getPoClientId, c -> c));
+		        .filter(c -> c.getPoClientId() != null)
+		        .collect(Collectors.toMap(
+		                Client::getPoClientId,
+		                c -> c,
+		                (existing, duplicate) -> {
+		                    failedClientIds.add(duplicate.getPoClientId());
+		                    log.error("Duplicate poClientId found in DB: {}", duplicate.getPoClientId());
+		                    return existing;
+		                }
+		        ));
 
 		// 🔹 Fetch all clientIds
 		List<Integer> clientIds = iShineClients.stream()
