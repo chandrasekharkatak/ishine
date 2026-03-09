@@ -1170,6 +1170,16 @@ public class EmployeeLeaveService {
 	                        newTimesheet.setStatus("Approved");
 	                        newTimesheet.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
 	                        timesheetsRepository.save(newTimesheet);
+	                    }else { //Fixed based on urgent basis need to check employee billable type for TNM resources
+	                        Timesheet newTimesheet = new Timesheet();
+	                        newTimesheet.getCommonProperty().setCreatedBy(leaveDTO.getCreatedBy());
+	                        newTimesheet.setDate(fromDate);
+	                        newTimesheet.setDayType("Leave");
+	                        newTimesheet.setDescription("On leave");
+	                        newTimesheet.setEmpId(leaveDTO.getEmpId());
+	                        newTimesheet.setStatus("Approved");
+	                        newTimesheet.setLeaveTypeMasterId(leaveDTO.getLeaveTypeMasterId());
+	                        timesheetsRepository.save(newTimesheet);
 	                    }
 	                } else {
 	                    LocalDate tempDateToday = fromDate;
