@@ -8332,8 +8332,7 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	            throw new IllegalArgumentException("Request body cannot be null.");
 	        }
 	        
-	        String clientSideFilter = "All";
-	        
+	        String clientSideFilter = requestDTO.getClientSideFilter();        
 	        Integer month = null;
 
 	        if (requestDTO.getMonth() != null ) {

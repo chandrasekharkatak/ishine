@@ -2809,7 +2809,7 @@ onClientIdFilterChange(event: any): void {
   this.isSearchEnabled = false;
 
   this.getTimesheetDashboardCount(this.month, this.year);
-
+  this.loadDepartmentStatusSummary();
 
     this.currentColumnFilter = { ...this.employeeViewColumnsFilters };
     this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
@@ -2910,8 +2910,8 @@ loadDepartmentStatusSummary(): void {
     clientDashboard: this.isClientDashboard,
     employeeActive:this.selectedEmployeeStatus,
     multiPOs: this.globalPoConflictSelection,
-    billableType: this.selectedBillableTypes
-
+    billableType: this.selectedBillableTypes,
+    clientSideFilter : this.viewClientIdFlag
   };
 
   this.isDeptTableLoading = true;

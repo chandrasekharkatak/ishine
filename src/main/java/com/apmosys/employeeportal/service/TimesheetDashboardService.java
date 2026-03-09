@@ -132,7 +132,7 @@ public class TimesheetDashboardService {
     	        summary.setTotaldefaulterCount(getInt(row[4]));
                 
                 /* ================= DEPARTMENT LIST ================= */
-    	        List<Object[]> deptList = timesheetsRepository.getDepartmentList( month, year, empId, "All", clientSideFilter);
+//    	        List<Object[]> deptList = timesheetsRepository.getDepartmentList( month, year, empId, "All", clientSideFilter);
 
     	        Map<String, DepartmentWiseStatusDTO> departmentWise =
     	                initDepartmentBuckets();
