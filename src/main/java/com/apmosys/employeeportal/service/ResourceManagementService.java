@@ -15279,7 +15279,8 @@ public class ResourceManagementService {
 		boolean isOnce = "once".equalsIgnoreCase(mode);
 		String updatedUsing = "";
 
-		List<Long> failedClientIds = Collections.synchronizedList(new ArrayList<>());
+		List<String> failedClientNames = Collections.synchronizedList(new ArrayList<>());
+		ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
 		try {
 
@@ -15330,7 +15331,6 @@ public class ResourceManagementService {
 
 			int batchSize = 100;
 
-			ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
 			List<Future<Object[]>> futures = new ArrayList<>();
 
@@ -15358,7 +15358,7 @@ public class ResourceManagementService {
 					insertedCount += (int) result[1];
 					totalIshineClientCount += (int) result[2];
 
-					failedClientIds.addAll((List<Long>) result[3]);
+					failedClientNames.addAll((List<String>) result[3]);
 
 				} catch (Exception e) {
 					ExceptionLogContext.add(e);
@@ -15374,7 +15374,7 @@ public class ResourceManagementService {
 
 			String message = "Client Sync Completed. " + updatedUsing + " Total PO Clients: " + totalPoClientCount
 					+ " Total iShine Clients(found in db): " + totalIshineClientCount + ", Updated: " + updatedCount
-					+ ", Inserted: " + insertedCount + ", Failed Clients: " + failedClientIds;
+					+ ", Inserted: " + insertedCount + ", Failed Clients: " + failedClientNames;
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(message);
@@ -15397,17 +15397,14 @@ public class ResourceManagementService {
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 
 		} finally {
-
-			if (!failedClientIds.isEmpty()) {
-
-				log.error("Client Sync Failed For ClientIds: {}", failedClientIds);
+			if (!failedClientNames.isEmpty()) {
+				log.error("Client Sync Failed For ClientIds: {}", failedClientNames);
 			}
-
 			if (initialLog != null) {
-
 				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode,
-						failedClientIds + ExceptionLogContext.get(), httpRequest);
+						failedClientNames + ExceptionLogContext.get(), httpRequest);
 			}
+			if (executor != null) { executor.shutdown();}
 		}
 
 		return response;
@@ -15418,7 +15415,7 @@ public class ResourceManagementService {
 		int updated = 0;
 		int inserted = 0;
 		int iShinecount = 0;
-		List<Long> failedClientIds = new ArrayList<>();
+		List<String> failedClientIds = new ArrayList<>();
 
 		List<Client> iShineClients = clientsRepository.findByTrimmedClientNameIn(poBatch);
 		iShinecount = iShineClients.size();
@@ -15432,7 +15429,7 @@ public class ResourceManagementService {
 		                c -> c.getClientName().trim().toLowerCase(),
 		                c -> c,
 		                (existing, duplicate) -> {
-		                    failedClientIds.add(duplicate.getPoClientId());
+		                    failedClientIds.add(duplicate.getClientName());
 		                    log.error("Duplicate clientName found in DB: {}", duplicate.getClientName());
 		                    return existing;
 		                }
@@ -15456,37 +15453,41 @@ public class ResourceManagementService {
 		for (String clientNamePo : poBatch) {
 
 			ClientDetailsSyncDto poDto = poClientMap.get(clientNamePo);
-			Client iShineClient = iShineMap.get(clientNamePo);
+			String normalizedClientPoName = clientNamePo == null ? null : clientNamePo.trim().toLowerCase(); 
+			Client iShineClient = iShineMap.get(normalizedClientPoName);
 
 			try {
 
-				List<ClientLocation> clientLocations =
-						iShineClient == null
-						? new ArrayList<>()
-						: locationMap.getOrDefault(iShineClient.getClientId(), new ArrayList<>());
-
+				List<ClientLocation> clientLocations = iShineClient == null? Collections.emptyList() 
+	                        : locationMap.getOrDefault(iShineClient.getClientId(),Collections.emptyList());
+				
 				int[] result = clientService.processSingleClientByName(poDto,
 								iShineClient,clientLocations);
 
 				updated += result[0];
 				inserted += result[1];
-
+				
+				if (iShineClient == null && result[1] > 0) {
+				    clientsRepository.findByPoClientId(poDto.getClientid())
+				            .ifPresent(client -> iShineMap.put(normalizedClientPoName, client));
+				}
+				
 			} catch (Exception e) {
 				ExceptionLogContext.add(e);
-				failedClientIds.add(poDto.getClientid());
+				failedClientIds.add(poDto.getClientName());
 				log.error("Error processing client: {}", clientNamePo, e);
 			}
 		}
-
 		return new Object[]{updated, inserted, iShinecount, failedClientIds};
 	}
+	
 	private Object[] processByPoClientId(List<String> poBatch, Map<String, ClientDetailsSyncDto> poClientMap) {
 
 		int updated = 0;
 		int inserted = 0;
 		int iShinecount = 0;
 
-		List<Long> failedClientIds = new ArrayList<>();
+		List<String> failedClientIds = new ArrayList<>();
 
 		List<Long> poIds = poBatch.stream()
 				.map(name -> poClientMap.get(name).getClientid())
@@ -15506,18 +15507,17 @@ public class ResourceManagementService {
 		                Client::getPoClientId,
 		                c -> c,
 		                (existing, duplicate) -> {
-		                    failedClientIds.add(duplicate.getPoClientId());
+		                    failedClientIds.add(duplicate.getClientName());
 		                    log.error("Duplicate poClientId found in DB: {}", duplicate.getPoClientId());
 		                    return existing;
 		                }
 		        ));
 
-		// 🔹 Fetch all clientIds
 		List<Integer> clientIds = iShineClients.stream()
 				.map(Client::getClientId)
 				.collect(Collectors.toList());
 
-		// 🔹 Fetch all locations in ONE query
+		//Fetch all locations in ONE query
 		Map<Integer, List<ClientLocation>> locationMap = new HashMap<>();
 
 		if (!clientIds.isEmpty()) {
@@ -15544,9 +15544,16 @@ public class ResourceManagementService {
 				
 				updated += result[0];
 				inserted += result[1];
+				
+				if (iShineClient == null && result[1] > 0) {
+	                Optional<Client> newClient = clientsRepository.findByPoClientId(poDto.getClientid());
+	                if (newClient.isPresent()) {
+	                    iShineMap.put(poDto.getClientid(), newClient.get());
+	                }
+	            }
 			} catch (Exception e) {
 				ExceptionLogContext.add(e);
-				failedClientIds.add(poDto.getClientid());
+				failedClientIds.add(poDto.getClientName());
 				log.error("Error processing clientId: {}", poDto.getClientid(), e);
 			}
 		}
