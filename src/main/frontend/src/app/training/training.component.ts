@@ -1,4 +1,10 @@
-import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  TemplateRef,
+  ViewChild,
+} from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
@@ -12,31 +18,30 @@ import { TrainingService } from '../services/training.service';
   standalone: false,
   selector: 'app-training',
   templateUrl: './training.component.html',
-  styleUrls: ['./training.component.css']
+  styleUrls: ['./training.component.css'],
 })
 export class TrainingComponent implements OnInit, OnDestroy {
-
   currentUser: User;
   pendingTraining: any = null;
   lockStatus: any = null;
   isLocked: boolean = false;
   loading: boolean = false;
-  
+
   // All trainings list
   allTrainings: any[] = [];
   mustAttendTrainings: any[] = []; // Trainings that must be attended (frozen)
   showAllTrainings: boolean = false;
-  
+
   // Pagination and filters for All Trainings
   allTrainingsPage: number = 1;
   allTrainingsPageSize: number = 6;
   allTrainingsFilter: string = '';
   allTrainingsFiltered: any[] = [];
-  
+
   // Currently viewing training (for modal)
   viewingTraining: any = null;
   isViewingTraining: boolean = false;
-  
+
   // Training viewing
   elapsedTime: number = 0; // in seconds
   elapsedTimeDisplay: string = '00:00';
@@ -44,7 +49,7 @@ export class TrainingComponent implements OnInit, OnDestroy {
   minTimeReached: boolean = false;
   consentButtonEnabled: boolean = false;
   hasVisitedLink: boolean = false;
-  
+
   // Content viewing
   contentUrl: string = '';
   previewUrl: string = '';
@@ -56,12 +61,12 @@ export class TrainingComponent implements OnInit, OnDestroy {
   pptxSlides: any[] = [];
   currentSlideIndex: number = 0;
   showThumbnails: boolean = false;
-  
+
   // Auto-opening deadline-crossed trainings
   deadlineCrossedTrainings: any[] = [];
   currentDeadlineCrossedIndex: number = -1;
   isAutoOpening: boolean = false;
-  
+
   // Accordion states
   mustAttendExpanded: boolean = true; // Expanded by default
   allTrainingsExpanded: boolean = true; // Expanded by default
@@ -73,14 +78,20 @@ export class TrainingComponent implements OnInit, OnDestroy {
   filteredTrainingsByStatus: any[] = [];
 
   contentFormData: any = {
-    contentType: ''
+    contentType: '',
   };
-  
+  slides: string[] = [];
+  totalSlides: number = 0;
+  preloadedSlides: Map<number, string> = new Map();
+  isLoadingPreview: boolean = false;
+  previewImageBlob: string | null = null;
+  currentPDFFile: File | null = null;
+
   // Modals
   modalRef: NgbModalRef;
   @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
   @ViewChild('training_view_modal') trainingViewModalTemplate: TemplateRef<any>;
-  
+
   alertMessage: string = '';
   alertType: string = 'info';
 
@@ -90,9 +101,9 @@ export class TrainingComponent implements OnInit, OnDestroy {
     private router: Router,
     private modalService: NgbModal,
     private sanitizer: DomSanitizer,
-    private surveyService: SurveyService
+    private surveyService: SurveyService,
   ) {
-    this.authenticationService.currentUser.subscribe(x => {
+    this.authenticationService.currentUser.subscribe((x) => {
       this.currentUser = x;
       if (x && x.empId) {
         // this.checkLockStatus();
@@ -116,34 +127,36 @@ export class TrainingComponent implements OnInit, OnDestroy {
     }
 
     // Check lock status from user object first
-    if (this.currentUser.trainingLockStatus) {
-      this.lockStatus = this.currentUser.trainingLockStatus;
-      this.isLocked = this.lockStatus.isLocked === true;
-      
+    // if (this.currentUser.trainingLockStatus) {
+    //   this.lockStatus = this.currentUser.trainingLockStatus;
+    //   this.isLocked = this.lockStatus.isLocked === true;
+
       // If locked, load all trainings to show the list
       this.loadUserTrainings();
       // return;
-    }
+    // }
 
     // If not in user object, fetch from API
     this.trainingService.getLockStatus(this.currentUser.empId).subscribe({
       next: (response: any) => {
-      if (response.serviceStatus === 'Success' && response.serviceResponse) {
-        this.lockStatus = response.serviceResponse;
-        this.isLocked = this.lockStatus.isLocked === true;
-        
-        // Update user object
-        this.currentUser.trainingLockStatus = this.lockStatus;
-        this.authenticationService.setcurrentUserSubject(this.currentUser);
-        
-        // Load trainings (will handle lock status in loadUserTrainings)
+        if (response.serviceStatus === 'Success' && response.serviceResponse) {
+          this.lockStatus = response.serviceResponse;
+          this.isLocked = this.lockStatus.isLocked === true;
+
+          // Update user object
+          this.currentUser.trainingLockStatus = this.lockStatus;
+          this.authenticationService.setcurrentUserSubject(this.currentUser);
+
+          // Load trainings (will handle lock status in loadUserTrainings)
+          this.loadUserTrainings();
+        }
+      },
+      error: (error: any) => {
+        console.error('Error checking lock status:', error);
+        // Still load trainings even if lock check fails
         this.loadUserTrainings();
-      }
-    }, error : (error:any) => {
-      console.error('Error checking lock status:', error);
-      // Still load trainings even if lock check fails
-      this.loadUserTrainings();
-    }});
+      },
+    });
   }
 
   loadUserTrainings() {
@@ -157,41 +170,42 @@ export class TrainingComponent implements OnInit, OnDestroy {
         this.loading = false;
         if (response.serviceStatus === 'Success' && response.serviceResponse) {
           // this.allTrainings = response.serviceResponse || [];
-          this.allTrainings = this.sortTrainingsByStatusAndDeadline(response.serviceResponse || []);
+          this.allTrainings = this.sortTrainingsByStatusAndDeadline(
+            response.serviceResponse || [],
+          );
           this.showAllTrainings = true;
-          
+
           // Filter "Must Attend" trainings based on new freeze logic:
           // a) Training mandatory AND lock enabled AND not attended (irrespective of deadline)
           // b) Training mandatory AND deadline crossed AND not attended (irrespective of lock enabled)
-          this.mustAttendTrainings = this.allTrainings.filter(t => 
-            t.mandatoryFlag === 'true' && 
-            (t.status === 'PENDING' || t.status === 'SKIPPED') && 
-            (
-              (t.lockEnabled === true) || // Case a: lock enabled
-              (t.isDeadlineCrossed === true) // Case b: deadline crossed
-            )
+          this.mustAttendTrainings = this.allTrainings.filter(
+            (t) =>
+              t.mandatoryFlag === 'true' &&
+              (t.status === 'PENDING' || t.status === 'SKIPPED') &&
+              (t.lockEnabled === true || // Case a: lock enabled
+                t.isDeadlineCrossed === true), // Case b: deadline crossed
           );
-          
+
           // Apply filter to all trainings
           this.applyAllTrainingsFilter();
-          
+
           // Separate deadline-crossed trainings for auto-opening (only mandatory with lock enabled OR deadline crossed)
-          this.deadlineCrossedTrainings = this.mustAttendTrainings.filter(t => 
-            t.isDeadlineCrossed === true
+          this.deadlineCrossedTrainings = this.mustAttendTrainings.filter(
+            (t) => t.isDeadlineCrossed === true,
           );
-          
+
           // Auto-open first deadline-crossed training if any
           if (this.deadlineCrossedTrainings.length > 0) {
             this.currentDeadlineCrossedIndex = 0;
             this.isAutoOpening = true;
             this.viewTraining(this.deadlineCrossedTrainings[0], true);
           }
-          
+
           // Check for single pending training (non-deadline-crossed, but must attend)
-          const singlePending = this.mustAttendTrainings.find(t => 
-            !t.isDeadlineCrossed
+          const singlePending = this.mustAttendTrainings.find(
+            (t) => !t.isDeadlineCrossed,
           );
-          
+
           if (singlePending && this.deadlineCrossedTrainings.length === 0) {
             this.pendingTraining = singlePending;
             this.setupTrainingContent();
@@ -205,48 +219,61 @@ export class TrainingComponent implements OnInit, OnDestroy {
       error: (error: any) => {
         this.loading = false;
         console.error('Error loading user trainings:', error);
-        this.openAlert('Error loading trainings: ' + error.error.serviceStatus, 'error');
-      }
+        this.openAlert(
+          'Error loading trainings: ' + error.error.serviceStatus,
+          'error',
+        );
+      },
     });
   }
 
   // Reusable sort function
-sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PENDING', 'SKIPPED', 'COMPLETED']): any[] {
-  if (!trainings || !Array.isArray(trainings)) {
-    return [];
-  }
-
-  return [...trainings].sort((a, b) => {
-    // Get priority index (lower index = higher priority)
-    const getPriority = (status: string): number => {
-      const index = statusOrder.indexOf(status);
-      return index !== -1 ? index : statusOrder.length; // Unknown statuses go to the end
-    };
-
-    const priorityA = getPriority(a.status);
-    const priorityB = getPriority(b.status);
-
-    // Sort by status priority first
-    if (priorityA !== priorityB) {
-      return priorityA - priorityB;
+  sortTrainingsByStatusAndDeadline(
+    trainings: any[],
+    statusOrder: string[] = ['PENDING', 'SKIPPED', 'COMPLETED'],
+  ): any[] {
+    if (!trainings || !Array.isArray(trainings)) {
+      return [];
     }
 
-    // If same status, sort by deadline (earlier deadline first)
-    const dateA = a.deadline ? new Date(a.deadline).getTime() : Number.MAX_SAFE_INTEGER;
-    const dateB = b.deadline ? new Date(b.deadline).getTime() : Number.MAX_SAFE_INTEGER;
+    return [...trainings].sort((a, b) => {
+      // Get priority index (lower index = higher priority)
+      const getPriority = (status: string): number => {
+        const index = statusOrder.indexOf(status);
+        return index !== -1 ? index : statusOrder.length; // Unknown statuses go to the end
+      };
 
-    return dateA - dateB;
-  });
-}
+      const priorityA = getPriority(a.status);
+      const priorityB = getPriority(b.status);
+
+      // Sort by status priority first
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+
+      // If same status, sort by deadline (earlier deadline first)
+      const dateA = a.deadline
+        ? new Date(a.deadline).getTime()
+        : Number.MAX_SAFE_INTEGER;
+      const dateB = b.deadline
+        ? new Date(b.deadline).getTime()
+        : Number.MAX_SAFE_INTEGER;
+
+      return dateA - dateB;
+    });
+  }
 
   applyAllTrainingsFilter() {
     if (!this.allTrainingsFilter || this.allTrainingsFilter.trim() === '') {
       this.allTrainingsFiltered = [...this.allTrainings];
     } else {
       const filterLower = this.allTrainingsFilter.toLowerCase().trim();
-      this.allTrainingsFiltered = this.allTrainings.filter(t => 
-        (t.trainingName && t.trainingName.toLowerCase().includes(filterLower)) ||
-        (t.trainingType && t.trainingType.toLowerCase().includes(filterLower)) 
+      this.allTrainingsFiltered = this.allTrainings.filter(
+        (t) =>
+          (t.trainingName &&
+            t.trainingName.toLowerCase().includes(filterLower)) ||
+          (t.trainingType &&
+            t.trainingType.toLowerCase().includes(filterLower)),
         // (t.status && t.status.toLowerCase().includes(filterLower))
       );
     }
@@ -261,7 +288,9 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
   }
 
   getTotalAllTrainingsPages(): number {
-    return Math.ceil(this.allTrainingsFiltered.length / this.allTrainingsPageSize);
+    return Math.ceil(
+      this.allTrainingsFiltered.length / this.allTrainingsPageSize,
+    );
   }
   setupTrainingContent() {
     if (!this.pendingTraining || !this.pendingTraining.content) {
@@ -270,7 +299,7 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
 
     const content = this.pendingTraining.content;
     this.contentType = content.contentType;
-    
+
     if (content.contentType === 'LINK') {
       this.isExternalLink = true;
       this.contentUrl = content.externalLinkUrl;
@@ -288,7 +317,10 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
     this.consentButtonEnabled = false;
 
     // Start timer if min time is configured
-    if (this.pendingTraining.minViewTimeMinutes && this.pendingTraining.minViewTimeMinutes > 0) {
+    if (
+      this.pendingTraining.minViewTimeMinutes &&
+      this.pendingTraining.minViewTimeMinutes > 0
+    ) {
       this.startTimer();
     } else {
       // No time requirement, enable consent immediately
@@ -305,25 +337,24 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
     }
 
     const minTimeSeconds = this.pendingTraining.minViewTimeMinutes * 60;
-    
+
     this.timerInterval = setInterval(() => {
       this.elapsedTime++;
-      
+
       const minutes = Math.floor(this.elapsedTime / 60);
       const seconds = this.elapsedTime % 60;
       this.elapsedTimeDisplay = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-      
+
       if (this.elapsedTime >= minTimeSeconds) {
         this.minTimeReached = true;
         if (this.pendingTraining.consentRequired === 'true') {
           // this.consentButtonEnabled = true;
-          if(this.viewingTraining.hasQuiz){
+          if (this.viewingTraining.hasQuiz) {
             this.quizButtonEnabled = true;
             this.consentButtonEnabled = true;
-          }else{
+          } else {
             this.consentButtonEnabled = true;
           }
-          
         }
         clearInterval(this.timerInterval);
       }
@@ -334,15 +365,15 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
     if (this.isExternalLink && this.contentUrl) {
       window.open(this.contentUrl, '_blank');
       this.hasVisitedLink = true;
-      
+
       // For external links, enable consent after clicking
-        // this.consentButtonEnabled = true;
-        if(this.viewingTraining.hasQuiz){
-          this.quizButtonEnabled = true;
-          this.consentButtonEnabled = true;
-        }else if (this.pendingTraining.consentRequired === 'true') {
-          this.consentButtonEnabled = true;
-        }
+      // this.consentButtonEnabled = true;
+      if (this.viewingTraining.hasQuiz) {
+        this.quizButtonEnabled = true;
+        this.consentButtonEnabled = true;
+      } else if (this.pendingTraining.consentRequired === 'true') {
+        this.consentButtonEnabled = true;
+      }
     }
   }
 
@@ -354,21 +385,33 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
 
   onSubmitConsent() {
     if (!this.pendingTraining || !this.pendingTraining.content) {
-      this.openAlert('Training information is missing. Please refresh the page.', 'error');
+      this.openAlert(
+        'Training information is missing. Please refresh the page.',
+        'error',
+      );
       return;
     }
 
     // Validate minimum time if required
-    if (this.pendingTraining.minViewTimeMinutes && this.pendingTraining.minViewTimeMinutes > 0) {
+    if (
+      this.pendingTraining.minViewTimeMinutes &&
+      this.pendingTraining.minViewTimeMinutes > 0
+    ) {
       if (!this.minTimeReached) {
-        this.openAlert(`Please view the training for at least ${this.pendingTraining.minViewTimeMinutes} minutes before submitting consent.`, 'warning');
+        this.openAlert(
+          `Please view the training for at least ${this.pendingTraining.minViewTimeMinutes} minutes before submitting consent.`,
+          'warning',
+        );
         return;
       }
     }
 
     // Validate external link visit
     if (this.isExternalLink && !this.hasVisitedLink) {
-      this.openAlert('Please click on the external link to visit the training content before submitting consent.', 'warning');
+      this.openAlert(
+        'Please click on the external link to visit the training content before submitting consent.',
+        'warning',
+      );
       return;
     }
 
@@ -376,7 +419,7 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
       trainingId: this.pendingTraining.trainingId,
       contentId: this.pendingTraining.content.contentId,
       empId: this.currentUser.empId,
-      completionCycleNumber: this.pendingTraining.currentCycleNumber
+      completionCycleNumber: this.pendingTraining.currentCycleNumber,
     };
 
     this.trainingService.submitConsent(consentData).subscribe({
@@ -386,27 +429,32 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
           if (this.timerInterval) {
             clearInterval(this.timerInterval);
           }
-          
+
           // Show success message
-          this.openAlert('Training completed successfully! Your consent has been submitted.', 'success');
-          
+          this.openAlert(
+            'Training completed successfully! Your consent has been submitted.',
+            'success',
+          );
+
           // Clear pending training
           this.pendingTraining = null;
           this.resetQuizView();
-          
+
           // Reload trainings to remove from mandatory list and update lock status
           setTimeout(() => {
             this.checkLockStatus();
             this.loadUserTrainings();
           }, 1500);
-        } 
-          // this.openAlert(response.serviceResponse || 'Failed to submit consent', 'error');
-        
+        }
+        // this.openAlert(response.serviceResponse || 'Failed to submit consent', 'error');
       },
       error: (error: any) => {
         // this.openAlert('Error submitting consent: ' + (error.error?.message || error.message), 'error');
-        this.openAlert(error.serviceStatus || 'Failed to submit consent', 'error');
-      }
+        this.openAlert(
+          error.serviceStatus || 'Failed to submit consent',
+          'error',
+        );
+      },
     });
   }
 
@@ -417,13 +465,19 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
 
     // Check if skip is allowed
     if (this.pendingTraining.skipAllowed !== 'true') {
-      this.openAlertMod(this.alertTemplate, 'Skip is not allowed for this training.');
+      this.openAlertMod(
+        this.alertTemplate,
+        'Skip is not allowed for this training.',
+      );
       return;
     }
 
     // Check if deadline has passed
     if (this.pendingTraining.isDeadlineCrossed) {
-      this.openAlertMod(this.alertTemplate, 'Deadline has passed. Skip is not allowed.');
+      this.openAlertMod(
+        this.alertTemplate,
+        'Deadline has passed. Skip is not allowed.',
+      );
       return;
     }
 
@@ -431,7 +485,7 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
       trainingId: this.pendingTraining.trainingId,
       empId: this.currentUser.empId,
       cycleNumber: this.pendingTraining.currentCycleNumber,
-      quizId: this.pendingTraining.quizId
+      quizId: this.pendingTraining.quizId,
     };
 
     this.trainingService.skipTraining(skipData).subscribe({
@@ -441,25 +495,34 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
           if (this.timerInterval) {
             clearInterval(this.timerInterval);
           }
-          
+
           // Route to home page after successful skip
           setTimeout(() => {
             this.router.navigate(['/home']);
           }, 500);
         } else {
-          this.openAlertMod(this.alertTemplate, response.serviceResponse || 'Failed to skip training');
+          this.openAlertMod(
+            this.alertTemplate,
+            response.serviceResponse || 'Failed to skip training',
+          );
         }
       },
       error: (error: any) => {
         // this.openAlertMod(this.alertTemplate, 'Error skipping training: ' + error.message);
-        this.openAlertMod(this.alertTemplate, error.serviceStatus || 'Failed to skip training');
-      }
+        this.openAlertMod(
+          this.alertTemplate,
+          error.serviceStatus || 'Failed to skip training',
+        );
+      },
     });
   }
 
   openAlertMod(template: TemplateRef<any>, message: string) {
     this.alertMessage = message;
-    this.modalRef = this.modalService.open(template, { centered: true, size: 'sm' });
+    this.modalRef = this.modalService.open(template, {
+      centered: true,
+      size: 'sm',
+    });
   }
 
   getProgressPercentage(): number {
@@ -470,6 +533,123 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
     return Math.min((this.elapsedTime / minTimeSeconds) * 100, 100);
   }
 
+  // viewTraining(training: any, isDeadlineCrossed: boolean = false) {
+  //   if (!training || !training.content) {
+  //     this.openAlert('Training content not available', 'warning');
+  //     return;
+  //   }
+  //   this.showQuizSubmitComponent = false;
+  //   this.viewingTraining = training;
+  //   this.isViewingTraining = true;
+
+  //   // Reset timer and flags
+  //   this.elapsedTime = 0;
+  //   this.elapsedTimeDisplay = '00:00';
+  //   this.minTimeReached = false;
+  //   this.consentButtonEnabled = false;
+  //   this.hasVisitedLink = false;
+
+  //   // Clear previous content
+  //   this.previewUrl = '';
+  //   this.safePreviewUrl = null;
+  //   this.file = null;
+  //   this.fileSize = 0;
+  //   this.pptxSlides = [];
+  //   this.currentSlideIndex = 0;
+
+  //   const content = training.content;
+  //   this.contentType = content.contentType;
+  //   this.contentFormData.contentType = content.contentType;
+
+  //   // For completed trainings: no timer, no lock
+  //   if (training.status === 'COMPLETED') {
+  //     this.minTimeReached = true;
+  //     this.consentButtonEnabled = false;
+  //     this.quizButtonEnabled = false;
+  //   } else {
+  //     // For pending or skipped trainings: check if timer needed
+  //     if (!training.hasSeenContent && training.minViewTimeMinutes && training.minViewTimeMinutes > 0) {
+  //       this.startTimerForViewing(training.minViewTimeMinutes);
+  //     } else {
+  //       this.minTimeReached = true;
+  //       if (training.consentRequired === 'true') {
+  //         this.consentButtonEnabled = true;
+  //       } else if(training.hasQuiz){
+  //         this.quizButtonEnabled = true;
+  //       }
+  //     }
+  //   }
+
+  //   // Setup content
+  //   if (content.contentType === 'LINK') {
+  //     this.isExternalLink = true;
+  //     this.previewUrl = content.externalLinkUrl;
+  //     this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.previewUrl);
+  //     this.openTrainingViewModal();
+  //   } else {
+  //     this.isExternalLink = false;
+  //     // Download content for preview
+  //     this.trainingService.downloadContent(content.contentId).subscribe({
+  //       next: (resp: any) => {
+  //         const blob: Blob = resp.body;
+  //         if (!blob || blob.size === 0) {
+  //           this.openAlert('File is empty or could not be loaded', 'error');
+  //           return;
+  //         }
+
+  //         const contentType = resp.headers.get('Content-Type') || 'application/octet-stream';
+  //         let fileName = content.contentName || 'content';
+
+  //         // Extract filename from header
+  //         const disposition = resp.headers.get('Content-Disposition');
+  //         if (disposition) {
+  //           const patterns = [
+  //             /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/,
+  //             /filename="([^"]+)"/,
+  //             /filename=([^;]+)/
+  //           ];
+  //           for (const pattern of patterns) {
+  //             const match = disposition.match(pattern);
+  //             if (match && match[1]) {
+  //               fileName = match[1].replace(/['"]/g, '').trim();
+  //               break;
+  //             }
+  //           }
+  //         }
+
+  //         // Add extension if missing
+  //         if (content.contentPath && !fileName.includes('.')) {
+  //           const pathParts = content.contentPath.split('.');
+  //           if (pathParts.length > 1) {
+  //             fileName += '.' + pathParts[pathParts.length - 1];
+  //           }
+  //         }
+
+  //         this.previewUrl = URL.createObjectURL(blob);
+  //         this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.previewUrl);
+  //         this.file = new File([blob], fileName, { type: contentType });
+  //         this.fileSize = blob.size / 1024 / 1024;
+
+  //         // Parse PPTX if needed
+  //         if (content.contentType === 'PPT' && fileName.toLowerCase().endsWith('.pptx')) {
+  //           this.parsePPTXFile(this.file);
+  //         }
+
+  //         this.openTrainingViewModal();
+  //       },
+  //       error: (error) => {
+  //         if (error?.error instanceof Blob) {
+  //           error.error.text().then((text: string) => {
+  //             this.openAlert(text || 'Error loading content', 'error');
+  //           });
+  //         } else {
+  //           this.openAlert('Error loading content', 'error');
+  //         }
+  //       }
+  //     });
+  //   }
+  // }
+
   viewTraining(training: any, isDeadlineCrossed: boolean = false) {
     if (!training || !training.content) {
       this.openAlert('Training content not available', 'warning');
@@ -478,26 +658,29 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
     this.showQuizSubmitComponent = false;
     this.viewingTraining = training;
     this.isViewingTraining = true;
-    
+
     // Reset timer and flags
     this.elapsedTime = 0;
     this.elapsedTimeDisplay = '00:00';
     this.minTimeReached = false;
     this.consentButtonEnabled = false;
     this.hasVisitedLink = false;
-    
+
     // Clear previous content
     this.previewUrl = '';
     this.safePreviewUrl = null;
     this.file = null;
     this.fileSize = 0;
     this.pptxSlides = [];
+    this.slides = [];
+    this.totalSlides = 0;
+    this.previewImageBlob = null;
     this.currentSlideIndex = 0;
-    
+
     const content = training.content;
     this.contentType = content.contentType;
     this.contentFormData.contentType = content.contentType;
-    
+
     // For completed trainings: no timer, no lock
     if (training.status === 'COMPLETED') {
       this.minTimeReached = true;
@@ -505,23 +688,34 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
       this.quizButtonEnabled = false;
     } else {
       // For pending or skipped trainings: check if timer needed
-      if (!training.hasSeenContent && training.minViewTimeMinutes && training.minViewTimeMinutes > 0) {
+      if (
+        !training.hasSeenContent &&
+        training.minViewTimeMinutes &&
+        training.minViewTimeMinutes > 0
+      ) {
         this.startTimerForViewing(training.minViewTimeMinutes);
       } else {
         this.minTimeReached = true;
         if (training.consentRequired === 'true') {
           this.consentButtonEnabled = true;
-        } else if(training.hasQuiz){
+        } else if (training.hasQuiz) {
           this.quizButtonEnabled = true;
         }
       }
     }
-    
+
     // Setup content
     if (content.contentType === 'LINK') {
       this.isExternalLink = true;
       this.previewUrl = content.externalLinkUrl;
-      this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.previewUrl);
+      this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+        this.previewUrl,
+      );
+      this.openTrainingViewModal();
+    } else if (content.contentType === 'PDF') {
+      this.isExternalLink = false;
+      // For PDF, use the slide preview endpoint
+      this.viewPDFContent(training);
       this.openTrainingViewModal();
     } else {
       this.isExternalLink = false;
@@ -534,16 +728,17 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
             return;
           }
 
-          const contentType = resp.headers.get('Content-Type') || 'application/octet-stream';
+          const contentType =
+            resp.headers.get('Content-Type') || 'application/octet-stream';
           let fileName = content.contentName || 'content';
-          
+
           // Extract filename from header
           const disposition = resp.headers.get('Content-Disposition');
           if (disposition) {
             const patterns = [
               /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/,
               /filename="([^"]+)"/,
-              /filename=([^;]+)/
+              /filename=([^;]+)/,
             ];
             for (const pattern of patterns) {
               const match = disposition.match(pattern);
@@ -563,15 +758,20 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
           }
 
           this.previewUrl = URL.createObjectURL(blob);
-          this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.previewUrl);
+          this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+            this.previewUrl,
+          );
           this.file = new File([blob], fileName, { type: contentType });
           this.fileSize = blob.size / 1024 / 1024;
 
           // Parse PPTX if needed
-          if (content.contentType === 'PPT' && fileName.toLowerCase().endsWith('.pptx')) {
+          if (
+            content.contentType === 'PPT' &&
+            fileName.toLowerCase().endsWith('.pptx')
+          ) {
             this.parsePPTXFile(this.file);
           }
-          
+
           this.openTrainingViewModal();
         },
         error: (error) => {
@@ -582,7 +782,7 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
           } else {
             this.openAlert('Error loading content', 'error');
           }
-        }
+        },
       });
     }
   }
@@ -593,31 +793,39 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
     }
 
     const minTimeSeconds = minViewTimeMinutes * 60;
-    
+
     this.timerInterval = setInterval(() => {
       this.elapsedTime++;
-      
+
       const minutes = Math.floor(this.elapsedTime / 60);
       const seconds = this.elapsedTime % 60;
       this.elapsedTimeDisplay = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-      
+
       if (this.elapsedTime >= minTimeSeconds) {
-        console.log("min time reached");
-        
+        console.log('min time reached');
+
         this.minTimeReached = true;
-        if (this.viewingTraining ) {
-          if(this.viewingTraining.lastCompletedOn != null && this.viewingTraining.status == 'PENDING' ){
+        if (this.viewingTraining) {
+          if (
+            this.viewingTraining.lastCompletedOn != null &&
+            this.viewingTraining.status == 'PENDING'
+          ) {
             this.consentButtonEnabled = true;
             this.quizButtonEnabled = false;
-          }
-          else if(this.viewingTraining.hasQuiz && this.viewingTraining.status !== 'COMPLETED'){
+          } else if (
+            this.viewingTraining.hasQuiz &&
+            this.viewingTraining.status !== 'COMPLETED'
+          ) {
             this.quizButtonEnabled = true;
-            this.consentButtonEnabled =false;
-          } else if(this.viewingTraining.consentRequired === 'true' && this.viewingTraining.status !== 'COMPLETED') {
+            this.consentButtonEnabled = false;
+          } else if (
+            this.viewingTraining.consentRequired === 'true' &&
+            this.viewingTraining.status !== 'COMPLETED'
+          ) {
             this.consentButtonEnabled = true;
           } else {
             this.quizButtonEnabled = false;
-            this.consentButtonEnabled =false;
+            this.consentButtonEnabled = false;
           }
         }
         clearInterval(this.timerInterval);
@@ -742,7 +950,11 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
       // Get slide files (ppt/slides/slide1.xml, slide2.xml, etc.)
       const slideFiles: any[] = [];
       zip.forEach((relativePath, file) => {
-        if (relativePath.startsWith('ppt/slides/slide') && relativePath.endsWith('.xml') && !relativePath.includes('_rels')) {
+        if (
+          relativePath.startsWith('ppt/slides/slide') &&
+          relativePath.endsWith('.xml') &&
+          !relativePath.includes('_rels')
+        ) {
           slideFiles.push({ path: relativePath, file: file });
         }
       });
@@ -764,7 +976,8 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
         const xmlDoc = parser.parseFromString(slideXml, 'text/xml');
 
         // Get slide number for relationship file lookup
-        const slideNum = slideFile.path.match(/slide(\d+)/)?.[1] || (i + 1).toString();
+        const slideNum =
+          slideFile.path.match(/slide(\d+)/)?.[1] || (i + 1).toString();
         const relsPath = `ppt/slides/_rels/slide${slideNum}.xml.rels`;
 
         // Parse relationship file to map IDs to actual file paths
@@ -796,7 +1009,11 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
             }
           }
         } catch (relsError) {
-          console.warn('Could not parse relationship file:', relsPath, relsError);
+          console.warn(
+            'Could not parse relationship file:',
+            relsPath,
+            relsError,
+          );
         }
 
         // Extract images using relationship mapping
@@ -816,7 +1033,7 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
                 `ppt/media/${embedId}`,
                 `ppt/media/image${embedId}.png`,
                 `ppt/media/image${embedId}.jpg`,
-                `ppt/media/image${embedId}.jpeg`
+                `ppt/media/image${embedId}.jpeg`,
               ];
 
               for (const path of possiblePaths) {
@@ -900,7 +1117,7 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
           slideNumber: i + 1,
           images: slideImages,
           texts: slideTexts,
-          hasContent: slideImages.length > 0 || slideTexts.length > 0
+          hasContent: slideImages.length > 0 || slideTexts.length > 0,
         });
       }
 
@@ -910,24 +1127,6 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
       this.isLoadingPPTX = false;
       // Fallback: show download option
       this.pptxSlides = [];
-    }
-  }
-
-  nextSlide() {
-    if (this.currentSlideIndex < this.pptxSlides.length - 1) {
-      this.currentSlideIndex++;
-    }
-  }
-
-  previousSlide() {
-    if (this.currentSlideIndex > 0) {
-      this.currentSlideIndex--;
-    }
-  }
-
-  goToSlide(index: number) {
-    if (index >= 0 && index < this.pptxSlides.length) {
-      this.currentSlideIndex = index;
     }
   }
 
@@ -950,8 +1149,11 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
     if (this.isExternalLink && this.previewUrl) {
       window.open(this.previewUrl, '_blank');
       this.hasVisitedLink = true;
-      
-      if (this.viewingTraining && this.viewingTraining.consentRequired === 'true') {
+
+      if (
+        this.viewingTraining &&
+        this.viewingTraining.consentRequired === 'true'
+      ) {
         this.consentButtonEnabled = true;
       }
     }
@@ -963,17 +1165,29 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
     }
 
     // Validate minimum time if required (for pending or skipped trainings)
-    if (this.viewingTraining.status === 'PENDING' || this.viewingTraining.status === 'SKIPPED') {
-      if (this.viewingTraining.minViewTimeMinutes && this.viewingTraining.minViewTimeMinutes > 0) {
+    if (
+      this.viewingTraining.status === 'PENDING' ||
+      this.viewingTraining.status === 'SKIPPED'
+    ) {
+      if (
+        this.viewingTraining.minViewTimeMinutes &&
+        this.viewingTraining.minViewTimeMinutes > 0
+      ) {
         if (!this.minTimeReached) {
-          this.openAlert(`Please view the training for at least ${this.viewingTraining.minViewTimeMinutes} minutes before submitting consent.`, 'warning');
+          this.openAlert(
+            `Please view the training for at least ${this.viewingTraining.minViewTimeMinutes} minutes before submitting consent.`,
+            'warning',
+          );
           return;
         }
       }
 
       // Validate external link visit
       if (this.isExternalLink && !this.hasVisitedLink) {
-        this.openAlert('Please click on the external link to visit the training content before submitting consent.', 'warning');
+        this.openAlert(
+          'Please click on the external link to visit the training content before submitting consent.',
+          'warning',
+        );
         return;
       }
     }
@@ -982,7 +1196,7 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
       trainingId: this.viewingTraining.trainingId,
       contentId: this.viewingTraining.content.contentId,
       empId: this.currentUser.empId,
-      completionCycleNumber: this.viewingTraining.currentCycleNumber
+      completionCycleNumber: this.viewingTraining.currentCycleNumber,
     };
 
     this.trainingService.submitConsent(consentData).subscribe({
@@ -995,34 +1209,48 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
           // Close current training view
           this.closeTrainingView();
           // Show success message
-          this.openAlert('Training completed successfully! Your consent has been submitted.', 'success');
-          
+          this.openAlert(
+            'Training completed successfully! Your consent has been submitted.',
+            'success',
+          );
+
           this.currentUser.trainingLockStatus = null;
           this.authenticationService.setcurrentUserSubject(this.currentUser);
-          
+
           // Reload trainings to remove from mandatory list and update lock status
           setTimeout(() => {
             this.checkLockStatus();
             this.loadUserTrainings();
-            
+
             // Move to next deadline-crossed training if auto-opening
-            if (this.isAutoOpening && this.deadlineCrossedTrainings.length > 0 && 
-                this.currentDeadlineCrossedIndex < this.deadlineCrossedTrainings.length - 1) {
+            if (
+              this.isAutoOpening &&
+              this.deadlineCrossedTrainings.length > 0 &&
+              this.currentDeadlineCrossedIndex <
+                this.deadlineCrossedTrainings.length - 1
+            ) {
               this.currentDeadlineCrossedIndex++;
               setTimeout(() => {
-                this.viewTraining(this.deadlineCrossedTrainings[this.currentDeadlineCrossedIndex], true);
+                this.viewTraining(
+                  this.deadlineCrossedTrainings[
+                    this.currentDeadlineCrossedIndex
+                  ],
+                  true,
+                );
               }, 500);
             } else {
               this.isAutoOpening = false;
             }
           }, 1500);
-        } 
-        
+        }
       },
       error: (error: any) => {
         // this.openAlert('Error submitting consent: ' + (error.error?.message || error.message), 'error');
-        this.openAlert(error.serviceStatus || 'Failed to submit consent', 'error');
-      }
+        this.openAlert(
+          error.serviceStatus || 'Failed to submit consent',
+          'error',
+        );
+      },
     });
   }
 
@@ -1046,7 +1274,7 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
     const skipData = {
       trainingId: this.viewingTraining.trainingId,
       empId: this.currentUser.empId,
-      cycleNumber: this.viewingTraining.currentCycleNumber
+      cycleNumber: this.viewingTraining.currentCycleNumber,
     };
 
     this.trainingService.skipTraining(skipData).subscribe({
@@ -1056,20 +1284,23 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
           if (this.timerInterval) {
             clearInterval(this.timerInterval);
           }
-          
+
           // Close current training view
           this.closeTrainingView();
-          
+
           // Route to home page after successful skip
           setTimeout(() => {
             this.router.navigate(['/home']);
           }, 500);
-        } 
+        }
       },
       error: (error: any) => {
         // this.openAlert('Error skipping training: ' + error.message, 'error');
-        this.openAlert(error.serviceStatus || 'Failed to skip training', 'error');
-      }
+        this.openAlert(
+          error.serviceStatus || 'Failed to skip training',
+          'error',
+        );
+      },
     });
   }
 
@@ -1079,9 +1310,9 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
         size: 'xl',
         centered: true,
         backdrop: this.isAutoOpening ? 'static' : true,
-        keyboard: !this.isAutoOpening
+        keyboard: !this.isAutoOpening,
       });
-      
+
       this.modalRef.result.finally(() => {
         this.closeTrainingView();
       });
@@ -1093,30 +1324,45 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
       this.modalRef.close();
       this.modalRef = null;
     }
-    
+
     // Stop timer
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
     }
-    
+
     // Revoke blob URLs
     if (this.previewUrl && this.previewUrl.startsWith('blob:')) {
       URL.revokeObjectURL(this.previewUrl);
     }
-    
-    // Revoke PPTX slide image URLs
+
+    // Clean up preloaded slides
+    this.preloadedSlides.forEach((blobUrl) => {
+      if (blobUrl && blobUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(blobUrl);
+      }
+    });
+    this.preloadedSlides.clear();
+
+    // Clean up PPTX slide image URLs
     if (this.pptxSlides && this.pptxSlides.length > 0) {
-      this.pptxSlides.forEach(slide => {
+      this.pptxSlides.forEach((slide) => {
         if (slide.images) {
           slide.images.forEach((imgUrl: string) => {
-            if (imgUrl.startsWith('blob:')) {
+            if (imgUrl && imgUrl.startsWith('blob:')) {
               URL.revokeObjectURL(imgUrl);
             }
           });
         }
       });
     }
-    
+
+    // Reset PDF variables
+    this.slides = [];
+    this.totalSlides = 0;
+    this.previewImageBlob = null;
+    this.isLoadingPreview = false;
+    this.currentPDFFile = null;
+
     this.viewingTraining = null;
     this.isViewingTraining = false;
     this.previewUrl = '';
@@ -1140,7 +1386,7 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
       backdrop: false,
       windowClass: 'alert-toast-modal',
       modalDialogClass: 'alert-toast-dialog',
-      size: 'sm'
+      size: 'sm',
     });
   }
 
@@ -1170,9 +1416,11 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
   }
 
   canSkipTraining(training: any): boolean {
-    return training.skipAllowed === 'true' && 
-           !training.isDeadlineCrossed && 
-           training.status === 'PENDING';
+    return (
+      training.skipAllowed === 'true' &&
+      !training.isDeadlineCrossed &&
+      training.status === 'PENDING'
+    );
   }
 
   downloadFile() {
@@ -1195,17 +1443,17 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
   //     this.modalRef = null;
   //   }
   // }
-  closeContentModal(){
+  closeContentModal() {
     this.modalRef.close();
     this.modalRef = null;
     this.resetQuizView();
   }
 
-  goToQuiz(){
+  goToQuiz() {
     this.showQuizSubmitComponent = true;
   }
 
-  onQuizCompleted(event: boolean){
+  onQuizCompleted(event: boolean) {
     this.resetQuizView();
     this.showQuizSubmitComponent = false;
     this.modalRef.close();
@@ -1213,13 +1461,20 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
     setTimeout(() => {
       this.checkLockStatus();
       this.loadUserTrainings();
-      
+
       // Move to next deadline-crossed training if auto-opening
-      if (this.isAutoOpening && this.deadlineCrossedTrainings.length > 0 && 
-          this.currentDeadlineCrossedIndex < this.deadlineCrossedTrainings.length - 1) {
+      if (
+        this.isAutoOpening &&
+        this.deadlineCrossedTrainings.length > 0 &&
+        this.currentDeadlineCrossedIndex <
+          this.deadlineCrossedTrainings.length - 1
+      ) {
         this.currentDeadlineCrossedIndex++;
         setTimeout(() => {
-          this.viewTraining(this.deadlineCrossedTrainings[this.currentDeadlineCrossedIndex], true);
+          this.viewTraining(
+            this.deadlineCrossedTrainings[this.currentDeadlineCrossedIndex],
+            true,
+          );
         }, 500);
       } else {
         this.isAutoOpening = false;
@@ -1227,7 +1482,7 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
     }, 1500);
   }
 
-  resetQuizView(){
+  resetQuizView() {
     this.viewingTraining = null;
     this.isViewingTraining = false;
     this.previewUrl = '';
@@ -1246,144 +1501,325 @@ sortTrainingsByStatusAndDeadline(trainings: any[], statusOrder: string[] = ['PEN
 
   // Add these methods to your component class
 
-downloadPreviewFile() {
-  if (this.file) {
-    const url = URL.createObjectURL(this.file);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = this.file.name;
-    a.click();
-    URL.revokeObjectURL(url);
-  } else if (this.previewUrl) {
-    window.open(this.previewUrl, '_blank');
-  }
-}
-
-openPreviewInNewTab() {
-  if (this.previewUrl) {
-    window.open(this.previewUrl, '_blank');
-  }
-}
-
-toggleFullscreen() {
-  const element = document.querySelector('.pptx-viewer-wrapper');
-  if (element) {
-    if (!document.fullscreenElement) {
-      element.requestFullscreen().catch(err => {
-        console.error('Error entering fullscreen:', err);
-      });
-    } else {
-      document.exitFullscreen();
+  downloadPreviewFile() {
+    if (this.file) {
+      const url = URL.createObjectURL(this.file);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = this.file.name;
+      a.click();
+      URL.revokeObjectURL(url);
+    } else if (this.previewUrl) {
+      window.open(this.previewUrl, '_blank');
     }
   }
-}
 
-// Add this to ensure images are properly cleaned up
-ngOnDestroy() {
-  if (this.timerInterval) {
-    clearInterval(this.timerInterval);
+  openPreviewInNewTab() {
+    if (this.previewUrl) {
+      window.open(this.previewUrl, '_blank');
+    }
   }
-  this.closeTrainingView();
-  
-  // Clean up PPTX image URLs
-  if (this.pptxSlides && this.pptxSlides.length > 0) {
-    this.pptxSlides.forEach(slide => {
-      if (slide.images) {
-        slide.images.forEach((imgUrl: string) => {
-          if (imgUrl && imgUrl.startsWith('blob:')) {
-            URL.revokeObjectURL(imgUrl);
-          }
-        });
+
+  toggleFullscreen() {
+    this.isFullscreen = !this.isFullscreen;
+    const modalElement = document.querySelector('.preview-modal-content');
+
+    if (this.isFullscreen) {
+      if (modalElement) {
+        if ((modalElement as any).requestFullscreen) {
+          (modalElement as any).requestFullscreen();
+        } else if ((modalElement as any).webkitRequestFullscreen) {
+          (modalElement as any).webkitRequestFullscreen();
+        } else if ((modalElement as any).mozRequestFullScreen) {
+          (modalElement as any).mozRequestFullScreen();
+        } else if ((modalElement as any).msRequestFullscreen) {
+          (modalElement as any).msRequestFullscreen();
+        }
+      }
+    } else {
+      if ((document as any).exitFullscreen) {
+        (document as any).exitFullscreen();
+      } else if ((document as any).webkitExitFullscreen) {
+        (document as any).webkitExitFullscreen();
+      } else if ((document as any).mozCancelFullScreen) {
+        (document as any).mozCancelFullScreen();
+      } else if ((document as any).msExitFullscreen) {
+        (document as any).msExitFullscreen();
+      }
+    }
+  }
+  // Add this to ensure images are properly cleaned up
+  ngOnDestroy() {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+    }
+    this.closeTrainingView();
+
+    // Clean up preloaded slides
+    this.preloadedSlides.forEach((blobUrl) => {
+      if (blobUrl && blobUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(blobUrl);
       }
     });
+    this.preloadedSlides.clear();
+
+    // Clean up PPTX slide image URLs
+    if (this.pptxSlides && this.pptxSlides.length > 0) {
+      this.pptxSlides.forEach((slide) => {
+        if (slide.images) {
+          slide.images.forEach((imgUrl: string) => {
+            if (imgUrl && imgUrl.startsWith('blob:')) {
+              URL.revokeObjectURL(imgUrl);
+            }
+          });
+        }
+      });
+    }
+
+    if (this.modalRef) {
+      this.modalRef.close();
+      this.modalRef = null;
+    }
   }
-  
-  if (this.modalRef) {
-    this.modalRef.close();
-    this.modalRef = null;
+
+  // Add these methods
+  setFilter(status: string) {
+    this.selectedFilterStatus = status;
+    this.applyFilterByStatus();
   }
-}
 
-    // Add these methods
-    setFilter(status: string) {
-        this.selectedFilterStatus = status;
-        this.applyFilterByStatus();
+  applyFilterByStatus() {
+    if (this.selectedFilterStatus === 'ALL') {
+      this.allTrainingsFiltered = [...this.allTrainings];
+    } else {
+      this.allTrainingsFiltered = this.allTrainings.filter(
+        (t) => t.status === this.selectedFilterStatus,
+      );
     }
 
-    applyFilterByStatus() {
-        if (this.selectedFilterStatus === 'ALL') {
-            this.allTrainingsFiltered = [...this.allTrainings];
-        } else {
-            this.allTrainingsFiltered = this.allTrainings.filter(t => 
-                t.status === this.selectedFilterStatus
-            );
-        }
-        
-        // Apply text search filter on top of status filter
-        if (this.allTrainingsFilter && this.allTrainingsFilter.trim() !== '') {
-            const filterLower = this.allTrainingsFilter.toLowerCase().trim();
-            this.allTrainingsFiltered = this.allTrainingsFiltered.filter(t => 
-                (t.trainingName && t.trainingName.toLowerCase().includes(filterLower)) ||
-                (t.trainingType && t.trainingType.toLowerCase().includes(filterLower))
-            );
-        }
-        
-        // Reset to first page
-        this.allTrainingsPage = 1;
+    // Apply text search filter on top of status filter
+    if (this.allTrainingsFilter && this.allTrainingsFilter.trim() !== '') {
+      const filterLower = this.allTrainingsFilter.toLowerCase().trim();
+      this.allTrainingsFiltered = this.allTrainingsFiltered.filter(
+        (t) =>
+          (t.trainingName &&
+            t.trainingName.toLowerCase().includes(filterLower)) ||
+          (t.trainingType &&
+            t.trainingType.toLowerCase().includes(filterLower)),
+      );
     }
 
-    getCountByStatus(status: string): number {
-        return this.allTrainings.filter(t => t.status === status).length;
+    // Reset to first page
+    this.allTrainingsPage = 1;
+  }
+
+  getCountByStatus(status: string): number {
+    return this.allTrainings.filter((t) => t.status === status).length;
+  }
+
+  applyAllTrainingsFilterStatus() {
+    this.allTrainingsFilter = '';
+    let filtered = this.allTrainings;
+
+    if (this.selectedFilterStatus !== 'ALL') {
+      filtered = filtered.filter((t) => t.status === this.selectedFilterStatus);
     }
 
-    applyAllTrainingsFilterStatus() {
-        this.allTrainingsFilter = "";
-        let filtered = this.allTrainings;
-        
-        if (this.selectedFilterStatus !== 'ALL') {
-            filtered = filtered.filter(t => t.status === this.selectedFilterStatus);
-        }
-        
-        if (this.allTrainingsFilter && this.allTrainingsFilter.trim() !== '') {
-            const filterLower = this.allTrainingsFilter.toLowerCase().trim();
-            filtered = filtered.filter(t => 
-                (t.trainingName && t.trainingName.toLowerCase().includes(filterLower)) ||
-                (t.trainingType && t.trainingType.toLowerCase().includes(filterLower))
-            );
-        }
-        
-        this.allTrainingsFiltered = filtered;
-        this.allTrainingsPage = 1;
+    if (this.allTrainingsFilter && this.allTrainingsFilter.trim() !== '') {
+      const filterLower = this.allTrainingsFilter.toLowerCase().trim();
+      filtered = filtered.filter(
+        (t) =>
+          (t.trainingName &&
+            t.trainingName.toLowerCase().includes(filterLower)) ||
+          (t.trainingType &&
+            t.trainingType.toLowerCase().includes(filterLower)),
+      );
     }
 
-    canSubmitConsent():boolean{
-      if(this.viewingTraining.status.toLowerCase() == 'completed'){
-        return false;
-      }
+    this.allTrainingsFiltered = filtered;
+    this.allTrainingsPage = 1;
+  }
 
-      if(!this.viewingTraining.hasSeenContent){
-        if(!this.viewingTraining.hasQuiz){
-          return true;
-        } else if(this.viewingTraining.hasQuiz && this.viewingTraining.quizAttempted){
-          return true;
-        }
-      }
-
+  canSubmitConsent(): boolean {
+    if (this.viewingTraining.status.toLowerCase() == 'completed') {
       return false;
     }
 
-    canShowGoToQuiz():boolean{
-      if(this.viewingTraining.status.toLowerCase() == 'completed'){
-        return false;
-      }
-
-      if(!this.viewingTraining.hasQuiz){
-        return false;
-      } else if(this.viewingTraining.hasQuiz && !this.viewingTraining.quizAttempted){
+    if (!this.viewingTraining.hasSeenContent) {
+      if (!this.viewingTraining.hasQuiz) {
+        return true;
+      } else if (
+        this.viewingTraining.hasQuiz &&
+        this.viewingTraining.quizAttempted
+      ) {
         return true;
       }
+    }
 
+    return false;
+  }
+
+  canShowGoToQuiz(): boolean {
+    if (this.viewingTraining.status.toLowerCase() == 'completed') {
       return false;
     }
 
+    if (!this.viewingTraining.hasQuiz) {
+      return false;
+    } else if (
+      this.viewingTraining.hasQuiz &&
+      !this.viewingTraining.quizAttempted
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  viewPDFContent(training: any) {
+    this.isLoadingPreview = true;
+    this.pptxSlides = []; // Clear any PPT slides
+
+    // Get all slides from server
+    this.trainingService
+      .getAllSlides(training.trainingId, training.content.contentId)
+      .subscribe({
+        next: (slideUrls: string[]) => {
+          this.totalSlides = slideUrls.length;
+          this.slides = slideUrls;
+          this.currentSlideIndex = 0;
+
+          // Load first slide
+          this.loadSlide(0);
+          this.isLoadingPreview = false;
+        },
+        error: (error) => {
+          console.error('Failed to load slides:', error);
+          this.isLoadingPreview = false;
+          this.openAlert('Failed to load PDF slides', 'error');
+        },
+      });
+  }
+
+  // Add loadSlide method
+  loadSlide(index: number) {
+    if (index < 0 || index >= this.totalSlides) return;
+
+    this.currentSlideIndex = index;
+
+    // Check if already preloaded
+    if (this.preloadedSlides.has(index)) {
+      this.previewImageBlob = this.preloadedSlides.get(index)!;
+      this.isLoadingPreview = false;
+      this.triggerPreload(index);
+      return;
+    }
+
+    // Show loading state
+    this.isLoadingPreview = true;
+    this.previewImageBlob = null;
+
+    const slideUrl = this.slides[index];
+    const slideName = slideUrl.substring(slideUrl.lastIndexOf('/') + 1);
+
+    this.trainingService
+      .getSlide(
+        this.viewingTraining.trainingId,
+        this.viewingTraining.content.contentId,
+        slideName,
+      )
+      .subscribe({
+        next: (blob) => {
+          if (this.preloadedSlides.has(index)) {
+            URL.revokeObjectURL(this.preloadedSlides.get(index)!);
+          }
+
+          const objectUrl = URL.createObjectURL(blob);
+          this.previewImageBlob = objectUrl;
+          this.preloadedSlides.set(index, objectUrl);
+          this.isLoadingPreview = false;
+          this.triggerPreload(index);
+        },
+        error: (error) => {
+          console.error('Failed to load slide:', error);
+          this.isLoadingPreview = false;
+          this.previewImageBlob = 'assets/images/no-preview.png';
+        },
+      });
+  }
+
+  // Add triggerPreload method
+  triggerPreload(currentIndex: number) {
+    // Preload next 5 slides
+    for (let i = 1; i <= 5; i++) {
+      const nextIndex = currentIndex + i;
+      if (
+        nextIndex < this.totalSlides &&
+        !this.preloadedSlides.has(nextIndex)
+      ) {
+        this.preloadSlide(nextIndex);
+      }
+    }
+
+    // Preload previous 2 slides for smooth backward navigation
+    for (let i = 1; i <= 2; i++) {
+      const prevIndex = currentIndex - i;
+      if (prevIndex >= 0 && !this.preloadedSlides.has(prevIndex)) {
+        this.preloadSlide(prevIndex);
+      }
+    }
+  }
+
+  // Add preloadSlide method
+  preloadSlide(index: number) {
+    if (this.preloadedSlides.has(index)) return;
+
+    const slideUrl = this.slides[index];
+    const slideName = slideUrl.substring(slideUrl.lastIndexOf('/') + 1);
+
+    this.trainingService
+      .getSlide(
+        this.viewingTraining.trainingId,
+        this.viewingTraining.content.contentId,
+        slideName,
+      )
+      .subscribe({
+        next: (blob) => {
+          const objectUrl = URL.createObjectURL(blob);
+          this.preloadedSlides.set(index, objectUrl);
+        },
+        error: (error) => {
+          console.error(`Failed to preload slide ${index}:`, error);
+        },
+      });
+  }
+
+  // Add navigation methods
+  nextSlide() {
+    if (this.currentSlideIndex < this.totalSlides - 1) {
+      this.currentSlideIndex++;
+      this.loadSlide(this.currentSlideIndex);
+    }
+  }
+
+  previousSlide() {
+    if (this.currentSlideIndex > 0) {
+      this.currentSlideIndex--;
+      this.loadSlide(this.currentSlideIndex);
+    }
+  }
+
+  goToSlide(index: number) {
+    if (index >= 0 && index < this.totalSlides) {
+      this.currentSlideIndex = index;
+      this.loadSlide(index);
+    }
+  }
+
+  onPreviewError(event: any) {
+    console.log('Preview error:', event);
+    // Show fallback image or message
+    event.target.src = 'assets/images/no-preview.png';
+    event.target.alt = 'Preview not available';
+  }
 }

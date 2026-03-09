@@ -390,7 +390,8 @@
                                                 </button>
                                             </div>
                                             <small *ngIf="file" class="text-success mt-1 d-block">
-                                                <i class="fas fa-check-circle"></i> Selected: {{file.name}} ({{fileSize.toFixed(2)}} MB)
+                                                <i class="fas fa-check-circle"></i> Selected: {{file.name}} 
+                                                <!-- ({{fileSize.toFixed(2)}} MB) -->
                                             </small>
                                         </div>
                                     </div>
@@ -829,11 +830,11 @@
                         </div>
                         
                         <!-- Download Button -->
-                        <div class="mt-3">
+                        <!-- <div class="mt-3">
                             <button type="button" class="btn btn-sm btn-outline-success" (click)="downloadFile()">
                                 <i class="fas fa-download mr-1"></i> Download Original File
                             </button>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
             </div>

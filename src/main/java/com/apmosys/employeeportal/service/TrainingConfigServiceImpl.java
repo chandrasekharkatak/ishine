@@ -1554,6 +1554,15 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("Employee ID: ").append(empId);
 
+		Employee employee = employeeRepository.findById(empId).orElse(null);
+		if (employee == null) {
+			apiLogInfo.setApiResponse("Employee Not Found");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			throw new ResourceNotFoundException("Employee Not Found for empId: " + empId);
+		}
+
 			List<Long> jobRoleIds = Arrays.stream(trainingJobRoleExclude.split(","))
 						.map(String::trim)
 						.map(Long::parseLong)
@@ -1567,7 +1576,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 			LockStatusDTO lockStatus = new LockStatusDTO();
 					
-			if (!jobRoleIds.contains(empId) && empIdsToInclude.contains(empId)) {
+			if (!jobRoleIds.contains(employee.getJobRoleId()) && empIdsToInclude.contains(empId)) {
 				try {
 
 					ServiceResponse lockResponse = trainingUserService.getLockStatus(empId);
@@ -1634,6 +1643,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 						apiLogInfo.setApiRequest(logBuilder.toString());
 						logService.logMyInfo(httpRequest, apiLogInfo);
 						response.setServiceResponse(lockStatus);
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setStatusCode(HttpStatus.OK.value());
 						return response;
 					}
@@ -1654,6 +1664,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 					apiLogInfo.setApiRequest(logBuilder.toString());
 					logService.logMyInfo(httpRequest, apiLogInfo);
 					response.setServiceResponse(lockStatus);
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setStatusCode(HttpStatus.OK.value());
 					return response;
 				}
@@ -1671,6 +1682,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 				apiLogInfo.setApiRequest(logBuilder.toString());
 				logService.logMyInfo(httpRequest, apiLogInfo);
 				response.setServiceResponse(lockStatus);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setStatusCode(HttpStatus.OK.value());
 			}
 			return response;
