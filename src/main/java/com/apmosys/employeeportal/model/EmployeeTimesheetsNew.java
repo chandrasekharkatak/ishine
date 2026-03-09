@@ -72,4 +72,7 @@ public class EmployeeTimesheetsNew {
 	
 	@Column(name = "current_manager_id")
 	private Long currentManagerId;
+
+    @Column(name = "is_system_generated")
+    private Boolean isSystemGenerated;
 }

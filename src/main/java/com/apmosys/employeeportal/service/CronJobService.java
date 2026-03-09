@@ -1472,7 +1472,7 @@ public class CronJobService {
 //		}
 
 		// 0 0 12 ? * * - At 12:00:00pm every day
-	@Scheduled(cron = "0 03 19 ? * *")
+	@Scheduled(cron = "0 1 00 ? * *")
 	public void automaticTimesheetFiller() {
 
 	    System.out.println("Cron----**********----started");
