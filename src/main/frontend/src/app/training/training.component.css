@@ -1001,3 +1001,48 @@
     50% { transform: scale(1.02); }
     100% { transform: scale(1); }
 }
+
+.preview-modal-content.fullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: white;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.preview-modal-content.fullscreen img {
+  max-height: 90vh;
+  max-width: 90vw;
+  object-fit: contain;
+}
+
+.slide-main-container {
+  background: #f5f5f5;
+  padding: 20px;
+  border-radius: 8px;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slide-image-full {
+  max-height: 500px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border-radius: 4px;
+}
+
+/* Dark mode for fullscreen */
+.preview-modal-content.fullscreen {
+  background: #1a1a1a;
+}
+
+.preview-modal-content.fullscreen img {
+  box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+}

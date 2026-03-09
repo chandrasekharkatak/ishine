@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, catchError, map, of } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -63,7 +63,7 @@ export class TrainingService {
   }
 
   getLockStatus(empId: number) {
-    return this.http.post(`${this.baseUrl}api/training/getLockStatus`, { empId: empId });
+    return this.http.get(`${this.baseUrl}api/training/getLockStatus`, { params: { empId: empId } });
   }
 
 
@@ -103,12 +103,35 @@ export class TrainingService {
     return this.http.post(`${this.baseUrl}api/training/getAllQuizResponsesByTrainingId`, { trainingId: trainingId });
   }
 
-  getTrainingResponses(trainingId: number, limit: number, offset: number){
-    return this.http.get(`${this.baseUrl}api/training/getTrainingResponses/${trainingId}`, {
-      params: {
-        limit: limit,
-        offset: offset
-      }
-    });
+  getTrainingResponses(trainingId: number){
+    return this.http.get(`${this.baseUrl}api/training/getTrainingResponses/${trainingId}`);
   }
+
+  addTrainingType(trainingType: string, createdBy: number) {
+  return this.http.post(`${this.baseUrl}api/training/addTrainingType`, {
+    trainingType: trainingType,
+    createdBy: createdBy
+  });
+}
+  getAllTrainingTypes(): Observable<any> {
+    return this.http.get(`${this.baseUrl}api/training/getAllTrainingTypes`);
+  }
+
+ // In TrainingService
+getAllSlides(trainingId: number, contentId: number): Observable<string[]> {
+  return this.http.get<string[]>(`${this.baseUrl}api/training/slides/${trainingId}/${contentId}`);
+}
+
+getSlide(trainingId: number, contentId: number, slideName: string): Observable<Blob> {
+  return this.http.get(`${this.baseUrl}api/training/slide/${trainingId}/${contentId}/${slideName}`, {
+    responseType: 'blob'
+  });
+}
+
+// Or get by index
+getSlideByIndex(trainingId: number, contentId: number, slideIndex: number): Observable<Blob> {
+  return this.http.get(`${this.baseUrl}api/training/slide/${trainingId}/${contentId}/${slideIndex}`, {
+    responseType: 'blob'
+  });
+}
 }

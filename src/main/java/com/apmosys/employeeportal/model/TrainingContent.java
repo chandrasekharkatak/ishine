@@ -59,6 +59,12 @@ public class TrainingContent {
 	
 	@Column(name = "active_status", nullable = false, columnDefinition = "VARCHAR(10) DEFAULT 'true'")
 	private String activeStatus;
+
+	@Column(name = "slides_path")
+    private String slidesPath;
+    
+    @Column(name = "total_slides")
+    private Integer totalSlides;
 	
 	@Column(name = "created_by", nullable = false)
 	private Long createdBy;

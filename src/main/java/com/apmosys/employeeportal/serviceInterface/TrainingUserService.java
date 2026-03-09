@@ -1,5 +1,10 @@
 package com.apmosys.employeeportal.serviceInterface;
 
+import java.util.List;
+
+import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
+
 import com.apmosys.employeeportal.dto.TrainingConsentDTO;
 import com.apmosys.employeeportal.dto.TrainingSkipDTO;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -60,5 +65,9 @@ public interface TrainingUserService {
 	ServiceResponse checkTrainingRequirements(Long empId);
 
 	ServiceResponse getQuizQuestionByTrainingId(Integer trainingId);
+
+    ResponseEntity<List<String>> getAllSlides(Integer trainingId, Integer contentId);
+
+    ResponseEntity<Resource> getSlide(Integer trainingId, Integer contentId, String slideName);
 
 }

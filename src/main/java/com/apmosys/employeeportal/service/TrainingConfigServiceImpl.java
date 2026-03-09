@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.service;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -7,13 +8,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -38,6 +44,7 @@ import com.apmosys.employeeportal.Exception.GlobalException;
 import com.apmosys.employeeportal.Exception.ResourceNotFoundException;
 import com.apmosys.employeeportal.Exception.TrainingException;
 import com.apmosys.employeeportal.dto.ComplianceReportDTO;
+import com.apmosys.employeeportal.dto.LockStatusDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TrainingContentDTO;
 import com.apmosys.employeeportal.dto.TrainingHistoryDTO;
@@ -50,16 +57,21 @@ import com.apmosys.employeeportal.model.TrainingConsent;
 import com.apmosys.employeeportal.model.TrainingContent;
 import com.apmosys.employeeportal.model.TrainingMaster;
 import com.apmosys.employeeportal.model.TrainingSkip;
+import com.apmosys.employeeportal.model.TrainingTypeMaster;
 import com.apmosys.employeeportal.repository.EmployeeQuizResponseStatusMappingRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.TrainingConsentRepository;
 import com.apmosys.employeeportal.repository.TrainingContentRepository;
 import com.apmosys.employeeportal.repository.TrainingMasterRepository;
 import com.apmosys.employeeportal.repository.TrainingSkipRepository;
+import com.apmosys.employeeportal.repository.TrainingTypeMasterRepository;
 import com.apmosys.employeeportal.serviceInterface.TrainingConfigService;
+import com.apmosys.employeeportal.serviceInterface.TrainingUserService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 import com.apmosys.employeeportal.utility.TrainingFileValidator;
+
+import com.apmosys.employeeportal.utility.DocumentSlideUtility;
 
 /**
  * Service implementation for Training Configuration operations (HR/Admin)
@@ -98,11 +110,36 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	@Autowired
 	private EmployeeQuizResponseStatusMappingRepository employeeQuizResponseStatusMappingRepository;
 
+	@Autowired
+	private TrainingUserService trainingUserService;
+
+	@Autowired
+	private TrainingTypeMasterRepository trainingTypeMasterRepository;
+	@Autowired
+	MailService mailService;
+	
 	@Value("${file.location.documents.training}")
 	private String trainingFileLocation;
 
 	@Value("${file.training.max.size.allowed}")
 	private String maxFileSize;
+
+	@Value("${training.job.role.exclude}")
+	private String trainingJobRoleExclude;
+
+	@Value("${training.dry.run.empids.to.include}")
+	private String trainingDryRunEmpIdsToInclude;
+
+	private Map<Integer, String> trainingContentMap = new HashMap<>();
+
+	public String getTrainingContentMap(Integer contentId) {
+		return trainingContentMap.get(contentId);
+	}
+
+	public void setTrainingContentMap(Integer contentId, String slidesPath) {
+		this.trainingContentMap.put(contentId, slidesPath);
+	}
+
 
 	// ==================== HR Configuration APIs ====================
 	@Override
@@ -445,6 +482,21 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 			if (filePath != null) {
 				saveTrainingFile(filePath, file);
+				// DocumentSlideUtility.convertDocumentToSlides(trainingFileLocation, filePath, savedContent.getContentId());
+				String slidesPath = DocumentSlideUtility.convertDocumentToSlides(
+					trainingFileLocation, 
+					filePath, 
+					savedContent.getContentId()
+				);
+				
+				// Count total slides
+				int totalSlides = countSlides(slidesPath);
+				
+				// Update the content with slides path and total slides
+				savedContent.setSlidesPath(slidesPath);
+				savedContent.setTotalSlides(totalSlides);
+				trainingContentRepository.save(savedContent);
+
 			}
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -671,6 +723,22 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	  // Save new file
 	     if (newFilePath != null) {
 	         saveTrainingFile(newFilePath, file);
+			//  DocumentSlideUtility.convertDocumentToSlides(trainingFileLocation, newFilePath, savedContent.getContentId());
+			String slidesPath = DocumentSlideUtility.convertDocumentToSlides(
+				trainingFileLocation, 
+				newFilePath, 
+				savedContent.getContentId()
+			);
+			
+			// Count total slides
+			int totalSlides = countSlides(slidesPath);
+			
+			// Update the content with slides path and total slides
+			savedContent.setSlidesPath(slidesPath);
+			savedContent.setTotalSlides(totalSlides);
+			trainingContentRepository.save(savedContent);
+
+			trainingContentMap.remove(savedContent.getContentId());
 	     }
 
 	     // Delete old file if switching FILE → LINK
@@ -679,6 +747,11 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	             && !oldFilePath.isBlank()) {
 
 	         safeDeleteTrainingFile(oldFilePath);
+
+			 String oldSlidesPath = existingContent.getSlidesPath();
+			if (oldSlidesPath != null) {
+				safeDeleteDirectory(oldSlidesPath);
+			}
 	     }
 
 	     // Delete old file if replacing FILE → FILE
@@ -688,6 +761,10 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	             && !oldFilePath.equals(newFilePath)) {
 
 	         safeDeleteTrainingFile(oldFilePath);
+			 String oldSlidesPath = existingContent.getSlidesPath();
+			if (oldSlidesPath != null) {
+				safeDeleteDirectory(oldSlidesPath);
+			}
 	     }
 
 	        response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -810,6 +887,40 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		return response;
 	}
 
+
+	private int countSlides(String slidesPath) {
+		try {
+			File slidesDir = new File(slidesPath);
+			if (!slidesDir.exists() || !slidesDir.isDirectory()) {
+				return 0;
+			}
+			
+			// Count PNG files that start with "slide-" or "page-"
+			File[] slides = slidesDir.listFiles((dir, name) -> 
+				(name.startsWith("slide-") || name.startsWith("page-")) && 
+				name.endsWith(".png"));
+			
+			return slides != null ? slides.length : 0;
+		} catch (Exception e) {
+			throw new RuntimeException("Error counting slides", e);
+		}
+	}
+
+	private void safeDeleteDirectory(String path) {
+		try {
+			Path dirPath = Paths.get(path);
+			if (Files.exists(dirPath)) {
+				// Delete all files in directory first
+				Files.walk(dirPath)
+					.sorted(Comparator.reverseOrder())
+					.map(Path::toFile)
+					.forEach(File::delete);
+			}
+		} catch (Exception e) {
+			throw new RuntimeException("Error deleting directory", e);
+		}
+	}
+
 	@Override
 	public ServiceResponse getTrainingContent(Integer trainingId) {
 		ServiceResponse response = new ServiceResponse();
@@ -822,20 +933,20 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		logBuilder.append("Training ID: ").append(trainingId);
 
 		try {
-			List<TrainingContent> contents = trainingContentRepository.findByTrainingMaster_TrainingId(trainingId);
 			LocalDate today = LocalDate.now();
+			TrainingContent content = trainingContentRepository.findByTrainingMaster_TrainingId(trainingId, today);
 
-			List<TrainingContentDTO> dtoList = contents.stream().map(content -> {
-				TrainingContentDTO dto = convertToTrainingContentDTO(content);
+			List<TrainingContentDTO> dtoList = new ArrayList<>();
 
-				// Check if currently active
-				boolean isActive = "true".equals(content.getActiveStatus())
-						&& content.getEffectiveFrom().isBefore(today)
-						&& (content.getEffectiveTo() == null || content.getEffectiveTo().isAfter(today));
-				dto.setIsCurrentlyActive(isActive);
+			TrainingContentDTO dto = convertToTrainingContentDTO(content);
 
-				return dto;
-			}).collect(Collectors.toList());
+			// Check if currently active
+			boolean isActive = "true".equals(content.getActiveStatus())
+					&& content.getEffectiveFrom().isBefore(today)
+					&& (content.getEffectiveTo() == null || content.getEffectiveTo().isAfter(today));
+			dto.setIsCurrentlyActive(isActive);
+
+			dtoList.add(dto);
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(dtoList);
@@ -1242,64 +1353,6 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		return response;
 	}
 
-	// ==================== Helper Methods ====================
-
-	/**
-	 * Count completions in last 12 months for an employee and training Used by
-	 * reporting methods
-	 */
-	// private int countCompletionsInLast12Months(Long empId, Integer trainingId) {
-	// 	Timestamp fromDate = Timestamp.valueOf(LocalDate.now().minusMonths(12).atStartOfDay());
-	// 	Long count = trainingConsentRepository.countCompletionsInLast12Months(empId, trainingId, fromDate);
-	// 	return count != null ? count.intValue() : 0;
-	// }
-
-	/**
-	 * Convert TrainingMaster entity to DTO
-	 */
-// 	private TrainingMasterDTO convertToTrainingMasterDTO(TrainingMaster training) {
-// 		TrainingMasterDTO dto = new TrainingMasterDTO();
-// 		dto.setTrainingId(training.getTrainingId());
-// 		dto.setTrainingName(training.getTrainingName());
-// 		dto.setTrainingType(training.getTrainingType());
-// 		dto.setMandatoryFlag(training.getMandatoryFlag());
-// 		dto.setEffectiveFrom(training.getEffectiveFrom());
-// 		dto.setEffectiveTo(training.getEffectiveTo());
-// //		dto.setFrequencyPerYear(training.getFrequencyPerYear());
-// 		dto.setLockEnabled(training.getLockEnabled());
-// 		dto.setMinViewTimeMinutes(training.getMinViewTimeMinutes());
-// 		dto.setConsentRequired(training.getConsentRequired());
-// 		dto.setSkipAllowed(training.getSkipAllowed());
-// 		dto.setDeadlineEnabled(training.getDeadlineEnabled());
-// 		dto.setDeadlinePattern(training.getDeadlinePattern());
-// 		dto.setCustomDeadlineMonths(training.getCustomDeadlineMonths());
-// 		dto.setActiveStatus(training.getActiveStatus());
-// 		dto.setCreatedBy(training.getCreatedBy());
-
-// 		if (training.getCreatedOn() != null) {
-// 			dto.setCreatedOn(formatTimestampToString(training.getCreatedOn()));
-// 		}
-// 		if (training.getUpdatedOn() != null) {
-// 			dto.setUpdatedOn(formatTimestampToString(training.getUpdatedOn()));
-// 		}
-
-// 		// Get employee names
-// 		if (training.getCreatedBy() != null) {
-// 			Optional<Employee> empOpt = employeeRepository.findById(training.getCreatedBy());
-// 			if (empOpt.isPresent()) {
-// 				dto.setCreatedByName(empOpt.get().getName());
-// 			}
-// 		}
-// 		if (training.getUpdatedBy() != null) {
-// 			Optional<Employee> empOpt = employeeRepository.findById(training.getUpdatedBy());
-// 			if (empOpt.isPresent()) {
-// 				dto.setUpdatedByName(empOpt.get().getName());
-// 			}
-// 		}
-
-// 		return dto;
-// 	}
-
 	private String generateTrainingFilePath(Integer trainingId, MultipartFile file) {
 
 		String originalFilename = file.getOriginalFilename();
@@ -1451,7 +1504,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	}
 
 	@Override
-	public ServiceResponse getTrainingResponses(Integer trainingId, Integer limit, Integer offset){
+	public ServiceResponse getTrainingResponses(Integer trainingId){
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("Get Training Responses");
@@ -1470,9 +1523,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 				throw new ResourceNotFoundException("Training Not Found for trainingId: " + trainingId);
 			}
 
-			Pageable pageable = PageRequest.of(offset, limit);
-
-			Page<TrainingResponseDTO> trainingResponses = trainingConsentRepository.findByTrainingId(trainingId, pageable);
+			List<TrainingResponseDTO> trainingResponses = trainingConsentRepository.findByTrainingId(trainingId);
 			response.setStatusCode(HttpStatus.OK.value());
 			response.setServiceResponse(trainingResponses);
 			apiLogInfo.setApiResponse(trainingResponses.toString());
@@ -1491,5 +1542,296 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 		return response;
 
 	}
+	
+	@Override
+	public ServiceResponse getLockStatus(Long empId) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Get Lock Status");
+		apiLogInfo.setApiUrl("/api/training/getLockStatus");
+		apiLogInfo.setLogLevel("INFO");
 
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Employee ID: ").append(empId);
+
+		Employee employee = employeeRepository.findById(empId).orElse(null);
+		if (employee == null) {
+			apiLogInfo.setApiResponse("Employee Not Found");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			throw new ResourceNotFoundException("Employee Not Found for empId: " + empId);
+		}
+
+			List<Long> jobRoleIds = Arrays.stream(trainingJobRoleExclude.split(","))
+						.map(String::trim)
+						.map(Long::parseLong)
+						.collect(Collectors.toList());
+
+			// Dry run empIds
+			List<Long> empIdsToInclude = Arrays.stream(trainingDryRunEmpIdsToInclude.split(","))
+					.map(String::trim)
+					.map(Long::parseLong)
+					.collect(Collectors.toList());
+
+			LockStatusDTO lockStatus = new LockStatusDTO();
+					
+			if (!jobRoleIds.contains(employee.getJobRoleId()) && empIdsToInclude.contains(empId)) {
+				try {
+
+					ServiceResponse lockResponse = trainingUserService.getLockStatus(empId);
+					if (lockResponse != null && lockResponse.getServiceStatus() != null && 
+						lockResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS) &&
+						lockResponse.getServiceResponse() != null) {
+						
+						lockStatus = (LockStatusDTO) lockResponse.getServiceResponse();
+						
+						
+						if (lockStatus.getIsLocked() == null) {
+							lockStatus.setIsLocked(false);
+						}
+						if (lockStatus.getHasMandatoryTrainingPending() == null) {
+							lockStatus.setHasMandatoryTrainingPending(false);
+						}
+						if (lockStatus.getIsHardLock() == null) {
+							lockStatus.setIsHardLock(false);
+						}
+						if (lockStatus.getDeadlineCrossed() == null) {
+							lockStatus.setDeadlineCrossed(false);
+						}
+						
+						// Set training lock status for routing and navigation decisions
+						// This includes:
+						// - hasMandatoryTrainingPending: true if mandatory training exists (for routing)
+						// - isLocked: true if lock enabled (for blocking navigation)
+						// - isHardLock: true if lock enabled AND deadline crossed (hardest lock)
+						// - deadlineCrossed: true if deadline has passed
+						
+						// Log lock status for debugging and monitoring
+						if (lockStatus.getIsHardLock() != null && lockStatus.getIsHardLock()) {
+							System.out.println("Training Lock Status - HARD LOCK: Employee " + empId + 
+								" has deadline-crossed mandatory training with lock enabled. Training: " + 
+								lockStatus.getLockedTrainingName());
+						} else if (lockStatus.getIsLocked() != null && lockStatus.getIsLocked()) {
+							System.out.println("Training Lock Status - LOCKED: Employee " + empId + 
+								" has mandatory training with lock enabled. Training: " + 
+								lockStatus.getLockedTrainingName() + 
+								", Deadline Crossed: " + lockStatus.getDeadlineCrossed());
+						} else if (lockStatus.getHasMandatoryTrainingPending() != null && lockStatus.getHasMandatoryTrainingPending()) {
+							System.out.println("Training Lock Status - MANDATORY PENDING: Employee " + empId + 
+								" has mandatory training pending (no lock). Training: " + 
+								lockStatus.getLockedTrainingName());
+						}
+						apiLogInfo.setApiResponse(lockStatus.toString());
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+						logService.logMyInfo(httpRequest, apiLogInfo);
+						response.setServiceResponse(lockStatus);
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setStatusCode(HttpStatus.OK.value());
+						return response;
+					} else {
+						// If lock check returns failure or null, initialize empty lock status
+						LockStatusDTO emptyLockStatus = new LockStatusDTO();
+						emptyLockStatus.setIsLocked(false);
+						emptyLockStatus.setHasMandatoryTrainingPending(false);
+						emptyLockStatus.setIsHardLock(false);
+						emptyLockStatus.setDeadlineCrossed(false);
+						lockStatus = emptyLockStatus;
+						// System.out.println("Training Lock Status - No lock status returned for employee " + empId);
+						apiLogInfo.setApiResponse("Training Lock Status - No lock status returned for employee " + empId);
+						apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+						apiLogInfo.setApiRequest(logBuilder.toString());
+						logService.logMyInfo(httpRequest, apiLogInfo);
+						response.setServiceResponse(lockStatus);
+						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+						response.setStatusCode(HttpStatus.OK.value());
+						return response;
+					}
+				} catch (Exception e) {
+					// If lock check fails, initialize empty lock status to prevent NPE
+					// Log error but don't fail login - training lock check should not block login
+					e.printStackTrace();
+					LockStatusDTO emptyLockStatus = new LockStatusDTO();
+					emptyLockStatus.setIsLocked(false);
+					emptyLockStatus.setHasMandatoryTrainingPending(false);
+					emptyLockStatus.setIsHardLock(false);
+					emptyLockStatus.setDeadlineCrossed(false);
+					lockStatus = emptyLockStatus;
+					
+					// System.err.println("Error checking training lock on login for employee " + empId + ": " + e.getMessage());\
+					apiLogInfo.setApiResponse("Error checking training lock on login for employee " + empId + ": " + e.getMessage());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+					apiLogInfo.setApiRequest(logBuilder.toString());
+					logService.logMyInfo(httpRequest, apiLogInfo);
+					response.setServiceResponse(lockStatus);
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setStatusCode(HttpStatus.OK.value());
+					return response;
+				}
+			} else {
+				// If empId is null, initialize empty lock status
+				LockStatusDTO emptyLockStatus = new LockStatusDTO();
+				emptyLockStatus.setIsLocked(false);
+				emptyLockStatus.setHasMandatoryTrainingPending(false);
+				emptyLockStatus.setIsHardLock(false);
+				emptyLockStatus.setDeadlineCrossed(false);
+				lockStatus = emptyLockStatus;
+				// System.err.println("Warning: Employee ID is null, cannot check training lock status");
+				apiLogInfo.setApiResponse("Warning: Employee ID is null, cannot check training lock status");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				response.setServiceResponse(lockStatus);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setStatusCode(HttpStatus.OK.value());
+			}
+			return response;
+	}
+
+//	@Scheduled(cron = "0 0 9 */2 * *")
+//    public void sendTrainingReminders() {
+//        
+//        
+//        try {
+//            List<Object[]> pendingTrainings = trainingConsentRepository.findEmpForUnattendedQuiz();
+//            
+//            if (pendingTrainings == null || pendingTrainings.isEmpty()) {
+//                return;
+//            }
+//            
+//            for (Object[] training : pendingTrainings) {
+//                triggerTrainingReminderMail(training);
+//            }
+//            
+//            
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
+//    
+//    private void triggerTrainingReminderMail(Object[] training) {
+//        try {
+//            String empName =  (String) training[0];
+//            String empEmail = (String) training[1];
+//            String trainingName = (String) training[2];
+//            Date deadline = (Date) training[3];
+//            
+//            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+//            String formattedDeadline = sdf.format(deadline);
+//            
+//            StringBuilder html = new StringBuilder();
+//            html.append("<html><body>");
+//            html.append("<p>Dear <b>").append(empName).append("</b>,</p>");
+//            html.append("<p>This is a reminder that you have not yet completed the following training:</p>");
+//            
+//            html.append("<div style='overflow-x:auto;'>");
+//            html.append("<table border='1' style='border-collapse: collapse; width: 100%; table-layout: auto;'>");
+//            html.append("<tr>");
+//            html.append("<th style='white-space: nowrap; padding: 8px; background-color: #f5f5f5; text-align: left;'>Training Name</th>");
+//            html.append("<th style='white-space: nowrap; padding: 8px; background-color: #f5f5f5; text-align: left;'>Deadline</th>");
+//            html.append("</tr>");
+//            
+//            html.append("<tr>");
+//            html.append("<td style='white-space: nowrap; padding: 8px;'>").append(trainingName).append("</td>");
+//            html.append("<td style='white-space: nowrap; padding: 8px; color: #d63031; font-weight: bold;'>").append(formattedDeadline).append("</td>");
+//            html.append("</tr>");
+//            html.append("</table>");
+//            html.append("</div>");
+//            
+//            html.append("<p style='color: #d63031; font-weight: bold;'>");
+//            html.append(" Please complete this training as early as possible , avoid any delays.");
+//            html.append("</p>");
+//            
+//            html.append("<p>If you have any questions or need assistance, please contact the training coordinator.</p>");
+//            
+//            html.append("<p>Regards,<br/>HR Team</p>");
+//            html.append("</body></html>");
+//            
+//            String subject = "Reminder: Complete Your Pending Training - " + trainingName;
+//            
+//            mailService.sendMailWithCC(empEmail, subject, html.toString());
+//            
+//            
+//            
+//        } catch (Exception e) {
+//            
+//            e.printStackTrace();
+//        }
+//    }
+
+	@Override
+	public ServiceResponse addTrainingType(TrainingMasterDTO trainingDTO)
+	{
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/training/addTrainingType");
+		apiLogInfo.setLogLevel("INFO");
+		 try {
+	            if (trainingDTO.getTrainingType() == null || trainingDTO.getTrainingType().trim().isEmpty()) {
+	            	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            	response.setServiceResponse("Training type cannot be empty");
+	            	apiLogInfo.setApiResponse("Training type cannot be empty");
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	                return response;
+	            }
+
+	            // Check if training type already exists
+	            if (trainingTypeMasterRepository.existsByTrainingTypeIgnoreCase(trainingDTO.getTrainingType().trim())) {
+	            	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            	apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	                response.setServiceResponse("Training type '" + trainingDTO.getTrainingType() + "' already exists");
+	                return response;
+	            }
+
+	            // Create new training type
+	            TrainingTypeMaster trainingType = new TrainingTypeMaster();
+	            trainingType.setTrainingType(trainingDTO.getTrainingType().trim());
+	            trainingType.setCreatedBy(trainingDTO.getCreatedBy());
+	            trainingType.setCreatedOn(LocalDateTime.now());
+	            trainingType.setIsActive(true);
+
+	            // Save to database
+	            TrainingTypeMaster saved = trainingTypeMasterRepository.save(trainingType);
+
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setApiResponse("Training type added successfully");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+	            
+	        } catch (Exception e) {
+	        	e.printStackTrace();
+				response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+				response.setServiceResponse("Error adding training type");
+				response.setServiceError(e.getMessage());
+	        }
+	        
+	        return response;
+	}
+	
+	@Override
+    public ServiceResponse getAllTrainingTypes() {
+        ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/training/getAllTrainingTypes");
+		apiLogInfo.setLogLevel("INFO");
+        try {
+            List<TrainingTypeMaster> types = trainingTypeMasterRepository.findByIsActiveTrueOrderByTrainingTypeAsc();            
+            System.out.println(types.toString());
+            if(!types.isEmpty()) {
+            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			apiLogInfo.setApiResponse("Training type retrieved successfully");
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(types);
+            }
+            else {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No training type found");
+			}
+        } catch (Exception e) {
+            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+            response.setServiceResponse("Error retrieving training types: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return response;
+    }
 }

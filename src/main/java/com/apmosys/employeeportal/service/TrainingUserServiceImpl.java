@@ -1,7 +1,13 @@
 package com.apmosys.employeeportal.service;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,19 +19,31 @@ import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -97,9 +115,19 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 
 	@Autowired
 	private TrainingQuizMappingRepository trainingQuizMappingRepository;
+
+	@Autowired
+	@Lazy
+	private TrainingConfigServiceImpl trainingConfigServiceImpl;
 	
 	@Value("${file.location.documents.training}")
 	private String trainingFileLocation;
+
+	@Value("${training.job.role.exclude}")
+	private String trainingJobRoleExclude;
+
+	@Value("${training.dry.run.empids.to.include}")
+	private String trainingDryRunEmpIdsToInclude;
 
 	@Override
 	@Transactional
@@ -478,6 +506,132 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+
+	// @Override
+	// public ServiceResponse getLockStatus(Long empId) {
+	// 	ServiceResponse response = new ServiceResponse();
+	// 	LogDTO apiLogInfo = new LogDTO();
+	// 	apiLogInfo.setSubFeatureName("Get Lock Status");
+	// 	apiLogInfo.setApiUrl("/api/training/getLockStatus");
+	// 	apiLogInfo.setLogLevel("INFO");
+
+	// 	StringBuilder logBuilder = new StringBuilder();
+	// 	logBuilder.append("Employee ID: ").append(empId);
+
+	// 		List<Long> jobRoleIds = Arrays.stream(trainingJobRoleExclude.split(","))
+	// 					.map(String::trim)
+	// 					.map(Long::parseLong)
+	// 					.collect(Collectors.toList());
+
+	// 		// Dry run empIds
+	// 		List<Long> empIdsToInclude = Arrays.stream(trainingDryRunEmpIdsToInclude.split(","))
+	// 				.map(String::trim)
+	// 				.map(Long::parseLong)
+	// 				.collect(Collectors.toList());
+
+	// 		LockStatusDTO lockStatus = new LockStatusDTO();
+					
+	// 		if (!jobRoleIds.contains(empId) && empIdsToInclude.contains(empId)) {
+	// 			try {
+
+	// 				ServiceResponse lockResponse = getLockStatus(empId);
+	// 				if (lockResponse != null && lockResponse.getServiceStatus() != null && 
+	// 					lockResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS) &&
+	// 					lockResponse.getServiceResponse() != null) {
+						
+	// 					lockStatus = (LockStatusDTO) lockResponse.getServiceResponse();
+						
+						
+	// 					if (lockStatus.getIsLocked() == null) {
+	// 						lockStatus.setIsLocked(false);
+	// 					}
+	// 					if (lockStatus.getHasMandatoryTrainingPending() == null) {
+	// 						lockStatus.setHasMandatoryTrainingPending(false);
+	// 					}
+	// 					if (lockStatus.getIsHardLock() == null) {
+	// 						lockStatus.setIsHardLock(false);
+	// 					}
+	// 					if (lockStatus.getDeadlineCrossed() == null) {
+	// 						lockStatus.setDeadlineCrossed(false);
+	// 					}
+						
+	// 					// Set training lock status for routing and navigation decisions
+	// 					// This includes:
+	// 					// - hasMandatoryTrainingPending: true if mandatory training exists (for routing)
+	// 					// - isLocked: true if lock enabled (for blocking navigation)
+	// 					// - isHardLock: true if lock enabled AND deadline crossed (hardest lock)
+	// 					// - deadlineCrossed: true if deadline has passed
+						
+	// 					// Log lock status for debugging and monitoring
+	// 					if (lockStatus.getIsHardLock() != null && lockStatus.getIsHardLock()) {
+	// 						System.out.println("Training Lock Status - HARD LOCK: Employee " + empId + 
+	// 							" has deadline-crossed mandatory training with lock enabled. Training: " + 
+	// 							lockStatus.getLockedTrainingName());
+	// 					} else if (lockStatus.getIsLocked() != null && lockStatus.getIsLocked()) {
+	// 						System.out.println("Training Lock Status - LOCKED: Employee " + empId + 
+	// 							" has mandatory training with lock enabled. Training: " + 
+	// 							lockStatus.getLockedTrainingName() + 
+	// 							", Deadline Crossed: " + lockStatus.getDeadlineCrossed());
+	// 					} else if (lockStatus.getHasMandatoryTrainingPending() != null && lockStatus.getHasMandatoryTrainingPending()) {
+	// 						System.out.println("Training Lock Status - MANDATORY PENDING: Employee " + empId + 
+	// 							" has mandatory training pending (no lock). Training: " + 
+	// 							lockStatus.getLockedTrainingName());
+	// 					}
+	// 				} else {
+	// 					// If lock check returns failure or null, initialize empty lock status
+	// 					LockStatusDTO emptyLockStatus = new LockStatusDTO();
+	// 					emptyLockStatus.setIsLocked(false);
+	// 					emptyLockStatus.setHasMandatoryTrainingPending(false);
+	// 					emptyLockStatus.setIsHardLock(false);
+	// 					emptyLockStatus.setDeadlineCrossed(false);
+	// 					lockStatus = emptyLockStatus;
+	// 					// System.out.println("Training Lock Status - No lock status returned for employee " + empId);
+	// 					apiLogInfo.setApiResponse("Training Lock Status - No lock status returned for employee " + empId);
+	// 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	// 					apiLogInfo.setApiRequest(logBuilder.toString());
+	// 					logService.logMyInfo(httpRequest, apiLogInfo);
+	// 					response.setServiceResponse(lockStatus);
+	// 					response.setStatusCode(HttpStatus.OK.value());
+	// 					return response;
+	// 				}
+	// 			} catch (Exception e) {
+	// 				// If lock check fails, initialize empty lock status to prevent NPE
+	// 				// Log error but don't fail login - training lock check should not block login
+	// 				e.printStackTrace();
+	// 				LockStatusDTO emptyLockStatus = new LockStatusDTO();
+	// 				emptyLockStatus.setIsLocked(false);
+	// 				emptyLockStatus.setHasMandatoryTrainingPending(false);
+	// 				emptyLockStatus.setIsHardLock(false);
+	// 				emptyLockStatus.setDeadlineCrossed(false);
+	// 				lockStatus = emptyLockStatus;
+					
+	// 				// System.err.println("Error checking training lock on login for employee " + empId + ": " + e.getMessage());\
+	// 				apiLogInfo.setApiResponse("Error checking training lock on login for employee " + empId + ": " + e.getMessage());
+	// 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	// 				apiLogInfo.setApiRequest(logBuilder.toString());
+	// 				logService.logMyInfo(httpRequest, apiLogInfo);
+	// 				response.setServiceResponse(lockStatus);
+	// 				response.setStatusCode(HttpStatus.OK.value());
+	// 				return response;
+	// 			}
+	// 		} else {
+	// 			// If empId is null, initialize empty lock status
+	// 			LockStatusDTO emptyLockStatus = new LockStatusDTO();
+	// 			emptyLockStatus.setIsLocked(false);
+	// 			emptyLockStatus.setHasMandatoryTrainingPending(false);
+	// 			emptyLockStatus.setIsHardLock(false);
+	// 			emptyLockStatus.setDeadlineCrossed(false);
+	// 			lockStatus = emptyLockStatus;
+	// 			// System.err.println("Warning: Employee ID is null, cannot check training lock status");
+	// 			apiLogInfo.setApiResponse("Warning: Employee ID is null, cannot check training lock status");
+	// 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+	// 			apiLogInfo.setApiRequest(logBuilder.toString());
+	// 			logService.logMyInfo(httpRequest, apiLogInfo);
+	// 			response.setServiceResponse(lockStatus);
+	// 			response.setStatusCode(HttpStatus.OK.value());
+	// 		}
+	// 		return response;
+	// }
 
 	@Override
 	@Transactional
@@ -1186,5 +1340,69 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	
+
+	public ResponseEntity<List<String>> getAllSlides(Integer trainingId, Integer contentId) {
+		// Get the content
+		TrainingContent content = trainingContentRepository.findById(contentId)
+			.orElseThrow(() -> new ResourceNotFoundException("Content not found"));
+		
+		// Get slides directory path from content (you stored this during conversion)
+		String slidesPath = content.getSlidesPath(); // e.g., /path/to/slides-251/
+		
+		// Get all slide images
+		File slidesDir = new File(slidesPath);
+		File[] slideFiles = slidesDir.listFiles((dir, name) -> 
+			name.endsWith(".png") && (name.startsWith("slide-") || name.startsWith("page-")));
+		
+		// Sort slides by number
+		Arrays.sort(slideFiles, (a, b) -> {
+			int numA = extractNumber(a.getName());
+			int numB = extractNumber(b.getName());
+			return Integer.compare(numA, numB);
+		});
+		
+		// Generate URLs for each slide
+		List<String> slideUrls = new ArrayList<>();
+		for (File slide : slideFiles) {
+			String slideUrl = "/api/training/slide/" + trainingId + "/" + contentId + "/" + slide.getName();
+			slideUrls.add(slideUrl);
+		}
+		
+		return ResponseEntity.ok(slideUrls);
+	}
+
+	public ResponseEntity<Resource> getSlide(Integer trainingId, Integer contentId, String slideName) {
+        
+		String slidesPath = "";
+
+		if(trainingConfigServiceImpl.getTrainingContentMap(contentId) != null) {
+			slidesPath = trainingConfigServiceImpl.getTrainingContentMap(contentId);
+		} else {
+			TrainingContent content = trainingContentRepository.findById(contentId)
+				.orElseThrow(() -> new ResourceNotFoundException("Content not found"));
+			slidesPath = content.getSlidesPath();
+			trainingConfigServiceImpl.setTrainingContentMap(contentId, slidesPath);
+		}
+        
+        Path slidePath = Paths.get(slidesPath).resolve(slideName);
+        
+        // Security check
+        Path basePath = Paths.get(trainingFileLocation).toAbsolutePath().normalize();
+        if (!slidePath.toAbsolutePath().normalize().startsWith(basePath)) {
+            throw new RuntimeException("Invalid file path");
+        }
+        
+        Resource resource = new FileSystemResource(slidePath.toFile());
+        
+        return ResponseEntity.ok()
+            .contentType(MediaType.IMAGE_PNG)
+            .header(HttpHeaders.CONTENT_DISPOSITION, "inline")
+            .body(resource);
+    }
+
+    private int extractNumber(String filename) {
+        Matcher matcher = Pattern.compile("\\d+").matcher(filename);
+        return matcher.find() ? Integer.parseInt(matcher.group()) : 0;
+    }
+
 }

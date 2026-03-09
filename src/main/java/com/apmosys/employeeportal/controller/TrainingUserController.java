@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,11 +19,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.TrainingConsentDTO;
 import com.apmosys.employeeportal.dto.TrainingRequestDTO;
 import com.apmosys.employeeportal.dto.TrainingSkipDTO;
+import com.apmosys.employeeportal.serviceInterface.TrainingConfigService;
 import com.apmosys.employeeportal.serviceInterface.TrainingUserService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -36,6 +39,9 @@ public class TrainingUserController {
 
 	@Autowired
 	private TrainingUserService trainingUserService;
+
+	@Autowired
+	private TrainingConfigService trainingConfigService;
 	
 	@Value("${file.location.documents.training}")
 	private String trainingFileLocation;
@@ -109,16 +115,13 @@ public class TrainingUserController {
 		}
 	}
 
-	@PostMapping(value = "/getLockStatus")
-	public ServiceResponse getLockStatus(@RequestBody TrainingRequestDTO request) {
+	@GetMapping("/getLockStatus")
+	public ServiceResponse getLockStatus(@RequestParam("empId") Long empId) throws Exception{
 		try {
-			if (request == null || request.getEmpId() == null) {
-				ServiceResponse response = new ServiceResponse();
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Employee ID is required");
-				return response;
+			if(empId == null){
+				throw new Exception("Employee ID is required");
 			}
-			return trainingUserService.getLockStatus(request.getEmpId());
+			return trainingConfigService.getLockStatus(empId);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
@@ -173,6 +176,23 @@ public class TrainingUserController {
 			e.printStackTrace();
 			throw e;
 		}
+	}
+
+	@GetMapping("/slides/{trainingId}/{contentId}")
+	public ResponseEntity<List<String>> getAllSlides(
+			@PathVariable Integer trainingId,
+			@PathVariable Integer contentId) throws Exception {
+		
+		return trainingUserService.getAllSlides(trainingId, contentId);
+	}
+
+	@GetMapping("/slide/{trainingId}/{contentId}/{slideName}")
+	public ResponseEntity<Resource> getSlide(
+			@PathVariable Integer trainingId,
+			@PathVariable Integer contentId,
+			@PathVariable String slideName) throws Exception {
+		
+		return trainingUserService.getSlide(trainingId, contentId, slideName);
 	}
 
 }
