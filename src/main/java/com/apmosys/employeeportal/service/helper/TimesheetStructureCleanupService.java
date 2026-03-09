@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.LocationSessionDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
+import com.apmosys.employeeportal.enums.DayTypeTransition;
 import com.apmosys.employeeportal.model.EmployeeTimesheetLocationMapping;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetLocationMappingRepository;
 import com.apmosys.employeeportal.repository.TimesheetRejectionDetailsNewRepository;
@@ -85,9 +86,7 @@ public class TimesheetStructureCleanupService {
 			if (!incomingProjectIds.contains(projectId)) {
 
 				log.info("Deleting removed projectId={} from locationMappingId={}", projectId, locationMappingId);
-
 				deleteProjectCascade(timesheetId, locationMappingId, projectId);
-				 timesheetDocumentServiceNew.deleteDocumentCascade(timesheetId, projectId);
 			}
 		}
 	}
@@ -115,7 +114,6 @@ public class TimesheetStructureCleanupService {
 
 		for (ProjectTimesheetDTO project : projects) {
 			deleteProjectCascade(timesheetId, locationMappingId, project.getProjectId());
-			timesheetDocumentServiceNew.deleteDocumentCascade(timesheetId, project.getProjectId());
 		}
 
 		locationRepo.deleteById(locationMappingId);
@@ -124,16 +122,35 @@ public class TimesheetStructureCleanupService {
 	
 	public void cleanTimesheetStructure(
 	        Long timesheetId,
-	        List<LocationSessionDTO> incomingLocations) {
+	        List<LocationSessionDTO> incomingLocations,
+	        DayTypeTransition transition) {
 
-	    // 1️ Remove deleted locations
+	    // 1️ Remove deleted locations (only project rows per location; do NOT delete docs yet)
 	    cleanupRemovedLocations(timesheetId, incomingLocations);
 
-	    // 2️ Remove deleted projects inside remaining locations
+	    // 2️ Remove deleted projects inside remaining locations (only project rows; do NOT delete docs yet)
 	    if (incomingLocations != null) {
 	        for (LocationSessionDTO loc : incomingLocations) {
 	            cleanupRemovedProjects(timesheetId, loc);
 	        }
+	    }
+
+	    // 3️ Delete document rows only for projects that are no longer on the timesheet at all.
+	    // Use incoming payload as source of truth (findByTimesheetId can still return deleted rows in same transaction).
+       if(transition != DayTypeTransition.WORKING_TO_NON_WORKING) {
+	    Set<Integer> remainingProjectIds = incomingLocations == null ? Set.of() : incomingLocations.stream()
+	            .filter(loc -> loc.getProjects() != null)
+	            .flatMap(loc -> loc.getProjects().stream())
+	            .map(ProjectTimesheetDTO::getProjectId)
+	            .filter(Objects::nonNull)
+	            .collect(Collectors.toSet());
+	    Set<Integer> docProjectIds = timesheetDocumentServiceNew.getProjectIdsWithDocumentsForTimesheet(timesheetId);
+	    for (Integer projectId : docProjectIds) {
+	        if (!remainingProjectIds.contains(projectId)) {
+	            log.info("Project projectId={} no longer on timesheetId={}; deleting document rows.", projectId, timesheetId);
+	            timesheetDocumentServiceNew.deleteDocumentCascade(timesheetId, projectId);
+	        }
+	    }
 	    }
 	}
 	

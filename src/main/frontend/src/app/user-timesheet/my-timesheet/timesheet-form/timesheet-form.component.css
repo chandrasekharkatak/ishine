@@ -2462,9 +2462,9 @@ flex-wrap: wrap;
    PHASE 1 REDESIGN - Header & Basic Information Section
    ======================================================================== */
 
-/* --- Header Section V2 --- */
+/* --- Header Section V2 (same style as location-header) --- */
 .form-header-card-v2 {
-  background: linear-gradient(135deg, var(--ts-bg-card) 0%, var(--ts-bg-subtle) 100%);
+  background: linear-gradient(135deg, var(--ts-primary-dark) 0%, var(--ts-primary) 100%);
   border-radius: 12px;
   padding: 16px 20px;
   margin-bottom: 20px;
@@ -2480,7 +2480,7 @@ flex-wrap: wrap;
   right: -50%;
   width: 100%;
   height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
+  background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
   pointer-events: none;
 }
 
@@ -2522,13 +2522,13 @@ flex-wrap: wrap;
 .header-title-v2 {
   font-size: 17px;
   font-weight: 600;
-  color: var(--ts-text);
+  color: white;
   margin: 0;
 }
 
 .header-subtitle-v2 {
   font-size: 12px;
-  color: var(--ts-text-muted);
+  color: rgba(255, 255, 255, 0.85);
   margin: 0;
 }
 
@@ -2541,9 +2541,10 @@ flex-wrap: wrap;
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(37, 99, 235, 0.06);
+  background: rgba(255, 255, 255, 0.25);
   padding: 6px 12px;
   border-radius: 20px;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
 }
 
 .badge-icon-v2 {
@@ -2564,7 +2565,7 @@ flex-wrap: wrap;
 .update-mode-badge-v2 span {
   font-size: 12px;
   font-weight: 600;
-  color: var(--ts-primary);
+  color: white;
 }
 
 /* --- Info Card V2 --- */

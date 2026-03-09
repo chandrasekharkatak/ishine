@@ -974,7 +974,8 @@ public class TimesheetServiceNew {
 
 			} else if (transition == DayTypeTransition.WORKING_TO_NON_WORKING) {
 				timesheetValidationHelper.validateNonWorkingDayTimesheet(newEmpDTO);
-
+				// Scenario 1: unlink all document references for this timesheet (day type → non-working)
+				timesheetDocumentService.deleteByTimesheetId(timesheetId);
 			} else if (transition == DayTypeTransition.NON_WORKING_TO_NON_WORKING) {
 
 				timesheetValidationHelper.validateLocationDeletionRules(timesheetId, newEmpDTO.getLocationSessions());
@@ -985,7 +986,9 @@ public class TimesheetServiceNew {
 				throw new TimesheetValidationFailedException("Invalid day type transition. Please try again.");
 			}
 
-			timesheetStructureCleanupService.cleanTimesheetStructure(timesheetId, newEmpDTO.getLocationSessions());
+			// Run structure cleanup for all transitions (including WORKING_TO_NON_WORKING:
+			// removes locations/projects when incoming payload has none or fewer)
+			timesheetStructureCleanupService.cleanTimesheetStructure(timesheetId, newEmpDTO.getLocationSessions(),transition);
 
 			Long currentUserId = getCurrentUserId();
 			Long updatedBy = currentUserId != null ? currentUserId
@@ -993,10 +996,6 @@ public class TimesheetServiceNew {
 			newEmpDTO.setUpdatedBy(updatedBy);
 			newEmpDTO.setUpdatedOn(LocalDateTime.now());
 
-			// Ensure shadowEmpId is populated for "Shadow For Self" projects on update.
-			// Emp selection:
-			// - If applied for SELF (empId == updatedBy)  -> shadowEmpId = empId
-			// - If applied for TEAM (empId != updatedBy) -> shadowEmpId = updatedBy (current user)
 			populateShadowEmpIdForShadowForSelf(newEmpDTO, updatedBy);
 
 			// Update basic fields (Note: empId and date should not change, but keeping for
@@ -1027,7 +1026,8 @@ public class TimesheetServiceNew {
          	// Handle document uploads if provided (EXISTING LOGIC - for backward
 			// compatibility)
 			// Old contract: filledDocument and finalDocument
-			if (newEmpDTO.getDocumentData() != null) {
+			// Scenario 1: skip document upload when day type changed to non-working
+			if (transition != DayTypeTransition.WORKING_TO_NON_WORKING && newEmpDTO.getDocumentData() != null) {
 
 				handleDocumentUploadsFromNewContract(newEmpDTO.getDocumentData(), documents, timesheetId, empTS);
 			}
@@ -1190,7 +1190,13 @@ public class TimesheetServiceNew {
 					continue; // approved projects already validated as immutable
 				}
 
+				Integer oldClientApprovalStatus = existingProject.getClientApprovalStatus();
 				projectTimesheetService.update(projectDTO);
+				// Scenario 4: status changed from Approved (2) to Filled/Pending (1) → unlink approved doc reference
+				if (oldClientApprovalStatus != null && Integer.valueOf(2).equals(oldClientApprovalStatus)
+						&& projectDTO.getClientApprovalStatus() != null && Integer.valueOf(1).equals(projectDTO.getClientApprovalStatus())) {
+					timesheetDocumentService.deleteApprovedDocumentsByTimesheetIdAndProjectId(timesheetId, projectDTO.getProjectId());
+				}
 
 				// Replace activities
 				activityTimesheetService.deleteByTimesheetIdAndLocationMappingIdAndProjectId(timesheetId,
@@ -1232,42 +1238,39 @@ public class TimesheetServiceNew {
 		}
 
 		boolean isUpdate = (timesheetId != null);
-
-		// UPDATE: Only process documents that have a new file in this request. Existing docs stay as-is.
-		// Do NOT require all documentData entries to have a file on update (partial upload is allowed).
-		if (isUpdate && (documents == null || documents.isEmpty())) {
-			// timesheetDocument(timesheetId, documentDataList);
-			timesheetDocumentService.compareDocumentStatusAndChangeAccordingly(documentDataList);
-			return; // No new files to upload; existing docs already in DB
-		}
-
 		if (isUpdate) {
+			// UPDATE: no new files in this request → nothing to do (Scenario 4 handled in handleProjectsUnderLocationMapping)
+			if (documents == null || documents.isEmpty()) {
+				return;
+			}
 			// Filter to only documentData entries that have a matching new file in this request
 			Set<String> fileNames = documents.stream()
 					.map(MultipartFile::getOriginalFilename)
 					.filter(Objects::nonNull)
 					.collect(Collectors.toSet());
-			
-			System.out.println("finlenames");
-			fileNames.forEach(System.out::println);
+
 			List<TimesheetDocumentDataDTO> toUpload = new ArrayList<>();
 			List<MultipartFile> filesToUpload = new ArrayList<>();
 			for (TimesheetDocumentDataDTO docData : documentDataList) {
+				if (docData == null) {
+					continue;
+				}
 				String id = docData.getUniqueIdentifier();
 				if (id != null && fileNames.contains(id)) {
 					toUpload.add(docData);
 					for (MultipartFile f : documents) {
-						if (id.equals(f.getOriginalFilename())) {
+						if (f != null && id.equals(f.getOriginalFilename())) {
 							filesToUpload.add(f);
 							break;
 						}
 					}
 				}
 			}
-            System.out.println("toUpload "+toUpload.toString());
-            System.out.println("filesToUpload "+filesToUpload.size()+"  => "+filesToUpload.toString());
 			if (toUpload.isEmpty()) {
 				return; // No new files to upload; nothing to do
+			}
+			if (empTS == null) {
+				return; // Cannot link documents without timesheet entity
 			}
 			// Pass only the subset of docs that have new files (sizes match)
 			timesheetDocumentService.handleDocumentUpload(empTS, timesheetId, filesToUpload, documentDataList, isUpdate);
@@ -1277,59 +1280,13 @@ public class TimesheetServiceNew {
 				throw new TimesheetValidationFailedException(
 						"Please ensure all required documents are attached.");
 			}
+			if (empTS == null) {
+				throw new TimesheetValidationFailedException("Timesheet entity is required for document upload.");
+			}
 			timesheetDocumentService.handleDocumentUpload(empTS, timesheetId, documents, documentDataList, isUpdate);
 		}
 
-		// Process each document data entry
-		// for (int i = 0; i < documentDataList.size(); i++) {
-		// TimesheetDocumentDataDTO docData = documentDataList.get(i);
-
-		// // Validate document data
-		// if (docData.getProjectId() == null) {
-		// // Skip invalid entries - projectId is required
-		// continue;
-		// }
-
-		// // Get corresponding file (if available)
-		// MultipartFile file = null;
-		// if (documents != null && i < documents.size()) {
-		// file = documents.get(i);
-		// }
-
-		// // TODO: Integrate with TimesheetDocumentService
-		// // Implementation will:
-		// // 1. If docId is null: Create new document
-		// // - Save file to storage (S3/local)
-		// // - Create TimesheetDocumentDetails record
-		// // - Link to timesheetId and projectId
-		// // - Set finalFlag, docName, etc.
-		// // 2. If docId is not null: Update existing document
-		// // - Update file if new file provided
-		// // - Update TimesheetDocumentDetails record
-		// // - Handle bulkApprovedDocId if applicable
-		// // 3. Handle uniqueIdentifier for tracking
-		// // 4. Validate file type, size, etc.
-
-		// // Example structure (to be implemented):
-		// // if (file != null && !file.isEmpty()) {
-		// // TimesheetDocumentDetails doc = new TimesheetDocumentDetails();
-		// // doc.setTimesheetId(timesheetId);
-		// // doc.setProjectId(docData.getProjectId());
-		// // doc.setDocName(docData.getDocName());
-		// // doc.setFinalFlag(docData.getFinalFlag());
-		// // doc.setBulkApprovedDocId(docData.getBulkApprovedDocId());
-		// // doc.setUniqueIdentifier(docData.getUniqueIdentifier());
-		// //
-		// // if (docData.getDocId() == null) {
-		// // // Create new
-		// // timesheetDocumentService.createDocument(doc, file);
-		// // } else {
-		// // // Update existing
-		// // doc.setDocId(docData.getDocId());
-		// // timesheetDocumentService.updateDocument(doc, file);
-		// // }
-		// // }
-		// }
+		
 
 	}
 
