@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.EmpMappingDTO;
 import com.apmosys.employeeportal.dto.EmployeeImpactDTO;
+import com.apmosys.employeeportal.dto.EmployeeProjectTimesheetDto;
 import com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO;
 import com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
@@ -655,7 +656,7 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 
 		
 
-		@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.empId IN :empIds AND etm.teamId = :teamId AND etm.active != 0")
+		@Query("SELECT etm FROM EmployeeTeamMap etm WHERE etm.empId IN :empIds AND etm.teamId = :teamId AND (etm.active != 0 OR (etm.active = 0 AND etm.startDate > CURDATE())) ")
 	List<EmployeeTeamMap> findByEmpIdInAndTeamIdAndActiveStatus(List<Long> empIds, @Param("teamId") Long teamId);
 
 
@@ -1152,8 +1153,8 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			" LEFT JOIN employee hod ON d.hod_id = hod.emp_id  \n" +
 			" INNER JOIN TEMP t ON t.emp_id = e.emp_id  \n" +
 			" WHERE 1=1  \n" +
-			" ORDER BY e.emp_id \n" +
-			" AND LOWER(d.name) NOT IN :deptNames ", nativeQuery=true )
+			" AND LOWER(d.name) NOT IN :deptNames \n"+
+			" ORDER BY e.emp_id ", nativeQuery = true )
 	List<Object[]> getUnmappedEmployeeProjectDetails(Set<String> deptNames);
 	
 	@Modifying
@@ -1192,4 +1193,36 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			+ "	AND etm.endDate IS NOT NULL\n"
 			+ "	AND DATE(etm.endDate) < CURDATE()", nativeQuery = true)
 	int deactivateMembersBasedOnEndDate();
+	
+	@Query(value = "select new com.apmosys.employeeportal.dto.EmployeeProjectTimesheetDto( "
+			+ " p.projectId, p.projectName, "
+			+ " CASE WHEN p.poProjectType IS NOT NULL AND TRIM(p.poProjectType) != '' THEN p.poProjectType ELSE p.internalProjectType END, \n"
+			+ " t.teamName, date(p.startDate), date(etm.startDate), date(etm.endDate)) \n"
+			+ " FROM Employee e  \n"
+			+ " INNER JOIN EmployeeTeamMap etm on e.empId = etm.empId \n"
+			+ " INNER JOIN Team t on etm.teamId = t.teamId \n"
+			+ " INNER JOIN Project p on t.projectId = p.projectId \n"
+			+ " WHERE 1=1 \n"
+			+ " AND p.projectId  NOT IN :projectIds \n"
+			+ " AND e.empId =:empId AND (etm.endDate IS NULL OR DATE(etm.endDate) >= DATE(:startDate)) \n")
+	List<EmployeeProjectTimesheetDto> findByEmpIdAndDate(Long empId, LocalDateTime startDate, List<Integer> projectIds);
+	
+	@Query(value = " WITH T1 AS ( \n" +
+			" SELECT etm.emp_id, DATE(etm.end_date) end_date \n" +
+			" FROM employee_team_mapping etm \n" +
+			" INNER JOIN teams t on t.team_id = etm.team_id \n" +
+			" INNER JOIN projects p on p.project_id = t.project_id \n" +
+			" WHERE etm.emp_id =:empId and p.project_id NOT IN :projectIds \n" +
+			" ORDER BY COALESCE(etm.end_date, CURDATE()) DESC \n" +
+			" LIMIT 1 ) \n" +
+			" SELECT  \n" +
+			" e.emp_id, \n" +
+			" DATE_ADD(COALESCE(T1.end_date, DATE(e.date_of_joining)), INTERVAL 1 DAY) AS gap_start, \n" +
+			" DATE_SUB(DATE(:startDate), INTERVAL 1 DAY) AS gap_end \n" +
+			" FROM employee e \n" +
+			" LEFT JOIN T1 ON e.emp_id = T1.emp_id \n" +
+			" WHERE e.emp_id =:empId \n" +
+			" AND DATE(:startDate) > DATE_ADD(COALESCE(T1.end_date, e.date_of_joining), INTERVAL 1 DAY) \n" , nativeQuery = true )
+	List<Object[]> getUnmappedEmployeeProjectDate(Long empId, LocalDateTime startDate, List<Integer> projectIds);
+	
 }

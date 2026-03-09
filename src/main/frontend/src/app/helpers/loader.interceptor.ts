@@ -483,9 +483,10 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/fetchProjectDetailsList`,
     `${this.baseUrl}` + `api/updateProjectStartDate`,
     `${this.baseUrl}` + `api/getProjectConfigurationDetailsByProjectId`,
-    `${this.baseUrl}` + `api/validateEmployeeTimesheetFilledToChangeStartDate`,
+    `${this.baseUrl}` + `api/validateEmployeeProjectStartDate`,
     `${this.baseUrl}` + `api/getEmployeeDetailsListByEmployeeGroup`,
     `${this.baseUrl}` + `api/getActiveProjectList`,
+    `${this.baseUrl}` + `api/getAllActiveEmployeeInformation`,
     `${this.baseUrl}` + `api/downloadFinalDocuments`,
 
     /** v2 Timesheet APIs (new hierarchical timesheet) */

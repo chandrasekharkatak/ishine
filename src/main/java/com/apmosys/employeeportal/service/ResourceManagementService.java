@@ -17069,66 +17069,84 @@ public class ResourceManagementService {
 					.map(UnmappedEmployeeProjectDto::unmappedEmployeeProject).collect(Collectors.toList());
 
 			
+
 			Map<Long, List<UnmappedEmployeeProjectDto>> deptIdAndEmployeeMap = unmappedEmployeeDetails.stream()
 					.collect(Collectors.groupingBy(UnmappedEmployeeProjectDto::getDeptId));
-//
-//			deptIdAndEmployeeMap.forEach((deptId, employees) -> {
-//				
-//				String departmentName = employees.get(0).getDepartmentName();
-//				String hodMail = employees.get(0).getHodMail();
-//				Set<String> rmEmails = employees.stream()
-//
-//				employees.forEach(emp -> {
-//					sendMail(emp, hodMail, departmentName);
-//				});
-//			});
 
+			for (Map.Entry<Long, List<UnmappedEmployeeProjectDto>> deptIdAndEmployeeMapEntrySet : deptIdAndEmployeeMap.entrySet()) {
+				
+				List<UnmappedEmployeeProjectDto> employees = deptIdAndEmployeeMapEntrySet.getValue();
+				if (employees == null || employees.isEmpty()) {
+					continue;
+				}
+				
+				String departmentName = employees.get(0).getDepartmentName();
+				String subject = "Employee(s) Unmapped from Project.";
+				String hodMail =  employees.get(0).getHodMail();
+				String htmlTable = createUnmappedEmployeeHtmlTable(employees, departmentName);
+
+				try {
+					mailService.sendMailWithCC(hodMail, "", subject, htmlTable);
+				} catch (MessagingException e) {
+					log.error("Error occured while sending mail to HOD : {} , Error : {} ", hodMail, e.getMessage());
+				}
+
+				employees.forEach(emp -> {
+					try {
+						mailService.sendMail(emp.getEmail(), subject, htmlTable);
+					} catch (Exception e) {
+						log.error("Error occured while sending mail to : {} , Error : {} ", emp.getEmail(), e.getMessage());
+					}
+				});
+
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-
-	private void sendMailToEmployee(UnmappedEmployeeProjectDto emp, String hodMail, String departmentName) {
-		String subject = "Employee Unmapped from Project";
-//	    String body = buildHtmlTable(emp, departmentName);
-//	    mailService.sendHtmlMail(emp.getEmail(), List.of(hodMail), subject, body);
-	}
-
-	private void sendMailToReportingManagers(UnmappedEmployeeProjectDto emp, String hodMail, String departmentName) {
-		String subject = "Employee Unmapped from Project";
-//	    String body = buildHtmlTable(emp, departmentName);
-//	    mailService.sendHtmlMail(emp .getEmail(), List.of(hodMail), subject, body);
-	}
-
-	private String createUnmappedEmployeeHtmlTable(UnmappedEmployeeProjectDto emp, String departmentName) {
+	
+	private String createUnmappedEmployeeHtmlTable(List<UnmappedEmployeeProjectDto> unmappedEmployeeList, String departmentName) {
 		StringBuilder html = new StringBuilder();
-		html.append("<html><body>");
-		html.append("<p>Dear ").append(emp.getName()).append(",</p>");
-		html.append("<p>The following unmapped project details were identified:</p>");
-		html.append("<table border='1' style='border-collapse:collapse;padding:8px'>");
+		html.append("<html>")
+			.append("<head><style>")
+			.append("table, th, td { border: 1px solid black; }")
+			.append("table { border-collapse: collapse; }")
+			.append("</style></head>")
+			.append("<body>");
+	    
+	    html.append("<p>Dear Team,");
+	    html.append("<p>The following unmapped project details were identified:</p>");
+	    html.append("<table border='1' style='border-collapse:collapse;padding:8px'>");
 	    html.append("<tr>")
 	            .append("<th>Employee ID</th>")
 	            .append("<th>Name</th>")
-	            .append("<th>Department</th>")
+	            .append("<th>Email</th>")
+	            .append("<th>Manager Name</th>")
 	            .append("<th>Unmapped Start Date</th>")
 	            .append("<th>Unmapped End Date</th>")
 	            .append("<th>Unmapped Days</th>")
+	            .append("<th>Department</th>")
 	            .append("</tr>");
-	    html.append("<tr>")
+	    
+	    for(UnmappedEmployeeProjectDto emp : unmappedEmployeeList) {
+	    	  html.append("<tr>")
 	            .append("<td>").append(emp.getEmploymentIdStr()).append("</td>")
 	            .append("<td>").append(emp.getName()).append("</td>")
-	            .append("<td>").append(departmentName).append("</td>")
+	            .append("<td>").append(emp.getEmail()).append("</td>")
+	            .append("<td>").append(emp.getReportingManagerName()).append("</td>")
 	            .append("<td>").append(emp.getUnmapStartDate()).append("</td>")
 	            .append("<td>").append(emp.getUnmapEndDate()).append("</td>")
 	            .append("<td>").append(emp.getUnmappedDaysCount()).append("</td>")
+	            .append("<td>").append(departmentName).append("</td>")
 	            .append("</tr>");
-		html.append("</table>");
-		html.append("<br>");
-		html.append("<p>Please contact your reporting manager for project allocation.</p>");
-		html.append("<br>");
-		html.append("<p>Regards,<br>HR Team</p>");
-		html.append("</body></html>");
-		return html.toString();
+	    }
+	    html.append("</table>");
+	    html.append("<br>");
+	    html.append("<p>Please contact your reporting manager for project allocation.</p>");
+	    html.append("<br>");
+	    html.append("<p>Regards,<br>ApMoSys Technologies</p>");
+	    html.append("</body></html>");
+	    return html.toString();
 	}
 
 }

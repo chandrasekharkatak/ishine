@@ -32,12 +32,32 @@ import { MatTabChangeEvent } from '@angular/material/tabs';
 import { MatStepper } from '@angular/material/stepper';
 import { GlobalRightDrawerService } from 'src/app/services/global-right-drawer.service';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
+import { EmployeeProjectTimesheetDto } from 'src/app/models/employeeProjectTimesheetDto';
+import { provideMomentDateAdapter } from '@angular/material-moment-adapter';
+import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
+import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
+
+export const MY_DATE_FORMATS = {
+    parse: {
+        dateInput: 'DD-MM-YYYY',
+    },
+    display: {
+        dateInput: 'DD-MM-YYYY',
+        monthYearLabel: 'MMM YYYY',
+        dateA11yLabel: 'DD-MM-YYYY',
+        monthYearA11yLabel: 'MMMM YYYY',
+    },
+};
 
 @Component({
     standalone: false,
     selector: 'app-rmg-project-config',
     templateUrl: './rmg-project-config.component.html',
     styleUrl: './rmg-project-config.component.css',
+    providers: [
+        { provide: DateAdapter, useClass: MomentDateAdapter, deps: [MAT_MOMENT_DATE_ADAPTER_OPTIONS] },
+        { provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS },
+    ]
 })
 
 export class RmgProjectComponent implements OnInit {
@@ -73,6 +93,7 @@ export class RmgProjectComponent implements OnInit {
     @ViewChild("mark_complete_fc_project") markCompleteFCProjectTemplateRef: TemplateRef<any>;
     @ViewChild("team_member_details_preview") teamMemberDetailsPreviewTemplateRef: TemplateRef<any>;
     @ViewChild("existing_employee_project_timesheet_info") existingEmployeeProjectTimesheetInfoTemplateRef: TemplateRef<any>;
+    @ViewChild("project_gap_message") projectGapMessageTemplateRef: TemplateRef<any>;
 
     alertMessageModalRef: NgbModalRef;
     migrateTeamModalRef: NgbModalRef;
@@ -93,7 +114,7 @@ export class RmgProjectComponent implements OnInit {
     markCompleteFCProjectModalRef: NgbModalRef;
     teamMemberDetailsPreviewModalRef: NgbModalRef;
     existingEmployeeProjectTimesheetInfoModalRef: NgbModalRef;
-
+    projectGapMessageModalRef: NgbModalRef;
 
     currentUser: User;
     userMapping: any = {};
@@ -141,7 +162,7 @@ export class RmgProjectComponent implements OnInit {
     mappingToOtherProjectAsDefaultList: RmgTeamMember[] = [];
     markDefaultProjectCompletionList: RmgTeamMember[] = [];
     teamMigrationTeamMembersList: RmgTeamMember[] = [];
-    existingEmployeeProjectTimesheetEntries: any[] = [];
+    existingEmployeeProjectTimesheetEntries: EmployeeProjectTimesheetDto[] = [];
 
     // Maps for caching
     projectIdPoListMap = new Map<number, PoDetails[]>();
@@ -156,12 +177,15 @@ export class RmgProjectComponent implements OnInit {
     isUnsavedMemberUpdate: boolean = false;
     isTeamDetailsForm: boolean = false;
     isProjectManagerValid: boolean = false;
+    isProjectOverlapping: boolean = false;
 
     // Dates
     membersEndDate: any;
     employeeProjectEndDate: any;
     projectNewStartDate: any
     teamEndDate: any;
+    gapStartDate: any;
+    gapEndDate: any;
 
     // FC Project Milestone 
     projectMilestonepage = 1;
@@ -501,7 +525,7 @@ export class RmgProjectComponent implements OnInit {
     }
 
     openExistingEmployeeProjectTimesheetInfoModal() {
-        this.existingEmployeeProjectTimesheetInfoModalRef = this.modalService.open(this.existingEmployeeProjectTimesheetInfoTemplateRef, { modalDialogClass: 'modal-md', backdrop: 'static', keyboard: false });
+        this.existingEmployeeProjectTimesheetInfoModalRef = this.modalService.open(this.existingEmployeeProjectTimesheetInfoTemplateRef, { modalDialogClass: 'modal-lg', backdrop: 'static', keyboard: false });
     }
 
     closeExistingEmployeeProjectTimesheetInfoModal() {
@@ -509,6 +533,18 @@ export class RmgProjectComponent implements OnInit {
             this.existingEmployeeProjectTimesheetInfoModalRef?.close();
         }
     }
+
+
+    openProjectGapMessageModal() {
+        this.projectGapMessageModalRef = this.modalService.open(this.projectGapMessageTemplateRef, { modalDialogClass: 'modal-md', backdrop: 'static', keyboard: false });
+    }
+
+    closeProjectGapMessageModal() {
+        if (this.projectGapMessageModalRef) {
+            this.projectGapMessageModalRef?.close();
+        }
+    }
+
     // Modals End
 
     // Validation Methods Starts
@@ -747,7 +783,7 @@ export class RmgProjectComponent implements OnInit {
             return teamMember.isMemberActive != 0 || moment(teamMember.startDate).format('YYYY-MM-DD') >= moment(new Date()).format('YYYY-MM-DD')
         }) || [];
 
-        if(!this.isValidList(rmgTeam.rmgCurrentTeamMemberList)){
+        if (!this.isValidList(rmgTeam.rmgCurrentTeamMemberList)) {
             this.toggleAddNewMember(rmgTeam);
         }
 
@@ -895,6 +931,10 @@ export class RmgProjectComponent implements OnInit {
         }
         return moment(dateInput).startOf('day').format('YYYY-MM-DDTHH:mm:ss');
         // return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    }
+
+    getTodaysDate() {
+        return moment().startOf('day').format('YYYY-MM-DDTHH:mm:ss');
     }
 
     onTabChange(event: MatTabChangeEvent) {
@@ -1287,7 +1327,7 @@ export class RmgProjectComponent implements OnInit {
             const response: any = await firstValueFrom(this.teamService.getActiveTeamDetailsByProjectId(this.rmgProjectObj?.projectId));
             if (response.serviceStatus === "Success") {
                 this.rmgProjectObj.teamDetailsList = response.serviceResponse || [];
-                if(!this.isValidList(this.rmgProjectObj.teamDetailsList)){
+                if (!this.isValidList(this.rmgProjectObj.teamDetailsList)) {
                     this.toggleAddNewTeam();
                 }
                 this.setTeamDepartmentNames(this.rmgProjectObj?.teamDetailsList);
@@ -1708,13 +1748,13 @@ export class RmgProjectComponent implements OnInit {
 
     async saveNewTeamMemberDetails() {
         console.log(this.currentTeam.newRmgTeamMember);
-        if (this.employeeExistingProjectDetails[0]?.billableType === 'TNM') {
-            const existingProjectFlag = await this.getEmployeeExistingProjectDetailsByEmpId(this.currentTeam.newRmgTeamMember.empId,false);
+        if (this.projectType === 'TNM' || this.employeeExistingProjectDetails[0]?.billableType === 'TNM') {
+            const existingProjectFlag = await this.getEmployeeExistingProjectDetailsByEmpId(this.currentTeam.newRmgTeamMember.empId, false, this.rmgProjectObj.projectId);
             if (!existingProjectFlag) {
                 return;
             }
         }
-        
+
         let newTeamMember = this.currentTeam.newRmgTeamMember;
         if (!newTeamMember?.empId || newTeamMember.empId == undefined || newTeamMember.empId == null) {
             this.openAlertMessageModal(`Kindly Select an Employee!!`);
@@ -1747,18 +1787,16 @@ export class RmgProjectComponent implements OnInit {
             this.openAlertMessageModal("Kindly Provide Start Date!!");
             return;
         }
-
-        const projectStartDate = this.normalizeDate(this.rmgProjectObj.startDate);
-        const memberStartDate = this.normalizeDate(newTeamMember.startDate);
-        if (memberStartDate < projectStartDate) {
-            this.openUpdateProjectStartDateErrorModal();
-            return;
+        if (newTeamMember.startDate !== undefined && newTeamMember.startDate !== null) {
+            const flag: boolean = await this.validateEmployeeProjectStartDate(newTeamMember, this.rmgProjectObj.projectId, this.rmgProjectObj.startDate, this.projectType);
+            if (!flag) {
+                return;
+            }
         }
 
         if (!this.isValidList(this.currentTeam.rmgCurrentTeamMemberList)) {
             this.currentTeam.rmgCurrentTeamMemberList = [];
         }
-
         newTeamMember.startDate = newTeamMember.startDate ? moment(newTeamMember.startDate).format('YYYY-MM-DDTHH:mm:ss') : null;
         newTeamMember.endDate = newTeamMember.endDate ? moment(newTeamMember.endDate).format('YYYY-MM-DDTHH:mm:ss') : null;
         newTeamMember.isShadow = newTeamMember?.isShadow != null && newTeamMember.isShadow ? 1 : 0;
@@ -1791,7 +1829,7 @@ export class RmgProjectComponent implements OnInit {
         });
     }
 
-    addOrUpdateTeamMembers(team: RmgTeam, isUpdate: boolean) {
+    async addOrUpdateTeamMembers(team: RmgTeam, isUpdate: boolean) {
         if (!this.isValidList(team.rmgCurrentTeamMemberList)) {
             this.openAlertMessageModal(isUpdate ? "No Team Members to update in current Resource!!" : "No New Members added in current Resource!!");
             return;
@@ -1815,7 +1853,21 @@ export class RmgProjectComponent implements OnInit {
                 this.openAlertMessageModal(`Kindly Provide Start Date for Member # ${i + 1}`);
                 return;
             }
-
+            if (member.startDate !== undefined && member.startDate !== null
+                && (!member.dbStartDate || member.dbStartDate == undefined || member.dbStartDate == null)) {
+                const flag: boolean = await this.validateEmployeeProjectStartDate(member, this.rmgProjectObj.projectId, this.rmgProjectObj.startDate, this.projectType);
+                if (!flag) {
+                    return;
+                }
+            }
+            if (member.startDate !== undefined && member.startDate !== null
+                && member.dbStartDate !== undefined && member.dbStartDate !== null
+                && this.normalizeDate(member.dbStartDate) !== this.normalizeDate(member.startDate)) {
+                const flag: boolean = await this.validateEmployeeProjectStartDate(member, this.rmgProjectObj.projectId, this.rmgProjectObj.startDate, this.projectType);
+                if (!flag) {
+                    return;
+                }
+            }
             if (member.endDate && member.endDate != undefined && member.endDate != null && member.startDate > member.endDate) {
                 this.openAlertMessageModal(`End Date cannot be less than Start Date for Member # ${i + 1}`);
                 return;
@@ -2039,37 +2091,98 @@ export class RmgProjectComponent implements OnInit {
         team.isAnyNewMemberAdded = team.rmgCurrentTeamMemberList.some(member => member.isNotSaved);
     }
 
-    validateEmployeeProjectStartDate(event: MatDatepickerInputEvent<Date>, member: RmgTeamMember) {
-        this.existingEmployeeProjectTimesheetEntries = [];
-        const selectedDate = this.normalizeDate(event.value);
-        const projectStartDate = this.normalizeDate(this.rmgProjectObj.startDate);
-        if (selectedDate < projectStartDate) {
+    async validateEmployeeProjectStartDate(member: RmgTeamMember, projectId: any, projectStartDate: any, projectType: any): Promise<boolean> {
+        const selectedDate = this.normalizeDate(member.startDate);
+        const normalisedProjectStartDate = this.normalizeDate(projectStartDate);
+        if (selectedDate < normalisedProjectStartDate) {
             this.openUpdateProjectStartDateErrorModal();
-            return;
+            return false;
         }
+
+        this.isProjectOverlapping = false;
+        this.gapStartDate = null;
+        this.gapEndDate = null;
+        this.existingEmployeeProjectTimesheetEntries = [];
+
         let rmgMember = new RmgTeamMember();
         rmgMember.empId = member.empId;
         rmgMember.projectId = this.rmgProjectObj.projectId;
-        rmgMember.projectStartDate = projectStartDate;
-        rmgMember.projectType = this.projectType;
+        rmgMember.projectStartDate = normalisedProjectStartDate;
+        rmgMember.projectType = projectType;
         rmgMember.startDate = selectedDate;
-        this.teamService.validateEmployeeProjectStartDate(rmgMember).pipe(first()).subscribe((response: any) => {
+        rmgMember.projectIds = [this.rmgProjectObj.projectId, projectId];
+        try {
+            const response: any = await firstValueFrom(this.teamService.validateEmployeeProjectStartDate(rmgMember));
             if (response.serviceStatus === "Success") {
-                if (response.serviceResponse === 'Conflicting timesheet records found.')  {
+                if (response.serviceResponse === 'CONFLICTING_TIMESHEET_RECORDS_FOUND' || response.serviceResponse === 'OTHER_TNM_PROJECT_OVERLAPPING' || response.serviceResponse === 'CURRENT_TNM_PROJECT_OVERLAPPING') {
+                    this.isProjectOverlapping = response.serviceResponse === 'OTHER_TNM_PROJECT_OVERLAPPING' || response.serviceResponse === 'CURRENT_TNM_PROJECT_OVERLAPPING';
                     this.existingEmployeeProjectTimesheetEntries = response?.serviceResponse2;
                     this.openExistingEmployeeProjectTimesheetInfoModal();
+                    return false;
+                } else if (response.serviceResponse === 'GAP_EXISTS') {
+                    let resp = response?.serviceResponse2;
+                    this.gapStartDate = resp.employeeTeamStartDate;
+                    this.gapEndDate = (resp.employeeTeamEndDate != undefined && resp.employeeTeamEndDate != null) ? resp.employeeTeamEndDate : null;
+                    this.openProjectGapMessageModal();
+                    return true;
                 }
+                return true;
             } else {
                 this.openAlertMessageModal(response.serviceResponse || "Something went wrong, unable to validate the selected start date at the moment!!");
+                return false;
             }
-        });
+        } catch (error) {
+            this.openAlertMessageModal("Something went wrong, unable to validate the selected start date at the moment!!");
+            return false;
+        }
     }
 
-    validateEmployeeProjectStartDateBulk(event: MatDatepickerInputEvent<Date>){
+    async validateEmployeeProjectStartDateBulk(startDate: any, projectId: any, projectStartDate: any, projectType: any): Promise<boolean> {
+        const selectedDate = this.normalizeDate(startDate);
+        const normalisedProjectStartDate = this.normalizeDate(projectStartDate);
+        if (selectedDate < normalisedProjectStartDate) {
+            this.openAlertMessageModal("Member Start Date must be after Project Start Date!!");
+            return false;
+        }
 
+        this.isProjectOverlapping = false;
+        this.gapStartDate = null;
+        this.gapEndDate = null;
+        this.existingEmployeeProjectTimesheetEntries = [];
+
+        let rmgMember = new RmgTeamMember();
+        rmgMember.selectedEmpIds = this.markDefaultProjectCompletionList?.map(member => member.empId)
+        rmgMember.projectId = projectId;
+        rmgMember.projectStartDate = normalisedProjectStartDate;
+        rmgMember.projectType = projectType;
+        rmgMember.startDate = selectedDate;
+        try {
+            const response: any = await firstValueFrom(this.teamService.validateEmployeeProjectStartDate(rmgMember));
+            if (response.serviceStatus === "Success") {
+                if (response.serviceResponse === 'CONFLICTING_TIMESHEET_RECORDS_FOUND' || response.serviceResponse === 'OTHER_TNM_PROJECT_OVERLAPPING' || response.serviceResponse === 'CURRENT_TNM_PROJECT_OVERLAPPING') {
+                    this.isProjectOverlapping = response.serviceResponse === 'OTHER_TNM_PROJECT_OVERLAPPING' || response.serviceResponse === 'CURRENT_TNM_PROJECT_OVERLAPPING';
+                    this.existingEmployeeProjectTimesheetEntries = response?.serviceResponse2;
+                    this.openExistingEmployeeProjectTimesheetInfoModal();
+                    return false;
+                } else if (response.serviceResponse === 'GAP_EXISTS') {
+                    let resp = response?.serviceResponse2;
+                    this.gapStartDate = resp.employeeTeamStartDate;
+                    this.gapEndDate = (resp.employeeTeamEndDate != undefined && resp.employeeTeamEndDate != null) ? resp.employeeTeamEndDate : null;
+                    this.openProjectGapMessageModal();
+                    return true;
+                }
+                return true;
+            } else {
+                this.openAlertMessageModal(response.serviceResponse || "Something went wrong, unable to validate the selected start date at the moment!!");
+                return false;
+            }
+        } catch (error) {
+            this.openAlertMessageModal("Something went wrong, unable to validate the selected start date at the moment!!");
+            return false;
+        }
     }
 
-    validateEmployeeProjectStartDateIndividual(event: MatDatepickerInputEvent<Date>, member: RmgTeamMember){
+    validateEmployeeProjectStartDateIndividual(event: MatDatepickerInputEvent<Date>, member: RmgTeamMember) {
 
     }
 
@@ -2277,18 +2390,19 @@ export class RmgProjectComponent implements OnInit {
         }
     }
 
-    async getEmployeeExistingProjectDetailsByEmpId(empId: any, resetObj:boolean): Promise<boolean> {
+    async getEmployeeExistingProjectDetailsByEmpId(empId: any, resetObj: boolean, projectId: any): Promise<boolean> {
         this.employeeExistingProjectDetails = [];
         this.employeeExistingProjectDetailsPage = 1;
         this.employeeExistingProjectEmploymentId = this.employeeListFilteredByDept?.find(emp => emp?.empId === this.currentTeam.newRmgTeamMember?.empId)?.employmentId;
         this.employeeExistingProjectEmpName = this.employeeListFilteredByDept?.find(emp => emp?.empId === this.currentTeam.newRmgTeamMember?.empId)?.name;
-        if(resetObj){
+        if (resetObj) {
             this.currentTeam.newRmgTeamMember = new RmgTeamMember();
         }
-        this.currentTeam.newRmgTeamMember.empId=empId;
+        this.currentTeam.newRmgTeamMember.empId = empId;
         this.currentTeam.newRmgTeamMember.employementId = this.employeeExistingProjectEmploymentId;
+        this.currentTeam.newRmgTeamMember.defaultProject = this.rmgProjectObj.projectId === this.employeeListFilteredByDept?.find(emp => emp?.empId === this.currentTeam.newRmgTeamMember?.empId)?.defaultProjectId;
         try {
-            const response: any = await firstValueFrom(this.projectService.getEmployeeExistingProjectDetailsByEmpId(empId));
+            const response: any = await firstValueFrom(this.projectService.getEmployeeExistingProjectDetailsByEmpId(empId, projectId));
             if (response?.serviceStatus !== "Success") {
                 this.openAlertMessageModal(response?.serviceResponse || "Something went wrong!!");
                 return false;
@@ -2330,6 +2444,10 @@ export class RmgProjectComponent implements OnInit {
     async updateMappingToOtherProjectAsDefault(employee: RmgTeamMember) {
         if (!employee?.selectedProject || !employee?.selectedProject?.projectId) {
             this.openAlertMessageModal("Please Select Default Project");
+            return;
+        }
+        const flag: boolean = await this.validateEmployeeProjectStartDate(employee, employee.projectId, employee.selectedProject.projectStartDate, this.projectType);
+        if (!flag) {
             return;
         }
         employee.selectedProject.updatedBy = this.currentUser.empId;
@@ -2487,7 +2605,7 @@ export class RmgProjectComponent implements OnInit {
         this.deleteEmployeeExistingProjectMappingObj.rescRemovedBy = this.currentUser.empId;
         this.projectService.updateEmployeeProjectMappingAsInActive(this.deleteEmployeeExistingProjectMappingObj).pipe(first()).subscribe((response: any) => {
             if (response.serviceStatus == "Success") {
-                this.getEmployeeExistingProjectDetailsByEmpId(this.deleteEmployeeExistingProjectMappingObj.empId, true);
+                this.getEmployeeExistingProjectDetailsByEmpId(this.deleteEmployeeExistingProjectMappingObj.empId, true, this.deleteEmployeeExistingProjectMappingObj.projectId);
                 this.toastService.success(response.serviceResponse);
             } else {
                 this.toastService.error(response.serviceResponse);
@@ -2521,6 +2639,8 @@ export class RmgProjectComponent implements OnInit {
         employee.employeeRoles = [];
         employee.poRequirementMappingId = null;
         employee.resourceRequirementList = [];
+        employee.projectStartDate = this.projectList?.find(p => p.projectId === this.defaultProjectObj.projectId)?.startDate;
+        employee.calculatedProjectType = this.projectList?.find(p => p.projectId === this.defaultProjectObj.projectId)?.projectType;
         if (employee.projectType !== 'Bench') {
             this.getActivePoDetailsByProjectIdForEmployee(employee);
             return;
@@ -2536,6 +2656,8 @@ export class RmgProjectComponent implements OnInit {
         this.defaultProjectObj.employeeRoles = [];
         this.defaultProjectObj.poRequirementMappingId = null;
         this.defaultProjectObj.resourceRequirementList = [];
+        this.defaultProjectObj.projectStartDate = this.projectList?.find(p => p.projectId === this.defaultProjectObj.projectId)?.startDate;
+        this.defaultProjectObj.calculatedProjectType = this.projectList?.find(p => p.projectId === this.defaultProjectObj.projectId)?.projectType;
         if (this.defaultProjectObj.projectType !== 'Bench') {
             this.getActivePoDetailsByProjectId();
             return;

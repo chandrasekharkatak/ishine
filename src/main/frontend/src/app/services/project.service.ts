@@ -139,8 +139,8 @@ updateMilestoneExtendedDate(MilestoneUpdatedLog: MilestoneUpdatedLog): Observabl
     return this.http.post(`${this.baseUrl}`+`api/getEmployeeProjectCount`,payload);
    }
 
-  getEmployeeExistingProjectDetailsByEmpId(empId: any) {
-    let httpParams = new HttpParams().append("empId", empId);
+  getEmployeeExistingProjectDetailsByEmpId(empId: any, projectId:any) {
+    let httpParams = new HttpParams().append("empId", empId).append("projectId", projectId);
     return this.http.get(`${this.baseUrl}` + `api/getEmployeeExistingProjectDetailsByEmpId`, { params: httpParams });
   }
 

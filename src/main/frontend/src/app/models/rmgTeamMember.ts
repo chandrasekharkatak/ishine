@@ -6,6 +6,7 @@ export class RmgTeamMember {
     projectName: any;
     projectStatus: any;
     projectType: any = 'Bench';
+    calculatedProjectType: any;
     isInternalProject: boolean;
     poProjectType: any;
     internalProjectType: any;
@@ -65,6 +66,7 @@ export class RmgTeamMember {
     createdBy: any;
     updatedBy: any;
     selectedEmpIds: number[] = [];
+    projectIds: number[] = [];
     mappedDefaultProjectId: any;
     otherActiveProjectIds: any[] = [];
     otherActiveProjects: EmployeeOtherActiveProject[] = [];

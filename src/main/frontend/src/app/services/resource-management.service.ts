@@ -282,5 +282,9 @@ export class ResourceManagementService {
     return this.http.post(`${this.baseUrl}` + `api/getUnfilledTimesheetProjectDetailsCount`, rmgProjectRequest);
   }
 
+  triggerUnmappedEmployeeProjectNotificationJob() {
+    return this.http.get(`${this.baseUrl}` + `api/triggerUnmappedEmployeeProjectNotificationJob`);
+  }
+
 }
 

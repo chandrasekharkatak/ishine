@@ -11,6 +11,8 @@ export class SetDefaultProjectObj {
 	poRequirementMappingId: any
 	resourceOverViewId: any;
 	startDate: any;
+	projectStartDate:any;
+	calculatedProjectType:any;
 
 	poDetailsList: any[] = [];
 	teamList: any[] = [];
