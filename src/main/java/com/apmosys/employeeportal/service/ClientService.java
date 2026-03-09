@@ -365,132 +365,125 @@ public class ClientService {
 		    return clientLocationRepository.save(cl);
 		}
 
-	    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-	    public int[] processSingleClientByName(ClientDetailsSyncDto poDto,Client iShineClient) {
-		 
-		 	int updated = 0;
-	        int inserted = 0;
-
-	        if (iShineClient != null) {
-
-	            if (!Objects.equals(iShineClient.getPoClientId(), poDto.getClientid())) {
-	                iShineClient.setPoClientId(poDto.getClientid());
-	                updated++;
-	            }
-
-	            syncClientLocations(iShineClient, poDto, false);
-
-	        } else {
-
-	            Client newClient = new Client();
-	            newClient.setClientName(poDto.getClientName());
-	            newClient.setPoClientId(poDto.getClientid());
-
-	            clientRepository.save(newClient);
-	            inserted++;
-
-	            syncClientLocations(newClient, poDto, true);
-	        }
-
-	        return new int[] { updated, inserted };
-	    }
 	 @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-	    public int[] processSingleClientByPoId(ClientDetailsSyncDto poDto,Client iShineClient) {
+	 public int[] processSingleClientByName(ClientDetailsSyncDto poDto,Client iShineClient,
+	 		       List<ClientLocation> existingLocations) {
 
-	        int updated = 0;
-	        int inserted = 0;
+	 	int updated = 0;
+	 	int inserted = 0;
 
-	        if (iShineClient != null) {
+	 	if (iShineClient != null) {
+	 		if (!Objects.equals(iShineClient.getPoClientId(), poDto.getClientid())) {
+	 			iShineClient.setPoClientId(poDto.getClientid());
+	 			updated++;
+	 		}
+	 		syncClientLocations(iShineClient, poDto, false, existingLocations);
 
-	            if (!iShineClient.getClientName().trim().equalsIgnoreCase(poDto.getClientName().trim()))
-	            {
-	            	iShineClient.setClientName(poDto.getClientName());
-	                updated++;
-	            }
+	 	} else {
+	 		Client newClient = new Client();
+	 		newClient.setClientName(poDto.getClientName());
+	 		newClient.setPoClientId(poDto.getClientid());
 
-	            syncClientLocations(iShineClient, poDto, false);
+	 		clientRepository.save(newClient);
 
-	        } else {
+	 		inserted++;
 
-	            Client newClient = new Client();
-	            newClient.setClientName(poDto.getClientName());
-	            newClient.setPoClientId(poDto.getClientid());
-	            clientRepository.save(newClient);
-	            inserted++;
+	 		syncClientLocations(newClient, poDto, true, new ArrayList<>());
+	 	}
 
-	            syncClientLocations(newClient, poDto, true);
-	        }
+	 	return new int[]{updated, inserted};
+	 }	    
+	    
+	    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+	    public int[] processSingleClientByPoId(ClientDetailsSyncDto poDto,Client iShineClient,
+	    		List<ClientLocation> existingLocations) {
 
-	        return new int[] { updated, inserted };
-	    }
-	 
-	 private void syncClientLocations(Client iShineClient, ClientDetailsSyncDto poDto,Boolean isNew) {
+	    	int updated = 0;
+	    	int inserted = 0;
 
-			if (poDto.getClientAddress() == null || poDto.getClientAddress().isEmpty()) {
-				return;
-			}
+	    	if (iShineClient != null) {
+	    		if (!iShineClient.getClientName().trim().equalsIgnoreCase(poDto.getClientName().trim())) {
 
-			List<ClientLocation> iShineLocations = clientLocationRepository.findByClientIdPK(iShineClient.getClientId());
+	    			iShineClient.setClientName(poDto.getClientName());
+	    			updated++;
+	    		}
 
-			Map<String, ClientLocation> iShineLocationMap = iShineLocations.stream().collect(
-					Collectors.toMap(loc -> loc.getClientLocation().trim().toLowerCase(), 
-							loc -> loc
-							, (e1, e2) -> e1));
+	    		syncClientLocations(iShineClient, poDto, false, existingLocations);
 
-			List<ClientLocation> locationsToSave = new ArrayList<>();
+	    	} else {
 
-			for (ClientAddressSyncDto poLocationDto : poDto.getClientAddress()) {
+	    		Client newClient = new Client();
 
-				if (poLocationDto.getClientLocation() == null)
-					continue;
+	    		newClient.setClientName(poDto.getClientName());
+	    		newClient.setPoClientId(poDto.getClientid());
+	    		clientRepository.save(newClient);
+	    		inserted++;
 
-				String poLoc = poLocationDto.getClientLocation().trim().toLowerCase();
-				ClientLocation existingLocation = iShineLocationMap.get(poLoc);
+	    		syncClientLocations(newClient, poDto, true, new ArrayList<>());
+	    	}
 
-				if (existingLocation != null) {
+	    	return new int[]{updated, inserted};
+	    }	 
+	    
+	    private void syncClientLocations(Client iShineClient,ClientDetailsSyncDto poDto,
+                Boolean isNew,List<ClientLocation> iShineLocations) {
 
-					boolean updated = false;
+	    	if (poDto.getClientAddress() == null || poDto.getClientAddress().isEmpty()) {
+	    		return;	}
 
-					if (existingLocation.getClientState() == null && poLocationDto.getClientState() != null) {
-						existingLocation.setClientState(poLocationDto.getClientState());
-						updated = true;
-					}
+	    	Map<String, ClientLocation> iShineLocationMap = iShineLocations.stream()
+	    				.collect(Collectors.toMap(
+	    							loc -> loc.getClientLocation().trim().toLowerCase(),
+	    							loc -> loc,
+	    							(e1, e2) -> e1));
 
-					if (existingLocation.getClientAddressId() == null && poLocationDto.getClientAddressId() != null) {
-						existingLocation.setClientAddressId(poLocationDto.getClientAddressId());
-						updated = true;
-					}
+	    	List<ClientLocation> locationsToSave = new ArrayList<>();
 
-					if (updated) {
-						locationsToSave.add(existingLocation);
-					}
+	    	for (ClientAddressSyncDto poLocationDto : poDto.getClientAddress()) {
+	    		String clientLocation = poLocationDto.getClientLocation();
+	    		if (clientLocation == null) { continue; }
 
-				} else {
-					ClientLocation newLocation = new ClientLocation();
-					newLocation.setClientId(iShineClient.getClientId());
-					newLocation.setClientLocation(poLocationDto.getClientLocation());
-					newLocation.setClientState(poLocationDto.getClientState());
-					newLocation.setClientAddressId(poLocationDto.getClientAddressId());
+	    		String poLoc = clientLocation.trim().toLowerCase();
+	    		ClientLocation existingLocation = iShineLocationMap.get(poLoc);
 
-					locationsToSave.add(newLocation);
-				}
-			}
-			
-			if(isNew) {
-				ClientLocation newLocation = new ClientLocation();
-				newLocation.setClientId(iShineClient.getClientId());
-				newLocation.setClientLocation("WFH");
-//				newLocation.setClientState(poLocationDto.getClientState());
-//				newLocation.setClientAddressId(poLocationDto.getClientAddressId());
+	    			if (existingLocation == null) {
+	    			
+	    				ClientLocation newLocation = new ClientLocation();
+	    				newLocation.setClientId(iShineClient.getClientId());
+	    				newLocation.setClientLocation(clientLocation);
+	    				newLocation.setClientState(poLocationDto.getClientState());
+	    				newLocation.setClientAddressId(poLocationDto.getClientAddressId());
+	    				locationsToSave.add(newLocation);
+	    				continue;
+	    			}
 
-				locationsToSave.add(newLocation);
-			}
+	    			boolean updated = false;
 
-			if (!locationsToSave.isEmpty()) {
-				clientLocationRepository.saveAll(locationsToSave);
-			}
-		}
-	 
+	    			if (existingLocation.getClientState() == null && poLocationDto.getClientState() != null) {
+	    				existingLocation.setClientState(poLocationDto.getClientState());
+	    				updated = true;
+	    			}
+
+	    			if (existingLocation.getClientAddressId() == null && poLocationDto.getClientAddressId() != null) {
+	    				existingLocation.setClientAddressId(poLocationDto.getClientAddressId());
+	    				updated = true;
+	    			}
+
+	    			if (updated) {locationsToSave.add(existingLocation);}
+	    		}
+
+	    	if (isNew) {
+	    		ClientLocation newLocation = new ClientLocation();
+	    		newLocation.setClientId(iShineClient.getClientId());
+	    		newLocation.setClientLocation("WFH");
+	    		locationsToSave.add(newLocation);
+	    	}
+
+	    	if (!locationsToSave.isEmpty()) {
+	    		clientLocationRepository.saveAll(locationsToSave);
+	    	}
+	    }	    
+	    
 	 public void updateProjectAfterSuccessfulSync(
 		        Project project,
 		        ProjectPoMappingWithResourceDTO projectDto) {
