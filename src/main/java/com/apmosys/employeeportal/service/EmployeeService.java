@@ -12091,40 +12091,41 @@ public ServiceResponse getPoRequirementDataByTeamAndPoId(Long teamId, Long poId)
 
     return response;
 }
+
 	@Transactional(readOnly = true)
 	public ServiceResponse getAllActiveEmployeeInformation() {
-	ServiceResponse response = new ServiceResponse();
-	LogDTO apiLogInfo = new LogDTO();
-	apiLogInfo.setSubFeatureName("getAllActiveEmployeeInformation");
-	apiLogInfo.setApiUrl("/api/getAllActiveEmployeeInformation");
-	apiLogInfo.setLogLevel("INFO");
-	try {
-		List<Object[]> results = employeeRepository.getAllActiveEmployeeInformation();
-		List<EmployeeInformationDTO> employeeInfoList = new ArrayList<>();
-		if (results != null && !results.isEmpty()) {
-			for (Object[] obj : results) {
-				Long empId = TypeConversionUtil.safeParseLong(obj[0]);
-				EmployeeInformationDTO dto = new EmployeeInformationDTO();
-				dto.setEmpId(empId);
-				dto.setEmploymentId(TypeConversionUtil.getSafeString(obj[1]));
-				dto.setName(TypeConversionUtil.getSafeString(obj[2]));
-				dto.setBillableType(TypeConversionUtil.getSafeString(obj[3]));
-				dto.setJobRole(TypeConversionUtil.getSafeString(obj[4]));
-				dto.setDeptName(TypeConversionUtil.getSafeString(obj[5]));
-				dto.setDeptId(TypeConversionUtil.safeParseLong(obj[6]));
-				employeeInfoList.add(dto);
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("getAllActiveEmployeeInformation");
+		apiLogInfo.setApiUrl("/api/getAllActiveEmployeeInformation");
+		apiLogInfo.setLogLevel("INFO");
+		try {
+			List<Object[]> results = employeeRepository.getAllActiveEmployeeInformation();
+			List<EmployeeInformationDTO> employeeInfoList = new ArrayList<>();
+			if (results != null && !results.isEmpty()) {
+				for (Object[] obj : results) {
+					Long empId = TypeConversionUtil.safeParseLong(obj[0]);
+					EmployeeInformationDTO dto = new EmployeeInformationDTO();
+					dto.setEmpId(empId);
+					dto.setEmploymentId(TypeConversionUtil.getSafeString(obj[1]));
+					dto.setName(TypeConversionUtil.getSafeString(obj[2]));
+					dto.setBillableType(TypeConversionUtil.getSafeString(obj[3]));
+					dto.setJobRole(TypeConversionUtil.getSafeString(obj[4]));
+					dto.setDeptName(TypeConversionUtil.getSafeString(obj[5]));
+					dto.setDeptId(TypeConversionUtil.safeParseLong(obj[6]));
+					dto.setDefaultProjectId(TypeConversionUtil.safeParseLong(obj[7]));
+					employeeInfoList.add(dto);
+				}
 			}
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(employeeInfoList);
+		} catch (Exception e) {
+			logger.error("Error in getAllActiveEmployeeInformation", e);
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Error : " + e.getMessage());
 		}
-		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-		response.setServiceResponse(employeeInfoList);
-	} catch (Exception e) {
-		// e.printStackTrace();
-		logger.error("Error in getAllActiveEmployeeInformation", e);
-		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-		response.setServiceResponse("Error : " + e.getMessage());
+		return response;
 	}
-	return response;
-}
 
 private ServiceResponse buildFailureResponse(ServiceResponse response,
                                              LogDTO apiLogInfo,

@@ -242,7 +242,7 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 			+ "LEFT JOIN Department etmd ON etm.empTeamDepartmentId = etmd.deptId \n"
 			+ "LEFT JOIN RoleDetails rd on rd.roleId = etm.roleId \n"
 			+ "LEFT JOIN PoRequirementMapping prm ON etm.roleId = prm.roleId and etm.poId = prm.poId and prm.active = true \n"
-			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId \n"
+			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId and ppd.active = true \n"
 			+ "LEFT JOIN Employee e ON e.empId = etm.empId \n"
 			+ "LEFT JOIN EmpPrimaryProjectMapping eppm ON eppm.empId = e.empId AND eppm.isMapped = 'Y' AND eppm.primaryProjectId=:projectId \n"
 			+ "WHERE t.teamId =:teamId  \n")
@@ -257,10 +257,26 @@ public interface TeamRepository extends JpaRepository<Team, Long>{
 			+ "LEFT JOIN Department etmd ON etm.empTeamDepartmentId = etmd.deptId \n"
 			+ "LEFT JOIN RoleDetails rd on rd.roleId = etm.roleId \n"
 			+ "LEFT JOIN PoRequirementMapping prm ON etm.roleId = prm.roleId and etm.poId = prm.poId and prm.active = true \n"
-			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId \n"
+			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId and ppd.active = true \n"
 			+ "LEFT JOIN Employee e ON e.empId = etm.empId \n"
 			+ "LEFT JOIN EmpPrimaryProjectMapping eppm ON eppm.empId = e.empId AND eppm.isMapped = 'Y' AND eppm.primaryProjectId=:projectId \n"
 			+ "WHERE t.teamId In :teamIds  \n")
 	List<RmgTeamMemberDto> getAllTeamMemberDetailsDtoByProjectIdAndTeamIdIn(List<Long> teamIds, Long projectId, boolean activeEtmFlag);
+	
+	@Query(value = "SELECT DISTINCT new com.apmosys.employeeportal.dto.RmgTeamMemberDto( \n"
+			+ " etm.employeeTeamMapId, etm.empTeamDepartmentId, etmd.name, t.teamId, t.teamName, ppd.poId, ppd.poNo, prm.poRequirementMappingId, rd.roleId, rd.role, rd.experience, rd.department, prm.lineItemStartDate, prm.lineItemEndDate, ppd.poStartDate ,ppd.poEndDate \n"
+			+ ", e.empId, e.name, etm.employeeRole, etm.active, etm.isShadow, CASE WHEN eppm.id IS NOT NULL THEN true ELSE false END \n"
+			+ ", etm.startDate, etm.endDate)  \n"
+			+ "FROM Team t \n"
+			+ "INNER JOIN EmployeeTeamMap etm ON t.teamId = etm.teamId AND (etm.active != 0 or :activeEtmFlag = false) \n"
+			+ "LEFT JOIN Department etmd ON etm.empTeamDepartmentId = etmd.deptId \n"
+			+ "LEFT JOIN RoleDetails rd on rd.roleId = etm.roleId \n"
+			+ "LEFT JOIN PoRequirementMapping prm ON etm.roleId = prm.roleId and etm.poId = prm.poId and prm.active = true \n"
+			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId and ppd.active = true \n"
+			+ "LEFT JOIN Employee e ON e.empId = etm.empId \n"
+			+ "LEFT JOIN EmpPrimaryProjectMapping eppm ON eppm.empId = e.empId AND eppm.isMapped = 'Y' AND eppm.primaryProjectId=:projectId \n"
+			+ "WHERE t.projectId =:projectId \n")
+	List<RmgTeamMemberDto> getAllTeamMemberDetailsDtoByProjectId(Long projectId, boolean activeEtmFlag);
+
 
 }

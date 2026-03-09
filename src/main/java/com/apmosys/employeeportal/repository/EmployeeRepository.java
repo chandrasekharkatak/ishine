@@ -3856,10 +3856,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		@Query(nativeQuery = true, value = " SELECT DISTINCT e.emp_id, \n"
 				+ " CASE WHEN e.is_consultant = TRUE THEN CONCAT('CS-', e.employeement_id) \n"
 				+ " ELSE CONCAT('A-', e.employeement_id) END AS employmentId, \n"
-				+ " e.name, e.billable_type, jr.name AS jobRole, d.name AS DepartmentName, d.dept_id \n"
+				+ " e.name, e.billable_type, jr.name AS jobRole, d.name AS DepartmentName, d.dept_id, eppm.primary_project_id \n"
 				+ " FROM employee e  \n"
 				+ " INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
 				+ " INNER JOIN department d ON d.dept_id = jr.dept_id \n"
+				+ " LEFT JOIN emp_primary_project_mapping eppm ON eppm.emp_id = e.emp_id and eppm.is_mapped = 'Y' \n"
 				+ " WHERE e.emp_id NOT IN (1,2,3,4,5,6) and e.employmentstatus!='InActive' \n"
 				+ " order by e.name ")
 		public List<Object[]> getAllActiveEmployeeInformation();

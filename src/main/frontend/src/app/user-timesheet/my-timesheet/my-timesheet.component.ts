@@ -34,6 +34,7 @@ import { ActivityNew } from 'src/app/models/activityNew';
 import { TimesheetNewService } from 'src/app/services/timesheet-new.service';
 import { TimesheetFormComponent } from './timesheet-form/timesheet-form.component';
 import { ProjectBasedBulkUploadPayload } from '../team-timesheet/types';
+import { M } from '@angular/material/ripple.d-BxTUZJt7';
 
 @Component({
   standalone: false,
@@ -164,6 +165,37 @@ export class MyTimesheetComponent implements OnInit {
   employeeInTNMProject: boolean = false;
   maxMonth: string;
 
+  // Summary metrics for mini dashboard (EOD-style counts)
+  summaryCards = [
+    {
+      key: 'last7',
+      title: 'EOD (Last 7 days)',
+      filled: 0,
+      approved: 0,
+      rejected: 0,
+      subtitle: 'Last 7 calendar days',
+      iconClass: 'fa fa-calendar-check'
+    },
+    {
+      key: 'thisMonth',
+      title: 'EOD (This month)',
+      filled: 0,
+      approved: 0,
+      rejected: 0,
+      subtitle: 'From 1st of this month',
+      iconClass: 'fa fa-calendar-alt'
+    },
+    {
+      key: 'lastMonth',
+      title: 'EOD (Last month)',
+      filled: 0,
+      approved: 0,
+      rejected: 0,
+      subtitle: 'Complete previous month',
+      iconClass: 'fa fa-history'
+    }
+  ];
+
 
   withVmsbullet:string[] = ["Applicable to resources working on projects with a client-side VMS system.",
 "Daily timesheets must be filled directly in the client’s VMS system.",
@@ -189,8 +221,9 @@ withoutVmsbullet:string[] = ["Applicable to resources without a client-side VMS 
   filters: any = {};
   isSearchEnabled: boolean = false;
   // Simplified columns for card-based accordion view
-  selfTimesheetColumns: any[] = ['blank', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'status', 'createdByName', 'createdOn', 'isNightShiftDisplay', 'leaveType','rejectReason' ,'remarks'];
-  teamTimesheetColumns: any[] = ['blank', 'employeeName', 'date', 'dayType', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'status', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'rejectReason','remarks'];
+  // Column order must match table header: expand, Sr No., [Name if team], Date, Day Type, In, Out, Total Hrs, Status, [Applied By if self], Applied On, Shift, Leave Type, Reject Reason, Remarks, Actions
+  selfTimesheetColumns: any[] = ['blank', 'blank', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'totalWorkingMinutes', 'statusDisplay', 'createdByName', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'rejectReason', 'remarks', 'blank'];
+  teamTimesheetColumns: any[] = ['blank', 'blank', 'employeeName', 'date', 'dayType', 'workCheckIn', 'workCheckOut', 'totalWorkingMinutes', 'statusDisplay', 'createdOn', 'isNightShiftDisplay', 'leaveType', 'rejectReason', 'remarks', 'blank', 'blank'];
   tableName: string;
   activeProjectList: Project[];
   selectedProjectId: any;
@@ -368,7 +401,109 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
     // this.checkUploadEligibility();
     this.isFullMonthSelected();
 
+    // Load summary metrics for mini dashboard
+    console.log("*****called*******")
+    this.loadTimesheetSummary();
+
   }
+
+  /**
+   * Load summary metrics for EOD-style counts:
+   * - EOD (Last 7 days)
+   * - EOD (This month)
+   * - EOD (Last month)
+   *
+   * Uses the same backend API as Home page (getTimesheetsForHomePageByEmpId),
+   * and counts the number of days with at least one timesheet entry.
+   */
+  loadTimesheetSummary(): void {
+    if (!this.currentUser || !this.currentUser.empId) {
+      return;
+    }
+
+    this.loadSummaryForRange('last7', 'Last 7 Days');
+    this.loadSummaryForRange('thisMonth', 'This Month');
+    this.loadSummaryForRange('lastMonth', 'Last Month');
+  }
+
+ private loadSummaryForRange(
+  cardKey: 'last7' | 'thisMonth' | 'lastMonth',
+  dateRange: 'Last 7 Days' | 'This Month' | 'Last Month'
+): void {
+
+  const currentDate = new Date();
+  const dateFormat = 'YYYY-MM-DD';
+
+  let fromDate: Date;
+  let toDate: Date;
+
+  const timesheetObj = new Timesheet();
+  timesheetObj.empId = this.currentUser.empId;
+
+  if (dateRange === 'Last 7 Days') {
+
+    const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+    const from = new Date(currentDate.getTime() - 1 * DAY_IN_MS);
+    const to = new Date(currentDate.getTime() - 7 * DAY_IN_MS);
+
+    fromDate = from;
+    toDate = to;
+
+    timesheetObj.startDate = moment(toDate).format(dateFormat);
+    timesheetObj.endDate = moment(fromDate).format(dateFormat);
+
+  } else if (dateRange === 'This Month') {
+
+    fromDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    toDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
+    timesheetObj.startDate = moment(fromDate).format(dateFormat);
+    timesheetObj.endDate = moment(toDate).format(dateFormat);
+
+  } else {
+
+    fromDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+    toDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
+
+    timesheetObj.startDate = moment(fromDate).format(dateFormat);
+    timesheetObj.endDate = moment(toDate).format(dateFormat);
+  }
+
+  this.timesheetService
+    .getMyTimesheetSummary(timesheetObj)
+    .pipe(first())
+    .subscribe(
+      (response: any) => {
+
+        const card = this.summaryCards.find(c => c.key === cardKey);
+
+        if (
+          card &&
+          response &&
+          response.serviceStatus === 'Success' &&
+          response.serviceResponse
+        ) {
+
+          const data = response.serviceResponse;
+
+          card.filled = data.totalFilled || 0;
+          card.approved = data.totalApproved || 0;
+          card.rejected = data.totalRejected || 0;
+        }
+      },
+      () => {
+
+        const card = this.summaryCards.find(c => c.key === cardKey);
+
+        if (card) {
+          card.filled = 0;
+          card.approved = 0;
+          card.rejected = 0;
+        }
+      }
+    );
+}
   preventBackButton() {
     history.pushState(null, null, location.href);
     this.locationStrategy.onPopState(() => {
@@ -748,15 +883,21 @@ get tooltipCta(): string {
 
     this.page = 1;
 
-    this.startDate = null;
-    this.endDate = null;
-
+    // Reset filters and table state
     this.allMyTimesheets = [];
     this.data = '';
-
     this.filters = {};
     this.isSearchEnabled = false;
     this.setStartDateMinMax();
+
+    // Default date range: first day of current month to today
+    const today = new Date();
+    const fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
+    this.startDate = moment(fromDate).format(AppComponent.DB_DATE_FORMAT);
+    this.endDate = moment(today).format(AppComponent.DB_DATE_FORMAT);
+
+    // Load timesheets for default range
+    this.getAllMyTimesheetsByEmpId();
   }
 
   showTeamTimesheets() {
@@ -765,28 +906,33 @@ get tooltipCta(): string {
 
     this.page = 1;
 
-    this.startDate = null;
-    this.endDate = null;
-
+    // Reset filters and table state
     this.allMyTimesheets = [];
     this.data = '';
-
     this.filters = {};
     this.isSearchEnabled = false;
 
     this.teamMemberList = [];
     this.setStartDateMinMax();
 
-    let employeeObj = new Employee();
-    employeeObj.empId = this.currentUser.empId;
-    this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.teamMemberList = response.serviceResponse;
-        //console.log("teamMemberList : ", this.teamMemberList);
-      } else {
-        console.error(response.serviceResponse);
-      }
-    });
+    // Default date range: first day of current month to today
+    const today = new Date();
+    const fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
+    this.startDate = moment(fromDate).format(AppComponent.DB_DATE_FORMAT);
+    this.endDate = moment(today).format(AppComponent.DB_DATE_FORMAT);
+
+    // let employeeObj = new Employee();
+    // employeeObj.empId = this.currentUser.empId;
+    // this.teamViewService.getAllTeamMemberView(employeeObj).pipe(first()).subscribe((response: any) => {
+    //   if (response.serviceStatus == "Success") {
+    //     this.teamMemberList = response.serviceResponse;
+    //     //console.log("teamMemberList : ", this.teamMemberList);
+    //   } else {
+    //     console.error(response.serviceResponse);
+    //   }
+    // });
+    this.getMyTeamTimesheets();
+    
   }
 
 
@@ -958,10 +1104,12 @@ get tooltipCta(): string {
   onTimesheetUpdated(timesheetId: number): void {
     // Show success message to user
     this.openAlertMod(this.alertTemplate, 'Timesheet updated successfully.');
-    // Refresh the timesheet list after update
-    this.getAllMyTimesheetsByEmpId();
+    // Refresh the timesheet list and summary dashboard after update
+    this.isTeamTimesheets = false;
     // Reset form state
     this.resetTimesheetForm();
+    this.getAllMyTimesheetsByEmpId();
+    this.loadTimesheetSummary();
   }
 
 
@@ -2379,9 +2527,34 @@ get tooltipCta(): string {
       timesheet.workCheckIn = (timesheet.workCheckIn) ? moment(timesheet.workCheckIn).format(AppComponent.DATETIME_FORMAT) : null;
       timesheet.workCheckOut = (timesheet.workCheckOut) ? moment(timesheet.workCheckOut).format(AppComponent.DATETIME_FORMAT) : null;
       timesheet.createdOn = (timesheet.createdOn) ? moment(timesheet.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-      timesheet.isNightShiftDisplay = (timesheet.isNightShift == true || timesheet.isNightShift == 'true') ? 'Night Shift' : 'Regular Shift';
+      timesheet.isNightShiftDisplay = (timesheet.isNightShift == true || timesheet.isNightShift === 'true') ? 'Night Shift' : 'Regular Shift';
       timesheet.statusDisplay = this.mapStatusToString(timesheet.status);
-      
+
+      // Ensure filterable fields exist so column search works (ColFilterPipe uses item[key])
+      timesheet.createdByName = timesheet.createdByName != null ? String(timesheet.createdByName) : '';
+      // For self timesheets, applicant is always current user when backend does not send createdByName yet
+      if (!timesheet.createdByName && this.isSelfTimesheets && this.currentUser?.name) {
+        timesheet.createdByName = this.currentUser.name;
+      }
+      timesheet.leaveType = timesheet.leaveType != null ? String(timesheet.leaveType) : '';
+      timesheet.rejectReason = timesheet.rejectReason != null ? String(timesheet.rejectReason) : '';
+      timesheet.remarks = timesheet.remarks != null ? String(timesheet.remarks) : '';
+      // Populate from first rejection in nested data if not at top level
+      if ((!timesheet.rejectReason || !timesheet.remarks) && timesheet.locationSessions && timesheet.locationSessions.length > 0) {
+        for (const loc of timesheet.locationSessions) {
+          if (loc.projects && loc.projects.length > 0) {
+            for (const proj of loc.projects) {
+              if (proj.rejectionDetails && proj.rejectionDetails.length > 0) {
+                const r = proj.rejectionDetails[0];
+                if (!timesheet.rejectReason && r.rejectionReason) timesheet.rejectReason = r.rejectionReason;
+                if (!timesheet.remarks && r.remark) timesheet.remarks = r.remark;
+                break;
+              }
+            }
+          }
+        }
+      }
+
       // Process location sessions
       if (timesheet.locationSessions && timesheet.locationSessions.length > 0) {
         let totalActivityMinutes = 0;
@@ -2417,6 +2590,8 @@ get tooltipCta(): string {
 
   /* Timesheets Applied By ME for My Team Members */
   getMyTeamTimesheets(template?: TemplateRef<any>) {
+    this.isTeamTimesheets = true;
+     this.isSelfTimesheets = false;
     this.allMyTimesheets = [];
 
     if (this.endDate) {
@@ -2573,32 +2748,66 @@ get tooltipCta(): string {
   exportToExcel(): void {
 
     if (this.isTimesheetTable == true) {
-      this.excelName = 'MyTimeSheet.xlsx'
+      this.excelName = 'MyTimeSheet.xlsx';
 
-      const _allEmployeeList = this.allMyTimesheets.slice()
-      this.allMyTimesheetsDataForExcel = _allEmployeeList.sort((a, b) => (new Date(a.date).getTime() > new Date(b.date).getTime()) ? 1 : -1);
+      // Use filtered data when user has applied search, otherwise all data
+      const sourceList = (this.filters && Object.keys(this.filters).length > 0)
+        ? this.allMyTimesheets.filter(item => {
+            return Object.keys(this.filters).every(key => {
+              const searchVal = this.filters[key];
+              if (searchVal == null || searchVal === '') return true;
+              const cellVal = item[key];
+              const str = cellVal != null ? String(cellVal) : '';
+              try {
+                return new RegExp(String(searchVal).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi').test(str);
+              } catch {
+                return str.toLowerCase().includes(String(searchVal).toLowerCase());
+              }
+            });
+          })
+        : this.allMyTimesheets.slice();
 
-      const onlySpecificDataArr = this.allMyTimesheetsDataForExcel.map(
-        x => ({
-          "Date": x.date,
-          "Day Type": x.dayType,
-          "In Time": x.officeInTime,
-          "Out Time": x.officeOutTime,
-          "Total Working Hours": x.totalWorkingOfficeHours,
-          "Project Name" :x.projectName,
-          "Timesheet Details": x.description?.replaceAll('<br>', ' \n'),
-          "Total Activity Time": x.totalTime,
-          "Status": x.status,
-          "Applied By": x.createdByName,
-          "Applied On": x.createdOn,
-          "Shift Type": x.isNightShift == 'true' ? 'Night Shift' : 'Regular Shift',
-          "Leave Type": x.leaveType,
-          "Remarks": x.remarks
-        })
-      )
-      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName)
+      this.allMyTimesheetsDataForExcel = sourceList.sort((a, b) =>
+        (new Date(a.date).getTime() > new Date(b.date).getTime()) ? 1 : -1
+      );
+
+      const onlySpecificDataArr = this.allMyTimesheetsDataForExcel.map(x => {
+        const projectNames = this.getProjectNamesFromTimesheet(x);
+        return {
+          ...(this.isTeamTimesheets ? { 'Employee Name': x.employeeName ?? '' } : {}),
+          'Date': x.date ?? '',
+          'Day Type': x.dayType ?? '',
+          'In Time': x.workCheckIn ?? '',
+          'Out Time': x.workCheckOut ?? '',
+          'Total Working Hours': this.getTotalWorkingHours(x.totalWorkingMinutes ?? 0, false),
+          'Project Name': projectNames,
+          'Timesheet Details': x.description?.replaceAll('<br>', ' \n') ?? '',
+          'Total Activity Time': this.getTotalWorkingHours(x.totalActivitiesMinutes ?? 0, true),
+          'Status': x.statusDisplay ?? this.mapStatusToString(x.status) ?? '',
+          'Applied By': x.createdByName ?? '',
+          'Applied On': x.createdOn ?? '',
+          'Shift Type': x.isNightShiftDisplay ?? (x.isNightShift === true || x.isNightShift === 'true' ? 'Night Shift' : 'Regular Shift'),
+          'Leave Type': x.leaveType ?? '',
+          'Reject Reason': x.rejectReason ?? '',
+          'Remarks': x.remarks ?? ''
+        };
+      });
+      this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.excelName);
     }
+  }
 
+  /**
+   * Get comma-separated project names from timesheet locationSessions (for Excel export).
+   */
+  private getProjectNamesFromTimesheet(timesheet: any): string {
+    if (!timesheet?.locationSessions?.length) return '';
+    const names: string[] = [];
+    timesheet.locationSessions.forEach((loc: any) => {
+      (loc.projects || []).forEach((p: any) => {
+        if (p.projectName) names.push(p.projectName);
+      });
+    });
+    return [...new Set(names)].join(', ');
   }
 
   getAllMyLeaveApplicationsByEmpId(userObj: User) {
@@ -4395,15 +4604,26 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
   getTotalLocationHours(location: any): string {
     if (location.locationInTime && location.locationOutTime) {
       // Handle both "HH:mm" and "HH:mm:ss" formats from backend
-      const inTime = moment(location.locationInTime, ['HH:mm:ss', 'HH:mm'], true);
-      const outTime = moment(location.locationOutTime, ['HH:mm:ss', 'HH:mm'], true);
+      const inTime = moment(location.locationInTime, [
+        'YYYY-MM-DD HH:mm:ss.S',
+        'YYYY-MM-DD HH:mm:ss',
+        'HH:mm:ss', 
+        'HH:mm'], true);
+      const outTime = moment(location.locationOutTime, [
+        'YYYY-MM-DD HH:mm:ss.S',
+        'YYYY-MM-DD HH:mm:ss',
+        'HH:mm:ss', 
+        'HH:mm'], true);
       if (inTime.isValid() && outTime.isValid()) {
         const diffMinutes = outTime.diff(inTime, 'minutes');
         const adjustedDiff = diffMinutes < 0 ? diffMinutes + 1440 : diffMinutes;
+        console.log("adjustedDiff",adjustedDiff)
         return (adjustedDiff / 60).toFixed(2);
+        // return this.getTotalWorkingHours(adjustedDiff);
       }
     }
     // Fallback: sum activity hours when in/out times are null (e.g. non-fillable days)
+    console.log("Logging out side")
     const totalActivityHours = this.getTotalLocationActivityHours(location);
     return totalActivityHours > 0 ? totalActivityHours.toFixed(2) : '0.00';
   }
@@ -4456,9 +4676,17 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
   /**
    * Get total working hours from minutes
    */
-  getTotalWorkingHours(minutes: number): string {
+  getTotalWorkingHours(minutes: number,isActivity:boolean): string {
     if (!minutes) return '0.00';
-    return (minutes / 60).toFixed(2);
+    if(!isActivity){
+      const time:number = Number((minutes / 60).toFixed(2));
+      const hours = Math.floor(time);
+      const minute = Math.round((time - hours) * 60);
+      return `${hours}:${minute.toString().padStart(2, '0')}`;
+    }
+    else{
+      return (minutes / 60).toFixed(2);
+    }
   }
 
   /**

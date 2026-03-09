@@ -55,6 +55,7 @@ import { merge, of, forkJoin } from 'rxjs';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { RmgProject } from 'src/app/models/rmgProject';
 import { RmgStatusCardsComponent } from './rmg-status-cards/rmg-status-cards/rmg-status-cards.component';
+import { RmgProjectComponent } from './rmg-project-config/rmg-project-config.component';
 
 class FilterData {
   title: any;
@@ -72,6 +73,7 @@ class FilterData {
 export class ResourceManagementComponent implements OnInit {
 
   @ViewChild('rmgStatusCards') rmgStatusCardsComponent!: RmgStatusCardsComponent;
+  @ViewChild('rmgProjectConfig') rmgProjectComponent!: RmgProjectComponent;
   @ViewChild('chartSection') chartSection!: ElementRef;
   @ViewChild("project_configuration") projectConfigurationTemplateRef: TemplateRef<any>;
   @ViewChild("alert_message") alertMessageTemplateRef: TemplateRef<any>;
@@ -97,7 +99,9 @@ export class ResourceManagementComponent implements OnInit {
 
   showProjectConfig: boolean = false;
   rmgProjectObj: RmgProject = new RmgProject();
+  projectCompletionObj:Project = new Project();
   isAllProjects: boolean = false;
+  markProjectCompletionConfig: boolean = false;
 
   expandedProjects: Set<string> = new Set();
   projectFullText: Map<string, string> = new Map();
@@ -231,6 +235,7 @@ export class ResourceManagementComponent implements OnInit {
 
   currentTeam: any;
   selectedProjToReject: any;
+  projectRejectionReason:string = '';
   currentProjectId: any;
   selectedProjectManager: any;
   excelName: any;
@@ -291,7 +296,7 @@ export class ResourceManagementComponent implements OnInit {
   selectedStatusTab: string = '';
 
 
-  selectedDate: String | null = null;
+  selectedDate: any | null = null;
   completedProjectDetails: Project = new Project();
   projectFilterDTO: ProjectFilterDTO = new ProjectFilterDTO();
   deptList: ProjectFilterDTO = new ProjectFilterDTO();
@@ -678,6 +683,7 @@ export class ResourceManagementComponent implements OnInit {
     this.isCreateForm = false;
     this.isCreation = false;
     this.showProjectConfig = false;
+    this.markProjectCompletionConfig = false;
     this.filters = {};
     this.isSearchEnabled = false;
     this.allProjectList = [];
@@ -1643,7 +1649,7 @@ export class ResourceManagementComponent implements OnInit {
         this.openAlertMessageModal(response.serviceResponse);
         this.showViewProjects();
       } else {
-        this.openAlertMessageModal( response.serviceResponse);
+        this.openAlertMessageModal(response.serviceResponse);
       }
     });
   }
@@ -1651,8 +1657,22 @@ export class ResourceManagementComponent implements OnInit {
 
   // Project Completion Start
   initiateProjectCompletion(project: any) {
-    // this.MarkAsCompleteDefaultProject, this.OtherProjectDefaultMapping,this.projectCompletionDatePickerTemplateRef
-    this.openProjectCompletionDatePickerModal();
+    this.selectedDate = null;
+    this.projectCompletionObj = project;
+    this.markProjectCompletionConfig = true;
+    this.isAllProjects = this.isValidString(this.projectFilterDTO.approvalStatus) && this.projectFilterDTO.approvalStatus?.toLowerCase() === 'all';
+    forkJoin({
+      managers: this.getManagerAndOverheadList(),
+      departments: this.getAllDepartmentsList(),
+      employees: this.getEmployeeNameAndEmpld(),
+      projectConfig: this.getProjectConfigurationDetailsByProjectId(project)
+    }).subscribe(result => {
+      if (this.rmgProjectObj) {
+        this.rmgProjectComponent.validateProjectForCompletion(project.projectId);
+      } else {
+          this.openAlertMessageModal("Unable to mark the project as complete at the moment. Please contact the administrator!!");
+      }
+    });
   }
 
   openProjectCompletionDatePickerModal() {
@@ -1676,15 +1696,22 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   confirmMarkProjectAsComplete() {
-    this.projectObj.projectCompletionDate = new Date();
-    this.projectObj.projectType = this.projectObj.poProjectType;
-    this.projectObj.projectStatus = "Completed";
-    this.resourceManagementService.completionDateOfProject(this.projectObj).pipe(first()).subscribe(
+    if (!this.selectedDate || this.selectedDate == undefined || this.selectedDate == null) {
+      this.openAlertMessageModal('Kindly provide Project completion Date!!');
+      return;
+    }
+
+    let projectObj: Project = new Project();
+    projectObj.projectStatus = "Completed";
+    projectObj.projectType = this.projectCompletionObj.projectType;
+    projectObj.projectId = this.projectCompletionObj.projectId;
+    projectObj.projectCompletionDate = moment(this.selectedDate).format('YYYY-MM-DD');
+    projectObj.updatedBy = this.currentUser.empId;
+    this.resourceManagementService.completionDateOfProject(projectObj).pipe(first()).subscribe(
       (response: any) => {
         if (response.serviceStatus === "Success") {
-          this.openAlertMessageModal(
-            "Since all milestones are completed, the project is marked as complete."
-          );
+          this.closeProjectCompletionDatePickerModal();
+          this.openAlertMessageModal(response.serviceResponse);
         } else {
           this.openAlertMessageModal(response.serviceResponse);
         }
@@ -1794,15 +1821,15 @@ export class ResourceManagementComponent implements OnInit {
     });
   }
 
-  onRejectProject(project: any) {
+  onRejectProject() {
     let projObj = this.selectedProjToReject;
     projObj.empId = this.currentUser.empId;
-    projObj.rejectReason = project.rejectReason;
-    if (project.poProjectType != null) {
-      project.projectType = project.poProjectType;
-    } else {
-      project.projectType = "Internal";
-    }
+    projObj.rejectReason = this.projectRejectionReason;
+    // if (this.selectedProjToReject.poProjectType != null) {
+    //   project.projectType = this.selectedProjToReject.poProjectType;
+    // } else {
+    //   project.projectType = "Internal";
+    // }
 
     this.resourceManagementService.rejectPendingProject(projObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1815,6 +1842,7 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   openRejectProjectModal(projectObj: any) {
+    this.projectRejectionReason = null;
     this.selectedProjToReject = projectObj;
     this.rejectProjectModalRef = this.modalService.open(this.rejectProjectTemplateRef, { modalDialogClass: 'modal-lg' });
   }
@@ -1906,16 +1934,12 @@ export class ResourceManagementComponent implements OnInit {
           this.showProjectConfiguration();
         }
       }
-      console.log('Project Obj:', this.rmgProjectObj);
-      console.log('Departments:', this.allDeptList);
-      console.log('Managers:', this.managerList);
-      console.log('Overhead:', this.overheadList);
-      console.log('Employees:', this.employeeList);
     });
   }
 
   showProjectConfiguration() {
     this.showProjectConfig = true;
+    this.markProjectCompletionConfig = false;
     this.isSkillMatrix = false;
     this.isProjectTable = false;
     this.allProjectTable = false;
@@ -2026,7 +2050,7 @@ export class ResourceManagementComponent implements OnInit {
   }
 
   openProjectConfigurationModal() {
-    this.projectConfigurationModalRef = this.modalService.open(this.projectConfigurationTemplateRef, { modalDialogClass: 'modal-lg' });
+    this.projectConfigurationModalRef = this.modalService.open(this.projectConfigurationTemplateRef, { modalDialogClass: 'modal-lg no-modal-content', backdrop: 'static', keyboard: false });
   }
 
   closeProjectConfigurationModal() {

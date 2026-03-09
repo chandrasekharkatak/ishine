@@ -1,7 +1,9 @@
 export class EmployeeOtherActiveProject {
 
     projectId: any;
-    projectName:any
+    projectName: any
+    projectType: any;
+    projectStartDate: any;
     poId: any;
     teamId: any;
     employeeRole: any;
@@ -9,5 +11,5 @@ export class EmployeeOtherActiveProject {
     poNo: any;
     teamName: any;
     resourceRequirement: any;
-    updatedBy:any;
+    updatedBy: any;
 }

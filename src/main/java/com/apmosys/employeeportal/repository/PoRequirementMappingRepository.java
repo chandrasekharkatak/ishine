@@ -2,6 +2,8 @@ package com.apmosys.employeeportal.repository;
 
 import java.util.List;
 
+import javax.transaction.Transactional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -59,6 +61,8 @@ public interface PoRequirementMappingRepository extends JpaRepository<PoRequirem
 			"WHERE prm.poId = :poId AND prm.active = true")
 	List<PoRequirementMapping> findByPoId(@Param("poId") Long poId);
 
+	
+	@Transactional
 	@Modifying
 	@Query("DELETE FROM PoRequirementMapping")
 	void deleteAllRecords();
@@ -69,7 +73,7 @@ public interface PoRequirementMappingRepository extends JpaRepository<PoRequirem
 			+ ", prm.count, prm.lineItemStartDate, prm.lineItemEndDate) "
 			+ "FROM RoleDetails rd \n"
 			+ "LEFT JOIN PoRequirementMapping prm ON prm.roleId = rd.roleId and prm.poId =:poId and prm.active = true  \n"
-			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) "
+			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = prm.poId AND ppd.active = true AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) "
 			+ "WHERE prm.active = true and prm.poId =:poId")
 	List<RmgResourceRequirementDto> getPoRequirementDataByPoId(@Param("poId") Long poId);
 	

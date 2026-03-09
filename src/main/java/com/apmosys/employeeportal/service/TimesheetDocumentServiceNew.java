@@ -2,12 +2,14 @@ package com.apmosys.employeeportal.service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -182,7 +184,34 @@ public class TimesheetDocumentServiceNew {
                 continue;
             }
 
-            // CREATE: new Approved row (no existing docId)
+            // UPDATE existing FinalDocumentNew when project was moved (e.g. location-1 → location-2) to avoid duplicate row and file on server.
+            // Find existing doc row for (timesheetId, projectId) that already has bulkApprovedDocId; update that FinalDocumentNew in place.
+            List<TimesheetDocumentDetailsNew> existingForProjectApproved = timesheetDocumentDetailsNewRepository
+                    .findByTimesheetIdAndProjectIdAndActive(timesheetId, approvedData.getProjectId());
+            TimesheetDocumentDetailsNew rowWithFinal = existingForProjectApproved == null ? null : existingForProjectApproved.stream()
+                    .filter(d -> d.getBulkApprovedDocId() != null)
+                    .findFirst()
+                    .orElse(null);
+            if (rowWithFinal != null) {
+                Long existingFinalDocId = rowWithFinal.getBulkApprovedDocId();
+                Optional<FinalDocumentNew> existingFinalOpt = finalDocumentNewRepository.findById(existingFinalDocId);
+                if (existingFinalOpt.isPresent()) {
+                    FinalDocumentNew existingFinal = existingFinalOpt.get();
+                    String oldFileUrl = existingFinal.getFileUrl();
+                    existingFinal.setFileUrl(storedFileName);
+                    existingFinal.setDocName(approvedData.getDocName());
+                    existingFinal.setMimeTypeId(getMimeTypeId(approvedData.getDocName(), approvedData.getUniqueIdentifier()));
+                    existingFinal.setUpdatedBy(empTs.getUpdatedBy());
+                    finalDocumentNewRepository.save(existingFinal);
+                    if (oldFileUrl != null && !oldFileUrl.equals(storedFileName)) {
+                        deleteFile(oldFileUrl);
+                    }
+                    timesheetIdAndProjectIdToFinalDocMap.put(empTs.getTimesheetId() + "_" + approvedData.getProjectId(), existingFinalDocId);
+                    continue;
+                }
+            }
+
+            // CREATE: new Approved row (no existing docId and no existing FinalDocumentNew for this timesheet+project)
             FinalDocumentNew finalDocumentNew = new FinalDocumentNew();
             finalDocumentNew.setProjectId(approvedData.getProjectId());
             finalDocumentNew.setFileUrl(storedFileName);
@@ -225,7 +254,37 @@ public class TimesheetDocumentServiceNew {
                 }
             }
 
-            // CREATE: new Filled row
+            // UPDATE existing row when project was moved (e.g. location-1 → location-2) to avoid duplicate row and file on server.
+            // Find by (timesheetId, projectId); document is stored per timesheet+project, not per location.
+            List<TimesheetDocumentDetailsNew> existingForProject = timesheetDocumentDetailsNewRepository
+                    .findByTimesheetIdAndProjectIdAndActive(timesheetId, filledData.getProjectId());
+            if (existingForProject != null && !existingForProject.isEmpty()) {
+                // Use the filled-doc row (first one, or the one with finalFlag=false for the uploaded file slot)
+                TimesheetDocumentDetailsNew existing = existingForProject.stream()
+                        .filter(d -> Boolean.FALSE.equals(d.getFinalFlag()) || d.getBulkApprovedDocId() == null)
+                        .findFirst()
+                        .orElse(existingForProject.get(0));
+                String oldFileUrl = existing.getFileUrl();
+                existing.setFileUrl(storedFileName);
+                existing.setDocName(filledData.getDocName());
+                existing.setMimeTypeId(getMimeTypeId(filledData.getDocName(), filledData.getUniqueIdentifier()));
+                existing.setUpdatedBy(empTs.getUpdatedBy());
+                if (timesheetIdAndProjectIdToFinalDocMap.get(timesheetId + "_" + filledData.getProjectId()) != null) {
+                    existing.setBulkApprovedDocId(timesheetIdAndProjectIdToFinalDocMap.get(timesheetId + "_" + filledData.getProjectId()));
+                    existing.setClientApprovalStatusId(2);
+                    existing.setFinalFlag(true);
+                } else {
+                    existing.setClientApprovalStatusId(1);
+                    existing.setFinalFlag(false);
+                }
+                timesheetDocumentDetailsNewRepository.save(existing);
+                if (oldFileUrl != null && !oldFileUrl.equals(storedFileName)) {
+                    deleteFile(oldFileUrl);
+                }
+                continue;
+            }
+
+            // CREATE: new Filled row (no existing row for this timesheet+project)
             TimesheetDocumentDetailsNew doc = new TimesheetDocumentDetailsNew();
             doc.setTimesheetId(timesheetId);
             doc.setProjectId(filledData.getProjectId());
@@ -244,7 +303,6 @@ public class TimesheetDocumentServiceNew {
             }
             timesheetDocumentDetailsNewRepository.save(doc);
         }
-
     }
 
     /**
@@ -476,51 +534,24 @@ public class TimesheetDocumentServiceNew {
         return result;
     }
 
+    /**
+     * Clean all document data for a timesheet (Scenario 1 - day type → non-working).
+     * Deletes all TimesheetDocumentDetailsNew rows and their filled-doc files (fileUrl).
+     * Does NOT touch FinalDocumentNew or its file on server.
+     */
     @Transactional
     public void deleteByTimesheetId(Long timesheetId) {
         try {
             List<TimesheetDocumentDetailsNew> docs = timesheetDocumentDetailsNewRepository.findAllByTimesheetId(timesheetId);
-        
+            if (docs == null || docs.isEmpty()) {
+                return;
+            }
+            for (TimesheetDocumentDetailsNew doc : docs) {
+                if (doc.getFileUrl() != null && !doc.getFileUrl().isBlank()) {
+                    deleteFile(doc.getFileUrl());
+                }
+            }
             timesheetDocumentDetailsNewRepository.deleteAll(docs);
-            
-            List<Long> finalDocIds = docs.stream().map(TimesheetDocumentDetailsNew::getBulkApprovedDocId).collect(Collectors.toList());
-            
-            List<FinalDocumentNew> finalDocs = finalDocumentNewRepository.findAllById(finalDocIds);
-
-            finalDocumentNewRepository.deleteAll(finalDocs);
-
-            for(TimesheetDocumentDetailsNew doc : docs){
-                deleteFile(doc.getFileUrl());
-            }
-
-            for(FinalDocumentNew finalDoc : finalDocs){
-                deleteFile(finalDoc.getFileUrl());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
-        
-    }
-
-    @Transactional
-    public void deleteByProjectId(Long projectId) {
-        try {
-            List<TimesheetDocumentDetailsNew> docs = timesheetDocumentDetailsNewRepository.findAllByProjectId(projectId);
-        
-            timesheetDocumentDetailsNewRepository.deleteAll(docs);
-            
-            List<FinalDocumentNew> finalDocs = finalDocumentNewRepository.findByProjectId(projectId);
-
-            finalDocumentNewRepository.deleteAll(finalDocs);
-
-            for(TimesheetDocumentDetailsNew doc : docs){
-                deleteFile(doc.getFileUrl());
-            }
-
-            for(FinalDocumentNew finalDoc : finalDocs){
-                deleteFile(finalDoc.getFileUrl());
-            }   
         } catch (Exception e) {
             e.printStackTrace();
             throw e;
@@ -825,4 +856,204 @@ public class TimesheetDocumentServiceNew {
         }
     }
 
+    // public void compareDocumentStatusAndChangeAccordingly(Long docId,String approvalStatusFromDTO){
+
+    //     Byte finalFlagByDB  = timesheetDocumentDetailsNewRepository.getFinalFlagByDocId(docId);
+    //     Boolean finalFlag = finalFlagByDB != null && finalFlagByDB == 1;
+    //     // if final flag from db is 2 means it was approved.
+    //     // if final flag from db is 1 means it was not pending.
+    
+    //     // if (!Objects.equals(finalFlagFromDTO, finalFlag)) {
+
+    //         // CASE: Approved -> Pending
+    //         if (Boolean.TRUE.equals(finalFlag) && approvalStatusFromDTO.equalsIgnoreCase("Pending")) {
+    
+                
+    //             List<Object[]> result = timesheetDocumentDetailsNewRepository.getFinalDocIdAndFileUrl(docId);
+    //             Long finalDocId = result.get(0)[0] == null ? null :((BigInteger) result.get(0)[0]).longValue();
+    //             String fileUrl = result.get(0)[1] == null ? null : (String) result.get(0)[1];
+    
+    //             // 2. Delete file from server
+    //             deleteFile(fileUrl);
+    
+    //             // 3. Delete DB record
+    //             finalDocumentNewRepository.deleteById(finalDocId);
+    //         }
+
+    //         // }
+    //     }
+
+    // public void compareDocumentStatusAndChangeAccordingly(Long docId, String approvalStatusFromDTO) {
+
+    //     try {
+    
+    //         if (docId == null || approvalStatusFromDTO == null) {
+    //             return;
+    //         }
+    
+    //         Byte finalFlagByDB = timesheetDocumentDetailsNewRepository.getFinalFlagByDocId(docId);
+    
+    //         Boolean finalFlag = finalFlagByDB != null && finalFlagByDB == 1;
+    
+    //         // CASE: Approved -> Pending
+    //         if (Boolean.TRUE.equals(finalFlag) && "Pending".equalsIgnoreCase(approvalStatusFromDTO)) {
+    
+    //             List<Object[]> result = timesheetDocumentDetailsNewRepository.getFinalDocIdAndFileUrl(docId);
+    
+    //             if (result == null || result.isEmpty()) {
+    //                 return;
+    //             }
+    
+    //             Object[] row = result.get(0);
+    
+    //             Long finalDocId = row[0] == null ? null : ((BigInteger) row[0]).longValue();
+    //             String fileUrl = row[1] == null ? null : row[1].toString();
+    
+    //             // Delete file
+    //             if (fileUrl != null && !fileUrl.isBlank()) {
+    //                 deleteFile(fileUrl);
+    //             }
+    
+    //             // Delete DB record
+    //             if (finalDocId != null) {
+    //                 finalDocumentNewRepository.deleteById(finalDocId);
+    //             }
+    //         }
+    
+    //     } catch (Exception ex) {
+    //         // Best practice: log instead of ignoring
+    //         // log.error("Error while comparing document status for docId: {}", docId, ex);
+    //         throw ex;
+    //     }
+    // }
+    @Transactional
+    public void compareDocumentStatusAndChangeAccordingly(List<TimesheetDocumentDataDTO> documentDataList) {
+    
+        try {
+    
+            if (documentDataList == null || documentDataList.isEmpty()) {
+                return;
+            }
+    
+            // Group documents by project
+            Map<Integer, List<TimesheetDocumentDataDTO>> projectDocs =
+                    documentDataList.stream()
+                            .collect(Collectors.groupingBy(TimesheetDocumentDataDTO::getProjectId));
+    
+            for (Map.Entry<Integer, List<TimesheetDocumentDataDTO>> entry : projectDocs.entrySet()) {
+    
+                Integer projectId = entry.getKey();
+                List<TimesheetDocumentDataDTO> docs = entry.getValue();
+    
+                // Find filled and approved documents
+                TimesheetDocumentDataDTO filledDoc = null;
+                TimesheetDocumentDataDTO approvedDoc = null;
+    
+                for (TimesheetDocumentDataDTO doc : docs) {
+    
+                    if ("Filled".equalsIgnoreCase(doc.getDocType())) {
+                        filledDoc = doc;
+                    }
+    
+                    if ("Approved".equalsIgnoreCase(doc.getDocType())) {
+                        approvedDoc = doc;
+                    }
+                }
+    
+                // CASE: Project changed from Approved -> Pending
+                if (filledDoc != null && approvedDoc == null) {
+
+                    Long filledDocId = filledDoc.getDocId();
+
+                    if (filledDocId == null) {
+                        continue;
+                    }
+
+                    // Shared-reference rule: do NOT delete FinalDocumentNew or physical file;
+                    // another timesheet/user may reference the same document.
+                    // Only unlink: set bulkApprovedDocId = null and update flags (finalFlag, clientApprovalStatusId).
+                    timesheetDocumentDetailsNewRepository.resetApprovalStatus(filledDocId);
+                }
+            }
+    
+        } catch (Exception ex) {
+            throw ex;
+        }
+    }
+
+    /**
+     * Returns project IDs that have at least one TimesheetDocumentDetailsNew row for this timesheet.
+     * Used to delete document rows only when a project is removed from the entire timesheet
+     * (same project can appear in multiple locations; we must not delete docs when only one location is removed).
+     */
+    public Set<Integer> getProjectIdsWithDocumentsForTimesheet(Long timesheetId) {
+        if (timesheetId == null) {
+            return Set.of();
+        }
+        List<TimesheetDocumentDetailsNew> docs = timesheetDocumentDetailsNewRepository.findAllByTimesheetId(timesheetId);
+        if (docs == null || docs.isEmpty()) {
+            return Set.of();
+        }
+        return docs.stream()
+                .map(TimesheetDocumentDetailsNew::getProjectId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+    }
+
+    /**
+     * Delete document rows for a timesheet+project (Scenarios 2 & 3: location or project removed).
+     * Deletes all TimesheetDocumentDetailsNew rows and their filled-doc files (fileUrl).
+     * Does NOT touch FinalDocumentNew or its file on server.
+     */
+    public void deleteDocumentCascade(Long timesheetId, Integer projectId) {
+        try {
+            if (timesheetId == null || projectId == null) {
+                throw new IllegalArgumentException("TimesheetId and ProjectId must not be null");
+            }
+            List<TimesheetDocumentDetailsNew> docs = timesheetDocumentDetailsNewRepository.findByTimesheetIdAndProjectIdAndActive(timesheetId, projectId);
+            if (docs == null || docs.isEmpty()) {
+                return;
+            }
+            for (TimesheetDocumentDetailsNew doc : docs) {
+                if (doc.getFileUrl() != null && !doc.getFileUrl().isBlank()) {
+                    deleteFile(doc.getFileUrl());
+                }
+            }
+            timesheetDocumentDetailsNewRepository.deleteAll(docs);
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    /**
+     * Scenario 4 only: Project status changed from Approved to Filled (Pending).
+     * Only updates the final document reference to null (bulkApprovedDocId, finalFlag, clientApprovalStatusId).
+     * Does NOT delete any TimesheetDocumentDetailsNew row. Does NOT delete any file. Does NOT touch FinalDocumentNew.
+     */
+    public void deleteApprovedDocumentsByTimesheetIdAndProjectId(Long timesheetId, Integer projectId) {
+        try {
+            if (timesheetId == null || projectId == null) {
+                return;
+            }
+            List<TimesheetDocumentDetailsNew> docs = timesheetDocumentDetailsNewRepository.findByTimesheetIdAndProjectIdAndActive(timesheetId, projectId);
+            if (docs == null || docs.isEmpty()) {
+                return;
+            }
+            boolean changed = false;
+            for (TimesheetDocumentDetailsNew doc : docs) {
+                if (Boolean.TRUE.equals(doc.getFinalFlag())) {
+                    doc.setBulkApprovedDocId(null);
+                    doc.setFinalFlag(false);
+                    doc.setClientApprovalStatusId(1);
+                    changed = true;
+                }
+            }
+            if (changed) {
+                timesheetDocumentDetailsNewRepository.saveAll(docs);
+            }
+        } catch (Exception e) {
+            throw e;
+        }
+    }
 }
+

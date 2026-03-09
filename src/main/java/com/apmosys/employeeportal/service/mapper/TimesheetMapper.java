@@ -337,6 +337,7 @@ public class TimesheetMapper {
                                                 r.getPoNo(),
                                                 r.getShadowEmp(),
                                                 r.getStatus(),
+                                                r.getClientApprovalStatus() != null ? r.getClientApprovalStatus() : null,
                                                 TimesheetFormatUtil.formatMinutes(r.getTotalClientWorkingMinutes()),
                                                 r.getDescription(),
                                                 new ArrayList<>(), new ArrayList<>()
@@ -516,6 +517,7 @@ public class TimesheetMapper {
                                         ? TimesheetFormatUtil.formatMinutes(row.getTotalClientWorkingMinutes())
                                         : null
                         );
+                        projDto.setClientApprovalStatus(row.getClientApprovalStatus());
                         projDto.setDescription(row.getDescription());
                         projDto.setActivities(new ArrayList<>());
                         projDto.setRejectionReasons(new ArrayList<>());
@@ -602,12 +604,13 @@ public class TimesheetMapper {
                     seenActivityKeys.get(timesheetId).computeIfAbsent(actLocId, k -> new HashMap<>());
                     seenActivityKeys.get(timesheetId).get(actLocId).computeIfAbsent(actProjectId, k -> new HashSet<>());
 
-                    // Dedupe key: ALL THREE (as requested)
+                    // Dedupe key: ALL FOUR (as requested)
                     final String actKey =
                             String.valueOf(row.getActivityTimesheetId())
                                     + "|" + String.valueOf(row.getActivityLocationMappingId())
-                                    + "|" + String.valueOf(row.getActivityProjectId());
-
+                                    + "|" + String.valueOf(row.getActivityProjectId())
+                                    + "|" + String.valueOf(row.getActivity());
+                                    
                     if (seenActivityKeys.get(timesheetId).get(actLocId).get(actProjectId).add(actKey)) {
                         GetReporteesTimesheetActivitiesDTO act = new GetReporteesTimesheetActivitiesDTO();
 

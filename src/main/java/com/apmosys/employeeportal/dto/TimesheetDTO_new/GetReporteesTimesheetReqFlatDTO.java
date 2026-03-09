@@ -45,6 +45,7 @@ public class GetReporteesTimesheetReqFlatDTO {
     private String shadowEmp;
     private Integer status;
     private Integer totalClientWorkingMinutes;
+    private Integer clientApprovalStatus;
     private String description;
     
     private Long activityTimesheetId;
@@ -74,7 +75,7 @@ public class GetReporteesTimesheetReqFlatDTO {
 			String dayType, LocalDate date, Boolean isNightShift, LocalDateTime workCheckIn, LocalDateTime workCheckOut,
 			Long projectCount, Long locationCount, String appliedBy, LocalDateTime appliedOn, String workLocationType,
 			LocalDateTime locationInTime, LocalDateTime locationOutTime, Long locationMappingId,Long projectTimesheetId,Long projectLocationMappingId, Integer projectId,
-			String projectName, String clientName, String clientLocation, String poNo, String shadowEmp, Integer status,
+			String projectName, String clientName, String clientLocation,Integer clientApprovalStatus, String poNo, String shadowEmp, Integer status,
 			Integer totalClientWorkingMinutes, String description,Long activityTimesheetId,Long activityLocationMappingId,Integer activityProjectId, String activity, String activityDescription,
 			Short durationMinutes, String teamName, Long docId, String docName, Boolean finalFlag,
 			Long bulkApprovedDocId, String mimeType, Integer docsProjectId,Long rejectionTimesheetId,Long rejectionLocationMappingId,Integer rejectionProjectId, String rejectionReason, String remarks, LocalDateTime rejectedOn) {
@@ -102,6 +103,7 @@ public class GetReporteesTimesheetReqFlatDTO {
 		this.projectName = projectName;
 		this.clientName = clientName;
 		this.clientLocation = clientLocation;
+		this.clientApprovalStatus = clientApprovalStatus;
 		this.poNo = poNo;
 		this.shadowEmp = shadowEmp;
 		this.status = status;

@@ -483,16 +483,17 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/fetchProjectDetailsList`,
     `${this.baseUrl}` + `api/updateProjectStartDate`,
     `${this.baseUrl}` + `api/getProjectConfigurationDetailsByProjectId`,
-    `${this.baseUrl}` + `api/validateEmployeeTimesheetFilledToChangeStartDate`,
+    `${this.baseUrl}` + `api/validateEmployeeProjectStartDate`,
     `${this.baseUrl}` + `api/getEmployeeDetailsListByEmployeeGroup`,
-    `${this.baseUrl}` + `api/downloadFinalDocuments`,
+    `${this.baseUrl}` + `api/getActiveProjectList`,
+    `${this.baseUrl}` + `api/getAllActiveEmployeeInformation`,
     `${this.baseUrl}` + `api/downloadFinalDocuments`,
 
     /** v2 Timesheet APIs (new hierarchical timesheet) */
     `${this.baseUrl}` + `api/v2/timesheet/addTimesheetWithClientNew`,
     `${this.baseUrl}` + `api/v2/timesheet/getAllProjectsByEmpId`,
     `${this.baseUrl}` + `api/v2/timesheet/getAllMyTimesheetsByEmpId`,
-    `${this.baseUrl}` + `api/v2/timesheet/getTimesheetMetadataByEmpId`,
+    // `${this.baseUrl}` + `api/v2/timesheet/getTimesheetMetadataByEmpId`,
     `${this.baseUrl}` + `api/v2/timesheet/getActiveProjectsAndClientSideIdByEmpId`,
     `${this.baseUrl}` + `api/v2/timesheet/getAlreadyFilledTimesheetDatesByEmpId`,
     `${this.baseUrl}` + `api/v2/timesheet/create`,
@@ -509,6 +510,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/v2/master/client-status/getAllActiveStatusForClient`,
     `${this.baseUrl}` + `api/getMyProjectsInMonthYear`,
     `${this.baseUrl}` + `api/getAllDisabledDateListForBulkDocSubmit`,
+    `${this.baseUrl}` + `api/updateClientSideIdMapping`,
 
   ]
 
@@ -524,10 +526,10 @@ export class LoaderInterceptor implements HttpInterceptor {
       }
     });
 
-    // Pattern match for v2 timesheet APIs with dynamic paths (e.g. /123, /document/getById/456, update?timesheetId=1)
-    if (!showLoader && request.url.includes('api/v2/timesheet')) {
-      showLoader = true;
-    }
+    // // Pattern match for v2 timesheet APIs with dynamic paths (e.g. /123, /document/getById/456, update?timesheetId=1)
+    // if (!showLoader && request.url.includes('api/v2/timesheet')) {
+    //   showLoader = true;
+    // }
 
     if (showLoader) {
       request = request.clone({

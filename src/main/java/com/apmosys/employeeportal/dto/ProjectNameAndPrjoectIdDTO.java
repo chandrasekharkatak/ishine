@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.dto;
 
-import lombok.AllArgsConstructor;
+import java.util.Date;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -15,6 +16,8 @@ public class ProjectNameAndPrjoectIdDTO {
 	private Integer projectId;
 	private String projectName;
 	private String internalProjectType;
+	private String projectType;
+	private Date startDate;
 	private String poProjectType;
 	private Boolean hasClientFlag;
 	private Boolean hasClientSideId;
@@ -38,10 +41,23 @@ public class ProjectNameAndPrjoectIdDTO {
 		this.internalProjectType = internalProjectType;
 		this.poProjectType = poProjectType;
 	}
-	public ProjectNameAndPrjoectIdDTO(Integer projectId, String projectName, Boolean clientFlag, Boolean hasClientSideId) {
+
+	public ProjectNameAndPrjoectIdDTO(Integer projectId, String projectName, Boolean clientFlag,
+			Boolean hasClientSideId) {
 		this.projectId = projectId;
 		this.projectName = projectName;
 		this.hasClientFlag = clientFlag;
 		this.hasClientSideId = hasClientSideId;
+	}
+
+	public ProjectNameAndPrjoectIdDTO(Integer projectId, String projectName, String internalProjectType,
+			String poProjectType, String projectType, Date startDate) {
+		super();
+		this.projectId = projectId;
+		this.projectName = projectName;
+		this.internalProjectType = internalProjectType;
+		this.poProjectType = poProjectType;
+		this.projectType = projectType;
+		this.startDate = startDate;
 	}
 }

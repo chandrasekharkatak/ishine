@@ -79,7 +79,7 @@
                 [selectedDate]="selectedDate"
                 [autoFillEmpId]="selectedEmpIdForCreate"
                 [timesheetId]="null"
-                (timesheetCreated)="resetTimesheetForm(); showViewMyTimesheets()"
+                (timesheetCreated)="resetTimesheetForm(); showViewMyTimesheets(); loadTimesheetSummary()"
                 (timesheetUpdated)="onTimesheetUpdated($event)"
                 (cancel)="resetTimesheetForm()">
             </app-timesheet-form>
@@ -96,7 +96,7 @@
                 [isUpdation]="true"
                 [selectedDate]="selectedDate"
                 [timesheetId]="selectedTimesheetId"
-                (timesheetCreated)="resetTimesheetForm(); showViewMyTimesheets()"
+                (timesheetCreated)="resetTimesheetForm(); showViewMyTimesheets(); loadTimesheetSummary()"
                 (timesheetUpdated)="onTimesheetUpdated($event)"
                 (cancel)="resetTimesheetForm()">
             </app-timesheet-form>
@@ -348,18 +348,43 @@
 <!-- start :: View Timesheets -->
 <div class="row" *ngIf="isTimesheetTable">
     <div class="col-md-12">
-        <!-- <div class="row">
-            <div class="col-md-12 table-header">
-                <h1 class="table-header-title">My Timesheets</h1>
+        <!-- Summary mini-dashboard -->
+        <div class="summary-dashboard mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="summary-title mb-0">Timesheet Summary</h5>
+                <small class="text-muted d-none d-md-inline">
+                    Snapshot of filled / approved / rejected timesheets
+                </small>
             </div>
+            <div class="summary-card-grid">
+                <div class="summary-card" *ngFor="let card of summaryCards">
+                    <div class="summary-card-left">
+                        <div class="summary-card-label">{{ card.title }}</div>
+                        <div class="summary-card-value">{{ card.filled }}</div>
+                        <div class="summary-card-subtitle">
+                            <span class="summary-pill summary-pill-approved">
+                                <i class="fa fa-check-circle"></i> {{ card.approved }} Approved
+                            </span>
+                            <span class="summary-pill summary-pill-rejected" *ngIf="card.rejected > 0">
+                                <i class="fa fa-times-circle"></i> {{ card.rejected }} Rejected
+                            </span>
+                        </div>
+                        <div class="summary-card-subtitle">{{ card.subtitle }}</div>
+                    </div>
+                    <div class="summary-card-icon">
+                        <i [ngClass]="card.iconClass"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        </div> -->
-        <div class="row">
+        <!-- Self / Team toggle -->
+        <div class="row mb-2">
             <div class="col-md-12">
                 <button type="button" class="btn btn-outline-primary btn-sm mx-1"
                     [ngClass]="{'active' : isSelfTimesheets}" (click)="showSelfTimesheets()">Self</button>
                 <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-                    [ngClass]="{'active' : isTeamTimesheets}" (click)="showTeamTimesheets()">For Team</button>
+                    [ngClass]="{'active' : isTeamTimesheets}" (click)="getMyTeamTimesheets()">For Team</button>
             </div>
         </div>
         <div class="row">
@@ -438,18 +463,18 @@
                                 <th scope="col" class="info-label column-md" mat-sort-header="dayType|string">Day
                                     Type
                                 </th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="officeInTime|datetime">In
+                                <th scope="col" class="info-label column-md" mat-sort-header="workCheckIn|datetime">In
                                     Time</th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="officeOutTime|datetime">
+                                <th scope="col" class="info-label column-md" mat-sort-header="workCheckOut|datetime">
                                     Out Time</th>
-                                <th scope="col" class="info-label" mat-sort-header="totalWorkingOfficeHours|string">
+                                <th scope="col" class="info-label" mat-sort-header="totalWorkingMinutes|number">
                                     Total Working Hours</th>
-                                <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+                                <th scope="col" class="info-label" mat-sort-header="statusDisplay|string">Status</th>
                                 <th *ngIf="isSelfTimesheets" scope="col" class="info-label column-md"
                                     mat-sort-header="createdByName|string">Applied By</th>
                                 <th scope="col" class="info-label column-md" mat-sort-header="createdOn|datetime">
                                     Applied On</th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="isNightShift|string">
+                                <th scope="col" class="info-label column-md" mat-sort-header="isNightShiftDisplay|string">
                                     Shift
                                 </th>
                                 <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type
@@ -494,7 +519,7 @@
                                     <td>{{timesheet.dayType}}</td>
                                     <td>{{timesheet.workCheckIn || "NA"}}</td>
                                     <td>{{timesheet.workCheckOut || "NA"}}</td>
-                                    <td>{{getTotalWorkingHours(timesheet.totalWorkingMinutes)}}</td>
+                                    <td>{{getTotalWorkingHours(timesheet.totalWorkingMinutes , false)}}</td>
                                     <td>
                                         <span class="badge" 
                                               [ngClass]="{
@@ -626,7 +651,7 @@
                                                                             <i class="fas fa-tasks mr-2 text-success"></i>
                                                                             <strong>{{activity.activity}}</strong>
                                                                             <span class="ml-3 badge badge-light">
-                                                                                {{getTotalWorkingHours(activity.durationMinutes)}} hrs
+                                                                                {{getTotalWorkingHours(activity.durationMinutes,true)}} hrs
                                                                             </span>
                                                                         </div>
                                                                     </div>

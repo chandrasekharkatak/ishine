@@ -462,3 +462,14 @@
 .justify-evenly {
     justify-content: space-evenly !important;
 }
+
+::ng-deep .modal-dialog.modal-lg.no-modal-content .modal-content {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}

@@ -1,6 +1,10 @@
 package com.apmosys.employeeportal.service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -14,10 +18,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.ClientAddressSyncDto;
 import com.apmosys.employeeportal.dto.ClientDetailsSyncDto;
+import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
+import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.ClientLocation;
+import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.repository.ClientLocationRepository;
 import com.apmosys.employeeportal.repository.ClientsRepository;
+import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
+import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.utility.ExceptionLogContext;
 
 @Service
@@ -28,6 +38,16 @@ public class ClientService {
 	
 	@Autowired
 	ClientLocationRepository clientLocationRepository;
+	
+	@Autowired
+	TeamRepository teamRepository;
+
+	@Autowired
+	EmployeeTeamMapRepository employeeTeamMapRepository;
+	
+	@Autowired
+	ProjectRepository projectRepository;
+
 	
 	 public Client resolveClient(String clientName,Long poClientId) {
 		 
@@ -345,130 +365,236 @@ public class ClientService {
 		    return clientLocationRepository.save(cl);
 		}
 
-	    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-	    public int[] processSingleClientByName(ClientDetailsSyncDto poDto,Client iShineClient) {
-		 
-		 	int updated = 0;
-	        int inserted = 0;
-
-	        if (iShineClient != null) {
-
-	            if (!Objects.equals(iShineClient.getPoClientId(), poDto.getClientid())) {
-	                iShineClient.setPoClientId(poDto.getClientid());
-	                updated++;
-	            }
-
-	            syncClientLocations(iShineClient, poDto, false);
-
-	        } else {
-
-	            Client newClient = new Client();
-	            newClient.setClientName(poDto.getClientName());
-	            newClient.setPoClientId(poDto.getClientid());
-
-	            clientRepository.save(newClient);
-	            inserted++;
-
-	            syncClientLocations(newClient, poDto, true);
-	        }
-
-	        return new int[] { updated, inserted };
-	    }
 	 @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-	    public int[] processSingleClientByPoId(ClientDetailsSyncDto poDto,Client iShineClient) {
+	 public int[] processSingleClientByName(ClientDetailsSyncDto poDto,Client iShineClient,
+	 		       List<ClientLocation> existingLocations) {
 
-	        int updated = 0;
-	        int inserted = 0;
+	 	int updated = 0;
+	 	int inserted = 0;
 
-	        if (iShineClient != null) {
+	 	if (iShineClient != null) {
+	 		if (!Objects.equals(iShineClient.getPoClientId(), poDto.getClientid())) {
+	 			iShineClient.setPoClientId(poDto.getClientid());
+	 			clientRepository.save(iShineClient);
+	 			updated++;
+	 		}
+	 		updated += syncClientLocations(iShineClient, poDto, false, existingLocations);
 
-	            if (!iShineClient.getClientName().trim().equalsIgnoreCase(poDto.getClientName().trim()))
-	            {
-	            	iShineClient.setClientName(poDto.getClientName());
-	                updated++;
-	            }
+	 	} else {
+	 		Client newClient = new Client();
+	 		newClient.setClientName(poDto.getClientName());
+	 		newClient.setPoClientId(poDto.getClientid());
 
-	            syncClientLocations(iShineClient, poDto, false);
+	 		clientRepository.save(newClient);
 
-	        } else {
+	 		inserted++;
 
-	            Client newClient = new Client();
-	            newClient.setClientName(poDto.getClientName());
-	            newClient.setPoClientId(poDto.getClientid());
-	            clientRepository.save(newClient);
-	            inserted++;
+	 		updated += syncClientLocations(newClient, poDto, true, new ArrayList<>());
+	 	}
 
-	            syncClientLocations(newClient, poDto, true);
-	        }
+	 	return new int[]{updated, inserted};
+	 }	    
+	    
+	    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+	    public int[] processSingleClientByPoId(ClientDetailsSyncDto poDto,Client iShineClient,
+	    		List<ClientLocation> existingLocations) {
 
-	        return new int[] { updated, inserted };
-	    }
-	 
-	 private void syncClientLocations(Client iShineClient, ClientDetailsSyncDto poDto,Boolean isNew) {
+	    	int updated = 0;
+	    	int inserted = 0;
 
-			if (poDto.getClientAddress() == null || poDto.getClientAddress().isEmpty()) {
-				return;
-			}
+	    	if (iShineClient != null) {
+	    		if (!iShineClient.getClientName().trim().equalsIgnoreCase(poDto.getClientName().trim())) {
 
-			List<ClientLocation> iShineLocations = clientLocationRepository.findByClientIdPK(iShineClient.getClientId());
+	    			iShineClient.setClientName(poDto.getClientName());
+	    			clientRepository.save(iShineClient);
+	    			updated++;
+	    		}
 
-			Map<String, ClientLocation> iShineLocationMap = iShineLocations.stream().collect(
-					Collectors.toMap(loc -> loc.getClientLocation().trim().toLowerCase(), 
-							loc -> loc
-							, (e1, e2) -> e1));
+	    		updated += syncClientLocations(iShineClient, poDto, false, existingLocations);
 
-			List<ClientLocation> locationsToSave = new ArrayList<>();
+	    	} else {
 
-			for (ClientAddressSyncDto poLocationDto : poDto.getClientAddress()) {
+	    		Client newClient = new Client();
 
-				if (poLocationDto.getClientLocation() == null)
-					continue;
+	    		newClient.setClientName(poDto.getClientName());
+	    		newClient.setPoClientId(poDto.getClientid());
+	    		clientRepository.save(newClient);
+	    		inserted++;
 
-				String poLoc = poLocationDto.getClientLocation().trim().toLowerCase();
-				ClientLocation existingLocation = iShineLocationMap.get(poLoc);
+	    		updated += syncClientLocations(newClient, poDto, true, new ArrayList<>());
+	    	}
 
-				if (existingLocation != null) {
+	    	return new int[]{updated, inserted};
+	    }	 
+	    
+	    private int syncClientLocations(Client iShineClient,ClientDetailsSyncDto poDto,
+                Boolean isNew,List<ClientLocation> iShineLocations) {
 
-					boolean updated = false;
+	    	if (poDto.getClientAddress() == null || poDto.getClientAddress().isEmpty()) {
+	    		return 0;	}
 
-					if (existingLocation.getClientState() == null && poLocationDto.getClientState() != null) {
-						existingLocation.setClientState(poLocationDto.getClientState());
-						updated = true;
-					}
+	    	Map<String, ClientLocation> iShineLocationMap = iShineLocations.stream()
+	    				.collect(Collectors.toMap(
+	    							loc -> loc.getClientLocation().trim().toLowerCase(),
+	    							loc -> loc,
+	    							(e1, e2) -> e1));
 
-					if (existingLocation.getClientAddressId() == null && poLocationDto.getClientAddressId() != null) {
-						existingLocation.setClientAddressId(poLocationDto.getClientAddressId());
-						updated = true;
-					}
+	    	List<ClientLocation> locationsToSave = new ArrayList<>();
 
-					if (updated) {
-						locationsToSave.add(existingLocation);
-					}
+	    	for (ClientAddressSyncDto poLocationDto : poDto.getClientAddress()) {
+	    		String clientLocation = poLocationDto.getClientLocation();
+	    		if (clientLocation == null) { continue; }
 
-				} else {
-					ClientLocation newLocation = new ClientLocation();
-					newLocation.setClientId(iShineClient.getClientId());
-					newLocation.setClientLocation(poLocationDto.getClientLocation());
-					newLocation.setClientState(poLocationDto.getClientState());
-					newLocation.setClientAddressId(poLocationDto.getClientAddressId());
+	    		String poLoc = clientLocation.trim().toLowerCase();
+	    		ClientLocation existingLocation = iShineLocationMap.get(poLoc);
 
-					locationsToSave.add(newLocation);
-				}
-			}
-			
-			if(isNew) {
-				ClientLocation newLocation = new ClientLocation();
-				newLocation.setClientId(iShineClient.getClientId());
-				newLocation.setClientLocation("WFH");
-//				newLocation.setClientState(poLocationDto.getClientState());
-//				newLocation.setClientAddressId(poLocationDto.getClientAddressId());
+	    			if (existingLocation == null) {
+	    			
+	    				ClientLocation newLocation = new ClientLocation();
+	    				newLocation.setClientId(iShineClient.getClientId());
+	    				newLocation.setClientLocation(clientLocation);
+	    				newLocation.setClientState(poLocationDto.getClientState());
+	    				newLocation.setClientAddressId(poLocationDto.getClientAddressId());
+	    				locationsToSave.add(newLocation);
+	    				continue;
+	    			}
 
-				locationsToSave.add(newLocation);
-			}
+	    			boolean updated = false;
 
-			if (!locationsToSave.isEmpty()) {
-				clientLocationRepository.saveAll(locationsToSave);
-			}
+	    			if (existingLocation.getClientState() == null && poLocationDto.getClientState() != null) {
+	    				existingLocation.setClientState(poLocationDto.getClientState());
+	    				updated = true;
+	    			}
+
+	    			if (existingLocation.getClientAddressId() == null && poLocationDto.getClientAddressId() != null) {
+	    				existingLocation.setClientAddressId(poLocationDto.getClientAddressId());
+	    				updated = true;
+	    			}
+
+	    			if (updated) {locationsToSave.add(existingLocation);}
+	    		}
+
+	    	if (isNew) {
+	    		ClientLocation newLocation = new ClientLocation();
+	    		newLocation.setClientId(iShineClient.getClientId());
+	    		newLocation.setClientLocation("WFH");
+	    		locationsToSave.add(newLocation);
+	    	}
+
+	    	if (!locationsToSave.isEmpty()) {
+	    		clientLocationRepository.saveAll(locationsToSave);
+	    	}
+	    	
+	    	return locationsToSave.size();
+	    	
+	    }	    
+	    
+	 public void updateProjectAfterSuccessfulSync(
+		        Project project,
+		        ProjectPoMappingWithResourceDTO projectDto) {
+
+		    if (project == null || projectDto == null) {
+		        return;
+		    }
+
+		   
+		    if (projectDto.getClientId() != null) {
+		        project.setPoClientId(projectDto.getClientId());
+		    }
+
+		    List<PoDetailsForProjectPoMappingDTO> poList = projectDto.getPoDetailsList();
+
+		    LocalDateTime minPoStart = null;
+		    LocalDateTime maxPoEnd = null;
+
+		    
+		    if (poList != null && !poList.isEmpty()) {
+
+		    	minPoStart = poList.stream()
+		                .map(p -> (LocalDateTime) convert(p.getPoStartDate()))
+		                .filter(Objects::nonNull)
+		                .min(LocalDateTime::compareTo)
+		                .orElse(null);
+
+		        maxPoEnd = poList.stream()
+		                .map(p -> (LocalDateTime) convert(p.getPoEndDate()))
+		                .filter(Objects::nonNull)
+		                .max(LocalDateTime::compareTo)
+		                .orElse(null);
+		        
+		        
+		    }
+
+		    
+
+		    List<Long> teamIds =
+		            teamRepository.findTeamIdsByProjectId(project.getProjectId());
+
+		    LocalDateTime employeeMinStart = null;
+
+		    if (teamIds != null && !teamIds.isEmpty()) {
+
+		        employeeMinStart =
+		                employeeTeamMapRepository
+		                        .findMinEmployeeStartDateByTeamIds(teamIds);
+		    }
+
+		    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+		    
+
+		    LocalDateTime finalStart = null;
+
+		    if (minPoStart != null && employeeMinStart != null) {
+
+		        finalStart =
+		                minPoStart.isBefore(employeeMinStart)
+		                        ? minPoStart
+		                        : employeeMinStart;
+
+		    } else if (minPoStart != null) {
+
+		        finalStart = minPoStart;
+
+		    } else if (employeeMinStart != null) {
+
+		        finalStart = employeeMinStart;
+		    }
+
+		   
+
+		    if (finalStart != null) {
+
+		        project.setStartDate(
+		                finalStart.toLocalDate().format(formatter));
+		    }
+
+		   
+
+		    if (maxPoEnd != null) {
+
+		        project.setEndDate(
+		                maxPoEnd.toLocalDate().format(formatter));
+		    }
+
+		   
+
+		    projectRepository.save(project);
+		}
+		
+		
+		private LocalDateTime convert(Date date) {
+		    if (date == null) return null;
+
+		    if (date instanceof java.sql.Date) {
+		        return ((java.sql.Date) date)
+		                .toLocalDate()
+		                .atStartOfDay();
+		    }
+
+		    return date.toInstant()
+		            .atZone(ZoneId.systemDefault())
+		            .toLocalDateTime();
 		}
 	 
 

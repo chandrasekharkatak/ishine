@@ -302,8 +302,8 @@ public class ProjectController {
 	
 	// @Encrypted
 	@GetMapping("/getEmployeeExistingProjectDetailsByEmpId")
-	public ServiceResponse getEmployeeExistingProjectDetailsByEmpId(@RequestParam Long empId) {
-		return projectService.getEmployeeExistingProjectDetailsByEmpId(empId);
+	public ServiceResponse getEmployeeExistingProjectDetailsByEmpId(@RequestParam Long empId, @RequestParam Integer projectId) {
+		return projectService.getEmployeeExistingProjectDetailsByEmpId(empId, projectId);
 	}
 	
 	// @Encrypted

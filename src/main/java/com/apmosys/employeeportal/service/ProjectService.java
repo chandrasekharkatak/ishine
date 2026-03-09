@@ -994,38 +994,20 @@ public class ProjectService {
 	 * - Po Project Sync API : start
 	 */
 
-	public List<Employee> getEmployeesByEmployeementIds(List<String> employeementIds) {
+	public List<Employee> getEmployeesByEmployeementIds(List<Long> empIds) {
 		List<Employee> employeeList = new ArrayList<>();
-
-		if (employeementIds != null) {
-			for (String employeementId : employeementIds) {
-				if (employeementId != null && !employeementId.isEmpty()) {
-					try {
-						Long employmentId;
-
-						if (employeementId.contains("-")) {
-							String[] parts = employeementId.split("-");
-							if (parts.length == 2) {
-								employmentId = Long.parseLong(parts[1]);
-							} else {
-								continue;
-							}
-						} else {
-							employmentId = Long.parseLong(employeementId);
-						}
-
-						Employee employeeObj = employeeRepository.findByEmployeementId(employmentId);
+		try {
+				if (empIds != null && !empIds.isEmpty()) {
+					for (Long empId : empIds) {
+						Employee employeeObj = employeeRepository.findByEmpId(empId);
 						if (employeeObj != null) {
 							employeeList.add(employeeObj);
 						}
-
-					} catch (NumberFormatException e) {
-						continue;
 					}
 				}
-			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-
 		return employeeList;
 	}
 
@@ -1076,33 +1058,35 @@ public class ProjectService {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Please provide PoProject Manager Id.");
 					return response;
-				} else if (!poProjectSyncDTO.getPoProjectManagers().isEmpty()) {
-					for (String managerId : poProjectSyncDTO.getPoProjectManagers()) {
-						try {
-							// Split by "-" and parse the numeric part
-							String[] parts = managerId.split("-");
-							if (parts.length != 2) {
-								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-								response.setServiceResponse("Invalid manager ID format: " + managerId);
-								return response;
-							}
-
-							Long empId = Long.parseLong(parts[1]);
-
-							if (!validationService.validateEmploymentId(empId)) {
-								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-								response.setServiceResponse(
-										"No user exists as project manager with EmpId: " + managerId);
-								return response;
-							}
-
-						} catch (NumberFormatException e) {
-							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-							response.setServiceResponse("Invalid number in manager ID: " + managerId);
-							return response;
-						}
-					}
-				}
+				} 
+				//temp commentend for link po testing
+//				else if (!poProjectSyncDTO.getPoProjectManagers().isEmpty()) {
+//					for (String managerId : poProjectSyncDTO.getPoProjectManagers()) {
+//						try {
+//							// Split by "-" and parse the numeric part
+//							String[] parts = managerId.split("-");
+//							if (parts.length != 2) {
+//								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//								response.setServiceResponse("Invalid manager ID format: " + managerId);
+//								return response;
+//							}
+//
+//							Long empId = Long.parseLong(parts[1]);
+//
+//							if (!validationService.validateEmploymentId(empId)) {
+//								response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//								response.setServiceResponse(
+//										"No user exists as project manager with EmpId: " + managerId);
+//								return response;
+//							}
+//
+//						} catch (NumberFormatException e) {
+//							response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//							response.setServiceResponse("Invalid number in manager ID: " + managerId);
+//							return response;
+//						}
+//					}
+//				}
 				if (poProjectSyncDTO.getPoClientId() == null) {
 					response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 					response.setServiceResponse("Please provide PoClient Id.");
@@ -3172,7 +3156,7 @@ public class ProjectService {
 				apiLogInfo.setApiResponse("Project Id cannot be null!");
 				return serviceResponse;
 			} else {
-				Project project = projectRepository.findByPoProjectId(projectDto.getPoProjectId());
+				Project project = projectRepository.findByProjectId(projectDto.getPoProjectId().intValue());
 				if (project == null) {
 					apiLogInfo.setApiResponse("Project not found!");
 					serviceResponse.setServiceResponse("Project not found!");
@@ -3969,7 +3953,7 @@ public class ProjectService {
 	}
 
 	@Transactional(readOnly = true)
-	public ServiceResponse getEmployeeExistingProjectDetailsByEmpId(Long empId) {
+	public ServiceResponse getEmployeeExistingProjectDetailsByEmpId(Long empId, Integer projectId) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		try {
 			if (empId == null) {
@@ -3977,9 +3961,14 @@ public class ProjectService {
 				serviceResponse.setServiceResponse("Employee Id cannot be null!!");
 				return serviceResponse;
 			}
+			if(projectId == null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Project Id cannot be null!!");
+				return serviceResponse;
+			}
 
 			List<PoTeamAndMemberDetailsDto> employeeExistingProjectDetailsList = projectRepository
-					.getEmployeeExistingProjectDetailsByEmpId(empId);
+					.getEmployeeExistingProjectDetailsByEmpId(empId, projectId);
 
 			if (employeeExistingProjectDetailsList == null || employeeExistingProjectDetailsList.isEmpty()) {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -4301,10 +4290,10 @@ public class ProjectService {
 			projectDTO.setProjectName(project.getProjectName());
 			List<Object[]> result = projectManagerMappingRepository
 					.findProjectManagersPerProject(Long.parseLong(project.getProjectId().toString()));
-			List<String> projectManagerIds = new ArrayList<>();
+			List<Long> projectManagerIds = new ArrayList<>();
 			for (Object[] obj : result) {
 				if (obj[2] != null) {
-					projectManagerIds.add(obj[2].toString());
+					projectManagerIds.add((Long) obj[2]);
 				}
 			}
 			projectDTO.setPoProjectManagers(projectManagerIds);

@@ -1069,10 +1069,11 @@ flex-wrap: wrap;
 /* DESIGN TOKENS – Enterprise theme             */
 /* ============================================ */
 .timesheet-form-wrapper {
-  --ts-primary: #1e40af;
-  --ts-primary-dark: #1e3a8a;
-  --ts-primary-light: #3b82f6;
-  --ts-accent: #0f172a;
+  /* Softer, light enterprise palette scoped only to the timesheet form */
+  --ts-primary: #60a5fa;
+  --ts-primary-dark: #3b82f6;
+  --ts-primary-light: #bfdbfe;
+  --ts-accent: #334155;
   --ts-border: #e2e8f0;
   --ts-border-hover: #cbd5e1;
   --ts-text: #1e293b;
@@ -1705,6 +1706,31 @@ flex-wrap: wrap;
   box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3);
 }
 
+/* Simple radio group for 'Timesheet Application For' */
+.radio-group-simple {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.radio-simple {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--ts-text);
+}
+
+.radio-simple input[type="radio"] {
+  margin: 0;
+  accent-color: var(--ts-primary);
+}
+
+.radio-simple span {
+  font-weight: 500;
+}
+
 .image-preview-wrapper {
   display: flex;
   flex-direction: column;
@@ -1795,7 +1821,7 @@ flex-wrap: wrap;
 }
 
 .day-night-toggle input:checked + .toggle-track {
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  background: linear-gradient(135deg, var(--ts-primary-light), var(--ts-primary));
 }
 
 .toggle-thumb {
@@ -1821,7 +1847,7 @@ flex-wrap: wrap;
 }
 
 .day-night-toggle input:checked + .toggle-track .toggle-thumb i {
-  color: #1e3c72;
+  color: var(--ts-primary-dark);
 }
 
 .highlight-location {
@@ -2279,7 +2305,7 @@ flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   padding: 10px 24px;
-  background: #4f46e5;
+  background: var(--ts-primary);
   color: white;
   border: none;
   border-radius: 8px;
@@ -2293,7 +2319,7 @@ flex-wrap: wrap;
 
 .btn-create-timesheet:hover,
 .btn-update-timesheet:hover {
-  background: #4338ca;
+  background: var(--ts-primary-dark);
 }
 
 .btn-create-timesheet:active,
@@ -2436,13 +2462,13 @@ flex-wrap: wrap;
    PHASE 1 REDESIGN - Header & Basic Information Section
    ======================================================================== */
 
-/* --- Header Section V2 --- */
+/* --- Header Section V2 (same style as location-header) --- */
 .form-header-card-v2 {
-  background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+  background: linear-gradient(135deg, var(--ts-primary-dark) 0%, var(--ts-primary) 100%);
   border-radius: 12px;
   padding: 16px 20px;
   margin-bottom: 20px;
-  box-shadow: 0 4px 12px rgba(129, 140, 248, 0.2);
+  box-shadow: var(--ts-shadow-md);
   position: relative;
   overflow: hidden;
 }
@@ -2454,7 +2480,7 @@ flex-wrap: wrap;
   right: -50%;
   width: 100%;
   height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 60%);
+  background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
   pointer-events: none;
 }
 
@@ -2496,7 +2522,7 @@ flex-wrap: wrap;
 .header-title-v2 {
   font-size: 17px;
   font-weight: 600;
-  color: #ffffff;
+  color: white;
   margin: 0;
 }
 
@@ -2515,9 +2541,10 @@ flex-wrap: wrap;
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.25);
   padding: 6px 12px;
   border-radius: 20px;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
 }
 
 .badge-icon-v2 {
@@ -2538,7 +2565,7 @@ flex-wrap: wrap;
 .update-mode-badge-v2 span {
   font-size: 12px;
   font-weight: 600;
-  color: #ffffff;
+  color: white;
 }
 
 /* --- Info Card V2 --- */
@@ -2848,12 +2875,10 @@ flex-wrap: wrap;
   margin-bottom: 10px;
 }
 
-.field-day-type {
-  flex: 0 0 200px;
-}
-
+.field-day-type,
 .field-date {
-  flex: 0 0 200px;
+  flex: 0 0 230px;
+  max-width: 230px;
 }
 
 .field-night-shift {
@@ -2871,6 +2896,9 @@ flex-wrap: wrap;
   border-radius: 10px !important;
   border: 2px solid #e2e8f0 !important;
   background: #f8fafc !important;
+  height: 50px !important;
+  display: flex;
+  align-items: center;
 }
 
 /* --- Night Shift Toggle V2 --- */
@@ -3054,3 +3082,87 @@ flex-wrap: wrap;
   }
 }
 
+/* CSS */
+.modern-select-wrapper {
+  width: 100%;
+  max-width: 340px;
+}
+
+.modern-select-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.modern-select-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1.5px solid #dbe2ea;
+  border-radius: 12px;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+}
+
+.modern-select-box:hover {
+  border-color: #b8c4d6;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+}
+
+.modern-select-box:focus-within {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.12);
+  background: #ffffff;
+}
+
+.modern-select-box.disabled {
+  background: #f1f5f9;
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.modern-select-icon {
+  position: absolute;
+  left: 14px;
+  color: #64748b;
+  font-size: 14px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.modern-select-arrow {
+  position: absolute;
+  right: 14px;
+  color: #64748b;
+  font-size: 12px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.modern-select {
+  width: 100%;
+  padding: 12px 38px 12px 40px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+}
+
+.modern-select:disabled {
+  cursor: not-allowed;
+}
+
+.modern-select option {
+  color: #334155;
+  background: #ffffff;
+}

@@ -39,7 +39,7 @@ public class ClientLocation {
 	private Timestamp createdOn;
 	
 	
-	private Long poId;
+//	private Long poId;
 	
 	
 	

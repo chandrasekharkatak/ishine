@@ -80,6 +80,7 @@ public class RmgTeamMemberDto {
 
 	private List<Long> selectedEmpIds;
 	private List<EmployeeOtherActiveProject> otherActiveProjects;
+	private List<Integer> projectIds;
 
 	public RmgTeamMemberDto(String memberName, String employeeRole, List<String> employeeRoles, LocalDateTime startDate,
 			LocalDateTime endDate, Integer isShadow, Long isMemberActive, boolean defaultProject) {

@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -600,7 +601,7 @@ public class TimesheetValidationHelper {
                     Integer projectId = project.getProjectId();
                     
                     if(project.getIsShadowForSelf()) continue;
-                    if(project.getIsShadowTimesheet()) continue;
+                    if(Boolean.TRUE.equals(project.getIsShadowTimesheet()) && project.getClientApprovalStatus() == null) continue;
 
                     // Check if client-side document is mandatory for this project
                     Boolean isClientSideMandatory =
@@ -669,7 +670,7 @@ public class TimesheetValidationHelper {
 				if (location.getProjects() == null) continue;
 				for (ProjectTimesheetDTO project : location.getProjects()) {
 					if (project.getIsShadowForSelf()) continue;
-					if (project.getIsShadowTimesheet()) continue;
+					if (Boolean.TRUE.equals(project.getIsShadowTimesheet()) && project.getClientApprovalStatus() == null) continue;
 					if (Boolean.TRUE.equals(projectRepository.getClientSideIdMandatory(project.getProjectId()))) {
 						targetProjectIdsWithClientSide.add(project.getProjectId());
 						projectMap.put(project.getProjectId(), project);
@@ -1263,7 +1264,7 @@ public class TimesheetValidationHelper {
         LocalDate existingDate = existingEntity.getDate();
         LocalDate incomingDate = incomingDTO.getDate();
 
-        if (existingDate == null || incomingDate == null) {
+        if (incomingDate == null) {
             throw new TimesheetValidationFailedException(
                     "Please select a date."
             );
@@ -1281,14 +1282,14 @@ public class TimesheetValidationHelper {
 
         if (existingEntity == null || incomingDTO == null) {
             throw new TimesheetValidationFailedException(
-                    "Unable to process update. Please try again."
+                    "Unable to process update due to invalid request. Please try again."
             );
         }
 
         Long existingEmpId = existingEntity.getEmpId();
         Long incomingEmpId = incomingDTO.getEmpId();
 
-        if (existingEmpId == null || incomingEmpId == null) {
+        if (incomingEmpId == null) {
             throw new TimesheetValidationFailedException(
                     "Please select an employee."
             );
@@ -1297,18 +1298,11 @@ public class TimesheetValidationHelper {
         // If employee ID is not changing → nothing to validate
         if (existingEmpId.equals(incomingEmpId)) {
             return;
+        }else {
+        	throw new TimesheetValidationFailedException(
+                    "Employee cannot be changed because the timesheet has approved projects.");
         }
 
-        // Check if any project is approved
-        boolean hasApprovedProject =
-                projectTimesheetService
-                        .existsApprovedProject(existingEntity.getTimesheetId());
-
-        if (hasApprovedProject) {
-            throw new TimesheetValidationFailedException(
-                    "Employee cannot be changed because the timesheet has approved projects."
-            );
-        }
     }
 
 
@@ -2062,8 +2056,8 @@ public class TimesheetValidationHelper {
 
 	    for (Object[] row : result) {
 	        Integer projectId = ((Number) row[0]).intValue();
-	        Boolean hasClientSideId = (Boolean) row[1];
-	        Boolean clientFlag = (Boolean) row[2];
+	         Boolean hasClientSideId = row[1] != null ? (Boolean) row[1] : false;
+    Boolean clientFlag = row[2] != null ? (Boolean) row[2] : false;
 
 	        projectRulesMap.put(projectId, new boolean[]{hasClientSideId, clientFlag});
 	    }

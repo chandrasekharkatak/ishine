@@ -2,6 +2,8 @@ import { Component, Input, OnInit, TemplateRef, Output, EventEmitter, ViewChild 
 import * as moment from 'moment';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { Timesheet } from 'src/app/models/timesheet';
+import { AuthenticationService } from 'src/app/services/authentication.service';
+import { User } from 'src/app/models/user';
 
 interface CalendarItem {
   day: string;
@@ -56,10 +58,13 @@ export class CalendarComponent implements OnInit {
   popUpDate: string = '';
    dateToDescription: { [key: string]: string[] } = {};
    dayType: string = '';
-
+currentUser:User;
   constructor(
     private modalService: NgbModal,
-  ) { }
+    private authenticationService: AuthenticationService
+  ) { 
+      this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+  }
 
   ngOnInit(): void {
     this.date.subtract(this.subtractmonth, 'months');
@@ -322,10 +327,22 @@ onHoverEnd(): void {
 }
 
 todayDate: string = new Date().toISOString().split('T')[0];
+sixDaysBefore = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000)
+  .toISOString()
+  .split('T')[0];
 
 onDayClick(day: CalendarItem): void {
   console.log("dayyyy",day);
   if (day.status === 'Not Filled') {
+    if(this.currentUser.isTimesheetLockCheckEnable == 'true' && this.sixDaysBefore > day.date.format('YYYY-MM-DD') ){
+     this.alertMessage = 'Timesheet is Locked for the selected date.';
+    this.modalRef = this.modalService.open(this.alertMessageTemplate, {
+      modalDialogClass: 'modal-md',
+      backdrop: 'static',
+      keyboard: false
+    });
+    return;
+    }
     this.openTimesheet.emit(day);
   } else if (day.status === 'Approved') {
     this.alertMessage = 'Timesheet is already approved.';

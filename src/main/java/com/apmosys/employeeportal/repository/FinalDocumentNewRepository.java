@@ -40,5 +40,22 @@ public interface FinalDocumentNewRepository extends JpaRepository<FinalDocumentN
         "and tdd.finalFlag = true \n"+
         "AND tdd.clientApprovalStatusId = 2")
     List<FinalDocumentDownloadDTO> getAllFinalDocumentsByEmpIdAndProjectIdInMonthAndYear(@Param("empIds") List<Long> empIds, @Param("projectIds") List<Integer> projectIds, @Param("month") Integer month, @Param("year") Integer year );
+
+    @Query("SELECT fdn from FinalDocumentNew fdn \n"+
+    "INNER JOIN TimesheetDocumentDetailsNew tdd on tdd.bulkApprovedDocId = fdn.finalDocId \n"+
+    "WHERE tdd.projectId = :projectId and tdd.timesheetId = :timesheetIds and tdd.finalFlag = true \n"+
+    "AND tdd.clientApprovalStatusId = 2"
+)
+List<FinalDocumentNew> getDocsByTimesheetIdAndFinalFlag(
+            @Param("timesheetIds") Long timesheetIds,
+            @Param("projectId") Integer projectId
+        );
+
+    //     @Query("DELETE FROM FinalDocumentNew fdn \n"+
+    //     "INNER JOIN TimesheetDocumentDetailsNew tdd on tdd.bulkApprovedDocId = fdn.finalDocId \n"+
+    //     "WHERE tdd.timesheetId = :timesheetId and tdd.projectId = :projectId")
+    // void deleteByTimesheetIdAndProjectId(@Param("timesheetId") Long timesheetId, @Param("projectId") Integer projectId);
+
+
 	
  }

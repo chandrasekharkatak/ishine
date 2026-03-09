@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.repository;
 
+import java.util.List;
+
 import javax.transaction.Transactional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,5 +22,7 @@ public interface TimesheetRejectionDetailsNewRepository extends JpaRepository<Ti
 	            "and t.projectId = :projectId"
 	    )
 	    void deleteRow(Long timesheetId, Long locationMappingId, Integer projectId);
-	
+
+		
+	List<TimesheetRejectionDetailsNew> findByTimesheetIdAndIsActive(Long timesheetId, Boolean isActive);
 }

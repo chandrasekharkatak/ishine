@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.utility;
 
 import org.hibernate.envers.RevisionListener;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.apmosys.employeeportal.model.CustomRevisionEntity;
@@ -14,13 +15,19 @@ public class CustomRevisionEntityListener implements RevisionListener {
 		entity.setUpdatedBy(getEmpId());
 	}
 	private long getEmpId(){
-		String empId= SecurityContextHolder.getContext().getAuthentication().getName();
-		try {
-			return Long.parseLong(empId);
-		}catch(Exception e) {
-			e.printStackTrace();
-			return 0l;
-		}
+		  Authentication auth = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+
+        if (auth == null || auth.getName() == null) {
+            return 1L; // system / cron job
+        }
+
+        try {
+            return Long.parseLong(auth.getName());
+        } catch (Exception e) {
+            return 0L;
+        }
 	}
 	
 

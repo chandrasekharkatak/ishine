@@ -48,7 +48,8 @@ import com.apmosys.employeeportal.dto.TimesheetApprovalNewDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetProjectsDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqDTO;
 	import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO;
-	import com.apmosys.employeeportal.dto.TimesheetDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO;
 	import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqDTO;
 	import com.apmosys.employeeportal.dto.TimesheetDTO_new.GetReporteesTimesheetReqFlatDTO;
 	import com.apmosys.employeeportal.model.Employee;
@@ -1995,6 +1996,14 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 
         List<SkippedTimesheetDTO> skippedTimesheets = new ArrayList<>();
         List<Long> validTimesheetIds = new ArrayList<>();
+		 Map<Long, List<TimesheetDocumentDataDTO>> docsByTimesheet =
+                request.getDocumentDetails() == null
+                        ? new HashMap<>()
+                        : request.getDocumentDetails()
+                                .stream()
+                                .collect(Collectors.groupingBy(
+                                        TimesheetDocumentDataDTO::getTimesheetId
+                                ));
 
         for (EmployeeTimesheetsNewDTO ts : timesheets) {
 
@@ -2019,27 +2028,84 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
                 formattedEmpId,
                 ts.getDate(),
                 "You do not have approval/rejection rights"
-        ));
-        continue; // skip further checks for this timesheet
-    }
+				));
+				continue; // skip further checks for this timesheet
+			}
+
+			List<TimesheetDocumentDataDTO> docs =
+                    docsByTimesheet.get(ts.getTimesheetId());
+
+            if (docs != null) {
+
+				boolean shouldSkip = docs.stream().anyMatch(d -> {
+
+					Integer statusVal = d.getClientApprovalStatus();
+
+					// Case 1: null -> allow
+					if (statusVal == null) {
+						return false;
+					}
+
+					// Case 2: 1 -> always restrict
+					if (statusVal == 1) {
+						return true;
+					}
+
+					// Case 3: 2 -> require both docId and bulkApprovedDocId
+					if (statusVal == 2) {
+						return d.getDocId() == null || d.getBulkApprovedDocId() == null;
+					}
+
+					return false;
+				});
+
+				if (shouldSkip) {
+
+					skippedTimesheets.add(new SkippedTimesheetDTO(
+							ts.getTimesheetId(),
+							formattedEmpId,
+							ts.getDate(),
+							"Client approval conditions not satisfied"
+					));
+
+					continue;
+				}
+			}
+			
             Integer tsStatus = ts.getStatus();
-            if (tsStatus != null && tsStatus == 1) {
-                validTimesheetIds.add(ts.getTimesheetId());
-            } else if (tsStatus != null && tsStatus == 2) {
-                skippedTimesheets.add(new SkippedTimesheetDTO(
-                        ts.getTimesheetId(),
-                        formattedEmpId,
-                        ts.getDate(),
-                        "Already Approved"
-                ));
-            } else if (tsStatus != null && tsStatus == 3) {
-                skippedTimesheets.add(new SkippedTimesheetDTO(
-                        ts.getTimesheetId(),
-                        formattedEmpId,
-                        ts.getDate(),
-                        "Already Rejected"
-                ));
-            }
+
+			if (tsStatus == null) {
+				continue;
+			}
+
+			if (tsStatus == 1) {
+				validTimesheetIds.add(ts.getTimesheetId());
+			}
+
+			else if (tsStatus == 2) {
+
+				if ("REJECTED".equalsIgnoreCase(status)) {
+					// approved can be rejected
+					validTimesheetIds.add(ts.getTimesheetId());
+				} else {
+					skippedTimesheets.add(new SkippedTimesheetDTO(
+							ts.getTimesheetId(),
+							formattedEmpId,
+							ts.getDate(),
+							"Already Approved"
+					));
+				}
+			}
+
+			else if (tsStatus == 3) {
+
+				skippedTimesheets.add(new SkippedTimesheetDTO(
+						ts.getTimesheetId(),
+						formattedEmpId,
+						ts.getDate(),
+						"Already Rejected"
+				));
+			}
         }
 
         if (validTimesheetIds.isEmpty()) {
@@ -2053,7 +2119,7 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 
 			return response;
 		}
-        boolean isBulkOperation = validTimesheetIds.size() > 1;
+        boolean isBulkOperation = timesheetIdsReq.size() > 1;
 		if (isBulkOperation && !request.isConfirmNightShift()) {
 
 			List<Long> nightShiftTimesheetIds =
@@ -2157,6 +2223,17 @@ private void saveRejectionDetails(BulkTimesheetRequestDTO request) {
 
     for (Long timesheetId : timesheetIds) {
 
+		List<TimesheetRejectionDetailsNew> existingRejections = timesheetRejectionDetailsNewRepository.findByTimesheetIdAndIsActive(timesheetId, true);
+		List<TimesheetRejectionDetailsNew> toDeactivate = new ArrayList<>();
+		if (existingRejections != null && !existingRejections.isEmpty()) {
+			for (TimesheetRejectionDetailsNew rej : existingRejections) {
+				rej.setIsActive(false);
+				rej.setUpdatedBy(updatedBy);
+				rej.setUpdatedOn(now);
+				toDeactivate.add(rej);
+			}
+			timesheetRejectionDetailsNewRepository.saveAll(toDeactivate);
+		}
         for (ProjectRejectionDTO pr : projectRejections) {
 
             List<Long> projectIds = pr.getProjectIds();
@@ -2188,6 +2265,7 @@ private void saveRejectionDetails(BulkTimesheetRequestDTO request) {
 						rejection.setRemarks(remark);
 						rejection.setRejectedBy(updatedBy);
 						rejection.setRejectedOn(now);
+						rejection.setIsActive(true);
 						rejectionList.add(rejection);
 					}
 				}

@@ -70,8 +70,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   @Input() selectedDate: Date | null = null;
   @Input() autoFillEmpId: number | null = null; // Employee ID for whom timesheet should be auto-filled (used when manager creates timesheet on behalf of team member)
   @Input() timesheetId: number | null = null; // ID of timesheet to update
-  // @Input() isAutoFilled: boolean = false;  
+  // @Input() isAutoFilled: boolean = false;
   // Output events for parent component communication
+  @Output() timesheetCreated = new EventEmitter<void>();
   @Output() timesheetUpdated = new EventEmitter<number>();
   @Output() updateCancelled = new EventEmitter<void>();
   
@@ -156,6 +157,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     "Enter the client-side ID if already available.",
     "If the client-side ID is not yet assigned, enter “NA (ApMoSys Employee ID)”.",
     "Once the client-side ID is received, update the ID while filling subsequent timesheets."]
+  appelectMember: any;
   constructor(private teamViewService: TeamViewService,
     private timesheetService: TimesheetService,
     private timesheetNewService: TimesheetNewService,
@@ -292,7 +294,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
         if (this.autoFillEmpId) {
           this.applyAutoFillFrom360();
         } else {
-          this.onTimesheetAppliedForChange();
+        this.onTimesheetAppliedForChange();
         }
       });
   }
@@ -858,7 +860,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    * Open client side ID update/add modal
    */
   openClientSideTemplate(project: ProjectEntry): void {
-    this.empClientSideObj.clientSideId = '';
+    this.empClientSideObj.clientSideId = project?.clientSideId ?? '';
     this.empClientSideObj.projectId = project.projectId!;
     this.empClientSideObj.projectName = project.projectName;
     this.empClientSideObj.empId = this.timesheetFilledForUser.empId;
@@ -1164,7 +1166,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
         return;
       }
     }
-
+this.isNightShift = false;
+        this.toDate = null;
     const dayTypeFillable = this.isDayTypeFillable();
     this.clearAndInitOnDayTypeChange(dayTypeFillable);
     // if (!dayTypeFillable) {
@@ -1270,7 +1273,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
             };
 
             this.applyNonWorkingDisabledDates();
-          } else {
+    } else {
             // On failure, fall back to base behavior
             this.nonWorkingAllowedDates = [];
             this.nonWorkingRangeCache = null;
@@ -1449,7 +1452,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     if(isDayTypeFillable){
      this.disableAdd = false;
     }else{
-      this.disableAdd = true;
+    this.disableAdd = true;
     }
     
     this.expandedLocationIndex = 0;
@@ -1543,7 +1546,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       if (this.selectedDate) {
         this.loadAutofillData(this.formatDateDDMMYYYY(this.selectedDate));
       }else{
-        console.error("Invalid selection")
+      console.error("Invalid selection")
       }      
     }
   }
@@ -1665,7 +1668,6 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    * When user selects a different team member, form is reset so previous member's
    * projects/activities/locations are not shown (different member may have different assignments).
    */
-  appelectMember: any;
   onTeamMemberSelect(teamMemberOrId: any): void {
     // app-my-select emits only the value (empId), not the full object
     let teamMember: any = null;
@@ -1689,12 +1691,12 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       this.resetForm();
     }
 
-    this.timesheetFilledForUser.empId = teamMember.empId;
-    this.timesheetFilledForUser.name = teamMember.name;
-    this.selectedTeamMember = teamMember;
-    this.getTimesheetMetadata();
-    if (this.serverDate) {
-      this.getAllAvailableTimesheetByEmpId(this.timesheetFilledForUser);
+      this.timesheetFilledForUser.empId = teamMember.empId;
+      this.timesheetFilledForUser.name = teamMember.name;
+      this.selectedTeamMember = teamMember;
+      this.getTimesheetMetadata();
+      if (this.serverDate) {
+        this.getAllAvailableTimesheetByEmpId(this.timesheetFilledForUser);
     }
   }
 
@@ -1772,28 +1774,28 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    * @param projectId - selected project ID
    * @param changedProject - project entry where selection happened
    */
- onProjectSelect(
-  projectId: number | null | undefined,
-  changedProject: ProjectEntry
-): void {
+  onProjectSelect(
+    projectId: number | null | undefined,
+    changedProject: ProjectEntry
+  ): void {
 
   console.log("******executed-1****");
   console.log('projectId value:', projectId, typeof projectId);
 
-  if (!changedProject) {
-    console.warn('onProjectSelect called without project context');
-    return;
-  }
+    if (!changedProject) {
+      console.warn('onProjectSelect called without project context');
+      return;
+    }
 
   // 🔹 Find parent location
-  const parentLocation = this.timesheetLocations.find(loc =>
-    loc.projects.includes(changedProject)
-  );
+    const parentLocation = this.timesheetLocations.find(loc =>
+      loc.projects.includes(changedProject)
+    );
 
-  if (!parentLocation) {
-    console.warn('Parent location not found for project selection');
-    return;
-  }
+    if (!parentLocation) {
+      console.warn('Parent location not found for project selection');
+      return;
+    }
 
   const projectIndex = parentLocation.projects.indexOf(changedProject);
 
@@ -1844,11 +1846,11 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   // =========================================================
   // CASE 2: Duplicate detection
   // =========================================================
-  const hasDuplicateInLocation = parentLocation.projects.some(
-    p => p !== changedProject && p.projectId === projectId
-  );
+    const hasDuplicateInLocation = parentLocation.projects.some(
+      p => p !== changedProject && p.projectId === projectId
+    );
 
-  if (hasDuplicateInLocation) {
+    if (hasDuplicateInLocation) {
 
     const revertObject: ProjectEntry = {
       ...changedProject,
@@ -1875,26 +1877,26 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
 
     parentLocation.projects[projectIndex] = revertObject;
 
-    this.getListToRenderUpload();
-    this.onHoursChange();
+      this.getListToRenderUpload();
+      this.onHoursChange();
 
-    this.handleError(
-      new Error('Duplicate project in same location'),
-      'onProjectSelect',
-      true,
-      'This project is already added to this location. Please select a different project.'
-    );
+      this.handleError(
+        new Error('Duplicate project in same location'),
+        'onProjectSelect',
+        true,
+        'This project is already added to this location. Please select a different project.'
+      );
 
-    return;
-  }
+      return;
+    }
 
   // =========================================================
   // CASE 3: Valid Selection
   // =========================================================
 
-  const matchedProject = changedProject.projectList?.find(
-    p => p.projectId === projectId
-  );
+    const matchedProject = changedProject.projectList?.find(
+      p => p.projectId === projectId
+    );
 
   const updatedProject: ProjectEntry = {
     ...changedProject,
@@ -1926,17 +1928,17 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
 
   const targetEmpId =
     this.timesheetAppliedFor?.toLowerCase() === 'self'
-      ? this.currentUser?.empId
+      ? this.currentUser?.empId 
       : this.timesheetFilledForUser?.empId;
-
+    
   if (targetEmpId && updatedProject.hasClientSideId) {
-    this.getClientSideIdByProjectIdAndEmpId(projectId, targetEmpId);
-  } else {
-    console.warn('Employee ID not available for project selection');
+      this.getClientSideIdByProjectIdAndEmpId(projectId, targetEmpId);
+    } else {
+      console.warn('Employee ID not available for project selection');
+    }
+    
+    this.getListToRenderUpload();
   }
-
-  this.getListToRenderUpload();
-}
 
 
 
@@ -2215,13 +2217,13 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       // Otherwise the dropdown keeps showing the invalid selection because we're updating in the same
       // tick as ngModelChange.
       setTimeout(() => {
-        project.clientLocationId = null;
-        if (project.activities && Array.isArray(project.activities)) {
-          project.activities.forEach(activity => {
-            activity.clientTeamList = [];
-            activity.teamId = null;
-          });
-        }
+      project.clientLocationId = null;
+      if (project.activities && Array.isArray(project.activities)) {
+        project.activities.forEach(activity => {
+          activity.clientTeamList = [];
+          activity.teamId = null;
+        });
+      }
         this.cdr.detectChanges();
       }, 0);
 
@@ -2311,7 +2313,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       console.warn('Project is required for approval status selection');
       return;
     }
-
+    
     // Normalise status value (statusId from dropdown)
     const newStatus = status != null ? Number(status) : null;
 
@@ -2327,7 +2329,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       this.getListToRenderUpload();
       return;
     }
-
+    
     // Apply the selected status to the current project row
     project.clientApprovalStatus = newStatus;
 
@@ -2693,7 +2695,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    */
   onNightShiftChange(): void {
 
-  if (this.isNightShift) {
+    if (this.isNightShift) {
 
     this.openAlertMod(this.night_shift_template,
       'Do you have required permission for night shift from your manager?');
@@ -2702,7 +2704,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   this.toDate = null;
-
+  this.resetFormForNightShift();
   setTimeout(() => {
     this.calculateTotalWorkingHours();
     this.onHoursChange();
@@ -2736,7 +2738,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
           }
         }
       }
-    
+      this.resetFormForNightShift();
 
     // Recalculate total presence and location hours when night shift changes
     // (toDate affects both: presence uses toDate for out-time; location hours use toDate for end date).
@@ -2752,7 +2754,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   this.isNightShift = false;
 
   this.closeAlertModal(); // close modal
-}
+  }
 
 
   /** Date changed: reset date-dependent form state and reload for new date. */
@@ -3405,14 +3407,14 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   openPreviewModalForTwo(file: any): void {
     // Prefer local file: new upload or replaced file (user picked a new file → we have previewUrl/rawObjectUrl)
     if (file?.previewUrl && file?.fileType) {
-      this.activePreviewUrl = file.previewUrl;
-      this.activeFileType = file.fileType;
-      this.activeRawObjectUrl = file.rawObjectUrl;
-      this.resetTransformations();
-      this.modalRef = this.modalService.open(this.previewModal, {
-        modalDialogClass: 'modal-lg',
-        scrollable: true
-      });
+    this.activePreviewUrl = file.previewUrl;
+    this.activeFileType = file.fileType;
+    this.activeRawObjectUrl = file.rawObjectUrl;
+    this.resetTransformations();
+    this.modalRef = this.modalService.open(this.previewModal, {
+      modalDialogClass: 'modal-lg',
+      scrollable: true
+    });
       return;
     }
 
@@ -3593,6 +3595,37 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     this.disableAdd = false;
   }
 
+  resetFormForNightShift(): void {
+    // Basic fields
+    this.apmosysInTime = null;
+    this.apmosysOutTime = null;
+    this.totalPresence = 0;
+    this.useApmosysTiming = false;
+    
+    // Locations
+    this.timesheetLocations = [];
+    this.addLocation(null);
+    
+    // Document data cleanup
+    this.cleanupDocumentData();
+    this.documentData = [];
+    this.selectedFile = [];
+    this.uniqueProjectsList = [];
+    this.empHasClientSideId = false;
+    
+    // UI state
+    this.highlightLocationList = [];
+    this.highlightLocationIdSet = new Set();
+    this.expandedLocationIndex = null;
+    this.expandedProjectIndexMap = {};
+    
+    // Preview state
+    this.resetPreviewState();
+    
+    // Flags
+    this.disableAdd = false;
+  }
+
   /**
    * Reset only date-dependent form state (locations, projects, activities, documents, in/out times).
    * Used when user changes the date so that project selections valid for the previous date
@@ -3710,7 +3743,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     const dataSet: LocationEntry[] = structuredClone(this.timesheetLocations);
     // Ensure Shadow for self projects do not send client approval status (not required, dropdown hidden)
     dataSet.forEach((loc) => loc.projects?.forEach((p) => { if (p.isShadowForSelf) p.clientApprovalStatus = null; }));
-
+    
     // ✅ CRITICAL FIX: Add null checks for empId
     const targetEmpId = this.timesheetAppliedFor?.toLowerCase() === 'self' 
       ? this.currentUser?.empId 
@@ -3772,12 +3805,14 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
           if (response.serviceStatus === "Success") {
             this.openAlertMod(this.alertTemplate, "Timesheet created successfully.");
             
+            this.timesheetCreated.emit();
             // After successful create, refresh disabled dates so just-filled date becomes non-selectable
             if (targetEmpId) {
               this.getAllAvailableTimesheetByEmpId({ empId: targetEmpId } as User);
             }
-
+            this.appelectMember = null;
             this.resetForm()
+            this.onTimesheetAppliedForChange();
             // Reset form or navigate as needed
           } else {
             // ✅ MODERATE FIX: Use centralized error handling
@@ -3899,7 +3934,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
 
     // Store timesheet ID only for update mode (not for autofill templates)
     if (!this.isAutofillMode) {
-      this.timesheetId = timesheetData.timesheetId;
+    this.timesheetId = timesheetData.timesheetId;
     }
 
     // 1. Basic Fields
@@ -3929,8 +3964,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
             this.toDate = this.formatDDMMYYYY(effectiveToDate);
           } else {
             // Fallback: preserve existing behavior (fromDate + 1)
-            this.toDate = this.formatDDMMYYYY(this.addDays(fromDate, 1));
-          }
+        this.toDate = this.formatDDMMYYYY(this.addDays(fromDate, 1));
+      }
         } else {
           // No stored out-time; fallback to previous behavior
           this.toDate = this.formatDDMMYYYY(this.addDays(fromDate, 1));
@@ -5395,9 +5430,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
 
           // After autofill, force create mode for the selected date
           this.timesheetId = null;
-          this.isUpdation = false;
+    this.isUpdation = false;
           this.isCreation = true;
-          this.fromDate = selectedDate1;
+    this.fromDate = selectedDate1;
 
           // Recompute toDate for night shift based on new fromDate
           if (this.isNightShift && this.fromDate) {
@@ -5626,7 +5661,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   if (charCode === 46 && inputValue.includes('.')) {
     event.preventDefault();
   }
-}
+  }
 
   /**
    * ✅ CRITICAL FIX: Cleanup on component destroy

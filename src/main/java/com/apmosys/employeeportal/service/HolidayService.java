@@ -8,12 +8,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
 import com.apmosys.employeeportal.model.*;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetsNewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,9 +25,13 @@ import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
+import com.apmosys.employeeportal.enums.DayTypeCode;
+import com.apmosys.employeeportal.repository.DayTypeMasterNewRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetLocationMappingRepository;
 import com.apmosys.employeeportal.repository.HolidayRepository;
+import com.apmosys.employeeportal.repository.JobRoleRepository;
+import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.ProjectTimesheetStatusNewRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -60,6 +66,15 @@ public class HolidayService {
 
     @Autowired
     ProjectTimesheetService projectTimesheetService;
+
+    @Autowired
+	ProjectRepository projectRepository;
+
+    @Autowired
+	JobRoleRepository jobRoleRepository;
+
+    @Autowired
+    private DayTypeMasterNewRepository dayTypeMasterNewRepository;
 
 	@Transactional
 	public ServiceResponse addHoliday(HolidayDTO holidayDTO) {
@@ -504,12 +519,29 @@ public class HolidayService {
 		    LocalDateTime startOfDay = holidayDate.atStartOfDay();
             LocalDateTime endOfDay = holidayDate.atTime(LocalTime.MAX);
             int savedCount = 0;
+            
+            DayTypeMasterNew holidayDayType = dayTypeMasterNewRepository
+                    .findByDayType(DayTypeCode.APMOSYS_HOLIDAY.getDbValue());
+            DayTypeMasterNew weekoffDayType = dayTypeMasterNewRepository
+                    .findByDayType(DayTypeCode.WEEK_OFF.getDbValue());
 
+            if (holidayDayType == null) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("DayType '" + DayTypeCode.HOLIDAY.getDbValue()
+                        + "' not found in day_type_master_new.");
+                return response;
+            }
+            if (weekoffDayType == null) {
+                response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+                response.setServiceResponse("DayType '" + DayTypeCode.WEEK_OFF.getDbValue()
+                        + "' not found in day_type_master_new.");
+                return response;
+            }
 				if(!allEmployees.isEmpty()) {
 					for (Employee emp : allEmployees) {
 						if (!existingEmpIds.contains(emp.getEmpId())) {
 
-							saveRelationalLeaveTimesheet(emp, holidayDate, holidayObj, startOfDay, endOfDay);
+							saveRelationalLeaveTimesheet(emp, holidayDate, holidayObj, startOfDay, endOfDay, holidayDayType, weekoffDayType);
                             savedCount++;
 						}
 					}
@@ -542,28 +574,40 @@ public class HolidayService {
 	
 	 // method called when holiday is filled using reconsileholiday so the holiday context is saved and not leave
     void saveRelationalLeaveTimesheet(Employee emp, LocalDate date, Holiday holidayObj,
-            LocalDateTime startOfDay, LocalDateTime endOfDay) {
+            LocalDateTime startOfDay, LocalDateTime endOfDay, DayTypeMasterNew holidayDayType, DayTypeMasterNew weekoffDayType) {
+        int resolvedDayTypeId;
+        String tsDescription;
+        if ("Festival".equalsIgnoreCase(holidayObj.getHolidayType())
+                || "nonWorking".equalsIgnoreCase(holidayObj.getHolidayType())) {
+            resolvedDayTypeId = holidayDayType.getDayTypeId();
+            tsDescription = holidayDayType.getDayType() + " : " + holidayObj.getOccasion();
 
+        } else if ("WeekOff".equalsIgnoreCase(holidayObj.getHolidayType())) {
+            resolvedDayTypeId = weekoffDayType.getDayTypeId();
+            String day = holidayObj.getDayOfTheWeek().toLowerCase().contains("saturday")
+                    ? "Saturday"
+                    : "Sunday";
+            tsDescription = weekoffDayType.getDayType() + " : " + day;
+
+        } else {
+            resolvedDayTypeId = 0;
+            tsDescription = holidayObj.getDayOfTheWeek();
+        }
         EmployeeTimesheetsNew tsHeader = new EmployeeTimesheetsNew();
         tsHeader.setEmpId(emp.getEmpId());
         tsHeader.setDate(date);
         tsHeader.setIsNightShift(false);
         tsHeader.setStatus(2);
         tsHeader.setTotalWorkingMinutes(0);
-        tsHeader.setCreatedBy(emp.getEmpId());
+        tsHeader.setCreatedBy(1L);
         tsHeader.setCreatedOn(LocalDateTime.now());
-
-        if ("Festival".equalsIgnoreCase(holidayObj.getHolidayType())) {
-            tsHeader.setDayTypeId(2);
-            tsHeader.setDescription("Public Holiday : " + holidayObj.getOccasion());
-        } else if ("WeekOff".equalsIgnoreCase(holidayObj.getHolidayType())) {
-            tsHeader.setDayTypeId(4);
-            String desc = holidayObj.getOccasion().toLowerCase().contains("saturday")
-                    ? "WeekOff : Saturday"
-                    : "WeekOff : Sunday";
-            tsHeader.setDescription(desc);
-        }
-
+        Long managerId = "Reporting Manager".equals(emp.getApprovalsTo())
+                ? emp.getReportingManagerId()
+                : emp.getManagerId();
+        tsHeader.setCurrentManagerId(managerId);
+        tsHeader.setDayTypeId(resolvedDayTypeId);
+        tsHeader.setDescription(tsDescription);
+        tsHeader.setIsSystemGenerated(true);
         tsHeader = employeeTimesheetsNewRepository.save(tsHeader);
         Long newTsId = tsHeader.getTimesheetId();
 
@@ -577,7 +621,6 @@ public class HolidayService {
 
         List<ProjectNameAndPrjoectIdDTO> projectDTOList = timesheetsRepository
                 .getProjectListForDateAndEmpId(emp.getEmpId(), startOfDay, endOfDay);
-
         if (projectDTOList != null && !projectDTOList.isEmpty()) {
             for (ProjectNameAndPrjoectIdDTO projDto : projectDTOList) {
                 ProjectTimesheetDTO projectDTO = new ProjectTimesheetDTO();
@@ -586,15 +629,29 @@ public class HolidayService {
                 projectDTO.setProjectId(projDto.getProjectId());
                 projectDTO.setStatus(2);
                 projectDTO.setActivities(null);
+                 projectDTO.setDescription(tsDescription);
                 projectTimesheetService.create(newTsId, projectDTO, emp.getEmpId());
             }
         } else {
             ProjectTimesheetDTO defaultProject = new ProjectTimesheetDTO();
             defaultProject.setTimesheetId(newTsId);
             defaultProject.setLocationMappingId(locMapping.getLocationMappingId());
-            defaultProject.setProjectId(0);
             defaultProject.setStatus(2);
             defaultProject.setActivities(null);
+            defaultProject.setDescription(tsDescription);
+            int resolvedProjectId = 0; // fallback if still not found
+
+            if (emp.getJobRoleId() != null) {
+                JobRole jobRole = jobRoleRepository.findById(emp.getJobRoleId()).orElse(null);
+                if (jobRole != null && jobRole.getDeptId() != null) {
+                    Optional<Integer> benchProjectId = projectRepository
+                            .findBenchProjectIdByDeptId(jobRole.getDeptId());
+                    if (benchProjectId.isPresent()) {
+                        resolvedProjectId = benchProjectId.get();
+                    }
+                }
+            }
+            defaultProject.setProjectId(resolvedProjectId);
             projectTimesheetService.create(newTsId, defaultProject, emp.getEmpId());
         }
     }
