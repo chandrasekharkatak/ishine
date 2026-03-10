@@ -76,6 +76,8 @@ export class TeamTimesheetComponent implements OnInit {
   updateClientIdModalRef: NgbModalRef;
   bulkRejectReasonId: number | null = null;
 bulkRejectRemark: string = '';
+rejectReasonError = false;
+rejectRemarkError = false;
 
   //flags
   isAllTimesheetTable: boolean = false;
@@ -3519,10 +3521,7 @@ openBulkRejectPopup(modal: any, ids?: number[]) {
 
   const timesheetIds = selectedTimesheets.map(ts => ts.timesheetId);
 
-  if (!timesheetIds.length) {
-  alert("Please select at least one timesheet");
-  return;
-  }
+  
 
   this.selectedTimesheetIds = timesheetIds;
 
@@ -3537,7 +3536,12 @@ openBulkRejectPopup(modal: any, ids?: number[]) {
 
 confirmBulkReject(modal: any) {
 
-if (!this.bulkRejectReasonId) {alert("Please select rejection reason");return;}
+ this.rejectReasonError = !this.bulkRejectReasonId;
+  this.rejectRemarkError = !this.bulkRejectRemark || !this.bulkRejectRemark.trim();
+
+   if (this.rejectReasonError || this.rejectRemarkError) {
+    return;
+  }
 
 const payload = {timesheetIds: this.selectedTimesheetIds,
                 status: "REJECTED",

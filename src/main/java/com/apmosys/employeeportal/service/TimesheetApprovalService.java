@@ -1990,6 +1990,10 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
     try {
         String status = request.getStatus();
         List<Long> timesheetIdsReq = request.getTimesheetIds();
+        
+        if(timesheetIdsReq.size()==0) {
+        	throw new TimesheetApproveValidationFailedException("No Timesheet selected");
+        }
 
 //        if ("REJECTED".equalsIgnoreCase(status) && timesheetIdsReq.size() > 1) {
 //            throw new TimesheetApproveValidationFailedException("Only one timesheet can be rejected at a time.");

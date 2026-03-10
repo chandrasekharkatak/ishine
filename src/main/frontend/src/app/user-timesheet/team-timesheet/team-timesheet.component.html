@@ -1936,6 +1936,9 @@
       </option>
 
     </select>
+    <small class="text-danger" *ngIf="rejectReasonError">
+    Please select a rejection reason
+  </small>
     </div>
 
     <!-- Remark -->
@@ -1947,6 +1950,9 @@
                 [(ngModel)]="bulkRejectRemark"
                 placeholder="Enter remark">
       </textarea>
+      <small class="text-danger" *ngIf="rejectRemarkError">
+    Remark is required
+  </small>
     </div>
 
   </div>
