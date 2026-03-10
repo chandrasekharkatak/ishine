@@ -2737,3 +2737,169 @@ input:checked+.slider:before {
   top: 8px;
   right: 8px;
 }
+
+
+/* ============================================================
+   METRIC TILES
+   ============================================================ */
+
+/* ── Tile Group (row container) ── */
+.tile-group {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.tile-group--project {
+  flex-wrap: wrap;
+}
+
+/* ── Individual Tile Card ── */
+.tile-card {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 14px 16px;
+  min-height: 76px;
+  cursor: pointer;
+  position: relative;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.tile-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  /* transform: translateY(-2px); */
+}
+
+/* Project view cards have a min-width */
+.tile-group--project .tile-card {
+  min-width: 220px;
+}
+
+/* ── Selected State ── */
+.tile-card.tile-card--selected {
+  border-left-width: 5px;
+  border-color: #1a73e8;
+  border-left-color: #1a73e8;
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: #f0f7ff;
+}
+
+.tile-card.tile-card--selected .tile-card__value {
+  color: #1a73e8;
+}
+
+/* ── Icon Circle ── */
+.tile-card__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* ── Body ── */
+.tile-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.tile-card__label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tile-card__value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.1;
+}
+
+/* ── Info Tooltip ── */
+.tile-card__tooltip {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+   z-index: 1000;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .tile-group {
+    flex-wrap: wrap;
+  }
+
+  .tile-card {
+    min-width: 100%;
+  }
+}
+
+.db-tiles-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.db-dashboard {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.db-dashboard-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.tile-card.tile-card--selected::after {
+  content: '\f00c';           /* FontAwesome check */
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #1a73e8;
+  color: #ffffff;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 18px;
+  text-align: center;
+}
+
+.tile-card.tile-card--selected .tile-card__tooltip {
+  right: 28px; /* shift left to make room for the check tick */
+}
