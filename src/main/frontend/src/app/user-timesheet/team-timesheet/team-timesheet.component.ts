@@ -236,8 +236,8 @@ rejectionReasons:any;
 
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
-    this.safePdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-  'assets/Ishine_Timesheet_TNM.pdf');
+  //   this.safePdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+  // 'assets/Ishine_Timesheet_TNM.pdf');
   }
 
   async ngOnInit(): Promise<void> {
@@ -304,9 +304,7 @@ rejectionReasons:any;
   }
 
   sectionViewInit() {
-    if (this.userMapping.view_my_teams_timesheets) {
-      this.showAllTimesheetsTable();
-    } else if (this.userMapping.view_my_teams_timesheets_requests || this.userMapping.update_timesheet_request || this.userMapping.revoke_reportee_timesheet) {
+   if (this.userMapping.view_my_teams_timesheets_requests || this.userMapping.update_timesheet_request || this.userMapping.revoke_reportee_timesheet) {
       this.showAllTimesheetRequestsTable();
     }
   }
