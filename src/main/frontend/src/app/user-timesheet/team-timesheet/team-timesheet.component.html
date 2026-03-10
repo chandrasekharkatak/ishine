@@ -1186,135 +1186,153 @@
 </ng-template> -->
 
 <ng-template #rejectPopup>
+  <div class="reject-modal-shell">
 
-  <!-- HEADER -->
-  <div class="modal-header bg-danger text-white d-flex justify-content-between align-items-center">
-
-  <h5 class="modal-title fw-semibold mb-0">
-    <i class="bi bi-x-circle me-2"></i>
-    Reject Timesheet
-  </h5>
-
-
-</div>
-
-
-  <!-- BODY -->
-  <div class="modal-body">
-
-    <div class="alert alert-warning text-center mb-4">
-      Please provide project-specific rejection details.
-    </div>
-
-    <!-- REJECTION ENTRIES -->
-    <div *ngFor="let entry of rejectEntries; let i = index"
-         class="card shadow-sm mb-4 border-0">
-
-      <div class="card-body">
-
-        <!-- Header Row -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h6 class="mb-0 fw-bold text-secondary">
-            Project Rejection {{ i + 1 }}
-          </h6>
-
-          <button *ngIf="rejectEntries.length > 1"
-                  class="btn btn-sm btn-outline-danger"
-                  (click)="removeRejectRow(i)">
-            <i class="bi bi-trash"></i> Remove
-          </button>
+    <!-- Header -->
+    <div class="reject-modal-header">
+      <div class="reject-header-left">
+        <div class="reject-header-icon">
+          <i class="fa-notdog fa-solid fa-ban"></i>
         </div>
-
-        <div class="row g-3">
-
-          <!-- Project -->
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">
-              <span class="text-danger">*</span> Select Project
-            </label>
-            <app-my-select
-              class="form-control"
-              placeholder="Select Project"
-              [(ngModel)]="entry.projectIds"
-              [options]="getAvailableProjects(i)"
-              [disabled]="projectList.length == 1"
-              displayKey="projectName"
-              valueKey="projectId"
-              [multiple]="true">
-            </app-my-select>
-          </div>
-
-          <!-- Reasons -->
-          <div class="col-md-6">
-            <label class="form-label fw-semibold">
-              <span class="text-danger">*</span> Reject Reason(s)
-            </label>
-            <app-my-select
-              class="form-control"
-              placeholder="Select Reject Reason"
-              [(ngModel)]="entry.reasons"
-              [options]="rejectReasons"
-              displayKey="rejectionReason"
-              valueKey="rejectionId"
-              [multiple]="true">
-            </app-my-select>
-          </div>
-
-          <!-- Remark -->
-          <div class="col-12">
-            <label class="form-label fw-semibold">
-              <span class="text-danger">*</span> Reject Remark
-            </label>
-            <textarea
-              rows="3"
-              class="form-control"
-              placeholder="Enter remarks for rejecting..."
-              [(ngModel)]="entry.remark"
-              required>
-            </textarea>
-
-          </div>
-
+        <div>
+          <h5 class="reject-modal-title mb-1">Reject Timesheet</h5>
+          <p class="reject-modal-subtitle mb-0">
+            Provide project-wise rejection details before submitting this request.
+          </p>
         </div>
       </div>
     </div>
 
-    <!-- ADD BUTTON -->
-     @if(projectList.length > 1){
-    <div class="text-center mt-3">
-      <button class="btn btn-outline-primary px-4"
-      [disabled]="!isRejectFormValid() || !canAddMoreProjects()"
-      [attr.title]="!canAddMoreProjects()
-          ? 'All projects already added'
-          : (!isRejectFormValid()
-              ? 'Fill Project, Reasons, and Remark first'
-              : null)"
-              (click)="addRejectRow()">
-        <i class="bi bi-plus-circle me-1"></i>
-        Add Another Project
+    <!-- Body -->
+    <div class="reject-modal-body">
+
+      <div class="reject-info-banner">
+        <i class="bi bi-info-circle me-2"></i>
+        Please add accurate project-specific reasons and remarks for rejection.
+      </div>
+
+      <!-- Rejection Entry Cards -->
+      <div
+        *ngFor="let entry of rejectEntries; let i = index"
+        class="reject-entry-card">
+
+        <div class="reject-entry-card-header">
+          <div class="reject-entry-title-wrap">
+            <div class="reject-entry-badge">
+              {{ i + 1 }}
+            </div>
+            <div>
+              <h6 class="reject-entry-title mb-0">Project Rejection Details</h6>
+              <small class="reject-entry-subtitle">Entry {{ i + 1 }}</small>
+            </div>
+          </div>
+
+          <button
+            *ngIf="rejectEntries.length > 1"
+            type="button"
+            class="btn reject-remove-btn"
+            (click)="removeRejectRow(i)">
+            <i class="bi bi-trash3 me-1"></i>
+            Remove
+          </button>
+        </div>
+
+        <div class="row g-4">
+
+          <!-- Project -->
+          <div class="col-lg-6">
+            <label class="reject-field-label">
+              <span class="required-mark">*</span> Select Project
+            </label>
+            <div class="reject-field-control">
+              <app-my-select
+                class="form-control modern-my-select"
+                placeholder="Choose project"
+                [(ngModel)]="entry.projectIds"
+                [options]="getAvailableProjects(i)"
+                [disabled]="projectList.length == 1"
+                displayKey="projectName"
+                valueKey="projectId"
+                [multiple]="true">
+              </app-my-select>
+            </div>
+          </div>
+
+          <!-- Reasons -->
+          <div class="col-lg-6">
+            <label class="reject-field-label">
+              <span class="required-mark">*</span> Reject Reason(s)
+            </label>
+            <div class="reject-field-control">
+              <app-my-select
+                class="form-control modern-my-select"
+                placeholder="Choose rejection reason"
+                [(ngModel)]="entry.reasons"
+                [options]="rejectReasons"
+                displayKey="rejectionReason"
+                valueKey="rejectionId"
+                [multiple]="true">
+              </app-my-select>
+            </div>
+          </div>
+
+          <!-- Remark -->
+          <div class="col-12">
+            <label class="reject-field-label">
+              <span class="required-mark">*</span> Reject Remark
+            </label>
+            <textarea
+              rows="4"
+              class="form-control reject-remark-box"
+              placeholder="Enter clear rejection remarks for the selected project(s)..."
+              [(ngModel)]="entry.remark"
+              required>
+            </textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Button -->
+      @if(projectList.length > 1){
+        <div class="reject-add-row">
+          <button
+            type="button"
+            class="btn reject-add-btn"
+            [disabled]="!isRejectFormValid() || !canAddMoreProjects()"
+            [attr.title]="!canAddMoreProjects()
+              ? 'All projects already added'
+              : (!isRejectFormValid()
+                  ? 'Fill Project, Reasons, and Remark first'
+                  : null)"
+            (click)="addRejectRow()">
+            <i class="bi bi-plus-circle me-2"></i>
+            Add Another Project
+          </button>
+        </div>
+      }
+
+    </div>
+
+    <!-- Footer -->
+    <div class="reject-modal-footer">
+      <button
+        type="button"
+        class="btn reject-cancel-btn"
+        (click)="modalRef.close()">
+        Cancel
+      </button>
+
+      <button
+        type="button"
+        class="btn reject-submit-btn"
+        [disabled]="!isRejectFormValid()"
+        (click)="submitSingleTimesheetReject()">
+        <i class="bi bi-x-lg me-2"></i>
+        Reject Timesheet
       </button>
     </div>
-  }
 
   </div>
-
-  <!-- FOOTER -->
-  <div class="modal-footer bg-light">
-
-    <button class="btn btn-outline-secondary"
-            (click)="modalRef.close()">
-      Cancel
-    </button>
-
-    <button class="btn btn-danger px-4"
-            [disabled]="!isRejectFormValid()"
-            (click)="submitSingleTimesheetReject()">
-      <i class="bi bi-x-lg me-1"></i>
-      Reject Timesheet
-    </button>
-
-  </div>
-
 </ng-template>
 
 
@@ -1907,62 +1925,98 @@
 </ng-template>
 
 <ng-template #bulkRejectModal let-modal>
+  <div class="reject-modal-shell bulk-reject-shell">
 
-  <div class="modal-header bg-light">
-    <h5 class="modal-title">
-      <i class="fa fa-times-circle text-danger"></i>
-      Bulk Reject Timesheets
-    </h5>
-
-    <button type="button" class="close" (click)="modal.dismiss()">
-      <span>&times;</span>
-    </button>
-  </div>
-
-  <div class="modal-body">
-
-    <!-- Reject Reason -->
-    <div class="form-group">
-      <label>Reject Reason</label>
-
-      <select class="form-control"
-        [(ngModel)]="bulkRejectReasonId">
-
-      <option value="" disabled>Select Reason</option>
-
-      <option *ngFor="let r of rejectReasons"
-              [value]="r.rejectionId">
-        {{ r.rejectionReason }}
-      </option>
-
-    </select>
+    <!-- Header -->
+    <div class="reject-modal-header">
+      <div class="reject-header-left">
+        <div class="reject-header-icon">
+          <i class="fa-notdog fa-solid fa-ban"></i>
+        </div>
+        <div>
+          <h5 class="reject-modal-title mb-1">Bulk Reject Timesheets</h5>
+          <p class="reject-modal-subtitle mb-0">
+            Provide a common rejection reason and remark for the selected timesheets.
+          </p>
+        </div>
+      </div>
     </div>
 
-    <!-- Remark -->
-    <div class="form-group mt-3">
-      <label>Remark</label>
+    <!-- Body -->
+    <div class="reject-modal-body">
+      <div class="reject-info-banner">
+        <i class="bi bi-info-circle me-2"></i>
+        This action will reject all selected timesheets using the same reason and remark.
+      </div>
 
-      <textarea class="form-control"
-                rows="3"
-                [(ngModel)]="bulkRejectRemark"
-                placeholder="Enter remark">
-      </textarea>
+      <div class="reject-entry-card mb-0">
+        <div class="reject-entry-card-header">
+          <div class="reject-entry-title-wrap">
+            <div class="reject-entry-badge">
+              <i class="fa-sharp fa-solid fa-file-excel fa-flip-horizontal"></i>
+            </div>
+            <div>
+              <h6 class="reject-entry-title mb-0">Bulk Rejection Details</h6>
+              <small class="reject-entry-subtitle">Applies to all selected timesheets</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-4">
+
+          <!-- Reject Reason -->
+          <div class="col-12">
+            <label class="reject-field-label">
+              <span class="required-mark">*</span> Reject Reason
+            </label>
+            <div class="reject-field-control">
+              <app-my-select
+                class="form-control modern-my-select"
+                placeholder="Choose rejection reason"
+                [(ngModel)]="bulkRejectReasonId"
+                [options]="rejectReasons"
+                displayKey="rejectionReason"
+                valueKey="rejectionId"
+                [multiple]="false">
+              </app-my-select>
+            </div>
+          </div>
+
+          <!-- Remark -->
+          <div class="col-12">
+            <label class="reject-field-label">
+              <span class="required-mark">*</span> Reject Remark
+            </label>
+            <textarea
+              rows="4"
+              class="form-control reject-remark-box"
+              [(ngModel)]="bulkRejectRemark"
+              placeholder="Enter a clear remark for bulk rejection...">
+            </textarea>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="reject-modal-footer">
+      <button
+        type="button"
+        class="btn reject-cancel-btn"
+        (click)="modal.dismiss()">
+        Cancel
+      </button>
+
+      <button
+        type="button"
+        class="btn reject-submit-btn"
+        [disabled]="!bulkRejectReasonId || !bulkRejectRemark?.trim()"
+        (click)="confirmBulkReject(modal)">
+        <i class="bi bi-x-lg me-2"></i>
+        Reject Timesheets
+      </button>
     </div>
 
   </div>
-
-  <div class="modal-footer">
-
-    <button class="btn btn-secondary"
-            (click)="modal.dismiss()">
-      Cancel
-    </button>
-
-    <button class="btn btn-danger"
-            (click)="confirmBulkReject(modal)">
-      Reject
-    </button>
-
-  </div>
-
 </ng-template>

@@ -3531,6 +3531,7 @@ openBulkRejectPopup(modal: any, ids?: number[]) {
 
   this.modalService.open(modal, {
   centered: true,
+  modalDialogClass: 'modal-lg',
   backdrop: 'static'
   });
 }
