@@ -348,94 +348,142 @@
 <!-- start :: View Timesheets -->
 <div class="row" *ngIf="isTimesheetTable">
     <div class="col-md-12">
+        <!-- Filters: date range + Self/Team at top -->
+        <div class="filter-bar mb-3">
+            <div class="row align-items-end">
+                <div class="col-auto">
+                    <label class="info-label d-block mb-1">Date range</label>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-primary"
+                            [ngClass]="{'active': dateRangeType === 'currentMonth'}"
+                            (click)="dateRangeType = 'currentMonth'; applyDateRangeTypeAndLoad()">Current month</button>
+                        <button type="button" class="btn btn-outline-primary"
+                            [ngClass]="{'active': dateRangeType === 'previousMonth'}"
+                            (click)="dateRangeType = 'previousMonth'; applyDateRangeTypeAndLoad()">Previous month</button>
+                        <button type="button" class="btn btn-outline-primary"
+                            [ngClass]="{'active': dateRangeType === 'custom'}"
+                            (click)="switchToCustomDateRange()">Custom</button>
+                    </div>
+                </div>
+                <div class="col-auto ml-3">
+                    <label class="info-label d-block mb-1">View</label>
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-primary"
+                            [ngClass]="{'active': isSelfTimesheets}" (click)="showSelfTimesheets()">Self</button>
+                        <button type="button" class="btn btn-outline-primary"
+                            [ngClass]="{'active': isTeamTimesheets}" (click)="showTeamTimesheets()">For Team</button>
+                    </div>
+                </div>
+                <ng-container *ngIf="dateRangeType === 'custom'">
+                    <div class="col-md-2">
+                        <div class="form-group mb-0">
+                            <label class="info-label"><span class="text-danger">*</span>Start Date</label>
+                            <input [max]="today" id="timesheetStartDate" type="date" OnClick="this.showPicker()"
+                                class="form-control form-control-sm" autocomplete="none" [(ngModel)]="startDate"
+                                (change)="isSelfTimesheets ? getAllMyTimesheetsByEmpId(alert_message) : getMyTeamTimesheets(alert_message)"
+                                (keydown)="disableMannualDateInput()">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group mb-0">
+                            <label class="info-label"><span class="text-danger">*</span>End Date</label>
+                            <input id="timesheetEndDate" [max]="today" type="date" OnClick="this.showPicker()"
+                                class="form-control form-control-sm" autocomplete="none" [(ngModel)]="endDate"
+                                (change)="isSelfTimesheets ? getAllMyTimesheetsByEmpId(alert_message) : getMyTeamTimesheets(alert_message)"
+                                (keydown)="disableMannualDateInput()">
+                        </div>
+                    </div>
+                </ng-container>
+            </div>
+        </div>
+
         <!-- Summary mini-dashboard -->
         <div class="summary-dashboard mb-3">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <h5 class="summary-title mb-0">Timesheet Summary</h5>
                 <small class="text-muted d-none d-md-inline">
-                    Snapshot of filled / approved / rejected timesheets
+                    Snapshot by day type and status for selected dates
                 </small>
             </div>
             <div class="summary-card-grid">
-                <div class="summary-card" *ngFor="let card of summaryCards">
+                <!-- Card 1: Day type wise summary -->
+                <div class="summary-card summary-card--daytype">
                     <div class="summary-card-left">
-                        <div class="summary-card-label">{{ card.title }}</div>
-                        <div class="summary-card-value">{{ card.filled }}</div>
-                        <div class="summary-card-subtitle">
-                            <span class="summary-pill summary-pill-approved">
-                                <i class="fa fa-check-circle"></i> {{ card.approved }} Approved
-                            </span>
-                            <span class="summary-pill summary-pill-rejected" *ngIf="card.rejected > 0">
-                                <i class="fa fa-times-circle"></i> {{ card.rejected }} Rejected
-                            </span>
+                        <div class="summary-card-top">
+                            <div class="summary-card-label">Day Type Summary</div>
+                            <div class="summary-card-value">
+                                {{
+                                    dayTypeSummary.working
+                                    + dayTypeSummary.leave
+                                    + dayTypeSummary.holidayOrWeekoff
+                                    + dayTypeSummary.others
+                                }}
+                                <span class="summary-card-value-suffix">days</span>
+                            </div>
                         </div>
-                        <div class="summary-card-subtitle">{{ card.subtitle }}</div>
+
+                        <div class="summary-metric-grid">
+                            <div class="summary-metric summary-metric--working">
+                                <div class="summary-metric-label">Working</div>
+                                <div class="summary-metric-value">{{ dayTypeSummary.working }}</div>
+                            </div>
+                            <div class="summary-metric summary-metric--leave">
+                                <div class="summary-metric-label">Leave</div>
+                                <div class="summary-metric-value">{{ dayTypeSummary.leave }}</div>
+                            </div>
+                            <div class="summary-metric summary-metric--holiday">
+                                <div class="summary-metric-label">Week Off / Holiday</div>
+                                <div class="summary-metric-value">{{ dayTypeSummary.holidayOrWeekoff }}</div>
+                            </div>
+                        </div>
                     </div>
                     <div class="summary-card-icon">
-                        <i [ngClass]="card.iconClass"></i>
+                        <i class="fa fa-calendar-day"></i>
+                    </div>
+                </div>
+
+                <!-- Card 2: Status wise summary -->
+                <div class="summary-card summary-card--status">
+                    <div class="summary-card-left">
+                        <div class="summary-card-top">
+                            <div class="summary-card-label">Status Summary</div>
+                            <div class="summary-card-value">
+                                {{
+                                    statusSummary.pending
+                                    + statusSummary.approved
+                                    + statusSummary.rejected
+                                    + statusSummary.others
+                                }}
+                                <span class="summary-card-value-suffix">entries</span>
+                            </div>
+                        </div>
+
+                        <div class="summary-metric-grid">
+                            <div class="summary-metric summary-metric--approved">
+                                <div class="summary-metric-label">Approved</div>
+                                <div class="summary-metric-value">{{ statusSummary.approved }}</div>
+                            </div>
+                            <div class="summary-metric summary-metric--pending">
+                                <div class="summary-metric-label">Pending</div>
+                                <div class="summary-metric-value">{{ statusSummary.pending }}</div>
+                            </div>
+                            <div class="summary-metric summary-metric--rejected">
+                                <div class="summary-metric-label">Rejected</div>
+                                <div class="summary-metric-value">{{ statusSummary.rejected }}</div>
+                            </div>
+                            <div class="summary-metric summary-metric--other" *ngIf="statusSummary.others > 0">
+                                <div class="summary-metric-label">Others</div>
+                                <div class="summary-metric-value">{{ statusSummary.others }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="summary-card-icon">
+                        <i class="fa fa-clipboard-check"></i>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Self / Team toggle -->
-        <div class="row mb-2">
-            <div class="col-md-12">
-                <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-                    [ngClass]="{'active' : isSelfTimesheets}" (click)="showSelfTimesheets()">Self</button>
-                <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-                    [ngClass]="{'active' : isTeamTimesheets}" (click)="getMyTeamTimesheets()">For Team</button>
-            </div>
-        </div>
-        <div class="row">
-            <!-- For Self -->
-            <div *ngIf="isSelfTimesheets" class="col-md-4">
-                <div class="info-wrapper">
-                    <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>Start Date</label>
-                        <input [max]="today" id="timesheetStartDate" type="date" OnClick="this.showPicker()"
-                            class="form-control" autocomplete="none" [(ngModel)]="startDate"
-                            (change)="getAllMyTimesheetsByEmpId(alert_message)" (keydown)="disableMannualDateInput()">
-                    </div>
-                </div>
-            </div>
-
-            <div *ngIf="isSelfTimesheets" class="col-md-4">
-                <div class="info-wrapper">
-                    <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>End Date</label>
-                        <input id="timesheetEndDate" [max]="today" type="date" OnClick="this.showPicker()"
-                            class="form-control" autocomplete="none" [(ngModel)]="endDate"
-                            (change)="getAllMyTimesheetsByEmpId(alert_message)" (keydown)="disableMannualDateInput()">
-                    </div>
-                </div>
-            </div>
-            <!-- For Team -->
-            <div *ngIf="isTeamTimesheets" class="col-md-4">
-                <div class="info-wrapper">
-                    <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>Start Date</label>
-                        <input id="timesheetStartDate" [max]="today" type="date" OnClick="this.showPicker()"
-                            class="form-control" autocomplete="none" [(ngModel)]="startDate"
-                            (change)="getMyTeamTimesheets(alert_message)" (keydown)="disableMannualDateInput()">
-                    </div>
-                </div>
-            </div>
-
-            <div *ngIf="isTeamTimesheets" class="col-md-4">
-                <div class="info-wrapper">
-                    <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>End Date</label>
-                        <input id="timesheetEndDate" [max]="today" type="date" OnClick="this.showPicker()"
-                            class="form-control" autocomplete="none" [(ngModel)]="endDate"
-                            (change)="getMyTeamTimesheets(alert_message)" (keydown)="disableMannualDateInput()">
-                    </div>
-                </div>
-            </div>
-            <!-- <div class="form-group ml-auto col-md-3 mb-2 mt-4 pt-2">
-                <input type="text" class="form-control" placeholder="Search" [(ngModel)]="data" (keyup)="page=1">
-            </div> -->
-        </div>
         <div class="row">
             <div class="col-md-12">
                 <div class="selector-toggle">
