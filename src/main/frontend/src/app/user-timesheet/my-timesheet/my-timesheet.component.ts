@@ -126,7 +126,9 @@ export class MyTimesheetComponent implements OnInit {
   timesheetActivities: any[] = [];
   startDate: any;
   endDate: any;
-  
+  /** 'currentMonth' | 'previousMonth' | 'custom' - drives date filter and visibility of custom date inputs */
+  dateRangeType: 'currentMonth' | 'previousMonth' | 'custom' = 'currentMonth';
+
   // Hierarchical view expansion state
   expandedTimesheets: Set<number> = new Set(); // timesheetId
   expandedLocations: Map<string, Set<number>> = new Map(); // "timesheetId" -> Set<locationMappingId>
@@ -166,35 +168,20 @@ export class MyTimesheetComponent implements OnInit {
   maxMonth: string;
 
   // Summary metrics for mini dashboard (EOD-style counts)
-  summaryCards = [
-    {
-      key: 'last7',
-      title: 'EOD (Last 7 days)',
-      filled: 0,
-      approved: 0,
-      rejected: 0,
-      subtitle: 'Last 7 calendar days',
-      iconClass: 'fa fa-calendar-check'
-    },
-    {
-      key: 'thisMonth',
-      title: 'EOD (This month)',
-      filled: 0,
-      approved: 0,
-      rejected: 0,
-      subtitle: 'From 1st of this month',
-      iconClass: 'fa fa-calendar-alt'
-    },
-    {
-      key: 'lastMonth',
-      title: 'EOD (Last month)',
-      filled: 0,
-      approved: 0,
-      rejected: 0,
-      subtitle: 'Complete previous month',
-      iconClass: 'fa fa-history'
-    }
-  ];
+  // New mini-dashboard summaries (computed from allMyTimesheets for current date range)
+  dayTypeSummary = {
+    working: 0,
+    leave: 0,
+    holidayOrWeekoff: 0,
+    others: 0
+  };
+
+  statusSummary = {
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    others: 0
+  };
 
 
   withVmsbullet:string[] = ["Applicable to resources working on projects with a client-side VMS system.",
@@ -417,93 +404,80 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
    * and counts the number of days with at least one timesheet entry.
    */
   loadTimesheetSummary(): void {
-    if (!this.currentUser || !this.currentUser.empId) {
+    // Legacy backend-based summary (last7/thisMonth/lastMonth) is no longer used in UI.
+    // Summary dashboard is now computed from allMyTimesheets for the currently selected date range.
+    return;
+  }
+
+  /**
+   * Recompute mini-dashboard summaries from the currently loaded timesheets.
+   * Uses allMyTimesheets (self or team) and the selected date range (startDate/endDate).
+   *
+   * Day type grouping:
+   * - working: any dayType containing "working", "half-day working", or "non-working"
+   * - leave: any dayType containing "leave"
+   * - holiday/week off: any dayType containing "holiday" or "week off/weekoff"
+   */
+  private recomputeSummaryFromTimesheets(): void {
+    const day = {
+      working: 0,
+      leave: 0,
+      holidayOrWeekoff: 0,
+      others: 0
+    };
+
+    const status = {
+      pending: 0,
+      approved: 0,
+      rejected: 0,
+      others: 0
+    };
+
+    if (!this.allMyTimesheets || this.allMyTimesheets.length === 0) {
+      this.dayTypeSummary = day;
+      this.statusSummary = status;
       return;
     }
 
-    this.loadSummaryForRange('last7', 'Last 7 Days');
-    this.loadSummaryForRange('thisMonth', 'This Month');
-    this.loadSummaryForRange('lastMonth', 'Last Month');
-  }
+    for (const ts of this.allMyTimesheets) {
+      const rawDayType = ts.dayType ? String(ts.dayType) : '';
+      const dayType = rawDayType.toLowerCase().trim();
 
- private loadSummaryForRange(
-  cardKey: 'last7' | 'thisMonth' | 'lastMonth',
-  dateRange: 'Last 7 Days' | 'This Month' | 'Last Month'
-): void {
-
-  const currentDate = new Date();
-  const dateFormat = 'YYYY-MM-DD';
-
-  let fromDate: Date;
-  let toDate: Date;
-
-  const timesheetObj = new Timesheet();
-  timesheetObj.empId = this.currentUser.empId;
-
-  if (dateRange === 'Last 7 Days') {
-
-    const DAY_IN_MS = 24 * 60 * 60 * 1000;
-
-    const from = new Date(currentDate.getTime() - 1 * DAY_IN_MS);
-    const to = new Date(currentDate.getTime() - 7 * DAY_IN_MS);
-
-    fromDate = from;
-    toDate = to;
-
-    timesheetObj.startDate = moment(toDate).format(dateFormat);
-    timesheetObj.endDate = moment(fromDate).format(dateFormat);
-
-  } else if (dateRange === 'This Month') {
-
-    fromDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    toDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-
-    timesheetObj.startDate = moment(fromDate).format(dateFormat);
-    timesheetObj.endDate = moment(toDate).format(dateFormat);
-
-  } else {
-
-    fromDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
-    toDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
-
-    timesheetObj.startDate = moment(fromDate).format(dateFormat);
-    timesheetObj.endDate = moment(toDate).format(dateFormat);
-  }
-
-  this.timesheetService
-    .getMyTimesheetSummary(timesheetObj)
-    .pipe(first())
-    .subscribe(
-      (response: any) => {
-
-        const card = this.summaryCards.find(c => c.key === cardKey);
-
-        if (
-          card &&
-          response &&
-          response.serviceStatus === 'Success' &&
-          response.serviceResponse
-        ) {
-
-          const data = response.serviceResponse;
-
-          card.filled = data.totalFilled || 0;
-          card.approved = data.totalApproved || 0;
-          card.rejected = data.totalRejected || 0;
-        }
-      },
-      () => {
-
-        const card = this.summaryCards.find(c => c.key === cardKey);
-
-        if (card) {
-          card.filled = 0;
-          card.approved = 0;
-          card.rejected = 0;
-        }
+      // Order matters: leave-specific labels first, then working/non-working, then holidays/weekoffs, then others.
+      if (dayType.includes('leave')) {
+        day.leave++;
+      } else if (
+        dayType.includes('working') ||          // "Working", "Half-day Working"
+        dayType.includes('non-working')        // explicit for clarity (even though it also contains "working")
+      ) {
+        day.working++;
+      } else if (dayType.includes('holiday') || dayType.includes('week off') || dayType.includes('weekoff')) {
+        day.holidayOrWeekoff++;
+      } else {
+        day.others++;
       }
-    );
-}
+
+      switch (ts.status) {
+        case 1:
+          status.pending++;
+          break;
+        case 2:
+          status.approved++;
+          break;
+        case 3:
+          status.rejected++;
+          break;
+        default:
+          status.others++;
+          break;
+      }
+    }
+
+    this.dayTypeSummary = day;
+    this.statusSummary = status;
+  }
+
+
   preventBackButton() {
     history.pushState(null, null, location.href);
     this.locationStrategy.onPopState(() => {
@@ -890,14 +864,8 @@ get tooltipCta(): string {
     this.isSearchEnabled = false;
     this.setStartDateMinMax();
 
-    // Default date range: first day of current month to today
-    const today = new Date();
-    const fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
-    this.startDate = moment(fromDate).format(AppComponent.DB_DATE_FORMAT);
-    this.endDate = moment(today).format(AppComponent.DB_DATE_FORMAT);
-
-    // Load timesheets for default range
-    this.getAllMyTimesheetsByEmpId();
+    this.dateRangeType = 'currentMonth';
+    this.applyDateRangeTypeAndLoad();
   }
 
   showTeamTimesheets() {
@@ -915,11 +883,8 @@ get tooltipCta(): string {
     this.teamMemberList = [];
     this.setStartDateMinMax();
 
-    // Default date range: first day of current month to today
-    const today = new Date();
-    const fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
-    this.startDate = moment(fromDate).format(AppComponent.DB_DATE_FORMAT);
-    this.endDate = moment(today).format(AppComponent.DB_DATE_FORMAT);
+    this.dateRangeType = 'currentMonth';
+    this.applyDateRangeTypeAndLoad();
 
     // let employeeObj = new Employee();
     // employeeObj.empId = this.currentUser.empId;
@@ -935,6 +900,38 @@ get tooltipCta(): string {
     
   }
 
+  /**
+   * Applies the selected date range type (current month, previous month, or custom) by setting
+   * startDate/endDate when not custom, then loads self or team timesheets.
+   */
+  applyDateRangeTypeAndLoad() {
+    const today = new Date();
+    if (this.dateRangeType === 'currentMonth') {
+      const fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
+      this.startDate = moment(fromDate).format(AppComponent.DB_DATE_FORMAT);
+      this.endDate = moment(today).format(AppComponent.DB_DATE_FORMAT);
+    } else if (this.dateRangeType === 'previousMonth') {
+      const prevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const lastDayPrev = new Date(today.getFullYear(), today.getMonth(), 0);
+      this.startDate = moment(prevMonth).format(AppComponent.DB_DATE_FORMAT);
+      this.endDate = moment(lastDayPrev).format(AppComponent.DB_DATE_FORMAT);
+    }
+    // custom: keep existing startDate/endDate
+    if (this.isSelfTimesheets) {
+      this.getAllMyTimesheetsByEmpId();
+    } else if (this.isTeamTimesheets) {
+      this.getMyTeamTimesheets();
+    }
+  }
+
+  /**
+   * Switches to custom date range and clears start/end dates so the user can select fresh.
+   */
+  switchToCustomDateRange() {
+    this.dateRangeType = 'custom';
+    this.startDate = null;
+    this.endDate = null;
+  }
 
   showBulkButton(){
      this.timesheetService.wasEmployeeInClientProjCurrAndPrevMon(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
@@ -2471,6 +2468,11 @@ get tooltipCta(): string {
   getAllMyTimesheetsByEmpId(template?: TemplateRef<any>) {
     this.allMyTimesheets = [];
 
+    // Custom range: require both dates before calling API
+    if (this.dateRangeType === 'custom' && (!this.startDate || !this.endDate)) {
+      this.recomputeSummaryFromTimesheets();
+      return;
+    }
     // When called on from date (start date) change: don't call API if end date is not yet set
     if (this.startDate && (this.endDate == null || this.endDate === '' || this.endDate === undefined)) {
       return;
@@ -2504,13 +2506,16 @@ get tooltipCta(): string {
         if (response.serviceStatus == "Success") {
           this.allMyTimesheets = response.serviceResponse;
           this.processHierarchicalTimesheetData();
+          this.recomputeSummaryFromTimesheets();
         } else {
           console.error(response.serviceResponse)
           this.allMyTimesheets = [];
+          this.recomputeSummaryFromTimesheets();
         }
       }, (error) => {
         console.error("Error fetching timesheets:", error);
         this.allMyTimesheets = [];
+        this.recomputeSummaryFromTimesheets();
       });
 
     }
@@ -2591,7 +2596,7 @@ get tooltipCta(): string {
   /* Timesheets Applied By ME for My Team Members */
   getMyTeamTimesheets(template?: TemplateRef<any>) {
     this.isTeamTimesheets = true;
-     this.isSelfTimesheets = false;
+    this.isSelfTimesheets = false;
     this.allMyTimesheets = [];
 
     if (this.endDate) {
@@ -2620,19 +2625,23 @@ get tooltipCta(): string {
       if (response.serviceStatus == "Success") {
         this.allMyTimesheets = response.serviceResponse;
         this.processHierarchicalTimesheetData();
+        this.recomputeSummaryFromTimesheets();
       } else {
         console.error(response.serviceResponse);
         this.allMyTimesheets = [];
+        this.recomputeSummaryFromTimesheets();
       }
     }, (error) => {
       console.error("Error fetching team timesheets:", error);
       this.allMyTimesheets = [];
+      this.recomputeSummaryFromTimesheets();
     });
   }
 
   resetToDate() {
     this.endDate = ''
     this.allMyTimesheets = [];
+    this.recomputeSummaryFromTimesheets();
   }
 
   getAllMyActivitiesByTimesheetId(timesheet: any) {

@@ -55,10 +55,11 @@
    ============================================ */
 
 .summary-dashboard {
-  background-color: var(--ts-bg-card);
-  border-radius: var(--ts-radius-md);
-  padding: 12px 16px;
-  box-shadow: var(--ts-shadow-md);
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  border: 1px solid #e2e8f0;
 }
 
 .summary-title {
@@ -74,21 +75,51 @@
 }
 
 .summary-card {
-  flex: 1 1 220px;
+  flex: 1 1 420px;
   min-width: 0;
-  background: linear-gradient(135deg, var(--ts-bg-subtle) 0%, rgba(37, 99, 235, 0.04) 100%);
-  border-radius: var(--ts-radius-md);
+  background: #f9fafb;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   padding: 12px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: var(--ts-shadow-sm);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.22s ease;
+}
+
+.summary-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 10%, rgba(59, 130, 246, 0.08), transparent 55%);
+  pointer-events: none;
+}
+
+.summary-card--daytype::before {
+  background: radial-gradient(circle at 20% 10%, rgba(16, 185, 129, 0.09), transparent 55%);
+}
+
+.summary-card--status::before {
+  background: radial-gradient(circle at 20% 10%, rgba(99, 102, 241, 0.09), transparent 55%);
+}
+
+.summary-card:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
 }
 
 .summary-card-left {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 10px;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding-right: 10px;
 }
 
 .summary-card-label {
@@ -102,6 +133,14 @@
   font-size: 1.6rem;
   font-weight: 600;
   color: var(--ts-text);
+  line-height: 1.1;
+}
+
+.summary-card-value-suffix {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ts-text-muted);
+  margin-left: 6px;
 }
 
 .summary-card-subtitle {
@@ -117,12 +156,81 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  z-index: 1;
 }
 
 .summary-card-icon i {
   font-size: 18px;
   color: var(--ts-primary-light);
 }
+
+.summary-card--daytype .summary-card-icon {
+  background: rgba(5, 150, 105, 0.12);
+}
+
+.summary-card--daytype .summary-card-icon i {
+  color: #047857;
+}
+
+.summary-card--status .summary-card-icon {
+  background: rgba(59, 130, 246, 0.14);
+}
+
+.summary-card--status .summary-card-icon i {
+  color: #1d4ed8;
+}
+
+.summary-card-top {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.summary-metric-grid {
+  display: flex;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+.summary-metric {
+  flex: 1 1 0;
+  min-width: 0;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 8px 10px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: all 0.18s ease;
+}
+
+.summary-metric-label {
+  font-size: 0.78rem;
+  color: var(--ts-text-muted);
+  margin-bottom: 2px;
+  font-weight: 600;
+}
+
+.summary-metric-value {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--ts-text);
+  line-height: 1.1;
+}
+
+.summary-metric:hover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
+}
+
+.summary-metric--working .summary-metric-value { color: #0f766e; }
+.summary-metric--leave .summary-metric-value { color: #b45309; }
+.summary-metric--holiday .summary-metric-value { color: #1d4ed8; }
+.summary-metric--approved .summary-metric-value { color: #047857; }
+.summary-metric--pending .summary-metric-value { color: #b45309; }
+.summary-metric--rejected .summary-metric-value { color: #b91c1c; }
+.summary-metric--other .summary-metric-value { color: #475569; }
 
 .summary-pill {
   display: inline-flex;
@@ -151,6 +259,10 @@
 
   .summary-card {
     flex: 1 1 100%;
+  }
+
+  .summary-metric-grid {
+    flex-wrap: wrap;
   }
 }
 
