@@ -8892,7 +8892,10 @@ List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 		+" ( etm.end_date is null or  :date <= Date(etm.end_date) ) and :date >= Date(etm.start_date) ",nativeQuery = true)
 		public List<Long> getEmployeeTeamDepartment(Long teamId , Long empId , LocalDate date);
 
-		@Query(value = "SELECT po_project_type FROM projects WHERE project_id = :projectId", nativeQuery = true)
-	    String findPoProjectTypeByProjectId(@Param("projectId") Integer projectId);
+		// @Query(value = "SELECT po_project_type FROM projects WHERE project_id = :projectId", nativeQuery = true)
+	    // String findPoProjectTypeByProjectId(@Param("projectId") Integer projectId);
+
+		@Query("SELECT p.projectId, p.hasClientSideId FROM Project p WHERE p.projectId IN (:projectIds)")
+		List<Object[]> findClientSideFlagByProjectIds(@Param("projectIds") List<Integer> projectIds);
 
 }
