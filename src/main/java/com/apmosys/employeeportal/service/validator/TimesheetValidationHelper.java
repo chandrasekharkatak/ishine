@@ -2090,17 +2090,49 @@ public class TimesheetValidationHelper {
 	    }
 	}
 
+
+
+    private Map<Integer, Boolean> getClientSideMap(List<Integer> projectIds) {
+
+        List<Object[]> result = projectRepository.findClientSideFlagByProjectIds(projectIds);
+    
+        Map<Integer, Boolean> clientSideMap = new HashMap<>();
+    
+        for (Object[] row : result) {
+            Integer projectId = (Integer) row[0];
+            Boolean hasClientSideId = (Boolean) row[1];
+            clientSideMap.put(projectId, hasClientSideId);
+        }
+    
+        return clientSideMap;
+    }
     public void validateApmosysHolidayWithProjects(EmployeeTimesheetDTO timesheetDTO) {
 
-        // Check only for Comp-Off
-        if (timesheetDTO.getDayTypeId() == null || timesheetDTO.getDayTypeId() != 6) {
-            return;
-        }
+        Integer dayTypeId = timesheetDTO.getDayTypeId();
+        if (dayTypeId == null) return;
     
         if (timesheetDTO.getLocationSessions() == null || timesheetDTO.getLocationSessions().isEmpty()) {
             return;
         }
+       // project collection
+        List<Integer> projectIds = timesheetDTO.getLocationSessions()
+                .stream()
+                .flatMap(loc -> loc.getProjects().stream())
+                .map(ProjectTimesheetDTO::getProjectId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
     
+        if (projectIds.isEmpty()) return;
+    
+        // =========================
+        // Fetch projectId → clientSide flag
+        // =========================
+        Map<Integer, Boolean> clientSideMap = getClientSideMap(projectIds);
+    
+        // =========================
+        // Validation
+        // =========================
         for (LocationSessionDTO location : timesheetDTO.getLocationSessions()) {
     
             if (location.getProjects() == null) continue;
@@ -2108,15 +2140,21 @@ public class TimesheetValidationHelper {
             for (ProjectTimesheetDTO project : location.getProjects()) {
     
                 Integer projectId = project.getProjectId();
-    
                 if (projectId == null) continue;
     
-                // Fetch project type from DB
-                String poProjectType = projectRepository.findPoProjectTypeByProjectId(projectId);
+                Boolean hasClientSideId = clientSideMap.get(projectId);
     
-                if (poProjectType != null && "TNM".equalsIgnoreCase(poProjectType)) {
+                // Apmosys Holiday
+                if (dayTypeId == 6 && Boolean.TRUE.equals(hasClientSideId)) {
                     throw new IllegalArgumentException(
-                        "Apmosys Holiday cannot be applied for TNM projects. Project ID: " + projectId
+                            "Apmosys Holiday cannot be applied for client-side projects. Project ID: " + projectId
+                    );
+                }
+    
+                // Client Holiday
+                if (dayTypeId == 7 && !Boolean.TRUE.equals(hasClientSideId)) {
+                    throw new IllegalArgumentException(
+                            "Client Holiday requires all projects to be client-side projects. Invalid Project ID: " + projectId
                     );
                 }
             }
