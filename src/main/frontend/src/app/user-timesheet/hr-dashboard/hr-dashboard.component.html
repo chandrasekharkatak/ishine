@@ -136,10 +136,10 @@
 
 </div><!-- /db-top-bar -->
 
-    <div class="dashboard">
+    <div class="db-dashboard">
         <!-- Key Metrics -->
 
-        <div class="row g-4">
+        <div class="db-dashboard-body">
             <div class="w-100 d-flex justify-content-end mb-2" *ngIf="!toggleValue && isClientDashboard">
                 <div class="po-global-filter" (click)="$event.stopPropagation()">
                     <button type="button" class="po-filter-btn" (click)="toggleGlobalPoConflictDropdown($event)"
@@ -164,111 +164,50 @@
                     </div>
                 </div>
             </div>
-            <div class="tile-group-box w-100" *ngIf="!toggleValue">
-                <div *ngFor="let group of tileGroups" class="tile-group-box w-100">
-                    <div class="row g-1 d-flex flex-wrap flex-lg-nowrap w-100 justify-content-center">
-                        <div class="col-4 tile-col " *ngFor="let tile of group">
-                            <div class="metric-tile hover-tile mb-2" [ngClass]="tile.class"
-                                [class.selected-tile]="isTileSelected(tile.status)" (click)="onTileClick(tile)">
+            <div class="db-tiles-card">
+              <!-- Employee View Tiles -->
+              <div class="tile-group" *ngIf="!toggleValue">
+                <ng-container *ngFor="let group of tileGroups">
+                  <div class="tile-card" *ngFor="let tile of group" [ngClass]="tile.class"
+                    [class.tile-card--selected]="isTileSelected(tile.status)" (click)="onTileClick(tile)">
 
-                                <app-info-tooltip class="tile-info-icon" [shouldShine]="false"
-                                    [iconBgColor]="getTileColor(tile.class)" [content]="getTileInfo(tile.status)" [size]="18">
-                                </app-info-tooltip>
+                                  <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false" [iconBgColor]="getTileColor(tile.class)"
+                                    [content]="getTileInfo(tile.status)" [size]="16">
+                                  </app-info-tooltip>
 
-                                <div class="tile-header">
-                                    <i [class]="tile.icon"></i>
-                                    <span>{{ tile.label }}</span>
-                                </div>
-
-                                <div class="tile-value">{{ tile.value }}</div>
-
-                                <!-- <div class="tile-footer" (click)="$event.stopPropagation()">
-                                    <div class="po-conflict-filter">
-                                        <button type="button" class="po-filter-btn"
-                                            (click)="togglePoConflictDropdown(tile.status, $event)"
-                                            [title]="getPoConflictLabel(tile.status)">
-                                            <span class="po-filter-text">
-                                                {{ getPoConflictLabel(tile.status) }}
-                                            </span>
-                                            <i class="fa fa-caret-down"></i>
-                                        </button>
-
-                                        <button type="button" class="po-clear-btn"
-                                            *ngIf="poConflictSelectionByTile[tile.status]"
-                                            (click)="clearPoConflict(tile.status, $event)" title="Clear">
-                                            <i class="fa fa-times"></i>
-                                        </button>
-
-                                        <div class="po-dropdown" *ngIf="openPoConflictDropdownTileKey === tile.status">
-                                            <button type="button" class="po-option"
-                                                (click)="selectPoConflict(tile.status, 'Yes', $event)">
-                                                With PO Conflict
-                                            </button>
-                                            <button type="button" class="po-option"
-                                                (click)="selectPoConflict(tile.status, 'No', $event)">
-                                                Without PO Conflict
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div> -->
-
-                            </div>
-                        </div>
+                    <div class="tile-card__icon" [style.background]="getTileColor(tile.class) + '20'">
+                      <i [class]="tile.icon" [ngClass]="tile.icon" [style.color]="getTileColor(tile.class)"></i>
                     </div>
-                </div>
-            </div>
 
-            <div class="tile-group-box-project w-100" *ngIf="toggleValue">
-                <div *ngFor="let group of tileGroups" class="tile-group-box-project w-100">
-                    <div class="row g-1 justify-content-center  w-100 d-flex  flex-wrap">
-                        <div class="col-12 col-md-6 col-xl-6 col-xxl-3  tile-col" style="min-width:250px"
-                            *ngFor="let tile of group">
-                            <div class="metric-tile-project hover-tile mb-2" [ngClass]="tile.class"
-                                [class.selected-tile]="isTileSelected(tile.status)" (click)="scrollToTable(tile.status)">
-
-                                <div class="tile-header">
-                                    <i [class]="tile.icon"></i>
-                                    <span>{{ tile.label }}</span>
-                                </div>
-
-                                <div class="tile-value">{{ tile.value }}</div>
-
-                                <!-- <div class="tile-footer" (click)="$event.stopPropagation()">
-                                    <div class="po-conflict-filter">
-                                        <button type="button" class="po-filter-btn"
-                                            (click)="togglePoConflictDropdown(tile.status, $event)"
-                                            [title]="getPoConflictLabel(tile.status)">
-                                            <span class="po-filter-text">
-                                                {{ getPoConflictLabel(tile.status) }}
-                                            </span>
-                                            <i class="fa fa-caret-down"></i>
-                                        </button>
-
-                                        <button type="button" class="po-clear-btn"
-                                            *ngIf="poConflictSelectionByTile[tile.status]"
-                                            (click)="clearPoConflict(tile.status, $event)" title="Clear">
-                                            <i class="fa fa-times"></i>
-                                        </button>
-
-                                        <div class="po-dropdown" *ngIf="openPoConflictDropdownTileKey === tile.status">
-                                            <button type="button" class="po-option"
-                                                (click)="selectPoConflict(tile.status, 'Yes', $event)">
-                                                With PO Conflict
-                                            </button>
-                                            <button type="button" class="po-option"
-                                                (click)="selectPoConflict(tile.status, 'No', $event)">
-                                                Without PO Conflict
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div> -->
-
-                            </div>
-                        </div>
+                    <div class="tile-card__body">
+                      <span class="tile-card__label">{{ tile.label }}</span>
+                      <span class="tile-card__value">{{ tile.value }}</span>
                     </div>
-                </div>
-            </div>
 
+                  </div>
+                </ng-container>
+              </div>
+
+
+              <!-- Project View Tiles -->
+              <div class="tile-group tile-group--project" *ngIf="toggleValue">
+                <ng-container *ngFor="let group of tileGroups">
+                  <div class="tile-card" *ngFor="let tile of group" [ngClass]="tile.class"
+                    [class.tile-card--selected]="isTileSelected(tile.status)" (click)="scrollToTable(tile.status)">
+
+                    <div class="tile-card__icon" [style.background]="getTileColor(tile.class) + '20'">
+                      <i [class]="tile.icon" [ngClass]="tile.icon" [style.color]="getTileColor(tile.class)"></i>
+                    </div>
+
+                    <div class="tile-card__body">
+                      <span class="tile-card__label">{{ tile.label }}</span>
+                      <span class="tile-card__value">{{ tile.value }}</span>
+                    </div>
+
+                  </div>
+                </ng-container>
+              </div>
+            </div>
             <!-- Department Breakdown Container -->
             <!-- <div class="title-group-box-project w-100" *ngIf="isClientDashboard && !toggleValue">
                                 <div class="dept-container" *ngIf="selectedDepartments?.length">

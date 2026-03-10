@@ -4758,6 +4758,325 @@ tr[app-column-filter-bar] .clear-filter:hover {
 }
 
 
+/* =========================
+   Modal Shell
+========================= */
+.reject-modal-shell {
+  background: #f8fafc;
+  border-radius: 18px;
+  overflow: hidden;
+  min-width: 760px;
+  max-width: 920px;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.18);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* =========================
+   Header
+========================= */
+.reject-modal-header {
+  background: linear-gradient(135deg, #1e3a8a 0%, #243b7a 100%);
+  padding: 22px 28px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.reject-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.reject-header-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.reject-modal-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.2px;
+}
+
+.reject-modal-subtitle {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.82);
+  font-weight: 400;
+}
+
+/* =========================
+   Body
+========================= */
+.reject-modal-body {
+  padding: 24px 28px 18px;
+  background: #f8fafc;
+}
+
+.reject-info-banner {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  background: #eef4ff;
+  border: 1px solid #d7e3ff;
+  color: #294172;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* =========================
+   Entry Card
+========================= */
+.reject-entry-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 18px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.reject-entry-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.reject-entry-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.reject-entry-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #e8efff;
+  color: #1d4ed8;
+  font-weight: 700;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reject-entry-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #24324a;
+}
+
+.reject-entry-subtitle {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.reject-remove-btn {
+  border: 1px solid #f1c7c7;
+  background: #fff7f7;
+  color: #b42318;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+}
+
+.reject-remove-btn:hover {
+  background: #fdecec;
+  color: #912018;
+}
+
+/* =========================
+   Labels / Fields
+========================= */
+.reject-field-label {
+  display: inline-block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  letter-spacing: 0.2px;
+}
+
+.required-mark {
+  color: #dc2626;
+  margin-right: 2px;
+}
+
+.reject-field-control {
+  width: 100%;
+}
+
+.reject-remark-box {
+  min-height: 110px;
+  border-radius: 12px;
+  border: 1px solid #d7dee8;
+  padding: 14px 16px;
+  font-size: 14px;
+  color: #24324a;
+  resize: vertical;
+  box-shadow: none;
+  transition: all 0.2s ease;
+}
+
+.reject-remark-box::placeholder {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.reject-remark-box:focus {
+  border-color: #3157c8;
+  box-shadow: 0 0 0 4px rgba(49, 87, 200, 0.12);
+}
+
+/* =========================
+   Add Row
+========================= */
+.reject-add-row {
+  text-align: center;
+  padding-top: 4px;
+}
+
+.reject-add-btn {
+  min-width: 220px;
+  border-radius: 12px;
+  border: 1px solid #b9c8ee;
+  background: #ffffff;
+  color: #2643a2;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 20px;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.08);
+}
+
+.reject-add-btn:hover:not(:disabled) {
+  background: #f3f7ff;
+  color: #1d4ed8;
+}
+
+.reject-add-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* =========================
+   Footer
+========================= */
+.reject-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 18px 28px 24px;
+  background: #f8fafc;
+  border-top: 1px solid #e8edf4;
+}
+
+.reject-cancel-btn {
+  min-width: 110px;
+  border-radius: 10px;
+  border: 1px solid #cfd8e3;
+  background: #ffffff;
+  color: #475569;
+  font-weight: 600;
+  padding: 10px 18px;
+}
+
+.reject-cancel-btn:hover {
+  background: #f8fafc;
+  color: #334155;
+}
+
+.reject-submit-btn {
+  min-width: 180px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: #ffffff;
+  font-weight: 700;
+  padding: 10px 22px;
+  box-shadow: 0 8px 18px rgba(185, 28, 28, 0.24);
+}
+
+.reject-submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #c81e1e 0%, #991b1b 100%);
+}
+
+.reject-submit-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* =========================
+   app-my-select polish
+========================= */
+::ng-deep .modern-my-select,
+::ng-deep .modern-my-select.form-control {
+  min-height: 46px;
+  border-radius: 12px !important;
+  border: 1px solid #d7dee8 !important;
+  background: #ffffff !important;
+  box-shadow: none !important;
+  font-size: 14px;
+}
+
+::ng-deep .modern-my-select:focus,
+::ng-deep .modern-my-select.form-control:focus {
+  border-color: #3157c8 !important;
+  box-shadow: 0 0 0 4px rgba(49, 87, 200, 0.12) !important;
+}
+
+/* =========================
+   Responsive
+========================= */
+@media (max-width: 991px) {
+  .reject-modal-shell {
+    min-width: auto;
+    width: 100%;
+  }
+}
+
+@media (max-width: 767px) {
+  .reject-modal-header,
+  .reject-modal-body,
+  .reject-modal-footer {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .reject-entry-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .reject-modal-footer {
+    flex-direction: column-reverse;
+  }
+
+  .reject-cancel-btn,
+  .reject-submit-btn {
+    width: 100%;
+  }
+}
+
+
+
+
 
 
 

@@ -76,6 +76,8 @@ export class TeamTimesheetComponent implements OnInit {
   updateClientIdModalRef: NgbModalRef;
   bulkRejectReasonId: number | null = null;
 bulkRejectRemark: string = '';
+rejectReasonError = false;
+rejectRemarkError = false;
 
   //flags
   isAllTimesheetTable: boolean = false;
@@ -2502,7 +2504,9 @@ getDocument(type: 'Pending' | 'Approved'): void {
   getTimesheetStatusCountsByEmpId() {
     const payload : any = {
       managerId: this.currentUser.empId,
-      clientFilter: this.clientFilter
+      clientFilter: this.clientFilter,
+      startDate: this.startDate,
+      endDate: this.endDate
     };
 
     this.loaderService.requestStarted();
@@ -3519,10 +3523,7 @@ openBulkRejectPopup(modal: any, ids?: number[]) {
 
   const timesheetIds = selectedTimesheets.map(ts => ts.timesheetId);
 
-  if (!timesheetIds.length) {
-  alert("Please select at least one timesheet");
-  return;
-  }
+  
 
   this.selectedTimesheetIds = timesheetIds;
 
@@ -3531,13 +3532,19 @@ openBulkRejectPopup(modal: any, ids?: number[]) {
 
   this.modalService.open(modal, {
   centered: true,
+  modalDialogClass: 'modal-lg',
   backdrop: 'static'
   });
 }
 
 confirmBulkReject(modal: any) {
 
-if (!this.bulkRejectReasonId) {alert("Please select rejection reason");return;}
+ this.rejectReasonError = !this.bulkRejectReasonId;
+  this.rejectRemarkError = !this.bulkRejectRemark || !this.bulkRejectRemark.trim();
+
+   if (this.rejectReasonError || this.rejectRemarkError) {
+    return;
+  }
 
 const payload = {timesheetIds: this.selectedTimesheetIds,
                 status: "REJECTED",
@@ -3596,7 +3603,7 @@ this.timesheetNewService.processBulkTimesheets(payload).pipe(finalize(() => this
       this.modalMessage = message;
 
       this.clearAllSelections();
-      this.onStatusChange(2);
+      this.onStatusChange(3);
       this.page1 = 0;
 
       this.getMyReporteesTimesheetRequests();
