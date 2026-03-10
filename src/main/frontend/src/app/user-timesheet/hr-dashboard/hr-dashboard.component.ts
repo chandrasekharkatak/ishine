@@ -2899,6 +2899,13 @@ toggleDeptTableCollapse(): void {
   }
 }
 
+onDeptSummaryHeaderKeydown(event: KeyboardEvent): void {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    this.toggleDeptTableCollapse();
+  }
+}
+
 loadDepartmentStatusSummary(): void {
 
   this.allowedEmpid = this.currentUser.empId ;
@@ -2952,6 +2959,13 @@ onDeptCountClick(row: any, type: string): void {
   const deptId = row.deptId; 
 
   this.scrollToTableBasedOnDept(status, deptId);
+}
+
+onDeptCountKeydown(event: KeyboardEvent, row: any, type: string): void {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    this.onDeptCountClick(row, type);
+  }
 }
 
 onRepeatClick(

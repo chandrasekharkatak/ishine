@@ -1973,7 +1973,7 @@
               <app-my-select
                 class="form-control modern-my-select"
                 placeholder="Choose rejection reason"
-                [(ngModel)]="bulkRejectReasonId"
+                [(ngModel)]="bulkRejectReasonIds"
                 [options]="rejectReasons"
                 displayKey="rejectionReason"
                 valueKey="rejectionId"
@@ -2017,7 +2017,7 @@
       <button
         type="button"
         class="btn reject-submit-btn"
-        [disabled]="!bulkRejectReasonId || !bulkRejectRemark?.trim()"
+        [disabled]="!bulkRejectReasonIds || !bulkRejectRemark?.trim()"
         (click)="confirmBulkReject(modal)">
         <i class="bi bi-x-lg me-2"></i>
         Reject Timesheets
