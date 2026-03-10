@@ -2295,11 +2295,11 @@ private void saveBulkRejectionDetails(BulkTimesheetRequestDTO request) {
 
     List<Long> timesheetIds = request.getTimesheetIds();
     Long updatedBy = request.getUpdatedBy();
-    Long rejectionReasonId = request.getRejectionReasonId();
+    List<Long> rejectionReasonId = request.getRejectionReasonId();
     String remark = request.getRejectRemark();
 
     LocalDateTime now = LocalDateTime.now();
-    if (rejectionReasonId == null) {
+    if (rejectionReasonId == null || rejectionReasonId.isEmpty()) {
         throw new TimesheetApproveValidationFailedException("Rejection reason cannot be null");
     }
     if (remark == null) {
@@ -2333,12 +2333,13 @@ private void saveBulkRejectionDetails(BulkTimesheetRequestDTO request) {
                 .findLocationMappingId(timesheetId, projectId.intValue());
 
         for (Long locationMappingId : locationMappingIds) {
+			for (Long reasonId : rejectionReasonId) {
 
             TimesheetRejectionDetailsNew rejection = new TimesheetRejectionDetailsNew();
             rejection.setTimesheetId(timesheetId);
             rejection.setLocationMappingId(locationMappingId);
             rejection.setProjectId(projectId.intValue());
-            rejection.setRejectionId(rejectionReasonId);
+            rejection.setRejectionId(reasonId);
             rejection.setRemarks(remark);
             rejection.setRejectedBy(updatedBy);
             rejection.setRejectedOn(now);
@@ -2346,6 +2347,7 @@ private void saveBulkRejectionDetails(BulkTimesheetRequestDTO request) {
 
             rejectionList.add(rejection);
         }
+	}
     }
 
     timesheetActionAuditNewRepository.saveAll(auditList);
