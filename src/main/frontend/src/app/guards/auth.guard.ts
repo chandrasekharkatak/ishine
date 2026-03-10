@@ -7,6 +7,7 @@ import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 import { PoliciesService } from '../services/policies.service';
 import { TrainingService } from '../services/training.service';
+import { Feature } from '../models/feature';
 
 @Injectable({
   providedIn: 'root'
@@ -15,6 +16,8 @@ export class AuthGuard  {
 
   id:any;
   currentUrl:any;
+
+  userMapping:any = {};
 
   constructor(
     private router: Router,
@@ -35,8 +38,16 @@ export class AuthGuard  {
           return false;
         }
 
+        let featureMap:Feature[] = currentUser.userMapping.filter(userMap => userMap.tabName.toLowerCase() == 'training');
+        featureMap?.forEach(feat => {
+          let inActiveSubfeatures = feat.subFeatures.filter(sub => {
+            if(sub.isActive === false)return sub;
+          });
+          this.userMapping[feat.featureName.replaceAll(' ', '_').toLowerCase()] = (inActiveSubfeatures.length === feat.subFeatures.length) ? false : true;
+        });
+
         // Check training lock status
-        if (currentUser.trainingLockStatus) {
+        if (this.userMapping.training_config && currentUser.trainingLockStatus) {
           // Get current route path
           const currentPath = state.url.split('?')[0]; // Remove query params
           const isTrainingRoute = currentPath === '/training' || currentPath === '/user-training';

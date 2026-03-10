@@ -13,6 +13,10 @@ import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 import { SurveyService } from '../services/survey.service';
 import { TrainingService } from '../services/training.service';
+import * as pdfjsLib from 'pdfjs-dist';
+import { GlobalWorkerOptions } from 'pdfjs-dist';
+
+GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 @Component({
   standalone: false,
@@ -86,6 +90,9 @@ export class TrainingComponent implements OnInit, OnDestroy {
   isLoadingPreview: boolean = false;
   previewImageBlob: string | null = null;
   currentPDFFile: File | null = null;
+
+preloadQueue: number[] = [];
+pdfFile: File | null = null;
 
   // Modals
   modalRef: NgbModalRef;
@@ -651,141 +658,184 @@ export class TrainingComponent implements OnInit, OnDestroy {
   // }
 
   viewTraining(training: any, isDeadlineCrossed: boolean = false) {
-    if (!training || !training.content) {
-      this.openAlert('Training content not available', 'warning');
-      return;
-    }
-    this.showQuizSubmitComponent = false;
-    this.viewingTraining = training;
-    this.isViewingTraining = true;
+  if (!training || !training.content) {
+    this.openAlert('Training content not available', 'warning');    return;
+  }
+  this.showQuizSubmitComponent = false;
+  this.viewingTraining = training;
+  this.isViewingTraining = true;
 
-    // Reset timer and flags
-    this.elapsedTime = 0;
-    this.elapsedTimeDisplay = '00:00';
-    this.minTimeReached = false;
+  // Reset timer and flags
+  this.elapsedTime = 0;
+  this.elapsedTimeDisplay = '00:00';
+  this.minTimeReached = false;
+  this.consentButtonEnabled = false;
+  this.hasVisitedLink = false;
+
+  // Clear previous content
+  this.previewUrl = '';
+  this.safePreviewUrl = null;
+  this.file = null;
+  this.pdfFile = null;
+  this.fileSize = 0;
+  this.pptxSlides = [];
+  this.slides = [];
+  this.totalSlides = 0;
+  this.previewImageBlob = null;
+  this.currentSlideIndex = 0;
+  this.preloadedSlides.clear();
+  this.preloadQueue = [];
+
+  const content = training.content;
+  this.contentType = content.contentType;
+  this.contentFormData.contentType = content.contentType;
+
+  // For completed trainings: no timer, no lock
+  if (training.status === 'COMPLETED') {
+    this.minTimeReached = true;
     this.consentButtonEnabled = false;
-    this.hasVisitedLink = false;
-
-    // Clear previous content
-    this.previewUrl = '';
-    this.safePreviewUrl = null;
-    this.file = null;
-    this.fileSize = 0;
-    this.pptxSlides = [];
-    this.slides = [];
-    this.totalSlides = 0;
-    this.previewImageBlob = null;
-    this.currentSlideIndex = 0;
-
-    const content = training.content;
-    this.contentType = content.contentType;
-    this.contentFormData.contentType = content.contentType;
-
-    // For completed trainings: no timer, no lock
-    if (training.status === 'COMPLETED') {
-      this.minTimeReached = true;
-      this.consentButtonEnabled = false;
-      this.quizButtonEnabled = false;
+    this.quizButtonEnabled = false;
+  } else {
+    // For pending or skipped trainings: check if timer needed
+    if (
+      !training.hasSeenContent &&
+      training.minViewTimeMinutes &&
+      training.minViewTimeMinutes > 0
+    ) {
+      this.startTimerForViewing(training.minViewTimeMinutes);
     } else {
-      // For pending or skipped trainings: check if timer needed
-      if (
-        !training.hasSeenContent &&
-        training.minViewTimeMinutes &&
-        training.minViewTimeMinutes > 0
-      ) {
-        this.startTimerForViewing(training.minViewTimeMinutes);
-      } else {
-        this.minTimeReached = true;
-        if (training.consentRequired === 'true') {
-          this.consentButtonEnabled = true;
-        } else if (training.hasQuiz) {
-          this.quizButtonEnabled = true;
-        }
+      this.minTimeReached = true;
+      if (training.consentRequired === 'true') {
+        this.consentButtonEnabled = true;
+      } else if (training.hasQuiz) {
+        this.quizButtonEnabled = true;
       }
     }
-
-    // Setup content
-    if (content.contentType === 'LINK') {
-      this.isExternalLink = true;
-      this.previewUrl = content.externalLinkUrl;
-      this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-        this.previewUrl,
-      );
-      this.openTrainingViewModal();
-    } else if (content.contentType === 'PDF') {
-      this.isExternalLink = false;
-      // For PDF, use the slide preview endpoint
-      this.viewPDFContent(training);
-      this.openTrainingViewModal();
-    } else {
-      this.isExternalLink = false;
-      // Download content for preview
-      this.trainingService.downloadContent(content.contentId).subscribe({
-        next: (resp: any) => {
-          const blob: Blob = resp.body;
-          if (!blob || blob.size === 0) {
-            this.openAlert('File is empty or could not be loaded', 'error');
-            return;
-          }
-
-          const contentType =
-            resp.headers.get('Content-Type') || 'application/octet-stream';
-          let fileName = content.contentName || 'content';
-
-          // Extract filename from header
-          const disposition = resp.headers.get('Content-Disposition');
-          if (disposition) {
-            const patterns = [
-              /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/,
-              /filename="([^"]+)"/,
-              /filename=([^;]+)/,
-            ];
-            for (const pattern of patterns) {
-              const match = disposition.match(pattern);
-              if (match && match[1]) {
-                fileName = match[1].replace(/['"]/g, '').trim();
-                break;
-              }
-            }
-          }
-
-          // Add extension if missing
-          if (content.contentPath && !fileName.includes('.')) {
-            const pathParts = content.contentPath.split('.');
-            if (pathParts.length > 1) {
-              fileName += '.' + pathParts[pathParts.length - 1];
-            }
-          }
-
-          this.previewUrl = URL.createObjectURL(blob);
-          this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-            this.previewUrl,
-          );
-          this.file = new File([blob], fileName, { type: contentType });
-          this.fileSize = blob.size / 1024 / 1024;
-
-          // Parse PPTX if needed
-          if (
-            content.contentType === 'PPT' &&
-            fileName.toLowerCase().endsWith('.pptx')
-          ) {
-            this.parsePPTXFile(this.file);
-          }
-
-          this.openTrainingViewModal();
-        },
-        error: (error) => {
-          if (error?.error instanceof Blob) {
-            error.error.text().then((text: string) => {
-              this.openAlert(text || 'Error loading content', 'error');
-            });
-          } else {
-            this.openAlert('Error loading content', 'error');
-          }
-        },
-      });
-    }
   }
+
+  // Setup content
+  if (content.contentType === 'LINK') {
+    this.isExternalLink = true;
+    this.previewUrl = content.externalLinkUrl;
+    this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+      this.previewUrl,
+    );
+    this.openTrainingViewModal();
+  } else {
+    this.isExternalLink = false;
+    // Download content for preview
+    this.trainingService.downloadContent(content.contentId).subscribe({
+      next: (resp: any) => {
+        const blob: Blob = resp.body;
+        if (!blob || blob.size === 0) {
+          this.openAlert('File is empty or could not be loaded', 'error');
+          return;
+        }
+
+        const contentType =
+          resp.headers.get('Content-Type') || 'application/octet-stream';
+        let fileName = content.contentName || 'content';
+
+        // Extract filename from header
+        const disposition = resp.headers.get('Content-Disposition');
+        if (disposition) {
+          const patterns = [
+            /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/,
+            /filename="([^"]+)"/,
+            /filename=([^;]+)/,
+          ];
+          for (const pattern of patterns) {
+            const match = disposition.match(pattern);
+            if (match && match[1]) {
+              fileName = match[1].replace(/['"]/g, '').trim();
+              break;
+            }
+          }
+        }
+
+        // Add extension if missing
+        if (content.contentPath && !fileName.includes('.')) {
+          const pathParts = content.contentPath.split('.');
+          if (pathParts.length > 1) {
+            fileName += '.' + pathParts[pathParts.length - 1];
+          }
+        }
+
+        this.previewUrl = URL.createObjectURL(blob);
+        this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+          this.previewUrl,
+        );
+        this.file = new File([blob], fileName, { type: contentType });
+        this.fileSize = blob.size / 1024 / 1024;
+
+        // Handle PDF files with client-side rendering
+        if (content.contentType === 'PDF') {
+          this.pdfFile = this.file;
+          this.parsePDFFile(this.file);
+        }
+        // Parse PPTX if needed
+        else if (
+          content.contentType === 'PPT' &&
+          fileName.toLowerCase().endsWith('.pptx')
+        ) {
+          this.parsePPTXFile(this.file);
+        }
+
+        this.openTrainingViewModal();
+      },
+      error: (error) => {
+        if (error?.error instanceof Blob) {
+          error.error.text().then((text: string) => {
+            this.openAlert(text || 'Error loading content', 'error');
+          });
+        } else {
+          this.openAlert('Error loading content', 'error');
+        }
+      },
+    });
+  }
+}
+
+async parsePDFFile(file: File): Promise<void> {
+  try {
+    this.isLoadingPreview = true;
+    this.clearAllPreviewData();
+    
+    this.pdfFile = file;
+    
+    const arrayBuffer = await file.arrayBuffer();
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
+    
+    this.totalSlides = pdf.numPages;
+    this.slides = new Array(this.totalSlides);
+    
+    // Load the first page
+    await this.renderLocalPDFPage(0);
+    
+    // Preload next 3 pages with delays
+    const preloadNextPages = async () => {
+      for (let i = 1; i <= 3; i++) {
+        if (i < this.totalSlides) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+          this.renderLocalPDFPage(i).catch(err => 
+            console.error(`Failed to preload slide ${i}:`, err)
+          );
+        }
+      }
+    };
+    
+    preloadNextPages();
+    
+    this.isLoadingPreview = false;
+    console.log("PDF parsed successfully");
+    
+  } catch (error) {
+    console.error('Error parsing PDF file:', error);
+    this.isLoadingPreview = false;
+    this.openAlert('Failed to parse PDF file', 'error');
+  }
+}
 
   startTimerForViewing(minViewTimeMinutes: number) {
     if (this.timerInterval) {
@@ -1676,150 +1726,212 @@ export class TrainingComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  viewPDFContent(training: any) {
-    this.isLoadingPreview = true;
-    this.pptxSlides = []; // Clear any PPT slides
-
-    // Get all slides from server
-    this.trainingService
-      .getAllSlides(training.trainingId, training.content.contentId)
-      .subscribe({
-        next: (slideUrls: string[]) => {
-          this.totalSlides = slideUrls.length;
-          this.slides = slideUrls;
-          this.currentSlideIndex = 0;
-
-          // Load first slide
-          this.loadSlide(0);
-          this.isLoadingPreview = false;
-        },
-        error: (error) => {
-          console.error('Failed to load slides:', error);
-          this.isLoadingPreview = false;
-          this.openAlert('Failed to load PDF slides', 'error');
-        },
-      });
-  }
-
-  // Add loadSlide method
-  loadSlide(index: number) {
-    if (index < 0 || index >= this.totalSlides) return;
-
-    this.currentSlideIndex = index;
-
-    // Check if already preloaded
-    if (this.preloadedSlides.has(index)) {
-      this.previewImageBlob = this.preloadedSlides.get(index)!;
-      this.isLoadingPreview = false;
-      this.triggerPreload(index);
-      return;
-    }
-
-    // Show loading state
-    this.isLoadingPreview = true;
-    this.previewImageBlob = null;
-
-    const slideUrl = this.slides[index];
-    const slideName = slideUrl.substring(slideUrl.lastIndexOf('/') + 1);
-
-    this.trainingService
-      .getSlide(
-        this.viewingTraining.trainingId,
-        this.viewingTraining.content.contentId,
-        slideName,
-      )
-      .subscribe({
-        next: (blob) => {
-          if (this.preloadedSlides.has(index)) {
-            URL.revokeObjectURL(this.preloadedSlides.get(index)!);
-          }
-
-          const objectUrl = URL.createObjectURL(blob);
-          this.previewImageBlob = objectUrl;
-          this.preloadedSlides.set(index, objectUrl);
-          this.isLoadingPreview = false;
-          this.triggerPreload(index);
-        },
-        error: (error) => {
-          console.error('Failed to load slide:', error);
-          this.isLoadingPreview = false;
-          this.previewImageBlob = 'assets/images/no-preview.png';
-        },
-      });
-  }
-
-  // Add triggerPreload method
-  triggerPreload(currentIndex: number) {
-    // Preload next 5 slides
-    for (let i = 1; i <= 5; i++) {
-      const nextIndex = currentIndex + i;
-      if (
-        nextIndex < this.totalSlides &&
-        !this.preloadedSlides.has(nextIndex)
-      ) {
-        this.preloadSlide(nextIndex);
-      }
-    }
-
-    // Preload previous 2 slides for smooth backward navigation
-    for (let i = 1; i <= 2; i++) {
-      const prevIndex = currentIndex - i;
-      if (prevIndex >= 0 && !this.preloadedSlides.has(prevIndex)) {
-        this.preloadSlide(prevIndex);
-      }
-    }
-  }
-
-  // Add preloadSlide method
-  preloadSlide(index: number) {
-    if (this.preloadedSlides.has(index)) return;
-
-    const slideUrl = this.slides[index];
-    const slideName = slideUrl.substring(slideUrl.lastIndexOf('/') + 1);
-
-    this.trainingService
-      .getSlide(
-        this.viewingTraining.trainingId,
-        this.viewingTraining.content.contentId,
-        slideName,
-      )
-      .subscribe({
-        next: (blob) => {
-          const objectUrl = URL.createObjectURL(blob);
-          this.preloadedSlides.set(index, objectUrl);
-        },
-        error: (error) => {
-          console.error(`Failed to preload slide ${index}:`, error);
-        },
-      });
-  }
-
-  // Add navigation methods
-  nextSlide() {
-    if (this.currentSlideIndex < this.totalSlides - 1) {
-      this.currentSlideIndex++;
-      this.loadSlide(this.currentSlideIndex);
-    }
-  }
-
-  previousSlide() {
-    if (this.currentSlideIndex > 0) {
-      this.currentSlideIndex--;
-      this.loadSlide(this.currentSlideIndex);
-    }
-  }
-
-  goToSlide(index: number) {
-    if (index >= 0 && index < this.totalSlides) {
-      this.currentSlideIndex = index;
-      this.loadSlide(index);
-    }
-  }
-
   onPreviewError(event: any) {
     console.log('Preview error:', event);
     // Show fallback image or message
     event.target.src = 'assets/images/no-preview.png';
     event.target.alt = 'Preview not available';
   }
+
+  async renderLocalPDFPage(index: number): Promise<void> {
+  // Check cache first
+  if (this.preloadedSlides.has(index)) {
+    console.log(`Page ${index} already cached`);
+    if (index === this.currentSlideIndex) {
+      this.previewImageBlob = this.preloadedSlides.get(index)!;
+      this.isLoadingPreview = false;
+    }
+    return Promise.resolve();
+  }
+  
+  // Check if already in queue
+  if (this.preloadQueue.includes(index)) {
+    console.log(`Page ${index} already in queue`);
+    return Promise.resolve();
+  }
+  
+  // Add to queue
+  this.preloadQueue.push(index);
+  
+  try {
+    if (index === this.currentSlideIndex) {
+      this.isLoadingPreview = true;
+    }
+
+    const fileToUse = this.pdfFile;
+    
+    if (!fileToUse) {
+      throw new Error('No PDF file available');
+    }
+
+    const arrayBuffer = await fileToUse.arrayBuffer();
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
+    const page = await pdf.getPage(index + 1);
+
+    const viewport = page.getViewport({ scale: 0.8 });
+
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    
+    if (!context) {
+      throw new Error('Could not get canvas context');
+    }
+
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    const renderContext = {
+      canvasContext: context,
+      viewport: viewport
+    };
+
+    await page.render(renderContext).promise;
+
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob((b) => {
+        if (b) {
+          resolve(b);
+        } else {
+          reject(new Error('Failed to create blob from canvas'));
+        }
+      }, 'image/jpeg', 0.8);
+    });
+
+    const url = URL.createObjectURL(blob);
+    
+    if (this.preloadedSlides.has(index)) {
+      URL.revokeObjectURL(this.preloadedSlides.get(index)!);
+    }
+
+    this.preloadedSlides.set(index, url);
+    
+    if (index === this.currentSlideIndex) {
+      this.previewImageBlob = url;
+    }
+    
+    const queueIndex = this.preloadQueue.indexOf(index);
+    if (queueIndex > -1) {
+      this.preloadQueue.splice(queueIndex, 1);
+    }
+    
+    if (index === this.currentSlideIndex) {
+      this.isLoadingPreview = false;
+    }
+    
+    return Promise.resolve();
+  } catch (error) {
+    console.error('Error rendering PDF page:', error);
+    
+    const queueIndex = this.preloadQueue.indexOf(index);
+    if (queueIndex > -1) {
+      this.preloadQueue.splice(queueIndex, 1);
+    }
+    
+    if (index === this.currentSlideIndex) {
+      this.isLoadingPreview = false;
+    }
+    
+    return Promise.reject(error);
+  }
+}
+
+// Add loadSlide method
+loadSlide(index: number) {
+  if (index < 0 || index >= this.totalSlides) return;
+
+  this.currentSlideIndex = index;
+
+  // Check cache
+  if (this.preloadedSlides.has(index)) {
+    this.previewImageBlob = this.preloadedSlides.get(index)!;
+    this.isLoadingPreview = false;
+    this.triggerPreload(index);
+    return;
+  }
+
+  // Load on demand
+  if (this.pdfFile) {
+    if (!this.preloadQueue.includes(index)) {
+      this.isLoadingPreview = true;
+    }
+    
+    this.renderLocalPDFPage(index).then(() => {
+      this.triggerPreload(index);
+    });
+  }
+}
+
+// Add triggerPreload method
+triggerPreload(currentIndex: number) {
+  console.log('Triggering preload from index:', currentIndex);
+  
+  if (this.pdfFile) {
+    // Preload next 3 slides only
+    for (let i = 1; i <= 4; i++) {
+      const nextIndex = currentIndex + i;
+      if (nextIndex < this.totalSlides && 
+          !this.preloadedSlides.has(nextIndex) && 
+          !this.preloadQueue.includes(nextIndex)) {
+        console.log('Preloading slide:', nextIndex);
+        this.renderLocalPDFPage(nextIndex).catch(err => 
+          console.error(`Failed to preload slide ${nextIndex}:`, err)
+        );
+      }
+    }
+
+    for (let i = 1; i <= 3; i++) {
+      const prevIndex = currentIndex - i;
+      if (prevIndex >= 0 && 
+          !this.preloadedSlides.has(prevIndex) && 
+          !this.preloadQueue.includes(prevIndex)) {
+        console.log('Preloading previous slide:', prevIndex);
+        this.renderLocalPDFPage(prevIndex).catch(err => 
+          console.error(`Failed to preload slide ${prevIndex}:`, err)
+        );
+      }
+    }
+  }
+}
+
+// Add navigation methods
+nextSlide() {
+  if (this.currentSlideIndex < this.totalSlides - 1) {
+    this.currentSlideIndex++;
+    this.loadSlide(this.currentSlideIndex);
+  }
+}
+
+previousSlide() {
+  if (this.currentSlideIndex > 0) {
+    this.currentSlideIndex--;
+    this.loadSlide(this.currentSlideIndex);
+  }
+}
+
+goToSlide(index: number) {
+  if (index >= 0 && index < this.totalSlides) {
+    this.currentSlideIndex = index;
+    this.loadSlide(index);
+  }
+}
+
+// Add clearAllPreviewData method
+clearAllPreviewData() {
+  this.preloadedSlides.forEach((blobUrl) => {
+    if (blobUrl && blobUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(blobUrl);
+    }
+  });
+  this.preloadedSlides.clear();
+  this.preloadQueue = [];
+  
+  if (this.previewImageBlob && this.previewImageBlob.startsWith('blob:')) {
+    URL.revokeObjectURL(this.previewImageBlob);
+    this.previewImageBlob = null;
+  }
+  
+  this.totalSlides = 0;
+  this.currentSlideIndex = 0;
+}
 }
