@@ -1980,6 +1980,9 @@
                 [multiple]="false">
               </app-my-select>
             </div>
+            <small class="text-danger" *ngIf="rejectReasonError">
+              Please select a rejection reason
+            </small>
           </div>
 
           <!-- Remark -->
@@ -1993,6 +1996,9 @@
               [(ngModel)]="bulkRejectRemark"
               placeholder="Enter a clear remark for bulk rejection...">
             </textarea>
+            <small class="text-danger" *ngIf="rejectRemarkError">
+              Remark is required
+            </small>
           </div>
 
         </div>
