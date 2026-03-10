@@ -551,6 +551,43 @@
         </div>
       </div>
     </div>
+    <!-- Date range filter (same as my-timesheet) -->
+    <div class="ts-request-filter-bar mb-3">
+      <div class="row align-items-end">
+        <div class="col-auto">
+          <label class="filter-group-label">Date range</label>
+          <div class="btn-group btn-group-sm" role="group">
+            <button type="button" class="btn btn-outline-primary"
+              [ngClass]="{'active': requestDateRangeType === 'currentMonth'}"
+              (click)="requestDateRangeType = 'currentMonth'; applyRequestDateRangeAndLoad()">Current month</button>
+            <button type="button" class="btn btn-outline-primary"
+              [ngClass]="{'active': requestDateRangeType === 'previousMonth'}"
+              (click)="requestDateRangeType = 'previousMonth'; applyRequestDateRangeAndLoad()">Previous month</button>
+            <button type="button" class="btn btn-outline-primary"
+              [ngClass]="{'active': requestDateRangeType === 'custom'}"
+              (click)="switchToCustomDateRangeForRequests()">Custom</button>
+          </div>
+        </div>
+        <ng-container *ngIf="requestDateRangeType === 'custom'">
+          <div class="col-md-2">
+            <div class="form-group mb-0">
+              <label class="ts-filter-label"><span class="text-danger">*</span>Start Date</label>
+              <input [max]="today" id="requestStartDate" type="date" class="form-control form-control-sm"
+                autocomplete="none" [(ngModel)]="startDate"
+                (change)="applyRequestDateRangeAndLoad()">
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="form-group mb-0">
+              <label class="ts-filter-label"><span class="text-danger">*</span>End Date</label>
+              <input id="requestEndDate" [max]="today" type="date" class="form-control form-control-sm"
+                autocomplete="none" [(ngModel)]="endDate"
+                (change)="applyRequestDateRangeAndLoad()">
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </div>
     <div class="bulk-actions-fixed" [class.active]="selectedRows.length >= 2">
       <div class="bulk-actions-wrapper">
         <div class="selection-info">

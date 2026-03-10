@@ -17,5 +17,8 @@ public class TimesheetStatusCountDTO {
 
 	  private Long managerId;
 	  private Boolean clientFilter;
+	  /** Optional date range (YYYY-MM-DD) for counting timesheets in range. */
+	  private String startDate;
+	  private String endDate;
 
 }

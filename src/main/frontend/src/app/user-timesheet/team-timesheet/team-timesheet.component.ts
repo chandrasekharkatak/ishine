@@ -99,6 +99,8 @@ export class TeamTimesheetComponent implements OnInit {
   timesheetObj: Timesheet = new Timesheet();
   startDate: any;
   endDate: any;
+  /** 'currentMonth' | 'previousMonth' | 'custom' - drives request date filter and visibility of custom date inputs */
+  requestDateRangeType: 'currentMonth' | 'previousMonth' | 'custom' = 'currentMonth';
 
   isSelectAll: boolean = false;
   isSelect: boolean = false;
@@ -346,20 +348,41 @@ getTotalDocCount(projectId: number): number {
 
   showAllTimesheetRequestsTable() {
 
-    this.getTimesheetStatusCountsByEmpId();
     this.getRejectionReason();
     this.sortColumn = 'date';
     this.sortDirection = 'DESC';
-    // this.sortColumnType = [];
-    // this.sortDirection = '';
     this.isAllTimesheetRequestTable = true;
     this.isTMBulkUpload = false;
-
     this.isAllTimesheetTable = false;
 
+    this.requestDateRangeType = 'currentMonth';
+    this.applyRequestDateRangeAndLoad();
+    this.page1 = 0;
+    this.data = '';
+  }
+
+  /** Apply current/previous month or custom dates and reload request list and status counts. */
+  applyRequestDateRangeAndLoad() {
+    const today = new Date();
+    if (this.requestDateRangeType === 'currentMonth') {
+      const fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
+      this.startDate = moment(fromDate).format(AppComponent.DB_DATE_FORMAT);
+      this.endDate = moment(today).format(AppComponent.DB_DATE_FORMAT);
+    } else if (this.requestDateRangeType === 'previousMonth') {
+      const prevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const lastDayPrev = new Date(today.getFullYear(), today.getMonth(), 0);
+      this.startDate = moment(prevMonth).format(AppComponent.DB_DATE_FORMAT);
+      this.endDate = moment(lastDayPrev).format(AppComponent.DB_DATE_FORMAT);
+    }
+    this.getTimesheetStatusCountsByEmpId();
     this.getMyReporteesTimesheetRequests();
-    this.page = 1;
-    this.data = ''
+  }
+
+  /** Switch to custom date range and clear start/end so user can pick fresh. */
+  switchToCustomDateRangeForRequests() {
+    this.requestDateRangeType = 'custom';
+    this.startDate = null;
+    this.endDate = null;
   }
 
   showTMBulkUpload() {
@@ -451,6 +474,13 @@ totalPages: number = 0;
 
  getMyReporteesTimesheetRequests() {
 
+  if (this.requestDateRangeType === 'custom' && (!this.startDate || !this.endDate)) {
+    this.allTeamTimesheetRequestsProjectView = [];
+    this.totalRecords = 0;
+    this.totalPages = 0;
+    return;
+  }
+
   this.loaderService.requestStarted();
 
   const payload: any = {
@@ -479,6 +509,8 @@ totalPages: number = 0;
   this.addIfPresent(payload, 'appliedBy', this.filters.appliedBy);
   this.addIfPresent(payload, 'appliedOn', this.filters.appliedOn);
 
+  this.addIfPresent(payload, 'startDate', this.startDate);
+  this.addIfPresent(payload, 'endDate', this.endDate);
 
   this.timesheetService.getMyReporteesTimesheetRequests(payload)
     .pipe(finalize(() => this.loaderService.requestEnded()))

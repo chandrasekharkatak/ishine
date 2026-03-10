@@ -17093,6 +17093,8 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				    "                THEN e.reporting_manager_id " +
 				    "                ELSE e.manager_id END) = :managerId " +
 				    "    AND etn.status = :status " +
+				    "    AND ( :startDate IS NULL OR etn.date >= STR_TO_DATE(:startDate, '%Y-%m-%d') ) " +
+				    "    AND ( :endDate IS NULL OR etn.date <= STR_TO_DATE(:endDate, '%Y-%m-%d') ) " +
 				    ") " +
 
 				    "SELECT bt.timesheet_id " +
@@ -17172,6 +17174,8 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				    "    WHERE (CASE WHEN e.approvals_to = 'Reporting Manager' " +
 				    "                THEN e.reporting_manager_id ELSE e.manager_id END) = :managerId " +
 				    "    AND etn.status = :status " +
+				    "    AND ( :startDate IS NULL OR etn.date >= STR_TO_DATE(:startDate, '%Y-%m-%d') ) " +
+				    "    AND ( :endDate IS NULL OR etn.date <= STR_TO_DATE(:endDate, '%Y-%m-%d') ) " +
 
 				    "    AND ( :clientFilter IS NULL OR :clientFilter = FALSE OR p.has_client_side_id = TRUE ) " +
 				    "    AND ( :employmentId IS NULL OR LOWER(e.employeement_id) LIKE LOWER(CONCAT('%', :employmentId, '%')) ) " +
@@ -17194,6 +17198,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				@Param("clientName") String clientName, @Param("clientLocation") String clientLocation,
 				@Param("poNo") String poNo, @Param("shadowEmpName") String shadowEmpName,
 				@Param("teamName") String teamName, @Param("activity") String activity, @Param("date") String date,
+				@Param("startDate") String startDate, @Param("endDate") String endDate,
 				@Param("search") String search, @Param("workCheckIn") String workCheckIn,
 				@Param("workCheckOut") String workCheckOut, @Param("locationCount") Long locationCount,
 				@Param("projectCount") Long projectCount, @Param("appliedBy") String appliedBy,

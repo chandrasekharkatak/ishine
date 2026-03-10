@@ -22,6 +22,10 @@ public class TimesheetFilterCriteria {
     // Time filters
     private final String dayType;
     private final String date;
+    /** Optional date range: timesheet date >= startDate when non-null (YYYY-MM-DD). */
+    private final String startDate;
+    /** Optional date range: timesheet date <= endDate when non-null (YYYY-MM-DD). */
+    private final String endDate;
     private final String workCheckIn;
     private final String workCheckOut;
     
@@ -62,6 +66,8 @@ public class TimesheetFilterCriteria {
                 .employeeName(payload.getEmployeeName())
                 .dayType(payload.getDayType())
                 .date(payload.getDate())
+                .startDate(payload.getStartDate())
+                .endDate(payload.getEndDate())
                 .workCheckIn(payload.getWorkCheckIn())
                 .workCheckOut(payload.getWorkCheckOut())
                 .projectName(payload.getProjectName())

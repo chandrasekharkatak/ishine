@@ -42,6 +42,16 @@
     width: 300px;
 }
 
+/* Filter bar section labels (Date range, etc.) */
+.filter-group-label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #374151;
+    letter-spacing: 0.02em;
+}
+
 .wide-col{
     min-width: 200px;
 }

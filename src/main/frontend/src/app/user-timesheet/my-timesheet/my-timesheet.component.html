@@ -352,7 +352,7 @@
         <div class="filter-bar mb-3">
             <div class="row align-items-end">
                 <div class="col-auto">
-                    <label class="info-label d-block mb-1">Date range</label>
+                    <label class="filter-group-label">Date range</label>
                     <div class="btn-group btn-group-sm" role="group">
                         <button type="button" class="btn btn-outline-primary"
                             [ngClass]="{'active': dateRangeType === 'currentMonth'}"
@@ -366,7 +366,7 @@
                     </div>
                 </div>
                 <div class="col-auto ml-3">
-                    <label class="info-label d-block mb-1">View</label>
+                    <label class="filter-group-label">View</label>
                     <div class="btn-group btn-group-sm" role="group">
                         <button type="button" class="btn btn-outline-primary"
                             [ngClass]="{'active': isSelfTimesheets}" (click)="showSelfTimesheets()">Self</button>

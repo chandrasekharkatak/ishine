@@ -44,4 +44,8 @@ public class GetMyReporteesTimesheetRequestsPayload {
     private String appliedOn;
     private int status;
 
+    /** Optional date range filter (YYYY-MM-DD). When both set, only timesheets with date in [startDate, endDate] are returned. */
+    private String startDate;
+    private String endDate;
+
 }
