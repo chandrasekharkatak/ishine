@@ -582,5 +582,8 @@ duplicateCertificate(certificateobj:any){
   );
 }
 
+getEmployeeBillableType(empId:number){
+  return this.http.post(`${this.baseUrl}`+`api/getEmployeeBillableType`,empId);
+}
 
 }

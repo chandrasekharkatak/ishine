@@ -462,4 +462,9 @@ getDepartmentStatusSummary(payload: any) {
     return this.http.post(`${this.baseUrl}`+`api/getMyReporteesTimesheetRequestsNew`,payload);
   }
 
+  getEmployeeTeamDepartmentId(teamId:number,empId:number,date:string){
+    return this.http.post(`${this.baseUrl}`+`api/getEmployeeTeamDepartment`,{teamId,empId,date});
+  }
+
+ 
 }

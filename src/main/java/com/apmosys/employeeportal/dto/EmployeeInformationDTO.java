@@ -21,5 +21,6 @@ public class EmployeeInformationDTO {
 	private String startDate;
 	private Long deptId;
 	private String employmentStatus;
+	private Long defaultProjectId;
 
 }

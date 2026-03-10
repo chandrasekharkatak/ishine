@@ -2,6 +2,7 @@
 package com.apmosys.employeeportal.repository;
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -3269,8 +3270,9 @@ public List<Project> findProjectsOfProjectManager(Long projectManagerId);
 	// 	    @Param("toDate") String toDate);
 
 	
-	@Query("SELECT DISTINCT NEW com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(projectId,projectName,internalProjectType,poProjectType)\n"
-			+ " from Project where active = 'true' ")
+	@Query("SELECT DISTINCT NEW com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(projectId,projectName,internalProjectType,poProjectType"
+			+ ", CASE WHEN p.poProjectType IS NOT NULL AND TRIM(p.poProjectType) != '' THEN p.poProjectType ELSE p.internalProjectType END, DATE(p.startDate))\n"
+			+ " from Project p where active = 'true' ")
 	public List<ProjectNameAndPrjoectIdDTO> getActiveProjectList();
 	
 	
@@ -5434,8 +5436,8 @@ boolean existsByProjectName(String projectName);
 			+ "LEFT JOIN ProjectPoDetails ppd ON ppd.poId = etm.poId \n"
 			+ "LEFT JOIN PoRequirementMapping prm ON  etm.roleId = prm.roleId and etm.poId = prm.poId and prm.active = true \n"
 			+ "WHERE 1=1 AND etm.empId= :empId AND etm.active != 0 \n"
-			+ "AND t.isActive != 'N' AND p.active != 'false' \n")
-public List<PoTeamAndMemberDetailsDto> getEmployeeExistingProjectDetailsByEmpId(Long empId);
+			+ "AND t.isActive != 'N' AND p.active != 'false' AND p.projectId !=:projectId \n")
+public List<PoTeamAndMemberDetailsDto> getEmployeeExistingProjectDetailsByEmpId(Long empId, Integer projectId);
 
 
 	// ----------------------------------------------------------------------------------------------------------
@@ -8246,7 +8248,9 @@ List<Object[]> getClientAndProjectDataList(
 // 				    );
 
 	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.EmployeeOtherActiveProject( "
-			+ " etm.empId, p.projectId, p.projectName, ppd.poId, t.teamId, prm.poRequirementMappingId \n"
+			+ " etm.empId, p.projectId, p.projectName"
+			+ " ,CASE WHEN p.poProjectType IS NOT NULL AND TRIM(p.poProjectType) != '' THEN p.poProjectType ELSE p.internalProjectType END, DATE(p.startDate)"
+			+ " , ppd.poId, t.teamId, prm.poRequirementMappingId \n"
 			+ " , ppd.poNo, t.teamName, etm.employeeRole, prm.role, prm.department, prm.experience, prm.count, etm.startDate) "
 			+ "FROM Project p \n"
 			+ "INNER JOIN Team t ON t.projectId = p.projectId AND t.isActive != 'N' \n"
@@ -8835,6 +8839,7 @@ List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 
 	List<Project> findByPoProjectIdIn(Set<Long> deletedPoProjectIds);
 
+
 	@Query(value="SELECT \n" +
        "    p.projectId as projectId,\n" +
        "    p.clientName as clientName,\n" +
@@ -8882,4 +8887,12 @@ List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 	
 	@Query("SELECT p.projectId, p.hasClientSideId,p.clientFlag FROM Project p WHERE p.projectId IN :projectIds")
 	List<Object[]> findClientSiteMandatoryByProjectIds(@Param("projectIds") List<Integer> projectIds);
+
+		@Query(value = "select etm.emp_team_department_id from employee_team_mapping etm where etm.emp_id = :empId and etm.team_id = :teamId and \n"
+		+" ( etm.end_date is null or  :date <= Date(etm.end_date) ) and :date >= Date(etm.start_date) ",nativeQuery = true)
+		public List<Long> getEmployeeTeamDepartment(Long teamId , Long empId , LocalDate date);
+
+		@Query(value = "SELECT po_project_type FROM projects WHERE project_id = :projectId", nativeQuery = true)
+	    String findPoProjectTypeByProjectId(@Param("projectId") Integer projectId);
+
 }

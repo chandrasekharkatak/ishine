@@ -68,18 +68,16 @@
                 </h5>
             </div>
 
-            <!-- <div class="ms-3" *ngIf="!isClientDashboard">
-  <label class="info-label mb-1 fw-bold">Billable Type</label>
-  <br>
-  <select class="form-select form-select-sm" [(ngModel)]="selectedBillableType" (change)="onBillableTypeChange($event)">
-    <option value="" disabled selected>Select Billable Model</option>
-    <option value="All">All</option>
-    <option value="TNM">TNM</option>
-    <option value="Fixed Cost">Fixed Cost</option>
-    <option value="Shadow">Shadow</option>
-    <option value="InternalRNDProducts">Internal_RND_Products</option>
-  </select>
-</div> -->
+            <div class="last-updated d-flex align-items-center">
+                <span>Updated: {{ lastUpdated }}</span>
+                <button class="btn btn-link p-0 ml-2" (click)="refreshDashboard()" title="Refresh">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+
+        </div>
+
+        <div class="header d-flex justify-content-between align-items-center">
 
             <div class="ms-3">
                 <label class="info-label mb-1 fw-bold">Billable Type</label>
@@ -91,11 +89,6 @@
                             <mat-option class="select-all-row" [value]="'AllButton'" (click)="selectAllBillableTypes()" [disabled]="selectedBillableTypes.length === billableTypes.length">
                                 Select All
                             </mat-option>
-
-                            <!-- <mat-option (click)="deselectAllBillableTypes()" [disabled]="selectedBillableTypes.length === 0">
-        Deselect All
-    </mat-option> -->
-
                             <!-- Individual billable types -->
                             <mat-option *ngFor="let type of billableTypes" [value]="type">
                                 {{ type }}
@@ -105,12 +98,7 @@
 
                 </div>
             </div>
-
-
-
-
-
-
+            
             <div class="ms-3" *ngIf="!isClientDashboard && toggleValue">
                 <label class="info-label mb-1 fw-bold">Project Status</label>
                 <br>
@@ -137,14 +125,6 @@
 
 
             <div class="calendar-header mb-2 d-flex align-items-end">
-                <!-- <mat-form-field appearance="outline" class="month-picker-field" style="max-height: 55px;">
-                    <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel"
-                        (dateChange)="changeMonth1($event.value)" placeholder="Select month" readonly>
-                    <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
-                    <mat-datepicker #monthPicker startView="multi-year" (monthSelected)="monthSelected1($event, monthPicker)"
-                        panelClass="month-picker">
-                    </mat-datepicker>
-                </mat-form-field> -->
                 <mat-form-field appearance="outline" class="month-picker-field" style="max-height: 55px;">
                     <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel"
                         (dateChange)="changeMonth1($event.value)" placeholder="Select month" readonly>
@@ -155,26 +135,18 @@
                         (monthSelected)="monthSelected1($event, monthPicker)" panelClass="month-picker">
                     </mat-datepicker>
                 </mat-form-field>
-
-
-
                 <span class="styled-month-employee-label">
                     {{ formattedMonthLabel }}
                 </span>
 
-                <!-- <button class="btn btn-link p-0 ml-2" (click)="refreshDashboard()" title="Refresh">
-                    <i class="fas fa-sync-alt"></i>
-                </button> -->
-
             </div>
 
-            <div class="last-updated d-flex align-items-center">
-                <span>Updated: {{ lastUpdated }}</span>
-                <button class="btn btn-link p-0 ml-2" (click)="refreshDashboard()" title="Refresh">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
+            <div>
+                <button type="button" class="btn btn-primary" (click)="onBillableTypeChangeManual()">Apply Filters</button>
             </div>
         </div>
+
+        
 
 
        

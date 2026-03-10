@@ -3953,7 +3953,7 @@ public class ProjectService {
 	}
 
 	@Transactional(readOnly = true)
-	public ServiceResponse getEmployeeExistingProjectDetailsByEmpId(Long empId) {
+	public ServiceResponse getEmployeeExistingProjectDetailsByEmpId(Long empId, Integer projectId) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		try {
 			if (empId == null) {
@@ -3961,9 +3961,14 @@ public class ProjectService {
 				serviceResponse.setServiceResponse("Employee Id cannot be null!!");
 				return serviceResponse;
 			}
+			if(projectId == null) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("Project Id cannot be null!!");
+				return serviceResponse;
+			}
 
 			List<PoTeamAndMemberDetailsDto> employeeExistingProjectDetailsList = projectRepository
-					.getEmployeeExistingProjectDetailsByEmpId(empId);
+					.getEmployeeExistingProjectDetailsByEmpId(empId, projectId);
 
 			if (employeeExistingProjectDetailsList == null || employeeExistingProjectDetailsList.isEmpty()) {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);

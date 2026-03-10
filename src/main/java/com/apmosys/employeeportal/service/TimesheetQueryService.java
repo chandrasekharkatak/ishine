@@ -495,6 +495,7 @@ public class TimesheetQueryService {
                             dto.setActivity(object[1] != null ? object[1].toString() : null);
                             dto.setTeamId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
                             dto.setDepartmentList(object[5] != null ? object[5].toString().split(",") : null);
+                            // dto.setEmployeeTeamDepartment(object[6] != null ? Long.parseLong(object[6].toString()) : null);
                             dtoList.add(dto);
                         }
                     });

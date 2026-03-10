@@ -15279,7 +15279,8 @@ public class ResourceManagementService {
 		boolean isOnce = "once".equalsIgnoreCase(mode);
 		String updatedUsing = "";
 
-		List<Long> failedClientIds = Collections.synchronizedList(new ArrayList<>());
+		List<String> failedClientNames = Collections.synchronizedList(new ArrayList<>());
+		ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
 		try {
 
@@ -15330,7 +15331,6 @@ public class ResourceManagementService {
 
 			int batchSize = 100;
 
-			ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
 			List<Future<Object[]>> futures = new ArrayList<>();
 
@@ -15341,39 +15341,27 @@ public class ResourceManagementService {
 				Future<Object[]> future = executor.submit(() -> {
 
 					if (isOnce) {
-
 						log.info("Updating clients using ClientName");
-
 						return processByClientName(poBatch, poClientMap);
-
 					} else {
-
 						log.info("Updating clients using PoClientId");
-
 						return processByPoClientId(poBatch, poClientMap);
 					}
-
 				});
-
 				futures.add(future);
 			}
 
 			for (Future<Object[]> future : futures) {
-
 				try {
-
 					Object[] result = future.get();
-
 					updatedCount += (int) result[0];
 					insertedCount += (int) result[1];
 					totalIshineClientCount += (int) result[2];
 
-					failedClientIds.addAll((List<Long>) result[3]);
+					failedClientNames.addAll((List<String>) result[3]);
 
 				} catch (Exception e) {
-
 					ExceptionLogContext.add(e);
-
 					log.error("Batch execution error", e);
 				}
 			}
@@ -15386,7 +15374,7 @@ public class ResourceManagementService {
 
 			String message = "Client Sync Completed. " + updatedUsing + " Total PO Clients: " + totalPoClientCount
 					+ " Total iShine Clients(found in db): " + totalIshineClientCount + ", Updated: " + updatedCount
-					+ ", Inserted: " + insertedCount + ", Failed Clients: " + failedClientIds;
+					+ ", Inserted: " + insertedCount + ", Failed Clients: " + failedClientNames;
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(message);
@@ -15409,17 +15397,14 @@ public class ResourceManagementService {
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 
 		} finally {
-
-			if (!failedClientIds.isEmpty()) {
-
-				log.error("Client Sync Failed For ClientIds: {}", failedClientIds);
+			if (!failedClientNames.isEmpty()) {
+				log.error("Client Sync Failed For ClientIds: {}", failedClientNames);
 			}
-
 			if (initialLog != null) {
-
 				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode,
-						failedClientIds + ExceptionLogContext.get(), httpRequest);
+						failedClientNames + ExceptionLogContext.get(), httpRequest);
 			}
+			if (executor != null) { executor.shutdown();}
 		}
 
 		return response;
@@ -15430,13 +15415,25 @@ public class ResourceManagementService {
 		int updated = 0;
 		int inserted = 0;
 		int iShinecount = 0;
-		List<Long> failedClientIds = new ArrayList<>();
+		List<String> failedClientIds = new ArrayList<>();
 
 		List<Client> iShineClients = clientsRepository.findByTrimmedClientNameIn(poBatch);
 		iShinecount = iShineClients.size();
 
+//		Map<String, Client> iShineMap = iShineClients.stream()
+//				.collect(Collectors.toMap(c -> c.getClientName().trim().toLowerCase(), c -> c));
+		
 		Map<String, Client> iShineMap = iShineClients.stream()
-				.collect(Collectors.toMap(c -> c.getClientName().trim().toLowerCase(), c -> c));
+		        .filter(c -> c.getClientName() != null)
+		        .collect(Collectors.toMap(
+		                c -> c.getClientName().trim().toLowerCase(),
+		                c -> c,
+		                (existing, duplicate) -> {
+		                    failedClientIds.add(duplicate.getClientName());
+		                    log.error("Duplicate clientName found in DB: {}", duplicate.getClientName());
+		                    return existing;
+		                }
+		        ));
 
 		List<Integer> clientIds = iShineClients.stream()
 				.map(Client::getClientId)
@@ -15456,37 +15453,41 @@ public class ResourceManagementService {
 		for (String clientNamePo : poBatch) {
 
 			ClientDetailsSyncDto poDto = poClientMap.get(clientNamePo);
-			Client iShineClient = iShineMap.get(clientNamePo);
+			String normalizedClientPoName = clientNamePo == null ? null : clientNamePo.trim().toLowerCase(); 
+			Client iShineClient = iShineMap.get(normalizedClientPoName);
 
 			try {
 
-				List<ClientLocation> clientLocations =
-						iShineClient == null
-						? new ArrayList<>()
-						: locationMap.getOrDefault(iShineClient.getClientId(), new ArrayList<>());
-
+				List<ClientLocation> clientLocations = iShineClient == null? Collections.emptyList() 
+	                        : locationMap.getOrDefault(iShineClient.getClientId(),Collections.emptyList());
+				
 				int[] result = clientService.processSingleClientByName(poDto,
 								iShineClient,clientLocations);
 
 				updated += result[0];
 				inserted += result[1];
-
+				
+				if (iShineClient == null && result[1] > 0) {
+				    clientsRepository.findByPoClientId(poDto.getClientid())
+				            .ifPresent(client -> iShineMap.put(normalizedClientPoName, client));
+				}
+				
 			} catch (Exception e) {
 				ExceptionLogContext.add(e);
-				failedClientIds.add(poDto.getClientid());
+				failedClientIds.add(poDto.getClientName());
 				log.error("Error processing client: {}", clientNamePo, e);
 			}
 		}
-
 		return new Object[]{updated, inserted, iShinecount, failedClientIds};
 	}
+	
 	private Object[] processByPoClientId(List<String> poBatch, Map<String, ClientDetailsSyncDto> poClientMap) {
 
 		int updated = 0;
 		int inserted = 0;
 		int iShinecount = 0;
 
-		List<Long> failedClientIds = new ArrayList<>();
+		List<String> failedClientIds = new ArrayList<>();
 
 		List<Long> poIds = poBatch.stream()
 				.map(name -> poClientMap.get(name).getClientid())
@@ -15497,15 +15498,26 @@ public class ResourceManagementService {
 
 		iShinecount = iShineClients.size();
 
+//		Map<Long, Client> iShineMap = iShineClients.stream()
+//				.collect(Collectors.toMap(Client::getPoClientId, c -> c));
+		
 		Map<Long, Client> iShineMap = iShineClients.stream()
-				.collect(Collectors.toMap(Client::getPoClientId, c -> c));
+		        .filter(c -> c.getPoClientId() != null)
+		        .collect(Collectors.toMap(
+		                Client::getPoClientId,
+		                c -> c,
+		                (existing, duplicate) -> {
+		                    failedClientIds.add(duplicate.getClientName());
+		                    log.error("Duplicate poClientId found in DB: {}", duplicate.getPoClientId());
+		                    return existing;
+		                }
+		        ));
 
-		// 🔹 Fetch all clientIds
 		List<Integer> clientIds = iShineClients.stream()
 				.map(Client::getClientId)
 				.collect(Collectors.toList());
 
-		// 🔹 Fetch all locations in ONE query
+		//Fetch all locations in ONE query
 		Map<Integer, List<ClientLocation>> locationMap = new HashMap<>();
 
 		if (!clientIds.isEmpty()) {
@@ -15532,9 +15544,16 @@ public class ResourceManagementService {
 				
 				updated += result[0];
 				inserted += result[1];
+				
+				if (iShineClient == null && result[1] > 0) {
+	                Optional<Client> newClient = clientsRepository.findByPoClientId(poDto.getClientid());
+	                if (newClient.isPresent()) {
+	                    iShineMap.put(poDto.getClientid(), newClient.get());
+	                }
+	            }
 			} catch (Exception e) {
 				ExceptionLogContext.add(e);
-				failedClientIds.add(poDto.getClientid());
+				failedClientIds.add(poDto.getClientName());
 				log.error("Error processing clientId: {}", poDto.getClientid(), e);
 			}
 		}
@@ -17069,66 +17088,110 @@ public class ResourceManagementService {
 					.map(UnmappedEmployeeProjectDto::unmappedEmployeeProject).collect(Collectors.toList());
 
 			
+
 			Map<Long, List<UnmappedEmployeeProjectDto>> deptIdAndEmployeeMap = unmappedEmployeeDetails.stream()
 					.collect(Collectors.groupingBy(UnmappedEmployeeProjectDto::getDeptId));
-//
-//			deptIdAndEmployeeMap.forEach((deptId, employees) -> {
-//				
-//				String departmentName = employees.get(0).getDepartmentName();
-//				String hodMail = employees.get(0).getHodMail();
-//				Set<String> rmEmails = employees.stream()
-//
-//				employees.forEach(emp -> {
-//					sendMail(emp, hodMail, departmentName);
-//				});
-//			});
 
+			for (Map.Entry<Long, List<UnmappedEmployeeProjectDto>> deptIdAndEmployeeMapEntrySet : deptIdAndEmployeeMap.entrySet()) {
+				
+				List<UnmappedEmployeeProjectDto> employees = deptIdAndEmployeeMapEntrySet.getValue();
+				if (employees == null || employees.isEmpty()) {
+					continue;
+				}
+				
+				String departmentName = employees.get(0).getDepartmentName();
+				String subject = "Employee(s) Unmapped from Project.";
+				String hodMail =  employees.get(0).getHodMail();
+				String htmlTable = createUnmappedEmployeeHtmlTable(employees, departmentName);
+
+				try {
+					mailService.sendMailWithCC(hodMail, "", subject, htmlTable);
+				} catch (MessagingException e) {
+					log.error("Error occured while sending mail to HOD : {} , Error : {} ", hodMail, e.getMessage());
+				}
+
+				employees.forEach(emp -> {
+					try {
+						mailService.sendMail(emp.getEmail(), subject, htmlTable);
+					} catch (Exception e) {
+						log.error("Error occured while sending mail to : {} , Error : {} ", emp.getEmail(), e.getMessage());
+					}
+				});
+
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-
-	private void sendMailToEmployee(UnmappedEmployeeProjectDto emp, String hodMail, String departmentName) {
-		String subject = "Employee Unmapped from Project";
-//	    String body = buildHtmlTable(emp, departmentName);
-//	    mailService.sendHtmlMail(emp.getEmail(), List.of(hodMail), subject, body);
-	}
-
-	private void sendMailToReportingManagers(UnmappedEmployeeProjectDto emp, String hodMail, String departmentName) {
-		String subject = "Employee Unmapped from Project";
-//	    String body = buildHtmlTable(emp, departmentName);
-//	    mailService.sendHtmlMail(emp .getEmail(), List.of(hodMail), subject, body);
-	}
-
-	private String createUnmappedEmployeeHtmlTable(UnmappedEmployeeProjectDto emp, String departmentName) {
+	
+	private String createUnmappedEmployeeHtmlTable(List<UnmappedEmployeeProjectDto> unmappedEmployeeList, String departmentName) {
 		StringBuilder html = new StringBuilder();
-		html.append("<html><body>");
-		html.append("<p>Dear ").append(emp.getName()).append(",</p>");
-		html.append("<p>The following unmapped project details were identified:</p>");
-		html.append("<table border='1' style='border-collapse:collapse;padding:8px'>");
+		html.append("<html>")
+			.append("<head><style>")
+			.append("table, th, td { border: 1px solid black; }")
+			.append("table { border-collapse: collapse; }")
+			.append("</style></head>")
+			.append("<body>");
+	    
+	    html.append("<p>Dear Team,");
+	    html.append("<p>The following unmapped project details were identified:</p>");
+	    html.append("<table border='1' style='border-collapse:collapse;padding:8px'>");
 	    html.append("<tr>")
 	            .append("<th>Employee ID</th>")
 	            .append("<th>Name</th>")
-	            .append("<th>Department</th>")
+	            .append("<th>Email</th>")
+	            .append("<th>Manager Name</th>")
 	            .append("<th>Unmapped Start Date</th>")
 	            .append("<th>Unmapped End Date</th>")
 	            .append("<th>Unmapped Days</th>")
+	            .append("<th>Department</th>")
 	            .append("</tr>");
-	    html.append("<tr>")
+	    
+	    for(UnmappedEmployeeProjectDto emp : unmappedEmployeeList) {
+	    	  html.append("<tr>")
 	            .append("<td>").append(emp.getEmploymentIdStr()).append("</td>")
 	            .append("<td>").append(emp.getName()).append("</td>")
-	            .append("<td>").append(departmentName).append("</td>")
+	            .append("<td>").append(emp.getEmail()).append("</td>")
+	            .append("<td>").append(emp.getReportingManagerName()).append("</td>")
 	            .append("<td>").append(emp.getUnmapStartDate()).append("</td>")
 	            .append("<td>").append(emp.getUnmapEndDate()).append("</td>")
 	            .append("<td>").append(emp.getUnmappedDaysCount()).append("</td>")
+	            .append("<td>").append(departmentName).append("</td>")
 	            .append("</tr>");
-		html.append("</table>");
-		html.append("<br>");
-		html.append("<p>Please contact your reporting manager for project allocation.</p>");
-		html.append("<br>");
-		html.append("<p>Regards,<br>HR Team</p>");
-		html.append("</body></html>");
-		return html.toString();
+	    }
+	    html.append("</table>");
+	    html.append("<br>");
+	    html.append("<p>Please contact your reporting manager for project allocation.</p>");
+	    html.append("<br>");
+	    html.append("<p>Regards,<br>ApMoSys Technologies</p>");
+	    html.append("</body></html>");
+	    return html.toString();
 	}
+
+
+
+public ServiceResponse getEmployeeTeamDepartment(Long empId, Long teamId , LocalDate date){
+	
+	ServiceResponse response = new ServiceResponse();
+
+    try{
+
+	List<Long> deptId = projectRepository.getEmployeeTeamDepartment(empId,teamId, date);
+	response.setServiceResponse(deptId);
+	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	response.setServiceMessage("employee team department Id fetched successfully");
+
+	} catch(Exception ex){
+
+	log.error("Error fetching employee team department Id",ex);
+	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	response.setServiceResponse("Error: " + ex.getMessage());
+	
+	}
+
+	return response;
+
+}
+
 
 }

@@ -14,7 +14,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.apmosys.employeeportal.dto.EmpIdAndNameDTO;
-import com.apmosys.employeeportal.dto.EmployeeProjectTimesheetCountDto;
+import com.apmosys.employeeportal.dto.EmployeeProjectTimesheetDto;
 import com.apmosys.employeeportal.dto.ProjectClientSideIdDTO;
 import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
@@ -488,7 +488,7 @@ Page<TimesheetDTO> getAllLeaveTimesheetsWithoutLeaveApplicationDepartmentWise(
 //	            added by sakti for duplicate timesheet check
 //	    		Optional<Timesheet> findByEmpIdAndDate(Long empId, Date date);
 	      
-    @Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(p.projectId, p.projectName, p.clientFlag, p.hasClientSideId)\n"
+    @Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(p.projectId, p.projectName, p.clientFlag, p.hasClientSideId,p.poProjectType)\n"
 		+ "FROM EmployeeTeamMap etm\n"
 		+ "inner join Team t on t.teamId = etm.teamId \n"
 		+ "inner join Project p on p.projectId = t.projectId\n"
@@ -11449,8 +11449,10 @@ List<Object[]> getLastFilledTimesheetByEmp(@Param("empId") Long empId);
 //					+ "group by p.project_id, p.project_name, p.start_date, etm.start_date \n",nativeQuery = true)
 //			public List<Object[]> findByEmpIdAndDate(Long empId, LocalDateTime startDate);
 			
-			@Query(value = "select new com.apmosys.employeeportal.dto.EmployeeProjectTimesheetCountDto( "
-					+ "p.projectId, p.projectName, date(p.startDate), date(etm.startDate), count(distinct et.timesheetId)) \n"
+			@Query(value = "select new com.apmosys.employeeportal.dto.EmployeeProjectTimesheetDto( "
+					+ " p.projectId, p.projectName, "
+					+ " CASE WHEN p.poProjectType IS NOT NULL AND TRIM(p.poProjectType) != '' THEN p.poProjectType ELSE p.internalProjectType END, \n"
+					+ " t.teamName, date(p.startDate), date(etm.startDate), date(etm.endDate), count(distinct et.timesheetId)) \n"
 					+ "FROM Employee e  \n"
 					+ "INNER JOIN EmployeeTeamMap etm on e.empId = etm.empId \n"
 					+ "INNER JOIN Team t on etm.teamId = t.teamId \n"
@@ -11460,9 +11462,9 @@ List<Object[]> getLastFilledTimesheetByEmp(@Param("empId") Long empId);
 					+ "INNER JOIN EmployeeTimesheetActivitiesMappingNew etam on et.timesheetId = etam.timesheetId \n"
 					+ "INNER JOIN Activity a on etam.activityId = a.activityId and a.teamId = t.teamId \n"
 					+ "where e.empId = :empId and et.date between DATE(:startDate) and CURDATE() \n"
-					+ "and lower(dt.dayType) like '%working%' \n"
+					+ "and lower(dt.dayType) like '%working%' and p.projectId  NOT IN :projectIds  \n"
 					+ "group by p.projectId, p.projectName, p.startDate, etm.startDate \n")
-			public List<EmployeeProjectTimesheetCountDto> findByEmpIdAndDate(Long empId, LocalDateTime startDate);
+			public List<EmployeeProjectTimesheetDto> findByEmpIdAndDate(Long empId, LocalDateTime startDate, List<Integer> projectIds);
 
 
 

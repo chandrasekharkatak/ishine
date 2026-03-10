@@ -607,7 +607,7 @@ public class HolidayService {
         tsHeader.setCurrentManagerId(managerId);
         tsHeader.setDayTypeId(resolvedDayTypeId);
         tsHeader.setDescription(tsDescription);
-
+        tsHeader.setIsSystemGenerated(true);
         tsHeader = employeeTimesheetsNewRepository.save(tsHeader);
         Long newTsId = tsHeader.getTimesheetId();
 

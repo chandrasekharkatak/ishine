@@ -375,9 +375,10 @@ public class ClientService {
 	 	if (iShineClient != null) {
 	 		if (!Objects.equals(iShineClient.getPoClientId(), poDto.getClientid())) {
 	 			iShineClient.setPoClientId(poDto.getClientid());
+	 			clientRepository.save(iShineClient);
 	 			updated++;
 	 		}
-	 		syncClientLocations(iShineClient, poDto, false, existingLocations);
+	 		updated += syncClientLocations(iShineClient, poDto, false, existingLocations);
 
 	 	} else {
 	 		Client newClient = new Client();
@@ -388,7 +389,7 @@ public class ClientService {
 
 	 		inserted++;
 
-	 		syncClientLocations(newClient, poDto, true, new ArrayList<>());
+	 		updated += syncClientLocations(newClient, poDto, true, new ArrayList<>());
 	 	}
 
 	 	return new int[]{updated, inserted};
@@ -405,10 +406,11 @@ public class ClientService {
 	    		if (!iShineClient.getClientName().trim().equalsIgnoreCase(poDto.getClientName().trim())) {
 
 	    			iShineClient.setClientName(poDto.getClientName());
+	    			clientRepository.save(iShineClient);
 	    			updated++;
 	    		}
 
-	    		syncClientLocations(iShineClient, poDto, false, existingLocations);
+	    		updated += syncClientLocations(iShineClient, poDto, false, existingLocations);
 
 	    	} else {
 
@@ -419,17 +421,17 @@ public class ClientService {
 	    		clientRepository.save(newClient);
 	    		inserted++;
 
-	    		syncClientLocations(newClient, poDto, true, new ArrayList<>());
+	    		updated += syncClientLocations(newClient, poDto, true, new ArrayList<>());
 	    	}
 
 	    	return new int[]{updated, inserted};
 	    }	 
 	    
-	    private void syncClientLocations(Client iShineClient,ClientDetailsSyncDto poDto,
+	    private int syncClientLocations(Client iShineClient,ClientDetailsSyncDto poDto,
                 Boolean isNew,List<ClientLocation> iShineLocations) {
 
 	    	if (poDto.getClientAddress() == null || poDto.getClientAddress().isEmpty()) {
-	    		return;	}
+	    		return 0;	}
 
 	    	Map<String, ClientLocation> iShineLocationMap = iShineLocations.stream()
 	    				.collect(Collectors.toMap(
@@ -482,6 +484,9 @@ public class ClientService {
 	    	if (!locationsToSave.isEmpty()) {
 	    		clientLocationRepository.saveAll(locationsToSave);
 	    	}
+	    	
+	    	return locationsToSave.size();
+	    	
 	    }	    
 	    
 	 public void updateProjectAfterSuccessfulSync(
