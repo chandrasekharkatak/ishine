@@ -634,7 +634,7 @@ public class TimesheetController {
 	@PostMapping("/getTimesheetStatusCountByManager")
 		public ServiceResponse getTimesheetStatusCountByManager(
 		        @RequestBody TimesheetStatusCountDTO timesheetCount) {
-				ServiceResponse response = timesheetServiceNew.getTimesheetStatusCountsByManager(timesheetCount.getManagerId(),timesheetCount.getClientFilter());
+				ServiceResponse response = timesheetServiceNew.getTimesheetStatusCountsByManager(timesheetCount.getManagerId(),timesheetCount.getClientFilter(),timesheetCount.getStartDate(),timesheetCount.getEndDate());
 		    return response;
 	}
 		

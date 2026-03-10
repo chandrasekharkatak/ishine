@@ -2504,7 +2504,9 @@ getDocument(type: 'Pending' | 'Approved'): void {
   getTimesheetStatusCountsByEmpId() {
     const payload : any = {
       managerId: this.currentUser.empId,
-      clientFilter: this.clientFilter
+      clientFilter: this.clientFilter,
+      startDate: this.startDate,
+      endDate: this.endDate
     };
 
     this.loaderService.requestStarted();
@@ -3601,7 +3603,7 @@ this.timesheetNewService.processBulkTimesheets(payload).pipe(finalize(() => this
       this.modalMessage = message;
 
       this.clearAllSelections();
-      this.onStatusChange(2);
+      this.onStatusChange(3);
       this.page1 = 0;
 
       this.getMyReporteesTimesheetRequests();
