@@ -74,7 +74,7 @@ export class TeamTimesheetComponent implements OnInit {
   sortColumnType: any;
   clientSideIdForm: NgbModalRef;
   updateClientIdModalRef: NgbModalRef;
-  bulkRejectReasonId: number | null = null;
+  bulkRejectReasonId: number[] = [];
 bulkRejectRemark: string = '';
 rejectReasonError = false;
 rejectRemarkError = false;
