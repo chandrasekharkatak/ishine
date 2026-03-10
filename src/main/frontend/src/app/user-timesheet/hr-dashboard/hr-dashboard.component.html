@@ -317,120 +317,101 @@
             <!-- /* //Pivot table changes dept wise */ -->
 
             <div class="title-group-box-project w-100" *ngIf="isClientDashboard && !toggleValue ">
+                <section class="dept-status-summary" aria-labelledby="dept-summary-heading">
+                    <div class="dept-table-container">
 
-                <div class="dept-table-container">
-
-                    <!-- Header -->
-                    <div class="dept-header-bar" (click)="toggleDeptTableCollapse()">
-                        <div class="dept-title-wrap">
-                            <span class="dept-title">Department Wise Status Summary</span>
-                            <span class="dept-subtitle">Timesheet Overview</span>
+                        <!-- Header: collapsible, keyboard accessible -->
+                        <div class="dept-header-bar"
+                            id="dept-summary-heading"
+                            role="button"
+                            tabindex="0"
+                            [attr.aria-expanded]="!isDeptTableCollapsed"
+                            aria-controls="dept-summary-table-body"
+                            (click)="toggleDeptTableCollapse()"
+                            (keydown)="onDeptSummaryHeaderKeydown($event)">
+                            <div class="dept-title-wrap">
+                                <span class="dept-title">Department Wise Status Summary</span>
+                                <span class="dept-subtitle">Timesheet overview by department and status</span>
+                            </div>
+                            <span class="collapse-arrow" [class.rotate]="!isDeptTableCollapsed" aria-hidden="true"></span>
                         </div>
 
-                        <span class="collapse-arrow" [class.rotate]="!isDeptTableCollapsed"></span>
-                    </div>
-
-                    <!-- Table Body -->
-                    <div class="dept-table-body" [class.collapsed]="isDeptTableCollapsed">
-
-                        <div class="table-scroll">
-
-                            <table class="futuristic-table">
-                                <thead>
-                                    <tr>
-                                        <th>Dept</th>
-                                        <th>Total Applicable</th>
-                                        <th>Ready For Invoicing</th>
-                                        <th>Defaulter</th>
-                                        <th>Pending Approval</th>
-                                        <th>Not Filled</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody>
-                                    <tr *ngFor="let row of departmentTableData" class="table-row">
-
-                                        <td class="dept-name">{{ row.dept }}</td>
-
-                                        <td>
-                                            <div class="count-card total clickable" (click)="onDeptCountClick(row, 'TOTAL')">
-                                                {{ row.total }}
-                                            </div>
-                                        </td>
-
-                                        <td>
-                                            <div class="count-card success clickable" (click)="onDeptCountClick(row, 'READY')">
-
-                                                <div class="count-main">
-                                                    {{ row.ready }}
-                                                </div>
-
-                                                <div class="repeat-indicator" *ngIf="row.approvedRepeat > 0"
-                                                    title="Repeated entries"
-                                                    (click)="onRepeatClick($event, row, 'APPROVED_REPEAT')">
-                                                    <i class="fa-solid fa-user-group"></i>
-                                                    <span>{{ row.approvedRepeat }}</span>
-                                                </div>
-
-                                            </div>
-
-                                        </td>
-
-                                        <td>
-                                            <div class="count-card danger clickable"
-                                                (click)="onDeptCountClick(row, 'DEFAULTER')">
-
-                                                <div class="count-main">
-                                                    {{ row.defaulter }}
-                                                </div>
-
-                                                <div class="repeat-indicator" *ngIf="row.defaulterRepeat > 0"
-                                                    title="Repeated entries"
-                                                    (click)="onRepeatClick($event, row, 'DEFAULTER_REPEAT')">
-                                                    <i class="fa-solid fa-user-group"></i>
-                                                    <span>{{ row.defaulterRepeat }}</span>
-                                                </div>
-
-                                            </div>
-
-                                        </td>
-
-                                        <td>
-                                            <div class="count-card warning clickable"
-                                                (click)="onDeptCountClick(row, 'PENDING')">
-
-                                                <div class="count-main">
-                                                    {{ row.pending }}
-                                                </div>
-
-                                                <div class="repeat-indicator" *ngIf="row.pendingRepeat > 0"
-                                                    title="Repeated entries"
-                                                    (click)="onRepeatClick($event, row, 'PENDING_REPEAT')">
-                                                    <i class="fa-solid fa-user-group"></i>
-                                                    <span>{{ row.pendingRepeat }}</span>
-                                                </div>
-
-                                            </div>
-
-                                        </td>
-
-
-                                        <td>
-                                            <div class="count-card neutral clickable"
-                                                (click)="onDeptCountClick(row, 'NOT_FILLED')">
-                                                {{ row.notFilled }}
-                                            </div>
-                                        </td>
-
-
-                                    </tr>
-                                </tbody>
-                            </table>
-
+                        <!-- Table Body: fixed header + inner body-only scroller -->
+                        <div class="dept-table-body" id="dept-summary-table-body" [class.collapsed]="isDeptTableCollapsed">
+                            <div class="dept-table-outer">
+                                <div class="dept-table-inner">
+                                    <!-- Fixed header (outside scroll) -->
+                                    <table class="futuristic-table dept-table-header" role="grid" aria-readonly="true">
+                                        <caption class="sr-only">Department-wise timesheet counts: Total Applicable, Ready For Invoicing, Defaulter, Pending Approval, Not Filled</caption>
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">Department</th>
+                                                <th scope="col">Total Applicable</th>
+                                                <th scope="col">Ready For Invoicing</th>
+                                                <th scope="col">Defaulter</th>
+                                                <th scope="col">Pending Approval</th>
+                                                <th scope="col">Not Filled</th>
+                                            </tr>
+                                        </thead>
+                                    </table>
+                                    <!-- Inner scroller: body rows only -->
+                                    <div class="dept-table-body-scroll">
+                                        <table class="futuristic-table dept-table-body-table" role="grid" aria-readonly="true">
+                                            <tbody>
+                                                <tr *ngFor="let row of departmentTableData" class="table-row">
+                                                    <td class="dept-name">{{ row.dept }}</td>
+                                                    <td>
+                                                        <div class="count-card total clickable" (click)="onDeptCountClick(row, 'TOTAL')">
+                                                            {{ row.total }}
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="count-card success clickable" (click)="onDeptCountClick(row, 'READY')" tabindex="0" role="button" (keydown)="onDeptCountKeydown($event, row, 'READY')">
+                                                            <div class="count-main">{{ row.ready }}</div>
+                                                            <div class="repeat-indicator" *ngIf="row.approvedRepeat > 0"
+                                                                title="Repeated entries"
+                                                                (click)="onRepeatClick($event, row, 'APPROVED_REPEAT')">
+                                                                <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+                                                                <span>{{ row.approvedRepeat }}</span>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="count-card danger clickable" (click)="onDeptCountClick(row, 'DEFAULTER')">
+                                                            <div class="count-main">{{ row.defaulter }}</div>
+                                                            <div class="repeat-indicator" *ngIf="row.defaulterRepeat > 0"
+                                                                title="Repeated entries"
+                                                                (click)="onRepeatClick($event, row, 'DEFAULTER_REPEAT')">
+                                                                <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+                                                                <span>{{ row.defaulterRepeat }}</span>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="count-card warning clickable" (click)="onDeptCountClick(row, 'PENDING')">
+                                                            <div class="count-main">{{ row.pending }}</div>
+                                                            <div class="repeat-indicator" *ngIf="row.pendingRepeat > 0"
+                                                                title="Repeated entries"
+                                                                (click)="onRepeatClick($event, row, 'PENDING_REPEAT')">
+                                                                <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+                                                                <span>{{ row.pendingRepeat }}</span>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="count-card neutral clickable" (click)="onDeptCountClick(row, 'NOT_FILLED')">
+                                                            {{ row.notFilled }}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-
-                </div>
+                </section>
             </div>
 
 
