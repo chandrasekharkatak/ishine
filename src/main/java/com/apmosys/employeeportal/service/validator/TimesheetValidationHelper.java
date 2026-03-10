@@ -2089,5 +2089,38 @@ public class TimesheetValidationHelper {
 	        }
 	    }
 	}
+
+    public void validateApmosysHolidayWithProjects(EmployeeTimesheetDTO timesheetDTO) {
+
+        // Check only for Comp-Off
+        if (timesheetDTO.getDayTypeId() == null || timesheetDTO.getDayTypeId() != 6) {
+            return;
+        }
+    
+        if (timesheetDTO.getLocationSessions() == null || timesheetDTO.getLocationSessions().isEmpty()) {
+            return;
+        }
+    
+        for (LocationSessionDTO location : timesheetDTO.getLocationSessions()) {
+    
+            if (location.getProjects() == null) continue;
+    
+            for (ProjectTimesheetDTO project : location.getProjects()) {
+    
+                Integer projectId = project.getProjectId();
+    
+                if (projectId == null) continue;
+    
+                // Fetch project type from DB
+                String poProjectType = projectRepository.findPoProjectTypeByProjectId(projectId);
+    
+                if (poProjectType != null && "TNM".equalsIgnoreCase(poProjectType)) {
+                    throw new IllegalArgumentException(
+                        "Apmosys Holiday cannot be applied for TNM projects. Project ID: " + projectId
+                    );
+                }
+            }
+        }
+    }
 }
 

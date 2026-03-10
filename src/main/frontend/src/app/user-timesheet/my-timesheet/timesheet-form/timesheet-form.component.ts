@@ -2,7 +2,7 @@ import { Component, Input, OnInit, OnChanges, OnDestroy, Output, EventEmitter, T
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import * as moment from 'moment';
-import { Subject, first, takeUntil } from 'rxjs';
+import { Subject, first, firstValueFrom, takeUntil } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Employee } from 'src/app/models/employee';
@@ -27,6 +27,8 @@ import { LocationEntry } from 'src/app/models/locationEntry';
 import { TimesheetDocumentDataI } from './types';
 import { TimesheetValidationService } from 'src/app/services/TimesheetValidationService/timesheet-validation.service';
 import { TimesheetConfigService } from 'src/app/services/TimesheetValidationService/timesheet-config.service';
+import { DatePipe } from '@angular/common';
+import { EmployeeService } from 'src/app/services/employee.service';
 
 @Component({
   standalone: false,
@@ -158,6 +160,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     "If the client-side ID is not yet assigned, enter “NA (ApMoSys Employee ID)”.",
     "Once the client-side ID is received, update the ID while filling subsequent timesheets."]
   appelectMember: any;
+  dayTypeToBeExcluded = ["Leave","Holiday"];
   constructor(private teamViewService: TeamViewService,
     private timesheetService: TimesheetService,
     private timesheetNewService: TimesheetNewService,
@@ -167,7 +170,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     private authenticationService: AuthenticationService,
     private holidayService: HolidayService,
     private sanitizer: DomSanitizer,
-    private cdr: ChangeDetectorRef) { 
+    private cdr: ChangeDetectorRef,
+    private datePipe: DatePipe,
+    private employeeService: EmployeeService) { 
       // ✅ CRITICAL FIX: Properly unsubscribe on destroy
       this.authenticationService.currentUser
         .pipe(takeUntil(this.destroy$))
@@ -1107,10 +1112,27 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     this.timesheetNewService.getAllDayTypes()
       .pipe(first(), takeUntil(this.destroy$))
       .subscribe({
-        next: (response: any) => {
+        next: async(response: any) => {
           if (response.serviceStatus == "Success") {
             this.allDayTypes = response.serviceResponse || [];
             // Autofill moved to onTimesheetAppliedForChange to avoid race with resetForm
+            console.log("Day type changes", this.allDayTypes);
+
+            let excludedIds = [...this.dayTypeToBeExcluded];
+            // if(this.timesheetAppliedFor.toLocaleLowerCase() === 'self') {
+            //   const empId = this.currentUser.empId;
+            //   let response:any = await firstValueFrom(this.employeeService.getEmployeeBillableType(this.currentUser?.empId));
+            //   let billableType = "";
+            //   if (response.serviceStatus === "Success") {
+            //   billableType = response.serviceResponse;
+            //   }
+            //   if (billableType?.toLowerCase() === 'tnm') {
+            //     excludedIds.push("ApMoSys Holiday");
+            //   }
+            // }
+            this.allDayTypes = this.allDayTypes.filter(f =>{
+              return !excludedIds.includes(f.dayType);
+            })
           } else {
             // ✅ MODERATE FIX: Use centralized error handling
             this.handleError(
@@ -1898,6 +1920,47 @@ this.isNightShift = false;
       p => p.projectId === projectId
     );
 
+    //  TNM validation
+// if (matchedProject?.poProjectType?.toLowerCase() === 'tnm') {
+
+//   const revertObject: ProjectEntry = {
+//     ...changedProject,
+//     projectId: null,
+//     projectName: '',
+//     hasClientSideId: false,
+//     hasClientFlag: false,
+//     shadowEmpId: null,
+//     isShadowTimesheet: false,
+//     isShadowForSelf: false,
+//     clientSideId: null,
+//     clientId: null,
+//     clientLocationId: null,
+//     clientApprovalStatus: null,
+//     totalWorkingHours: null,
+//     activities: [this.createActivity(null, null)],
+//     projectActivities: [],
+//     clientList: [],
+//     clientLocationList: [],
+//     clientDetails: null,
+//     _lastValidProjectId: null,
+//     _lastValidProjectName: ''
+//   };
+
+//   parentLocation.projects[projectIndex] = revertObject;
+
+//   this.handleError(
+//     new Error('TNM project not allowed'),
+//     'onProjectSelect',
+//     true,
+//     'ApMoSys Holiday cannot be applied because the project type is TNM'
+//   );
+
+//   this.getListToRenderUpload();
+//   this.onHoursChange();
+
+//   return;
+// }
+
   const updatedProject: ProjectEntry = {
     ...changedProject,
     projectId: projectId,
@@ -2408,7 +2471,7 @@ this.isNightShift = false;
   /**
    * Load activities for a project filtered by department
    */
-  loadActivitiesForProject(project: ProjectEntry, teamId: number): void {
+   loadActivitiesForProject(project: ProjectEntry, teamId: number): void {
     // ✅ MODERATE FIX: Add input validation
     if (!project) {
       this.handleError(new Error('Project is required'), 'loadActivitiesForProject', false);
@@ -2449,7 +2512,7 @@ this.isNightShift = false;
     this.timesheetService.getAllActivitiesByProjectIdandEmpId(timesheetObj)
       .pipe(first(), takeUntil(this.destroy$))
       .subscribe({
-        next: (response: any) => {
+        next: async(response: any) => {
           if (response.serviceStatus == "Success") {
             let allActivityList = response.serviceResponse || [];
             if (allActivityList.length === 0) {
@@ -2462,20 +2525,84 @@ this.isNightShift = false;
               this.disableAdd = true;
             } else {
               allActivityList = allActivityList.sort((a: any, b: any) => a.activity?.localeCompare(b.activity) || 0);
+              let employeeTeamDeptId =[];
+              const empId = this.timesheetFilledForUser?.empId ?? this.currentUser?.empId;
+              const date = this.convertDdMmYyyyToIso( this.fromDate);
+              const formattedDate = this.datePipe.transform(
+                date,
+                'yyyy-MM-dd'
+              );
+              // this.timesheetService.getEmployeeTeamDepartmentId(timesheetObj.teamId,empId,formattedDate).subscribe({
+
+              //   next: (response: any) => {
+              //     if (response.serviceStatus == "Success") {
+              //       employeeTeamDeptId = response.serviceResponse || [];
+              //     }
+              //   },
+              //   error: (error) => {
+              //     this.handleError(error, 'loadEmployeeTeamDeptId', true, 'Error loading Department Id.');
+              //      allActivityList = [];
+              //   }
+              // });
+              try{
+                const deptResponse: any = await firstValueFrom(
+                  this.timesheetService.getEmployeeTeamDepartmentId(
+                    timesheetObj.teamId,
+                    empId,
+                    formattedDate
+                  )
+                );
+
+                if (deptResponse.serviceStatus === "Success") {
+                  employeeTeamDeptId = deptResponse.serviceResponse || [];
+                }
+                if(employeeTeamDeptId?.length == 0){
+
+                  this.handleError(
+                    new Error('In employee team mapping table we can not find any department id mapped to you.'),
+                    'getEmployeeTeamDepartmentId',
+                    true,
+                    "You are not mapped to a specific department in the team!"
+                  );
+                  this.disableAdd = true;
+                }
+              
+              }catch(error){
+                this.handleError(error, 'loadEmployeeTeamDeptId', true, 'Error loading Department Id.');
+                allActivityList = [];
+              }
+
+              if(employeeTeamDeptId == null || employeeTeamDeptId?.length == 0 ){
+                allActivityList = [];
+              }
               // Filter by department
               if (this.timesheetAppliedFor == "team") {
-                const teamMember = this.teamMemberList?.find(emp => emp.empId == this.timesheetFilledForUser?.empId);
-                if (teamMember?.departmentId) {
+                // const teamMember = this.teamMemberList?.find(emp => emp.empId == this.timesheetFilledForUser?.empId);
+
+                if (employeeTeamDeptId?.length > 0) {
                   allActivityList = allActivityList.filter((x: any) =>
-                    x.departmentList?.map((d: any) => +d).includes(teamMember.departmentId)
+                    x.departmentList?.some((d: any) => employeeTeamDeptId.includes(+d))
                   );
                 }
+                // if (teamMember?.departmentId) {
+                //   allActivityList = allActivityList.filter((x: any) =>
+                //     x.departmentList?.map((d: any) => +d).includes(teamMember.departmentId)
+                //   );
+                // }
+               
               } else if (this.timesheetAppliedFor == "self") {
-                if (this.currentUser?.departmentId) {
-                  allActivityList = allActivityList.filter((x: any) =>
-                    x.departmentList?.map((d: any) => +d).includes(this.currentUser.departmentId)
-                  );
-                }
+
+                // if (this.currentUser?.departmentId) {
+                //   allActivityList = allActivityList.filter((x: any) =>
+                //     x.departmentList?.map((d: any) => +d).includes(this.currentUser.departmentId)
+                //   );
+                // }
+
+                if (employeeTeamDeptId?.length > 0) {
+                    allActivityList = allActivityList.filter((x: any) =>
+                      x.departmentList?.some((d: any) => employeeTeamDeptId.includes(+d))
+                    );
+                  }
               }
             }
 
@@ -5313,6 +5440,8 @@ this.isNightShift = false;
         next: (response: any) => {
           if (response.serviceStatus == "Success") {
             this.clientApprovalStatusList = response.serviceResponse || [];
+            this.clientApprovalStatusList = this.clientApprovalStatusList.filter(f => f.status != "Rejected");
+            // console.log("Client approval status", this.clientApprovalStatusList);
           } else {
             // ✅ MODERATE FIX: Use centralized error handling
             this.handleError(
@@ -5712,5 +5841,12 @@ this.isNightShift = false;
    if day type is non-wokring and timesheet filled day id oof type holiday or weekoff
 
    */
+  convertDdMmYyyyToIso(dateStr: string): string | null {
+    if (!dateStr) return null;
+  
+    const [day, month, year] = dateStr.split('-');
+  
+    return `${year}-${month}-${day}`;
+  }
 
 }

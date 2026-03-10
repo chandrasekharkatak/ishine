@@ -164,7 +164,7 @@ public interface TimesheetDocumentDetailsNewRepository extends JpaRepository<Tim
     " updated_on = NOW() "+
 	" WHERE doc_id = :docId "
 	, nativeQuery = true)
-	void resetApprovalStatus(Long docId);
+	void resetApprovalStatus(Long docId); //need to add updated by here also
 
 	@Modifying
 	@Transactional

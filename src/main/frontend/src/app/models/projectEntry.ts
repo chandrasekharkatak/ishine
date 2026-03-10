@@ -27,6 +27,7 @@ export class ProjectEntry {
   totalClientWorkingMinutes?: number;
   projectHoursMinutes?: number;
   description?: string | null;
+  poProjectType?: string | null;
 
   /** Last valid project selection (revert when user selects duplicate in same location) */
   _lastValidProjectId?: number | null;

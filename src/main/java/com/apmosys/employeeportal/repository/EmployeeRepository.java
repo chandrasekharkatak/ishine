@@ -2659,10 +2659,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 						+ " GROUP_CONCAT( DISTINCT ppd.apmosys_rm SEPARATOR ', ') AS apmosysrm, \n"
 						+ " c.client_name, p.client_location \n"
 		    			+ "FROM projects p \n"
-						+ "LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id \n"
+						+ "LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id and ppd.active = true \n"
 						+ "AND ( ( :fromDate IS NOT NULL  AND :toDate IS NOT NULL AND DATE(ppd.po_start_date) <= date(:toDate) \n"
 						+ " AND DATE(ppd.po_end_date) >= DATE(:fromDate) ) "
-						+ " or ( :fromDate IS NULL  AND :toDate IS NULL  AND ppd.active = true \n"
+						+ " or ( :fromDate IS NULL  AND :toDate IS NULL \n"
 						+ " AND Date(ppd.po_end_date) = (SELECT distinct MAX(Date(ppd2.po_end_date)) from project_po_details ppd2 where ppd2.project_id = p.project_id \n"
 						+ " and ppd2.active = true )) \n"
 						+ ") \n"
@@ -3905,7 +3905,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		"left join Project p on p.projectId = t.projectId " +
 		"left join Department d on d.deptId = jr.deptId " +
 		"left join ProjectPoDetails ppd " +
-  		"on ppd.projectId = p.projectId " +
+  		"on ppd.projectId = p.projectId and ppd.active = true " +
   		"and (ppd.poStartDate <= CURRENT_TIMESTAMP and ppd.poEndDate >= CURRENT_TIMESTAMP)" +
 		"where ((e.employmentstatus != 'InActive') OR e.dateOfRelieving between :startDate and :endDate) and ((:listType = 'Billable' AND e.billableType in ('TNM','Fixed Cost')) " +
 		"and e.empId not between 1 and 6 " +
@@ -4062,10 +4062,10 @@ public List<Object[]> fetchInActivePOListOfProject(
 	+ "	INNER JOIN teams t ON t.team_id = etm.team_id \n"
 	+ "	INNER JOIN projects p ON p.project_id = t.project_id \n"
 	+ " LEFT JOIN project_po_details ppd \n"
-	+ " ON ppd.project_id = p.project_id \n"
+	+ " ON ppd.project_id = p.project_id and ppd.active = true \n"
 	+ " AND ( ( :fromDate IS NOT NULL  AND :toDate IS NOT NULL AND DATE(ppd.po_start_date) <= DATE(:toDate) \n"
 	+ " AND DATE(ppd.po_end_date)   >= DATE(:fromDate) ) \n"
-	+ "or ( :fromDate IS NULL  AND :toDate IS NULL  AND ppd.active = true \n"
+	+ "or ( :fromDate IS NULL  AND :toDate IS NULL \n"
 	+ " AND Date(ppd.po_end_date) = (SELECT distinct MAX(Date(ppd2.po_end_date)) from project_po_details ppd2 where ppd2.project_id = p.project_id \n"
 	+ " and ppd2.active = true )) ) \n"
 	+ "	LEFT JOIN clients c ON c.client_id = p.client_id\n"
@@ -4370,4 +4370,7 @@ public List<Object[]> fetchInActivePOListOfProject(
        " JOIN RoleDetails rr ON rr.roleId = etm.roleId " +
        "WHERE e.empId IN :empIds")
 	List<EmployeeMailDTO> getEmployeeMailDetails(@Param("empIds") Set<Long> empIds);	
+
+	@Query(value = "select e.billable_type from employee e where e.emp_id = :empId ;", nativeQuery = true)
+	String getBillableType(Long empId);
 }

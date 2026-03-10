@@ -928,7 +928,10 @@ public class EmployeeController {
 	    return employeeService.getInActiveableOrNot(empId);
 	}
 	
-	
+	// @PostMapping("/getEmployeeBillableType")
+	// public ServiceResponse getEmployeeBillableType(@RequestBody Long empId) {
+	//     return employeeService.getEmployeeBillableType(empId);
+	// }
 	
 	
 

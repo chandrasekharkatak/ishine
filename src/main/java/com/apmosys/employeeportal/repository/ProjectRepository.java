@@ -2,6 +2,7 @@
 package com.apmosys.employeeportal.repository;
 
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -8838,6 +8839,7 @@ List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 
 	List<Project> findByPoProjectIdIn(Set<Long> deletedPoProjectIds);
 
+
 	@Query(value="SELECT \n" +
        "    p.projectId as projectId,\n" +
        "    p.clientName as clientName,\n" +
@@ -8885,4 +8887,12 @@ List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 	
 	@Query("SELECT p.projectId, p.hasClientSideId,p.clientFlag FROM Project p WHERE p.projectId IN :projectIds")
 	List<Object[]> findClientSiteMandatoryByProjectIds(@Param("projectIds") List<Integer> projectIds);
+
+		@Query(value = "select etm.emp_team_department_id from employee_team_mapping etm where etm.emp_id = :empId and etm.team_id = :teamId and \n"
+		+" ( etm.end_date is null or  :date <= Date(etm.end_date) ) and :date >= Date(etm.start_date) ",nativeQuery = true)
+		public List<Long> getEmployeeTeamDepartment(Long teamId , Long empId , LocalDate date);
+
+		@Query(value = "SELECT po_project_type FROM projects WHERE project_id = :projectId", nativeQuery = true)
+	    String findPoProjectTypeByProjectId(@Param("projectId") Integer projectId);
+
 }

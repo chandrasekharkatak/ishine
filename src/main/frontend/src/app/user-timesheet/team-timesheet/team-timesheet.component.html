@@ -1844,3 +1844,24 @@
       Request(s)</button>&nbsp;
   </div>
 </ng-template>
+
+
+
+<ng-template #compOffConfirmModal let-modal>
+
+  <div class="modal-header">
+    <h5 class="modal-title">Comp Off Approval</h5>
+    <button type="button" class="btn-close" (click)="modal.dismiss()"></button>
+  </div>
+
+  <div class="modal-body">
+    Some selected timesheets contain <strong>Comp Off</strong>.
+    Are you sure you want to approve them?
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn btn-secondary" (click)="modal.dismiss()">Cancel</button>
+    <button class="btn btn-primary" (click)="modal.close('APPROVE')">Approve</button>
+  </div>
+
+</ng-template>

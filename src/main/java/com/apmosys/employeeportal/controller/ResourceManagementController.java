@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -21,6 +22,7 @@ import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
 import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
+import com.apmosys.employeeportal.dto.EmployeeTeamDepartmentDTO;
 import com.apmosys.employeeportal.dto.FilterMatrix;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
@@ -775,10 +777,24 @@ public class ResourceManagementController {
 	    poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 	    return "IShine is online...";
 	}
+
 	
 	@Scheduled(cron = "0 0 1 * * *")
 	@GetMapping("/triggerUnmappedEmployeeProjectNotificationJob")
 	public void triggerUnmappedEmployeeProjectNotificationJob() {
 		resourceManagementService.sendDepartmentWiseUnmappedEmployeeProjectMail();
+	}
+
+
+	@PostMapping("/getEmployeeTeamDepartment")
+	public ServiceResponse getEmployeeTeamDepartment(@RequestBody EmployeeTeamDepartmentDTO dto) {
+		Long teamId = dto.getTeamId();
+		Long empId = dto.getEmpId();
+		LocalDate date = dto.getDate();
+		if(teamId == null || empId == null) {
+			return null;
+		}
+		return resourceManagementService.getEmployeeTeamDepartment(teamId , empId , date);
+
 	}
 }

@@ -60,4 +60,13 @@ public class ProjectNameAndPrjoectIdDTO {
 		this.projectType = projectType;
 		this.startDate = startDate;
 	}
+
+	public ProjectNameAndPrjoectIdDTO(Integer projectId, String projectName, Boolean clientFlag,
+			Boolean hasClientSideId, String poProjectType) {
+		this.projectId = projectId;
+		this.projectName = projectName;
+		this.hasClientFlag = clientFlag;
+		this.hasClientSideId = hasClientSideId;
+		this.poProjectType = poProjectType;
+	}
 }

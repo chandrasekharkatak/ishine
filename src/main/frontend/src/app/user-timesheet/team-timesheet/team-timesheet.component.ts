@@ -61,6 +61,9 @@ export class TeamTimesheetComponent implements OnInit {
   @ViewChild("update_clientId")
   updateClientId: TemplateRef<any>;
 
+  @ViewChild('compOffConfirmModal')
+  compOffConfirmModal!: TemplateRef<any>;
+
   data: string;
   feature = "Team Timesheets";
   currentUser: User;
@@ -2563,101 +2566,32 @@ getBulkDocumentDetails(timesheets: any[]) {
     ? this.getSelectedTimesheets().filter(ts => ids.includes(ts.timesheetId))
     : this.getSelectedTimesheets();
 
+    console.log("selectedTimesheets",  this.getSelectedTimesheets());
+    
+
   const timesheetIds = selectedTimesheets.map(ts => ts.timesheetId);
     if (!timesheetIds.length) return;
 
-    const payload = {
-      timesheetIds,
-      status: 'APPROVED',
-      updatedBy: this.currentUser.empId,
-      rmId : this.currentUser.empId,
-      confirmNightShift,
-      documentDetails: this.getBulkDocumentDetails(selectedTimesheets)
-    };
-
-    this.loaderService.requestStarted();
-
-    this.timesheetNewService
-      .bulkApproveTimesheetsByIds1(payload)
-      .pipe(finalize(() => this.loaderService.requestEnded()))
-      .subscribe({
-        next: (res: any) => {
-          const response = res?.serviceResponse;
-
-          if (response?.requiresNightShiftConfirmation) {
-
-            const modalRef = this.modalService.open(this.nightShiftConfirmModal, { centered: true });
-
-            modalRef.result.then((result) => {
-
-              if (result === 'YES') {
-                this.bulkApproveByIds(true, timesheetIds);
-              } else {
-                this.bulkApproveByIds(true, response.normalTimesheets);
-              }
-
-            }).catch(() => {});
-
-            return;
-          }
-          this.modalTitle = 'Result';
-        let message = '';
-          if (res?.serviceStatus === 'Success') {
-
-          const processed = res?.serviceResponse?.processed || [];
-          const skipped = res?.serviceResponse?.skipped || {};
-
-          if (processed.length) {
-              message += `<p><strong>${processed.length} timesheet(s) approved successfully.</strong></p>`;
-            }
-
-          const skippedKeys = Object.keys(skipped);
-          if (skipped.length) {
-
-              message += `
-                <p><strong>Skipped Timesheets</strong></p>
-                <table class="table table-bordered table-sm">
-                  <thead>
-                    <tr>
-                      <th>EMP ID</th>
-                      <th>Date</th>
-                      <th>Reason</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-              `;
-
-              skipped.forEach((item: any) => {
-                message += `
-                  <tr>
-                    <td>${item.employmentId}</td>
-                    <td>${item.date}</td>
-                    <td>${item.reason}</td>
-                  </tr>
-                `;
-              });
-
-              message += `</tbody></table>`;
-            }
-
-
-          this.clearAllSelections();
-          this.onStatusChange(2);
-          this.page1 = 0;
-          this.getMyReporteesTimesheetRequests();
-          this.getTimesheetStatusCountsByEmpId();
-          this.modalMessage =message;
-
-        } else {
-            this.modalTitle = 'Error';
-            this.modalMessage =
-            res?.serviceResponse || 'Bulk approval failed';
-          }
-          this.modalService.open(this.statusModal, { centered: true });
+    const hasCompOff = selectedTimesheets.some(ts =>
+      ts.dayType?.toLowerCase() === 'comp off'
+    );
+  
+    if (hasCompOff) {
+  
+      const modalRef = this.modalService.open(this.compOffConfirmModal, { centered: true });
+  
+      modalRef.result.then((result) => {
+        if (result === 'APPROVE') {
+          this.executeBulkApprove(selectedTimesheets,confirmNightShift);
         }
+      }).catch(() => {});
+  
+      return;
+    }
+  
+    this.executeBulkApprove(selectedTimesheets,confirmNightShift);
 
-      });
-
+  
   }
 
 
@@ -3450,7 +3384,101 @@ openRejectReasonsModal(data: any, template: TemplateRef<any>) {
   );
 }
 
+executeBulkApprove(selectedTimesheets: any[],confirmNightShift: boolean) {
+  const timesheetIds = selectedTimesheets.map(ts => ts.timesheetId);
+  const payload = {
+    timesheetIds,
+    status: 'APPROVED',
+    updatedBy: this.currentUser.empId,
+    rmId : this.currentUser.empId,
+    confirmNightShift,
+    documentDetails: this.getBulkDocumentDetails(selectedTimesheets)
+  };
 
+  this.loaderService.requestStarted();
+
+  this.timesheetNewService
+    .bulkApproveTimesheetsByIds1(payload)
+    .pipe(finalize(() => this.loaderService.requestEnded()))
+    .subscribe({
+      next: (res: any) => {
+        const response = res?.serviceResponse;
+
+        if (response?.requiresNightShiftConfirmation) {
+
+          const modalRef = this.modalService.open(this.nightShiftConfirmModal, { centered: true });
+
+          modalRef.result.then((result) => {
+
+            if (result === 'YES') {
+              this.bulkApproveByIds(true, timesheetIds);
+            } else {
+              this.bulkApproveByIds(true, response.normalTimesheets);
+            }
+
+          }).catch(() => {});
+
+          return;
+        }
+        this.modalTitle = 'Result';
+      let message = '';
+        if (res?.serviceStatus === 'Success') {
+
+        const processed = res?.serviceResponse?.processed || [];
+        const skipped = res?.serviceResponse?.skipped || {};
+
+        if (processed.length) {
+            message += `<p><strong>${processed.length} timesheet(s) approved successfully.</strong></p>`;
+          }
+
+        const skippedKeys = Object.keys(skipped);
+        if (skipped.length) {
+
+            message += `
+              <p><strong>Skipped Timesheets</strong></p>
+              <table class="table table-bordered table-sm">
+                <thead>
+                  <tr>
+                    <th>EMP ID</th>
+                    <th>Date</th>
+                    <th>Reason</th>
+                  </tr>
+                </thead>
+                <tbody>
+            `;
+
+            skipped.forEach((item: any) => {
+              message += `
+                <tr>
+                  <td>${item.employmentId}</td>
+                  <td>${item.date}</td>
+                  <td>${item.reason}</td>
+                </tr>
+              `;
+            });
+
+            message += `</tbody></table>`;
+          }
+
+
+        this.clearAllSelections();
+        this.onStatusChange(2);
+        this.page1 = 0;
+        this.getMyReporteesTimesheetRequests();
+        this.getTimesheetStatusCountsByEmpId();
+        this.modalMessage =message;
+
+      } else {
+          this.modalTitle = 'Error';
+          this.modalMessage =
+          res?.serviceResponse || 'Bulk approval failed';
+        }
+        this.modalService.open(this.statusModal, { centered: true });
+      }
+
+    });
+
+}
 }
 
 

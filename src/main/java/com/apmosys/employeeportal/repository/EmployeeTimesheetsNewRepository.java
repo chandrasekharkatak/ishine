@@ -17791,5 +17791,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 								"WHERE t.timesheetId IN :ids " +
 								"AND t.isNightShift = 1")
 						List<Long> findNightShiftTimesheetIds(@Param("ids") List<Long> ids);
+						
+						
 	
 }

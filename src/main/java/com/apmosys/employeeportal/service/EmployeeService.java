@@ -12186,6 +12186,26 @@ public ServiceResponse getInActiveableOrNot(Long empId) {
     return response;
 }
 
+public ServiceResponse getEmployeeBillableType(Long empId){
+	
+	ServiceResponse response = new ServiceResponse();
+    LogDTO apiLogInfo = new LogDTO();
+    // apiLogInfo.setSubFeatureName("getEmployeeBillableType");
+    apiLogInfo.setApiUrl("/api/getEmployeeBillableType");
+    apiLogInfo.setLogLevel("INFO");
+
+	try{
+		String billableType  = employeeRepository.getBillableType(empId);
+		response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		response.setServiceResponse(billableType);
+	}
+	catch(Exception e){
+		e.printStackTrace();
+        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        response.setServiceResponse("Error : " + e.getMessage());
+	}
+	return response;
+}
 
 }
 	

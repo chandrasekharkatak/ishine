@@ -17161,4 +17161,30 @@ public class ResourceManagementService {
 	    return html.toString();
 	}
 
+
+
+public ServiceResponse getEmployeeTeamDepartment(Long empId, Long teamId , LocalDate date){
+	
+	ServiceResponse response = new ServiceResponse();
+
+    try{
+
+	List<Long> deptId = projectRepository.getEmployeeTeamDepartment(empId,teamId, date);
+	response.setServiceResponse(deptId);
+	response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	response.setServiceMessage("employee team department Id fetched successfully");
+
+	} catch(Exception ex){
+
+	log.error("Error fetching employee team department Id",ex);
+	response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	response.setServiceResponse("Error: " + ex.getMessage());
+	
+	}
+
+	return response;
+
+}
+
+
 }

@@ -355,6 +355,8 @@ public class TimesheetServiceNew {
 			Integer effectiveLockDays = (timesheetLockDays != null) ? timesheetLockDays : 30;
 			timesheetValidationHelper.validateTimesheetLockPeriod(empDTO.getEmpId(), empDTO.getDate(),
 					effectiveLockDays);
+			
+			timesheetValidationHelper.validateApmosysHolidayWithProjects(empDTO);
 
 			employeeAssignmentValidationService.validateEmployeeAssignments(empDTO.getEmpId(), empDTO.getDate(),
 					empDTO.getLocationSessions(), empDTO.getDayTypeId());
@@ -931,6 +933,8 @@ public class TimesheetServiceNew {
 
 			employeeAssignmentValidationService.validateEmployeeAssignments(newEmpDTO.getEmpId(), newEmpDTO.getDate(),
 					newEmpDTO.getLocationSessions(), newEmpDTO.getDayTypeId());
+					
+			timesheetValidationHelper.validateApmosysHolidayWithProjects(newEmpDTO);
 
 			if (timesheetValidationHelper.isWorkingDay(newEmpDTO)) {
 				timesheetValidationHelper.validateDayTypeAgainstLeave(newEmpDTO.getEmpId(), newEmpDTO.getDate(),
