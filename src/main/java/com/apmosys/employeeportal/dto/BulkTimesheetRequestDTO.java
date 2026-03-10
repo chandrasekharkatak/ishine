@@ -14,6 +14,9 @@ public class BulkTimesheetRequestDTO {
     private String status;           // APPROVED / REJECTED
     private Long updatedBy;
     private Long rmId;
+    private String rejectMode; 
+    private Long rejectionReasonId;
+    private String rejectRemark;
     private List<ProjectRejectionDTO> projectRejections;
     private boolean confirmNightShift;
     private List<TimesheetDocumentDataDTO> documentDetails;

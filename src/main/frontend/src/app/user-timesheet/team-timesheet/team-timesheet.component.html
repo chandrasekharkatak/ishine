@@ -598,6 +598,9 @@
           <button type="button" class="ts-bulk-btn ts-bulk-approve" (click)="bulkApproveByIds()">
             <i class="fas fa-check-circle"></i> Bulk Approve
           </button>
+          <button type="button" class="ts-bulk-btn ts-bulk-reject" (click)="openBulkRejectPopup(bulkRejectModal)">
+            <i class="fas fa-times-circle"></i> Bulk Reject
+          </button>
         </div>
         <button type="button" class="ts-bulk-clear" (click)="clearAllSelections()" *ngIf="selectedRows.length > 0">
           <i class="fas fa-times"></i> Clear
@@ -1899,6 +1902,67 @@
   <div class="modal-footer">
     <button class="btn btn-secondary" (click)="modal.dismiss()">Cancel</button>
     <button class="btn btn-primary" (click)="modal.close('APPROVE')">Approve</button>
+  </div>
+
+</ng-template>
+
+<ng-template #bulkRejectModal let-modal>
+
+  <div class="modal-header bg-light">
+    <h5 class="modal-title">
+      <i class="fa fa-times-circle text-danger"></i>
+      Bulk Reject Timesheets
+    </h5>
+
+    <button type="button" class="close" (click)="modal.dismiss()">
+      <span>&times;</span>
+    </button>
+  </div>
+
+  <div class="modal-body">
+
+    <!-- Reject Reason -->
+    <div class="form-group">
+      <label>Reject Reason</label>
+
+      <select class="form-control"
+        [(ngModel)]="bulkRejectReasonId">
+
+      <option value="" disabled>Select Reason</option>
+
+      <option *ngFor="let r of rejectReasons"
+              [value]="r.rejectionId">
+        {{ r.rejectionReason }}
+      </option>
+
+    </select>
+    </div>
+
+    <!-- Remark -->
+    <div class="form-group mt-3">
+      <label>Remark</label>
+
+      <textarea class="form-control"
+                rows="3"
+                [(ngModel)]="bulkRejectRemark"
+                placeholder="Enter remark">
+      </textarea>
+    </div>
+
+  </div>
+
+  <div class="modal-footer">
+
+    <button class="btn btn-secondary"
+            (click)="modal.dismiss()">
+      Cancel
+    </button>
+
+    <button class="btn btn-danger"
+            (click)="confirmBulkReject(modal)">
+      Reject
+    </button>
+
   </div>
 
 </ng-template>

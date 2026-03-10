@@ -4217,6 +4217,16 @@ tr[app-column-filter-bar] .clear-filter:hover {
   box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
 }
 
+.bulk-actions-fixed .ts-bulk-reject {
+  background: #dc2626;
+  color: #fff;
+}
+
+.bulk-actions-fixed .ts-bulk-reject:hover {
+  background: #b91c1c;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
+}
+
 .bulk-actions-fixed .ts-bulk-clear {
   padding: 10px 18px;
   border: 1px solid #e2e8f0;

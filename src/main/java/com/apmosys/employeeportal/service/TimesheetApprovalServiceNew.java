@@ -418,9 +418,9 @@ public class TimesheetApprovalServiceNew {
 	            throw new BadRequestException("You do not have the approval/rejection rights of some timesheets");
 	        }
 
-	        if ("REJECTED".equalsIgnoreCase(status) && timesheetIdsReq.size() > 1) {
-	            throw new IllegalArgumentException("Only one timesheet can be rejected at a time.");
-	        }
+//	        if ("REJECTED".equalsIgnoreCase(status) && timesheetIdsReq.size() > 1) {
+//	            throw new IllegalArgumentException("Only one timesheet can be rejected at a time.");
+//	        }
 
 	        List<EmployeeTimesheetsNewDTO> timesheets =
 	                employeeTimesheetsNewRepository.fetchTimesheetsWithEmploymentId(timesheetIdsReq);

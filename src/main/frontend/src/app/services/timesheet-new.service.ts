@@ -184,7 +184,12 @@ bulkRejectTimesheetsByIds1(payload: {
     payload
   );
 }
-
+processBulkTimesheets(payload: any) {
+  return this.http.post<any>(
+    `${this.baseUrl}api/bulkApproveTimesheetRequest1`,
+    payload
+  );
+}
 
 
   approveRejectProjects(payload: {

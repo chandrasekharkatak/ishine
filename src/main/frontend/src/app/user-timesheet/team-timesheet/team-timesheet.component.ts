@@ -74,6 +74,8 @@ export class TeamTimesheetComponent implements OnInit {
   sortColumnType: any;
   clientSideIdForm: NgbModalRef;
   updateClientIdModalRef: NgbModalRef;
+  bulkRejectReasonId: number | null = null;
+bulkRejectRemark: string = '';
 
   //flags
   isAllTimesheetTable: boolean = false;
@@ -89,7 +91,7 @@ export class TeamTimesheetComponent implements OnInit {
   modalRef:NgbModalRef;
   allTeamTimesheets: any[] = [];
   allTeamTimesheetRequests: Timesheet[] = [];
-
+  selectedTimesheetIds: number[] = [];
 
   // Status Count
   pendingCount = 0;
@@ -3509,7 +3511,112 @@ executeBulkApprove(selectedTimesheets: any[],confirmNightShift: boolean) {
     });
 
 }
+openBulkRejectPopup(modal: any, ids?: number[]) {
+
+  const selectedTimesheets = ids
+  ? this.getSelectedTimesheets().filter(ts => ids.includes(ts.timesheetId))
+  : this.getSelectedTimesheets();
+
+  const timesheetIds = selectedTimesheets.map(ts => ts.timesheetId);
+
+  if (!timesheetIds.length) {
+  alert("Please select at least one timesheet");
+  return;
+  }
+
+  this.selectedTimesheetIds = timesheetIds;
+
+  this.bulkRejectReasonId = null;
+  this.bulkRejectRemark = '';
+
+  this.modalService.open(modal, {
+  centered: true,
+  backdrop: 'static'
+  });
 }
+
+confirmBulkReject(modal: any) {
+
+if (!this.bulkRejectReasonId) {alert("Please select rejection reason");return;}
+
+const payload = {timesheetIds: this.selectedTimesheetIds,
+                status: "REJECTED",
+                updatedBy: this.currentUser.empId,
+                rmId: this.currentUser.empId,
+                rejectMode: "BULK",
+                rejectionReasonId: this.bulkRejectReasonId,
+                rejectRemark: this.bulkRejectRemark};
+
+this.loaderService.requestStarted();
+
+this.timesheetNewService.processBulkTimesheets(payload).pipe(finalize(() => this.loaderService.requestEnded())).subscribe({next: (res: any) => {
+
+    modal.close();
+
+    this.modalTitle = 'Result';
+    let message = '';
+
+    if (res?.serviceStatus === 'Success') {
+
+      const processed = res?.serviceResponse?.processed || [];
+      const skipped = res?.serviceResponse?.skipped || [];
+
+      if (processed.length) {
+        message += `<p><strong>${processed.length} timesheet(s) rejected successfully.</strong></p>`;
+      }
+
+      if (skipped.length) {
+
+        message += `
+          <p><strong>Skipped Timesheets</strong></p>
+          <table class="table table-bordered table-sm">
+            <thead>
+              <tr>
+                <th>EMP ID</th>
+                <th>Date</th>
+                <th>Reason</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        skipped.forEach((item: any) => {
+          message += `
+            <tr>
+              <td>${item.employmentId}</td>
+              <td>${item.date}</td>
+              <td>${item.reason}</td>
+            </tr>
+          `;
+        });
+
+        message += `</tbody></table>`;
+      }
+
+      this.modalMessage = message;
+
+      this.clearAllSelections();
+      this.onStatusChange(2);
+      this.page1 = 0;
+
+      this.getMyReporteesTimesheetRequests();
+      this.getTimesheetStatusCountsByEmpId();
+
+    } else {
+
+      this.modalTitle = 'Error';
+      this.modalMessage = res?.serviceResponse || 'Bulk rejection failed';
+
+    }
+
+    this.modalService.open(this.statusModal, { centered: true });
+
+  }
+});
+}
+}
+
+
 
 
 

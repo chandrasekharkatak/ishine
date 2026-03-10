@@ -1982,7 +1982,7 @@ private ServiceResponse buildErrorResponse(String message, String errorDetails) 
 
 // ==================== END REFACTORED API ====================
 
-
+@Transactional
 public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO request) {
 
     ServiceResponse response = new ServiceResponse();
@@ -1991,9 +1991,9 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
         String status = request.getStatus();
         List<Long> timesheetIdsReq = request.getTimesheetIds();
 
-        if ("REJECTED".equalsIgnoreCase(status) && timesheetIdsReq.size() > 1) {
-            throw new TimesheetApproveValidationFailedException("Only one timesheet can be rejected at a time.");
-        }
+//        if ("REJECTED".equalsIgnoreCase(status) && timesheetIdsReq.size() > 1) {
+//            throw new TimesheetApproveValidationFailedException("Only one timesheet can be rejected at a time.");
+//        }
 
         List<EmployeeTimesheetsNewDTO> timesheets =
                 employeeTimesheetsNewRepository.fetchTimesheetsWithEmploymentId(timesheetIdsReq);
@@ -2124,32 +2124,34 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 			return response;
 		}
         boolean isBulkOperation = timesheetIdsReq.size() > 1;
-		if (isBulkOperation && !request.isConfirmNightShift()) {
-
-			List<Long> nightShiftTimesheetIds =
-					employeeTimesheetsNewRepository.findNightShiftTimesheetIds(validTimesheetIds);
-
-			Set<Long> nightSet = new HashSet<>(nightShiftTimesheetIds);
-
-			List<Long> normalTimesheetIds = validTimesheetIds.stream()
-					.filter(id -> !nightSet.contains(id))
-					.collect(Collectors.toList());
-
-			if (!nightShiftTimesheetIds.isEmpty()) {
-
-				Map<String, Object> finalResponse = new HashMap<>();
-
-				finalResponse.put("requiresNightShiftConfirmation", true);
-				finalResponse.put("nightShiftTimesheets", nightShiftTimesheetIds);
-				finalResponse.put("normalTimesheets", normalTimesheetIds);
-				finalResponse.put("skipped", skippedTimesheets);
-
-				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(finalResponse);
-
-				return response;
+        if (!"REJECTED".equalsIgnoreCase(status)) {
+			if (isBulkOperation && !request.isConfirmNightShift()) {
+	
+				List<Long> nightShiftTimesheetIds =
+						employeeTimesheetsNewRepository.findNightShiftTimesheetIds(validTimesheetIds);
+	
+				Set<Long> nightSet = new HashSet<>(nightShiftTimesheetIds);
+	
+				List<Long> normalTimesheetIds = validTimesheetIds.stream()
+						.filter(id -> !nightSet.contains(id))
+						.collect(Collectors.toList());
+	
+				if (!nightShiftTimesheetIds.isEmpty()) {
+	
+					Map<String, Object> finalResponse = new HashMap<>();
+	
+					finalResponse.put("requiresNightShiftConfirmation", true);
+					finalResponse.put("nightShiftTimesheets", nightShiftTimesheetIds);
+					finalResponse.put("normalTimesheets", normalTimesheetIds);
+					finalResponse.put("skipped", skippedTimesheets);
+	
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(finalResponse);
+	
+					return response;
+				}
 			}
-		}
+        }
 
 		
 
@@ -2168,7 +2170,11 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
         if ("APPROVED".equalsIgnoreCase(status)) {
             saveAuditForApproval(validTimesheetIds, timesheetProjectMap, updatedBy, status);
         } else if ("REJECTED".equalsIgnoreCase(status)) {
-            saveRejectionDetails(request);
+            if ("BULK".equalsIgnoreCase(request.getRejectMode())) {
+				saveBulkRejectionDetails(request);
+			} else {
+				saveRejectionDetails(request); // existing logic
+			}
         }
 
         Map<String, Object> finalResponse = new HashMap<>();
@@ -2280,6 +2286,67 @@ private void saveRejectionDetails(BulkTimesheetRequestDTO request) {
     timesheetActionAuditNewRepository.saveAll(auditList);
     employeeTimesheetsNewRepository.processByStatus(timesheetIds, 3);
     timesheetRejectionDetailsNewRepository.saveAll(rejectionList);
+}
+private void saveBulkRejectionDetails(BulkTimesheetRequestDTO request) {
+
+    List<Long> timesheetIds = request.getTimesheetIds();
+    Long updatedBy = request.getUpdatedBy();
+    Long rejectionReasonId = request.getRejectionReasonId();
+    String remark = request.getRejectRemark();
+
+    LocalDateTime now = LocalDateTime.now();
+    if (rejectionReasonId == null) {
+        throw new TimesheetApproveValidationFailedException("Rejection reason cannot be null");
+    }
+    if (remark == null) {
+        throw new TimesheetApproveValidationFailedException("Rejection reason cannot be null");
+    }
+
+    List<TimesheetActionAuditNew> auditList = new ArrayList<>();
+    List<TimesheetRejectionDetailsNew> rejectionList = new ArrayList<>();
+
+    List<Object[]> result =
+        projectTimesheetStatusNewRepository.findProjectsForTimesheetIds(timesheetIds);
+
+    for (Object[] row : result) {
+
+        Long timesheetId = ((Number) row[0]).longValue();
+        Long projectId = ((Number) row[1]).longValue();
+
+        projectTimesheetStatusNewRepository
+            .processByTSandProject(timesheetId, projectId.intValue(), 3);
+
+        TimesheetActionAuditNew audit = new TimesheetActionAuditNew();
+        audit.setTimesheetId(timesheetId);
+        audit.setProjectId(projectId.intValue());
+        audit.setActionType("REJECTED");
+        audit.setActionBy(updatedBy);
+        audit.setActionOn(now);
+        auditList.add(audit);
+
+        List<Long> locationMappingIds =
+            projectTimesheetStatusNewRepository
+                .findLocationMappingId(timesheetId, projectId.intValue());
+
+        for (Long locationMappingId : locationMappingIds) {
+
+            TimesheetRejectionDetailsNew rejection = new TimesheetRejectionDetailsNew();
+            rejection.setTimesheetId(timesheetId);
+            rejection.setLocationMappingId(locationMappingId);
+            rejection.setProjectId(projectId.intValue());
+            rejection.setRejectionId(rejectionReasonId);
+            rejection.setRemarks(remark);
+            rejection.setRejectedBy(updatedBy);
+            rejection.setRejectedOn(now);
+            rejection.setIsActive(true);
+
+            rejectionList.add(rejection);
+        }
+    }
+
+    timesheetActionAuditNewRepository.saveAll(auditList);
+    timesheetRejectionDetailsNewRepository.saveAll(rejectionList);
+    employeeTimesheetsNewRepository.processByStatus(timesheetIds, 3);
 }
 }
 	
