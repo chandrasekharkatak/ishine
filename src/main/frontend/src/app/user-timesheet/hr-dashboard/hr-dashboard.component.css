@@ -3642,6 +3642,7 @@ input:checked+.slider:before {
   gap: 10px;
   width: 100%;
   box-sizing: border-box;
+  overflow: hidden
 }
 
 /* ── Header ── */
@@ -3739,11 +3740,13 @@ input:checked+.slider:before {
   max-height: 420px;
   overflow-x: auto;
   overflow-y: auto;
+  width: 100%;
 }
 
 /* ── Table ── */
 .eo-table {
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   border-collapse: collapse;
   font-size: 13px;
   font-family: 'Segoe UI', system-ui, sans-serif;
@@ -3788,7 +3791,7 @@ input:checked+.slider:before {
   padding: 6px 8px;
   border-bottom: 1px solid #e2e8f0;
   position: sticky;
-  top: 41px;
+  top: 55px;
   z-index: 9;
 }
 
@@ -3964,4 +3967,17 @@ input:checked+.slider:before {
 .eo-paginator-wrap .mat-mdc-paginator {
   background: transparent;
   font-size: 12px;
+}
+
+.eo-td--hidden {
+  visibility: hidden;
+  border-bottom: none !important;
+}
+
+.eo-row--child td {
+  background: #f8fafc;
+}
+
+.eo-row--child:hover td {
+  background: #f1f5f9;
 }

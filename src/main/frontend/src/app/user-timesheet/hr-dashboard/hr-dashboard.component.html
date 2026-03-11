@@ -752,97 +752,85 @@
           <tbody>
             <ng-container *ngFor="let emp of timesheetData">
               <ng-container *ngFor="let proj of emp.projectTimesheet; let i = index">
-                <tr class="eo-row" *ngIf="i === 0 || isEmployeeExpanded(emp.empId)">
+              <tr class="eo-row" [class.eo-row--child]="i > 0" *ngIf="i === 0 || isEmployeeExpanded(emp.empId)">
 
-                  <td *ngIf="i === 0" [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
-                    {{ emp.employmentId || 'NA' }}
-                  </td>
+                <td [class.eo-td--hidden]="i > 0">
+                  {{ emp.employmentId || 'NA' }}
+                </td>
 
-                  <td *ngIf="i === 0" [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1"
-                    class="eo-name-cell">
-                    <div class="eo-name-wrap">
+                <td class="eo-name-cell" [class.eo-td--hidden]="i > 0">
+                  <div class="eo-name-wrap">
+                    <button *ngIf="emp.projectTimesheet.length > 1" class="eo-expand-btn"
+                      [class.eo-expand-btn--open]="isEmployeeExpanded(emp.empId)" (click)="toggleEmployeeExpand(emp.empId)"
+                      [title]="isEmployeeExpanded(emp.empId) ? 'Collapse' : 'Expand'">
+                      <i class="fa" [ngClass]="isEmployeeExpanded(emp.empId) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                    </button>
+                    <span *ngIf="emp.projectTimesheet.length === 1" class="eo-expand-placeholder"></span>
 
-                      <button *ngIf="emp.projectTimesheet.length > 1" class="eo-expand-btn"
-                        [class.eo-expand-btn--open]="isEmployeeExpanded(emp.empId)"
-                        (click)="toggleEmployeeExpand(emp.empId)"
-                        [title]="isEmployeeExpanded(emp.empId) ? 'Collapse' : 'Expand'">
-                        <i class="fa"
-                          [ngClass]="isEmployeeExpanded(emp.empId) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                    <span class="eo-emp-name" (mouseenter)="showPopup(emp.empId)" (mouseleave)="scheduleHidePopup()">
+                      {{ emp.employeeName || 'NA' }}
+                    </span>
+
+                    <div class="eo-hover-popup" *ngIf="hoveredEmpId === emp.empId" (mouseenter)="cancelHidePopup()"
+                      (mouseleave)="scheduleHidePopup()">
+                      <button class="eo-popup-btn eo-popup-btn--360" [navigateToEmployee360]="emp.empId" (click)="cancelRequest()"
+                        title="Employee 360 View">
+                        <i class="fa fa-user-circle"></i>
+                        <span>360 View</span>
                       </button>
-                      <span *ngIf="emp.projectTimesheet.length === 1" class="eo-expand-placeholder"></span>
-
-                      <span class="eo-emp-name" (mouseenter)="showPopup(emp.empId)" (mouseleave)="scheduleHidePopup()">
-                        {{ emp.employeeName || 'NA' }}
-                      </span>
-
-                      <!-- Hover Popup -->
-                      <div class="eo-hover-popup" *ngIf="hoveredEmpId === emp.empId" (mouseenter)="cancelHidePopup()"
-                        (mouseleave)="scheduleHidePopup()">
-                        <button class="eo-popup-btn eo-popup-btn--360" [navigateToEmployee360]="emp.empId"
-                          (click)="cancelRequest()" title="Employee 360 View">
-                          <i class="fa fa-user-circle"></i>
-                          <span>360 View</span>
-                        </button>
-                        <button class="eo-popup-btn eo-popup-btn--cal" [appNavigateToCalenderView]="proj.projectId"
-                          [empId]="emp.empId" [clientSideFilter]="isClientDashboard"
-                          [formattedMonthLabel]="selectedMonth1.toISOString()">
-                          <i class="fa fa-calendar"></i>
-                          <span>Calendar</span>
-                        </button>
-                      </div>
-
+                      <button class="eo-popup-btn eo-popup-btn--cal" [appNavigateToCalenderView]="proj.projectId" [empId]="emp.empId"
+                        [clientSideFilter]="isClientDashboard" [formattedMonthLabel]="selectedMonth1.toISOString()">
+                        <i class="fa fa-calendar"></i>
+                        <span>Calendar</span>
+                      </button>
                     </div>
+                  </div>
+                </td>
+
+                <td [class.eo-td--hidden]="i > 0">{{ proj.employmentStatus || 'NA' }}</td>
+                <td>{{ proj.projectStatus || 'NA' }}</td>
+                <td [class.eo-td--hidden]="i > 0">{{ emp.department || 'NA' }}</td>
+                <td>{{ proj.billableType || 'NA' }}</td>
+                <td>{{ proj.clientSideId || 'NA' }}</td>
+                <td>{{ proj.clientName || 'NA' }}</td>
+                <td>{{ proj.poNo || 'NA' }}</td>
+                <td>{{ proj.projectName || 'NA' }}</td>
+                <td>{{ proj.projectManagerName || 'NA' }}</td>
+                <td>{{ proj.teamName || 'NA' }}</td>
+                <td>{{ proj.startDate ? (proj.startDate | date:'dd-MM-yyyy') : 'NA' }}</td>
+                <td>{{ proj.endDate ? (proj.endDate | date:'dd-MM-yyyy') : 'NA' }}</td>
+                <td>{{ proj.expectedTimesheetFillCount || 0 }}</td>
+                <td>{{ proj.apmosysTimesheetFilledCount || 0 }}</td>
+                <td>{{ proj.clientSideNotFilledCount || 0 }}</td>
+                <td>{{ proj.clientSidePendingCount || 0 }}</td>
+                <td>{{ proj.clientSideApprovedCount || 0 }}</td>
+
+                <ng-container *ngFor="let day of daysInMonth">
+                  <td [title]="
+                      (legend[proj.timesheetData?.['d' + day.dayNumber]?.status]?.label || '') +
+                      (['P','DA','DP'].includes(proj.timesheetData?.['d' + day.dayNumber]?.status)
+                        ? ' | In: ' + (proj.timesheetData?.['d' + day.dayNumber]?.inTime || '-') +
+                          ', Out: ' + (proj.timesheetData?.['d' + day.dayNumber]?.outTime || '-')
+                        : '')">
+                    <span class="eo-status-pill" [ngStyle]="{
+                        'background-color': legend[proj.timesheetData?.['d' + day.dayNumber]?.status]?.color || 'transparent'
+                      }">
+                      {{ proj.timesheetData?.['d' + day.dayNumber]?.status || '' }}
+                    </span>
                   </td>
+                </ng-container>
 
-                  <td *ngIf="i === 0" [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
-                    {{ proj.employmentStatus || 'NA' }}
-                  </td>
-                  <td>{{ proj.projectStatus || 'NA' }}</td>
-                  <td *ngIf="i === 0" [attr.rowspan]="isEmployeeExpanded(emp.empId) ? emp.projectTimesheet.length : 1">
-                    {{ emp.department || 'NA' }}
-                  </td>
-                  <td>{{ proj.billableType || 'NA' }}</td>
-                  <td>{{ proj.clientSideId || 'NA' }}</td>
-                  <td>{{ proj.clientName || 'NA' }}</td>
-                  <td>{{ proj.poNo || 'NA' }}</td>
-                  <td>{{ proj.projectName || 'NA' }}</td>
-                  <td>{{ proj.projectManagerName || 'NA' }}</td>
-                  <td>{{ proj.teamName || 'NA' }}</td>
-                  <td>{{ proj.startDate ? (proj.startDate | date:'dd-MM-yyyy') : 'NA' }}</td>
-                  <td>{{ proj.endDate ? (proj.endDate | date:'dd-MM-yyyy') : 'NA' }}</td>
-                  <td>{{ proj.expectedTimesheetFillCount || 0 }}</td>
-                  <td>{{ proj.apmosysTimesheetFilledCount || 0 }}</td>
-                  <td>{{ proj.clientSideNotFilledCount || 0 }}</td>
-                  <td>{{ proj.clientSidePendingCount || 0 }}</td>
-                  <td>{{ proj.clientSideApprovedCount || 0 }}</td>
+                <td>{{ proj.present || 0 }}</td>
+                <td>{{ proj.readyForInvoicing || 0 }}</td>
+                <td>{{ proj.weekOff || 0 }}</td>
+                <td>{{ proj.holiday || 0 }}</td>
+                <td>{{ proj.leave || 0 }}</td>
+                <td>{{ proj.compOff || 0 }}</td>
+                <td>{{ proj.na || 0 }}</td>
+                <td>{{ proj.halfDay || 0 }}</td>
+                <td>{{ proj.totalNoOfDays || 0 }}</td>
 
-                  <!-- Daily Status -->
-                  <ng-container *ngFor="let day of daysInMonth">
-                    <td [title]="
-                        (legend[proj.timesheetData?.['d' + day.dayNumber]?.status]?.label || '') +
-                        (['P','DA','DP'].includes(proj.timesheetData?.['d' + day.dayNumber]?.status)
-                          ? ' | In: ' + (proj.timesheetData?.['d' + day.dayNumber]?.inTime || '-') +
-                            ', Out: ' + (proj.timesheetData?.['d' + day.dayNumber]?.outTime || '-')
-                          : '')">
-                      <span class="eo-status-pill" [ngStyle]="{
-                            'background-color': legend[proj.timesheetData?.['d' + day.dayNumber]?.status]?.color || 'transparent'
-                          }">
-                        {{ proj.timesheetData?.['d' + day.dayNumber]?.status || '' }}
-                      </span>
-                    </td>
-                  </ng-container>
-
-                  <td>{{ proj.present || 0 }}</td>
-                  <td>{{ proj.readyForInvoicing || 0 }}</td>
-                  <td>{{ proj.weekOff || 0 }}</td>
-                  <td>{{ proj.holiday || 0 }}</td>
-                  <td>{{ proj.leave || 0 }}</td>
-                  <td>{{ proj.compOff || 0 }}</td>
-                  <td>{{ proj.na || 0 }}</td>
-                  <td>{{ proj.halfDay || 0 }}</td>
-                  <td>{{ proj.totalNoOfDays || 0 }}</td>
-
-                </tr>
+              </tr>
               </ng-container>
             </ng-container>
           </tbody>
