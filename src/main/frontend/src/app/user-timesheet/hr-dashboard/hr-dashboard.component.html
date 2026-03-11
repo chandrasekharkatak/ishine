@@ -42,7 +42,7 @@
     </button>
   </div>
   <!-- Chips row above the field -->
-  <div class="db-chips-bar" *ngIf="selectedBillableTypes.length > 0">
+  <!-- <div class="db-chips-bar" *ngIf="selectedBillableTypes.length > 0">
     <span class="db-filter-label">Billable Type:</span>
     <ng-container *ngFor="let item of selectedBillableTypes | slice:0:3">
       <span class="db-chip" [title]="item">{{ item.length > 12 ? (item | slice:0:12) + '...' : item }}</span>
@@ -51,7 +51,34 @@
       [matTooltip]="selectedBillableTypes.slice(3).join(', ')" matTooltipPosition="above">
       +{{ selectedBillableTypes.length - 3 }}
     </span>
-  </div>
+  </div> -->
+  <div class="db-chips-bar" *ngIf="selectedBillableTypes.length > 0">
+
+  <span class="db-filter-label">Billable Type:</span>
+
+  <!-- Chips -->
+  <ng-container *ngFor="let item of (showAllBillableTypes ? selectedBillableTypes : (selectedBillableTypes | slice:0:3))">
+    <span class="db-chip"
+          [title]="item">
+      {{ item.length > 12 ? (item | slice:0:12) + '...' : item }}
+    </span>
+  </ng-container>
+
+  <!-- +N button -->
+  <span class="db-chip db-chip--overflow"
+        *ngIf="!showAllBillableTypes && selectedBillableTypes.length > 3"
+        (click)="toggleBillableTypes()">
+        +{{ selectedBillableTypes.length - 3 }}
+  </span>
+
+  <!-- Show Less button -->
+  <span class="db-chip db-chip--overflow"
+        *ngIf="showAllBillableTypes && selectedBillableTypes.length > 3"
+        (click)="toggleBillableTypes()">
+        Show Less
+  </span>
+
+</div>
   <!-- Full-width filter row inside the same card -->
   <div class="db-filters-row">
 

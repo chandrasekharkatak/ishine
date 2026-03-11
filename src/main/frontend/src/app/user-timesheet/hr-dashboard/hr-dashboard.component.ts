@@ -337,6 +337,7 @@ tileGroups: any[] = [];
 
  globalPoConflictSelection: 'Yes' | 'No' | 'All' = 'All';
 isGlobalPoDropdownOpen = false;
+showAllBillableTypes = false;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -627,6 +628,10 @@ isGlobalPoDropdownOpen = false;
     this.alertMessage = message;
   }
 
+
+toggleBillableTypes() {
+  this.showAllBillableTypes = !this.showAllBillableTypes;
+}
   // searchTimesheet(template: TemplateRef<any> ) {
 
   // this.page = 1;
@@ -2395,8 +2400,8 @@ toggleSelectAll() {
 
 selectAllBillableTypes() {
   this.selectedBillableTypes = [...this.billableTypes];
-  this.onBillableTypeChangeManual();
-  this.loadDepartmentStatusSummary()
+  // this.onBillableTypeChangeManual();
+  // this.loadDepartmentStatusSummary()
 }
 
 // deselectAllBillableTypes() {
@@ -2422,7 +2427,7 @@ onBillableTypeChange(event: any) {
 onBillableTypeChangeManual() {
   console.log('Selected Billable Types:', this.selectedBillableTypes);
 
-  this.getTimesheetDashboardCount(this.month, this.year);
+  // this.getTimesheetDashboardCount(this.month, this.year);
 
   if (!this.toggleValue) {
     this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
@@ -2431,6 +2436,7 @@ onBillableTypeChangeManual() {
     }
   } else {
     this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
+    this.getTimesheetDashboardCount(this.month, this.year);
   }
 }
 
@@ -2446,13 +2452,13 @@ onBillableTypeChangeManual() {
 
   onEmployeeStatusChange(event: any) {
     console.log('Selected Employee Status:', this.selectedEmployeeStatus);
-    this.getTimesheetDashboardCount(this.month, this.year);
-    if (!this.toggleValue) {
-      this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
-      if (this.isClientDashboard) {
-        this.loadDepartmentStatusSummary();
-      }
-    }
+    // this.getTimesheetDashboardCount(this.month, this.year);
+    // if (!this.toggleValue) {
+    //   this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
+    //   if (this.isClientDashboard) {
+    //     this.loadDepartmentStatusSummary();
+    //   }
+    // }
   }
 
   toggleMenu(): void {
