@@ -50,7 +50,7 @@ body {
 .dashboard {
   width: 100%;
   /* padding: 0 2rem; */
-
+  justify-content: flex-start;
   display: flex;
   justify-content: center;
   flex-direction: column;
@@ -1980,6 +1980,7 @@ h5 {
   transition: max-height 0.4s ease, opacity 0.3s ease;
   opacity: 1;
   padding: 16px;
+  overflow: hidden;
 }
 
 .dept-table-body.collapsed {
@@ -2051,7 +2052,7 @@ h5 {
   display: block;
   width: 100%;
   max-width: 100%;
-  margin-top: 1.5rem;
+
   flex: 0 0 100%;
 }
 
@@ -2261,6 +2262,7 @@ h5 {
 .dept-status-summary .dept-table-body {
   max-height: 420px;
   padding: 0;
+  overflow: hidden;
   transition: max-height 0.35s ease, opacity 0.2s ease;
 }
 
@@ -3292,7 +3294,7 @@ input:checked+.slider:before {
 /* ── Tile Group (row container) ── */
 .tile-group {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 10px;
   width: 100%;
   margin-bottom: 8px;
@@ -3304,7 +3306,7 @@ input:checked+.slider:before {
 
 /* ── Individual Tile Card ── */
 .tile-card {
-  flex: 1;
+  flex: 1 1 160px;
   min-width: 0;
   display: flex;
   align-items: center;
@@ -3411,11 +3413,13 @@ input:checked+.slider:before {
   margin-bottom: 12px;
   width: 100%;
   box-sizing: border-box;
+  overflow: visible;
 }
 
 .db-dashboard {
   width: 100%;
   box-sizing: border-box;
+  min-height: unset;
 }
 
 .db-dashboard-body {
@@ -3424,6 +3428,7 @@ input:checked+.slider:before {
   gap: 12px;
   width: 100%;
   box-sizing: border-box;
+  min-height: unset;
 }
 
 .tile-card.tile-card--selected::after {
@@ -3431,7 +3436,7 @@ input:checked+.slider:before {
   font-family: 'Font Awesome 6 Free';
   font-weight: 900;
   position: absolute;
-  top: 8px;
+  bottom:8px;
   right: 8px;
   width: 18px;
   height: 18px;
@@ -3444,10 +3449,6 @@ input:checked+.slider:before {
   justify-content: center;
   line-height: 18px;
   text-align: center;
-}
-
-.tile-card.tile-card--selected .tile-card__tooltip {
-  right: 28px; /* shift left to make room for the check tick */
 }
 
 
@@ -3632,4 +3633,749 @@ input:checked+.slider:before {
     min-width: 100%;
     flex: unset;
   }
+}
+
+/* ============================================================
+   EMPLOYEE OVERVIEW SECTION
+   ============================================================ */
+
+/* ── Section wrapper ── */
+.eo-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* ── Header ── */
+.eo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.eo-header__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.eo-header__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.eo-header__count {
+  font-size: 12px;
+  color: #94a3b8;
+  background: #f1f5f9;
+  padding: 2px 10px;
+  border-radius: 20px;
+}
+
+.eo-header__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Client filter select ── */
+.eo-select {
+  font-size: 12px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: #1e293b;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 5px 10px;
+  height: 32px;
+  cursor: pointer;
+  outline: none;
+  min-width: 180px;
+}
+
+.eo-select:focus {
+  border-color: #1a73e8;
+}
+
+/* ── Icon buttons (search / export) ── */
+.eo-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.eo-icon-btn:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.eo-icon-btn--active {
+  background: #1a2e44;
+  color: #ffffff;
+  border-color: #1a2e44;
+}
+
+/* ── Table Card ── */
+.eo-table-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+
+/* ── Table Container (scrollable) ── */
+.eo-table-container {
+  max-height: 420px;
+  overflow-x: auto;
+  overflow-y: auto;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* ── Table ── */
+.eo-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  white-space: nowrap;
+}
+
+/* ── Header ── */
+.eo-thead tr:first-child th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #1a2e44;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 10px 12px;
+  border-right: 1px solid rgba(255,255,255,0.08);
+  min-width: 120px;
+  white-space: nowrap;
+}
+
+.eo-thead tr:first-child th:last-child {
+  border-right: none;
+}
+
+/* Day columns */
+.eo-day-th {
+  min-width: 60px !important;
+  text-align: center !important;
+}
+
+.eo-day-th--sunday {
+  color: #94a3b8 !important;
+  background: #162538 !important;
+}
+
+/* ── Search row ── */
+.eo-search-row td {
+  background: #f8fafc;
+  padding: 6px 8px;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 55px;
+  z-index: 9;
+}
+
+.eo-search-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.eo-search-input {
+  width: 100%;
+  font-size: 12px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  padding: 4px 26px 4px 8px;
+  outline: none;
+  color: #1e293b;
+  background: #ffffff;
+}
+
+.eo-search-input:focus {
+  border-color: #1a73e8;
+}
+
+.eo-search-icon {
+  position: absolute;
+  right: 8px;
+  font-size: 11px;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+/* ── Body rows ── */
+.eo-row td {
+  padding: 9px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  vertical-align: middle;
+}
+
+.eo-row:hover td {
+  background: #f8fafc;
+}
+
+/* ── Name cell ── */
+.eo-name-cell {
+  position: relative;
+}
+
+.eo-name-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.eo-emp-name {
+  color: #1a73e8;
+  cursor: pointer;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.eo-emp-name:hover {
+  color: #1558b0;
+}
+
+/* ── Expand button ── */
+.eo-expand-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 11px;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.eo-expand-btn:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.eo-expand-btn--open {
+  color: #1a73e8;
+}
+
+.eo-expand-placeholder {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+/* ── Hover Popup ── */
+.eo-hover-popup {
+  position: absolute;
+  top: 50%;
+  left: 70%;        /* appears to the right of the cell */
+  transform: translateY(-50%);
+  margin-left: 8px;  /* small gap */
+  z-index: 700;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  padding: 8px;
+  display: flex;
+  gap: 8px;
+  min-width: 220px;
+}
+
+/* ── Popup buttons ── */
+.eo-popup-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.eo-popup-btn--360 {
+  background: #fef6e4;
+  color: #b76e00;
+  border-color: #ffd580;
+}
+
+.eo-popup-btn--360:hover {
+  background: #ffecb3;
+}
+
+.eo-popup-btn--cal {
+  background: #e7f1ff;
+  color: #0056b3;
+  border-color: #b3d4fc;
+}
+
+.eo-popup-btn--cal:hover {
+  background: #d0e7ff;
+}
+
+/* ── Status Pill ── */
+.eo-status-pill {
+  display: inline-block;
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 24px;
+  text-align: center;
+}
+
+/* ── Paginator ── */
+.eo-paginator-wrap {
+  border-top: 1px solid #e2e8f0;
+  padding: 4px 8px;
+}
+
+.eo-paginator-wrap .mat-mdc-paginator {
+  background: transparent;
+  font-size: 12px;
+}
+
+/* ============================================================
+   PROJECT OVERVIEW SECTION
+   ============================================================ */
+
+.po-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* ── Header ── */
+.po-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.po-header__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.po-header__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.po-header__count {
+  font-size: 12px;
+  color: #94a3b8;
+  background: #f1f5f9;
+  padding: 2px 10px;
+  border-radius: 20px;
+}
+
+.po-header__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Icon Buttons ── */
+.po-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.po-icon-btn:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.po-icon-btn--active {
+  background: #1a2e44;
+  color: #ffffff;
+  border-color: #1a2e44;
+}
+
+/* ── Export Dropdown ── */
+.po-export-wrap {
+  position: relative;
+}
+
+.po-export-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  min-width: 220px;
+  z-index: 1000;
+  animation: fadeIn 0.15s ease;
+  overflow: hidden;
+  z-index: 1001;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.po-export-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: #1e293b;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.po-export-item:hover {
+  background: #f1f5f9;
+  color: #1a2e44;
+}
+
+.po-export-item i {
+  color: #1a2e44;
+  font-size: 14px;
+  width: 16px;
+  text-align: center;
+}
+
+/* ── Table Card ── */
+.po-table-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+
+/* ── Table Container ── */
+.po-table-container {
+  max-height: 420px;
+  overflow-x: auto;
+  overflow-y: auto;
+  width: 100%;
+}
+
+/* ── Table ── */
+.po-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  white-space: nowrap;
+}
+
+/* ── Header ── */
+.po-thead tr:first-child th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #1a2e44;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 10px 12px;
+  border-right: 1px solid rgba(255,255,255,0.08);
+  min-width: 150px;
+  white-space: nowrap;
+}
+
+.po-thead tr:first-child th:last-child {
+  border-right: none;
+}
+
+/* ── Search Row ── */
+.po-search-row td {
+  background: #f8fafc;
+  padding: 6px 8px;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 41px;
+  z-index: 9;
+}
+
+.po-search-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.po-search-input {
+  width: 100%;
+  font-size: 12px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  padding: 4px 26px 4px 8px;
+  outline: none;
+  color: #1e293b;
+  background: #ffffff;
+}
+
+.po-search-input:focus {
+  border-color: #1a73e8;
+}
+
+.po-search-icon {
+  position: absolute;
+  right: 8px;
+  font-size: 11px;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+/* ── Body Rows ── */
+.po-row td {
+  padding: 9px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  vertical-align: middle;
+}
+
+.po-row:hover td {
+  background: #f8fafc;
+}
+
+/* ── Project Name Cell ── */
+.po-name-cell {
+  position: relative;
+  min-width: 240px;
+}
+
+.po-project-name {
+  color: #1a73e8;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.po-project-name:hover {
+  text-decoration: underline;
+}
+
+/* ── Hover Popup ── */
+.po-hover-popup {
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%);
+  margin-left: 8px;
+  z-index: 700;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  padding: 8px;
+  display: flex;
+  gap: 8px;
+  min-width: 260px;
+}
+
+/* ── Popup Buttons ── */
+.po-popup-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.po-popup-btn--project {
+  background: #e7f1ff;
+  color: #0056b3;
+  border-color: #b3d4fc;
+}
+
+.po-popup-btn--project:hover {
+  background: #d0e7ff;
+}
+
+.po-popup-btn--timesheet {
+  background: #fef6e4;
+  color: #b76e00;
+  border-color: #ffd580;
+}
+
+.po-popup-btn--timesheet:hover {
+  background: #ffecb3;
+}
+
+/* ── Progress Bar ── */
+.po-progress-wrap {
+  position: relative;
+  background: #f1f5f9;
+  border-radius: 4px;
+  height: 20px;
+  min-width: 100px;
+  overflow: hidden;
+}
+
+.po-progress-bar {
+  height: 100%;
+  border-radius: 4px;
+  min-width: 2px;
+  transition: width 0.3s ease;
+}
+
+.po-progress-bar--approved  { background: #10b981; }
+.po-progress-bar--pending   { background: #f59e0b; }
+.po-progress-bar--notfilled { background: #ef4444; }
+
+.po-progress-label {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+/* ── Status Badge ── */
+.po-status-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 20px;
+}
+
+.po-status-badge--active {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.po-status-badge--inactive {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* ── Empty State ── */
+.po-empty {
+  text-align: center;
+  padding: 40px;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.po-empty i {
+  font-size: 24px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* ── Paginator ── */
+.po-paginator-wrap {
+  border-top: 1px solid #e2e8f0;
+  padding: 4px 8px;
+}
+
+.po-paginator-wrap .mat-mdc-paginator {
+  background: transparent;
+  font-size: 12px;
+}
+
+.eo-td--hidden {
+  visibility: hidden;
+  border-bottom: none !important;
+}
+
+.eo-row--child td {
+  background: #f8fafc;
+}
+
+.eo-row--child:hover td {
+  background: #f1f5f9;
+}
+
+.db-po-filter-wrap {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 8px;
+}
+
+.db-page-wrapper {
+  width: 100%;
+  box-sizing: border-box;
+  
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.db-toggle-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }

@@ -76,9 +76,11 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 		       "e.isApmosysProduct,  " +
 			   "e.managerId, " +
 			   "e.reportingManagerId, " +
-			   "e.approvalsTo) " +
+			   "e.approvalsTo, " +
+       		   "dt.isWorkingDay) " +  
 		       "FROM EmployeeTimesheetsNew et " +
 		       "JOIN Employee e ON et.empId = e.empId "+
+			   "JOIN DayTypeMasterNew dt ON et.dayTypeId = dt.dayTypeId " +
 		       "WHERE et.timesheetId IN :timesheetIds")
 		List<EmployeeTimesheetsNewDTO> fetchTimesheetsWithEmploymentId(@Param("timesheetIds") List<Long> timesheetIds);
 

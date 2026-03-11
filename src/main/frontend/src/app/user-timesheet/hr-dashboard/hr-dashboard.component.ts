@@ -337,6 +337,7 @@ tileGroups: any[] = [];
 
  globalPoConflictSelection: 'Yes' | 'No' | 'All' = 'All';
 isGlobalPoDropdownOpen = false;
+showAllBillableTypes = false;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -627,6 +628,10 @@ isGlobalPoDropdownOpen = false;
     this.alertMessage = message;
   }
 
+
+toggleBillableTypes() {
+  this.showAllBillableTypes = !this.showAllBillableTypes;
+}
   // searchTimesheet(template: TemplateRef<any> ) {
 
   // this.page = 1;
@@ -1910,7 +1915,7 @@ cancelHidePopup() {
     clearTimeout(this.hidePopupTimeout);
   }
 
-  getTimesheetDashboardCount(month: any, year: any) { 
+  getTimesheetDashboardCount(month: any, year: any) {
     if (this.toggleValue) {
       this.timesheetService.getTimesheetDashboardCountForProject(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableTypes,this.selectedProjectStatus).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
@@ -2080,15 +2085,15 @@ getTiles() {
       this.tileGroups = [
 
         [
-          { status: 'All', label: 'Total Applicable Emp', value: summary.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'bi bi-people-fill', departments: getDepartments('All') },
-          { status: 'Approved', label: 'Ready For Invoicing', value: summary.approvedCount, class: 'border-start-success bg-light-green', icon: 'bi bi-patch-check',departments: getDepartments('Approved') }
+          { status: 'All', label: 'Total Applicable Employee', value: summary.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'fas fa-users', departments: getDepartments('All') },
+          { status: 'Approved', label: 'Ready For Invoicing', value: summary.approvedCount, class: 'border-start-success bg-light-green', icon: 'fas fa-circle-check', departments: getDepartments('Approved') }
         ],
 
         // GROUP 2
         [
-          { status: 'Total_defaulter', label: 'Defaulter', value: summary.totaldefaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle',departments: getDepartments('Defaulter') },
-          { status: 'Pending', label: 'CS Approval Pending', value: summary.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'bi bi-hourglass-split',departments: getDepartments('ClientSidePending') },
-          { status: 'Defaulter', label: 'IShine Not Filled', value: summary.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle',departments: getDepartments('Defaulter') }
+          { status: 'Total_defaulter', label: 'Defaulter', value: summary.totaldefaulterCount, class: 'border-start-danger bg-light-red', icon: 'fas fa-exclamation-circle', departments: getDepartments('Defaulter') },
+          { status: 'Pending', label: 'CS Approval Pending', value: summary.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'fas fa-hourglass-half', departments: getDepartments('ClientSidePending') },
+          { status: 'Defaulter', label: 'IShine Not Filled', value: summary.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'fas fa-exclamation-circle', departments: getDepartments('Defaulter') }
         ]
       ];
 
@@ -2097,15 +2102,15 @@ getTiles() {
       this.tileGroups = [
         // GROUP 1
         [
-          { status: 'All', label: 'Total Applicable Emp', value: summary.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'bi bi-people-fill' },
-          { status: 'Approved', label: 'Ready For Invoicing', value: summary.approvedCount, class: 'border-start-success bg-light-green', icon: 'bi bi-patch-check' }
+          { status: 'All', label: 'Total Applicable Employee', value: summary.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'fas fa-users' },
+          { status: 'Approved', label: 'Ready For Invoicing', value: summary.approvedCount, class: 'border-start-success bg-light-green', icon: 'fas fa-circle-check' }
         ],
 
         // GROUP 2
         [
-          { status: 'Total_defaulter', label: 'Defaulter', value: summary.totaldefaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' },
-          { status: 'Pending', label: 'CS Approval Pending', value: summary.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'bi bi-hourglass-split' },
-          { status: 'Defaulter', label: 'IShine Not Filled', value: summary.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' }
+          { status: 'Total_defaulter', label: 'Defaulter', value: summary.totaldefaulterCount, class: 'border-start-danger bg-light-red', icon: 'fas fa-exclamation-circle' },
+          { status: 'Pending', label: 'CS Approval Pending', value: summary.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'fas fa-hourglass-half' },
+          { status: 'Defaulter', label: 'IShine Not Filled', value: summary.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'fas fa-exclamation-circle' }
         ]
       ];
     }
@@ -2121,19 +2126,19 @@ getTiles() {
   if (this.isClientDashboard) {
     this.tileGroups = [
       [
-        { status: 'All', label: 'Total Applicable Emp', value: this.dashboardObj.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'bi bi-people-fill' },
-        { status: 'Approved', label: 'Ready For Invoicing', value: this.dashboardObj.approvedCount, class: 'border-start-success bg-light-green', icon: 'bi bi-patch-check' },
-        { status: 'Pending', label: 'CS Approval Pending', value: this.dashboardObj.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'bi bi-hourglass-split' },
-        { status: 'Defaulter', label: 'Defaulter', value: this.dashboardObj.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' }
+        { status: 'All', label: 'Total Applicable Project', value: this.dashboardObj.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'fas fa-briefcase' },
+        { status: 'Approved', label: 'Ready For Invoicing', value: this.dashboardObj.approvedCount, class: 'border-start-success bg-light-green', icon: 'fas fa-circle-check' },
+        { status: 'Pending', label: 'CS Approval Pending', value: this.dashboardObj.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'fas fa-hourglass-half' },
+        { status: 'Defaulter', label: 'Defaulter', value: this.dashboardObj.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'fas fa-exclamation-circle' }
       ]
     ];
   } else {
     this.tileGroups = [
       [
-        { status: 'All', label: 'Total Applicable Emp', value: this.dashboardObj.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'bi bi-people-fill' },
-        { status: 'Approved', label: 'Ready For Invoicing', value: this.dashboardObj.approvedCount, class: 'border-start-success bg-light-green', icon: 'bi bi-patch-check' },
-        { status: 'Pending', label: 'CS Approval Pending', value: this.dashboardObj.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'bi bi-hourglass-split' },
-        { status: 'Defaulter', label: 'Defaulter', value: this.dashboardObj.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' }
+        { status: 'All', label: 'Total Applicable Project', value: this.dashboardObj.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'fas fa-briefcase' },
+        { status: 'Approved', label: 'Ready For Invoicing', value: this.dashboardObj.approvedCount, class: 'border-start-success bg-light-green', icon: 'fas fa-circle-check' },
+        { status: 'Pending', label: 'CS Approval Pending', value: this.dashboardObj.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'fas fa-hourglass-half' },
+        { status: 'Defaulter', label: 'Defaulter', value: this.dashboardObj.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'fas fa-exclamation-circle' }
       ]
     ];
   }
@@ -2142,7 +2147,11 @@ getTiles() {
 
 }
 
-
+clientIdFilterOptions = [
+  { label: 'All',                   value: 'ALL'  },
+  { label: 'With Client Side ID',   value: 'true' },
+  { label: 'Without Client Side ID',value: 'false'},
+];
 getTileColor(tileClass: string): string {
   if (tileClass.includes('border-start-primary')) return '#0d6efd';
   if (tileClass.includes('border-start-success')) return '#198754';
@@ -2396,8 +2405,8 @@ toggleSelectAll() {
 
 selectAllBillableTypes() {
   this.selectedBillableTypes = [...this.billableTypes];
-  this.onBillableTypeChangeManual();
-  this.loadDepartmentStatusSummary()
+  // this.onBillableTypeChangeManual();
+  // this.loadDepartmentStatusSummary()
 }
 
 // deselectAllBillableTypes() {
@@ -2423,7 +2432,7 @@ onBillableTypeChange(event: any) {
 onBillableTypeChangeManual() {
   console.log('Selected Billable Types:', this.selectedBillableTypes);
 
-  this.getTimesheetDashboardCount(this.month, this.year);
+  // this.getTimesheetDashboardCount(this.month, this.year);
 
   if (!this.toggleValue) {
     this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
@@ -2432,6 +2441,7 @@ onBillableTypeChangeManual() {
     }
   } else {
     this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
+    this.getTimesheetDashboardCount(this.month, this.year);
   }
 }
 
@@ -2447,13 +2457,13 @@ onBillableTypeChangeManual() {
 
   onEmployeeStatusChange(event: any) {
     console.log('Selected Employee Status:', this.selectedEmployeeStatus);
-    this.getTimesheetDashboardCount(this.month, this.year);
-    if (!this.toggleValue) {
-      this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
-      if (this.isClientDashboard) {
-        this.loadDepartmentStatusSummary();
-      }
-    }
+    // this.getTimesheetDashboardCount(this.month, this.year);
+    // if (!this.toggleValue) {
+    //   this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
+    //   if (this.isClientDashboard) {
+    //     this.loadDepartmentStatusSummary();
+    //   }
+    // }
   }
 
   toggleMenu(): void {
@@ -2798,7 +2808,9 @@ trackByProj(index: number, proj: any) {
 
 // }
 
-
+onClientIdFilterChangeWrapper(value: string): void {
+  this.onClientIdFilterChange({ target: { value } });
+}
 // Updated method for select dropdown
 onClientIdFilterChange(event: any): void {
   const selectedValue = event.target.value;
@@ -2846,7 +2858,7 @@ onTileClick(tile: any) {
   } else {
     this.selectedTile = tile;
     this.selectedDepartments = tile.departments || [];
-    this.isDeptCollapsed = false; 
+    this.isDeptCollapsed = false;
   }
 
   this.scrollToTable(tile.status);
@@ -2960,7 +2972,7 @@ onDeptCountClick(row: any, type: string): void {
     return;
   }
 
-  const deptId = row.deptId; 
+  const deptId = row.deptId;
 
   this.scrollToTableBasedOnDept(status, deptId);
 }
@@ -3009,7 +3021,7 @@ onOutSideClick(event: MouseEvent): void {
   const target = event.target as HTMLElement;
 
   // keep your existing close logic if any
-  if (!target.closest('.col-md-1')) {
+  if (!target.closest('.po-export-wrap')) {
     this.menuVisible = false;
   }
 

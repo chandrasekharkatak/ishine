@@ -50,7 +50,7 @@
       </span>
 
       <span *ngIf="isTimesheetBulkForm">
-        <i class="fa fa-file-upload me-2"></i> Final Document Bulk Upload 
+        <i class="fa fa-file-upload me-2"></i> Final Document Bulk Upload
         <app-info-tooltip class="ms-2"  iconBgColor="#127475" [size]="20"
             [content]="withVmsbullet"></app-info-tooltip>
       </span>
@@ -73,7 +73,7 @@
 <div class="row" *ngIf="isTimesheetForm && isCreation">
     <div class="card col-md-12 px-0">
         <div class="card-body">
-            <app-timesheet-form 
+            <app-timesheet-form
                 [isCreation]="true"
                 [isUpdation]="false"
                 [selectedDate]="selectedDate"
@@ -81,7 +81,7 @@
                 [timesheetId]="null"
                 (timesheetCreated)="resetTimesheetForm(); showViewMyTimesheets(); loadTimesheetSummary()"
                 (timesheetUpdated)="onTimesheetUpdated($event)"
-                (cancel)="resetTimesheetForm()">
+                >
             </app-timesheet-form>
         </div>
     </div>
@@ -91,20 +91,20 @@
 <div class="row" *ngIf="isTimesheetForm && isUpdation">
     <div class="card col-md-12 px-0">
         <div class="card-body">
-            <app-timesheet-form 
+            <app-timesheet-form
                 [isCreation]="false"
                 [isUpdation]="true"
                 [selectedDate]="selectedDate"
                 [timesheetId]="selectedTimesheetId"
                 (timesheetCreated)="resetTimesheetForm(); showViewMyTimesheets(); loadTimesheetSummary()"
                 (timesheetUpdated)="onTimesheetUpdated($event)"
-                (cancel)="resetTimesheetForm()">
+               >
             </app-timesheet-form>
         </div>
     </div>
 </div>
 
-       <div *ngIf="employeeInTNMProject"> 
+       <div *ngIf="employeeInTNMProject">
         <div class="tnm-rules-wrapper">
 
             <button type="button" (click)="openPolicySidebar()" class="tnm-rules" title="View Rules">
@@ -113,7 +113,7 @@
                 </div>
                 <span class="rules-label">
                     <<< Click To View Rules</span>
-            </button>    
+            </button>
         </div>
     </div>
 
@@ -545,18 +545,18 @@
                             <tr *ngIf="allMyTimesheets.length == 0 || (allMyTimesheets| colFilter:filters:false).length == 0">
                                 <th [attr.colspan]="isTeamTimesheets ? 9 : 8" class="text-center info-label">No details to display...</th>
                             </tr>
-                            
+
                             <!-- Hierarchical Timesheet Structure -->
                             <ng-container *ngFor="let timesheet of allMyTimesheets| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
-                                
+
                                 <!-- Level 1: TIMESHEET (Main Row - Simplified) -->
                                 <tr class="timesheet-main-row" [ngClass]="{'highlight': timesheet.isNightShift == 'true' || timesheet.isNightShift == true}">
                                     <td class="expand-cell">
-                                        <button *ngIf="hasLocations(timesheet)" 
+                                        <button *ngIf="hasLocations(timesheet)"
                                                 class="btn-expand"
                                                 (click)="toggleTimesheetExpansion(timesheet.timesheetId)"
                                                 [title]="isTimesheetExpanded(timesheet.timesheetId) ? 'Collapse' : 'Expand'">
-                                            <i class="fas" 
+                                            <i class="fas"
                                                [class.fa-chevron-right]="!isTimesheetExpanded(timesheet.timesheetId)"
                                                [class.fa-chevron-down]="isTimesheetExpanded(timesheet.timesheetId)"></i>
                                         </button>
@@ -569,7 +569,7 @@
                                     <td>{{timesheet.workCheckOut || "NA"}}</td>
                                     <td>{{getTotalWorkingHours(timesheet.totalWorkingMinutes , false)}}</td>
                                     <td>
-                                        <span class="badge" 
+                                        <span class="badge"
                                               [ngClass]="{
                                                 'badge-warning': timesheet.status === 1,
                                                 'badge-success': timesheet.status === 2,
@@ -598,14 +598,14 @@
                                         </button>
                                     </td>
                                 </tr>
-                                
+
                                 <!-- Card-Based Accordion Details Panel -->
                                 <tr *ngIf="isTimesheetExpanded(timesheet.timesheetId)">
                                     <td [attr.colspan]="isTeamTimesheets ? 15 : 14" class="p-0">
                                         <div class="timesheet-details-accordion">
                                             <!-- Location Cards -->
                                             <div *ngFor="let location of timesheet.locationSessions" class="location-card mb-3">
-                                                <div class="location-card-header" 
+                                                <div class="location-card-header"
                                                      (click)="toggleLocationExpansion(timesheet.timesheetId, location.locationMappingId)"
                                                      [class.expanded]="isLocationExpanded(timesheet.timesheetId, location.locationMappingId)">
                                                     <div class="d-flex justify-content-between align-items-center">
@@ -621,15 +621,15 @@
                                                             </span>
                                                         </div>
                                                         <button class="btn btn-sm btn-link p-0" *ngIf="hasProjects(location)">
-                                                            <i class="fas" 
+                                                            <i class="fas"
                                                                [class.fa-chevron-down]="isLocationExpanded(timesheet.timesheetId, location.locationMappingId)"
                                                                [class.fa-chevron-right]="!isLocationExpanded(timesheet.timesheetId, location.locationMappingId)"></i>
                                                         </button>
                                                     </div>
                                                 </div>
-                                                
+
                                                 <!-- Project Cards (Nested) -->
-                                                <div class="location-card-body" 
+                                                <div class="location-card-body"
                                                      *ngIf="isLocationExpanded(timesheet.timesheetId, location.locationMappingId) && hasProjects(location)">
                                                     <div *ngFor="let project of location.projects" class="project-card mb-2">
                                                         <div class="project-card-header"
@@ -664,11 +664,11 @@
                                                                             <i class="fa-solid fa-circle-info fa-bounce"></i>
                                                                         </button>
                                                                     </span>
-                                                                    
+
                                                                 </div>
                                                                 <div class="d-flex align-items-center">
                                                                     <!-- Document Buttons -->
-                                                                    <button *ngIf="findFilledDocumentForProject(timesheet, project.projectId)"
+                                                                    <!-- <button *ngIf="findFilledDocumentForProject(timesheet, project.projectId)"
                                                                             class="btn btn-xs btn-outline-primary mr-2"
                                                                             (click)="getDoscForPreview(findFilledDocumentForProject(timesheet, project.projectId).docId, false)"
                                                                             title="View Filled Document">
@@ -679,18 +679,33 @@
                                                                             (click)="getDoscForPreview(findApprovedDocumentForProject(timesheet, project.projectId).docId, true)"
                                                                             title="View Approved Document">
                                                                         <i class="fa fa-file-check"></i> Approved
-                                                                    </button>
+                                                                    </button> -->
+                <button *ngIf="findFilledDocumentForProject(timesheet, project.projectId)"
+        class="doc-view-btn filled-doc"
+        (click)="getDoscForPreview(findFilledDocumentForProject(timesheet, project.projectId).docId, false)"
+        title="View Filled Document">
+    <i class="fa fa-file-pdf"></i>
+    <span>Filled</span>
+</button>
+
+<button *ngIf="findApprovedDocumentForProject(timesheet, project.projectId)"
+        class="doc-view-btn approved-doc"
+        (click)="getDoscForPreview(findApprovedDocumentForProject(timesheet, project.projectId).docId, true)"
+        title="View Approved Document">
+    <i class="fa fa-file-pdf"></i>
+    <span>Approved</span>
+</button>
                                                                     <button class="btn btn-sm btn-link p-0" *ngIf="hasActivities(project)">
-                                                                        <i class="fas" 
+                                                                        <i class="fas"
                                                                            [class.fa-chevron-down]="isProjectExpanded(timesheet.timesheetId, location.locationMappingId, project.projectId)"
                                                                            [class.fa-chevron-right]="!isProjectExpanded(timesheet.timesheetId, location.locationMappingId, project.projectId)"></i>
                                                                     </button>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        
+
                                                         <!-- Activity List (Nested) -->
-                                                        <div class="project-card-body" 
+                                                        <div class="project-card-body"
                                                              *ngIf="isProjectExpanded(timesheet.timesheetId, location.locationMappingId, project.projectId)">
                                                             <div class="activity-list" *ngIf="project.activities && hasActivities(project)">
                                                                 <div *ngFor="let activity of project.activities" class="activity-item">
@@ -723,7 +738,7 @@
                                                         </div>
                                                     </div>
                                             </div>
-                                            
+
                                             <!-- No Locations Message -->
                                             <div *ngIf="!hasLocations(timesheet)" class="text-center text-muted p-3">
                                                 <i class="fa fa-info-circle mr-2"></i>
@@ -732,7 +747,7 @@
                                         </div>
                                     </td>
                                 </tr>
-                                
+
                             </ng-container>
                         </tbody>
                     </table>
@@ -986,7 +1001,7 @@
              <div class="info-modal">  <app-info-tooltip class="me-2" style="margin-right: 8px;" pdfPath="assets/pdfFiles/Entering client side id.pdf"
   pdfCtaText="Client Side ID Entry Guide" iconBgColor="#8377D1" [size]="19" [content]="clientIdEntryBulletPoints">
             </app-info-tooltip></div>
-           
+
             <h5>Update Client Side ID Form</h5>
         </div>
 
@@ -1288,7 +1303,7 @@
     </div>
 
     <!-- Rejection List -->
-    
+
 
       <!-- Rejection Table -->
       <table class="table table-sm table-bordered mb-0"
