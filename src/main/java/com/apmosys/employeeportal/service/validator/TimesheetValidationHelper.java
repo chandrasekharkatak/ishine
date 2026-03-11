@@ -2069,11 +2069,18 @@ public class TimesheetValidationHelper {
 	        for (ProjectTimesheetDTO project : session.getProjects()) {
 
 	            boolean[] rules = projectRulesMap.get(project.getProjectId());
+               
 
 	            if (rules != null) {
 
 	                boolean hasClientSideId = rules[0];
 	                boolean clientFlag = rules[1];
+
+                    if(project.getClientSideId() == null && hasClientSideId){
+                        throw new TimesheetValidationFailedException(
+                            "Client Side ID cannot be null for project : " + project.getProjectName()
+                        );
+                    }
 
 	                if (hasClientSideId && clientFlag) {
 

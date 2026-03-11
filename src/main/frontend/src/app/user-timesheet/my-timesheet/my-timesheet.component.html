@@ -81,7 +81,7 @@
                 [timesheetId]="null"
                 (timesheetCreated)="resetTimesheetForm(); showViewMyTimesheets(); loadTimesheetSummary()"
                 (timesheetUpdated)="onTimesheetUpdated($event)"
-                (cancel)="resetTimesheetForm()">
+                >
             </app-timesheet-form>
         </div>
     </div>
@@ -98,7 +98,7 @@
                 [timesheetId]="selectedTimesheetId"
                 (timesheetCreated)="resetTimesheetForm(); showViewMyTimesheets(); loadTimesheetSummary()"
                 (timesheetUpdated)="onTimesheetUpdated($event)"
-                (cancel)="resetTimesheetForm()">
+               >
             </app-timesheet-form>
         </div>
     </div>
