@@ -1909,7 +1909,7 @@ cancelHidePopup() {
     clearTimeout(this.hidePopupTimeout);
   }
 
-  getTimesheetDashboardCount(month: any, year: any) { 
+  getTimesheetDashboardCount(month: any, year: any) {
     if (this.toggleValue) {
       this.timesheetService.getTimesheetDashboardCountForProject(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableTypes,this.selectedProjectStatus).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
@@ -2141,7 +2141,11 @@ getTiles() {
 
 }
 
-
+clientIdFilterOptions = [
+  { label: 'All',                   value: 'ALL'  },
+  { label: 'With Client Side ID',   value: 'true' },
+  { label: 'Without Client Side ID',value: 'false'},
+];
 getTileColor(tileClass: string): string {
   if (tileClass.includes('border-start-primary')) return '#0d6efd';
   if (tileClass.includes('border-start-success')) return '#198754';
@@ -2797,7 +2801,9 @@ trackByProj(index: number, proj: any) {
 
 // }
 
-
+onClientIdFilterChangeWrapper(value: string): void {
+  this.onClientIdFilterChange({ target: { value } });
+}
 // Updated method for select dropdown
 onClientIdFilterChange(event: any): void {
   const selectedValue = event.target.value;
@@ -2845,7 +2851,7 @@ onTileClick(tile: any) {
   } else {
     this.selectedTile = tile;
     this.selectedDepartments = tile.departments || [];
-    this.isDeptCollapsed = false; 
+    this.isDeptCollapsed = false;
   }
 
   this.scrollToTable(tile.status);
@@ -2959,7 +2965,7 @@ onDeptCountClick(row: any, type: string): void {
     return;
   }
 
-  const deptId = row.deptId; 
+  const deptId = row.deptId;
 
   this.scrollToTableBasedOnDept(status, deptId);
 }
