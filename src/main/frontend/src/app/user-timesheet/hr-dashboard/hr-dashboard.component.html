@@ -831,7 +831,235 @@
     </div>
 
   </div>
+  <div class="row" *ngIf="toggleValue">
+    <div class="col-md-12">
+      <div class="row">
+        <div class="col-md-12">
+          <h5>Project Overview</h5>
+          <div class="row mb-2 mt-2">
+            <div class="col-md-1" [hidden]="projectView.length == 0" style="display: flex;
+                              justify-content: left; max-width: fit-content; cursor: pointer;">
+              <a (click)="toggleSearch()" style="color: #193d8a; background-color: #fff;">
+                <i class="fa fa-search" *ngIf="!isSearchEnabled"></i>
+                <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+              </a>
+            </div>
+            <div *ngIf="userMapping.export_timesheet_details" class="col-md-1"
+              style="display: flex; justify-content: left; max-width: fit-content; position: relative;">
 
+              <!-- Download Icon -->
+              <i class="fa fa-download" style="color: #053885; cursor: pointer; font-size: 18px;"
+                [hidden]="projectView.length == 0" (click)="toggleMenu()">
+              </i>
+
+              <!-- Custom Menu -->
+              <div class="custom-menu" *ngIf="menuVisible">
+                <div class="menu-item" (click)="exportToExcelMenu('project')">
+                  <i style="color: #053885; cursor: pointer; font-size: 18px;" class="fa-solid fa-chart-simple"></i>
+                  Project Summary
+                </div>
+                <div *ngIf="toggleValue" class="menu-item" (click)="exportToExcelMenu('projectWithEmployee')">
+                  <i style="color: #053885; cursor: pointer; font-size: 18px;"
+                    class="fa-solid fa-users-between-lines"></i>
+                  Applicable Employee Summary
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col d-flex align-items-center " *ngIf="projectView?.length > 0">
+            <span class="font-weight-bold text-muted small">
+              Displaying:
+              {{ (projectView | colFilter : filters : false).length }} of
+              {{ projectView.length }} projects
+            </span>
+          </div>
+
+          <div class="table-container">
+            <table class="table" id="project-view-table" matSort (matSortChange)="sortData($event)">
+              <thead class="thead-light">
+                <tr>
+                  <th class="info-label" style="min-width: 300px;" mat-sort-header="projectName|string">Project</th>
+                  <th class="info-label" style="min-width: 200px;" mat-sort-header="po_No|string">
+                    PO No
+                  </th>
+                  <th class="info-label" style="min-width: 200px;" mat-sort-header="project_start_date|string">
+                    Start Date
+                  </th>
+                  <th class="info-label" style="min-width: 200px;" mat-sort-header="project_end_date|string">
+                    End Date
+                  </th>
+                  <th class="info-label" style="min-width: 170px;" mat-sort-header="totalEmployees|string">
+                    Resources Count
+                  </th>
+                  <th class="info-label" style="min-width: 200px;" mat-sort-header="Project_Manager|string">Manager</th>
+                  <th class="info-label" style="min-width: 150px;" mat-sort-header="project_type|string">Type</th>
+                  <th class="info-label" style="min-width: 200px;" mat-sort-header="client_name|string">Client</th>
+                  <th class="info-label" style="min-width: 200px;" mat-sort-header="apmosysRM|string">
+                    Apmosys RM</th>
+                  <th class="info-label" style="min-width: 300px;" mat-sort-header="apmosys_rm_email|string">RM Email</th>
+                  <th class="info-label" style="min-width: 200px;" mat-sort-header="clientRM|string">
+                    Client RM</th>
+                  <th class="info-label" style="min-width: 150px;" mat-sort-header="total_expected_fill_count|string">
+                    Expected DSR</th>
+                  <!-- <th class="info-label" style="min-width: 150px;"
+                                              mat-sort-header="totalIshineFilledCount|string">iShine Filled</th> -->
+                  <th class="info-label" style="min-width: 160px;" mat-sort-header="total_client_approved|string">Client
+                    Approved</th>
+                  <th class="info-label" style="min-width: 200px;" mat-sort-header="ClientSideApproved_Percent|string">
+                    Approved %</th>
+                  <th class="info-label" style="min-width: 150px;" mat-sort-header="total_client_side_pending|string">
+                    Clinet Not Approved</th>
+                  <th class="info-label" style="min-width: 200px;" mat-sort-header="ClientSidePending_Percent|string">
+                    Pending %</th>
+                  <th class="info-label" style="min-width: 170px;" mat-sort-header="total_client_side_not_filled|string">
+                    Client Attendance Not
+                    Filled
+                  </th>
+                  <th class="info-label" style="min-width: 200px;" mat-sort-header="NotFilled_Percent|string">Not Filled %
+                  </th>
+                  <th class="info-label" style="min-width: 200px;" mat-sort-header="active|string">Project Status</th>
+                </tr>
+                <!-- <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="projectViewColumns"
+                                          (onSearch)="onProjectViewSearch($event);page=1"></tr> -->
+                <tr *ngIf="isSearchEnabled">
+                  <ng-container *ngFor="let column of projectViewColumns">
+                    <td>
+                      <div *ngIf="column != 'blank' && !(!isClientDashboard && column=='active')" class="form-group"
+                        id="custom-search">
+                        <div class="relative-input">
+                          <input type="text" class="form-control" placeholder="Search"
+                            [(ngModel)]="currentColumnFilter[column]"
+                            oninput="this.value = this.value.replace(/^\s+/g, '')"
+                            (keydown.enter)="onProjectViewSearch()">
+                          <i class="fa fa-search search-icon" (click)="onProjectViewSearch()" title="Search"></i>
+                        </div>
+                      </div>
+                    </td>
+                  </ng-container>
+                </tr>
+              </thead>
+              <tbody>
+                <ng-container *ngIf="projectView.length === 0">
+                  <tr>
+                    <td colspan="17" class="text-center info-label">No details to display...
+                    </td>
+                  </tr>
+                </ng-container>
+                <ng-container
+                  *ngFor="let project of projectView | multicolFilter:filters:false | sort: [sortColumn, sortColumnType, sortDirection]; let i = index">
+                  <tr>
+                    <td class="position-relative">
+                      <span (mouseenter)="showProjectPopup(project.projectId)" (mouseleave)="scheduleHideProjectPopup()"
+                        style="color: #043870;">
+                        {{ project.projectName ? project.projectName : 'NA' }}
+                      </span>
+                      <!-- <div *ngIf="hoveredProjectId === project.projectId" class="hover-popup bg-white border shadow rounded p-2 position-absolute" (mouseenter)="cancelHideProjectPopup()"
+                                                      (mouseleave)="scheduleHideProjectPopup()" style="top: 100%; left: 0; z-index: 10;" >
+                                                      <button class="btn btn-sm btn-outline-primary mr-1" [navigateToProjectView]="project.projectId" title="Project Details"><i class="fa fa-users"></i></button>
+                                                      <button class="btn btn-sm btn-outline-primary" [navigateToTeamEmployeeTimesheet]="project.projectId" title="Team Attendance"><i class="fa fa-calendar-days"></i></button>
+                                                  </div> -->
+
+                      <div *ngIf="hoveredProjectId === project.projectId"
+                        class="hover-popup bg-white border shadow rounded p-2" (mouseenter)="cancelHideProjectPopup()"
+                        (mouseleave)="scheduleHideProjectPopup()">
+                        <div class="button-group-custom">
+                          <!-- Project View Button -->
+                          <button class="custom-btn project-btn" [navigateToProjectView]="project.projectId"
+                            title="Project Details">
+                            <i class="fa fa-users"></i>
+                            <span>Project View</span>
+                          </button>
+
+                          <!-- Team Timesheet Button -->
+                          <!-- <button class="custom-btn timesheet-btn"
+                                                          [navigateToTeamEmployeeTimesheet]="project.projectId"
+                                                          [formattedMonthLabel]="formattedMonthLabel"
+                                                          title="Team Attendance">
+                                                          <i class="fa fa-calendar-days"></i>
+                                                          <span>View Team Attendance</span>
+                                                      </button> -->
+                          <!-- <button class="custom-btn timesheet-btn" [navigateToTeamEmployeeTimesheet]="project.projectId"
+                                                          [formattedMonthLabel]="formattedMonthLabel" [isClientDashboard]="isClientDashboard" title="Team Attendance">
+                                                          <i class="fa fa-calendar-days"></i>
+                                                          <span>View Team Attendance</span>
+                                                      </button> -->
+                          <button class="custom-btn timesheet-btn" [navigateToTeamEmployeeTimesheet]="project.projectId"
+                            [formattedMonthLabel]="formattedMonthLabel" [isClientDashboard]="isClientDashboard"
+                            title="Team Attendance">
+                            <i class="fa fa-calendar-days"></i>
+                            <span>View Team Attendance</span>
+                          </button>
+
+
+                        </div>
+                      </div>
+
+
+                    </td>
+                    <td>{{project.poNo ? project.poNo : 'NA'}}</td>
+                    <td>{{project.startDate ? project.startDate : 'NA'}}</td>
+                    <td>{{project.endDate ? project.endDate : 'NA'}}</td>
+                    <td>{{project.totalEmployees ? project.totalEmployees : 'NA'}}</td>
+                    <td>{{ project.projectManagerName || 'NA' }}</td>
+                    <td>{{ project.projectType || 'NA' }}</td>
+                    <td>{{ project.clientName || 'NA' }}</td>
+                    <td>{{ project.apmosysRM || 'NA' }}</td>
+                    <td>{{ project.apmosysRMEmail || 'NA' }}</td>
+                    <td>{{ project.clientRM || 'NA' }}</td>
+                    <td>{{ project.totalExpectedFillCount || 0 }}</td>
+                    <!-- <td>{{ project.totalIshineFilledCount || 0 }}</td> -->
+                    <td>{{ project.totalClientSideApprovedCount || 0 }}</td>
+                    <td>
+                      <div class="progress profileCompleted">
+                        <div class="progress-bar progress-bar-approved" role="progressbar"
+                          [style.width.%]="project.clientSideApprovedPercent || 0" aria-valuemin="0" aria-valuemax="100">
+                          {{ project.clientSideApprovedPercent || 0 }}%
+                        </div>
+                      </div>
+                    </td>
+                    <td>{{ project.totalClientSidePendingCount || 0 }}</td>
+                    <td>
+                      <div class="progress profileCompleted">
+                        <div class="progress-bar progress-bar-pending" role="progressbar"
+                          [style.width.%]="project.clientSidePendingPercent || 0" aria-valuemin="0" aria-valuemax="100">
+                          {{ project.clientSidePendingPercent || 0 }}%
+                        </div>
+                      </div>
+                    </td>
+                    <td>{{ project.totalClientSideNotFilledCount || 0 }}</td>
+                    <td>
+                      <div class="progress profileCompleted">
+                        <div class="progress-bar progress-bar-notFilled" role="progressbar"
+                          [style.width.%]="project.clientSideNotFilledPercent || 0" aria-valuemin="0" aria-valuemax="100">
+                          {{ project.clientSideNotFilledPercent || 0 }}%
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span [ngStyle]="{
+                                                    'color': project.active === 'true' || project.active === true ? 'green' : 'red',
+                                                    'font-weight': '600'
+                                                  }">
+                        {{ project.active === 'true' || project.active === true ? 'Active' :
+                        'Inactive' }}
+                      </span>
+                    </td>
+                  </tr>
+                </ng-container>
+              </tbody>
+            </table>
+          </div>
+          <div class="row col-md-12">
+            <!-- <pagination-controls class="my-pagination" [hidden]="projectView.length == 0"
+                                (pageChange)="handlePageChange($event)"></pagination-controls> -->
+            <mat-paginator *ngIf="projectView.length > 0" [length]="totalItems" [pageSize]="pageSize" [pageIndex]="page-1"
+              [pageSizeOptions]="[5, 10, 20, 50]" (page)="handlePageChange($event)">
+            </mat-paginator>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
     <!-- Time Sheet Distribution -->
     <!-- <h4 class="mb-3 fw-bold">Time Sheet Distribution</h4>
         <div class="row g-3 mb-4">
