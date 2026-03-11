@@ -2079,15 +2079,15 @@ getTiles() {
       this.tileGroups = [
 
         [
-          { status: 'All', label: 'Total Applicable Emp', value: summary.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'bi bi-people-fill', departments: getDepartments('All') },
-          { status: 'Approved', label: 'Ready For Invoicing', value: summary.approvedCount, class: 'border-start-success bg-light-green', icon: 'bi bi-patch-check',departments: getDepartments('Approved') }
+          { status: 'All', label: 'Total Applicable Employee', value: summary.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'fas fa-users', departments: getDepartments('All') },
+          { status: 'Approved', label: 'Ready For Invoicing', value: summary.approvedCount, class: 'border-start-success bg-light-green', icon: 'fas fa-circle-check', departments: getDepartments('Approved') }
         ],
 
         // GROUP 2
         [
-          { status: 'Total_defaulter', label: 'Defaulter', value: summary.totaldefaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle',departments: getDepartments('Defaulter') },
-          { status: 'Pending', label: 'CS Approval Pending', value: summary.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'bi bi-hourglass-split',departments: getDepartments('ClientSidePending') },
-          { status: 'Defaulter', label: 'IShine Not Filled', value: summary.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle',departments: getDepartments('Defaulter') }
+          { status: 'Total_defaulter', label: 'Defaulter', value: summary.totaldefaulterCount, class: 'border-start-danger bg-light-red', icon: 'fas fa-exclamation-circle', departments: getDepartments('Defaulter') },
+          { status: 'Pending', label: 'CS Approval Pending', value: summary.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'fas fa-hourglass-half', departments: getDepartments('ClientSidePending') },
+          { status: 'Defaulter', label: 'IShine Not Filled', value: summary.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'fas fa-exclamation-circle', departments: getDepartments('Defaulter') }
         ]
       ];
 
@@ -2096,15 +2096,15 @@ getTiles() {
       this.tileGroups = [
         // GROUP 1
         [
-          { status: 'All', label: 'Total Applicable Emp', value: summary.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'bi bi-people-fill' },
-          { status: 'Approved', label: 'Ready For Invoicing', value: summary.approvedCount, class: 'border-start-success bg-light-green', icon: 'bi bi-patch-check' }
+          { status: 'All', label: 'Total Applicable Employee', value: summary.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'fas fa-users' },
+          { status: 'Approved', label: 'Ready For Invoicing', value: summary.approvedCount, class: 'border-start-success bg-light-green', icon: 'fas fa-circle-check' }
         ],
 
         // GROUP 2
         [
-          { status: 'Total_defaulter', label: 'Defaulter', value: summary.totaldefaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' },
-          { status: 'Pending', label: 'CS Approval Pending', value: summary.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'bi bi-hourglass-split' },
-          { status: 'Defaulter', label: 'IShine Not Filled', value: summary.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' }
+          { status: 'Total_defaulter', label: 'Defaulter', value: summary.totaldefaulterCount, class: 'border-start-danger bg-light-red', icon: 'fas fa-exclamation-circle' },
+          { status: 'Pending', label: 'CS Approval Pending', value: summary.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'fas fa-hourglass-half' },
+          { status: 'Defaulter', label: 'IShine Not Filled', value: summary.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'fas fa-exclamation-circle' }
         ]
       ];
     }
@@ -2120,19 +2120,19 @@ getTiles() {
   if (this.isClientDashboard) {
     this.tileGroups = [
       [
-        { status: 'All', label: 'Total Applicable Emp', value: this.dashboardObj.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'bi bi-people-fill' },
-        { status: 'Approved', label: 'Ready For Invoicing', value: this.dashboardObj.approvedCount, class: 'border-start-success bg-light-green', icon: 'bi bi-patch-check' },
-        { status: 'Pending', label: 'CS Approval Pending', value: this.dashboardObj.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'bi bi-hourglass-split' },
-        { status: 'Defaulter', label: 'Defaulter', value: this.dashboardObj.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' }
+        { status: 'All', label: 'Total Applicable Project', value: this.dashboardObj.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'fas fa-briefcase' },
+        { status: 'Approved', label: 'Ready For Invoicing', value: this.dashboardObj.approvedCount, class: 'border-start-success bg-light-green', icon: 'fas fa-circle-check' },
+        { status: 'Pending', label: 'CS Approval Pending', value: this.dashboardObj.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'fas fa-hourglass-half' },
+        { status: 'Defaulter', label: 'Defaulter', value: this.dashboardObj.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'fas fa-exclamation-circle' }
       ]
     ];
   } else {
     this.tileGroups = [
       [
-        { status: 'All', label: 'Total Applicable Emp', value: this.dashboardObj.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'bi bi-people-fill' },
-        { status: 'Approved', label: 'Ready For Invoicing', value: this.dashboardObj.approvedCount, class: 'border-start-success bg-light-green', icon: 'bi bi-patch-check' },
-        { status: 'Pending', label: 'CS Approval Pending', value: this.dashboardObj.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'bi bi-hourglass-split' },
-        { status: 'Defaulter', label: 'Defaulter', value: this.dashboardObj.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'bi bi-exclamation-circle' }
+        { status: 'All', label: 'Total Applicable Project', value: this.dashboardObj.totalApplicableCount, class: 'border-start-primary bg-light-blue', icon: 'fas fa-briefcase' },
+        { status: 'Approved', label: 'Ready For Invoicing', value: this.dashboardObj.approvedCount, class: 'border-start-success bg-light-green', icon: 'fas fa-circle-check' },
+        { status: 'Pending', label: 'CS Approval Pending', value: this.dashboardObj.clientSidePendingCount, class: 'border-start-warning bg-light-yellow', icon: 'fas fa-hourglass-half' },
+        { status: 'Defaulter', label: 'Defaulter', value: this.dashboardObj.defaulterCount, class: 'border-start-danger bg-light-red', icon: 'fas fa-exclamation-circle' }
       ]
     ];
   }
