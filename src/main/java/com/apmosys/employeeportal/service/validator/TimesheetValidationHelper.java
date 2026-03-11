@@ -2069,11 +2069,18 @@ public class TimesheetValidationHelper {
 	        for (ProjectTimesheetDTO project : session.getProjects()) {
 
 	            boolean[] rules = projectRulesMap.get(project.getProjectId());
+               
 
 	            if (rules != null) {
 
 	                boolean hasClientSideId = rules[0];
 	                boolean clientFlag = rules[1];
+
+                    if(project.getClientSideId() == null && hasClientSideId){
+                        throw new TimesheetValidationFailedException(
+                            "Client Side ID cannot be null for project : " + project.getProjectName()
+                        );
+                    }
 
 	                if (hasClientSideId && clientFlag) {
 
@@ -2146,15 +2153,15 @@ public class TimesheetValidationHelper {
     
                 // Apmosys Holiday
                 if (dayTypeId == 6 && Boolean.TRUE.equals(hasClientSideId)) {
-                    throw new IllegalArgumentException(
-                            "Apmosys Holiday cannot be applied for client-side projects. Project ID: " + projectId
+                    throw new TimesheetValidationFailedException(
+                            "Apmosys Holiday cannot be applied for client-side projects."
                     );
                 }
     
                 // Client Holiday
                 if (dayTypeId == 7 && !Boolean.TRUE.equals(hasClientSideId)) {
-                    throw new IllegalArgumentException(
-                            "Client Holiday requires all projects to be client-side projects. Invalid Project ID: " + projectId
+                    throw new TimesheetValidationFailedException(
+                            "Client Holiday requires all projects to be client-side projects."
                     );
                 }
             }

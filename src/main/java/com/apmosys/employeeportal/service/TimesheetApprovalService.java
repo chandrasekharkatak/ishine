@@ -2043,7 +2043,7 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 			List<TimesheetDocumentDataDTO> docs =
                     docsByTimesheet.get(ts.getTimesheetId());
 
-            if (docs != null) {
+            if (Boolean.TRUE.equals(ts.getIsWorkingDay()) && docs != null) {
 
 				boolean shouldSkip = docs.stream().anyMatch(d -> {
 
