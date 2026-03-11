@@ -1046,3 +1046,180 @@
 .preview-modal-content.fullscreen img {
   box-shadow: 0 8px 16px rgba(0,0,0,0.3);
 }
+
+/* ===== FULLSCREEN MODAL FIXES ===== */
+/* These styles ensure proper scrolling in fullscreen mode */
+
+/* Base fullscreen modal container */
+.modal-content:-webkit-full-screen,
+.modal-content:-moz-full-screen,
+.modal-content:-ms-fullscreen,
+.modal-content:fullscreen {
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  background-color: #f8f9fa !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important; /* Prevent double scrollbars */
+}
+
+/* Modal header - fixed at top */
+.modal-content:-webkit-full-screen .modal-header,
+.modal-content:-moz-full-screen .modal-header,
+.modal-content:-ms-fullscreen .modal-header,
+.modal-content:fullscreen .modal-header {
+  flex-shrink: 0 !important;
+  padding: 1rem 1.5rem !important;
+  border-bottom: 1px solid #dee2e6 !important;
+}
+
+/* Modal body - scrollable area */
+.modal-content:-webkit-full-screen .modal-body,
+.modal-content:-moz-full-screen .modal-body,
+.modal-content:-ms-fullscreen .modal-body,
+.modal-content:fullscreen .modal-body {
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  max-height: none !important;
+  min-height: 0 !important; /* Important for flexbox scrolling */
+  padding: 1.5rem !important;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+/* Modal footer - fixed at bottom */
+.modal-content:-webkit-full-screen .modal-footer,
+.modal-content:-moz-full-screen .modal-footer,
+.modal-content:-ms-fullscreen .modal-footer,
+.modal-content:fullscreen .modal-footer {
+  flex-shrink: 0 !important;
+  padding: 1rem 1.5rem !important;
+  border-top: 1px solid #dee2e6 !important;
+}
+
+/* Content cards inside modal body */
+.modal-content:-webkit-full-screen .modal-body .card,
+.modal-content:-moz-full-screen .modal-body .card,
+.modal-content:-ms-fullscreen .modal-body .card,
+.modal-content:fullscreen .modal-body .card {
+  max-height: none !important;
+  overflow: visible !important;
+  margin-bottom: 1rem !important;
+}
+
+/* PDF/PPT containers in fullscreen */
+.modal-content:-webkit-full-screen .pptx-viewer-wrapper,
+.modal-content:-moz-full-screen .pptx-viewer-wrapper,
+.modal-content:-ms-fullscreen .pptx-viewer-wrapper,
+.modal-content:fullscreen .pptx-viewer-wrapper {
+  height: auto !important;
+  min-height: 400px !important;
+  max-height: 60vh !important; /* Limit height to leave space for other content */
+  margin-bottom: 1rem !important;
+}
+
+.modal-content:-webkit-full-screen .slide-main-container,
+.modal-content:-moz-full-screen .slide-main-container,
+.modal-content:-ms-fullscreen .slide-main-container,
+.modal-content:fullscreen .slide-main-container {
+  max-height: 50vh !important;
+  min-height: 300px !important;
+  overflow: auto !important;
+  margin-bottom: 1rem !important;
+}
+
+/* PDF navigation bar - sticky in fullscreen */
+.modal-content:-webkit-full-screen .d-flex.justify-content-between.align-items-center.mb-3,
+.modal-content:-moz-full-screen .d-flex.justify-content-between.align-items-center.mb-3,
+.modal-content:-ms-fullscreen .d-flex.justify-content-between.align-items-center.mb-3,
+.modal-content:fullscreen .d-flex.justify-content-between.align-items-center.mb-3 {
+  position: sticky !important;
+  top: 0 !important;
+  background: white !important;
+  z-index: 100 !important;
+  padding: 10px 0 !important;
+  margin-bottom: 15px !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+}
+
+/* Images in fullscreen */
+.modal-content:-webkit-full-screen .slide-image-full,
+.modal-content:-moz-full-screen .slide-image-full,
+.modal-content:-ms-fullscreen .slide-image-full,
+.modal-content:fullscreen .slide-image-full {
+  max-height: 45vh !important;
+  width: auto !important;
+  max-width: 100% !important;
+  object-fit: contain !important;
+}
+
+/* Video/audio in fullscreen */
+.modal-content:-webkit-full-screen video,
+.modal-content:-moz-full-screen video,
+.modal-content:-ms-fullscreen video,
+.modal-content:fullscreen video,
+.modal-content:-webkit-full-screen audio,
+.modal-content:-moz-full-screen audio,
+.modal-content:-ms-fullscreen audio,
+.modal-content:fullscreen audio {
+  max-height: 50vh !important;
+  width: 100% !important;
+}
+
+/* Timer display and action buttons in fullscreen */
+.modal-content:-webkit-full-screen .timer-display,
+.modal-content:-moz-full-screen .timer-display,
+.modal-content:-ms-fullscreen .timer-display,
+.modal-content:fullscreen .timer-display,
+.modal-content:-webkit-full-screen .text-center.mt-4,
+.modal-content:-moz-full-screen .text-center.mt-4,
+.modal-content:-ms-fullscreen .text-center.mt-4,
+.modal-content:fullscreen .text-center.mt-4,
+.modal-content:-webkit-full-screen .alert.alert-info,
+.modal-content:-moz-full-screen .alert.alert-info,
+.modal-content:-ms-fullscreen .alert.alert-info,
+.modal-content:fullscreen .alert.alert-info {
+  flex-shrink: 0 !important;
+  margin-top: 1rem !important;
+  margin-bottom: 1rem !important;
+}
+
+/* Ensure all rows and columns are visible */
+.modal-content:-webkit-full-screen .row,
+.modal-content:-moz-full-screen .row,
+.modal-content:-ms-fullscreen .row,
+.modal-content:fullscreen .row,
+.modal-content:-webkit-full-screen .col-md-6,
+.modal-content:-moz-full-screen .col-md-6,
+.modal-content:-ms-fullscreen .col-md-6,
+.modal-content:fullscreen .col-md-6 {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* Fix for Firefox */
+@-moz-document url-prefix() {
+  .modal-content:-moz-full-screen .modal-body {
+    overflow-y: scroll !important;
+  }
+}
+
+/* Helper class for reflow fix */
+.force-scroll-reflow {
+  transform: translateZ(0);
+}
+
+/* Make sure the modal body scrolls even with dynamic content */
+.modal-content:-webkit-full-screen .modal-body::after,
+.modal-content:-moz-full-screen .modal-body::after,
+.modal-content:-ms-fullscreen .modal-body::after,
+.modal-content:fullscreen .modal-body::after {
+  content: '';
+  display: block;
+  height: 1px;
+  visibility: hidden;
+}

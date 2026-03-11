@@ -691,32 +691,6 @@ pdfFile: File | null = null;
     this.contentFormData.contentType = content.contentType;
 
     // For completed trainings: no timer, no lock
-    // if (training.status === 'COMPLETED') {
-    //   this.minTimeReached = true;
-    //   this.consentButtonEnabled = false;
-    //   this.quizButtonEnabled = false;
-    // } else {
-    //   // For pending or skipped trainings: check if timer needed
-    //   if (
-    //     !training.hasSeenContent &&
-    //     training.minViewTimeMinutes &&
-    //     training.minViewTimeMinutes > 0
-    //   ) {
-    //     this.startTimerForViewing(training.minViewTimeMinutes);
-    //   } else if(training.hasSeenContent && training.hasQuiz && !training.quizAttempted){
-    //       this.minTimeReached = true;
-    //       this.quizButtonEnabled = true;
-    //   } else {
-    //     this.minTimeReached = true;
-    //     if (training.consentRequired === 'true') {
-    //       this.consentButtonEnabled = true;
-    //     } else if (training.hasQuiz) {
-    //       this.quizButtonEnabled = true;
-    //     }
-    //   }
-    // }
-
-    // For completed trainings: no timer, no lock
     if (training.status === 'COMPLETED') {
       this.minTimeReached = true;
       this.consentButtonEnabled = false;
@@ -879,52 +853,6 @@ async parsePDFFile(file: File): Promise<void> {
   }
 }
 
-  // startTimerForViewing(minViewTimeMinutes: number) {
-  //   if (this.timerInterval) {
-  //     clearInterval(this.timerInterval);
-  //   }
-
-  //   const minTimeSeconds = minViewTimeMinutes * 60;
-
-  //   this.timerInterval = setInterval(() => {
-  //     this.elapsedTime++;
-
-  //     const minutes = Math.floor(this.elapsedTime / 60);
-  //     const seconds = this.elapsedTime % 60;
-  //     this.elapsedTimeDisplay = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-
-  //     if (this.elapsedTime >= minTimeSeconds) {
-  //       console.log('min time reached');
-
-  //       this.minTimeReached = true;
-  //       if (this.viewingTraining) {
-  //         if (
-  //           this.viewingTraining.lastCompletedOn != null &&
-  //           this.viewingTraining.status == 'PENDING'
-  //         ) {
-  //           this.consentButtonEnabled = true;
-  //           this.quizButtonEnabled = false;
-  //         } else if (
-  //           this.viewingTraining.hasQuiz &&
-  //           this.viewingTraining.status !== 'COMPLETED'
-  //         ) {
-  //           this.quizButtonEnabled = true;
-  //           this.consentButtonEnabled = false;
-  //         } else if (
-  //           this.viewingTraining.consentRequired === 'true' &&
-  //           this.viewingTraining.status !== 'COMPLETED'
-  //         ) {
-  //           this.consentButtonEnabled = true;
-  //         } else {
-  //           this.quizButtonEnabled = false;
-  //           this.consentButtonEnabled = false;
-  //         }
-  //       }
-  //       clearInterval(this.timerInterval);
-  //     }
-  //   }, 10);
-  // }
-
   startTimerForViewing(minViewTimeMinutes: number) {
   if (this.timerInterval) {
     clearInterval(this.timerInterval);
@@ -965,7 +893,7 @@ async parsePDFFile(file: File): Promise<void> {
       
       clearInterval(this.timerInterval);
     }
-  }, 10); // Note: You have this set to 10ms, which is very fast - consider changing to 1000ms
+  }, 1000); 
 }
 
   async parsePPTXFile(file: File) {
@@ -1553,33 +1481,37 @@ async parsePDFFile(file: File): Promise<void> {
   }
 
   toggleFullscreen() {
-    this.isFullscreen = !this.isFullscreen;
-    const modalElement = document.querySelector('.preview-modal-content');
-
-    if (this.isFullscreen) {
-      if (modalElement) {
-        if ((modalElement as any).requestFullscreen) {
-          (modalElement as any).requestFullscreen();
-        } else if ((modalElement as any).webkitRequestFullscreen) {
-          (modalElement as any).webkitRequestFullscreen();
-        } else if ((modalElement as any).mozRequestFullScreen) {
-          (modalElement as any).mozRequestFullScreen();
-        } else if ((modalElement as any).msRequestFullscreen) {
-          (modalElement as any).msRequestFullscreen();
-        }
-      }
-    } else {
-      if ((document as any).exitFullscreen) {
-        (document as any).exitFullscreen();
-      } else if ((document as any).webkitExitFullscreen) {
-        (document as any).webkitExitFullscreen();
-      } else if ((document as any).mozCancelFullScreen) {
-        (document as any).mozCancelFullScreen();
-      } else if ((document as any).msExitFullscreen) {
-        (document as any).msExitFullscreen();
+  this.isFullscreen = !this.isFullscreen;
+  
+  // Get the modal element - use the same selector as training-config.component
+  const modalElement = document.querySelector('.modal-content');
+  
+  if (this.isFullscreen) {
+    // Enter fullscreen on the modal content
+    if (modalElement) {
+      if ((modalElement as any).requestFullscreen) {
+        (modalElement as any).requestFullscreen();
+      } else if ((modalElement as any).webkitRequestFullscreen) {
+        (modalElement as any).webkitRequestFullscreen();
+      } else if ((modalElement as any).mozRequestFullScreen) {
+        (modalElement as any).mozRequestFullScreen();
+      } else if ((modalElement as any).msRequestFullscreen) {
+        (modalElement as any).msRequestFullscreen();
       }
     }
+  } else {
+    // Exit fullscreen
+    if ((document as any).exitFullscreen) {
+      (document as any).exitFullscreen();
+    } else if ((document as any).webkitExitFullscreen) {
+      (document as any).webkitExitFullscreen();
+    } else if ((document as any).mozCancelFullScreen) {
+      (document as any).mozCancelFullScreen();
+    } else if ((document as any).msExitFullscreen) {
+      (document as any).msExitFullscreen();
+    }
   }
+}
   // Add this to ensure images are properly cleaned up
   ngOnDestroy() {
     if (this.timerInterval) {

@@ -755,7 +755,7 @@
 <!-- Training View Modal -->
 <ng-template #training_view_modal let-modal>
   <div class="modal-content">
-    <div
+     <div
       class="modal-header"
       [ngClass]="{
         'bg-danger text-white':
@@ -782,15 +782,25 @@
           Deadline Crossed
         </span>
       </h5>
-      <button
-        type="button"
-        class="close text-white"
-        [disabled]="isAutoOpening && viewingTraining?.isDeadlineCrossed"
-        (click)="modal.close()"
-        *ngIf="!isAutoOpening || !viewingTraining?.isDeadlineCrossed"
-      >
-        <span aria-hidden="true">&times;</span>
-      </button>
+      <div class="d-flex align-items-center">
+        <!-- Fullscreen Toggle Button -->
+        <button 
+          type="button" 
+          class="btn btn-sm btn-outline-light mr-2" 
+          (click)="toggleFullscreen()"
+          [title]="isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'">
+          <i class="fas" [ngClass]="isFullscreen ? 'fa-compress' : 'fa-expand'"></i>
+        </button>
+        <button
+          type="button"
+          class="close text-white"
+          [disabled]="isAutoOpening && viewingTraining?.isDeadlineCrossed"
+          (click)="modal.close()"
+          *ngIf="!isAutoOpening || !viewingTraining?.isDeadlineCrossed"
+        >
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
     </div>
     <div class="modal-body p-4" *ngIf="viewingTraining">
       <!-- Training Info -->
@@ -993,17 +1003,15 @@
 
                 <!-- Main Slide Image Container -->
                 <div
-                  class="slide-main-container mb-3 preview-modal-content"
+                  class="slide-main-container mb-3"
                   [class.fullscreen]="isFullscreen"
-                  style="cursor: pointer"
+                  style="cursor: default"  
                 >
                   <img
                     [src]="previewImageBlob"
                     (error)="onPreviewError($event)"
                     alt="Slide {{ currentSlideIndex + 1 }}"
                     class="slide-image-full img-fluid"
-                    (click)="toggleFullscreen()"
-                    title="Click for fullscreen"
                     style="
                       max-width: 100%;
                       border: 1px solid #ddd;

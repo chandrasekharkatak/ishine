@@ -47,26 +47,15 @@ export class AuthGuard  {
         });
 
         // Check training lock status
-        if (this.userMapping.training_config && currentUser.trainingLockStatus) {
+        if (this.userMapping.training == true && currentUser.trainingLockStatus) {
           // Get current route path
           const currentPath = state.url.split('?')[0]; // Remove query params
           const isTrainingRoute = currentPath === '/training' || currentPath === '/user-training';
           
           // Hard lock: deadline crossed (regardless of lock enabled) - user is frozen, cannot navigate anywhere except training page
-          if (currentUser.trainingLockStatus.isHardLock === true) {
+          if (currentUser.trainingLockStatus.isLocked == true || currentUser.trainingLockStatus.isHardLock === true) {
             if (!isTrainingRoute) {
               // Block navigation to any other page - redirect to training
-              this.router.navigate(['/training']);
-              return false;
-            }
-            // Allow navigation to training page
-            return true;
-          }
-          
-          // User is frozen: (mandatory + lock enabled) OR (mandatory + deadline crossed) - route to training
-          if (currentUser.trainingLockStatus.isLocked === true) {
-            if (!isTrainingRoute) {
-              // Route to training page - user is frozen on training screen
               this.router.navigate(['/training']);
               return false;
             }

@@ -123,11 +123,9 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   trainingTypes: any[] = [];
   // Deadline patterns
   deadlinePatterns: any[] = [
-    { value: 'YEARLY', label: 'Yearly (December 31 - Last Day of Year)' },
-    { value: 'MID_YEAR', label: 'Mid Year (June, December)' },
-    // { value: 'YEAR_END', label: 'Year End (June, December)' },
-    { value: 'QUARTERLY', label: 'Quarterly (March, June, September, December)' }
-    // { value: 'CUSTOM', label: 'Custom Months' }
+    { value: 'YEARLY', label: 'Annual (Once a year - January)' },
+    { value: 'MID_YEAR', label: 'Biannual (Twice a year - January & July)' },
+    { value: 'QUARTERLY', label: 'Quarterly (Every quarter - March, June, September, December)' }
   ];
   preloadedSlides: Map<number, string> = new Map(); // Cache for preloaded slides
   preloadQueue: number[] = [];
@@ -1957,6 +1955,8 @@ downloadResponsesToExcel(): void {
     // Adjust these column definitions based on your actual response data structure
     const columns = [
       { header: 'S.No', key: 'sno', width: 8 },
+      { header: 'Training Name', key: 'trainingName', width: 8 },
+      { header: 'Employee ID', key: 'empId', width: 8 },
       { header: 'Employee Name', key: 'empName', width: 25 },
       { header: 'Last Completed Cycle', key: 'lastCompletedCycleNumber', width: 18 },
       { header: 'Last Completed On', key: 'lastCompletedOn', width: 18 },
@@ -1983,6 +1983,8 @@ downloadResponsesToExcel(): void {
       // Adjust this mapping based on your actual response structure
       const rowData = {
         sno: index + 1,
+        trainingName: response.trainingName || '',
+        empId: response.empId || '',
         empName: response.empName || response.employeeName || '',
         lastCompletedCycleNumber: response.lastCompletedCycleNumber || '',
         lastCompletedOn: response.lastCompletedOn 
@@ -2043,11 +2045,11 @@ downloadResponsesToExcel(): void {
     // Add summary row at the bottom (optional)
     const summaryRow = worksheet.addRow({
       sno: 'Total',
-      empName: `${this.allTrainingResponse.length} Responses`
+      empId: `${this.allTrainingResponse.length} Responses`
     });
     summaryRow.font = { bold: true };
     summaryRow.getCell('sno').alignment = { horizontal: 'right' };
-    summaryRow.getCell('empName').alignment = { horizontal: 'left' };
+    summaryRow.getCell('empId').alignment = { horizontal: 'left' };
 
     // Merge cells for summary if needed
     worksheet.mergeCells(`A${worksheet.rowCount}:B${worksheet.rowCount}`);
@@ -2065,7 +2067,7 @@ downloadResponsesToExcel(): void {
       
       saveAs(blob, fileName);
       
-      this.openAlertMod(this.alertTemplate, 'Excel file downloaded successfully', 'success');
+      // this.openAlertMod(this.alertTemplate, 'Excel file downloaded successfully', 'success');
     }).catch((error) => {
       console.error('Error generating Excel file:', error);
       this.openAlertMod(this.alertTemplate, 'Failed to generate Excel file', 'error');
