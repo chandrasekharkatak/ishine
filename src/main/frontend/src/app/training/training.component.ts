@@ -658,60 +658,102 @@ pdfFile: File | null = null;
   // }
 
   viewTraining(training: any, isDeadlineCrossed: boolean = false) {
-  if (!training || !training.content) {
-    this.openAlert('Training content not available', 'warning');    return;
-  }
-  this.showQuizSubmitComponent = false;
-  this.viewingTraining = training;
-  this.isViewingTraining = true;
+    if (!training || !training.content) {
+      this.openAlert('Training content not available', 'warning');    return;
+    }
+    this.showQuizSubmitComponent = false;
+    this.viewingTraining = training;
+    this.isViewingTraining = true;
 
-  // Reset timer and flags
-  this.elapsedTime = 0;
-  this.elapsedTimeDisplay = '00:00';
-  this.minTimeReached = false;
-  this.consentButtonEnabled = false;
-  this.hasVisitedLink = false;
-
-  // Clear previous content
-  this.previewUrl = '';
-  this.safePreviewUrl = null;
-  this.file = null;
-  this.pdfFile = null;
-  this.fileSize = 0;
-  this.pptxSlides = [];
-  this.slides = [];
-  this.totalSlides = 0;
-  this.previewImageBlob = null;
-  this.currentSlideIndex = 0;
-  this.preloadedSlides.clear();
-  this.preloadQueue = [];
-
-  const content = training.content;
-  this.contentType = content.contentType;
-  this.contentFormData.contentType = content.contentType;
-
-  // For completed trainings: no timer, no lock
-  if (training.status === 'COMPLETED') {
-    this.minTimeReached = true;
+    // Reset timer and flags
+    this.elapsedTime = 0;
+    this.elapsedTimeDisplay = '00:00';
+    this.minTimeReached = false;
     this.consentButtonEnabled = false;
-    this.quizButtonEnabled = false;
-  } else {
-    // For pending or skipped trainings: check if timer needed
-    if (
-      !training.hasSeenContent &&
-      training.minViewTimeMinutes &&
-      training.minViewTimeMinutes > 0
-    ) {
-      this.startTimerForViewing(training.minViewTimeMinutes);
-    } else {
+    this.hasVisitedLink = false;
+
+    // Clear previous content
+    this.previewUrl = '';
+    this.safePreviewUrl = null;
+    this.file = null;
+    this.pdfFile = null;
+    this.fileSize = 0;
+    this.pptxSlides = [];
+    this.slides = [];
+    this.totalSlides = 0;
+    this.previewImageBlob = null;
+    this.currentSlideIndex = 0;
+    this.preloadedSlides.clear();
+    this.preloadQueue = [];
+
+    const content = training.content;
+    this.contentType = content.contentType;
+    this.contentFormData.contentType = content.contentType;
+
+    // For completed trainings: no timer, no lock
+    // if (training.status === 'COMPLETED') {
+    //   this.minTimeReached = true;
+    //   this.consentButtonEnabled = false;
+    //   this.quizButtonEnabled = false;
+    // } else {
+    //   // For pending or skipped trainings: check if timer needed
+    //   if (
+    //     !training.hasSeenContent &&
+    //     training.minViewTimeMinutes &&
+    //     training.minViewTimeMinutes > 0
+    //   ) {
+    //     this.startTimerForViewing(training.minViewTimeMinutes);
+    //   } else if(training.hasSeenContent && training.hasQuiz && !training.quizAttempted){
+    //       this.minTimeReached = true;
+    //       this.quizButtonEnabled = true;
+    //   } else {
+    //     this.minTimeReached = true;
+    //     if (training.consentRequired === 'true') {
+    //       this.consentButtonEnabled = true;
+    //     } else if (training.hasQuiz) {
+    //       this.quizButtonEnabled = true;
+    //     }
+    //   }
+    // }
+
+    // For completed trainings: no timer, no lock
+    if (training.status === 'COMPLETED') {
       this.minTimeReached = true;
-      if (training.consentRequired === 'true') {
-        this.consentButtonEnabled = true;
-      } else if (training.hasQuiz) {
-        this.quizButtonEnabled = true;
+      this.consentButtonEnabled = false;
+      this.quizButtonEnabled = false;
+    } else {
+      // For pending or skipped trainings
+      if (training.hasSeenContent) {
+        // User has already seen the content
+        this.minTimeReached = true;
+        
+        if (training.hasQuiz && !training.quizAttempted) {
+          // Has quiz not attempted - enable quiz button
+          this.quizButtonEnabled = true;
+          this.consentButtonEnabled = false;
+        } else if (training.consentRequired === 'true' && !training.hasQuiz) {
+          // No quiz, just need consent
+          this.consentButtonEnabled = true;
+          this.quizButtonEnabled = false;
+        } else if (training.hasQuiz && training.quizAttempted) {
+          // Quiz already attempted
+          this.quizButtonEnabled = false;
+          this.consentButtonEnabled = false;
+        }
+      } else {
+        // User hasn't seen content yet - start timer
+        if (training.minViewTimeMinutes && training.minViewTimeMinutes > 0) {
+          this.startTimerForViewing(training.minViewTimeMinutes);
+        } else {
+          this.minTimeReached = true;
+          if (training.consentRequired === 'true') {
+            this.consentButtonEnabled = true;
+          } else if (training.hasQuiz) {
+            this.quizButtonEnabled = true;
+          }
+        }
       }
     }
-  }
 
   // Setup content
   if (content.contentType === 'LINK') {
@@ -837,154 +879,94 @@ async parsePDFFile(file: File): Promise<void> {
   }
 }
 
+  // startTimerForViewing(minViewTimeMinutes: number) {
+  //   if (this.timerInterval) {
+  //     clearInterval(this.timerInterval);
+  //   }
+
+  //   const minTimeSeconds = minViewTimeMinutes * 60;
+
+  //   this.timerInterval = setInterval(() => {
+  //     this.elapsedTime++;
+
+  //     const minutes = Math.floor(this.elapsedTime / 60);
+  //     const seconds = this.elapsedTime % 60;
+  //     this.elapsedTimeDisplay = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+  //     if (this.elapsedTime >= minTimeSeconds) {
+  //       console.log('min time reached');
+
+  //       this.minTimeReached = true;
+  //       if (this.viewingTraining) {
+  //         if (
+  //           this.viewingTraining.lastCompletedOn != null &&
+  //           this.viewingTraining.status == 'PENDING'
+  //         ) {
+  //           this.consentButtonEnabled = true;
+  //           this.quizButtonEnabled = false;
+  //         } else if (
+  //           this.viewingTraining.hasQuiz &&
+  //           this.viewingTraining.status !== 'COMPLETED'
+  //         ) {
+  //           this.quizButtonEnabled = true;
+  //           this.consentButtonEnabled = false;
+  //         } else if (
+  //           this.viewingTraining.consentRequired === 'true' &&
+  //           this.viewingTraining.status !== 'COMPLETED'
+  //         ) {
+  //           this.consentButtonEnabled = true;
+  //         } else {
+  //           this.quizButtonEnabled = false;
+  //           this.consentButtonEnabled = false;
+  //         }
+  //       }
+  //       clearInterval(this.timerInterval);
+  //     }
+  //   }, 10);
+  // }
+
   startTimerForViewing(minViewTimeMinutes: number) {
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-    }
-
-    const minTimeSeconds = minViewTimeMinutes * 60;
-
-    this.timerInterval = setInterval(() => {
-      this.elapsedTime++;
-
-      const minutes = Math.floor(this.elapsedTime / 60);
-      const seconds = this.elapsedTime % 60;
-      this.elapsedTimeDisplay = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-
-      if (this.elapsedTime >= minTimeSeconds) {
-        console.log('min time reached');
-
-        this.minTimeReached = true;
-        if (this.viewingTraining) {
-          if (
-            this.viewingTraining.lastCompletedOn != null &&
-            this.viewingTraining.status == 'PENDING'
-          ) {
-            this.consentButtonEnabled = true;
-            this.quizButtonEnabled = false;
-          } else if (
-            this.viewingTraining.hasQuiz &&
-            this.viewingTraining.status !== 'COMPLETED'
-          ) {
-            this.quizButtonEnabled = true;
-            this.consentButtonEnabled = false;
-          } else if (
-            this.viewingTraining.consentRequired === 'true' &&
-            this.viewingTraining.status !== 'COMPLETED'
-          ) {
-            this.consentButtonEnabled = true;
-          } else {
-            this.quizButtonEnabled = false;
-            this.consentButtonEnabled = false;
-          }
-        }
-        clearInterval(this.timerInterval);
-      }
-    }, 1000);
+  if (this.timerInterval) {
+    clearInterval(this.timerInterval);
   }
 
-  // async parsePPTXFile(file: File) {
-  //   try {
-  //     const zip = await JSZip.loadAsync(file);
-  //     const slideFiles = Object.keys(zip.files)
-  //       .filter(path => path.startsWith('ppt/slides/slide') && path.endsWith('.xml'))
-  //       .map(path => ({ path, file: zip.files[path] }))
-  //       .sort((a, b) => {
-  //         const aNum = parseInt(a.path.match(/slide(\d+)/)?.[1] || '0');
-  //         const bNum = parseInt(b.path.match(/slide(\d+)/)?.[1] || '0');
-  //         return aNum - bNum;
-  //       });
+  const minTimeSeconds = minViewTimeMinutes * 60;
 
-  //     this.pptxSlides = [];
+  this.timerInterval = setInterval(() => {
+    this.elapsedTime++;
 
-  //     for (let i = 0; i < slideFiles.length; i++) {
-  //       const slideFile = slideFiles[i];
-  //       const slideXml = await slideFile.file.async('string');
+    const minutes = Math.floor(this.elapsedTime / 60);
+    const seconds = this.elapsedTime % 60;
+    this.elapsedTimeDisplay = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
-  //       const parser = new DOMParser();
-  //       const xmlDoc = parser.parseFromString(slideXml, 'text/xml');
+    if (this.elapsedTime >= minTimeSeconds) {
+      console.log('min time reached');
 
-  //       const slideNum = slideFile.path.match(/slide(\d+)/)?.[1] || (i + 1).toString();
-  //       const relsPath = `ppt/slides/_rels/slide${slideNum}.xml.rels`;
-
-  //       const relationshipMap: Map<string, string> = new Map();
-  //       try {
-  //         if (zip.file(relsPath)) {
-  //           const relsXml = await zip.file(relsPath)!.async('string');
-  //           const relsDoc = parser.parseFromString(relsXml, 'text/xml');
-  //           const relationships = relsDoc.getElementsByTagName('Relationship');
-
-  //           for (let r = 0; r < relationships.length; r++) {
-  //             const rel = relationships[r];
-  //             const id = rel.getAttribute('Id');
-  //             const target = rel.getAttribute('Target');
-  //             const type = rel.getAttribute('Type');
-
-  //             if (id && target && type && type.includes('image')) {
-  //               relationshipMap.set(id, target);
-  //             }
-  //           }
-  //         }
-  //       } catch (relsError) {
-  //         console.warn('Could not parse relationship file:', relsPath, relsError);
-  //       }
-
-  //       const slideImages: string[] = [];
-  //       const imageElements = xmlDoc.getElementsByTagName('a:blip');
-
-  //       for (let j = 0; j < imageElements.length; j++) {
-  //         const embedId = imageElements[j].getAttribute('r:embed');
-  //         if (embedId) {
-  //           let imagePath = relationshipMap.get(embedId);
-
-  //           if (!imagePath) {
-  //             const possiblePaths = [
-  //               `ppt/media/image${embedId}.png`,
-  //               `ppt/media/image${embedId}.jpg`,
-  //               `ppt/media/image${embedId}.jpeg`
-  //             ];
-
-  //             for (const path of possiblePaths) {
-  //               if (zip.file(path)) {
-  //                 imagePath = path;
-  //                 break;
-  //               }
-  //             }
-  //           }
-
-  //           if (imagePath) {
-  //             const imageFile = zip.file(imagePath);
-  //             if (imageFile) {
-  //               const imageBlob = await imageFile.async('blob');
-  //               const imageUrl = URL.createObjectURL(imageBlob);
-  //               slideImages.push(imageUrl);
-  //             }
-  //           }
-  //         }
-  //       }
-
-  //       const slideTexts: string[] = [];
-  //       const textElements = xmlDoc.getElementsByTagName('a:t');
-  //       for (let t = 0; t < textElements.length; t++) {
-  //         const text = textElements[t].textContent?.trim();
-  //         if (text) {
-  //           slideTexts.push(text);
-  //         }
-  //       }
-
-  //       this.pptxSlides.push({
-  //         slideNumber: i + 1,
-  //         images: slideImages,
-  //         texts: slideTexts
-  //       });
-  //     }
-
-  //     this.currentSlideIndex = 0;
-  //   } catch (error) {
-  //     console.error('Error parsing PPTX:', error);
-  //     this.openAlert('Error parsing PowerPoint file', 'error');
-  //   }
-  // }
+      this.minTimeReached = true;
+      
+      if (this.viewingTraining) {
+        // Training has a quiz and it's not attempted
+        if (this.viewingTraining.hasQuiz && !this.viewingTraining.quizAttempted) {
+          this.quizButtonEnabled = true;
+          this.consentButtonEnabled = false;
+        } 
+        // Training requires consent but no quiz
+        else if (this.viewingTraining.consentRequired === 'true') {
+          this.consentButtonEnabled = true;
+          this.quizButtonEnabled = false;
+        }
+        // Training has both quiz and consent? (rare case)
+        else if (this.viewingTraining.hasQuiz && this.viewingTraining.consentRequired === 'true') {
+          // You might want both enabled or prioritize one
+          this.quizButtonEnabled = true;
+          this.consentButtonEnabled = true;
+        }
+      }
+      
+      clearInterval(this.timerInterval);
+    }
+  }, 10); // Note: You have this set to 10ms, which is very fast - consider changing to 1000ms
+}
 
   async parsePPTXFile(file: File) {
     try {
@@ -1710,21 +1692,23 @@ async parsePDFFile(file: File): Promise<void> {
   }
 
   canShowGoToQuiz(): boolean {
-    if (this.viewingTraining.status.toLowerCase() == 'completed') {
-      return false;
-    }
-
-    if (!this.viewingTraining.hasQuiz) {
-      return false;
-    } else if (
-      this.viewingTraining.hasQuiz &&
-      !this.viewingTraining.quizAttempted
-    ) {
-      return true;
-    }
-
+  if (this.viewingTraining.status.toLowerCase() === 'completed') {
     return false;
   }
+
+  // If training has a quiz and it's not attempted yet
+  if (this.viewingTraining.hasQuiz && !this.viewingTraining.quizAttempted) {
+    // Check if we need to wait for minimum view time
+    if (this.viewingTraining.minViewTimeMinutes && this.viewingTraining.minViewTimeMinutes > 0) {
+      // Only enable if minimum time is reached
+      return this.minTimeReached;
+    }
+    // No minimum time required, always show
+    return true;
+  }
+
+  return false;
+}
 
   onPreviewError(event: any) {
     console.log('Preview error:', event);
@@ -1934,4 +1918,21 @@ clearAllPreviewData() {
   this.totalSlides = 0;
   this.currentSlideIndex = 0;
 }
+
+  getTextForNote(){
+    if(!this.viewingTraining.hasSeenContent){
+      if(this.viewingTraining.hasQuiz && !this.viewingTraining.quizAttempted){
+        return 'If you have already completed the training then either a new content has been added or a new quiz has been added';
+      } else {
+        return 'A new Content has been added';
+      }
+    } else {
+      if(this.viewingTraining.hasQuiz && !this.viewingTraining.quizAttempted){
+        return 'A new Quiz has been added';
+      }
+    }
+
+    return null;
+    
+  }
 }

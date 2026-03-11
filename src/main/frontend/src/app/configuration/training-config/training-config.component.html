@@ -632,7 +632,7 @@
                                             (click)="onViewContent(training)" title="View Content">
                                         <em class="fa fa-eye"></em>
                                     </button>
-                                    <button class="btn btn-sm btn-outline-success mx-1" 
+                                    <button *ngIf="userMapping.quiz_config" class="btn btn-sm btn-outline-success mx-1" 
                                             (click)="onAddQuiz(training)" title="Add Quiz">
                                         <em class="fa fa-clipboard-check"></em> Quiz
                                     </button>
