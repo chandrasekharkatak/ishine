@@ -1207,7 +1207,7 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			+ " AND e.empId =:empId AND (etm.endDate IS NULL OR DATE(etm.endDate) >= DATE(:startDate)) \n")
 	List<EmployeeProjectTimesheetDto> findByEmpIdAndDate(Long empId, LocalDateTime startDate, List<Integer> projectIds);
 	
-	@Query(value = " WITH T1 AS ( \n" +
+	@Query(value =" WITH T1 AS ( \n" +
 			" SELECT etm.emp_id, DATE(etm.end_date) end_date \n" +
 			" FROM employee_team_mapping etm \n" +
 			" INNER JOIN teams t on t.team_id = etm.team_id \n" +
@@ -1222,7 +1222,9 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			" FROM employee e \n" +
 			" LEFT JOIN T1 ON e.emp_id = T1.emp_id \n" +
 			" WHERE e.emp_id =:empId \n" +
-			" AND DATE(:startDate) > DATE_ADD(COALESCE(T1.end_date, e.date_of_joining), INTERVAL 1 DAY) \n" , nativeQuery = true )
+			" AND DATE(:startDate) > DATE_ADD(COALESCE(T1.end_date, e.date_of_joining), INTERVAL 1 DAY) \n" +
+			" AND NOT EXISTS (SELECT 1  FROM employee_team_mapping etm1  \n" +
+			" WHERE etm1.emp_id = e.emp_id AND (etm1.end_date IS NULL OR etm1.end_date >= CURRENT_DATE()) ) \n" , nativeQuery = true )
 	List<Object[]> getUnmappedEmployeeProjectDate(Long empId, LocalDateTime startDate, List<Integer> projectIds);
 	
 }

@@ -14,7 +14,8 @@ public class PoTeamAndMemberDetailsDto {
 	private String projectStatus;
 	private String poProjectType;
 	private String internalProjectType;
-
+	private String projectType;
+	
 	private Long teamId;
 	private String teamName;
 	private String isTeamActive;
@@ -169,7 +170,7 @@ public class PoTeamAndMemberDetailsDto {
 	}
 
 	public PoTeamAndMemberDetailsDto(Integer projectId, String projectName, String projectStatus, String poProjectType,
-			String internalProjectType, Long poId, String poNo, Long poRequirementMappingId, String role,
+			String internalProjectType, String projectType, Long poId, String poNo, Long poRequirementMappingId, String role,
 			String experience, String department, Long teamId, String teamName, Integer clientId, String clientName,
 			Long empId, String billableType, Long isMemberActive, LocalDateTime startDate, LocalDateTime endDate,
 			Long etmId, LocalDateTime poStartDate, LocalDateTime poEndDate) {
@@ -178,6 +179,7 @@ public class PoTeamAndMemberDetailsDto {
 		this.projectStatus = projectStatus;
 		this.poProjectType = poProjectType;
 		this.internalProjectType = internalProjectType;
+		this.projectType = projectType;
 		this.poId = poId;
 		this.poNo = poNo;
 		this.poRequirementMappingId = poRequirementMappingId;

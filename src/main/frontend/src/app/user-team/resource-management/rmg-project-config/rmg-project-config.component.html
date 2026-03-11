@@ -193,13 +193,13 @@
             <ng-container *ngIf="projectType === 'TNM'">
                 <div class="mt-3">
                     <ng-template [ngTemplateOutlet]="resource_requirement_template"
-                        [ngTemplateOutletContext]="{resourceRequirementList:currentRmgProjectResourceRequirementList, flag:true}">
+                        [ngTemplateOutletContext]="{resourceRequirementList:allRmgProjectResourceRequirementList, flag:false}">
                     </ng-template>
                 </div>
             </ng-container>
 
             <div class="row" *ngIf="projectConfigStepperIndex === 1">
-                <div class="col-md-12 d-flex justify-content-start p-2 ml-1">
+                <div class="col-md-12 d-flex justify-content-end">
                     <button *ngIf="!rmgProjectObj?.isAnyNewTeamAdded && rmgProjectObj?.teamDetailsList?.length > 0"
                         class="btn btn-primary btn-sm mr-1" title="Update Team(s)"
                         (click)="addOrUpdateTeamDetails(true)">
@@ -235,28 +235,28 @@
                                         [checked]="rmgProjectObj.isAllTeamsSelected" title="Select All Teams"
                                         (change)="onAllTeamsCheckboxChange()"></mat-checkbox>
                                 </th>
-                                <th class="min-width150 max-width200">Team Name</th>
-                                <th class="min-width150 max-width200">Department(s)</th>
-                                <th class="min-width150 max-width200">SPOC</th>
+                                <th class="min-width180 max-width200">Team Name</th>
+                                <th class="min-width180 max-width200">Department(s)</th>
+                                <th class="min-width180 max-width200">SPOC</th>
                                 <th>Action</th>
                             </tr>
                             <ng-container *ngIf="rmgProjectObj.addNewTeamToggle">
                                 <tr *ngIf="projectConfigStepperIndex === 1">
                                     <td></td>
-                                    <td class="min-width150 max-width200">
+                                    <td class="min-width180 max-width200">
                                         <input class="form-control" type="text"
                                             [(ngModel)]="rmgProjectObj.newTeamObj.teamName"
                                             [disabled]="projectConfigStepperIndex !== 1" placeholder="Enter Team Name"
                                             (blur)="validateTeamName(rmgProjectObj.newTeamObj)" />
                                     </td>
-                                    <td class="min-width150 max-width200">
+                                    <td class="min-width180 max-width200">
                                         <app-my-select #teamDepartmentSelect class="form-control"
                                             [readonly]="projectConfigStepperIndex !== 1" placeholder="Select Department"
                                             [(ngModel)]="rmgProjectObj.newTeamObj.deptIds" [options]="departmentsList"
                                             displayKey="name" valueKey="deptId" [multiple]="true">
                                         </app-my-select>
                                     </td>
-                                    <td class="min-width150 max-width200">
+                                    <td class="min-width180 max-width200">
                                         <app-my-select #teamSpocSelect class="form-control"
                                             [readonly]="projectConfigStepperIndex !== 1" placeholder="Select Employee"
                                             [(ngModel)]="rmgProjectObj.newTeamObj.spocId" [options]="spocList"
@@ -289,19 +289,19 @@
                                             [checked]="team.isTeamSelected" (change)="onTeamCheckboxChange(team)">
                                         </mat-checkbox>
                                     </td>
-                                    <td class="min-width150 max-width200">
+                                    <td class="min-width180 max-width200">
                                         <input class="form-control" type="text" [(ngModel)]="team.teamName"
                                             [disabled]="projectConfigStepperIndex !== 1" placeholder="Enter Team Name"
                                             (blur)="validateTeamName(team)" />
                                     </td>
-                                    <td class="min-width150 max-width200">
+                                    <td class="min-width180 max-width200">
                                         <app-my-select #teamDepartmentSelect class="form-control"
                                             [readonly]="projectConfigStepperIndex !== 1" placeholder="Select Department"
                                             [(ngModel)]="team.deptIds" [options]="departmentsList" displayKey="name"
                                             valueKey="deptId" [multiple]="true">
                                         </app-my-select>
                                     </td>
-                                    <td class="min-width150 max-width200">
+                                    <td class="min-width180 max-width200">
                                         <app-my-select #teamSpocSelect class="form-control"
                                             [readonly]="projectConfigStepperIndex !== 1" placeholder="Select Employee"
                                             [(ngModel)]="team.spocId" [options]="spocList" displayKey="name"
@@ -349,12 +349,17 @@
                 (click)="addOrUpdateTeamMembers(currentTeam,true)">
                 Update Member(s)
             </button>
+            <button type="button" class="btn btn-primary btn-sm mr-1" *ngIf="cloneMemberMappingList?.length > 0"
+                (click)="saveClonedMembers()">
+                Save Cloned Member(s)
+            </button>
             <button type="button" class="btn btn-primary btn-sm mr-1"
                 *ngIf="currentTeam.isAnyMemberSelected && teamMembers?.length > 0"
                 (click)="validateRemoveMembers(teamMembers)">
                 Remove Member(s)
             </button>&nbsp;
             <button type="button" class="btn btn-sm btn-outline-primary m-1"
+                *ngIf="!(cloneMemberMappingList?.length > 0)"
                 [title]="!currentTeam.addNewTeamMemberToggle ? 'Show Add New Team Member' : 'Hide Add New Team Member'"
                 (click)="toggleAddNewMember(currentTeam)">
                 <i class="fa" [ngClass]="currentTeam.addNewTeamMemberToggle ? 'fa-minus-circle' : 'fa-plus-circle'"></i>
@@ -370,6 +375,7 @@
                             (change)="onAllTeamTeamMemberCheckboxChange(team,$event, teamMembers)">
                         </mat-checkbox>
                     </th>
+                    <th></th>
                     <th>Info</th>
                     <th class="min-width100 max-width150" mat-sort-header="employementId|string">
                         Employment Id
@@ -380,17 +386,14 @@
                     <th class="min-width100 max-width150" *ngIf="!isInternalProject" mat-sort-header="poNo|string">
                         PO No.
                     </th>
-                    <th class="min-width100 max-width150" *ngIf="!isInternalProject"
+                    <th class="min-width180 max-width200" *ngIf="!isInternalProject"
                         mat-sort-header="displayRequirement|string">
-                        Requirement Role
+                        PO Role
                     </th>
-                    <th class="min-width150 max-width200">
+                    <th class="min-width180 max-width200">
                         Employee Role
                     </th>
-                    <th class="min-width150 max-width200" mat-sort-header="empTeamDepartmentName|string">
-                        Employee Assigned Department
-                    </th>
-                    <th class="min-width150 max-width200">
+                    <th class="min-width180 max-width200">
                         Start Date
                     </th>
                     <th class="min-width100 max-width150">
@@ -424,8 +427,9 @@
                         (onSearch)="searchCurrentTeamMember($event)">
                     </tr>
                 </ng-container>
-                <ng-container *ngIf="currentTeam.addNewTeamMemberToggle">
+                <ng-container *ngIf="currentTeam.addNewTeamMemberToggle && !(cloneMemberMappingList?.length > 0)">
                     <tr *ngIf="projectConfigStepperIndex === 1">
+                        <td></td>
                         <td [attr.colspan]="teamMembers?.length > 0 ? 2 : 1">
                             <div class="d-flex justify-evenly">
                                 <button class="btn btn-sm btn-outline-primary" title="Save New Member"
@@ -440,45 +444,43 @@
                         <td class="min-width100 max-width150" disabled>
                             {{ currentTeam.newRmgTeamMember.employementId || 'NA' }}
                         </td>
-                        <td class="min-width150 max-width200">
-                            <app-my-select *ngIf="!isUnsavedMemberUpdate" #newMemberSelect class="form-control"
-                                placeholder="Select Employee" [(ngModel)]="currentTeam.newRmgTeamMember.empId"
-                                [options]="employeeListFilteredByDept" [displayKey]="employeeDisplayArr"
-                                valueKey="empId" [multiple]="false" displaySeparator=" | "
+                        <td class="min-width180 max-width200">
+                            <app-my-select #newMemberSelect class="form-control" placeholder="Select Employee"
+                                [(ngModel)]="currentTeam.newRmgTeamMember.empId" [options]="employeeListFilteredByDept"
+                                [displayKey]="employeeDisplayArr" valueKey="empId" [multiple]="false"
+                                displaySeparator=" | "
                                 (change)="getEmployeeExistingProjectDetailsByEmpId(currentTeam.newRmgTeamMember.empId, true, rmgProjectObj.projectId)">
                             </app-my-select>
                         </td>
-                        <td class="min-width150 max-width200" *ngIf="!isInternalProject">
+                        <td class="min-width180 max-width200" *ngIf="!isInternalProject">
                             <app-my-select #newMemberPOSelect class="form-control" placeholder="Select PO"
                                 [(ngModel)]="currentTeam.newRmgTeamMember.poId" [options]="poDetailsList"
                                 displayKey="poNo" valueKey="poId" [multiple]="false"
                                 (change)="getResourceRequirementByPoId($event)">
                             </app-my-select>
                         </td>
-                        <td class="min-width150 max-width200" *ngIf="!isInternalProject">
-                            <app-my-select #newMemberRequirementSelect class="form-control" placeholder="Select Role"
-                                [(ngModel)]="currentTeam.newRmgTeamMember.roleId" [options]="resourceRequirementList"
-                                displayKey="displayRequirement" valueKey="roleId" [multiple]="false">
+                        <td class="min-width180 max-width200" *ngIf="!isInternalProject">
+                            <app-my-select #newMemberRequirementSelect class="form-control" placeholder="Select PO Role"
+                                [(ngModel)]="currentTeam.newRmgTeamMember.roleId"
+                                [options]="filteredActiveResourceRequirement" displayKey="displayRequirement"
+                                valueKey="roleId" [multiple]="false" [showFilterAction]="true"
+                                [filterActionLabel]="roleFilterActionLabel"
+                                (filterAction)="filterActiveResourceRequirement()">
+                                >
                             </app-my-select>
                         </td>
-                        <td class="min-width150 max-width200">
+                        <td class="min-width180 max-width200">
                             <app-my-select #employeeRoleSelect class="form-control" placeholder="Select Role"
                                 [(ngModel)]="currentTeam.newRmgTeamMember.employeeRoles" [options]="employeeRoles"
                                 [multiple]="true">
                             </app-my-select>
                         </td>
-                        <td class="min-width150 max-width200">
-                            <app-my-select #memberDepartmentSelect class="form-control" placeholder="Select Department"
-                                [(ngModel)]="currentTeam.newRmgTeamMember.empTeamDepartmentId"
-                                [options]="departmentsList" displayKey="name" valueKey="deptId" [multiple]="false">
-                            </app-my-select>
-                        </td>
-                        <td class="min-width150 max-width200">
+                        <td class="min-width180 max-width200">
                             <div class="date-input-wrapper">
-                                <input class="form-control date-input" [matDatepicker]="startDatepicker"
+                                <input class="form-control date-input" readonly [matDatepicker]="startDatepicker"
                                     (dateChange)="validateEmployeeProjectStartDate(currentTeam.newRmgTeamMember, rmgProjectObj.projectId, rmgProjectObj.startDate, projectType)"
                                     [(ngModel)]="currentTeam.newRmgTeamMember.startDate"
-                                    [disabled]="!currentTeam.newRmgTeamMember.empId" />
+                                    [disabled]="!currentTeam.newRmgTeamMember.empId" (click)="startDatepicker.open()" />
                                 <mat-icon class="calendar-icon"
                                     (click)="startDatepicker.open()">calendar_today</mat-icon>
                                 <mat-datepicker #startDatepicker></mat-datepicker>
@@ -493,8 +495,76 @@
                         </td>
                         <td>
                             <mat-checkbox class="custom-checkbox" color="primary"
-                                [disabled]="currentTeam.newRmgTeamMember.defaultProject"
+                                [disabled]="currentTeam.newRmgTeamMember.dbDefaultProject"
                                 [(ngModel)]="currentTeam.newRmgTeamMember.defaultProject"></mat-checkbox>
+                        </td>
+                    </tr>
+                </ng-container>
+                <ng-container *ngIf="cloneMemberMappingList?.length > 0 && projectConfigStepperIndex === 1">
+                    <tr *ngFor="let member of cloneMemberMappingList; let i= index">
+                        <td></td>
+                        <td></td>
+                        <td>
+                            <div class="d-flex justify-evenly">
+                                <button class="btn btn-sm btn-outline-primary" title="Remove From Cloning List"
+                                    (click)="removeFromCloneMemberMappingList(member, i)">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        </td>
+                        <td class="min-width100 max-width150" disabled>
+                            {{ member.employementId || 'NA' }}
+                        </td>
+                        <td class="min-width180 max-width200">
+                            <app-my-select #newMemberSelect class="form-control" placeholder="Select Employee"
+                                [(ngModel)]="member.empId" [options]="employeeListFilteredByDept"
+                                [displayKey]="employeeDisplayArr" valueKey="empId" [multiple]="false"
+                                displaySeparator=" | "
+                                (change)="getEmployeeExistingProjectDetailsByEmpId(member.empId, true, rmgProjectObj.projectId)">
+                            </app-my-select>
+                        </td>
+                        <td class="min-width180 max-width200" *ngIf="!isInternalProject">
+                            <app-my-select #newMemberPOSelect class="form-control" placeholder="Select PO"
+                                [(ngModel)]="member.poId" [options]="poDetailsList" displayKey="poNo" valueKey="poId"
+                                [multiple]="false" (change)="getResourceRequirementByPoIdForEmployee($event, member)">
+                            </app-my-select>
+                        </td>
+                        <td class="min-width180 max-width200" *ngIf="!isInternalProject">
+                            <app-my-select #newMemberRequirementSelect class="form-control" placeholder="Select PO Role"
+                                [(ngModel)]="member.roleId" [options]="member.filteredActiveResourceRequirement"
+                                displayKey="displayRequirement" valueKey="roleId" [multiple]="false"
+                                [showFilterAction]="true" [filterActionLabel]="member.roleFilterActionLabel"
+                                (filterAction)="filterActiveResourceRequirementEmployeeSpecific(member)">
+                                >
+                            </app-my-select>
+                        </td>
+                        <td class="min-width180 max-width200">
+                            <app-my-select #employeeRoleSelect class="form-control" placeholder="Select Role"
+                                [(ngModel)]="member.employeeRoles" [options]="employeeRoles" [multiple]="true">
+                            </app-my-select>
+                        </td>
+                        <td class="min-width180 max-width200">
+                            <div class="date-input-wrapper">
+                                <input class="form-control date-input" readonly [matDatepicker]="startDatepicker"
+                                    (dateChange)="validateEmployeeProjectStartDate(member, rmgProjectObj.projectId, rmgProjectObj.startDate, projectType)"
+                                    [(ngModel)]="member.startDate" [disabled]="!member.empId"
+                                    (click)="startDatepicker.open()" />
+                                <mat-icon class="calendar-icon"
+                                    (click)="startDatepicker.open()">calendar_today</mat-icon>
+                                <mat-datepicker #startDatepicker></mat-datepicker>
+                            </div>
+                        </td>
+                        <td class="min-width100 max-width150">
+                            {{'--'}}
+                        </td>
+                        <td>
+                            <mat-checkbox class="custom-checkbox" color="primary" [(ngModel)]="member.isShadow">
+                            </mat-checkbox>
+                        </td>
+                        <td>
+                            <mat-checkbox class="custom-checkbox" color="primary" [disabled]="member.dbDefaultProject"
+                                [(ngModel)]="member.defaultProject">
+                            </mat-checkbox>
                         </td>
                     </tr>
                 </ng-container>
@@ -502,7 +572,7 @@
             <tbody>
                 <ng-container *ngIf="!teamMembers || teamMembers?.length === 0">
                     <tr>
-                        <td [attr.colspan]="projectConfigStepperIndex === 1 ? !isInternalProject ? 13 : 11 : !isInternalProject ? 12 : 10"
+                        <td [attr.colspan]="projectConfigStepperIndex === 1 ? !isInternalProject ? 14 : 12 : !isInternalProject ? 13 : 11"
                             class="text-center">No Resources found.</td>
                     </tr>
                 </ng-container>
@@ -513,6 +583,14 @@
                             <mat-checkbox class="custom-checkbox" color="primary" [(ngModel)]="member.isMemberSelected"
                                 (change)="onMemberCheckboxChange(team, $event, member.empId)">
                             </mat-checkbox>
+                        </td>
+                        <td>
+                            <div class="d-flex justify-evenly">
+                                <button class="btn btn-sm btn-outline-primary" title="Add to Cloning List"
+                                    (click)="addMemberMappingToCloneList(member)">
+                                    <i class="fa-solid fa-copy"></i>
+                                </button>
+                            </div>
                         </td>
                         <td>
                             <button class="btn btn-sm">
@@ -540,21 +618,18 @@
                             [title]="member.displayRequirement || 'NA'">
                             {{ member.displayRequirement || 'NA' }}
                         </td>
-                        <td class="min-width150 max-width200">
+                        <td class="min-width180 max-width200">
                             <app-my-select #employeeRoleSelect class="form-control" placeholder="Select Role"
                                 [readonly]="projectConfigStepperIndex !== 1" [(ngModel)]="member.employeeRoles"
                                 [options]="employeeRoles" [multiple]="true">
                             </app-my-select>
                         </td>
-                        <td class="min-width150 max-width200 truncate" [title]="member.empTeamDepartmentName|| 'NA' ">
-                            {{ member.empTeamDepartmentName || 'NA' }}
-                        </td>
-                        <td class="min-width150 max-width200">
+                        <td class="min-width180 max-width200">
                             <div class="date-input-wrapper">
-                                <input class="form-control date-input" [matDatepicker]="startDatepicker"
+                                <input class="form-control date-input" readonly [matDatepicker]="startDatepicker"
                                     [disabled]="projectConfigStepperIndex !== 1"
                                     (dateChange)="validateEmployeeProjectStartDate(member, rmgProjectObj.projectId, rmgProjectObj.startDate, projectType)"
-                                    [(ngModel)]="member.startDate" readonly />
+                                    [(ngModel)]="member.startDate" readonly (click)="startDatepicker.open()" />
                                 <mat-icon class="calendar-icon"
                                     (click)="startDatepicker.open()">calendar_today</mat-icon>
                                 <mat-datepicker #startDatepicker></mat-datepicker>
@@ -565,19 +640,16 @@
                             {{ member.endDate ? ( member.endDate | date:'dd-MM-yyyy'): 'NA' }}
                         </td>
                         <td>
-                            <span
-                                [title]="member.isShadow 
-                                        ? 'To change this mapping, please deboard the resource by providing an end date and onboard again as a regular/billed employee.'
-                                        : 'An existing resource can’t be marked as Shadow. If you still need them as a Shadow resource, please deboard the resource and onboard them again as Shadow.'">
-                                <mat-checkbox class="custom-checkbox" color="primary" [disabled]="true"
-                                    [(ngModel)]="member.isShadow">
-                                </mat-checkbox>
-                            </span>
+                            <mat-checkbox class="custom-checkbox" color="primary"
+                                (change)="onShadowCheckBoxChanged($event,member)"
+                                [disabled]="projectConfigStepperIndex !== 1 || isProjectPreview"
+                                [(ngModel)]="member.isShadow">
+                            </mat-checkbox>
                         </td>
                         <td>
                             <mat-checkbox class="custom-checkbox" color="primary"
                                 (change)="onDefaultCheckBoxChanged($event,member)"
-                                [disabled]="projectConfigStepperIndex !== 1 || (member.dbDefaultProject && (!member.otherActiveProjectIds || member.otherActiveProjectIds?.length === 0))"
+                                [disabled]="projectConfigStepperIndex !== 1 || isProjectPreview || (member.dbDefaultProject && (!member.otherActiveProjectIds || member.otherActiveProjectIds?.length === 0))"
                                 [(ngModel)]="member.defaultProject">
                             </mat-checkbox>
                         </td>
@@ -631,18 +703,15 @@
                     </th>
                     <th class="min-width100 max-width150" *ngIf="!isInternalProject"
                         mat-sort-header="displayRequirement|string">
-                        Requirement Role
+                        PO Role
                     </th>
                     <th class="min-width100 max-width150" mat-sort-header="employeeRole|string">
                         Role
                     </th>
-                    <th class="min-width150 max-width200" mat-sort-header="empTeamDepartmentName|string">
-                        Employee Assigned Department
-                    </th>
                     <th class="min-width100 max-width150">
                         Start Date
                     </th>
-                    <th class="min-width150 max-width200">
+                    <th class="min-width180 max-width200">
                         End Date
                     </th>
                     <th>
@@ -701,19 +770,16 @@
                         <td class="min-width100 max-width150 truncate" [title]="member.employeeRole|| 'NA' ">
                             {{ member.employeeRole || 'NA' }}
                         </td>
-                        <td class="min-width150 max-width200 truncate" [title]="member.empTeamDepartmentName|| 'NA' ">
-                            {{ member.empTeamDepartmentName || 'NA' }}
-                        </td>
                         <td class="min-width100 max-width150 truncate"
                             [title]="member.startDate ? ( member.startDate | date:'dd-MM-yyyy'): 'NA'">
                             {{ member.startDate ? ( member.startDate | date:'dd-MM-yyyy'): 'NA' }}
                         </td>
-                        <td class="min-width150 max-width200">
+                        <td class="min-width180 max-width200">
                             <div class="date-input-wrapper">
-                                <input class="form-control date-input" [matDatepicker]="endDatepicker"
-                                    [min]="member.startDate" [disabled]="projectConfigStepperIndex !== 1"
+                                <input class="form-control date-input" readonly [matDatepicker]="endDatepicker"
+                                    [disabled]="projectConfigStepperIndex !== 1"
                                     (dateChange)="onMemberEndDateChange($event, currentTeam.newRmgTeamMember)"
-                                    [(ngModel)]="member.endDate" />
+                                    [(ngModel)]="member.endDate" (click)="endDatepicker.open()" />
                                 <mat-icon class="calendar-icon" (click)="endDatepicker.open()">calendar_today</mat-icon>
                                 <mat-datepicker #endDatepicker></mat-datepicker>
                             </div>
@@ -791,19 +857,10 @@
                 </div>
                 <div class="col-3 p-1" *ngIf="teamMembersMigrationObj.projectType === 'TNM'">
                     <div class="form-group mb-0">
-                        <label>Requirement Role</label>
+                        <label>PO Role</label>
                         <app-my-select class="form-control" [(ngModel)]="teamMembersMigrationObj.targetRoleId"
                             valueKey="roleId" displayKey="displayRequirement"
                             [options]="teamMigrationResourceRequirementList">
-                        </app-my-select>
-                    </div>
-                </div>
-                <div class="col-4 p-1" *ngIf="teamMembersMigrationObj.projectType === 'TNM'">
-                    <div class="form-group mb-0">
-                        <label>Employee Team Assigned Department</label>
-                        <app-my-select class="form-control" placeholder="Select Department"
-                            [(ngModel)]="teamMembersMigrationObj.targetEmpTeamDepartmentId" [options]="departmentsList"
-                            displayKey="name" valueKey="deptId" [multiple]="false">
                         </app-my-select>
                     </div>
                 </div>
@@ -866,20 +923,17 @@
                                 <th class="min-width100 max-width150" mat-sort-header="memberName|string">
                                     Employee Name
                                 </th>
-                                <th class="min-width150 max-width200" mat-sort-header="teamName|string">
+                                <th class="min-width180 max-width200" mat-sort-header="teamName|string">
                                     Current Team Name
                                 </th>
-                                <th class="min-width150 max-width200" mat-sort-header="employeeRole|string">
+                                <th class="min-width180 max-width200" mat-sort-header="employeeRole|string">
                                     Current Employee Role
-                                </th>
-                                <th class="min-width150 max-width200" mat-sort-header="empTeamDepartmentName|string">
-                                    Current Employee Assigned Department
                                 </th>
                                 <th class="min-width100 max-width150" mat-sort-header="poNo|string">
                                     Current PO No
                                 </th>
-                                <th class="min-width150 max-width200" mat-sort-header="displayRequirement|string">
-                                    Current Requirement Role
+                                <th class="min-width180 max-width200" mat-sort-header="displayRequirement|string">
+                                    Current PO Role
                                 </th>
                             </tr>
                             <ng-container *ngIf="isMigrateTeamMemberSearchEnabled">
@@ -911,21 +965,17 @@
                                     <td class=" truncate" [title]=" employee.memberName || 'NA'">
                                         {{ employee.memberName }}
                                     </td>
-                                    <td class="min-width150 max-width200 truncate" [title]="employee.teamName || 'NA'">
+                                    <td class="min-width180 max-width200 truncate" [title]="employee.teamName || 'NA'">
                                         {{ employee.teamName || 'NA' }}
                                     </td>
-                                    <td class="min-width150 max-width200 truncate"
+                                    <td class="min-width180 max-width200 truncate"
                                         [title]="employee.employeeRole || 'NA'">
                                         {{ employee.employeeRole || 'NA' }}
                                     </td>
-                                    <td class="min-width150 max-width200 truncate"
-                                        [title]="employee.empTeamDepartmentName|| 'NA' ">
-                                        {{ employee.empTeamDepartmentName || 'NA' }}
-                                    </td>
-                                    <td class="min-width150 max-width200 truncate" [title]="employee.poNo || 'NA'">
+                                    <td class="min-width180 max-width200 truncate" [title]="employee.poNo || 'NA'">
                                         {{ employee.poNo || 'NA'}}
                                     </td>
-                                    <td class="min-width150 max-width200 truncate"
+                                    <td class="min-width180 max-width200 truncate"
                                         [title]="employee.displayRequirement || 'NA'">
                                         {{ employee.displayRequirement || 'NA' }}
                                     </td>
@@ -949,20 +999,17 @@
                                 <th class="min-width100 max-width150" mat-sort-header="teamName|string">
                                     Current Team Name
                                 </th>
-                                <th class="min-width150 max-width200" mat-sort-header="employeeRole|string">
+                                <th class="min-width180 max-width200" mat-sort-header="employeeRole|string">
                                     Current Employee Role
                                 </th>
-                                <th class="min-width150 max-width200" mat-sort-header="poNo|string">
+                                <th class="min-width180 max-width200" mat-sort-header="poNo|string">
                                     Current PO No
                                 </th>
-                                <th class="min-width150 max-width200" mat-sort-header="displayRequirement|string">
-                                    Current Requirement Role
+                                <th class="min-width180 max-width200" mat-sort-header="displayRequirement|string">
+                                    Current PO Role
                                 </th>
-                                <th class="min-width150 max-width200">Target PO</th>
-                                <th class="min-width150 max-width200">Target Requirement Role</th>
-                                <th class="min-width150 max-width200">
-                                    Target Employee Assigned Department
-                                </th>
+                                <th class="min-width180 max-width200">Target PO</th>
+                                <th class="min-width180 max-width200">Target PO Role</th>
                                 <th>Action</th>
                             </tr>
                             <ng-container *ngIf="isMigrateIndividualTeamMemberSearchEnabled">
@@ -992,35 +1039,29 @@
                                     <td class="min-width100 max-width150 truncate" [title]="employee.teamName || 'NA'">
                                         {{ employee.teamName }}
                                     </td>
-                                    <td class="min-width150 max-width200 truncate"
+                                    <td class="min-width180 max-width200 truncate"
                                         [title]="employee.employeeRole || 'NA'">
                                         {{ employee.employeeRole }}
                                     </td>
-                                    <td class="min-width150 max-width200 truncate" [title]="employee.poNo || 'NA'">
+                                    <td class="min-width180 max-width200 truncate" [title]="employee.poNo || 'NA'">
                                         {{ employee.poNo || 'NA' }}
                                     </td>
-                                    <td class="min-width150 max-width200 truncate"
+                                    <td class="min-width180 max-width200 truncate"
                                         [title]="employee.displayRequirement || 'NA'">
                                         {{employee.displayRequirement || 'NA' }}
                                     </td>
-                                    <td class="min-width150 max-width200">
+                                    <td class="min-width180 max-width200">
                                         <app-my-select class="form-control" placeholder="Select PO"
                                             [(ngModel)]="employee.targetPoId" displayKey="poNo" valueKey="poId"
                                             [options]="employee.poDetailsList"
                                             (change)="getResourceRequirementDetailsByProjectIdForTeamMemberMigrationAndForEmployee(employee,teamMembersMigrationObj.targetProjectId)">
                                         </app-my-select>
                                     </td>
-                                    <td class="min-width150 max-width200">
+                                    <td class="min-width180 max-width200">
                                         <app-my-select class="form-control" placeholder="Search Requirement"
                                             [(ngModel)]="employee.roleId" valueKey="roleId"
                                             displayKey="displayRequirement"
                                             [options]="employee.resourceRequirementList">
-                                        </app-my-select>
-                                    </td>
-                                    <td class="min-width150 max-width200">
-                                        <app-my-select class="form-control" placeholder="Select Department"
-                                            [(ngModel)]="employee.empTeamDepartmentId" [options]="departmentsList"
-                                            displayKey="name" valueKey="deptId" [multiple]="false">
                                         </app-my-select>
                                     </td>
                                     <td>
@@ -1195,15 +1236,12 @@
                         <th class="min-width100 max-width150" mat-sort-header="memberName|string">
                             Name
                         </th>
-                        <th class="min-width150 max-width200">Project</th>
-                        <th class="min-width150 max-width200">Start Date</th>
+                        <th class="min-width180 max-width200">Project</th>
+                        <th class="min-width180 max-width200">Start Date</th>
                         <th class="min-width100 max-width150">PO No</th>
+                        <th class="min-width180 max-width200">PO Role</th>
                         <th class="min-width100 max-width150">Team</th>
                         <th class="min-width100 max-width150">Employee Role</th>
-                        <th class="min-width150 max-width200">
-                            Employee Assigned Department
-                        </th>
-                        <th class="min-width150 max-width200">Requirement Role</th>
                     </tr>
                     <ng-container *ngIf="isChangeEmployeeDefaultProjectMappingSearchEnabled">
                         <tr class="custom-filter-row" app-column-filter-bar
@@ -1234,30 +1272,35 @@
                             <td class="min-width100 max-width150 truncate" [title]="employee.memberName || 'NA'">
                                 {{ employee.memberName || 'NA' }}
                             </td>
-                            <td class="min-width150 max-width200  min-width150">
+                            <td class="min-width180 max-width200  min-width150">
                                 <mat-select placeholder="Select Project" [(ngModel)]="employee.selectedProject">
                                     <mat-option *ngFor="let project of employee.otherActiveProjects" [value]="project">
                                         {{ project.projectName }}
                                     </mat-option>
                                 </mat-select>
                             </td>
-                            <td class="min-width150 max-width200">
+                            <td class="min-width180 max-width200">
                                 <div class="date-input-wrapper">
-                                    <input class="form-control date-input"
+                                    <input class="form-control date-input" readonly
                                         [matDatepicker]="defaultProjectEmployeeStartDatepicker"
                                         (dateChange)="validateEmployeeProjectStartDate(employee, employee.selectedProject.projectId, employee.selectedProject.projectStartDate, projectType)"
                                         [(ngModel)]="employee.selectedProject.startDate"
-                                        [disabled]="!employee.selectedProject.projectId" />
-                                        <mat-icon class="calendar-icon"
+                                        [disabled]="!employee.selectedProject.projectId"
+                                        (click)="defaultProjectEmployeeStartDatepicker.open()" />
+                                    <mat-icon class="calendar-icon"
                                         (click)="defaultProjectEmployeeStartDatepicker.open()">calendar_today</mat-icon>
-                                        <mat-datepicker #defaultProjectEmployeeStartDatepicker></mat-datepicker>
-                                    </div>
+                                    <mat-datepicker #defaultProjectEmployeeStartDatepicker></mat-datepicker>
+                                </div>
                                 <!-- (dateChange)="validateEmployeeProjectStartDate(employee, employee.selectedProject.projectId, employee.selectedProject.projectStartDate, employee.selectedProject.projectType)" -->
                                 <!-- {{ employee.selectedProject?.startDate ? ( employee.selectedProject?.startDate | date: 'dd-MM-yyyy') : 'NA'}} -->
                             </td>
                             <td class="min-width100 max-width150 truncate"
                                 [title]="employee.selectedProject?.poNo || 'NA'">
                                 {{ employee.selectedProject?.poNo || 'NA' }}
+                            </td>
+                            <td class="min-width180 max-width200 truncate"
+                                [title]="employee.selectedProject?.resourceRequirement || 'NA'">
+                                {{ employee.selectedProject?.resourceRequirement || 'NA' }}
                             </td>
                             <td class="min-width100 max-width150 truncate"
                                 [title]="employee.selectedProject?.teamName || 'NA'">
@@ -1266,14 +1309,6 @@
                             <td class="min-width100 max-width150 truncate"
                                 [title]="employee.selectedProject?.employeeRole || 'NA'">
                                 {{ employee.selectedProject?.employeeRole || 'NA' }}
-                            </td>
-                            <td class="min-width150 max-width200 truncate"
-                                [title]="employee.selectedProject?.empTeamDepartmentName|| 'NA' ">
-                                {{ employee.selectedProject?.empTeamDepartmentName || 'NA' }}
-                            </td>
-                            <td class="min-width150 max-width200 truncate"
-                                [title]="employee.selectedProject?.resourceRequirement || 'NA'">
-                                {{ employee.selectedProject?.resourceRequirement || 'NA' }}
                             </td>
                         </tr>
                     </ng-container>
@@ -1354,15 +1389,6 @@
                     </div>
                     <div class="col-3 p-1">
                         <div class="form-group">
-                            <label>Employee's Team Department</label>
-                            <app-my-select class="form-control" placeholder="Select Department"
-                                [(ngModel)]="defaultProjectObj.empTeamDepartmentId" [options]="departmentsList"
-                                displayKey="name" valueKey="deptId" [multiple]="false">
-                            </app-my-select>
-                        </div>
-                    </div>
-                    <div class="col-3 p-1">
-                        <div class="form-group">
                             <label>Project Requirement</label>
                             <app-my-select class="form-control" [(ngModel)]="defaultProjectObj.roleId" valueKey="roleId"
                                 displayKey="displayRequirement" [options]="defaultProjectObj.resourceRequirementList">
@@ -1373,11 +1399,11 @@
                         <div class="form-group">
                             <div class="date-input-wrapper">
                                 <label>Start Date</label>
-                                <input class="form-control date-input"
+                                <input class="form-control date-input" readonly
                                     [matDatepicker]="bulkDefaultProjectMappingStartDatepicker"
                                     (dateChange)="validateEmployeeProjectStartDateBulk(defaultProjectObj.startDate, defaultProjectObj.projectId, defaultProjectObj.projectStartDate, projectType)"
-                                    [(ngModel)]="defaultProjectObj.startDate"
-                                    [disabled]="!defaultProjectObj.projectId" />
+                                    [(ngModel)]="defaultProjectObj.startDate" [disabled]="!defaultProjectObj.projectId"
+                                    (click)="bulkDefaultProjectMappingStartDatepicker.open()" />
                                 <mat-icon class="calendar-icon" style="top:70%"
                                     (click)="bulkDefaultProjectMappingStartDatepicker.open()">calendar_today</mat-icon>
                                 <mat-datepicker #bulkDefaultProjectMappingStartDatepicker></mat-datepicker>
@@ -1443,9 +1469,6 @@
                                 <th class="min-width100 max-width150" mat-sort-header="jobRoleName|string">
                                     Job Role
                                 </th>
-                                <th class="min-width150 max-width200" mat-sort-header="empTeamDepartmentName|string">
-                                    Employee Assigned Department
-                                </th>
                                 <th class="min-width100 max-width150" mat-sort-header="billableType|string">
                                     Billable Type
                                 </th>
@@ -1491,10 +1514,6 @@
                                         [title]="employee.jobRoleName || 'NA'">
                                         {{ employee.jobRoleName || 'NA' }}
                                     </td>
-                                    <td class="min-width150 max-width200 truncate"
-                                        [title]="employee.empTeamDepartmentName|| 'NA' ">
-                                        {{ employee.empTeamDepartmentName || 'NA' }}
-                                    </td>
                                     <td class="min-width100 max-width150 truncate"
                                         [title]="employee.billableType || 'NA'">
                                         {{ employee.billableType || 'NA' }}
@@ -1525,16 +1544,13 @@
                                 </th>
                                 <th class="min-width100 max-width150" mat-sort-header="memberName|string">
                                     Name</th>
-                                <th class="min-width150 max-width200">Project Type</th>
-                                <th class="min-width150 max-width200">Project</th>
-                                <th class="min-width150 max-width200">PO No</th>
-                                <th class="min-width150 max-width200">Team</th>
-                                <th class="min-width150 max-width200">Employee Role</th>
-                                <th class="min-width150 max-width200">
-                                    Employee Assigned Department
-                                </th>
-                                <th class="min-width150 max-width200">Requirement</th>
-                                <th class="min-width150 max-width200">Start Date</th>
+                                <th class="min-width180 max-width200">Project Type</th>
+                                <th class="min-width180 max-width200">Project</th>
+                                <th class="min-width180 max-width200">PO No</th>
+                                <th class="min-width180 max-width200">Team</th>
+                                <th class="min-width180 max-width200">Employee Role</th>
+                                <th class="min-width180 max-width200">Requirement</th>
+                                <th class="min-width180 max-width200">Start Date</th>
                                 <th>Action</th>
                             </tr>
                             <ng-container *ngIf="isMarkDefaultProjectCompletionIndividualSearchEnabled">
@@ -1561,13 +1577,13 @@
                                         [title]="employee.memberName || 'NA'">
                                         {{ employee.memberName || 'NA' }}
                                     </td>
-                                    <td class="min-width150 max-width200">
+                                    <td class="min-width180 max-width200">
                                         <app-my-select class="form-control" placeholder="Select Project Type"
                                             [(ngModel)]="employee.projectType" [options]="projectTypes"
                                             (change)="changeProjectTypeForEmployee(employee)">
                                         </app-my-select>
                                     </td>
-                                    <td class="min-width150 max-width200">
+                                    <td class="min-width180 max-width200">
                                         <app-my-select class="form-control" placeholder="Select Project"
                                             [(ngModel)]="employee.projectId" displayKey="projectName"
                                             valueKey="projectId"
@@ -1575,7 +1591,7 @@
                                             (change)="getTeamOrPoBasedOnProjectTypeForEmployee(employee)">
                                         </app-my-select>
                                     </td>
-                                    <td class="min-width150 max-width200">
+                                    <td class="min-width180 max-width200">
                                         <app-my-select class="form-control" *ngIf="employee.projectType !== 'Bench'"
                                             placeholder="Select PO" [(ngModel)]="employee.poId" displayKey="poNo"
                                             valueKey="poId" [options]="employee.poDetailsList"
@@ -1583,26 +1599,20 @@
                                         </app-my-select>
                                         <span *ngIf="employee.projectType === 'Bench'">--</span>
                                     </td>
-                                    <td class="min-width150 max-width200">
+                                    <td class="min-width180 max-width200">
                                         <app-my-select class="form-control" placeholder="Search Team"
                                             [(ngModel)]="employee.teamId" displayKey="teamName" valueKey="teamId"
                                             [options]="employee.teamList"
                                             (change)="getResourceRequirementByTeamIdForEmployee(employee)">
                                         </app-my-select>
                                     </td>
-                                    <td class="min-width150 max-width200">
+                                    <td class="min-width180 max-width200">
                                         <app-my-select class="form-control" placeholder="Select Role"
                                             [(ngModel)]="employee.employeeRoles" [options]="employeeRoles"
                                             [multiple]="true">
                                         </app-my-select>
                                     </td>
-                                    <td class="min-width150 max-width200">
-                                        <app-my-select class="form-control" placeholder="Select Department"
-                                            [(ngModel)]="employee.empTeamDepartmentId" [options]="departmentsList"
-                                            displayKey="name" valueKey="deptId" [multiple]="false">
-                                        </app-my-select>
-                                    </td>
-                                    <td class="min-width150 max-width200">
+                                    <td class="min-width180 max-width200">
                                         <app-my-select class="form-control" *ngIf="employee.projectType !== 'Bench'"
                                             placeholder="Search Requirement" [(ngModel)]="employee.roleId"
                                             valueKey="roleId" displayKey="displayRequirement"
@@ -1610,12 +1620,13 @@
                                         </app-my-select>
                                         <span *ngIf="employee.projectType === 'Bench'">--</span>
                                     </td>
-                                    <td class="min-width150 max-width200">
+                                    <td class="min-width180 max-width200">
                                         <div class="date-input-wrapper">
-                                            <input class="form-control date-input"
+                                            <input class="form-control date-input" readonly
                                                 [matDatepicker]="defaultProjectMappingStartDatepicker"
                                                 (dateChange)="validateEmployeeProjectStartDate(employee, employee.projectId, employee.projectStartDate , projectType)"
-                                                [(ngModel)]="employee.startDate" [disabled]="!employee.projectId" />
+                                                [(ngModel)]="employee.startDate" [disabled]="!employee.projectId"
+                                                (click)="defaultProjectMappingStartDatepicker.open()" />
                                             <mat-icon class="calendar-icon"
                                                 (click)="defaultProjectMappingStartDatepicker.open()">calendar_today</mat-icon>
                                             <mat-datepicker #defaultProjectMappingStartDatepicker></mat-datepicker>
@@ -1640,33 +1651,24 @@
 
 <ng-template #remove_members_confirmation>
     <div class="modal-body">
-        <p class="text-center">Are you sure you want to delete the selected members from the <br> Team and Project ? <i class="fa fa-beat fa-info-circle info-icon cursor-pointer" title="Members with Future Start Date will be deleted permanently!!"></i></p>
-        <!-- <div class="row justify-content-center align-items-center">
-            <label class="info-label">Select End Date</label>
-        </div>
-        <div class="row justify-content-center align-items-center" *ngIf="!isInternalProject">
-            <mat-radio-group [(ngModel)]="membersEndDateType" (change)="onMembersEndDateTypeChange($event)">
-                <mat-radio-button value="PO">PO End Date</mat-radio-button>
-                <mat-radio-button value="Custom">Custom End Date</mat-radio-button>
-            </mat-radio-group>
-        </div>
-        <div class="row justify-content-center align-items-center m-2"
-            *ngIf="isInternalProject || membersEndDateType === 'Custom'">
-            <input type="date" class="form-control" autocomplete="none" [(ngModel)]="membersEndDate">
-        </div> -->
+        <p class="text-center">This action will permanently mark the selected members as inactive for the Team.
+            <br> Do you want to proceed?
+            <i class="fa fa-beat fa-info-circle info-icon cursor-pointer"
+                title="Members with Future Start Date will be deleted permanently!!">
+            </i>
+        </p>
         <div class="row justify-content-center align-items-center">
             <div class="col-md-8">
                 <div class="info-wrapper">
                     <div class="form-group">
                         <label class="info-label ml-1">Select End Date</label>
                         <div class="date-input-wrapper">
-                            <input class="form-control date-input" [matDatepicker]="membersEndDatePicker"
-                                [(ngModel)]="membersEndDate" />
+                            <input class="form-control date-input" readonly [matDatepicker]="membersEndDatePicker"
+                                [(ngModel)]="membersEndDate" (click)="membersEndDatePicker.open()" />
                             <mat-icon class="calendar-icon"
                                 (click)="membersEndDatePicker.open()">calendar_today</mat-icon>
                             <mat-datepicker #membersEndDatePicker></mat-datepicker>
                         </div>
-                        <!-- <input type="date" class="form-control" autocomplete="none" [(ngModel)]="membersEndDate"> -->
                     </div>
                 </div>
             </div>
@@ -1727,8 +1729,8 @@
                         <th class="min-width100 max-width150" mat-sort-header="clientName|string">
                             Client Name
                         </th>
-                        <th class="min-width100 max-width150" mat-sort-header="billableType|string">
-                            Billable Type
+                        <th class="min-width100 max-width150" mat-sort-header="projectType|string">
+                            Project Type
                         </th>
                         <th class="min-width100 max-width150" mat-sort-header="startDate|date">
                             Start Date
@@ -1770,8 +1772,8 @@
                             <td class="min-width100 max-width150 truncate" [title]="employee.clientName || 'NA'">
                                 {{ employee.clientName || 'NA' }}
                             </td>
-                            <td class="min-width100 max-width150 truncate" [title]="employee.billableType || 'NA'">
-                                {{ employee.billableType || 'NA' }}
+                            <td class="min-width100 max-width150 truncate" [title]="employee.projectType || 'NA'">
+                                {{ employee.projectType || 'NA' }}
                             </td>
                             <td class="min-width100 max-width150 truncate"
                                 [title]="(employee.startDate | date: 'dd-MM-yyyy') || 'NA'">
@@ -1800,7 +1802,9 @@
 
 <ng-template #delete_employee_from_existing_project>
     <div class="modal-body">
-        <p>Are you sure you want to delete the resource from the Project ?</p>
+        <p class="text-center">This action will permanently mark the selected members as inactive from the Project.
+            <br> Do you want to proceed?
+        </p>
         <div class="row justify-content-center align-items-center">
             <label class="info-label">Select End Date</label>
         </div>
@@ -1814,8 +1818,8 @@
         </div>
         <div class="row justify-content-center align-items-center m-2">
             <div class="date-input-wrapper">
-                <input class="form-control date-input" [matDatepicker]="employeeProjectEndDatePicker"
-                    [(ngModel)]="employeeProjectEndDate" />
+                <input class="form-control date-input" readonly [matDatepicker]="employeeProjectEndDatePicker"
+                    [(ngModel)]="employeeProjectEndDate" (click)="employeeProjectEndDatePicker.open()" />
                 <mat-icon class="calendar-icon" (click)="employeeProjectEndDatePicker.open()">calendar_today</mat-icon>
                 <mat-datepicker #employeeProjectEndDatePicker></mat-datepicker>
             </div>
@@ -1832,13 +1836,14 @@
 
 <ng-template #delete_team_confirmation>
     <div class="modal-body">
-        <p>Are you sure you want to delete the Selected Team(s) from the Project ?</p>
+        <p class="text-center">Are you sure you want to delete the Selected Team(s) from the Project ?</p>
         <div class="row justify-content-center align-items-center">
             <label class="info-label">Select End Date</label>
         </div>
         <div class="row justify-content-center align-items-center m-2">
             <div class="date-input-wrapper">
-                <input class="form-control date-input" [matDatepicker]="teamEndDatePicker" [(ngModel)]="teamEndDate" />
+                <input class="form-control date-input" readonly [matDatepicker]="teamEndDatePicker"
+                    [(ngModel)]="teamEndDate" (click)="teamEndDatePicker.open()" />
                 <mat-icon class="calendar-icon" (click)="teamEndDatePicker.open()">calendar_today</mat-icon>
                 <mat-datepicker #teamEndDatePicker></mat-datepicker>
             </div>
@@ -1855,8 +1860,8 @@
 
 <ng-template #update_project_start_date_error>
     <div class="modal-body">
-        <p>The member’s start date is earlier than the project start date. To proceed, the project start date must be
-            updated accordingly.
+        <p class="text-center">The member’s start date is earlier than the project start date. To proceed, the project
+            start date must be updated accordingly.
             <br>
             Do you want to continue?
         </p>
@@ -1877,8 +1882,8 @@
         </div>
         <div class="row justify-content-center align-items-center m-2">
             <div class="date-input-wrapper">
-                <input class="form-control date-input" [matDatepicker]="projectNewStartDatePicker"
-                    [(ngModel)]="projectNewStartDate" />
+                <input class="form-control date-input" readonly [matDatepicker]="projectNewStartDatePicker"
+                    [(ngModel)]="projectNewStartDate" (click)="projectNewStartDatePicker.open()" />
                 <mat-icon class="calendar-icon" (click)="projectNewStartDatePicker.open()">calendar_today</mat-icon>
                 <mat-datepicker #projectNewStartDatePicker></mat-datepicker>
             </div>
@@ -1898,7 +1903,7 @@
         <div class="row align-items-center">
             <div class="col-md-11">
                 <h6 class="card-title text-left">{{ isProjectOverlapping ? 'Employee\'s Start Date Overlapping with
-                    Other TNM Projects' : 'Employee\'s Existing Project Timesheet Entries' }} </h6>
+                    Other Projects' : 'Employee\'s Existing Project Timesheet Entries' }} </h6>
             </div>
             <div class="col-md-1 d-flex justify-content-end">
                 <button class="btn btn-sm btn-outline-primary" title="Close"
@@ -1954,6 +1959,68 @@
         <button type="button" class="btn btn-primary" (click)="closeProjectGapMessageModal()">
             OK
         </button>
+    </div>
+</ng-template>
+
+<ng-template #shadow_resource_mapping>
+    <div class="modal-body">
+        <h6 class="text-center mt-2">
+            {{ !isOnboardingAsShadow
+            ? 'Provide Shadow Assignment End Date & New Assignment Start Date.'
+            : 'Provide Regular Assignment End Date & New Shadow Assignment Start Date.'
+            }}
+        </h6>
+
+        <div class="row d-flex justify-content-between align-items-center mb-2 ">
+            <div class="col-7">
+                <small>
+                    Current {{ !isOnboardingAsShadow ? 'Shadow' : 'Regular'}} Assignment End Date
+                    <span class="text-danger">*</span>
+                </small>
+            </div>
+            <div class="col-5">
+                <div class="date-input-wrapper">
+                    <input class="form-control date-input" readonly
+                        [matDatepicker]="shadowResourceMappingMemberEndDatepicker"
+                        [(ngModel)]="shadowResourceMappingMemberEndDate"
+                        (click)="shadowResourceMappingMemberEndDatepicker.open()" />
+                    <mat-icon class="calendar-icon" (click)="shadowResourceMappingMemberEndDatepicker.open()">
+                        calendar_today
+                    </mat-icon>
+                    <mat-datepicker #shadowResourceMappingMemberEndDatepicker></mat-datepicker>
+                </div>
+            </div>
+        </div>
+
+        <div class="row d-flex justify-content-between align-items-center">
+            <div class="col-7">
+                <small>
+                    New {{ isOnboardingAsShadow ? 'Shadow' : 'Regular'}} Assignment Start Date
+                    <span class="text-danger">*</span>
+                </small>
+            </div>
+            <div class="col-5">
+                <div class="date-input-wrapper">
+                    <input class="form-control date-input" readonly
+                        [matDatepicker]="shadowResourceMappingMemberStartDatepicker"
+                        [(ngModel)]="shadowResourceMappingMemberStartDate"
+                        (click)="shadowResourceMappingMemberStartDatepicker.open()" />
+                    <mat-icon class="calendar-icon" (click)="shadowResourceMappingMemberStartDatepicker.open()">
+                        calendar_today
+                    </mat-icon>
+                    <mat-datepicker #shadowResourceMappingMemberStartDatepicker></mat-datepicker>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-2">
+            <button class="btn btn-sm btn-success" (click)="updateMemberShadowMapping()">
+                Yes, Proceed
+            </button>&nbsp;
+            <button class="btn btn-sm btn-danger" (click)="closeShadowResourceMappingModal()">
+                Cancel
+            </button>
+        </div>
     </div>
 </ng-template>
 
@@ -2137,7 +2204,7 @@
             </div>
             <mat-form-field appearance="outline" class="form-field">
                 <mat-label>Start Date</mat-label>
-                <input matInput [matDatepicker]="startDatePicker" [(ngModel)]="projectMilestone.startDate"
+                <input matInput [matDatepicker]="startDatePicker" readonly [(ngModel)]="projectMilestone.startDate"
                     placeholder="Select Start Date" [disabled]="true" autocomplete="off" />
                 <mat-datepicker-toggle matSuffix [for]="startDatePicker">
                 </mat-datepicker-toggle>
@@ -2145,7 +2212,7 @@
             </mat-form-field>
             <mat-form-field appearance="outline" class="form-field">
                 <mat-label>End Date</mat-label>
-                <input matInput [matDatepicker]="endDatePicker" [(ngModel)]="projectMilestone.endDate"
+                <input matInput [matDatepicker]="endDatePicker" readonly [(ngModel)]="projectMilestone.endDate"
                     placeholder="Select End Date" autocomplete="off" [disabled]="true" />
                 <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
                 <mat-datepicker #endDatePicker></mat-datepicker>
