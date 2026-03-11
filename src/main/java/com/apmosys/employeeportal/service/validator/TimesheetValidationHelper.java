@@ -2146,15 +2146,15 @@ public class TimesheetValidationHelper {
     
                 // Apmosys Holiday
                 if (dayTypeId == 6 && Boolean.TRUE.equals(hasClientSideId)) {
-                    throw new IllegalArgumentException(
-                            "Apmosys Holiday cannot be applied for client-side projects. Project ID: " + projectId
+                    throw new TimesheetValidationFailedException(
+                            "Apmosys Holiday cannot be applied for client-side projects."
                     );
                 }
     
                 // Client Holiday
                 if (dayTypeId == 7 && !Boolean.TRUE.equals(hasClientSideId)) {
-                    throw new IllegalArgumentException(
-                            "Client Holiday requires all projects to be client-side projects. Invalid Project ID: " + projectId
+                    throw new TimesheetValidationFailedException(
+                            "Client Holiday requires all projects to be client-side projects."
                     );
                 }
             }

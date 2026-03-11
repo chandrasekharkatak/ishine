@@ -511,6 +511,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getMyProjectsInMonthYear`,
     `${this.baseUrl}` + `api/getAllDisabledDateListForBulkDocSubmit`,
     `${this.baseUrl}` + `api/updateClientSideIdMapping`,
+    `${this.baseUrl}` + `api/v2/timesheet/update`
 
   ]
 
