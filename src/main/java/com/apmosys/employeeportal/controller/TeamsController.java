@@ -409,4 +409,11 @@ public class TeamsController {
 	public void markTeamMemberAsInactiveAfterEndDate() {
 		teamsService.updateTeamMemberStatus();
 	}
+	
+	// @Encrypted
+	@PostMapping("/updateMemberShadowMapping")
+	public ServiceResponse updateMemberShadowMapping(@RequestBody RmgTeamMemberDto rmgTeamMemberDto) {
+		return teamsService.updateMemberShadowMapping(rmgTeamMemberDto);
+	}
+	
 }

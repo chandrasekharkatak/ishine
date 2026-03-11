@@ -77,5 +77,7 @@ export class RmgTeamMember {
     poDetailsList: any[] = [];
     teamList: any[] = [];
     resourceRequirementList: any[] = [];
+    filteredActiveResourceRequirement: any[] = [];
     selectedProject?: EmployeeOtherActiveProject;
+    roleFilterActionLabel:any;
 }

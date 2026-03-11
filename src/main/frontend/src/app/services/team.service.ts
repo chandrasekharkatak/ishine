@@ -162,4 +162,9 @@ export class TeamService {
   getTeamDetailsByProjectId(poObj: PoDetails) {
     return this.http.post(`${this.baseUrl}` + `api/getTeamDetailsByProjectId`, poObj);
   }
+
+  updateMemberShadowMapping(rmgTeamMember: RmgTeamMember) {
+    return this.http.post(`${this.baseUrl}` + `api/updateMemberShadowMapping`, rmgTeamMember);
+  }
+
 }
