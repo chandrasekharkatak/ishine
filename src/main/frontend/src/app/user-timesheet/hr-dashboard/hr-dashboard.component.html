@@ -1,48 +1,48 @@
 <div class="db-page-wrapper">
-<!-- ── Single Combined Bar: Toggles + Filters ── -->
-<div class="db-top-bar">
+  <!-- ── Single Combined Bar: Toggles + Filters ── -->
+  <div class="db-top-bar">
 
-  <!-- Left: Both Toggles -->
-  <div class="db-top-bar-left">
+    <!-- Left: Both Toggles -->
+    <div class="db-top-bar-left">
 
-    <!-- Toggle 1: Employee / Project View -->
-    <div class="d-flex align-items-center">
-      <label class="switch mb-0" [title]="toggleValue ? 'Toggle to Employee View' : 'Toggle to Project View'">
-        <input type="checkbox" checked (change)="onToggleChange($event)">
-        <span class="slider round"></span>
-      </label>
-      <h5 class="mb-0">{{ toggleValue ? 'Project View' : 'Employee View' }}</h5>
-      <app-info-tooltip *ngIf="!toggleValue" iconBgColor="#6c757d" [content]="employeeViewBullet"></app-info-tooltip>
-      <app-info-tooltip *ngIf="toggleValue" iconBgColor="#0d6efd" [content]="projectViewBullet"></app-info-tooltip>
+      <!-- Toggle 1: Employee / Project View -->
+      <div class="db-toggle-group">
+        <label class="switch mb-0" [title]="toggleValue ? 'Toggle to Employee View' : 'Toggle to Project View'">
+          <input type="checkbox" checked (change)="onToggleChange($event)">
+          <span class="slider round"></span>
+        </label>
+        <h5 class="mb-0">{{ toggleValue ? 'Project View' : 'Employee View' }}</h5>
+        <app-info-tooltip *ngIf="!toggleValue" iconBgColor="#6c757d" [content]="employeeViewBullet"></app-info-tooltip>
+        <app-info-tooltip *ngIf="toggleValue" iconBgColor="#0d6efd" [content]="projectViewBullet"></app-info-tooltip>
+      </div>
+
+      <div class="db-top-bar-divider"></div>
+
+      <!-- Toggle 2: All Employee / Client-Side Dashboard -->
+      <div class="d-flex align-items-center">
+        <i class="fas fa-user-check db-dashboard-icon"></i>
+        <label class="switch mb-0"
+          [title]="isClientDashboard ? 'Toggle to All Employee Attendance Dashboard' : 'Toggle to Client-Side Attendance Dashboard'">
+          <input type="checkbox" checked (change)="onDashboardToggleChange()">
+          <span class="slider round"></span>
+        </label>
+        <h5 class="mb-0">
+          {{ isClientDashboard ? 'Client-Side Attendance Dashboard' : 'All Employee Attendance Dashboard' }}
+        </h5>
+      </div>
+
     </div>
 
-    <div class="db-top-bar-divider"></div>
-
-    <!-- Toggle 2: All Employee / Client-Side Dashboard -->
-    <div class="d-flex align-items-center">
-      <i class="fas fa-user-check db-dashboard-icon"></i>
-      <label class="switch mb-0"
-        [title]="isClientDashboard ? 'Toggle to All Employee Attendance Dashboard' : 'Toggle to Client-Side Attendance Dashboard'">
-        <input type="checkbox" checked (change)="onDashboardToggleChange()">
-        <span class="slider round"></span>
-      </label>
-      <h5 class="mb-0">
-        {{ isClientDashboard ? 'Client-Side Attendance Dashboard' : 'All Employee Attendance Dashboard' }}
-      </h5>
+    <!-- Right: Last Updated -->
+    <div class="db-updated-chip">
+      <i class="fas fa-circle-check db-updated-dot"></i>
+      <span>Updated: {{ lastUpdated }}</span>
+      <button class="db-refresh-btn" (click)="refreshDashboard()" title="Refresh">
+        <i class="fas fa-sync-alt"></i>
+      </button>
     </div>
-
-  </div>
-
-  <!-- Right: Last Updated -->
-  <div class="db-updated-chip">
-    <i class="fas fa-circle-check db-updated-dot"></i>
-    <span>Updated: {{ lastUpdated }}</span>
-    <button class="db-refresh-btn" (click)="refreshDashboard()" title="Refresh">
-      <i class="fas fa-sync-alt"></i>
-    </button>
-  </div>
-  <!-- Chips row above the field -->
-  <!-- <div class="db-chips-bar" *ngIf="selectedBillableTypes.length > 0">
+    <!-- Chips row above the field -->
+    <!-- <div class="db-chips-bar" *ngIf="selectedBillableTypes.length > 0">
     <span class="db-filter-label">Billable Type:</span>
     <ng-container *ngFor="let item of selectedBillableTypes | slice:0:3">
       <span class="db-chip" [title]="item">{{ item.length > 12 ? (item | slice:0:12) + '...' : item }}</span>
@@ -52,191 +52,189 @@
       +{{ selectedBillableTypes.length - 3 }}
     </span>
   </div> -->
-  <div class="db-chips-bar" *ngIf="selectedBillableTypes.length > 0">
+    <div class="db-chips-bar" *ngIf="selectedBillableTypes.length > 0">
 
-  <span class="db-filter-label">Billable Type:</span>
+      <span class="db-filter-label">Billable Type:</span>
 
-  <!-- Chips -->
-  <ng-container *ngFor="let item of (showAllBillableTypes ? selectedBillableTypes : (selectedBillableTypes | slice:0:3))">
-    <span class="db-chip"
-          [title]="item">
-      {{ item.length > 12 ? (item | slice:0:12) + '...' : item }}
-    </span>
-  </ng-container>
+      <!-- Chips -->
+      <ng-container
+        *ngFor="let item of (showAllBillableTypes ? selectedBillableTypes : (selectedBillableTypes | slice:0:3))">
+        <span class="db-chip" [title]="item">
+          {{ item.length > 12 ? (item | slice:0:12) + '...' : item }}
+        </span>
+      </ng-container>
 
-  <!-- +N button -->
-  <span class="db-chip db-chip--overflow"
-        *ngIf="!showAllBillableTypes && selectedBillableTypes.length > 3"
+      <!-- +N button -->
+      <span class="db-chip db-chip--overflow" *ngIf="!showAllBillableTypes && selectedBillableTypes.length > 3"
         (click)="toggleBillableTypes()">
         +{{ selectedBillableTypes.length - 3 }}
-  </span>
+      </span>
 
-  <!-- Show Less button -->
-  <span class="db-chip db-chip--overflow"
-        *ngIf="showAllBillableTypes && selectedBillableTypes.length > 3"
+      <!-- Show Less button -->
+      <span class="db-chip db-chip--overflow" *ngIf="showAllBillableTypes && selectedBillableTypes.length > 3"
         (click)="toggleBillableTypes()">
         Show Less
-  </span>
+      </span>
 
-</div>
-  <!-- Full-width filter row inside the same card -->
-  <div class="db-filters-row">
-
-    <!-- Billable Type: chips above + dropdown below -->
-    <div class="db-filter-item">
-      <label class="db-filter-label">Billable Type</label>
-
-
-
-      <mat-form-field appearance="outline" class="db-mat-field">
-        <mat-select [(ngModel)]="selectedBillableTypes" multiple (ngModelChange)="onBillableTypeChange($event)"
-          placeholder="Select types">
-          <mat-option [value]="'AllButton'" (click)="selectAllBillableTypes()"
-            [disabled]="selectedBillableTypes.length === billableTypes.length">
-            Select All
-          </mat-option>
-          <mat-option *ngFor="let type of billableTypes" [value]="type">
-            {{ type }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
     </div>
+    <!-- Full-width filter row inside the same card -->
+    <div class="db-filters-row">
 
-    <!-- Project Status -->
-    <div class="db-filter-item" *ngIf="!isClientDashboard && toggleValue">
-      <label class="db-filter-label">Project Status</label>
-      <mat-form-field appearance="outline" class="db-mat-field">
-        <mat-select [(ngModel)]="selectedProjectStatus" (ngModelChange)="onProjectStatusChange($event)"
-          placeholder="All">
-          <mat-option value="All">All</mat-option>
-          <mat-option value="true">
-            <span class="db-status-dot db-status-dot--active"></span> Active
-          </mat-option>
-          <mat-option value="false">
-            <span class="db-status-dot db-status-dot--inactive"></span> In-Active
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
+      <!-- Billable Type: chips above + dropdown below -->
+      <div class="db-filter-item">
+        <label class="db-filter-label">Billable Type</label>
 
-    <!-- Employee Status -->
-    <div class="db-filter-item" *ngIf="!toggleValue">
-      <label class="db-filter-label">Employee Status</label>
-      <mat-form-field appearance="outline" class="db-mat-field">
-        <mat-select [(ngModel)]="selectedEmployeeStatus" (ngModelChange)="onEmployeeStatusChange($event)"
-          placeholder="All">
-          <mat-option value="All">All</mat-option>
-          <mat-option value="Active">
-            <span class="db-status-dot db-status-dot--active"></span> Active
-          </mat-option>
-          <mat-option value="InActive">
-            <span class="db-status-dot db-status-dot--inactive"></span> In-Active
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
 
-    <!-- Month Picker -->
-    <div class="db-filter-item">
-      <label class="db-filter-label">Month</label>
-      <mat-form-field appearance="outline" class="db-mat-field">
-        <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel"
-          (dateChange)="changeMonth1($event.value)" [placeholder]="formattedMonthLabel || 'Select month'" readonly />
-        <mat-datepicker-toggle matIconSuffix [for]="monthPicker">
-          <mat-icon matDatepickerToggleIcon>calendar_month</mat-icon>
-        </mat-datepicker-toggle>
-        <mat-datepicker #monthPicker startView="year" [startAt]="currentDate"
-          (monthSelected)="monthSelected1($event, monthPicker)" panelClass="month-picker">
-        </mat-datepicker>
-      </mat-form-field>
-    </div>
 
-    <!-- Apply -->
-    <div class="db-filter-item db-filter-item--action">
-      <button type="button" class="db-apply-btn" (click)="onBillableTypeChangeManual()">
-        <i class="fas fa-sliders"></i>
-        <span>Apply</span>
-      </button>
-    </div>
+        <mat-form-field appearance="outline" class="db-mat-field">
+          <mat-select [(ngModel)]="selectedBillableTypes" multiple (ngModelChange)="onBillableTypeChange($event)"
+            placeholder="Select types">
+            <mat-option [value]="'AllButton'" (click)="selectAllBillableTypes()"
+              [disabled]="selectedBillableTypes.length === billableTypes.length">
+              Select All
+            </mat-option>
+            <mat-option *ngFor="let type of billableTypes" [value]="type">
+              {{ type }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
 
-  </div><!-- /db-filters-row -->
+      <!-- Project Status -->
+      <div class="db-filter-item" *ngIf="!isClientDashboard && toggleValue">
+        <label class="db-filter-label">Project Status</label>
+        <mat-form-field appearance="outline" class="db-mat-field">
+          <mat-select [(ngModel)]="selectedProjectStatus" (ngModelChange)="onProjectStatusChange($event)"
+            placeholder="All">
+            <mat-option value="All">All</mat-option>
+            <mat-option value="true">
+              <span class="db-status-dot db-status-dot--active"></span> Active
+            </mat-option>
+            <mat-option value="false">
+              <span class="db-status-dot db-status-dot--inactive"></span> In-Active
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
 
-</div><!-- /db-top-bar -->
+      <!-- Employee Status -->
+      <div class="db-filter-item" *ngIf="!toggleValue">
+        <label class="db-filter-label">Employee Status</label>
+        <mat-form-field appearance="outline" class="db-mat-field">
+          <mat-select [(ngModel)]="selectedEmployeeStatus" (ngModelChange)="onEmployeeStatusChange($event)"
+            placeholder="All">
+            <mat-option value="All">All</mat-option>
+            <mat-option value="Active">
+              <span class="db-status-dot db-status-dot--active"></span> Active
+            </mat-option>
+            <mat-option value="InActive">
+              <span class="db-status-dot db-status-dot--inactive"></span> In-Active
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
 
-    <div class="db-dashboard">
-        <!-- Key Metrics -->
+      <!-- Month Picker -->
+      <div class="db-filter-item">
+        <label class="db-filter-label">Month</label>
+        <mat-form-field appearance="outline" class="db-mat-field">
+          <input matInput [matDatepicker]="monthPicker" [value]="formattedMonthLabel"
+            (dateChange)="changeMonth1($event.value)" [placeholder]="formattedMonthLabel || 'Select month'" readonly />
+          <mat-datepicker-toggle matIconSuffix [for]="monthPicker">
+            <mat-icon matDatepickerToggleIcon>calendar_month</mat-icon>
+          </mat-datepicker-toggle>
+          <mat-datepicker #monthPicker startView="year" [startAt]="currentDate"
+            (monthSelected)="monthSelected1($event, monthPicker)" panelClass="month-picker">
+          </mat-datepicker>
+        </mat-form-field>
+      </div>
 
-        <div class="db-dashboard-body">
-            <div class="d-flex justify-content-end mb-2" *ngIf="!toggleValue && isClientDashboard">
-                <div class="po-global-filter" (click)="$event.stopPropagation()">
-                    <button type="button" class="po-filter-btn" (click)="toggleGlobalPoConflictDropdown($event)"
-                        [title]="getGlobalPoConflictLabel()">
-                        <span class="po-filter-text">{{ getGlobalPoConflictLabel() }}</span>
-                        <i class="fa fa-caret-down"></i>
-                    </button>
-                    <!-- <button type="button" class="po-clear-btn" *ngIf="globalPoConflictSelection !== 'All'"
+      <!-- Apply -->
+      <div class="db-filter-item db-filter-item--action">
+        <button type="button" class="db-apply-btn" (click)="onBillableTypeChangeManual()">
+          <i class="fas fa-sliders"></i>
+          <span>Apply</span>
+        </button>
+      </div>
+
+    </div><!-- /db-filters-row -->
+
+  </div><!-- /db-top-bar -->
+
+  <div class="db-dashboard">
+    <!-- Key Metrics -->
+
+    <div class="db-dashboard-body">
+      <div class="d-flex justify-content-end mb-2" *ngIf="!toggleValue && isClientDashboard">
+        <div class="po-global-filter" (click)="$event.stopPropagation()">
+          <button type="button" class="po-filter-btn" (click)="toggleGlobalPoConflictDropdown($event)"
+            [title]="getGlobalPoConflictLabel()">
+            <span class="po-filter-text">{{ getGlobalPoConflictLabel() }}</span>
+            <i class="fa fa-caret-down"></i>
+          </button>
+          <!-- <button type="button" class="po-clear-btn" *ngIf="globalPoConflictSelection !== 'All'"
                         (click)="clearGlobalPoConflict($event)" title="Clear">
                         <i class="fa fa-times"></i>
                     </button> -->
-                    <div class="po-dropdown" *ngIf="isGlobalPoDropdownOpen">
-                        <button type="button" class="po-option" (click)="selectGlobalPoConflict('Yes', $event)">
-                            With PO Conflict
-                        </button>
-                        <button type="button" class="po-option" (click)="selectGlobalPoConflict('No', $event)">
-                            Without PO Conflict
-                        </button>
-                        <button type="button" class="po-option" (click)="selectGlobalPoConflict('All', $event)">
-                            All
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="db-tiles-card">
-              <!-- Employee View Tiles -->
-              <div class="tile-group" *ngIf="!toggleValue">
-                <ng-container *ngFor="let group of tileGroups">
-                  <div class="tile-card" *ngFor="let tile of group" [ngClass]="tile.class"
-                    [class.tile-card--selected]="isTileSelected(tile.status)" (click)="onTileClick(tile)">
+          <div class="po-dropdown" *ngIf="isGlobalPoDropdownOpen">
+            <button type="button" class="po-option" (click)="selectGlobalPoConflict('Yes', $event)">
+              With PO Conflict
+            </button>
+            <button type="button" class="po-option" (click)="selectGlobalPoConflict('No', $event)">
+              Without PO Conflict
+            </button>
+            <button type="button" class="po-option" (click)="selectGlobalPoConflict('All', $event)">
+              All
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="db-tiles-card">
+        <!-- Employee View Tiles -->
+        <div class="tile-group" *ngIf="!toggleValue">
+          <ng-container *ngFor="let group of tileGroups">
+            <div class="tile-card" *ngFor="let tile of group" [ngClass]="tile.class"
+              [class.tile-card--selected]="isTileSelected(tile.status)" (click)="onTileClick(tile)">
 
-                                  <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false" [iconBgColor]="getTileColor(tile.class)"
-                                    [content]="getTileInfo(tile.status)" [size]="16">
-                                  </app-info-tooltip>
+              <app-info-tooltip class="tile-card__tooltip" [shouldShine]="false"
+                [iconBgColor]="getTileColor(tile.class)" [content]="getTileInfo(tile.status)" [size]="16">
+              </app-info-tooltip>
 
-                    <div class="tile-card__icon" [style.background]="getTileColor(tile.class) + '20'">
-                      <i [class]="tile.icon" [ngClass]="tile.icon" [style.color]="getTileColor(tile.class)"></i>
-                    </div>
-
-                    <div class="tile-card__body">
-                      <span class="tile-card__label">{{ tile.label }}</span>
-                      <span class="tile-card__value">{{ tile.value }}</span>
-                    </div>
-
-                  </div>
-                </ng-container>
+              <div class="tile-card__icon" [style.background]="getTileColor(tile.class) + '20'">
+                <i [class]="tile.icon" [ngClass]="tile.icon" [style.color]="getTileColor(tile.class)"></i>
               </div>
 
-
-              <!-- Project View Tiles -->
-              <div class="tile-group tile-group--project" *ngIf="toggleValue">
-                <ng-container *ngFor="let group of tileGroups">
-                  <div class="tile-card" *ngFor="let tile of group" [ngClass]="tile.class"
-                    [class.tile-card--selected]="isTileSelected(tile.status)" (click)="scrollToTable(tile.status)">
-
-                    <div class="tile-card__icon" [style.background]="getTileColor(tile.class) + '20'">
-                      <i [class]="tile.icon" [ngClass]="tile.icon" [style.color]="getTileColor(tile.class)"></i>
-                    </div>
-
-                    <div class="tile-card__body">
-                      <span class="tile-card__label">{{ tile.label }}</span>
-                      <span class="tile-card__value">{{ tile.value }}</span>
-                    </div>
-
-                  </div>
-                </ng-container>
+              <div class="tile-card__body">
+                <span class="tile-card__label">{{ tile.label }}</span>
+                <span class="tile-card__value">{{ tile.value }}</span>
               </div>
+
             </div>
-            <!-- Department Breakdown Container -->
-            <!-- <div class="title-group-box-project w-100" *ngIf="isClientDashboard && !toggleValue">
+          </ng-container>
+        </div>
+
+
+        <!-- Project View Tiles -->
+        <div class="tile-group tile-group--project" *ngIf="toggleValue">
+          <ng-container *ngFor="let group of tileGroups">
+            <div class="tile-card" *ngFor="let tile of group" [ngClass]="tile.class"
+              [class.tile-card--selected]="isTileSelected(tile.status)" (click)="scrollToTable(tile.status)">
+
+              <div class="tile-card__icon" [style.background]="getTileColor(tile.class) + '20'">
+                <i [class]="tile.icon" [ngClass]="tile.icon" [style.color]="getTileColor(tile.class)"></i>
+              </div>
+
+              <div class="tile-card__body">
+                <span class="tile-card__label">{{ tile.label }}</span>
+                <span class="tile-card__value">{{ tile.value }}</span>
+              </div>
+
+            </div>
+          </ng-container>
+        </div>
+      </div>
+      <!-- Department Breakdown Container -->
+      <!-- <div class="title-group-box-project w-100" *ngIf="isClientDashboard && !toggleValue">
                                 <div class="dept-container" *ngIf="selectedDepartments?.length">
 
 
@@ -280,116 +278,110 @@
                             </div>  -->
 
 
-            <!-- /* //Pivot table changes dept wise */ -->
+      <!-- /* //Pivot table changes dept wise */ -->
 
-            <div class="title-group-box-project" *ngIf="isClientDashboard && !toggleValue ">
-                <section class="dept-status-summary" aria-labelledby="dept-summary-heading">
-                    <div class="dept-table-container">
+      <div class="title-group-box-project" *ngIf="isClientDashboard && !toggleValue ">
+        <section class="dept-status-summary" aria-labelledby="dept-summary-heading">
+          <div class="dept-table-container">
 
-                        <!-- Header: collapsible, keyboard accessible -->
-                        <div class="dept-header-bar"
-                            id="dept-summary-heading"
-                            role="button"
-                            tabindex="0"
-                            [attr.aria-expanded]="!isDeptTableCollapsed"
-                            aria-controls="dept-summary-table-body"
-                            (click)="toggleDeptTableCollapse()"
-                            (keydown)="onDeptSummaryHeaderKeydown($event)">
-                            <div class="dept-title-wrap">
-                                <span class="dept-title">Department Wise Status Summary</span>
-                                <span class="dept-subtitle">Timesheet overview by department and status</span>
-                            </div>
-                            <span class="collapse-arrow" [class.rotate]="!isDeptTableCollapsed" aria-hidden="true"></span>
-                        </div>
-
-                        <!-- Table Body: fixed header + inner body-only scroller -->
-                        <div class="dept-table-body" id="dept-summary-table-body" [class.collapsed]="isDeptTableCollapsed">
-                            <div class="dept-table-outer">
-                                <div class="dept-table-inner">
-                                    <!-- Fixed header (outside scroll) -->
-                                    <table class="futuristic-table dept-table-header" role="grid" aria-readonly="true">
-                                        <caption class="sr-only">Department-wise timesheet counts: Total Applicable, Ready For Invoicing, Defaulter, Pending Approval, Not Filled</caption>
-                                        <thead>
-                                            <tr>
-                                                <th scope="col">Department</th>
-                                                <th scope="col">Total Applicable</th>
-                                                <th scope="col">Ready For Invoicing</th>
-                                                <th scope="col">Defaulter</th>
-                                                <th scope="col">Pending Approval</th>
-                                                <th scope="col">Not Filled</th>
-                                            </tr>
-                                        </thead>
-                                    </table>
-                                    <!-- Inner scroller: body rows only -->
-                                    <div class="dept-table-body-scroll">
-                                        <table class="futuristic-table dept-table-body-table" role="grid" aria-readonly="true">
-                                            <tbody>
-                                                <tr *ngFor="let row of departmentTableData" class="table-row">
-                                                    <td class="dept-name">{{ row.dept }}</td>
-                                                    <td>
-                                                        <div class="count-card total clickable" (click)="onDeptCountClick(row, 'TOTAL')">
-                                                            {{ row.total }}
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="count-card success clickable" (click)="onDeptCountClick(row, 'READY')" tabindex="0" role="button" (keydown)="onDeptCountKeydown($event, row, 'READY')">
-                                                            <div class="count-main">{{ row.ready }}</div>
-                                                            <div class="repeat-indicator" *ngIf="row.approvedRepeat > 0"
-                                                                title="Repeated entries"
-                                                                (click)="onRepeatClick($event, row, 'APPROVED_REPEAT')">
-                                                                <i class="fa-solid fa-user-group" aria-hidden="true"></i>
-                                                                <span>{{ row.approvedRepeat }}</span>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="count-card danger clickable" (click)="onDeptCountClick(row, 'DEFAULTER')">
-                                                            <div class="count-main">{{ row.defaulter }}</div>
-                                                            <div class="repeat-indicator" *ngIf="row.defaulterRepeat > 0"
-                                                                title="Repeated entries"
-                                                                (click)="onRepeatClick($event, row, 'DEFAULTER_REPEAT')">
-                                                                <i class="fa-solid fa-user-group" aria-hidden="true"></i>
-                                                                <span>{{ row.defaulterRepeat }}</span>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="count-card warning clickable" (click)="onDeptCountClick(row, 'PENDING')">
-                                                            <div class="count-main">{{ row.pending }}</div>
-                                                            <div class="repeat-indicator" *ngIf="row.pendingRepeat > 0"
-                                                                title="Repeated entries"
-                                                                (click)="onRepeatClick($event, row, 'PENDING_REPEAT')">
-                                                                <i class="fa-solid fa-user-group" aria-hidden="true"></i>
-                                                                <span>{{ row.pendingRepeat }}</span>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td>
-                                                        <div class="count-card neutral clickable" (click)="onDeptCountClick(row, 'NOT_FILLED')">
-                                                            {{ row.notFilled }}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+            <!-- Header: collapsible, keyboard accessible -->
+            <div class="dept-header-bar" id="dept-summary-heading" role="button" tabindex="0"
+              [attr.aria-expanded]="!isDeptTableCollapsed" aria-controls="dept-summary-table-body"
+              (click)="toggleDeptTableCollapse()" (keydown)="onDeptSummaryHeaderKeydown($event)">
+              <div class="dept-title-wrap">
+                <span class="dept-title">Department Wise Status Summary</span>
+                <span class="dept-subtitle">Timesheet overview by department and status</span>
+              </div>
+              <span class="collapse-arrow" [class.rotate]="!isDeptTableCollapsed" aria-hidden="true"></span>
             </div>
 
+            <!-- Table Body: fixed header + inner body-only scroller -->
+            <div class="dept-table-body" id="dept-summary-table-body" [class.collapsed]="isDeptTableCollapsed">
+              <div class="dept-table-outer">
+                <div class="dept-table-inner">
+                  <!-- Fixed header (outside scroll) -->
+                  <table class="futuristic-table dept-table-header" role="grid" aria-readonly="true">
+                    <caption class="sr-only">Department-wise timesheet counts: Total Applicable, Ready For Invoicing,
+                      Defaulter, Pending Approval, Not Filled</caption>
+                    <thead>
+                      <tr>
+                        <th scope="col">Department</th>
+                        <th scope="col">Total Applicable</th>
+                        <th scope="col">Ready For Invoicing</th>
+                        <th scope="col">Defaulter</th>
+                        <th scope="col">Pending Approval</th>
+                        <th scope="col">Not Filled</th>
+                      </tr>
+                    </thead>
+                  </table>
+                  <!-- Inner scroller: body rows only -->
+                  <div class="dept-table-body-scroll">
+                    <table class="futuristic-table dept-table-body-table" role="grid" aria-readonly="true">
+                      <tbody>
+                        <tr *ngFor="let row of departmentTableData" class="table-row">
+                          <td class="dept-name">{{ row.dept }}</td>
+                          <td>
+                            <div class="count-card total clickable" (click)="onDeptCountClick(row, 'TOTAL')">
+                              {{ row.total }}
+                            </div>
+                          </td>
+                          <td>
+                            <div class="count-card success clickable" (click)="onDeptCountClick(row, 'READY')"
+                              tabindex="0" role="button" (keydown)="onDeptCountKeydown($event, row, 'READY')">
+                              <div class="count-main">{{ row.ready }}</div>
+                              <div class="repeat-indicator" *ngIf="row.approvedRepeat > 0" title="Repeated entries"
+                                (click)="onRepeatClick($event, row, 'APPROVED_REPEAT')">
+                                <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+                                <span>{{ row.approvedRepeat }}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="count-card danger clickable" (click)="onDeptCountClick(row, 'DEFAULTER')">
+                              <div class="count-main">{{ row.defaulter }}</div>
+                              <div class="repeat-indicator" *ngIf="row.defaulterRepeat > 0" title="Repeated entries"
+                                (click)="onRepeatClick($event, row, 'DEFAULTER_REPEAT')">
+                                <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+                                <span>{{ row.defaulterRepeat }}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="count-card warning clickable" (click)="onDeptCountClick(row, 'PENDING')">
+                              <div class="count-main">{{ row.pending }}</div>
+                              <div class="repeat-indicator" *ngIf="row.pendingRepeat > 0" title="Repeated entries"
+                                (click)="onRepeatClick($event, row, 'PENDING_REPEAT')">
+                                <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+                                <span>{{ row.pendingRepeat }}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div class="count-card neutral clickable" (click)="onDeptCountClick(row, 'NOT_FILLED')">
+                              {{ row.notFilled }}
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
 
 
 
 
-        </div>
+
+    </div>
 
 
 
-        <!-- Status Overview -->
-        <!-- <div class="status-grid">
+    <!-- Status Overview -->
+    <!-- <div class="status-grid">
                 <div class="status-card">
                     <div class="status-title">VMS Not Approved</div>
                     <div class="status-value">156 <span class="badge badge-warning">12.5%</span></div>
@@ -458,17 +450,18 @@
             </div>  -->
 
 
+  </div>
+
+
+
+  <div class="insight-container" *ngIf="isClientDashboard">
+    <div class="insight-container__header">
+      <h5 class="insight-container__title">Individual {{ toggleValue ? 'Project' : 'Employee' }} Insight</h5>
+      <p class="insight-container__subtitle">Search by {{ toggleValue ? 'project / PO' : 'employee' }} and date range to
+        view timesheet details</p>
     </div>
-    <br>
 
-
-    <div class="insight-container" *ngIf="isClientDashboard">
-        <div class="insight-container__header">
-            <h5 class="insight-container__title">Individual {{ toggleValue ? 'Project' : 'Employee' }} Insight</h5>
-            <p class="insight-container__subtitle">Search by {{ toggleValue ? 'project / PO' : 'employee' }} and date range to view timesheet details</p>
-        </div>
-
-         <!-- Employee View Fields -->
+    <!-- Employee View Fields -->
     <div class="insight-card__body" *ngIf="!toggleValue">
 
       <div class="insight-field insight-field--wide">
@@ -500,8 +493,8 @@
       <div class="insight-field">
         <label class="insight-label">To Date</label>
         <mat-form-field appearance="outline" class="insight-mat-field">
-          <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate" name="toDate" [max]="today"
-            [min]="fromDate" required #toDateRef="ngModel">
+          <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate" name="toDate"
+            [max]="today" [min]="fromDate" required #toDateRef="ngModel">
           <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
           <mat-datepicker #toDatePicker></mat-datepicker>
           <mat-error *ngIf="toDateRef.invalid && toDateRef.touched">To Date is required</mat-error>
@@ -510,16 +503,16 @@
 
       <div class="insight-field insight-field--action">
         <!--<label class="insight-label">&nbsp;</label>-->
-        <button type="button" class="insight-search-btn" (click)="searchTimesheet(timesheet_details, alert_message, true)"
-          title="Search">
+        <button type="button" class="insight-search-btn"
+          (click)="searchTimesheet(timesheet_details, alert_message, true)" title="Search">
           <i class="fas fa-search"></i>
           <span>Search</span>
         </button>
       </div>
 
     </div>
-        <!-- Project View Fields -->
-            <!-- Project View Fields -->
+    <!-- Project View Fields -->
+    <!-- Project View Fields -->
     <div class="insight-card__body" *ngIf="toggleValue">
 
       <div class="insight-field insight-field--wide">
@@ -568,11 +561,10 @@
       </div>
 
     </div>
-    </div>
-   </div>
-    <br>
+  </div>
 
-    <!-- <div class="row">
+
+  <!-- <div class="row">
             <div class="col-md-12">
                 <div class="row">
                     <div class="col-md-12">
@@ -752,85 +744,88 @@
           <tbody>
             <ng-container *ngFor="let emp of timesheetData">
               <ng-container *ngFor="let proj of emp.projectTimesheet; let i = index">
-              <tr class="eo-row" [class.eo-row--child]="i > 0" *ngIf="i === 0 || isEmployeeExpanded(emp.empId)">
+                <tr class="eo-row" [class.eo-row--child]="i > 0" *ngIf="i === 0 || isEmployeeExpanded(emp.empId)">
 
-                <td [class.eo-td--hidden]="i > 0">
-                  {{ emp.employmentId || 'NA' }}
-                </td>
+                  <td [class.eo-td--hidden]="i > 0">
+                    {{ emp.employmentId || 'NA' }}
+                  </td>
 
-                <td class="eo-name-cell" [class.eo-td--hidden]="i > 0">
-                  <div class="eo-name-wrap">
-                    <button *ngIf="emp.projectTimesheet.length > 1" class="eo-expand-btn"
-                      [class.eo-expand-btn--open]="isEmployeeExpanded(emp.empId)" (click)="toggleEmployeeExpand(emp.empId)"
-                      [title]="isEmployeeExpanded(emp.empId) ? 'Collapse' : 'Expand'">
-                      <i class="fa" [ngClass]="isEmployeeExpanded(emp.empId) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
-                    </button>
-                    <span *ngIf="emp.projectTimesheet.length === 1" class="eo-expand-placeholder"></span>
-
-                    <span class="eo-emp-name" (mouseenter)="showPopup(emp.empId)" (mouseleave)="scheduleHidePopup()">
-                      {{ emp.employeeName || 'NA' }}
-                    </span>
-
-                    <div class="eo-hover-popup" *ngIf="hoveredEmpId === emp.empId" (mouseenter)="cancelHidePopup()"
-                      (mouseleave)="scheduleHidePopup()">
-                      <button class="eo-popup-btn eo-popup-btn--360" [navigateToEmployee360]="emp.empId" (click)="cancelRequest()"
-                        title="Employee 360 View">
-                        <i class="fa fa-user-circle"></i>
-                        <span>360 View</span>
+                  <td class="eo-name-cell" [class.eo-td--hidden]="i > 0">
+                    <div class="eo-name-wrap">
+                      <button *ngIf="emp.projectTimesheet.length > 1" class="eo-expand-btn"
+                        [class.eo-expand-btn--open]="isEmployeeExpanded(emp.empId)"
+                        (click)="toggleEmployeeExpand(emp.empId)"
+                        [title]="isEmployeeExpanded(emp.empId) ? 'Collapse' : 'Expand'">
+                        <i class="fa"
+                          [ngClass]="isEmployeeExpanded(emp.empId) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
                       </button>
-                      <button class="eo-popup-btn eo-popup-btn--cal" [appNavigateToCalenderView]="proj.projectId" [empId]="emp.empId"
-                        [clientSideFilter]="isClientDashboard" [formattedMonthLabel]="selectedMonth1.toISOString()">
-                        <i class="fa fa-calendar"></i>
-                        <span>Calendar</span>
-                      </button>
+                      <span *ngIf="emp.projectTimesheet.length === 1" class="eo-expand-placeholder"></span>
+
+                      <span class="eo-emp-name" (mouseenter)="showPopup(emp.empId)" (mouseleave)="scheduleHidePopup()">
+                        {{ emp.employeeName || 'NA' }}
+                      </span>
+
+                      <div class="eo-hover-popup" *ngIf="hoveredEmpId === emp.empId" (mouseenter)="cancelHidePopup()"
+                        (mouseleave)="scheduleHidePopup()">
+                        <button class="eo-popup-btn eo-popup-btn--360" [navigateToEmployee360]="emp.empId"
+                          (click)="cancelRequest()" title="Employee 360 View">
+                          <i class="fa fa-user-circle"></i>
+                          <span>360 View</span>
+                        </button>
+                        <button class="eo-popup-btn eo-popup-btn--cal" [appNavigateToCalenderView]="proj.projectId"
+                          [empId]="emp.empId" [clientSideFilter]="isClientDashboard"
+                          [formattedMonthLabel]="selectedMonth1.toISOString()">
+                          <i class="fa fa-calendar"></i>
+                          <span>Calendar</span>
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                </td>
+                  </td>
 
-                <td [class.eo-td--hidden]="i > 0">{{ proj.employmentStatus || 'NA' }}</td>
-                <td>{{ proj.projectStatus || 'NA' }}</td>
-                <td [class.eo-td--hidden]="i > 0">{{ emp.department || 'NA' }}</td>
-                <td>{{ proj.billableType || 'NA' }}</td>
-                <td>{{ proj.clientSideId || 'NA' }}</td>
-                <td>{{ proj.clientName || 'NA' }}</td>
-                <td>{{ proj.poNo || 'NA' }}</td>
-                <td>{{ proj.projectName || 'NA' }}</td>
-                <td>{{ proj.projectManagerName || 'NA' }}</td>
-                <td>{{ proj.teamName || 'NA' }}</td>
-                <td>{{ proj.startDate ? (proj.startDate | date:'dd-MM-yyyy') : 'NA' }}</td>
-                <td>{{ proj.endDate ? (proj.endDate | date:'dd-MM-yyyy') : 'NA' }}</td>
-                <td>{{ proj.expectedTimesheetFillCount || 0 }}</td>
-                <td>{{ proj.apmosysTimesheetFilledCount || 0 }}</td>
-                <td>{{ proj.clientSideNotFilledCount || 0 }}</td>
-                <td>{{ proj.clientSidePendingCount || 0 }}</td>
-                <td>{{ proj.clientSideApprovedCount || 0 }}</td>
+                  <td [class.eo-td--hidden]="i > 0">{{ proj.employmentStatus || 'NA' }}</td>
+                  <td>{{ proj.projectStatus || 'NA' }}</td>
+                  <td [class.eo-td--hidden]="i > 0">{{ emp.department || 'NA' }}</td>
+                  <td>{{ proj.billableType || 'NA' }}</td>
+                  <td>{{ proj.clientSideId || 'NA' }}</td>
+                  <td>{{ proj.clientName || 'NA' }}</td>
+                  <td>{{ proj.poNo || 'NA' }}</td>
+                  <td>{{ proj.projectName || 'NA' }}</td>
+                  <td>{{ proj.projectManagerName || 'NA' }}</td>
+                  <td>{{ proj.teamName || 'NA' }}</td>
+                  <td>{{ proj.startDate ? (proj.startDate | date:'dd-MM-yyyy') : 'NA' }}</td>
+                  <td>{{ proj.endDate ? (proj.endDate | date:'dd-MM-yyyy') : 'NA' }}</td>
+                  <td>{{ proj.expectedTimesheetFillCount || 0 }}</td>
+                  <td>{{ proj.apmosysTimesheetFilledCount || 0 }}</td>
+                  <td>{{ proj.clientSideNotFilledCount || 0 }}</td>
+                  <td>{{ proj.clientSidePendingCount || 0 }}</td>
+                  <td>{{ proj.clientSideApprovedCount || 0 }}</td>
 
-                <ng-container *ngFor="let day of daysInMonth">
-                  <td [title]="
+                  <ng-container *ngFor="let day of daysInMonth">
+                    <td [title]="
                       (legend[proj.timesheetData?.['d' + day.dayNumber]?.status]?.label || '') +
                       (['P','DA','DP'].includes(proj.timesheetData?.['d' + day.dayNumber]?.status)
                         ? ' | In: ' + (proj.timesheetData?.['d' + day.dayNumber]?.inTime || '-') +
                           ', Out: ' + (proj.timesheetData?.['d' + day.dayNumber]?.outTime || '-')
                         : '')">
-                    <span class="eo-status-pill" [ngStyle]="{
+                      <span class="eo-status-pill" [ngStyle]="{
                         'background-color': legend[proj.timesheetData?.['d' + day.dayNumber]?.status]?.color || 'transparent'
                       }">
-                      {{ proj.timesheetData?.['d' + day.dayNumber]?.status || '' }}
-                    </span>
-                  </td>
-                </ng-container>
+                        {{ proj.timesheetData?.['d' + day.dayNumber]?.status || '' }}
+                      </span>
+                    </td>
+                  </ng-container>
 
-                <td>{{ proj.present || 0 }}</td>
-                <td>{{ proj.readyForInvoicing || 0 }}</td>
-                <td>{{ proj.weekOff || 0 }}</td>
-                <td>{{ proj.holiday || 0 }}</td>
-                <td>{{ proj.leave || 0 }}</td>
-                <td>{{ proj.compOff || 0 }}</td>
-                <td>{{ proj.na || 0 }}</td>
-                <td>{{ proj.halfDay || 0 }}</td>
-                <td>{{ proj.totalNoOfDays || 0 }}</td>
+                  <td>{{ proj.present || 0 }}</td>
+                  <td>{{ proj.readyForInvoicing || 0 }}</td>
+                  <td>{{ proj.weekOff || 0 }}</td>
+                  <td>{{ proj.holiday || 0 }}</td>
+                  <td>{{ proj.leave || 0 }}</td>
+                  <td>{{ proj.compOff || 0 }}</td>
+                  <td>{{ proj.na || 0 }}</td>
+                  <td>{{ proj.halfDay || 0 }}</td>
+                  <td>{{ proj.totalNoOfDays || 0 }}</td>
 
-              </tr>
+                </tr>
               </ng-container>
             </ng-container>
           </tbody>
@@ -1036,6 +1031,7 @@
     </div>
 
   </div>
+</div>
     <!-- Time Sheet Distribution -->
     <!-- <h4 class="mb-3 fw-bold">Time Sheet Distribution</h4>
         <div class="row g-3 mb-4">

@@ -50,7 +50,7 @@ body {
 .dashboard {
   width: 100%;
   /* padding: 0 2rem; */
-
+  justify-content: flex-start;
   display: flex;
   justify-content: center;
   flex-direction: column;
@@ -1980,6 +1980,7 @@ h5 {
   transition: max-height 0.4s ease, opacity 0.3s ease;
   opacity: 1;
   padding: 16px;
+  overflow: hidden;
 }
 
 .dept-table-body.collapsed {
@@ -2051,7 +2052,7 @@ h5 {
   display: block;
   width: 100%;
   max-width: 100%;
-  margin-top: 1.5rem;
+
   flex: 0 0 100%;
 }
 
@@ -2261,6 +2262,7 @@ h5 {
 .dept-status-summary .dept-table-body {
   max-height: 420px;
   padding: 0;
+  overflow: hidden;
   transition: max-height 0.35s ease, opacity 0.2s ease;
 }
 
@@ -3417,6 +3419,7 @@ input:checked+.slider:before {
 .db-dashboard {
   width: 100%;
   box-sizing: border-box;
+  min-height: unset;
 }
 
 .db-dashboard-body {
@@ -3425,6 +3428,7 @@ input:checked+.slider:before {
   gap: 12px;
   width: 100%;
   box-sizing: border-box;
+  min-height: unset;
 }
 
 .tile-card.tile-card--selected::after {
@@ -4363,6 +4367,15 @@ input:checked+.slider:before {
 .db-page-wrapper {
   width: 100%;
   box-sizing: border-box;
-  padding: 16px;
+  
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.db-toggle-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
