@@ -296,16 +296,13 @@ public class ProjectCustomRepository {
         try (Session session = entityManager.unwrap(Session.class)) {
             NativeQuery<Object[]> nativeQuery = session.createNativeQuery(query)
                     .unwrap(org.hibernate.query.NativeQuery.class);
-
-            if (!projectStatus.equals("COMPLETED_IN_SHANKH")
-                    && !projectStatus.equals("COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE")) {
-                nativeQuery.setParameter("deptIds", deptIds);
-            }
-
+           
+            nativeQuery.setParameter("deptIds", deptIds);
             if (projectStatus != null && projectStatus.equals("TOTAL_EXPIRED_TNM") && addStartAndEndDate) {
                 nativeQuery.setParameter("startDate", startDate);
                 nativeQuery.setParameter("endDate", endDate);
             }
+            
             if (projectStatus.equals("COMPLETED_IN_SHANKH")
                     || projectStatus.equals("COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE")) {
                 nativeQuery.setParameter("projectIds", projectIds);
@@ -338,11 +335,7 @@ public class ProjectCustomRepository {
             NativeQuery<Object[]> nativeQuery = session.createNativeQuery(query)
                     .unwrap(org.hibernate.query.NativeQuery.class);
 
-            if (!projectStatus.equals("COMPLETED_IN_SHANKH")
-                    && !projectStatus.equals("COMPLETED_IN_SHANKH_BUT_TEAM_ACTIVE")) {
-                nativeQuery.setParameter("deptIds", deptIds);
-            }
-
+            nativeQuery.setParameter("deptIds", deptIds);
             if (projectStatus != null && projectStatus.equals("TOTAL_EXPIRED_TNM") && addStartAndEndDate) {
                 nativeQuery.setParameter("startDate", startDate);
                 nativeQuery.setParameter("endDate", endDate);
@@ -370,8 +363,8 @@ public class ProjectCustomRepository {
         query.append(" INNER JOIN teams t ON p.project_id = t.project_id \n")
                 .append(" INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id \n")
                 .append(" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1 \n")
-                .append(" LEFT JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) \n")
-                .append(" LEFT JOIN department d ON pdm.dept_id = d.dept_id AND d.dept_id in :deptIds \n")
+                .append(" INNER JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND pdm.dept_id IN :deptIds \n")
+                .append(" LEFT JOIN department d ON pdm.dept_id = d.dept_id \n")
                 .append(" LEFT JOIN clients c ON p.client_id = c.client_id \n")
                 .append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n")
                 .append(" LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id AND pm.active = 1  \n")
@@ -407,16 +400,16 @@ public class ProjectCustomRepository {
 
     private String getAllProjectsQuery(Map<String, String> projectFilter, String sortBy,
             String sortDirection, List<String> projectNames) {
-        StringBuilder query = new StringBuilder(" ( " + projectDetailsStartQuery);
-        StringBuilder query1 = new StringBuilder(projectDetailsStartQuery);
-        StringBuilder query2 = new StringBuilder(projectDetailsStartQuery);
-        StringBuilder query3 = new StringBuilder(projectDetailsStartQuery);
+        StringBuilder query = new StringBuilder(" ( " + projectDetailsStartQuery); // Approved
+        StringBuilder query1 = new StringBuilder(projectDetailsStartQuery); // Pending for Approval
+        StringBuilder query2 = new StringBuilder(projectDetailsStartQuery); // Not Started
+        StringBuilder query3 = new StringBuilder(projectDetailsStartQuery); // Rejected
         StringBuilder groupQuery = new StringBuilder(projectDetailsGroupQuery).append(" )");
 
         StringBuilder queryJoins = new StringBuilder();
         queryJoins
                 .append(" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1 \n")
-                .append(" LEFT JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND (pdm.dept_id IN :deptIds)  \n")
+                .append(" INNER JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND (pdm.dept_id IN :deptIds)  \n")
                 .append(" LEFT JOIN clients c ON c.client_id = p.client_id  \n")
                 .append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n")
                 .append(" LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id AND pm.active = 1  \n")
@@ -443,10 +436,10 @@ public class ProjectCustomRepository {
         query1.append(groupQuery);
 
         query2.append(queryJoins);
-        query2.append(" WHERE p.active= 'true' AND p.is_draft_project IS NULL \n")
-        .append(" AND p.project_id NOT IN (SELECT  t2.project_id FROM teams t2) \n")
-                .append(" AND (p.status != 'Completed' OR p.status IS NULL) \n")
-                .append(" AND (DATE(ppd.po_end_date) > CURDATE() OR ppd.po_end_date IS NULL ) \n");
+		query2.append(" WHERE 1=1 AND NOT EXISTS (SELECT 1 FROM teams t2 INNER JOIN employee_team_mapping etm2 ON t2.team_id = etm2.team_id WHERE t2.project_id = p.project_id AND etm2.active IN (1,2) ) \n")
+				.append(" AND p.active= 'true' AND p.is_draft_project IS NULL \n")
+				.append(" AND (p.status != 'Completed' OR p.status IS NULL) \n")
+				.append(" AND (DATE(ppd.po_end_date) > CURDATE() OR ppd.po_end_date IS NULL ) \n");
         
         if (projectNames != null && !projectNames.isEmpty()) {
             query2.append(" AND p.project_name IN (:projectNames) \n");
@@ -478,10 +471,10 @@ public class ProjectCustomRepository {
         StringBuilder query = new StringBuilder();
         query.append(" ( WITH RelevantProjects AS ( \n")
                 .append(query2)
-                .append(" INNER JOIN teams t ON p.project_id = t.project_id \n")
-                .append(" INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id \n")
+                .append(" LEFT JOIN teams t ON p.project_id = t.project_id \n")
+                .append(" LEFT JOIN employee_team_mapping etm ON t.team_id = etm.team_id \n")
                 .append(" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1 \n")
-                .append(" LEFT JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) \n")
+                .append(" INNER JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND pdm.dept_id IN :deptIds \n")
                 .append(" LEFT JOIN department d ON pdm.dept_id = d.dept_id \n")
                 .append(" LEFT JOIN clients c ON p.client_id = c.client_id \n")
                 .append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n")
@@ -515,9 +508,9 @@ public class ProjectCustomRepository {
                 .append(" (SELECT DISTINCT \n")
                 .append(" d.dept_id,rp.project_id, prm.po_requirement_mapping_id ,prm.count AS required_count,role \n")
                 .append(" FROM RelevantProjects rp \n")
-                .append(" INNER JOIN project_po_details ppd ON ppd.project_id = rp.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1 \n")
-                .append(" INNER JOIN po_requirement_mapping prm ON prm.po_id = ppd.po_id AND prm.active = true \n")
-                .append(" INNER JOIN department d on d.name = prm.department) req \n")
+                .append(" LEFT JOIN project_po_details ppd ON ppd.project_id = rp.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1 \n")
+                .append(" LEFT JOIN po_requirement_mapping prm ON prm.po_id = ppd.po_id AND prm.active = true \n")
+                .append(" LEFT JOIN department d on d.name = prm.department) req \n")
                 .append(" GROUP BY project_id \n")
                 .append(" ) \n")
 
@@ -562,7 +555,7 @@ public class ProjectCustomRepository {
 			query.append(" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND ppd.active  = 1 AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE \n")
 					.append(" OR EXISTS ( SELECT 1 FROM project_po_details p2 WHERE p2.project_id = ppd.project_id \n")
 					.append(" AND p2.po_no != ppd.po_no AND p2.active = 1 AND (p2.po_start_date <= ppd.po_end_date OR ppd.po_end_date IS NULL) AND  (p2.po_end_date >= ppd.po_start_date OR p2.po_end_date IS NULL))) \n")
-					.append(" LEFT JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) \n")
+					.append(" INNER JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND pdm.dept_id IN :deptIds \n")
 					.append(" LEFT JOIN clients c ON c.client_id = p.client_id \n")
 					.append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n")
 					.append(" LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id AND pm.active = 1 \n")
@@ -570,7 +563,7 @@ public class ProjectCustomRepository {
         } else if (projectStatus.equalsIgnoreCase("NOT_STARTED") || projectStatus.equalsIgnoreCase("PENDING_FOR_APPROVAL")
                 || projectStatus.equalsIgnoreCase("REJECTED")) {
             query.append(" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1 \n")
-                    .append(" LEFT JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND pdm.dept_id IN :deptIds  \n")
+                    .append(" INNER JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND pdm.dept_id IN :deptIds  \n")
                     .append(" LEFT JOIN clients c ON c.client_id = p.client_id \n")
                     .append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n")
                     .append(" LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id AND pm.active = 1 \n")
@@ -579,14 +572,14 @@ public class ProjectCustomRepository {
             query.append(" INNER JOIN teams t ON p.project_id = t.project_id \n")
                     .append(" INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id \n")
                     .append(" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1 \n")
-                    .append(" LEFT JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND pdm.dept_id IN :deptIds  \n")
+                    .append(" INNER JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND pdm.dept_id IN :deptIds  \n")
                     .append(" LEFT JOIN clients c ON c.client_id = p.client_id \n")
                     .append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n")
                     .append(" LEFT JOIN project_manager_mapping pm ON p.project_id = pm.project_id AND pm.active = 1 \n")
                     .append(" LEFT JOIN employee e1 ON e1.emp_id = pm.project_manager_id \n");
         } else if (projectStatus.equalsIgnoreCase("COMPLETED_IN_ISHINE")) {
             query.append(" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1 \n")
-                    .append(" LEFT JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND pdm.dept_id IN :deptIds  \n")
+                    .append(" INNER JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND pdm.dept_id IN :deptIds \n")
                     .append(" LEFT JOIN department d ON pdm.dept_id = d.dept_id \n")
                     .append(" LEFT JOIN clients c ON c.client_id = p.client_id \n")
                     .append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n")
@@ -594,7 +587,7 @@ public class ProjectCustomRepository {
                     .append(" LEFT JOIN employee e1 ON e1.emp_id = pm.project_manager_id \n");
         } else if (projectStatus.equalsIgnoreCase("COMPLETED_IN_SHANKH")) {
             query.append(" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1 \n")
-                    .append(" LEFT JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) \n")
+                    .append(" INNER JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND pdm.dept_id IN :deptIds \n")
                     .append(" LEFT JOIN department d ON pdm.dept_id = d.dept_id \n")
                     .append(" LEFT JOIN clients c ON c.client_id = p.client_id \n")
                     .append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n")
@@ -606,7 +599,7 @@ public class ProjectCustomRepository {
                     .append(" INNER JOIN employee e ON e.emp_id = etm.emp_id \n")
                     .append(" INNER JOIN job_role j1 ON j1.job_role_id = e.job_role_id \n")
                     .append(" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1 \n")
-                    .append(" LEFT JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) \n")
+                    .append(" INNER JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND pdm.dept_id IN :deptIds \n")
                     .append(" LEFT JOIN department d ON pdm.dept_id = d.dept_id \n")
                     .append(" LEFT JOIN clients c ON p.client_id = c.client_id \n")
                     .append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n")
@@ -639,9 +632,10 @@ public class ProjectCustomRepository {
             query.append(" AND p.active = 'true' AND t.is_active != 'N' AND etm.active != 0 \n")
                     .append(" AND e.employmentstatus != 'InActive' AND p.status = 'Completed'  \n")
                     .append(" AND p.project_id IN :projectIds \n");
-        } else if (projectStatus.equalsIgnoreCase("ALL")) {
-            query.append(" AND (pdm.dept_id is NULL or pdm.dept_id IN :deptIds) \n");
-        }
+        } 
+//        else if (projectStatus.equalsIgnoreCase("ALL")) {
+//            query.append(" AND (pdm.dept_id is NULL or pdm.dept_id IN :deptIds) \n");
+//        }
 
         if (projectNames != null && !projectNames.isEmpty()) {
             query.append(" AND p.project_name IN (:projectNames) \n");
@@ -661,10 +655,10 @@ public class ProjectCustomRepository {
                 .append(" INNER JOIN teams t ON p.project_id = t.project_id \n")
                 .append(" INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id \n")
                 .append(" LEFT JOIN project_po_details ppd ON ppd.project_id = p.project_id AND DATE(ppd.po_start_date) <= CURRENT_DATE AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= CURRENT_DATE) AND ppd.active  = 1 \n")
-                .append(" LEFT JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) \n")
+                .append(" INNER JOIN po_department_mapping pdm on ((ppd.po_id IS NOT NULL AND pdm.po_id = ppd.po_id) OR (ppd.po_id IS NULL AND pdm.project_id = p.project_id)) AND pdm.dept_id IN :deptIds \n")
                 .append(" LEFT JOIN project_manager_mapping pm on p.project_id = pm.project_id AND pm.active = 1 \n")
                 .append(" LEFT JOIN employee e1 on e1.emp_id = pm.project_manager_id \n")
-                .append(" LEFT JOIN department d ON pdm.dept_id = d.dept_id AND d.dept_id IN :deptIds \n")
+                .append(" LEFT JOIN department d ON pdm.dept_id = d.dept_id \n")
                 .append(" LEFT JOIN clients c ON p.client_id = c.client_id \n")
                 .append(" LEFT JOIN client_locations cl ON p.client_id = cl.client_id and lower(cl.client_location) != 'wfh' \n");
 

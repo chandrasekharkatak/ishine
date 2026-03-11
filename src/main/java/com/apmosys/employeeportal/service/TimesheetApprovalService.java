@@ -2043,7 +2043,7 @@ public ServiceResponse bulkOrSingleApproveOrReject(BulkTimesheetRequestDTO reque
 			List<TimesheetDocumentDataDTO> docs =
                     docsByTimesheet.get(ts.getTimesheetId());
 
-            if (docs != null) {
+            if (Boolean.TRUE.equals(ts.getIsWorkingDay()) && docs != null) {
 
 				boolean shouldSkip = docs.stream().anyMatch(d -> {
 
@@ -2303,7 +2303,7 @@ private void saveBulkRejectionDetails(BulkTimesheetRequestDTO request) {
         throw new TimesheetApproveValidationFailedException("Rejection reason cannot be null");
     }
     if (remark == null) {
-        throw new TimesheetApproveValidationFailedException("Rejection reason cannot be null");
+        throw new TimesheetApproveValidationFailedException("Rejection Remark cannot be null");
     }
 
     List<TimesheetActionAuditNew> auditList = new ArrayList<>();

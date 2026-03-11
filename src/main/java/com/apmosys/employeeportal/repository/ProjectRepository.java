@@ -5425,6 +5425,7 @@ boolean existsByProjectName(String projectName);
 
 	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto( "
 			+ "p.projectId, p.projectName,p.status,p.poProjectType,p.internalProjectType, \n"
+			+ "CASE WHEN p.poProjectType IS NOT NULL AND TRIM(p.poProjectType) != '' THEN p.poProjectType ELSE p.internalProjectType END , \n"
 			+ "ppd.poId, ppd.poNo, prm.poRequirementMappingId, prm.role, prm.experience, prm.department, \n"
 			+ "t.teamId, t.teamName, c.clientId, c.clientName, \n"
 			+ "e.empId, e.billableType, etm.active, etm.startDate, etm.endDate, etm.employeeTeamMapId, ppd.poStartDate, ppd.poEndDate) \n"
