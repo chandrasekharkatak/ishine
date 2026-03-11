@@ -110,7 +110,7 @@
                 <td>
                   <button class="btn btn-sm btn-outline-primary mb2" type="submit" title="view more"
                     (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp;&nbsp;
-                  
+
 
                   <button *ngIf="userMapping.reject_reportee_timesheet" class="btn btn-sm btn-outline-danger mb2"
                     type="submit" title="Reject"
@@ -740,12 +740,12 @@
                 <td>{{ timesheet.appliedBy }}</td>
                 <td>{{ timesheet.appliedOn }}</td>
                 <td class="ts-actions-cell">
-                  <button type="button" class="ts-action-btn ts-doc-btn" *ngIf="timesheet.documentData.length > 0" (click)="openDocumentPopup(timesheet, null, true)" title="View all documents">
+                  <button type="button" class="ts-action-btn ts-doc-btn" *ngIf="timesheet.documentData.length > 0" (click)="openDocumentPopup(timesheet, null, false)" title="View all documents">
                     <i class="fa fa-eye"></i>
                   </button>
                   <button type="button" class="ts-action-btn ts-approve-btn" *ngIf="selectedStatus === 1 "
                   [disabled]="hasClientApprovalPending(timesheet)"
-                    (click)="approveSingleTimesheet(timesheet)" [title]="hasClientApprovalPending(timesheet) 
+                    (click)="approveSingleTimesheet(timesheet)" [title]="hasClientApprovalPending(timesheet)
             ? 'Client approval for this timesheet is not completed'
             : 'Approve timesheet'">
                     <i class="fas fa-check"></i>
@@ -1042,52 +1042,65 @@
   </div>
 </ng-template>
 
+
 <ng-template #documentViewerModalToggle>
   <div class="doc-modal-lg doc-modal-enterprise">
+
     <div class="doc-header">
       <div class="doc-header-inner">
-        <i class="fas fa-file-alt doc-header-icon" aria-hidden="true"></i>
+        <i class="fas fa-file-alt doc-header-icon"></i>
         <div>
-          <h5 class="doc-header-title">Document preview</h5>
+          <h5 class="doc-header-title">Document Preview</h5>
           <p class="doc-header-subtitle">View document</p>
         </div>
       </div>
-      <button type="button" class="doc-close-btn" (click)="modalRef.close()" aria-label="Close">
+
+      <button type="button" class="doc-close-btn"
+        (click)="clearPreview(); modalRef.close()">
         <i class="fas fa-times"></i>
       </button>
     </div>
+
     <div class="doc-body doc-body-full">
       <div class="doc-right">
-        <div class="doc-panel-title doc-panel-title-right" *ngIf="isToggleMode">
-          <i class="fas fa-file-pdf"></i>
-          <span>Preview</span>
-          <div class="doc-toggle">
-            <button type="button" [class.active]="activeDocType === 'Pending'" (click)="activeDocType='Pending'; loadActiveDocument()">
-              <i class="fas fa-clock"></i> Pending
-            </button>
-            <button type="button" [class.active]="activeDocType === 'Approved'" (click)="activeDocType='Approved'; loadActiveDocument()">
-              <i class="fas fa-check-circle"></i> Approved
-            </button>
-          </div>
-        </div>
-        <div class="doc-panel-title doc-panel-title-right" *ngIf="!isToggleMode">
+
+        <div class="doc-panel-title doc-panel-title-right">
           <i class="fas fa-file-pdf"></i>
           <span>Preview</span>
         </div>
+
         <div class="doc-preview">
-          <iframe *ngIf="safePdfUrl" [src]="safePdfUrl" width="100%" height="100%" frameborder="0" title="Document preview"></iframe>
-          <div *ngIf="!safePdfUrl" class="no-doc-msg">
+
+          <!-- PDF -->
+          <iframe
+            *ngIf="safePreviewUrl && activeFileType === 'pdf'"
+            [src]="safePreviewUrl"
+            width="100%"
+            height="100%"
+            frameborder="0"
+            title="Document preview">
+          </iframe>
+
+          <!-- IMAGE -->
+          <img
+            *ngIf="activePreviewUrl && activeFileType === 'image'"
+            [src]="activePreviewUrl"
+            class="preview-image1"
+            />
+
+          <!-- EMPTY -->
+          <div *ngIf="!safePreviewUrl && !activePreviewUrl" class="no-doc-msg">
             <i class="fas fa-file-alt no-doc-icon"></i>
             <p class="no-doc-title">No document available</p>
           </div>
+
         </div>
+
       </div>
     </div>
+
   </div>
 </ng-template>
-
-
-
 
 <!-- single timesheet reject modal -->
 <!-- <ng-template #singleRejectModal>

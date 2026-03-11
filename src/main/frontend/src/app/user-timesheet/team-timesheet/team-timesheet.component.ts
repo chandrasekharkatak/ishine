@@ -2184,7 +2184,7 @@ closeDocumentPopup() {
 openDocumentPopup(
   timesheet: any,
   docType: 'Pending' | 'Approved',
-  toggleMode: boolean = false,
+  toggleMode: boolean = true,
   project?: any
 ): void {
   this.selectedTimesheet = timesheet;
@@ -2195,7 +2195,6 @@ openDocumentPopup(
 
     this.activeDocProject = project;
   } else {
-    // Otherwise, pick first project that has a document
     const firstDoc = timesheet.documentData?.[0];
     if (firstDoc) {
       this.activeDocProject = this.getProjectById(firstDoc.docsProjectId, timesheet);
@@ -2207,19 +2206,24 @@ openDocumentPopup(
   this.activeDocType =  docType;
 
 
-  if (toggleMode) {
-    this.modalRef = this.modalService.open(
-      this.documentViewerModal,
-      { modalDialogClass: 'modal-lg', backdrop: 'static' }
-    );
-    this.loadActiveDocument();
-  } else {
-    this.modalRef = this.modalService.open(
-      this.documentViewerModalToggle,
-      { modalDialogClass: 'modal-xl', backdrop: 'static' }
-    );
-    this.getDocument(this.activeDocType);
-  }
+if (toggleMode) {
+
+  this.modalRef = this.modalService.open(
+    this.documentViewerModalToggle,
+    { modalDialogClass: 'modal-xl', backdrop: 'static' }
+  );
+
+  this.getDocument(this.activeDocType);
+
+} else {
+
+  this.modalRef = this.modalService.open(
+    this.documentViewerModal,
+    { modalDialogClass: 'modal-xl', backdrop: 'static' }
+  );
+
+  this.loadActiveDocument();
+}
 }
 
 getProjectById(projectId: number, timesheet: any) {
@@ -2603,7 +2607,7 @@ getBulkDocumentDetails(timesheets: any[]) {
     : this.getSelectedTimesheets();
 
     console.log("selectedTimesheets",  this.getSelectedTimesheets());
-    
+
 
   const timesheetIds = selectedTimesheets.map(ts => ts.timesheetId);
     if (!timesheetIds.length) return;
@@ -2611,23 +2615,23 @@ getBulkDocumentDetails(timesheets: any[]) {
     const hasCompOff = selectedTimesheets.some(ts =>
       ts.dayType?.toLowerCase() === 'comp off'
     );
-  
+
     if (hasCompOff) {
-  
+
       const modalRef = this.modalService.open(this.compOffConfirmModal, { centered: true });
-  
+
       modalRef.result.then((result) => {
         if (result === 'APPROVE') {
           this.executeBulkApprove(selectedTimesheets,confirmNightShift);
         }
       }).catch(() => {});
-  
+
       return;
     }
-  
+
     this.executeBulkApprove(selectedTimesheets,confirmNightShift);
 
-  
+
   }
 
 
@@ -3523,7 +3527,7 @@ openBulkRejectPopup(modal: any, ids?: number[]) {
 
   const timesheetIds = selectedTimesheets.map(ts => ts.timesheetId);
 
-  
+
 
   this.selectedTimesheetIds = timesheetIds;
 
