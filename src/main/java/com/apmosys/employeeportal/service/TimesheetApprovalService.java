@@ -2303,7 +2303,7 @@ private void saveBulkRejectionDetails(BulkTimesheetRequestDTO request) {
         throw new TimesheetApproveValidationFailedException("Rejection reason cannot be null");
     }
     if (remark == null) {
-        throw new TimesheetApproveValidationFailedException("Rejection reason cannot be null");
+        throw new TimesheetApproveValidationFailedException("Rejection Remark cannot be null");
     }
 
     List<TimesheetActionAuditNew> auditList = new ArrayList<>();

@@ -750,7 +750,7 @@ public class EmployeeCustomRepository {
                 .append("INNER JOIN department d ON d.dept_id = jr.dept_id \n")
                 .append("LEFT JOIN employee em ON e.manager_id = em.emp_id  \n")
                 .append(" WHERE 1=1 \n")
-                .append("AND e.billable_type IS NULL  \n")
+                .append("AND LOWER(e.billable_type) = 'none' \n")
                 .append("AND e.emp_id NOT BETWEEN 1 AND 6  \n")
                 .append("AND e.employmentstatus != 'InActive' \n");
 

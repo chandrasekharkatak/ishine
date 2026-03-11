@@ -2426,6 +2426,9 @@ onBillableTypeChangeManual() {
 
   if (!this.toggleValue) {
     this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
+    if (this.isClientDashboard) {
+      this.loadDepartmentStatusSummary();
+    }
   } else {
     this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
   }
@@ -2441,15 +2444,15 @@ onBillableTypeChangeManual() {
     }
   }
 
-      onEmployeeStatusChange(event: any) {
-    console.log('Selected Project Status:', this.selectedProjectStatus);
-    // this.getTimesheetDashboardCount(this.month, this.year);
-    // if (!this.toggleValue) {
-    //    this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
-    //    this.loadDepartmentStatusSummary();
-    // } else {
-    //   // this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
-    // }
+  onEmployeeStatusChange(event: any) {
+    console.log('Selected Employee Status:', this.selectedEmployeeStatus);
+    this.getTimesheetDashboardCount(this.month, this.year);
+    if (!this.toggleValue) {
+      this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
+      if (this.isClientDashboard) {
+        this.loadDepartmentStatusSummary();
+      }
+    }
   }
 
   toggleMenu(): void {
@@ -3030,10 +3033,13 @@ selectGlobalPoConflict(val: 'Yes' | 'No' | 'All', event: MouseEvent) {
   event.stopPropagation();
   this.globalPoConflictSelection = val;
   this.isGlobalPoDropdownOpen = false;
-  // Refresh current view + tiles count
-  // this.getTableData(this.selectedStatus, this.month, this.year, this.selectedDeptId, this.isEmployeeRepeatedFlag);
-  // this.getTimesheetDashboardCount(this.month, this.year);
-  // this.loadDepartmentStatusSummary();
+  this.getTimesheetDashboardCount(this.month, this.year);
+  if (!this.toggleValue) {
+    this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
+    if (this.isClientDashboard) {
+      this.loadDepartmentStatusSummary();
+    }
+  }
 }
 
 clearGlobalPoConflict(event: MouseEvent) {
@@ -3043,6 +3049,9 @@ clearGlobalPoConflict(event: MouseEvent) {
 
   this.getTableData(this.selectedStatus, this.month, this.year, this.selectedDeptId, this.isEmployeeRepeatedFlag);
   this.getTimesheetDashboardCount(this.month, this.year);
+  if (this.isClientDashboard && !this.toggleValue) {
+    this.loadDepartmentStatusSummary();
+  }
 }
 
 

@@ -3479,6 +3479,7 @@ public class TeamsService {
 				if (dto != null) {
 					obj.setEmpId(dto.getEmpId());
 					obj.setEmployementId(dto.getEmploymentId());
+					obj.setEmpTeamDepartmentId(dto.getDeptId());
 					obj.setMemberDepartment(dto.getDeptName());
 					obj.setJobRoleName(dto.getJobRole());
 					obj.setBillableType(dto.getBillableType());
@@ -3548,8 +3549,9 @@ public class TeamsService {
 				dto.setTotalExperience(TypeConversionUtil.getSafeString(obj[5]));
 				dto.setBillableType(TypeConversionUtil.getSafeString(obj[6]));
 				dto.setJobRole(TypeConversionUtil.getSafeString(obj[7]));
-				dto.setDeptName(TypeConversionUtil.getSafeString(obj[8]));
-				dto.setEmploymentStatus(TypeConversionUtil.getSafeString(obj[9]));
+				dto.setDeptId(TypeConversionUtil.safeParseLong(obj[8]));
+				dto.setDeptName(TypeConversionUtil.getSafeString(obj[9]));
+				dto.setEmploymentStatus(TypeConversionUtil.getSafeString(obj[10]));
 				empIdInfoMap.put(empId, dto);
 			}
 		}
@@ -4174,6 +4176,7 @@ public class TeamsService {
 				if (dto != null) {
 					obj.setEmpId(dto.getEmpId());
 					obj.setEmployementId(dto.getEmploymentId());
+					obj.setEmpTeamDepartmentId(dto.getDeptId());
 					obj.setMemberDepartment(dto.getDeptName());
 					obj.setJobRoleName(dto.getJobRole());
 					obj.setBillableType(dto.getBillableType());
@@ -5253,6 +5256,7 @@ public class TeamsService {
 
 		List<Employee> empList = employeeRepository.findByEmpIdIn(rmgTeamDto.getRmgTeamMemberList().stream()
 				.map(RmgTeamMemberDto::getEmpId).collect(Collectors.toList()));
+		
 		if (empList == null || empList.isEmpty()) {
 			sb.append("Selected Employee(s) not Found!!");
 			return sb.toString();
@@ -5263,38 +5267,54 @@ public class TeamsService {
 
 		for (RmgTeamMemberDto rmgTeamMember : rmgTeamDto.getRmgTeamMemberList()) {
 			try {
-				EmployeeTeamMap empTeamMapping = empTeamMap.getOrDefault(rmgTeamMember.getEmpId(), null);
+				EmployeeTeamMap empTeamMapping = empTeamMap.get(rmgTeamMember.getEmpId());
 				if (empTeamMapping == null) {
 					sb.append("Employee Team Mapping not found for : ").append(rmgTeamMember.getEmpId()).append(" \n");
 					continue;
 				}
-				Employee emp = empIdAndEmployeeMap.getOrDefault(rmgTeamMember.getEmpId(), null);
+
+				Employee emp = empIdAndEmployeeMap.get(rmgTeamMember.getEmpId());
 				if (emp == null) {
 					sb.append("Employee not found for : ").append(empTeamMapping.getEmpId()).append(" \n");
 					continue;
 				}
+
+				if (empTeamMapping.getStartDate() == null) {
+					throw new IllegalArgumentException("Member Start date cannot be null for EMP ID: " + emp.getEmpId());
+				}
+
 				empTeamMapping.setRescRemovedBy(currentUserEmpId);
 				empTeamMapping.setIsCustomDate(rmgTeamDto.isCustomEndDate());
 				empTeamMapping.setEndDate(rmgTeamDto.getEndDate());
 
-				if (empTeamMapping.getEndDate() != null) {
-					if (empTeamMapping.getStartDate().isAfter(empTeamMapping.getEndDate())) {
-						throw new IllegalArgumentException("End date cannot be less than Start date: " + empTeamMapping.getStartDate());
-					}
-					if (!empTeamMapping.getEndDate().toLocalDate().isAfter(LocalDate.now())) {
-						empTeamMapping.setActive(0L);
-					} else {
-						employeeTeamMapRepository.deleteById(empTeamMapping.getEmployeeTeamMapId());
-						log.error("Employee Team Mapping delete for EMP ID : {}", rmgTeamMember.getEmpId());
-						continue;
-					}
-				} else {
+				LocalDate today = LocalDate.now();
+				LocalDate startDate = empTeamMapping.getStartDate().toLocalDate();
+				LocalDate endDate = empTeamMapping.getEndDate() != null ? empTeamMapping.getEndDate().toLocalDate() : null;
+
+				if (endDate != null && startDate.isAfter(endDate)) {
+					throw new IllegalArgumentException("End date cannot be less than Start date: " + startDate);
+				}
+
+				boolean startInFuture = startDate.isAfter(today);
+				boolean endInPastOrToday = endDate != null && !endDate.isAfter(today);
+
+				// Case 1: Start date in future → delete mapping
+				if (startInFuture) {
+					employeeTeamMapRepository.deleteById(empTeamMapping.getEmployeeTeamMapId());
+					log.info("Employee Team Mapping deleted for EMP ID : {}", rmgTeamMember.getEmpId());
+					continue;
+				}
+				// Case 2: End date is past or today → deactivate
+				if (endInPastOrToday) {
+					empTeamMapping.setActive(0L);
+				}
+				// Case 3: No end date provided → remove immediately
+				if (endDate == null) {
 					empTeamMapping.setActive(0L);
 					empTeamMapping.setEndDate(LocalDateTime.now());
 				}
 
-				employeeTeamMapRepository.save(empTeamMapping); // Sending mail to Individual So saving one object at a
-																// time.
+				employeeTeamMapRepository.save(empTeamMapping);
 				sendResourceRemovalMailToRmg(emp.getName(), project.getProjectName(), team.getTeamName());
 			} catch (Exception e) {
 				log.error("Error in handleRemoveTeamMembers : ", e);
@@ -6035,6 +6055,7 @@ public class TeamsService {
 				if (dto != null) {
 					obj.setEmpId(dto.getEmpId());
 					obj.setEmployementId(dto.getEmploymentId());
+					obj.setEmpTeamDepartmentId(dto.getDeptId());
 					obj.setMemberDepartment(dto.getDeptName());
 					obj.setJobRoleName(dto.getJobRole());
 					obj.setBillableType(dto.getBillableType());
@@ -6060,6 +6081,101 @@ public class TeamsService {
 			log.error("Error in getTeamDetailsByTeamIdsAndProjectId : ", e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong!!");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	@Transactional(rollbackFor = Exception.class)
+	public ServiceResponse updateMemberShadowMapping(RmgTeamMemberDto teamMember) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (teamMember == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Request cannot be null!!");
+				return response;
+			}
+			if (teamMember.getEmpId() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Emp Id cannot be null!!");
+				return response;
+			}
+			if (teamMember.getUpdatedBy() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Current Emp Id cannot be null!!");
+				return response;
+			}
+			if (teamMember.getEndDate() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Current End Date cannot be null!!");
+				return response;
+			}
+			if (teamMember.getStartDate() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("New Start Date cannot be null!!");
+				return response;
+			}
+			if (teamMember.getProjectId() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project Id cannot be null!!");
+				return response;
+			}
+			if (teamMember.getTeamId() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Team Id cannot be null!!");
+				return response;
+			}
+
+			Project project = projectRepository.findByProjectId(teamMember.getProjectId());
+			if (project == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Project not found!!");
+				return response;
+			}
+
+			Team team = teamRepository.findByTeamId(teamMember.getTeamId());
+			if (team == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Team not found!!");
+				return response;
+			}
+
+			Long teamId = team.getTeamId();
+			Long currentUserEmpId = teamMember.getUpdatedBy();
+
+			EmployeeTeamMap existingMap = employeeTeamMapRepository
+					.findByEmpIdAndTeamIdAndActiveStatus(teamMember.getEmpId(), teamId);
+			if (existingMap == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Team Mapping not found!!");
+				return response;
+			}
+
+			existingMap.setActive(0L);
+			existingMap.setEndDate(teamMember.getEndDate());
+			existingMap.setUpdatedBy(currentUserEmpId);
+			employeeTeamMapRepository.save(existingMap);
+
+			EmployeeTeamMap empTeamMap = new EmployeeTeamMap();
+			empTeamMap.setEmpId(teamMember.getEmpId());
+			empTeamMap.setEmployeeRole(existingMap.getEmployeeRole());
+			empTeamMap.setTeamId(teamId);
+			empTeamMap.setStartDate(teamMember.getStartDate() != null ? teamMember.getStartDate() : LocalDateTime.now());
+			empTeamMap.setActive(2L);
+			empTeamMap.setIsShadow(teamMember.getIsShadow() != null ? teamMember.getIsShadow() : null);
+			empTeamMap.setCreatedOn(new Timestamp(System.currentTimeMillis()));
+			empTeamMap.setCreatedBy(currentUserEmpId);
+			empTeamMap.setRoleId(existingMap.getRoleId());
+			empTeamMap.setPoId(existingMap.getPoId());
+			empTeamMap.setEmpTeamDepartmentId(existingMap.getEmpTeamDepartmentId());
+			employeeTeamMapRepository.save(empTeamMap);
+
+			response.setServiceResponse("Employee Project Mapping updated successfully!!");
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+		} catch (Exception e) {
+			log.error("Error in updateMemberShadowMapping : ", e);
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
 		}
 		return response;

@@ -556,7 +556,98 @@ input:checked+.slider:before {
   font-size: 14px;
 }
 
+/* ========== Individual Employee / Project Insight ========== */
+.insight-container {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  padding: 20px 24px;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
 
+.insight-container:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #cbd5e1;
+}
+
+.insight-container__header {
+  margin-bottom: 18px;
+}
+
+.insight-container__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.insight-container__subtitle {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.insight-container__filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px 20px;
+}
+
+.insight-filter-item {
+  flex: 0 0 auto;
+  min-width: 140px;
+}
+
+.insight-filter-item--wide {
+  flex: 1 1 280px;
+  min-width: 200px;
+}
+
+.insight-filter-item--action {
+  flex-shrink: 0;
+}
+
+.insight-filter-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.insight-mat-field {
+  width: 100%;
+  font-size: 0.875rem;
+}
+
+.insight-mat-field .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+.insight-search-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fff;
+  background: #193d8a;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.insight-search-btn:hover {
+  background: #152d6b;
+}
+
+.insight-search-btn:active {
+  transform: scale(0.98);
+}
 
 .search-btn {
   font-weight: 600;
@@ -608,6 +699,7 @@ input:checked+.slider:before {
   transform: translateX(22px);
 }
 
+
 .shadow-effect {
   animation: fadeInUp 0.4s ease-in-out;
 }
@@ -639,6 +731,84 @@ input:checked+.slider:before {
 
 .progress-bar-notFilled {
   background-color: #742e2e;
+}
+
+/* Insight table (modal – Timesheet Details) */
+.insight-table-wrap {
+  margin-bottom: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.insight-timesheet-table {
+  width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.insight-timesheet-table thead th {
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 2px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.insight-timesheet-table tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: middle;
+}
+
+.insight-table-row:hover {
+  background: #f8fafc;
+}
+
+.insight-timesheet-table tbody tr:nth-child(even) {
+  background: #fafbfc;
+}
+
+.insight-timesheet-table tbody tr:nth-child(even):hover {
+  background: #f1f5f9;
+}
+
+.insight-doc-btn {
+  padding: 4px 10px;
+  font-size: 0.8125rem;
+}
+
+.insight-paginator {
+  margin-top: 8px;
+}
+
+.insight-empty {
+  padding: 24px 16px;
+}
+
+@media (max-width: 767px) {
+  .insight-container {
+    padding: 16px;
+  }
+  .insight-container__filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .insight-filter-item,
+  .insight-filter-item--wide {
+    min-width: 0;
+  }
+  .insight-search-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .search-btn {

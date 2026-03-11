@@ -11,6 +11,7 @@ import { FilterStateService } from 'src/app/services/filter-state.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import { environment } from 'src/environments/environment';
 import { Page } from 'src/app/models/page';
+import { firstValueFrom } from 'rxjs';
 
 export interface ColumnConfig {
   field: string;
@@ -101,7 +102,7 @@ export class MyTableComponent {
     return count;
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.hiddenChildCells = new Set();
     if ((this.apiUrl == undefined || this.apiUrl == null) && this.subTableData != undefined && this.subTableData != null) {
       this.data = this.subTableData;
@@ -111,7 +112,7 @@ export class MyTableComponent {
     }
     this.createSearchableColumnList();
     if (this.apiUrl != undefined && this.apiUrl != null) {
-      this.loadData();
+      await this.loadData();
     }
   }
 
@@ -123,9 +124,6 @@ export class MyTableComponent {
 
   createSearchableColumnList() {
     this.searchableColumnList = ["blank"];
-    if (this.isRowExpandable) {
-      this.searchableColumnList.push("blank");
-    }
     if (this.columns && this.columns?.length > 0) {
       this.columns.forEach(column => {
         if (!column?.searchable) {
@@ -155,7 +153,7 @@ export class MyTableComponent {
     return 'USER';
   }
 
-  loadData() {
+  async loadData() {
     if (this.apiUrl == undefined || this.apiUrl == null) {
       return;
     }
@@ -170,8 +168,8 @@ export class MyTableComponent {
     this.pageObj.extraFilter = this.extraParams;
     this.pageObj.currentUserEmpId = this.currentUser?.empId;
     this.pageObj.currentUserType = this.determineUserType();
-
-    this.http.post<any>(this.baseUrl + this.apiUrl, this.pageObj).subscribe(response => {
+    try {
+      const response: any = await firstValueFrom(this.http.post<any>(this.baseUrl + this.apiUrl, this.pageObj));
       if (response != null && response?.serviceResponse != null && response?.serviceStatus === 'Success') {
         this.data = response?.serviceResponse?.content || [];
         if (this.isRowExpandable) {
@@ -184,11 +182,17 @@ export class MyTableComponent {
         } else {
           this.isRowExpandable = false;
         }
+        if (this.isRowExpandable) {
+          this.searchableColumnList.splice(1, 0, "blank");
+        }
+        this.searchableColumnList = [...this.searchableColumnList];
         this.totalRecords = response?.serviceResponse?.totalElements;
       } else {
         this.openAlertMessageModal(response.serviceResponse || 'Something went wrong');
       }
-    });
+    } catch (error) {
+      this.openAlertMessageModal('Something went wrong!!');
+    }
   }
 
   toggleRow(row: any) {
@@ -322,13 +326,13 @@ export class MyTableComponent {
     return rowSpan;
   }
 
-  downloadData() {
+  downloadData(fullDownloadFlag:boolean) {
     if (this.apiUrl == undefined || this.apiUrl == null) {
       return;
     }
     let pageObj: Page = new Page;
     pageObj.page = 0;
-    pageObj.size = 100000;
+    pageObj.size = fullDownloadFlag ?  100000 : this.size;
     pageObj.sortColumn = this.sortColumn || this.defaultSortColumn;
     pageObj.sortDirection = this.sortDirection || 'asc';
     pageObj.searchFilter = this.filters;
