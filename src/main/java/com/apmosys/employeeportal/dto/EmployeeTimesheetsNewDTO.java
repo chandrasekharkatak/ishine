@@ -44,6 +44,7 @@ public class EmployeeTimesheetsNewDTO {
 		private Long employeeManagerId;
 		private Long employeeReportingManagerId;
 		private String approvalsTo;
+		private Boolean isWorkingDay;
 	    
 	    public EmployeeTimesheetsNewDTO(
 	            Long timesheetId,
@@ -125,6 +126,54 @@ public class EmployeeTimesheetsNewDTO {
 	    }
 
 
+
+	    public EmployeeTimesheetsNewDTO(
+	            Long timesheetId,
+	            Long createdBy,
+	            LocalDateTime createdOn,
+	            Long updatedBy,
+	            Boolean isNightShift,
+	            LocalDateTime updatedOn,
+	            LocalDate date,
+	            Integer dayTypeId,
+	            Long empId,
+	            Integer status,
+	            LocalDateTime workCheckIn,
+	            LocalDateTime workCheckOut,
+	            Integer totalWorkingMinutes,
+	            Long leaveTypeMasterId,
+	            String description,
+	            Long currentManagerId,
+	            Long employementID,
+	            String isProd,
+				Long employeeManagerId,
+				Long employeeReportingManagerId,
+				String approvalsTo,
+        		Boolean isWorkingDay
+	    ) {
+	        this.timesheetId = timesheetId;
+	        this.createdBy = createdBy;
+	        this.createdOn = createdOn;
+	        this.updatedBy = updatedBy;
+	        this.isNightShift = isNightShift;
+	        this.updatedOn = updatedOn;
+	        this.date = date;
+	        this.dayTypeId = dayTypeId;
+	        this.empId = empId;
+	        this.status = status;
+	        this.workCheckIn = workCheckIn;
+	        this.workCheckOut = workCheckOut;
+	        this.totalWorkingMinutes = totalWorkingMinutes;
+	        this.leaveTypeMasterId = leaveTypeMasterId;
+	        this.description = description;
+	        this.currentManagerId = currentManagerId;
+	        this.EmployementID = employementID;
+	        this.isProd=isProd;
+			this.employeeReportingManagerId=employeeReportingManagerId;
+			this.employeeManagerId=employeeManagerId;
+			this.approvalsTo=approvalsTo;
+			this.isWorkingDay = isWorkingDay;
+	    }
 
 	    public EmployeeTimesheetsNewDTO(
 	            Long timesheetId,
