@@ -435,12 +435,10 @@
     <br>
 
 
-    <div class="insight-container p-2 rounded shadow-effect" *ngIf="isClientDashboard">
-        <!-- Subtitle -->
-        <div class="mb-3">
-            <h5 class="ms-1 fw-semibold text-secondary">
-                Individual {{ toggleValue ? 'Project' : 'Employee' }} Insight
-            </h5>
+    <div class="insight-container" *ngIf="isClientDashboard">
+        <div class="insight-container__header">
+            <h5 class="insight-container__title">Individual {{ toggleValue ? 'Project' : 'Employee' }} Insight</h5>
+            <p class="insight-container__subtitle">Search by {{ toggleValue ? 'project / PO' : 'employee' }} and date range to view timesheet details</p>
         </div>
 
         <!-- Employee View Fields -->
@@ -471,43 +469,36 @@
                         name="fromDate" [max]="today" required #fromDateRef="ngModel">
                     <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #fromDatePicker></mat-datepicker>
-                    <mat-error *ngIf="fromDateRef.invalid && fromDateRef.touched">
-                        From Date is required
-                    </mat-error>
+                    <mat-error *ngIf="fromDateRef.invalid && fromDateRef.touched">From Date is required</mat-error>
                 </mat-form-field>
             </div>
-
-            <!-- To Date -->
-            <div class="col-md-2">
-                <mat-form-field appearance="fill" class="w-100">
-                    <mat-label>To Date</mat-label>
+            <div class="insight-filter-item">
+                <label class="insight-filter-label">To Date</label>
+                <mat-form-field appearance="outline" class="insight-mat-field">
                     <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate" name="toDate"
                         [max]="today" [min]="fromDate" required #toDateRef="ngModel">
                     <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #toDatePicker></mat-datepicker>
-                    <mat-error *ngIf="toDateRef.invalid && toDateRef.touched">
-                        To Date is required
-                    </mat-error>
+                    <mat-error *ngIf="toDateRef.invalid && toDateRef.touched">To Date is required</mat-error>
                 </mat-form-field>
             </div>
-
-            <!-- Search Button -->
-            <div class="col-md-1 d-flex justify-content-end align-items-end" style="padding-bottom: 22px;">
-                <button type="button" class="btn btn-icon"
+            <div class="insight-filter-item insight-filter-item--action">
+                <label class="insight-filter-label">&nbsp;</label>
+                <button type="button" class="insight-search-btn"
                     (click)="searchTimesheet(timesheet_details, alert_message, true)" title="Search">
                     <i class="fa fa-search"></i>
+                    <span>Search</span>
                 </button>
             </div>
-
         </div>
 
         <!-- Project View Fields -->
-        <div class="row g-3 align-items-center" *ngIf="toggleValue">
-            <!-- Project Search -->
-            <div class="col-md-7">
-                <mat-form-field appearance="fill" class="w-100">
-                    <mat-label>Search By Project/PoNo</mat-label>
-                    <input matInput placeholder="Search By Project Name or PoNo" [formControl]="projectPoCtrl" required
+        <div class="insight-container__filters" *ngIf="toggleValue">
+            <div class="insight-filter-item insight-filter-item--wide">
+                <label class="insight-filter-label">Search By Project / PO</label>
+                <mat-form-field appearance="outline" class="insight-mat-field">
+                    <mat-label>Project Name or PoNo</mat-label>
+                    <input matInput [formControl]="projectPoCtrl" required
                         [matAutocomplete]="auto" (input)="onProjectInputChange()">
                     <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onProjectSelected($event)"
                         [displayWith]="displayProject">
@@ -515,44 +506,34 @@
                             {{ emp.projectName }}
                         </mat-option>
                     </mat-autocomplete>
-                    <mat-error *ngIf="projectPoCtrl.invalid && projectPoCtrl.touched">
-                        Project/PoNo is required
-                    </mat-error>
+                    <mat-error *ngIf="projectPoCtrl.invalid && projectPoCtrl.touched">Project/PoNo is required</mat-error>
                 </mat-form-field>
             </div>
-
-            <!-- From Date -->
-            <div class="col-md-2">
-                <mat-form-field appearance="fill" class="w-100">
-                    <mat-label>From Date</mat-label>
+            <div class="insight-filter-item">
+                <label class="insight-filter-label">From Date</label>
+                <mat-form-field appearance="outline" class="insight-mat-field">
                     <input matInput [matDatepicker]="fromDatePicker" placeholder="From" [(ngModel)]="fromDate"
                         name="fromDate" [max]="today" required #fromDateRef="ngModel">
                     <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #fromDatePicker></mat-datepicker>
-                    <mat-error *ngIf="fromDateRef.invalid && fromDateRef.touched">
-                        From Date is required
-                    </mat-error>
+                    <mat-error *ngIf="fromDateRef.invalid && fromDateRef.touched">From Date is required</mat-error>
                 </mat-form-field>
             </div>
-
-            <!-- To Date -->
-            <div class="col-md-2">
-                <mat-form-field appearance="fill" class="w-100">
-                    <mat-label>To Date</mat-label>
+            <div class="insight-filter-item">
+                <label class="insight-filter-label">To Date</label>
+                <mat-form-field appearance="outline" class="insight-mat-field">
                     <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate" name="toDate"
                         [min]="fromDate" [max]="today" required #toDateRef="ngModel">
                     <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
                     <mat-datepicker #toDatePicker></mat-datepicker>
-                    <mat-error *ngIf="toDateRef.invalid && toDateRef.touched">
-                        To Date is required
-                    </mat-error>
+                    <mat-error *ngIf="toDateRef.invalid && toDateRef.touched">To Date is required</mat-error>
                 </mat-form-field>
             </div>
-
-            <!-- Search Button -->
-            <div class="col-md-1 d-flex justify-content-end align-items-end" style="padding-bottom: 22px;">
-                <button type="button" class="btn btn-icon" (click)="openProjectInsightModal()" title="Search">
+            <div class="insight-filter-item insight-filter-item--action">
+                <label class="insight-filter-label">&nbsp;</label>
+                <button type="button" class="insight-search-btn" (click)="openProjectInsightModal()" title="Search">
                     <i class="fa fa-search"></i>
+                    <span>Search</span>
                 </button>
             </div>
         </div>
@@ -1615,76 +1596,62 @@
 
     <div class="modal-body">
         <div *ngIf="employeeTimesheet && employeeTimesheet.length > 0">
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                    <thead class="thead-light">
-                        <tr>
-                            <th>Sr No.</th>
-                            <th style="min-width: 120px">Date</th>
-                            <th style="min-width: 100px">Day Type</th>
-                            <th style="min-width: 200px">Employee Name</th>
-                            <th style="min-width: 200px">Project Name</th>
-                            <th style="min-width: 200px">Team Name</th>
-                            <th style="min-width: 200px">Activity</th>
-                            <th style="min-width: 200px">Description</th>
-                            <th style="min-width: 150px">Total Time (hrs)</th>
-                            <th style="min-width: 200px">Manager</th>
-                            <th style="min-width: 200px">Filled Client Attendance Preview </th>
-                            <th style="min-width: 200px">Approved Client Attendance Preview </th>
-                            <!-- <th style="min-width: 100px">Action</th> -->
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngFor="let entry of employeeTimesheet; let i = index">
-                            <td>{{ (insightPage - 1) * insightPageSize + i + 1 }}</td>
-                            <td>{{ entry.date | date: 'dd-MM-yyyy' }}</td>
-                            <td>{{ entry.dayType }}</td>
-                            <td>{{ entry.employeeName }}</td>
-                            <td>{{ entry.projectName }}</td>
-                            <td>{{ entry.teamName }}</td>
-                            <td>{{ entry.activity }}</td>
-                            <td>{{ entry.description }}</td>
-                            <td>{{ entry.totalTime }}</td>
-                            <td>{{ entry.managerName }}</td>
-                            <td *ngIf="entry.filledDocument">
-                                <button *ngIf="entry.filledDocument" class="btn btn-sm btn-outline-primary mb3"
-                                    type="submit" title="copy timesheet"
-                                    (click)="getDoscForPreview(entry.filledDocument)"><em>View
-                                        Doc</em></button>&nbsp;
-                            </td>
-                            <td *ngIf="!entry.filledDocument">
-                                {{entry.filledDocument || "NA"}}
-                            </td>
-                            <td *ngIf="entry.approvedDocument">
-                                <button *ngIf="entry.approvedDocument" class="btn btn-sm btn-outline-primary mb3"
-                                    type="submit" title="copy timesheet"
-                                    (click)="getDoscForPreview(entry.approvedDocument)"><em>View
-                                        Doc</em></button>&nbsp;
-                            </td>
-                            <td *ngIf="!entry.approvedDocument">
-                                {{entry.approvedDocument || "NA"}}
-                            </td>
-                            <!-- <td>
-                                <button class="btn btn-sm btn-success mr-1" (click)="approveTimesheet(entry)"><i
-                                        class="fa-solid fa-check"></i></button>
-                                <button class="btn btn-sm btn-danger" (click)="rejectTimesheet(entry)"><i
-                                        class="fa-solid fa-circle-xmark"></i></button>
-                            </td> -->
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="insight-table-wrap">
+                <div class="table-responsive">
+                    <table class="table insight-timesheet-table">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Sr No.</th>
+                                <th>Date</th>
+                                <th>Day Type</th>
+                                <th>Employee Name</th>
+                                <th>Project Name</th>
+                                <th>Team Name</th>
+                                <th>Activity</th>
+                                <th>Description</th>
+                                <th>Total Time (hrs)</th>
+                                <th>Manager</th>
+                                <th>Filled Client Attendance</th>
+                                <th>Approved Client Attendance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let entry of employeeTimesheet; let i = index" class="insight-table-row">
+                                <td>{{ (insightPage - 1) * insightPageSize + i + 1 }}</td>
+                                <td>{{ entry.date | date: 'dd-MM-yyyy' }}</td>
+                                <td>{{ entry.dayType }}</td>
+                                <td>{{ entry.employeeName }}</td>
+                                <td>{{ entry.projectName }}</td>
+                                <td>{{ entry.teamName }}</td>
+                                <td>{{ entry.activity }}</td>
+                                <td>{{ entry.description }}</td>
+                                <td>{{ entry.totalTime }}</td>
+                                <td>{{ entry.managerName }}</td>
+                                <td>
+                                    <button *ngIf="entry.filledDocument" class="btn btn-sm btn-outline-primary insight-doc-btn"
+                                        type="button" title="View document"
+                                        (click)="getDoscForPreview(entry.filledDocument)">View Doc</button>
+                                    <span *ngIf="!entry.filledDocument">NA</span>
+                                </td>
+                                <td>
+                                    <button *ngIf="entry.approvedDocument" class="btn btn-sm btn-outline-primary insight-doc-btn"
+                                        type="button" title="View document"
+                                        (click)="getDoscForPreview(entry.approvedDocument)">View Doc</button>
+                                    <span *ngIf="!entry.approvedDocument">NA</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
-            <!-- Pagination -->
-            <!-- <pagination-controls class="my-pagination" [hidden]="employeeTimesheet.length == 0"
-                (pageChange)="handlePageChange($event)"></pagination-controls> -->
-            <mat-paginator *ngIf="employeeTimesheet.length > 0" [length]="insightPageTotalItems"
+            <mat-paginator *ngIf="employeeTimesheet.length > 0" class="insight-paginator" [length]="insightPageTotalItems"
                 [pageSize]="insightPageSize" [pageIndex]="insightPage-1" [pageSizeOptions]="[5, 10, 20]"
                 (page)="handleInsightPageChange($event,'empTimeSheetSearch')">
             </mat-paginator>
         </div>
 
-        <div *ngIf="employeeTimesheet?.length === 0">
+        <div *ngIf="employeeTimesheet?.length === 0" class="insight-empty">
             <p class="text-center text-muted">No timesheet data found for the selected employee and date range.</p>
         </div>
     </div>
