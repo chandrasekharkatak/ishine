@@ -3020,7 +3020,7 @@ onOutSideClick(event: MouseEvent): void {
   const target = event.target as HTMLElement;
 
   // keep your existing close logic if any
-  if (!target.closest('.col-md-1')) {
+  if (!target.closest('.po-export-wrap')) {
     this.menuVisible = false;
   }
 

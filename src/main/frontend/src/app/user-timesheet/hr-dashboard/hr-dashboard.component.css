@@ -4062,6 +4062,7 @@ input:checked+.slider:before {
   z-index: 1000;
   animation: fadeIn 0.15s ease;
   overflow: hidden;
+  z-index: 1001;
 }
 
 @keyframes fadeIn {
