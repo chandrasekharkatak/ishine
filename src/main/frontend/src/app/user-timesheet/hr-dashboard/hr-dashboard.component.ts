@@ -769,7 +769,7 @@ isGlobalPoDropdownOpen = false;
   }
 
   refreshDashboard(): void {
-    this.getTimesheetDashboardCount(this.month, this.year);
+    // this.getTimesheetDashboardCount(this.month, this.year);
     // this.loadDashboardData();
     this.setLastUpdatedTime();
     this.TotalEmployeeCount();
@@ -778,6 +778,7 @@ isGlobalPoDropdownOpen = false;
     this.ishineCompletion();
     // this.vmsNotFilled();
     // this.ishineNotFilled();
+    this.onBillableTypeChangeManual();
   }
 
   setLastUpdatedTime(): void {
