@@ -312,7 +312,7 @@ firt share list of feature and then go one by one details, nothing to be missed
             </td>
           </tr>
           <tr class="tr-row"
-            *ngFor="let t of allTimesheetApplicationsList | paginate:{id:'viewTimesheetReportPagination', itemsPerPage:itemsPerPage, currentPage:page, totalItems:totalItems}">
+            *ngFor="let t of allTimesheetApplicationsList">
             <td>{{ t.employeementId || 'NA' }}</td>
             <td>{{ t.employeeType || 'NA' }}</td>
             <td class="text-capitalize" *ngIf="userMapping.reports_employee_360" id="clickablefor360"
@@ -354,9 +354,9 @@ firt share list of feature and then go one by one details, nothing to be missed
       <pagination-controls class="tr-pagination" *ngIf="showDetailsTimesheet" [hidden]="filteredTimesheets.length == 0"
         (pageChange)="handlePageChange($event)">
       </pagination-controls>
-      <pagination-controls class="tr-pagination" *ngIf="!showDetailsTimesheet" id="viewTimesheetReportPagination"
-        [maxSize]="5" [autoHide]="true" (pageChange)="handlePageChangeForViweTimesheetReport($event)">
-      </pagination-controls>
+      <mat-paginator *ngIf="!showDetailsTimesheet" [length]="totalItems" [pageSize]="pageSize" [pageIndex]="page"
+        [pageSizeOptions]="[10, 20, 50, 100]" (page)="handlePageChangeForViweTimesheetReport($event)">
+      </mat-paginator>
     </div>
   </div>
 

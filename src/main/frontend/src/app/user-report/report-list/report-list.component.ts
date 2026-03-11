@@ -29,6 +29,7 @@ import { TimesheetService } from 'src/app/services/timesheet.service';
 import { UtilityService } from 'src/app/services/utility.service';
 import { ValidationService } from 'src/app/services/validation.service';
 import * as XLSX from 'xlsx';
+import { PageEvent } from "@angular/material/paginator";
 
 class FilterData {
   title: any;
@@ -363,7 +364,7 @@ dateRange: string; type: string; count: string;
     });
     console.log("userMapping", this.userMapping);
     this.setRmgToggleViewVisible();
-    
+
     await this.getAllDepartments();
 
     this.preventBackButton();
@@ -1796,8 +1797,8 @@ onSearchClientProject(searchData: any) {
     const queryObj: any = {
     queryList: finalQueryList,
     empId: this.currentUser.empId,
-    page: this.page - 1,
-    size: this.itemsPerPage,
+    page: this.viewReportPage,
+    size: this.pageSize,
     sortColumn: this.sortColumn,
     sortDirection: this.sortDirection,
     exportAll: exportAll || false
@@ -1811,7 +1812,8 @@ onSearchClientProject(searchData: any) {
         if (response.serviceStatus == "Success") {
           this.allTimesheetApplicationsList = response.serviceResponse.content;
              this.totalItems = response.serviceResponse.totalElements;
-             this.itemsPerPage = queryObj.size;
+          this.viewReportPage = response.serviceResponse.pageable.pageNumber;
+          this.pageSize = response.serviceResponse.pageable.pageSize;
 
           if (this.allTimesheetApplicationsList.length == 0) {
             this.openAlertMod(this.alertModal, "No Timesheet Application Report found ");
@@ -1843,7 +1845,7 @@ onSearchClientProject(searchData: any) {
         } else {
           this.openAlertMod(template, response.serviceResponse);
           this.totalItems = 0;
-          this.itemsPerPage = 0;
+          this.viewReportPage = 0;
         }
       });
     }
@@ -2438,6 +2440,10 @@ onSearchClientProject(searchData: any) {
   page = 1;
   itemsPerPage = 5;
   page1 = 1;
+// added for server side mat paginator
+pageSize = 20;
+viewReportPage = 0;
+
   handlePageChange(event) {
     this.page = event;
   }
@@ -2452,9 +2458,10 @@ handlePageChange1(event) {
   }
 
 
-  handlePageChangeForViweTimesheetReport(event: number) {
-    this.page = event;
-    this.getCustomTimesheetApplicationsList(this.activeQueryList,this.alertTemplate);
+  handlePageChangeForViweTimesheetReport(event: PageEvent) {
+    this.viewReportPage = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.getCustomTimesheetApplicationsList(this.activeQueryList, this.alertTemplate);
   }
 
   sortDataForTimesheetLeaveReport(sort: Sort) {
