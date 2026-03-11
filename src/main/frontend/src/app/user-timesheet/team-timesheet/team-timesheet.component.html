@@ -888,48 +888,62 @@
     <div class="doc-body">
       <div class="doc-left">
         <div class="doc-panel-title">
-          <i class="fas fa-briefcase"></i>
+          <i class="fa-solid fa-briefcase doc-header-icon"></i>
           <span>Projects</span>
         </div>
-        <div class="doc-table-wrap">
-          <table class="project-table doc-project-table">
-            <thead>
-              <tr>
-                <th>Sr No</th>
-                <th>Project name</th>
-                <th>Docs</th>
-                <th>Filled</th>
-                <th>Approved</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let p of getUniqueProjectsFromTimesheet(selectedTimesheet); let i = index"
-                  [class.active]="p === activeDocProject" >
-                <td>{{ i + 1 }}</td>
-                <td class="doc-project-name" (click)="selectProjectForDoc(p)">{{ p.projectName }}</td>
-                <td class="count" (click)="selectProjectForDoc(p)">{{ getTotalDocCount(p.projectId) }}</td>
-                <td>
-                  <span class="badge filled" [class.disabled]="!hasPendingDoc(p.projectId) && !hasApprovedDoc(p.projectId)" (click)="switchDocType('Pending')">
-                    Filled <button type="button" [class.active]="activeDocType === 'Pending'" (click)="selectProjectForDoc(p);switchDocType('Pending')"
-                    [disabled]="!hasPendingDoc(activeDocProject?.projectId)">
-                    <i class="fa-solid fa-eye"></i></button>
-                  </span>
-                </td>
-                <td>
-                  <span class="badge approved" [class.disabled]="!hasApprovedDoc(p.projectId)">Approved
-                   <button type="button" [class.active]="activeDocType === 'Approved'" (click)="selectProjectForDoc(p);switchDocType('Approved')"
-                    [disabled]="!hasApprovedDoc(activeDocProject?.projectId)">
-                    <i class="fa-solid fa-eye"></i></button>
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="doc-card-container">
+
+  <div class="doc-project-card"
+       *ngFor="let p of getUniqueProjectsFromTimesheet(selectedTimesheet); let i = index"
+       [class.active]="p === activeDocProject"
+       (click)="selectProjectForDoc(p)">
+
+    <!-- Card Header -->
+    <div class="doc-card-header">
+      <div class="doc-sr">{{ i + 1 }}</div>
+
+      <div class="doc-project-info">
+        <div class="doc-project-name">
+          {{ p.projectName }}
         </div>
+
+        <div class="doc-count">
+          <i class="fa-solid fa-file-lines"></i>
+          {{ getTotalDocCount(p.projectId) }} Docs
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="doc-actions">
+
+      <button class="doc-btn filled"
+              [class.active]="activeDocType === 'Pending' && p === activeDocProject"
+              (click)="selectProjectForDoc(p);switchDocType('Pending');$event.stopPropagation()"
+              [disabled]="!hasPendingDoc(p.projectId)">
+
+        <i class="fa-solid fa-file-pen"></i>
+        Filled
+      </button>
+
+      <button class="doc-btn approved"
+              [class.active]="activeDocType === 'Approved' && p === activeDocProject"
+              (click)="selectProjectForDoc(p);switchDocType('Approved');$event.stopPropagation()"
+              [disabled]="!hasApprovedDoc(p.projectId)">
+
+        <i class="fa-solid fa-circle-check"></i>
+        Approved
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
       </div>
       <div class="doc-right">
         <div class="doc-panel-title doc-panel-title-right">
-          <i class="fas fa-file-pdf"></i>
+          <i class="fa-solid fa-file doc-header-icon"></i>
           <span>Preview</span>
           <span>{{ activeDocProject?.projectName }}</span>
           <div class="doc-toggle">

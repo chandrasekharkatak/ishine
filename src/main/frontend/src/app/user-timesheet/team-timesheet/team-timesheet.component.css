@@ -2247,8 +2247,9 @@ th {
     align-items: center;
     justify-content: space-between;
 
-    background: linear-gradient(135deg, #4f46e5, #6366f1);
-    color: #ffffff;
+    background: linear-gradient(135deg, #1e3a8a 0%, #243b7a 100%);
+  padding: 22px 28px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 
     border-top-left-radius: 12px;
     border-top-right-radius: 12px;
@@ -4282,7 +4283,6 @@ tr[app-column-filter-bar] .clear-filter:hover {
   min-height: 85vh;
   border-radius: 12px;
   overflow: hidden;
-  background: #f8fafc;
   border: 1px solid #e2e8f0;
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
 }
@@ -4295,7 +4295,7 @@ tr[app-column-filter-bar] .clear-filter:hover {
   justify-content: space-between;
   padding: 0 20px;
   height: 64px;
-  background: #1e3a5f;
+  /* background: #1e3a5f; */
   color: #fff;
   border-bottom: none;
   border-radius: 0;
@@ -4319,7 +4319,18 @@ tr[app-column-filter-bar] .clear-filter:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgb(0 0 0 / 15%);
+  border-radius: 10px;
+  font-size: 1.125rem;
+}
+
+.doc-modal-enterprise .doc-header-icon-priview {
+   width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 15%);
   border-radius: 10px;
   font-size: 1.125rem;
 }
@@ -4375,7 +4386,7 @@ tr[app-column-filter-bar] .clear-filter:hover {
 }
 
 .doc-modal-enterprise .doc-left {
-  width: 42%;
+  width: 40%;
   min-width: 280px;
   flex-shrink: 0;
   display: flex;
@@ -4406,16 +4417,19 @@ tr[app-column-filter-bar] .clear-filter:hover {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 20px;
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 9px 20px;
+  background: #e7eefd;
+  border: 1px solid #d7e3ff;
+  color: #294172;
+  /* border-radius: 12px; */
+  /* padding: 22px 28px; */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #1e293b;
 }
 
 .doc-modal-enterprise .doc-panel-title i {
-  color: #64748b;
+  color: #f0f0f0;
   font-size: 1rem;
 }
 
@@ -5074,7 +5088,122 @@ tr[app-column-filter-bar] .clear-filter:hover {
   }
 }
 
+/* Container */
+.doc-card-container{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:14px;
+  padding:8px;
+}
 
+/* Card */
+.doc-project-card{
+  background:#ffffff;
+  border-radius:10px;
+  padding:14px;
+  border:1px solid #e5e7eb;
+  cursor:pointer;
+  transition:all .25s ease;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  min-height:120px;
+}
+
+.doc-project-card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 8px 18px rgba(0,0,0,0.08);
+}
+
+.doc-project-card.active{
+  border:2px solid #2563eb;
+  background:#f8fbff;
+}
+
+/* Header */
+.doc-card-header{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+}
+
+/* Serial number */
+.doc-sr{
+  width:30px;
+  height:30px;
+  background:#1e3a5f;
+  color:white;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:600;
+  font-size:13px;
+}
+
+/* Project name */
+.doc-project-name{
+  font-weight:600;
+  font-size:14px;
+  color:#1f2937;
+  margin-bottom:3px;
+}
+
+/* Doc count */
+.doc-count{
+  font-size:13px;
+  color:#6b7280;
+}
+
+/* Buttons container */
+.doc-actions{
+  display:flex;
+  gap:10px;
+  margin-top:12px;
+}
+
+/* Buttons */
+.doc-btn{
+  flex:1;
+  border:none;
+  padding:7px 10px;
+  border-radius:6px;
+  font-size:13px;
+  font-weight:500;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  transition:all .2s;
+}
+
+/* Filled button */
+.doc-btn.filled{
+  background:#e0f2fe;
+  color:#0369a1;
+}
+
+.doc-btn.filled.active{
+  background:#0284c7;
+  color:white;
+}
+
+/* Approved button */
+.doc-btn.approved{
+  background:#dcfce7;
+  color:#15803d;
+}
+
+.doc-btn.approved.active{
+  background:#16a34a;
+  color:white;
+}
+
+/* Disabled */
+.doc-btn:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
 
 
 

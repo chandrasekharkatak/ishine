@@ -2210,7 +2210,7 @@ openDocumentPopup(
   if (toggleMode) {
     this.modalRef = this.modalService.open(
       this.documentViewerModal,
-      { modalDialogClass: 'modal-xl', backdrop: 'static' }
+      { modalDialogClass: 'modal-lg', backdrop: 'static' }
     );
     this.loadActiveDocument();
   } else {
