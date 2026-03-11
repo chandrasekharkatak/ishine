@@ -11,6 +11,8 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { TrainingService } from 'src/app/services/training.service';
 import * as pdfjsLib from 'pdfjs-dist';
 import { GlobalWorkerOptions } from 'pdfjs-dist';
+import * as ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 
 GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
@@ -1932,5 +1934,163 @@ async parsePDFFile(file: File): Promise<void> {
   }
 }
 
+downloadResponsesToExcel(): void {
+  if (!this.allTrainingResponse || this.allTrainingResponse.length === 0) {
+    this.openAlertMod(this.alertTemplate, 'No data available to download', 'warning');
+    return;
+  }
+
+  try {
+    // Create a new workbook
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = this.currentUser?.name || 'System';
+    workbook.created = new Date();
+    workbook.modified = new Date();
+
+    // Add a worksheet
+    const worksheet = workbook.addWorksheet('Training Responses', {
+      properties: { tabColor: { argb: 'FF2E75B6' } },
+      pageSetup: { paperSize: 9, orientation: 'landscape' }
+    });
+
+    // Define columns based on your data structure
+    // Adjust these column definitions based on your actual response data structure
+    const columns = [
+      { header: 'S.No', key: 'sno', width: 8 },
+      { header: 'Employee Name', key: 'empName', width: 25 },
+      { header: 'Last Completed Cycle', key: 'lastCompletedCycleNumber', width: 18 },
+      { header: 'Last Completed On', key: 'lastCompletedOn', width: 18 },
+      { header: 'Consent Given', key: 'consentGiven', width: 15 },
+      { header: 'Status', key: 'status', width: 15 },
+    ];
+
+    worksheet.columns = columns;
+
+    // Style the header row
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 12 };
+    headerRow.fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF2E75B6' }
+    };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    headerRow.height = 25;
+
+    // Add data rows
+    this.allTrainingResponse.forEach((response: any, index: number) => {
+      // Map your response object to row data
+      // Adjust this mapping based on your actual response structure
+      const rowData = {
+        sno: index + 1,
+        empName: response.empName || response.employeeName || '',
+        lastCompletedCycleNumber: response.lastCompletedCycleNumber || '',
+        lastCompletedOn: response.lastCompletedOn 
+          ? this.date.transform(response.lastCompletedOn, 'dd-MMM-yyyy') 
+          : '',
+        consentGiven: response.consentGiven?.toLowerCase() == 'true' ? 'Yes' : 'No',
+        status: 'Completed',
+      };
+
+      const row = worksheet.addRow(rowData);
+
+      // Style data rows
+      row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+        cell.alignment = { 
+          vertical: 'middle', 
+          horizontal: colNumber === 1 ? 'center' : 'left',
+          wrapText: true
+        };
+        cell.font = { size: 11 };
+        
+        // Add borders
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+          left: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+          bottom: { style: 'thin', color: { argb: 'FFD3D3D3' } },
+          right: { style: 'thin', color: { argb: 'FFD3D3D3' } }
+        };
+      });
+
+      // Color code based on status
+      if (rowData.status?.toLowerCase() === 'completed') {
+        row.getCell('status').fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFC6EFCE' } // Light green
+        };
+      } else if (rowData.status?.toLowerCase() === 'incomplete' || rowData.status?.toLowerCase() === 'pending') {
+        row.getCell('status').fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFFC7CE' } // Light red
+        };
+      } else if (rowData.status?.toLowerCase() === 'in progress') {
+        row.getCell('status').fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFFEB9C' } // Light yellow
+        };
+      }
+    });
+
+    // Auto-filter
+    worksheet.autoFilter = {
+      from: { row: 1, column: 1 },
+      to: { row: 1, column: columns.length }
+    };
+
+    // Add summary row at the bottom (optional)
+    const summaryRow = worksheet.addRow({
+      sno: 'Total',
+      empName: `${this.allTrainingResponse.length} Responses`
+    });
+    summaryRow.font = { bold: true };
+    summaryRow.getCell('sno').alignment = { horizontal: 'right' };
+    summaryRow.getCell('empName').alignment = { horizontal: 'left' };
+
+    // Merge cells for summary if needed
+    worksheet.mergeCells(`A${worksheet.rowCount}:B${worksheet.rowCount}`);
+
+    // Generate Excel file
+    workbook.xlsx.writeBuffer().then((buffer) => {
+      const blob = new Blob([buffer], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+      
+      // Generate filename with training name and timestamp
+      const trainingName = this.selectedTraining?.trainingName || 'Training';
+      const timestamp = this.date.transform(new Date(), 'ddMMMyyyy_HHmm') || new Date().getTime().toString();
+      const fileName = `${trainingName}_Responses_${timestamp}.xlsx`;
+      
+      saveAs(blob, fileName);
+      
+      this.openAlertMod(this.alertTemplate, 'Excel file downloaded successfully', 'success');
+    }).catch((error) => {
+      console.error('Error generating Excel file:', error);
+      this.openAlertMod(this.alertTemplate, 'Failed to generate Excel file', 'error');
+    });
+
+  } catch (error) {
+    console.error('Error in downloadResponsesToExcel:', error);
+    this.openAlertMod(this.alertTemplate, 'Failed to download Excel file', 'error');
+  }
+}
+
+// Add this to your component class
+getCompletedCount(): number {
+  return this.allTrainingResponse.filter(r => 
+    r.lastCompletedCycleNumber && r.lastCompletedCycleNumber > 0
+  ).length;
+}
+
+getPendingCount(): number {
+  return this.allTrainingResponse.filter(r => 
+    !r.lastCompletedCycleNumber || r.lastCompletedCycleNumber === 0
+  ).length;
+}
+
+// Also add Math to component if not already added
+Math = Math;
 
 }
