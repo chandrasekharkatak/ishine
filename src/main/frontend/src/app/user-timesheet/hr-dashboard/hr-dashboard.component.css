@@ -3969,6 +3969,374 @@ input:checked+.slider:before {
   font-size: 12px;
 }
 
+/* ============================================================
+   PROJECT OVERVIEW SECTION
+   ============================================================ */
+
+.po-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* ── Header ── */
+.po-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.po-header__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.po-header__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.po-header__count {
+  font-size: 12px;
+  color: #94a3b8;
+  background: #f1f5f9;
+  padding: 2px 10px;
+  border-radius: 20px;
+}
+
+.po-header__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Icon Buttons ── */
+.po-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.po-icon-btn:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.po-icon-btn--active {
+  background: #1a2e44;
+  color: #ffffff;
+  border-color: #1a2e44;
+}
+
+/* ── Export Dropdown ── */
+.po-export-wrap {
+  position: relative;
+}
+
+.po-export-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  min-width: 220px;
+  z-index: 1000;
+  animation: fadeIn 0.15s ease;
+  overflow: hidden;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.po-export-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: #1e293b;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.po-export-item:hover {
+  background: #f1f5f9;
+  color: #1a2e44;
+}
+
+.po-export-item i {
+  color: #1a2e44;
+  font-size: 14px;
+  width: 16px;
+  text-align: center;
+}
+
+/* ── Table Card ── */
+.po-table-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+
+/* ── Table Container ── */
+.po-table-container {
+  max-height: 420px;
+  overflow-x: auto;
+  overflow-y: auto;
+  width: 100%;
+}
+
+/* ── Table ── */
+.po-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  white-space: nowrap;
+}
+
+/* ── Header ── */
+.po-thead tr:first-child th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #1a2e44;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 10px 12px;
+  border-right: 1px solid rgba(255,255,255,0.08);
+  min-width: 150px;
+  white-space: nowrap;
+}
+
+.po-thead tr:first-child th:last-child {
+  border-right: none;
+}
+
+/* ── Search Row ── */
+.po-search-row td {
+  background: #f8fafc;
+  padding: 6px 8px;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 41px;
+  z-index: 9;
+}
+
+.po-search-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.po-search-input {
+  width: 100%;
+  font-size: 12px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  padding: 4px 26px 4px 8px;
+  outline: none;
+  color: #1e293b;
+  background: #ffffff;
+}
+
+.po-search-input:focus {
+  border-color: #1a73e8;
+}
+
+.po-search-icon {
+  position: absolute;
+  right: 8px;
+  font-size: 11px;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+/* ── Body Rows ── */
+.po-row td {
+  padding: 9px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+  vertical-align: middle;
+}
+
+.po-row:hover td {
+  background: #f8fafc;
+}
+
+/* ── Project Name Cell ── */
+.po-name-cell {
+  position: relative;
+  min-width: 240px;
+}
+
+.po-project-name {
+  color: #1a73e8;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.po-project-name:hover {
+  text-decoration: underline;
+}
+
+/* ── Hover Popup ── */
+.po-hover-popup {
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  transform: translateY(-50%);
+  margin-left: 8px;
+  z-index: 700;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  padding: 8px;
+  display: flex;
+  gap: 8px;
+  min-width: 260px;
+}
+
+/* ── Popup Buttons ── */
+.po-popup-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.po-popup-btn--project {
+  background: #e7f1ff;
+  color: #0056b3;
+  border-color: #b3d4fc;
+}
+
+.po-popup-btn--project:hover {
+  background: #d0e7ff;
+}
+
+.po-popup-btn--timesheet {
+  background: #fef6e4;
+  color: #b76e00;
+  border-color: #ffd580;
+}
+
+.po-popup-btn--timesheet:hover {
+  background: #ffecb3;
+}
+
+/* ── Progress Bar ── */
+.po-progress-wrap {
+  position: relative;
+  background: #f1f5f9;
+  border-radius: 4px;
+  height: 20px;
+  min-width: 100px;
+  overflow: hidden;
+}
+
+.po-progress-bar {
+  height: 100%;
+  border-radius: 4px;
+  min-width: 2px;
+  transition: width 0.3s ease;
+}
+
+.po-progress-bar--approved  { background: #10b981; }
+.po-progress-bar--pending   { background: #f59e0b; }
+.po-progress-bar--notfilled { background: #ef4444; }
+
+.po-progress-label {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+/* ── Status Badge ── */
+.po-status-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 20px;
+}
+
+.po-status-badge--active {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.po-status-badge--inactive {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* ── Empty State ── */
+.po-empty {
+  text-align: center;
+  padding: 40px;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.po-empty i {
+  font-size: 24px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+/* ── Paginator ── */
+.po-paginator-wrap {
+  border-top: 1px solid #e2e8f0;
+  padding: 4px 8px;
+}
+
+.po-paginator-wrap .mat-mdc-paginator {
+  background: transparent;
+  font-size: 12px;
+}
+
 .eo-td--hidden {
   visibility: hidden;
   border-bottom: none !important;
