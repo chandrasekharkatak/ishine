@@ -3292,7 +3292,7 @@ input:checked+.slider:before {
 /* ── Tile Group (row container) ── */
 .tile-group {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 10px;
   width: 100%;
   margin-bottom: 8px;
@@ -3304,7 +3304,7 @@ input:checked+.slider:before {
 
 /* ── Individual Tile Card ── */
 .tile-card {
-  flex: 1;
+  flex: 1 1 160px;
   min-width: 0;
   display: flex;
   align-items: center;
@@ -3411,6 +3411,7 @@ input:checked+.slider:before {
   margin-bottom: 12px;
   width: 100%;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .db-dashboard {

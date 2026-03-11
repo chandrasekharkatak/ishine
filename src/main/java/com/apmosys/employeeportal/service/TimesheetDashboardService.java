@@ -683,10 +683,10 @@ public class TimesheetDashboardService {
         try {
             List<Object[]> empTimesheet;
             if (object.getAllEmp()) {
-                empTimesheet = timesheetsRepository.getEmployeeSummaryReportAll(
+                empTimesheet = timesheetsNewRepository.getEmployeeSummaryReportAll(
                         object.getMonth(), object.getYear(), object.getEmpId(), object.getBillableType());
             } else {
-                empTimesheet = timesheetsRepository.getEmployeeSummaryReportClientSideApplicable(
+                empTimesheet = timesheetsNewRepository.getEmployeeSummaryReportClientSideApplicable(
                         object.getMonth(), object.getYear(), object.getEmpId());
             }
             
