@@ -1,4 +1,4 @@
-<div class="container-fluid p-4">
+<div class="db-page-wrapper">
 <!-- ── Single Combined Bar: Toggles + Filters ── -->
 <div class="db-top-bar">
 
@@ -167,7 +167,7 @@
         <!-- Key Metrics -->
 
         <div class="db-dashboard-body">
-            <div class="w-100 d-flex justify-content-end mb-2" *ngIf="!toggleValue && isClientDashboard">
+            <div class="d-flex justify-content-end mb-2" *ngIf="!toggleValue && isClientDashboard">
                 <div class="po-global-filter" (click)="$event.stopPropagation()">
                     <button type="button" class="po-filter-btn" (click)="toggleGlobalPoConflictDropdown($event)"
                         [title]="getGlobalPoConflictLabel()">
@@ -282,7 +282,7 @@
 
             <!-- /* //Pivot table changes dept wise */ -->
 
-            <div class="title-group-box-project w-100" *ngIf="isClientDashboard && !toggleValue ">
+            <div class="title-group-box-project" *ngIf="isClientDashboard && !toggleValue ">
                 <section class="dept-status-summary" aria-labelledby="dept-summary-heading">
                     <div class="dept-table-container">
 

@@ -3642,7 +3642,7 @@ input:checked+.slider:before {
   gap: 10px;
   width: 100%;
   box-sizing: border-box;
-  overflow: hidden
+  overflow: hidden;
 }
 
 /* ── Header ── */
@@ -3741,6 +3741,7 @@ input:checked+.slider:before {
   overflow-x: auto;
   overflow-y: auto;
   width: 100%;
+  max-width: 100%;
 }
 
 /* ── Table ── */
@@ -4348,4 +4349,19 @@ input:checked+.slider:before {
 
 .eo-row--child:hover td {
   background: #f1f5f9;
+}
+
+.db-po-filter-wrap {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 8px;
+}
+
+.db-page-wrapper {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px;
+  overflow-x: hidden;
 }
