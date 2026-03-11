@@ -74,7 +74,7 @@ export class TeamTimesheetComponent implements OnInit {
   sortColumnType: any;
   clientSideIdForm: NgbModalRef;
   updateClientIdModalRef: NgbModalRef;
-  bulkRejectReasonId: number | null = null;
+  bulkRejectReasonIds: number[] = [];;
 bulkRejectRemark: string = '';
 rejectReasonError = false;
 rejectRemarkError = false;
@@ -3527,7 +3527,7 @@ openBulkRejectPopup(modal: any, ids?: number[]) {
 
   this.selectedTimesheetIds = timesheetIds;
 
-  this.bulkRejectReasonId = null;
+  this.bulkRejectReasonIds = null;
   this.bulkRejectRemark = '';
 
   this.modalService.open(modal, {
@@ -3539,7 +3539,7 @@ openBulkRejectPopup(modal: any, ids?: number[]) {
 
 confirmBulkReject(modal: any) {
 
- this.rejectReasonError = !this.bulkRejectReasonId;
+ this.rejectReasonError = !this.bulkRejectReasonIds || this.bulkRejectReasonIds.length === 0;
   this.rejectRemarkError = !this.bulkRejectRemark || !this.bulkRejectRemark.trim();
 
    if (this.rejectReasonError || this.rejectRemarkError) {
@@ -3551,7 +3551,7 @@ const payload = {timesheetIds: this.selectedTimesheetIds,
                 updatedBy: this.currentUser.empId,
                 rmId: this.currentUser.empId,
                 rejectMode: "BULK",
-                rejectionReasonId: this.bulkRejectReasonId,
+                rejectionReasonId: this.bulkRejectReasonIds,
                 rejectRemark: this.bulkRejectRemark};
 
 this.loaderService.requestStarted();

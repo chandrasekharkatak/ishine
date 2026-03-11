@@ -441,103 +441,108 @@
             <p class="insight-container__subtitle">Search by {{ toggleValue ? 'project / PO' : 'employee' }} and date range to view timesheet details</p>
         </div>
 
-        <!-- Employee View Fields -->
-        <div class="row g-3 align-items-center" *ngIf="!toggleValue">
-            <!-- Employee Search -->
-            <div class="col-md-7">
-                <mat-form-field appearance="fill" class="w-100">
-                    <mat-label>Search Employee</mat-label>
-                    <input matInput placeholder="Name or Emp ID" [formControl]="employeeCtrl" required
-                        [matAutocomplete]="auto" (input)="onEmployeeInputChange()">
-                    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
-                        [displayWith]="displayEmployee">
-                        <mat-option *ngFor="let emp of filteredEmployees" [value]="emp">
-                            {{ emp.name }}
-                        </mat-option>
-                    </mat-autocomplete>
-                    <mat-error *ngIf="employeeCtrl.invalid && employeeCtrl.touched">
-                        Employee is required
-                    </mat-error>
-                </mat-form-field>
-            </div>
+         <!-- Employee View Fields -->
+    <div class="insight-card__body" *ngIf="!toggleValue">
 
-            <!-- From Date -->
-            <div class="col-md-2">
-                <mat-form-field appearance="fill" class="w-100">
-                    <mat-label>From Date</mat-label>
-                    <input matInput [matDatepicker]="fromDatePicker" placeholder="From" [(ngModel)]="fromDate"
-                        name="fromDate" [max]="today" required #fromDateRef="ngModel">
-                    <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
-                    <mat-datepicker #fromDatePicker></mat-datepicker>
-                    <mat-error *ngIf="fromDateRef.invalid && fromDateRef.touched">From Date is required</mat-error>
-                </mat-form-field>
-            </div>
-            <div class="insight-filter-item">
-                <label class="insight-filter-label">To Date</label>
-                <mat-form-field appearance="outline" class="insight-mat-field">
-                    <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate" name="toDate"
-                        [max]="today" [min]="fromDate" required #toDateRef="ngModel">
-                    <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
-                    <mat-datepicker #toDatePicker></mat-datepicker>
-                    <mat-error *ngIf="toDateRef.invalid && toDateRef.touched">To Date is required</mat-error>
-                </mat-form-field>
-            </div>
-            <div class="insight-filter-item insight-filter-item--action">
-                <label class="insight-filter-label">&nbsp;</label>
-                <button type="button" class="insight-search-btn"
-                    (click)="searchTimesheet(timesheet_details, alert_message, true)" title="Search">
-                    <i class="fa fa-search"></i>
-                    <span>Search</span>
-                </button>
-            </div>
-        </div>
+      <div class="insight-field insight-field--wide">
+        <label class="insight-label">Search Employee</label>
+        <mat-form-field appearance="outline" class="insight-mat-field">
+          <input matInput placeholder="Name or Emp ID" [formControl]="employeeCtrl" required [matAutocomplete]="auto"
+            (input)="onEmployeeInputChange()">
+          <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event)"
+            [displayWith]="displayEmployee">
+            <mat-option *ngFor="let emp of filteredEmployees" [value]="emp">
+              {{ emp.name }}
+            </mat-option>
+          </mat-autocomplete>
+          <mat-error *ngIf="employeeCtrl.invalid && employeeCtrl.touched">Employee is required</mat-error>
+        </mat-form-field>
+      </div>
 
-        <!-- Project View Fields -->
-        <div class="insight-container__filters" *ngIf="toggleValue">
-            <div class="insight-filter-item insight-filter-item--wide">
-                <label class="insight-filter-label">Search By Project / PO</label>
-                <mat-form-field appearance="outline" class="insight-mat-field">
-                    <mat-label>Project Name or PoNo</mat-label>
-                    <input matInput [formControl]="projectPoCtrl" required
-                        [matAutocomplete]="auto" (input)="onProjectInputChange()">
-                    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onProjectSelected($event)"
-                        [displayWith]="displayProject">
-                        <mat-option *ngFor="let emp of filteredProject" [value]="emp">
-                            {{ emp.projectName }}
-                        </mat-option>
-                    </mat-autocomplete>
-                    <mat-error *ngIf="projectPoCtrl.invalid && projectPoCtrl.touched">Project/PoNo is required</mat-error>
-                </mat-form-field>
-            </div>
-            <div class="insight-filter-item">
-                <label class="insight-filter-label">From Date</label>
-                <mat-form-field appearance="outline" class="insight-mat-field">
-                    <input matInput [matDatepicker]="fromDatePicker" placeholder="From" [(ngModel)]="fromDate"
-                        name="fromDate" [max]="today" required #fromDateRef="ngModel">
-                    <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
-                    <mat-datepicker #fromDatePicker></mat-datepicker>
-                    <mat-error *ngIf="fromDateRef.invalid && fromDateRef.touched">From Date is required</mat-error>
-                </mat-form-field>
-            </div>
-            <div class="insight-filter-item">
-                <label class="insight-filter-label">To Date</label>
-                <mat-form-field appearance="outline" class="insight-mat-field">
-                    <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate" name="toDate"
-                        [min]="fromDate" [max]="today" required #toDateRef="ngModel">
-                    <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
-                    <mat-datepicker #toDatePicker></mat-datepicker>
-                    <mat-error *ngIf="toDateRef.invalid && toDateRef.touched">To Date is required</mat-error>
-                </mat-form-field>
-            </div>
-            <div class="insight-filter-item insight-filter-item--action">
-                <label class="insight-filter-label">&nbsp;</label>
-                <button type="button" class="insight-search-btn" (click)="openProjectInsightModal()" title="Search">
-                    <i class="fa fa-search"></i>
-                    <span>Search</span>
-                </button>
-            </div>
-        </div>
+      <div class="insight-field">
+        <label class="insight-label">From Date</label>
+        <mat-form-field appearance="outline" class="insight-mat-field">
+          <input matInput [matDatepicker]="fromDatePicker" placeholder="From" [(ngModel)]="fromDate" name="fromDate"
+            [max]="today" required #fromDateRef="ngModel">
+          <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #fromDatePicker></mat-datepicker>
+          <mat-error *ngIf="fromDateRef.invalid && fromDateRef.touched">From Date is required</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="insight-field">
+        <label class="insight-label">To Date</label>
+        <mat-form-field appearance="outline" class="insight-mat-field">
+          <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate" name="toDate" [max]="today"
+            [min]="fromDate" required #toDateRef="ngModel">
+          <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #toDatePicker></mat-datepicker>
+          <mat-error *ngIf="toDateRef.invalid && toDateRef.touched">To Date is required</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="insight-field insight-field--action">
+        <!--<label class="insight-label">&nbsp;</label>-->
+        <button type="button" class="insight-search-btn" (click)="searchTimesheet(timesheet_details, alert_message, true)"
+          title="Search">
+          <i class="fas fa-search"></i>
+          <span>Search</span>
+        </button>
+      </div>
+
     </div>
+        <!-- Project View Fields -->
+            <!-- Project View Fields -->
+    <div class="insight-card__body" *ngIf="toggleValue">
+
+      <div class="insight-field insight-field--wide">
+        <label class="insight-label">Search By Project / PO No.</label>
+        <mat-form-field appearance="outline" class="insight-mat-field">
+          <input matInput placeholder="Project name or PO No." [formControl]="projectPoCtrl" required
+            [matAutocomplete]="auto" (input)="onProjectInputChange()">
+          <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onProjectSelected($event)"
+            [displayWith]="displayProject">
+            <mat-option *ngFor="let emp of filteredProject" [value]="emp">
+              {{ emp.projectName }}
+            </mat-option>
+          </mat-autocomplete>
+          <mat-error *ngIf="projectPoCtrl.invalid && projectPoCtrl.touched">Project/PoNo is required</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="insight-field">
+        <label class="insight-label">From Date</label>
+        <mat-form-field appearance="outline" class="insight-mat-field">
+          <input matInput [matDatepicker]="fromDatePicker" placeholder="From" [(ngModel)]="fromDate" name="fromDate"
+            [max]="today" required #fromDateRef="ngModel">
+          <mat-datepicker-toggle matSuffix [for]="fromDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #fromDatePicker></mat-datepicker>
+          <mat-error *ngIf="fromDateRef.invalid && fromDateRef.touched">From Date is required</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="insight-field">
+        <label class="insight-label">To Date</label>
+        <mat-form-field appearance="outline" class="insight-mat-field">
+          <input matInput [matDatepicker]="toDatePicker" placeholder="To" [(ngModel)]="toDate" name="toDate"
+            [min]="fromDate" [max]="today" required #toDateRef="ngModel">
+          <mat-datepicker-toggle matSuffix [for]="toDatePicker"></mat-datepicker-toggle>
+          <mat-datepicker #toDatePicker></mat-datepicker>
+          <mat-error *ngIf="toDateRef.invalid && toDateRef.touched">To Date is required</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="insight-field insight-field--action">
+        <label class="insight-label">&nbsp;</label>
+        <button type="button" class="insight-search-btn" (click)="openProjectInsightModal()" title="Search">
+          <i class="fas fa-search"></i>
+          <span>Search</span>
+        </button>
+      </div>
+
+    </div>
+    </div>
+   </div>
     <br>
 
     <!-- <div class="row">
@@ -1562,7 +1567,6 @@
                 </div>
             </div>
         </div> -->
-</div>
 
 
 

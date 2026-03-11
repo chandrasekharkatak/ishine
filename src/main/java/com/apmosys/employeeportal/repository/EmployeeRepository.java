@@ -3846,7 +3846,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 				+ "             TIMESTAMPDIFF(MONTH, e.date_of_joining, CURDATE()) \n"
 				+ "         ) MOD 12, 2,'0' \n"
 				+ " )) AS totalExperience, \n"
-				+ " e.billable_type, jr.name AS jobRole, d.name AS DepartmentName, e.employmentstatus \n"
+				+ " e.billable_type, jr.name AS jobRole, d.dept_id, d.name AS DepartmentName, e.employmentstatus \n"
 				+ " FROM employee e  \n"
 				+ " INNER JOIN job_role jr ON jr.job_role_id = e.job_role_id \n"
 				+ " INNER JOIN department d ON d.dept_id = jr.dept_id \n"

@@ -18,6 +18,7 @@ import { MatSelect } from '@angular/material/select';
   ]
 })
 export class MySelectComponent implements ControlValueAccessor, OnInit {
+  
   @Input() disable = false;
   @Input() readonly = false;
   @Input() placeholder = 'Select';
@@ -28,12 +29,17 @@ export class MySelectComponent implements ControlValueAccessor, OnInit {
   @Input() valueKey;
   @Input() optionDisabledKey?: string; // e.g. 'disabled'
   @Input() isOptionDisabled?: (option: any) => boolean;
-  // @Input() isDisabled:boolean = false;
+  @Input() showFilterAction: boolean = false;
+  @Input() filterActionLabel: string = 'Filter List';
+
   @Output() selectionChange = new EventEmitter<any>();
   @Output() change = new EventEmitter<any>();
   @Output() dropdownClosed = new EventEmitter<void>();
+  @Output() filterAction = new EventEmitter<void>();  
+  
   @ViewChild(MatSelect) matSelect!: MatSelect;
   @ViewChild('search') searchInputBox!: ElementRef<HTMLInputElement>;
+  
   searchText = '';
   filteredOptions: any[] = [];
   selectedValue: any=null;
@@ -253,5 +259,9 @@ isDisabledOption(option: any): boolean {
   return false;
 }
 
+  triggerFilter(event: Event) {
+    event.stopPropagation();
+    this.filterAction.emit();
+  }
 
 }
