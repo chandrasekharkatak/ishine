@@ -918,7 +918,7 @@
     <div class="doc-actions">
 
       <button class="doc-btn filled"
-              [class.active]="activeDocType === 'Pending'"
+              [class.active]="activeDocType === 'Pending' && p === activeDocProject"
               (click)="selectProjectForDoc(p);switchDocType('Pending');$event.stopPropagation()"
               [disabled]="!hasPendingDoc(p.projectId)">
 
@@ -927,7 +927,7 @@
       </button>
 
       <button class="doc-btn approved"
-              [class.active]="activeDocType === 'Approved'"
+              [class.active]="activeDocType === 'Approved' && p === activeDocProject"
               (click)="selectProjectForDoc(p);switchDocType('Approved');$event.stopPropagation()"
               [disabled]="!hasApprovedDoc(p.projectId)">
 
