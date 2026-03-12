@@ -21,7 +21,7 @@
                                             {{
                                         employeeObj.isApmosysProduct === 'true'
                                         ? ('AP-' + employeeObj.employeementId)
-                                        : 'A-' + employeeObj.employeementId
+                                        : (employeeObj.isConsultant === 'true' ? 'CS-' :'A-' + employeeObj.employeementId)
                                         }}
                                         </p>
                                     </div>

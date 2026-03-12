@@ -489,14 +489,11 @@ public class NotificationServiceImpl implements NotificationService {
 			    EmployeeNotificationConsent consentObj = new EmployeeNotificationConsent();
 			    consentObj.setEmpId(notificationDTO.getEmpId());
 				consentObj.setNotificationId(notificationDTO.getNotificationId());
-				dbResponse=employeeNotificationConsentRepository.save(consentObj);
+				dbResponse=employeeNotificationConsentRepository.saveAndFlush(consentObj);
 			}
 			
 		  	EmployeeDTO dto = new EmployeeDTO();
-			if(dbResponse != null) {
-				
-				
-				
+			
 				if(notificationDTO.getNotificationType().equals("consentNotification")) {
 					List<Notification> allConsentNotification = notificationRepository
 							.findByNotificationTypeAndIsActive("consentNotification", "true");
@@ -551,7 +548,7 @@ public class NotificationServiceImpl implements NotificationService {
                 apiLogInfo.setApiResponse("Dto:" + dto);
                 apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
-			}
+			
 			
 		}catch(Exception e) {
 			e.printStackTrace();
@@ -588,6 +585,23 @@ public class NotificationServiceImpl implements NotificationService {
 					dto.setName(object[1] != null ? object[1].toString() : null);
 					dto.setNotificationMessage(object[2] != null ? object[2].toString() : null);
 					dto.setConsentOn(object[3] != null ? object[3].toString() : null);
+					
+					String employmentId = dto.getEmployeementId().toString();
+					String isApmosysProduct = object[4] != null ? object[4].toString() : null;
+					String isConsultant = object[5] != null ? object[5].toString() : null;
+
+					if (employmentId != null) {
+
+					    String prefix = "A-"; // default
+
+					    if ("true".equalsIgnoreCase(isApmosysProduct)) {
+					        prefix = "AP-";
+					    } else if ("true".equalsIgnoreCase(isConsultant)) {
+					        prefix = "CS-";
+					    }
+
+					    dto.setEmployeementIdAccToET(prefix + employmentId);
+					}
 					
 					dtoList.add(dto);
 				});

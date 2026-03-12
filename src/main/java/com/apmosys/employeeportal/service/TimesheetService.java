@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -5459,11 +5460,11 @@ public class TimesheetService {
 			YearMonth currentYearMonth = YearMonth.from(today);
 			YearMonth fromYearMonth = YearMonth.from(fromDate);
 
-			if (fromYearMonth.equals(currentYearMonth)) {
-				throw new IllegalArgumentException(
-						"From date cannot be in the current month"
-				);
-			}
+			// if (fromYearMonth.equals(currentYearMonth)) {
+			// 	throw new IllegalArgumentException(
+			// 			"From date cannot be in the current month"
+			// 	);
+			// }
 
 			if(fromDate.isAfter(toDate)) {
 				throw new IllegalArgumentException("Invalid date range. From date cannot be greater than to date.");
@@ -5508,21 +5509,11 @@ public class TimesheetService {
 				}
 			}
 
-				
-			boolean checkIf1day = false;
-
-			if (fromDate.isEqual(toDate)) {
-				checkIf1day = true;
-			}
-
 			Long createdBy = finalBulkUploadDTO.getCreatedBy();
 
 			List<TimesheetIdAndEmpIdDTO> notFilledTimesheetDocumentDetails = new ArrayList<>();
-			if(checkIf1day){
-				notFilledTimesheetDocumentDetails = timesheetDocumentDetailsRepository.getDocsByEmpIdsAndDate(empIds, fromDate, projectId);
-			} else {
-				notFilledTimesheetDocumentDetails = timesheetDocumentDetailsRepository.getDocsByEmpIdsAndDateRange(empIds, fromDate, toDate, projectId);
-			}
+
+			notFilledTimesheetDocumentDetails = timesheetDocumentDetailsRepository.getDocsByEmpIdsAndDate(empIds, fromDate, toDate, projectId);
 
 			if(notFilledTimesheetDocumentDetails == null || notFilledTimesheetDocumentDetails.isEmpty()) {
 				throw new IllegalArgumentException("No Eligible timesheet(s) found for the given employee(s) and date range.");
@@ -8542,8 +8533,11 @@ public ServiceResponse getDocumentsByEmpAndDate(TimesheetDTO timesheetDTO) {
 	    	
 	    	Long empId = timesheetDTO.getEmpId();
 	    	Integer projectId = timesheetDTO.getProjectId();
+	    	LocalDate localDate = timesheetDTO.getDate();
+	    	Date date = java.sql.Date.valueOf(localDate);
 
-	        List<GetClientDetailsByProjectIdAndEmpIdDTO> flatList = employeeTeamMapRepository.getClientDetailsByProjectIdAndEmpId(projectId,empId); 
+	        List<GetClientDetailsByProjectIdAndEmpIdDTO> flatList = employeeTeamMapRepository.getClientDetailsByProjectIdAndEmpId(
+	        		projectId,empId,date); 
 
 	        if (flatList.isEmpty()) {
 	        	response.setServiceStatus(ServiceResponse.STATUS_FAIL);

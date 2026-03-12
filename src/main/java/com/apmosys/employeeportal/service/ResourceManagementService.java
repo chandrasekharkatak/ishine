@@ -4414,19 +4414,20 @@ public class ResourceManagementService {
 					newDto.setIsConsultant(row.getIsConsultant());
 					newDto.setIsApprenticeship(row.getIsApprenticeship());
 					newDto.setIsApmosysProduct(row.getIsApmosysProduct());	
-					
-					
-					 
-				    String employmentId = newDto.getEmployeementId() != null ? newDto.getEmployeementId().toString() : null;
-				    String isConsultant = newDto.getIsConsultant();
-				    String isApmosysProduct = newDto.getIsApmosysProduct();
+				    
+				    String employmentId = newDto.getEmployeementId().toString();
 
 				    if (employmentId != null) {
-				         if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	newDto.setEmployeementIdAccToET("AP-" + employmentId);
-				        } else {
-				        	newDto.setEmployeementIdAccToET("A-" + employmentId);
+
+				        String prefix = "A-"; // default
+
+				        if ("true".equalsIgnoreCase(newDto.getIsApmosysProduct())) {
+				            prefix = "AP-";
+				        } else if ("true".equalsIgnoreCase(newDto.getIsConsultant())) {
+				            prefix = "CS-";
 				        }
+
+				        newDto.setEmployeementIdAccToET(prefix + employmentId);
 				    }
 					newDto.setRmgprojects(new ArrayList<>());
 					return newDto;
@@ -4602,18 +4603,19 @@ public class ResourceManagementService {
 					newDto.setIsApprenticeship(row.getIsApprenticeship());
 					newDto.setIsApmosysProduct(row.getIsApmosysProduct());	
 					
-					
-					 
-				    String employmentId = newDto.getEmployeementId() != null ? newDto.getEmployeementId().toString() : null;
-				    String isConsultant = newDto.getIsConsultant();
-				    String isApmosysProduct = newDto.getIsApmosysProduct();
+					String employmentId = newDto.getEmployeementId().toString();
 
 				    if (employmentId != null) {
-				         if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	newDto.setEmployeementIdAccToET("AP-" + employmentId);
-				        } else {
-				        	newDto.setEmployeementIdAccToET("A-" + employmentId);
+
+				        String prefix = "A-"; // default
+
+				        if ("true".equalsIgnoreCase(newDto.getIsApmosysProduct())) {
+				            prefix = "AP-";
+				        } else if ("true".equalsIgnoreCase(newDto.getIsConsultant())) {
+				            prefix = "CS-";
 				        }
+
+				        newDto.setEmployeementIdAccToET(prefix + employmentId);
 				    }
 					
 					newDto.setRmgprojects(new ArrayList<>());
@@ -4954,19 +4956,20 @@ public class ResourceManagementService {
 					newDto.setIsConsultant(row.getIsConsultant());
 					newDto.setIsApprenticeship(row.getIsApprenticeship());
 					newDto.setIsApmosysProduct(row.getIsApmosysProduct());	
-					
-					
 					 
-				    String employmentId = newDto.getEmployeementId() != null ? newDto.getEmployeementId().toString() : null;
-				    String isConsultant = newDto.getIsConsultant();
-				    String isApmosysProduct = newDto.getIsApmosysProduct();
+					String employmentId = newDto.getEmployeementId().toString();
 
 				    if (employmentId != null) {
-				         if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	newDto.setEmployeementIdAccToET("AP-" + employmentId);
-				        } else {
-				        	newDto.setEmployeementIdAccToET("A-" + employmentId);
+
+				        String prefix = "A-"; // default
+
+				        if ("true".equalsIgnoreCase(newDto.getIsApmosysProduct())) {
+				            prefix = "AP-";
+				        } else if ("true".equalsIgnoreCase(newDto.getIsConsultant())) {
+				            prefix = "CS-";
 				        }
+
+				        newDto.setEmployeementIdAccToET(prefix + employmentId);
 				    }
 					newDto.setRmgprojects(new ArrayList<>());
 					return newDto;
@@ -5082,18 +5085,21 @@ public class ResourceManagementService {
 					newDto.setBillable(billable);
 					newDto.setBillableType(billableType);
 					newDto.setIsApmosysProduct(isApmosysProductt);
-					   String employmentId = newDto.getEmployeementId() != null ? newDto.getEmployeementId().toString() : null;
-					    String isConsultant = newDto.getIsConsultant();
-					    String isApmosysProduct = newDto.getIsApmosysProduct();
-
-					    if (employmentId != null) {
-					         if ("true".equalsIgnoreCase(isApmosysProduct)) {
-					        	newDto.setEmployeementIdAccToET("AP-" + employmentId);
-					        } else {
-					        	newDto.setEmployeementIdAccToET("A-" + employmentId);
-					        }
-					    }
 					
+					String employmentId = newDto.getEmployeementId().toString();
+
+				    if (employmentId != null) {
+
+				        String prefix = "A-"; // default
+
+				        if ("true".equalsIgnoreCase(newDto.getIsApmosysProduct())) {
+				            prefix = "AP-";
+				        } else if ("true".equalsIgnoreCase(newDto.getIsConsultant())) {
+				            prefix = "CS-";
+				        }
+
+				        newDto.setEmployeementIdAccToET(prefix + employmentId);
+				    }
 					
 					newDto.setRmgprojects(new ArrayList<>());
 					return newDto;
@@ -5263,20 +5269,22 @@ public class ResourceManagementService {
 					newDto.setIsConsultant(row.getIsConsultant());
 					newDto.setIsApprenticeship(row.getIsApprenticeship());
 					newDto.setIsApmosysProduct(row.getIsApmosysProduct());	
-					
-					
 					 
-				    String employmentId = newDto.getEmployeementId() != null ? newDto.getEmployeementId().toString() : null;
-				    String isConsultant = newDto.getIsConsultant();
-				    String isApmosysProduct = newDto.getIsApmosysProduct();
+					String employmentId = newDto.getEmployeementId().toString();
 
 				    if (employmentId != null) {
-				         if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	newDto.setEmployeementIdAccToET("AP-" + employmentId);
-				        } else {
-				        	newDto.setEmployeementIdAccToET("A-" + employmentId);
+
+				        String prefix = "A-"; // default
+
+				        if ("true".equalsIgnoreCase(newDto.getIsApmosysProduct())) {
+				            prefix = "AP-";
+				        } else if ("true".equalsIgnoreCase(newDto.getIsConsultant())) {
+				            prefix = "CS-";
 				        }
+
+				        newDto.setEmployeementIdAccToET(prefix + employmentId);
 				    }
+				    
 					newDto.setRmgprojects(new ArrayList<>());
 					return newDto;
 				});

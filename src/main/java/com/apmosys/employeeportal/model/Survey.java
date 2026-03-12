@@ -39,6 +39,9 @@ public class Survey {
 	
 	@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
 	private LocalDateTime updatedOn;	
+
+	@Column(name = "cut_off_questions")
+	private Integer cutOffQuestions;
 		
 	private Long updatedBy;
 	

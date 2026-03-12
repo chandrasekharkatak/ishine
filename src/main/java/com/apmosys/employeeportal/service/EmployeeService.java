@@ -2,14 +2,10 @@
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
 import java.lang.reflect.Field;
-import java.util.Base64;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -17,12 +13,13 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -37,12 +34,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
-import javax.persistence.Query;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.FilenameUtils;
@@ -55,29 +50,25 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.EncryptDecrypt;
@@ -94,17 +85,14 @@ import com.apmosys.employeeportal.dto.EmployeeAppreciationRequest;
 import com.apmosys.employeeportal.dto.EmployeeCertificateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeProjection;
-import com.apmosys.employeeportal.dto.EmployeeRewardsDTO;
-import com.apmosys.employeeportal.dto.EmployeeRewardsRequest;
 import com.apmosys.employeeportal.dto.EmployeeSkillProficiencyDTO;
-import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO;
 import com.apmosys.employeeportal.dto.ExpiredPOMailSendDTO.PoObject;
 import com.apmosys.employeeportal.dto.GetAllEmployeesWorkAnniversaryTodayDTO;
 import com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO;
 import com.apmosys.employeeportal.dto.GetEmployeeProjectReportPayloadDTO;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
-import com.apmosys.employeeportal.dto.InActivePoDTO;
+import com.apmosys.employeeportal.dto.LockStatusDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PageResponseDTO;
 import com.apmosys.employeeportal.dto.PendingTimesheetDTO;
@@ -120,7 +108,6 @@ import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.exception.BadRequestException;
 import com.apmosys.employeeportal.exception.DataNotFoundException;
 import com.apmosys.employeeportal.model.ApiLog;
-import com.apmosys.employeeportal.dto.TeamMemberDTO;
 import com.apmosys.employeeportal.model.Asset;
 import com.apmosys.employeeportal.model.CertificateDocumentMapping;
 import com.apmosys.employeeportal.model.CertificateDriveLinkMapping;
@@ -205,24 +192,20 @@ import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.request.EmployeeTimesheetProjectRequest;
 import com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse;
 import com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse;
-import com.apmosys.employeeportal.utility.ApiLogUtility;
-import com.apmosys.employeeportal.request.EmployeeTimesheetProjectRequest;
-import com.apmosys.employeeportal.response.EmployeeTimesheetProjectResponse;
-import com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse;
+import com.apmosys.employeeportal.serviceInterface.TrainingUserService;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.DbTable;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.LogEvents;
-import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.NotificationUtil;
+import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 import de.danielbechler.diff.ObjectDifferBuilder;
 import de.danielbechler.diff.node.DiffNode;
 import de.danielbechler.diff.node.Visit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 
 @Service
@@ -312,7 +295,11 @@ public class EmployeeService {
 	@Value("${rmg.mail}")
 	private String rmgMail;
 	
-	
+	@Value("${training.job.role.exclude}")
+	private String trainingJobRoleExclude;
+
+	@Value("${training.dry.run.empids.to.include}")
+	private String trainingDryRunEmpIdsToInclude;
 	
 	@Value("${bd.mail}")
 	private String businessMail;
@@ -397,6 +384,9 @@ public class EmployeeService {
 	
 	@Autowired
 	UserSessionRepository userSessionRepository;
+	
+	@Autowired
+	TrainingUserService trainingUserService;
 	
 	@Autowired
 	private NewsletterRepository newsletterRepository;
@@ -1361,13 +1351,20 @@ public class EmployeeService {
 
 					empDTO.setEmployeeConfirmationDate(object[75] != null ? format.format(format.parse(object[75].toString())) : null);		
 					empDTO.setIsApmosysProduct(object[76] != null ? object[76].toString() : null);
-                    String employeeType = (object[76] != null ? object[76].toString() : null);
-                    
-                    if ("true".equalsIgnoreCase(employeeType)) {
-                        empDTO.setEmployeementIdAccToET("AP-" + empDTO.getEmployeementId());
-                    } else {
-                        empDTO.setEmployeementIdAccToET("A-" + empDTO.getEmployeementId());
-                    }
+					String employmentId = empDTO.getEmployeementId().toString();
+
+					if (employmentId != null) {
+
+					    String prefix = "A-"; 
+
+					    if ("true".equalsIgnoreCase(empDTO.getIsApmosysProduct())) {
+					        prefix = "AP-";
+					    } else if ("true".equalsIgnoreCase(empDTO.getIsConsultant())) {
+					        prefix = "CS-";
+					    }
+
+					    empDTO.setEmployeementIdAccToET(prefix + employmentId);
+					}
                     empDTO.setOnRollDate(object[77]!=null ? format.format(format.parse(object[77].toString())) : null);
 					if (object[42] != null) {
 
@@ -2504,7 +2501,57 @@ public class EmployeeService {
 				employee.setProbationPeriod(employeedto.getProbationPeriod());
 				employee.setIsConsultant(employeedto.getIsConsultant());
 				employee.setIsApprenticeship(employeedto.getIsApprenticeship());
-				employee.setIsApmosysProduct(employeedto.getIsApmosysProduct());	
+				employee.setIsApmosysProduct(employeedto.getIsApmosysProduct());
+				
+				
+				if(Boolean.TRUE.equals(employeedto.getIsUpdateDefaultProject())) {
+					Project proj = new Project();
+					StringBuilder employeeRole = new StringBuilder("");
+					for (String empRole : employeedto.getDefaultTeamEmployeeRole()) {
+						employeeRole.append(empRole).append(",");
+					}
+					
+					if(employeedto.getDefaultProjectId() != null) {
+						Department dept = departmentRepository.findByDeptId(employeedto.getDepartmentId());
+						String departmentname = dept.getName();
+						
+						Long resrcOverviewId = resourceRequirementRepository.findByProjectIdAndDepartmentName(departmentname,employeedto.getDefaultProjectId());
+						resrcOverviewId = resrcOverviewId !=null ? resrcOverviewId:null;
+						
+						
+						
+						
+						
+						EmployeeTeamMap employeeTeamMap = new EmployeeTeamMap();
+						employeeTeamMap.setEmpId(employee.getEmpId());
+						employeeTeamMap.setTeamId(employeedto.getDefaultTeamId());
+						employeeTeamMap.setActive(2l);
+						employeeTeamMap.setStartDate(LocalDateTime.now());
+						employeeTeamMap.setEmployeeRole(employeeRole.toString());
+						employeeTeamMap.setIsShadow(employeedto.getIsShadowResource());
+						employeeTeamMap.setResourceOverviewId(resrcOverviewId);	
+						employeeTeamMap.setUpdatedBy(Long.parseLong(employee.getUpdatedBy().toString()));
+						employeeTeamMap.setUpdatedOn(LocalDateTime.now());	
+					   employeeTeamMapRepository.save(employeeTeamMap);
+					   
+					   Project project = projectRepository.findByProjectId(employeedto.getDefaultProjectId());
+					    if (project != null) {
+					    	project.setIsDraftProject("true");
+					    	project.setUpdatedBy(Long.parseLong(employee.getUpdatedBy().toString()));
+					    	project.setUpdatedOn(LocalDateTime.now());	
+					        proj = projectRepository.save(project);  
+					    }
+					   
+					   DefaultProjectUpdateDTO dto = new DefaultProjectUpdateDTO();
+					    dto.setUpdatedBy(employeedto.getUpdatedBy().longValue()); 
+					    dto.setProjectId(employeedto.getDefaultProjectId());
+					    dto.setEmpIds(Collections.singletonList(employee.getEmpId()));
+					    dto.setUpdatedBy(Long.parseLong(employee.getUpdatedBy().toString()));
+					    resourceManagementService.setDefaultProjectUpdateBillable(dto);
+					   
+					   }
+					}
+
 				
 				if ("No".equals(employeedto.getOnbenchDate())) {
 				    // Keep the existing value (no need to set it again)
@@ -2646,12 +2693,15 @@ public class EmployeeService {
 							       
 							        String isApprenticeship = (String) reportee[3];
 							        String isConsultant = (String) reportee[4];
+							        String isApmosysProduct = (String) reportee[5];
 
 							        
 							        if ("true".equalsIgnoreCase(isConsultant)) {
-							            employmentId = "A-" + employmentId;
+							            employmentId = "CS-" + employmentId;
 							        } else if ("true".equalsIgnoreCase(isApprenticeship)) {
 							            employmentId = "A-" + employmentId;
+							        } else if ("true".equalsIgnoreCase(isApmosysProduct)) {
+							            employmentId = "AP-" + employmentId;
 							        } else {
 							            employmentId = "A-" + employmentId;
 							        }
@@ -3525,7 +3575,9 @@ public class EmployeeService {
 	                        empDTO.setEmploymentIdAcToET(
 	                            "true".equalsIgnoreCase(empProj.getIsApmosysProduct())
 	                                ? "AP-" + empProj.getEmployeementId()
-	                                : "A-" + empProj.getEmployeementId()
+	                                : "true".equalsIgnoreCase(empProj.getIsConsultant())
+	                                    ? "CS-" + empProj.getEmployeementId()
+	                                    : "A-" + empProj.getEmployeementId()
 	                        );
 	                    }
 
@@ -5091,8 +5143,8 @@ public class EmployeeService {
 			Employee checkEmployeementId;
 			if ("Apmosys Product".equalsIgnoreCase(employeeType)) {
 				checkEmployeementId = employeeRepository.findByEmployeementIdForApmosysProduct(employeedto.getEmployeementId());
-//			} else if("Consultant".equalsIgnoreCase(employeeType)) {
-//				checkEmployeementId = employeeRepository.findByEmployeementIdForConsultant(employeedto.getEmployeementId());
+			} else if("Consultant".equalsIgnoreCase(employeeType)) {
+				checkEmployeementId = employeeRepository.findByEmployeementIdForConsultant(employeedto.getEmployeementId());
 //			}
 //			else if("Apprentice".equalsIgnoreCase(employeeType)) {
 //				checkEmployeementId = employeeRepository.findByEmployeementIdForApprentice(employeedto.getEmployeementId());
@@ -5402,7 +5454,8 @@ public class EmployeeService {
 					employee.setWorkLocation(object[25] != null ? object[25].toString() : null);
 					employee.setMaritalStatus(object[26] != null ? object[26].toString() : null);
 					employee.setJobRoleName(object[27] != null ? object[27].toString() : null);
-					employee.setIsApmosysProduct(object[28] != null ? object[28].toString() : null)	;	
+					employee.setIsApmosysProduct(object[28] != null ? object[28].toString() : null)	;
+					employee.setJobRoleId(object[29] != null ? Long.parseLong(object[29].toString()) : null);	
 					});
 				
 				//Check if all Policy read.
@@ -5474,24 +5527,130 @@ public class EmployeeService {
 				//Check if all Newsletter is read
 				List<Newsletter> allNewsletters = newsletterRepository.findAll();
 
-				if (!allNewsletters.isEmpty()) {
-					for (Newsletter object : allNewsletters) {
-						NewsletterReadResponse readResponse = newsletterReadResponseRepository
-									.findByEmpIdAndDocumentId(employee.getEmpId(), object.getDocumentId());
-						
-						if (readResponse == null) {
-							employee.setNewsletterReadCheck(object);
-							break;
+					if (!allNewsletters.isEmpty()) {
+						for (Newsletter object : allNewsletters) {
+							try {
+								NewsletterReadResponse readResponse = newsletterReadResponseRepository
+										.findByEmpIdAndDocumentId(employee.getEmpId(), object.getDocumentId());
+								if (readResponse == null) {
+									employee.setNewsletterReadCheck(object);
+									break;
+								}
+								}catch(Exception e) {
+											List<NewsletterReadResponse> res= newsletterReadResponseRepository.findAllByEmpIdAndDocumentId(employee.getEmpId(), object.getDocumentId());
+											 System.err.println("Error checking newsletter on login: " + e.getMessage());
+											 if (res == null || res.isEmpty()) {
+													employee.setNewsletterReadCheck(object);
+													break;
+												}
+										}
+							
+							
+							}
+							
 						}
+				
+				
+				//Check training lock status and mandatory training requirements
+				// This check is critical for routing decisions on login
+				List<Long> jobRoleIds = Arrays.stream(trainingJobRoleExclude.split(","))
+						.map(String::trim)
+						.map(Long::parseLong)
+						.collect(Collectors.toList());
+
+				// Dry run empIds
+				List<Long> empIdsToInclude = Arrays.stream(trainingDryRunEmpIdsToInclude.split(","))
+						.map(String::trim)
+						.map(Long::parseLong)
+						.collect(Collectors.toList());
+				Long employeeJobRoleId = employee.getJobRoleId();
+				if (employee.getEmpId() != null && employeeJobRoleId != null && !jobRoleIds.contains(employeeJobRoleId) && empIdsToInclude.contains(employee.getEmpId())) {
+					try {
+
+						ServiceResponse lockResponse = trainingUserService.getLockStatus(employee.getEmpId());
+						System.out.println("lockResponse==>  "+lockResponse);
+						if (lockResponse != null && lockResponse.getServiceStatus() != null && 
+							lockResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS) &&
+							lockResponse.getServiceResponse() != null) {
+							
+							LockStatusDTO lockStatus = (LockStatusDTO) lockResponse.getServiceResponse();
+							
+							
+							if (lockStatus.getIsLocked() == null) {
+								lockStatus.setIsLocked(false);
+							}
+							if (lockStatus.getHasMandatoryTrainingPending() == null) {
+								lockStatus.setHasMandatoryTrainingPending(false);
+							}
+							if (lockStatus.getIsHardLock() == null) {
+								lockStatus.setIsHardLock(false);
+							}
+							if (lockStatus.getDeadlineCrossed() == null) {
+								lockStatus.setDeadlineCrossed(false);
+							}
+							
+							// Set training lock status for routing and navigation decisions
+							// This includes:
+							// - hasMandatoryTrainingPending: true if mandatory training exists (for routing)
+							// - isLocked: true if lock enabled (for blocking navigation)
+							// - isHardLock: true if lock enabled AND deadline crossed (hardest lock)
+							// - deadlineCrossed: true if deadline has passed
+							employee.setTrainingLockStatus(lockStatus);
+							
+							// Log lock status for debugging and monitoring
+							if (lockStatus.getIsHardLock() != null && lockStatus.getIsHardLock()) {
+								System.out.println("Training Lock Status - HARD LOCK: Employee " + employee.getEmpId() + 
+									" has deadline-crossed mandatory training with lock enabled. Training: " + 
+									lockStatus.getLockedTrainingName());
+							} else if (lockStatus.getIsLocked() != null && lockStatus.getIsLocked()) {
+								System.out.println("Training Lock Status - LOCKED: Employee " + employee.getEmpId() + 
+									" has mandatory training with lock enabled. Training: " + 
+									lockStatus.getLockedTrainingName() + 
+									", Deadline Crossed: " + lockStatus.getDeadlineCrossed());
+							} else if (lockStatus.getHasMandatoryTrainingPending() != null && lockStatus.getHasMandatoryTrainingPending()) {
+								System.out.println("Training Lock Status - MANDATORY PENDING: Employee " + employee.getEmpId() + 
+									" has mandatory training pending (no lock). Training: " + 
+									lockStatus.getLockedTrainingName());
+							}
+						} else {
+							// If lock check returns failure or null, initialize empty lock status
+							LockStatusDTO emptyLockStatus = new LockStatusDTO();
+							emptyLockStatus.setIsLocked(false);
+							emptyLockStatus.setHasMandatoryTrainingPending(false);
+							emptyLockStatus.setIsHardLock(false);
+							emptyLockStatus.setDeadlineCrossed(false);
+							employee.setTrainingLockStatus(emptyLockStatus);
+							System.out.println("Training Lock Status - No lock status returned for employee " + employee.getEmpId());
+						}
+					} catch (Exception e) {
+						// If lock check fails, initialize empty lock status to prevent NPE
+						// Log error but don't fail login - training lock check should not block login
+						LockStatusDTO emptyLockStatus = new LockStatusDTO();
+						emptyLockStatus.setIsLocked(false);
+						emptyLockStatus.setHasMandatoryTrainingPending(false);
+						emptyLockStatus.setIsHardLock(false);
+						emptyLockStatus.setDeadlineCrossed(false);
+						employee.setTrainingLockStatus(emptyLockStatus);
+						
+						System.err.println("Error checking training lock on login for employee " + employee.getEmpId() + ": " + e.getMessage());
+						e.printStackTrace();
 					}
+				} else {
+					// If empId is null, initialize empty lock status
+					LockStatusDTO emptyLockStatus = new LockStatusDTO();
+					emptyLockStatus.setIsLocked(false);
+					emptyLockStatus.setHasMandatoryTrainingPending(false);
+					emptyLockStatus.setIsHardLock(false);
+					emptyLockStatus.setDeadlineCrossed(false);
+					employee.setTrainingLockStatus(emptyLockStatus);
+					System.err.println("Warning: Employee ID is null, cannot check training lock status");
 				}
-				
-				
 				
 				response.setServiceResponse("Employee login info found.");
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				apiLogInfo.setApiResponse("Employee login info found.");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				System.out.println("Employee => "+employee);
 				return employee;
 			}
 

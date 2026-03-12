@@ -6,6 +6,7 @@ import { UploadPolicy } from '../models/UploadPolicy';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 import { PoliciesService } from '../services/policies.service';
+import { TrainingService } from '../services/training.service';
 
 @Injectable({
   providedIn: 'root'
@@ -18,7 +19,8 @@ export class AuthGuard  {
   constructor(
     private router: Router,
     private authenticationService: AuthenticationService,
-    private policiesService: PoliciesService){
+    private policiesService: PoliciesService,
+    private trainingService: TrainingService){
 
   }
 
@@ -33,6 +35,35 @@ export class AuthGuard  {
           return false;
         }
 
+        // Check training lock status
+        if (currentUser.trainingLockStatus) {
+          // Get current route path
+          const currentPath = state.url.split('?')[0]; // Remove query params
+          const isTrainingRoute = currentPath === '/training' || currentPath === '/user-training';
+          
+          // Hard lock: deadline crossed (regardless of lock enabled) - user is frozen, cannot navigate anywhere except training page
+          if (currentUser.trainingLockStatus.isHardLock === true) {
+            if (!isTrainingRoute) {
+              // Block navigation to any other page - redirect to training
+              this.router.navigate(['/training']);
+              return false;
+            }
+            // Allow navigation to training page
+            return true;
+          }
+          
+          // User is frozen: (mandatory + lock enabled) OR (mandatory + deadline crossed) - route to training
+          if (currentUser.trainingLockStatus.isLocked === true) {
+            if (!isTrainingRoute) {
+              // Route to training page - user is frozen on training screen
+              this.router.navigate(['/training']);
+              return false;
+            }
+            // Allow navigation to training page
+            return true;
+          }
+        
+        } 
         if (currentUser.policyReadConsent != null) {
           let policyObj = new UploadPolicy();
           policyObj.empId = currentUser.empId;
@@ -50,6 +81,7 @@ export class AuthGuard  {
             }
           });
         }
+        
         return true;
       }
       else if(route.routeConfig.path == "" || route.routeConfig.path == "login"){

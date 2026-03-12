@@ -1,6 +1,6 @@
 import { HttpErrorResponse, HttpEvent, HttpHandler, HttpHeaders, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError, first, tap } from 'rxjs/operators';
 import { AuthenticationService } from '../services/authentication.service';
 import { Router } from '@angular/router';
@@ -53,7 +53,7 @@ currentUser:User = new User();
                     }
                 }
 
-                return of(err);
+                return throwError(() => err);
             }));;
     }
     

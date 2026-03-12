@@ -8,7 +8,7 @@ import {
 } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
-import { catchError, finalize, tap } from 'rxjs/operators';
+import { catchError, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { LoaderService } from '../services/loader.service';
 
@@ -460,9 +460,39 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/bulkFinalUploadProjectBased`,
     `${this.baseUrl}` + `api/getMyReporteesAndClientSideProjectsInMonthYear`,
     `${this.baseUrl}` + `api/getAllQuarterCycles`,
-    `${this.baseUrl}` + `api/isEnable`
+    `${this.baseUrl}` + `api/isEnable`,
 
+    `${this.baseUrl}` + `api/training/getAllTrainings`,
+    `${this.baseUrl}` + `api/training/getTrainingContent`,
+    `${this.baseUrl}` + `api/training/getUserTrainings`,
+    `${this.baseUrl}` + `api/training/submitConsent`,
+    `${this.baseUrl}` + `api/training/skipTraining`,
+    `${this.baseUrl}` + `api/training/getLockStatus`,
+    `${this.baseUrl}` + `api/training/downloadContent`,
+    `${this.baseUrl}` + `api/training/checkTrainingFrequency`,
+    `${this.baseUrl}` + `api/training/getEmployeeTrainingHistory`,
+    `${this.baseUrl}` + `api/training/getComplianceReport`,
+    `${this.baseUrl}` + `api/training/updateTrainingWithContent`,
+    `${this.baseUrl}` + `api/training/createTrainingWithContent`,
+    `${this.baseUrl}` + `api/training/getAllQuizResponsesByTrainingId`,
+    `${this.baseUrl}` + `api/training/deactivateTraining`,
+    `${this.baseUrl}` + `api/training/addTrainingContent`,
+    `${this.baseUrl}` + `api/training/updateTrainingContent`,
+    `${this.baseUrl}` + `api/training/changeQuizResponse`,
+    `${this.baseUrl}` + `api/training/getQuizQuestionByTrainingId`,
+    `${this.baseUrl}` + `api/isClientIdMandetory`,
+    `${this.baseUrl}` + `api/training/addTrainingType`,
+    
+    `${this.baseUrl}` + `api/updateSurvey`,
+    `${this.baseUrl}` + `api/deleteSurvey`,
+    `${this.baseUrl}` + `api/getSurveyResponseByEmpIdAndSurveyId`,
+    `${this.baseUrl}` + `api/changeSurveyStatus`
+    
+  ]
 
+  DYNAMIC_URL_whiteList = [
+    `${this.baseUrl}` + `api/training/getTrainingContent/`,
+    `${this.baseUrl}` + `api/training/getTrainingResponses/`
   ]
 
   constructor(private loaderService: LoaderService) { }
@@ -483,6 +513,18 @@ export class LoaderInterceptor implements HttpInterceptor {
 
     })
 
+    this.DYNAMIC_URL_whiteList.forEach((element) => {
+
+      if (request.url.startsWith(element)) {
+
+        request = request.clone({
+          setHeaders: {
+            loader: 'true'
+          }
+        });
+      }
+    })
+
     if (request.headers.get('loader')) {
       this.loaderService.requestStarted();
       return this.handle(next, request);
@@ -501,6 +543,7 @@ export class LoaderInterceptor implements HttpInterceptor {
       }
     }),
     catchError((error: HttpErrorResponse) => {
+      this.loaderService.requestEnded();
       this.loaderService.resetSpinner();
 
       if (error instanceof HttpErrorResponse) {
