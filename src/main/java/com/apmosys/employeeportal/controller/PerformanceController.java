@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.apmosys.employeeportal.dto.EmployeeteamDto;
 import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
@@ -197,6 +198,43 @@ public class PerformanceController {
 	@RequestMapping(value = "/currentStatusForPerformanceTableView", method = RequestMethod.GET)
 	public ServiceResponse currentStatusForPerformanceTableView() {
 	    ServiceResponse response = performanceService.currentStatusForPerformanceTableView();
+	    return response;
+	}
+	
+	@RequestMapping(value = "/getAllEmployeePerformanceForQuarter", method = RequestMethod.GET)
+	public ServiceResponse getAllEmployeePerformanceForQuarter(
+	        @RequestParam String financialYear,
+	        @RequestParam Long quarterId,
+	        @RequestParam(required = true) Long empId,
+	        @RequestParam(defaultValue = "0") int page,
+	        @RequestParam(defaultValue = "10") int size) {
+
+	    return performanceService.getAllEmployeePerformanceForQuarter(
+	            financialYear,quarterId ,empId ,page, size
+	    );
+	}
+	
+	@RequestMapping(value = "/exportExcelForEligiblePreview" , method = RequestMethod.GET)
+	public ServiceResponse exportExcelForEligiblePreview (
+			@RequestParam String fYear ,
+			@RequestParam Long empId
+			)
+	
+	{
+		ServiceResponse response = performanceService.exportExcelForEligiblePreview(fYear, empId);
+		return response;
+	}
+	
+	@RequestMapping(value = "/getCurrentUserDepartment/{empId}" , method = RequestMethod.GET)
+	public ServiceResponse getCurrentUserDepartment(@PathVariable Long empId )
+	{
+		ServiceResponse response = performanceService.getCurrentUserDepartment(empId);
+		return response;
+	}
+	
+	@RequestMapping(value = "/updateEmployeePerformanceHr",  method = RequestMethod.POST)
+	public ServiceResponse updateEmployeePerformanceHr(@RequestBody PerformanceDTO employeePerformanceDTO) {
+	    ServiceResponse response = performanceService.updateEmployeePerformanceHr(employeePerformanceDTO);
 	    return response;
 	}
 }

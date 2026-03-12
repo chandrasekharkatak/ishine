@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -19,7 +19,25 @@ export class PerformanceService {
 
   constructor(private http: HttpClient) { }
 
+  getAllEmployeePerformanceForQuarter(quarterId: number,  financialYear: string,empId:number , pages : number , itemsPerPage : number) {
 
+    const params = new HttpParams()
+      .set('empId', empId.toString())
+      .set('financialYear', financialYear)
+      .set('page', pages.toString())
+      .set('size', itemsPerPage.toString())
+      .set('quarterId',quarterId.toString());
+
+    return this.http.get(`${this.baseUrl}`+`api/getAllEmployeePerformanceForQuarter`, { params }  );
+  }
+
+  exportExcelForEligiblePreview(fYear:string ,empId:number){
+    return this.http.get(`${this.baseUrl}` + `api/exportExcelForEligiblePreview?fYear=${fYear}&empId=${empId}`);
+  }
+
+  getCurrentUserDepartment(empId:number) {
+    return this.http.get(`${this.baseUrl}` + `api/getCurrentUserDepartment/${empId}`);
+  }
   getAllEmployee() {
     return this.http.get(`${this.baseUrl}` + `api/getAllEmployees`);
   }
@@ -229,6 +247,9 @@ export class PerformanceService {
 
   addRemarkAsPerQuestion(marksObject: any){
     return this.http.post(`${this.baseUrl}` + `api/addRemarkAsPerQuestion`, marksObject);
+  }
+  updateEmployeePerformanceHr(performance: any) {
+    return this.http.post(`${this.baseUrl}` + `api/updateEmployeePerformanceHr`, performance);
   }
 }
 

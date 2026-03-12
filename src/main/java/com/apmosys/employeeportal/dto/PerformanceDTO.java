@@ -43,5 +43,6 @@ public class PerformanceDTO {
     private Long departmentId;
     private String tabType;
     private Boolean rejectStatus;
+    private String actionBy;
     
 }
