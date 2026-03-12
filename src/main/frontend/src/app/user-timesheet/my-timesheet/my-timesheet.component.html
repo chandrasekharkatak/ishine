@@ -1292,3 +1292,17 @@
     </button>
   </div>
 </ng-template>
+
+<ng-template #errorModal let-modal>
+  <div class="modal-header">
+    <h5 class="modal-title">{{ popupTitle }}</h5>
+    </div>
+
+  <div class="modal-body">
+    <p>{{ popupMessage }}</p>
+  </div>
+
+  <div class="modal-footer">
+    <button class="btn btn-primary" (click)="modal.close()">OK</button>
+  </div>
+</ng-template>
