@@ -45,7 +45,7 @@
               {{ pendingTraining.currentCycleNumber }}
             </div>
           </div>
-          <div class="row mb-3" *ngIf="pendingTraining.currentCycleDeadline">
+          <!-- <div class="row mb-3" *ngIf="pendingTraining.currentCycleDeadline">
             <div class="col-md-6">
               <strong>Deadline:</strong>
               <span
@@ -57,7 +57,7 @@
             <div class="col-md-6" *ngIf="pendingTraining.isDeadlineCrossed">
               <span class="badge badge-danger">Deadline Crossed</span>
             </div>
-          </div>
+          </div> -->
           <div class="row" *ngIf="pendingTraining.minViewTimeMinutes">
             <div class="col-md-12">
               <strong>Minimum View Time:</strong>
@@ -325,7 +325,7 @@
                             <strong>Current Cycle:</strong>
                             {{ training.currentCycleNumber }}
                           </div>
-                          <div class="mb-2" *ngIf="training.deadline">
+                          <!-- <div class="mb-2" *ngIf="training.deadline">
                             <strong>Deadline:</strong>
                             <span
                               [ngClass]="{
@@ -341,7 +341,7 @@
                             >
                               Deadline Crossed
                             </span>
-                          </div>
+                          </div> -->
                           <div
                             class="mb-2"
                             *ngIf="training.lockEnabled === true"
@@ -460,7 +460,7 @@
                           <option value="ALL">All Trainings</option>
                           <option value="PENDING">Pending</option>
                           <option value="COMPLETED">Completed</option>
-                          <option value="SKIPPED">Skipped</option>
+                          <option *ngIf="getCountByStatus('SKIPPED') > 0" value="SKIPPED">Skipped</option>
                         </select>
                         <i class="fas fa-chevron-down select-arrow"></i>
                       </div>
@@ -473,9 +473,8 @@
                         <span class="badge badge-success"
                           >{{ getCountByStatus("COMPLETED") }} Completed</span
                         >
-                        <span class="badge badge-info"
-                          >{{ getCountByStatus("SKIPPED") }} Skipped</span
-                        >
+                        <span *ngIf="getCountByStatus('SKIPPED') > 0" class="badge badge-info"
+                          >{{ getCountByStatus("SKIPPED") }} Skipped</span>
                       </div>
                     </div>
                   </div>
@@ -488,11 +487,7 @@
                     <div
                       class="col-12 col-md-6 col-lg-6 mb-4"
                       *ngFor="let training of getPaginatedAllTrainings()"
-                      [ngClass]="{
-                        'col-lg-12':
-                          training.status === 'PENDING' &&
-                          training.mandatoryFlag === 'true',
-                      }"
+                      
                     >
                       <div
                         class="card shadow-sm h-100 training-card"
@@ -560,7 +555,7 @@
                             <strong>Current Cycle:</strong>
                             {{ training.currentCycleNumber }}
                           </div>
-                          <div class="mb-2" *ngIf="training.deadline">
+                          <!-- <div class="mb-2" *ngIf="training.deadline">
                             <strong>Deadline:</strong>
                             <span
                               [ngClass]="{
@@ -576,7 +571,7 @@
                             >
                               Deadline Crossed
                             </span>
-                          </div>
+                          </div> -->
                           <div class="mb-2">
                             <strong>Progress:</strong>
                             {{ training.completionCount }}/{{
@@ -775,12 +770,12 @@
         >
           {{ viewingTraining?.status }}
         </span>
-        <span
+        <!-- <span
           class="badge badge-danger ml-2"
           *ngIf="viewingTraining?.isDeadlineCrossed"
         >
           Deadline Crossed
-        </span>
+        </span> -->
       </h5>
       <div class="d-flex align-items-center">
         <!-- Fullscreen Toggle Button -->
@@ -844,7 +839,7 @@
           {{ viewingTraining.currentCycleNumber }}
         </div>
       </div>
-      <div class="row mb-3" *ngIf="viewingTraining.deadline">
+      <!-- <div class="row mb-3" *ngIf="viewingTraining.deadline">
         <div class="col-md-6">
           <strong>Deadline:</strong>
           <span
@@ -855,7 +850,7 @@
             {{ viewingTraining.deadline | date: "dd-MMM-yyyy" }}
           </span>
         </div>
-      </div>
+      </div> -->
 
       <div *ngIf="!showQuizSubmitComponent">
         <!-- Content Section -->
@@ -1001,9 +996,8 @@
                   </div>
                 </div>
 
-                <!-- Main Slide Image Container -->
                 <div
-                  class="slide-main-container mb-3"
+                  class="slide-main-container mb-3 slide-nav-container"
                   [class.fullscreen]="isFullscreen"
                   style="cursor: default"  
                 >
@@ -1016,9 +1010,11 @@
                       max-width: 100%;
                       border: 1px solid #ddd;
                       border-radius: 4px;
+                      pointer-events: none;
                     "
                   />
                 </div>
+
               </div>
 
               <!-- No Slides Available -->

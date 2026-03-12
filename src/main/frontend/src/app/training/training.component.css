@@ -1077,20 +1077,6 @@
   border-bottom: 1px solid #dee2e6 !important;
 }
 
-/* Modal body - scrollable area */
-.modal-content:-webkit-full-screen .modal-body,
-.modal-content:-moz-full-screen .modal-body,
-.modal-content:-ms-fullscreen .modal-body,
-.modal-content:fullscreen .modal-body {
-  flex: 1 1 auto !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  max-height: none !important;
-  min-height: 0 !important; /* Important for flexbox scrolling */
-  padding: 1.5rem !important;
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-}
-
 /* Modal footer - fixed at bottom */
 .modal-content:-webkit-full-screen .modal-footer,
 .modal-content:-moz-full-screen .modal-footer,
@@ -1222,4 +1208,59 @@
   display: block;
   height: 1px;
   visibility: hidden;
+}
+
+/* ===== PREVIEW MODAL SCROLL FIX ===== */
+
+.preview-modal-window .modal-dialog {
+  max-width: 95vw !important;
+  width: 95vw !important;
+  height: 95vh !important;
+  margin: 1.75rem auto !important;
+  display: flex !important;
+}
+
+.preview-modal-window .modal-content {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+.preview-modal-window .modal-header {
+  flex-shrink: 0 !important;
+}
+
+.preview-modal-window .modal-footer {
+  flex-shrink: 0 !important;
+}
+
+.preview-modal-window .modal-body {
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  min-height: 0 !important;
+}
+
+/* prevent large content from expanding modal */
+.preview-modal-window .slide-main-container {
+  max-height: 60vh !important;
+  overflow: auto !important;
+}
+
+.training-modal .modal-dialog {
+  max-width: 95vw;
+  width: 95vw;
+  height: 95vh;
+  margin: 1.75rem auto;
+}
+
+.training-modal .modal-content {
+  height: 95vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.training-modal .modal-body {
+  overflow-y: auto;
 }

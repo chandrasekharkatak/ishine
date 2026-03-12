@@ -2092,7 +2092,20 @@ getPendingCount(): number {
   ).length;
 }
 
-// Also add Math to component if not already added
 Math = Math;
+
+// In your component
+// In your component
+onImageClick(event: MouseEvent) {
+    const imageElement = event.target as HTMLImageElement;
+    const clickX = event.offsetX; 
+    const imageWidth = imageElement.clientWidth;
+    
+    if (clickX < imageWidth / 2) {
+        this.previousSlide();
+    } else {
+        this.nextSlide();
+    }
+}
 
 }

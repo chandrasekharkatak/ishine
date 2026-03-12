@@ -540,123 +540,6 @@ pdfFile: File | null = null;
     return Math.min((this.elapsedTime / minTimeSeconds) * 100, 100);
   }
 
-  // viewTraining(training: any, isDeadlineCrossed: boolean = false) {
-  //   if (!training || !training.content) {
-  //     this.openAlert('Training content not available', 'warning');
-  //     return;
-  //   }
-  //   this.showQuizSubmitComponent = false;
-  //   this.viewingTraining = training;
-  //   this.isViewingTraining = true;
-
-  //   // Reset timer and flags
-  //   this.elapsedTime = 0;
-  //   this.elapsedTimeDisplay = '00:00';
-  //   this.minTimeReached = false;
-  //   this.consentButtonEnabled = false;
-  //   this.hasVisitedLink = false;
-
-  //   // Clear previous content
-  //   this.previewUrl = '';
-  //   this.safePreviewUrl = null;
-  //   this.file = null;
-  //   this.fileSize = 0;
-  //   this.pptxSlides = [];
-  //   this.currentSlideIndex = 0;
-
-  //   const content = training.content;
-  //   this.contentType = content.contentType;
-  //   this.contentFormData.contentType = content.contentType;
-
-  //   // For completed trainings: no timer, no lock
-  //   if (training.status === 'COMPLETED') {
-  //     this.minTimeReached = true;
-  //     this.consentButtonEnabled = false;
-  //     this.quizButtonEnabled = false;
-  //   } else {
-  //     // For pending or skipped trainings: check if timer needed
-  //     if (!training.hasSeenContent && training.minViewTimeMinutes && training.minViewTimeMinutes > 0) {
-  //       this.startTimerForViewing(training.minViewTimeMinutes);
-  //     } else {
-  //       this.minTimeReached = true;
-  //       if (training.consentRequired === 'true') {
-  //         this.consentButtonEnabled = true;
-  //       } else if(training.hasQuiz){
-  //         this.quizButtonEnabled = true;
-  //       }
-  //     }
-  //   }
-
-  //   // Setup content
-  //   if (content.contentType === 'LINK') {
-  //     this.isExternalLink = true;
-  //     this.previewUrl = content.externalLinkUrl;
-  //     this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.previewUrl);
-  //     this.openTrainingViewModal();
-  //   } else {
-  //     this.isExternalLink = false;
-  //     // Download content for preview
-  //     this.trainingService.downloadContent(content.contentId).subscribe({
-  //       next: (resp: any) => {
-  //         const blob: Blob = resp.body;
-  //         if (!blob || blob.size === 0) {
-  //           this.openAlert('File is empty or could not be loaded', 'error');
-  //           return;
-  //         }
-
-  //         const contentType = resp.headers.get('Content-Type') || 'application/octet-stream';
-  //         let fileName = content.contentName || 'content';
-
-  //         // Extract filename from header
-  //         const disposition = resp.headers.get('Content-Disposition');
-  //         if (disposition) {
-  //           const patterns = [
-  //             /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/,
-  //             /filename="([^"]+)"/,
-  //             /filename=([^;]+)/
-  //           ];
-  //           for (const pattern of patterns) {
-  //             const match = disposition.match(pattern);
-  //             if (match && match[1]) {
-  //               fileName = match[1].replace(/['"]/g, '').trim();
-  //               break;
-  //             }
-  //           }
-  //         }
-
-  //         // Add extension if missing
-  //         if (content.contentPath && !fileName.includes('.')) {
-  //           const pathParts = content.contentPath.split('.');
-  //           if (pathParts.length > 1) {
-  //             fileName += '.' + pathParts[pathParts.length - 1];
-  //           }
-  //         }
-
-  //         this.previewUrl = URL.createObjectURL(blob);
-  //         this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.previewUrl);
-  //         this.file = new File([blob], fileName, { type: contentType });
-  //         this.fileSize = blob.size / 1024 / 1024;
-
-  //         // Parse PPTX if needed
-  //         if (content.contentType === 'PPT' && fileName.toLowerCase().endsWith('.pptx')) {
-  //           this.parsePPTXFile(this.file);
-  //         }
-
-  //         this.openTrainingViewModal();
-  //       },
-  //       error: (error) => {
-  //         if (error?.error instanceof Blob) {
-  //           error.error.text().then((text: string) => {
-  //             this.openAlert(text || 'Error loading content', 'error');
-  //           });
-  //         } else {
-  //           this.openAlert('Error loading content', 'error');
-  //         }
-  //       }
-  //     });
-  //   }
-  // }
-
   viewTraining(training: any, isDeadlineCrossed: boolean = false) {
     if (!training || !training.content) {
       this.openAlert('Training content not available', 'warning');    return;
@@ -1090,17 +973,6 @@ async parsePDFFile(file: File): Promise<void> {
     }
   }
 
-  // toggleFullscreen() {
-  //   const element = document.documentElement;
-  //   if (!document.fullscreenElement) {
-  //     element.requestFullscreen().catch(err => {
-  //       console.error('Error entering fullscreen:', err);
-  //     });
-  //   } else {
-  //     document.exitFullscreen();
-  //   }
-  // }
-
   toggleThumbnails() {
     this.showThumbnails = !this.showThumbnails;
   }
@@ -1268,9 +1140,8 @@ async parsePDFFile(file: File): Promise<void> {
     if (this.trainingViewModalTemplate) {
       this.modalRef = this.modalService.open(this.trainingViewModalTemplate, {
         size: 'xl',
-        centered: true,
-        backdrop: this.isAutoOpening ? 'static' : true,
-        keyboard: !this.isAutoOpening,
+        scrollable: true,
+        windowClass: 'training-modal'
       });
 
       this.modalRef.result.finally(() => {
@@ -1624,23 +1495,16 @@ async parsePDFFile(file: File): Promise<void> {
   }
 
   canShowGoToQuiz(): boolean {
-  if (this.viewingTraining.status.toLowerCase() === 'completed') {
+    if (this.viewingTraining.status.toLowerCase() === 'completed') {
+      return false;
+    }
+
+    if (this.viewingTraining.hasQuiz && !this.viewingTraining.quizAttempted) {
+      return true;
+    }
+
     return false;
   }
-
-  // If training has a quiz and it's not attempted yet
-  if (this.viewingTraining.hasQuiz && !this.viewingTraining.quizAttempted) {
-    // Check if we need to wait for minimum view time
-    if (this.viewingTraining.minViewTimeMinutes && this.viewingTraining.minViewTimeMinutes > 0) {
-      // Only enable if minimum time is reached
-      return this.minTimeReached;
-    }
-    // No minimum time required, always show
-    return true;
-  }
-
-  return false;
-}
 
   onPreviewError(event: any) {
     console.log('Preview error:', event);

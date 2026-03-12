@@ -71,7 +71,7 @@
 
                 <div class="mb-4">
                     <h5 class="text-primary mb-3">
-                        <i class="fas fa-calendar-alt mr-2"></i>Schedule & Duration
+                        <i class="fas fa-calendar-alt mr-2"></i>Deadline & Status
                     </h5>
                     <div class="row">
                         <div class="col-md-3 mb-3">
@@ -123,81 +123,164 @@
                     </h5>
                     <div class="row">
                         <div class="col-md-3 mb-3">
-                            <label class="info-label font-weight-bold" 
-                                   title="Whether this training is mandatory for all employees. Mandatory trainings are automatically assigned and tracked for compliance.">
-                                Mandatory
-                                <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
-                            </label>
-                            <select class="form-control" [(ngModel)]="trainingFormData.mandatoryFlag" name="mandatoryFlag"
+                        <label class="info-label font-weight-bold"
+                                title="Whether this training is mandatory for all employees. Mandatory trainings are automatically assigned and tracked for compliance.">
+                            Mandatory
+                            <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
+                        </label>
+
+                        <div>
+                            <div class="form-check form-check-inline">
+                            <input
+                                class="form-check-input"
+                                type="radio"
+                                name="mandatoryFlag"
+                                [(ngModel)]="trainingFormData.mandatoryFlag"
+                                [value]="'true'"
                                 [disabled]="trainingFormData.lockEnabled === 'true'">
-                            
-                                <option value="true">Yes</option>
-                                <option value="false">No</option>
-                            
-                            </select>
+
+                            <label class="form-check-label">Yes</label>
+                            </div>
+
+                            <div class="form-check form-check-inline">
+                            <input
+                                class="form-check-input"
+                                type="radio"
+                                name="mandatoryFlag"
+                                [(ngModel)]="trainingFormData.mandatoryFlag"
+                                [value]="'false'"
+                                [disabled]="trainingFormData.lockEnabled === 'true'">
+
+                            <label class="form-check-label">No</label>
+                            </div>
+                        </div>
                         </div>
   
                         <div class="col-md-3 mb-3">
-                            <label class="info-label font-weight-bold" 
-                                   title="If enabled, the portal will be locked (employees cannot access other features) until this mandatory training is completed. Use for critical compliance trainings.">
+                            <label class="info-label font-weight-bold"
+                                    title="If enabled, the portal will be locked (employees cannot access other features) until this mandatory training is completed. Use for critical compliance trainings.">
                                 Lock Enabled
                                 <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
                             </label>
-                            <select class="form-control" [(ngModel)]="trainingFormData.lockEnabled" name="lockEnabled"
-                                    title="Select Yes to lock portal until this training is completed"
+
+                            <div>
+                                <div class="form-check form-check-inline">
+                                <input
+                                    class="form-check-input"
+                                    type="radio"
+                                    name="lockEnabled"
+                                    [(ngModel)]="trainingFormData.lockEnabled"
+                                    [value]="'true'"
                                     (ngModelChange)="onLockEnabledChange($event)">
-                                <option value="true">Yes</option>
-                                <option value="false">No</option>
-                            </select>
-                        </div>
+                                <label class="form-check-label">Yes</label>
+                                </div>
+
+                                <div class="form-check form-check-inline">
+                                <input
+                                    class="form-check-input"
+                                    type="radio"
+                                    name="lockEnabled"
+                                    [(ngModel)]="trainingFormData.lockEnabled"
+                                    [value]="'false'"
+                                    (ngModelChange)="onLockEnabledChange($event)">
+                                <label class="form-check-label">No</label>
+                                </div>
+                            </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="info-label font-weight-bold"
+                                        title="Whether employees must submit consent after viewing the training content. Consent submission marks the training as completed.">
+                                    Consent Required
+                                    <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
+                                </label>
+
+                                <div>
+                                    <div class="form-check form-check-inline">
+                                    <input
+                                        class="form-check-input"
+                                        type="radio"
+                                        name="consentRequired"
+                                        value="true"
+                                        checked
+                                        disabled>
+                                    <label class="form-check-label">Yes</label>
+                                    </div>
+
+                                    <div class="form-check form-check-inline">
+                                    <input
+                                        class="form-check-input"
+                                        type="radio"
+                                        name="consentRequired"
+                                        value="false"
+                                        disabled>
+                                    <label class="form-check-label">No</label>
+                                    </div>
+                                </div>
+                                </div>
                         <div class="col-md-3 mb-3">
-                            <label class="info-label font-weight-bold" 
-                                   title="Whether employees must submit consent after viewing the training content. Consent submission marks the training as completed.">
-                                Consent Required
-                                <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
-                            </label>
-                            <select class="form-control" disabled name="consentRequired"
-                                    title="Select Yes if employees must submit consent to complete training">
-                                <option value="true" selected>Yes</option>
-                                <option value="false">No</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label class="info-label font-weight-bold" 
-                                   title="Whether employees can temporarily skip this training. If allowed, employees can skip but must complete it later. Skip is not allowed after deadline.">
+                            <label class="info-label font-weight-bold"
+                                    title="Whether employees can temporarily skip this training. If allowed, employees can skip but must complete it later. Skip is not allowed after deadline.">
                                 Skip Allowed
                                 <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
                             </label>
-                            <select class="form-control" [(ngModel)]="trainingFormData.skipAllowed" name="skipAllowed"
-                                    title="Select Yes if employees can temporarily skip this training. Note: Skip is automatically disabled when Lock Enabled is Yes."
+
+                            <div>
+                                <div class="form-check form-check-inline">
+                                <input
+                                    class="form-check-input"
+                                    type="radio"
+                                    name="skipAllowed"
+                                    [(ngModel)]="trainingFormData.skipAllowed"
+                                    [value]="'true'"
                                     [disabled]="true">
-                                    <!-- trainingFormData.lockEnabled === 'true' -->
-                                <option value="true">Yes</option>
-                                <option value="false">No</option>
-                            </select>
+                                <label class="form-check-label">Yes</label>
+                                </div>
+
+                                <div class="form-check form-check-inline">
+                                <input
+                                    class="form-check-input"
+                                    type="radio"
+                                    name="skipAllowed"
+                                    [(ngModel)]="trainingFormData.skipAllowed"
+                                    [value]="'false'"
+                                    [disabled]="true">
+                                <label class="form-check-label">No</label>
+                                </div>
+                            </div>
+
                             <small class="text-muted" *ngIf="trainingFormData.lockEnabled === 'true'">
                                 <i class="fas fa-info-circle"></i> Skip is disabled because Lock is enabled (hard mandatory)
                             </small>
-                        </div>
+                            </div>
                     </div>
                 </div>
 
                 <div class="mb-4">
                     <h5 class="text-primary mb-3">
-                        <i class="fas fa-clock mr-2"></i>Deadline & Status
+                        <i class="fas fa-clock mr-2"></i>Schedule & Duration
                     </h5>
                     <div class="row">
                         <div class="col-md-3 mb-3">
-                            <label class="info-label font-weight-bold" 
-                                   title="Deadline is mandatory for all trainings. Employees must complete training by the deadline. Skip is not allowed after deadline.">
+                            <label class="info-label font-weight-bold"
+                                    title="Deadline is mandatory for all trainings. Employees must complete training by the deadline. Skip is not allowed after deadline.">
                                 <span class="text-danger">*</span>Deadline Enabled
                                 <i class="fas fa-info-circle text-info ml-1" style="font-size: 0.85em;"></i>
                             </label>
-                            <select class="form-control" [(ngModel)]="trainingFormData.deadlineEnabled" name="deadlineEnabled"
-                                    title="Deadline is mandatory" [disabled]="true">
-                                <option value="true">Yes (Mandatory)</option>
-                            </select>
-                        </div>
+
+                            <div>
+                                <div class="form-check form-check-inline">
+                                <input
+                                    class="form-check-input"
+                                    type="radio"
+                                    name="deadlineEnabled"
+                                    [(ngModel)]="trainingFormData.deadlineEnabled"
+                                    [value]="'true'"
+                                    checked
+                                    disabled>
+                                <label class="form-check-label">Yes (Mandatory)</label>
+                                </div>
+                            </div>
+                            </div>
                         <div class="col-md-3 mb-3">
                             <label class="info-label font-weight-bold" 
                                    title="The pattern for calculating deadlines: YEARLY (December 31 - last day of year), MID_YEAR (June 30, December 31), QUARTERLY (end of each quarter), or CUSTOM (specified months).">
@@ -813,16 +896,19 @@
                             </div>
                         </div>
 
-                        <!-- Main Slide Image Container - FIXED SECTION -->
-                        <div class="slide-main-container mb-3">
+                        <div class="slide-main-container mb-3" style="position: relative;">
+                            <!-- Left half - shows left arrow cursor -->
+                            <div class="slide-nav left" (click)="previousSlide()"></div>
+                            
+                            <!-- Right half - shows right arrow cursor -->
+                            <div class="slide-nav right" (click)="nextSlide()"></div>
+                            
                             <img [src]="previewImageBlob" 
                                 (error)="onPreviewError($event)"
                                 alt="Slide {{currentSlideIndex + 1}}" 
                                 class="slide-image-full"
-                                (click)="toggleFullscreen()"
-                                title="Click for fullscreen">
+                                style="width: 100%; display: block; pointer-events: none;">
                         </div>
-
                         <!-- No Slides Available -->
                         <div *ngIf="!isLoadingPreview && !previewImageBlob && totalSlides === 0" class="alert alert-warning">
                             <i class="fas fa-exclamation-triangle mr-2"></i>

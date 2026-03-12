@@ -10,7 +10,7 @@
 }
 
 .card-header {
-  background-color: #007bff;
+  /* background-color: #007bff; */
   color: white;
   font-weight: 600;
 }
@@ -76,20 +76,20 @@
 }
 
 /* Training Theme Styling */
-.card-header.bg-primary {
+/* .card-header.bg-primary {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
   border: none;
-}
+} */
 
 .card-header.bg-info {
-  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+  /* background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important; */
   border: none;
   transition: all 0.3s ease;
 }
-
+/* 
 .card-header.bg-info:hover {
   background: linear-gradient(135deg, #138496 0%, #117a8b 100%) !important;
-}
+} */
 
 .card-body.bg-light {
   background-color: #f8f9fa !important;
@@ -105,17 +105,17 @@ h5.text-primary {
   border: 1px solid rgba(0, 0, 0, 0.125);
 }
 
-.btn-primary {
+/* .btn-primary {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
   transition: all 0.3s ease;
-}
+} */
 
-.btn-primary:hover {
+/* .btn-primary:hover {
   background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
+} */
 
 .btn-lg {
   font-weight: 600;
@@ -1477,4 +1477,29 @@ video {
     height: 28px;
     font-size: 0.75rem;
   }
+}
+
+.slide-nav {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 50%;
+    z-index: 10;
+}
+
+.slide-nav.left {
+    left: 0;
+    /* cursor: pointer;  Simple hand pointer */
+    /* OR if you want a more specific cursor: */
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M16 18L8 12L16 6V18Z" fill="black"/></svg>') 12 12, pointer;
+}
+
+.slide-nav.right {
+    right: 0;
+    /* cursor: pointer;  Simple hand pointer */
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M8 18L16 12L8 6V18Z" fill="black"/></svg>') 12 12, pointer;
+}
+
+.bg-primary{
+  background-color: #003366 ;
 }
