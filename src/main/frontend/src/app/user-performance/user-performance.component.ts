@@ -54,6 +54,7 @@ export class UserPerformanceComponent implements OnInit {
   alertMessage: any;
   modalRef:NgbModalRef;
   submitPerformance: Performance = new Performance();
+  updatePerformanceHr :Performance = new Performance();
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType: any;
@@ -90,10 +91,11 @@ export class UserPerformanceComponent implements OnInit {
   eligibleEmployeesColumns: any[] = ['employmentIdAcToET', 'name', 'designationName', 'departmentName','totalExperience', 'employmentstatus', 'dateOfJoining','completionStatus'];
   finalRating: number;
   hodRemarks: any;
+  hrRemarks: any; 
   quarterId: any;
   rewardsCount:any;
   appreciationCount:any;
-
+  isEditMode:boolean=false;
   appreciationAndRewardsCount:AppreciationAndRewardsCount=new AppreciationAndRewardsCount();
   departmentData: any[] = [
     // { department: 'HR', TotalNumberofemp: 10, ratinggivenbymanager: 7, pendingratinggivenbymanager: 3, managerName: 'Saxena' },
@@ -115,7 +117,7 @@ export class UserPerformanceComponent implements OnInit {
   myRateList: { reviewLabel: any; rate: any, performanceRatingId: any }[] = [];
 
   allQauterCycle2: any;
-
+   
   constructor(
      private router: Router,
     private route: ActivatedRoute,
@@ -146,14 +148,15 @@ export class UserPerformanceComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     try {
       // Call getALLdepartmentByEmployee first
+      this.getAllDepartments();
       await this.getALLdepartmentByEmployee();
 
-
+      this.getCurrentUserDepartment();
       // Then call other methods
 
       this.getAllReviveType();
       this.getAllQauterCycle();
-
+      // this.setQuartedId(this.quarterId);
       // Continue with user mapping logic
       let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
       featureMap.subFeatures?.forEach(sub => {
@@ -162,9 +165,12 @@ export class UserPerformanceComponent implements OnInit {
 
       this.isperformanceDsah = true;
       console.log("usermappinghodhr",this.userMapping);
-      // console.log("hodddddd", this.userMapping.performance_action_by_hod);
-      // console.log("hrrrrrrrr", this.userMapping.performance_action_by_hr);
-       this.getAllDepartments();
+      console.log("hodddddd", this.userMapping.performance_action_by_hod);
+      console.log("hrrrrrrrr", this.userMapping.performance_action_by_hr);
+      console.log("rmmm", this.userMapping.performance_action_by_approvals_tos);
+     
+
+       
        this.getAllEmployeesCurrentStatus();
         this.getAllEmployee();
 
@@ -340,7 +346,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     }
   }
 
-
+  currentUserdepartmentName :string = 'all';
   selectedDepartment: string = 'All';
   departments:any[] =[];
   onDepartmentChange(event: any) {
@@ -852,8 +858,15 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
 
   submitReviewEmployee(quarter: any, template: TemplateRef<any>, index: any) {
     this.submitPerformance.empId = this.selectedEmployee.empId;
+    this.submitPerformance.currentStatus = this.currentStatus;
     this.submitPerformance.quarterId = quarter.quarterId;
     this.submitPerformance.hodId = this.currentUser.empId;
+    if(this.userMapping.performance_action_by_hod){
+      this.submitPerformance.actionBy = 'HOD'
+    }
+    else if (this.userMapping.performance_action_by_approvals_tos) {
+      this.submitPerformance.actionBy = 'RM';
+    }
     this.submitPerformance.performanceRatings = [];
     this.filterCriteria.forEach((item, index) => {
       if (this.myList[index] && this.myList[index].silde !== undefined) {
@@ -924,6 +937,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     this.performanceSerive.hrAndHodEmpoyeePerformanceView(performance).pipe(first()).subscribe((response: any) => {
       this.enableDisableSubmit = false;
       if (response.serviceStatus == "Success") {
+        console.log('inside if block');
         this.performnace1 = response.serviceResponse;
         console.log("given by hod", this.performnace1);
         this.currentStatus = this.performnace1[0].completionStatus;
@@ -947,11 +961,13 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
           this.rejectStatus = value.rejectStatus;
         });
       } else {
+        console.log('inside else part');
         this.currentStatus = 'Not Started';
         this.enableDisableSubmit = false;
         this.filterCriteriaQuarter = this.allReviewType.filter(item => item.quarterId === this.quarterId);
         this.filterCriteria = this.filterCriteriaQuarter.filter(item => item.departmentName == this.selectedEmployee.departmentName && item.reviewFieldType === 'Slider');
         this.filterRatingCriteria = this.filterCriteriaQuarter.filter(item => item.departmentName == this.selectedEmployee.departmentName && item.reviewFieldType === 'Rating');
+        console.log('==================filter',this.filterRatingCriteria);
         this.filterCriteria.forEach(value => {
           this.myList.push({ reviewLabel: value.reviewLabel, silde: 0, performanceRatingId: null });
           this.finalRating = null;
@@ -1092,19 +1108,100 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
       }
     });
   }
-
-  getCountOfRewardsAndAppreciation() {
-    this.appreciationCount = '';
-    this.rewardsCount = '';
+  
+  averageRating!:any ;
+  getCountOfRewardsAndAppreciation(){
+    this.appreciationCount='';
+    this.rewardsCount='';
     console.log("this.projectDetails ", this.rewardsCount);
     this.appreciationAndRewardsCount.empId = this.selectedEmployee.empId;
     this.employee360Service.getRewardsAndAppreciationCount(this.appreciationAndRewardsCount).pipe(first()).subscribe((response: any) => {
+          if (response.serviceStatus == "Success") {
+            this.rewardsCount = response.serviceResponse[0].rewardsCount;
+            this.appreciationCount = response.serviceResponse[0].appreciationCount;
+            this.averageRating = response.serviceResponse[0].averageRating;
+
+            console.log("this.projectDetails ",  this.appreciationCount);
+
+          }
+        });
+  }
+
+
+  getCurrentUserDepartment() {
+  this.performanceService.getCurrentUserDepartment(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.rewardsCount = response.serviceResponse[0].rewardsCount;
-        this.appreciationCount = response.serviceResponse[0].appreciationCount;
-        console.log("this.projectDetails ", this.appreciationCount);
+        // Find the department ID that matches the user's department name
+        const userDept = this.departments.find(dept => dept.name === response.serviceResponse);
+        
+        if (userDept) {
+          this.currentUserdepartmentName = userDept.deptId.toString();
+          this.selectedDepartment = userDept.deptId.toString();
+          this.userDetailsForPerformanceView.deptId = userDept.deptId;
+          this.getALLdepartmentByEmployee();
+        } else {
+          this.currentUserdepartmentName = 'all';
+        }
+        
+        console.log("currentUserdepartmentName", this.currentUserdepartmentName);
+      } else {
+        this.currentUserdepartmentName = 'all';
       }
     });
   }
-
+   toggleEditMode() {
+    this.isEditMode = !this.isEditMode;
+    console.log("==========edit mode",this.isEditMode);
+  }
+  updateReviewByHr(quarter: any, template: TemplateRef<any>, index: any)
+  {
+    console.log(this.hrRemarks);
+    if(this.hrRemarks == null || this.hrRemarks == undefined || this.hrRemarks == ''){
+      this.alertMessage = "Please enter Hr Remarks!";
+      this.openAlertMod(template, this.alertMessage);
+      return;
+    }
+    this.updatePerformanceHr.empId = this.selectedEmployee.empId;
+    this.updatePerformanceHr.quarterId = quarter.quarterId;
+    this.updatePerformanceHr.hrId = this.currentUser.empId;
+    this.updatePerformanceHr.employeePerformanceId = null;
+    this.updatePerformanceHr.performanceRatings = [];
+    this.filterCriteria.forEach((item, index) => {
+      this.updatePerformanceHr.employeePerformanceId = item.employeePerformanceId;
+      if (this.myList[index] && this.myList[index].silde !== undefined) {
+        this.updatePerformanceHr.performanceRatings.push({
+          reviewTypeId: item.reviewTypeId,
+          rating: this.myList[index].silde,
+          performanceRatingId: this.myList[index].performanceRatingId,
+        });
+      }
+    });
+    this.filterRatingCriteria.forEach((item, index) => {
+      this.updatePerformanceHr.employeePerformanceId = item.employeePerformanceId;
+      if (this.myRateList[index] && this.myRateList[index].rate !== undefined) {
+        this.updatePerformanceHr.employeePerformanceId = item.employeePerformanceId;
+        this.updatePerformanceHr.performanceRatings.push({
+          reviewTypeId: item.reviewTypeId,
+          rating: this.myRateList[index].rate,
+          performanceRatingId: this.myRateList[index].performanceRatingId,
+        });
+      }
+    });
+    this.updatePerformanceHr.finalRating = this.finalRating;
+    this.updatePerformanceHr.hodRemarks = this.hodRemarks;
+    this.updatePerformanceHr.hrRemark = this.hrRemarks;
+    console.log(this.updatePerformanceHr, "performance update by hrrrr");
+   
+    this.performanceService.updateEmployeePerformanceHr(this.updatePerformanceHr).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        let collapseElement = document.getElementById('collapse' + index);
+        if (collapseElement) {
+          collapseElement.classList.remove('show'); // Remove 'show' class
+        }
+      } else {
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+  }
 }

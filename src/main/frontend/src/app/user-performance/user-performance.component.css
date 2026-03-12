@@ -61,25 +61,53 @@ header {
     border-radius: 10px;
     margin-bottom: 15px;
     height: 100%;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.textdisplay {
+  }
+  
+   .employee-count{
+    display : flex;
+    flex-direction: column;
+    align-items:flex-start ;
+    justify-content : center;
+    height: 50%;
+    margin: 0.5%;
+  }
+  /* .textdisplay{
     font-size: 18px;
     font-weight: bold;
     text-align: center;
     border: 2px solid gray;
     padding: 4%;
-    margin: 1%;
+    margin: 0.8%;
     display: flex;
     align-items: flex-end;
     justify-content: flex-start;
-}
+  } */
+ 
+  .textdisplay{
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    margin: 10px 10px -15px 10px;
+    border: 2px solid gray;
+    padding: 20px;
+    max-width: 100%;
+  }
+  /* .textdisplay-not{
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    margin: 0.8%;
+    border: 2px solid gray;
+    padding: 4px;
+  } */
 
-.textdisplay_total {
-    font-size: 21px;
+
+ .textdisplay_total{
+  font-size: 21px;
     font-weight: bold;
     text-align: center;
     margin: 13px;
@@ -427,4 +455,17 @@ textarea {
 .stars .disabled {
     color: #ddd;
     pointer-events: none;
+}
+
+th .fa-pen, th .fa-lock-open {
+  font-size: 16px;
+  transition: all 0.3s;
+}
+
+th .fa-pen:hover {
+  color: #0056b3 !important;
+}
+
+th .fa-lock-open:hover {
+  color: #28a745 !important;
 }

@@ -459,6 +459,9 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getPreviousMinusDays`,
     `${this.baseUrl}` + `api/bulkFinalUploadProjectBased`,
     `${this.baseUrl}` + `api/getMyReporteesAndClientSideProjectsInMonthYear`,
+    `${this.baseUrl}` + `api/getAllQuarterCycles`,
+    `${this.baseUrl}` + `api/isEnable`,
+
     `${this.baseUrl}` + `api/training/getAllTrainings`,
     `${this.baseUrl}` + `api/training/getTrainingContent`,
     `${this.baseUrl}` + `api/training/getUserTrainings`,

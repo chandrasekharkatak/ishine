@@ -18,5 +18,5 @@ export class Performance {
     hrReviewDate:any;
     hrReviewStatus:any;
     employeePerformnaceId:any;
-
+    actionBy:any;
 }

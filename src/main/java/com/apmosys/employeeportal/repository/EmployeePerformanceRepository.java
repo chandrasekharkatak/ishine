@@ -324,5 +324,12 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 	
 	@Query(value="SELECT completion_status,emp_id FROM employee_performance epm inner join quater_cycle qc on epm.quarter_id = qc.quarter_id where qc.is_enable =1 and qc.is_active=1",nativeQuery = true)
 	List<Object[]>currentStatusForPerformanceTableView();
-
+	
+	@Query(nativeQuery = true , value = "select d.name from employee e "
+			+ "inner join job_role jr on e.job_role_id = jr.job_role_id "
+			+ "inner join department d on d.dept_id = jr.dept_id "
+			+ "where e.emp_id = :empId "	
+			)
+	
+	String getCurrentUserDepartment(@Param("empId") Long empId);
 }
