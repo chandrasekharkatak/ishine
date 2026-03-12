@@ -538,9 +538,8 @@
               </tr>
 
               <ng-container *ngFor="let timesheet of allMyTimesheets
-                | colFilter:filters:false
-                | sort:[sortColumn, sortColumnType, sortDirection]
-                | paginate:{ itemsPerPage: 20, currentPage: page };
+                
+                | paginate:{ itemsPerPage: itemsPerPage, currentPage: page };
                 let i = index">
 
                 <!-- Main Row -->
@@ -553,7 +552,7 @@
                         [class.fa-chevron-down]="isTimesheetExpanded(timesheet.timesheetId)"></i>
                     </button>
                   </td>
-                  <td>{{ 20*(page-1)+i+1 }}</td>
+                  <td>{{ itemsPerPage*(page-1)+i+1 }}</td>
                   <td *ngIf="isTeamTimesheets">{{ timesheet.employeeName || 'NA' }}</td>
                   <td>{{ timesheet.date }}</td>
                   <td>{{ timesheet.dayType }}</td>
@@ -708,9 +707,9 @@
         </div>
 
         <!-- Pagination -->
-        <pagination-controls class="ts-pagination" [hidden]="allMyTimesheets.length == 0"
-          (pageChange)="handlePageChange($event)">
-        </pagination-controls>
+<pagination-controls *ngIf="allMyTimesheets.length > 0" class="ts-pagination" [maxSize]="5"
+  (pageChange)="handlePageChange($event)">
+</pagination-controls>
 
       </div>
     </div>
