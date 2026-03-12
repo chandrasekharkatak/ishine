@@ -609,7 +609,7 @@ public class TimesheetMapper {
                             String.valueOf(row.getActivityTimesheetId())
                                     + "|" + String.valueOf(row.getActivityLocationMappingId())
                                     + "|" + String.valueOf(row.getActivityProjectId())
-                                    + "|" + String.valueOf(row.getActivity());
+                                    + "|" + String.valueOf(row.getActivityMappingId());
                                     
                     if (seenActivityKeys.get(timesheetId).get(actLocId).get(actProjectId).add(actKey)) {
                         GetReporteesTimesheetActivitiesDTO act = new GetReporteesTimesheetActivitiesDTO();
