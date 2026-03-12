@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -1019,30 +1022,71 @@ public class SurveyServiceImpl implements SurveyService {
 
 					
 					if (surveyUpdated.getSurveyId() != null) {
-						
-						List<SurveyQuestion> questionList = surveyQuestionRepository.findBySurveyId(surveyUpdated.getSurveyId());
-						
-						List<SurveyQuestion> list = new ArrayList<>();
 						Long surveyId = surveyUpdated.getSurveyId();
+        
+						// Get existing questions from DB
+						List<SurveyQuestion> existingQuestions = surveyQuestionRepository.findBySurveyId(surveyId);
+						
+						// Collect IDs from the incoming DTO (for non-null IDs)
+						Set<Long> incomingQuestionIds = surveyDTO.getSurveyQuestionList().stream()
+							.map(SurveyQuestionDTO::getSurveyQuestionId)
+							.filter(Objects::nonNull)
+							.collect(Collectors.toSet());
+						
+						// Find questions to delete (exist in DB but not in incoming list)
+						List<SurveyQuestion> questionsToDelete = existingQuestions.stream()
+							.filter(q -> !incomingQuestionIds.contains(q.getSurveyQuestionId()))
+							.collect(Collectors.toList());
+						
+						// Delete the removed questions
+						if (!questionsToDelete.isEmpty()) {
+							surveyQuestionRepository.deleteAll(questionsToDelete);
 
+							List<Long> existingSurveyResponseToDelete = surveyEmployeeResponseRepository.findSurveyResponseIdBySurveyQuestionId(questionsToDelete.stream().map(SurveyQuestion::getSurveyQuestionId).collect(Collectors.toList()));
+
+							surveyEmployeeResponseRepository.deleteAllById(existingSurveyResponseToDelete);
+
+							employeeQuizResponseStatusMappingRepository.deleteByResponseId(existingSurveyResponseToDelete);
+
+						}
+						
+						// Now process the incoming questions (update existing, create new)
+						List<SurveyQuestion> list = new ArrayList<>();
+						
 						surveyDTO.getSurveyQuestionList().forEach((question) -> {
-							SurveyQuestion newSurveyQuestion = new SurveyQuestion();
-
-							newSurveyQuestion.setSurveyQuestionId(
-								questionList.stream().filter(q -> q.getSurveyQuestionId().equals(question.getSurveyQuestionId())).findFirst().orElse(null)
-								.getSurveyQuestionId()
-							);
-							newSurveyQuestion.setSurveyId(surveyId);
-							newSurveyQuestion.setQuestion(question.getQuestion());
-							newSurveyQuestion.setOptionType(question.getOptionType());
-							newSurveyQuestion.setOptions(question.getOptions());
-							newSurveyQuestion.setRequired(question.getRequired());
-							newSurveyQuestion.setDescription(question.getDescription());
-							newSurveyQuestion.setCorrectAnswer(question.getCorrectAnswer());
-
-							list.add(newSurveyQuestion);
+							SurveyQuestion surveyQuestion;
+							
+							if (question.getSurveyQuestionId() == null) {
+								// New question
+								surveyQuestion = new SurveyQuestion();
+								surveyQuestion.setSurveyQuestionId(null);
+							} else {
+								// Try to find existing question to update
+								Optional<SurveyQuestion> existingQuestion = existingQuestions.stream()
+									.filter(q -> q.getSurveyQuestionId().equals(question.getSurveyQuestionId()))
+									.findFirst();
+								
+								if (existingQuestion.isPresent()) {
+									// Update existing question
+									surveyQuestion = existingQuestion.get();
+								} else {
+									// ID provided but not found in DB - treat as new
+									surveyQuestion = new SurveyQuestion();
+									surveyQuestion.setSurveyQuestionId(null);
+								}
+							}
+							
+							surveyQuestion.setSurveyId(surveyId);
+							surveyQuestion.setQuestion(question.getQuestion());
+							surveyQuestion.setOptionType(question.getOptionType());
+							surveyQuestion.setOptions(question.getOptions());
+							surveyQuestion.setRequired(question.getRequired());
+							surveyQuestion.setDescription(question.getDescription());
+							surveyQuestion.setCorrectAnswer(question.getCorrectAnswer());
+							
+							list.add(surveyQuestion);
 						});
-
+						
 						List<SurveyQuestion> listSaved = surveyQuestionRepository.saveAll(list);
 
 						if (listSaved.size() > 0) {

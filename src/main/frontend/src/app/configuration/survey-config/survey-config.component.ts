@@ -233,7 +233,7 @@ export class SurveyConfigComponent implements OnInit {
         this.allSurveyQuestionList.forEach((survey: SurveyQuestion) => {
           survey.optionsList = JSON.parse(survey.options);
           survey.required = JSON.parse(survey.required)
-          survey.correctAnswer = JSON.parse(survey.correctAnswer);
+          survey.correctAnswer = survey.correctAnswer;
         });
 
         //console.log("For Edit SurveyObj ==> ",this.surveyObj, this.allSurveyQuestionList);

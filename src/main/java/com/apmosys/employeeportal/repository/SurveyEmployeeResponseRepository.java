@@ -3,6 +3,7 @@ package com.apmosys.employeeportal.repository;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -36,4 +37,11 @@ public interface SurveyEmployeeResponseRepository extends JpaRepository<SurveyEm
 				"INNER JOIN employee e ON e.emp_id = r.emp_id \n" +
 				"WHERE q.survey_id = :quizId order by e.name", nativeQuery = true)
 	public List<Object[]> getAllQuizResponsesByQuizId(@Param("quizId") Long quizId);
+
+	@Modifying
+	@Query(value = "DELETE FROM survey_employee_response WHERE survey_question_id IN :questionIds", nativeQuery = true)
+	public void deleteBySurveyId(@Param("questionIds") List<Long> questionIds);
+
+	@Query("SELECT surveyEmployeeResponseId FROM SurveyEmployeeResponse WHERE surveyQuestionId IN :questionIds")
+	public List<Long> findSurveyResponseIdBySurveyQuestionId(@Param("questionIds") List<Long> questionIds);
 }

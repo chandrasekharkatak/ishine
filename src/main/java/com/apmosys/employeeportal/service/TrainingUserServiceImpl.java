@@ -1177,7 +1177,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 
 		boolean shouldFreeze = (lockEnabled && !attendedAtLeastOnce) || deadlineCrossed;
 
-		boolean hardLock = deadlineCrossed;
+		boolean hardLock = deadlineCrossed || lockEnabled; 
 		
 		System.err.println("deadlineCrossed "+deadlineCrossed+" lockEnabled "+" shouldFreeze "+shouldFreeze +" hardLock "+hardLock);
 

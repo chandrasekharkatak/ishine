@@ -1,3 +1,445 @@
 :host {
-  display: block;
+    display: block;
+    width: 100%;
 }
+
+.quiz-container {
+    margin: 0 auto;
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 15px 20px;
+    border-bottom: none;
+}
+
+.card-header h5 {
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin-bottom: 0;
+}
+
+/* Stats Container - New styles for horizontal stats */
+.stats-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.stats-badge {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 30px;
+    padding: 4px 10px;
+    font-size: 0.85rem;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stats-label {
+    margin-right: 6px;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+.stats-value {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: white;
+}
+
+.stats-value.bg-primary {
+    background-color: rgba(0, 84, 174, 0.9) !important;
+}
+
+.stats-value.bg-success {
+    background-color: rgba(40, 167, 69, 0.9) !important;
+}
+
+.stats-value.bg-danger {
+    background-color: rgba(220, 53, 69, 0.9) !important;
+}
+
+.stats-value.bg-info {
+    background-color: rgba(23, 162, 184, 0.9) !important;
+}
+
+.stats-value.bg-warning {
+    background-color: rgba(255, 193, 7, 0.9) !important;
+    color: #212529;
+}
+
+.card-body {
+    padding: 30px;
+    min-height: 300px;
+}
+
+/* Loading Container Styles */
+.loading-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    padding: 30px;
+}
+
+.spinner-container {
+    margin-bottom: 20px;
+}
+
+.spinner-border {
+    width: 4rem;
+    height: 4rem;
+    border-width: 0.25rem;
+    color: #007bff;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Progress Steps */
+.progress-container {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.progress-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    color: #6c757d;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+}
+
+.step.active {
+    color: #007bff;
+    font-weight: 500;
+}
+
+.step i {
+    font-size: 1rem;
+}
+
+/* Progress Bar Animation */
+.progress {
+    background-color: #e9ecef;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    background-color: #007bff;
+    transition: width 0.3s ease;
+}
+
+.progress-bar-striped {
+    background-image: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.15) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0.15) 75%,
+        transparent 75%,
+        transparent
+    );
+    background-size: 1rem 1rem;
+    animation: progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes progress-bar-stripes {
+    from { background-position: 1rem 0; }
+    to { background-position: 0 0; }
+}
+
+/* Quiz Content Styles */
+.quiz-content {
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Action Buttons */
+.action-buttons {
+    border-top: 1px solid #e9ecef;
+    padding-top: 20px;
+    margin-top: 20px;
+}
+
+.btn {
+    border-radius: 50px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    padding: 8px 30px;
+    font-size: 0.95rem;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    box-shadow: 0 4px 10px rgba(108, 117, 125, 0.3);
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(108, 117, 125, 0.4);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* Modal Styles */
+.modal-header {
+    padding: 15px 20px;
+    border-bottom: none;
+}
+
+.modal-header .close {
+    opacity: 1;
+    text-shadow: none;
+}
+
+.modal-body {
+    padding: 25px 20px;
+    font-size: 1rem;
+}
+
+.modal-footer {
+    border-top: none;
+    padding: 15px 20px 20px;
+}
+
+/* Quiz Styles - Global */
+::ng-deep .form-group {
+    margin-bottom: 25px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+::ng-deep .form-group h5 {
+    color: #343a40;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+}
+
+::ng-deep .form-group h5 .question-icon {
+    color: #007bff;
+    margin-right: 8px;
+    font-size: 1rem;
+}
+
+::ng-deep .form-group .text-secondary {
+    color: #6c757d !important;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    display: block;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed #dee2e6;
+}
+
+::ng-deep .form-check {
+    margin-bottom: 12px;
+    padding-left: 30px;
+    position: relative;
+}
+
+::ng-deep .form-check-input {
+    position: absolute;
+    margin-left: -30px;
+    margin-top: 0.3rem;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+::ng-deep .form-check-input[type="radio"] {
+    border-radius: 50%;
+}
+
+::ng-deep .form-check-input[type="checkbox"] {
+    border-radius: 4px;
+}
+
+::ng-deep .form-check-label {
+    color: #495057;
+    font-size: 0.95rem;
+    padding-left: 5px;
+    cursor: pointer;
+    user-select: none;
+}
+
+::ng-deep .form-check-input:checked ~ .form-check-label {
+    color: #007bff;
+    font-weight: 500;
+}
+
+::ng-deep textarea.form-control {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    padding: 12px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background-color: white;
+    resize: vertical;
+    min-height: 80px;
+}
+
+::ng-deep textarea.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+/* Results view styles */
+::ng-deep .form-group .text-success {
+    color: #28a745 !important;
+    font-weight: 500;
+}
+
+::ng-deep .form-group .text-danger {
+    color: #dc3545 !important;
+    font-weight: 500;
+}
+
+::ng-deep .form-group .text-info {
+    color: #17a2b8 !important;
+}
+
+::ng-deep .form-group .fw-bold {
+    font-weight: 600;
+}
+
+/* Disabled state styles */
+::ng-deep .form-check-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+::ng-deep .form-check-input:disabled ~ .form-check-label {
+    opacity: 0.8;
+    cursor: not-allowed;
+}
+
+/* Animation for loading */
+.dynamic-questions {
+    animation: fadeIn 0.5s ease;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 20px;
+    }
+    
+    .card-header h5 {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 12px;
+    }
+    
+    .stats-container {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .stats-badge {
+        font-size: 0.8rem;
+        padding: 3px 8px;
+    }
+    
+    .loading-container {
+        min-height: 300px;
+        padding: 20px;
+    }
+    
+    .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+    
+    .btn {
+        padding: 6px 20px;
+        font-size: 0.9rem;
+    }
+    
+    ::ng-deep .form-group {
+        padding: 15px;
+    }
+}
+
+/* Add to your existing CSS */
+.question-number {
+  background: linear-gradient(135deg, #0052D4, #4364F7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+  font-size: 1.2rem;
+  display: inline-block;
+}
+
+.question-text {
+  color: #1e293b;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+/* If you want a different style - with background */
+/*
+.question-number {
+  background: linear-gradient(135deg, #0052D4, #4364F7);
+  color: white;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 1rem;
+  display: inline-block;
+  margin-right: 8px;
+}
+*/

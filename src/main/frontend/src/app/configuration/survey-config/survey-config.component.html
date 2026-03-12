@@ -282,7 +282,7 @@
 
                             <button *ngIf="survey.isActive == 'true' && !['exit'].includes(survey.type)" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openCompleteSurveyMod(complete_template, survey)"><em>Complete</em></button>
                             <button *ngIf="survey.isActive == 'true' || survey.isActive == 'Completed'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showSurveyResponses(survey)"><em>View Response</em></button>&nbsp;
-                            <button *ngIf="survey.isActive == 'true'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="copySurveyLinkToClipBoard(survey,alert_message)"><em>Copy {{isFromTraining ? 'Quiz' : 'Survey'}} Link</em></button>&nbsp;
+                            <button *ngIf="!isFromTraining && survey.isActive == 'true'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="copySurveyLinkToClipBoard(survey,alert_message)"><em>Copy {{isFromTraining ? 'Quiz' : 'Survey'}} Link</em></button>&nbsp;
                         </td>
                       </tr>
                     </tbody>
