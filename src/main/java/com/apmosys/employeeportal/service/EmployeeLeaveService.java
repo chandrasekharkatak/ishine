@@ -1165,8 +1165,10 @@ public class EmployeeLeaveService {
                             fromDate, toDate);
                     if (existingTimeSheet != null && !existingTimeSheet.isEmpty()) {
                         for (EmployeeTimesheetsNew ts : existingTimeSheet) {
-                            Long currentTsId = ts.getTimesheetId();
-                            employeeTimesheetsNewRepository.cleanTimesheetById(currentTsId);
+                            if (!Boolean.TRUE.equals(ts.getIsSystemGenerated())) {
+                                Long currentTsId = ts.getTimesheetId();
+                                employeeTimesheetsNewRepository.cleanTimesheetById(currentTsId);
+                            }
                         }
                     }
                     // entityManager.flush();
@@ -1878,7 +1880,9 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 								.findByEmpIdAndDateBetween(leaveDTO.getEmpId(), oldFromDate, oldToDate);
 						if (existingTS != null && !existingTS.isEmpty()) {
 							for (EmployeeTimesheetsNew ts : existingTS) {
-								employeeTimesheetsNewRepository.cleanTimesheetById(ts.getTimesheetId());
+                                if (!Boolean.TRUE.equals(ts.getIsSystemGenerated())) {
+                                    employeeTimesheetsNewRepository.cleanTimesheetById(ts.getTimesheetId());
+                                }
 							}
 						}
 
@@ -1889,7 +1893,9 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 								.findByEmpIdAndDateBetween(leaveDTO.getEmpId(), newFromDate, newToDate);
 						if (upcomingTS != null && !upcomingTS.isEmpty()) {
 							for (EmployeeTimesheetsNew ts : upcomingTS) {
-								employeeTimesheetsNewRepository.cleanTimesheetById(ts.getTimesheetId());
+								if (!Boolean.TRUE.equals(ts.getIsSystemGenerated())) {
+                                    employeeTimesheetsNewRepository.cleanTimesheetById(ts.getTimesheetId());
+                                }
 							}
 						}
 
