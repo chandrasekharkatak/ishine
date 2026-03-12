@@ -18,6 +18,7 @@ import com.apmosys.employeeportal.dto.IshineToPoEmpDetailsSharingDTO;
 import com.apmosys.employeeportal.dto.IshineToPoEmployeeDTO;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
 import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
+import com.apmosys.employeeportal.dto.RescCountOfPo;
 import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
 import com.apmosys.employeeportal.model.ProjectPoDetails;
 
@@ -266,5 +267,19 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
     		+ "  WHERE projectId IN (:projectIds) \n"
     		+ "  AND active = true")
 	Set<Long> findActivePoIdsByProjectIdIn(@Param("projectIds") Set<Integer> projectIds); 
+    
+    
+    
+    @Query(value ="SELECT new com.apmosys.employeeportal.dto.RescCountOfPo(\n"
+    		+ "    etm.poId,\n"
+    		+ "    COUNT(DISTINCT e.empId)\n"
+    		+ ")\n"
+    		+ "FROM EmployeeTeamMap etm\n"
+    		+ "JOIN Employee e ON e.empId = etm.empId\n"
+    		+ "WHERE etm.active = 1\n"
+    		+ "AND e.employmentstatus != 'InActive'\n"
+    		+ "AND etm.poId IN :poIds\n"
+    		+ "GROUP BY etm.poId")
+    List<RescCountOfPo> getResourceCounts(@Param("poIds") List<Long> poIds);
 
 }
