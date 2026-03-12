@@ -346,7 +346,7 @@
 
 
               <label for="final-rating">Final Rating</label>
-              <input type="text" id="final-rating" [value]="finalRating || '0'" disabled
+              <input type="text" id="final-rating" [value]="finalRating || '0' | number:'1.2-2'" disabled
                 placeholder="Enter Final Rating">
 
               <label for="justification"><span class="text-danger">*</span>Manager/Reporting Manager Remarks</label>
