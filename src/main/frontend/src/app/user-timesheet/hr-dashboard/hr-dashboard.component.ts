@@ -337,6 +337,7 @@ tileGroups: any[] = [];
 
  globalPoConflictSelection: 'Yes' | 'No' | 'All' = 'All';
 isGlobalPoDropdownOpen = false;
+showAllBillableTypes = false;
 
   constructor(private employeeService: EmployeeService,
     private timesheetService: TimesheetService,
@@ -627,6 +628,10 @@ isGlobalPoDropdownOpen = false;
     this.alertMessage = message;
   }
 
+
+toggleBillableTypes() {
+  this.showAllBillableTypes = !this.showAllBillableTypes;
+}
   // searchTimesheet(template: TemplateRef<any> ) {
 
   // this.page = 1;
@@ -769,7 +774,7 @@ isGlobalPoDropdownOpen = false;
   }
 
   refreshDashboard(): void {
-    this.getTimesheetDashboardCount(this.month, this.year);
+    // this.getTimesheetDashboardCount(this.month, this.year);
     // this.loadDashboardData();
     this.setLastUpdatedTime();
     this.TotalEmployeeCount();
@@ -778,6 +783,7 @@ isGlobalPoDropdownOpen = false;
     this.ishineCompletion();
     // this.vmsNotFilled();
     // this.ishineNotFilled();
+    this.onBillableTypeChangeManual();
   }
 
   setLastUpdatedTime(): void {
@@ -1909,7 +1915,7 @@ cancelHidePopup() {
     clearTimeout(this.hidePopupTimeout);
   }
 
-  getTimesheetDashboardCount(month: any, year: any) { 
+  getTimesheetDashboardCount(month: any, year: any) {
     if (this.toggleValue) {
       this.timesheetService.getTimesheetDashboardCountForProject(month, year, this.currentUser.empId, this.isClientDashboard, this.selectedBillableTypes,this.selectedProjectStatus).pipe(first()).subscribe((response: any) => {
         if (response.serviceStatus === "Success") {
@@ -2141,7 +2147,11 @@ getTiles() {
 
 }
 
-
+clientIdFilterOptions = [
+  { label: 'All',                   value: 'ALL'  },
+  { label: 'With Client Side ID',   value: 'true' },
+  { label: 'Without Client Side ID',value: 'false'},
+];
 getTileColor(tileClass: string): string {
   if (tileClass.includes('border-start-primary')) return '#0d6efd';
   if (tileClass.includes('border-start-success')) return '#198754';
@@ -2395,8 +2405,8 @@ toggleSelectAll() {
 
 selectAllBillableTypes() {
   this.selectedBillableTypes = [...this.billableTypes];
-  this.onBillableTypeChangeManual();
-  this.loadDepartmentStatusSummary()
+  // this.onBillableTypeChangeManual();
+  // this.loadDepartmentStatusSummary()
 }
 
 // deselectAllBillableTypes() {
@@ -2422,7 +2432,7 @@ onBillableTypeChange(event: any) {
 onBillableTypeChangeManual() {
   console.log('Selected Billable Types:', this.selectedBillableTypes);
 
-  this.getTimesheetDashboardCount(this.month, this.year);
+  // this.getTimesheetDashboardCount(this.month, this.year);
 
   if (!this.toggleValue) {
     this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
@@ -2431,6 +2441,7 @@ onBillableTypeChangeManual() {
     }
   } else {
     this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
+    this.getTimesheetDashboardCount(this.month, this.year);
   }
 }
 
@@ -2446,13 +2457,13 @@ onBillableTypeChangeManual() {
 
   onEmployeeStatusChange(event: any) {
     console.log('Selected Employee Status:', this.selectedEmployeeStatus);
-    this.getTimesheetDashboardCount(this.month, this.year);
-    if (!this.toggleValue) {
-      this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
-      if (this.isClientDashboard) {
-        this.loadDepartmentStatusSummary();
-      }
-    }
+    // this.getTimesheetDashboardCount(this.month, this.year);
+    // if (!this.toggleValue) {
+    //   this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
+    //   if (this.isClientDashboard) {
+    //     this.loadDepartmentStatusSummary();
+    //   }
+    // }
   }
 
   toggleMenu(): void {
@@ -2797,7 +2808,9 @@ trackByProj(index: number, proj: any) {
 
 // }
 
-
+onClientIdFilterChangeWrapper(value: string): void {
+  this.onClientIdFilterChange({ target: { value } });
+}
 // Updated method for select dropdown
 onClientIdFilterChange(event: any): void {
   const selectedValue = event.target.value;
@@ -2845,7 +2858,7 @@ onTileClick(tile: any) {
   } else {
     this.selectedTile = tile;
     this.selectedDepartments = tile.departments || [];
-    this.isDeptCollapsed = false; 
+    this.isDeptCollapsed = false;
   }
 
   this.scrollToTable(tile.status);
@@ -2959,7 +2972,7 @@ onDeptCountClick(row: any, type: string): void {
     return;
   }
 
-  const deptId = row.deptId; 
+  const deptId = row.deptId;
 
   this.scrollToTableBasedOnDept(status, deptId);
 }
@@ -3008,7 +3021,7 @@ onOutSideClick(event: MouseEvent): void {
   const target = event.target as HTMLElement;
 
   // keep your existing close logic if any
-  if (!target.closest('.col-md-1')) {
+  if (!target.closest('.po-export-wrap')) {
     this.menuVisible = false;
   }
 

@@ -138,6 +138,7 @@ import com.apmosys.employeeportal.dto.RMGProject;
 import com.apmosys.employeeportal.dto.RMGProjectMappedEmployees;
 import com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO;
 import com.apmosys.employeeportal.dto.RMGTeam;
+import com.apmosys.employeeportal.dto.RescCountOfPo;
 import com.apmosys.employeeportal.dto.ResourceCountDto;
 import com.apmosys.employeeportal.dto.ResourceManagementDTO;
 import com.apmosys.employeeportal.dto.ResourceRequirementDTO;
@@ -13041,6 +13042,54 @@ public class ResourceManagementService {
 				return serviceResponse;
 			}
 			List<ResourceCountDto> data = projectRepository.getResourceCounts(pIds);
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			serviceResponse.setServiceResponse(data);
+			finalHttpStatusCode = HttpStatus.OK.value();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			log.error("error in getResourceCountFromProjectId" + e);
+			exceptionDetailsForLog = e.toString();
+			serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			serviceResponse.setServiceResponse(e.getMessage());
+			throw e;
+//			serviceResponse.setServiceMessage(e.getMessage());
+
+		} finally {
+			if (initialLog != null) {
+				apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, exceptionDetailsForLog,
+						httpRequest);
+			}
+		}
+		return serviceResponse;
+	}
+	
+	
+	public ServiceResponse getResourceCountFromPoId(List<Long> poIds) {
+		ServiceResponse serviceResponse = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setApiUrl("/api/getResourceCountFromPoId");
+		apiLogInfo.setLogLevel("INFO");
+		ApiLog initialLog = null;
+		String exceptionDetailsForLog = null;
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
+				"getResourceCountFromPoId", "PoPortal", null, httpRequest);
+
+		String sourceSystem = httpRequest.getRequestURI().toString();
+
+		try {
+			if (poIds == null || poIds.isEmpty()) {
+				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				serviceResponse.setServiceResponse("No project info (poIds) received at Ishine");
+				finalHttpStatusCode = HttpStatus.NO_CONTENT.value();
+				if (initialLog != null) {
+					apiLogUtility.endLog(initialLog.getId(), sourceSystem, finalHttpStatusCode, exceptionDetailsForLog,
+							httpRequest);
+				}
+				return serviceResponse;
+			}
+			List<RescCountOfPo> data = projectPoDetailsRepository.getResourceCounts(poIds);
 			serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			serviceResponse.setServiceResponse(data);
 			finalHttpStatusCode = HttpStatus.OK.value();

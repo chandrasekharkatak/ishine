@@ -3142,8 +3142,10 @@ public class TeamsService {
 
 					if (empTimesheet != null&& !empTimesheet.isEmpty()) {
 						for (EmployeeTimesheetsNew ts : empTimesheet) {
-							Long currentTsId = ts.getTimesheetId();
-							timesheetsRepositoryNew.cleanTimesheetById(currentTsId);
+							if(!Boolean.TRUE.equals(ts.getIsSystemGenerated())){
+								Long currentTsId = ts.getTimesheetId();
+								timesheetsRepositoryNew.cleanTimesheetById(currentTsId);
+							}
 						}
 					}
 					// entityManager.flush();

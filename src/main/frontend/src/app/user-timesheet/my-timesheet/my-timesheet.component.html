@@ -50,7 +50,7 @@
       </span>
 
       <span *ngIf="isTimesheetBulkForm">
-        <i class="fa fa-file-upload me-2"></i> Final Document Bulk Upload 
+        <i class="fa fa-file-upload me-2"></i> Final Document Bulk Upload
         <app-info-tooltip class="ms-2"  iconBgColor="#127475" [size]="20"
             [content]="withVmsbullet"></app-info-tooltip>
       </span>
@@ -73,7 +73,7 @@
 <div class="row" *ngIf="isTimesheetForm && isCreation">
     <div class="card col-md-12 px-0">
         <div class="card-body">
-            <app-timesheet-form 
+            <app-timesheet-form
                 [isCreation]="true"
                 [isUpdation]="false"
                 [selectedDate]="selectedDate"
@@ -81,7 +81,7 @@
                 [timesheetId]="null"
                 (timesheetCreated)="resetTimesheetForm(); showViewMyTimesheets(); loadTimesheetSummary()"
                 (timesheetUpdated)="onTimesheetUpdated($event)"
-                (cancel)="resetTimesheetForm()">
+                >
             </app-timesheet-form>
         </div>
     </div>
@@ -91,20 +91,20 @@
 <div class="row" *ngIf="isTimesheetForm && isUpdation">
     <div class="card col-md-12 px-0">
         <div class="card-body">
-            <app-timesheet-form 
+            <app-timesheet-form
                 [isCreation]="false"
                 [isUpdation]="true"
                 [selectedDate]="selectedDate"
                 [timesheetId]="selectedTimesheetId"
                 (timesheetCreated)="resetTimesheetForm(); showViewMyTimesheets(); loadTimesheetSummary()"
                 (timesheetUpdated)="onTimesheetUpdated($event)"
-                (cancel)="resetTimesheetForm()">
+               >
             </app-timesheet-form>
         </div>
     </div>
 </div>
 
-       <div *ngIf="employeeInTNMProject"> 
+       <div *ngIf="employeeInTNMProject">
         <div class="tnm-rules-wrapper">
 
             <button type="button" (click)="openPolicySidebar()" class="tnm-rules" title="View Rules">
@@ -113,7 +113,7 @@
                 </div>
                 <span class="rules-label">
                     <<< Click To View Rules</span>
-            </button>    
+            </button>
         </div>
     </div>
 
@@ -484,265 +484,235 @@
             </div>
         </div>
 
-        <div class="row">
-            <div class="col-md-12">
-                <div class="selector-toggle">
-                    <a href="javascript:void(0)" (click)="toggleSearch()">
-                        <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
-                        <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
-                    </a>
-                </div>
-                <div class="export-button">
-                    <button type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-                        [hidden]="allMyTimesheets.length == 0" (click)="exportToExcel()"><em
-                            class="fa fa-file-arrow-down fa-2x"></em></button>
-                </div>
-                <!-- bassHorizontalScroll [tableId]="'myTimesheetInfo'"
-                    [tableTHeadId]="'myTimesheetInfoTHead'" [tableTHeadTrId]="'myTimesheetInfoTHeadTr'" -->
-                <div class="overflow-auto">
-                    <table class="table " id="myTimesheetInfo" matSort (matSortChange)="sortData($event)">
-                        <thead class="thead-light" id="myTimesheetInfoTHead">
-                            <tr id="myTimesheetInfoTHeadTr">
-                                <th scope="col" class="info-label" style="width: 40px;"></th>
-                                <th scope="col" class="info-label">Sr No.</th>
-                                <th *ngIf="isTeamTimesheets" scope="col" class="info-label column-md"
-                                    mat-sort-header="employeeName|string">Name</th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="date|date">Date</th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="dayType|string">Day
-                                    Type
-                                </th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="workCheckIn|datetime">In
-                                    Time</th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="workCheckOut|datetime">
-                                    Out Time</th>
-                                <th scope="col" class="info-label" mat-sort-header="totalWorkingMinutes|number">
-                                    Total Working Hours</th>
-                                <th scope="col" class="info-label" mat-sort-header="statusDisplay|string">Status</th>
-                                <th *ngIf="isSelfTimesheets" scope="col" class="info-label column-md"
-                                    mat-sort-header="createdByName|string">Applied By</th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="createdOn|datetime">
-                                    Applied On</th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="isNightShiftDisplay|string">
-                                    Shift
-                                </th>
-                                <th scope="col" class="info-label" mat-sort-header="leaveType|string">Leave Type
-                                </th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="rejectReason|string">
-                                    Reject Reason
-                                </th>
-                                <th scope="col" class="info-label column-md" mat-sort-header="remarks|string">
-                                    Remarks
-                                </th>
-                                <th scope="col" class="info-label column-md">Actions</th>
-                            </tr>
-                            <tr app-column-filter-bar *ngIf="isTimesheetTable && isSelfTimesheets && isSearchEnabled"
-                                [columnList]="selfTimesheetColumns" (onSearch)="onSearch($event);page=1"></tr>
-                            <tr app-column-filter-bar *ngIf="isTimesheetTable && isTeamTimesheets && isSearchEnabled"
-                                [columnList]="teamTimesheetColumns" (onSearch)="onSearch($event);page=1"></tr>
-                        </thead>
-                        <tbody>
-                            <!-- Empty state -->
-                            <tr *ngIf="allMyTimesheets.length == 0 || (allMyTimesheets| colFilter:filters:false).length == 0">
-                                <th [attr.colspan]="isTeamTimesheets ? 9 : 8" class="text-center info-label">No details to display...</th>
-                            </tr>
-                            
-                            <!-- Hierarchical Timesheet Structure -->
-                            <ng-container *ngFor="let timesheet of allMyTimesheets| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }; let i = index">
-                                
-                                <!-- Level 1: TIMESHEET (Main Row - Simplified) -->
-                                <tr class="timesheet-main-row" [ngClass]="{'highlight': timesheet.isNightShift == 'true' || timesheet.isNightShift == true}">
-                                    <td class="expand-cell">
-                                        <button *ngIf="hasLocations(timesheet)" 
-                                                class="btn-expand"
-                                                (click)="toggleTimesheetExpansion(timesheet.timesheetId)"
-                                                [title]="isTimesheetExpanded(timesheet.timesheetId) ? 'Collapse' : 'Expand'">
-                                            <i class="fas" 
-                                               [class.fa-chevron-right]="!isTimesheetExpanded(timesheet.timesheetId)"
-                                               [class.fa-chevron-down]="isTimesheetExpanded(timesheet.timesheetId)"></i>
-                                        </button>
-                                    </td>
-                                    <td>{{20*(page-1)+i+1}}</td>
-                                    <td *ngIf="isTeamTimesheets">{{timesheet.employeeName || "NA"}}</td>
-                                    <td>{{timesheet.date}}</td>
-                                    <td>{{timesheet.dayType}}</td>
-                                    <td>{{timesheet.workCheckIn || "NA"}}</td>
-                                    <td>{{timesheet.workCheckOut || "NA"}}</td>
-                                    <td>{{getTotalWorkingHours(timesheet.totalWorkingMinutes , false)}}</td>
-                                    <td>
-                                        <span class="badge" 
-                                              [ngClass]="{
-                                                'badge-warning': timesheet.status === 1,
-                                                'badge-success': timesheet.status === 2,
-                                                'badge-danger': timesheet.status === 3,
-                                                'badge-info': timesheet.status === 4
-                                              }">
-                                            {{timesheet.statusDisplay || mapStatusToString(timesheet.status)}}
-                                            </span>
-                                    </td>
-                                    <td *ngIf="isSelfTimesheets">{{timesheet.createdByName || "NA"}}</td>
-                                    <td>{{timesheet.createdOn}}</td>
-                                    <td>{{timesheet.isNightShiftDisplay}}</td>
-                                    <td>{{timesheet.leaveType || "NA"}}</td>
-                                    <td>{{timesheet.rejectReason || "NA"}}</td>
-                                    <td>{{timesheet.remarks || "NA"}}</td>
-                                    <td>
-                                        <!-- <button class="btn btn-sm btn-outline-primary mb3" type="submit" title="view more"
-                                                (click)="openTimesheetDetailsModal(timesheet_details, timesheet)"><em>view</em></button>&nbsp; -->
-                                        <button class="btn btn-sm btn-outline-primary mb3" type="submit"
-                                                title="copy timesheet"
-                                                (click)="copyTimesheetDetailsToNotepad(timesheet)"><em>copy</em></button>&nbsp;
-                                        <button *ngIf="userMapping.update_timesheet && (timesheet.statusDisplay === 'Pending' || timesheet.statusDisplay === 'Rejected' || (timesheet.statusDisplay === 'Approved' && !timesheetFillable))"
-                                                class="btn btn-sm btn-outline-primary mb3" type="submit"
-                                                (click)="resetTimesheetForm();openEditTimesheetForm(timesheet)">
-                                            <em class="fa fa-edit"></em>
-                                        </button>
-                                    </td>
-                                </tr>
-                                
-                                <!-- Card-Based Accordion Details Panel -->
-                                <tr *ngIf="isTimesheetExpanded(timesheet.timesheetId)">
-                                    <td [attr.colspan]="isTeamTimesheets ? 15 : 14" class="p-0">
-                                        <div class="timesheet-details-accordion">
-                                            <!-- Location Cards -->
-                                            <div *ngFor="let location of timesheet.locationSessions" class="location-card mb-3">
-                                                <div class="location-card-header" 
-                                                     (click)="toggleLocationExpansion(timesheet.timesheetId, location.locationMappingId)"
-                                                     [class.expanded]="isLocationExpanded(timesheet.timesheetId, location.locationMappingId)">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <i class="fas fa-map-marker-alt mr-2 text-primary"></i>
-                                                            <strong>{{location.workLocationType}}</strong>
-                                                            <span class="ml-3 text-muted">
-                                                                <i class="far fa-clock mr-1"></i>
-                                                                {{location.locationInTime || "NA"}} - {{location.locationOutTime || "NA"}}
-                                                            </span>
-                                                            <span class="ml-3">
-                                                                <strong>Total Hours:</strong> {{getTotalLocationHours(location)}}
-                                                            </span>
-                                                        </div>
-                                                        <button class="btn btn-sm btn-link p-0" *ngIf="hasProjects(location)">
-                                                            <i class="fas" 
-                                                               [class.fa-chevron-down]="isLocationExpanded(timesheet.timesheetId, location.locationMappingId)"
-                                                               [class.fa-chevron-right]="!isLocationExpanded(timesheet.timesheetId, location.locationMappingId)"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                
-                                                <!-- Project Cards (Nested) -->
-                                                <div class="location-card-body" 
-                                                     *ngIf="isLocationExpanded(timesheet.timesheetId, location.locationMappingId) && hasProjects(location)">
-                                                    <div *ngFor="let project of location.projects" class="project-card mb-2">
-                                                        <div class="project-card-header"
-                                                             (click)="toggleProjectExpansion(timesheet.timesheetId, location.locationMappingId, project.projectId)"
-                                                             [class.expanded]="isProjectExpanded(timesheet.timesheetId, location.locationMappingId, project.projectId)">
-                                                            <div class="d-flex justify-content-between align-items-center">
-                                                                <div class="flex-grow-1">
-                                                                    <i class="fas fa-briefcase mr-2 text-info"></i>
-                                                                    <strong>{{project.projectName}}</strong>
-                                                                    <span class="ml-3" *ngIf="project.clientSideId">
-                                                                        <span class="badge badge-secondary">Client ID: {{project.clientSideId}}</span>
-                                                                    </span>
-                                                                    <span class="ml-3">
-                                                                        <span class="badge" [ngClass]="{
-                                                                            'badge-warning': project.clientApprovalStatus === 1,
-                                                                            'badge-success': project.clientApprovalStatus === 2,
-                                                                            'badge-danger': project.clientApprovalStatus === 3
-                                                                          }">
-                                                                            {{mapClientApprovalStatusToString(project.clientApprovalStatus)}}
-                                                                        </span>
-                                                                    </span>
-                                                                    <span class="ml-3 text-muted">
-                                                                        <strong>Hours:</strong> {{getTotalProjectHours(project)}}
-                                                                    </span>
-                                                                    <!-- <span class="ml-3" *ngIf="project.totalClientWorkingMinutes">
-                                                                        <strong>Client Hours:</strong> {{getTotalWorkingHours(project.totalClientWorkingMinutes)}}
-                                                                    </span> -->
-                                                                    <span class="ml-3">
-                                                                        <button type="button" class="btn btn-danger btn-sm mr-2" *ngIf="project.projectId && project.rejectionDetails?.length > 0 && project.status === 3"
-                                                                            (click)="openRejectReasonsModal(project.rejectionDetails, timesheet_reject_reasons);$event.stopPropagation()"
-                                                                            title="View Rejection Reason(s)">
-                                                                            <i class="fa-solid fa-circle-info fa-bounce"></i>
-                                                                        </button>
-                                                                    </span>
-                                                                    
-                                                                </div>
-                                                                <div class="d-flex align-items-center">
-                                                                    <!-- Document Buttons -->
-                                                                    <button *ngIf="findFilledDocumentForProject(timesheet, project.projectId)"
-                                                                            class="btn btn-xs btn-outline-primary mr-2"
-                                                                            (click)="getDoscForPreview(findFilledDocumentForProject(timesheet, project.projectId).docId, false)"
-                                                                            title="View Filled Document">
-                                                                        <i class="fa fa-file-pdf"></i> Filled
-                                                                    </button>
-                                                                    <button *ngIf="findApprovedDocumentForProject(timesheet, project.projectId)"
-                                                                            class="btn btn-xs btn-outline-success mr-2"
-                                                                            (click)="getDoscForPreview(findApprovedDocumentForProject(timesheet, project.projectId).docId, true)"
-                                                                            title="View Approved Document">
-                                                                        <i class="fa fa-file-check"></i> Approved
-                                                                    </button>
-                                                                    <button class="btn btn-sm btn-link p-0" *ngIf="hasActivities(project)">
-                                                                        <i class="fas" 
-                                                                           [class.fa-chevron-down]="isProjectExpanded(timesheet.timesheetId, location.locationMappingId, project.projectId)"
-                                                                           [class.fa-chevron-right]="!isProjectExpanded(timesheet.timesheetId, location.locationMappingId, project.projectId)"></i>
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        
-                                                        <!-- Activity List (Nested) -->
-                                                        <div class="project-card-body" 
-                                                             *ngIf="isProjectExpanded(timesheet.timesheetId, location.locationMappingId, project.projectId)">
-                                                            <div class="activity-list" *ngIf="project.activities && hasActivities(project)">
-                                                                <div *ngFor="let activity of project.activities" class="activity-item">
-                                                                    <div class="d-flex justify-content-between align-items-start">
-                                                                        <div class="flex-grow-1">
-                                                                            <i class="fas fa-tasks mr-2 text-success"></i>
-                                                                            <strong>{{activity.activity}}</strong>
-                                                                            <span class="ml-3 badge badge-light">
-                                                                                {{getTotalWorkingHours(activity.durationMinutes,true)}} hrs
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div *ngIf="activity.description" class="activity-description ml-4 mt-1">
-                                                                        <small class="text-muted" [innerHTML]="activity.description | safeHtml"></small>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                                <div class="activity-list" *ngIf="project.description && !hasActivities(project)">
-                                                                    <div class="activity-item">
-                                                                        <div class="d-flex justify-content-between align-items-start">
-                                                                            <div class="flex-grow-1">
-                                                                                <span style="background-color: yellow;"><i
-                                                                                        class="fa-solid fa-circle-info"></i><strong>Description:</strong></span>
-                                                                                <strong>&nbsp;{{ project.description }}</strong>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                            </div>
-                                            
-                                            <!-- No Locations Message -->
-                                            <div *ngIf="!hasLocations(timesheet)" class="text-center text-muted p-3">
-                                                <i class="fa fa-info-circle mr-2"></i>
-                                                No location sessions for this timesheet
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                                
-                            </ng-container>
-                        </tbody>
-                    </table>
-                </div>
+      <div class="ts-table-wrapper">
 
-            </div>
-            <pagination-controls class="my-pagination" [hidden]="allMyTimesheets.length == 0"
-                (pageChange)="handlePageChange($event)"></pagination-controls>
-
+        <!-- Toolbar -->
+        <div class="ts-toolbar">
+          <a class="ts-search-toggle" href="javascript:void(0)" (click)="toggleSearch()"
+            [title]="isSearchEnabled ? 'Close search' : 'Search'">
+            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+          </a>
+          <button type="button" class="ts-export-btn" [hidden]="allMyTimesheets.length == 0" (click)="exportToExcel()"
+            title="Export to Excel">
+            <i class="fa fa-file-arrow-down"></i>
+            <span>Export</span>
+          </button>
         </div>
+
+        <!-- Table -->
+        <div class="ts-table-scroll">
+          <table class="ts-table" id="myTimesheetInfo" matSort (matSortChange)="sortData($event)">
+            <thead id="myTimesheetInfoTHead">
+              <tr id="myTimesheetInfoTHeadTr">
+                <th style="width:40px;"></th>
+                <th>Sr No.</th>
+                <th *ngIf="isTeamTimesheets" mat-sort-header="employeeName|string">Name</th>
+                <th mat-sort-header="date|date">Date</th>
+                <th mat-sort-header="dayType|string">Day Type</th>
+                <th mat-sort-header="workCheckIn|datetime">In Time</th>
+                <th mat-sort-header="workCheckOut|datetime">Out Time</th>
+                <th mat-sort-header="totalWorkingMinutes|number">Total Hours</th>
+                <th mat-sort-header="statusDisplay|string">Status</th>
+                <th *ngIf="isSelfTimesheets" mat-sort-header="createdByName|string">Applied By</th>
+                <th mat-sort-header="createdOn|datetime">Applied On</th>
+                <th mat-sort-header="isNightShiftDisplay|string">Shift</th>
+                <th mat-sort-header="leaveType|string">Leave Type</th>
+                <th mat-sort-header="rejectReason|string">Reject Reason</th>
+                <th mat-sort-header="remarks|string">Remarks</th>
+                <th>Actions</th>
+              </tr>
+              <tr app-column-filter-bar *ngIf="isTimesheetTable && isSelfTimesheets && isSearchEnabled"
+                [columnList]="selfTimesheetColumns" (onSearch)="onSearch($event);page=1"></tr>
+              <tr app-column-filter-bar *ngIf="isTimesheetTable && isTeamTimesheets && isSearchEnabled"
+                [columnList]="teamTimesheetColumns" (onSearch)="onSearch($event);page=1"></tr>
+            </thead>
+
+            <tbody>
+              <!-- Empty state -->
+              <tr *ngIf="allMyTimesheets.length == 0 || (allMyTimesheets | colFilter:filters:false).length == 0">
+                <td [attr.colspan]="isTeamTimesheets ? 16 : 15" class="ts-empty">
+                  <i class="fa fa-inbox"></i>
+                  <span>No details to display</span>
+                </td>
+              </tr>
+
+              <ng-container *ngFor="let timesheet of allMyTimesheets
+                | colFilter:filters:false
+                | sort:[sortColumn, sortColumnType, sortDirection]
+                | paginate:{ itemsPerPage: 20, currentPage: page };
+                let i = index">
+
+                <!-- Main Row -->
+                <tr class="ts-row" [class.ts-row--night]="timesheet.isNightShift == 'true' || timesheet.isNightShift == true">
+                  <td class="ts-expand-cell">
+                    <button *ngIf="hasLocations(timesheet)" class="ts-expand-btn"
+                      (click)="toggleTimesheetExpansion(timesheet.timesheetId)"
+                      [title]="isTimesheetExpanded(timesheet.timesheetId) ? 'Collapse' : 'Expand'">
+                      <i class="fas" [class.fa-chevron-right]="!isTimesheetExpanded(timesheet.timesheetId)"
+                        [class.fa-chevron-down]="isTimesheetExpanded(timesheet.timesheetId)"></i>
+                    </button>
+                  </td>
+                  <td>{{ 20*(page-1)+i+1 }}</td>
+                  <td *ngIf="isTeamTimesheets">{{ timesheet.employeeName || 'NA' }}</td>
+                  <td>{{ timesheet.date }}</td>
+                  <td>{{ timesheet.dayType }}</td>
+                  <td>{{ timesheet.workCheckIn || 'NA' }}</td>
+                  <td>{{ timesheet.workCheckOut || 'NA' }}</td>
+                  <td><strong>{{ getTotalWorkingHours(timesheet.totalWorkingMinutes, false) }}</strong></td>
+                  <td>
+                    <span class="ts-badge" [class.ts-badge--pending]="timesheet.status === 1"
+                      [class.ts-badge--approved]="timesheet.status === 2" [class.ts-badge--rejected]="timesheet.status === 3"
+                      [class.ts-badge--info]="timesheet.status === 4">
+                      {{ timesheet.statusDisplay || mapStatusToString(timesheet.status) }}
+                    </span>
+                  </td>
+                  <td *ngIf="isSelfTimesheets">{{ timesheet.createdByName || 'NA' }}</td>
+                  <td>{{ timesheet.createdOn }}</td>
+                  <td>{{ timesheet.isNightShiftDisplay }}</td>
+                  <td>{{ timesheet.leaveType || 'NA' }}</td>
+                  <td>{{ timesheet.rejectReason || 'NA' }}</td>
+                  <td>{{ timesheet.remarks || 'NA' }}</td>
+                  <td class="ts-actions-cell">
+                    <button class="ts-action-btn" type="button" title="Copy"
+                      (click)="copyTimesheetDetailsToNotepad(timesheet)">
+                      <i class="fa fa-copy"></i>
+                    </button>
+                    <button
+                      *ngIf="userMapping.update_timesheet && (timesheet.statusDisplay === 'Pending' || timesheet.statusDisplay === 'Rejected' || (timesheet.statusDisplay === 'Approved' && !timesheetFillable))"
+                      class="ts-action-btn ts-action-btn--edit" type="button" title="Edit"
+                      (click)="resetTimesheetForm(); openEditTimesheetForm(timesheet)">
+                      <i class="fa fa-edit"></i>
+                    </button>
+                  </td>
+                </tr>
+
+                <!-- Accordion Panel -->
+                <tr *ngIf="isTimesheetExpanded(timesheet.timesheetId)">
+                  <td [attr.colspan]="isTeamTimesheets ? 16 : 15" class="ts-accordion-cell">
+                    <div class="ts-accordion">
+
+                      <!-- Location Cards -->
+                      <div *ngFor="let location of timesheet.locationSessions" class="ts-loc-card">
+                        <div class="ts-loc-header"
+                          (click)="toggleLocationExpansion(timesheet.timesheetId, location.locationMappingId)"
+                          [class.ts-loc-header--expanded]="isLocationExpanded(timesheet.timesheetId, location.locationMappingId)">
+                          <div class="ts-loc-header__left">
+                            <i class="fas fa-map-marker-alt ts-icon--blue"></i>
+                            <strong>{{ location.workLocationType }}</strong>
+                            <span class="ts-meta">
+                              <i class="far fa-clock"></i>
+                              {{ location.locationInTime || 'NA' }} – {{ location.locationOutTime || 'NA' }}
+                            </span>
+                            <span class="ts-meta">
+                              <strong>Total:</strong> {{ getTotalLocationHours(location) }}
+                            </span>
+                          </div>
+                          <i *ngIf="hasProjects(location)" class="fas ts-chevron"
+                            [class.fa-chevron-down]="isLocationExpanded(timesheet.timesheetId, location.locationMappingId)"
+                            [class.fa-chevron-right]="!isLocationExpanded(timesheet.timesheetId, location.locationMappingId)"></i>
+                        </div>
+
+                        <!-- Project Cards -->
+                        <div class="ts-loc-body"
+                          *ngIf="isLocationExpanded(timesheet.timesheetId, location.locationMappingId) && hasProjects(location)">
+                          <div *ngFor="let project of location.projects" class="ts-proj-card">
+                            <div class="ts-proj-header"
+                              (click)="toggleProjectExpansion(timesheet.timesheetId, location.locationMappingId, project.projectId)"
+                              [class.ts-proj-header--expanded]="isProjectExpanded(timesheet.timesheetId, location.locationMappingId, project.projectId)">
+                              <div class="ts-proj-header__left">
+                                <i class="fas fa-briefcase ts-icon--teal"></i>
+                                <strong>{{ project.projectName }}</strong>
+                                <span *ngIf="project.clientSideId" class="ts-chip ts-chip--grey">
+                                  Client ID: {{ project.clientSideId }}
+                                </span>
+                                <span class="ts-chip" [class.ts-chip--pending]="project.clientApprovalStatus === 1"
+                                  [class.ts-chip--approved]="project.clientApprovalStatus === 2"
+                                  [class.ts-chip--rejected]="project.clientApprovalStatus === 3">
+                                  {{ mapClientApprovalStatusToString(project.clientApprovalStatus) }}
+                                </span>
+                                <span class="ts-meta"><strong>Hours:</strong> {{ getTotalProjectHours(project) }}</span>
+                                <button type="button" class="ts-reject-info-btn"
+                                  *ngIf="project.projectId && project.rejectionDetails?.length > 0 && project.status === 3"
+                                  (click)="openRejectReasonsModal(project.rejectionDetails, timesheet_reject_reasons); $event.stopPropagation()"
+                                  title="View Rejection Reason(s)">
+                                  <i class="fa-solid fa-circle-info fa-bounce"></i>
+                                </button>
+                              </div>
+                              <div class="ts-proj-header__right">
+                                <button *ngIf="findFilledDocumentForProject(timesheet, project.projectId)"
+                                  class="ts-doc-btn ts-doc-btn--filled"
+                                  (click)="getDoscForPreview(findFilledDocumentForProject(timesheet, project.projectId).docId, false)"
+                                  title="View Filled Document">
+                                  <i class="fa fa-file-pdf"></i>
+                                  <span>Filled</span>
+                                </button>
+                                <button *ngIf="findApprovedDocumentForProject(timesheet, project.projectId)"
+                                  class="ts-doc-btn ts-doc-btn--approved"
+                                  (click)="getDoscForPreview(findApprovedDocumentForProject(timesheet, project.projectId).docId, true)"
+                                  title="View Approved Document">
+                                  <i class="fa fa-file-pdf"></i>
+                                  <span>Approved</span>
+                                </button>
+                                <i *ngIf="hasActivities(project)" class="fas ts-chevron"
+                                  [class.fa-chevron-down]="isProjectExpanded(timesheet.timesheetId, location.locationMappingId, project.projectId)"
+                                  [class.fa-chevron-right]="!isProjectExpanded(timesheet.timesheetId, location.locationMappingId, project.projectId)"></i>
+                              </div>
+                            </div>
+
+                            <!-- Activities -->
+                            <div class="ts-proj-body"
+                              *ngIf="isProjectExpanded(timesheet.timesheetId, location.locationMappingId, project.projectId)">
+                              <div class="ts-activity-list" *ngIf="project.activities && hasActivities(project)">
+                                <div *ngFor="let activity of project.activities" class="ts-activity">
+                                  <div class="ts-activity__header">
+                                    <i class="fas fa-tasks ts-icon--green"></i>
+                                    <strong>{{ activity.activity }}</strong>
+                                    <span class="ts-chip ts-chip--light">
+                                      {{ getTotalWorkingHours(activity.durationMinutes, true) }} hrs
+                                    </span>
+                                  </div>
+                                  <div *ngIf="activity.description" class="ts-activity__desc"
+                                    [innerHTML]="activity.description | safeHtml"></div>
+                                </div>
+                              </div>
+                              <div class="ts-activity-list" *ngIf="project.description && !hasActivities(project)">
+                                <div class="ts-activity">
+                                  <div class="ts-activity__header">
+                                    <span class="ts-desc-tag">
+                                      <i class="fa-solid fa-circle-info"></i> Description:
+                                    </span>
+                                    <strong>{{ project.description }}</strong>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- No locations -->
+                      <div *ngIf="!hasLocations(timesheet)" class="ts-no-data">
+                        <i class="fa fa-info-circle"></i>
+                        No location sessions for this timesheet
+                      </div>
+
+                    </div>
+                  </td>
+                </tr>
+
+              </ng-container>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <pagination-controls class="ts-pagination" [hidden]="allMyTimesheets.length == 0"
+          (pageChange)="handlePageChange($event)">
+        </pagination-controls>
+
+      </div>
     </div>
 </div>
 <!-- end :: View Timesheets -->
@@ -986,7 +956,7 @@
              <div class="info-modal">  <app-info-tooltip class="me-2" style="margin-right: 8px;" pdfPath="assets/pdfFiles/Entering client side id.pdf"
   pdfCtaText="Client Side ID Entry Guide" iconBgColor="#8377D1" [size]="19" [content]="clientIdEntryBulletPoints">
             </app-info-tooltip></div>
-           
+
             <h5>Update Client Side ID Form</h5>
         </div>
 
@@ -1288,7 +1258,7 @@
     </div>
 
     <!-- Rejection List -->
-    
+
 
       <!-- Rejection Table -->
       <table class="table table-sm table-bordered mb-0"
