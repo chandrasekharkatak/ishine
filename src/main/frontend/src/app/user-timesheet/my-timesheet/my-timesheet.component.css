@@ -2130,3 +2130,91 @@ preview-container {
   }
   .ts-activity { font-size: 12px; }
 }
+.apm-modal-wrapper {
+  padding: 32px 28px 24px;
+  text-align: center;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.apm-modal-icon-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.apm-icon-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.apm-icon-fail {
+  background: #fff0f0;
+  color: #e53935;
+}
+
+.apm-icon-success {
+  background: #f0fff4;
+  color: #2e7d32;
+}
+
+.apm-icon-warn {
+  background: #fff8e1;
+  color: #f57c00;
+}
+
+.apm-modal-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 10px;
+  letter-spacing: -0.01em;
+}
+
+.apm-modal-message {
+  font-size: 0.875rem;
+  color: #666;
+  line-height: 1.65;
+  margin-bottom: 24px;
+  padding: 0 8px;
+}
+
+.apm-modal-footer {
+  display: flex;
+  justify-content: center;
+}
+
+.apm-btn-ok {
+  min-width: 100px;
+  padding: 9px 32px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+  background: #1a1a2e;
+  color: #fff;
+}
+
+.apm-btn-fail {
+  background: #e53935;
+}
+
+.apm-btn-success {
+  background: #2e7d32;
+}
+
+.apm-btn-ok:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.apm-btn-ok:active {
+  transform: translateY(0);
+}

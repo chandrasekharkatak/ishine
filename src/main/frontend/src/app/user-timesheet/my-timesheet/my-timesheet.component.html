@@ -1294,15 +1294,42 @@
 </ng-template>
 
 <ng-template #errorModal let-modal>
-  <div class="modal-header">
-    <h5 class="modal-title">{{ popupTitle }}</h5>
+  <div class="apm-modal-wrapper">
+
+    <div class="apm-modal-icon-row">
+      <div class="apm-icon-circle" [ngClass]="{
+        'apm-icon-fail':    popupTitle?.toLowerCase().includes('fail') || popupTitle?.toLowerCase().includes('error'),
+        'apm-icon-success': popupTitle?.toLowerCase().includes('success'),
+        'apm-icon-warn':    popupTitle?.toLowerCase().includes('warn')
+      }">
+        <svg *ngIf="popupTitle?.toLowerCase().includes('fail') || popupTitle?.toLowerCase().includes('error')"
+             xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <svg *ngIf="popupTitle?.toLowerCase().includes('success')"
+             xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/>
+        </svg>
+        <svg *ngIf="!popupTitle?.toLowerCase().includes('fail') && !popupTitle?.toLowerCase().includes('error') && !popupTitle?.toLowerCase().includes('success')"
+             xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+             fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
     </div>
 
-  <div class="modal-body">
-    <p>{{ popupMessage }}</p>
-  </div>
+    <div class="apm-modal-title">{{ popupTitle }}</div>
+    <div class="apm-modal-message">{{ popupMessage }}</div>
 
-  <div class="modal-footer">
-    <button class="btn btn-primary" (click)="modal.close()">OK</button>
+    <div class="apm-modal-footer">
+      <button class="apm-btn-ok" [ngClass]="{
+        'apm-btn-fail':    popupTitle?.toLowerCase().includes('fail') || popupTitle?.toLowerCase().includes('error'),
+        'apm-btn-success': popupTitle?.toLowerCase().includes('success')
+      }" (click)="modal.close()">OK</button>
+    </div>
+
   </div>
 </ng-template>
