@@ -116,7 +116,8 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 				"/employeeportal/api/oneTimeUpdatePoClientId",
 				"/api/oneTimeUpdatePoClientId",
 				"/api/healthCheck",
-				"/employeeportal/api/healthCheck"
+				"/employeeportal/api/healthCheck",
+				"/api/getResourceCountFromPoId"
 			);
 	
 //	private final List<String> SKYWALKING_PROXIED_PATHS = Arrays.asList(
