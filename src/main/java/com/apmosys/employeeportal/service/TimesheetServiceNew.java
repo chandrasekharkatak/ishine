@@ -66,6 +66,7 @@ import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetDocumentDataDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.TimesheetStatusCountDTO;
 import com.apmosys.employeeportal.enums.DayTypeTransition;
 import com.apmosys.employeeportal.enums.DayTypeCode;
+import com.apmosys.employeeportal.Exception.TimesheetApproveValidationFailedException;
 import com.apmosys.employeeportal.Exception.TimesheetValidationFailedException;
 import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
 import com.apmosys.employeeportal.model.DocMimeTypeMasterNew;
@@ -1692,7 +1693,7 @@ public class TimesheetServiceNew {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Document file not found");
+		 throw new TimesheetValidationFailedException( "Document file not found");
 	}
 
 	// @Transactional(rollbackFor = Exception.class)

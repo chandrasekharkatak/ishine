@@ -17169,7 +17169,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				"    p.projectName, c.clientName, cl.clientLocation, ptsn.clientApprovalStatus,\n" +
 				"    ptsn.poNo, es.name, ptsn.status, ptsn.totalClientWorkingMinutes, ptsn.description, \n" +
 				"    etamn.timesheetId, etamn.locationMappingId, etamn.projectId, \n" +
-				"    a.activity, etamn.description, etamn.durationMinutes, \n" +
+				"    etamn.id, a.activity, etamn.description, etamn.durationMinutes, \n" +
 				"    t.teamName, \n" +
 				"    tddn.docId, tddn.docName, tddn.finalFlag, \n" +
 				"    tddn.bulkApprovedDocId, dmtmn.mimeType, tddn.projectId, \n" +
@@ -17235,7 +17235,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				"p.projectName, c.clientName, cl.clientLocation, ptsn.poNo, \n" +
 				"es.name, ptsn.status, ptsn.totalClientWorkingMinutes, ptsn.description, \n" +
 				"etamn.timesheetId, etamn.locationMappingId, etamn.projectId, \n" +
-				"a.activity, etamn.description, etamn.durationMinutes, \n" +
+				"etamn.id , a.activity, etamn.description, etamn.durationMinutes, \n" +
 				"t.teamName, \n" +
 				"tddn.docId, tddn.docName, tddn.finalFlag, tddn.bulkApprovedDocId, dmtmn.mimeType, tddn.projectId, \n" +
 				"trdn.timesheetId, trdn.locationMappingId, trdn.projectId, trrm.rejectionReason, trdn.remarks, trdn.rejectedOn"

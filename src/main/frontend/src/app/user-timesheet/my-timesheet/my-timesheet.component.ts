@@ -47,6 +47,9 @@ export class MyTimesheetComponent implements OnInit {
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
 
+  @ViewChild('errorModal') errorModal!: TemplateRef<any>;
+
+
   @ViewChild("previewTemplate")
   previewModal: TemplateRef<any>;
 
@@ -84,6 +87,8 @@ export class MyTimesheetComponent implements OnInit {
   rulesfileType:any;
   rulespreviewUrl:any;
 
+popupTitle = '';
+popupMessage = '';
   data: string;
   feature = "My Timesheets";
   currentUser: User;
@@ -3132,7 +3137,42 @@ get tooltipCta(): string {
             this.showPreviewFromBlob(blob);
           }
         },
-        error: () => { /* handle error if needed */ }
+        error: (err) => {
+  let message = 'Something went wrong';
+  let title = 'Error';
+
+  const openPopup = (title: string, message: string) => {
+    this.popupTitle = title;
+    this.popupMessage = message;
+    this.modalService.open(this.errorModal, { centered: true });
+  };
+
+  if (err.error instanceof Blob) {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      try {
+        const errorObj = JSON.parse(reader.result as string);
+        openPopup(
+          errorObj.serviceStatus || title,
+          errorObj.serviceResponse || message
+        );
+      } catch {
+        openPopup(title, message);
+      }
+    };
+
+    reader.readAsText(err.error);
+
+  } else if (err?.error?.serviceResponse) {
+    openPopup(
+      err.error.serviceStatus || title,
+      err.error.serviceResponse
+    );
+  } else {
+    openPopup(title, message);
+  }
+}
       });
   }
 

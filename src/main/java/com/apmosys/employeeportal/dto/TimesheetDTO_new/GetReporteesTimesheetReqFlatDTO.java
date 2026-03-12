@@ -48,6 +48,7 @@ public class GetReporteesTimesheetReqFlatDTO {
     private Integer clientApprovalStatus;
     private String description;
     
+	private Long activityMappingId;
     private Long activityTimesheetId;
     private Long activityLocationMappingId;
     private Integer activityProjectId;
@@ -76,7 +77,7 @@ public class GetReporteesTimesheetReqFlatDTO {
 			Long projectCount, Long locationCount, String appliedBy, LocalDateTime appliedOn, String workLocationType,
 			LocalDateTime locationInTime, LocalDateTime locationOutTime, Long locationMappingId,Long projectTimesheetId,Long projectLocationMappingId, Integer projectId,
 			String projectName, String clientName, String clientLocation,Integer clientApprovalStatus, String poNo, String shadowEmp, Integer status,
-			Integer totalClientWorkingMinutes, String description,Long activityTimesheetId,Long activityLocationMappingId,Integer activityProjectId, String activity, String activityDescription,
+			Integer totalClientWorkingMinutes, String description,Long activityTimesheetId,Long activityLocationMappingId,Integer activityProjectId,Long activityMappingId, String activity, String activityDescription,
 			Short durationMinutes, String teamName, Long docId, String docName, Boolean finalFlag,
 			Long bulkApprovedDocId, String mimeType, Integer docsProjectId,Long rejectionTimesheetId,Long rejectionLocationMappingId,Integer rejectionProjectId, String rejectionReason, String remarks, LocalDateTime rejectedOn) {
 		super();
@@ -112,6 +113,7 @@ public class GetReporteesTimesheetReqFlatDTO {
 		this.activityTimesheetId = activityTimesheetId;
 		this.activityLocationMappingId = activityLocationMappingId;
 		this.activityProjectId = activityProjectId;
+		this.activityMappingId = activityMappingId;
 		this.activity = activity;
 		this.activityDescription = activityDescription;
 		this.durationMinutes = durationMinutes;
