@@ -101,6 +101,8 @@ import com.apmosys.employeeportal.service.validator.EmployeeAssignmentValidation
 import com.apmosys.employeeportal.service.validator.TimesheetValidationHelper;
 import com.apmosys.employeeportal.utility.DateConversionUtil;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * New Service for Hierarchical Timesheet Operations
@@ -217,6 +219,7 @@ public class TimesheetServiceNew {
 	DepartmentRepository departmentRepository;
 	
 	private Map<String, Integer> mimeTypeMap = new HashMap<>();
+	private static final Logger log = LoggerFactory.getLogger(TimesheetServiceNew.class);
 
 	/**
 	 * Get current user ID from security context. TODO: Implement proper security
@@ -353,9 +356,17 @@ public class TimesheetServiceNew {
 
 			timesheetValidationHelper.validateNullAndUnexpectedData(empDTO);
 
+			
 			Integer effectiveLockDays = (timesheetLockDays != null) ? timesheetLockDays : 30;
 			timesheetValidationHelper.validateTimesheetLockPeriod(empDTO.getEmpId(), empDTO.getDate(),
-					effectiveLockDays);
+			effectiveLockDays);
+			
+			timesheetValidationHelper.validateTimesheetForTodaysDate(empDTO.getDate(), empDTO.getWorkCheckIn(),
+					empDTO.getWorkCheckOut());
+
+			if(!empDTO.getCreatedBy().equals(empDTO.getEmpId())){
+				timesheetValidationHelper.isTeamMemberTimesheetCanBeFilledValidation(empDTO.getEmpId());
+			}
 			
 			timesheetValidationHelper.validateApmosysHolidayWithProjects(empDTO);
 
@@ -929,6 +940,7 @@ public class TimesheetServiceNew {
 			timesheetValidationHelper.validateTimesheetDateImmutable(empTS, newEmpDTO);
 			timesheetValidationHelper.validateEmployeeImmutableIfProjectApproved(empTS, newEmpDTO);
 
+			timesheetValidationHelper.validateTimesheetForTodaysDate(newEmpDTO.getDate(), newEmpDTO.getWorkCheckIn(), newEmpDTO.getWorkCheckOut());
 			/* Day type transition not allowed if any of project is approved */
 			timesheetValidationHelper.validateDayTypeTransition(empTS, newEmpDTO);
 
@@ -2463,12 +2475,15 @@ public class TimesheetServiceNew {
 						zos.putNextEntry(new ZipEntry(uniqueName));
 						Files.copy(path, zos);
 						zos.closeEntry();
+						
 					}
 				} catch (Exception e) {
 					// Log error but continue with next file
-					System.err.println("Failed to add file: " + url + " - " + e.getMessage());
+					// System.err.println("Failed to add file: " + url + " - " + e.getMessage());
+					log.error("Failed to add file: {}", url, e);
 				}
 			}
+			log.info("ZIP streaming completed: {}", zipFileName);
 		}
 	}
 
@@ -2476,34 +2491,44 @@ public class TimesheetServiceNew {
 	 * Streams final documents as a single ZIP file directly to the HTTP response
 	 */
 	public void streamFinalDocumentsZip(List<FinalDocumentDownloadPayloadDTO> payloadList, HttpServletResponse response) throws IOException {
-		System.out.println(">> streamFinalDocumentsZip() START");
-		System.out.println("Number of records: " + payloadList.size());
+		log.info("streamFinalDocumentsZip() started");
+		log.info("Payload size: {}", payloadList.size());
+		
 
 		if (payloadList == null || payloadList.isEmpty()) {
 			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			response.setContentType("text/plain");
 			response.getWriter().write("No data provided");
 			return;
 		}
 
 		List<Long> empIds = payloadList.stream()
 			.map(FinalDocumentDownloadPayloadDTO::getEmpId)
+			.distinct()
 			.collect(Collectors.toList());
 
 		List<Integer> projectIds = payloadList.stream()
 			.map(FinalDocumentDownloadPayloadDTO::getProjectId)
+			.distinct()
 			.collect(Collectors.toList());
 
 		Integer month = payloadList.get(0).getMonth();
 		Integer year = payloadList.get(0).getYear();
-
+		if (month == null || year == null) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			response.setContentType("text/plain");
+			response.getWriter().write("Invalid month or year");
+			return;
+		}
 		// Fetch file URLs from database
 		List<FinalDocumentDownloadDTO> fileRecords = finalDocumentNewRepository.getAllFinalDocumentsByEmpIdAndProjectIdInMonthAndYear(
 				empIds, projectIds, month, year);
-
-		System.out.println("File records fetched: " + (fileRecords == null ? "null" : fileRecords.size()));
+		log.info("Records fetched: {}", fileRecords.size());
+		// System.out.println("File records fetched: " + (fileRecords == null ? "null" : fileRecords.size()));
 
 		if (fileRecords == null || fileRecords.isEmpty()) {
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			response.setContentType("text/plain");
 			response.getWriter().write("No final documents found for selected project and month");
 			return;
 		}
@@ -2517,6 +2542,13 @@ public class TimesheetServiceNew {
 			.map(FinalDocumentDownloadDTO::getFileUrl)
 			.filter(Objects::nonNull)
 			.collect(Collectors.toList());
+			log.info("Files to be zipped: {}", fileUrls.size());
+			if (fileUrls.isEmpty()) {
+				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+				response.setContentType("text/plain");
+				response.getWriter().write("No valid document files found");
+				return;
+			}
 		
 		// Call the reusable streaming method with all file URLs
 		streamZipFromFileUrls(fileUrls, zipName, response);

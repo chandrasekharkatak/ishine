@@ -41,6 +41,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -55,6 +56,7 @@ import org.springframework.util.unit.DataSize;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.apmosys.employeeportal.config.CacheConfig;
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.ClientDetailsForActivityDTO;
 import com.apmosys.employeeportal.dto.ClientLocationDTO;
@@ -6886,10 +6888,11 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 //			    
 //		    return response;
 //		}
-//	
+//
 	
+	@Cacheable(cacheNames = CacheConfig.CACHE_EMPLOYEE_VIEW_CLIENT_ATTENDANCE, keyGenerator = "employeeViewClientAttendanceCacheKeyGenerator")
 	public ServiceResponse getEmployeeViewForClientAttendanceStatus(GetEmployeeSummaryOnExportDTO object) {
-
+        System.out.println("CACHE TEST -102");
 	    ServiceResponse response = new ServiceResponse();
 
 	    LogDTO apiLogInfo = new LogDTO();
@@ -8387,6 +8390,7 @@ private ServiceResponse getDocumentsByEmpAndDateInternal(TimesheetDTO timesheetD
 	}
 	
 	
+	@Cacheable(cacheNames = CacheConfig.CACHE_DEPARTMENT_STATUS_SUMMARY, keyGenerator = "departmentStatusSummaryCacheKeyGenerator")
 	public ServiceResponse getDepartmentStatusSummary(GetEmployeeSummaryOnExportDTO requestDTO) {
 
 	    ServiceResponse response = new ServiceResponse();
