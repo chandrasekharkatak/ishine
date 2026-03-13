@@ -1333,3 +1333,25 @@
   max-width: 100%;
   max-height: 90vh;
 }
+
+.slide-main-container {
+  position: relative;
+}
+
+.slide-nav {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  z-index: 10;
+}
+
+.slide-nav.left {
+  left: 0;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M16 18L8 12L16 6V18Z" fill="black"/></svg>') 12 12, pointer;
+}
+
+.slide-nav.right {
+  right: 0;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M8 18L16 12L8 6V18Z" fill="black"/></svg>') 12 12, pointer;
+}
