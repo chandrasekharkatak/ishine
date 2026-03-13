@@ -3002,24 +3002,26 @@ getDocsForPreview(docId: any) {
       milestoneExtensionReasonId: formValues.extensionReasonId,
       milestoneExtensionReasonText: formValues.customReason
     };
+    const formData = new FormData();
 
+  formData.append(
+    "milestoneData",
+    new Blob([JSON.stringify(payload)], { type: "application/json" })
+  );
+
+  // optional file
+  if (this.selectedMilestone.extensionFile) {
+    formData.append("extensionFile", this.selectedMilestone.extensionFile);
+  }
     console.log('Payload for milestone extension:', payload);
     this.isLoadingmilestoneDetailModal=true;
-    this.projectService.updateMilestoneExtendedDate(payload).subscribe(
+    this.projectService.updateMilestoneExtendedDate(formData).subscribe(
       (response: any) => {
         console.log('Milestone extension response:', response);
         if (response.serviceStatus === 'Success') {
           this.response1 = response.serviceMessage;
           this.isUpdated=true;
           this.isLoadingmilestoneDetailModal=false;
-          // const initialState = {
-          //   // 'message' should be a public property in your modal component's class
-          //   message: this.response1
-          // };
-          // this.popUpModalResf = this.modalService.open(this.milestoneExpireValidationPupup, {
-          //   class: 'modal-sm',
-          //   initialState: initialState
-          // });
            this.openUpdateProjectCompletionModal(
             "milestone extended date updated successfully."
           );

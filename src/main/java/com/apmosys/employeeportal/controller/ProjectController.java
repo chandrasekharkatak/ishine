@@ -1,6 +1,7 @@
 package com.apmosys.employeeportal.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -39,6 +40,7 @@ import com.apmosys.employeeportal.service.PoPortalAPIService;
 import com.apmosys.employeeportal.service.ProjectService;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping(path = "/api")
@@ -209,9 +211,15 @@ public class ProjectController {
 	}
 
 	@JobRoleAccess(featureIds = {24})
-	@PutMapping(value = "/updateMilestoneExtendedDate")
-	public ServiceResponse updateMilestoneExtendedDate(@RequestBody MilestoneUpdatedLogDto milestoneUpdatedLogDto) {
-		return poPortalApiService.updateMilestoneExtendedDate(milestoneUpdatedLogDto);
+	@PostMapping(value = "/updateMilestoneExtendedDate", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	public ServiceResponse updateMilestoneExtendedDate(@RequestPart("milestoneData") String milestoneData,
+	        @RequestPart(value = "extensionFile", required = false) MultipartFile extensionFile) throws Exception {
+
+	    ObjectMapper mapper = new ObjectMapper();
+	    MilestoneUpdatedLogDto milestoneUpdatedLogDto =
+	            mapper.readValue(milestoneData, MilestoneUpdatedLogDto.class);
+
+	    return poPortalApiService.updateMilestoneExtendedDate(milestoneUpdatedLogDto, extensionFile);
 	}
 
 	@JobRoleAccess(featureIds = {24})
@@ -299,5 +307,12 @@ public class ProjectController {
 		ServiceResponse response = projectService.getProjectByName(projectDto);
 		return response;
 	}
+	
+	@PostMapping("/getExtensionDocumentById")
+	public ResponseEntity<FCProjectMilestoneDTO> getExtensionDocumentById(@RequestBody Map<String, Long> request) {
+	    Long milestoneId = request.get("milestoneId");
+	    return ResponseEntity.ok(projectService.getExtensionDocumentById(milestoneId));
+	}
+
 	
 }

@@ -53,9 +53,7 @@ import { LoaderService } from 'src/app/services/loader.service';
 import { PaginationInstance } from 'ngx-pagination';
 import { merge } from 'rxjs';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
-
-
-
+import { MilestoneUpdatedLog } from 'src/app/models/MilestoneUpdatedLog'; 
 
 
 class FilterData {
@@ -308,6 +306,17 @@ expiredProjectsWithin1Month:any;
   newMemberInProject: any;
   currentDepartment: any = []
 
+  //milestone
+  milestoneExtendReason:any
+  isOtherReasonSelected: boolean = false;
+  file:any
+  isExtensionEnabled:boolean =false
+  showMilestoneImageModal:boolean =false
+  minExtendDate!: Date;
+  projectMilestoneDocumentModalRef: NgbModalRef;
+  @ViewChild("project_milestone_document") projectMilestoneDocumentTemplateRef: TemplateRef<any>;
+  expandedMilestoneId:any
+  @ViewChild("project_milestone_extended_preview") projectMilestoneExtendedPreviewTemplateRef: TemplateRef<any>;
 
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
   employeeNotInSearchColumns: any[] = ['employeementId','employeeName','deptName','jobRole','email','skillNames','certificateNames'];
@@ -6527,8 +6536,7 @@ cancelComplete() {
   }
 
   openUpdateProjectMilestoneModal(milestone: any) {
-    // this.projectMilestone = new ProjectM  ;
-    // this.projectMilestone = milestone;
+    this.extensionReason()
     this.projectMilestone = JSON.parse(JSON.stringify(milestone));
     this.updateProjectMilestoneModalRef = this.modalService.open(this.updateProjectMilestoneModal, { modalDialogClass: 'modal-xl' });
   }
@@ -6652,6 +6660,7 @@ if (this.requiresDocument(this.projectMilestone.status) && !this.selectedFile) {
 
     this.projectMilestone.updatedBy = this.currentUser.empId;
     this.projectMilestone.updatedOn = new Date();
+    this.projectMilestone.updatedByName = this.currentUser.name;
 
     const formData = new FormData();
     formData.append('dto', new Blob([JSON.stringify(this.projectMilestone)], { type: 'application/json' }));
@@ -6659,23 +6668,19 @@ if (this.requiresDocument(this.projectMilestone.status) && !this.selectedFile) {
     if (this.selectedFile) {
       formData.append('file', this.selectedFile);
     }
-    console.log("after updaed by updated on", this.projectMilestone);
-
-
     this.isLoadingMilestone=true;
+     if (this.isExtensionEnabled && this.projectMilestone.extendedDate){
+        const update =this.updateMilestoneExtendedDateWithReason();
+        if(!update) return;
+    }
 
-
-
-    this.projectService.updateMilestoneById(formData).pipe(first()).subscribe({
-  next: (response: any) => {
+    this.projectService.updateMilestoneById(formData).pipe(first()).subscribe({next: (response: any) => {
     this.isLoadingMilestone = false;
 
     if (response.serviceStatus === "Success") {
         this.selectedFile = null;
        const index = this.fcProjectMilestoneList.findIndex(m => m.id === this.projectMilestone.id);
-    if (index > -1) {
-      this.fcProjectMilestoneList[index] = { ...this.projectMilestone };
-    }
+    if (index > -1) {this.fcProjectMilestoneList[index] = { ...this.projectMilestone };}
       this.calculatePoStatus();
       this.closeUpdateProjectMilestoneModal();
       this.showProjectMilestones(this.projectObj);
@@ -6689,7 +6694,7 @@ if (this.requiresDocument(this.projectMilestone.status) && !this.selectedFile) {
     this.openAlertMod(this.alertTemplateForMilestone, "Error updating milestone: " + err.message);
   }
 });
-      this.closeUpdateProjectMilestoneModal();
+  this.closeUpdateProjectMilestoneModal();
 
   }
 
@@ -8420,5 +8425,170 @@ catch(error){
     // No tooltip when enabled
     return null;
   }
+
+  onExtendedDateSelected() {  
+  if (!this.projectMilestone.extendedDate) {
+    this.projectMilestone.extensionReason = null;
+    this.projectMilestone.extensionFile = null;
+  }
+}
+
+clearExtensionFile(fileInput: HTMLInputElement) {
+  this.projectMilestone.extensionFile = null;
+  fileInput.value = '';
+}
+
+onExtensionFileSelected(event: any) {
+
+  const file = event.target.files[0];
+  if (!file) return;
+  const maxSize = 5 * 1024 * 1024; // 5MB
+  if (file.size > maxSize) {
+    alert("File size should be less than 5MB");
+    return;
+  }
+
+  this.projectMilestone.extensionFile = file;
+}
+
+previewExtensionFile() {
+
+  if (!this.projectMilestone.extensionFile) return;
+  const fileURL = URL.createObjectURL(this.projectMilestone.extensionFile);
+  this.milestoneDocumentUrl =
+      this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
+
+  this.projectMilestoneDocumentModalRef = this.modalService.open(
+    this.projectMilestoneDocumentTemplateRef,
+    {
+      modalDialogClass: 'modal-xl',
+      backdrop: 'static',
+      keyboard: false
+    }
+  );
+}
+
+
+extensionReason() {
+    this.projectService.getAllMilestoneExtendReason().subscribe({
+      next: (response) => {
+        if (response.serviceStatus === 'Success') {
+          this.milestoneExtendReason = response.serviceResponse;
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching milestones:', error);
+
+      }
+    });
+  }
+
+updateMilestoneExtendedDateWithReason() {
+
+  if(!this.isExtensionEnabled) return
+    else if(!this.projectMilestone.extensionReason){ 
+        this.openAlertMod(this.alertTemplateForMilestone, "Kindly select the extension reason!!");
+        return false;
+    }else if(this.projectMilestone?.extensionReason?.milestoneExtensionReason==='Other' &&
+        (!this.projectMilestone?.customReason || !this.projectMilestone?.customReason.trim())){
+        this.openAlertMod(this.alertTemplateForMilestone, "Kindly Enter Custom Reason!!");
+        return false;        
+    }  
+
+  const payload: MilestoneUpdatedLog = {
+    milestoneId: this.projectMilestone.id,
+    poId: this.projectMilestone.poId,
+    projectId: this.projectMilestone.projectId,
+    milestoneName: this.projectMilestone.name,
+    milestoneStartDate: this.projectMilestone.startDate
+      ? this.projectMilestone.startDate
+      : null,
+
+    milestoneEndDate: this.projectMilestone.endDate
+      ? this.projectMilestone.endDate
+      : null,    description: this.projectMilestone.description,
+    remarks: this.projectMilestone.remarks,
+    milestoneStatus: this.projectMilestone.status,
+    extendedDate: this.projectMilestone.extendedDate,
+    updatedBy: this.currentUser.empId,
+    milestoneExtensionReasonId: this.projectMilestone.extensionReason?.id,
+    milestoneExtensionReasonText: this.projectMilestone?.extensionReason?.milestoneExtensionReason==='Other'? this.projectMilestone.customReason : ""  };
+
+  const formData = new FormData();
+
+  formData.append(
+    "milestoneData",
+    new Blob([JSON.stringify(payload)], { type: "application/json" })
+  );
+
+  // optional file
+  if (this.projectMilestone.extensionFile) {
+    formData.append("extensionFile", this.projectMilestone.extensionFile);
+  }
+
+  this.projectService.updateMilestoneExtendedDate(formData).subscribe(
+    (response: any) => {
+      console.log(response);
+    },
+    (error) => {
+      console.error(error);
+    }
+  );
+  return true;        
+}    
+
+onExtendedDateChange(event: any) {
+  if (event.value) { this.isExtensionEnabled = true; }
+}
+
+closeProjectMilestoneDocumentsModal() {
+        if (this.projectMilestoneDocumentModalRef) {
+          this.projectMilestoneDocumentModalRef?.close();
+          this.projectMilestoneDocumentModalRef = null;
+        }
+      this.milestoneDocumentUrl = null;
+    }
+
+toggleExtensionLogs(milestone: any) {
+  if (!milestone.extendedDate) {return;}
+  this.expandedMilestoneId = this.expandedMilestoneId === milestone.id ? null : milestone.id;
+}
+
+previewDocument(milestoneId: number) {
+
+  this.projectService.getExtensionDocumentById(milestoneId).subscribe((res: any) => {
+      if (!res || !res.documentContent) {
+        this.milestoneDocumentUrl = null;
+        this.openAlertMod(this.alertTemplateForMilestone, "Error fetching document for preview. Kindly try after sometime!!");
+        return;
+      }
+      const byteCharacters = atob(res.documentContent);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: res.documentType });
+      const url = window.URL.createObjectURL(blob);
+
+      this.milestoneDocumentUrl = url;
+      this.projectMilestoneDocumentModalRef = this.modalService.open(
+      this.projectMilestoneExtendedPreviewTemplateRef,{modalDialogClass: 'modal-xl',keyboard: false});
+    },
+    (error) => {
+      console.error('Error fetching document:', error);
+      this.openAlertMod(this.alertTemplateForMilestone, "Error fetching document for preview. Kindly try after sometime!!");
+      this.milestoneDocumentUrl = null;
+      return
+    }
+  );
+}
+closeProjectMilestoneImageModal() {
+  this.showMilestoneImageModal = false;
+  this.milestoneDocumentUrl = null;
+}
+
+
+  
 
 }

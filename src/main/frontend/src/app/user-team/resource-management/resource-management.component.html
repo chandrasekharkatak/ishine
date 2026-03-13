@@ -2526,7 +2526,8 @@
                         </div>
 
                         <!-- Milestone Table -->
-                        <div *ngIf="!isLoadingMilestones" class="table-container">
+                        <div *ngIf="!isLoadingMilestones" class="table-scroll-wrapper">
+                        <div class="table-container">
                             <table class="table" id="project-milestone" matSort
                                 (matSortChange)="sortProjectMilestoneData($event)">
                                 <thead class="thead-light">
@@ -2541,6 +2542,7 @@
                                         </th>
                                         <th scope="col" class="info-label" mat-sort-header="endDate|string">End Date
                                         </th>
+                                        <th scope="col" class="info-label" mat-sort-header="extendedDate|string">Extended End Date</th>
                                         <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
                                         <th scope="col" class="info-label">Remarks</th>
                                         <th scope="col" class="info-label">Actions</th>
@@ -2549,7 +2551,7 @@
                                 <tbody>
                                     <ng-container *ngIf="fcProjectMilestoneList.length == 0">
                                         <tr>
-                                            <td colspan="9" class="text-center info-label">No details to display...</td>
+                                            <td colspan="10" class="text-center info-label">No details to display...</td>
                                         </tr>
                                     </ng-container>
                                     <ng-container
@@ -2561,6 +2563,15 @@
                                             <td>{{milestone.description}}</td>
                                             <td>{{milestone.startDate | date:'dd/MM/yyyy'}}</td>
                                             <td>{{milestone.endDate | date:'dd/MM/yyyy'}}</td>
+                                            <td><span *ngIf="milestone.extendedDate"
+                                                  class="text-primary fw-semibold cursor-pointer"
+                                                  title="Click to view Milestone logs"
+                                                  (click)="toggleExtensionLogs(milestone)">
+                                              {{ milestone.extendedDate | date:'dd/MM/yyyy' }}
+                                            </span>
+                                            <span *ngIf="!milestone.extendedDate">N/A</span>
+                                        </td> 
+
                                             <td>{{milestone.status}}</td>
                                             <td>{{milestone.remarks}}</td>
                                             <td>
@@ -2572,12 +2583,70 @@
                                                 </button>&nbsp;&nbsp;
 
                                                 <button *ngIf="milestone.status === 'Completed'"
-                                                    class="btn btn-sm btn-info" title="View Document"
+                                                    class="btn btn-sm btn-info mt-2" title="View Document"
                                                     (click)="viewFiles(milestone.id)">
                                                     <i class="fas fa-file-alt"></i>
                                                 </button>
                                             </td>
                                         </tr>
+                                        <tr *ngIf="expandedMilestoneId === milestone.id">
+                                          <td colspan="10" class="p-0">
+                                            <div class="p-3 bg-light border rounded mt-3 mb-5 mr-3 ml-3">
+                                            
+                                              <h5 class="mb-3">Milestone Logs</h5>
+                                            
+                                              <table class="table table-sm table-bordered mb-0">
+                                                <thead class="table-light">
+                                                  <tr>
+                                                    <th class="text-center">ID</th>
+                                                    <th class="text-center">Updated By</th>
+                                                    <th class="text-center">Updated On</th>
+                                                    <th class="text-center">Extended Date</th>
+                                                    <th class="text-center">Extension Reason</th>
+                                                    <th class="text-center">View Doc</th>
+                                                  </tr>
+                                                </thead>
+                                            
+                                                <tbody>
+                                                  <tr *ngIf="milestone.milestoneExtendedDates?.length === 0">
+                                                    <td colspan="6" class="text-center text-muted">
+                                                      No logs available
+                                                    </td>
+                                                  </tr>
+                                              
+                                                  <tr *ngFor="let log of milestone.milestoneExtendedDates;let k = index">
+                                                    <td class="text-center">{{ k + 1 }}</td>
+                                                    <td class="text-center">{{ log.updatedByName }}</td>
+                                                    <td class="text-center">{{ log.updatedOn | date:'dd/MM/yyyy HH:mm' }}</td>
+                                                    <td class="text-center">{{ log.extendedDate | date:'dd/MM/yyyy ' }}</td>
+                                                    <td class="text-center">{{ log.extentionReason }}</td>
+                                                
+                                                    <td class="text-center">
+                                                      <button
+                                                        *ngIf="log.documentName"
+                                                        class="btn btn-sm btn-outline-primary"
+                                                        title="View Document"
+                                                        (click)="previewDocument(log.id)">
+                                                        <i class="fas fa-eye"></i>
+                                                      </button>
+                                                  
+                                                      <button
+                                                        *ngIf="!log.documentName"
+                                                        class="btn btn-sm btn-outline-secondary"
+                                                        disabled
+                                                        title="Document not present">
+                                                        <i class="fas fa-eye-slash"></i>
+                                                      </button>
+                                                    </td>
+                                                  </tr>
+                                              
+                                                </tbody>
+                                              </table>
+                                          
+                                            </div>
+                                          </td>
+                                        </tr>
+
                                     </ng-container>
                                 </tbody>
                             </table>
@@ -2585,6 +2654,7 @@
                                 <pagination-controls class="my-pagination" [hidden]="fcProjectMilestoneList.length == 0"
                                     (pageChange)="handleProjectMilestonePageChange($event)"></pagination-controls>
                             </div>
+                        </div>
                         </div>
                     </div>
                 </div>
@@ -4229,10 +4299,10 @@
         </button>
     </div>
     <div class="modal-body">
-        <div class="table-container">
-            <table class="table" id="project-milestone" matSort (matSortChange)="sortProjectMilestoneData($event)">
+        <div class="table-scroll-wrapper">
+            <table class="table" id="project-milestone1" matSort (matSortChange)="sortProjectMilestoneData($event)">
                 <thead class="thead-light">
-                    <tr id="projectMilestoneTHeadTr">
+                    <tr id="projectMilestoneTHeadTr1">
                         <th scope="col" class="info-label">Sr.No</th>
                         <th scope="col" class="info-label" mat-sort-header="lineItemName|string">Line Item</th>
                         <th scope="col" class="info-label" mat-sort-header="name|string">Name</th>
@@ -4259,6 +4329,7 @@
                             <td>{{milestone.description}}</td>
                             <td>{{milestone.startDate | date:'dd/MM/yyyy'}}</td>
                             <td>{{milestone.endDate | date:'dd/MM/yyyy'}}</td>
+                            <td>{{milestone.status}}</td>
                             <td>{{milestone.status}}</td>
                             <td>{{milestone.remarks}}</td>
                             <td>
@@ -4335,134 +4406,274 @@
 
 
 <ng-template #update_project_milestone_modal>
-    <div class="modal-header">
-        <h4 class="modal-title pull-left">Update Project Milestone</h4>
-        <button type="button" class="close pull-right" aria-label="Close" (click)="closeUpdateProjectMilestoneModal()">
-            <span aria-hidden="true">&times;</span>
-        </button>
+  <div class="modal-header bg-primary text-white">
+    <h5 class="modal-title fw-semibold">Update Project Milestone</h5>
+    <button type="button" class="btn-close btn-close-white" (click)="closeUpdateProjectMilestoneModal()"></button>
+  </div>
 
+  <!-- BODY -->
+  <div class="modal-body">
 
-    </div>
-    <div class="modal-body">
+    <div class="container-fluid">
 
-        <div *ngIf="isLoadingMilestone" class="loader-overlay">
-            <div class="spinner-border text-primary" role="status">
-                <span class="sr-only">Loading...</span>
-            </div>
+      <div class="row g-3">
+
+        <!-- Line Item -->
+        <div class="col-md-6">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Line Item Name</mat-label>
+            <input matInput [(ngModel)]="projectMilestone.lineItemName" disabled />
+          </mat-form-field>
         </div>
 
-        <div class="form-group">
-            <div class="form-field">
-                <label>Line Item Name</label>
-                <input type="text" disabled [(ngModel)]="projectMilestone.lineItemName" />
-            </div>
-            <div class="form-field">
-                <label>Milestone Name</label>
-                <input type="text" disabled [(ngModel)]="projectMilestone.name" />
-            </div>
-
-
-
-            <!-- <div class="form-field">
-                <label>Start Date</label>
-                <input id="startDate" class="form-control static-input" autocomplete="off"
-                    [(ngModel)]="projectMilestone.startDate" [owlDateTimeTrigger]="startDatePicker"
-                    [owlDateTime]="startDatePicker" placeholder="Select Start Date" [disabled]="true">
-                <owl-date-time #startDatePicker></owl-date-time>
-            </div> -->
-
-            <mat-form-field appearance="outline" class="form-field">
-                <mat-label>Start Date</mat-label>
-                <input matInput [matDatepicker]="startDatePicker" [(ngModel)]="projectMilestone.startDate"
-                    placeholder="Select Start Date" [disabled]="true" autocomplete="off" />
-                <!-- Datepicker icon -->
-                <mat-datepicker-toggle matSuffix [for]="startDatePicker">
-                </mat-datepicker-toggle>
-                <mat-datepicker #startDatePicker></mat-datepicker>
-            </mat-form-field>
-
-
-            <!-- <div class="form-field">
-                <label>End Date</label>
-                <input id="endDate" class="form-control static-input" autocomplete="off"
-                    [(ngModel)]="projectMilestone.endDate" [owlDateTimeTrigger]="endDatePicker"
-                    [owlDateTime]="endDatePicker" placeholder="Select End Date" [disabled]="true">
-                <owl-date-time #endDatePicker></owl-date-time>
-            </div> -->
-
-            <mat-form-field appearance="outline" class="form-field">
-                <mat-label>End Date</mat-label>
-                <input matInput [matDatepicker]="endDatePicker" [(ngModel)]="projectMilestone.endDate" placeholder="Select End Date"
-                    autocomplete="off" [disabled]="true" />
-                <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
-                <mat-datepicker #endDatePicker></mat-datepicker>
-            </mat-form-field>
-
-
-            <div class="form-field">
-                <label>Description</label>
-                <input type="text" disabled [(ngModel)]="projectMilestone.description" />
-            </div>
-
-
-            <div class="form-field">
-
-                <label>Status</label>
-                <mat-select [(ngModel)]="projectMilestone.status">
-                    <mat-option [value]="projectMilestone.status">{{projectMilestone.status}}</mat-option>
-                    <ng-container *ngFor="let status of statusList; let i=index;">
-                        <mat-option *ngIf="status!=projectMilestone.status" [value]="status">
-                            {{status}}
-                        </mat-option>
-                    </ng-container>
-                </mat-select>
-            </div>
-
-            <div class="form-field full-width">
-                <label>Remarks</label>
-                <textarea class="form-control" [(ngModel)]="projectMilestone.remarks" rows="3"></textarea>
-            </div>
-
-
-            <div class="form-field full-width">
-                <label> <span class="text-danger"
-                        *ngIf="projectMilestone.status==='Completed' || projectMilestone.status==='On Hold'">*</span>
-                    Upload Document</label>
-
-                <!-- Group the input and button together for better layout -->
-                <div class="file-input-group">
-
-                    <!-- Your existing file input -->
-                    <input type="file" class="plain-file-input" (change)="onFileSelected($event)"
-                        accept=".jpg,.jpeg,.png" #fileInput />
-
-                    <!-- The new Preview Button -->
-                    <button type="button" class="btn btn-sm btn-outline-secondary ml-2" (click)="previewSelectedFile()"
-                        [disabled]="!selectedFile"> <!-- Button is disabled until a file is chosen -->
-                        <i class="fa fa-eye"></i> Preview
-                    </button>
-
-                    <button type="button" class="btn btn-sm btn-outline-danger ml-2"
-                        (click)="clearSelectedFile(fileInput)" [disabled]="!selectedFile">
-                        <i class="fa fa-times"></i> Clear
-                    </button>
-
-
-                </div>
-                <!-- Optional: Display the selected file name -->
-                <div *ngIf="selectedFile" class="file-name-display">
-                    Selected: {{ selectedFile.name }}
-                </div>
-            </div>
-
+        <!-- Milestone -->
+        <div class="col-md-6">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Milestone Name</mat-label>
+            <input matInput [(ngModel)]="projectMilestone.name" disabled />
+          </mat-form-field>
         </div>
-    </div>
 
-    <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="closeUpdateProjectMilestoneModal()">Close</button>
-        <button type="button" class="btn btn-primary" (click)="updateMilestoneChanges()">Update</button>
+        <!-- Start Date -->
+        <div class="col-md-6">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Start Date</mat-label>
+            <input matInput
+              [matDatepicker]="startDatePicker"
+              [(ngModel)]="projectMilestone.startDate"
+              disabled
+              autocomplete="off">
+            <mat-datepicker-toggle matSuffix [for]="startDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #startDatePicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+
+        <!-- End Date -->
+        <div class="col-md-6">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>End Date</mat-label>
+            <input matInput
+              [matDatepicker]="endDatePicker"
+              [(ngModel)]="projectMilestone.endDate"
+              disabled
+              autocomplete="off">
+            <mat-datepicker-toggle matSuffix [for]="endDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #endDatePicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+        <h1>{{minExtendDate}}</h1>
+        <div class="col-md-6">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Extend End Date</mat-label>
+            <input matInput
+              [matDatepicker]="extendedDatePicker"
+              [(ngModel)]="projectMilestone.extendedDate"
+              [min]="minExtendDate"
+              placeholder="Select extended date"
+              autocomplete="off" (dateChange)="onExtendedDateChange($event)"
+            />
+            <mat-datepicker-toggle matSuffix [for]="extendedDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #extendedDatePicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+
+        <!-- Extension Details -->
+        <div class="col-md-12 mt-2 mb-4" *ngIf="isExtensionEnabled">
+          <div class="card border-warning shadow-sm">       
+            <div class="card-header bg-light fw-semibold">Milestone Extension Details</div>        
+                <div class="card-body">
+                  <div class="row g-3 align-items-start">
+                    <!-- Extension Reason -->
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Reason for Extension <span class="text-danger">*</span></mat-label>
+                        <mat-select [(ngModel)]="projectMilestone.extensionReason">
+                          <mat-option *ngFor="let reason of milestoneExtendReason" [value]="reason">
+                            {{reason.milestoneExtensionReason}}
+                          </mat-option>
+                        </mat-select>
+                      </mat-form-field>
+                  
+                      <!-- Custom Reason (shown below dropdown) -->
+                      <div *ngIf="projectMilestone?.extensionReason?.milestoneExtensionReason === 'Other'">
+                        <label class="form-label fw-semibold">
+                          Enter Custom Reason <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control border-primary rounded"
+                          [(ngModel)]="projectMilestone.customReason"
+                          name="customReason"
+                          placeholder="Specify your reason"
+                          rows="3">
+                        </textarea>
+                      </div>
+                    </div>
+                
+                    <!-- Upload Extension Document -->
+                    <div class="col-md-6">
+                      <label class="fw-semibold mb-2 d-block">Upload Extension Document</label>
+                      <div class="upload-zone-wrapper">
+                    
+                        <label class="upload-dropzone" [class.has-file]="projectMilestone.extensionFile">
+                          <input type="file" class="upload-input"
+                            (change)="onExtensionFileSelected($event)"
+                            accept=".jpg,.jpeg,.png,.pdf"
+                            #extensionFileInput />
+                        
+                          <div class="upload-idle" *ngIf="!projectMilestone.extensionFile">
+                            <div class="upload-icon">
+                              <i class="fa fa-cloud-upload"></i>
+                            </div>
+                            <p class="upload-label">Drop file here or <span class="upload-browse">browse</span></p>
+                            <p class="upload-hint">JPG, PNG or PDF</p>
+                          </div>
+                      
+                          <div class="upload-selected" *ngIf="projectMilestone.extensionFile">
+                            <div class="file-icon">
+                              <i class="fa fa-file-alt"></i>
+                            </div>
+                            <span class="file-name">
+                              {{ projectMilestone.extensionFile?.name || 'File attached' }}
+                            </span>
+                          </div>
+                        </label>
+                    
+                        <div class="upload-actions">
+                          <button type="button" class="action-btn preview-btn"
+                            (click)="previewExtensionFile()"
+                            [disabled]="!projectMilestone.extensionFile">
+                            <i class="fa fa-eye"></i>
+                            <span>Preview</span>
+                          </button>
+                          <button type="button" class="action-btn clear-btn1"
+                            (click)="clearExtensionFile(extensionFileInput)"
+                            [disabled]="!projectMilestone.extensionFile">
+                            <i class="fa fa-trash"></i>
+                            <span>Clear</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="col-md-6">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Description</mat-label>
+            <input matInput [(ngModel)]="projectMilestone.description" disabled />
+          </mat-form-field>
+        </div>
+
+        <!-- Status -->
+        <div class="col-md-6">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Status</mat-label>
+            <mat-select [(ngModel)]="projectMilestone.status">
+
+              <mat-option [value]="projectMilestone.status">
+                {{projectMilestone.status}}
+              </mat-option>
+
+              <ng-container *ngFor="let status of statusList">
+                <mat-option *ngIf="status!=projectMilestone.status" [value]="status">
+                  {{status}}
+                </mat-option>
+              </ng-container>
+
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Remarks -->
+        <div class="col-md-12">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Remarks</mat-label>
+            <textarea matInput rows="3" [(ngModel)]="projectMilestone.remarks"></textarea>
+          </mat-form-field>
+        </div>
+
+        <!-- Upload -->
+         <div class="col-md-12">
+              <label class="doc-upload-label"> Upload Document
+                <span class="required-star" *ngIf="projectMilestone.status==='Completed' || projectMilestone.status==='On Hold'">*</span>
+              </label>
+          
+              <label class="doc-dropzone" [class.has-file]="selectedFile">
+                <input type="file" class="doc-input" (change)="onFileSelected($event)"
+                  accept=".jpg,.jpeg,.png" #fileInput />
+                <div class="doc-idle" *ngIf="!selectedFile">
+                  <div class="doc-upload-icon">
+                    <i class="fa fa-image"></i>
+                  </div>
+                  <p class="doc-upload-title">Drop image here or <span class="doc-browse">browse</span></p>
+                  <p class="doc-upload-hint">JPG · JPEG · PNG</p>
+                </div>
+                <!-- File selected -->
+                <div class="doc-selected" *ngIf="selectedFile">
+                  <div class="doc-file-thumb">
+                    <i class="fa fa-file-image"></i>
+                  </div>
+                  <div class="doc-file-meta">
+                    <span class="doc-file-name">{{ selectedFile.name }}</span>
+                    <span class="doc-file-size" *ngIf="file.size">{{ (selectedFile.size / 1024).toFixed(1) }} KB</span>
+                  </div>
+                </div>
+              </label>
+          
+              <!-- Actions -->
+              <div class="doc-actions">
+                <button type="button" class="doc-btn doc-btn-preview" (click)="previewSelectedFile()"
+                  [disabled]="!file"> <i class="fa fa-eye"></i>
+                  <span>Preview</span>
+                </button>
+                <button type="button" class="doc-btn doc-btn-clear"
+                  (click)="clearSelectedFile(fileInput)" [disabled]="!selectedFile">
+                  <i class="fa fa-trash"></i>
+                  <span>Clear</span>
+                </button>
+              </div>
+            </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-secondary"
+      (click)="closeUpdateProjectMilestoneModal()"> Cancel
+    </button>
+    <button type="button" class="btn btn-primary px-4" (click)="updateMilestoneChanges()">
+      Update
+    </button>
+  </div>
+</ng-template>
+
+<ng-template #project_milestone_document>
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0, 0, 0, 0.5);">
+        <div class="modal-dialog modal-xl" >
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Milestone Document Preview</h5>
+                    <button type="button" class="close" aria-label="Close"
+                            (click)="closeProjectMilestoneDocumentsModal()">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div *ngIf="milestoneDocumentUrl">
+                        <iframe [src]="milestoneDocumentUrl" title="Milestone Document Preview" width="100%" height="600px"></iframe>
+                    </div>
+                    <div *ngIf="!milestoneDocumentUrl">
+                        <p>No document available for this milestone.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </ng-template>
+
+
+
 <ng-template #update_project_completion_modal>
     <div class="modal-body text-center">
         <p>{{ modalMessage }}</p>
@@ -4653,3 +4864,38 @@
         <button type="button" class="btn btn-primary" (click)="closePOResourceRequirementAlert()">OK</button>&nbsp;
     </div>
 </ng-template>
+
+<ng-template #project_milestone_extended_preview>
+  <div class="modal fade show milestone-preview-backdrop" style="display:block;">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <h5 class="modal-title">Milestone Extended Image Preview</h5>
+          <button type="button" class="close" (click)="closeProjectMilestoneDocumentsModal()">
+            <span>&times;</span>
+          </button>
+        </div>
+
+        <div class="modal-body text-center">
+          <div *ngIf="milestoneDocumentUrl; else noImage">
+            <img [src]="milestoneDocumentUrl" class="img-fluid preview-image"/>
+          </div>
+
+          <ng-template #noImage>
+            <p>No image available for this milestone.</p>
+          </ng-template>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop fade show"></div>
+</ng-template>
+
+
+<ng-container *ngIf="showMilestoneImageModal">
+    <ng-container *ngTemplateOutlet="project_milestone_extended_preview"></ng-container>
+</ng-container>
+

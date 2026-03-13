@@ -153,6 +153,9 @@ public class PoPortalAPIService {
     @Value("${poPortal.api.getSDEDOfProjects}")
     private String getStartDateEndDateOfProjectsFromPO;
     
+    @Value("${poPortal.api.getExtensionDocumentById}")
+	private String getExtensionDocumentById;
+    
     @Autowired
     private PoRequirementMappingRepository poRequirementMappingRepository;
 	
@@ -298,18 +301,6 @@ public class PoPortalAPIService {
 				serviceResponse.setServiceResponse("Critical Error: Could not initialize logging for the update process.");
 				return serviceResponse;
 			}
-//			HttpHeaders headers = new HttpHeaders();
-//			headers.set("X-Trace-Id", traceId);
-//			headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());	
-//			headers.setContentType(MediaType.valueOf(file.getContentType()));
-//			headers.setContentDisposition(ContentDisposition.builder("attachment").filename(file.getOriginalFilename()).build());
-//			HttpEntity<FCProjectMilestoneDTO> dtoEntity = new HttpEntity<>(dto, headers);
-//		    MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-//		    body.add("milestoneData", dtoEntity);
-//		    ByteArrayResource fileResource = new ByteArrayResource(file.getBytes());
-//	        body.add("File",fileResource); 
-//	        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
-//			ResponseEntity<String> apiResponse = restTemplate.exchange(sendFileUrl, HttpMethod.PUT, requestEntity, String.class);
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("X-Trace-Id", traceId);
@@ -1150,7 +1141,7 @@ public class PoPortalAPIService {
 	
 
 	@Transactional(rollbackFor = PoportalApiException.class)
-	public ServiceResponse updateMilestoneExtendedDate(MilestoneUpdatedLogDto dto) {
+	public ServiceResponse updateMilestoneExtendedDate(MilestoneUpdatedLogDto dto,MultipartFile extensionFile) {
 		ServiceResponse response = new ServiceResponse();
 		String traceId = UUID.randomUUID().toString();
 		ApiLog initialLog = null;
@@ -1209,6 +1200,13 @@ public class PoPortalAPIService {
 					"Other".equalsIgnoreCase(milestoneExtensionReason)
 							? dto.getMilestoneExtensionReasonText()
 							: milestoneExtensionReason);
+			
+			if (extensionFile != null && !extensionFile.isEmpty()) {
+		    	updateRequest.setDocumentContent(extensionFile.getBytes());
+		    	updateRequest.setDocumentName(extensionFile.getOriginalFilename());
+		    	updateRequest.setDocumentType(extensionFile.getContentType());
+		    }
+
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);
@@ -2189,18 +2187,55 @@ return empId;
 	    return response;
 	}
 	
-	
-	
-	
+	public FCProjectMilestoneDTO getExtendedDocFromExternalApi(Long milestoneId) {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    ApiLog initialLog = null;
+	    String traceId = UUID.randomUUID().toString();
+	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+	    String exceptionDetailsForLog = null;
 
+	    try {
+	        if (milestoneId == null) {
+	            throw new IllegalArgumentException("Milestone ID cannot be null.");
+	        }
 
-
-
+	        initialLog = apiLogUtility.startLog(traceId, "getMilestoneDocument", "Ishine", getCurrentUserId(), httpRequest);
 	
-        	  
-        	
-        	
- 
+	        HttpHeaders headers = new HttpHeaders();
+	        headers.set("X-Trace-Id", traceId);
+	        headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+	        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+	       
+	        String fullUrl = getExtensionDocumentById + milestoneId; 
+	        
+	        RestTemplate restTemplate = new RestTemplate();
+	        ResponseEntity<FCProjectMilestoneDTO> apiResponse = restTemplate.exchange(
+	            fullUrl,
+	            HttpMethod.GET,
+	            requestEntity,
+	            FCProjectMilestoneDTO.class 
+	        );
+
+	        if (apiResponse.getStatusCode() == HttpStatus.OK && apiResponse.getBody() != null) {
+	            finalHttpStatusCode = HttpStatus.OK.value();
+	            return apiResponse.getBody();
+	        } else {
+	            exceptionDetailsForLog = "External API returned non-OK status: " + apiResponse.getStatusCode();
+	            finalHttpStatusCode = apiResponse.getStatusCodeValue();
+	            throw new HttpClientErrorException(apiResponse.getStatusCode(), "Failed to retrieve document from external service.");
+	        }
+
+	    } catch (Exception e) {
+	        exceptionDetailsForLog = e.toString();
+	        e.printStackTrace();
+	        throw new RuntimeException("An unexpected error occurred.", e);
+	    } finally {
+	        if (initialLog != null && initialLog.getId() != null) {
+	            apiLogUtility.endLog(initialLog.getId(),getDocumentUrl ,finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+	        }
+	    }
+	}
 
 
 }

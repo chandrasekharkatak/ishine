@@ -56,6 +56,7 @@ import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoPayloadDTO;
 import com.apmosys.employeeportal.dto.HandleTeamsAsPerLinkedPoProjectDTO;
 import com.apmosys.employeeportal.dto.LiftAndShiftTeamsDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
+import com.apmosys.employeeportal.dto.MilestoneExtendedDate;
 import com.apmosys.employeeportal.dto.PoEmployeeTimesheetSyncDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.PoProjectTimesheetSyncDTO;
@@ -3078,7 +3079,39 @@ public class ProjectService {
 						}
 						List<FCLineItemDTO> fCLineItemDTO = (List<FCLineItemDTO>) serviceResponseTemp.getServiceResponse();
 						
-						List<FCProjectMilestoneDTO> fcProjectMilestoneDTOList = mapLineItemToMilestone(fCLineItemDTO);
+						Set<Long> empIds = new HashSet<>();
+
+						if (fCLineItemDTO != null) {
+						    for (FCLineItemDTO lineItem : fCLineItemDTO) {
+						        if (lineItem.getMilestones() != null) {
+						            for (FCProjectMilestoneDTO milestone : lineItem.getMilestones()) {
+						                if (milestone.getMilestoneExtendedDates() != null) {
+						                    for (MilestoneExtendedDate ext : milestone.getMilestoneExtendedDates()) {
+						                        if (ext.getUpdatedBy() != null) {
+						                            empIds.add(ext.getUpdatedBy());
+						                        }
+						                    }
+						                }
+						            }
+						        }
+						    }
+						}
+
+						// Step 2: fetch employee names
+						Map<Long, String> empMap = new HashMap<>();
+
+						if (!empIds.isEmpty()) {
+						    List<Object[]> empResults = employeeRepository.getEmployeeNamesByEmpIds(empIds);
+
+						    empMap = empResults.stream()
+						            .collect(Collectors.toMap(
+						                    obj -> (Long) obj[0],
+						                    obj -> (String) obj[1]
+						            ));
+						}
+
+						
+						List<FCProjectMilestoneDTO> fcProjectMilestoneDTOList = mapLineItemToMilestone(fCLineItemDTO,empMap);
 						if (fcProjectMilestoneDTOList.isEmpty()) {
 							serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							serviceResponse.setServiceResponse("No Milestone(s) found for this project!");
@@ -3220,12 +3253,18 @@ public class ProjectService {
      }
 
 
-	 private List<FCProjectMilestoneDTO> mapLineItemToMilestone(List<FCLineItemDTO> fCLineItemDTO) {
-		    List<FCProjectMilestoneDTO> fcProjectMilestoneDTOList = new ArrayList<>();
+	 private List<FCProjectMilestoneDTO> mapLineItemToMilestone(List<FCLineItemDTO> fCLineItemDTO,
+			 Map<Long, String> empMap) {
+		 List<FCProjectMilestoneDTO> fcProjectMilestoneDTOList = new ArrayList<>();
+
 		    if (fCLineItemDTO != null && !fCLineItemDTO.isEmpty()) {
+
 		        for (FCLineItemDTO fcLineItemDTO : fCLineItemDTO) {
+
 		            if (fcLineItemDTO.getMilestones() != null) {
+
 		                for (FCProjectMilestoneDTO fcProjectMilestoneDTOTemp : fcLineItemDTO.getMilestones()) {
+
 		                    FCProjectMilestoneDTO fcProjectMilestoneDTO = new FCProjectMilestoneDTO();
 
 		                    // milestone fields
@@ -3238,21 +3277,42 @@ public class ProjectService {
 		                    fcProjectMilestoneDTO.setStartDate(fcProjectMilestoneDTOTemp.getStartDate());
 		                    fcProjectMilestoneDTO.setEndDate(fcProjectMilestoneDTOTemp.getEndDate());
 		                    fcProjectMilestoneDTO.setExtendedDate(fcProjectMilestoneDTOTemp.getExtendedDate());
-		                    fcProjectMilestoneDTO.setStatus(fcProjectMilestoneDTOTemp.getStatus()); // ✅ milestone status
+		                    fcProjectMilestoneDTO.setStatus(fcProjectMilestoneDTOTemp.getStatus());
 		                    fcProjectMilestoneDTO.setRemarks(fcProjectMilestoneDTOTemp.getRemarks());
 
-		                    // parent line item info (use a different field!)
+		                    // parent line item info
 		                    fcProjectMilestoneDTO.setLineItemId(fcLineItemDTO.getId());
 		                    fcProjectMilestoneDTO.setLineItemName(fcLineItemDTO.getName());
-		                    fcProjectMilestoneDTO.setLineItemStatus(fcLineItemDTO.getStatus()); // ✅ store line item status separately
+		                    fcProjectMilestoneDTO.setLineItemStatus(fcLineItemDTO.getStatus());
+
+		                    // map milestone extended dates
+		                    if (fcProjectMilestoneDTOTemp.getMilestoneExtendedDates() != null) {
+
+		                        List<MilestoneExtendedDate> updatedList = new ArrayList<>();
+
+		                        for (MilestoneExtendedDate ext :
+		                                fcProjectMilestoneDTOTemp.getMilestoneExtendedDates()) {
+
+		                            if (ext.getUpdatedBy() != null) {
+		                                String empName = empMap.get(ext.getUpdatedBy());
+		                                ext.setUpdatedByName(empName);
+		                            }
+
+		                            updatedList.add(ext);
+		                        }
+
+		                        fcProjectMilestoneDTO.setMilestoneExtendedDates(updatedList);
+		                    }
 
 		                    fcProjectMilestoneDTOList.add(fcProjectMilestoneDTO);
 		                }
 		            }
 		        }
 		    }
+
 		    return fcProjectMilestoneDTOList;
 		}
+
 
 public ServiceResponse getCompletedFixedCostProjects(ProjectRequest projectRequest) {
     ServiceResponse response = new ServiceResponse();
@@ -3791,5 +3851,43 @@ public ServiceResponse getCompletedFixedCostProjects(ProjectRequest projectReque
 	public List<DeliveryMode> getAllDeliveryModes() {
 		return deliveryModeRepository.findAll();
 	}
+	
+	public FCProjectMilestoneDTO getExtensionDocumentById(Long milestoneId) {
+		ApiLog initialLog = null;
+		String traceId = UUID.randomUUID().toString();
+		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String exceptionDetailsForLog = null;
+		String requestUrl = httpRequest.getRequestURI();
+
+		try {
+			initialLog = apiLogUtility.startLog(traceId, "getMilestoneDocument", "Ishine", getCurrentUserId(),
+					httpRequest);
+
+			if (milestoneId == null) {
+				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+				exceptionDetailsForLog = "Milestone ID cannot be null.";
+				throw new IllegalArgumentException(exceptionDetailsForLog);
+			}
+			FCProjectMilestoneDTO documentBytes = poPortalAPIService.getExtendedDocFromExternalApi(milestoneId);
+			finalHttpStatusCode = HttpStatus.OK.value();
+			return documentBytes;
+
+		} catch (Exception e) {
+			if (e instanceof HttpClientErrorException) {
+				finalHttpStatusCode = ((HttpClientErrorException) e).getStatusCode().value();
+			}
+			exceptionDetailsForLog = "Error retrieving document for milestone ID " + milestoneId + ": " + e.toString();
+			e.printStackTrace();
+
+			throw new RuntimeException("Failed to retrieve milestone document.", e);
+
+		} finally {
+			if (initialLog != null && initialLog.getId() != null) {
+				apiLogUtility.endLog(initialLog.getId(), requestUrl, finalHttpStatusCode, exceptionDetailsForLog,
+						httpRequest);
+			}
+		}
+	}
+
 
 }

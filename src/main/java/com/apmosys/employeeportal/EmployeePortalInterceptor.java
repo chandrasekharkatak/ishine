@@ -111,7 +111,10 @@ public class EmployeePortalInterceptor implements HandlerInterceptor{
 			"/employeeportal/api/training/skipTraining",
 			"/employeeportal/api/training/getLockStatus",
 			"/employeeportal/api/training/downloadContent",
-			"/employeeportal/api/training/checkTrainingFrequency"
+			"/employeeportal/api/training/checkTrainingFrequency",
+			"/api/poCrudOperationsInIshine",
+			"/api/getExtensionDocumentById"
+
 			);
 	
 //	private final List<String> SKYWALKING_PROXIED_PATHS = Arrays.asList(

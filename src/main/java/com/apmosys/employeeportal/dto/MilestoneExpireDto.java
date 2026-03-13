@@ -23,6 +23,10 @@ public class MilestoneExpireDto {
 	private String poNo;
 	private Long updatedBy;
 	private String milestoneExtensionReason;
+    private byte[] documentContent;
+    private String documentName;
+    private String documentType;
+
 	
     
 	
