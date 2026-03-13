@@ -996,23 +996,18 @@
                   </div>
                 </div>
 
-                <div
-                  class="slide-main-container mb-3 slide-nav-container"
-                  [class.fullscreen]="isFullscreen"
-                  style="cursor: default"  
-                >
+                <div class="slide-main-container">
+
+                  <div class="slide-nav left" (click)="previousSlide()"></div>
+                  <div class="slide-nav right" (click)="nextSlide()"></div>
+
                   <img
                     [src]="previewImageBlob"
                     (error)="onPreviewError($event)"
                     alt="Slide {{ currentSlideIndex + 1 }}"
                     class="slide-image-full img-fluid"
-                    style="
-                      max-width: 100%;
-                      border: 1px solid #ddd;
-                      border-radius: 4px;
-                      pointer-events: none;
-                    "
                   />
+
                 </div>
 
               </div>

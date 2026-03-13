@@ -1731,4 +1731,18 @@ clearAllPreviewData() {
     return null;
     
   }
+
+  onSlideImageClick(event: MouseEvent) {
+    const element = event.target as HTMLElement;
+    const rect = element.getBoundingClientRect();
+
+    const clickX = event.clientX - rect.left;
+    const width = rect.width;
+
+    if (clickX < width / 2) {
+      this.previousSlide();
+    } else {
+      this.nextSlide();
+    }
+  }
 }
