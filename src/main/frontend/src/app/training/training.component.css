@@ -284,11 +284,6 @@
   overflow: auto;
 }
 
-.slide-content {
-  width: 100%;
-  max-width: 900px;
-}
-
 .slide-images img {
   max-width: 100%;
   height: auto;
@@ -640,9 +635,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px;
+  /* padding: 40px; */
   overflow: auto;
   position: relative;
+}
+
+.pptx-viewer-wrapper.fullscreen .slide-viewport {
+  padding: 10px;
 }
 
 .slide-container {
@@ -655,7 +654,6 @@
 }
 
 .slide-content {
-  min-width: 400px;
   min-height: 300px;
   padding: 30px;
   background: white;
@@ -668,14 +666,15 @@
 
 .slide-image {
   max-width: 100%;
-  max-height: 400px;
+  height: auto;
+  /* max-height: 400px; */
   object-fit: contain;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.single-image {
-  max-height: 500px;
+.pptx-viewer-wrapper.fullscreen .single-image {
+  max-height: 90vh;
 }
 
 .slide-text-content {
@@ -1033,7 +1032,7 @@
 }
 
 .slide-image-full {
-  max-height: 500px;
+  /* max-height: 500px; */
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   border-radius: 4px;
 }
@@ -1127,7 +1126,7 @@
   top: 0 !important;
   background: white !important;
   z-index: 100 !important;
-  padding: 10px 0 !important;
+  /* padding: 10px 0 !important; */
   margin-bottom: 15px !important;
   border-bottom: 1px solid #e0e0e0 !important;
 }
@@ -1137,7 +1136,7 @@
 .modal-content:-moz-full-screen .slide-image-full,
 .modal-content:-ms-fullscreen .slide-image-full,
 .modal-content:fullscreen .slide-image-full {
-  max-height: 45vh !important;
+  max-height: calc(100vh - 180px) !important;
   width: auto !important;
   max-width: 100% !important;
   object-fit: contain !important;
@@ -1263,4 +1262,74 @@
 
 .training-modal .modal-body {
   overflow-y: auto;
+}
+
+.pptx-viewer-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 600px;
+  background: #2c3e50;
+}
+
+.pptx-viewer-wrapper.fullscreen {
+  height: 100vh;
+  border-radius: 0;
+}
+
+.pptx-content-area {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.slide-display-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* .slide-viewport {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+} */
+
+.slide-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slide-content {
+  background: white;
+  padding: 30px;
+  max-height: 100%;
+  max-width: 100%;
+  overflow: auto;
+}
+
+.slide-image {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* FULLSCREEN FIX */
+
+.pptx-viewer-wrapper.fullscreen .slide-viewport {
+  padding: 10px;
+}
+
+.pptx-viewer-wrapper.fullscreen .slide-content {
+  width: 100%;
+  height: 100%;
+}
+
+.pptx-viewer-wrapper.fullscreen .slide-image,
+.pptx-viewer-wrapper.fullscreen .single-image {
+  max-width: 100%;
+  max-height: 90vh;
 }
