@@ -310,3 +310,14 @@
 
   </div>
 </ng-template>
+
+<ng-template #alertDocTemplate let-modal>
+
+  <div class="modal-body text-center">
+    <p>{{ alertMessageOfDoc }}</p>
+  </div>
+
+  <div class="modal-footer justify-content-center">
+    <button class="btn btn-primary" (click)="modal.close()">OK</button>
+  </div>
+</ng-template>
