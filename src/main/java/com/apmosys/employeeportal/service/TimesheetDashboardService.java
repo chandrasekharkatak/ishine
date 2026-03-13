@@ -18,8 +18,11 @@ import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
+
+import com.apmosys.employeeportal.config.CacheConfig;
 
 import com.apmosys.employeeportal.dto.DepartmentCountDTO;
 import com.apmosys.employeeportal.dto.DepartmentStatusSummaryDTO;
@@ -99,8 +102,11 @@ public class TimesheetDashboardService {
      * @param clientSideFilter Client side filter
      * @return ServiceResponse with dashboard count DTO
      */
+    @Cacheable(cacheNames = CacheConfig.CACHE_TIMESHEET_DASHBOARD_COUNT, keyGenerator = "timesheetDashboardCacheKeyGenerator")
     public ServiceResponse getTimesheetDashboardCountForEmployee(Integer month, Integer year,Long empId,Boolean isClientDashboard,List<String> billableTypes,String employeeActive,String clientSideFilter, String multiPOs) {
         ServiceResponse response = new ServiceResponse();
+        System.out.println("DB CALL EXECUTED--CACHE TEST-101");
+
         LogDTO apiLogInfo = new LogDTO();
         apiLogInfo.setSubFeatureName("getTimesheetDashboardCountForEmployee");
         apiLogInfo.setLogLevel("INFO");
