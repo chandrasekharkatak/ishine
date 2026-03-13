@@ -1,124 +1,544 @@
-.config__tabs{
-  position: sticky;
-  top: 0;
-z-index: 1000; /* Ensure it stays above other content */
-background-color: white; /* To prevent transparency */
-box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Optional for better visibility */
+/* ══════════════════════════════════════════
+   TIMESHEET 360  —  ts360-*
+   ══════════════════════════════════════════ */
+
+.ts360-page {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
 }
 
-/* Ok button */
-.ok-button {
-background-color: #348afa; 
-color: white;
-padding: 5px 10px;
-font-size: 0.8rem;
+/* ══════════════════
+   TOP CONTROL BAR
+   ══════════════════ */
+
+.ts360-header-card {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px 8px 0 0;
+  border-bottom: none;
+  padding: 0 16px 0 0;
+  min-height: 44px;
 }
 
-.ok-button:hover {
-background-color: #348afa;
-transform: scale(1.05);
+.ts360-header-left {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  flex: 1;
 }
 
-/* Active button state */
-button:active {
-transform: scale(0.98);
+.ts360-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  flex-shrink: 0;
 }
 
-/* Responsive adjustments */
-@media (max-width: 600px) {
-button {
-    width: 100%;
-    margin: 5px 0;
-}
+/* ── Status tabs ── */
+.ts360-tab-bar {
+  display: flex;
+  align-items: stretch;
 }
 
-
-.custom-select {
-border-radius: 4px;
-height: 35px; 
-width: 100px;
+.ts360-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  padding: 0 18px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
 }
 
+.ts360-tab:hover { color: #475569; }
 
-.alert-content {
-background-color: #f44336;
-color: white;
-padding: 15px;
-border-radius: 5px;
-text-align: center;
-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+.ts360-tab.active {
+  color: #1a2e44;
+  border-bottom-color: #1a2e44;
 }
 
-.alert-body {
-display: flex;
-justify-content: space-between;
-align-items: center;
+.ts360-tab-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
-.back-button {
-position: absolute; /* Position it absolutely */
-top: 20px; /* Distance from the top */
-left: 20px; /* Distance from the left */
-font-size: 16px; /* Font size */
-color: #007bff; /* Bootstrap primary color */
-text-decoration: none; /* Remove underline */
+.ts360-tab-dot--pending  { background: #f59e0b; }
+.ts360-tab-dot--approved { background: #16a34a; }
+.ts360-tab-dot--rejected { background: #dc2626; }
+.ts360-tab-icon { font-size: 11px; }
+
+/* ── Period select ── */
+.ts360-select {
+  height: 30px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #1e293b;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: inherit;
 }
 
-.back-button:hover {
-text-decoration: underline; /* Underline on hover */
-cursor: pointer; /* Pointer cursor on hover */
+.ts360-select:focus { outline: none; border-color: #1a73e8; }
+
+/* ── Divider ── */
+.ts360-divider {
+  width: 1px;
+  height: 18px;
+  background: #e2e8f0;
+  align-self: center;
 }
 
-.table-responsive {
-  overflow-x: auto; 
-  -webkit-overflow-scrolling: touch; 
+/* ── Back button + drilldown ── */
+.ts360-back-btn {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 12px;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  margin: 7px 0 7px 16px;
 }
 
-.table {
-  min-width: 100%;
-  border-collapse: collapse;
+.ts360-back-btn:hover { background: #e8edf3; color: #1a2e44; }
+
+.ts360-drilldown-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  justify-content: center;
+  padding: 0 16px;
 }
 
-/* .table-container {
-  max-height: 50vh;
-  overflow-y: auto;
-  overflow-x: auto;
-  position: relative;
-} */
+.ts360-drilldown-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
 
-/* th {
+.ts360-drilldown-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* ── Bulk buttons ── */
+.ts360-bulk-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 1px solid transparent;
+}
+
+.ts360-bulk-btn--approve { background: #f0fdf4; border-color: #bbf7d0; color: #15803d; }
+.ts360-bulk-btn--approve:hover { background: #16a34a; color: #fff; border-color: #16a34a; }
+.ts360-bulk-btn--reject  { background: #fff1f2; border-color: #fecdd3; color: #b91c1c; }
+.ts360-bulk-btn--reject:hover  { background: #dc2626; color: #fff; border-color: #dc2626; }
+
+/* ── Date range ── */
+.ts360-date-range { display: flex; align-items: center; gap: 6px; }
+
+::ng-deep .ts360-mat-field { width: 200px; }
+::ng-deep .ts360-mat-field .mat-mdc-text-field-wrapper {
+  height: 30px;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 5px !important;
+  padding: 0 8px !important;
+  background: #f8fafc !important;
+}
+::ng-deep .ts360-mat-field .mdc-line-ripple { display: none !important; }
+::ng-deep .ts360-mat-field .mat-mdc-form-field-subscript-wrapper { display: none !important; }
+::ng-deep .ts360-mat-field .mat-mdc-form-field-infix { padding: 4px 0 !important; }
+
+/* ── Icon buttons ── */
+.ts360-icon-btn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 11px;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.ts360-icon-btn:hover { background: #f1f5f9; color: #1e293b; border-color: #cbd5e1; }
+.ts360-icon-btn--active { background: #eff6ff; color: #1a73e8; border-color: #bfdbfe; }
+.ts360-icon-btn--danger:hover { background: #dc2626; color: #fff; border-color: #dc2626; }
+
+/* ══════════════════
+   SHARED CARD SHELL
+   (header + table + footer all joined)
+   ══════════════════ */
+
+.ts360-card,
+.ts360-calendar-section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0 0 8px 8px;
   overflow: hidden;
-  text-overflow: ellipsis;
-
-} */
-
-/* thead th {
-  position: sticky;
-  top: 1;
-  z-index: 1;
-}   */
-/* .fixed-header-table thead th {
-  position: sticky;
-  top: 0.7; 
-  z-index: 2; 
-} */
-
-.container-fluid {
-  overflow: hidden; 
 }
-.table-container {
+
+/* When calendar is active, section gets same shell */
+.ts360-calendar-section {
+  overflow: visible;
+}
+
+/* ── Card toolbar ── */
+.ts360-card-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.ts360-card-toolbar-left,
+.ts360-card-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ts360-record-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.ts360-record-count i { color: #94a3b8; margin-right: 4px; }
+.ts360-record-label   { font-weight: 400; color: #94a3b8; }
+
+/* ── Table scroll ── */
+.ts360-table-scroll {
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+/* ══════════════════
+   TABLE
+   ══════════════════ */
+
+.ts360-table {
   width: 100%;
-  max-height: 60vh; 
-  position: relative;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-family: inherit;
+  white-space: nowrap;
 }
 
-.fixed-header-table thead th {
-  position: sticky;
-  top: 0; 
-  z-index: 2; 
-}
-#BassScrollBar {
-  overflow: hidden !important; 
-  position: relative; 
+/* Header */
+.ts360-thead-row th {
+  background: #1a2e44;
+  color: rgba(255,255,255,0.85);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 9px 12px;
+  text-align: left;
+  border-right: 1px solid rgba(255,255,255,0.07);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
+.ts360-thead-row th:last-child { border-right: none; }
+.ts360-thead-row th .mat-sort-header-arrow { color: rgba(255,255,255,0.4); }
+
+.ts360-th--sm      { width: 40px; }
+.ts360-th--num     { text-align: right; }
+.ts360-th--wide    { min-width: 150px; }
+.ts360-th--name    { min-width: 150px; }
+.ts360-th--actions { width: 72px; text-align: center; }
+
+/* Rows */
+.ts360-row { transition: background 0.1s; }
+.ts360-row:hover td { background: #f8fafc !important; }
+
+/* Cells */
+.ts360-td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  border-right: 1px solid #f4f6f8;
+  color: #1e293b;
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.ts360-td:last-child { border-right: none; }
+
+.ts360-td--rowspan {
+  border-right: 2px solid #e8ecf0;
+  background: #ffffff;
+  vertical-align: top;
+  padding-top: 10px;
+}
+
+.ts360-td--sm      { width: 40px; }
+.ts360-td--num     { text-align: right; }
+.ts360-td--mono    { font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
+.ts360-td--muted   { color: #64748b; }
+.ts360-td--bold    { font-weight: 700; }
+.ts360-td--actions { text-align: center; }
+
+.ts360-td--clickable { cursor: pointer; }
+.ts360-td--clickable:hover { color: #1a73e8; }
+
+.ts360-td--project {
+  max-width: 160px;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+/* Employee */
+.ts360-emp-link {
+  color: #1a73e8;
+  font-weight: 500;
+  cursor: pointer;
+}
+.ts360-emp-link:hover { text-decoration: underline; }
+
+.ts360-emp-id {
+  font-size: 11px;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Project */
+.ts360-project-link {
+  color: #1a73e8;
+  font-weight: 500;
+  cursor: pointer;
+}
+.ts360-project-link:hover { text-decoration: underline; }
+
+/* ── Badges ── */
+.ts360-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.ts360-badge--pending  { background: #fef9c3; color: #a16207;  border: 1px solid #fde68a; }
+.ts360-badge--approved { background: #dcfce7; color: #15803d;  border: 1px solid #bbf7d0; }
+.ts360-badge--rejected { background: #fee2e2; color: #b91c1c;  border: 1px solid #fecdd3; }
+.ts360-badge--neutral  { background: #f1f5f9; color: #94a3b8;  border: 1px solid #e2e8f0; }
+
+/* ── Chips ── */
+.ts360-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ts360-chip i { font-size: 9px; }
+.ts360-chip--grey    { background: #f1f5f9; color: #475569; }
+.ts360-chip--night   { background: #ede9fe; color: #5b21b6; }
+.ts360-chip--regular { background: #f0fdf4; color: #15803d; }
+
+/* ── Action buttons ── */
+.ts360-actions { display: flex; gap: 5px; align-items: center; justify-content: center; }
+
+.ts360-action-btn {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  font-size: 10px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+
+.ts360-action-btn--approve { background: #f0fdf4; border-color: #bbf7d0; color: #15803d; }
+.ts360-action-btn--approve:hover { background: #16a34a; border-color: #16a34a; color: #fff; }
+.ts360-action-btn--reject  { background: #fff1f2; border-color: #fecdd3; color: #b91c1c; }
+.ts360-action-btn--reject:hover  { background: #dc2626; border-color: #dc2626; color: #fff; }
+
+/* ── Empty state ── */
+.ts360-empty { padding: 0; }
+
+.ts360-empty-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 20px;
+  color: #cbd5e1;
+  font-size: 13px;
+}
+
+.ts360-empty-icon { font-size: 32px; }
+
+/* ── Footer / pagination ── */
+.ts360-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+::ng-deep .ts360-pagination .ngx-pagination { margin: 0; padding: 0; }
+::ng-deep .ts360-pagination .ngx-pagination li { margin: 0 2px; }
+::ng-deep .ts360-pagination .ngx-pagination .current {
+  background: #1a2e44;
+  border-color: #1a2e44;
+  border-radius: 5px;
+  font-size: 12px;
+}
+::ng-deep .ts360-pagination .ngx-pagination a,
+::ng-deep .ts360-pagination .ngx-pagination button {
+  border-radius: 5px;
+  font-size: 12px;
+  color: #475569;
+}
+::ng-deep .ts360-pagination .ngx-pagination a:hover,
+::ng-deep .ts360-pagination .ngx-pagination button:hover { background: #f1f5f9; }
+
+/* ══════════════════
+   CALENDAR SECTION
+   ══════════════════ */
+
+.ts360-cal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px 0 0;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.ts360-cal-tabs { display: flex; align-items: stretch; }
+
+.ts360-cal-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.ts360-cal-tab i { font-size: 10px; }
+.ts360-cal-tab:hover { color: #475569; }
+
+.ts360-cal-tab.active {
+  color: #1a2e44;
+  border-bottom-color: #1a2e44;
+  background: #ffffff;
+}
+
+.ts360-cal-body { padding: 16px; }
+
+/* ── Progress bar (Last 7 Days table) ── */
+.ts360-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 130px;
+}
+
+.ts360-progress {
+  flex: 1;
+  height: 5px;
+  background: #f1f5f9;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.ts360-progress-bar {
+  height: 100%;
+  background: #1a73e8;
+  border-radius: 99px;
+  min-width: 2px;
+  transition: width 0.4s ease;
+}
+
+.ts360-progress-bar--low  { background: #f59e0b; }
+.ts360-progress-bar--full { background: #16a34a; }
+
+.ts360-progress-label {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: #64748b;
+  white-space: nowrap;
+  min-width: 44px;
+  text-align: right;
+}
+
+/* ── Modal OK ── */
+.ts360-ok-btn {
+  height: 32px;
+  padding: 0 18px;
+  background: #1a2e44;
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ts360-ok-btn:hover { background: #243651; }
