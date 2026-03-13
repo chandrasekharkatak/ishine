@@ -353,9 +353,14 @@ public class TimesheetServiceNew {
 
 			timesheetValidationHelper.validateNullAndUnexpectedData(empDTO);
 
+			
 			Integer effectiveLockDays = (timesheetLockDays != null) ? timesheetLockDays : 30;
 			timesheetValidationHelper.validateTimesheetLockPeriod(empDTO.getEmpId(), empDTO.getDate(),
-					effectiveLockDays);
+			effectiveLockDays);
+			
+			if(!empDTO.getCreatedBy().equals(empDTO.getEmpId())){
+				timesheetValidationHelper.isTeamMemberTimesheetCanBeFilledValidation(empDTO.getEmpId());
+			}
 			
 			timesheetValidationHelper.validateApmosysHolidayWithProjects(empDTO);
 

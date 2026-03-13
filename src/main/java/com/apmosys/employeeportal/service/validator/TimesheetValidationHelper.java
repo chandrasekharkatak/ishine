@@ -101,6 +101,12 @@ public class TimesheetValidationHelper {
     
     @Value("${app.team.fullPrivilegeRoleIds:1,13,15,53,78,93,111,115,120,143,144,145,146,152,170,177,178,183,187}")
     private String fullPrivilegeRoleIdsConfig;
+
+    @Value("${timesheet.check.period}")
+	private String timesheetCheckPeriod;
+
+	@Value("${maximum.timesheetCanBeFilledByMember}")
+	private String maximumTimesheetCanBeFilledByTeamMember;
     
     // @Autowired
     // EmployeeClientSideIdMappingRepository employeeClientSideIdMappingRepository;
@@ -2166,6 +2172,26 @@ public class TimesheetValidationHelper {
                 }
             }
         }
+    }
+
+    public void isTeamMemberTimesheetCanBeFilledValidation(Long empId){
+        try{
+
+            LocalDate date = LocalDate.now().minusDays(Long.parseLong(timesheetCheckPeriod));
+            List<Object[]> timesheetFilledByMember = employeeTimesheetsNewRepository.getTimesheetFilledByMember(empId,date);
+            
+					if(timesheetFilledByMember.size() >= Long.parseLong(maximumTimesheetCanBeFilledByTeamMember)) {
+						throw new TimesheetValidationFailedException(
+                            "Timesheet cannot be filled for team member more than 2 days."
+                    );
+					}
+                }
+                catch(Exception ex){
+                    throw new TimesheetValidationFailedException(
+                            "Something went wrong."
+                    );
+                }
+                    
     }
 }
 
