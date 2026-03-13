@@ -1026,6 +1026,10 @@
                     <i class="fas fa-download"></i>
                 </span>
             </button>
+            <button type="button" class="btn-close-modal py-1 px-3" (click)="modalRef.close()">  <!-- Added py-1 px-3 -->
+                <i class="fas fa-times me-1"></i>
+                Close
+            </button>
             <!-- <button type="button" class="btn-close" aria-label="Close" (click)="modalRef.close()"></button> -->
         </div>
     </div>
@@ -1128,12 +1132,9 @@
         </div>
     </div>
 
-    <div class="modal-footer">
-        <button type="button" class="btn-close-modal" (click)="modalRef.close()">
-            <i class="fas fa-times me-1"></i>
-            Close
-        </button>
-    </div>
+    <!-- <div class="modal-footer p-2">  
+    
+</div> -->
 </ng-template>
 
 <!-- Adding training type -->

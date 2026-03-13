@@ -63,7 +63,7 @@
 
 .selector-toggle a {
   color: #007bff;
-  font-size: 1.2rem;
+  font-size: 1rem;
   cursor: pointer;
 }
 
@@ -72,7 +72,7 @@
 }
 
 .my-pagination {
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 /* Training Theme Styling */
@@ -1045,7 +1045,8 @@ video {
 
 /* Training Response Modal Styles */
 .training-response-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+  background-color: #003366;
   color: white;
   border-bottom: none;
   padding: 1rem 1.5rem;
@@ -1227,8 +1228,9 @@ video {
 .search-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 1.2rem;
+  justify-content: center;
+  /* gap: 0.5rem; */
+  padding: 1rem 1rem;
   background: white;
   border: 2px solid #e2e8f0;
   border-radius: 30px;
@@ -1247,7 +1249,7 @@ video {
 
 .search-toggle.active {
   background: #667eea;
-  border-color: #667eea;
+  /* border-color: #667eea; */
   color: white;
 }
 
@@ -1379,11 +1381,11 @@ video {
 
 /* Response Footer */
 .response-footer {
-  margin-top: 1.5rem;
+  /* margin-top: 1.5rem; */
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 0;
+  /* padding: 0.5rem 0; */
 }
 
 .pagination-info {
@@ -1413,7 +1415,9 @@ video {
 }
 
 ::ng-deep .my-pagination .ngx-pagination .current {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+  background-color: #667eea;
+  color: white;
 }
 
 ::ng-deep .my-pagination .ngx-pagination a:hover {

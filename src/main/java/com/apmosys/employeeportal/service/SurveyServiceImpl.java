@@ -200,7 +200,8 @@ public class SurveyServiceImpl implements SurveyService {
 					}
 					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(isFromTraining ? "Quiz created successfully." : "Survey created successfully.");
+					response.setServiceResponse(isFromTraining ? 
+						Map.of("quizId", newSurveyCreated.getSurveyId(), "message", "Do you want to activate this quiz?") : "Survey created successfully.");
 					apiLogInfo.setApiResponse(isFromTraining ? "Quiz Created Successfully" : "Survey Created Successfully");			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				} else {
@@ -670,8 +671,8 @@ public class SurveyServiceImpl implements SurveyService {
 			if(surveyDTO.getType() != null && surveyDTO.getType().equalsIgnoreCase("quiz")){
 				surveyRepository.updateAllQuizByTrainingId(surveyDTO.getTrainingId(), surveyDTO.getSurveyId(), surveyDTO.getIsActive());
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Quiz status changed to " + surveyDTO.getIsActive());
-				apiLogInfo.setApiResponse("Quiz status changed to " + surveyDTO.getIsActive());			
+				response.setServiceResponse("Quiz status changed to " + (surveyDTO.getIsActive().equalsIgnoreCase("true") ? "Active" : "Inactive"));
+				apiLogInfo.setApiResponse("Quiz status changed to " + (surveyDTO.getIsActive().equalsIgnoreCase("true") ? "Active" : "Inactive"));			
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				
 			} else {
