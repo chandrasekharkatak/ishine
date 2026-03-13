@@ -1204,4 +1204,20 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
       }
     });
   }
+
+  canEditRating(): boolean {
+
+  if ((this.userMapping.performance_action_by_approvals_tos || this.userMapping.performance_action_by_hod) 
+      && this.currentStatus === 'Not Started') {
+    console.log("true ======= passed for RMM");
+    return true;
+  }
+  
+  if (this.userMapping.performance_action_by_hr && this.isEditMode) {
+    console.log("true ===== passed for HR");
+    return true;
+  }
+  console.log("======false--");
+  return false;
+}
 }
