@@ -304,6 +304,7 @@ exportToExcel(id:any): void {
           if (rows.length > 0) {
             rows.forEach(ts => {
               const clone = { ...ts } as Timesheet;
+              clone.totalWorkingHours = Number(clone.totalWorkingHours?.toFixed(2));
               clone.totalWorkingHoursPercentage =
                 (clone.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100 + '%';
 

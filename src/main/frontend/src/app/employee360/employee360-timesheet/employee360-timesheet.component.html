@@ -103,7 +103,7 @@
                           <td>{{timesheet.status}}</td>
                           <td colspan="3">
                               <div class="progress">
-                                  <div class="progress-bar" role="progressbar" [style.width]="timesheet.totalWorkingHoursPercentage" aria-valuemin="0" aria-valuemax="100" >{{timesheet.totalWorkingHours}} hrs</div>
+                                  <div class="progress-bar" role="progressbar" [style.width]="timesheet.totalWorkingHoursPercentage" aria-valuemin="0" aria-valuemax="100" >{{timesheet.totalWorkingHours | number:'1.2-2'}} hrs</div>
                                 </div>
                           </td>
                         </tr>
