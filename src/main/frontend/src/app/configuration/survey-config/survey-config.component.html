@@ -397,3 +397,11 @@
         <div class="container-fluid d-flex flex-column align-tems-center" id="survey-container"></div>
     </div>
 </ng-template>
+
+<ng-template #ask_to_make_it_active>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-success" (click)="activateNewTraining(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="closeAskNewQuizModal()">No, Cancel</button>&nbsp;
+    </div>
+</ng-template>
