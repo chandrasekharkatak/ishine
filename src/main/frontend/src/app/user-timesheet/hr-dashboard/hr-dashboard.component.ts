@@ -905,29 +905,29 @@ toggleBillableTypes() {
     });
   }
 
-  async ishineNotFilled() {
-    this.timesheetObj.empId = this.currentUser.empId;
-    this.timesheetObj.isClientDashboard = this.isClientDashboard;
+  // async ishineNotFilled() {
+  //   this.timesheetObj.empId = this.currentUser.empId;
+  //   this.timesheetObj.isClientDashboard = this.isClientDashboard;
 
-    await this.timesheetService.totalIshineNotFilledCount(this.timesheetObj).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus === "Success") {
-        console.log(response.serviceResponse);
-        const nestedArray = response.serviceResponse;
-        this.totalClientSideApprovedCount = nestedArray?.[0]?.[0] ?? 0;
-        this.totalClientSidePendingCount = nestedArray?.[0]?.[1] ?? 0;
-        this.eodNotFilledCount = nestedArray?.[0]?.[2] ?? 0;
-        this.totalDocumentApprovedCount = nestedArray?.[0]?.[4] ?? 0;
-        this.totalDocumentRejectedCount = nestedArray?.[0]?.[5] ?? 0;
+  //   await this.timesheetService.totalIshineNotFilledCount(this.timesheetObj).pipe(first()).subscribe((response: any) => {
+  //     if (response.serviceStatus === "Success") {
+  //       console.log(response.serviceResponse);
+  //       const nestedArray = response.serviceResponse;
+  //       this.totalClientSideApprovedCount = nestedArray?.[0]?.[0] ?? 0;
+  //       this.totalClientSidePendingCount = nestedArray?.[0]?.[1] ?? 0;
+  //       this.eodNotFilledCount = nestedArray?.[0]?.[2] ?? 0;
+  //       this.totalDocumentApprovedCount = nestedArray?.[0]?.[4] ?? 0;
+  //       this.totalDocumentRejectedCount = nestedArray?.[0]?.[5] ?? 0;
 
 
-        this.totalExpectedEmployees = nestedArray?.[0]?.[0] ?? 0;
-        this.totalIshineNotFilledCount = nestedArray?.[0]?.[1] ?? 0;
-        console.log("Total Ishine NOt completion", this.totalIshineNotFilledCount);
-      } else {
-        // this.openAlertMod(this.alertTemplate, response.serviceResponse);
-      }
-    });
-  }
+  //       this.totalExpectedEmployees = nestedArray?.[0]?.[0] ?? 0;
+  //       this.totalIshineNotFilledCount = nestedArray?.[0]?.[1] ?? 0;
+  //       console.log("Total Ishine NOt completion", this.totalIshineNotFilledCount);
+  //     } else {
+  //       // this.openAlertMod(this.alertTemplate, response.serviceResponse);
+  //     }
+  //   });
+  // }
 
   // onToggleChange(event: Event) {
   //   // Cast event target as HTMLInputElement to read checked property
@@ -2228,12 +2228,12 @@ getTileInfo(status: string): string[] {
       this.getEmployeeByNameAndEmpld();
       this.getEmployeeViewForClientAttendanceStatus(this.status, this.month, this.year);
       this.getTimesheetDashboardCount(this.month, this.year);
-      this.ishineNotFilled();
+      // this.ishineNotFilled();
     } else {
       this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
       this.getTimesheetDashboardCount(this.month, this.year);
       this.getProjectByNameAndPoNo();
-      this.ishineNotFilled();
+      // this.ishineNotFilled();
     }
     //  this.getEmployeeTimesheetsByProject(this.timesheetSummaryTemplate);
     this.selectedStatus = this.status;
