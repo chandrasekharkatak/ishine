@@ -211,7 +211,7 @@ export class HrDashboardComponent implements AfterViewInit {
   insightPageSize: number = 10;
 
   // selectedBillableType: string = 'All';
-selectedBillableTypes: string[] = ['TNM','TNM(Shadow)'];
+selectedBillableTypes: string[] = ['TNM','TNM(Shadow)','Fixed Cost','Fixed Cost(Shadow)'];
   columnDataToSearch: any;
   currentColumnFilter: any = null;
   isInsightSearchEnabled: boolean = false;
@@ -984,7 +984,7 @@ updateBillableTypes() {
   }
 
   // Reset selections
-  // this.selectedBillableTypes = [];
+  this.selectedBillableTypes = [...this.billableTypes];
 }
   onToggleChange(event: Event) {
 
@@ -1018,7 +1018,7 @@ updateBillableTypes() {
     this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
   }
 
-  // this.selectedBillableTypes = [];
+  this.selectedBillableTypes = [...this.billableTypes];
 
   this.selectedStatus = this.status;
 }
