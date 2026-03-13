@@ -358,6 +358,9 @@ public class TimesheetServiceNew {
 			timesheetValidationHelper.validateTimesheetLockPeriod(empDTO.getEmpId(), empDTO.getDate(),
 			effectiveLockDays);
 			
+			timesheetValidationHelper.validateTimesheetForTodaysDate(empDTO.getDate(), empDTO.getWorkCheckIn(),
+					empDTO.getWorkCheckOut());
+
 			if(!empDTO.getCreatedBy().equals(empDTO.getEmpId())){
 				timesheetValidationHelper.isTeamMemberTimesheetCanBeFilledValidation(empDTO.getEmpId());
 			}
@@ -934,6 +937,7 @@ public class TimesheetServiceNew {
 			timesheetValidationHelper.validateTimesheetDateImmutable(empTS, newEmpDTO);
 			timesheetValidationHelper.validateEmployeeImmutableIfProjectApproved(empTS, newEmpDTO);
 
+			timesheetValidationHelper.validateTimesheetForTodaysDate(newEmpDTO.getDate(), newEmpDTO.getWorkCheckIn(), newEmpDTO.getWorkCheckOut());
 			/* Day type transition not allowed if any of project is approved */
 			timesheetValidationHelper.validateDayTypeTransition(empTS, newEmpDTO);
 
