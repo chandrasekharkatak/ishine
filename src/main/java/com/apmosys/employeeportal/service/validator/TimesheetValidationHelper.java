@@ -4,6 +4,8 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -101,6 +103,12 @@ public class TimesheetValidationHelper {
     
     @Value("${app.team.fullPrivilegeRoleIds:1,13,15,53,78,93,111,115,120,143,144,145,146,152,170,177,178,183,187}")
     private String fullPrivilegeRoleIdsConfig;
+
+    @Value("${timesheet.check.period}")
+	private String timesheetCheckPeriod;
+
+	@Value("${maximum.timesheetCanBeFilledByMember}")
+	private String maximumTimesheetCanBeFilledByTeamMember;
     
     // @Autowired
     // EmployeeClientSideIdMappingRepository employeeClientSideIdMappingRepository;
@@ -2167,5 +2175,70 @@ public class TimesheetValidationHelper {
             }
         }
     }
+
+    public void isTeamMemberTimesheetCanBeFilledValidation(Long empId){
+        try{
+
+            LocalDate date = LocalDate.now().minusDays(Long.parseLong(timesheetCheckPeriod));
+            List<Object[]> timesheetFilledByMember = employeeTimesheetsNewRepository.getTimesheetFilledByMember(empId,date);
+            
+					if(timesheetFilledByMember.size() >= Long.parseLong(maximumTimesheetCanBeFilledByTeamMember)) {
+						throw new TimesheetValidationFailedException(
+                            "Timesheet cannot be filled for team member more than 2 days."
+                    );
+					}
+                }
+                catch(Exception ex){
+                    throw new TimesheetValidationFailedException(
+                            "Something went wrong."
+                    );
+                }
+                    
+    }
+
+    public void validateTimesheetForTodaysDate(LocalDate date, String workCheckIn, String workCheckOut) {
+
+        try{
+        if (date == null) {
+            throw new TimesheetValidationFailedException("Timesheet date is required.");
+        }
+    
+        if (date.equals(LocalDate.now())) {
+            LocalDateTime now = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    
+            if (workCheckIn != null && !workCheckIn.isEmpty()) {
+                LocalDateTime checkInTime = LocalDateTime.parse(workCheckIn, formatter);
+                if (checkInTime.isAfter(now)) {
+                    throw new TimesheetValidationFailedException(
+                        "Check-in time cannot be in greater then current time."
+                    );
+                }
+            }
+    
+            if (workCheckOut != null && !workCheckOut.isEmpty()) {
+                LocalDateTime checkOutTime = LocalDateTime.parse(workCheckOut, formatter);
+                if (checkOutTime.isAfter(now)) {
+                    throw new TimesheetValidationFailedException(
+                        "Check-out time cannot be in greater then current time."
+                    );
+                }
+            }
+        }
+    }
+       catch (TimesheetValidationFailedException ex) {
+        throw ex; // re-throw validation errors as-is
+    } catch (DateTimeParseException ex) {
+        throw new TimesheetValidationFailedException(
+            "Invalid date/time format for check-in or check-out."
+        );
+    } catch (Exception ex) {
+        throw new TimesheetValidationFailedException(
+            "Something went wrong ."
+        );
+    }
+    }
+
+
 }
 

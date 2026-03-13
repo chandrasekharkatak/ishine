@@ -4,7 +4,8 @@ import {
   Output,
   EventEmitter,
   forwardRef,
-  ViewChild
+  ViewChild,
+  Injectable
 } from '@angular/core';
 import {
   ControlValueAccessor,
@@ -14,10 +15,37 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDatepickerModule, MatDatepickerInputEvent } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { DateAdapter, MAT_DATE_FORMATS, MatNativeDateModule, NativeDateAdapter } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import * as moment from 'moment';
+
+@Injectable()
+export class AppDateAdapter extends NativeDateAdapter {
+
+  override format(date: Date, displayFormat: Object): string {
+    if (displayFormat === 'input') {
+      const dd = date.getDate().toString().padStart(2, '0');
+      const mm = (date.getMonth() + 1).toString().padStart(2, '0');
+      const yyyy = date.getFullYear();
+      return `${dd}/${mm}/${yyyy}`;
+    }
+    // For the calendar header, use "Month Year" format
+    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  }
+}
+
+export const APP_DATE_FORMATS = {
+  parse: {
+    dateInput: 'DD/MM/YYYY',
+  },
+  display: {
+    dateInput: 'input',         // triggers the 'input' branch above
+    monthYearLabel: 'MMM YYYY', // "Mar 2026"
+    dateA11yLabel: 'LL',
+    monthYearA11yLabel: 'MMMM YYYY',
+  },
+};
 
 @Component({
   selector: 'app-date-time-picker',
@@ -37,7 +65,16 @@ import * as moment from 'moment';
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => DateTimePickerComponent),
       multi: true
+    },
+    {
+      provide: DateAdapter,
+      useClass: AppDateAdapter
+    },
+    {
+      provide: MAT_DATE_FORMATS,   // ← add this
+      useValue: APP_DATE_FORMATS
     }
+  
   ]
 })
 export class DateTimePickerComponent implements ControlValueAccessor {

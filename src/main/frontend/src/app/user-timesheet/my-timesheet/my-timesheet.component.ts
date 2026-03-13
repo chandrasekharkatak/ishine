@@ -112,7 +112,7 @@ popupMessage = '';
 
   isSelfTimesheets: boolean = false;
   isTeamTimesheets: boolean = false;
-
+  itemsPerPage = 10;
 
   Allholidays: any[] = [];
   AllWeekOfList: any[] = [];
@@ -295,9 +295,9 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
 
   isUploadAllowed: boolean = false;
   disableUploadTooltip = "Bulk upload is permitted only for the complete previous month or on the last day of the current month . Please select a date range that falls entirely within the allowed period to enable uploading. ";
-  clientDetails: any; 
-  clientDropdownList: any[] = []; 
-  projectsInMonthYear: any[] = []; 
+  clientDetails: any;
+  clientDropdownList: any[] = [];
+  projectsInMonthYear: any[] = [];
   clientIdEntryBulletPoints: string[] = ["Mandatory field for all resources while filling the timesheet.",
 "Enter the client-side ID if already available.",
 "If the client-side ID is not yet assigned, enter “NA (ApMoSys Employee ID)”.",
@@ -313,7 +313,7 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
   noOtherShadowResourceTemp: TemplateRef<any>;
   noOtherShadowResourceModalRef:NgbModalRef;
 
- 
+
   //latestProjectId = this.activeProjectList
 
   constructor(
@@ -497,7 +497,7 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
       this.resetTimesheetForm();
       this.showBulkUploadForm();
     }else if(formType =='viewMyTimesheet'){
-      this.resetTimesheetForm(); 
+      this.resetTimesheetForm();
       this.showViewMyTimesheets()
     }
   }
@@ -855,7 +855,7 @@ get tooltipCta(): string {
 
     this.showSelfTimesheets();
   }
- 
+
   showSelfTimesheets() {
     this.isSelfTimesheets = true;
     this.isTeamTimesheets = false;
@@ -902,7 +902,7 @@ get tooltipCta(): string {
     //   }
     // });
     this.getMyTeamTimesheets();
-    
+
   }
 
   /**
@@ -961,14 +961,14 @@ get tooltipCta(): string {
 
   checkTimesheetForInActiveActivitiesOLD(timesheetObj: any, template: TemplateRef<any>) {
     console.log("The timesheet object is", timesheetObj);
-    
+
     // Handle hierarchical EmployeeTimesheetDTO structure
     const status = timesheetObj.statusDisplay || this.mapStatusToString(timesheetObj.status);
     const dayType = timesheetObj.dayType;
-    
+
     // Store selected timesheet for inactive activities check
     this.selectedTimesheet = timesheetObj;
-    
+
     if (dayType == "Working" && (status === "Pending" || status === "Rejected") && timesheetObj?.inactiveTimesheetActivities) {
       this.openInActiveUpdateConfimationModal(template, timesheetObj);
       // Note: Document handling may need adjustment for hierarchical structure
@@ -999,7 +999,7 @@ get tooltipCta(): string {
 
 
   onMonthYearChange() {
-  this.resetBulkUploadForm('MONTH');  
+  this.resetBulkUploadForm('MONTH');
   this.getMyProjectsInMonthYear();
   }
 
@@ -1013,7 +1013,7 @@ get tooltipCta(): string {
           console.error(response.serviceResponse);
         }
       });
-  
+
     }
 
 
@@ -2482,7 +2482,7 @@ get tooltipCta(): string {
     if (this.startDate && (this.endDate == null || this.endDate === '' || this.endDate === undefined)) {
       return;
     }
-    
+
     if (this.endDate < this.startDate) {
       if (!this.validationService.validateNullUndefinedEmptyString(this.startDate)) {
         this.alertMessage = "Please enter Start Date !!"
@@ -2568,12 +2568,12 @@ get tooltipCta(): string {
       // Process location sessions
       if (timesheet.locationSessions && timesheet.locationSessions.length > 0) {
         let totalActivityMinutes = 0;
-        
+
         timesheet.locationSessions.forEach((location: any) => {
           // Format location times (they come as "HH:mm" or "HH:mm:ss" strings from backend)
           // If they need formatting, we can add it here
           // location.locationInTime and location.locationOutTime are already strings
-          
+
           // Process projects within location
           if (location.projects && location.projects.length > 0) {
             location.projects.forEach((project: any) => {
@@ -2591,7 +2591,7 @@ get tooltipCta(): string {
             });
           }
         });
-        
+
         // Store total activity minutes for display
         timesheet.totalActivitiesMinutes = totalActivityMinutes;
       }
@@ -3074,17 +3074,17 @@ get tooltipCta(): string {
     //employeeTeamMapping has startDate and endDate as localDateTime
     const d = new Date(this.fromDate);
     const localDateTime = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T00:00:00`;
-    
+
     const payload = {
       empId: this.timesheetObj.empId,
       date: localDateTime
     };
-    
+
     this.timesheetService.getProjectListForDateAndEmpId(payload).pipe(first()).subscribe(async(response: any) => {
       if (response.serviceStatus == "Success") {
         this.activeProjectList = response.serviceResponse;
         console.log("Active Project List :::::::::", this.activeProjectList);
-     
+
       } else {
         console.error("Service Response for this.activeProjectList :::::::", response.serviceResponse);
       }
@@ -3499,7 +3499,7 @@ onFinalFileSelected(event: any): void {
   getEmployeeListByProjectId(projectId) {
     const d = new Date(this.fromDate);
     const localDateTime = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T00:00:00`;
-    
+
     const payload = {
       empId: this.timesheetObj.empId,
       date: localDateTime,
@@ -3572,7 +3572,7 @@ onFinalFileSelected(event: any): void {
     //employeeTeamMapping has startDate and endDate as localDateTime
     const d = new Date(this.fromDate);
     const localDateTime = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T00:00:00`;
-    
+
     const payload = {
       empId: empId,
       date: localDateTime,
@@ -4246,7 +4246,7 @@ onTimesheetAppliedForChange(value: string): void {
 
   }
   }
-    
+
   resetTimesheetFormOnDateChange(value?:any){
     this.timeReset();
     // this.toDate = null;
@@ -4401,7 +4401,7 @@ onTimesheetAppliedForChange(value: string): void {
   //   return filteredList;
   // }
 
- 
+
 
   downloadSelectedFile(): void {
   if (!this.rawObjectUrl2 || !this.selectedFile2) return;
@@ -4426,7 +4426,7 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
 
   for (let i = 0; i < byteCharacters.length; i++) {
     byteNumbers[i] = byteCharacters.charCodeAt(i);
-  } 
+  }
 
   const blob = new Blob(
     [new Uint8Array(byteNumbers)],
@@ -4447,7 +4447,7 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
   getClientDetailsByProjectIdAndEmpId() {
     this.clientDetails = '';
     this.projectList = [];
-    
+
     const payload: any = {
       empId: this.timesheetObj.empId,
       projectId: this.timesheetObj.projectId
@@ -4592,7 +4592,7 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
       this.expandedLocations.set(key, new Set());
     }
     const locationSet = this.expandedLocations.get(key)!;
-    
+
     if (locationSet.has(locationId)) {
       locationSet.delete(locationId);
       // Also collapse all projects for this location
@@ -4609,7 +4609,7 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
       this.expandedProjects.set(key, new Set());
     }
     const projectSet = this.expandedProjects.get(key)!;
-    
+
     if (projectSet.has(projectId)) {
       projectSet.delete(projectId);
     } else {
@@ -4656,12 +4656,12 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
       const inTime = moment(location.locationInTime, [
         'YYYY-MM-DD HH:mm:ss.S',
         'YYYY-MM-DD HH:mm:ss',
-        'HH:mm:ss', 
+        'HH:mm:ss',
         'HH:mm'], true);
       const outTime = moment(location.locationOutTime, [
         'YYYY-MM-DD HH:mm:ss.S',
         'YYYY-MM-DD HH:mm:ss',
-        'HH:mm:ss', 
+        'HH:mm:ss',
         'HH:mm'], true);
       if (inTime.isValid() && outTime.isValid()) {
         const diffMinutes = outTime.diff(inTime, 'minutes');
@@ -4781,7 +4781,7 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
     if (!location || !location.projects || location.projects.length === 0) {
       return 0;
     }
-    
+
     let totalMinutes = 0;
     for (const project of location.projects) {
       if (project.activities && project.activities.length > 0) {
@@ -4790,7 +4790,7 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
         }
       }
     }
-    
+
     return totalMinutes / 60; // Convert to hours
   }
 

@@ -538,9 +538,8 @@
               </tr>
 
               <ng-container *ngFor="let timesheet of allMyTimesheets
-                | colFilter:filters:false
-                | sort:[sortColumn, sortColumnType, sortDirection]
-                | paginate:{ itemsPerPage: 20, currentPage: page };
+
+                | paginate:{ itemsPerPage: itemsPerPage, currentPage: page };
                 let i = index">
 
                 <!-- Main Row -->
@@ -553,7 +552,7 @@
                         [class.fa-chevron-down]="isTimesheetExpanded(timesheet.timesheetId)"></i>
                     </button>
                   </td>
-                  <td>{{ 20*(page-1)+i+1 }}</td>
+                  <td>{{ itemsPerPage*(page-1)+i+1 }}</td>
                   <td *ngIf="isTeamTimesheets">{{ timesheet.employeeName || 'NA' }}</td>
                   <td>{{ timesheet.date }}</td>
                   <td>{{ timesheet.dayType }}</td>
@@ -708,9 +707,9 @@
         </div>
 
         <!-- Pagination -->
-        <pagination-controls class="ts-pagination" [hidden]="allMyTimesheets.length == 0"
-          (pageChange)="handlePageChange($event)">
-        </pagination-controls>
+<pagination-controls *ngIf="allMyTimesheets.length > 0" class="ts-pagination" [maxSize]="5"
+  (pageChange)="handlePageChange($event)">
+</pagination-controls>
 
       </div>
     </div>
@@ -718,122 +717,123 @@
 <!-- end :: View Timesheets -->
 
 <!-- Start :: showBulkUploadForm -->
-<div class="row" *ngIf="isTimesheetBulkForm">
-    <div class="card col-md-12 px-0">
-        <!-- <div class="card-header text-center ">
-            <strong class="text-uppercase" style="margin-right: 4px;" *ngIf="isTimesheetBulkForm">Final Document Bulk Upload</strong>
-            <app-info-tooltip class="ms-2"  iconBgColor="#127475" [size]="20"
-            [content]="withVmsbullet"></app-info-tooltip>
-        </div> -->
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-3 mb-0">
-                    <label class="info-label"><span class="text-danger">*</span>Month-Year</label>
-                    <div class="info-wrapper">
-                        <input type="month" class="form-control" [(ngModel)]="timesheetObj.monthYear"
-                            (change)="onMonthYearChange()" />
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-3 mb-0">
-                    <div class="info-wrapper">
-                        <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Project</label>
-                            <!-- <mat-select ngxMatSelect class="form-control" #filterActiveProjects="ngxMatSelect"
-                                [displayMember]="'projectName'" [valueMember]="'projectId'" [source]="projectsInMonthYear" -->
+<div class="bu-wrapper" *ngIf="isTimesheetBulkForm">
 
-                            <app-my-select #filterActiveProjects class="form-control" placeholder="Select Project"
-                                [(ngModel)]="timesheetObj.projectId" [options]="projectsInMonthYear"
-                                displayKey="projectName" valueKey="projectId" [multiple]="false"
-                                (selectionChange)="onProjectSelectBulk($event)">
-                            </app-my-select>
-                            <!-- <mat-select ngxMatSelect class="form-control" #filterActiveProjects="ngxMatSelect"
-                                [displayMember]="'projectName'" [valueMember]="'projectId'" [source]="activeProjectList"
-                                [useInfiniteScroll]="true"
-                                (selectionChange)="onProjectSelectBulk(timesheetObj.projectId)" [multiple]="false"
-                                [(ngModel)]="timesheetObj.projectId">
-                                <mat-option [value]="project.projectId"
-                                    *ngFor="let project of filterActiveProjects.filteredSource">
-                                    {{project.projectName}}
-                                </mat-option>
-                            </mat-select> -->
-                        </div>
-                    </div>
-                </div>
-                <!-- From Date [matDatepickerFilter]="(timesheetObj.dayType === 'Non-working') ? customDateFilter : timesheetDateFilter"-->
-                <div class="col-md-3 mb-3" *ngIf="!clientSideIdNotMandatory">
-                    <div class="form-group">
-                        <label class="info-label" style="margin-bottom: 0rem;"><span class="text-danger">*</span>From
-                            Date</label>
-                        <mat-form-field style="display: contents;">
-                            <input matInput [matDatepicker]="picker" [matDatepickerFilter]="disableDates"
-                                [(ngModel)]="finalFromDate" (dateChange)="checkUploadEligibility()" [min]="minDate"
-                                [max]="maxDate" required />
-                            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-                            <mat-datepicker #picker></mat-datepicker>
-                        </mat-form-field>
-                    </div>
-                </div>
-
-                <!-- To Date -->
-                <div class="col-md-3 mb-3" *ngIf="!clientSideIdNotMandatory">
-                    <div class="form-group">
-                        <label class="info-label" style="margin-bottom: 0rem;"><span class="text-danger">*</span>To
-                            Date</label>
-                        <mat-form-field style="display: contents;">
-                            <input matInput [matDatepicker]="toPicker" [matDatepickerFilter]="disableDates"
-                                [(ngModel)]="finalToDate" name="toDate" required #toDateRef="ngModel"
-                                [min]="finalFromDate" [max]="maxDate" [disabled]="!finalFromDate"
-                                (dateChange)="checkUploadEligibility()" />
-                            <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
-                            <mat-datepicker #toPicker></mat-datepicker>
-                        </mat-form-field>
-                        <!-- <div class="text-danger" *ngIf="toDateRef.invalid && toDateRef.touched">
-                    To Date is required and cannot be earlier than From Date.
-                  </div> -->
-                    </div>
-                </div>
-
-                <div class="col-md-3 mb-3" *ngIf="!clientSideIdNotMandatory">
-                    <div class="form-group">
-                        <label class="info-label"><span class="text-danger">*</span>Bulk Approval Proof</label>
-                        <div class="d-flex align-items-center">
-                            <input type="file" #fileInput class="form-control form-control-sm"
-                                accept=".pdf,.jpg,.jpeg,.png" (change)="onFinalFileSelected($event)">
-                            <button class="btn btn-outline-primary btn-sm ms-2" title="Preview"
-                                [disabled]="!previewUrl2" (click)="openPreviewModalForTwo('doc2')">
-                                <i class="fa fa-eye fa-lg text-primary"></i>
-                            </button>
-                        </div>
-                        <div class="text" *ngIf="fileName2">
-                            {{fileName2}}
-                        </div>
-                        <div class="text-danger" *ngIf="fileError2">
-                            {{fileError2}}
-                        </div>
-                    </div>
-                </div>
-                <div class="row justify-content-center" *ngIf="!clientSideIdNotMandatory">
-                    <div class="col-md-2">
-                        <button type="button" class="btn btn-outline-primary btn-sm mx-1"
-                            (click)="bulkFinalDocumentUpload(alert_message)">Upload</button>
-                        <!-- <button
-  class="btn btn-outline-primary btn-sm mx-1"
-  (click)="bulkFinalDocumentUpload(alert_message)"
-  [disabled]="!isUploadAllowed"
-  matTooltip="{{ !isUploadAllowed ? disableUploadTooltip : '' }}"
-  matTooltipPosition="above">
-  Upload
-</button> -->
-
-
-                    </div>
-                </div>
-            </div>
-
-        </div>
+  <!-- Header -->
+  <div class="bu-header">
+    <div class="bu-header-left">
+      <div class="bu-header-icon">
+        <i class="fas fa-file-upload"></i>
+      </div>
+      <div>
+        <div class="bu-header-title">Final Document Bulk Upload</div>
+        <div class="bu-header-sub">Upload bulk approval proof for a project</div>
+      </div>
     </div>
+    <app-info-tooltip iconBgColor="#127475" [size]="18" [content]="withVmsbullet">
+    </app-info-tooltip>
+  </div>
+
+  <!-- Form Body -->
+  <div class="bu-body">
+
+    <!-- Row 1: Month-Year + Project + From Date + To Date -->
+    <div class="bu-row">
+
+      <div class="bu-field">
+        <label class="bu-label"><span class="bu-required">*</span> Month-Year</label>
+        <input type="month" class="bu-input"
+          [(ngModel)]="timesheetObj.monthYear"
+          (change)="onMonthYearChange()" />
+      </div>
+
+      <div class="bu-field">
+        <label class="bu-label"><span class="bu-required">*</span> Project</label>
+        <app-my-select
+          #filterActiveProjects
+          class="form-control"
+          placeholder="Select Project"
+          [(ngModel)]="timesheetObj.projectId"
+          [options]="projectsInMonthYear"
+          displayKey="projectName"
+          valueKey="projectId"
+          [multiple]="false"
+          (selectionChange)="onProjectSelectBulk($event)">
+        </app-my-select>
+      </div>
+
+<!-- From Date -->
+<div class="bu-field" *ngIf="!clientSideIdNotMandatory">
+  <label class="bu-label"><span class="bu-required">*</span> From Date</label>
+  <mat-form-field class="bu-mat-field">
+    <input matInput [matDatepicker]="picker" [matDatepickerFilter]="disableDates" [(ngModel)]="finalFromDate"
+      (dateChange)="checkUploadEligibility()" [min]="minDate" [max]="maxDate" required placeholder="Select date" />
+    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-datepicker #picker></mat-datepicker>
+  </mat-form-field>
+</div>
+
+<!-- To Date -->
+<div class="bu-field" *ngIf="!clientSideIdNotMandatory">
+  <label class="bu-label"><span class="bu-required">*</span> To Date</label>
+  <mat-form-field class="bu-mat-field">
+    <input matInput [matDatepicker]="toPicker" [matDatepickerFilter]="disableDates" [(ngModel)]="finalToDate"
+      name="toDate" required #toDateRef="ngModel" [min]="finalFromDate" [max]="maxDate" [disabled]="!finalFromDate"
+      (dateChange)="checkUploadEligibility()" placeholder="Select date" />
+    <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+    <mat-datepicker #toPicker></mat-datepicker>
+  </mat-form-field>
+</div>
+
+    </div>
+    <!-- ↑ bu-row closes here -->
+
+    <!-- Row 2: File Upload + Upload Button -->
+    <div class="bu-upload-row" *ngIf="!clientSideIdNotMandatory">
+
+      <div class="bu-upload-field">
+        <label class="bu-label"><span class="bu-required">*</span> Bulk Approval Proof</label>
+        <div class="bu-file-row">
+          <input type="file" #fileInput id="bulkFileInput"
+            class="bu-file-hidden"
+            accept=".pdf,.jpg,.jpeg,.png"
+            (change)="onFinalFileSelected($event)" />
+          <label for="bulkFileInput" class="bu-file-btn">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <span>Choose File</span>
+          </label>
+          <button class="bu-preview-btn"
+            [disabled]="!previewUrl2"
+            (click)="openPreviewModalForTwo('doc2')"
+            title="Preview">
+            <i class="fas fa-eye"></i>
+            <span>Preview</span>
+          </button>
+        </div>
+        <div class="bu-file-status" *ngIf="fileName2 && !fileError2">
+          <i class="fas fa-check-circle"></i>
+          <span>{{ fileName2 }}</span>
+        </div>
+        <div class="bu-file-error" *ngIf="fileError2">
+          <i class="fas fa-exclamation-circle"></i>
+          <span>{{ fileError2 }}</span>
+        </div>
+      </div>
+
+      <div class="bu-action">
+        <button type="button" class="bu-upload-btn"
+          (click)="bulkFinalDocumentUpload(alert_message)">
+          <i class="fas fa-upload"></i>
+          <span>Upload</span>
+        </button>
+      </div>
+
+    </div>
+    <!-- ↑ bu-upload-row closes here -->
+
+  </div>
+  <!-- ↑ bu-body closes here -->
+
 </div>
 
 <!-- Modals Template -->

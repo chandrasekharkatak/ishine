@@ -36,6 +36,8 @@ export class TeamEmployeeTimesheetViewComponent implements OnInit {
     timesheetDataColumns: any[] = ['employmentId', 'clientSideId', 'employeeName', 'employmentStatus', 'projectStatus', 'department', 'billableType', 'clientName', 'poNo', 'projectName', 'projectManagerName', 'teamName', 'startDate', 'endDate', 'expectedTimesheetFillCount','apmosysTimesheetFilledCount','clientSideNotFilledCount','clientSidePendingCount','clientSideApprovedCount',];
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
+  @ViewChild("alertDocTemplate")
+  alertOfDocTemplate: TemplateRef<any>;
   alertMessage: any;
   modalRef:NgbModalRef;
   modalRef2?: NgbModalRef;
@@ -102,6 +104,7 @@ maxYear!: Date;
   startY = 0;
   translateX = 0;
   translateY = 0;
+alertMessageOfDoc: any;
 
   constructor(private route: ActivatedRoute,
     private modalService: NgbModal,
@@ -565,9 +568,28 @@ monthSelected(event: Date, datepicker: any) {
         window.URL.revokeObjectURL(url);
       },
         error => {
+          if (error?.error instanceof Blob) {
+
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        const message = reader.result as string;
+        this.openDocAlertMod(this.alertOfDocTemplate, message);
+      };
+
+      reader.readAsText(error.error);
+      return;
+    }
           console.error('Download failed', error);
         });
   }
+  openDocAlertMod(template: TemplateRef<any>, message: string) {
+  this.alertMessageOfDoc = message;
+  this.modalRef = this.modalService.open(template, {
+    modalDialogClass: 'modal-sm',
+    centered: true
+  });
+}
 
 viewEmployeeTimesheet(empId: any, projectId: any): void {
   this.selectedEmpId = empId;

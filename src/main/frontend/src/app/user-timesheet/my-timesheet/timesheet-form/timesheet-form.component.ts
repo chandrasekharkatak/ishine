@@ -1638,10 +1638,23 @@ this.isNightShift = false;
       const teamMember = this.teamMemberList.find(employee => employee.empId == this.timesheetFilledForUser.empId);
       userObj.empId = teamMember?.empId;
       userObj.isTimesheetLockCheckEnable = teamMember.isTimesheetLockCheckEnable;
-     
+      if(teamMember?.isTimesheetFilledByMember.toLocaleLowerCase() == 'true' && this.isCreation){
+        this.appelectMember = null;
+        this.selectedTeamMember = null;
+        userObj = new User();
+        this.handleError(
+          new Error('Timesheet cannot be filled for team member more than 2 days.'),
+          'onProjectSelect',
+          true,
+          'Timesheet cannot be filled for team member more than 2 days.'
+        );
+        
+        return;
+      }
     }
     this.timesheetFilledForUser = userObj;
     console.log("onTimesheetAppliedForChange obj= ",userObj)
+    
     // Load available timesheets for date filtering after setting user
     if (userObj.empId && this.serverDate) {
       this.getAllAvailableTimesheetByEmpId(userObj);

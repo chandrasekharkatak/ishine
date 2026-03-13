@@ -27,6 +27,8 @@ import { EmployeeTimesheetResponse } from 'src/app/models/employeeTimesheetRespo
 import { getProjectViewList } from 'src/app/models/getProjectViewList';
 import { Feature } from 'src/app/models/feature';
 import { TimesheetNewService } from 'src/app/services/timesheet-new.service';
+import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
+import { APP_DATE_FORMATS, AppDateAdapter } from 'src/app/helpers/date-time-picker/date-time-picker.component';
 
 
 interface DayCell {
@@ -78,7 +80,17 @@ export interface EmployeeTimesheet {
   standalone: false,
   selector: 'app-hr-dashboard',
   templateUrl: './hr-dashboard.component.html',
-  styleUrls: ['./hr-dashboard.component.css']
+  styleUrls: ['./hr-dashboard.component.css'],
+  providers: [          // ← just add this block
+    {
+      provide: DateAdapter,
+      useClass: AppDateAdapter
+    },
+    {
+      provide: MAT_DATE_FORMATS,
+      useValue: APP_DATE_FORMATS
+    }
+  ]
 })
 export class HrDashboardComponent implements AfterViewInit {
 
@@ -199,7 +211,7 @@ export class HrDashboardComponent implements AfterViewInit {
   insightPageSize: number = 10;
 
   // selectedBillableType: string = 'All';
-selectedBillableTypes: string[] = ['TNM','TNM(Shadow)'];
+selectedBillableTypes: string[] = ['TNM','TNM(Shadow)','Fixed Cost','Fixed Cost(Shadow)'];
   columnDataToSearch: any;
   currentColumnFilter: any = null;
   isInsightSearchEnabled: boolean = false;
@@ -972,7 +984,7 @@ updateBillableTypes() {
   }
 
   // Reset selections
-  // this.selectedBillableTypes = [];
+  this.selectedBillableTypes = [...this.billableTypes];
 }
   onToggleChange(event: Event) {
 
@@ -1006,7 +1018,7 @@ updateBillableTypes() {
     this.getProjectViewForClientAttendanceStatus(this.status, this.month, this.year);
   }
 
-  // this.selectedBillableTypes = [];
+  this.selectedBillableTypes = [...this.billableTypes];
 
   this.selectedStatus = this.status;
 }

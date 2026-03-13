@@ -2528,9 +2528,9 @@ h5 {
 }
 
 .dept-status-summary .count-card.neutral {
-  background: #f1f5f9;
-  color: #475569;
-  border-color: #e2e8f0;
+  background: #fef2f2;
+  color: #b91c1c;
+  border-color: #fecaca;
 }
 
 .dept-status-summary .count-main {
@@ -4371,7 +4371,7 @@ input:checked+.slider:before {
 .db-page-wrapper {
   width: 100%;
   box-sizing: border-box;
-  
+
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
