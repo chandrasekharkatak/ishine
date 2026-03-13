@@ -1951,11 +1951,11 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
             <input type="text" class="milestone-readonly" formControlName="lineItemName" readonly>
           </div>
           <div class="col-md-6">
-            <label class="field-label">Milestone name</label>
+            <label class="field-label mt-3">Milestone name</label>
             <input type="text" class="milestone-readonly" formControlName="name" readonly>
           </div>
           <div class="col-md-6">
-            <label class="field-label">Status</label>
+            <label class="field-label mt-3">Status</label>
             <div class="milestone-readonly d-flex align-items-center gap-2">
               <span class="status-dot mr-2"></span>
               <span>{{ milestoneForm.get('status')?.value }}</span>
@@ -1977,15 +1977,19 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
             <input type="text" class="milestone-readonly" formControlName="endDate" readonly>
           </div>
           <div class="col-md-4">
-            <label class="field-label">
-              Extended date <span class="text-danger">*</span>
+            <label class="field-label">Extend End Date <span class="text-danger">*</span>
+                <mat-icon matTooltip="You may select any date after the Start Date.
+                1. Select a date before the End Date to close the milestone earlier.
+                2. Select a date after the End Date to extend the milestone duration."
+                  matTooltipPosition="right" matTooltipClass="milestone-tooltip" class="info-icon mr-2"> info 
+                </mat-icon>
             </label>
             <mat-form-field appearance="outline" class="w-100 milestone-datepicker">
               <input matInput [matDatepicker]="extendedDatePicker"
                 formControlName="extendedDate"
                 placeholder="Select date"
                 autocomplete="off"
-                [min]="minExtendedDateformilestone"
+                [min]="minExtendedDateformilestone" (dateChange)="onExtendedDateChange($event)"
                 [disabled]="!milestoneForm.get('endDate')?.value" />
               <mat-datepicker-toggle matSuffix [for]="extendedDatePicker">
               </mat-datepicker-toggle>
@@ -1996,7 +2000,7 @@ style="display: flex; justify-content: space-between; width: 100%; position: rel
       </div>
 
       <!-- Extension Details Section -->
-      <div class="milestone-section mt-3">
+      <div class="milestone-section mt-3" *ngIf="isExtensionEnabled">
         <p class="section-tag">Extension details</p>
         <div class="row g-2 align-items-start">
 

@@ -6541,6 +6541,7 @@ cancelComplete() {
   openUpdateProjectMilestoneModal(milestone: any) {
     this.extensionReason()
     this.projectMilestone = JSON.parse(JSON.stringify(milestone));
+    this.minExtendedDate()
     this.updateProjectMilestoneModalRef = this.modalService.open(this.updateProjectMilestoneModal, { modalDialogClass: 'modal-xl' });
   }
 
@@ -8542,6 +8543,15 @@ updateMilestoneExtendedDateWithReason() {
 
 onExtendedDateChange(event: any) {
   if (event.value) { this.isExtensionEnabled = true; }
+}
+
+minExtendedDateformilestone:Date;
+minExtendedDate(): void {
+  const startDate = this.projectMilestone?.startDate;
+  if (!startDate) return;
+  const date = new Date(startDate);
+  date.setDate(date.getDate() + 1);
+  this.minExtendedDateformilestone = date;
 }
 
 closeProjectMilestoneDocumentsModal() {

@@ -159,6 +159,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   previewUrlForMileStone: any;
   @ViewChild("project_milestone_document") projectMilestoneDocumentTemplateRef: TemplateRef<any>;
   projectMilestoneDocumentModalRef: NgbModalRef;
+  isExtensionEnabled : boolean = false;
 
   documentName: string = '';
     documentType: string = '';
@@ -3102,7 +3103,7 @@ getDocsForPreview(docId: any) {
 
     minExtendedDateformilestone:Date;
    public  minExtendedDate(): void {
-    const endDate=this.milestoneForm.get('endDate').value;;
+    const endDate=this.milestoneForm.get('startDate').value;
     this.minExtendedDateformilestone=new Date(this.convertToISO(endDate));
       this.milestoneForm.get('extensionReasonId')?.reset();
     console.log("minExtendedDateformilestone",this.minExtendedDateformilestone);
@@ -3110,7 +3111,7 @@ getDocsForPreview(docId: any) {
   }
   convertToISO(dateString: string): string {
   const [day, month, year] = dateString.split('/');
-  return `${year}-${month}-${day}`;
+  return `${year}-${month}-${Number(day) + 1}`;
 }
 
 public getDaysLeftForExpiry(endDate: string | Date): string {
@@ -3406,8 +3407,9 @@ resetFileData() {
   this.previewUrlForMileStone = null;
 }
 
-
-
+onExtendedDateChange(event: any) {
+  if (event.value) { this.isExtensionEnabled = true; }
+}
 
 }
 

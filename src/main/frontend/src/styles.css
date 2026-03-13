@@ -308,3 +308,8 @@ ngb-modal-window {
   font-weight: 600 !important;
   color: #222 !important;
 }
+
+.milestone-tooltip {
+  white-space: pre-line !important;
+  max-width: 260px !important;
+}

@@ -4461,14 +4461,119 @@
             <mat-datepicker #endDatePicker></mat-datepicker>
           </mat-form-field>
         </div>
-        <h1>{{minExtendDate}}</h1>
+
+        <!-- Extend Start date Starts -->
+        <!-- <div class="col-md-6">
+          <mat-form-field appearance="outline" class="w-100">
+            <mat-label>Extend Start Date<mat-icon matTooltip="You may select any date after the Start Date.
+                1. Select a date before the End Date to close the milestone earlier.
+                2. Select a date after the End Date to extend the milestone duration."
+                  matTooltipPosition="right" matTooltipClass="milestone-tooltip" class="info-icon "> info 
+                </mat-icon></mat-label>
+            <input matInput
+              [matDatepicker]="extendedDatePicker"
+              [(ngModel)]="projectMilestone.extendedStartDate"
+              [min]="minExtendedDateformilestone"
+              placeholder="Select extended date"
+              autocomplete="off" (dateChange)="onExtendedDateChange($event)"
+            />
+            <mat-datepicker-toggle matSuffix [for]="extendedDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #extendedDatePicker></mat-datepicker>
+          </mat-form-field>
+        </div> -->
+
+        <!-- Start Date Extension Details -->
+        <!-- <div class="col-md-12 mt-2 mb-4" *ngIf="isExtensionEnabled">
+          <div class="card border-warning shadow-sm">       
+            <div class="card-header bg-light fw-semibold">Milestone Start Date Extension Details</div>        
+                <div class="card-body">
+                  <div class="row g-3 align-items-start">
+                    <div class="col-md-6">
+                      <mat-form-field appearance="outline" class="w-100">
+                        <mat-label>Reason for Extension <span class="text-danger">*</span></mat-label>
+                        <mat-select [(ngModel)]="projectMilestone.extensionReason">
+                          <mat-option *ngFor="let reason of milestoneExtendReason" [value]="reason">
+                            {{reason.milestoneExtensionReason}}
+                          </mat-option>
+                        </mat-select>
+                      </mat-form-field>
+                  
+                      <div *ngIf="projectMilestone?.extensionReason?.milestoneExtensionReason === 'Other'">
+                        <label class="form-label fw-semibold">
+                          Enter Custom Reason <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control border-primary rounded"
+                          [(ngModel)]="projectMilestone.customReason"
+                          name="customReason"
+                          placeholder="Specify your reason"
+                          rows="3">
+                        </textarea>
+                      </div>
+                    </div>
+                
+                    <div class="col-md-6">
+                      <label class="fw-semibold mb-2 d-block">Upload Extension Document</label>
+                      <div class="upload-zone-wrapper">
+                    
+                        <label class="upload-dropzone" [class.has-file]="projectMilestone.extensionFile">
+                          <input type="file" class="upload-input"
+                            (change)="onExtensionFileSelected($event)"
+                            accept=".jpg,.jpeg,.png,.pdf"
+                            #extensionFileInput />
+                        
+                          <div class="upload-idle" *ngIf="!projectMilestone.extensionFile">
+                            <div class="upload-icon">
+                              <i class="fa fa-cloud-upload"></i>
+                            </div>
+                            <p class="upload-label">Drop file here or <span class="upload-browse">browse</span></p>
+                            <p class="upload-hint">JPG, PNG or PDF</p>
+                          </div>
+                      
+                          <div class="upload-selected" *ngIf="projectMilestone.extensionFile">
+                            <div class="file-icon">
+                              <i class="fa fa-file-alt"></i>
+                            </div>
+                            <span class="file-name">
+                              {{ projectMilestone.extensionFile?.name || 'File attached' }}
+                            </span>
+                          </div>
+                        </label>
+                    
+                        <div class="upload-actions">
+                          <button type="button" class="action-btn preview-btn"
+                            (click)="previewExtensionFile()"
+                            [disabled]="!projectMilestone.extensionFile">
+                            <i class="fa fa-eye"></i>
+                            <span>Preview</span>
+                          </button>
+                          <button type="button" class="action-btn clear-btn1"
+                            (click)="clearExtensionFile(extensionFileInput)"
+                            [disabled]="!projectMilestone.extensionFile">
+                            <i class="fa fa-trash"></i>
+                            <span>Clear</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+          </div>
+        </div> -->
+       <!-- Extend Start Date Ends -->
+
+
+        <!-- Extend End Date Starts -->
         <div class="col-md-6">
           <mat-form-field appearance="outline" class="w-100">
-            <mat-label>Extend End Date</mat-label>
+            <mat-label>Extend End Date<mat-icon matTooltip="You may select any date after the Start Date.
+                1. Select a date before the End Date to close the milestone earlier.
+                2. Select a date after the End Date to extend the milestone duration."
+                  matTooltipPosition="right" matTooltipClass="milestone-tooltip" class="info-icon "> info 
+                </mat-icon></mat-label>
             <input matInput
               [matDatepicker]="extendedDatePicker"
               [(ngModel)]="projectMilestone.extendedDate"
-              [min]="minExtendDate"
+              [min]="minExtendedDateformilestone"
               placeholder="Select extended date"
               autocomplete="off" (dateChange)="onExtendedDateChange($event)"
             />
@@ -4480,7 +4585,7 @@
         <!-- Extension Details -->
         <div class="col-md-12 mt-2 mb-4" *ngIf="isExtensionEnabled">
           <div class="card border-warning shadow-sm">       
-            <div class="card-header bg-light fw-semibold">Milestone Extension Details</div>        
+            <div class="card-header bg-light fw-semibold">Milestone End Date Extension Details</div>        
                 <div class="card-body">
                   <div class="row g-3 align-items-start">
                     <!-- Extension Reason -->
@@ -4557,6 +4662,7 @@
                 </div>
           </div>
         </div>
+       <!-- Extend End Date Ends -->
 
         <!-- Description -->
         <div class="col-md-6">

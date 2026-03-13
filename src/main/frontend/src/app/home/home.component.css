@@ -1022,3 +1022,8 @@ notification-badge {
   background: #f59e0b;
   flex-shrink: 0;
 }
+
+.milestone-tooltip {
+  white-space: pre-line !important;
+  max-width: 260px;
+}
