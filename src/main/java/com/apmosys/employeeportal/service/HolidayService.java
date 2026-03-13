@@ -599,7 +599,7 @@ public class HolidayService {
         tsHeader.setIsNightShift(false);
         tsHeader.setStatus(2);
         tsHeader.setTotalWorkingMinutes(0);
-        tsHeader.setCreatedBy(1L);
+        tsHeader.setCreatedBy(emp.getEmpId());
         tsHeader.setCreatedOn(LocalDateTime.now());
         Long managerId = "Reporting Manager".equals(emp.getApprovalsTo())
                 ? emp.getReportingManagerId()
