@@ -155,6 +155,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
   isOtherReasonSelected: boolean = false;
   milestoneCount: number = 0;
   selectedMilestone: MilestoneToBeExpired | null = null;
+  selectedFileForMileStone: File | null = null;
+  previewUrlForMileStone: any;
+  @ViewChild("project_milestone_document") projectMilestoneDocumentTemplateRef: TemplateRef<any>;
+  projectMilestoneDocumentModalRef: NgbModalRef;
+
+  documentName: string = '';
+    documentType: string = '';
+    documentContent: File | null = null;
+
 
 
   fieldTextType: boolean = false;
@@ -3003,16 +3012,13 @@ getDocsForPreview(docId: any) {
       milestoneExtensionReasonText: formValues.customReason
     };
     const formData = new FormData();
+    formData.append("milestoneData",new Blob([JSON.stringify(payload)], { type: "application/json" }));
+  
+    // optional file
+    if (this.documentContent) {
+      formData.append("extensionFile", this.documentContent);
+    }
 
-  formData.append(
-    "milestoneData",
-    new Blob([JSON.stringify(payload)], { type: "application/json" })
-  );
-
-  // optional file
-  if (this.selectedMilestone.extensionFile) {
-    formData.append("extensionFile", this.selectedMilestone.extensionFile);
-  }
     console.log('Payload for milestone extension:', payload);
     this.isLoadingmilestoneDetailModal=true;
     this.projectService.updateMilestoneExtendedDate(formData).subscribe(
@@ -3022,12 +3028,7 @@ getDocsForPreview(docId: any) {
           this.response1 = response.serviceMessage;
           this.isUpdated=true;
           this.isLoadingmilestoneDetailModal=false;
-           this.openUpdateProjectCompletionModal(
-            "milestone extended date updated successfully."
-          );
-
-
-
+           this.openUpdateProjectCompletionModal("Milestone extended date updated successfully.");
           this.fetchMilestones();
            this.milestoneForm.get('extensionReasonId')?.reset();
         } else {
@@ -3036,33 +3037,12 @@ getDocsForPreview(docId: any) {
           this.response1 = response.serviceMessage || 'An unexpected error occurred.';
           this.openUpdateProjectCompletionModal(response.serviceResponse);
            this.milestoneForm.get('extensionReasonId')?.reset();
-
-
-
-
-
-
-
-
-
-
         }
       },
       (errorResponse) => {
         console.error('Error updating milestone:', errorResponse);
-
-       this.isLoadingmilestoneDetailModal=false;
-        let errorMessage = 'An unknown error occurred.';
-        if (errorResponse.error && errorResponse.error.message) {
-
-          errorMessage = errorResponse.error.message;
-        }
-
-
-
-
-        this.openAlertMod(this.milestoneExpireValidationPupup, errorMessage);
-
+        this.isLoadingmilestoneDetailModal=false;
+        this.openAlertMod(this.milestoneExpireValidationPupup, "Something went wrong. Kindly try after sometime!!");
       }
     );
 
@@ -3358,6 +3338,72 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
   a.click();
 
   window.URL.revokeObjectURL(url);
+}
+
+onFileSelected(event: any) {
+  const file: File = event.target.files[0];
+
+  if (!file) {
+    this.resetFileData();
+    return;
+  }
+
+  const allowedTypes = ['application/pdf','image/jpeg','image/jpg','image/png'];
+
+  if (!allowedTypes.includes(file.type)) {
+    this.openUpdateProjectCompletionModal("Only PDF, JPG, JPEG, or PNG files are allowed.");
+    event.target.value = '';
+    this.resetFileData();
+    return;
+  }
+
+  const maxSize = 25 * 1024 * 1024; // 25MB
+  if (file.size > maxSize) {
+    this.openUpdateProjectCompletionModal("File size should be less than 25 MB!!");
+    event.target.value = ''; 
+    this.resetFileData();
+    return;
+  }
+
+  this.documentName = file.name;
+  this.documentType = file.type;
+  this.documentContent = file; 
+  const url = URL.createObjectURL(file);
+  if (file.type === 'application/pdf') {
+    this.previewUrlForMileStone = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  } else {
+    this.previewUrlForMileStone = url;
+  }
+}
+
+previewExtensionFile() {
+
+  if (!this.documentContent) return;
+  const fileURL = URL.createObjectURL(this.documentContent);
+  this.previewUrlForMileStone = this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
+  this.projectMilestoneDocumentModalRef = this.modalService.open(
+    this.projectMilestoneDocumentTemplateRef,
+    {
+      modalDialogClass: 'modal-xl',
+      backdrop: 'static',
+      keyboard: false
+    }
+  );
+}
+
+
+closeProjectMilestoneDocumentsModal() {
+    if (this.projectMilestoneDocumentModalRef) {
+        this.projectMilestoneDocumentModalRef?.close();
+        }
+    }
+
+
+resetFileData() {
+  this.documentName = '';
+  this.documentType = '';
+  this.documentContent = null;
+  this.previewUrlForMileStone = null;
 }
 
 

@@ -853,3 +853,172 @@ notification-badge {
 .user-guide-fixed {
   position: relative;
 }
+
+.milestone-section {
+  background: white;
+  border: 0.5px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.section-tag {
+  font-size: 11px;
+  font-weight: 500;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 10px;
+}
+
+.field-label {
+  font-size: 12px;
+  color: #555;
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.milestone-readonly {
+  width: 100%;
+  background: #f8f9fa;
+  border: 0.5px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 13px;
+  color: #333;
+}
+
+.milestone-select {
+  width: 100%;
+  background: white;
+  border: 1px solid #1a3d8f;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 13px;
+  color: #333;
+}
+
+.milestone-textarea {
+  width: 100%;
+  background: white;
+  border: 1px solid #1a3d8f;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: #333;
+  resize: vertical;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.milestone-datepicker .mat-form-field-wrapper {
+  padding-bottom: 0 !important;
+}
+
+.milestone-dropzone {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 90px;
+  border: 1.5px dashed #c5cfe8;
+  border-radius: 10px;
+  background: #f7f9ff;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.milestone-dropzone:hover,
+.milestone-dropzone.has-file {
+  border-color: #1a3d8f;
+  background: #eef1ff;
+}
+
+.dropzone-idle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.dropzone-selected {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  width: 100%;
+  pointer-events: none;
+}
+
+.dropzone-filename {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 500;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-ready-badge {
+  font-size: 11px;
+  color: #38a169;
+  background: #f0fff4;
+  border: 1px solid #9ae6b4;
+  border-radius: 20px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.dropzone-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.dz-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid;
+  background: white;
+  transition: all 0.15s;
+}
+
+.dz-preview {
+  color: #1a3d8f;
+  border-color: #1a3d8f;
+}
+
+.dz-preview:hover {
+  background: #1a3d8f;
+  color: white;
+}
+
+.dz-clear {
+  color: #f83f67;
+  border-color: #8f1a1a;
+}
+
+.dz-clear:hover {
+  background: #da3775;
+  color: white;
+}
+
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f59e0b;
+  flex-shrink: 0;
+}

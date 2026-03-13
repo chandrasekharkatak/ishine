@@ -1175,6 +1175,7 @@ public class PoPortalAPIService {
 					.lineItemName(dto.getLineItemName())
 					.projectName(dto.getProjectName())
 					.poNumber(dto.getPoNumber())
+					.customReason(dto.getMilestoneExtensionReasonText()!=null?dto.getMilestoneExtensionReasonText():"")
 					.extendedDate(dto.getExtendedDate())
 					.updatedBy(dto.getUpdatedBy())
 					.updatedOn(new Date())
@@ -1183,7 +1184,7 @@ public class PoPortalAPIService {
 			if (dto.getMilestoneExtensionReasonId() != null) {
 				milestoneExtensionReasonRepository.findById(dto.getMilestoneExtensionReasonId())
 						.ifPresent(log::setMilestoneExtensionReason);
-			}
+				 }
 
 			milestoneUpdatedLogRepository.save(log);
 

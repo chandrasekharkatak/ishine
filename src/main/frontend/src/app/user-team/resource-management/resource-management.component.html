@@ -4869,22 +4869,24 @@
   <div class="modal fade show milestone-preview-backdrop" style="display:block;">
     <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
-
         <div class="modal-header">
-          <h5 class="modal-title">Milestone Extended Image Preview</h5>
+          <h5 class="modal-title">Milestone Document Preview</h5>
           <button type="button" class="close" (click)="closeProjectMilestoneDocumentsModal()">
             <span>&times;</span>
           </button>
         </div>
-
         <div class="modal-body text-center">
-          <div *ngIf="milestoneDocumentUrl; else noImage">
-            <img [src]="milestoneDocumentUrl" class="img-fluid preview-image"/>
+          <div *ngIf="milestoneDocumentUrl; else noFile">
+            <!-- Image Preview -->
+            <img *ngIf="isImageFile" [src]="milestoneDocumentUrl" class="img-fluid preview-image"/>
+            <!-- PDF Preview -->
+            <iframe *ngIf="isPdfFile" [src]="milestoneDocumentUrl" width="100%" height="600px" style="border:none;">
+            </iframe>
           </div>
-
-          <ng-template #noImage>
-            <p>No image available for this milestone.</p>
+          <ng-template #noFile>
+            <p>No document available for this milestone.</p>
           </ng-template>
+
         </div>
 
       </div>
@@ -4893,7 +4895,6 @@
 
   <div class="modal-backdrop fade show"></div>
 </ng-template>
-
 
 <ng-container *ngIf="showMilestoneImageModal">
     <ng-container *ngTemplateOutlet="project_milestone_extended_preview"></ng-container>

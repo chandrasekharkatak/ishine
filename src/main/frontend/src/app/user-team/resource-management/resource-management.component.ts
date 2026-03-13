@@ -317,6 +317,9 @@ expiredProjectsWithin1Month:any;
   @ViewChild("project_milestone_document") projectMilestoneDocumentTemplateRef: TemplateRef<any>;
   expandedMilestoneId:any
   @ViewChild("project_milestone_extended_preview") projectMilestoneExtendedPreviewTemplateRef: TemplateRef<any>;
+  isImageFile: boolean = false;
+  isPdfFile: boolean = false;
+
 
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
   employeeNotInSearchColumns: any[] = ['employeementId','employeeName','deptName','jobRole','email','skillNames','certificateNames'];
@@ -6575,8 +6578,7 @@ cancelComplete() {
     if(!file){return ;}
 
     if (file) {
-      const allowedTypes = ['image/jpeg', 'image/png'];
-
+      const allowedTypes = ['application/pdf','image/jpeg','image/png','image/jpg'];
       if (!allowedTypes.includes(file.type)) {
         alert('Invalid file type. Please upload only PDF, JPG, JPEG, or PNG files.');
         event.target.value = '';
@@ -6584,11 +6586,16 @@ cancelComplete() {
         return;
       }
 
+    const maxSize = 25 * 1024 * 1024; // 25MB
+    if (file.size > maxSize) {
+      this.openAlertMod(this.alertTemplateForMilestone, "File size should be less than 25MB!!");
+      return;
+    }
+
       const reader = new FileReader();
       reader.onload = () => {
       this.selectedFilePreviewUrl = reader.result as string;};
       reader.readAsDataURL(file);
-
       this.selectedFile = file;
 
     }
@@ -6612,9 +6619,6 @@ cancelComplete() {
     this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-sm' });
     this.alertMessage = message;
   }
-
-
-
 
  private requiresDocument(status: string): boolean {
   return status?.trim() === Status.COMPLETED || status?.trim() === Status.ON_HOLD;
@@ -8442,12 +8446,19 @@ onExtensionFileSelected(event: any) {
 
   const file = event.target.files[0];
   if (!file) return;
-  const maxSize = 5 * 1024 * 1024; // 5MB
-  if (file.size > maxSize) {
-    alert("File size should be less than 5MB");
+  const allowedTypes = ['application/pdf','image/jpeg','image/jpg','image/png'];
+
+  if (!allowedTypes.includes(file.type)) {
+    this.openAlertMod(this.alertTemplateForMilestone, "Only PDF, JPG, JPEG, or PNG files are allowed.");
+    event.target.value = '';
     return;
   }
 
+  const maxSize = 25 * 1024 * 1024; // 25MB
+  if (file.size > maxSize) {
+    this.openAlertMod(this.alertTemplateForMilestone, "File size should be less than 25MB!!");
+    return;
+  }
   this.projectMilestone.extensionFile = file;
 }
 
@@ -8455,8 +8466,7 @@ previewExtensionFile() {
 
   if (!this.projectMilestone.extensionFile) return;
   const fileURL = URL.createObjectURL(this.projectMilestone.extensionFile);
-  this.milestoneDocumentUrl =
-      this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
+  this.milestoneDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
 
   this.projectMilestoneDocumentModalRef = this.modalService.open(
     this.projectMilestoneDocumentTemplateRef,
@@ -8500,13 +8510,9 @@ updateMilestoneExtendedDateWithReason() {
     poId: this.projectMilestone.poId,
     projectId: this.projectMilestone.projectId,
     milestoneName: this.projectMilestone.name,
-    milestoneStartDate: this.projectMilestone.startDate
-      ? this.projectMilestone.startDate
-      : null,
-
-    milestoneEndDate: this.projectMilestone.endDate
-      ? this.projectMilestone.endDate
-      : null,    description: this.projectMilestone.description,
+    milestoneStartDate: this.projectMilestone.startDate ? this.projectMilestone.startDate : null,
+    milestoneEndDate: this.projectMilestone.endDate ? this.projectMilestone.endDate : null, 
+    description: this.projectMilestone.description,
     remarks: this.projectMilestone.remarks,
     milestoneStatus: this.projectMilestone.status,
     extendedDate: this.projectMilestone.extendedDate,
@@ -8515,11 +8521,7 @@ updateMilestoneExtendedDateWithReason() {
     milestoneExtensionReasonText: this.projectMilestone?.extensionReason?.milestoneExtensionReason==='Other'? this.projectMilestone.customReason : ""  };
 
   const formData = new FormData();
-
-  formData.append(
-    "milestoneData",
-    new Blob([JSON.stringify(payload)], { type: "application/json" })
-  );
+  formData.append("milestoneData",new Blob([JSON.stringify(payload)], { type: "application/json" }));
 
   // optional file
   if (this.projectMilestone.extensionFile) {
@@ -8531,7 +8533,8 @@ updateMilestoneExtendedDateWithReason() {
       console.log(response);
     },
     (error) => {
-      console.error(error);
+        this.openAlertMod(this.alertTemplateForMilestone, "Something went wrong while updating extended date. Kindly try after sometime!!");
+        return false
     }
   );
   return true;        
@@ -8542,12 +8545,12 @@ onExtendedDateChange(event: any) {
 }
 
 closeProjectMilestoneDocumentsModal() {
-        if (this.projectMilestoneDocumentModalRef) {
-          this.projectMilestoneDocumentModalRef?.close();
-          this.projectMilestoneDocumentModalRef = null;
-        }
-      this.milestoneDocumentUrl = null;
-    }
+  if (this.projectMilestoneDocumentModalRef) {
+    this.projectMilestoneDocumentModalRef?.close();
+    this.projectMilestoneDocumentModalRef = null;
+  }
+  this.milestoneDocumentUrl = null;
+ }
 
 toggleExtensionLogs(milestone: any) {
   if (!milestone.extendedDate) {return;}
@@ -8571,7 +8574,10 @@ previewDocument(milestoneId: number) {
       const blob = new Blob([byteArray], { type: res.documentType });
       const url = window.URL.createObjectURL(blob);
 
-      this.milestoneDocumentUrl = url;
+      this.milestoneDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+      this.isPdfFile = res.documentType === 'application/pdf';
+      this.isImageFile = res.documentType.startsWith('image/');
+      
       this.projectMilestoneDocumentModalRef = this.modalService.open(
       this.projectMilestoneExtendedPreviewTemplateRef,{modalDialogClass: 'modal-xl',keyboard: false});
     },
@@ -8583,11 +8589,11 @@ previewDocument(milestoneId: number) {
     }
   );
 }
+
 closeProjectMilestoneImageModal() {
   this.showMilestoneImageModal = false;
   this.milestoneDocumentUrl = null;
 }
-
 
   
 
