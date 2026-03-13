@@ -117,6 +117,9 @@ export class UserPerformanceComponent implements OnInit {
   myRateList: { reviewLabel: any; rate: any, performanceRatingId: any }[] = [];
 
   allQauterCycle2: any;
+  confirmModalRef :any;
+  confirmDiscard: boolean = false;
+  @ViewChild('confirm_discard_modal') confirmDiscardModal!: TemplateRef<any>;
    
   constructor(
      private router: Router,
@@ -1149,10 +1152,81 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
       }
     });
   }
-   toggleEditMode() {
-    this.isEditMode = !this.isEditMode;
-    console.log("==========edit mode",this.isEditMode);
+  //  toggleEditMode() {
+  //   this.isEditMode = !this.isEditMode;
+  //   console.log("==========edit mode",this.isEditMode);
+  // }
+  backupMyList: any[] = [];
+  backupMyRateList: any[] = [];
+  
+// Updated toggleEditMode method
+toggleEditMode() {
+  if (this.isEditMode) {
+    const hasChanges = this.hasDataChanged();
+    
+    if (hasChanges) {
+      this.confirmModalRef = this.modalService.open(this.confirmDiscardModal, {
+        centered: true,
+        backdrop: 'static',
+        keyboard: false
+      });
+    } else {
+      this.isEditMode = false;
+      console.log("Edit mode OFF - No changes");
+    }
+  } else {
+    
+    this.createBackupData();
+    this.isEditMode = true;
+    console.log("Edit mode ON - Backup created");
   }
+}
+
+// Handle confirmation response
+confirmDiscardChanges(discard: boolean) {
+  this.confirmDiscard = discard;
+  
+  if (this.confirmDiscard) {
+    // User chose to discard changes
+    this.restoreBackupData();
+    this.isEditMode = false;
+    console.log("Edit mode OFF - Changes discarded");
+  } else {
+    // User chose to keep editing
+    console.log("Edit mode still ON - User chose to keep editing");
+  }
+  
+  // Close the confirmation modal
+  this.confirmModalRef.close();
+}
+
+// Create backup of current data
+createBackupData() {
+  this.backupMyList = JSON.parse(JSON.stringify(this.myList));
+  this.backupMyRateList = JSON.parse(JSON.stringify(this.myRateList));
+  console.log("Backup created:", { backupMyList: this.backupMyList, backupMyRateList: this.backupMyRateList });
+}
+
+// Restore data from backup
+restoreBackupData() {
+  this.myList = JSON.parse(JSON.stringify(this.backupMyList));
+  this.myRateList = JSON.parse(JSON.stringify(this.backupMyRateList));
+  console.log("Data restored from backup");
+}
+
+// Check if data has changed
+hasDataChanged(): boolean {
+  const currentMyList = JSON.stringify(this.myList);
+  const backupListStr = JSON.stringify(this.backupMyList);
+  
+  const currentMyRateList = JSON.stringify(this.myRateList);
+  const backupRateListStr = JSON.stringify(this.backupMyRateList);
+  
+  const hasChanges = (currentMyList !== backupListStr) || (currentMyRateList !== backupRateListStr);
+  
+  console.log("Has changes:", hasChanges);
+  return hasChanges;
+}
   updateReviewByHr(quarter: any, template: TemplateRef<any>, index: any)
   {
     console.log(this.hrRemarks);
