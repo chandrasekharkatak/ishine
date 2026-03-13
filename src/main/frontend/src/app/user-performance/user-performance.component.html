@@ -311,10 +311,7 @@
                       <td *ngIf="item.reviewFieldType === 'Slider'">
                         <span>0</span>
                         <input type="range" min="0" [max]="item.condition" step="0.5" [(ngModel)]="myList[j].silde"
-                          (input)="updateSlide(j, myList[j].silde)" [disabled]="
-                          (currentStatus === 'Ongoing' && userMapping.performance_action_by_hod) ? false : 
-                          !isEditMode
-                      ">
+                          (input)="updateSlide(j, myList[j].silde)" [disabled]="!canEditRating()">
                         <span>{{ item.condition }}</span>
                         <p>{{ myList[j].silde }}</p>
                       </td>
@@ -330,7 +327,7 @@
                   <td *ngIf="item.reviewFieldType === 'Rating'&& item.quarterId === quarter.quarterId">
                     <div class="stars">
                       <span *ngFor="let star of getRatingList(item.condition);  let k = index"
-                        (click)="updateRating(i, k + 1)" [ngClass]="{'selected': k < myRateList[i].rate ,'disabled': (currentStatus === 'Ongoing' && userMapping.performance_action_by_hod) ? false : !isEditMode
+                        (click)="updateRating(i, k + 1)" [ngClass]="{'selected': k < myRateList[i].rate ,'disabled':!canEditRating()
                     }">
                         ★
                       </span>
@@ -455,3 +452,26 @@
     <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
   </div>
 </ng-template>
+
+<!-- Confirmation Modal for Discard Changes -->
+<ng-template #confirm_discard_modal>
+  <div class="modal-header">
+    <h5 class="modal-title">Unsaved Changes</h5>
+    <button type="button" class="close" (click)="confirmModalRef.close()">
+      &times;
+    </button>
+  </div>
+  <div class="modal-body text-center">
+    <i class="fa fa-exclamation-triangle text-warning" style="font-size: 48px;"></i>
+    <p class="mt-3">You have unsaved changes. Do you want to discard them?</p>
+  </div>
+  <div class="modal-footer justify-content-center">
+    <button type="button" class="btn btn-danger" (click)="confirmDiscardChanges(true)">
+      <i class="fa fa-trash"></i> Yes, Discard
+    </button>
+    <button type="button" class="btn btn-secondary" (click)="confirmDiscardChanges(false)">
+      <i class="fa fa-times"></i> No, Keep Editing
+    </button>
+  </div>
+</ng-template>
+
