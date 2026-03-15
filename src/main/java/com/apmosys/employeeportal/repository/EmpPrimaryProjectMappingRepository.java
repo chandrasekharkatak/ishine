@@ -1,8 +1,10 @@
 package com.apmosys.employeeportal.repository;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -51,5 +53,18 @@ public interface EmpPrimaryProjectMappingRepository extends JpaRepository<EmpPri
         List<Long> empIds,
         Long projectId,
         String isMapped);
+        
+    @Query("SELECT eppm FROM EmpPrimaryProjectMapping eppm " +
+            "WHERE eppm.empId IN :empIds " +
+            "AND eppm.primaryProjectId IN :projectIds " +
+            "AND eppm.isMapped='Y'")
+    List<EmpPrimaryProjectMapping> findActivePrimaryMappings(
+            Set<Long> empIds,
+            Set<Long> projectIds);
+
+    @Query("SELECT eppm FROM EmpPrimaryProjectMapping eppm WHERE eppm.empId = :empId")
+    Optional<EmpPrimaryProjectMapping> findByEmpId(Long empId);
+    
+    List<EmpPrimaryProjectMapping> findByEmpIdIn(Set<Long> empIds);
 	 
 }
