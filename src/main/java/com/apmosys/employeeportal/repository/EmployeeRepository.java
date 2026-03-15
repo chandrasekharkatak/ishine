@@ -1807,7 +1807,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     //         @Param("fromDate") String fromDate,
     //         @Param("toDate") String toDate);
 
-
+	//Not used.
     @Query(value="SELECT e.employeement_id, e.name, \n"
     		+ " e.billable, e.billable_type, \n"
     		+ " emp_proj_client.project_name, emp_proj_client.start_date, emp_proj_client.end_date,\n"
@@ -2712,20 +2712,24 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		    			+"	GROUP_CONCAT(DISTINCT p.project_id ORDER BY p.project_id) AS project_id,  \n"
 		    			+"	GROUP_CONCAT(DISTINCT p.start_date ORDER BY p.project_id) AS start_date,  \n"
 		    			+"	GROUP_CONCAT(DISTINCT p.end_date ORDER BY p.project_id) AS end_date,   \n"
-		    			+"	GROUP_CONCAT(DISTINCT p.po_no ORDER BY p.project_id) AS po_no,   \n"
+		    			+"	GROUP_CONCAT(DISTINCT ppd.po_no ORDER BY p.project_id) AS po_no,   \n"
 		    			+"	GROUP_CONCAT(DISTINCT p.po_project_type ORDER BY p.project_id) AS po_project_type, \n"
 		    			+"	GROUP_CONCAT(DISTINCT c.client_name ORDER BY p.project_id) AS client_name, \n"
 		    			+"	GROUP_CONCAT(DISTINCT cl.client_location ORDER BY p.project_id) AS client_location, \n"
 		    			+"	GROUP_CONCAT(DISTINCT t.team_name ORDER BY p.project_id) AS team_name,   \n"
 		    			+"	GROUP_CONCAT(DISTINCT t.team_id ORDER BY p.project_id) AS team_id,  \n"
 		    			+"	GROUP_CONCAT(DISTINCT p.po_project_id ORDER BY p.project_id) AS po_project_id,  \n"
-		    			+"	GROUP_CONCAT(DISTINCT p.clientrm ORDER BY p.project_id) AS clientrm,  \n"
-		    			+"	GROUP_CONCAT(DISTINCT p.apmosysrm ORDER BY p.project_id) AS apmosysrm, \n"
+		    			+"	GROUP_CONCAT(DISTINCT ppd.clientrm ORDER BY p.project_id) AS clientrm,  \n"
+		    			+"	GROUP_CONCAT(DISTINCT ppd.apmosysrm ORDER BY p.project_id) AS apmosysrm, \n"
 		    			+"	GROUP_CONCAT(DISTINCT etm.start_date ORDER BY p.project_id) AS effective_start_date,  \n"
 		    			+"	GROUP_CONCAT(DISTINCT etm.end_date ORDER BY p.project_id) AS effective_end_date  \n"
 		    			+"	FROM employee_team_mapping etm      \n"
 		    			+"	LEFT JOIN teams t ON t.team_id = etm.team_id  \n"
 		    			+"	LEFT JOIN projects p ON p.project_id = t.project_id  \n"
+						+"  LEFT JOIN project_po_details ppd \n"
+						+"  ON ppd.project_id = p.project_id and ppd.active = true \n"
+						+"  AND DATE(ppd.po_start_date ) <= DATE(:toDate ) \n"
+						+"  AND DATE(ppd.po_end_date)  >= DATE(:fromDate) \n"
 		    			+"	LEFT JOIN clients c ON c.client_id = p.client_id \n"
 		    			+" LEFT JOIN client_locations cl ON cl.client_id = c.client_id \n"
 		    			+"	LEFT JOIN ( \n"

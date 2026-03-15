@@ -9,7 +9,7 @@ import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.model.ProjectTemp;
 
 public interface ProjectTempRepo extends JpaRepository<ProjectTemp, Integer>{
-
+// This repo is not used
 	@Query(value="select distinct p.project_temp_id, p.created_on, p.project_name, p.state, p.client_id, p.po_project_id, p.active, \n"
 			+ "	p.sync_project, p.created_by, p.updated_by, p.updated_on, p.is_draft_project, p.end_date, p.po_no, \n"
 			+ "	p.po_project_type, p.start_date, p.apmosysrm, p.clientrm, p.dept_id, p.is_renewable, p.status,\n"
