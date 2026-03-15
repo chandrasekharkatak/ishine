@@ -6397,10 +6397,10 @@ public class TeamsService {
             try {
 
                 mailService.sendMailWithCC(
-//                        pmEmail,
-                		"priyadarshini.singh@apmosys.com",
-//                        rmgMail,
-                		"",
+                        pmEmail,
+//                		"priyadarshini.singh@apmosys.com",
+                        rmgMail,
+//                		"",
                         subject,
                         body
                 );
@@ -6597,10 +6597,10 @@ public class TeamsService {
             try {
 
                 mailService.sendMailWithCC(
-//                        pmEmail,
-                		"priyadarshini.singh@apmosys.com",
-//                        rmgMail,
-                		"",
+                        pmEmail,
+//                		"priyadarshini.singh@apmosys.com",
+                        rmgMail,
+//                		"",
                         subject,
                         body
                 );
