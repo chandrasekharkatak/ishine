@@ -208,6 +208,13 @@ exportToExcel(id:any): void {
 
   saveAs(data, exportToExcelTeamfile);
 }
+
+activeCalTab: string = 'Last 7 Days';
+getFilteredCount(): number {
+  return (this.result || [])
+    .filter(r => r.showEmpId)
+    .length;
+}
   getTimesheetsForHomePageByEmpId(dateRange: any) {
     this.timesheetDetails = [];
     const TOTAL_WORKING_HOURS_IN_DAY = 8;
@@ -304,6 +311,7 @@ exportToExcel(id:any): void {
           if (rows.length > 0) {
             rows.forEach(ts => {
               const clone = { ...ts } as Timesheet;
+              clone.totalWorkingHours = Number(clone.totalWorkingHours?.toFixed(2));
               clone.totalWorkingHoursPercentage =
                 (clone.totalWorkingHours / TOTAL_WORKING_HOURS_IN_DAY) * 100 + '%';
 

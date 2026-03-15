@@ -758,8 +758,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(nativeQuery = true, value = "SELECT et.timesheet_id,et.emp_id,e.name,et.date,dtm.day_type,\n"
-			+ "et.office_in_time,et.office_out_time,ROUND(et.total_activities_minutes / 60, 2) AS total_time,\n"
-			+ "sm.status,et.remarks,e.employeement_id,et.created_on,et.current_manager_id\n"
+			+ "et.work_in_time,et.work_out_time,ROUND(et.total_working_minutes / 60, 2) AS total_time,\n"
+			+ "sm.status,et.description,e.employeement_id,et.created_on,et.current_manager_id\n"
 			+ "FROM employee_timesheets_new et  \n"
 			+ "LEFT JOIN day_type_master_new dtm ON et.day_type_id = dtm.day_type_id\n"
 			+ "LEFT JOIN status_master_new sm ON et.status = sm.status_id\n"
