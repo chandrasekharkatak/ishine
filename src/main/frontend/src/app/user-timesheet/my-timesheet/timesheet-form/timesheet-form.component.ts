@@ -257,10 +257,10 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
           previousTimesheetId: timesheetIdChange?.previousValue,
           previousIsUpdation: isUpdationChange?.previousValue
         });
-        if (!this.serverDate) {
-          this.loadServerDate();
-        }
-        this.loadTimesheetForUpdate(this.timesheetId);
+        // if (!this.serverDate) {
+        //   this.loadServerDate();
+        // }
+        // this.loadTimesheetForUpdate(this.timesheetId);
       }
     }
 
