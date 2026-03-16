@@ -118,18 +118,19 @@ export class Employee360TimesheetComponent implements OnInit {
     }
 
     this.activeButton = 'Pending';
-
+    const sessionId = sessionStorage.getItem('empId');
+    this.empId = sessionId ? Number(sessionId) : 0;
     const encryptedUser = sessionStorage.getItem('currentUser');
 
-if (encryptedUser) {
-  const decryptedString = this.encryptionService.decrypt(encryptedUser);
-  if (decryptedString) {
-    try {
-      this.currentUser = JSON.parse(decryptedString);
-    } catch (error) {
+    if (encryptedUser) {
+      const decryptedString = this.encryptionService.decrypt(encryptedUser);
+      if (decryptedString) {
+        try {
+          this.currentUser = JSON.parse(decryptedString);
+        } catch (error) {
       console.error('Failed to parse decrypted session user:', decryptedString, error);
       this.currentUser = null;
-    }
+      }
   } else {
     console.warn('Decryption returned empty string.');
     this.currentUser = null;
@@ -139,40 +140,40 @@ if (encryptedUser) {
   this.currentUser = null;
 }
     // this.currentUser = sessionStorage.getItem('currentUser');
-    if (this.currentUser) {
-      const currentUserData = JSON.parse(this.currentUser);
-      this.managerId = currentUserData.empId;
-      console.log(this.managerId);
-    }
+    // if (this.currentUser) {
+    //   const currentUserData = JSON.parse(this.currentUser);
+    //   this.managerId = currentUserData.empId;
+    //   console.log(this.managerId);
+    // }
     // this.empId=sessionStorage.getItem('empId');
     let encryptedEmployeeData = localStorage.getItem('employee360Data');
     let employeeData = null;
     if (encryptedEmployeeData) {
-  const decryptedString = this.encryptionService.decrypt(encryptedEmployeeData);
-  if (decryptedString) {
-    try {
+      const decryptedString = this.encryptionService.decrypt(encryptedEmployeeData);
+      if (decryptedString) {
+        try {
       employeeData = JSON.parse(decryptedString);
-    } catch (error) {
+        } catch (error) {
       console.error('Failed to parse decrypted session user:', decryptedString, error);
       employeeData = null;
-    }
+        }
   } else {
     console.warn('Decryption returned empty string.');
     employeeData = null;
-  }
+      }
 } else {
   console.warn('No currentUser found in sessionStorage');
   employeeData = null;
-}
+    }
     this.Employee360 = employeeData;
     let employeeObject = employeeData;
-    let empId = employeeObject.empId;
+    // let empId = employeeObject.empId;
 
     this.startDate = null;
     this.endDate = null;
     this.formattedStartDate = null;
     this.formattedEndDate = null;
-    this.get360TimesheetDetails(this.activeButton, empId, this.projectId, this.teamName, this.formattedStartDate, this.formattedEndDate);
+    this.get360TimesheetDetails(this.activeButton, this.empId, this.projectId, this.teamName, this.formattedStartDate, this.formattedEndDate);
     // this.getAllEmployeeFor360View();
     console.log(this.Employee360);
   }
@@ -210,11 +211,11 @@ exportToExcel(id:any): void {
 }
 
 activeCalTab: string = 'Last 7 Days';
-getFilteredCount(): number {
-  return (this.result || [])
-    .filter(r => r.showEmpId)
-    .length;
-}
+// getFilteredCount(): number {
+//   return (this.result || [])
+//     .filter(r => r.showEmpId)
+//     .length;
+// }
   getTimesheetsForHomePageByEmpId(dateRange: any) {
     this.timesheetDetails = [];
     const TOTAL_WORKING_HOURS_IN_DAY = 8;
