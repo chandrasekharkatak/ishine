@@ -263,6 +263,11 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
             // Append employee ID using utility service
             employee.employeementId = this.utilityService.appendEmployeementid(employee.isConsultant, employee.employeementId);
 
+            // Calculate experience from date_of_joining
+            if (employee.dateOfJoining) {
+              employee.calculatedExperience = this.calculateExperienceFromDOJ(employee.dateOfJoining);
+            }
+
             const joiningDate = new Date(employee.dateOfJoining);
    return joiningDate <= oneYearAgo && employee.employmentstatus === 'Confirmed';
 
@@ -535,6 +540,10 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
         const oneYearAgo = new Date(currentDate.getFullYear() - 1, 11, 31);
 
         this.eligibleEmployees1 = this.allEmployee1.filter(employee => {
+          // Calculate experience from date_of_joining
+          if (employee.dateOfJoining) {
+            employee.calculatedExperience = this.calculateExperienceFromDOJ(employee.dateOfJoining);
+          }
 
           const joiningDate = new Date(employee.dateOfJoining);
           return joiningDate <= oneYearAgo && employee.employmentstatus === 'Confirmed';
@@ -553,7 +562,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
           // "Date of Relieving": (x.dateOfRelieving) ? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
           "Department Name": x.departmentName,
           "Billable Type": x.billableType,
-          "Experience" :x.totalExperience,
+          "Experience" :x.calculatedExperience ?? (x.dateOfJoining ? this.calculateExperienceFromDOJ(x.dateOfJoining) : x.totalExperience),
           "quarter Cycle":x.quarterycle || 'NULL',
           "financial Year": x.financialYear || 'NULL' ,
           "Current Status":x.completionStatus,
@@ -824,6 +833,35 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
 
     console.log("testing",this.static);
     console.log("testing2",this.eligibleEmployees);
+  }
+
+  /**
+   * Calculate experience in years from date of joining to current date
+   * Formula: current_date - date_of_joining
+   * @param dateOfJoining - Date of joining in string format (YYYY-MM-DD)
+   * @returns Experience in years (rounded to 1 decimal place)
+   */
+  calculateExperienceFromDOJ(dateOfJoining: string): number {
+    if (!dateOfJoining) {
+      return 0;
+    }
+
+    try {
+      const doj = new Date(dateOfJoining);
+      const today = new Date();
+      
+      // Calculate difference in milliseconds
+      const diff = today.getTime() - doj.getTime();
+      
+      // Convert to years (considering leap years: 365.25 days per year)
+      const experienceInYears = diff / (1000 * 60 * 60 * 24 * 365.25);
+      
+      // Round to 1 decimal place
+      return Number(experienceInYears.toFixed(1));
+    } catch (error) {
+      console.error('Error calculating experience:', error);
+      return 0;
+    }
   }
 
   onReview(eligiemployee: any) {

@@ -95,7 +95,7 @@
                     <td>{{ eligiemployee.designationName }}</td>
                     <td>{{ eligiemployee.departmentName }}</td>
                     <td>{{ eligiemployee.billableType }}</td>
-                    <td>{{ eligiemployee.totalExperience }}</td>
+                    <td>{{ eligiemployee.calculatedExperience ?? eligiemployee.totalExperience }}</td>
                     <td class="status">✔ {{ eligiemployee.employmentstatus }}</td>
                     <td>
                       <div class="progress-bar">
@@ -174,7 +174,7 @@
                       <td>{{ eligiemployee.designationName }}</td>
                       <td>{{ eligiemployee.departmentName }}</td>
                       <!-- <td>{{ eligiemployee.billableType }}</td> -->
-                      <td>{{ eligiemployee.totalExperience }}</td>
+                      <td>{{ eligiemployee.calculatedExperience ?? eligiemployee.totalExperience }}</td>
                       <td class="status">✔ {{ eligiemployee.employmentstatus }}</td>
                       <td>{{ eligiemployee.dateOfJoining }}</td>
                       <td>{{eligiemployee.completionStatus?eligiemployee.completionStatus:"Not Started"}}</td>
