@@ -1,5 +1,5 @@
 import { LocationStrategy } from '@angular/common';
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, Input, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
@@ -25,6 +25,10 @@ export class UserSurveyComponent implements OnInit {
   feature = "Survey";
   currentUser: User;
   userMapping: any = {};
+
+  @Input() isQuizResponse: boolean = false;
+  @Input() trainingId: number;
+  @Input() quizId: number;
 
   currentSurveyId:any;
   currentSurveyIdedit:any;
@@ -143,10 +147,12 @@ export class UserSurveyComponent implements OnInit {
 
         this.allSurveyList = this.allSurveyList.filter(x => x.type != "exit" && x.isActive == "true");
         if(this.currentSurveyId != null){
-          let currentSurvey = this.allSurveyList.find(x => x.surveyId == this.currentSurveyId);
+          let currentSurvey : Survey = this.allSurveyList.find(x => x.surveyId == this.currentSurveyId);
 
           // Check if user has already taken survey
           currentSurvey.empId = this.currentUser.empId;
+          currentSurvey.isQuizResponse = this.isQuizResponse;
+          // currentSurvey.isAttendingQuiz = false;
           if(this.isEdit){
             this.surveyObj = this.surveyService.getSurveyData();
             this.onViewMyResponse(this.surveyObj);
@@ -308,7 +314,7 @@ onTakeSurvey(surveyObj: Survey) {
     //console.log("For View My Response : ", surveyObj);
     this.surveyService.getSurveyResponseByEmpIdAndSurveyId(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.myResponseList = response.serviceResponse;
+        this.myResponseList = response.serviceResponse.allSurveyQuestionList;
         //console.log("this.myResponseList : ", this.myResponseList);
         if(!this.isEdit){
           this.openSurveyPreviewMod(this.previewResponseTemplate);
@@ -340,6 +346,7 @@ onTakeSurvey(surveyObj: Survey) {
 
     let surveyObj = new Survey();
     surveyObj.empId = this.currentUser.empId;
+    surveyObj.surveyId = this.surveyObj.surveyId;
     surveyObj.surveyQuestionList = [];
 
     this.allSurveyQuestionList.forEach((question, index) => {

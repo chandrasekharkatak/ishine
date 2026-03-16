@@ -7,6 +7,7 @@ import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { NotificationService } from './services/notification.service';
 import { NotificationMessage } from './models/notification';
 import { EncryptionService } from './services/EncryptionService';
+import { TrainingService } from './services/training.service';
 // import ClientMonitor from 'skywalking-client-js';
 import { environment } from 'src/environments/environment';
 
@@ -48,7 +49,8 @@ interface SideNavToggle{
     private router : Router,
     private modalService: NgbModal,
     private notificationService: NotificationService,
-    private encryptionService: EncryptionService
+    private encryptionService: EncryptionService,
+    private trainingService: TrainingService
   ){
 
     this.authenticationService.currentUser.subscribe(x => {
@@ -219,6 +221,37 @@ interface SideNavToggle{
           }, 500);
         }
       }
+    });
+  }
+
+  // Training Lock Check Methods
+  checkTrainingLock() {
+    if (!this.currentUser || !this.currentUser.empId) {
+      return;
+    }
+
+    // Check lock status from user object first
+    if (this.currentUser.trainingLockStatus && this.currentUser.trainingLockStatus.isLocked === true) {
+      // Redirect to training page if not already there
+      if (this.router.url !== '/training') {
+        this.router.navigate(['/training']);
+      }
+      return;
+    }
+
+    // If not in user object, fetch from API
+    this.trainingService.getLockStatus(this.currentUser.empId).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus === 'Success' && response.serviceResponse) {
+        const lockStatus = response.serviceResponse;
+        this.currentUser.trainingLockStatus = lockStatus;
+        this.authenticationService.setcurrentUserSubject(this.currentUser);
+        
+        if (lockStatus.isLocked === true && this.router.url !== '/training') {
+          this.router.navigate(['/training']);
+        }
+      }
+    }, error => {
+      console.error('Error checking training lock:', error);
     });
   }
 }

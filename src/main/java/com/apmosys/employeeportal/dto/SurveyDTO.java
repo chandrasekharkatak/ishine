@@ -28,6 +28,14 @@ public class SurveyDTO {
 	
 	private String imageUrl;
     private String videoUrl;
-   
-	
+    
+    // Training Quiz Mapping fields (for quiz creation from training)
+    private Integer trainingId;
+    private Integer contentId;
+    private Boolean isMandatory;
+    private Boolean mustPassToComplete;
+	private Integer cycleNumber;
+	private Integer cutOffQuestions;
+	private Boolean isQuizResponse;
+	private Boolean isAttendingQuiz;
 }

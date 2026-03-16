@@ -297,6 +297,9 @@ this.isApmosysProduct = isApmosysProduct;
 	private Object notificationConsent;
 	private Notification releaseNoteNotification;
 	private Notification linkedinPageNotification;
+	
+	// Training lock status
+	private LockStatusDTO trainingLockStatus;
 	private String poPortalAllProjectApi;
 	
 	private String unlockTimesheetFor;
@@ -380,6 +383,8 @@ this.isApmosysProduct = isApmosysProduct;
     //added
     private String isApmosysProduct;
     private String employmentIdAcToET;
+    
+    private Boolean isUpdateDefaultProject;
     
     private String dateRange;
     private List<EmployeeDTO> reportees = new ArrayList<>();

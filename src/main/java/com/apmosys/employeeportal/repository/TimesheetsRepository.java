@@ -8654,7 +8654,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 			       "LEFT JOIN TimesheetDocumentDetails tdd on tdd.timesheetId = et.timesheetId \n" +
 			       "WHERE et.empId = :empId \n" +
 			       "AND et.dayType in ('Working' , 'Non-working') AND et.hasClientSideId = true\n" +
-			       "AND et.date BETWEEN :fromDate AND :toDate AND tdd.docId is null and et.status='Rejected'")
+			       "AND et.date BETWEEN :fromDate AND :toDate AND et.status='Rejected'")
 		  List<Timesheet> getRejectedTimesheetIdByEmpAndDateRange(
 				    @Param("empId") Long empId,
 				    @Param("fromDate") LocalDate fromDate,
@@ -9578,7 +9578,7 @@ public List<Object[]> getTimesheetDashboardCountForProject(@Param("month") Integ
 	    		+ "        FROM (\n"
 	    		+ "            SELECT bpe.emp_id, bpe.employee_team_map_id, adir.dt FROM Q1_Base_Project_Employees bpe CROSS JOIN All_Dates_In_Range adir\n"
 	    		+ "            WHERE adir.dt BETWEEN DATE(bpe.start_date) AND COALESCE(DATE(bpe.end_date), (SELECT to_date FROM Date_Parameters)) AND adir.dt >= (SELECT from_date FROM Date_Parameters)\n"
-	    		+ "            AND NOT EXISTS (SELECT 1 FROM employee_timesheets et1 WHERE et1.emp_id = bpe.emp_id AND adir.dt = et1.date AND UPPER(et1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'ApMoSys HOLIDAY', 'WEEK OFF'))\n"
+	    		+ "            AND NOT EXISTS (SELECT 1 FROM employee_timesheets et1 WHERE et1.emp_id = bpe.emp_id AND adir.dt = et1.date AND UPPER(et1.day_type) IN ('LEAVE', 'CLIENT HOLIDAY', 'PUBLIC HOLIDAY', 'ApMoSys HOLIDAY', 'WEEK OFF', 'COMP OFF'))\n"
 	    		+ "            UNION\n"
 	    		+ "            SELECT DISTINCT emp_id, employee_team_map_id, timesheet_date FROM Q1_Employee_Document_Summary_Details tdd\n"
 	    		+ "            WHERE ((upper(tdd.client_approval_status) = 'APPROVED' AND tdd.final_flag = 1) OR (upper(tdd.client_approval_status) = 'PENDING' AND tdd.timesheet_id NOT IN (SELECT timesheet_id FROM timesheet_document_details WHERE upper(client_approval_status) = 'APPROVED'))) \n"
