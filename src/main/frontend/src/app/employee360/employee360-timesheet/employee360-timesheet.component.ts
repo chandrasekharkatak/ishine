@@ -750,6 +750,7 @@ let encryptedEmployeeData = localStorage.getItem('employee360Data');
           showProject: showProject,
           showEmpId: isFirstActivity,
           selected: false,
+          timeSheetlist: employee.timeSheetlist,
         });
         isFirstActivity = false;
         showProject = false;
@@ -922,6 +923,14 @@ if (encryptedUser) {
       window.location.reload()
     }
 
+  expandedRows = new Set<number>();
 
+  toggleRow(timesheetId: number): void {
+    if (this.expandedRows.has(timesheetId)) {
+      this.expandedRows.delete(timesheetId);
+    } else {
+      this.expandedRows.add(timesheetId);
+    }
+  }
 }
 
