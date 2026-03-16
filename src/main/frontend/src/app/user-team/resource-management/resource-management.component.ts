@@ -1818,6 +1818,7 @@ export class ResourceManagementComponent implements OnInit {
       } else {
         this.openAlertMessageModal(response.serviceResponse || 'Something went wrong');
       }
+      console.log("APPROVE BUTTON :   ",response);
     });
   }
 

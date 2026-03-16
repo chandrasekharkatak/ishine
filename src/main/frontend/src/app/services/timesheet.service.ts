@@ -436,6 +436,14 @@ getDepartmentStatusSummary(payload: any) {
   );
 }
 
+/**
+ * Evicts dashboard caches (timesheetDashboardCountForEmployee, employeeViewForClientAttendanceStatus,
+ * departmentStatusSummary) so the next API calls return fresh data. Call before refresh on HR dashboard.
+ */
+evictTimesheetDashboardCache(): Observable<any> {
+  return this.http.post(`${this.baseUrl}api/evictTimesheetDashboardCache`, {});
+}
+
   bulkFinalUploadProjectBased(payload: ProjectBasedBulkUploadPayload, file: File) {
     const formData = new FormData();
 

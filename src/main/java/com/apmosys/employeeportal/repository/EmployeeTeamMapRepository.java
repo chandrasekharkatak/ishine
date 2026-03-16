@@ -12,15 +12,21 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.apmosys.employeeportal.dto.ActivationCandidateDTO;
+import com.apmosys.employeeportal.dto.ActiveProjectDTO;
+import com.apmosys.employeeportal.dto.DeactivationCandidateDTO;
 import com.apmosys.employeeportal.dto.EmpMappingDTO;
 import com.apmosys.employeeportal.dto.EmployeeImpactDTO;
 import com.apmosys.employeeportal.dto.EmployeeProjectTimesheetDto;
 import com.apmosys.employeeportal.dto.GetActiveProjectDetailsIfMultipleDTO;
 import com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
+import com.apmosys.employeeportal.dto.ProjectEmpInfoDTO;
+import com.apmosys.employeeportal.dto.ProjectManagerEmailDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO;
 import com.apmosys.employeeportal.dto.UnmappedEmployeeProjectDto;
+import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.response.TeamTimesheetDetailsResponse;
@@ -126,12 +132,12 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	 List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
 	 
 	 
-	 @Query("select p from Project p \n"
-	 		+ "inner join Team t on t.projectId = p.projectId\n"
-	 		+ "inner join EmployeeTeamMap etm on etm.teamId = t.teamId\n"
-	 		+ "where p.projectId = :projectId\n"
-	 		+ "and etm.active = :active")
-		List<Project> findByProjectIdAndActiveForDraftProject(Integer projectId, Long active);
+	 @Query("SELECT COUNT(etm) > 0\n"
+	 		+ "FROM EmployeeTeamMap etm\n"
+	 		+ "JOIN Team t ON etm.teamId = t.teamId\n"
+	 		+ "WHERE t.projectId = :projectId\n"
+	 		+ "AND etm.active = :active")
+	 boolean existsPendingMembers(Integer projectId, Long active);
 
 //	 @Query(nativeQuery = true)
 //	List<EmployeeTeamMap> findTeammembersByTeamIdAndStatus(Long teamId);
@@ -374,7 +380,7 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 	 
 	 
 	 
-	 
+	 //Not used
 	 @Query(nativeQuery = true,value ="select distinct p.project_id,p.project_name,p.apmosysrm, p.clientrm,p.start_date,\n"
 	 		+ "p.end_date,p.po_no,p.po_project_type,c.client_name client_name,pm.emp_id project_manager_id,pm.name project_manager,t.team_id,t.team_name,e.emp_id,e.name,jr.name job_role,d.name department,\n"
 	 		+ "e.mobile_no,e.email,e.billable,e.billable_type,etm.start_date effective_start_date,e.employeement_id\n"
@@ -687,13 +693,31 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 
 		@Query(value = "SELECT new com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO( \n"
 		+ "e.empId,e.employeementId,e.billable,e.billableType,e.name,d.name \n" 
-		+ ",p.projectId,p.projectName,p.poProjectId, p.startDate, p.endDate, p.apmosysRM, p.clientRM,p.poProjectType, p.poNo \n"
-		+ ",c.clientName,t.teamId,t.teamName,t.isActive \n"
+		+ ",p.projectId,p.projectName,p.poProjectId, p.startDate, p.endDate, ppd.apmosysRM, ppd.clientRm ,p.poProjectType, ppd.poNo, \n"
+		+ "c.clientName,t.teamId,t.teamName,t.isActive \n"
 		+ ",etm.employeeRole,etm.active,pm.empId,pm.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) \n"
 		+ "FROM EmployeeTeamMap etm\n"
 		+ "RIGHT JOIN Employee e ON e.empId = etm.empId \n"
 		+ "RIGHT JOIN Team t ON t.teamId = etm.teamId \n"
 		+ "INNER JOIN Project p ON p.projectId = t.projectId \n"
+		+ "LEFT JOIN ProjectPoDetails ppd \n"
+		+ "ON ppd.projectId = p.projectId and ppd.active = true and  ppd.poStartDate <= CURRENT_TIMESTAMP \n"
+		+ "and ( (ppd.poEndDate IS NULL or ppd.poEndDate >= CURRENT_TIMESTAMP)  \n"
+		+ "or ( ppd.poEndDate < CURRENT_TIMESTAMP\n" 
+		+		"AND NOT EXISTS (\n" 
+		+		"SELECT 1\n" 
+		+		"FROM ProjectPoDetails ppd1\n" 
+		+		"WHERE ppd1.projectId = ppd.projectId\n" 
+		+		"AND ppd1.poStartDate <= CURRENT_TIMESTAMP\n" 
+		+		"AND (ppd1.poEndDate IS NULL OR ppd1.poEndDate >= CURRENT_TIMESTAMP)\n" 
+		+		")\n" 
+		+		"AND  FUNCTION('DATE', ppd.poEndDate) = ( \n"                
+		+ 		"SELECT distinct MAX(FUNCTION('DATE',ppd2.poEndDate)) \n"    
+		+		"FROM ProjectPoDetails ppd2 \n"     
+		+ 		"WHERE ppd2.projectId = ppd.projectId \n"
+		+        "AND ppd2.poStartDate <= CURRENT_TIMESTAMP\n"
+		+ ") \n"
+		+ " )) \n"
 		+ "INNER JOIN Client c ON c.clientId = p.clientId \n"
 		+ "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId \n"
 		+ "INNER JOIN Department d ON d.deptId = jr.deptId \n"
@@ -839,8 +863,8 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 	List<RMGFlatEmployeeProjectTeamDTO> findEmployeeProjectTeamDetailsMatchedBothProjects(@Param("projectIds") Set<Integer> projectIds);
 
 	@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO(" +
-			"p.projectId, p.projectName, p.apmosysRM, p.clientRM, " +
-			"ppd.poStartDate,ppd.poEndDate, p.poNo, p.poProjectType, " +
+			"p.projectId, p.projectName, ppd.apmosysRM, ppd.clientRm, " +
+			"ppd.poStartDate,ppd.poEndDate, ppd.poNo, p.poProjectType, " +
 			"c.clientName, " +
 			"pm.empId, pm.name, " +
 			"t.teamId, t.teamName, " +
@@ -851,7 +875,7 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			"e.employeementId" +
 			") " +
 			"FROM Project p " +
-			"LEFT JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND ppd.poStartDate <= CURRENT_TIMESTAMP \n" +
+			"LEFT JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId and ppd.active =true  AND ppd.poStartDate <= CURRENT_TIMESTAMP \n" +
 			"AND (ppd.poEndDate IS NULL OR ppd.poEndDate >= CURRENT_TIMESTAMP ) \n"  +
 			"INNER JOIN Team t ON t.projectId = p.projectId " +
 			"INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId " +
@@ -1037,8 +1061,8 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 		
 
 		@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.RMGProjectToEmployeeFlatDTO(" +
-				"p.projectId, p.projectName, p.apmosysRM, p.clientRM, " +
-				"p.startDate, p.endDate, p.poNo, p.poProjectType, " +
+				"p.projectId, p.projectName, ppd.apmosysRM, ppd.clientRm, " +
+				"p.startDate, p.endDate, ppd.poNo, p.poProjectType, " +
 				"c.clientName, " +
 				"pm.empId, pm.name, " +
 				"t.teamId, t.teamName, " +
@@ -1049,6 +1073,8 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 				"e.employeementId" +
 				") " +
 				"FROM Project p " +
+				"LEFT JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND ppd.active = true and ppd.poStartDate <= CURRENT_TIMESTAMP \n" +
+				"AND (ppd.poEndDate IS NULL OR ppd.poEndDate >= CURRENT_TIMESTAMP ) \n"  +
 				"INNER JOIN Team t ON t.projectId = p.projectId " +
 				"INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId " +
 				"LEFT JOIN ProjectManagerMapping pmm ON p.projectId = pmm.projectId " +
@@ -1157,42 +1183,126 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			" ORDER BY e.emp_id ", nativeQuery = true )
 	List<Object[]> getUnmappedEmployeeProjectDetails(Set<String> deptNames);
 	
-	@Modifying
-	@Transactional
-	@Query(value = "UPDATE EmployeeTeamMap etm\n"
-			+ "	INNER JOIN Team t ON t.teamId = etm.teamId\n"
-			+ "	INNER JOIN Project p ON p.projectId = t.projectId\n"
-			+ "	INNER JOIN EmpPrimaryProjectMapping eppm \n"
-			+ "	     ON eppm.empId = etm.empId \n"
-			+ "	     AND eppm.projectId = p.projectId\n"
-			+ "	SET \n"
-			+ "	    etm.active = 1,\n"
-			+ "	    etm.updatedOn = NOW(),\n"
-			+ "	    eppm.isMapped = 'Y'\n"
-			+ "	WHERE etm.active = 0\n"
-			+ "	AND etm.startDate IS NOT NULL\n"
-			+ "	AND DATE(etm.startDate) <= CURDATE()\n"
-			+ " AND t.isActive = 'Y' AND p.active = 'true'\n"
-			+ "	AND p.isDraftProject NOT IN ('Rejected','false')", nativeQuery = true)
-	int activateMembersBasedOnStartDate();
+	@Query(value = "SELECT new com.apmosys.employeeportal.dto.DeactivationCandidateDTO(etm.employeeTeamMapId,\n"
+			+ "    			etm.empId,\n"
+			+ "    			p.projectId\n"
+			+ "			)\n"
+			+ "			FROM EmployeeTeamMap etm\n"
+			+ "			JOIN Team t ON t.teamId = etm.teamId\n"
+			+ "			JOIN Project p ON p.projectId = t.projectId\n"
+			+ "			WHERE etm.active = 1\n"
+			+ "			AND etm.endDate IS NOT NULL\n"
+			+ "			AND etm.endDate < :today\n"
+			+ "			AND t.isActive = 'Y'\n"
+			+ "			AND p.active = 'true'")
+	List<DeactivationCandidateDTO> findDeactivationCandidates(@Param("today") LocalDateTime today);
 	
 	@Modifying
-	@Transactional
-	@Query(value = "UPDATE EmployeeTeamMap etm\n"
-			+ "	JOIN Team t ON t.teamId = etm.teamId\n"
-			+ "	JOIN Project p ON p.projectId = t.projectId\n"
-			+ "	JOIN EmpPrimaryProjectMapping eppm \n"
-			+ "	     ON eppm.empId = etm.empId \n"
-			+ "	     AND eppm.projectId = p.projectId\n"
-			+ "	SET \n"
-			+ "	    etm.active = 0,\n"
-			+ "	    etm.updated_on = NOW(),\n"
-			+ "	    eppm.isMapped = 'N'\n"
-			+ "	WHERE etm.active = 1\n"
-			+ " AND t.isActive = 'Y' AND p.active = 'true'\n"
-			+ "	AND etm.endDate IS NOT NULL\n"
-			+ "	AND DATE(etm.endDate) < CURDATE()", nativeQuery = true)
-	int deactivateMembersBasedOnEndDate();
+	@Query("UPDATE EmployeeTeamMap etm\n"
+			+ "	SET etm.active = 0L,\n"
+			+ "	    etm.updatedOn = :updatedOn,\n"
+			+ "	    etm.updatedBy = :updatedBy\n"
+			+ "	WHERE etm.employeeTeamMapId IN :ids")
+	void deactivateEmployeeTeamMappings(
+	        List<Long> ids,
+	        LocalDateTime updatedOn,
+	        Long updatedBy);
+	
+	@Query(value = "SELECT new com.apmosys.employeeportal.dto.ActivationCandidateDTO(\n"
+			+ "			    etm.employeeTeamMapId,\n"
+			+ "			    etm.empId,\n"
+			+ "\n"
+			+ "			    CASE\n"
+			+ "			        WHEN e.isApmosysProduct = 'true' THEN CONCAT('AP-', e.employeementId)\n"
+			+ "			        WHEN e.isConsultant = 'true' THEN CONCAT('CS-', e.employeementId)\n"
+			+ "			        ELSE CONCAT('A-', e.employeementId)\n"
+			+ "			    END ,\n"
+			+ "\n"
+			+ "			    e.name ,\n"
+			+ "			    t.projectId,\n"
+			+ "			    p.projectName,\n"
+			+ "			    p.poProjectType,\n"
+			+ "			    etm.startDate)\n"
+			+ "\n"
+			+ "			FROM EmployeeTeamMap etm\n"
+			+ "			JOIN Team t ON t.teamId = etm.teamId\n"
+			+ "			JOIN Project p ON p.projectId = t.projectId\n"
+			+ "			JOIN Employee e ON e.empId = etm.empId\n"
+			+ "\n"
+			+ "			WHERE etm.active = 0\n"
+			+ "			AND etm.startDate >= :today\n"
+			+ "			AND etm.startDate < :tomorrow\n"
+			+ "			AND t.isActive = 'Y'\n"
+			+ "			AND p.active = 'true'\n"
+			+ "			AND e.employmentstatus != 'InActive'")
+	List<ActivationCandidateDTO> findActivationCandidates(
+	        @Param("today") LocalDateTime today,
+	        @Param("tomorrow") LocalDateTime tomorrow);
+	
+	@Query("SELECT new com.apmosys.employeeportal.dto.ActiveProjectDTO(\n"
+			+ "			    etm.empId,\n"
+			+ "			    p.projectId,\n"
+			+ "			    p.projectName,\n"
+			+ "			    p.poProjectType\n"
+			+ "			)\n"
+			+ "			FROM EmployeeTeamMap etm\n"
+			+ "			JOIN Team t ON t.teamId = etm.teamId\n"
+			+ "			JOIN Project p ON p.projectId = t.projectId\n"
+			+ "			WHERE etm.active = 1\n"
+			+ "			AND etm.empId IN :empIds\n"
+			+ "			AND t.isActive = 'Y'\n"
+			+ "			AND p.active = 'true'")
+	List<ActiveProjectDTO> findActiveProjectsByEmpIds(Set<Long> empIds);
+	
+	@Query(value = "SELECT new com.apmosys.employeeportal.dto.ProjectManagerEmailDTO(\n"
+			+ "			    CAST(pmm.projectId as integer) ,\n"
+			+ "			    e.email)\n"
+			+ "			FROM ProjectManagerMapping pmm\n"
+			+ "			JOIN Employee e ON e.empId = pmm.projectManagerId\n"
+			+ "			WHERE pmm.active = 1\n"
+			+ "         AND e.employmentstatus != 'InActive'"
+			+ "			AND pmm.projectId IN :projectIds")
+	List<ProjectManagerEmailDTO> findProjectManagerEmailsByProjectIds(Set<Long> projectIds);
+	
+//	Active Projects for Employee
+	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectEmpInfoDTO(\n"
+			+ "			etm.empId,\n"
+			+ "			p.projectId,\n"
+			+ "			p.projectName,\n"
+			+ "			p.poProjectType,\n"
+			+ "			p.internalProjectType,\n"
+			+ "			etm.isShadow\n"
+			+ "			)\n"
+			+ "			FROM EmployeeTeamMap etm\n"
+			+ "         JOIN Team t on t.teamId = etm.teamId\n"
+			+ "			JOIN Project p ON p.projectId = t.projectId\n"
+			+ "			WHERE etm.empId IN :empIds\n"
+			+ "			AND etm.active=1\n"
+			+ "         AND t.isActive='Y'\n"
+			+ "         AND p.active='true'")
+	List<ProjectEmpInfoDTO> findActiveProjectsForEmployees(
+	        @Param("empIds") List<Long> empIds);
+
+//	Find Active Primary Mapping
+	@Query("FROM EmpPrimaryProjectMapping\n"
+			+ "			WHERE empId IN :empIds\n"
+			+ "			AND primaryProjectId IN :projectIds\n"
+			+ "			AND isMapped='Y'")
+	List<EmpPrimaryProjectMapping> findActivePrimaryMappings(
+	        Set<Long> empIds,
+	        Set<Long> projectIds);
+	
+//	Update isMapped in EmpPrimaryProjectMapping
+	@Modifying
+	@Query("\n"
+			+ "	UPDATE EmpPrimaryProjectMapping\n"
+			+ "	SET isMapped=:status,\n"
+			+ "	updatedOn=:updatedOn\n"
+			+ "	WHERE empId=:empId")
+	void updateIsMappedOnlyTON(
+	        Long empId,
+	        String status,
+	        LocalDateTime updatedOn);
 	
 	@Query(value = "select new com.apmosys.employeeportal.dto.EmployeeProjectTimesheetDto( "
 			+ " p.projectId, p.projectName, "
@@ -1226,5 +1336,8 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			" AND NOT EXISTS (SELECT 1  FROM employee_team_mapping etm1  \n" +
 			" WHERE etm1.emp_id = e.emp_id AND (etm1.end_date IS NULL OR etm1.end_date >= CURRENT_DATE()) ) \n" , nativeQuery = true )
 	List<Object[]> getUnmappedEmployeeProjectDate(Long empId, LocalDateTime startDate, List<Integer> projectIds);
+	
+	@Query("Select etm from EmployeeTeamMap etm where teamId in :teamIds")
+	List<EmployeeTeamMap> findByTeamIdIn(List<Long> teamIds);
 	
 }

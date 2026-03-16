@@ -66,6 +66,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -82,6 +83,7 @@ import com.apmosys.employeeportal.dto.BulkTimesheetRequestDTO;
 import com.apmosys.employeeportal.dto.ClientDetailsSyncDto;
 import com.apmosys.employeeportal.dto.CombinedPOInternalProjectResponse;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
+import com.apmosys.employeeportal.dto.EmpIdAndNameDTO;
 import com.apmosys.employeeportal.dto.EmpMappingDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsDTO;
@@ -1652,13 +1654,18 @@ public class ResourceManagementService {
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
 		} catch (Exception e) {
-
+			TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+			ExceptionLogContext.add(e);
+			e.printStackTrace();
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
 
 			logBuilder.append("Exception Occurred: ").append(e.getMessage()).append(" | ");
 
-			throw e; // rollback
+		    response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		    response.setServiceResponse("Unable to approve the project at the moment. Please try again or contact the system administrator.");
+		    response.setServiceMessage(e.getMessage());
+		    return response;
 		} finally {
 
 			apiLogInfo.setApiRequest(logBuilder.toString());
@@ -1671,17 +1678,20 @@ public class ResourceManagementService {
 
 	protected void validateRequest(ResourceManagementDTO dto) {
 
-		if (dto == null) {
-			throw new IllegalArgumentException("Request cannot be null");
-		}
+	    if (dto == null) {
+	    	log.error("Request DTO is null!");
+	        throw new IllegalArgumentException("Invalid request received.");
+	    }
 
-		if (dto.getProjectId() == null) {
-			throw new IllegalArgumentException("ProjectId cannot be null");
-		}
+	    if (dto.getProjectId() == null) {
+	    	log.error("ProjectId cannot be null");
+	        throw new IllegalArgumentException("Project information is missing. Please refresh and try again.");
+	    }
 
-		if (dto.getEmpId() == null) {
-			throw new IllegalArgumentException("EmpId cannot be null");
-		}
+	    if (dto.getEmpId() == null) {
+	    	log.error("EmpId cannot be null");
+	        throw new IllegalArgumentException("User information is missing. Please login again.");
+	    }
 	}
 
 	protected Project getProjectOrThrow(Integer projectId) {
@@ -1689,7 +1699,8 @@ public class ResourceManagementService {
 		Project project = projectRepository.findByProjectId(projectId);
 
 		if (project == null) {
-			throw new IllegalStateException("Project not found");
+			log.error("Project not found in db !");
+			throw new IllegalStateException("The requested project could not be found. Please refresh and try again.");
 		}
 
 		return project;
@@ -1706,10 +1717,24 @@ public class ResourceManagementService {
 		LocalDate today = LocalDate.now();
 
 		Map<Long, Team> teamMap = context.getBean(getClass()).buildTeamMap(allTeams);
+		
+		Set<Long> empIds = members.stream()
+		        .map(EmployeeTeamMap::getEmpId)
+		        .collect(Collectors.toSet());
+
+		List<EmpIdAndNameDTO> employeeList =
+		        employeeRepository.getEmployeeNames(empIds);
+
+		Map<Long, String> empNameMap =
+		        employeeList.stream()
+		                .collect(Collectors.toMap(
+		                        EmpIdAndNameDTO::getEmpId,
+		                        EmpIdAndNameDTO::getName
+		                ));
 
 		for (EmployeeTeamMap member : members) {
 
-			context.getBean(getClass()).validateStartDate(member, project);
+			context.getBean(getClass()).validateStartDate(member, project, empNameMap);
 
 			LocalDate startDate = member.getStartDate().toLocalDate();
 
@@ -1732,21 +1757,18 @@ public class ResourceManagementService {
 	}
 
 	protected Map<Long, Team> buildTeamMap(List<Team> teams) {
-
-		Map<Long, Team> teamMap = new HashMap<>();
-
-		for (Team team : teams) {
-			teamMap.put(team.getTeamId(), team);
-		}
-
-		return teamMap;
+	    return teams.stream()
+	            .collect(Collectors.toMap(
+	                    Team::getTeamId,
+	                    Function.identity()
+	            ));
 	}
 
-	protected void validateStartDate(EmployeeTeamMap member, Project project) {
+	protected void validateStartDate(EmployeeTeamMap member, Project project, Map<Long,String> empNameMap) {
 
 		if (member.getStartDate() == null) {
-
-			String empName = employeeRepository.getEmployeeName(member.getEmpId());
+			
+			String empName = empNameMap.get(member.getEmpId());
 
 	        String html =
 	                "Employee allocation missing Start Date.<br><br>" +
@@ -1766,35 +1788,30 @@ public class ResourceManagementService {
 				}
 			});
 
+			log.error("StartDate missing for employee " + empName);
 	        throw new IllegalStateException(
-	                "StartDate missing for employee " + empName
+	        		"One or more team members are missing a start date. Please update the allocation details before approving the project."
 	        );
-		}
+		} else {
+			System.out.println("Pri");
+			}
 	}
-
 	protected void updateDraftStatus(Project project) {
 
-	    List<Project> draftProjects =
-	            employeeTeamMapRepository
-				.findByProjectIdAndActiveForDraftProject(project.getProjectId(), 2L);
+	    boolean hasPendingMembers =
+	            employeeTeamMapRepository.existsPendingMembers(
+	                    project.getProjectId(), 2L);
 
-		if (!draftProjects.isEmpty()) {
-
-			draftProjects.forEach(p -> p.setIsDraftProject("true"));
-			projectRepository.saveAll(draftProjects);
-
-		} else {
-
-			project.setIsDraftProject("false");
-		}
+	    project.setIsDraftProject(hasPendingMembers ? "true" : "false");
 	}
-
+	
 	protected Project saveProject(Project project) {
 
 		Project saved = projectRepository.save(project);
 
 		if (saved == null) {
-			throw new IllegalStateException("Unable to save project");
+			log.error("Unable to save project");
+			throw new IllegalStateException("Unable to complete project approval due to a system issue. Please try again.");
 		}
 
 		return saved;
@@ -1815,25 +1832,32 @@ public class ResourceManagementService {
 
 		if (!ServiceResponse.STATUS_SUCCESS.equals(syncResponse.getServiceStatus())) {
 
-	        throw new RuntimeException(
-	                "PoPortal sync failed: " + syncResponse.getServiceResponse()
-	        );
+			log.error("PoPortal sync failed for projectId {}", project.getProjectId());
+
+			throw new RuntimeException(
+			        "Project approved but syncing with PoPortal failed. Please contact the system administrator."
+			);
 		}
 	}
-
+	
 	protected Map<String, List<EmployeeTeamMap>> buildAllTeamsMap(List<Team> teams) {
 
-		Map<String, List<EmployeeTeamMap>> map = new LinkedHashMap<>();
+	    List<Long> teamIds = teams.stream()
+	            .map(Team::getTeamId)
+	            .collect(Collectors.toList());
 
-		for (Team team : teams) {
+	    Map<Long, List<EmployeeTeamMap>> membersByTeamId =
+	            employeeTeamMapRepository.findByTeamIdIn(teamIds)
+	                    .stream()
+	                    .collect(Collectors.groupingBy(EmployeeTeamMap::getTeamId));
 
-	        List<EmployeeTeamMap> members =
-	                employeeTeamMapRepository.findByTeamId(team.getTeamId());
-
-			map.put(team.getTeamName(), members);
-		}
-
-		return map;
+	    return teams.stream()
+	            .collect(Collectors.toMap(
+	                    Team::getTeamName,
+	                    team -> membersByTeamId.getOrDefault(team.getTeamId(), Collections.emptyList()),
+	                    (a, b) -> a,
+	                    LinkedHashMap::new
+	            ));
 	}
 
 	protected void sendApprovalMail(
@@ -1844,7 +1868,12 @@ public class ResourceManagementService {
 
 		Employee approver = employeeRepository.findByEmpId(dto.getEmpId());
 
-	    if (approver == null) return;
+		if (approver == null) {
+		    log.error("Approver not found! For project: " + dto.getProjectName());
+		    throw new IllegalStateException(
+		            "Unable to identify the approving user for this project."
+		    );
+		}
 
 	    String html = projectApprovalMailBuilder.buildApprovalMail(
 	            approver,
@@ -2067,14 +2096,29 @@ public class ResourceManagementService {
 		if (employee == null) {
 			throw new RuntimeException("Requester's email not found.");
 		}
+		
+		// Collect empIds
+		List<Long> empIds = modifiedTeamsMap.values()
+		        .stream()
+		        .flatMap(List::stream)
+		        .map(EmployeeTeamMap::getEmpId)
+		        .distinct()
+		        .collect(Collectors.toList());
 
-	    String emailHtml = context.getBean(getClass()).buildEmailHtml(dto.getName(), employee.getName(), modifiedTeamsMap);
+	    // Fetch employees once
+	    Map<Long, Employee> employeeMap =
+	            employeeRepository.findByEmpIdIn(empIds)
+	                    .stream()
+	                    .collect(Collectors.toMap(Employee::getEmpId, e -> e));
+
+	    String emailHtml = context.getBean(getClass()).buildEmailHtml(dto.getName(), employee.getName(), modifiedTeamsMap, employeeMap);
 
 		List<String> allEmails = context.getBean(getClass()).getAllRecipients(project);
 
 		try {
 			mailService.sendMailWithCC(
 //			        String.join(",", allEmails),
+					// to be removed before prod deployment
 					"priyadarshini.singh@apmosys.com",
 //			        employee.getEmail(),
 					"",
@@ -2088,7 +2132,8 @@ public class ResourceManagementService {
 	}
 
 	protected String buildEmailHtml(String projectName, String rejectedBy,
-			Map<String, List<EmployeeTeamMap>> teamsMap) {
+			Map<String, List<EmployeeTeamMap>> teamsMap,
+	        Map<Long, Employee> employeeMap) {
 
 		StringBuilder html = new StringBuilder();
 
@@ -2124,13 +2169,30 @@ public class ResourceManagementService {
 
 				for (EmployeeTeamMap member : entry.getValue()) {
 
-					String name = employeeRepository.getEmployeeName(member.getEmpId());
-					Long empCode = employeeRepository.getEmployeeEmployeementId(member.getEmpId());
+					Employee emp = employeeMap.get(member.getEmpId());
 
+					String name = emp != null ? emp.getName() : "-";
+					Long empCode = emp != null ? emp.getEmployeementId() : null;
+					
+					String formattedEmpCode = "-";
+
+					if (empCode != null && emp != null) {
+
+					    String prefix = "A-";
+
+					    if (Boolean.TRUE.equals(emp.getIsApmosysProduct())) {
+					        prefix = "AP-";
+					    } else if (Boolean.TRUE.equals(emp.getIsConsultant())) {
+					        prefix = "CS-";
+					    }
+
+					    formattedEmpCode = prefix + empCode;
+					}
+					
 	                html.append("<tr style='border-bottom:1px solid #eeeeee;'>")
 	                        .append("<td style='padding:8px;'>").append(entry.getKey()).append("</td>")
 	                        .append("<td style='padding:8px;'>")
-	                        .append(empCode != null ? "A-" + empCode : "-")
+	                        .append(formattedEmpCode != null ? formattedEmpCode : "-")
 	                        .append("</td>")
 	                        .append("<td style='padding:8px;'>")
 	                        .append(name != null ? name : "-")
@@ -2156,51 +2218,40 @@ public class ResourceManagementService {
 
 	protected void cleanupTeams(Project project, List<Team> teams) {
 
-		for (Team team : teams) {
+		List<Long> teamIds = teams.stream()
+		        .map(Team::getTeamId)
+		        .collect(Collectors.toList());
+
+	    List<EmployeeTeamMap> allMembers =
+	            employeeTeamMapRepository.findByTeamIdIn(teamIds);
+
+	    Map<Long, List<EmployeeTeamMap>> teamMembersMap =
+	            allMembers.stream()
+	                    .collect(Collectors.groupingBy(EmployeeTeamMap::getTeamId));
+
+	    for (Team team : teams) {
 
 	        List<EmployeeTeamMap> members =
-	                employeeTeamMapRepository.findByTeamId(team.getTeamId());
+	                teamMembersMap.getOrDefault(team.getTeamId(), new ArrayList<>());
 
 	        boolean onlyRejected =
 	                members.stream().allMatch(m -> m.getActive() == 2);
 
-			if (onlyRejected) {
+	        if (onlyRejected) {
 
-				// delete activities only for rejected employees
-				for (EmployeeTeamMap member : members) {
+	            employeeTeamMapRepository.deleteAllByTeamId(team.getTeamId());
+	            teamRepository.delete(team);
 
-					context.getBean(getClass()).deleteEmployeeActivities(member, team, project);
-				}
+	        } else {
 
-				employeeTeamMapRepository.deleteAllByTeamId(team.getTeamId());
-				teamRepository.delete(team);
+	            for (EmployeeTeamMap member : members) {
 
-			} else {
-
-				for (EmployeeTeamMap member : members) {
-
-					if (member.getActive() == 2) {
-
-						context.getBean(getClass()).deleteEmployeeActivities(member, team, project);
-
-						member.setActive(0L);
-						employeeTeamMapRepository.save(member);
-					}
-				}
-			}
-		}
-	}
-
-	protected void deleteEmployeeActivities(
-	        EmployeeTeamMap member,
-	        Team team,
-	        Project project) {
-
-	    activitiesRepository.deleteActivitiesForRejectedEmployee(
-	            member.getEmpId(),
-	            team.getTeamId(),
-	            project.getProjectId()
-	    );
+	                if (member.getActive() == 2) {
+	                	employeeTeamMapRepository.delete(member);
+	                }
+	            }
+	        }
+	    }
 	}
 
 	protected List<String> getAllRecipients(Project project) {
@@ -2484,8 +2535,10 @@ public class ResourceManagementService {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			log.error("Error syncing project with PoPortal. ProjectId: {}", 
+			        resourceManagementDTO.getProjectId(), e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceResponse("Unable to sync project information with PoPortal. Please try again later.");
 			response.setServiceError(e.getMessage());
 		}
 		return response;

@@ -4745,8 +4745,8 @@ boolean existsByProjectName(String projectName);
 			+ "AND d.dept_id IN :deptIds and e.emp_id NOT BETWEEN 1 AND 6 ",nativeQuery = true)
 	public Long getAllEmployeeCountOnBenchForMoreThan30DaysByDeptIds(List<Long> deptIds);
 
-	@Query(value="Select p.projectName from Project p Where LOWER(p.poNo) like %:poNo% ")
-	public List<String> getProjectNamebyPoNoLike(String poNo);
+	// @Query(value="Select p.projectName from Project p Where LOWER(p.poNo) like %:poNo% ")
+	// public List<String> getProjectNamebyPoNoLike(String poNo);
 
 	// @Query(value = "WITH RECURSIVE\n"
 	// 		+ "			    Date_Parameters AS (\n"
@@ -7020,7 +7020,7 @@ public List<Object[]> getProjectWithCliendSideID(@Param("emp_id") Long emp_id);
 + "in_active_projects AS (\n"
 + "    SELECT d.dept_id, c.client_id, d.name, c.client_name, \n"
 + "		   p.project_id, p.project_name,"
-+" GROUP_CONCAT(DISTINCT ppd.po_no ORDER BY p.po_no SEPARATOR ', ') AS po_no ,"
++" GROUP_CONCAT(DISTINCT ppd.po_no ORDER BY ppd.po_no SEPARATOR ', ') AS po_no ,"
 +" p.po_project_type, \n"
 + "           GROUP_CONCAT(distinct e1.name order by e1.emp_id separator ', ') as project_manager, \n"
 + "         GROUP_CONCAT(DISTINCT ppd.apmosys_rm SEPARATOR ', ') AS apmosys_rm, GROUP_CONCAT(DISTINCT ppd.client_rm SEPARATOR ', ') AS client_rm, p.start_date, p.end_date, \n"

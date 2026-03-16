@@ -17,6 +17,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.apmosys.employeeportal.dto.EmpIdAndNameDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeJobRoleDept;
@@ -758,8 +759,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	// ========== UPDATED: New query using _new tables ==========
 	@Query(nativeQuery = true, value = "SELECT et.timesheet_id,et.emp_id,e.name,et.date,dtm.day_type,\n"
-			+ "et.office_in_time,et.office_out_time,ROUND(et.total_activities_minutes / 60, 2) AS total_time,\n"
-			+ "sm.status,et.remarks,e.employeement_id,et.created_on,et.current_manager_id\n"
+			+ "et.work_in_time,et.work_out_time,ROUND(et.total_working_minutes / 60, 2) AS total_time,\n"
+			+ "sm.status,et.description,e.employeement_id,et.created_on,et.current_manager_id\n"
 			+ "FROM employee_timesheets_new et  \n"
 			+ "LEFT JOIN day_type_master_new dtm ON et.day_type_id = dtm.day_type_id\n"
 			+ "LEFT JOIN status_master_new sm ON et.status = sm.status_id\n"
@@ -948,9 +949,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     int updateBillableTypeForMultiple(@Param("empIds") List<Long> empIds,
                                       @Param("billableType") String billableType,
                                       @Param("billable") String billable,@Param("updatedBy") Long updatedBy,@Param("updatedOn") String updatedOn);
-    
-    @Query(value ="select DISTINCT emp_id from employee where employmentstatus !='Inactive'",nativeQuery=true)
-    List<Long>findAllActiveEmployees();
     
 //    @Query(value="SELECT new com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO(e.empId, e.name,  \n " + 
 //			"CASE  \n " + 
@@ -1807,7 +1805,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     //         @Param("fromDate") String fromDate,
     //         @Param("toDate") String toDate);
 
-
+	//Not used.
     @Query(value="SELECT e.employeement_id, e.name, \n"
     		+ " e.billable, e.billable_type, \n"
     		+ " emp_proj_client.project_name, emp_proj_client.start_date, emp_proj_client.end_date,\n"
@@ -2712,20 +2710,24 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		    			+"	GROUP_CONCAT(DISTINCT p.project_id ORDER BY p.project_id) AS project_id,  \n"
 		    			+"	GROUP_CONCAT(DISTINCT p.start_date ORDER BY p.project_id) AS start_date,  \n"
 		    			+"	GROUP_CONCAT(DISTINCT p.end_date ORDER BY p.project_id) AS end_date,   \n"
-		    			+"	GROUP_CONCAT(DISTINCT p.po_no ORDER BY p.project_id) AS po_no,   \n"
+		    			+"	GROUP_CONCAT(DISTINCT ppd.po_no ORDER BY p.project_id) AS po_no,   \n"
 		    			+"	GROUP_CONCAT(DISTINCT p.po_project_type ORDER BY p.project_id) AS po_project_type, \n"
 		    			+"	GROUP_CONCAT(DISTINCT c.client_name ORDER BY p.project_id) AS client_name, \n"
 		    			+"	GROUP_CONCAT(DISTINCT cl.client_location ORDER BY p.project_id) AS client_location, \n"
 		    			+"	GROUP_CONCAT(DISTINCT t.team_name ORDER BY p.project_id) AS team_name,   \n"
 		    			+"	GROUP_CONCAT(DISTINCT t.team_id ORDER BY p.project_id) AS team_id,  \n"
 		    			+"	GROUP_CONCAT(DISTINCT p.po_project_id ORDER BY p.project_id) AS po_project_id,  \n"
-		    			+"	GROUP_CONCAT(DISTINCT p.clientrm ORDER BY p.project_id) AS clientrm,  \n"
-		    			+"	GROUP_CONCAT(DISTINCT p.apmosysrm ORDER BY p.project_id) AS apmosysrm, \n"
+		    			+"	GROUP_CONCAT(DISTINCT ppd.clientrm ORDER BY p.project_id) AS clientrm,  \n"
+		    			+"	GROUP_CONCAT(DISTINCT ppd.apmosysrm ORDER BY p.project_id) AS apmosysrm, \n"
 		    			+"	GROUP_CONCAT(DISTINCT etm.start_date ORDER BY p.project_id) AS effective_start_date,  \n"
 		    			+"	GROUP_CONCAT(DISTINCT etm.end_date ORDER BY p.project_id) AS effective_end_date  \n"
 		    			+"	FROM employee_team_mapping etm      \n"
 		    			+"	LEFT JOIN teams t ON t.team_id = etm.team_id  \n"
 		    			+"	LEFT JOIN projects p ON p.project_id = t.project_id  \n"
+						+"  LEFT JOIN project_po_details ppd \n"
+						+"  ON ppd.project_id = p.project_id and ppd.active = true \n"
+						+"  AND DATE(ppd.po_start_date ) <= DATE(:toDate ) \n"
+						+"  AND DATE(ppd.po_end_date)  >= DATE(:fromDate) \n"
 		    			+"	LEFT JOIN clients c ON c.client_id = p.client_id \n"
 		    			+" LEFT JOIN client_locations cl ON cl.client_id = c.client_id \n"
 		    			+"	LEFT JOIN ( \n"
@@ -4364,7 +4366,8 @@ public List<Object[]> fetchInActivePOListOfProject(
        "e.empId, " +
        "e.name, " +
        "e.employeementId, " +
-       "rr.role) " +
+       "rr.role, " +
+       "e.isApmosysProduct, e.isConsultant) " +
        "FROM Employee e " +
        " JOIN EmployeeTeamMap etm ON etm.empId = e.empId AND etm.active = 1" +
        " JOIN RoleDetails rr ON rr.roleId = etm.roleId " +
@@ -4373,4 +4376,11 @@ public List<Object[]> fetchInActivePOListOfProject(
 
 	@Query(value = "select e.billable_type from employee e where e.emp_id = :empId ;", nativeQuery = true)
 	String getBillableType(Long empId);
+	
+	@Query("SELECT new com.apmosys.employeeportal.dto.EmpIdAndNameDTO(e.empId,e.name) from Employee e where e.empId in :empIds")
+	List<EmpIdAndNameDTO> getEmployeeNames(@Param("empIds")Set<Long> empIds);
+	
+	@Query("SELECT distinct e.empId FROM Employee e WHERE e.employmentstatus != 'InActive'")
+    List<Long> findAllActiveEmployees();
+
 }

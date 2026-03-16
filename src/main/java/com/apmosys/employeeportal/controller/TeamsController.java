@@ -404,12 +404,6 @@ public class TeamsController {
 		return teamsService.getTeamDetailsByProjectId(poDetailsDto);
 	}
 	
-	@Scheduled(cron = "0 0 1 * * *")
-	@PostMapping("/markTeamMemberAsInactiveAfterEndDate")
-	public void markTeamMemberAsInactiveAfterEndDate() {
-		teamsService.updateTeamMemberStatus();
-	}
-	
 	// @Encrypted
 	@PostMapping("/updateMemberShadowMapping")
 	public ServiceResponse updateMemberShadowMapping(@RequestBody RmgTeamMemberDto rmgTeamMemberDto) {
