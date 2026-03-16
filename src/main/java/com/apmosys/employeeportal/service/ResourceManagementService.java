@@ -1615,7 +1615,7 @@ public class ResourceManagementService {
 
 			logBuilder.append("Teams Modified: ").append(modifiedTeams.keySet()).append(" | ");
 
-			context.getBean(getClass()).createActivityForEmployeeRole(dto.getEmpId(), project, pendingMembers);
+//			context.getBean(getClass()).createActivityForEmployeeRole(dto.getEmpId(), project, pendingMembers);
 
 			logBuilder.append("Activity Created For Employees | ");
 
