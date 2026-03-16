@@ -220,7 +220,8 @@
 
 /* When calendar is active, section gets same shell */
 .ts360-calendar-section {
-  overflow: visible;
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
 /* ── Card toolbar ── */
@@ -252,7 +253,8 @@
 /* ── Table scroll ── */
 .ts360-table-scroll {
   overflow-x: auto;
-  overflow-y: visible;
+  overflow-y: hidden;
+  width: 100%;
 }
 
 /* ══════════════════
@@ -542,3 +544,53 @@
   cursor: pointer;
 }
 .ts360-ok-btn:hover { background: #243651; }
+
+.ts360-eod-table{
+  width:100%;
+  display:block;
+}
+
+/* Styling for the expanded section */
+.ts360-accordion-cell {
+  background-color: #fcfcfc;
+  padding: 10px 20px !important;
+  border-bottom: 2px solid #eee;
+}
+
+.ts360-accordion-inner {
+  border-left: 4px solid #007bff;
+  padding-left: 15px;
+}
+
+.ts360-activity-header {
+  font-size: 12px;
+  font-weight: bold;
+  color: #666;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.ts360-activity-card {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.ts-proj-header__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ts-icon--teal { color: #008080; }
+.ts-icon--green { color: #28a745; }
+
+.ts-chip--grey {
+  background: #f0f0f0;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+}

@@ -91,220 +91,49 @@
         <i class="fas fa-file-arrow-down"></i>
       </button>
     </div>
+    <div class="ts360-cal-body mt-3" *ngIf="activeButton === 'Calendar'">
 
-    <div *ngIf="activeButton === 'Calendar'">
-      <ul class="nav nav-tabs" id="timesheetSummaryTab" role="tablist">
-          <li class="nav-item timesheet_tab-item">
-              <a class="nav-link active timesheet__tab-item__link" id="weekly-tab" data-toggle="tab" role="tab"
-              href="#weekly-tabpanel" aria-controls="weekly" aria-selected="true" (click)="getTimesheetsForHomePageByEmpId('Last 7 Days')">EOD Last 7 Days</a>
-          </li>
-          <li class="nav-item timesheet__tab-item">
-              <a class="nav-link timesheet__tab-item__link" id="thisMonth-tab" data-toggle="tab" role="tab"
-              href="#thisMonth-tabpanel" aria-controls="thisMonth" aria-selected="false" (click)="getTimesheetsForHomePageByEmpId('This Month')">EOD This Month</a>
-          </li>
-          <li class="nav-item timesheet__tab-item">
-              <a class="nav-link timesheet__tab-item__link" id="lastMonth-tab" data-toggle="tab" role="tab"
-              href="#lastMonth-tabpanel" aria-controls="lastMonth" aria-selected="false" (click)="getTimesheetsForHomePageByEmpId('Last Month')">EOD Last Month</a>
-          </li>
-      </ul>
-
-      <!-- tab Containers -->
-      <div class="tab-content timesheetTabContent" id="timesheetTabContent">
-          <div class="tab-pane active show fade timesheet__tab-container" id="weekly-tabpanel" role="tabpanel"
-              aria-labelledby="weekly-tabpanel">
-              <div class="row col-md-12 p-0 m-0">
-                  <table class="table table-sm timesheet-table" id="timesheet">
-                      <thead>
-                        <tr>
+      <div *ngIf="activeCalTab === 'Last 7 Days'" class="ts360-eod-table">
+        <table class="table table-sm timesheet-table" id="timesheet">
+          <thead>
+            <tr>
                           <th scope="col">Sr.No</th>
                           <th scope="col">Date</th>
                           <th scope="col">Day</th>
                           <th scope="col">Day Type</th>
                           <th scope="col">Status</th>
                           <th scope="col" colspan="3">Working Hours</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr *ngFor="let timesheet of timesheetDetails; let i = index">
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let timesheet of timesheetDetails; let i = index">
                           <th scope="row">{{i+1}}</th>
-                          <td>{{timesheet.date}}</td>
-                          <td>{{timesheet.weekDayName}}</td>
-                          <td>{{timesheet.dayType}}</td>
-                          <td>{{timesheet.status}}</td>
-                          <td colspan="3">
-                              <div class="progress">
+              <td>{{timesheet.date}}</td>
+              <td>{{timesheet.weekDayName}}</td>
+              <td>{{timesheet.dayType}}</td>
+              <td>{{timesheet.status}}</td>
+              <td colspan="3">
+                <div class="progress">
                                   <div class="progress-bar" role="progressbar" [style.width]="timesheet.totalWorkingHoursPercentage" aria-valuemin="0" aria-valuemax="100" >{{timesheet.totalWorkingHours}} hrs</div>
-                                </div>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                    <button style="float: right;" type="button" class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
-                    (click)="exportToExcel('timesheet')"><em
-                        class="fa fa-file-arrow-down fa-2x"></em>&nbsp;</button>
-              </div>
-          </div>
-          <div class="tab-pane fade timesheet__tab-container pt-2" id="thisMonth-tabpanel" role="tabpanel"
-              aria-labelledby="thisMonth-tabpanel">
-              <app-calendar #thisMonthCal [timesheetDetails]="timesheetDetails" (dateClicked)="onDateSelected($event)"></app-calendar>
-          </div>
-          <div class="tab-pane fade timesheet__tab-container pt-2" id="lastMonth-tabpanel" role="tabpanel"
-              aria-labelledby="lastMonth-tabpanel">
-              <app-calendar #lastMonthCal [subtractmonth]="1" [timesheetDetails]="timesheetDetails"></app-calendar>
-          </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <button style="float: right;" type="button" class="btn btn-sm btn-outline-primary"
+          (click)="exportToExcel('timesheet')">
+          <i class="fa fa-file-arrow-down"></i> Export
+        </button>
       </div>
-    </div>
 
-    <div class="ts360-table-scroll">
-      <table class="ts360-table" id="timesheet360Info" matSort (matSortChange)="sortData($event)">
-        <thead>
-          <tr class="ts360-thead-row">
-            <th class="ts360-th ts360-th--sm">#</th>
-            <th class="ts360-th" mat-sort-header="employmentId|string">Emp ID</th>
-            <th class="ts360-th ts360-th--name" mat-sort-header="name|string">Employee</th>
-            <th class="ts360-th" mat-sort-header="date|date">Date</th>
-            <th class="ts360-th" mat-sort-header="dayType|string">Day Type</th>
-            <th class="ts360-th ts360-th--wide" mat-sort-header="projectName|string">Project</th>
-            <th class="ts360-th" mat-sort-header="teamName|string">Team</th>
-            <th class="ts360-th ts360-th--num" mat-sort-header="completionTime|number">Hrs</th>
-            <th class="ts360-th" mat-sort-header="activity|string">Activity</th>
-            <th class="ts360-th ts360-th--num" mat-sort-header="officeInTime|date">In</th>
-            <th class="ts360-th ts360-th--num" mat-sort-header="officeOutTime|date">Out</th>
-            <th class="ts360-th ts360-th--num" mat-sort-header="totalTime|number">Total</th>
-            <th class="ts360-th" mat-sort-header="nightShift|string">Shift</th>
-            <th class="ts360-th" mat-sort-header="status|string">Status</th>
-            <th class="ts360-th" mat-sort-header="createdOn|datetime">Created</th>
-            <th class="ts360-th ts360-th--actions">Actions</th>
-          </tr>
-          <tr app-column-filter-bar *ngIf="activeButton && isSearchEnabled" [columnList]="timesheetColumns"
-            (onSearch)="onSearch($event); page=1">
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngIf="result.length == 0 || (result | colFilter:filters:false).length == 0">
-            <td colspan="16" class="ts360-empty">
-              <div class="ts360-empty-inner">
-                <i class="fas fa-inbox ts360-empty-icon"></i>
-                <span>No records found</span>
-              </div>
-            </td>
-          </tr>
+      <div *ngIf="activeCalTab === 'This Month'" class="pt-2">
+        <app-calendar #thisMonthCal [timesheetDetails]="timesheetDetails"
+          (dateClicked)="onDateSelected($event)"></app-calendar>
+      </div>
 
-          <tr *ngFor="let item of result | colFilter:filters:false
-            | sort:[sortColumn,sortColumnType,sortDirection]
-
-            let i = index" class="ts360-row">
-            <!--| paginate:{itemsPerPage:20,currentPage:page};-->
-            <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay"
-              class="ts360-td ts360-td--rowspan ts360-td--sm ts360-td--muted">{{ i + 1 }}</td>
-
-            <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay"
-              class="ts360-td ts360-td--rowspan ts360-td--muted ts360-td--mono">
-              {{ item.employmentId }}
-            </td>
-
-            <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" class="ts360-td ts360-td--rowspan"
-              [navigateToEmployee360]="item.emp360" (click)="clearBreadcrumbs()" title="View Employee 360">
-              <span class="ts360-emp-link">{{ item.name }}</span>
-            </td>
-
-            <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay"
-              class="ts360-td ts360-td--rowspan ts360-td--mono ts360-td--muted">
-              {{ item.date | date:'dd-MM-yyyy' }}
-            </td>
-
-            <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay"
-              class="ts360-td ts360-td--rowspan">
-              <span class="ts360-chip ts360-chip--grey">{{ item.dayType }}</span>
-            </td>
-
-            <td *ngIf="item.showProject && !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount"
-              class="ts360-td ts360-td--rowspan ts360-td--project"
-              (click)="findByProject(item.projectId, item.projectName)">
-              <span class="ts360-project-link">{{ item.projectName || '—' }}</span>
-            </td>
-            <td *ngIf="item.showProject && isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount"
-              class="ts360-td ts360-td--rowspan ts360-td--project" [navigateToProjectView]="item.projectId">
-              {{ item.projectName || '—' }}
-            </td>
-
-            <td *ngIf="item.showProject && !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount"
-              class="ts360-td ts360-td--rowspan ts360-td--clickable" (click)="findByTeam(item.teamName, item.teamId)">
-              {{ item.teamName || '—' }}
-            </td>
-            <td *ngIf="item.showProject && isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount"
-              class="ts360-td ts360-td--rowspan" [navigateToProjectView]="item.projectId">
-              {{ item.teamName || '—' }}
-            </td>
-
-            <td *ngIf="item.showProject" [attr.rowspan]="item.projectActivityCount"
-              class="ts360-td ts360-td--rowspan ts360-td--num ts360-td--mono">
-              {{ item.completionTime }}
-            </td>
-
-            <td *ngIf="item.showProject" [attr.rowspan]="item.projectActivityCount"
-              class="ts360-td ts360-td--rowspan ts360-td--muted">
-              {{ item.activity }}
-            </td>
-
-            <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay"
-              class="ts360-td ts360-td--rowspan ts360-td--num ts360-td--mono ts360-td--muted">
-              {{ item.officeInTime | date:'shortTime' }}
-            </td>
-
-            <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay"
-              class="ts360-td ts360-td--rowspan ts360-td--num ts360-td--mono ts360-td--muted">
-              {{ item.officeOutTime | date:'shortTime' }}
-            </td>
-
-            <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay"
-              class="ts360-td ts360-td--rowspan ts360-td--num ts360-td--mono ts360-td--bold">
-              {{ item.totalTime }} hrs
-            </td>
-
-            <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay"
-              class="ts360-td ts360-td--rowspan">
-              <span class="ts360-chip"
-                [ngClass]="item.nightShift === 'true' ? 'ts360-chip--night' : 'ts360-chip--regular'">
-                <i class="fas" [ngClass]="item.nightShift === 'true' ? 'fa-moon' : 'fa-sun'"></i>
-                {{ item.nightShift === 'true' ? 'Night' : 'Day' }}
-              </span>
-            </td>
-
-            <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay"
-              class="ts360-td ts360-td--rowspan">
-              <span class="ts360-badge" [ngClass]="{
-                'ts360-badge--pending':  item.status === 'Pending',
-                'ts360-badge--approved': item.status === 'Approved',
-                'ts360-badge--rejected': item.status === 'Rejected'
-              }">{{ item.status }}</span>
-            </td>
-
-            <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay"
-              class="ts360-td ts360-td--rowspan ts360-td--mono ts360-td--muted">
-              {{ item.createdOn | date:'dd-MM-yyyy' }}
-            </td>
-
-            <td *ngIf="item.showEmpId && activeButton === 'Pending' && actionButton"
-              [attr.rowspan]="item.empActivitiesCountForDay" class="ts360-td ts360-td--rowspan ts360-td--actions">
-              <div class="ts360-actions">
-                <button class="ts360-action-btn ts360-action-btn--approve" title="Approve"
-                  (click)="update('Approved', item.empId, item.date)">
-                  <i class="fas fa-check"></i>
-                </button>
-                <button class="ts360-action-btn ts360-action-btn--reject" title="Reject"
-                  (click)="update('Rejected', item.empId, item.date)">
-                  <i class="fas fa-xmark"></i>
-                </button>
-              </div>
-            </td>
-            <td *ngIf="item.showEmpId && !(activeButton === 'Pending' && actionButton)"
-              [attr.rowspan]="item.empActivitiesCountForDay"
-              class="ts360-td ts360-td--rowspan ts360-td--actions ts360-td--muted">—</td>
-
-          </tr>
-        </tbody>
-      </table>
+      <div *ngIf="activeCalTab === 'Last Month'" class="pt-2">
+        <app-calendar #lastMonthCal [subtractmonth]="1" [timesheetDetails]="timesheetDetails"></app-calendar>
+      </div>
     </div>
 
     <!--<div class="ts360-card-footer">
@@ -313,7 +142,157 @@
       </pagination-controls>
     </div>-->
   </div>
+  <div class="ts360-table-scroll" *ngIf="activeButton !== 'Calendar'">
+    <table class="ts360-table" id="timesheet360Info" matSort (matSortChange)="sortData($event)">
+      <thead>
+        <tr class="ts360-thead-row">
+          <th class="ts360-th ts360-th--sm">#</th>
+          <th class="ts360-th" mat-sort-header="employmentId|string">Emp ID</th>
+          <th class="ts360-th ts360-th--name" mat-sort-header="name|string">Employee</th>
+          <th class="ts360-th" mat-sort-header="date|date">Date</th>
+          <th class="ts360-th" mat-sort-header="dayType|string">Day Type</th>
+          <th class="ts360-th ts360-th--wide" mat-sort-header="projectName|string">Project</th>
+          <th class="ts360-th" mat-sort-header="teamName|string">Team</th>
+          <th class="ts360-th ts360-th--num" mat-sort-header="completionTime|number">Hrs</th>
+          <th class="ts360-th" mat-sort-header="activity|string">Activity</th>
+          <th class="ts360-th ts360-th--num" mat-sort-header="officeInTime|date">In</th>
+          <th class="ts360-th ts360-th--num" mat-sort-header="officeOutTime|date">Out</th>
+          <th class="ts360-th ts360-th--num" mat-sort-header="totalTime|number">Total</th>
+          <th class="ts360-th" mat-sort-header="nightShift|string">Shift</th>
+          <th class="ts360-th" mat-sort-header="status|string">Status</th>
+          <th class="ts360-th" mat-sort-header="createdOn|datetime">Created</th>
+          <th class="ts360-th ts360-th--actions">Actions</th>
+        </tr>
+        <tr app-column-filter-bar *ngIf="activeButton && isSearchEnabled" [columnList]="timesheetColumns"
+          (onSearch)="onSearch($event); page=1">
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="result.length == 0 || (result | colFilter:filters:false).length == 0">
+          <td colspan="16" class="ts360-empty">
+            <div class="ts360-empty-inner">
+              <i class="fas fa-inbox ts360-empty-icon"></i>
+              <span>No records found</span>
+            </div>
+          </td>
+        </tr>
 
+        <tr *ngFor="let item of result | colFilter:filters:false
+            | sort:[sortColumn,sortColumnType,sortDirection]
+
+            let i = index" class="ts360-row">
+          <!--| paginate:{itemsPerPage:20,currentPage:page};-->
+          <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay"
+            class="ts360-td ts360-td--rowspan ts360-td--sm ts360-td--muted">{{ i + 1 }}</td>
+
+          <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay"
+            class="ts360-td ts360-td--rowspan ts360-td--muted ts360-td--mono">
+            {{ item.employmentId }}
+          </td>
+
+          <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay" class="ts360-td ts360-td--rowspan"
+            [navigateToEmployee360]="item.emp360" (click)="clearBreadcrumbs()" title="View Employee 360">
+            <span class="ts360-emp-link">{{ item.name }}</span>
+          </td>
+
+          <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay"
+            class="ts360-td ts360-td--rowspan ts360-td--mono ts360-td--muted">
+            {{ item.date | date:'dd-MM-yyyy' }}
+          </td>
+
+            <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay"
+              class="ts360-td ts360-td--rowspan">
+            <span class="ts360-chip ts360-chip--grey">{{ item.dayType }}</span>
+          </td>
+
+          <td *ngIf="item.showProject && !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount"
+            class="ts360-td ts360-td--rowspan ts360-td--project"
+            (click)="findByProject(item.projectId, item.projectName)">
+            <span class="ts360-project-link">{{ item.projectName || '—' }}</span>
+          </td>
+          <td *ngIf="item.showProject && isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount"
+            class="ts360-td ts360-td--rowspan ts360-td--project" [navigateToProjectView]="item.projectId">
+            {{ item.projectName || '—' }}
+          </td>
+
+          <td *ngIf="item.showProject && !isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount"
+            class="ts360-td ts360-td--rowspan ts360-td--clickable" (click)="findByTeam(item.teamName, item.teamId)">
+            {{ item.teamName || '—' }}
+          </td>
+          <td *ngIf="item.showProject && isProjectTeamClicked" [attr.rowspan]="item.projectActivityCount"
+            class="ts360-td ts360-td--rowspan" [navigateToProjectView]="item.projectId">
+            {{ item.teamName || '—' }}
+          </td>
+
+          <td *ngIf="item.showProject" [attr.rowspan]="item.projectActivityCount"
+            class="ts360-td ts360-td--rowspan ts360-td--num ts360-td--mono">
+            {{ item.completionTime }}
+          </td>
+
+          <td *ngIf="item.showProject" [attr.rowspan]="item.projectActivityCount"
+            class="ts360-td ts360-td--rowspan ts360-td--muted">
+            {{ item.activity }}
+          </td>
+
+          <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay"
+            class="ts360-td ts360-td--rowspan ts360-td--num ts360-td--mono ts360-td--muted">
+            {{ item.officeInTime | date:'shortTime' }}
+          </td>
+
+          <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay"
+            class="ts360-td ts360-td--rowspan ts360-td--num ts360-td--mono ts360-td--muted">
+            {{ item.officeOutTime | date:'shortTime' }}
+          </td>
+
+          <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay"
+            class="ts360-td ts360-td--rowspan ts360-td--num ts360-td--mono ts360-td--bold">
+            {{ item.totalTime }} hrs
+          </td>
+
+            <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay"
+              class="ts360-td ts360-td--rowspan">
+            <span class="ts360-chip"
+              [ngClass]="item.nightShift === 'true' ? 'ts360-chip--night' : 'ts360-chip--regular'">
+              <i class="fas" [ngClass]="item.nightShift === 'true' ? 'fa-moon' : 'fa-sun'"></i>
+              {{ item.nightShift === 'true' ? 'Night' : 'Day' }}
+            </span>
+          </td>
+
+            <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay"
+              class="ts360-td ts360-td--rowspan">
+            <span class="ts360-badge" [ngClass]="{
+                'ts360-badge--pending':  item.status === 'Pending',
+                'ts360-badge--approved': item.status === 'Approved',
+                'ts360-badge--rejected': item.status === 'Rejected'
+              }">{{ item.status }}</span>
+          </td>
+
+          <td *ngIf="item.showEmpId" [attr.rowspan]="item.empActivitiesCountForDay"
+            class="ts360-td ts360-td--rowspan ts360-td--mono ts360-td--muted">
+            {{ item.createdOn | date:'dd-MM-yyyy' }}
+          </td>
+
+          <td *ngIf="item.showEmpId && activeButton === 'Pending' && actionButton"
+            [attr.rowspan]="item.empActivitiesCountForDay" class="ts360-td ts360-td--rowspan ts360-td--actions">
+            <div class="ts360-actions">
+              <button class="ts360-action-btn ts360-action-btn--approve" title="Approve"
+                (click)="update('Approved', item.empId, item.date)">
+                <i class="fas fa-check"></i>
+              </button>
+              <button class="ts360-action-btn ts360-action-btn--reject" title="Reject"
+                (click)="update('Rejected', item.empId, item.date)">
+                <i class="fas fa-xmark"></i>
+              </button>
+            </div>
+          </td>
+          <td *ngIf="item.showEmpId && !(activeButton === 'Pending' && actionButton)"
+            [attr.rowspan]="item.empActivitiesCountForDay"
+            class="ts360-td ts360-td--rowspan ts360-td--actions ts360-td--muted">—</td>
+
+        </tr>
+      </tbody>
+    </table>
+  </div>
   <ng-template #alertTemplate>
     <div class="modal-body text-center">
       <p *ngIf="showModal">{{ alertMessage }}</p>
