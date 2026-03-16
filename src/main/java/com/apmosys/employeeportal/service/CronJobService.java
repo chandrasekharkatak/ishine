@@ -72,6 +72,8 @@ import org.dhatim.fastexcel.reader.Row;
 import org.dhatim.fastexcel.reader.Sheet;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -302,6 +304,8 @@ public class CronJobService {
 
 	@Value("${admin.mail}")
 	private String adminMail;
+
+	private static final Logger log = LoggerFactory.getLogger(CronJobService.class);
 
 
 
@@ -1478,7 +1482,7 @@ public class CronJobService {
 	@Scheduled(cron = "0 1 00 ? * *")
 	public void automaticTimesheetFiller() {
 
-	    System.out.println("Cron----**********----started");
+	    log.info("Automatic Timesheet Filler Cron Started");
 
 	    try {
         
@@ -1497,10 +1501,9 @@ public class CronJobService {
                         + "' not found in day_type_master_new. Aborting cron.");
                 return;
             }
-            System.out.println("DayType verification passed — Holiday: " + holidayDayType.getDayType()
-                    + " (id=" + holidayDayType.getDayTypeId() + ")"
-                    + ", WeekOff: " + weekoffDayType.getDayType()
-                    + " (id=" + weekoffDayType.getDayTypeId() + ")");
+             log.info("DayType verification passed — Holiday: {} (id={}), WeekOff: {} (id={})",
+                holidayDayType.getDayType(), holidayDayType.getDayTypeId(),
+                weekoffDayType.getDayType(), weekoffDayType.getDayTypeId());
 	        LocalDate dateToday = LocalDate.now();
 	        LocalDateTime dateTimeToday = LocalDateTime.now();
 
@@ -1511,7 +1514,7 @@ public class CronJobService {
 	                holidayRepository.findByDateOfHoliday(dateToday);
 
 	        if (publicHoliday.isEmpty()) {
-	            System.out.println("No holiday today");
+	            log.info("No holiday found for today: {}", dateToday);
 	            return;
 	        }
 
@@ -1595,6 +1598,7 @@ public class CronJobService {
 	        }
 
 	        if (!toSave.isEmpty()) {
+				            log.info("Total auto-filled timesheets: {}", toSave.size());
 	            Map<Long, Employee> employeeMap = employeeRepository.findAllById(empHolidayMap.keySet())
                         .stream()
                         .collect(Collectors.toMap(Employee::getEmpId, e -> e));
@@ -4587,19 +4591,22 @@ public class CronJobService {
 		@Scheduled(cron="${timesheetDefaulter.time}")
 		public void timesheetDefaulterWeeklyMail() {
 
-			System.out.println("***********JOB STARTED*******************");
+			log.info("*********** timesheetDefaulterWeeklyMail JOB STARTED *******************");
 		    try {
 		        List<Department> allDepartment = departmentRepository.findAll();
-		        System.out.print(allDepartment);
+		        log.debug("Departments fetched: {}", allDepartment);
+				log.info("Total departments fetched: {}", allDepartment.size());
 
-		        if (!allDepartment.isEmpty()) {
+		        if (allDepartment != null && !allDepartment.isEmpty()) {
 		            for (Department department : allDepartment) {
+						try {
+		                String deptName = department.getName();
 
-		                if (department.getName().equals("Super Admin") ||
-		                    department.getName().equals("Director") ||
-		                    department.getName().equals("unKnown Department")) {
-		                    continue;
-		                }    
+						if ("Super Admin".equals(deptName) ||
+							"Director".equals(deptName) ||
+							"unKnown Department".equals(deptName)) {
+							continue;
+						} 
 		                Set<String> defaulterEmails = new HashSet<>();
 		                List<TimesheetDTO> dtoList = new ArrayList<>();
 
@@ -4617,13 +4624,16 @@ public class CronJobService {
 		                	        ts -> ts[1] != null ? Long.parseLong(ts[1].toString()) : 0L
 		                	    ));
 		                List<Object[]> employeeList = employeeRepository.getEmployeeByDepartmentId(department.getDeptId());
-		                System.out.println("Employee List (Total: " + employeeList.size() + "):");
+		                log.info("Employee List Size for {} : {}",
+										department.getName(),
+										employeeList == null ? 0 : employeeList.size());
 		                String hodMail = null;
 
 
 						for (Object[] emp : employeeList) {
-		                    System.out.println("  -> A-" + emp[0] + " | Email: " + emp[3]);
-		                    System.out.println(Arrays.toString(emp));
+							   try {
+		                    // System.out.println("  -> A-" + emp[0] + " | Email: " + emp[3]);
+		                    log.debug("Employee record: {}", Arrays.toString(emp));
 
 
 		                    TimesheetDTO dto = new TimesheetDTO();
@@ -4667,12 +4677,18 @@ public class CronJobService {
 		                    }
 
 		                    dtoList.add(dto);
+						}catch (Exception e) {
+
+                            log.error("Error processing employee record: {}", Arrays.toString(emp), e);
+						}
+                        
 		                }
 
 
 		                dtoList = dtoList.stream()
 		                        .filter(d -> d.getPendingEodCount()!=null && d.getPendingEodCount() >= 3)
 		                        .collect(Collectors.toList());
+						log.info("Defaulters found in {} : {}", department.getName(), dtoList.size());
 		                System.out.println("Defaulters (Pending EOD ≥ 3):");
 		                for (TimesheetDTO dto : dtoList) {
 		                    System.out.println("  -> A-" + dto.getEmployeementId() + " | " + dto.getEmail() + " | Pending: " + dto.getPendingEodCount() + " | Filled Count : " + dto.getFilledTimesheetCount());
@@ -4704,10 +4720,8 @@ public class CronJobService {
 		                    }
 
 		                    html.append("</table></body></html>");
-		                    System.out.println("ttttt"+
-		                    	    html.toString()
-		                    	        .replace("><", ">\n<")
-		                    	);
+							log.debug("Generated HTML mail body:\n{}",
+								html.toString().replace("><", ">\n<"));
 		                    // Send mail to HOD + HR
 		                    try {
 		                        mailService.sendMailWithCC(
@@ -4721,16 +4735,16 @@ public class CronJobService {
 		                                        + "Regards,<br>ApMoSys Technologies"
 		                                        + html.toString()
 		                        );
-		                        System.out.println(" HOD+HR mail sent for: " + department.getName());
+		                        log.info("HOD + HR mail sent for department {}", department.getName());
 		                    } catch (MessagingException e) {
-		                        System.out.println(" Failed sending HOD+HR mail for: " + department.getName());
-		                        e.printStackTrace();
+		                        log.error("Failed sending HOD+HR mail for department {}", department.getName(), e);
 		                    }
 //
 		                    // Send mails to each individual employee
-		                    System.out.println("Individual defaulter emails (Total: " + defaulterEmails.size() + "):");
-		                    for (String email : defaulterEmails) {
-		                        System.out.println("  -> " + email);
+		                    log.info("Sending {} defaulter mails for department {}",
+        						defaulterEmails.size(), department.getName());
+							for (String email : defaulterEmails) {
+		                        log.debug("Processing email: {}", email);
 		                        try {
 		                            mailService.sendMail(
 		                                    email,
@@ -4741,19 +4755,24 @@ public class CronJobService {
 		                                            + html.toString()
 		                                            + "Regards,<br>ApMoSys Technologies"
 		                            );
+									 log.info("Mail sent successfully to {}", email);
 		                        } catch (Exception e) {
-		                            System.out.println("Failed sending mail to: " + email);
-		                            e.printStackTrace();
+		                            log.error("Failed sending mail to {}", email, e);
 		                        }
 		                    }
 		                } else {
-		                    System.out.println("No defaulters in " + department.getName());
+		                    log.info("No defaulters found in department {}", department.getName());
 		                }
+						} catch (Exception e) {
+
+                    		log.error("Error while processing department {}", 
+          					department != null ? department.getName() : "UNKNOWN", e);
+
+                }
 		            }
 		        }
 		    } catch (Exception e) {
-		        System.out.println(" Exception occurred in timesheetDefaulterWeeklyMail()");
-		        e.printStackTrace();
+		                log.error("Exception occurred in timesheetDefaulterWeeklyMail()", e);
 		    }
 		}
 
@@ -5006,7 +5025,7 @@ try {
 			String subject = null;
 			int currentYear = 0;
 
-			if(timesheetdto.getIsCron().equals("true")) {
+			if ("true".equals(timesheetdto.getIsCron())) {
 				currentYear = LocalDate.now().getYear();
 				int currentMonth = LocalDate.now().getMonthValue();
 
@@ -5014,7 +5033,7 @@ try {
 				currentDate = LocalDate.now().minusDays(1);
 				subject = "All Employee's DSR report from "+firstOfMonth+" to "+currentDate;
 
-			}else if(timesheetdto.getIsCron().equals("false")) {
+			}else if ("false".equals(timesheetdto.getIsCron())) {
 				int month = Month.valueOf(timesheetdto.getMonth().toUpperCase()).getValue();
 				currentYear = LocalDate.now().getYear();
 
@@ -5022,6 +5041,7 @@ try {
 				currentDate = YearMonth.of(timesheetdto.getYear(), month).atEndOfMonth();
 				subject = "All Employee's DSR report of month : "+timesheetdto.getMonth() + " " + currentYear;
 			}
+			        log.info("Generating DSR report from {} to {}", firstOfMonth, currentDate);
 
 
 			String fileName = "EmployeeDSR"+"-"+firstOfMonth.getMonth()+".xlsx";
@@ -5052,6 +5072,19 @@ try {
 					int rowNum = 1;
 
 					List<Object[]> employeeList = employeeRepository.getEmployeeDetailForDSRCron(firstOfMonth, currentDate);
+					if (employeeList == null || employeeList.isEmpty()) {
+
+						log.warn("No employee data found for DSR report between {} and {}",
+								firstOfMonth, currentDate);
+
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("No employee data found.");
+						return response;
+					}
+
+					log.info("Total employees fetched: {}", employeeList.size());
+					
+
 					 List<Long> empIds = employeeList.stream()
 				                .map(e -> Long.parseLong(e[0].toString()))
 				                .collect(Collectors.toList());
@@ -5059,6 +5092,7 @@ try {
 				                employeeTimesheetsNewRepository
 				                        .fetchTimesheetDataWithDateTypeForEmployees(
 				                                empIds, firstOfMonth, currentDate);
+					log.info("Total timesheets fetched: {}", allTimesheets.size());
 					 Map<Long, List<EmployeeTimesheetsNewDTO>> timesheetMap =
 				                allTimesheets.stream()
 				                        .collect(Collectors.groupingBy(
@@ -5158,6 +5192,7 @@ try {
 						        rowNum++;
 
 						    } else {
+								log.debug("No activity found for timesheet {}", ts.getTimesheetId());
 						        List<Object[]> empLeave =
 						                employeeLeaveRepository
 						                        .findLeaveTypeFromEmpIdAndDate(
@@ -5201,14 +5236,18 @@ try {
 
 						        rowNum++;
 
-						        System.out.println("Activity List is empty");
 						    }							
 						}
 							
 					}
 					wb.finish();
 				}catch(Exception e) {
-					e.printStackTrace();
+					// e.printStackTrace();
+					log.error("Error while generating DSR report", e);
+					 response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+					response.setServiceResponse("Failed to generate DSR report.");
+
+					return response;
 				}
 
 				// Send mail
@@ -5229,7 +5268,8 @@ try {
 				 }
 
 		}catch(Exception e) {
-			e.printStackTrace();
+			// e.printStackTrace();
+			log.error("Unexpected error in allEmployeeDsrReport()", e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
