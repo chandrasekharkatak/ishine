@@ -7710,7 +7710,7 @@ List<Object[]> getClientAndProjectDataList(
 			+ "			        AND (etm.end_date IS NULL OR etm.end_date >= (SELECT from_date FROM Date_Parameters))\n"
 			+ "GROUP BY etm.team_id,t.team_name,etm.emp_id,e.name,etm.employee_role,e.billable_type,DATE(etm.start_date),DATE(etm.end_date),e.billable ,\n"
 			+ "p.active,p.project_id,p.project_name,p.start_date,p.end_date,c.client_id,c.client_name,s.name,tl.name,etm.employee_team_map_id,p.internal_project_type,\n"
-			+ "p.po_project_type,e.reporting_manager_id,ecsm.client_side_id,p.clientrm,e.is_apmosys_product,e.employeement_id,d.name,e.email,e.mobile_no,e.employmentstatus\n"
+			+ "p.po_project_type,e.reporting_manager_id,ecsm.client_side_id,e.is_apmosys_product,e.employeement_id,d.name,e.email,e.mobile_no,e.employmentstatus\n"
 			+ "			    ),\n"
 			+ "			    Project_Manager_Summary AS (\n"
 			+ "			        SELECT p.project_id,\n"

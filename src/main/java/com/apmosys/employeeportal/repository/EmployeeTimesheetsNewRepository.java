@@ -5094,7 +5094,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "            etm.team_id, t.team_name, etm.emp_id, e.name, etm.employee_role, e.billable_type,\n"
 			+ "            date(etm.start_date) as start_date, date(etm.end_date) as end_date, etm.employee_team_map_id,\n"
 			+ "            etm.active, p.project_id, p.project_name,\n"
-			+ "            c.client_id, c.client_name, ecsm.client_side_id, p.po_no,\n"
+			+ "            c.client_id, c.client_name, ecsm.client_side_id, GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no,\n" 
 			+ "            s.name AS spoc, tl.name AS teamLead, \n"
 			+ "            e.reporting_manager_id, e.employmentstatus, d.name AS dept_name,\n"
 			+ "             CASE\n"
@@ -5103,6 +5103,10 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "						END AS employement_id,\n"
 			+ "				p.active as projectActive\n"
 			+ "        FROM projects p\n"
+			+"		   LEFT JOIN project_po_details ppd "
+			+"		   ON ppd.project_id = p.project_id  and ppd.active = true "
+			+"		   AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters) "
+			+"		   AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= (SELECT from_date FROM Date_Parameters)) "
 			+ "        INNER JOIN teams t ON p.project_id = t.project_id\n"
 			+ "        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
 			+ "        INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
@@ -5125,6 +5129,30 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "	) \n"
 			+ "        AND DATE(etm.start_date) <= (SELECT to_date FROM Date_Parameters)\n"
 			+ "        AND (etm.end_date IS NULL OR DATE(etm.end_date) >= (SELECT from_date FROM Date_Parameters))\n"
+			+ "  GROUP BY\n" + 
+			"    etm.team_id,\n" + 
+			"    t.team_name,\n" + 
+			"    etm.emp_id,\n" + 
+			"    e.name,\n" + 
+			"    etm.employee_role,\n" + 
+			"    e.billable_type,\n" + 
+			"    date(etm.start_date),\n" + 
+			"    date(etm.end_date),\n" + 
+			"    etm.employee_team_map_id,\n" + 
+			"    etm.active,\n" + 
+			"    p.project_id,\n" + 
+			"    p.project_name,\n" + 
+			"    c.client_id,\n" + 
+			"    c.client_name,\n" + 
+			"    ecsm.client_side_id,\n" + 
+			"    s.name,\n" + 
+			"    tl.name,\n" + 
+			"    e.reporting_manager_id,\n" + 
+			"    e.employmentstatus,\n" + 
+			"    d.name,\n" + 
+			"    e.is_apmosys_product,\n" + 
+			"    e.employeement_id,\n" + 
+			"    p.active \n"
 			+ "    ),\n"
 			+ "        Timesheet_Base_Data AS (\n"
 			+ "        SELECT DISTINCT\n"
@@ -5915,12 +5943,16 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "            etm.team_id, t.team_name, etm.emp_id, e.name, etm.employee_role, e.billable_type,\n"
 			+ "            date(etm.start_date) as start_date, date(etm.end_date) as end_date, e.billable,\n"
 			+ "            etm.active, p.project_id, p.project_name,\n"
-			+ "            c.client_id, c.client_name, p.po_no,\n"
+			+ "            c.client_id, c.client_name, GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no,\n"
 			+ "            s.name spoc, tl.name teamLead, etm.employee_team_map_id,\n"
 			+ "            e.reporting_manager_id, ecsm.client_side_id,\n"
 			+ "            CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-',e.employeement_id) ELSE CONCAT('A-',e.employeement_id) END AS employement_id,\n"
-			+ "            d.name dept_name, e.email, e.mobile_no, p.apmosysrm, p.apmosys_rm_email, e.employmentstatus, p.active as projectActive\n"
+			+ "            d.name dept_name, e.email, e.mobile_no, GROUP_CONCAT(DISTINCT ppd.apmosys_rm SEPARATOR ', ') AS apmosysrm, GROUP_CONCAT(DISTINCT ppd.apmosys_rm_email SEPARATOR ', ') AS apmosys_rm_email, e.employmentstatus, p.active as projectActive\n"
 			+ "        FROM projects p\n"
+			+ "		   LEFT JOIN project_po_details ppd "
+			+ "		   ON ppd.project_id = p.project_id and ppd.active = true "
+			+ "		   AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters) "
+			+ "		   AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= (SELECT from_date FROM Date_Parameters)) "
 			+ "        INNER JOIN teams t ON p.project_id = t.project_id\n"
 			+ "        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
 			+ "        INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
@@ -5934,6 +5966,33 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "        WHERE p.project_id IN (SELECT project_id FROM Authorized_Project_IDs)\n"
 			+ "        AND etm.start_date <= (SELECT to_date FROM Date_Parameters)\n"
 			+ "        AND (etm.end_date IS NULL OR etm.end_date >= (SELECT from_date FROM Date_Parameters))\n"
+			+ " GROUP BY\n" + 
+			"    etm.team_id,\n" + 
+			"    t.team_name,\n" + 
+			"    etm.emp_id,\n" + 
+			"    e.name,\n" + 
+			"    etm.employee_role,\n" + 
+			"    e.billable_type,\n" + 
+			"    date(etm.start_date),\n" + 
+			"    date(etm.end_date),\n" + 
+			"    e.billable,\n" + 
+			"    etm.active,\n" + 
+			"    p.project_id,\n" + 
+			"    p.project_name,\n" + 
+			"    c.client_id,\n" + 
+			"    c.client_name,\n" + 
+			"    s.name,\n" + 
+			"    tl.name,\n" + 
+			"    etm.employee_team_map_id,\n" + 
+			"    e.reporting_manager_id,\n" + 
+			"    ecsm.client_side_id,\n" + 
+			"    e.is_apmosys_product,\n" +
+			"    e.employeement_id,\n" + 
+			"    d.name,\n" + 
+			"    e.email,\n" + 
+			"    e.mobile_no,\n" + 
+			"    e.employmentstatus,\n" + 
+			"    p.active"
 			+ "    ),\n"
 			+ "    Project_Managers_Aggregated AS (\n"
 			+ "        SELECT pm.project_id, GROUP_CONCAT(DISTINCT e2.name ORDER BY e2.name SEPARATOR ', ') AS Project_Manager_Names\n"
@@ -6695,7 +6754,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "            etm.team_id, t.team_name, etm.emp_id, e.name, etm.employee_role, e.billable_type,\n"
 			+ "            DATE(etm.start_date) AS start_date, DATE(etm.end_date) AS end_date, etm.employee_team_map_id,\n"
 			+ "            etm.active, p.project_id, p.project_name,\n"
-			+ "            c.client_id, c.client_name, ecsm.client_side_id, p.po_no,\n"
+			+ "            c.client_id, c.client_name, ecsm.client_side_id, GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no,\n"
 			+ "            s.name AS spoc, tl.name AS teamLead,\n"
 			+ "            e.reporting_manager_id, e.employmentstatus, d.name AS dept_name,\n"
 			+ "            CASE\n"
@@ -6703,6 +6762,10 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "                ELSE CONCAT('A-', e.employeement_id)\n"
 			+ "            END AS employement_id\n"
 			+ "        FROM projects p\n"
+			+ "		   LEFT JOIN project_po_details ppd "
+			+ "		   ON ppd.project_id = p.project_id  and ppd.active = true "
+			+ "		   AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters) "
+			+ "		   AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= (SELECT from_date FROM Date_Parameters)) "
 			+ "        INNER JOIN teams t ON p.project_id = t.project_id\n"
 			+ "        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
 			+ "        INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
@@ -6788,6 +6851,29 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "                OR (:clientSideFilter = 'true' AND p.client_flag = 1)\n"
 			+ "                OR (:clientSideFilter = 'false' AND (p.client_flag = 0 OR p.client_flag IS NULL))\n"
 			+ "          )\n"
+			+ " GROUP BY\n"
+			+ "    etm.team_id,\n"
+			+ "    t.team_name,\n"
+			+ "    etm.emp_id,\n"
+			+ "    e.name,\n"
+			+ "    etm.employee_role,\n"
+			+ "    e.billable_type,\n"
+			+ "    DATE(etm.start_date),\n"
+			+ "    DATE(etm.end_date),\n"
+			+ "    etm.employee_team_map_id,\n"
+			+ "    etm.active,\n"
+			+ "    p.project_id,\n"
+			+ "    p.project_name,\n"
+			+ "    c.client_id,\n"
+			+ "    c.client_name,\n"
+			+ "    ecsm.client_side_id,\n"
+			+ "    s.name,\n"
+			+ "    tl.name,\n"
+			+ "    e.reporting_manager_id,\n"
+			+ "    e.employmentstatus,\n"
+			+ "    d.name,\n"
+			+ "    e.is_apmosys_product,\n"
+			+ "    e.employeement_id "
 			+ "    ),\n"
 			+ "\n"
 			+ "    /* ===========================\n"
@@ -7229,7 +7315,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "            etm.team_id, t.team_name, etm.emp_id, e.name, etm.employee_role, e.billable_type,\n"
 			+ "            date(etm.start_date) as start_date, date(etm.end_date) as end_date, etm.employee_team_map_id,\n"
 			+ "            etm.active, p.project_id, p.project_name,\n"
-			+ "            c.client_id, c.client_name, ecsm.client_side_id, p.po_no,\n"
+			+ "            c.client_id, c.client_name, ecsm.client_side_id, GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no,\n"
 			+ "            s.name AS spoc, tl.name AS teamLead, \n"
 			+ "            e.reporting_manager_id, e.employmentstatus, d.name AS dept_name,\n"
 			+ "             CASE\n"
@@ -7237,6 +7323,10 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ "							ELSE CONCAT('A-',e.employeement_id)\n"
 			+ "						END AS employement_id\n"
 			+ "        FROM projects p\n"
+			+ "		   LEFT JOIN project_po_details ppd "
+			+ "		   ON ppd.project_id = p.project_id  and ppd.active = true "
+			+ "		   AND DATE(ppd.po_start_date) <= (SELECT to_date FROM Date_Parameters) "
+			+ "		   AND (ppd.po_end_date IS NULL OR DATE(ppd.po_end_date) >= (SELECT from_date FROM Date_Parameters)) "
 			+ "        INNER JOIN teams t ON p.project_id = t.project_id\n"
 			+ "        INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
 			+ "        INNER JOIN employee e ON e.emp_id = etm.emp_id\n"
@@ -7268,6 +7358,29 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 			+ " AND e.emp_id not between 1 and 6 \n"
 			+ "        AND DATE(etm.start_date) <= (SELECT to_date FROM Date_Parameters)\n"
 			+ "        AND (etm.end_date IS NULL OR DATE(etm.end_date) >= (SELECT from_date FROM Date_Parameters))\n"
+			+ "GROUP BY\n"
+			+ "    etm.team_id,\n"
+			+ "    t.team_name,\n"
+			+ "    etm.emp_id,\n"
+			+ "    e.name,\n"
+			+ "    etm.employee_role,\n"
+			+ "    e.billable_type,\n"
+			+ "    date(etm.start_date),\n"
+			+ "    date(etm.end_date),\n"
+			+ "    etm.employee_team_map_id,\n"
+			+ "    etm.active,\n"
+			+ "    p.project_id,\n"
+			+ "    p.project_name,\n"
+			+ "    c.client_id,\n"
+			+ "    c.client_name,\n"
+			+ "    ecsm.client_side_id,\n"
+			+ "    s.name,\n"
+			+ "    tl.name,\n"
+			+ "    e.reporting_manager_id,\n"
+			+ "    e.employmentstatus,\n"
+			+ "    d.name,\n"
+			+ "    e.is_apmosys_product,\n"
+			+ "    e.employeement_id"
 			+ "    ),\n"
 			+ "        Timesheet_Base_Data AS (\n"
 			+ "        SELECT DISTINCT\n"
