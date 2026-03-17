@@ -1366,6 +1366,7 @@ sortData(sort: Sort) {
 
 
   openPreviewModalForTwo(docType: 'doc1' | 'doc2'): void {
+    this.openPreview();
     this.previewUrl = docType === 'doc1' ? this.previewUrl1 : this.previewUrl2;
     this.fileType = docType === 'doc1'
       ? (this.selectedFile?.type === 'application/pdf' ? 'pdf' : 'image')
@@ -2080,10 +2081,12 @@ sortData(sort: Sort) {
 
 
 
-get transformStyle() {
-  return `translate(${this.translateX}px, ${this.translateY}px) scale(${this.zoomScale})`;
-}
-
+  get transformStyle() {
+    if (this.zoomScale <= 1) {
+      return `scale(${this.zoomScale})`; // no translate when normal
+    }
+    return `translate(${this.translateX}px, ${this.translateY}px) scale(${this.zoomScale})`;
+  }
 
 
 
@@ -3347,11 +3350,14 @@ clearPreview(): void {
   }
 }
 zoomIn(): void {
-  this.scale = Math.min(this.scale + 0.2, 3);
+  console.log("Zoomed in");
+  this.zoomScale = Math.min(this.zoomScale + 0.2, 3);
+  this.zoomLevel = Math.round(this.zoomScale * 100);
 }
 
 zoomOut(): void {
-  this.scale = Math.max(this.scale - 0.2, 0.5);
+  this.zoomScale = Math.max(this.zoomScale - 0.2, 0.5);
+  this.zoomLevel = Math.round(this.zoomScale * 100);
 }
 
 rotate(): void {
@@ -3624,6 +3630,12 @@ this.timesheetNewService.processBulkTimesheets(payload).pipe(finalize(() => this
 
   }
 });
+}
+
+openPreview() {
+  this.zoomScale = 1;
+  this.translateX = 0;
+  this.translateY = 0;
 }
 }
 

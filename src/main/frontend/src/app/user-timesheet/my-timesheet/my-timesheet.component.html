@@ -601,7 +601,7 @@
                             <strong>{{ location.workLocationType }}</strong>
                             <span class="ts-meta">
                               <i class="far fa-clock"></i>
-                              {{ location.locationInTime || 'NA' }} – {{ location.locationOutTime || 'NA' }}
+                              {{ location.locationInTime ? (location.locationInTime | date:'dd-MM-yyyy HH:mm') : 'NA' }} – {{ location.locationOutTime ? (location.locationOutTime | date:'dd-MM-yyyy HH:mm') : 'NA' }}
                             </span>
                             <span class="ts-meta">
                               <strong>Total:</strong> {{ getTotalLocationHours(location) }}

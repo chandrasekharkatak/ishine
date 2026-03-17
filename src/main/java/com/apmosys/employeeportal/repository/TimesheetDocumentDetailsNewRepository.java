@@ -128,8 +128,8 @@ public interface TimesheetDocumentDetailsNewRepository extends JpaRepository<Tim
 				"INNER JOIN TimesheetDocumentDetailsNew tdd on tdd.timesheetId = etn.timesheetId AND tdd.projectId = ptsn.id.projectId\n" +
 				"WHERE p.hasClientSideId = 1 \n" +
 				"AND etn.dayTypeId IN (1,3,8) \n" + 
-				"AND (etn.status = 3 \n" +
-				" OR tdd.bulkApprovedDocId IS NULL) \n"+
+				"AND (etn.status = 3 OR etn.status = 1) \n" +
+				// " OR tdd.bulkApprovedDocId IS NULL) \n"+
 				"AND ptsn.id.projectId = :projectId \n" + 
 				"AND etn.date BETWEEN :fromDate AND :toDate \n" +
 				"AND etn.empId IN :empIds")
