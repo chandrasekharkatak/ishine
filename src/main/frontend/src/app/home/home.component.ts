@@ -3366,6 +3366,9 @@ onFileSelected(event: any) {
     return;
   }
 
+  const uniquefile =this.selectedMilestone.id+'_'+file.name
+  this.validateFileName(uniquefile,"extended")
+
   this.documentName = file.name;
   this.documentType = file.type;
   this.documentContent = file; 
@@ -3376,6 +3379,28 @@ onFileSelected(event: any) {
     this.previewUrlForMileStone = url;
   }
 }
+
+validateFileName(uniquefile: any,type:any) {
+  this.projectService.validateDocName(uniquefile).subscribe({
+    next: (response: any) => {
+      if (response.serviceStatus === 'Success') {
+        // No duplicate
+        console.error(response.serviceResponse);
+      } else if (response.serviceStatus === 'Fail') {
+        // Duplicate found
+        this.resetFileData();
+        this.openUpdateProjectCompletionModal(response.serviceResponse);
+        return false;        
+      }
+    },
+    error: (error) => {
+        this.resetFileData();
+        this.openUpdateProjectCompletionModal("Error while validating file. Kindly try after sometime!!");
+        return false;        
+    }
+  });
+}
+
 
 previewExtensionFile() {
 

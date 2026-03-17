@@ -4701,7 +4701,7 @@
               </label>
           
               <label class="doc-dropzone" [class.has-file]="selectedFile">
-                <input type="file" class="doc-input" (change)="onFileSelected($event)"
+                <input type="file" class="doc-input" (change)="onFileSelected($event,projectMilestone)"
                   accept=".jpg,.jpeg,.png" #fileInput />
                 <div class="doc-idle" *ngIf="!selectedFile">
                   <div class="doc-upload-icon">

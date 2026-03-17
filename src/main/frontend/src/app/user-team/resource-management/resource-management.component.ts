@@ -6572,7 +6572,7 @@ cancelComplete() {
   }
 
 
-  onFileSelected(event: any): void {
+  onFileSelected(event: any,projectMilestone:any): void {
     const file: File = event.target.files[0];
 
     this.selectedFile = null;
@@ -6595,7 +6595,8 @@ cancelComplete() {
       this.openAlertMod(this.alertTemplateForMilestone, "File size should be less than 25MB!!");
       return;
     }
-
+      const uniquefile =projectMilestone.id+'_'+file.name
+      this.validateFileName(uniquefile,"status");
       const reader = new FileReader();
       reader.onload = () => {
       this.selectedFilePreviewUrl = reader.result as string;};
@@ -8465,11 +8466,11 @@ onExtensionFileSelected(event: any,projectMilestone:any) {
   }
   
   const uniquefile =projectMilestone.id+'_'+file.name
-  this.validateFileName(uniquefile)
+  this.validateFileName(uniquefile,"extended")
   this.projectMilestone.extensionFile = file;
 }
 
-validateFileName(uniquefile: any) {
+validateFileName(uniquefile: any,type:any) {
   this.projectService.validateDocName(uniquefile).subscribe({
     next: (response: any) => {
       if (response.serviceStatus === 'Success') {
@@ -8477,13 +8478,13 @@ validateFileName(uniquefile: any) {
         console.error(response.serviceResponse);
       } else if (response.serviceStatus === 'Fail') {
         // Duplicate found
-        this.projectMilestone.extensionFile = null;
+        type==="extended"?this.projectMilestone.extensionFile = null:this.selectedFile = null;
         this.openAlertMod(this.alertTemplateForMilestone, response.serviceResponse);
         return false;        
       }
     },
     error: (error) => {
-        this.projectMilestone.extensionFile = null;
+        type==="extended"?this.projectMilestone.extensionFile = null:this.selectedFile = null;
         this.openAlertMod(this.alertTemplateForMilestone,"Error while validating file. Kindly try after sometime!!");
         return false;        
     }

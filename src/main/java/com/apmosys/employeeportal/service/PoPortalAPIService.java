@@ -156,7 +156,7 @@ public class PoPortalAPIService {
     @Value("${poPortal.api.getExtensionDocumentById}")
 	private String getExtensionDocumentById;
     
-    @Value("${poPortal.api.getExtensionDocumentById}")
+    @Value("${poPortal.api.validateDocName}")
 	private String validateDocName;
     
     @Autowired
