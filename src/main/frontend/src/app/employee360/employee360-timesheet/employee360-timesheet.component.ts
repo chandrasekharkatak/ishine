@@ -524,7 +524,7 @@ activeCalTab: string = 'Last 7 Days';
   }
 
   findByProject(projectId: number, projectName: string) {
-    alert(projectId);
+    // alert(projectId);
     this.isProjectTeamClicked = true;
     this.projectClicked = true;
     this.allSelected = false;

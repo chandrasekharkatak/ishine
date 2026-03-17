@@ -219,7 +219,8 @@
             </ng-container>
             <ng-container *ngIf="!(item.timeSheetlist?.length > 1)">
               <span class="ts360-project-link" *ngIf="!isProjectTeamClicked"
-                (click)="findByProject(item.projectName, item.projectId)">
+              [navigateToProjectView]="item.projectId"
+                (click)="findByProject(item.projectId, item.projectName)">
                 {{ item.projectName || '—' }}
               </span>
               <span *ngIf="isProjectTeamClicked" [navigateToProjectView]="item.projectId">
@@ -303,10 +304,8 @@
                   <span class="ts360-act-index">Activity {{ ai + 1 }}</span>
                   <span class="ts360-act-project">
                     <span class="ts360-project-link" *ngIf="!isProjectTeamClicked"
-                      (click)="findByProject(act.projectName, act.projectId)">
-                      {{ act.projectName || '—' }}
-                    </span>
-                    <span *ngIf="isProjectTeamClicked" [navigateToProjectView]="act.projectId">
+                    [navigateToProjectView]="item.projectId"
+                      (click)="findByProject(act.projectId,act.projectName)">
                       {{ act.projectName || '—' }}
                     </span>
                   </span>
