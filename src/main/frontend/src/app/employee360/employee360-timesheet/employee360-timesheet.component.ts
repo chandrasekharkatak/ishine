@@ -713,51 +713,87 @@ let encryptedEmployeeData = localStorage.getItem('employee360Data');
     tab.classList.add('active');
     let activeRouteLink = tab.getAttribute('routerLink');
   }
-
-  transformData(originalData: any) {
+  transformData(originalData: any[]) {
     let transformedData = [];
+    const empName = originalData.find(t => t.createdBy == t.empId)?.employeeName
+      || originalData[0]?.employeeName
+      || '—';
 
-    Object.values(originalData).forEach((employee: any) => {
-      let isFirstActivity = true;
-      // this.managerId=21865;
-      if (this.managerId == employee.managerId) {
+    const empId = originalData[0]?.employmentId;
+    originalData.forEach((timesheet: any) => {
+      if (this.managerId == timesheet.currentManagerId) {
         this.actionButton = true;
-      } else { this.actionButton = false; }
-      const totalActivitiesCount = employee.timeSheetlist.length;
-      employee.timeSheetlist.forEach(items => {
-        let showProject = true;
-        transformedData.push({
-          empId: employee.empId,
-          employmentId: "A-" + employee.employmentId,
-          name: employee.name,
-          date: employee.date,
-          officeInTime: employee.officeInTime,
-          officeOutTime: employee.officeOutTime,
-          totalTime: employee.totalTime,
-          nightShift: employee.nightShift,
-          status: employee.status,
-          createdOn: employee.createdOn,
-          dayType: employee.dayType,
-          completionTime: items.completionTime,
-          activity: items.activity,
-          projectName: items.projectName,
-          teamName: items.teamName,
-          teamId: items.teamId,
-          projectId: items.projectId,
-          activityId: items.activityId,
-          timesheetId: items.timesheetId,
-          empActivitiesCountForDay: totalActivitiesCount,
-          showProject: showProject,
-          showEmpId: isFirstActivity,
-          selected: false,
-          timeSheetlist: employee.timeSheetlist,
+      } else {
+        this.actionButton = false;
+      }
+
+      const locationSessions = timesheet.locationSessions || [];
+
+
+      let allProjects: any[] = [];
+      locationSessions.forEach((loc: any) => {
+        (loc.projects || []).forEach((proj: any) => {
+          allProjects.push({ ...proj, locationMappingId: loc.locationMappingId });
         });
-        isFirstActivity = false;
-        showProject = false;
+      });
+
+
+      let totalActivities = 0;
+      allProjects.forEach(proj => {
+        totalActivities += (proj.activities?.length || 0);
+      });
+
+
+      const firstProject = allProjects[0] || null;
+      const firstActivity = firstProject?.activities?.[0] || null;
+
+
+      transformedData.push({
+        name: empName,
+        employmentId: empId ? "A-" + empId : '—',
+        empId: empId,
+        date: timesheet.date,
+        officeInTime: timesheet.workCheckIn,
+        officeOutTime: timesheet.workCheckOut,
+        totalTime: timesheet.totalWorkingMinutes
+          ? (timesheet.totalWorkingMinutes / 60).toFixed(2)
+          : '0',
+        nightShift: timesheet.isNightShift,
+        status: this.mapStatusToString(timesheet.status),
+        timesheetId: timesheet.timesheetId,
+        createdOn: timesheet.createdOn,
+        dayType: timesheet.dayType,
+
+        projectName: firstProject?.projectName || "NA",
+        projectId: firstProject?.projectId || null,
+        teamId: firstActivity?.teamId || null,
+        completionTime: firstProject?.totalClientWorkingMinutes
+          ? (firstProject.totalClientWorkingMinutes / 60).toFixed(2)
+          : null,
+        activity: firstActivity?.activity || null,
+
+        totalProjects: allProjects.length,
+        totalActivities: totalActivities,
+
+        showEmpId: true,
+        showProject: true,
+        selected: false,
+
+        locationSessions: locationSessions,
+        teamName: timesheet.teamName
       });
     });
 
     return transformedData;
+  }
+
+  mapStatusToString(status: number): string {
+    switch (status) {
+      case 1: return 'Pending';
+      case 2: return 'Approved';
+      case 3: return 'Rejected';
+      default: return 'Unknown';
+    }
   }
 
 //   get360TimesheetDetails(activeButton:string,empId:number,projectId:number,teamName:string,managerId:number,formattedStartDate:string,formattedEndDate:string) {
@@ -850,6 +886,18 @@ async get360TimesheetDetails(
   formattedEndDate: string
 ): Promise<void> {
   console.log(this.activeButton);
+  const endDate = this.formatDateForApi(
+    formattedEndDate && formattedEndDate !== 'null'
+      ? formattedEndDate
+      : new Date().toISOString().split('T')[0]
+  );
+
+  const startDate = this.formatDateForApi(
+    formattedStartDate && formattedStartDate !== 'null'
+      ? formattedStartDate
+      : new Date(new Date().setMonth(new Date().getMonth() - 3))
+        .toISOString().split('T')[0]
+  );  // 3 months ago as yyyy-MM-dd
 
   try {
 
@@ -860,14 +908,14 @@ async get360TimesheetDetails(
       projectId,
       teamName,
       // managerId,
-      formattedStartDate,
-      formattedEndDate
+      startDate,
+      endDate,
     ).toPromise();
 
     if (response.serviceStatus === "Success") {
       console.log("=> serviceResponse", response.serviceResponse);
       this.data = response.serviceResponse;
-      this.data = Object.values(this.data);
+      // this.data = Object.values(this.data);
       this.responseCount = this.data.length;
       this.result = this.transformData(this.data);
       this.result.forEach((employee) => {
@@ -918,7 +966,26 @@ if (encryptedUser) {
     console.error("Error fetching data:", error);
   }
 }
+  mapStatusToInt(status: string): number | null {
+    switch (status) {
+      case 'Pending': return 1;
+      case 'Approved': return 2;
+      case 'Rejected': return 3;
+      default: return null;
+    }
+  }
 
+  formatDateForApi(dateStr: string): string {
+    if (!dateStr || dateStr === 'null') return '';
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+
+    const parts = dateStr.split('-');
+    if (parts.length === 3 && parts[0].length === 2) {
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+    return dateStr;
+  }
     clearBreadcrumbs(){
       window.location.reload()
     }

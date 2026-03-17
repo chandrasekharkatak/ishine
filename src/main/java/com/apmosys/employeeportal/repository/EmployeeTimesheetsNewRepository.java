@@ -355,7 +355,7 @@ public interface EmployeeTimesheetsNewRepository extends JpaRepository<EmployeeT
 	public List<Object[]> getAllMyTeamTimesheets(Long createdBy, LocalDate start, LocalDate end);
 	
 	@Query(nativeQuery = true)
-	public List<Object[]> getAllMyTimesheets(Long empId, LocalDate start, LocalDate end);
+	public List<Object[]> getAllMyTimesheets(Long empId, LocalDate start, LocalDate end,Integer status);
 
 	/**
 	 * Lightweight timesheet metadata for a single employee in a date range.

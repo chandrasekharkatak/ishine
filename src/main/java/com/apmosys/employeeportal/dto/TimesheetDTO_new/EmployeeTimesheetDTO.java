@@ -193,7 +193,8 @@ public class EmployeeTimesheetDTO {
 	}
     
     
-    
+    private Long employmentId;
+    private String teamName;
     
 }
 

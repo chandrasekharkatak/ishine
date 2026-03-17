@@ -182,157 +182,182 @@
         | sort:[sortColumn,sortColumnType,sortDirection];
         let i = index">
 
-      <!-- ── Parent row: only render for showEmpId rows ── -->
-      <ng-container *ngIf="item.showEmpId">
+      <!-- ── Parent row ── -->
+      <tr class="ts360-row ts360-row--parent" [class.ts360-row--expanded]="expandedRows.has(item.timesheetId)">
 
-        <!-- Main row -->
-        <tr class="ts360-row ts360-row--parent" [class.ts360-row--expanded]="expandedRows.has(item.timesheetId)">
-<td class="ts360-td ts360-td--sm" style="padding: 0; text-align:center;">
-  <button *ngIf="item.timeSheetlist?.length > 1" class="ts360-action-btn ts360-action-btn--expand"
-    [title]="expandedRows.has(item.timesheetId) ? 'Collapse' : 'Expand activities'"
-    (click)="toggleRow(item.timesheetId)">
-    <i class="fas" [ngClass]="expandedRows.has(item.timesheetId) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
-  </button>
-</td>
-          <td class="ts360-td ts360-td--sm ts360-td--muted">{{ i + 1 }}</td>
+        <!-- Expand chevron column -->
+        <td class="ts360-td ts360-td--sm" style="padding:0; text-align:center;">
+          <button *ngIf="item.locationSessions?.length > 0" class="ts360-action-btn ts360-action-btn--expand"
+            [title]="expandedRows.has(item.timesheetId) ? 'Collapse' : 'Expand'" (click)="toggleRow(item.timesheetId)">
+            <i class="fas" [ngClass]="expandedRows.has(item.timesheetId) ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+          </button>
+        </td>
 
-          <td class="ts360-td ts360-td--muted ts360-td--mono">{{ item.employmentId }}</td>
+        <td class="ts360-td ts360-td--sm ts360-td--muted">{{ i + 1 }}</td>
+        <td class="ts360-td ts360-td--muted ts360-td--mono">{{ item.employmentId }}</td>
 
-          <td class="ts360-td" [navigateToEmployee360]="item.emp360" (click)="clearBreadcrumbs()"
-            title="View Employee 360">
-            <span class="ts360-emp-link">{{ item.name }}</span>
-          </td>
+        <td class="ts360-td" [navigateToEmployee360]="item.emp360" (click)="clearBreadcrumbs()" title="View Employee 360">
+          <span class="ts360-emp-link">{{ item.name }}</span>
+        </td>
 
-          <td class="ts360-td ts360-td--mono ts360-td--muted">{{ item.date | date:'dd-MM-yyyy' }}</td>
+        <td class="ts360-td ts360-td--mono ts360-td--muted">{{ item.date | date:'dd-MM-yyyy' }}</td>
 
-          <td class="ts360-td">
-            <span class="ts360-chip ts360-chip--grey">{{ item.dayType }}</span>
-          </td>
+        <td class="ts360-td">
+          <span class="ts360-chip ts360-chip--grey">{{ item.dayType }}</span>
+        </td>
 
-          <!-- Project -->
-          <td class="ts360-td ts360-td--project">
-            <ng-container *ngIf="item.timeSheetlist?.length > 1">
-              <span class="ts360-multi-badge">
-                <i class="fas fa-layer-group"></i>
-                {{ item.timeSheetlist.length }} activities
-              </span>
-            </ng-container>
-            <ng-container *ngIf="!(item.timeSheetlist?.length > 1)">
-              <span class="ts360-project-link" *ngIf="!isProjectTeamClicked"
-              [navigateToProjectView]="item.projectId"
-                (click)="findByProject(item.projectId, item.projectName)">
-                {{ item.projectName || '—' }}
-              </span>
-              <span *ngIf="isProjectTeamClicked" [navigateToProjectView]="item.projectId">
-                {{ item.projectName || '—' }}
-              </span>
-            </ng-container>
-          </td>
-
-          <!-- Team -->
-          <td class="ts360-td" [class.ts360-td--clickable]="!(item.timeSheetlist?.length > 1) && !isProjectTeamClicked"
-            (click)="!(item.timeSheetlist?.length > 1) && !isProjectTeamClicked && findByTeam(item.teamName, item.teamId)">
-            <ng-container *ngIf="!(item.timeSheetlist?.length > 1)">{{ item.teamName || '—' }}</ng-container>
-            <ng-container *ngIf="item.timeSheetlist?.length > 1">—</ng-container>
-          </td>
-
-          <!-- Hrs -->
-          <td class="ts360-td ts360-td--num ts360-td--mono">
-            {{ item.timeSheetlist?.length > 1 ? '—' : item.completionTime }}
-          </td>
-
-          <!-- Activity -->
-          <td class="ts360-td ts360-td--muted">
-            {{ item.timeSheetlist?.length > 1 ? '—' : (item.activity || '—') }}
-          </td>
-
-          <td class="ts360-td ts360-td--num ts360-td--mono ts360-td--muted">
-            {{ item.officeInTime | date:'shortTime' }}
-          </td>
-          <td class="ts360-td ts360-td--num ts360-td--mono ts360-td--muted">
-            {{ item.officeOutTime | date:'shortTime' }}
-          </td>
-          <td class="ts360-td ts360-td--num ts360-td--mono ts360-td--bold">{{ item.totalTime }} hrs</td>
-
-          <td class="ts360-td">
-            <span class="ts360-chip"
-              [ngClass]="item.nightShift === 'true' || item.nightShift === true ? 'ts360-chip--night' : 'ts360-chip--regular'">
-              <i class="fas"
-                [ngClass]="item.nightShift === 'true' || item.nightShift === true ? 'fa-moon' : 'fa-sun'"></i>
-              {{ item.nightShift === 'true' || item.nightShift === true ? 'Night' : 'Day' }}
+        <!-- Project summary -->
+        <td class="ts360-td ts360-td--project">
+          <ng-container *ngIf="item.totalProjects > 1">
+            <span class="ts360-multi-badge">
+              <i class="fas fa-layer-group"></i>
+              {{ item.totalProjects }} projects
             </span>
-          </td>
+          </ng-container>
+          <ng-container *ngIf="item.totalProjects === 1">
+            <span class="ts360-project-link" *ngIf="!isProjectTeamClicked" [navigateToProjectView]="item.projectId"
+              (click)="findByProject(item.projectId, item.projectName)">
+              {{ item.projectName || 'NA' }}
+            </span>
+            <span *ngIf="isProjectTeamClicked" [navigateToProjectView]="item.projectId">
+              {{ item.projectName || 'NA' }}
+            </span>
+          </ng-container>
+          <ng-container *ngIf="!item.totalProjects || item.totalProjects === 0">
+            <span class="ts360-td--muted">NA</span>
+          </ng-container>
+        </td>
 
-          <td class="ts360-td">
-            <span class="ts360-badge" [ngClass]="{
-              'ts360-badge--pending':  item.status === 'Pending',
-              'ts360-badge--approved': item.status === 'Approved',
-              'ts360-badge--rejected': item.status === 'Rejected'
-            }">{{ item.status }}</span>
-          </td>
+        <!-- Team -->
+        <td class="ts360-td">{{ item.teamName ? item.teamName : 'NA' }}</td>
 
-          <td class="ts360-td ts360-td--mono ts360-td--muted">{{ item.createdOn | date:'dd-MM-yyyy' }}</td>
+        <!-- Hrs -->
+        <td class="ts360-td ts360-td--num ts360-td--mono">
+          {{ item.totalProjects > 1 ? 'NA' : (item.completionTime || 'NA') }}
+        </td>
 
-          <td class="ts360-td ts360-td--actions">
-            <div class="ts360-actions">
-              <ng-container *ngIf="activeButton === 'Pending' && actionButton">
-                <button class="ts360-action-btn ts360-action-btn--approve" title="Approve"
-                  (click)="update('Approved', item.empId, item.date)">
-                  <i class="fas fa-check"></i>
-                </button>
-                <button class="ts360-action-btn ts360-action-btn--reject" title="Reject"
-                  (click)="update('Rejected', item.empId, item.date)">
-                  <i class="fas fa-xmark"></i>
-                </button>
-              </ng-container>
-              <ng-container *ngIf="!(activeButton === 'Pending' && actionButton)">
-                <span class="ts360-td--muted">—</span>
-              </ng-container>
-              <!-- Expand chevron: only if multiple activities -->
+        <!-- Activity -->
+        <td class="ts360-td ts360-td--muted">
+          {{ item.totalProjects > 1 ? 'NA' : (item.activity || 'NA') }}
+        </td>
 
-            </div>
-          </td>
-        </tr>
+      <td class="ts360-td ts360-td--num ts360-td--mono ts360-td--muted">
+        {{ item.officeInTime ? (item.officeInTime | date:'dd-MM-yyyy HH:mm') : 'NA' }}
+      </td>
 
-        <!-- ── Accordion panel row (full width, like reference component) ── -->
-        <tr *ngIf="item.timeSheetlist?.length > 1 && expandedRows.has(item.timesheetId)" class="ts360-accordion-row">
-          <td colspan="17" class="ts360-accordion-cell">
-            <div class="ts360-accordion-panel">
-              <div *ngFor="let act of item.timeSheetlist; let ai = index" class="ts360-act-card">
-                <div class="ts360-act-header">
-                  <i class="fas fa-briefcase ts360-icon--blue"></i>
-                  <span class="ts360-act-index">Activity {{ ai + 1 }}</span>
-                  <span class="ts360-act-project">
-                    <span class="ts360-project-link" *ngIf="!isProjectTeamClicked"
-                    [navigateToProjectView]="item.projectId"
-                      (click)="findByProject(act.projectId,act.projectName)">
-                      {{ act.projectName || '—' }}
-                    </span>
-                  </span>
-                  <span class="ts360-act-sep">·</span>
-                  <span class="ts360-act-team" [class.ts360-project-link]="!isProjectTeamClicked"
-                    (click)="!isProjectTeamClicked && findByTeam(act.teamName, act.teamId)">
-                    <i class="fas fa-users ts360-icon--muted"></i>
-                    {{ act.teamName || '—' }}
-                  </span>
+      <td class="ts360-td ts360-td--num ts360-td--mono ts360-td--muted">
+        {{ item.officeOutTime ? (item.officeOutTime | date:'dd-MM-yyyy HH:mm') : 'NA' }}
+      </td>
+
+      <td class="ts360-td ts360-td--num ts360-td--mono ts360-td--bold">
+        {{ item.totalTime ? item.totalTime + ' hrs' : 'NA' }}
+      </td>
+        <td class="ts360-td">
+          <span class="ts360-chip" [ngClass]="item.nightShift ? 'ts360-chip--night' : 'ts360-chip--regular'">
+            <i class="fas" [ngClass]="item.nightShift ? 'fa-moon' : 'fa-sun'"></i>
+            {{ item.nightShift ? 'Night' : 'Day' }}
+          </span>
+        </td>
+
+        <td class="ts360-td">
+          <span class="ts360-badge" [ngClass]="{
+            'ts360-badge--pending':  item.status === 'Pending',
+            'ts360-badge--approved': item.status === 'Approved',
+            'ts360-badge--rejected': item.status === 'Rejected'
+          }">{{ item.status }}</span>
+        </td>
+
+        <td class="ts360-td ts360-td--mono ts360-td--muted">{{ item.createdOn | date:'dd-MM-yyyy' }}</td>
+
+        <td class="ts360-td ts360-td--actions">
+          <div class="ts360-actions">
+            <ng-container *ngIf="activeButton === 'Pending' && actionButton">
+              <button class="ts360-action-btn ts360-action-btn--approve" title="Approve"
+                (click)="update('Approved', item.empId, item.date)">
+                <i class="fas fa-check"></i>
+              </button>
+              <button class="ts360-action-btn ts360-action-btn--reject" title="Reject"
+                (click)="update('Rejected', item.empId, item.date)">
+                <i class="fas fa-xmark"></i>
+              </button>
+            </ng-container>
+            <ng-container *ngIf="!(activeButton === 'Pending' && actionButton)">
+              <span class="ts360-td--muted">—</span>
+            </ng-container>
+          </div>
+        </td>
+      </tr>
+
+      <!-- ── Accordion panel — locationSessions → projects → activities ── -->
+      <tr *ngIf="expandedRows.has(item.timesheetId) && item.locationSessions?.length > 0" class="ts360-accordion-row">
+        <td colspan="17" class="ts360-accordion-cell">
+          <div class="ts360-accordion-panel">
+
+            <!-- Location card -->
+            <div *ngFor="let loc of item.locationSessions" class="ts360-loc-card">
+              <div class="ts360-loc-header">
+                <div class="ts360-loc-header__left">
+                  <i class="fas fa-map-marker-alt ts360-icon--blue"></i>
+                  <strong>{{ loc.workLocationType }}</strong>
                   <span class="ts360-act-sep">·</span>
                   <span class="ts360-act-hrs">
                     <i class="fas fa-clock ts360-icon--muted"></i>
-                    {{ act.completionTime }} hrs
-                  </span>
-                  <span *ngIf="act.activity" class="ts360-act-sep">·</span>
-                  <span *ngIf="act.activity" class="ts360-act-desc ts360-td--muted">
-                    {{ act.activity }}
+                    {{ loc.locationInTime || 'NA' }} – {{ loc.locationOutTime || 'NA' }}
                   </span>
                 </div>
               </div>
+
+              <!-- Project cards inside location -->
+              <div class="ts360-loc-body" *ngIf="loc.projects?.length > 0">
+                <div *ngFor="let proj of loc.projects" class="ts360-act-card">
+                  <div class="ts360-act-header">
+                    <i class="fas fa-briefcase ts360-icon--blue"></i>
+                    <span class="ts360-act-project">
+                      <span class="ts360-project-link" *ngIf="!isProjectTeamClicked"
+                        [navigateToProjectView]="proj.projectId"
+                        (click)="findByProject(proj.projectId, proj.projectName)">
+                        {{ proj.projectName || 'NA' }}
+                      </span>
+                      <span *ngIf="isProjectTeamClicked" [navigateToProjectView]="proj.projectId">
+                        {{ proj.projectName || 'NA' }}
+                      </span>
+                    </span>
+                    <span class="ts360-act-sep">·</span>
+                    <span class="ts360-act-hrs">
+                      <i class="fas fa-clock ts360-icon--muted"></i>
+                      {{ proj.totalClientWorkingMinutes
+                      ? (proj.totalClientWorkingMinutes / 60).toFixed(2)
+                      : '0' }} hrs
+                    </span>
+                    <span *ngIf="proj.description" class="ts360-act-sep">·</span>
+                    <span *ngIf="proj.description" class="ts360-act-desc ts360-td--muted" [innerHTML]="proj.description">
+                    </span>
+                  </div>
+
+                  <!-- Activities inside project -->
+                  <div *ngIf="proj.activities?.length > 0" class="ts360-proj-body">
+                    <div *ngFor="let act of proj.activities" class="ts360-activity">
+                      <i class="fas fa-tasks ts360-icon--green"></i>
+                      <span class="ts360-act-index">{{ act.activity || 'NA' }}</span>
+                      <span class="ts360-act-sep">·</span>
+                      <span class="ts360-act-hrs">
+                        <i class="fas fa-clock ts360-icon--muted"></i>
+                        {{ act.durationMinutes ? (act.durationMinutes / 60).toFixed(2) : '0' }} hrs
+                      </span>
+                      <span *ngIf="act.description" class="ts360-act-sep">·</span>
+                      <span *ngIf="act.description" class="ts360-act-desc ts360-td--muted">
+                        {{ act.description }}
+                      </span>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
             </div>
-          </td>
-        </tr>
 
-      </ng-container>
-
-      <!-- Skip flattened sub-rows (showEmpId = false) — accordion handles them -->
+          </div>
+        </td>
+      </tr>
 
     </ng-container>
   </tbody>
