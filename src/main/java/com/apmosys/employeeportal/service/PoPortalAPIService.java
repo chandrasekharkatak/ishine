@@ -59,6 +59,7 @@ import com.apmosys.employeeportal.dto.MilestoneExpireDto;
 import com.apmosys.employeeportal.dto.MilestoneUpdatedLogDto;
 import com.apmosys.employeeportal.dto.POResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
+import com.apmosys.employeeportal.dto.PoPortalDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
@@ -542,10 +543,25 @@ public class PoPortalAPIService {
 			Department deptObj = departmentRepository.findByDeptId(departmentDTO.getDeptId());
 			if (deptObj != null) {
 				Employee empObj = employeeRepository.findByEmpId(deptObj.getHodId());
-				DepartmentDTO syncObject = new DepartmentDTO();
+//				DepartmentDTO syncObject = new DepartmentDTO();
+//				syncObject.setDeptId(deptObj.getDeptId());
+//				syncObject.setDeptName(deptObj.getName());
+////				syncObject.setHodEmploymentId("A-".concat(empObj.getEmployeementId().toString()));
+//				syncObject.setHodId(deptObj.getHodId());
+//				syncObject.setBillable(deptObj.getIsBillable());
+//				syncObject.setTnm(deptObj.getIsTnm());
+				
+				
+				PoPortalDTO syncObject = new PoPortalDTO();
 				syncObject.setDeptId(deptObj.getDeptId());
 				syncObject.setDeptName(deptObj.getName());
-				syncObject.setHodEmploymentId("A-".concat(empObj.getEmployeementId().toString()));
+				syncObject.setHodId(deptObj.getHodId().toString());
+				syncObject.setDeptAbbreviation(deptObj.getDeptAbbreviation());
+				syncObject.setIsBillable(deptObj.getIsBillable());
+				syncObject.setIsTnm(deptObj.getIsTnm());
+				
+				
+				
 				
 				final String syncUrl = syncDepartmentWithPoPortal;
 				HttpHeaders headers = new HttpHeaders();

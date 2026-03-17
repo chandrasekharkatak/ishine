@@ -594,3 +594,285 @@
   border-radius: 4px;
   font-size: 11px;
 }
+
+/* Highlights rows that can be expanded */
+.ts360-row--has-multiple {
+  background-color: #f8f9fa;
+  cursor: pointer;
+}
+
+.ts360-accordion-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #0056b3;
+  font-weight: 500;
+}
+
+.ts360-muted-text {
+  font-size: 0.85rem;
+  color: #6c757d;
+  font-weight: normal;
+}
+
+/* The expanded container */
+.ts360-row-details {
+  background-color: #ffffff;
+}
+
+.ts360-details-wrapper {
+  padding: 15px 50px;
+  background: #f1f3f5;
+  border-left: 4px solid #0056b3;
+}
+
+.ts360-inner-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.ts360-inner-table th {
+  text-align: left;
+  color: #495057;
+  border-bottom: 1px solid #dee2e6;
+  padding: 8px;
+}
+
+.ts360-inner-table td {
+  padding: 8px;
+  border-bottom: 1px dashed #dee2e6;
+}
+
+/* ── Accordion rows ── */
+.ts360-row--parent {
+  cursor: default;
+}
+
+.ts360-row--parent.ts360-row--expanded {
+  background: #f8fafc;
+}
+
+.ts360-row--parent[style*="cursor"] {
+  cursor: pointer;
+}
+
+.ts360-row--child {
+  background: #f8fafc;
+  border-left: 3px solid #1a73e8;
+}
+
+.ts360-row--child .ts360-td {
+  font-size: 11.5px;
+  color: #64748b;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.ts360-td--child-indent {
+  border-left: 3px solid #1a73e8;
+}
+
+.ts360-td--child-label {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.ts360-child-arrow {
+  color: #1a73e8;
+  margin-right: 6px;
+  font-size: 10px;
+}
+
+/* Multi-activity badge in project cell */
+.ts360-multi-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #1a73e8;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 4px;
+  padding: 2px 8px;
+}
+
+.ts360-multi-badge i {
+  font-size: 10px;
+}
+
+/* Expand button */
+.ts360-action-btn--expand {
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  border-radius: 4px;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.ts360-action-btn--expand:hover {
+  background: #f1f5f9;
+  color: #1a2e44;
+}
+
+/* ── Accordion panel (full-width row) ── */
+.ts360-accordion-row .ts360-accordion-cell {
+  padding: 0;
+  background: #f8fafc;
+  border-left: 3px solid #1a73e8;
+}
+
+.ts360-accordion-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 12px 8px 12px;
+}
+
+.ts360-act-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin: 3px 0;
+}
+
+.ts360-act-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  justify-content: flex-start;
+}
+
+.ts360-act-index {
+  font-weight: 600;
+  color: #1a2e44;
+  font-size: 11px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+.ts360-act-project {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.ts360-act-team {
+  color: #475569;
+}
+
+.ts360-act-hrs {
+  color: #1a73e8;
+  font-weight: 600;
+}
+
+.ts360-act-desc {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.ts360-act-sep {
+  color: #cbd5e1;
+}
+
+.ts360-icon--blue {
+  color: #1a73e8;
+  font-size: 11px;
+}
+
+.ts360-icon--muted {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.ts360-row--parent.ts360-row--expanded {
+  background: #f0f7ff;
+}
+
+.ts360-accordion-cell {
+  text-align: left !important;
+}
+
+.ts360-accordion-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 12px 8px 12px;
+  align-items: flex-start;
+  /* ← ADD THIS */
+  width: 100%;
+}
+
+.ts360-act-card {
+  width: 100%;
+  /* ← make sure cards stretch full width */
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin: 3px 0;
+}
+
+.ts360-loc-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  margin: 4px 0;
+  overflow: hidden;
+  width: 100%;
+}
+
+.ts360-loc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #f0f7ff;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 12px;
+}
+
+.ts360-loc-header__left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ts360-loc-body {
+  padding: 6px 12px 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ts360-proj-body {
+  margin-top: 6px;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-left: 2px solid #e2e8f0;
+}
+
+.ts360-activity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: #475569;
+  padding: 3px 0;
+}
+
+.ts360-icon--green {
+  color: #15803d;
+  font-size: 11px;
+}
