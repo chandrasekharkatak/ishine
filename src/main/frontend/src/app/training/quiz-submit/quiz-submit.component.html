@@ -1,9 +1,9 @@
 <div class="quiz-container">
-    <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0 d-flex align-items-center justify-content-between">
+    <div class="card bg-transparent">
+        <div class="card-header bg-transparent border-bottom px-1 py-3">
+            <h5 class="mb-0 d-flex align-items-center justify-content-between text-dark font-weight-bold">
                 <span>
-                    <i class="fas fa-question-circle mr-2"></i>
+                    <i class="fas fa-question-circle mr-2 text-primary"></i>
                     <span *ngIf="!isAlreadySubmitted && !formSubmitted">Quiz</span>
                     <span *ngIf="isAlreadySubmitted || formSubmitted">Quiz Results</span>
                 </span>
@@ -14,7 +14,7 @@
                         <span class="stats-label">Score:</span>
                         <span class="stats-value bg-primary">{{correctAnswersCount}}/{{totalQuestions}}</span>
                     </span>
-                    <span class="stats-badge">
+                    <span class="stats-badge" *ngIf="passStatus">
                         <span class="stats-label">Status:</span>
                         <span class="stats-value" [ngClass]="passStatus?.toLowerCase() === 'pass' ? 'bg-success' : 'bg-danger'">
                             {{passStatus || 'N/A'}}
@@ -32,7 +32,7 @@
             </h5>
         </div>
         
-        <div class="card-body" id="surveyContainer">
+        <div class="card-body px-1 py-3 border-0" id="surveyContainer">
             <!-- Loading State - Centered and Professional -->
             <div *ngIf="!isQuizLoaded" class="loading-container">
                 <div class="text-center">
@@ -68,17 +68,35 @@
                 </div>
             </div>
 
+            <!-- Quiz Navigation (Moved to bottom) -->
+
             <!-- Quiz Content - Will be injected here by the component -->
-            <div *ngIf="isQuizLoaded" class="quiz-content">
+            <div *ngIf="isQuizLoaded" class="quiz-content" (change)="onQuizFormChange()" (input)="onQuizFormChange()">
                 <!-- Dynamic content goes here -->
             </div>
 
+            <!-- Quiz Navigation (One by one) - Moved Here -->
+            <div *ngIf="isQuizLoaded && !isAlreadySubmitted && !formSubmitted" class="quiz-navigation mt-4 mb-2 d-flex justify-content-between align-items-center bg-white border p-2 rounded shadow-sm">
+                 <button type="button" class="btn btn-sm btn-outline-primary" (click)="prevQuestion()" [disabled]="currentQuestionIndex === 0">
+                     <i class="fas fa-chevron-left mr-1"></i> Previous
+                 </button>
+                 <span class="font-weight-600 mb-0 text-secondary" style="font-size: 0.9rem;">Question {{currentQuestionIndex + 1}} of {{allSurveyQuestionList.length}}</span>
+                 <button type="button" class="btn btn-sm btn-outline-primary" (click)="nextQuestion()" 
+                         *ngIf="currentQuestionIndex < allSurveyQuestionList.length - 1"
+                         [disabled]="!canMoveNext">
+                     Next <i class="fas fa-chevron-right ml-1"></i>
+                 </button>
+                 <!-- Spacer for alignment when next button is hidden on last question -->
+                 <div *ngIf="currentQuestionIndex === allSurveyQuestionList.length - 1" style="width: 73px;"></div>
+            </div>
+
             <!-- Action Buttons - Always at the bottom -->
-            <div class="action-buttons" *ngIf="isQuizLoaded">
-                <!-- Submit Button - For new quiz -->
-                <div class="row" *ngIf="!formSubmitted && !isAlreadySubmitted">
-                    <div class="col-12 text-center">
-                        <button type="submit" class="btn btn-primary btn-lg"
+            <div class="action-buttons" *ngIf="isQuizLoaded && !formSubmitted && !isAlreadySubmitted && currentQuestionIndex === allSurveyQuestionList.length - 1">
+                <!-- Submit Button - For new quiz (only on last question) -->
+                <div class="row">
+                    <div class="col-12 text-center mt-3">
+                        <button type="submit" class="btn btn-primary btn-lg shadow"
+                            [disabled]="!canMoveNext"
                             (click)="onSubmit(alert_message)">
                             <i class="fas fa-paper-plane mr-2"></i>
                             Submit Quiz
@@ -86,8 +104,8 @@
                     </div>
                 </div>
 
-                <!-- Close Button - For results or already submitted -->
-                <div class="row" *ngIf="formSubmitted || isAlreadySubmitted">
+                <!-- Close Button - Removed since modal handles it -->
+                <!-- <div class="row" *ngIf="formSubmitted || isAlreadySubmitted">
                     <div class="col-12 text-center">
                         <button type="button" 
                             class="btn btn-secondary btn-lg"
@@ -96,7 +114,7 @@
                             Close
                         </button>
                     </div>
-                </div>
+                </div> -->
             </div>
         </div>
     </div>

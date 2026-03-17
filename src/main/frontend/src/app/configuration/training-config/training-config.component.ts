@@ -13,6 +13,7 @@ import * as pdfjsLib from 'pdfjs-dist';
 import { GlobalWorkerOptions } from 'pdfjs-dist';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import { TrainingContentViewComponent } from 'src/app/training-content-view/training-content-view.component';
 
 GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
@@ -151,6 +152,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
 
   showTypeModal: boolean = false;
   newTrainingType: string = '';
+  @ViewChild(TrainingContentViewComponent) contentPreviewModal: TrainingContentViewComponent;
   
   constructor(
     private authenticationService: AuthenticationService,
@@ -401,7 +403,18 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
 
           if (contentType.startsWith('application/pdf')) {
             this.contentFormData.contentType = 'PDF';
-            this.parsePDFFile(file);
+          
+            // Use the shared component for PDF preview
+            this.contentPreviewModal.content = this.contentFormData;
+            this.contentPreviewModal.contentType = 'PDF';
+            this.contentPreviewModal.contentName = this.contentFormData.contentName;
+            this.contentPreviewModal.previewUrl = this.previewUrl;
+            this.contentPreviewModal.file = file;
+            this.contentPreviewModal.isAdminMode = true;
+            this.contentPreviewModal.showTimer = false;
+            
+            // Open the modal
+            this.contentPreviewModal.open();
           } else {
             this.contentFormData.contentType = 'OTHER';
             const url = window.URL.createObjectURL(blob);
@@ -626,106 +639,6 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     this.getTrainingContent(training.trainingId);
   }
   
-  console = console;
-
-  onViewContent(training: any) {
-  this.clearAllPreviewData();
-
-  // Step 1: Load training content
-  this.trainingService.getTrainingContent(training.trainingId)
-    .subscribe({
-      next: (response: any) => {
-        const contents = response.serviceResponse || [];
-
-        if (contents.length === 0) {
-          this.openAlertMod(this.alertTemplate, 'No content available for this training', 'info');
-          return;
-        }
-
-        // Step 2: Pick active content
-        const activeContent = contents.find((c: any) => c.activeStatus === 'true') || contents[0];
-
-        this.viewingContent = activeContent;
-        this.isViewingExistingContent = true;
-
-        // Step 3: Populate content form
-        this.contentFormData = {
-          contentType: activeContent.contentType,
-          contentName: activeContent.contentName,
-          effectiveFrom: activeContent.effectiveFrom,
-          effectiveTo: activeContent.effectiveTo,
-          externalLinkUrl: activeContent.externalLinkUrl || ''
-        };
-
-        // Step 4: Handle different content types
-        const contentType = activeContent.contentType?.toUpperCase();
-
-        // LINK type - redirect
-        if (contentType === 'LINK') {
-          this.previewUrl = activeContent.externalLinkUrl;
-          this.safePreviewUrl = this.previewUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(this.previewUrl) : null;
-          this.showPreview = true;
-          this.openPreviewModal();
-          return;
-        }
-
-        // For all other FILE types (IMAGE, VIDEO, AUDIO)
-        this.trainingService.downloadContent(activeContent.contentId)
-          .subscribe({
-            next: (resp: any) => {
-              const blob: Blob = resp.body;
-              const contentType = resp.headers.get('Content-Type') || 'application/octet-stream';
-
-              // Extract filename from header
-              let fileName = activeContent.contentName || 'content';
-              const disposition = resp.headers.get('Content-Disposition');
-              if (disposition) {
-                const match = disposition.match(/filename="(.+)"/);
-                if (match && match[1]) {
-                  fileName = match[1];
-                }
-              }
-
-              // Create blob URL for the file
-              this.previewUrl = URL.createObjectURL(
-                new Blob([blob], { type: contentType })
-              );
-              this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.previewUrl);
-              this.showPreview = true;
-
-              if (activeContent.contentType === 'PDF') {
-                  const file = new File([blob], fileName, { type: contentType });
-                  this.file = file;
-                  this.fileSize = blob.size / 1024 / 1024;
-                  this.parsePDFFile(file);
-                } else {
-                  this.file = new File([blob], fileName, { type: contentType });
-                  this.fileSize = blob.size / 1024 / 1024;
-                }
-
-              // Store file info for download/preview
-              this.file = new File([blob], fileName, { type: contentType });
-              this.fileSize = blob.size / 1024 / 1024;
-
-              this.openPreviewModal();
-            },
-            error: (error: any) => {
-              if (error?.error instanceof Blob) {
-                error.error.text().then((text: string) => {
-                  this.openAlertMod(this.alertTemplate, text || 'Error loading content', 'error');
-                });
-              } else {
-                this.openAlertMod(this.alertTemplate, error.error?.serviceStatus || 'Error loading content', 'error');
-              }
-            }
-          });
-      },
-      error: (error: any) => {
-        this.openAlertMod(this.alertTemplate, error.error?.serviceStatus || 'Error loading training content', 'error');
-      }
-    });
-}
-
   onAddContent() {
     if (!this.validateContentForm()) {
       return;
@@ -1093,58 +1006,82 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   }
 
   openPreviewModal() {
-  // For viewing existing content, we already have previewUrl set
-  if (this.isViewingExistingContent) {
-    this.previewModalRef = this.modalService.open(this.previewModalTemplate, {
-      size: 'xl',
-      centered: true,
-      modalDialogClass: 'preview-modal',
-      windowClass: 'preview-modal-window'
-    });
-    return;
-  }
+    // Set content data
+    this.contentPreviewModal.content = this.viewingContent || this.contentFormData;
+    this.contentPreviewModal.contentType = this.contentFormData.contentType;
+    this.contentPreviewModal.contentName = this.contentFormData.contentName;
+    this.contentPreviewModal.previewUrl = this.previewUrl;
+    this.contentPreviewModal.file = this.file;
+    this.contentPreviewModal.isAdminMode = true; // Important: Set to true for admin
+    this.contentPreviewModal.showTimer = false; // No timer in admin mode
 
-  // For new content upload - use previewFile instead of file
-  if (!this.file && !(this.contentFormData.contentType === 'LINK' && this.contentFormData.externalLinkUrl)) {
-    this.openAlertMod(this.alertTemplate, 'Please select a file or enter a URL first', 'warning');
-    return;
-  }
-
-  // Handle PDF files for new uploads (ONLY PDF)
-  if (this.contentFormData.contentType === 'PDF' && this.file) {
-    // Open modal immediately with loading state
-    this.isLoadingPreview = true;
-    this.previewModalRef = this.modalService.open(this.previewModalTemplate, {
-      size: 'xl',
-      centered: true,
-      modalDialogClass: 'preview-modal',
-      windowClass: 'preview-modal-window'
-    });
+    // Open the modal
+    this.contentPreviewModal.open();
     
-    // Then start parsing PDF using previewFile
-    this.parsePDFFile(this.file).catch(error => {
-      console.error('Error parsing PDF:', error);
-      this.isLoadingPreview = false;
-      this.openAlertMod(this.alertTemplate, 'Failed to parse PDF file', 'error');
-    });
-    return;
   }
 
-  // For all other file types (including PPT - leave as is)
-  // Generate preview URL if not already generated
-  if (!this.previewUrl) {
-    this.generatePreviewUrl();
-  }
+  // For viewing existing content (from the table)
+  onViewContent(training: any) {
 
-  if (this.previewUrl || (this.contentFormData.contentType === 'LINK' && this.contentFormData.externalLinkUrl)) {
-    this.previewModalRef = this.modalService.open(this.previewModalTemplate, {
-      size: 'xl',
-      centered: true,
-      modalDialogClass: 'preview-modal',
-      windowClass: 'preview-modal-window'
+    this.trainingService.getTrainingContent(training.trainingId).subscribe({
+      next: (response: any) => {
+        const contents = response.serviceResponse || [];
+        if (contents.length === 0) {
+          this.openAlertMod(this.alertTemplate, 'No content available for this training', 'info');
+          return;
+        }
+
+        const activeContent = contents.find((c: any) => c.activeStatus === 'true') || contents[0];
+        this.viewingContent = activeContent;
+        
+        // Set content data for preview
+        this.contentFormData = {
+          contentType: activeContent.contentType,
+          contentName: activeContent.contentName,
+          effectiveFrom: activeContent.effectiveFrom,
+          effectiveTo: activeContent.effectiveTo,
+          externalLinkUrl: activeContent.externalLinkUrl || ''
+        };
+
+        // Handle different content types
+        if (activeContent.contentType === 'LINK') {
+          this.previewUrl = activeContent.externalLinkUrl;
+          this.safePreviewUrl = this.previewUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(this.previewUrl) : null;
+          this.openPreviewModal();
+          return;
+        }
+
+        // For file types
+        this.trainingService.downloadContent(activeContent.contentId).subscribe({
+          next: (resp: any) => {
+            const blob: Blob = resp.body;
+            const contentType = resp.headers.get('Content-Type') || 'application/octet-stream';
+            
+            let fileName = activeContent.contentName || 'content';
+            const disposition = resp.headers.get('Content-Disposition');
+            if (disposition) {
+              const match = disposition.match(/filename="(.+)"/);
+              if (match && match[1]) {
+                fileName = match[1];
+              }
+            }
+
+            this.previewUrl = URL.createObjectURL(new Blob([blob], { type: contentType }));
+            this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.previewUrl);
+            
+            // Create file object for PDF parsing
+            this.file = new File([blob], fileName, { type: contentType });
+            this.fileSize = blob.size / 1024 / 1024;
+
+            this.openPreviewModal();
+          },
+          error: (error: any) => {
+            this.openAlertMod(this.alertTemplate, 'Error loading content', 'error');
+          }
+        });
+      }
     });
   }
-}
 
   openPreviewInNewTab() {
     if (this.previewUrl) {
@@ -1175,40 +1112,6 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       this.openAlertMod(this.alertTemplate, 'File not available for download', 'warning');
     }
   }
-
-  clearAllPreviewData() {
-  // Clear preloaded slides
-  this.preloadedSlides.forEach((blobUrl) => {
-      URL.revokeObjectURL(blobUrl);
-  });
-  this.preloadedSlides.clear();
-  
-  // Clear slide blobs
-  this.slideBlobs.forEach(blobUrl => {
-      URL.revokeObjectURL(blobUrl);
-  });
-  this.slideBlobs = [];
-  
-  // Clear current blob
-  if (this.previewImageBlob) {
-      URL.revokeObjectURL(this.previewImageBlob);
-      this.previewImageBlob = null;
-  }
-  
-  // Reset all slide-related variables
-  this.slides = [];
-  this.totalSlides = 0;
-  this.currentSlideIndex = 0;
-  this.pptxSlides = [];
-  
-  // Reset other preview variables
-  this.previewUrl = '';
-  this.safePreviewUrl = null;
-  this.showPreview = false;
-  this.isLoadingPreview = false;
-  this.file = null;
-  this.fileSize = 0;
-}
 
   closePreviewModal() {
     if (this.previewModalRef) {
@@ -1665,272 +1568,6 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     });
   }
 
-async renderLocalPDFPage(index: number): Promise<void> {
-  // CRITICAL FIX: Check if this page is already being rendered or is in cache
-  if (this.preloadedSlides.has(index)) {
-    console.log(`Page ${index} already cached, skipping render`);
-    if (index === this.currentSlideIndex) {
-      this.previewImageBlob = this.preloadedSlides.get(index)!;
-      this.isLoadingPreview = false;
-    }
-    return Promise.resolve();
-  }
-  
-  // Check if this index is currently being rendered (prevent duplicate renders)
-  if (this.preloadQueue.includes(index)) {
-    console.log(`Page ${index} is already in queue, skipping`);
-    return Promise.resolve();
-  }
-  
-  // Add to queue to prevent duplicate renders
-  this.preloadQueue.push(index);
-  
-  try {
-    // Only set loading for the current slide
-    if (index === this.currentSlideIndex) {
-      this.isLoadingPreview = true;
-    }
-
-    const fileToUse = this.file;
-    
-    if (!fileToUse) {
-      throw new Error('No PDF file available');
-    }
-
-    const arrayBuffer = await fileToUse.arrayBuffer();
-    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-    const pdf = await loadingTask.promise;
-    const page = await pdf.getPage(index + 1);
-
-    const viewport = page.getViewport({ scale: 0.8 });
-
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-    
-    if (!context) {
-      throw new Error('Could not get canvas context');
-    }
-
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-
-    const renderContext = {
-      canvasContext: context,
-      viewport: viewport
-    };
-
-    await page.render(renderContext).promise;
-
-    const blob = await new Promise<Blob>((resolve, reject) => {
-      canvas.toBlob((b) => {
-        if (b) {
-          resolve(b);
-        } else {
-          reject(new Error('Failed to create blob from canvas'));
-        }
-      }, 'image/jpeg', 0.8);
-    });
-
-    const url = URL.createObjectURL(blob);
-    
-    if (this.preloadedSlides.has(index)) {
-      URL.revokeObjectURL(this.preloadedSlides.get(index)!);
-    }
-
-    this.preloadedSlides.set(index, url);
-    
-    if (index === this.currentSlideIndex) {
-      this.previewImageBlob = url;
-    }
-    
-    const queueIndex = this.preloadQueue.indexOf(index);
-    if (queueIndex > -1) {
-      this.preloadQueue.splice(queueIndex, 1);
-    }
-    
-    if (index === this.currentSlideIndex) {
-      this.isLoadingPreview = false;
-    }
-    
-    return Promise.resolve();
-  } catch (error) {
-    console.error('Error rendering PDF page:', error);
-    
-    const queueIndex = this.preloadQueue.indexOf(index);
-    if (queueIndex > -1) {
-      this.preloadQueue.splice(queueIndex, 1);
-    }
-    
-    if (index === this.currentSlideIndex) {
-      this.isLoadingPreview = false;
-    }
-    
-    return Promise.reject(error);
-  }
-}
-loadSlide(index: number) {
-  if (index < 0 || index >= this.totalSlides) return;
-
-  this.currentSlideIndex = index;
-
-  // Check if already preloaded
-  if (this.preloadedSlides.has(index)) {
-      this.previewImageBlob = this.preloadedSlides.get(index)!;
-      this.isLoadingPreview = false;
-      
-      // Preload next slides in background
-      this.triggerPreload(index);
-      return;
-  }
-
-  // CASE 1: NEW UPLOAD - PDF (client-side) - Load on demand
-  if (this.file && this.contentFormData.contentType === 'PDF') {
-      // Only show loading if page isn't already being rendered
-      if (!this.preloadQueue.includes(index)) {
-          this.isLoadingPreview = true;
-      }
-      
-      this.renderLocalPDFPage(index).then(() => {
-          // After loading current page, preload next few in background
-          this.triggerPreload(index);
-      });
-      return;
-  }
-}
-
-  nextSlide() {
-      if (this.currentSlideIndex < this.totalSlides - 1) {
-          this.currentSlideIndex++;
-          this.loadSlide(this.currentSlideIndex);
-      }
-  }
-
-  previousSlide() {
-      if (this.currentSlideIndex > 0) {
-          this.currentSlideIndex--;
-          this.loadSlide(this.currentSlideIndex);
-      }
-  }
-
-  goToSlide(index: number) {
-      if (index >= 0 && index < this.totalSlides) {
-          this.currentSlideIndex = index;
-          this.loadSlide(index);
-      }
-  }
-
-   onPreviewError(event: any) {
-      console.log('Preview error:', event);
-      // Show fallback image or message
-      event.target.src = 'assets/images/no-preview.png';
-      event.target.alt = 'Preview not available';
-    }
-
-triggerPreload(currentIndex: number) {
-  console.log('Triggering preload from index:', currentIndex);
-  
-  // For new uploads (client-side PDF)
-  if (this.file && this.contentFormData.contentType === 'PDF') {
-    // Preload next 3 slides only (to match your initial preload)
-    for (let i = 1; i <= 3; i++) { // Changed from 5 to 3
-        const nextIndex = currentIndex + i;
-        if (nextIndex < this.totalSlides && !this.preloadedSlides.has(nextIndex) && !this.preloadQueue.includes(nextIndex)) {
-            console.log('Preloading slide:', nextIndex);
-            // Don't await - let it load in background
-            this.renderLocalPDFPage(nextIndex).catch(err => 
-                console.error(`Failed to preload slide ${nextIndex}:`, err)
-            );
-        }
-    }
-
-    for (let i = 1; i <= 3; i++) {
-      const prevIndex = currentIndex - i;
-      if (prevIndex >= 0 && 
-          !this.preloadedSlides.has(prevIndex) && 
-          !this.preloadQueue.includes(prevIndex)) {
-        console.log('Preloading previous slide:', prevIndex);
-        this.renderLocalPDFPage(prevIndex).catch(err => 
-          console.error(`Failed to preload slide ${prevIndex}:`, err)
-        );
-      }
-    }
-  }
-}
-
-toggleFullscreen() {
-    this.isFullscreen = !this.isFullscreen;
-    const modalElement = document.querySelector('.preview-modal .modal-content');
-    
-    if (this.isFullscreen) {
-        if (modalElement) {
-            if ((modalElement as any).requestFullscreen) {
-                (modalElement as any).requestFullscreen();
-            } else if ((modalElement as any).webkitRequestFullscreen) {
-                (modalElement as any).webkitRequestFullscreen();
-            } else if ((modalElement as any).mozRequestFullScreen) {
-                (modalElement as any).mozRequestFullScreen();
-            } else if ((modalElement as any).msRequestFullscreen) {
-                (modalElement as any).msRequestFullscreen();
-            }
-        }
-    } else {
-        if ((document as any).exitFullscreen) {
-            (document as any).exitFullscreen();
-        } else if ((document as any).webkitExitFullscreen) {
-            (document as any).webkitExitFullscreen();
-        } else if ((document as any).mozCancelFullScreen) {
-            (document as any).mozCancelFullScreen();
-        } else if ((document as any).msExitFullscreen) {
-            (document as any).msExitFullscreen();
-        }
-    }
-}
-
-async parsePDFFile(file: File): Promise<void> {
-  try {
-    // Clear previous data but KEEP the file reference
-    this.isLoadingPreview = true;
-    this.clearAllPreviewData();
-    
-    this.file = file;
-    
-    const arrayBuffer = await file.arrayBuffer();
-    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-    const pdf = await loadingTask.promise;
-    
-    this.totalSlides = pdf.numPages;
-    this.slides = new Array(this.totalSlides);
-    
-    // Load the first page - AWAIT this completely
-    await this.renderLocalPDFPage(0);
-    
-    // Now preload next pages ONE BY ONE with delay
-    const preloadNextPages = async () => {
-      for (let i = 1; i <= 3; i++) { // Reduced to 3 for better performance
-        if (i < this.totalSlides) {
-          // Wait a bit between each preload
-          await new Promise(resolve => setTimeout(resolve, 200));
-          this.renderLocalPDFPage(i).catch(err => 
-            console.error(`Failed to preload slide ${i}:`, err)
-          );
-        }
-      }
-    };
-    
-    // Start preloading in background
-    preloadNextPages();
-    
-    this.isLoadingPreview = false;
-    console.log("Parse pdffile: ", this.file);
-    return Promise.resolve();
-    
-  } catch (error) {
-    console.error('Error parsing PDF file:', error);
-    this.isLoadingPreview = false;
-    this.openAlertMod(this.alertTemplate, 'Failed to parse PDF file. Please try again.', 'error');
-    return Promise.reject(error);
-  }
-}
 
 downloadResponsesToExcel(): void {
   if (!this.allTrainingResponse || this.allTrainingResponse.length === 0) {
@@ -2093,19 +1730,5 @@ getPendingCount(): number {
 }
 
 Math = Math;
-
-// In your component
-// In your component
-onImageClick(event: MouseEvent) {
-    const imageElement = event.target as HTMLImageElement;
-    const clickX = event.offsetX; 
-    const imageWidth = imageElement.clientWidth;
-    
-    if (clickX < imageWidth / 2) {
-        this.previousSlide();
-    } else {
-        this.nextSlide();
-    }
-}
 
 }

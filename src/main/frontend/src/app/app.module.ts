@@ -218,6 +218,7 @@ import { MyAutocompleteComponent } from './helpers/my-autocomplete/my-autocomple
 import { NgxEditorModule } from 'ngx-editor';
 import { InfoTooltipComponent } from './helpers/shared/info-tooltip/info-tooltip.component';
 import { QuizSubmit } from './training/quiz-submit/quiz-submit.component';
+import { TrainingContentViewComponent } from './training-content-view/training-content-view.component';
 
 registerLocaleData(localeGb);
 
@@ -405,7 +406,8 @@ registerLocaleData(localeGb);
     ProjectColumnFilterPipe,
     MyAutocompleteComponent,
     InfoTooltipComponent,
-    QuizSubmit
+    QuizSubmit,
+    TrainingContentViewComponent
   ],
   imports: [
     BrowserModule,
