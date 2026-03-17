@@ -117,6 +117,9 @@ export class UserPerformanceComponent implements OnInit {
   myRateList: { reviewLabel: any; rate: any, performanceRatingId: any }[] = [];
 
   allQauterCycle2: any;
+  confirmModalRef :any;
+  confirmDiscard: boolean = false;
+  @ViewChild('confirm_discard_modal') confirmDiscardModal!: TemplateRef<any>;
    
   constructor(
      private router: Router,
@@ -262,6 +265,11 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
           this.eligibleEmployees = mergedData.filter(employee => {
             // Append employee ID using utility service
             employee.employeementId = this.utilityService.appendEmployeementid(employee.isConsultant, employee.employeementId);
+
+            // Calculate experience from date_of_joining
+            if (employee.dateOfJoining) {
+              employee.calculatedExperience = this.calculateExperienceFromDOJ(employee.dateOfJoining);
+            }
 
             const joiningDate = new Date(employee.dateOfJoining);
    return joiningDate <= oneYearAgo && employee.employmentstatus === 'Confirmed';
@@ -535,6 +543,10 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
         const oneYearAgo = new Date(currentDate.getFullYear() - 1, 11, 31);
 
         this.eligibleEmployees1 = this.allEmployee1.filter(employee => {
+          // Calculate experience from date_of_joining
+          if (employee.dateOfJoining) {
+            employee.calculatedExperience = this.calculateExperienceFromDOJ(employee.dateOfJoining);
+          }
 
           const joiningDate = new Date(employee.dateOfJoining);
           return joiningDate <= oneYearAgo && employee.employmentstatus === 'Confirmed';
@@ -553,7 +565,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
           // "Date of Relieving": (x.dateOfRelieving) ? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null,
           "Department Name": x.departmentName,
           "Billable Type": x.billableType,
-          "Experience" :x.totalExperience,
+          "Experience" :x.calculatedExperience ?? (x.dateOfJoining ? this.calculateExperienceFromDOJ(x.dateOfJoining) : x.totalExperience),
           "quarter Cycle":x.quarterycle || 'NULL',
           "financial Year": x.financialYear || 'NULL' ,
           "Current Status":x.completionStatus,
@@ -824,6 +836,35 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
 
     console.log("testing",this.static);
     console.log("testing2",this.eligibleEmployees);
+  }
+
+  /**
+   * Calculate experience in years from date of joining to current date
+   * Formula: current_date - date_of_joining
+   * @param dateOfJoining - Date of joining in string format (YYYY-MM-DD)
+   * @returns Experience in years (rounded to 1 decimal place)
+   */
+  calculateExperienceFromDOJ(dateOfJoining: string): number {
+    if (!dateOfJoining) {
+      return 0;
+    }
+
+    try {
+      const doj = new Date(dateOfJoining);
+      const today = new Date();
+      
+      // Calculate difference in milliseconds
+      const diff = today.getTime() - doj.getTime();
+      
+      // Convert to years (considering leap years: 365.25 days per year)
+      const experienceInYears = diff / (1000 * 60 * 60 * 24 * 365.25);
+      
+      // Round to 1 decimal place
+      return Number(experienceInYears.toFixed(1));
+    } catch (error) {
+      console.error('Error calculating experience:', error);
+      return 0;
+    }
   }
 
   onReview(eligiemployee: any) {
@@ -1149,10 +1190,81 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
       }
     });
   }
-   toggleEditMode() {
-    this.isEditMode = !this.isEditMode;
-    console.log("==========edit mode",this.isEditMode);
+  //  toggleEditMode() {
+  //   this.isEditMode = !this.isEditMode;
+  //   console.log("==========edit mode",this.isEditMode);
+  // }
+  backupMyList: any[] = [];
+  backupMyRateList: any[] = [];
+  
+// Updated toggleEditMode method
+toggleEditMode() {
+  if (this.isEditMode) {
+    const hasChanges = this.hasDataChanged();
+    
+    if (hasChanges) {
+      this.confirmModalRef = this.modalService.open(this.confirmDiscardModal, {
+        centered: true,
+        backdrop: 'static',
+        keyboard: false
+      });
+    } else {
+      this.isEditMode = false;
+      console.log("Edit mode OFF - No changes");
+    }
+  } else {
+    
+    this.createBackupData();
+    this.isEditMode = true;
+    console.log("Edit mode ON - Backup created");
   }
+}
+
+// Handle confirmation response
+confirmDiscardChanges(discard: boolean) {
+  this.confirmDiscard = discard;
+  
+  if (this.confirmDiscard) {
+    // User chose to discard changes
+    this.restoreBackupData();
+    this.isEditMode = false;
+    console.log("Edit mode OFF - Changes discarded");
+  } else {
+    // User chose to keep editing
+    console.log("Edit mode still ON - User chose to keep editing");
+  }
+  
+  // Close the confirmation modal
+  this.confirmModalRef.close();
+}
+
+// Create backup of current data
+createBackupData() {
+  this.backupMyList = JSON.parse(JSON.stringify(this.myList));
+  this.backupMyRateList = JSON.parse(JSON.stringify(this.myRateList));
+  console.log("Backup created:", { backupMyList: this.backupMyList, backupMyRateList: this.backupMyRateList });
+}
+
+// Restore data from backup
+restoreBackupData() {
+  this.myList = JSON.parse(JSON.stringify(this.backupMyList));
+  this.myRateList = JSON.parse(JSON.stringify(this.backupMyRateList));
+  console.log("Data restored from backup");
+}
+
+// Check if data has changed
+hasDataChanged(): boolean {
+  const currentMyList = JSON.stringify(this.myList);
+  const backupListStr = JSON.stringify(this.backupMyList);
+  
+  const currentMyRateList = JSON.stringify(this.myRateList);
+  const backupRateListStr = JSON.stringify(this.backupMyRateList);
+  
+  const hasChanges = (currentMyList !== backupListStr) || (currentMyRateList !== backupRateListStr);
+  
+  console.log("Has changes:", hasChanges);
+  return hasChanges;
+}
   updateReviewByHr(quarter: any, template: TemplateRef<any>, index: any)
   {
     console.log(this.hrRemarks);
@@ -1204,4 +1316,20 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
       }
     });
   }
+
+  canEditRating(): boolean {
+
+  if ((this.userMapping.performance_action_by_approvals_tos || this.userMapping.performance_action_by_hod) 
+      && this.currentStatus === 'Not Started') {
+    console.log("true ======= passed for RMM");
+    return true;
+  }
+  
+  if (this.userMapping.performance_action_by_hr && this.isEditMode) {
+    console.log("true ===== passed for HR");
+    return true;
+  }
+  console.log("======false--");
+  return false;
+}
 }
