@@ -17078,7 +17078,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 						"OR YEAR(e.date_of_relieving) > :year\n" +
 						"OR (YEAR(e.date_of_relieving) = :year AND MONTH(e.date_of_relieving) >= :month)\n" +
 						") \n" +
-						"AND etn.current_manager_id = :empId\n" +
+						"AND CASE When e.approvals_to = 'Reporting Manager' then e.reporting_manager_id = :empId else e.manager_id = :empId end  \n" +
 						"AND p.has_client_side_id = 1\n" +
 						"AND e.emp_id not between 1 and 6 \n" +
 						"AND DATE(etm.start_date) <= :toDate\n" +
