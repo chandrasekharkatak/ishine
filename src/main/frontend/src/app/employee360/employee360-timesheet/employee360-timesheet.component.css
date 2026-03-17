@@ -828,6 +828,7 @@
   border-radius: 6px;
   margin: 4px 0;
   overflow: hidden;
+  width: 100%;
 }
 
 .ts360-loc-header {
