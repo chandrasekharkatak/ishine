@@ -143,7 +143,7 @@ public interface TrainingConsentRepository extends JpaRepository<TrainingConsent
 				"    where \n" +
 				"  UPPER(e.employmentstatus) != 'INACTIVE'\n" +
 				"  and e.emp_id not between 1 and 6\n" +
-				"    and e.emp_id in :empIds \n" +
+				// "    and e.emp_id in :empIds \n" +
 				"    and not exists (\n" +
 				"    select 1\n" +
 				"        from training_consent tc\n" +
@@ -162,6 +162,6 @@ public interface TrainingConsentRepository extends JpaRepository<TrainingConsent
 				"\n" +
 				"select na.email, cc.training_name, na.name from CURRENT_CYCLE cc\n" +
 				"INNER join NOT_ATTENDED na on na.training_id = cc.training_id",nativeQuery=true)
-	List<Object[]> findEmpForUnattendedQuiz(@Param("empIds") List<Long> empIds);
+	List<Object[]> findEmpForUnattendedQuiz();
 	
 }
