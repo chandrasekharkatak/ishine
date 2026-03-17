@@ -118,11 +118,4 @@ public class ReportController {
 			ServiceResponse response = reportService.updateBulkBillableEmployeeReport(bulkBillableUpdateDTO);
 			return response;
 		}
-		
-		
-		
-		@Scheduled(cron = "0 59 23 * * ?")
-		public ServiceResponse runDefaultProjectMappingCron() {
-		    return reportService.updateDefaultProjectMappings();
-		}
 }

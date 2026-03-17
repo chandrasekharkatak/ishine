@@ -786,15 +786,18 @@ toggleBillableTypes() {
   }
 
   refreshDashboard(): void {
-    // this.getTimesheetDashboardCount(this.month, this.year);
-    // this.loadDashboardData();
+    // Evict dashboard caches first so the next API calls fetch fresh data
+    this.timesheetService.evictTimesheetDashboardCache().pipe(first()).subscribe({
+      next: () => this.runRefreshAfterEvict(),
+      error: () => this.runRefreshAfterEvict()
+    });
+  }
+
+  /** Runs dashboard refresh steps after cache eviction (or on evict failure so UI still updates). */
+  private runRefreshAfterEvict(): void {
     this.setLastUpdatedTime();
     this.TotalEmployeeCount();
-    // this.vmsCompletion();
-    // this.vmsCompletion();
     this.ishineCompletion();
-    // this.vmsNotFilled();
-    // this.ishineNotFilled();
     this.onBillableTypeChangeManual();
   }
 

@@ -598,6 +598,12 @@ public class ResourceManagementController {
 	 	return resourceManagementService.getDocumentDataByDocId(docId);
 	 }
 	
+	
+	@PostMapping("/getResourceCountFromPoId")
+	 public ServiceResponse getResourceCountFromPoId(HttpServletRequest httpRequest,@RequestBody List<Long> poIds) throws Exception {
+		 poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+	 	return resourceManagementService.getResourceCountFromPoId(poIds);
+	 }
 //	@PostMapping(value = "/sendTimesheetDetailsToShankh")
 //	public ServiceResponse sendTimesheetDetailsToShankh(@RequestBody TimeSheetRequestDto payloadDTO) {
 //		return resourceManagementService.sendTimesheetDetailsToShankh(payloadDTO);
@@ -605,7 +611,7 @@ public class ResourceManagementController {
 	
 	@GetMapping("/getAllApprovedPoWithTimesheet")
 	 public ServiceResponse getAllApprovedPoWithTimesheet(HttpServletRequest httpRequest) {
-		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+//		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 	 	return resourceManagementService.getAllApprovedPoWithTimesheet();
 	 }
 	
@@ -722,6 +728,7 @@ public class ResourceManagementController {
 	}
 	
 	@Scheduled(cron = "0 0 0 * * ?")
+//	@GetMapping("/clientcron")
 	public void cronToUpdateClient() {
 		 resourceManagementService.oneTimeUpdatePoClientId("");
 	}

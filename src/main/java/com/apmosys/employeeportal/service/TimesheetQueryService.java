@@ -113,10 +113,17 @@ public class TimesheetQueryService {
         try {
            LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
            LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
+           Integer statusInt = null;
+
+           String status = timesheetDTO.getStatus();
+
+           if (status != null && !status.trim().isEmpty()) {
+               statusInt = Integer.parseInt(status);
+           }
         	//   LocalDate start = LocalDate.parse("2025-11-19");
             //   LocalDate end = LocalDate.parse("2025-12-31");
             List<Object[]> timesheetList = employeeTimesheetsNewRepository
-                    .getAllMyTimesheets(timesheetDTO.getEmpId(), start, end);
+                    .getAllMyTimesheets(timesheetDTO.getEmpId(), start, end, statusInt);
 
             Optional.ofNullable(timesheetList).ifPresentOrElse((list) -> {
                 if (list.isEmpty()) {
@@ -789,6 +796,9 @@ rows.forEach(row -> {
             dto.setCreatedOn(row[9]!=null?((Timestamp)row[9]).toLocalDateTime():null);
             dto.setCreatedByName(row[42] != null ? row[42].toString() : null);
             dto.setDayTypeId(row[38]!=null?((Number)row[38]).intValue():null);
+                dto.setEmployeeName(row[43] != null ? row[43].toString() : null);
+                dto.setEmploymentId(row[44] != null ? ((Number) row[44]).longValue() : null);
+                dto.setTeamName((String) row[45]);
             dto.setLocationSessions(new ArrayList<>());
             dto.setDocumentData(new ArrayList<>());
             if(isTeam)  {
@@ -816,6 +826,7 @@ rows.forEach(row -> {
                 l.setWorkLocationType(row[12] != null ? row[12].toString() : null);
                 l.setLocationInTime(row[13] != null ? row[13].toString() : null);
                 l.setLocationOutTime(row[14] != null ? row[14].toString() : null);
+                l.setClientLocation(row[24] != null ? row[24].toString() : null);
                 l.setProjects(new ArrayList<>());
                 timesheet.getLocationSessions().add(l);
                 return l;

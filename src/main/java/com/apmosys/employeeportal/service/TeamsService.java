@@ -7,6 +7,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -38,9 +39,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.Exception.BadRequestException;
+import com.apmosys.employeeportal.dto.ActivationCandidateDTO;
+import com.apmosys.employeeportal.dto.ActiveProjectDTO;
 import com.apmosys.employeeportal.dto.ActivityDTO;
 import com.apmosys.employeeportal.dto.ActivityTemplateDTO;
 import com.apmosys.employeeportal.dto.BillableInfo;
+import com.apmosys.employeeportal.dto.DeactivationCandidateDTO;
+import com.apmosys.employeeportal.dto.EmployeeBillableUpdateDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeInformationDTO;
@@ -51,11 +56,15 @@ import com.apmosys.employeeportal.dto.EmployeeTeamMapDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.MigrateTeam;
+import com.apmosys.employeeportal.dto.MultiProjectEmployeeDTO;
 import com.apmosys.employeeportal.dto.PoDetailsDto;
 import com.apmosys.employeeportal.dto.ProjectDTO;
+import com.apmosys.employeeportal.dto.ProjectEmpInfoDTO;
+import com.apmosys.employeeportal.dto.ProjectManagerEmailDTO;
 import com.apmosys.employeeportal.dto.RmgMemberEndDateDto;
 import com.apmosys.employeeportal.dto.RmgTeamDto;
 import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
+import com.apmosys.employeeportal.dto.TNMConflictDTO;
 import com.apmosys.employeeportal.dto.TeamDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Activity;
@@ -109,6 +118,7 @@ import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.RoleDetailsRepository;
 import com.apmosys.employeeportal.repository.TeamRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
+import com.apmosys.employeeportal.utility.EmailTrigger;
 import com.apmosys.employeeportal.utility.EmployeeHirarchyCache;
 import com.apmosys.employeeportal.utility.LeaveLogMessage;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -237,6 +247,8 @@ public class TeamsService {
 
 	@Autowired
 	private RoleDetailsRepository roleDetailsRepository;
+	
+	@Autowired ReportService reportService;
 
 	private static final Logger log = LoggerFactory.getLogger(TeamsService.class);
 
@@ -6001,18 +6013,680 @@ public class TeamsService {
 		return sb.toString();
 	}
 
-	@Transactional
-	public void updateTeamMemberStatus() {
-		try {
-			int activated = employeeTeamMapRepository.activateMembersBasedOnStartDate();
-			int deactivated = employeeTeamMapRepository.deactivateMembersBasedOnEndDate();
+	 /*
+     * -------------------------------------------------------
+     * DEACTIVATION FLOW
+     * -------------------------------------------------------
+     */
 
-			log.info("Team Member Status Update | Activated: {} | Deactivated: {}", activated, deactivated);
-		} catch (Exception e) {
-			log.error("Error updating team member status", e);
-		}
-	}
+    public void processDeactivations(LocalDateTime todayStart, LocalDateTime now) {
 
+        List<DeactivationCandidateDTO> candidates =
+                employeeTeamMapRepository.findDeactivationCandidates(todayStart);
+
+        if (candidates.isEmpty()) return;
+
+        List<Long> etmIds =
+                candidates.stream()
+                        .map(DeactivationCandidateDTO::getEmployeeTeamMapId)
+                        .collect(Collectors.toList());
+
+        employeeTeamMapRepository.deactivateEmployeeTeamMappings(
+                etmIds,
+                now,
+                1L);
+
+        Set<Long> empIds =
+                candidates.stream()
+                        .map(DeactivationCandidateDTO::getEmpId)
+                        .collect(Collectors.toSet());
+
+        Set<Long> projectIds =
+                candidates.stream()
+                        .map(DeactivationCandidateDTO::getProjectId)
+                        .filter(Objects::nonNull)
+                        .map(Integer::longValue)
+                        .collect(Collectors.toSet());
+
+        List<EmpPrimaryProjectMapping> mappings =
+                empPrimaryProjectMappingRepository
+                        .findActivePrimaryMappings(empIds, projectIds);
+
+        Map<Long, Set<Long>> empProjectMap =
+                candidates.stream()
+                        .filter(c -> c.getProjectId() != null)
+                        .collect(Collectors.groupingBy(
+                                DeactivationCandidateDTO::getEmpId,
+                                Collectors.mapping(
+                                        c -> c.getProjectId().longValue(),
+                                        Collectors.toSet()
+                                )
+                        ));
+
+        List<EmpPrimaryProjectMapping> updates = new ArrayList<>();
+
+        for (EmpPrimaryProjectMapping mapping : mappings) {
+
+        	Set<Long> projects =
+        	        empProjectMap.get(mapping.getEmpId());
+
+        	if (projects != null
+        	        && projects.contains(mapping.getPrimaryProjectId())
+        	        && "Y".equalsIgnoreCase(mapping.getIsMapped())) {
+
+                mapping.setIsMapped("N");
+                mapping.setUpdatedOn(now);
+                mapping.setUpdatedBy(1L);
+
+                updates.add(mapping);
+            }
+        }
+
+        if (!updates.isEmpty()) {
+
+            empPrimaryProjectMappingRepository.saveAll(updates);
+        }
+
+        log.info("Deactivated {} EmployeeTeamMap records", etmIds.size());
+    }
+
+    /*
+     * -------------------------------------------------------
+     * ACTIVATION FLOW
+     * -------------------------------------------------------
+     */
+
+    public void processActivations(
+            LocalDateTime todayStart,
+            LocalDateTime tomorrowStart,
+            LocalDateTime now) {
+
+        List<ActivationCandidateDTO> candidates =
+                employeeTeamMapRepository
+                        .findActivationCandidates(todayStart, tomorrowStart);
+
+        if (candidates.isEmpty()) return;
+
+        Set<Long> empIds =
+                candidates.stream()
+                        .map(ActivationCandidateDTO::getEmpId)
+                        .collect(Collectors.toSet());
+
+        List<ActiveProjectDTO> activeProjects =
+                employeeTeamMapRepository
+                        .findActiveProjectsByEmpIds(empIds);
+
+        Map<Long, List<ActiveProjectDTO>> activeProjectMap =
+                activeProjects.stream()
+                        .collect(Collectors.groupingBy(
+                                ActiveProjectDTO::getEmpId));
+
+        List<Long> etmIds =
+                candidates.stream()
+                        .map(ActivationCandidateDTO::getEmployeeTeamMapId)
+                        .collect(Collectors.toList());
+
+        Map<Long, EmployeeTeamMap> etmMap =
+                employeeTeamMapRepository.findAllById(etmIds)
+                        .stream()
+                        .collect(Collectors.toMap(
+                                EmployeeTeamMap::getEmployeeTeamMapId,
+                                Function.identity()));
+
+        List<EmployeeTeamMap> updates = new ArrayList<>();
+        List<TNMConflictDTO> conflicts = new ArrayList<>();
+
+        for (ActivationCandidateDTO candidate : candidates) {
+
+            List<ActiveProjectDTO> existing =
+                    activeProjectMap.getOrDefault(
+                            candidate.getEmpId(),
+                            Collections.emptyList());
+
+            boolean hasTNM =
+                    existing.stream()
+                            .anyMatch(p ->
+                                    "TNM".equalsIgnoreCase(p.getPoProjectType()));
+
+            boolean newTNM =
+                    "TNM".equalsIgnoreCase(candidate.getPoProjectType());
+
+            if (hasTNM || (newTNM && !existing.isEmpty())) {
+
+                conflicts.add(buildConflict(candidate, existing));
+                continue;
+            }
+
+            EmployeeTeamMap etm =
+                    etmMap.get(candidate.getEmployeeTeamMapId());
+            
+            if (etm == null) {
+                log.warn("ETM not found for id {}", candidate.getEmployeeTeamMapId());
+                continue;
+            }
+
+            etm.setActive(1L);
+            etm.setUpdatedOn(now);
+            etm.setUpdatedBy(1L);
+
+            updates.add(etm);
+        }
+
+        if (!updates.isEmpty()) {
+
+            employeeTeamMapRepository.saveAll(updates);
+        }
+
+        sendTNMConflictEmails(conflicts);
+    }
+
+    /*
+     * -------------------------------------------------------
+     * DEFAULT PROJECT MAPPING FLOW
+     * -------------------------------------------------------
+     */
+
+    public void updateDefaultProjectMappings() {
+
+        List<Long> activeEmployees =
+                employeeRepository.findAllActiveEmployees();
+
+        if (activeEmployees.isEmpty()) return;
+
+        List<ProjectEmpInfoDTO> projects =
+                employeeTeamMapRepository
+                        .findActiveProjectsForEmployees(activeEmployees);
+
+        Map<Long, List<ProjectEmpInfoDTO>> empProjectMap =
+                projects.stream()
+                        .collect(Collectors.groupingBy(
+                                ProjectEmpInfoDTO::getEmpId));
+
+        Set<Long> empIds = empProjectMap.keySet();
+
+        List<EmpPrimaryProjectMapping> mappings =
+                empPrimaryProjectMappingRepository.findByEmpIdIn(empIds);
+
+        Map<Long, EmpPrimaryProjectMapping> mappingMap =
+                mappings.stream()
+                .collect(Collectors.toMap(
+                        EmpPrimaryProjectMapping::getEmpId,
+                        Function.identity(),
+                        (a, b) -> a
+                ));
+
+        List<EmpPrimaryProjectMapping> updates = new ArrayList<>();
+        
+        List<MultiProjectEmployeeDTO> multiProjectEmployees = new ArrayList<>();
+        List<EmployeeBillableUpdateDTO> billableUpdates = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now();
+
+        for (Map.Entry<Long, List<ProjectEmpInfoDTO>> entry :
+                empProjectMap.entrySet()) {
+
+            Long empId = entry.getKey();
+            List<ProjectEmpInfoDTO> empProjects = entry.getValue();
+
+            if (empProjects.size() > 1) {
+
+            	 multiProjectEmployees.add(
+            	            buildMultiProjectEmployee(empId, empProjects)
+            	    );
+                continue;
+            }
+
+            ProjectEmpInfoDTO project = empProjects.get(0);
+
+            EmpPrimaryProjectMapping mapping =
+                    mappingMap.getOrDefault(
+                            empId,
+                            new EmpPrimaryProjectMapping());
+
+            mapping.setEmpId(empId);
+            mapping.setPrimaryProjectId(Long.parseLong(project.getProjectId().toString()));
+            mapping.setPrimaryProjectName(project.getProjectName());
+            mapping.setIsMapped("Y");
+            mapping.setUpdatedOn(now);
+            mapping.setUpdatedBy(1L);
+
+            updates.add(mapping);
+            
+            billableUpdates.add(
+                    computeBillableUpdate(empId, project)
+            );
+        }
+        
+        notifyManagersForMultipleProjectsGrouped(multiProjectEmployees);
+        
+        if (!billableUpdates.isEmpty()) {
+
+            bulkUpdateBillableType(billableUpdates);
+
+        }
+
+        if (!updates.isEmpty()) {
+
+            empPrimaryProjectMappingRepository.saveAll(updates);
+        }
+    }
+
+    /*
+     * -------------------------------------------------------
+     * HELPER METHODS
+     * -------------------------------------------------------
+     */
+
+    private TNMConflictDTO buildConflict(
+            ActivationCandidateDTO candidate,
+            List<ActiveProjectDTO> existing) {
+
+        TNMConflictDTO dto = new TNMConflictDTO();
+
+        dto.setEmpId(candidate.getEmpId());
+        dto.setEmployeeCode(candidate.getEmployeeCode());
+        dto.setEmpName(candidate.getEmpName());
+        dto.setProjectId(candidate.getProjectId());
+        dto.setNewProjectName(candidate.getProjectName());
+        dto.setStartDate(candidate.getStartDate().toLocalDate());
+
+        dto.setExistingProjects(
+                existing.stream()
+                        .map(ActiveProjectDTO::getProjectName)
+                        .distinct()
+                        .collect(Collectors.joining(", "))
+        );
+
+        return dto;
+    }
+
+    private void sendTNMConflictEmails(List<TNMConflictDTO> conflicts) {
+
+        if (conflicts == null || conflicts.isEmpty()) {
+            return;
+        }
+
+        /*
+         * -------------------------------------------------------
+         * STEP 1 : COLLECT ALL PROJECT IDS FROM CONFLICTS
+         * -------------------------------------------------------
+         */
+        
+        conflicts = conflicts.stream()
+                .distinct()
+                .collect(Collectors.toList());
+
+        Set<Long> projectIds =
+                conflicts.stream()
+                        .map(TNMConflictDTO::getProjectId)
+                        .filter(Objects::nonNull)
+                        .map(Integer::longValue)
+                        .collect(Collectors.toSet());
+
+
+        /*
+         * -------------------------------------------------------
+         * STEP 2 : FETCH PROJECT MANAGER EMAILS
+         * -------------------------------------------------------
+         */
+
+        List<ProjectManagerEmailDTO> pmResults =
+                employeeTeamMapRepository
+                        .findProjectManagerEmailsByProjectIds(projectIds);
+
+
+        /*
+         * -------------------------------------------------------
+         * STEP 3 : BUILD PROJECT → PM EMAIL MAP
+         * -------------------------------------------------------
+         */
+
+        Map<Long, List<String>> projectPmMap =
+                pmResults.stream()
+                        .collect(Collectors.groupingBy(
+                                p -> p.getProjectId().longValue(),
+                                Collectors.mapping(
+                                        ProjectManagerEmailDTO::getEmail,
+                                        Collectors.toList()
+                                )
+                        ));
+
+
+        /*
+         * -------------------------------------------------------
+         * STEP 4 : GROUP CONFLICTS BY PM EMAIL
+         * -------------------------------------------------------
+         */
+
+        Map<String, List<TNMConflictDTO>> pmConflictMap = new HashMap<>();
+
+        for (TNMConflictDTO conflict : conflicts) {
+
+            Long projectId = conflict.getProjectId().longValue();
+
+            List<String> pmEmails = projectPmMap.get(projectId);
+
+            if (pmEmails == null || pmEmails.isEmpty()) {
+                continue;
+            }
+
+            for (String email : pmEmails) {
+
+                pmConflictMap
+                        .computeIfAbsent(email, k -> new ArrayList<>())
+                        .add(conflict);
+            }
+        }
+
+
+        /*
+         * -------------------------------------------------------
+         * STEP 5 : SEND ONE EMAIL PER PROJECT MANAGER
+         * -------------------------------------------------------
+         */
+
+        for (Map.Entry<String, List<TNMConflictDTO>> entry : pmConflictMap.entrySet()) {
+
+            String pmEmail = entry.getKey();
+            List<TNMConflictDTO> pmConflicts = entry.getValue();
+
+            String subject =
+                    "TNM Allocation Conflicts – Manual Intervention Required";
+
+            String body = buildTNMConflictEmailBody(pmConflicts);
+
+            try {
+
+                mailService.sendMailWithCC(
+                        pmEmail,
+//                		"priyadarshini.singh@apmosys.com",
+                        rmgMail,
+//                		"",
+                        subject,
+                        body
+                );
+
+            } catch (Exception ex) {
+
+                log.error(
+                        "Error sending TNM conflict email to PM {}",
+                        pmEmail,
+                        ex
+                );
+            }
+        }
+    }
+    
+    private String buildTNMConflictEmailBody(List<TNMConflictDTO> conflicts) {
+
+        StringBuilder body = new StringBuilder();
+
+        body.append("Dear Project Manager,<br><br>");
+        body.append("The following employee allocations could not be activated due to TNM conflict:<br><br>");
+
+        body.append("<table border='1' cellpadding='5'>");
+        body.append("<tr>");
+        body.append("<th>Employee Code</th>");
+        body.append("<th>Employee Name</th>");
+        body.append("<th>New Project</th>");
+        body.append("<th>Existing Projects</th>");
+        body.append("</tr>");
+
+        for (TNMConflictDTO dto : conflicts) {
+
+            body.append("<tr>");
+            body.append("<td>").append(dto.getEmployeeCode()).append("</td>");
+            body.append("<td>").append(dto.getEmpName()).append("</td>");
+            body.append("<td>").append(dto.getNewProjectName()).append("</td>");
+            body.append("<td>").append(dto.getExistingProjects()).append("</td>");
+            body.append("</tr>");
+        }
+
+        body.append("</table><br>");
+
+        body.append("Please take manual action to resolve the allocation conflict.<br><br>");
+        body.append("Regards,<br>Employee Portal Scheduler");
+
+        return body.toString();
+    }
+    
+    private MultiProjectEmployeeDTO buildMultiProjectEmployee(
+            Long empId,
+            List<ProjectEmpInfoDTO> projects) {
+
+        MultiProjectEmployeeDTO dto = new MultiProjectEmployeeDTO();
+
+        dto.setEmpId(empId);
+
+        dto.setProjectIds(
+                projects.stream()
+                        .map(ProjectEmpInfoDTO::getProjectId)
+                        .filter(Objects::nonNull)
+                        .map(Integer::longValue)
+                        .collect(Collectors.toList())
+        );
+
+        dto.setProjectNames(
+                projects.stream()
+                        .map(ProjectEmpInfoDTO::getProjectName)
+                        .collect(Collectors.toList())
+        );
+
+        return dto;
+    }
+    
+    public void bulkUpdateBillableType(List<EmployeeBillableUpdateDTO> updates) {
+
+        if (updates == null || updates.isEmpty()) {
+            return;
+        }
+
+        /*
+         * -----------------------------------------
+         * STEP 1 : COLLECT EMP IDS
+         * -----------------------------------------
+         */
+        List<Long> empIds =
+                updates.stream()
+                        .map(EmployeeBillableUpdateDTO::getEmpId)
+                        .distinct()
+                        .collect(Collectors.toList());
+
+        /*
+         * -----------------------------------------
+         * STEP 2 : FETCH EMPLOYEES IN ONE QUERY
+         * -----------------------------------------
+         */
+        List<Employee> employees =
+                employeeRepository.findByEmpIdIn(empIds);
+
+        if (employees.isEmpty()) {
+            return;
+        }
+
+        /*
+         * -----------------------------------------
+         * STEP 3 : CREATE MAP FOR FAST LOOKUP
+         * -----------------------------------------
+         */
+        Map<Long, EmployeeBillableUpdateDTO> updateMap =
+                updates.stream()
+                        .collect(Collectors.toMap(
+                                EmployeeBillableUpdateDTO::getEmpId,
+                                Function.identity(),
+                                (a, b) -> b
+                        ));
+
+        /*
+         * -----------------------------------------
+         * STEP 4 : APPLY UPDATES
+         * -----------------------------------------
+         */
+        for (Employee emp : employees) {
+
+            EmployeeBillableUpdateDTO dto =
+                    updateMap.get(emp.getEmpId());
+
+            if (dto == null) {
+                continue;
+            }
+
+            emp.setBillable(dto.getBillable());
+            emp.setBillableType(dto.getBillableType());
+        }
+
+        /*
+         * -----------------------------------------
+         * STEP 5 : SAVE ALL IN BULK
+         * -----------------------------------------
+         */
+        employeeRepository.saveAll(employees);
+    }
+    
+    private void notifyManagersForMultipleProjectsGrouped(
+            List<MultiProjectEmployeeDTO> employees) {
+
+        if (employees.isEmpty()) return;
+
+        Set<Long> allProjectIds =
+                employees.stream()
+                        .flatMap(e -> e.getProjectIds().stream())
+                        .collect(Collectors.toSet());
+
+        List<ProjectManagerEmailDTO> pmResults =
+                employeeTeamMapRepository
+                        .findProjectManagerEmailsByProjectIds(allProjectIds);
+
+        Map<Long, List<String>> projectPmMap =
+                pmResults.stream()
+                        .collect(Collectors.groupingBy(
+                                p -> p.getProjectId().longValue(),
+                                Collectors.mapping(
+                                        ProjectManagerEmailDTO::getEmail,
+                                        Collectors.toList())
+                        ));
+
+        Map<String, Set<MultiProjectEmployeeDTO>> pmEmployeeMap = new HashMap<>();
+
+        for (MultiProjectEmployeeDTO emp : employees) {
+
+            for (Long projectId : emp.getProjectIds()) {
+
+                List<String> pmEmails = projectPmMap.get(projectId);
+
+                if (pmEmails == null) continue;
+
+                for (String email : pmEmails) {
+
+                	pmEmployeeMap
+	                    .computeIfAbsent(email, k -> new HashSet<>())
+	                    .add(emp);
+                }
+            }
+        }
+
+        for (Map.Entry<String, Set<MultiProjectEmployeeDTO>> entry : pmEmployeeMap.entrySet()) {
+
+            String pmEmail = entry.getKey();
+            Set<MultiProjectEmployeeDTO> pmEmployees = entry.getValue();
+
+            String subject =
+                    "Employees With Multiple Project Mapping – Manual Action Required";
+
+            String body = buildMultiProjectEmailBody(pmEmployees);
+
+            try {
+
+                mailService.sendMailWithCC(
+                        pmEmail,
+//                		"priyadarshini.singh@apmosys.com",
+                        rmgMail,
+//                		"",
+                        subject,
+                        body
+                );
+
+            } catch (Exception ex) {
+
+                log.error("Error sending grouped PM email", ex);
+            }
+        }
+    }
+    
+    private String buildMultiProjectEmailBody(
+            Set<MultiProjectEmployeeDTO> employees) {
+
+        StringBuilder body = new StringBuilder();
+
+        body.append("Dear Project Manager,<br><br>");
+        body.append("The following employees are mapped to multiple active projects.<br>");
+        body.append("Please select a default project so billability can be calculated correctly.<br><br>");
+
+        body.append("<table border='1' cellpadding='5'>");
+        body.append("<tr>");
+        body.append("<th>Employee ID</th>");
+        body.append("<th>Projects</th>");
+        body.append("</tr>");
+
+        for (MultiProjectEmployeeDTO emp : employees) {
+
+            body.append("<tr>");
+            body.append("<td>").append(emp.getEmpId()).append("</td>");
+            body.append("<td>")
+                    .append(String.join(", ", emp.getProjectNames()))
+                    .append("</td>");
+            body.append("</tr>");
+        }
+
+        body.append("</table><br>");
+
+        body.append("Regards,<br>");
+        body.append("Employee Portal Scheduler");
+
+        return body.toString();
+    }
+
+    private EmployeeBillableUpdateDTO computeBillableUpdate(
+            Long empId,
+            ProjectEmpInfoDTO project) {
+
+        String billable = "No";
+        String billableType = "Bench";
+
+        if (Boolean.TRUE.equals(project.getIsShadow())) {
+
+            billableType = "Shadow";
+        }
+
+        else if ("TNM".equalsIgnoreCase(project.getPoProjectType())) {
+
+            billable = "Yes";
+            billableType = "TNM";
+        }
+
+        else if ("Monitoring".equalsIgnoreCase(project.getPoProjectType())
+                || "Fixed Cost".equalsIgnoreCase(project.getPoProjectType())) {
+
+            billableType = "Fixed Cost";
+        }
+
+        else if ("InternalRNDProducts".equalsIgnoreCase(project.getInternalProjectType())) {
+
+            billableType = "InternalRNDProducts";
+        }
+
+        else if ("Bench".equalsIgnoreCase(project.getInternalProjectType())) {
+
+            billableType = "Bench";
+        }
+
+        EmployeeBillableUpdateDTO dto = new EmployeeBillableUpdateDTO();
+        dto.setEmpId(empId);
+        dto.setBillable(billable);
+        dto.setBillableType(billableType);
+
+        return dto;
+    }
+    
 	@Transactional(readOnly = true)
 	public ServiceResponse getTeamDetailsByProjectId(PoDetailsDto poDetailsDto) {
 		ServiceResponse response = new ServiceResponse();

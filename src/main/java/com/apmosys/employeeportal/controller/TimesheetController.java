@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
 import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.JobRoleAccess;
+import com.apmosys.employeeportal.config.CacheConfig;
 import com.apmosys.employeeportal.dto.BulkTimesheetRequestDTO;
 import com.apmosys.employeeportal.dto.EmployeeClientSideIdMappingDTO;
 import com.apmosys.employeeportal.dto.FilteredTimesheetDTO;
@@ -68,6 +70,9 @@ public class TimesheetController {
 		
 		@Autowired
 		TimesheetApprovalService timesheetApprovalService;
+
+	@Autowired
+	private CacheManager cacheManager;
 
 	@Value("${timesheet.minus.days.for.bulk.upload}")
 	private Integer minusDays;
@@ -600,6 +605,34 @@ public class TimesheetController {
 	    		timesheetService.getDepartmentStatusSummary(requestDTO);
 
 	    return response;
+	}
+
+	/**
+	 * Evicts dashboard-related caches so the next calls to getTimesheetDashboardCountForEmployee,
+	 * getEmployeeViewForClientAttendanceStatus, and getDepartmentStatusSummary fetch fresh data.
+	 * Used when the user clicks Refresh on the HR dashboard.
+	 */
+	@PostMapping("/evictTimesheetDashboardCache")
+	public ResponseEntity<Map<String, Object>> evictTimesheetDashboardCache() {
+	    Map<String, Object> body = new HashMap<>();
+	    try {
+	        if (cacheManager.getCache(CacheConfig.CACHE_TIMESHEET_DASHBOARD_COUNT) != null) {
+	            cacheManager.getCache(CacheConfig.CACHE_TIMESHEET_DASHBOARD_COUNT).clear();
+	        }
+	        if (cacheManager.getCache(CacheConfig.CACHE_EMPLOYEE_VIEW_CLIENT_ATTENDANCE) != null) {
+	            cacheManager.getCache(CacheConfig.CACHE_EMPLOYEE_VIEW_CLIENT_ATTENDANCE).clear();
+	        }
+	        if (cacheManager.getCache(CacheConfig.CACHE_DEPARTMENT_STATUS_SUMMARY) != null) {
+	            cacheManager.getCache(CacheConfig.CACHE_DEPARTMENT_STATUS_SUMMARY).clear();
+	        }
+	        body.put("serviceStatus", ServiceResponse.STATUS_SUCCESS);
+	        body.put("serviceResponse", "Dashboard cache evicted successfully.");
+	        return ResponseEntity.ok(body);
+	    } catch (Exception e) {
+	        body.put("serviceStatus", ServiceResponse.STATUS_FAIL);
+	        body.put("serviceResponse", "Failed to evict cache: " + e.getMessage());
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+	    }
 	}
 
 	@JobRoleAccess(featureIds = {15,16})

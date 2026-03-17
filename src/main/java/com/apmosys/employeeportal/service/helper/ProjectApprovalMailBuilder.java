@@ -95,20 +95,11 @@ public class ProjectApprovalMailBuilder {
 
                 for (EmployeeTeamMap member : members) {
 
-//                    String name = employeeRepository.getEmployeeName(member.getEmpId());
-//
-//                    Long employmentId =
-//                            employeeRepository.getEmployeeEmployeementId(member.getEmpId());
-//
-//                    List<String> roleList =
-//                            resourceRequirementRepository.getResourceRoleFromEmpId(member.getEmpId());
                 	EmployeeMailDTO emp = employeeMap.get(member.getEmpId());
 
                 	String name = emp != null ? emp.getName() : "-";
-                	Long employmentId = emp != null ? emp.getEmployeementId() : null;
+                	String employmentId = formatEmployeeCode(emp);
                 	String role = emp != null && emp.getRole() != null ? emp.getRole() : "-";
-
-//                    String role = roleList != null ? String.join(",", roleList) : "-";
 
                     String rowColor = alternate ? "#F8F9F9" : "#FFFFFF";
                     alternate = !alternate;
@@ -120,7 +111,7 @@ public class ProjectApprovalMailBuilder {
                             .append(teamName != null ? teamName : "-")
                             .append("</td>")
                             .append("<td style='padding:8px;'>")
-                            .append(employmentId != null ? "A-" + employmentId : "-")
+                            .append(employmentId != null ? employmentId : "-")
                             .append("</td>")
                             .append("<td style='padding:8px;'>")
                             .append(name != null ? name : "-")
@@ -184,7 +175,7 @@ public class ProjectApprovalMailBuilder {
                 	  EmployeeMailDTO emp = employeeMap.get(member.getEmpId());
 
                       String name = emp != null ? emp.getName() : "-";
-                      Long employmentId = emp != null ? emp.getEmployeementId() : null;
+                      String employmentId = formatEmployeeCode(emp) ;
                       String role = emp != null && emp.getRole() != null ? emp.getRole() : "-";
 
                     
@@ -196,7 +187,7 @@ public class ProjectApprovalMailBuilder {
                             .append(rowColor)
                             .append(";'>")
                             .append("<td style='padding:8px;'>")
-                            .append(employmentId != null ? "A-" + employmentId : "-")
+                            .append(employmentId != null ? employmentId : "-")
                             .append("</td>")
                             .append("<td style='padding:8px;'>")
                             .append(name != null ? name : "-")
@@ -215,4 +206,22 @@ public class ProjectApprovalMailBuilder {
 
         return html.toString();
     }
+      
+      private String formatEmployeeCode(EmployeeMailDTO emp) {
+
+    	    if (emp == null || emp.getEmployeementId() == null) {
+    	        return "-";
+    	    }
+
+    	    String prefix = "A-";
+
+    	    if ("true".equalsIgnoreCase(emp.getIsApmosysProduct())) {
+    	        prefix = "AP-";
+    	    } 
+    	    else if ("true".equalsIgnoreCase(emp.getIsConsultant())) {
+    	        prefix = "CS-";
+    	    }
+
+    	    return prefix + emp.getEmployeementId();
+    	}
 }

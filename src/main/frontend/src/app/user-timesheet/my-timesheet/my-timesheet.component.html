@@ -538,7 +538,8 @@
               </tr>
 
               <ng-container *ngFor="let timesheet of allMyTimesheets
-
+                | colFilter:filters:false
+                | sort:[sortColumn, sortColumnType, sortDirection]
                 | paginate:{ itemsPerPage: itemsPerPage, currentPage: page };
                 let i = index">
 

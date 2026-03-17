@@ -4611,6 +4611,7 @@ public class ProjectService {
 	        // reset completed project
 	        if ("Completed".equalsIgnoreCase(project.getProjectStatus())) {
 	            project.setProjectStatus("Not Started");
+	            project.setProjectCompletionDate(null);
 	        }
 	    }
 

@@ -72,6 +72,8 @@ import org.dhatim.fastexcel.reader.Row;
 import org.dhatim.fastexcel.reader.Sheet;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -248,6 +250,9 @@ public class CronJobService {
 
 	@Autowired
 	BiomaxDefaulterRepository biomaxDefaulterRepository;
+	
+	@Autowired
+	TeamsService teamsService;
 
 	@Autowired
 	private final RestTemplate restTemplate = new RestTemplate();
@@ -299,6 +304,8 @@ public class CronJobService {
 
 	@Value("${admin.mail}")
 	private String adminMail;
+
+	private static final Logger log = LoggerFactory.getLogger(CronJobService.class);
 
 
 
@@ -1475,7 +1482,7 @@ public class CronJobService {
 	@Scheduled(cron = "0 1 00 ? * *")
 	public void automaticTimesheetFiller() {
 
-	    System.out.println("Cron----**********----started");
+	    log.info("Automatic Timesheet Filler Cron Started");
 
 	    try {
         
@@ -1494,10 +1501,9 @@ public class CronJobService {
                         + "' not found in day_type_master_new. Aborting cron.");
                 return;
             }
-            System.out.println("DayType verification passed — Holiday: " + holidayDayType.getDayType()
-                    + " (id=" + holidayDayType.getDayTypeId() + ")"
-                    + ", WeekOff: " + weekoffDayType.getDayType()
-                    + " (id=" + weekoffDayType.getDayTypeId() + ")");
+             log.info("DayType verification passed — Holiday: {} (id={}), WeekOff: {} (id={})",
+                holidayDayType.getDayType(), holidayDayType.getDayTypeId(),
+                weekoffDayType.getDayType(), weekoffDayType.getDayTypeId());
 	        LocalDate dateToday = LocalDate.now();
 	        LocalDateTime dateTimeToday = LocalDateTime.now();
 
@@ -1508,7 +1514,7 @@ public class CronJobService {
 	                holidayRepository.findByDateOfHoliday(dateToday);
 
 	        if (publicHoliday.isEmpty()) {
-	            System.out.println("No holiday today");
+	            log.info("No holiday found for today: {}", dateToday);
 	            return;
 	        }
 
@@ -1592,6 +1598,7 @@ public class CronJobService {
 	        }
 
 	        if (!toSave.isEmpty()) {
+				            log.info("Total auto-filled timesheets: {}", toSave.size());
 	            Map<Long, Employee> employeeMap = employeeRepository.findAllById(empHolidayMap.keySet())
                         .stream()
                         .collect(Collectors.toMap(Employee::getEmpId, e -> e));
@@ -4584,19 +4591,22 @@ public class CronJobService {
 		@Scheduled(cron="${timesheetDefaulter.time}")
 		public void timesheetDefaulterWeeklyMail() {
 
-			System.out.println("***********JOB STARTED*******************");
+			log.info("*********** timesheetDefaulterWeeklyMail JOB STARTED *******************");
 		    try {
 		        List<Department> allDepartment = departmentRepository.findAll();
-		        System.out.print(allDepartment);
+		        log.debug("Departments fetched: {}", allDepartment);
+				log.info("Total departments fetched: {}", allDepartment.size());
 
-		        if (!allDepartment.isEmpty()) {
+		        if (allDepartment != null && !allDepartment.isEmpty()) {
 		            for (Department department : allDepartment) {
+						try {
+		                String deptName = department.getName();
 
-		                if (department.getName().equals("Super Admin") ||
-		                    department.getName().equals("Director") ||
-		                    department.getName().equals("unKnown Department")) {
-		                    continue;
-		                }    
+						if ("Super Admin".equals(deptName) ||
+							"Director".equals(deptName) ||
+							"unKnown Department".equals(deptName)) {
+							continue;
+						} 
 		                Set<String> defaulterEmails = new HashSet<>();
 		                List<TimesheetDTO> dtoList = new ArrayList<>();
 
@@ -4614,13 +4624,16 @@ public class CronJobService {
 		                	        ts -> ts[1] != null ? Long.parseLong(ts[1].toString()) : 0L
 		                	    ));
 		                List<Object[]> employeeList = employeeRepository.getEmployeeByDepartmentId(department.getDeptId());
-		                System.out.println("Employee List (Total: " + employeeList.size() + "):");
+		                log.info("Employee List Size for {} : {}",
+										department.getName(),
+										employeeList == null ? 0 : employeeList.size());
 		                String hodMail = null;
 
 
 						for (Object[] emp : employeeList) {
-		                    System.out.println("  -> A-" + emp[0] + " | Email: " + emp[3]);
-		                    System.out.println(Arrays.toString(emp));
+							   try {
+		                    // System.out.println("  -> A-" + emp[0] + " | Email: " + emp[3]);
+		                    log.debug("Employee record: {}", Arrays.toString(emp));
 
 
 		                    TimesheetDTO dto = new TimesheetDTO();
@@ -4664,12 +4677,18 @@ public class CronJobService {
 		                    }
 
 		                    dtoList.add(dto);
+						}catch (Exception e) {
+
+                            log.error("Error processing employee record: {}", Arrays.toString(emp), e);
+						}
+                        
 		                }
 
 
 		                dtoList = dtoList.stream()
 		                        .filter(d -> d.getPendingEodCount()!=null && d.getPendingEodCount() >= 3)
 		                        .collect(Collectors.toList());
+						log.info("Defaulters found in {} : {}", department.getName(), dtoList.size());
 		                System.out.println("Defaulters (Pending EOD ≥ 3):");
 		                for (TimesheetDTO dto : dtoList) {
 		                    System.out.println("  -> A-" + dto.getEmployeementId() + " | " + dto.getEmail() + " | Pending: " + dto.getPendingEodCount() + " | Filled Count : " + dto.getFilledTimesheetCount());
@@ -4701,10 +4720,8 @@ public class CronJobService {
 		                    }
 
 		                    html.append("</table></body></html>");
-		                    System.out.println("ttttt"+
-		                    	    html.toString()
-		                    	        .replace("><", ">\n<")
-		                    	);
+							log.debug("Generated HTML mail body:\n{}",
+								html.toString().replace("><", ">\n<"));
 		                    // Send mail to HOD + HR
 		                    try {
 		                        mailService.sendMailWithCC(
@@ -4718,16 +4735,16 @@ public class CronJobService {
 		                                        + "Regards,<br>ApMoSys Technologies"
 		                                        + html.toString()
 		                        );
-		                        System.out.println(" HOD+HR mail sent for: " + department.getName());
+		                        log.info("HOD + HR mail sent for department {}", department.getName());
 		                    } catch (MessagingException e) {
-		                        System.out.println(" Failed sending HOD+HR mail for: " + department.getName());
-		                        e.printStackTrace();
+		                        log.error("Failed sending HOD+HR mail for department {}", department.getName(), e);
 		                    }
 //
 		                    // Send mails to each individual employee
-		                    System.out.println("Individual defaulter emails (Total: " + defaulterEmails.size() + "):");
-		                    for (String email : defaulterEmails) {
-		                        System.out.println("  -> " + email);
+		                    log.info("Sending {} defaulter mails for department {}",
+        						defaulterEmails.size(), department.getName());
+							for (String email : defaulterEmails) {
+		                        log.debug("Processing email: {}", email);
 		                        try {
 		                            mailService.sendMail(
 		                                    email,
@@ -4738,19 +4755,24 @@ public class CronJobService {
 		                                            + html.toString()
 		                                            + "Regards,<br>ApMoSys Technologies"
 		                            );
+									 log.info("Mail sent successfully to {}", email);
 		                        } catch (Exception e) {
-		                            System.out.println("Failed sending mail to: " + email);
-		                            e.printStackTrace();
+		                            log.error("Failed sending mail to {}", email, e);
 		                        }
 		                    }
 		                } else {
-		                    System.out.println("No defaulters in " + department.getName());
+		                    log.info("No defaulters found in department {}", department.getName());
 		                }
+						} catch (Exception e) {
+
+                    		log.error("Error while processing department {}", 
+          					department != null ? department.getName() : "UNKNOWN", e);
+
+                }
 		            }
 		        }
 		    } catch (Exception e) {
-		        System.out.println(" Exception occurred in timesheetDefaulterWeeklyMail()");
-		        e.printStackTrace();
+		                log.error("Exception occurred in timesheetDefaulterWeeklyMail()", e);
 		    }
 		}
 
@@ -5003,7 +5025,7 @@ try {
 			String subject = null;
 			int currentYear = 0;
 
-			if(timesheetdto.getIsCron().equals("true")) {
+			if ("true".equals(timesheetdto.getIsCron())) {
 				currentYear = LocalDate.now().getYear();
 				int currentMonth = LocalDate.now().getMonthValue();
 
@@ -5011,7 +5033,7 @@ try {
 				currentDate = LocalDate.now().minusDays(1);
 				subject = "All Employee's DSR report from "+firstOfMonth+" to "+currentDate;
 
-			}else if(timesheetdto.getIsCron().equals("false")) {
+			}else if ("false".equals(timesheetdto.getIsCron())) {
 				int month = Month.valueOf(timesheetdto.getMonth().toUpperCase()).getValue();
 				currentYear = LocalDate.now().getYear();
 
@@ -5019,6 +5041,7 @@ try {
 				currentDate = YearMonth.of(timesheetdto.getYear(), month).atEndOfMonth();
 				subject = "All Employee's DSR report of month : "+timesheetdto.getMonth() + " " + currentYear;
 			}
+			        log.info("Generating DSR report from {} to {}", firstOfMonth, currentDate);
 
 
 			String fileName = "EmployeeDSR"+"-"+firstOfMonth.getMonth()+".xlsx";
@@ -5049,6 +5072,19 @@ try {
 					int rowNum = 1;
 
 					List<Object[]> employeeList = employeeRepository.getEmployeeDetailForDSRCron(firstOfMonth, currentDate);
+					if (employeeList == null || employeeList.isEmpty()) {
+
+						log.warn("No employee data found for DSR report between {} and {}",
+								firstOfMonth, currentDate);
+
+						response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+						response.setServiceResponse("No employee data found.");
+						return response;
+					}
+
+					log.info("Total employees fetched: {}", employeeList.size());
+					
+
 					 List<Long> empIds = employeeList.stream()
 				                .map(e -> Long.parseLong(e[0].toString()))
 				                .collect(Collectors.toList());
@@ -5056,6 +5092,7 @@ try {
 				                employeeTimesheetsNewRepository
 				                        .fetchTimesheetDataWithDateTypeForEmployees(
 				                                empIds, firstOfMonth, currentDate);
+					log.info("Total timesheets fetched: {}", allTimesheets.size());
 					 Map<Long, List<EmployeeTimesheetsNewDTO>> timesheetMap =
 				                allTimesheets.stream()
 				                        .collect(Collectors.groupingBy(
@@ -5155,6 +5192,7 @@ try {
 						        rowNum++;
 
 						    } else {
+								log.debug("No activity found for timesheet {}", ts.getTimesheetId());
 						        List<Object[]> empLeave =
 						                employeeLeaveRepository
 						                        .findLeaveTypeFromEmpIdAndDate(
@@ -5198,14 +5236,18 @@ try {
 
 						        rowNum++;
 
-						        System.out.println("Activity List is empty");
 						    }							
 						}
 							
 					}
 					wb.finish();
 				}catch(Exception e) {
-					e.printStackTrace();
+					// e.printStackTrace();
+					log.error("Error while generating DSR report", e);
+					 response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+					response.setServiceResponse("Failed to generate DSR report.");
+
+					return response;
 				}
 
 				// Send mail
@@ -5226,7 +5268,8 @@ try {
 				 }
 
 		}catch(Exception e) {
-			e.printStackTrace();
+			// e.printStackTrace();
+			log.error("Unexpected error in allEmployeeDsrReport()", e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
@@ -6857,125 +6900,6 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 					+ "</body></html>";
 		}
 
-		public void triggerBillableTypeChangeMail(Long empId, String newBillableType, String oldBillableType, Long updatedById) {
-		    try {
-		        Object[] details = (Object[]) employeeRepository.findEmployeeDepartmentDetails(empId);
-		        if (details == null) return;
-
-		        Long empIdd = ((Number) details[0]).longValue();
-		        String empName = (String) details[1];
-		        String departmentName = (String) details[2];
-		        Long hodId = ((Number) details[3]).longValue();
-
-		        String updatedByName = employeeRepository.findEmployeeNameById(updatedById);
-		        String hodEmail = employeeRepository.findHodEmailById(hodId);
-
-		        StringBuilder html = new StringBuilder();
-		        html.append("<html><body>");
-		        html.append("<p>Dear HOD,</p>");
-		        html.append("<p>The following billable type change has been made by <b>")
-		            .append(updatedByName)
-		            .append("</b>:</p>");
-
-		        html.append("<div style='overflow-x:auto;'>");
-		        html.append("<table border='1' style='border-collapse: collapse; width: 100%; table-layout: auto;'>");
-		        html.append("<tr>");
-		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Employee ID</th>");
-		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Name</th>");
-		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Billable Type</th>");
-		        html.append("</tr>");
-
-		        html.append("<tr>");
-		        html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>A-").append(empIdd).append("</td>");
-		        html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>").append(empName).append("</td>");
-		        html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>")
-		            .append(oldBillableType).append(" &rarr; ").append(newBillableType).append("</td>");
-		        html.append("</tr>");
-		        html.append("</table>");
-		        html.append("</div>");
-
-		        html.append("<p>Regards,<br/>Ishine Team</p>");
-		        html.append("</body></html>");
-
-		        String subject = "Billable Type Change Notification for " + departmentName + " Department";
-
-		        mailService.sendMailWithCC(hodEmail, billablechangeMailAddress, subject, html.toString());
-
-		    } catch (Exception e) {
-		        e.printStackTrace();
-		        // Optionally log or handle the error here
-		    }
-		}
-
-
-
-		public void triggerBulkBillableChangeEmails(List<Long> empIds, Map<Long, String> oldBillableTypes, String newBillableType, Long updatedById) {
-		    Map<Long, List<Object[]>> deptToEmployeeDetails = new HashMap<>();
-
-		    for (Long empId : empIds) {
-		        Object[] details = (Object[]) employeeRepository.findEmployeeDepartmentDetails(empId);
-		        if (details == null) continue;
-
-		        Long empIdd = ((Number) details[0]).longValue();
-		        String empName = (String) details[1];
-		        String departmentName = (String) details[2];
-		        Long hodId = ((Number) details[3]).longValue();
-
-		        deptToEmployeeDetails.computeIfAbsent(hodId, k -> new ArrayList<>())
-		            .add(new Object[]{empIdd, empName, departmentName, oldBillableTypes.get(empId), newBillableType});
-		    }
-
-		    String updatedByName = employeeRepository.findEmployeeNameById(updatedById);
-
-		    for (Map.Entry<Long, List<Object[]>> entry : deptToEmployeeDetails.entrySet()) {
-		        Long hodId = entry.getKey();
-		        List<Object[]> employees = entry.getValue();
-		        String hodEmail = employeeRepository.findHodEmailById(hodId);
-
-		        // Get department name from first employee (they're all from the same department)
-		        String departmentName = (String) employees.get(0)[2];
-
-		        StringBuilder html = new StringBuilder();
-		        html.append("<html><body>");
-		        html.append("<p>Dear HOD,</p>");
-		        html.append("<p>The following billable type changes have been made by <b>")
-		            .append(updatedByName)
-		            .append("</b>:</p>");
-
-		        html.append("<div style='overflow-x:auto;'>");
-		        html.append("<table border='1' style='border-collapse: collapse; width: 100%; table-layout: auto;'>");
-		        html.append("<tr>");
-		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Employee ID</th>");
-		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Name</th>");
-		        html.append("<th style='white-space: nowrap; padding: 4px; text-align: center;'>Billable Type</th>");
-		        html.append("</tr>");
-
-		        for (Object[] emp : employees) {
-		            html.append("<tr>");
-		            html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>A-").append(emp[0]).append("</td>");
-		            html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>").append(emp[1]).append("</td>");
-		            html.append("<td style='white-space: nowrap; padding: 4px; text-align: center;'>")
-		                .append(emp[3]).append(" &rarr; ").append(emp[4]).append("</td>");
-		            html.append("</tr>");
-		        }
-
-		        html.append("</table>");
-		        html.append("</div>");
-		        html.append("<p>Regards,<br/>Ishine Team</p>");
-		        html.append("</body></html>");
-
-		        String subject = "Billable Type Change Notification for " + departmentName + " Department";
-
-		        try {
-		            mailService.sendMailWithCC(hodEmail, billablechangeMailAddress, subject, html.toString());
-		        } catch (MessagingException e) {
-		            e.printStackTrace();
-
-		        }
-		    }
-		}
-
-
 		public void sendHrDepartmentNotification(LeaveDTO leaveDTO, LeaveTypeMaster leavetype) {
 			LogDTO apiLogInfo = new LogDTO();
 		    apiLogInfo.setSubFeatureName("sendMailForExpiryProjects");
@@ -7119,29 +7043,42 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 	        	 System.out.println(logBuilder.toString());
 	        }
 	    }
+	    
+	    @Scheduled(cron = "0 32 18 * * *")
+	    @Transactional
+	    public void updateTeamMemberStatus() {
 
+	        LogDTO apiLogInfo = new LogDTO();
+	        apiLogInfo.setSubFeatureName("updateTeamMemberStatus");
+	        apiLogInfo.setApiUrl("/api/updateTeamMemberStatus");
+	        apiLogInfo.setLogLevel("INFO");
 
+	        StringBuilder logBuilder = new StringBuilder();
 
+	        LocalDate today = LocalDate.now();
+	        LocalDateTime todayStart = today.atStartOfDay();
+	        LocalDateTime tomorrowStart = today.plusDays(1).atStartOfDay();
+	        LocalDateTime now = LocalDateTime.now();
 
+	        try {
 
+	            teamsService.processDeactivations(todayStart, now);
 
+	            teamsService.processActivations(todayStart, tomorrowStart, now);
 
+	            teamsService.updateDefaultProjectMappings();
 
+	            logBuilder.append("Team member scheduler executed successfully.");
 
+	        } catch (Exception ex) {
 
+	        	logBuilder.append("Team member scheduler failed");
+	            logBuilder.append("Scheduler failed: ")
+	                      .append(ex.getMessage());
+	        }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+	        apiLogInfo.setApiRequest(logBuilder.toString());
+	        logService.logMyInfo(httpRequest, apiLogInfo);
+	    }
 
 }	

@@ -17,6 +17,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.apmosys.employeeportal.dto.EmpIdAndNameDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
 import com.apmosys.employeeportal.dto.EmployeeJobRoleDept;
@@ -948,9 +949,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     int updateBillableTypeForMultiple(@Param("empIds") List<Long> empIds,
                                       @Param("billableType") String billableType,
                                       @Param("billable") String billable,@Param("updatedBy") Long updatedBy,@Param("updatedOn") String updatedOn);
-    
-    @Query(value ="select DISTINCT emp_id from employee where employmentstatus !='Inactive'",nativeQuery=true)
-    List<Long>findAllActiveEmployees();
     
 //    @Query(value="SELECT new com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO(e.empId, e.name,  \n " + 
 //			"CASE  \n " + 
@@ -4368,7 +4366,8 @@ public List<Object[]> fetchInActivePOListOfProject(
        "e.empId, " +
        "e.name, " +
        "e.employeementId, " +
-       "rr.role) " +
+       "rr.role, " +
+       "e.isApmosysProduct, e.isConsultant) " +
        "FROM Employee e " +
        " JOIN EmployeeTeamMap etm ON etm.empId = e.empId AND etm.active = 1" +
        " JOIN RoleDetails rr ON rr.roleId = etm.roleId " +
@@ -4377,4 +4376,11 @@ public List<Object[]> fetchInActivePOListOfProject(
 
 	@Query(value = "select e.billable_type from employee e where e.emp_id = :empId ;", nativeQuery = true)
 	String getBillableType(Long empId);
+	
+	@Query("SELECT new com.apmosys.employeeportal.dto.EmpIdAndNameDTO(e.empId,e.name) from Employee e where e.empId in :empIds")
+	List<EmpIdAndNameDTO> getEmployeeNames(@Param("empIds")Set<Long> empIds);
+	
+	@Query("SELECT distinct e.empId FROM Employee e WHERE e.employmentstatus != 'InActive'")
+    List<Long> findAllActiveEmployees();
+
 }
