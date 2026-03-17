@@ -53,7 +53,9 @@ public class FCProjectMilestoneDTO {
 	private String updatedByName;
 
 	
-	private List<MilestoneExtendedDate> milestoneExtendedDates;
+	private List<MilestoneAuditDTO> milestoneExtendedEndDateLogs;
+	private List<MilestoneAuditDTO> milestoneExtendedStartDateLogs;
+	private List<MilestoneAuditDTO> milestoneStatusLogs;
 
 	
 	// Constructor for repository query

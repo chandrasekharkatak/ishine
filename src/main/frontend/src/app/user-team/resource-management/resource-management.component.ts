@@ -316,6 +316,9 @@ expiredProjectsWithin1Month:any;
   projectMilestoneDocumentModalRef: NgbModalRef;
   @ViewChild("project_milestone_document") projectMilestoneDocumentTemplateRef: TemplateRef<any>;
   expandedMilestoneId:any
+  selectedLogs: any[] = [];
+  selectedLogType: string = '';
+  logHeader:any;
   @ViewChild("project_milestone_extended_preview") projectMilestoneExtendedPreviewTemplateRef: TemplateRef<any>;
   isImageFile: boolean = false;
   isPdfFile: boolean = false;
@@ -8443,7 +8446,7 @@ clearExtensionFile(fileInput: HTMLInputElement) {
   fileInput.value = '';
 }
 
-onExtensionFileSelected(event: any) {
+onExtensionFileSelected(event: any,projectMilestone:any) {
 
   const file = event.target.files[0];
   if (!file) return;
@@ -8460,7 +8463,31 @@ onExtensionFileSelected(event: any) {
     this.openAlertMod(this.alertTemplateForMilestone, "File size should be less than 25MB!!");
     return;
   }
+  
+  const uniquefile =projectMilestone.id+'_'+file.name
+  this.validateFileName(uniquefile)
   this.projectMilestone.extensionFile = file;
+}
+
+validateFileName(uniquefile: any) {
+  this.projectService.validateDocName(uniquefile).subscribe({
+    next: (response: any) => {
+      if (response.serviceStatus === 'Success') {
+        // No duplicate
+        console.error(response.serviceResponse);
+      } else if (response.serviceStatus === 'Fail') {
+        // Duplicate found
+        this.projectMilestone.extensionFile = null;
+        this.openAlertMod(this.alertTemplateForMilestone, response.serviceResponse);
+        return false;        
+      }
+    },
+    error: (error) => {
+        this.projectMilestone.extensionFile = null;
+        this.openAlertMod(this.alertTemplateForMilestone,"Error while validating file. Kindly try after sometime!!");
+        return false;        
+    }
+  });
 }
 
 previewExtensionFile() {
@@ -8478,7 +8505,6 @@ previewExtensionFile() {
     }
   );
 }
-
 
 extensionReason() {
     this.projectService.getAllMilestoneExtendReason().subscribe({
@@ -8567,9 +8593,48 @@ toggleExtensionLogs(milestone: any) {
   this.expandedMilestoneId = this.expandedMilestoneId === milestone.id ? null : milestone.id;
 }
 
-previewDocument(milestoneId: number) {
+toggleLogs(milestone: any, type: 'start' | 'end' | 'status') {
 
-  this.projectService.getExtensionDocumentById(milestoneId).subscribe((res: any) => {
+  // If clicking same milestone and same log type → collapse
+  if (this.expandedMilestoneId === milestone.id && this.selectedLogType === type) {
+    this.expandedMilestoneId = null;
+    this.selectedLogs = [];
+    this.selectedLogType = null;
+    this.logHeader = '';
+    return;
+  }
+  // Expand row
+  this.expandedMilestoneId = milestone.id;
+  this.selectedLogType = type;
+  this.selectedLogs = [];
+
+  switch (type) {
+    case 'start':
+      this.selectedLogs = milestone.milestoneExtendedStartDateLogs || [];
+      this.logHeader = 'Start Date';
+      break;
+
+    case 'end':
+      this.selectedLogs = milestone.milestoneExtendedEndDateLogs || [];
+      this.logHeader = 'End Date';
+      break;
+
+    case 'status':
+      this.selectedLogs = milestone.milestoneStatusLogs || [];
+      this.logHeader = 'Status';
+      break;
+  }
+}
+
+trackByLog(index: number, log: any) {
+  return log.documentId || index;
+}
+
+
+previewDocument(documentId: number,documentName:any) {
+
+  const uniquefile=documentId+'_'+documentName
+  this.projectService.getExtensionDocumentById(uniquefile).subscribe((res: any) => {
       if (!res || !res.documentContent) {
         this.milestoneDocumentUrl = null;
         this.openAlertMod(this.alertTemplateForMilestone, "Error fetching document for preview. Kindly try after sometime!!");

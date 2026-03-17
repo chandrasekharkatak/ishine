@@ -2542,7 +2542,6 @@
                                         </th>
                                         <th scope="col" class="info-label" mat-sort-header="endDate|string">End Date
                                         </th>
-                                        <th scope="col" class="info-label" mat-sort-header="extendedDate|string">Extended End Date</th>
                                         <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
                                         <th scope="col" class="info-label">Remarks</th>
                                         <th scope="col" class="info-label">Actions</th>
@@ -2561,18 +2560,24 @@
                                             <td>{{milestone.lineItemName}}</td>
                                             <td>{{milestone.name}}</td>
                                             <td>{{milestone.description}}</td>
-                                            <td>{{milestone.startDate | date:'dd/MM/yyyy'}}</td>
-                                            <td>{{milestone.endDate | date:'dd/MM/yyyy'}}</td>
-                                            <td><span *ngIf="milestone.extendedDate"
-                                                  class="text-primary fw-semibold cursor-pointer"
-                                                  title="Click to view Milestone logs"
-                                                  (click)="toggleExtensionLogs(milestone)">
-                                              {{ milestone.extendedDate | date:'dd/MM/yyyy' }}
+                                            <td>
+                                            <span *ngIf="milestone.milestoneExtendedStartDateLogs?.length > 0"
+                                                  class="text-primary fw-semibold cursor-pointer" (click)="toggleLogs(milestone,'start')">
+                                            {{ milestone.startDate | date:'dd/MM/yyyy' }}
                                             </span>
-                                            <span *ngIf="!milestone.extendedDate">N/A</span>
-                                        </td> 
-
-                                            <td>{{milestone.status}}</td>
+                                            <span *ngIf="!milestone.milestoneExtendedStartDateLogs?.length">{{ milestone.startDate | date:'dd/MM/yyyy' }}
+                                            </span>
+                                            
+                                            <td>
+                                            <span *ngIf="milestone.milestoneExtendedEndDateLogs?.length > 0"
+                                                  class="text-primary fw-semibold cursor-pointer"
+                                                  (click)="toggleLogs(milestone,'end')">{{ milestone.endDate | date:'dd/MM/yyyy' }}</span>
+                                            <span *ngIf="!milestone.milestoneExtendedEndDateLogs?.length">{{ milestone.endDate | date:'dd/MM/yyyy' }}</span>
+                                            <td>
+                                            <span *ngIf="milestone.milestoneStatusLogs?.length > 0" class="text-primary fw-semibold cursor-pointer"
+                                                      (click)="toggleLogs(milestone,'status')"> {{ milestone.status }}</span>
+                                                <span *ngIf="!milestone.milestoneStatusLogs?.length">{{ milestone.status }}</span>
+                                                </td> 
                                             <td>{{milestone.remarks}}</td>
                                             <td>
                                                 <button class="btn btn-sm btn-primary"
@@ -2590,61 +2595,50 @@
                                             </td>
                                         </tr>
                                         <tr *ngIf="expandedMilestoneId === milestone.id">
-                                          <td colspan="10" class="p-0">
-                                            <div class="p-3 bg-light border rounded mt-3 mb-5 mr-3 ml-3">
-                                            
-                                              <h5 class="mb-3">Milestone Logs</h5>
-                                            
-                                              <table class="table table-sm table-bordered mb-0">
-                                                <thead class="table-light">
-                                                  <tr>
-                                                    <th class="text-center">ID</th>
-                                                    <th class="text-center">Updated By</th>
-                                                    <th class="text-center">Updated On</th>
-                                                    <th class="text-center">Extended Date</th>
-                                                    <th class="text-center">Extension Reason</th>
-                                                    <th class="text-center">View Doc</th>
-                                                  </tr>
-                                                </thead>
-                                            
-                                                <tbody>
-                                                  <tr *ngIf="milestone.milestoneExtendedDates?.length === 0">
-                                                    <td colspan="6" class="text-center text-muted">
-                                                      No logs available
-                                                    </td>
-                                                  </tr>
-                                              
-                                                  <tr *ngFor="let log of milestone.milestoneExtendedDates;let k = index">
-                                                    <td class="text-center">{{ k + 1 }}</td>
-                                                    <td class="text-center">{{ log.updatedByName }}</td>
-                                                    <td class="text-center">{{ log.updatedOn | date:'dd/MM/yyyy HH:mm' }}</td>
-                                                    <td class="text-center">{{ log.extendedDate | date:'dd/MM/yyyy ' }}</td>
-                                                    <td class="text-center">{{ log.extentionReason }}</td>
-                                                
-                                                    <td class="text-center">
-                                                      <button
-                                                        *ngIf="log.documentName"
-                                                        class="btn btn-sm btn-outline-primary"
-                                                        title="View Document"
-                                                        (click)="previewDocument(log.id)">
-                                                        <i class="fas fa-eye"></i>
-                                                      </button>
-                                                  
-                                                      <button
-                                                        *ngIf="!log.documentName"
-                                                        class="btn btn-sm btn-outline-secondary"
-                                                        disabled
-                                                        title="Document not present">
-                                                        <i class="fas fa-eye-slash"></i>
-                                                      </button>
-                                                    </td>
-                                                  </tr>
-                                              
-                                                </tbody>
-                                              </table>
-                                          
-                                            </div>
-                                          </td>
+                                        <td colspan="10" class="p-0">                                        
+                                        <div class="p-3 bg-light border rounded mt-3 mb-5 mr-3 ml-3">                                        
+                                        <h5 class="mb-3">Milestone {{logHeader}} Logs</h5>                                        
+                                        <table class="table table-sm table-bordered mb-0">                                        
+                                        <thead class="table-light">
+                                        <tr>
+                                        <th class="text-center">ID</th>
+                                        <th class="text-center">Updated By</th>
+                                        <th class="text-center">Updated On</th>
+                                        <th class="text-center">Old Value</th>
+                                        <th class="text-center">New Value</th>
+                                        <th class="text-center" *ngIf="logHeader!=='Status'">Extension Reason</th>
+                                        <th class="text-center">View Doc</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>                                       
+                                        <tr *ngIf="selectedLogs.length === 0">
+                                        <td colspan="7" class="text-center text-muted">No logs available </td>
+                                        </tr>
+                                        <tr *ngFor="let log of selectedLogs; let k = index; trackBy: trackByLog">                                        <td class="text-center">{{k+1}}</td>                                        
+                                        <td class="text-center">{{log.updatedByName}}</td>                                        
+                                        <td class="text-center">{{log.updatedOn | date:'dd/MM/yyyy HH:mm'}}</td>
+                                        <td class="text-center" *ngIf="logHeader!=='Status'">{{log.oldValue | date:'dd/MM/yyyy'}}</td>
+                                        <td class="text-center" *ngIf="logHeader!=='Status'">{{log.newValue | date:'dd/MM/yyyy'}}</td>
+                                        <td class="text-center" *ngIf="logHeader ==='Status'">{{log.oldValue}}</td>
+                                        <td class="text-center" *ngIf="logHeader ==='Status'">{{log.newValue }}</td>
+                                        <td class="text-center" *ngIf="logHeader !=='Status'">{{log.extentionReason}}</td>
+                                        <td class="text-center">               
+                                        <button *ngIf="log.documentId"
+                                                class="btn btn-sm btn-outline-primary"
+                                                (click)="previewDocument(milestone.id,log.documentName)">
+                                        <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button *ngIf="!log.documentId" title="Document not present!!"
+                                                class="btn btn-sm btn-outline-secondary"
+                                                disabled>
+                                        <i class="fas fa-eye-slash"></i>
+                                        </button>
+                                        </td>
+                                        </tr>
+                                        </tbody>
+                                        </table>
+                                        </div>
+                                        </td>
                                         </tr>
 
                                     </ng-container>
@@ -4620,7 +4614,7 @@
                     
                         <label class="upload-dropzone" [class.has-file]="projectMilestone.extensionFile">
                           <input type="file" class="upload-input"
-                            (change)="onExtensionFileSelected($event)"
+                            (change)="onExtensionFileSelected($event,projectMilestone)"
                             accept=".jpg,.jpeg,.png,.pdf"
                             #extensionFileInput />
                         

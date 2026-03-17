@@ -309,10 +309,18 @@ public class ProjectController {
 	}
 	
 	@PostMapping("/getExtensionDocumentById")
-	public ResponseEntity<FCProjectMilestoneDTO> getExtensionDocumentById(@RequestBody Map<String, Long> request) {
-	    Long milestoneId = request.get("milestoneId");
-	    return ResponseEntity.ok(projectService.getExtensionDocumentById(milestoneId));
+	public ResponseEntity<FCProjectMilestoneDTO> getExtensionDocumentById(@RequestBody Map<String, String> request) {
+	    String uniquefile = request.get("uniquefile");
+	    return ResponseEntity.ok(projectService.getExtensionDocumentById(uniquefile));
 	}
+	
+	@PostMapping("/validateDocName")
+	public ServiceResponse validateDocName(@RequestBody Map<String, String> request) {
+	    String uniquefile = request.get("uniquefile");
+		ServiceResponse response = projectService.validateDocName(uniquefile);
+		return response;
+	}
+
 
 	
 }

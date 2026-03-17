@@ -156,6 +156,9 @@ public class PoPortalAPIService {
     @Value("${poPortal.api.getExtensionDocumentById}")
 	private String getExtensionDocumentById;
     
+    @Value("${poPortal.api.getExtensionDocumentById}")
+	private String validateDocName;
+    
     @Autowired
     private PoRequirementMappingRepository poRequirementMappingRepository;
 	
@@ -2188,7 +2191,7 @@ return empId;
 	    return response;
 	}
 	
-	public FCProjectMilestoneDTO getExtendedDocFromExternalApi(Long milestoneId) {
+	public FCProjectMilestoneDTO getExtendedDocFromExternalApi(String uniquefile) {
 	    ServiceResponse serviceResponse = new ServiceResponse();
 	    ApiLog initialLog = null;
 	    String traceId = UUID.randomUUID().toString();
@@ -2196,8 +2199,8 @@ return empId;
 	    String exceptionDetailsForLog = null;
 
 	    try {
-	        if (milestoneId == null) {
-	            throw new IllegalArgumentException("Milestone ID cannot be null.");
+	        if (uniquefile == null) {
+	            throw new IllegalArgumentException("Unique File cannot be null.");
 	        }
 
 	        initialLog = apiLogUtility.startLog(traceId, "getMilestoneDocument", "Ishine", getCurrentUserId(), httpRequest);
@@ -2208,7 +2211,7 @@ return empId;
 	        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
 
 	       
-	        String fullUrl = getExtensionDocumentById + milestoneId; 
+	        String fullUrl = getExtensionDocumentById + uniquefile; 
 	        
 	        RestTemplate restTemplate = new RestTemplate();
 	        ResponseEntity<FCProjectMilestoneDTO> apiResponse = restTemplate.exchange(
@@ -2237,6 +2240,70 @@ return empId;
 	        }
 	    }
 	}
+	
+	public Boolean validateDocName(String uniquefile) {
+	    ServiceResponse serviceResponse = new ServiceResponse();
+	    ApiLog initialLog = null;
+	    String traceId = UUID.randomUUID().toString();
+	    int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+	    String exceptionDetailsForLog = null;
+
+	    try {
+	        if (uniquefile == null) {
+	            throw new IllegalArgumentException("Unique File cannot be null.");
+	        }
+
+	        initialLog = apiLogUtility.startLog(traceId, "validateDocName", "Ishine", getCurrentUserId(), httpRequest);
+	
+	        HttpHeaders headers = new HttpHeaders();
+	        headers.set("X-Trace-Id", traceId);
+	        headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+	        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+	       
+	        String fullUrl = validateDocName + uniquefile; 
+	        
+	        RestTemplate restTemplate = new RestTemplate();
+	        ResponseEntity<Boolean> apiResponse = restTemplate.exchange(
+	            fullUrl,
+	            HttpMethod.GET,
+	            requestEntity,
+	            Boolean.class 
+	        );
+	        
+	        if (apiResponse.getStatusCode() == HttpStatus.OK && apiResponse.getBody() != null) {
+
+	            Boolean isValid = apiResponse.getBody();
+	            finalHttpStatusCode = HttpStatus.OK.value();
+
+	            if (Boolean.TRUE.equals(isValid)) {
+	                return true;
+	            } else {
+	                throw new HttpClientErrorException(
+	                        HttpStatus.BAD_REQUEST,
+	                        "Document with same name already exists for this milestone. Kindly rename the selected file!!."
+	                );
+	            }
+	        } else {
+	            exceptionDetailsForLog = "External API returned non-OK status: " + apiResponse.getStatusCode();
+	            finalHttpStatusCode = apiResponse.getStatusCodeValue();
+	            throw new HttpClientErrorException(
+	                    apiResponse.getStatusCode(),
+	                    "External API call failed"
+	            );
+	        }
+
+	    } catch (Exception e) {
+	        exceptionDetailsForLog = e.toString();
+	        e.printStackTrace();
+	        throw new RuntimeException("An unexpected error occurred.", e);
+	    } finally {
+	        if (initialLog != null && initialLog.getId() != null) {
+	            apiLogUtility.endLog(initialLog.getId(),getDocumentUrl ,finalHttpStatusCode, exceptionDetailsForLog, httpRequest);
+	        }
+	    }
+	}
+
 
 
 }

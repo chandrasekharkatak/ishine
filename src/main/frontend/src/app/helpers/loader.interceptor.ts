@@ -486,8 +486,9 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/changeSurveyStatus`,
     `${this.baseUrl}` + `api/getAllProjectFCLineItemListByProjectId`,
     `${this.baseUrl}` + `api/getExtensionDocumentById`,
+    `${this.baseUrl}` + `api/validateDocName`,
 
-    
+
   ]
 
   DYNAMIC_URL_whiteList = [

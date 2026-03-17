@@ -137,8 +137,13 @@ getClientVsDepartment(payload){
     return this.http.post(`${this.baseUrl}`+`api/getEmployeeProjectCount`,payload);
    }
 
-getExtensionDocumentById(milestoneId: number) {
-  return this.http.post(`${this.baseUrl}api/getExtensionDocumentById`, { milestoneId });
+getExtensionDocumentById(uniquefile: any) {
+  return this.http.post(`${this.baseUrl}api/getExtensionDocumentById`, { uniquefile });
 }  
+
+validateDocName(uniquefile: any) {
+  return this.http.post(`${this.baseUrl}api/validateDocName`, { uniquefile });
+}  
+
  
 }
