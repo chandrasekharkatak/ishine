@@ -826,6 +826,7 @@ rows.forEach(row -> {
                 l.setWorkLocationType(row[12] != null ? row[12].toString() : null);
                 l.setLocationInTime(row[13] != null ? row[13].toString() : null);
                 l.setLocationOutTime(row[14] != null ? row[14].toString() : null);
+                l.setClientLocation(row[24] != null ? row[24].toString() : null);
                 l.setProjects(new ArrayList<>());
                 timesheet.getLocationSessions().add(l);
                 return l;

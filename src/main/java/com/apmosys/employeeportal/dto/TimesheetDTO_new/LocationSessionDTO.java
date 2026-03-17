@@ -46,7 +46,7 @@ public class LocationSessionDTO {
      * Example: "13:00"
      */
     private String locationOutTime;
-
+    private String clientLocation;
     /**
      * List of projects for this location session
      * Required - at least one project per location session
