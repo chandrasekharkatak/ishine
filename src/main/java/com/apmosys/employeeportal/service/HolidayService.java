@@ -24,8 +24,10 @@ import com.apmosys.employeeportal.dto.HolidayDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
+import com.apmosys.employeeportal.dto.TimesheetDTO_new.ActivityTimesheetDTO;
 import com.apmosys.employeeportal.dto.TimesheetDTO_new.ProjectTimesheetDTO;
 import com.apmosys.employeeportal.enums.DayTypeCode;
+import com.apmosys.employeeportal.repository.ActivitiesRepository;
 import com.apmosys.employeeportal.repository.DayTypeMasterNewRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTimesheetLocationMappingRepository;
@@ -34,6 +36,8 @@ import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
 import com.apmosys.employeeportal.repository.ProjectTimesheetStatusNewRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
+import com.apmosys.employeeportal.service.helper.TimesheetAggregationHelper;
+import com.apmosys.employeeportal.service.mapper.TimesheetMapper;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -42,6 +46,18 @@ public class HolidayService {
 
 	@Autowired
 	HolidayRepository holidayRepository;
+
+	@Autowired
+	TimesheetAggregationHelper aggregationHelper;
+
+	@Autowired
+	ActivitiesRepository activitiesRepository;
+
+	@Autowired
+	TimesheetMapper timesheetMapper;
+
+	@Autowired
+	ProjectTimesheetStatusNewRepository projectTimesheetStatusNewRepository;
 
 	@Autowired
 	StringToDateTimeParser stringToDateTimeParser;
@@ -538,12 +554,34 @@ public class HolidayService {
                 return response;
             }
 				if(!allEmployees.isEmpty()) {
+					// for (Employee emp : allEmployees) {
+					// 	if (!existingEmpIds.contains(emp.getEmpId())) {
+
+					// 		saveRelationalLeaveTimesheet(emp, holidayDate, holidayObj, startOfDay, endOfDay, holidayDayType, weekoffDayType);
+                    //         savedCount++;
+					// 	}
+					// }
+					List<Employee> employeesToProcess = new ArrayList<>();
+
 					for (Employee emp : allEmployees) {
 						if (!existingEmpIds.contains(emp.getEmpId())) {
-
-							saveRelationalLeaveTimesheet(emp, holidayDate, holidayObj, startOfDay, endOfDay, holidayDayType, weekoffDayType);
-                            savedCount++;
+							employeesToProcess.add(emp);
 						}
+					}
+
+					if (!employeesToProcess.isEmpty()) {
+
+						saveRelationalLeaveTimesheetBulk(
+								employeesToProcess,
+								holidayDate,
+								holidayObj,
+								startOfDay,
+								endOfDay,
+								holidayDayType,
+								weekoffDayType
+						);
+
+						savedCount += employeesToProcess.size();
 					}
 
 					if (savedCount > 0) {
@@ -655,7 +693,245 @@ public class HolidayService {
             projectTimesheetService.create(newTsId, defaultProject, emp.getEmpId());
         }
     }
-   
+  
+	public void saveRelationalLeaveTimesheetBulk(
+        List<Employee> employees,
+        LocalDate date,
+        Holiday holidayObj,
+        LocalDateTime startOfDay,
+        LocalDateTime endOfDay,
+        DayTypeMasterNew holidayDayType,
+        DayTypeMasterNew weekoffDayType) {
+
+		int resolvedDayTypeId;
+		String tsDescription;
+
+		if ("Festival".equalsIgnoreCase(holidayObj.getHolidayType())
+				|| "nonWorking".equalsIgnoreCase(holidayObj.getHolidayType())) {
+
+			resolvedDayTypeId = holidayDayType.getDayTypeId();
+			tsDescription = holidayDayType.getDayType() + " : " + holidayObj.getOccasion();
+
+		} else if ("WeekOff".equalsIgnoreCase(holidayObj.getHolidayType())) {
+
+			resolvedDayTypeId = weekoffDayType.getDayTypeId();
+
+			String day = holidayObj.getDayOfTheWeek().toLowerCase().contains("saturday")
+					? "Saturday"
+					: "Sunday";
+
+			tsDescription = weekoffDayType.getDayType() + " : " + day;
+
+		} else {
+
+			resolvedDayTypeId = 0;
+			tsDescription = holidayObj.getDayOfTheWeek();
+		}
+
+		List<EmployeeTimesheetsNew> timesheets = new ArrayList<>();
+
+		for (Employee emp : employees) {
+
+			EmployeeTimesheetsNew ts = new EmployeeTimesheetsNew();
+
+			ts.setEmpId(emp.getEmpId());
+			ts.setDate(date);
+			ts.setIsNightShift(false);
+			ts.setStatus(2);
+			ts.setTotalWorkingMinutes(0);
+			ts.setCreatedBy(emp.getEmpId());
+			ts.setCreatedOn(LocalDateTime.now());
+
+			Long managerId = "Reporting Manager".equals(emp.getApprovalsTo())
+					? emp.getReportingManagerId()
+					: emp.getManagerId();
+
+			ts.setCurrentManagerId(managerId);
+			ts.setDayTypeId(resolvedDayTypeId);
+			ts.setDescription(tsDescription);
+			ts.setIsSystemGenerated(true);
+
+			timesheets.add(ts);
+		}
+
+		List<EmployeeTimesheetsNew> savedTimesheets =
+				employeeTimesheetsNewRepository.saveAll(timesheets);
+
+		List<EmployeeTimesheetLocationMapping> locationMappings = new ArrayList<>();
+
+		for (EmployeeTimesheetsNew ts : savedTimesheets) {
+
+			EmployeeTimesheetLocationMapping loc = EmployeeTimesheetLocationMapping.builder()
+					.timesheetId(ts.getTimesheetId())
+					.locationTypeId(4)
+					.build();
+
+			locationMappings.add(loc);
+		}
+
+		List<EmployeeTimesheetLocationMapping> savedLocationMappings = employeeTimesheetLocationMappingRepository.saveAll(locationMappings);
+	// 	for (int i = 0; i < employees.size(); i++) {
+
+	// 	Employee emp = employees.get(i);
+	// 	EmployeeTimesheetsNew ts = savedTimesheets.get(i);
+	// 	EmployeeTimesheetLocationMapping locMapping = locationMappings.get(i);
+
+	// 	Long newTsId = ts.getTimesheetId();	
+
+	// 	List<ProjectNameAndPrjoectIdDTO> projectDTOList =
+	// 			timesheetsRepository.getProjectListForDateAndEmpId(
+	// 					emp.getEmpId(), startOfDay, endOfDay);
+
+	// 	if (projectDTOList != null && !projectDTOList.isEmpty()) {
+
+	// 		for (ProjectNameAndPrjoectIdDTO projDto : projectDTOList) {
+
+	// 			ProjectTimesheetDTO projectDTO = new ProjectTimesheetDTO();
+
+	// 			projectDTO.setTimesheetId(newTsId);
+	// 			projectDTO.setLocationMappingId(locMapping.getLocationMappingId());
+	// 			projectDTO.setProjectId(projDto.getProjectId());
+	// 			projectDTO.setStatus(2);
+	// 			projectDTO.setActivities(null);
+	// 			projectDTO.setDescription(tsDescription);
+
+	// 			projectTimesheetService.create(newTsId, projectDTO, emp.getEmpId());
+	// 		}
+
+	// 	} else {
+
+	// 		int resolvedProjectId = 0;
+
+	// 		if (emp.getJobRoleId() != null) {
+
+	// 			JobRole jobRole =
+	// 					jobRoleRepository.findById(emp.getJobRoleId()).orElse(null);
+
+	// 			if (jobRole != null && jobRole.getDeptId() != null) {
+
+	// 				Optional<Integer> benchProjectId =
+	// 						projectRepository.findBenchProjectIdByDeptId(jobRole.getDeptId());
+
+	// 				if (benchProjectId.isPresent()) {
+	// 					resolvedProjectId = benchProjectId.get();
+	// 				}
+	// 			}
+	// 		}
+
+	// 		ProjectTimesheetDTO defaultProject = new ProjectTimesheetDTO();
+
+	// 		defaultProject.setTimesheetId(newTsId);
+	// 		defaultProject.setLocationMappingId(locMapping.getLocationMappingId());
+	// 		defaultProject.setStatus(2);
+	// 		defaultProject.setActivities(null);
+	// 		defaultProject.setDescription(tsDescription);
+	// 		defaultProject.setProjectId(resolvedProjectId);
+
+	// 		projectTimesheetService.create(newTsId, defaultProject, emp.getEmpId());
+	// 	}
+	// }
+	List<ProjectTimesheetStatusNew> projectEntities = new ArrayList<>();
+
+    for (int i = 0; i < employees.size(); i++) {
+
+        Employee emp = employees.get(i);
+        EmployeeTimesheetsNew ts = savedTimesheets.get(i);
+        EmployeeTimesheetLocationMapping locMapping = savedLocationMappings.get(i);
+
+        Long newTsId = ts.getTimesheetId();
+
+        List<ProjectNameAndPrjoectIdDTO> projectDTOList =
+                timesheetsRepository.getProjectListForDateAndEmpId(
+                        emp.getEmpId(), startOfDay, endOfDay);
+
+        if (projectDTOList != null && !projectDTOList.isEmpty()) {
+
+            for (ProjectNameAndPrjoectIdDTO projDto : projectDTOList) {
+
+                ProjectTimesheetDTO projectDTO = new ProjectTimesheetDTO();
+
+                projectDTO.setTimesheetId(newTsId);
+                projectDTO.setLocationMappingId(locMapping.getLocationMappingId());
+                projectDTO.setProjectId(projDto.getProjectId());
+                projectDTO.setStatus(2);
+                projectDTO.setActivities(null);
+                projectDTO.setDescription(tsDescription);
+
+                projectEntities.add(
+                        buildProjectEntity(newTsId, projectDTO, emp.getEmpId())
+                );
+            }
+
+        } else {
+
+            int resolvedProjectId = 0;
+
+            if (emp.getJobRoleId() != null) {
+
+                JobRole jobRole =
+                        jobRoleRepository.findById(emp.getJobRoleId()).orElse(null);
+
+                if (jobRole != null && jobRole.getDeptId() != null) {
+
+                    Optional<Integer> benchProjectId =
+                            projectRepository.findBenchProjectIdByDeptId(jobRole.getDeptId());
+
+                    if (benchProjectId.isPresent()) {
+                        resolvedProjectId = benchProjectId.get();
+                    }
+                }
+            }
+
+            ProjectTimesheetDTO defaultProject = new ProjectTimesheetDTO();
+
+            defaultProject.setTimesheetId(newTsId);
+            defaultProject.setLocationMappingId(locMapping.getLocationMappingId());
+            defaultProject.setStatus(2);
+            defaultProject.setActivities(null);
+            defaultProject.setDescription(tsDescription);
+            defaultProject.setProjectId(resolvedProjectId);
+
+            projectEntities.add(
+                    buildProjectEntity(newTsId, defaultProject, emp.getEmpId())
+            );
+        }
+    }
+
+    projectTimesheetStatusNewRepository.saveAll(projectEntities);
+}
+
+private ProjectTimesheetStatusNew buildProjectEntity(
+        Long timesheetId,
+        ProjectTimesheetDTO dto,
+        Long createdBy) {
+
+    aggregationHelper.calculateAndSetProjectTimesheetTotals(dto);
+
+    if (dto.getStatus() == null) {
+        dto.setStatus(TimesheetAggregationHelper.STATUS_PENDING);
+    }
+
+    ProjectTimesheetStatusNew entity = timesheetMapper.toEntity(dto, timesheetId);
+
+    String description = "";
+
+    if (dto.getActivities() == null || dto.getActivities().isEmpty()) {
+        description = (dto.getDescription() != null && !dto.getDescription().trim().isEmpty())
+                ? dto.getDescription()
+                : "No activity available in project timesheet";
+    } else {
+        for (ActivityTimesheetDTO activity : dto.getActivities()) {
+            Activity activityMaster = activitiesRepository.findById(activity.getActivityId())
+                    .orElseThrow(() -> new IllegalArgumentException("Activity not found"));
+            description += activityMaster.getActivity() + "<br>";
+        }
+    }
+
+    entity.setDescription(description);
+    entity.setCreatedBy(createdBy);
+
+    return entity;
+}
 
 	@Transactional(rollbackFor = Exception.class)
 	public ServiceResponse runTheHolidayCron(LocalDate dateToday) {

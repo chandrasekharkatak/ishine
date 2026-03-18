@@ -1606,13 +1606,48 @@ public class CronJobService {
                 LocalDateTime startOfDay = dateToday.atStartOfDay();
                 LocalDateTime endOfDay = dateToday.atTime(LocalTime.MAX);
 
-                for (Map.Entry<Long, Holiday> entry : empHolidayMap.entrySet()) {
-                    Employee emp = employeeMap.get(entry.getKey());
-                    if (emp != null) {
-                        holidayService.saveRelationalLeaveTimesheet(emp, dateToday, entry.getValue(), startOfDay,
-                                endOfDay ,holidayDayType,weekoffDayType );
-                    }
-                }
+                // for (Map.Entry<Long, Holiday> entry : empHolidayMap.entrySet()) {
+                //     Employee emp = employeeMap.get(entry.getKey());
+                //     if (emp != null) {
+                //         holidayService.saveRelationalLeaveTimesheet(emp, dateToday, entry.getValue(), startOfDay,
+                //                 endOfDay ,holidayDayType,weekoffDayType );
+                //     }
+                // }
+
+
+				//correct code
+				Map<Holiday, List<Employee>> holidayEmployeeMap = new HashMap<>();
+
+				for (Map.Entry<Long, Holiday> entry : empHolidayMap.entrySet()) {
+
+					Employee emp = employeeMap.get(entry.getKey());
+
+					if (emp != null) {
+						holidayEmployeeMap
+								.computeIfAbsent(entry.getValue(), k -> new ArrayList<>())
+								.add(emp);
+					}
+				}
+
+				// Call bulk per holiday (no overwrite)
+				for (Map.Entry<Holiday, List<Employee>> entry : holidayEmployeeMap.entrySet()) {
+
+					Holiday holidayObj = entry.getKey();
+					List<Employee> employeesToProcess = entry.getValue();
+
+					if (!employeesToProcess.isEmpty()) {
+
+						holidayService.saveRelationalLeaveTimesheetBulk(
+								employeesToProcess,
+								dateToday,
+								holidayObj, 
+								startOfDay,
+								endOfDay,
+								holidayDayType,
+								weekoffDayType
+						);
+					}
+				}
 
 	        }
 
