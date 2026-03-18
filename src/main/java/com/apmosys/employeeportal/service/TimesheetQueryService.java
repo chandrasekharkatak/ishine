@@ -111,8 +111,14 @@ public class TimesheetQueryService {
                   .append(" ,endDate : ").append(timesheetDTO.getEndDate());
         
         try {
-           LocalDate start = LocalDate.parse(timesheetDTO.getStartDate());
-           LocalDate end = LocalDate.parse(timesheetDTO.getEndDate());
+            LocalDate start = (timesheetDTO.getStartDate() != null && !timesheetDTO.getStartDate().isEmpty())
+                    ? LocalDate.parse(timesheetDTO.getStartDate())
+                    : LocalDate.of(2000, 1, 1);
+                    //for all time filter;
+
+            LocalDate end = (timesheetDTO.getEndDate() != null && !timesheetDTO.getEndDate().isEmpty())
+                    ? LocalDate.parse(timesheetDTO.getEndDate())
+                    : LocalDate.now();
            Integer statusInt = null;
 
            String status = timesheetDTO.getStatus();
