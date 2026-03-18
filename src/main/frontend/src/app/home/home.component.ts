@@ -3008,6 +3008,7 @@ getDocsForPreview(docId: any) {
 
       extendedDate: formValues.extendedDate,
       updatedBy: this.currentUser.empId,
+      updatedByName: this.currentUser.name,
 
       milestoneExtensionReasonId: formValues.extensionReasonId,
       milestoneExtensionReasonText: formValues.customReason
@@ -3017,6 +3018,8 @@ getDocsForPreview(docId: any) {
   
     // optional file
     if (this.documentContent) {
+      const file = this.documentContent
+      this.documentContent = new File([file],this.documentName,{ type: file.type });
       formData.append("extensionFile", this.documentContent);
     }
 
@@ -3369,7 +3372,7 @@ onFileSelected(event: any) {
   const uniquefile =this.selectedMilestone.id+'_'+file.name
   this.validateFileName(uniquefile,"extended")
 
-  this.documentName = file.name;
+  this.documentName = uniquefile;
   this.documentType = file.type;
   this.documentContent = file; 
   const url = URL.createObjectURL(file);

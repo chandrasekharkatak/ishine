@@ -22,24 +22,13 @@ public class MilestoneExpireDto {
 	private String projectName;
 	private String poNo;
 	private Long updatedBy;
+    private String updatedByName;
+
 	private String milestoneExtensionReason;
     private byte[] documentContent;
     private String documentName;
     private String documentType;
+    private String othersReason;
 
 	
-    
-	
-	
-
-   
-    
-    
-   
-
- 
-  
-    
-	
-
 }

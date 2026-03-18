@@ -2607,6 +2607,7 @@
                                         <th class="text-center">Old Value</th>
                                         <th class="text-center">New Value</th>
                                         <th class="text-center" *ngIf="logHeader!=='Status'">Extension Reason</th>
+                                        <th class="text-center" *ngIf="logHeader!=='Status'">Custom Reason</th>
                                         <th class="text-center">View Doc</th>
                                         </tr>
                                         </thead>
@@ -2621,7 +2622,8 @@
                                         <td class="text-center" *ngIf="logHeader!=='Status'">{{log.newValue | date:'dd/MM/yyyy'}}</td>
                                         <td class="text-center" *ngIf="logHeader ==='Status'">{{log.oldValue}}</td>
                                         <td class="text-center" *ngIf="logHeader ==='Status'">{{log.newValue }}</td>
-                                        <td class="text-center" *ngIf="logHeader !=='Status'">{{log.extentionReason}}</td>
+                                        <td class="text-center" *ngIf="logHeader !=='Status'">{{log.extentionReason? log.extentionReason:'N/A'}}</td>
+                                        <td class="text-center" *ngIf="logHeader !=='Status'">{{log.othersReason ? log.otherReason : 'N/A'}}</td>
                                         <td class="text-center">               
                                         <button *ngIf="log.documentId"
                                                 class="btn btn-sm btn-outline-primary"
@@ -4670,7 +4672,7 @@
         <div class="col-md-6">
           <mat-form-field appearance="outline" class="w-100">
             <mat-label>Status</mat-label>
-            <mat-select [(ngModel)]="projectMilestone.status">
+            <mat-select [(ngModel)]="projectMilestone.status" (selectionChange)="onStatusChange($event.value)">
 
               <mat-option [value]="projectMilestone.status">
                 {{projectMilestone.status}}
@@ -4717,15 +4719,14 @@
                   </div>
                   <div class="doc-file-meta">
                     <span class="doc-file-name">{{ selectedFile.name }}</span>
-                    <span class="doc-file-size" *ngIf="file.size">{{ (selectedFile.size / 1024).toFixed(1) }} KB</span>
                   </div>
                 </div>
               </label>
           
               <!-- Actions -->
               <div class="doc-actions">
-                <button type="button" class="doc-btn doc-btn-preview" (click)="previewSelectedFile()"
-                  [disabled]="!file"> <i class="fa fa-eye"></i>
+                <button type="button" class="doc-btn doc-btn-preview" (click)="previewStatusFile()"
+                  [disabled]="!selectedFile"> <i class="fa fa-eye"></i>
                   <span>Preview</span>
                 </button>
                 <button type="button" class="doc-btn doc-btn-clear"
@@ -4749,30 +4750,29 @@
 </ng-template>
 
 <ng-template #project_milestone_document>
-    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0, 0, 0, 0.5);">
-        <div class="modal-dialog modal-xl" >
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Milestone Document Preview</h5>
-                    <button type="button" class="close" aria-label="Close"
-                            (click)="closeProjectMilestoneDocumentsModal()">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div *ngIf="milestoneDocumentUrl">
-                        <iframe [src]="milestoneDocumentUrl" title="Milestone Document Preview" width="100%" height="600px"></iframe>
-                    </div>
-                    <div *ngIf="!milestoneDocumentUrl">
-                        <p>No document available for this milestone.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <div class="modal-header">
+    <h5 class="modal-title">Milestone Document Preview</h5>
+        <button type="button" class="close" aria-label="Close" (click)="closeProjectMilestoneDocumentsModal()">
+        <span aria-hidden="true">&times;</span>
+        </button>
+  </div>
+
+  <div class="modal-body text-center">
+
+    <!-- PDF -->
+    <iframe *ngIf="isPdfFile" [src]="milestoneDocumentUrl" width="100%" height="600px" style="border: none;">
+    </iframe>
+
+    <!-- IMAGE -->
+    <img *ngIf="isImageFile" [src]="milestoneDocumentUrl" class="img-fluid" style="max-height: 600px;" />
+    
+    <div *ngIf="!isPdfFile && !isImageFile">
+      <p>Preview not supported for this file type.</p>
     </div>
-</ng-template>
 
+  </div>
 
+</ng-template> 
 
 <ng-template #update_project_completion_modal>
     <div class="modal-body text-center">

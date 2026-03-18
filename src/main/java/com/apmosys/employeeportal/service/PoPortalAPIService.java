@@ -153,8 +153,8 @@ public class PoPortalAPIService {
     @Value("${poPortal.api.getSDEDOfProjects}")
     private String getStartDateEndDateOfProjectsFromPO;
     
-    @Value("${poPortal.api.getExtensionDocumentById}")
-	private String getExtensionDocumentById;
+    @Value("${poPortal.api.getExtensionDocumentByName}")
+	private String getExtensionDocumentByName;
     
     @Value("${poPortal.api.validateDocName}")
 	private String validateDocName;
@@ -1195,15 +1195,17 @@ public class PoPortalAPIService {
 			updateRequest.setId(dto.getMilestoneId());
 			updateRequest.setEndDate(dto.getExtendedDate());
 			updateRequest.setUpdatedBy(dto.getUpdatedBy());
+			updateRequest.setUpdatedByName(dto.getUpdatedByName());
+
 
 			String milestoneExtensionReason = (log.getMilestoneExtensionReason() != null)
 					? log.getMilestoneExtensionReason().getMilestoneExtensionReason()
 					: null;
 
-			updateRequest.setMilestoneExtensionReason(
-					"Other".equalsIgnoreCase(milestoneExtensionReason)
-							? dto.getMilestoneExtensionReasonText()
-							: milestoneExtensionReason);
+			updateRequest.setMilestoneExtensionReason(milestoneExtensionReason);
+			
+			if("Other".equalsIgnoreCase(milestoneExtensionReason))
+			{updateRequest.setOthersReason(dto.getMilestoneExtensionReasonText());}
 			
 			if (extensionFile != null && !extensionFile.isEmpty()) {
 		    	updateRequest.setDocumentContent(extensionFile.getBytes());
@@ -2211,7 +2213,7 @@ return empId;
 	        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
 
 	       
-	        String fullUrl = getExtensionDocumentById + uniquefile; 
+	        String fullUrl = getExtensionDocumentByName + uniquefile; 
 	        
 	        RestTemplate restTemplate = new RestTemplate();
 	        ResponseEntity<FCProjectMilestoneDTO> apiResponse = restTemplate.exchange(
@@ -2275,15 +2277,8 @@ return empId;
 
 	            Boolean isValid = apiResponse.getBody();
 	            finalHttpStatusCode = HttpStatus.OK.value();
+	            return isValid;
 
-	            if (Boolean.TRUE.equals(isValid)) {
-	                return true;
-	            } else {
-	                throw new HttpClientErrorException(
-	                        HttpStatus.BAD_REQUEST,
-	                        "Document with same name already exists for this milestone. Kindly rename the selected file!!."
-	                );
-	            }
 	        } else {
 	            exceptionDetailsForLog = "External API returned non-OK status: " + apiResponse.getStatusCode();
 	            finalHttpStatusCode = apiResponse.getStatusCodeValue();

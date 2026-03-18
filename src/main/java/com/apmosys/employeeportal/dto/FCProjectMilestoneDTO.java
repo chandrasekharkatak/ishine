@@ -46,6 +46,8 @@ public class FCProjectMilestoneDTO {
 	private String documentPath;
     
 	private String documentBase64;
+	private String documentType;
+
 	
 	private byte[] documentContent;
 	

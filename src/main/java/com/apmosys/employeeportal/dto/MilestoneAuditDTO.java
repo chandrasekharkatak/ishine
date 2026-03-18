@@ -19,6 +19,7 @@ public class MilestoneAuditDTO {
 	    private String status;
 
 	    private String extentionReason;
+	    private String othersReason;
 	    private Long updatedBy;
 	    private Date updatedOn;
 	    private Long documentId;

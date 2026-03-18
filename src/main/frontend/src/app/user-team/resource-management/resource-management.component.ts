@@ -322,7 +322,8 @@ expiredProjectsWithin1Month:any;
   @ViewChild("project_milestone_extended_preview") projectMilestoneExtendedPreviewTemplateRef: TemplateRef<any>;
   isImageFile: boolean = false;
   isPdfFile: boolean = false;
-
+  isStatusChanged: boolean = false;
+  originalStatus:any
 
   employeeRole: any[] = ['Employee', 'TeamLead', 'Manager', 'HOD', 'HR', 'SuperAdmin', 'RMG'];
   employeeNotInSearchColumns: any[] = ['employeementId','employeeName','deptName','jobRole','email','skillNames','certificateNames'];
@@ -6545,6 +6546,7 @@ cancelComplete() {
     this.extensionReason()
     this.projectMilestone = JSON.parse(JSON.stringify(milestone));
     this.minExtendedDate()
+    this.originalStatus=this.projectMilestone.status
     this.updateProjectMilestoneModalRef = this.modalService.open(this.updateProjectMilestoneModal, { modalDialogClass: 'modal-xl' });
   }
 
@@ -6602,7 +6604,7 @@ cancelComplete() {
       this.selectedFilePreviewUrl = reader.result as string;};
       reader.readAsDataURL(file);
       this.selectedFile = file;
-
+      this.selectedFile = new File([file],uniquefile,{ type: file.type });
     }
   }
     previewSelectedFile(): void {
@@ -6631,11 +6633,28 @@ cancelComplete() {
 
 
   isLoadingMilestone:boolean=false;
-  updateMilestoneChanges() {
+  async updateMilestoneChanges() {
     // Validate required fields
 
     let isValid = true;
     let errors: any;
+
+    if((!this.isExtensionEnabled && !this.projectMilestone.extendedDate) && !this.isStatusChanged){
+      this.openAlertMod(this.alertTemplateForMilestone, 'No changes has been done for the selected milestone!!.');
+      return;
+    }
+
+    if (this.isExtensionEnabled && this.projectMilestone.extendedDate){
+      this.projectMilestone.endDate=this.projectMilestone.extendedDate ? this.projectMilestone.extendedDate :this.projectMilestone.endDate
+      const update = await this.updateMilestoneExtendedDateWithReason();
+      if(!update) return;
+    }
+
+    if(!this.isStatusChanged) {
+      this.openAlertMod(this.alertTemplateForMilestone, 'Extend date updated!!');
+      this.showProjectMilestones(this.projectObj);
+      return;}
+
     if (!this.projectMilestone.startDate) {
     this.openAlertMod(this.alertTemplateForMilestone, 'Start date is required for milestone');
     return;
@@ -6667,9 +6686,12 @@ if (this.requiresDocument(this.projectMilestone.status) && !this.selectedFile) {
   }
     console.log("before updaed by updated on", this.projectMilestone);
 
-    this.projectMilestone.updatedBy = this.currentUser.empId;
+    this.projectMilestone.updatedBy = this.currentUser.employeementId;
     this.projectMilestone.updatedOn = new Date();
     this.projectMilestone.updatedByName = this.currentUser.name;
+
+
+
 
     const formData = new FormData();
     formData.append('dto', new Blob([JSON.stringify(this.projectMilestone)], { type: 'application/json' }));
@@ -6678,10 +6700,9 @@ if (this.requiresDocument(this.projectMilestone.status) && !this.selectedFile) {
       formData.append('file', this.selectedFile);
     }
     this.isLoadingMilestone=true;
-     if (this.isExtensionEnabled && this.projectMilestone.extendedDate){
-        const update =this.updateMilestoneExtendedDateWithReason();
-        if(!update) return;
-    }
+
+    
+
 
     this.projectService.updateMilestoneById(formData).pipe(first()).subscribe({next: (response: any) => {
     this.isLoadingMilestone = false;
@@ -6707,7 +6728,9 @@ if (this.requiresDocument(this.projectMilestone.status) && !this.selectedFile) {
 
   }
 
-
+onStatusChange(newStatus: string) {
+  this.isStatusChanged = newStatus !== this.originalStatus;
+}
 
 
   // viewMilestoneFile(milestoneId: number): void {
@@ -8468,6 +8491,10 @@ onExtensionFileSelected(event: any,projectMilestone:any) {
   const uniquefile =projectMilestone.id+'_'+file.name
   this.validateFileName(uniquefile,"extended")
   this.projectMilestone.extensionFile = file;
+  this.projectMilestone.extensionFile = new File([file],uniquefile,{ type: file.type });
+
+  
+  
 }
 
 validateFileName(uniquefile: any,type:any) {
@@ -8494,8 +8521,33 @@ validateFileName(uniquefile: any,type:any) {
 previewExtensionFile() {
 
   if (!this.projectMilestone.extensionFile) return;
-  const fileURL = URL.createObjectURL(this.projectMilestone.extensionFile);
+
+  const file = this.projectMilestone.extensionFile;
+  const fileURL = URL.createObjectURL(file);
+
   this.milestoneDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
+  this.isPdfFile = file.type === 'application/pdf';
+  this.isImageFile = file.type.startsWith('image/');
+
+  this.projectMilestoneDocumentModalRef = this.modalService.open(
+    this.projectMilestoneDocumentTemplateRef,
+    {
+      size: 'modal-xl', 
+      backdrop: 'static',
+      keyboard: false
+    }
+  );
+}
+
+previewStatusFile() {
+
+  if (!this.selectedFile) return;
+
+  const file = this.selectedFile;
+  const fileURL = URL.createObjectURL(this.selectedFile);
+  this.milestoneDocumentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileURL);
+  this.isPdfFile = file.type === 'application/pdf';
+  this.isImageFile = file.type.startsWith('image/');
 
   this.projectMilestoneDocumentModalRef = this.modalService.open(
     this.projectMilestoneDocumentTemplateRef,
@@ -8506,6 +8558,7 @@ previewExtensionFile() {
     }
   );
 }
+
 
 extensionReason() {
     this.projectService.getAllMilestoneExtendReason().subscribe({
@@ -8521,18 +8574,20 @@ extensionReason() {
     });
   }
 
-updateMilestoneExtendedDateWithReason() {
+updateMilestoneExtendedDateWithReason():Promise<boolean> {
 
   if(!this.isExtensionEnabled) return
     else if(!this.projectMilestone.extensionReason){ 
         this.openAlertMod(this.alertTemplateForMilestone, "Kindly select the extension reason!!");
-        return false;
+        return Promise.resolve(false);
     }else if(this.projectMilestone?.extensionReason?.milestoneExtensionReason==='Other' &&
         (!this.projectMilestone?.customReason || !this.projectMilestone?.customReason.trim())){
         this.openAlertMod(this.alertTemplateForMilestone, "Kindly Enter Custom Reason!!");
-        return false;        
+        return Promise.resolve(false);        
     }  
-
+  
+   console.log("this.currentUser===>>",this.currentUser);
+    
   const payload: MilestoneUpdatedLog = {
     milestoneId: this.projectMilestone.id,
     poId: this.projectMilestone.poId,
@@ -8544,7 +8599,8 @@ updateMilestoneExtendedDateWithReason() {
     remarks: this.projectMilestone.remarks,
     milestoneStatus: this.projectMilestone.status,
     extendedDate: this.projectMilestone.extendedDate,
-    updatedBy: this.currentUser.empId,
+    updatedBy: this.currentUser.employeementId,
+    updatedByName: this.currentUser.name,
     milestoneExtensionReasonId: this.projectMilestone.extensionReason?.id,
     milestoneExtensionReasonText: this.projectMilestone?.extensionReason?.milestoneExtensionReason==='Other'? this.projectMilestone.customReason : ""  };
 
@@ -8556,17 +8612,25 @@ updateMilestoneExtendedDateWithReason() {
     formData.append("extensionFile", this.projectMilestone.extensionFile);
   }
 
-  this.projectService.updateMilestoneExtendedDate(formData).subscribe(
-    (response: any) => {
-      console.log(response);
-    },
-    (error) => {
-        this.openAlertMod(this.alertTemplateForMilestone, "Something went wrong while updating extended date. Kindly try after sometime!!");
-        return false
-    }
-  );
-  return true;        
-}    
+  return new Promise((resolve) => {
+    this.projectService.updateMilestoneExtendedDate(formData).subscribe({
+      next: (response: any) => {
+        console.log(response);
+        if (response?.serviceStatus === 'Success') {
+          resolve(true);
+          this.isExtensionEnabled = false
+
+        } else {
+          this.openAlertMod(this.alertTemplateForMilestone,"Something went wrong while updating extended date. Kindly try after sometime!!");
+          resolve(false);
+        }
+      },error: () => {
+        this.openAlertMod(this.alertTemplateForMilestone,"Something went wrong while updating extended date. Kindly try after sometime!!");
+        resolve(false);
+      }
+    });
+  });
+}   
 
 onExtendedDateChange(event: any) {
   if (event.value) { this.isExtensionEnabled = true; }
@@ -8634,8 +8698,7 @@ trackByLog(index: number, log: any) {
 
 previewDocument(documentId: number,documentName:any) {
 
-  const uniquefile=documentId+'_'+documentName
-  this.projectService.getExtensionDocumentById(uniquefile).subscribe((res: any) => {
+  this.projectService.getExtensionDocumentByName(documentName).subscribe((res: any) => {
       if (!res || !res.documentContent) {
         this.milestoneDocumentUrl = null;
         this.openAlertMod(this.alertTemplateForMilestone, "Error fetching document for preview. Kindly try after sometime!!");

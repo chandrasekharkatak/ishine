@@ -34,9 +34,9 @@
 }
 
 .thead-light {
-    position: sticky;
+    /* position: sticky;
     top: -0.7px;
-    z-index: 10;
+    z-index: 10; */
     background: #e9ecef;
   }
 
@@ -4708,7 +4708,7 @@ display: inline-block;
     box-shadow: 0 4px 14px rgba(229,62,62,0.25);
   }
 
-  .milestone-preview-backdrop{
+  /* .milestone-preview-backdrop{
     z-index: 1065 !important;
 }
 
@@ -4718,4 +4718,4 @@ display: inline-block;
 
 .modal-backdrop.show{
     z-index: 1060 !important;
-}
+} */

@@ -308,10 +308,10 @@ public class ProjectController {
 		return response;
 	}
 	
-	@PostMapping("/getExtensionDocumentById")
+	@PostMapping("/getExtensionDocumentByName")
 	public ResponseEntity<FCProjectMilestoneDTO> getExtensionDocumentById(@RequestBody Map<String, String> request) {
 	    String uniquefile = request.get("uniquefile");
-	    return ResponseEntity.ok(projectService.getExtensionDocumentById(uniquefile));
+	    return ResponseEntity.ok(projectService.getExtensionDocumentByName(uniquefile));
 	}
 	
 	@PostMapping("/validateDocName")

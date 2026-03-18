@@ -20,6 +20,7 @@ export interface MilestoneUpdatedLog {
   extendedStartDate?: Date;
 
   updatedBy?: number;
+  updatedByName?:string
 
   milestoneExtensionReasonId?: number;
   milestoneExtensionReasonText?: string;

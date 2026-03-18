@@ -3079,30 +3079,8 @@ public class ProjectService {
 							return serviceResponse;
 						}
 						List<FCLineItemDTO> fCLineItemDTO = (List<FCLineItemDTO>) serviceResponseTemp.getServiceResponse();
-						
-						Set<Long> empIds = new HashSet<>();
-
-						if (fCLineItemDTO != null) {
-						    for (FCLineItemDTO lineItem : fCLineItemDTO) {
-						        if (lineItem.getMilestones() != null) {
-						            for (FCProjectMilestoneDTO milestone : lineItem.getMilestones()) {
-						                collectEmpIds(milestone.getMilestoneExtendedEndDateLogs(), empIds);
-						                collectEmpIds(milestone.getMilestoneExtendedStartDateLogs(), empIds);
-						                collectEmpIds(milestone.getMilestoneStatusLogs(), empIds);
-						            }
-						        }
-						    }
-						}
-						// Step 2: fetch employee names
-						Map<Long, String> empMap = new HashMap<>();
-						if (!empIds.isEmpty()) {
-						    List<Object[]> empResults = employeeRepository.getEmployeeNamesByEmpIds(empIds);
-						    empMap = empResults.stream()
-						            .collect(Collectors.toMap(
-						                    obj -> (Long) obj[0],obj -> (String) obj[1]));
-						}
-						
-						List<FCProjectMilestoneDTO> fcProjectMilestoneDTOList = mapLineItemToMilestone(fCLineItemDTO,empMap);
+												
+						List<FCProjectMilestoneDTO> fcProjectMilestoneDTOList = mapLineItemToMilestone(fCLineItemDTO);
 						if (fcProjectMilestoneDTOList.isEmpty()) {
 							serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 							serviceResponse.setServiceResponse("No Milestone(s) found for this project!");
@@ -3253,9 +3231,7 @@ public class ProjectService {
      }
 
 
-	 private List<FCProjectMilestoneDTO> mapLineItemToMilestone(
-		        List<FCLineItemDTO> lineItems,
-		        Map<Long, String> empMap) {
+	 private List<FCProjectMilestoneDTO> mapLineItemToMilestone(List<FCLineItemDTO> lineItems) {
 
 		    List<FCProjectMilestoneDTO> milestoneList = new ArrayList<>();
 
@@ -3287,11 +3263,6 @@ public class ProjectService {
 		            dto.setLineItemName(lineItem.getName());
 		            dto.setLineItemStatus(lineItem.getStatus());
 
-		            // update employee names in logs
-		            setUpdatedByNames(milestone.getMilestoneExtendedEndDateLogs(), empMap);
-		            setUpdatedByNames(milestone.getMilestoneExtendedStartDateLogs(), empMap);
-		            setUpdatedByNames(milestone.getMilestoneStatusLogs(), empMap);
-
 		            dto.setMilestoneExtendedEndDateLogs(milestone.getMilestoneExtendedEndDateLogs());
 		            dto.setMilestoneExtendedStartDateLogs(milestone.getMilestoneExtendedStartDateLogs());
 		            dto.setMilestoneStatusLogs(milestone.getMilestoneStatusLogs());
@@ -3303,14 +3274,6 @@ public class ProjectService {
 		    return milestoneList;
 		}
 	 
-	 private void setUpdatedByNames(List<MilestoneAuditDTO> logs,Map<Long, String> empMap) {
-		 if (logs == null) return;
-		 for (MilestoneAuditDTO log : logs) {
-			 if (log.getUpdatedBy() != null) {
-				 log.setUpdatedByName(empMap.get(log.getUpdatedBy()));
-			 }
-		 }
-	 }
 
 public ServiceResponse getCompletedFixedCostProjects(ProjectRequest projectRequest) {
     ServiceResponse response = new ServiceResponse();
@@ -3850,7 +3813,7 @@ public ServiceResponse getCompletedFixedCostProjects(ProjectRequest projectReque
 		return deliveryModeRepository.findAll();
 	}
 	
-	public FCProjectMilestoneDTO getExtensionDocumentById(String uniquefile) {
+	public FCProjectMilestoneDTO getExtensionDocumentByName(String uniquefile) {
 		ApiLog initialLog = null;
 		String traceId = UUID.randomUUID().toString();
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
