@@ -538,7 +538,8 @@
               </tr>
 
               <ng-container *ngFor="let timesheet of allMyTimesheets
-
+                | colFilter:filters:false
+                | sort:[sortColumn, sortColumnType, sortDirection]
                 | paginate:{ itemsPerPage: itemsPerPage, currentPage: page };
                 let i = index">
 
@@ -580,7 +581,7 @@
                     <button
                       *ngIf="userMapping.update_timesheet && (timesheet.statusDisplay === 'Pending' || timesheet.statusDisplay === 'Rejected' || (timesheet.statusDisplay === 'Approved' && !timesheetFillable))"
                       class="ts-action-btn ts-action-btn--edit" type="button" title="Edit"
-                      (click)="resetTimesheetForm(); openEditTimesheetForm(timesheet)">
+                      (click)="handleEditClick(timesheet)">
                       <i class="fa fa-edit"></i>
                     </button>
                   </td>
@@ -601,7 +602,7 @@
                             <strong>{{ location.workLocationType }}</strong>
                             <span class="ts-meta">
                               <i class="far fa-clock"></i>
-                              {{ location.locationInTime || 'NA' }} – {{ location.locationOutTime || 'NA' }}
+                              {{ location.locationInTime ? (location.locationInTime | date:'dd-MM-yyyy HH:mm') : 'NA' }} – {{ location.locationOutTime ? (location.locationOutTime | date:'dd-MM-yyyy HH:mm') : 'NA' }}
                             </span>
                             <span class="ts-meta">
                               <strong>Presence At Location:</strong> {{ getTotalLocationHours(location) }}
@@ -1206,6 +1207,27 @@
         <p>{{alertMessage}}</p>
         <button type="button" class="btn btn-primary" (click)="cancelRequest2()">OK</button>&nbsp;
     </div>
+</ng-template>
+
+<ng-template #alert_message_for_blank_etm let-modal>
+  
+
+  <div class="modal-body text-center">
+    <p>
+      RMG page has deleted your team mapping for this day for the project(s) you have filled the timesheet for.
+      Do you still want to continue?<br>
+    </p>
+  </div>
+
+  <div class="modal-footer justify-content-center">
+    <button type="button" class="btn btn-secondary" (click)="modal.dismiss('cancel')">
+      Cancel
+    </button>
+
+    <button type="button" class="btn btn-primary" (click)="modal.close('continue')">
+      Continue
+    </button>
+  </div>
 </ng-template>
 
 <!-- <ng-template #editForm>

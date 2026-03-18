@@ -149,11 +149,24 @@ public class EmployeeLeaveService {
     @Autowired
     ProjectRepository projectRepository; 
 
-    @Autowired
-    private DayTypeMasterNewRepository dayTypeMasterNewRepository;
-    
-    @Autowired
-    JobRoleRepository jobRoleRepository;
+	@Autowired
+	private DayTypeMasterNewRepository dayTypeMasterNewRepository;
+
+	@Autowired
+	private TimesheetRejectionReasonsMasterRepository timesheetRejectionReasonsMasterRepository;
+
+	@Autowired
+	private TimesheetRejectionDetailsNewRepository timesheetRejectionDetailsNewRepository;
+	
+	@Autowired
+	JobRoleRepository jobRoleRepository;
+
+	/**
+	 * Rejection reason text from timesheet_rejection_reasons_master when half-day leave is applied but timesheet is full-day.
+	 * Ensure this row exists, e.g.:
+	 * INSERT INTO timesheet_rejection_reasons_master (rejection_reason, active, created_on) VALUES ('Half-day leave applied — only half-day timesheet allowed.', 1, NOW());
+	 */
+	private static final String HALF_DAY_LEAVE_REJECTION_REASON = "Half-day leave applied — only half-day timesheet allowed.";
 
 	@Value("${reminder_Mail_Date}")
 	private Long reminderMailDays;
@@ -1210,6 +1223,10 @@ public class EmployeeLeaveService {
                         }
                 }
 
+                // When half-day leave is applied: reject any existing full-day (Working) timesheet for the affected date(s)
+                if (isHalfDayLeave(leaveDTO)) {
+                    rejectFullDayTimesheetsForHalfDayLeave(leaveDTO.getEmpId(), fromDate, toDate, leaveDTO);
+                }
 
             } else {
                 // Save failed
@@ -1242,6 +1259,80 @@ public class EmployeeLeaveService {
         logService.logMyInfo(httpRequest, apiLogInfo);
         return response;
     }
+
+    /**
+     * True when the leave application is for half-day (noOfDays 0.5 or fromDateDayType/toDateDayType 0.5).
+     */
+    private boolean isHalfDayLeave(LeaveDTO leaveDTO) {
+        if (leaveDTO == null) return false;
+        if (leaveDTO.getNoOfDays() != null && leaveDTO.getNoOfDays() == 0.5f) return true;
+        if (leaveDTO.getFromDateDayType() != null && leaveDTO.getFromDateDayType() == 0.5f) return true;
+        if (leaveDTO.getToDateDayType() != null && leaveDTO.getToDateDayType() == 0.5f) return true;
+        return false;
+    }
+
+    /**
+     * When half-day leave is applied: find timesheets for the affected date(s) that are full-day (Working, not Half-day Working)
+     * and reject them with reason "Half-day leave applied — only half-day timesheet allowed." from timesheet_rejection_reasons_master.
+     */
+    private void rejectFullDayTimesheetsForHalfDayLeave(Long empId, LocalDate fromDate, LocalDate toDate, LeaveDTO leaveDTO) {
+        if (empId == null || fromDate == null || toDate == null) return;
+
+        DayTypeMasterNew workingDayType = dayTypeMasterNewRepository.findByDayType(DayTypeCode.WORKING.getDbValue());
+        DayTypeMasterNew halfDayWorkingType = dayTypeMasterNewRepository.findByDayType(DayTypeCode.HALF_DAY_WORKING.getDbValue());
+        if (workingDayType == null || halfDayWorkingType == null) return;
+
+        int workingDayTypeId = workingDayType.getDayTypeId();
+
+        Optional<TimesheetRejectionReasonsMaster> reasonOpt = timesheetRejectionReasonsMasterRepository
+                .findFirstByRejectionReasonIgnoreCaseAndActive(HALF_DAY_LEAVE_REJECTION_REASON);
+        if (!reasonOpt.isPresent()) return;
+
+        Long rejectionId = reasonOpt.get().getRejectionId();
+        Long rejectedBy = leaveDTO.getCreatedBy() != null ? leaveDTO.getCreatedBy() : leaveDTO.getUpdatedBy();
+        if (rejectedBy == null) return;
+
+        List<LocalDate> datesToCheck = new ArrayList<>();
+        if (fromDate.equals(toDate)) {
+            datesToCheck.add(fromDate);
+        } else {
+            if (leaveDTO.getFromDateDayType() != null && leaveDTO.getFromDateDayType() == 0.5f) datesToCheck.add(fromDate);
+            if (leaveDTO.getToDateDayType() != null && leaveDTO.getToDateDayType() == 0.5f) datesToCheck.add(toDate);
+        }
+        if (datesToCheck.isEmpty()) return;
+
+        for (LocalDate date : datesToCheck) {
+            List<EmployeeTimesheetsNew> timesheets = employeeTimesheetsNewRepository.findByEmpIdAndDateBetween(empId, date, date);
+            if (timesheets == null) continue;
+            for (EmployeeTimesheetsNew ts : timesheets) {
+                if (ts.getDayTypeId() == null || ts.getDayTypeId() != workingDayTypeId) continue;
+                if (Integer.valueOf(3).equals(ts.getStatus())) continue;
+
+                ts.setStatus(3);
+                employeeTimesheetsNewRepository.save(ts);
+
+                List<ProjectTimesheetStatusNew> projectStatuses = projectTimesheetStatusNewRepository.findByTimesheetId(ts.getTimesheetId());
+                if (projectStatuses != null) {
+                    for (ProjectTimesheetStatusNew ps : projectStatuses) {
+                        ps.setStatus(3);
+                        projectTimesheetStatusNewRepository.save(ps);
+
+                        TimesheetRejectionDetailsNew rej = new TimesheetRejectionDetailsNew();
+                        rej.setTimesheetId(ts.getTimesheetId());
+                        rej.setLocationMappingId(ps.getId().getLocationMappingId());
+                        rej.setProjectId(ps.getId().getProjectId());
+                        rej.setRejectionId(rejectionId);
+                        rej.setRemarks(HALF_DAY_LEAVE_REJECTION_REASON);
+                        rej.setRejectedBy(rejectedBy);
+                        rej.setRejectedOn(LocalDateTime.now());
+                        rej.setIsActive(true);
+                        timesheetRejectionDetailsNewRepository.save(rej);
+                    }
+                }
+            }
+        }
+    }
+
 //method called when leave is applied to fill in timesheets
     private void saveRelationalLeaveTimesheet(LeaveDTO leaveDTO, LocalDate date,LocalDateTime startOfDay, LocalDateTime endOfDay,  DayTypeMasterNew leaveDayType) {
         try {

@@ -522,14 +522,14 @@
     </button>
   </div>
 
-  <div class="modal-body text-center">
+  <div class="modal-body text-center preview-body">
     <iframe *ngIf="fileType === 'pdf'" [src]="previewUrl" width="100%" height="400px" style="border: none;">
     </iframe>
     <div *ngIf="fileType === 'image'" class="preview-container">
-      <div class="preview-content" [style.transform]="transformStyle" (mousedown)="startDrag($event)"
+      <div class="preview-content" [ngStyle]="{ transform: transformStyle }" (mousedown)="startDrag($event)"
         (mousemove)="onDrag($event)" (mouseup)="endDrag()" (mouseleave)="endDrag()">
 
-        <img [src]="previewUrl" class="preview-image" alt="Preview">
+        <img [src]="previewUrl" class="preview-image2" alt="Preview">
       </div>
     </div>
 

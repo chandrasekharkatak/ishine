@@ -468,6 +468,20 @@ public class EmployeeTimesheetControllerNew {
 			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
 		}
 	}
+
+		@PostMapping("/checkEditAllowed")
+		public ResponseEntity<Boolean> checkEditAllowed(@RequestBody Map<String, Object> payload) {
+
+			Long timesheetId = Long.valueOf(payload.get("timesheetId").toString());
+			String dateStr = payload.get("date").toString();
+
+			// convert to LocalDate (expects yyyy-MM-dd)
+			LocalDate date = LocalDate.parse(dateStr);
+
+			boolean isAllowed = timesheetServiceNew.isEditAllowed(timesheetId, date);
+
+			return ResponseEntity.ok(isAllowed);
+		}
 }
 
 

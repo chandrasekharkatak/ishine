@@ -677,7 +677,7 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 		+ "RIGHT JOIN Employee e ON e.empId = etm.empId \n"
 		+ "RIGHT JOIN Team t ON t.teamId = etm.teamId \n"
 		+ "INNER JOIN Project p ON p.projectId = t.projectId \n"
-		+ "LEFT JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND ppd.poStartDate <= CURRENT_TIMESTAMP \n"
+		+ "LEFT JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND ppd.poStartDate <= CURRENT_TIMESTAMP and ppd.active = true \n"
 		+ "AND (ppd.poEndDate IS NULL OR ppd.poEndDate >= CURRENT_TIMESTAMP ) \n"  
 		+ "INNER JOIN Client c ON c.clientId = p.clientId \n"
 		+ "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId \n"
@@ -764,7 +764,7 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 		+ "INNER JOIN \n"
 		+ "    projects p ON p.project_id = t.project_id\n"
 		+ "LEFT JOIN project_po_details ppd \n"
-		+ "ON ppd.project_id = p.project_id \n"
+		+ "ON ppd.project_id = p.project_id and ppd.active = true \n"
 		+ "AND ppd.po_start_date <= CURRENT_TIMESTAMP \n" 
 		+ "AND (ppd.po_end_date IS NULL OR ppd.po_end_date >= CURRENT_TIMESTAMP ) \n" 
 		+ "LEFT JOIN \n"
@@ -833,7 +833,7 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 	       "RIGHT JOIN Employee e ON e.empId = etm.empId " +
 	       "RIGHT JOIN Team t ON t.teamId = etm.teamId " +
 	       "INNER JOIN Project p ON p.projectId = t.projectId " +
-		   "LEFT JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND ppd.poStartDate <= CURRENT_TIMESTAMP \n" +
+		   "LEFT JOIN ProjectPoDetails ppd ON ppd.projectId = p.projectId AND ppd.poStartDate <= CURRENT_TIMESTAMP and ppd.active = true \n" +
 		   "AND (ppd.poEndDate IS NULL OR ppd.poEndDate >= CURRENT_TIMESTAMP ) \n" +
 	       "INNER JOIN Client c ON c.clientId = p.clientId " +
 	       "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
@@ -931,7 +931,7 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			+ "FROM EmployeeTeamMap etm \n"
 			+ "INNER JOIN RoleDetails rd on rd.roleId = etm.roleId \n"
 			+ "INNER JOIN PoRequirementMapping prm ON etm.poId = prm.poId and etm.roleId = prm.roleId and prm.active = true  \n"
-			+ "INNER JOIN ProjectPoDetails ppd ON prm.poId = ppd.poId AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) \n"
+			+ "INNER JOIN ProjectPoDetails ppd ON prm.poId = ppd.poId and ppd.active = true AND (DATE(ppd.poStartDate) <= CURRENT_DATE OR :currentActivePO = false) AND (ppd.poEndDate IS NULL OR DATE(ppd.poEndDate) >= CURRENT_DATE) \n"
 			+ "where ppd.projectId =:projectId \n"
 			+ "GROUP BY prm.poRequirementMappingId")
 	List<PoDetailsDto> getAssigedAndApprovedEmployeeCountByProjectId(Integer projectId, boolean currentActivePO);
@@ -1339,5 +1339,25 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 	
 	@Query("Select etm from EmployeeTeamMap etm where teamId in :teamIds")
 	List<EmployeeTeamMap> findByTeamIdIn(List<Long> teamIds);
+
+	@Query(value =
+        "SELECT CASE " +
+        "WHEN EXISTS ( " +
+        "   SELECT 1 " +
+        "   FROM employee_timesheets_new et " +
+        "   JOIN project_timesheet_status_new pts " +
+        "       ON et.timesheet_id = pts.timesheet_id " +
+        "   JOIN employee_team_mapping etm " +
+        "       ON et.emp_id = etm.emp_id " +
+        "      AND :inputDate BETWEEN etm.start_date AND etm.end_date " +
+        "   JOIN teams t " +
+        "       ON etm.team_id = t.team_id " +
+        "      AND t.project_id = pts.project_id " +
+        "   WHERE et.timesheet_id = :timesheetId " +
+        ") " +
+        "THEN 1 ELSE 0 END",
+        nativeQuery = true)
+    Integer findIfMappingExistsByTimesheetId(@Param("timesheetId") Long timesheetId,
+       						 				@Param("inputDate") LocalDate inputDate);	
 	
 }

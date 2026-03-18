@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import com.apmosys.employeeportal.dto.DepartmentDTO;
 import com.apmosys.employeeportal.dto.GetDeptIdByRoleDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
+import com.apmosys.employeeportal.dto.PoPortalEmpIdDTO;
 import com.apmosys.employeeportal.model.Department;
 
 @Repository
@@ -40,10 +41,10 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 
 	public boolean existsByHodId(Long empId);
 
-	@Query(value="SELECT new com.apmosys.employeeportal.dto.PoPortalDTO(d.deptId, d.name, e.employeementId, d.deptAbbreviation, d.isBillable, d.isTnm)  \n"
+	@Query(value="SELECT new com.apmosys.employeeportal.dto.PoPortalDTO(d.deptId, d.name, e.empId, d.deptAbbreviation, d.isBillable, d.isTnm)  \n"
 			+ "FROM Department d \n"
 			+ "INNER JOIN Employee e ON e.empId = d.hodId")
-	public List<PoPortalDTO> getDepartmentInfo();
+	public List<PoPortalEmpIdDTO> getDepartmentInfo();
 
 	@Query(nativeQuery = true)
 	public List<Object[]> getSegregatedDeptEodDefaulter(LocalDate firstOfMonth, LocalDate currentDate);
