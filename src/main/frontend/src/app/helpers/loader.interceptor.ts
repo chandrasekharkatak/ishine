@@ -486,13 +486,16 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/updateSurvey`,
     `${this.baseUrl}` + `api/deleteSurvey`,
     `${this.baseUrl}` + `api/getSurveyResponseByEmpIdAndSurveyId`,
-    `${this.baseUrl}` + `api/changeSurveyStatus`
+    `${this.baseUrl}` + `api/changeSurveyStatus`,
+    `${this.baseUrl}` + `api/training/getAllTrainingTypes`
     
   ]
 
   DYNAMIC_URL_whiteList = [
     `${this.baseUrl}` + `api/training/getTrainingContent/`,
-    `${this.baseUrl}` + `api/training/getTrainingResponses/`
+    `${this.baseUrl}` + `api/training/getTrainingResponses/`,
+    `${this.baseUrl}` + `api/training/downloadContent/`
+
   ]
 
   constructor(private loaderService: LoaderService) { }

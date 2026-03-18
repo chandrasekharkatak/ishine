@@ -724,8 +724,8 @@
                                             (click)="onDeactivateTraining(training, delete_template)" title="Deactivate">
                                         <em class="fa fa-ban"></em>
                                     </button>
-                                    <button class="btn btn-sm btn-outline-success mx-1" 
-                                            (click)="onViewTrainingResponse(training)" title="Add Quiz">
+                                    <button class="btn btn-sm btn-outline-success mx-1" *ngIf="userMapping.get_all_responses"
+                                            (click)="onViewTrainingResponse(training)" title="View Responses">
                                         <em class="fa fa-clipboard-check"></em> View Responses
                                     </button>
                                 </td>

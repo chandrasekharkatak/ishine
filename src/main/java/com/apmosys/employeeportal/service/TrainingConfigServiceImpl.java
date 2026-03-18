@@ -126,9 +126,6 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	@Value("${training.job.role.exclude}")
 	private String trainingJobRoleExclude;
 
-	@Value("${training.dry.run.empids.to.include}")
-	private String trainingDryRunEmpIdsToInclude;
-
 	@Autowired
 	private TrainingUserServiceImpl trainingUserServiceImpl;
 
@@ -1540,15 +1537,9 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 						.map(Long::parseLong)
 						.collect(Collectors.toList());
 
-			// Dry run empIds
-			List<Long> empIdsToInclude = Arrays.stream(trainingDryRunEmpIdsToInclude.split(","))
-					.map(String::trim)
-					.map(Long::parseLong)
-					.collect(Collectors.toList());
-
 			LockStatusDTO lockStatus = new LockStatusDTO();
 					
-			if (!jobRoleIds.contains(employee.getJobRoleId()) && empIdsToInclude.contains(empId)) {
+			if (!jobRoleIds.contains(employee.getJobRoleId())) {
 				try {
 
 					ServiceResponse lockResponse = trainingUserService.getLockStatus(empId);
