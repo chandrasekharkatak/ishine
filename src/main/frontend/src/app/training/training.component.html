@@ -45,19 +45,6 @@
               {{ pendingTraining.currentCycleNumber }}
             </div>
           </div>
-          <!-- <div class="row mb-3" *ngIf="pendingTraining.currentCycleDeadline">
-            <div class="col-md-6">
-              <strong>Deadline:</strong>
-              <span
-                [ngClass]="{ 'text-danger': pendingTraining.isDeadlineCrossed }"
-              >
-                {{ pendingTraining.currentCycleDeadline | date: "dd-MMM-yyyy" }}
-              </span>
-            </div>
-            <div class="col-md-6" *ngIf="pendingTraining.isDeadlineCrossed">
-              <span class="badge badge-danger">Deadline Crossed</span>
-            </div>
-          </div> -->
           <div class="row" *ngIf="pendingTraining.minViewTimeMinutes">
             <div class="col-md-12">
               <strong>Minimum View Time:</strong>
@@ -555,23 +542,6 @@
                             <strong>Current Cycle:</strong>
                             {{ training.currentCycleNumber }}
                           </div>
-                          <!-- <div class="mb-2" *ngIf="training.deadline">
-                            <strong>Deadline:</strong>
-                            <span
-                              [ngClass]="{
-                                'text-danger font-weight-bold':
-                                  training.isDeadlineCrossed,
-                              }"
-                            >
-                              {{ training.deadline | date: "dd-MMM-yyyy" }}
-                            </span>
-                            <span
-                              class="badge badge-danger ml-2"
-                              *ngIf="training.isDeadlineCrossed"
-                            >
-                              Deadline Crossed
-                            </span>
-                          </div> -->
                           <div class="mb-2">
                             <strong>Progress:</strong>
                             {{ training.completionCount }}/{{
