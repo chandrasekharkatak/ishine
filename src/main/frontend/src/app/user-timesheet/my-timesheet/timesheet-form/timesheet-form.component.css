@@ -2184,7 +2184,7 @@ flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   padding: 12px 20px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: #485c74;
   color: white;
   border: none;
   border-radius: 8px;
@@ -2199,7 +2199,7 @@ flex-wrap: wrap;
 .btn-preview-document:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
-  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  background: #1a2e44;
 }
 
 .btn-preview-document:active:not(:disabled) {

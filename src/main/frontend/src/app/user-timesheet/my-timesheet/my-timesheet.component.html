@@ -604,7 +604,7 @@
                               {{ location.locationInTime || 'NA' }} – {{ location.locationOutTime || 'NA' }}
                             </span>
                             <span class="ts-meta">
-                              <strong>Total:</strong> {{ getTotalLocationHours(location) }}
+                              <strong>Presence At Location:</strong> {{ getTotalLocationHours(location) }}
                             </span>
                           </div>
                           <i *ngIf="hasProjects(location)" class="fas ts-chevron"
@@ -625,10 +625,13 @@
                                 <span *ngIf="project.clientSideId" class="ts-chip ts-chip--grey">
                                   Client ID: {{ project.clientSideId }}
                                 </span>
-                                <span class="ts-chip" [class.ts-chip--pending]="project.clientApprovalStatus === 1"
+                                <span *ngIf="project.clientLocation" class="ts-chip ts-chip--grey">
+                                  Location: {{ project.clientLocation }}
+                                </span>
+                                <span *ngIf="project.clientApprovalStatus" class="ts-chip" [class.ts-chip--pending]="project.clientApprovalStatus === 1"
                                   [class.ts-chip--approved]="project.clientApprovalStatus === 2"
                                   [class.ts-chip--rejected]="project.clientApprovalStatus === 3">
-                                  {{ mapClientApprovalStatusToString(project.clientApprovalStatus) }}
+                                  CA Status:{{ mapClientApprovalStatusToString(project.clientApprovalStatus) }}
                                 </span>
                                 <span class="ts-meta"><strong>Hours:</strong> {{ getTotalProjectHours(project) }}</span>
                                 <button type="button" class="ts-reject-info-btn"
@@ -643,14 +646,14 @@
                                   class="ts-doc-btn ts-doc-btn--filled"
                                   (click)="getDoscForPreview(findFilledDocumentForProject(timesheet, project.projectId).docId, false)"
                                   title="View Filled Document">
-                                  <i class="fa fa-file-pdf"></i>
+                                  <i class="fa-solid fa-eye"></i>
                                   <span>Filled</span>
                                 </button>
                                 <button *ngIf="findApprovedDocumentForProject(timesheet, project.projectId)"
                                   class="ts-doc-btn ts-doc-btn--approved"
                                   (click)="getDoscForPreview(findApprovedDocumentForProject(timesheet, project.projectId).docId, true)"
                                   title="View Approved Document">
-                                  <i class="fa fa-file-pdf"></i>
+                                  <i class="fa-solid fa-eye"></i>
                                   <span>Approved</span>
                                 </button>
                                 <i *ngIf="hasActivities(project)" class="fas ts-chevron"

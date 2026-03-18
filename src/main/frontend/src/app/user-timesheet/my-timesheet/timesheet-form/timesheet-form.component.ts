@@ -2414,7 +2414,7 @@ this.isNightShift = false;
     // - Day type is fillable (working / half-day working etc.)
     // - Project has clientSideId
     // - Not shadow for self
-    if (this.isDayTypeFillable() && project.hasClientSideId && !project.isShadowForSelf && project.projectId != null) {
+    if (this.isDayTypeFillable() && project.hasClientSideId && project.projectId != null) {
       const targetProjectId = Number(project.projectId);
       let hasConflict = false;
 
@@ -2431,7 +2431,6 @@ this.isNightShift = false;
               p.projectId != null &&
               Number(p.projectId) === targetProjectId &&
               (p.hasClientSideId ?? false) &&
-              !p.isShadowForSelf &&
               p.clientApprovalStatus != null &&
               Number(p.clientApprovalStatus) !== newStatus
             ) {
@@ -2444,7 +2443,7 @@ this.isNightShift = false;
           }
         }
       }
-
+      console.log(this.timesheetLocations,"ClientApprovalStatusChange")
       if (hasConflict) {
         const message =
           'For the same project, client approval status must be consistent across all locations. ' +
@@ -2464,8 +2463,7 @@ this.isNightShift = false;
                 p &&
                 p.projectId != null &&
                 Number(p.projectId) === targetProjectId &&
-                (p.hasClientSideId ?? false) &&
-                !p.isShadowForSelf
+                (p.hasClientSideId ?? false)
               ) {
                 p.clientApprovalStatus = newStatus;
               }
@@ -3882,7 +3880,7 @@ this.isNightShift = false;
     
     const dataSet: LocationEntry[] = structuredClone(this.timesheetLocations);
     // Ensure Shadow for self projects do not send client approval status (not required, dropdown hidden)
-    dataSet.forEach((loc) => loc.projects?.forEach((p) => { if (p.isShadowForSelf) p.clientApprovalStatus = null; }));
+    // dataSet.forEach((loc) => loc.projects?.forEach((p) => { if (p.isShadowForSelf) p.clientApprovalStatus = null; }));
     
     // ✅ CRITICAL FIX: Add null checks for empId
     const targetEmpId = this.timesheetAppliedFor?.toLowerCase() === 'self' 
@@ -3913,7 +3911,7 @@ this.isNightShift = false;
       locationSessions: dataSet,
       documentData: this.documentData
     }
-
+    console.log('[createTimesheet] Prepared createOrUpdateObj:',this.createOrUpdateObj )
     // API expects durationMinutes in minutes; form stores hours
     this.convertActivityDurationsToMinutesForApi(this.createOrUpdateObj.locationSessions);
     const isNonFillable = !this.isDayTypeFillable();
@@ -5259,13 +5257,13 @@ this.isNightShift = false;
    */
   getListToRenderUpload(): void {
     // ✅ When Shadow for self is selected, clear client approval status (not required and dropdown is hidden)
-    this.timesheetLocations.forEach((location) => {
-      location.projects.forEach((project) => {
-        if (project.isShadowForSelf) {
-          project.clientApprovalStatus = null;
-        }
-      });
-    });
+    // this.timesheetLocations.forEach((location) => {
+    //   location.projects.forEach((project) => {
+    //     if (project.isShadowForSelf) {
+    //       project.clientApprovalStatus = null;
+    //     }
+    //   });
+    // });
 
     // ✅ Preserve existing documentData from server (update mode) - getListToRenderUpload must not wipe it
     const existingDocs = [...this.documentData];
@@ -5297,7 +5295,6 @@ this.isNightShift = false;
       location.projects.forEach((project) => {
         // ✅ Check all three conditions: clientSideId exists, not shadow for self, and day type is fillable
         if (project.hasClientSideId && 
-            !project.isShadowForSelf && 
             this.isDayTypeFillable()) {
           
           // ✅ Set to true if ANY project qualifies (not just the first one)

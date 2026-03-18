@@ -4713,12 +4713,12 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
    * Map client approval status integer to string
    */
   mapClientApprovalStatusToString(status: number | null): string {
-    if (status === null) return 'NA';
+    if (status === null) return '';
     switch (status) {
       case 1: return 'Pending';
       case 2: return 'Approved';
       case 3: return 'Rejected';
-      default: return 'NA';
+      default: return '';
     }
   }
 

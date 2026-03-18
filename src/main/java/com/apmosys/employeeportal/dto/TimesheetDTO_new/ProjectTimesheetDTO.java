@@ -101,6 +101,9 @@ public class ProjectTimesheetDTO {
      * NEW CONTRACT: Maps to clientApprovalStatus (Integer)
      * Optional - defaults to "Pending"
      */
+    
+    private String clientLocation;
+    
     private Integer clientApprovalStatus;
     
     /**
