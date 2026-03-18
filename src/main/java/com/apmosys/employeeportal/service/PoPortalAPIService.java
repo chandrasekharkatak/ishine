@@ -60,6 +60,7 @@ import com.apmosys.employeeportal.dto.MilestoneUpdatedLogDto;
 import com.apmosys.employeeportal.dto.POResourceRequirementDTO;
 import com.apmosys.employeeportal.dto.PoDetailsForProjectPoMappingDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
+import com.apmosys.employeeportal.dto.PoPortalEmpIdDTO;
 import com.apmosys.employeeportal.dto.PoProjectSyncDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.ProjectPoPortalDTO;
@@ -542,7 +543,7 @@ public class PoPortalAPIService {
 			// Sync Deleted Dept with PoPortal
 			Department deptObj = departmentRepository.findByDeptId(departmentDTO.getDeptId());
 			if (deptObj != null) {
-				Employee empObj = employeeRepository.findByEmpId(deptObj.getHodId());
+//				Employee empObj = employeeRepository.findByEmpId(deptObj.getHodId());
 //				DepartmentDTO syncObject = new DepartmentDTO();
 //				syncObject.setDeptId(deptObj.getDeptId());
 //				syncObject.setDeptName(deptObj.getName());
@@ -552,10 +553,10 @@ public class PoPortalAPIService {
 //				syncObject.setTnm(deptObj.getIsTnm());
 				
 				
-				PoPortalDTO syncObject = new PoPortalDTO();
+				PoPortalEmpIdDTO syncObject = new PoPortalEmpIdDTO();
 				syncObject.setDeptId(deptObj.getDeptId());
 				syncObject.setDeptName(deptObj.getName());
-				syncObject.setHodId(deptObj.getHodId().toString());
+				syncObject.setHodId(deptObj.getHodId());
 				syncObject.setDeptAbbreviation(deptObj.getDeptAbbreviation());
 				syncObject.setIsBillable(deptObj.getIsBillable());
 				syncObject.setIsTnm(deptObj.getIsTnm());
@@ -690,11 +691,13 @@ public class PoPortalAPIService {
 			}
 			// Sync Deleted JobRole with PoPortal
 			JobRole jobRoleObject = jobRoleRepository.findByjobRoleId(jobRoleDTO.getJobRoleId());
+			Department dept = departmentRepository.findByDeptId(jobRoleObject.getDeptId());
 			if(jobRoleObject != null) {
 				JobRoleDTO syncObject = new JobRoleDTO();
 				syncObject.setRoleId(jobRoleObject.getJobRoleId());
 				syncObject.setRoleName(jobRoleObject.getName());
 				syncObject.setDeptId(jobRoleObject.getDeptId());
+				syncObject.setDeptName(dept.getName());
 				
 				final String syncUrl = syncJobRoleWithPoPortal;
 				HttpHeaders headers = new HttpHeaders();
