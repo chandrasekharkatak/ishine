@@ -661,23 +661,17 @@ let encryptedEmployeeData = localStorage.getItem('employee360Data');
   }
 
   resetDateRange() {
-    this.dateTimeRange = null;
     this.startDate = null;
     this.endDate = null;
-    this.setDate();
+    this.formattedStartDate = null;
+    this.formattedEndDate = null;
+    this.get360TimesheetDetails(this.activeButton, this.empId, this.projectId, this.teamName, null, null);
   }
 
   getDateRange() {
-    if (this.dateTimeRange && this.dateTimeRange.length === 2) {
-      const fromDate = this.dateTimeRange[0];
-      const toDate = this.dateTimeRange[1];
-
-      console.log('From Date:', fromDate);
-      console.log('To Date:', toDate);
-      this.startDate = fromDate;
-      this.endDate = toDate;
-
-      // logic to filter data based on the selected range
+    if (this.startDate && this.endDate) {
+      console.log('From Date:', this.startDate);
+      console.log('To Date:', this.endDate);
       this.setDate();
     }
   }
@@ -932,6 +926,10 @@ async get360TimesheetDetails(
       });
 
       console.log("this.result =>", this.result);
+    } else {
+      this.data = [];
+      this.result = [];
+      this.responseCount = 0;
     }
 
     const encryptedUser = sessionStorage.getItem('currentUser');
