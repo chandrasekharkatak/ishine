@@ -301,4 +301,11 @@ processBulkTimesheets(payload: any) {
     );
   }
 
+  checkEditAllowed(payload: { timesheetId: number; date: string }) {
+    return this.http.post<boolean>(
+    `${this.baseUrl}api/v2/timesheet/checkEditAllowed`,
+    payload
+  );
+  }
+
 }

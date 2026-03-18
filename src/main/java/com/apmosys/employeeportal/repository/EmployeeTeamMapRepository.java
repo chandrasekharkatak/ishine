@@ -1339,5 +1339,25 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 	
 	@Query("Select etm from EmployeeTeamMap etm where teamId in :teamIds")
 	List<EmployeeTeamMap> findByTeamIdIn(List<Long> teamIds);
+
+	@Query(value =
+        "SELECT CASE " +
+        "WHEN EXISTS ( " +
+        "   SELECT 1 " +
+        "   FROM employee_timesheets_new et " +
+        "   JOIN project_timesheet_status_new pts " +
+        "       ON et.timesheet_id = pts.timesheet_id " +
+        "   JOIN employee_team_mapping etm " +
+        "       ON et.emp_id = etm.emp_id " +
+        "      AND :inputDate BETWEEN etm.start_date AND etm.end_date " +
+        "   JOIN teams t " +
+        "       ON etm.team_id = t.team_id " +
+        "      AND t.project_id = pts.project_id " +
+        "   WHERE et.timesheet_id = :timesheetId " +
+        ") " +
+        "THEN 1 ELSE 0 END",
+        nativeQuery = true)
+    Integer findIfMappingExistsByTimesheetId(@Param("timesheetId") Long timesheetId,
+       						 				@Param("inputDate") LocalDate inputDate);	
 	
 }

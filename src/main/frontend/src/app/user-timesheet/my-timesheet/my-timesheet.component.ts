@@ -263,6 +263,9 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
   @ViewChild("alert_message_with_reset")
   alertModalWithoutReload: TemplateRef<any>;
 
+  @ViewChild("alert_message_for_blank_etm")
+  alertModalWithoutReloadForBlankEtm: TemplateRef<any>;
+
   previousFilledDocument: any;
   previousApprovedDocument: any;
   minDate: any;
@@ -4809,6 +4812,48 @@ downloadExcel(base64Data: string, mimeType: string, fileName: string) {
       { modalDialogClass: 'modal-lg', backdrop: 'static' }
     );
   }
+  formatDate(dateStr: string): string {
+  const [day, month, year] = dateStr.split("-");
+  return `${year}-${month}-${day}`;
+}
+  handleEditClick(timesheet: any) {
+    console.log(JSON.stringify(timesheet, null, 2));
+    const formattedDate = this.formatDate(timesheet.date);
+
+  const payload = {
+    timesheetId: timesheet.timesheetId,
+    date: formattedDate
+  };
+  this.timesheetNewService.checkEditAllowed(payload).subscribe({
+      next: (isAllowed: boolean) => {
+
+        if (isAllowed) {
+          this.proceedEdit(timesheet);
+        } else {
+          this.openConfirmationPopup(timesheet);
+        }
+
+      },
+      error: (err) => {
+        console.error("API error", err);
+      }
+    });
+  }
+  proceedEdit(timesheet: any) {
+    this.resetTimesheetForm();
+    this.openEditTimesheetForm(timesheet);
+  }
+
+  openConfirmationPopup(timesheet: any) {
+  const modalRef = this.modalService.open(this.alertModalWithoutReloadForBlankEtm, { modalDialogClass: 'modal-sm' });
+
+  modalRef.result.then((result) => {
+    if (result === 'continue') {
+      this.proceedEdit(timesheet);
+    }
+  }).catch(() => {
+  });
+}
 }
 function compare(a: number | string, b: number | string, isAsc: boolean) {
   return (a < b ? -1 : 1) * (isAsc ? 1 : -1);

@@ -71,6 +71,7 @@ import com.apmosys.employeeportal.Exception.TimesheetValidationFailedException;
 import com.apmosys.employeeportal.exception.UnauthorizedAccessException;
 import com.apmosys.employeeportal.model.DocMimeTypeMasterNew;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.EmployeeTeamMap;
 import com.apmosys.employeeportal.model.EmployeeTimesheetLocationMapping;
 import com.apmosys.employeeportal.model.EmployeeTimesheetsNew;
 import com.apmosys.employeeportal.model.FinalDocument;
@@ -2735,6 +2736,14 @@ public class TimesheetServiceNew {
 				}
 			}
 		}
+
+        public boolean isEditAllowed(Long timesheetId,LocalDate date) {
+
+         Integer result =
+            employeeTeamMapRepository.findIfMappingExistsByTimesheetId(timesheetId,date);
+
+   				 return result != null && result == 1;
+        }
 		
 
 }
