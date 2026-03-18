@@ -34,6 +34,7 @@ import com.apmosys.employeeportal.dto.DepartmentIdAndNameDto;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.PoPortalDTO;
+import com.apmosys.employeeportal.dto.PoPortalEmpIdDTO;
 import com.apmosys.employeeportal.exception.DataNotFoundException;
 import com.apmosys.employeeportal.model.ApiLog;
 import com.apmosys.employeeportal.model.Asset;
@@ -689,7 +690,7 @@ public class DepartmentService {
 		try {
 			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
 					"getAllDepartmentInfo", "PoPortal", null, httpRequest);
-			List<PoPortalDTO> poPortalDTOList = departmentRepository.getDepartmentInfo();
+			List<PoPortalEmpIdDTO> poPortalDTOList = departmentRepository.getDepartmentInfo();
 			if (!poPortalDTOList.isEmpty()) {
 				logBuilder.append("getAllDepartmentInfo size : " + poPortalDTOList.size());
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
