@@ -26,9 +26,6 @@ import lombok.Data;
 @Component
 public class TrainingCron {
 
-	@Value("${training.job.role.exclude}")
-	private String trainingJobRoleExclude;
-
 	@Autowired
 	private TrainingConsentRepository trainingConsentRepository;
 
