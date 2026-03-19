@@ -4672,8 +4672,8 @@ public class ResourceManagementService {
 			Project projectObj = projectRepository.findByProjectId(resourceManagementDTO.getProjectId());
 			if (projectObj == null) {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("No Project Detais Is Present ");
-				apiLogInfo.setApiResponse("No Project Detais Is Present");
+				response.setServiceResponse("Project not found!!");
+				apiLogInfo.setApiResponse("Project not found!!");
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				return response;
 			}
@@ -4687,7 +4687,11 @@ public class ResourceManagementService {
 			projectObj.setUpdatedOn(LocalDateTime.now());
 			Project projectDbResponse = projectRepository.save(projectObj);
 
-			if (!resourceManagementDTO.getProjectType().equals("Internal")) {
+			String projectType = (projectDbResponse.getPoProjectType() != null
+					&& !projectDbResponse.getPoProjectType().trim().equals("")) ? projectDbResponse.getPoProjectType()
+							: projectDbResponse.getInternalProjectType();	
+			
+			if (!projectType.equals("Internal")) {
 				ServiceResponse poPortalResponse = sendProjectInfoToPoPortal(resourceManagementDTO);
 				if (poPortalResponse != null && poPortalResponse.getServiceStatus() != null
 						&& poPortalResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS)) {
