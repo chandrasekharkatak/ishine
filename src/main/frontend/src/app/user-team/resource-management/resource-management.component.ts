@@ -318,7 +318,7 @@ expiredProjectsWithin1Month:any;
   @ViewChild("project_milestone_document") projectMilestoneDocumentTemplateRef: TemplateRef<any>;
   expandedMilestoneId:any
   selectedLogs: any[] = [];
-  selectedLogType: string = '';
+  selectedLogType: 'start' | 'end' | 'status' | null = null;
   logHeader:any;
   @ViewChild("project_milestone_extended_preview") projectMilestoneExtendedPreviewTemplateRef: TemplateRef<any>;
   isImageFile: boolean = false;
