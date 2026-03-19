@@ -3941,7 +3941,6 @@ this.isNightShift = false;
       .subscribe({
         next: (response: any) => {
           if (response.serviceStatus === "Success") {
-            this.openAlertMod(this.alertTemplate, "Timesheet created successfully.");
             
             this.timesheetCreated.emit();
             // After successful create, refresh disabled dates so just-filled date becomes non-selectable
@@ -3951,6 +3950,9 @@ this.isNightShift = false;
             this.appelectMember = null;
             this.resetForm()
             this.onTimesheetAppliedForChange();
+            setTimeout(() => {
+              this.openAlertMod(this.alertTemplate, "Timesheet created successfully.");
+            });
             // Reset form or navigate as needed
           } else {
             // ✅ MODERATE FIX: Use centralized error handling
