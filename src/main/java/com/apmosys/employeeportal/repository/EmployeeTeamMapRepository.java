@@ -1342,22 +1342,26 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 
 	@Query(value =
         "SELECT CASE " +
-        "WHEN EXISTS ( " +
+        "WHEN NOT EXISTS ( " +
         "   SELECT 1 " +
-        "   FROM employee_timesheets_new et " +
-        "   JOIN project_timesheet_status_new pts " +
+        "   FROM project_timesheet_status_new pts " +
+        "   JOIN employee_timesheets_new et " +
         "       ON et.timesheet_id = pts.timesheet_id " +
-        "   JOIN employee_team_mapping etm " +
-        "       ON et.emp_id = etm.emp_id " +
-        "      AND :inputDate BETWEEN etm.start_date AND etm.end_date " +
-        "   JOIN teams t " +
-        "       ON etm.team_id = t.team_id " +
-        "      AND t.project_id = pts.project_id " +
         "   WHERE et.timesheet_id = :timesheetId " +
+        "   AND NOT EXISTS ( " +
+        "       SELECT 1 " +
+        "       FROM employee_team_mapping etm " +
+        "       JOIN teams t ON etm.team_id = t.team_id " +
+        "       WHERE etm.emp_id = et.emp_id " +
+        "       AND t.project_id = pts.project_id " +
+        "       AND DATE(:inputDate) >= DATE(etm.start_date) " +
+        "       AND (etm.end_date IS NULL OR DATE(:inputDate) <= DATE(etm.end_date)) " +
+        "   ) " +
         ") " +
         "THEN 1 ELSE 0 END",
         nativeQuery = true)
-    Integer findIfMappingExistsByTimesheetId(@Param("timesheetId") Long timesheetId,
-       						 				@Param("inputDate") LocalDate inputDate);	
+		Integer checkMappingExists(
+				@Param("timesheetId") Long timesheetId,
+				@Param("inputDate") LocalDate inputDate);
 	
 }

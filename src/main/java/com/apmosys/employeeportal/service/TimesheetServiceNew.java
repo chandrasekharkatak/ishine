@@ -2740,7 +2740,7 @@ public class TimesheetServiceNew {
         public boolean isEditAllowed(Long timesheetId,LocalDate date) {
 
          Integer result =
-            employeeTeamMapRepository.findIfMappingExistsByTimesheetId(timesheetId,date);
+            employeeTeamMapRepository.checkMappingExists(timesheetId,date);
 
    				 return result != null && result == 1;
         }
