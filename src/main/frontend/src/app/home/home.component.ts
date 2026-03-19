@@ -3007,11 +3007,12 @@ getDocsForPreview(docId: any) {
 
 
       extendedDate: formValues.extendedDate,
-      updatedBy: this.currentUser.empId,
+      updatedBy: this.currentUser.employeementId,
       updatedByName: this.currentUser.name,
 
       milestoneExtensionReasonId: formValues.extensionReasonId,
       milestoneExtensionReasonText: formValues.customReason
+
     };
     const formData = new FormData();
     formData.append("milestoneData",new Blob([JSON.stringify(payload)], { type: "application/json" }));

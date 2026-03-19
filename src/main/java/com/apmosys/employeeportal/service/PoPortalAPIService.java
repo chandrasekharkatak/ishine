@@ -158,6 +158,9 @@ public class PoPortalAPIService {
     
     @Value("${poPortal.api.validateDocName}")
 	private String validateDocName;
+
+	@Value("${poPortal.api.getAllExpiryMilestone}")
+	private String getAllExpiredMilestonesUrl;
     
     @Autowired
     private PoRequirementMappingRepository poRequirementMappingRepository;
@@ -258,7 +261,7 @@ public class PoPortalAPIService {
 	}
 	
 	
-	public ServiceResponse updateMilestoneById(FCProjectMilestoneDTO dto, MultipartFile file) {
+	public ServiceResponse updateMilestoneById(FCProjectMilestoneDTO dto, MultipartFile file ,  String projectName) {
 		ServiceResponse serviceResponse = new ServiceResponse();
 		ApiLog initialLog = null;
 		String traceId = UUID.randomUUID().toString();
@@ -321,15 +324,31 @@ public class PoPortalAPIService {
 			MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
 			body.add("dto", jsonPart);
 
+			// // Only add file if present
+			// if (file != null && !file.isEmpty()) {
+			//     ByteArrayResource fileResource = new ByteArrayResource(file.getBytes()) {
+			//         @Override
+			//         public String getFilename() {
+			//             return file.getOriginalFilename();
+			//         }
+			//     };
+			//     body.add("file", fileResource);
+			// }
+
 			// Only add file if present
 			if (file != null && !file.isEmpty()) {
-			    ByteArrayResource fileResource = new ByteArrayResource(file.getBytes()) {
-			        @Override
-			        public String getFilename() {
-			            return file.getOriginalFilename();
-			        }
-			    };
-			    body.add("file", fileResource);
+
+				String originalFileName = file.getOriginalFilename();
+				String newFileName = dto.getId() + "_" + originalFileName;
+
+				ByteArrayResource fileResource = new ByteArrayResource(file.getBytes()) {
+					@Override
+					public String getFilename() {
+						return newFileName;
+					}
+				};
+
+				body.add("file", fileResource);
 			}
 
 			HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
@@ -345,6 +364,14 @@ public class PoPortalAPIService {
 				serviceResponse.setServiceResponse(apiResponse.getBody());
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				finalHttpStatusCode = HttpStatus.OK.value();
+
+				boolean emailSent =  sendEmailForMileStoneUpdate(dto , file , projectName);
+				serviceResponse.setServiceMessage(emailSent
+					? "Milestone updated and email notification sent."
+					: "Milestone updated, but email notification could not be sent.");
+				System.out.println("Email Sent :"+emailSent );
+
+
 			} else {
 				serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				serviceResponse.setServiceResponse("Failed to update milestone via external service. Status: " + apiResponse.getStatusCode());
@@ -1207,11 +1234,30 @@ public class PoPortalAPIService {
 			if("Other".equalsIgnoreCase(milestoneExtensionReason))
 			{updateRequest.setOthersReason(dto.getMilestoneExtensionReasonText());}
 			
+			// if (extensionFile != null && !extensionFile.isEmpty()) {
+		    // 	updateRequest.setDocumentContent(extensionFile.getBytes());
+		    // 	updateRequest.setDocumentName(extensionFile.getOriginalFilename());
+		    // 	updateRequest.setDocumentType(extensionFile.getContentType());
+		    // }
+
 			if (extensionFile != null && !extensionFile.isEmpty()) {
-		    	updateRequest.setDocumentContent(extensionFile.getBytes());
-		    	updateRequest.setDocumentName(extensionFile.getOriginalFilename());
-		    	updateRequest.setDocumentType(extensionFile.getContentType());
-		    }
+
+				String originalFileName = extensionFile.getOriginalFilename();
+
+				// Extract only file name (in case full path comes)
+				String cleanFileName = originalFileName != null
+						? originalFileName.substring(originalFileName.lastIndexOf("/") + 1)
+								.substring(originalFileName.lastIndexOf("\\") + 1)
+						: "file";
+
+				// Create new filename → milestoneId_filename
+				String newFileName = dto.getMilestoneId() + "_" + cleanFileName;
+
+				updateRequest.setDocumentContent(extensionFile.getBytes());
+				updateRequest.setDocumentName(newFileName);
+				updateRequest.setDocumentType(extensionFile.getContentType());
+				updateRequest.setUpdatedByName(dto.getUpdatedByName());
+			}
 
 
 			HttpHeaders headers = new HttpHeaders();
@@ -1290,7 +1336,11 @@ public class PoPortalAPIService {
 
 		    List<String> directorEmails = projectRepository.findDirectorEmails();
 
-			List<String> toRecipients = Stream.concat(rmEmails.stream(), hodEmails.stream())
+			List <String> accountsEmails = projectRepository.getAccountsTeamEmails();
+
+			List<String> toRecipients = Stream.concat(
+					Stream.concat(rmEmails.stream(), hodEmails.stream()),
+					accountsEmails.stream())
 					.filter(e -> e != null && !e.trim().isEmpty())
 					.distinct()
 					.collect(Collectors.toList());
@@ -2298,6 +2348,219 @@ return empId;
 	        }
 	    }
 	}
+
+	@Async
+	@Scheduled(cron = "${milestoneExpiryNotifierAll.time}")
+	public void milestoneExpiredNotifierMail() {
+		System.out.println("======= Project Expiry Job Started With updated API ======");
+
+		String traceId = UUID.randomUUID().toString();
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.set("X-Trace-Id", traceId);
+		headers.set("Authorization", poPortalAPIAuthenticationJWTUtility.generateAccessToken());
+
+		HttpEntity<?> requestEntity = new HttpEntity<>(null, headers);
+
+		ApiLog initialLog = null;
+		int httpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+		String exceptionDetails = null;
+
+		try {
+
+			initialLog = apiLogUtility.startLog(traceId, "/api/milestoneExpiredNotifierMail", "EmployeePortal", 0L,
+					null);
+
+			MilestoneExpireDto[] milestoneArray = restTemplate.exchange(
+					getAllExpiredMilestonesUrl,
+					HttpMethod.POST,
+					requestEntity,
+					MilestoneExpireDto[].class).getBody();
+
+			List<MilestoneExpireDto> milestones = Arrays.asList(
+					milestoneArray != null ? milestoneArray : new MilestoneExpireDto[0]);
+
+			System.out.println("Fetched " + milestones.size() + " expiring milestones.");
+
+			SimpleDateFormat sdf = new SimpleDateFormat("d/MM/yyyy");
+
+			for (MilestoneExpireDto milestone : milestones) {
+				String poNumber = milestone.getPoNo();
+				String projectName = milestone.getProjectName();
+				String milestoneName = milestone.getName();
+				String lineItemName = milestone.getLineItemName();
+				Long projectId = milestone.getProjectId();
+				Date milestoneStartDate = milestone.getStartDate();
+				Date milestoneEndDate = milestone.getEndDate();
+				String milestoneStatus = milestone.getStatus();
+
+				String formattedStartDate = sdf.format(milestoneStartDate);
+				String formattedEndDate = sdf.format(milestoneEndDate);
+
+				Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(projectId);
+
+				if (!optionalEmails.isPresent()) {
+					System.out.println("Skipping milestone due to missing RM/HOD data: " + milestoneName);
+					continue;
+				}
+
+				RmAndHodEmailDto emailDto = optionalEmails.get();
+				List<String> rmEmails = emailDto.getRmEmails();
+				List<String> hodEmails = emailDto.getHodEmails();
+				List<String> directorEmails = projectRepository.findDirectorEmails();
+
+				List<String> toRecipients = new ArrayList<>();
+				if (rmEmails != null) {
+					toRecipients.addAll(
+							rmEmails.stream().filter(e -> e != null && !e.isEmpty()).collect(Collectors.toList()));
+				}
+				if (hodEmails != null) {
+					toRecipients.addAll(
+							hodEmails.stream().filter(e -> e != null && !e.isEmpty()).collect(Collectors.toList()));
+				}
+
+				List<String> ccRecipients = directorEmails.stream()
+						.filter(e -> e != null && !e.trim().isEmpty())
+						.distinct()
+						.collect(Collectors.toList());
+				System.out.println(ccRecipients);
+
+				if (toRecipients.isEmpty()) {
+					System.out.println("Skipping milestone due to all emails being empty: " + milestoneName);
+					continue;
+				}
+
+				String subject = "Project Milestone Expiry Notification: " + projectName;
+				String body = "<html><body>"
+						+ "<p>Dear Team,</p>"
+						+ "<p>Action Required: The following project milestone has expired, but the status has not been updated.</p>"
+						+ "<table border='1' style='border-collapse: collapse;'>"
+						+ "<tr><th>PO Number</th><td>" + poNumber + "</td></tr>"
+						+ "<tr><th>Project Name</th><td>" + projectName + "</td></tr>"
+						+ "<tr><th>Milestone Name</th><td>" + milestoneName + "</td></tr>"
+						+ "<tr><th>Line Item</th><td>" + lineItemName + "</td></tr>"
+						+ "<tr><th>Milestone Start Date</th><td>" + formattedStartDate + "</td></tr>"
+						+ "<tr><th>Milestone End Date</th><td>" + formattedEndDate + "</td></tr>"
+						+ "<tr><th>Status</th><td>" + milestoneStatus + "</td></tr>"
+						+ "</table>"
+						+ "<p>Please take the necessary actions.</p>"
+						+ "<p>Regards,<br>ApMoSys Technologies</p>"
+						+ "</body></html>";
+
+				try {
+					List<String> toRecipientsDummy = Arrays.asList(
+							"shikha.suman@apmosys.com",
+							"chandasekhar.moharana@apmosys.com");
+					List<String> ccRecipientsDummy = Arrays.asList(
+							"shubhank.nagar@apmosys.com");
+					//mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body);
+					mailService.sendMailToMultipleRecipients(toRecipientsDummy, ccRecipientsDummy, subject, body);
+					System.out.println("Mail sent for project: " + projectName);
+
+				} catch (Exception e) {
+					System.err.println("Error sending mail for project: " + projectName);
+					e.printStackTrace();
+					exceptionDetails = "Mail Error: " + e.getMessage();
+				}
+
+			}
+
+			httpStatusCode = HttpStatus.OK.value();
+		} catch (Exception e) {
+			System.err.println("Exception occurred in milestoneExpiryNotifierMail");
+			e.printStackTrace();
+			exceptionDetails = "Job Failed: " + e.toString();
+		} finally {
+			if (initialLog != null && initialLog.getId() != null) {
+				apiLogUtility.endLog(
+						initialLog.getId(),
+						getExpiryMilestoneUrl,
+						httpStatusCode,
+						exceptionDetails,
+						null);
+			}
+		}
+
+		System.out.println("======= Project Expiry Job Completed =======");
+	}
+
+	private boolean sendEmailForMileStoneUpdate(FCProjectMilestoneDTO dto , MultipartFile file , String projectName) {
+		try {
+			Optional<RmAndHodEmailDto> optionalEmails = getRmAndHodEmails(dto.getProjectId());
+			if (optionalEmails.isEmpty()) {
+				logger.warn("No email addresses found for project: {}", dto.getProjectId());
+				return false;
+			}
+
+			RmAndHodEmailDto emailDto = optionalEmails.get();
+			List<String> rmEmails = emailDto.getRmEmails() != null ? emailDto.getRmEmails() : Collections.emptyList();
+			List<String> hodEmails = emailDto.getHodEmails() != null ? emailDto.getHodEmails()
+					: Collections.emptyList();
+
+		    List <String> accountsEmails = projectRepository.getAccountsTeamEmails();
+			System.out.println(accountsEmails);
+
+			
+			List<String> directorEmails = projectRepository.findDirectorEmails();
+
+			List<String> toRecipients = Stream.concat(
+        Stream.concat(rmEmails.stream(), hodEmails.stream()),
+        accountsEmails.stream())
+					.filter(e -> e != null && !e.trim().isEmpty())
+					.distinct()
+					.collect(Collectors.toList());
+
+			if (toRecipients.isEmpty()) {
+				logger.warn("Skipping milestone email due to empty RM/HOD emails: {}", dto.getName());
+				return false;
+			}
+
+			List<String> ccRecipients = directorEmails.stream()
+					.filter(e -> e != null && !e.trim().isEmpty())
+					.distinct()
+					.collect(Collectors.toList());
+
+			SimpleDateFormat formatter = new SimpleDateFormat("yyyy/MM/dd");
+			//String extendedDate = formatter.format(dto.getExtendedDate());
+			String endDate = formatter.format(dto.getEndDate());
+			String startDate = formatter.format(dto.getStartDate());
+
+			String subject = "Project Milestone Update Notification: " + projectName;
+			String body = "<html><body>"
+					+ "<p>Dear Team,</p>"
+					+ "<p>The following project milestone has been Updated  </p>"
+					+ "<table border='1' style='border-collapse: collapse;'>"
+					+ "<tr><th>PO Number</th><td>" + dto.getPoId() + "</td></tr>"
+					+ "<tr><th>Project Name</th><td>" + projectName + "</td></tr>"
+					+ "<tr><th>Milestone Name</th><td>" + dto.getName() + "</td></tr>"
+					+ "<tr><th>Line Item</th><td>" + dto.getLineItemName() + "</td></tr>"
+					+ "<tr><th>Milestone Start Date</th><td>" + startDate + "</td></tr>"
+					+ "<tr><th>Milestone End Date</th><td>" + endDate + "</td></tr>"
+					+ "<tr><th>Milestone Extended Date</th><td>" + dto.getExtendedDate() + "</td></tr>"
+					+ "<tr><th>Status</th><td>" + dto.getStatus() + "</td></tr>"
+					+ "</table>"
+					+ "<p>Regards,<br>ApMoSys Technologies</p>"
+					+ "</body></html>";
+
+			List<String> toRecipientsDummy = Arrays.asList(
+							// "shikha.suman@apmosys.com",
+							"chandasekhar.moharana@apmosys.com");
+					List<String> ccRecipientsDummy = Arrays.asList(
+							"shikha.suman@apmosys.com");
+
+			//mailService.sendMailToMultipleRecipientsWithFile(toRecipients, ccRecipients, subject, body ,file);
+
+			mailService.sendMailToMultipleRecipientsWithFile(toRecipientsDummy, ccRecipientsDummy, subject, body , file) ;
+			logger.info("Email sent successfully for milestone: {}", dto.getName());
+			return true;
+
+		} catch (Exception e) {
+			logger.error("Failed to send email for milestone {}: {}", dto.getName(), e.getMessage());
+			return false;
+		}
+	}
+
+	
 
 
 

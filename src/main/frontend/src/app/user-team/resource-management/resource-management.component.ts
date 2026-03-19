@@ -161,6 +161,7 @@ topSkillCounts: number[] = [];
 expandedIndex: boolean = false;
 isClientSideIdFormatted:Boolean = false;
 employeeRoleList:any =[]
+projectNameForMilestoneUpdate : string ;
 
 toggleExpand(): void {
   this.expandedIndex = !this.expandedIndex;
@@ -6689,12 +6690,14 @@ if (this.requiresDocument(this.projectMilestone.status) && !this.selectedFile) {
     this.projectMilestone.updatedBy = this.currentUser.employeementId;
     this.projectMilestone.updatedOn = new Date();
     this.projectMilestone.updatedByName = this.currentUser.name;
+    this.projectNameForMilestoneUpdate = this.projectObj.name;
 
 
 
 
     const formData = new FormData();
     formData.append('dto', new Blob([JSON.stringify(this.projectMilestone)], { type: 'application/json' }));
+    formData.append('projectName', this.projectNameForMilestoneUpdate);
 
     if (this.selectedFile) {
       formData.append('file', this.selectedFile);
