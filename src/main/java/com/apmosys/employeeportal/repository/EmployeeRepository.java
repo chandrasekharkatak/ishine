@@ -773,7 +773,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query(value = "SELECT " +
 		    "(SELECT COUNT(*) FROM employee_rewards WHERE rewarded_to = e.emp_id) AS rewardCount, " +
 		    "(SELECT COUNT(*) FROM appreciation WHERE appreciation_to = e.emp_id) AS appreciationCount, " +
-		    "(SELECT FLOOR(AVG(final_rating)) FROM employee_performance WHERE emp_id = e.emp_id) AS averageRating " +
+		    "(SELECT ROUND(AVG(CAST(ep.final_rating AS DECIMAL(5,2))), 2) FROM employee_performance ep WHERE ep.emp_id = e.emp_id " +
+		    "AND ep.quarter_id IN (SELECT quarter_id FROM quater_cycle WHERE is_enable = 1 AND is_active = 1) AND ep.final_rating IS NOT NULL AND ep.final_rating != '') AS averageRating " +
 		    "FROM employee e " +
 		    "WHERE e.emp_id = :employeeId", 
 		    nativeQuery = true)

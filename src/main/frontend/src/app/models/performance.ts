@@ -8,6 +8,7 @@ export class Performance {
     hodApprovalDate:any;
     hodRemarks:any;
     hodId:any;
+    hodReviewStatus:any;
     quarterId:any;
     quarterCycle:any;
     currentStatus:any;

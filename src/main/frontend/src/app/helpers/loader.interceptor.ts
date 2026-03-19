@@ -232,6 +232,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/get360TimesheetDetails`,
     `${this.baseUrl}` + `api/submitEmployeePerformanceHOD`,
     `${this.baseUrl}` + `api/submitEmployeePerformanceHR`,
+    `${this.baseUrl}` + `api/submitRemarksByHOD`,
     `${this.baseUrl}` + `api/addReviewType`,
     `${this.baseUrl}` + `api/updateReviewType`,
     `${this.baseUrl}` + `getExistingProjectsAndTeamsByEmployee`,
