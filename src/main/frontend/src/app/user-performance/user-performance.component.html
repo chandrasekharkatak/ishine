@@ -154,6 +154,16 @@
                     <i class="fas fa-search" aria-hidden="true"></i> Search
                   </button>
                 </div>
+                <div class="pms-bulk-actions" *ngIf="userMapping?.performance_action_by_hr">
+                  <input type="text" class="pms-bulk-remark-input" placeholder="HR remark for bulk action"
+                    [(ngModel)]="bulkHrRemark" />
+                  <button type="button" class="pms-bulk-btn pms-bulk-accept"
+                    [disabled]="bulkActionInProgress || selectedBulkEmpIds.size === 0"
+                    (click)="submitBulkHrAction('Accepted')">Bulk Accept</button>
+                  <button type="button" class="pms-bulk-btn pms-bulk-reject"
+                    [disabled]="bulkActionInProgress || selectedBulkEmpIds.size === 0"
+                    (click)="submitBulkHrAction('Rejected')">Bulk Reject</button>
+                </div>
                 <button type="button" class="pms-export-btn" [hidden]="getTableEmployeeList().length == 0" (click)="exportToExcel()" title="Export current list to Excel" aria-label="Export to Excel">
                   <i class="fa fa-file-arrow-down"></i> Export
                 </button>
@@ -169,6 +179,10 @@
                   <table class="table pms-table" matSort (matSortChange)="sortData($event)" id="performanceID">
                   <thead id="performanceIDTHead">
                     <tr id="performanceIDHeadTr">
+                      <th scope="col" class="pms-th" *ngIf="userMapping?.performance_action_by_hr">
+                        <input type="checkbox" [checked]="areAllBulkSelected()"
+                          (change)="toggleSelectAllBulk($any($event.target).checked)" aria-label="Select all for bulk HR action" />
+                      </th>
                       <th scope="col" class="pms-th">Sl. No.</th>
                       <th scope="col" class="pms-th">ACTION</th>
                       <th scope="col" class="pms-th pms-th-center" mat-sort-header="employmentIdAcToET|string">EMP ID</th>
@@ -188,7 +202,7 @@
                   </thead>
                   <tbody>
                     <tr *ngIf="getTableEmployeeList().length == 0 || (getTableEmployeeList() | colFilter:filters:false).length == 0">
-                      <td colspan="13" class="text-center pms-td pms-empty">
+                      <td [attr.colspan]="userMapping?.performance_action_by_hr ? 14 : 13" class="text-center pms-td pms-empty">
                         <span class="pms-empty-icon"><i class="fas fa-inbox"></i></span>
                         <span class="pms-empty-text">No employees to display.</span>
                         <span class="pms-empty-hint" *ngIf="searchTableText">Try adjusting your search.</span>
@@ -196,6 +210,12 @@
                       </td>
                     </tr>
                     <tr *ngFor="let eligiemployee of getTableEmployeeList() | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
+                      <td class="pms-td" *ngIf="userMapping?.performance_action_by_hr">
+                        <input type="checkbox" [disabled]="!canBulkHrAction(eligiemployee)"
+                          [checked]="isBulkSelected(eligiemployee.empId)"
+                          (change)="toggleBulkSelection(eligiemployee, $any($event.target).checked)"
+                          aria-label="Select employee for bulk HR action" />
+                      </td>
                       <td class="pms-td">{{ (page - 1) * 20 + i + 1 }}</td>
                       <td class="pms-td">
                         <button type="button" class="pms-btn-evaluate" [disabled]="!isEligibleEmployee(eligiemployee)" [title]="!isEligibleEmployee(eligiemployee) ? 'Not eligible for this cycle' : ''" (click)="isEligibleEmployee(eligiemployee) && onReview(eligiemployee)">
@@ -453,8 +473,12 @@
                 </div>
                 <div class="d-flex justify-content-end mt-2 cycle-review-actions flex-wrap" *ngIf="(currentStatus == 'Completed' || currentStatus == 'Ongoing') && userMapping.performance_action_by_hr">
                   <button class="btn cycle-btn cycle-btn-primary" (click)="updateReviewByHr(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())" *ngIf="isEditMode">Update</button>
-                  <button type="button" class="btn cycle-btn cycle-btn-primary ml-2" (click)="onHrAccept(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Accept</button>
-                  <button type="button" class="btn cycle-btn cycle-btn-danger ml-2" (click)="onHrReject(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Reject</button>
+                  <button type="button" class="btn cycle-btn cycle-btn-primary ml-2"
+                    [disabled]="hrReviewStatus === 'Accepted' || hrReviewStatus === 'Rejected'"
+                    (click)="onHrAccept(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Accept</button>
+                  <button type="button" class="btn cycle-btn cycle-btn-danger ml-2"
+                    [disabled]="hrReviewStatus === 'Accepted' || hrReviewStatus === 'Rejected'"
+                    (click)="onHrReject(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Reject</button>
                 </div>
               </div>
 
