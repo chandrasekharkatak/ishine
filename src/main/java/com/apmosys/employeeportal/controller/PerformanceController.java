@@ -248,4 +248,10 @@ public class PerformanceController {
 	    ServiceResponse response = performanceService.updateEmployeePerformanceHr(employeePerformanceDTO);
 	    return response;
 	}
+
+	@RequestMapping(value = "/bulkSubmitEmployeePerformanceHR", method = RequestMethod.POST)
+	public ServiceResponse bulkSubmitEmployeePerformanceHR(@RequestBody PerformanceDTO employeePerformanceDTO) {
+		ServiceResponse response = performanceService.bulkSubmitEmployeePerformanceHR(employeePerformanceDTO);
+		return response;
+	}
 }

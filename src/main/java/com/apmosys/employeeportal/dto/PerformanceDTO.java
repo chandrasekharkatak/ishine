@@ -48,5 +48,7 @@ public class PerformanceDTO {
     private String tabType;
     private Boolean rejectStatus;
     private String actionBy;
+    /** Bulk HR action target employee ids. */
+    private List<Long> empIds;
     
 }

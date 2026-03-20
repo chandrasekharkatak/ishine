@@ -80,6 +80,9 @@ export class UserPerformanceComponent implements OnInit {
   storedDataList: any[] = [];
   data: string;
   employeeDataForExcel: any[] = [];
+  selectedBulkEmpIds: Set<number> = new Set<number>();
+  bulkHrRemark: string = '';
+  bulkActionInProgress = false;
   performnace: Performance = new Performance();
   myMap: Map<string, string> = new Map();
 
@@ -593,6 +596,87 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
       list = new SortPipe().transform([...list], [this.sortColumn, this.sortColumnType, this.sortDirection]);
     }
     return list;
+  }
+
+  /** Whether an employee row can be part of HR bulk action. */
+  canBulkHrAction(emp: any): boolean {
+    if (!this.userMapping?.performance_action_by_hr) return false;
+    if (!emp?.empId) return false;
+    const managerStatus = this.getApprovalStatus(emp, 'manager');
+    const hodStatus = this.getApprovalStatus(emp, 'hod');
+    const hrStatus = this.getApprovalStatus(emp, 'hr');
+    // Tick/select only when BOTH Manager and HOD have acted, and HR is still Pending.
+    return managerStatus !== 'Pending' && hodStatus !== 'Pending' && hrStatus === 'Pending';
+  }
+
+  isBulkSelected(empId: any): boolean {
+    return empId != null ? this.selectedBulkEmpIds.has(Number(empId)) : false;
+  }
+
+  toggleBulkSelection(emp: any, checked: boolean): void {
+    const id = Number(emp?.empId);
+    if (!id || !this.canBulkHrAction(emp)) return;
+    if (checked) this.selectedBulkEmpIds.add(id);
+    else this.selectedBulkEmpIds.delete(id);
+  }
+
+  toggleSelectAllBulk(checked: boolean): void {
+    const rows = this.getExportList().filter((e: any) => this.canBulkHrAction(e));
+    if (checked) {
+      rows.forEach((e: any) => this.selectedBulkEmpIds.add(Number(e.empId)));
+    } else {
+      this.selectedBulkEmpIds.clear();
+    }
+  }
+
+  areAllBulkSelected(): boolean {
+    const rows = this.getExportList().filter((e: any) => this.canBulkHrAction(e));
+    return rows.length > 0 && rows.every((e: any) => this.selectedBulkEmpIds.has(Number(e.empId)));
+  }
+
+  clearBulkSelection(): void {
+    this.selectedBulkEmpIds.clear();
+    this.bulkHrRemark = '';
+  }
+
+  submitBulkHrAction(status: 'Accepted' | 'Rejected'): void {
+    if (!this.userMapping?.performance_action_by_hr) return;
+    if (this.selectedBulkEmpIds.size === 0) {
+      this.openAlertMod(this.alertTemplate, 'Please select at least one employee for bulk action.');
+      return;
+    }
+    const remark = (this.bulkHrRemark || '').trim();
+    if (!remark) {
+      this.openAlertMod(this.alertTemplate, 'Please enter HR remark for bulk action.');
+      return;
+    }
+    const quarterId = this.EnabledAndActiveQuarterCycle?.[0]?.quarterId;
+    if (!quarterId) {
+      this.openAlertMod(this.alertTemplate, 'No active quarter found for bulk HR action.');
+      return;
+    }
+    this.bulkActionInProgress = true;
+    const payload: any = {
+      empIds: Array.from(this.selectedBulkEmpIds),
+      quarterId: quarterId,
+      hrId: this.currentUser?.empId,
+      hrReviewStatus: status,
+      hrRemark: remark
+    };
+    this.performanceService.bulkSubmitEmployeePerformanceHR(payload).pipe(first()).subscribe((response: any) => {
+      this.bulkActionInProgress = false;
+      if (response?.serviceStatus === 'Success') {
+        this.clearBulkSelection();
+        this.getAllEmployeesCurrentStatus();
+        this.getAllEmployee();
+        this.openAlertMod(this.alertTemplate, `Bulk ${status.toLowerCase()} completed successfully.`);
+      } else {
+        this.openAlertMod(this.alertTemplate, response?.serviceResponse || 'Bulk HR action failed.');
+      }
+    }, () => {
+      this.bulkActionInProgress = false;
+      this.openAlertMod(this.alertTemplate, 'Something went wrong while processing bulk HR action.');
+    });
   }
 
   exportToExcel(): void {
