@@ -3619,4 +3619,22 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		        @Param("checkDate") LocalDate checkDate
 		);
 
+		@Query(value = "SELECT e.emp_id, e.name, rm.name AS Reporting_Manager, d.name AS department_name, " +
+               "CASE " +
+               "    WHEN e.is_apmosys_product = 'true' " +
+               "    THEN CONCAT('AP', CAST(e.employeement_id AS CHAR)) " +
+               "    ELSE CONCAT('A', CAST(e.employeement_id AS CHAR)) " +
+               "END AS prefixed_id " +
+               "FROM employee e " +
+               "LEFT JOIN employee rm ON e.reporting_manager_id = rm.emp_id " +
+               "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id " +
+               "INNER JOIN department d ON jr.dept_id = d.dept_id " +
+               "WHERE (CASE " +
+               "    WHEN e.is_apmosys_product = 'true' " +
+               "    THEN CONCAT('AP', CAST(e.employeement_id AS CHAR)) " +
+               "    ELSE CONCAT('A', CAST(e.employeement_id AS CHAR)) " +
+               "END) IN (:employeementIds)",
+       nativeQuery = true)
+	List<Object[]> findByPrefixedEmployeementIdIn(@Param("employeementIds") List<String> employeementIds);
+
 }
