@@ -278,6 +278,17 @@ export class ValidationService {
     return true;
   }
 
+  validatePhoneNumber(number: any): boolean {
+
+  if (number === undefined || number === null || number.toString().trim() === "") {
+    return false;
+  }
+
+  const phoneRegex = /^(\+?\d{1,3}[- ]?)?\d{6,12}$/;
+
+  return phoneRegex.test(number);
+}
+
   validateAlphaWithSpace(text: string): boolean {
 
     const regex = /^[a-zA-Z ]+$/;

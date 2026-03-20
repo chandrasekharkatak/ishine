@@ -732,12 +732,12 @@ export class EmployeeInfoComponent implements OnInit{
               return;
             }
 
-            if(!this.validationService.validateNullUndefinedEmptyString(previousEmployer.hrContactNumber)){
+            if(!this.validationService.validatePhoneNumber(previousEmployer.hrContactNumber)){
               this.alertMessage = `Please Enter HR Contact Number - ${index+1}!!`
               this.openAlertMod(template, this.alertMessage);
               prevFlag = false;
               return;
-            }else if(!this.validationService.validateMobileNumber(previousEmployer.hrContactNumber)){
+            }else if(!this.validationService.validatePhoneNumber(previousEmployer.hrContactNumber)){
               this.alertMessage = `Please Enter valid HR Contact Number - ${index+1}!!`
               this.openAlertMod(template, this.alertMessage);
               prevFlag = false;
@@ -1574,10 +1574,10 @@ event.target.nextElementSibling.textContent =  this.errorMsg
   }
 
   validaeManagerContactNumber(event, data:any){
-    if(!this.validationService.validateNullUndefinedEmptyString(data)&& !this.hasApmosysExperience){
+    if(!this.validationService.validatePhoneNumber(data)&& !this.hasApmosysExperience){
       this.errorMsg = "Please enter manager contact number !!"
     }
-else  if (!this.validationService.validateMobileNumber(data)&& !this.hasApmosysExperience) {
+else  if (!this.validationService.validatePhoneNumber(data)&& !this.hasApmosysExperience) {
   this.errorMsg = "Please enter valid manager contact number !!"
 }
 else{
@@ -1607,11 +1607,11 @@ event.target.nextElementSibling.textContent =  this.errorMsg
 }
   }
 
-  validaeHrContactNumber(event, data:any){
-    if(!this.validationService.validateNullUndefinedEmptyString(data)&& !this.hasApmosysExperience){
+  validateHrContactNumber(event, data:any){
+    if(!this.validationService.validatePhoneNumber(data)&& !this.hasApmosysExperience){
       this.errorMsg = "Please enter HR contact number !!"
     }
-else  if (!this.validationService.validateMobileNumber(data)&& !this.hasApmosysExperience) {
+else  if (!this.validationService.validatePhoneNumber(data)&& !this.hasApmosysExperience) {
   this.errorMsg = "Please enter valid HR contact number !!"
 }
 else{

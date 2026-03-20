@@ -3,7 +3,7 @@ import {
   HttpEvent,
   HttpHandler,
   HttpInterceptor,
-  HttpRequest,
+  HttpRequest, 
   HttpResponse
 } from '@angular/common/http';
 import { Injectable } from '@angular/core';
@@ -232,6 +232,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/get360TimesheetDetails`,
     `${this.baseUrl}` + `api/submitEmployeePerformanceHOD`,
     `${this.baseUrl}` + `api/submitEmployeePerformanceHR`,
+    `${this.baseUrl}` + `api/submitRemarksByHOD`,
     `${this.baseUrl}` + `api/addReviewType`,
     `${this.baseUrl}` + `api/updateReviewType`,
     `${this.baseUrl}` + `getExistingProjectsAndTeamsByEmployee`,
@@ -459,6 +460,9 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/getPreviousMinusDays`,
     `${this.baseUrl}` + `api/bulkFinalUploadProjectBased`,
     `${this.baseUrl}` + `api/getMyReporteesAndClientSideProjectsInMonthYear`,
+    `${this.baseUrl}` + `api/getAllQuarterCycles`,
+    `${this.baseUrl}` + `api/isEnable`,
+
     `${this.baseUrl}` + `api/training/getAllTrainings`,
     `${this.baseUrl}` + `api/training/getTrainingContent`,
     `${this.baseUrl}` + `api/training/getUserTrainings`,
@@ -479,22 +483,25 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/training/getQuizQuestionByTrainingId`,
     `${this.baseUrl}` + `api/isClientIdMandetory`,
     `${this.baseUrl}` + `api/training/addTrainingType`,
-    
+
     `${this.baseUrl}` + `api/updateSurvey`,
     `${this.baseUrl}` + `api/deleteSurvey`,
     `${this.baseUrl}` + `api/getSurveyResponseByEmpIdAndSurveyId`,
     `${this.baseUrl}` + `api/changeSurveyStatus`,
+    `${this.baseUrl}` + `api/training/getAllTrainingTypes`,
     `${this.baseUrl}` + `api/getAllProjectFCLineItemListByProjectId`,
     `${this.baseUrl}` + `api/getExtensionDocumentByName`,
-    `${this.baseUrl}` + `api/validateDocName`,
-
-
+    `${this.baseUrl}` + `api/validateDocName`
+    
   ]
 
   DYNAMIC_URL_whiteList = [
     `${this.baseUrl}` + `api/training/getTrainingContent/`,
-    `${this.baseUrl}` + `api/training/getTrainingResponses/`
+    `${this.baseUrl}` + `api/training/getTrainingResponses/`,
+    `${this.baseUrl}` + `api/training/downloadContent/`
+
   ]
+
 
   constructor(private loaderService: LoaderService) { }
 

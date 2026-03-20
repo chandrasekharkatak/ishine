@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -197,7 +200,8 @@ public class SurveyServiceImpl implements SurveyService {
 					}
 					
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(isFromTraining ? "Quiz created successfully." : "Survey created successfully.");
+					response.setServiceResponse(isFromTraining ? 
+						Map.of("quizId", newSurveyCreated.getSurveyId(), "message", "Do you want to activate this quiz?") : "Survey created successfully.");
 					apiLogInfo.setApiResponse(isFromTraining ? "Quiz Created Successfully" : "Survey Created Successfully");			
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				} else {
@@ -667,8 +671,8 @@ public class SurveyServiceImpl implements SurveyService {
 			if(surveyDTO.getType() != null && surveyDTO.getType().equalsIgnoreCase("quiz")){
 				surveyRepository.updateAllQuizByTrainingId(surveyDTO.getTrainingId(), surveyDTO.getSurveyId(), surveyDTO.getIsActive());
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse("Quiz status changed to " + surveyDTO.getIsActive());
-				apiLogInfo.setApiResponse("Quiz status changed to " + surveyDTO.getIsActive());			
+				response.setServiceResponse("Quiz status changed to " + (surveyDTO.getIsActive().equalsIgnoreCase("true") ? "Active" : "Inactive"));
+				apiLogInfo.setApiResponse("Quiz status changed to " + (surveyDTO.getIsActive().equalsIgnoreCase("true") ? "Active" : "Inactive"));			
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				
 			} else {
@@ -1019,30 +1023,71 @@ public class SurveyServiceImpl implements SurveyService {
 
 					
 					if (surveyUpdated.getSurveyId() != null) {
-						
-						List<SurveyQuestion> questionList = surveyQuestionRepository.findBySurveyId(surveyUpdated.getSurveyId());
-						
-						List<SurveyQuestion> list = new ArrayList<>();
 						Long surveyId = surveyUpdated.getSurveyId();
+        
+						// Get existing questions from DB
+						List<SurveyQuestion> existingQuestions = surveyQuestionRepository.findBySurveyId(surveyId);
+						
+						// Collect IDs from the incoming DTO (for non-null IDs)
+						Set<Long> incomingQuestionIds = surveyDTO.getSurveyQuestionList().stream()
+							.map(SurveyQuestionDTO::getSurveyQuestionId)
+							.filter(Objects::nonNull)
+							.collect(Collectors.toSet());
+						
+						// Find questions to delete (exist in DB but not in incoming list)
+						List<SurveyQuestion> questionsToDelete = existingQuestions.stream()
+							.filter(q -> !incomingQuestionIds.contains(q.getSurveyQuestionId()))
+							.collect(Collectors.toList());
+						
+						// Delete the removed questions
+						if (!questionsToDelete.isEmpty()) {
+							surveyQuestionRepository.deleteAll(questionsToDelete);
 
+							List<Long> existingSurveyResponseToDelete = surveyEmployeeResponseRepository.findSurveyResponseIdBySurveyQuestionId(questionsToDelete.stream().map(SurveyQuestion::getSurveyQuestionId).collect(Collectors.toList()));
+
+							surveyEmployeeResponseRepository.deleteAllById(existingSurveyResponseToDelete);
+
+							employeeQuizResponseStatusMappingRepository.deleteByResponseId(existingSurveyResponseToDelete);
+
+						}
+						
+						// Now process the incoming questions (update existing, create new)
+						List<SurveyQuestion> list = new ArrayList<>();
+						
 						surveyDTO.getSurveyQuestionList().forEach((question) -> {
-							SurveyQuestion newSurveyQuestion = new SurveyQuestion();
-
-							newSurveyQuestion.setSurveyQuestionId(
-								questionList.stream().filter(q -> q.getSurveyQuestionId().equals(question.getSurveyQuestionId())).findFirst().orElse(null)
-								.getSurveyQuestionId()
-							);
-							newSurveyQuestion.setSurveyId(surveyId);
-							newSurveyQuestion.setQuestion(question.getQuestion());
-							newSurveyQuestion.setOptionType(question.getOptionType());
-							newSurveyQuestion.setOptions(question.getOptions());
-							newSurveyQuestion.setRequired(question.getRequired());
-							newSurveyQuestion.setDescription(question.getDescription());
-							newSurveyQuestion.setCorrectAnswer(question.getCorrectAnswer());
-
-							list.add(newSurveyQuestion);
+							SurveyQuestion surveyQuestion;
+							
+							if (question.getSurveyQuestionId() == null) {
+								// New question
+								surveyQuestion = new SurveyQuestion();
+								surveyQuestion.setSurveyQuestionId(null);
+							} else {
+								// Try to find existing question to update
+								Optional<SurveyQuestion> existingQuestion = existingQuestions.stream()
+									.filter(q -> q.getSurveyQuestionId().equals(question.getSurveyQuestionId()))
+									.findFirst();
+								
+								if (existingQuestion.isPresent()) {
+									// Update existing question
+									surveyQuestion = existingQuestion.get();
+								} else {
+									// ID provided but not found in DB - treat as new
+									surveyQuestion = new SurveyQuestion();
+									surveyQuestion.setSurveyQuestionId(null);
+								}
+							}
+							
+							surveyQuestion.setSurveyId(surveyId);
+							surveyQuestion.setQuestion(question.getQuestion());
+							surveyQuestion.setOptionType(question.getOptionType());
+							surveyQuestion.setOptions(question.getOptions());
+							surveyQuestion.setRequired(question.getRequired());
+							surveyQuestion.setDescription(question.getDescription());
+							surveyQuestion.setCorrectAnswer(question.getCorrectAnswer());
+							
+							list.add(surveyQuestion);
 						});
-
+						
 						List<SurveyQuestion> listSaved = surveyQuestionRepository.saveAll(list);
 
 						if (listSaved.size() > 0) {

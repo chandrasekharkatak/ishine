@@ -126,9 +126,6 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 	@Value("${training.job.role.exclude}")
 	private String trainingJobRoleExclude;
 
-	@Value("${training.dry.run.empids.to.include}")
-	private String trainingDryRunEmpIdsToInclude;
-
 	@Override
 	@Transactional
 	public ServiceResponse submitConsent(TrainingConsentDTO consentDTO) {
@@ -506,132 +503,6 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-
-	// @Override
-	// public ServiceResponse getLockStatus(Long empId) {
-	// 	ServiceResponse response = new ServiceResponse();
-	// 	LogDTO apiLogInfo = new LogDTO();
-	// 	apiLogInfo.setSubFeatureName("Get Lock Status");
-	// 	apiLogInfo.setApiUrl("/api/training/getLockStatus");
-	// 	apiLogInfo.setLogLevel("INFO");
-
-	// 	StringBuilder logBuilder = new StringBuilder();
-	// 	logBuilder.append("Employee ID: ").append(empId);
-
-	// 		List<Long> jobRoleIds = Arrays.stream(trainingJobRoleExclude.split(","))
-	// 					.map(String::trim)
-	// 					.map(Long::parseLong)
-	// 					.collect(Collectors.toList());
-
-	// 		// Dry run empIds
-	// 		List<Long> empIdsToInclude = Arrays.stream(trainingDryRunEmpIdsToInclude.split(","))
-	// 				.map(String::trim)
-	// 				.map(Long::parseLong)
-	// 				.collect(Collectors.toList());
-
-	// 		LockStatusDTO lockStatus = new LockStatusDTO();
-					
-	// 		if (!jobRoleIds.contains(empId) && empIdsToInclude.contains(empId)) {
-	// 			try {
-
-	// 				ServiceResponse lockResponse = getLockStatus(empId);
-	// 				if (lockResponse != null && lockResponse.getServiceStatus() != null && 
-	// 					lockResponse.getServiceStatus().equals(ServiceResponse.STATUS_SUCCESS) &&
-	// 					lockResponse.getServiceResponse() != null) {
-						
-	// 					lockStatus = (LockStatusDTO) lockResponse.getServiceResponse();
-						
-						
-	// 					if (lockStatus.getIsLocked() == null) {
-	// 						lockStatus.setIsLocked(false);
-	// 					}
-	// 					if (lockStatus.getHasMandatoryTrainingPending() == null) {
-	// 						lockStatus.setHasMandatoryTrainingPending(false);
-	// 					}
-	// 					if (lockStatus.getIsHardLock() == null) {
-	// 						lockStatus.setIsHardLock(false);
-	// 					}
-	// 					if (lockStatus.getDeadlineCrossed() == null) {
-	// 						lockStatus.setDeadlineCrossed(false);
-	// 					}
-						
-	// 					// Set training lock status for routing and navigation decisions
-	// 					// This includes:
-	// 					// - hasMandatoryTrainingPending: true if mandatory training exists (for routing)
-	// 					// - isLocked: true if lock enabled (for blocking navigation)
-	// 					// - isHardLock: true if lock enabled AND deadline crossed (hardest lock)
-	// 					// - deadlineCrossed: true if deadline has passed
-						
-	// 					// Log lock status for debugging and monitoring
-	// 					if (lockStatus.getIsHardLock() != null && lockStatus.getIsHardLock()) {
-	// 						System.out.println("Training Lock Status - HARD LOCK: Employee " + empId + 
-	// 							" has deadline-crossed mandatory training with lock enabled. Training: " + 
-	// 							lockStatus.getLockedTrainingName());
-	// 					} else if (lockStatus.getIsLocked() != null && lockStatus.getIsLocked()) {
-	// 						System.out.println("Training Lock Status - LOCKED: Employee " + empId + 
-	// 							" has mandatory training with lock enabled. Training: " + 
-	// 							lockStatus.getLockedTrainingName() + 
-	// 							", Deadline Crossed: " + lockStatus.getDeadlineCrossed());
-	// 					} else if (lockStatus.getHasMandatoryTrainingPending() != null && lockStatus.getHasMandatoryTrainingPending()) {
-	// 						System.out.println("Training Lock Status - MANDATORY PENDING: Employee " + empId + 
-	// 							" has mandatory training pending (no lock). Training: " + 
-	// 							lockStatus.getLockedTrainingName());
-	// 					}
-	// 				} else {
-	// 					// If lock check returns failure or null, initialize empty lock status
-	// 					LockStatusDTO emptyLockStatus = new LockStatusDTO();
-	// 					emptyLockStatus.setIsLocked(false);
-	// 					emptyLockStatus.setHasMandatoryTrainingPending(false);
-	// 					emptyLockStatus.setIsHardLock(false);
-	// 					emptyLockStatus.setDeadlineCrossed(false);
-	// 					lockStatus = emptyLockStatus;
-	// 					// System.out.println("Training Lock Status - No lock status returned for employee " + empId);
-	// 					apiLogInfo.setApiResponse("Training Lock Status - No lock status returned for employee " + empId);
-	// 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	// 					apiLogInfo.setApiRequest(logBuilder.toString());
-	// 					logService.logMyInfo(httpRequest, apiLogInfo);
-	// 					response.setServiceResponse(lockStatus);
-	// 					response.setStatusCode(HttpStatus.OK.value());
-	// 					return response;
-	// 				}
-	// 			} catch (Exception e) {
-	// 				// If lock check fails, initialize empty lock status to prevent NPE
-	// 				// Log error but don't fail login - training lock check should not block login
-	// 				e.printStackTrace();
-	// 				LockStatusDTO emptyLockStatus = new LockStatusDTO();
-	// 				emptyLockStatus.setIsLocked(false);
-	// 				emptyLockStatus.setHasMandatoryTrainingPending(false);
-	// 				emptyLockStatus.setIsHardLock(false);
-	// 				emptyLockStatus.setDeadlineCrossed(false);
-	// 				lockStatus = emptyLockStatus;
-					
-	// 				// System.err.println("Error checking training lock on login for employee " + empId + ": " + e.getMessage());\
-	// 				apiLogInfo.setApiResponse("Error checking training lock on login for employee " + empId + ": " + e.getMessage());
-	// 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	// 				apiLogInfo.setApiRequest(logBuilder.toString());
-	// 				logService.logMyInfo(httpRequest, apiLogInfo);
-	// 				response.setServiceResponse(lockStatus);
-	// 				response.setStatusCode(HttpStatus.OK.value());
-	// 				return response;
-	// 			}
-	// 		} else {
-	// 			// If empId is null, initialize empty lock status
-	// 			LockStatusDTO emptyLockStatus = new LockStatusDTO();
-	// 			emptyLockStatus.setIsLocked(false);
-	// 			emptyLockStatus.setHasMandatoryTrainingPending(false);
-	// 			emptyLockStatus.setIsHardLock(false);
-	// 			emptyLockStatus.setDeadlineCrossed(false);
-	// 			lockStatus = emptyLockStatus;
-	// 			// System.err.println("Warning: Employee ID is null, cannot check training lock status");
-	// 			apiLogInfo.setApiResponse("Warning: Employee ID is null, cannot check training lock status");
-	// 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
-	// 			apiLogInfo.setApiRequest(logBuilder.toString());
-	// 			logService.logMyInfo(httpRequest, apiLogInfo);
-	// 			response.setServiceResponse(lockStatus);
-	// 			response.setStatusCode(HttpStatus.OK.value());
-	// 		}
-	// 		return response;
-	// }
 
 	@Override
 	@Transactional
@@ -1177,7 +1048,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 
 		boolean shouldFreeze = (lockEnabled && !attendedAtLeastOnce) || deadlineCrossed;
 
-		boolean hardLock = deadlineCrossed;
+		boolean hardLock = deadlineCrossed || lockEnabled; 
 		
 		System.err.println("deadlineCrossed "+deadlineCrossed+" lockEnabled "+" shouldFreeze "+shouldFreeze +" hardLock "+hardLock);
 

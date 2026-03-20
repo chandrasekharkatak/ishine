@@ -7,6 +7,7 @@ import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
 import { PoliciesService } from '../services/policies.service';
 import { TrainingService } from '../services/training.service';
+import { Feature } from '../models/feature';
 
 @Injectable({
   providedIn: 'root'
@@ -15,6 +16,8 @@ export class AuthGuard  {
 
   id:any;
   currentUrl:any;
+
+  userMapping:any = {};
 
   constructor(
     private router: Router,
@@ -35,27 +38,24 @@ export class AuthGuard  {
           return false;
         }
 
+        let featureMap:Feature[] = currentUser.userMapping.filter(userMap => userMap.tabName.toLowerCase() == 'training');
+        featureMap?.forEach(feat => {
+          let inActiveSubfeatures = feat.subFeatures.filter(sub => {
+            if(sub.isActive === false)return sub;
+          });
+          this.userMapping[feat.featureName.replaceAll(' ', '_').toLowerCase()] = (inActiveSubfeatures.length === feat.subFeatures.length) ? false : true;
+        });
+
         // Check training lock status
-        if (currentUser.trainingLockStatus) {
+        if (this.userMapping.training == true && currentUser.trainingLockStatus) {
           // Get current route path
           const currentPath = state.url.split('?')[0]; // Remove query params
           const isTrainingRoute = currentPath === '/training' || currentPath === '/user-training';
           
           // Hard lock: deadline crossed (regardless of lock enabled) - user is frozen, cannot navigate anywhere except training page
-          if (currentUser.trainingLockStatus.isHardLock === true) {
+          if (currentUser.trainingLockStatus.isLocked == true || currentUser.trainingLockStatus.isHardLock === true) {
             if (!isTrainingRoute) {
               // Block navigation to any other page - redirect to training
-              this.router.navigate(['/training']);
-              return false;
-            }
-            // Allow navigation to training page
-            return true;
-          }
-          
-          // User is frozen: (mandatory + lock enabled) OR (mandatory + deadline crossed) - route to training
-          if (currentUser.trainingLockStatus.isLocked === true) {
-            if (!isTrainingRoute) {
-              // Route to training page - user is frozen on training screen
               this.router.navigate(['/training']);
               return false;
             }

@@ -297,9 +297,6 @@ public class EmployeeService {
 	
 	@Value("${training.job.role.exclude}")
 	private String trainingJobRoleExclude;
-
-	@Value("${training.dry.run.empids.to.include}")
-	private String trainingDryRunEmpIdsToInclude;
 	
 	@Value("${bd.mail}")
 	private String businessMail;
@@ -3711,6 +3708,7 @@ public class EmployeeService {
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 
 			if (allEmployeeListForPerformance != null) {
+				int totalEnabledQuarters = quarterCycleRepository.countByIsEnableAndIsActive();
 				allEmployeeListForPerformance.forEach((object) -> {
 					EmployeeDTO empDTO = new EmployeeDTO();
 					
@@ -3755,8 +3753,10 @@ public class EmployeeService {
 
 				    
 				    
-					 int totalEnabledQuarters = quarterCycleRepository.countByIsEnableAndIsActive();
-					 int completedQuarters = quarterCycleRepository.countByEmpIdAndCompletionStatusAndQuarterIdIn(empDTO.getEmpId(), quarterCycleRepository.findAllEnabledQuarterIds());
+					 
+//					 int completedQuarters = quarterCycleRepository.countByEmpIdAndCompletionStatusAndQuarterIdIn(empDTO.getEmpId(), quarterCycleRepository.findAllEnabledQuarterIds());
+					 
+					 int completedQuarters = quarterCycleRepository.countByEmpIdAndCompletionStatusAndQuarterIdIn1(empDTO.getEmpId()); 
 					 
 					 double performanceStatus = (totalEnabledQuarters > 0) 
 							    ? ((double) completedQuarters / totalEnabledQuarters) * 100 
@@ -5554,14 +5554,9 @@ public class EmployeeService {
 						.map(String::trim)
 						.map(Long::parseLong)
 						.collect(Collectors.toList());
-
-				// Dry run empIds
-				List<Long> empIdsToInclude = Arrays.stream(trainingDryRunEmpIdsToInclude.split(","))
-						.map(String::trim)
-						.map(Long::parseLong)
-						.collect(Collectors.toList());
+						
 				Long employeeJobRoleId = employee.getJobRoleId();
-				if (employee.getEmpId() != null && employeeJobRoleId != null && !jobRoleIds.contains(employeeJobRoleId) && empIdsToInclude.contains(employee.getEmpId())) {
+				if (employee.getEmpId() != null && employeeJobRoleId != null && !jobRoleIds.contains(employeeJobRoleId)) {
 					try {
 
 						ServiceResponse lockResponse = trainingUserService.getLockStatus(employee.getEmpId());
@@ -7461,41 +7456,41 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
 	
 	return response;
 }
-	public ServiceResponse getRewardsAndAppreciationCount(AppreciationAndRewardsCountDto employeeDto) {
-	      ServiceResponse response = new ServiceResponse();
-			
-			try {
-				
-				List<Object[]> EmployeeRewardsAndAppreciationCount = employeeRepository.getRewardsAndAppreciationCount(employeeDto.getEmpId());
-				List<AppreciationAndRewardsCountDto> listOfRewardsAndAppreciation = new ArrayList<AppreciationAndRewardsCountDto>();
-
-		        if (EmployeeRewardsAndAppreciationCount != null) {
-		            for (Object[] object : EmployeeRewardsAndAppreciationCount) {
-
-		            	AppreciationAndRewardsCountDto employeeDetail = new AppreciationAndRewardsCountDto();
-		            	    employeeDetail.setEmpId(employeeDto.getEmpId());	                    
-		            	    employeeDetail.setAppreciationCount(object[1] != null ? object[1].toString() : null);
-		                    employeeDetail.setRewardsCount(object[0] != null ? object[0].toString() : null);	          
-		                    listOfRewardsAndAppreciation.add(employeeDetail);
-		                    
-		            }
-		        }
-		        
-					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-					response.setServiceResponse(listOfRewardsAndAppreciation);
-					
-		        
-			
-				
-			} catch (Exception e) {
-				e.printStackTrace();
-				
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse(e.getMessage());
-			}
-			
-			return response;
-	}
+//	public ServiceResponse getRewardsAndAppreciationCount(AppreciationAndRewardsCountDto employeeDto) {
+//	      ServiceResponse response = new ServiceResponse();
+//			
+//			try {
+//				
+//				List<Object[]> EmployeeRewardsAndAppreciationCount = employeeRepository.getRewardsAndAppreciationCount(employeeDto.getEmpId());
+//				List<AppreciationAndRewardsCountDto> listOfRewardsAndAppreciation = new ArrayList<AppreciationAndRewardsCountDto>();
+//
+//		        if (EmployeeRewardsAndAppreciationCount != null) {
+//		            for (Object[] object : EmployeeRewardsAndAppreciationCount) {
+//
+//		            	AppreciationAndRewardsCountDto employeeDetail = new AppreciationAndRewardsCountDto();
+//		            	    employeeDetail.setEmpId(employeeDto.getEmpId());	                    
+//		            	    employeeDetail.setAppreciationCount(object[1] != null ? object[1].toString() : null);
+//		                    employeeDetail.setRewardsCount(object[0] != null ? object[0].toString() : null);	          
+//		                    listOfRewardsAndAppreciation.add(employeeDetail);
+//		                    
+//		            }
+//		        }
+//		        
+//					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+//					response.setServiceResponse(listOfRewardsAndAppreciation);
+//					
+//		        
+//			
+//				
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//				
+//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+//				response.setServiceResponse(e.getMessage());
+//			}
+//			
+//			return response;
+//	}
 
 
 	public ServiceResponse getAllEmployeesByProjectId(Integer projectId) {
@@ -7602,6 +7597,47 @@ public ServiceResponse getProjectsByDepartmentName(EmployeeDTO employeeDto) {
     
     return serviceResponse;
 	}
+
+
+	
+	
+	public ServiceResponse getRewardsAndAppreciationCount(AppreciationAndRewardsCountDto employeeDto) {
+      ServiceResponse response = new ServiceResponse();
+		
+		try {
+			
+			List<Object[]> EmployeeRewardsAndAppreciationCount = employeeRepository.getRewardsAndAppreciationCount(employeeDto.getEmpId());
+			List<AppreciationAndRewardsCountDto> listOfRewardsAndAppreciation = new ArrayList<AppreciationAndRewardsCountDto>();
+
+	        if (EmployeeRewardsAndAppreciationCount != null) {
+	            for (Object[] object : EmployeeRewardsAndAppreciationCount) {
+
+	            	AppreciationAndRewardsCountDto employeeDetail = new AppreciationAndRewardsCountDto();
+	            	    employeeDetail.setEmpId(employeeDto.getEmpId());	                    
+	            	    employeeDetail.setAppreciationCount(object[1] != null ? object[1].toString() : null);
+	                    employeeDetail.setRewardsCount(object[0] != null ? object[0].toString() : null);	  
+	                    employeeDetail.setAverageRating(object[2]!=null ? object[2].toString() : null);
+	                    listOfRewardsAndAppreciation.add(employeeDetail);
+	                    
+	            }
+	        }
+	        
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(listOfRewardsAndAppreciation);
+				
+	        
+		
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse(e.getMessage());
+		}
+		
+		return response;
+}
+
 	
 	public ServiceResponse sendExpiredPoEmail(ExpiredPOMailSendDTO employeeDTO) {
 		ServiceResponse serviceResponse = new ServiceResponse();
