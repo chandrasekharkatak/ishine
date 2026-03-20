@@ -17387,7 +17387,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 
 				"LEFT JOIN TimesheetRejectionDetailsNew trdn \n" +
 				"       ON (:status = 3 AND trdn.isActive IS true AND trdn.timesheetId = ptsn.id.timesheetId \n" +
-				"           AND trdn.locationMappingId = etamn.locationMappingId \n" +
+				"           AND trdn.locationMappingId = ptsn.id.locationMappingId \n" +
 				"           AND trdn.projectId = ptsn.id.projectId) \n" +
 
 				"LEFT JOIN TimesheetRejectionReasonsMaster trrm \n" +
