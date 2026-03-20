@@ -541,8 +541,8 @@
                 <div class="col-md-4 mb-0">
                     <div class="form-group">
                         <label class="info-label"><span class="text-danger">*</span>Limit - {{i+1}}</label>
-                        <input #myInput type="text" class="form-control" autocomplete="none"
-                            (keypress)="fieldRestictCharacters($event)" [(ngModel)]="spec.condition">
+                        <input #myInput type="number" class="form-control" autocomplete="none" min="1" max="5" step="1" placeholder="1–5"
+                            (keypress)="fieldRestictCharacters($event)" [(ngModel)]="spec.condition" title="Rating maximum is 5">
                     </div>
                 </div>
 

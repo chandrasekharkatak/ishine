@@ -1048,20 +1048,19 @@ pageChangedPreview(event)
       return;
     }
     for (let spec of this.allSpecializationList) {
-      if (spec.condition > 10 ) {
-        this.openAlertMod(template, 'Limit value must be less than or equal to 10  .');
+      const cond = Number(spec.condition);
+      if (cond > 5) {
+        this.openAlertMod(template, 'Rating limit must be 5 or less (maximum 5).');
         return;
       }
-      if( spec.condition <= 0){
-        this.openAlertMod(template, 'Limit value Be Greater Than 0  .');
+      if (cond <= 0) {
+        this.openAlertMod(template, 'Limit value must be greater than 0.');
         return;
       }
-      if(spec.condition == null || spec.condition == ''){
-        this.openAlertMod(template, 'Limit Cannot Be null .');
+      if (spec.condition == null || spec.condition === '') {
+        this.openAlertMod(template, 'Limit cannot be empty.');
         return;
       }
-
-
     }
     // if()
     this.reviewObj.allSpecializationList = this.allSpecializationList;
@@ -1090,19 +1089,19 @@ pageChangedPreview(event)
       return;
     }
     for (let spec of this.allSpecializationList) {
-      if (spec.condition > 10) {
-        this.openAlertMod(template, 'Limit value must be less than or equal to 10  .');
+      const cond = Number(spec.condition);
+      if (cond > 5) {
+        this.openAlertMod(template, 'Rating limit must be 5 or less (maximum 5).');
         return;
       }
-      if( spec.condition <= 0){
-        this.openAlertMod(template, 'Limit value Be Greater Than 0  .');
+      if (cond <= 0) {
+        this.openAlertMod(template, 'Limit value must be greater than 0.');
         return;
       }
-      if(spec.condition == null || spec.condition == ''){
-        this.openAlertMod(template, 'Limit Cannot Be null  .');
+      if (spec.condition == null || spec.condition === '') {
+        this.openAlertMod(template, 'Limit cannot be empty.');
         return;
       }
-
     }
 
     let obj = {
