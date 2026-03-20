@@ -62,8 +62,11 @@ export class QuizSubmit implements OnInit {
   }
 
   getQuizForm() {
+    this.isQuizLoaded = false;
+
     this.surveyService.getQuizQuestionByTrainingId(this.trainingId).subscribe({
       next: (response: any) => {
+
         this.allSurveyQuestionList = response.serviceResponse.allSurveyQuestionList;
         this.quizId = response.serviceResponse.quizId;
 
@@ -73,110 +76,114 @@ export class QuizSubmit implements OnInit {
           survey.response = survey.optionType === 'checkbox' ? [] : '';
         });
 
-        const surveyQuestionsTemplate: string = this.createInitialTemplate();
-        const formStart = `<form id="surveyForm">`;
-        const formEnd = `</form>`;
-        const surveyTemplate = formStart + surveyQuestionsTemplate + formEnd;
-        this.isQuizLoaded = false;
+        const surveyQuestionsTemplate = this.createInitialTemplate();
+        const surveyTemplate = `<form id="surveyForm">${surveyQuestionsTemplate}</form>`;
+
+        // show container first
+        this.isQuizLoaded = true;
 
         setTimeout(() => {
-          const surveyContainer = document.getElementById('surveyContainer');
-          if (surveyContainer) {
-            const oldDynamicSection = surveyContainer.querySelector('.dynamic-questions');
-            if (oldDynamicSection) oldDynamicSection.remove();
 
-            const wrapper = document.createElement('div');
-            wrapper.classList.add('dynamic-questions');
-            wrapper.innerHTML = surveyTemplate;
+          const container = document.querySelector('#surveyContainer .quiz-content');
 
-            const buttonRow = surveyContainer.querySelector('.row.mt-3');
-            if (buttonRow) {
-              surveyContainer.insertBefore(wrapper, buttonRow);
-            } else {
-              surveyContainer.appendChild(wrapper);
-            }
+          if (!container) return;
 
-            this.isQuizLoaded = true;
-          }
-        }, 500);
+          container.innerHTML = '';
+
+          const wrapper = document.createElement('div');
+          wrapper.classList.add('dynamic-questions');
+          wrapper.innerHTML = surveyTemplate;
+
+          container.appendChild(wrapper);
+
+        }, 0);
       },
+
       error: (error: any) => {
+        this.isQuizLoaded = true;
         this.showAlertMessage(error.error?.serviceStatus || "something went wrong");
       }
     });
   }
 
-  getSubmittedQuizData() {
-    let surveyObj = new Survey();
-    surveyObj.trainingId = this.trainingId;
-    surveyObj.empId = this.currentUser.empId;
-    surveyObj.isQuizResponse = true;
-    surveyObj.isAttendingQuiz = false;
+getSubmittedQuizData() {
 
-    this.surveyService.getSurveyResponseByEmpIdAndSurveyId(surveyObj).subscribe({
-      next: (response: any) => {
-        this.allSurveyQuestionList = response.serviceResponse.allSurveyQuestionList;
-        this.quizId = response.serviceResponse.quizId;
-        this.correctAnswers = response.serviceResponse.correctAnswers;
-        this.totalQuestions = response.serviceResponse.totalQuestions || 0;
-        
-        let marksObtained = null;
-        this.allSurveyQuestionList.forEach((survey: SurveyQuestion) => {
-          survey.optionsList = typeof survey.options === 'string' ? JSON.parse(survey.options) : survey.options;
-          survey.required = typeof survey.required === 'string' ? JSON.parse(survey.required) : survey.required;
-          if (survey.marksObtained && marksObtained == null) {
-            marksObtained = survey.marksObtained;
-          }
-          if (survey.passStatus && !this.passStatus) {
-            this.passStatus = survey.passStatus;
-          }
-          if (survey.response === survey.correctAnswer) {
-            this.correctAnswersCount++;
-          }
-          if(survey.cuttOffQuestions){
-            this.cuttOffQuestions = survey.cuttOffQuestions;
-          }
-        });
-        
-        this.marksObtained = marksObtained;
-        
-        const resultsHeader = this.createResultsHeader();
-        const surveyQuestionsTemplate: string = this.createResultsTemplate();
-        const formStart = `<form id="surveyForm">`;
-        const formEnd = `</form>`;
-        const surveyTemplate = resultsHeader + formStart + surveyQuestionsTemplate + formEnd;
-        this.isQuizLoaded = false;
+  this.isQuizLoaded = false;
 
-        setTimeout(() => {
-          const surveyContainer = document.getElementById('surveyContainer');
-          if (surveyContainer) {
-            const oldDynamicSection = surveyContainer.querySelector('.dynamic-questions');
-            if (oldDynamicSection) oldDynamicSection.remove();
-            
-            const oldHeaderSection = surveyContainer.querySelector('.quiz-results-header');
-            if (oldHeaderSection) oldHeaderSection.remove();
+  let surveyObj = new Survey();
+  surveyObj.trainingId = this.trainingId;
+  surveyObj.empId = this.currentUser.empId;
+  surveyObj.isQuizResponse = true;
+  surveyObj.isAttendingQuiz = false;
 
-            const wrapper = document.createElement('div');
-            wrapper.classList.add('dynamic-questions');
-            wrapper.innerHTML = surveyTemplate;
+  this.surveyService.getSurveyResponseByEmpIdAndSurveyId(surveyObj).subscribe({
 
-            const buttonRow = surveyContainer.querySelector('.row.mt-3') as HTMLElement;
-            if (buttonRow) {
-              buttonRow.style.display = 'none';
-              surveyContainer.insertBefore(wrapper, buttonRow);
-            } else {
-              surveyContainer.appendChild(wrapper);
-            }
+    next: (response: any) => {
 
-            this.isQuizLoaded = true;
-          }
-        }, 500);
-      },
-      error: (error: any) => {
-        this.showAlertMessage(error.error?.serviceStatus || "something went wrong");
-      }
-    });
-  }
+      this.allSurveyQuestionList = response.serviceResponse.allSurveyQuestionList;
+      this.quizId = response.serviceResponse.quizId;
+      this.correctAnswers = response.serviceResponse.correctAnswers;
+      this.totalQuestions = response.serviceResponse.totalQuestions || 0;
+
+      let marksObtained = null;
+
+      this.allSurveyQuestionList.forEach((survey: SurveyQuestion) => {
+
+        survey.optionsList = typeof survey.options === 'string' ? JSON.parse(survey.options) : survey.options;
+        survey.required = typeof survey.required === 'string' ? JSON.parse(survey.required) : survey.required;
+
+        if (survey.marksObtained && marksObtained == null) {
+          marksObtained = survey.marksObtained;
+        }
+
+        if (survey.passStatus && !this.passStatus) {
+          this.passStatus = survey.passStatus;
+        }
+
+        if (survey.response === survey.correctAnswer) {
+          this.correctAnswersCount++;
+        }
+
+        if (survey.cuttOffQuestions) {
+          this.cuttOffQuestions = survey.cuttOffQuestions;
+        }
+
+      });
+
+      this.marksObtained = marksObtained;
+
+      // const resultsHeader = this.createResultsHeader();
+      const surveyQuestionsTemplate = this.createResultsTemplate();
+
+      const surveyTemplate =
+        `<form id="surveyForm">${surveyQuestionsTemplate}</form>`;
+
+      this.isQuizLoaded = true;
+
+      setTimeout(() => {
+
+        const container = document.querySelector('#surveyContainer .quiz-content');
+
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        const wrapper = document.createElement('div');
+        wrapper.classList.add('dynamic-questions');
+        wrapper.innerHTML = surveyTemplate;
+
+        container.appendChild(wrapper);
+
+      }, 0);
+    },
+
+    error: (error: any) => {
+      this.isQuizLoaded = true;
+      this.showAlertMessage(error.error?.serviceStatus || "something went wrong");
+    }
+
+  });
+}
 
   onSubmit(template: TemplateRef<any>) {
     const form: any = document.getElementById('surveyForm');
@@ -250,124 +257,84 @@ export class QuizSubmit implements OnInit {
     });
   }
 
-  createResultsHeader(): string {
-    const badgeClass = this.passStatus?.toLowerCase() === 'pass' ? 'success' : 'danger';
-    
-    return `
-      <div class="quiz-results-header mb-2 p-1 border rounded bg-light">
-        <div class="row align-items-center">
-          <div class="col-md-3">
-            <h4 class="mb-0">Quiz Results</h4>
-          </div>
-          <div class="col-md-9 text-end">
-            <div class="d-inline-block me-4">
-              <span class="fw-bold">Score:</span>
-              <span class="ms-2 badge bg-primary fs-6">${this.correctAnswersCount}/${this.totalQuestions}</span>
-            </div>
-            <div class="d-inline-block me-4">
-              <span class="fw-bold">Status:</span>
-              <span class="ms-2 badge bg-${badgeClass} fs-6">${this.passStatus || 'N/A'}</span>
-            </div>
-            <div class="d-inline-block me-4">
-              <span class="fw-bold">Correct Answers:</span>
-              <span class="ms-2 badge bg-info fs-6">${this.correctAnswersCount}</span>
-            </div>
-            <div class="d-inline-block">
-              <span class="fw-bold">Cut off Questions:</span>
-              <span class="ms-2 badge bg-warning fs-6">${this.cuttOffQuestions}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
   createInitialTemplate(): string {
-    let surveyTemplate = ``;
+  let surveyTemplate = ``;
 
-    this.allSurveyQuestionList.forEach((question: SurveyQuestion, qIndex) => {
-      let finalQuestionTemplate = ``;
-      const questionStartTemplate = `<div class="row"><div class="form-group">`;
-      const questionEndTemplate = `</div></div>`;
-      const questionRequiredTemplate = `<span class="text-danger">*</span>`;
-      const isQuestionRequired = question.required === true ? questionRequiredTemplate : '';
+  this.allSurveyQuestionList.forEach((question: SurveyQuestion, qIndex) => {
+    let finalQuestionTemplate = ``;
+    const questionStartTemplate = `<div class="row"><div class="form-group">`;
+    const questionEndTemplate = `</div></div>`;
+    const questionRequiredTemplate = `<span class="text-danger">*</span>`;
+    const isQuestionRequired = question.required === true ? questionRequiredTemplate : '';
 
-      const questionTemplate = `
-        <h5 class="mb-0">
-          <i class="fa-solid fa-q question-icon"></i>.&nbsp;
-          ${question.question ?? ''}${isQuestionRequired}
-        </h5>
-        <small class="text-secondary">${question.description ?? ''}</small>
-      `;
+    const questionTemplate = `
+      <h5 class="mb-0">
+        <span class="question-number">Q${qIndex + 1}.</span>&nbsp;
+        <span class="question-text">${question.question ?? ''}${isQuestionRequired}</span>
+      </h5>
+      ${question.description ? `<small class="text-secondary d-block mt-1 mb-2">${question.description}</small>` : ''}
+    `;
 
-      finalQuestionTemplate = questionStartTemplate + questionTemplate;
+    finalQuestionTemplate = questionStartTemplate + questionTemplate;
 
-      if (question.optionType === 'text') {
-        finalQuestionTemplate += `<textarea class="form-control" rows="1" name="question-${qIndex + 1}"></textarea>`;
-      } else if (question.optionType === 'checkbox') {
-        let optionTemplate = '';
-        question.optionsList.forEach((option: SurveyOption, opIndex) => {
-          optionTemplate += `
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="q-${qIndex + 1}-check-option-${opIndex + 1}"
-                    value="${option.optionValue}" name="question-${qIndex + 1}">
-              <label class="form-check-label" for="q-${qIndex + 1}-check-option-${opIndex + 1}">
-                ${option.optionValue}
-              </label>
-            </div>
-          `;
-        });
-        finalQuestionTemplate += optionTemplate;
-      } else if (question.optionType === 'radio') {
-        let optionTemplate = '';
-        question.optionsList.forEach((option: SurveyOption, index) => {
-          optionTemplate += `
-            <div class="form-check">
-              <input class="form-check-input" type="radio" id="q-${qIndex + 1}-radio-option-${index + 1}"
-                    value="${option.optionValue}" name="question-${qIndex + 1}">
-              <label class="form-check-label" for="q-${qIndex + 1}-radio-option-${index + 1}">
-                ${option.optionValue}
-              </label>
-            </div>
-          `;
-        });
-        finalQuestionTemplate += optionTemplate;
-      }
+    if (question.optionType === 'text') {
+      finalQuestionTemplate += `<textarea class="form-control" rows="1" name="question-${qIndex + 1}"></textarea>`;
+    } else if (question.optionType === 'checkbox') {
+      let optionTemplate = '';
+      question.optionsList.forEach((option: SurveyOption, opIndex) => {
+        optionTemplate += `
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="q-${qIndex + 1}-check-option-${opIndex + 1}"
+                  value="${option.optionValue}" name="question-${qIndex + 1}">
+            <label class="form-check-label" for="q-${qIndex + 1}-check-option-${opIndex + 1}">
+              ${option.optionValue}
+            </label>
+          </div>
+        `;
+      });
+      finalQuestionTemplate += optionTemplate;
+    } else if (question.optionType === 'radio') {
+      let optionTemplate = '';
+      question.optionsList.forEach((option: SurveyOption, index) => {
+        optionTemplate += `
+          <div class="form-check">
+            <input class="form-check-input" type="radio" id="q-${qIndex + 1}-radio-option-${index + 1}"
+                  value="${option.optionValue}" name="question-${qIndex + 1}">
+            <label class="form-check-label" for="q-${qIndex + 1}-radio-option-${index + 1}">
+              ${option.optionValue}
+            </label>
+          </div>
+        `;
+      });
+      finalQuestionTemplate += optionTemplate;
+    }
 
-      finalQuestionTemplate += questionEndTemplate;
-      surveyTemplate += finalQuestionTemplate;
-    });
+    finalQuestionTemplate += questionEndTemplate;
+    surveyTemplate += finalQuestionTemplate;
+  });
 
-    return surveyTemplate;
-  }
+  return surveyTemplate;
+}
 
   rebuildTemplate() {
-    const surveyContainer = document.getElementById('surveyContainer');
-    if (!surveyContainer) return;
 
-    const oldDynamicSection = surveyContainer.querySelector('.dynamic-questions');
-    if (oldDynamicSection) {
-      oldDynamicSection.remove();
-    }
+  const container = document.querySelector('#surveyContainer .quiz-content');
 
-    const surveyQuestionsTemplate: string = this.createResultsTemplate();
-    const resultsHeader = this.createResultsHeader();
-    const formStart = `<form id="surveyForm">`;
-    const formEnd = `</form>`;
-    const surveyTemplate = resultsHeader + formStart + surveyQuestionsTemplate + formEnd;
+  if (!container) return;
 
-    const wrapper = document.createElement('div');
-    wrapper.classList.add('dynamic-questions');
-    wrapper.innerHTML = surveyTemplate;
+  const surveyQuestionsTemplate = this.createResultsTemplate();
+  // const resultsHeader = this.createResultsHeader();
 
-    const buttonRow = surveyContainer.querySelector('.row.mt-3') as HTMLElement;
-    if (buttonRow) {
-      buttonRow.style.display = 'none';
-      surveyContainer.insertBefore(wrapper, buttonRow);
-    } else {
-      surveyContainer.appendChild(wrapper);
-    }
-  }
+  const surveyTemplate = `<form id="surveyForm">${surveyQuestionsTemplate}</form>`;
+
+  container.innerHTML = '';
+
+  const wrapper = document.createElement('div');
+  wrapper.classList.add('dynamic-questions');
+  wrapper.innerHTML = surveyTemplate;
+
+  container.appendChild(wrapper);
+}
 
   createResultsTemplate(): string {
     let surveyTemplate = ``;
@@ -381,10 +348,10 @@ export class QuizSubmit implements OnInit {
 
       const questionTemplate = `
         <h5 class="mb-0">
-          <i class="fa-solid fa-q question-icon"></i>.&nbsp;
-          ${question.question ?? ''}${isQuestionRequired}
+          <span class="question-number">Q${qIndex + 1}.</span>&nbsp;
+          <span class="question-text">${question.question ?? ''}${isQuestionRequired}</span>
         </h5>
-        <small class="text-secondary">${question.description ?? ''}</small>
+        ${question.description ? `<small class="text-secondary d-block mt-1 mb-2">${question.description}</small>` : ''}
       `;
 
       finalQuestionTemplate = questionStartTemplate + questionTemplate;
@@ -437,7 +404,7 @@ export class QuizSubmit implements OnInit {
       } else if (optionType === 'checkbox') {
         let optionTemplate = '';
         const userAnswers = Array.isArray(question.response) ? question.response : 
-                           (question.response ? question.response.split(',').map((s: string) => s.trim()) : []);
+                          (question.response ? question.response.split(',').map((s: string) => s.trim()) : []);
         const correctAnswers = correctAnswer.split(',').map(a => a.trim());
         
         question.optionsList.forEach((option: SurveyOption, opIndex) => {
@@ -485,10 +452,31 @@ export class QuizSubmit implements OnInit {
   validateSurveyResponse(surveyObj: Survey, template: TemplateRef<any>) {
     for (let index = 0; index < surveyObj.surveyQuestionList.length; index++) {
       let question = surveyObj.surveyQuestionList[index];
-      if (question.required && !this.validationService.validateNullUndefinedEmptyString(question.response)) {
-        this.alertMessage = `Please provide response for Question ${index + 1} !!`;
-        this.openAlertMod(template, this.alertMessage);
-        return false;
+      let originalQuestion = this.allSurveyQuestionList[index];
+      
+      // Check for radio buttons specifically
+      if (originalQuestion.optionType === 'radio') {
+        if (question.response === null || question.response === undefined || question.response === '') {
+          this.alertMessage = `Please select an option for Question ${index + 1} !!`;
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+      } 
+      // Check for checkboxes
+      else if (originalQuestion.optionType === 'checkbox') {
+        if (!question.response || (Array.isArray(question.response) && question.response.length === 0)) {
+          this.alertMessage = `Please select at least one option for Question ${index + 1} !!`;
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
+      }
+      // Check for text inputs
+      else {
+        if (!this.validationService.validateNullUndefinedEmptyString(question.response)) {
+          this.alertMessage = `Please provide response for Question ${index + 1} !!`;
+          this.openAlertMod(template, this.alertMessage);
+          return false;
+        }
       }
     }
     return true;

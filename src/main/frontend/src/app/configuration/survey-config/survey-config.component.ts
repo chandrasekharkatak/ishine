@@ -1,5 +1,5 @@
 import { DatePipe, LocationStrategy } from '@angular/common';
-import { Component, OnInit, TemplateRef } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
@@ -82,6 +82,9 @@ export class SurveyConfigComponent implements OnInit {
   trainingId: number | null = null;
   trainingName: string = '';
 
+  @ViewChild('ask_to_make_it_active') askToMakeItActiveModal: TemplateRef<any>;
+  newSurveyIdCreated: number | null = 0;
+
   constructor(
     private validationService: ValidationService,
     private modalService: NgbModal,
@@ -103,6 +106,7 @@ export class SurveyConfigComponent implements OnInit {
 
     // Check if navigated from training-config
     this.route.queryParams.subscribe(params => {
+      this.newSurveyIdCreated = null;
       if (params['source'] === 'training') {
         this.isFromTraining = true;
         this.trainingId = params['trainingId'] ? +params['trainingId'] : null;
@@ -233,7 +237,7 @@ export class SurveyConfigComponent implements OnInit {
         this.allSurveyQuestionList.forEach((survey: SurveyQuestion) => {
           survey.optionsList = JSON.parse(survey.options);
           survey.required = JSON.parse(survey.required)
-          survey.correctAnswer = JSON.parse(survey.correctAnswer);
+          survey.correctAnswer = survey.correctAnswer;
         });
 
         //console.log("For Edit SurveyObj ==> ",this.surveyObj, this.allSurveyQuestionList);
@@ -423,13 +427,18 @@ export class SurveyConfigComponent implements OnInit {
     //console.log("survey : ", surveyObj);
     this.surveyService.createSurvey(surveyObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse);
+        if(this.isFromTraining){
+          this.newSurveyIdCreated = response.serviceResponse.quizId;
+          this.openAlertMod(this.askToMakeItActiveModal, response.serviceResponse.message);
+        }else{
+          this.openAlertMod(template, response.serviceResponse);
+        }
         // If created from training, navigate back to training config
-        if (this.isFromTraining) {
+        if (this.newSurveyIdCreated == null && this.isFromTraining) {
           setTimeout(() => {
             this.backToTraining();
           }, 1500);
-        } else {
+        } else if(!this.isFromTraining) {
           this.showSurveys();
         }
       }else{
@@ -946,6 +955,47 @@ export class SurveyConfigComponent implements OnInit {
       console.error('Error converting date with moment:', error);
       return null;
     }
+  }
+
+  askUserToMakeTheQuizActive(){
+    if(!this.isFromTraining ){
+      return;
+    }
+
+    this.openAlertMod(this.askToMakeItActiveModal, "Please make the quiz active to accept the training.");
+  }
+
+  activateNewTraining(template: TemplateRef<any>){
+    if(!this.newSurveyIdCreated){
+      return;
+    }
+
+    this.cancelRequest();
+
+    let surveyObj = new Survey();
+    surveyObj.surveyId = this.newSurveyIdCreated;
+    surveyObj.updatedBy = this.currentUser.empId;
+    surveyObj.isActive = true;
+
+    if(this.isFromTraining){
+      surveyObj.type = "quiz";
+      surveyObj.trainingId = this.trainingId;
+    }
+
+    this.surveyService.changeSurveyStatus(surveyObj).pipe(first()).subscribe((response: any) => {
+      if (response.serviceStatus == "Success") {
+        this.openAlertMod(template, response.serviceResponse);
+        this.backToTraining();
+      }else{
+        this.openAlertMod(template, response.serviceResponse);
+      }
+    });
+    
+  }
+
+  closeAskNewQuizModal(){
+    this.cancelRequest();
+    this.backToTraining();
   }
 
 }

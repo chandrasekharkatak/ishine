@@ -34,6 +34,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -70,8 +71,6 @@ import com.apmosys.employeeportal.serviceInterface.TrainingUserService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 import com.apmosys.employeeportal.utility.TrainingFileValidator;
-
-import com.apmosys.employeeportal.utility.DocumentSlideUtility;
 
 /**
  * Service implementation for Training Configuration operations (HR/Admin)
@@ -127,8 +126,8 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	@Value("${training.job.role.exclude}")
 	private String trainingJobRoleExclude;
 
-	@Value("${training.dry.run.empids.to.include}")
-	private String trainingDryRunEmpIdsToInclude;
+	@Autowired
+	private TrainingUserServiceImpl trainingUserServiceImpl;
 
 	private Map<Integer, String> trainingContentMap = new HashMap<>();
 
@@ -482,20 +481,6 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 			if (filePath != null) {
 				saveTrainingFile(filePath, file);
-				// DocumentSlideUtility.convertDocumentToSlides(trainingFileLocation, filePath, savedContent.getContentId());
-				String slidesPath = DocumentSlideUtility.convertDocumentToSlides(
-					trainingFileLocation, 
-					filePath, 
-					savedContent.getContentId()
-				);
-				
-				// Count total slides
-				int totalSlides = countSlides(slidesPath);
-				
-				// Update the content with slides path and total slides
-				savedContent.setSlidesPath(slidesPath);
-				savedContent.setTotalSlides(totalSlides);
-				trainingContentRepository.save(savedContent);
 
 			}
 
@@ -723,22 +708,6 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	  // Save new file
 	     if (newFilePath != null) {
 	         saveTrainingFile(newFilePath, file);
-			//  DocumentSlideUtility.convertDocumentToSlides(trainingFileLocation, newFilePath, savedContent.getContentId());
-			String slidesPath = DocumentSlideUtility.convertDocumentToSlides(
-				trainingFileLocation, 
-				newFilePath, 
-				savedContent.getContentId()
-			);
-			
-			// Count total slides
-			int totalSlides = countSlides(slidesPath);
-			
-			// Update the content with slides path and total slides
-			savedContent.setSlidesPath(slidesPath);
-			savedContent.setTotalSlides(totalSlides);
-			trainingContentRepository.save(savedContent);
-
-			trainingContentMap.remove(savedContent.getContentId());
 	     }
 
 	     // Delete old file if switching FILE → LINK
@@ -1568,15 +1537,9 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 						.map(Long::parseLong)
 						.collect(Collectors.toList());
 
-			// Dry run empIds
-			List<Long> empIdsToInclude = Arrays.stream(trainingDryRunEmpIdsToInclude.split(","))
-					.map(String::trim)
-					.map(Long::parseLong)
-					.collect(Collectors.toList());
-
 			LockStatusDTO lockStatus = new LockStatusDTO();
 					
-			if (!jobRoleIds.contains(employee.getJobRoleId()) && empIdsToInclude.contains(empId)) {
+			if (!jobRoleIds.contains(employee.getJobRoleId())) {
 				try {
 
 					ServiceResponse lockResponse = trainingUserService.getLockStatus(empId);
@@ -1687,77 +1650,6 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 			}
 			return response;
 	}
-
-//	@Scheduled(cron = "0 0 9 */2 * *")
-//    public void sendTrainingReminders() {
-//        
-//        
-//        try {
-//            List<Object[]> pendingTrainings = trainingConsentRepository.findEmpForUnattendedQuiz();
-//            
-//            if (pendingTrainings == null || pendingTrainings.isEmpty()) {
-//                return;
-//            }
-//            
-//            for (Object[] training : pendingTrainings) {
-//                triggerTrainingReminderMail(training);
-//            }
-//            
-//            
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
-//    
-//    private void triggerTrainingReminderMail(Object[] training) {
-//        try {
-//            String empName =  (String) training[0];
-//            String empEmail = (String) training[1];
-//            String trainingName = (String) training[2];
-//            Date deadline = (Date) training[3];
-//            
-//            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-//            String formattedDeadline = sdf.format(deadline);
-//            
-//            StringBuilder html = new StringBuilder();
-//            html.append("<html><body>");
-//            html.append("<p>Dear <b>").append(empName).append("</b>,</p>");
-//            html.append("<p>This is a reminder that you have not yet completed the following training:</p>");
-//            
-//            html.append("<div style='overflow-x:auto;'>");
-//            html.append("<table border='1' style='border-collapse: collapse; width: 100%; table-layout: auto;'>");
-//            html.append("<tr>");
-//            html.append("<th style='white-space: nowrap; padding: 8px; background-color: #f5f5f5; text-align: left;'>Training Name</th>");
-//            html.append("<th style='white-space: nowrap; padding: 8px; background-color: #f5f5f5; text-align: left;'>Deadline</th>");
-//            html.append("</tr>");
-//            
-//            html.append("<tr>");
-//            html.append("<td style='white-space: nowrap; padding: 8px;'>").append(trainingName).append("</td>");
-//            html.append("<td style='white-space: nowrap; padding: 8px; color: #d63031; font-weight: bold;'>").append(formattedDeadline).append("</td>");
-//            html.append("</tr>");
-//            html.append("</table>");
-//            html.append("</div>");
-//            
-//            html.append("<p style='color: #d63031; font-weight: bold;'>");
-//            html.append(" Please complete this training as early as possible , avoid any delays.");
-//            html.append("</p>");
-//            
-//            html.append("<p>If you have any questions or need assistance, please contact the training coordinator.</p>");
-//            
-//            html.append("<p>Regards,<br/>HR Team</p>");
-//            html.append("</body></html>");
-//            
-//            String subject = "Reminder: Complete Your Pending Training - " + trainingName;
-//            
-//            mailService.sendMailWithCC(empEmail, subject, html.toString());
-//            
-//            
-//            
-//        } catch (Exception e) {
-//            
-//            e.printStackTrace();
-//        }
-//    }
 
 	@Override
 	public ServiceResponse addTrainingType(TrainingMasterDTO trainingDTO)
