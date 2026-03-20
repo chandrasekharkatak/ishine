@@ -37,6 +37,10 @@ public class PerformanceDTO {
     private String hrRemark;
     private LocalDate hrReviewDate;
     private String hrReviewStatus;
+    /** Manager submission status for list (Submitted/Pending). */
+    private String managerReviewStatus;
+    /** HOD submission status for list (Submitted/Pending). */
+    private String hodReviewStatus;
     private Long performanceRatingId;
     private String isUserHaveTeam;
     private String employeeRole;
@@ -44,5 +48,7 @@ public class PerformanceDTO {
     private String tabType;
     private Boolean rejectStatus;
     private String actionBy;
+    /** Bulk HR action target employee ids. */
+    private List<Long> empIds;
     
 }

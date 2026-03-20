@@ -584,23 +584,49 @@ public class PerformanceService {
 	public ServiceResponse submitEmployeePerformanceHOD(PerformanceDTO employeePerformanceDTO) {
 		ServiceResponse response = new ServiceResponse();
 		try {
-			EmployeePerformance employeePerformance = new EmployeePerformance();
+			Long empId = employeePerformanceDTO.getEmpId();
+			Long quarterId = employeePerformanceDTO.getQuarterId();
+			String actionBy = employeePerformanceDTO.getActionBy();
 
-			employeePerformance.setEmp_id(employeePerformanceDTO.getEmpId());
+			EmployeePerformance employeePerformance = employeePerformanceRepository
+					.findLatestByEmpIdAndQuarterId(empId, quarterId)
+					.stream().findFirst().orElse(null);
+
+			if (employeePerformance == null) {
+				employeePerformance = new EmployeePerformance();
+				employeePerformance.setEmp_id(empId);
+				employeePerformance.setQuarterId(quarterId);
+			}
+
 			employeePerformance.setFinal_rating(employeePerformanceDTO.getFinalRating());
-			employeePerformance.setHod_id(employeePerformanceDTO.getHodId());
 
-			employeePerformance.setHod_remarks(employeePerformanceDTO.getHodRemarks());
-			employeePerformance.setQuarterId(employeePerformanceDTO.getQuarterId());
-			employeePerformance.setHod_approval_date(LocalDateTime.now());
-			System.out.println(employeePerformanceDTO.getCurrentStatus()+"123456789");
-			if("Not Started".equals(employeePerformanceDTO.getCurrentStatus()) && 
-					   "HOD".equals(employeePerformanceDTO.getActionBy())) {
-					    employeePerformance.setCompletion_status("Completed");
-					} 
-			else {
-					    employeePerformance.setCompletion_status("Ongoing");
-					}
+			if ("RM".equals(actionBy)) {
+				// Manager / Reporting Manager submit: set manager fields
+				Long submitterId = employeePerformanceDTO.getHodId(); // current user (submitter)
+				employeePerformance.setManager_id(submitterId);
+				employeePerformance.setManager_remarks(employeePerformanceDTO.getHodRemarks());
+				employeePerformance.setManager_review_date(LocalDateTime.now());
+				employeePerformance.setCompletion_status("Ongoing");
+				// When Manager and HOD are the same person: auto-complete HOD step so one submit clears both
+				Long employeeDeptHodId = departmentRepository.findHodIdByEmpId(empId);
+				if (employeeDeptHodId != null && employeeDeptHodId.equals(submitterId)) {
+					employeePerformance.setHod_id(submitterId);
+					employeePerformance.setHod_approval_date(LocalDateTime.now());
+					employeePerformance.setHod_remarks(employeePerformanceDTO.getHodRemarks() != null
+							? employeePerformanceDTO.getHodRemarks() : employeePerformance.getManager_remarks());
+				}
+			} else {
+				// HOD submit: set HOD fields
+				employeePerformance.setHod_id(employeePerformanceDTO.getHodId());
+				employeePerformance.setHod_remarks(employeePerformanceDTO.getHodRemarks());
+				employeePerformance.setHod_approval_date(LocalDateTime.now());
+				if ("Not Started".equals(employeePerformanceDTO.getCurrentStatus()) && "HOD".equals(actionBy)) {
+					employeePerformance.setCompletion_status("Completed");
+				} else {
+					employeePerformance.setCompletion_status("Ongoing");
+				}
+			}
+
 			EmployeePerformance savedEmployeePerformance = employeePerformanceRepository.save(employeePerformance);
 			if (savedEmployeePerformance != null) {
 
@@ -650,15 +676,17 @@ public class PerformanceService {
 				} else if (employeePerformanceDTO.getHrReviewStatus().equalsIgnoreCase("Rejected")) {
 					optionalEmployeePerformance.setCompletion_status("Rejected");
 					optionalEmployeePerformance.setRejectStatus(true);
+					// Persist edited rating even when HR rejects
+					optionalEmployeePerformance.setFinal_rating(employeePerformanceDTO.getFinalRating());
 				}
 
 				savedEmployeePerformanceHR = employeePerformanceRepository.save(optionalEmployeePerformance);
 
-				if (savedEmployeePerformanceHR != null
-						&& employeePerformanceDTO.getHrReviewStatus().equalsIgnoreCase("Accepted")) {
+				if (savedEmployeePerformanceHR != null && employeePerformanceDTO.getPerformanceRatings() != null
+						&& !employeePerformanceDTO.getPerformanceRatings().isEmpty()) {
 					for (PerformanceRatingDTO ratingDTO : employeePerformanceDTO.getPerformanceRatings()) {
 						EmployeeRatingPerformance ratingPerformance = employeeRatingPerformanceRepository
-								.getById(ratingDTO.getPerformanceRatingId());
+								.findById(ratingDTO.getPerformanceRatingId()).orElse(null);
 						if (ratingPerformance != null) {
 							ratingPerformance.setQuarterId(employeePerformanceDTO.getQuarterId());
 							ratingPerformance.setReviewTypeId(ratingDTO.getReviewTypeId());
@@ -669,7 +697,7 @@ public class PerformanceService {
 					}
 				}
 
-				if (employeePerformanceDTO.getHrReviewStatus().equalsIgnoreCase("Accepted")) {
+			if (employeePerformanceDTO.getHrReviewStatus().equalsIgnoreCase("Accepted")) {
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse("Performance review accepted successfully.");
 				} else if (employeePerformanceDTO.getHrReviewStatus().equalsIgnoreCase("Rejected")) {
@@ -688,6 +716,76 @@ public class PerformanceService {
 			e.printStackTrace();
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			response.setServiceResponse("Something went wrong while processing the request.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
+	/** HOD accept/reject: store hod_id, hod_remarks, hod_approval_date (accept) or hod_rejected_date (reject). On Accept, also persist final_rating and criteria ratings. */
+	public ServiceResponse submitRemarksByHOD(PerformanceDTO dto) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			EmployeePerformance ep = employeePerformanceRepository.findByPerformanceId(dto.getEmployeePerformanceId());
+			if (ep == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Employee Performance record not found.");
+				return response;
+			}
+			ep.setHod_id(dto.getHodId());
+			ep.setHod_remarks(dto.getHodRemarks());
+			String status = dto.getHodReviewStatus() != null ? dto.getHodReviewStatus().trim() : "";
+			if ("Accepted".equalsIgnoreCase(status)) {
+				ep.setHod_approval_date(LocalDateTime.now());
+				ep.setHod_rejected_date(null);
+				ep.setCompletion_status("Ongoing");
+				// Persist HOD-updated final rating and criteria ratings on accept/reject
+				if (dto.getFinalRating() != null) {
+					ep.setFinal_rating(dto.getFinalRating());
+				}
+				if (dto.getPerformanceRatings() != null && !dto.getPerformanceRatings().isEmpty()) {
+					for (PerformanceRatingDTO ratingDTO : dto.getPerformanceRatings()) {
+						EmployeeRatingPerformance ratingPerformance = employeeRatingPerformanceRepository
+								.findById(ratingDTO.getPerformanceRatingId()).orElse(null);
+						if (ratingPerformance != null) {
+							ratingPerformance.setQuarterId(dto.getQuarterId());
+							ratingPerformance.setReviewTypeId(ratingDTO.getReviewTypeId());
+							ratingPerformance.setRatingValue(ratingDTO.getRating());
+							ratingPerformance.setEmpId(dto.getEmpId());
+							employeeRatingPerformanceRepository.save(ratingPerformance);
+						}
+					}
+				}
+			} else if ("Rejected".equalsIgnoreCase(status)) {
+				ep.setHod_rejected_date(LocalDateTime.now());
+				ep.setCompletion_status("Rejected");
+				ep.setRejectStatus(true);
+				// Persist HOD-edited final rating/criteria even on rejection
+				if (dto.getFinalRating() != null) {
+					ep.setFinal_rating(dto.getFinalRating());
+				}
+				if (dto.getPerformanceRatings() != null && !dto.getPerformanceRatings().isEmpty()) {
+					for (PerformanceRatingDTO ratingDTO : dto.getPerformanceRatings()) {
+						EmployeeRatingPerformance ratingPerformance = employeeRatingPerformanceRepository
+								.findById(ratingDTO.getPerformanceRatingId()).orElse(null);
+						if (ratingPerformance != null) {
+							ratingPerformance.setQuarterId(dto.getQuarterId());
+							ratingPerformance.setReviewTypeId(ratingDTO.getReviewTypeId());
+							ratingPerformance.setRatingValue(ratingDTO.getRating());
+							ratingPerformance.setEmpId(dto.getEmpId());
+							employeeRatingPerformanceRepository.save(ratingPerformance);
+						}
+					}
+				}
+			}
+			employeePerformanceRepository.save(ep);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse("Accepted".equalsIgnoreCase(status)
+					? "Performance review accepted successfully."
+					: "Performance review rejected successfully.");
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong.");
 			response.setServiceError(e.getMessage());
 		}
 		return response;
@@ -885,6 +983,55 @@ public class PerformanceService {
 		return response;
 	}
 
+	/**
+	 * Returns approval details for popup: manager, HOD, HR each with name, id, employmentId, rating, feedback.
+	 * Uses latest employee_performance row for given empId and quarterId.
+	 */
+	public ServiceResponse getApprovalDetails(Long empId, Long quarterId) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			List<Object[]> rows = employeePerformanceRepository.findApprovalDetailsByEmpIdAndQuarterId(empId, quarterId);
+			if (rows == null || rows.isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No performance record found.");
+				return response;
+			}
+			Object[] row = rows.get(0);
+			// Index: 0 manager_id, 1 manager_remarks, 2 final_rating, 3 manager_name, 4 manager_employment_id,
+			// 5 hod_id, 6 hod_remarks, 7 hod_name, 8 hod_employment_id, 9 hr_id, 10 hr_remarks, 11 hr_name, 12 hr_employment_id
+			Map<String, Object> result = new HashMap<>();
+			Map<String, Object> manager = new HashMap<>();
+			manager.put("name", row[3] != null ? row[3].toString() : null);
+			manager.put("id", row[0] != null ? Long.parseLong(row[0].toString()) : null);
+			manager.put("employmentId", row[4] != null ? row[4].toString() : null);
+			manager.put("rating", row[2] != null ? row[2].toString() : null);
+			manager.put("feedback", row[1] != null ? row[1].toString() : null);
+			result.put("manager", manager);
+			Map<String, Object> hod = new HashMap<>();
+			hod.put("name", row[7] != null ? row[7].toString() : null);
+			hod.put("id", row[5] != null ? Long.parseLong(row[5].toString()) : null);
+			hod.put("employmentId", row[8] != null ? row[8].toString() : null);
+			hod.put("rating", row[2] != null ? row[2].toString() : null);
+			hod.put("feedback", row[6] != null ? row[6].toString() : null);
+			result.put("hod", hod);
+			Map<String, Object> hr = new HashMap<>();
+			hr.put("name", row[11] != null ? row[11].toString() : null);
+			hr.put("id", row[9] != null ? Long.parseLong(row[9].toString()) : null);
+			hr.put("employmentId", row[12] != null ? row[12].toString() : null);
+			hr.put("rating", row[2] != null ? row[2].toString() : null);
+			hr.put("feedback", row[10] != null ? row[10].toString() : null);
+			result.put("hr", hr);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(result);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something went wrong.");
+			response.setServiceError(e.getMessage());
+		}
+		return response;
+	}
+
 	public ServiceResponse DepartmentbyEmployeecont(HrHodHrViewPerformance hrHodHrViewPerformance) {
 
 		ServiceResponse response = new ServiceResponse();
@@ -956,8 +1103,18 @@ public class PerformanceService {
 
 				employeePerformanceDetails.setFinal_rating(employeePerformanceDTO.getFinalRating());
 				employeePerformanceDetails.setHod_remarks(employeePerformanceDTO.getHodRemarks());
-				employeePerformanceDetails.setHod_approval_date(LocalDateTime.now());
-				employeePerformanceDetails.setCompletion_status("Ongoing");
+
+				// Manager resubmit after HOD reject: do not set hod_id/hod_approval_date; status = Pending HOD until HOD accepts
+				boolean isManagerResubmit = Boolean.TRUE.equals(employeePerformanceDetails.getRejectStatus())
+						|| "RM".equalsIgnoreCase(employeePerformanceDTO.getActionBy());
+				if (isManagerResubmit) {
+					employeePerformanceDetails.setCompletion_status("Pending HOD");
+					// do not set hod_id or hod_approval_date – HOD has not accepted yet
+				} else {
+					employeePerformanceDetails.setHod_id(employeePerformanceDTO.getHodId());
+					employeePerformanceDetails.setHod_approval_date(LocalDateTime.now());
+					employeePerformanceDetails.setCompletion_status("Ongoing");
+				}
 				savedEmployeePerformance = employeePerformanceRepository.save(employeePerformanceDetails);
 			}
 
@@ -965,7 +1122,7 @@ public class PerformanceService {
 
 				for (PerformanceRatingDTO ratingDTO : employeePerformanceDTO.getPerformanceRatings()) {
 					EmployeeRatingPerformance ratingPerformance = employeeRatingPerformanceRepository
-							.getById(ratingDTO.getPerformanceRatingId());
+							.findById(ratingDTO.getPerformanceRatingId()).orElse(null);
 					if (ratingPerformance != null) {
 						ratingPerformance.setQuarterId(employeePerformanceDTO.getQuarterId());
 						ratingPerformance.setReviewTypeId(ratingDTO.getReviewTypeId());
@@ -1220,13 +1377,46 @@ public class PerformanceService {
 		ServiceResponse response = new ServiceResponse();
 		try {
 		List<Object[]> currentStatus = employeePerformanceRepository.currentStatusForPerformanceTableView();
+		List<Object[]> finalRatingList = employeePerformanceRepository.findFinalRatingByEmpId();
+		java.util.Map<Long, String> empIdToFinalRating = new java.util.HashMap<>();
+		if (finalRatingList != null) {
+			for (Object[] row : finalRatingList) {
+				if (row[0] != null && row[1] != null) {
+					Long empId = Long.parseLong(row[0].toString());
+					empIdToFinalRating.put(empId, row[1].toString());
+				}
+			}
+		}
+		List<Object[]> approvalStatusList = employeePerformanceRepository.findApprovalStatusByEmpId();
+		java.util.Map<Long, String> empIdToManagerStatus = new java.util.HashMap<>();
+		java.util.Map<Long, String> empIdToHodStatus = new java.util.HashMap<>();
+		java.util.Map<Long, String> empIdToHrStatus = new java.util.HashMap<>();
+		if (approvalStatusList != null) {
+			for (Object[] row : approvalStatusList) {
+				if (row[0] != null) {
+					Long empId = Long.parseLong(row[0].toString());
+					if (row[1] != null) empIdToManagerStatus.put(empId, row[1].toString());
+					if (row[2] != null) empIdToHodStatus.put(empId, row[2].toString());
+					if (row[3] != null) empIdToHrStatus.put(empId, row[3].toString());
+				}
+			}
+		}
 		List<PerformanceDTO> dtoList = new ArrayList<PerformanceDTO>();
 			if (currentStatus != null) {
 				currentStatus.forEach((object) -> {
 					PerformanceDTO performanceDTO = new PerformanceDTO();
 					
 					performanceDTO.setCompletionStatus(object[0] != null ? object[0].toString() : null);
-					performanceDTO.setEmpId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+					Long empId = object[1] != null ? Long.parseLong(object[1].toString()) : null;
+					performanceDTO.setEmpId(empId);
+					if (empId != null && empIdToFinalRating.containsKey(empId)) {
+						performanceDTO.setFinalRating(empIdToFinalRating.get(empId));
+					}
+					if (empId != null) {
+						performanceDTO.setManagerReviewStatus(empIdToManagerStatus.get(empId));
+						performanceDTO.setHodReviewStatus(empIdToHodStatus.get(empId));
+						performanceDTO.setHrReviewStatus(empIdToHrStatus.get(empId));
+					}
 					
 					dtoList.add(performanceDTO);
 					
@@ -1730,6 +1920,7 @@ public class PerformanceService {
 			if (employeePerformanceDetails != null) {
 
 				employeePerformanceDetails.setFinal_rating(employeePerformanceDTO.getFinalRating());
+				employeePerformanceDetails.setHr_id(employeePerformanceDTO.getHrId());
 				employeePerformanceDetails.setHr_remarks(employeePerformanceDTO.getHrRemark());
 				employeePerformanceDetails.setHr_review_date(LocalDateTime.now());
 				employeePerformanceDetails.setHod_remarks(employeePerformanceDTO.getHodRemarks());
@@ -1741,7 +1932,7 @@ public class PerformanceService {
 
 				for (PerformanceRatingDTO ratingDTO : employeePerformanceDTO.getPerformanceRatings()) {
 					EmployeeRatingPerformance ratingPerformance = employeeRatingPerformanceRepository
-							.getById(ratingDTO.getPerformanceRatingId());
+							.findById(ratingDTO.getPerformanceRatingId()).orElse(null);
 					if (ratingPerformance != null) {
 						ratingPerformance.setQuarterId(employeePerformanceDTO.getQuarterId());
 						ratingPerformance.setReviewTypeId(ratingDTO.getReviewTypeId());
@@ -1765,6 +1956,70 @@ public class PerformanceService {
 			response.setServiceResponse("Something Went Wrong.");
 			response.setServiceError(e.getMessage());
 
+		}
+		return response;
+	}
+
+	public ServiceResponse bulkSubmitEmployeePerformanceHR(PerformanceDTO employeePerformanceDTO) {
+		ServiceResponse response = new ServiceResponse();
+		try {
+			if (employeePerformanceDTO.getEmpIds() == null || employeePerformanceDTO.getEmpIds().isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("No employees selected for bulk HR action.");
+				return response;
+			}
+			if (employeePerformanceDTO.getQuarterId() == null) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Quarter is required for bulk HR action.");
+				return response;
+			}
+			String status = employeePerformanceDTO.getHrReviewStatus() != null
+					? employeePerformanceDTO.getHrReviewStatus().trim()
+					: "";
+			if (!"Accepted".equalsIgnoreCase(status) && !"Rejected".equalsIgnoreCase(status)) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Invalid bulk HR action. Use Accepted or Rejected.");
+				return response;
+			}
+
+			int updated = 0;
+			int skipped = 0;
+			List<Long> uniqueEmpIds = employeePerformanceDTO.getEmpIds().stream().filter(id -> id != null).distinct()
+					.collect(Collectors.toList());
+			for (Long empId : uniqueEmpIds) {
+				EmployeePerformance ep = employeePerformanceRepository
+						.findLatestByEmpIdAndQuarterId(empId, employeePerformanceDTO.getQuarterId()).stream().findFirst()
+						.orElse(null);
+				if (ep == null) {
+					skipped++;
+					continue;
+				}
+				ep.setHr_id(employeePerformanceDTO.getHrId());
+				ep.setHr_remarks(employeePerformanceDTO.getHrRemark());
+				ep.setHr_review_status(status);
+				ep.setHr_review_date(LocalDateTime.now());
+				if ("Accepted".equalsIgnoreCase(status)) {
+					ep.setCompletion_status("Completed");
+					ep.setRejectStatus(false);
+				} else {
+					ep.setCompletion_status("Rejected");
+					ep.setRejectStatus(true);
+				}
+				employeePerformanceRepository.save(ep);
+				updated++;
+			}
+
+			Map<String, Object> result = new HashMap<>();
+			result.put("updatedCount", updated);
+			result.put("skippedCount", skipped);
+			result.put("status", status);
+			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			response.setServiceResponse(result);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			response.setServiceResponse("Something Went Wrong.");
+			response.setServiceError(e.getMessage());
 		}
 		return response;
 	}

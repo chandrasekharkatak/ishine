@@ -3,7 +3,7 @@ import {
   HttpEvent,
   HttpHandler,
   HttpInterceptor,
-  HttpRequest,
+  HttpRequest, 
   HttpResponse
 } from '@angular/common/http';
 import { Injectable } from '@angular/core';
@@ -232,6 +232,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/get360TimesheetDetails`,
     `${this.baseUrl}` + `api/submitEmployeePerformanceHOD`,
     `${this.baseUrl}` + `api/submitEmployeePerformanceHR`,
+    `${this.baseUrl}` + `api/submitRemarksByHOD`,
     `${this.baseUrl}` + `api/addReviewType`,
     `${this.baseUrl}` + `api/updateReviewType`,
     `${this.baseUrl}` + `getExistingProjectsAndTeamsByEmployee`,
@@ -482,7 +483,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/training/getQuizQuestionByTrainingId`,
     `${this.baseUrl}` + `api/isClientIdMandetory`,
     `${this.baseUrl}` + `api/training/addTrainingType`,
-    
+
     `${this.baseUrl}` + `api/updateSurvey`,
     `${this.baseUrl}` + `api/deleteSurvey`,
     `${this.baseUrl}` + `api/getSurveyResponseByEmpIdAndSurveyId`,
@@ -497,6 +498,7 @@ export class LoaderInterceptor implements HttpInterceptor {
     `${this.baseUrl}` + `api/training/downloadContent/`
 
   ]
+
 
   constructor(private loaderService: LoaderService) { }
 
