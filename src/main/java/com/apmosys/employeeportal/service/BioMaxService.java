@@ -127,7 +127,7 @@ public class BioMaxService {
 			Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
 			
 			con = DriverManager.getConnection(
-				"jdbc:sqlserver://localhost:1433;databaseName=SmartOfficedb;encrypt=true;trustServerCertificate=true;",
+				"jdbc:sqlserver://192.168.0.126:1433;databaseName=SmartOfficedb;encrypt=true;trustServerCertificate=true;",
 				"apmosys",
 				"apmosys@123"
 			);
