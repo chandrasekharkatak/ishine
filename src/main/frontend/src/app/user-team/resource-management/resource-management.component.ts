@@ -6639,6 +6639,7 @@ cancelComplete() {
 
     let isValid = true;
     let errors: any;
+    this.projectNameForMilestoneUpdate = this.projectObj.name;
 
     if((!this.isExtensionEnabled && !this.projectMilestone.extendedDate) && !this.isStatusChanged){
       this.openAlertMod(this.alertTemplateForMilestone, 'No changes has been done for the selected milestone!!.');
@@ -6690,7 +6691,7 @@ if (this.requiresDocument(this.projectMilestone.status) && !this.selectedFile) {
     this.projectMilestone.updatedBy = this.currentUser.employeementId;
     this.projectMilestone.updatedOn = new Date();
     this.projectMilestone.updatedByName = this.currentUser.name;
-    this.projectNameForMilestoneUpdate = this.projectObj.name;
+    
 
 
 
@@ -8604,6 +8605,8 @@ updateMilestoneExtendedDateWithReason():Promise<boolean> {
     extendedDate: this.projectMilestone.extendedDate,
     updatedBy: this.currentUser.employeementId,
     updatedByName: this.currentUser.name,
+    projectName : this.projectNameForMilestoneUpdate,
+    poNumber : this.projectMilestone.poNumber,
     milestoneExtensionReasonId: this.projectMilestone.extensionReason?.id,
     milestoneExtensionReasonText: this.projectMilestone?.extensionReason?.milestoneExtensionReason==='Other'? this.projectMilestone.customReason : ""  };
 

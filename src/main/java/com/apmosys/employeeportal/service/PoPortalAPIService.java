@@ -1020,7 +1020,16 @@ public class PoPortalAPIService {
 		                + "</body></html>";
 
 		            try {
-		                mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body);
+
+
+					List<String> toRecipientsDummy = Arrays.asList(
+							"chandasekhar.moharana@apmosys.com");
+					List<String> ccRecipientsDummy = Arrays.asList(
+							"chandasekhar.moharana@apmosys.com");
+
+
+		             //   mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body);
+						mailService.sendMailToMultipleRecipients(toRecipientsDummy, ccRecipientsDummy, subject, body);
 		                System.out.println("Mail sent for project: " + projectName);
 
 		            } catch (Exception e) {
@@ -1177,7 +1186,7 @@ public class PoPortalAPIService {
 		ApiLog initialLog = null;
 		int finalHttpStatusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
 		String exceptionDetailsForLog = null;
-
+		System.out.println(dto);
 		try {
 			if (dto == null || dto.getMilestoneId() == null || dto.getExtendedDate() == null) {
 				String message = "Milestone ID or extended date is missing.";
@@ -1378,8 +1387,13 @@ public class PoPortalAPIService {
 					+ "<p>Please take the necessary actions.</p>"
 					+ "<p>Regards,<br>ApMoSys Technologies</p>"
 					+ "</body></html>";
+			List<String> toRecipientsDummy = Arrays.asList(
+							"chandasekhar.moharana@apmosys.com");
+					List<String> ccRecipientsDummy = Arrays.asList(
+							"chandasekhar.moharana@apmosys.com");
 
-			mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body);
+			//mailService.sendMailToMultipleRecipients(toRecipients, ccRecipients, subject, body);
+			mailService.sendMailToMultipleRecipients(toRecipientsDummy, ccRecipientsDummy, subject, body);
 			logger.info("Email sent successfully for milestone: {}", dto.getMilestoneName());
 			return true;
 
