@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { EncryptionService } from './EncryptionService';
@@ -308,4 +308,15 @@ processBulkTimesheets(payload: any) {
   );
   }
 
+  getLastFilledLocationIdForProjectAndEmp(projectId: number, empId: number): Observable<any> {
+    
+    const params = new HttpParams()
+      .set('empId', empId)
+      .set('projectId', projectId);
+
+    return this.http.get(
+      `${this.baseUrl}api/v2/timesheet/getMyLastFilledLocationIdForProjectAndEmp`,
+      { params }
+    );
+  }
 }

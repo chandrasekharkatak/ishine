@@ -126,7 +126,8 @@
                 }
 
                 <!-- Day Type, Date & Night Shift Row - Redesigned -->
-                <ng-container *ngIf="allDayTypes.length > 0 && ((timesheetAppliedFor == 'self') || (timesheetAppliedFor == 'team' && selectedTeamMember))">
+                <ng-container
+                    *ngIf="allDayTypes.length > 0 && ((timesheetAppliedFor == 'self') || (timesheetAppliedFor == 'team' && selectedTeamMember))">
                     <div class="divider-v2"></div>
                     <div class="form-row-v2">
                         <!-- Day Type -->
@@ -135,55 +136,39 @@
                                 <span class="required-mark">*</span> Day Type
                             </label>
                             <div class="field-input-wrapper">
-                                <app-my-select class="form-control custom-select-v2"
-                                    placeholder="Select Day Type"
-                                    [options]="allDayTypes"
-                                    displayKey="dayType"
-                                    valueKey="dayTypeId"
-                                    [multiple]="false"
-                                    [(ngModel)]="dayType"
-                                    (selectionChange)="onDayTypeChange($event)">
+                                <app-my-select class="form-control custom-select-v2" placeholder="Select Day Type"
+                                    [options]="allDayTypes" displayKey="dayType" valueKey="dayTypeId" [multiple]="false"
+                                    [(ngModel)]="dayType" (selectionChange)="onDayTypeChange($event)">
                                 </app-my-select>
                             </div>
                         </div>
-
+                
                         <!-- Date / From Date -->
                         <div class="form-field-v2 field-date" *ngIf="dayType">
                             <label class="form-label-v2">
                                 <span class="required-mark">*</span> {{ isNightShift ? 'From Date' : 'Date' }}
                             </label>
                             <div class="field-input-wrapper">
-                                <app-date-time-picker
-                                    mode="date"
-                                    [required]="true"
-                                    [(ngModel)]="fromDate"
-                                    (ngModelChange)="onFromDateChange()"
-                                    [disabled]="!dayType || isUpdation"
-                                    [minDate]="minDateForPicker"
-                                    [maxDate]="maxDateForPicker"
-                                    [disabledDates]="disabledDatesForPicker">
+                                <app-date-time-picker mode="date" [required]="true" [(ngModel)]="fromDate"
+                                    (ngModelChange)="onFromDateChange()" [disabled]="!dayType || isUpdation"
+                                    [minDate]="minDateForPicker" [maxDate]="maxDateForPicker" [disabledDates]="disabledDatesForPicker">
                                 </app-date-time-picker>
                             </div>
                         </div>
-
+                
                         <!-- To Date (Night Shift) -->
                         <div class="form-field-v2 field-date" *ngIf="isNightShift && fromDate">
                             <label class="form-label-v2">
                                 <span class="required-mark">*</span> To Date
                             </label>
                             <div class="field-input-wrapper">
-                                <app-date-time-picker
-                                    mode="date"
-                                    [required]="true"
-                                    [(ngModel)]="toDate"
-                                    (ngModelChange)="onToDateChange()"
-                                    [minDate]="fromDate"
-                                    [maxDate]="maxDateForToDatePicker"
+                                <app-date-time-picker mode="date" [required]="true" [(ngModel)]="toDate"
+                                    (ngModelChange)="onToDateChange()" [minDate]="fromDate" [maxDate]="maxDateForToDatePicker"
                                     [disabledDates]="[]">
                                 </app-date-time-picker>
                             </div>
                         </div>
-
+                
                         <!-- Night Shift Toggle -->
                         <div class="form-field-v2 field-night-shift" *ngIf="isDayTypeFillable() && fromDate">
                             <label class="form-label-v2">
@@ -202,6 +187,23 @@
                             </div>
                         </div>
                     </div>
+                    <div class="activities-section m-2" *ngIf="!isDayTypeFillable() && fromDate && dayType">
+                
+                            <div class="section-header">
+                                <h6 class="section-subtitle">
+                                    <i class="fas fa-comment"></i> Description
+                                </h6>
+                            </div>
+                
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <label class="info-label small"><span class="text-danger">*</span> Description</label>
+                                    <textarea class="form-control" rows="2" placeholder="Enter description"
+                                        [(ngModel)]="holidayDescription"></textarea>
+                                </div>
+                            </div>
+                
+                        </div>
                 </ng-container>
             </div>
         </div>
@@ -266,7 +268,7 @@
         </div>
 
         <!-- Location, Project & Activities Card -->
-        @if (dayType && fromDate && ((isDayTypeFillable() && this.apmosysInTime && this.apmosysOutTime) || !isDayTypeFillable())) {
+        @if (dayType && fromDate && isDayTypeFillable() && this.apmosysInTime && this.apmosysOutTime) {
         <div class="info-card">
 
             <div class="card-header-section">
@@ -614,26 +616,6 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="activities-section"
-                                                *ngIf="!isDayTypeFillable() && project.projectId">
-
-                                                <div class="section-header">
-                                                    <h6 class="section-subtitle">
-                                                        <i class="fas fa-comment"></i> Description
-                                                    </h6>
-                                                </div>
-
-                                                <div class="row">
-                                                    <div class="col-md-12">
-                                                        <label class="info-label small"><span class="text-danger">*</span> Description</label>
-                                                        <textarea class="form-control" rows="2"
-                                                            placeholder="Enter description"
-                                                            [(ngModel)]="project.description"></textarea>
-                                                    </div>
-                                                </div>
-
-                                            </div>
-
                                         </div>
                                     </div>
                                 </div>
@@ -874,6 +856,18 @@
         <p>{{ alertMessage }}</p>
         <button type="button" class="btn btn-primary" (click)="closeAlertModal()">
             OK
+        </button>
+    </div>
+</ng-template>
+
+<ng-template #alert_message_for_holiday_create>
+    <div class="modal-body text-center">
+        <p>{{ alertMessage }}</p>
+        <button type="button" class="btn btn-primary" (click)="closeAlertMessageForHolidayCreate()">
+            Cancel
+        </button>
+        <button type="button" class="btn btn-primary" (click)="closeAlertMessageForHolidayCreate()">
+            Ok
         </button>
     </div>
 </ng-template>

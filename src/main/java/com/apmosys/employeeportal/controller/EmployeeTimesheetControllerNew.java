@@ -482,6 +482,13 @@ public class EmployeeTimesheetControllerNew {
 
 			return ResponseEntity.ok(isAllowed);
 		}
+		
+		@GetMapping("/getMyLastFilledLocationIdForProjectAndEmp")
+		public ServiceResponse getMyLastFilledLocationIdForProjectAndEmp(@RequestParam Long empId, @RequestParam Integer projectId) {
+			ServiceResponse response = new ServiceResponse();
+			response = timesheetServiceNew.getMyLastFilledLocationIdForProjectAndEmp(projectId,empId);
+			return response;
+		}
 }
 
 

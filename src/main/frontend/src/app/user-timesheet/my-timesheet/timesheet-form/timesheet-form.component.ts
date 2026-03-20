@@ -2,8 +2,8 @@ import { Component, Input, OnInit, OnChanges, OnDestroy, Output, EventEmitter, T
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import * as moment from 'moment';
-import { Subject, first, firstValueFrom, takeUntil } from 'rxjs';
-import { finalize } from 'rxjs/operators';
+import { Subject, first, firstValueFrom, forkJoin, of, takeUntil } from 'rxjs';
+import { catchError, finalize, map } from 'rxjs/operators';
 import { AppComponent } from 'src/app/app.component';
 import { Employee } from 'src/app/models/employee';
 import { Timesheet } from 'src/app/models/timesheet';
@@ -51,6 +51,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
 
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
+  @ViewChild("alert_message_for_holiday_create")
+  alertMessageForHolidayCreateTemplate: TemplateRef<any>;
   @ViewChild("night_shift_template")
   night_shift_template: TemplateRef<any>;
   @ViewChild("previewTemplate")
@@ -65,6 +67,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   alertModalRef: NgbModalRef;
   modalRef: NgbModalRef;
   removeLocationConfirmModalRef: NgbModalRef;
+  alertMessageForHolidayCreateModalRef: NgbModalRef;
   pendingLocationIndexToRemove: number | null = null;
   pendingLocationToRemove: LocationEntry | null = null;
   @Input() isCreation: boolean = false;
@@ -161,6 +164,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     "Once the client-side ID is received, update the ID while filling subsequent timesheets."]
   appelectMember: any;
   dayTypeToBeExcluded = ["Leave","Holiday"];
+  holidayDescription: any;
   constructor(private teamViewService: TeamViewService,
     private timesheetService: TimesheetService,
     private timesheetNewService: TimesheetNewService,
@@ -1481,7 +1485,9 @@ this.isNightShift = false;
     this.expandedProjectIndexMap = { 0: 0 };
     
     // Auto-select project if only one is available (after projects are loaded)
-    this.autoSelectProjectIfSingle();
+    if(isDayTypeFillable){
+      this.autoSelectProjectIfSingle();
+    }
   }
 
   /**
@@ -1600,6 +1606,22 @@ this.isNightShift = false;
         this.alertModalRef = null;
       }
     }
+  }
+
+  openAlertModMessageForHolidayCreate(template: TemplateRef<any>, message: any): void {
+    // Close any existing alert so OK always closes the current one (avoids stale ref)
+    this.closeAlertModal();
+    this.alertMessage = message;
+    this.alertMessageForHolidayCreateModalRef = this.modalService.open(template, {
+      modalDialogClass: 'ts-alert-modal',
+      backdrop: 'static'
+    });
+  }
+
+  closeAlertMessageForHolidayCreate(){
+
+    this.alertMessageForHolidayCreateModalRef.close();
+
   }
 
   /**
@@ -3827,7 +3849,102 @@ this.isNightShift = false;
     this.isFullscreen = false;
   }
 
-  createTimesheet() {
+  getLastFilledLocationIdForProjectAndEmp(projectId: number, empId: number) {
+  return this.timesheetNewService
+    .getLastFilledLocationIdForProjectAndEmp(projectId, empId)
+    .pipe(
+      map((response: any) => {
+        if (response && response.serviceResponse) {
+          return response.serviceResponse as number;
+        }
+        return null;
+      }),
+      catchError((error) => {
+        console.error('Error fetching last filled location ID:', error);
+        return of(null);
+      })
+    );
+}
+
+async prepareDataForNonWorkingDay(): Promise<void> {
+
+  if (this.holidayDescription == '' || this.holidayDescription == null) {
+    this.openAlertMod(this.alertTemplate, 'Description is mandatory for non-working day types.');
+    return;
+  }
+
+  const uniqueProjects = Array.from(
+    new Map(
+      this.activeProjectList.map(p => [
+        p.projectId,
+        {
+          projectId: p.projectId,
+          projectName: p.projectName,
+          hasClientSideId: p.hasClientSideId || false,
+          hasClientFlag: p.hasClientFlag || false
+        }
+      ])
+    ).values()
+  );
+
+  if (uniqueProjects.length === 0) {
+    this.openAlertModMessageForHolidayCreate(
+      this.alertMessageForHolidayCreateTemplate,
+      'No projects available. Your timesheet will be filled for Bench Project of your Department.'
+    );
+    return;
+  }
+
+  const empId = this.timesheetAppliedFor?.toLowerCase() === 'self'
+    ? this.currentUser?.empId
+    : this.timesheetFilledForUser?.empId;
+  await Promise.all(
+    this.timesheetLocations.map(async (loc) => {
+
+      const projectObservables = uniqueProjects.map(p => {
+
+        const project = this.createProject(null, null);
+        project.projectId = p.projectId;
+        project.projectName = p.projectName;
+        project.hasClientSideId = p.hasClientSideId;
+        project.hasClientFlag = p.hasClientFlag;
+
+        this.populateProjectDropdowns(project);
+
+        // ✅ correct mapping
+        project.clientId = project.clientDetails?.clientId ?? null;
+
+        return this.getLastFilledLocationIdForProjectAndEmp(project.projectId, empId).pipe(
+          map(locationId => {
+            project.clientLocationId =
+              locationId ?? project.clientDetails.clientLocations?.[0]?.clientLocationId;
+
+            project.description = this.holidayDescription;
+
+            return project;
+          }),
+          catchError(() => {
+            project.clientLocationId = project.clientLocationList?.[0]?.clientLocationId;
+            project.description = this.holidayDescription;
+            return of(project);
+          })
+        );
+      });
+
+      // 🔥 HARD BLOCK here (no subscribe anywhere)
+      loc.projects = await firstValueFrom(forkJoin(projectObservables));
+
+    })
+  );
+
+  console.log('✅ All locations fully populated:', this.timesheetLocations);
+}
+
+  async createTimesheet() {
+    if(!this.isDayTypeFillable()){
+      await this.prepareDataForNonWorkingDay();
+    }
+    console.log('✅ Before validation:', JSON.stringify(this.timesheetLocations));
     this.highlightLocationList = [];
     
     // ✅ MODERATE FIX: Use centralized date conversion method
@@ -4603,10 +4720,13 @@ this.isNightShift = false;
    * Update existing timesheet
    * Similar to createTimesheet but includes timesheetId and handles existing documents
    */
-  updateTimesheet(): void {
+  async updateTimesheet() {
     // Clear previous highlights
     this.highlightLocationList = [];
 
+    if(!this.isDayTypeFillable()){
+      await this.prepareDataForNonWorkingDay();
+    }
     const convertToYYYYMMDD = (dateStr: string): string => {
       if (!dateStr) return '';
       const [day, month, year] = dateStr.split('-');

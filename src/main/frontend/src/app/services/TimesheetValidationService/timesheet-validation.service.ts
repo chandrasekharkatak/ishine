@@ -386,6 +386,9 @@ export class TimesheetValidationService {
           }, locationId);
         }
         if (!project.clientId) {
+          console.log('clientId value:', project.clientId);
+          console.log('clientId type:', typeof project.clientId);
+          console.log("Project missing clientId:", project);
           return fail({
             field: 'clientId',
             message: `Client is mandatory for Project ${pIndex + 1} in ${locLabel}`,

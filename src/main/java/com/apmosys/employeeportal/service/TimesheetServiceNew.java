@@ -2745,5 +2745,18 @@ public class TimesheetServiceNew {
    				 return result != null && result == 1;
         }
 		
+        public ServiceResponse getMyLastFilledLocationIdForProjectAndEmp(Integer projectId, Long empId) {
+        	ServiceResponse serviceResponse =  new ServiceResponse();
+        	if(projectId == null || empId == null) throw new IllegalArgumentException("Either the Project ID or the Employee Id is null");
+        	ProjectTimesheetStatusNew pts = projectTimesheetStatusNewRepository.findByProjectIdAndEmpId(projectId, empId);
+        	if(pts != null) {
+        		serviceResponse.setServiceResponse(pts.getClientLocationId());
+        		serviceResponse.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+        	}else {
+        		serviceResponse.setServiceResponse(null);
+        		serviceResponse.setServiceStatus(ServiceResponse.STATUS_FAIL);
+        	}
+        	return serviceResponse;
+        }
 
 }
