@@ -26,7 +26,7 @@ export class TimesheetConfigService {
    */
   private dayTypeConfig: DayTypeConfig = {
     fillableDayTypes: [1, 3, 8],
-    nonFillableDayTypes: [2, 4, 5, 6, 7],
+    nonFillableDayTypes: [2, 4, 5, 6, 7,9],
     requiresTimeEntry: true,
     allowsNightShift: true,
     defaultWorkLocationTypeId: 4
