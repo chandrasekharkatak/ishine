@@ -127,7 +127,7 @@ public class BioMaxService {
 			Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
 			
 			con = DriverManager.getConnection(
-				"jdbc:sqlserver://192.168.0.126:1433;databaseName=SmartOfficedb;encrypt=true;trustServerCertificate=true;",
+				"jdbc:sqlserver://localhost:1433;databaseName=SmartOfficedb;encrypt=true;trustServerCertificate=true;",
 				"apmosys",
 				"apmosys@123"
 			);
@@ -238,7 +238,7 @@ public class BioMaxService {
 			
 			PreparedStatement countStmt = con.prepareStatement(countQuery);
 			countStmt.setString(1, startDate + " 00:00:00");
-			countStmt.setString(2, endDate + " 00:00:00");
+			countStmt.setString(2, endDate + " 23:59:59");
 			ResultSet countRs = countStmt.executeQuery();
 			
 			int totalRecords = 0;
@@ -273,7 +273,7 @@ public class BioMaxService {
 
 			PreparedStatement statement = con.prepareStatement(query);
 			statement.setString(1, startDate + " 00:00:00");
-			statement.setString(2, endDate + " 00:00:00");
+			statement.setString(2, endDate + " 23:59:59");
 			statement.setInt(3, offset);
 			statement.setInt(4, pageSize);
 
@@ -335,8 +335,8 @@ public class BioMaxService {
 	             PreparedStatement statement = con.prepareStatement(query)) {
 
 	            statement.setString(1, emp.toString());
-	            statement.setString(2, startDate);
-	            statement.setString(3, endDate);
+	            statement.setString(2, startDate + " 00:00:00");
+	            statement.setString(3, endDate + " 23:59:59");
 
 	            try (ResultSet resultSet = statement.executeQuery()) {
 	                while (resultSet.next()) {
