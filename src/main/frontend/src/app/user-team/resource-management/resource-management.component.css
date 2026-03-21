@@ -4960,6 +4960,7 @@ display: inline-block;
   .ep-milestone-field--half {
     flex: 1 1 220px;
     min-width: 0;
+    height: 57px ;
   }
 
   .ep-milestone-field--full {
@@ -5207,6 +5208,7 @@ display: inline-block;
 
   .ep-milestone-modal .mat-mdc-form-field .mat-mdc-text-field-wrapper {
     border-radius: 8px !important;
+    max-height: 57px;
   }
 
   .ep-milestone-modal .ep-milestone-form-row .mat-mdc-form-field {
@@ -5217,6 +5219,7 @@ display: inline-block;
   .ep-milestone-modal .ep-milestone-form-row .mat-mdc-form-field .mat-mdc-text-field-wrapper {
     height: var(--ep-field-height) !important;
     min-height: var(--ep-field-height) !important;
+    max-height: 57px;
   }
 
   .ep-milestone-modal .ep-milestone-form-row .mat-mdc-form-field .mat-mdc-form-field-flex {
@@ -5744,6 +5747,7 @@ display: inline-block;
     }
   }
 
+
   /* .milestone-preview-backdrop{
     z-index: 1065 !important;
 }
@@ -5755,3 +5759,17 @@ display: inline-block;
 .modal-backdrop.show{
     z-index: 1060 !important;
 } */
+::ng-deep .ep-datepicker-57px.mat-mdc-form-field {
+  --mat-form-field-container-height: 57px;
+}
+
+::ng-deep .ep-datepicker-57px .mat-mdc-text-field-wrapper {
+  height: 57px !important;
+  display: flex;
+  align-items: center;
+}
+
+::ng-deep .ep-datepicker-57px .mat-mdc-floating-label {
+  top: 28px; 
+}
+

@@ -324,32 +324,32 @@ public class PoPortalAPIService {
 			MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
 			body.add("dto", jsonPart);
 
-			// // Only add file if present
-			// if (file != null && !file.isEmpty()) {
-			//     ByteArrayResource fileResource = new ByteArrayResource(file.getBytes()) {
-			//         @Override
-			//         public String getFilename() {
-			//             return file.getOriginalFilename();
-			//         }
-			//     };
-			//     body.add("file", fileResource);
-			// }
-
 			// Only add file if present
 			if (file != null && !file.isEmpty()) {
-
-				String originalFileName = file.getOriginalFilename();
-				String newFileName = dto.getId() + "_" + originalFileName;
-
-				ByteArrayResource fileResource = new ByteArrayResource(file.getBytes()) {
-					@Override
-					public String getFilename() {
-						return newFileName;
-					}
-				};
-
-				body.add("file", fileResource);
+			    ByteArrayResource fileResource = new ByteArrayResource(file.getBytes()) {
+			        @Override
+			        public String getFilename() {
+			            return file.getOriginalFilename();
+			        }
+			    };
+			    body.add("file", fileResource);
 			}
+
+			// Only add file if present
+			// if (file != null && !file.isEmpty()) {
+
+			// 	String originalFileName = file.getOriginalFilename();
+			// 	String newFileName = dto.getId() + "_" + originalFileName;
+
+			// 	ByteArrayResource fileResource = new ByteArrayResource(file.getBytes()) {
+			// 		@Override
+			// 		public String getFilename() {
+			// 			return newFileName;
+			// 		}
+			// 	};
+
+			// 	body.add("file", fileResource);
+			// }
 
 			HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
@@ -1243,30 +1243,33 @@ public class PoPortalAPIService {
 			if("Other".equalsIgnoreCase(milestoneExtensionReason))
 			{updateRequest.setOthersReason(dto.getMilestoneExtensionReasonText());}
 			
-			// if (extensionFile != null && !extensionFile.isEmpty()) {
-		    // 	updateRequest.setDocumentContent(extensionFile.getBytes());
-		    // 	updateRequest.setDocumentName(extensionFile.getOriginalFilename());
-		    // 	updateRequest.setDocumentType(extensionFile.getContentType());
-		    // }
-
 			if (extensionFile != null && !extensionFile.isEmpty()) {
-
-				String originalFileName = extensionFile.getOriginalFilename();
-
-				// Extract only file name (in case full path comes)
-				String cleanFileName = originalFileName != null
-						? originalFileName.substring(originalFileName.lastIndexOf("/") + 1)
-								.substring(originalFileName.lastIndexOf("\\") + 1)
-						: "file";
-
-				// Create new filename → milestoneId_filename
-				String newFileName = dto.getMilestoneId() + "_" + cleanFileName;
-
-				updateRequest.setDocumentContent(extensionFile.getBytes());
-				updateRequest.setDocumentName(newFileName);
-				updateRequest.setDocumentType(extensionFile.getContentType());
+		    	updateRequest.setDocumentContent(extensionFile.getBytes());
+		    	updateRequest.setDocumentName(extensionFile.getOriginalFilename());
+		    	updateRequest.setDocumentType(extensionFile.getContentType());
 				updateRequest.setUpdatedByName(dto.getUpdatedByName());
-			}
+
+
+		    }
+
+			// if (extensionFile != null && !extensionFile.isEmpty()) {
+
+			// 	String originalFileName = extensionFile.getOriginalFilename();
+
+			// 	// Extract only file name (in case full path comes)
+			// 	String cleanFileName = originalFileName != null
+			// 			? originalFileName.substring(originalFileName.lastIndexOf("/") + 1)
+			// 					.substring(originalFileName.lastIndexOf("\\") + 1)
+			// 			: "file";
+
+			// 	// Create new filename → milestoneId_filename
+			// 	String newFileName = dto.getMilestoneId() + "_" + cleanFileName;
+
+			// 	updateRequest.setDocumentContent(extensionFile.getBytes());
+			// 	updateRequest.setDocumentName(newFileName);
+			// 	updateRequest.setDocumentType(extensionFile.getContentType());
+			 //	updateRequest.setUpdatedByName(dto.getUpdatedByName());
+			// }
 
 
 			HttpHeaders headers = new HttpHeaders();

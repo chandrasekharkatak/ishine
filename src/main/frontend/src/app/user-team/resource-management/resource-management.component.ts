@@ -162,6 +162,7 @@ expandedIndex: boolean = false;
 isClientSideIdFormatted:Boolean = false;
 employeeRoleList:any =[]
 projectNameForMilestoneUpdate : string ;
+poNameForMilestoneUpdate : string;
 
 toggleExpand(): void {
   this.expandedIndex = !this.expandedIndex;
@@ -6640,6 +6641,7 @@ cancelComplete() {
     let isValid = true;
     let errors: any;
     this.projectNameForMilestoneUpdate = this.projectObj.name;
+    this.poNameForMilestoneUpdate = this.projectObj.poNo;
 
     if((!this.isExtensionEnabled && !this.projectMilestone.extendedDate) && !this.isStatusChanged){
       this.openAlertMod(this.alertTemplateForMilestone, 'No changes has been done for the selected milestone!!.');
@@ -8492,7 +8494,7 @@ onExtensionFileSelected(event: any,projectMilestone:any) {
     return;
   }
   
-  const uniquefile =projectMilestone.id+'_'+file.name
+  const uniquefile =projectMilestone.id+'_'+file.name 
   this.validateFileName(uniquefile,"extended")
   this.projectMilestone.extensionFile = file;
   this.projectMilestone.extensionFile = new File([file],uniquefile,{ type: file.type });
@@ -8606,7 +8608,8 @@ updateMilestoneExtendedDateWithReason():Promise<boolean> {
     updatedBy: this.currentUser.employeementId,
     updatedByName: this.currentUser.name,
     projectName : this.projectNameForMilestoneUpdate,
-    poNumber : this.projectMilestone.poNumber,
+    poNumber : this.poNameForMilestoneUpdate,
+    lineItemName : this.projectMilestone.lineItemName,
     milestoneExtensionReasonId: this.projectMilestone.extensionReason?.id,
     milestoneExtensionReasonText: this.projectMilestone?.extensionReason?.milestoneExtensionReason==='Other'? this.projectMilestone.customReason : ""  };
 
