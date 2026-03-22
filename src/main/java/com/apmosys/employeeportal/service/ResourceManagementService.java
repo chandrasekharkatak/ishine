@@ -15381,6 +15381,9 @@ public class ResourceManagementService {
 		int totalIshineClientCount = 0;
 		int updatedCount = 0;
 		int insertedCount = 0;
+	 	int updatedLocation = 0;
+	 	int insertedLocation = 0;
+
 
 		boolean isOnce = "once".equalsIgnoreCase(mode);
 		String updatedUsing = "";
@@ -15463,8 +15466,10 @@ public class ResourceManagementService {
 					updatedCount += (int) result[0];
 					insertedCount += (int) result[1];
 					totalIshineClientCount += (int) result[2];
-
 					failedClientNames.addAll((List<String>) result[3]);
+					updatedLocation += (int) result[4];
+					insertedLocation += (int) result[5];
+
 
 				} catch (Exception e) {
 					ExceptionLogContext.add(e);
@@ -15480,7 +15485,8 @@ public class ResourceManagementService {
 
 			String message = "Client Sync Completed. " + updatedUsing + " Total PO Clients: " + totalPoClientCount
 					+ " Total iShine Clients(found in db): " + totalIshineClientCount + ", Updated: " + updatedCount
-					+ ", Inserted: " + insertedCount + ", Failed Clients: " + failedClientNames;
+					+ ", Inserted: " + insertedCount + ", Failed Clients: " + failedClientNames 
+					+", Updated Location: " + updatedLocation + ", Inserted Location: " + insertedLocation;
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(message);
@@ -15522,12 +15528,11 @@ public class ResourceManagementService {
 		int inserted = 0;
 		int iShinecount = 0;
 		List<String> failedClientIds = new ArrayList<>();
+	 	int updatedLocation = 0;
+	 	int insertedLocation = 0;
 
 		List<Client> iShineClients = clientsRepository.findByTrimmedClientNameIn(poBatch);
 		iShinecount = iShineClients.size();
-
-//		Map<String, Client> iShineMap = iShineClients.stream()
-//				.collect(Collectors.toMap(c -> c.getClientName().trim().toLowerCase(), c -> c));
 		
 		Map<String, Client> iShineMap = iShineClients.stream()
 		        .filter(c -> c.getClientName() != null)
@@ -15572,6 +15577,10 @@ public class ResourceManagementService {
 
 				updated += result[0];
 				inserted += result[1];
+				updatedLocation += result[2];
+				insertedLocation += result[3];
+
+				
 				
 				if (iShineClient == null && result[1] > 0) {
 				    clientsRepository.findByPoClientId(poDto.getClientid())
@@ -15584,7 +15593,7 @@ public class ResourceManagementService {
 				log.error("Error processing client: {}", clientNamePo, e);
 			}
 		}
-		return new Object[]{updated, inserted, iShinecount, failedClientIds};
+		return new Object[]{updated, inserted, iShinecount, failedClientIds ,updatedLocation,insertedLocation};
 	}
 	
 	private Object[] processByPoClientId(List<String> poBatch, Map<String, ClientDetailsSyncDto> poClientMap) {
@@ -15592,7 +15601,8 @@ public class ResourceManagementService {
 		int updated = 0;
 		int inserted = 0;
 		int iShinecount = 0;
-
+	 	int updatedLocation = 0;
+	 	int insertedLocation = 0;
 		List<String> failedClientIds = new ArrayList<>();
 
 		List<Long> poIds = poBatch.stream()
@@ -15650,6 +15660,9 @@ public class ResourceManagementService {
 				
 				updated += result[0];
 				inserted += result[1];
+				updatedLocation += result[2];
+				insertedLocation += result[3];
+
 				
 				if (iShineClient == null && result[1] > 0) {
 	                Optional<Client> newClient = clientsRepository.findByPoClientId(poDto.getClientid());
@@ -15664,7 +15677,7 @@ public class ResourceManagementService {
 			}
 		}
 
-		return new Object[]{updated, inserted, iShinecount, failedClientIds};
+		return new Object[]{updated, inserted, iShinecount, failedClientIds,updatedLocation,insertedLocation};
 	}
 	
 	@Transactional(readOnly = true)
