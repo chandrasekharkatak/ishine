@@ -2592,7 +2592,7 @@
                                                     <button *ngIf="milestone.status === 'Completed'" type="button"
                                                         class="milestone-table__btn milestone-table__btn--doc"
                                                         title="View Document"
-                                                        (click)="viewFiles(milestone.id)">
+                                                        (click)="previewDocument(milestone.id, milestone.documentName)">
                                                         <i class="fas fa-file-alt"></i>
                                                     </button>
                                                 </td>
@@ -2645,12 +2645,12 @@
                                                                             <span class="milestone-log-card__na" *ngIf="!log.extentionReason && !log.othersReason && !log.otherReason">—</span>
                                                                         </div>
                                                                         <div class="milestone-log-card__doc">
-                                                                            <button *ngIf="log.documentId" type="button"
+                                                                            <button *ngIf="log.documentName" type="button"
                                                                                 class="milestone-log-card__doc-btn"
                                                                                 (click)="previewDocument(milestone.id, log.documentName)">
                                                                                 <i class="fas fa-eye"></i> View
                                                                             </button>
-                                                                            <span *ngIf="!log.documentId" class="milestone-log-card__doc-na" title="Document not present">
+                                                                            <span *ngIf="!log.documentName" class="milestone-log-card__doc-na" title="Document not present">
                                                                                 <i class="fas fa-eye-slash"></i>
                                                                             </span>
                                                                         </div>

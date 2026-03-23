@@ -3266,8 +3266,25 @@ public class ProjectService {
 		            dto.setMilestoneExtendedEndDateLogs(milestone.getMilestoneExtendedEndDateLogs());
 		            dto.setMilestoneExtendedStartDateLogs(milestone.getMilestoneExtendedStartDateLogs());
 		            dto.setMilestoneStatusLogs(milestone.getMilestoneStatusLogs());
+		            
+		            String documentName = "";
 
-		            milestoneList.add(dto);
+		         // Set documentName if status = completed
+		         if ("completed".equalsIgnoreCase(milestone.getStatus()) 
+		                 && milestone.getMilestoneStatusLogs() != null) {
+
+		             Optional<MilestoneAuditDTO> completedLog = milestone.getMilestoneStatusLogs()
+		                     .stream()
+		                     .filter(log -> "completed".equalsIgnoreCase(log.getNewValue()))
+		                     .reduce((first, second) -> second); 
+
+		             if (completedLog.isPresent() && completedLog.get().getDocumentName() != null) {
+		                 documentName = completedLog.get().getDocumentName();
+		             }
+		         }
+		         	
+		          dto.setDocumentName(documentName);
+		          milestoneList.add(dto);
 		        }
 		    }
 
