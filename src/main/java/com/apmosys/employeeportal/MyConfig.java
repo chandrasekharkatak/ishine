@@ -59,7 +59,8 @@ public class MyConfig implements WebMvcConfigurer {
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers(request -> {
                         String method = request.getMethod();
-                        return method.equals("TRACE") || method.equals("DEBUG") || method.equals("DELETE");
+                        return false;
+                        //return method.equals("TRACE") || method.equals("DEBUG") || method.equals("DELETE");
 //                        return method.equals("TRACE") || method.equals("DEBUG") ;
 
                     }).denyAll()

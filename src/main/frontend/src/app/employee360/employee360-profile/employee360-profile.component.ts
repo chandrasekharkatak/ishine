@@ -1779,29 +1779,33 @@ export class Employee360ProfileComponent implements OnInit {
       return false;
     }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultprojectType)) {
-      this.alertMessage = "Please select Default project Type !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+if (this.deptSelected) {
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultProjectId)) {
-      this.alertMessage = "Please select Default project  !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
+  if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultprojectType)) {
+    this.alertMessage = "Please select Default project Type !!";
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
 
-    if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultTeamId)) {
-      this.alertMessage = "Please select Default Team !!"
-      this.openAlertMod(template, this.alertMessage);
-      return false;
-    }
-   
-      if ((employeeObj.defaultTeamEmployeeRole.length === 0 || !employeeObj.defaultTeamEmployeeRole)) {
-        this.alertMessage = "Please select Employee Role In Default Project !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
+  if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultProjectId)) {
+    this.alertMessage = "Please select Default project !!";
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
+
+  if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.defaultTeamId)) {
+    this.alertMessage = "Please select Default Team !!";
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
+
+  if (!employeeObj.defaultTeamEmployeeRole || employeeObj.defaultTeamEmployeeRole.length === 0) {
+    this.alertMessage = "Please select Employee Role In Default Project !!";
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
+
+}
 
     // if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.billable)) {
     //   this.alertMessage = "Please select billable !!"

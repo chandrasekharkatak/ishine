@@ -586,6 +586,23 @@ public class NotificationServiceImpl implements NotificationService {
 					dto.setNotificationMessage(object[2] != null ? object[2].toString() : null);
 					dto.setConsentOn(object[3] != null ? object[3].toString() : null);
 					
+					String employmentId = dto.getEmployeementId().toString();
+					String isApmosysProduct = object[4] != null ? object[4].toString() : null;
+					String isConsultant = object[5] != null ? object[5].toString() : null;
+
+					if (employmentId != null) {
+
+					    String prefix = "A-"; // default
+
+					    if ("true".equalsIgnoreCase(isApmosysProduct)) {
+					        prefix = "AP-";
+					    } else if ("true".equalsIgnoreCase(isConsultant)) {
+					        prefix = "CS-";
+					    }
+
+					    dto.setEmployeementIdAccToET(prefix + employmentId);
+					}
+					
 					dtoList.add(dto);
 				});
 				

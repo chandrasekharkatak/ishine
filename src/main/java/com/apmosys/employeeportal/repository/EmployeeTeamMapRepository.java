@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.repository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -618,10 +619,12 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 				+ "INNER JOIN Client c ON c.clientId = p.clientId \n"
 				+ "INNER JOIN EmployeeTeamMap etm ON etm.teamId = t.teamId \n"
 				+ "INNER JOIN ClientLocation cl ON cl.clientId = c.clientId\n"
-				+ "where p.projectId = :project_id AND etm.empId = :empId")
+				+ "where p.projectId = :project_id AND etm.empId = :empId \n"
+				+ "AND date(etm.startDate) <= :date \n"
+				+ "AND (date(etm.endDate) IS NULL OR date(etm.endDate) >= :date)")
 		public List<GetClientDetailsByProjectIdAndEmpIdDTO> getClientDetailsByProjectIdAndEmpId(@Param("project_id")Integer projectId, 
-				@Param("empId")Long empId);
-
+				@Param("empId")Long empId, @Param("date") Date date);
+		
 		@Query(value = "SELECT distinct new com.apmosys.employeeportal.dto.GetClientDetailsByProjectIdAndEmpIdDTO( c.clientId, "
 				+ "c.clientName, cl.clientLocationId, cl.clientLocation, t.projectId, p.projectName, t.teamName, t.teamId )\n"
 				+ "FROM Team t \n"
@@ -638,7 +641,7 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 				@Param("empId") Long empId,
 				@Param("startOfDay") LocalDateTime startOfDay,
 				@Param("endOfDay") LocalDateTime endOfDay);
-		
+
 		@Query(value="SELECT etm \n"
 				+ "FROM EmployeeTeamMap etm \n"
 				+ "WHERE etm.empId=:empId AND etm.active!=0")

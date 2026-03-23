@@ -463,7 +463,7 @@ async checkExistingDraft() {
           return false;
         }
 
-        if (!this.validationService.validateNullUndefinedEmptyString(previousEmployer.hrContactNumber)) {
+        if (!this.validationService.validatePhoneNumber(previousEmployer.hrContactNumber)) {
           this.alertMessage = `Please Enter HR Contact Number - ${index}!!`
           this.openAlertMod(template, this.alertMessage);
           return false;

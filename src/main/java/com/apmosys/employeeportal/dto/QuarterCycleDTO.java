@@ -43,6 +43,8 @@ public class QuarterCycleDTO {
 	private Boolean isActive;  
     private Boolean isEnable;
 	
+    private String cycleType;
+    
 	
 
 }

@@ -21,6 +21,7 @@ import { UserRequestsComponent } from './user-requests/user-requests.component';
 import { UserSalaryComponent } from './user-salary/user-salary.component';
 import { UserSurveyComponent } from './user-survey/user-survey.component';
 import { CalendarViewComponent } from './user-timesheet/calendar-view/calendar-view.component';
+import { TrainingComponent } from './training/training.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
@@ -109,6 +110,8 @@ const routes: Routes = [
   { path: 'helpdesk/:id', component: HelpdeskComponent, canActivate: [AuthGuard] },
   { path: 'release-notes', component: UserReleasenotesComponent, canActivate: [AuthGuard] },
   { path: 'newsletters', component: NewsletterComponent, canActivate: [AuthGuard] },
+  { path: 'training', component: TrainingComponent, canActivate: [AuthGuard] },
+  { path: 'user-training', component: TrainingComponent, canActivate: [AuthGuard] },
   {
     path: 'travelDesk',
     loadChildren: () => import('./module-routing/travel-desk/travel-desk.module').then(m => m.TravelDeskModule),

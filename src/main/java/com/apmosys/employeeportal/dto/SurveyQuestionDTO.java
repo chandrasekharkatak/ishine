@@ -25,5 +25,9 @@ public class SurveyQuestionDTO {
 	    private String isConsultant;
 	    private String isApmosysProduct;
 	    private String employmentIdAccToET;
+	private Integer marksObtained;
+	private String passStatus;
+	private String correctAnswer;
+	private Integer cuttOffQuestions;
 
 }

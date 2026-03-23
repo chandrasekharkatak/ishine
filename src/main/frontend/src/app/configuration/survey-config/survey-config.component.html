@@ -5,22 +5,37 @@
     </div>
 </div> -->
 
+<!-- Training Context Banner (if navigated from training-config) -->
+<div class="row mb-3" *ngIf="isFromTraining && (isCreation || isUpdation)">
+    <div class="col-md-12">
+        <div class="alert alert-info d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-graduation-cap mr-2"></i>
+                <strong>Training Quiz:</strong> Creating quiz for training "<strong>{{trainingName}}</strong>"
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-primary" (click)="backToTraining()">
+                <i class="fa-solid fa-arrow-left-long mr-1"></i> Back to Training
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- start :: Create Survey Form -->
 <div class="row" *ngIf="isSurveyForm">
     <div class="px-0">
-        <button type="button" class="btn btn-outline-primary btn-sm mb-1" *ngIf="(userMapping.view_all_surveys || userMapping.update_survey_status) && !isSurveyList" [ngClass]="{'active' : isSurveyList}" (click)="showSurveys()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
+        <button type="button" class="btn btn-outline-primary btn-sm mb-1" *ngIf="((isFromTraining && userMapping.quiz_config) || (!isFromTraining && (userMapping.view_all_surveys || userMapping.update_survey_status))) && !isSurveyList" [ngClass]="{'active' : isSurveyList}" (click)="showSurveys()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
     </div>
     <div class="card col-md-12 px-0">
         <div class="card-header text-center text-uppercase">
-            <strong *ngIf="isCreation">Create Survey</strong>
-            <strong *ngIf="isUpdation">Update Survey</strong>
+            <strong *ngIf="isCreation">{{isFromTraining ? 'Create Quiz' : 'Create Survey'}}</strong>
+            <strong *ngIf="isUpdation">{{isFromTraining ? 'Update Quiz' : 'Update Survey'}}</strong>
         </div>
         <div class="card-body">
             <div class="row">
                 <div class="col-md-4 mb-0">
                     <div class="info-wrapper">
                         <div class="form-group">
-                            <label class="info-label"><span class="text-danger">*</span>Survey Name</label>
+                            <label class="info-label"><span class="text-danger">*</span>{{isFromTraining ? 'Quiz Name' : 'Survey Name'}}</label>
                             <input type="text" class="form-control" autocomplete="none" (blur)="spaceTrimOnSurveyName()" [(ngModel)]="surveyObj.surveyName">
                         </div>
                     </div>
@@ -30,6 +45,14 @@
                         <div class="form-group">
                             <label class="info-label">Description</label>
                             <input type="text" class="form-control" autocomplete="none" [(ngModel)]="surveyObj.description">
+                        </div>
+                    </div>
+                </div>
+                <div *ngIf="isFromTraining" class="col-md-4 mb-0">
+                    <div class="info-wrapper">
+                        <div class="form-group">
+                            <label title="How many question have to be correct to pass the survey" class="info-label">Cut-Off Questions</label>
+                            <input type="number" class="form-control" autocomplete="none" [(ngModel)]="surveyObj.cutOffQuestions">
                         </div>
                     </div>
                 </div>
@@ -50,12 +73,12 @@
                             <div class="info-wrapper">
                                 <div class="form-group">
                                     <label class="info-label"><span class="text-danger">*</span>Options Type</label>
-                                    <select class="form-control" aria-hidden="true" [(ngModel)]="question.optionType" (change)="setOption(question)">
-                                        <option selected="selected" value="" disabled>Select</option>
-                                        <option value="checkbox">checkbox</option>
+                                    <select class="form-control" [disabled]="isFromTraining" aria-hidden="true" [(ngModel)]="question.optionType" (change)="setOption(question)">
+                                        <option *ngIf="!isFromTraining" selected="selected" value="" disabled>Select</option>
+                                        <option *ngIf="!isFromTraining" value="checkbox">checkbox</option>
                                         <option value="radio">radio</option>
-                                        <option value="text">text</option>
-                                        <option value="dropdown">Choose From Employee Dropdown</option>
+                                        <option *ngIf="!isFromTraining" value="text">text</option>
+                                        <option *ngIf="!isFromTraining" value="dropdown">Choose From Employee Dropdown</option>
                                       </select>
                                 </div>
                             </div>
@@ -74,7 +97,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-2 mb-0">
+                        <div *ngIf="!isFromTraining" class="col-md-2 mb-0">
                             <div class="info-wrapper">
                                 <div class="custom-control-lg custom-control custom-checkbox mt-4 pt-2">
                                     <input class="custom-control-input" type="checkbox" id="requiredCheck{{i+1}}" [(ngModel)]="question.required">
@@ -83,24 +106,90 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row" *ngIf="(question.optionType == 'checkbox' || question.optionType == 'radio')" >
-                        <div class="col-md-12" *ngFor="let option of question.optionsList; let i = index">
-                            <div class="row">
-                                <div class="col-md-4 mb-0">
-                                    <div class="info-wrapper">
-                                        <div class="form-group">
-                                            <label class="info-label">option - {{i+1}}</label>
-                                            <input type="text" class="form-control" autocomplete="none" [(ngModel)]="option.optionValue">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 pt-4 mt-2">
-                                    <button type="button" class="btn btn-outline-primary mx-1" (click)="addOption(i, question)"><i class="fa fa-plus" aria-hidden="true"></i></button>
-                                    <button *ngIf="question.optionsList.length>1" type="button" class="btn btn-outline-primary mx-1" (click)="removeOption(i, question)"><i class="fa fa-trash" aria-hidden="true"></i></button>
-                                </div>
-                            </div>
-                        </div>
+                 <div class="row"
+     *ngIf="(question.optionType == 'checkbox' || question.optionType == 'radio')">
+
+    
+    <div class="col-md-7">
+
+        <div class="row"
+             *ngFor="let option of question.optionsList; let i = index">
+
+            
+            <div class="col-md-8 mb-2">
+                <div class="info-wrapper">
+                    <div class="form-group">
+                        <label class="info-label">Option - {{i + 1}}</label>
+                        <input type="text"
+                               class="form-control"
+                               [(ngModel)]="option.optionValue"
+                               autocomplete="off">
                     </div>
+                </div>
+            </div>
+
+            <!-- Add / Remove Buttons -->
+            <div class="col-md-4 pt-4">
+                <button type="button"
+                        class="btn btn-outline-primary mx-1"
+                        (click)="addOption(i, question)">
+                    <i class="fa fa-plus"></i>
+                </button>
+
+                <button *ngIf="question.optionsList.length > 1"
+                        type="button"
+                        class="btn btn-outline-danger mx-1"
+                        (click)="removeOption(i, question)">
+                    <i class="fa fa-trash"></i>
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Correct Answer  -->
+    <div class="col-md-5"
+         *ngIf="isFromTraining && question.optionType == 'radio'">
+
+        <div class="info-wrapper p-3"
+             style="background-color:#f8f9fa; border-radius:5px; border:1px solid #e9ecef;">
+
+            <div class="form-group mb-2">
+                <label class="info-label text-success font-weight-bold">
+                    <span class="text-danger">*</span> Correct Answer
+                </label>
+
+                <select class="form-control" [(ngModel)]="question.correctAnswer"
+                       >
+
+                    <option [ngValue]="undefined" disabled>
+                        Select Correct Option
+                    </option>
+
+                    <option *ngFor="let opt of question.optionsList; let optIndex = index"
+                            [ngValue]="opt.optionValue">
+                        Option - {{optIndex + 1}}
+                    </option>
+
+                </select>
+            </div>
+
+            <div class="form-group mb-0">
+                <input type="text"
+                       class="form-control bg-white"
+                       readonly
+                       [value]="!question.correctAnswer ? 'Selected answer will appear here...' : question.correctAnswer"
+                       placeholder="Selected answer will appear here...">
+            </div>
+
+        </div>
+
+    </div>
+     <!-- Correct Answer  -->
+
+</div>
+
                     <div *ngIf="question.optionType == 'text'" class="row">
                         <div class="col-md-4 mb-0">
                             <div class="info-wrapper">
@@ -139,14 +228,14 @@
     <div class="col-md-12">
         <div class="row">
             <div class="col-md-12 table-header">
-                <h1 class="table-header-title">Survey(s)</h1>
+                <h1 class="table-header-title">{{isFromTraining ? 'Quiz(es)' : 'Survey(s)'}}</h1>
             </div>
         </div>
-
         <div class="col-md-12">
             <div class="row">
                 <div class="col-md-3 ml-auto d-flex justify-content-end align-items-start mb-1">
-                    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="userMapping.create_survey" [ngClass]="{'active' : isSurveyForm && isCreation}" (click)="showSurveyForm()"><em class="fa-solid fa-plus"></em>&nbsp; Create Survey</button>
+                    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="(isFromTraining && userMapping.quiz_config) || (!isFromTraining && userMapping.create_survey)" [ngClass]="{'active' : isSurveyForm && isCreation}" (click)="showSurveyForm()"><em class="fa-solid fa-plus">
+                    </em>&nbsp; {{isFromTraining ? 'Create Quiz':'Create Survey'}}</button>
                 </div>
             </div>
         </div>
@@ -163,7 +252,7 @@
                 <table class="table" matSort (matSortChange)="sortData($event)">
                     <thead class="thead-light">
                       <tr>
-                        <th scope="col" class="info-label" mat-sort-header="surveyName|string">Survey Name</th>
+                        <th scope="col" class="info-label" mat-sort-header="surveyName|string">{{isFromTraining ? 'Quiz Name' : 'Survey Name'}}</th>
                         <th scope="col" class="info-label" mat-sort-header="description|string">Description</th>
                         <th scope="col" class="info-label" mat-sort-header="isActive|string">Status</th>
                         <th scope="col" class="info-label" mat-sort-header="createdByName|string">Created By</th>
@@ -174,25 +263,26 @@
                     </thead>
                     <tbody>
                         <tr *ngIf="allSurveyList.length == 0|| (allSurveyList| colFilter:filters:false).length == 0">
-                            <th colspan="6" class="text-center info-label">No Surveys to display...</th>
+                            <th colspan="6" class="text-center info-label">{{isFromTraining ? 'No Quizzes to display...' : 'No Surveys to display...'}}</th>
                         </tr>
                       <tr *ngFor="let survey of allSurveyList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
                         <td>{{survey.surveyName}}</td>
                         <td>{{survey.description}}</td>
                         <td>{{survey.isActive}}</td>
-                        <td  *ngIf="!userMapping.employee360_view_survey_config">{{(survey.isActive == 'true')? 'Active' : (survey.isActive == 'false')? 'In-Active' : 'Completed'}}</td>
+                        <td  *ngIf="(isFromTraining && !userMapping.quiz_config) || (!isFromTraining && !userMapping.employee360_view_survey_config)">{{(survey.isActive == 'true')? 'Active' : (survey.isActive == 'false')? 'In-Active' : 'Completed'}}</td>
                         <td  *ngIf="userMapping.employee360_view_survey_config" id="clickablefor360" [navigateToEmployee360]="survey.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{survey.createdByName}}</td>
-                        <td>{{survey.createdOn}}</td>
+                        <td  *ngIf="isFromTraining && userMapping.quiz_config" style="cursor: pointer;">{{survey.createdByName}}</td>
+                        <td>{{convertWithMoment(survey.createdOn)}}</td>
                         <td>
                             <button class="btn btn-sm btn-outline-primary" type="submit" (click)="onSurveyPreview(survey, preview_template)"><em>Preview</em></button>
 
                             <button *ngIf="survey.isActive == 'false' || survey.type == 'exit'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showSurveyUpdate(survey, alert_message)"><em class="fa fa-edit"></em></button>
-                            <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-outline-danger" type="submit" (click)="openDeleteSurveyMod(delete_template, survey)"><em class="fa fa-trash"></em></button>
+                            <button *ngIf="!survey.isActive || survey.isActive == 'false'" [matTooltip]="isFromTraining ? 'Deactivate Quiz' : 'Delete Survey'"class="btn btn-sm btn-outline-danger" type="submit" (click)="openDeleteSurveyMod(delete_template, survey)"><em class="fa fa-trash"></em></button>
                             <button *ngIf="survey.isActive == 'false'" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openActivateSurveyMod(activate_template, survey)"><em>Activate</em></button>
 
-                            <button *ngIf="survey.isActive == 'true' && survey.type != 'exit'" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openCompleteSurveyMod(complete_template, survey)"><em>Complete</em></button>
+                            <button *ngIf="survey.isActive == 'true' && !['exit'].includes(survey.type)" class="btn btn-sm btn-primary mx-1" type="submit" (click)="openCompleteSurveyMod(complete_template, survey)"><em>Complete</em></button>
                             <button *ngIf="survey.isActive == 'true' || survey.isActive == 'Completed'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="showSurveyResponses(survey)"><em>View Response</em></button>&nbsp;
-                            <button *ngIf="survey.isActive == 'true'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="copySurveyLinkToClipBoard(survey,alert_message)"><em>Copy Survey Link</em></button>&nbsp;
+                            <button *ngIf="!isFromTraining && survey.isActive == 'true'" class="btn btn-sm btn-outline-primary mx-1" type="submit" (click)="copySurveyLinkToClipBoard(survey,alert_message)"><em>Copy {{isFromTraining ? 'Quiz' : 'Survey'}} Link</em></button>&nbsp;
                         </td>
                       </tr>
                     </tbody>
@@ -209,11 +299,12 @@
 <div class="row" *ngIf="isSurveyResponseList">
     <div class="col-md-12">
         <div class="px-0">
-          <button type="button" class="btn btn-outline-primary btn-sm mb-1" (click)="showSurveys()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
+          <button type="button" class="btn btn-outline-primary btn-sm mb-1" *ngIf="!isFromTraining" (click)="showSurveys()"><em><i class="fa-solid fa-arrow-left-long"></i></em></button>
+          <button type="button" class="btn btn-outline-primary btn-sm mb-1" *ngIf="isFromTraining" (click)="backToTraining()"><em><i class="fa-solid fa-arrow-left-long"></i></em> Back to Training</button>
         </div>
         <div class="row">
             <div class="col-md-12 table-header">
-                <h1 class="table-header-title">{{selectedSurveyName}} - Responses</h1>
+                <h1 class="table-header-title">{{trainingName || selectedSurveyName}} - Responses</h1>
             </div>
         </div>
         <div class="row">
@@ -230,6 +321,8 @@
                     <thead class="thead-light">
                         <tr>
                             <th scope="col" class="info-label">#</th> 
+                            <!-- <th *ngIf="isFromTraining" scope="col" class="info-label">Percentage</th> 
+                            <th *ngIf="isFromTraining" scope="col" class="info-label">Result</th>  -->
                             <th scope="col" class="info-label" *ngFor="let columnHeader of responseListTableHeaders">
                                 {{ columnHeader }}
                             </th>
@@ -271,7 +364,7 @@
 
 <ng-template #delete_template>
     <div class="modal-body text-center">
-        <p>Are you sure you want to Delete this survey?</p>
+        <p>Are you sure you want to {{isFromTraining ? 'Deactivate this Quiz' : 'Delete this Survey'}}?</p>
         <button type="button" class="btn btn-success" (click)="onDelete(alert_message)">Yes, proceed</button>&nbsp;
         <button type="button" class="btn btn-danger" (click)="cancelRequest()">No, Cancel</button>&nbsp;
     </div>
@@ -302,5 +395,13 @@
     </div>
     <div class="modal-body">
         <div class="container-fluid d-flex flex-column align-tems-center" id="survey-container"></div>
+    </div>
+</ng-template>
+
+<ng-template #ask_to_make_it_active>
+    <div class="modal-body text-center">
+        <p>{{alertMessage}}</p>
+        <button type="button" class="btn btn-success" (click)="activateNewTraining(alert_message)">Yes, proceed</button>&nbsp;
+        <button type="button" class="btn btn-danger" (click)="closeAskNewQuizModal()">No, Cancel</button>&nbsp;
     </div>
 </ng-template>
