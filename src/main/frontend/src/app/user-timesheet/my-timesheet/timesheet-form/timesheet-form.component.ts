@@ -3975,7 +3975,7 @@ async prepareDataForNonWorkingDay(): Promise<void> {
 
       // 🔥 HARD BLOCK here (no subscribe anywhere)
       loc.projects = await firstValueFrom(forkJoin(projectObservables));
-
+      loc.projects = loc.projects?.filter(p => (p.clientId !== null && p.clientId !== undefined) && (p.clientLocationId !== null && p.clientLocationId !== undefined));
     })
   );
 
